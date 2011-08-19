@@ -7,6 +7,8 @@
 //
 
 #import "AtomicityAppDelegate.h"
+
+#import <WebKit/WebKit.h>
 #import "JSCocoa.h"
 
 @implementation AtomicityAppDelegate

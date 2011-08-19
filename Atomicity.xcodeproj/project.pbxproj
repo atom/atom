@@ -49,14 +49,11 @@
 		8359A69213FE1FE900AC37E3 /* worker-javascript.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A63413FE1FCA00AC37E3 /* worker-javascript.js */; };
 		8359A6EE13FE26DA00AC37E3 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */; };
 		8359A72213FE270F00AC37E3 /* BridgeSupportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A6F913FE270F00AC37E3 /* BridgeSupportController.m */; };
-		8359A72313FE270F00AC37E3 /* class.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A6FA13FE270F00AC37E3 /* class.js */; };
 		8359A72F13FE270F00AC37E3 /* JSCocoaController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71813FE270F00AC37E3 /* JSCocoaController.m */; };
 		8359A73013FE270F00AC37E3 /* JSCocoaFFIArgument.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71A13FE270F00AC37E3 /* JSCocoaFFIArgument.m */; };
 		8359A73113FE270F00AC37E3 /* JSCocoaFFIClosure.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71C13FE270F00AC37E3 /* JSCocoaFFIClosure.m */; };
 		8359A73213FE270F00AC37E3 /* JSCocoaLib.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71E13FE270F00AC37E3 /* JSCocoaLib.m */; };
 		8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */; };
-		8359A73413FE270F00AC37E3 /* jslint-jscocoa.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */; };
-		8393431213FE39D800EF93FB /* underscore.js in Sources */ = {isa = PBXBuildFile; fileRef = 8393431113FE39D800EF93FB /* underscore.js */; };
 		8393431313FE39E100EF93FB /* underscore.js in Resources */ = {isa = PBXBuildFile; fileRef = 8393431113FE39D800EF93FB /* underscore.js */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
@@ -411,6 +408,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"$PROJECT_DIR/script/compile.sh\"";
+			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -422,14 +420,11 @@
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				256AC3DA0F4B6AC300CF3369 /* AtomicityAppDelegate.m in Sources */,
 				8359A72213FE270F00AC37E3 /* BridgeSupportController.m in Sources */,
-				8359A72313FE270F00AC37E3 /* class.js in Sources */,
 				8359A72F13FE270F00AC37E3 /* JSCocoaController.m in Sources */,
 				8359A73013FE270F00AC37E3 /* JSCocoaFFIArgument.m in Sources */,
 				8359A73113FE270F00AC37E3 /* JSCocoaFFIClosure.m in Sources */,
 				8359A73213FE270F00AC37E3 /* JSCocoaLib.m in Sources */,
 				8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */,
-				8359A73413FE270F00AC37E3 /* jslint-jscocoa.js in Sources */,
-				8393431213FE39D800EF93FB /* underscore.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
