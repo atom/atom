@@ -8,6 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
+#import "JSCocoa.h"
 
 int main(int argc, char *argv[])
 {

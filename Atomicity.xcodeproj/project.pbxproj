@@ -61,6 +61,15 @@
 		8359A69213FE1FE900AC37E3 /* worker-javascript.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A63413FE1FCA00AC37E3 /* worker-javascript.js */; };
 		8359A6B413FE24B300AC37E3 /* atomicity.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A6B313FE24B300AC37E3 /* atomicity.js */; };
 		8359A6B713FE24BC00AC37E3 /* atomicity.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A6B313FE24B300AC37E3 /* atomicity.js */; };
+		8359A6EE13FE26DA00AC37E3 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */; };
+		8359A72213FE270F00AC37E3 /* BridgeSupportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A6F913FE270F00AC37E3 /* BridgeSupportController.m */; };
+		8359A72313FE270F00AC37E3 /* class.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A6FA13FE270F00AC37E3 /* class.js */; };
+		8359A72F13FE270F00AC37E3 /* JSCocoaController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71813FE270F00AC37E3 /* JSCocoaController.m */; };
+		8359A73013FE270F00AC37E3 /* JSCocoaFFIArgument.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71A13FE270F00AC37E3 /* JSCocoaFFIArgument.m */; };
+		8359A73113FE270F00AC37E3 /* JSCocoaFFIClosure.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71C13FE270F00AC37E3 /* JSCocoaFFIClosure.m */; };
+		8359A73213FE270F00AC37E3 /* JSCocoaLib.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71E13FE270F00AC37E3 /* JSCocoaLib.m */; };
+		8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */; };
+		8359A73413FE270F00AC37E3 /* jslint-jscocoa.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -128,6 +137,22 @@
 		8359A63313FE1FCA00AC37E3 /* worker-css.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "worker-css.js"; path = "HTML/ace/worker-css.js"; sourceTree = "<group>"; };
 		8359A63413FE1FCA00AC37E3 /* worker-javascript.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "worker-javascript.js"; path = "HTML/ace/worker-javascript.js"; sourceTree = "<group>"; };
 		8359A6B313FE24B300AC37E3 /* atomicity.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = atomicity.js; path = HTML/atomicity.js; sourceTree = "<group>"; };
+		8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		8359A6F813FE270F00AC37E3 /* BridgeSupportController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgeSupportController.h; sourceTree = "<group>"; };
+		8359A6F913FE270F00AC37E3 /* BridgeSupportController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BridgeSupportController.m; sourceTree = "<group>"; };
+		8359A6FA13FE270F00AC37E3 /* class.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = class.js; sourceTree = "<group>"; };
+		8359A71313FE270F00AC37E3 /* JSCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoa.h; sourceTree = "<group>"; };
+		8359A71713FE270F00AC37E3 /* JSCocoaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaController.h; sourceTree = "<group>"; };
+		8359A71813FE270F00AC37E3 /* JSCocoaController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaController.m; sourceTree = "<group>"; };
+		8359A71913FE270F00AC37E3 /* JSCocoaFFIArgument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaFFIArgument.h; sourceTree = "<group>"; };
+		8359A71A13FE270F00AC37E3 /* JSCocoaFFIArgument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaFFIArgument.m; sourceTree = "<group>"; };
+		8359A71B13FE270F00AC37E3 /* JSCocoaFFIClosure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaFFIClosure.h; sourceTree = "<group>"; };
+		8359A71C13FE270F00AC37E3 /* JSCocoaFFIClosure.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaFFIClosure.m; sourceTree = "<group>"; };
+		8359A71D13FE270F00AC37E3 /* JSCocoaLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaLib.h; sourceTree = "<group>"; };
+		8359A71E13FE270F00AC37E3 /* JSCocoaLib.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaLib.m; sourceTree = "<group>"; };
+		8359A71F13FE270F00AC37E3 /* JSCocoaPrivateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaPrivateObject.h; sourceTree = "<group>"; };
+		8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaPrivateObject.m; sourceTree = "<group>"; };
+		8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jslint-jscocoa.js"; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Atomicity-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Atomicity-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Atomicity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atomicity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -139,6 +164,7 @@
 			files = (
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				83599F9B13FE0F8400AC37E3 /* WebKit.framework in Frameworks */,
+				8359A6EE13FE26DA00AC37E3 /* JavaScriptCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,6 +185,7 @@
 			children = (
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				83599F9A13FE0F8400AC37E3 /* WebKit.framework */,
+				8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */,
 			);
 			name = "Linked Frameworks";
 			sourceTree = "<group>";
@@ -188,6 +215,7 @@
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
+				8359A6F713FE270F00AC37E3 /* JSCocoa */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -285,6 +313,28 @@
 				8359A63413FE1FCA00AC37E3 /* worker-javascript.js */,
 			);
 			name = ace;
+			sourceTree = "<group>";
+		};
+		8359A6F713FE270F00AC37E3 /* JSCocoa */ = {
+			isa = PBXGroup;
+			children = (
+				8359A6F813FE270F00AC37E3 /* BridgeSupportController.h */,
+				8359A6F913FE270F00AC37E3 /* BridgeSupportController.m */,
+				8359A6FA13FE270F00AC37E3 /* class.js */,
+				8359A71313FE270F00AC37E3 /* JSCocoa.h */,
+				8359A71713FE270F00AC37E3 /* JSCocoaController.h */,
+				8359A71813FE270F00AC37E3 /* JSCocoaController.m */,
+				8359A71913FE270F00AC37E3 /* JSCocoaFFIArgument.h */,
+				8359A71A13FE270F00AC37E3 /* JSCocoaFFIArgument.m */,
+				8359A71B13FE270F00AC37E3 /* JSCocoaFFIClosure.h */,
+				8359A71C13FE270F00AC37E3 /* JSCocoaFFIClosure.m */,
+				8359A71D13FE270F00AC37E3 /* JSCocoaLib.h */,
+				8359A71E13FE270F00AC37E3 /* JSCocoaLib.m */,
+				8359A71F13FE270F00AC37E3 /* JSCocoaPrivateObject.h */,
+				8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */,
+				8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */,
+			);
+			path = JSCocoa;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -402,6 +452,14 @@
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				256AC3DA0F4B6AC300CF3369 /* AtomicityAppDelegate.m in Sources */,
 				8359A6B413FE24B300AC37E3 /* atomicity.js in Sources */,
+				8359A72213FE270F00AC37E3 /* BridgeSupportController.m in Sources */,
+				8359A72313FE270F00AC37E3 /* class.js in Sources */,
+				8359A72F13FE270F00AC37E3 /* JSCocoaController.m in Sources */,
+				8359A73013FE270F00AC37E3 /* JSCocoaFFIArgument.m in Sources */,
+				8359A73113FE270F00AC37E3 /* JSCocoaFFIClosure.m in Sources */,
+				8359A73213FE270F00AC37E3 /* JSCocoaLib.m in Sources */,
+				8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */,
+				8359A73413FE270F00AC37E3 /* jslint-jscocoa.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,6 +490,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
@@ -449,6 +511,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Atomicity_Prefix.pch;
@@ -467,6 +533,10 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-lxml2",
+					"-lffi",
+				);
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
 			};
@@ -479,6 +549,10 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				OTHER_LDFLAGS = (
+					"-lxml2",
+					"-lffi",
+				);
 				PREBINDING = NO;
 				SDKROOT = macosx10.6;
 			};
