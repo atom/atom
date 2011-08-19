@@ -1,4 +1,4 @@
-console.log = OSX.NSLog
+Chrome.init()
 
 editor = ace.edit "editor"
 editor.setTheme "ace/theme/twilight"

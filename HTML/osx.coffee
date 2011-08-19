@@ -4,6 +4,9 @@ canon = require 'pilot/canon'
 
 # Handles the UI chrome
 Chrome =
+  init: ->
+    console.log = OSX.NSLog
+
   # Returns null or a file path.
   openPanel: ->
     panel = OSX.NSOpenPanel.openPanel
