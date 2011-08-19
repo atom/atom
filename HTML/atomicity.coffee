@@ -42,6 +42,11 @@ Chrome.bindKey 'copy', 'Command-C', (env, args, request) ->
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()
   Chrome.writeToPasteboard text
 
+Chrome.bindKey 'cut', 'Command-X', (env, args, request) ->
+  text = editor.getSession().doc.getTextRange editor.getSelectionRange()
+  Chrome.writeToPasteboard text
+  editor.session.remove editor.getSelectionRange()
+
 Chrome.bindKey 'eval', 'Command-R', (env, args, request) ->
   eval env.editor.getSession().getValue()
 
@@ -49,6 +54,12 @@ Chrome.bindKey 'eval', 'Command-R', (env, args, request) ->
 
 Chrome.bindKey 'togglecomment', 'Command-/', (env) ->
   env.editor.toggleCommentLines()
+
+Chrome.bindKey 'tmoutdent', 'Command-[', (env) ->
+  env.editor.blockOutdent()
+  
+Chrome.bindKey 'tmindent', 'Command-]', (env) ->
+  env.editor.indent()
 
 # emacs > you
 
