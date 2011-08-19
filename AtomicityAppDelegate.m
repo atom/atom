@@ -12,12 +12,14 @@
 
 @synthesize window, webView;
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+- (void)applicationWillFinishLaunching:(NSNotification *)aNotification {
   NSDictionary *defaults = [NSDictionary dictionaryWithObjectsAndKeys:
                             [NSNumber numberWithBool:YES], @"WebKitDeveloperExtras",
                             nil];
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
-  
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
   id path = [[NSBundle mainBundle] URLForResource:@"index" withExtension:@"html"];
   id html = [[NSString alloc] initWithContentsOfURL:path];
   
