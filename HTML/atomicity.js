@@ -5,6 +5,8 @@
   editor.setTheme("ace/theme/twilight");
   JavaScriptMode = require("ace/mode/javascript").Mode;
   editor.getSession().setMode(new JavaScriptMode);
+  editor.getSession().setUseSoftTabs(true);
+  editor.getSession().setTabSize(2);
   filename = null;
   save = function() {
     var str;
