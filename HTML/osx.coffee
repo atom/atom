@@ -1,5 +1,7 @@
 # This is the CoffeeScript API that wraps all of Cocoa.
 
+canon = require 'pilot/canon'
+
 # Handles the UI chrome
 Chrome =
   # Returns null or a file path.
@@ -21,6 +23,22 @@ Chrome =
     pb.declareTypes_owner [OSX.NSStringPboardType], null
     pb.setString_forType text, OSX.NSStringPboardType
 
+  # name - Command name, like "Find in file"
+  # shortcut - String command name, e.g.
+  #            "Command-T"
+  #            "Command-Shift-F"
+  #            "Ctrl-I"
+  # callback - (env, args, request)
+  #
+  # Returns nothing.
+  bindKey: (name, shortcut, callback) ->
+    canon.addCommand
+      name: name
+      exec: callback
+      bindKey:
+        win: null
+        mac: shortcut
+        sender: 'editor'
 
 
 # Handles the file system

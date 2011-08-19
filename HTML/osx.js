@@ -1,5 +1,6 @@
 (function() {
-  var Chrome, File;
+  var Chrome, File, canon;
+  canon = require('pilot/canon');
   Chrome = {
     openPanel: function() {
       var panel;
@@ -22,6 +23,17 @@
       pb = OSX.NSPasteboard.generalPasteboard;
       pb.declareTypes_owner([OSX.NSStringPboardType], null);
       return pb.setString_forType(text, OSX.NSStringPboardType);
+    },
+    bindKey: function(name, shortcut, callback) {
+      return canon.addCommand({
+        name: name,
+        exec: callback,
+        bindKey: {
+          win: null,
+          mac: shortcut,
+          sender: 'editor'
+        }
+      });
     }
   };
   File = {
