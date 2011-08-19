@@ -1,10 +1,27 @@
 (function() {
-  var JavaScriptMode, bindKey, canon, editor;
+  var JavaScriptMode, bindKey, canon, editor, filename, save, saveAs;
   console.log = OSX.NSLog;
   editor = ace.edit("editor");
   editor.setTheme("ace/theme/twilight");
   JavaScriptMode = require("ace/mode/javascript").Mode;
   editor.getSession().setMode(new JavaScriptMode());
+  filename = null;
+  save = function() {
+    var str;
+    str = OSX.NSString.stringWithString(editor.getSession().getValue());
+    return str.writeToFile_atomically(filename, true);
+  };
+  saveAs = function() {
+    var file, panel;
+    panel = OSX.NSSavePanel.savePanel;
+    if (panel.runModal !== OSX.NSFileHandlingPanelOKButton) {
+      return null;
+    }
+    if (file = panel.filenames.lastObject) {
+      filename = file;
+      return save();
+    }
+  };
   canon = require('pilot/canon');
   bindKey = function(name, shortcut, callback) {
     return canon.addCommand({
@@ -18,13 +35,25 @@
     });
   };
   bindKey('open', 'Command-O', function(env, args, request) {
-    var file, panel;
+    var code, file, panel;
     panel = OSX.NSOpenPanel.openPanel;
     if (panel.runModal !== OSX.NSFileHandlingPanelOKButton) {
       return null;
     }
     if (file = panel.filenames.lastObject) {
-      return env.editor.getSession().setValue(OSX.NSString.stringWithContentsOfFile(file));
+      filename = file;
+      code = OSX.NSString.stringWithContentsOfFile(file);
+      return env.editor.getSession().setValue(code);
+    }
+  });
+  bindKey('saveAs', 'Command-Shift-S', function(env, args, request) {
+    return saveAs();
+  });
+  bindKey('save', 'Command-S', function(env, args, request) {
+    if (filename) {
+      return save();
+    } else {
+      return saveAs();
     }
   });
   bindKey('eval', 'Command-R', function(env, args, request) {
