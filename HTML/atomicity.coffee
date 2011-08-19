@@ -9,14 +9,10 @@ editor.getSession().setTabSize 2
 
 filename = null
 save = ->
-  str = OSX.NSString.stringWithString editor.getSession().getValue()
-  str.writeToFile_atomically filename, true
+  File.write filename, editor.getSession().getValue()
 
 saveAs = ->
-  panel = OSX.NSSavePanel.savePanel
-  if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
-    return null
-  if file = panel.filenames.lastObject
+  if file = Chrome.savePanel()
     filename = file
     App.window.title = _.last filename.split('/')
     save()
@@ -33,15 +29,10 @@ bindKey = (name, shortcut, callback) ->
       sender: 'editor'
 
 bindKey 'open', 'Command-O', (env, args, request) ->
-  panel = OSX.NSOpenPanel.openPanel
-
-  if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
-    return null
-
-  if file = panel.filenames.lastObject
+  if file = Chrome.openPanel()
     filename = file
     App.window.title = _.last filename.split('/')
-    code = OSX.NSString.stringWithContentsOfFile file
+    code = File.read file
     env.editor.getSession().setValue code
 
 bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
@@ -52,9 +43,7 @@ bindKey 'save', 'Command-S', (env, args, request) ->
 
 bindKey 'copy', 'Command-C', (env, args, request) ->
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()
-  pb = OSX.NSPasteboard.generalPasteboard
-  pb.declareTypes_owner [OSX.NSStringPboardType], null
-  pb.setString_forType text, OSX.NSStringPboardType
+  Chrome.writeToPasteboard text
 
 bindKey 'eval', 'Command-R', (env, args, request) ->
   eval env.editor.getSession().getValue()

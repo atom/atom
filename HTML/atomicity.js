@@ -9,17 +9,11 @@
   editor.getSession().setTabSize(2);
   filename = null;
   save = function() {
-    var str;
-    str = OSX.NSString.stringWithString(editor.getSession().getValue());
-    return str.writeToFile_atomically(filename, true);
+    return File.write(filename, editor.getSession().getValue());
   };
   saveAs = function() {
-    var file, panel;
-    panel = OSX.NSSavePanel.savePanel;
-    if (panel.runModal !== OSX.NSFileHandlingPanelOKButton) {
-      return null;
-    }
-    if (file = panel.filenames.lastObject) {
+    var file;
+    if (file = Chrome.savePanel()) {
       filename = file;
       App.window.title = _.last(filename.split('/'));
       return save();
@@ -38,15 +32,11 @@
     });
   };
   bindKey('open', 'Command-O', function(env, args, request) {
-    var code, file, panel;
-    panel = OSX.NSOpenPanel.openPanel;
-    if (panel.runModal !== OSX.NSFileHandlingPanelOKButton) {
-      return null;
-    }
-    if (file = panel.filenames.lastObject) {
+    var code, file;
+    if (file = Chrome.openPanel()) {
       filename = file;
       App.window.title = _.last(filename.split('/'));
-      code = OSX.NSString.stringWithContentsOfFile(file);
+      code = File.read(file);
       return env.editor.getSession().setValue(code);
     }
   });
@@ -61,11 +51,9 @@
     }
   });
   bindKey('copy', 'Command-C', function(env, args, request) {
-    var pb, text;
+    var text;
     text = editor.getSession().doc.getTextRange(editor.getSelectionRange());
-    pb = OSX.NSPasteboard.generalPasteboard;
-    pb.declareTypes_owner([OSX.NSStringPboardType], null);
-    return pb.setString_forType(text, OSX.NSStringPboardType);
+    return Chrome.writeToPasteboard(text);
   });
   bindKey('eval', 'Command-R', function(env, args, request) {
     return eval(env.editor.getSession().getValue());
