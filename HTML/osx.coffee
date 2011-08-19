@@ -39,6 +39,14 @@ Chrome =
         win: null
         mac: shortcut
         sender: 'editor'
+        
+  title: (text) ->
+    App.mainWindow.title = text
+        
+  fullscreen: ->
+    OSX.NSMenu.setMenuBarVisible not OSX.NSMenu.menuBarVisible
+    App.mainWindow.orderOut(null)
+    #if mainWindow.screen.isEqual(OSX.NSScreen.screens.objectAtIndex(0)
 
 
 # Handles the file system

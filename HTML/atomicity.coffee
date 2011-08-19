@@ -13,7 +13,7 @@ save = ->
   File.write filename, editor.getSession().getValue()
   setMode()
 open = ->
-  App.window.title = _.last filename.split('/')
+  Chrome.title _.last filename.split('/')
   editor.getSession().setValue File.read filename
   setMode()
 setMode = ->
@@ -24,7 +24,7 @@ setMode = ->
 saveAs = ->
   if file = Chrome.savePanel()
     filename = file
-    App.window.title = _.last filename.split('/')
+    Chrome.title _.last filename.split('/')
     save()
 
 Chrome.bindKey 'open', 'Command-O', (env, args, request) ->
@@ -64,8 +64,14 @@ Chrome.bindKey 'deleteword', 'Alt-D', (env) ->
 Chrome.bindKey 'selectwordright', 'Alt-B', (env) ->
   env.editor.navigateWordLeft()
 
-Chrome.bindKey 'fullscreen', 'Command-Return', (env) ->
-  OSX.NSLog 'coming soon'
+Chrome.bindKey 'home', 'Alt-Shift-<', (env) ->
+  env.editor.navigateFileStart()
+
+Chrome.bindKey 'end', 'Alt-Shift->', (env) ->
+  env.editor.navigateFileEnd()
+
+Chrome.bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
+  Chrome.fullscreen()
 
 
 
