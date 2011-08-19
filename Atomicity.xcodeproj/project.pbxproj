@@ -70,6 +70,8 @@
 		8359A73213FE270F00AC37E3 /* JSCocoaLib.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71E13FE270F00AC37E3 /* JSCocoaLib.m */; };
 		8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */; };
 		8359A73413FE270F00AC37E3 /* jslint-jscocoa.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */; };
+		8393431213FE39D800EF93FB /* underscore.js in Sources */ = {isa = PBXBuildFile; fileRef = 8393431113FE39D800EF93FB /* underscore.js */; };
+		8393431313FE39E100EF93FB /* underscore.js in Resources */ = {isa = PBXBuildFile; fileRef = 8393431113FE39D800EF93FB /* underscore.js */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -153,6 +155,7 @@
 		8359A71F13FE270F00AC37E3 /* JSCocoaPrivateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaPrivateObject.h; sourceTree = "<group>"; };
 		8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaPrivateObject.m; sourceTree = "<group>"; };
 		8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jslint-jscocoa.js"; sourceTree = "<group>"; };
+		8393431113FE39D800EF93FB /* underscore.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = underscore.js; path = HTML/underscore.js; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Atomicity-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Atomicity-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Atomicity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atomicity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -257,6 +260,7 @@
 				8359A04B13FE18FD00AC37E3 /* gh.png */,
 				83599FED13FE15F800AC37E3 /* index.html */,
 				8359A6B313FE24B300AC37E3 /* atomicity.js */,
+				8393431113FE39D800EF93FB /* underscore.js */,
 			);
 			name = HTML;
 			sourceTree = "<group>";
@@ -387,6 +391,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8393431313FE39E100EF93FB /* underscore.js in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
 				83599FEE13FE15F800AC37E3 /* index.html in Resources */,
@@ -460,6 +465,7 @@
 				8359A73213FE270F00AC37E3 /* JSCocoaLib.m in Sources */,
 				8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */,
 				8359A73413FE270F00AC37E3 /* jslint-jscocoa.js in Sources */,
+				8393431213FE39D800EF93FB /* underscore.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
