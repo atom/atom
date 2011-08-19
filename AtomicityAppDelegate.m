@@ -7,6 +7,7 @@
 //
 
 #import "AtomicityAppDelegate.h"
+#import "JSCocoa.h"
 
 @implementation AtomicityAppDelegate
 
@@ -24,6 +25,9 @@
   id html = [[NSString alloc] initWithContentsOfURL:path];
   
   [[webView mainFrame] loadHTMLString:html baseURL:[[NSBundle mainBundle] resourceURL]];  
+  
+  // https://github.com/parmanoir/jscocoa#readme
+  JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
 }
 
 @end
