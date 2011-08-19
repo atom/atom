@@ -28,6 +28,7 @@
   
   // https://github.com/parmanoir/jscocoa#readme
   JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
+  [jsc setObject:self withName:@"App"];
 }
 
 @end

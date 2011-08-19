@@ -19,6 +19,7 @@
     }
     if (file = panel.filenames.lastObject) {
       filename = file;
+      App.window.title = _.last(filename.split('/'));
       return save();
     }
   };
@@ -42,6 +43,7 @@
     }
     if (file = panel.filenames.lastObject) {
       filename = file;
+      App.window.title = _.last(filename.split('/'));
       code = OSX.NSString.stringWithContentsOfFile(file);
       return env.editor.getSession().setValue(code);
     }

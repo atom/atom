@@ -16,6 +16,7 @@ saveAs = ->
     return null
   if file = panel.filenames.lastObject
     filename = file
+    App.window.title = _.last filename.split('/')
     save()
 
 canon = require 'pilot/canon'
@@ -37,6 +38,7 @@ bindKey 'open', 'Command-O', (env, args, request) ->
 
   if file = panel.filenames.lastObject
     filename = file
+    App.window.title = _.last filename.split('/')
     code = OSX.NSString.stringWithContentsOfFile file
     env.editor.getSession().setValue code
 
