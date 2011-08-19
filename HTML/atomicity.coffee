@@ -3,6 +3,7 @@ console.log = OSX.NSLog
 editor = ace.edit "editor"
 editor.setTheme "ace/theme/twilight"
 JavaScriptMode = require("ace/mode/javascript").Mode
+CoffeeMode = require("ace/mode/coffee").Mode
 editor.getSession().setMode new JavaScriptMode
 editor.getSession().setUseSoftTabs true
 editor.getSession().setTabSize 2
@@ -10,7 +11,16 @@ editor.getSession().setTabSize 2
 filename = null
 save = ->
   File.write filename, editor.getSession().getValue()
-
+  setMode()
+open = ->
+  App.window.title = _.last filename.split('/')
+  editor.getSession().setValue File.read filename
+  setMode()
+setMode = ->
+  if /\.js$/.test filename
+    editor.getSession().setMode new JavaScriptMode
+  else if /\.coffee$/.test filename
+    editor.getSession().setMode new CoffeeMode
 saveAs = ->
   if file = Chrome.savePanel()
     filename = file
@@ -20,9 +30,7 @@ saveAs = ->
 Chrome.bindKey 'open', 'Command-O', (env, args, request) ->
   if file = Chrome.openPanel()
     filename = file
-    App.window.title = _.last filename.split('/')
-    code = File.read file
-    env.editor.getSession().setValue code
+    open()
 
 Chrome.bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
   saveAs()
@@ -37,8 +45,32 @@ Chrome.bindKey 'copy', 'Command-C', (env, args, request) ->
 Chrome.bindKey 'eval', 'Command-R', (env, args, request) ->
   eval env.editor.getSession().getValue()
 
+# textmate
+
 Chrome.bindKey 'togglecomment', 'Command-/', (env) ->
   env.editor.toggleCommentLines()
 
+# emacs > you
+
+Chrome.bindKey 'moveforward', 'Alt-F', (env) ->
+  env.editor.navigateWordRight()
+
+Chrome.bindKey 'moveback', 'Alt-B', (env) ->
+  env.editor.navigateWordLeft()
+
+Chrome.bindKey 'deleteword', 'Alt-D', (env) ->
+  env.editor.removeWordRight()
+
+Chrome.bindKey 'selectwordright', 'Alt-B', (env) ->
+  env.editor.navigateWordLeft()
+
 Chrome.bindKey 'fullscreen', 'Command-Return', (env) ->
   OSX.NSLog 'coming soon'
+
+
+
+# HAX
+# this should go in coffee.coffee or something
+Chrome.bindKey 'consolelog', 'Ctrl-L', (env) ->
+  env.editor.insert 'console.log ""'
+  env.editor.navigateLeft()
