@@ -38,19 +38,6 @@
 		8359A67B13FE1FE900AC37E3 /* mode-svg.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A61D13FE1FCA00AC37E3 /* mode-svg.js */; };
 		8359A67C13FE1FE900AC37E3 /* mode-textile.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A61E13FE1FCA00AC37E3 /* mode-textile.js */; };
 		8359A67D13FE1FE900AC37E3 /* mode-xml.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A61F13FE1FCA00AC37E3 /* mode-xml.js */; };
-		8359A67E13FE1FE900AC37E3 /* theme-clouds_midnight.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62013FE1FCA00AC37E3 /* theme-clouds_midnight.js */; };
-		8359A67F13FE1FE900AC37E3 /* theme-clouds.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62113FE1FCA00AC37E3 /* theme-clouds.js */; };
-		8359A68013FE1FE900AC37E3 /* theme-cobalt.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62213FE1FCA00AC37E3 /* theme-cobalt.js */; };
-		8359A68113FE1FE900AC37E3 /* theme-crimson_editor.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62313FE1FCA00AC37E3 /* theme-crimson_editor.js */; };
-		8359A68213FE1FE900AC37E3 /* theme-dawn.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62413FE1FCA00AC37E3 /* theme-dawn.js */; };
-		8359A68313FE1FE900AC37E3 /* theme-eclipse.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62513FE1FCA00AC37E3 /* theme-eclipse.js */; };
-		8359A68413FE1FE900AC37E3 /* theme-idle_fingers.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62613FE1FCA00AC37E3 /* theme-idle_fingers.js */; };
-		8359A68513FE1FE900AC37E3 /* theme-kr_theme.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62713FE1FCA00AC37E3 /* theme-kr_theme.js */; };
-		8359A68613FE1FE900AC37E3 /* theme-merbivore_soft.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62813FE1FCA00AC37E3 /* theme-merbivore_soft.js */; };
-		8359A68713FE1FE900AC37E3 /* theme-merbivore.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62913FE1FCA00AC37E3 /* theme-merbivore.js */; };
-		8359A68813FE1FE900AC37E3 /* theme-mono_industrial.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62A13FE1FCA00AC37E3 /* theme-mono_industrial.js */; };
-		8359A68913FE1FE900AC37E3 /* theme-monokai.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62B13FE1FCA00AC37E3 /* theme-monokai.js */; };
-		8359A68A13FE1FE900AC37E3 /* theme-pastel_on_dark.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62C13FE1FCA00AC37E3 /* theme-pastel_on_dark.js */; };
 		8359A68B13FE1FE900AC37E3 /* theme-solarized_dark.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62D13FE1FCA00AC37E3 /* theme-solarized_dark.js */; };
 		8359A68C13FE1FE900AC37E3 /* theme-solarized_light.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62E13FE1FCA00AC37E3 /* theme-solarized_light.js */; };
 		8359A68D13FE1FE900AC37E3 /* theme-textmate.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A62F13FE1FCA00AC37E3 /* theme-textmate.js */; };
@@ -115,19 +102,6 @@
 		8359A61D13FE1FCA00AC37E3 /* mode-svg.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "mode-svg.js"; path = "HTML/ace/mode-svg.js"; sourceTree = "<group>"; };
 		8359A61E13FE1FCA00AC37E3 /* mode-textile.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "mode-textile.js"; path = "HTML/ace/mode-textile.js"; sourceTree = "<group>"; };
 		8359A61F13FE1FCA00AC37E3 /* mode-xml.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "mode-xml.js"; path = "HTML/ace/mode-xml.js"; sourceTree = "<group>"; };
-		8359A62013FE1FCA00AC37E3 /* theme-clouds_midnight.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-clouds_midnight.js"; path = "HTML/ace/theme-clouds_midnight.js"; sourceTree = "<group>"; };
-		8359A62113FE1FCA00AC37E3 /* theme-clouds.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-clouds.js"; path = "HTML/ace/theme-clouds.js"; sourceTree = "<group>"; };
-		8359A62213FE1FCA00AC37E3 /* theme-cobalt.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-cobalt.js"; path = "HTML/ace/theme-cobalt.js"; sourceTree = "<group>"; };
-		8359A62313FE1FCA00AC37E3 /* theme-crimson_editor.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-crimson_editor.js"; path = "HTML/ace/theme-crimson_editor.js"; sourceTree = "<group>"; };
-		8359A62413FE1FCA00AC37E3 /* theme-dawn.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-dawn.js"; path = "HTML/ace/theme-dawn.js"; sourceTree = "<group>"; };
-		8359A62513FE1FCA00AC37E3 /* theme-eclipse.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-eclipse.js"; path = "HTML/ace/theme-eclipse.js"; sourceTree = "<group>"; };
-		8359A62613FE1FCA00AC37E3 /* theme-idle_fingers.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-idle_fingers.js"; path = "HTML/ace/theme-idle_fingers.js"; sourceTree = "<group>"; };
-		8359A62713FE1FCA00AC37E3 /* theme-kr_theme.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-kr_theme.js"; path = "HTML/ace/theme-kr_theme.js"; sourceTree = "<group>"; };
-		8359A62813FE1FCA00AC37E3 /* theme-merbivore_soft.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-merbivore_soft.js"; path = "HTML/ace/theme-merbivore_soft.js"; sourceTree = "<group>"; };
-		8359A62913FE1FCA00AC37E3 /* theme-merbivore.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-merbivore.js"; path = "HTML/ace/theme-merbivore.js"; sourceTree = "<group>"; };
-		8359A62A13FE1FCA00AC37E3 /* theme-mono_industrial.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-mono_industrial.js"; path = "HTML/ace/theme-mono_industrial.js"; sourceTree = "<group>"; };
-		8359A62B13FE1FCA00AC37E3 /* theme-monokai.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-monokai.js"; path = "HTML/ace/theme-monokai.js"; sourceTree = "<group>"; };
-		8359A62C13FE1FCA00AC37E3 /* theme-pastel_on_dark.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-pastel_on_dark.js"; path = "HTML/ace/theme-pastel_on_dark.js"; sourceTree = "<group>"; };
 		8359A62D13FE1FCA00AC37E3 /* theme-solarized_dark.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-solarized_dark.js"; path = "HTML/ace/theme-solarized_dark.js"; sourceTree = "<group>"; };
 		8359A62E13FE1FCA00AC37E3 /* theme-solarized_light.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-solarized_light.js"; path = "HTML/ace/theme-solarized_light.js"; sourceTree = "<group>"; };
 		8359A62F13FE1FCA00AC37E3 /* theme-textmate.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "theme-textmate.js"; path = "HTML/ace/theme-textmate.js"; sourceTree = "<group>"; };
@@ -290,19 +264,6 @@
 				8359A61D13FE1FCA00AC37E3 /* mode-svg.js */,
 				8359A61E13FE1FCA00AC37E3 /* mode-textile.js */,
 				8359A61F13FE1FCA00AC37E3 /* mode-xml.js */,
-				8359A62013FE1FCA00AC37E3 /* theme-clouds_midnight.js */,
-				8359A62113FE1FCA00AC37E3 /* theme-clouds.js */,
-				8359A62213FE1FCA00AC37E3 /* theme-cobalt.js */,
-				8359A62313FE1FCA00AC37E3 /* theme-crimson_editor.js */,
-				8359A62413FE1FCA00AC37E3 /* theme-dawn.js */,
-				8359A62513FE1FCA00AC37E3 /* theme-eclipse.js */,
-				8359A62613FE1FCA00AC37E3 /* theme-idle_fingers.js */,
-				8359A62713FE1FCA00AC37E3 /* theme-kr_theme.js */,
-				8359A62813FE1FCA00AC37E3 /* theme-merbivore_soft.js */,
-				8359A62913FE1FCA00AC37E3 /* theme-merbivore.js */,
-				8359A62A13FE1FCA00AC37E3 /* theme-mono_industrial.js */,
-				8359A62B13FE1FCA00AC37E3 /* theme-monokai.js */,
-				8359A62C13FE1FCA00AC37E3 /* theme-pastel_on_dark.js */,
 				8359A62D13FE1FCA00AC37E3 /* theme-solarized_dark.js */,
 				8359A62E13FE1FCA00AC37E3 /* theme-solarized_light.js */,
 				8359A62F13FE1FCA00AC37E3 /* theme-textmate.js */,
@@ -419,19 +380,6 @@
 				8359A67B13FE1FE900AC37E3 /* mode-svg.js in Resources */,
 				8359A67C13FE1FE900AC37E3 /* mode-textile.js in Resources */,
 				8359A67D13FE1FE900AC37E3 /* mode-xml.js in Resources */,
-				8359A67E13FE1FE900AC37E3 /* theme-clouds_midnight.js in Resources */,
-				8359A67F13FE1FE900AC37E3 /* theme-clouds.js in Resources */,
-				8359A68013FE1FE900AC37E3 /* theme-cobalt.js in Resources */,
-				8359A68113FE1FE900AC37E3 /* theme-crimson_editor.js in Resources */,
-				8359A68213FE1FE900AC37E3 /* theme-dawn.js in Resources */,
-				8359A68313FE1FE900AC37E3 /* theme-eclipse.js in Resources */,
-				8359A68413FE1FE900AC37E3 /* theme-idle_fingers.js in Resources */,
-				8359A68513FE1FE900AC37E3 /* theme-kr_theme.js in Resources */,
-				8359A68613FE1FE900AC37E3 /* theme-merbivore_soft.js in Resources */,
-				8359A68713FE1FE900AC37E3 /* theme-merbivore.js in Resources */,
-				8359A68813FE1FE900AC37E3 /* theme-mono_industrial.js in Resources */,
-				8359A68913FE1FE900AC37E3 /* theme-monokai.js in Resources */,
-				8359A68A13FE1FE900AC37E3 /* theme-pastel_on_dark.js in Resources */,
 				8359A68B13FE1FE900AC37E3 /* theme-solarized_dark.js in Resources */,
 				8359A68C13FE1FE900AC37E3 /* theme-solarized_light.js in Resources */,
 				8359A68D13FE1FE900AC37E3 /* theme-textmate.js in Resources */,
