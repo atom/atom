@@ -64,10 +64,10 @@ Chrome.bindKey 'deleteword', 'Alt-D', (env) ->
 Chrome.bindKey 'selectwordright', 'Alt-B', (env) ->
   env.editor.navigateWordLeft()
 
-Chrome.bindKey 'home', 'Alt-Shift-<', (env) ->
+Chrome.bindKey 'home', 'Alt-Shift-,', (env) ->
   env.editor.navigateFileStart()
 
-Chrome.bindKey 'end', 'Alt-Shift->', (env) ->
+Chrome.bindKey 'end', 'Alt-Shift-.', (env) ->
   env.editor.navigateFileEnd()
 
 Chrome.bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
