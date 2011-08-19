@@ -58,6 +58,13 @@
       return saveAs();
     }
   });
+  bindKey('copy', 'Command-C', function(env, args, request) {
+    var pb, text;
+    text = editor.getSession().doc.getTextRange(editor.getSelectionRange());
+    pb = OSX.NSPasteboard.generalPasteboard;
+    pb.declareTypes_owner([OSX.NSStringPboardType], null);
+    return pb.setString_forType(text, OSX.NSStringPboardType);
+  });
   bindKey('eval', 'Command-R', function(env, args, request) {
     return eval(env.editor.getSession().getValue());
   });

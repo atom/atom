@@ -48,6 +48,12 @@ bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
 bindKey 'save', 'Command-S', (env, args, request) ->
   if filename then save() else saveAs()
 
+bindKey 'copy', 'Command-C', (env, args, request) ->
+  text = editor.getSession().doc.getTextRange editor.getSelectionRange()
+  pb = OSX.NSPasteboard.generalPasteboard
+  pb.declareTypes_owner [OSX.NSStringPboardType], null
+  pb.setString_forType text, OSX.NSStringPboardType
+
 bindKey 'eval', 'Command-R', (env, args, request) ->
   eval env.editor.getSession().getValue()
 
