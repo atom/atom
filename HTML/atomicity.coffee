@@ -71,7 +71,7 @@ Chrome.bindKey 'end', 'Alt-Shift-.', (env) ->
   env.editor.navigateFileEnd()
 
 Chrome.bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
-  Chrome.fullscreen()
+  Chrome.toggleFullscreen()
 
 
 
