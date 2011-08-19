@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58140DA1D0A300B32029 /* MainMenu.xib */; };
 		256AC3DA0F4B6AC300CF3369 /* AtomicityAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 256AC3D90F4B6AC300CF3369 /* AtomicityAppDelegate.m */; };
+		832BA38413FE674C00516BD7 /* APPL.icns in Resources */ = {isa = PBXBuildFile; fileRef = 832BA38313FE674C00516BD7 /* APPL.icns */; };
 		83599F9B13FE0F8400AC37E3 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83599F9A13FE0F8400AC37E3 /* WebKit.framework */; };
 		83599FEE13FE15F800AC37E3 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = 83599FED13FE15F800AC37E3 /* index.html */; };
 		8359A04C13FE18FD00AC37E3 /* gh.png in Resources */ = {isa = PBXBuildFile; fileRef = 8359A04B13FE18FD00AC37E3 /* gh.png */; };
@@ -73,6 +74,7 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		832BA38313FE674C00516BD7 /* APPL.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = APPL.icns; sourceTree = "<group>"; };
 		83599F9A13FE0F8400AC37E3 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		83599FED13FE15F800AC37E3 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = index.html; path = HTML/index.html; sourceTree = "<group>"; };
 		8359A04B13FE18FD00AC37E3 /* gh.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = gh.png; path = HTML/gh.png; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				832BA38313FE674C00516BD7 /* APPL.icns */,
 				8D1107310486CEB800E47090 /* Atomicity-Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				1DDD58140DA1D0A300B32029 /* MainMenu.xib */,
@@ -388,6 +391,7 @@
 				8359A69013FE1FE900AC37E3 /* worker-coffee.js in Resources */,
 				8359A69113FE1FE900AC37E3 /* worker-css.js in Resources */,
 				8359A69213FE1FE900AC37E3 /* worker-javascript.js in Resources */,
+				832BA38413FE674C00516BD7 /* APPL.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
