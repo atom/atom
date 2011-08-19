@@ -1,0 +1,1 @@
+    coffee -cw HTML/*.coffee
