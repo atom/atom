@@ -355,7 +355,6 @@
 				8D1107290486CEB800E47090 /* Resources */,
 				8D11072C0486CEB800E47090 /* Sources */,
 				8D11072E0486CEB800E47090 /* Frameworks */,
-				8393438213FE479700EF93FB /* Copy JS to Resources */,
 				8393439613FE480600EF93FB /* Compile CoffeeScript */,
 			);
 			buildRules = (
@@ -457,20 +456,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		8393438213FE479700EF93FB /* Copy JS to Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Copy JS to Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "/usr/local/bin/coffee -c HTML/*.coffee";
-		};
 		8393439613FE480600EF93FB /* Compile CoffeeScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
