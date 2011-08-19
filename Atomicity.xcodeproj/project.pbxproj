@@ -59,8 +59,6 @@
 		8359A69013FE1FE900AC37E3 /* worker-coffee.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A63213FE1FCA00AC37E3 /* worker-coffee.js */; };
 		8359A69113FE1FE900AC37E3 /* worker-css.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A63313FE1FCA00AC37E3 /* worker-css.js */; };
 		8359A69213FE1FE900AC37E3 /* worker-javascript.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A63413FE1FCA00AC37E3 /* worker-javascript.js */; };
-		8359A6B413FE24B300AC37E3 /* atomicity.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A6B313FE24B300AC37E3 /* atomicity.js */; };
-		8359A6B713FE24BC00AC37E3 /* atomicity.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A6B313FE24B300AC37E3 /* atomicity.js */; };
 		8359A6EE13FE26DA00AC37E3 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */; };
 		8359A72213FE270F00AC37E3 /* BridgeSupportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A6F913FE270F00AC37E3 /* BridgeSupportController.m */; };
 		8359A72313FE270F00AC37E3 /* class.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A6FA13FE270F00AC37E3 /* class.js */; };
@@ -72,8 +70,6 @@
 		8359A73413FE270F00AC37E3 /* jslint-jscocoa.js in Sources */ = {isa = PBXBuildFile; fileRef = 8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */; };
 		8393431213FE39D800EF93FB /* underscore.js in Sources */ = {isa = PBXBuildFile; fileRef = 8393431113FE39D800EF93FB /* underscore.js */; };
 		8393431313FE39E100EF93FB /* underscore.js in Resources */ = {isa = PBXBuildFile; fileRef = 8393431113FE39D800EF93FB /* underscore.js */; };
-		8393432713FE3E7800EF93FB /* osx.js in Sources */ = {isa = PBXBuildFile; fileRef = 8393432613FE3E7800EF93FB /* osx.js */; };
-		8393432813FE3E7A00EF93FB /* osx.js in Resources */ = {isa = PBXBuildFile; fileRef = 8393432613FE3E7800EF93FB /* osx.js */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -140,7 +136,6 @@
 		8359A63213FE1FCA00AC37E3 /* worker-coffee.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "worker-coffee.js"; path = "HTML/ace/worker-coffee.js"; sourceTree = "<group>"; };
 		8359A63313FE1FCA00AC37E3 /* worker-css.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "worker-css.js"; path = "HTML/ace/worker-css.js"; sourceTree = "<group>"; };
 		8359A63413FE1FCA00AC37E3 /* worker-javascript.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "worker-javascript.js"; path = "HTML/ace/worker-javascript.js"; sourceTree = "<group>"; };
-		8359A6B313FE24B300AC37E3 /* atomicity.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = atomicity.js; path = HTML/atomicity.js; sourceTree = "<group>"; };
 		8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		8359A6F813FE270F00AC37E3 /* BridgeSupportController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgeSupportController.h; sourceTree = "<group>"; };
 		8359A6F913FE270F00AC37E3 /* BridgeSupportController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BridgeSupportController.m; sourceTree = "<group>"; };
@@ -158,7 +153,6 @@
 		8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaPrivateObject.m; sourceTree = "<group>"; };
 		8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jslint-jscocoa.js"; sourceTree = "<group>"; };
 		8393431113FE39D800EF93FB /* underscore.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = underscore.js; path = HTML/underscore.js; sourceTree = "<group>"; };
-		8393432613FE3E7800EF93FB /* osx.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = osx.js; path = HTML/osx.js; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Atomicity-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Atomicity-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Atomicity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atomicity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -262,8 +256,6 @@
 				8359A60213FE1FBF00AC37E3 /* ace */,
 				8359A04B13FE18FD00AC37E3 /* gh.png */,
 				83599FED13FE15F800AC37E3 /* index.html */,
-				8359A6B313FE24B300AC37E3 /* atomicity.js */,
-				8393432613FE3E7800EF93FB /* osx.js */,
 				8393431113FE39D800EF93FB /* underscore.js */,
 			);
 			name = HTML;
@@ -396,13 +388,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8393432813FE3E7A00EF93FB /* osx.js in Resources */,
 				8393431313FE39E100EF93FB /* underscore.js in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
 				83599FEE13FE15F800AC37E3 /* index.html in Resources */,
 				8359A04C13FE18FD00AC37E3 /* gh.png in Resources */,
-				8359A6B713FE24BC00AC37E3 /* atomicity.js in Resources */,
 				8359A66413FE1FE900AC37E3 /* ace-uncompressed.js in Resources */,
 				8359A66513FE1FE900AC37E3 /* ace.js in Resources */,
 				8359A66613FE1FE900AC37E3 /* keybinding-emacs.js in Resources */,
@@ -479,7 +469,6 @@
 			files = (
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				256AC3DA0F4B6AC300CF3369 /* AtomicityAppDelegate.m in Sources */,
-				8359A6B413FE24B300AC37E3 /* atomicity.js in Sources */,
 				8359A72213FE270F00AC37E3 /* BridgeSupportController.m in Sources */,
 				8359A72313FE270F00AC37E3 /* class.js in Sources */,
 				8359A72F13FE270F00AC37E3 /* JSCocoaController.m in Sources */,
@@ -489,7 +478,6 @@
 				8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */,
 				8359A73413FE270F00AC37E3 /* jslint-jscocoa.js in Sources */,
 				8393431213FE39D800EF93FB /* underscore.js in Sources */,
-				8393432713FE3E7800EF93FB /* osx.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

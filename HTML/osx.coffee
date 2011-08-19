@@ -39,10 +39,10 @@ Chrome =
         win: null
         mac: shortcut
         sender: 'editor'
-        
+
   title: (text) ->
-    App.mainWindow.title = text
-        
+    App.window.title = text
+
   fullscreen: ->
     OSX.NSMenu.setMenuBarVisible not OSX.NSMenu.menuBarVisible
     App.mainWindow.orderOut(null)
