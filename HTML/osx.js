@@ -34,4 +34,6 @@
       return str.writeToFile_atomically(path, true);
     }
   };
+  this.Chrome = Chrome;
+  this.File = File;
 }).call(this);

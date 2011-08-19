@@ -30,3 +30,6 @@ File =
   write: (path, contents) ->
     str = OSX.NSString.stringWithString contents
     str.writeToFile_atomically path, true
+
+this.Chrome = Chrome
+this.File = File
