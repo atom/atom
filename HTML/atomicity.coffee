@@ -3,7 +3,7 @@ console.log = OSX.NSLog
 editor = ace.edit "editor"
 editor.setTheme "ace/theme/twilight"
 JavaScriptMode = require("ace/mode/javascript").Mode
-editor.getSession().setMode new JavaScriptMode()
+editor.getSession().setMode new JavaScriptMode
 
 filename = null
 save = ->
