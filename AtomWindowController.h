@@ -11,8 +11,10 @@
 
 @interface AtomWindowController : NSWindowController {
   IBOutlet id webView;
+  NSString *URL;
 }
 
 @property (assign) IBOutlet id webView;
+@property (assign) IBOutlet NSString *URL;
 
 @end

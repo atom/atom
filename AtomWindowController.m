@@ -13,7 +13,13 @@
 
 @implementation AtomWindowController
 
-@synthesize webView;
+@synthesize webView, URL;
+
+- (id)initWithURL:(NSString *)_URL {
+  self = [super initWithWindowNibName:@"AtomWindow"];
+  self.URL = _URL;
+  return self;
+}
 
 - (void)windowDidLoad {
   [super windowDidLoad];
@@ -21,9 +27,13 @@
   [self setShouldCascadeWindows:NO];
   [self setWindowFrameAutosaveName:@"atomWindow"];
   
-  id path = [[NSBundle mainBundle] URLForResource:@"index" withExtension:@"html"];
-  id html = [[NSString alloc] initWithContentsOfURL:path];
-  [[webView mainFrame] loadHTMLString:html baseURL:[[NSBundle mainBundle] resourceURL]];  
+  if (self.URL) {
+    [webView setMainFrameURL:self.URL];
+  } else {
+    id path = [[NSBundle mainBundle] URLForResource:@"index" withExtension:@"html"];    
+    id html = [[NSString alloc] initWithContentsOfURL:path];
+    [[webView mainFrame] loadHTMLString:html baseURL:[[NSBundle mainBundle] resourceURL]];  
+  }
   
   // https://github.com/parmanoir/jscocoa#readme
   JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
