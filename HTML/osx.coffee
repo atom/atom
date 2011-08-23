@@ -106,10 +106,21 @@ Chrome =
 # Handles the file system
 File =
   read: (path) ->
-    OSX.NSString.stringWithContentsOfFile path
+    OSX.NSString.stringWithContentsOfFile File.expand path
   write: (path, contents) ->
     str = OSX.NSString.stringWithString contents
-    str.writeToFile_atomically path, true
+    str.writeToFile_atomically File.expand(path), true
+  expand: (path) ->
+    if /~/.test path
+      OSX.NSString.stringWithString(path).stringByExpandingTildeInPath
+    else
+      path
+Dir =
+  list: (path) ->
+    path = File.expand path
+    _.map OSX.NSFileManager.defaultManager.subpathsAtPath(path), (entry) ->
+      "#{path}/#{entry}"
 
 this.Chrome = Chrome
 this.File = File
+this.Dir = Dir
