@@ -47,7 +47,7 @@ Chrome =
 
   openURL: (url) ->
     window.location = url
-    Chrome.title _.last url.split '/'
+    Chrome.title _.last url.replace(/\/$/,'').split '/'
 
   # name - Command name, like "Find in file"
   # shortcut - String command name, e.g.
