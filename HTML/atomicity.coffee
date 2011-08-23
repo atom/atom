@@ -36,11 +36,8 @@ saveAs = ->
 
 Chrome.bindKey 'open', 'Command-O', (env, args, request) ->
   if file = Chrome.openPanel()
-    if filename
-      Chrome.createWindow file
-    else
-      filename = file
-      open()
+    filename = file
+    open()
 
 Chrome.bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
   saveAs()
@@ -70,7 +67,7 @@ Chrome.bindKey 'togglecomment', 'Command-/', (env) ->
 
 Chrome.bindKey 'tmoutdent', 'Command-[', (env) ->
   env.editor.blockOutdent()
-  
+
 Chrome.bindKey 'tmindent', 'Command-]', (env) ->
   env.editor.indent()
 
