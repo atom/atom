@@ -4,6 +4,7 @@ editor = ace.edit "editor"
 editor.setTheme "ace/theme/twilight"
 JavaScriptMode = require("ace/mode/javascript").Mode
 CoffeeMode = require("ace/mode/coffee").Mode
+HTMLMode = require("ace/mode/html").Mode
 editor.getSession().setMode new JavaScriptMode
 editor.getSession().setUseSoftTabs true
 editor.getSession().setTabSize 2
@@ -25,6 +26,8 @@ setMode = ->
     editor.getSession().setMode new JavaScriptMode
   else if /\.coffee$/.test filename
     editor.getSession().setMode new CoffeeMode
+  else if /\.html/.test filename
+    editor.getSession().setMode new HTMLMode
 saveAs = ->
   if file = Chrome.savePanel()
     filename = file
