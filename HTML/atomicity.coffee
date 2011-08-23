@@ -32,14 +32,20 @@ saveAs = ->
 
 Chrome.bindKey 'open', 'Command-O', (env, args, request) ->
   if file = Chrome.openPanel()
-    filename = file
-    open()
+    if filename
+      Chrome.createWindow file
+    else
+      filename = file
+      open()
 
 Chrome.bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
   saveAs()
 
 Chrome.bindKey 'save', 'Command-S', (env, args, request) ->
   if filename then save() else saveAs()
+
+Chrome.bindKey 'new', 'Command-N', (env, args, request) ->
+  Chrome.createWindow()
 
 Chrome.bindKey 'copy', 'Command-C', (env, args, request) ->
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()

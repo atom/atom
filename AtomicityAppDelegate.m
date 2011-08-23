@@ -7,13 +7,9 @@
 //
 
 #import "AtomicityAppDelegate.h"
-
-#import <WebKit/WebKit.h>
-#import "JSCocoa.h"
+#import "AtomWindowController.h"
 
 @implementation AtomicityAppDelegate
-
-@synthesize window, webView;
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification {
   NSDictionary *defaults = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -23,14 +19,8 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-  id path = [[NSBundle mainBundle] URLForResource:@"index" withExtension:@"html"];
-  id html = [[NSString alloc] initWithContentsOfURL:path];
-  
-  [[webView mainFrame] loadHTMLString:html baseURL:[[NSBundle mainBundle] resourceURL]];  
-  
-  // https://github.com/parmanoir/jscocoa#readme
-  JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
-  [jsc setObject:self withName:@"App"];
+  AtomWindowController* ctrl = [[AtomWindowController alloc] initWithWindowNibName:@"AtomWindow"];
+  [ctrl window];
 }
 
 @end

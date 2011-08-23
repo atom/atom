@@ -9,11 +9,6 @@
 #import <Cocoa/Cocoa.h>
 
 @interface AtomicityAppDelegate : NSObject <NSApplicationDelegate> {
-    IBOutlet id webView;
-    NSWindow *window;
 }
-
-@property (assign) IBOutlet id webView;
-@property (assign) IBOutlet NSWindow *window;
 
 @end

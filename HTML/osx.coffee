@@ -1,5 +1,6 @@
 # This is the CoffeeScript API that wraps all of Cocoa.
 
+# leak
 canon = require 'pilot/canon'
 
 # Handles the UI chrome
@@ -9,21 +10,8 @@ Chrome =
 
   # path - Optional. The String path to the file to base it on.
   createWindow: (path) ->
-    activeWindow = Chrome.activeWindow()
-    frame = activeWindow.frame
-    styleMask = OSX.NSBorderlessWindowMask
-    backing = OSX.NSBackingStoreBuffered
-    window = OSX.NSWindow.alloc.
-      initWithContentRect_styleMask_backing_defer_screen(
-        frame,
-        styleMask,
-        backing,
-        false,
-        activeWindow.screen)
-
-    window.setContentView activeWindow.contentView
-    window.makeFirstResponder null
-    window.makeKeyAndOrderFront null
+    c = OSX.AtomWindowController.alloc.initWithWindowNibName "AtomWindow"
+    c.window
 
   # Set the active window's dirty status.
   setDirty: (bool) ->
@@ -74,7 +62,7 @@ Chrome =
         sender: 'editor'
 
   title: (text) ->
-    App.window.title = text
+#     App.title = text
 
   toggleFullscreen: ->
     if Chrome.fullscreen?
