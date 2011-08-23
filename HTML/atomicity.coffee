@@ -56,6 +56,10 @@ Chrome.bindKey 'open', 'Command-O', (env, args, request) ->
     filename = file
     open()
 
+Chrome.bindKey 'openURL', 'Command-Shift-O', (env, args, request) ->
+  if url = prompt "Enter URL:"
+    Chrome.openURL url
+
 Chrome.bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
   saveAs()
 
