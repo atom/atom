@@ -46,9 +46,8 @@ Chrome =
     pb.setString_forType text, OSX.NSStringPboardType
 
   openURL: (url) ->
-    c = OSX.AtomWindowController.alloc.initWithURL url
-    c.window
-    c.window.makeKeyAndOrderFront null
+    window.location = url
+    Chrome.title _.last url.split '/'
 
   # name - Command name, like "Find in file"
   # shortcut - String command name, e.g.
