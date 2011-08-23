@@ -19,6 +19,7 @@ open = ->
   Chrome.title _.last filename.split('/')
   editor.getSession().setValue File.read filename
   setMode()
+  Chrome.setDirty false
 setMode = ->
   if /\.js$/.test filename
     editor.getSession().setMode new JavaScriptMode
