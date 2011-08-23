@@ -31,10 +31,13 @@ save = ->
   setMode()
   Chrome.setDirty false
 open = ->
-  Chrome.title _.last filename.split('/')
-  editor.getSession().setValue File.read filename
-  setMode()
-  Chrome.setDirty false
+  if /png|jpe?g|gif/i.test filename
+    Chrome.openURL filename
+  else
+    Chrome.title _.last filename.split('/')
+    editor.getSession().setValue File.read filename
+    setMode()
+    Chrome.setDirty false
 setMode = ->
   if /\.js$/.test filename
     editor.getSession().setMode new JavaScriptMode
