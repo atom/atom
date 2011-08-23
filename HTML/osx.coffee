@@ -62,7 +62,7 @@ Chrome =
         sender: 'editor'
 
   title: (text) ->
-#     App.title = text
+    Chrome.activeWindow().setTitle text
 
   toggleFullscreen: ->
     if Chrome.fullscreen?
