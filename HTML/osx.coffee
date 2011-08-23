@@ -16,7 +16,7 @@ Chrome =
 
   # Returns null or a file path.
   savePanel: ->
-    panel = OSX.NSSavePanel.savePane
+    panel = OSX.NSSavePanel.savePanel
     if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
       return null
     panel.filenames.lastObject
