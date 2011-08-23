@@ -30,9 +30,11 @@
   if (self.URL) {
     [webView setMainFrameURL:self.URL];
   } else {
-    id path = [[NSBundle mainBundle] URLForResource:@"index" withExtension:@"html"];    
-    id html = [[NSString alloc] initWithContentsOfURL:path];
-    [[webView mainFrame] loadHTMLString:html baseURL:[[NSBundle mainBundle] resourceURL]];  
+    NSURL *bundleURL = [[NSBundle mainBundle] resourceURL];
+    NSURL *htmlURL = [bundleURL URLByAppendingPathComponent:@"HTML"];
+    NSURL *indexURL = [htmlURL URLByAppendingPathComponent:@"index.html"];
+    NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];;
+    [[webView mainFrame] loadHTMLString:html baseURL:htmlURL];  
   }
   
   // https://github.com/parmanoir/jscocoa#readme
