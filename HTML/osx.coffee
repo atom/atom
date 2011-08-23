@@ -12,6 +12,7 @@ Chrome =
   createWindow: (path) ->
     c = OSX.AtomWindowController.alloc.initWithWindowNibName "AtomWindow"
     c.window
+    c.window.makeKeyAndOrderFront null
 
   # Set the active window's dirty status.
   setDirty: (bool) ->
@@ -43,6 +44,11 @@ Chrome =
     pb = OSX.NSPasteboard.generalPasteboard
     pb.declareTypes_owner [OSX.NSStringPboardType], null
     pb.setString_forType text, OSX.NSStringPboardType
+
+  openURL: (url) ->
+    c = OSX.AtomWindowController.alloc.initWithURL url
+    c.window
+    c.window.makeKeyAndOrderFront null
 
   # name - Command name, like "Find in file"
   # shortcut - String command name, e.g.
