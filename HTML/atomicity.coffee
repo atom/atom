@@ -9,9 +9,12 @@ editor.getSession().setUseSoftTabs true
 editor.getSession().setTabSize 2
 
 filename = null
+editor.getSession().on 'change', ->
+  Chrome.setDirty true
 save = ->
   File.write filename, editor.getSession().getValue()
   setMode()
+  Chrome.setDirty false
 open = ->
   Chrome.title _.last filename.split('/')
   editor.getSession().setValue File.read filename

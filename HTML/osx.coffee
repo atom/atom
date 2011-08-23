@@ -7,6 +7,36 @@ Chrome =
   init: ->
     console.log = OSX.NSLog
 
+  # path - Optional. The String path to the file to base it on.
+  createWindow: (path) ->
+    activeWindow = Chrome.activeWindow()
+    frame = activeWindow.frame
+    styleMask = OSX.NSBorderlessWindowMask
+    backing = OSX.NSBackingStoreBuffered
+    window = OSX.NSWindow.alloc.
+      initWithContentRect_styleMask_backing_defer_screen(
+        frame,
+        styleMask,
+        backing,
+        false,
+        activeWindow.screen)
+
+    window.setContentView activeWindow.contentView
+    window.makeFirstResponder null
+    window.makeKeyAndOrderFront null
+
+  # Set the active window's dirty status.
+  setDirty: (bool) ->
+    Chrome.activeWindow().setDocumentEdited bool
+
+  # Returns a boolean
+  dirty: ->
+    Chrome.activeWindow().isDocumentEdited()
+
+  # Returns the active NSWindow object
+  activeWindow: ->
+    OSX.NSApplication.sharedApplication.keyWindow
+
   # Returns null or a file path.
   openPanel: ->
     panel = OSX.NSOpenPanel.openPanel
