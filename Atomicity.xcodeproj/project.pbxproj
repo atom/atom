@@ -189,7 +189,7 @@
 				8D1107290486CEB800E47090 /* Resources */,
 				8D11072C0486CEB800E47090 /* Sources */,
 				8D11072E0486CEB800E47090 /* Frameworks */,
-				8393439613FE480600EF93FB /* Copy HTML folder to bundle and compile CoffeeScript */,
+				8393439613FE480600EF93FB /* Copy HTML folder & compile CoffeeScript */,
 			);
 			buildRules = (
 			);
@@ -240,19 +240,19 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		8393439613FE480600EF93FB /* Copy HTML folder to bundle and compile CoffeeScript */ = {
+		8393439613FE480600EF93FB /* Copy HTML folder & compile CoffeeScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "Copy HTML folder to bundle and compile CoffeeScript";
+			name = "Copy HTML folder & compile CoffeeScript";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"$PROJECT_DIR/script/compile.sh\"\n\"$PROJECT_DIR/script/copy-html.sh\"";
+			shellScript = "\"$PROJECT_DIR/script/compile.sh\"";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
