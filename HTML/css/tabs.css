@@ -16,10 +16,34 @@ iframe { border: 0; }
     padding: 3px 0 0 0;
 }
 
+#tabs .add a {
+    width: 12px;
+    height: 12px;
+
+    margin-top: 2px;
+    margin-left: 10px;
+    padding: 2px;
+
+    font-size: 15px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: #000 1px 1px 0;
+    background: #d8d7d8;
+    border: 1px solid #a0a0a0;
+    border-bottom: none;
+
+    -webkit-border-top-right-radius: 10px 5px;
+    -webkit-border-top-left-radius: 10px 5px;
+    -webkit-box-shadow: inset 0 1px 0 white;
+}
+#tabs .add span {
+    display: block;
+    margin-top: -4px;
+}
+
 #tabs ul {
     list-style: none;
     border-bottom: 1px solid #a0a0a0;
-
 }
 #tabs ul li { display: inline; }
 
@@ -48,7 +72,6 @@ iframe { border: 0; }
 
     -webkit-border-top-right-radius: 10px 20px;
     -webkit-border-top-left-radius: 10px 20px;
-
     -webkit-box-shadow: inset 1px 1px 0 white;
 
     border: 1px solid #a0a0a0;

@@ -1,3 +1,5 @@
+# nice!
+
 Chrome.init()
 
 editor = ace.edit "editor"
