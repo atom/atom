@@ -26,7 +26,10 @@
   
   [self setShouldCascadeWindows:NO];
   [self setWindowFrameAutosaveName:@"atomWindow"];
-  
+    
+    
+  [webView setFrameLoadDelegate:self];
+    
   if (self.URL) {
     [webView setMainFrameURL:self.URL];
   } else {
@@ -36,10 +39,13 @@
     NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];;
     [[webView mainFrame] loadHTMLString:html baseURL:htmlURL];  
   }
-  
-  // https://github.com/parmanoir/jscocoa#readme
-  JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
-  [jsc setObject:self withName:@"App"];
 }
+
+- (void)webView:(WebView *)sender didStartProvisionalLoadForFrame:(WebFrame *)frame {
+    // https://github.com/parmanoir/jscocoa#readme
+    JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[frame globalContext]];
+    [jsc setObject:self withName:@"App"];
+}
+
 
 @end

@@ -8,7 +8,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-
 @interface AtomWindowController : NSWindowController {
   IBOutlet id webView;
   NSString *URL;

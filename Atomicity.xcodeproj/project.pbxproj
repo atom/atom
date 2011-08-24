@@ -252,7 +252,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"$PROJECT_DIR/script/compile.sh\"";
+			shellScript = "\"$PROJECT_DIR/script/compile.sh\"    ";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
