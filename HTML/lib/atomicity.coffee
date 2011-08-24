@@ -8,6 +8,7 @@ HTMLMode = require("ace/mode/html").Mode
 editor.getSession().setMode new JavaScriptMode
 editor.getSession().setUseSoftTabs true
 editor.getSession().setTabSize 2
+editor.focus()
 
 if css = File.read "~/.atomicity/twilight.css"
   head = $('head')[0]
