@@ -36,7 +36,7 @@
     NSURL *bundleURL = [[NSBundle mainBundle] resourceURL];
     NSURL *htmlURL = [bundleURL URLByAppendingPathComponent:@"HTML"];
     NSURL *indexURL = [htmlURL URLByAppendingPathComponent:@"index.html"];
-    NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];;
+    NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];
     [[webView mainFrame] loadHTMLString:html baseURL:htmlURL];  
   }
 }
