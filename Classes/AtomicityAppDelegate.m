@@ -8,6 +8,7 @@
 
 #import "AtomicityAppDelegate.h"
 #import "AtomWindowController.h"
+#import "JSCocoa.h"
 
 @implementation AtomicityAppDelegate
 
@@ -19,8 +20,10 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-  AtomWindowController* ctrl = [[AtomWindowController alloc] initWithWindowNibName:@"AtomWindow"];
-  [ctrl window];
+  NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
+  NSString *bootstrapPath = [resourcePath stringByAppendingString:@"/HTML/lib/bootstrap.js"];
+  JSCocoa* jsc = [[JSCocoa alloc] init];
+  [jsc evalJSFile:bootstrapPath];
 }
 
 @end
