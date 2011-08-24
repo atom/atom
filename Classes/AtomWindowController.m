@@ -27,7 +27,6 @@
   [self setShouldCascadeWindows:NO];
   [self setWindowFrameAutosaveName:@"atomWindow"];
     
-    
   [webView setFrameLoadDelegate:self];
     
   if (self.URL) {
