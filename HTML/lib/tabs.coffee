@@ -1,4 +1,5 @@
 # {$} = require 'jQuery'
+# {Chrome} = require 'lib/osx'
 
 # awesome hover effect
 if false
