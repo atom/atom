@@ -1,5 +1,8 @@
 * { margin: 0; padding: 0; }
-body { font: 12px "Lucida Grande", Helvetica, Arial, serif; }
+body {
+    font: 12px "Lucida Grande", Helvetica, Arial, serif;
+    overflow: hidden;
+}
 iframe { border: 0; }
 
 .clearfix:after {
