@@ -8,8 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58140DA1D0A300B32029 /* MainMenu.xib */; };
-		256AC3DA0F4B6AC300CF3369 /* AtomicityAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 256AC3D90F4B6AC300CF3369 /* AtomicityAppDelegate.m */; };
-		831162FC14036C33004532EB /* AtomWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 831162FB14036C33004532EB /* AtomWindow.xib */; };
+		8321C5F11404ADE60029952E /* AtomWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8321C5F01404ADE60029952E /* AtomWindow.xib */; };
+		8321C5F61404ADF00029952E /* AtomicityAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8321C5F31404ADF00029952E /* AtomicityAppDelegate.m */; };
+		8321C5F71404ADF00029952E /* AtomWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8321C5F51404ADF00029952E /* AtomWindowController.m */; };
+		8321C5FB1404AE0C0029952E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8321C5FA1404AE0C0029952E /* main.m */; };
 		832BA38413FE674C00516BD7 /* APPL.icns in Resources */ = {isa = PBXBuildFile; fileRef = 832BA38313FE674C00516BD7 /* APPL.icns */; };
 		83599F9B13FE0F8400AC37E3 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83599F9A13FE0F8400AC37E3 /* WebKit.framework */; };
 		8359A6EE13FE26DA00AC37E3 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */; };
@@ -19,9 +21,7 @@
 		8359A73113FE270F00AC37E3 /* JSCocoaFFIClosure.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71C13FE270F00AC37E3 /* JSCocoaFFIClosure.m */; };
 		8359A73213FE270F00AC37E3 /* JSCocoaLib.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A71E13FE270F00AC37E3 /* JSCocoaLib.m */; };
 		8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */; };
-		83E83D94140374480043D7EA /* AtomWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 83E83D93140374480043D7EA /* AtomWindowController.m */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
-		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 /* End PBXBuildFile section */
 
@@ -30,13 +30,15 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 		1DDD58150DA1D0A300B32029 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		256AC3D80F4B6AC300CF3369 /* AtomicityAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AtomicityAppDelegate.h; sourceTree = "<group>"; };
-		256AC3D90F4B6AC300CF3369 /* AtomicityAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AtomicityAppDelegate.m; sourceTree = "<group>"; };
 		256AC3F00F4B6AF500CF3369 /* Atomicity_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Atomicity_Prefix.pch; sourceTree = "<group>"; };
-		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		831162FB14036C33004532EB /* AtomWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = AtomWindow.xib; sourceTree = "<group>"; };
+		8321C5F01404ADE60029952E /* AtomWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AtomWindow.xib; path = ../Atomicity/xibs/AtomWindow.xib; sourceTree = SOURCE_ROOT; };
+		8321C5F21404ADF00029952E /* AtomicityAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomicityAppDelegate.h; path = ../Atomicity/Classes/AtomicityAppDelegate.h; sourceTree = SOURCE_ROOT; };
+		8321C5F31404ADF00029952E /* AtomicityAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomicityAppDelegate.m; path = ../Atomicity/Classes/AtomicityAppDelegate.m; sourceTree = SOURCE_ROOT; };
+		8321C5F41404ADF00029952E /* AtomWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomWindowController.h; path = ../Atomicity/Classes/AtomWindowController.h; sourceTree = SOURCE_ROOT; };
+		8321C5F51404ADF00029952E /* AtomWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomWindowController.m; path = ../Atomicity/Classes/AtomWindowController.m; sourceTree = SOURCE_ROOT; };
+		8321C5FA1404AE0C0029952E /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ../Atomicity/main.m; sourceTree = SOURCE_ROOT; };
 		832BA38313FE674C00516BD7 /* APPL.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = APPL.icns; sourceTree = "<group>"; };
 		83599F9A13FE0F8400AC37E3 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -55,8 +57,6 @@
 		8359A71F13FE270F00AC37E3 /* JSCocoaPrivateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaPrivateObject.h; sourceTree = "<group>"; };
 		8359A72013FE270F00AC37E3 /* JSCocoaPrivateObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaPrivateObject.m; sourceTree = "<group>"; };
 		8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jslint-jscocoa.js"; sourceTree = "<group>"; };
-		83E83D92140374480043D7EA /* AtomWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AtomWindowController.h; sourceTree = "<group>"; };
-		83E83D93140374480043D7EA /* AtomWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AtomWindowController.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Atomicity-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Atomicity-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* Atomicity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atomicity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -78,10 +78,10 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				256AC3D80F4B6AC300CF3369 /* AtomicityAppDelegate.h */,
-				256AC3D90F4B6AC300CF3369 /* AtomicityAppDelegate.m */,
-				83E83D92140374480043D7EA /* AtomWindowController.h */,
-				83E83D93140374480043D7EA /* AtomWindowController.m */,
+				8321C5F21404ADF00029952E /* AtomicityAppDelegate.h */,
+				8321C5F31404ADF00029952E /* AtomicityAppDelegate.m */,
+				8321C5F41404ADF00029952E /* AtomWindowController.h */,
+				8321C5F51404ADF00029952E /* AtomWindowController.m */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 			);
 			name = Classes;
@@ -131,7 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				256AC3F00F4B6AF500CF3369 /* Atomicity_Prefix.pch */,
-				29B97316FDCFA39411CA2CEA /* main.m */,
+				8321C5FA1404AE0C0029952E /* main.m */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -143,7 +143,7 @@
 				8D1107310486CEB800E47090 /* Atomicity-Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				1DDD58140DA1D0A300B32029 /* MainMenu.xib */,
-				831162FB14036C33004532EB /* AtomWindow.xib */,
+				8321C5F01404ADE60029952E /* AtomWindow.xib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -233,7 +233,7 @@
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
 				832BA38413FE674C00516BD7 /* APPL.icns in Resources */,
-				831162FC14036C33004532EB /* AtomWindow.xib in Resources */,
+				8321C5F11404ADE60029952E /* AtomWindow.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,15 +262,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D11072D0486CEB800E47090 /* main.m in Sources */,
-				256AC3DA0F4B6AC300CF3369 /* AtomicityAppDelegate.m in Sources */,
 				8359A72213FE270F00AC37E3 /* BridgeSupportController.m in Sources */,
 				8359A72F13FE270F00AC37E3 /* JSCocoaController.m in Sources */,
 				8359A73013FE270F00AC37E3 /* JSCocoaFFIArgument.m in Sources */,
 				8359A73113FE270F00AC37E3 /* JSCocoaFFIClosure.m in Sources */,
 				8359A73213FE270F00AC37E3 /* JSCocoaLib.m in Sources */,
 				8359A73313FE270F00AC37E3 /* JSCocoaPrivateObject.m in Sources */,
-				83E83D94140374480043D7EA /* AtomWindowController.m in Sources */,
+				8321C5F61404ADF00029952E /* AtomicityAppDelegate.m in Sources */,
+				8321C5F71404ADF00029952E /* AtomWindowController.m in Sources */,
+				8321C5FB1404AE0C0029952E /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
