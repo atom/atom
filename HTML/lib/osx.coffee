@@ -126,6 +126,13 @@ Dir =
     _.map OSX.NSFileManager.defaultManager.subpathsAtPath(path), (entry) ->
       "#{path}/#{entry}"
 
+Process =
+  cwd: ->
+    OSX.NSFileManager.defaultManager.currentDirectoryPath()
+
+  env: ->
+    OSX.NSProcess.processInfo.environment()
+
 this.Chrome = Chrome
 this.File = File
 this.Dir = Dir
