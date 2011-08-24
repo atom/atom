@@ -125,3 +125,6 @@ Chrome.bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
 Chrome.bindKey 'consolelog', 'Ctrl-L', (env) ->
   env.editor.insert 'console.log ""'
   env.editor.navigateLeft()
+
+Chrome.bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) ->
+  Project.toggle()
