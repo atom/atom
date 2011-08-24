@@ -54,11 +54,9 @@ iframe { border: 0; }
     position: relative;
     z-index: 1;
     height: 8px;
-    margin-top: -2px;
-    margin-bottom: -4px;
+    
     background: #eee;
     padding-top: 4px;
-    padding-bottom: 8px;
 }
 
 #tabs ul li a {
