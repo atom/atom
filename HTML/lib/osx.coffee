@@ -67,7 +67,7 @@ Chrome =
         sender: 'editor'
 
   title: (text) ->
-    App.window.title = text
+    WindowController.window.title = text
 
   toggleFullscreen: ->
     if Chrome.fullscreen?
@@ -79,13 +79,13 @@ Chrome =
     Chrome.fullscreen = false
 
     OSX.NSMenu.setMenuBarVisible not OSX.NSMenu.menuBarVisible
-    window = App.window
+    window = WindowController.window
 
   enterFullscreen: ->
     Chrome.fullscreen = true
 
     OSX.NSMenu.setMenuBarVisible not OSX.NSMenu.menuBarVisible
-    window = App.window
+    window = WindowController.window
 
     fullscreenWindow = OSX.NSWindow.alloc.
       initWithContentRect_styleMask_backing_defer_screen(

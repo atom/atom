@@ -43,7 +43,7 @@
 - (void)webView:(WebView *)sender didStartProvisionalLoadForFrame:(WebFrame *)frame {
     // https://github.com/parmanoir/jscocoa#readme
     JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[frame globalContext]];
-    [jsc setObject:self withName:@"App"];
+    [jsc setObject:self withName:@"WindowController"];
 }
 
 
