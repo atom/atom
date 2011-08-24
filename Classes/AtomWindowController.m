@@ -24,7 +24,7 @@
 - (void)windowDidLoad {
   [super windowDidLoad];
   
-  [self setShouldCascadeWindows:NO];
+  [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomWindow"];
     
   [webView setFrameLoadDelegate:self];
