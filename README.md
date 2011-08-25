@@ -1,8 +1,13 @@
-    coffee -cw HTML/*.coffee
+## Ace
 
 * https://github.com/ajaxorg/ace/blob/master/lib/ace/selection.js
 * https://github.com/ajaxorg/ace/blob/master/lib/ace/commands/default_commands.js
 * https://github.com/ajaxorg/ace/blob/master/lib/ace/document.js
+
+## commonjs
+
+* http://wiki.commonjs.org/wiki/Filesystem/A
+* https://github.com/280north/narwhal
 
 ## JSCocoa
 
