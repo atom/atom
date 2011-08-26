@@ -1,0 +1,106 @@
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #app-horizontal {
+      background-color: orange;
+      display: -webkit-box;
+      height: 100%;
+
+      -webkit-box-orient: horizontal;
+    }
+
+    #app-vertical {
+      background-color: yellow;
+      display: -webkit-box;
+      -webkit-box-flex: 1;
+      -webkit-box-orient: vertical;
+    }
+
+    button {
+      margin: 10px;
+      font-size: 30px;
+      padding: 10px;
+    }
+
+    #tabs {
+      color: white;
+    }
+
+    #project-drawer {
+    }
+
+    .pane {
+      border: 1px solid red;
+    }
+
+    .main {
+      width: 100%;
+      -webkit-box-flex: 1;
+      background-color: black;
+    }
+
+    .left {
+      width: 100px;
+      background-color: gray;
+    }
+
+    .right {
+      width: 100px;
+      background-color: green;
+    }
+
+    .top {
+      height: 100px;
+      background-color: purple;
+    }
+
+    .bottom {
+      height: 100px;
+      background-color: blue;
+    }
+
+  </style>
+  <script>
+    function create(type) {
+      var verticalDiv = document.getElementById('app-vertical')
+      var horizontalDiv = document.getElementById('app-horizontal')
+
+      console.log(verticalDiv)
+
+      var el = document.createElement("div")
+      el.setAttribute('class', "pane " + type)
+      el.textContent = type
+
+      if (type == 'top') {
+        verticalDiv.insertBefore(el, verticalDiv.firstChild)
+      }
+      else if (type == 'left') {
+        horizontalDiv.insertBefore(el, horizontalDiv.firstChild)
+      }
+      else if (type == 'bottom') {
+        verticalDiv.appendChild(el)
+      }
+      else if (type == 'right') {
+        horizontalDiv.appendChild(el)
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id='app-horizontal'>
+    <div id='app-vertical'>
+      <div class='pane main' id='tabs'>
+        <button onclick='create("top")'>top</button>
+        <button onclick='create("left")'>left</button>
+        <button onclick='create("right")'>right</button>
+        <button onclick='create("bottom")'>bottom</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
