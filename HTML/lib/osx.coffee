@@ -29,6 +29,7 @@ Chrome =
   # Returns null or a file path.
   openPanel: ->
     panel = OSX.NSOpenPanel.openPanel
+    panel.setCanChooseDirectories(true)
     if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
       return null
     panel.filenames.lastObject
@@ -120,15 +121,27 @@ File =
       OSX.NSString.stringWithString(path).stringByExpandingTildeInPath
     else
       path
+  isFile: (path) ->
+    isDir = new outArgument
+    exists = OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory(path, isDir)
+    exists and not isDir.valueOf()
+
 Dir =
   list: (path) ->
     path = File.expand path
     _.map OSX.NSFileManager.defaultManager.subpathsAtPath(path), (entry) ->
       "#{path}/#{entry}"
+  isDir: (path) ->
+    isDir = new outArgument
+    exists = OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory(path, isDir)
+    exists and isDir.valueOf()
 
 Process =
-  cwd: ->
-    OSX.NSFileManager.defaultManager.currentDirectoryPath()
+  cwd: (path) ->
+    if dir?
+      OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath(path)
+    else
+      OSX.NSFileManager.defaultManager.currentDirectoryPath()
 
   env: ->
     OSX.NSProcess.processInfo.environment()
