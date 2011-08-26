@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		044A1F0314080A510006B340 /* class.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A6FA13FE270F00AC37E3 /* class.js */; };
+		044A1F0514080A540006B340 /* jslint-jscocoa.js in Resources */ = {isa = PBXBuildFile; fileRef = 8359A72113FE270F00AC37E3 /* jslint-jscocoa.js */; };
 		1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58140DA1D0A300B32029 /* MainMenu.xib */; };
 		8321C5F11404ADE60029952E /* AtomWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8321C5F01404ADE60029952E /* AtomWindow.xib */; };
 		8321C5F61404ADF00029952E /* AtomicityAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8321C5F31404ADF00029952E /* AtomicityAppDelegate.m */; };
@@ -234,6 +236,8 @@
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
 				832BA38413FE674C00516BD7 /* APPL.icns in Resources */,
 				8321C5F11404ADE60029952E /* AtomWindow.xib in Resources */,
+				044A1F0314080A510006B340 /* class.js in Resources */,
+				044A1F0514080A540006B340 /* jslint-jscocoa.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

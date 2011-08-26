@@ -4,10 +4,10 @@
 	var	YES	= true
 	var NO	= false
 	
-	
+	var ctx = this
 	if ('OSX' in this)
 	{
-		var JSCocoaController	= OSX.JSCocoaController
+        ctx = OSX
 		var NSApp				= null
 	}
 
@@ -34,7 +34,7 @@
 	{
 		var t = types[i]
 		// use new String to convert from a boxed NSString to a Javascript string
-		encodings[t] = new String(JSCocoaFFIArgument.typeEncodingForType_(t))
+		encodings[t] = new String(ctx.JSCocoaFFIArgument.typeEncodingForType_(t))
 	}
 	encodings['charpointer'] = encodings['char*']
 	encodings['IBAction'] = encodings['void']
@@ -56,7 +56,7 @@
 		if (encoding.match(/struct \w+/))
 		{
 			var structureName = encoding.split(' ')[1]
-			var structureEncoding = JSCocoaFFIArgument.structureFullTypeEncodingFromStructureName(structureName)
+			var structureEncoding = ctx.JSCocoaFFIArgument.structureFullTypeEncodingFromStructureName(structureName)
 			if (!structureEncoding)	throw 'no encoding found for structure ' + structureName
 
 			//
@@ -66,7 +66,7 @@
 			//	becomes
 			//	{_NSPoint=ff}
 			//
-//			JSCocoaController.log('*' + structureEncoding + '*' + String(String(structureEncoding).replace(/"[^"]+"/gi, "")) + '*')
+//			ctx.JSCocoaController.log('*' + structureEncoding + '*' + String(String(structureEncoding).replace(/"[^"]+"/gi, "")) + '*')
 			return String(String(structureEncoding).replace(/"[^"]+"/gi, ""))
 		}
 		else
@@ -102,7 +102,7 @@
 					}
 				}
 				// Structure ?
-				var structureEncoding = JSCocoaFFIArgument.structureFullTypeEncodingFromStructureName(encoding)
+				var structureEncoding = ctx.JSCocoaFFIArgument.structureFullTypeEncodingFromStructureName(encoding)
 				if (structureEncoding)	return	String(String(structureEncoding).replace(/"[^"]+"/gi, ""))
 				throw	'invalid encoding : "' + encoding + '"'
 			}
@@ -162,22 +162,22 @@
 		// Get parent class
 		var parentClass = this[parentClassName]
 		if (!parentClass)											throw 'Parent class ' + parentClassName + ' not found'
-//		JSCocoaController.log('parentclass=' + parentClass)
+//		ctx.JSCocoaController.log('parentclass=' + parentClass)
 
-		var newClass = JSCocoa.createClass_parentClass_(className, parentClassName)
+		var newClass = ctx.JSCocoa.createClass_parentClass_(className, parentClassName)
 		for (var method in methods)
 		{
 			var isInstanceMethod = parentClass.instancesRespondToSelector(method)
 			var isOverload = parentClass.respondsToSelector(method) || isInstanceMethod
-//			JSCocoaController.log('adding method *' + method + '* to ' + className + ' isOverload=' + isOverload + ' isInstanceMethod=' + isInstanceMethod)
+//			ctx.JSCocoaController.log('adding method *' + method + '* to ' + className + ' isOverload=' + isOverload + ' isInstanceMethod=' + isInstanceMethod)
 			
 			if (isOverload)
 			{
 				var fn = methods[method]
 				if (!fn || (typeof fn) != 'function')	throw '(overloading) Method ' + method + ' not a function - when overloading, omit encodings as they will be inferred from the existing method'
 
-				if (isInstanceMethod)	JSCocoa.overloadInstanceMethod_class_jsFunction_(method, newClass, fn)
-				else					JSCocoa.overloadClassMethod_class_jsFunction_(method, newClass, fn)
+				if (isInstanceMethod)	ctx.JSCocoa.overloadInstanceMethod_class_jsFunction_(method, newClass, fn)
+				else					ctx.JSCocoa.overloadClassMethod_class_jsFunction_(method, newClass, fn)
 			}
 			else
 			{
@@ -246,12 +246,12 @@
 			if (typeof setter != 'function')	throw 'outlet setter not a function (' + setter + ')'
 			fn = setter
 		}
-		JSCocoa.addInstanceMethod_class_jsFunction_encoding_(outletMethod, newClass, fn, encoding)
+		ctx.JSCocoa.addInstanceMethod_class_jsFunction_encoding_(outletMethod, newClass, fn, encoding)
 
-		var fn = new Function('return this.JSValueForJSName("_' + name + '")')
+		var fn = new Function('return this.ctx.JSValueForJSName("_' + name + '")')
 		var encoding = objc_encoding('id')
 		
-		JSCocoa.addInstanceMethod_class_jsFunction_encoding_(name, newClass, fn, encoding)					
+		ctx.JSCocoa.addInstanceMethod_class_jsFunction_encoding_(name, newClass, fn, encoding)					
 	}
 	
 	//
@@ -261,7 +261,7 @@
 	{
 		if (name.charAt(name.length-1) != ':')	name += ':'
 		var encoding = objc_encoding('void', 'id')
-		JSCocoa.addInstanceMethod_class_jsFunction_encoding_(name, newClass, fn, encoding)					
+		ctx.JSCocoa.addInstanceMethod_class_jsFunction_encoding_(name, newClass, fn, encoding)					
 	}
 	
 	//
@@ -270,13 +270,13 @@
 	function	class_add_key(newClass, name, getter, setter)
 	{
 		// Get
-		var fn = new Function('return this.JSValueForJSName("_' + name + '")')
+		var fn = new Function('return this.ctx.JSValueForJSName("_' + name + '")')
 		if (getter)	
 		{
 			if (typeof getter != 'function')	throw 'key getter not a function (' + getter + ')'
 			fn = getter
 		}
-		JSCocoa.addInstanceMethod_class_jsFunction_encoding_(name, newClass, fn, objc_encoding('id'))
+		ctx.JSCocoa.addInstanceMethod_class_jsFunction_encoding_(name, newClass, fn, objc_encoding('id'))
 
 		// Set
 		var setMethod = 'set' + name.substr(0, 1).toUpperCase() + name.substr(1) + ':'
@@ -287,7 +287,7 @@
 			if (typeof setter != 'function')	throw 'key setter not a function (' + setter + ')'
 			fn = setter
 		}
-		JSCocoa.addInstanceMethod_class_jsFunction_encoding_(setMethod, newClass, fn, objc_encoding('void', 'id'))
+		ctx.JSCocoa.addInstanceMethod_class_jsFunction_encoding_(setMethod, newClass, fn, objc_encoding('void', 'id'))
 	}
 	
 	//
@@ -295,14 +295,14 @@
 	// 
 	function	class_add_instance_method(newClass, name, fn, encoding)
 	{
-		JSCocoa.addInstanceMethod_class_jsFunction_encoding_(name, newClass, fn, encoding)
+		ctx.JSCocoa.addInstanceMethod_class_jsFunction_encoding_(name, newClass, fn, encoding)
 	}
 	//
 	// Vanilla class method add. Wrapper for JSCocoaController's addClassMethod
 	// 
 	function	class_add_class_method(newClass, name, fn, encoding)
 	{
-		JSCocoa.addClassMethod_class_jsFunction_encoding_(name, newClass, fn, encoding)
+		ctx.JSCocoa.addClassMethod_class_jsFunction_encoding_(name, newClass, fn, encoding)
 	}
 	
 	//
@@ -310,11 +310,11 @@
 	//
 	function	class_swizzle_instance_method(newClass, name, fn)
 	{
-		JSCocoa.swizzleInstanceMethod_class_jsFunction_(name, newClass, fn)
+		ctx.JSCocoa.swizzleInstanceMethod_class_jsFunction_(name, newClass, fn)
 	}
 	function	class_swizzle_class_method(newClass, name, fn)
 	{
-		JSCocoa.swizzleClassMethod_class_jsFunction_(name, newClass, fn)
+		ctx.JSCocoa.swizzleClassMethod_class_jsFunction_(name, newClass, fn)
 	}
 	
 	//
@@ -371,7 +371,7 @@
 			// Get parent class
 			var parentClass = this[parentClassName]
 			if (!parentClass)											throw 'Parent class ' + parentClassName + ' not found'
-			var newClass = JSCocoa.createClass_parentClass_(className, parentClassName)
+			var newClass = ctx.JSCocoa.createClass_parentClass_(className, parentClassName)
 		}
 		
 		// Add outlets, actions and keys before methods as methods could override outlet setters and getters
@@ -402,7 +402,7 @@
 //			log('method.type=' + h.methods[method].type + ' ' + method)
 			var isInstanceMethod = parentClass ? parentClass.instancesRespondToSelector(method) : false
 			var isOverload = parentClass ? parentClass.respondsToSelector(method) || isInstanceMethod : false
-//			JSCocoaController.log('adding method *' + method + '* to ' + className + ' isOverload=' + isOverload + ' isInstanceMethod=' + isInstanceMethod)
+//			ctx.JSCocoaController.log('adding method *' + method + '* to ' + className + ' isOverload=' + isOverload + ' isInstanceMethod=' + isInstanceMethod)
 			
 			// Swizzling cancels overloading
 			if (h.methods[method].swizzle)
@@ -418,8 +418,8 @@
 				var fn = h.methods[method].fn
 				if (!fn || (typeof fn) != 'function')	throw 'Method ' + method + ' not a function'
 
-				if (isInstanceMethod)	JSCocoa.overloadInstanceMethod_class_jsFunction_(method, newClass, fn)
-				else					JSCocoa.overloadClassMethod_class_jsFunction_(method, newClass, fn)
+				if (isInstanceMethod)	ctx.JSCocoa.overloadInstanceMethod_class_jsFunction_(method, newClass, fn)
+				else					ctx.JSCocoa.overloadClassMethod_class_jsFunction_(method, newClass, fn)
 			}
 			else
 			{
@@ -591,9 +591,9 @@
 	{
 		// Derive to store some javascript data in the internal hash
 		if (!('outArgument2' in this))
-			JSCocoa.createClass_parentClass_('JSCocoaOutArgument2', 'JSCocoaOutArgument')
+			ctx.JSCocoa.createClass_parentClass_('JSCocoaOutArgument2', 'JSCocoaOutArgument')
 
-		var o = JSCocoaOutArgument2.instance
+		var o = ctx.JSCocoaOutArgument2.instance
 		o.isOutArgument = true
 		if (arguments.length == 2)	o.mateWithMemoryBuffer_atIndex_(arguments[0], arguments[1])
 
@@ -603,7 +603,7 @@
 	
 	function	memoryBuffer(types)
 	{
-		var o = JSCocoaMemoryBuffer.instanceWithTypes(types)
+		var o = ctx.JSCocoaMemoryBuffer.instanceWithTypes(types)
 		o.isOutArgument = true
 		return	o
 	}
