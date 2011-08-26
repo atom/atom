@@ -1,5 +1,6 @@
 ## Ace
 
+* https://github.com/ajaxorg/ace/wiki/Creating-or-Extending-an-Edit-Mode
 * https://github.com/ajaxorg/ace/blob/master/lib/ace/selection.js
 * https://github.com/ajaxorg/ace/blob/master/lib/ace/commands/default_commands.js
 * https://github.com/ajaxorg/ace/blob/master/lib/ace/document.js
