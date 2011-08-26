@@ -7,6 +7,7 @@
 
 ## commonjs
 
+* http://ringojs.org/api/master/
 * http://wiki.commonjs.org/wiki/Filesystem/A
 * https://github.com/280north/narwhal
 
