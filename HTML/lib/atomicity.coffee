@@ -9,6 +9,8 @@ _ = require 'vendor/underscore'
 $ = require 'vendor/jquery'
 {CoffeeScript} = require 'vendor/coffee-script'
 
+Chrome.addPane 'main', '<div id="editor"></div>'
+
 editor = ace.edit "editor"
 editor.setTheme require "ace/theme/twilight"
 JavaScriptMode = require("ace/mode/javascript").Mode
@@ -18,6 +20,11 @@ editor.getSession().setMode new JavaScriptMode
 editor.getSession().setUseSoftTabs true
 editor.getSession().setTabSize 2
 editor.focus()
+
+# fuuuuu, ui bug
+setTimeout ->
+  editor.resize()
+, 50
 
 if css = File.read "~/.atomicity/twilight.css"
   head = $('head')[0]
