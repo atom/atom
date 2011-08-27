@@ -1,3 +1,6 @@
+_ = require 'vendor/underscore'
+$ = require 'vendor/jquery'
+
 {Chrome, File, Dir, Process} = require 'lib/osx'
 
 exports.show = ->
