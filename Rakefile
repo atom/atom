@@ -13,6 +13,12 @@ task :build do
     cp_r dir, File.join(dest, dir)
   end
 
+  `hash coffee`
+  if not $?.success?
+    abort "error: coffee is required but it's not installed - " +
+          "http://coffeescript.org/ - (try `npm i -g coffee-script`)"
+  end
+
   Dir['src/**/*.coffee'].each do |file|
     sh "coffee -c #{dest}/src"
   end
