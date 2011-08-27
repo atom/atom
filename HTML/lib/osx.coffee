@@ -72,23 +72,6 @@ Chrome =
     window.location = url
     Chrome.title _.last url.replace(/\/$/,'').split '/'
 
-  # name - Command name, like "Find in file"
-  # shortcut - String command name, e.g.
-  #            "Command-T"
-  #            "Command-Shift-F"
-  #            "Ctrl-I"
-  # callback - (env, args, request)
-  #
-  # Returns nothing.
-  bindKey: (name, shortcut, callback) ->
-    canon.addCommand
-      name: name
-      exec: callback
-      bindKey:
-        win: null
-        mac: shortcut
-        sender: 'editor'
-
   title: (text) ->
     WindowController.window.title = text
 

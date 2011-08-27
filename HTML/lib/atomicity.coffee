@@ -53,78 +53,87 @@ saveAs = ->
     filename = file
     Chrome.title _.last filename.split('/')
     save()
+bindKey = (name, shortcut, callback) ->
+  canon.addCommand
+    name: name
+    exec: callback
+    bindKey:
+      win: null
+      mac: shortcut
+      sender: 'editor'
 
-Chrome.bindKey 'open', 'Command-O', (env, args, request) ->
+
+bindKey 'open', 'Command-O', (env, args, request) ->
   if file = Chrome.openPanel()
     filename = file
     open()
 
-Chrome.bindKey 'openURL', 'Command-Shift-O', (env, args, request) ->
+bindKey 'openURL', 'Command-Shift-O', (env, args, request) ->
   if url = prompt "Enter URL:"
     Chrome.openURL url
 
-Chrome.bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
+bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
   saveAs()
 
-Chrome.bindKey 'save', 'Command-S', (env, args, request) ->
+bindKey 'save', 'Command-S', (env, args, request) ->
   if filename then save() else saveAs()
 
-Chrome.bindKey 'new', 'Command-N', (env, args, request) ->
+bindKey 'new', 'Command-N', (env, args, request) ->
   Chrome.createWindow()
 
-Chrome.bindKey 'copy', 'Command-C', (env, args, request) ->
+bindKey 'copy', 'Command-C', (env, args, request) ->
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()
   Chrome.writeToPasteboard text
 
-Chrome.bindKey 'cut', 'Command-X', (env, args, request) ->
+bindKey 'cut', 'Command-X', (env, args, request) ->
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()
   Chrome.writeToPasteboard text
   editor.session.remove editor.getSelectionRange()
 
-Chrome.bindKey 'eval', 'Command-R', (env, args, request) ->
+bindKey 'eval', 'Command-R', (env, args, request) ->
   eval env.editor.getSession().getValue()
 
 # textmate
 
-Chrome.bindKey 'togglecomment', 'Command-/', (env) ->
+bindKey 'togglecomment', 'Command-/', (env) ->
   env.editor.toggleCommentLines()
 
-Chrome.bindKey 'tmoutdent', 'Command-[', (env) ->
+bindKey 'tmoutdent', 'Command-[', (env) ->
   env.editor.blockOutdent()
 
-Chrome.bindKey 'tmindent', 'Command-]', (env) ->
+bindKey 'tmindent', 'Command-]', (env) ->
   env.editor.indent()
 
 # emacs > you
 
-Chrome.bindKey 'moveforward', 'Alt-F', (env) ->
+bindKey 'moveforward', 'Alt-F', (env) ->
   env.editor.navigateWordRight()
 
-Chrome.bindKey 'moveback', 'Alt-B', (env) ->
+bindKey 'moveback', 'Alt-B', (env) ->
   env.editor.navigateWordLeft()
 
-Chrome.bindKey 'deleteword', 'Alt-D', (env) ->
+bindKey 'deleteword', 'Alt-D', (env) ->
   env.editor.removeWordRight()
 
-Chrome.bindKey 'selectwordright', 'Alt-B', (env) ->
+bindKey 'selectwordright', 'Alt-B', (env) ->
   env.editor.navigateWordLeft()
 
-Chrome.bindKey 'home', 'Alt-Shift-,', (env) ->
+bindKey 'home', 'Alt-Shift-,', (env) ->
   env.editor.navigateFileStart()
 
-Chrome.bindKey 'end', 'Alt-Shift-.', (env) ->
+bindKey 'end', 'Alt-Shift-.', (env) ->
   env.editor.navigateFileEnd()
 
-Chrome.bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
+bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
   Chrome.toggleFullscreen()
 
 
 
 # HAX
 # this should go in coffee.coffee or something
-Chrome.bindKey 'consolelog', 'Ctrl-L', (env) ->
+bindKey 'consolelog', 'Ctrl-L', (env) ->
   env.editor.insert 'console.log ""'
   env.editor.navigateLeft()
 
-Chrome.bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) ->
+bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) ->
   Project.toggle()
