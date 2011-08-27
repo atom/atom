@@ -11,15 +11,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Skywriter.
+ * The Original Code is Ajax.org Code Editor (ACE).
  *
  * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Kevin Dangoor (kdangoor@mozilla.com)
+ *      Fabian Jakobs <fabian AT ajax DOT org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,47 +34,30 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
+ 
 define(function(require, exports, module) {
+    
+    var Lexer = require("ace/mode/coffee/lexer").Lexer;
+    var parser = require("ace/mode/coffee/parser");
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
-
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
-
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
-
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
+    var lexer = new Lexer();
+    parser.lexer = {
+        lex: function() {
+            var tag, _ref2;
+            _ref2 = this.tokens[this.pos++] || [''], tag = _ref2[0], this.yytext = _ref2[1], this.yylineno = _ref2[2];
+            return tag;
+        },
+        setInput: function(tokens) {
+            this.tokens = tokens;
+            return this.pos = 0;
+        },
+        upcomingInput: function() {
+            return "";
         }
-
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
-
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
-
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
+    };
+    parser.yy = require('ace/mode/coffee/nodes');
+    
+    exports.parse = function(code) {
+        return parser.parse(lexer.tokenize(code));
     };
 });

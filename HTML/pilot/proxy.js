@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Kevin Dangoor (kdangoor@mozilla.com)
+ *   Julian Viereck (jviereck@mozilla.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,44 +37,47 @@
 
 define(function(require, exports, module) {
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
+var Promise = require('pilot/promise').Promise;
 
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
+exports.xhr = function(method, url, async, beforeSendCallback) {
+    var pr = new Promise();
 
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
+    if (!skywriter.proxy || !skywriter.proxy.xhr) {
+        var req = new XMLHttpRequest();
+        req.onreadystatechange = function() {
+            if (req.readyState !== 4) {
+                return;
+            }
 
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
+            var status = req.status;
+            if (status !== 0 && status !== 200) {
+                var error = new Error(req.responseText + ' (Status ' + req.status + ")");
+                error.xhr = req;
+                pr.reject(error);
+                return;
+            }
+
+            pr.resolve(req.responseText);
+        }.bind(this);
+
+        req.open("GET", url, async);
+        if (beforeSendCallback) {
+            beforeSendCallback(req);
         }
+        req.send();
+    } else {
+        skywriter.proxy.xhr.call(this, method, url, async, beforeSendCallback, pr);
+    }
 
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
+    return pr;
+};
 
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
+exports.Worker = function(url) {
+    if (!skywriter.proxy || !skywriter.proxy.worker) {
+        return new Worker(url);
+    } else {
+        return new skywriter.proxy.worker(url);
+    }
+};
 
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
-    };
 });

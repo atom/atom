@@ -11,15 +11,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Skywriter.
+ * The Original Code is Ajax.org Code Editor (ACE).
  *
  * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Kevin Dangoor (kdangoor@mozilla.com)
+ *      Fabian Jakobs <fabian AT ajax DOT org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,44 +37,59 @@
 
 define(function(require, exports, module) {
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
+var oop = require("pilot/oop");
+var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
 
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
+var DocCommentHighlightRules = function() {
 
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
-
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
-        }
-
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
-
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
-
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
+    this.$rules = {
+        "start" : [ {
+            token : "comment.doc.tag",
+            regex : "@[\\w\\d_]+" // TODO: fix email addresses
+        }, {
+            token : "comment.doc",
+            merge : true,
+            regex : "\\s+"
+        }, {
+            token : "comment.doc",
+            merge : true,
+            regex : "TODO"
+        }, {
+            token : "comment.doc",
+            merge : true,
+            regex : "[^@\\*]+"
+        }, {
+            token : "comment.doc",
+            merge : true,
+            regex : "."
+        }]
     };
+};
+
+oop.inherits(DocCommentHighlightRules, TextHighlightRules);
+
+(function() {
+
+    this.getStartRule = function(start) {
+        return {
+            token : "comment.doc", // doc comment
+            merge : true,
+            regex : "\\/\\*(?=\\*)",
+            next  : start
+        };
+    };
+    
+    this.getEndRule = function (start) {
+        return {
+            token : "comment.doc", // closing comment
+            merge : true,
+            regex : "\\*\\/",
+            next  : start
+        };
+    };
+
+}).call(DocCommentHighlightRules.prototype);
+
+exports.DocCommentHighlightRules = DocCommentHighlightRules;
+
 });

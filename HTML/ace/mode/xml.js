@@ -11,15 +11,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Skywriter.
+ * The Original Code is Ajax.org Code Editor (ACE).
  *
  * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Kevin Dangoor (kdangoor@mozilla.com)
+ *      Fabian Jakobs <fabian AT ajax DOT org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,44 +37,26 @@
 
 define(function(require, exports, module) {
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
+var oop = require("pilot/oop");
+var TextMode = require("ace/mode/text").Mode;
+var Tokenizer = require("ace/tokenizer").Tokenizer;
+var XmlHighlightRules = require("ace/mode/xml_highlight_rules").XmlHighlightRules;
+var XmlBehaviour = require("ace/mode/behaviour/xml").XmlBehaviour;
 
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
+var Mode = function() {
+    this.$tokenizer = new Tokenizer(new XmlHighlightRules().getRules());
+    this.$behaviour = new XmlBehaviour();
+};
 
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
+oop.inherits(Mode, TextMode);
 
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
-        }
+(function() {
 
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
-
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
-
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
+    this.getNextLineIndent = function(state, line, tab) {
+        return this.$getIndent(line);
     };
+
+}).call(Mode.prototype);
+
+exports.Mode = Mode;
 });

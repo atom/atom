@@ -19,7 +19,9 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Kevin Dangoor (kdangoor@mozilla.com)
+ *   Joe Walker (jwalker@mozilla.com)
+ *   Patrick Walton (pwalton@mozilla.com)
+ *   Julian Viereck (jviereck@mozilla.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,47 +36,41 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
 define(function(require, exports, module) {
+    
+/**
+ * This object represents a "safe console" object that forwards debugging
+ * messages appropriately without creating a dependency on Firebug in Firefox.
+ */
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
+var noop = function() {};
 
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
+// These are the functions that are available in Chrome 4/5, Safari 4
+// and Firefox 3.6. Don't add to this list without checking browser support
+var NAMES = [
+    "assert", "count", "debug", "dir", "dirxml", "error", "group", "groupEnd",
+    "info", "log", "profile", "profileEnd", "time", "timeEnd", "trace", "warn"
+];
 
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
-
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
+if (typeof(window) === 'undefined') {
+    // We're in a web worker. Forward to the main thread so the messages
+    // will show up.
+    NAMES.forEach(function(name) {
+        exports[name] = function() {
+            var args = Array.prototype.slice.call(arguments);
+            var msg = { op: 'log', method: name, args: args };
+            postMessage(JSON.stringify(msg));
+        };
+    });
+} else {
+    // For each of the console functions, copy them if they exist, stub if not
+    NAMES.forEach(function(name) {
+        if (window.console && window.console[name]) {
+            exports[name] = Function.prototype.bind.call(window.console[name], window.console);
+        } else {
+            exports[name] = noop;
         }
+    });
+}
 
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
-
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
-
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
-    };
 });

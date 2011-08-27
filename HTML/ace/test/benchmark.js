@@ -11,15 +11,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Skywriter.
+ * The Original Code is Ajax.org Code Editor (ACE).
  *
  * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Kevin Dangoor (kdangoor@mozilla.com)
+ *      Fabian Jakobs <fabian AT ajax DOT org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,46 +35,51 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+if (typeof process !== "undefined") {
+    require("../../../support/paths");
+}
+
 define(function(require, exports, module) {
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
+var assert = require("ace/test/assertions");
+var EditSession = require("ace/edit_session").EditSession;
 
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
+module.exports = {
+    setUp : function() {
+        this.start = Date.now();
+    },
+    
+    tearDown : function() {
+        console.log("took: ", Date.now() - this.start + "ms");
+    },
+    
+    "test: document to screen position": function() {
+        var s = new EditSession(Array(6000).join('someText\n'));
 
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
+        for (var i=0; i<6000; i++)
+            s.documentToScreenPosition(i, 0);
 
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
-        }
+        for (var i=0; i<6000; i++)
+            s.documentToScreenPosition(i, 0);
 
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
+        console.log(s.$rowCache.length);
+    },
+    
+    "test: screen to document position": function() {
+        var s = new EditSession(Array(6000).join('someText\n'));
 
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
+        for (var i=0; i<6000; i++)
+            s.screenToDocumentPosition(i, 0);
 
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
-    };
+        for (var i=0; i<6000; i++)
+            s.documentToScreenPosition(i, 0);
+
+        console.log(s.$rowCache.length);
+    }
+};
+
 });
+
+if (typeof module !== "undefined" && module === require.main) {
+    require("asyncjs").test.testcase(module.exports).exec();
+}

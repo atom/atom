@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *      Joe Walker (jwalker@mozilla.com)
  *      Kevin Dangoor (kdangoor@mozilla.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -37,44 +38,38 @@
 
 define(function(require, exports, module) {
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
+var canon = require("pilot/canon");
+var SelectionType = require("pilot/types/basic").SelectionType;
+var types = require("pilot/types");
 
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
 
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
+/**
+ * Select from the available commands
+ */
+var command = new SelectionType({
+    name: 'command',
+    data: function() {
+        return canon.getCommandNames();
+    },
+    stringify: function(command) {
+        return command.name;
+    },
+    fromString: function(str) {
+        return canon.getCommand(str);
+    }
+});
 
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
-        }
 
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
+/**
+ * Registration and de-registration.
+ */
+exports.startup = function() {
+    types.registerType(command);
+};
 
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
+exports.shutdown = function() {
+    types.unregisterType(command);
+};
 
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
-    };
+
 });

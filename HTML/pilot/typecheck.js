@@ -11,7 +11,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Skywriter.
+ * The Original Code is Skywriter.
  *
  * The Initial Developer of the Original Code is
  * Mozilla.
@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Kevin Dangoor (kdangoor@mozilla.com)
+ *   Joe Walker (jwalker@mozilla.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,44 +37,44 @@
 
 define(function(require, exports, module) {
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
+var objectToString = Object.prototype.toString;
 
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
+/**
+ * Return true if it is a String
+ */
+exports.isString = function(it) {
+    return it && objectToString.call(it) === "[object String]";
+};
 
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
+/**
+ * Returns true if it is a Boolean.
+ */
+exports.isBoolean = function(it) {
+    return it && objectToString.call(it) === "[object Boolean]";
+};
 
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
-        }
+/**
+ * Returns true if it is a Number.
+ */
+exports.isNumber = function(it) {
+    return it && objectToString.call(it) === "[object Number]" && isFinite(it);
+};
 
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
+/**
+ * Hack copied from dojo.
+ */
+exports.isObject = function(it) {
+    return it !== undefined &&
+        (it === null || typeof it == "object" ||
+        Array.isArray(it) || exports.isFunction(it));
+};
 
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
+/**
+ * Is the passed object a function?
+ * From dojo.isFunction()
+ */
+exports.isFunction = function(it) {
+    return it && objectToString.call(it) === "[object Function]";
+};
 
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
-    };
 });

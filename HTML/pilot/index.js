@@ -37,44 +37,29 @@
 
 define(function(require, exports, module) {
 
-    require("pilot/index");
-    require("pilot/fixoldbrowsers");
-    var catalog = require("pilot/plugin_manager").catalog;
-    catalog.registerPlugins([ "pilot/index" ]);
+exports.startup = function(data, reason) {
+    require('pilot/fixoldbrowsers');
 
-    var Dom = require("pilot/dom");
-    var Event = require("pilot/event");
+    require('pilot/types/basic').startup(data, reason);
+    require('pilot/types/command').startup(data, reason);
+    require('pilot/types/settings').startup(data, reason);
+    require('pilot/commands/settings').startup(data, reason);
+    require('pilot/commands/basic').startup(data, reason);
+    // require('pilot/commands/history').startup(data, reason);
+    require('pilot/settings/canon').startup(data, reason);
+    require('pilot/canon').startup(data, reason);
+};
 
-    var Editor = require("ace/editor").Editor;
-    var EditSession = require("ace/edit_session").EditSession;
-    var UndoManager = require("ace/undomanager").UndoManager;
-    var Renderer = require("ace/virtual_renderer").VirtualRenderer;
+exports.shutdown = function(data, reason) {
+    require('pilot/types/basic').shutdown(data, reason);
+    require('pilot/types/command').shutdown(data, reason);
+    require('pilot/types/settings').shutdown(data, reason);
+    require('pilot/commands/settings').shutdown(data, reason);
+    require('pilot/commands/basic').shutdown(data, reason);
+    // require('pilot/commands/history').shutdown(data, reason);
+    require('pilot/settings/canon').shutdown(data, reason);
+    require('pilot/canon').shutdown(data, reason);
+};
 
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
-        }
 
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
-
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
-
-        var env = require("pilot/environment").create();
-        catalog.startupPlugins({ env: env }).then(function() {
-            env.document = doc;
-            env.editor = editor;
-            editor.resize();
-            Event.addListener(window, "resize", function() {
-                editor.resize();
-            });
-            el.env = env;
-        });
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
-    };
 });
