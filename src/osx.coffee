@@ -118,6 +118,9 @@ File =
   expand: (path) ->
     if /~/.test path
       OSX.NSString.stringWithString(path).stringByExpandingTildeInPath
+    else if path.indexOf('./') is 0
+      root = OSX.NSBundle.mainBundle.resourcePath
+      "#{root}/#{path}"
     else
       path
   isFile: (path) ->
