@@ -18,10 +18,10 @@ HTMLMode = require("ace/mode/html").Mode
 editor.getSession().setMode new JavaScriptMode
 editor.getSession().setUseSoftTabs true
 editor.getSession().setTabSize 2
-editor.focus()
 
 # fuuuuu, ui bug
 setTimeout ->
+  editor.focus()
   editor.resize()
 , 50
 
