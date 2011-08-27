@@ -1,38 +1,43 @@
-# {$} = require 'jQuery'
-# {Chrome} = require 'lib/osx'
+{Chrome, File, Dir, Process} = require 'lib/osx'
 
-# awesome hover effect
-if false
-  $('#tabs ul li:not(".active") a').mousemove (e) ->
-    originalBG = $(this).css("background-color")
-    x  = e.pageX - @offsetLeft
-    y  = e.pageY - @offsetTop
-    xy = x + " " + y
+exports.show = ->
+  root = OSX.NSBundle.mainBundle.resourcePath + '/HTML/'
+  html = OSX.NSString.stringWithContentsOfFile "#{root}/tabs.html"
 
-    bgWebKit = "-webkit-gradient(radial, #{xy}, 0, #{xy}, 100, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0.0))), #{originalBG}"
+  Chrome.addPane('main', html)
 
-    $(this).css background: bgWebKit
+  # awesome hover effect
+  if false
+    $('#tabs ul li:not(".active") a').mousemove (e) ->
+      originalBG = $(this).css("background-color")
+      x  = e.pageX - @offsetLeft
+      y  = e.pageY - @offsetTop
+      xy = x + " " + y
 
-  $('#tabs ul li:not(".active") a').mouseleave (e) ->
-    $(this).removeAttr 'style'
+      bgWebKit = "-webkit-gradient(radial, #{xy}, 0, #{xy}, 100, from(rgba(255,255,255,0.8)), to(rgba(255,255,255,0.0))), #{originalBG}"
 
-# events
-$('#tabs ul li:not(.add) a').live 'click', ->
-  $('#tabs ul .active').removeClass()
-  $(this).parents('li').addClass 'active'
+      $(this).css background: bgWebKit
 
-  idx = $('#tabs ul a').index this
-  $('.content iframe').hide().eq(idx).show().focus()
+    $('#tabs ul li:not(".active") a').mouseleave (e) ->
+      $(this).removeAttr 'style'
 
-  false
+  # events
+  $('#tabs ul li:not(.add) a').live 'click', ->
+    $('#tabs ul .active').removeClass()
+    $(this).parents('li').addClass 'active'
 
-$('#tabs .add a').click ->
-  $('#tabs ul .active').removeClass()
-  $('#tabs ul .add').before '<li><a href="#">untitled</a></li>'
+    idx = $('#tabs ul a').index this
+    $('.content iframe').hide().eq(idx).show().focus()
 
-  $('.content iframe').hide()
-  $('.content').append '<iframe src="editor.html" width="100%" height="100%"></iframe>'
+    false
 
-  $('#tabs ul .add').prev().addClass 'active'
+  $('#tabs .add a').click ->
+    $('#tabs ul .active').removeClass()
+    $('#tabs ul .add').before '<li><a href="#">untitled</a></li>'
 
-  false
+    $('.content iframe').hide()
+    $('.content').append '<iframe src="editor.html" width="100%" height="100%"></iframe>'
+
+    $('#tabs ul .add').prev().addClass 'active'
+
+    false
