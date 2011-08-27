@@ -1,4 +1,15 @@
 # This file is the first thing loaded on startup.
 
-c = AtomWindowController.alloc.initWithWindowNibName "AtomWindow"
-c.window
+modules = {}
+this.require = (path) ->
+  console.log(path)
+  return modules[path] if modules[path]
+
+  root = OSX.NSBundle.mainBundle.resourcePath + '/HTML/'
+  file = OSX.NSString.stringWithContentsOfFile "#{root}/#{path}.js"
+  exports = {}
+  eval "(function(exports){#{file}}).call(exports, exports);"
+
+  modules[path] = exports
+  modules[path]
+

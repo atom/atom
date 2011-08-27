@@ -1,7 +1,6 @@
 # This is the CoffeeScript API that wraps all of Cocoa.
 
-# leak
-canon = require 'pilot/canon'
+{canon} = require 'pilot/canon'
 
 # Handles the UI chrome
 Chrome =
@@ -161,7 +160,9 @@ Project =
 
     @showing = not @showing
 
-this.Chrome = Chrome
-this.File = File
-this.Dir = Dir
-this.Project = Project
+exports ?= this
+
+exports.Chrome = Chrome
+exports.File = File
+exports.Dir = Dir
+exports.Project = Project
