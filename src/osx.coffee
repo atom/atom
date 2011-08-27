@@ -129,10 +129,14 @@ File =
     exists and not isDir.valueOf()
 
 Dir =
-  list: (path) ->
+  list: (path, recursive) ->
     path = File.expand path
-    _.map OSX.NSFileManager.defaultManager.subpathsAtPath(path), (entry) ->
-      "#{path}/#{entry}"
+    fm = OSX.NSFileManager.defaultManager
+    if recursive
+      paths = fm.subpathsAtPath path
+    else
+      paths = fm.contentsOfDirectoryAtPath_error path, null
+    _.map paths, (entry) -> "#{path}/#{entry}"
   isDir: (path) ->
     isDir = new outArgument
     exists = OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory(path, isDir)
