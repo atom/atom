@@ -33,3 +33,5 @@ this.require = (path) ->
   modules[path]
 
 this.require.nameToUrl = (path) -> "#{path}.js"
+
+this._ = require 'vendor/underscore'

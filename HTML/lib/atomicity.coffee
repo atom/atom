@@ -5,7 +5,6 @@
 ace = require 'ace/ace'
 canon = require 'pilot/canon'
 
-_ = require 'vendor/underscore'
 $ = require 'vendor/jquery'
 {CoffeeScript} = require 'vendor/coffee-script'
 
