@@ -5,8 +5,7 @@ console.log = (thing) -> OSX.NSLog thing.toString()
 modules = {}
 paths = ['src', 'vendor']
 read = (path) ->
-  root = OSX.NSBundle.mainBundle.resourcePath
-  OSX.NSString.stringWithContentsOfFile "#{root}/#{path}"
+  OSX.NSString.stringWithContentsOfFile path
 this.require = (file) ->
   # hack for stupid requirejs
   if file.indexOf('ace/requirejs/text!') > -1
@@ -16,12 +15,17 @@ this.require = (file) ->
   return modules[file] if modules[file]
 
   code = null
-  paths.forEach (path) ->
-    return code if code
-    if text
-      code = read "#{path}/#{file}"
-    else
-      code = read("#{path}/#{file}.js") or read("#{path}/#{file}/index.js")
+  if file[0] is '/'
+    code = read("#{file}.js") or read("#{file}/index.js")
+  else
+    root = OSX.NSBundle.mainBundle.resourcePath
+    paths.forEach (path) ->
+      return code if code
+      if text
+        code = read "#{root}/#{path}/#{file}"
+      else
+        code = read("#{root}/#{path}/#{file}.js") or
+               read("#{root}/#{path}/#{file}/index.js")
 
   if text
     modules[file] = code.toString()
