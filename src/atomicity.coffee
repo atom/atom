@@ -150,3 +150,8 @@ bindKey 'consolelog', 'Ctrl-L', (env) ->
 
 bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) ->
   Project.toggle()
+
+
+## load plugins
+plugins = _.map Dir.list("./plugins"), (plugin) ->
+  require plugin

@@ -3,11 +3,12 @@ $ = require 'jquery'
 {Chrome, File, Dir, Process} = require 'osx'
 
 exports.show = ->
-  root = OSX.NSBundle.mainBundle.resourcePath + '/HTML/'
+  root = OSX.NSBundle.mainBundle.resourcePath + '/plugins/tabs'
   tabs = OSX.NSString.stringWithContentsOfFile "#{root}/tabs.html"
-  edit = OSX.NSString.stringWithContentsOfFile "#{root}/editor.html"
+  console.log tabs
+#   edit = OSX.NSString.stringWithContentsOfFile "#{root}/editor.html"
 
-  Chrome.addPane 'main', tabs.replace '<%= editor %>', edit
+  Chrome.addPane 'main', 'derp'
 
   # events
   $('#tabs ul li:not(.add) a').live 'click', ->
