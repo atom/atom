@@ -5,7 +5,30 @@
 # Handles the UI chrome
 Chrome =
   init: ->
-    console.log = OSX.NSLog
+    oldLog = console.log
+    console.log = (output) ->
+      oldLog(output)
+      OSX.NSLog("" + output)
+
+  addPane: (position, html) ->
+    verticalDiv = $('#app-vertical')
+    horizontalDiv = $('#app-horizontal')
+
+    el = document.createElement("div")
+    el.setAttribute('class', "pane " + position)
+    el.innerHTML = html
+
+    switch position
+      when 'top', 'main'
+        verticalDiv.prepend(el)
+      when 'left'
+        horizontalDiv.prepend(el)
+      when 'bottom'
+        verticalDiv.append(el)
+      when 'right'
+        horizontalDiv.append(el)
+      else
+        NSLog("I DON'T KNOW HOW TO DEAL WITH #{position}")
 
   # path - Optional. The String path to the file to base it on.
   createWindow: (path) ->
