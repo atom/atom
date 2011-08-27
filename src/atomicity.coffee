@@ -1,12 +1,12 @@
 # nice!
 
-{Chrome, File, Process, Dir} = require 'lib/osx'
+{Chrome, File, Process, Dir} = require 'osx'
 
 ace = require 'ace/ace'
 canon = require 'pilot/canon'
 
-$ = require 'vendor/jquery'
-{CoffeeScript} = require 'vendor/coffee-script'
+$ = require 'jquery'
+{CoffeeScript} = require 'coffee-script'
 
 Chrome.addPane 'main', '<div id="editor"></div>'
 

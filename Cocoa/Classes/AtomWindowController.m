@@ -32,13 +32,13 @@
   } 
   else {
     NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
-    NSString *bootstrapPath = [resourcePath stringByAppendingString:@"/HTML/lib/bootstrap.js"];
+    NSString *bootstrapPath = [resourcePath stringByAppendingString:@"/src/bootstrap.js"];
     JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
     [jsc setObject:self withName:@"WindowController"];
     [jsc evalJSFile:bootstrapPath];
 
     NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
-    NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"HTML"];
+    NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"static"];
     NSURL *indexURL = [htmlURL URLByAppendingPathComponent:@"index.html"];
     NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];
     [[webView mainFrame] loadHTMLString:html baseURL:htmlURL]; 

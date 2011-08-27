@@ -1,6 +1,6 @@
 # This is the CoffeeScript API that wraps all of Cocoa.
 
-$ = require 'vendor/jquery'
+$ = require 'jquery'
 
 # Handles the UI chrome
 Chrome =

@@ -1,6 +1,6 @@
-$ = require 'vendor/jquery'
+$ = require 'jquery'
 
-{Chrome, File, Dir, Process} = require 'lib/osx'
+{Chrome, File, Dir, Process} = require 'osx'
 
 exports.show = ->
   root = OSX.NSBundle.mainBundle.resourcePath + '/HTML/'

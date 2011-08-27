@@ -1,3 +1,5 @@
+$ = require 'jquery'
+
 $ ->
   dir = OSX.NSFileManager.defaultManager.currentDirectoryPath
   $('#cwd').text(dir)
