@@ -20,10 +20,8 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-  NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
-  NSString *bootstrapPath = [resourcePath stringByAppendingString:@"/HTML/lib/bootstrap.js"];
-  JSCocoa* jsc = [[JSCocoa alloc] init];
-  [jsc evalJSFile:bootstrapPath];
+    id c = [[AtomWindowController alloc] initWithWindowNibName:@"AtomWindow"];
+    [c window];
 }
 
 @end

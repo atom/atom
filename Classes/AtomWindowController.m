@@ -4,7 +4,7 @@
 //
 //  Created by Chris Wanstrath on 8/22/11.
 //  Copyright 2011 GitHub. All rights reserved.
-//
+//`
 
 #import "AtomWindowController.h"
 
@@ -27,23 +27,22 @@
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomWindow"];
     
-  [webView setFrameLoadDelegate:self];
-    
   if (self.URL) {
     [webView setMainFrameURL:self.URL];
-  } else {
-    NSURL *bundleURL = [[NSBundle mainBundle] resourceURL];
-    NSURL *htmlURL = [bundleURL URLByAppendingPathComponent:@"HTML"];
+  } 
+  else {
+    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
+    NSString *bootstrapPath = [resourcePath stringByAppendingString:@"/HTML/lib/bootstrap.js"];
+    JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
+    [jsc setObject:self withName:@"WindowController"];
+    [jsc evalJSFile:bootstrapPath];
+
+    NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
+    NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"HTML"];
     NSURL *indexURL = [htmlURL URLByAppendingPathComponent:@"index.html"];
     NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];
-    [[webView mainFrame] loadHTMLString:html baseURL:htmlURL];  
+    [[webView mainFrame] loadHTMLString:html baseURL:htmlURL]; 
   }
-}
-
-- (void)webView:(WebView *)sender didStartProvisionalLoadForFrame:(WebFrame *)frame {
-    // https://github.com/parmanoir/jscocoa#readme
-    JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[frame globalContext]];
-    [jsc setObject:self withName:@"WindowController"];
 }
 
 
