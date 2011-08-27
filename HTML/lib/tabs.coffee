@@ -2,9 +2,10 @@
 
 exports.show = ->
   root = OSX.NSBundle.mainBundle.resourcePath + '/HTML/'
-  html = OSX.NSString.stringWithContentsOfFile "#{root}/tabs.html"
+  tabs = OSX.NSString.stringWithContentsOfFile "#{root}/tabs.html"
+  edit = OSX.NSString.stringWithContentsOfFile "#{root}/editor.html"
 
-  Chrome.addPane('main', html)
+  Chrome.addPane 'main', tabs.replace '<%= editor %>', edit
 
   # awesome hover effect
   if false
