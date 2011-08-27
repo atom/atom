@@ -1,9 +1,16 @@
 # nice!
 
-Chrome.init()
+{Chrome, File, Process, Dir} = require 'lib/osx'
+
+ace = require 'ace/ace'
+canon = require 'pilot/canon'
+
+_ = require 'vendor/underscore'
+$ = require 'vendor/jquery'
+{CoffeeScript} = require 'vendor/coffee-script'
 
 editor = ace.edit "editor"
-editor.setTheme "ace/theme/twilight"
+editor.setTheme require "ace/theme/twilight"
 JavaScriptMode = require("ace/mode/javascript").Mode
 CoffeeMode = require("ace/mode/coffee").Mode
 HTMLMode = require("ace/mode/html").Mode

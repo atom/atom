@@ -1,15 +1,10 @@
 # This is the CoffeeScript API that wraps all of Cocoa.
 
-{canon} = require 'pilot/canon'
+_ = require 'vendor/underscore'
+$ = require 'vendor/jquery'
 
 # Handles the UI chrome
 Chrome =
-  init: ->
-    oldLog = console.log
-    console.log = (output) ->
-      oldLog(output)
-      OSX.NSLog("" + output)
-
   addPane: (position, html) ->
     verticalDiv = $('#app-vertical')
     horizontalDiv = $('#app-horizontal')
