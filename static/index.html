@@ -1,0 +1,78 @@
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    #app-horizontal {
+      background-color: orange;
+      display: -webkit-box;
+      height: 100%;
+
+      -webkit-box-orient: horizontal;
+    }
+
+    #app-vertical {
+      background-color: yellow;
+      display: -webkit-box;
+      -webkit-box-flex: 1;
+      -webkit-box-orient: vertical;
+    }
+
+    .main {
+      width: 100%;
+      -webkit-box-flex: 1;
+      background-color: black;
+    }
+
+    .left {
+      width: 100px;
+      background-color: gray;
+    }
+
+    .right {
+      width: 100px;
+      background-color: green;
+    }
+
+    .top {
+      height: 100px;
+      background-color: purple;
+    }
+
+    .bottom {
+      height: 100px;
+      background-color: blue;
+    }
+
+  </style>
+</head>
+<body>
+  <div id='app-horizontal'>
+    <div id='app-vertical'>
+    </div>
+  </div>
+</body>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+
+#editor {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  font: 18px Inconsolada, Monaco, Courier;
+}
+</style>
+
+<script>
+  require('atomicity');
+</script>
+
+</html>
+
