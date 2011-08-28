@@ -26,10 +26,12 @@ define  = (cb) ->
     exports
 
 exts =
-  js:  (file) ->
-    code = __read file
+  js: (file, code) ->
+    code or= __read file
     __jsc__.evalJSString_withScriptPath code, file
     defines.pop()?.call()
+  coffee: (file) ->
+    exts.js file, CoffeeScript.compile __read file
 
 resolve = (file) ->
   if /!/.test file
