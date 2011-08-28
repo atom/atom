@@ -21,7 +21,7 @@ exts =
   css: (file) -> __read file
   js:  (file) ->
     code    = __read file
-    exports = {}
+    exports = __modules[file] # Use existing object (if one exists)
     module  = exports: exports
 
     src  = "function define(cb){cb.call(this,require,exports)};"
