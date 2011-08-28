@@ -154,24 +154,7 @@ Process =
   env: ->
     OSX.NSProcess.processInfo.environment()
 
-# Need to rename and move stuff like this
-Project =
-  toggle: ->
-    frameset = top.document.getElementsByTagName("frameset")[0]
-    if @showing
-      frameset.removeChild(frameset.firstChild)
-      frameset.setAttribute('cols', '*')
-    else
-      frame = document.createElement("frame")
-      frame.src = 'project.html'
-      frameset.insertBefore(frame, frameset.firstChild)
-      frameset.setAttribute('cols', '25%, *')
-
-    @showing = not @showing
-
-exports ?= this
-
+exports ?= this # Do we even need this anymore? DOUBT IT!
 exports.Chrome = Chrome
 exports.File = File
 exports.Dir = Dir
-exports.Project = Project
