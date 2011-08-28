@@ -123,9 +123,3 @@ define (require, exports, module) ->
 
   bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
     Chrome.toggleFullscreen()
-
-  # HAX
-  # this should go in coffee.coffee or something
-  bindKey 'consolelog', 'Ctrl-L', (env) ->
-    env.editor.insert 'console.log ""'
-    env.editor.navigateLeft()
