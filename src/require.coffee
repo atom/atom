@@ -88,3 +88,4 @@ this.require.exts  = exts
 
 this.require.resolve   = resolve
 this.require.nameToUrl = (path) -> "#{path}.js"
+this.require.__modules = __modules
