@@ -1,1 +1,2 @@
-require('./tabs').show()
+define (require, exports, module) ->
+  require('./tabs').show()
