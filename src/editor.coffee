@@ -151,4 +151,8 @@ define (require, exports, module) ->
 
   ## load plugins
   plugins = _.map Dir.list(Chrome.appRoot() + "/plugins"), (plugin) ->
-    require plugin
+    try
+      require plugin
+    catch e
+      name = _.last plugin.split '/'
+      console.error "Problem loading plugin #{name}: #{e.message}"
