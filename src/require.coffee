@@ -59,16 +59,11 @@ resolve = (file) ->
     throw "require: ../ prefix not yet implemented"
 
   if file[0] isnt '/'
-    # I want to use _.detect, but we don't have that at this point
-    # or break would do, but coffeescript doesn't have that
-    expandedPath = null
-    paths.forEach (path) ->
+    paths.some (path) ->
       if /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
-        expandedPath ?= "#{path}/#{file}"
-      else
-        expandedPath ?= expandPath("#{path}/#{file}")
-
-      file = expandedPath if expandedPath?
+        file = "#{path}/#{file}"
+      else if expanded = expandPath "#{path}/#{file}"
+        file = expanded
   else
     file = expandPath(file) or file
 
