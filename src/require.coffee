@@ -74,7 +74,7 @@ __exists = (path) ->
   OSX.NSFileManager.defaultManager.fileExistsAtPath path
 
 __read = (path) ->
-  OSX.NSString.stringWithContentsOfFile path
+  OSX.NSString.stringWithContentsOfFile(path).toString()
 
 __modules = {}
 
