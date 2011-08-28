@@ -7,12 +7,13 @@ paths = [
 ]
 
 require = (file) ->
-  return __modules[file] if __modules[file]?
-
   file  = resolve file
   parts = file.split '.'
   ext   = parts[parts.length-1]
 
+  return __modules[file] if __modules[file]?
+
+  __modules[file] = {} # Fix for circular references
   __modules[file] = exts[ext]? file
   __modules[file]
 
