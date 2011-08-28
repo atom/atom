@@ -25,7 +25,7 @@ define  = (cb) ->
   defines.push ->
     exports = {}
     module = exports: exports
-    cb.call exports, require, exports, module, window
+    cb.call exports, require, exports, module
     module.exports or exports
 
 exts =
@@ -34,7 +34,7 @@ exts =
 
     if not /define\(/.test code
       code = """
-        define(function(require, exports, module, window) {
+        define(function(require, exports, module) {
           #{code};
         });
       """
