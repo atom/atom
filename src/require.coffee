@@ -9,7 +9,9 @@ paths = [
   "#{resourcePath}/vendor"
 ]
 
-require = (file) ->
+require = (file, cb) ->
+  return cb require file if cb?
+
   file  = resolve file
   parts = file.split '.'
   ext   = parts[parts.length-1]
