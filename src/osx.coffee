@@ -20,7 +20,7 @@ define (require, exports, module) ->
         when 'right'
           horizontalDiv.append(el)
         else
-          NSLog("I DON'T KNOW HOW TO DEAL WITH #{position}")
+          throw "I DON'T KNOW HOW TO DEAL WITH #{position}"
 
     # path - Optional. The String path to the file to base it on.
     createWindow: (path) ->
