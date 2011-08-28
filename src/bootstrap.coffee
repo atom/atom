@@ -1,6 +1,10 @@
 # This file is the first thing loaded on startup.
 
-console.log = (thing) -> OSX.NSLog thing.toString() if thing?
+console.originalLog = console.log
+console.log = (thing) ->
+  OSX.NSLog thing.toString() if thing?
+  console.originalLog(thing)
+
 
 # load require() function
 root = OSX.NSBundle.mainBundle.resourcePath
