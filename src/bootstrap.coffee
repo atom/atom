@@ -14,6 +14,7 @@ __jsc__.evalJSString_withScriptPath code, path
 console.log 'require tests:'
 console.log require.resolve 'underscore'
 console.log require.resolve 'osx'
+console.log require.resolve 'tabs/tabs'
 console.log require.resolve 'ace/requirejs/text!ace/css/editor.css'
 console.log require.resolve 'ace/keyboard/keybinding'
 console.log '--------------'

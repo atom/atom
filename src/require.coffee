@@ -14,11 +14,11 @@ require = (file) ->
   return __modules[file] if __modules[file]?
 
   __modules[file] = {} # Fix for circular references
-  __modules[file] = exts[ext]? file
+  __modules[file] = (exts[ext] or (file) -> __read file) file
   __modules[file]
 
 defines = []
-define = (cb) ->
+define  = (cb) ->
   defines.push ->
     exports = {}
     module = exports: exports
@@ -26,7 +26,6 @@ define = (cb) ->
     exports
 
 exts =
-  css: (file) -> __read file
   js:  (file) ->
     code = __read file
     __jsc__.evalJSString_withScriptPath code, file
