@@ -1,6 +1,9 @@
 resourcePath = OSX.NSBundle.mainBundle.resourcePath
 
 paths = [
+  "/Users/chris/Code/Atomicity/src",
+  "/Users/chris/Code/Atomicity/plugins",
+
   "#{resourcePath}/src",
   "#{resourcePath}/plugins",
   "#{resourcePath}/vendor"
