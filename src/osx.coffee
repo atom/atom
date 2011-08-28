@@ -67,45 +67,6 @@ define (require, exports, module) ->
     title: (text) ->
       WindowController.window.title = text
 
-    toggleFullscreen: ->
-      if Chrome.fullscreen?
-        Chrome.leaveFullscreen()
-      else
-        Chrome.enterFullscreen()
-
-    leaveFullscreen: ->
-      Chrome.fullscreen = false
-
-      OSX.NSMenu.setMenuBarVisible not OSX.NSMenu.menuBarVisible
-      window = WindowController.window
-
-    enterFullscreen: ->
-      Chrome.fullscreen = true
-
-      OSX.NSMenu.setMenuBarVisible not OSX.NSMenu.menuBarVisible
-      window = WindowController.window
-
-      fullscreenWindow = OSX.NSWindow.alloc.
-        initWithContentRect_styleMask_backing_defer_screen(
-          window.contentRectForFrameRect(window.frame),
-          OSX.NSBorderlessWindowMask,
-          OSX.NSBackingStoreBuffered,
-          true,
-          window.screen)
-
-      contentView = window.contentView
-      window.setContentView OSX.NSView.alloc.init
-
-      fullscreenWindow.setHidesOnDeactivate true
-      fullscreenWindow.setLevel OSX.NSFloatingWindowLevel
-      fullscreenWindow.setContentView contentView
-      fullscreenWindow.setTitle window.title
-      fullscreenWindow.makeFirstResponder null
-
-      fullscreenWindow.makeKeyAndOrderFront null
-      frame = fullscreenWindow.frameRectForContentRect(fullscreenWindow.screen.frame)
-      fullscreenWindow.setFrame_display_animate frame, true, true
-
     appRoot: ->
       OSX.NSBundle.mainBundle.resourcePath
 
