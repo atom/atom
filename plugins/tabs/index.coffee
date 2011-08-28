@@ -1,2 +1,2 @@
 define (require, exports, module) ->
-  require('./tabs').show()
+  exports.Tabs = require('tabs/tabs').show()
