@@ -38,6 +38,10 @@ resolve = (file) ->
     parts = file.split '!'
     file = parts[parts.length-1]
 
+  if file[0] is '~'
+    file = OSX.NSString.stringWithString(file)
+      .stringByExpandingTildeInPath.toString()
+
   if file[0..1] is './'
     throw "require: ./ prefix not yet implemented"
 
