@@ -32,7 +32,7 @@ exts =
     """
     eval src
 
-    module.exports or exports
+    module.exports
 
 resolve = (file) ->
   if /!/.test file
