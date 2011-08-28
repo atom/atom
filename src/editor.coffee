@@ -64,7 +64,7 @@ define (require, exports, module) ->
       filename = file
       Chrome.title _.last filename.split('/')
       save()
-  bindKey = (name, shortcut, callback) ->
+  exports.bindKey = bindKey = (name, shortcut, callback) ->
     canon.addCommand
       name: name
       exec: callback
@@ -138,21 +138,8 @@ define (require, exports, module) ->
   bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
     Chrome.toggleFullscreen()
 
-  exports.bindKey = bindKey
-
   # HAX
   # this should go in coffee.coffee or something
   bindKey 'consolelog', 'Ctrl-L', (env) ->
     env.editor.insert 'console.log ""'
     env.editor.navigateLeft()
-
-  bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) ->
-    Project.toggle()
-
-  ## load plugins
-  plugins = _.map Dir.list(Chrome.appRoot() + "/plugins"), (plugin) ->
-    try
-      require plugin
-    catch e
-      name = _.last plugin.split '/'
-      console.error "Problem loading plugin #{name}: #{e.message}"
