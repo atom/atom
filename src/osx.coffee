@@ -108,6 +108,9 @@ Chrome =
     frame = fullscreenWindow.frameRectForContentRect(fullscreenWindow.screen.frame)
     fullscreenWindow.setFrame_display_animate frame, true, true
 
+  appRoot: ->
+    OSX.NSBundle.mainBundle.resourcePath
+
 # Handles the file system
 File =
   read: (path) ->
@@ -119,8 +122,7 @@ File =
     if /~/.test path
       OSX.NSString.stringWithString(path).stringByExpandingTildeInPath
     else if path.indexOf('./') is 0
-      root = OSX.NSBundle.mainBundle.resourcePath
-      "#{root}/#{path}"
+      "#{Chrome.appRoot}/#{path}"
     else
       path
   isFile: (path) ->

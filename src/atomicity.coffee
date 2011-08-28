@@ -153,5 +153,5 @@ bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) ->
 
 
 ## load plugins
-plugins = _.map Dir.list("./plugins"), (plugin) ->
+plugins = _.map Dir.list(Chrome.appRoot() + "/plugins"), (plugin) ->
   require plugin
