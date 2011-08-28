@@ -23,20 +23,6 @@ define (require, exports, module) ->
     editor.resize()
   , 50
 
-  if css = File.read "~/.atomicity/twilight.css"
-    head = $('head')[0]
-    style = document.createElement 'style'
-    rules = document.createTextNode css
-    style.type = 'text/css'
-    style.appendChild rules
-    head.appendChild style
-
-  _.map Dir.list("~/.atomicity/"), (path) ->
-    if /\.js$/.test path
-      $.getScript path
-    else if /\.coffee/.test path
-      eval CoffeeScript.compile File.read path
-
   filename = null
   editor.getSession().on 'change', ->
     Chrome.setDirty true
