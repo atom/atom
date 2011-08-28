@@ -8,8 +8,8 @@ console.log = (thing) ->
 
 # load require() function
 root = OSX.NSBundle.mainBundle.resourcePath
-code = OSX.NSString.stringWithContentsOfFile "#{root}/src/require.js"
-eval "(function(){ #{code} })(this);"
+code = OSX.NSString.stringWithContentsOfFile path = "#{root}/src/require.js"
+__jsc__.evalJSString_withScriptPath code, path
 
 console.log 'require tests:'
 console.log require.resolve 'underscore'
