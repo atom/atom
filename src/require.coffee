@@ -45,21 +45,32 @@ resolve = (file) ->
     throw "require: ../ prefix not yet implemented"
 
   if file[0] isnt '/'
+    # I want to use _.detect, but we don't have that at this point
+    # or break would do, but coffeescript doesn't have that
+    expandedPath = null
     paths.forEach (path) ->
       if /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
-        file = "#{path}/#{file}"
+        expandedPath ?= "#{path}/#{file}"
       else
-        for ext, handler of exts
-          if __exists "#{path}/#{file}.#{ext}"
-            file = "#{path}/#{file}.#{ext}"
-          else if __exists "#{path}/#{file}/index.#{ext}"
-            file = "#{path}/#{file}/index.#{ext}"
+        expandedPath ?= expandPath("#{path}/#{file}")
+
+      file = expandedPath if expandedPath?
+  else
+    file = expandPath(file) or file
 
   if file[0] isnt '/'
     throw "require: Can't find '#{file}'"
 
   return file
 
+expandPath = (path) ->
+  for ext, handler of exts
+    if __exists "#{path}.#{ext}"
+      return "#{path}.#{ext}"
+    else if __exists "#{path}/index.#{ext}"
+      return "#{path}/index.#{ext}"
+
+  return null
 
 __exists = (path) ->
   OSX.NSFileManager.defaultManager.fileExistsAtPath path
