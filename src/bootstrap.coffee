@@ -16,5 +16,4 @@ console.log require.resolve 'underscore'
 console.log require.resolve 'osx'
 console.log require.resolve 'ace/requirejs/text!ace/css/editor.css'
 console.log require.resolve 'ace/keyboard/keybinding'
-
-this._ = require 'underscore'
+console.log '--------------'

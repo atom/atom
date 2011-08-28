@@ -17,22 +17,20 @@ require = (file) ->
   __modules[file] = exts[ext]? file
   __modules[file]
 
+defines = []
+define = (cb) ->
+  defines.push ->
+    exports = {}
+    module = exports: exports
+    cb.call exports, require, exports, module
+    exports
+
 exts =
   css: (file) -> __read file
   js:  (file) ->
-    code    = __read file
-    exports = __modules[file] # Use existing object (if one exists)
-    module  = exports: exports
-
-    src  = "function define(cb){cb.call(this,require,exports)};"
-    src += """(function(exports, define, module){
-      #{code}
-      /*close open comments*/
-    }).call(exports, exports, define, module);
-    """
-    eval src
-
-    module.exports
+    code = __read file
+    __jsc__.evalJSString_withScriptPath code, file
+    defines.pop()?.call()
 
 resolve = (file) ->
   if /!/.test file
@@ -83,6 +81,7 @@ __modules = {}
 
 
 this.require = require
+this.define  = define
 
 this.require.paths = paths
 this.require.exts  = exts
