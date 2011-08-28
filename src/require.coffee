@@ -25,12 +25,19 @@ define  = (cb) ->
   defines.push ->
     exports = {}
     module = exports: exports
-    cb.call exports, require, exports, module
-    exports
+    cb.call exports, require, exports, module, window
+    module.exports or exports
 
 exts =
   js: (file, code) ->
     code or= __read file
+
+    if not /define\(/.test code
+      code = """
+        define(function(require, exports, module, window) {
+          #{code};
+        });
+      """
     __jsc__.evalJSString_withScriptPath code, file
     defines.pop()?.call()
   coffee: (file) ->

@@ -1,29 +1,31 @@
-define (require, exports, module) ->
-  {Chrome, Dir, File, Process} = require 'osx'
-  {bindKey} = require 'editor'
+$ = require 'jquery'
+_ = require 'underscore'
 
-  exports.init = ->
-    @html = File.read(Chrome.appRoot() + "/plugins/project/project.html")
+{Chrome, Dir, File, Process} = require 'osx'
+{bindKey} = require 'editor'
 
-    bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) =>
-      @toggle()
+exports.init = ->
+  @html = File.read(Chrome.appRoot() + "/plugins/project/project.html")
 
-  exports.toggle = ->
-    if @showing
-      $('#project').parent().remove()
-    else
-      Chrome.addPane 'left', @html
-      @reload()
+  bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) =>
+    @toggle()
 
-    @showing = not @showing
+exports.toggle = ->
+  if @showing
+    $('#project').parent().remove()
+  else
+    Chrome.addPane 'left', @html
+    @reload()
 
-  exports.reload = ->
-    dir = OSX.NSFileManager.defaultManager.currentDirectoryPath
-    $('#project .cwd').text(dir)
+  @showing = not @showing
 
-    files = Dir.list(dir)
-    listItems = _.map files, (file) ->
-      file = file.replace(dir, "")
-      "<li>#{file}</li>"
+exports.reload = ->
+  dir = OSX.NSFileManager.defaultManager.currentDirectoryPath
+  $('#project .cwd').text(dir)
 
-    $('#project .files').append(listItems.join('\n'))
+  files = Dir.list(dir)
+  listItems = _.map files, (file) ->
+    file = file.replace(dir, "")
+    "<li>#{file}</li>"
+
+  $('#project .files').append(listItems.join('\n'))

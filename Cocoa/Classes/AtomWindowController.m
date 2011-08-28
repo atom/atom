@@ -33,9 +33,11 @@
   else {
     NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
     NSString *bootstrapPath = [resourcePath stringByAppendingString:@"/src/bootstrap.js"];
+    NSString *coffeePath = [resourcePath stringByAppendingString:@"/vendor/coffee-script.js"];    
     JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
     [jsc setObject:self withName:@"WindowController"];
     [jsc evalJSFile:bootstrapPath];
+    [jsc evalJSFile:coffeePath];    
 
     NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
     NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"static"];
