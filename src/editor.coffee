@@ -126,3 +126,6 @@ bindKey 'end', 'Alt-Shift-.', (env) ->
 
 bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
   Chrome.toggleFullscreen()
+
+bindKey 'console', 'Command-Ctrl-k', (env) ->
+  Chrome.inspector().showConsole(1)
