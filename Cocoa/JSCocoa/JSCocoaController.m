@@ -262,18 +262,20 @@ const JSClassDefinition kJSClassDefinitionEmpty = { 0, 0,
 
 	// Load class kit
     BOOL b;
-    useJSLint		= NO;
-    id lintPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"jslint-jscocoa" ofType:@"js"];
-    if ([[NSFileManager defaultManager] fileExistsAtPath:lintPath])	{
-        b = [self evalJSFile:lintPath];
-        if (!b)
-            NSLog(@"[JSCocoa initWithGlobalContext:] JSLint not loaded");
-    }
-    id classKitPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"class" ofType:@"js"];
-    if ([[NSFileManager defaultManager] fileExistsAtPath:classKitPath])	{
-        b = [self evalJSFile:classKitPath];
-        if (!b)
-           NSLog(@"[JSCocoa initWithGlobalContext:] class.js not loaded");
+    if (!ctx) {
+        useJSLint		= NO;
+        id lintPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"jslint-jscocoa" ofType:@"js"];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:lintPath])	{
+            b = [self evalJSFile:lintPath];
+            if (!b)
+                NSLog(@"[JSCocoa initWithGlobalContext:] JSLint not loaded");
+        }
+        id classKitPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"class" ofType:@"js"];
+        if ([[NSFileManager defaultManager] fileExistsAtPath:classKitPath])	{
+            b = [self evalJSFile:classKitPath];
+            if (!b)
+               NSLog(@"[JSCocoa initWithGlobalContext:] class.js not loaded");
+        }
     }
 
 	// Objects can use their own dealloc, normally used up by JSCocoa
