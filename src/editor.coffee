@@ -141,3 +141,7 @@ bindKey 'reload', 'Command-Ctrl-r', (env) ->
   Chrome.createWindow()
   WindowController.close()
 
+# this should go in coffee.coffee or something
+bindKey 'consolelog', 'Ctrl-L', (env) ->
+  env.editor.insert 'console.log ""'
+  env.editor.navigateLeft()
