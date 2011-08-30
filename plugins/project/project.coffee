@@ -7,7 +7,7 @@ Editor = require 'editor'
 {bindKey} = require 'editor'
 
 exports.init = ->
-  @html = File.read Chrome.appRoot() + "/plugins/project/project.html"
+  @html = require "project/project.html"
 
   bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) =>
     @toggle()
