@@ -12,10 +12,6 @@ Chrome.addPane 'main', '<div id="editor"></div>'
 
 exports.ace = editor = ace.edit "editor"
 editor.setTheme require "ace/theme/twilight"
-JavaScriptMode = require("ace/mode/javascript").Mode
-CoffeeMode = require("ace/mode/coffee").Mode
-HTMLMode = require("ace/mode/html").Mode
-editor.getSession().setMode new JavaScriptMode
 editor.getSession().setUseSoftTabs true
 editor.getSession().setTabSize 2
 
@@ -30,7 +26,6 @@ editor.getSession().on 'change', ->
   Chrome.setDirty true
 save = ->
   File.write filename, editor.getSession().getValue()
-  setMode()
   Chrome.setDirty false
   editor._emit 'save', { filename }
 exports.open = open = (path) ->
@@ -40,7 +35,6 @@ exports.open = open = (path) ->
     Process.cwd filename
     Chrome.title _.last filename.split '/'
     editor.getSession().setValue ""
-    setMode()
     Chrome.setDirty false
   else
     if /png|jpe?g|gif/i.test filename
@@ -48,16 +42,8 @@ exports.open = open = (path) ->
     else
       Chrome.title _.last filename.split '/'
       editor.getSession().setValue File.read filename
-      setMode()
       Chrome.setDirty false
-  editor._emit 'open', { filename }      
-setMode = ->
-  if /\.js$/.test filename
-    editor.getSession().setMode new JavaScriptMode
-  else if /\.coffee$/.test filename
-    editor.getSession().setMode new CoffeeMode
-  else if /\.html/.test filename
-    editor.getSession().setMode new HTMLMode
+  editor._emit 'open', { filename }
 saveAs = ->
   if file = Chrome.savePanel()
     filename = file
