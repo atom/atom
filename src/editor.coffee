@@ -32,7 +32,9 @@ save = ->
   File.write filename, editor.getSession().getValue()
   setMode()
   Chrome.setDirty false
-open = ->
+exports.open = (path) ->
+  filename = path
+
   if Dir.isDir(filename)
     Process.cwd(filename)
     Chrome.title _.last filename.split('/')
@@ -71,8 +73,7 @@ exports.bindKey = bindKey = (name, shortcut, callback) ->
 
 bindKey 'open', 'Command-O', (env, args, request) ->
   if file = Chrome.openPanel()
-    filename = file
-    open()
+    open(file)
 
 bindKey 'openURL', 'Command-Shift-O', (env, args, request) ->
   if url = prompt "Enter URL:"
