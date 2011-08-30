@@ -19,7 +19,7 @@ editor.getSession().setTabSize 2
 setTimeout ->
   editor.focus()
   editor.resize()
-, 100
+, 200
 
 filename = null
 editor.getSession().on 'change', ->
