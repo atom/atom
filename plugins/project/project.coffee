@@ -1,20 +1,28 @@
 $ = require 'jquery'
 _ = require 'underscore'
-{Chrome, File, Dir} = require 'osx'
-Editor = require 'editor'
 
 {Chrome, Dir, File, Process} = require 'osx'
-{bindKey} = require 'editor'
+
+Editor  = require 'editor'
+bindKey = Editor.bindKey
 
 exports.init = ->
   @html = require "project/project.html"
 
   bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) =>
     @toggle()
+  
+  Editor.ace.on 'open', =>
+    @reload() if @dir? and Process.cwd() isnt @dir
 
-  $('#project .file').live 'click', (event) =>
+  $('#project .cwd').live 'click', (event) =>
+    Editor.open @dir.replace _.last(@dir.split '/'), ''
+    
+  $('#project li').live 'click', (event) =>
+    $('#project .active').removeClass 'active'
     el = $(event.currentTarget)
-    path =  decodeURIComponent el.attr 'path'
+    el.addClass 'active'
+    path = decodeURIComponent el.attr 'path'
     Editor.open path
 
 exports.toggle = ->
@@ -27,8 +35,10 @@ exports.toggle = ->
   @showing = not @showing
 
 exports.reload = ->
-  dir = OSX.NSFileManager.defaultManager.currentDirectoryPath
-  $('#project .cwd').text dir
+  @dir = dir = Process.cwd()
+  $('#project .cwd').text _.last dir.split '/'
+  
+  $('#project li').remove()
 
   files = Dir.list dir
   listItems = _.map files, (path) ->

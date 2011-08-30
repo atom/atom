@@ -2,29 +2,47 @@
   #project {
     min-width: 200px;
     height: 100%;
-    background-color: white;
+    background-color: #DDE3EA;
+    color: #000;
+    border-right: 1px solid #B4B4B4;
+    cursor: default;    
+    -webkit-user-select: none;
+  }
+  
+  #project .cwd {
+    padding-top: 5px;
+    padding-left: 5px;
+    font-weight: bold; 
+    color: #708193;
+    text-transform: uppercase;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 
   #project ul {
     margin: 0;
-    padding: 0;
+    padding-top: 2px;
   }
 
   #project li {
-    list-style-type: none;
+    padding: 0 10px;    
+    height: 20px;
+    line-height: 20px;    
   }
 
   #project li.file {
-    color: red;
+    font-weight: normal;
   }
 
   #project li.dir {
-    color: blue;
+    font-weight: bold;
   }
-
-  #project li:hover {
-    background-color: grey;
-  }
+  
+  #project li.active {
+    background-image: -webkit-gradient(linear,0% 0,0% 100%,from(#BCCBEB),to(#8094BB));
+    border-top: 1px solid #A0AFCD;
+    color: #fff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  }  
 </style>
 
 <div id='project'>
