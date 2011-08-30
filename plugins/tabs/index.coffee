@@ -1,1 +1,1 @@
-exports.Tabs = Tabs = require('tabs/tabs')
+exports.Tabs = Tabs = require 'tabs/tabs'

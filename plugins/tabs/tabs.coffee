@@ -26,7 +26,7 @@ bindKey 'toggleTabs', 'Command-Ctrl-T', (env) ->
 showTabs = ->
   Chrome.addPane 'top', require('tabs/tabs.html')
   $('#tabs').parents('.pane').css height: 'inherit'
-  css = $('<style id="tabs-style"></style>').html require('tabs/tabs.css')
+  css = $('<style id="tabs-style"></style>').html require 'tabs/tabs.css'
   $('head').append css
 
 hideTabs = ->

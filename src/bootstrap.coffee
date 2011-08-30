@@ -3,7 +3,7 @@
 console.originalLog = console.log
 console.log = (thing) ->
   OSX.NSLog thing.toString() if thing?
-  console.originalLog(thing)
+  console.originalLog thing
 
 
 # load require() function

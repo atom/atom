@@ -35,9 +35,9 @@ save = ->
 exports.open = open = (path) ->
   filename = path
 
-  if Dir.isDir(filename)
-    Process.cwd(filename)
-    Chrome.title _.last filename.split('/')
+  if Dir.isDir filename
+    Process.cwd filename
+    Chrome.title _.last filename.split '/'
     editor.getSession().setValue ""
     setMode()
     Chrome.setDirty false
@@ -45,7 +45,7 @@ exports.open = open = (path) ->
     if /png|jpe?g|gif/i.test filename
       Chrome.openURL filename
     else
-      Chrome.title _.last filename.split('/')
+      Chrome.title _.last filename.split '/'
       editor.getSession().setValue File.read filename
       setMode()
       Chrome.setDirty false
@@ -59,7 +59,7 @@ setMode = ->
 saveAs = ->
   if file = Chrome.savePanel()
     filename = file
-    Chrome.title _.last filename.split('/')
+    Chrome.title _.last filename.split '/'
     save()
 exports.bindKey = bindKey = (name, shortcut, callback) ->
   canon.addCommand
@@ -73,7 +73,7 @@ exports.bindKey = bindKey = (name, shortcut, callback) ->
 
 bindKey 'open', 'Command-O', (env, args, request) ->
   if file = Chrome.openPanel()
-    open(file)
+    open file
 
 bindKey 'openURL', 'Command-Shift-O', (env, args, request) ->
   if url = prompt "Enter URL:"

@@ -10,19 +10,19 @@ Chrome =
     verticalDiv = $('#app-vertical')
     horizontalDiv = $('#app-horizontal')
 
-    el = document.createElement("div")
-    el.setAttribute('class', "pane " + position)
+    el = document.createElement "div"
+    el.setAttribute 'class', "pane " + position
     el.innerHTML = html
 
     switch position
       when 'top', 'main'
-        verticalDiv.prepend(el)
+        verticalDiv.prepend el
       when 'left'
-        horizontalDiv.prepend(el)
+        horizontalDiv.prepend el
       when 'bottom'
-        verticalDiv.append(el)
+        verticalDiv.append el
       when 'right'
-        horizontalDiv.append(el)
+        horizontalDiv.append el
       else
         throw "I DON'T KNOW HOW TO DEAL WITH #{position}"
 
@@ -51,7 +51,7 @@ Chrome =
   # Returns null or a file path.
   openPanel: ->
     panel = OSX.NSOpenPanel.openPanel
-    panel.setCanChooseDirectories(true)
+    panel.setCanChooseDirectories true
     if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
       return null
     panel.filenames.lastObject
@@ -94,7 +94,8 @@ File =
       path
   isFile: (path) ->
     isDir = new jscocoa.outArgument
-    exists = OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory(path, isDir)
+    exists = OSX.NSFileManager.defaultManager.
+      fileExistsAtPath_isDirectory path, isDir
     exists and not isDir.valueOf()
 
 Dir =
@@ -108,18 +109,19 @@ Dir =
     _.map paths, (entry) -> "#{path}/#{entry}"
   isDir: (path) ->
     isDir = new jscocoa.outArgument
-    exists = OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory(path, isDir)
+    exists = OSX.NSFileManager.defaultManager.
+      fileExistsAtPath_isDirectory path, isDir
     exists and isDir.valueOf()
 
 Process =
   cwd: (path) ->
     if path?
-      OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath(path)
+      OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
     else
-      OSX.NSFileManager.defaultManager.currentDirectoryPath()
+      OSX.NSFileManager.defaultManager.currentDirectoryPath
 
   env: ->
-    OSX.NSProcess.processInfo.environment()
+    OSX.NSProcess.processInfo.environment
 
 exports.Chrome = Chrome
 exports.File = File

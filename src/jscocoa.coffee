@@ -3,12 +3,11 @@
 exports.outArgument = (args...) ->
   # Derive to store some javascript data in the internal hash
   if not @outArgument2?
-    OSX.JSCocoa.createClass_parentClass_('JSCocoaOutArgument2', 'JSCocoaOutArgument')
+    OSX.JSCocoa.createClass_parentClass_ 'JSCocoaOutArgument2', 'JSCocoaOutArgument'
 
   o = OSX.JSCocoaOutArgument2.instance
   o.isOutArgument = true
   if args.length == 2
-    o.mateWithMemoryBuffer_atIndex_(args[0], args[1])
-
+    o.mateWithMemoryBuffer_atIndex_ args[0], args[1]
   o
 
