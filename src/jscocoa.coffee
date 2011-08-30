@@ -5,7 +5,6 @@ exports.outArgument = (args...) ->
   if not @outArgument2?
     OSX.JSCocoa.createClass_parentClass_('JSCocoaOutArgument2', 'JSCocoaOutArgument')
 
-  console.log(OSX.JSCocoaOutArgument2)
   o = OSX.JSCocoaOutArgument2.instance
   o.isOutArgument = true
   if args.length == 2
