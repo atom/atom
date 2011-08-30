@@ -32,7 +32,7 @@ save = ->
   File.write filename, editor.getSession().getValue()
   setMode()
   Chrome.setDirty false
-exports.open = (path) ->
+exports.open = open = (path) ->
   filename = path
 
   if Dir.isDir(filename)
