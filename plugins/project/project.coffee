@@ -1,5 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
+{Chrome, File, Dir} = require 'osx'
+Editor = require 'editor'
 
 {Chrome, Dir, File, Process} = require 'osx'
 {bindKey} = require 'editor'
@@ -9,6 +11,11 @@ exports.init = ->
 
   bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) =>
     @toggle()
+
+  $('#project .file').live 'click', (event) =>
+    el = $(event.currentTarget)
+    path =  decodeURIComponent el.attr('path')
+    Editor.open(path)
 
 exports.toggle = ->
   if @showing
@@ -24,8 +31,9 @@ exports.reload = ->
   $('#project .cwd').text(dir)
 
   files = Dir.list(dir)
-  listItems = _.map files, (file) ->
-    file = file.replace(dir, "")
-    "<li>#{file}</li>"
+  listItems = _.map files, (path) ->
+    filename = path.replace(dir, "").substring(1)
+    type = if Dir.isDir(path) then 'dir' else 'file'
+    "<li class='#{type}' path='#{encodeURIComponent path}'>#{filename}</li>"
 
   $('#project .files').append(listItems.join('\n'))
