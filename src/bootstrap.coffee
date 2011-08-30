@@ -1,11 +1,5 @@
 # This file is the first thing loaded on startup.
 
-console.originalLog = console.log
-console.log = (thing) ->
-  OSX.NSLog thing.toString() if thing?
-  console.originalLog thing
-
-
 # load require() function
 root = OSX.NSBundle.mainBundle.resourcePath
 code = OSX.NSString.stringWithContentsOfFile path = "#{root}/src/require.js"
