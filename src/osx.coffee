@@ -113,7 +113,7 @@ Dir =
 
 Process =
   cwd: (path) ->
-    if dir?
+    if path?
       OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath(path)
     else
       OSX.NSFileManager.defaultManager.currentDirectoryPath()
