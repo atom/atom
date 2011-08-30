@@ -118,7 +118,7 @@ Process =
     if path?
       OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
     else
-      OSX.NSFileManager.defaultManager.currentDirectoryPath
+      OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
 
   env: ->
     OSX.NSProcess.processInfo.environment
