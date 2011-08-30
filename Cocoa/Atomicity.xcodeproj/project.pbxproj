@@ -23,7 +23,6 @@
 		837D8BD91408FAD4009B6DFA /* JSCocoaFFIClosure.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BCF1408FAD4009B6DFA /* JSCocoaFFIClosure.m */; };
 		837D8BDA1408FAD4009B6DFA /* JSCocoaLib.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BD11408FAD4009B6DFA /* JSCocoaLib.m */; };
 		837D8BDB1408FAD4009B6DFA /* JSCocoaPrivateObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BD31408FAD4009B6DFA /* JSCocoaPrivateObject.m */; };
-		837D8BDC1408FAD4009B6DFA /* jslint-jscocoa.js in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BD41408FAD4009B6DFA /* jslint-jscocoa.js */; };
 		837D8BE11408FAF5009B6DFA /* AtomWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 837D8BE01408FAF5009B6DFA /* AtomWindow.xib */; };
 		837D8BE91408FB15009B6DFA /* Rakefile in Resources */ = {isa = PBXBuildFile; fileRef = 837D8BE81408FB15009B6DFA /* Rakefile */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -60,7 +59,6 @@
 		837D8BD11408FAD4009B6DFA /* JSCocoaLib.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaLib.m; sourceTree = "<group>"; };
 		837D8BD21408FAD4009B6DFA /* JSCocoaPrivateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaPrivateObject.h; sourceTree = "<group>"; };
 		837D8BD31408FAD4009B6DFA /* JSCocoaPrivateObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaPrivateObject.m; sourceTree = "<group>"; };
-		837D8BD41408FAD4009B6DFA /* jslint-jscocoa.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "jslint-jscocoa.js"; sourceTree = "<group>"; };
 		837D8BE01408FAF5009B6DFA /* AtomWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = AtomWindow.xib; path = ../../Atomicity/Cocoa/xibs/AtomWindow.xib; sourceTree = SOURCE_ROOT; };
 		837D8BE81408FB15009B6DFA /* Rakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Rakefile; path = ../../Atomicity/Rakefile; sourceTree = SOURCE_ROOT; };
 		8D1107320486CEB800E47090 /* Atomicity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atomicity.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -180,7 +178,6 @@
 				837D8BD11408FAD4009B6DFA /* JSCocoaLib.m */,
 				837D8BD21408FAD4009B6DFA /* JSCocoaPrivateObject.h */,
 				837D8BD31408FAD4009B6DFA /* JSCocoaPrivateObject.m */,
-				837D8BD41408FAD4009B6DFA /* jslint-jscocoa.js */,
 			);
 			name = JSCocoa;
 			path = ../../Atomicity/Cocoa/JSCocoa;
@@ -281,7 +278,6 @@
 				837D8BD91408FAD4009B6DFA /* JSCocoaFFIClosure.m in Sources */,
 				837D8BDA1408FAD4009B6DFA /* JSCocoaLib.m in Sources */,
 				837D8BDB1408FAD4009B6DFA /* JSCocoaPrivateObject.m in Sources */,
-				837D8BDC1408FAD4009B6DFA /* jslint-jscocoa.js in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
