@@ -33,13 +33,20 @@ save = ->
   setMode()
   Chrome.setDirty false
 open = ->
-  if /png|jpe?g|gif/i.test filename
-    Chrome.openURL filename
-  else
+  if Dir.isDir(filename)
+    Process.cwd(filename)
     Chrome.title _.last filename.split('/')
-    editor.getSession().setValue File.read filename
+    editor.getSession().setValue ""
     setMode()
     Chrome.setDirty false
+  else
+    if /png|jpe?g|gif/i.test filename
+      Chrome.openURL filename
+    else
+      Chrome.title _.last filename.split('/')
+      editor.getSession().setValue File.read filename
+      setMode()
+      Chrome.setDirty false
 setMode = ->
   if /\.js$/.test filename
     editor.getSession().setMode new JavaScriptMode
@@ -78,7 +85,6 @@ bindKey 'save', 'Command-S', (env, args, request) ->
   if filename then save() else saveAs()
 
 bindKey 'new', 'Command-N', (env, args, request) ->
-  console.log 'hi mom'
   Chrome.createWindow()
 
 bindKey 'copy', 'Command-C', (env, args, request) ->
