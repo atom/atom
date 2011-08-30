@@ -2,6 +2,7 @@
 
 $ = require 'jquery'
 _ = require 'underscore'
+jscocoa = require 'jscocoa'
 
 # Handles the UI chrome
 Chrome =
@@ -25,11 +26,11 @@ Chrome =
       else
         throw "I DON'T KNOW HOW TO DEAL WITH #{position}"
 
-  # path - Optional. The String path to the file to base it on.
   inspector: (webView) ->
     webView ?= WindowController.webView
     @_inspector ?= OSX.WebInspector.alloc.initWithWebView webView
 
+  # path - Optional. The String path to the file to base it on.
   createWindow: (path) ->
     c = OSX.AtomWindowController.alloc.initWithWindowNibName "AtomWindow"
     c.window
@@ -92,7 +93,7 @@ File =
     else
       path
   isFile: (path) ->
-    isDir = new outArgument
+    isDir = new jscocoa.outArgument
     exists = OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory(path, isDir)
     exists and not isDir.valueOf()
 
@@ -106,7 +107,7 @@ Dir =
       paths = fm.contentsOfDirectoryAtPath_error path, null
     _.map paths, (entry) -> "#{path}/#{entry}"
   isDir: (path) ->
-    isDir = new outArgument
+    isDir = new jscocoa.outArgument
     exists = OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory(path, isDir)
     exists and isDir.valueOf()
 
