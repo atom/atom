@@ -135,3 +135,8 @@ bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
 
 bindKey 'console', 'Command-Ctrl-k', (env) ->
   Chrome.inspector().showConsole(1)
+
+bindKey 'reload', 'Command-Ctrl-r', (env) ->
+  Chrome.createWindow()
+  WindowController.close()
+
