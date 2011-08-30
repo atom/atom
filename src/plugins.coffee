@@ -4,11 +4,7 @@ _ = require 'underscore'
 {Chrome, Dir, File} = require 'osx'
 
 _.map Dir.list(Chrome.appRoot() + "/plugins"), (plugin) ->
-  try
-    require plugin
-  catch e
-    name = _.last plugin.split '/'
-    console.error "Problem loading plugin #{name}: #{e.message}"
+  require plugin
 
 if css = File.read "~/.atomicity/twilight.css"
   head = $('head')[0]
