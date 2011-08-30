@@ -10,7 +10,7 @@ canon = require 'pilot/canon'
 
 Chrome.addPane 'main', '<div id="editor"></div>'
 
-editor = ace.edit "editor"
+exports.ace = editor = ace.edit "editor"
 editor.setTheme require "ace/theme/twilight"
 JavaScriptMode = require("ace/mode/javascript").Mode
 CoffeeMode = require("ace/mode/coffee").Mode
@@ -32,6 +32,7 @@ save = ->
   File.write filename, editor.getSession().getValue()
   setMode()
   Chrome.setDirty false
+  editor._emit 'save', { filename }
 exports.open = open = (path) ->
   filename = path
 
@@ -49,6 +50,7 @@ exports.open = open = (path) ->
       editor.getSession().setValue File.read filename
       setMode()
       Chrome.setDirty false
+  editor._emit 'open', { filename }      
 setMode = ->
   if /\.js$/.test filename
     editor.getSession().setMode new JavaScriptMode
