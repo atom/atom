@@ -17,7 +17,6 @@
 		837D8BB61408FAC3009B6DFA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 837D8BB01408FAC3009B6DFA /* InfoPlist.strings */; };
 		837D8BB71408FAC3009B6DFA /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 837D8BB21408FAC3009B6DFA /* MainMenu.xib */; };
 		837D8BD51408FAD4009B6DFA /* BridgeSupportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BC71408FAD4009B6DFA /* BridgeSupportController.m */; };
-		837D8BD61408FAD4009B6DFA /* class.js in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BC81408FAD4009B6DFA /* class.js */; };
 		837D8BD71408FAD4009B6DFA /* JSCocoaController.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BCB1408FAD4009B6DFA /* JSCocoaController.m */; };
 		837D8BD81408FAD4009B6DFA /* JSCocoaFFIArgument.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BCD1408FAD4009B6DFA /* JSCocoaFFIArgument.m */; };
 		837D8BD91408FAD4009B6DFA /* JSCocoaFFIClosure.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BCF1408FAD4009B6DFA /* JSCocoaFFIClosure.m */; };
@@ -272,7 +271,6 @@
 				837D8BA91408FAAA009B6DFA /* AtomWindowController.m in Sources */,
 				837D8BAC1408FAB4009B6DFA /* main.m in Sources */,
 				837D8BD51408FAD4009B6DFA /* BridgeSupportController.m in Sources */,
-				837D8BD61408FAD4009B6DFA /* class.js in Sources */,
 				837D8BD71408FAD4009B6DFA /* JSCocoaController.m in Sources */,
 				837D8BD81408FAD4009B6DFA /* JSCocoaFFIArgument.m in Sources */,
 				837D8BD91408FAD4009B6DFA /* JSCocoaFFIClosure.m in Sources */,
