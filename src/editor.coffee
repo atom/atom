@@ -53,7 +53,7 @@ exports.resize = (e) ->
   setTimeout ->
     editor.focus()
     editor.resize()
-  , 200
+  , 1
 
 
 bindKey 'open', 'Command-O', (env, args, request) ->
