@@ -8,8 +8,6 @@ _ = require 'underscore'
 ace = require 'ace/ace'
 canon = require 'pilot/canon'
 
-Chrome.addPane 'main', '<div id="editor"></div>'
-
 exports.ace = editor = ace.edit "editor"
 editor.setTheme require "ace/theme/twilight"
 editor.getSession().setUseSoftTabs true
