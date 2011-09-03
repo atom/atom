@@ -15,12 +15,6 @@ editor.setTheme require "ace/theme/twilight"
 editor.getSession().setUseSoftTabs true
 editor.getSession().setTabSize 2
 
-# fuuuuu, ui bug
-setTimeout ->
-  editor.focus()
-  editor.resize()
-, 200
-
 filename = null
 editor.getSession().on 'change', ->
   Chrome.setDirty true
@@ -57,6 +51,11 @@ exports.bindKey = bindKey = (name, shortcut, callback) ->
       win: null
       mac: shortcut
       sender: 'editor'
+exports.resize = (e) ->
+  setTimeout ->
+    editor.focus()
+    editor.resize()
+  , 200
 
 
 bindKey 'open', 'Command-O', (env, args, request) ->
