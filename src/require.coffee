@@ -31,9 +31,9 @@ defines = []
 # cb   - The Function that will actually run the code.
 define  = (args...) ->
   defines.push ->
-    file = args[0]
+    file = args[0] if args.length > 1
     cb = args[1] or args[0]
-    exports = if file then __modules[file] else {}
+    exports = if file? then __modules[file] else {}
     module = exports: exports
     cb.call exports, require, exports, module
     module.exports or exports
