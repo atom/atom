@@ -49,12 +49,13 @@ exports.bindKey = bindKey = (name, shortcut, callback) ->
       win: null
       mac: shortcut
       sender: 'editor'
-exports.resize = (e) ->
+exports.resize = (timeout=1) ->
   setTimeout ->
     editor.focus()
     editor.resize()
-  , 1
+  , timeout
 
+exports.resize(200)
 
 bindKey 'open', 'Command-O', (env, args, request) ->
   if file = Chrome.openPanel()
