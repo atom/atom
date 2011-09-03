@@ -3,6 +3,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 jscocoa = require 'jscocoa'
+Editor  = require 'editor'
 
 # Handles the UI chrome
 Chrome =
@@ -13,6 +14,9 @@ Chrome =
     el = document.createElement "div"
     el.setAttribute 'class', "pane " + position
     el.innerHTML = html
+
+    el.addEventListener('DOMNodeInsertedIntoDocument', Editor.resize, false);
+    el.addEventListener('DOMNodeRemovedFromDocument', Editor.resize, false);
 
     switch position
       when 'top', 'main'
