@@ -60,10 +60,12 @@ resolve = (file) ->
       .stringByExpandingTildeInPath.toString()
 
   if file[0..1] is './'
-    throw "require: ./ prefix not yet implemented"
+    prefix = __filename.split('/')[0..-2].join '/'
+    file = file.replace './', "#{prefix}/"
 
   if file[0..2] is '../'
-    throw "require: ../ prefix not yet implemented"
+    prefix = __filename.split('/')[0..-3].join '/'
+    file = file.replace '../', "#{prefix}/"
 
   if file[0] isnt '/'
     paths.some (path) ->
