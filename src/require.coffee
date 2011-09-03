@@ -23,9 +23,17 @@ require = (file, cb) ->
   __modules[file]
 
 defines = []
-define  = (cb) ->
+
+# Ace define uses just one var, our stuff wants two. 
+#
+# file - The String that contains the filename of the code we are requiring
+#        (optional)
+# cb   - The Function that will actually run the code.
+define  = (args...) ->
   defines.push ->
-    exports = {}
+    file = args[0]
+    cb = args[1] or args[0]
+    exports = if file then __modules[file] else {}
     module = exports: exports
     cb.call exports, require, exports, module
     module.exports or exports
@@ -36,7 +44,7 @@ exts =
 
     if not /define\(/.test code
       code = """
-        define(function(require, exports, module) {
+        define('#{file}', function(require, exports, module) {
           #{code};
         });
       """
