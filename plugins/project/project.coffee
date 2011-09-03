@@ -11,13 +11,13 @@ exports.init = ->
 
   bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) =>
     @toggle()
-  
+
   Editor.ace.on 'open', =>
     @reload() if @dir? and Process.cwd() isnt @dir
 
   $('#project .cwd').live 'click', (event) =>
     Editor.open @dir.replace _.last(@dir.split '/'), ''
-    
+
   $('#project li').live 'click', (event) =>
     $('#project .active').removeClass 'active'
     el = $(event.currentTarget)
@@ -37,7 +37,7 @@ exports.toggle = ->
 exports.reload = ->
   @dir = dir = Process.cwd()
   $('#project .cwd').text _.last dir.split '/'
-  
+
   $('#project li').remove()
 
   files = Dir.list dir
