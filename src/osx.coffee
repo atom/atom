@@ -35,9 +35,8 @@ Chrome =
       else
         throw "I DON'T KNOW HOW TO DEAL WITH #{position}"
 
-  inspector: (webView) ->
-    webView ?= WindowController.webView
-    @_inspector ?= OSX.WebInspector.alloc.initWithWebView webView
+  inspector:->
+    @_inspector ?= WindowController.webView.inspector
 
   # path - Optional. The String path to the file to base it on.
   createWindow: (path) ->
