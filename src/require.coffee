@@ -9,6 +9,8 @@ paths = [
   "#{resourcePath}/vendor"
 ]
 
+window.__filename = null
+
 require = (file, cb) ->
   return cb require file if cb?
 
@@ -18,23 +20,18 @@ require = (file, cb) ->
 
   return __modules[file] if __modules[file]?
 
+  [ previousFilename, window.__filename ] = [ __filename, file ]
   __modules[file] = {} # Fix for circular references
   __modules[file] = (exts[ext] or (file) -> __read file) file
+  window.__filename = previousFilename
   __modules[file]
 
 defines = []
 
-# Ace define uses just one var, our stuff wants two. 
-#
-# file - The String that contains the filename of the code we are requiring
-#        (optional)
-# cb   - The Function that will actually run the code.
-define  = (args...) ->
+define  = (cb) ->
   defines.push ->
-    file = args[0] if args.length > 1
-    cb = args[1] or args[0]
-    exports = if file? then __modules[file] else {}
-    module = exports: exports
+    exports = __modules[__filename] or {}
+    module  = exports: exports
     cb.call exports, require, exports, module
     module.exports or exports
 
@@ -44,7 +41,7 @@ exts =
 
     if not /define\(/.test code
       code = """
-        define('#{file}', function(require, exports, module) {
+        define(function(require, exports, module) {
           #{code};
         });
       """
