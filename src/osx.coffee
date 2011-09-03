@@ -15,8 +15,13 @@ Chrome =
     el.setAttribute 'class', "pane " + position
     el.innerHTML = html
 
-    el.addEventListener('DOMNodeInsertedIntoDocument', Editor.resize, false);
-    el.addEventListener('DOMNodeRemovedFromDocument', Editor.resize, false);
+    el.addEventListener 'DOMNodeInsertedIntoDocument', ->
+      Editor.resize()
+    , false
+
+    el.addEventListener 'DOMNodeRemovedFromDocument', ->
+      Editor.resize()
+    , false
 
     switch position
       when 'top', 'main'
