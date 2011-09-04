@@ -46,6 +46,7 @@ exts =
     __jsc__.evalJSString_withScriptPath code, file
     __defines.pop()?.call()
   coffee: (file) ->
+    {CoffeeScript} = require 'coffee-script'
     exts.js file, CoffeeScript.compile __read file
 
 resolve = (file) ->
