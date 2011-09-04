@@ -4,6 +4,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 jscocoa = require 'jscocoa'
 Editor  = require 'editor'
+File    = require 'fs'
 
 # Handles the UI chrome
 Chrome =
@@ -87,28 +88,9 @@ Chrome =
     OSX.NSBundle.mainBundle.resourcePath
 
 # Handles the file system
-File =
-  read: (path) ->
-    OSX.NSString.stringWithContentsOfFile(File.expand path).toString()
-  write: (path, contents) ->
-    str = OSX.NSString.stringWithString contents
-    str.writeToFile_atomically File.expand(path), true
-  expand: (path) ->
-    if /~/.test path
-      OSX.NSString.stringWithString(path).stringByExpandingTildeInPath
-    else if path.indexOf('./') is 0
-      "#{Chrome.appRoot}/#{path}"
-    else
-      path
-  isFile: (path) ->
-    isDir = new jscocoa.outArgument
-    exists = OSX.NSFileManager.defaultManager.
-      fileExistsAtPath_isDirectory path, isDir
-    exists and not isDir.valueOf()
-
 Dir =
   list: (path, recursive) ->
-    path = File.expand path
+    path = File.absolute path
     fm = OSX.NSFileManager.defaultManager
     if recursive
       paths = fm.subpathsAtPath path

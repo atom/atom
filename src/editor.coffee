@@ -3,7 +3,8 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome, File, Process, Dir} = require 'osx'
+{Chrome, Process, Dir} = require 'osx'
+File = require 'fs'
 
 ace = require 'ace/ace'
 canon = require 'pilot/canon'

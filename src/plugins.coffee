@@ -1,7 +1,8 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome, Dir, File} = require 'osx'
+{Chrome, Dir} = require 'osx'
+File = require 'fs'
 
 _.map Dir.list(Chrome.appRoot() + "/plugins"), (plugin) ->
   require plugin
