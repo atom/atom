@@ -3,6 +3,8 @@
 
 _ = require 'underscore'
 
+jscocoa = require 'jscocoa'
+
 module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
