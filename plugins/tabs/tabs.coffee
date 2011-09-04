@@ -2,7 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 {activeWindow} = require 'app'
-{bindKey} = require 'editor'
+{bindKey} = require 'keybinder'
 
 
 # click tab
@@ -16,7 +16,7 @@ $(document).delegate '#tabs .add a', 'click', ->
   false
 
 # toggle
-bindKey 'toggleTabs', 'Command-Ctrl-T', (env) ->
+bindKey 'toggleTabs', 'Command-Ctrl-T', ->
   if $('#tabs').length
     tabs.hideTabs()
   else

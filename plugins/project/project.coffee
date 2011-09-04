@@ -4,27 +4,26 @@ _ = require 'underscore'
 {activeWindow} = require 'app'
 File = require 'fs'
 
-Editor  = require 'editor'
-bindKey = Editor.bindKey
+{bindKey} = require 'keybinder'
 
 exports.init = ->
   @html = require "project/project.html"
 
-  bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', (env) =>
+  bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', =>
     @toggle()
 
-  Editor.ace.on 'open', =>
+  activeWindow.document.ace.on 'open', =>
     @reload() if @dir? and File.workingDirectory() isnt @dir
 
   $('#project .cwd').live 'click', (event) =>
-    Editor.open @dir.replace _.last(@dir.split '/'), ''
+    activeWindow.open @dir.replace _.last(@dir.split '/'), ''
 
   $('#project li').live 'click', (event) =>
     $('#project .active').removeClass 'active'
     el = $(event.currentTarget)
     el.addClass 'active'
     path = decodeURIComponent el.attr 'path'
-    Editor.open path
+    activeWindow.open path
 
 exports.toggle = ->
   if @showing

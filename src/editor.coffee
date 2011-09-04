@@ -5,82 +5,99 @@ _ = require 'underscore'
 
 File = require 'fs'
 App  = require 'app'
+Pane = require 'pane'
 activeWindow = App.activeWindow
+{bindKey} = require 'keybinder'
 
 ace = require 'ace/ace'
-canon = require 'pilot/canon'
 
-exports.ace = editor = ace.edit "editor"
-editor.setTheme require "ace/theme/twilight"
-editor.getSession().setUseSoftTabs true
-editor.getSession().setTabSize 2
+module.exports =
+class Editor extends Pane
+  filename: null
 
-filename = null
-editor.getSession().on 'change', ->
-  activeWindow.setDirty true
-save = ->
-  File.write filename, editor.getSession().getValue()
-  activeWindow.setDirty false
-  editor._emit 'save', { filename }
-exports.open = open = (path) ->
-  filename = path
+  constructor: ->
+    @ace = ace.edit "editor"
+    @ace.setTheme require "ace/theme/twilight"
+    @ace.getSession().setUseSoftTabs true
+    @ace.getSession().setTabSize 2
+    @ace.pane = this
 
-  if File.isDirectory filename
-    File.changeWorkingDirectory filename
-    activeWindow.setTitle _.last filename.split '/'
-    editor.getSession().setValue ""
+    @ace.getSession().on 'change', ->
+      activeWindow.setDirty true
+
+    el = document.body
+    el.addEventListener 'DOMNodeInsertedIntoDocument', =>
+      @resize()
+    el.addEventListener 'DOMNodeRemovedFromDocument', =>
+      @resize()
+
+    # bug #13
+    @resize 200
+
+  save: ->
+    File.write @filename, @ace.getSession().getValue()
     activeWindow.setDirty false
-  else
-    if /png|jpe?g|gif/i.test filename
-      App.openURL filename
-    else
-      activeWindow.setTitle _.last filename.split '/'
-      editor.getSession().setValue File.read filename
-      activeWindow.setDirty false
-  editor._emit 'open', { filename }
-saveAs = ->
-  if file = App.savePanel()
-    filename = file
-    activeWindow.setTitle _.last filename.split '/'
-    save()
-exports.bindKey = bindKey = (name, shortcut, callback) ->
-  canon.addCommand
-    name: name
-    exec: callback
-    bindKey:
-      win: null
-      mac: shortcut
-      sender: 'editor'
-exports.resize = (timeout=1) ->
-  setTimeout ->
-    editor.focus()
-    editor.resize()
-  , timeout
+    @ace._emit 'save', { @filename }
 
-exports.resize(200)
+  open: (path) ->
+    @filename = path
+
+    if File.isDirectory @filename
+      File.changeWorkingDirectory @filename
+      activeWindow.setTitle _.last @filename.split '/'
+      @ace.getSession().setValue ""
+      activeWindow.setDirty false
+    else
+      if /png|jpe?g|gif/i.test @filename
+        App.openURL @filename
+      else
+        activeWindow.setTitle _.last @filename.split '/'
+        @ace.getSession().setValue File.read @filename
+        activeWindow.setDirty false
+    @ace._emit 'open', { @filename }
+
+  saveAs: ->
+    if file = App.savePanel()
+      @filename = file
+      activeWindow.setTitle _.last @filename.split '/'
+      @save()
+
+  resize: (timeout=1) ->
+    setTimeout =>
+      @ace.focus()
+      @ace.resize()
+    , timeout
+
+
+#
+# keybindings
+#
 
 bindKey 'open', 'Command-O', (env, args, request) ->
   if file = App.openPanel()
-    open file
+    env.editor.pane.open file
 
 bindKey 'openURL', 'Command-Shift-O', (env, args, request) ->
   if url = prompt "Enter URL:"
     App.openURL url
 
 bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
-  saveAs()
+  env.editor.pane.saveAs()
 
 bindKey 'save', 'Command-S', (env, args, request) ->
-  if filename then save() else saveAs()
+  doc = env.editor.pane
+  if doc.filename then doc.save() else doc.saveAs()
 
 bindKey 'new', 'Command-N', (env, args, request) ->
   App.newWindow()
 
 bindKey 'copy', 'Command-C', (env, args, request) ->
+  editor = env.editor
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()
   App.writeToPasteboard text
 
 bindKey 'cut', 'Command-X', (env, args, request) ->
+  editor = env.editor
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()
   App.writeToPasteboard text
   editor.session.remove editor.getSelectionRange()

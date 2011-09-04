@@ -1,6 +1,6 @@
 _ = require 'underscore'
 
-{ace} = require 'editor'
+{activeWindow} = require 'app'
 
 modeMap =
   js: 'javascript'
@@ -26,10 +26,11 @@ setMode = ({filename}) ->
   console.log "setMode(#{filename})"
   if mode = modeForLanguage _.last filename.split '.'
     console.dir mode
-    ace.getSession().setMode new mode
+    activeWindow.document.ace?.getSession().setMode new mode
 
 exports.init = ->
-  ace.on 'open', setMode
-  ace.on 'save', setMode
+  if ace = activeWindow.document.ace
+    ace.on 'open', setMode
+    ace.on 'save', setMode
 
 exports.modeMap = modeMap

@@ -1,32 +1,32 @@
 $ = require 'jquery'
 
+App  = require 'app'
+Pane = require 'pane'
+
 module.exports =
-class Window
+class Window extends Pane
   controller: null
   document: null
   nswindow: null
   panes: []
 
-  constructor: (options={}) ->
-    @controller = options.controller
-    @document = options.document
-    @nswindow = options.controller?.window
+  keymap:
+    'Command-N'       : 'new'
+    'Command-O'       : 'open'
+    'Command-Shift-O' : 'openURL'
+    'Command-Ctrl-K'  : 'showConsole'
+    'Command-Ctrl-R'  : 'reload'
 
-  addPane: (position, html) ->
-    Editor = require 'editor'
+  initialize: ->
+    @nswindow = @controller?.window
 
+  addPane: ({position, html}) ->
     verticalDiv = $('#app-vertical')
     horizontalDiv = $('#app-horizontal')
 
     el = document.createElement "div"
     el.setAttribute 'class', "pane " + position
     el.innerHTML = html
-
-    el.addEventListener 'DOMNodeInsertedIntoDocument', ->
-      Editor.resize()
-
-    el.addEventListener 'DOMNodeRemovedFromDocument', ->
-      Editor.resize()
 
     switch position
       when 'top', 'main'
@@ -43,6 +43,10 @@ class Window
   close: ->
     @controller.close()
 
+  reload: ->
+    App.newWindow()
+    @close()
+
   isDirty: ->
     @nswindow.isDocumentEdited()
 
@@ -50,8 +54,21 @@ class Window
   setDirty: (bool) ->
     @nswindow.setDocumentEdited bool
 
-  inspector:->
+  inspector: ->
     @_inspector ?= WindowController.webView.inspector
+
+  new: ->
+    App.newWindow()
+
+  open: (path) ->
+    @document?.open path
+
+  openURL: (url) ->
+    if url = prompt "Enter URL:"
+      App.openURL url
+
+  showConsole: ->
+    @inspector().showConsole(1)
 
   title: ->
     @nswindow.title
