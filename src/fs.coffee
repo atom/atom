@@ -1,6 +1,8 @@
 # commonjs fs module
 # http://ringojs.org/api/v0.8/fs/
 
+_ = require 'underscore'
+
 module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
@@ -35,7 +37,7 @@ module.exports =
   # Returns an array with all the names of files contained
   # in the directory path.
   list: (path, recursive) ->
-    path = File.absolute path
+    path = @absolute path
     fm = OSX.NSFileManager.defaultManager
     if recursive
       paths = fm.subpathsAtPath path
