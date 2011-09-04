@@ -12,7 +12,7 @@ module.exports =
     if /~/.test path
       OSX.NSString.stringWithString(path).stringByExpandingTildeInPath
     else if path.indexOf('./') is 0
-      "#{Chrome.appRoot}/#{path}"
+      throw "absolute: ./ not yet implemented"
     else
       path
 
