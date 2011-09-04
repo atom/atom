@@ -1,10 +1,10 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome, Dir} = require 'osx'
+{Chrome} = require 'osx'
 File = require 'fs'
 
-_.map Dir.list(Chrome.appRoot() + "/plugins"), (plugin) ->
+_.map File.list(Chrome.appRoot() + "/plugins"), (plugin) ->
   require plugin
 
 if css = File.read "~/.atomicity/twilight.css"
@@ -15,5 +15,5 @@ if css = File.read "~/.atomicity/twilight.css"
   style.appendChild rules
   head.appendChild style
 
-_.map Dir.list("~/.atomicity/"), (path) ->
+_.map File.list("~/.atomicity/"), (path) ->
   require path

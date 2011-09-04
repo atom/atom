@@ -87,22 +87,6 @@ Chrome =
   appRoot: ->
     OSX.NSBundle.mainBundle.resourcePath
 
-# Handles the file system
-Dir =
-  list: (path, recursive) ->
-    path = File.absolute path
-    fm = OSX.NSFileManager.defaultManager
-    if recursive
-      paths = fm.subpathsAtPath path
-    else
-      paths = fm.contentsOfDirectoryAtPath_error path, null
-    _.map paths, (entry) -> "#{path}/#{entry}"
-  isDir: (path) ->
-    isDir = new jscocoa.outArgument
-    exists = OSX.NSFileManager.defaultManager.
-      fileExistsAtPath_isDirectory path, isDir
-    exists and isDir.valueOf()
-
 Process =
   cwd: (path) ->
     if path?

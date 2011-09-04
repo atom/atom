@@ -13,12 +13,38 @@ module.exports =
       path
 
   # Returns true if the file specified by path exists and is a
+  # directory.
+  isDirectory: (path) ->
+    isDir = new jscocoa.outArgument
+    exists = OSX.NSFileManager.defaultManager.
+      fileExistsAtPath_isDirectory path, isDir
+    exists and isDir.valueOf()
+
+  # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
     isDir = new jscocoa.outArgument
     exists = OSX.NSFileManager.defaultManager.
       fileExistsAtPath_isDirectory path, isDir
     exists and not isDir.valueOf()
+
+  # Returns an array with all the names of files contained
+  # in the directory path.
+  list: (path, recursive) ->
+    path = File.absolute path
+    fm = OSX.NSFileManager.defaultManager
+    if recursive
+      paths = fm.subpathsAtPath path
+    else
+      paths = fm.contentsOfDirectoryAtPath_error path, null
+    _.map paths, (entry) -> "#{path}/#{entry}"
+
+  # Return an array with all directories below (and including)
+  # the given path, as discovered by depth-first traversal. Entries
+  # are in lexically sorted order within directories. Symbolic links
+  # to directories are not traversed into.
+  listDirectoryTree: (path) ->
+    @list path, true
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->

@@ -1,7 +1,8 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome, Dir, File, Process} = require 'osx'
+{Chrome, Process} = require 'osx'
+File = require 'fs'
 
 Editor  = require 'editor'
 bindKey = Editor.bindKey
@@ -40,10 +41,10 @@ exports.reload = ->
 
   $('#project li').remove()
 
-  files = Dir.list dir
+  files = File.list dir
   listItems = _.map files, (path) ->
     filename = path.replace(dir, "").substring 1
-    type = if Dir.isDir(path) then 'dir' else 'file'
+    type = if File.isDir(path) then 'dir' else 'file'
     "<li class='#{type}' path='#{encodeURIComponent path}'>#{filename}</li>"
 
   $('#project .files').append listItems.join '\n'
