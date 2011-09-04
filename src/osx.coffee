@@ -87,7 +87,5 @@ Chrome =
   appRoot: ->
     OSX.NSBundle.mainBundle.resourcePath
 
+
 exports.Chrome = Chrome
-exports.File = File
-exports.Dir = Dir
-exports.Process = Process
