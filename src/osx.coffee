@@ -87,16 +87,6 @@ Chrome =
   appRoot: ->
     OSX.NSBundle.mainBundle.resourcePath
 
-Process =
-  cwd: (path) ->
-    if path?
-      OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
-    else
-      OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
-
-  env: ->
-    OSX.NSProcess.processInfo.environment
-
 exports.Chrome = Chrome
 exports.File = File
 exports.Dir = Dir

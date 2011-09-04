@@ -3,7 +3,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome, Process} = require 'osx'
+{Chrome} = require 'osx'
 File = require 'fs'
 
 ace = require 'ace/ace'
@@ -25,7 +25,7 @@ exports.open = open = (path) ->
   filename = path
 
   if File.isDir filename
-    Process.cwd filename
+    File.changeWorkingDirectory filename
     Chrome.title _.last filename.split '/'
     editor.getSession().setValue ""
     Chrome.setDirty false

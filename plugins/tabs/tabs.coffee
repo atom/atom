@@ -1,7 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome, Process} = require 'osx'
+{Chrome} = require 'osx'
 File = require 'fs'
 {bindKey} = require 'editor'
 

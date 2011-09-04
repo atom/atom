@@ -1,7 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome, Process} = require 'osx'
+{Chrome} = require 'osx'
 File = require 'fs'
 
 Editor  = require 'editor'
@@ -14,7 +14,7 @@ exports.init = ->
     @toggle()
 
   Editor.ace.on 'open', =>
-    @reload() if @dir? and Process.cwd() isnt @dir
+    @reload() if @dir? and File.workingDirectory() isnt @dir
 
   $('#project .cwd').live 'click', (event) =>
     Editor.open @dir.replace _.last(@dir.split '/'), ''
@@ -36,7 +36,7 @@ exports.toggle = ->
   @showing = not @showing
 
 exports.reload = ->
-  @dir = dir = Process.cwd()
+  @dir = dir = File.workingDirectory()
   $('#project .cwd').text _.last dir.split '/'
 
   $('#project li').remove()

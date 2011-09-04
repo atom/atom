@@ -12,6 +12,10 @@ module.exports =
     else
       path
 
+  # Set the current working directory to `path`.
+  changeWorkingDirectory: (path) ->
+    OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
+
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
@@ -54,3 +58,7 @@ module.exports =
   write: (path, content) ->
     str = OSX.NSString.stringWithString content
     str.writeToFile_atomically @absolute(path), true
+
+  # Return the path name of the current working directory.
+  workingDirectory: ->
+    OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
