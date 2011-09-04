@@ -3,8 +3,9 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome} = require 'osx'
 File = require 'fs'
+App  = require 'app'
+activeWindow = App.activeWindow
 
 ace = require 'ace/ace'
 canon = require 'pilot/canon'
@@ -16,31 +17,31 @@ editor.getSession().setTabSize 2
 
 filename = null
 editor.getSession().on 'change', ->
-  Chrome.setDirty true
+  activeWindow.setDirty true
 save = ->
   File.write filename, editor.getSession().getValue()
-  Chrome.setDirty false
+  activeWindow.setDirty false
   editor._emit 'save', { filename }
 exports.open = open = (path) ->
   filename = path
 
   if File.isDirectory filename
     File.changeWorkingDirectory filename
-    Chrome.title _.last filename.split '/'
+    activeWindow.setTitle _.last filename.split '/'
     editor.getSession().setValue ""
-    Chrome.setDirty false
+    activeWindow.setDirty false
   else
     if /png|jpe?g|gif/i.test filename
-      Chrome.openURL filename
+      App.openURL filename
     else
-      Chrome.title _.last filename.split '/'
+      activeWindow.setTitle _.last filename.split '/'
       editor.getSession().setValue File.read filename
-      Chrome.setDirty false
+      activeWindow.setDirty false
   editor._emit 'open', { filename }
 saveAs = ->
-  if file = Chrome.savePanel()
+  if file = App.savePanel()
     filename = file
-    Chrome.title _.last filename.split '/'
+    activeWindow.setTitle _.last filename.split '/'
     save()
 exports.bindKey = bindKey = (name, shortcut, callback) ->
   canon.addCommand
@@ -59,12 +60,12 @@ exports.resize = (timeout=1) ->
 exports.resize(200)
 
 bindKey 'open', 'Command-O', (env, args, request) ->
-  if file = Chrome.openPanel()
+  if file = App.openPanel()
     open file
 
 bindKey 'openURL', 'Command-Shift-O', (env, args, request) ->
   if url = prompt "Enter URL:"
-    Chrome.openURL url
+    App.openURL url
 
 bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
   saveAs()
@@ -73,15 +74,15 @@ bindKey 'save', 'Command-S', (env, args, request) ->
   if filename then save() else saveAs()
 
 bindKey 'new', 'Command-N', (env, args, request) ->
-  Chrome.createWindow()
+  App.newWindow()
 
 bindKey 'copy', 'Command-C', (env, args, request) ->
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()
-  Chrome.writeToPasteboard text
+  App.writeToPasteboard text
 
 bindKey 'cut', 'Command-X', (env, args, request) ->
   text = editor.getSession().doc.getTextRange editor.getSelectionRange()
-  Chrome.writeToPasteboard text
+  App.writeToPasteboard text
   editor.session.remove editor.getSelectionRange()
 
 bindKey 'eval', 'Command-R', (env, args, request) ->
@@ -118,15 +119,12 @@ bindKey 'home', 'Alt-Shift-,', (env) ->
 bindKey 'end', 'Alt-Shift-.', (env) ->
   env.editor.navigateFileEnd()
 
-bindKey 'fullscreen', 'Command-Shift-Return', (env) ->
-  Chrome.toggleFullscreen()
-
 bindKey 'console', 'Command-Ctrl-k', (env) ->
-  Chrome.inspector().showConsole(1)
+  activeWindow.inspector().showConsole(1)
 
 bindKey 'reload', 'Command-Ctrl-r', (env) ->
-  Chrome.createWindow()
-  WindowController.close()
+  App.newWindow()
+  activeWindow.close()
 
 # this should go in coffee.coffee or something
 bindKey 'consolelog', 'Ctrl-L', (env) ->

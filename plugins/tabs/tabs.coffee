@@ -1,8 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome} = require 'osx'
-File = require 'fs'
+{activeWindow} = require 'app'
 {bindKey} = require 'editor'
 
 
@@ -26,7 +25,7 @@ bindKey 'toggleTabs', 'Command-Ctrl-T', (env) ->
 
 module.exports = tabs =
   showTabs: ->
-    Chrome.addPane 'top', require 'tabs/tabs.html'
+    activeWindow.addPane 'top', require 'tabs/tabs.html'
     $('#tabs').parents('.pane').css height: 'inherit'
     css = $('<style id="tabs-style"></style>').html require 'tabs/tabs.css'
     $('head').append css

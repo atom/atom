@@ -8,7 +8,7 @@ __jsc__.evalJSString_withScriptPath code, path
 # TODO: turn these into real unit tests
 OSX.NSLog 'require tests:'
 OSX.NSLog require.resolve 'underscore'
-OSX.NSLog require.resolve 'osx'
+OSX.NSLog require.resolve 'app'
 OSX.NSLog require.resolve 'tabs/tabs'
 
 [ fn, window.__filename ] = [ __filename, "#{root}/src/bootstrap.js" ]

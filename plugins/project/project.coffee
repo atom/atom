@@ -1,7 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome} = require 'osx'
+{activeWindow} = require 'app'
 File = require 'fs'
 
 Editor  = require 'editor'
@@ -30,7 +30,7 @@ exports.toggle = ->
   if @showing
     $('#project').parent().remove()
   else
-    Chrome.addPane 'left', @html
+    activeWindow.addPane 'left', @html
     @reload()
 
   @showing = not @showing

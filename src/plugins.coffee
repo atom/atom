@@ -1,10 +1,10 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-{Chrome} = require 'osx'
 File = require 'fs'
+App  = require 'app'
 
-_.map File.list(Chrome.appRoot() + "/plugins"), (plugin) ->
+_.map File.list(App.root + "/plugins"), (plugin) ->
   require plugin
 
 if css = File.read "~/.atomicity/twilight.css"
