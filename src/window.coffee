@@ -24,11 +24,9 @@ class Window
 
     el.addEventListener 'DOMNodeInsertedIntoDocument', ->
       Editor.resize()
-    , false
 
     el.addEventListener 'DOMNodeRemovedFromDocument', ->
       Editor.resize()
-    , false
 
     switch position
       when 'top', 'main'
