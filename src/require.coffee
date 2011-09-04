@@ -26,10 +26,8 @@ require = (file, cb) ->
   window.__filename = previousFilename
   __modules[file]
 
-defines = []
-
 define  = (cb) ->
-  defines.push ->
+  __defines.push ->
     exports = __modules[__filename] or {}
     module  = exports: exports
     cb.call exports, require, exports, module
@@ -46,7 +44,7 @@ exts =
         });
       """
     __jsc__.evalJSString_withScriptPath code, file
-    defines.pop()?.call()
+    __defines.pop()?.call()
   coffee: (file) ->
     exts.js file, CoffeeScript.compile __read file
 
@@ -97,6 +95,7 @@ __read = (path) ->
   OSX.NSString.stringWithContentsOfFile(path).toString()
 
 __modules = {}
+__defines = []
 
 
 this.require = require
