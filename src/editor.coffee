@@ -24,7 +24,7 @@ save = ->
 exports.open = open = (path) ->
   filename = path
 
-  if File.isDir filename
+  if File.isDirectory filename
     File.changeWorkingDirectory filename
     Chrome.title _.last filename.split '/'
     editor.getSession().setValue ""
