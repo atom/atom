@@ -32,12 +32,12 @@
     [webView setMainFrameURL:self.URL];
   }
   else {
-    JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
-    [jsc setObject:self withName:@"WindowController"];
+    jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
+    [jscocoa setObject:self withName:@"WindowController"];
 
     NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
     NSString *requirePath = [resourcePath stringByAppendingString:@"/src/require.js"];
-    [jsc evalJSFile:requirePath];
+    [jscocoa evalJSFile:requirePath];
 
     NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
     NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"static"];
@@ -48,7 +48,9 @@
 }
 
 -(BOOL) handleKeyEvent:(NSEvent *)event {
-  return NO;
+  // ICKY: Using a global function defined in App.js to deal with key events
+  JSValueRef returnValue = [jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
+  return [jscocoa toBool:returnValue];
 }
 
 @end

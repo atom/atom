@@ -8,9 +8,12 @@
 
 #import <Cocoa/Cocoa.h>
 
+@class JSCocoa;
+
 @interface AtomWindowController : NSWindowController {
   IBOutlet id webView;
   NSString *URL;
+  JSCocoa* jscocoa;
 }
 
 @property (assign) IBOutlet id webView;
