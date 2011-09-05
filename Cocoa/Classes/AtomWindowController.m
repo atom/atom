@@ -32,11 +32,12 @@
     [webView setMainFrameURL:self.URL];
   } 
   else {
-    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
-    NSString *bootstrapPath = [resourcePath stringByAppendingString:@"/src/require.js"];
     JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
     [jsc setObject:self withName:@"WindowController"];
-    [jsc evalJSFile:bootstrapPath];
+    
+    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
+    NSString *requirePath = [resourcePath stringByAppendingString:@"/src/require.js"];
+    [jsc evalJSFile:requirePath];
 
     NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
     NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"static"];
