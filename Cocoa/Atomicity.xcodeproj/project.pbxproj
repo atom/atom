@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04C8F31614144CC00041D072 /* AtomApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 04C8F31514144CC00041D072 /* AtomApp.m */; };
+		046973A414145A9500415518 /* AtomApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 046973A314145A9500415518 /* AtomApp.m */; };
 		83599F9B13FE0F8400AC37E3 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83599F9A13FE0F8400AC37E3 /* WebKit.framework */; };
 		8359A6EE13FE26DA00AC37E3 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */; };
 		837D8BA91408FAAA009B6DFA /* AtomWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BA71408FAAA009B6DFA /* AtomWindowController.m */; };
@@ -28,8 +28,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		04C8F31414144CC00041D072 /* AtomApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AtomApp.h; sourceTree = "<group>"; };
-		04C8F31514144CC00041D072 /* AtomApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AtomApp.m; sourceTree = "<group>"; };
+		046973A214145A9500415518 /* AtomApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomApp.h; path = Classes/AtomApp.h; sourceTree = "<group>"; };
+		046973A314145A9500415518 /* AtomApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomApp.m; path = Classes/AtomApp.m; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -80,8 +80,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				04C8F31414144CC00041D072 /* AtomApp.h */,
-				04C8F31514144CC00041D072 /* AtomApp.m */,
+				046973A214145A9500415518 /* AtomApp.h */,
+				046973A314145A9500415518 /* AtomApp.m */,
 				837D8BA61408FAAA009B6DFA /* AtomWindowController.h */,
 				837D8BA71408FAAA009B6DFA /* AtomWindowController.m */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -275,7 +275,7 @@
 				837D8BD91408FAD4009B6DFA /* JSCocoaFFIClosure.m in Sources */,
 				837D8BDA1408FAD4009B6DFA /* JSCocoaLib.m in Sources */,
 				837D8BDB1408FAD4009B6DFA /* JSCocoaPrivateObject.m in Sources */,
-				04C8F31614144CC00041D072 /* AtomApp.m in Sources */,
+				046973A414145A9500415518 /* AtomApp.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

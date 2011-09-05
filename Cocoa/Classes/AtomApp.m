@@ -5,8 +5,8 @@
 @implementation AtomApp
 
 - (void)sendEvent:(NSEvent *)event {
-	switch ([event type]) {
-		case NSKeyDown:
+  switch ([event type]) {
+    case NSKeyDown:
     case NSFlagsChanged: {
       AtomWindowController *controller = (AtomWindowController *)[[self keyWindow] windowController];
       BOOL handeled = [controller handleKeyEvent:event];
@@ -14,10 +14,10 @@
         [super sendEvent:event];
       }
     }
-		default:
+    default:
       [super sendEvent:event];
-			break;
-	}  
+      break;
+  }
 }
 
 // AppDelegate

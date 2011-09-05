@@ -23,18 +23,18 @@
 
 - (void)windowDidLoad {
   [super windowDidLoad];
-  
+
 
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomWindow"];
-    
+
   if (self.URL) {
     [webView setMainFrameURL:self.URL];
-  } 
+  }
   else {
     JSCocoa* jsc = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
     [jsc setObject:self withName:@"WindowController"];
-    
+
     NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
     NSString *requirePath = [resourcePath stringByAppendingString:@"/src/require.js"];
     [jsc evalJSFile:requirePath];
@@ -43,13 +43,12 @@
     NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"static"];
     NSURL *indexURL = [htmlURL URLByAppendingPathComponent:@"index.html"];
     NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];
-    [[webView mainFrame] loadHTMLString:html baseURL:htmlURL]; 
+    [[webView mainFrame] loadHTMLString:html baseURL:htmlURL];
   }
 }
 
 -(BOOL) handleKeyEvent:(NSEvent *)event {
   return NO;
 }
-
 
 @end
