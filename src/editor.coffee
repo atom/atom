@@ -1,13 +1,9 @@
-# nice!
-
-$ = require 'jquery'
 _ = require 'underscore'
 
 File = require 'fs'
 App  = require 'app'
 Pane = require 'pane'
 activeWindow = App.activeWindow
-{bindKey} = require 'keybinder'
 
 ace = require 'ace/ace'
 
@@ -15,7 +11,28 @@ module.exports =
 class Editor extends Pane
   filename: null
 
-  constructor: ->
+  keymap:
+    'Command-O'       : 'open'
+    'Command-Shift-O' : 'openURL'
+    'Command-S'       : 'save'
+    'Command-Shift-S' : 'saveAs'
+    'Command-N'       : 'new'
+    'Command-C'       : 'copy'
+    'Command-X'       : 'cut'
+    'Command-R'       : 'eval'
+    'Command-/'       : 'toggleComment'
+    'Command-['       : 'outdent'
+    'Command-]'       : 'indent'
+    'Alt-F'           : 'forwardWord'
+    'Alt-B'           : 'backWord'
+    'Alt-D'           : 'deleteWord'
+    'Alt-Shift-,'     : 'home'
+    'Alt-Shift-.'     : 'end'
+    'Command-Ctrl-K'  : 'console'
+    'Command-Ctrl-R'  : 'reload'
+    'Ctrl-L'          : 'consolelog'
+
+  initialize: ->
     @ace = ace.edit "editor"
     @ace.setTheme require "ace/theme/twilight"
     @ace.getSession().setUseSoftTabs true
@@ -35,11 +52,14 @@ class Editor extends Pane
     @resize 200
 
   save: ->
+    return @saveAs() if not @filename
+
     File.write @filename, @ace.getSession().getValue()
     activeWindow.setDirty false
     @ace._emit 'save', { @filename }
 
   open: (path) ->
+    path = App.openPanel() if not path
     @filename = path
 
     if File.isDirectory @filename
@@ -68,82 +88,41 @@ class Editor extends Pane
       @ace.resize()
     , timeout
 
+  openURL: ->
+    if url = prompt "Enter URL:"
+      App.openURL url
 
-#
-# keybindings
-#
+  new: ->
+    App.newWindow()
 
-bindKey 'open', 'Command-O', (env, args, request) ->
-  if file = App.openPanel()
-    env.editor.pane.open file
+  copy: ->
+    editor = @ace
+    text = editor.getSession().doc.getTextRange editor.getSelectionRange()
+    App.writeToPasteboard text
 
-bindKey 'openURL', 'Command-Shift-O', (env, args, request) ->
-  if url = prompt "Enter URL:"
-    App.openURL url
+  cut: ->
+    editor = @ace
+    text = editor.getSession().doc.getTextRange editor.getSelectionRange()
+    App.writeToPasteboard text
+    editor.session.remove editor.getSelectionRange()
 
-bindKey 'saveAs', 'Command-Shift-S', (env, args, request) ->
-  env.editor.pane.saveAs()
+  eval: ->
+    eval @ace.getSession().getValue()
 
-bindKey 'save', 'Command-S', (env, args, request) ->
-  doc = env.editor.pane
-  if doc.filename then doc.save() else doc.saveAs()
+  toggleComment: -> @ace.toggleCommentLines()
+  outdent:       -> @ace.blockOutdent()
+  indent:        -> @ace.indent()
+  forwardWord:   -> @ace.navigateWordRight()
+  backWord:      -> @ace.navigateWordLeft()
+  deleteWord:    -> @ace.removeWordRight()
+  home:          -> @ace.navigateFileStart()
+  end:           -> @ace.navigateFileEnd()
+  console:       -> activeWindow.inspector().showConsole(1)
 
-bindKey 'new', 'Command-N', (env, args, request) ->
-  App.newWindow()
+  reload: ->
+    App.newWindow()
+    activeWindow.close()
 
-bindKey 'copy', 'Command-C', (env, args, request) ->
-  editor = env.editor
-  text = editor.getSession().doc.getTextRange editor.getSelectionRange()
-  App.writeToPasteboard text
-
-bindKey 'cut', 'Command-X', (env, args, request) ->
-  editor = env.editor
-  text = editor.getSession().doc.getTextRange editor.getSelectionRange()
-  App.writeToPasteboard text
-  editor.session.remove editor.getSelectionRange()
-
-bindKey 'eval', 'Command-R', (env, args, request) ->
-  eval env.editor.getSession().getValue()
-
-# textmate
-
-bindKey 'togglecomment', 'Command-/', (env) ->
-  env.editor.toggleCommentLines()
-
-bindKey 'tmoutdent', 'Command-[', (env) ->
-  env.editor.blockOutdent()
-
-bindKey 'tmindent', 'Command-]', (env) ->
-  env.editor.indent()
-
-# emacs > you
-
-bindKey 'moveforward', 'Alt-F', (env) ->
-  env.editor.navigateWordRight()
-
-bindKey 'moveback', 'Alt-B', (env) ->
-  env.editor.navigateWordLeft()
-
-bindKey 'deleteword', 'Alt-D', (env) ->
-  env.editor.removeWordRight()
-
-bindKey 'selectwordright', 'Alt-B', (env) ->
-  env.editor.navigateWordLeft()
-
-bindKey 'home', 'Alt-Shift-,', (env) ->
-  env.editor.navigateFileStart()
-
-bindKey 'end', 'Alt-Shift-.', (env) ->
-  env.editor.navigateFileEnd()
-
-bindKey 'console', 'Command-Ctrl-k', (env) ->
-  activeWindow.inspector().showConsole(1)
-
-bindKey 'reload', 'Command-Ctrl-r', (env) ->
-  App.newWindow()
-  activeWindow.close()
-
-# this should go in coffee.coffee or something
-bindKey 'consolelog', 'Ctrl-L', (env) ->
-  env.editor.insert 'console.log ""'
-  env.editor.navigateLeft()
+  consolelog: ->
+    @ace.insert 'console.log ""'
+    @ace.navigateLeft()
