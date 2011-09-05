@@ -93,6 +93,12 @@
       for(k in _MODIFIERS) if(_MODIFIERS[k] == key) assignKey[k] = false;
     }
   };
+  // unset modifiers on blur
+  function clearModifiers(event){
+    console.log('clearing all')
+    for(k in _MODIFIERS) assignKey[k] = false;
+    for(i in _mods) _mods[i] = false;
+  }
 
   // parse and assign shortcut
   function assignKey(key, scope, method){
@@ -143,7 +149,7 @@
   // set the handlers globally on document
   addEvent(document, 'keydown', dispatch);
   addEvent(document, 'keyup', clearModifier);
-  addEvent(document, 'blur', clearModifier);
+  addEvent(window,   'blur', clearModifiers, true);
 
   // set window.key and window.key.setScope
   global.key = assignKey;
