@@ -1,31 +1,37 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
+Pane = require 'pane'
 {activeWindow} = require 'app'
-{bindKey} = require 'keybinder'
 
+module.exports =
+class Tabs extends Pane
+  position: 'top'
+  html: require 'tabs/tabs.html'
 
-# click tab
-$(document).delegate '#tabs ul li:not(.add) a', 'click', ->
-  tabs.switchToTab this
-  false
+  keymap:
+    'Command-Ctrl-T': 'toggle'
 
-# click 'add' tab
-$(document).delegate '#tabs .add a', 'click', ->
-  tabs.addTab()
-  false
+  initialize: ->
+    tab = this
+    # click tab
+    $(document).delegate '#tabs ul li:not(.add) a', 'click', ->
+      tab.switchToTab this
+      false
 
-# toggle
-bindKey 'toggleTabs', 'Command-Ctrl-T', ->
-  if $('#tabs').length
-    tabs.hideTabs()
-  else
-    tabs.showTabs()
+    # click 'add' tab
+    $(document).delegate '#tabs .add a', 'click', ->
+      tab.addTab()
+      false
 
+  toggle: ->
+    if $('#tabs').length
+      @hideTabs()
+    else
+      @showTabs()
 
-module.exports = tabs =
   showTabs: ->
-    activeWindow.addPane 'top', require 'tabs/tabs.html'
+    activeWindow.addPane this
     $('#tabs').parents('.pane').css height: 'inherit'
     css = $('<style id="tabs-style"></style>').html require 'tabs/tabs.css'
     $('head').append css

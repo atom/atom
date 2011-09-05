@@ -1,1 +1,3 @@
-exports.Project = require('project/project').init()
+exports.Project = Project = require 'project/project'
+
+new Project

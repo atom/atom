@@ -11,6 +11,9 @@ module.exports =
 class Editor extends Pane
   filename: null
 
+  position: 'main'
+  html: '<div id="editor"></div>'
+
   keymap:
     'Command-S'       : 'save'
     'Command-Shift-S' : 'saveAs'

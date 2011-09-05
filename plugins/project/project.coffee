@@ -3,47 +3,52 @@ _ = require 'underscore'
 
 {activeWindow} = require 'app'
 File = require 'fs'
+Pane = require 'pane'
 
-{bindKey} = require 'keybinder'
+module.exports =
+class Project extends Pane
+  showing: false
 
-exports.init = ->
-  @html = require "project/project.html"
+  position: 'left'
+  html: require "project/project.html"
 
-  bindKey 'toggleProjectDrawer', 'Command-Ctrl-N', =>
-    @toggle()
+  keymap:
+    'Command-Ctrl-N': 'toggle'
 
-  activeWindow.document.ace.on 'open', =>
-    @reload() if @dir? and File.workingDirectory() isnt @dir
+  initialize: ->
+    activeWindow.document.ace.on 'open', =>
+      @reload() if @dir? and File.workingDirectory() isnt @dir
 
-  $('#project .cwd').live 'click', (event) =>
-    activeWindow.open @dir.replace _.last(@dir.split '/'), ''
+    $('#project .cwd').live 'click', (event) =>
+      activeWindow.open @dir.replace _.last(@dir.split '/'), ''
 
-  $('#project li').live 'click', (event) =>
-    $('#project .active').removeClass 'active'
-    el = $(event.currentTarget)
-    el.addClass 'active'
-    path = decodeURIComponent el.attr 'path'
-    activeWindow.open path
+    $('#project li').live 'click', (event) =>
+      $('#project .active').removeClass 'active'
+      el = $(event.currentTarget)
+      el.addClass 'active'
+      path = decodeURIComponent el.attr 'path'
+      activeWindow.open path
 
-exports.toggle = ->
-  if @showing
-    $('#project').parent().remove()
-  else
-    activeWindow.addPane 'left', @html
-    @reload()
+  toggle: ->
+    if @showing
+      $('#project').parent().remove()
+    else
+      activeWindow.addPane this
+      @reload()
 
-  @showing = not @showing
+    @showing = not @showing
 
-exports.reload = ->
-  @dir = dir = File.workingDirectory()
-  $('#project .cwd').text _.last dir.split '/'
+  reload: ->
+    @dir = dir = File.workingDirectory()
+    $('#project .cwd').text _.last dir.split '/'
 
-  $('#project li').remove()
+    $('#project li').remove()
 
-  files = File.list dir
-  listItems = _.map files, (path) ->
-    filename = path.replace(dir, "").substring 1
-    type = if File.isDirectory(path) then 'dir' else 'file'
-    "<li class='#{type}' path='#{encodeURIComponent path}'>#{filename}</li>"
+    files = File.list dir
+    listItems = _.map files, (path) ->
+      filename = path.replace(dir, "").substring 1
+      type = if File.isDirectory(path) then 'dir' else 'file'
+      path = encodeURIComponent path
+      "<li class='#{type}' path='#{path}'>#{filename}</li>"
 
-  $('#project .files').append listItems.join '\n'
+    $('#project .files').append listItems.join '\n'
