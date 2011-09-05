@@ -93,7 +93,10 @@ __exists = (path) ->
   OSX.NSFileManager.defaultManager.fileExistsAtPath path
 
 __read = (path) ->
-  OSX.NSString.stringWithContentsOfFile(path).toString()
+  try
+    OSX.NSString.stringWithContentsOfFile(path).toString()
+  catch e
+    throw "require: can't read #{path}"
 
 __modules = {}
 __defines = []
