@@ -143,6 +143,7 @@
   // set the handlers globally on document
   addEvent(document, 'keydown', dispatch);
   addEvent(document, 'keyup', clearModifier);
+  addEvent(document, 'blur', clearModifier);
 
   // set window.key and window.key.setScope
   global.key = assignKey;
