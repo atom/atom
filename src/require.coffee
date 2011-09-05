@@ -4,6 +4,9 @@ paths = [
   "/Users/chris/Code/Atomicity/src",
   "/Users/chris/Code/Atomicity/plugins",
 
+  "/Users/corey/code/mine/Atomicity/src",
+  "/Users/corey/code/mine/Atomicity/plugins",
+
   "#{resourcePath}/src",
   "#{resourcePath}/plugins",
   "#{resourcePath}/vendor"
