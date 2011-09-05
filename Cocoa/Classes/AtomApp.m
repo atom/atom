@@ -7,13 +7,15 @@
 - (void)sendEvent:(NSEvent *)event {
   switch ([event type]) {
     case NSKeyDown:
-    case NSFlagsChanged: {
-      AtomWindowController *controller = (AtomWindowController *)[[self keyWindow] windowController];
-      BOOL handeled = [controller handleKeyEvent:event];
-      if (!handeled) {
-        [super sendEvent:event];
+    case NSFlagsChanged: 
+      {
+        AtomWindowController *controller = (AtomWindowController *)[[self keyWindow] windowController];
+        BOOL handeled = [controller handleKeyEvent:event];
+        if (!handeled) {
+          [super sendEvent:event];
+        }
       }
-    }
+      break;
     default:
       [super sendEvent:event];
       break;
