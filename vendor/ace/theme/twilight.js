@@ -183,6 +183,9 @@ color:#5F5A60;\
 .ace-twilight .ace_variable {\
   color:#7587A6;\
 }\
+.ace-twilight .ace_label {\
+  color:#AC885B;\
+}\
 \
 .ace-twilight .ace_variable.ace_language {\
   \

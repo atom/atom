@@ -48,12 +48,18 @@ define(function(require, exports, module) {
             merge : true,
             regex : ".+"
         };
-        
+
         this.$rules = {
             start : [
                 {
                     token : "identifier",
-                    regex : "(?:@|(?:\\.|::)\\s*)" + identifier
+                    regex : "(?:(?:\\.|::)\\s*)" + identifier
+                }, {
+                    token : "variable",
+                    regex : "@" + identifier
+                }, {
+                    token : "label",
+                    regex : identifier + ":"
                 }, {
                     token : "keyword",
                     regex : "(?:t(?:h(?:is|row|en)|ry|ypeof)|s(?:uper|witch)|return|b(?:reak|y)|c(?:ontinue|atch|lass)|i(?:n(?:stanceof)?|s(?:nt)?|f)|e(?:lse|xtends)|f(?:or (?:own)?|inally|unction)|wh(?:ile|en)|n(?:ew|ot?)|d(?:e(?:lete|bugger)|o)|loop|o(?:ff?|[rn])|un(?:less|til)|and|yes)"
