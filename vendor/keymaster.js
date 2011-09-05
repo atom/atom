@@ -55,7 +55,7 @@
     }
 
     // ignore keypressed in any elements that support keyboard data input
-    if (tagName == 'INPUT' || tagName == 'SELECT' || tagName == 'TEXTAREA') return;
+//     if (tagName == 'INPUT' || tagName == 'SELECT' || tagName == 'TEXTAREA') return;
 
     // abort if no potentially matching shortcuts found
     if (!(key in _handlers)) return;
@@ -110,11 +110,11 @@
     for (i = 0; i < keys.length; i++) {
       // set modifier keys if any
       mods = [];
-      key = keys[i].split('+');
+      key = keys[i].split(/-|\+/);
       if(key.length > 1){
         mods = key.slice(0,key.length-1);
         for (mi = 0; mi < mods.length; mi++)
-          mods[mi] = _MODIFIERS[mods[mi]];
+          mods[mi] = _MODIFIERS[mods[mi].toLowerCase()];
         key = [key[key.length-1]];
       }
       // convert to keycode and...
@@ -148,6 +148,6 @@
   global.key = assignKey;
   global.key.setScope = setScope;
 
-  if(typeof module !== 'undefined') module.exports = key;
+  if(typeof module !== 'undefined') module.exports = global.key;
 
 })(this);
