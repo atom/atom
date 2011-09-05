@@ -58,6 +58,7 @@ class Editor extends Pane
 
   open: (path) ->
     path = App.openPanel() if not path
+    return if not path
     @filename = path
 
     if File.isDirectory @filename
