@@ -10,6 +10,7 @@ modeMap =
   m: 'c_cpp'
   md: 'markdown'
   cs: 'csharp'
+  rb: 'ruby'
 
 modeForLanguage = (language) ->
   console.log "modeForLanguage(#{language})"
