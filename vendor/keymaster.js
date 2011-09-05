@@ -95,7 +95,6 @@
   };
   // unset modifiers on blur
   function clearModifiers(event){
-    console.log('clearing all')
     for(k in _MODIFIERS) assignKey[k] = false;
     for(i in _mods) _mods[i] = false;
   }
