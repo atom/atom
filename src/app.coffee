@@ -1,7 +1,5 @@
 _ = require 'underscore'
 
-Window = require 'window'
-
 module.exports = App =
   windows: []
   root: OSX.NSBundle.mainBundle.resourcePath

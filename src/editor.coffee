@@ -12,11 +12,8 @@ class Editor extends Pane
   filename: null
 
   keymap:
-    'Command-O'       : 'open'
-    'Command-Shift-O' : 'openURL'
     'Command-S'       : 'save'
     'Command-Shift-S' : 'saveAs'
-    'Command-N'       : 'new'
     'Command-C'       : 'copy'
     'Command-X'       : 'cut'
     'Command-R'       : 'eval'
@@ -28,8 +25,6 @@ class Editor extends Pane
     'Alt-D'           : 'deleteWord'
     'Alt-Shift-,'     : 'home'
     'Alt-Shift-.'     : 'end'
-    'Command-Ctrl-K'  : 'console'
-    'Command-Ctrl-R'  : 'reload'
     'Ctrl-L'          : 'consolelog'
 
   initialize: ->
@@ -88,13 +83,6 @@ class Editor extends Pane
       @ace.resize()
     , timeout
 
-  openURL: ->
-    if url = prompt "Enter URL:"
-      App.openURL url
-
-  new: ->
-    App.newWindow()
-
   copy: ->
     editor = @ace
     text = editor.getSession().doc.getTextRange editor.getSelectionRange()
@@ -117,11 +105,6 @@ class Editor extends Pane
   deleteWord:    -> @ace.removeWordRight()
   home:          -> @ace.navigateFileStart()
   end:           -> @ace.navigateFileEnd()
-  console:       -> activeWindow.inspector().showConsole(1)
-
-  reload: ->
-    App.newWindow()
-    activeWindow.close()
 
   consolelog: ->
     @ace.insert 'console.log ""'

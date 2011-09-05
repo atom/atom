@@ -4,7 +4,10 @@ module.exports =
 class Pane
   keymap: {}
 
-  constructor: (options) ->
+  constructor: (options={}) ->
+    for option, value of options
+      @[option] = value
+
     for shortcut, method of @keymap then do (shortcut, method) =>
       bindKey method, shortcut, (args...) =>
         console.log "#{shortcut}: #{method}"
