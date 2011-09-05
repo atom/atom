@@ -16,4 +16,6 @@
 @property (assign) IBOutlet id webView;
 @property (assign) IBOutlet NSString *URL;
 
+-(BOOL) handleKeyEvent:(NSEvent *)event;
+
 @end

@@ -24,6 +24,7 @@
 - (void)windowDidLoad {
   [super windowDidLoad];
   
+
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomWindow"];
     
@@ -43,6 +44,10 @@
     NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];
     [[webView mainFrame] loadHTMLString:html baseURL:htmlURL]; 
   }
+}
+
+-(BOOL) handleKeyEvent:(NSEvent *)event {
+  return NO;
 }
 
 
