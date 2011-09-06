@@ -15,13 +15,8 @@ class Tabs extends Pane
   initialize: ->
     tab = this
     # click tab
-    $(document).delegate '#tabs ul li:not(.add) a', 'click', ->
+    $(document).delegate '#tabs ul a', 'click', ->
       tab.switchToTab this
-      false
-
-    # click 'add' tab
-    $(document).delegate '#tabs .add a', 'click', ->
-      tab.addTab()
       false
 
   toggle: ->
