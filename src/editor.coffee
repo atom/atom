@@ -7,6 +7,9 @@ activeWindow = App.activeWindow
 
 ace = require 'ace/ace'
 
+{EditSession} = require 'ace/edit_session'
+{UndoManager} = require 'ace/undomanager'
+
 module.exports =
 class Editor extends Pane
   filename: null
@@ -29,6 +32,8 @@ class Editor extends Pane
     'Alt-Shift-,'     : 'home'
     'Alt-Shift-.'     : 'end'
     'Ctrl-L'          : 'consolelog'
+
+  sessions: {}
 
   initialize: ->
     @ace = ace.edit "editor"
@@ -53,6 +58,7 @@ class Editor extends Pane
     return @saveAs() if not @filename
 
     File.write @filename, @ace.getSession().getValue()
+    @sessions[@filename] = @ace.getSession()
     activeWindow.setDirty false
     @ace._emit 'save', { @filename }
 
@@ -64,14 +70,15 @@ class Editor extends Pane
     if File.isDirectory @filename
       File.changeWorkingDirectory @filename
       activeWindow.setTitle _.last @filename.split '/'
-      @ace.getSession().setValue ""
+      @ace.setSession @newSession()
       activeWindow.setDirty false
     else
       if /png|jpe?g|gif/i.test @filename
         App.openURL @filename
       else
         activeWindow.setTitle _.last @filename.split '/'
-        @ace.getSession().setValue File.read @filename
+        @sessions[@filename] or= @newSession File.read @filename
+        @ace.setSession @sessions[@filename]
         activeWindow.setDirty false
     @ace._emit 'open', { @filename }
 
@@ -86,6 +93,11 @@ class Editor extends Pane
       @ace.focus()
       @ace.resize()
     , timeout
+
+  newSession: (code) ->
+    doc = new EditSession code or ''
+    doc.setUndoManager new UndoManager
+    doc
 
   copy: ->
     editor = @ace
