@@ -19,11 +19,14 @@ class Tabs extends Pane
       tab.switchToTab this
       false
 
-  toggle: ->
-    if $('#tabs').length
-      @hideTabs()
-    else
-      @showTabs()
+  addTab: ->
+    $('#tabs ul .add').before '<li><a href="#">untitled</a></li>'
+    $('#tabs ul .active').removeClass()
+    $('#tabs ul .add').prev().addClass 'active'
+
+  hideTabs: ->
+    $('#tabs').parents('.pane').remove()
+    $('#tabs-style').remove()
 
   showTabs: ->
     activeWindow.addPane this
@@ -31,15 +34,12 @@ class Tabs extends Pane
     css = $('<style id="tabs-style"></style>').html require 'tabs/tabs.css'
     $('head').append css
 
-  hideTabs: ->
-    $('#tabs').parents('.pane').remove()
-    $('#tabs-style').remove()
-
-  addTab: ->
-    $('#tabs ul .add').before '<li><a href="#">untitled</a></li>'
-    $('#tabs ul .active').removeClass()
-    $('#tabs ul .add').prev().addClass 'active'
-
   switchToTab: (tab) ->
     $('#tabs ul .active').removeClass()
     $(tab).parents('li').addClass 'active'
+
+  toggle: ->
+    if $('#tabs').length
+      @hideTabs()
+    else
+      @showTabs()
