@@ -14,6 +14,7 @@ class Tabs extends Pane
 
   keymap:
     'Command-Ctrl-T': 'toggle'
+    'Command-W': 'closeActiveTab'
 
   initialize: ->
     @editor = activeWindow.document
@@ -40,6 +41,16 @@ class Tabs extends Pane
       <li><a data-path='#{path}' href='#'>#{name}</a></li>
     """
     $('#tabs ul li:last').addClass 'active'
+
+  closeActiveTab: ->
+    activeTab = $('#tabs ul .active')
+    nextTab = activeTab.next()
+    nextTab = activeTab.prev() if nextTab.length == 0
+
+    console.log(nextTab)
+    if nextTab.length != 0
+      activeTab.remove()
+      @switchToTab nextTab.children("a")
 
   hideTabs: ->
     $('#tabs').parents('.pane').remove()
