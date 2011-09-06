@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		046973A414145A9500415518 /* AtomApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 046973A314145A9500415518 /* AtomApp.m */; };
 		83599F9B13FE0F8400AC37E3 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83599F9A13FE0F8400AC37E3 /* WebKit.framework */; };
 		8359A6EE13FE26DA00AC37E3 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */; };
-		837D8BA81408FAAA009B6DFA /* AtomicityAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BA51408FAAA009B6DFA /* AtomicityAppDelegate.m */; };
 		837D8BA91408FAAA009B6DFA /* AtomWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BA71408FAAA009B6DFA /* AtomWindowController.m */; };
 		837D8BAC1408FAB4009B6DFA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 837D8BAB1408FAB4009B6DFA /* main.m */; };
 		837D8BB41408FAC3009B6DFA /* APPL.icns in Resources */ = {isa = PBXBuildFile; fileRef = 837D8BAD1408FAC3009B6DFA /* APPL.icns */; };
@@ -28,14 +28,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		046973A214145A9500415518 /* AtomApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomApp.h; path = Classes/AtomApp.h; sourceTree = "<group>"; };
+		046973A314145A9500415518 /* AtomApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomApp.m; path = Classes/AtomApp.m; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		83599F9A13FE0F8400AC37E3 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		837D8BA41408FAAA009B6DFA /* AtomicityAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomicityAppDelegate.h; path = ../../Atomicity/Cocoa/Classes/AtomicityAppDelegate.h; sourceTree = SOURCE_ROOT; };
-		837D8BA51408FAAA009B6DFA /* AtomicityAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomicityAppDelegate.m; path = ../../Atomicity/Cocoa/Classes/AtomicityAppDelegate.m; sourceTree = SOURCE_ROOT; };
 		837D8BA61408FAAA009B6DFA /* AtomWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomWindowController.h; path = ../../Atomicity/Cocoa/Classes/AtomWindowController.h; sourceTree = SOURCE_ROOT; };
 		837D8BA71408FAAA009B6DFA /* AtomWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomWindowController.m; path = ../../Atomicity/Cocoa/Classes/AtomWindowController.m; sourceTree = SOURCE_ROOT; };
 		837D8BAA1408FAB4009B6DFA /* Atomicity_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Atomicity_Prefix.pch; path = ../../Atomicity/Cocoa/Atomicity_Prefix.pch; sourceTree = SOURCE_ROOT; };
@@ -80,8 +80,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				837D8BA41408FAAA009B6DFA /* AtomicityAppDelegate.h */,
-				837D8BA51408FAAA009B6DFA /* AtomicityAppDelegate.m */,
+				046973A214145A9500415518 /* AtomApp.h */,
+				046973A314145A9500415518 /* AtomApp.m */,
 				837D8BA61408FAAA009B6DFA /* AtomWindowController.h */,
 				837D8BA71408FAAA009B6DFA /* AtomWindowController.m */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -267,7 +267,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				837D8BA81408FAAA009B6DFA /* AtomicityAppDelegate.m in Sources */,
 				837D8BA91408FAAA009B6DFA /* AtomWindowController.m in Sources */,
 				837D8BAC1408FAB4009B6DFA /* main.m in Sources */,
 				837D8BD51408FAD4009B6DFA /* BridgeSupportController.m in Sources */,
@@ -276,6 +275,7 @@
 				837D8BD91408FAD4009B6DFA /* JSCocoaFFIClosure.m in Sources */,
 				837D8BDA1408FAD4009B6DFA /* JSCocoaLib.m in Sources */,
 				837D8BDB1408FAD4009B6DFA /* JSCocoaPrivateObject.m in Sources */,
+				046973A414145A9500415518 /* AtomApp.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
