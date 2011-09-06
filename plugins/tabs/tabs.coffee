@@ -9,20 +9,37 @@ class Tabs extends Pane
   position: 'top'
   html: require 'tabs/tabs.html'
 
+  # The Editor pane we're managing.
+  editor: null
+
   keymap:
     'Command-Ctrl-T': 'toggle'
 
   initialize: ->
+    @editor = activeWindow.document
+
+    @editor.ace.on 'open', ({filename}) =>
+      # Only care about files, not directories
+      return if not /\.\w+$/.test filename
+      @addTab filename
+
     tab = this
     # click tab
     $(document).delegate '#tabs ul a', 'click', ->
       tab.switchToTab this
       false
 
-  addTab: ->
-    $('#tabs ul .add').before '<li><a href="#">untitled</a></li>'
+  addTab: (path) ->
+    existing = $("#tabs [data-path='#{path}']")
+    if existing.length
+      return @switchToTab existing
+
+    name = _.last path.split '/'
     $('#tabs ul .active').removeClass()
-    $('#tabs ul .add').prev().addClass 'active'
+    $('#tabs ul li:last').after """
+      <li><a data-path='#{path}' href='#'>#{name}</a></li>
+    """
+    $('#tabs ul li:last').addClass 'active'
 
   hideTabs: ->
     $('#tabs').parents('.pane').remove()
@@ -37,6 +54,7 @@ class Tabs extends Pane
   switchToTab: (tab) ->
     $('#tabs ul .active').removeClass()
     $(tab).parents('li').addClass 'active'
+    @editor.switchToSession $(tab).data 'path'
 
   toggle: ->
     if $('#tabs').length
