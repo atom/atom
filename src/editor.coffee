@@ -57,7 +57,7 @@ class Editor extends Pane
   save: ->
     return @saveAs() if not @filename
 
-    File.write @filename, @ace.getSession().getValue()
+    File.write @filename, @code()
     @sessions[@filename] = @ace.getSession()
     activeWindow.setDirty false
     @ace._emit 'save', { @filename }
@@ -88,11 +88,19 @@ class Editor extends Pane
       activeWindow.setTitle _.last @filename.split '/'
       @save()
 
+  code: ->
+    @ace.getSession().getValue()
+
   resize: (timeout=1) ->
     setTimeout =>
       @ace.focus()
       @ace.resize()
     , timeout
+
+  switchToSession: (path) ->
+    if @sessions[path]
+      @filename = path
+      @ace.setSession @sessions[path]
 
   newSession: (code) ->
     doc = new EditSession code or ''
@@ -111,7 +119,7 @@ class Editor extends Pane
     editor.session.remove editor.getSelectionRange()
 
   eval: ->
-    eval @ace.getSession().getValue()
+    eval @code()
 
   toggleComment: -> @ace.toggleCommentLines()
   outdent:       -> @ace.blockOutdent()
