@@ -102,6 +102,10 @@ class Editor extends Pane
       @filename = path
       @ace.setSession @sessions[path]
 
+  deleteSession: (path) ->
+    @filename = null if path is @filename
+    delete @sessions[path]
+
   newSession: (code) ->
     doc = new EditSession code or ''
     doc.setUndoManager new UndoManager
