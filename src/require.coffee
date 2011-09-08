@@ -75,17 +75,17 @@ resolve = (file) ->
     paths.some (path) ->
       if /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
         file = "#{path}/#{file}"
-      else if expanded = expandPath "#{path}/#{file}"
+      else if expanded = __expand "#{path}/#{file}"
         file = expanded
   else
-    file = expandPath(file) or file
+    file = __expand(file) or file
 
   if file[0] isnt '/'
     throw "require: Can't find '#{file}'"
 
   return file
 
-expandPath = (path) ->
+__expand = (path) ->
   for ext, handler of exts
     if __exists "#{path}.#{ext}"
       return "#{path}.#{ext}"
