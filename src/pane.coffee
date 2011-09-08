@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 {bindKey} = require 'keybinder'
 
 module.exports =
@@ -14,10 +16,13 @@ class Pane
     for shortcut, method of @keymap then do (shortcut, method) =>
       bindKey method, shortcut, (args...) =>
         console.log "#{shortcut}: #{method}"
-        if @[method]
-          @[method]()
+        if _.isFunction method
+          method.call this
         else
-          console.error "keymap: no '#{method}' method found"
+          if @[method]
+            @[method]()
+          else
+            console.error "keymap: no '#{method}' method found"
     @initialize options
 
   # Override in your subclass
