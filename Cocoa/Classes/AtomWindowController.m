@@ -43,7 +43,7 @@
     NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"static"];
     NSURL *indexURL = [htmlURL URLByAppendingPathComponent:@"index.html"];
     NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];
-    [[webView mainFrame] loadHTMLString:html baseURL:htmlURL];
+    [[webView mainFrame] loadHTMLString:html baseURL:resourceURL];
   }
 }
 
