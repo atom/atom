@@ -72,7 +72,7 @@ resolve = (file) ->
     file = file.replace '../', "#{prefix}/"
 
   if file[0] isnt '/'
-    paths.some (path) ->
+    require.paths.some (path) ->
       if /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
         file = "#{path}/#{file}"
       else if expanded = __expand "#{path}/#{file}"
