@@ -21,12 +21,12 @@
   #project ul {
     margin: 0;
     padding-top: 2px;
+    list-style-type: none;
   }
 
   #project li {
-    padding: 0 10px;    
-    height: 20px;
-    line-height: 20px;    
+    padding: 0 20px;    
+    line-height: 20px;  
   }
 
   #project li.file {
@@ -34,9 +34,17 @@
   }
 
   #project li.dir {
-    font-weight: bold;
+    font-weight: bold;    
   }
   
+  #project li.dir {
+    background: url('plugins/project/images/dir-toggle.png') 9px 6px no-repeat;
+  }
+  
+  #project li.dir.open {
+    background-position: 9px -16px;
+  }
+    
   #project li.active {
     background-image: -webkit-gradient(linear,0% 0,0% 100%,from(#BCCBEB),to(#8094BB));
     border-top: 1px solid #A0AFCD;

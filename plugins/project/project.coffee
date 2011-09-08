@@ -19,15 +19,23 @@ class Project extends Pane
     activeWindow.document.ace.on 'open', =>
       @reload() if @dir? and File.workingDirectory() isnt @dir
 
-    $('#project .cwd').live 'click', (event) =>
-      activeWindow.open @dir.replace _.last(@dir.split '/'), ''
-
     $('#project li').live 'click', (event) =>
       $('#project .active').removeClass 'active'
       el = $(event.currentTarget)
-      el.addClass 'active'
       path = decodeURIComponent el.attr 'path'
-      activeWindow.open path
+      if File.isDirectory(path)
+        if el.hasClass 'open'
+          el.removeClass 'open'
+          el.children("ul").remove()
+        else
+          el.addClass 'open'
+          list = @createList(path)
+          el.append("<ul>#{list}</ul>")
+      else
+        el.addClass 'active'
+        activeWindow.open path
+
+      false # Don't bubble!
 
   toggle: ->
     if @showing
@@ -41,9 +49,10 @@ class Project extends Pane
   reload: ->
     @dir = dir = File.workingDirectory()
     $('#project .cwd').text _.last dir.split '/'
-
     $('#project li').remove()
+    $('#project .files').append (@createList dir)
 
+  createList: (dir) ->
     files = File.list dir
     listItems = _.map files, (path) ->
       filename = path.replace(dir, "").substring 1
@@ -51,4 +60,4 @@ class Project extends Pane
       path = encodeURIComponent path
       "<li class='#{type}' path='#{path}'>#{filename}</li>"
 
-    $('#project .files').append listItems.join '\n'
+    listItems.join '\n'
