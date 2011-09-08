@@ -13,7 +13,6 @@ class Tabs extends Pane
   editor: null
 
   keymap:
-    'Command-Ctrl-T': 'toggle'
     'Command-W': 'closeActiveTab'
 
   initialize: ->
