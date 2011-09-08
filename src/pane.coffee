@@ -18,7 +18,7 @@ class Pane
           @[method]()
         else
           console.error "keymap: no '#{method}' method found"
-     @initialize options
+    @initialize options
 
   # Override in your subclass
   initialize: ->
