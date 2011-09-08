@@ -633,7 +633,7 @@ var VirtualRenderer = function(container, theme) {
 
         var pos = this.$cursorLayer.getPixelPosition();
 
-        var left = pos.left + this.$padding;
+        var left = pos.left;
         var top = pos.top;
 
         if (this.scrollTop > top) {

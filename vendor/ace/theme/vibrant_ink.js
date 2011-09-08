@@ -207,6 +207,14 @@ define(function(require, exports, module) {
 color:#99CC99;\
 }\
 \
+.ace-vibrant-ink .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-vibrant-ink .ace_entity.ace_name.ace_function {\
+  color:#FFCC00;\
+}\
+\
 .ace-vibrant-ink .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

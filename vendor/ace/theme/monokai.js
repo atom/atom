@@ -206,6 +206,14 @@ background-color:#AE81FF;\
   color:#A6E22E;\
 }\
 \
+.ace-monokai .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-monokai .ace_entity.ace_name.ace_function {\
+  color:#A6E22E;\
+}\
+\
 .ace-monokai .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

@@ -156,7 +156,11 @@ define(function(require, exports, module) {
   color: rgb(104, 104, 91);\
 }\
 \
-.ace-tm .ace_markup.ace_underline {\
+.ace-tm .ace_entity.ace_name.ace_function {\
+  color: #0000A2;\
+}\
+\
+.ace-tm .ace_markup.ace_markupine {\
     text-decoration:underline;\
 }\
 \

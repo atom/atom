@@ -205,6 +205,14 @@ background-color:#E92E2E;\
   color:#606060;\
 }\
 \
+.ace-clouds-midnight .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-clouds-midnight .ace_entity.ace_name.ace_function {\
+  \
+}\
+\
 .ace-clouds-midnight .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

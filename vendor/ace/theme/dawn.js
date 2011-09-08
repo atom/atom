@@ -210,6 +210,14 @@ color:#5A525F;\
   \
 }\
 \
+.ace-dawn .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-dawn .ace_entity.ace_name.ace_function {\
+  \
+}\
+\
 .ace-dawn .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

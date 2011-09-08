@@ -206,6 +206,14 @@ color:#706D5B;\
   \
 }\
 \
+.ace-kr-theme .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-kr-theme .ace_entity.ace_name.ace_function {\
+  \
+}\
+\
 .ace-kr-theme .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

@@ -183,9 +183,6 @@ color:#5F5A60;\
 .ace-twilight .ace_variable {\
   color:#7587A6;\
 }\
-.ace-twilight .ace_label {\
-  color:#AC885B;\
-}\
 \
 .ace-twilight .ace_variable.ace_language {\
   \
@@ -209,6 +206,14 @@ color:#5F5A60;\
 \
 .ace-twilight .ace_entity.ace_other.ace_attribute-name {\
   \
+}\
+\
+.ace-twilight .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-twilight .ace_entity.ace_name.ace_function {\
+  color:#AC885B;\
 }\
 \
 .ace-twilight .ace_markup.ace_underline {\

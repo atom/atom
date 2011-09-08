@@ -136,12 +136,24 @@ module.exports = {
         assert.equal(7, tokens.length);
         assert.equal("string.regexp", tokens[2].type);
         assert.equal("string.regexp", tokens[6].type);
+        
+        var tokens = this.tokenizer.getLineTokens("case /a/.test(c)", "start").tokens;
+        assert.equal(8, tokens.length);
+        assert.equal("string.regexp", tokens[2].type);
     },
     
 
     "test tokenize identifier with umlauts": function() {
         var tokens = this.tokenizer.getLineTokens("füße", "start").tokens;
         assert.equal(1, tokens.length);
+    },
+    
+    "test // is not a regexp": function() {
+        var tokens = this.tokenizer.getLineTokens("{ // 123", "start").tokens;
+        assert.equal(3, tokens.length);
+        assert.equal("lparen", tokens[0].type);
+        assert.equal("text", tokens[1].type);
+        assert.equal("comment", tokens[2].type);
     }
 };
 

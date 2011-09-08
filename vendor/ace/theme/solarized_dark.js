@@ -205,6 +205,14 @@ color:#657B83;\
   color:#93A1A1;\
 }\
 \
+.ace-solarized-dark .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-solarized-dark .ace_entity.ace_name.ace_function {\
+  color:#268BD2;\
+}\
+\
 .ace-solarized-dark .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

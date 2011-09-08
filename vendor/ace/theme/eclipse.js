@@ -63,6 +63,10 @@ define(function(require, exports, module) {
   padding-right: 6px;\
 }\
 \
+.ace-eclipse .ace_print_margin {\
+  width: 1px;\
+  background: #b1b4ba;\
+}\
 .ace-eclipse .ace_text-layer {\
   cursor: text;\
 }\

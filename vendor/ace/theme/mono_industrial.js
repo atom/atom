@@ -206,6 +206,14 @@ background-color:#151C19;\
   color:#909993;\
 }\
 \
+.ace-mono-industrial .ace_entity.ace_name {\
+  color:#5778B6;\
+}\
+\
+.ace-mono-industrial .ace_entity.ace_name.ace_function {\
+  color:#A8B3AB;\
+}\
+\
 .ace-mono-industrial .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

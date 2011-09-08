@@ -206,6 +206,14 @@ color:#0088FF;\
   \
 }\
 \
+.ace-cobalt .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-cobalt .ace_entity.ace_name.ace_function {\
+  \
+}\
+\
 .ace-cobalt .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

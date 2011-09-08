@@ -204,6 +204,14 @@ define(function(require, exports, module) {
   color:#93A1A1;\
 }\
 \
+.ace-solarized-light .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-solarized-light .ace_entity.ace_name.ace_function {\
+  color:#268BD2;\
+}\
+\
 .ace-solarized-light .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

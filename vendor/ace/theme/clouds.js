@@ -204,6 +204,14 @@ define(function(require, exports, module) {
   color:#606060;\
 }\
 \
+.ace-clouds .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-clouds .ace_entity.ace_name.ace_function {\
+  \
+}\
+\
 .ace-clouds .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

@@ -60,10 +60,10 @@ var Text = function(parentEl) {
 
     oop.implement(this, EventEmitter);
 
-    this.EOF_CHAR = "&para;";
-    this.EOL_CHAR = "&not;";
-    this.TAB_CHAR = "&rarr;";
-    this.SPACE_CHAR = "&middot;";
+    this.EOF_CHAR = "\xB6"; //"&para;";
+    this.EOL_CHAR = "\xAC"; //"&not;";
+    this.TAB_CHAR = "\u2192"; //"&rarr;";
+    this.SPACE_CHAR = "\xB7"; //"&middot;";
     this.$padding = 0;
 
     this.setPadding = function(padding) {

@@ -382,7 +382,7 @@ var Editor =function(renderer, session) {
     };
 
     this.onChangeMode = function() {
-        this.renderer.updateText()
+        this.renderer.updateText();
     };
 
     this.onChangeWrapLimit = function() {
@@ -418,7 +418,7 @@ var Editor =function(renderer, session) {
         this._emit("cut", range);
 
         if (!this.selection.isEmpty()) {
-            this.session.remove(range)
+            this.session.remove(range);
             this.clearSelection();
         }
     };
@@ -648,11 +648,11 @@ var Editor =function(renderer, session) {
     this.$modeBehaviours = true;
     this.setBehavioursEnabled = function (enabled) {
         this.$modeBehaviours = enabled;
-    }
+    };
 
     this.getBehavioursEnabled = function () {
         return this.$modeBehaviours;
-    }
+    };
 
     this.removeRight = function() {
         if (this.$readOnly)
@@ -661,7 +661,7 @@ var Editor =function(renderer, session) {
         if (this.selection.isEmpty()) {
             this.selection.selectRight();
         }
-        this.session.remove(this.getSelectionRange())
+        this.session.remove(this.getSelectionRange());
         this.clearSelection();
     };
 
@@ -760,17 +760,18 @@ var Editor =function(renderer, session) {
 
         var cursor = this.getCursorPosition();
         var column = cursor.column;
-        if (column == 0)
+        if (column === 0)
             return;
 
         var line = this.session.getLine(cursor.row);
+        var swap, range;
         if (column < line.length) {
-            var swap = line.charAt(column) + line.charAt(column-1);
-            var range = new Range(cursor.row, column-1, cursor.row, column+1)
+            swap = line.charAt(column) + line.charAt(column-1);
+            range = new Range(cursor.row, column-1, cursor.row, column+1);
         }
         else {
-            var swap = line.charAt(column-1) + line.charAt(column-2);
-            var range = new Range(cursor.row, column-2, cursor.row, column)
+            swap = line.charAt(column-1) + line.charAt(column-2);
+            range = new Range(cursor.row, column-2, cursor.row, column);
         }
         this.session.replace(range, swap);
     };
@@ -814,7 +815,7 @@ var Editor =function(renderer, session) {
             return;
 
         var state = this.session.getState(this.getCursorPosition().row);
-        var rows = this.$getSelectedRows()
+        var rows = this.$getSelectedRows();
         this.session.getMode().toggleCommentLines(state, this.session, rows.first, rows.last);
     };
 
@@ -823,10 +824,11 @@ var Editor =function(renderer, session) {
             return;
 
         var rows = this.$getSelectedRows();
+        var range;
         if (rows.last == 0 || rows.last+1 < this.session.getLength())
-            var range = new Range(rows.first, 0, rows.last+1, 0)
+            range = new Range(rows.first, 0, rows.last+1, 0);
         else
-            var range = new Range(
+            range = new Range(
                 rows.first-1, this.session.getLine(rows.first-1).length,
                 rows.last, this.session.getLine(rows.last).length
             );
@@ -911,7 +913,6 @@ var Editor =function(renderer, session) {
     this.onCompositionEnd = function() {
         this.renderer.hideComposition();
     };
-
 
     this.getFirstVisibleRow = function() {
         return this.renderer.getFirstVisibleRow();
@@ -1043,7 +1044,7 @@ var Editor =function(renderer, session) {
         if (!this.isRowVisible(this.getCursorPosition().row)) {
             this.scrollToLine(lineNumber, true);
         }
-    },
+    };
 
     this.navigateTo = function(row, column) {
         this.clearSelection();
@@ -1131,7 +1132,7 @@ var Editor =function(renderer, session) {
         this.$tryReplace(range, replacement);
         if (range !== null)
             this.selection.setSelectionRange(range);
-    },
+    };
 
     this.replaceAll = function(replacement, options) {
         if (options) {
@@ -1152,11 +1153,11 @@ var Editor =function(renderer, session) {
 
         this.selection.setSelectionRange(selection);
         this.$blockScrolling -= 1;
-    },
+    };
 
     this.$tryReplace = function(range, replacement) {
         var input = this.session.getTextRange(range);
-        var replacement = this.$search.replace(input, replacement);
+        replacement = this.$search.replace(input, replacement);
         if (replacement !== null) {
             range.end = this.session.replace(range, replacement);
             return range;
@@ -1175,7 +1176,7 @@ var Editor =function(renderer, session) {
         options.needle = needle;
         this.$search.set(options);
         this.$find();
-    },
+    };
 
     this.findNext = function(options) {
         options = options || {};
@@ -1218,7 +1219,7 @@ var Editor =function(renderer, session) {
 
     this.destroy = function() {
         this.renderer.destroy();
-    }
+    };
 
 }).call(Editor.prototype);
 

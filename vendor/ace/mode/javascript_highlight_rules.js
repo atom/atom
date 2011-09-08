@@ -51,6 +51,9 @@ var JavaScriptHighlightRules = function() {
         "if|in|instanceof|new|return|switch|throw|try|typeof|let|var|while|with|" +
         "const|yield|import|get|set").split("|")
     );
+    
+    // keywords which can be followed by regular expressions
+    var kwBeforeRe = "case|do|else|finally|in|instanceof|return|throw|try|typeof|yield";
 
     var buildinConstants = lang.arrayToMap(
         ("null|Infinity|NaN|undefined").split("|")
@@ -106,8 +109,15 @@ var JavaScriptHighlightRules = function() {
                 token : "constant.numeric", // float
                 regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?\\b"
             }, {
+                token : ["keyword", "text", "entity.name.function"],
+                regex : "(function)(\\s+)(" + identifierRe + ")"
+            }, {
                 token : "constant.language.boolean",
                 regex : "(?:true|false)\\b"
+            }, {
+                token : "keyword",
+                regex : "(?:" + kwBeforeRe + ")\\b",
+                next : "regex_allowed"
             }, {
                 token : function(value) {
                     if (value == "this")
@@ -151,6 +161,9 @@ var JavaScriptHighlightRules = function() {
         // makes sure we don't mix up regexps with the divison operator
         "regex_allowed": [
             {
+                token : "comment",
+                regex : "\\/\\/.*$"
+            }, {
                 token: "string.regexp",
                 regex: "\\/(?:(?:\\[(?:\\\\]|[^\\]])+\\])"
                     + "|(?:\\\\/|[^\\]/]))*" 

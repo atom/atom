@@ -206,6 +206,14 @@ color:#BC9458;\
   \
 }\
 \
+.ace-idle-fingers .ace_entity.ace_name {\
+  color:#FFC66D;\
+}\
+\
+.ace-idle-fingers .ace_entity.ace_name.ace_function {\
+  \
+}\
+\
 .ace-idle-fingers .ace_markup.ace_underline {\
     text-decoration:underline;\
 }\

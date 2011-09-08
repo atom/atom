@@ -125,7 +125,7 @@ var Gutter = function(parentEl) {
 
             var wrappedRowLength = this.session.getRowLength(i) - 1;
             while (wrappedRowLength--) {
-                html.push("</div><div class='ace_gutter-cell' style='height:", config.lineHeight, "px'>&brvbar;</div>");
+                html.push("</div><div class='ace_gutter-cell' style='height:", config.lineHeight, "px'>\xA6");
             }
 
             html.push("</div>");
