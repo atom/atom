@@ -14,6 +14,17 @@ class Tabs extends Pane
 
   keymap:
     'Command-W': 'closeActiveTab'
+    'Command-Shift-[': 'prevTab'
+    'Command-Shift-]': 'nextTab'
+    'Command-1': -> @switchToTab 1
+    'Command-2': -> @switchToTab 2
+    'Command-3': -> @switchToTab 3
+    'Command-4': -> @switchToTab 4
+    'Command-5': -> @switchToTab 5
+    'Command-6': -> @switchToTab 6
+    'Command-7': -> @switchToTab 7
+    'Command-8': -> @switchToTab 8
+    'Command-9': -> @switchToTab 9
 
   initialize: ->
     @editor = activeWindow.document
@@ -55,6 +66,12 @@ class Tabs extends Pane
     $('#tabs').parents('.pane').remove()
     $('#tabs-style').remove()
 
+  nextTab: ->
+    @switchToTab $('#tabs ul .active').next()
+
+  prevTab: ->
+    @switchToTab $('#tabs ul .active').prev()
+
   showTabs: ->
     activeWindow.addPane this
     $('#tabs').parents('.pane').css height: 'inherit'
@@ -62,6 +79,8 @@ class Tabs extends Pane
     $('head').append css
 
   switchToTab: (tab) ->
+    tab = $('#tabs ul li').get(tab - 1) if _.isNumber tab
+    return if tab.length is 0
     $('#tabs ul .active').removeClass()
     $(tab).addClass 'active'
     @editor.switchToSession $(tab).data 'path'
