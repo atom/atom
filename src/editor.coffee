@@ -105,7 +105,17 @@ class Editor extends Pane
   newSession: (code) ->
     doc = new EditSession code or ''
     doc.setUndoManager new UndoManager
+    doc.setUseSoftTabs useSoftTabs = @usesSoftTabs code
+    doc.setTabSize if useSoftTabs then @guessTabSize code else 8
     doc
+
+  usesSoftTabs: (code) ->
+    not /^\t/m.test code or @code()
+
+  guessTabSize: (code) ->
+    # * ignores indentation of css/js block comments
+    match = /^( +)[^*]/im.exec code || @code()
+    match?[1].length or 2
 
   copy: ->
     editor = @ace
