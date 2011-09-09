@@ -836,4 +836,5 @@
     return this._wrapped;
   };
 
-})();
+// fix for 'use strict' - need an explicit `this`
+}).call(this || window);
