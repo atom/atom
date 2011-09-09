@@ -45,6 +45,7 @@ exts =
     if not /define\(/.test code
       code = """
         define(function(require, exports, module) {
+          'use strict';
           #{code};
         });
       """
