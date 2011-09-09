@@ -41,6 +41,7 @@ class Editor extends Pane
     @ace.getSession().setUseSoftTabs true
     @ace.getSession().setTabSize 2
     @ace.pane = this
+    @ace.setShowInvisibles(true)
 
     @ace.getSession().on 'change', ->
       activeWindow.setDirty true
