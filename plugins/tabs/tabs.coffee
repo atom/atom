@@ -2,6 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 Pane = require 'pane'
+File = require 'fs'
 {activeWindow} = require 'app'
 
 module.exports =
@@ -31,7 +32,7 @@ class Tabs extends Pane
 
     @editor.ace.on 'open', ({filename}) =>
       # Only care about files, not directories
-      return if not /\.\w+$/.test filename
+      return if File.isDirectory(filename)
       @addTab filename
 
     tab = this
