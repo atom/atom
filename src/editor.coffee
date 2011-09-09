@@ -55,7 +55,8 @@ class Editor extends Pane
   save: ->
     return @saveAs() if not @filename
 
-    File.write @filename, @code()
+    @removeTrailingWhitespace()
+    File.write @filename, @code()   
     @sessions[@filename] = @ace.getSession()
     activeWindow.setDirty false
     @ace._emit 'save', { @filename }
@@ -88,6 +89,12 @@ class Editor extends Pane
 
   code: ->
     @ace.getSession().getValue()
+
+  removeTrailingWhitespace: ->
+    @ace.replaceAll "",
+      needle: "[ \t]+$"
+      regExp: true
+      wrap: true
 
   resize: (timeout=1) ->
     setTimeout =>
