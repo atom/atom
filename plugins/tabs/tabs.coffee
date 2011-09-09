@@ -47,7 +47,7 @@ class Tabs extends Pane
 
     name = _.last path.split '/'
     $('#tabs ul .active').removeClass()
-    $('#tabs ul li:last').after """
+    $('#tabs ul').append """
       <li data-path='#{path}'><a href='#'>#{name}</a></li>
     """
     $('#tabs ul li:last').addClass 'active'
@@ -57,10 +57,9 @@ class Tabs extends Pane
     nextTab = activeTab.next()
     nextTab = activeTab.prev() if nextTab.length == 0
 
-    if nextTab.length != 0
-      @editor.deleteSession activeTab.data 'path'
-      activeTab.remove()
-      @switchToTab nextTab
+    @editor.deleteSession activeTab.data 'path'
+    activeTab.remove()
+    @switchToTab nextTab if nextTab.length != 0
 
   hideTabs: ->
     $('#tabs').parents('.pane').remove()

@@ -100,8 +100,10 @@ class Editor extends Pane
       @ace.setSession @sessions[path]
 
   deleteSession: (path) ->
-    @filename = null if path is @filename
+    if path is @filename
+      @filename = null      
     delete @sessions[path]
+    @ace.setSession @newSession()
 
   newSession: (code) ->
     doc = new EditSession code or ''
