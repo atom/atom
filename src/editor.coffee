@@ -51,9 +51,6 @@ class Editor extends Pane
     el.addEventListener 'DOMNodeRemovedFromDocument', =>
       @resize()
 
-    # bug #13
-    @resize 200
-
   save: ->
     return @saveAs() if not @filename
 
