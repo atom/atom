@@ -23,14 +23,14 @@ class Project extends Pane
       $('#project .active').removeClass 'active'
       el = $(event.currentTarget)
       path = decodeURIComponent el.attr 'path'
-      if File.isDirectory(path)
+      if File.isDirectory path
         if el.hasClass 'open'
           el.removeClass 'open'
           el.children("ul").remove()
         else
           el.addClass 'open'
-          list = @createList(path)
-          el.append("<ul>#{list}</ul>")
+          list = @createList path
+          el.append "<ul>#{list}</ul>"
       else
         el.addClass 'active'
         activeWindow.open path
@@ -50,7 +50,7 @@ class Project extends Pane
     @dir = dir = File.workingDirectory()
     $('#project .cwd').text _.last dir.split '/'
     $('#project li').remove()
-    $('#project .files').append (@createList dir)
+    $('#project .files').append @createList dir
 
   createList: (dir) ->
     files = File.list dir
