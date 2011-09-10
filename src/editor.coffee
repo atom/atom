@@ -42,6 +42,7 @@ class Editor extends Pane
     @ace.getSession().setTabSize 2
     @ace.pane = this
     @ace.setShowInvisibles(true)
+    @ace.setPrintMarginColumn 78
 
     @ace.getSession().on 'change', ->
       activeWindow.setDirty true
@@ -56,7 +57,7 @@ class Editor extends Pane
     return @saveAs() if not @filename
 
     @removeTrailingWhitespace()
-    File.write @filename, @code()   
+    File.write @filename, @code()
     @sessions[@filename] = @ace.getSession()
     activeWindow.setDirty false
     @ace._emit 'save', { @filename }
@@ -109,7 +110,7 @@ class Editor extends Pane
 
   deleteSession: (path) ->
     if path is @filename
-      @filename = null      
+      @filename = null
     delete @sessions[path]
     @ace.setSession @newSession()
 
