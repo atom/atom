@@ -16,8 +16,10 @@ class Project extends Pane
     'Command-Ctrl-N': 'toggle'
 
   initialize: ->
-    activeWindow.document.ace.on 'open', =>
-      @reload() if @dir? and File.workingDirectory() isnt @dir
+    @dir = File.workingDirectory()
+
+    activeWindow.document.ace.on 'open', ({filename}) =>
+      @reload() if File.isDirectory filename
 
     $('#project li').live 'click', (event) =>
       $('#project .active').removeClass 'active'
