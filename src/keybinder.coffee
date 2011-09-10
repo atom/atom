@@ -7,11 +7,11 @@ exports.bindKey = (name, shortcut, callback) ->
   key shortcut, -> callback(); false
 
 window.handleKeyEvent = (event) ->
-  if (event.modifierFlags & OSX.NSCommandKeyMask) and event.keyCode == 50
-    console.log "Got Cmd-`"
-    true
-  else
-    false
+#   if (event.modifierFlags & OSX.NSCommandKeyMask) and event.keyCode == 50
+#     console.log "Got Cmd-`"
+#     true
+#   else
+#     false
 
 
 
