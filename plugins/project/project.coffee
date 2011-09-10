@@ -16,10 +16,10 @@ class Project extends Pane
     'Command-Ctrl-N': 'toggle'
 
   initialize: ->
-    @dir = File.workingDirectory()
+    @dir ?= File.workingDirectory()
 
     activeWindow.document.ace.on 'open', ({filename}) =>
-      @reload() if File.isDirectory filename
+      @reload filename if File.isDirectory filename
 
     $('#project li').live 'click', (event) =>
       $('#project .active').removeClass 'active'
@@ -48,8 +48,8 @@ class Project extends Pane
 
     @showing = not @showing
 
-  reload: ->
-    @dir = dir = File.workingDirectory()
+  reload: (dir=@dir) ->
+    @dir = dir
     $('#project .cwd').text _.last dir.split '/'
     $('#project li').remove()
     $('#project .files').append @createList dir
