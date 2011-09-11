@@ -56,12 +56,17 @@ module.exports =
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
-    OSX.NSString.stringWithContentsOfFile(@absolute path).toString()
+    path = @absolute path
+    enc  = OSX.NSUTF8StringEncoding
+    OSX.NSString.stringWithContentsOfFile_encoding_error(path, enc, null)
+    .toString()
 
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
-    str = OSX.NSString.stringWithString content
-    str.writeToFile_atomically @absolute(path), true
+    str  = OSX.NSString.stringWithUTF8String content
+    path = @absolute path
+    enc  = OSX.NSUTF8StringEncoding
+    str.writeToFile_atomically_encoding_error path, true, enc, null
 
   # Return the path name of the current working directory.
   workingDirectory: ->
