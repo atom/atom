@@ -62,7 +62,7 @@ define(function(require, exports, module) {
                     regex : identifier + "(?=\\s*:\\s*(?:\\(.*?\\)\\s*)?->)"
                 }, {
                     token : "keyword",
-                    regex : "(?:t(?:h(?:is|row|en)|ry|ypeof)|s(?:uper|witch)|return|b(?:reak|y)|c(?:ontinue|atch|lass)|i(?:n(?:stanceof)?|s(?:nt)?|f)|e(?:lse|xtends)|f(?:or (?:own)?|inally|unction)|wh(?:ile|en)|n(?:ew|ot?)|d(?:e(?:lete|bugger)|o)|loop|o(?:ff?|[rn])|un(?:less|til)|and|yes)"
+                    regex : "(?:t(?:h(?:is|row|en)|ry|ypeof)|s(?:uper|witch)|return|b(?:reak|y)|c(?:ontinue|atch|lass)|i(?:n(?:stanceof)?|s(?:nt)?|f)|e(?:lse|xtends)|f(?:or (?:own)?|inally|unction)|wh(?:ile|en)|n(?:ew|ot?)|d(?:e(?:lete|bugger)|o)|loop|for|o(?:ff?|[rn])|un(?:less|til)|and|yes)"
                             + keywordend
                 }, {
                     token : "constant.language",
