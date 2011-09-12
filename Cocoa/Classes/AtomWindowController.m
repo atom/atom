@@ -40,10 +40,9 @@
     [jscocoa evalJSFile:requirePath];
 
     NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
-    NSURL *htmlURL = [resourceURL URLByAppendingPathComponent:@"static"];
-    NSURL *indexURL = [htmlURL URLByAppendingPathComponent:@"index.html"];
-    NSString *html = [NSString stringWithContentsOfURL:indexURL encoding:NSUTF8StringEncoding error:nil];
-    [[webView mainFrame] loadHTMLString:html baseURL:resourceURL];
+    NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
+    NSURLRequest *request = [NSURLRequest requestWithURL:indexURL]; 
+    [[webView mainFrame] loadRequest:request];
   }
 }
 
