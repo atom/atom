@@ -22,7 +22,9 @@ module.exports = App =
     panel.setCanChooseDirectories true
     if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
       return null
-    panel.filenames.lastObject
+    filename = panel.filenames.lastObject
+    localStorage.lastOpenedFilename = filename
+    filename
 
   openURL: (url) ->
     window.location = url
