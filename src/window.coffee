@@ -24,9 +24,9 @@ class Window extends Pane
     verticalDiv = $('#app-vertical')
     horizontalDiv = $('#app-horizontal')
 
-    el = document.createElement "div"
-    el.setAttribute 'class', "pane " + position
-    el.innerHTML = html
+    el = $ "<div>"
+    el.addClass "pane " + position
+    el.append html
 
     switch position
       when 'top', 'main'

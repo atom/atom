@@ -10,7 +10,9 @@ class Project extends Pane
   showing: false
 
   position: 'left'
-  html: require "project/project.html"
+
+  html:
+    $ require "project/project.html"
 
   keymap:
     'Command-Ctrl-N': 'toggle'
@@ -36,19 +38,9 @@ class Project extends Pane
 
       false # Don't bubble!
 
-  toggle: ->
-    if @showing
-      $('#project').parent().remove()
-    else
-      activeWindow.addPane this
-      @reload()
-
-    @showing = not @showing
-
-  reload: ->
-$('#project .cwd').text _.last dir.split '/'
-    $('#project li').remove()
-    $('#project .files').append @createList dir
+    @html.children('#project .cwd').text _.last @dir.split '/'
+    @html.children('#project li').remove()
+    @html.children('#project .files').append @createList @dir
 
   createList: (dir) ->
     files = File.list dir

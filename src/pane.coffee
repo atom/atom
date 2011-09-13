@@ -27,3 +27,14 @@ class Pane
 
   # Override in your subclass
   initialize: ->
+
+  toggle: ->
+    if @showing
+      @html.parent().detach()
+    else
+      # This require should be at the top of the file, BUT it doesn't work.
+      # Would like to figure out why.
+      {activeWindow} = require 'app'
+      activeWindow.addPane this
+
+    @showing = not @showing
