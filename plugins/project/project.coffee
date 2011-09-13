@@ -28,13 +28,20 @@ class Project extends Pane
       el = $(event.currentTarget)
       path = decodeURIComponent el.attr 'path'
       if File.isDirectory path
+        visibleDirs = @get('visibleDirs') or {}
         if el.hasClass 'open'
+          delete visibleDirs[path]
+
           el.removeClass 'open'
           el.children("ul").remove()
         else
+          visibleDirs[path] = true
+
           el.addClass 'open'
           list = @createList path
-          el.append "<ul>#{list}</ul>"
+          el.append list
+
+        @set('visibleDirs', visibleDirs)
       else
         el.addClass 'active'
         activeWindow.open path
@@ -44,15 +51,43 @@ class Project extends Pane
   reload: (dir) ->
     @dir = dir
     @html.children('#project .cwd').text _.last @dir.split '/'
-    @html.children('#project .files').empty()
-    @html.children('#project .files').append @createList @dir
+    fileList = @createList @dir
+    fileList.addClass('files')
+    @html.children('#project .files').replaceWith(fileList)
 
   createList: (dir) ->
-    files = File.list dir
-    listItems = _.map files, (path) ->
+    paths = File.list dir
+    visibleDirs = @get('visibleDirs') or {}
+    list = $('<ul>')
+    for path in paths
       filename = path.replace(dir, "").substring 1
       type = if File.isDirectory(path) then 'dir' else 'file'
-      path = encodeURIComponent path
-      "<li class='#{type}' path='#{path}'>#{filename}</li>"
+      encodedPath = encodeURIComponent path
+      listItem = $("<li class='#{type}' path='#{encodedPath}'>#{filename}</li>")
+      if visibleDirs[path]
+        listItem.append @createList path
+        listItem.addClass("open")
+      list.append listItem
 
-    listItems.join '\n'
+    list
+
+  # HATE
+  # This needs to be replaced with a more generalized method like
+  # Atomicity.store or better yet, add it to Pane so each pane has it's
+  # own namespaced storage
+  set: (key, value) ->
+    try
+      object = JSON.parse(localStorage[@dir])
+    catch error
+      console.log(error)
+      object = {}
+
+    if value == undefined then delete object[key] else object[key] = value
+    localStorage[@dir] = JSON.stringify(object)
+
+  get: (key) ->
+    try
+      JSON.parse(localStorage[@dir])[key]
+    catch error
+      console.log(error)
+      undefined
