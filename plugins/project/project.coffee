@@ -18,7 +18,10 @@ class Project extends Pane
     'Command-Ctrl-N': 'toggle'
 
   initialize: ->
-    @dir = File.workingDirectory()
+    @reload(File.workingDirectory())
+
+    activeWindow.document.ace.on 'open', ({filename}) =>
+      @reload filename if File.isDirectory filename
 
     $('#project li').live 'click', (event) =>
       $('#project .active').removeClass 'active'
@@ -38,8 +41,10 @@ class Project extends Pane
 
       false # Don't bubble!
 
+  reload: (dir) ->
+    @dir = dir
     @html.children('#project .cwd').text _.last @dir.split '/'
-    @html.children('#project li').remove()
+    @html.children('#project .files').empty()
     @html.children('#project .files').append @createList @dir
 
   createList: (dir) ->
