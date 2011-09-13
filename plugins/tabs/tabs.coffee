@@ -34,6 +34,9 @@ class Tabs extends Pane
       # Only care about files, not directories
       return if File.isDirectory(filename)
       @addTab filename
+      
+    @editor.ace.on 'close', ({filename}) =>
+      @removeTab filename
 
     tab = this
     # click tab
@@ -53,14 +56,18 @@ class Tabs extends Pane
     """
     $('#tabs ul li:last').addClass 'active'
 
+  removeTab: (path) ->
+    tab = $("#tabs li[data-path='#{path}']")
+    if tab.hasClass("active")
+      nextTab = tab.next()
+      nextTab = tab.prev() if nextTab.length == 0
+      @switchToTab nextTab if nextTab.length != 0
+    
+    tab.remove()
+
   closeActiveTab: ->
     activeTab = $('#tabs ul .active')
-    nextTab = activeTab.next()
-    nextTab = activeTab.prev() if nextTab.length == 0
-
-    @editor.deleteSession activeTab.data 'path'
-    activeTab.remove()
-    @switchToTab nextTab if nextTab.length != 0
+    @editor.close(activeTab.data 'path')
 
   hideTabs: ->
     $('#tabs').parents('.pane').remove()

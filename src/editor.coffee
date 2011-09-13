@@ -82,6 +82,10 @@ class Editor extends Pane
         activeWindow.setDirty false
     @ace._emit 'open', { @filename }
 
+  close: (path) ->
+    @deleteSession path
+    @ace._emit 'close', { filename : path }
+
   saveAs: ->
     if file = App.savePanel()
       @filename = file
