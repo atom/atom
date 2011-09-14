@@ -43,7 +43,7 @@ class Project extends Pane
       for path in openedPaths
         if File.isFile path
           @editor.open path
-        else
+        else if not File.exists path
          openedPaths = _.without(openedPaths, path)
       @set "openedPaths", openedPaths
 
