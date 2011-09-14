@@ -20,51 +20,49 @@ class Project extends Pane
   initialize: ->
     @reload(File.workingDirectory())
     @editor = activeWindow.document
-    
+
     @editor.ace.on 'open', ({filename}) =>
       if File.isDirectory filename
         @reload filename
       else
-        openedPaths = @get 'openPaths', []
-        if not openedPaths.indexOf filename
+        openedPaths = @get 'openedPaths', []
+        if not _.include openedPaths, filename
           openedPaths.push filename
-          @set 'openPaths', openedPaths
+          @set 'openedPaths', openedPaths
 
     @editor.ace.on 'close', ({filename}) =>
       if File.isFile filename
-        openedPaths = _.without @get('openPaths', []), filename
-        @set 'openPaths', openedPaths
+        openedPaths = _.without @get('openedPaths', []), filename
+        @set 'openedPaths', openedPaths
 
     @editor.ace.on 'loaded', =>
       # Reopen files (remove ones that no longer exist)
-      openedPaths = @get 'openPaths', []
+      openedPaths = @get 'openedPaths', []
       for path in openedPaths
-        if File.exists path
+        if File.isFile path
           @editor.open path
         else
          openedPaths = _.without(openedPaths, path)
       @set "openedPaths", openedPaths
-    
+
 
     $('#project li').live 'click', (event) =>
       $('#project .active').removeClass 'active'
       el = $(event.currentTarget)
       path = decodeURIComponent el.attr 'path'
       if File.isDirectory path
-        visibleDirs = @get('visibleDirs') or {}
+        openedPaths = @get('openedPaths', [])
         if el.hasClass 'open'
-          delete visibleDirs[path]
-
+          openedPaths = _.without(openedPaths, path)
           el.removeClass 'open'
           el.children("ul").remove()
         else
-          visibleDirs[path] = true
-
+          openedPaths.push path unless _.include openedPaths, path
           el.addClass 'open'
           list = @createList path
           el.append list
 
-        @set('visibleDirs', visibleDirs)
+        @set 'openedPaths', openedPaths
       else
         el.addClass 'active'
         activeWindow.open path
@@ -80,18 +78,17 @@ class Project extends Pane
 
   createList: (dir) ->
     paths = File.list dir
-    
-    # BUG: need to clear visibleDirs that don't exist anymore
-    visibleDirs = @get('visibleDirs', {})
+
+    openedPaths = @get('openedPaths', [])
     list = $('<ul>')
     for path in paths
       filename = path.replace(dir, "").substring 1
-      type = if File.isDirectory(path) then 'dir' else 'file'
+      type = if File.isDirectory path then 'dir' else 'file'
       encodedPath = encodeURIComponent path
       listItem = $("<li class='#{type}' path='#{encodedPath}'>#{filename}</li>")
-      if visibleDirs[path]
+      if _.include(openedPaths, path) and type == 'dir'
         listItem.append @createList path
-        listItem.addClass("open")
+        listItem.addClass "open"
       list.append listItem
 
     list
@@ -102,17 +99,17 @@ class Project extends Pane
   # own namespaced storage
   set: (key, value) ->
     try
-      object = JSON.parse(localStorage[@dir])
+      object = JSON.parse localStorage[@dir]
     catch error
-      console.log(error)
+      console.log error
       object = {}
 
     if value == undefined then delete object[key] else object[key] = value
-    localStorage[@dir] = JSON.stringify(object)
+    localStorage[@dir] = JSON.stringify object
 
   get: (key, defaultValue=null) ->
     try
       JSON.parse(localStorage[@dir])[key] or defaultValue
     catch error
-      console.log(error)
+      console.log error
       defaultValue
