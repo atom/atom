@@ -20,6 +20,11 @@ module.exports =
   changeWorkingDirectory: (path) ->
     OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
 
+  # Returns true if the file specified by path exists
+  exists: (path) ->
+   exists = OSX.NSFileManager.defaultManager.
+      fileExistsAtPath_isDirectory path, null
+
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
