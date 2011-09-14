@@ -85,9 +85,9 @@ class Project extends Pane
     if value == undefined then delete object[key] else object[key] = value
     localStorage[@dir] = JSON.stringify(object)
 
-  get: (key) ->
+  get: (key, defaultValue=null) ->
     try
-      JSON.parse(localStorage[@dir])[key]
+      JSON.parse(localStorage[@dir])[key] or defaultValue
     catch error
       console.log(error)
-      undefined
+      defaultValue
