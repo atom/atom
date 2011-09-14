@@ -5,6 +5,7 @@ _ = require 'underscore'
 module.exports =
 class Pane
   position: null
+
   html: null
 
   keymap: {}

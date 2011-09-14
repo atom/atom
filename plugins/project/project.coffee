@@ -11,8 +11,7 @@ class Project extends Pane
 
   position: 'left'
 
-  html:
-    $ require "project/project.html"
+  html: $ require "project/project.html"
 
   keymap:
     'Command-Ctrl-N': 'toggle'
