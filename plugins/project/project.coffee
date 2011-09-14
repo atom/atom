@@ -19,9 +19,32 @@ class Project extends Pane
 
   initialize: ->
     @reload(File.workingDirectory())
+    @editor = activeWindow.document
+    
+    @editor.ace.on 'open', ({filename}) =>
+      if File.isDirectory filename
+        @reload filename
+      else
+        openedPaths = @get 'openPaths', []
+        if not openedPaths.indexOf filename
+          openedPaths.push filename
+          @set 'openPaths', openedPaths
 
-    activeWindow.document.ace.on 'open', ({filename}) =>
-      @reload filename if File.isDirectory filename
+    @editor.ace.on 'close', ({filename}) =>
+      if File.isFile filename
+        openedPaths = _.without @get('openPaths', []), filename
+        @set 'openPaths', openedPaths
+
+    @editor.ace.on 'loaded', =>
+      # Reopen files (remove ones that no longer exist)
+      openedPaths = @get 'openPaths', []
+      for path in openedPaths
+        if File.exists path
+          @editor.open path
+        else
+         openedPaths = _.without(openedPaths, path)
+      @set "openedPaths", openedPaths
+    
 
     $('#project li').live 'click', (event) =>
       $('#project .active').removeClass 'active'
@@ -57,7 +80,9 @@ class Project extends Pane
 
   createList: (dir) ->
     paths = File.list dir
-    visibleDirs = @get('visibleDirs') or {}
+    
+    # BUG: need to clear visibleDirs that don't exist anymore
+    visibleDirs = @get('visibleDirs', {})
     list = $('<ul>')
     for path in paths
       filename = path.replace(dir, "").substring 1
