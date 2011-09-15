@@ -6,9 +6,9 @@ App.setActiveWindow new Window controller: WindowController
 Editor = require 'editor'
 App.activeWindow.document = new Editor
 
-require 'plugins'
-
 if localStorage.lastOpenedFilename
   App.activeWindow.open(localStorage.lastOpenedFilename)
+
+require 'plugins'
 
 App.activeWindow.document.ace._emit "loaded"
