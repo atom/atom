@@ -21,6 +21,8 @@ class Project extends Pane
     @reload(File.workingDirectory())
     @editor = activeWindow.document
 
+    activeWindow.project = this
+
     @editor.ace.on 'open', ({filename}) =>
       if File.isDirectory filename
         @reload filename
@@ -92,6 +94,13 @@ class Project extends Pane
       list.append listItem
 
     list
+
+  paths: ->
+    _paths = []
+    for dir in File.list @dir
+      continue if /\.git|Cocoa/.test dir
+      _paths.push File.listDirectoryTree dir
+    _.reject _.flatten(_paths), (dir) -> File.isDirectory dir
 
   # HATE
   # This needs to be replaced with a more generalized method like
