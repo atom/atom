@@ -98,7 +98,7 @@ Search.SELECTION = 2;
             iterator = this.$forwardMatchIterator(session);
         }
 
-        var ignoreCursorColumn = this.$options.wrap && this.$options.scope == Search.ALL;
+        var ignoreCursorColumn = false && this.$options.wrap && this.$options.scope == Search.ALL;
         var start = session.getSelection().getCursor();
         if (ignoreCursorColumn) {
             session.getSelection().moveCursorTo(0, 0);

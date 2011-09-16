@@ -96,6 +96,7 @@ class Editor extends Pane
     @ace.getSession().getValue()
 
   removeTrailingWhitespace: ->
+    return
     @ace.replaceAll "",
       needle: "[ \t]+$"
       regExp: true
