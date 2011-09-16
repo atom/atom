@@ -98,10 +98,20 @@ Search.SELECTION = 2;
             iterator = this.$forwardMatchIterator(session);
         }
 
+        var ignoreCursorColumn = this.$options.wrap && this.$options.scope == Search.ALL;
+        var start = session.getSelection().getCursor();
+        if (ignoreCursorColumn) {
+            session.getSelection().moveCursorTo(0, 0);
+        }
+
         var ranges = [];
         iterator.forEach(function(range) {
             ranges.push(range);
         });
+
+        if (ignoreCursorColumn) {
+            session.getSelection().moveCursorTo(start.row, start.column)
+        }
 
         return ranges;
     };

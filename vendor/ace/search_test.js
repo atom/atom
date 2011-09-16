@@ -348,6 +348,24 @@ module.exports = {
         assert.equal(search.replace("ab12", "$$"), "$");
     },
 
+    "test: find all using regular expresion containing $" : function() {
+        var session = new EditSession(["a", "     b", "c ", "d"]);
+
+        var search = new Search().set({
+            needle: "[ ]+$",
+            regExp: true,
+            wrap: true,
+            scope: Search.ALL
+        });
+
+        session.getSelection().moveCursorTo(1, 2);
+        var ranges = search.findAll(session);
+
+        assert.equal(ranges.length, 1);
+        assert.position(ranges[0].start, 2, 1);
+        assert.position(ranges[0].end, 2, 2);
+    },
+
     "test: find all matches in a line" : function() {
         var session = new EditSession("foo bar foo baz foobar foo");
 
@@ -362,12 +380,12 @@ module.exports = {
         var ranges = search.findAll(session);
 
         assert.equal(ranges.length, 3);
-        assert.position(ranges[0].start, 0, 8);
-        assert.position(ranges[0].end, 0, 11);
-        assert.position(ranges[1].start, 0, 23);
-        assert.position(ranges[1].end, 0, 26);
-        assert.position(ranges[2].start, 0, 0);
-        assert.position(ranges[2].end, 0, 3);
+        assert.position(ranges[0].start, 0, 0);
+        assert.position(ranges[0].end, 0, 3);
+        assert.position(ranges[1].start, 0, 8);
+        assert.position(ranges[1].end, 0, 11);
+        assert.position(ranges[2].start, 0, 23);
+        assert.position(ranges[2].end, 0, 26);
     },
 
     "test: find all matches in a line backwards" : function() {
@@ -385,12 +403,12 @@ module.exports = {
         var ranges = search.findAll(session);
 
         assert.equal(ranges.length, 3);
-        assert.position(ranges[0].start, 0, 8);
-        assert.position(ranges[0].end, 0, 11);
-        assert.position(ranges[1].start, 0, 0);
-        assert.position(ranges[1].end, 0, 3);
-        assert.position(ranges[2].start, 0, 23);
-        assert.position(ranges[2].end, 0, 26);
+        assert.position(ranges[0].start, 0, 23);
+        assert.position(ranges[0].end, 0, 26);
+        assert.position(ranges[1].start, 0, 8);
+        assert.position(ranges[1].end, 0, 11);
+        assert.position(ranges[2].start, 0, 0);
+        assert.position(ranges[2].end, 0, 3);
     },
 };
 
