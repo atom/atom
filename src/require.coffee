@@ -8,6 +8,7 @@ paths = [
   "/Users/corey/code/mine/Atomicity/src"
   "/Users/corey/code/mine/Atomicity/plugins"
   "/Users/corey/code/mine/Atomicity/test"
+  "/Users/corey/code/mine/Atomicity/vendor"
 
   "#{resourcePath}/src"
   "#{resourcePath}/plugins"
