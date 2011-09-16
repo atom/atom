@@ -16,9 +16,6 @@ class Project extends Pane
   keymap:
     'Command-Ctrl-N': 'toggle'
 
-  persistantProperties:
-    'openedPaths' : []
-
   initialize: ->
     @reload(File.workingDirectory())
     @editor = activeWindow.document
@@ -29,44 +26,51 @@ class Project extends Pane
       if File.isDirectory filename
         @reload filename
       else
-        if not _.include @openedPaths, filename
-          @openedPaths.push filename
-          @openedPaths = @openedPaths # How icky, need to do this to store it
+        openedPaths = @storage('openedPaths') ? []
+        if not _.include openedPaths, filename
+          openedPaths.push filename
+          @storage('openedPaths', openedPaths)
 
     @editor.ace.on 'close', ({filename}) =>
       if File.isFile filename
-        @openedPaths = _.without @openedPaths, filename
+        openedPaths = @storage('openedPaths') ? []
+        openedPaths = _.without openedPaths, filename
+        @storage('openedPaths', openedPaths)
 
     @editor.ace.on 'loaded', =>
       # Reopen files (remove ones that no longer exist)
-      for path in @openedPaths
+      openedPaths = @storage('openedPaths') ? []
+      for path in openedPaths
         if File.isFile path
           @editor.open path
         else if not File.exists path
-          @openedPaths = _.without @openedPaths, path
+          openedPaths = _.without openedPaths, path
+          @storage('openedPaths', openedPaths)
 
     $('#project li').live 'click', (event) =>
       $('#project .active').removeClass 'active'
       el = $(event.currentTarget)
       path = decodeURIComponent el.attr 'path'
       if File.isDirectory path
+        openedPaths = @storage('openedPaths') ? []
         if el.hasClass 'open'
-          @openedPaths = _.without @openedPaths, path
+          openedPaths = _.without openedPaths, path
           el.removeClass 'open'
           el.children("ul").remove()
         else
-          @openedPaths.push path unless _.include @openedPaths, path
-          @openedPaths = @openedPaths # How icky, need to do this to store it
+          openedPaths.push path unless _.include openedPaths, path
           el.addClass 'open'
           list = @createList path
           el.append list
+
+        @storage('openedPaths', openedPaths)
       else
         el.addClass 'active'
         activeWindow.open path
 
       false # Don't bubble!
 
-  persistentanceNamespace: -> 
+  storageNamespace: ->
     @.constructor.name + @dir
 
   reload: (dir) ->
@@ -85,7 +89,8 @@ class Project extends Pane
       type = if File.isDirectory path then 'dir' else 'file'
       encodedPath = encodeURIComponent path
       listItem = $("<li class='#{type}' path='#{encodedPath}'>#{filename}</li>")
-      if _.include(@openedPaths, path) and type == 'dir'
+      openedPaths = @storage('openedPaths') ? []
+      if _.include(openedPaths, path) and type == 'dir'
         listItem.append @createList path
         listItem.addClass "open"
       list.append listItem
