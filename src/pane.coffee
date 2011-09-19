@@ -27,20 +27,28 @@ class Pane
 
     @initialize options
 
-  storage: (key, value) ->
+  get: (key, defaultValue) ->
     try
       object = JSON.parse(localStorage[@storageNamespace()] ? "{}")
     catch error
-      error.message += "\n#{key}: #{value}"
+      error.message += "\nGetting #{key}"
       console.log(error)
 
-    if value?
-      # Putting data in
-      object[key] = value
-      localStorage[@storageNamespace()] = JSON.stringify(object)
+    object[key] ? defaultValue
+
+  set: (key, value) ->
+    try
+      object = JSON.parse(localStorage[@storageNamespace()] ? "{}")
+    catch error
+      error.message += "\nSetting #{key}: #{value}"
+      console.log(error)
+
+    # Putting data in
+    if value == undefined
+      delete object[key]
     else
-      # Getting data out
-      object[key]
+      object[key] = value
+    localStorage[@storageNamespace()] = JSON.stringify(object)
 
   toggle: ->
     if @showing

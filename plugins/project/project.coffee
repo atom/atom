@@ -26,33 +26,33 @@ class Project extends Pane
       if File.isDirectory filename
         @reload filename
       else
-        openedPaths = @storage('openedPaths') ? []
+        openedPaths = @get 'openedPaths', []
         if not _.include openedPaths, filename
           openedPaths.push filename
-          @storage('openedPaths', openedPaths)
+          @set 'openedPaths', openedPaths
 
     @editor.ace.on 'close', ({filename}) =>
       if File.isFile filename
-        openedPaths = @storage('openedPaths') ? []
+        openedPaths = @get 'openedPaths', []
         openedPaths = _.without openedPaths, filename
-        @storage('openedPaths', openedPaths)
+        @set 'openedPaths', openedPaths
 
     @editor.ace.on 'loaded', =>
       # Reopen files (remove ones that no longer exist)
-      openedPaths = @storage('openedPaths') ? []
+      openedPaths = @get 'openedPaths', []
       for path in openedPaths
         if File.isFile path
           @editor.open path
         else if not File.exists path
           openedPaths = _.without openedPaths, path
-          @storage('openedPaths', openedPaths)
+          @set 'openedPaths', openedPaths
 
     $('#project li').live 'click', (event) =>
       $('#project .active').removeClass 'active'
       el = $(event.currentTarget)
       path = decodeURIComponent el.attr 'path'
       if File.isDirectory path
-        openedPaths = @storage('openedPaths') ? []
+        openedPaths = @get 'openedPaths', []
         if el.hasClass 'open'
           openedPaths = _.without openedPaths, path
           el.removeClass 'open'
@@ -63,7 +63,7 @@ class Project extends Pane
           list = @createList path
           el.append list
 
-        @storage('openedPaths', openedPaths)
+        @set 'openedPaths', openedPaths
       else
         el.addClass 'active'
         activeWindow.open path
@@ -89,7 +89,7 @@ class Project extends Pane
       type = if File.isDirectory path then 'dir' else 'file'
       encodedPath = encodeURIComponent path
       listItem = $("<li class='#{type}' path='#{encodedPath}'>#{filename}</li>")
-      openedPaths = @storage('openedPaths') ? []
+      openedPaths = @get 'openedPaths', []
       if _.include(openedPaths, path) and type == 'dir'
         listItem.append @createList path
         listItem.addClass "open"
