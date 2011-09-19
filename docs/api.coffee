@@ -5,11 +5,15 @@
 # Chrome
 #
 
-# Our view hierarchy is:
+# View hierarchy
 #
-#    App has many Windows
-# Window has many Panes
-# Window has one Document
+# App:    has many Windows
+# Window: has many Panes, contains a Document model
+# Pane:   has 0 or more Panes
+#
+# Model hieerarcy
+#
+# Document: holds all the data!
 
 App =
   windows: []
@@ -17,12 +21,13 @@ App =
 
 class Window
   panes: []
+  document: null
   activePane: null
 
 class Pane
+  subPanes: []
   window: null
-  document: null
+  activeSubPane: null
 
 class Document
   window: null
-  pane: null
