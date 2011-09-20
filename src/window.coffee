@@ -1,4 +1,7 @@
 $ = require 'jquery'
+_ = require 'underscore'
+
+File = require 'fs'
 
 Chrome = require 'chrome'
 Pane = require 'pane'
@@ -26,10 +29,22 @@ class Window
     for shortcut, method of @keymap()
       bindKey @, shortcut, method
 
+    @nswindow = @controller?.window
+
+  loadPlugins: ->
     Editor = require 'editor'
     @document = new Editor
 
-    @nswindow = @controller?.window
+    @open @path if @path?
+
+    App  = require 'app'
+    _.map File.list(App.root + "/plugins"), (plugin) ->
+      require plugin
+
+    _.map File.list("~/.atomicity/"), (path) ->
+      require path
+
+    @document.ace._emit "loaded"
 
   addPane: ({position, html}) ->
     verticalDiv = $('#app-vertical')
