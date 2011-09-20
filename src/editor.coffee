@@ -57,11 +57,12 @@ class Editor extends Pane
 
   save: ->
     return @saveAs() if not @filename
-
+    
     @removeTrailingWhitespace()
     File.write @filename, @code()
     @sessions[@filename] = @ace.getSession()
-    .setDirty false
+    App = require 'app' # Get rid of this!
+    App.activeWindow.setDirty false
     @ace._emit 'save', { @filename }
 
   open: (path) ->
@@ -93,6 +94,7 @@ class Editor extends Pane
   saveAs: ->
     if file = Chrome.savePanel()
       @filename = file
+      App = require 'app' # Get rid of this!
       App.activeWindow.setTitle _.last @filename.split '/'
       @save()
 

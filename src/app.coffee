@@ -5,6 +5,7 @@ Plugins = require 'plugins'
 module.exports =
 class App
   @windows: []
+  
   @root: OSX.NSBundle.mainBundle.resourcePath
 
   @activeWindow: null
@@ -13,8 +14,8 @@ class App
     @setActiveWindow new Window controller : WindowController
 
     # Move this someone more approriate
-    if localStorage.lastOpenedFilename
-      @activeWindow.open(localStorage.lastOpenedFilename)
+    if localStorage.lastOpenedPath
+      @activeWindow.open localStorage.lastOpenedPath
 
     Plugins.load()
     @activeWindow.document.ace._emit "loaded"
