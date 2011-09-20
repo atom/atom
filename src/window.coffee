@@ -10,12 +10,12 @@ class Window extends Pane
   nswindow: null
   panes: []
 
-  keymap:
-    'Command-N'       : 'new'
-    'Command-O'       : 'open'
-    'Command-Shift-O' : 'openURL'
-    'Command-Ctrl-K'  : 'showConsole'
-    'Command-Ctrl-R'  : 'reload'
+  keymap: ->
+    'Command-N'       : @new
+    'Command-O'       : @open
+    'Command-Shift-O' : @openURL
+    'Command-Ctrl-K'  : @showConsole
+    'Command-Ctrl-R'  : @reload
 
   constructor: (options={}) ->
     super options

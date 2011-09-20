@@ -13,7 +13,7 @@ class Project extends Pane
 
   html: $ require "project/project.html"
 
-  keymap:
+  keymap: ->
     'Command-Ctrl-N': 'toggle'
 
   initialize: ->

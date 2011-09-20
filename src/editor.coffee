@@ -16,7 +16,7 @@ class Editor extends Pane
   position: 'main'
   html: '<div id="editor"></div>'
 
-  keymap:
+  keymap: ->
     'Command-S'       : 'save'
     'Command-Shift-S' : 'saveAs'
     'Command-C'       : 'copy'

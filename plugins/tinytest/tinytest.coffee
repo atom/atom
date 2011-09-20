@@ -9,7 +9,7 @@ File = require 'fs'
 
 module.exports =
 class TinyTest extends Pane
-  keymap:
+  keymap: ->
     'Command-Ctrl-T': 'runTests'
 
   runTests: ->

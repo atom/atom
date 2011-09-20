@@ -1,5 +1,3 @@
-_ = require 'underscore'
-
 {bindKey} = require 'keybinder'
 
 module.exports =
@@ -8,22 +6,14 @@ class Pane
 
   html: null
 
-  keymap: {}
+  keymap: ->
 
   constructor: (options={}) ->
     for option, value of options
       @[option] = value
 
-    for shortcut, method of @keymap then do (shortcut, method) =>
-      bindKey method, shortcut, (args...) =>
-        console.log "#{shortcut}: #{method}"
-        if _.isFunction method
-          method.call this
-        else
-          if @[method]
-            @[method]()
-          else
-            console.error "keymap: no '#{method}' method found"
+    for shortcut, method of @keymap()
+      bindKey @, shortcut, method
 
     @initialize options
 

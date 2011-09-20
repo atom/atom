@@ -13,7 +13,7 @@ class Tabs extends Pane
   # The Editor pane we're managing.
   editor: null
 
-  keymap:
+  keymap: ->
     'Command-W': 'closeActiveTab'
     'Command-Shift-[': 'prevTab'
     'Command-Shift-]': 'nextTab'

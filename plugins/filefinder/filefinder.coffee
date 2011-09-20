@@ -16,8 +16,8 @@ class Filefinder extends Pane
 
   html: require "filefinder/filefinder.html"
 
-  keymap:
-    'Command-T': 'toggle'
+  keymap: ->
+    'Command-T': @toggle
     # really wish i could put up/down keyboad shortcuts here
     # and have them activated when the filefinder is open
 
