@@ -1,9 +1,8 @@
 _ = require 'underscore'
 
 File = require 'fs'
-App  = require 'app'
+Chrome = require 'chrome'
 Pane = require 'pane'
-activeWindow = App.activeWindow
 
 ace = require 'ace/ace'
 
@@ -36,6 +35,8 @@ class Editor extends Pane
   sessions: {}
 
   initialize: ->
+    window.r = require 'app'
+
     @ace = ace.edit "editor"
     @ace.setTheme require "ace/theme/twilight"
     @ace.getSession().setUseSoftTabs true
@@ -45,7 +46,8 @@ class Editor extends Pane
     @ace.setPrintMarginColumn 78
 
     @ace.getSession().on 'change', ->
-      activeWindow.setDirty true
+      App = require 'app' # Get rid of this!
+      App.activeWindow.setDirty true
 
     el = document.body
     el.addEventListener 'DOMNodeInsertedIntoDocument', =>
@@ -59,27 +61,29 @@ class Editor extends Pane
     @removeTrailingWhitespace()
     File.write @filename, @code()
     @sessions[@filename] = @ace.getSession()
-    activeWindow.setDirty false
+    .setDirty false
     @ace._emit 'save', { @filename }
 
   open: (path) ->
-    path = App.openPanel() if not path
+    App = require 'app' # Get rid of this!
+    path = Chrome.openPanel() if not path
     return if not path
     @filename = path
 
     if File.isDirectory @filename
       File.changeWorkingDirectory @filename
-      activeWindow.setTitle _.last @filename.split '/'
+      window.x = App
+      App.activeWindow.setTitle _.last @filename.split '/'
       @ace.setSession @newSession()
-      activeWindow.setDirty false
+      App.activeWindow.setDirty false
     else
       if /png|jpe?g|gif/i.test @filename
-        App.openURL @filename
+        Chrome.openURL @filename
       else
-        activeWindow.setTitle _.last @filename.split '/'
+        App.activeWindow.setTitle _.last @filename.split '/'
         @sessions[@filename] or= @newSession File.read @filename
         @ace.setSession @sessions[@filename]
-        activeWindow.setDirty false
+        App.activeWindow.setDirty false
     @ace._emit 'open', { @filename }
 
   close: (path) ->
@@ -87,9 +91,9 @@ class Editor extends Pane
     @ace._emit 'close', { filename : path }
 
   saveAs: ->
-    if file = App.savePanel()
+    if file = Chrome.savePanel()
       @filename = file
-      activeWindow.setTitle _.last @filename.split '/'
+      App.activeWindow.setTitle _.last @filename.split '/'
       @save()
 
   code: ->
@@ -137,12 +141,12 @@ class Editor extends Pane
   copy: ->
     editor = @ace
     text = editor.getSession().doc.getTextRange editor.getSelectionRange()
-    App.writeToPasteboard text
+    Chrome.writeToPasteboard text
 
   cut: ->
     editor = @ace
     text = editor.getSession().doc.getTextRange editor.getSelectionRange()
-    App.writeToPasteboard text
+    Chrome.writeToPasteboard text
     editor.session.remove editor.getSelectionRange()
 
   eval: ->

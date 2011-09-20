@@ -1,6 +1,6 @@
 $ = require 'jquery'
 
-App  = require 'app'
+Chrome = require 'chrome'
 Pane = require 'pane'
 
 module.exports =
@@ -16,6 +16,12 @@ class Window extends Pane
     'Command-Shift-O' : 'openURL'
     'Command-Ctrl-K'  : 'showConsole'
     'Command-Ctrl-R'  : 'reload'
+
+  constructor: (options={}) ->
+    super options
+
+    Editor = require 'editor'
+    @document = new Editor
 
   initialize: ->
     @nswindow = @controller?.window
@@ -44,7 +50,7 @@ class Window extends Pane
     @controller.close()
 
   reload: ->
-    App.newWindow()
+    Chrome.newWindow()
     @close()
 
   isDirty: ->
@@ -58,14 +64,15 @@ class Window extends Pane
     @_inspector ?= WindowController.webView.inspector
 
   new: ->
-    App.newWindow()
+    Chrome.newWindow()
 
   open: (path) ->
     @document?.open path
 
   openURL: (url) ->
     if url = prompt "Enter URL:"
-      App.openURL url
+      Chrome = require 'app'
+      Chrome.openURL url
 
   showConsole: ->
     @inspector().showConsole(1)
