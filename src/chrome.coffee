@@ -13,7 +13,7 @@ class Chrome
     if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
       return null
     filename = panel.filenames.lastObject
-    localStorage.lastOpenedFilename = filename
+    localStorage.lastOpenedPath = filename
     filename
 
   @openURL: (url) ->
@@ -28,7 +28,7 @@ class Chrome
       return null
     panel.filenames.lastObject
 
-  writeToPasteboard: (text) ->
+  @writeToPasteboard: (text) ->
     pb = OSX.NSPasteboard.generalPasteboard
     pb.declareTypes_owner [OSX.NSStringPboardType], null
     pb.setString_forType text, OSX.NSStringPboardType
