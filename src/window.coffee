@@ -3,8 +3,10 @@ $ = require 'jquery'
 Chrome = require 'chrome'
 Pane = require 'pane'
 
+{bindKey} = require 'keybinder'
+
 module.exports =
-class Window extends Pane
+class Window
   controller: null
   document: null
   nswindow: null
@@ -18,12 +20,15 @@ class Window extends Pane
     'Command-Ctrl-R'  : @reload
 
   constructor: (options={}) ->
-    super options
+    for option, value of options
+      @[option] = value
+
+    for shortcut, method of @keymap()
+      bindKey @, shortcut, method
 
     Editor = require 'editor'
     @document = new Editor
 
-  initialize: ->
     @nswindow = @controller?.window
 
   addPane: ({position, html}) ->
