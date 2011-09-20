@@ -24,7 +24,12 @@ require = (file, cb) ->
   parts = file.split '.'
   ext   = parts[parts.length-1]
 
-  return __modules[file] if __modules[file]?
+  if __modules[file]?
+    if not __modules.loaded[file.toLowerCase()]?
+      console.warn("Circular require: #{__filename} required #{file}")
+    return __modules[file]
+  else if __modules.loaded[file.toLowerCase()]
+    console.warn("Mutliple requires (different cases) for #{file}")
 
   [ previousFilename, window.__filename ] = [ __filename, file ]
   __modules[file] = {} # Fix for circular references
@@ -37,6 +42,7 @@ define  = (cb) ->
     exports = __modules[__filename] or {}
     module  = exports: exports
     cb.call exports, require, exports, module
+    __modules.loaded[__filename.toLowerCase()] = true
     module.exports or exports
 
 exts =
@@ -105,7 +111,7 @@ __read = (path) ->
   catch e
     throw "require: can't read #{path}"
 
-__modules = {}
+__modules = { loaded : {} }
 __defines = []
 
 
