@@ -9,12 +9,13 @@ class App
 
   @activeWindow: null
 
-  @setup: ->
+  @start: ->
     @setActiveWindow new Window
       controller : WindowController
       path : localStorage.lastOpenedPath
 
-    @activeWindow.loadPlugins()
+    _.map File.list("~/.atomicity/"), (path) ->
+      require path
 
   @setActiveWindow: (window) ->
     @activeWindow = window

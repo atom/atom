@@ -1,3 +1,3 @@
 # yay!
 App = require 'app'
-App.setup()
+App.start()

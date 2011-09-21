@@ -30,6 +30,8 @@ class Window
       bindKey @, shortcut, method
 
     @nswindow = @controller?.window
+    @loadPlugins()
+    @document.ace._emit "loaded"
 
   loadPlugins: ->
     Editor = require 'editor'
@@ -37,14 +39,12 @@ class Window
 
     @open @path if @path?
 
+    @plugins = []
     App  = require 'app'
-    _.map File.list(App.root + "/plugins"), (plugin) ->
-      require plugin
-
-    _.map File.list("~/.atomicity/"), (path) ->
-      require path
-
-    @document.ace._emit "loaded"
+    for pluginPath in File.list(App.root + "/plugins") 
+      if File.isDirectory pluginPath
+        plugin = require pluginPath
+        @plugins.push new plugin(@)
 
   addPane: ({position, html}) ->
     verticalDiv = $('#app-vertical')
