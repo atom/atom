@@ -8,6 +8,9 @@ class Plugin
     for shortcut, method of @keymap()
       bindKey @, shortcut, method
 
+  # Called after all plugins are loaded
+  load: ->
+
   pane: ->
 
   keymap: ->

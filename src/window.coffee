@@ -47,6 +47,14 @@ class Window
           console.warn "Plugin Failed: #{File.base pluginPath}"
           console.warn error
 
+    # After all the plugins are created, load them.
+    for plugin in @plugins
+      try
+        plugin.load()
+      catch error
+        console.warn "Plugin Loading Failed:"
+        console.warn error
+
   addPane: ({position, html}) ->
     verticalDiv = $('#app-vertical')
     horizontalDiv = $('#app-horizontal')
