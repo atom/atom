@@ -1,4 +1,6 @@
 _ = require 'underscore'
+
+File = require 'fs'
 Window = require 'window'
 
 module.exports =

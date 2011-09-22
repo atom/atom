@@ -1,8 +1,6 @@
 $ = require 'jquery'
-_ = require 'underscore'
 
 File = require 'fs'
-
 Chrome = require 'chrome'
 Pane = require 'pane'
 
