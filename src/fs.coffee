@@ -16,6 +16,13 @@ module.exports =
     else
       path
 
+  # Return the basename of the given path. That is the path with
+  # any leading directory components removed. If specified, also
+  # remove a trailing extension.
+  base: (path, ext) ->
+    base = path.split("/").pop()
+    if ext then base.replace(RegEx(ext + "$"), "") else base
+
   # Set the current working directory to `path`.
   changeWorkingDirectory: (path) ->
     OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
