@@ -67,6 +67,11 @@
 </body>
 
 <script>
+  window.onerror = function(message, url, lineNumber) {
+    // Any error will popup the console
+    WindowController.webView.inspector.showConsole(1);
+  }
+
   require('startup');
 </script>
 
