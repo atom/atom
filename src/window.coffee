@@ -2,7 +2,6 @@ $ = require 'jquery'
 
 File = require 'fs'
 Chrome = require 'chrome'
-Pane = require 'pane'
 
 {bindKey} = require 'keybinder'
 
@@ -18,7 +17,7 @@ class Window
     'Command-O'       : @open
     'Command-Shift-O' : @openURL
     'Command-Ctrl-K'  : @showConsole
-    'Command-Ctrl-R'  : @reload
+    'Command-Ctrl-M'  : @reload
 
   constructor: (options={}) ->
     for option, value of options
