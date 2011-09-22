@@ -14,7 +14,7 @@ class App
   @start: ->
     @setActiveWindow new Window
       controller : WindowController
-      path : localStorage.lastOpenedPath
+      path : localStorage.lastOpenedPath ? File.workingDirectory()
 
     _.map File.list("~/.atomicity/"), (path) ->
       require path
