@@ -7,16 +7,16 @@
 - (void)sendEvent:(NSEvent *)event {
   switch ([event type]) {
     case NSKeyDown:
-    case NSFlagsChanged: 
+    case NSFlagsChanged:
       {
         BOOL handeled = NO;
         id controller = [[self keyWindow] windowController];
-
-        // The keyWindow could be a Cocoa Dialog or something, ignore them.        
+        
+        // The keyWindow could be a Cocoa Dialog or something, ignore them.
         if ([controller isKindOfClass:[AtomWindowController class]]) {
           handeled = [controller handleKeyEvent:event];
         }
-        
+
         if (!handeled) {
           [super sendEvent:event];
         }

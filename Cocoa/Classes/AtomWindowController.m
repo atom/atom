@@ -15,6 +15,17 @@
 
 @synthesize webView, URL;
 
+- (void)dealloc {
+  [jscocoa unlinkAllReferences];
+  [jscocoa garbageCollect];
+  [jscocoa release]; jscocoa = nil;
+  
+  [webView release];
+  [URL release];
+  
+  [super dealloc];
+}
+
 - (id)initWithURL:(NSString *)_URL {
   self = [super initWithWindowNibName:@"AtomWindow"];
   self.URL = _URL;
@@ -23,7 +34,6 @@
 
 - (void)windowDidLoad {
   [super windowDidLoad];
-
 
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomWindow"];
@@ -44,6 +54,10 @@
     NSURLRequest *request = [NSURLRequest requestWithURL:indexURL]; 
     [[webView mainFrame] loadRequest:request];
   }
+}
+
+- (void)close {
+  [super close];
 }
 
 -(BOOL) handleKeyEvent:(NSEvent *)event {
