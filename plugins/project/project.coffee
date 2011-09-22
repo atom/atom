@@ -10,9 +10,11 @@ class Project extends Plugin
     'Command-Ctrl-N': -> @pane.toggle()
 
   storageNamespace: ->
-    @.constructor.name + @dir
+    @.constructor.name + @window.path
 
-  load: ->
+  constructor: (args...) ->
+    super args...
+
     @pane = new ProjectPane @window, @
     @pane.toggle()
 
@@ -20,7 +22,7 @@ class Project extends Plugin
     editor = @window.document
     editor.ace.on 'open', ({filename}) =>
       if File.isDirectory filename
-        @pane.reload filename
+        @pane.reload filename # I don't think this can ever happen.
       else
         openedPaths = @get 'openedPaths', []
         if not _.include openedPaths, filename
@@ -33,6 +35,7 @@ class Project extends Plugin
         openedPaths = _.without openedPaths, filename
         @set 'openedPaths', openedPaths
 
+  load: ->
     # Reopen files (remove ones that no longer exist)
     openedPaths = @get 'openedPaths', []
     for path in openedPaths
