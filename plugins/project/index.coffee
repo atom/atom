@@ -1,3 +1,1 @@
-exports.Project = Project = require 'project/project'
-
-(new Project).toggle()
+module.exports = Project = require 'project/project'
