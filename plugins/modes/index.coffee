@@ -1,3 +1,1 @@
-exports.Modes = Modes = require 'modes/modes'
-
-Modes.init()
+module.exports = require 'modes/modes'

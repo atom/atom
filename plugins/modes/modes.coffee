@@ -1,33 +1,35 @@
 _ = require 'underscore'
 
-{activeWindow} = require 'app'
+Plugin = require 'plugin'
 
-modeMap =
-  js: 'javascript'
-  c: 'c_cpp'
-  cpp: 'c_cpp'
-  h: 'c_cpp'
-  m: 'c_cpp'
-  md: 'markdown'
-  cs: 'csharp'
-  rb: 'ruby'
+module.exports =
+class Modes extends Plugin
+  load: ->
+    # NO! Do not use editor to handle events!
+    editor = @window.document
 
-modeForLanguage = (language) ->
-  language = language.toLowerCase()
-  modeName = modeMap[language] or language
+    editor.ace.on 'open', ({filename}) => @setMode(filename)
+    editor.ace.on 'save', ({filename}) => @setMode(filename)
 
-  try
-    require("ace/mode/#{modeName}").Mode
-  catch e
-    null
+  modeMap:
+    js: 'javascript'
+    c: 'c_cpp'
+    cpp: 'c_cpp'
+    h: 'c_cpp'
+    m: 'c_cpp'
+    md: 'markdown'
+    cs: 'csharp'
+    rb: 'ruby'
 
-setMode = ({filename}) ->
-  if mode = modeForLanguage _.last filename.split '.'
-    activeWindow.document.ace?.getSession().setMode new mode
+  modeForLanguage: (language) ->
+    language = language.toLowerCase()
+    modeName = @modeMap[language] or language
 
-exports.init = ->
-  if ace = activeWindow.document.ace
-    ace.on 'open', setMode
-    ace.on 'save', setMode
+    try
+      require("ace/mode/#{modeName}").Mode
+    catch e
+      null
 
-exports.modeMap = modeMap
+  setMode: (filename) ->
+    if mode = @modeForLanguage _.last filename.split '.'
+      @window.document.ace.getSession().setMode new mode
