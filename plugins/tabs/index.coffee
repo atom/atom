@@ -1,3 +1,1 @@
-exports.Tabs = Tabs = require 'tabs/tabs'
-
-(new Tabs).toggle()
+module.exports = require 'tabs/tabs'
