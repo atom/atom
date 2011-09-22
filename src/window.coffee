@@ -43,8 +43,12 @@ class Window
     App  = require 'app'
     for pluginPath in File.list(App.root + "/plugins") 
       if File.isDirectory pluginPath
-        plugin = require pluginPath
-        @plugins.push new plugin(@)
+        try
+          plugin = require pluginPath
+          @plugins.push new plugin(@)
+        catch error
+          console.warn "Plugin Failed: #{File.base pluginPath}"
+          console.warn error
 
   addPane: ({position, html}) ->
     verticalDiv = $('#app-vertical')
