@@ -35,7 +35,7 @@ class Window
 
   loadPlugins: ->
     Editor = require 'editor'
-    @document = new Editor
+    @document = new Editor @
 
     @open @path if @path?
 

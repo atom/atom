@@ -34,8 +34,8 @@ class Editor extends Pane
 
   sessions: {}
 
-  initialize: ->
-    window.r = require 'app'
+  constructor: (args...) ->
+    super(args...)
 
     @ace = ace.edit "editor"
     @ace.setTheme require "ace/theme/twilight"
@@ -46,8 +46,7 @@ class Editor extends Pane
     @ace.setPrintMarginColumn 78
 
     @ace.getSession().on 'change', ->
-      App = require 'app' # Get rid of this!
-      App.activeWindow.setDirty true
+      @window.setDirty true
 
     el = document.body
     el.addEventListener 'DOMNodeInsertedIntoDocument', =>
@@ -57,34 +56,32 @@ class Editor extends Pane
 
   save: ->
     return @saveAs() if not @filename
-    
+
     @removeTrailingWhitespace()
     File.write @filename, @code()
     @sessions[@filename] = @ace.getSession()
-    App = require 'app' # Get rid of this!
-    App.activeWindow.setDirty false
+    @window.setDirty false
     @ace._emit 'save', { @filename }
 
   open: (path) ->
-    App = require 'app' # Get rid of this!
     path = Chrome.openPanel() if not path
     return if not path
     @filename = path
 
     if File.isDirectory @filename
       File.changeWorkingDirectory @filename
-      window.x = App
-      App.activeWindow.setTitle _.last @filename.split '/'
+      @window.setTitle _.last @filename.split '/'
       @ace.setSession @newSession()
-      App.activeWindow.setDirty false
+      @window.setDirty false
     else
       if /png|jpe?g|gif/i.test @filename
         Chrome.openURL @filename
       else
-        App.activeWindow.setTitle _.last @filename.split '/'
+        @window.setTitle _.last @filename.split '/'
         @sessions[@filename] or= @newSession File.read @filename
         @ace.setSession @sessions[@filename]
-        App.activeWindow.setDirty false
+        @window.setDirty false
+
     @ace._emit 'open', { @filename }
 
   close: (path) ->
@@ -94,8 +91,7 @@ class Editor extends Pane
   saveAs: ->
     if file = Chrome.savePanel()
       @filename = file
-      App = require 'app' # Get rid of this!
-      App.activeWindow.setTitle _.last @filename.split '/'
+      @window.setTitle _.last @filename.split '/'
       @save()
 
   code: ->
