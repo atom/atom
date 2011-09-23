@@ -7,7 +7,6 @@
 - (void)sendEvent:(NSEvent *)event {
   switch ([event type]) {
     case NSKeyDown:
-    case NSFlagsChanged:
       {
         BOOL handeled = NO;
         id controller = [[self keyWindow] windowController];
