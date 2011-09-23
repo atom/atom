@@ -52,7 +52,7 @@ class Window
       try
         plugin.load()
       catch error
-        console.warn "Plugin Loading Failed:"
+        console.warn "Plugin Loading Failed: #{plugin.constructor.name}"
         console.warn error
 
   addPane: ({position, html}) ->
