@@ -55,26 +55,6 @@ class Window
         console.warn "Plugin Loading Failed: #{plugin.constructor.name}"
         console.warn error
 
-  addPane: ({position, html}) ->
-    verticalDiv = $('#app-vertical')
-    horizontalDiv = $('#app-horizontal')
-
-    el = $ "<div>"
-    el.addClass "pane " + position
-    el.append html
-
-    switch position
-      when 'top', 'main'
-        verticalDiv.prepend el
-      when 'left'
-        horizontalDiv.prepend el
-      when 'bottom'
-        verticalDiv.append el
-      when 'right'
-        horizontalDiv.append el
-      else
-        throw "I DON'T KNOW HOW TO DEAL WITH #{position}"
-
   close: ->
     @controller.close()
 
