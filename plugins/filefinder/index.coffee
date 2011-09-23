@@ -1,3 +1,1 @@
-exports.Filefinder = Filefinder = require 'filefinder/filefinder'
-
-new Filefinder
+module.exports = require 'filefinder/filefinder'
