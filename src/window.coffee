@@ -56,7 +56,7 @@ class Window
         console.warn error
 
   close: ->
-    @controller.close()
+    @controller.close
 
   reload: ->
     Chrome.newWindow()
