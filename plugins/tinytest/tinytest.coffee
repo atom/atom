@@ -3,17 +3,17 @@ _ = require 'underscore'
 
 Pane = require 'pane'
 File = require 'fs'
-{activeWindow} = App = require 'app'
+Plugin = require 'plugin'
 
 {CoffeeScript} = require 'coffee-script'
 
 module.exports =
-class TinyTest extends Pane
+class TinyTest extends Plugin
   keymap: ->
     'Command-Ctrl-T': 'runTests'
 
   runTests: ->
-    _.map File.list(App.root + '/test'), @runTest
+    _.map File.list(@window.path + '/test'), @runTest
 
   runTest: (path) ->
     # Even though we already have the path, run it
