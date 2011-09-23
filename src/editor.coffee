@@ -4,6 +4,8 @@ File = require 'fs'
 Chrome = require 'chrome'
 Pane = require 'pane'
 
+{bindKey} = require 'keybinder'
+
 ace = require 'ace/ace'
 
 {EditSession} = require 'ace/edit_session'
@@ -36,6 +38,9 @@ class Editor extends Pane
 
   constructor: (args...) ->
     super(args...)
+
+    for shortcut, method of @keymap()
+      bindKey @, shortcut, method
 
     @ace = ace.edit "editor"
     @ace.setTheme require "ace/theme/twilight"
