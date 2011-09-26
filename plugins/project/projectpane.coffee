@@ -18,6 +18,8 @@ class ProjectPane extends Pane
     @reload()
 
     $('#project li').live 'click', (event) =>
+      return true if event.__projectClicked__
+      
       $('#project .active').removeClass 'active'
       el = $(event.currentTarget)
       path = decodeURIComponent el.attr 'path'
@@ -37,8 +39,13 @@ class ProjectPane extends Pane
       else
         el.addClass 'active'
         @window.open path
-
-      false # Don't bubble!
+      
+      # HACK I need the event to propogate beyond the project pane,
+      # but I need the project pane to ignore it. Need somehting
+      # cleaner here.
+      event.__projectClicked__ = true
+      
+      true
 
   reload: ->
     @html.children('#project .cwd').text _.last @window.path.split '/'
