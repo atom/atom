@@ -35,6 +35,8 @@
 - (void)windowDidLoad {
   [super windowDidLoad];
 
+  [webView setUIDelegate:self];
+  
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomWindow"];
 
@@ -65,5 +67,12 @@
   JSValueRef returnValue = [jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
   return [jscocoa toBool:returnValue];
 }
+
+// WebUIDelegate Protocol
+- (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
+  NSLog(@"WHAT!");
+  return [NSArray array];
+}
+
 
 @end
