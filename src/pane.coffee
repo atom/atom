@@ -9,9 +9,6 @@ class Pane
   showing: false
 
   constructor: (@window) ->
-    $('.pane').live 'click', (event) =>
-      console.log @.constructor.name
-      true
 
   add: ->
     verticalDiv = $('#app-vertical')
