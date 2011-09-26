@@ -11,7 +11,7 @@ Let's call the framework "Radfish" and the text editor "Atomicity".
 
 Our framework wraps the Cocoa APIs in idiomatic CoffeeScript using JSCocoa allowing you to write desktop applications using web technologies.
 
-## Radflish Classes
+## Radfish Classes
 
 **Application**
 
