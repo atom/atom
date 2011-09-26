@@ -5,11 +5,8 @@ Plugin = require 'plugin'
 module.exports =
 class Modes extends Plugin
   load: ->
-    # NO! Do not use editor to handle events!
-    editor = @window.document
-
-    editor.ace.on 'open', ({filename}) => @setMode(filename)
-    editor.ace.on 'save', ({filename}) => @setMode(filename)
+    @window.on 'open', ({filename}) => @setMode(filename)
+    @window.on 'save', ({filename}) => @setMode(filename)
 
   modeMap:
     js: 'javascript'

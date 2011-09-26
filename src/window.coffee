@@ -4,6 +4,8 @@ File = require 'fs'
 Chrome = require 'chrome'
 
 {bindKey} = require 'keybinder'
+oop = require "pilot/oop"
+{EventEmitter} = require "pilot/event_emitter"
 
 module.exports =
 class Window
@@ -20,6 +22,8 @@ class Window
     'Command-Ctrl-M'  : @reload
 
   constructor: (options={}) ->
+    oop.implement @, EventEmitter
+
     for option, value of options
       @[option] = value
 
@@ -28,7 +32,7 @@ class Window
 
     @nswindow = @controller?.window
     @loadPlugins()
-    @document.ace._emit "loaded"
+    @._emit "loaded"
 
   loadPlugins: ->
     Editor = require 'editor'
@@ -38,7 +42,7 @@ class Window
 
     @plugins = []
     App  = require 'app'
-    for pluginPath in File.list(App.root + "/plugins") 
+    for pluginPath in File.list(App.root + "/plugins")
       if File.isDirectory pluginPath
         try
           plugin = require pluginPath

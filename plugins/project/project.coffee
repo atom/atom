@@ -18,9 +18,7 @@ class Project extends Plugin
     @pane = new ProjectPane @window, @
     @pane.toggle()
 
-    # NO! Do not use editor to handle events!
-    editor = @window.document
-    editor.ace.on 'open', ({filename}) =>
+    @window.on 'open', ({filename}) =>
       if File.isDirectory filename
         @pane.reload filename # I don't think this can ever happen.
       else
@@ -29,7 +27,7 @@ class Project extends Plugin
           openedPaths.push filename
           @set 'openedPaths', openedPaths
 
-    editor.ace.on 'close', ({filename}) =>
+    @window.on 'close', ({filename}) =>
       if File.isFile filename
         openedPaths = @get 'openedPaths', []
         openedPaths = _.without openedPaths, filename

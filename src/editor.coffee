@@ -66,7 +66,7 @@ class Editor extends Pane
     File.write @filename, @code()
     @sessions[@filename] = @ace.getSession()
     @window.setDirty false
-    @ace._emit 'save', { @filename }
+    @window._emit 'save', { @filename }
 
   open: (path) ->
     path = Chrome.openPanel() if not path
@@ -87,11 +87,11 @@ class Editor extends Pane
         @ace.setSession @sessions[@filename]
         @window.setDirty false
 
-    @ace._emit 'open', { @filename }
+    @window._emit 'open', { @filename }
 
   close: (path) ->
     @deleteSession path
-    @ace._emit 'close', { filename : path }
+    @window._emit 'close', { filename : path }
 
   saveAs: ->
     if file = Chrome.savePanel()

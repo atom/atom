@@ -29,13 +29,11 @@ class Tabs extends Plugin
     @pane = new TabsPane @window, @
     @pane.toggle()
 
-    # NO! Do not use editor to handle events!
-    @editor = @window.document
-    @editor.ace.on 'open', ({filename}) =>
+    @window.on 'open', ({filename}) =>
       return if File.isDirectory filename  # Ignore directories
       @pane.addTab filename
 
-    @editor.ace.on 'close', ({filename}) =>
+    @window.on 'close', ({filename}) =>
       @pane.removeTab filename
 
   # Move all of this methods below to pane? I think so
