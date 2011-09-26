@@ -3,6 +3,7 @@
     padding: 0;
     font: 12px "Lucida Grande", Helvetica, Arial, serif;
     overflow: hidden;
+    -webkit-user-select: none;
 }
 
 #tabs .clearfix:after {
