@@ -1,38 +1,43 @@
 # API Ideas
 
-
-#
-# Chrome
-#
-
-# View hierarchy
-#
-# App:    has many Windows
-# Window: has many Plugins, contains a Document model
-# Plugin: could have a Pane, or be headless
-# Pane:   has 0 or more Panes
-#
-# Model hieerarcy
-#
-# Document: holds all the data!
-
-App =
-  windows: []
-  activeWindow: null
-
-class Window
+# Radfish
+class Radfish
   plugins: []
-  document: null
-  activePane: null
+  keybindings: {}
+  
+class View =
+  app: null
+  
+  html: ->
+    # gets or creates the html for the view
 
-class Pane
-  panes: []
-  window: null
-  activeSubPane: null
+class Pane extends View
 
-class Document
-  window: null
+class Modal extends View
 
 class Plugin
-  window: null
+  app: null
   
+# Atomicity
+class App extends Radfish
+  baseURL: null
+  openURLs: []
+
+  startup: (@baseURL) ->
+  
+  shutdown: ->
+    
+  open: (path...) ->
+    
+  close: (paths...) ->
+    
+  save: (paths...) ->
+
+class Editor
+  app: null
+  
+class TreeView
+  app: null
+  
+class Tabs
+  app: null
