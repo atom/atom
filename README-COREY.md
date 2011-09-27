@@ -55,11 +55,12 @@ Since we're developing these two products side by side, the `app` directory is o
 
 # Atomicity
 
-When Atomicity's `startup` function is called, we check storage for positions and URLs of previous windows then recreate them if any are found. If none are found, we open the code for the app itself as a project.
+When Atomicity's `startup` function is called, it receives a `baseURL`. We check storage for positions and URLs of previous windows (based on the `baseURL`) then recreate them if any are found.
 
 ## Atomicity Classes
 
 **App extends Ratfish**
+
 Contains the `baseURL` and `openURLs` 
 
 **Browser**
