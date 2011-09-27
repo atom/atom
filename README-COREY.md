@@ -75,11 +75,58 @@ Represents a web page.
 
 Represents text. Knows whether it uses tabs or spaces, and if spaces how many.
 
-**Project**
+**Tree**
 
-Tree the represents `App`'s `baseURL` and `openURLs`
+Represents `App`'s `baseURL` and `openURLs`
 
 **Tabs**
 
-Represents open buffers
+Represents `App`'s opened URLS
 
+
+```coffeescript
+# Radfish
+class Radfish
+  plugins: []
+  keybindings: {}
+
+class View =
+  app: null
+
+  html: ->
+    # gets or creates the html for the view
+
+class Pane extends View
+
+class Modal extends View
+
+class Plugin
+  app: null
+
+# Atomicity
+class App extends Radfish
+  baseURL: null
+  openURLs: []
+
+  startup: (@baseURL) ->
+
+  shutdown: ->
+
+  open: (path...) ->
+
+  close: (paths...) ->
+
+  save: (paths...) ->
+
+class Editor
+  pane: null
+  app: null
+
+class Tree
+  pane: null
+  app: null
+
+class Tabs
+  pane: null
+  app: null
+```
