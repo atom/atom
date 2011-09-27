@@ -19,7 +19,9 @@ class Pane
     el.append @html
 
     switch @position
-      when 'top', 'main'
+      when 'main'
+        $('.main').replaceWith el
+      when 'top'
         verticalDiv.prepend el
       when 'left'
         horizontalDiv.prepend el
