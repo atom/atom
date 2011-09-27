@@ -66,11 +66,6 @@ Contains the `baseURL` and `openURLs`. The app handles most actions
 * open
 * close
 * save
-* new
-* findInFile
-* findInPath (like find in project)
-* findFile 
-* fs watching (so we know if an URL has changed on the FS)
 
 **Browser**
 
