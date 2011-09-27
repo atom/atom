@@ -70,8 +70,7 @@
 
 // WebUIDelegate Protocol
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
-  NSLog(@"WHAT!");
-  return [NSArray array];
+  return [NSArray array];   
 }
 
 
