@@ -39,8 +39,7 @@ class Tabs extends Plugin
   # Move all of this methods below to pane? I think so
   closeActiveTab: ->
     activeTab = $('#tabs ul .active')
-    # I don't like how this is talking directly to the document/editor
-    @window.document.close(activeTab.data 'path')
+    @window.close activeTab.data 'path'
 
   nextTab: ->
     @pane.switchToTab $('#tabs ul .active').next()

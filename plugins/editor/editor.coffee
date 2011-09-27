@@ -2,7 +2,8 @@ _ = require 'underscore'
 
 File = require 'fs'
 Chrome = require 'chrome'
-Pane = require 'pane'
+Plugin = require 'plugin'
+EditorPane = require 'editor/editor-pane'
 
 {bindKey} = require 'keybinder'
 
@@ -12,15 +13,15 @@ ace = require 'ace/ace'
 {UndoManager} = require 'ace/undomanager'
 
 module.exports =
-class Editor extends Pane
+class Editor extends Plugin
   filename: null
 
-  position: 'main'
-  html: '<div id="editor"></div>'
-
   keymap: ->
+    # Maybe these don't go here?
     'Command-S'       : 'save'
     'Command-Shift-S' : 'saveAs'
+
+    # These are cool though.
     'Command-C'       : 'copy'
     'Command-X'       : 'cut'
     'Command-R'       : 'eval'
@@ -34,30 +35,49 @@ class Editor extends Pane
     'Alt-Shift-.'     : 'end'
     'Ctrl-L'          : 'consolelog'
 
+  modeMap:
+    js: 'javascript'
+    c: 'c_cpp'
+    cpp: 'c_cpp'
+    h: 'c_cpp'
+    m: 'c_cpp'
+    md: 'markdown'
+    cs: 'csharp'
+    rb: 'ruby'
+
   sessions: {}
 
   constructor: (args...) ->
     super(args...)
 
-    for shortcut, method of @keymap()
-      bindKey @, shortcut, method
+    @pane = new EditorPane @window
+    @pane.add()
 
     @ace = ace.edit "editor"
+
+    # This stuff should all be grabbed from the .atomicity dir
     @ace.setTheme require "ace/theme/twilight"
     @ace.getSession().setUseSoftTabs true
     @ace.getSession().setTabSize 2
-    @ace.pane = this
     @ace.setShowInvisibles(true)
     @ace.setPrintMarginColumn 78
 
-    @ace.getSession().on 'change', ->
-      @window.setDirty true
+    @ace.getSession().on 'change', -> @window.setDirty true
+    @window.on 'open', ({filename}) => @open filename
+    @window.on 'close', ({filename}) => @close filename
 
-    el = document.body
-    el.addEventListener 'DOMNodeInsertedIntoDocument', =>
-      @resize()
-    el.addEventListener 'DOMNodeRemovedFromDocument', =>
-      @resize()
+  modeForLanguage: (language) ->
+    language = language.toLowerCase()
+    modeName = @modeMap[language] or language
+
+    try
+      require("ace/mode/#{modeName}").Mode
+    catch e
+      null
+
+  setMode: ->
+    if mode = @modeForLanguage _.last @filename.split '.'
+      @ace.getSession().setMode new mode
 
   save: ->
     return @saveAs() if not @filename
@@ -66,7 +86,7 @@ class Editor extends Pane
     File.write @filename, @code()
     @sessions[@filename] = @ace.getSession()
     @window.setDirty false
-    @window._emit 'save', { @filename }
+    @window._emit 'save', { filename: @filename }
 
   open: (path) ->
     path = Chrome.openPanel() if not path
@@ -86,12 +106,10 @@ class Editor extends Pane
         @sessions[@filename] or= @newSession File.read @filename
         @ace.setSession @sessions[@filename]
         @window.setDirty false
-
-    @window._emit 'open', { @filename }
+        @setMode()
 
   close: (path) ->
     @deleteSession path
-    @window._emit 'close', { filename : path }
 
   saveAs: ->
     if file = Chrome.savePanel()
@@ -108,17 +126,6 @@ class Editor extends Pane
       needle: "[ \t]+$"
       regExp: true
       wrap: true
-
-  resize: (timeout=1) ->
-    setTimeout =>
-      @ace.focus()
-      @ace.resize()
-    , timeout
-
-  switchToSession: (path) ->
-    if @sessions[path]
-      @filename = path
-      @ace.setSession @sessions[path]
 
   deleteSession: (path) ->
     if path is @filename

@@ -30,7 +30,7 @@ class TabsPane extends Pane
 
     $("#tabs ul .active").removeClass("active")
     $(tab).addClass 'active'
-    @window.document.switchToSession $(tab).data 'path'
+    @window.open $(tab).data 'path'
 
   addTab: (path) ->
     existing = $("#tabs [data-path='#{path}']")

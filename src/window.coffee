@@ -10,8 +10,9 @@ oop = require "pilot/oop"
 module.exports =
 class Window
   controller: null
-  document: null
+
   nswindow: null
+
   panes: []
 
   keymap: ->
@@ -35,12 +36,9 @@ class Window
     @._emit "loaded"
 
   loadPlugins: ->
-    Editor = require 'editor'
-    @document = new Editor @
-
-    @open @path if @path?
-
     @plugins = []
+
+    # Ewwww, don't do this
     App  = require 'app'
     for pluginPath in File.list(App.root + "/plugins")
       if File.isDirectory pluginPath
@@ -51,6 +49,8 @@ class Window
           console.warn "Plugin Failed: #{File.base pluginPath}"
           console.warn error
 
+    @open @path if @path?
+
     # After all the plugins are created, load them.
     for plugin in @plugins
       try
@@ -59,33 +59,15 @@ class Window
         console.warn "Plugin Loading Failed: #{plugin.constructor.name}"
         console.warn error
 
-  close: ->
-    @controller.close
-
   reload: ->
     Chrome.newWindow()
-    @close()
-
-  isDirty: ->
-    @nswindow.isDocumentEdited()
-
-  # Set the active window's dirty status.
-  setDirty: (bool) ->
-    @nswindow.setDocumentEdited bool
+    @controller.close
 
   inspector: ->
     @_inspector ?= WindowController.webView.inspector
 
   new: ->
     Chrome.newWindow()
-
-  open: (path) ->
-    @document?.open path
-
-  openURL: (url) ->
-    if url = prompt "Enter URL:"
-      Chrome = require 'app'
-      Chrome.openURL url
 
   showConsole: ->
     @inspector().showConsole(1)
@@ -95,3 +77,22 @@ class Window
 
   setTitle: (title) ->
     @nswindow.title = title
+
+  # Do these get moved into document?
+  isDirty: ->
+    @nswindow.isDocumentEdited()
+
+  # Set the active window's dirty status.
+  setDirty: (bool) ->
+    @nswindow.setDocumentEdited bool
+
+  open: (path) ->
+    @_emit 'open', { filename: path }
+
+  close: (path) ->
+    @_emit 'close', { filename: path }
+
+  openURL: (url) ->
+    if url = prompt "Enter URL:"
+      Chrome = require 'app'
+      Chrome.openURL url
