@@ -2,92 +2,144 @@
 
 # Futuristic Text Editing
 
-There are two things we are developing: a framework which lets you write Cocoa applications in CoffeeScript, HTML, and CSS utilizing the power of JSCocoa, and a highly extensible text editor built using that framework and Ace.
+Atomicity is a highly extensible OS X text editor. It is written in CoffeeScript, HTML, and CSS utilizing the power of JSCocoa and the elegance of Ajax.org's Ace editor.
 
-Let's call the framework "Radfish" and the text editor "Atomicity".
+## Atomicity Startup
 
+When Atomicity starts, AtomApp (the application delegate) immediately loads require.coffee and app.coffee using JSCocoa.
 
-# Radfish
+app.coffee exports the following two functions:
 
-Our framework wraps the Cocoa APIs in idiomatic CoffeeScript using JSCocoa allowing you to write desktop applications using web technologies.
+- `startup: ->`
 
-## Radfish Classes
+Called right away in a global JSCocoa context for the app. Different than a browser environment - there is no `window` global, no `document`, etc. Just Atomicity's standard library: require, underscore, etc.
 
-**Application**
+In here we setup the app's menu structure using the AtomMenu class, bind basic app-wide keyboard events with the Keybinder, load our core UI files, load extensions using the ExtensionManager module, and load your `~/.atomicity` module.
 
-Represents the running application. Has methods that let you do Cocoa stuff, like open modals or panes that aren't tied to any one window. Also handles the menu bar.
+Loading core UI files and extensions is important because it gives those modules a chance to register for app events.
 
-**Window**
+After all that's done we check `localStorage` for saved AtomWindow bounds & URLs and recreate them if they exist. If they don't exist we create a fresh AtomWindow. At this point we're done starting up.
 
-Represents an NSWindow.
+- `shutdown: ->`
 
-**View**
+Called before shutting down. The app doesn't finish quitting until this function returns.
 
-ViewController. Represents a `<div>`. Each View can add keyboard shortcuts to the window that are active when it is shown. They can also add keyboard shortcuts to themselves that are active when they have focus.
+Here is where we save the window positions in localStorage and do any other global cleanup, which is probably nothing.
 
-The HTML a View represents is known as the Template.
+## Events
 
-**Pane**
+Atomicity has a jQuery/Backbone-style event system using the `on` and `off` functions of the `AtomEvent` module. Events should be in the format of: `namespace:event`, for example `window:load` for onLoad or `plugin:install` for when a plugin is installed.
 
-Specialized View. Represents `<div class='pane'>`. Has a position.
+```coffee
+AtomEvent.on 'window:load', (window) ->
+  myCode()
+```
 
-**Modal**
+Individual events can be uninstalled using `off`:
 
-Specialized View. Represents a Facebox.
+```coffee
+AtomEvent.off 'window:load'
+```
 
-**Keybinder**
+As well as entire namespaces:
 
-Binds keyboard shortcuts to functions and executes them when needed.
+```coffee
+AtomEvent.off 'window:'
+```
 
-**PluginManager**
+## AtomWindow Creation
 
-Class that loads and activates plugins. Plugins are modules with `startup` and `shutdown` functions. They can also have `description`, `url` properties, and `author` properties. The `url` property should point to the homepage, not an update url.
+Every AtomWindow represents a URL. If we don't pass in a URL when creating an AtomWindow, it'll set its URL to something random in /tmp.
 
-## Radfish Applications
+When we instantiate an AtomWindow it creates a WebView and sets itself as the delegate then loads `index.html`. When the WebView finishes loading the AtomWindow fires a `window:load` event, passing itself as the sole argument.
 
-A Radfish application is a module that exports two functions: `startup` and `shutdown`.
+Extensions will probably listen for the `window:load` event, as will core Atomicity UI code.
 
-When a Radfish application starts up, your application module's `startup` function is passed an Application instance. It's up to you to create windows or do whatever.
+## Atomicity UI Code
 
-Your `startup` function is executed in the Application Context, which means it doesn't have a `window` global or the DOM available because there isn't one.
+Atomicity has a few classes in addition to AtomWindow strictly for UI. Each UI class is a "View" while the HTML it represents is a "Template".
 
-Windows execute code in a Window Context, which is much more like a traditional browser environment: there's a `window` object, a `document` method, a DOM, etc. Normal web libraries such as jQuery work just fine in a Window Context. Each Window Context is separate, they do not share the `window` object. In other words, traditional JavaScript globals are local to windows.
+- View
 
-Before shutting down, your application module's `shutdown` function is called. The application won't shut down until this function returns.
+Generic class that represents a chunk of HTML, or template. Like Backbone it has a `el` property (a string selector) and a `render` method, which inserts the template into the DOM. Also has a `remove` method.
 
-Since we're developing these two products side by side, the `app` directory is the module for our Radfish application. The `framework` directory is our Radfish source code.
+- Pane
 
+Special view. Has a position.
 
-# Atomicity
+- Modal
 
-When Atomicity's `startup` function is called, we check storage for positions and URLs of previous windows then recreate them if any are found. If none are found, we open the code for the app itself as a project.
+Facebox.
 
-## Atomicity Classes
+## Extensions
 
-**Browser**
+Extensions are directories with a package.json file based on npm's: https://github.com/isaacs/npm/blob/master/doc/cli/json.md
 
-Document that represents a web page.
+`name`, `version`, `description`, `homepage`, and `author` are probably the only ones that matter most right now.
 
-**Editor**
+Extensions also have an index.coffee (or `main` in the package.json) file that exports the following functions:
 
-Document that represents text. Knows whether it uses tabs or spaces, and if spaces how many.
+- `install: ->`
 
-**Project**
+Called the very first time your extension is loaded, before `startup`.
 
-Document that represents a directory.
+- `uninstall: ->`
 
-**BrowserPane**
+Called when your extension is being uninstalled. This is where you should delete any saved data.
 
-Pane that browses the web. Some would call it a web browser.
+- `startup: ->`
 
-**EditorPane**
+Called when the extension is first loaded during the app's startup or an in-process loading of the extension.
 
-Pane that manages the text editor. Ace powered. In it to win it.
+Here you'd hand Keybinder a keymap for your extension, add items to AtomMenu, add items to AtomContextMenu, and attach a callback to `window:load` that creates & renders AtomViews if necessary.
 
-**ProjectDrawerPane**
+- `shutdown: ->`
 
-Pane that represents the project drawer.
+Called when the app shuts down or your extension is disabled. Different than `window:close`. Make sure to clean up after yourself here by using `AtomEvent.off` and whatever else.
 
-**TabPane**
+## ExtensionManager
 
-A pane. For tabs.
+The ExtensionManager module loads, installs, uninstalls, and keeps track of extensions. All extensions are global to the whole app, and enabled/disabled on an app-wide basis.
+
+It fires the following events on AtomEvent, passing the Extension module to each:
+
+- `extension:install`
+- `extension:uninstall`
+- `extension:startup`
+- `extension:shutdown`
+
+## Keybinder
+
+Module with a single public function:
+
+- `bind: (scope, map) ->`
+
+`scope` should be one of:
+
+- `'app'`
+- `'window'`
+- A Pane object
+
+While `map` should be a key/value object in this format: `shortcut: callback`.
+
+- `shortcut` should be a string like `cmd+w` or `ctrl+shift+o`
+- `callback` should be a function
+
+For example:
+
+```coffee
+Keybinder.bind 'app',
+  'cmd+o': openFile
+  'cmd+s': saveFile
+
+# Called inside a View
+Keybinder.bind this,
+  'cmd+shift+r': => @reload()
+  'cmd+shift+o': => @openURL()
+```
+
+Needs more thought.
+
+## AtomMenu
+
+Used by core app classes and extensions to add menu items to the app. Needs more thought.
