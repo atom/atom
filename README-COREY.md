@@ -70,6 +70,7 @@ As well as entire namespaces:
 
 ```coffee
 AtomEvent.off 'window:'
+```
 
 ## Atomicity UI Code
 
