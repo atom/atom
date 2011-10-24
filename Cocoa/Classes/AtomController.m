@@ -39,14 +39,14 @@
   [webView setUIDelegate:self];
   
   [self setShouldCascadeWindows:YES];
-  [self setWindowFrameAutosaveName:@"atomWindow"];
+  [self setWindowFrameAutosaveName:@"atomController"];
 
   if (self.URL) {
     [webView setMainFrameURL:self.URL];
   }
   else {
     jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
-    [jscocoa setObject:self withName:@"WindowController"];
+    [jscocoa setObject:self withName:@"atomController"];
 
     NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
     NSString *requirePath = [resourcePath stringByAppendingString:@"/src/require.js"];
