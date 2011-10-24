@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		045043D31455D51B00BFC3A0 /* UKFileWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 045043CC1455D51B00BFC3A0 /* UKFileWatcher.m */; };
+		045043D41455D51B00BFC3A0 /* UKFNSubscribeFileWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 045043CE1455D51B00BFC3A0 /* UKFNSubscribeFileWatcher.m */; };
+		045043D51455D51B00BFC3A0 /* UKKQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 045043D01455D51B00BFC3A0 /* UKKQueue.m */; };
+		045043D61455D51B00BFC3A0 /* UKMainThreadProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 045043D21455D51B00BFC3A0 /* UKMainThreadProxy.m */; };
 		046973A414145A9500415518 /* AtomApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 046973A314145A9500415518 /* AtomApp.m */; };
 		83599F9B13FE0F8400AC37E3 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83599F9A13FE0F8400AC37E3 /* WebKit.framework */; };
 		8359A6EE13FE26DA00AC37E3 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8359A6ED13FE26DA00AC37E3 /* JavaScriptCore.framework */; };
@@ -28,6 +32,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		045043CB1455D51B00BFC3A0 /* UKFileWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UKFileWatcher.h; sourceTree = "<group>"; };
+		045043CC1455D51B00BFC3A0 /* UKFileWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UKFileWatcher.m; sourceTree = "<group>"; };
+		045043CD1455D51B00BFC3A0 /* UKFNSubscribeFileWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UKFNSubscribeFileWatcher.h; sourceTree = "<group>"; };
+		045043CE1455D51B00BFC3A0 /* UKFNSubscribeFileWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UKFNSubscribeFileWatcher.m; sourceTree = "<group>"; };
+		045043CF1455D51B00BFC3A0 /* UKKQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UKKQueue.h; sourceTree = "<group>"; };
+		045043D01455D51B00BFC3A0 /* UKKQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UKKQueue.m; sourceTree = "<group>"; };
+		045043D11455D51B00BFC3A0 /* UKMainThreadProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UKMainThreadProxy.h; sourceTree = "<group>"; };
+		045043D21455D51B00BFC3A0 /* UKMainThreadProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UKMainThreadProxy.m; sourceTree = "<group>"; };
 		046973A214145A9500415518 /* AtomApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomApp.h; path = Classes/AtomApp.h; sourceTree = "<group>"; };
 		046973A314145A9500415518 /* AtomApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomApp.m; path = Classes/AtomApp.m; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
@@ -77,6 +89,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		045043CA1455D51B00BFC3A0 /* UKKQueue */ = {
+			isa = PBXGroup;
+			children = (
+				045043CB1455D51B00BFC3A0 /* UKFileWatcher.h */,
+				045043CC1455D51B00BFC3A0 /* UKFileWatcher.m */,
+				045043CD1455D51B00BFC3A0 /* UKFNSubscribeFileWatcher.h */,
+				045043CE1455D51B00BFC3A0 /* UKFNSubscribeFileWatcher.m */,
+				045043CF1455D51B00BFC3A0 /* UKKQueue.h */,
+				045043D01455D51B00BFC3A0 /* UKKQueue.m */,
+				045043D11455D51B00BFC3A0 /* UKMainThreadProxy.h */,
+				045043D21455D51B00BFC3A0 /* UKMainThreadProxy.m */,
+			);
+			path = UKKQueue;
+			sourceTree = "<group>";
+		};
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -123,6 +150,7 @@
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				837D8BC51408FAD4009B6DFA /* JSCocoa */,
+				045043CA1455D51B00BFC3A0 /* UKKQueue */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 			);
@@ -276,6 +304,10 @@
 				837D8BDA1408FAD4009B6DFA /* JSCocoaLib.m in Sources */,
 				837D8BDB1408FAD4009B6DFA /* JSCocoaPrivateObject.m in Sources */,
 				046973A414145A9500415518 /* AtomApp.m in Sources */,
+				045043D31455D51B00BFC3A0 /* UKFileWatcher.m in Sources */,
+				045043D41455D51B00BFC3A0 /* UKFNSubscribeFileWatcher.m in Sources */,
+				045043D51455D51B00BFC3A0 /* UKKQueue.m in Sources */,
+				045043D61455D51B00BFC3A0 /* UKMainThreadProxy.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
