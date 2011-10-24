@@ -10,7 +10,7 @@
 
 @class JSCocoa;
 
-@interface AtomWindowController : NSWindowController {
+@interface AtomController : NSWindowController {
   IBOutlet id webView;
   NSString *URL;
   JSCocoa* jscocoa;

@@ -6,12 +6,13 @@
 //  Copyright 2011 GitHub. All rights reserved.
 //`
 
-#import "AtomWindowController.h"
+#import "AtomController.h"
+#import "AtomApp.h"
 
 #import <WebKit/WebKit.h>
 #import "JSCocoa.h"
 
-@implementation AtomWindowController
+@implementation AtomController
 
 @synthesize webView, URL;
 
@@ -59,10 +60,11 @@
 }
 
 - (void)close {
+  [(AtomApp *)NSApp removeController:self];
   [super close];
 }
 
--(BOOL) handleKeyEvent:(NSEvent *)event {
+- (BOOL)handleKeyEvent:(NSEvent *)event {
   // ICKY: Using a global function defined in App.js to deal with key events
   JSValueRef returnValue = [jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
   return [jscocoa toBool:returnValue];
