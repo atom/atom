@@ -9,12 +9,11 @@ module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (path) ->
-    if /~/.test path
-      OSX.NSString.stringWithString(path).stringByExpandingTildeInPath
-    else if path.indexOf('./') is 0
-      throw "absolute: ./ not yet implemented"
-    else
-      path
+    path = OSX.NSString.stringWithString(path).stringByStandardizingPath.toString()
+    return path if path[0] == "/"
+
+    resolvedString = OSX.NSString.stringWithString(@workingDirectory)
+    resolvedString.stringByAppendingPath(path).stringByStandardizingPath.toString()
 
   # Return the basename of the given path. That is the path with
   # any leading directory components removed. If specified, also
