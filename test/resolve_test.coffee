@@ -1,4 +1,4 @@
-File   = require 'fs'
+fs   = require 'fs'
 assert = require 'assert'
 
 root = OSX.NSBundle.mainBundle.resourcePath
@@ -16,7 +16,7 @@ assert.equal resolve('tabs/tabs'), "#{root}/extensions/tabs/tabs.js"
 
 # assert.equal resolve('./document'), "#{root}/src/document.js"
 # assert.equal resolve('../README.md'), "#{root}/README.md"
-dotatom = File.absolute "~/.atomicity"
+dotatom = fs.absolute "~/.atomicity"
 assert.equal resolve('~/.atomicity'), "#{dotatom}/index.coffee"
 
 assert.equal resolve('ace/requirejs/text!ace/css/editor.css'),

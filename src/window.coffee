@@ -1,5 +1,5 @@
-File = require 'fs'
 KeyBinder = require 'key-binder'
+fs = require 'fs'
 
 # This file is a weirdo. We don't create a Window class, we just add stuff to
 # the DOM window.

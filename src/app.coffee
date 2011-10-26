@@ -1,11 +1,8 @@
-File = require 'fs'
 KeyBinder = require 'key-binder'
 require 'window'
 
 module.exports =
 class App
-  @root: OSX.NSBundle.mainBundle.resourcePath
-
   @startup: ->
     KeyBinder.register "app", @
 
