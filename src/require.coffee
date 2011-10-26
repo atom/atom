@@ -2,7 +2,7 @@ resourcePath = OSX.NSBundle.mainBundle.resourcePath
 
 paths = [
   "#{resourcePath}/src"
-  "#{resourcePath}/plugins"
+  "#{resourcePath}/extensions"
   "#{resourcePath}/vendor"
 ]
 

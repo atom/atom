@@ -3,12 +3,12 @@ _ = require 'underscore'
 
 Pane = require 'pane'
 File = require 'fs'
-Plugin = require 'plugin'
+Extension = require 'extension'
 
 {CoffeeScript} = require 'coffee-script'
 
 module.exports =
-class TinyTest extends Plugin
+class TinyTest extends Extension
   keymap: ->
     'Command-Ctrl-T': 'runTests'
 

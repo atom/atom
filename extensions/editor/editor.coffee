@@ -2,7 +2,7 @@ _ = require 'underscore'
 
 File = require 'fs'
 Chrome = require 'chrome'
-Plugin = require 'plugin'
+Extension = require 'extension'
 EditorPane = require 'editor/editor-pane'
 
 {bindKey} = require 'keybinder'
@@ -13,7 +13,7 @@ ace = require 'ace/ace'
 {UndoManager} = require 'ace/undomanager'
 
 module.exports =
-class Editor extends Plugin
+class Editor extends Extension
   filename: null
 
   keymap: ->

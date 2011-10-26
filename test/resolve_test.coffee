@@ -5,14 +5,14 @@ root = OSX.NSBundle.mainBundle.resourcePath
 resolve = (path) ->
   # use a list of known load paths in the tests
   paths = require.paths
-  require.paths = [ "#{root}/src", "#{root}/plugins", "#{root}/vendor" ]
+  require.paths = [ "#{root}/src", "#{root}/extensions", "#{root}/vendor" ]
   path = require.resolve path
   require.paths = paths
   path
 
 assert.equal resolve('underscore'), "#{root}/vendor/underscore.js"
 assert.equal resolve('app'), "#{root}/src/app.js"
-assert.equal resolve('tabs/tabs'), "#{root}/plugins/tabs/tabs.js"
+assert.equal resolve('tabs/tabs'), "#{root}/extensions/tabs/tabs.js"
 
 # assert.equal resolve('./document'), "#{root}/src/document.js"
 # assert.equal resolve('../README.md'), "#{root}/README.md"

@@ -8,7 +8,7 @@ task :build do
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
-  %w( index.html src docs static plugins test vendor ).each do |dir|
+  %w( index.html src docs static extensions test vendor ).each do |dir|
     rm_rf File.join(dest, dir)
     cp_r dir, File.join(dest, dir)
   end
@@ -19,7 +19,7 @@ task :build do
           "http://coffeescript.org/ - (try `npm i -g coffee-script`)"
   end
 
-  %w( src plugins ).each do |dir|
+  %w( src extensions ).each do |dir|
     Dir["#{dir}/**/*.coffee"].each do |file|
       sh "coffee -c #{dest}/#{dir}"
     end

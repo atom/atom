@@ -1,11 +1,11 @@
 _ = require 'underscore'
 
 File = require 'fs'
-Plugin = require 'plugin'
+Extension = require 'extension'
 ProjectPane = require 'project/projectpane'
 
 module.exports =
-class Project extends Plugin
+class Project extends Extension
   keymap: ->
     'Command-Ctrl-N': -> @pane.toggle()
 

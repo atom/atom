@@ -1,11 +1,11 @@
 $ = require 'jquery'
 
-Plugin = require 'plugin'
+Extension = require 'extension'
 File = require 'fs'
 TabsPane = require 'tabs/tabspane'
 
 module.exports =
-class Tabs extends Plugin
+class Tabs extends Extension
   # The Editor pane we're managing.
   editor: null
 
