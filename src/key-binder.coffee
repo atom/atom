@@ -56,7 +56,8 @@ class KeyBinder
     callbacks = @bindings[binding]
     return false if not callbacks
 
-    callback() for callback in callbacks
+    # Only use the most recently added binding
+    _.last(callbacks)()
     true
 
   @bindingParser: (binding) ->
