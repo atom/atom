@@ -64,13 +64,9 @@
   </div>
 </body>
 
+<script src='src/require.js'></script>
 <script>
-  //require('startup');
-
-  window.onerror = function(message, url, lineNumber) {
-    // Any error will popup the console
-    atomController.webView.inspector.showConsole(true);
-  }
+  require('startup');
 </script>
 
 </html>

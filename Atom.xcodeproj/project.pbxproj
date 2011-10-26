@@ -1,0 +1,404 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		043D7E4C145794990078D710 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 043D7E4B145794990078D710 /* Cocoa.framework */; };
+		043D7E56145794990078D710 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 043D7E54145794990078D710 /* InfoPlist.strings */; };
+		043D7E58145794990078D710 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E57145794990078D710 /* main.m */; };
+		043D7E621457949A0078D710 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 043D7E601457949A0078D710 /* MainMenu.xib */; };
+		043D7E84145795B20078D710 /* BridgeSupportController.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E6D145795B20078D710 /* BridgeSupportController.m */; };
+		043D7E85145795B20078D710 /* JSCocoaController.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E70145795B20078D710 /* JSCocoaController.m */; };
+		043D7E86145795B20078D710 /* JSCocoaFFIArgument.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E72145795B20078D710 /* JSCocoaFFIArgument.m */; };
+		043D7E87145795B20078D710 /* JSCocoaFFIClosure.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E74145795B20078D710 /* JSCocoaFFIClosure.m */; };
+		043D7E88145795B20078D710 /* JSCocoaLib.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E76145795B20078D710 /* JSCocoaLib.m */; };
+		043D7E89145795B20078D710 /* JSCocoaPrivateObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E78145795B20078D710 /* JSCocoaPrivateObject.m */; };
+		043D7E8A145795B20078D710 /* UKFileWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E7B145795B20078D710 /* UKFileWatcher.m */; };
+		043D7E8B145795B20078D710 /* UKFNSubscribeFileWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E7D145795B20078D710 /* UKFNSubscribeFileWatcher.m */; };
+		043D7E8C145795B20078D710 /* UKKQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E7F145795B20078D710 /* UKKQueue.m */; };
+		043D7E8D145795B20078D710 /* UKMainThreadProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E81145795B20078D710 /* UKMainThreadProxy.m */; };
+		043D7E8E145795B20078D710 /* AtomWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 043D7E83145795B20078D710 /* AtomWindow.xib */; };
+		043D7E94145795B70078D710 /* AtomApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E91145795B70078D710 /* AtomApp.m */; };
+		043D7E95145795B70078D710 /* AtomController.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E93145795B70078D710 /* AtomController.m */; };
+		047F26021457978C006DC904 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 047F26011457978C006DC904 /* JavaScriptCore.framework */; };
+		047F260414579792006DC904 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 047F260314579792006DC904 /* WebKit.framework */; };
+		047F260E145883B9006DC904 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 047F260D145883B9006DC904 /* Icon.icns */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		043D7E47145794990078D710 /* Atom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atom.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		043D7E4B145794990078D710 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		043D7E4E145794990078D710 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		043D7E4F145794990078D710 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		043D7E50145794990078D710 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		043D7E53145794990078D710 /* Atom-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Atom-Info.plist"; sourceTree = "<group>"; };
+		043D7E55145794990078D710 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		043D7E57145794990078D710 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		043D7E59145794990078D710 /* Atom-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Atom-Prefix.pch"; sourceTree = "<group>"; };
+		043D7E611457949A0078D710 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		043D7E6C145795B20078D710 /* BridgeSupportController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgeSupportController.h; sourceTree = "<group>"; };
+		043D7E6D145795B20078D710 /* BridgeSupportController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BridgeSupportController.m; sourceTree = "<group>"; };
+		043D7E6E145795B20078D710 /* JSCocoa.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoa.h; sourceTree = "<group>"; };
+		043D7E6F145795B20078D710 /* JSCocoaController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaController.h; sourceTree = "<group>"; };
+		043D7E70145795B20078D710 /* JSCocoaController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaController.m; sourceTree = "<group>"; };
+		043D7E71145795B20078D710 /* JSCocoaFFIArgument.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaFFIArgument.h; sourceTree = "<group>"; };
+		043D7E72145795B20078D710 /* JSCocoaFFIArgument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaFFIArgument.m; sourceTree = "<group>"; };
+		043D7E73145795B20078D710 /* JSCocoaFFIClosure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaFFIClosure.h; sourceTree = "<group>"; };
+		043D7E74145795B20078D710 /* JSCocoaFFIClosure.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaFFIClosure.m; sourceTree = "<group>"; };
+		043D7E75145795B20078D710 /* JSCocoaLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaLib.h; sourceTree = "<group>"; };
+		043D7E76145795B20078D710 /* JSCocoaLib.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaLib.m; sourceTree = "<group>"; };
+		043D7E77145795B20078D710 /* JSCocoaPrivateObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSCocoaPrivateObject.h; sourceTree = "<group>"; };
+		043D7E78145795B20078D710 /* JSCocoaPrivateObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSCocoaPrivateObject.m; sourceTree = "<group>"; };
+		043D7E7A145795B20078D710 /* UKFileWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UKFileWatcher.h; sourceTree = "<group>"; };
+		043D7E7B145795B20078D710 /* UKFileWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UKFileWatcher.m; sourceTree = "<group>"; };
+		043D7E7C145795B20078D710 /* UKFNSubscribeFileWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UKFNSubscribeFileWatcher.h; sourceTree = "<group>"; };
+		043D7E7D145795B20078D710 /* UKFNSubscribeFileWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UKFNSubscribeFileWatcher.m; sourceTree = "<group>"; };
+		043D7E7E145795B20078D710 /* UKKQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UKKQueue.h; sourceTree = "<group>"; };
+		043D7E7F145795B20078D710 /* UKKQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UKKQueue.m; sourceTree = "<group>"; };
+		043D7E80145795B20078D710 /* UKMainThreadProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UKMainThreadProxy.h; sourceTree = "<group>"; };
+		043D7E81145795B20078D710 /* UKMainThreadProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UKMainThreadProxy.m; sourceTree = "<group>"; };
+		043D7E83145795B20078D710 /* AtomWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = AtomWindow.xib; path = xibs/AtomWindow.xib; sourceTree = "<group>"; };
+		043D7E90145795B70078D710 /* AtomApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomApp.h; path = Classes/AtomApp.h; sourceTree = "<group>"; };
+		043D7E91145795B70078D710 /* AtomApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomApp.m; path = Classes/AtomApp.m; sourceTree = "<group>"; };
+		043D7E92145795B70078D710 /* AtomController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomController.h; path = Classes/AtomController.h; sourceTree = "<group>"; };
+		043D7E93145795B70078D710 /* AtomController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomController.m; path = Classes/AtomController.m; sourceTree = "<group>"; };
+		047F26011457978C006DC904 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		047F260314579792006DC904 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		047F260D145883B9006DC904 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		043D7E44145794990078D710 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				047F260414579792006DC904 /* WebKit.framework in Frameworks */,
+				047F26021457978C006DC904 /* JavaScriptCore.framework in Frameworks */,
+				043D7E4C145794990078D710 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		043D7E3C145794990078D710 = {
+			isa = PBXGroup;
+			children = (
+				043D7E51145794990078D710 /* Atom */,
+				043D7E4A145794990078D710 /* Frameworks */,
+				043D7E48145794990078D710 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		043D7E48145794990078D710 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				043D7E47145794990078D710 /* Atom.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		043D7E4A145794990078D710 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				047F260314579792006DC904 /* WebKit.framework */,
+				047F26011457978C006DC904 /* JavaScriptCore.framework */,
+				043D7E4B145794990078D710 /* Cocoa.framework */,
+				043D7E4D145794990078D710 /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		043D7E4D145794990078D710 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				043D7E4E145794990078D710 /* AppKit.framework */,
+				043D7E4F145794990078D710 /* CoreData.framework */,
+				043D7E50145794990078D710 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		043D7E51145794990078D710 /* Atom */ = {
+			isa = PBXGroup;
+			children = (
+				043D7E90145795B70078D710 /* AtomApp.h */,
+				043D7E91145795B70078D710 /* AtomApp.m */,
+				043D7E92145795B70078D710 /* AtomController.h */,
+				043D7E93145795B70078D710 /* AtomController.m */,
+				043D7E6B145795B20078D710 /* JSCocoa */,
+				043D7E79145795B20078D710 /* UKKQueue */,
+				043D7E52145794990078D710 /* Supporting Files */,
+			);
+			path = Atom;
+			sourceTree = "<group>";
+		};
+		043D7E52145794990078D710 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				047F260D145883B9006DC904 /* Icon.icns */,
+				043D7E601457949A0078D710 /* MainMenu.xib */,
+				043D7E83145795B20078D710 /* AtomWindow.xib */,
+				043D7E53145794990078D710 /* Atom-Info.plist */,
+				043D7E54145794990078D710 /* InfoPlist.strings */,
+				043D7E57145794990078D710 /* main.m */,
+				043D7E59145794990078D710 /* Atom-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		043D7E6B145795B20078D710 /* JSCocoa */ = {
+			isa = PBXGroup;
+			children = (
+				043D7E6C145795B20078D710 /* BridgeSupportController.h */,
+				043D7E6D145795B20078D710 /* BridgeSupportController.m */,
+				043D7E6E145795B20078D710 /* JSCocoa.h */,
+				043D7E6F145795B20078D710 /* JSCocoaController.h */,
+				043D7E70145795B20078D710 /* JSCocoaController.m */,
+				043D7E71145795B20078D710 /* JSCocoaFFIArgument.h */,
+				043D7E72145795B20078D710 /* JSCocoaFFIArgument.m */,
+				043D7E73145795B20078D710 /* JSCocoaFFIClosure.h */,
+				043D7E74145795B20078D710 /* JSCocoaFFIClosure.m */,
+				043D7E75145795B20078D710 /* JSCocoaLib.h */,
+				043D7E76145795B20078D710 /* JSCocoaLib.m */,
+				043D7E77145795B20078D710 /* JSCocoaPrivateObject.h */,
+				043D7E78145795B20078D710 /* JSCocoaPrivateObject.m */,
+			);
+			path = JSCocoa;
+			sourceTree = "<group>";
+		};
+		043D7E79145795B20078D710 /* UKKQueue */ = {
+			isa = PBXGroup;
+			children = (
+				043D7E7A145795B20078D710 /* UKFileWatcher.h */,
+				043D7E7B145795B20078D710 /* UKFileWatcher.m */,
+				043D7E7C145795B20078D710 /* UKFNSubscribeFileWatcher.h */,
+				043D7E7D145795B20078D710 /* UKFNSubscribeFileWatcher.m */,
+				043D7E7E145795B20078D710 /* UKKQueue.h */,
+				043D7E7F145795B20078D710 /* UKKQueue.m */,
+				043D7E80145795B20078D710 /* UKMainThreadProxy.h */,
+				043D7E81145795B20078D710 /* UKMainThreadProxy.m */,
+			);
+			path = UKKQueue;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		043D7E46145794990078D710 /* Atom */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 043D7E651457949A0078D710 /* Build configuration list for PBXNativeTarget "Atom" */;
+			buildPhases = (
+				043D7E43145794990078D710 /* Sources */,
+				043D7E44145794990078D710 /* Frameworks */,
+				043D7E45145794990078D710 /* Resources */,
+				047F25FF145796A2006DC904 /* Copy HTML folder & compile CoffeeScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Atom;
+			productName = Atom;
+			productReference = 043D7E47145794990078D710 /* Atom.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		043D7E3E145794990078D710 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
+			buildConfigurationList = 043D7E41145794990078D710 /* Build configuration list for PBXProject "Atom" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 043D7E3C145794990078D710;
+			productRefGroup = 043D7E48145794990078D710 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				043D7E46145794990078D710 /* Atom */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		043D7E45145794990078D710 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				043D7E56145794990078D710 /* InfoPlist.strings in Resources */,
+				043D7E621457949A0078D710 /* MainMenu.xib in Resources */,
+				043D7E8E145795B20078D710 /* AtomWindow.xib in Resources */,
+				047F260E145883B9006DC904 /* Icon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		047F25FF145796A2006DC904 /* Copy HTML folder & compile CoffeeScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy HTML folder & compile CoffeeScript";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "rake build";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		043D7E43145794990078D710 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				043D7E58145794990078D710 /* main.m in Sources */,
+				043D7E84145795B20078D710 /* BridgeSupportController.m in Sources */,
+				043D7E85145795B20078D710 /* JSCocoaController.m in Sources */,
+				043D7E86145795B20078D710 /* JSCocoaFFIArgument.m in Sources */,
+				043D7E87145795B20078D710 /* JSCocoaFFIClosure.m in Sources */,
+				043D7E88145795B20078D710 /* JSCocoaLib.m in Sources */,
+				043D7E89145795B20078D710 /* JSCocoaPrivateObject.m in Sources */,
+				043D7E8A145795B20078D710 /* UKFileWatcher.m in Sources */,
+				043D7E8B145795B20078D710 /* UKFNSubscribeFileWatcher.m in Sources */,
+				043D7E8C145795B20078D710 /* UKKQueue.m in Sources */,
+				043D7E8D145795B20078D710 /* UKMainThreadProxy.m in Sources */,
+				043D7E94145795B70078D710 /* AtomApp.m in Sources */,
+				043D7E95145795B70078D710 /* AtomController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		043D7E54145794990078D710 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				043D7E55145794990078D710 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		043D7E601457949A0078D710 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				043D7E611457949A0078D710 /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		043D7E631457949A0078D710 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "-lffi";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		043D7E641457949A0078D710 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_LDFLAGS = "-lffi";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		043D7E661457949A0078D710 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Atom/Atom-Prefix.pch";
+				INFOPLIST_FILE = "Atom/Atom-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		043D7E671457949A0078D710 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Atom/Atom-Prefix.pch";
+				INFOPLIST_FILE = "Atom/Atom-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		043D7E41145794990078D710 /* Build configuration list for PBXProject "Atom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				043D7E631457949A0078D710 /* Debug */,
+				043D7E641457949A0078D710 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		043D7E651457949A0078D710 /* Build configuration list for PBXNativeTarget "Atom" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				043D7E661457949A0078D710 /* Debug */,
+				043D7E671457949A0078D710 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 043D7E3E145794990078D710 /* Project object */;
+}

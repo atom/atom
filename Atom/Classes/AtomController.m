@@ -1,11 +1,3 @@
-//
-//  AtomWindowController.m
-//  Atomicity
-//
-//  Created by Chris Wanstrath on 8/22/11.
-//  Copyright 2011 GitHub. All rights reserved.
-//`
-
 #import "AtomController.h"
 #import "AtomApp.h"
 
@@ -48,19 +40,10 @@
     jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
     [jscocoa setObject:self withName:@"atomController"];
 
-//    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
-//    NSString *requirePath = [resourcePath stringByAppendingString:@"/src/require.js"];
-//    [jscocoa evalJSFile:requirePath];
-
     NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
     NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
     NSURLRequest *request = [NSURLRequest requestWithURL:indexURL];
-    [[webView mainFrame] loadRequest:request];
-    
-    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
-    NSString *requirePath = [resourcePath stringByAppendingString:@"/src/watcher.js"];
-    [jscocoa evalJSFile:requirePath];
-
+    [[webView mainFrame] loadRequest:request];    
   }
 }
 

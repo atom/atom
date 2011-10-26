@@ -1,6 +1,8 @@
 File = require 'fs'
 KeyBinder = require 'key-binder'
 
+# This file is a weirdo. We don't create a Window class, we just add stuff to
+# the DOM window.
 windowAdditions =
   extensions: []
 

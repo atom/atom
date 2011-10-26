@@ -17,22 +17,22 @@
 }
 
 // Overridden
-//- (void)sendEvent:(NSEvent *)event {
-//  if ([event type] == NSKeyDown) {
-//    BOOL handeled = NO;
-//    id controller = [[self keyWindow] windowController];
-//    
-//    // The keyWindow could be a Cocoa Dialog or something, ignore that.
-//    if ([controller isKindOfClass:[AtomController class]]) {
-//      handeled = [controller handleKeyEvent:event];
-//    }
-//    
-//    if (!handeled) [super sendEvent:event];
-//  }
-//  else {
-//    [super sendEvent:event];
-//  }
-//}
+- (void)sendEvent:(NSEvent *)event {
+  if ([event type] == NSKeyDown) {
+    BOOL handeled = NO;
+    id controller = [[self keyWindow] windowController];
+    
+    // The keyWindow could be a Cocoa Dialog or something, ignore that.
+    if ([controller isKindOfClass:[AtomController class]]) {
+      handeled = [controller handleKeyEvent:event];
+    }
+    
+    if (!handeled) [super sendEvent:event];
+  }
+  else {
+    [super sendEvent:event];
+  }
+}
 
 // AppDelegate
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification {

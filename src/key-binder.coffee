@@ -14,9 +14,9 @@ class KeyBinder
 
   @load: (path) ->
     try
-      Watcher.watch path, ->
+      Watcher.watch path, =>
         # Should we keep track of which file bindings are associated with? That
-        # way we could clear bindings when the file is changed or deleted. I 
+        # way we could clear bindings when the file is changed or deleted. I
         # think the answer is yes, but I don't want to do this right now.
         console.log "#{@name}: Reloading #{path}"
         @load path
@@ -25,12 +25,12 @@ class KeyBinder
       for scopeName, bindings of json
         @create scopeName, binding, method for binding, method of bindings
     catch error
-      console.error "#{@class}: Could not load key bindings at `#{path}`. #{error}"
+      console.error "#{@name}: Could not load key bindings at `#{path}`. #{error}"
 
   @create: (scope, binding, method) ->
     if typeof scope is "string"
       throw "#{@name}: Unknown scope `#{scope}`" unless @scopes[scope]
-      scope = @scopes[scope] 
+      scope = @scopes[scope]
 
     callback = if _.isFunction method
       -> method scope

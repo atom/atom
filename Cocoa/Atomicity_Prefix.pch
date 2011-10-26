@@ -1,7 +1,0 @@
-//
-// Prefix header for all source files of the 'Atomicity' target in the 'Atomicity' project
-//
-
-#ifdef __OBJC__
-    #import <Cocoa/Cocoa.h>
-#endif

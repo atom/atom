@@ -1,4 +1,4 @@
-#module.exports =
+module.exports =
 class Watcher
   @watchedPaths: {}
 
@@ -44,7 +44,3 @@ class Watcher
         # Just ignore this
       else
         console.error "I HAVE NO IDEA WHEN #{notification} IS TRIGGERED"
-
-Watcher.watch "~/tmp/what.txt", ->
-  OSX.NSLog "HI"
-
