@@ -20,10 +20,10 @@
   [jscocoa unlinkAllReferences];
   [jscocoa garbageCollect];
   [jscocoa release]; jscocoa = nil;
-  
+
   [webView release];
   [URL release];
-  
+
   [super dealloc];
 }
 
@@ -37,7 +37,7 @@
   [super windowDidLoad];
 
   [webView setUIDelegate:self];
-  
+
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomController"];
 
@@ -48,14 +48,19 @@
     jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
     [jscocoa setObject:self withName:@"atomController"];
 
-    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
-    NSString *requirePath = [resourcePath stringByAppendingString:@"/src/require.js"];
-    [jscocoa evalJSFile:requirePath];
+//    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
+//    NSString *requirePath = [resourcePath stringByAppendingString:@"/src/require.js"];
+//    [jscocoa evalJSFile:requirePath];
 
     NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
     NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
-    NSURLRequest *request = [NSURLRequest requestWithURL:indexURL]; 
+    NSURLRequest *request = [NSURLRequest requestWithURL:indexURL];
     [[webView mainFrame] loadRequest:request];
+    
+    NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
+    NSString *requirePath = [resourcePath stringByAppendingString:@"/src/watcher.js"];
+    [jscocoa evalJSFile:requirePath];
+
   }
 }
 
@@ -72,7 +77,7 @@
 
 // WebUIDelegate Protocol
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
-  return [NSArray array];   
+  return defaultMenuItems;
 }
 
 

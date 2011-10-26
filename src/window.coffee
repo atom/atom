@@ -1,98 +1,21 @@
-$ = require 'jquery'
-
 File = require 'fs'
-Chrome = require 'chrome'
+KeyBinder = require 'key-binder'
 
-{bindKey} = require 'keybinder'
-oop = require "pilot/oop"
-{EventEmitter} = require "pilot/event_emitter"
+windowAdditions =
+  extensions: []
 
-module.exports =
-class Window
-  controller: null
+  startup: ->
+    KeyBinder.register "window", window
 
-  nswindow: null
+    @path = localStorage.lastOpenedPath ? File.workingDirectory()
+    @appPath = OSX.NSBundle.mainBundle.resourcePath
 
-  panes: []
-
-  keymap: ->
-    'Command-N'       : @new
-    'Command-O'       : @open
-    'Command-Shift-O' : @openURL
-    'Command-Ctrl-K'  : @showConsole
-    'Command-Ctrl-M'  : @reload
-
-  constructor: (options={}) ->
-    oop.implement @, EventEmitter
-
-    for option, value of options
-      @[option] = value
-
-    for shortcut, method of @keymap()
-      bindKey @, shortcut, method
-
-    @nswindow = @controller?.window
-    @loadPlugins()
-    @._emit "loaded"
-
-  loadPlugins: ->
-    @plugins = []
-
-    # Ewwww, don't do this
-    App  = require 'app'
-    for pluginPath in File.list(App.root + "/plugins")
-      if File.isDirectory pluginPath
-        try
-          plugin = require pluginPath
-          @plugins.push new plugin(@)
-        catch error
-          console.warn "Plugin Failed: #{File.base pluginPath}"
-          console.warn error
-
-    @open @path if @path?
-
-    # After all the plugins are created, load them.
-    for plugin in @plugins
-      try
-        plugin.load()
-      catch error
-        console.warn "Plugin Loading Failed: #{plugin.constructor.name}"
-        console.warn error
-
-  reload: ->
-    Chrome.newWindow()
-    @controller.close
-
-  inspector: ->
-    @_inspector ?= WindowController.webView.inspector
-
-  new: ->
-    Chrome.newWindow()
+  handleKeyEvent: ->
+    KeyBinder.handleEvent.apply KeyBinder, arguments
 
   showConsole: ->
-    @inspector().showConsole(1)
+    atomController.webView.inspector.showConsole true
 
-  title: ->
-    @nswindow.title
-
-  setTitle: (title) ->
-    @nswindow.title = title
-
-  # Do these get moved into document?
-  isDirty: ->
-    @nswindow.isDocumentEdited()
-
-  # Set the active window's dirty status.
-  setDirty: (bool) ->
-    @nswindow.setDocumentEdited bool
-
-  open: (path) ->
-    @_emit 'open', { filename: path }
-
-  close: (path) ->
-    @_emit 'close', { filename: path }
-
-  openURL: (url) ->
-    if url = prompt "Enter URL:"
-      Chrome = require 'app'
-      Chrome.openURL url
+for key, value of windowAdditions
+  raise "DOMWindow already has a key named #{key}" if window[key]
+  window[key] = value

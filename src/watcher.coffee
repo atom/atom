@@ -1,4 +1,4 @@
-module.exports =
+#module.exports =
 class Watcher
   @watchedPaths: {}
 
@@ -18,8 +18,7 @@ class Watcher
 
     (@watchedPaths[path] ?= []).push callback
 
-    # Used to unwatch a path
-    callback
+    callback # Handy for anonymous functions.
 
   @unwatch: (path, callback=null) ->
     return unless @watchedPaths[path]
@@ -30,15 +29,22 @@ class Watcher
       @queue.removePathFromQueue path
 
   # Delegate method for AAWatcher
-  change the name of this method
   @watcher_receivedNotification_forPath = (queue, notification, path) =>
     callbacks = @watchedPaths[path]
 
-    switch notification
-      when "UKFileWatcherRenameNotification"
+    switch notification.toString()
+      when "UKKQueueFileRenamedNotification"
         raise "Doesn't handle this yet"
-      when "UKFileWatcherDeleteNotification"
+      when "UKKQueueFileDeletedNotification"
         @watchedPaths[path] = null
         @queue.removePathFromQueue path
+      when "UKKQueueFileWrittenToNotification"
+        callback notification, path, callback for callback in callbacks
+      when "UKKQueueFileAttributesChangedNotification"
+        # Just ignore this
+      else
+        console.error "I HAVE NO IDEA WHEN #{notification} IS TRIGGERED"
 
-    callback notification, path, callback for callback in callbacks
+Watcher.watch "~/tmp/what.txt", ->
+  OSX.NSLog "HI"
+

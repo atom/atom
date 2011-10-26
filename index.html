@@ -65,12 +65,12 @@
 </body>
 
 <script>
+  //require('startup');
+
   window.onerror = function(message, url, lineNumber) {
     // Any error will popup the console
-    WindowController.webView.inspector.showConsole(true);
+    atomController.webView.inspector.showConsole(true);
   }
-
-  require('startup');
 </script>
 
 </html>
