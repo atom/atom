@@ -59,13 +59,19 @@
 <body>
   <div id='app-horizontal'>
     <div id='app-vertical'>
-      <div class='main'></div>
+      <div class='main'>
+        <div id='ace-editor'></div>
+      </div>
     </div>
   </div>
 </body>
 
 <script src='src/require.js'></script>
 <script>
+  window.onerror = function() {
+    atomController.webView.inspector.showConsole(true)
+  }
+
   require('startup');
 </script>
 

@@ -9,11 +9,13 @@ module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (path) ->
-    path = OSX.NSString.stringWithString(path).stringByStandardizingPath.toString()
-    return path if path[0] == "/"
+    path = OSX.NSString.stringWithString(path).stringByStandardizingPath
+    return path if path.toString()[0] == "/"
 
-    resolvedString = OSX.NSString.stringWithString(@workingDirectory)
-    resolvedString.stringByAppendingPath(path).stringByStandardizingPath.toString()
+    resolvedString = OSX.NSString.stringWithString(@workingDirectory())
+    resolvedString = resolvedString.stringByAppendingPathComponent(path).stringByStandardizingPath
+
+    resolvedString.toString()
 
   # Return the basename of the given path. That is the path with
   # any leading directory components removed. If specified, also
@@ -28,12 +30,13 @@ module.exports =
 
   # Returns true if the file specified by path exists
   exists: (path) ->
-   exists = OSX.NSFileManager.defaultManager.
-      fileExistsAtPath_isDirectory path, null
+    console.log "exists"
+    OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory path, null
 
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
+    console.log "dir"
     isDir = new jscocoa.outArgument
     exists = OSX.NSFileManager.defaultManager.
       fileExistsAtPath_isDirectory path, isDir

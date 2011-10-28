@@ -34,7 +34,7 @@ class Watcher
 
     switch notification.toString()
       when "UKKQueueFileRenamedNotification"
-        raise "Doesn't handle this yet"
+        throw "Doesn't handle this yet"
       when "UKKQueueFileDeletedNotification"
         @watchedPaths[path] = null
         @queue.removePathFromQueue path
