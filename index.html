@@ -49,7 +49,7 @@
       background-color: blue;
     }
 
-    #editor {
+    #ace-editor {
       position: relative;
       -webkit-box-flex: 1;
       font: 18px Inconsolata, Monaco, Courier;
@@ -59,7 +59,7 @@
 <body>
   <div id='app-horizontal'>
     <div id='app-vertical'>
-      <div class='main'>
+      <div class='pane main'>
         <div id='ace-editor'></div>
       </div>
     </div>
@@ -72,7 +72,9 @@
     atomController.webView.inspector.showConsole(true)
   }
 
-  require('startup');
+  window.onload = function() {
+    require('startup');
+  }
 </script>
 
 </html>

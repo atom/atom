@@ -30,6 +30,7 @@ class Editor
     @ace.getSession().setTabSize 2
     @ace.setShowInvisibles(true)
     @ace.setPrintMarginColumn 78
+    @ace.setSession @newSession()
 
     #@ace.getSession().on 'change', -> @window.setDirty true
     Event.on 'window:open', (e) => @open e.details
