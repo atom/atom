@@ -73,7 +73,7 @@ windowAdditions =
       Event.trigger 'window:open', path
 
   close: ->
-    atomController.close()
+    atomController.close
 
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]

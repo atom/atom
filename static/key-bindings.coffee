@@ -4,14 +4,15 @@ app:
 
 window:
   'cmd-shift-i': (window) -> window.showConsole()
+  'cmd-w': (window) -> window.close()
   'cmd-o': (window) -> window.open()
+  'cmd-r': (window) -> window.reload()
 
 editor:
   'cmd-s': 'save'
   'cmd-shift-s': 'saveAs'
   'cmd-c': 'copy'
   'cmd-x': 'cut'
-  'cmd-r': 'eval'
   'cmd-/': 'toggleComment'
   'cmd-[': 'outdent'
   'cmd-]': 'indent'
