@@ -6,7 +6,7 @@
 
 @implementation AtomController
 
-@synthesize webView, URL;
+@synthesize webView, path;
 
 - (void)dealloc {
   [jscocoa unlinkAllReferences];
@@ -14,37 +14,33 @@
   [jscocoa release]; jscocoa = nil;
 
   [webView release];
-  [URL release];
+  [path release];
 
   [super dealloc];
 }
 
-- (id)initWithURL:(NSString *)_URL {
+- (id)initWithPath:(NSString *)aPath {
   self = [super initWithWindowNibName:@"AtomWindow"];
-  self.URL = _URL;
+  [self setPath:aPath];
+
   return self;
 }
 
 - (void)windowDidLoad {
   [super windowDidLoad];
-
+  
   [webView setUIDelegate:self];
 
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomController"];
 
-  if (self.URL) {
-    [webView setMainFrameURL:self.URL];
-  }
-  else {
-    jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
-    [jscocoa setObject:self withName:@"atomController"];
+  jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
+  [jscocoa setObject:self withName:@"atomController"];
 
-    NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
-    NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
-    NSURLRequest *request = [NSURLRequest requestWithURL:indexURL];
-    [[webView mainFrame] loadRequest:request];    
-  }
+  NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
+  NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
+  NSURLRequest *request = [NSURLRequest requestWithURL:indexURL];
+  [[webView mainFrame] loadRequest:request];    
 }
 
 - (void)close {

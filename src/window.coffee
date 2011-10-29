@@ -14,12 +14,18 @@ windowAdditions =
 
   appRoot: OSX.NSBundle.mainBundle.resourcePath
 
-  path: localStorage.lastOpenedPath ? fs.workingDirectory()
+  path: null
 
-  startup: ->
+  startup: () ->
+    @path = atomController.path ? @recentPath()
+    console.log localStorage.hi
+    localStorage.hi = "12345"
+    console.log localStorage
+    @showConsole()
+
     KeyBinder.register "window", window
 
-    @editor = new Editor()
+    @editor = new Editor @path
 
     @loadExtensions()
 
@@ -47,15 +53,32 @@ windowAdditions =
         console.warn "window: Extension #{extension.constructor.name} failed to startup."
         console.warn error
 
+  recentPath: ->
+    localStorage.lastOpenedPath ? "/tmp/atom"
+
+  setRecentPath: (path) ->
+    console.log "New Path #{path}"
+    localStorage.lastOpenedPath = path
+
   handleKeyEvent: ->
     KeyBinder.handleEvent.apply KeyBinder, arguments
 
   showConsole: ->
     atomController.webView.inspector.showConsole true
 
+  reload: ->
+    @close()
+    Native.newWindow @path
+
   open: (path) ->
     path = Native.openPanel() if not path
-    Event.trigger 'window:open', path if path
+    if path
+      @path = path
+      @setRecentPath path
+      Event.trigger 'window:open', path
+
+  close: ->
+    atomController.close()
 
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]

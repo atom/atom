@@ -15,7 +15,7 @@ class Editor
 
   sessions: {}
 
-  constructor: ->
+  constructor: (path) ->
     KeyBinder.register "editor", @
     # Resize editor when panes are added/removed
     el = document.body
@@ -35,6 +35,8 @@ class Editor
     #@ace.getSession().on 'change', -> @window.setDirty true
     Event.on 'window:open', (e) => @open e.details
     Event.on 'window:close', (e) => @close e.details
+
+    @open path if path
 
   modeMap:
     js: 'javascript'
@@ -115,20 +117,18 @@ class Editor
 
   resize: (timeout=1) ->
     setTimeout =>
-      @editor.ace.focus()
-      @editor.ace.resize()
+      @ace.focus()
+      @ace.resize()
     , timeout
 
   copy: ->
-    editor = @ace
-    text = editor.getSession().doc.getTextRange editor.getSelectionRange()
+    text = @ace.getSession().doc.getTextRange @ace.getSelectionRange()
     Native.writeToPasteboard text
 
   cut: ->
-    editor = @ace
-    text = editor.getSession().doc.getTextRange editor.getSelectionRange()
+    text = @ace.getSession().doc.getTextRange @ace.getSelectionRange()
     Native.writeToPasteboard text
-    editor.session.remove editor.getSelectionRange()
+    @ace.session.remove @ace.getSelectionRange()
 
   eval: ->
     eval @code()

@@ -2,7 +2,7 @@ module.exports =
 class Native
   # path - Optional. The String path to the file to base it on.
   @newWindow: (path) ->
-    controller = OSX.NSApp.createController
+    controller = OSX.NSApp.createController path
     controller.window
     controller.window.makeKeyAndOrderFront null
 

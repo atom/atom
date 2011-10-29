@@ -6,7 +6,7 @@
 
 @property (nonatomic, retain) NSMutableArray *controllers;
 
-- (AtomController *)createController;
+- (AtomController *)createController:(NSString *)path;
 - (void)removeController:(AtomController *)controller;
 
 @end

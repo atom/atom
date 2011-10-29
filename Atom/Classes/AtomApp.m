@@ -2,12 +2,14 @@
 #import "AtomController.h"
 #import "JSCocoa.h"
 
+#import <WebKit/WebKit.h>
+
 @implementation AtomApp
 
 @synthesize controllers;
 
-- (AtomController *)createController {
-  AtomController *controller = [[AtomController alloc] initWithWindowNibName:@"AtomWindow"];
+- (AtomController *)createController:(NSString *)path {
+  AtomController *controller = [[AtomController alloc] initWithPath:path];
   [controllers addObject:controller];
   return controller;
 }
@@ -41,7 +43,7 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-  AtomController *controller = [self createController];
+  AtomController *controller = [self createController:NULL];
   [controller window];
 }
 

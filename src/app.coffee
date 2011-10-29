@@ -8,4 +8,4 @@ class App
     window.startup()
 
   @quit: ->
-    OSX.NSApp.terminate OSX.NSApp
+    OSX.NSApp.terminate null 

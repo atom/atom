@@ -1,16 +1,18 @@
 #import <Cocoa/Cocoa.h>
 
 @class JSCocoa;
+@class WebView;
 
 @interface AtomController : NSWindowController {
-  IBOutlet id webView;
-  NSString *URL;
+  IBOutlet WebView *webView;
+  NSString *path;
   JSCocoa* jscocoa;
 }
 
-@property (assign) IBOutlet id webView;
-@property (assign) IBOutlet NSString *URL;
+@property (retain) IBOutlet WebView *webView;
+@property (retain) NSString *path;
 
--(BOOL) handleKeyEvent:(NSEvent *)event;
+- (AtomController *)initWithPath:(NSString *)aPath;
+- (BOOL)handleKeyEvent:(NSEvent *)event;
 
 @end
