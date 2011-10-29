@@ -38,6 +38,11 @@
 
 // AppDelegate
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification {
+  // Hack to make localStorage work
+  WebPreferences* prefs = [WebPreferences standardPreferences];
+  [prefs _setLocalStorageDatabasePath:@"~/.atomicity/storage"];
+  [prefs setLocalStorageEnabled:YES];
+
   NSDictionary *defaults = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], @"WebKitDeveloperExtras", nil];
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
 }
