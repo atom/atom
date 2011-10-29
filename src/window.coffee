@@ -18,10 +18,6 @@ windowAdditions =
 
   startup: () ->
     @path = atomController.path ? @recentPath()
-    console.log localStorage.hi
-    localStorage.hi = "12345"
-    console.log localStorage
-    @showConsole()
 
     KeyBinder.register "window", window
 
@@ -57,7 +53,6 @@ windowAdditions =
     localStorage.lastOpenedPath ? "/tmp/atom"
 
   setRecentPath: (path) ->
-    console.log "New Path #{path}"
     localStorage.lastOpenedPath = path
 
   handleKeyEvent: ->
