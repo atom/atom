@@ -1,11 +1,10 @@
 app:
   'cmd-q': (app) -> app.quit()
-  'cmd-j': (app) -> console.log "OMG YOU TOUCHED THE LETTER J!"
+  'cmd-o': (app) -> app.open()
 
 window:
   'cmd-shift-i': (window) -> window.showConsole()
   'cmd-w': (window) -> window.close()
-  'cmd-o': (window) -> window.open()
   'cmd-r': (window) -> window.reload()
 
 editor:

@@ -12,7 +12,11 @@ class Event
   @off: (name, callback) ->
     window.document.removeEventListener name, callback
 
-  @trigger: (name, data) ->
+  @trigger: (name, data, bubbleToApp=true) ->
+    if bubbleToApp and name.match /^app:/
+      OSX.NSApp.triggerGlobalEvent_data name, data
+      return
+
     event = @events[name]
     if not event
       event = window.document.createEvent "CustomEvent"

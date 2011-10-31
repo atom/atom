@@ -5,7 +5,7 @@ Native = require 'native'
 
 fs = require 'fs'
 
-# This file is a weirdo. We don't create a Window class, we just add stuff to
+# This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 windowAdditions =
   editor: null
@@ -14,14 +14,18 @@ windowAdditions =
 
   appRoot: OSX.NSBundle.mainBundle.resourcePath
 
-  path: null
-
   startup: () ->
-    @path = atomController.path ? @recentPath()
+    if atomController.path
+      @setRecentPath atomController.path
+    else
+      atomController.path = @recentPath()
 
     KeyBinder.register "window", window
 
-    @editor = new Editor @path
+    @editor = if fs.isFile atomController.path
+      new Editor atomController.path
+    else
+      new Editor @tmpFile()
 
     @loadExtensions()
 
@@ -50,30 +54,48 @@ windowAdditions =
         console.warn error
 
   recentPath: ->
-    localStorage.lastOpenedPath ? "/tmp/atom"
+    localStorage.lastOpenedPath ? @tmpFile()
 
   setRecentPath: (path) ->
     localStorage.lastOpenedPath = path
 
-  handleKeyEvent: ->
-    KeyBinder.handleEvent.apply KeyBinder, arguments
+  tmpFile: ->
+    "/tmp/atom"
 
   showConsole: ->
     atomController.webView.inspector.showConsole true
 
   reload: ->
     @close()
-    Native.newWindow @path
+    Native.newWindow atomController.path
 
   open: (path) ->
-    path = Native.openPanel() if not path
-    if path
-      @path = path
-      @setRecentPath path
+    atomController.window.makeKeyAndOrderFront atomController
+
+    if fs.isFile path
       Event.trigger 'window:open', path
 
   close: ->
     atomController.close
+
+  # Global methods that are used by the cocoa side of things
+  handleKeyEvent: ->
+    KeyBinder.handleEvent.apply KeyBinder, arguments
+
+  triggerEvent: ->
+    Event.trigger.apply Event, arguments
+
+  canOpen: (path) ->
+    parent = atomController.path.replace(/([^\/])$/, "$1/")
+    child = path.replace(/([^\/])$/, "$1/")
+
+    console.log parent
+    console.log child
+    window.x = parent
+    window.y = child
+
+    # If the child is contained by the parent, it can be opened by this window
+    return child.match "^" + parent
 
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]

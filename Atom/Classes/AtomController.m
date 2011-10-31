@@ -6,7 +6,7 @@
 
 @implementation AtomController
 
-@synthesize webView, path;
+@synthesize webView, path, jscocoa;
 
 - (void)dealloc {
   [jscocoa unlinkAllReferences];
@@ -21,7 +21,7 @@
 
 - (id)initWithPath:(NSString *)aPath {
   self = [super initWithWindowNibName:@"AtomWindow"];
-  [self setPath:aPath];
+  [self setPath:[aPath stringByStandardizingPath]];
 
   return self;
 }
@@ -34,7 +34,7 @@
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomController"];
 
-  jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
+  jscocoa =   [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
   [jscocoa setObject:self withName:@"atomController"];
 
   NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
@@ -48,16 +48,9 @@
   [super close];
 }
 
-- (BOOL)handleKeyEvent:(NSEvent *)event {
-  // ICKY: Using a global function defined in App.js to deal with key events
-  JSValueRef returnValue = [jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
-  return [jscocoa toBool:returnValue];
-}
-
 // WebUIDelegate Protocol
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
   return defaultMenuItems;
 }
-
 
 @end
