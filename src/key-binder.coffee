@@ -35,7 +35,7 @@ class KeyBinder
     callback = if _.isFunction method
       -> method scope
     else if scope[method]
-      -> scope[method] scope
+      -> scope[method]()
     else
       throw "#{@name}: '#{method}' not found found in scope #{scope}"
 
