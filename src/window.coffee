@@ -22,15 +22,22 @@ windowAdditions =
 
     KeyBinder.register "window", window
 
-    @editor = if fs.isFile atomController.path
+    @editor = if atomController.path and fs.isFile atomController.path
       new Editor atomController.path
     else
-      new Editor @tmpFile()
+      new Editor
 
     @loadExtensions()
+    @loadKeyBindings()
 
-    KeyBinder.load "#{@appRoot}/static/key-bindings.coffee"
-    KeyBinder.load "~/.atomicity/key-bindings.coffee"
+    Event.on "editor:open", (e) =>
+      path = e.details
+      console.log path
+      basename = fs.base path
+      @setTitle basename
+
+    Event.on "editor:close", (e) =>
+      @setTitle "untitled"
 
   loadExtensions: ->
     extension.shutdown() for extension in @extensions
@@ -53,17 +60,21 @@ windowAdditions =
         console.warn "window: Extension #{extension.constructor.name} failed to startup."
         console.warn error
 
+  loadKeyBindings: ->
+    KeyBinder.load "#{@appRoot}/static/key-bindings.coffee"
+    KeyBinder.load "~/.atomicity/key-bindings.coffee"
+
   recentPath: ->
-    localStorage.lastOpenedPath ? @tmpFile()
+    localStorage.lastOpenedPath
 
   setRecentPath: (path) ->
     localStorage.lastOpenedPath = path
 
-  tmpFile: ->
-    "/tmp/atom"
-
   showConsole: ->
     atomController.webView.inspector.showConsole true
+
+  setTitle: (title) ->
+    atomController.window.title = title
 
   reload: ->
     @close()

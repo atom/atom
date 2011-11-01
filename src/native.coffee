@@ -1,5 +1,17 @@
 module.exports =
 class Native
+  @alert: (message, detailedMessage, buttons) ->
+    alert = OSX.NSAlert.alloc.init
+    alert.setMessageText message
+    alert.setInformativeText detailedMessage
+    callbacks = {}
+    for label, callback of buttons
+      button = alert.addButtonWithTitle label
+      callbacks[button.tag] = callback
+
+    buttonTag = alert.runModal
+    return callbacks[buttonTag]()
+
   # path - Optional. The String path to the file to base it on.
   @newWindow: (path) ->
     controller = OSX.NSApp.createController path

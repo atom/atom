@@ -4,10 +4,10 @@ app:
 
 window:
   'cmd-shift-i': (window) -> window.showConsole()
-  'cmd-w': (window) -> window.close()
   'cmd-r': (window) -> window.reload()
 
 editor:
+  'cmd-w': 'close'
   'cmd-s': 'save'
   'cmd-shift-s': 'saveAs'
   'cmd-c': 'copy'

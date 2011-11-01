@@ -11,12 +11,13 @@ Native = require 'native'
 
 module.exports =
 class Editor
-  filename: null
+  activePath: null
 
   sessions: {}
 
   constructor: (path) ->
     KeyBinder.register "editor", @
+
     # Resize editor when panes are added/removed
     el = document.body
     el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
@@ -36,7 +37,7 @@ class Editor
     Event.on 'window:open', (e) => @open e.details
     Event.on 'window:close', (e) => @close e.details
 
-    @open path if path
+    @open path
 
   modeMap:
     js: 'javascript'
@@ -58,37 +59,74 @@ class Editor
       null
 
   setMode: ->
+    return unless @activePath
     if mode = @modeForLanguage _.last @activePath.split '.'
       @ace.getSession().setMode new mode
 
-  save: ->
-    return @saveAs() if not @activePath
-
-    @removeTrailingWhitespace()
-    fs.write @activePath, @code()
-    @sessions[@activePath] = @ace.getSession()
-    #@window.setDirty false
-    #@window._emit 'save', { filename: @activePath }
-
   open: (path) ->
-    return unless fs.isFile path
-    @activePath = path
+    if not path or fs.isDirectory path
+      @activePath = null
+      @ace.setSession @newSession()
+    else
+      @activePath = path
 
-    @sessions[@activePath] ?= @newSession fs.read @activePath
-    @ace.setSession @sessions[@activePath]
-    @setMode()
+      session = @sessions[path]
+      if not session
+        @sessions[path] = session = @newSession fs.read path
+        session.on 'change', -> session.$atom_dirty = true
+
+      @ace.setSession session
+      @setMode()
+
+      Event.trigger "editor:open", path
 
   close: (path) ->
-    @activePath = null if path is @activePath
+    path ?= @activePath
+
+    # ICK, clean this up... too many assumptions being made
+    session = @sessions[path]
+    if not session or session.$atom_dirty
+      detailedMessage = if @activePath
+        "#{@activePath} has changes."
+      else
+        "An untitled file has changes."
+
+      canceled = Native.alert "Do you want to save the changes you made?", detailedMessage,
+        "Save": =>
+          path = @save()
+          not path # if save fails/cancels, consider it canceled
+        "Cancel": => true
+        "Don't Save": => false
+
+      return if canceled
 
     delete @sessions[path]
-    @ace.setSession @newSession()
+
+    if path is @activePath
+      @activePath = null
+      @ace.setSession @newSession()
+
+    Event.trigger "editor:close", path
+
+  save: (path) ->
+    path ?= @activePath
+
+    return @saveAs() if not path
+
+    @removeTrailingWhitespace()
+    fs.write path, @code()
+    if @sessions[path]
+      @sessions[path].$atom_dirty = false
+
+    path
 
   saveAs: ->
-    if path = Native.savePanel()
-      @activePath = path
-      #@window.setTitle _.last @activePath.split '/'
-      @save()
+    path = Native.savePanel()?.toString()
+    if path
+      @save path
+      @open path
+
+    path
 
   code: ->
     @ace.getSession().getValue()
