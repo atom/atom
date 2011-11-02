@@ -3,6 +3,7 @@ Extension = require 'extension'
 Event = require 'event'
 KeyBinder = require 'key-binder'
 Native = require 'native'
+Storage = require 'storage'
 
 fs = require 'fs'
 
@@ -30,6 +31,37 @@ windowAdditions =
 
     @loadExtensions()
     @loadKeyBindings()
+
+    @restoreEditorState()
+
+  storageKey: ->
+    "project:" + atomController.path
+
+  restoreEditorState: ->
+    storage = Storage.get @storageKey(), {}
+    @editor.addBuffer path for path in storage.openPaths ? []
+    @editor.focusBuffer storage.lastOpenedPath
+
+    # Remember what buffers were open and closed
+    Event.on "editor:bufferFocus", (e) =>
+      path = e.details
+      storage = Storage.get @storageKey(), {}
+      storage.lastOpenedPath = path.valueOf()
+      Storage.set @storageKey(), storage
+
+    Event.on "editor:bufferAdd", (e) =>
+      path = e.details
+      storage = Storage.get @storageKey(), {}
+      storage.openPaths ?= []
+      unless path.valueOf() in storage.openPaths
+        storage.openPaths.push path.valueOf()
+        Storage.set @storageKey(), storage
+
+    Event.on "editor:bufferRemove", (e) =>
+      path = e.details
+      storage = Storage.get @storageKey(), {}
+      storage.openPaths = (p for p in storage.openPaths when p != path)
+      Storage.set @storageKey(), storage
 
   loadExtensions: ->
     extension.shutdown() for extension in @extensions
@@ -69,7 +101,7 @@ windowAdditions =
     atomController.window.title = title
 
   reload: ->
-    @close()
+    atomController.close
     Native.newWindow atomController.path
 
   open: (path) ->
@@ -92,9 +124,6 @@ windowAdditions =
   canOpen: (path) ->
     parent = atomController.path.replace(/([^\/])$/, "$1/")
     child = path.replace(/([^\/])$/, "$1/")
-
-    window.x = parent
-    window.y = child
 
     # If the child is contained by the parent, it can be opened by this window
     return child.match "^" + parent

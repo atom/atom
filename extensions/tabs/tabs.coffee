@@ -17,7 +17,10 @@ class Tabs extends Extension
 
     Event.on 'editor:bufferAdd', (e) =>
       path = e.details
-      return if fs.isDirectory path  # Ignore directories
+      @pane.addTab path
+
+    Event.on 'editor:bufferFocus', (e) =>
+      path = e.details
       @pane.addTab path
 
     Event.on 'editor:bufferRemove', (e) =>

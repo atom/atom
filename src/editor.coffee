@@ -18,11 +18,6 @@ class Editor
   constructor: (path) ->
     KeyBinder.register "editor", @
 
-    # Resize editor when panes are added/removed
-    el = document.body
-    el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
-    el.addEventListener 'DOMNodeRemovedFromDocument', => @resize()
-
     @ace = ace.edit "ace-editor"
 
     # This stuff should all be grabbed from the .atomicity dir
@@ -36,6 +31,11 @@ class Editor
     Event.on 'window:close', (e) => @removeBuffer e.details
 
     @addBuffer path
+
+    # Resize editor when panes are added/removed
+    el = document.body
+    el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
+    el.addEventListener 'DOMNodeRemovedFromDocument', => @resize()
 
   modeMap:
     js: 'javascript'
@@ -119,6 +119,8 @@ class Editor
         @ace.setSession  new EditSession ''
 
   focusBuffer: (path) ->
+    return if @activePath == path
+
     @activePath = path
 
     buffer = @buffers[path] or @addBuffer path
