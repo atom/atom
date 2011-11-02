@@ -1,4 +1,5 @@
-resourcePath = OSX.NSBundle.mainBundle.resourcePath
+#resourcePath = OSX.NSBundle.mainBundle.resourcePath
+resourcePath = "/Users/corey/code/mine/Atomicity"
 
 paths = [
   "#{resourcePath}/src"

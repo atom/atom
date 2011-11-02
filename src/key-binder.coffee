@@ -57,7 +57,11 @@ class KeyBinder
     return false if not callbacks
 
     # Only use the most recently added binding
-    _.last(callbacks)()
+    try
+      _.last(callbacks)()
+    catch e
+      console.warn "Failed to run binding #{binding}. #{e}"
+      
     true
 
   @bindingParser: (binding) ->

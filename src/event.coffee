@@ -13,6 +13,7 @@ class Event
     window.document.removeEventListener name, callback
 
   @trigger: (name, data, bubbleToApp=true) ->
+    console.log name
     if bubbleToApp and name.match /^app:/
       OSX.NSApp.triggerGlobalEvent_data name, data
       return

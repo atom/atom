@@ -64,7 +64,9 @@ class Editor
       @ace.getSession().setMode new mode
 
   open: (path) ->
-    if not path or fs.isDirectory path
+    return if fs.isDirectory path
+
+    if not path
       @activePath = null
       @ace.setSession @newSession()
     else
@@ -85,7 +87,7 @@ class Editor
 
     # ICK, clean this up... too many assumptions being made
     session = @sessions[path]
-    if not session or session.$atom_dirty
+    if session?.$atom_dirty or (not session and @code.length > 0)
       detailedMessage = if @activePath
         "#{@activePath} has changes."
       else

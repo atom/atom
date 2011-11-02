@@ -2,7 +2,6 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 Pane = require 'pane'
-File = require 'fs'
 
 module.exports =
 class TabsPane extends Pane
@@ -10,9 +9,7 @@ class TabsPane extends Pane
 
   html: $ require 'tabs/tabs.html'
 
-  constructor: (@window, @tabs) ->
-    super @window
-
+  constructor: ->
     # Style html
     @html.parents('.pane').css height: 'inherit'
     css = $('<style id="tabs-style"></style>').html require 'tabs/tabs.css'
@@ -20,9 +17,19 @@ class TabsPane extends Pane
 
     # click tab
     tabPane = this
-    $('#tabs ul li').live 'click', ->
+    $('#tabs ul li').live 'mousedown', ->
       tabPane.switchToTab this
       false
+
+  closeActiveTab: ->
+    activeTab = $('#tabs ul .active')
+    window.editor.close activeTab.data 'path'
+
+  nextTab: ->
+    @switchToTab $('#tabs ul .active').next()
+
+  prevTab: ->
+    @switchToTab $('#tabs ul .active').prev()
 
   switchToTab: (tab) ->
     tab = $("#tabs ul li").get(tab - 1) if _.isNumber tab
@@ -30,7 +37,7 @@ class TabsPane extends Pane
 
     $("#tabs ul .active").removeClass("active")
     $(tab).addClass 'active'
-    @window.open $(tab).data 'path'
+    window.editor.open $(tab).data 'path'
 
   addTab: (path) ->
     existing = $("#tabs [data-path='#{path}']")

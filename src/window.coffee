@@ -1,4 +1,5 @@
 Editor = require 'editor'
+Extension = require 'extension'
 Event = require 'event'
 KeyBinder = require 'key-binder'
 Native = require 'native'
@@ -15,12 +16,12 @@ windowAdditions =
   appRoot: OSX.NSBundle.mainBundle.resourcePath
 
   startup: () ->
+    KeyBinder.register "window", window
+
     if atomController.path
       @setRecentPath atomController.path
     else
       atomController.path = @recentPath()
-
-    KeyBinder.register "window", window
 
     @editor = if atomController.path and fs.isFile atomController.path
       new Editor atomController.path
@@ -32,7 +33,6 @@ windowAdditions =
 
     Event.on "editor:open", (e) =>
       path = e.details
-      console.log path
       basename = fs.base path
       @setTitle basename
 
@@ -47,7 +47,7 @@ windowAdditions =
     for extensionPath in extensionPaths when fs.isDirectory extensionPath
       try
         extension = require extensionPath
-        extensions.push new Extension()
+        extensions.push new extension()
       catch error
         console.warn "window: Loading Extension #{fs.base extensionPath} failed."
         console.warn error
@@ -100,8 +100,6 @@ windowAdditions =
     parent = atomController.path.replace(/([^\/])$/, "$1/")
     child = path.replace(/([^\/])$/, "$1/")
 
-    console.log parent
-    console.log child
     window.x = parent
     window.y = child
 

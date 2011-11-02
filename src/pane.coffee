@@ -30,10 +30,16 @@ class Pane
       else
         throw "I DON'T KNOW HOW TO DEAL WITH #{@position}"
 
+  show: ->
+    @add this
+    @showing = true
+
+  hide: ->
+    @html.parent().detach()
+    @showing = false
+
   toggle: ->
     if @showing
-      @html.parent().detach()
+      @hide()
     else
-      @add this
-
-    @showing = not @showing
+      @show()

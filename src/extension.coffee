@@ -1,18 +1,12 @@
 KeyBinder = require 'key-binder'
-App = require 'app'
 fs = require 'fs'
 
 module.exports =
 class Extension
   constructor: ->
-    console.log "#{@.constructor.name}: Loaded"
-    register @identifier(), @
+    console.log "#{@constructor.name}: Loaded"
 
-  # Unique key for the extension. Used in key bindings and settings.
-  identifier: ->
-    throw "#{@constructor.name}: You have to supply a unique identifier to extensions"
-
-  storageNamespace: -> "storage-#{@identifier()}"
+  storageNamespace: -> @constructor.name
 
   startup: ->
 
