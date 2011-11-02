@@ -21,10 +21,6 @@ class TabsPane extends Pane
       tabPane.switchToTab this
       false
 
-  closeActiveTab: ->
-    activeTab = $('#tabs ul .active')
-    window.editor.close activeTab.data 'path'
-
   nextTab: ->
     @switchToTab $('#tabs ul .active').next()
 
@@ -37,14 +33,14 @@ class TabsPane extends Pane
 
     $("#tabs ul .active").removeClass("active")
     $(tab).addClass 'active'
-    window.editor.open $(tab).data 'path'
+    window.editor.focusBuffer $(tab).data 'path'
 
   addTab: (path) ->
     existing = $("#tabs [data-path='#{path}']")
     if existing.length
       return @switchToTab existing
 
-    name = _.last path.split '/'
+    name = if path then _.last path.split '/' else "untitled"
     $("#tabs ul .active").removeClass()
     $("#tabs ul").append """
       <li data-path='#{path}'><a href='#'>#{name}</a></li>

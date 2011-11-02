@@ -1,8 +1,10 @@
 #import "AtomController.h"
 #import "AtomApp.h"
 
-#import <WebKit/WebKit.h>
 #import "JSCocoa.h"
+
+#import <WebKit/WebKit.h>
+#import <stdio.h>
 
 @implementation AtomController
 
@@ -46,6 +48,16 @@
 - (void)close {
   [(AtomApp *)NSApp removeController:self];
   [super close];
+}
+
+- (NSString *)tempfile {
+  char *directory = "/tmp";
+  char *prefix = "temp-file";
+  char *tmpPath = tempnam(directory, prefix);
+  NSString *tmpPathString = [NSString stringWithUTF8String:tmpPath];
+  free(tmpPath);
+  
+  return tmpPathString;
 }
 
 // WebUIDelegate Protocol

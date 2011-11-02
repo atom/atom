@@ -13,7 +13,7 @@ module.exports =
 class Editor
   activePath: null
 
-  sessions: {}
+  buffers: {}
 
   constructor: (path) ->
     KeyBinder.register "editor", @
@@ -31,13 +31,11 @@ class Editor
     @ace.getSession().setTabSize 2
     @ace.setShowInvisibles(true)
     @ace.setPrintMarginColumn 78
-    @ace.setSession @newSession()
 
-    #@ace.getSession().on 'change', -> @window.setDirty true
-    Event.on 'window:open', (e) => @open e.details
-    Event.on 'window:close', (e) => @close e.details
+    Event.on 'window:open', (e) => @addBuffer e.details
+    Event.on 'window:close', (e) => @removeBuffer e.details
 
-    @open path
+    @addBuffer path
 
   modeMap:
     js: 'javascript'
@@ -49,7 +47,10 @@ class Editor
     cs: 'csharp'
     rb: 'ruby'
 
-  modeForLanguage: (language) ->
+  modeForPath: (path) ->
+    return null if not path
+
+    language = _.last path.split '.'
     language = language.toLowerCase()
     modeName = @modeMap[language] or language
 
@@ -58,36 +59,40 @@ class Editor
     catch e
       null
 
-  setMode: ->
-    return unless @activePath
-    if mode = @modeForLanguage _.last @activePath.split '.'
-      @ace.getSession().setMode new mode
+  addBuffer: (path) ->
+    return if not path
 
-  open: (path) ->
-    return if fs.isDirectory path
+    throw "#{@constructor.name}: Cannot create buffer from a directory `#{path}`" if fs.isDirectory path
 
-    if not path
-      @activePath = null
-      @ace.setSession @newSession()
-    else
-      @activePath = path
+    buffer = @buffers[path]
+    if not buffer
+      code = if path then fs.read path else ''
+      buffer = new EditSession code
+      buffer.setUndoManager new UndoManager
+      buffer.setUseSoftTabs useSoftTabs = @usesSoftTabs code
+      buffer.setTabSize if useSoftTabs then @guessTabSize code else 8
 
-      session = @sessions[path]
-      if not session
-        @sessions[path] = session = @newSession fs.read path
-        session.on 'change', -> session.$atom_dirty = true
+      mode = @modeForPath path
+      buffer.setMode new mode if mode
 
-      @ace.setSession session
-      @setMode()
+      @buffers[path] = buffer
 
-      Event.trigger "editor:open", path
+    buffer.on 'change', -> buffer.$atom_dirty = true
+    Event.trigger "editor:bufferAdd", path
 
-  close: (path) ->
+    @focusBuffer path
+
+  removeBuffer: (path) ->
     path ?= @activePath
 
-    # ICK, clean this up... too many assumptions being made
-    session = @sessions[path]
-    if session?.$atom_dirty or (not session and @code.length > 0)
+    return if not path
+
+    buffer = @buffers[path]
+    return if not buffer
+
+    if buffer.$atom_dirty
+      # This should be thrown into it's own method, but I can't think of a good
+      # name.
       detailedMessage = if @activePath
         "#{@activePath} has changes."
       else
@@ -96,19 +101,30 @@ class Editor
       canceled = Native.alert "Do you want to save the changes you made?", detailedMessage,
         "Save": =>
           path = @save()
-          not path # if save fails/cancels, consider it canceled
+          not path # if save modal fails/cancels, consider it canceled
         "Cancel": => true
         "Don't Save": => false
 
       return if canceled
 
-    delete @sessions[path]
+    delete @buffers[path]
+
+    Event.trigger "editor:bufferRemove", path
 
     if path is @activePath
-      @activePath = null
-      @ace.setSession @newSession()
+      newActivePath = Object.keys(@buffers)[0]
+      if newActivePath
+        @focusBuffer newActivePath
+      else
+        @ace.setSession  new EditSession ''
 
-    Event.trigger "editor:close", path
+  focusBuffer: (path) ->
+    @activePath = path
+
+    buffer = @buffers[path] or @addBuffer path
+    @ace.setSession buffer
+
+    Event.trigger "editor:bufferFocus", path
 
   save: (path) ->
     path ?= @activePath
@@ -117,8 +133,8 @@ class Editor
 
     @removeTrailingWhitespace()
     fs.write path, @code()
-    if @sessions[path]
-      @sessions[path].$atom_dirty = false
+    if @buffers[path]
+      @buffers[path].$atom_dirty = false
 
     path
 
@@ -126,7 +142,7 @@ class Editor
     path = Native.savePanel()?.toString()
     if path
       @save path
-      @open path
+      @addBuffer path
 
     path
 
@@ -139,13 +155,6 @@ class Editor
       needle: "[ \t]+$"
       regExp: true
       wrap: true
-
-  newSession: (code) ->
-    doc = new EditSession code or ''
-    doc.setUndoManager new UndoManager
-    doc.setUseSoftTabs useSoftTabs = @usesSoftTabs code
-    doc.setTabSize if useSoftTabs then @guessTabSize code else 8
-    doc
 
   usesSoftTabs: (code) ->
     not /^\t/m.test code or @code()
@@ -170,17 +179,15 @@ class Editor
     Native.writeToPasteboard text
     @ace.session.remove @ace.getSelectionRange()
 
-  eval: ->
-    eval @code()
-
+  eval: -> eval @code()
   toggleComment: -> @ace.toggleCommentLines()
-  outdent:       -> @ace.blockOutdent()
-  indent:        -> @ace.indent()
-  forwardWord:   -> @ace.navigateWordRight()
-  backWord:      -> @ace.navigateWordLeft()
-  deleteWord:    -> @ace.removeWordRight()
-  home:          -> @ace.navigateFileStart()
-  end:           -> @ace.navigateFileEnd()
+  outdent: -> @ace.blockOutdent()
+  indent: -> @ace.indent()
+  forwardWord: -> @ace.navigateWordRight()
+  backWord: -> @ace.navigateWordLeft()
+  deleteWord: -> @ace.removeWordRight()
+  home: -> @ace.navigateFileStart()
+  end: -> @ace.navigateFileEnd()
 
   consolelog: ->
     @ace.insert 'console.log ""'

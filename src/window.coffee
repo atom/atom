@@ -31,14 +31,6 @@ windowAdditions =
     @loadExtensions()
     @loadKeyBindings()
 
-    Event.on "editor:open", (e) =>
-      path = e.details
-      basename = fs.base path
-      @setTitle basename
-
-    Event.on "editor:close", (e) =>
-      @setTitle "untitled"
-
   loadExtensions: ->
     extension.shutdown() for extension in @extensions
     @extensions = []
@@ -86,8 +78,9 @@ windowAdditions =
     if fs.isFile path
       Event.trigger 'window:open', path
 
-  close: ->
+  close: (path) ->
     atomController.close
+    Event.trigger 'window:close', path
 
   # Global methods that are used by the cocoa side of things
   handleKeyEvent: ->

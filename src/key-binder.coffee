@@ -60,8 +60,8 @@ class KeyBinder
     try
       _.last(callbacks)()
     catch e
-      console.warn "Failed to run binding #{binding}. #{e}"
-      
+      console.warn "Failed to run binding #{@bindingFromAscii binding}. #{e}"
+
     true
 
   @bindingParser: (binding) ->
@@ -85,17 +85,35 @@ class KeyBinder
 
     modifiers.concat(key).sort().join "-"
 
+  @bindingFromAscii: (binding) ->
+    inverseModifierKeys = {}
+    inverseModifierKeys[number] = label for label, number of @modifierKeys
+
+    inverseNamedKeys = {}
+    inverseNamedKeys[number] = label for label, number of @namedKeys
+
+    asciiKeys = binding.split '-'
+    keys = []
+
+    for asciiKey in asciiKeys
+      key = inverseModifierKeys[asciiKey]
+      key ?= inverseNamedKeys[asciiKey]
+      key ?= String.fromCharCode asciiKey
+      keys.push key or "?"
+
+    keys.join '-'
+
   @modifierKeys:
     '⇧': 16
+    '⌘': 91
+    '⌥': 18
     shift: 16
     alt: 18
     option: 18
-    '⌥': 18
     control: 17
     ctrl: 17
     command: 91
     cmd: 91
-    '⌘': 91
 
   @namedKeys:
     backspace: 8

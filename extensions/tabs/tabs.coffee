@@ -15,14 +15,16 @@ class Tabs extends Extension
 
     @pane = new TabsPane @
 
-    Event.on 'window:open', (e) =>
+    Event.on 'editor:bufferAdd', (e) =>
       path = e.details
       return if fs.isDirectory path  # Ignore directories
       @pane.addTab path
 
-    Event.on 'editor:close', (e) =>
+    Event.on 'editor:bufferRemove', (e) =>
       path = e.details
       @pane.removeTab path
 
   startup: ->
     @pane.show()
+    for path, buffer of window.editor.buffers
+      @pane.addTab path

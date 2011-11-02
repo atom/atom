@@ -7,7 +7,7 @@ window:
   'cmd-r': (window) -> window.reload()
 
 editor:
-  'cmd-w': 'close'
+  'cmd-w': 'removeBuffer'
   'cmd-s': 'save'
   'cmd-shift-s': 'saveAs'
   'cmd-c': 'copy'
