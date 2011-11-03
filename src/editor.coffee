@@ -30,7 +30,7 @@ class Editor
     Event.on 'window:open', (e) => @addBuffer e.details
     Event.on 'window:close', (e) => @removeBuffer e.details
 
-    @addBuffer path
+    @addBuffer path if path
 
     # Resize editor when panes are added/removed
     el = document.body
@@ -60,8 +60,6 @@ class Editor
       null
 
   addBuffer: (path) ->
-    return if not path
-
     throw "#{@constructor.name}: Cannot create buffer from a directory `#{path}`" if fs.isDirectory path
 
     buffer = @buffers[path]
@@ -75,6 +73,7 @@ class Editor
       mode = @modeForPath path
       buffer.setMode new mode if mode
 
+      return
       @buffers[path] = buffer
 
     buffer.on 'change', -> buffer.$atom_dirty = true
@@ -119,7 +118,7 @@ class Editor
         @ace.setSession  new EditSession ''
 
   focusBuffer: (path) ->
-    return if @activePath == path
+    return if not path or @activePath == path
 
     @activePath = path
 
