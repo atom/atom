@@ -22,8 +22,10 @@
 }
 
 - (id)initWithPath:(NSString *)aPath {
+    aPath = aPath ? aPath : @"/tmp";
+  
   self = [super initWithWindowNibName:@"AtomWindow"];
-  [self setPath:[aPath stringByStandardizingPath]];
+  path = [[aPath stringByStandardizingPath] retain];
 
   return self;
 }
@@ -31,6 +33,8 @@
 - (void)windowDidLoad {
   [super windowDidLoad];
   
+  [self.window setDelegate:self];
+    
   [webView setUIDelegate:self];
 
   [self setShouldCascadeWindows:YES];
@@ -45,11 +49,6 @@
   [[webView mainFrame] loadRequest:request];    
 }
 
-- (void)close {
-  [(AtomApp *)NSApp removeController:self];
-  [super close];
-}
-
 - (NSString *)tempfile {
   char *directory = "/tmp";
   char *prefix = "temp-file";
@@ -60,9 +59,15 @@
   return tmpPathString;
 }
 
-// WebUIDelegate Protocol
+// WebUIDelegate
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
   return defaultMenuItems;
+}
+
+// WindowDelegate
+- (BOOL)windowShouldClose:(id)sender {
+  [(AtomApp *)NSApp removeController:self];
+  return YES;
 }
 
 @end

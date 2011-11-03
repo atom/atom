@@ -3,11 +3,11 @@
 @class JSCocoa;
 @class WebView;
 
-@interface AtomController : NSWindowController {
+@interface AtomController : NSWindowController <NSWindowDelegate> {
 }
 
 @property (retain) WebView *webView;
-@property (retain) NSString *path;
+@property (retain, readonly) NSString *path;
 @property (retain) JSCocoa *jscocoa;
 
 - (AtomController *)initWithPath:(NSString *)aPath;

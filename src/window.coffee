@@ -19,12 +19,9 @@ windowAdditions =
   startup: () ->
     KeyBinder.register "window", window
 
-    if atomController.path
-      @setRecentPath atomController.path
-    else
-      atomController.path = @recentPath()
+    @setTitle atomController.path
 
-    @editor = if atomController.path and fs.isFile atomController.path
+    @editor = if fs.isFile atomController.path
       new Editor atomController.path
     else
       new Editor
@@ -40,7 +37,7 @@ windowAdditions =
   restoreEditorState: ->
     storage = Storage.get @storageKey(), {}
     @editor.addBuffer path for path in storage.openPaths ? []
-    @editor.focusBuffer storage.lastOpenedPath
+    @editor.focusBuffer storage.lastOpenedPath if storage.lastOpenedPath
 
     # Remember what buffers were open and closed
     Event.on "editor:bufferFocus", (e) =>
@@ -88,12 +85,6 @@ windowAdditions =
     KeyBinder.load "#{@appRoot}/static/key-bindings.coffee"
     KeyBinder.load "~/.atomicity/key-bindings.coffee"
 
-  recentPath: ->
-    localStorage.lastOpenedPath
-
-  setRecentPath: (path) ->
-    localStorage.lastOpenedPath = path
-
   showConsole: ->
     atomController.webView.inspector.showConsole true
 
@@ -102,7 +93,7 @@ windowAdditions =
 
   reload: ->
     atomController.close
-    Native.newWindow atomController.path
+    OSX.NSApp.createController atomController.path
 
   open: (path) ->
     atomController.window.makeKeyAndOrderFront atomController
@@ -126,7 +117,7 @@ windowAdditions =
     child = path.replace(/([^\/])$/, "$1/")
 
     # If the child is contained by the parent, it can be opened by this window
-    return child.match "^" + parent
+    child.match "^" + parent
 
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]

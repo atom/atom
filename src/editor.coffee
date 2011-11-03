@@ -73,7 +73,6 @@ class Editor
       mode = @modeForPath path
       buffer.setMode new mode if mode
 
-      return
       @buffers[path] = buffer
 
     buffer.on 'change', -> buffer.$atom_dirty = true

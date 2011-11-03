@@ -4,21 +4,37 @@
 
 #import <WebKit/WebKit.h>
 
-#define ATOM_USER_PATH @"~/.atomicity/"
+#define ATOM_USER_PATH ([[NSString stringWithString:@"~/.atomicity/"] stringByStandardizingPath])
+#define ATOM_STORAGE_PATH ([ATOM_USER_PATH stringByAppendingPathComponent:@".app-storage"])
+#define WEB_STORAGE_PATH ([ATOM_USER_PATH stringByAppendingPathComponent:@".web-storage"])
 
 @implementation AtomApp
 
 @synthesize controllers;
 
 - (AtomController *)createController:(NSString *)path {
+  // Don't like this storage code in here.
+  if (path) {
+    NSMutableArray *storage = [NSMutableArray arrayWithContentsOfFile:ATOM_STORAGE_PATH];
+    if (!storage) storage = [NSMutableArray array];
+    if (![storage containsObject:path]) {
+      [storage addObject:path];
+      [storage writeToFile:ATOM_STORAGE_PATH atomically:YES];
+    }
+  }
+      
   AtomController *controller = [[AtomController alloc] initWithPath:path];
   [controllers addObject:controller];
-  [controller.window makeKeyAndOrderFront:self];
+  [[controller window] makeKeyWindow];
   return controller;
 }
 
 - (void)removeController:(AtomController *)controller {
   [controllers removeObject:controller];
+  
+  NSMutableArray *storage = [NSMutableArray arrayWithContentsOfFile:ATOM_STORAGE_PATH];
+  [storage removeObject:controller.path];
+  [storage writeToFile:ATOM_STORAGE_PATH atomically:YES];
 }
 
 - (void)open:(NSString *)path {
@@ -31,7 +47,7 @@
   }
   
   for (AtomController *controller in controllers) {   
-    JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"canOpen" withArguments:path , nil];
+    JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"canOpen" withArguments:path, nil];
     if ([controller.jscocoa toBool:value]) {
       [controller.jscocoa callJSFunctionNamed:@"open" withArguments:path, nil];
       return;
@@ -73,15 +89,33 @@
   
   // Hack to make localStorage work
   WebPreferences* prefs = [WebPreferences standardPreferences];
-  [prefs _setLocalStorageDatabasePath:ATOM_USER_PATH @"storage"];
+  [prefs _setLocalStorageDatabasePath:WEB_STORAGE_PATH];
   [prefs setLocalStorageEnabled:YES];
 
-  NSDictionary *defaults = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], @"WebKitDeveloperExtras", nil];
+  NSDictionary *defaults = [NSDictionary dictionaryWithObjectsAndKeys:
+                            [NSNumber numberWithBool:YES], @"WebKitDeveloperExtras", 
+                            [NSNumber numberWithBool:YES], @"WebKitScriptDebuggerEnabled",
+                            nil];
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-  [self createController:NULL];
+  NSError *error = nil;
+  BOOL success = [[NSFileManager defaultManager] createDirectoryAtPath:ATOM_USER_PATH withIntermediateDirectories:YES attributes:nil error:&error];
+  if (!success || error) {
+    [NSException raise:@"Atom: Failed to open storage path at '%@'. %@" format:ATOM_USER_PATH, [error localizedDescription]];
+  }
+  
+  // Don't like this storage code in here.
+  NSMutableArray *storage = [NSMutableArray arrayWithContentsOfFile:ATOM_STORAGE_PATH];
+  if (storage.count == 0) {
+    [self createController:NULL];
+  }
+  else {
+    for (NSString *path in storage) {
+      [self createController:path];
+    }
+  }
 }
 
 @end
