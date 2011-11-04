@@ -64,7 +64,6 @@ windowAdditions =
     extension.shutdown() for extension in @extensions
     @extensions = []
 
-    console.log require.resourcePath + "/extensions"
     extensionPaths = fs.list require.resourcePath + "/extensions"
     for extensionPath in extensionPaths when fs.isDirectory extensionPath
       try
