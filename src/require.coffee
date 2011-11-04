@@ -92,6 +92,7 @@ __expand = (path) ->
     else if __exists "#{path}/index.#{ext}"
       return "#{path}/index.#{ext}"
 
+  return path if __exists path
   return null
 
 __exists = (path) ->
@@ -110,6 +111,7 @@ __defines = []
 this.require = require
 this.define  = define
 
+this.require.resourcePath = resourcePath
 this.require.paths = paths
 this.require.exts  = exts
 

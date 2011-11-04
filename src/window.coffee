@@ -64,13 +64,14 @@ windowAdditions =
     extension.shutdown() for extension in @extensions
     @extensions = []
 
-    extensionPaths = fs.list(@appRoot + "/extensions")
+    console.log require.resourcePath + "/extensions"
+    extensionPaths = fs.list require.resourcePath + "/extensions"
     for extensionPath in extensionPaths when fs.isDirectory extensionPath
       try
         extension = require extensionPath
         extensions.push new extension()
       catch error
-        console.warn "window: Loading Extension #{fs.base extensionPath} failed."
+        console.warn "window: Loading Extension '#{fs.base extensionPath}' failed."
         console.warn error
 
     # After all the extensions are created, start them up.
@@ -95,6 +96,7 @@ windowAdditions =
     atomController.close
     OSX.NSApp.createController atomController.path
 
+  # Do open and close even belong here?
   open: (path) ->
     atomController.window.makeKeyAndOrderFront atomController
 
