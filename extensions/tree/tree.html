@@ -1,5 +1,5 @@
 <style>
-  #project {
+  #tree {
     min-width: 200px;
     height: 100%;
     background-color: #DDE3EA;
@@ -10,7 +10,7 @@
     overflow: auto;
   }
 
-  #project .cwd {
+  #tree .cwd {
     padding-top: 5px;
     padding-left: 5px;
     font-weight: bold;
@@ -19,48 +19,48 @@
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 
-  #project ul {
+  #tree ul {
     margin: 0;
     padding-top: 2px;
     list-style-type: none;
   }
 
-  #project li {
+  #tree li {
     padding: 0;
     padding-left: 20px;
     line-height: 20px;
   }
 
-  #project li ul li {
+  #tree li ul li {
     padding-left: 110px;
     margin-left: -100px;
   }
 
-  #project li.file {
+  #tree li.file {
     font-weight: normal;
   }
 
-  #project li.dir {
+  #tree li.dir {
     font-weight: bold;
   }
 
-  #project li.dir {
-    background: url('extensions/project/images/dir-toggle.png') 9px 6px no-repeat;
+  #tree li.dir {
+    background: url('extensions/tree/images/dir-toggle.png') 9px 6px no-repeat;
   }
 
-  #project li.dir.open {
+  #tree li.dir.open {
     background-position: 9px -16px;
   }
 
-  #project li ul li.dir {
+  #tree li ul li.dir {
     background-position: 100px 6px;
   }
 
-  #project li ul li.dir.open {
+  #tree li ul li.dir.open {
     background-position: 100px -16px;
   }
 
-  #project li.active {
+  #tree li.active {
     background-image: -webkit-gradient(linear,0% 0,0% 100%,from(#BCCBEB),to(#8094BB));
     border-top: 1px solid #A0AFCD;
     color: #fff;
@@ -68,7 +68,7 @@
   }
 </style>
 
-<div id='project'>
+<div id='tree'>
   <div class='cwd'></div>
   <ul class='files'></ul>
 </div>

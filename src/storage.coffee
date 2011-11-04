@@ -2,12 +2,12 @@ module.exports =
 class Storage
   @get: (key, defaultValue) ->
     try
-      object = JSON.parse(localStorage[key] ? "{}")
+      value = JSON.parse(localStorage[key] ? null) ? defaultValue
     catch error
       error.message += "\nGetting #{key}"
       console.error(error)
 
-    object ? defaultValue
+    value
 
   @set: (key, value) ->
     if value == undefined

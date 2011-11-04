@@ -3,7 +3,7 @@ $ = require 'jquery'
 Extension = require 'extension'
 KeyBinder = require 'key-binder'
 Event = require 'event'
-TabsPane = require 'tabs/tabspane'
+TabsPane = require 'tabs/tabs-pane'
 
 fs = require 'fs'
 
