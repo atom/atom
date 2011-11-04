@@ -26,17 +26,15 @@ class TreePane extends Pane
 
       if fs.isDirectory path
         window.x = @tree
-        openedDirs = @tree.getOpenedDirs()
         if el.hasClass 'open'
-          openedDirs = _.without openedDirs, path
+          @tree.hideDir path
           el.removeClass 'open'
           el.children("ul").remove()
         else
-          openedDirs.push path unless path in openedDirs
+          @tree.showDir path
           el.addClass 'open'
           list = @createList path
           el.append list
-        @tree.setOpenedDirs openedDirs
       else
         el.addClass 'active'
         window.open path
@@ -58,14 +56,14 @@ class TreePane extends Pane
     paths = fs.list root
 
     list = $('<ul>')
+    console.log @tree.shownDirs()
     for path in paths
       filename = path.replace(root, "").substring 1
       type = if fs.isDirectory path then 'dir' else 'file'
       encodedPath = encodeURIComponent path
       listItem = $("<li class='#{type}' data-path='#{encodedPath}'>#{filename}</li>")
-      openedDirs = @tree.getOpenedDirs()
 
-      if path in openedDirs and fs.isDirectory path
+      if path in @tree.shownDirs() and fs.isDirectory path
         listItem.append @createList path
         listItem.addClass "open"
       list.append listItem

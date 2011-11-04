@@ -15,21 +15,23 @@ class Tree extends Extension
     KeyBinder.load require.resolve "tree/key-bindings.coffee"
 
     # Remove dirs that no longer exist
-    openedPaths = @getOpenedDirs()
-    for dir in openedPaths when not fs.exists dir
-      openedDirs = _.without openedDirs, path
-      @setOpenedDirs openedDirs
+    @hideDir(dir) for dir in @shownDirs() when not fs.exists dir
 
     @pane = new TreePane @
 
-  storageNamespace: ->
-    @.constructor.name + ":" + atomController.path
-
-  getOpenedDirs: ->
-    Storage.get @storageNamespace() + ':openedDirs', []
-
-  setOpenedDirs: (value) ->
-    Storage.set @storageNamespace() + ':openedDirs', value
-
   startup: ->
     @pane.show()
+
+  shownDirStorageKey: ->
+    @.constructor.name + ":" + atomController.path + ":shownDirs"
+
+  shownDirs: ->
+    Storage.get @shownDirStorageKey(), []
+
+  showDir: (dir) ->
+    dirs = @shownDirs().concat dir
+    Storage.set @shownDirStorageKey(), dirs
+
+  hideDir: (dir) ->
+    dirs = _.without @shownDirs(), dir
+    Storage.set @shownDirStorageKey(), dirs
