@@ -68,7 +68,7 @@ class Editor
     focusedPath = Storage.get(@focusedPathKey)
 
     @addBuffer path for path in openPaths
-    @openPathsfocusBuffer focusedPath if focusedPath
+    @focusBuffer focusedPath if focusedPath
 
   addBuffer: (path) ->
     throw "#{@constructor.name}: Cannot create buffer from a directory `#{path}`" if fs.isDirectory path
@@ -90,7 +90,7 @@ class Editor
     openPaths = Storage.get @openPathsKey, []
     unless path in openPaths
       openPaths.push path
-      Storage.set @openPathsKey(), openPaths
+      Storage.set @openPathsKey, openPaths
 
     buffer.on 'change', -> buffer.$atom_dirty = true
     Event.trigger "editor:bufferAdd", path

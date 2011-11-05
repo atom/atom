@@ -15,7 +15,7 @@ class Tree extends Extension
     KeyBinder.load require.resolve "tree/key-bindings.coffee"
 
     # Remove dirs that no longer exist
-    @hideDir(dir) for dir in @shownDirs() when not fs.exists dir
+    @hideDir dir for dir in @shownDirs() when not fs.exists dir
 
     @pane = new TreePane @
 

@@ -54,6 +54,7 @@ class TreePane extends Pane
 
   createList: (root) ->
     paths = fs.list root
+    shownDirs = @tree.shownDirs()
 
     list = $('<ul>')
     for path in paths
@@ -62,7 +63,7 @@ class TreePane extends Pane
       encodedPath = encodeURIComponent path
       listItem = $("<li class='#{type}' data-path='#{encodedPath}'>#{filename}</li>")
 
-      if path in @tree.shownDirs() and fs.isDirectory path
+      if path in shownDirs and fs.isDirectory path
         listItem.append @createList path
         listItem.addClass "open"
       list.append listItem
