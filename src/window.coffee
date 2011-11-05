@@ -77,6 +77,8 @@ windowAdditions =
       Event.trigger 'window:open', path
 
   close: (path) ->
+    extension.shutdown() for extension in @extensions
+
     atomController.close
     Event.trigger 'window:close', path
 

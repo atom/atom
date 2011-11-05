@@ -31,7 +31,7 @@ class Watcher
 
   # Delegate method for __AAWatcher__
   @watcher_receivedNotification_forPath = (queue, notification, path) =>
-    callbacks = @watchedPaths[path]
+    callbacks = @watchedPaths[path] ? []
 
     switch notification.toString()
       when "UKKQueueFileRenamedNotification"
@@ -39,9 +39,11 @@ class Watcher
       when "UKKQueueFileDeletedNotification"
         @watchedPaths[path] = null
         @queue.removePathFromQueue path
+        callback notification, path, callback for callback in callbacks
       when "UKKQueueFileWrittenToNotification"
         callback notification, path, callback for callback in callbacks
       when "UKKQueueFileAttributesChangedNotification"
         # Just ignore this
+        console.log "Attribute Changed on #{path}"
       else
-        console.error "I HAVE NO IDEA WHEN #{notification} IS TRIGGERED"
+        console.error "I HAVE NO IDEA WHY #{notification} WAS TRIGGERED ON #{path}"
