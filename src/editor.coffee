@@ -5,6 +5,7 @@ ace = require 'ace/ace'
 Event = require 'event'
 KeyBinder = require 'key-binder'
 Native = require 'native'
+Storage = require 'storage'
 
 {EditSession} = require 'ace/edit_session'
 {UndoManager} = require 'ace/undomanager'
@@ -14,6 +15,9 @@ class Editor
   activePath: null
 
   buffers: {}
+
+  openPathsKey: "editor.openPaths.#{atomController.path}"
+  focusedPathKey: "editor.focusedPath.#{atomController.path}"
 
   constructor: (path) ->
     KeyBinder.register "editor", @
@@ -59,6 +63,13 @@ class Editor
     catch e
       null
 
+  restoreOpenBuffers: ->
+    openPaths = Storage.get @openPathsKey, []
+    focusedPath = Storage.get(@focusedPathKey)
+
+    @addBuffer path for path in openPaths
+    @openPathsfocusBuffer focusedPath if focusedPath
+
   addBuffer: (path) ->
     throw "#{@constructor.name}: Cannot create buffer from a directory `#{path}`" if fs.isDirectory path
 
@@ -74,6 +85,12 @@ class Editor
       buffer.setMode new mode if mode
 
       @buffers[path] = buffer
+
+
+    openPaths = Storage.get @openPathsKey, []
+    unless path in openPaths
+      openPaths.push path
+      Storage.set @openPathsKey(), openPaths
 
     buffer.on 'change', -> buffer.$atom_dirty = true
     Event.trigger "editor:bufferAdd", path
@@ -107,6 +124,8 @@ class Editor
 
     delete @buffers[path]
 
+    openPaths = Storage.get @openPathsKey, []
+    Storage.set @openPathsKey, _.without openPaths, path
     Event.trigger "editor:bufferRemove", path
 
     if path is @activePath
@@ -124,6 +143,7 @@ class Editor
     buffer = @buffers[path] or @addBuffer path
     @ace.setSession buffer
 
+    Storage.set @focusedPathKey, path
     Event.trigger "editor:bufferFocus", path
 
   save: (path) ->

@@ -29,36 +29,10 @@ windowAdditions =
     @loadExtensions()
     @loadKeyBindings()
 
-    @restoreEditorState()
+    @editor.restoreOpenBuffers()
 
   storageKey: ->
-    "project:" + atomController.path
-
-  restoreEditorState: ->
-    storage = Storage.get @storageKey(), {}
-    @editor.addBuffer path for path in storage.openPaths ? []
-    @editor.focusBuffer storage.lastOpenedPath if storage.lastOpenedPath
-
-    # Remember what buffers were open and closed
-    Event.on "editor:bufferFocus", (e) =>
-      path = e.details
-      storage = Storage.get @storageKey(), {}
-      storage.lastOpenedPath = path.valueOf()
-      Storage.set @storageKey(), storage
-
-    Event.on "editor:bufferAdd", (e) =>
-      path = e.details
-      storage = Storage.get @storageKey(), {}
-      storage.openPaths ?= []
-      unless path.valueOf() in storage.openPaths
-        storage.openPaths.push path.valueOf()
-        Storage.set @storageKey(), storage
-
-    Event.on "editor:bufferRemove", (e) =>
-      path = e.details
-      storage = Storage.get @storageKey(), {}
-      storage.openPaths = (p for p in storage.openPaths when p != path)
-      Storage.set @storageKey(), storage
+    "window:" + atomController.path
 
   loadExtensions: ->
     extension.shutdown() for extension in @extensions

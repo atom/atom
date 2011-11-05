@@ -56,7 +56,6 @@ class TreePane extends Pane
     paths = fs.list root
 
     list = $('<ul>')
-    console.log @tree.shownDirs()
     for path in paths
       filename = path.replace(root, "").substring 1
       type = if fs.isDirectory path then 'dir' else 'file'

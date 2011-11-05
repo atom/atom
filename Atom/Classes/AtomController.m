@@ -22,8 +22,8 @@
 }
 
 - (id)initWithPath:(NSString *)aPath {
-    aPath = aPath ? aPath : @"/tmp";
-  
+  aPath = aPath ? aPath : @"/tmp";
+    
   self = [super initWithWindowNibName:@"AtomWindow"];
   path = [[aPath stringByStandardizingPath] retain];
 
@@ -32,6 +32,8 @@
 
 - (void)windowDidLoad {
   [super windowDidLoad];
+  
+  [[webView inspector] showConsole:self];
   
   [self.window setDelegate:self];
     
@@ -49,6 +51,7 @@
   [[webView mainFrame] loadRequest:request];    
 }
 
+// Helper methods that should go elsewhere
 - (NSString *)tempfile {
   char *directory = "/tmp";
   char *prefix = "temp-file";

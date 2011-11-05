@@ -13,13 +13,11 @@
 @synthesize controllers;
 
 - (AtomController *)createController:(NSString *)path {
-  // Don't like this storage code in here.
   if (path) {
-    NSMutableArray *storage = [NSMutableArray arrayWithContentsOfFile:ATOM_STORAGE_PATH];
-    if (!storage) storage = [NSMutableArray array];
-    if (![storage containsObject:path]) {
-      [storage addObject:path];
-      [storage writeToFile:ATOM_STORAGE_PATH atomically:YES];
+    NSMutableArray *openedPaths = [self storageGet:@"app.openedPaths" defaultValue:[NSMutableArray array]];
+    if (![openedPaths containsObject:path]) {
+      [openedPaths addObject:path];
+      [self storageSet:@"app.openedPaths" value:openedPaths];
     }
   }
       
@@ -32,9 +30,9 @@
 - (void)removeController:(AtomController *)controller {
   [controllers removeObject:controller];
   
-  NSMutableArray *storage = [NSMutableArray arrayWithContentsOfFile:ATOM_STORAGE_PATH];
-  [storage removeObject:controller.path];
-  [storage writeToFile:ATOM_STORAGE_PATH atomically:YES];
+  NSMutableArray *openedPaths = [self storageGet:@"app.openedPaths" defaultValue:[NSMutableArray array]];
+  [openedPaths removeObject:controller.path];
+  [self storageSet:@"app.openedPaths" value:openedPaths];
 }
 
 - (void)open:(NSString *)path {
@@ -65,23 +63,23 @@
 }
 
 // Overridden
-- (void)sendEvent:(NSEvent *)event {
-  if ([event type] == NSKeyDown) {
-    BOOL handeled = NO;
-    AtomController *controller = [[self keyWindow] windowController];
-    
-    // The keyWindow could be a Cocoa Dialog or something, ignore that.
-    if ([controller isKindOfClass:[AtomController class]]) {
-      JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
-      handeled = [controller.jscocoa toBool:value];
-    }
-    
-    if (!handeled) [super sendEvent:event];
-  }
-  else {
-    [super sendEvent:event];
-  }
-}
+//- (void)sendEvent:(NSEvent *)event {
+//  if ([event type] == NSKeyDown) {
+//    BOOL handeled = NO;
+//    AtomController *controller = [[self keyWindow] windowController];
+//    
+//    // The keyWindow could be a Cocoa Dialog or something, ignore that.
+//    if ([controller isKindOfClass:[AtomController class]]) {
+//      JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
+//      handeled = [controller.jscocoa toBool:value];
+//    }
+//    
+//    if (!handeled) [super sendEvent:event];
+//  }
+//  else {
+//    [super sendEvent:event];
+//  }
+//}
 
 // AppDelegate
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification {
@@ -106,16 +104,56 @@
     [NSException raise:@"Atom: Failed to open storage path at '%@'. %@" format:ATOM_USER_PATH, [error localizedDescription]];
   }
   
-  // Don't like this storage code in here.
-  NSMutableArray *storage = [NSMutableArray arrayWithContentsOfFile:ATOM_STORAGE_PATH];
-  if (storage.count == 0) {
+  NSArray *openedPaths = [self storageGet:@"app.openedPaths" defaultValue:[NSMutableArray array]];
+  if (openedPaths.count == 0) {
     [self createController:NULL];
   }
   else {
-    for (NSString *path in storage) {
+    for (NSString *path in openedPaths) {
       [self createController:path];
     }
   }
+}
+
+// Helper Methods that should probably go elsewhere
+- (id)storage {
+  id storage = [NSMutableDictionary dictionaryWithContentsOfFile:ATOM_STORAGE_PATH];
+  if (!storage) storage = [NSMutableDictionary dictionary];
+  
+  return storage;
+}
+
+- (id)storageGet:(NSString *)keyPath defaultValue:(id)defaultValue {
+  id storage = [NSMutableDictionary dictionaryWithContentsOfFile:ATOM_STORAGE_PATH];
+  if (!storage) storage = [NSMutableDictionary dictionary];
+
+  id value = [storage valueForKeyPath:keyPath];
+  if (!value) value = defaultValue;
+  
+  return value;
+}
+
+- (id)storageSet:(NSString *)keyPath value:(id)value {
+  id storage = [NSMutableDictionary dictionaryWithContentsOfFile:ATOM_STORAGE_PATH];
+  if (!storage) storage = [NSMutableDictionary dictionary];
+
+  NSArray *keys = [keyPath componentsSeparatedByString:@"."];
+  id parent = storage;
+  for (int i = 0; i < keys.count - 1; i++) {
+    NSString *key = [keys objectAtIndex:i];
+    id newParent = [parent valueForKey:key];
+    if (!newParent) {
+      newParent = [NSMutableDictionary dictionary];
+      [parent setValue:newParent forKey:key];
+    }
+    parent = newParent;
+  }
+
+  [storage setValue:value forKeyPath:keyPath];
+  
+  [storage writeToFile:ATOM_STORAGE_PATH atomically:YES];
+  
+  return value;  
 }
 
 @end
