@@ -12,7 +12,8 @@ module.exports =
 class FilefinderPane extends Pane
   html: require "filefinder/filefinder.html"
 
-  constructor: (@window, @filefinder) ->
+  constructor: (@filefinder) ->
+    @path = atomController.path
     $('#filefinder input').live 'keydown', @onKeydown
 
     css   = File.read require.resolve 'filefinder/facebox.css'
@@ -44,7 +45,7 @@ class FilefinderPane extends Pane
 
   paths: -> 
     _paths = []
-    for dir in File.list @window.path
+    for dir in File.list @path
       continue if /\.git|Cocoa/.test dir
       _paths.push File.listDirectoryTree dir
     _.reject _.flatten(_paths), (dir) -> File.isDirectory dir
@@ -53,7 +54,7 @@ class FilefinderPane extends Pane
     $.facebox @html
     @files = []
     for file in @paths()
-      @files.push file.replace "#{@window.path}/", ''
+      @files.push file.replace "#{@path}/", ''
     @filterFiles()
 
   findMatchingFiles: (query) ->
@@ -86,9 +87,9 @@ class FilefinderPane extends Pane
     $('#filefinder li:first').addClass 'selected'
 
   openSelected: ->
-    dir  = @window.path
+    dir  = @path
     file = $('#filefinder .selected').text()
-    @window.open "#{dir}/#{file}"
+    window.open "#{dir}/#{file}"
     @toggle()
 
   moveUp: ->
