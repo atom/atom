@@ -11,16 +11,19 @@ fs = require 'fs'
 
 module.exports =
 class Tree extends Extension
-  watcherCallbacks: {}
-
   constructor: ->
     KeyBinder.register "tree", @
     KeyBinder.load require.resolve "tree/key-bindings.coffee"
 
-    @watchDir atomController.path
-    # Remove dirs that no longer exist
+    # watch the root dir
+    Watcher.watch atomController.path, @watchDir
+
+    # Hide dirs that no longer exist, watch dirs that do.
     for dir in @shownDirs()
-      if not fs.exists dir then @hideDir dir else @watchDir dir
+      if not fs.exists dir
+        @hideDir dir
+      else
+        Watcher.watch dir, @watchDir
 
     @pane = new TreePane @
 
@@ -28,14 +31,13 @@ class Tree extends Extension
     @pane.show()
 
   shutdown: ->
-    @unwatchDir dir for dir, callback of @watcherCallbacks
+    @unwatchDir dir for dir in @shownDirs()
 
   shownDirStorageKey: ->
     @.constructor.name + ":" + atomController.path + ":shownDirs"
 
-  watchDir: (dir) ->
-    @watcherCallbacks[dir] = Watcher.watch dir, =>
-      @pane.reload()
+  watchDir: (dir) =>
+    @pane.reload()
 
   unwatchDir: (dir) ->
     watcher.unwach dir, @watcherCallbacks[dir]
@@ -46,10 +48,10 @@ class Tree extends Extension
   showDir: (dir) ->
     dirs = @shownDirs().concat dir
     Storage.set @shownDirStorageKey(), dirs
-    @watchDir dir
+    Watcher.watch dir, @watchDir
+
 
   hideDir: (dir) ->
     dirs = _.without @shownDirs(), dir
     Storage.set @shownDirStorageKey(), dirs
-    @unwatchDir dir
-    delete @watcherCallbacks[dir]
+    @unwatchDir dir, @watchDir
