@@ -1,6 +1,8 @@
 # Hack to get code reloading working in dev mode
 if OSX.NSUserName().valueOf() == "corey"
   resourcePath = "/Users/corey/code/mine/Atomicity"
+else if OSX.NSUserName().valueOf() == "chris"
+  resourcePath = "/Users/chris/Code/Atomicity"
 else
   resourcePath = OSX.NSBundle.mainBundle.resourcePath
 
