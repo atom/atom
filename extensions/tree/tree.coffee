@@ -16,7 +16,7 @@ class Tree extends Extension
     KeyBinder.load require.resolve "tree/key-bindings.coffee"
 
     # watch the root dir
-    Watcher.watch atomController.path, @watchDir
+    Watcher.watch window.path, @watchDir
 
     # Hide dirs that no longer exist, watch dirs that do.
     for dir in @shownDirs()
@@ -34,7 +34,7 @@ class Tree extends Extension
     @unwatchDir dir for dir in @shownDirs()
 
   shownDirStorageKey: ->
-    @.constructor.name + ":" + atomController.path + ":shownDirs"
+    @.constructor.name + ":" + window.path + ":shownDirs"
 
   watchDir: (dir) =>
     @pane.reload()

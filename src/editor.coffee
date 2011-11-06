@@ -16,8 +16,8 @@ class Editor
 
   buffers: {}
 
-  openPathsKey: "editor.openPaths.#{atomController.path}"
-  focusedPathKey: "editor.focusedPath.#{atomController.path}"
+  openPathsKey: "editor.openPaths.#{window.path}"
+  focusedPathKey: "editor.focusedPath.#{window.path}"
 
   constructor: (path) ->
     KeyBinder.register "editor", @

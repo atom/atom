@@ -19,10 +19,11 @@ windowAdditions =
   startup: () ->
     KeyBinder.register "window", window
 
-    @setTitle atomController.path
+    @path = atomController.path
+    @setTitle @path
 
-    @editor = if fs.isFile atomController.path
-      new Editor atomController.path
+    @editor = if fs.isFile @path
+      new Editor @path
     else
       new Editor
 
@@ -33,7 +34,7 @@ windowAdditions =
     @editor.restoreOpenBuffers()
 
   storageKey: ->
-    "window:" + atomController.path
+    "window:" + @path
 
   loadExtensions: ->
     extension.shutdown() for extension in @extensions
@@ -73,7 +74,7 @@ windowAdditions =
 
   reload: ->
     atomController.close
-    OSX.NSApp.createController atomController.path
+    OSX.NSApp.createController @path
 
   # Do open and close even belong here?
   open: (path) ->
@@ -96,7 +97,7 @@ windowAdditions =
     Event.trigger.apply Event, arguments
 
   canOpen: (path) ->
-    parent = atomController.path.replace(/([^\/])$/, "$1/")
+    parent = @path.replace(/([^\/])$/, "$1/")
     child = path.replace(/([^\/])$/, "$1/")
 
     # If the child is contained by the parent, it can be opened by this window
