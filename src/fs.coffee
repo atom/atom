@@ -43,6 +43,7 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
+    path = @absolute path
     isDir = new jscocoa.outArgument
     exists = OSX.NSFileManager.defaultManager.
       fileExistsAtPath_isDirectory path, isDir
