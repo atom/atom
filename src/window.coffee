@@ -58,7 +58,7 @@ windowAdditions =
 
   loadKeyBindings: ->
     KeyBinder.load "#{@appRoot}/static/key-bindings.coffee"
-    if fs.isFile "~/.atomicity/key-bindings.coffee"
+    if fs.isFile require.resolve "~/.atomicity/key-bindings.coffee"
       KeyBinder.load "~/.atomicity/key-bindings.coffee"
 
   loadSettings: ->
