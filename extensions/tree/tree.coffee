@@ -40,7 +40,7 @@ class Tree extends Extension
     @pane.reload()
 
   unwatchDir: (dir) ->
-    watcher.unwach dir, @watcherCallbacks[dir]
+    Watcher.unwatch dir, @watchDir
 
   shownDirs: ->
     Storage.get @shownDirStorageKey(), []
