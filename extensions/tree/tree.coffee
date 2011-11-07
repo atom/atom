@@ -13,6 +13,10 @@ module.exports =
 class Tree extends Extension
   ignorePattern: /\.git|\.xcodeproj|\.DS_Store/
 
+  # a path is an object with three keys: label, path, and paths.
+  # paths is an optional Array of other path objects.
+  paths: []
+
   constructor: ->
     KeyBinder.register "tree", @
     KeyBinder.load require.resolve "tree/key-bindings.coffee"
@@ -27,6 +31,7 @@ class Tree extends Extension
       else
         Watcher.watch dir, @watchDir
 
+    @paths = @findPaths window.path
     @pane = new TreePane @
 
   startup: ->
@@ -52,8 +57,19 @@ class Tree extends Extension
     Storage.set @shownDirStorageKey(), dirs
     Watcher.watch dir, @watchDir
 
-
   hideDir: (dir) ->
     dirs = _.without @shownDirs(), dir
     Storage.set @shownDirStorageKey(), dirs
     @unwatchDir dir, @watchDir
+
+  findPaths: (root) ->
+    paths = []
+
+    for path in fs.list root
+      continue if @ignorePattern.test path
+      paths.push
+        label: _.last path.split '/'
+        path: path
+        paths: @findPaths path if fs.isDirectory path
+
+    paths

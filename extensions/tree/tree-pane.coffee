@@ -32,7 +32,7 @@ class TreePane extends Pane
         else
           @tree.showDir path
           el.addClass 'open'
-          list = @createList path
+          list = @createList @tree.findPaths path
           el.append list
       else
         el.addClass 'active'
@@ -47,24 +47,19 @@ class TreePane extends Pane
 
   reload: ->
     @html.children('#tree .cwd').text _.last window.path.split '/'
-    fileList = @createList window.path
+    fileList = @createList @tree.paths
     fileList.addClass 'files'
     @html.children('#tree .files').replaceWith fileList
 
   createList: (root) ->
-    paths = fs.list root
     shownDirs = @tree.shownDirs()
-
     list = $('<ul>')
-    for path in paths
-      continue if @tree.ignorePattern.test path
-      filename = path.replace(root, "").substring 1
-      type = if fs.isDirectory path then 'dir' else 'file'
+    for {label, path, paths} in root
+      type = if paths then 'dir' else 'file'
       encodedPath = encodeURIComponent path
-      listItem = $("<li class='#{type}' data-path='#{encodedPath}'>#{filename}</li>")
-
-      if path in shownDirs and fs.isDirectory path
-        listItem.append @createList path
+      listItem = $("<li class='#{type}' data-path='#{encodedPath}'>#{label}</li>")
+      if path in shownDirs and type is 'dir'
+        listItem.append @createList paths
         listItem.addClass "open"
       list.append listItem
 
