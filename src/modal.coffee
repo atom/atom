@@ -33,7 +33,7 @@ class Modal
 
     $('body').append $(@template).hide()
     $('#modal .content').append @html
-    $('#modal').show()
+    $('#modal').fadeIn 200
     @resize()
 
     Event.trigger 'modal:show', @
@@ -45,7 +45,6 @@ class Modal
 
   hide: ->
     @showing = false
-    $('#modal, #modal-overlay').remove()
     $('#modal').fadeOut -> $(this).remove()
     $('#modal-overlay').fadeOut 200, -> $(this).remove()
     $(document).unbind '.modal'
