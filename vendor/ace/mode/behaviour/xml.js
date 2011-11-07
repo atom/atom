@@ -82,7 +82,6 @@ var XmlBehaviour = function () {
                 }
             }
         }
-        return false;
     });
     
 }

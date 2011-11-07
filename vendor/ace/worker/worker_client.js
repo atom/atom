@@ -42,7 +42,7 @@ var EventEmitter = require("pilot/event_emitter").EventEmitter;
 
 var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
 
-    this.callbacks = [];
+    this.changeListener = this.changeListener.bind(this);
 
     if (require.packaged) {
         var base = this.$guessBasePath();
@@ -104,9 +104,9 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
 
     this.$normalizePath = function(path) {
         if (!path.match(/^\w+:/)) {
-            path = location.protocol + "//" + location.host 
+            path = location.protocol + "//" + location.host
                 // paths starting with a slash are relative to the root (host)
-                + (path.charAt(0) == "/" ? "" : location.pathname.replace(/\/[^\/]*$/, "")) 
+                + (path.charAt(0) == "/" ? "" : location.pathname.replace(/\/[^\/]*$/, ""))
                 + "/" + path.replace(/^[\/]+/, "");
         }
         return path;
@@ -115,7 +115,7 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
     this.$guessBasePath = function() {
         if (require.aceBaseUrl)
             return require.aceBaseUrl;
-        
+
         var scripts = document.getElementsByTagName("script");
         for (var i=0; i<scripts.length; i++) {
             var script = scripts[i];
@@ -123,7 +123,7 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
             var base = script.getAttribute("data-ace-base");
             if (base)
                 return base.replace(/\/*$/, "/");
-            
+
             var src = script.src || script.getAttribute("src");
             if (!src) {
                 continue;
@@ -138,6 +138,9 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
     this.terminate = function() {
         this._dispatchEvent("terminate", {});
         this.$worker.terminate();
+        this.$worker = null;
+        this.$doc.removeEventListener("change", this.changeListener);
+        this.$doc = null;
     };
 
     this.send = function(cmd, args) {
@@ -154,7 +157,29 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
     };
 
     this.emit = function(event, data) {
-        this.$worker.postMessage({event: event, data: data});
+        try {
+            // firefox refuses to clone objects which have function properties
+            // TODO: cleanup event
+            this.$worker.postMessage({event: event, data: {data: data.data}});
+        }
+        catch(ex) {}
+    };
+
+    this.attachToDocument = function(doc) {
+        if(this.$doc)
+            this.terminate();
+
+        this.$doc = doc;
+        this.call("setValue", [doc.getValue()]);
+        doc.on("change", this.changeListener);
+    };
+
+    this.changeListener = function(e) {
+        e.range = {
+            start: e.data.range.start,
+            end: e.data.range.end
+        };
+        this.emit("change", e);
     };
 
 }).call(WorkerClient.prototype);

@@ -303,7 +303,7 @@ canon.addCommand({
 canon.addCommand({
     name: "del",
     bindKey: bindKey("Delete", "Delete|Ctrl-D"),
-    exec: function(env, args, request) { env.editor.removeRight(); }
+    exec: function(env, args, request) { env.editor.remove("right"); }
 });
 canon.addCommand({
     name: "backspace",
@@ -311,16 +311,16 @@ canon.addCommand({
         "Ctrl-Backspace|Command-Backspace|Option-Backspace|Shift-Backspace|Backspace",
         "Ctrl-Backspace|Command-Backspace|Shift-Backspace|Backspace|Ctrl-H"
     ),
-    exec: function(env, args, request) { env.editor.removeLeft(); }
+    exec: function(env, args, request) { env.editor.remove("left"); }
 });
 canon.addCommand({
     name: "removetolinestart",
-    bindKey: bindKey(null, "Option-Backspace"),
+    bindKey: bindKey("Alt-Backspace", "Option-Backspace"),
     exec: function(env, args, request) { env.editor.removeToLineStart(); }
 });
 canon.addCommand({
     name: "removetolineend",
-    bindKey: bindKey(null, "Ctrl-K"),
+    bindKey: bindKey("Alt-Delete", "Ctrl-K"),
     exec: function(env, args, request) { env.editor.removeToLineEnd(); }
 });
 canon.addCommand({
@@ -330,7 +330,7 @@ canon.addCommand({
 });
 canon.addCommand({
     name: "removewordright",
-    bindKey: bindKey(null, "Alt-Delete"),
+    bindKey: bindKey("Ctrl-Delete", "Alt-Delete"),
     exec: function(env, args, request) { env.editor.removeWordRight(); }
 });
 canon.addCommand({
@@ -363,6 +363,35 @@ canon.addCommand({
     name: "transposeletters",
     bindKey: bindKey("Ctrl-T", "Ctrl-T"),
     exec: function(env, args, request) { env.editor.transposeLetters(); }
+});
+
+canon.addCommand({
+    name: "fold",
+    bindKey: bindKey("Alt-L", "Alt-L"),
+    exec: function(env) {
+        env.editor.session.toggleFold(false);
+    }
+});
+canon.addCommand({
+    name: "unfold",
+    bindKey: bindKey("Alt-Shift-L", "Alt-Shift-L"),
+    exec: function(env) {
+        env.editor.session.toggleFold(true);
+    }
+});
+canon.addCommand({
+    name: "foldall",
+    bindKey: bindKey("Alt-Shift-0", "Alt-Shift-0"),
+    exec: function(env) {
+        env.editor.session.foldAll();
+    }
+});
+canon.addCommand({
+    name: "unfoldall",
+    bindKey: bindKey("Alt-Shift-0", "Alt-Shift-0"),
+    exec: function(env) {
+        env.editor.session.unFoldAll();
+    }
 });
 
 });

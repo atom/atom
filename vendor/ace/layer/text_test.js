@@ -93,7 +93,7 @@ module.exports = {
         assert.equal(
             stringBuilder.join(""),
             "<span class='ace_cjk ace_invisible' style='width:20px'>" + this.textLayer.SPACE_CHAR + "</span>"
-            + "<span class='ace_invisible'>&para;</span>"
+            + "<span class='ace_invisible'>\xB6</span>"
         );
     }
 };

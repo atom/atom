@@ -124,9 +124,8 @@ exports.deferredCall = function(fcn) {
     };
 
     var deferred = function(timeout) {
-        if (!timer) {
-            timer = setTimeout(callback, timeout || 0);
-        }
+        deferred.cancel();
+        timer = setTimeout(callback, timeout || 0);
         return deferred;
     }
 

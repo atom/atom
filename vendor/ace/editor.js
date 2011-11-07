@@ -47,7 +47,7 @@ var event = require("pilot/event");
 var lang = require("pilot/lang");
 var useragent = require("pilot/useragent");
 var TextInput = require("ace/keyboard/textinput").TextInput;
-var MouseHandler = require("ace/mouse_handler").MouseHandler;
+var MouseHandler = require("ace/mouse/mouse_handler").MouseHandler;
 //var TouchHandler = require("ace/touch_handler").TouchHandler;
 var KeyBinding = require("ace/keyboard/keybinding").KeyBinding;
 var EditSession = require("ace/edit_session").EditSession;
@@ -230,7 +230,7 @@ var Editor =function(renderer, session) {
     this.unsetStyle = function(style) {
         this.renderer.unsetStyle(style);
     };
-    
+
     this.setFontSize = function(size) {
         this.container.style.fontSize = size;
     };
@@ -269,7 +269,7 @@ var Editor =function(renderer, session) {
         });
         this.textInput.focus();
     };
-    
+
     this.isFocused = function() {
         return this.textInput.isFocused();
     };
@@ -299,6 +299,8 @@ var Editor =function(renderer, session) {
         else
             lastRow = Infinity;
         this.renderer.updateLines(range.start.row, lastRow);
+
+        this._dispatchEvent("change", e);
 
         // update cursor because tab characters can influence the cursor position
         this.renderer.updateCursor();
@@ -405,7 +407,7 @@ var Editor =function(renderer, session) {
         var text = "";
         if (!this.selection.isEmpty())
             text = this.session.getTextRange(this.getSelectionRange());
-        
+
         this._emit("copy", text);
         return text;
     };
@@ -521,7 +523,7 @@ var Editor =function(renderer, session) {
     this.onTextInput = function(text, notPasted) {
         if (!notPasted)
             this._emit("paste", text);
-            
+
         // In case the text was not pasted and we got only one character, then
         // handel it as a command key stroke.
         if (notPasted && text.length == 1) {
@@ -654,32 +656,24 @@ var Editor =function(renderer, session) {
         return this.$modeBehaviours;
     };
 
-    this.removeRight = function() {
+    this.remove = function(dir) {
         if (this.$readOnly)
             return;
 
-        if (this.selection.isEmpty()) {
-            this.selection.selectRight();
+        if (this.selection.isEmpty()){
+            if(dir == "left")
+                this.selection.selectLeft();
+            else
+                this.selection.selectRight();
         }
-        this.session.remove(this.getSelectionRange());
-        this.clearSelection();
-    };
-
-    this.removeLeft = function() {
-        if (this.$readOnly)
-            return;
-
-        if (this.selection.isEmpty())
-            this.selection.selectLeft();
 
         var range = this.getSelectionRange();
         if (this.getBehavioursEnabled()) {
             var session = this.session;
             var state = session.getState(range.start.row);
             var new_range = session.getMode().transformAction(state, 'deletion', this, session, range);
-            if (new_range !== false) {
+            if (new_range)
                 range = new_range;
-            }
         }
 
         this.session.remove(range);
@@ -798,7 +792,7 @@ var Editor =function(renderer, session) {
                 indentString = lang.stringRepeat(" ", count);
             } else
                 indentString = "\t";
-            return this.onTextInput(indentString);
+            return this.onTextInput(indentString, true);
         }
     };
 

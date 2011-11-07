@@ -52,7 +52,7 @@ function Folding() {
         var foldLine = this.getFoldLine(row);
         if (!foldLine)
             return null;
-            
+
         var folds = foldLine.folds;
         for (var i = 0; i < folds.length; i++) {
             var fold = folds[i];
@@ -134,7 +134,7 @@ function Folding() {
         var foldLine = foldLine || this.getFoldLine(row);
         if (!foldLine)
             return null;
-            
+
         var lastFold = {
             end: { column: 0 }
         };
@@ -183,7 +183,7 @@ function Folding() {
     }
 
     // returns the fold which starts after or contains docRow
-    this.getNextFold = function(docRow, startFoldLine) {
+    this.getNextFoldLine = function(docRow, startFoldLine) {
         var foldData = this.$foldData, ans;
         var i = 0;
         if (startFoldLine)
@@ -251,7 +251,7 @@ function Folding() {
         var startColumn = fold.start.column;
         var endRow = fold.end.row;
         var endColumn = fold.end.column;
-        
+
         // --- Some checking ---
         if (fold.placeholder.length < 2)
             throw "Placeholder has to be at least 2 characters";
@@ -489,8 +489,85 @@ function Folding() {
 
         return fd;
     };
-}
 
+    this.toggleFold = function(tryToUnfold) {
+        var selection = this.selection;
+        var range = selection.getRange();
+
+        if (range.isEmpty()) {
+            var cursor = range.start
+            var fold = this.getFoldAt(cursor.row, cursor.column);
+            var bracketPos, column;
+
+            if (fold) {
+                this.expandFold(fold);
+                return;
+            } else if (bracketPos = this.findMatchingBracket(cursor)) {
+                if (range.comparePoint(bracketPos) == 1) {
+                    range.end = bracketPos;
+                } else {
+                    range.start = bracketPos;
+                    range.start.column++;
+                    range.end.column--;
+                }
+            } else if (bracketPos = this.findMatchingBracket({row: cursor.row, column: cursor.column + 1})) {
+                if (range.comparePoint(bracketPos) == 1)
+                    range.end = bracketPos;
+                else
+                    range.start = bracketPos;
+
+                range.start.column++;
+            } else {
+                var token = this.getTokenAt(cursor.row, cursor.column);
+                if (token && /^comment|string/.test(token.type)) {
+                    var startRow = cursor.row;
+                    var endRow = cursor.row;
+                    var t = token;
+                    while ((t = this.getTokenAt(startRow - 1)) && t.type == token.type) {
+                        startRow --;
+                        token = t;
+                    }
+                    range.start.row = startRow;
+                    range.start.column = token.start + 2;
+
+                    while ((t = this.getTokenAt(endRow + 1, 0)) && t.type == token.type) {
+                        endRow ++;
+                        token = t;
+                    }
+                    range.end.row = endRow;
+                    range.end.column = token.start + token.value.length - 1;
+                }
+            }
+        } else {
+            var folds = this.getFoldsInRange(range);
+            if (tryToUnfold && folds.length) {
+                this.expandFolds(folds);
+                return;
+            } else if (folds.length == 1 ) {
+                fold = folds[0];
+            }
+        }
+
+        if (!fold)
+            fold = this.getFoldAt(range.start.row, range.start.column);
+
+        if (fold && fold.range.toString() == range.toString()){
+            this.expandFold(fold);
+            return
+        }
+
+
+        var placeholder = "...";
+        if (!range.isMultiLine()) {
+            placeholder = this.getTextRange(range);
+            if(placeholder.length < 4)
+                return;
+            placeholder = placeholder.trim().substring(0, 2) + ".."
+        }
+
+        this.addFold(placeholder, range);
+    };
+}
 exports.Folding = Folding;
 
 });

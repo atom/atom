@@ -101,7 +101,7 @@ exports.Plugin.prototype = {
     startup: function(data, reason) {
         reason = reason || exports.REASONS.APP_STARTUP;
         var pr = new Promise();
-        if (this.status != this.REGISTERED) {
+        if (this.status < this.REGISTERED) {
             pr.resolve(this);
             return pr;
         }

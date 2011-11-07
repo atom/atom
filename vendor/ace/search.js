@@ -89,29 +89,27 @@ Search.SELECTION = 2;
     };
 
     this.findAll = function(session) {
-        if (!this.$options.needle)
+        var options = this.$options;
+        if (!options.needle)
             return [];
 
-        if (this.$options.backwards) {
+        if (options.backwards) {
             var iterator = this.$backwardMatchIterator(session);
         } else {
             iterator = this.$forwardMatchIterator(session);
         }
 
-        var ignoreCursorColumn = false && this.$options.wrap && this.$options.scope == Search.ALL;
-        var start = session.getSelection().getCursor();
-        if (ignoreCursorColumn) {
-            session.getSelection().moveCursorTo(0, 0);
-        }
+        var ignoreCursor = !options.start && options.wrap && options.scope == Search.ALL;
+        if (ignoreCursor)
+            options.start = {row: 0, column: 0};
 
         var ranges = [];
         iterator.forEach(function(range) {
             ranges.push(range);
         });
 
-        if (ignoreCursorColumn) {
-            session.getSelection().moveCursorTo(start.row, start.column)
-        }
+        if (ignoreCursor)
+            options.start = null;
 
         return ranges;
     };
@@ -223,8 +221,8 @@ Search.SELECTION = 2;
     this.$forwardLineIterator = function(session) {
         var searchSelection = this.$options.scope == Search.SELECTION;
 
-        var range = session.getSelection().getRange();
-        var start = session.getSelection().getCursor();
+        var range = this.$options.range || session.getSelection().getRange();
+        var start = this.$options.start || session.getSelection().getCursor();
 
         var firstRow = searchSelection ? range.start.row : 0;
         var firstColumn = searchSelection ? range.start.column : 0;
@@ -285,8 +283,8 @@ Search.SELECTION = 2;
     this.$backwardLineIterator = function(session) {
         var searchSelection = this.$options.scope == Search.SELECTION;
 
-        var range = session.getSelection().getRange();
-        var start = searchSelection ? range.end : range.start;
+        var range = this.$options.range || session.getSelection().getRange();
+        var start = this.$options.start || session.getSelection().getCursor();
 
         var firstRow = searchSelection ? range.start.row : 0;
         var firstColumn = searchSelection ? range.start.column : 0;

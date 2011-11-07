@@ -37,9 +37,7 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-monokai .ace_editor {\
+exports.cssText = ".ace-monokai .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -254,8 +252,6 @@ background-color:#AE81FF;\
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
+exports.cssClass = "ace-monokai";
 
-    exports.cssClass = "ace-monokai";
 });

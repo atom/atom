@@ -78,7 +78,7 @@ var CstyleBehaviour = function () {
             if (rightChar == '}') {
                 var openBracePos = session.findMatchingBracket({row: cursor.row, column: cursor.column + 1});
                 if (!openBracePos)
-                     return false;
+                     return null;
 
                 var indent = this.getNextLineIndent(state, line.substring(0, line.length - 1), session.getTabString());
                 var next_indent = this.$getIndent(session.doc.getLine(openBracePos.row));
@@ -89,7 +89,6 @@ var CstyleBehaviour = function () {
                 }
             }
         }
-        return false;
     });
 
     this.add("braces", "deletion", function (state, action, editor, session, range) {
@@ -102,7 +101,6 @@ var CstyleBehaviour = function () {
                 return range;
             }
         }
-        return false;
     });
 
     this.add("parens", "insertion", function (state, action, editor, session, text) {
@@ -134,7 +132,6 @@ var CstyleBehaviour = function () {
                 }
             }
         }
-        return false;
     });
 
     this.add("parens", "deletion", function (state, action, editor, session, range) {
@@ -147,7 +144,6 @@ var CstyleBehaviour = function () {
                 return range;
             }
         }
-        return false;
     });
 
     this.add("string_dquotes", "insertion", function (state, action, editor, session, text) {
@@ -166,7 +162,7 @@ var CstyleBehaviour = function () {
 
                 // We're escaped.
                 if (leftChar == '\\') {
-                    return false;
+                    return null;
                 }
 
                 // Find what token we're inside.
@@ -205,7 +201,6 @@ var CstyleBehaviour = function () {
                 }
             }
         }
-        return false;
     });
 
     this.add("string_dquotes", "deletion", function (state, action, editor, session, range) {
@@ -218,7 +213,6 @@ var CstyleBehaviour = function () {
                 return range;
             }
         }
-        return false;
     });
 
 }

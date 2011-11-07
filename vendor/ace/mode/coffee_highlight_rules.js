@@ -37,18 +37,48 @@
 
 define(function(require, exports, module) {
 
-    require("pilot/oop").inherits(CoffeeHighlightRules,
-            require("ace/mode/text_highlight_rules").TextHighlightRules);
+    var lang = require("pilot/lang");
+    var oop = require("pilot/oop");
+    var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+    
+    oop.inherits(CoffeeHighlightRules, TextHighlightRules);
 
     function CoffeeHighlightRules() {
         var identifier = "[$A-Za-z_\\x7f-\\uffff][$\\w\\x7f-\\uffff]*";
-        var keywordend = "(?![$\\w]|\\s*:)";
         var stringfill = {
             token : "string",
             merge : true,
             regex : ".+"
         };
+
+        var keywords = lang.arrayToMap((
+            "this|throw|then|try|typeof|super|switch|return|break|by)|continue|" +
+            "catch|class|in|instanceof|is|isnt|if|else|extends|for|forown|" +
+            "finally|function|while|when|new|no|not|delete|debugger|do|loop|of|off|" +
+            "or|on|unless|until|and|yes").split("|")
+        );
         
+        var langConstant = lang.arrayToMap((
+            "true|false|null|undefined").split("|")
+        );
+        
+        var illegal = lang.arrayToMap((
+            "case|const|default|function|var|void|with|enum|export|implements|" +
+            "interface|let|package|private|protected|public|static|yield|" +
+            "__hasProp|extends|slice|bind|indexOf").split("|")
+        );
+        
+        var supportClass = lang.arrayToMap((
+            "Array|Boolean|Date|Function|Number|Object|RegExp|ReferenceError|" +
+            "RangeError|String|SyntaxError|Error|EvalError|TypeError|URIError").split("|")
+        );
+        
+        var supportFunction = lang.arrayToMap((
+            "Math|JSON|isNaN|isFinite|parseInt|parseFloat|encodeURI|" +
+            "encodeURIComponent|decodeURI|decodeURIComponent|RangeError|String|" +
+            "SyntaxError|Error|EvalError|TypeError|URIError").split("|")
+        );
+
         this.$rules = {
             start : [
                 {
@@ -58,29 +88,20 @@ define(function(require, exports, module) {
                     token : "variable",
                     regex : "@" + identifier
                 }, {
-                    token : "entity.name.function",
-                    regex : identifier + "(?=\\s*:\\s*(?:\\(.*?\\)\\s*)?->)"
-                }, {
-                    token : "keyword",
-                    regex : "(?:t(?:h(?:is|row|en)|ry|ypeof)|s(?:uper|witch)|return|b(?:reak|y)|c(?:ontinue|atch|lass)|i(?:n(?:stanceof)?|s(?:nt)?|f)|e(?:lse|xtends)|f(?:or (?:own)?|inally|unction)|wh(?:ile|en)|n(?:ew|ot?)|d(?:e(?:lete|bugger)|o)|loop|for|o(?:ff?|[rn])|un(?:less|til)|and|yes)"
-                            + keywordend
-                }, {
-                    token : "constant.language",
-                    regex : "(?:true|false|null|undefined)" + keywordend
-                }, {
-                    token : "invalid.illegal",
-                    regex : "(?:c(?:ase|onst)|default|function|v(?:ar|oid)|with|e(?:num|xport)|i(?:mplements|nterface)|let|p(?:ackage|r(?:ivate|otected)|ublic)|static|yield|__(?:hasProp|extends|slice|bind|indexOf))"
-                            + keywordend
-                }, {
-                    token : "language.support.class",
-                    regex : "(?:Array|Boolean|Date|Function|Number|Object|R(?:e(?:gExp|ferenceError)|angeError)|S(?:tring|yntaxError)|E(?:rror|valError)|TypeError|URIError)"
-                            + keywordend
-                }, {
-                    token : "language.support.function",
-                    regex : "(?:Math|JSON|is(?:NaN|Finite)|parse(?:Int|Float)|encodeURI(?:Component)?|decodeURI(?:Component)?)"
-                            + keywordend
-                }, {
-                    token : "identifier",
+                    token: function(value) {
+                        if (keywords.hasOwnProperty(value))
+                            return "keyword";
+                        else if (langConstant.hasOwnProperty(value))
+                            return "constant.language";
+                        else if (illegal.hasOwnProperty(value))
+                            return "invalid.illegal";
+                        else if (supportClass.hasOwnProperty(value))
+                            return "language.support.class";
+                        else if (supportFunction.hasOwnProperty(value))
+                            return "language.support.function";
+                        else
+                            return "identifier";
+                    },
                     regex : identifier
                 }, {
                     token : "constant.numeric",
@@ -127,10 +148,13 @@ define(function(require, exports, module) {
                     token : "comment",
                     regex : "#.*"
                 }, {
-                    token : "lparen",
+                    token : "punctuation.operator",
+                    regex : "\\?|\\:|\\,|\\."
+                }, {
+                    token : "paren.lparen",
                     regex : "[({[]"
                 }, {
-                    token : "rparen",
+                    token : "paren.rparen",
                     regex : "[\\]})]"
                 }, {
                     token : "keyword.operator",

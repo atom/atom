@@ -37,9 +37,7 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-mono-industrial .ace_editor {\
+exports.cssText = ".ace-mono-industrial .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -254,8 +252,6 @@ background-color:#151C19;\
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
+exports.cssClass = "ace-mono-industrial";
 
-    exports.cssClass = "ace-mono-industrial";
 });

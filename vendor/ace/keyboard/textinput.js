@@ -47,7 +47,8 @@ var TextInput = function(parentNode, host) {
 
     var text = dom.createElement("textarea");
     if (useragent.isTouchPad)
-    	text.setAttribute('x-palm-disable-auto-cap',true);
+    	text.setAttribute("x-palm-disable-auto-cap", true);
+        
     text.style.left = "-10000px";
     parentNode.appendChild(text);
 
@@ -63,7 +64,7 @@ var TextInput = function(parentNode, host) {
         try {
             text.select();
         } catch (e) {}
-    };
+    }
 
     function sendText(valueToSend) {
         if (!copied) {
@@ -159,10 +160,10 @@ var TextInput = function(parentNode, host) {
                 setTimeout(onCompositionEnd, 0);
             if ((text.value.charCodeAt(0)|0) < 129) {
                 return;
-            };
+            }
             inCompostion ? onCompositionUpdate() : onCompositionStart();
         });
-    };
+    }
     
     if ("onpropertychange" in text && !("oninput" in text))
         event.addListener(text, "propertychange", onPropertyChange);

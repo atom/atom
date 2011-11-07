@@ -145,10 +145,10 @@ var PythonHighlightRules = function() {
             token : "keyword.operator",
             regex : "\\+|\\-|\\*|\\*\\*|\\/|\\/\\/|%|<<|>>|&|\\||\\^|~|<|>|<=|=>|==|!=|<>|="
         }, {
-            token : "lparen",
+            token : "lparen.paren",
             regex : "[\\[\\(\\{]"
         }, {
-            token : "rparen",
+            token : "paren.rparen",
             regex : "[\\]\\)\\}]"
         }, {
             token : "text",

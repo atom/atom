@@ -37,9 +37,9 @@
 
 define(function(require, exports, module) {
 
-exports.startup = function(data, reason) {
-    require('pilot/fixoldbrowsers');
+require('pilot/fixoldbrowsers');
 
+exports.startup = function(data, reason) {
     require('pilot/types/basic').startup(data, reason);
     require('pilot/types/command').startup(data, reason);
     require('pilot/types/settings').startup(data, reason);

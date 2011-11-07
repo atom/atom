@@ -310,10 +310,10 @@ var ScssHighlightRules = function() {
                 token : "keyword.operator",
                 regex : "<|>|<=|>=|==|!=|-|%|#|\\+|\\$|\\+|\\*"
             }, {
-                token : "lparen",
+                token : "paren.lparen",
                 regex : "[[({]"
             }, {
-                token : "rparen",
+                token : "paren.rparen",
                 regex : "[\\])}]"
             }, {
                 token : "text",

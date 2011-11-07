@@ -37,9 +37,7 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-solarized-dark .ace_editor {\
+exports.cssText = ".ace-solarized-dark .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -253,8 +251,6 @@ color:#657B83;\
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
+exports.cssClass = "ace-solarized-dark";
 
-    exports.cssClass = "ace-solarized-dark";
 });

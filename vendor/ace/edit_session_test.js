@@ -346,6 +346,11 @@ module.exports = {
         computeAndAssert(" ぁぁ", [1, 2], 2);
         computeAndAssert(" ぁ\tぁ", [1, 3], 2);
         computeAndAssert(" ぁぁ\tぁ", [1, 4], 4);
+
+        // Test wrapping for punctuation.
+        computeAndAssert(" ab.c;ef++", [1, 3, 5, 7, 8], 2);
+        computeAndAssert(" a.b", [1, 2, 3], 1);
+        computeAndAssert("#>>", [1, 2], 1);
     },
 
     "test get longest line" : function() {

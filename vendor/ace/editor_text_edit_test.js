@@ -420,7 +420,7 @@ module.exports = {
 
         var editor = new Editor(new MockRenderer(), session);
         editor.moveCursorTo(1, 1);
-        editor.removeLeft();
+        editor.remove("left");
         assert.equal(session.toString(), "123\n56");
     },
 
@@ -429,7 +429,7 @@ module.exports = {
 
         var editor = new Editor(new MockRenderer(), session);
         editor.moveCursorTo(1, 0);
-        editor.removeLeft();
+        editor.remove("left");
         assert.equal(session.toString(), "123456");
     },
 
@@ -440,7 +440,7 @@ module.exports = {
 
         var editor = new Editor(new MockRenderer(), session);
         editor.moveCursorTo(1, 8);
-        editor.removeLeft();
+        editor.remove("left");
         assert.equal(session.toString(), "123\n    456");
     },
     

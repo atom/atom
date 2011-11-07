@@ -161,4 +161,8 @@ MockRenderer.prototype.textToScreenCoordinates = function() {
     }
 };
 
+MockRenderer.prototype.adjustWrapLimit = function () {
+    
+};
+
 });

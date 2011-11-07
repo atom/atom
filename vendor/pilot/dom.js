@@ -22,6 +22,7 @@
  * Contributor(s):
  *      Fabian Jakobs <fabian AT ajax DOT org>
  *      Mihai Sucan <mihai AT sucan AT gmail ODT com>
+ *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -132,22 +133,58 @@ exports.setCssClass = function(node, className, include) {
     }
 };
 
-exports.importCssString = function(cssText, doc){
+exports.hasCssString = function(id, doc) {
+    var index = 0, sheets;
     doc = doc || document;
 
-    if (doc.createStyleSheet) {
-        var sheet = doc.createStyleSheet();
-        sheet.cssText = cssText;
+    if (doc.createStyleSheet && (sheets = doc.styleSheets)) {
+        while (index < sheets.length)
+            if (sheets[index++].title === id) return true;
+    } else if ((sheets = doc.getElementsByTagName("style"))) {
+        while (index < sheets.length)
+            if (sheets[index++].id === id) return true;
     }
-    else {
-        var style = doc.createElementNS ?
+
+    return false;
+};
+
+exports.importCssString = function importCssString(cssText, id, doc) {
+    doc = doc || document;
+    // If style is already imported return immediately.
+    if (id && exports.hasCssString(id, doc))
+        return null;
+    
+    var style;
+    
+    if (doc.createStyleSheet) {
+        style = doc.createStyleSheet();
+        style.cssText = cssText;
+        if (id)
+            style.title = id;
+    } else {
+        style = doc.createElementNS ?
                     doc.createElementNS(XHTML_NS, "style") :
                     doc.createElement("style");
 
         style.appendChild(doc.createTextNode(cssText));
+        if (id)
+            style.id = id;
 
         var head = doc.getElementsByTagName("head")[0] || doc.documentElement;
         head.appendChild(style);
+    }
+};
+
+exports.importCssStylsheet = function(uri, doc) {
+    if (doc.createStyleSheet) {
+        var sheet = doc.createStyleSheet(uri);
+    } else {
+        var link = exports.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = uri;
+
+        var head = doc.getElementsByTagName("head")[0] || doc.documentElement;
+        head.appendChild(link);
     }
 };
 
@@ -193,7 +230,7 @@ else
         return element.currentStyle
     };
 
-exports.scrollbarWidth = function() {
+exports.scrollbarWidth = function(document) {
 
     var inner = exports.createElement("p");
     inner.style.width = "100%";
@@ -243,6 +280,7 @@ exports.setInnerHtml = function(el, innerHtml) {
 };
 
 exports.setInnerText = function(el, innerText) {
+    var document = el.ownerDocument;
     if (document.body && "textContent" in document.body)
         el.textContent = innerText;
     else
@@ -251,6 +289,7 @@ exports.setInnerText = function(el, innerText) {
 };
 
 exports.getInnerText = function(el) {
+    var document = el.ownerDocument;
     if (document.body && "textContent" in document.body)
         return el.textContent;
     else

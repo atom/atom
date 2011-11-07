@@ -87,7 +87,7 @@ exports.preventDefault = function(e) {
 };
 
 exports.getDocumentX = function(e) {
-    if (e.clientX) {        
+    if (e.clientX) {
         return e.clientX + dom.getPageScrollLeft();
     } else {
         return e.pageX;
@@ -110,7 +110,7 @@ exports.getButton = function(e) {
         return 0;
     else if (e.type == "contextmenu")
         return 2;
-        
+
     // DOM Event
     if (e.preventDefault) {
         return e.button;
@@ -131,10 +131,10 @@ if (document.documentElement.setCapture) {
         var called = false;
         function onReleaseCapture(e) {
             eventHandler(e);
-            
+
             if (!called) {
                 called = true;
-                releaseCaptureHandler();
+                releaseCaptureHandler(e);
             }
 
             exports.removeListener(el, "mousemove", eventHandler);
@@ -159,7 +159,7 @@ else {
 
         function onMouseUp(e) {
             eventHandler && eventHandler(e);
-            releaseCaptureHandler && releaseCaptureHandler();
+            releaseCaptureHandler && releaseCaptureHandler(e);
 
             document.removeEventListener("mousemove", onMouseMove, true);
             document.removeEventListener("mouseup", onMouseUp, true);
@@ -176,7 +176,7 @@ exports.addMouseWheelListener = function(el, callback) {
     var max = 0;
     var listener = function(e) {
         if (e.wheelDelta !== undefined) {
-            
+
             // some versions of Safari (e.g. 5.0.5) report insanely high
             // scroll values. These browsers require a higher factor
             if (Math.abs(e.wheelDeltaY) > max)
@@ -186,7 +186,7 @@ exports.addMouseWheelListener = function(el, callback) {
                 factor = 400;
             else
                 factor = 8;
-                
+
             if (e.wheelDeltaX !== undefined) {
                 e.wheelX = -e.wheelDeltaX / factor;
                 e.wheelY = -e.wheelDeltaY / factor;
@@ -233,7 +233,7 @@ exports.addMultiMouseDownListener = function(el, button, count, timeout, callbac
             clicks = 0;
             callback(e);
         }
-        
+
         if (isButton)
             return exports.preventDefault(e);
     };
@@ -277,10 +277,9 @@ function normalizeCommandKeys(callback, e, keyCode) {
     // If there is no hashID and the keyCode is not a function key, then
     // we don't call the callback as we don't handle a command key here
     // (it's a normal key/character input).
-    if (hashId == 0 && !(keyCode in keys.FUNCTION_KEYS)) {
+    if (!(keyCode in keys.FUNCTION_KEYS) && !(keyCode in keys.PRINTABLE_KEYS)) {
         return false;
     }
-
     return callback(e, hashId, keyCode);
 }
 
@@ -313,7 +312,7 @@ exports.addCommandKeyListener = function(el, callback) {
             addListener(el, "keypress", function(e) {
                 var keyId = e.keyIdentifier || e.keyCode;
                 if (lastDown !== keyId) {
-                    return normalizeCommandKeys(callback, e, e.keyCode);
+                    return normalizeCommandKeys(callback, e, lastDown);
                 } else {
                     lastDown = null;
                 }

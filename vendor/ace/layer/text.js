@@ -23,6 +23,7 @@
  *      Fabian Jakobs <fabian AT ajax DOT org>
  *      Julian Viereck <julian DOT viereck AT gmail DOT com>
  *      Mihai Sucan <mihai.sucan@gmail.com>
+ *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -121,8 +122,8 @@ var Text = function(parentEl) {
             // Note: characterWidth can be a float!
             measureNode.innerHTML = lang.stringRepeat("Xy", n);
 
-            if (document.body) {
-                document.body.appendChild(measureNode);
+            if (this.element.ownerDocument.body) {
+                this.element.ownerDocument.body.appendChild(measureNode);
             } else {
                 var container = this.element.parentNode;
                 while (!dom.hasCssClass(container, "ace_editor"))
@@ -257,15 +258,15 @@ var Text = function(parentEl) {
     };
 
     this.$renderLinesFragment = function(config, firstRow, lastRow) {
-        var fragment = document.createDocumentFragment(),
+        var fragment = this.element.ownerDocument.createDocumentFragment(),
             row = firstRow,
-            fold = this.session.getNextFold(row),
+            fold = this.session.getNextFoldLine(row),
             foldStart = fold ?fold.start.row :Infinity;
 
         while (true) {
             if(row > foldStart) {
                 row = fold.end.row+1;
-                fold = this.session.getNextFold(row);
+                fold = this.session.getNextFoldLine(row, fold);
                 foldStart = fold ?fold.start.row :Infinity;
             }
             if(row > lastRow)
@@ -306,13 +307,13 @@ var Text = function(parentEl) {
         var firstRow = config.firstRow, lastRow = config.lastRow;
 
         var row = firstRow,
-            fold = this.session.getNextFold(row),
+            fold = this.session.getNextFoldLine(row),
             foldStart = fold ?fold.start.row :Infinity;
 
         while (true) {
             if(row > foldStart) {
                 row = fold.end.row+1;
-                fold = this.session.getNextFold(row);
+                fold = this.session.getNextFoldLine(row, fold);
                 foldStart = fold ?fold.start.row :Infinity;
             }
             if(row > lastRow)

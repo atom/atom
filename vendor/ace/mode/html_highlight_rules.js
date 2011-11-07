@@ -86,17 +86,17 @@ var HtmlHighlightRules = function() {
         }, {
             token : "meta.tag",
             regex : "[-_a-zA-Z0-9:]+",
-            next : name + "-attribute-list" 
+            next : name + "embed-attribute-list" 
         }, {
             token: "empty",
             regex: "",
-            next : name + "-attribute-list"
+            next : name + "embed-attribute-list"
         }];
 
         states[name + "-qstring"] = multiLineString("'", name);
         states[name + "-qqstring"] = multiLineString("\"", name);
         
-        states[name + "-attribute-list"] = [{
+        states[name + "embed-attribute-list"] = [{
             token : "text",
             regex : ">",
             next : nextState

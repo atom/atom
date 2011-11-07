@@ -37,9 +37,7 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-crimson-editor .ace_editor {\
+exports.cssText = ".ace-crimson-editor .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -195,8 +193,6 @@ define(function(require, exports, module) {
   color: rgb(192, 0, 192);\
 }";
 
-    // Import CSS once.
-    dom.importCssString(cssText);
+exports.cssClass = "ace-crimson-editor";
 
-    exports.cssClass = "ace-crimson-editor";
 });

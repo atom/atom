@@ -37,9 +37,7 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-kr-theme .ace_editor {\
+exports.cssText = ".ace-kr-theme .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -254,8 +252,6 @@ color:#706D5B;\
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
+exports.cssClass = "ace-kr-theme";
 
-    exports.cssClass = "ace-kr-theme";
 });

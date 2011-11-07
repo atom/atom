@@ -78,9 +78,9 @@ module.exports = {
         var tokens = this.tokenizer.getLineTokens("{()}", "start").tokens;
 
         assert.equal(3, tokens.length);
-        assert.equal("lparen", tokens[0].type);
+        assert.equal("paren.lparen", tokens[0].type);
         assert.equal("text", tokens[1].type);
-        assert.equal("rparen", tokens[2].type);
+        assert.equal("paren.rparen", tokens[2].type);
     },
     
     "test for last rule in ruleset to catch capturing group bugs" : function() {

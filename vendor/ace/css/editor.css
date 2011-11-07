@@ -1,4 +1,4 @@
-/*@import url(//fonts.googleapis.com/css?family=Droid+Sans+Mono);*/
+@import url(//fonts.googleapis.com/css?family=Droid+Sans+Mono);
 
 
 .ace_editor {
@@ -19,6 +19,13 @@
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    cursor: text;
+}
+
+/* setting pointer-events: auto; on node under the mouse, which changes during scroll,
+  will break mouse wheel scrolling in Safari */
+.ace_content * {
+     pointer-events: none;
 }
 
 .ace_composition {
@@ -110,8 +117,6 @@
 
 .ace_cursor-layer {
     z-index: 4;
-    cursor: text;
-    /* setting pointer-events: none; here will break mouse wheel scrolling in Safari */
 }
 
 .ace_cursor {
@@ -125,11 +130,6 @@
 
 .ace_line {
     white-space: nowrap;
-}
-
-.ace_marker-layer {
-    cursor: text;
-    pointer-events: none;
 }
 
 .ace_marker-layer .ace_step {
@@ -162,8 +162,14 @@
 
 .ace_line .ace_fold {
     cursor: pointer;
+     pointer-events: auto;
+     color: darkred;
 }
 
-.ace_dragging .ace_marker-layer, .ace_dragging .ace_text-layer {
+.ace_fold:hover{
+    background: gold!important;
+}
+
+.ace_dragging .ace_content {
   cursor: move;
 }

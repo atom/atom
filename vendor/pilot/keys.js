@@ -96,7 +96,7 @@ var Keys = (function() {
     };
 
     // A reverse map of FUNCTION_KEYS
-    for (i in ret.FUNCTION_KEYS) {
+    for (var i in ret.FUNCTION_KEYS) {
         var name = ret.FUNCTION_KEYS[i].toUpperCase();
         ret[name] = parseInt(i, 10);
     }

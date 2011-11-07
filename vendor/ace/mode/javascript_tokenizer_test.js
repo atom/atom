@@ -95,20 +95,20 @@ module.exports = {
         var tokens = this.tokenizer.getLineTokens(line, "start").tokens;
 
         assert.equal(7, tokens.length);
-        assert.equal("lparen", tokens[0].type);
-        assert.equal("lparen", tokens[1].type);
-        assert.equal("lparen", tokens[2].type);
+        assert.equal("paren.lparen", tokens[0].type);
+        assert.equal("paren.lparen", tokens[1].type);
+        assert.equal("paren.lparen", tokens[2].type);
         assert.equal("text", tokens[3].type);
-        assert.equal("rparen", tokens[4].type);
-        assert.equal("rparen", tokens[5].type);
-        assert.equal("rparen", tokens[6].type);
+        assert.equal("paren.rparen", tokens[4].type);
+        assert.equal("paren.rparen", tokens[5].type);
+        assert.equal("paren.rparen", tokens[6].type);
     },
 
     "test for last rule in ruleset to catch capturing group bugs" : function() {
         var tokens = this.tokenizer.getLineTokens("}", "start").tokens;
 
         assert.equal(1, tokens.length);
-        assert.equal("rparen", tokens[0].type);
+        assert.equal("paren.rparen", tokens[0].type);
     },
 
     "test tokenize arithmetic expression which looks like a regexp": function() {
@@ -142,6 +142,15 @@ module.exports = {
         assert.equal("string.regexp", tokens[2].type);
     },
     
+    "test tokenize multi-line comment containing a single line comment" : function() {
+        var tokens = this.tokenizer.getLineTokens("/* foo // bar */", "start").tokens;
+        assert.equal(1, tokens.length);
+        assert.equal("comment", tokens[0].type);
+        
+        var tokens = this.tokenizer.getLineTokens("/* foo // bar */", "regex_allowed").tokens;
+        assert.equal(1, tokens.length);
+        assert.equal("comment", tokens[0].type);
+    },
 
     "test tokenize identifier with umlauts": function() {
         var tokens = this.tokenizer.getLineTokens("füße", "start").tokens;
@@ -151,7 +160,7 @@ module.exports = {
     "test // is not a regexp": function() {
         var tokens = this.tokenizer.getLineTokens("{ // 123", "start").tokens;
         assert.equal(3, tokens.length);
-        assert.equal("lparen", tokens[0].type);
+        assert.equal("paren.lparen", tokens[0].type);
         assert.equal("text", tokens[1].type);
         assert.equal("comment", tokens[2].type);
     }

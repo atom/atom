@@ -52,7 +52,7 @@ StateHandler.prototype = {
      * need to be adapted.
      */
     $buildKeymappingRegex: function(keymapping) {
-        for (state in keymapping) {
+        for (var state in keymapping) {
             this.$buildBindingsRegex(keymapping[state]);
         }
         return keymapping;
@@ -64,7 +64,8 @@ StateHandler.prototype = {
             if (binding.key) {
                 binding.key = new RegExp('^' + binding.key + '$');
             } else if (Array.isArray(binding.regex)) {
-                binding.key = new RegExp('^' + binding.regex[1] + '$');
+                if (!('key' in binding))
+                  binding.key = new RegExp('^' + binding.regex[1] + '$');
                 binding.regex = new RegExp(binding.regex.join('') + '$');
             } else if (binding.regex) {
                 binding.regex = new RegExp(binding.regex + '$');

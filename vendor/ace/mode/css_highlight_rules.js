@@ -215,14 +215,14 @@ var CssHighlightRules = function() {
 
     var ruleset = lang.copyArray(base_ruleset);
     ruleset.unshift({
-        token : "rparen",
+        token : "paren.rparen",
         regex : "\\}",
         next:   "start"
     });
 
     var media_ruleset = lang.copyArray( base_ruleset );
     media_ruleset.unshift({
-        token : "rparen",
+        token : "paren.rparen",
         regex : "\\}",
         next:   "media"
     });
@@ -261,7 +261,7 @@ var CssHighlightRules = function() {
             regex : "\\/\\*",
             next : "comment"
         }, {
-            token: "lparen",
+            token: "paren.lparen",
             regex: "\\{",
             next:  "ruleset"
         }, {
@@ -288,7 +288,7 @@ var CssHighlightRules = function() {
             regex : "\\/\\*",
             next : "media_comment"
         }, {
-            token: "lparen",
+            token: "paren.lparen",
             regex: "\\{",
             next:  "media_ruleset"
         },{

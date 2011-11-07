@@ -93,8 +93,8 @@ var vimStates = {
         },
         vimcommand("(k|up)", "golineup"),
         vimcommand("(j|down)", "golinedown"),
-        vimcommand("(l|right)", "golineright"),
-        vimcommand("(h|left)", "golineleft"),
+        vimcommand("(l|right)", "gotoright"),
+        vimcommand("(h|left)", "gotoleft"),
         {
             key:    "shift-g",
             exec:   "gotoend"

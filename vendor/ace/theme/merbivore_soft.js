@@ -37,9 +37,7 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-merbivore-soft .ace_editor {\
+exports.cssText = ".ace-merbivore-soft .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -246,8 +244,6 @@ background-color:#FE3838;\
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
+exports.cssClass = "ace-merbivore-soft";
 
-    exports.cssClass = "ace-merbivore-soft";
 });

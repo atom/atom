@@ -37,9 +37,7 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-solarized-light .ace_editor {\
+exports.cssText = ".ace-solarized-light .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -252,8 +250,6 @@ define(function(require, exports, module) {
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
+exports.cssClass = "ace-solarized-light";
 
-    exports.cssClass = "ace-solarized-light";
 });

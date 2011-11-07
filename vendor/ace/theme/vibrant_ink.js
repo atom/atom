@@ -37,9 +37,7 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-vibrant-ink .ace_editor {\
+exports.cssText = ".ace-vibrant-ink .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -255,8 +253,6 @@ color:#99CC99;\
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
+exports.cssClass = "ace-vibrant-ink";
 
-    exports.cssClass = "ace-vibrant-ink";
 });

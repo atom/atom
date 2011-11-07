@@ -37,9 +37,8 @@
 
 define(function(require, exports, module) {
 
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-clouds .ace_editor {\
+exports.cssClass = "ace-clouds";
+exports.cssText = ".ace-clouds .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -252,8 +251,4 @@ define(function(require, exports, module) {
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
-
-    exports.cssClass = "ace-clouds";
 });

@@ -121,10 +121,13 @@ var c_cppHighlightRules = function() {
                 token : "keyword.operator",
                 regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|==|=|!=|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^=|\\b(?:in|new|delete|typeof|void)"
             }, {
-                token : "lparen",
+              token : "punctuation.operator",
+              regex : "\\?|\\:|\\,|\\;|\\."
+            }, {
+                token : "paren.lparen",
                 regex : "[[({]"
             }, {
-                token : "rparen",
+                token : "paren.rparen",
                 regex : "[\\])}]"
             }, {
                 token : "text",

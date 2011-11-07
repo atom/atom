@@ -53,11 +53,11 @@ var RenderLoop = require("ace/renderloop").RenderLoop;
 var EventEmitter = require("pilot/event_emitter").EventEmitter;
 var editorCss = require("ace/requirejs/text!ace/css/editor.css");
 
-// import CSS once
-dom.importCssString(editorCss);
-
 var VirtualRenderer = function(container, theme) {
     this.container = container;
+
+    // Imports CSS once per DOM document ('ace_editor' serves as an identifier).
+    dom.importCssString(editorCss, "ace_editor", container.ownerDocument);
     dom.addCssClass(this.container, "ace_editor");
 
     this.setTheme(theme);
@@ -135,7 +135,10 @@ var VirtualRenderer = function(container, theme) {
         height : 1
     };
 
-    this.$loop = new RenderLoop(this.$renderChanges.bind(this));
+    this.$loop = new RenderLoop(
+        this.$renderChanges.bind(this),
+        this.container.ownerDocument.defaultView
+    );
     this.$loop.schedule(this.CHANGE_FULL);
 
     this.setPadding(4);
@@ -800,6 +803,12 @@ var VirtualRenderer = function(container, theme) {
         }
 
         function afterLoad(theme) {
+            dom.importCssString(
+                theme.cssText,
+                theme.cssClass,
+                _self.container.ownerDocument
+            );
+
             if (_self.$theme)
                 dom.removeCssClass(_self.container, _self.$theme);
 

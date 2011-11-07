@@ -443,6 +443,42 @@ module.exports = {
         selection.moveCursorDown();
 
         assert.position(selection.getCursor(), 1, 4);
+    },
+    
+    "test (keyboard navigation) when curLine is EOL and targetLine is all whitespace new column should be targetLine's EOL": function() {
+        var session = new EditSession("function (a) {\n\
+    \n\
+}");
+        var selection = session.getSelection();
+        
+        selection.moveCursorTo(2, 1);
+        selection.moveCursorUp();
+
+        assert.position(selection.getCursor(), 1, 4);
+    },
+    
+    "test (keyboard navigation) when curLine is not EOL and targetLine is all whitespace new column should be current column": function() {
+        var session = new EditSession("function (a) {\n\
+    \n\
+}");
+        var selection = session.getSelection();
+        
+        selection.moveCursorTo(2, 0);
+        selection.moveCursorUp();
+
+        assert.position(selection.getCursor(), 1, 0);
+    },
+    
+    "test (keyboard navigation) when curLine is EOL and targetLine is shorter dan current column, new column should be targetLine's EOL": function() {
+        var session = new EditSession("function (a) {\n\
+    \n\
+}");
+        var selection = session.getSelection();
+        
+        selection.moveCursorTo(0, 14);
+        selection.moveCursorDown();
+
+        assert.position(selection.getCursor(), 1, 4);
     }
 };
 

@@ -97,17 +97,8 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        var doc = session.getDocument();
         var worker = new WorkerClient(["ace", "pilot"], "worker-coffee.js", "ace/mode/coffee_worker", "Worker");
-        worker.call("setValue", [doc.getValue()]);
-        
-        doc.on("change", function(e) {
-            e.range = {
-                start: e.data.range.start,
-                end: e.data.range.end
-            };
-            worker.emit("change", e);
-        });
+        worker.attachToDocument(session.getDocument());
         
         worker.on("error", function(e) {
             session.setAnnotations([e.data]);
