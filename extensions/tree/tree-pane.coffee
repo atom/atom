@@ -24,7 +24,7 @@ class TreePane extends Pane
       el = $(event.currentTarget)
       path = decodeURIComponent el.data 'path'
 
-      if fs.isDirectory path
+      if el.hasClass 'dir'
         if el.hasClass 'open'
           @tree.hideDir path
           el.removeClass 'open'
