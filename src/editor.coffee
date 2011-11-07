@@ -50,13 +50,20 @@ class Editor
     md: 'markdown'
     cs: 'csharp'
     rb: 'ruby'
+    ru: 'ruby'
+    gemspec: 'ruby'
+
+  modeFileMap:
+    Gemfile: 'ruby'
+    Rakefile: 'ruby'
 
   modeForPath: (path) ->
     return null if not path
 
-    language = _.last path.split '.'
-    language = language.toLowerCase()
-    modeName = @modeMap[language] or language
+    if not modeName = @modeFileMap[ _.last path.split '/' ]
+      language = _.last path.split '.'
+      language = language.toLowerCase()
+      modeName = @modeMap[language] or language
 
     try
       require("ace/mode/#{modeName}").Mode
