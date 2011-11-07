@@ -83,7 +83,7 @@ windowAdditions =
   open: (path) ->
     atomController.window.makeKeyAndOrderFront atomController
 
-    if fs.isFile path
+    if not fs.isDirectory path
       Event.trigger 'window:open', path
 
   close: (path) ->
