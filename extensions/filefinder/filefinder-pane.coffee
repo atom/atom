@@ -4,8 +4,9 @@ _ = require 'underscore'
 File = require 'fs'
 Pane = require 'pane'
 
-jQuery  = $
-facebox = eval File.read require.resolve 'filefinder/facebox'
+jQuery = $
+Modal  = require 'modal'
+
 require 'filefinder/stringscore'
 
 module.exports =
@@ -14,14 +15,7 @@ class FilefinderPane extends Pane
 
   constructor: (@filefinder) ->
     $('#filefinder input').live 'keydown', @onKeydown
-
-    css   = File.read require.resolve 'filefinder/facebox.css'
-    head  = $('head')[0]
-    style = document.createElement 'style'
-    rules = document.createTextNode css
-    style.type = 'text/css'
-    style.appendChild rules
-    head.appendChild style
+    @modal = new Modal @html
 
   onKeydown: (e) =>
     keys = up: 38, down: 40, enter: 13
@@ -36,11 +30,10 @@ class FilefinderPane extends Pane
       @filterFiles()
 
   toggle: ->
-    if @showing
-      $.facebox.close()
+    if @modal.showing
+      @modal.hide()
     else
       @showFinder()
-    @showing = not @showing
 
   paths: ->
     _paths = []
@@ -50,7 +43,7 @@ class FilefinderPane extends Pane
     _.reject _.flatten(_paths), (dir) -> File.isDirectory dir
 
   showFinder: ->
-    $.facebox @html
+    @modal.show()
     @files = []
     for file in @paths()
       @files.push file.replace "#{window.path}/", ''
