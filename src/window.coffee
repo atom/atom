@@ -94,7 +94,7 @@ windowAdditions =
     KeyBinder.handleEvent.apply KeyBinder, arguments
 
   triggerEvent: ->
-    Event.trigger.apply Event, arguments
+    Event.trigger arguments...
 
   canOpen: (path) ->
     parent = @path.replace(/([^\/])$/, "$1/")
