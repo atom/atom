@@ -1,19 +1,28 @@
 $ = require 'jquery'
 
 Event = require 'event'
+Pane = require 'pane'
 
 module.exports =
-class Browser
-  constructor: (@path) ->
-    $('.main.pane').append @html().hide()
+class Browser extends Pane
+  buffers: {}
 
-    Event.on "editor:bufferFocus", (e) =>
-      @hide() if e.details isnt @path
+  html: $ "<div id='browser'></div>"
 
-  on: ->
-  html: ->
-    $ "<iframe src='#{@path}' style='width:100%;height:100%'></iframe>"
-  show: ->
-    $(".main iframe[src='#{@path}']").show()
-  hide: ->
-    $(".main iframe[src='#{@path}']").hide()
+  position: 'main'
+
+  @isPathUrl: (path) ->
+    /^https?:\/\//.test path
+
+  constructor: ->
+    Event.on "window:open", (e) =>
+      path = e.details
+      return unless @constructor.isPathUrl path
+
+      @buffers[path] ?= $ "<iframe src='#{path}' style='width:100%;height:100%'></iframe>"
+
+      @html.html @buffers[path]
+
+      @show()
+
+      Event.trigger "browser:focus", path

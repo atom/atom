@@ -6,40 +6,45 @@ class Pane
 
   html: null
 
-  showing: false
-
   add: ->
     verticalDiv = $('#app-vertical')
     horizontalDiv = $('#app-horizontal')
 
-    el = $ "<div>"
-    el.addClass "pane " + @position
-    el.append @html
+    @pane = $ "<div>"
+    @pane.addClass "pane " + @position
+    @pane.append @html
 
     switch @position
       when 'main'
-        $('.main').replaceWith el
+        # ICK: There can be multiple 'main' panes, but only one can be active
+        # at at time.
+        $('#main-container').children().css 'display', 'none !important'
+        $('#main-container').append @pane
       when 'top'
-        verticalDiv.prepend el
+        verticalDiv.prepend @pane
       when 'left'
-        horizontalDiv.prepend el
+        horizontalDiv.prepend @pane
       when 'bottom'
-        verticalDiv.append el
+        verticalDiv.append @pane
       when 'right'
-        horizontalDiv.append el
+        horizontalDiv.append @pane
       else
         throw "I DON'T KNOW HOW TO DEAL WITH #{@position}"
 
+  showing: ->
+    @pane and not @pane.css('display').match /none/
+
   show: ->
-    @add this
-    @showing = true
+    if @position == 'main'
+      $('#main-container').children().css 'display', 'none !important'
+
+    if not @pane then @add() else @pane.css 'display', '-webkit-box !important'
 
   hide: ->
-    @html.parent().detach()
-    @showing = false
+    @pane.css 'display', 'none !important'
 
   toggle: ->
-    if @showing
+    if @showing()
       @hide()
     else
       @show()

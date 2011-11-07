@@ -7,25 +7,31 @@ Event = require 'event'
 KeyBinder = require 'key-binder'
 Native = require 'native'
 Storage = require 'storage'
-Browser = require 'browser'
 Pane = require 'pane'
 
 {EditSession} = require 'ace/edit_session'
 {UndoManager} = require 'ace/undomanager'
 
 module.exports =
-class Editor
+class Editor extends Pane
   activePath: null
 
   buffers: {}
 
   openPathsKey: "editor.openPaths.#{window.path}"
+
   focusedPathKey: "editor.focusedPath.#{window.path}"
 
-  constructor: (path) ->
+  html: $ "<div id='ace-editor'></div>"
+
+  position: "main"
+
+  constructor: ->
     KeyBinder.register "editor", @
 
-    @ace = ace.edit "ace-editor"
+    @show()
+
+    @ace = ace.edit 'ace-editor'
 
     # This stuff should all be grabbed from the .atomicity dir
     @ace.setTheme require "ace/theme/twilight"
@@ -40,8 +46,6 @@ class Editor
 
     Event.on 'window:close', (e) => @removeBuffer e.details
     Event.on 'editor:bufferFocus', (e) => @resize()
-
-    @addBuffer path if path
 
     # Resize editor when panes are added/removed
     el = document.body
@@ -89,21 +93,16 @@ class Editor
 
     buffer = @buffers[path]
     if not buffer
-      if fs.isFile path
-        code = if path then fs.read path else ''
-        buffer = new EditSession code
-        buffer.setUndoManager new UndoManager
-        buffer.setUseSoftTabs useSoftTabs = @usesSoftTabs code
-        buffer.setTabSize if useSoftTabs then @guessTabSize code else 8
-        mode = @modeForPath path
-        buffer.setMode new mode if mode
-      else if /^https?:\/\//.test path
-        buffer = new Browser path
-      else
-        throw "#{@constructor.name}: I don't know what to do with `#{path}`"
+      code = if path then fs.read path else ''
+      buffer = new EditSession code
+      buffer.setUndoManager new UndoManager
+      buffer.setUseSoftTabs useSoftTabs = @usesSoftTabs code
+      buffer.setTabSize if useSoftTabs then @guessTabSize code else 8
+
+      mode = @modeForPath path
+      buffer.setMode new mode if mode
 
       @buffers[path] = buffer
-
 
     openPaths = Storage.get @openPathsKey, []
     unless path in openPaths
@@ -154,17 +153,13 @@ class Editor
         @ace.setSession  new EditSession ''
 
   focusBuffer: (path) ->
-    return if not path or @activePath == path
+    return if not path
 
+    @show()
     @activePath = path
 
     buffer = @buffers[path] or @addBuffer path
-    if buffer.constructor is EditSession
-      $('#ace-editor').show()
-      @ace.setSession buffer
-    else
-      $('#ace-editor').hide()
-      buffer.show()
+    @ace.setSession buffer
 
     Storage.set @focusedPathKey, path
     Event.trigger "editor:bufferFocus", path

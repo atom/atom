@@ -27,6 +27,10 @@ class Tabs extends Extension
       path = e.details
       @pane.removeTab path
 
+    Event.on 'browser:focus', (e) =>
+      path = e.details
+      @pane.addTab path
+
   startup: ->
     @pane.show()
     for path, buffer of window.editor.buffers

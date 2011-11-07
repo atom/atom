@@ -2,6 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 Pane = require 'pane'
+Browser = require 'browser'
 
 module.exports =
 class TabsPane extends Pane
@@ -30,19 +31,24 @@ class TabsPane extends Pane
   switchToTab: (tab) ->
     tab = $("#tabs ul li").get(tab - 1) if _.isNumber tab
     return if tab.length is 0
-    return if $(tab).is "#tabs ul .active"
+    return if $(tab).is ".active"
 
     path = $(tab).data 'path'
     $("#tabs ul .active").removeClass("active")
     $(tab).addClass 'active'
-    window.editor.focusBuffer path
+    window.open path
 
   addTab: (path) ->
     existing = $("#tabs [data-path='#{path}']")
-    if existing.length
-      return @switchToTab existing
+    return @switchToTab existing if existing.length
 
-    name = if path then _.last path.split '/' else "untitled"
+    name = if not path
+      "untitled"
+    else if Browser.isPathUrl path
+      path.match(/(\w+:\/\/)([^\/]+)?/)[2]
+    else
+      _.last path.split '/'
+
     $("#tabs ul .active").removeClass()
     $("#tabs ul").append """
       <li data-path='#{path}'><a href='#'>#{name}</a></li>

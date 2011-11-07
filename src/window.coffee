@@ -1,3 +1,4 @@
+Browser = require 'browser'
 Editor = require 'editor'
 Extension = require 'extension'
 Event = require 'event'
@@ -13,6 +14,8 @@ _ = require 'underscore'
 windowAdditions =
   editor: null
 
+  browser: null
+
   extensions: {}
 
   appRoot: OSX.NSBundle.mainBundle.resourcePath
@@ -23,10 +26,8 @@ windowAdditions =
     @path = atomController.path
     @setTitle _.last @path.split '/'
 
-    @editor = if fs.isFile @path
-      new Editor @path
-    else
-      new Editor
+    @editor = new Editor
+    @browser = new Browser
 
     @loadExtensions()
     @loadKeyBindings()
