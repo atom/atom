@@ -20,10 +20,12 @@ windowAdditions =
 
   appRoot: OSX.NSBundle.mainBundle.resourcePath
 
+  path: null
+
   startup: () ->
     KeyBinder.register "window", window
 
-    @path = atomController.path
+    @path = $atomController.path
     @setTitle _.last @path.split '/'
 
     @editor = new Editor
@@ -71,24 +73,23 @@ windowAdditions =
       require "~/.atomicity/settings.coffee"
 
   showConsole: ->
-    atomController.webView.inspector.showConsole true
+    $atomController.webView.inspector.showConsole true
 
   setTitle: (title) ->
-    atomController.window.title = title
+    $atomController.window.title = title
 
   reload: ->
-    atomController.close
+    $atomController.close
     OSX.NSApp.createController @path
 
   # Do open and close even belong here?
   open: (path) ->
-    atomController.window.makeKeyAndOrderFront atomController
+    $atomController.window.makeKeyAndOrderFront atomController
     Event.trigger 'window:open', path
 
   close: (path) ->
     extension.shutdown() for name, extension of @extensions
-
-    atomController.close
+    $atomController.close
     Event.trigger 'window:close', path
 
   # Global methods that are used by the cocoa side of things

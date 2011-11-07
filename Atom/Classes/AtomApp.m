@@ -92,7 +92,6 @@
 
   NSDictionary *defaults = [NSDictionary dictionaryWithObjectsAndKeys:
                             [NSNumber numberWithBool:YES], @"WebKitDeveloperExtras", 
-                            [NSNumber numberWithBool:YES], @"WebKitScriptDebuggerEnabled",
                             nil];
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
 }
