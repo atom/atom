@@ -1,3 +1,4 @@
+$ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 ace = require 'ace/ace'
@@ -6,6 +7,8 @@ Event = require 'event'
 KeyBinder = require 'key-binder'
 Native = require 'native'
 Storage = require 'storage'
+Browser = require 'browser'
+Pane = require 'pane'
 
 {EditSession} = require 'ace/edit_session'
 {UndoManager} = require 'ace/undomanager'
@@ -82,14 +85,18 @@ class Editor
 
     buffer = @buffers[path]
     if not buffer
-      code = if path then fs.read path else ''
-      buffer = new EditSession code
-      buffer.setUndoManager new UndoManager
-      buffer.setUseSoftTabs useSoftTabs = @usesSoftTabs code
-      buffer.setTabSize if useSoftTabs then @guessTabSize code else 8
-
-      mode = @modeForPath path
-      buffer.setMode new mode if mode
+      if fs.isFile path
+        code = if path then fs.read path else ''
+        buffer = new EditSession code
+        buffer.setUndoManager new UndoManager
+        buffer.setUseSoftTabs useSoftTabs = @usesSoftTabs code
+        buffer.setTabSize if useSoftTabs then @guessTabSize code else 8
+        mode = @modeForPath path
+        buffer.setMode new mode if mode
+      else if /^https?:\/\//.test path
+        buffer = new Browser path
+      else
+        throw "#{@constructor.name}: I don't know what to do with `#{path}`"
 
       @buffers[path] = buffer
 
@@ -148,7 +155,18 @@ class Editor
     @activePath = path
 
     buffer = @buffers[path] or @addBuffer path
-    @ace.setSession buffer
+    $("iframe").hide()
+    if buffer.constructor is EditSession
+      $('#ace-editor').show()
+      @ace.setSession buffer
+    else
+      $('#ace-editor').hide()
+      path = buffer.path
+      if $("iframe[src='#{path}']").length
+        $("iframe[src='#{path}']").show()
+      else
+        $('#ace-editor').after iframe =
+          "<iframe src='#{path}' style='width:100%;height:100%'></iframe>"
 
     Storage.set @focusedPathKey, path
     Event.trigger "editor:bufferFocus", path
