@@ -34,7 +34,10 @@ class Editor
     @ace.setShowInvisibles(true)
     @ace.setPrintMarginColumn 78
 
-    Event.on 'window:open', (e) => @addBuffer e.details
+    Event.on 'window:open', (e) =>
+      path = e.details
+      @addBuffer e.details if fs.isFile path
+
     Event.on 'window:close', (e) => @removeBuffer e.details
     Event.on 'editor:bufferFocus', (e) => @resize()
 

@@ -82,9 +82,7 @@ windowAdditions =
   # Do open and close even belong here?
   open: (path) ->
     atomController.window.makeKeyAndOrderFront atomController
-
-    if not fs.isDirectory path
-      Event.trigger 'window:open', path
+    Event.trigger 'window:open', path
 
   close: (path) ->
     extension.shutdown() for name, extension of @extensions
