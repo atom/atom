@@ -26,15 +26,16 @@ class Modal
     $(document).bind 'keydown.modal', (e) =>
       if e.keyCode is (esc = 27) then @hide(); false
 
-    $('#modal-overlay')
-      .css('opacity', 0.2)
-      .fadeIn(200)
-      .click => @hide()
-
     $('body').append $(@template).hide()
     $('#modal .content').append @html
-    $('#modal').fadeIn 200
-    @resize()
+
+    $('#modal-overlay')
+      .css('opacity', 0.2)
+      .click(=> @hide())
+      .fadeIn 200, =>
+        $('#modal').fadeIn(200)
+        $('#modal input').focus()
+        @resize()
 
     Event.trigger 'modal:show', @
 
@@ -45,7 +46,7 @@ class Modal
 
   hide: ->
     @showing = false
-    $('#modal').fadeOut -> $(this).remove()
+    $('#modal').remove()
     $('#modal-overlay').fadeOut 200, -> $(this).remove()
     $(document).unbind '.modal'
     $(window).unbind '.modal'
