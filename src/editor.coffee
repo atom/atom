@@ -36,6 +36,7 @@ class Editor
 
     Event.on 'window:open', (e) => @addBuffer e.details
     Event.on 'window:close', (e) => @removeBuffer e.details
+    Event.on 'editor:bufferFocus', (e) => @resize()
 
     @addBuffer path if path
 
