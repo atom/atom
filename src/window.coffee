@@ -28,6 +28,12 @@ windowAdditions =
     @path = $atomController.path
     @setTitle _.last @path.split '/'
 
+    # Remember sizing!
+    defaultFrame = x: 0, y: 0, width: 600, height: 800
+    frame = Storage.get "window.frame.#{@path}", defaultFrame
+    rect = OSX.CGRectMake(frame.x, frame.y, frame.width, frame.height)
+    $atomController.window.setFrame_display rect, true
+
     @editor = new Editor
     @browser = new Browser
 
@@ -37,8 +43,18 @@ windowAdditions =
 
     @editor.restoreOpenBuffers()
 
-  storageKey: ->
-    "window:" + @path
+    $atomController.window.makeKeyWindow
+
+  shutdown: ->
+    extension.shutdown() for name, extension of @extensions
+
+    frame = $atomController.window.frame
+    x = frame.origin.x
+    y = frame.origin.y
+    width = frame.size.width
+    height = frame.size.height
+
+    Storage.set "window.frame.#{@path}", {x:x, y:y, width:width, height:height}
 
   loadExtensions: ->
     extension.shutdown() for name, extension of @extensions
@@ -79,19 +95,19 @@ windowAdditions =
     $atomController.window.title = title
 
   reload: ->
+    @shutdown()
     $atomController.close
     OSX.NSApp.createController @path
 
   open: (path) ->
-    $atomController.window.makeKeyAndOrderFront atomController
+    $atomController.window.makeKeyAndOrderFront $atomController
     Event.trigger 'window:open', path
 
   close: (path) ->
-    extension.shutdown() for name, extension of @extensions
+    @shutdown()
     $atomController.close
     Event.trigger 'window:close', path
 
-  # Global methods that are used by the cocoa side of things
   handleKeyEvent: ->
     KeyBinder.handleEvent.apply KeyBinder, arguments
 

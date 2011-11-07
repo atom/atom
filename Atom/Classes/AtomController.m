@@ -73,5 +73,5 @@
   [(AtomApp *)NSApp removeController:self];
   return YES;
 }
-
+   
 @end

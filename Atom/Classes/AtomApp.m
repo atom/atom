@@ -23,7 +23,9 @@
       
   AtomController *controller = [[AtomController alloc] initWithPath:path];
   [controllers addObject:controller];
-  [[controller window] makeKeyWindow];
+  
+  // window.coffee will set the window size
+  [[controller window] setFrame:NSMakeRect(0, 0, 0, 0) display:YES animate:NO];
   return controller;
 }
 
@@ -79,6 +81,14 @@
   else {
     [super sendEvent:event];
   }
+}
+
+- (void)terminate:(id)sender {
+  for (AtomController *controller in controllers) {   
+    [controller.jscocoa callJSFunctionNamed:@"shutdown" withArguments:nil];
+  }
+  
+  [super terminate:sender];
 }
 
 // AppDelegate
