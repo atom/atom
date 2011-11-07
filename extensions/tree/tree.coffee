@@ -62,6 +62,16 @@ class Tree extends Extension
     Storage.set @shownDirStorageKey(), dirs
     @unwatchDir dir, @watchDir
 
+  findPath: (searchPath, paths=@paths) ->
+    found = null
+    for obj in paths
+      return found if found
+      if obj.path is searchPath
+        found = obj
+      else if obj.paths
+        found = @findPath searchPath, obj.paths
+    found
+
   findPaths: (root) ->
     paths = []
 

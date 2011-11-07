@@ -32,7 +32,7 @@ class TreePane extends Pane
         else
           @tree.showDir path
           el.addClass 'open'
-          list = @createList @tree.findPaths path
+          list = @createList @tree.findPath(path).paths
           el.append list
       else
         el.addClass 'active'
