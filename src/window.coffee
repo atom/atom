@@ -6,6 +6,7 @@ Native = require 'native'
 Storage = require 'storage'
 
 fs = require 'fs'
+_ = require 'underscore'
 
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
@@ -20,7 +21,7 @@ windowAdditions =
     KeyBinder.register "window", window
 
     @path = atomController.path
-    @setTitle @path
+    @setTitle _.last @path.split '/'
 
     @editor = if fs.isFile @path
       new Editor @path
