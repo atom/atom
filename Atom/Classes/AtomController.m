@@ -36,7 +36,8 @@
   [[webView inspector] showConsole:self];
   
   [self.window setDelegate:self];
-    
+  [self.window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+
   [webView setUIDelegate:self];
 
   [self setShouldCascadeWindows:YES];
