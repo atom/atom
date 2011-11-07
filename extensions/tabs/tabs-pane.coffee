@@ -30,10 +30,12 @@ class TabsPane extends Pane
   switchToTab: (tab) ->
     tab = $("#tabs ul li").get(tab - 1) if _.isNumber tab
     return if tab.length is 0
+    return if $(tab).is "#tabs ul .active"
 
+    path = $(tab).data 'path'
     $("#tabs ul .active").removeClass("active")
     $(tab).addClass 'active'
-    window.editor.focusBuffer $(tab).data 'path'
+    window.editor.focusBuffer path
 
   addTab: (path) ->
     existing = $("#tabs [data-path='#{path}']")
