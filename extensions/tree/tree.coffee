@@ -11,6 +11,8 @@ fs = require 'fs'
 
 module.exports =
 class Tree extends Extension
+  ignorePattern: /\.git|\.xcodeproj|\.DS_Store/
+
   constructor: ->
     KeyBinder.register "tree", @
     KeyBinder.load require.resolve "tree/key-bindings.coffee"

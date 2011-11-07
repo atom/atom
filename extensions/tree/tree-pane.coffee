@@ -58,6 +58,7 @@ class TreePane extends Pane
 
     list = $('<ul>')
     for path in paths
+      continue if @tree.ignorePattern.test path
       filename = path.replace(root, "").substring 1
       type = if fs.isDirectory path then 'dir' else 'file'
       encodedPath = encodeURIComponent path
