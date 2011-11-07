@@ -82,7 +82,6 @@ windowAdditions =
     $atomController.close
     OSX.NSApp.createController @path
 
-  # Do open and close even belong here?
   open: (path) ->
     $atomController.window.makeKeyAndOrderFront atomController
     Event.trigger 'window:open', path
