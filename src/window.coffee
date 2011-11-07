@@ -57,6 +57,8 @@ windowAdditions =
         console.warn "window: Extension #{extension.constructor.name} failed to startup."
         console.warn error
 
+    Event.trigger 'extensions:loaded'
+
   loadKeyBindings: ->
     KeyBinder.load "#{@appRoot}/static/key-bindings.coffee"
     if fs.isFile "~/.atomicity/key-bindings.coffee"
