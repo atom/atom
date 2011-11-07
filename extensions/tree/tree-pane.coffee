@@ -25,7 +25,6 @@ class TreePane extends Pane
       path = decodeURIComponent el.data 'path'
 
       if fs.isDirectory path
-        window.x = @tree
         if el.hasClass 'open'
           @tree.hideDir path
           el.removeClass 'open'
