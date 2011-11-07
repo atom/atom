@@ -22,6 +22,7 @@ class FilefinderPane extends Pane
 
     if e.keyCode is keys.enter
       @openSelected()
+      false
     else if e.keyCode is keys.up
       @moveUp()
     else if e.keyCode is keys.down
