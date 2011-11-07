@@ -156,7 +156,6 @@ class Editor
     @activePath = path
 
     buffer = @buffers[path] or @addBuffer path
-    $("iframe").hide()
     if buffer.constructor is EditSession
       $('#ace-editor').show()
       @ace.setSession buffer
