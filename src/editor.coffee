@@ -162,12 +162,7 @@ class Editor
       @ace.setSession buffer
     else
       $('#ace-editor').hide()
-      path = buffer.path
-      if $("iframe[src='#{path}']").length
-        $("iframe[src='#{path}']").show()
-      else
-        $('#ace-editor').after iframe =
-          "<iframe src='#{path}' style='width:100%;height:100%'></iframe>"
+      buffer.show()
 
     Storage.set @focusedPathKey, path
     Event.trigger "editor:bufferFocus", path
