@@ -27,6 +27,7 @@ class Watcher
     @watchedPaths[path] = (item for item in @watchedPaths[path] when item != callback)
     if not callback? or @watchedPaths[path].length == 0
       @watchedPaths[path] = null
+      console.log "Unwatch #{path}"
       @queue.removePathFromQueue path
 
   # Delegate method for __AAWatcher__

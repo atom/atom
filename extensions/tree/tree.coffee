@@ -38,6 +38,7 @@ class Tree extends Extension
     @pane.show()
 
   shutdown: ->
+    @unwatchDir window.path
     @unwatchDir dir for dir in @shownDirs()
 
   reload: ->
@@ -46,7 +47,9 @@ class Tree extends Extension
   shownDirStorageKey: ->
     @.constructor.name + ":" + window.path + ":shownDirs"
 
-  watchDir: (dir) =>
+  watchDir: (changeType, dir) =>
+    # Update the paths.
+    @paths = @findPaths window.path
     @pane.reload()
 
   unwatchDir: (dir) ->

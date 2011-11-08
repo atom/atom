@@ -351,7 +351,7 @@ static UKKQueue * gUKKQueueSharedQueueSingleton = nil;
 			if( n > 0 )
 			{
 				if( ev.filter == EVFILT_VNODE )
-				{
+				{     
 					if( ev.fflags )
 					{
 						NSString*		fpath = [[(NSString *)ev.udata retain] autorelease];    // In case one of the notified folks removes the path.
