@@ -1,5 +1,5 @@
 /*!
- * string_score.js: String Scoring Algorithm 0.1.9 
+ * string_score.js: String Scoring Algorithm 0.1.9
  *
  * http://joshaven.com/string_score
  * https://github.com/joshaven/string_score
@@ -25,10 +25,10 @@ String.prototype.score = function(abbreviation, fuzziness) {
       abbreviation_score,
       fuzzies=1,
       final_score;
-  
+
   // If the string is equal to the abbreviation, perfect match.
   if (string == abbreviation) {return 1.0;}
-  
+
   // Walk through abbreviation and add up scores.
   for (var i = 0,
          character_score/* = 0*/,
@@ -39,10 +39,10 @@ String.prototype.score = function(abbreviation, fuzziness) {
          min_index/* = 0*/;
      i < abbreviation_length;
      ++i) {
-    
+
     // Find the first case-insensitive match of a character.
     c = abbreviation[i];
-    
+
     //index_in_string = __first_valid_index(
     //    string.indexOf(c.toLowerCase()),
     //    string.indexOf(c.toUpperCase())
@@ -55,8 +55,8 @@ String.prototype.score = function(abbreviation, fuzziness) {
         min_index :
         Math.max(index_c_lowercase, index_c_uppercase);
     // End inlining.
-    
-    if (index_in_string === -1) { 
+
+    if (index_in_string === -1) {
       if (fuzziness) {
         fuzzies += 1-fuzziness;
         break;
@@ -66,14 +66,14 @@ String.prototype.score = function(abbreviation, fuzziness) {
     } else {
       character_score = 0.1;
     }
-    
+
     // Set base score for matching 'c'.
-    
+
     // Same case bonus.
-    if (string[index_in_string] === c) { 
-      character_score += 0.1; 
+    if (string[index_in_string] === c) {
+      character_score += 0.1;
     }
-    
+
     // Consecutive letter & start-of-string Bonus
     if (index_in_string === 0) {
       // Increase the score when matching first character of the
@@ -86,37 +86,37 @@ String.prototype.score = function(abbreviation, fuzziness) {
         start_of_string_bonus = 1 //true;
       }
     }
-    
+
     // Acronym Bonus
     // Weighing Logic: Typing the first character of an acronym is as if you
     // preceded it with two perfect character matches.
     if (string.charAt(index_in_string - 1) === ' ') {
       character_score += 0.8; // * Math.min(index_in_string, 5); // Cap bonus at 0.4 * 5
     }
-    
+
     // Left trim the already matched part of the string
     // (forces sequential matching).
     string = string.substring(index_in_string + 1, string_length);
-    
+
     total_character_score += character_score;
   } // end of for loop
-  
+
   // Uncomment to weigh smaller words higher.
   // return total_character_score / string_length;
-  
+
   abbreviation_score = total_character_score / abbreviation_length;
   //percentage_of_matched_string = abbreviation_length / string_length;
   //word_score = abbreviation_score * percentage_of_matched_string;
-  
+
   // Reduce penalty for longer strings.
   //final_score = (word_score + abbreviation_score) / 2;
   final_score = ((abbreviation_score * (abbreviation_length / string_length)) + abbreviation_score) / 2;
-  
+
   final_score = final_score / fuzzies;
-  
+
   if (start_of_string_bonus && (final_score + 0.15 < 1)) {
     final_score += 0.15;
   }
-  
+
   return final_score;
 };
