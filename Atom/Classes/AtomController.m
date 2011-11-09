@@ -34,9 +34,7 @@
 
 - (void)windowDidLoad {
   [super windowDidLoad];
-  
-  [[webView inspector] showConsole:self];
-  
+
   [self.window setDelegate:self];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 
