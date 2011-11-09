@@ -1,7 +1,6 @@
 Browser = require 'browser'
 Editor = require 'editor'
 Extension = require 'extension'
-Event = require 'event'
 KeyBinder = require 'key-binder'
 Native = require 'native'
 Storage = require 'storage'
@@ -77,7 +76,7 @@ windowAdditions =
         console.warn "window: Extension #{extension.constructor.name} failed to startup."
         console.warn error
 
-    Event.trigger 'extensions:loaded'
+    atom.event.trigger 'extensions:loaded'
 
   loadKeyBindings: ->
     KeyBinder.load "#{@appRoot}/static/key-bindings.coffee"
@@ -101,18 +100,18 @@ windowAdditions =
 
   open: (path) ->
     $atomController.window.makeKeyAndOrderFront $atomController
-    Event.trigger 'window:open', path
+    atom.event.trigger 'window:open', path
 
   close: (path) ->
     @shutdown()
     $atomController.close
-    Event.trigger 'window:close', path
+    atom.event.trigger 'window:close', path
 
   handleKeyEvent: ->
     KeyBinder.handleEvent.apply KeyBinder, arguments
 
   triggerEvent: ->
-    Event.trigger arguments...
+    atom.event.trigger arguments...
 
   canOpen: (path) ->
     parent = @path.replace(/([^\/])$/, "$1/")

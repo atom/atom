@@ -3,16 +3,16 @@
 
 module.exports =
 class Event
-  @events: {}
+  events: {}
 
-  @on: (name, callback) ->
+  on: (name, callback) ->
     window.document.addEventListener name, callback
     callback
 
-  @off: (name, callback) ->
+  off: (name, callback) ->
     window.document.removeEventListener name, callback
 
-  @trigger: (name, data, bubbleToApp=true) ->
+  trigger: (name, data, bubbleToApp=true) ->
     if bubbleToApp and name.match /^app:/
       OSX.NSApp.triggerGlobalEvent_data name, data
       return

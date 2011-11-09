@@ -2,7 +2,6 @@ $ = require 'jquery'
 
 Extension = require 'extension'
 KeyBinder = require 'key-binder'
-Event = require 'event'
 TabsPane = require 'tabs/tabs-pane'
 
 fs = require 'fs'
@@ -15,19 +14,19 @@ class Tabs extends Extension
 
     @pane = new TabsPane @
 
-    Event.on 'editor:bufferAdd', (e) =>
+    atom.event.on 'editor:bufferAdd', (e) =>
       path = e.details
       @pane.addTab path
 
-    Event.on 'editor:bufferFocus', (e) =>
+    atom.event.on 'editor:bufferFocus', (e) =>
       path = e.details
       @pane.addTab path
 
-    Event.on 'editor:bufferRemove', (e) =>
+    atom.event.on 'editor:bufferRemove', (e) =>
       path = e.details
       @pane.removeTab path
 
-    Event.on 'browser:focus', (e) =>
+    atom.event.on 'browser:focus', (e) =>
       path = e.details
       @pane.addTab path
 

@@ -1,6 +1,5 @@
 $ = require 'jquery'
 
-Event = require 'event'
 Pane = require 'pane'
 
 module.exports =
@@ -15,7 +14,7 @@ class Browser extends Pane
     /^https?:\/\//.test path
 
   constructor: ->
-    Event.on "window:open", (e) =>
+    atom.event.on "window:open", (e) =>
       path = e.details
       return unless @constructor.isPathUrl path
 
@@ -25,4 +24,4 @@ class Browser extends Pane
 
       @show()
 
-      Event.trigger "browser:focus", path
+      atom.event.trigger "browser:focus", path

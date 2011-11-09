@@ -1,7 +1,5 @@
 $ = require 'jquery'
 
-Event = require 'event'
-
 module.exports =
 class Modal
   template: '<div id="modal"><div class="popup"><div class="content"></div><a href="#" class="close inline">&nbsp;</a></div></div>'
@@ -37,7 +35,7 @@ class Modal
         $('#modal input').focus()
         @resize()
 
-    Event.trigger 'modal:show', @
+    atom.event.trigger 'modal:show', @
 
   resize: ->
     $('#modal').css
@@ -50,7 +48,7 @@ class Modal
     $('#modal-overlay').fadeOut 200, -> $(this).remove()
     $(document).unbind '.modal'
     $(window).unbind '.modal'
-    Event.trigger 'modal:hide', @
+    atom.event.trigger 'modal:hide', @
 
   toggle: ->
     if @showing then @hide() else @show()

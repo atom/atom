@@ -4,13 +4,12 @@ _ = require 'underscore'
 fs = require 'fs'
 Extension = require 'extension'
 KeyBinder = require 'key-binder'
-Event = require 'event'
 Watcher = require 'watcher'
 
 module.exports =
 class Gemfile extends Extension
   constructor: ->
-    Event.on 'extensions:loaded', @addRubyGemsDir
+    atom.event.on 'extensions:loaded', @addRubyGemsDir
 
   addRubyGemsDir: =>
     paths = window.extensions.Tree.paths

@@ -3,7 +3,6 @@ _ = require 'underscore'
 fs = require 'fs'
 ace = require 'ace/ace'
 
-Event = require 'event'
 KeyBinder = require 'key-binder'
 Storage = require 'storage'
 Pane = require 'pane'
@@ -39,12 +38,12 @@ class Editor extends Pane
     @ace.setShowInvisibles(true)
     @ace.setPrintMarginColumn 78
 
-    Event.on 'window:open', (e) =>
+    atom.event.on 'window:open', (e) =>
       path = e.details
       @addBuffer e.details if fs.isFile path
 
-    Event.on 'window:close', (e) => @removeBuffer e.details
-    Event.on 'editor:bufferFocus', (e) => @resize()
+    atom.event.on 'window:close', (e) => @removeBuffer e.details
+    atom.event.on 'editor:bufferFocus', (e) => @resize()
 
     # Resize editor when panes are added/removed
     el = document.body
@@ -112,7 +111,7 @@ class Editor extends Pane
       Storage.set @openPathsKey, openPaths
 
     buffer.on 'change', -> buffer.$atom_dirty = true
-    Event.trigger "editor:bufferAdd", path
+    atom.event.trigger "editor:bufferAdd", path
 
     @focusBuffer path
 
@@ -145,7 +144,7 @@ class Editor extends Pane
 
     openPaths = Storage.get @openPathsKey, []
     Storage.set @openPathsKey, _.without openPaths, path
-    Event.trigger "editor:bufferRemove", path
+    atom.event.trigger "editor:bufferRemove", path
 
     if path is @activePath
       newActivePath = Object.keys(@buffers)[0]
@@ -164,7 +163,7 @@ class Editor extends Pane
     @ace.setSession buffer
 
     Storage.set @focusedPathKey, path
-    Event.trigger "editor:bufferFocus", path
+    atom.event.trigger "editor:bufferFocus", path
 
   save: (path) ->
     path ?= @activePath
