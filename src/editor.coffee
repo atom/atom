@@ -1,10 +1,9 @@
 $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
-ace = require 'ace/ace'
-
 Document = require 'document'
 
+ace = require 'ace/ace'
 {EditSession} = require 'ace/edit_session'
 {UndoManager} = require 'ace/undomanager'
 
