@@ -46,10 +46,9 @@ class KeyBinder
   @handleEvent: (event) ->
     keys = []
     keys.push @modifierKeys.command if event.modifierFlags & OSX.NSCommandKeyMask
-    keys.push @modifierKeys.shift if event.modifierFlags & OSX.NSShiftKeyMask
     keys.push @modifierKeys.control if event.modifierFlags & OSX.NSControlKeyMask
     keys.push @modifierKeys.alt if event.modifierFlags & OSX.NSAlternateKeyMask
-    keys.push event.charactersIgnoringModifiers.toLowerCase().charCodeAt 0
+    keys.push event.charactersIgnoringModifiers.charCodeAt 0
 
     binding = keys.sort().join "-"
 
@@ -71,16 +70,16 @@ class KeyBinder
     key = null
 
     for k in keys
-      k = k.toLowerCase()
-      if @modifierKeys[k]
-        modifiers.push @modifierKeys[k]
+      if modifier = @modifierKeys[k.toLowerCase()]
+        modifiers.push modifier unless modifier == @modifierKeys['shift'] # Shift is implied? YES
       else if key
         throw "#{@name}: #{binding} specifies TWO keys, we don't handle that yet."
-      else if @namedKeys[k]
-        key = @namedKeys[k]
+      else if namedKey = @namedKeys[k.toLowerCase()]
+        key = namedKey
       else if k.length > 1
         throw "#{@name}: #{binding} uses an unknown key #{k}."
       else
+        charCode = k.charCodeAt 0
         key = k.charCodeAt 0
 
     modifiers.concat(key).sort().join "-"
