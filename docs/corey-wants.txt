@@ -1,0 +1,5 @@
+- cmd-shift-t: reopen last closed tab
+
+- an extension that shows all available key commands
+
+

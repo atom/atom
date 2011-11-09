@@ -48,7 +48,7 @@ class Tree extends Extension
     @.constructor.name + ":" + window.path + ":shownDirs"
 
   watchDir: (changeType, dir) =>
-    # Update the paths.
+    # Update the paths
     @paths = @findPaths window.path
     @pane.reload()
 

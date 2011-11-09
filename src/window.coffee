@@ -27,6 +27,8 @@ windowAdditions =
 
     @path = $atomController.path
     @setTitle _.last @path.split '/'
+    
+    $atomController.scan_select_compare(@path, null, null)
 
     # Remember sizing!
     defaultFrame = x: 0, y: 0, width: 600, height: 800

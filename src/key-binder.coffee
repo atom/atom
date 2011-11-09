@@ -51,6 +51,9 @@ class KeyBinder
     keys.push @modifierKeys.alt if event.modifierFlags & OSX.NSAlternateKeyMask
     keys.push event.charactersIgnoringModifiers.toLowerCase().charCodeAt 0
 
+    console.log event.charactersIgnoringModifiers.toLowerCase()
+    console.log event.charactersIgnoringModifiers.valueOf()
+
     binding = keys.sort().join "-"
 
     callbacks = @bindings[binding]

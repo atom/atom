@@ -65,43 +65,6 @@
   return tmpPathString;
 }
 
-- (NSArray *)scan:(NSString *)rootPath select:(JSValueRefAndContextRef)selectCallback compare:(JSValueRefAndContextRef)compareCallback{
-  struct dirent **files;
-  
-  int (^select)(struct dirent *) = nil;
-  if (selectCallback.value) {    
-    select = ^(struct dirent *namelist) {
-      return 1;
-    };
-  }
-
-  int (^compare)(const void *, const void *) = nil;
-  if (compareCallback.value) {
-    compare = ^(const void *pathOne, const void *pathTwo) {
-      return 1;
-    };
-  }
-  
-  int count = scandir_b([rootPath UTF8String], &files, select, compare);
-  NSMutableArray *results = [NSMutableArray array];
-  for (int i = 0; i < count; i++) {
-    if (strncmp(files[i]->d_name, ".", files[i]->d_namlen) == 0) {
-      continue;
-    }
-    else if (strncmp(files[i]->d_name, ".", files[i]->d_namlen) == 0) {
-      continue;
-    }
-    
-    NSString *name = [[NSString alloc] initWithBytes:files[i]->d_name length:files[i]->d_namlen encoding:NSUTF8StringEncoding];
-    [results addObject:name];
-    [name release];
-    free(files[i]);
-  }
-  free(files);
-  
-  return results;
-}
-
 // WebUIDelegate
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
   return defaultMenuItems;
