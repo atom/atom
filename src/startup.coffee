@@ -5,6 +5,6 @@ Event = require 'event'
 Native = require 'native'
 
 window.atom = {}
-window.atom.app = new App
 window.atom.native = new Native
 window.atom.event = new Event
+window.atom.app = new App
