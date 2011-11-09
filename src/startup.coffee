@@ -1,3 +1,6 @@
 # Like sands through the hourglass, so are the days of our lives.
+
 App = require 'app'
-App.startup()
+
+window.atom = {}
+window.atom.app = new App

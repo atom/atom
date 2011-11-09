@@ -4,12 +4,12 @@ require 'window'
 
 module.exports =
 class App
-  @startup: ->
+  constructor: ->
     KeyBinder.register "app", @
     window.startup()
 
-  @open: (path) ->
+  open: (path) ->
     OSX.NSApp.open path
 
-  @quit: ->
-    OSX.NSApp.terminate null 
+  quit: ->
+    OSX.NSApp.terminate null

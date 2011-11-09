@@ -30,8 +30,7 @@ class Native
 
   @openURL: (url) ->
     window.location = url
-    App = require 'app'
-    App.activeWindow.setTitle _.last url.replace(/\/$/,'').split '/'
+    atom.app.activeWindow.setTitle _.last url.replace(/\/$/,'').split '/'
 
   # Returns null or a file path.
   @savePanel: ->
