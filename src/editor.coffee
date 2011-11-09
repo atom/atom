@@ -5,7 +5,6 @@ ace = require 'ace/ace'
 
 Event = require 'event'
 KeyBinder = require 'key-binder'
-Native = require 'native'
 Storage = require 'storage'
 Pane = require 'pane'
 
@@ -133,7 +132,7 @@ class Editor extends Pane
       else
         "An untitled file has changes."
 
-      canceled = Native.alert "Do you want to save the changes you made?", detailedMessage,
+      canceled = atom.native.alert "Do you want to save the changes you made?", detailedMessage,
         "Save": =>
           path = @save()
           not path # if save modal fails/cancels, consider it canceled
@@ -180,7 +179,7 @@ class Editor extends Pane
     path
 
   saveAs: ->
-    path = Native.savePanel()?.toString()
+    path = atom.native.savePanel()?.toString()
     if path
       @save path
       @addBuffer path
@@ -213,11 +212,11 @@ class Editor extends Pane
 
   copy: ->
     text = @ace.getSession().doc.getTextRange @ace.getSelectionRange()
-    Native.writeToPasteboard text
+    atom.native.writeToPasteboard text
 
   cut: ->
     text = @ace.getSession().doc.getTextRange @ace.getSelectionRange()
-    Native.writeToPasteboard text
+    atom.native.writeToPasteboard text
     @ace.session.remove @ace.getSelectionRange()
 
   eval: -> eval @code()
