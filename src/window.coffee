@@ -80,7 +80,7 @@ windowAdditions =
     Event.trigger 'extensions:loaded'
 
   loadKeyBindings: ->
-    KeyBinder.load "#{@appRoot}/static/key-bindings.coffee"
+    KeyBinder.load require.resolve "key-bindings.coffee"
     if fs.isFile "~/.atomicity/key-bindings.coffee"
       KeyBinder.load "~/.atomicity/key-bindings.coffee"
 
