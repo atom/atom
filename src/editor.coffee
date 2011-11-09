@@ -3,13 +3,13 @@ _ = require 'underscore'
 fs = require 'fs'
 ace = require 'ace/ace'
 
-Pane = require 'pane'
+Document = require 'document'
 
 {EditSession} = require 'ace/edit_session'
 {UndoManager} = require 'ace/undomanager'
 
 module.exports =
-class Editor extends Pane
+class Editor extends Document
   activePath: null
 
   buffers: {}
@@ -19,8 +19,6 @@ class Editor extends Pane
   focusedPathKey: "editor.focusedPath.#{window.path}"
 
   html: $ "<div id='ace-editor'></div>"
-
-  position: "main"
 
   constructor: ->
     atom.keybinder.register "editor", @

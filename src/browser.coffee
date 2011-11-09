@@ -1,14 +1,12 @@
 $ = require 'jquery'
 
-Pane = require 'pane'
+Document = require 'document'
 
 module.exports =
-class Browser extends Pane
+class Browser extends Document
   buffers: {}
 
   html: $ "<div id='browser'></div>"
-
-  position: 'main'
 
   @isPathUrl: (path) ->
     /^https?:\/\//.test path

@@ -1,11 +1,9 @@
-module.exports =
-class Document
-  @visibleDocument: null
+Pane = require 'pane'
 
-  @show: (document) ->
+module.exports =
+class Document extends Pane
+  position: "main"
 
   open: ->
-
   close: ->
-
   save: ->
