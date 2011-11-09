@@ -36,8 +36,6 @@ windowAdditions =
     @loadKeyBindings()
     @loadSettings()
 
-    @editor.restoreOpenBuffers()
-
     $atomController.window.makeKeyWindow
 
   shutdown: ->

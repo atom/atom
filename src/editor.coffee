@@ -14,10 +14,6 @@ class Editor extends Document
 
   buffers: {}
 
-  openPathsKey: "editor.openPaths.#{window.path}"
-
-  focusedPathKey: "editor.focusedPath.#{window.path}"
-
   html: $ "<div id='ace-editor'></div>"
 
   constructor: ->
@@ -78,13 +74,6 @@ class Editor extends Document
     catch e
       null
 
-  restoreOpenBuffers: ->
-    openPaths = atom.storage.get @openPathsKey, []
-    focusedPath = atom.storage.get(@focusedPathKey)
-
-    @addBuffer path for path in openPaths
-    @focusBuffer focusedPath if focusedPath
-
   addBuffer: (path) ->
     throw "#{@constructor.name}: Cannot create buffer from a directory `#{path}`" if fs.isDirectory path
 
@@ -100,11 +89,6 @@ class Editor extends Document
       buffer.setMode new mode if mode
 
       @buffers[path] = buffer
-
-    openPaths = atom.storage.get @openPathsKey, []
-    unless path in openPaths
-      openPaths.push path
-      atom.storage.set @openPathsKey, openPaths
 
     buffer.on 'change', -> buffer.$atom_dirty = true
     atom.trigger "editor:bufferAdd", path
@@ -138,8 +122,6 @@ class Editor extends Document
 
     delete @buffers[path]
 
-    openPaths = atom.storage.get @openPathsKey, []
-    atom.storage.set @openPathsKey, _.without openPaths, path
     atom.trigger "editor:bufferRemove", path
 
     if path is @activePath
@@ -158,7 +140,6 @@ class Editor extends Document
     buffer = @buffers[path] or @addBuffer path
     @ace.setSession buffer
 
-    atom.storage.set @focusedPathKey, path
     atom.trigger "editor:bufferFocus", path
 
   save: (path) ->
