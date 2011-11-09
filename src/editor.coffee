@@ -3,7 +3,6 @@ _ = require 'underscore'
 fs = require 'fs'
 ace = require 'ace/ace'
 
-Storage = require 'storage'
 Pane = require 'pane'
 
 {EditSession} = require 'ace/edit_session'
@@ -82,8 +81,8 @@ class Editor extends Pane
       null
 
   restoreOpenBuffers: ->
-    openPaths = Storage.get @openPathsKey, []
-    focusedPath = Storage.get(@focusedPathKey)
+    openPaths = atom.storage.get @openPathsKey, []
+    focusedPath = atom.storage.get(@focusedPathKey)
 
     @addBuffer path for path in openPaths
     @focusBuffer focusedPath if focusedPath
@@ -104,10 +103,10 @@ class Editor extends Pane
 
       @buffers[path] = buffer
 
-    openPaths = Storage.get @openPathsKey, []
+    openPaths = atom.storage.get @openPathsKey, []
     unless path in openPaths
       openPaths.push path
-      Storage.set @openPathsKey, openPaths
+      atom.storage.set @openPathsKey, openPaths
 
     buffer.on 'change', -> buffer.$atom_dirty = true
     atom.event.trigger "editor:bufferAdd", path
@@ -141,8 +140,8 @@ class Editor extends Pane
 
     delete @buffers[path]
 
-    openPaths = Storage.get @openPathsKey, []
-    Storage.set @openPathsKey, _.without openPaths, path
+    openPaths = atom.storage.get @openPathsKey, []
+    atom.storage.set @openPathsKey, _.without openPaths, path
     atom.event.trigger "editor:bufferRemove", path
 
     if path is @activePath
@@ -161,7 +160,7 @@ class Editor extends Pane
     buffer = @buffers[path] or @addBuffer path
     @ace.setSession buffer
 
-    Storage.set @focusedPathKey, path
+    atom.storage.set @focusedPathKey, path
     atom.event.trigger "editor:bufferFocus", path
 
   save: (path) ->

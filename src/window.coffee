@@ -1,7 +1,5 @@
 Browser = require 'browser'
 Editor = require 'editor'
-Extension = require 'extension'
-Storage = require 'storage'
 
 fs = require 'fs'
 _ = require 'underscore'
@@ -27,7 +25,7 @@ windowAdditions =
 
     # Remember sizing!
     defaultFrame = x: 0, y: 0, width: 600, height: 800
-    frame = Storage.get "window.frame.#{@path}", defaultFrame
+    frame = atom.storage.get "window.frame.#{@path}", defaultFrame
     rect = OSX.CGRectMake(frame.x, frame.y, frame.width, frame.height)
     $atomController.window.setFrame_display rect, true
 
@@ -51,7 +49,7 @@ windowAdditions =
     width = frame.size.width
     height = frame.size.height
 
-    Storage.set "window.frame.#{@path}", {x:x, y:y, width:width, height:height}
+    atom.storage.set "window.frame.#{@path}", {x:x, y:y, width:width, height:height}
 
   loadExtensions: ->
     extension.shutdown() for name, extension of @extensions

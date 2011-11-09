@@ -1,6 +1,6 @@
 module.exports =
 class Storage
-  @get: (key, defaultValue) ->
+  get: (key, defaultValue) ->
    try
      value = OSX.NSApp.storageGet_defaultValue(key, defaultValue)
      @toJS value
@@ -8,10 +8,10 @@ class Storage
      error.message += "\nGetting #{key}"
      console.error(error)
 
-  @set: (key, value) ->
+  set: (key, value) ->
     OSX.NSApp.storageSet_value key, value
 
-  @toJS: (value) ->
+  toJS: (value) ->
     if not value
       value
     else if value.isKindOfClass OSX.NSDictionary.class

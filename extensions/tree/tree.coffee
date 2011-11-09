@@ -1,7 +1,6 @@
 _ = require 'underscore'
 
 Extension = require 'extension'
-Storage = require 'storage'
 TreePane = require 'tree/tree-pane'
 Watcher = require 'watcher'
 
@@ -54,16 +53,16 @@ class Tree extends Extension
     Watcher.unwatch dir, @watchDir
 
   shownDirs: ->
-    Storage.get @shownDirStorageKey(), []
+    atom.storage.get @shownDirStorageKey(), []
 
   showDir: (dir) ->
     dirs = @shownDirs().concat dir
-    Storage.set @shownDirStorageKey(), dirs
+    atom.storage.set @shownDirStorageKey(), dirs
     Watcher.watch dir, @watchDir
 
   hideDir: (dir) ->
     dirs = _.without @shownDirs(), dir
-    Storage.set @shownDirStorageKey(), dirs
+    atom.storage.set @shownDirStorageKey(), dirs
     @unwatchDir dir, @watchDir
 
   findPath: (searchPath, paths=@paths) ->
