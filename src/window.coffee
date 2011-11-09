@@ -17,7 +17,7 @@ windowAdditions =
 
   path: null
 
-  startup: () ->
+  startup: ->
     atom.keybinder.register "window", window
 
     @path = $atomController.path
