@@ -1,6 +1,3 @@
-fs = require 'fs'
-
-
 Event = require 'event'
 Native = require 'native'
 KeyBinder = require 'key-binder'
