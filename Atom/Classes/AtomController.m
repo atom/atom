@@ -25,7 +25,7 @@
 
 - (id)initWithPath:(NSString *)aPath {
   aPath = aPath ? aPath : @"/tmp";
-    
+
   self = [super initWithWindowNibName:@"AtomWindow"];
   path = [[aPath stringByStandardizingPath] retain];
 
@@ -49,7 +49,7 @@
   NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
   NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
   NSURLRequest *request = [NSURLRequest requestWithURL:indexURL];
-  [[webView mainFrame] loadRequest:request];    
+  [[webView mainFrame] loadRequest:request];
 }
 
 // Helper methods that should go elsewhere
@@ -59,7 +59,7 @@
   char *tmpPath = tempnam(directory, prefix);
   NSString *tmpPathString = [NSString stringWithUTF8String:tmpPath];
   free(tmpPath);
-  
+
   return tmpPathString;
 }
 
@@ -73,5 +73,5 @@
   [(AtomApp *)NSApp removeController:self];
   return YES;
 }
-   
+
 @end
