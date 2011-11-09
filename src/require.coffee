@@ -7,6 +7,7 @@ else
   resourcePath = OSX.NSBundle.mainBundle.resourcePath
 
 paths = [
+  "#{resourcePath}/static"
   "#{resourcePath}/src"
   "#{resourcePath}/extensions"
   "#{resourcePath}/vendor"
