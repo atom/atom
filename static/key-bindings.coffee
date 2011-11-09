@@ -3,7 +3,7 @@ app:
   'cmd-o': (app) -> app.open()
 
 window:
-  'cmd-shift-i': (window) -> window.showConsole()
+  'cmd-shift-I': (window) -> window.showConsole()
   'cmd-r': (window) -> window.reload()
 
 editor:
