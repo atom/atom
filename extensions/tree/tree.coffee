@@ -1,8 +1,6 @@
 _ = require 'underscore'
 
-Event = require 'event'
 Extension = require 'extension'
-KeyBinder = require 'key-binder'
 Storage = require 'storage'
 TreePane = require 'tree/tree-pane'
 Watcher = require 'watcher'
@@ -18,8 +16,8 @@ class Tree extends Extension
   paths: []
 
   constructor: ->
-    KeyBinder.register "tree", @
-    KeyBinder.load require.resolve "tree/key-bindings.coffee"
+    atom.keybinder.register "tree", @
+    atom.keybinder.load require.resolve "tree/key-bindings.coffee"
 
     # watch the root dir
     Watcher.watch window.path, @watchDir

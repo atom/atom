@@ -1,11 +1,10 @@
-KeyBinder = require 'key-binder'
 fs = require 'fs'
 require 'window'
 
 module.exports =
 class App
   constructor: ->
-    KeyBinder.register "app", @
+    atom.keybinder.register "app", @
     window.startup()
 
   open: (path) ->

@@ -1,7 +1,6 @@
 $ = require 'jquery'
 
 Extension = require 'extension'
-KeyBinder = require 'key-binder'
 TabsPane = require 'tabs/tabs-pane'
 
 fs = require 'fs'
@@ -9,8 +8,8 @@ fs = require 'fs'
 module.exports =
 class Tabs extends Extension
   constructor: () ->
-    KeyBinder.register "tabs", @
-    KeyBinder.load require.resolve "tabs/key-bindings.coffee"
+    atom.keybinder.register "tabs", @
+    atom.keybinder.load require.resolve "tabs/key-bindings.coffee"
 
     @pane = new TabsPane @
 

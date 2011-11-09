@@ -3,7 +3,6 @@ _ = require 'underscore'
 fs = require 'fs'
 ace = require 'ace/ace'
 
-KeyBinder = require 'key-binder'
 Storage = require 'storage'
 Pane = require 'pane'
 
@@ -25,7 +24,7 @@ class Editor extends Pane
   position: "main"
 
   constructor: ->
-    KeyBinder.register "editor", @
+    atom.keybinder.register "editor", @
 
     @show()
 

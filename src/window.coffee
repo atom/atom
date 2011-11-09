@@ -1,8 +1,6 @@
 Browser = require 'browser'
 Editor = require 'editor'
 Extension = require 'extension'
-KeyBinder = require 'key-binder'
-Native = require 'native'
 Storage = require 'storage'
 
 fs = require 'fs'
@@ -22,7 +20,7 @@ windowAdditions =
   path: null
 
   startup: () ->
-    KeyBinder.register "window", window
+    atom.keybinder.register "window", window
 
     @path = $atomController.path
     @setTitle _.last @path.split '/'
@@ -79,9 +77,9 @@ windowAdditions =
     atom.event.trigger 'extensions:loaded'
 
   loadKeyBindings: ->
-    KeyBinder.load "#{@appRoot}/static/key-bindings.coffee"
+    atom.keybinder.load "#{@appRoot}/static/key-bindings.coffee"
     if fs.isFile "~/.atomicity/key-bindings.coffee"
-      KeyBinder.load "~/.atomicity/key-bindings.coffee"
+      atom.keybinder.load "~/.atomicity/key-bindings.coffee"
 
   loadSettings: ->
     if fs.isFile "~/.atomicity/settings.coffee"
@@ -108,7 +106,7 @@ windowAdditions =
     atom.event.trigger 'window:close', path
 
   handleKeyEvent: ->
-    KeyBinder.handleEvent.apply KeyBinder, arguments
+    atom.keybinder.handleEvent.apply atom.keybinder, arguments
 
   triggerEvent: ->
     atom.event.trigger arguments...

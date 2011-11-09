@@ -5,14 +5,14 @@ Watcher = require 'watcher'
 
 module.exports =
 class KeyBinder
-  @bindings: {}
+  bindings: {}
 
-  @scopes: {}
+  scopes: {}
 
-  @register: (name, scope) ->
+  register: (name, scope) ->
     @scopes[name] = scope
 
-  @load: (path) ->
+  load: (path) ->
     try
       Watcher.watch path, =>
         # Should we keep track of which file bindings are associated with? That
@@ -27,7 +27,7 @@ class KeyBinder
     catch error
       console.error "#{@name}: Could not load key bindings at `#{path}`. #{error}"
 
-  @create: (scope, binding, method) ->
+  create: (scope, binding, method) ->
     if typeof scope is "string"
       throw "#{@name}: Unknown scope `#{scope}`" unless @scopes[scope]
       scope = @scopes[scope]
@@ -43,7 +43,7 @@ class KeyBinder
 
     callbacks.push callback
 
-  @handleEvent: (event) ->
+  handleEvent: (event) ->
     keys = []
     keys.push @modifierKeys.command if event.modifierFlags & OSX.NSCommandKeyMask
     keys.push @modifierKeys.shift if event.modifierFlags & OSX.NSShiftKeyMask
@@ -67,7 +67,7 @@ class KeyBinder
 
     true
 
-  @bindingParser: (binding) ->
+  bindingParser: (binding) ->
     keys = binding.trim().split '-'
 
     modifiers = []
@@ -88,7 +88,7 @@ class KeyBinder
 
     modifiers.concat(key).sort().join "-"
 
-  @bindingFromAscii: (binding) ->
+  bindingFromAscii: (binding) ->
     inverseModifierKeys = {}
     inverseModifierKeys[number] = label for label, number of @modifierKeys
 
@@ -106,7 +106,7 @@ class KeyBinder
 
     keys.join '-'
 
-  @modifierKeys:
+  modifierKeys:
     '⇧': 16
     '⌘': 91
     '⌥': 18
@@ -118,7 +118,7 @@ class KeyBinder
     command: 91
     cmd: 91
 
-  @namedKeys:
+  namedKeys:
     backspace: 8
     tab: 9
     clear: 12
