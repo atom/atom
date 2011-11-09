@@ -36,12 +36,12 @@ class Editor extends Pane
     @ace.setShowInvisibles(true)
     @ace.setPrintMarginColumn 78
 
-    atom.event.on 'window:open', (e) =>
+    atom.on 'window:open', (e) =>
       path = e.details
       @addBuffer e.details if fs.isFile path
 
-    atom.event.on 'window:close', (e) => @removeBuffer e.details
-    atom.event.on 'editor:bufferFocus', (e) => @resize()
+    atom.on 'window:close', (e) => @removeBuffer e.details
+    atom.on 'editor:bufferFocus', (e) => @resize()
 
     # Resize editor when panes are added/removed
     el = document.body
@@ -109,7 +109,7 @@ class Editor extends Pane
       atom.storage.set @openPathsKey, openPaths
 
     buffer.on 'change', -> buffer.$atom_dirty = true
-    atom.event.trigger "editor:bufferAdd", path
+    atom.trigger "editor:bufferAdd", path
 
     @focusBuffer path
 
@@ -142,7 +142,7 @@ class Editor extends Pane
 
     openPaths = atom.storage.get @openPathsKey, []
     atom.storage.set @openPathsKey, _.without openPaths, path
-    atom.event.trigger "editor:bufferRemove", path
+    atom.trigger "editor:bufferRemove", path
 
     if path is @activePath
       newActivePath = Object.keys(@buffers)[0]
@@ -161,7 +161,7 @@ class Editor extends Pane
     @ace.setSession buffer
 
     atom.storage.set @focusedPathKey, path
-    atom.event.trigger "editor:bufferFocus", path
+    atom.trigger "editor:bufferFocus", path
 
   save: (path) ->
     path ?= @activePath

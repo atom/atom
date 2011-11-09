@@ -14,7 +14,7 @@ class Browser extends Pane
     /^https?:\/\//.test path
 
   constructor: ->
-    atom.event.on "window:open", (e) =>
+    atom.on "window:open", (e) =>
       path = e.details
       return unless @constructor.isPathUrl path
 
@@ -24,4 +24,4 @@ class Browser extends Pane
 
       @show()
 
-      atom.event.trigger "browser:focus", path
+      atom.trigger "browser:focus", path

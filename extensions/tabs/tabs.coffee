@@ -13,19 +13,19 @@ class Tabs extends Extension
 
     @pane = new TabsPane @
 
-    atom.event.on 'editor:bufferAdd', (e) =>
+    atom.on 'editor:bufferAdd', (e) =>
       path = e.details
       @pane.addTab path
 
-    atom.event.on 'editor:bufferFocus', (e) =>
+    atom.on 'editor:bufferFocus', (e) =>
       path = e.details
       @pane.addTab path
 
-    atom.event.on 'editor:bufferRemove', (e) =>
+    atom.on 'editor:bufferRemove', (e) =>
       path = e.details
       @pane.removeTab path
 
-    atom.event.on 'browser:focus', (e) =>
+    atom.on 'browser:focus', (e) =>
       path = e.details
       @pane.addTab path
 

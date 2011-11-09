@@ -8,8 +8,12 @@ Storage = require 'storage'
 
 window.atom = {}
 window.atom.native = new Native
-window.atom.event = new Event
 window.atom.keybinder = new KeyBinder
 window.atom.storage = new Storage
+
+window.atom.event = new Event
+# atom.on, atom.off, etc.
+for name, method of window.atom.event
+  window.atom[name] = window.atom.event[name]
 
 window.atom.app = new App

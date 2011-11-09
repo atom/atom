@@ -35,7 +35,7 @@ class Modal
         $('#modal input').focus()
         @resize()
 
-    atom.event.trigger 'modal:show', @
+    atom.trigger 'modal:show', @
 
   resize: ->
     $('#modal').css
@@ -48,7 +48,7 @@ class Modal
     $('#modal-overlay').fadeOut 200, -> $(this).remove()
     $(document).unbind '.modal'
     $(window).unbind '.modal'
-    atom.event.trigger 'modal:hide', @
+    atom.trigger 'modal:hide', @
 
   toggle: ->
     if @showing then @hide() else @show()

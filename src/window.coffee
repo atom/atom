@@ -72,7 +72,7 @@ windowAdditions =
         console.warn "window: Extension #{extension.constructor.name} failed to startup."
         console.warn error
 
-    atom.event.trigger 'extensions:loaded'
+    atom.trigger 'extensions:loaded'
 
   loadKeyBindings: ->
     atom.keybinder.load "#{@appRoot}/static/key-bindings.coffee"
@@ -96,18 +96,18 @@ windowAdditions =
 
   open: (path) ->
     $atomController.window.makeKeyAndOrderFront $atomController
-    atom.event.trigger 'window:open', path
+    atom.trigger 'window:open', path
 
   close: (path) ->
     @shutdown()
     $atomController.close
-    atom.event.trigger 'window:close', path
+    atom.trigger 'window:close', path
 
   handleKeyEvent: ->
     atom.keybinder.handleEvent.apply atom.keybinder, arguments
 
   triggerEvent: ->
-    atom.event.trigger arguments...
+    atom.trigger arguments...
 
   canOpen: (path) ->
     parent = @path.replace(/([^\/])$/, "$1/")
