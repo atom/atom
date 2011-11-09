@@ -51,6 +51,9 @@ class Editor extends Pane
     el = document.body
     el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
     el.addEventListener 'DOMNodeRemovedFromDocument', => @resize()
+    setTimeout =>
+      @resize()
+    , 500
 
   modeMap:
     js: 'javascript'
