@@ -34,8 +34,6 @@ windowAdditions =
     atom.trigger 'window:load'
 
   shutdown: ->
-    extension.shutdown() for name, extension of @extensions
-
     frame = $atomController.window.frame
     x = frame.origin.x
     y = frame.origin.y
@@ -51,8 +49,7 @@ windowAdditions =
     $atomController.window.title = title
 
   reload: ->
-    @shutdown()
-    $atomController.close
+    @close()
     OSX.NSApp.createController @path
 
   open: (path) ->

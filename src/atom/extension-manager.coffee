@@ -6,6 +6,7 @@ class ExtensionManager
 
   constructor: ->
     atom.on 'window:load', @loadExtensions
+    atom.on 'window:close', @unloadExtensions
 
   loadExtensions: =>
     extension.shutdown() for name, extension of @extensions
@@ -28,3 +29,5 @@ class ExtensionManager
         console.warn "Extension #{extension::name} failed to startup."
         console.warn error
 
+  unloadExtensions: =>
+    extension.shutdown() for name, extension of @extensions
