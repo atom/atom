@@ -12,20 +12,19 @@ Native = require 'native'
 Settings = require 'settings'
 Storage = require 'storage'
 
-atom.native = new Native
-atom.storage = new Storage
 atom.event = new Event
-
 # atom.on, atom.off, etc.
 for name, method of atom.event
   atom[name] = atom.event[name]
 
+atom.native = new Native
+atom.storage = new Storage
 atom.keybinder = new KeyBinder
 atom.settings = new Settings
 atom.extensions = {}
 atom.extensionManager = new ExtensionManager
-atom.app = new App
 
+atom.app = new App
 # atom.open, atom.close, etc.
 for name, method of atom.app
   atom[name] = atom.app[name]
