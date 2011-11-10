@@ -7,7 +7,7 @@ window:
   'cmd-r': (window) -> window.reload()
 
 document:
-  'cmd-ctrl-d': -> console.log 'derp'
+  'cmd-shift-d': -> console.log 'derp'
 
 editor:
   'cmd-w': 'removeBuffer'
