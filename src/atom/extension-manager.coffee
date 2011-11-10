@@ -7,7 +7,7 @@ class ExtensionManager
   constructor: ->
     atom.on 'window:load', @loadExtensions
 
-  loadExtensions: ->
+  loadExtensions: =>
     extension.shutdown() for name, extension of @extensions
     @extensions = {}
 
