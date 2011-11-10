@@ -6,13 +6,16 @@ Pane = require 'pane'
 module.exports =
 class Document extends Pane
   position: "main"
+
   path: null
 
   @handlers: {}
+
   @handler: (path) ->
     for name, {test, handler} of Document.handlers
       return handler if test path
     null
+
   @register: (test) ->
     Document.handlers[@name] = {test, handler: this}
 
@@ -21,5 +24,7 @@ class Document extends Pane
     atom.trigger 'document:load', this
 
   open: ->
+
   close: ->
+
   save: ->
