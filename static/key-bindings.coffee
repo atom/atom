@@ -6,6 +6,9 @@ window:
   'cmd-shift-I': (window) -> window.showConsole()
   'cmd-r': (window) -> window.reload()
 
+document:
+  'cmd-ctrl-d': -> console.log 'derp'
+
 editor:
   'cmd-w': 'removeBuffer'
   'cmd-s': 'save'

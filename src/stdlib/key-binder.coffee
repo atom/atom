@@ -64,14 +64,37 @@ class KeyBinder
     _.flatten [ (_.values atom.extensions), atom.document, window, atom ]
 
   triggerBinding: (scope, method) ->
-    responder = _.detect @responders(), (responder) ->
+    responder = _.detect @responders(), (responder) =>
       (scope is 'window' and responder is window) or
-        responder.constructor.name.toLowerCase() is scope
+        responder.constructor.name.toLowerCase() is scope or
+        @inheritedKeymap responder, scope
     if responder
       if _.isFunction method
         method responder
       else
         responder[method]()
+
+  # If you inherit from a class, you inherit its keymap.
+  #
+  # Example:
+  #   class GistEditor extends Editor
+  #
+  # Will respond to these bindings:
+  #   gisteditor:
+  #     'cmd+ctrl-g': 'createGist'
+  # And these:
+  #   editor:
+  #     'cmd-n': 'new'
+  #
+  # Returns a Boolean
+  inheritedKeymap: (responder, scope) ->
+    parent = responder.constructor.__super__
+    while parent?.constructor?.name
+      if parent.constructor.name.toLowerCase() is scope
+        return true
+      else
+        parent = parent.constructor.__super__
+    false
 
   bindingParser: (binding) ->
     keys = binding.trim().split '-'
