@@ -7,8 +7,10 @@ else
   resourcePath = OSX.NSBundle.mainBundle.resourcePath
 
 paths = [
-  "#{resourcePath}/static"
+  "#{resourcePath}/src/stdlib"
+  "#{resourcePath}/src/atom"
   "#{resourcePath}/src"
+  "#{resourcePath}/static"
   "#{resourcePath}/extensions"
   "#{resourcePath}/vendor"
 ]
