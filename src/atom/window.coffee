@@ -33,10 +33,10 @@ windowAdditions =
     @browser = new Browser
 
     @loadExtensions()
-    @loadKeyBindings()
     @loadSettings()
 
     $atomController.window.makeKeyWindow
+    atom.trigger 'window:load'
 
   shutdown: ->
     extension.shutdown() for name, extension of @extensions
@@ -71,11 +71,6 @@ windowAdditions =
         console.warn error
 
     atom.trigger 'extensions:loaded'
-
-  loadKeyBindings: ->
-    atom.keybinder.load require.resolve "key-bindings.coffee"
-    if fs.isFile "~/.atomicity/key-bindings.coffee"
-      atom.keybinder.load "~/.atomicity/key-bindings.coffee"
 
   loadSettings: ->
     if fs.isFile "~/.atomicity/settings.coffee"

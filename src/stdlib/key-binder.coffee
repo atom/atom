@@ -5,6 +5,12 @@ Watcher = require 'watcher'
 
 module.exports =
 class KeyBinder
+  constructor: ->
+    atom.on 'window:load', ->
+      atom.keybinder.load require.resolve "key-bindings.coffee"
+      if fs.isFile "~/.atomicity/key-bindings.coffee"
+        atom.keybinder.load "~/.atomicity/key-bindings.coffee"
+
   bindings: {}
 
   scopes: {}
