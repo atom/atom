@@ -4,9 +4,6 @@
 #import "JSCocoa.h"
 
 #import <WebKit/WebKit.h>
-#import <stdio.h>
-#import <sys/types.h>
-#import <dirent.h>
 
 @implementation AtomController
 
@@ -50,17 +47,6 @@
   NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
   NSURLRequest *request = [NSURLRequest requestWithURL:indexURL];
   [[webView mainFrame] loadRequest:request];
-}
-
-// Helper methods that should go elsewhere
-- (NSString *)tempfile {
-  char *directory = "/tmp";
-  char *prefix = "temp-file";
-  char *tmpPath = tempnam(directory, prefix);
-  NSString *tmpPathString = [NSString stringWithUTF8String:tmpPath];
-  free(tmpPath);
-
-  return tmpPathString;
 }
 
 // WebUIDelegate
