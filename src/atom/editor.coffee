@@ -24,16 +24,14 @@ class Editor extends Document
     @ace.setTheme require "ace/theme/twilight"
     @ace.getSession().setUseSoftTabs true
     @ace.getSession().setTabSize 2
-    @ace.setShowInvisibles(true)
+    @ace.setShowInvisibles true
     @ace.setPrintMarginColumn 78
 
     # Resize editor when panes are added/removed
     el = document.body
     el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
     el.addEventListener 'DOMNodeRemovedFromDocument', => @resize()
-    setTimeout =>
-      @resize()
-    , 500
+    setTimeout (=> @resize()), 500
 
     # Setup the session
     code = if @path then fs.read @path else ''
