@@ -9,7 +9,7 @@ windowAdditions =
   path: null
 
   startup: ->
-    @path = $atomController.path.toString()
+    @path = atom.path
     @setTitle (_.last @path.split '/') or 'Untitled Document'
 
     $atomController.window.makeKeyWindow

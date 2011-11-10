@@ -32,7 +32,7 @@ atom.app = new App
 for name, method of atom.app
   atom[name] = atom.app[name]
 
-atom.path = $atomController.path.toString()
+atom.path = $atomController.path?.valueOf()
 if handler = Document.handler atom.path
   atom.document = new handler atom.path
 else
