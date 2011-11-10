@@ -42,7 +42,10 @@ windowAdditions =
 
   open: (path) ->
     $atomController.window.makeKeyAndOrderFront $atomController
-    atom.trigger 'window:open', path
+    if atom.document.open path
+      atom.trigger 'window:open', path
+    else
+      atom.app.open path
 
   close: (path) ->
     @shutdown()
