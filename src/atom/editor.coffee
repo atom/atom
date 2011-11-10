@@ -11,13 +11,12 @@ module.exports =
 class Editor extends Document
   @register (path) -> fs.isFile path
 
-  activePath: null
-
-  buffers: {}
-
+  dirty: false
+  path: null
   html: $ "<div id='ace-editor'></div>"
 
-  constructor: ->
+  constructor: (@path) ->
+    super()
     atom.keybinder.register "editor", @
 
     @show()
@@ -31,13 +30,6 @@ class Editor extends Document
     @ace.setShowInvisibles(true)
     @ace.setPrintMarginColumn 78
 
-    atom.on 'window:open', (e) =>
-      path = e.details
-      @addBuffer e.details if fs.isFile path
-
-    atom.on 'window:close', (e) => @removeBuffer e.details
-    atom.on 'editor:bufferFocus', (e) => @resize()
-
     # Resize editor when panes are added/removed
     el = document.body
     el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
@@ -45,6 +37,19 @@ class Editor extends Document
     setTimeout =>
       @resize()
     , 500
+
+    # Setup the session
+    code = if @path then fs.read @path else ''
+    session = new EditSession code
+    session.setUndoManager new UndoManager
+    session.setUseSoftTabs useSoftTabs = @usesSoftTabs code
+    session.setTabSize if useSoftTabs then @guessTabSize code else 8
+    mode = @modeForPath()
+    session.setMode new mode if mode
+    session.on 'change', => @dirty = true
+    @ace.setSession session
+
+    atom.trigger 'editor:load', this
 
   modeMap:
     js: 'javascript'
@@ -62,7 +67,7 @@ class Editor extends Document
     Gemfile: 'ruby'
     Rakefile: 'ruby'
 
-  modeForPath: (path) ->
+  modeForPath: (path=@path) ->
     return null if not path
 
     if not modeName = @modeFileMap[ _.last path.split '/' ]
@@ -75,93 +80,36 @@ class Editor extends Document
     catch e
       null
 
-  addBuffer: (path) ->
-    throw "#{@constructor.name}: Cannot create buffer from a directory `#{path}`" if fs.isDirectory path
-
-    buffer = @buffers[path]
-    if not buffer
-      code = if path then fs.read path else ''
-      buffer = new EditSession code
-      buffer.setUndoManager new UndoManager
-      buffer.setUseSoftTabs useSoftTabs = @usesSoftTabs code
-      buffer.setTabSize if useSoftTabs then @guessTabSize code else 8
-
-      mode = @modeForPath path
-      buffer.setMode new mode if mode
-
-      @buffers[path] = buffer
-
-    buffer.on 'change', -> buffer.$atom_dirty = true
-    atom.trigger "editor:bufferAdd", path
-
-    @focusBuffer path
-
-  removeBuffer: (path) ->
-    path ?= @activePath
-
-    return if not path
-
-    buffer = @buffers[path]
-    return if not buffer
-
-    if buffer.$atom_dirty
-      # This should be thrown into it's own method, but I can't think of a good
-      # name.
-      detailedMessage = if @activePath
-        "#{@activePath} has changes."
+  close: ->
+    if @dirty
+      detailedMessage = if @path
+        "#{@path} has changes."
       else
         "An untitled file has changes."
 
-      canceled = atom.native.alert "Do you want to save the changes you made?", detailedMessage,
+      canceled = atom.native.alert "Do you want to save your changes?",
+        detailedMessage,
         "Save": =>
-          path = @save()
-          not path # if save modal fails/cancels, consider it canceled
+          # if save modal fails/cancels, consider it cancelled
+          not @save()
         "Cancel": => true
         "Don't Save": => false
 
       return if canceled
 
-    delete @buffers[path]
-
-    atom.trigger "editor:bufferRemove", path
-
-    if path is @activePath
-      newActivePath = Object.keys(@buffers)[0]
-      if newActivePath
-        @focusBuffer newActivePath
-      else
-        @ace.setSession  new EditSession ''
-
-  focusBuffer: (path) ->
-    return if not path
-
-    @show()
-    @activePath = path
-
-    buffer = @buffers[path] or @addBuffer path
-    @ace.setSession buffer
-
-    atom.trigger "editor:bufferFocus", path
-
-  save: (path) ->
-    path ?= @activePath
-
-    return @saveAs() if not path
+  save: ->
+    return @saveAs() if not @path
 
     @removeTrailingWhitespace()
-    fs.write path, @code()
-    if @buffers[path]
-      @buffers[path].$atom_dirty = false
+    fs.write @path, @code()
+    @dirty = false
 
-    path
+    @path
 
   saveAs: ->
-    path = atom.native.savePanel()?.toString()
-    if path
+    if path = atom.native.savePanel()?.toString()
+      @path = path
       @save path
-      @addBuffer path
-
-    path
 
   code: ->
     @ace.getSession().getValue()

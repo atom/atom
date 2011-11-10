@@ -2,6 +2,9 @@
 window.atom = {}
 
 App = require 'app'
+Browser = require 'browser'
+Document = require 'document'
+Editor = require 'editor'
 Event = require 'event'
 ExtensionManager = require 'extension-manager'
 KeyBinder = require 'key-binder'
@@ -25,6 +28,9 @@ atom.app = new App
 # atom.open, atom.close, etc.
 for name, method of atom.app
   atom[name] = atom.app[name]
+
+atom.path = $atomController.path.toString()
+atom.document = new Document.handler atom.path
 
 require 'window'
 window.startup()

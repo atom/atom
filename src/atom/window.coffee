@@ -1,16 +1,9 @@
-Browser = require 'browser'
-Editor = require 'editor'
-
 fs = require 'fs'
 _ = require 'underscore'
 
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 windowAdditions =
-  editor: null
-
-  browser: null
-
   appRoot: OSX.NSBundle.mainBundle.resourcePath
 
   path: null
@@ -18,17 +11,14 @@ windowAdditions =
   startup: ->
     atom.keybinder.register "window", window
 
-    @path = $atomController.path
-    @setTitle _.last @path.split '/'
+    @path = $atomController.path.toString()
+    @setTitle (_.last @path.split '/') or 'Untitled Document'
 
     # Remember sizing!
     defaultFrame = x: 0, y: 0, width: 600, height: 800
     frame = atom.storage.get "window.frame.#{@path}", defaultFrame
     rect = OSX.CGRectMake(frame.x, frame.y, frame.width, frame.height)
     $atomController.window.setFrame_display rect, true
-
-    @editor = new Editor
-    @browser = new Browser
 
     $atomController.window.makeKeyWindow
     atom.trigger 'window:load'

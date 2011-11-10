@@ -21,9 +21,10 @@ class KeyBinder
   load: (path) ->
     try
       Watcher.watch path, =>
-        # Should we keep track of which file bindings are associated with? That
-        # way we could clear bindings when the file is changed or deleted. I
-        # think the answer is yes, but I don't want to do this right now.
+        # Should we keep track of which file bindings are associated with?
+        # That way we could clear bindings when the file is changed
+        # or deleted. I think the answer is yes, but I don't want to
+        # do this right now.
         console.log "#{@name}: Reloading #{path}"
         @load path
 
