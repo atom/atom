@@ -11,8 +11,6 @@ windowAdditions =
 
   browser: null
 
-  extensions: {}
-
   appRoot: OSX.NSBundle.mainBundle.resourcePath
 
   path: null
@@ -32,9 +30,6 @@ windowAdditions =
     @editor = new Editor
     @browser = new Browser
 
-    @loadExtensions()
-    @loadSettings()
-
     $atomController.window.makeKeyWindow
     atom.trigger 'window:load'
 
@@ -48,33 +43,6 @@ windowAdditions =
     height = frame.size.height
 
     atom.storage.set "window.frame.#{@path}", {x:x, y:y, width:width, height:height}
-
-  loadExtensions: ->
-    extension.shutdown() for name, extension of @extensions
-    @extensions = {}
-
-    extensionPaths = fs.list require.resourcePath + "/extensions"
-    for extensionPath in extensionPaths when fs.isDirectory extensionPath
-      try
-        extension = require extensionPath
-        @extensions[extension.name] = new extension
-      catch error
-        console.warn "window: Loading Extension '#{fs.base extensionPath}' failed."
-        console.warn error
-
-    # After all the extensions are created, start them up.
-    for name, extension of @extensions
-      try
-        extension.startup()
-      catch error
-        console.warn "window: Extension #{extension.constructor.name} failed to startup."
-        console.warn error
-
-    atom.trigger 'extensions:loaded'
-
-  loadSettings: ->
-    if fs.isFile "~/.atomicity/settings.coffee"
-      require "~/.atomicity/settings.coffee"
 
   showConsole: ->
     $atomController.webView.inspector.showConsole true

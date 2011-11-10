@@ -3,8 +3,10 @@ window.atom = {}
 
 App = require 'app'
 Event = require 'event'
-Native = require 'native'
+ExtensionManager = require 'extension-manager'
 KeyBinder = require 'key-binder'
+Native = require 'native'
+Settings = require 'settings'
 Storage = require 'storage'
 
 atom.native = new Native
@@ -16,6 +18,8 @@ for name, method of atom.event
   atom[name] = atom.event[name]
 
 atom.keybinder = new KeyBinder
+atom.settings = new Settings
+atom.extensions = new ExtensionManager
 atom.app = new App
 
 require 'window'
