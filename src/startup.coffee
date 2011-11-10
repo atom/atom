@@ -22,5 +22,9 @@ atom.settings = new Settings
 atom.extensions = new ExtensionManager
 atom.app = new App
 
+# atom.open, atom.close, etc.
+for name, method of atom.app
+  atom[name] = atom.app[name]
+
 require 'window'
 window.startup()
