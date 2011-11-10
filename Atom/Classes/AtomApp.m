@@ -45,16 +45,17 @@
 
     path = [[[panel URLs] lastObject] path];
   }
-  
-  for (AtomController *controller in controllers) {   
-    JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"canOpen" withArguments:path, nil];
-    if ([controller.jscocoa toBool:value]) {
-      [controller.jscocoa callJSFunctionNamed:@"open" withArguments:path, nil];
-      return;
-    }
-  }
-  
-  [self createController:path];  
+
+// Not ready for this yet. window.open calls app.open
+//   for (AtomController *controller in controllers) {
+//     JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"canOpen" withArguments:path, nil];
+//     if ([controller.jscocoa toBool:value]) {
+//       [controller.jscocoa callJSFunctionNamed:@"open" withArguments:path, nil];
+//       return;
+//     }
+//   }
+
+  [self createController:path];
 }
 
 // Events in the "app:*" namespace get sent to all controllers

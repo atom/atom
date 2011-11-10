@@ -56,11 +56,7 @@ windowAdditions =
     atom.trigger arguments...
 
   canOpen: (path) ->
-    parent = @path.replace(/([^\/])$/, "$1/")
-    child = path.replace(/([^\/])$/, "$1/")
-
-    # If the child is contained by the parent, it can be opened by this window
-    child.match "^" + parent
+    false
 
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]
