@@ -9,6 +9,8 @@ ace = require 'ace/ace'
 
 module.exports =
 class Editor extends Document
+  @register (path) -> fs.isFile path
+
   activePath: null
 
   buffers: {}

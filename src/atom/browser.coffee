@@ -4,6 +4,8 @@ Document = require 'document'
 
 module.exports =
 class Browser extends Document
+  @register (path) -> /^https?:/.test path
+
   buffers: {}
 
   html: $ "<div id='browser'></div>"
