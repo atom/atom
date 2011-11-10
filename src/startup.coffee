@@ -9,6 +9,7 @@ Event = require 'event'
 ExtensionManager = require 'extension-manager'
 KeyBinder = require 'key-binder'
 Native = require 'native'
+Project = require 'project'
 Settings = require 'settings'
 Storage = require 'storage'
 

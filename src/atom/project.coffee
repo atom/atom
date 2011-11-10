@@ -1,15 +1,16 @@
+$ = require 'jquery'
+_ = require 'underscore'
+fs = require 'fs'
+Document = require 'document'
+
 module.exports =
-class Project
-  @scan: (path, selectCallback, sortCallback) ->
-    fs = OSX.NSFileManager.defaultManager
-    dirEnumerator = fs.enumeratorAtPath rootPath
+class Project extends Document
+  @register (path) -> fs.isDirectory path
 
-    results = []
-    while path = dirEnumerator.nextObject
-      path = path.valueOf()
-      if not selectCallback or selectCallback(path)
-        results.push path
-        results.sort sortCallback if sortCallback
+  html:
+    $ '<img src="http://fc01.deviantart.net/fs70/f/2010/184/4/9/Neru_Troll_Face_by_nerutrollfaceplz.jpg">'
 
-    results
-
+  constructor: (@path) ->
+    @show()
+    atom.trigger 'project:load', this
+    super()
