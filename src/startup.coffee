@@ -22,8 +22,10 @@ atom.native = new Native
 atom.storage = new Storage
 atom.keybinder = new KeyBinder
 atom.settings = new Settings
-atom.extensions = {}
-atom.extensionManager = new ExtensionManager
+
+# Ignore extensions for now
+#atom.extensions = {}
+#atom.extensionManager = new ExtensionManager
 
 atom.app = new App
 # atom.open, atom.close, etc.
