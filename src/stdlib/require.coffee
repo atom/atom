@@ -10,7 +10,6 @@ paths = [
   "#{resourcePath}/src/stdlib"
   "#{resourcePath}/src/atom"
   "#{resourcePath}/src"
-  "#{resourcePath}/static"
   "#{resourcePath}/extensions"
   "#{resourcePath}/vendor"
 ]
