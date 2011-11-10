@@ -8,7 +8,6 @@ fs = require 'fs'
 module.exports =
 class Tabs extends Extension
   constructor: () ->
-    atom.keybinder.register "tabs", @
     atom.keybinder.load require.resolve "tabs/key-bindings.coffee"
 
     @pane = new TabsPane @
@@ -31,5 +30,3 @@ class Tabs extends Extension
 
   startup: ->
     @pane.show()
-    for path, buffer of window.editor.buffers
-      @pane.addTab path

@@ -17,7 +17,6 @@ class Editor extends Document
 
   constructor: (@path) ->
     super()
-    atom.keybinder.register "editor", @
 
     @show()
 

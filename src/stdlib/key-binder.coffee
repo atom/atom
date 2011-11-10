@@ -5,18 +5,16 @@ Watcher = require 'watcher'
 
 module.exports =
 class KeyBinder
+  # keymaps are name => { binding: method } mappings
+  keymaps: {}
+
   constructor: ->
     atom.on 'window:load', ->
       atom.keybinder.load require.resolve "key-bindings.coffee"
       if fs.isFile "~/.atomicity/key-bindings.coffee"
         atom.keybinder.load "~/.atomicity/key-bindings.coffee"
 
-  bindings: {}
-
-  scopes: {}
-
   register: (name, scope) ->
-    @scopes[name] = scope
 
   load: (path) ->
     try
@@ -29,46 +27,51 @@ class KeyBinder
         @load path
 
       json = CoffeeScript.eval "return " + (fs.read path)
-      for scopeName, bindings of json
-        @create scopeName, binding, method for binding, method of bindings
+      # Iterate in reverse order scopes are declared.
+      # Scope at the top of the file is checked last.
+      for name in _.keys(json).reverse()
+        bindings = json[name]
+        @keymaps[name] ?= {}
+        for binding, method of bindings
+          @keymaps[name][@bindingParser binding] = method
     catch error
-      console.error "#{@name}: Could not load key bindings at `#{path}`. #{error}"
-
-  create: (scope, binding, method) ->
-    if typeof scope is "string"
-      throw "#{@name}: Unknown scope `#{scope}`" unless @scopes[scope]
-      scope = @scopes[scope]
-
-    callback = if _.isFunction method
-      -> method scope
-    else if scope[method]
-      -> scope[method]()
-    else
-      throw "#{@name}: '#{method}' not found found in scope #{scope}"
-
-    callbacks = @bindings[@bindingParser binding] ?= []
-
-    callbacks.push callback
+      console.error "Can't load key bindings at `#{path}`. #{error}"
 
   handleEvent: (event) ->
     keys = []
-    keys.push @modifierKeys.command if event.modifierFlags & OSX.NSCommandKeyMask
-    keys.push @modifierKeys.control if event.modifierFlags & OSX.NSControlKeyMask
-    keys.push @modifierKeys.alt if event.modifierFlags & OSX.NSAlternateKeyMask
+    if event.modifierFlags & OSX.NSCommandKeyMask
+      keys.push @modifierKeys.command
+    if event.modifierFlags & OSX.NSControlKeyMask
+      keys.push @modifierKeys.control
+    if event.modifierFlags & OSX.NSAlternateKeyMask
+      keys.push @modifierKeys.alt
     keys.push event.charactersIgnoringModifiers.charCodeAt 0
 
     binding = keys.sort().join "-"
 
-    callbacks = @bindings[binding]
-    return false if not callbacks
+    for scope, bindings of @keymaps
+      break if method = bindings[binding]
+    return false if not method
 
-    # Only use the most recently added binding
     try
-      _.last(callbacks)()
+      @triggerBinding scope, method
     catch e
       console.warn "Failed to run binding #{@bindingFromAscii binding}. #{e}"
 
     true
+
+  responders: ->
+    _.flatten [ (_.values atom.extensions), atom.document, window, atom ]
+
+  triggerBinding: (scope, method) ->
+    responder = _.detect @responders(), (responder) ->
+      (scope is 'window' and responder is window) or
+        responder.constructor.name.toLowerCase() is scope
+    if responder
+      if _.isFunction method
+        method responder
+      else
+        responder[method]()
 
   bindingParser: (binding) ->
     keys = binding.trim().split '-'
@@ -101,7 +104,7 @@ class KeyBinder
     asciiKeys = binding.split '-'
     keys = []
 
-    for asciiKey in asciiKeys
+    for asciiKey in asciiKeys.reverse()
       key = inverseModifierKeys[asciiKey]
       key ?= inverseNamedKeys[asciiKey]
       key ?= String.fromCharCode asciiKey

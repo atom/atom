@@ -15,7 +15,6 @@ class Tree extends Extension
   paths: []
 
   constructor: ->
-    atom.keybinder.register "tree", @
     atom.keybinder.load require.resolve "tree/key-bindings.coffee"
 
     # watch the root dir

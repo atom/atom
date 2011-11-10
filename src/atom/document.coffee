@@ -7,10 +7,11 @@ class Document extends Pane
 
   @handlers: {}
   @handler: (path) ->
-    for handler, test of Document.handlers
-      return handler if test path
-  @register: (cb) ->
-    Document.handlers[this] = cb
+    for name, {test, handler} of Document.handlers
+      return new handler path if test path
+    null
+  @register: (test) ->
+    Document.handlers[@name] = {test, handler: this}
 
   open: ->
   close: ->

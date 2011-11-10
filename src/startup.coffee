@@ -22,7 +22,8 @@ for name, method of atom.event
 
 atom.keybinder = new KeyBinder
 atom.settings = new Settings
-atom.extensions = new ExtensionManager
+atom.extensions = {}
+atom.extensionManager = new ExtensionManager
 atom.app = new App
 
 # atom.open, atom.close, etc.
@@ -30,7 +31,8 @@ for name, method of atom.app
   atom[name] = atom.app[name]
 
 atom.path = $atomController.path.toString()
-atom.document = new Document.handler atom.path
+atom.document = Document.handler atom.path
+atom.document ?= new Editor
 
 require 'window'
 window.startup()

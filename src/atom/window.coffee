@@ -9,8 +9,6 @@ windowAdditions =
   path: null
 
   startup: ->
-    atom.keybinder.register "window", window
-
     @path = $atomController.path.toString()
     @setTitle (_.last @path.split '/') or 'Untitled Document'
 
