@@ -30,8 +30,10 @@ for name, method of atom.app
   atom[name] = atom.app[name]
 
 atom.path = $atomController.path.toString()
-atom.document = Document.handler atom.path
-atom.document ?= new Editor
+if handler = Document.handler atom.path
+  atom.document = new handler atom.path
+else
+  atom.document = new Editor
 
 require 'window'
 window.startup()

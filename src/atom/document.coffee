@@ -11,7 +11,7 @@ class Document extends Pane
   @handlers: {}
   @handler: (path) ->
     for name, {test, handler} of Document.handlers
-      return new handler path if test path
+      return handler if test path
     null
   @register: (test) ->
     Document.handlers[@name] = {test, handler: this}
