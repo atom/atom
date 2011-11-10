@@ -13,7 +13,6 @@ windowAdditions =
     @setTitle (_.last @path.split '/') or 'Untitled Document'
 
     $atomController.window.makeKeyWindow
-    atom.trigger 'window:load'
 
   shutdown: ->
 
@@ -28,8 +27,8 @@ windowAdditions =
     OSX.NSApp.createController @path
 
   open: (path) ->
-    $atomController.window.makeKeyAndOrderFront $atomController
     if atom.document.open path
+      $atomController.window.makeKeyAndOrderFront $atomController
       atom.trigger 'window:open', path
     else
       atom.app.open path
