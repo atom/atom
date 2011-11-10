@@ -12,23 +12,10 @@ windowAdditions =
     @path = $atomController.path.toString()
     @setTitle (_.last @path.split '/') or 'Untitled Document'
 
-    # Remember sizing!
-    defaultFrame = x: 0, y: 0, width: 600, height: 800
-    frame = atom.storage.get "window.frame.#{@path}", defaultFrame
-    rect = OSX.CGRectMake(frame.x, frame.y, frame.width, frame.height)
-    $atomController.window.setFrame_display rect, true
-
     $atomController.window.makeKeyWindow
     atom.trigger 'window:load'
 
   shutdown: ->
-    frame = $atomController.window.frame
-    x = frame.origin.x
-    y = frame.origin.y
-    width = frame.size.width
-    height = frame.size.height
-
-    atom.storage.set "window.frame.#{@path}", {x:x, y:y, width:width, height:height}
 
   showConsole: ->
     $atomController.webView.inspector.showConsole true
