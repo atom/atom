@@ -10,7 +10,7 @@ document:
   'cmd-shift-d': -> console.log 'derp'
 
 editor:
-  'cmd-w': 'removeBuffer'
+  'cmd-w': 'close'
   'cmd-s': 'save'
   'cmd-shift-s': 'saveAs'
   'cmd-c': 'copy'
