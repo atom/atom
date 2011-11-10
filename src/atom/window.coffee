@@ -62,7 +62,7 @@ windowAdditions =
     atom.trigger 'window:close', path
 
   handleKeyEvent: ->
-    atom.keybinder.handleEvent.apply atom.keybinder, arguments
+    atom.keybinder.handleEvent arguments...
 
   triggerEvent: ->
     atom.trigger arguments...
