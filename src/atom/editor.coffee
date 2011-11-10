@@ -16,8 +16,6 @@ class Editor extends Document
   html: $ "<div id='ace-editor'></div>"
 
   constructor: (@path) ->
-    super()
-
     @show()
 
     @ace = ace.edit 'ace-editor'
@@ -49,6 +47,7 @@ class Editor extends Document
     @ace.setSession session
 
     atom.trigger 'editor:load', this
+    super()
 
   modeMap:
     js: 'javascript'

@@ -16,3 +16,4 @@ class Browser extends Document
     @show()
 
     atom.trigger 'browser:load', this
+    super()
