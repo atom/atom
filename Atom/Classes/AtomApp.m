@@ -6,7 +6,6 @@
 
 #define ATOM_USER_PATH ([[NSString stringWithString:@"~/.atomicity/"] stringByStandardizingPath])
 #define ATOM_STORAGE_PATH ([ATOM_USER_PATH stringByAppendingPathComponent:@".app-storage"])
-#define WEB_STORAGE_PATH ([ATOM_USER_PATH stringByAppendingPathComponent:@".web-storage"])
 
 @implementation AtomApp
 
