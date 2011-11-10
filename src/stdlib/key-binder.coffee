@@ -68,7 +68,7 @@ class KeyBinder
   triggerBinding: (scope, method) ->
     responder = _.detect @responders(), (responder) =>
       (scope is 'window' and responder is window) or
-        responder.constructor.name.toLowerCase() is scope or
+        responder.constructor.name?.toLowerCase() is scope or
         @inheritedKeymap responder, scope
     if responder
       if _.isFunction method
