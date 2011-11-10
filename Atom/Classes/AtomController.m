@@ -21,7 +21,7 @@
 }
 
 - (id)initWithPath:(NSString *)_path {
-  if (!_path) _path = [self tempfile];
+  if (!_path) _path = @"/tmp"; // I hate this
 
   self = [super initWithWindowNibName:@"AtomWindow"];
   path = [[_path stringByStandardizingPath] retain];
@@ -60,17 +60,6 @@
 - (BOOL)windowShouldClose:(id)sender {
   [(AtomApp *)NSApp removeController:self];
   return YES;
-}
-
-// Helper methods that should go elsewhere
-- (NSString *)tempfile {
-  char *directory = "/tmp";
-  char *prefix = "temp-file";
-  char *tmpPath = tempnam(directory, prefix);
-  NSString *tmpPathString = [NSString stringWithUTF8String:tmpPath];
-  free(tmpPath);
-  
-  return tmpPathString;
 }
 
 @end

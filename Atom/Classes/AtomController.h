@@ -11,6 +11,5 @@
 @property (retain) JSCocoa *jscocoa;
 
 - (AtomController *)initWithPath:(NSString *)aPath;
-- (NSString *)tempfile;
 
 @end
