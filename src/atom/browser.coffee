@@ -12,8 +12,8 @@ class Browser extends Document
     $ "<iframe src='#{@path}' style='width:100%;height:100%'></iframe>"
 
   constructor: (@path) ->
-    @html.html @iframe()
+    @html.html @iframe().bind 'load', (e) =>
+      window.setTitle e.target.contentWindow.document.title
     @show()
 
-    atom.trigger 'browser:load', this
     super()

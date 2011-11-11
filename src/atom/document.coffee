@@ -26,5 +26,6 @@ class Document extends Pane
     @constructor is Document.handler path
 
   close: ->
+    window.close()
 
   save: ->

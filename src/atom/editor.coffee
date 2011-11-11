@@ -95,15 +95,15 @@ class Editor extends Document
       else
         "An untitled file has changes."
 
-      canceled = atom.native.alert "Do you want to save your changes?",
+      close = atom.native.alert "Do you want to save your changes?",
         detailedMessage,
-        "Save": =>
-          # if save modal fails/cancels, consider it cancelled
-          not @save()
-        "Cancel": => true
-        "Don't Save": => false
+        "Save": => @save()
+        "Cancel": => false
+        "Don't Save": => true
 
-      return if canceled
+      return if not close
+
+    super
 
   save: ->
     return @saveAs() if not @path
