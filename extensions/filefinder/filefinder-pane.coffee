@@ -38,7 +38,7 @@ class FilefinderPane extends Pane
 
   paths: ->
     _paths = []
-    for dir in File.list window.path
+    for dir in File.list window.url
       continue if /\.git|Cocoa/.test dir
       _paths.push File.listDirectoryTree dir
     _.reject _.flatten(_paths), (dir) -> File.isDirectory dir
@@ -47,7 +47,7 @@ class FilefinderPane extends Pane
     @modal.show()
     @files = []
     for file in @paths()
-      @files.push file.replace "#{window.path}/", ''
+      @files.push file.replace "#{window.url}/", ''
     @filterFiles()
 
   findMatchingFiles: (query) ->
@@ -80,7 +80,7 @@ class FilefinderPane extends Pane
     $('#filefinder li:first').addClass 'selected'
 
   openSelected: ->
-    dir  = window.path
+    dir  = window.url
     file = $('#filefinder .selected').text()
     window.open "#{dir}/#{file}"
     @toggle()

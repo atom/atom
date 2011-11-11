@@ -46,7 +46,7 @@ class TreePane extends Pane
       true
 
   reload: ->
-    @html.children('#tree .cwd').text _.last window.path.split '/'
+    @html.children('#tree .cwd').text _.last window.url.split '/'
     fileList = @createList @tree.paths
     fileList.addClass 'files'
     @html.children('#tree .files').replaceWith fileList

@@ -4,10 +4,10 @@ _ = require 'underscore'
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 windowAdditions =
-  path: null
+  url: null
 
   startup: ->
-    @path = $atomController.path?.toString()
+    @url = $atomController.url?.toString()
     $atomController.window.makeKeyWindow
 
   shutdown: ->
@@ -20,13 +20,13 @@ windowAdditions =
 
   reload: ->
     @close()
-    OSX.NSApp.createController @path
+    OSX.NSApp.createController @url
 
-  open: (path) ->
-    path = atom.native.openPanel() unless path
-    (atom.document.open path) or atom.app.open path
+  open: (url) ->
+    url = atom.native.openPanel() unless url
+    (atom.document.open url) or atom.app.open url
 
-  close: (path) ->
+  close: (url) ->
     @shutdown()
     $atomController.close
 
