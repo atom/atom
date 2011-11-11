@@ -7,7 +7,7 @@ windowAdditions =
   path: null
 
   startup: ->
-    @path = atom.path
+    @path = $atomController.path?.toString()
     $atomController.window.makeKeyWindow
 
   shutdown: ->

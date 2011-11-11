@@ -32,11 +32,11 @@ atom.app = new App
 for name, method of atom.app
   atom[name] = atom.app[name]
 
-atom.path = $atomController.path?.valueOf()
-if handler = Document.handler atom.path
-  atom.document = new handler atom.path
+path = $atomController.path?.toString()
+if handler = Document.handler path
+  atom.document = new handler path
 else
-  throw "I DON'T KNOW ABOUT #{atom.path}"
+  throw "I DON'T KNOW ABOUT #{path}"
 
 require 'window'
 window.startup()

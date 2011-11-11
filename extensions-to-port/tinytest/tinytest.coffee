@@ -13,7 +13,7 @@ class TinyTest extends Extension
     'Command-Ctrl-T': 'runTests'
 
   runTests: ->
-    _.map File.list(atom.path + '/test'), @runTest
+    _.map File.list(window.path + '/test'), @runTest
 
   runTest: (path) ->
     # Even though we already have the path, run it
