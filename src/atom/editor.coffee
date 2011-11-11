@@ -78,15 +78,17 @@ class Editor extends Document
       null
 
   open: (path) ->
-    if Editor is Document.handler path
-      @path = path
-      @dirty = false
-      @ace.getSession().setValue code = fs.read @path
-      @ace.getSession().setUndoManager new UndoManager
-      mode = @modeForPath()
-      @ace.getSession().setMode new mode if mode
-      atom.trigger 'editor:load', this
-      true
+    return false if not super
+    return false if @path
+
+    @path = path
+    @dirty = false
+    @ace.getSession().setValue code = fs.read @path
+    @ace.getSession().setUndoManager new UndoManager
+    mode = @modeForPath()
+    @ace.getSession().setMode new mode if mode
+    atom.trigger 'editor:load', this
+    true
 
   close: ->
     if @dirty
