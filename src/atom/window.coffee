@@ -4,11 +4,9 @@ _ = require 'underscore'
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 windowAdditions =
-  url: null
+  url: $atomController.url?.toString()
 
   startup: ->
-    @url = $atomController.url?.toString()
-    $atomController.window.makeKeyWindow
 
   shutdown: ->
 
