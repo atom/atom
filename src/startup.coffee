@@ -35,7 +35,8 @@ for name, method of atom.app
 
 path = $atomController.path?.toString()
 if handler = Document.handler path
-  atom.document = new handler path
+  atom.document = new handler
+  atom.document.open path
 else
   throw "I DON'T KNOW ABOUT #{path}"
 

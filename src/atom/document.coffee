@@ -19,11 +19,10 @@ class Document extends Pane
   @register: (test) ->
     Document.handlers[@name] = {test, handler: this}
 
-  constructor: (path) ->
-    @path = path if path
+  constructor: ->
 
   open: (path) ->
-    @constructor is Document.handler path
+    (@constructor is Document.handler path) and not @path
 
   close: ->
     window.close()

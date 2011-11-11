@@ -9,14 +9,14 @@ ace = require 'ace/ace'
 
 module.exports =
 class Editor extends Document
-  @register (path) -> 
+  @register (path) ->
     not path or fs.isFile path
 
   dirty: false
   path: null
   html: $ "<div id='ace-editor'></div>"
 
-  constructor: (@path) ->
+  constructor: ->
     @show()
 
     @ace = ace.edit 'ace-editor'
@@ -34,15 +34,9 @@ class Editor extends Document
     el.addEventListener 'DOMNodeRemovedFromDocument', => @resize()
     setTimeout (=> @resize()), 500
 
-    # Setup the session
-    code = if @path then fs.read @path else ''
-    session = new EditSession code
-    session.setUndoManager new UndoManager
-    session.setUseSoftTabs useSoftTabs = @usesSoftTabs code
-    session.setTabSize if useSoftTabs then @guessTabSize code else 8
-    mode = @modeForPath()
-    session.setMode new mode if mode
+    session = new EditSession ''
     session.on 'change', => @dirty = true
+    session.setUndoManager new UndoManager
     @ace.setSession session
 
     super()
@@ -77,18 +71,22 @@ class Editor extends Document
       null
 
   title: ->
-    if @path then _.last @path.split '/' or 'untitled'
+    if @path then _.last @path.split '/' else 'untitled'
 
   open: (path) ->
     return false if not super
-    return false if @path
 
     @path = path
     @dirty = false
-    @ace.getSession().setValue code = fs.read @path
-    @ace.getSession().setUndoManager new UndoManager
+
+    code = if @path then fs.read @path else ''
+    session = @ace.getSession()
+    session.setValue code
+    session.setUseSoftTabs useSoftTabs = @usesSoftTabs code
+    session.setTabSize if useSoftTabs then @guessTabSize code else 8
+    session.setUndoManager new UndoManager
     mode = @modeForPath()
-    @ace.getSession().setMode new mode if mode
+    session.setMode new mode if mode
 
     window.setTitle @title()
 

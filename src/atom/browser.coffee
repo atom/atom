@@ -11,9 +11,14 @@ class Browser extends Document
   iframe: ->
     $ "<iframe src='#{@path}' style='width:100%;height:100%'></iframe>"
 
-  constructor: (@path) ->
+  open: ->
+    return false if not super
+
     @html.html @iframe().bind 'load', (e) =>
       window.setTitle e.target.contentWindow.document.title
+
     @show()
 
-    super()
+    true
+
+
