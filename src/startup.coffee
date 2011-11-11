@@ -33,10 +33,7 @@ atom.app = new App
 for name, method of atom.app
   atom[name] = atom.app[name]
 
-if handler = Document.handler window.url
-  atom.document = new handler
-  atom.document.open window.url
-else
-  throw "I DON'T KNOW ABOUT #{window.url}"
+atom.document = Document.forURL window.url
+atom.document.open window.url
 
 window.startup()

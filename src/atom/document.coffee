@@ -19,6 +19,12 @@ class Document extends Pane
   @register: (test) ->
     Document.handlers[@name] = {test, handler: this}
 
+  @forURL: ->
+    if handler = @handler window.url
+      new handler
+    else
+      throw "I DON'T KNOW ABOUT #{window.url}"
+
   constructor: ->
 
   open: (path) ->
