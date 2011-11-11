@@ -21,7 +21,6 @@ class Document extends Pane
 
   constructor: (path) ->
     @path = path if path
-    atom.trigger 'document:load', this
 
   open: (path) ->
     @constructor is Document.handler path

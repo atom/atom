@@ -45,7 +45,6 @@ class Editor extends Document
     session.on 'change', => @dirty = true
     @ace.setSession session
 
-    atom.trigger 'editor:load', this
     super()
 
   modeMap:
@@ -87,7 +86,6 @@ class Editor extends Document
     @ace.getSession().setUndoManager new UndoManager
     mode = @modeForPath()
     @ace.getSession().setMode new mode if mode
-    atom.trigger 'editor:load', this
     true
 
   close: ->
