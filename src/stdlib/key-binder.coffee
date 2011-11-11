@@ -57,7 +57,7 @@ class KeyBinder
     true
 
   responders: ->
-    _.flatten [ (_.values atom.extensions), atom.document, window, atom.app ]
+    _.flatten [ (_.values atom.extensions), window.resource, window, atom.app ]
 
   triggerBinding: (scope, method) ->
     responder = _.detect @responders(), (responder) =>

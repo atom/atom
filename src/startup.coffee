@@ -1,4 +1,6 @@
 # Like sands through the hourglass, so are the days of our lives.
+require 'window'
+
 window.atom = {}
 
 App = require 'app'
@@ -12,7 +14,6 @@ Native = require 'native'
 Project = require 'project'
 Settings = require 'settings'
 Storage = require 'storage'
-require 'window'
 
 atom.event = new Event
 # atom.on, atom.off, etc.
@@ -32,8 +33,5 @@ atom.app = new App
 # atom.open, atom.close, etc.
 for name, method of atom.app
   atom[name] = atom.app[name]
-
-atom.document = Document.forURL window.url
-atom.document.open window.url
 
 window.startup()

@@ -4,9 +4,20 @@ _ = require 'underscore'
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 windowAdditions =
+  resourceTypes: []
+
   url: $atomController.url?.toString()
 
   startup: ->
+    resourceType = @resourceTypeForURL(@url)
+    @resource = new resourceType
+    @resource.open @url
+
+  resourceTypeForURL: (url) ->
+    window.x = this
+    resourceType = type for [type, test] in @resourceTypes when test url
+    throw "I DON'T KNOW ABOUT #{@url}" if not resourceType
+    resourceType
 
   shutdown: ->
 
@@ -22,7 +33,10 @@ windowAdditions =
 
   open: (url) ->
     url = atom.native.openPanel() unless url
-    (atom.document.open url) or atom.app.open url
+    if (@resourceTypeForURL url) == @resource.constructor and @resource.open url
+      # Cool (ICK)
+    else
+      atom.app.open url
 
   close: (path) ->
     @shutdown()
