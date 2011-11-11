@@ -76,6 +76,9 @@ class Editor extends Document
     catch e
       null
 
+  title: ->
+    if @path then _.last @path.split '/' or 'untitled'
+
   open: (path) ->
     return false if not super
     return false if @path
@@ -86,6 +89,9 @@ class Editor extends Document
     @ace.getSession().setUndoManager new UndoManager
     mode = @modeForPath()
     @ace.getSession().setMode new mode if mode
+
+    window.setTitle @title()
+
     true
 
   close: ->
