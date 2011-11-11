@@ -7,9 +7,9 @@
 }
 
 @property (retain) WebView *webView;
-@property (retain, readonly) NSString *path;
+@property (retain, readonly) NSString *url;
 @property (retain) JSCocoa *jscocoa;
 
-- (AtomController *)initWithPath:(NSString *)aPath;
+- (AtomController *)initWithURL:(NSString *)url;
 
 @end

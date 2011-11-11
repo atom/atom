@@ -7,7 +7,7 @@
 
 @implementation AtomController
 
-@synthesize webView, path, jscocoa;
+@synthesize webView, url, jscocoa;
 
 - (void)dealloc {
   [jscocoa unlinkAllReferences];
@@ -15,14 +15,14 @@
   [jscocoa release]; jscocoa = nil;
 
   [webView release];
-  [path release];
+  [url release];
 
   [super dealloc];
 }
 
-- (id)initWithPath:(NSString *)_path {
+- (id)initWithURL:(NSString *)_url {
   self = [super initWithWindowNibName:@"AtomWindow"];
-  path = [[_path stringByStandardizingPath] retain];
+  url = [[_url stringByStandardizingPath] retain];
 
   [self.window makeKeyWindow];
   

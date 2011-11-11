@@ -12,7 +12,7 @@
 @synthesize controllers;
 
 - (AtomController *)createController:(NSString *)path {
-  AtomController *controller = [[AtomController alloc] initWithPath:path];
+  AtomController *controller = [[AtomController alloc] initWithURL:path];
   [controllers addObject:controller];
   
   return controller;
