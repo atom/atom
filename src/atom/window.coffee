@@ -24,7 +24,7 @@ windowAdditions =
     url = atom.native.openPanel() unless url
     (atom.document.open url) or atom.app.open url
 
-  close: (url) ->
+  close: (path) ->
     @shutdown()
     $atomController.close
 
