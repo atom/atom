@@ -47,7 +47,7 @@
     BOOL handeled = NO;
     AtomController *controller = [[self keyWindow] windowController];
     
-    // The keyWindow could be a Cocoa Dialog or something, ignore that.
+    // The keyWindow could be a Cocoa Dialog or something, ignore those.
     if ([controller isKindOfClass:[AtomController class]]) {
       JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
       handeled = [controller.jscocoa toBool:value];
