@@ -12,5 +12,4 @@ class Project extends Document
 
   constructor: (@path) ->
     @show()
-    atom.trigger 'project:load', this
     super()
