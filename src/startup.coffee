@@ -33,10 +33,9 @@ atom.app = new App
 for name, method of atom.app
   atom[name] = atom.app[name]
 
-path = $atomController.path?.toString()
-if handler = Document.handler path
+if handler = Document.handler window.path
   atom.document = new handler
-  atom.document.open path
+  atom.document.open window.path
 else
   throw "I DON'T KNOW ABOUT #{path}"
 
