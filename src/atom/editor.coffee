@@ -9,7 +9,7 @@ ace = require 'ace/ace'
 
 module.exports =
 class Editor extends Document
-  window.resourceTypes.push [this, (url) -> not url or fs.isFile url]
+  window.resourceTypes.push this
 
   dirty: false
   path: null
@@ -73,7 +73,9 @@ class Editor extends Document
     if @path then _.last @path.split '/' else 'untitled'
 
   open: (path) ->
-    return false if @path
+    if path
+      return false if not fs.isFile path
+      return false if @path
 
     @path = path
     @dirty = false

@@ -4,7 +4,7 @@ Document = require 'document'
 
 module.exports =
 class Browser extends Document
-  window.resourceTypes.push [this, (url) -> /^https?:/.test url]
+  window.resourceTypes.push this
 
   path: null
   html: $ "<div id='browser'></div>"
@@ -12,6 +12,8 @@ class Browser extends Document
     $ "<iframe src='#{@path}' style='width:100%;height:100%'></iframe>"
 
   open: (path) ->
+    return false if not /^https?:/.test path
+
     @path = path
     @html.html @iframe().bind 'load', (e) =>
       window.setTitle e.target.contentWindow.document.title

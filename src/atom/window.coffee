@@ -9,15 +9,12 @@ windowAdditions =
   url: $atomController.url?.toString()
 
   startup: ->
-    resourceType = @resourceTypeForURL(@url)
-    @resource = new resourceType
-    @resource.open @url
+    success = false
+    for resourceType in @resourceTypes
+      @resource = new resourceType
+      break if success = @resource.open @url
 
-  resourceTypeForURL: (url) ->
-    window.x = this
-    resourceType = type for [type, test] in @resourceTypes when test url
-    throw "I DON'T KNOW ABOUT #{@url}" if not resourceType
-    resourceType
+    throw "I DON'T KNOW ABOUT #{@url}" if not success
 
   shutdown: ->
 
@@ -33,10 +30,7 @@ windowAdditions =
 
   open: (url) ->
     url = atom.native.openPanel() unless url
-    if (@resourceTypeForURL url) == @resource.constructor and @resource.open url
-      # Cool (ICK)
-    else
-      atom.app.open url
+    (@resource.open url) or atom.app.open url
 
   close: (path) ->
     @shutdown()
