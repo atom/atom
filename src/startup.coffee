@@ -12,6 +12,7 @@ Native = require 'native'
 Project = require 'project'
 Settings = require 'settings'
 Storage = require 'storage'
+require 'window'
 
 atom.event = new Event
 # atom.on, atom.off, etc.
@@ -38,5 +39,4 @@ if handler = Document.handler path
 else
   throw "I DON'T KNOW ABOUT #{path}"
 
-require 'window'
 window.startup()
