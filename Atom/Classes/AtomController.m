@@ -21,8 +21,6 @@
 }
 
 - (id)initWithPath:(NSString *)_path {
-  if (!_path) _path = @"/tmp"; // I hate this
-
   self = [super initWithWindowNibName:@"AtomWindow"];
   path = [[_path stringByStandardizingPath] retain];
 

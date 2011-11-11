@@ -9,7 +9,8 @@ ace = require 'ace/ace'
 
 module.exports =
 class Editor extends Document
-  @register (path) -> fs.isFile path
+  @register (path) -> 
+    not path or fs.isFile path
 
   dirty: false
   path: null

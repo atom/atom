@@ -10,7 +10,6 @@ windowAdditions =
 
   startup: ->
     @path = atom.path
-    @setTitle (_.last @path.split '/') or 'Untitled Document'
 
     $atomController.window.makeKeyWindow
 
@@ -27,8 +26,8 @@ windowAdditions =
     OSX.NSApp.createController @path
 
   open: (path) ->
+    path = atom.native.openPanel() unless path
     if atom.document.open path
-      $atomController.window.makeKeyAndOrderFront $atomController
       atom.trigger 'window:open', path
     else
       atom.app.open path

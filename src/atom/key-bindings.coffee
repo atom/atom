@@ -1,10 +1,10 @@
 app:
   'cmd-q': (app) -> app.quit()
-  'cmd-o': (app) -> app.open()
 
 window:
   'cmd-shift-I': (window) -> window.showConsole()
   'cmd-r': (window) -> window.reload()
+  'cmd-o': (window) -> window.open()
 
 document:
   'cmd-shift-d': -> console.log 'derp'

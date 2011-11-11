@@ -36,7 +36,7 @@ atom.path = $atomController.path?.valueOf()
 if handler = Document.handler atom.path
   atom.document = new handler atom.path
 else
-  atom.document = new Editor
+  throw "I DON'T KNOW ABOUT #{atom.path}"
 
 require 'window'
 window.startup()

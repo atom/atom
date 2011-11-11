@@ -9,21 +9,15 @@ class KeyBinder
   keymaps: {}
 
   constructor: ->
-    atom.on 'window:load', ->
-      atom.keybinder.load require.resolve "key-bindings.coffee"
-      if fs.isFile "~/.atomicity/key-bindings.coffee"
-        atom.keybinder.load "~/.atomicity/key-bindings.coffee"
+    @load require.resolve "key-bindings.coffee"
+    if fs.isFile "~/.atomicity/key-bindings.coffee"
+      @load "~/.atomicity/key-bindings.coffee"
 
   register: (name, scope) ->
 
   load: (path) ->
     try
 #       Watcher.watch path, =>
-#         # Should we keep track of which file bindings are associated with?
-#         # That way we could clear bindings when the file is changed
-#         # or deleted. I think the answer is yes, but I don't want to
-#         # do this right now.
-#         console.log "#{@name}: Reloading #{path}"
 #         @load path
 
       json = CoffeeScript.eval "return " + (fs.read path)
