@@ -4,8 +4,6 @@ _ = require 'underscore'
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 windowAdditions =
-  appRoot: OSX.NSBundle.mainBundle.resourcePath
-
   path: null
 
   startup: ->
@@ -26,24 +24,17 @@ windowAdditions =
 
   open: (path) ->
     path = atom.native.openPanel() unless path
-    if atom.document.open path
-      atom.trigger 'window:open', path
-    else
-      atom.app.open path
+    (atom.document.open path) or atom.app.open path
 
   close: (path) ->
     @shutdown()
     $atomController.close
-    atom.trigger 'window:close', path
 
   handleKeyEvent: ->
     atom.keybinder.handleEvent arguments...
 
   triggerEvent: ->
     atom.trigger arguments...
-
-  canOpen: (path) ->
-    false
 
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]
