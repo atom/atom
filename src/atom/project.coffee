@@ -51,6 +51,9 @@ class Project extends Resource
         @resources.push @activeResource = resource
         true
 
+  save: ->
+    @activeResource?.save()
+
   # Determines if a passed URL is a child of @url.
   # Returns a Boolean.
   childURL: (url) ->
