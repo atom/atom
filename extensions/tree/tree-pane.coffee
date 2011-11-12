@@ -25,7 +25,7 @@ class TreePane extends Pane
       if el.hasClass 'dir'
         if el.hasClass 'open'
           el.removeClass 'open'
-          el.children("ul").remove()
+          el.find('ul').remove()
         else
           el.addClass 'open'
           list = @createList @tree.urls url
