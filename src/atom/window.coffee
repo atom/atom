@@ -3,6 +3,9 @@ _ = require 'underscore'
 
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
+#
+# Events:
+#   window:load - Same as window.onLoad. Final event of app startup.
 windowAdditions =
   resourceTypes: []
 
@@ -15,6 +18,8 @@ windowAdditions =
       break if success = @resource.open @url
 
     throw "I DON'T KNOW ABOUT #{@url}" if not success
+
+    atom.trigger 'window:load', this
 
   shutdown: ->
 
