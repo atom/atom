@@ -7,6 +7,8 @@ ace = require 'ace/ace'
 {EditSession} = require 'ace/edit_session'
 {UndoManager} = require 'ace/undomanager'
 
+# Events:
+#   editor:load (editor) -> Called when an editor is loaded.
 module.exports =
 class Editor extends Resource
   window.resourceTypes.push this
@@ -90,6 +92,7 @@ class Editor extends Resource
 
     window.setTitle @title()
     @dirty = false
+    atom.trigger 'editor:load', this
 
     true
 
