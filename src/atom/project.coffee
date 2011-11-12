@@ -16,11 +16,40 @@ class Project extends Resource
       </div>
       '''
 
+  resources: []
+
   open: (url) ->
-    return false if not fs.isDirectory url
+    if not @url
+      # Can only open directories.
+      return false if not fs.isDirectory url
 
-    @url = url
-    @show()
-    atom.trigger 'project:load', this
+      @url = url
+      @show()
+      atom.trigger 'project:load', this
 
-    true
+      true
+    else if @url
+      # Can't open directories once we have a URL.
+      if fs.isDirectory url
+        return false
+
+      # Ignore non-children files
+      if fs.isFile and not @childURL url
+        return false
+
+      # Try to open all others
+      for resourceType in window.resourceTypes
+        resource = new resourceType
+        break if success = resource.open url
+
+      if success
+        @resources.push resource
+        true
+
+  # Determines if a passed URL is a child of @url.
+  # Returns a Boolean.
+  childURL: (url) ->
+    return false if not @url
+    parent = @url.replace /([^\/])$/, "$1/"
+    child = url.replace /([^\/])$/, "$1/"
+    child.match "^" + parent
