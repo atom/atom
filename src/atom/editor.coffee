@@ -79,7 +79,6 @@ class Editor extends Resource
       return false if @url
 
     @url = url
-    @dirty = false
 
     code = if @url then fs.read @url else ''
     session = @ace.getSession()
@@ -90,6 +89,7 @@ class Editor extends Resource
     @setModeForSession session
 
     window.setTitle @title()
+    @dirty = false
 
     true
 
