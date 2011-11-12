@@ -1,32 +1,26 @@
 $ = require 'jquery'
-
+fs = require 'fs'
 Extension = require 'extension'
 TabsPane = require 'tabs/tabs-pane'
 
-fs = require 'fs'
-
 module.exports =
 class Tabs extends Extension
-  constructor: () ->
+  project: null
+
+  constructor: ->
     atom.keybinder.load require.resolve "tabs/key-bindings.coffee"
 
-    @pane = new TabsPane @
+    atom.on 'project:load', @startup
 
-    atom.on 'editor:bufferAdd', (e) =>
-      path = e.details
-      @pane.addTab path
-
-    atom.on 'editor:bufferFocus', (e) =>
-      path = e.details
-      @pane.addTab path
-
-    atom.on 'editor:bufferRemove', (e) =>
-      path = e.details
-      @pane.removeTab path
-
-    atom.on 'browser:focus', (e) =>
-      path = e.details
-      @pane.addTab path
-
-  startup: ->
+  startup: (@project) =>
+    @pane = new TabsPane this
     @pane.show()
+
+    atom.on 'project:resource:load', (project, resource) =>
+      @pane.addTab resource.url
+
+    super
+
+  shutdown: ->
+    @pane.remove()
+    super
