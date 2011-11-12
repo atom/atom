@@ -29,7 +29,7 @@ class Pane
       when 'right'
         horizontalDiv.append @pane
       else
-        throw "I DON'T KNOW HOW TO DEAL WITH #{@position}"
+        throw "pane position of #{this} can't be `#{@position}`"
 
   showing: ->
     @pane and not @pane.css('display').match /none/
