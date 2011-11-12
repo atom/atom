@@ -3,6 +3,8 @@ _ = require 'underscore'
 fs = require 'fs'
 Resource = require 'resource'
 
+# Events:
+#   project:load (project) -> Called when a project is loaded.
 module.exports =
 class Project extends Resource
   window.resourceTypes.push this
@@ -15,3 +17,6 @@ class Project extends Resource
 
     @url = url
     @show()
+    atom.trigger 'project:load', this
+
+    true
