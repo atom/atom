@@ -41,7 +41,7 @@ class Project extends Resource
         return false
 
       # Ignore non-children files
-      if fs.isFile and not @childURL url
+      if (fs.isFile url) and not @childURL url
         return false
 
       # Try to open all others
