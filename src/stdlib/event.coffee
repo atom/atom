@@ -1,28 +1,20 @@
-# Using the DOM event system, and copying the JQuery Event API
-# https://developer.mozilla.org/en/DOM/Creating_and_triggering_events
+_ = require 'underscore'
 
 module.exports =
 class Event
   events: {}
 
   on: (name, callback) ->
-    window.document.addEventListener name, callback
-    callback
+    @events[name] ?= []
+    @events[name].push callback
 
   off: (name, callback) ->
-    window.document.removeEventListener name, callback
+    delete @events[name][_.indexOf callback] if @events[name]
 
   trigger: (name, data, bubbleToApp=true) ->
     if bubbleToApp and name.match /^app:/
       OSX.NSApp.triggerGlobalEvent_data name, data
       return
 
-    event = @events[name]
-    if not event
-      event = window.document.createEvent "CustomEvent"
-      event.initCustomEvent name, true, true, null
-      @events[name] = event
-
-    event.details = data
-    window.document.dispatchEvent event
+    _.each @events[name], (callback) => callback.call data, data
     null
