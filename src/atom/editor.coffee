@@ -1,14 +1,14 @@
 $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
-Document = require 'document'
+Resource = require 'resource'
 
 ace = require 'ace/ace'
 {EditSession} = require 'ace/edit_session'
 {UndoManager} = require 'ace/undomanager'
 
 module.exports =
-class Editor extends Document
+class Editor extends Resource
   window.resourceTypes.push this
 
   dirty: false

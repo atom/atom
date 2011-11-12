@@ -5,7 +5,7 @@ window.atom = {}
 
 App = require 'app'
 Browser = require 'browser'
-Document = require 'document'
+Resource = require 'resource'
 Editor = require 'editor'
 Event = require 'event'
 ExtensionManager = require 'extension-manager'

@@ -6,7 +6,7 @@ window:
   'cmd-r': (window) -> window.reload()
   'cmd-o': (window) -> window.open()
 
-document:
+resource:
   'cmd-shift-d': -> console.log 'derp'
 
 editor:

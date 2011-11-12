@@ -1,10 +1,10 @@
 $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
-Document = require 'document'
+Resource = require 'resource'
 
 module.exports =
-class Project extends Document
+class Project extends Resource
   window.resourceTypes.push this
 
   html:

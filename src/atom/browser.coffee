@@ -1,9 +1,9 @@
 $ = require 'jquery'
 
-Document = require 'document'
+Resource = require 'resource'
 
 module.exports =
-class Browser extends Document
+class Browser extends Resource
   window.resourceTypes.push this
 
   path: null
