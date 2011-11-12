@@ -2,8 +2,8 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 Resource = require 'resource'
+EditorPane = require 'editor-pane'
 
-ace = require 'ace/ace'
 {EditSession} = require 'ace/edit_session'
 {UndoManager} = require 'ace/undomanager'
 
@@ -14,33 +14,10 @@ class Editor extends Resource
   window.resourceTypes.push this
 
   dirty: false
+
   url: null
-  html: $ "<div id='ace-editor'></div>"
 
-  constructor: ->
-    @show()
-
-    @ace = ace.edit 'ace-editor'
-
-    # This stuff should all be grabbed from the .atomicity dir
-    @ace.setTheme require "ace/theme/twilight"
-    @ace.getSession().setUseSoftTabs true
-    @ace.getSession().setTabSize 2
-    @ace.setShowInvisibles true
-    @ace.setPrintMarginColumn 78
-
-    # Resize editor when panes are added/removed
-    el = document.body
-    el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
-    el.addEventListener 'DOMNodeRemovedFromDocument', => @resize()
-    setTimeout (=> @resize()), 500
-
-    session = new EditSession ''
-    session.on 'change', => @dirty = true
-    session.setUndoManager new UndoManager
-    @ace.setSession session
-
-    super
+  pane: null
 
   modeMap:
     js: 'javascript'
@@ -80,6 +57,8 @@ class Editor extends Resource
       return false if not fs.isFile url
       return false if @url
 
+    @pane = new EditorPane this
+    @ace = @pane.ace
     @url = url
 
     code = if @url then fs.read @url else ''
@@ -88,6 +67,7 @@ class Editor extends Resource
     session.setUseSoftTabs useSoftTabs = @usesSoftTabs code
     session.setTabSize if useSoftTabs then @guessTabSize code else 8
     session.setUndoManager new UndoManager
+    session.on 'change', => @dirty = true
     @setModeForSession session
 
     window.setTitle @title()
@@ -144,12 +124,6 @@ class Editor extends Resource
     # * ignores indentation of css/js block comments
     match = /^( +)[^*]/im.exec code || @code()
     match?[1].length or 2
-
-  resize: (timeout=1) ->
-    setTimeout =>
-      @ace.focus()
-      @ace.resize()
-    , timeout
 
   copy: ->
     text = @ace.getSession().doc.getTextRange @ace.getSelectionRange()
