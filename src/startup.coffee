@@ -30,8 +30,5 @@ atom.settings = new Settings
 #atom.extensionManager = new ExtensionManager
 
 atom.app = new App
-# atom.open, atom.close, etc.
-for name, method of atom.app
-  atom[name] = atom.app[name]
 
 window.startup()
