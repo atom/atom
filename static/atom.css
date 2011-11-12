@@ -17,7 +17,7 @@ body {
 }
 
 #app-vertical {
-  background-color: #AFEEEE;
+  background-color: #f1d1d2;
   display: -webkit-box;
   -webkit-box-flex: 1;
   -webkit-box-orient: vertical;

@@ -10,7 +10,11 @@ class Project extends Resource
   window.resourceTypes.push this
 
   html:
-    $ '<img src="http://fc01.deviantart.net/fs70/f/2010/184/4/9/Neru_Troll_Face_by_nerutrollfaceplz.jpg">'
+    $ '''
+      <div style="position:absolute;bottom:20px;right:20px">
+        <img src="https://img.skitch.com/20111112-muhf4t5yh2scut7kwgamaujtyk.png">
+      </div>
+      '''
 
   open: (url) ->
     return false if not fs.isDirectory url
