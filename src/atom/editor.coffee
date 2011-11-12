@@ -59,8 +59,8 @@ class Editor extends Resource
   setModeForSession: (session) ->
     return if not @url
 
-    if not modeName = @modeFileMap[ _.last url.split '/' ]
-      language = _.last url.split '.'
+    if not modeName = @modeFileMap[ _.last @url.split '/' ]
+      language = _.last @url.split '.'
       language = language.toLowerCase()
       modeName = @modeMap[language] or language
 
