@@ -5,6 +5,8 @@ Resource = require 'resource'
 
 # Events:
 #   project:load (project) -> Called when a project is loaded.
+#   project:resource:load (project, resource) ->
+#     Called when the project loads a resource.
 module.exports =
 class Project extends Resource
   window.resourceTypes.push this
@@ -48,6 +50,7 @@ class Project extends Resource
         break if success = resource.open url
 
       if success
+        atom.trigger 'project:resource:load', this, resource
         @resources.push @activeResource = resource
         true
 
