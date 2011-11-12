@@ -23,7 +23,7 @@ class Project extends Resource
   activeResource: null
 
   responder: ->
-    @activeResource
+    @activeResource or this
 
   open: (url) ->
     if not @url
