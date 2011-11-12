@@ -40,7 +40,7 @@ class Editor extends Resource
     session.setUndoManager new UndoManager
     @ace.setSession session
 
-    super()
+    super
 
   modeMap:
     js: 'javascript'

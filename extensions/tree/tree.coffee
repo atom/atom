@@ -18,9 +18,11 @@ class Tree extends Extension
   startup: (@project) =>
     @pane = new TreePane this
     @pane.show()
+    super
 
   shutdown: ->
     @pane.remove()
+    super
 
   urls: (root=@project.url) ->
     _.compact _.map (fs.list root), (url) =>
