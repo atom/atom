@@ -7,6 +7,9 @@ Resource = require 'resource'
 #   project:load (project) -> Called when a project is loaded.
 #   project:resource:load (project, resource) ->
 #     Called when the project loads a resource.
+#   project:resource:active (project, resource) ->
+#     Called when a resource becomes active (i.e. the focal point)
+#     in a project.
 module.exports =
 class Project extends Resource
   window.resourceTypes.push this
@@ -18,7 +21,7 @@ class Project extends Resource
       </div>
       '''
 
-  resources: []
+  resources: {}
 
   activeResource: null
 
@@ -44,15 +47,22 @@ class Project extends Resource
       if (fs.isFile url) and not @childURL url
         return false
 
-      # Try to open all others
-      for resourceType in window.resourceTypes
-        resource = new resourceType
-        break if success = resource.open url
-
-      if success
-        atom.trigger 'project:resource:load', this, resource
-        @resources.push @activeResource = resource
+      # Is this resource already loaded?
+      if @resources[url]
+        @activeResource = @resources[url]
+        atom.trigger 'project:resource:active', this, @activeResource
         true
+      else
+        # Try to open all others
+        for resourceType in window.resourceTypes
+          resource = new resourceType
+          break if success = resource.open url
+
+        if success
+          @resources[url] = @activeResource = resource
+          atom.trigger 'project:resource:load', this, resource
+          atom.trigger 'project:resource:active', this, resource
+          true
 
   save: ->
     @activeResource?.save()
