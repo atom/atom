@@ -18,6 +18,11 @@ class Project extends Resource
 
   resources: []
 
+  activeResource: null
+
+  responder: ->
+    @activeResource
+
   open: (url) ->
     if not @url
       # Can only open directories.
@@ -43,7 +48,7 @@ class Project extends Resource
         break if success = resource.open url
 
       if success
-        @resources.push resource
+        @resources.push @activeResource = resource
         true
 
   # Determines if a passed URL is a child of @url.
