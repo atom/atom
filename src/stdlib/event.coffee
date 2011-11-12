@@ -11,10 +11,10 @@ class Event
   off: (name, callback) ->
     delete @events[name][_.indexOf callback] if @events[name]
 
-  trigger: (name, data, bubbleToApp=true) ->
-    if bubbleToApp and name.match /^app:/
+  trigger: (name, data...) ->
+    if name.match /^app:/
       OSX.NSApp.triggerGlobalEvent_data name, data
       return
 
-    _.each @events[name], (callback) => callback.call data, data
+    _.each @events[name], (callback) => callback data...
     null
