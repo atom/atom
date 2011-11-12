@@ -3,7 +3,7 @@ fs = require 'fs'
 module.exports =
 class ExtensionManager
   constructor: ->
-    atom.on 'window:load', @loadExtensions
+    @loadExtensions()
     atom.on 'window:close', @unloadExtensions
 
   loadExtensions: =>
