@@ -2,7 +2,6 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 Pane = require 'pane'
-Browser = require 'browser'
 
 module.exports =
 class TabsPane extends Pane
@@ -42,12 +41,7 @@ class TabsPane extends Pane
     existing = $("#tabs [data-path='#{path}']")
     return @switchToTab existing if existing.length
 
-    name = if not path
-      "untitled"
-    else if Browser.isPathUrl path
-      path.match(/(\w+:\/\/)([^\/]+)?/)[2]
-    else
-      _.last path.split '/'
+    name = _.last (path or 'untitled').split '/'
 
     $("#tabs ul .active").removeClass()
     $("#tabs ul").append """
