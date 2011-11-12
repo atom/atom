@@ -1,7 +1,7 @@
 module.exports =
 class App
-  open: (path) ->
-    OSX.NSApp.open path
+  open: (url) ->
+    OSX.NSApp.open url
 
   quit: ->
     OSX.NSApp.terminate null

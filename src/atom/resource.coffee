@@ -6,7 +6,7 @@ Pane = require 'pane'
 module.exports =
 class Resource extends Pane
   position: "main"
-  path: null
+  url: null
 
   constructor: ->
 

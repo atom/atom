@@ -6,15 +6,15 @@ module.exports =
 class Browser extends Resource
   window.resourceTypes.push this
 
-  path: null
+  url: null
   html: $ "<div id='browser'></div>"
   iframe: ->
-    $ "<iframe src='#{@path}' style='width:100%;height:100%'></iframe>"
+    $ "<iframe src='#{@url}' style='width:100%;height:100%'></iframe>"
 
-  open: (path) ->
-    return false if not /^https?:/.test path
+  open: (url) ->
+    return false if not /^https?:/.test url
 
-    @path = path
+    @url = url
     @html.html @iframe().bind 'load', (e) =>
       window.setTitle e.target.contentWindow.document.title
 

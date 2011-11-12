@@ -12,7 +12,7 @@ class Editor extends Resource
   window.resourceTypes.push this
 
   dirty: false
-  path: null
+  url: null
   html: $ "<div id='ace-editor'></div>"
 
   constructor: ->
@@ -56,38 +56,38 @@ class Editor extends Resource
     Gemfile: 'ruby'
     Rakefile: 'ruby'
 
-  modeForPath: (path=@path) ->
-    return null if not path
+  setModeForSession: (session) ->
+    return if not @url
 
-    if not modeName = @modeFileMap[ _.last path.split '/' ]
-      language = _.last path.split '.'
+    if not modeName = @modeFileMap[ _.last url.split '/' ]
+      language = _.last url.split '.'
       language = language.toLowerCase()
       modeName = @modeMap[language] or language
 
     try
-      require("ace/mode/#{modeName}").Mode
+      mode = require("ace/mode/#{modeName}").Mode
+      session.setMode new mode
     catch e
-      null
+      console.error e
 
   title: ->
-    if @path then _.last @path.split '/' else 'untitled'
+    if @url then _.last @url.split '/' else 'untitled'
 
-  open: (path) ->
-    if path
-      return false if not fs.isFile path
-      return false if @path
+  open: (url) ->
+    if url
+      return false if not fs.isFile url
+      return false if @url
 
-    @path = path
+    @url = url
     @dirty = false
 
-    code = if @path then fs.read @path else ''
+    code = if @url then fs.read @url else ''
     session = @ace.getSession()
     session.setValue code
     session.setUseSoftTabs useSoftTabs = @usesSoftTabs code
     session.setTabSize if useSoftTabs then @guessTabSize code else 8
     session.setUndoManager new UndoManager
-    mode = @modeForPath()
-    session.setMode new mode if mode
+    @setModeForSession session
 
     window.setTitle @title()
 
@@ -95,8 +95,8 @@ class Editor extends Resource
 
   close: ->
     if @dirty
-      detailedMessage = if @path
-        "#{@path} has changes."
+      detailedMessage = if @url
+        "#{@url} has changes."
       else
         "An untitled file has changes."
 
@@ -111,18 +111,18 @@ class Editor extends Resource
     super
 
   save: ->
-    return @saveAs() if not @path
+    return @saveAs() if not @url
 
     @removeTrailingWhitespace()
-    fs.write @path, @code()
+    fs.write @url, @code()
     @dirty = false
 
-    @path
+    @url
 
   saveAs: ->
-    if path = atom.native.savePanel()?.toString()
-      @path = path
-      @save path
+    if url = atom.native.savePanel()?.toString()
+      @url = url
+      @save url
 
   code: ->
     @ace.getSession().getValue()

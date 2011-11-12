@@ -10,8 +10,8 @@ class Project extends Resource
   html:
     $ '<img src="http://fc01.deviantart.net/fs70/f/2010/184/4/9/Neru_Troll_Face_by_nerutrollfaceplz.jpg">'
 
-  open: (path) ->
+  open: (url) ->
     return false if not fs.isDirectory url
 
-    @path = path
+    @url = url
     @show()
