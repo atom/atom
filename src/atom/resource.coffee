@@ -10,6 +10,9 @@ class Resource extends Pane
 
   constructor: ->
 
+  # Can be used to delegate key events to another object, such as a pane.
+  responder: -> this
+
   close: ->
     window.close()
 

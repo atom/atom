@@ -60,7 +60,7 @@ class KeyBinder
 
   responders: ->
     extensions = _.select (_.values atom.extensions), (extension) -> extension.running?
-    _.flatten [ extensions, window.resource, window, atom.app ]
+    _.flatten [ extensions, window.resource.responder(), window, atom.app ]
 
   triggerBinding: (scope, method) ->
     responder = _.detect @responders(), (responder) =>
