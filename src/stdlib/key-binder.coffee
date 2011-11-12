@@ -29,7 +29,8 @@ class KeyBinder
         for binding, method of bindings
           @keymaps[name][@bindingParser binding] = method
     catch error
-      console.error "Can't load key bindings at `#{path}`. #{error}"
+      console.error "Can't load key bindings at `#{path}`."
+      console.error error
 
   handleEvent: (event) ->
     keys = []
@@ -51,8 +52,9 @@ class KeyBinder
 
     try
       @triggerBinding scope, method
-    catch e
-      console.warn "Failed to run binding #{@bindingFromAscii binding}. #{e}"
+    catch error
+      console.error "Failed to run binding #{@bindingFromAscii binding}."
+      console.error error
 
     true
 
