@@ -13,13 +13,5 @@ class Project extends Document
   open: (path) ->
     return false if not fs.isDirectory url
 
-    #if not @path
-
-    #parent = @path.replace(/([^\/])$/, "$1/")
-    #child = path.replace(/([^\/])$/, "$1/")
-
-    # If the child is contained by the parent, it can be opened by this window
-    #child.match "^" + parent
-
     @path = path
     @show()
