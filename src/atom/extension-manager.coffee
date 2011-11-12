@@ -21,13 +21,5 @@ class ExtensionManager
         console.warn "Loading Extension '#{fs.base extensionPath}' failed."
         console.warn error
 
-    # After all the extensions are created, start them up.
-    for name, extension of atom.extensions
-      try
-        extension.startup()
-      catch error
-        console.warn "Extension #{extension.constructor.name} failed to startup."
-        console.warn error
-
   unloadExtensions: =>
     extension.shutdown() for name, extension of atom.extensions
