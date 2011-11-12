@@ -14,7 +14,7 @@ class TreePane extends Pane
   html: $ require "tree/tree.html"
 
   constructor: (@tree) ->
-    @reload()
+    @render()
 
     $('#tree li').live 'click', (event) =>
       $('#tree .active').removeClass 'active'
@@ -36,7 +36,7 @@ class TreePane extends Pane
 
       false
 
-  reload: ->
+  render: ->
     @html.children('#tree .cwd').text _.last window.url.split '/'
     fileList = @createList @tree.urls()
     fileList.addClass 'files'
