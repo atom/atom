@@ -17,50 +17,36 @@ class TreePane extends Pane
     @reload()
 
     $('#tree li').live 'click', (event) =>
-      return true if event.__treeClicked__
-
       $('#tree .active').removeClass 'active'
 
       el = $(event.currentTarget)
-      path = decodeURIComponent el.data 'path'
+      url = decodeURIComponent el.data 'url'
 
       if el.hasClass 'dir'
         if el.hasClass 'open'
-          @tree.hideDir path
           el.removeClass 'open'
           el.children("ul").remove()
         else
-          @tree.showDir path
           el.addClass 'open'
-          list = @createList @tree.findPath(path).paths
+          list = @createList @tree.urls url
           el.append list
       else
         el.addClass 'active'
-        window.open path
+        window.open url
 
-      # HACK I need the event to propogate beyond the tree pane,
-      # but I need the tree pane to ignore it. Need somehting
-      # cleaner here.
-      event.__treeClicked__ = true
-
-      true
+      false
 
   reload: ->
     @html.children('#tree .cwd').text _.last window.url.split '/'
-    fileList = @createList @tree.paths
+    fileList = @createList @tree.urls()
     fileList.addClass 'files'
     @html.children('#tree .files').replaceWith fileList
 
-  createList: (root) ->
-    shownDirs = @tree.shownDirs()
+  createList: (urls) ->
     list = $('<ul>')
-    for {label, path, paths} in root
-      type = if paths then 'dir' else 'file'
-      encodedPath = encodeURIComponent path
-      listItem = $("<li class='#{type}' data-path='#{encodedPath}'>#{label}</li>")
-      if path in shownDirs and type is 'dir'
-        listItem.append @createList paths
-        listItem.addClass "open"
+    for {label, url, type} in urls
+      encodedURL = encodeURIComponent url
+      listItem = $("<li class='#{type}' data-url='#{encodedURL}'>#{label}</li>")
       list.append listItem
 
     list
