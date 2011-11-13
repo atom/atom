@@ -15,7 +15,7 @@ class Project extends Resource
   window.resourceTypes.push this
 
   settings:
-    ignorePattern: /(\.git|\.xcodeproj|\.DS_Store)$/
+    ignorePattern: /(\.git|\.xcodeproj|\.DS_Store)/
 
   resources: {}
 
