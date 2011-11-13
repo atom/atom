@@ -24,7 +24,7 @@ class Gemfile extends Extension
       ]
       gems = @gems url
       @project.settings.extraURLs["http://rubygems.org/"] = gems
-      @pane = new ModalSelector gems
+      @pane = new ModalSelector -> gems
 
   toggle: ->
     @pane?.toggle()

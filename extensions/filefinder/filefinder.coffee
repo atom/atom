@@ -11,7 +11,7 @@ class Filefinder extends Extension
     atom.on 'project:open', @startup
 
   startup: (@project) =>
-    @pane = new ModalSelector _.reject @project.allURLs(), ({url}) ->
+    @pane = new ModalSelector => _.reject @project.allURLs(), ({url}) ->
       fs.isDirectory url
 
   toggle: ->

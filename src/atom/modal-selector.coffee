@@ -19,10 +19,11 @@ class ModalSelector extends Modal
 
   showing: false
 
-  # The items to filter. An Array of {name:name, url:url} objects.
-  list: []
+  # A callback which should return the items to filter.
+  # Return should be an Array of {name, url} objects.
+  filterCallback: -> []
 
-  constructor: (@list) ->
+  constructor: (@filterCallback) ->
     super @selectorHTML
 
     head  = $('head')[0]
@@ -47,6 +48,7 @@ class ModalSelector extends Modal
 
   show: ->
     super
+    @list = @filterCallback()
     @filter()
     $('#modal-selector input').live 'keydown.modal-selector', @onKeydown
 
