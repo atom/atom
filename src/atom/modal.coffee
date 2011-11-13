@@ -62,7 +62,7 @@ class Modal
     atom.trigger 'modal:hide', this
 
   toggle: ->
-    if @showing?
+    if @showing
       @hide()
     else
       @show()
