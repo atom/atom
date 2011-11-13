@@ -48,7 +48,6 @@ class ModalSelector extends Modal
       @filter()
 
   show: ->
-    console.log 'cool'
     super
     @filter()
 
