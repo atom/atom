@@ -32,7 +32,7 @@ class ModalSelector extends Modal
     style.appendChild rules
     head.appendChild style
 
-    $('#modal-selector input').live 'keydown', @onKeydown
+    $('#modal-selector input').live 'keydown.modal-selector', @onKeydown
 
   onKeydown: (e) =>
     keys = up: 38, down: 40, enter: 13
@@ -50,6 +50,10 @@ class ModalSelector extends Modal
   show: ->
     super
     @filter()
+
+  hide: ->
+    super
+    $(document).unbind '.modal-selector'
 
   filter: ->
     if query = $('#modal-selector input').val()
