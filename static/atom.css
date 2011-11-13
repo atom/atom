@@ -10,14 +10,13 @@ body {
 }
 
 #app-horizontal {
-  background-color: orange;
+  background-image: url(images/linen.jpg);
   display: -webkit-box;
   min-height: 100%;
   -webkit-box-orient: horizontal;
 }
 
 #app-vertical {
-  background-color: #f1d1d2;
   display: -webkit-box;
   -webkit-box-flex: 1;
   -webkit-box-orient: vertical;

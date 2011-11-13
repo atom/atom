@@ -15,11 +15,7 @@ class Project extends Resource
   window.resourceTypes.push this
 
   html:
-    $ '''
-      <div style="position:absolute;bottom:20px;right:20px">
-        <img src="https://img.skitch.com/20111112-muhf4t5yh2scut7kwgamaujtyk.png">
-      </div>
-      '''
+    $ '<div></div>'
 
   resources: {}
 
