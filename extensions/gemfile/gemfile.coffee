@@ -3,12 +3,12 @@ _ = require 'underscore'
 
 fs = require 'fs'
 Extension = require 'extension'
-KeyBinder = require 'key-binder'
-Watcher = require 'watcher'
+ModalSelector = require 'modal-selector'
 
 module.exports =
 class Gemfile extends Extension
   constructor: ->
+    atom.keybinder.load require.resolve "gemfile/key-bindings.coffee"
     atom.on 'project:open', @startup
 
   startup: (@project) =>
@@ -21,7 +21,12 @@ class Gemfile extends Extension
         url: "http://rubygems.org/"
         type: 'dir'
       ]
-      @project.settings.extraURLs["http://rubygems.org/"] = @gems url
+      gems = @gems url
+      @project.settings.extraURLs["http://rubygems.org/"] = gems
+      @pane = new ModalSelector gems
+
+  toggle: ->
+    @pane?.toggle()
 
   gems: (url) ->
     file = fs.read url
