@@ -45,56 +45,40 @@ class KeyBinder
     keys.push event.charactersIgnoringModifiers.toLowerCase().charCodeAt 0
 
     binding = keys.sort().join "-"
-
-    for scope, bindings of @keymaps
-      break if method = bindings[binding]
-    return false if not method
-
     try
-      @triggerBinding scope, method
+      @triggerBinding binding
     catch error
       console.error "Failed to run binding #{@bindingFromAscii binding}."
       console.error error
 
-    true
+
+  # Given a keyboard combination, goes through the responder
+  # chain and checks if any object (or any of that object's super
+  # classes) respond to the binding.
+  #
+  # If so, it triggers the binding.
+  #
+  # binding - A String in the form of "#{charCode}-#{chardCode}"
+  #
+  # Returns true if we found and triggered the binding, false if not.
+  triggerBinding: (binding) ->
+    for responder in @responders()
+      name = responder.constructor.name?.toLowerCase()
+      name = 'window' if responder is window
+
+      if method = @keymaps[name]?[binding]
+        if _.isFunction method
+          method responder
+        else
+          responder[method]()
+        return true
+
+    false
 
   responders: ->
     extensions = _.select (_.values atom.extensions), (extension) ->
       extension.running?
     _.flatten [ extensions, window.resource.responder(), window, atom.app ]
-
-  triggerBinding: (scope, method) ->
-    responder = _.detect @responders(), (responder) =>
-      (scope is 'window' and responder is window) or
-        responder.constructor.name?.toLowerCase() is scope or
-        @inheritedKeymap responder, scope
-    if responder
-      if _.isFunction method
-        method responder
-      else
-        responder[method]()
-
-  # If you inherit from a class, you inherit its keymap.
-  #
-  # Example:
-  #   class GistEditor extends Editor
-  #
-  # Will respond to these bindings:
-  #   gisteditor:
-  #     'cmd+ctrl-g': 'createGist'
-  # And these:
-  #   editor:
-  #     'cmd-n': 'new'
-  #
-  # Returns a Boolean
-  inheritedKeymap: (responder, scope) ->
-    parent = responder.constructor.__super__
-    while parent?.constructor?.name
-      if parent.constructor.name.toLowerCase() is scope
-        return true
-      else
-        parent = parent.constructor.__super__
-    false
 
   bindingParser: (binding) ->
     keys = binding.trim().split '-'
