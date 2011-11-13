@@ -52,6 +52,9 @@ class Editor extends Resource
   title: ->
     if @url then _.last @url.split '/' else 'untitled'
 
+  show: ->
+    @pane.show()
+
   open: (url) ->
     if url
       return false if not fs.isFile url

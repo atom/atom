@@ -51,6 +51,7 @@ class Project extends Resource
       if @resources[url]
         @activeResource = @resources[url]
         atom.trigger 'project:resource:active', this, @activeResource
+        @activeResource.show()
         true
       else
         # Try to open all others
