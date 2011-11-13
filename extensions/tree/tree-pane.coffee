@@ -44,9 +44,9 @@ class TreePane extends Pane
 
   createList: (urls) ->
     list = $('<ul>')
-    for {label, url, type} in urls
+    for {name, url, type} in urls
       encodedURL = encodeURIComponent url
-      listItem = $("<li class='#{type}' data-url='#{encodedURL}'>#{label}</li>")
+      listItem = $("<li class='#{type}' data-url='#{encodedURL}'>#{name}</li>")
       list.append listItem
 
     list

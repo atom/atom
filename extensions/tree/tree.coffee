@@ -23,8 +23,4 @@ class Tree extends Extension
     super
 
   urls: (root=@project.url) ->
-    _.map (@project.urls root), (url) =>
-      type: if fs.isDirectory url then 'dir' else 'file'
-      label: url.replace(root, "").substring 1
-      url: url
-
+    @project.urls root

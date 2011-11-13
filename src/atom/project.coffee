@@ -72,7 +72,11 @@ class Project extends Resource
     child.match "^" + parent
 
   urls: (root=@url) ->
-    _.reject (fs.list root), (url) => @settings.ignorePattern.test url
+    _.compact _.map (fs.list root), (url) =>
+      return if @settings.ignorePattern.test url
+      type: if fs.isDirectory url then 'dir' else 'file'
+      name: url.replace(root, "").substring 1
+      url: url
 
   # WARNING THIS IS PROBABLY SLOW
   allURLs: ->
