@@ -13,20 +13,22 @@ class Gemfile extends Extension
 
   startup: (@project) =>
     urls = @project.urls()
-    gemfile = _.detect urls, (url) -> /Gemfile/i.test url
+    {url} = _.detect urls, ({url}) -> /Gemfile/i.test url
 
-    if gemfile
-      console.log
-        label: "RubyGems"
+    if url
+      @project.settings.extraURLs[@project.url] = [
+        name: "RubyGems"
         url: "http://rubygems.org/"
-        urls: @gemsFromGemFile gemfile
+        type: 'dir'
+      ]
+      @project.settings.extraURLs["http://rubygems.org/"] = @gems url
 
-  gemsFromGemFile: (url) ->
+  gems: (url) ->
     file = fs.read url
     gems = []
 
     for line in file.split "\n"
       if gem = line.match(/^\s*gem ['"](.+?)['"]/)?[1]
-        gems.push label: gem, url: "https://rubygems.org/gems/#{gem}"
+        gems.push type: 'file', name: gem, url: "https://rubygems.org/gems/#{gem}"
 
     gems
