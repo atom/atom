@@ -16,8 +16,8 @@ class Pane
 
     switch @position
       when 'main'
-        # ICK: There can be multiple 'main' panes, but only one can be active
-        # at at time.
+        # There can be multiple 'main' panes, but only one can be active
+        # at at time. ICK.
         $('#main-container').children().css 'display', 'none !important'
         $('#main-container').append @pane
       when 'top'
@@ -38,7 +38,10 @@ class Pane
     if @position == 'main'
       $('#main-container').children().css 'display', 'none !important'
 
-    if not @pane then @add() else @pane.css 'display', '-webkit-box !important'
+    if not @pane
+      @add()
+    else
+      @pane.css 'display', '-webkit-box !important'
 
   hide: ->
     @pane.css 'display', 'none !important'
