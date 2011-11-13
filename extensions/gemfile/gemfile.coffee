@@ -13,7 +13,8 @@ class Gemfile extends Extension
 
   startup: (@project) =>
     urls = @project.urls()
-    {url} = _.detect urls, ({url}) -> /Gemfile/i.test url
+    gemfile = _.detect urls, ({url}) -> /Gemfile/i.test url
+    {url} = gemfile if gemfile
 
     if url
       @project.settings.extraURLs[@project.url] = [
