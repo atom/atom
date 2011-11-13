@@ -9,25 +9,24 @@ Watcher = require 'watcher'
 module.exports =
 class Gemfile extends Extension
   constructor: ->
-    atom.on 'extensions:loaded', @addRubyGemsDir
+    atom.on 'project:open', @startup
 
-  addRubyGemsDir: =>
-    paths = window.extensions.Tree.paths
-    gemfile = _.detect paths, ({path}) -> /Gemfile/i.test path
+  startup: (@project) =>
+    urls = @project.urls()
+    gemfile = _.detect urls, (url) -> /Gemfile/i.test url
 
     if gemfile
-      paths.push
+      console.log
         label: "RubyGems"
-        path: "http://rubygems.org/"
-        paths: @gemsFromGemFile gemfile.path
-      window.extensions.Tree.reload()
+        url: "http://rubygems.org/"
+        urls: @gemsFromGemFile gemfile
 
-  gemsFromGemFile: (path) ->
-    file = fs.read path
+  gemsFromGemFile: (url) ->
+    file = fs.read url
     gems = []
 
     for line in file.split "\n"
       if gem = line.match(/^\s*gem ['"](.+?)['"]/)?[1]
-        gems.push label: gem, path: "https://rubygems.org/gems/#{gem}"
+        gems.push label: gem, url: "https://rubygems.org/gems/#{gem}"
 
     gems
