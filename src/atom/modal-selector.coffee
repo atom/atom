@@ -32,8 +32,6 @@ class ModalSelector extends Modal
     style.appendChild rules
     head.appendChild style
 
-    $('#modal-selector input').live 'keydown.modal-selector', @onKeydown
-
   onKeydown: (e) =>
     keys = up: 38, down: 40, enter: 13
 
@@ -50,6 +48,7 @@ class ModalSelector extends Modal
   show: ->
     super
     @filter()
+    $('#modal-selector input').live 'keydown.modal-selector', @onKeydown
 
   hide: ->
     super

@@ -24,12 +24,12 @@ class Modal
     style.appendChild rules
     head.appendChild style
 
-    $(window).bind 'resize.modal', => @resize()
-
   show: ->
     @showing = true
 
     $('body').append('<div id="modal-overlay"></div>')
+
+    $(window).bind 'resize.modal', => @resize()
 
     $(document).bind 'keydown.modal', (e) =>
       if e.keyCode is (esc = 27) then @hide(); false
