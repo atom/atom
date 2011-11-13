@@ -7,7 +7,9 @@ class Browser extends Resource
   window.resourceTypes.push this
 
   url: null
+
   html: $ "<div id='browser'></div>"
+
   iframe: ->
     $ "<iframe src='#{@url}' style='width:100%;height:100%'></iframe>"
 
