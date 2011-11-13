@@ -5,7 +5,7 @@ module.exports =
 class Filefinder extends Extension
   constructor: ->
     atom.keybinder.load require.resolve "filefinder/key-bindings.coffee"
-    atom.on 'project:load', @startup
+    atom.on 'project:open', @startup
 
   startup: =>
     @pane = new FilefinderPane this

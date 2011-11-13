@@ -8,7 +8,7 @@ EditorPane = require 'editor-pane'
 {UndoManager} = require 'ace/undomanager'
 
 # Events:
-#   editor:load (editor) -> Called when an editor is loaded.
+#   editor:open (editor) -> Called when an editor is opened.
 module.exports =
 class Editor extends Resource
   window.resourceTypes.push this
@@ -79,7 +79,7 @@ class Editor extends Resource
 
     window.setTitle @title()
     @dirty = false
-    atom.trigger 'editor:load', this
+    atom.trigger 'editor:open', this
 
     true
 

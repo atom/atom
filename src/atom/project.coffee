@@ -4,9 +4,9 @@ fs = require 'fs'
 Resource = require 'resource'
 
 # Events:
-#   project:load (project) -> Called when a project is loaded.
-#   project:resource:load (project, resource) ->
-#     Called when the project loads a resource.
+#   project:open (project) -> Called when a project is opened.
+#   project:resource:open (project, resource) ->
+#     Called when the project opens a resource.
 #   project:resource:active (project, resource) ->
 #     Called when a resource becomes active (i.e. the focal point)
 #     in a project.
@@ -35,7 +35,7 @@ class Project extends Resource
 
       @url = url
       @show()
-      atom.trigger 'project:load', this
+      atom.trigger 'project:open', this
 
       true
     else if @url
@@ -47,7 +47,7 @@ class Project extends Resource
       if (fs.isFile url) and not @childURL url
         return false
 
-      # Is this resource already loaded?
+      # Is this resource already open?
       if @resources[url]
         @activeResource = @resources[url]
         atom.trigger 'project:resource:active', this, @activeResource
@@ -61,12 +61,18 @@ class Project extends Resource
 
         if success
           @resources[url] = @activeResource = resource
-          atom.trigger 'project:resource:load', this, resource
+          atom.trigger 'project:resource:open', this, resource
           atom.trigger 'project:resource:active', this, resource
           true
 
   save: ->
     @activeResource?.save()
+
+  close: ->
+    if @activeResource
+      @activeResource.close()
+    else
+      super
 
   # Determines if a passed URL is a child of @url.
   # Returns a Boolean.

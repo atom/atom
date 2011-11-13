@@ -10,7 +10,7 @@ class Tabs extends Extension
   constructor: ->
     atom.keybinder.load require.resolve "tabs/key-bindings.coffee"
 
-    atom.on 'project:load', @startup
+    atom.on 'project:open', @startup
     atom.on 'project:resource:active', @focus
 
   startup: (@project) =>

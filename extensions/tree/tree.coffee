@@ -13,7 +13,7 @@ class Tree extends Extension
 
   constructor: ->
     atom.keybinder.load require.resolve "tree/key-bindings.coffee"
-    atom.on 'project:load', @startup
+    atom.on 'project:open', @startup
 
   startup: (@project) =>
     @pane = new TreePane this
