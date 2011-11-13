@@ -22,10 +22,12 @@ class TabsPane extends Pane
       false
 
   nextTab: ->
-    window.open $('#tabs ul .active').next().data 'path'
+    if path = $('#tabs ul .active').next().data 'path'
+      window.open path
 
   prevTab: ->
-    window.open $('#tabs ul .active').prev().data 'path'
+    if path = $('#tabs ul .active').prev().data 'path'
+      window.open path
 
   switchToTab: (tab) ->
     tab = $("#tabs ul li").get(tab - 1) if _.isNumber tab
