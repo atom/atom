@@ -13,7 +13,7 @@ class EditorPane extends Pane
 
   editor: null
 
-  constructor: (@editor) ->
+  constructor: ->
     @show()
 
     @ace = ace.edit 'ace-editor'
