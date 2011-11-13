@@ -40,7 +40,10 @@ class FilefinderPane extends Pane
     _paths = []
     for dir in File.list window.url
       continue if /\.git|Cocoa/.test dir
-      _paths.push File.listDirectoryTree dir
+      if File.isDirectory dir
+        _paths.push File.listDirectoryTree dir
+      else
+        _paths.push dir
     _.reject _.flatten(_paths), (dir) -> File.isDirectory dir
 
   showFinder: ->
