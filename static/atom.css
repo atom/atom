@@ -10,7 +10,7 @@ body {
 }
 
 #app-horizontal {
-  background-image: url(images/linen.jpg);
+  background-image: url(images/linen.png);
   display: -webkit-box;
   min-height: 100%;
   -webkit-box-orient: horizontal;
