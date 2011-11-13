@@ -49,6 +49,10 @@ class TabsPane extends Pane
     """
     $("#tabs ul li:last").addClass 'active'
 
+  closeActiveTab: ->
+    @removeTab $('#tabs ul .active').data 'path'
+    @prevTab()
+
   removeTab: (path) ->
     tab = $("#tabs li[data-path='#{path}']")
     if tab.hasClass("active")
