@@ -15,7 +15,13 @@ class Project extends Resource
   window.resourceTypes.push this
 
   settings:
+    # Regexp used to ignore paths.
     ignorePattern: /(\.git|\.xcodeproj|\.DS_Store)/
+
+    # Arrays of { name, url, type } keyed by the root URL.
+    # Used when looking up a directory's contents by url
+    # to add metadata such as magic files or directories.
+    extraURLs: {}
 
   resources: {}
 
@@ -77,6 +83,7 @@ class Project extends Resource
       type: if fs.isDirectory url then 'dir' else 'file'
       name: url.replace(root, "").substring 1
       url: url
+    .concat @settings.extraURLs[root] or []
 
   # WARNING THIS IS PROBABLY SLOW
   allURLs: ->
