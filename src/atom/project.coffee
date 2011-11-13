@@ -73,3 +73,10 @@ class Project extends Resource
 
   urls: (root=@url) ->
     _.reject (fs.list root), (url) => @settings.ignorePattern.test url
+
+  # WARNING THIS IS PROBABLY SLOW
+  allURLs: ->
+    _.compact _.map (fs.listDirectoryTree @url), (url) =>
+      name = url.replace "#{window.url}/", ''
+      return if @settings.ignorePattern.test name
+      { name, url }
