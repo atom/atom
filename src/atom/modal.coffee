@@ -1,8 +1,18 @@
 $ = require 'jquery'
 
+# Events:
+#   modal:show (modal) -> Called when the modal is displayed on screen.
+#   modal:hide (modal) -> Called when the modal hides.
 module.exports =
 class Modal
-  template: '<div id="modal"><div class="popup"><div class="content"></div><a href="#" class="close inline">&nbsp;</a></div></div>'
+  template: '''
+    <div id="modal">
+      <div class="popup">
+        <div class="content"></div>
+        <a href="#" class="close inline">&nbsp;</a>
+      </div>
+    </div>
+  '''
 
   showing: false
 
@@ -35,7 +45,7 @@ class Modal
         $('#modal input').focus()
         @resize()
 
-    atom.trigger 'modal:show', @
+    atom.trigger 'modal:show', this
 
   resize: ->
     $('#modal').css
@@ -48,10 +58,14 @@ class Modal
     $('#modal-overlay').fadeOut 200, -> $(this).remove()
     $(document).unbind '.modal'
     $(window).unbind '.modal'
-    atom.trigger 'modal:hide', @
+
+    atom.trigger 'modal:hide', this
 
   toggle: ->
-    if @showing then @hide() else @show()
+    if @showing?
+      @hide()
+    else
+      @show()
 
   css: """
 #modal {
