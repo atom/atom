@@ -18,16 +18,14 @@ class TabsPane extends Pane
     # click tab
     tabPane = this
     $('#tabs ul li').live 'mousedown', ->
-      window.open $(this).data 'path'
+      tabPane.switchToTab this
       false
 
   nextTab: ->
-    if path = $('#tabs ul .active').next().data 'path'
-      window.open path
+    @switchToTab $('#tabs ul .active').next()
 
   prevTab: ->
-    if path = $('#tabs ul .active').prev().data 'path'
-      window.open path
+    @switchToTab $('#tabs ul .active').prev()
 
   switchToTab: (tab) ->
     tab = $("#tabs ul li").get(tab - 1) if _.isNumber tab
@@ -37,6 +35,7 @@ class TabsPane extends Pane
     path = $(tab).data 'path'
     $("#tabs ul .active").removeClass("active")
     $(tab).addClass 'active'
+    window.open path
 
   addTab: (path) ->
     existing = $("#tabs [data-path='#{path}']")
