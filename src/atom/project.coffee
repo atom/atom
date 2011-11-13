@@ -17,9 +17,6 @@ class Project extends Resource
   settings:
     ignorePattern: /(\.git|\.xcodeproj|\.DS_Store)$/
 
-  html:
-    $ '<div></div>'
-
   resources: {}
 
   activeResource: null
@@ -33,7 +30,6 @@ class Project extends Resource
       return false if not fs.isDirectory url
 
       @url = url
-      @show()
       atom.trigger 'project:open', this
 
       true
