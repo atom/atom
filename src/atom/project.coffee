@@ -14,6 +14,8 @@ module.exports =
 class Project extends Resource
   window.resourceTypes.push this
 
+  ignorePattern: /(\.git|\.xcodeproj|\.DS_Store)$/
+
   html:
     $ '<div></div>'
 
@@ -71,3 +73,6 @@ class Project extends Resource
     parent = @url.replace /([^\/])$/, "$1/"
     child = url.replace /([^\/])$/, "$1/"
     child.match "^" + parent
+
+  urls: (root=@url) ->
+    _.reject (fs.list root), (url) => @ignorePattern.test url
