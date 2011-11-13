@@ -68,12 +68,6 @@ class Project extends Resource
   save: ->
     @activeResource?.save()
 
-  close: ->
-    if @activeResource
-      @activeResource.close()
-    else
-      super
-
   # Determines if a passed URL is a child of @url.
   # Returns a Boolean.
   childURL: (url) ->
