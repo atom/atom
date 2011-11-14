@@ -11,7 +11,7 @@ class Projectfinder extends Extension
 
   constructor: ->
     atom.keybinder.load require.resolve "projectfinder/key-bindings.coffee"
-    atom.on 'project:open', @startup
+    atom.on 'window:load', @startup
 
   startup: (@project) =>
     @pane = new ModalSelector =>
