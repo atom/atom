@@ -35,19 +35,21 @@ class Editor extends Resource
     Gemfile: 'ruby'
     Rakefile: 'ruby'
 
-  setModeForSession: (session) ->
-    return if not @url
+  modeForURL: (url) ->
+    return if not url
 
-    if not modeName = @modeFileMap[ _.last @url.split '/' ]
-      language = _.last @url.split '.'
+    if not modeName = @modeFileMap[ _.last url.split '/' ]
+      language = _.last url.split '.'
       language = language.toLowerCase()
       modeName = @modeMap[language] or language
 
     try
-      mode = require("ace/mode/#{modeName}").Mode
-      session.setMode new mode
+      require("ace/mode/#{modeName}").Mode
     catch e
       console.error e
+
+  setModeForURL: (url) ->
+    @ace.session.setMode new (@modeForURL url)
 
   title: ->
     if @url then _.last @url.split '/' else 'untitled'
@@ -73,8 +75,8 @@ class Editor extends Resource
     session.setTabSize if useSoftTabs then @guessTabSize code else 8
     session.setUndoManager new UndoManager
     session.on 'change', => @dirty = true
-    @setModeForSession session
     @ace.setSession session
+    @setModeForURL @url if @url
 
     window.setTitle @title()
     @dirty = false
@@ -118,7 +120,7 @@ class Editor extends Resource
 
   setCode: (code) ->
     @ace.getSession().setValue code
-    
+
   removeTrailingWhitespace: ->
     return
     @ace.replaceAll "",
