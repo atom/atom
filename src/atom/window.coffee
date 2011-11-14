@@ -37,6 +37,9 @@ windowAdditions =
     url = atom.native.openPanel() unless url
     (@resource.open url) or atom.app.open url
 
+  save: ->
+    @resource.save()
+
   close: (url) ->
     @shutdown()
     $atomController.close
