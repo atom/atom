@@ -116,6 +116,9 @@ class Editor extends Resource
   code: ->
     @ace.getSession().getValue()
 
+  setCode: (code) ->
+    @ace.getSession().setValue code
+    
   removeTrailingWhitespace: ->
     return
     @ace.replaceAll "",
