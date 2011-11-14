@@ -1,2 +1,2 @@
 showkeybindings:
-  'cmd-shift-k': (showkeybindings) => showkeybindings.toggle()
+  'cmd-shift-k': -> window.open 'atom://keybindings'

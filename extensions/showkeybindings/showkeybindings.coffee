@@ -2,16 +2,25 @@ _ = require 'underscore'
 $ = require 'jquery'
 fs = require 'fs'
 
-Extension = require 'extension'
-Modal = require 'modal'
+Browser = require 'browser'
 
 module.exports =
-class Showkeybindings extends Extension
+class Showkeybindings extends Browser
+  window.resourceTypes.push this
+
   constructor: ->
     atom.keybinder.load require.resolve "showkeybindings/key-bindings.coffee"
-    atom.on 'project:open', @startup
+    @running = true
 
-  startup: (@project) =>
+  open: (url) ->
+    return if not url
+
+    if url is 'atom://keybindings'
+      @url = url
+      @show()
+      true
+
+  innerHTML: ->
     html = '<h1>Keybindings</h1>'
     for name, bindings of atom.keybinder.keymaps
       html += "<h3>#{name}</h3>"
@@ -21,7 +30,7 @@ class Showkeybindings extends Extension
         <li>#{atom.keybinder.bindingFromAscii(binding)} - #{method}</li>
         """
       html += "</ul>"
-    @pane = new Modal html
+    html
 
-  toggle: ->
-    @pane?.toggle()
+  show: ->
+    super @innerHTML()
