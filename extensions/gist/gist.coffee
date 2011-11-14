@@ -34,6 +34,8 @@ class Gist extends Editor
       files = {}
       files[@filename] = content: @code()
       $.ajax
+        # Needed for CORS, otherwise we send an unparseable Origin
+        headers: { origin: null }
         url: "https://api.github.com/gists/#{@id}"
         type: 'patch'
         contentType: 'application/json'
