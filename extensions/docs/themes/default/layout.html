@@ -1,0 +1,32 @@
+<html>
+<head>
+  <link rel="stylesheet" href="http://twitter.github.com/bootstrap/assets/css/bootstrap-1.2.0.min.css">
+  <style>
+    p  { color: #404040; margin-bottom: 20px; font-size: 14px; line-height: 20px; }
+    ul { list-style-type: none; }
+    li { color: #404040; }
+    h5 { border-bottom: 1px dotted #404040; line-height: 20px; margin-bottom: 8px; }
+    h5 a { color: inherit; }
+    h5 a:hover { text-decoration: none; }
+    pre { background-color: #FEE9CC; }
+    #main { width: 610px; margin:0 auto; padding-top: 10px; }
+    #sidebar { float: left; padding-top: 12px; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="sidebar">
+      <ul>
+        {{# paths}}
+          <li><a href="{{this}}.html">{{this}}</a></li>
+        {{/ paths}}
+      </ul>
+    </div>
+    <div id="main">
+      {{{yield}}}
+    </div>
+  </div>
+
+</body>
+</html>
