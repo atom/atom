@@ -28,6 +28,9 @@ class Browser extends Resource
     if innerHTML
       iframe.contentWindow.document.body.innerHTML = innerHTML
 
-    window.setTitle iframe.contentWindow.document.title
-    $(iframe).bind 'load', (e) =>
-      window.setTitle e.target.contentWindow.document.title
+    if @title
+      window.setTitle @title
+    else
+      window.setTitle iframe.contentWindow.document.title
+      $(iframe).bind 'load', (e) =>
+        window.setTitle e.target.contentWindow.document.title
