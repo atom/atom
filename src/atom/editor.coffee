@@ -56,18 +56,17 @@ class Editor extends Resource
     if @url then _.last @url.split '/' else 'untitled'
 
   show: ->
-    @ace.setSession @session
     @pane.show()
     @ace.resize()
-    window.setTitle @title()
 
   open: (url) ->
     if url
       return false if not fs.isFile url
       return false if @url
 
-    # HACK! We want only one EditorPane for all the Editors.
-    @pane = Editor.pane ?= new EditorPane
+    window.setTitle @title()
+
+    @pane ?= new EditorPane
     @ace = @pane.ace
     @url = url
 
@@ -77,6 +76,7 @@ class Editor extends Resource
     @session.setTabSize if useSoftTabs then @guessTabSize code else 8
     @session.setUndoManager new UndoManager
     @session.on 'change', => @dirty = true
+    @ace.setSession @session
 
     @show()
     @setModeForURL @url if @url

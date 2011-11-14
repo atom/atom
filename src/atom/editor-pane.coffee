@@ -7,16 +7,20 @@ ace = require 'ace/ace'
 
 module.exports =
 class EditorPane extends Pane
-  html: $ "<div id='ace-editor'></div>"
+  id: null
+
+  html: null
 
   position: 'main'
 
   editor: null
 
   constructor: ->
+    @id = _.uniqueId 'editor-'
+    @html = $ "<div id='#{@id}'></div>"
     @show()
 
-    @ace = ace.edit 'ace-editor'
+    @ace = ace.edit @id
 
     # This stuff should all be grabbed from the .atomicity dir
     @ace.setTheme require "ace/theme/twilight"
