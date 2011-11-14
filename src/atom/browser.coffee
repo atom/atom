@@ -13,9 +13,8 @@ class Browser extends Resource
 
     @url = url
 
-    @html = """
-      <iframe src='#{@url}' style='width:100%;height:100%'></iframe>
-    """
+    @style = "width:100%;height:100%;background-color:#fff;border:none"
+    @html = "<iframe src='#{@url}' style='#{style}'></iframe>"
 
     @show()
 
