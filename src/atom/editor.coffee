@@ -157,6 +157,9 @@ class Editor extends Resource
   home: -> @ace.navigateFileStart()
   end: -> @ace.navigateFileEnd()
 
+  wordWrap: ->
+    @ace.getSession().setUseWrapMode true
+
   consolelog: ->
     @ace.insert 'console.log ""'
     @ace.navigateLeft()
