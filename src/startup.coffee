@@ -5,13 +5,13 @@ window.atom = {}
 
 App = require 'app'
 Browser = require 'browser'
-Resource = require 'resource'
 Editor = require 'editor'
 Event = require 'event'
 ExtensionManager = require 'extension-manager'
 KeyBinder = require 'key-binder'
 Native = require 'native'
 Project = require 'project'
+Resource = require 'resource'
 Settings = require 'settings'
 Storage = require 'storage'
 
