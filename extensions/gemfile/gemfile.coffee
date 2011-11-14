@@ -15,14 +15,15 @@ class Gemfile extends Extension
     urls = @project.urls()
     gemfile = _.detect urls, ({url}) -> /Gemfile/i.test url
     {url} = gemfile if gemfile
+    gems = @gems url if url
 
-    if url
+    if url and gems.length > 0
       @project.settings.extraURLs[@project.url] = [
         name: "RubyGems"
         url: "http://rubygems.org/"
         type: 'dir'
       ]
-      gems = @gems url
+      
       @project.settings.extraURLs["http://rubygems.org/"] = gems
       @pane = new ModalSelector -> gems
 
