@@ -88,7 +88,11 @@ class ModalSelector extends Modal
 
   openSelected: ->
     text = $('#modal-selector .selected').text()
-    window.open _.find(@list, (item) -> item.name is text).url
+    {url} = _.find @list, (item) -> item.name is text
+    if typeof url is 'function'
+      url()
+    else
+      window.open url
     @toggle()
 
   moveUp: ->
