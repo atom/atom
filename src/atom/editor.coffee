@@ -58,6 +58,7 @@ class Editor extends Resource
   show: ->
     @ace.setSession @session
     @pane.show()
+    @ace.resize()
 
   open: (url) ->
     if url
