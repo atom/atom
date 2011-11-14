@@ -67,7 +67,6 @@ module.exports = tdoc =
   # Returns the fully rendered template.
   render: (template, context) ->
     compiled = hbar.compile template
-    console.log compiled
     compiled context
 
   # Reads a file synchronously using either CommonJS or node.

@@ -8,9 +8,6 @@ window:
   'cmd-o': (window) -> window.open()
   'cmd-s': (window) -> window.save()
 
-resource:
-  'cmd-shift-d': -> console.log 'derp'
-
 editor:
   'cmd-w': 'close'
   'cmd-shift-s': 'saveAs'
