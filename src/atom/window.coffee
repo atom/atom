@@ -13,7 +13,7 @@ windowAdditions =
 
   startup: ->
     success = false
-    for resourceType in @resourceTypes
+    for resourceType in @resourceTypes.reverse()
       @resource = new resourceType
       break if success = @resource.open @url
 
