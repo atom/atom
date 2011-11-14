@@ -70,17 +70,16 @@ class Editor extends Resource
     @ace = @pane.ace
     @url = url
 
-    code = if @url then fs.read @url else ''
-    session = @session = new EditSession code
-    session.setValue code
-    session.setUseSoftTabs useSoftTabs = @usesSoftTabs code
-    session.setTabSize if useSoftTabs then @guessTabSize code else 8
-    session.setUndoManager new UndoManager
-    session.on 'change', => @dirty = true
-    @ace.setSession session
+    @session = new EditSession code = if @url then fs.read @url else ''
+    @session.setValue code
+    @session.setUseSoftTabs useSoftTabs = @usesSoftTabs code
+    @session.setTabSize if useSoftTabs then @guessTabSize code else 8
+    @session.setUndoManager new UndoManager
+    @session.on 'change', => @dirty = true
+
+    @show()
     @setModeForURL @url if @url
 
-    window.setTitle @title()
     @dirty = false
     atom.trigger 'editor:open', this
 
