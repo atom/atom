@@ -16,6 +16,7 @@ class Showkeybindings extends Browser
     return if not url
 
     if url is 'atom://keybindings'
+      @title = 'Keybindings'
       @url = url
       @show()
       true
