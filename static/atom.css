@@ -22,8 +22,18 @@ body {
   -webkit-box-orient: vertical;
 }
 
+#main {
+  display: -webkit-box;
+  -webkit-box-flex: 1;
+  -webkit-box-orient: vertical;
+}
+
 .main {
   -webkit-box-flex: 1;
+}
+
+.pane.hidden {
+  display: none;
 }
 
 .pane {

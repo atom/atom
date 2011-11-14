@@ -16,10 +16,8 @@ class Pane
 
     switch @position
       when 'main'
-        # There can be multiple 'main' panes, but only one can be active
-        # at at time. ICK.
-        $('#main-container').children().css 'display', 'none !important'
-        $('#main-container').append @pane
+        $('#main > div').addClass 'hidden'
+        $('#main').append @pane
       when 'top'
         verticalDiv.prepend @pane
       when 'left'
@@ -32,19 +30,17 @@ class Pane
         throw "pane position of #{this} can't be `#{@position}`"
 
   showing: ->
-    @pane and not @pane.css('display').match /none/
+    @pane and not @pane.hasClass 'hidden'
 
   show: ->
-    if @position == 'main'
-      $('#main-container').children().css 'display', 'none !important'
-
     if not @pane
       @add()
     else
-      @pane.css 'display', '-webkit-box !important'
+      $('#main > div').addClass 'hidden' if @position == 'main'
+      @pane.removeClass 'hidden'
 
   hide: ->
-    @pane.css 'display', 'none !important'
+    @pane.addClass 'hidden'
 
   toggle: ->
     if @showing()
