@@ -16,8 +16,12 @@ class Browser extends Resource
 
     true
 
-  show: ->
+  # innerHTML - Optional String to set as iframe's content.
+  show: (innerHTML=null) ->
     style = "width:100%;height:100%;background-color:#fff;border:none"
     @html = "<iframe src='#{@url}' style='#{style}'></iframe>"
 
     super
+
+    if innerHTML
+      @pane.find('iframe')[0].contentWindow.document.body.innerHTML = innerHTML
