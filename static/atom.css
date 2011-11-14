@@ -57,8 +57,8 @@ body {
   background-color: blue;
 }
 
-#ace-editor {
-  position: relative;
+.ace_editor {
+  position: relative !important;
+  font: 18px Inconsolata, Monaco, Courier !important;
   -webkit-box-flex: 1;
-  font: 18px Inconsolata, Monaco, Courier;
 }
