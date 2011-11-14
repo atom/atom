@@ -6,6 +6,8 @@ Extension = require 'resource'
 ModalSelector = require 'modal-selector'
 Editor = require 'editor'
 
+Base64 = require 'gist/base64'
+
 module.exports =
 class Gist extends Editor
   window.resourceTypes.push this
@@ -29,6 +31,13 @@ class Gist extends Editor
       true
 
   save: ->
+    user = GitHub?.username
+    pass = GitHub?.password
+   
+    if not user or not pass
+      console.error "Please set GitHub.username and GitHub.password to save."
+      return
+    
     # Can't get this to work yet. 500ing
     if @id
       files = {}
@@ -42,5 +51,14 @@ class Gist extends Editor
         data: JSON.stringify { files }
         error: -> console.error "Saving Gist failed."
         success: (data) =>
+          atom.native.writeToPasteboard @url
           console.log 'it worked'
-      true
+        beforeSend: (req) =>
+          req.setRequestHeader 'Authorization', @authorization user, pass
+        true
+
+  # basic auth
+  authorization: (user, pass) ->
+    token = "#{user}:#{pass}"
+    hash = Base64.encode token
+    "Basic #{hash}"
