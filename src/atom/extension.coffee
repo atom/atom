@@ -3,9 +3,6 @@ module.exports =
 class Extension
   running: false
 
-  constructor: ->
-    console.log "#{@constructor.name}: Running"
-
   # `startup` should be called by you in Extension subclasses when they need
   # to appear on the screen, attach themselves to a Resource, or otherwise become active.
   startup: ->
