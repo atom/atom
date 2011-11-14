@@ -76,7 +76,6 @@ class Editor extends Resource
     @setModeForSession session
     @ace.setSession session
 
-
     window.setTitle @title()
     @dirty = false
     atom.trigger 'editor:open', this
