@@ -62,8 +62,8 @@ class ModalSelector extends Modal
     else
       items = @list
     $('#modal-selector ul').empty()
-    for {name, url} in items[0..10]
-      $('#modal-selector ul').append "<li data-url=#{url}>#{name}</li>"
+    for {name} in items[0..10]
+      $('#modal-selector ul').append "<li>#{name}</li>"
     $('#modal-selector input').focus()
     $('#modal-selector li:first').addClass 'selected'
 
