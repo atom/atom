@@ -36,6 +36,7 @@ class Project extends Resource
       return false if not fs.isDirectory url
 
       @url = url
+      window.setTitle @title()
       atom.trigger 'project:open', this
 
       true
@@ -68,6 +69,9 @@ class Project extends Resource
 
   save: ->
     @activeResource?.save()
+
+  title: ->
+    _.last @url.split '/'
 
   # Determines if a passed URL is a child of @url.
   # Returns a Boolean.

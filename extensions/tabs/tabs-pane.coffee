@@ -56,6 +56,7 @@ class TabsPane extends Pane
     if tabsLength is 1
       @removeTab activePath
       $('#main-container').children().css 'display', 'none !important'
+      window.setTitle window.resource.title()
     else if tabsLength > 0
       @removeTab activePath
       @prevTab()
