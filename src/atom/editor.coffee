@@ -47,6 +47,7 @@ class Editor extends Resource
       require("ace/mode/#{modeName}").Mode
     catch e
       console.error e
+      require("ace/mode/text").Mode
 
   setModeForURL: (url) ->
     @ace.session.setMode new (@modeForURL url)
