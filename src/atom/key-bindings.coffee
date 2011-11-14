@@ -1,5 +1,6 @@
 app:
   'cmd-q': (app) -> app.quit()
+  'cmd-n': (app) -> atom.native.newWindow()
 
 window:
   'cmd-shift-I': (window) -> window.showConsole()
