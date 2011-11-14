@@ -23,5 +23,11 @@ class Browser extends Resource
 
     super
 
+    iframe = @pane.find('iframe')[0]
+
     if innerHTML
-      @pane.find('iframe')[0].contentWindow.document.body.innerHTML = innerHTML
+      iframe.contentWindow.document.body.innerHTML = innerHTML
+
+    window.setTitle iframe.contentWindow.document.title
+    $(iframe).bind 'load', (e) =>
+      window.setTitle e.target.contentWindow.document.title
