@@ -16,7 +16,7 @@ class Project extends Resource
 
   settings:
     # Regexp used to ignore paths.
-    ignorePattern: /(\.git|\.xcodeproj|\.DS_Store)/
+    ignorePattern: /(\.git|\.xcodeproj|\.DS_Store|node_modules)/
 
     # Arrays of { name, url, type } keyed by the root URL.
     # Used when looking up a directory's contents by url
