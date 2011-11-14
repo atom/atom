@@ -22,7 +22,11 @@ class Showkeybindings extends Browser
       true
 
   innerHTML: ->
-    html = '<h1>Keybindings</h1>'
+    html = '''
+      <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
+      <style>body { padding:10px; }</style>
+    '''
+    html += '<h1>Keybindings</h1>'
     for name, bindings of atom.keybinder.keymaps
       html += "<h3>#{name}</h3>"
       html += "<ul>"
