@@ -11,6 +11,7 @@ class Gist extends Editor
   window.resourceTypes.push this
 
   open: (url) ->
+    return if not url
     if match = url.match /^https?:\/\/gist\.github\.com\/([^\/]+)\/?/
       super()
       @setCode "Loading Gist..."
