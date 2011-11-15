@@ -25,7 +25,6 @@ atom.storage = new Storage
 atom.keybinder = new KeyBinder
 atom.settings = new Settings
 
-# Ignore extensions for now
 atom.extensions = {}
 atom.extensionManager = new ExtensionManager
 
