@@ -143,10 +143,10 @@ class KeyBinder
     esc: 27
     escape: 27
     space: 32
-    left: 37
-    up: 38
-    right: 39
-    down: 40
+    left: OSX.NSLeftArrowFunctionKey
+    up: OSX.NSUpArrowFunctionKey
+    right: OSX.NSRightArrowFunctionKey
+    down: OSX.NSDownArrowFunctionKey
     del: 46
     delete: 46
     home: 36
