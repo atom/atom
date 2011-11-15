@@ -1,4 +1,4 @@
-![](https://img.skitch.com/20110828-e6a2sk5mqewpfnxb3eeuef112d.png)
+# Atom — Futuristic Text Editing
 
 ## Informative Links
 

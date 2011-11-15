@@ -1,15 +1,18 @@
+_ = require 'underscore'
+fs = require 'fs'
+
 Extension = require 'extension'
-KeyBinder = require 'key-binder'
-Event = require 'event'
-FilefinderPane = require 'filefinder/filefinder-pane'
+ModalSelector = require 'modal-selector'
 
 module.exports =
 class Filefinder extends Extension
   constructor: ->
-    KeyBinder.register "filefinder", @
-    KeyBinder.load require.resolve "filefinder/key-bindings.coffee"
+    atom.keybinder.load require.resolve "filefinder/key-bindings.coffee"
+    atom.on 'project:open', @startup
 
-    @pane = new FilefinderPane @
+  startup: (@project) =>
+    @pane = new ModalSelector => _.reject @project.allURLs(), ({url}) ->
+      fs.isDirectory url
 
   toggle: ->
-    @pane.toggle()
+    @pane?.toggle()

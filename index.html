@@ -1,72 +1,16 @@
 <html>
 <head>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Lucida Grande;
-      font-size: 12px;
-      overflow: hidden;
-    }
-
-    #app-horizontal {
-      background-color: orange;
-      display: -webkit-box;
-      min-height: 100%;
-      -webkit-box-orient: horizontal;
-    }
-
-    #app-vertical {
-      background-color: #AFEEEE;
-      display: -webkit-box;
-      -webkit-box-flex: 1;
-      -webkit-box-orient: vertical;
-    }
-
-    .main {
-      -webkit-box-flex: 1;
-    }
-
-    .pane {
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-    }
-
-    .left {
-      background-color: gray;
-    }
-
-    .right {
-      background-color: green;
-    }
-
-    .top {
-      background-color: purple;
-    }
-
-    .bottom {
-      background-color: blue;
-    }
-
-    #ace-editor {
-      position: relative;
-      -webkit-box-flex: 1;
-      font: 18px Inconsolata, Monaco, Courier;
-    }
-  </style>
+  <link href="static/atom.css" media="screen" rel="stylesheet" type="text/css" />
 </head>
 <body>
   <div id='app-horizontal'>
     <div id='app-vertical'>
-      <div id='main-container' class='main pane'></div>
+      <div id='main'></div>
     </div>
   </div>
 </body>
 
-<script src='src/require.js'></script>
+<script src='src/stdlib/require.js'></script>
 <script>
   window.onerror = function() {
     window.showConsole(true)

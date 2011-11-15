@@ -102,7 +102,7 @@ void    UKFileSubscriptionProc(FNMessage message, OptionBits flags, void *refcon
                                 kNilOptions, &subscription );
     if( err != noErr )
     {
-        NSLog( @"UKFNSubscribeFileWatcher addPath: %@ failed due to error ID=%ld.", path, err );
+        NSLog( @"UKFNSubscribeFileWatcher addPath: %@ failed due to error ID=%d.", path, err );
         return;
     }
     

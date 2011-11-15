@@ -46,6 +46,11 @@ static	JSClassRef			hashObjectClass		= NULL;
 static void throwException(JSContextRef ctx, JSValueRef* exception, NSString* reason);
 
 
+BOOL	isUsingStret(id argumentEncodings);
+JSValueRef valueFromExternalContext(JSContextRef externalCtx, JSValueRef value, JSContextRef ctx);
+void*	getObjCCallAddress(id argumentEncodings);
+JSValueRef boxedValueFromExternalContext(JSContextRef externalCtx, JSValueRef value, JSContextRef ctx);
+
 // iPhone specifics
 #if TARGET_IPHONE_SIMULATOR || TARGET_OS_IPHONE
 const JSClassDefinition kJSClassDefinitionEmpty = { 0, 0, 

@@ -4,11 +4,10 @@
 #import "JSCocoa.h"
 
 #import <WebKit/WebKit.h>
-#import <stdio.h>
 
 @implementation AtomController
 
-@synthesize webView, path, jscocoa;
+@synthesize webView, url, jscocoa;
 
 - (void)dealloc {
   [jscocoa unlinkAllReferences];
@@ -16,25 +15,23 @@
   [jscocoa release]; jscocoa = nil;
 
   [webView release];
-  [path release];
+  [url release];
 
   [super dealloc];
 }
 
-- (id)initWithPath:(NSString *)aPath {
-  aPath = aPath ? aPath : @"/tmp";
-    
+- (id)initWithURL:(NSString *)_url {
   self = [super initWithWindowNibName:@"AtomWindow"];
-  path = [[aPath stringByStandardizingPath] retain];
+  url = [[_url stringByStandardizingPath] retain];
 
+  [self.window makeKeyWindow];
+  
   return self;
 }
 
 - (void)windowDidLoad {
   [super windowDidLoad];
-  
-  [[webView inspector] showConsole:self];
-  
+
   [self.window setDelegate:self];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 
@@ -49,18 +46,7 @@
   NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
   NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
   NSURLRequest *request = [NSURLRequest requestWithURL:indexURL];
-  [[webView mainFrame] loadRequest:request];    
-}
-
-// Helper methods that should go elsewhere
-- (NSString *)tempfile {
-  char *directory = "/tmp";
-  char *prefix = "temp-file";
-  char *tmpPath = tempnam(directory, prefix);
-  NSString *tmpPathString = [NSString stringWithUTF8String:tmpPath];
-  free(tmpPath);
-  
-  return tmpPathString;
+  [[webView mainFrame] loadRequest:request];
 }
 
 // WebUIDelegate
@@ -73,5 +59,5 @@
   [(AtomApp *)NSApp removeController:self];
   return YES;
 }
-   
+
 @end

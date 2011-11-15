@@ -1,0 +1,15 @@
+Intent
+- open a folder
+
+- child urls of folder open in same window
+
+- open/save/close on project
+
+Want
+- cmd-shift-t: reopen last closed tab
+
+- an extension that shows all available key commands
+
+- stdlib should be indepentent of atom (no events in stdlib)
+
+

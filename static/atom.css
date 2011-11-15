@@ -1,0 +1,64 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Lucida Grande;
+  font-size: 12px;
+  overflow: hidden;
+}
+
+#app-horizontal {
+  background-image: url(images/linen.png);
+  display: -webkit-box;
+  min-height: 100%;
+  -webkit-box-orient: horizontal;
+}
+
+#app-vertical {
+  display: -webkit-box;
+  -webkit-box-flex: 1;
+  -webkit-box-orient: vertical;
+}
+
+#main {
+  display: -webkit-box;
+  -webkit-box-flex: 1;
+  -webkit-box-orient: vertical;
+}
+
+.main {
+  -webkit-box-flex: 1;
+}
+
+.pane.hidden {
+  display: none;
+}
+
+.pane {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.left {
+  background-color: gray;
+}
+
+.right {
+  background-color: green;
+}
+
+.top {
+  background-color: purple;
+}
+
+.bottom {
+  background-color: blue;
+}
+
+.ace_editor {
+  position: relative !important;
+  font: 18px Inconsolata, Monaco, Courier !important;
+  -webkit-box-flex: 1;
+}

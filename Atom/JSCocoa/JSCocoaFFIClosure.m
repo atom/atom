@@ -10,6 +10,8 @@
 #import	"JSCocoaController.h"
 #include <sys/mman.h>   // for mmap()
 
+void closure_function(ffi_cif* cif, void* resp, void** args, void* userdata);
+
 @implementation JSCocoaFFIClosure
 
 
