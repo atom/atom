@@ -15,10 +15,6 @@ class Editor extends Resource
 
   dirty: false
 
-  url: null
-
-  pane: null
-
   modeMap:
     js: 'javascript'
     c: 'c_cpp'

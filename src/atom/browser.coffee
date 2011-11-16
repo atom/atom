@@ -6,8 +6,6 @@ module.exports =
 class Browser extends Resource
   window.resourceTypes.push this
 
-  url: null
-
   open: (url) ->
     return false if not /^https?:/.test url
 
