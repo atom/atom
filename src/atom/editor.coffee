@@ -30,6 +30,7 @@ class Editor extends Resource
     rb: 'ruby'
     ru: 'ruby'
     gemspec: 'ruby'
+    mustache: 'html'
 
   modeFileMap:
     Gemfile: 'ruby'
