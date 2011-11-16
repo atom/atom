@@ -22,7 +22,7 @@
 
 - (id)initWithURL:(NSString *)_url {
   self = [super initWithWindowNibName:@"AtomWindow"];
-  url = [[_url stringByStandardizingPath] retain];
+  url = [_url retain];
 
   [self.window makeKeyWindow];
   
