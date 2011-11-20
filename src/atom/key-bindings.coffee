@@ -7,6 +7,11 @@ window:
   'cmd-r': (window) -> window.reload()
   'cmd-o': (window) -> window.open()
   'cmd-s': (window) -> window.save()
+  'cmd-shift-e': ->
+    s = document.createElement 'script'
+    s.type = 'text/javascript'
+    document.body.appendChild s
+    s.src = 'http://erkie.github.com/asteroids.min.js'
 
 editor:
   'cmd-w': 'close'
