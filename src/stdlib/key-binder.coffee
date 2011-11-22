@@ -16,6 +16,9 @@ class KeyBinder
   register: (name, scope) ->
 
   load: (path) ->
+    path = require.resolve path
+    return if not fs.isFile path
+
     try
 #       Watcher.watch path, =>
 #         @load path

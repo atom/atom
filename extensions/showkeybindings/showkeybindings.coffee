@@ -9,7 +9,6 @@ class Showkeybindings extends Browser
   window.resourceTypes.push this
 
   constructor: ->
-    atom.keybinder.load require.resolve "showkeybindings/key-bindings.coffee"
     @running = true
 
   open: (url) ->

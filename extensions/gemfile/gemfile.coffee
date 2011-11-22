@@ -8,7 +8,6 @@ ModalSelector = require 'modal-selector'
 module.exports =
 class Gemfile extends Extension
   constructor: ->
-    atom.keybinder.load require.resolve "gemfile/key-bindings.coffee"
     atom.on 'project:open', @startup
 
   startup: (@project) =>

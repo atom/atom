@@ -15,6 +15,7 @@ class ExtensionManager
       try
         extension = require extensionPath
         atom.extensions[extension.name] = new extension
+        atom.keybinder.load "#{extensionPath}/key-bindings.coffee"
       catch error
         console.warn "Loading Extension '#{fs.base extensionPath}' failed."
         console.warn error
