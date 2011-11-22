@@ -6,6 +6,7 @@ window:
   'cmd-shift-I': (window) -> window.showConsole()
   'cmd-r': (window) -> window.reload()
   'cmd-o': (window) -> window.open()
+  'cmd-O': (window) -> window.open window.prompt "Open URL:"
   'cmd-s': (window) -> window.save()
   'cmd-shift-e': ->
     s = document.createElement 'script'
