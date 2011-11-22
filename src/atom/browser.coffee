@@ -4,7 +4,7 @@ Resource = require 'resource'
 
 module.exports =
 class Browser extends Resource
-  window.resourceTypes.push this
+  atom.router.add this
 
   url: null
 

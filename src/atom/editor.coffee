@@ -11,7 +11,7 @@ EditorPane = require 'editor-pane'
 #   editor:open (editor) -> Called when an editor is opened.
 module.exports =
 class Editor extends Resource
-  window.resourceTypes.push this
+  atom.router.add this
 
   dirty: false
 

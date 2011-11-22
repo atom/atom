@@ -6,7 +6,7 @@ Browser = require 'browser'
 
 module.exports =
 class Showkeybindings extends Browser
-  window.resourceTypes.push this
+  atom.router.add this
 
   constructor: ->
     atom.keybinder.load require.resolve "showkeybindings/key-bindings.coffee"
