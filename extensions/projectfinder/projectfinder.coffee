@@ -10,7 +10,6 @@ class Projectfinder extends Extension
     root: "~/Code"
 
   constructor: ->
-    atom.keybinder.load require.resolve "projectfinder/key-bindings.coffee"
     atom.on 'window:load', @startup
 
   startup: (@project) =>

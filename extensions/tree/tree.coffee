@@ -10,7 +10,6 @@ class Tree extends Extension
   project: null
 
   constructor: ->
-    atom.keybinder.load require.resolve "tree/key-bindings.coffee"
     atom.on 'project:open', @startup
 
   startup: (@project) =>

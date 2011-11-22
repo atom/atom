@@ -10,9 +10,6 @@ class Docs extends Browser
 
   running: true
 
-  constructor: ->
-    atom.keybinder.load require.resolve "docs/key-bindings.coffee"
-
   open: (url) ->
     return false if not url
 

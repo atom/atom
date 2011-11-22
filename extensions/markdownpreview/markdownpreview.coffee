@@ -13,9 +13,6 @@ class Markdownpreview extends Browser
 
   running: true
 
-  constructor: ->
-    atom.keybinder.load require.resolve "markdownpreview/key-bindings.coffee"
-
   open: (url) ->
     return false if not url
 
