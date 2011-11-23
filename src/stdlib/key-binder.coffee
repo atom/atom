@@ -10,14 +10,13 @@ class KeyBinder
 
   constructor: ->
     @load require.resolve "key-bindings.coffee"
-    if fs.isFile "~/.atomicity/key-bindings.coffee"
-      @load "~/.atomicity/key-bindings.coffee"
-
-  register: (name, scope) ->
+    @load "~/.atomicity/key-bindings.coffee"
 
   load: (path) ->
     path = require.resolve path
-    return if not fs.isFile path
+    if not fs.isFile path
+      console.warn "Could not find keyBinding file '#{path}'"
+      return
 
     try
 #       Watcher.watch path, =>
