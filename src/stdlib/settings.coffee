@@ -1,6 +1,18 @@
 fs = require 'fs'
 {CoffeeScript} = require 'coffee-script'
 
+# Settings file looks like:
+#     editor: # name of class
+#       theme: "twilight"
+#       tabSize: 2
+#       softTabs: true
+#       showInvisibles: false
+#
+#     project:
+#       ignorePattern: /x|y|z/
+#
+# Settings are applied to object x's settings variable by calling applyTo(x) on
+# instance of Settings.
 module.exports =
 class Settings
   settings: {}
