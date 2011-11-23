@@ -31,7 +31,7 @@ class KeyBinder
         for binding, method of bindings
           @keymaps[name][@bindingParser binding] = method
     catch error
-      console.error "Can't load key bindings at `#{path}`."
+      console.error "Can't evaluate key bindings at `#{path}`."
       console.error error
 
   handleEvent: (event) ->
