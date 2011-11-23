@@ -6,9 +6,13 @@ Pane = require 'pane'
 module.exports =
 class Resource extends Pane
   position: "main"
+  settings: {}
   url: null
 
   # Can be used to delegate key events to another object, such as a pane.
+  constructor: ->
+    atom.settings.applyTo this
+
   responder: ->
     this
 
