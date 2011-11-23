@@ -22,13 +22,6 @@ class EditorPane extends Pane
 
     @ace = ace.edit @id
 
-    # This stuff should all be grabbed from the .atomicity dir
-    @ace.setTheme require "ace/theme/twilight"
-    @ace.getSession().setUseSoftTabs true
-    @ace.getSession().setTabSize 2
-    @ace.setShowInvisibles true
-    @ace.setPrintMarginColumn 78
-
     # Resize editor when panes are added/removed
     el = document.body
     el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
