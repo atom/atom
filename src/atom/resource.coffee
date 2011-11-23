@@ -8,12 +8,9 @@ class Resource extends Pane
   position: "main"
   url: null
 
-  constructor: ->
-
   # Can be used to delegate key events to another object, such as a pane.
-  responder: -> this
+  responder: ->
+    this
 
   close: ->
     window.close()
-
-  save: ->
