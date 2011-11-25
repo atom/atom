@@ -36,10 +36,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-
-    var dom = require("pilot/dom");
-
-    var cssText = ".ace-tomorrow-night-bright .ace_editor {\
+exports.isDark = true;
+exports.cssText = ".ace-tomorrow-night-bright .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -254,8 +252,9 @@ background-color:#B798BF;\
      \
 }";
 
-    // import CSS once
-    dom.importCssString(cssText);
-
     exports.cssClass = "ace-tomorrow-night-bright";
+
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
+    
 });

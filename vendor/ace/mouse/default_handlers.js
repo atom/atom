@@ -39,10 +39,10 @@
 
 define(function(require, exports, module) {
 
-var event = require("pilot/event");
-var dom = require("pilot/dom");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var BrowserFocus = require("pilot/browser_focus").BrowserFocus;
+var event = require("../lib/event");
+var dom = require("../lib/dom");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
+var BrowserFocus = require("../lib/browser_focus").BrowserFocus;
 
 var STATE_UNKNOWN = 0;
 var STATE_SELECT = 1;

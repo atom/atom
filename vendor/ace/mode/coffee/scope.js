@@ -25,7 +25,7 @@
 
 define(function(require, exports, module) {
   var Scope, extend, last, _ref;
-  _ref = require('ace/mode/coffee/helpers'), extend = _ref.extend, last = _ref.last;
+  _ref = require('./helpers'), extend = _ref.extend, last = _ref.last;
   exports.Scope = Scope = (function() {
     Scope.root = null;
     function Scope(parent, expressions, method) {

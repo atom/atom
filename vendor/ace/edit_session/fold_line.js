@@ -38,7 +38,7 @@
 
 define(function(require, exports, module) {
 
-var Range = require("ace/range").Range;
+var Range = require("../range").Range;
 
 /**
  * If the an array is passed in, the folds are expected to be sorted already.

@@ -37,14 +37,14 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("../lib/oop");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
 
 var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
 
     this.changeListener = this.changeListener.bind(this);
 
-    if (require.packaged) {
+    if (window.require.packaged) {
         var base = this.$guessBasePath();
         var worker = this.$worker = new Worker(base + packagedJs);
     }

@@ -38,18 +38,18 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var Range = require("ace/range").Range;
+var oop = require("./lib/oop");
+var lang = require("./lib/lang");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var Range = require("./range").Range;
 
 /**
  * Keeps cursor position and the text selection of an edit session.
- * 
+ *
  * The row/columns used in the selection are in document coordinates
  * representing ths coordinates as thez appear in the document
  * before applying soft wrap and folding.
- */ 
+ */
 var Selection = function(session) {
     this.session = session;
     this.doc = session.getDocument();
@@ -123,7 +123,7 @@ var Selection = function(session) {
         };
 
         var anchor = this.getSelectionAnchor();
-        var lead = this.getSelectionLead(); 
+        var lead = this.getSelectionLead();
 
         var isBackwards = this.isBackwards();
 
@@ -250,6 +250,13 @@ var Selection = function(session) {
     this.selectWord = function() {
         var cursor = this.getCursor();
         var range  = this.session.getWordRange(cursor.row, cursor.column);
+        this.setSelectionRange(range);
+    };
+
+    // Selects a word including its right whitespace
+    this.selectAWord = function() {
+        var cursor = this.getCursor();
+        var range = this.session.getAWordRange(cursor.row, cursor.column);
         this.setSelectionRange(range);
     };
 
@@ -440,24 +447,10 @@ var Selection = function(session) {
             this.selectionLead.row,
             this.selectionLead.column
         );
-        
+
         var screenCol = (chars === 0 && this.$desiredColumn) || screenPos.column;
-        
-        // so here is the deal. First checkout what the content of ur current and ur target line is
-        var currentLine = (this.session.getLines(screenPos.row, screenPos.row) || [""])[0],
-            targetLine = (this.session.getLines(screenPos.row + rows, screenPos.row + rows) || [""])[0];
-        
-        // if you are at the EOL of your current line, and your targetline is all whitespace
-        if (currentLine && targetLine && 
-                currentLine.length === screenPos.column && targetLine.match(/^\s*$/)) {
-            // set the new column to the EOL of the target line
-            screenCol = this.session.getTabString(targetLine).length;
-            // update the chars so we are sure that the desired column will be updated
-            chars = 1;
-        };
-                
         var docPos = this.session.screenToDocumentPosition(screenPos.row + rows, screenCol);
-        
+
         // move the cursor and update the desired column
         this.moveCursorTo(docPos.row, docPos.column + chars, chars === 0);
     };
@@ -473,11 +466,11 @@ var Selection = function(session) {
             row = fold.start.row;
             column = fold.start.column;
         }
-        
+
         this.$preventUpdateDesiredColumnOnChange = true;
         this.selectionLead.setPosition(row, column);
         this.$preventUpdateDesiredColumnOnChange = false;
-        
+
         if (!preventUpdateDesiredColumn)
             this.$updateDesiredColumn(this.selectionLead.column);
     };

@@ -25,7 +25,7 @@ define(function(require, exports, module) {
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // UTILITY
-var oop = require('pilot/oop');
+var oop = require("ace/lib/oop");
 var pSlice = Array.prototype.slice;
 
 // 1. The assert module provides functions that throw

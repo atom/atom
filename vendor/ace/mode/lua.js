@@ -38,11 +38,11 @@
 * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var LuaHighlightRules = require("ace/mode/lua_highlight_rules").LuaHighlightRules;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var LuaHighlightRules = require("./lua_highlight_rules").LuaHighlightRules;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new LuaHighlightRules().getRules());

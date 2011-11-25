@@ -49,7 +49,7 @@
 
  define(function(require, exports, module) {
 
-    var definitions = require("ace/narcissus/jsdefs");
+    var definitions = require("./jsdefs");
 
     // Set constants in the local scope.
     eval(definitions.consts);
@@ -544,6 +544,6 @@
     };
 
 
-    return { Tokenizer: Tokenizer };
+    module.exports = { Tokenizer: Tokenizer };
 
 });

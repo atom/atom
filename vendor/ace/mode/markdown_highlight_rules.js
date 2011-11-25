@@ -38,12 +38,12 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
-var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
-var XmlHighlightRules = require("ace/mode/xml_highlight_rules").XmlHighlightRules;
-var HtmlHighlightRules = require("ace/mode/html_highlight_rules").HtmlHighlightRules;
-var CssHighlightRules = require("ace/mode/css_highlight_rules").CssHighlightRules;
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var XmlHighlightRules = require("./xml_highlight_rules").XmlHighlightRules;
+var HtmlHighlightRules = require("./html_highlight_rules").HtmlHighlightRules;
+var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
 
 function github_embed(tag, prefix) {
   return { // Github style block

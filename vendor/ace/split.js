@@ -38,14 +38,14 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var dom = require("pilot/dom");
-var lang = require("pilot/lang");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./lib/oop");
+var dom = require("./lib/dom");
+var lang = require("./lib/lang");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
-var Editor = require("ace/editor").Editor;
-var Renderer = require("ace/virtual_renderer").VirtualRenderer;
-var EditSession = require("ace/edit_session").EditSession;
+var Editor = require("./editor").Editor;
+var Renderer = require("./virtual_renderer").VirtualRenderer;
+var EditSession = require("./edit_session").EditSession;
 
 var Split = function(container, theme, splits) {
     this.BELOW = 1;

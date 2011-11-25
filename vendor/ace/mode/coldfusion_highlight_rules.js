@@ -37,10 +37,10 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var CssHighlightRules = require("ace/mode/css_highlight_rules").CssHighlightRules;
-var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var ColdfusionHighlightRules = function() {
 

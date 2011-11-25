@@ -37,17 +37,17 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../support/paths");
-    require("ace/test/mockdom");
+    require("amd-loader");
+    require("./test/mockdom");
 }
 
 define(function(require, exports, module) {
 
-var EditSession = require("ace/edit_session").EditSession;
-var Editor = require("ace/editor").Editor;
-var MockRenderer = require("ace/test/mockrenderer").MockRenderer;
-var TextMode = require("ace/mode/text").Mode;
-var assert = require("ace/test/assertions");
+var EditSession = require("./edit_session").EditSession;
+var Editor = require("./editor").Editor;
+var MockRenderer = require("./test/mockrenderer").MockRenderer;
+var TextMode = require("./mode/text").Mode;
+var assert = require("./test/assertions");
 
 var lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
              "Mauris at arcu mi, eu lobortis mauris. Quisque ut libero eget " +

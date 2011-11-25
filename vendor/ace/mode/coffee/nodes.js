@@ -38,8 +38,8 @@ define(function(require, exports, module) {
     }
     return -1;
   };
-  Scope = require('ace/mode/coffee/scope').Scope;
-  _ref = require('ace/mode/coffee/helpers'), compact = _ref.compact, flatten = _ref.flatten, extend = _ref.extend, merge = _ref.merge, del = _ref.del, starts = _ref.starts, ends = _ref.ends, last = _ref.last;
+  Scope = require('./scope').Scope;
+  _ref = require('./helpers'), compact = _ref.compact, flatten = _ref.flatten, extend = _ref.extend, merge = _ref.merge, del = _ref.del, starts = _ref.starts, ends = _ref.ends, last = _ref.last;
   exports.extend = extend;
   YES = function() {
     return true;

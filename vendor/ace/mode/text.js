@@ -40,10 +40,10 @@
 
 define(function(require, exports, module) {
 
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
-var Behaviour = require("ace/mode/behaviour").Behaviour;
-var unicode = require("ace/unicode");
+var Tokenizer = require("../tokenizer").Tokenizer;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+var Behaviour = require("./behaviour").Behaviour;
+var unicode = require("../unicode");
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new TextHighlightRules().getRules());

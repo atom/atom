@@ -39,9 +39,9 @@
 
 define(function(require, exports, module) {
 
-var event = require("pilot/event");
-var useragent = require("pilot/useragent");
-var dom = require("pilot/dom");
+var event = require("../lib/event");
+var useragent = require("../lib/useragent");
+var dom = require("../lib/dom");
 
 var TextInput = function(parentNode, host) {
 
@@ -73,10 +73,10 @@ var TextInput = function(parentNode, host) {
                 if (value.charCodeAt(value.length-1) == PLACEHOLDER.charCodeAt(0)) {
                     value = value.slice(0, -1);
                     if (value)
-                        host.onTextInput(value, !pasted);
+                        host.onTextInput(value, pasted);
                 }
                 else {
-                    host.onTextInput(value, !pasted);
+                    host.onTextInput(value, pasted);
                 }
 
                 // If editor is no longer focused we quit immediately, since
@@ -249,10 +249,12 @@ var TextInput = function(parentNode, host) {
 
     this.onContextMenu = function(mousePos, isEmpty){
         if (mousePos) {
-            if(!tempStyle)
+            if (!tempStyle)
                 tempStyle = text.style.cssText;
-            text.style.cssText = 'position:fixed; z-index:1000;' +
-                    'left:' + (mousePos.x - 2) + 'px; top:' + (mousePos.y - 2) + 'px;'
+                
+            text.style.cssText = 
+                'position:fixed; z-index:1000;' +
+                'left:' + (mousePos.x - 2) + 'px; top:' + (mousePos.y - 2) + 'px;'
 
         }
         if (isEmpty)

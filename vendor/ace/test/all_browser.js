@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
 
-require("pilot/fixoldbrowsers");
-var AsyncTest = require("asyncjs/test");
+require("ace/lib/fixoldbrowsers");
+var AsyncTest = require("asyncjs").test;
 var async = require("asyncjs");
-var dom = require("pilot/dom");
+var dom = require("ace/lib/dom");
 
 var passed = 0
 var failed = 0
@@ -11,14 +11,19 @@ var log = document.getElementById("log")
 
 var tests = [
      require("ace/anchor_test"),
+     require("ace/commands/command_manager_test"),
      require("ace/document_test"),
      require("ace/edit_session_test"),
      require("ace/editor_change_document_test"),
      require("ace/editor_highlight_selected_word_test"),
      require("ace/editor_navigation_test"),
      require("ace/editor_text_edit_test"),
+     require("ace/ext/static_highlight_test"),
      require("ace/layer/text_test"),
+     require("ace/lib/event_emitter_test"),
      require("ace/mode/coffee/parser_test"),
+     require("ace/mode/coffee_tokenizer_test"),
+     require("ace/mode/coldfusion_test"),
      require("ace/mode/css_test"),
      require("ace/mode/css_tokenizer_test"),
      require("ace/mode/css_worker"),
@@ -27,6 +32,7 @@ var tests = [
      require("ace/mode/javascript_test"),
      require("ace/mode/javascript_tokenizer_test"),
      require("ace/mode/javascript_worker_test"),
+     require("ace/mode/python_test"),
      require("ace/mode/ruby_tokenizer_test"),
      require("ace/mode/text_test"),
      require("ace/mode/xml_test"),
@@ -34,7 +40,7 @@ var tests = [
      require("ace/range_test"),
      require("ace/search_test"),
      require("ace/selection_test"),
-     require("ace/test/event_emitter_test"),
+     require("ace/token_iterator_test"),
      require("ace/virtual_renderer_test")
 ]
 

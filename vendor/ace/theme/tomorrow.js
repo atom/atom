@@ -36,8 +36,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-
-    exports.cssText = ".ace-tomorrow .ace_editor {\
+exports.isDark = false;
+exports.cssText = ".ace-tomorrow .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -253,4 +253,7 @@ background-color:#8959A8;\
 }";
 
     exports.cssClass = "ace-tomorrow";
+    
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
 });

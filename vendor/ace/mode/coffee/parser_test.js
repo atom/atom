@@ -36,13 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../../../support/paths");
+    require("amd-loader");
 }
 
 define(function(require, exports, module) {
 
-var assert = require("ace/test/assertions");
-var coffee = require("ace/mode/coffee/coffee-script");
+var assert = require("../../test/assertions");
+var coffee = require("../coffee/coffee-script");
 
 
 module.exports = {

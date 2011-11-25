@@ -1,8 +1,8 @@
 
 define(function(require, exports, module) {
     
-var Document = require("ace/document").Document;
-var lang = require("pilot/lang");
+var Document = require("../document").Document;
+var lang = require("../lib/lang");
     
 var Mirror = exports.Mirror = function(sender) {
     this.sender = sender;

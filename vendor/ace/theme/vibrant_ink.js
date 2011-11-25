@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-
+exports.isDark = true;
 exports.cssText = ".ace-vibrant-ink .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
@@ -254,5 +254,8 @@ color:#99CC99;\
 }";
 
 exports.cssClass = "ace-vibrant-ink";
+
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
 
 });

@@ -40,22 +40,24 @@
 
 define(function(require, exports, module) {
 
-require("pilot/fixoldbrowsers");
+require("./lib/fixoldbrowsers");
 
-var oop = require("pilot/oop");
-var event = require("pilot/event");
-var lang = require("pilot/lang");
-var useragent = require("pilot/useragent");
-var TextInput = require("ace/keyboard/textinput").TextInput;
-var MouseHandler = require("ace/mouse/mouse_handler").MouseHandler;
-//var TouchHandler = require("ace/touch_handler").TouchHandler;
-var KeyBinding = require("ace/keyboard/keybinding").KeyBinding;
-var EditSession = require("ace/edit_session").EditSession;
-var Search = require("ace/search").Search;
-var Range = require("ace/range").Range;
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./lib/oop");
+var event = require("./lib/event");
+var lang = require("./lib/lang");
+var useragent = require("./lib/useragent");
+var TextInput = require("./keyboard/textinput").TextInput;
+var MouseHandler = require("./mouse/mouse_handler").MouseHandler;
+//var TouchHandler = require("./touch_handler").TouchHandler;
+var KeyBinding = require("./keyboard/keybinding").KeyBinding;
+var EditSession = require("./edit_session").EditSession;
+var Search = require("./search").Search;
+var Range = require("./range").Range;
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var CommandManager = require("./commands/command_manager").CommandManager;
+var defaultCommands = require("./commands/default_commands").commands;
 
-var Editor =function(renderer, session) {
+var Editor = function(renderer, session) {
     var container = renderer.getContainerElement();
     this.container = container;
     this.renderer = renderer;
@@ -75,6 +77,7 @@ var Editor =function(renderer, session) {
         wrap: true
     });
 
+    this.commands = new CommandManager(useragent.isMac ? "mac" : "win", defaultCommands);
     this.setSession(session || new EditSession(""));
 };
 
@@ -303,7 +306,7 @@ var Editor =function(renderer, session) {
         this._dispatchEvent("change", e);
 
         // update cursor because tab characters can influence the cursor position
-        this.renderer.updateCursor();
+        this.onCursorChange();
     };
 
     this.onTokenizerUpdate = function(e) {
@@ -426,9 +429,6 @@ var Editor =function(renderer, session) {
     };
 
     this.insert = function(text) {
-        if (this.$readOnly)
-            return;
-
         var session = this.session;
         var mode = session.getMode();
 
@@ -520,30 +520,11 @@ var Editor =function(renderer, session) {
             mode.autoOutdent(lineState, session, cursor.row);
     };
 
-    this.onTextInput = function(text, notPasted) {
-        if (!notPasted)
+    this.onTextInput = function(text, pasted) {
+        if (pasted)
             this._emit("paste", text);
 
-        // In case the text was not pasted and we got only one character, then
-        // handel it as a command key stroke.
-        if (notPasted && text.length == 1) {
-            // Note: The `null` as `keyCode` is important here, as there are
-            // some checks in the code for `keyCode == 0` meaning the text comes
-            // from the keyBinding.onTextInput code path.
-            var handled = this.keyBinding.onCommandKey({}, 0, null, text);
-
-            // Check if the text was handled. If not, then handled it as "normal"
-            // text and insert it to the editor directly. This shouldn't be done
-            // using the this.keyBinding.onTextInput(text) function, as it would
-            // make the `text` get sent to the keyboardHandler twice, which might
-            // turn out to be a bad thing in case there is a custome keyboard
-            // handler like the StateHandler.
-            if (!handled) {
-                this.insert(text);
-            }
-        } else {
-            this.keyBinding.onTextInput(text);
-        }
+        this.keyBinding.onTextInput(text, pasted);
     };
 
     this.onCommandKey = function(e, hashId, keyCode) {
@@ -657,9 +638,6 @@ var Editor =function(renderer, session) {
     };
 
     this.remove = function(dir) {
-        if (this.$readOnly)
-            return;
-
         if (this.selection.isEmpty()){
             if(dir == "left")
                 this.selection.selectLeft();
@@ -681,9 +659,6 @@ var Editor =function(renderer, session) {
     };
 
     this.removeWordRight = function() {
-        if (this.$readOnly)
-            return;
-
         if (this.selection.isEmpty())
             this.selection.selectWordRight();
 
@@ -692,9 +667,6 @@ var Editor =function(renderer, session) {
     };
 
     this.removeWordLeft = function() {
-        if (this.$readOnly)
-            return;
-
         if (this.selection.isEmpty())
             this.selection.selectWordLeft();
 
@@ -703,9 +675,6 @@ var Editor =function(renderer, session) {
     };
 
     this.removeToLineStart = function() {
-        if (this.$readOnly)
-            return;
-
         if (this.selection.isEmpty())
             this.selection.selectLineStart();
 
@@ -714,9 +683,6 @@ var Editor =function(renderer, session) {
     };
 
     this.removeToLineEnd = function() {
-        if (this.$readOnly)
-            return;
-
         if (this.selection.isEmpty())
             this.selection.selectLineEnd();
 
@@ -731,9 +697,6 @@ var Editor =function(renderer, session) {
     };
 
     this.splitLine = function() {
-        if (this.$readOnly)
-            return;
-
         if (!this.selection.isEmpty()) {
             this.session.remove(this.getSelectionRange());
             this.clearSelection();
@@ -745,9 +708,6 @@ var Editor =function(renderer, session) {
     };
 
     this.transposeLetters = function() {
-        if (this.$readOnly)
-            return;
-
         if (!this.selection.isEmpty()) {
             return;
         }
@@ -770,10 +730,31 @@ var Editor =function(renderer, session) {
         this.session.replace(range, swap);
     };
 
-    this.indent = function() {
-        if (this.$readOnly)
-            return;
+    this.toLowerCase = function() {
+        var originalRange = this.getSelectionRange();
+        if (this.selection.isEmpty()) {
+            this.selection.selectWord();
+        }
 
+        var range = this.getSelectionRange();
+        var text = this.session.getTextRange(range);
+        this.session.replace(range, text.toLowerCase());
+        this.selection.setSelectionRange(originalRange);
+    };
+
+    this.toUpperCase = function() {
+        var originalRange = this.getSelectionRange();
+        if (this.selection.isEmpty()) {
+            this.selection.selectWord();
+        }
+
+        var range = this.getSelectionRange();
+        var text = this.session.getTextRange(range);
+        this.session.replace(range, text.toUpperCase());
+        this.selection.setSelectionRange(originalRange);
+    };
+
+    this.indent = function() {
         var session = this.session;
         var range = this.getSelectionRange();
 
@@ -792,34 +773,25 @@ var Editor =function(renderer, session) {
                 indentString = lang.stringRepeat(" ", count);
             } else
                 indentString = "\t";
-            return this.onTextInput(indentString, true);
+            return this.insert(indentString);
         }
     };
 
     this.blockOutdent = function() {
-        if (this.$readOnly)
-            return;
-
         var selection = this.session.getSelection();
         this.session.outdentRows(selection.getRange());
     };
 
     this.toggleCommentLines = function() {
-        if (this.$readOnly)
-            return;
-
         var state = this.session.getState(this.getCursorPosition().row);
         var rows = this.$getSelectedRows();
         this.session.getMode().toggleCommentLines(state, this.session, rows.first, rows.last);
     };
 
     this.removeLines = function() {
-        if (this.$readOnly)
-            return;
-
         var rows = this.$getSelectedRows();
         var range;
-        if (rows.last == 0 || rows.last+1 < this.session.getLength())
+        if (rows.first == 0 || rows.last+1 < this.session.getLength())
             range = new Range(rows.first, 0, rows.last+1, 0);
         else
             range = new Range(
@@ -831,18 +803,12 @@ var Editor =function(renderer, session) {
     };
 
     this.moveLinesDown = function() {
-        if (this.$readOnly)
-            return;
-
         this.$moveLines(function(firstRow, lastRow) {
             return this.session.moveLinesDown(firstRow, lastRow);
         });
     };
 
     this.moveLinesUp = function() {
-        if (this.$readOnly)
-            return;
-
         this.$moveLines(function(firstRow, lastRow) {
             return this.session.moveLinesUp(firstRow, lastRow);
         });
@@ -856,9 +822,6 @@ var Editor =function(renderer, session) {
     };
 
     this.copyLinesUp = function() {
-        if (this.$readOnly)
-            return;
-
         this.$moveLines(function(firstRow, lastRow) {
             this.session.duplicateLines(firstRow, lastRow);
             return 0;
@@ -866,9 +829,6 @@ var Editor =function(renderer, session) {
     };
 
     this.copyLinesDown = function() {
-        if (this.$readOnly)
-            return;
-
         this.$moveLines(function(firstRow, lastRow) {
             return this.session.duplicateLines(firstRow, lastRow);
         });
@@ -877,14 +837,24 @@ var Editor =function(renderer, session) {
 
     this.$moveLines = function(mover) {
         var rows = this.$getSelectedRows();
+        var selection = this.selection;
+        if (!selection.isMultiLine()) {
+            var range = selection.getRange();
+            var reverse = selection.isBackwards();
+        }
 
         var linesMoved = mover.call(this, rows.first, rows.last);
 
-        var selection = this.selection;
-        selection.setSelectionAnchor(rows.last+linesMoved+1, 0);
-        selection.$moveSelection(function() {
-            selection.moveCursorTo(rows.first+linesMoved, 0);
-        });
+        if (range) {
+            range.start.row += linesMoved;
+            range.end.row += linesMoved;
+            selection.setSelectionRange(range, reverse);
+        } else {
+            selection.setSelectionAnchor(rows.last+linesMoved+1, 0);
+            selection.$moveSelection(function() {
+                selection.moveCursorTo(rows.first+linesMoved, 0);
+            });
+        }
     };
 
     this.$getSelectedRows = function() {
@@ -918,6 +888,10 @@ var Editor =function(renderer, session) {
 
     this.isRowVisible = function(row) {
         return (row >= this.getFirstVisibleRow() && row <= this.getLastVisibleRow());
+    };
+
+    this.isRowFullyVisible = function(row) {
+        return (row >= this.renderer.getFirstFullyVisibleRow() && row <= this.renderer.getLastFullyVisibleRow());
     };
 
     this.$getVisibleRowCount = function() {
@@ -1030,14 +1004,13 @@ var Editor =function(renderer, session) {
 
     this.gotoLine = function(lineNumber, column) {
         this.selection.clearSelection();
+        this.session.unfold({row: lineNumber - 1, column: column || 0})
 
         this.$blockScrolling += 1;
         this.moveCursorTo(lineNumber-1, column || 0);
         this.$blockScrolling -= 1;
-
-        if (!this.isRowVisible(this.getCursorPosition().row)) {
+        if (!this.isRowFullyVisible(this.getCursorPosition().row))
             this.scrollToLine(lineNumber, true);
-        }
     };
 
     this.navigateTo = function(row, column) {
@@ -1189,15 +1162,15 @@ var Editor =function(renderer, session) {
     };
 
     this.$find = function(backwards) {
-        if (!this.selection.isEmpty()) {
+        if (!this.selection.isEmpty())
             this.$search.set({needle: this.session.getTextRange(this.getSelectionRange())});
-        }
 
         if (typeof backwards != "undefined")
             this.$search.set({backwards: backwards});
 
         var range = this.$search.find(this.session);
         if (range) {
+            this.session.unfold(range);
             this.gotoLine(range.end.row+1, range.end.column);
             this.selection.setSelectionRange(range);
         }

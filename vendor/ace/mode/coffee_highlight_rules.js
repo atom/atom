@@ -37,9 +37,9 @@
 
 define(function(require, exports, module) {
 
-    var lang = require("pilot/lang");
-    var oop = require("pilot/oop");
-    var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+    var lang = require("../lib/lang");
+    var oop = require("../lib/oop");
+    var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
     
     oop.inherits(CoffeeHighlightRules, TextHighlightRules);
 

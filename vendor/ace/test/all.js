@@ -35,7 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-require("../../../support/paths");
-
+require("amd-loader");
 var test = require("asyncjs").test;
-test.walkTestCases(__dirname + "/..").exec()
+test.walkTestCases(__dirname + "/..").exec();

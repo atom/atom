@@ -38,9 +38,9 @@
 
 define(function(require, exports, module) {
 
-var Range = require("ace/range").Range;
-var FoldLine = require("ace/edit_session/fold_line").FoldLine;
-var Fold = require("ace/edit_session/fold").Fold;
+var Range = require("../range").Range;
+var FoldLine = require("./fold_line").FoldLine;
+var Fold = require("./fold").Fold;
 
 function Folding() {
     /**
@@ -368,13 +368,13 @@ function Folding() {
             folds.splice(folds.indexOf(fold), 1);
         } else
         // The fold goes over more then one row. This means remvoing this fold
-        // will cause the fold line to get splitted up.
+        // will cause the fold line to get splitted up. newFoldLine is the second part
         {
             var newFoldLine = foldLine.split(fold.start.row, fold.start.column);
-            newFoldLine.folds.shift();
-            foldLine.start.row = folds[0].start.row;
-            foldLine.start.column = folds[0].start.column;
-            this.$addFoldLine(newFoldLine);
+            folds = newFoldLine.folds;
+            folds.shift();
+            newFoldLine.start.row = folds[0].start.row;
+            newFoldLine.start.column = folds[0].start.column;
         }
 
         if (this.$useWrapMode) {
@@ -413,6 +413,30 @@ function Folding() {
         folds.forEach(function(fold) {
             this.expandFold(fold);
         }, this);
+    }
+
+    this.unfold = function(location, expandInner) {
+        var range, folds;
+        if (location == null)
+            range = new Range(0, 0, this.getLength(), 0);
+        else if (typeof location == "number")
+            range = new Range(location, 0, location, this.getLine(location).length);
+        else if ("row" in location)
+            range = Range.fromPoints(location, location);
+        else
+            range = location;
+
+        var folds = this.getFoldsInRange(range);
+        if (expandInner) {
+            this.removeFolds(folds);
+        } else {
+            // TODO: might need to remove and add folds in one go instead of using
+            // expandFolds several times.
+            while (folds.length) {
+                this.expandFolds(folds);
+                folds = this.getFoldsInRange(range);
+            }
+        }
     }
 
     /**

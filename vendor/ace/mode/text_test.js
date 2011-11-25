@@ -36,14 +36,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../../support/paths");
+    require("amd-loader");
 }
 
 define(function(require, exports, module) {
 
-var EditSession = require("ace/edit_session").EditSession;
-var TextMode = require("ace/mode/text").Mode;
-var assert = require("ace/test/assertions");
+var EditSession = require("../edit_session").EditSession;
+var TextMode = require("./text").Mode;
+var assert = require("../test/assertions");
 
 module.exports = {
     setUp : function() {

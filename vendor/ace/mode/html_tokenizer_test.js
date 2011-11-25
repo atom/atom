@@ -36,13 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../../support/paths");
+    require("amd-loader");
 }
 
 define(function(require, exports, module) {
 
-var HtmlMode = require("ace/mode/html").Mode;
-var assert = require("ace/test/assertions");
+var HtmlMode = require("./html").Mode;
+var assert = require("../test/assertions");
 
 module.exports = {
     setUp : function() {
@@ -62,7 +62,7 @@ module.exports = {
         assert.equal("text", tokens[4].type);
         assert.equal("string", tokens[5].type);
         assert.equal("text", tokens[6].type);
-        assert.equal("keyword", tokens[7].type);
+        assert.equal("keyword.definition", tokens[7].type);
         assert.equal("text", tokens[8].type);
         assert.equal("meta.tag", tokens[9].type);
         assert.equal("text", tokens[10].type);
