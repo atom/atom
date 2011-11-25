@@ -37,8 +37,10 @@
 
 define(function(require, exports, module) {
 
+exports.isDark = true;
 exports.cssClass = "ace-clouds-midnight";
-exports.cssText = ".ace-clouds-midnight .ace_editor {\
+exports.cssText = "\
+.ace-clouds-midnight .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -102,6 +104,9 @@ exports.cssText = ".ace-clouds-midnight .ace_editor {\
   background: rgba(215, 215, 215, 0.031);\
 }\
 \
+.ace-clouds-midnight .ace_marker-layer .ace_selected_word {\
+  border: 1px solid #000000;\
+}\
        \
 .ace-clouds-midnight .ace_invisible {\
   color: #BFBFBF;\
@@ -115,16 +120,8 @@ exports.cssText = ".ace-clouds-midnight .ace_editor {\
   color:#4B4B4B;\
 }\
 \
-.ace-clouds-midnight .ace_constant {\
-  \
-}\
-\
 .ace-clouds-midnight .ace_constant.ace_language {\
   color:#39946A;\
-}\
-\
-.ace-clouds-midnight .ace_constant.ace_library {\
-  \
 }\
 \
 .ace-clouds-midnight .ace_constant.ace_numeric {\
@@ -136,120 +133,30 @@ exports.cssText = ".ace-clouds-midnight .ace_editor {\
 background-color:#E92E2E;\
 }\
 \
-.ace-clouds-midnight .ace_invalid.ace_illegal {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_invalid.ace_deprecated {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_support {\
-  \
+.ace-clouds-midnight .ace_fold {\
+    outline-color: #927C5D\
 }\
 \
 .ace-clouds-midnight .ace_support.ace_function {\
   color:#E92E2E;\
 }\
 \
-.ace-clouds-midnight .ace_function.ace_buildin {\
-  \
-}\
-\
 .ace-clouds-midnight .ace_string {\
   color:#5D90CD;\
-}\
-\
-.ace-clouds-midnight .ace_string.ace_regexp {\
-  \
 }\
 \
 .ace-clouds-midnight .ace_comment {\
   color:#3C403B;\
 }\
 \
-.ace-clouds-midnight .ace_comment.ace_doc {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_comment.ace_doc.ace_tag {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_variable {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_variable.ace_language {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_xml_pe {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_meta {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_meta.ace_tag {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_meta.ace_tag.ace_input {\
-  \
-}\
-\
 .ace-clouds-midnight .ace_entity.ace_other.ace_attribute-name {\
   color:#606060;\
 }\
 \
-.ace-clouds-midnight .ace_entity.ace_name {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_entity.ace_name.ace_function {\
-  \
-}\
-\
 .ace-clouds-midnight .ace_markup.ace_underline {\
     text-decoration:underline;\
-}\
-\
-.ace-clouds-midnight .ace_markup.ace_heading {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_markup.ace_heading.ace_1 {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_markup.ace_heading.ace_2 {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_markup.ace_heading.ace_3 {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_markup.ace_heading.ace_4 {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_markup.ace_heading.ace_5 {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_markup.ace_heading.ace_6 {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_markup.ace_list {\
-  \
-}\
-\
-.ace-clouds-midnight .ace_collab.ace_user1 {\
-     \
 }";
 
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
 });

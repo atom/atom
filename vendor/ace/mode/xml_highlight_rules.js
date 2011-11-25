@@ -37,8 +37,8 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var XmlHighlightRules = function() {
 
@@ -86,7 +86,7 @@ var XmlHighlightRules = function() {
         }, {
             token : "string", // multi line string start
             merge : true,
-            regex : '["].*$',
+            regex : '["].*',
             next : "qqstring"
         }, {
             token : "string",
@@ -94,13 +94,13 @@ var XmlHighlightRules = function() {
         }, {
             token : "string", // multi line string start
             merge : true,
-            regex : "['].*$",
+            regex : "['].*",
             next : "qstring"
         }],
 
         qstring: [{
             token : "string",
-            regex : ".*'",
+            regex : ".*?'",
             next : "tag"
         }, {
             token : "string",
@@ -110,7 +110,7 @@ var XmlHighlightRules = function() {
         
         qqstring: [{
             token : "string",
-            regex : ".*\"",
+            regex : ".*?\"",
             next : "tag"
         }, {
             token : "string",

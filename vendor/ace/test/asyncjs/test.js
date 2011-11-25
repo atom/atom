@@ -6,7 +6,7 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop")
+var oop = require("ace/lib/oop")
 var async = require("asyncjs/async")
 require("asyncjs/utils")
 

@@ -37,9 +37,9 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PerlHighlightRules = function() {
 

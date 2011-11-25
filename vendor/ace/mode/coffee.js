@@ -37,13 +37,13 @@
 
 define(function(require, exports, module) {
 
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var Rules = require("ace/mode/coffee_highlight_rules").CoffeeHighlightRules;
-var Outdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
-var TextMode = require("ace/mode/text").Mode;
-var WorkerClient = require("ace/worker/worker_client").WorkerClient;
-var oop = require("pilot/oop");
+var Tokenizer = require("../tokenizer").Tokenizer;
+var Rules = require("./coffee_highlight_rules").CoffeeHighlightRules;
+var Outdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
+var TextMode = require("./text").Mode;
+var WorkerClient = require("../worker/worker_client").WorkerClient;
+var oop = require("../lib/oop");
 
 function Mode() {
     this.$tokenizer = new Tokenizer(new Rules().getRules());
@@ -97,7 +97,7 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        var worker = new WorkerClient(["ace", "pilot"], "worker-coffee.js", "ace/mode/coffee_worker", "Worker");
+        var worker = new WorkerClient(["ace"], "worker-coffee.js", "ace/mode/coffee_worker", "Worker");
         worker.attachToDocument(session.getDocument());
         
         worker.on("error", function(e) {
@@ -106,7 +106,9 @@ oop.inherits(Mode, TextMode);
         
         worker.on("ok", function(e) {
             session.clearAnnotations();
-        });    
+        });
+        
+        return worker;
     };
 
 }).call(Mode.prototype);

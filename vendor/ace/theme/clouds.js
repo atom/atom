@@ -37,8 +37,10 @@
 
 define(function(require, exports, module) {
 
+exports.isDark = false;
 exports.cssClass = "ace-clouds";
-exports.cssText = ".ace-clouds .ace_editor {\
+exports.cssText = "\
+.ace-clouds .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -102,6 +104,9 @@ exports.cssText = ".ace-clouds .ace_editor {\
   background: #FFFBD1;\
 }\
 \
+.ace-clouds .ace_marker-layer .ace_selected_word {\
+  border: 1px solid #BDD5FC;\
+}\
        \
 .ace-clouds .ace_invisible {\
   color: #BFBFBF;\
@@ -115,16 +120,8 @@ exports.cssText = ".ace-clouds .ace_editor {\
   color:#484848;\
 }\
 \
-.ace-clouds .ace_constant {\
-  \
-}\
-\
 .ace-clouds .ace_constant.ace_language {\
   color:#39946A;\
-}\
-\
-.ace-clouds .ace_constant.ace_library {\
-  \
 }\
 \
 .ace-clouds .ace_constant.ace_numeric {\
@@ -135,120 +132,30 @@ exports.cssText = ".ace-clouds .ace_editor {\
   background-color:#FF002A;\
 }\
 \
-.ace-clouds .ace_invalid.ace_illegal {\
-  \
-}\
-\
-.ace-clouds .ace_invalid.ace_deprecated {\
-  \
-}\
-\
-.ace-clouds .ace_support {\
-  \
+.ace-clouds .ace_fold {\
+    outline-color: #AF956F\
 }\
 \
 .ace-clouds .ace_support.ace_function {\
   color:#C52727;\
 }\
 \
-.ace-clouds .ace_function.ace_buildin {\
-  \
-}\
-\
 .ace-clouds .ace_string {\
   color:#5D90CD;\
-}\
-\
-.ace-clouds .ace_string.ace_regexp {\
-  \
 }\
 \
 .ace-clouds .ace_comment {\
   color:#BCC8BA;\
 }\
 \
-.ace-clouds .ace_comment.ace_doc {\
-  \
-}\
-\
-.ace-clouds .ace_comment.ace_doc.ace_tag {\
-  \
-}\
-\
-.ace-clouds .ace_variable {\
-  \
-}\
-\
-.ace-clouds .ace_variable.ace_language {\
-  \
-}\
-\
-.ace-clouds .ace_xml_pe {\
-  \
-}\
-\
-.ace-clouds .ace_meta {\
-  \
-}\
-\
-.ace-clouds .ace_meta.ace_tag {\
-  \
-}\
-\
-.ace-clouds .ace_meta.ace_tag.ace_input {\
-  \
-}\
-\
 .ace-clouds .ace_entity.ace_other.ace_attribute-name {\
   color:#606060;\
 }\
 \
-.ace-clouds .ace_entity.ace_name {\
-  \
-}\
-\
-.ace-clouds .ace_entity.ace_name.ace_function {\
-  \
-}\
-\
 .ace-clouds .ace_markup.ace_underline {\
     text-decoration:underline;\
-}\
-\
-.ace-clouds .ace_markup.ace_heading {\
-  \
-}\
-\
-.ace-clouds .ace_markup.ace_heading.ace_1 {\
-  \
-}\
-\
-.ace-clouds .ace_markup.ace_heading.ace_2 {\
-  \
-}\
-\
-.ace-clouds .ace_markup.ace_heading.ace_3 {\
-  \
-}\
-\
-.ace-clouds .ace_markup.ace_heading.ace_4 {\
-  \
-}\
-\
-.ace-clouds .ace_markup.ace_heading.ace_5 {\
-  \
-}\
-\
-.ace-clouds .ace_markup.ace_heading.ace_6 {\
-  \
-}\
-\
-.ace-clouds .ace_markup.ace_list {\
-  \
-}\
-\
-.ace-clouds .ace_collab.ace_user1 {\
-     \
 }";
 
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
 });

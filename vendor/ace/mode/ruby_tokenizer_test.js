@@ -37,13 +37,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../../support/paths");
+    require("amd-loader");
 }
 
 define(function(require, exports, module) {
 
-var RubyMode = require("ace/mode/ruby").Mode;
-var assert = require("ace/test/assertions");
+var RubyMode = require("./ruby").Mode;
+var assert = require("../test/assertions");
 
 module.exports = {
     

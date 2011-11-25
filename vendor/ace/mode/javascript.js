@@ -37,14 +37,14 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
-var WorkerClient = require("ace/worker/worker_client").WorkerClient;
-var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
+var WorkerClient = require("../worker/worker_client").WorkerClient;
+var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new JavaScriptHighlightRules().getRules());
@@ -125,8 +125,8 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        var worker = new WorkerClient(["ace", "pilot"], "worker-javascript.js", "ace/mode/javascript_worker", "JavaScriptWorker");
-		worker.attachToDocument(session.getDocument());
+        var worker = new WorkerClient(["ace"], "worker-javascript.js", "ace/mode/javascript_worker", "JavaScriptWorker");
+        worker.attachToDocument(session.getDocument());
             
         worker.on("jslint", function(results) {
             var errors = [];

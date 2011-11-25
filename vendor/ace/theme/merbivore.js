@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-
+exports.isDark = true;
 exports.cssText = ".ace-merbivore .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
@@ -245,5 +245,8 @@ background-color:#990000;\
 }";
 
 exports.cssClass = "ace-merbivore";
+
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
 
 });

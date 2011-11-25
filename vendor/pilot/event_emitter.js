@@ -21,8 +21,6 @@
  *
  * Contributor(s):
  *      Fabian Jakobs <fabian AT ajax DOT org>
- *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
- *      Mike de Boer <mike AT ajax DOT org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,82 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-
-var EventEmitter = {};
-
-EventEmitter._emit =
-EventEmitter._dispatchEvent = function(eventName, e) {
-    this._eventRegistry = this._eventRegistry || {};
-    this._defaultHandlers = this._defaultHandlers || {};
-
-    var listeners = this._eventRegistry[eventName] || [];
-    var defaultHandler = this._defaultHandlers[eventName];
-    if (!listeners.length && !defaultHandler)
-        return;
-
-    e = e || {};
-    e.type = eventName;
-    
-    if (!e.stopPropagation) {
-        e.stopPropagation = function() {
-            this.propagationStopped = true;
-        };
-    }
-    
-    if (!e.preventDefault) {
-        e.preventDefault = function() {
-            this.defaultPrevented = true;
-        };
-    }
-
-    for (var i=0; i<listeners.length; i++) {
-        listeners[i](e);
-        if (e.propagationStopped)
-            break;
-    }
-    
-    if (defaultHandler && !e.defaultPrevented)
-        defaultHandler(e);
-};
-
-EventEmitter.setDefaultHandler = function(eventName, callback) {
-    this._defaultHandlers = this._defaultHandlers || {};
-    
-    if (this._defaultHandlers[eventName])
-        throw new Error("The default handler for '" + eventName + "' is already set");
-        
-    this._defaultHandlers[eventName] = callback;
-};
-
-EventEmitter.on =
-EventEmitter.addEventListener = function(eventName, callback) {
-    this._eventRegistry = this._eventRegistry || {};
-
-    var listeners = this._eventRegistry[eventName];
-    if (!listeners)
-        var listeners = this._eventRegistry[eventName] = [];
-
-    if (listeners.indexOf(callback) == -1)
-        listeners.push(callback);
-};
-
-EventEmitter.removeListener =
-EventEmitter.removeEventListener = function(eventName, callback) {
-    this._eventRegistry = this._eventRegistry || {};
-
-    var listeners = this._eventRegistry[eventName];
-    if (!listeners)
-        return;
-
-    var index = listeners.indexOf(callback);
-    if (index !== -1)
-        listeners.splice(index, 1);
-};
-
-EventEmitter.removeAllListeners = function(eventName) {
-    if (this._eventRegistry) this._eventRegistry[eventName] = [];
-};
-
-exports.EventEmitter = EventEmitter;
-
+    console.warn("DEPRECATED: 'pilot/event_emitter' is deprecated. Use 'ace/lib/event_emitter' instead");
+    module.exports = require("ace/lib/event_emitter");
 });

@@ -37,9 +37,9 @@
  
 define(function(require, exports, module) {
     
-var oop = require("pilot/oop");
-var Mirror = require("ace/worker/mirror").Mirror;
-var coffee = require("ace/mode/coffee/coffee-script");
+var oop = require("../lib/oop");
+var Mirror = require("../worker/mirror").Mirror;
+var coffee = require("../mode/coffee/coffee-script");
 
 window.addEventListener = function() {};
 

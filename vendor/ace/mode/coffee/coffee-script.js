@@ -37,8 +37,8 @@
  
 define(function(require, exports, module) {
     
-    var Lexer = require("ace/mode/coffee/lexer").Lexer;
-    var parser = require("ace/mode/coffee/parser");
+    var Lexer = require("./lexer").Lexer;
+    var parser = require("./parser");
 
     var lexer = new Lexer();
     parser.lexer = {
@@ -55,7 +55,7 @@ define(function(require, exports, module) {
             return "";
         }
     };
-    parser.yy = require('ace/mode/coffee/nodes');
+    parser.yy = require('./nodes');
     
     exports.parse = function(code) {
         return parser.parse(lexer.tokenize(code));

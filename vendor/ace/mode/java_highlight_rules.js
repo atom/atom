@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var lang = require("pilot/lang");
-var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var lang = require("../lib/lang");
+var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var JavaHighlightRules = function() {
 

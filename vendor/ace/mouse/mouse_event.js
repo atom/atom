@@ -38,8 +38,8 @@
 
 define(function(require, exports, module) {
 
-var event = require("pilot/event");
-var dom = require("pilot/dom");
+var event = require("../lib/event");
+var dom = require("../lib/dom");
 
 /**
  * Custom Ace mouse event

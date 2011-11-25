@@ -38,12 +38,12 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var RubyHighlightRules = require("ace/mode/ruby_highlight_rules").RubyHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var RubyHighlightRules = require("./ruby_highlight_rules").RubyHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new RubyHighlightRules().getRules());

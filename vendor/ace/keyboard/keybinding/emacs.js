@@ -37,8 +37,8 @@
 
 define(function(require, exports, module) {
 
-var StateHandler = require("ace/keyboard/state_handler").StateHandler;
-var matchCharacterOnly =  require("ace/keyboard/state_handler").matchCharacterOnly;
+var StateHandler = require("../state_handler").StateHandler;
+var matchCharacterOnly =  require("../state_handler").matchCharacterOnly;
 
 var emacsState = {
     start: [

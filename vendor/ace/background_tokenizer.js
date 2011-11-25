@@ -37,8 +37,8 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("./lib/oop");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
 var BackgroundTokenizer = function(tokenizer, editor) {
     this.running = false;    

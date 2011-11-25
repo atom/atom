@@ -58,6 +58,14 @@ MockRenderer.prototype.getLastVisibleRow = function() {
     return this.layerConfig.lastVisibleRow;
 };
 
+MockRenderer.prototype.getFirstFullyVisibleRow = function() {
+    return this.layerConfig.firstVisibleRow;
+};
+
+MockRenderer.prototype.getLastFullyVisibleRow = function() {
+    return this.layerConfig.lastVisibleRow;
+};
+
 MockRenderer.prototype.getContainerElement = function() {
     return this.container;
 };

@@ -37,7 +37,7 @@
 
 define(function(require, exports, module) {
 
-var Range = require("ace/range").Range;
+var Range = require("../range").Range;
 
 var MatchingParensOutdent = function() {};
 

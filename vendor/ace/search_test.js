@@ -37,14 +37,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../support/paths");
+    require("amd-loader");
 }
 
 define(function(require, exports, module) {
 
-var EditSession = require("ace/edit_session").EditSession;
-var Search = require("ace/search").Search;
-var assert = require("ace/test/assertions");
+var EditSession = require("./edit_session").EditSession;
+var Search = require("./search").Search;
+var assert = require("./test/assertions");
 
 module.exports = {
     "test: configure the search object" : function() {

@@ -121,7 +121,7 @@ var Tokenizer = function(rules) {
                     }
                     break;
                 }
-            };
+            }
 
             if (value[0]) {
                 if (typeof type == "string") {
@@ -139,7 +139,7 @@ var Tokenizer = function(rules) {
                         token = {
                             type: type[i],
                             value: value[i]
-                        }
+                        };
                     }
                 }
             }
@@ -148,7 +148,7 @@ var Tokenizer = function(rules) {
                 break;
             
             lastIndex = re.lastIndex;
-        };
+        }
 
         if (token.type)
             tokens.push(token);

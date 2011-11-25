@@ -1,4 +1,5 @@
-/* ***** BEGIN LICENSE BLOCK *****
+/* vim:ts=4:sts=4:sw=4:
+ * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -11,15 +12,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Mozilla Skywriter.
+ * The Original Code is Ajax.org Code Editor (ACE).
  *
  * The Initial Developer of the Original Code is
- * Mozilla.
- * Portions created by the Initial Developer are Copyright (C) 2009
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Julian Viereck (jviereck@mozilla.com)
+ *      Fabian Jakobs <fabian AT ajax DOT org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,29 +38,33 @@
 
 define(function(require, exports, module) {
 
+var oop = require("ace/lib/oop");
+var lang = require("ace/lib/lang");
+var EventEmitter = require("ace/lib/event_emitter").EventEmitter;
 
-var extensionSpecs = {};
-
-exports.addExtensionSpec = function(extensionSpec) {
-    extensionSpecs[extensionSpec.name] = extensionSpec;
+var Editor = exports.Editor = function() {
+    this._buffers = [];
+    this._windows = [];
 };
 
-exports.removeExtensionSpec = function(extensionSpec) {
-    if (typeof extensionSpec === "string") {
-        delete extensionSpecs[extensionSpec];
-    }
-    else {
-        delete extensionSpecs[extensionSpec.name];
-    }
-};
+(function() {
 
-exports.getExtensionSpec = function(name) {
-    return extensionSpecs[name];
-};
-
-exports.getExtensionSpecs = function() {
-    return Object.keys(extensionSpecs);
-};
-
+    oop.implement(this, EventEmitter);
+    
+    this.addBuffer = function(buffer) {
+        this._buffers.push(buffer);
+        return this._buffers.length-1;
+    };
+    
+    this.addWindow = function(win) {
+        this._windows.push(win);
+        return this._windows.length-1;
+    };
+    
+    this.openInWindow = function(bufferId, winId) {
+        this._windows[winId || 0].setBuffer(this._buffers[bufferId]);
+    };
+    
+}).call(Editor.prototype);
 
 });

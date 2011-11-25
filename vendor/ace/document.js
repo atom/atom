@@ -37,10 +37,10 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var Range = require("ace/range").Range;
-var Anchor = require("ace/anchor").Anchor;
+var oop = require("./lib/oop");
+var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var Range = require("./range").Range;
+var Anchor = require("./anchor").Anchor;
 
 var Document = function(text) {
     this.$lines = [];

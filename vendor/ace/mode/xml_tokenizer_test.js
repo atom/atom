@@ -36,13 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../../support/paths");
+    require("amd-loader");
 }
 
 define(function(require, exports, module) {
 
-var XmlMode = require("ace/mode/xml").Mode;
-var assert = require("ace/test/assertions");
+var XmlMode = require("./xml").Mode;
+var assert = require("../test/assertions");
 
 module.exports = {
     
@@ -62,11 +62,31 @@ module.exports = {
         assert.equal("text", tokens[2].type);
         assert.equal("keyword", tokens[3].type);
         assert.equal("text", tokens[4].type);
+    },
+    
+    "test: multiline attributes": function() {
+        var multiLine = ['<copy set="{', '}" undo="{', '}"/>'];
+        
+        var state = "start";
+        var multiLineTokens = multiLine.map(function(line) {
+            var tokens = this.tokenizer.getLineTokens(line, state);
+            state = tokens.state;
+            return tokens.tokens;
+        }, this);
+        
+        assert.equal(multiLineTokens[0].length, 6);
+        assert.equal(multiLineTokens[1].length, 5);
+        assert.equal(multiLineTokens[2].length, 2);
+        
+        assert.equal(multiLineTokens[0][5].type, "string");
+        assert.equal(multiLineTokens[1][0].type, "string");
+        assert.equal(multiLineTokens[1][4].type, "string");
+        assert.equal(multiLineTokens[2][0].type, "string");
     }
 };
 
 });
 
 if (typeof module !== "undefined" && module === require.main) {
-    require("asyncjs").test.testcase(module.exports).exec()
+    require("asyncjs").test.testcase(module.exports).exec();
 }

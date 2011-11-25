@@ -41,11 +41,11 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var dom = require("pilot/dom");
-var lang = require("pilot/lang");
-var useragent = require("pilot/useragent");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var oop = require("../lib/oop");
+var dom = require("../lib/dom");
+var lang = require("../lib/lang");
+var useragent = require("../lib/useragent");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
 
 var Text = function(parentEl) {
     this.element = dom.createElement("div");
@@ -201,6 +201,7 @@ var Text = function(parentEl) {
             var foldLine = this.session.getFoldLine(row);
             if (foldLine) {
                 if (foldLine.containsRow(first)) {
+                    first = foldLine.start.row;
                     break;
                 } else {
                     row = foldLine.end.row;
@@ -264,12 +265,12 @@ var Text = function(parentEl) {
             foldStart = fold ?fold.start.row :Infinity;
 
         while (true) {
-            if(row > foldStart) {
+            if (row > foldStart) {
                 row = fold.end.row+1;
                 fold = this.session.getNextFoldLine(row, fold);
                 foldStart = fold ?fold.start.row :Infinity;
             }
-            if(row > lastRow)
+            if (row > lastRow)
                 break;
 
             var container = dom.createElement("div");
@@ -311,12 +312,12 @@ var Text = function(parentEl) {
             foldStart = fold ?fold.start.row :Infinity;
 
         while (true) {
-            if(row > foldStart) {
+            if (row > foldStart) {
                 row = fold.end.row+1;
                 fold = this.session.getNextFoldLine(row, fold);
                 foldStart = fold ?fold.start.row :Infinity;
             }
-            if(row > lastRow)
+            if (row > lastRow)
                 break;
 
             if (this.$useLineGroups())

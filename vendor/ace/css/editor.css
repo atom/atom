@@ -1,10 +1,10 @@
-/*@import url(//fonts.googleapis.com/css?family=Droid+Sans+Mono);*/
+/* @import url(//fonts.googleapis.com/css?family=Droid+Sans+Mono); */
 
 
 .ace_editor {
     position: absolute;
     overflow: hidden;
-    font-family: 'Monaco', 'Menlo', 'Droid Sans Mono', 'Courier New', monospace;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Droid Sans Mono', 'Courier New', monospace;
     font-size: 12px;
 }
 
@@ -40,6 +40,7 @@
     overflow-x: hidden;
     overflow-y: hidden;
     height: 100%;
+    cursor: default;
 }
 
 .ace_gutter-cell.ace_error {
@@ -162,8 +163,18 @@
 
 .ace_line .ace_fold {
     cursor: pointer;
-     pointer-events: auto;
-     color: darkred;
+    color: darkred;
+    -moz-outline-radius: 4px;
+    outline-radius: 4px;
+    border-radius: 4px;
+    outline: 1px solid #1C00FF;
+    outline-offset: -2px;
+    pointer-events: auto;
+}
+
+.ace_dark .ace_fold {
+    color: #E6E1DC;
+    outline-color: #FC6F09;
 }
 
 .ace_fold:hover{

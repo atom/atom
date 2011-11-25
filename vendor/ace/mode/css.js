@@ -37,12 +37,12 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var CssHighlightRules = require("ace/mode/css_highlight_rules").CssHighlightRules;
-var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
-var WorkerClient = require("ace/worker/worker_client").WorkerClient;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var WorkerClient = require("../worker/worker_client").WorkerClient;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new CssHighlightRules().getRules());
@@ -78,7 +78,7 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        var worker = new WorkerClient(["ace", "pilot"], "worker-css.js", "ace/mode/css_worker", "Worker");
+        var worker = new WorkerClient(["ace"], "worker-css.js", "ace/mode/css_worker", "Worker");
         worker.attachToDocument(session.getDocument());
         
         worker.on("csslint", function(e) {
@@ -95,6 +95,7 @@ oop.inherits(Mode, TextMode);
             
             session.setAnnotations(errors);
         });
+        return worker;
     };
 
 }).call(Mode.prototype);

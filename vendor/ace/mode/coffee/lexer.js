@@ -32,8 +32,8 @@ define(function(require, exports, module) {
     }
     return -1;
   };
-  Rewriter = require('ace/mode/coffee/rewriter').Rewriter;
-  _ref = require('ace/mode/coffee/helpers'), count = _ref.count, starts = _ref.starts, compact = _ref.compact, last = _ref.last;
+  Rewriter = require('./rewriter').Rewriter;
+  _ref = require('./helpers'), count = _ref.count, starts = _ref.starts, compact = _ref.compact, last = _ref.last;
   exports.Lexer = Lexer = (function() {
     function Lexer() {}
     Lexer.prototype.tokenize = function(code, opts) {

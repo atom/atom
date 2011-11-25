@@ -36,15 +36,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../../support/paths");
+    require("amd-loader");
 }
 
 define(function(require, exports, module) {
 
-var EditSession = require("ace/edit_session").EditSession;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var JavaScriptMode = require("ace/mode/javascript").Mode;
-var assert = require("ace/test/assertions");
+var EditSession = require("../edit_session").EditSession;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var JavaScriptMode = require("./javascript").Mode;
+var assert = require("../test/assertions");
 
 module.exports = {
     setUp : function() {    
@@ -141,7 +141,7 @@ module.exports = {
     },
 
     "test: auto outdent should indent the line with the same indent as the line with the matching opening brace" : function() {
-        var session = new EditSession(["  function foo() {", "    bla", "    }"]);
+        var session = new EditSession(["  function foo() {", "    bla", "    }"], new JavaScriptMode());
         this.mode.autoOutdent("start", session, 2);
         assert.equal("  }", session.getLine(2));
     },

@@ -37,8 +37,8 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var TextileHighlightRules = function() {
     this.$rules = {

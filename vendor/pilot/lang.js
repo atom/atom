@@ -1,4 +1,5 @@
-/* ***** BEGIN LICENSE BLOCK *****
+/* vim:ts=4:sts=4:sw=4:
+ * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Mozilla Public License Version
@@ -36,114 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-
-exports.stringReverse = function(string) {
-    return string.split("").reverse().join("");
-};
-
-exports.stringRepeat = function (string, count) {
-     return new Array(count + 1).join(string);
-};
-
-var trimBeginRegexp = /^\s\s*/;
-var trimEndRegexp = /\s\s*$/;
-
-exports.stringTrimLeft = function (string) {
-    return string.replace(trimBeginRegexp, '')
-};
-
-exports.stringTrimRight = function (string) {
-    return string.replace(trimEndRegexp, '');
-};
-
-exports.copyObject = function(obj) {
-    var copy = {};
-    for (var key in obj) {
-        copy[key] = obj[key];
-    }
-    return copy;
-};
-
-exports.copyArray = function(array){
-    var copy = [];
-    for (i=0, l=array.length; i<l; i++) {
-        if (array[i] && typeof array[i] == "object")
-            copy[i] = this.copyObject( array[i] );
-        else 
-            copy[i] = array[i]
-    }
-    return copy;
-};
-
-exports.deepCopy = function (obj) {
-    if (typeof obj != "object") {
-        return obj;
-    }
-    
-    var copy = obj.constructor();
-    for (var key in obj) {
-        if (typeof obj[key] == "object") {
-            copy[key] = this.deepCopy(obj[key]);
-        } else {
-            copy[key] = obj[key];
-        }
-    }
-    return copy;
-}
-
-exports.arrayToMap = function(arr) {
-    var map = {};
-    for (var i=0; i<arr.length; i++) {
-        map[arr[i]] = 1;
-    }
-    return map;
-
-};
-
-/**
- * splice out of 'array' anything that === 'value'
- */
-exports.arrayRemove = function(array, value) {
-  for (var i = 0; i <= array.length; i++) {
-    if (value === array[i]) {
-      array.splice(i, 1);
-    }
-  }
-};
-
-exports.escapeRegExp = function(str) {
-    return str.replace(/([.*+?^${}()|[\]\/\\])/g, '\\$1');
-};
-
-exports.deferredCall = function(fcn) {
-
-    var timer = null;
-    var callback = function() {
-        timer = null;
-        fcn();
-    };
-
-    var deferred = function(timeout) {
-        deferred.cancel();
-        timer = setTimeout(callback, timeout || 0);
-        return deferred;
-    }
-
-    deferred.schedule = deferred;
-
-    deferred.call = function() {
-        this.cancel();
-        fcn();
-        return deferred;
-    };
-
-    deferred.cancel = function() {
-        clearTimeout(timer);
-        timer = null;
-        return deferred;
-    };
-
-    return deferred;
-};
-
+    console.warn("DEPRECATED: 'pilot/lang' is deprecated. Use 'ace/lib/lang' instead");
+    module.exports = require("ace/lib/lang");
 });

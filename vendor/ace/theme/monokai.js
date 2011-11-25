@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-
+exports.isDark = true;
 exports.cssText = ".ace-monokai .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
@@ -253,5 +253,8 @@ background-color:#AE81FF;\
 }";
 
 exports.cssClass = "ace-monokai";
+
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
 
 });

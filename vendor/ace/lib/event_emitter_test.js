@@ -36,14 +36,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../../support/paths");
+    require("amd-loader");
 }
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var EventEmitter = require("pilot/event_emitter").EventEmitter;
-var assert = require("ace/test/assertions");
+var oop = require("../lib/oop");
+var EventEmitter = require("./event_emitter").EventEmitter;
+var assert = require("../test/assertions");
 
 var Emitter = function() {};
 

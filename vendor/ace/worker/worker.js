@@ -7,7 +7,29 @@ var window = {
     console: console
 };
 
-var require = function(id) {
+var normalizeModule = function(parentId, moduleName) {
+    // normalize plugin requires
+    if (moduleName.indexOf("!") !== -1) {
+        var chunks = moduleName.split("!");
+        return normalizeModule(parentId, chunks[0]) + "!" + normalizeModule(parentId, chunks[1]);
+    }
+    // normalize relative requires
+    if (moduleName.charAt(0) == ".") {
+        var base = parentId.split("/").slice(0, -1).join("/");
+        var moduleName = base + "/" + moduleName;
+        
+        while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
+            var previous = moduleName;
+            var moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
+        }
+    }
+    
+    return moduleName;
+};
+
+var require = function(parentId, id) {
+    var id = normalizeModule(parentId, id);
+    
     var module = require.modules[id];
     if (module) {
         if (!module.initialized) {
@@ -22,9 +44,8 @@ var require = function(id) {
     path = chunks.join("/") + ".js";
     
     require.id = id;
-//    console.log("require " +  path + " " + id)
     importScripts(path);
-    return require(id);    
+    return require(parentId, id);    
 };
 
 require.modules = {};
@@ -37,16 +58,20 @@ var define = function(id, deps, factory) {
         factory = id;
         id = require.id;
     }
-    
+
     if (id.indexOf("text!") === 0) 
         return;
     
+    var req = function(deps, factory) {
+        return require(id, deps, factory);
+    }
+
     require.modules[id] = {
         factory: function() {
             var module = {
                 exports: {}
             };
-            var returnExports = factory(require, module.exports, module);
+            var returnExports = factory(req, module.exports, module);
             if (returnExports)
                 module.exports = returnExports;
             return module;
@@ -60,8 +85,8 @@ function initBaseUrls(topLevelNamespaces) {
 
 function initSender() {
 
-    var EventEmitter = require("pilot/event_emitter").EventEmitter;
-    var oop = require("pilot/oop");
+    var EventEmitter = require(null, "ace/lib/event_emitter").EventEmitter;
+    var oop = require(null, "ace/lib/oop");
     
     var Sender = function() {};
     
@@ -100,9 +125,9 @@ onmessage = function(e) {
     }
     else if (msg.init) {        
         initBaseUrls(msg.tlns);
-        require("pilot/fixoldbrowsers");
+        require(null, "ace/lib/fixoldbrowsers");
         sender = initSender();
-        var clazz = require(msg.module)[msg.classname];
+        var clazz = require(null, msg.module)[msg.classname];
         main = new clazz(sender);
     } 
     else if (msg.event && sender) {

@@ -36,15 +36,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("../../support/paths");    
-    require("ace/test/mockdom");
+    require("amd-loader");
+    require("./test/mockdom");
 }
 
 define(function(require, exports, module) {
 
-var EditSession = require("ace/edit_session").EditSession;
-var VirtualRenderer = require("ace/virtual_renderer").VirtualRenderer;
-var assert = require("ace/test/assertions");
+var EditSession = require("./edit_session").EditSession;
+var VirtualRenderer = require("./virtual_renderer").VirtualRenderer;
+var assert = require("./test/assertions");
 
 module.exports = {
     "test: screen2text the column should be rounded to the next character edge" : function() {

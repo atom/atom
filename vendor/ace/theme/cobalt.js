@@ -37,8 +37,10 @@
 
 define(function(require, exports, module) {
 
+exports.isDark = true;
 exports.cssClass = "ace-cobalt";
-exports.cssText = ".ace-cobalt .ace_editor {\
+exports.cssText = "\
+.ace-cobalt .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -102,6 +104,9 @@ exports.cssText = ".ace-cobalt .ace_editor {\
   background: rgba(0, 0, 0, 0.35);\
 }\
 \
+.ace-cobalt .ace_marker-layer .ace_selected_word {\
+  border: 1px solid rgba(179, 101, 57, 0.75);\
+}\
        \
 .ace-cobalt .ace_invisible {\
   color: rgba(255, 255, 255, 0.15);\
@@ -111,24 +116,8 @@ exports.cssText = ".ace-cobalt .ace_editor {\
   color:#FF9D00;\
 }\
 \
-.ace-cobalt .ace_keyword.ace_operator {\
-  \
-}\
-\
 .ace-cobalt .ace_constant {\
   color:#FF628C;\
-}\
-\
-.ace-cobalt .ace_constant.ace_language {\
-  \
-}\
-\
-.ace-cobalt .ace_constant.ace_library {\
-  \
-}\
-\
-.ace-cobalt .ace_constant.ace_numeric {\
-  \
 }\
 \
 .ace-cobalt .ace_invalid {\
@@ -136,28 +125,16 @@ exports.cssText = ".ace-cobalt .ace_editor {\
 background-color:#800F00;\
 }\
 \
-.ace-cobalt .ace_invalid.ace_illegal {\
-  \
-}\
-\
-.ace-cobalt .ace_invalid.ace_deprecated {\
-  \
-}\
-\
 .ace-cobalt .ace_support {\
   color:#80FFBB;\
 }\
 \
+.ace-cobalt .ace_fold {\
+    outline-color: #FF9D00\
+}\
+\
 .ace-cobalt .ace_support.ace_function {\
   color:#FFB054;\
-}\
-\
-.ace-cobalt .ace_function.ace_buildin {\
-  \
-}\
-\
-.ace-cobalt .ace_string {\
-  \
 }\
 \
 .ace-cobalt .ace_string.ace_regexp {\
@@ -169,14 +146,6 @@ background-color:#800F00;\
 color:#0088FF;\
 }\
 \
-.ace-cobalt .ace_comment.ace_doc {\
-  \
-}\
-\
-.ace-cobalt .ace_comment.ace_doc.ace_tag {\
-  \
-}\
-\
 .ace-cobalt .ace_variable {\
   color:#CCCCCC;\
 }\
@@ -185,32 +154,8 @@ color:#0088FF;\
   color:#FF80E1;\
 }\
 \
-.ace-cobalt .ace_xml_pe {\
-  \
-}\
-\
-.ace-cobalt .ace_meta {\
-  \
-}\
-\
 .ace-cobalt .ace_meta.ace_tag {\
   color:#9EFFFF;\
-}\
-\
-.ace-cobalt .ace_meta.ace_tag.ace_input {\
-  \
-}\
-\
-.ace-cobalt .ace_entity.ace_other.ace_attribute-name {\
-  \
-}\
-\
-.ace-cobalt .ace_entity.ace_name {\
-  \
-}\
-\
-.ace-cobalt .ace_entity.ace_name.ace_function {\
-  \
 }\
 \
 .ace-cobalt .ace_markup.ace_underline {\
@@ -222,36 +167,10 @@ color:#0088FF;\
 background-color:#001221;\
 }\
 \
-.ace-cobalt .ace_markup.ace_heading.ace_1 {\
-  \
-}\
-\
-.ace-cobalt .ace_markup.ace_heading.ace_2 {\
-  \
-}\
-\
-.ace-cobalt .ace_markup.ace_heading.ace_3 {\
-  \
-}\
-\
-.ace-cobalt .ace_markup.ace_heading.ace_4 {\
-  \
-}\
-\
-.ace-cobalt .ace_markup.ace_heading.ace_5 {\
-  \
-}\
-\
-.ace-cobalt .ace_markup.ace_heading.ace_6 {\
-  \
-}\
-\
 .ace-cobalt .ace_markup.ace_list {\
   background-color:#130D26;\
-}\
-\
-.ace-cobalt .ace_collab.ace_user1 {\
-     \
 }";
 
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
 });

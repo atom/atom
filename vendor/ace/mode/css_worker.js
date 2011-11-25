@@ -37,9 +37,9 @@
  
 define(function(require, exports, module) {
     
-var oop = require("pilot/oop");
-var Mirror = require("ace/worker/mirror").Mirror;
-var CSSLint = require("ace/mode/css/csslint").CSSLint;
+var oop = require("../lib/oop");
+var Mirror = require("../worker/mirror").Mirror;
+var CSSLint = require("./css/csslint").CSSLint;
 
 var Worker = exports.Worker = function(sender) {
     Mirror.call(this, sender);

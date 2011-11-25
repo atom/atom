@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-
+exports.isDark = false;
 exports.cssText = ".ace-eclipse .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
@@ -142,5 +142,8 @@ exports.cssText = ".ace-eclipse .ace_editor {\
 }";
 
 exports.cssClass = "ace-eclipse";
+
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText);
 
 });

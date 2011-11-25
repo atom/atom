@@ -39,8 +39,8 @@
 
 define(function(require, exports, module) {
 
-var Range = require("ace/range").Range;
-var dom = require("pilot/dom");
+var Range = require("../range").Range;
+var dom = require("../lib/dom");
 
 var Marker = function(parentEl) {
     this.element = dom.createElement("div");

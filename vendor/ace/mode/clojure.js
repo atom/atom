@@ -39,12 +39,12 @@
 
 define(function(require, exports, module) {
 
-var oop = require("pilot/oop");
-var TextMode = require("ace/mode/text").Mode;
-var Tokenizer = require("ace/tokenizer").Tokenizer;
-var ClojureHighlightRules = require("ace/mode/clojure_highlight_rules").ClojureHighlightRules;
-var MatchingParensOutdent = require("ace/mode/matching_parens_outdent").MatchingParensOutdent;
-var Range = require("ace/range").Range;
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var ClojureHighlightRules = require("./clojure_highlight_rules").ClojureHighlightRules;
+var MatchingParensOutdent = require("./matching_parens_outdent").MatchingParensOutdent;
+var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new ClojureHighlightRules().getRules());

@@ -40,358 +40,346 @@
 
 define(function(require, exports, module) {
 
-var lang = require("pilot/lang");
-var canon = require("pilot/canon");
+var lang = require("../lib/lang");
 
 function bindKey(win, mac) {
     return {
         win: win,
-        mac: mac,
-        sender: "editor"
+        mac: mac
     };
 }
 
-canon.addCommand({
-    name: "null",
-    exec: function(env, args, request) {  }
-});
-
-canon.addCommand({
+exports.commands = [{
     name: "selectall",
     bindKey: bindKey("Ctrl-A", "Command-A"),
-    exec: function(env, args, request) { env.editor.selectAll(); }
-});
-canon.addCommand({
-    name: "removeline",
-    bindKey: bindKey("Ctrl-D", "Command-D"),
-    exec: function(env, args, request) { env.editor.removeLines(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.selectAll(); },
+    readOnly: true
+}, {
+    name: "centerselection",
+    bindKey: bindKey(null, "Ctrl-L"),
+    exec: function(editor) { editor.centerSelection(); },
+    readOnly: true
+}, {
     name: "gotoline",
     bindKey: bindKey("Ctrl-L", "Command-L"),
-    exec: function(env, args, request) {
+    exec: function(editor) {
         var line = parseInt(prompt("Enter line number:"));
         if (!isNaN(line)) {
-            env.editor.gotoLine(line);
+            editor.gotoLine(line);
         }
-    }
-});
-canon.addCommand({
-    name: "togglecomment",
-    bindKey: bindKey("Ctrl-7", "Command-7"),
-    exec: function(env, args, request) { env.editor.toggleCommentLines(); }
-});
-canon.addCommand({
+    },
+    readOnly: true
+}, {
+    name: "fold",
+    bindKey: bindKey("Alt-L", "Alt-L"),
+    exec: function(editor) { editor.session.toggleFold(false); },
+    readOnly: true
+}, {
+    name: "unfold",
+    bindKey: bindKey("Alt-Shift-L", "Alt-Shift-L"),
+    exec: function(editor) { editor.session.toggleFold(true); },
+    readOnly: true
+}, {
+    name: "foldall",
+    bindKey: bindKey("Alt-0", "Alt-0"),
+    exec: function(editor) { editor.session.foldAll(); },
+    readOnly: true
+}, {
+    name: "unfoldall",
+    bindKey: bindKey("Alt-Shift-0", "Alt-Shift-0"),
+    exec: function(editor) { editor.session.unfold(); },
+    readOnly: true
+}, {
     name: "findnext",
     bindKey: bindKey("Ctrl-K", "Command-G"),
-    exec: function(env, args, request) { env.editor.findNext(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.findNext(); },
+    readOnly: true
+}, {
     name: "findprevious",
     bindKey: bindKey("Ctrl-Shift-K", "Command-Shift-G"),
-    exec: function(env, args, request) { env.editor.findPrevious(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.findPrevious(); },
+    readOnly: true
+}, {
     name: "find",
     bindKey: bindKey("Ctrl-F", "Command-F"),
-    exec: function(env, args, request) {
-        var needle = prompt("Find:", env.editor.getCopyText());
-        env.editor.find(needle);
-    }
-});
-canon.addCommand({
+    exec: function(editor) {
+        var needle = prompt("Find:", editor.getCopyText());
+        editor.find(needle);
+    },
+    readOnly: true
+}, {
+    name: "overwrite",
+    bindKey: bindKey("Insert", "Insert"),
+    exec: function(editor) { editor.toggleOverwrite(); },
+    readOnly: true
+}, {
+    name: "selecttostart",
+    bindKey: bindKey("Ctrl-Shift-Home|Alt-Shift-Up", "Command-Shift-Up"),
+    exec: function(editor) { editor.getSelection().selectFileStart(); },
+    readOnly: true
+}, {
+    name: "gotostart",
+    bindKey: bindKey("Ctrl-Home|Ctrl-Up", "Command-Home|Command-Up"),
+    exec: function(editor) { editor.navigateFileStart(); },
+    readOnly: true
+}, {
+    name: "selectup",
+    bindKey: bindKey("Shift-Up", "Shift-Up"),
+    exec: function(editor) { editor.getSelection().selectUp(); },
+    readOnly: true
+}, {
+    name: "golineup",
+    bindKey: bindKey("Up", "Up|Ctrl-P"),
+    exec: function(editor, args) { editor.navigateUp(args.times); },
+    readOnly: true
+}, {
+    name: "selecttoend",
+    bindKey: bindKey("Ctrl-Shift-End|Alt-Shift-Down", "Command-Shift-Down"),
+    exec: function(editor) { editor.getSelection().selectFileEnd(); },
+    readOnly: true
+}, {
+    name: "gotoend",
+    bindKey: bindKey("Ctrl-End|Ctrl-Down", "Command-End|Command-Down"),
+    exec: function(editor) { editor.navigateFileEnd(); },
+    readOnly: true
+}, {
+    name: "selectdown",
+    bindKey: bindKey("Shift-Down", "Shift-Down"),
+    exec: function(editor) { editor.getSelection().selectDown(); },
+    readOnly: true
+}, {
+    name: "golinedown",
+    bindKey: bindKey("Down", "Down|Ctrl-N"),
+    exec: function(editor, args) { editor.navigateDown(args.times); },
+    readOnly: true
+}, {
+    name: "selectwordleft",
+    bindKey: bindKey("Ctrl-Shift-Left", "Option-Shift-Left"),
+    exec: function(editor) { editor.getSelection().selectWordLeft(); },
+    readOnly: true
+}, {
+    name: "gotowordleft",
+    bindKey: bindKey("Ctrl-Left", "Option-Left"),
+    exec: function(editor) { editor.navigateWordLeft(); },
+    readOnly: true
+}, {
+    name: "selecttolinestart",
+    bindKey: bindKey("Alt-Shift-Left", "Command-Shift-Left"),
+    exec: function(editor) { editor.getSelection().selectLineStart(); },
+    readOnly: true
+}, {
+    name: "gotolinestart",
+    bindKey: bindKey("Alt-Left|Home", "Command-Left|Home|Ctrl-A"),
+    exec: function(editor) { editor.navigateLineStart(); },
+    readOnly: true
+}, {
+    name: "selectleft",
+    bindKey: bindKey("Shift-Left", "Shift-Left"),
+    exec: function(editor) { editor.getSelection().selectLeft(); },
+    readOnly: true
+}, {
+    name: "gotoleft",
+    bindKey: bindKey("Left", "Left|Ctrl-B"),
+    exec: function(editor, args) { editor.navigateLeft(args.times); },
+    readOnly: true
+}, {
+    name: "selectwordright",
+    bindKey: bindKey("Ctrl-Shift-Right", "Option-Shift-Right"),
+    exec: function(editor) { editor.getSelection().selectWordRight(); },
+    readOnly: true
+}, {
+    name: "gotowordright",
+    bindKey: bindKey("Ctrl-Right", "Option-Right"),
+    exec: function(editor) { editor.navigateWordRight(); },
+    readOnly: true
+}, {
+    name: "selecttolineend",
+    bindKey: bindKey("Alt-Shift-Right", "Command-Shift-Right"),
+    exec: function(editor) { editor.getSelection().selectLineEnd(); },
+    readOnly: true
+}, {
+    name: "gotolineend",
+    bindKey: bindKey("Alt-Right|End", "Command-Right|End|Ctrl-E"),
+    exec: function(editor) { editor.navigateLineEnd(); },
+    readOnly: true
+}, {
+    name: "selectright",
+    bindKey: bindKey("Shift-Right", "Shift-Right"),
+    exec: function(editor) { editor.getSelection().selectRight(); },
+    readOnly: true
+}, {
+    name: "gotoright",
+    bindKey: bindKey("Right", "Right|Ctrl-F"),
+    exec: function(editor, args) { editor.navigateRight(args.times); },
+    readOnly: true
+}, {
+    name: "selectpagedown",
+    bindKey: bindKey("Shift-PageDown", "Shift-PageDown"),
+    exec: function(editor) { editor.selectPageDown(); },
+    readOnly: true
+}, {
+    name: "pagedown",
+    bindKey: bindKey(null, "PageDown"),
+    exec: function(editor) { editor.scrollPageDown(); },
+    readOnly: true
+}, {
+    name: "gotopagedown",
+    bindKey: bindKey("PageDown", "Option-PageDown|Ctrl-V"),
+    exec: function(editor) { editor.gotoPageDown(); },
+    readOnly: true
+}, {
+    name: "selectpageup",
+    bindKey: bindKey("Shift-PageUp", "Shift-PageUp"),
+    exec: function(editor) { editor.selectPageUp(); },
+    readOnly: true
+}, {
+    name: "pageup",
+    bindKey: bindKey(null, "PageUp"),
+    exec: function(editor) { editor.scrollPageUp(); },
+    readOnly: true
+}, {
+    name: "gotopageup",
+    bindKey: bindKey("PageUp", "Option-PageUp"),
+    exec: function(editor) { editor.gotoPageUp(); },
+    readOnly: true
+}, {
+    name: "selectlinestart",
+    bindKey: bindKey("Shift-Home", "Shift-Home"),
+    exec: function(editor) { editor.getSelection().selectLineStart(); },
+    readOnly: true
+}, {
+    name: "selectlineend",
+    bindKey: bindKey("Shift-End", "Shift-End"),
+    exec: function(editor) { editor.getSelection().selectLineEnd(); },
+    readOnly: true
+}, {
+    name: "togglerecording",
+    bindKey: bindKey("Ctrl-Shift-E", "Ctrl-Shift-E"),
+    exec: function(editor) { editor.commands.toggleRecording(); },
+    readOnly: true
+}, {
+    name: "replaymacro",
+    bindKey: bindKey("Ctrl-E", "Ctrl-E"),
+    exec: function(editor) { editor.commands.replay(editor); },
+    readOnly: true
+}, 
+
+// commands disabled in readOnly mode
+{
+    name: "removeline",
+    bindKey: bindKey("Ctrl-D", "Command-D"),
+    exec: function(editor) { editor.removeLines(); }
+}, {
+    name: "togglecomment",
+    bindKey: bindKey("Ctrl-7", "Command-7"),
+    exec: function(editor) { editor.toggleCommentLines(); }
+}, {
     name: "replace",
     bindKey: bindKey("Ctrl-R", "Command-Option-F"),
-    exec: function(env, args, request) {
-        var needle = prompt("Find:", env.editor.getCopyText());
+    exec: function(editor) {
+        var needle = prompt("Find:", editor.getCopyText());
         if (!needle)
             return;
         var replacement = prompt("Replacement:");
         if (!replacement)
             return;
-        env.editor.replace(replacement, {needle: needle});
+        editor.replace(replacement, {needle: needle});
     }
-});
-canon.addCommand({
+}, {
     name: "replaceall",
     bindKey: bindKey("Ctrl-Shift-R", "Command-Shift-Option-F"),
-    exec: function(env, args, request) {
+    exec: function(editor) {
         var needle = prompt("Find:");
         if (!needle)
             return;
         var replacement = prompt("Replacement:");
         if (!replacement)
             return;
-        env.editor.replaceAll(replacement, {needle: needle});
+        editor.replaceAll(replacement, {needle: needle});
     }
-});
-canon.addCommand({
+}, {
     name: "undo",
     bindKey: bindKey("Ctrl-Z", "Command-Z"),
-    exec: function(env, args, request) { env.editor.undo(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.undo(); }
+}, {
     name: "redo",
     bindKey: bindKey("Ctrl-Shift-Z|Ctrl-Y", "Command-Shift-Z|Command-Y"),
-    exec: function(env, args, request) { env.editor.redo(); }
-});
-canon.addCommand({
-    name: "overwrite",
-    bindKey: bindKey("Insert", "Insert"),
-    exec: function(env, args, request) { env.editor.toggleOverwrite(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.redo(); }
+}, {
     name: "copylinesup",
     bindKey: bindKey("Ctrl-Alt-Up", "Command-Option-Up"),
-    exec: function(env, args, request) { env.editor.copyLinesUp(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.copyLinesUp(); }
+}, {
     name: "movelinesup",
     bindKey: bindKey("Alt-Up", "Option-Up"),
-    exec: function(env, args, request) { env.editor.moveLinesUp(); }
-});
-canon.addCommand({
-    name: "selecttostart",
-    bindKey: bindKey("Ctrl-Shift-Home|Alt-Shift-Up", "Command-Shift-Up"),
-    exec: function(env, args, request) { env.editor.getSelection().selectFileStart(); }
-});
-canon.addCommand({
-    name: "gotostart",
-    bindKey: bindKey("Ctrl-Home|Ctrl-Up", "Command-Home|Command-Up"),
-    exec: function(env, args, request) { env.editor.navigateFileStart(); }
-});
-canon.addCommand({
-    name: "selectup",
-    bindKey: bindKey("Shift-Up", "Shift-Up"),
-    exec: function(env, args, request) { env.editor.getSelection().selectUp(); }
-});
-canon.addCommand({
-    name: "golineup",
-    bindKey: bindKey("Up", "Up|Ctrl-P"),
-    exec: function(env, args, request) { env.editor.navigateUp(args.times); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.moveLinesUp(); }
+}, {
     name: "copylinesdown",
     bindKey: bindKey("Ctrl-Alt-Down", "Command-Option-Down"),
-    exec: function(env, args, request) { env.editor.copyLinesDown(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.copyLinesDown(); }
+}, {
     name: "movelinesdown",
     bindKey: bindKey("Alt-Down", "Option-Down"),
-    exec: function(env, args, request) { env.editor.moveLinesDown(); }
-});
-canon.addCommand({
-    name: "selecttoend",
-    bindKey: bindKey("Ctrl-Shift-End|Alt-Shift-Down", "Command-Shift-Down"),
-    exec: function(env, args, request) { env.editor.getSelection().selectFileEnd(); }
-});
-canon.addCommand({
-    name: "gotoend",
-    bindKey: bindKey("Ctrl-End|Ctrl-Down", "Command-End|Command-Down"),
-    exec: function(env, args, request) { env.editor.navigateFileEnd(); }
-});
-canon.addCommand({
-    name: "selectdown",
-    bindKey: bindKey("Shift-Down", "Shift-Down"),
-    exec: function(env, args, request) { env.editor.getSelection().selectDown(); }
-});
-canon.addCommand({
-    name: "golinedown",
-    bindKey: bindKey("Down", "Down|Ctrl-N"),
-    exec: function(env, args, request) { env.editor.navigateDown(args.times); }
-});
-canon.addCommand({
-    name: "selectwordleft",
-    bindKey: bindKey("Ctrl-Shift-Left", "Option-Shift-Left"),
-    exec: function(env, args, request) { env.editor.getSelection().selectWordLeft(); }
-});
-canon.addCommand({
-    name: "gotowordleft",
-    bindKey: bindKey("Ctrl-Left", "Option-Left"),
-    exec: function(env, args, request) { env.editor.navigateWordLeft(); }
-});
-canon.addCommand({
-    name: "selecttolinestart",
-    bindKey: bindKey("Alt-Shift-Left", "Command-Shift-Left"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLineStart(); }
-});
-canon.addCommand({
-    name: "gotolinestart",
-    bindKey: bindKey("Alt-Left|Home", "Command-Left|Home|Ctrl-A"),
-    exec: function(env, args, request) { env.editor.navigateLineStart(); }
-});
-canon.addCommand({
-    name: "selectleft",
-    bindKey: bindKey("Shift-Left", "Shift-Left"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLeft(); }
-});
-canon.addCommand({
-    name: "gotoleft",
-    bindKey: bindKey("Left", "Left|Ctrl-B"),
-    exec: function(env, args, request) { env.editor.navigateLeft(args.times); }
-});
-canon.addCommand({
-    name: "selectwordright",
-    bindKey: bindKey("Ctrl-Shift-Right", "Option-Shift-Right"),
-    exec: function(env, args, request) { env.editor.getSelection().selectWordRight(); }
-});
-canon.addCommand({
-    name: "gotowordright",
-    bindKey: bindKey("Ctrl-Right", "Option-Right"),
-    exec: function(env, args, request) { env.editor.navigateWordRight(); }
-});
-canon.addCommand({
-    name: "selecttolineend",
-    bindKey: bindKey("Alt-Shift-Right", "Command-Shift-Right"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLineEnd(); }
-});
-canon.addCommand({
-    name: "gotolineend",
-    bindKey: bindKey("Alt-Right|End", "Command-Right|End|Ctrl-E"),
-    exec: function(env, args, request) { env.editor.navigateLineEnd(); }
-});
-canon.addCommand({
-    name: "selectright",
-    bindKey: bindKey("Shift-Right", "Shift-Right"),
-    exec: function(env, args, request) { env.editor.getSelection().selectRight(); }
-});
-canon.addCommand({
-    name: "gotoright",
-    bindKey: bindKey("Right", "Right|Ctrl-F"),
-    exec: function(env, args, request) { env.editor.navigateRight(args.times); }
-});
-canon.addCommand({
-    name: "selectpagedown",
-    bindKey: bindKey("Shift-PageDown", "Shift-PageDown"),
-    exec: function(env, args, request) { env.editor.selectPageDown(); }
-});
-canon.addCommand({
-    name: "pagedown",
-    bindKey: bindKey(null, "PageDown"),
-    exec: function(env, args, request) { env.editor.scrollPageDown(); }
-});
-canon.addCommand({
-    name: "gotopagedown",
-    bindKey: bindKey("PageDown", "Option-PageDown|Ctrl-V"),
-    exec: function(env, args, request) { env.editor.gotoPageDown(); }
-});
-canon.addCommand({
-    name: "selectpageup",
-    bindKey: bindKey("Shift-PageUp", "Shift-PageUp"),
-    exec: function(env, args, request) { env.editor.selectPageUp(); }
-});
-canon.addCommand({
-    name: "pageup",
-    bindKey: bindKey(null, "PageUp"),
-    exec: function(env, args, request) { env.editor.scrollPageUp(); }
-});
-canon.addCommand({
-    name: "gotopageup",
-    bindKey: bindKey("PageUp", "Option-PageUp"),
-    exec: function(env, args, request) { env.editor.gotoPageUp(); }
-});
-canon.addCommand({
-    name: "selectlinestart",
-    bindKey: bindKey("Shift-Home", "Shift-Home"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLineStart(); }
-});
-canon.addCommand({
-    name: "selectlineend",
-    bindKey: bindKey("Shift-End", "Shift-End"),
-    exec: function(env, args, request) { env.editor.getSelection().selectLineEnd(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.moveLinesDown(); }
+}, {
     name: "del",
     bindKey: bindKey("Delete", "Delete|Ctrl-D"),
-    exec: function(env, args, request) { env.editor.remove("right"); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.remove("right"); }
+}, {
     name: "backspace",
     bindKey: bindKey(
         "Ctrl-Backspace|Command-Backspace|Option-Backspace|Shift-Backspace|Backspace",
         "Ctrl-Backspace|Command-Backspace|Shift-Backspace|Backspace|Ctrl-H"
     ),
-    exec: function(env, args, request) { env.editor.remove("left"); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.remove("left"); }
+}, {
     name: "removetolinestart",
     bindKey: bindKey("Alt-Backspace", "Option-Backspace"),
-    exec: function(env, args, request) { env.editor.removeToLineStart(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeToLineStart(); }
+}, {
     name: "removetolineend",
     bindKey: bindKey("Alt-Delete", "Ctrl-K"),
-    exec: function(env, args, request) { env.editor.removeToLineEnd(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeToLineEnd(); }
+}, {
     name: "removewordleft",
     bindKey: bindKey("Ctrl-Backspace", "Alt-Backspace|Ctrl-Alt-Backspace"),
-    exec: function(env, args, request) { env.editor.removeWordLeft(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeWordLeft(); }
+}, {
     name: "removewordright",
     bindKey: bindKey("Ctrl-Delete", "Alt-Delete"),
-    exec: function(env, args, request) { env.editor.removeWordRight(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.removeWordRight(); }
+}, {
     name: "outdent",
     bindKey: bindKey("Shift-Tab", "Shift-Tab"),
-    exec: function(env, args, request) { env.editor.blockOutdent(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.blockOutdent(); }
+}, {
     name: "indent",
     bindKey: bindKey("Tab", "Tab"),
-    exec: function(env, args, request) { env.editor.indent(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.indent(); }
+}, {
+    name: "insertstring",
+    exec: function(editor, str) { editor.insert(str); }
+}, {
     name: "inserttext",
-    exec: function(env, args, request) {
-        env.editor.insert(lang.stringRepeat(args.text  || "", args.times || 1));
+    exec: function(editor, args) {
+        editor.insert(lang.stringRepeat(args.text  || "", args.times || 1));
     }
-});
-canon.addCommand({
-    name: "centerselection",
-    bindKey: bindKey(null, "Ctrl-L"),
-    exec: function(env, args, request) { env.editor.centerSelection(); }
-});
-canon.addCommand({
+}, {
     name: "splitline",
     bindKey: bindKey(null, "Ctrl-O"),
-    exec: function(env, args, request) { env.editor.splitLine(); }
-});
-canon.addCommand({
+    exec: function(editor) { editor.splitLine(); }
+}, {
     name: "transposeletters",
     bindKey: bindKey("Ctrl-T", "Ctrl-T"),
-    exec: function(env, args, request) { env.editor.transposeLetters(); }
-});
-
-canon.addCommand({
-    name: "fold",
-    bindKey: bindKey("Alt-L", "Alt-L"),
-    exec: function(env) {
-        env.editor.session.toggleFold(false);
-    }
-});
-canon.addCommand({
-    name: "unfold",
-    bindKey: bindKey("Alt-Shift-L", "Alt-Shift-L"),
-    exec: function(env) {
-        env.editor.session.toggleFold(true);
-    }
-});
-canon.addCommand({
-    name: "foldall",
-    bindKey: bindKey("Alt-Shift-0", "Alt-Shift-0"),
-    exec: function(env) {
-        env.editor.session.foldAll();
-    }
-});
-canon.addCommand({
-    name: "unfoldall",
-    bindKey: bindKey("Alt-Shift-0", "Alt-Shift-0"),
-    exec: function(env) {
-        env.editor.session.unFoldAll();
-    }
-});
+    exec: function(editor) { editor.transposeLetters(); }
+}, {
+    name: "touppercase",
+    bindKey: bindKey("Ctrl-U", "Ctrl-U"),
+    exec: function(editor) { editor.toUpperCase(); }
+}, {
+    name: "tolowercase",
+    bindKey: bindKey("Ctrl-Shift-U", "Ctrl-Shift-U"),
+    exec: function(editor) { editor.toLowerCase(); }
+}];
 
 });
