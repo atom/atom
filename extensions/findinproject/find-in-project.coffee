@@ -36,7 +36,7 @@ class FindInProject extends Browser
     ChildProcess.exec "ack --ignore-dir=Cocoa/build --ignore-dir=vendor #{term} #{url}", (error, stdout, stderr) ->
       callback _.compact _.map (stdout.split "\n"), (line) ->
         return if _.isEmpty line.trim()
-        name: line.replace url, ''
+        name: line.replace "#{url}/", ''
         url: _.first line.split ":"
 
   add: ->
