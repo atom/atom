@@ -25,10 +25,8 @@ class Project extends Resource
 
   resources: {}
 
-  activeResource: null
-
   responder: ->
-    @activeResource or this
+    @activeResource() or this
 
   open: (url) ->
     if not @url
@@ -50,10 +48,9 @@ class Project extends Resource
         return false
 
       # Is this resource already open?
-      if @resources[url]
-        @activeResource = @resources[url]
-        atom.trigger 'project:resource:active', this, @activeResource
-        @activeResource.show()
+      if resource = @resources[url]
+        @setActiveResource resource
+        resource.show()
         true
       else
         # Try to open all others
@@ -62,13 +59,35 @@ class Project extends Resource
           break if success = resource.open url
 
         if success
-          @resources[url] = @activeResource = resource
+          @resources[url] = resource
           atom.trigger 'project:resource:open', this, resource
-          atom.trigger 'project:resource:active', this, resource
+          @setActiveResource resource
           true
 
   save: ->
-    @activeResource?.save()
+    @activeResource()?.save()
+
+  # Finds the active resource or makes a guess based on open resources.
+  # Returns a resource or null.
+  activeResource: ->
+    @__activeResource or @setActiveResource()
+
+  # Sets a resource as active.
+  #
+  # resource - Optional. The resource to set as active.
+  #            If none given tries to pick one.
+  #
+  # Returns the resource that was set to active if we succeeded.
+  # Returns null if we couldn't set any resource to active.
+  setActiveResource: (resource) ->
+    if not resource
+      resource = _.last _.values @resources
+
+    @__activeResource = resource
+
+    if resource
+      atom.trigger 'project:resource:active', this, resource
+      resource
 
   title: ->
     _.last @url.split '/'
