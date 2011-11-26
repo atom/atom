@@ -12,6 +12,10 @@ module.exports =
 class Gist extends Editor
   window.resourceTypes.push this
 
+  settings:
+    username: ''
+    password: ''
+
   open: (url) ->
     return if not url
     if match = url.match /^https?:\/\/gist\.github\.com\/([^\/]+)\/?/
@@ -31,13 +35,13 @@ class Gist extends Editor
       true
 
   save: ->
-    user = GitHub?.username
-    pass = GitHub?.password
-   
+    user = @settings.username
+    pass = @settings.password
+
     if not user or not pass
-      console.error "Please set GitHub.username and GitHub.password to save."
+      console.error "Please gist.username and gist.password in your local settings file."
       return
-    
+
     # Can't get this to work yet. 500ing
     if @id
       files = {}

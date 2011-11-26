@@ -32,6 +32,13 @@ class Editor extends Resource
     Gemfile: 'ruby'
     Rakefile: 'ruby'
 
+  settings:
+    theme: 'twilight'
+    useSoftTabs: true
+    tabSize: 2
+    showInvisibles: false
+    marginColumn: 80
+
   modeForURL: (url) ->
     return if not url
 
@@ -47,14 +54,14 @@ class Editor extends Resource
       require("ace/mode/text").Mode
 
   setModeForURL: (url) ->
-    @ace.session.setMode new (@modeForURL url)
+    @pane.ace.session.setMode new (@modeForURL url)
 
   title: ->
     if @url then _.last @url.split '/' else 'untitled'
 
   show: ->
     @pane.show()
-    @ace.resize()
+    @pane.ace.resize()
 
   open: (url) ->
     if url
@@ -64,16 +71,19 @@ class Editor extends Resource
     window.setTitle @title()
 
     @pane ?= new EditorPane
-    @ace = @pane.ace
     @url = url
 
     @session = new EditSession code = if @url then fs.read @url else ''
     @session.setValue code
-    @session.setUseSoftTabs useSoftTabs = @usesSoftTabs code
-    @session.setTabSize if useSoftTabs then @guessTabSize code else 8
+    @session.setUseSoftTabs @settings.softTabs
+    @session.setTabSize if @settings.softTabs then @settings.tabSize else 8
     @session.setUndoManager new UndoManager
     @session.on 'change', => @dirty = true
-    @ace.setSession @session
+    @pane.ace.setSession @session
+
+    @pane.ace.setTheme require "ace/theme/#{@settings.theme}"
+    @pane.ace.setShowInvisibles @settings.showInvisibles
+    @pane.ace.setPrintMarginColumn @settings.marginColumn
 
     @show()
     @setModeForURL @url if @url
@@ -115,14 +125,14 @@ class Editor extends Resource
       @save url
 
   code: ->
-    @ace.getSession().getValue()
+    @pane.ace.getSession().getValue()
 
   setCode: (code) ->
-    @ace.getSession().setValue code
+    @pane.ace.getSession().setValue code
 
   removeTrailingWhitespace: ->
     return
-    @ace.replaceAll "",
+    @pane.ace.replaceAll "",
       needle: "[ \t]+$"
       regExp: true
       wrap: true
@@ -136,27 +146,27 @@ class Editor extends Resource
     match?[1].length or 2
 
   copy: ->
-    text = @ace.getSession().doc.getTextRange @ace.getSelectionRange()
+    text = @pane.ace.getSession().doc.getTextRange @pane.ace.getSelectionRange()
     atom.native.writeToPasteboard text
 
   cut: ->
-    text = @ace.getSession().doc.getTextRange @ace.getSelectionRange()
+    text = @pane.ace.getSession().doc.getTextRange @pane.ace.getSelectionRange()
     atom.native.writeToPasteboard text
-    @ace.session.remove @ace.getSelectionRange()
+    @pane.ace.session.remove @pane.ace.getSelectionRange()
 
   eval: -> eval @code()
-  toggleComment: -> @ace.toggleCommentLines()
-  outdent: -> @ace.blockOutdent()
-  indent: -> @ace.indent()
-  forwardWord: -> @ace.navigateWordRight()
-  backWord: -> @ace.navigateWordLeft()
-  deleteWord: -> @ace.removeWordRight()
-  home: -> @ace.navigateFileStart()
-  end: -> @ace.navigateFileEnd()
+  toggleComment: -> @pane.ace.toggleCommentLines()
+  outdent: -> @pane.ace.blockOutdent()
+  indent: -> @pane.ace.indent()
+  forwardWord: -> @pane.ace.navigateWordRight()
+  backWord: -> @pane.ace.navigateWordLeft()
+  deleteWord: -> @pane.ace.removeWordRight()
+  home: -> @pane.ace.navigateFileStart()
+  end: -> @pane.ace.navigateFileEnd()
 
   wordWrap: ->
-    @ace.getSession().setUseWrapMode true
+    @pane.ace.getSession().setUseWrapMode true
 
   consolelog: ->
-    @ace.insert 'console.log ""'
-    @ace.navigateLeft()
+    @pane.ace.insert 'console.log ""'
+    @pane.ace.navigateLeft()
