@@ -2,6 +2,8 @@ $ = require 'jquery'
 
 Resource = require 'resource'
 
+# Events:
+#   browser:close (browser) -> Called when a browser is closed.
 module.exports =
 class Browser extends Resource
   window.resourceTypes.push this
@@ -13,6 +15,10 @@ class Browser extends Resource
     @show()
 
     true
+
+  close: ->
+    atom.trigger 'browser:close', this
+    super
 
   # innerHTML - Optional String to set as iframe's content.
   show: (innerHTML=null) ->

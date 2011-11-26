@@ -9,6 +9,7 @@ EditorPane = require 'editor-pane'
 
 # Events:
 #   editor:open (editor) -> Called when an editor is opened.
+#   editor:close (editor) -> Called when an editor is closed.
 module.exports =
 class Editor extends Resource
   window.resourceTypes.push this
@@ -107,6 +108,8 @@ class Editor extends Resource
         "Don't Save": => true
 
       return if not close
+
+    atom.trigger 'editor:close', this
 
     super
 

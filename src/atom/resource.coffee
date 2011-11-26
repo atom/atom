@@ -3,6 +3,9 @@ Pane = require 'pane'
 
 # When subclassing, call super() at the end of your
 # constructor.
+#
+# Events:
+#   resource:close (resource) -> Called when a resource is closed.
 module.exports =
 class Resource extends Pane
   position: "main"
@@ -17,4 +20,5 @@ class Resource extends Pane
     this
 
   close: ->
-    window.close()
+    atom.trigger 'resource:close', this
+    false
