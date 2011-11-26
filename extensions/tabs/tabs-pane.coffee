@@ -49,20 +49,6 @@ class TabsPane extends Pane
     """
     $("#tabs ul li:last").addClass 'active'
 
-  closeActiveTab: ->
-    tabsLength = $('#tabs ul li').length
-    activePath = $('#tabs ul .active').data 'path'
-
-    if tabsLength is 1
-      @removeTab activePath
-      $('#main-container').children().css 'display', 'none !important'
-      window.setTitle window.resource.title()
-    else if tabsLength > 0
-      @removeTab activePath
-      @prevTab()
-    else
-      window.close()
-
   removeTab: (path) ->
     tab = $("#tabs li[data-path='#{path}']")
     if tab.hasClass("active")

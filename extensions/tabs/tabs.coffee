@@ -10,6 +10,7 @@ class Tabs extends Extension
   constructor: ->
     atom.on 'project:open', @startup
     atom.on 'project:resource:active', @focus
+    atom.on 'project:resource:close', @close
 
   startup: (@project) =>
     @pane = new TabsPane this
@@ -25,3 +26,6 @@ class Tabs extends Extension
 
   focus: (project, resource) =>
     @pane?.addTab resource.url
+
+  close: (project, resource) =>
+    @pane?.removeTab resource.url

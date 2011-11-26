@@ -1,5 +1,4 @@
 tabs:
-  'cmd-w': (tabs) -> tabs.pane.closeActiveTab()
   'cmd-shift-{': (tabs) -> tabs.pane.prevTab()
   'cmd-shift-}': (tabs) -> tabs.pane.nextTab()
   'cmd-1': (tabs) -> tabs.pane.switchToTab 1
