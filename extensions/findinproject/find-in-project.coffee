@@ -1,6 +1,7 @@
 _ = require 'underscore'
 $ = require 'jquery'
 fs = require 'fs'
+handlebars = require 'handlebars'
 
 ChildProcess = require 'child-process'
 Browser = require 'browser'
@@ -39,7 +40,7 @@ class FindInProject extends Browser
         url: _.first line.split ":"
 
   add: ->
-    super @innerHTML()
+    super @render()
 
     # gross!
     iframe = $ $('iframe')[0].contentDocument.body
@@ -48,17 +49,24 @@ class FindInProject extends Browser
       window.open this.href.replace 'file://', ''
       false
 
-  innerHTML: ->
-    html = '''
-      <link rel="stylesheet" href="static/bootstrap-1.4.0.css">
-      <style>body { padding:10px; }</style>
-    '''
-    html += '<h1>Results</h1>'
-    html += '<ul id="find-in-project-results-view">'
-    for {name, url} in @results
+  render: ->
+    results = _.map @results, ({name, url}) =>
       line = _.escape name
       [file, match...] = line.split ':'
-      match = (match.join ':').replace @term, "<code>#{@term}</code>"
-      html += "<li><a href='#{url}'>#{file}:#{match}</a></li>"
-    html += '</ul>'
-    html
+
+      match: (match.join ':').replace(@term, "<code>#{@term}</code>")
+      url: url
+      file: file
+
+    @template results: results
+
+  template: handlebars.compile '''
+    <link rel="stylesheet" href="static/bootstrap-1.4.0.css">
+    <style>body { padding:10px; }</style>
+    <h1>Results</h1>
+    <ul id="find-in-project-results-view">
+    {{#each results}}
+      <li><a href='{{url}}'>{{{file}}}:{{{match}}}</a></li>
+    {{/each}}
+    </ul>
+  '''
