@@ -259,10 +259,10 @@ exports.commands = [{
     readOnly: true
 }, {
     name: "replaymacro",
-    bindKey: bindKey("Ctrl-E", "Ctrl-E"),
+    bindKey: bindKey("Ctrl-E", "Ctrl-Fuck-You"),
     exec: function(editor) { editor.commands.replay(editor); },
     readOnly: true
-}, 
+},
 
 // commands disabled in readOnly mode
 {
