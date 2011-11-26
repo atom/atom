@@ -17,10 +17,6 @@ module.exports =
 class Settings
   settings: {}
 
-  constructor: ->
-    @load "~/.atomicity/settings.coffee"
-    console.log @settings
-
   load: (path) ->
     path = require.resolve path
     if not fs.isFile path

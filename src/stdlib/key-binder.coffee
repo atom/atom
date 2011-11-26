@@ -10,7 +10,6 @@ class KeyBinder
 
   constructor: ->
     @load require.resolve "key-bindings.coffee"
-    @load "~/.atomicity/key-bindings.coffee"
 
   load: (path) ->
     path = require.resolve path
