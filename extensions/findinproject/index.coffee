@@ -1,0 +1,1 @@
+module.exports = require 'findinproject/find-in-project'
