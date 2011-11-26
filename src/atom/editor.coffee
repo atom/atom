@@ -59,7 +59,25 @@ class Editor extends Resource
   title: ->
     if @url then _.last @url.split '/' else 'untitled'
 
-  show: ->
+  show: (code) ->
+    window.setTitle @title()
+
+    @pane ?= new EditorPane
+
+    if not @session
+      @session = new EditSession code or ''
+      @session.setValue code or ''
+      @session.setUseSoftTabs @settings.softTabs
+      @session.setTabSize if @settings.softTabs then @settings.tabSize else 8
+      @session.setUndoManager new UndoManager
+      @session.on 'change', => @dirty = true
+      @pane.ace.setSession @session
+      @setModeForURL @url if @url
+      @dirty = false
+      @pane.ace.setTheme require "ace/theme/#{@settings.theme}"
+      @pane.ace.setShowInvisibles @settings.showInvisibles
+      @pane.ace.setPrintMarginColumn @settings.marginColumn
+
     @pane.show()
     @pane.ace.resize()
 
@@ -68,12 +86,15 @@ class Editor extends Resource
       return false if not fs.isFile url
       return false if @url
 
-    window.setTitle @title()
-
-    @pane ?= new EditorPane
     @url = url
+    @show if @url then fs.read @url else ''
 
-    @session = new EditSession code = if @url then fs.read @url else ''
+    atom.trigger 'editor:open', this
+
+    true
+
+  edit: (code) ->
+    @session = new EditSession code
     @session.setValue code
     @session.setUseSoftTabs @settings.softTabs
     @session.setTabSize if @settings.softTabs then @settings.tabSize else 8
@@ -84,14 +105,6 @@ class Editor extends Resource
     @pane.ace.setTheme require "ace/theme/#{@settings.theme}"
     @pane.ace.setShowInvisibles @settings.showInvisibles
     @pane.ace.setPrintMarginColumn @settings.marginColumn
-
-    @show()
-    @setModeForURL @url if @url
-
-    @dirty = false
-    atom.trigger 'editor:open', this
-
-    true
 
   close: ->
     if @dirty
