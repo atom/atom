@@ -107,7 +107,7 @@ class Editor extends Resource
         "Cancel": => false
         "Don't Save": => true
 
-      return if not close
+      return not close
 
     atom.trigger 'editor:close', this
 

@@ -7,6 +7,8 @@ Resource = require 'resource'
 #   project:open (project) -> Called when a project is opened.
 #   project:resource:open (project, resource) ->
 #     Called when the project opens a resource.
+#   project:resource:close (project, resource) ->
+#     Called when the project closes a resource.
 #   project:resource:active (project, resource) ->
 #     Called when a resource becomes active (i.e. the focal point)
 #     in a project.
@@ -63,6 +65,22 @@ class Project extends Resource
           atom.trigger 'project:resource:open', this, resource
           @setActiveResource resource
           true
+
+  close: (url) ->
+    if url
+      resource = @resources[url]
+    else
+      resource = @activeResource()
+
+    if resource
+      return true if resource?.close()
+
+      delete @resources[resource.url]
+      @setActiveResource()
+      atom.trigger 'project:resource:close', this, resource
+      @activeResource()?.show()
+
+      true
 
   save: ->
     @activeResource()?.save()
