@@ -37,15 +37,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("amd-loader");
-    require("./test/mockdom");
+    require("../../support/paths");
+    require("ace/test/mockdom");
 }
 
 define(function(require, exports, module) {
     
-var Document = require("./document").Document;
-var Range = require("./range").Range;
-var assert = require("./test/assertions");
+var Document = require("ace/document").Document;
+var Range = require("ace/range").Range;
+var assert = require("ace/test/assertions");
 
 module.exports = {
 

@@ -37,12 +37,12 @@
 
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var XmlMode = require("./text").Mode;
-var JavaScriptMode = require("./javascript").Mode;
-var Tokenizer = require("../tokenizer").Tokenizer;
-var SvgHighlightRules = require("./svg_highlight_rules").SvgHighlightRules;
-var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
+var oop = require("pilot/oop");
+var XmlMode = require("ace/mode/text").Mode;
+var JavaScriptMode = require("ace/mode/javascript").Mode;
+var Tokenizer = require("ace/tokenizer").Tokenizer;
+var SvgHighlightRules = require("ace/mode/svg_highlight_rules").SvgHighlightRules;
+var XmlBehaviour = require("ace/mode/behaviour/xml").XmlBehaviour;
 
 var Mode = function() {
     this.highlighter = new SvgHighlightRules();

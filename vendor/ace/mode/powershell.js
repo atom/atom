@@ -1,11 +1,11 @@
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var TextMode = require("./text").Mode;
-var Tokenizer = require("../tokenizer").Tokenizer;
-var PowershellHighlightRules = require("./powershell_highlight_rules").PowershellHighlightRules;
-var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
-var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
+var oop = require("pilot/oop");
+var TextMode = require("ace/mode/text").Mode;
+var Tokenizer = require("ace/tokenizer").Tokenizer;
+var PowershellHighlightRules = require("ace/mode/powershell_highlight_rules").PowershellHighlightRules;
+var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
+var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new PowershellHighlightRules().getRules());
@@ -16,34 +16,34 @@ oop.inherits(Mode, TextMode);
 
 (function() {
     
-      this.getNextLineIndent = function(state, line, tab) {
-          var indent = this.$getIndent(line);
+	  this.getNextLineIndent = function(state, line, tab) {
+	      var indent = this.$getIndent(line);
 
-          var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
-          var tokens = tokenizedLine.tokens;
-          var endState = tokenizedLine.state;
+	      var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
+	      var tokens = tokenizedLine.tokens;
+	      var endState = tokenizedLine.state;
 
-          if (tokens.length && tokens[tokens.length-1].type == "comment") {
-              return indent;
-          }
+	      if (tokens.length && tokens[tokens.length-1].type == "comment") {
+	          return indent;
+	      }
       
-          if (state == "start") {
-              var match = line.match(/^.*[\{\(\[]\s*$/);
-              if (match) {
-                  indent += tab;
-              }
-          }
+	      if (state == "start") {
+	          var match = line.match(/^.*[\{\(\[]\s*$/);
+	          if (match) {
+	              indent += tab;
+	          }
+	      }
 
-          return indent;
-      };
+	      return indent;
+	  };
 
-      this.checkOutdent = function(state, line, input) {
-          return this.$outdent.checkOutdent(line, input);
-      };
+	  this.checkOutdent = function(state, line, input) {
+	      return this.$outdent.checkOutdent(line, input);
+	  };
 
-      this.autoOutdent = function(state, doc, row) {
-          this.$outdent.autoOutdent(doc, row);
-      };
+	  this.autoOutdent = function(state, doc, row) {
+	      this.$outdent.autoOutdent(doc, row);
+	  };
 
 
     this.createWorker = function(session) {

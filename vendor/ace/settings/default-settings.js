@@ -20,9 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
  *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
- *      Julian Viereck <julian.viereck@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,65 +38,60 @@
 
 define(function(require, exports, module) {
 
-var oop = require("./oop");
-var event = require("./event");
-var EventEmitter = require("./event_emitter").EventEmitter;
+var types = require('pilot/types')
+var SelectionType = require('pilot/types/basic').SelectionType
 
-/**
- * This class keeps track of the focus state of the given window.
- * Focus changes for example when the user switches a browser tab,
- * goes to the location bar or switches to another application.
- */ 
-var BrowserFocus = function(win) {
-    win = win || window;
-    
-    this.lastFocus = new Date().getTime();
-    this._isFocused = true;
-    
-    var _self = this;
+var env
 
-    // IE < 9 supports focusin and focusout events
-    if ("onfocusin" in win.document) {
-        event.addListener(win.document, "focusin", function(e) {
-            _self._setFocused(true);
-        });
+var settingTypes = {
+    selectionStyle: new SelectionType({
+        data: [ 'line', 'text' ]
+    })
+}
 
-        event.addListener(win.document, "focusout", function(e) {
-            _self._setFocused(!!e.toElement);
-        });
+var settings = {
+    printMargin: {
+        description: 'Position of the print margin column.',
+        type: 'number',
+        defaultValue: 80,
+        onChange: function onChange(event) {
+            if (env.editor) env.editor.setPrintMarginColumn(event.value)
+        }
+    },
+    showIvisibles: {
+        description: 'Whether or not to show invisible characters.',
+        type: 'bool',
+        defaultValue: false,
+        onChange: function onChange(event) {
+            if (env.editor) env.editor.setShowInvisibles(event.value)
+        }
+    },
+    highlightActiveLine: {
+        description: 'Whether or not highlight active line.',
+        type: 'bool',
+        defaultValue: true,
+        onChange: function onChange(event) {
+            if (env.editor) env.editor.setHighlightActiveLine(event.value)
+        }
+    },
+    selectionStyle: {
+        description: 'Type of text selection.',
+        type: 'selectionStyle',
+        defaultValue: 'line',
+        onChange: function onChange(event) {
+            if (env.editor) env.editor.setSelectionStyle(event.value)
+        }
     }
-    else {
-        event.addListener(win, "blur", function(e) {
-            _self._setFocused(false);
-        });
+}
 
-        event.addListener(win, "focus", function(e) {
-            _self._setFocused(true);
-        });
-    }
-};
+exports.startup = function startup(data, reason) {
+    env = data.env
+    types.registerTypes(settingTypes)
+    data.env.settings.addSettings(settings)
+}
 
-(function(){
+exports.shutdown = function shutdown(data, reason) {
+    data.env.settings.removeSettings(settings)
+}
 
-    oop.implement(this, EventEmitter);
-    
-    this.isFocused = function() {
-        return this._isFocused;
-    };
-    
-    this._setFocused = function(isFocused) {
-        if (this._isFocused == isFocused)
-            return;
-            
-        if (isFocused)
-            this.lastFocus = new Date().getTime();
-            
-        this._isFocused = isFocused;
-        this._emit("changeFocus");
-    };
-
-}).call(BrowserFocus.prototype);
-
-
-exports.BrowserFocus = BrowserFocus;
-});
+})

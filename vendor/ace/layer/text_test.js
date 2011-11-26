@@ -36,16 +36,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("amd-loader");
-    require("../test/mockdom");
+    require("../../../support/paths");
+    require("ace/test/mockdom");
 }
 
 define(function(require, exports, module) {
     
-var assert = require("../test/assertions");
-var EditSession = require("../edit_session").EditSession;
-var TextLayer = require("./text").Text;
-var JavaScriptMode = require("../mode/javascript").Mode;
+var assert = require("ace/test/assertions");
+var EditSession = require("ace/edit_session").EditSession;
+var TextLayer = require("ace/layer/text").Text;
+var JavaScriptMode = require("ace/mode/javascript").Mode;
 
 module.exports = {
 

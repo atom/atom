@@ -38,11 +38,11 @@
 
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var lang = require("../lib/lang");
-var unicode = require("../unicode");
-var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
-var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+var oop = require("pilot/oop");
+var lang = require("pilot/lang");
+var unicode = require("ace/unicode");
+var DocCommentHighlightRules = require("ace/mode/doc_comment_highlight_rules").DocCommentHighlightRules;
+var TextHighlightRules = require("ace/mode/text_highlight_rules").TextHighlightRules;
 
 var JavaScriptHighlightRules = function() {
 

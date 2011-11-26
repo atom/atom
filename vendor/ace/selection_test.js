@@ -36,13 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("amd-loader");
+    require("../../support/paths");
 }
 
 define(function(require, exports, module) {
 
-var EditSession = require("./edit_session").EditSession;
-var assert = require("./test/assertions");
+var EditSession = require("ace/edit_session").EditSession;
+var assert = require("ace/test/assertions");
 
 module.exports = {
     createSession : function(rows, cols) {
@@ -149,7 +149,7 @@ module.exports = {
             " Juhu Kinners (abc, 12)",
             " cde"
         ].join("\n"));
-
+        
         var selection = session.getSelection();
 
         selection.moveCursorDown();
@@ -187,7 +187,7 @@ module.exports = {
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 0, 2);
     },
-
+        
     "test: moveCursor word left" : function() {
         var session = new EditSession(" Fuß Füße");
 
@@ -195,7 +195,7 @@ module.exports = {
         selection.moveCursorTo(0, 9)
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 0, 5);
-
+        
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 0, 4);
     },
@@ -246,18 +246,6 @@ module.exports = {
         var range = selection.getRange();
         assert.position(range.start, 0, 5);
         assert.position(range.end, 0, 12);
-    },
-
-    "test: select word with cursor in word including right whitespace should select the word" : function() {
-        var session = new EditSession("Juhu Kinners      123");
-        var selection = session.getSelection();
-
-        selection.moveCursorTo(0, 8);
-        selection.selectAWord();
-
-        var range = selection.getRange();
-        assert.position(range.start, 0, 5);
-        assert.position(range.end, 0, 18);
     },
 
     "test: select word with cursor betwen white space and word should select the word" : function() {
@@ -320,67 +308,67 @@ module.exports = {
         selection.moveCursorTo(0, 5);
         assert.notOk(called);
     },
-
+    
     "test: moveWordLeft should move past || and [": function() {
         var session = new EditSession("||foo[");
         var selection = session.getSelection();
-
+        
         // Move behind ||
         selection.moveCursorWordRight();
         assert.position(selection.getCursor(), 0, 2);
-
+        
         // Move beind foo
         selection.moveCursorWordRight();
         assert.position(selection.getCursor(), 0, 5);
-
+        
         // Move behind [
         selection.moveCursorWordRight();
         assert.position(selection.getCursor(), 0, 6);
     },
-
+    
     "test: moveWordRight should move past || and [": function() {
         var session = new EditSession("||foo[");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(0, 6);
-
+        
         // Move behind [
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 0, 5);
-
+        
         // Move beind foo
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 0, 2);
-
+        
         // Move behind ||
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 0, 0);
     },
-
+    
     "test: move cursor to line start should move cursor to end of the indentation first": function() {
         var session = new EditSession("12\n    Juhu\n12");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(1, 6);
         selection.moveCursorLineStart();
 
         assert.position(selection.getCursor(), 1, 4);
     },
-
+    
     "test: move cursor to line start when the cursor is at the end of the indentation should move cursor to column 0": function() {
         var session = new EditSession("12\n    Juhu\n12");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(1, 4);
         selection.moveCursorLineStart();
 
         assert.position(selection.getCursor(), 1, 0);
     },
-
+    
     "test: move cursor to line start when the cursor is at column 0 should move cursor to the end of the indentation": function() {
         var session = new EditSession("12\n    Juhu\n12");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(1, 0);
         selection.moveCursorLineStart();
 
@@ -391,64 +379,64 @@ module.exports = {
     "test: move cursor to line start when the cursor is before the initial indentation should move cursor to the end of the indentation": function() {
         var session = new EditSession("12\n    Juhu\n12");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(1, 2);
         selection.moveCursorLineStart();
 
         assert.position(selection.getCursor(), 1, 4);
     },
-
+    
     "test go line up when in the middle of the first line should go to document start": function() {
         var session = new EditSession("juhu kinners");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(0, 4);
         selection.moveCursorUp();
 
         assert.position(selection.getCursor(), 0, 0);
     },
-
+    
     "test: (wrap) go line up when in the middle of the first line should go to document start": function() {
         var session = new EditSession("juhu kinners");
         session.setWrapLimitRange(5, 5);
         session.adjustWrapLimit(80);
-
+        
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(0, 4);
         selection.moveCursorUp();
 
         assert.position(selection.getCursor(), 0, 0);
     },
-
-
+    
+    
     "test go line down when in the middle of the last line should go to document end": function() {
         var session = new EditSession("juhu kinners");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(0, 4);
         selection.moveCursorDown();
 
         assert.position(selection.getCursor(), 0, 12);
     },
-
+    
     "test (wrap) go line down when in the middle of the last line should go to document end": function() {
         var session = new EditSession("juhu kinners");
         session.setWrapLimitRange(8, 8);
         session.adjustWrapLimit(80);
 
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(0, 10);
         selection.moveCursorDown();
 
         assert.position(selection.getCursor(), 0, 12);
     },
-
+    
     "test go line up twice and then once down when in the second should go back to the previous column": function() {
         var session = new EditSession("juhu\nkinners");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(1, 4);
         selection.moveCursorUp();
         selection.moveCursorUp();
@@ -456,25 +444,37 @@ module.exports = {
 
         assert.position(selection.getCursor(), 1, 4);
     },
+    
+    "test (keyboard navigation) when curLine is EOL and targetLine is all whitespace new column should be targetLine's EOL": function() {
+        var session = new EditSession("function (a) {\n\
+    \n\
+}");
+        var selection = session.getSelection();
+        
+        selection.moveCursorTo(2, 1);
+        selection.moveCursorUp();
 
+        assert.position(selection.getCursor(), 1, 4);
+    },
+    
     "test (keyboard navigation) when curLine is not EOL and targetLine is all whitespace new column should be current column": function() {
         var session = new EditSession("function (a) {\n\
     \n\
 }");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(2, 0);
         selection.moveCursorUp();
 
         assert.position(selection.getCursor(), 1, 0);
     },
-
+    
     "test (keyboard navigation) when curLine is EOL and targetLine is shorter dan current column, new column should be targetLine's EOL": function() {
         var session = new EditSession("function (a) {\n\
     \n\
 }");
         var selection = session.getSelection();
-
+        
         selection.moveCursorTo(0, 14);
         selection.moveCursorDown();
 

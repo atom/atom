@@ -37,9 +37,9 @@
 
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
-var XmlHighlightRules = require("./xml_highlight_rules").XmlHighlightRules;
+var oop = require("pilot/oop");
+var JavaScriptHighlightRules = require("ace/mode/javascript_highlight_rules").JavaScriptHighlightRules;
+var XmlHighlightRules = require("ace/mode/xml_highlight_rules").XmlHighlightRules;
 
 var SvgHighlightRules = function() {
     XmlHighlightRules.call(this);

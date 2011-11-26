@@ -36,18 +36,18 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("amd-loader");
-    require("./test/mockdom");
+    require("../../support/paths");
+    require("ace/test/mockdom");
 }
 
 define(function(require, exports, module) {
 
-var EditSession = require("./edit_session").EditSession;
-var Editor = require("./editor").Editor;
-var JavaScriptMode = require("./mode/javascript").Mode;
-var UndoManager = require("./undomanager").UndoManager;
-var MockRenderer = require("./test/mockrenderer").MockRenderer;
-var assert = require("./test/assertions");
+var EditSession = require("ace/edit_session").EditSession;
+var Editor = require("ace/editor").Editor;
+var JavaScriptMode = require("ace/mode/javascript").Mode;
+var UndoManager = require("ace/undomanager").UndoManager;
+var MockRenderer = require("ace/test/mockrenderer").MockRenderer;
+var assert = require("ace/test/assertions");
 
 module.exports = {
     "test: delete line from the middle" : function() {
@@ -301,7 +301,7 @@ module.exports = {
         assert.position(editor.getSelection().getSelectionLead(), 0, 0);
     },
 
-    "test: move line without active selection should not move cursor relative to the moved line" : function()
+    "test: move line without active selection should move cursor to start of the moved line" : function()
     {
         var session = new EditSession(["11", "22", "33", "44"].join("\n"));
         var editor = new Editor(new MockRenderer(), session);
@@ -311,13 +311,13 @@ module.exports = {
 
         editor.moveLinesDown();
         assert.equal(["11", "33", "22", "44"].join("\n"), session.toString());
-        assert.position(editor.getCursorPosition(), 2, 1);
+        assert.position(editor.getCursorPosition(), 2, 0);
 
         editor.clearSelection();
 
         editor.moveLinesUp();
         assert.equal(["11", "22", "33", "44"].join("\n"), session.toString());
-        assert.position(editor.getCursorPosition(), 1, 1);
+        assert.position(editor.getCursorPosition(), 1, 0);
     },
 
     "test: copy lines down should select lines and place cursor at the selection start" : function() {
@@ -511,46 +511,6 @@ module.exports = {
         editor.removeToLineEnd();
         assert.position(editor.getCursorPosition(), 1, 4);
         assert.equal(session.getValue(), ["123", "456789"].join("\n"));
-    },
-
-    "test: transform selection to uppercase": function() {
-        var session = new EditSession(["ajax", "dot", "org"]);
-
-        var editor = new Editor(new MockRenderer(), session);
-        editor.moveCursorTo(1, 0);
-        editor.getSelection().selectLineEnd();
-        editor.toUpperCase()
-        assert.equal(session.getValue(), ["ajax", "DOT", "org"].join("\n"));
-    },
-
-    "test: transform word to uppercase": function() {
-        var session = new EditSession(["ajax", "dot", "org"]);
-
-        var editor = new Editor(new MockRenderer(), session);
-        editor.moveCursorTo(1, 0);
-        editor.toUpperCase()
-        assert.equal(session.getValue(), ["ajax", "DOT", "org"].join("\n"));
-        assert.position(editor.getCursorPosition(), 1, 0);
-    },
-
-    "test: transform selection to lowercase": function() {
-        var session = new EditSession(["AJAX", "DOT", "ORG"]);
-
-        var editor = new Editor(new MockRenderer(), session);
-        editor.moveCursorTo(1, 0);
-        editor.getSelection().selectLineEnd();
-        editor.toLowerCase()
-        assert.equal(session.getValue(), ["AJAX", "dot", "ORG"].join("\n"));
-    },
-
-    "test: transform word to lowercase": function() {
-        var session = new EditSession(["AJAX", "DOT", "ORG"]);
-
-        var editor = new Editor(new MockRenderer(), session);
-        editor.moveCursorTo(1, 0);
-        editor.toLowerCase()
-        assert.equal(session.getValue(), ["AJAX", "dot", "ORG"].join("\n"));
-        assert.position(editor.getCursorPosition(), 1, 0);
     }
 };
 

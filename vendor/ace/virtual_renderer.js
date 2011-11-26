@@ -40,32 +40,25 @@
 
 define(function(require, exports, module) {
 
-var oop = require("./lib/oop");
-var dom = require("./lib/dom");
-var event = require("./lib/event");
-var useragent = require("./lib/useragent");
-var GutterLayer = require("./layer/gutter").Gutter;
-var MarkerLayer = require("./layer/marker").Marker;
-var TextLayer = require("./layer/text").Text;
-var CursorLayer = require("./layer/cursor").Cursor;
-var ScrollBar = require("./scrollbar").ScrollBar;
-var RenderLoop = require("./renderloop").RenderLoop;
-var EventEmitter = require("./lib/event_emitter").EventEmitter;
-var editorCss = require("ace/requirejs/text!./css/editor.css");
-
-dom.importCssString(editorCss, "ace_editor");
+var oop = require("pilot/oop");
+var dom = require("pilot/dom");
+var event = require("pilot/event");
+var useragent = require("pilot/useragent");
+var GutterLayer = require("ace/layer/gutter").Gutter;
+var MarkerLayer = require("ace/layer/marker").Marker;
+var TextLayer = require("ace/layer/text").Text;
+var CursorLayer = require("ace/layer/cursor").Cursor;
+var ScrollBar = require("ace/scrollbar").ScrollBar;
+var RenderLoop = require("ace/renderloop").RenderLoop;
+var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var editorCss = require("ace/requirejs/text!ace/css/editor.css");
 
 var VirtualRenderer = function(container, theme) {
     this.container = container;
 
-    // TODO: this breaks rendering in Cloud9 with multiple ace instances
-//    // Imports CSS once per DOM document ('ace_editor' serves as an identifier).
-//    dom.importCssString(editorCss, "ace_editor", container.ownerDocument);
-
-    // Chrome has some strange rendering issues if this is not done async
-    setTimeout(function() {
-        dom.addCssClass(container, "ace_editor");
-    }, 0)
+    // Imports CSS once per DOM document ('ace_editor' serves as an identifier).
+    dom.importCssString(editorCss, "ace_editor", container.ownerDocument);
+    dom.addCssClass(this.container, "ace_editor");
 
     this.setTheme(theme);
 
@@ -823,11 +816,6 @@ var VirtualRenderer = function(container, theme) {
 
             if (_self.$theme)
                 dom.addCssClass(_self.container, _self.$theme);
-
-            if (theme && theme.isDark)
-                dom.addCssClass(_self.container, "ace_dark");
-            else
-                dom.removeCssClass(_self.container, "ace_dark");
 
             // force re-measure of the gutter width
             if (_self.$size) {

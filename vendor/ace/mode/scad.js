@@ -38,13 +38,13 @@
 
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var TextMode = require("./text").Mode;
-var Tokenizer = require("../tokenizer").Tokenizer;
-var scadHighlightRules = require("./scad_highlight_rules").scadHighlightRules;
-var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("../range").Range;
-var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
+var oop = require("pilot/oop");
+var TextMode = require("ace/mode/text").Mode;
+var Tokenizer = require("ace/tokenizer").Tokenizer;
+var scadHighlightRules = require("ace/mode/scad_highlight_rules").scadHighlightRules;
+var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
+var Range = require("ace/range").Range;
+var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new scadHighlightRules().getRules());

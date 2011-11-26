@@ -36,13 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("amd-loader");
+    require("../../../support/paths");
 }
 
 define(function(require, exports, module) {
 
-var JavaScriptMode = require("./javascript").Mode;
-var assert = require("../test/assertions");
+var JavaScriptMode = require("ace/mode/javascript").Mode;
+var assert = require("ace/test/assertions");
 
 module.exports = {
     
@@ -62,7 +62,7 @@ module.exports = {
         assert.equal("text", tokens[1].type);
         assert.equal("keyword.operator", tokens[2].type);
         assert.equal("text", tokens[3].type);
-        assert.equal("keyword.definition", tokens[4].type);
+        assert.equal("keyword", tokens[4].type);
     },
 
     "test: tokenize doc comment" : function() {

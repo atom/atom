@@ -21,7 +21,6 @@
  * Contributor(s):
  *      Fabian Jakobs <fabian AT ajax DOT org>
  *      Julian Viereck <julian.viereck@gmail.com>
- *      Harutyun Amirjanyan <amirjanyan@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,85 +38,78 @@
 
 define(function(require, exports, module) {
 
-var useragent = require("../lib/useragent");
-var keyUtil  = require("../lib/keys");
-var event = require("../lib/event");
-require("../commands/default_commands");
+var useragent = require("pilot/useragent");
+var keyUtil  = require("pilot/keys");
+var event = require("pilot/event");
+var settings  = require("pilot/settings").settings;
+var canon = require("pilot/canon");
+require("ace/commands/default_commands");
 
 var KeyBinding = function(editor) {
     this.$editor = editor;
     this.$data = { };
-    this.$handlers = [this];
+    this.$keyboardHandler = null;
 };
 
 (function() {
     this.setKeyboardHandler = function(keyboardHandler) {
-        if (this.$handlers[this.$handlers.length - 1] == keyboardHandler)
-            return;
-        this.$data = { };
-        this.$handlers = keyboardHandler ? [this, keyboardHandler] : [this];
-    };
-
-    this.addKeyboardHandler = function(keyboardHandler) {
-        this.removeKeyboardHandler(keyboardHandler);
-        this.$handlers.push(keyboardHandler);
-    };
-
-    this.removeKeyboardHandler = function(keyboardHandler) {
-        var i = this.$handlers.indexOf(keyboardHandler);
-        if (i == -1)
-            return false;
-        this.$handlers.splice(i, 1);
-        return true;
+        if (this.$keyboardHandler != keyboardHandler) {
+            this.$data = { };
+            this.$keyboardHandler = keyboardHandler;
+        }
     };
 
     this.getKeyboardHandler = function() {
-        return this.$handlers[this.$handlers - 1];
+        return this.$keyboardHandler;
     };
 
-    this.$callKeyboardHandlers = function (hashId, keyString, keyCode, e) {
-        for (var i = this.$handlers.length; i--;) {
-            var toExecute = this.$handlers[i].handleKeyboard(
-                this.$data, hashId, keyString, keyCode, e
-            );
-            if (toExecute && toExecute.command)
-                break;
+    this.$callKeyboardHandler = function (e, hashId, keyOrText, keyCode) {
+        var env = {editor: this.$editor},
+            toExecute;
+
+        if (this.$keyboardHandler) {
+            toExecute =
+                this.$keyboardHandler.handleKeyboard(this.$data, hashId, keyOrText, keyCode, e);
         }
 
-        if (!toExecute || !toExecute.command)
-            return false;
-        var success = false, commands = this.$editor.commands;
-
-        // allow keyboardHandler to consume keys
-        if (toExecute.command != "null")
-            success = commands.exec(toExecute.command, this.$editor, toExecute.args);
-        else
-            success = true;
-
-        if (success && e)
-            event.stopEvent(e);
-
-        return success
-    };
-
-    this.handleKeyboard = function(data, hashId, keyString) {
-        return {
-            command: this.$editor.commands.findKeyCommand(hashId, keyString)
+        // If there is nothing to execute yet, then use the default keymapping.
+        if (!toExecute || !toExecute.command) {
+            if (hashId != 0 || keyCode != 0) {
+                toExecute = {
+                    command: canon.findKeyCommand(env, "editor", hashId, keyOrText)
+                }
+            } else {
+                toExecute = {
+                    command: "inserttext",
+                    args: {
+                        text: keyOrText
+                    }
+                }
+            }
         }
-    };
 
-    this.onCommandKey = function(e, hashId, keyCode) {
-        var keyString = keyUtil.keyCodeToString(keyCode);
-        this.$callKeyboardHandlers(hashId, keyString, keyCode, e);
-    };
-
-    this.onTextInput = function(text, pasted) {
         var success = false;
-        if (!pasted && text.length == 1)
-            success = this.$callKeyboardHandlers(0, text);
-        if (!success)
-            this.$editor.commands.exec("insertstring", this.$editor, text);
+        if (toExecute) {
+            success = canon.exec(toExecute.command,
+                                        env, "editor", toExecute.args);
+            if (success) {
+                event.stopEvent(e);
+            }
+        }
+        return success;
     };
+
+    this.onCommandKey = function(e, hashId, keyCode, keyString) {
+        // In case there is no keyString, try to interprete the keyCode.
+        if (!keyString) {
+            keyString = keyUtil.keyCodeToString(keyCode);
+        }
+        return this.$callKeyboardHandler(e, hashId, keyString, keyCode);
+    };
+
+    this.onTextInput = function(text) {
+        return this.$callKeyboardHandler({}, 0, text, 0);
+    }
 
 }).call(KeyBinding.prototype);
 

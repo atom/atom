@@ -37,13 +37,13 @@
 
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var TextMode = require("./text").Mode;
-var JavaScriptMode = require("./javascript").Mode;
-var CssMode = require("./css").Mode;
-var Tokenizer = require("../tokenizer").Tokenizer;
-var HtmlHighlightRules = require("./html_highlight_rules").HtmlHighlightRules;
-var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
+var oop = require("pilot/oop");
+var TextMode = require("ace/mode/text").Mode;
+var JavaScriptMode = require("ace/mode/javascript").Mode;
+var CssMode = require("ace/mode/css").Mode;
+var Tokenizer = require("ace/tokenizer").Tokenizer;
+var HtmlHighlightRules = require("ace/mode/html_highlight_rules").HtmlHighlightRules;
+var XmlBehaviour = require("ace/mode/behaviour/xml").XmlBehaviour;
 
 var Mode = function() {
     var highlighter = new HtmlHighlightRules();

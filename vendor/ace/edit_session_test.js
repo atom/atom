@@ -37,20 +37,19 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("amd-loader");
-    require("./test/mockdom");
+    require("../../support/paths");
+    require("ace/test/mockdom");
 }
 
 define(function(require, exports, module) {
 
-var lang = require("./lib/lang");
-var EditSession = require("./edit_session").EditSession;
-var Editor = require("./editor").Editor;
-var UndoManager = require("./undomanager").UndoManager;
-var MockRenderer = require("./test/mockrenderer").MockRenderer;
-var Range = require("./range").Range;
-var assert = require("./test/assertions");
-var JavaScriptMode = require("./mode/javascript").Mode;
+var lang = require("pilot/lang");
+var EditSession = require("ace/edit_session").EditSession;
+var Editor = require("ace/editor").Editor;
+var UndoManager = require("ace/undomanager").UndoManager;
+var MockRenderer = require("ace/test/mockrenderer").MockRenderer;
+var Range = require("ace/range").Range;
+var assert = require("ace/test/assertions");
 
 function createFoldTestSession() {
     var lines = [
@@ -70,7 +69,7 @@ function createFoldTestSession() {
 
 module.exports = {
 
-   "test: find matching opening bracket in Text mode" : function() {
+   "test: find matching opening bracket" : function() {
         var session = new EditSession(["(()(", "())))"]);
 
         assert.position(session.findMatchingBracket({row: 0, column: 3}), 0, 1);
@@ -80,7 +79,7 @@ module.exports = {
         assert.equal(session.findMatchingBracket({row: 1, column: 5}), null);
     },
 
-    "test: find matching closing bracket in Text mode" : function() {
+    "test: find matching closing bracket" : function() {
         var session = new EditSession(["(()(", "())))"]);
 
         assert.position(session.findMatchingBracket({row: 1, column: 1}), 1, 1);
@@ -89,67 +88,6 @@ module.exports = {
         assert.position(session.findMatchingBracket({row: 0, column: 2}), 0, 2);
         assert.position(session.findMatchingBracket({row: 0, column: 1}), 1, 3);
         assert.equal(session.findMatchingBracket({row: 0, column: 0}), null);
-    },
-
-    "test: find matching opening bracket in JavaScript mode" : function() {
-        var lines = [
-            "function foo() {",
-            "    var str = \"{ foo()\";",
-            "    if (debug) {",
-            "        // write str (a string) to the console",
-            "        console.log(str);",
-            "    }",
-            "    str += \" bar() }\";",
-            "}"
-        ];
-        var session = new EditSession(lines.join("\n"), new JavaScriptMode());
-
-        assert.position(session.findMatchingBracket({row: 0, column: 14}), 0, 12);
-        assert.position(session.findMatchingBracket({row: 7, column: 1}), 0, 15);
-        assert.position(session.findMatchingBracket({row: 6, column: 20}), 1, 15);
-        assert.position(session.findMatchingBracket({row: 1, column: 22}), 1, 20);
-        assert.position(session.findMatchingBracket({row: 3, column: 31}), 3, 21);
-        assert.position(session.findMatchingBracket({row: 4, column: 24}), 4, 19);        
-        assert.equal(session.findMatchingBracket({row: 0, column: 1}), null);
-    },
-    
-    "test: find matching closing bracket in JavaScript mode" : function() {
-        var lines = [
-            "function foo() {",
-            "    var str = \"{ foo()\";",
-            "    if (debug) {",
-            "        // write str (a string) to the console",
-            "        console.log(str);",
-            "    }",
-            "    str += \" bar() }\";",
-            "}"
-        ];
-        var session = new EditSession(lines.join("\n"), new JavaScriptMode());
-
-        assert.position(session.findMatchingBracket({row: 0, column: 13}), 0, 13);
-        assert.position(session.findMatchingBracket({row: 0, column: 16}), 7, 0);
-        assert.position(session.findMatchingBracket({row: 1, column: 16}), 6, 19);
-        assert.position(session.findMatchingBracket({row: 1, column: 21}), 1, 21);
-        assert.position(session.findMatchingBracket({row: 3, column: 22}), 3, 30);
-        assert.position(session.findMatchingBracket({row: 4, column: 20}), 4, 23);        
-    },
-
-    "test: handle unbalanced brackets in JavaScript mode" : function() {
-        var lines = [
-            "function foo() {",
-            "    var str = \"{ foo()\";",
-            "    if (debug) {",
-            "        // write str a string) to the console",
-            "        console.log(str);",
-            "    ",
-            "    str += \" bar() \";",
-            "}"
-        ];
-        var session = new EditSession(lines.join("\n"), new JavaScriptMode());
-
-        assert.equal(session.findMatchingBracket({row: 0, column: 16}), null);
-        assert.equal(session.findMatchingBracket({row: 3, column: 30}), null);
-        assert.equal(session.findMatchingBracket({row: 1, column: 16}), null);
     },
 
     "test: match different bracket types" : function() {
@@ -363,14 +301,6 @@ module.exports = {
         assert.position(session.screenToDocumentPosition(1, 30), 1, 12);
         assert.position(session.screenToDocumentPosition(20, 50), 1, 12);
         assert.position(session.screenToDocumentPosition(20, 5), 1, 12);
-
-        // and the same for folded rows
-        session.addFold("...", new Range(0,1,1,3));
-        assert.position(session.screenToDocumentPosition(1, 2), 1, 12);
-        // for wrapped rows
-        session.setUseWrapMode(true);
-        session.setWrapLimitRange(5,5);
-        assert.position(session.screenToDocumentPosition(4, 1), 1, 12);
     },
 
     "test: wrapLine split function" : function() {

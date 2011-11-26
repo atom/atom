@@ -38,10 +38,10 @@
 
 define(function(require, exports, module) {
 
-var oop = require("./lib/oop");
-var dom = require("./lib/dom");
-var event = require("./lib/event");
-var EventEmitter = require("./lib/event_emitter").EventEmitter;
+var oop = require("pilot/oop");
+var dom = require("pilot/dom");
+var event = require("pilot/event");
+var EventEmitter = require("pilot/event_emitter").EventEmitter;
 
 var ScrollBar = function(parent) {
     this.element = dom.createElement("div");

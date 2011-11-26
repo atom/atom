@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-exports.isDark = true;
+
 exports.cssText = ".ace-solarized-dark .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
@@ -252,8 +252,5 @@ color:#657B83;\
 }";
 
 exports.cssClass = "ace-solarized-dark";
-
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
 
 });

@@ -39,9 +39,9 @@
 
 define(function(require, exports, module) {
 
-var event = require("../lib/event");
-var DefaultHandlers = require("./default_handlers").DefaultHandlers;
-var MouseEvent = require("./mouse_event").MouseEvent;
+var event = require("pilot/event");
+var DefaultHandlers = require("ace/mouse/default_handlers").DefaultHandlers;
+var MouseEvent = require("ace/mouse/mouse_event").MouseEvent;
 
 var MouseHandler = function(editor) {
     this.editor = editor;
@@ -57,7 +57,6 @@ var MouseHandler = function(editor) {
 
     var mouseTarget = editor.renderer.getMouseEventTarget();
     event.addListener(mouseTarget, "mousedown", this.onMouseDown.bind(this));
-    event.addListener(mouseTarget, "click", this.onMouseClick.bind(this));
     event.addListener(mouseTarget, "mousemove", this.onMouseMove.bind(this));
     event.addMultiMouseDownListener(mouseTarget, 0, 2, 500, this.onMouseDoubleClick.bind(this));
     event.addMultiMouseDownListener(mouseTarget, 0, 3, 600, this.onMouseTripleClick.bind(this));
@@ -78,10 +77,6 @@ var MouseHandler = function(editor) {
 
     this.onMouseDown = function(e) {
         this.editor._dispatchEvent("mousedown", new MouseEvent(e, this.editor));
-    };
-
-    this.onMouseClick = function(e) {
-        this.editor._dispatchEvent("click", new MouseEvent(e, this.editor));
     };
     
     this.onMouseMove = function(e) {

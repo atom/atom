@@ -37,11 +37,11 @@
 
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var TextMode = require("./text").Mode;
-var Tokenizer = require("../tokenizer").Tokenizer;
-var XmlHighlightRules = require("./xml_highlight_rules").XmlHighlightRules;
-var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
+var oop = require("pilot/oop");
+var TextMode = require("ace/mode/text").Mode;
+var Tokenizer = require("ace/tokenizer").Tokenizer;
+var XmlHighlightRules = require("ace/mode/xml_highlight_rules").XmlHighlightRules;
+var XmlBehaviour = require("ace/mode/behaviour/xml").XmlBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new XmlHighlightRules().getRules());

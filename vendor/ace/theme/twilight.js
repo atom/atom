@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-exports.isDark = true;
+
 exports.cssClass = "ace-twilight";
 exports.cssText = ".ace-twilight .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
@@ -254,8 +254,5 @@ color:#5F5A60;\
 .ace-twilight .ace_collab.ace_user1 {\
      \
 }";
-
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
 
 });

@@ -11,15 +11,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Ajax.org Code Editor (ACE).
+ * The Original Code is Skywriter.
  *
  * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
+ * Mozilla.
+ * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
+ *   Joe Walker (jwalker@mozilla.com)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,24 +37,44 @@
 
 define(function(require, exports, module) {
 
-exports.inherits = (function() {
-    var tempCtor = function() {};
-    return function(ctor, superCtor) {
-        tempCtor.prototype = superCtor.prototype;
-        ctor.super_ = superCtor.prototype;
-        ctor.prototype = new tempCtor();
-        ctor.prototype.constructor = ctor;
-    }
-}());
+var objectToString = Object.prototype.toString;
 
-exports.mixin = function(obj, mixin) {
-    for (var key in mixin) {
-        obj[key] = mixin[key];
-    }
+/**
+ * Return true if it is a String
+ */
+exports.isString = function(it) {
+    return it && objectToString.call(it) === "[object String]";
 };
 
-exports.implement = function(proto, mixin) {
-    exports.mixin(proto, mixin);
+/**
+ * Returns true if it is a Boolean.
+ */
+exports.isBoolean = function(it) {
+    return it && objectToString.call(it) === "[object Boolean]";
+};
+
+/**
+ * Returns true if it is a Number.
+ */
+exports.isNumber = function(it) {
+    return it && objectToString.call(it) === "[object Number]" && isFinite(it);
+};
+
+/**
+ * Hack copied from dojo.
+ */
+exports.isObject = function(it) {
+    return it !== undefined &&
+        (it === null || typeof it == "object" ||
+        Array.isArray(it) || exports.isFunction(it));
+};
+
+/**
+ * Is the passed object a function?
+ * From dojo.isFunction()
+ */
+exports.isFunction = function(it) {
+    return it && objectToString.call(it) === "[object Function]";
 };
 
 });

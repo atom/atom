@@ -37,10 +37,7 @@
 
 define(function(require, exports, module) {
 
-exports.isDark = true;
-exports.cssClass = "ace-mono-industrial";
-exports.cssText = "\
-.ace-mono-industrial .ace_editor {\
+exports.cssText = ".ace-mono-industrial .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -104,9 +101,6 @@ exports.cssText = "\
   background: rgba(12, 13, 12, 0.25);\
 }\
 \
-.ace-mono-industrial .ace_marker-layer .ace_selected_word {\
-  border: 1px solid rgba(145, 153, 148, 0.40);\
-}\
        \
 .ace-mono-industrial .ace_invisible {\
   color: rgba(102, 108, 104, 0.50);\
@@ -124,6 +118,14 @@ exports.cssText = "\
   color:#E98800;\
 }\
 \
+.ace-mono-industrial .ace_constant.ace_language {\
+  \
+}\
+\
+.ace-mono-industrial .ace_constant.ace_library {\
+  \
+}\
+\
 .ace-mono-industrial .ace_constant.ace_numeric {\
   color:#E98800;\
 }\
@@ -133,12 +135,32 @@ exports.cssText = "\
 background-color:rgba(153, 0, 0, 0.68);\
 }\
 \
-.ace-mono-industrial .ace_fold {\
-    outline-color: #A39E64\
+.ace-mono-industrial .ace_invalid.ace_illegal {\
+  \
+}\
+\
+.ace-mono-industrial .ace_invalid.ace_deprecated {\
+  \
+}\
+\
+.ace-mono-industrial .ace_support {\
+  \
 }\
 \
 .ace-mono-industrial .ace_support.ace_function {\
   color:#588E60;\
+}\
+\
+.ace-mono-industrial .ace_function.ace_buildin {\
+  \
+}\
+\
+.ace-mono-industrial .ace_string {\
+  \
+}\
+\
+.ace-mono-industrial .ace_string.ace_regexp {\
+  \
 }\
 \
 .ace-mono-industrial .ace_comment {\
@@ -146,8 +168,36 @@ background-color:rgba(153, 0, 0, 0.68);\
 background-color:#151C19;\
 }\
 \
+.ace-mono-industrial .ace_comment.ace_doc {\
+  \
+}\
+\
+.ace-mono-industrial .ace_comment.ace_doc.ace_tag {\
+  \
+}\
+\
+.ace-mono-industrial .ace_variable {\
+  \
+}\
+\
 .ace-mono-industrial .ace_variable.ace_language {\
   color:#648BD2;\
+}\
+\
+.ace-mono-industrial .ace_xml_pe {\
+  \
+}\
+\
+.ace-mono-industrial .ace_meta {\
+  \
+}\
+\
+.ace-mono-industrial .ace_meta.ace_tag {\
+  \
+}\
+\
+.ace-mono-industrial .ace_meta.ace_tag.ace_input {\
+  \
 }\
 \
 .ace-mono-industrial .ace_entity.ace_other.ace_attribute-name {\
@@ -164,8 +214,44 @@ background-color:#151C19;\
 \
 .ace-mono-industrial .ace_markup.ace_underline {\
     text-decoration:underline;\
+}\
+\
+.ace-mono-industrial .ace_markup.ace_heading {\
+  \
+}\
+\
+.ace-mono-industrial .ace_markup.ace_heading.ace_1 {\
+  \
+}\
+\
+.ace-mono-industrial .ace_markup.ace_heading.ace_2 {\
+  \
+}\
+\
+.ace-mono-industrial .ace_markup.ace_heading.ace_3 {\
+  \
+}\
+\
+.ace-mono-industrial .ace_markup.ace_heading.ace_4 {\
+  \
+}\
+\
+.ace-mono-industrial .ace_markup.ace_heading.ace_5 {\
+  \
+}\
+\
+.ace-mono-industrial .ace_markup.ace_heading.ace_6 {\
+  \
+}\
+\
+.ace-mono-industrial .ace_markup.ace_list {\
+  \
+}\
+\
+.ace-mono-industrial .ace_collab.ace_user1 {\
+     \
 }";
 
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
+exports.cssClass = "ace-mono-industrial";
+
 });

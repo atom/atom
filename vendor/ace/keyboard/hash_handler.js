@@ -38,7 +38,7 @@
 
 define(function(require, exports, module) {
 
-var keyUtil  = require("../lib/keys");
+var keyUtil  = require("pilot/keys");
 
 function HashHandler(config) {
     this.setConfig(config);

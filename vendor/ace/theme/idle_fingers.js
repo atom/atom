@@ -37,10 +37,7 @@
 
 define(function(require, exports, module) {
 
-exports.isDark = true;
-exports.cssClass = "ace-idle-fingers";
-exports.cssText = "\
-.ace-idle-fingers .ace_editor {\
+exports.cssText = ".ace-idle-fingers .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -104,9 +101,6 @@ exports.cssText = "\
   background: #353637;\
 }\
 \
-.ace-idle-fingers .ace_marker-layer .ace_selected_word {\
-  border: 1px solid rgba(90, 100, 126, 0.88);\
-}\
        \
 .ace-idle-fingers .ace_invisible {\
   color: #404040;\
@@ -116,8 +110,24 @@ exports.cssText = "\
   color:#CC7833;\
 }\
 \
+.ace-idle-fingers .ace_keyword.ace_operator {\
+  \
+}\
+\
 .ace-idle-fingers .ace_constant {\
   color:#6C99BB;\
+}\
+\
+.ace-idle-fingers .ace_constant.ace_language {\
+  \
+}\
+\
+.ace-idle-fingers .ace_constant.ace_library {\
+  \
+}\
+\
+.ace-idle-fingers .ace_constant.ace_numeric {\
+  \
 }\
 \
 .ace-idle-fingers .ace_invalid {\
@@ -125,12 +135,24 @@ exports.cssText = "\
 background-color:#FF0000;\
 }\
 \
-.ace-idle-fingers .ace_fold {\
-    outline-color: #CC7833\
+.ace-idle-fingers .ace_invalid.ace_illegal {\
+  \
+}\
+\
+.ace-idle-fingers .ace_invalid.ace_deprecated {\
+  \
+}\
+\
+.ace-idle-fingers .ace_support {\
+  \
 }\
 \
 .ace-idle-fingers .ace_support.ace_function {\
   color:#B83426;\
+}\
+\
+.ace-idle-fingers .ace_function.ace_buildin {\
+  \
 }\
 \
 .ace-idle-fingers .ace_string {\
@@ -146,16 +168,84 @@ background-color:#FF0000;\
 color:#BC9458;\
 }\
 \
+.ace-idle-fingers .ace_comment.ace_doc {\
+  \
+}\
+\
+.ace-idle-fingers .ace_comment.ace_doc.ace_tag {\
+  \
+}\
+\
+.ace-idle-fingers .ace_variable {\
+  \
+}\
+\
+.ace-idle-fingers .ace_variable.ace_language {\
+  \
+}\
+\
+.ace-idle-fingers .ace_xml_pe {\
+  \
+}\
+\
+.ace-idle-fingers .ace_meta {\
+  \
+}\
+\
 .ace-idle-fingers .ace_meta.ace_tag {\
   color:#FFE5BB;\
+}\
+\
+.ace-idle-fingers .ace_meta.ace_tag.ace_input {\
+  \
+}\
+\
+.ace-idle-fingers .ace_entity.ace_other.ace_attribute-name {\
+  \
 }\
 \
 .ace-idle-fingers .ace_entity.ace_name {\
   color:#FFC66D;\
 }\
 \
+.ace-idle-fingers .ace_entity.ace_name.ace_function {\
+  \
+}\
+\
 .ace-idle-fingers .ace_markup.ace_underline {\
     text-decoration:underline;\
+}\
+\
+.ace-idle-fingers .ace_markup.ace_heading {\
+  \
+}\
+\
+.ace-idle-fingers .ace_markup.ace_heading.ace_1 {\
+  \
+}\
+\
+.ace-idle-fingers .ace_markup.ace_heading.ace_2 {\
+  \
+}\
+\
+.ace-idle-fingers .ace_markup.ace_heading.ace_3 {\
+  \
+}\
+\
+.ace-idle-fingers .ace_markup.ace_heading.ace_4 {\
+  \
+}\
+\
+.ace-idle-fingers .ace_markup.ace_heading.ace_5 {\
+  \
+}\
+\
+.ace-idle-fingers .ace_markup.ace_heading.ace_6 {\
+  \
+}\
+\
+.ace-idle-fingers .ace_markup.ace_list {\
+  \
 }\
 \
 .ace-idle-fingers .ace_collab.ace_user1 {\
@@ -163,6 +253,6 @@ color:#BC9458;\
 background-color:#FFF980;   \
 }";
 
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
+exports.cssClass = "ace-idle-fingers";
+
 });

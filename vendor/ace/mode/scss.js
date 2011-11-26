@@ -37,11 +37,11 @@
 
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var TextMode = require("./text").Mode;
-var Tokenizer = require("../tokenizer").Tokenizer;
-var ScssHighlightRules = require("./scss_highlight_rules").ScssHighlightRules;
-var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var oop = require("pilot/oop");
+var TextMode = require("ace/mode/text").Mode;
+var Tokenizer = require("ace/tokenizer").Tokenizer;
+var ScssHighlightRules = require("ace/mode/scss_highlight_rules").ScssHighlightRules;
+var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new ScssHighlightRules().getRules());

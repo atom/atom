@@ -36,15 +36,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 if (typeof process !== "undefined") {
-    require("amd-loader");
+    require("../../support/paths");
 }
 
 define(function(require, exports, module) {
     
-var Document = require("./document").Document;
-var Anchor = require("./anchor").Anchor;
-var Range = require("./range").Range;
-var assert = require("./test/assertions");
+var Document = require("ace/document").Document;
+var Anchor = require("ace/anchor").Anchor;
+var Range = require("ace/range").Range;
+var assert = require("ace/test/assertions");
 
 module.exports = {
 

@@ -39,9 +39,9 @@
 
 define(function(require, exports, module) {
 
-var lang = require("./lib/lang");
-var oop = require("./lib/oop");
-var Range = require("./range").Range;
+var lang = require("pilot/lang");
+var oop = require("pilot/oop");
+var Range = require("ace/range").Range;
 
 var Search = function() {
     this.$options = {
@@ -222,7 +222,7 @@ Search.SELECTION = 2;
         var searchSelection = this.$options.scope == Search.SELECTION;
 
         var range = this.$options.range || session.getSelection().getRange();
-        var start = this.$options.start || range[searchSelection ? "start" : "end"];
+        var start = this.$options.start || session.getSelection().getCursor();
 
         var firstRow = searchSelection ? range.start.row : 0;
         var firstColumn = searchSelection ? range.start.column : 0;
@@ -284,7 +284,7 @@ Search.SELECTION = 2;
         var searchSelection = this.$options.scope == Search.SELECTION;
 
         var range = this.$options.range || session.getSelection().getRange();
-        var start = this.$options.start || range[searchSelection ? "end" : "start"];
+        var start = this.$options.start || session.getSelection().getCursor();
 
         var firstRow = searchSelection ? range.start.row : 0;
         var firstColumn = searchSelection ? range.start.column : 0;

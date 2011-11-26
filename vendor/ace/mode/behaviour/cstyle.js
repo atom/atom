@@ -38,8 +38,8 @@
 
 define(function(require, exports, module) {
 
-var oop = require("../../lib/oop");
-var Behaviour = require('../behaviour').Behaviour;
+var oop = require("pilot/oop");
+var Behaviour = require('ace/mode/behaviour').Behaviour;
 
 var CstyleBehaviour = function () {
 

@@ -21,6 +21,8 @@
  *
  * Contributor(s):
  *      Fabian Jakobs <fabian AT ajax DOT org>
+ *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
+ *      Julian Viereck <julian.viereck@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,6 +39,66 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-    console.warn("DEPRECATED: 'pilot/browser_focus' is deprecated. Use 'ace/lib/browser_focus' instead");
-    module.exports = require("ace/lib/browser_focus");
+
+var oop = require("pilot/oop");
+var event = require("pilot/event");
+var EventEmitter = require("pilot/event_emitter").EventEmitter;
+
+/**
+ * This class keeps track of the focus state of the given window.
+ * Focus changes for example when the user switches a browser tab,
+ * goes to the location bar or switches to another application.
+ */ 
+var BrowserFocus = function(win) {
+    win = win || window;
+    
+    this.lastFocus = new Date().getTime();
+    this._isFocused = true;
+    
+    var _self = this;
+
+    // IE < 9 supports focusin and focusout events
+    if ("onfocusin" in win.document) {
+        event.addListener(win.document, "focusin", function(e) {
+            _self._setFocused(true);
+        });
+
+        event.addListener(win.document, "focusout", function(e) {
+            _self._setFocused(!!e.toElement);
+        });
+    }
+    else {
+        event.addListener(win, "blur", function(e) {
+            _self._setFocused(false);
+        });
+
+        event.addListener(win, "focus", function(e) {
+            _self._setFocused(true);
+        });
+    }
+};
+
+(function(){
+
+    oop.implement(this, EventEmitter);
+    
+    this.isFocused = function() {
+        return this._isFocused;
+    };
+    
+    this._setFocused = function(isFocused) {
+        if (this._isFocused == isFocused)
+            return;
+            
+        if (isFocused)
+            this.lastFocus = new Date().getTime();
+            
+        this._isFocused = isFocused;
+        this._emit("changeFocus");
+    };
+
+}).call(BrowserFocus.prototype);
+
+
+exports.BrowserFocus = BrowserFocus;
 });

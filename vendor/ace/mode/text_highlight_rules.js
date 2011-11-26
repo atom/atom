@@ -37,7 +37,7 @@
 
 define(function(require, exports, module) {
 
-var lang = require("../lib/lang");
+var lang = require("pilot/lang");
 
 var TextHighlightRules = function() {
 

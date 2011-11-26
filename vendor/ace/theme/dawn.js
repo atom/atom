@@ -37,10 +37,7 @@
 
 define(function(require, exports, module) {
 
-exports.isDark = false;
-exports.cssClass = "ace-dawn";
-exports.cssText = "\
-.ace-dawn .ace_editor {\
+exports.cssText = ".ace-dawn .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -104,9 +101,6 @@ exports.cssText = "\
   background: rgba(36, 99, 180, 0.12);\
 }\
 \
-.ace-dawn .ace_marker-layer .ace_selected_word {\
-  border: 1px solid rgba(39, 95, 255, 0.30);\
-}\
        \
 .ace-dawn .ace_invisible {\
   color: rgba(75, 75, 126, 0.50);\
@@ -116,8 +110,28 @@ exports.cssText = "\
   color:#794938;\
 }\
 \
+.ace-dawn .ace_keyword.ace_operator {\
+  \
+}\
+\
 .ace-dawn .ace_constant {\
   color:#811F24;\
+}\
+\
+.ace-dawn .ace_constant.ace_language {\
+  \
+}\
+\
+.ace-dawn .ace_constant.ace_library {\
+  \
+}\
+\
+.ace-dawn .ace_constant.ace_numeric {\
+  \
+}\
+\
+.ace-dawn .ace_invalid {\
+  \
 }\
 \
 .ace-dawn .ace_invalid.ace_illegal {\
@@ -137,12 +151,12 @@ color:#B52A1D;\
   color:#691C97;\
 }\
 \
-.ace-dawn .ace_fold {\
-    outline-color: #794938\
-}\
-\
 .ace-dawn .ace_support.ace_function {\
   color:#693A17;\
+}\
+\
+.ace-dawn .ace_function.ace_buildin {\
+  \
 }\
 \
 .ace-dawn .ace_string {\
@@ -158,8 +172,48 @@ color:#B52A1D;\
 color:#5A525F;\
 }\
 \
+.ace-dawn .ace_comment.ace_doc {\
+  \
+}\
+\
+.ace-dawn .ace_comment.ace_doc.ace_tag {\
+  \
+}\
+\
 .ace-dawn .ace_variable {\
   color:#234A97;\
+}\
+\
+.ace-dawn .ace_variable.ace_language {\
+  \
+}\
+\
+.ace-dawn .ace_xml_pe {\
+  \
+}\
+\
+.ace-dawn .ace_meta {\
+  \
+}\
+\
+.ace-dawn .ace_meta.ace_tag {\
+  \
+}\
+\
+.ace-dawn .ace_meta.ace_tag.ace_input {\
+  \
+}\
+\
+.ace-dawn .ace_entity.ace_other.ace_attribute-name {\
+  \
+}\
+\
+.ace-dawn .ace_entity.ace_name {\
+  \
+}\
+\
+.ace-dawn .ace_entity.ace_name.ace_function {\
+  \
 }\
 \
 .ace-dawn .ace_markup.ace_underline {\
@@ -170,10 +224,38 @@ color:#5A525F;\
   color:#19356D;\
 }\
 \
+.ace-dawn .ace_markup.ace_heading.ace_1 {\
+  \
+}\
+\
+.ace-dawn .ace_markup.ace_heading.ace_2 {\
+  \
+}\
+\
+.ace-dawn .ace_markup.ace_heading.ace_3 {\
+  \
+}\
+\
+.ace-dawn .ace_markup.ace_heading.ace_4 {\
+  \
+}\
+\
+.ace-dawn .ace_markup.ace_heading.ace_5 {\
+  \
+}\
+\
+.ace-dawn .ace_markup.ace_heading.ace_6 {\
+  \
+}\
+\
 .ace-dawn .ace_markup.ace_list {\
   color:#693A17;\
+}\
+\
+.ace-dawn .ace_collab.ace_user1 {\
+     \
 }";
 
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
+exports.cssClass = "ace-dawn";
+
 });

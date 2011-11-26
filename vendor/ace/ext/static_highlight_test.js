@@ -1,20 +1,18 @@
 if (typeof process !== "undefined") {
-    require("amd-loader");
-    require("../test/mockdom");
+    require("../../../support/paths");    
+    require("ace/test/mockdom");
 }
 
-define(function(require, exports, module) {
-    
 var assert = require("assert");
 var highlighter = require("./static_highlight");
-var JavaScriptMode = require("../mode/javascript").Mode;
+var JavaScriptMode = require("ace/mode/javascript").Mode;
 
 // Execution ORDER: test.setUpSuite, setUp, testFn, tearDown, test.tearDownSuite
 module.exports = {
     timeout: 10000,
     
     "test simple snippet": function(next) {
-        var theme = require("../theme/tomorrow");
+        var theme = require("ace/theme/tomorrow");
         var snippet = "/** this is a function\n\
 *\n\
 */\n\
@@ -38,7 +36,7 @@ function hello (a, b, c) {\n\
     },
     
     "test css from theme is used": function(next) {
-        var theme = require("../theme/tomorrow");
+        var theme = require("ace/theme/tomorrow");
         var snippet = "/** this is a function\n\
 *\n\
 */\n\
@@ -50,13 +48,13 @@ function hello (a, b, c) {\n\
         var isError = false, result;
         result = highlighter.render(snippet, mode, theme);
         
-        assert.ok(result.css.indexOf(theme.cssText) !== -1);
+        assert.equal(result.css, theme.cssText);
         
         next();
     },
     
     "test theme classname should be in output html": function (next) {
-        var theme = require("../theme/tomorrow");
+        var theme = require("ace/theme/tomorrow");
         var snippet = "/** this is a function\n\
 *\n\
 */\n\
@@ -73,8 +71,4 @@ function hello (a, b, c) {\n\
     }
 };
 
-});
-
-if (typeof module !== "undefined" && module === require.main) {
-    require("asyncjs").test.testcase(module.exports).exec();
-}
+!module.parent && require("asyncjs").test.testcase(module.exports).exec();

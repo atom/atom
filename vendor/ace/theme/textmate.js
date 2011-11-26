@@ -36,7 +36,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
-exports.isDark = false;
+
+
 exports.cssClass = "ace-tm";
 exports.cssText = ".ace-tm .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
@@ -106,7 +107,8 @@ exports.cssText = ".ace-tm .ace_editor {\
 }\
 \
 .ace-tm .ace_line .ace_fold {\
-    outline-color: #1C00FF;\
+    background-color: #E4E4E4;\
+    border-radius: 3px;\
 }\
 \
 .ace-tm .ace_line .ace_support.ace_function {\
@@ -204,6 +206,4 @@ exports.cssText = ".ace-tm .ace_editor {\
   color: rgb(255, 0, 0)\
 }";
 
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
 });

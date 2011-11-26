@@ -39,7 +39,7 @@
 
 define(function(require, exports, module) {
 
-var dom = require("../lib/dom");
+var dom = require("pilot/dom");
 
 var Gutter = function(parentEl) {
     this.element = dom.createElement("div");

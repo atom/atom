@@ -51,8 +51,8 @@
 
 define(function(require, exports, module) {
 
-    var lexer = require("./jslex");
-    var definitions = require("./jsdefs");
+    var lexer = require("ace/narcissus/jslex");
+    var definitions = require("ace/narcissus/jsdefs");
 
     const StringMap = definitions.StringMap;
     const Stack = definitions.Stack;
@@ -1892,7 +1892,7 @@ define(function(require, exports, module) {
         return n;
     }
 
-    module.exports = {
+    return {
         parse: parse,
         parseStdin: parseStdin,
         Node: Node,

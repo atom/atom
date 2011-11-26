@@ -1,11 +1,11 @@
 define(function(require, exports, module) {
 
-var oop = require("../lib/oop");
-var TextMode = require("./text").Mode;
-var Tokenizer = require("../tokenizer").Tokenizer;
-var CSharpHighlightRules = require("./csharp_highlight_rules").CSharpHighlightRules;
-var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
-var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
+var oop = require("pilot/oop");
+var TextMode = require("ace/mode/text").Mode;
+var Tokenizer = require("ace/tokenizer").Tokenizer;
+var CSharpHighlightRules = require("ace/mode/csharp_highlight_rules").CSharpHighlightRules;
+var MatchingBraceOutdent = require("ace/mode/matching_brace_outdent").MatchingBraceOutdent;
+var CstyleBehaviour = require("ace/mode/behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new CSharpHighlightRules().getRules());

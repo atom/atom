@@ -40,14 +40,14 @@
 
 define(function(require, exports, module) {
 
-var oop = require("./lib/oop");
-var lang = require("./lib/lang");
-var EventEmitter = require("./lib/event_emitter").EventEmitter;
-var Selection = require("./selection").Selection;
-var TextMode = require("./mode/text").Mode;
-var Range = require("./range").Range;
-var Document = require("./document").Document;
-var BackgroundTokenizer = require("./background_tokenizer").BackgroundTokenizer;
+var oop = require("pilot/oop");
+var lang = require("pilot/lang");
+var EventEmitter = require("pilot/event_emitter").EventEmitter;
+var Selection = require("ace/selection").Selection;
+var TextMode = require("ace/mode/text").Mode;
+var Range = require("ace/range").Range;
+var Document = require("ace/document").Document;
+var BackgroundTokenizer = require("ace/background_tokenizer").BackgroundTokenizer;
 
 var EditSession = function(text, mode) {
     this.$modified = true;
@@ -393,7 +393,7 @@ var EditSession = function(text, mode) {
     };
 
     this.getAnnotations = function() {
-        return this.$annotations || {};
+        return this.$annotations;
     };
 
     this.clearAnnotations = function() {
@@ -439,17 +439,6 @@ var EditSession = function(text, mode) {
         }
 
         return new Range(row, start, row, end);
-    };
-
-    // Gets the range of a word including its right whitespace
-    this.getAWordRange = function(row, column) {
-        var wordRange = this.getWordRange(row, column);
-        var line = this.getLine(wordRange.end.row);
-
-        while (line.charAt(wordRange.end.column).match(/[ \t]/)) {
-            wordRange.end.column += 1;
-        }
-        return wordRange;
     };
 
     this.setNewLineMode = function(newLineMode) {
@@ -621,6 +610,98 @@ var EditSession = function(text, mode) {
 
     this.getTextRange = function(range) {
         return this.doc.getTextRange(range);
+    };
+
+    this.findMatchingBracket = function(position) {
+        if (position.column == 0) return null;
+
+        var charBeforeCursor = this.getLine(position.row).charAt(position.column-1);
+        if (charBeforeCursor == "") return null;
+
+        var match = charBeforeCursor.match(/([\(\[\{])|([\)\]\}])/);
+        if (!match) {
+            return null;
+        }
+
+        if (match[1]) {
+            return this.$findClosingBracket(match[1], position);
+        } else {
+            return this.$findOpeningBracket(match[2], position);
+        }
+    };
+
+    this.$brackets = {
+        ")": "(",
+        "(": ")",
+        "]": "[",
+        "[": "]",
+        "{": "}",
+        "}": "{"
+    };
+
+    this.$findOpeningBracket = function(bracket, position) {
+        var openBracket = this.$brackets[bracket];
+
+        var column = position.column - 2;
+        var row = position.row;
+        var depth = 1;
+
+        var line = this.getLine(row);
+
+        while (true) {
+            while(column >= 0) {
+                var ch = line.charAt(column);
+                if (ch == openBracket) {
+                    depth -= 1;
+                    if (depth == 0) {
+                        return {row: row, column: column};
+                    }
+                }
+                else if (ch == bracket) {
+                    depth +=1;
+                }
+                column -= 1;
+            }
+            row -=1;
+            if (row < 0) break;
+
+            var line = this.getLine(row);
+            var column = line.length-1;
+        }
+        return null;
+    };
+
+    this.$findClosingBracket = function(bracket, position) {
+        var closingBracket = this.$brackets[bracket];
+
+        var column = position.column;
+        var row = position.row;
+        var depth = 1;
+
+        var line = this.getLine(row);
+        var lineCount = this.getLength();
+
+        while (true) {
+            while(column < line.length) {
+                var ch = line.charAt(column);
+                if (ch == closingBracket) {
+                    depth -= 1;
+                    if (depth == 0) {
+                        return {row: row, column: column};
+                    }
+                }
+                else if (ch == bracket) {
+                    depth +=1;
+                }
+                column += 1;
+            }
+            row +=1;
+            if (row >= lineCount) break;
+
+            var line = this.getLine(row);
+            var column = 0;
+        }
+        return null;
     };
 
     this.insert = function(position, text) {
@@ -1072,11 +1153,9 @@ var EditSession = function(text, mode) {
         var row = firstRow;
         lastRow = Math.min(lastRow, lines.length - 1);
         while (row <= lastRow) {
-            foldLine = this.getFoldLine(row, foldLine);
+            foldLine = this.getFoldLine(row);
             if (!foldLine) {
                 tokens = this.$getDisplayTokens(lang.stringTrimRight(lines[row]));
-                wrapData[row] = this.$computeWrapSplits(tokens, wrapLimit, tabSize);
-                row ++;
             } else {
                 tokens = [];
                 foldLine.walk(
@@ -1100,13 +1179,16 @@ var EditSession = function(text, mode) {
                     lines[foldLine.end.row].length + 1
                 );
                 // Remove spaces/tabs from the back of the token array.
-                while (tokens.length != 0 && tokens[tokens.length - 1] >= SPACE)
+                while (tokens.length != 0
+                    && tokens[tokens.length - 1] >= SPACE)
+                {
                     tokens.pop();
-
-                wrapData[foldLine.start.row]
-                    = this.$computeWrapSplits(tokens, wrapLimit, tabSize);
-                row = foldLine.end.row + 1;
+                }
             }
+            wrapData[row] =
+                this.$computeWrapSplits(tokens, wrapLimit, tabSize);
+
+            row = this.getRowFoldEnd(row) + 1;
         }
     };
 
@@ -1397,7 +1479,9 @@ var EditSession = function(text, mode) {
         }
         var doCache = !rowCache.length || i == rowCache.length;
 
+        // clamp row before clamping column, for selection on last line
         var maxRow = this.getLength() - 1;
+
         var foldLine = this.getNextFoldLine(docRow);
         var foldStart = foldLine ? foldLine.start.row : Infinity;
 
@@ -1422,24 +1506,18 @@ var EditSession = function(text, mode) {
             }
         }
 
-        if (foldLine && foldLine.start.row <= docRow) {
+        if (foldLine && foldLine.start.row <= docRow)
             line = this.getFoldDisplayLine(foldLine);
-            docRow = foldLine.start.row;
-        } else if (row + rowLength <= screenRow || docRow > maxRow) {
-            // clip at the end of the document
-            return {
-                row: maxRow,
-                column: this.getLine(maxRow).length
-            }
-        } else {
+        else {
             line = this.getLine(docRow);
             foldLine = null;
         }
 
+        var splits = [];
         if (this.$useWrapMode) {
-            var splits = this.$wrapData[docRow];
+            splits = this.$wrapData[docRow];
             if (splits) {
-                column = splits[screenRow - row];
+                column = splits[screenRow - row]
                 if(screenRow > row && splits.length) {
                     docColumn = splits[screenRow - row - 1] || splits[splits.length - 1];
                     line = line.substring(docColumn);
@@ -1448,6 +1526,10 @@ var EditSession = function(text, mode) {
         }
 
         docColumn += this.$getStringScreenWidth(line, screenColumn)[1];
+
+        // clip row at the end of the document
+        if (row + splits.length < screenRow)
+            docColumn = Number.MAX_VALUE;
 
         // Need to do some clamping action here.
         if (this.$useWrapMode) {
@@ -1587,29 +1669,24 @@ var EditSession = function(text, mode) {
 
     this.getScreenLength = function() {
         var screenRows = 0;
-        var fold = null;
+        var lastFoldLine = null;
+        var foldLine = null;
         if (!this.$useWrapMode) {
             screenRows = this.getLength();
 
             // Remove the folded lines again.
             var foldData = this.$foldData;
             for (var i = 0; i < foldData.length; i++) {
-                fold = foldData[i];
-                screenRows -= fold.end.row - fold.start.row;
+                foldLine = foldData[i];
+                screenRows -= foldLine.end.row - foldLine.start.row;
             }
         } else {
-            var lastRow = this.$wrapData.length;
-            var row = 0, i = 0;
-            var fold = this.$foldData[i++];
-            var foldStart = fold ? fold.start.row :Infinity;
-
-            while (row < lastRow) {
-                screenRows += this.$wrapData[row].length + 1;
-                row ++;
-                if (row > foldStart) {
-                    row = fold.end.row+1;
-                    fold = this.$foldData[i++];
-                    foldStart = fold ?fold.start.row :Infinity;
+            for (var row = 0; row < this.$wrapData.length; row++) {
+                if (foldLine = this.getFoldLine(row, lastFoldLine)) {
+                    row = foldLine.end.row;
+                    screenRows += 1;
+                } else {
+                    screenRows += this.$wrapData[row].length + 1;
                 }
             }
         }
@@ -1658,8 +1735,7 @@ var EditSession = function(text, mode) {
 
 }).call(EditSession.prototype);
 
-require("./edit_session/folding").Folding.call(EditSession.prototype);
-require("./edit_session/bracket_match").BracketMatch.call(EditSession.prototype);
+require("ace/edit_session/folding").Folding.call(EditSession.prototype);
 
 exports.EditSession = EditSession;
 });
