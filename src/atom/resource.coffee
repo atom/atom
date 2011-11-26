@@ -21,4 +21,5 @@ class Resource extends Pane
 
   close: ->
     atom.trigger 'resource:close', this
+    @pane?.remove()
     false

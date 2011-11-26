@@ -27,6 +27,9 @@ class EditorPane extends Pane
     el.addEventListener 'DOMNodeInsertedIntoDocument', => @resize()
     el.addEventListener 'DOMNodeRemovedFromDocument', => @resize()
 
+  remove: ->
+    @pane?.remove()
+
   resize: (timeout=1) ->
     setTimeout =>
       @ace.focus()
