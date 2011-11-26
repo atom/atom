@@ -8,11 +8,8 @@ ace = require 'ace/ace'
 module.exports =
 class EditorPane extends Pane
   id: null
-
   html: null
-
   position: 'main'
-
   editor: null
 
   constructor: ->
