@@ -93,19 +93,6 @@ class Editor extends Resource
 
     true
 
-  edit: (code) ->
-    @session = new EditSession code
-    @session.setValue code
-    @session.setUseSoftTabs @settings.softTabs
-    @session.setTabSize if @settings.softTabs then @settings.tabSize else 8
-    @session.setUndoManager new UndoManager
-    @session.on 'change', => @dirty = true
-    @pane.ace.setSession @session
-
-    @pane.ace.setTheme require "ace/theme/#{@settings.theme}"
-    @pane.ace.setShowInvisibles @settings.showInvisibles
-    @pane.ace.setPrintMarginColumn @settings.marginColumn
-
   close: ->
     if @dirty
       detailedMessage = if @url
