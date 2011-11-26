@@ -25,10 +25,10 @@ require = (file, cb) ->
 
   if __modules[file]?
     if not __modules.loaded[file.toLowerCase()]?
-      console.warn("Circular require: #{__filename} required #{file}")
+      console.warn "Circular require: #{__filename} required #{file}"
     return __modules[file]
   else if __modules.loaded[file.toLowerCase()]
-    console.warn("Multiple requires (different cases) for #{file}")
+    console.warn "Multiple requires (different cases) for #{file}"
 
   [ previousFilename, window.__filename ] = [ __filename, file ]
   __modules[file] = {} # Fix for circular references
