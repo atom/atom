@@ -24,4 +24,3 @@ class FindInProject extends Extension
       callback _.map (stdout.split "\n"), (line) ->
         name: line.replace root, ''
         url: _.first line.split ":"
-      

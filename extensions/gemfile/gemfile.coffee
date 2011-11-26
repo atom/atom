@@ -22,7 +22,7 @@ class Gemfile extends Extension
         url: "http://rubygems.org/"
         type: 'dir'
       ]
-      
+
       @project.settings.extraURLs["http://rubygems.org/"] = gems
       @pane = new ModalSelector -> gems
 
