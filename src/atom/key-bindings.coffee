@@ -9,6 +9,9 @@ window:
   'cmd-o': (window) -> window.open()
   'cmd-O': (window) -> window.open window.prompt "Open URL:"
   'cmd-s': (window) -> window.save()
+  'cmd-ctrl-s': ->
+    if query = escape prompt 'Search the web:'
+      window.open 'http://duckduckgo.com?q=' + query
   'cmd-shift-e': ->
     s = document.createElement 'script'
     s.type = 'text/javascript'
