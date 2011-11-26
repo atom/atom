@@ -20,7 +20,7 @@ class Markdownpreview extends Browser
       @url = url
 
       html = '''
-        <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
+        <link rel="stylesheet" href="static/bootstrap-1.4.0.css">
         <style>
           body { padding:10px; }
           code { line-height:16px; }

@@ -50,7 +50,7 @@ class FindInProject extends Browser
 
   innerHTML: ->
     html = '''
-      <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
+      <link rel="stylesheet" href="static/bootstrap-1.4.0.css">
       <style>body { padding:10px; }</style>
     '''
     html += '<h1>Results</h1>'
