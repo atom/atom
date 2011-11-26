@@ -11,4 +11,5 @@ tabs:
   'cmd-7': (tabs) -> tabs.pane.switchToTab 7
   'cmd-8': (tabs) -> tabs.pane.switchToTab 8
   'cmd-9': (tabs) -> tabs.pane.switchToTab 9
+  'cmd-shift-t': (tabs) -> tabs.toggle()
 

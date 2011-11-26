@@ -20,5 +20,8 @@ class Tabs extends Extension
     @pane.remove()
     super
 
+  toggle: ->
+    @pane?.toggle()
+
   focus: (project, resource) =>
     @pane?.addTab resource.url
