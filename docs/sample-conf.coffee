@@ -1,11 +1,11 @@
-# ~/.atomicity/settings.coffee
+# ~/.atom/settings.coffee
 # ----------------------------
 
 editor:
   tabSize: 2
   spaces: true
 
-# ~/.atomicity/keybindings.coffee
+# ~/.atom/keybindings.coffee
 
 app:
   "cmd-q": (app) -> app.quit()

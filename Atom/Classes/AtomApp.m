@@ -4,7 +4,7 @@
 
 #import <WebKit/WebKit.h>
 
-#define ATOM_USER_PATH ([[NSString stringWithString:@"~/.atomicity/"] stringByStandardizingPath])
+#define ATOM_USER_PATH ([[NSString stringWithString:@"~/.atom/"] stringByStandardizingPath])
 #define ATOM_STORAGE_PATH ([ATOM_USER_PATH stringByAppendingPathComponent:@".app-storage"])
 
 @implementation AtomApp
