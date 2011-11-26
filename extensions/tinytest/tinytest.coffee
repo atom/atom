@@ -1,31 +1,23 @@
 $ = require 'jquery'
 _ = require 'underscore'
+fs = require 'fs'
 
 Pane = require 'pane'
-File = require 'fs'
 Extension = require 'extension'
 
 {CoffeeScript} = require 'coffee-script'
 
 module.exports =
 class TinyTest extends Extension
-  keymap: ->
-    'Command-Ctrl-T': 'runTests'
-
-  runTests: ->
-    _.map File.list(window.url + '/test'), @runTest
+  run: ->
+    _.map fs.list(window.url + '/test'), @runTest
 
   runTest: (path) ->
-    # Even though we already have the path, run it
-    # through resolve() so we might find the dev version.
-    path = require.resolve _.last path.split '/'
     name = _.last path.split '/'
 
     try
-      if /\.coffee$/.test path
-        eval CoffeeScript.compile File.read path
-      else
-        eval File.read path
+      delete require.__modules[path] if require.__modules[path]
+      require path
       console.log "all tests passed in #{name}"
     catch e
       if e.actual? and e.expected?
