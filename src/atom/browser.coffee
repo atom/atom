@@ -15,7 +15,7 @@ class Browser extends Resource
     true
 
   # innerHTML - Optional String to set as iframe's content.
-  show: (innerHTML=null) ->
+  add: (innerHTML=null) ->
     style = "width:100%;height:100%;background-color:#fff;border:none"
     @html = "<iframe src='#{@url}' style='#{style}'></iframe>"
 
