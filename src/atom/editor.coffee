@@ -144,7 +144,6 @@ class Editor extends Resource
     @pane.ace.getSession().setValue code
 
   removeTrailingWhitespace: ->
-    return
     @pane.ace.replaceAll "",
       needle: "[ \t]+$"
       regExp: true
