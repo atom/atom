@@ -64,6 +64,7 @@ class Editor extends Resource
     window.setTitle @title()
 
     @pane ?= new EditorPane
+    @pane.show()
 
     if not @session
       @session = new EditSession code or ''
@@ -79,7 +80,6 @@ class Editor extends Resource
       @pane.ace.setShowInvisibles @settings.showInvisibles
       @pane.ace.setPrintMarginColumn @settings.marginColumn
 
-    @pane.show()
     @pane.ace.resize()
 
   open: (url) ->

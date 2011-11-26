@@ -18,8 +18,11 @@ class EditorPane extends Pane
   constructor: ->
     @id = _.uniqueId 'editor-'
     @html = $ "<div id='#{@id}'></div>"
-    @show()
 
+  show: ->
+    super
+
+    return if @ace
     @ace = ace.edit @id
 
     # Resize editor when panes are added/removed
