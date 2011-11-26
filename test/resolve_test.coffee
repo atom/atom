@@ -11,13 +11,14 @@ resolve = (path) ->
   path
 
 assert.equal resolve('underscore'), "#{root}/vendor/underscore.js"
-assert.equal resolve('app'), "#{root}/src/app.js"
+assert.equal resolve('atom/window'), "#{root}/src/atom/window.js"
 assert.equal resolve('tabs/tabs'), "#{root}/extensions/tabs/tabs.js"
 
-# assert.equal resolve('./document'), "#{root}/src/document.js"
-# assert.equal resolve('../README.md'), "#{root}/README.md"
-dotatom = fs.absolute "~/.atomicity"
-assert.equal resolve('~/.atomicity'), "#{dotatom}/index.coffee"
+#assert.equal resolve('./resource'), "#{root}/src/resource.js"
+#assert.equal resolve('../README.md'), "#{root}/README.md"
+
+dotatom = fs.absolute "~/.atom"
+assert.equal resolve('~/.atom'), "#{dotatom}/index.coffee"
 
 assert.equal resolve('ace/requirejs/text!ace/css/editor.css'),
   "#{root}/vendor/ace/css/editor.css"
