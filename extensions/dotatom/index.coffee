@@ -4,9 +4,9 @@ module.exports =
 class Dotatom
   constructor: ->
     try
-      require "~/.atomicity"
+      require "~/.atom"
     catch e
-      console.log 'No ~/.atomicity module found.'
+      console.log 'No ~/.atom module found.'
       
-    atom.settings.load "~/.atomicity/settings.coffee"
-    atom.keybinder.load "~/.atomicity/key-bindings.coffee"
+    atom.settings.load "~/.atom/settings.coffee"
+    atom.keybinder.load "~/.atom/key-bindings.coffee"
