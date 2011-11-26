@@ -34,7 +34,7 @@ class Editor extends Resource
 
   settings:
     theme: 'twilight'
-    useSoftTabs: true
+    softTabs: true
     tabSize: 2
     showInvisibles: false
     marginColumn: 80
