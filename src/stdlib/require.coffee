@@ -36,7 +36,7 @@ require = (file, cb) ->
   window.__filename = previousFilename
   __modules[file]
 
-define  = (cb) ->
+define = (cb) ->
   __defines.push ->
     exports = __modules[__filename] or {}
     module  = exports: exports
