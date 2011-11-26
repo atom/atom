@@ -7,7 +7,7 @@
 
 File = require 'fs'
 cdoc = require './cdoc'
-hbar = require './handlebars'
+hbar = require 'handlebars'
 require './helpers'
 
 # The tdoc module is our main interface. Using it we can turn CoffeeScript

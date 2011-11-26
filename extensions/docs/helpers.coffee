@@ -1,4 +1,4 @@
-hbar       = require './handlebars'
+hbar       = require 'handlebars'
 {Showdown} = require './showdown'
 converter  = new Showdown.converter
 
