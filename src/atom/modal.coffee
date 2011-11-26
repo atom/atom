@@ -38,10 +38,10 @@ class Modal
     $('#modal .content').append @html
 
     $('#modal-overlay')
-      .css('opacity', 0.2)
+      .css('opacity', 0)
       .click(=> @hide())
-      .fadeIn 200, =>
-        $('#modal').fadeIn(200)
+      .fadeIn 10, =>
+        $('#modal').show()
         $('#modal input').focus()
         @resize()
 
