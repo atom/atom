@@ -5,6 +5,7 @@ app:
 window:
   'cmd-shift-I': (window) -> window.showConsole()
   'cmd-r': (window) -> window.reload()
+  'cmd-w': (window) -> window.close()
   'cmd-o': (window) -> window.open()
   'cmd-O': (window) -> window.open window.prompt "Open URL:"
   'cmd-s': (window) -> window.save()
@@ -15,7 +16,6 @@ window:
     s.src = 'http://erkie.github.com/asteroids.min.js'
 
 editor:
-  'cmd-w': 'close'
   'cmd-shift-s': 'saveAs'
   'cmd-c': 'copy'
   'cmd-x': 'cut'

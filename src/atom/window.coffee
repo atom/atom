@@ -22,6 +22,7 @@ windowAdditions =
     throw "I DON'T KNOW ABOUT #{@url}" if not success
 
   shutdown: ->
+    $atomController.close
 
   showConsole: ->
     $atomController.webView.inspector.showConsole true
@@ -30,19 +31,18 @@ windowAdditions =
     $atomController.window.title = title
 
   reload: ->
-    @close()
+    @shutdown()
     OSX.NSApp.createController @url
 
   open: (url) ->
     url = atom.native.openPanel() unless url
     (@resource.open url) or atom.app.open url
 
+  close: ->
+    @resource.close() or @shutdown()
+
   save: ->
     @resource.save()
-
-  close: (url) ->
-    @shutdown()
-    $atomController.close
 
   handleKeyEvent: ->
     atom.keybinder.handleEvent arguments...
