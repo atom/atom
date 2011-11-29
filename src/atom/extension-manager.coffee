@@ -22,4 +22,9 @@ class ExtensionManager
         console.warn error
 
   unloadExtensions: =>
-    extension.shutdown() for name, extension of atom.extensions
+    for name, extension of atom.extensions
+      try
+        extension.shutdown() if extension.running
+      catch e
+        console.error "Failed to shutdown #{name}"
+        console.error e
