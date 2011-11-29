@@ -19,12 +19,13 @@
 }
 
 - (void)removeController:(AtomController *)controller {
-  [controllers removeObject:controller];  
+  [controllers removeObject:controller];
+  [controller.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:@"window:close", nil, false, nil];
 }
 
 - (void)reloadController:(AtomController *)controller {
-  AtomController *newController = [self createController:controller.url];
   CGRect frame = [[controller window] frame];
+  AtomController *newController = [self createController:controller.url];
   [controller close];
   [[newController window] setFrame:frame display:YES animate:NO];
 }
