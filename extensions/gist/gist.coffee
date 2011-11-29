@@ -10,7 +10,7 @@ Base64 = require 'gist/base64'
 
 module.exports =
 class Gist extends Editor
-  window.resourceTypes.push this
+  atom.router.add this
 
   settings:
     username: ''

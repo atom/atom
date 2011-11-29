@@ -6,7 +6,7 @@ Resource = require 'resource'
 #   browser:close (browser) -> Called when a browser is closed.
 module.exports =
 class Browser extends Resource
-  window.resourceTypes.push this
+  atom.router.add this
 
   open: (url) ->
     return false if not /^https?:/.test url

@@ -9,7 +9,7 @@ converter  = new Showdown.converter
 
 module.exports =
 class Markdownpreview extends Browser
-  window.resourceTypes.push this
+  atom.router.add this
 
   running: true
 

@@ -14,7 +14,7 @@ Resource = require 'resource'
 #     in a project.
 module.exports =
 class Project extends Resource
-  window.resourceTypes.push this
+  atom.router.add this
 
   settings:
     # Regexp used to ignore paths.
@@ -54,17 +54,11 @@ class Project extends Resource
         @setActiveResource resource
         resource.show()
         true
-      else
-        # Try to open all others
-        for resourceType in window.resourceTypes
-          resource = new resourceType
-          break if success = resource.open url
-
-        if success
-          @resources[url] = resource
-          atom.trigger 'project:resource:open', this, resource
-          @setActiveResource resource
-          true
+      else if resource = atom.router.open url
+        @resources[url] = resource
+        atom.trigger 'project:resource:open', this, resource
+        @setActiveResource resource
+        true
 
   close: (url) ->
     if url

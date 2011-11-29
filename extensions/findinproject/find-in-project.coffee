@@ -10,7 +10,7 @@ ModalSelector = require 'modal-selector'
 
 module.exports =
 class FindInProject extends Browser
-  window.resourceTypes.push this
+  atom.router.add this
 
   running: true
 

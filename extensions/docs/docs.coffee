@@ -6,7 +6,7 @@ Browser = require 'browser'
 
 module.exports =
 class Docs extends Browser
-  window.resourceTypes.push this
+  atom.router.add this
 
   running: true
 

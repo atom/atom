@@ -12,7 +12,7 @@ EditorPane = require 'editor-pane'
 #   editor:close (editor) -> Called when an editor is closed.
 module.exports =
 class Editor extends Resource
-  window.resourceTypes.push this
+  atom.router.add this
 
   dirty: false
 

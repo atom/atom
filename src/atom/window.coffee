@@ -7,19 +7,13 @@ _ = require 'underscore'
 # Events:
 #   window:load - Same as window.onLoad. Final event of app startup.
 windowAdditions =
-  resourceTypes: []
-
   url: $atomController.url?.toString()
 
   startup: ->
     atom.trigger 'window:load', this
 
-    success = false
-    for resourceType in @resourceTypes.reverse()
-      @resource = new resourceType
-      break if success = @resource.open @url
-
-    throw "I DON'T KNOW ABOUT #{@url}" if not success
+    if not @resource = atom.router.open @url
+      throw "I DON'T KNOW ABOUT #{@url}"
 
   shutdown: ->
     $atomController.close

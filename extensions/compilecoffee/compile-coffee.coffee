@@ -7,7 +7,7 @@ Extension = require 'extension'
 
 module.exports =
 class CompileCoffee extends Editor
-  window.resourceTypes.push this
+  atom.router.add this
 
   running: true
 
