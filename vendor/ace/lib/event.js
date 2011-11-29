@@ -180,7 +180,7 @@ exports.addMouseWheelListener = function(el, callback) {
             // some versions of Safari (e.g. 5.0.5) report insanely high
             // scroll values. These browsers require a higher factor
             if (Math.abs(e.wheelDeltaY) > max)
-                max = Math.abs(e.wheelDeltaY)
+                max = Math.abs(e.wheelDeltaY);
 
             if (max > 5000)
                 var factor = 400;
@@ -323,7 +323,7 @@ exports.addCommandKeyListener = function(el, callback) {
 
 if (window.postMessage) {
     var postMessageId = 1;
-    this.nextTick = function(callback, win) {
+    exports.nextTick = function(callback, win) {
         win = win || window;
         var messageName = "zero-timeout-message-" + postMessageId;            
         exports.addListener(win, "message", function listener(e) {
@@ -337,7 +337,7 @@ if (window.postMessage) {
     };
 }
 else {
-    this.nextTick = function(callback, win) {
+    exports.nextTick = function(callback, win) {
         win = win || window;
         window.setTimeout(callback, 0);
     };

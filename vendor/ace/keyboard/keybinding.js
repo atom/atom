@@ -39,7 +39,6 @@
 
 define(function(require, exports, module) {
 
-var useragent = require("../lib/useragent");
 var keyUtil  = require("../lib/keys");
 var event = require("../lib/event");
 require("../commands/default_commands");
@@ -76,8 +75,9 @@ var KeyBinding = function(editor) {
     };
 
     this.$callKeyboardHandlers = function (hashId, keyString, keyCode, e) {
+        var toExecute;
         for (var i = this.$handlers.length; i--;) {
-            var toExecute = this.$handlers[i].handleKeyboard(
+            toExecute = this.$handlers[i].handleKeyboard(
                 this.$data, hashId, keyString, keyCode, e
             );
             if (toExecute && toExecute.command)
@@ -97,13 +97,13 @@ var KeyBinding = function(editor) {
         if (success && e)
             event.stopEvent(e);
 
-        return success
+        return success;
     };
 
     this.handleKeyboard = function(data, hashId, keyString) {
         return {
             command: this.$editor.commands.findKeyCommand(hashId, keyString)
-        }
+        };
     };
 
     this.onCommandKey = function(e, hashId, keyCode) {

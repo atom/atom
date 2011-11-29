@@ -57,7 +57,6 @@ oop.inherits(Mode, TextMode);
 
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         var outdent = true;
-        var outentedRows = [];
         var re = /^(\s*)\/\//;
 
         for (var i=startRow; i<= endRow; i++) {
@@ -96,7 +95,7 @@ oop.inherits(Mode, TextMode);
         }
         
         if (state == "start" || state == "regex_allowed") {
-            var match = line.match(/^.*[\{\(\[\:]\s*$/);
+            var match = line.match(/^.*(?:\bcase\b.*\:|[\{\(\[])\s*$/);
             if (match) {
                 indent += tab;
             }

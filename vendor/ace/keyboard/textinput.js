@@ -47,7 +47,7 @@ var TextInput = function(parentNode, host) {
 
     var text = dom.createElement("textarea");
     if (useragent.isTouchPad)
-    	text.setAttribute("x-palm-disable-auto-cap", true);
+        text.setAttribute("x-palm-disable-auto-cap", true);
         
     text.style.left = "-10000px";
     parentNode.appendChild(text);
@@ -201,7 +201,7 @@ var TextInput = function(parentNode, host) {
                     clipboardData.setData("Text", copyText);
                     host.onCut();
                 }
-                event.preventDefault(e)
+                event.preventDefault(e);
             }
         });
     }
@@ -213,10 +213,10 @@ var TextInput = function(parentNode, host) {
     event.addListener(text, "compositionstart", onCompositionStart);
     if (useragent.isGecko) {
         event.addListener(text, "text", onCompositionUpdate);
-    };
+    }
     if (useragent.isWebKit) {
         event.addListener(text, "keyup", onCompositionUpdate);
-    };
+    }
     event.addListener(text, "compositionend", onCompositionEnd);
 
     event.addListener(text, "blur", function() {
@@ -240,7 +240,7 @@ var TextInput = function(parentNode, host) {
 
     function isFocused() {
         return document.activeElement === text;
-    };
+    }
     this.isFocused = isFocused;
 
     this.getElement = function() {
@@ -254,12 +254,12 @@ var TextInput = function(parentNode, host) {
                 
             text.style.cssText = 
                 'position:fixed; z-index:1000;' +
-                'left:' + (mousePos.x - 2) + 'px; top:' + (mousePos.y - 2) + 'px;'
+                'left:' + (mousePos.x - 2) + 'px; top:' + (mousePos.y - 2) + 'px;';
 
         }
         if (isEmpty)
             text.value='';
-    }
+    };
 
     this.onContextMenuClose = function(){
         setTimeout(function () {
@@ -269,7 +269,7 @@ var TextInput = function(parentNode, host) {
             }
             sendText();
         }, 0);
-    }
+    };
 };
 
 exports.TextInput = TextInput;

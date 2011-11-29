@@ -86,7 +86,7 @@ define(function(require, exports, module) {
                     regex : "(?:(?:\\.|::)\\s*)" + identifier
                 }, {
                     token : "variable",
-                    regex : "@" + identifier
+                    regex : "@(?:" + identifier + ")?"
                 }, {
                     token: function(value) {
                         if (keywords.hasOwnProperty(value))
@@ -151,14 +151,14 @@ define(function(require, exports, module) {
                     token : "punctuation.operator",
                     regex : "\\?|\\:|\\,|\\."
                 }, {
+                    token : "keyword.operator",
+                    regex : "(?:[\\-=]>|[-+*/%<>&|^!?=]=|>>>=?|\\-\\-|\\+\\+|::|&&=|\\|\\|=|<<=|>>=|\\?\\.|\\.{2,3}|\\!)"
+                }, {
                     token : "paren.lparen",
                     regex : "[({[]"
                 }, {
                     token : "paren.rparen",
                     regex : "[\\]})]"
-                }, {
-                    token : "keyword.operator",
-                    regex : "\\S+"
                 }, {
                     token : "text",
                     regex : "\\s+"
@@ -179,12 +179,14 @@ define(function(require, exports, module) {
             qstring : [{
                 token : "string",
                 regex : "[^\\\\']*(?:\\\\.[^\\\\']*)*'",
+                merge : true,
                 next : "start"
             }, stringfill],
             
             qqstring : [{
                 token : "string",
                 regex : '[^\\\\"]*(?:\\\\.[^\\\\"]*)*"',
+                merge : true,
                 next : "start"
             }, stringfill],
             

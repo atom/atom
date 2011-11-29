@@ -53,6 +53,13 @@ module.exports = {
         var tokens = this.tokenizer.getLineTokens("for", "start").tokens;
         assert.equal(tokens.length, 1);
         assert.equal(tokens[0].type, "keyword");
+    },
+    
+    "test tokenize string with interpolation": function() {
+        var tokens = this.tokenizer.getLineTokens('"#{ 22 / 7 } is a decent approximation of π"', "start").tokens;
+        console.log(tokens);
+        assert.equal(tokens.length, 12);
+        //assert.equal(tokens[0].type, "keyword");
     }
 };
 

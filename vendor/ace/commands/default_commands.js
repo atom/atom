@@ -254,15 +254,15 @@ exports.commands = [{
     readOnly: true
 }, {
     name: "togglerecording",
-    bindKey: bindKey("Ctrl-Shift-E", "Ctrl-Shift-E"),
+    bindKey: bindKey("Ctrl-Alt-E", "Command-Option-E"),
     exec: function(editor) { editor.commands.toggleRecording(); },
     readOnly: true
 }, {
     name: "replaymacro",
-    bindKey: bindKey("Ctrl-E", "Ctrl-Fuck-You"),
+    bindKey: bindKey("Ctrl-Shift-E", "Command-Shift-E"),
     exec: function(editor) { editor.commands.replay(editor); },
     readOnly: true
-},
+}, 
 
 // commands disabled in readOnly mode
 {

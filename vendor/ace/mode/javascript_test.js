@@ -63,14 +63,14 @@ module.exports = {
     "test: toggle comment lines should prepend '//' to each line" : function() {
         var session = new EditSession(["  abc", "cde", "fg"]);
 
-        var comment = this.mode.toggleCommentLines("start", session, 0, 1);
+        this.mode.toggleCommentLines("start", session, 0, 1);
         assert.equal(["//  abc", "//cde", "fg"].join("\n"), session.toString());
     },
 
     "test: toggle comment on commented lines should remove leading '//' chars" : function() {
         var session = new EditSession(["//  abc", "//cde", "fg"]);
 
-        var comment = this.mode.toggleCommentLines("start", session, 0, 1);
+        this.mode.toggleCommentLines("start", session, 0, 1);
         assert.equal(["  abc", "cde", "fg"].join("\n"), session.toString());
     },
 
@@ -85,14 +85,14 @@ module.exports = {
     "test: toggle comment on multiple lines with one commented line prepend '//' to each line" : function() {
         var session = new EditSession(["//  abc", "//cde", "fg"]);
 
-        var comment = this.mode.toggleCommentLines("start", session, 0, 2);
+        this.mode.toggleCommentLines("start", session, 0, 2);
         assert.equal(["////  abc", "////cde", "//fg"].join("\n"), session.toString());
     },
 
     "test: toggle comment on a comment line with leading white space": function() {
         var session = new EditSession(["//cde", "  //fg"]);
 
-        var comment = this.mode.toggleCommentLines("start", session, 0, 1);
+        this.mode.toggleCommentLines("start", session, 0, 1);
         assert.equal(["cde", "  fg"].join("\n"), session.toString());
     },
 
@@ -102,6 +102,10 @@ module.exports = {
     
     "test: auto indent after case" : function() {
         assert.equal("  ", this.mode.getNextLineIndent("start", "case 'juhu':", "  "));
+    },
+
+    "test: no auto indent in object literal" : function() {
+        assert.equal("", this.mode.getNextLineIndent("start", "{ 'juhu':", "  "));
     },
 
     "test: no auto indent after opening brace in multi line comment" : function() {

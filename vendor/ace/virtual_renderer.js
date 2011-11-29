@@ -61,7 +61,7 @@ var VirtualRenderer = function(container, theme) {
     // TODO: this breaks rendering in Cloud9 with multiple ace instances
 //    // Imports CSS once per DOM document ('ace_editor' serves as an identifier).
 //    dom.importCssString(editorCss, "ace_editor", container.ownerDocument);
-
+    
     // Chrome has some strange rendering issues if this is not done async
     setTimeout(function() {
         dom.addCssClass(container, "ace_editor");
