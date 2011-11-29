@@ -49,6 +49,10 @@
   [[webView mainFrame] loadRequest:request];
 }
 
+- (void)close {
+  [(AtomApp *)NSApp removeController:self];
+}
+
 - (NSString *)projectPath {
   return PROJECT_DIR;
 }
@@ -56,12 +60,6 @@
 // WebUIDelegate
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
   return defaultMenuItems;
-}
-
-// WindowDelegate
-- (BOOL)windowShouldClose:(id)sender {
-  [(AtomApp *)NSApp removeController:self];
-  return YES;
 }
 
 @end
