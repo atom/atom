@@ -40,7 +40,7 @@
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomController"];
 
-  jscocoa =   [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
+  jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[webView mainFrame] globalContext]];
   [jscocoa setObject:self withName:@"$atomController"];
 
   NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
