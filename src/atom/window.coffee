@@ -24,9 +24,6 @@ windowAdditions =
   setTitle: (title) ->
     $atomController.window.title = title
 
-  reload: ->
-    $atomController.reload
-
   open: (url) ->
     url = atom.native.openPanel() unless url
     (@resource.open url) or atom.app.open url

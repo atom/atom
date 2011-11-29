@@ -50,21 +50,28 @@
 
 // Overridden
 - (void)sendEvent:(NSEvent *)event {
-  if ([event type] == NSKeyDown) {
-    BOOL handeled = NO;
-    AtomController *controller = [[self keyWindow] windowController];
-    
-    // The keyWindow could be a Cocoa Dialog or something, ignore those.
-    if ([controller isKindOfClass:[AtomController class]]) {
+  if ([event type] != NSKeyDown) {
+    [super sendEvent:event];
+    return;
+  }
+  
+  BOOL handeled = NO;
+  AtomController *controller = [[self keyWindow] windowController];
+  
+  // The keyWindow could be a Cocoa Dialog or something, ignore those.
+  if ([controller isKindOfClass:[AtomController class]]) {
+    // cmd-r should always reload the current controller, so it needs to be here
+    if ([event modifierFlags] & NSCommandKeyMask && [[event charactersIgnoringModifiers] hasPrefix:@"r"]) {
+      [self reloadController:controller];
+      handeled = YES;
+    }
+    else {
       JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
       handeled = [controller.jscocoa toBool:value];
     }
-    
-    if (!handeled) [super sendEvent:event];
   }
-  else {
-    [super sendEvent:event];
-  }
+  
+  if (!handeled) [super sendEvent:event];
 }
 
 - (void)terminate:(id)sender {

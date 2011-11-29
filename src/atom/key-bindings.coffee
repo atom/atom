@@ -4,7 +4,6 @@ app:
 
 window:
   'cmd-shift-I': (window) -> window.showConsole()
-  'cmd-r': (window) -> window.reload()
   'cmd-w': (window) -> window.close()
   'cmd-o': (window) -> window.open()
   'cmd-O': (window) -> window.open window.prompt "Open URL:"
