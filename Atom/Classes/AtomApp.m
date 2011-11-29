@@ -22,6 +22,13 @@
   [controllers removeObject:controller];  
 }
 
+- (void)reloadController:(AtomController *)controller {
+  AtomController *newController = [self createController:controller.url];
+  CGRect frame = [[controller window] frame];
+  [controller close];
+  [[newController window] setFrame:frame display:YES animate:NO];
+}
+
 - (void)open:(NSString *)path {
   if (!path) {
     NSOpenPanel *panel =[NSOpenPanel openPanel];

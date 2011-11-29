@@ -25,8 +25,7 @@ windowAdditions =
     $atomController.window.title = title
 
   reload: ->
-    @shutdown()
-    OSX.NSApp.createController @url
+    $atomController.reload
 
   open: (url) ->
     url = atom.native.openPanel() unless url

@@ -49,6 +49,10 @@
   [[webView mainFrame] loadRequest:request];
 }
 
+- (void)reload {
+  [(AtomApp *)NSApp reloadController:self];
+}
+
 // WebUIDelegate
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
   return defaultMenuItems;
