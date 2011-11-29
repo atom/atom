@@ -66,7 +66,7 @@ class Editor extends Resource
     @pane ?= new EditorPane
     @pane.show()
 
-    if not @session
+    if code or not @session
       @session = new EditSession code or ''
       @session.setValue code or ''
       @session.setUseSoftTabs @settings.softTabs
