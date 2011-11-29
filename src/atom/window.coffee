@@ -10,10 +10,10 @@ windowAdditions =
   url: $atomController.url?.toString()
 
   startup: ->
-    atom.trigger 'window:load', this
-
     if not @resource = atom.router.open @url
       throw "I DON'T KNOW ABOUT #{@url}"
+
+    atom.trigger 'window:load', this
 
   shutdown: ->
     $atomController.close
