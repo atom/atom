@@ -318,6 +318,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"PROJECT_DIR=\"@\\\"$PROJECT_DIR\\\"\"",
 					"DEBUG=1",
 					"$(inherited)",
 				);

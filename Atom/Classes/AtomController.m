@@ -49,6 +49,10 @@
   [[webView mainFrame] loadRequest:request];
 }
 
+- (NSString *)projectPath {
+  return PROJECT_DIR;
+}
+
 // WebUIDelegate
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
   return defaultMenuItems;
