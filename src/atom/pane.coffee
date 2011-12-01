@@ -8,7 +8,7 @@ class Pane
 
   constructor: (html) ->
     @paneID = _.uniqueId 'pane-'
-    @el = $ "<div id=#{@paneID}>"
+    @el = $ "<div id='#{@paneID}'></div>"
     @el.addClass "pane " + @position
     @el.append html
 
@@ -31,6 +31,9 @@ class Pane
         horizontalDiv.append @el
       else
         throw "pane position of #{this} can't be `#{@position}`"
+
+  remove: ->
+    @el?.remove()
 
   el: ->
     el = $ "##{@paneID}"
