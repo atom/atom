@@ -7,20 +7,14 @@ ace = require 'ace/ace'
 
 module.exports =
 class EditorPane extends Pane
-  id: null
-  html: null
   position: 'main'
   editor: null
-
-  constructor: ->
-    @id = _.uniqueId 'editor-'
-    @html = $ "<div id='#{@id}'></div>"
 
   show: ->
     super
 
     return if @ace
-    @ace = ace.edit @id
+    @ace = ace.edit @paneID
 
     # Resize editor when panes are added/removed
     el = document.body

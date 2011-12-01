@@ -8,12 +8,11 @@ Pane = require 'pane'
 module.exports =
 class TreePane extends Pane
   position: 'left'
-
   tree: null
 
-  html: $ require "tree/tree.html"
-
   constructor: (@tree) ->
+    super require "tree/tree.html"
+
     @render()
 
     $('#tree li').live 'click', (event) =>
@@ -37,10 +36,10 @@ class TreePane extends Pane
       false
 
   render: ->
-    @html.children('#tree .cwd').text _.last window.url.split '/'
+    @el.find('.cwd').text _.last window.url.split '/'
     fileList = @createList @tree.urls()
     fileList.addClass 'files'
-    @html.children('#tree .files').replaceWith fileList
+    @el.find('.files').replaceWith fileList
 
   createList: (urls) ->
     list = $('<ul>')

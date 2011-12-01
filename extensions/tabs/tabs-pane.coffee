@@ -7,11 +7,11 @@ module.exports =
 class TabsPane extends Pane
   position: 'top'
 
-  html: $ require 'tabs/tabs.html'
-
   constructor: ->
+    html = require 'tabs/tabs.html'
+    super html
+
     # Style html
-    @html.parents('.pane').css height: 'inherit'
     css = $('<style id="tabs-style"></style>').html require 'tabs/tabs.css'
     $('head').append css
 

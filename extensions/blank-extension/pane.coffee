@@ -11,3 +11,4 @@ class BlankExtension extends Pane
   html: null
 
   constructor: ->
+    super

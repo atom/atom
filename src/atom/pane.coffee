@@ -1,46 +1,53 @@
 $ = require 'jquery'
+_ = require 'underscore'
 
 module.exports =
 class Pane
+  paneID: null
   position: null
 
-  html: null
+  constructor: (html) ->
+    @paneID = _.uniqueId 'pane-'
+    @el = $ "<div id=#{@paneID}>"
+    @el.addClass "pane " + @position
+    @el.append html
 
   add: ->
     verticalDiv = $('#app-vertical')
     horizontalDiv = $('#app-horizontal')
 
-    @pane = $ "<div>"
-    @pane.addClass "pane " + @position
-    @pane.append @html
-
     switch @position
       when 'main'
+        # Only one main pane can be visiable.
         $('#main > div').addClass 'hidden'
-        $('#main').append @pane
+        $('#main').append @el
       when 'top'
-        verticalDiv.prepend @pane
+        verticalDiv.prepend @el
       when 'left'
-        horizontalDiv.prepend @pane
+        horizontalDiv.prepend @el
       when 'bottom'
-        verticalDiv.append @pane
+        verticalDiv.append @el
       when 'right'
-        horizontalDiv.append @pane
+        horizontalDiv.append @el
       else
         throw "pane position of #{this} can't be `#{@position}`"
 
+  el: ->
+    el = $ "##{@paneID}"
+    el[0] and el # Return null if doesn't exist, jquery object if it does
+
   showing: ->
-    @pane and not @pane.hasClass 'hidden'
+    @el and not @el.hasClass 'hidden'
 
   show: ->
-    if not @pane
+    if not @el.parent()[0]
       @add()
     else
       $('#main > div').addClass 'hidden' if @position == 'main'
-      @pane.removeClass 'hidden'
+      @el.removeClass 'hidden'
 
   hide: ->
-    @pane.addClass 'hidden'
+    @el.addClass 'hidden'
 
   toggle: ->
     if @showing()
