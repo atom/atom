@@ -51,6 +51,7 @@
 
 - (void)close {
   [(AtomApp *)NSApp removeController:self];
+  [super close];
 }
 
 - (NSString *)projectPath {
