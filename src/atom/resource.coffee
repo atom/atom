@@ -9,6 +9,7 @@ Pane = require 'pane'
 module.exports =
 class Resource extends Pane
   position: "main"
+  pane: null
   settings: {}
   url: null
 
