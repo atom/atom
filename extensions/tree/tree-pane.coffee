@@ -15,7 +15,7 @@ class TreePane extends Pane
 
     @render()
 
-    $('#tree li').live 'click', (event) =>
+    $(document).on 'click', '#tree li', (event) =>
       $('#tree .active').removeClass 'active'
 
       el = $(event.currentTarget)
