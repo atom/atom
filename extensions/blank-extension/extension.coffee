@@ -7,8 +7,8 @@ class BlankExtension extends Extension
     atom.on 'project:open', @startup
 
   startup: =>
-    @pane = new Pane this
-    @pane.show()
+    #@pane = new Pane this
+    #@pane.show()
     super
 
   shutdown: ->

@@ -45,13 +45,14 @@
 
   NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
   NSURL *indexURL = [resourceURL URLByAppendingPathComponent:@"index.html"];
+    
   NSURLRequest *request = [NSURLRequest requestWithURL:indexURL];
   [[webView mainFrame] loadRequest:request];
 }
 
 - (void)close {
   [(AtomApp *)NSApp removeController:self];
-  [super close];
+  [super close];  
 }
 
 - (NSString *)projectPath {
