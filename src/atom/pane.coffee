@@ -12,6 +12,42 @@ class Pane
     @el.addClass "pane " + @position
     @el.append html
 
+    mousemove = (event) =>
+      if @position == "left"
+        @el.width event.clientX
+      else if @position == "right"
+        @el.width window.outerWidth - event.clientX
+      else if @position == "bottom"
+        @el.height window.outerHeight - event.clientY
+      else if @position == "top"
+        @el.height event.clientY - @el.offset().top
+
+    mousedown = (event) =>
+      maxEdgeDistance = 10
+      edgeDistance = switch @position
+        when 'top'
+          @el.height() - event.clientY + @el.offset().top
+        when 'left'
+          @el.width() - event.clientX + @el.offset().left
+        when 'bottom'
+          event.clientY - @el.offset().top
+        when 'right'
+          event.clientX - @el.offset().left
+        else
+          throw "pane position for #{this} can't be `#{@position}`"
+
+      if edgeDistance < maxEdgeDistance
+        $(document).on 'mouseup', 'body', mouseup
+        $(document).on 'mousemove', 'body', mousemove
+
+    mouseup = (event) =>
+      $(document).off 'mouseup', 'body', mouseup
+      $(document).off 'mousemove', 'body', mousemove
+
+    if @position != 'main'
+      id = "##{@paneID}"
+      $(document).on 'mousedown', id, mousedown
+
   add: ->
     verticalDiv = $('#app-vertical')
     horizontalDiv = $('#app-horizontal')
