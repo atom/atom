@@ -7,9 +7,12 @@
 }
 
 @property (retain) WebView *webView;
-@property (retain, readonly) NSString *url;
-@property (retain) JSCocoa *jscocoa;
+@property (nonatomic, retain) JSCocoa *jscocoa;
 
+@property (nonatomic, retain, readonly) NSString *url;
+@property (nonatomic, retain, readonly) NSString *bootstrapPage;
+
+- (id)initForSpecs;
 - (AtomController *)initWithURL:(NSString *)url;
 
 @end

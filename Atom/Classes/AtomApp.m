@@ -12,7 +12,7 @@
 @synthesize controllers;
 
 - (AtomController *)createController:(NSString *)path {
-  AtomController *controller = [[AtomController alloc] initWithURL:path];
+  AtomController *controller = [(AtomController *)[AtomController alloc] initWithURL:path];
   [controllers addObject:controller];
   
   return controller;
@@ -21,6 +21,11 @@
 - (void)removeController:(AtomController *)controller {
   [controllers removeObject:controller];
   [controller.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:@"window:close", nil, false, nil];
+}
+
+- (void)runSpecs {
+  AtomController *controller = [(AtomController *)[AtomController alloc] initForSpecs];
+  [controllers addObject:controller];
 }
 
 - (void)reloadController:(AtomController *)controller {
@@ -55,15 +60,19 @@
     [super sendEvent:event];
     return;
   }
-  
+
   BOOL handeled = NO;
   AtomController *controller = [[self keyWindow] windowController];
-  
+
   // The keyWindow could be a Cocoa Dialog or something, ignore those.
   if ([controller isKindOfClass:[AtomController class]]) {
     // cmd-r should always reload the current controller, so it needs to be here
     if ([event modifierFlags] & NSCommandKeyMask && [[event charactersIgnoringModifiers] hasPrefix:@"r"]) {
       [self reloadController:controller];
+      handeled = YES;
+    }
+    else if ([event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask) && [[event charactersIgnoringModifiers] hasPrefix:@"s"]) {
+      [self runSpecs];
       handeled = YES;
     }
     else {
