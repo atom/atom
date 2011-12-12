@@ -8,6 +8,7 @@ _ = require 'underscore'
 #   window:load - Same as window.onLoad. Final event of app startup.
 windowAdditions =
   url: $atomController.url?.toString()
+  onerror: -> @showConsole true
 
   startup: ->
     if not @resource = atom.router.open @url
