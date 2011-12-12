@@ -9,23 +9,23 @@
 
 @implementation AtomApp
 
-@synthesize controllers;
+@synthesize controllers = _controllers;
 
 - (AtomController *)createController:(NSString *)path {
   AtomController *controller = [(AtomController *)[AtomController alloc] initWithURL:path];
-  [controllers addObject:controller];
+  [self.controllers addObject:controller];
   
   return controller;
 }
 
 - (void)removeController:(AtomController *)controller {
-  [controllers removeObject:controller];
+  [self.controllers removeObject:controller];
   [controller.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:@"window:close", nil, false, nil];
 }
 
 - (void)runSpecs {
   AtomController *controller = [(AtomController *)[AtomController alloc] initForSpecs];
-  [controllers addObject:controller];
+  [self.controllers addObject:controller];
 }
 
 - (void)reloadController:(AtomController *)controller {
@@ -49,7 +49,7 @@
 
 // Events in the "app:*" namespace get sent to all controllers
 - (void)triggerGlobalEvent:(NSString *)name data:(id)data {
-  for (AtomController *controller in controllers) {
+  for (AtomController *controller in self.controllers) {
     [controller.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:name, data, false, nil];
   }
 }
@@ -85,7 +85,7 @@
 }
 
 - (void)terminate:(id)sender {
-  for (AtomController *controller in controllers) {   
+  for (AtomController *controller in self.controllers) {   
     [controller.jscocoa callJSFunctionNamed:@"shutdown" withArguments:nil];
   }
   
