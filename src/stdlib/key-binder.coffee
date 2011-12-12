@@ -21,7 +21,7 @@ class KeyBinder
 #       Watcher.watch path, =>
 #         @load path
 
-      json = CoffeeScript.eval "return " + (fs.read path)
+      json = (CoffeeScript.eval "return " + (fs.read path)) or {}
       # Iterate in reverse order scopes are declared.
       # Scope at the top of the file is checked last.
       for name in _.keys(json).reverse()
