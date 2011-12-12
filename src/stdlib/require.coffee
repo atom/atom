@@ -2,6 +2,7 @@
 resourcePath = $atomController.projectPath ? OSX.NSBundle.mainBundle.resourcePath
 
 paths = [
+  "#{resourcePath}/spec"
   "#{resourcePath}/src/stdlib"
   "#{resourcePath}/src/atom"
   "#{resourcePath}/src"
