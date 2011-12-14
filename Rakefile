@@ -19,11 +19,7 @@ task :build do
           "http://coffeescript.org/ - (try `npm i -g coffee-script`)"
   end
 
-  %w( src extensions ).each do |dir|
-    Dir["#{dir}/**/*.coffee"].each do |file|
-      sh "coffee -c #{dest}/#{dir}"
-    end
-  end
+  sh "coffee -c #{dest}/src/stdlib/require.coffee"
 end
 
 desc "Install the app in /Applications"
