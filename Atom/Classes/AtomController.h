@@ -6,13 +6,15 @@
 @interface AtomController : NSWindowController <NSWindowDelegate> {
 }
 
-@property (retain) WebView *webView;
+@property (assign) WebView *webView;
 @property (nonatomic, retain) JSCocoa *jscocoa;
 
 @property (nonatomic, retain, readonly) NSString *url;
-@property (nonatomic, retain, readonly) NSString *bootstrapPage;
+@property (nonatomic, retain, readonly) NSString *bootstrapScript;
 
 - (id)initForSpecs;
-- (AtomController *)initWithURL:(NSString *)url;
+- (id)initWithURL:(NSString *)url;
+
+- (void)createWebView;
 
 @end

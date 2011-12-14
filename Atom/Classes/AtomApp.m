@@ -12,9 +12,14 @@
 @synthesize controllers = _controllers;
 
 - (AtomController *)createController:(NSString *)path {
-  AtomController *controller = [(AtomController *)[AtomController alloc] initWithURL:path];
+  AtomController *controller = [[AtomController alloc] initWithURL:path];
   [self.controllers addObject:controller];
-  
+  return controller;
+}
+
+- (AtomController *)createSpecController {
+  AtomController *controller = [[AtomController alloc] initForSpecs];
+  [self.controllers addObject:controller];
   return controller;
 }
 
@@ -23,16 +28,8 @@
   [controller.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:@"window:close", nil, false, nil];
 }
 
-- (void)runSpecs {
-  AtomController *controller = [(AtomController *)[AtomController alloc] initForSpecs];
-  [self.controllers addObject:controller];
-}
-
 - (void)reloadController:(AtomController *)controller {
-  CGRect frame = [[controller window] frame];
-  AtomController *newController = [self createController:controller.url];
-  [controller close];
-  [[newController window] setFrame:frame display:YES animate:NO];
+  [controller createWebView];
 }
 
 - (void)open:(NSString *)path {

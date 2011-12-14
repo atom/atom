@@ -7,7 +7,7 @@
 @interface AtomController ()
 
 @property (nonatomic, retain, readwrite) NSString *url;
-@property (nonatomic, retain, readwrite) NSString *bootstrapPage;
+@property (nonatomic, retain, readwrite) NSString *bootstrapScript;
 
 @end
 
@@ -17,36 +17,54 @@
   webView = _webView, 
   jscocoa = _jscocoa,
   url = _url,
-  bootstrapPage = _bootstrapPage;
+  bootstrapScript = _bootstrapScript;
 
 - (void)dealloc {
   [self.jscocoa unlinkAllReferences];
   [self.jscocoa garbageCollect];  
   self.jscocoa = nil;
-  self.webView = nil;
-  self.bootstrapPage = nil;
+  self.webView = nil;;
+  self.bootstrapScript = nil;
   self.url = nil;
 
   [super dealloc];
 }
 
 
-- (id)initWithBootstrapPage:(NSString *)bootstrapPage url:(NSString *)url {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript url:(NSString *)url {
   self = [super initWithWindowNibName:@"AtomWindow"];
-  self.bootstrapPage = bootstrapPage;
+  self.bootstrapScript = bootstrapScript;
   self.url = url;
   
   [self.window makeKeyWindow];
   return self;
 }
 
-
-- (id)initForSpecs {
-  return [self initWithBootstrapPage:@"spec-suite.html" url:nil];
+- (id)initSpecs {
+  return [self initWithBootstrapScript:@"spec-startup" url:nil];
 }
 
 - (id)initWithURL:(NSString *)url {
-  return [self initWithBootstrapPage:@"index.html" url:url];
+  return [self initWithBootstrapScript:@"startup" url:url];
+}
+
+- (void)createWebView {
+  [self.webView removeFromSuperview];
+  
+  self.webView = [[WebView alloc] initWithFrame:[self.window.contentView frame]];
+  [self.webView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+  [self.window.contentView addSubview:self.webView];  
+  [self.webView setUIDelegate:self];
+
+  self.jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[self.webView mainFrame] globalContext]];
+  [self.jscocoa setObject:self withName:@"$atomController"];
+  [self.jscocoa setObject:self.bootstrapScript withName:@"$bootstrapScript"];
+  
+  NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
+  NSURL *indexURL = [resourceDirURL URLByAppendingPathComponent:@"index.html"];
+  
+  NSURLRequest *request = [NSURLRequest requestWithURL:indexURL]; 
+  [[self.webView mainFrame] loadRequest:request];
 }
 
 - (void)windowDidLoad {
@@ -55,21 +73,11 @@
   [self.window setDelegate:self];
   [self.window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 
-  [self.webView setUIDelegate:self];
-
   [self setShouldCascadeWindows:YES];
   [self setWindowFrameAutosaveName:@"atomController"];
 
-  self.jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[self.webView mainFrame] globalContext]];
-  [self.jscocoa setObject:self withName:@"$atomController"];
-
-  NSURL *resourceURL = [[NSBundle mainBundle] resourceURL];
-  NSURL *bootstrapPageURL = [resourceURL URLByAppendingPathComponent:self.bootstrapPage];
-    
-  NSURLRequest *request = [NSURLRequest requestWithURL:bootstrapPageURL];
-  [[self.webView mainFrame] loadRequest:request];
+  [self createWebView];  
 }
-
 
 - (void)close {
   [(AtomApp *)NSApp removeController:self];
