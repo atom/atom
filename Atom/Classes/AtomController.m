@@ -30,7 +30,6 @@
   [super dealloc];
 }
 
-
 - (id)initWithBootstrapScript:(NSString *)bootstrapScript url:(NSString *)url {
   self = [super initWithWindowNibName:@"AtomWindow"];
   self.bootstrapScript = bootstrapScript;
@@ -40,8 +39,8 @@
   return self;
 }
 
-- (id)initSpecs {
-  return [self initWithBootstrapScript:@"spec-startup" url:nil];
+- (id)initForSpecs {
+  return [self initWithBootstrapScript:@"spec-bootstrap" url:nil];
 }
 
 - (id)initWithURL:(NSString *)url {

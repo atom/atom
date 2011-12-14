@@ -69,7 +69,7 @@
       handeled = YES;
     }
     else if ([event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask) && [[event charactersIgnoringModifiers] hasPrefix:@"s"]) {
-      [self runSpecs];
+      [self createSpecController];
       handeled = YES;
     }
     else {
