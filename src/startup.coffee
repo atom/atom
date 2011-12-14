@@ -1,8 +1,8 @@
 # Like sands through the hourglass, so are the days of our lives.
 require 'window'
-
 window.atom = {}
 
+Layout = require 'layout'
 App = require 'app'
 Event = require 'event'
 ExtensionManager = require 'extension-manager'
@@ -12,6 +12,7 @@ Router = require 'router'
 Settings = require 'settings'
 Storage = require 'storage'
 
+atom.layout = Layout.attach()
 atom.event = new Event
 # atom.on, atom.off, etc.
 for name, method of atom.event

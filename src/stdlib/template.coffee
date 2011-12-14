@@ -8,4 +8,3 @@ class Template
 
   buildView: (attributes) ->
     $(coffeekup.render(@content, attributes))
-

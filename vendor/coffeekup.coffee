@@ -208,7 +208,7 @@ skeleton = (data = {}) ->
 
     __ck.render_tag(name, idclass, attrs, contents)
 
-  yield = (f) ->
+  yieldkup = (f) ->
     temp_buffer = []
     old_buffer = __ck.buffer
     __ck.buffer = temp_buffer
