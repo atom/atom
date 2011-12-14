@@ -45,7 +45,7 @@
 }
 
 - (id)initWithURL:(NSString *)url {
-  return [self initWithBootstrapScript:@"startup" url:url];
+  return [self initWithBootstrapScript:@"bootstrap" url:url];
 }
 
 - (void)createWebView {
