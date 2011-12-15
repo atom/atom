@@ -1,9 +1,14 @@
 fs = require 'fs'
+{Document} = require 'ace/document'
 
 module.exports =
 class Buffer
-  text: null
+  aceDocument: null
   url: null
 
   constructor: (@url) ->
-    @text = fs.read @url
+    @aceDocument = new Document fs.read(@url)
+
+  getText: ->
+    @aceDocument.getValue()
+

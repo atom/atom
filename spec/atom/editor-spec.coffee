@@ -17,10 +17,10 @@ describe "Editor", ->
   describe "constructor", ->
     it "attaches itself to the #main element and opens a buffer with the given url", ->
       expect(editor.buffer.url).toEqual filePath
-      expect(mainDiv.children('#editor').html()).not.toBe ''
+      expect(mainDiv.children('.editor').html()).not.toBe ''
 
     it "populates the editor with the contents of the buffer", ->
-      expect(editor.aceEditor.getSession().getValue()).toBe editor.buffer.text
+      expect(editor.aceEditor.getSession().getValue()).toBe editor.buffer.getText()
 
   describe 'destroy', ->
     it 'destroys the ace editor and removes #editor from the dom.', ->
@@ -28,7 +28,10 @@ describe "Editor", ->
 
       editor.destroy()
       expect(editor.aceEditor.destroy).toHaveBeenCalled()
-      expect(mainDiv.children('#editor').length).toBe 0
+      expect(mainDiv.children('.editor').length).toBe 0
 
   describe "when the text is changed via the ace editor", ->
     it "updates the buffer text", ->
+      expect(editor.buffer.getText()).not.toMatch /^.ooo/
+      editor.aceEditor.getSession().insert {row: 0, column: 1}, 'ooo'
+      expect(editor.buffer.getText()).toMatch /^.ooo/

@@ -6,4 +6,4 @@ describe 'Buffer', ->
     it "loads the contents of the given url", ->
       filePath = require.resolve 'fixtures/sample.txt'
       buffer = new Buffer filePath
-      expect(buffer.text).toBe fs.read(filePath)
+      expect(buffer.getText()).toBe fs.read(filePath)
