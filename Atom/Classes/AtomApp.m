@@ -32,18 +32,15 @@
   }
 }
 
-- (BOOL)shouldRunSpecsOnEvent:(NSEvent *)event {
-  return [event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask) && [[event charactersIgnoringModifiers] hasPrefix:@"s"];
-}
-
 // Overridden
 - (void)sendEvent:(NSEvent *)event {
   if ([event type] != NSKeyDown) {
     [super sendEvent:event];
     return;
   }
-
-  if ([self shouldRunSpecsOnEvent:event]) {
+  
+  BOOL shouldRunSpecs = [event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask) && [[event charactersIgnoringModifiers] hasPrefix:@"s"];
+  if (shouldRunSpecs) {
     [self createSpecController];
     return;
   }

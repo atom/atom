@@ -60,12 +60,9 @@
   return [self initWithBootstrapScript:@"bootstrap" url:url];
 }
 
-- (BOOL)shouldReloadOnEvent:(NSEvent *)event {
-  return [event modifierFlags] & NSCommandKeyMask && [[event charactersIgnoringModifiers] hasPrefix:@"r"];
-}
-
 - (BOOL)handleInputEvent:(NSEvent *)event {
-  if ([self shouldReloadOnEvent:event]) {
+  BOOL shouldReload = [event modifierFlags] & NSCommandKeyMask && [[event charactersIgnoringModifiers] hasPrefix:@"r"];
+  if (shouldReload) {
     [self reload];
     return YES;    
   }
