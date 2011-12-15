@@ -13,7 +13,7 @@ class Event
 
   trigger: (name, data...) ->
     if name.match /^app:/
-      OSX.NSApp.triggerGlobalEvent_data name, data
+      OSX.NSApp.triggerGlobalAtomEvent_data name, data
       return
 
     _.each @events[name], (callback) => callback data...

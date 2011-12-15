@@ -5,3 +5,6 @@ class App
 
   quit: ->
     OSX.NSApp.terminate null
+
+  windows: ->
+    controller.jsWindow for controller in OSX.NSApp.controllers

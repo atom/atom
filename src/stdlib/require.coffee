@@ -12,6 +12,11 @@ paths = [
 
 window.__filename = null
 
+nakedLoad = (file) ->
+  file = resolve file
+  code = __read file
+  __jsc__.evalJSString_withScriptPath code, file
+
 require = (file, cb) ->
   return cb require file if cb?
 
@@ -110,8 +115,8 @@ __read = (path) ->
 __modules = { loaded : {} }
 __defines = []
 
-
 this.require = require
+this.nakedLoad = nakedLoad
 this.define  = define
 
 this.require.resourcePath = resourcePath

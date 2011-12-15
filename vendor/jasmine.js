@@ -41,7 +41,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 5000;
 
 jasmine.getGlobal = function() {
   function getGlobal() {
-    return this;
+    return window;
   }
 
   return getGlobal();

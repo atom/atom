@@ -11,6 +11,19 @@
 
 @end
 
+@interface WebView (Atom)
+- (id)inspector;
+- (void)showConsole:(id)sender;
+- (void)startDebuggingJavaScript:(id)sender;
+@end
+
+@interface AtomController ()
+- (void)createWebView;
+
+@property (nonatomic, retain) JSCocoa *jscocoa;
+
+@end
+
 @implementation AtomController
 
 @synthesize 
@@ -47,10 +60,31 @@
   return [self initWithBootstrapScript:@"bootstrap" url:url];
 }
 
-- (void)createWebView {
-  [self.webView removeFromSuperview];
+- (BOOL)shouldReloadOnEvent:(NSEvent *)event {
+  return [event modifierFlags] & NSCommandKeyMask && [[event charactersIgnoringModifiers] hasPrefix:@"r"];
+}
+
+- (BOOL)handleInputEvent:(NSEvent *)event {
+  if ([self shouldReloadOnEvent:event]) {
+    [self reload];
+    return YES;    
+  }
   
+  if ([self.jscocoa hasJSFunctionNamed:@"handleKeyEvent"]) {
+    JSValueRef handled = [self.jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
+    return [self.jscocoa toBool:handled];
+  }
+  
+  return NO;
+}
+
+- (void)triggerAtomEventWithName:(NSString *)name data:(id)data {
+   [self.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:name, data, false, nil];
+}
+
+- (void)createWebView {
   self.webView = [[WebView alloc] initWithFrame:[self.window.contentView frame]];
+  
   [self.webView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
   [self.window.contentView addSubview:self.webView];  
   [self.webView setUIDelegate:self];
@@ -64,6 +98,19 @@
   
   NSURLRequest *request = [NSURLRequest requestWithURL:indexURL]; 
   [[self.webView mainFrame] loadRequest:request];
+  
+  [[self.webView inspector] showConsole:self];
+}
+
+- (JSValueRefAndContextRef)jsWindow {
+  JSValueRef window = [self.jscocoa evalJSString:@"window"]; 
+  JSValueRefAndContextRef windowWithContext = {window, self.jscocoa.ctx};
+  return windowWithContext;
+}
+
+- (void)reload {
+  [self.webView removeFromSuperview];
+  [self createWebView];
 }
 
 - (void)windowDidLoad {
@@ -79,7 +126,8 @@
 }
 
 - (void)close {
-  [(AtomApp *)NSApp removeController:self];
+  [(AtomApp *)NSApp removeController:self]; 
+  [self.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:@"window:close", nil, false, nil];
   [super close];  
 }
 
@@ -87,7 +135,13 @@
   return PROJECT_DIR;
 }
 
-// WebUIDelegate
+#pragma mark NSWindowDelegate
+- (BOOL)windowShouldClose:(id)sender {
+  [self close];
+  return YES;
+}
+
+#pragma mark WebUIDelegate
 - (NSArray *)webView:(WebView *)sender contextMenuItemsForElement:(NSDictionary *)element defaultMenuItems:(NSArray *)defaultMenuItems {
   return defaultMenuItems;
 }

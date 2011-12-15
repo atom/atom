@@ -4,9 +4,6 @@
   <meta content="text/html;charset=UTF-8" http-equiv="Content-Type"/>
   <title>Jasmine suite</title>
   <link rel="stylesheet" type="text/css" href="static/jasmine.css"/>
-  <script type="text/javascript" src="static/jasmine.js"></script>
-  <script type="text/javascript" src="static/jasmine-html.js"></script>
-  <script type="text/javascript" src="src/stdlib/require.js"></script>
 
   <script type="text/javascript">
     (function() {
@@ -19,11 +16,11 @@
         return trivialReporter.specFilter(spec);
       };
 
-			window.onload = function() {
+      window.onload = function() {
 
-			require('spec-suite');
+      require('spec-suite');
 
-			jasmineEnv.execute();
+      jasmineEnv.execute();
 
       };
     })();
@@ -34,8 +31,7 @@
   </script>
 </head>
 <body>
-<div id="jasmine_runner"></div>
-<div id="jasmine_content"></div>
+<div id="jasmine_runner"></div><div id="jasmine_content"></div>
 </body>
 </html>
 

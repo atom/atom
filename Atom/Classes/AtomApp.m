@@ -11,44 +11,29 @@
 
 @synthesize controllers = _controllers;
 
-- (AtomController *)createController:(NSString *)path {
-  AtomController *controller = [[AtomController alloc] initWithURL:path];
-  [self.controllers addObject:controller];
-  return controller;
-}
-
 - (AtomController *)createSpecController {
   AtomController *controller = [[AtomController alloc] initForSpecs];
-  [self.controllers addObject:controller];
   return controller;
 }
 
 - (void)removeController:(AtomController *)controller {
   [self.controllers removeObject:controller];
-  [controller.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:@"window:close", nil, false, nil];
-}
-
-- (void)reloadController:(AtomController *)controller {
-  [controller createWebView];
 }
 
 - (void)open:(NSString *)path {
-  if (!path) {
-    NSOpenPanel *panel =[NSOpenPanel openPanel];
-    panel.canChooseDirectories = YES;
-    if (panel.runModal != NSFileHandlingPanelOKButton) return;
-
-    path = [[[panel URLs] lastObject] path];
-  }
-
-  [self createController:path];
+  AtomController *controller = [[AtomController alloc] initWithURL:path];
+  [self.controllers addObject:controller];
 }
 
 // Events in the "app:*" namespace get sent to all controllers
-- (void)triggerGlobalEvent:(NSString *)name data:(id)data {
+- (void)triggerGlobalAtomEvent:(NSString *)name data:(id)data {
   for (AtomController *controller in self.controllers) {
-    [controller.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:name, data, false, nil];
+    [controller triggerAtomEventWithName:name data:data];
   }
+}
+
+- (BOOL)shouldRunSpecsOnEvent:(NSEvent *)event {
+  return [event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask) && [[event charactersIgnoringModifiers] hasPrefix:@"s"];
 }
 
 // Overridden
@@ -58,32 +43,22 @@
     return;
   }
 
-  BOOL handeled = NO;
-  AtomController *controller = [[self keyWindow] windowController];
+  if ([self shouldRunSpecsOnEvent:event]) {
+    [self createSpecController];
+    return;
+  }
 
-  // The keyWindow could be a Cocoa Dialog or something, ignore those.
-  if ([controller isKindOfClass:[AtomController class]]) {
-    // cmd-r should always reload the current controller, so it needs to be here
-    if ([event modifierFlags] & NSCommandKeyMask && [[event charactersIgnoringModifiers] hasPrefix:@"r"]) {
-      [self reloadController:controller];
-      handeled = YES;
-    }
-    else if ([event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask) && [[event charactersIgnoringModifiers] hasPrefix:@"s"]) {
-      [self createSpecController];
-      handeled = YES;
-    }
-    else {
-      JSValueRef value = [controller.jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
-      handeled = [controller.jscocoa toBool:value];
-    }
+  AtomController *controller = [[self keyWindow] windowController];
+  if ([controller isKindOfClass:[AtomController class]]) { // ensure its not a dialog
+    if ([controller handleInputEvent:event]) return;
   }
   
-  if (!handeled) [super sendEvent:event];
+  [super sendEvent:event];
 }
 
 - (void)terminate:(id)sender {
-  for (AtomController *controller in self.controllers) {   
-    [controller.jscocoa callJSFunctionNamed:@"shutdown" withArguments:nil];
+  for (AtomController *controller in self.controllers) {
+    [controller close];
   }
   
   [super terminate:sender];
@@ -98,7 +73,6 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-  [self createController:nil];
 }
 
 @end

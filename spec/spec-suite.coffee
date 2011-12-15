@@ -1,2 +1,4 @@
-require 'template-spec'
+require 'atom/app-spec'
+
+require 'stdlib/template-spec'
 
