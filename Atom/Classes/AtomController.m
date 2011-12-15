@@ -10,6 +10,7 @@
 @property (nonatomic, retain, readwrite) NSString *bootstrapScript;
 
 - (void)createWebView;
+- (void)blockUntilWebViewLoads;
 @end
 
 @interface WebView (Atom)
@@ -102,6 +103,15 @@
   [[self.webView mainFrame] loadRequest:request];
   
   [[self.webView inspector] showConsole:self];
+  
+  [self blockUntilWebViewLoads];
+}
+
+- (void)blockUntilWebViewLoads {
+  NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+  while (self.webView.isLoading) {
+    [runLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+  }
 }
 
 - (void)reload {
