@@ -12,6 +12,9 @@ class Editor
     @buffer = new Buffer(url)
     @buildAceEditor()
 
+  destroy: ->
+    @aceEditor.destroy()
+
   buildAceEditor: ->
     editorElement = $("<div class='editor'>")
     $('#main').append(editorElement)
@@ -22,6 +25,4 @@ class Editor
   getAceSession: ->
     @aceEditor.getSession()
 
-  destroy: ->
-    @aceEditor.destroy()
 
