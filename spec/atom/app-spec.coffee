@@ -7,9 +7,7 @@ describe "App", ->
     app = new App()
 
   afterEach ->
-    window.x = app.windows()[0]
-    setTimeout (-> window.x.close()), 1
-    #w.close() for w in app.windows()
+    window.close() for window in app.windows()
 
   describe "open", ->
     it "loads a buffer based on the given path and displays it in a new window", ->
