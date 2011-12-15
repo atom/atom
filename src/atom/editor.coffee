@@ -18,7 +18,6 @@ class Editor
     @aceEditor = ace.edit editorElement[0]
     @aceEditor.setSession(new EditSession(@buffer.aceDocument))
     @aceEditor.setTheme(require "ace/theme/twilight")
-    window.x = this
 
   getAceSession: ->
     @aceEditor.getSession()
