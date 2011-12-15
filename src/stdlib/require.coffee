@@ -51,9 +51,7 @@ exts =
 
     if not /define\(/.test code
       code = """
-        define(function(require, exports, module) {
-          'use strict';
-          #{code};
+        define(function(require, exports, module) { 'use strict'; #{code};
         });
       """
     __jsc__.evalJSString_withScriptPath code, file
