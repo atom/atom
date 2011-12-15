@@ -1,4 +1,2 @@
-require 'atom/app-spec'
-
-require 'stdlib/template-spec'
-
+fs = require 'fs'
+require path for path in fs.listDirectoryTree(require.resolve '.') when /-spec\.coffee$/.test path
