@@ -25,4 +25,3 @@ class Editor
   getAceSession: ->
     @aceEditor.getSession()
 
-

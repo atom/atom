@@ -67,6 +67,12 @@ module.exports =
   listDirectoryTree: (path) ->
     @list path, true
 
+  # Remove a file at the given path. Throws an error if path is not a
+  # file or a symbolic link to a file.
+  remove: (path) ->
+    fm = OSX.NSFileManager.defaultManager
+    paths = fm.removeItemAtPath_error path, null
+
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
     path = @absolute path
