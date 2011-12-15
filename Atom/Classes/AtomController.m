@@ -146,4 +146,8 @@
   return defaultMenuItems;
 }
 
+- (void)webViewClose:(WebView *)sender { // Triggered when closed from javascript
+  [self close];
+}
+
 @end
