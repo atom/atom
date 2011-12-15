@@ -5,11 +5,11 @@
 #import <WebKit/WebKit.h>
 
 @interface AtomController ()
-- (void)createWebView;
-
 @property (nonatomic, retain) JSCocoa *jscocoa;
 @property (nonatomic, retain, readwrite) NSString *url;
 @property (nonatomic, retain, readwrite) NSString *bootstrapScript;
+
+- (void)createWebView;
 @end
 
 @interface WebView (Atom)
