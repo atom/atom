@@ -11,6 +11,11 @@
 
 @synthesize controllers = _controllers;
 
+- (void)open:(NSString *)path {
+  AtomController *controller = [[AtomController alloc] initWithURL:path];
+  [self.controllers addObject:controller];
+}
+
 - (AtomController *)createSpecController {
   AtomController *controller = [[AtomController alloc] initForSpecs];
   return controller;
@@ -20,19 +25,14 @@
   [self.controllers removeObject:controller];
 }
 
-- (void)open:(NSString *)path {
-  AtomController *controller = [[AtomController alloc] initWithURL:path];
-  [self.controllers addObject:controller];
-}
-
-// Events in the "app:*" namespace get sent to all controllers
+// Events in the "app:*" namespace are sent to all controllers
 - (void)triggerGlobalAtomEvent:(NSString *)name data:(id)data {
   for (AtomController *controller in self.controllers) {
     [controller triggerAtomEventWithName:name data:data];
   }
 }
 
-// Overridden
+#pragma mark Overrides
 - (void)sendEvent:(NSEvent *)event {
   if ([event type] != NSKeyDown) {
     [super sendEvent:event];
@@ -61,15 +61,12 @@
   [super terminate:sender];
 }
 
-// AppDelegate
+#pragma mark NSAppDelegate
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification {
   self.controllers = [NSMutableArray array];
   
   NSDictionary *defaults = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], @"WebKitDeveloperExtras", nil];
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
-}
-
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 }
 
 @end

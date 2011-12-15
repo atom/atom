@@ -6,11 +6,9 @@
 
 struct JSGlobalContextRef;
 
-@interface AtomController : NSWindowController <NSWindowDelegate> {
-}
+@interface AtomController : NSWindowController <NSWindowDelegate>
 
 @property (assign) WebView *webView;
-
 @property (nonatomic, retain, readonly) NSString *url;
 @property (nonatomic, retain, readonly) NSString *bootstrapScript;
 

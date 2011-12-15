@@ -5,10 +5,11 @@
 #import <WebKit/WebKit.h>
 
 @interface AtomController ()
+- (void)createWebView;
 
+@property (nonatomic, retain) JSCocoa *jscocoa;
 @property (nonatomic, retain, readwrite) NSString *url;
 @property (nonatomic, retain, readwrite) NSString *bootstrapScript;
-
 @end
 
 @interface WebView (Atom)
@@ -17,26 +18,18 @@
 - (void)startDebuggingJavaScript:(id)sender;
 @end
 
-@interface AtomController ()
-- (void)createWebView;
-
-@property (nonatomic, retain) JSCocoa *jscocoa;
-
-@end
-
 @implementation AtomController
 
-@synthesize 
-  webView = _webView, 
-  jscocoa = _jscocoa,
-  url = _url,
-  bootstrapScript = _bootstrapScript;
+@synthesize webView = _webView; 
+@synthesize jscocoa = _jscocoa;
+@synthesize url = _url;
+@synthesize bootstrapScript = _bootstrapScript;
 
 - (void)dealloc {
   [self.jscocoa unlinkAllReferences];
   [self.jscocoa garbageCollect];  
   self.jscocoa = nil;
-  self.webView = nil;;
+  self.webView = nil;
   self.bootstrapScript = nil;
   self.url = nil;
 
@@ -58,6 +51,18 @@
 
 - (id)initWithURL:(NSString *)url {
   return [self initWithBootstrapScript:@"bootstrap" url:url];
+}
+
+- (void)windowDidLoad {
+  [super windowDidLoad];
+  
+  [self.window setDelegate:self];
+  [self.window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+  
+  [self setShouldCascadeWindows:YES];
+  [self setWindowFrameAutosaveName:@"atomController"];
+  
+  [self createWebView];  
 }
 
 - (BOOL)handleInputEvent:(NSEvent *)event {
@@ -99,37 +104,24 @@
   [[self.webView inspector] showConsole:self];
 }
 
-- (JSValueRefAndContextRef)jsWindow {
-  JSValueRef window = [self.jscocoa evalJSString:@"window"]; 
-  JSValueRefAndContextRef windowWithContext = {window, self.jscocoa.ctx};
-  return windowWithContext;
-}
-
 - (void)reload {
   [self.webView removeFromSuperview];
   [self createWebView];
 }
 
-- (void)windowDidLoad {
-  [super windowDidLoad];
-
-  [self.window setDelegate:self];
-  [self.window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-
-  [self setShouldCascadeWindows:YES];
-  [self setWindowFrameAutosaveName:@"atomController"];
-
-  [self createWebView];  
-}
-
 - (void)close {
   [(AtomApp *)NSApp removeController:self]; 
-  [self.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:@"window:close", nil, false, nil];
   [super close];  
 }
 
 - (NSString *)projectPath {
   return PROJECT_DIR;
+}
+
+- (JSValueRefAndContextRef)jsWindow {
+  JSValueRef window = [self.jscocoa evalJSString:@"window"]; 
+  JSValueRefAndContextRef windowWithContext = {window, self.jscocoa.ctx};
+  return windowWithContext;
 }
 
 #pragma mark NSWindowDelegate
