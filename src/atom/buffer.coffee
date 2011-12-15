@@ -7,7 +7,8 @@ class Buffer
   url: null
 
   constructor: (@url) ->
-    @aceDocument = new Document fs.read(@url)
+    text = if @url then fs.read(@url) else ""
+    @aceDocument = new Document text
 
   getText: ->
     @aceDocument.getValue()
