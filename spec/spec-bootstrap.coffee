@@ -9,7 +9,7 @@ $('head').append coffeekup.render ->
 
 $('body').append coffeekup.render ->
   div id: 'jasmine_runner'
-  div id: 'jasmine_content'
+  div id: 'jasmine-content'
 
 jasmineEnv = jasmine.getEnv()
 trivialReporter = new jasmine.TrivialReporter(document, 'jasmine_runner')
