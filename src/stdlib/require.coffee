@@ -58,7 +58,7 @@ exts =
     __defines.pop()?.call()
   coffee: (file) ->
     {CoffeeScript} = require 'coffee-script'
-    exts.js file, CoffeeScript.compile __read file
+    exts.js(file, CoffeeScript.compile(__read(file), filename: file))
 
 resolve = (file) ->
   if /!/.test file
