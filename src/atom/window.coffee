@@ -25,10 +25,10 @@ windowAdditions =
     @showConsole true
 
   handleKeyEvent: ->
-    atom.keybinder.handleEvent arguments...
+    null
 
   triggerEvent: ->
-    atom.trigger arguments...
+    null
 
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]
