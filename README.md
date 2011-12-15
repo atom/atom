@@ -26,4 +26,3 @@
 * Extensions: http://cloud9ide.posterous.com/writing-an-extension-for-cloud9-javascript-id
 * https://github.com/ajaxorg/cloud9/blob/master/client/ext/extension_template/extension_template.js
 
-
