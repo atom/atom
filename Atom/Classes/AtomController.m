@@ -27,12 +27,10 @@
 @synthesize bootstrapScript = _bootstrapScript;
 
 - (void)dealloc {
-  [self.jscocoa unlinkAllReferences];
-  [self.jscocoa garbageCollect];  
-  self.jscocoa = nil;
   self.webView = nil;
   self.bootstrapScript = nil;
   self.url = nil;
+  self.jscocoa = nil;
 
   [super dealloc];
 }
@@ -76,11 +74,8 @@
   [self.webView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
   [self.window.contentView addSubview:self.webView];  
   [self.webView setUIDelegate:self];
+  [self.webView setFrameLoadDelegate:self];
 
-  self.jscocoa = [[JSCocoa alloc] initWithGlobalContext:[[self.webView mainFrame] globalContext]];
-  [self.jscocoa setObject:self withName:@"$atomController"];
-  [self.jscocoa setObject:self.bootstrapScript withName:@"$bootstrapScript"];
-  
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSURL *indexURL = [resourceDirURL URLByAppendingPathComponent:@"index.html"];
   
@@ -100,8 +95,7 @@
 }
 
 - (void)reload {
-  [self.webView removeFromSuperview];
-  [self createWebView];
+  [self.webView reload:self];
 }
 
 - (void)close {
@@ -138,6 +132,13 @@
 
 - (void)webViewClose:(WebView *)sender { // Triggered when closed from javascript
   [self close];
+}
+
+#pragma mark WebFrameLoadDelegate
+- (void)webView:(WebView *)sender didCommitLoadForFrame:(WebFrame *)frame {
+  self.jscocoa = [[JSCocoa alloc] initWithGlobalContext:[frame globalContext]];
+  [self.jscocoa setObject:self withName:@"$atomController"];
+  [self.jscocoa setObject:self.bootstrapScript withName:@"$bootstrapScript"];
 }
 
 @end
