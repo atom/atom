@@ -8,7 +8,7 @@ task :build do
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
-  %w( spec-suite.html index.html src docs static extensions test vendor ).each do |dir|
+  %w(index.html src docs static extensions test vendor ).each do |dir|
     rm_rf File.join(dest, dir)
     cp_r dir, File.join(dest, dir)
   end
