@@ -7,5 +7,6 @@
 @property (nonatomic, retain) NSMutableArray *controllers;
 
 - (void)removeController:(AtomController *)controller;
+- (IBAction)runSpecs:(id)sender;
 
 @end

@@ -16,9 +16,8 @@
   [self.controllers addObject:controller];
 }
 
-- (AtomController *)createSpecController {
-  AtomController *controller = [[AtomController alloc] initForSpecs];
-  return controller;
+- (IBAction)runSpecs:(id)sender {
+  [[AtomController alloc] initForSpecs];
 }
 
 - (void)removeController:(AtomController *)controller {
@@ -36,23 +35,12 @@
 - (void) sendEvent: (NSEvent *)event {    
   // Default implementation for key down tries key equivalents first
   // We want to wait until the web view handles the event, then allow key equivalents to be tried
-  if ([event type] != NSKeyDown) {
+  if (([event type] != NSKeyDown) || !event.window) {
     [super sendEvent:event];
     return;
   }
-  
-  // TODO(NS): Make running specs a menu command with a key equivalent, so we can delete this code
-  BOOL shouldRunSpecs =
-    ([event type] == NSKeyDown) && 
-    ([event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask)) && 
-    [[event charactersIgnoringModifiers] hasPrefix:@"s"];
-
-  if (shouldRunSpecs) {
-    [self createSpecController];
-    return;
-  }
-  
-  [[event window] sendEvent:event];
+      
+  [event.window sendEvent:event];
 }
 
 - (void)terminate:(id)sender {
@@ -72,7 +60,7 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-  [self createSpecController];
+  [self runSpecs:self];
 }
 
 @end
