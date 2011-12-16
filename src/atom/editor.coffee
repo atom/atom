@@ -12,10 +12,7 @@ class Editor
   constructor: (url) ->
     @buffer = new Buffer(url)
     @buildAceEditor()
-    $(document).keydown (event) =>
-      if String.fromCharCode(event.which) == 'S' and event.metaKey
-        @save()
-
+    $(document).bind 'keydown', 'meta+s', => @save()
 
   destroy: ->
     @aceEditor.destroy()
