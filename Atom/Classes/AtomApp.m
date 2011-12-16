@@ -33,24 +33,26 @@
 }
 
 #pragma mark Overrides
-- (void)sendEvent:(NSEvent *)event {
-  if ([event type] != NSKeyUp) {
+- (void) sendEvent: (NSEvent *)event {    
+  // Default implementation for key down tries key equivalents first
+  // We want to wait until the web view handles the event, then allow key equivalents to be tried
+  if ([event type] != NSKeyDown) {
     [super sendEvent:event];
     return;
   }
   
-  BOOL shouldRunSpecs = [event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask) && [[event charactersIgnoringModifiers] hasPrefix:@"s"];
+  // TODO(NS): Make running specs a menu command with a key equivalent, so we can delete this code
+  BOOL shouldRunSpecs =
+    ([event type] == NSKeyDown) && 
+    ([event modifierFlags] & (NSAlternateKeyMask | NSControlKeyMask | NSCommandKeyMask)) && 
+    [[event charactersIgnoringModifiers] hasPrefix:@"s"];
+
   if (shouldRunSpecs) {
     [self createSpecController];
     return;
   }
-
-  AtomController *controller = [[self keyWindow] windowController];
-  if ([controller isKindOfClass:[AtomController class]]) { // ensure its not a dialog
-    if ([controller handleInputEvent:event]) return;
-  }
   
-  [super sendEvent:event];
+  [[event window] sendEvent:event];
 }
 
 - (void)terminate:(id)sender {
@@ -67,6 +69,10 @@
   
   NSDictionary *defaults = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], @"WebKitDeveloperExtras", nil];
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  [self createSpecController];
 }
 
 @end

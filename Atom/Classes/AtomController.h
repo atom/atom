@@ -15,7 +15,6 @@ struct JSGlobalContextRef;
 - (id)initForSpecs;
 - (id)initWithURL:(NSString *)url;
 
-- (BOOL)handleInputEvent:(NSEvent *)event;
 - (void)triggerAtomEventWithName:(NSString *)name data:(id)data;
 - (void)reload;
 - (JSValueRefAndContextRef)jsWindow;

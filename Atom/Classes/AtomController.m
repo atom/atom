@@ -66,21 +66,6 @@
   [self createWebView];  
 }
 
-- (BOOL)handleInputEvent:(NSEvent *)event {
-  BOOL shouldReload = [event modifierFlags] & NSCommandKeyMask && [[event charactersIgnoringModifiers] hasPrefix:@"r"];
-  if (shouldReload) {
-    [self reload];
-    return YES;    
-  }
-  
-  if ([self.jscocoa hasJSFunctionNamed:@"handleKeyEvent"]) {
-    JSValueRef handled = [self.jscocoa callJSFunctionNamed:@"handleKeyEvent" withArguments:event, nil];
-    return [self.jscocoa toBool:handled];
-  }
-  
-  return NO;
-}
-
 - (void)triggerAtomEventWithName:(NSString *)name data:(id)data {
    [self.jscocoa callJSFunctionNamed:@"triggerEvent" withArguments:name, data, false, nil];
 }
@@ -138,6 +123,12 @@
 - (BOOL)windowShouldClose:(id)sender {
   [self close];
   return YES;
+}
+
+- (void)keyDown:(NSEvent *)event {
+  if ([event modifierFlags] & NSCommandKeyMask && [[event charactersIgnoringModifiers] hasPrefix:@"r"]) {
+    [self reload];
+  }
 }
 
 #pragma mark WebUIDelegate
