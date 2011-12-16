@@ -20,7 +20,5 @@ describe "App", ->
       expect(app.windows().length).toBe 1
       newWindow = app.windows()[0]
 
-      expect(newWindow.editor).toBeDefined()
-      expect(newWindow.editor.buffer).toBeDefined()
       expect(newWindow.editor.buffer.url).toEqual filePath
       expect(newWindow.editor.buffer.getText()).toEqual fs.read(filePath)

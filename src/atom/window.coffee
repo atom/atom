@@ -24,9 +24,6 @@ windowAdditions =
   onerror: ->
     @showConsole true
 
-  handleKeyEvent: ->
-    null
-
   triggerEvent: ->
     null
 

@@ -1,17 +1,21 @@
 Editor = require 'editor'
 $ = require 'jquery'
 ck = require 'coffeekup'
+fs = require 'fs'
 
 describe "Editor", ->
-  mainDiv = null; editor = null; filePath = null
+  mainDiv = null; editor = null
+  filePath = null; tempFilePath = null
 
   beforeEach ->
     filePath = require.resolve 'fixtures/sample.txt'
+    tempFilePath = '/tmp/temp.txt'
     mainDiv = $("<div id='main'>")
     $("#jasmine-content").append(mainDiv)
     editor = new Editor filePath
 
   afterEach ->
+    fs.remove tempFilePath
     editor.destroy()
 
   describe "constructor", ->
@@ -35,3 +39,32 @@ describe "Editor", ->
       expect(editor.buffer.getText()).not.toMatch /^.ooo/
       editor.aceEditor.getSession().insert {row: 0, column: 1}, 'ooo'
       expect(editor.buffer.getText()).toMatch /^.ooo/
+
+
+  describe "on key down", ->
+    describe "meta+s", ->
+      tempEditor = null
+
+      beforeEach ->
+        tempEditor = new Editor tempFilePath
+
+      afterEach ->
+        tempEditor.destroy()
+
+      describe "when the current buffer has a url", ->
+        it "saves the current buffer to disk", ->
+          tempEditor.buffer.setText 'Edited buffer!'
+          expect(fs.exists(tempFilePath)).toBeFalsy()
+
+          $(document).trigger(keydown 'meta+s')
+
+          expect(fs.exists(tempFilePath)).toBeTruthy()
+          expect(fs.read(tempFilePath)).toBe 'Edited buffer!'
+
+      describe "when the current buffer has no url", ->
+        it "presents a save as dialog", ->
+
+        describe "when a url is chosen", ->
+
+        describe "when dialog is cancelled", ->
+

@@ -1,5 +1,4 @@
 fs = require 'fs'
 
-window.app = new (require 'app')
-
+require 'spec-helper'
 require path for path in fs.listDirectoryTree(require.resolve '.') when /-spec\.coffee$/.test path
