@@ -34,7 +34,7 @@
 
 #pragma mark Overrides
 - (void)sendEvent:(NSEvent *)event {
-  if ([event type] != NSKeyDown) {
+  if ([event type] != NSKeyUp) {
     [super sendEvent:event];
     return;
   }
