@@ -1,7 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 
-window.app = new (require 'app')
+window.atom = new (require 'app')
 
 window.keydown = (pattern) ->
   keys = pattern.split '+'
@@ -11,3 +11,4 @@ window.keydown = (pattern) ->
     shiftKey: 'shift' in keys
     metaKey: 'meta' in keys
     which: _.last(keys).toUpperCase().charCodeAt 0
+

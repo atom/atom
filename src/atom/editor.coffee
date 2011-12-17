@@ -10,24 +10,28 @@ class Editor
   editorElement: null
 
   constructor: (url) ->
-    @buffer = new Buffer(url)
     @buildAceEditor()
-    $(document).bind 'keydown', 'meta+s', => @save()
+    @open(url)
 
   destroy: ->
     @aceEditor.destroy()
 
-  buildAceEditor: ->
-    @editorElement = $("<div class='editor'>")
-    $('#main').append(@editorElement)
-    @aceEditor = ace.edit @editorElement[0]
+  open: (url) ->
+    @buffer = new Buffer(url)
     @aceEditor.setSession(new EditSession(@buffer.aceDocument))
+
+  buildAceEditor: ->
+    @editorElement = $("<div class='editor'>").appendTo('#main')
+    @aceEditor = ace.edit @editorElement[0]
     @aceEditor.setTheme(require "ace/theme/twilight")
 
   getAceSession: ->
     @aceEditor.getSession()
 
-
   save: ->
-    @buffer.save()
+    if @buffer.url
+      @buffer.save()
+    else if url = atom.native.savePanel()
+      @buffer.url = url
+      @buffer.save()
 

@@ -1,22 +1,23 @@
 fs = require 'fs'
 _ = require 'underscore'
 
+Layout = require 'layout'
 Editor = require 'editor'
 
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
-#
-# Events:
-#   window:load - Same as window.onLoad. Final event of app startup.
+
 windowAdditions =
   editor: null
   url: $atomController.url?.toString()
 
   startup: ->
+    Layout.attach()
     @editor = new Editor @url
+    @bindKeys()
 
-  shutdown: ->
-    $atomController.close
+  bindKeys: ->
+    $(document).bind 'keydown', 'meta+s', => @editor.save()
 
   showConsole: ->
     $atomController.webView.inspector.showConsole true

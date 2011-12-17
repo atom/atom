@@ -1,5 +1,12 @@
+Native = require 'native'
+
 module.exports =
 class App
+  native: null
+
+  constructor: ->
+    @native = new Native
+
   open: (url) ->
     OSX.NSApp.open url
 

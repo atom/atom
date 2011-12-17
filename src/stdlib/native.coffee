@@ -37,7 +37,7 @@ class Native
     panel = OSX.NSSavePanel.savePanel
     if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
       return null
-    panel.filenames.lastObject
+    panel.filenames.lastObject.valueOf()
 
   writeToPasteboard: (text) ->
     pb = OSX.NSPasteboard.generalPasteboard
