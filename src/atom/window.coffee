@@ -36,9 +36,6 @@ windowAdditions =
   onerror: ->
     @showConsole true
 
-  triggerEvent: ->
-    null
-
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]
   window[key] = value

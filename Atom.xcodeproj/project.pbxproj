@@ -66,7 +66,6 @@
 		043D7E91145795B70078D710 /* AtomApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomApp.m; path = Classes/AtomApp.m; sourceTree = "<group>"; };
 		043D7E92145795B70078D710 /* AtomController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomController.h; path = Classes/AtomController.h; sourceTree = "<group>"; };
 		043D7E93145795B70078D710 /* AtomController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomController.m; path = Classes/AtomController.m; sourceTree = "<group>"; };
-		047E2FF8149FDD960014E327 /* Atom copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Atom copy-Info.plist"; path = "/Users/corey/code/mine/Atom/Atom copy-Info.plist"; sourceTree = "<absolute>"; };
 		047F26011457978C006DC904 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		047F260314579792006DC904 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		047F260D145883B9006DC904 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
@@ -92,7 +91,6 @@
 				043D7E51145794990078D710 /* Atom */,
 				043D7E4A145794990078D710 /* Frameworks */,
 				043D7E48145794990078D710 /* Products */,
-				047E2FF8149FDD960014E327 /* Atom copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
