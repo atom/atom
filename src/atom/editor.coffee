@@ -13,6 +13,9 @@ class Editor
     @buildAceEditor()
     @open(url)
 
+  shutdown: ->
+    @destroy()
+
   destroy: ->
     @aceEditor.destroy()
 

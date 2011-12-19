@@ -1,5 +1,6 @@
 fs = require 'fs'
 _ = require 'underscore'
+$ = require 'jquery'
 
 Layout = require 'layout'
 Editor = require 'editor'
@@ -9,15 +10,25 @@ Editor = require 'editor'
 
 windowAdditions =
   editor: null
-  url: $atomController.url?.toString()
+  layout: null
 
   startup: ->
-    Layout.attach()
-    @editor = new Editor @url
+    @layout = Layout.attach()
+    @editor = new Editor $atomController.url?.toString()
     @bindKeys()
 
+  shutdown: ->
+    @layout.remove()
+    @editor.shutdown()
+    @unbindKeys()
+
   bindKeys: ->
-    $(document).bind 'keydown', 'meta+s', => @editor.save()
+    $(document).bind 'keydown', (event) =>
+      if String.fromCharCode(event.which) == 'S' and event.metaKey
+        @editor.save()
+
+  unbindKeys: ->
+    $(document).unbind 'keydown'
 
   showConsole: ->
     $atomController.webView.inspector.showConsole true
