@@ -79,8 +79,13 @@ resolve = (file) ->
 
   if file[0] isnt '/'
     require.paths.some (path) ->
-      if /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
+      fileExists = /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
+      jsFileExists = not /\.(.+)$/.test(file) and __exists "#{path}/#{file}.js"
+
+      if fileExists
         file = "#{path}/#{file}"
+      if jsFileExists
+        file = "#{path}/#{file}.js"
       else if expanded = __expand "#{path}/#{file}"
         file = expanded
   else
