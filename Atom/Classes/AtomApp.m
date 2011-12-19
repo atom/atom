@@ -60,7 +60,9 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-  [self runSpecs:self];
+  if ([[[NSProcessInfo  processInfo] environment] objectForKey:@"AUTO-TEST"]) {
+    [self runSpecs:self];
+  }
 }
 
 @end
