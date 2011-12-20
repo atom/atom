@@ -25,8 +25,14 @@ class Buffer
 
     extension = if @url then @url.split('/').pop().split('.').pop() else null
     modeName = switch extension
-      when "js" then "javascript"
-      else "text"
+      when 'js' then 'javascript'
+      when 'coffee' then 'coffee'
+      when 'rb', 'ru' then 'ruby'
+      when 'c', 'h', 'cpp' then 'c_cpp'
+      when 'html', 'htm' then 'html'
+      when 'css' then 'css'
+
+      else 'text'
 
     @mode = new (require("ace/mode/#{modeName}").Mode)
     @mode.name = modeName
