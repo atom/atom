@@ -35,6 +35,13 @@ describe "Editor", ->
       expect(mainDiv.children('.editor').length).toBe 0
 
   describe "open(url)", ->
+    it "sets the mode on the session", ->
+      editor.open('something.js')
+      expect(editor.aceEditor.getSession().getMode().name).toBe 'javascript'
+
+      editor.open('something.text')
+      expect(editor.aceEditor.getSession().getMode().name).toBe 'text'
+
     describe "when called with a url", ->
       it "loads a buffer for the given url into the editor", ->
         editor.open(filePath)

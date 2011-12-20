@@ -21,7 +21,8 @@ class Editor
 
   open: (url) ->
     @buffer = new Buffer(url)
-    @aceEditor.setSession(new EditSession(@buffer.aceDocument))
+    session = new EditSession(@buffer.aceDocument, @buffer.getMode())
+    @aceEditor.setSession(session)
 
   buildAceEditor: ->
     @editorElement = $("<div class='editor'>").appendTo('#main')
