@@ -26,11 +26,7 @@ class Native
       return null
     filename = panel.filenames.lastObject
     localStorage.lastOpenedPath = filename
-    filename.toString()
-
-  openURL: (url) ->
-    window.location = url
-    atom.app.activeWindow.setTitle _.last url.replace(/\/$/,'').split '/'
+    filename.valueOf()
 
   # Returns null or a file path.
   savePanel: ->
