@@ -1,14 +1,15 @@
 require 'window'
 
 describe "Window", ->
-  describe "bindKeys", ->
+  describe "keybindings", ->
     beforeEach ->
       window.startup()
 
     afterEach ->
       window.shutdown()
 
-    it 'creates "save" keybinding on "meta+s"', ->
-      spyOn(window.editor, 'save')
-      window.keydown 'meta+s'
-      expect(window.editor.save).toHaveBeenCalled()
+    describe 'meta+s', ->
+      it 'saves the buffer', ->
+        spyOn(window.editor, 'save')
+        window.keydown 'meta+s'
+        expect(window.editor.save).toHaveBeenCalled()
