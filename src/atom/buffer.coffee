@@ -23,7 +23,7 @@ class Buffer
   getMode: ->
     return @mode if @mode
 
-    extension = @url.split('/').pop().split('.').pop()
+    extension = if @url then @url.split('/').pop().split('.').pop() else null
     modeName = switch extension
       when "js" then "javascript"
       else "text"

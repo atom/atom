@@ -51,7 +51,10 @@ describe 'Buffer', ->
         buffer = new Buffer 'something.js'
         expect(buffer.getMode().name).toBe 'javascript'
 
+        buffer = new Buffer 'something'
+        expect(buffer.getMode().name).toBe 'text'
+
     describe "when no url is given", ->
       it "sets 'mode' to text mode", ->
-        buffer = new Buffer 'something'
+        buffer = new Buffer null
         expect(buffer.getMode().name).toBe 'text'
