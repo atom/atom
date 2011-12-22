@@ -16,10 +16,6 @@
   [self.controllers addObject:controller];
 }
 
-- (IBAction)runSpecs:(id)sender {
-  [[AtomController alloc] initForSpecs];
-}
-
 - (void)removeController:(AtomController *)controller {
   [self.controllers removeObject:controller];
 }
@@ -41,6 +37,23 @@
   }
       
   [event.window sendEvent:event];
+}
+
+#pragma mark Actions
+- (IBAction)newController:(id)sender {
+  [self open:nil];
+}
+
+- (IBAction)chooseFileToOpen:(id)sender {
+  NSOpenPanel *panel = [NSOpenPanel openPanel];
+  [panel setCanChooseDirectories:NO];
+  if ([panel runModal] == NSFileHandlingPanelOKButton) {
+    [self open:[panel.URLs.lastObject path]];
+  }
+}
+
+- (IBAction)runSpecs:(id)sender {
+  [[AtomController alloc] initForSpecs];
 }
 
 - (void)terminate:(id)sender {
