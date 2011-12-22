@@ -26,10 +26,7 @@ windowAdditions =
     $(document).bind 'keydown', (event) =>
       if String.fromCharCode(event.which) == 'S' and event.metaKey
         @editor.save()
-
-      if String.fromCharCode(event.which) == 'O' and event.metaKey
-        url = atom.native.openPanel()
-        @editor.open(url) if url
+        false
 
   unbindKeys: ->
     $(document).unbind 'keydown'
