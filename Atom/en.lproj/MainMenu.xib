@@ -143,19 +143,19 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBActionConnection" key="connection">
-						<string key="label">newController:</string>
+						<string key="label">openNewWindow:</string>
 						<reference key="source" ref="1021"/>
 						<reference key="destination" ref="705341025"/>
 					</object>
-					<int key="connectionID">542</int>
+					<int key="connectionID">545</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBActionConnection" key="connection">
-						<string key="label">chooseFileToOpen:</string>
+						<string key="label">openFileInNewWindow:</string>
 						<reference key="source" ref="1021"/>
 						<reference key="destination" ref="722745758"/>
 					</object>
-					<int key="connectionID">544</int>
+					<int key="connectionID">546</int>
 				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -273,7 +273,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">544</int>
+			<int key="maxID">546</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">

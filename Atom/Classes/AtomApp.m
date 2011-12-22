@@ -17,7 +17,7 @@
 }
 
 - (void)removeController:(AtomController *)controller {
-  [self.controllers removeObject:controller];
+  [self.controllers removeObject:controller];  
 }
 
 // Events in the "app:*" namespace are sent to all controllers
@@ -40,11 +40,11 @@
 }
 
 #pragma mark Actions
-- (IBAction)newController:(id)sender {
+- (IBAction)openNewWindow:(id)sender {
   [self open:nil];
 }
 
-- (IBAction)chooseFileToOpen:(id)sender {
+- (IBAction)openFileInNewWindow:(id)sender {
   NSOpenPanel *panel = [NSOpenPanel openPanel];
   [panel setCanChooseDirectories:NO];
   if ([panel runModal] == NSFileHandlingPanelOKButton) {
