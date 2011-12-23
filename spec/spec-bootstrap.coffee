@@ -1,5 +1,6 @@
 nakedLoad 'jasmine'
 nakedLoad 'jasmine-html'
+nakedLoad 'jasmine-focused'
 
 $ = require 'jquery'
 coffeekup = require 'coffeekup'
@@ -16,8 +17,7 @@ trivialReporter = new jasmine.TrivialReporter(document, 'jasmine_runner')
 
 jasmineEnv.addReporter(trivialReporter)
 
-jasmineEnv.specFilter = (spec) ->
-  return trivialReporter.specFilter(spec)
+jasmineEnv.specFilter = (spec) -> trivialReporter.specFilter(spec)
 
 require 'spec-suite'
 jasmineEnv.execute()
