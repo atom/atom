@@ -20,6 +20,7 @@ class Editor
     @aceEditor.destroy()
 
   open: (url) ->
+    $atomController.url = url
     @buffer = new Buffer(url)
     session = new EditSession(@buffer.aceDocument, @buffer.getMode())
     @aceEditor.setSession(session)
