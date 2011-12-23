@@ -4,13 +4,15 @@ _ = require 'underscore'
 window.atom = new (require 'app')
 
 window.keydown = (pattern) ->
+
+  $(document).trigger @createKeyEvent pattern
+
+window.createKeyEvent = (pattern) ->
   keys = pattern.split '+'
-  event = $.Event "keydown",
+  $.Event "keydown",
     ctrlKey: 'ctrl' in keys
     altKey: 'alt' in keys
     shiftKey: 'shift' in keys
     metaKey: 'meta' in keys
     which: _.last(keys).toUpperCase().charCodeAt 0
-
-  $(document).trigger event
 
