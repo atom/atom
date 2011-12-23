@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 module.exports =
 class Native
   alert: (message, detailedMessage, buttons) ->
@@ -42,4 +44,24 @@ class Native
 
   resetMainMenu: (menu) ->
     OSX.NSApp.resetMainMenu
+
+  addMenuItem: (path) ->
+    pathComponents = path.split /\s*>\s*/
+    submenu = @buildSubmenuPath(OSX.NSApp.mainMenu, pathComponents[0..-2])
+    title = _.last(pathComponents)
+    item = OSX.AtomMenuItem.alloc.initWithTitle_action_keyEquivalent(title, null, "").autorelease
+    submenu.addItem(item)
+
+  buildSubmenuPath: (menu, path) ->
+    return menu if path.length == 0
+
+    first = path[0]
+    unless item = menu.itemWithTitle(first)
+      item = OSX.AtomMenuItem.alloc.initWithTitle_action_keyEquivalent(first, null, "").autorelease
+      menu.addItem(item)
+    unless submenu = item.submenu
+      submenu = OSX.NSMenu.alloc.initWithTitle(first)
+      item.submenu = submenu
+
+    @buildSubmenuPath(submenu, path[1..-1])
 
