@@ -1,8 +1,10 @@
 #import "AtomApp.h"
-#import "AtomController.h"
-#import "JSCocoa.h"
 
+#import "JSCocoa.h"
 #import <WebKit/WebKit.h>
+
+#import "AtomController.h"
+#import "AtomMenuItem.h"
 
 #define ATOM_USER_PATH ([[NSString stringWithString:@"~/.atom/"] stringByStandardizingPath])
 #define ATOM_STORAGE_PATH ([ATOM_USER_PATH stringByAppendingPathComponent:@".app-storage"])
@@ -76,6 +78,26 @@
   if ([[[NSProcessInfo  processInfo] environment] objectForKey:@"AUTO-TEST"]) {
     [self runSpecs:self];
   }
+}
+
+- (void)resetMenu:(NSMenu *)menu {
+  for (AtomMenuItem *item in menu.itemArray) {
+    if (![item isKindOfClass:[AtomMenuItem class]]) continue;
+
+    if (item.submenu) {
+      [self resetMenu:item.submenu];
+      if (item.submenu.numberOfItems == 0) {
+        [menu removeItem:item];
+      }
+    }
+    else if (!item.global) {
+      [menu removeItem:item];
+    }
+  }
+}
+
+- (void)resetMainMenu {
+  [self resetMenu:self.mainMenu];
 }
 
 @end

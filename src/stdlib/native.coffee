@@ -39,3 +39,7 @@ class Native
     pb = OSX.NSPasteboard.generalPasteboard
     pb.declareTypes_owner [OSX.NSStringPboardType], null
     pb.setString_forType text, OSX.NSStringPboardType
+
+  resetMainMenu: (menu) ->
+    OSX.NSApp.resetMainMenu
+

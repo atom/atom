@@ -8,5 +8,6 @@
 
 - (void)removeController:(AtomController *)controller;
 - (IBAction)runSpecs:(id)sender;
+- (void)resetMainMenu;
 
 @end
