@@ -6,16 +6,19 @@ describe "Native", ->
   beforeEach ->
     nativeModule = new Native
 
-  fdescribe "addMenuItem(path, keyBinding)", ->
+  describe "addMenuItem(path, keyBinding)", ->
+    mainMenu = null
     mainMenuItems = null
 
     beforeEach ->
-      mainMenuItems = OSX.NSApp.mainMenu.itemArray
+      mainMenu = OSX.NSApp.mainMenu
+      mainMenuItems = mainMenu.itemArray
 
     it "adds the item at the path terminus to the main menu, adding submenus as needed", ->
-      initialMenuCount = mainMenuItems.length
+      initialMenuCount = mainMenu.itemArray.length
 
       nativeModule.addMenuItem('Submenu > Item')
 
-      expect(mainMenuItems.length).toBe initialMenuCount + 1
+      expect(mainMenu.itemArray.length).toBe initialMenuCount + 1
+
 
