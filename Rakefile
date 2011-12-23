@@ -27,3 +27,9 @@ task :install do
   rm_rf "/Applications/Atomicity.app"
   cp_r "Cocoa/build/Debug/Atomicity.app /Applications"
 end
+
+desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
+task :nof do
+  system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f(it|describe) +(['\\"])/\\1 \\2/g"}
+end
+
