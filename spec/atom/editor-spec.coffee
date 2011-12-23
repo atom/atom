@@ -35,25 +35,31 @@ describe "Editor", ->
       expect(mainDiv.children('.editor').length).toBe 0
 
   describe "open(url)", ->
-    it "sets the mode on the session", ->
-      editor.open('something.js')
-      expect(editor.aceEditor.getSession().getMode().name).toBe 'javascript'
-
-      editor.open('something.text')
-      expect(editor.aceEditor.getSession().getMode().name).toBe 'text'
 
     describe "when called with a url", ->
       it "loads a buffer for the given url into the editor", ->
         editor.open(filePath)
         fileContents = fs.read(filePath)
-        expect(editor.aceEditor.getSession().getValue()).toBe fileContents
+        expect(editor.getAceSession().getValue()).toBe fileContents
         expect(editor.buffer.url).toBe(filePath)
         expect(editor.buffer.getText()).toEqual fileContents
+
+      it "sets the mode on the session based on the file extension", ->
+        editor.open('something.js')
+        expect(editor.getAceSession().getMode().name).toBe 'javascript'
+
+        editor.open('something.text')
+        expect(editor.getAceSession().getMode().name).toBe 'text'
+
+      it "assigns the url on the $atomController global", ->
+        expect($atomController.url).toBeNull()
+        editor.open(filePath)
+        expect($atomController.url.toString()).toEqual(filePath)
 
     describe "when called with null", ->
       it "loads an empty buffer with no url", ->
         editor.open()
-        expect(editor.aceEditor.getSession().getValue()).toBe ""
+        expect(editor.getAceSession().getValue()).toBe ""
         expect(editor.buffer.url).toBeUndefined()
         expect(editor.buffer.getText()).toEqual ""
 
@@ -61,7 +67,7 @@ describe "Editor", ->
     it "updates the buffer text", ->
       editor.open(filePath)
       expect(editor.buffer.getText()).not.toMatch /^.ooo/
-      editor.aceEditor.getSession().insert {row: 0, column: 1}, 'ooo'
+      editor.getAceSession().insert {row: 0, column: 1}, 'ooo'
       expect(editor.buffer.getText()).toMatch /^.ooo/
 
   describe "save", ->
