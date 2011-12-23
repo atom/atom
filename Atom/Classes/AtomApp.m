@@ -16,12 +16,8 @@
   [self.controllers addObject:controller];
 }
 
-- (IBAction)runSpecs:(id)sender {
-  [[AtomController alloc] initForSpecs];
-}
-
 - (void)removeController:(AtomController *)controller {
-  [self.controllers removeObject:controller];
+  [self.controllers removeObject:controller];  
 }
 
 // Events in the "app:*" namespace are sent to all controllers
@@ -41,6 +37,23 @@
   }
       
   [event.window sendEvent:event];
+}
+
+#pragma mark Actions
+- (IBAction)openNewWindow:(id)sender {
+  [self open:nil];
+}
+
+- (IBAction)openFileInNewWindow:(id)sender {
+  NSOpenPanel *panel = [NSOpenPanel openPanel];
+  [panel setCanChooseDirectories:NO];
+  if ([panel runModal] == NSFileHandlingPanelOKButton) {
+    [self open:[panel.URLs.lastObject path]];
+  }
+}
+
+- (IBAction)runSpecs:(id)sender {
+  [[AtomController alloc] initForSpecs];
 }
 
 - (void)terminate:(id)sender {

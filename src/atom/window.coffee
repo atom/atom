@@ -10,29 +10,44 @@ Editor = require 'editor'
 
 windowAdditions =
   editor: null
+  keyBindings: null
   layout: null
 
   startup: ->
+    @keyBindings = {}
     @layout = Layout.attach()
     @editor = new Editor $atomController.url?.toString()
+    @registerKeydownHandler()
     @bindKeys()
 
   shutdown: ->
     @layout.remove()
     @editor.shutdown()
-    @unbindKeys()
 
   bindKeys: ->
+    @bindKey 'meta+s', => @editor.save()
+
+  bindKey: (pattern, action) ->
+    @keyBindings[pattern] = action
+
+  keyEventMatchesPattern: (event, pattern) ->
+    [modifiers..., key] = pattern.split '+'
+    patternModifiers =
+      ctrlKey: 'ctrl' in modifiers
+      altKey: 'alt' in modifiers
+      shiftKey: 'shift' in modifiers
+      metaKey: 'meta' in modifiers
+
+    patternModifiers.ctrlKey == event.ctrlKey and
+      patternModifiers.altKey == event.altKey and
+      patternModifiers.shiftKey == event.shiftKey and
+      patternModifiers.metaKey == event.metaKey and
+      event.which == key.toUpperCase().charCodeAt 0
+
+  registerKeydownHandler: ->
     $(document).bind 'keydown', (event) =>
-      if String.fromCharCode(event.which) == 'S' and event.metaKey
-        @editor.save()
-
-      if String.fromCharCode(event.which) == 'O' and event.metaKey
-        url = atom.native.openPanel()
-        @editor.open(url) if url
-
-  unbindKeys: ->
-    $(document).unbind 'keydown'
+      for pattern, action of @keyBindings
+        action() if @keyEventMatchesPattern(event, pattern)
 
   showConsole: ->
     $atomController.webView.inspector.showConsole true
