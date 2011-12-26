@@ -19,19 +19,26 @@ windowAdditions =
     @menuItemActions = {}
     @layout = Layout.attach()
     @editor = new Editor $atomController.url?.toString()
-    @registerKeydownHandler()
+    @registerEventHandlers()
     @bindKeys()
+    @bindMenuItems()
+    $(document).focus()
 
   shutdown: ->
     @layout.remove()
     @editor.shutdown()
+    $(document).unbind('focus')
+    $(document).unbind('focus')
+    $(window).unbind('keydown')
 
   bindKeys: ->
     @bindKey 'meta+s', => @editor.save()
 
+  bindMenuItems: ->
+    @bindMenuItem "File > Save", => @editor.save()
+
   bindMenuItem: (path, action) ->
     @menuItemActions[path] = action
-    atom.native.addMenuItem(path)
 
   bindKey: (pattern, action) ->
     @keyBindings[pattern] = action
@@ -50,10 +57,17 @@ windowAdditions =
       patternModifiers.metaKey == event.metaKey and
       event.which == key.toUpperCase().charCodeAt 0
 
-  registerKeydownHandler: ->
+  registerEventHandlers: ->
     $(document).bind 'keydown', (event) =>
       for pattern, action of @keyBindings
         action() if @keyEventMatchesPattern(event, pattern)
+
+    $(document).focus => @registerMenuItems()
+    $(document).blur -> atom.native.resetMainMenu()
+
+  registerMenuItems: ->
+    for path of @menuItemActions
+      atom.native.addMenuItem(path)
 
   performActionForMenuItemPath: (path) ->
     @menuItemActions[path]()
