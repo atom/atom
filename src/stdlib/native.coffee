@@ -45,11 +45,11 @@ class Native
   resetMainMenu: (menu) ->
     OSX.NSApp.resetMainMenu
 
-  addMenuItem: (path) ->
-    pathComponents = path.split /\s*>\s*/
-    submenu = @buildSubmenuPath(OSX.NSApp.mainMenu, pathComponents[0..-2])
-    title = _.last(pathComponents)
-    item = OSX.AtomMenuItem.alloc.initWithTitle_action_keyEquivalent(title, null, "").autorelease
+  addMenuItem: (itemPath) ->
+    itemPathComponents = itemPath.split /\s*>\s*/
+    submenu = @buildSubmenuPath(OSX.NSApp.mainMenu, itemPathComponents[0..-2])
+    title = _.last(itemPathComponents)
+    item = OSX.AtomMenuItem.alloc.initWithTitle_itemPath(title, itemPath).autorelease
     submenu.addItem(item)
 
   buildSubmenuPath: (menu, path) ->

@@ -8,7 +8,7 @@ describe "Window", ->
     afterEach ->
       window.shutdown()
 
-    describe 'bindKey', ->
+    describe 'bindKey(pattern, action)', ->
       it 'maps keypresses that match a pattern to an action', ->
         action1 = jasmine.createSpy 'action1'
         action2 = jasmine.createSpy 'action2'
@@ -54,6 +54,15 @@ describe "Window", ->
         expectNoMatch 'meta+a', 'meta+b'
         expectNoMatch 'meta+a', 'meta+b'
         expectNoMatch 'meta+1', 'alt+1'
+
+    describe "bindMenuItem(path, action)", ->
+      it "causes the given action to be invoked when the menu item is selected", ->
+        handler = jasmine.createSpy('menuItemHandler')
+        window.bindMenuItem 'Submenu > Item', handler
+
+        OSX.NSApp.mainMenu.itemWithTitle('Submenu').submenu.performActionForItemAtIndex(0)
+
+        expect(handler).toHaveBeenCalled()
 
     describe 'meta+s', ->
       it 'saves the buffer', ->

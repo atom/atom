@@ -80,6 +80,11 @@
   }
 }
 
+- (void)performActionForMenuItem:(AtomMenuItem *)item {
+  AtomController *atomController = self.keyWindow.windowController;
+  [atomController performActionForMenuItemPath:item.itemPath];
+}
+
 - (void)resetMenu:(NSMenu *)menu {
   for (AtomMenuItem *item in menu.itemArray) {
     if (![item isKindOfClass:[AtomMenuItem class]]) continue;

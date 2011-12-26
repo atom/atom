@@ -1,6 +1,6 @@
 #import <Cocoa/Cocoa.h>
 
-@class AtomController;
+@class AtomController, AtomMenuItem;
 
 @interface AtomApp : NSApplication <NSApplicationDelegate>
 
@@ -8,6 +8,7 @@
 
 - (void)removeController:(AtomController *)controller;
 - (IBAction)runSpecs:(id)sender;
+- (void)performActionForMenuItem:(AtomMenuItem *)item;
 - (void)resetMainMenu;
 
 @end

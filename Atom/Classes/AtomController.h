@@ -18,5 +18,6 @@ struct JSGlobalContextRef;
 - (void)triggerAtomEventWithName:(NSString *)name data:(id)data;
 - (void)reload;
 - (JSValueRefAndContextRef)jsWindow;
+- (void)performActionForMenuItemPath:(NSString *)menuItemPath;
 
 @end

@@ -12,9 +12,11 @@ windowAdditions =
   editor: null
   keyBindings: null
   layout: null
+  menuItemActions: null
 
   startup: ->
     @keyBindings = {}
+    @menuItemActions = {}
     @layout = Layout.attach()
     @editor = new Editor $atomController.url?.toString()
     @registerKeydownHandler()
@@ -27,27 +29,9 @@ windowAdditions =
   bindKeys: ->
     @bindKey 'meta+s', => @editor.save()
 
-  createMenuItemFromPath: (menu, pathComponents) ->
-    if menuItemPath.length == 1
-      menu.addItem pathComponents[0]
-    else
-      itemTitle = pathComponents.shift()
-      submenu = menu.itemWithTitle(itemTitle)?.submenu
-
-      if not submenu
-        item = NSMenuItem.initWithTitle itemTitle
-        menu.addItem item
-
-
-      createMenuItemFromPath(menu,
-
-  bindKeyAndMenuItem: (pattern, menuItemPath, action) ->
-    pathComponents = menuItemPath.split /\s*>\s*/
-    menu = OSX.NSApp.mainMenu
-    for path in pathComponents
-      menu.itemWithTitle path or NSMenu:initWithTitle path
-
-    @bindKey pattern, action
+  bindMenuItem: (path, action) ->
+    @menuItemActions[path] = action
+    atom.native.addMenuItem(path)
 
   bindKey: (pattern, action) ->
     @keyBindings[pattern] = action
@@ -70,6 +54,9 @@ windowAdditions =
     $(document).bind 'keydown', (event) =>
       for pattern, action of @keyBindings
         action() if @keyEventMatchesPattern(event, pattern)
+
+  performActionForMenuItemPath: (path) ->
+    @menuItemActions[path]()
 
   showConsole: ->
     $atomController.webView.inspector.showConsole true

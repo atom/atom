@@ -107,6 +107,11 @@
   return PROJECT_DIR;
 }
 
+- (void)performActionForMenuItemPath:(NSString *)menuItemPath {
+  NSString *jsCode = [NSString stringWithFormat:@"window.performActionForMenuItemPath('%@')", menuItemPath];
+  [self.jscocoa evalJSString:jsCode];
+}
+
 - (JSValueRefAndContextRef)jsWindow {
   JSValueRef window = [self.jscocoa evalJSString:@"window"]; 
   JSValueRefAndContextRef windowWithContext = {window, self.jscocoa.ctx};
