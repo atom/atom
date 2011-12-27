@@ -39,3 +39,9 @@ describe "Native", ->
       item1 = submenu1.itemWithTitle('Item 1')
       expect(item1).toBeDefined()
 
+    it "does not add the same item twice", ->
+      nativeModule.addMenuItem('Submenu > Item')
+      expect(mainMenu.itemWithTitle('Submenu').submenu.itemArray.length).toBe(1)
+      nativeModule.addMenuItem('Submenu > Item')
+      expect(mainMenu.itemWithTitle('Submenu').submenu.itemArray.length).toBe(1)
+

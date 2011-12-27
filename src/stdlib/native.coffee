@@ -49,8 +49,9 @@ class Native
     itemPathComponents = itemPath.split /\s*>\s*/
     submenu = @buildSubmenuPath(OSX.NSApp.mainMenu, itemPathComponents[0..-2])
     title = _.last(itemPathComponents)
-    item = OSX.AtomMenuItem.alloc.initWithTitle_itemPath(title, itemPath).autorelease
-    submenu.addItem(item)
+    unless submenu.itemWithTitle(title)
+      item = OSX.AtomMenuItem.alloc.initWithTitle_itemPath(title, itemPath).autorelease
+      submenu.addItem(item)
 
   buildSubmenuPath: (menu, path) ->
     return menu if path.length == 0
