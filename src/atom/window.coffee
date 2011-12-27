@@ -33,6 +33,7 @@ windowAdditions =
 
   bindKeys: ->
     @bindKey 'meta+s', => @editor.save()
+    @bindKey 'meta+w', => @close()
 
   bindMenuItems: ->
     @bindMenuItem "File > Save", => @editor.save()
