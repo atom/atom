@@ -5,6 +5,16 @@ fdescribe "Builder", ->
 
   beforeEach -> builder = new Builder
 
+  describe ".toFragment()", ->
+    it "creates outlet references on the fragment for elements with an outlet", ->
+      builder.tag 'div', ->
+        builder.tag 'div', id: 'foo', outlet: 'a'
+        builder.tag 'div', id: 'bar', outlet: 'b'
+
+      fragment = builder.toFragment()
+      expect(fragment.a).toMatchSelector '#foo'
+      expect(fragment.b).toMatchSelector '#bar'
+
   describe ".tag(name, args...)", ->
     it "can generate simple tags", ->
       builder.tag 'div'

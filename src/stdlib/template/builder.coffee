@@ -25,7 +25,12 @@ class Builder
     _.map(@document, (x) -> x.toHtml()).join('')
 
   toFragment: ->
-    $(@toHtml())
+    fragment = $(@toHtml())
+    fragment.find('[outlet]').each ->
+      elt = $(this)
+      outletName = elt.attr('outlet')
+      fragment[outletName] = elt
+    fragment
 
   tag: (name, args...) ->
     options = @extractOptions(args)
