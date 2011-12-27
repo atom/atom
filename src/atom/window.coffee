@@ -22,13 +22,13 @@ windowAdditions =
     @registerEventHandlers()
     @bindKeys()
     @bindMenuItems()
-    $(document).focus()
+    $(window).focus()
 
   shutdown: ->
     @layout.remove()
     @editor.shutdown()
-    $(document).unbind('focus')
-    $(document).unbind('focus')
+    $(window).unbind('focus')
+    $(window).unbind('blur')
     $(window).unbind('keydown')
 
   bindKeys: ->
@@ -62,8 +62,8 @@ windowAdditions =
       for pattern, action of @keyBindings
         action() if @keyEventMatchesPattern(event, pattern)
 
-    $(document).focus => @registerMenuItems()
-    $(document).blur -> atom.native.resetMainMenu()
+    $(window).focus => @registerMenuItems()
+    $(window).blur -> atom.native.resetMainMenu()
 
   registerMenuItems: ->
     for path of @menuItemActions

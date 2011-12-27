@@ -67,7 +67,7 @@ describe "Window", ->
 
         expect(atom.native.addMenuItem).not.toHaveBeenCalled()
 
-        $(document).focus()
+        $(window).focus()
 
         expect(atom.native.addMenuItem).toHaveBeenCalled()
         expect(addedPaths).toContain('Submenu 1 > Item 1')
@@ -76,14 +76,14 @@ describe "Window", ->
 
         spyOn(atom.native, 'resetMainMenu')
 
-        $(document).blur()
+        $(window).blur()
 
         expect(atom.native.resetMainMenu).toHaveBeenCalled()
 
       it "causes the given action to be invoked when the menu item is selected", ->
         handler = jasmine.createSpy('menuItemHandler')
         window.bindMenuItem 'Submenu > Item', handler
-        $(document).focus()
+        $(window).focus()
 
         OSX.NSApp.mainMenu.itemWithTitle('Submenu').submenu.performActionForItemAtIndex(0)
 
