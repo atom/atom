@@ -35,3 +35,7 @@ fdescribe "Builder", ->
       expect(fragment.attr('id')).toBe('foo')
       expect(fragment.attr('class')).toBe('bar')
 
+    it "can generate self-closing tags", ->
+      builder.tag 'br', id: 'foo'
+      expect(builder.toHtml()).toBe('<br id="foo">')
+
