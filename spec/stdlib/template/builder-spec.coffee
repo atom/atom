@@ -14,3 +14,9 @@ fdescribe "Builder", ->
       builder.tag 'ol'
       expect(builder.toHtml()).toBe("<ol></ol>")
 
+    it "can generate tags with content", ->
+      builder.tag 'ol', ->
+        builder.tag 'li'
+        builder.tag 'li'
+
+      expect(builder.toHtml()).toBe("<ol><li></li><li></li></ol>")

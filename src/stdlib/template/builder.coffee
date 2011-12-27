@@ -10,9 +10,17 @@ class Builder
   toHtml: ->
     _.map(@document, (x) -> x.toHtml()).join('')
 
-  tag: (name) ->
+  tag: (name, args...) ->
+    options = @extractOptions(args)
     @openTag(name)
+    options.content?()
     @closeTag(name)
+
+  extractOptions: (args) ->
+    options = {}
+    for arg in args
+      options.content = arg if _.isFunction(arg)
+    options
 
   openTag: (name) ->
     @document.push(new OpenTag(name))
