@@ -29,3 +29,9 @@ fdescribe "Builder", ->
       builder.tag 'div', 22
       expect(builder.toHtml()).toBe("<div>22</div>")
 
+    it "can generate tags with attributes", ->
+      builder.tag 'div', id: 'foo', class: 'bar'
+      fragment = builder.toFragment()
+      expect(fragment.attr('id')).toBe('foo')
+      expect(fragment.attr('class')).toBe('bar')
+

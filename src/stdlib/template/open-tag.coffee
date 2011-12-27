@@ -1,7 +1,12 @@
+_ = require 'underscore'
+
 module.exports =
 class OpenTag
-  constructor: (@name) ->
+  constructor: (@name, @attributes) ->
 
   toHtml: ->
-    "<#{@name}>"
+    "<#{@name}#{@attributesHtml()}>"
 
+  attributesHtml: ->
+    s = _.map(@attributes, (value, key) -> "#{key}=\"#{value}\"").join(' ')
+    if s == "" then "" else " " + s

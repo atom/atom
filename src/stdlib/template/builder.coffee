@@ -1,4 +1,5 @@
 _ = require 'underscore'
+$ = require 'jquery'
 OpenTag = require 'template/open-tag'
 CloseTag = require 'template/close-tag'
 Text = require 'template/text'
@@ -11,9 +12,12 @@ class Builder
   toHtml: ->
     _.map(@document, (x) -> x.toHtml()).join('')
 
+  toFragment: ->
+    $(@toHtml())
+
   tag: (name, args...) ->
     options = @extractOptions(args)
-    @openTag(name)
+    @openTag(name, options.attributes)
     options.content?()
     @text(options.text) if options.text
     @closeTag(name)
@@ -24,10 +28,11 @@ class Builder
       options.content = arg if _.isFunction(arg)
       options.text = arg if _.isString(arg)
       options.text = arg.toString() if _.isNumber(arg)
+      options.attributes = arg if _.isObject(arg)
     options
 
-  openTag: (name) ->
-    @document.push(new OpenTag(name))
+  openTag: (name, attributes) ->
+    @document.push(new OpenTag(name, attributes))
 
   closeTag: (name) ->
     @document.push(new CloseTag(name))
