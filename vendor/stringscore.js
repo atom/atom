@@ -1,3 +1,5 @@
+// MODIFIED BY NS/CJ - Don't extend the prototype of String
+
 /*!
  * string_score.js: String Scoring Algorithm 0.1.9
  *
@@ -16,10 +18,10 @@
  *  'Hello World'.score('he');     //=> 0.5931818181818181
  *  'Hello World'.score('Hello');  //=> 0.7318181818181818
  */
-String.prototype.score = function(abbreviation, fuzziness) {
+
+module.exports = function(string, abbreviation, fuzziness) {
   var total_character_score = 0,
       abbreviation_length = abbreviation.length,
-      string = this,
       string_length = string.length,
       start_of_string_bonus,
       abbreviation_score,
