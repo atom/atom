@@ -48,6 +48,14 @@ fdescribe "Template", ->
       it "binds events for elements with event name attributes", ->
         spyOn(view, 'li1Clicked')
         spyOn(view, 'li2Keypressed')
+        spyOn(view, 'li1Clicked').andCallFake (event, elt) ->
+          expect(event.type).toBe 'click'
+          expect(elt).toMatchSelector 'li.foo:contains(one)'
+
+        spyOn(view, 'li2Keypressed').andCallFake (event, elt) ->
+          expect(event.type).toBe 'keypress'
+          expect(elt).toMatchSelector "li.bar:contains(two)"
+
         view.li1.click()
         expect(view.li1Clicked).toHaveBeenCalled()
         expect(view.li2Keypressed).not.toHaveBeenCalled()
