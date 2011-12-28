@@ -3,7 +3,7 @@ FileFinder = require 'file-finder'
 describe 'FileFinder', ->
   finder = null
 
-  beforeEach -> 
+  beforeEach ->
     urls = ['app.coffee', 'buffer.coffee', 'atom/app.coffee', 'atom/buffer.coffee']
     finder = FileFinder.build {urls}
 
@@ -12,7 +12,7 @@ describe 'FileFinder', ->
       expect(finder.urlList.find('li')).not.toExist()
 
       finder.input.val('ap')
-      finder.input.keypress()
+      finder.input.keyup()
 
       expect(finder.urlList.children().length).toBe 2
       expect(finder.urlList.find('li:contains(app.coffee)').length).toBe 2
@@ -20,7 +20,7 @@ describe 'FileFinder', ->
 
       # we should clear the list before re-populating it
       finder.input.val('a/ap')
-      finder.input.keypress()
+      finder.input.keyup()
 
       expect(finder.urlList.children().length).toBe 1
       expect(finder.urlList.find('li:contains(atom/app.coffee)').length).toBe 1

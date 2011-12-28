@@ -32,15 +32,19 @@ windowAdditions =
     $(window).unbind('blur')
     $(window).unbind('keydown')
 
-  findFile: ->
-    fileFinder = FileFinder.build(urls: [@editor.buffer.url])
-    window.layout.addPane(fileFinder)
-    fileFinder.input.focus()
+  toggleFileFinder: ->
+    if @fileFinder
+      @fileFinder.remove()
+      @fileFinder = null
+    else
+      @fileFinder = FileFinder.build(urls: [@editor.buffer.url])
+      window.layout.addPane(fileFinder)
+      fileFinder.input.focus()
 
   bindKeys: ->
     @bindKey 'meta+s', => @editor.save()
     @bindKey 'meta+w', => @close()
-    @bindKey 'meta+t', => @findFile()
+    @bindKey 'meta+t', => @toggleFileFinder()
 
   bindMenuItems: ->
     @bindMenuItem "File > Save", "meta+s", => @editor.save()
