@@ -18,6 +18,9 @@ class Template
     @content(attributes)
     view = @builder.toFragment()
     @wireOutlets(view)
+    if @viewProperties
+      $.extend(view, @viewProperties)
+    view.initialize?(attributes)
     view
 
   wireOutlets: (view) ->

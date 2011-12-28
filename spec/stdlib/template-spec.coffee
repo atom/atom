@@ -17,6 +17,11 @@ fdescribe "Template", ->
             @li outlet: 'li1', class: 'foo', "one"
             @li outlet: 'li2', class: 'bar', "two"
 
+        viewProperties:
+          initialize: (attrs) ->
+            @initializeCalledWith = attrs
+          foo: "bar"
+
       view = Foo.build(title: "Zebra")
 
     afterEach ->
@@ -28,6 +33,11 @@ fdescribe "Template", ->
         expect(view.find("h1:contains(Zebra)")).toExist()
         expect(view.find("ol > li.foo:contains(one)")).toExist()
         expect(view.find("ol > li.bar:contains(two)")).toExist()
+
+      it "extends the view with viewProperties, calling the 'constructor' property if present", ->
+        expect(view.constructor).toBeDefined()
+        expect(view.foo).toBe("bar")
+        expect(view.initializeCalledWith).toEqual(title: "Zebra")
 
       it "wires references for elements with 'outlet' attributes", ->
         expect(view.li1).toMatchSelector("li.foo:contains(one)")
