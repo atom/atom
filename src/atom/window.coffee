@@ -33,7 +33,9 @@ windowAdditions =
     $(window).unbind('keydown')
 
   findFile: ->
-    window.layout.addPane(FileFinder.build(urls: [@editor.buffer.url]))
+    fileFinder = FileFinder.build(urls: [@editor.buffer.url])
+    window.layout.addPane(fileFinder)
+    fileFinder.input.focus()
 
   bindKeys: ->
     @bindKey 'meta+s', => @editor.save()
