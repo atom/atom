@@ -80,17 +80,6 @@ describe "Window", ->
 
         expect(atom.native.resetMainMenu).toHaveBeenCalled()
 
-      it "adds the menu item to the main menu with a key equivalent", ->
-        # This fucking test...
-        # handler = jasmine.createSpy('menuItemHandler')
-        # window.bindMenuItem 'Submenu > Item', 'meta-1', handler
-        # $(window).focus()
-
-        # keyEvent = OSX.NSEvent.keyEventWithType_location_modifierFlags_timestamp_windowNumber_context_characters_charactersIgnoringModifiers_isARepeat_keyCode OSX.NSKeyDown, OSX.NSEvent.mouseLocation, OSX.NSCommandKeyMask, OSX.GetCurrentEventTime, $atomController.window.windowNumber, null, "1", "1", false, 18
-        # OSX.NSApp.sendEvent keyEvent
-
-        # expect(handler).toHaveBeenCalled()
-
       it "causes the given action to be invoked when the menu item is selected", ->
         handler = jasmine.createSpy('menuItemHandler')
         window.bindMenuItem 'Submenu > Item', null, handler
