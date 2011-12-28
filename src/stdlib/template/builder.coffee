@@ -41,7 +41,7 @@ class Builder
 
 
   elementIsVoid: (name) ->
-    _.contains(this.constructor.elements.void, name)
+    name in @constructor.elements.void
 
   extractOptions: (args) ->
     options = {}
@@ -49,7 +49,7 @@ class Builder
       options.content = arg if _.isFunction(arg)
       options.text = arg if _.isString(arg)
       options.text = arg.toString() if _.isNumber(arg)
-      options.attributes = arg if _.isObject(arg)
+      options.attributes = arg if _.isObject(arg) and not _.isFunction(arg)
     options
 
   text: (string) ->
