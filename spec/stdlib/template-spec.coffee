@@ -39,15 +39,13 @@ fdescribe "Template", ->
       it "extends the view with viewProperties, calling the 'constructor' property if present", ->
         expect(view.constructor).toBeDefined()
         expect(view.foo).toBe("bar")
-        expect(view.initializeCalledWith).toEqual(title: "Zebra")
+        expect(view.initializeCalledWith).toEqual title: "Zebra"
 
       it "wires references for elements with 'outlet' attributes", ->
-        expect(view.li1).toMatchSelector("li.foo:contains(one)")
-        expect(view.li2).toMatchSelector("li.bar:contains(two)")
+        expect(view.li1).toMatchSelector "li.foo:contains(one)"
+        expect(view.li2).toMatchSelector "li.bar:contains(two)"
 
       it "binds events for elements with event name attributes", ->
-        spyOn(view, 'li1Clicked')
-        spyOn(view, 'li2Keypressed')
         spyOn(view, 'li1Clicked').andCallFake (event, elt) ->
           expect(event.type).toBe 'click'
           expect(elt).toMatchSelector 'li.foo:contains(one)'
