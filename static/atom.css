@@ -34,7 +34,6 @@ body {
 .pane {
   display: -webkit-box;
   background-color: blue;
-  -webkit-box-flex: 1;
 }
 
 .ace_editor {

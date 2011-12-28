@@ -5,6 +5,7 @@ stringScore = require 'stringscore'
 module.exports =
 class FileFinder extends Template
   content: ->
+    @link rel: 'stylesheet', href: "#{require.resolve('file-finder.css')}?#{(new Date).getTime()}"
     @div class: 'file-finder', =>
       @ol outlet: 'urlList'
       @input outlet: 'input', keyup: 'populateUrlList'

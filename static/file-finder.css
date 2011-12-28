@@ -1,0 +1,11 @@
+.file-finder {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  background-color: #444;
+  color: #eee;
+  width: 100%;
+}
+
+.file-finder input {
+  width: 100%;
+}
