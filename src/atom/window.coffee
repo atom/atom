@@ -38,6 +38,10 @@ windowAdditions =
   bindMenuItems: ->
     @bindMenuItem "File > Save", => @editor.save()
 
+  bindMenuItemAndKey: (path, pattern, action) ->
+    @bindMenuItem path, action
+    @bindKey pattern, action
+
   bindMenuItem: (path, action) ->
     @menuItemActions[path] = action
 
@@ -45,18 +49,22 @@ windowAdditions =
     @keyBindings[pattern] = action
 
   keyEventMatchesPattern: (event, pattern) ->
-    [modifiers..., key] = pattern.split '+'
-    patternModifiers =
-      ctrlKey: 'ctrl' in modifiers
-      altKey: 'alt' in modifiers
-      shiftKey: 'shift' in modifiers
-      metaKey: 'meta' in modifiers
+    keys = @parseKeyPattern pattern
 
-    patternModifiers.ctrlKey == event.ctrlKey and
-      patternModifiers.altKey == event.altKey and
-      patternModifiers.shiftKey == event.shiftKey and
-      patternModifiers.metaKey == event.metaKey and
-      event.which == key.toUpperCase().charCodeAt 0
+    keys.ctrlKey == event.ctrlKey and
+      keys.altKey == event.altKey and
+      keys.shiftKey == event.shiftKey and
+      keys.metaKey == event.metaKey and
+      event.which == keys.key.toUpperCase().charCodeAt 0
+
+  parseKeyPattern: (pattern) ->
+    [modifiers..., key] = pattern.split '+'
+
+    ctrlKey: 'ctrl' in modifiers
+    altKey: 'alt' in modifiers
+    shiftKey: 'shift' in modifiers
+    metaKey: 'meta' in modifiers
+    key: key
 
   registerEventHandlers: ->
     $(document).bind 'keydown', (event) =>
