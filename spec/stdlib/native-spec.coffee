@@ -6,7 +6,7 @@ describe "Native", ->
   beforeEach ->
     nativeModule = new Native
 
-  describe "addMenuItem(path, keyBinding)", ->
+  describe "addMenuItem(path, keyPattern)", ->
     mainMenu = null
     mainMenuItems = null
 
@@ -38,6 +38,23 @@ describe "Native", ->
       submenu1 = mainMenu.itemWithTitle('Submenu 2').submenu
       item1 = submenu1.itemWithTitle('Item 1')
       expect(item1).toBeDefined()
+
+    it "adds a key equivalent to menu item when one is given", ->
+      nativeModule.addMenuItem('Submenu 1 > Item 1', "meta+r")
+
+      submenu1 = mainMenu.itemWithTitle('Submenu 1').submenu
+      item1 = submenu1.itemWithTitle('Item 1')
+
+      expect(item1.keyEquivalent.valueOf()).toBe 'r'
+      expect(item1.keyEquivalentModifierMask.valueOf()).toBe OSX.NSCommandKeyMask
+
+    it "does not add a key equivalent to menu item when no pattern is given", ->
+      nativeModule.addMenuItem('Submenu 2 > Item 2')
+      submenu2 = mainMenu.itemWithTitle('Submenu 2').submenu
+      item2 = submenu2.itemWithTitle('Item 2')
+
+      expect(item2.keyEquivalent.valueOf()).toBe 0
+      expect(item2.keyEquivalentModifierMask).toBe 0
 
     it "does not add the same item twice", ->
       nativeModule.addMenuItem('Submenu > Item')

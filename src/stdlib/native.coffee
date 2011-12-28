@@ -45,12 +45,24 @@ class Native
   resetMainMenu: (menu) ->
     OSX.NSApp.resetMainMenu
 
-  addMenuItem: (itemPath) ->
+  addMenuItem: (itemPath, keyPattern) ->
     itemPathComponents = itemPath.split /\s*>\s*/
     submenu = @buildSubmenuPath(OSX.NSApp.mainMenu, itemPathComponents[0..-2])
     title = _.last(itemPathComponents)
     unless submenu.itemWithTitle(title)
       item = OSX.AtomMenuItem.alloc.initWithTitle_itemPath(title, itemPath).autorelease
+      item.setKeyEquivalentModifierMask 0 # Because it Cocoa defaults it to NSCommandKeyMask
+
+      if keyPattern
+        keys = window.parseKeyPattern keyPattern
+
+        modifierMask = (keys.metaKey and OSX.NSCommandKeyMask ) |
+                       (keys.shiftKey and OSX.NSShiftKeyMask) |
+                       (keys.altKey and OSX.NSAlternateKeyMask) |
+                       (keys.ctrlKey and OSX.NSControlKeyMask)
+
+        item.setKeyEquivalent keys.key
+        item.setKeyEquivalentModifierMask modifierMask
       submenu.addItem(item)
 
   buildSubmenuPath: (menu, path) ->
