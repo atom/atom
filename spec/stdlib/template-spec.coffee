@@ -14,13 +14,15 @@ fdescribe "Template", ->
 
         list: ->
           @ol =>
-            @li outlet: 'li1', class: 'foo', "one"
-            @li outlet: 'li2', class: 'bar', "two"
+            @li outlet: 'li1', click: 'li1Clicked', class: 'foo', "one"
+            @li outlet: 'li2', keypress:'li2Keypressed', class: 'bar', "two"
 
         viewProperties:
           initialize: (attrs) ->
             @initializeCalledWith = attrs
-          foo: "bar"
+          foo: "bar",
+          li1Clicked: ->,
+          li2Keypressed: ->
 
       view = Foo.build(title: "Zebra")
 
@@ -42,4 +44,17 @@ fdescribe "Template", ->
       it "wires references for elements with 'outlet' attributes", ->
         expect(view.li1).toMatchSelector("li.foo:contains(one)")
         expect(view.li2).toMatchSelector("li.bar:contains(two)")
+
+      it "binds events for elements with event name attributes", ->
+        spyOn(view, 'li1Clicked')
+        spyOn(view, 'li2Keypressed')
+        view.li1.click()
+        expect(view.li1Clicked).toHaveBeenCalled()
+        expect(view.li2Keypressed).not.toHaveBeenCalled()
+
+        view.li1Clicked.reset()
+
+        view.li2.keypress()
+        expect(view.li2Keypressed).toHaveBeenCalled()
+        expect(view.li1Clicked).not.toHaveBeenCalled()
 

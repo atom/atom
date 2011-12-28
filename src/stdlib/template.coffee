@@ -4,11 +4,15 @@ Builder = require 'template/builder'
 
 module.exports =
 class Template
+  @events: 'blur change click dblclick error focus keydown 
+    keypress keyup load mousedown mousemove mouseout mouseover
+    mouseup resize scroll select submit unload'.split /\s+/
+
   @buildTagMethod: (name) ->
     this.prototype[name] = (args...) -> @builder.tag(name, args...)
 
-  _.each(Builder.elements.normal, (name) => @buildTagMethod(name))
-  _.each(Builder.elements.void, (name) => @buildTagMethod(name))
+  @buildTagMethod(name) for name in Builder.elements.normal
+  @buildTagMethod(name) for name in Builder.elements.void
 
   @build: (attributes) ->
     (new this).build(attributes)
@@ -18,6 +22,7 @@ class Template
     @content(attributes)
     view = @builder.toFragment()
     @wireOutlets(view)
+    @bindEvents(view)
     if @viewProperties
       $.extend(view, @viewProperties)
     view.initialize?(attributes)
@@ -28,3 +33,13 @@ class Template
       elt = $(this)
       outletName = elt.attr('outlet')
       view[outletName] = elt
+
+  bindEvents: (view) ->
+    for event in this.constructor.events
+      view.find("[#{event}]").each ->
+        elt = $(this)
+        methodName = elt.attr(event)
+        elt[event](-> view[methodName]())
+
+
+
