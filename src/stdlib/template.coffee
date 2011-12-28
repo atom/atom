@@ -1,10 +1,27 @@
 $ = require 'jquery'
-coffeekup = require 'coffeekup'
+_ = require 'underscore'
+Builder = require 'template/builder'
 
 module.exports =
 class Template
-  @buildView: (attributes) ->
-    (new this).buildView(attributes)
+  @buildTagMethod: (name) ->
+    this.prototype[name] = (args...) -> @builder.tag(name, args...)
 
-  buildView: (attributes) ->
-    $(coffeekup.render(@content, attributes))
+  _.each(Builder.elements.normal, (name) => @buildTagMethod(name))
+  _.each(Builder.elements.void, (name) => @buildTagMethod(name))
+
+  @build: (attributes) ->
+    (new this).build(attributes)
+
+  build: (attributes) ->
+    @builder = new Builder
+    @content(attributes)
+    view = @builder.toFragment()
+    @wireOutlets(view)
+    view
+
+  wireOutlets: (view) ->
+    view.find('[outlet]').each ->
+      elt = $(this)
+      outletName = elt.attr('outlet')
+      view[outletName] = elt
