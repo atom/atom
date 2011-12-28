@@ -1,14 +1,23 @@
+$ = require 'jquery'
 Template = require 'template'
 stringScore = require 'stringscore'
 
 module.exports =
 class FileFinder extends Template
-  content: -> @div
+  content: ->
+    @div class: 'file-finder', =>
+      @ol outlet: 'urlList'
+      @input outlet: 'input', keypress: 'populateUrlList'
 
   viewProperties:
     urls: null
 
     initialize: ({@urls}) ->
+
+    populateUrlList: ->
+      @urlList.empty()
+      for url in @findMatches(@input.text())
+        @urlList.append $("<li>#{url}</li>")
 
     findMatches: (query) ->
       scoredUrls = ({url, score: stringScore(url, query)} for url in @urls)
