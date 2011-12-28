@@ -1,6 +1,6 @@
 Builder = require 'template/builder'
 
-fdescribe "Builder", ->
+describe "Builder", ->
   builder = null
 
   beforeEach -> builder = new Builder

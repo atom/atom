@@ -1,6 +1,6 @@
 Template = require 'template'
 
-fdescribe "Template", ->
+describe "Template", ->
   describe "toView", ->
     Foo = null
     view = null
