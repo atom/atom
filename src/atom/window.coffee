@@ -4,6 +4,7 @@ $ = require 'jquery'
 
 Layout = require 'layout'
 Editor = require 'editor'
+FileFinder = require 'file-finder'
 
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
@@ -31,9 +32,13 @@ windowAdditions =
     $(window).unbind('blur')
     $(window).unbind('keydown')
 
+  findFile: ->
+    window.layout.addPane(FileFinder.build(urls: [@editor.buffer.url]))
+
   bindKeys: ->
     @bindKey 'meta+s', => @editor.save()
     @bindKey 'meta+w', => @close()
+    @bindKey 'meta+t', => @findFile()
 
   bindMenuItems: ->
     @bindMenuItem "File > Save", "meta+s", => @editor.save()

@@ -16,7 +16,7 @@ class FileFinder extends Template
 
     populateUrlList: ->
       @urlList.empty()
-      for url in @findMatches(@input.text())
+      for url in @findMatches(@input.val())
         @urlList.append $("<li>#{url}</li>")
 
     findMatches: (query) ->

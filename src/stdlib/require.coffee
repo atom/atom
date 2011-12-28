@@ -8,6 +8,7 @@ paths = [
   "#{resourcePath}/src"
   "#{resourcePath}/extensions"
   "#{resourcePath}/vendor"
+  "#{resourcePath}/static"
 ]
 
 window.__filename = null

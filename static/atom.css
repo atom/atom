@@ -20,45 +20,24 @@ body {
   display: -webkit-box;
   -webkit-box-flex: 1;
   -webkit-box-orient: vertical;
+  background-color: red;
 }
 
 #main {
+  position: relative;
   display: -webkit-box;
   -webkit-box-flex: 1;
   -webkit-box-orient: vertical;
-}
-
-.main {
-  -webkit-box-flex: 1;
-}
-
-.pane.hidden {
-  display: none;
+  background-color: yellow;
 }
 
 .pane {
   display: -webkit-box;
-  -webkit-box-orient: vertical;
-}
-
-.left {
-  background-color: gray;
-}
-
-.right {
-  background-color: green;
-}
-
-.top {
-  background-color: purple;
-}
-
-.bottom {
   background-color: blue;
+  -webkit-box-flex: 1;
 }
 
 .ace_editor {
-  position: relative !important;
   font: 18px Inconsolata, Monaco, Courier !important;
   width: 100%;
   height: 100%;

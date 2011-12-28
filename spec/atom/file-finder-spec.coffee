@@ -11,7 +11,7 @@ describe 'FileFinder', ->
     it "displays matching urls in the ol element", ->
       expect(finder.urlList.find('li')).not.toExist()
 
-      finder.input.text('ap')
+      finder.input.val('ap')
       finder.input.keypress()
 
       expect(finder.urlList.children().length).toBe 2
@@ -19,7 +19,7 @@ describe 'FileFinder', ->
       expect(finder.urlList.find('li:contains(atom/app.coffee)').length).toBe 1
 
       # we should clear the list before re-populating it
-      finder.input.text('a/ap')
+      finder.input.val('a/ap')
       finder.input.keypress()
 
       expect(finder.urlList.children().length).toBe 1
