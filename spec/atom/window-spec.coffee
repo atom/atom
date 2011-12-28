@@ -56,7 +56,7 @@ describe "Window", ->
         expectNoMatch 'meta+a', 'meta+b'
         expectNoMatch 'meta+1', 'alt+1'
 
-    describe "bindMenuItem(path, action)", ->
+    describe "bindMenuItem(path, keyPattern, action)", ->
       it "causes the given menu item to be added to the menu when the window is focused and removed when it is blurred", ->
         addedPaths = []
         spyOn(atom.native, 'addMenuItem').andCallFake (path) -> addedPaths.push(path)
@@ -80,9 +80,20 @@ describe "Window", ->
 
         expect(atom.native.resetMainMenu).toHaveBeenCalled()
 
+      it "adds the menu item to the main menu with a key equivalent", ->
+        # This fucking test...
+        # handler = jasmine.createSpy('menuItemHandler')
+        # window.bindMenuItem 'Submenu > Item', 'meta-1', handler
+        # $(window).focus()
+
+        # keyEvent = OSX.NSEvent.keyEventWithType_location_modifierFlags_timestamp_windowNumber_context_characters_charactersIgnoringModifiers_isARepeat_keyCode OSX.NSKeyDown, OSX.NSEvent.mouseLocation, OSX.NSCommandKeyMask, OSX.GetCurrentEventTime, $atomController.window.windowNumber, null, "1", "1", false, 18
+        # OSX.NSApp.sendEvent keyEvent
+
+        # expect(handler).toHaveBeenCalled()
+
       it "causes the given action to be invoked when the menu item is selected", ->
         handler = jasmine.createSpy('menuItemHandler')
-        window.bindMenuItem 'Submenu > Item', handler
+        window.bindMenuItem 'Submenu > Item', null, handler
         $(window).focus()
 
         OSX.NSApp.mainMenu.itemWithTitle('Submenu').submenu.performActionForItemAtIndex(0)

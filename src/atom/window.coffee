@@ -36,14 +36,10 @@ windowAdditions =
     @bindKey 'meta+w', => @close()
 
   bindMenuItems: ->
-    @bindMenuItem "File > Save", => @editor.save()
+    @bindMenuItem "File > Save", "meta+s", => @editor.save()
 
-  bindMenuItemAndKey: (path, pattern, action) ->
-    @bindMenuItem path, action
-    @bindKey pattern, action
-
-  bindMenuItem: (path, action) ->
-    @menuItemActions[path] = action
+  bindMenuItem: (path, pattern, action) ->
+    @menuItemActions[path] = {action: action, pattern: pattern}
 
   bindKey: (pattern, action) ->
     @keyBindings[pattern] = action
@@ -75,11 +71,11 @@ windowAdditions =
     $(window).blur -> atom.native.resetMainMenu()
 
   registerMenuItems: ->
-    for path of @menuItemActions
-      atom.native.addMenuItem(path)
+    for path, {pattern} of @menuItemActions
+      atom.native.addMenuItem(path, pattern)
 
   performActionForMenuItemPath: (path) ->
-    @menuItemActions[path]()
+    @menuItemActions[path].action()
 
   showConsole: ->
     $atomController.webView.inspector.showConsole true
