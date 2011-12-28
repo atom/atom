@@ -9,7 +9,7 @@ class Layout extends Template
     view
 
   content: ->
-    @link rel: 'stylesheet', href: 'static/atom.css'
+    @link rel: 'stylesheet', href: "#{require.resolve('atom.css')}?#{(new Date).getTime()}"
     @div id: 'app-horizontal', =>
       @div id: 'app-vertical', outlet: 'vertical', =>
         @div id: 'main', outlet: 'main'
