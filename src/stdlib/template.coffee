@@ -17,6 +17,9 @@ class Template
   @build: (attributes) ->
     (new this).build(attributes)
 
+  @toHtml: (attributes) ->
+    (new this).toHtml(attributes)
+
   build: (attributes) ->
     @builder = new Builder
     @content(attributes)
@@ -27,6 +30,11 @@ class Template
       $.extend(view, @viewProperties)
     view.initialize?(attributes)
     view
+
+  toHtml: (attributes) ->
+    @builder = new Builder
+    @content(attributes)
+    @builder.toHtml()
 
   wireOutlets: (view) ->
     view.find('[outlet]').each ->
