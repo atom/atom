@@ -1,7 +1,7 @@
 $ = require 'jquery'
 Layout = require 'layout'
 
-fdescribe "Layout", ->
+describe "Layout", ->
   layout = null
   beforeEach -> layout = Layout.build()
 
