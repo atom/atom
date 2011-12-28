@@ -7,7 +7,7 @@ class FileFinder extends Template
   content: ->
     @div class: 'file-finder', =>
       @ol outlet: 'urlList'
-      @input outlet: 'input', keypress: 'populateUrlList'
+      @input outlet: 'input', keyup: 'populateUrlList'
 
   viewProperties:
     urls: null
