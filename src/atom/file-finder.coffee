@@ -14,6 +14,7 @@ class FileFinder extends Template
     urls: null
 
     initialize: ({@urls}) ->
+      @populateUrlList()
 
     populateUrlList: ->
       @urlList.empty()
@@ -21,6 +22,7 @@ class FileFinder extends Template
         @urlList.append $("<li>#{url}</li>")
 
     findMatches: (query) ->
+      return @urls unless query
       scoredUrls = ({url, score: stringScore(url, query)} for url in @urls)
       sortedUrls = scoredUrls.sort (a, b) -> a.score > b.score
       urlAndScore.url for urlAndScore in sortedUrls when urlAndScore.score > 0

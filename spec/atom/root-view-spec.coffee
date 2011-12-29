@@ -11,17 +11,27 @@ describe "RootView", ->
       rootView.addPane $('<div id="foo">')
       expect(rootView.vertical.children().length).toBe 2
 
-  xdescribe "toggleFileFinder", ->
-    it "shows the FileFinder when it is not on screen and hides it when it is", ->
-      #expect(rootView.find('.file-finder')).not.toExist()
-      # rootView.toggleFileFinder()
-      # expect(rootView.find('.file-finder')).toExist()
-      # rootView.toggleFileFinder()
-      # expect(rootView.find('.file-finder')).not.toExist()
+  describe "toggleFileFinder", ->
+    describe "when the editor has a url", ->
+      beforeEach ->
+        rootView.editor.open require.resolve('window.coffee')
 
-    it "shows urls for all files in the same directory as editor.url", ->
-      rootView.editor.open require.resolve('window.coffee')
-      rootView.toggleFileFinder()
-      expect(rootView.fileFinder.urlList.length).toBeGreaterThan 1
+      it "shows the FileFinder when it is not on screen and hides it when it is", ->
+        expect(rootView.find('.file-finder')).not.toExist()
+        rootView.toggleFileFinder()
+        expect(rootView.find('.file-finder')).toExist()
+        rootView.toggleFileFinder()
+        expect(rootView.find('.file-finder')).not.toExist()
+
+      it "shows urls for all files in the same directory as editor.url", ->
+        rootView.toggleFileFinder()
+        expect(rootView.fileFinder.urlList.children('li').length).toBeGreaterThan 1
+
+    describe "when the editor has no url", ->
+      it "does not open the FileFinder", ->
+        expect(rootView.editor.buffer.url).toBeUndefined()
+        expect(rootView.find('.file-finder')).not.toExist()
+        rootView.toggleFileFinder()
+        expect(rootView.find('.file-finder')).not.toExist()
 
 

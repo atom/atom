@@ -16,6 +16,7 @@ windowAdditions =
     @keyBindings = {}
     @menuItemActions = {}
     @rootView = RootView.attach()
+    @rootView.editor.open $atomController.url?.toString()
     @registerEventHandlers()
     @bindKeys()
     @bindMenuItems()

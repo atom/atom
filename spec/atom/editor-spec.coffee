@@ -20,9 +20,8 @@ describe "Editor", ->
     editor.destroy()
 
   describe "initialize", ->
-    it "opens the given url", ->
-      Editor.build(url: tempFilePath)
-      expect(Editor.prototype.viewProperties.open).toHaveBeenCalledWith(tempFilePath)
+    it "has a buffer", ->
+      expect(editor.buffer).toBeDefined()
 
   describe 'destroy', ->
     it 'destroys the ace editor', ->
@@ -45,10 +44,6 @@ describe "Editor", ->
 
         editor.open('something.text')
         expect(editor.getAceSession().getMode().name).toBe 'text'
-
-      it "assigns the url on the $atomController global", ->
-        editor.open("/other/path")
-        expect($atomController.url.toString()).toEqual("/other/path")
 
     describe "when called with null", ->
       it "loads an empty buffer with no url", ->

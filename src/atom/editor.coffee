@@ -14,9 +14,9 @@ class Editor extends Template
     buffer: null
     editorElement: null
 
-    initialize: ({url}) ->
+    initialize: () ->
       @buildAceEditor()
-      @open(url)
+      @open()
 
     shutdown: ->
       @destroy()
@@ -25,7 +25,6 @@ class Editor extends Template
       @aceEditor.destroy()
 
     open: (url) ->
-      $atomController.url = url
       @buffer = new Buffer(url)
       session = new EditSession(@buffer.aceDocument, @buffer.getMode())
       @aceEditor.setSession(session)

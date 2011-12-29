@@ -1,4 +1,5 @@
 $ = require 'jquery'
+fs = require 'fs'
 
 Editor = require 'editor'
 FileFinder = require 'file-finder'
@@ -16,7 +17,7 @@ class RootView extends Template
     @div id: 'app-horizontal', =>
       @div id: 'app-vertical', outlet: 'vertical', =>
         @div id: 'main', outlet: 'main', =>
-          @subview 'editor', Editor.build(url: $atomController.url?.toString())
+          @subview 'editor', Editor.build()
 
   viewProperties:
     addPane: (view) ->
@@ -25,10 +26,14 @@ class RootView extends Template
       @main.after(pane)
 
     toggleFileFinder: ->
+      return unless @editor.buffer.url
+
       if @fileFinder
         @fileFinder.remove()
         @fileFinder = null
       else
-        @fileFinder = FileFinder.build(urls: [@editor.buffer.url])
+        directory = fs.directory @editor.buffer.url
+        urls = fs.list directory
+        @fileFinder = FileFinder.build({urls})
         @addPane(@fileFinder)
         @fileFinder.input.focus()
