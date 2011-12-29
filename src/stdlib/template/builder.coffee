@@ -45,7 +45,7 @@ class Builder
     subviewId = _.uniqueId('subview')
     @tag 'div', id: subviewId
     @postProcessingFns.push (view) ->
-      subview.attr('outlet', outletName)
+      view[outletName] = subview
       view.find("div##{subviewId}").replaceWith(subview)
 
   elementIsVoid: (name) ->

@@ -50,6 +50,9 @@ describe "Builder", ->
             @h2 params.title
             @div "I am a subview"
 
+        viewProperties:
+          foo: "bar"
+
     it "inserts a view built from the given template with the given params", ->
       builder.tag 'div', ->
         builder.tag 'h1', "Superview"
@@ -58,6 +61,7 @@ describe "Builder", ->
       fragment = builder.toFragment()
       expect(fragment.find("h1:contains(Superview)")).toExist()
       expect(fragment.find("h2:contains(Subview)")).toExist()
-      subview = fragment.find('div[outlet=sub]')
+      subview = fragment.sub
       expect(subview).toMatchSelector ':has(h2):contains(I am a subview)'
+      expect(subview.foo).toBe 'bar'
 
