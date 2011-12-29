@@ -42,12 +42,12 @@ class Builder
       @document.push(new CloseTag(name))
 
   subview: (outletName, template, params) ->
-    subviewId = ++@subviewCount
-    @tag 'div', subview: subviewId
+    subviewId = _.uniqueId('subview')
+    @tag 'div', id: subviewId
     @postProcessingFns.push (view) ->
       subview = template.build(params)
       subview.attr('outlet', outletName)
-      view.find("div[subview=#{subviewId}]").replaceWith(subview)
+      view.find("div##{subviewId}").replaceWith(subview)
 
   elementIsVoid: (name) ->
     name in @constructor.elements.void
@@ -65,7 +65,6 @@ class Builder
     @document.push(new Text(string))
 
   reset: ->
-    @subviewCount = 0
     @document = []
     @postProcessingFns = []
 

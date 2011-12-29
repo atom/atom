@@ -14,7 +14,7 @@ describe "RootView", ->
       expect(rootView.vertical.children().length).toBe 2
 
   describe "toggleFileFinder", ->
-    fit "shows the FileFinder when it is not on screen and hides it when it is", ->
+    it "shows the FileFinder when it is not on screen and hides it when it is", ->
       #expect(rootView.find('.file-finder')).not.toExist()
       # rootView.toggleFileFinder()
       # expect(rootView.find('.file-finder')).toExist()
