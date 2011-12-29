@@ -36,6 +36,9 @@ class Template
     @content(attributes)
     @builder.toHtml()
 
+  subview: (args...) ->
+    @builder.subview.apply(@builder, args)
+
   wireOutlets: (view) ->
     view.find('[outlet]').each ->
       elt = $(this)

@@ -2,15 +2,21 @@ Template = require 'template'
 
 describe "Template", ->
   describe "toView", ->
-    Foo = null
     view = null
 
     beforeEach ->
-      class Foo extends Template
+      subviewTemplate = class extends Template
+        content: (params) ->
+          @div =>
+            @h2 params.title
+            @div "I am a subview"
+
+      template = class extends Template
         content: (attrs) ->
           @div =>
             @h1 attrs.title
             @list()
+            @subview 'subview', subviewTemplate, title: "Subview"
 
         list: ->
           @ol =>
@@ -24,10 +30,7 @@ describe "Template", ->
           li1Clicked: ->,
           li2Keypressed: ->
 
-      view = Foo.build(title: "Zebra")
-
-    afterEach ->
-      delete window.Foo
+      view = template.build(title: "Zebra")
 
     describe ".build(attributes)", ->
       it "generates markup based on the content method", ->
@@ -44,6 +47,10 @@ describe "Template", ->
       it "wires references for elements with 'outlet' attributes", ->
         expect(view.li1).toMatchSelector "li.foo:contains(one)"
         expect(view.li2).toMatchSelector "li.bar:contains(two)"
+
+      it "constructs and wires outlets for subviews", ->
+        expect(view.subview).toExist()
+        expect(view.subview.find('h2:contains(Subview)')).toExist()
 
       it "binds events for elements with event name attributes", ->
         spyOn(view, 'li1Clicked').andCallFake (event, elt) ->

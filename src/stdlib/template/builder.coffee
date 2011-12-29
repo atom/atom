@@ -25,7 +25,9 @@ class Builder
     _.map(@document, (x) -> x.toHtml()).join('')
 
   toFragment: ->
-    $(@toHtml())
+    fragment = $(@toHtml())
+    fn(fragment) for fn in @postProcessingFns
+    fragment
 
   tag: (name, args...) ->
     options = @extractOptions(args)
@@ -39,6 +41,13 @@ class Builder
       @text(options.text) if options.text
       @document.push(new CloseTag(name))
 
+  subview: (outletName, template, params) ->
+    subviewId = ++@subviewCount
+    @tag 'div', subview: subviewId
+    @postProcessingFns.push (view) ->
+      subview = template.build(params)
+      subview.attr('outlet', outletName)
+      view.find("div[subview=#{subviewId}]").replaceWith(subview)
 
   elementIsVoid: (name) ->
     name in @constructor.elements.void
@@ -56,5 +65,7 @@ class Builder
     @document.push(new Text(string))
 
   reset: ->
+    @subviewCount = 0
     @document = []
+    @postProcessingFns = []
 

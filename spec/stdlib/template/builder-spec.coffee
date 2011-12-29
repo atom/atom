@@ -1,4 +1,5 @@
 Builder = require 'template/builder'
+Template = require 'template'
 
 describe "Builder", ->
   builder = null
@@ -38,4 +39,25 @@ describe "Builder", ->
     it "can generate self-closing tags", ->
       builder.tag 'br', id: 'foo'
       expect(builder.toHtml()).toBe '<br id="foo">'
+
+  describe ".subview(name, template, attrs)", ->
+    template = null
+
+    beforeEach ->
+      template = class extends Template
+        content: (params) ->
+          @div =>
+            @h2 params.title
+            @div "I am a subview"
+
+    it "inserts a view built from the given template with the given params", ->
+      builder.tag 'div', ->
+        builder.tag 'h1', "Superview"
+        builder.subview 'sub', template, title: "Subview"
+
+      fragment = builder.toFragment()
+      expect(fragment.find("h1:contains(Superview)")).toExist()
+      expect(fragment.find("h2:contains(Subview)")).toExist()
+      subview = fragment.find('div[outlet=sub]')
+      expect(subview).toMatchSelector ':has(h2):contains(I am a subview)'
 
