@@ -14,10 +14,16 @@ describe "RootView", ->
       expect(rootView.vertical.children().length).toBe 2
 
   describe "toggleFileFinder", ->
-    it "shows the FileFinder when it is not on screen and hides it when it is", ->
-      expect(rootView.find('.file-finder')).not.toExist()
+    fit "shows the FileFinder when it is not on screen and hides it when it is", ->
+      #expect(rootView.find('.file-finder')).not.toExist()
+      # rootView.toggleFileFinder()
+      # expect(rootView.find('.file-finder')).toExist()
+      # rootView.toggleFileFinder()
+      # expect(rootView.find('.file-finder')).not.toExist()
+
+    it "shows urls for all files in the same directory as editor.url", ->
+      rootView.editor.open require.resolve('window.coffee')
       rootView.toggleFileFinder()
-      expect(rootView.find('.file-finder')).toExist()
-      rootView.toggleFileFinder()
-      expect(rootView.find('.file-finder')).not.toExist()
+      expect(rootView.fileFinder.urlList.length).toBeGreaterThan 1
+
 
