@@ -14,7 +14,7 @@ describe "RootView", ->
   describe "toggleFileFinder", ->
     describe "when the editor has a url", ->
       beforeEach ->
-        rootView.editor.open require.resolve('window.coffee')
+        rootView.editor.open require.resolve('fixtures/file-finder-dir/a')
 
       it "shows the FileFinder when it is not on screen and hides it when it is", ->
         expect(rootView.find('.file-finder')).not.toExist()
@@ -23,9 +23,9 @@ describe "RootView", ->
         rootView.toggleFileFinder()
         expect(rootView.find('.file-finder')).not.toExist()
 
-      it "shows urls for all files in the same directory as editor.url", ->
+      it "shows urls for all files (not directories) in the same directory as editor.url", ->
         rootView.toggleFileFinder()
-        expect(rootView.fileFinder.urlList.children('li').length).toBeGreaterThan 1
+        expect(rootView.fileFinder.urlList.children('li').length).toBe 2
 
     describe "when the editor has no url", ->
       it "does not open the FileFinder", ->

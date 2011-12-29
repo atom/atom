@@ -33,7 +33,7 @@ class RootView extends Template
         @fileFinder = null
       else
         directory = fs.directory @editor.buffer.url
-        urls = fs.list directory
+        urls = (url for url in fs.list directory when fs.isFile url)
         @fileFinder = FileFinder.build({urls})
         @addPane(@fileFinder)
         @fileFinder.input.focus()
