@@ -2,52 +2,38 @@ fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
 
-Layout = require 'layout'
-Editor = require 'editor'
-FileFinder = require 'file-finder'
+RootView = require 'root-view'
 
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
 windowAdditions =
-  editor: null
   keyBindings: null
-  layout: null
+  rootView: null
   menuItemActions: null
 
   startup: ->
     @keyBindings = {}
     @menuItemActions = {}
-    @layout = Layout.attach()
-    @editor = new Editor $atomController.url?.toString()
+    @rootView = RootView.attach()
     @registerEventHandlers()
     @bindKeys()
     @bindMenuItems()
     $(window).focus()
 
   shutdown: ->
-    @layout.remove()
-    @editor.shutdown()
+    @rootView.remove()
     $(window).unbind('focus')
     $(window).unbind('blur')
     $(window).unbind('keydown')
 
-  toggleFileFinder: ->
-    if @fileFinder
-      @fileFinder.remove()
-      @fileFinder = null
-    else
-      @fileFinder = FileFinder.build(urls: [@editor.buffer.url])
-      window.layout.addPane(fileFinder)
-      fileFinder.input.focus()
-
   bindKeys: ->
-    @bindKey 'meta+s', => @editor.save()
+    @bindKey 'meta+s', => @rootView.editor.save()
     @bindKey 'meta+w', => @close()
-    @bindKey 'meta+t', => @toggleFileFinder()
+    @bindKey 'meta+t', => @rootView.toggleFileFinder()
 
   bindMenuItems: ->
-    @bindMenuItem "File > Save", "meta+s", => @editor.save()
+    @bindMenuItem "File > Save", "meta+s", => @rootView.editor.save()
 
   bindMenuItem: (path, pattern, action) ->
     @menuItemActions[path] = {action: action, pattern: pattern}

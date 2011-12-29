@@ -1,8 +1,11 @@
 $ = require 'jquery'
+
+Editor = require 'editor'
+FileFinder = require 'file-finder'
 Template = require 'template'
 
 module.exports =
-class Layout extends Template
+class RootView extends Template
   @attach: ->
     view = @build()
     $('body').append view
@@ -15,7 +18,19 @@ class Layout extends Template
         @div id: 'main', outlet: 'main'
 
   viewProperties:
+    initialize: ->
+      @editor = new Editor $atomController.url?.toString()
+
     addPane: (view) ->
       pane = $('<div class="pane">')
       pane.append(view)
       @main.after(pane)
+
+    toggleFileFinder: ->
+      if @fileFinder
+        @fileFinder.remove()
+        @fileFinder = null
+      else
+        @fileFinder = FileFinder.build(urls: [@editor.buffer.url])
+        @addPane(@fileFinder)
+        @fileFinder.input.focus()

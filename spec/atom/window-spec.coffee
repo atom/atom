@@ -93,16 +93,8 @@ describe "Window", ->
       it "adds a Save item to the main menu after startup", ->
         expect(OSX.NSApp.mainMenu.itemWithTitle('File').submenu.itemWithTitle('Save')).not.toBeNull()
 
-    describe "toggleFileFinder", ->
-      it "shows the FileFinder when it is not on screen and hides it when it is", ->
-        expect(window.layout.find('.file-finder')).not.toExist()
-        window.toggleFileFinder()
-        expect(window.layout.find('.file-finder')).toExist()
-        window.toggleFileFinder()
-        expect(window.layout.find('.file-finder')).not.toExist()
-
     describe 'meta+s', ->
       it 'saves the buffer', ->
-        spyOn(window.editor, 'save')
+        spyOn(window.rootView.editor, 'save')
         window.keydown 'meta+s'
-        expect(window.editor.save).toHaveBeenCalled()
+        expect(window.rootView.editor.save).toHaveBeenCalled()
