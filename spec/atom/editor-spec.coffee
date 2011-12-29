@@ -12,27 +12,23 @@ describe "Editor", ->
   beforeEach ->
     filePath = require.resolve 'fixtures/sample.txt'
     tempFilePath = '/tmp/temp.txt'
-    mainDiv = $("<div id='main'>")
-    $("#jasmine-content").append(mainDiv)
-    spyOn(Editor.prototype, 'open').andCallThrough()
-    editor = new Editor
+    spyOn(Editor.prototype.viewProperties, 'open').andCallThrough()
+    editor = Editor.build()
 
   afterEach ->
     fs.remove tempFilePath
     editor.destroy()
 
-  describe "constructor", ->
-    it "attaches itself to the #main element and opens the given url", ->
-      expect(mainDiv.children('.editor').html()).not.toBe ''
-      expect(Editor.prototype.open).toHaveBeenCalled()
+  describe "initialize", ->
+    it "opens the given url", ->
+      Editor.build(url: tempFilePath)
+      expect(Editor.prototype.viewProperties.open).toHaveBeenCalledWith(tempFilePath)
 
   describe 'destroy', ->
-    it 'destroys the ace editor and removes #editor from the dom.', ->
+    it 'destroys the ace editor', ->
       spyOn(editor.aceEditor, 'destroy').andCallThrough()
-
       editor.destroy()
       expect(editor.aceEditor.destroy).toHaveBeenCalled()
-      expect(mainDiv.children('.editor').length).toBe 0
 
   describe "open(url)", ->
     describe "when called with a url", ->
@@ -51,9 +47,8 @@ describe "Editor", ->
         expect(editor.getAceSession().getMode().name).toBe 'text'
 
       it "assigns the url on the $atomController global", ->
-        expect($atomController.url).toBeNull()
-        editor.open(filePath)
-        expect($atomController.url.toString()).toEqual(filePath)
+        editor.open("/other/path")
+        expect($atomController.url.toString()).toEqual("/other/path")
 
     describe "when called with null", ->
       it "loads an empty buffer with no url", ->

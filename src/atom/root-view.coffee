@@ -15,12 +15,10 @@ class RootView extends Template
     @link rel: 'stylesheet', href: "#{require.resolve('atom.css')}?#{(new Date).getTime()}"
     @div id: 'app-horizontal', =>
       @div id: 'app-vertical', outlet: 'vertical', =>
-        @div id: 'main', outlet: 'main'
+        @div id: 'main', outlet: 'main', =>
+          @subview 'editor', Editor.build(url: $atomController.url?.toString())
 
   viewProperties:
-    initialize: ->
-      @editor = new Editor $atomController.url?.toString()
-
     addPane: (view) ->
       pane = $('<div class="pane">')
       pane.append(view)

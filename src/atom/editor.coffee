@@ -1,42 +1,46 @@
+Template = require 'template'
 Buffer = require 'buffer'
 {EditSession} = require 'ace/edit_session'
 ace = require 'ace/ace'
 $ = require 'jquery'
 
 module.exports =
-class Editor
-  aceEditor: null
-  buffer: null
-  editorElement: null
+class Editor extends Template
+  content: ->
+    @div class: 'editor'
 
-  constructor: (url) ->
-    @buildAceEditor()
-    @open(url)
+  viewProperties:
+    aceEditor: null
+    buffer: null
+    editorElement: null
 
-  shutdown: ->
-    @destroy()
+    initialize: ({url}) ->
+      @buildAceEditor()
+      @open(url)
 
-  destroy: ->
-    @aceEditor.destroy()
+    shutdown: ->
+      @destroy()
 
-  open: (url) ->
-    $atomController.url = url
-    @buffer = new Buffer(url)
-    session = new EditSession(@buffer.aceDocument, @buffer.getMode())
-    @aceEditor.setSession(session)
+    destroy: ->
+      @aceEditor.destroy()
 
-  buildAceEditor: ->
-    @editorElement = $("<div class='editor'>").appendTo('#main')
-    @aceEditor = ace.edit @editorElement[0]
-    @aceEditor.setTheme(require "ace/theme/twilight")
+    open: (url) ->
+      $atomController.url = url
+      @buffer = new Buffer(url)
+      session = new EditSession(@buffer.aceDocument, @buffer.getMode())
+      @aceEditor.setSession(session)
 
-  getAceSession: ->
-    @aceEditor.getSession()
+    buildAceEditor: ->
+      @aceEditor = ace.edit this[0]
+      @aceEditor.setTheme(require "ace/theme/twilight")
 
-  save: ->
-    if @buffer.url
-      @buffer.save()
-    else if url = atom.native.savePanel()
-      @buffer.url = url
-      @buffer.save()
+    getAceSession: ->
+      @aceEditor.getSession()
+
+    save: ->
+      if @buffer.url
+        @buffer.save()
+      else if url = atom.native.savePanel()
+        @buffer.url = url
+        @buffer.save()
 

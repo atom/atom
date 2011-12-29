@@ -20,7 +20,7 @@ class Template
   @toHtml: (attributes) ->
     (new this).toHtml(attributes)
 
-  build: (attributes) ->
+  build: (attributes={}) ->
     @builder = new Builder
     @content(attributes)
     view = @builder.toFragment()
