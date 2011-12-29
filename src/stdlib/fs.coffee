@@ -28,6 +28,11 @@ module.exports =
   changeWorkingDirectory: (path) ->
     OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
 
+  # Return the dirname of the given path. That is the path with any trailing 
+  # non-directory component removed.
+  directory: (path) ->
+    @absolute(path).replace(new RegExp(@base(path) + '$'), '')
+
   # Returns true if the file specified by path exists
   exists: (path) ->
     OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory path, null
