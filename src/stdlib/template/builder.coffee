@@ -26,6 +26,7 @@ class Builder
 
   toFragment: ->
     fragment = $(@toHtml())
+    @wireOutlets fragment
     fn(fragment) for fn in @postProcessingFns
     fragment
 
@@ -62,6 +63,12 @@ class Builder
 
   text: (string) ->
     @document.push(new Text(string))
+
+  wireOutlets: (view) ->
+    view.find('[outlet]').each ->
+      elt = $(this)
+      outletName = elt.attr('outlet')
+      view[outletName] = elt
 
   reset: ->
     @document = []

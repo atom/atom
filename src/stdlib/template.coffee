@@ -24,7 +24,6 @@ class Template
     @builder = new Builder
     @content(attributes)
     view = @builder.toFragment()
-    @wireOutlets(view)
     @bindEvents(view)
     if @viewProperties
       $.extend(view, @viewProperties)
@@ -38,12 +37,6 @@ class Template
 
   subview: (args...) ->
     @builder.subview.apply(@builder, args)
-
-  wireOutlets: (view) ->
-    view.find('[outlet]').each ->
-      elt = $(this)
-      outletName = elt.attr('outlet')
-      view[outletName] = elt
 
   bindEvents: (view) ->
     for eventName in this.constructor.events

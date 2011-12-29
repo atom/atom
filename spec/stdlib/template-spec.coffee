@@ -8,13 +8,13 @@ describe "Template", ->
       subviewTemplate = class extends Template
         content: (params) ->
           @div =>
-            @h2 params.title
+            @h2 { outlet: "header" }, params.title
             @div "I am a subview"
 
       template = class extends Template
         content: (attrs) ->
           @div =>
-            @h1 attrs.title
+            @h1 { outlet: 'header' }, attrs.title
             @list()
             @subview 'subview', subviewTemplate.build(title: "Subview")
 
@@ -51,6 +51,10 @@ describe "Template", ->
       it "constructs and wires outlets for subviews", ->
         expect(view.subview).toExist()
         expect(view.subview.find('h2:contains(Subview)')).toExist()
+
+      it "does not overwrite outlets on the superview with outlets from the subviews", ->
+        expect(view.header).toMatchSelector "h1"
+        expect(view.subview.header).toMatchSelector "h2"
 
       it "binds events for elements with event name attributes", ->
         spyOn(view, 'li1Clicked').andCallFake (event, elt) ->
