@@ -53,7 +53,7 @@ describe "Builder", ->
     it "inserts a view built from the given template with the given params", ->
       builder.tag 'div', ->
         builder.tag 'h1', "Superview"
-        builder.subview 'sub', template, title: "Subview"
+        builder.subview 'sub', template.build(title: "Subview")
 
       fragment = builder.toFragment()
       expect(fragment.find("h1:contains(Superview)")).toExist()

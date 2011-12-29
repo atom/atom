@@ -41,11 +41,10 @@ class Builder
       @text(options.text) if options.text
       @document.push(new CloseTag(name))
 
-  subview: (outletName, template, params) ->
+  subview: (outletName, subview) ->
     subviewId = _.uniqueId('subview')
     @tag 'div', id: subviewId
     @postProcessingFns.push (view) ->
-      subview = template.build(params)
       subview.attr('outlet', outletName)
       view.find("div##{subviewId}").replaceWith(subview)
 

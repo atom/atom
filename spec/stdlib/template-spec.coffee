@@ -16,7 +16,7 @@ describe "Template", ->
           @div =>
             @h1 attrs.title
             @list()
-            @subview 'subview', subviewTemplate, title: "Subview"
+            @subview 'subview', subviewTemplate.build(title: "Subview")
 
         list: ->
           @ol =>
