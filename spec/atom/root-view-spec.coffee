@@ -1,4 +1,5 @@
 $ = require 'jquery'
+fs = require 'fs'
 RootView = require 'root-view'
 
 describe "RootView", ->
@@ -13,8 +14,10 @@ describe "RootView", ->
 
   describe "toggleFileFinder", ->
     describe "when the editor has a url", ->
+      baseUrl = require.resolve('fixtures/file-finder-dir/a')
+
       beforeEach ->
-        rootView.editor.open require.resolve('fixtures/file-finder-dir/a')
+        rootView.editor.open baseUrl
 
       it "shows the FileFinder when it is not on screen and hides it when it is", ->
         expect(rootView.find('.file-finder')).not.toExist()
@@ -23,9 +26,14 @@ describe "RootView", ->
         rootView.toggleFileFinder()
         expect(rootView.find('.file-finder')).not.toExist()
 
-      it "shows urls for all files (not directories) in the same directory as editor.url", ->
+      it "shows urls for all files (not directories) by recursivley searching directory of editor.url", ->
         rootView.toggleFileFinder()
-        expect(rootView.fileFinder.urlList.children('li').length).toBe 2
+        expect(rootView.fileFinder.urlList.children('li').length).toBe 3
+
+      it "remove common path prefix from files", ->
+        rootView.toggleFileFinder()
+        commonPathPattern = new RegExp("^" + fs.directory(baseUrl))
+        expect(rootView.fileFinder.urlList.children('li:first').text()).not.toMatch commonPathPattern
 
     describe "when the editor has no url", ->
       it "does not open the FileFinder", ->
