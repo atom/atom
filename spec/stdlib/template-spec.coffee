@@ -89,3 +89,26 @@ describe "Template", ->
         expect(view.subview.view()).toBe view.subview
         expect(view.subview.header.view()).toBe view.subview
 
+    describe "$.fn.bindKey", ->
+      describe "when passed a key pattern and a method name", ->
+        it "calls the named method on the parent view when a keydown event matches the pattern", ->
+          view.someMethod = jasmine.createSpy('someMethod')
+          view.li1.bindKey 'ctrl+m', 'someMethod'
+
+          view.li1.trigger window.createKeyEvent('meta+z')
+          expect(view.someMethod).not.toHaveBeenCalled()
+
+          view.li1.trigger window.createKeyEvent('ctrl+m')
+          expect(view.someMethod).toHaveBeenCalled()
+
+      describe "when passed a key pattern and a function", ->
+        it "calls the given function when a keydown event matches the pattern", ->
+          action = jasmine.createSpy('someMethod')
+          view.li1.bindKey 'ctrl+m', action
+
+          view.li1.trigger window.createKeyEvent('meta+z')
+          expect(action).not.toHaveBeenCalled()
+
+          view.li1.trigger window.createKeyEvent('ctrl+m')
+          expect(action).toHaveBeenCalled()
+

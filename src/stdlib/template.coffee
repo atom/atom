@@ -51,3 +51,11 @@ class Template
 $.fn.view = ->
   this.data('view')
 
+$.fn.bindKey = (pattern, action) ->
+  @on 'keydown', (event) =>
+    if window.keyEventMatchesPattern(event, pattern)
+      if _.isString(action)
+        this.view()[action]()
+      else
+        action()
+

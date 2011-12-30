@@ -18,11 +18,6 @@ class FileFinder extends Template
       @bindKey 'up', 'moveUp'
       @bindKey 'down', 'moveDown'
 
-    bindKey: (pattern, methodName) ->
-      @on 'keydown', (event) =>
-        if window.keyEventMatchesPattern(event, pattern)
-          this[methodName]()
-
     populateUrlList: ->
       @urlList.empty()
       for url in @findMatches(@input.val())

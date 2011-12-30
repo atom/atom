@@ -26,3 +26,4 @@ window.createKeyEvent = (pattern) ->
     shiftKey: 'shift' in keys
     metaKey: 'meta' in keys
     which: key
+
