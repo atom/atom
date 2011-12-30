@@ -54,7 +54,7 @@ class Native
       item.setKeyEquivalentModifierMask 0 # Because it Cocoa defaults it to NSCommandKeyMask
 
       if keyPattern
-        keys = window.parseKeyPattern keyPattern
+        keys = atom.keyBinder.parseKeyPattern keyPattern
 
         modifierMask = (keys.metaKey and OSX.NSCommandKeyMask ) |
                        (keys.shiftKey and OSX.NSShiftKeyMask) |
