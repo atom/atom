@@ -17,7 +17,7 @@ describe 'FileFinder', ->
   describe "when characters are typed into the input element", ->
     it "displays matching urls in the ol element and selects the first", ->
       finder.input.val('ap')
-      finder.input.keyup()
+      finder.input.trigger 'input'
 
       expect(finder.urlList.children().length).toBe 2
       expect(finder.urlList.find('li:contains(app.coffee)').length).toBe 2
@@ -27,12 +27,12 @@ describe 'FileFinder', ->
 
       # we should clear the list before re-populating it
       finder.input.val('a/ap')
-      finder.input.keyup()
+      finder.input.trigger 'input'
 
       expect(finder.urlList.children().length).toBe 1
       expect(finder.urlList.find('li:contains(atom/app.coffee)').length).toBe 1
 
-  fdescribe "moveDown / moveUp", ->
+  describe "moveDown / moveUp", ->
     it "selects the next / previous url in the list", ->
       expect(finder.find('li:eq(0)')).toHaveClass "selected"
       expect(finder.find('li:eq(2)')).not.toHaveClass "selected"

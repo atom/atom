@@ -49,15 +49,36 @@ windowAdditions =
       keys.altKey == event.altKey and
       keys.shiftKey == event.shiftKey and
       keys.metaKey == event.metaKey and
-      event.which == keys.key.toUpperCase().charCodeAt 0
+      event.which == keys.charCode
+
+  namedKeys:
+    backspace: 8, tab: 9, clear: 12,
+    enter: 13, 'return': 13,
+    esc: 27, escape: 27, space: 32,
+    left: 37, up: 38,
+    right: 39, down: 40,
+    del: 46, 'delete': 46,
+    home: 36, end: 35,
+    pageup: 33, pagedown: 34,
+    ',': 188, '.': 190, '/': 191,
+    '`': 192, '-': 189, '=': 187,
+    ';': 186, '\'': 222,
+    '[': 219, ']': 221, '\\': 220
 
   parseKeyPattern: (pattern) ->
     [modifiers..., key] = pattern.split '+'
+
+    if window.namedKeys[key]
+      charCode = window.namedKeys[key]
+      key = null
+    else
+      charCode = key.toUpperCase().charCodeAt 0
 
     ctrlKey: 'ctrl' in modifiers
     altKey: 'alt' in modifiers
     shiftKey: 'shift' in modifiers
     metaKey: 'meta' in modifiers
+    charCode: charCode
     key: key
 
   registerEventHandlers: ->
@@ -67,6 +88,7 @@ windowAdditions =
 
     $(window).focus => @registerMenuItems()
     $(window).blur -> atom.native.resetMainMenu()
+
 
   registerMenuItems: ->
     for path, {pattern} of @menuItemActions

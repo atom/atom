@@ -6,15 +6,22 @@ module.exports =
 class FileFinder extends Template
   content: ->
     @link rel: 'stylesheet', href: "#{require.resolve('file-finder.css')}?#{(new Date).getTime()}"
-    @div keydown: 'handleKeydown', class: 'file-finder', =>
+    @div class: 'file-finder', =>
       @ol outlet: 'urlList'
-      @input outlet: 'input', keyup: 'populateUrlList'
+      @input outlet: 'input', input: 'populateUrlList'
 
   viewProperties:
     urls: null
 
     initialize: ({@urls}) ->
       @populateUrlList()
+      @bindKey 'up', 'moveUp'
+      @bindKey 'down', 'moveDown'
+
+    bindKey: (pattern, methodName) ->
+      @on 'keydown', (event) =>
+        if window.keyEventMatchesPattern(event, pattern)
+          this[methodName]()
 
     populateUrlList: ->
       @urlList.empty()
@@ -45,6 +52,3 @@ class FileFinder extends Template
       scoredUrls = ({url, score: stringScore(url, query)} for url in @urls)
       sortedUrls = scoredUrls.sort (a, b) -> a.score > b.score
       urlAndScore.url for urlAndScore in sortedUrls when urlAndScore.score > 0
-
-    handleKeydown: ->
-      console.log 'keydownnnn'

@@ -32,13 +32,14 @@ describe "Window", ->
         expect(action2).not.toHaveBeenCalled()
 
     describe 'keyEventMatchesPattern', ->
-      it 'returns true if the modifiers and letter in the pattern match the key event', ->
-        expectMatch = (pattern) ->
-          expect(window.keyEventMatchesPattern(window.createKeyEvent(pattern), pattern)).toBeTruthy()
+      expectMatch = (pattern) ->
+        expect(window.keyEventMatchesPattern(window.createKeyEvent(pattern), pattern)).toBeTruthy()
 
-        expectNoMatch = (eventPattern, patternToTest) ->
-          event = window.createKeyEvent(eventPattern)
-          expect(window.keyEventMatchesPattern(event, patternToTest)).toBeFalsy()
+      expectNoMatch = (eventPattern, patternToTest) ->
+        event = window.createKeyEvent(eventPattern)
+        expect(window.keyEventMatchesPattern(event, patternToTest)).toBeFalsy()
+
+      it 'returns true if the modifiers and letter in the pattern match the key event', ->
 
         expectMatch 'meta+a'
         expectMatch 'meta+1'
@@ -55,6 +56,9 @@ describe "Window", ->
         expectNoMatch 'meta+a', 'meta+b'
         expectNoMatch 'meta+a', 'meta+b'
         expectNoMatch 'meta+1', 'alt+1'
+
+      it 'handles named special keys (e.g. arrows, home)', ->
+        expectMatch 'up'
 
     describe "bindMenuItem(path, keyPattern, action)", ->
       it "causes the given menu item to be added to the menu when the window is focused and removed when it is blurred", ->

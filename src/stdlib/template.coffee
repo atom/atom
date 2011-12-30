@@ -4,7 +4,7 @@ Builder = require 'template/builder'
 
 module.exports =
 class Template
-  @events: 'blur change click dblclick error focus keydown 
+  @events: 'blur change click dblclick error focus input keydown
     keypress keyup load mousedown mousemove mouseout mouseover
     mouseup resize scroll select submit unload'.split /\s+/
 
