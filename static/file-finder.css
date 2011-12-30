@@ -9,3 +9,7 @@
 .file-finder input {
   width: 100%;
 }
+
+.file-finder li.selected {
+  background-color: green;
+}
