@@ -83,3 +83,9 @@ describe "Template", ->
         expect(view.li2Keypressed).toHaveBeenCalled()
         expect(view.li1Clicked).not.toHaveBeenCalled()
 
+      it "makes the original jquery wrapper accessible via the view method from any child element", ->
+        expect(view.view()).toBe view
+        expect(view.header.view()).toBe view
+        expect(view.subview.view()).toBe view.subview
+        expect(view.subview.header.view()).toBe view.subview
+

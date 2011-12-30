@@ -48,3 +48,6 @@ class Template
         methodName = elt.attr(eventName)
         elt.on eventName, (event) -> view[methodName](event, elt)
 
+$.fn.view = ->
+  this.data('view')
+

@@ -27,6 +27,7 @@ class Builder
   toFragment: ->
     fragment = $(@toHtml())
     @wireOutlets fragment
+    fragment.find('*').andSelf().data('view', fragment)
     fn(fragment) for fn in @postProcessingFns
     fragment
 
