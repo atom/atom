@@ -16,7 +16,6 @@ windowAdditions =
     @rootView = RootView.attach()
     @rootView.editor.open $atomController.url?.toString()
     @registerEventHandlers()
-    @bindKeys()
     @bindMenuItems()
     $(window).focus()
 
@@ -24,12 +23,6 @@ windowAdditions =
     @rootView.remove()
     $(window).unbind('focus')
     $(window).unbind('blur')
-    $(window).unbind('keydown')
-
-  bindKeys: ->
-    $(document).bindKey 'meta+s', => @rootView.editor.save()
-    $(document).bindKey 'meta+w', => @close()
-    $(document).bindKey 'meta+t', => @rootView.toggleFileFinder()
 
   bindMenuItems: ->
     @bindMenuItem "File > Save", "meta+s", => @rootView.editor.save()
@@ -57,3 +50,4 @@ windowAdditions =
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]
   window[key] = value
+

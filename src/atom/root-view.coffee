@@ -20,6 +20,11 @@ class RootView extends Template
           @subview 'editor', Editor.build()
 
   viewProperties:
+    initialize: ->
+      @bindKey 'meta+s', => @editor.save()
+      @bindKey 'meta+w', => window.close()
+      @bindKey 'meta+t', => @toggleFileFinder()
+
     addPane: (view) ->
       pane = $('<div class="pane">')
       pane.append(view)

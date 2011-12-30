@@ -46,8 +46,3 @@ describe "Window", ->
       it "adds a Save item to the main menu after startup", ->
         expect(OSX.NSApp.mainMenu.itemWithTitle('File').submenu.itemWithTitle('Save')).not.toBeNull()
 
-    describe 'meta+s', ->
-      it 'saves the buffer', ->
-        spyOn(window.rootView.editor, 'save')
-        window.keydown 'meta+s'
-        expect(window.rootView.editor.save).toHaveBeenCalled()
