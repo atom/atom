@@ -12,8 +12,11 @@ class FileFinder extends Template
 
   viewProperties:
     urls: null
+    maxResults: null
 
     initialize: ({@urls}) ->
+      @maxResults = 10
+
       @populateUrlList()
       @bindKey 'up', 'moveUp'
       @bindKey 'down', 'moveDown'
@@ -43,7 +46,11 @@ class FileFinder extends Template
         .addClass('selected')
 
     findMatches: (query) ->
-      return @urls unless query
-      scoredUrls = ({url, score: stringScore(url, query)} for url in @urls)
-      sortedUrls = scoredUrls.sort (a, b) -> a.score > b.score
-      urlAndScore.url for urlAndScore in sortedUrls when urlAndScore.score > 0
+      if not query
+        urls = @urls
+      else
+        scoredUrls = ({url, score: stringScore(url, query)} for url in @urls)
+        scoredUrls.sort (a, b) -> a.score > b.score
+        urls = (urlAndScore.url for urlAndScore in scoredUrls when urlAndScore.score > 0)
+
+      urls.slice 0, @maxResults

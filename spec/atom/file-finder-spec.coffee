@@ -59,8 +59,13 @@ describe 'FileFinder', ->
       expect(finder.find('li:last')).toHaveClass "selected"
 
   describe "findMatches(queryString)", ->
-    it "returns all urls if queryString is empty", ->
-      expect(finder.findMatches('')).toEqual urls
+    it "returns up to finder.maxResults urls if queryString is empty", ->
+      expect(urls.length).toBeLessThan finder.maxResults
+      expect(finder.findMatches('').length).toBe urls.length
+
+      finder.maxResults = urls.length - 1
+
+      expect(finder.findMatches('').length).toBe finder.maxResults
 
     it "returns urls sorted by score of match against the given query", ->
       expect(finder.findMatches('ap')).toEqual ["app.coffee", "atom/app.coffee"]
