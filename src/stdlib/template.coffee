@@ -40,8 +40,11 @@ class Template
 
   bindEvents: (view) ->
     for eventName in this.constructor.events
-      view.find("[#{eventName}]").each ->
+      selector = "[#{eventName}]"
+      elements = view.find(selector).add(view.filter(selector))
+
+      elements.each ->
         elt = $(this)
         methodName = elt.attr(eventName)
-        elt[eventName]((event) -> view[methodName](event, elt))
+        elt.on eventName, (event) -> view[methodName](event, elt)
 

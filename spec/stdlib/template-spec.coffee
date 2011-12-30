@@ -13,7 +13,7 @@ describe "Template", ->
 
       template = class extends Template
         content: (attrs) ->
-          @div =>
+          @div keydown: 'viewClicked', class: 'rootDiv', =>
             @h1 { outlet: 'header' }, attrs.title
             @list()
             @subview 'subview', subviewTemplate.build(title: "Subview")
@@ -29,6 +29,7 @@ describe "Template", ->
           foo: "bar",
           li1Clicked: ->,
           li2Keypressed: ->
+          viewClicked: ->
 
       view = template.build(title: "Zebra")
 
@@ -57,6 +58,10 @@ describe "Template", ->
         expect(view.subview.header).toMatchSelector "h2"
 
       it "binds events for elements with event name attributes", ->
+        spyOn(view, 'viewClicked').andCallFake (event, elt) ->
+          expect(event.type).toBe 'keydown'
+          expect(elt).toMatchSelector "div.rootDiv"
+
         spyOn(view, 'li1Clicked').andCallFake (event, elt) ->
           expect(event.type).toBe 'click'
           expect(elt).toMatchSelector 'li.foo:contains(one)'
@@ -64,6 +69,9 @@ describe "Template", ->
         spyOn(view, 'li2Keypressed').andCallFake (event, elt) ->
           expect(event.type).toBe 'keypress'
           expect(elt).toMatchSelector "li.bar:contains(two)"
+
+        view.keydown()
+        expect(view.viewClicked).toHaveBeenCalled()
 
         view.li1.click()
         expect(view.li1Clicked).toHaveBeenCalled()
