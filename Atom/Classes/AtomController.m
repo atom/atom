@@ -3,6 +3,7 @@
 
 #import "JSCocoa.h"
 #import <WebKit/WebKit.h>
+#import <dispatch/dispatch.h>
 
 @interface AtomController ()
 @property (nonatomic, retain) JSCocoa *jscocoa;
@@ -108,6 +109,7 @@
 }
 
 - (void)performActionForMenuItemPath:(NSString *)menuItemPath {
+  
   NSString *jsCode = [NSString stringWithFormat:@"window.performActionForMenuItemPath('%@')", menuItemPath];
   [self.jscocoa evalJSString:jsCode];
 }
@@ -116,6 +118,34 @@
   JSValueRef window = [self.jscocoa evalJSString:@"window"]; 
   JSValueRefAndContextRef windowWithContext = {window, self.jscocoa.ctx};
   return windowWithContext;
+}
+
+- (void)contentsOfDirectoryAtPath:(NSString *)path onComplete:(JSValueRefAndContextRef)jsFunction {
+  dispatch_queue_t backgroundQueue = dispatch_get_global_queue(0, 0);
+  dispatch_queue_t mainQueue = dispatch_get_main_queue();
+    
+  JSValueProtect(jsFunction.ctx, jsFunction.value);
+  NSLog(@"start %@", [NSThread currentThread]);  
+  dispatch_async(backgroundQueue, ^{
+    NSLog(@"back %@", [NSThread currentThread]);
+    [NSThread sleepForTimeInterval:2];
+
+    dispatch_sync(mainQueue, ^{
+      NSLog(@"main %@", [NSThread currentThread]);
+      NSLog(@"ran the block on main %p", jsFunction.value);      
+      [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:@"testing"]];
+//      JSValueUnprotect(jsFunction.ctx, jsFunction.value);
+
+    });
+    
+    [NSThread sleepForTimeInterval:2];
+    
+    dispatch_sync(mainQueue, ^{
+      NSLog(@"main %@", [NSThread currentThread]);
+      NSLog(@"ran the block on main %p", jsFunction.value);      
+      [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:@"testing 2"]];      
+    });
+  });
 }
 
 #pragma mark NSWindowDelegate

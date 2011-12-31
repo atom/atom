@@ -95,3 +95,8 @@ module.exports =
   # Return the path name of the current working directory.
   workingDirectory: ->
     OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
+
+  async:
+    list: (path, callback) ->
+     $atomController.contentsOfDirectoryAtPath_onComplete(path, callback)
+

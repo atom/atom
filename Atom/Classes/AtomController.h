@@ -20,4 +20,7 @@ struct JSGlobalContextRef;
 - (JSValueRefAndContextRef)jsWindow;
 - (void)performActionForMenuItemPath:(NSString *)menuItemPath;
 
+- (void)contentsOfDirectoryAtPath:(NSString *)path onComplete:(JSValueRefAndContextRef)jsFunction;
+
+
 @end
