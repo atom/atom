@@ -2,7 +2,7 @@
 # http://ringojs.org/api/v0.8/fs/
 
 _ = require 'underscore'
-
+$ = require 'jquery'
 jscocoa = require 'jscocoa'
 
 module.exports =
@@ -97,6 +97,9 @@ module.exports =
     OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
 
   async:
-    list: (path, callback) ->
-     $atomController.contentsOfDirectoryAtPath_onComplete(path, callback)
+    list: (path) ->
+      deferred = $.Deferred()
+      $atomController.contentsOfDirectoryAtPath_onComplete path, (result) ->
+        deferred.resolve ("#{path}/#{subpath}" for subpath in result)
+      deferred
 

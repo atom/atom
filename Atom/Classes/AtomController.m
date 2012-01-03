@@ -127,18 +127,19 @@
   JSValueProtect(self.jscocoa.ctx, jsFunction.value);
   dispatch_async(backgroundQueue, ^{
     NSFileManager *fm = [NSFileManager defaultManager];
-    NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
-    NSMutableArray *files = [NSMutableArray array];
-
-    NSString *filePath;
-    while (filePath = [enumerator nextObject]) {
-      [files addObject:filePath];
+    
+    NSError *error = nil;    
+    NSArray *files = [fm contentsOfDirectoryAtPath:path error:&error];
+    
+    if (error) {
+      NSLog(@"ERROR %@", error.localizedDescription);      
+      return;
     }
     
     dispatch_sync(mainQueue, ^{
       [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:files]];
       JSValueUnprotect(self.jscocoa.ctx, jsFunction.value);
-    });    
+    });
   });
 }
 

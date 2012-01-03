@@ -21,10 +21,6 @@ class RootView extends Template
 
   viewProperties:
     initialize: ->
-
-      fs.async.list '/Users/corey/code/mine/Atom', (result) ->
-        console.log "Got #{result.length} results."
-
       @bindKey 'meta+s', => @editor.save()
       @bindKey 'meta+w', => window.close()
       @bindKey 'meta+t', => @toggleFileFinder()
