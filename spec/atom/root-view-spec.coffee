@@ -6,6 +6,21 @@ describe "RootView", ->
   rootView = null
   beforeEach -> rootView = RootView.build()
 
+  describe "initialize", ->
+    describe "when called with a url", ->
+      it "opens the given url in the editor", ->
+        url = require.resolve 'fixtures/sample.txt'
+        rootView = RootView.build {url}
+
+        expect(rootView.editor.buffer.url).toBe url
+
+    describe "when not called with a url", ->
+      it "opens an empty buffer", ->
+        url = null
+        rootView = RootView.build {url}
+
+        expect(rootView.editor.buffer.url).toBeNull()
+
   describe ".addPane(view)", ->
     it "adds the given view to the rootView (at the bottom by default)", ->
       expect(rootView.vertical.children().length).toBe 1

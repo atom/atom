@@ -7,11 +7,6 @@ Template = require 'template'
 
 module.exports =
 class RootView extends Template
-  @attach: ->
-    view = @build()
-    $('body').append view
-    view
-
   content: ->
     @link rel: 'stylesheet', href: "#{require.resolve('atom.css')}?#{(new Date).getTime()}"
     @div id: 'app-horizontal', =>
@@ -20,10 +15,12 @@ class RootView extends Template
           @subview 'editor', Editor.build()
 
   viewProperties:
-    initialize: ->
+    initialize: ({url}) ->
       @bindKey 'meta+s', => @editor.save()
       @bindKey 'meta+w', => window.close()
       @bindKey 'meta+t', => @toggleFileFinder()
+
+      @editor.open url
 
     addPane: (view) ->
       pane = $('<div class="pane">')

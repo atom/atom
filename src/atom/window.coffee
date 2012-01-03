@@ -13,8 +13,8 @@ windowAdditions =
 
   startup: ->
     @menuItemActions = {}
-    @rootView = RootView.attach()
-    @rootView.editor.open $atomController.url?.toString()
+    @rootView = RootView.build(url: $atomController.url?.toString())
+    $('body').append @rootView
     @registerEventHandlers()
     @bindMenuItems()
     $(window).focus()
