@@ -120,7 +120,7 @@
   return windowWithContext;
 }
 
-- (void)contentsOfDirectoryAtPath:(NSString *)path onComplete:(JSValueRefAndContextRef)jsFunction {
+- (void)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)jsFunction {
   dispatch_queue_t backgroundQueue = dispatch_get_global_queue(0, 0);
   dispatch_queue_t mainQueue = dispatch_get_main_queue();
   
@@ -128,16 +128,29 @@
   dispatch_async(backgroundQueue, ^{
     NSFileManager *fm = [NSFileManager defaultManager];
     
-    NSError *error = nil;    
-    NSArray *files = [fm contentsOfDirectoryAtPath:path error:&error];
-    
-    if (error) {
-      NSLog(@"ERROR %@", error.localizedDescription);      
-      return;
+    NSMutableArray *paths;    
+    if (recursive) {
+      paths = [NSMutableArray array];
+      NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
+      
+      NSString *subpath;
+      while (subpath = [enumerator nextObject]) {
+        [paths addObject:[path stringByAppendingPathComponent:subpath]];
+      }      
+    } else {
+      NSError *error = nil;          
+      NSArray *subpaths = [fm contentsOfDirectoryAtPath:path error:&error];      
+      if (error) {
+        NSLog(@"ERROR %@", error.localizedDescription);      
+        return;
+      }
+      for (NSString *subpath in subpaths) {
+        [paths addObject:[path stringByAppendingPathComponent:subpath]];
+      }      
     }
-    
+        
     dispatch_sync(mainQueue, ^{
-      [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:files]];
+      [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:paths]];
       JSValueUnprotect(self.jscocoa.ctx, jsFunction.value);
     });
   });

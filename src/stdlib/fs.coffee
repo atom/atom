@@ -97,9 +97,9 @@ module.exports =
     OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
 
   async:
-    list: (path) ->
+    list: (path, recursive) ->
       deferred = $.Deferred()
-      $atomController.contentsOfDirectoryAtPath_onComplete path, (result) ->
-        deferred.resolve ("#{path}/#{subpath}" for subpath in result)
+      $atomController.contentsOfDirectoryAtPath_recursive_onComplete path, recursive, (result) ->
+        deferred.resolve (subpath.toString() for subpath in result)
       deferred
 
