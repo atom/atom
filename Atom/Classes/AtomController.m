@@ -123,28 +123,22 @@
 - (void)contentsOfDirectoryAtPath:(NSString *)path onComplete:(JSValueRefAndContextRef)jsFunction {
   dispatch_queue_t backgroundQueue = dispatch_get_global_queue(0, 0);
   dispatch_queue_t mainQueue = dispatch_get_main_queue();
-    
-  JSValueProtect(jsFunction.ctx, jsFunction.value);
-  NSLog(@"start %@", [NSThread currentThread]);  
+  
+  JSValueProtect(self.jscocoa.ctx, jsFunction.value);
   dispatch_async(backgroundQueue, ^{
-    NSLog(@"back %@", [NSThread currentThread]);
-    [NSThread sleepForTimeInterval:2];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
+    NSMutableArray *files = [NSMutableArray array];
 
-    dispatch_sync(mainQueue, ^{
-      NSLog(@"main %@", [NSThread currentThread]);
-      NSLog(@"ran the block on main %p", jsFunction.value);      
-      [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:@"testing"]];
-//      JSValueUnprotect(jsFunction.ctx, jsFunction.value);
-
-    });
-    
-    [NSThread sleepForTimeInterval:2];
+    NSString *filePath;
+    while (filePath = [enumerator nextObject]) {
+      [files addObject:filePath];
+    }
     
     dispatch_sync(mainQueue, ^{
-      NSLog(@"main %@", [NSThread currentThread]);
-      NSLog(@"ran the block on main %p", jsFunction.value);      
-      [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:@"testing 2"]];      
-    });
+      [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:files]];
+      JSValueUnprotect(self.jscocoa.ctx, jsFunction.value);
+    });    
   });
 }
 
