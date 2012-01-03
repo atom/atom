@@ -6,7 +6,7 @@ describe "fs", ->
       directoryPath = null
       beforeEach -> directoryPath = require.resolve 'fixtures/file-finder-dir'
 
-      fdescribe "when recursive is true", ->
+      describe "when recursive is true", ->
         it "returns a promise that resolves to the recursive contents of that directory", ->
           waitsFor (complete) ->
             fs.async.list(directoryPath, true).done (result) ->

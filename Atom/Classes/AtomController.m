@@ -128,9 +128,8 @@
   dispatch_async(backgroundQueue, ^{
     NSFileManager *fm = [NSFileManager defaultManager];
     
-    NSMutableArray *paths;    
+    NSMutableArray *paths = [NSMutableArray array];
     if (recursive) {
-      paths = [NSMutableArray array];
       NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
       
       NSString *subpath;
