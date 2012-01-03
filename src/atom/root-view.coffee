@@ -1,9 +1,10 @@
 $ = require 'jquery'
 fs = require 'fs'
 
+Template = require 'template'
 Editor = require 'editor'
 FileFinder = require 'file-finder'
-Template = require 'template'
+Project = require 'project'
 
 module.exports =
 class RootView extends Template
@@ -20,6 +21,7 @@ class RootView extends Template
       @bindKey 'meta+w', => window.close()
       @bindKey 'meta+t', => @toggleFileFinder()
 
+      @project = new Project(fs.directory(url)) if url
       @editor.open url
 
     addPane: (view) ->
@@ -40,3 +42,4 @@ class RootView extends Template
         @fileFinder = FileFinder.build({urls})
         @addPane(@fileFinder)
         @fileFinder.input.focus()
+

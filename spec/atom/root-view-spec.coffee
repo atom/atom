@@ -8,11 +8,17 @@ describe "RootView", ->
 
   describe "initialize", ->
     describe "when called with a url", ->
-      it "opens the given url in the editor", ->
-        url = require.resolve 'fixtures/sample.txt'
-        rootView = RootView.build {url}
+      describe "when the url references a file", ->
+        url = null
+        beforeEach ->
+          url = require.resolve 'fixtures/sample.txt'
+          rootView = RootView.build {url}
 
-        expect(rootView.editor.buffer.url).toBe url
+        it "creates a project for the file's parent directory", ->
+          expect(rootView.project.url).toBe fs.directory(url)
+
+        it "opens the file in the editor", ->
+          expect(rootView.editor.buffer.url).toBe url
 
     describe "when not called with a url", ->
       it "opens an empty buffer", ->
@@ -29,7 +35,7 @@ describe "RootView", ->
 
   describe "toggleFileFinder", ->
     describe "when the editor has a url", ->
-      baseUrl = require.resolve('fixtures/file-finder-dir/a')
+      baseUrl = require.resolve('fixtures/dir/a')
 
       beforeEach ->
         rootView.editor.open baseUrl
@@ -41,7 +47,7 @@ describe "RootView", ->
         rootView.toggleFileFinder()
         expect(rootView.find('.file-finder')).not.toExist()
 
-      it "shows urls for all files (not directories) by recursivley searching directory of editor.url", ->
+      it "shows all urls for the current project", ->
         rootView.toggleFileFinder()
         expect(rootView.fileFinder.urlList.children('li').length).toBe 3
 
