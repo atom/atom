@@ -65,9 +65,11 @@ describe 'FileFinder', ->
       finder = FileFinder.build {urls, selected: selectedCallback}
 
     it "when a file is selected Editor.open is called", ->
+      spyOn(finder, 'remove')
       finder.moveDown()
       finder.select()
       expect(selectedCallback).toHaveBeenCalledWith(urls[1])
+      expect(finder.remove).toHaveBeenCalled()
 
     it "when no file is selected, does nothing", ->
       spyOn(atom, 'open')

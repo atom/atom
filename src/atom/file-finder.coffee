@@ -35,6 +35,7 @@ class FileFinder extends Template
     select: ->
       filePath = @findSelectedLi().text()
       @selected(filePath) if filePath and @selected
+      @remove()
 
     moveUp: ->
       @findSelectedLi()
