@@ -20,6 +20,7 @@ class FileFinder extends Template
       @populateUrlList()
       @bindKey 'up', 'moveUp'
       @bindKey 'down', 'moveDown'
+      @bindKey 'enter', 'select'
 
     populateUrlList: ->
       @urlList.empty()
@@ -30,6 +31,11 @@ class FileFinder extends Template
 
     findSelectedLi: ->
       @urlList.children('li.selected')
+
+    select: ->
+      filePath = @findSelectedLi().text()
+      atom.open filePath if filePath
+
 
     moveUp: ->
       @findSelectedLi()
