@@ -125,34 +125,53 @@
   dispatch_queue_t mainQueue = dispatch_get_main_queue();
   
   JSValueProtect(self.jscocoa.ctx, jsFunction.value);
-  dispatch_async(backgroundQueue, ^{
-    NSFileManager *fm = [NSFileManager defaultManager];
-    
-    NSMutableArray *paths = [NSMutableArray array];
-    if (recursive) {
-      NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
+    dispatch_async(backgroundQueue, ^{
+      NSFileManager *fm = [NSFileManager defaultManager];
       
-      NSString *subpath;
-      while (subpath = [enumerator nextObject]) {
-        [paths addObject:[path stringByAppendingPathComponent:subpath]];
-      }      
-    } else {
-      NSError *error = nil;          
-      NSArray *subpaths = [fm contentsOfDirectoryAtPath:path error:&error];      
-      if (error) {
-        NSLog(@"ERROR %@", error.localizedDescription);      
-        return;
-      }
-      for (NSString *subpath in subpaths) {
-        [paths addObject:[path stringByAppendingPathComponent:subpath]];
-      }      
-    }
+      CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
+      
+      NSMutableArray *paths = [NSMutableArray array];
+      if (recursive) {
+        NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
         
-    dispatch_sync(mainQueue, ^{
-      [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:paths]];
-      JSValueUnprotect(self.jscocoa.ctx, jsFunction.value);
+        NSString *subpath;
+        while (subpath = [enumerator nextObject]) {
+          [paths addObject:[path stringByAppendingPathComponent:subpath]];
+        }      
+      } else {
+        NSError *error = nil;          
+        NSArray *subpaths = [fm contentsOfDirectoryAtPath:path error:&error];      
+        if (error) {
+          NSLog(@"ERROR %@", error.localizedDescription);      
+          return;
+        }
+        for (NSString *subpath in subpaths) {
+          [paths addObject:[path stringByAppendingPathComponent:subpath]];
+        }      
+      }
+      
+      NSLog(@"gathering paths: %f", CFAbsoluteTimeGetCurrent() - start);
+
+      // NS 1/3/12 - this is messy and also leaky... need to clean it up
+      start = CFAbsoluteTimeGetCurrent();      
+      JSContextRef ctx = self.jscocoa.ctx;      
+      JSObjectRef jsFunctionObject = JSValueToObject(ctx, jsFunction.value, NULL);
+      JSValueRef *jsStringCArray = malloc(sizeof(JSValueRef) * paths.count);
+      for (int i = 0; i < paths.count; i++) {
+        jsStringCArray[i] = JSValueMakeString(ctx, JSStringCreateWithCFString((CFStringRef)[paths objectAtIndex:i]));
+      }                
+      JSValueRef jsStringJSArray = (JSValueRef)JSObjectMakeArray(ctx, paths.count, jsStringCArray, NULL);                            
+      NSLog(@"building js array of strings: %f", CFAbsoluteTimeGetCurrent() - start);
+      
+      dispatch_sync(mainQueue, ^{
+        JSValueRef args[] = { jsStringJSArray };
+        JSObjectCallAsFunction(ctx, jsFunctionObject, NULL, 1, args, NULL);
+
+        // jscocoa wrapper is slow
+        // [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:paths]];
+        JSValueUnprotect(self.jscocoa.ctx, jsFunction.value);
+      });
     });
-  });
 }
 
 - (BOOL)isFile:(NSString *)path {
