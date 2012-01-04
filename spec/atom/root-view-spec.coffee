@@ -30,11 +30,6 @@ describe "RootView", ->
         rootView.toggleFileFinder()
         expect(rootView.fileFinder.urlList.children('li').length).toBe 3
 
-      it "remove common path prefix from files", ->
-        rootView.toggleFileFinder()
-        commonPathPattern = new RegExp("^" + fs.directory(baseUrl))
-        expect(rootView.fileFinder.urlList.children('li:first').text()).not.toMatch commonPathPattern
-
     describe "when the editor has no url", ->
       it "does not open the FileFinder", ->
         expect(rootView.editor.buffer.url).toBeUndefined()
