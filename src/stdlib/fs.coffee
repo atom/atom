@@ -9,13 +9,7 @@ module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (path) ->
-    path = OSX.NSString.stringWithString(path).stringByStandardizingPath
-    return path if path.toString()[0] == "/"
-
-    resolvedString = OSX.NSString.stringWithString(@workingDirectory())
-    resolvedString = resolvedString.stringByAppendingPathComponent(path).stringByStandardizingPath
-
-    resolvedString.toString()
+    $atomController.absolute(path).toString()
 
   # Return the basename of the given path. That is the path with
   # any leading directory components removed. If specified, also
@@ -48,11 +42,7 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    path = @absolute path
-    isDir = new jscocoa.outArgument
-    exists = OSX.NSFileManager.defaultManager.
-      fileExistsAtPath_isDirectory path, isDir
-    exists and not isDir.valueOf()
+    $atomController.isFile path
 
   # Returns an array with all the names of files contained
   # in the directory path.

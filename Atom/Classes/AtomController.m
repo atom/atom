@@ -155,6 +155,25 @@
   });
 }
 
+- (BOOL)isFile:(NSString *)path {
+  BOOL isDir;
+  BOOL exists;
+  exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];
+  return exists && !isDir;
+}
+
+- (NSString *)absolute:(NSString *)path {
+  path = [path stringByStandardizingPath];
+  if ([path characterAtIndex:0] == '/') {
+    return path;
+  }
+    
+  NSString *resolvedPath = [[NSFileManager defaultManager] currentDirectoryPath];
+  resolvedPath = [[resolvedPath stringByAppendingPathComponent:path] stringByStandardizingPath];
+  
+  return resolvedPath;
+}
+
 #pragma mark NSWindowDelegate
 - (BOOL)windowShouldClose:(id)sender {
   [self close];
