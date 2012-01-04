@@ -58,6 +58,20 @@ describe 'FileFinder', ->
 
       expect(finder.find('li:last')).toHaveClass "selected"
 
+  describe "select", ->
+    it "when an file is selected atom.open is called", ->
+      spyOn(atom, 'open')
+      finder.moveDown()
+      finder.select()
+      expect(atom.open).toHaveBeenCalledWith(urls[1])
+
+    it "when no file is selected, does nothing", ->
+      spyOn(atom, 'open')
+      finder.input.val('this-will-match-nothing-hopefully')
+      finder.populateUrlList()
+      finder.select()
+      expect(atom.open).not.toHaveBeenCalled()
+
   describe "findMatches(queryString)", ->
     it "returns up to finder.maxResults urls if queryString is empty", ->
       expect(urls.length).toBeLessThan finder.maxResults

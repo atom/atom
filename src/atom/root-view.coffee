@@ -46,4 +46,3 @@ class RootView extends Template
           @fileFinder = FileFinder.build({urls})
           @addPane(@fileFinder)
           @fileFinder.input.focus()
-
