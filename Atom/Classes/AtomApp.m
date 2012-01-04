@@ -46,9 +46,9 @@
   [self open:nil];
 }
 
-- (IBAction)openFileInNewWindow:(id)sender {
+- (IBAction)openPathInNewWindow:(id)sender {
   NSOpenPanel *panel = [NSOpenPanel openPanel];
-  [panel setCanChooseDirectories:NO];
+  [panel setCanChooseDirectories:YES];
   if ([panel runModal] == NSFileHandlingPanelOKButton) {
     [self open:[panel.URLs.lastObject path]];
   }
