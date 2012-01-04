@@ -21,8 +21,14 @@ class RootView extends Template
       @bindKey 'meta+w', => window.close()
       @bindKey 'meta+t', => @toggleFileFinder()
 
-      @project = new Project(fs.directory(url)) if url
-      @editor.open url
+      if not url
+        # not sure what to do
+      else if fs.isDirectory url
+        @project = new Project url
+        @editor.open()
+      else
+        @project = new Project(fs.directory(url))
+        @editor.open url
 
     addPane: (view) ->
       pane = $('<div class="pane">')

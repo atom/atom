@@ -11,14 +11,28 @@ describe "App", ->
     window.close() for window in app.windows()
 
   describe "open", ->
-    it "loads a buffer based on the given path and displays it in a new window", ->
-      filePath = require.resolve 'fixtures/sample.txt'
-      expect(app.windows().length).toBe 0
+    describe "when opening a filePath", ->
+      it "loads a buffer with filePath contents and displays it in a new window", ->
+        filePath = require.resolve 'fixtures/sample.txt'
+        expect(app.windows().length).toBe 0
 
-      app.open filePath
+        app.open filePath
 
-      expect(app.windows().length).toBe 1
-      newWindow = app.windows()[0]
+        expect(app.windows().length).toBe 1
+        newWindow = app.windows()[0]
 
-      expect(newWindow.rootView.editor.buffer.url).toEqual filePath
-      expect(newWindow.rootView.editor.buffer.getText()).toEqual fs.read(filePath)
+        expect(newWindow.rootView.editor.buffer.url).toEqual filePath
+        expect(newWindow.rootView.editor.buffer.getText()).toEqual fs.read(filePath)
+
+    describe "when opening a dirPath", ->
+      it "loads an empty buffer", ->
+        dirPath = require.resolve 'fixtures'
+        expect(app.windows().length).toBe 0
+
+        app.open dirPath
+
+        expect(app.windows().length).toBe 1
+        newWindow = app.windows()[0]
+
+        expect(newWindow.rootView.editor.buffer.url).toBeUndefined
+        expect(newWindow.rootView.editor.buffer.getText()).toBe ""
