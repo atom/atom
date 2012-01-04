@@ -5,6 +5,8 @@ module.exports =
 class Project
   constructor: (@url) ->
 
-  list: ->
-    fs.async.list(@url, true)
+  getFilePaths: ->
+    projectUrl = @url
+    fs.async.list(@url, true).pipe (urls) ->
+      url.replace(projectUrl, "") for url in urls when fs.isFile(url)
 

@@ -30,16 +30,13 @@ class RootView extends Template
       @main.after(pane)
 
     toggleFileFinder: ->
-      return unless @editor.buffer.url
+      return unless @project
 
       if @fileFinder
         @fileFinder.remove()
         @fileFinder = null
       else
-        directory = fs.directory @editor.buffer.url
-        return fs.async.list(directory, true).done (urls) =>
-          urls = (url for url in urls when fs.isFile url)
-          urls = (url.replace(directory, "") for url in urls)
+        @project.getFilePaths().done (urls) =>
           @fileFinder = FileFinder.build({urls})
           @addPane(@fileFinder)
           @fileFinder.input.focus()
