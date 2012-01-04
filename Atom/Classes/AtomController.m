@@ -120,58 +120,65 @@
   return windowWithContext;
 }
 
-- (void)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)jsFunction {
+- (NSArray *)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive {
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSMutableArray *paths = [NSMutableArray array];
+
+  if (recursive) {
+    NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
+    
+    NSString *subpath;
+    while (subpath = [enumerator nextObject]) {
+      [paths addObject:[path stringByAppendingPathComponent:subpath]];
+    }      
+  } else {
+    NSError *error = nil;          
+    NSArray *subpaths = [fm contentsOfDirectoryAtPath:path error:&error];      
+    if (error) {
+      NSLog(@"ERROR %@", error.localizedDescription);      
+      return nil;
+    }
+    for (NSString *subpath in subpaths) {
+      [paths addObject:[path stringByAppendingPathComponent:subpath]];
+    }      
+  }
+  
+  return paths;
+}
+
+- (JSContextRef)ctx {
+  return self.jscocoa.ctx;
+}
+
+- (JSValueRef)convertToJSArrayOfStrings:(NSArray *)nsArray {
+  JSValueRef *cArray = malloc(sizeof(JSValueRef) * nsArray.count);
+  for (int i = 0; i < nsArray.count; i++) {    
+    JSStringRef jsString = JSStringCreateWithCFString((CFStringRef)[nsArray objectAtIndex:i]);    
+    cArray[i] = JSValueMakeString(self.ctx, jsString);
+    JSStringRelease(jsString);
+  }
+  JSValueRef jsArray = (JSValueRef)JSObjectMakeArray(self.ctx, nsArray.count, cArray, NULL);                            
+  free(cArray);
+  return jsArray;
+}
+
+- (void)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)onComplete {
   dispatch_queue_t backgroundQueue = dispatch_get_global_queue(0, 0);
   dispatch_queue_t mainQueue = dispatch_get_main_queue();
+
+  JSValueRef onCompleteFn = onComplete.value;  
+  JSValueProtect(self.ctx, onCompleteFn);
   
-  JSValueProtect(self.jscocoa.ctx, jsFunction.value);
-    dispatch_async(backgroundQueue, ^{
-      NSFileManager *fm = [NSFileManager defaultManager];
-      
-      CFAbsoluteTime start = CFAbsoluteTimeGetCurrent();
-      
-      NSMutableArray *paths = [NSMutableArray array];
-      if (recursive) {
-        NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
-        
-        NSString *subpath;
-        while (subpath = [enumerator nextObject]) {
-          [paths addObject:[path stringByAppendingPathComponent:subpath]];
-        }      
-      } else {
-        NSError *error = nil;          
-        NSArray *subpaths = [fm contentsOfDirectoryAtPath:path error:&error];      
-        if (error) {
-          NSLog(@"ERROR %@", error.localizedDescription);      
-          return;
-        }
-        for (NSString *subpath in subpaths) {
-          [paths addObject:[path stringByAppendingPathComponent:subpath]];
-        }      
-      }
-      
-      NSLog(@"gathering paths: %f", CFAbsoluteTimeGetCurrent() - start);
-
-      // NS 1/3/12 - this is messy and also leaky... need to clean it up
-      start = CFAbsoluteTimeGetCurrent();      
-      JSContextRef ctx = self.jscocoa.ctx;      
-      JSObjectRef jsFunctionObject = JSValueToObject(ctx, jsFunction.value, NULL);
-      JSValueRef *jsStringCArray = malloc(sizeof(JSValueRef) * paths.count);
-      for (int i = 0; i < paths.count; i++) {
-        jsStringCArray[i] = JSValueMakeString(ctx, JSStringCreateWithCFString((CFStringRef)[paths objectAtIndex:i]));
-      }                
-      JSValueRef jsStringJSArray = (JSValueRef)JSObjectMakeArray(ctx, paths.count, jsStringCArray, NULL);                            
-      NSLog(@"building js array of strings: %f", CFAbsoluteTimeGetCurrent() - start);
-      
-      dispatch_sync(mainQueue, ^{
-        JSValueRef args[] = { jsStringJSArray };
-        JSObjectCallAsFunction(ctx, jsFunctionObject, NULL, 1, args, NULL);
-
-        // jscocoa wrapper is slow
-        // [self.jscocoa callJSFunction:jsFunction.value withArguments:[NSArray arrayWithObject:paths]];
-        JSValueUnprotect(self.jscocoa.ctx, jsFunction.value);
-      });
+  dispatch_async(backgroundQueue, ^{
+    NSArray *paths = [self contentsOfDirectoryAtPath:path recursive:recursive];
+    JSValueRef jsPaths = [self convertToJSArrayOfStrings:paths];
+    
+    dispatch_sync(mainQueue, ^{
+      JSValueRef args[] = { jsPaths };
+      JSObjectCallAsFunction(self.ctx, JSValueToObject(self.ctx, onCompleteFn, NULL), NULL, 1, args, NULL);
+      JSValueUnprotect(self.ctx, onCompleteFn);
     });
+  });
 }
 
 - (BOOL)isFile:(NSString *)path {
