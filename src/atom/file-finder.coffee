@@ -14,7 +14,7 @@ class FileFinder extends Template
     urls: null
     maxResults: null
 
-    initialize: ({@urls}) ->
+    initialize: ({@urls, @selected}) ->
       @maxResults = 10
 
       @populateUrlList()
@@ -34,8 +34,7 @@ class FileFinder extends Template
 
     select: ->
       filePath = @findSelectedLi().text()
-      atom.open filePath if filePath
-
+      @selected(filePath) if filePath and @selected
 
     moveUp: ->
       @findSelectedLi()

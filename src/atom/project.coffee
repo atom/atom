@@ -8,6 +8,5 @@ class Project
   getFilePaths: ->
     projectUrl = @url
     fs.async.list(@url, true).pipe (urls) ->
-      urls = (url.replace(projectUrl, "") for url in urls when fs.isFile(url))
-      urls
+      url for url in urls when fs.isFile(url)
 

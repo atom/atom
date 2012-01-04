@@ -55,14 +55,6 @@ describe "RootView", ->
         runs ->
           expect(rootView.fileFinder.urlList.children('li').length).toBe 3
 
-      it "removes common path prefix from files", ->
-        waitsForPromise ->
-          rootView.toggleFileFinder()
-
-        runs ->
-          commonPathPattern = new RegExp("^" + fs.directory(url))
-          expect(rootView.fileFinder.urlList.children('li:first').text()).not.toMatch commonPathPattern
-
     describe "when there is no project", ->
       beforeEach ->
         rootView = RootView.build()
