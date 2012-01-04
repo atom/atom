@@ -49,10 +49,8 @@ class FileFinder extends Template
       if not query
         urls = @urls
       else
-        scoreMeasure = measure 'Score urls'
         scoredUrls = ({url, score: stringScore(url, query)} for url in @urls)
         scoredUrls.sort (a, b) -> a.score > b.score
         urls = (urlAndScore.url for urlAndScore in scoredUrls when urlAndScore.score > 0)
-        scoreMeasure.stop()
 
       urls.slice 0, @maxResults

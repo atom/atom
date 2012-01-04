@@ -89,9 +89,7 @@ module.exports =
   async:
     list: (path, recursive) ->
       deferred = $.Deferred()
-      cMeasure = measure 'time spent in obj-c'
       $atomController.contentsOfDirectoryAtPath_recursive_onComplete path, recursive, (subpaths) ->
-        cMeasure.stop()
         deferred.resolve subpaths
       deferred
 
