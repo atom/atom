@@ -100,6 +100,9 @@ module.exports =
     list: (path, recursive) ->
       deferred = $.Deferred()
       $atomController.contentsOfDirectoryAtPath_recursive_onComplete path, recursive, (result) ->
-        deferred.resolve (subpath.toString() for subpath in result)
+        subpathMeasure = measure 'toString everything'
+        subpaths = (subpath.toString() for subpath in result)
+        subpathMeasure.stop()
+        deferred.resolve subpaths
       deferred
 

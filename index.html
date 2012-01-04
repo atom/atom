@@ -3,6 +3,18 @@
   <script src='src/stdlib/require.js'></script>
 
   <script>
+    window.measure = function(name) {
+        var start = new Date().getTime();
+        return {stop: function() {
+          var end = new Date().getTime();
+          var total = (end - start) / 1000;
+          while(name.length < 40) {
+            name = name + " "
+          }
+          console.log(name + (end - start) / 1000);
+        }}
+    }
+
     window.onload = function() {
       require($bootstrapScript);
     }
