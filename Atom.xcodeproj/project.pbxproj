@@ -27,6 +27,7 @@
 		047F26021457978C006DC904 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 047F26011457978C006DC904 /* JavaScriptCore.framework */; };
 		047F260414579792006DC904 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 047F260314579792006DC904 /* WebKit.framework */; };
 		047F260E145883B9006DC904 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 047F260D145883B9006DC904 /* Icon.icns */; };
+		EC846C4114B529120021AF1F /* FileSystemHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = EC846C4014B529120021AF1F /* FileSystemHelper.m */; };
 		ECBB172814A4F92400ACAAC1 /* AtomMenuItem.m in Sources */ = {isa = PBXBuildFile; fileRef = ECBB172714A4F92400ACAAC1 /* AtomMenuItem.m */; };
 /* End PBXBuildFile section */
 
@@ -70,6 +71,8 @@
 		047F26011457978C006DC904 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		047F260314579792006DC904 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		047F260D145883B9006DC904 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
+		EC846C3F14B529120021AF1F /* FileSystemHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileSystemHelper.h; path = Classes/FileSystemHelper.h; sourceTree = "<group>"; };
+		EC846C4014B529120021AF1F /* FileSystemHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = FileSystemHelper.m; path = Classes/FileSystemHelper.m; sourceTree = "<group>"; };
 		ECBB172614A4F92400ACAAC1 /* AtomMenuItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomMenuItem.h; path = Classes/AtomMenuItem.h; sourceTree = "<group>"; };
 		ECBB172714A4F92400ACAAC1 /* AtomMenuItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomMenuItem.m; path = Classes/AtomMenuItem.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -135,6 +138,8 @@
 				043D7E93145795B70078D710 /* AtomController.m */,
 				ECBB172614A4F92400ACAAC1 /* AtomMenuItem.h */,
 				ECBB172714A4F92400ACAAC1 /* AtomMenuItem.m */,
+				EC846C3F14B529120021AF1F /* FileSystemHelper.h */,
+				EC846C4014B529120021AF1F /* FileSystemHelper.m */,
 				043D7E6B145795B20078D710 /* JSCocoa */,
 				043D7E79145795B20078D710 /* UKKQueue */,
 				043D7E52145794990078D710 /* Supporting Files */,
@@ -287,6 +292,7 @@
 				043D7E94145795B70078D710 /* AtomApp.m in Sources */,
 				043D7E95145795B70078D710 /* AtomController.m in Sources */,
 				ECBB172814A4F92400ACAAC1 /* AtomMenuItem.m in Sources */,
+				EC846C4114B529120021AF1F /* FileSystemHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

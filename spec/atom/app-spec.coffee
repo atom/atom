@@ -38,3 +38,4 @@ describe "App", ->
 
         expect(newWindow.rootView.editor.buffer.url).toBeUndefined
         expect(newWindow.rootView.editor.buffer.getText()).toBe ""
+

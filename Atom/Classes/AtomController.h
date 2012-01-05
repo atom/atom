@@ -1,8 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import "JSCocoa.h"
 
-@class JSCocoa;
-@class WebView;
+@class JSCocoa, WebView, FileSystemHelper;
 
 struct JSGlobalContextRef;
 
@@ -11,6 +10,7 @@ struct JSGlobalContextRef;
 @property (assign) WebView *webView;
 @property (nonatomic, retain, readonly) NSString *url;
 @property (nonatomic, retain, readonly) NSString *bootstrapScript;
+@property (nonatomic, retain, readonly) FileSystemHelper *fs;
 
 - (id)initForSpecs;
 - (id)initWithURL:(NSString *)url;
@@ -19,8 +19,5 @@ struct JSGlobalContextRef;
 - (void)reload;
 - (JSValueRefAndContextRef)jsWindow;
 - (void)performActionForMenuItemPath:(NSString *)menuItemPath;
-
-- (void)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)jsFunction;
-
 
 @end

@@ -89,7 +89,7 @@ module.exports =
   async:
     list: (path, recursive) ->
       deferred = $.Deferred()
-      $atomController.contentsOfDirectoryAtPath_recursive_onComplete path, recursive, (subpaths) ->
+      $atomController.fs.contentsOfDirectoryAtPath_recursive_onComplete path, recursive, (subpaths) ->
         deferred.resolve subpaths
       deferred
 

@@ -1,17 +1,21 @@
 #import "AtomController.h"
-#import "AtomApp.h"
 
 #import "JSCocoa.h"
 #import <WebKit/WebKit.h>
 #import <dispatch/dispatch.h>
 
+#import "AtomApp.h"
+#import "FileSystemHelper.h"
+
 @interface AtomController ()
 @property (nonatomic, retain) JSCocoa *jscocoa;
 @property (nonatomic, retain, readwrite) NSString *url;
 @property (nonatomic, retain, readwrite) NSString *bootstrapScript;
+@property (nonatomic, retain, readwrite) FileSystemHelper *fs;
 
 - (void)createWebView;
 - (void)blockUntilWebViewLoads;
+
 @end
 
 @interface WebView (Atom)
@@ -26,12 +30,14 @@
 @synthesize jscocoa = _jscocoa;
 @synthesize url = _url;
 @synthesize bootstrapScript = _bootstrapScript;
+@synthesize fs = _fs;
 
 - (void)dealloc {
   self.webView = nil;
   self.bootstrapScript = nil;
   self.url = nil;
   self.jscocoa = nil;
+  self.fs = nil;
 
   [super dealloc];
 }
@@ -108,8 +114,7 @@
   return PROJECT_DIR;
 }
 
-- (void)performActionForMenuItemPath:(NSString *)menuItemPath {
-  
+- (void)performActionForMenuItemPath:(NSString *)menuItemPath {  
   NSString *jsCode = [NSString stringWithFormat:@"window.performActionForMenuItemPath('%@')", menuItemPath];
   [self.jscocoa evalJSString:jsCode];
 }
@@ -118,67 +123,6 @@
   JSValueRef window = [self.jscocoa evalJSString:@"window"]; 
   JSValueRefAndContextRef windowWithContext = {window, self.jscocoa.ctx};
   return windowWithContext;
-}
-
-- (NSArray *)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive {
-  NSFileManager *fm = [NSFileManager defaultManager];
-  NSMutableArray *paths = [NSMutableArray array];
-
-  if (recursive) {
-    NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
-    
-    NSString *subpath;
-    while (subpath = [enumerator nextObject]) {
-      [paths addObject:[path stringByAppendingPathComponent:subpath]];
-    }      
-  } else {
-    NSError *error = nil;          
-    NSArray *subpaths = [fm contentsOfDirectoryAtPath:path error:&error];      
-    if (error) {
-      NSLog(@"ERROR %@", error.localizedDescription);      
-      return nil;
-    }
-    for (NSString *subpath in subpaths) {
-      [paths addObject:[path stringByAppendingPathComponent:subpath]];
-    }      
-  }
-  
-  return paths;
-}
-
-- (JSContextRef)ctx {
-  return self.jscocoa.ctx;
-}
-
-- (JSValueRef)convertToJSArrayOfStrings:(NSArray *)nsArray {
-  JSValueRef *cArray = malloc(sizeof(JSValueRef) * nsArray.count);
-  for (int i = 0; i < nsArray.count; i++) {    
-    JSStringRef jsString = JSStringCreateWithCFString((CFStringRef)[nsArray objectAtIndex:i]);    
-    cArray[i] = JSValueMakeString(self.ctx, jsString);
-    JSStringRelease(jsString);
-  }
-  JSValueRef jsArray = (JSValueRef)JSObjectMakeArray(self.ctx, nsArray.count, cArray, NULL);                            
-  free(cArray);
-  return jsArray;
-}
-
-- (void)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)onComplete {
-  dispatch_queue_t backgroundQueue = dispatch_get_global_queue(0, 0);
-  dispatch_queue_t mainQueue = dispatch_get_main_queue();
-
-  JSValueRef onCompleteFn = onComplete.value;  
-  JSValueProtect(self.ctx, onCompleteFn);
-  
-  dispatch_async(backgroundQueue, ^{
-    NSArray *paths = [self contentsOfDirectoryAtPath:path recursive:recursive];
-    JSValueRef jsPaths = [self convertToJSArrayOfStrings:paths];
-    
-    dispatch_sync(mainQueue, ^{
-      JSValueRef args[] = { jsPaths };
-      JSObjectCallAsFunction(self.ctx, JSValueToObject(self.ctx, onCompleteFn, NULL), NULL, 1, args, NULL);
-      JSValueUnprotect(self.ctx, onCompleteFn);
-    });
-  });
 }
 
 - (BOOL)isFile:(NSString *)path {
@@ -226,6 +170,7 @@
   self.jscocoa = [[JSCocoa alloc] initWithGlobalContext:[frame globalContext]];
   [self.jscocoa setObject:self withName:@"$atomController"];
   [self.jscocoa setObject:self.bootstrapScript withName:@"$bootstrapScript"];
+  self.fs = [[[FileSystemHelper alloc] initWithJSContextRef:(JSContextRef)self.jscocoa.ctx] autorelease];
 }
 
 @end
