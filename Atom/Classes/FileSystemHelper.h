@@ -7,6 +7,7 @@
 }
 
 - (id)initWithJSContextRef:(JSContextRef)ctx;
-- (void)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)jsFunction;
+- (void)listFilesAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)jsFunction;
+- (BOOL)isFile:(NSString *)path;
 
 @end

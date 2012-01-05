@@ -1,7 +1,7 @@
 #import "FileSystemHelper.h"
 
 @interface FileSystemHelper ()
-- (NSArray *)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive;
+- (NSArray *)listFilesAtPath:(NSString *)path recursive:(BOOL)recursive;
 - (JSValueRef)convertToJSArrayOfStrings:(NSArray *)nsArray;
 @end
 
@@ -13,7 +13,7 @@
   return self;
 }
 
-- (void)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)onComplete {
+- (void)listFilesAtPath:(NSString *)path recursive:(BOOL)recursive onComplete:(JSValueRefAndContextRef)onComplete {
   dispatch_queue_t backgroundQueue = dispatch_get_global_queue(0, 0);
   dispatch_queue_t mainQueue = dispatch_get_main_queue();
   
@@ -22,7 +22,7 @@
   JSValueProtect(_ctx, onCompleteFn);
   
   dispatch_async(backgroundQueue, ^{
-    NSArray *paths = [self contentsOfDirectoryAtPath:path recursive:recursive];
+    NSArray *paths = [self listFilesAtPath:path recursive:recursive];
     JSValueRef jsPaths = [self convertToJSArrayOfStrings:paths];
     
     dispatch_sync(mainQueue, ^{
@@ -33,17 +33,20 @@
   });
 }
 
-- (NSArray *)contentsOfDirectoryAtPath:(NSString *)path recursive:(BOOL)recursive {
+- (BOOL)isFile:(NSString *)path {
+  BOOL isDir, exists;
+  exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];
+  return exists && !isDir;
+}
+
+- (NSArray *)listFilesAtPath:(NSString *)path recursive:(BOOL)recursive {
   NSFileManager *fm = [NSFileManager defaultManager];
   NSMutableArray *paths = [NSMutableArray array];
   
-  if (recursive) {
-    NSDirectoryEnumerator *enumerator = [fm enumeratorAtPath:path];
-    
-    NSString *subpath;
-    while (subpath = [enumerator nextObject]) {
+  if (recursive) {    
+    for (NSString *subpath in [fm enumeratorAtPath:path]) {
       [paths addObject:[path stringByAppendingPathComponent:subpath]];
-    }      
+    }
   } else {
     NSError *error = nil;          
     NSArray *subpaths = [fm contentsOfDirectoryAtPath:path error:&error];      
@@ -53,10 +56,14 @@
     }
     for (NSString *subpath in subpaths) {
       [paths addObject:[path stringByAppendingPathComponent:subpath]];
-    }      
+    }
   }
   
-  return paths;
+  NSMutableArray *filePaths = [NSMutableArray array];  
+  for (NSString *path in paths) {
+    if ([self isFile:path]) [filePaths addObject:path];
+  }  
+  return filePaths;
 }
 
 - (JSValueRef)convertToJSArrayOfStrings:(NSArray *)nsArray {

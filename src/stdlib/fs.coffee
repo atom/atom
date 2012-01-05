@@ -42,7 +42,7 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    $atomController.isFile path
+    $atomController.fs.isFile path
 
   # Returns an array with all the names of files contained
   # in the directory path.
@@ -87,9 +87,9 @@ module.exports =
     OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
 
   async:
-    list: (path, recursive) ->
+    listFiles: (path, recursive) ->
       deferred = $.Deferred()
-      $atomController.fs.contentsOfDirectoryAtPath_recursive_onComplete path, recursive, (subpaths) ->
+      $atomController.fs.listFilesAtPath_recursive_onComplete path, recursive, (subpaths) ->
         deferred.resolve subpaths
       deferred
 
