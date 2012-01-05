@@ -17,8 +17,8 @@ describe "RootView", ->
         expect(rootView.editor.buffer.url).toBe url
 
     describe "when called with a url that references a directory", ->
-      it "creates a project for the directory and opens and empty buffer", ->
-        url = require.resolve 'fixtures/dir'
+      it "creates a project for the directory and opens an empty buffer", ->
+        url = require.resolve 'fixtures/dir/'
         rootView = RootView.build {url}
 
         expect(rootView.project.url).toBe url
