@@ -14,3 +14,16 @@ describe "Project", ->
         project.getFilePaths().done (result) ->
           expect(result).toEqual(expectedPaths)
 
+  describe ".open(path)", ->
+    absolutePath = null
+    beforeEach ->
+      absolutePath = require.resolve('fixtures/dir/a')
+
+    describe "when given an absolute path", ->
+      it "returns a buffer for the given path", ->
+        expect(project.open(absolutePath).url).toBe absolutePath
+
+    describe "when given a relative path", ->
+      it "returns a buffer for the given path (relative to the project root)", ->
+        expect(project.open('a').url).toBe absolutePath
+
