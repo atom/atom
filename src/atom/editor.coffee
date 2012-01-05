@@ -15,7 +15,7 @@ class Editor extends Template
 
     initialize: () ->
       @buildAceEditor()
-      @open()
+      @setBuffer(new Buffer)
 
     shutdown: ->
       @destroy()
@@ -26,9 +26,6 @@ class Editor extends Template
     setBuffer: (@buffer) ->
       session = new EditSession(@buffer.aceDocument, @buffer.getMode())
       @aceEditor.setSession(session)
-
-    open: (url) ->
-      @setBuffer(new Buffer(url))
 
     buildAceEditor: ->
       @aceEditor = ace.edit this[0]
