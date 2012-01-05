@@ -39,6 +39,8 @@ class RootView extends Template
       else
         @project.getFilePaths().done (paths) =>
           relativePaths = (path.replace(@project.url, "") for path in paths)
-          @fileFinder = FileFinder.build({urls: relativePaths, selected: (relativePath) => @editor.open(@project.url + relativePath)})
+          @fileFinder = FileFinder.build
+            urls: relativePaths
+            selected: (relativePath) => @editor.open(@project.url + relativePath)
           @addPane(@fileFinder)
           @fileFinder.input.focus()

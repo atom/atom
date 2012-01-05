@@ -1,3 +1,4 @@
+Buffer = require 'buffer'
 Editor = require 'editor'
 $ = require 'jquery'
 ck = require 'coffeekup'
@@ -28,6 +29,20 @@ describe "Editor", ->
       spyOn(editor.aceEditor, 'destroy').andCallThrough()
       editor.destroy()
       expect(editor.aceEditor.destroy).toHaveBeenCalled()
+
+  describe "setBuffer(buffer)", ->
+    it "sets the document on the aceSession", ->
+      buffer = new Buffer filePath
+      editor.setBuffer buffer
+
+      fileContents = fs.read(filePath)
+      expect(editor.getAceSession().getValue()).toBe fileContents
+
+    it "sets the language mode based on the file extension", ->
+      buffer = new Buffer "something.js"
+      editor.setBuffer buffer
+
+      expect(editor.getAceSession().getMode().name).toBe 'javascript'
 
   describe "open(url)", ->
     describe "when called with a url", ->

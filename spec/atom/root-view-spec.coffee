@@ -51,7 +51,7 @@ describe "RootView", ->
           rootView.toggleFileFinder()
           expect(rootView.find('.file-finder')).not.toExist()
 
-      fit "shows all relative file paths for the current project", ->
+      it "shows all relative file paths for the current project", ->
         waitsForPromise ->
           rootView.toggleFileFinder()
 
@@ -73,7 +73,7 @@ describe "RootView", ->
         rootView.toggleFileFinder()
         expect(rootView.find('.file-finder')).not.toExist()
 
-  fdescribe "when a path is selected in the file finder", ->
+  describe "when a path is selected in the file finder", ->
     it "opens the file associated with that path in the editor", ->
       waitsForPromise -> rootView.toggleFileFinder()
       runs ->
