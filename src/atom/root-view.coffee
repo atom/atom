@@ -33,11 +33,11 @@ class RootView extends Template
     toggleFileFinder: ->
       return unless @project
 
-      if @fileFinder
+      if @fileFinder and @fileFinder.parent()[0]
         @fileFinder.remove()
         @fileFinder = null
       else
         @project.getFilePaths().done (urls) =>
-          @fileFinder = FileFinder.build({urls})
+          @fileFinder = FileFinder.build({urls, selected: (url) => @editor.open(url)})
           @addPane(@fileFinder)
           @fileFinder.input.focus()

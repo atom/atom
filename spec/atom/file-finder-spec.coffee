@@ -59,11 +59,17 @@ describe 'FileFinder', ->
       expect(finder.find('li:last')).toHaveClass "selected"
 
   describe "select", ->
-    it "when an file is selected atom.open is called", ->
-      spyOn(atom, 'open')
+    selectedCallback = jasmine.createSpy 'selected'
+
+    beforeEach ->
+      finder = FileFinder.build {urls, selected: selectedCallback}
+
+    it "when a file is selected Editor.open is called", ->
+      spyOn(finder, 'remove')
       finder.moveDown()
       finder.select()
-      expect(atom.open).toHaveBeenCalledWith(urls[1])
+      expect(selectedCallback).toHaveBeenCalledWith(urls[1])
+      expect(finder.remove).toHaveBeenCalled()
 
     it "when no file is selected, does nothing", ->
       spyOn(atom, 'open')
