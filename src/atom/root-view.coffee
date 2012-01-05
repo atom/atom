@@ -43,5 +43,5 @@ class RootView extends Template
           @fileFinder = FileFinder.build
             urls: relativePaths
             selected: (relativePath) => @editor.setBuffer(@project.open(relativePath))
-          @addPane(@fileFinder)
+          @addPane @fileFinder
           @fileFinder.input.focus()
