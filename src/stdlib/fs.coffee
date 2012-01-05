@@ -25,7 +25,11 @@ module.exports =
   # Return the dirname of the given path. That is the path with any trailing 
   # non-directory component removed.
   directory: (path) ->
-    @absolute(path).replace(new RegExp(@base(path) + '$'), '')
+    absPath = @absolute(path)
+    if @isDirectory(absPath)
+      absPath.replace(/\/?$/, '/')
+    else
+      absPath.replace(new RegExp("/#{@base(path)}$"), '/')
 
   # Returns true if the file specified by path exists
   exists: (path) ->
