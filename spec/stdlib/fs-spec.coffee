@@ -11,6 +11,12 @@ describe "fs", ->
         expect(fs.directory(require.resolve('fixtures/dir'))).toBe require.resolve('fixtures/dir/')
         expect(fs.directory(require.resolve('fixtures/dir/'))).toBe require.resolve('fixtures/dir/')
 
+  describe ".join(paths...)", ->
+    it "concatenates the given paths with the directory seperator", ->
+      expect(fs.join('a')).toBe 'a'
+      expect(fs.join('a', 'b', 'c')).toBe 'a/b/c'
+      expect(fs.join('/a/b/', 'c', 'd')).toBe '/a/b/c/d'
+      expect(fs.join('a', 'b/c/', 'd/')).toBe 'a/b/c/d/'
 
   describe ".async", ->
     describe ".listFiles(directoryPath, recursive)", ->
