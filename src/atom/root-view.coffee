@@ -24,7 +24,7 @@ class RootView extends Template
 
       if url
         @project = new Project(fs.directory(url))
-        @editor.setBuffer(new Buffer(url)) if fs.isFile(url)
+        @editor.setBuffer(@project.open(url)) if fs.isFile(url)
 
     addPane: (view) ->
       pane = $('<div class="pane">')
@@ -42,8 +42,6 @@ class RootView extends Template
           relativePaths = (path.replace(@project.url, "") for path in paths)
           @fileFinder = FileFinder.build
             urls: relativePaths
-            selected: (relativePath) =>
-              buffer = new Buffer(@project.url + relativePath)
-              @editor.setBuffer buffer
+            selected: (relativePath) => @editor.setBuffer(@project.open(relativePath))
           @addPane(@fileFinder)
           @fileFinder.input.focus()
