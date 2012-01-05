@@ -9,6 +9,8 @@ describe "App", ->
 
   afterEach ->
     window.close() for window in app.windows()
+    waitsFor ->
+      app.windows().length == 0
 
   describe "open", ->
     describe "when opening a filePath", ->
