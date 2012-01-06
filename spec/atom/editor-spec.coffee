@@ -37,6 +37,18 @@ describe "Editor", ->
       fileContents = fs.read(filePath)
       expect(editor.getAceSession().getValue()).toBe fileContents
 
+    it "restores the ace edit session for a previously assigned buffer", ->
+      buffer = new Buffer filePath
+      editor.setBuffer buffer
+
+      aceSession = editor.getAceSession()
+
+      editor.setBuffer new Buffer(tempFilePath)
+      expect(editor.getAceSession()).not.toBe(aceSession)
+
+      editor.setBuffer(buffer)
+      expect(editor.getAceSession()).toBe aceSession
+
     it "sets the language mode based on the file extension", ->
       buffer = new Buffer "something.js"
       editor.setBuffer buffer

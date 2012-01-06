@@ -4,17 +4,19 @@ Buffer = require 'buffer'
 module.exports =
 
 class Project
+  buffers: null
+
   constructor: (@url) ->
+    @buffers = {}
 
   getFilePaths: ->
     fs.async.listFiles(@url, true)
 
   open: (filePath) ->
-    new Buffer(@resolve(filePath))
+    filePath = @resolve filePath
+    @buffers[filePath] ?= new Buffer(filePath)
 
   resolve: (filePath) ->
-    if filePath[0] == '/'
-      filePath
-    else
-      fs.join(@url, filePath)
+    filePath = fs.join(@url, filePath) unless filePath[0] == '/'
+    fs.absolute filePath
 

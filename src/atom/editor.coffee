@@ -14,6 +14,7 @@ class Editor extends Template
     buffer: null
 
     initialize: () ->
+      @aceSessions = {}
       @buildAceEditor()
       @setBuffer(new Buffer)
 
@@ -24,8 +25,10 @@ class Editor extends Template
       @aceEditor.destroy()
 
     setBuffer: (@buffer) ->
-      session = new EditSession(@buffer.aceDocument, @buffer.getMode())
-      @aceEditor.setSession(session)
+      @aceEditor.setSession @getAceSessionForBuffer(buffer)
+
+    getAceSessionForBuffer: (buffer) ->
+      @aceSessions[@buffer.url] ?= new EditSession(@buffer.aceDocument, @buffer.getMode())
 
     buildAceEditor: ->
       @aceEditor = ace.edit this[0]
