@@ -6,5 +6,8 @@ class Project
   constructor: (@url) ->
 
   getFilePaths: ->
-    fs.async.listFiles(@url, true)
+    projectUrl = @url
+    fs.async.list(@url, true).pipe (urls) ->
+      urls = (url.replace(projectUrl, "") for url in urls when fs.isFile(url))
+      urls
 
