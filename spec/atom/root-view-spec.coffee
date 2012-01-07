@@ -4,11 +4,13 @@ RootView = require 'root-view'
 
 describe "RootView", ->
   rootView = null
+  project = null
   url = null
 
   beforeEach ->
     url = require.resolve 'fixtures/dir/a'
     rootView = RootView.build {url}
+    project = rootView.project
 
   describe "initialize", ->
     describe "when called with a url that references a file", ->
@@ -49,11 +51,17 @@ describe "RootView", ->
           rootView.toggleFileFinder()
           expect(rootView.find('.file-finder')).not.toExist()
 
-      it "shows all urls for the current project", ->
+      it "shows all relative file paths for the current project", ->
         waitsForPromise ->
           rootView.toggleFileFinder()
-        runs ->
-          expect(rootView.fileFinder.urlList.children('li').length).toBe 3
+
+        waitsForPromise ->
+          project.getFilePaths().done (paths) ->
+            expect(rootView.fileFinder.urlList.children('li').length).toBe paths.length
+
+            for path in paths
+              relativePath = path.replace(project.url, '')
+              expect(rootView.fileFinder.urlList.find("li:contains(#{relativePath}):not(:contains(#{project.url}))")).toExist()
 
     describe "when there is no project", ->
       beforeEach ->
@@ -64,4 +72,15 @@ describe "RootView", ->
         expect(rootView.find('.file-finder')).not.toExist()
         rootView.toggleFileFinder()
         expect(rootView.find('.file-finder')).not.toExist()
+
+  describe "when a path is selected in the file finder", ->
+    it "opens the file associated with that path in the editor", ->
+      waitsForPromise -> rootView.toggleFileFinder()
+      runs ->
+        firstLi = rootView.fileFinder.find('li:first')
+        rootView.fileFinder.select()
+        expect(rootView.editor.buffer.url).toBe(project.url + firstLi.text())
+
+
+
 

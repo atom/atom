@@ -2,6 +2,7 @@ $ = require 'jquery'
 fs = require 'fs'
 
 Template = require 'template'
+Buffer = require 'buffer'
 Editor = require 'editor'
 FileFinder = require 'file-finder'
 Project = require 'project'
@@ -23,7 +24,7 @@ class RootView extends Template
 
       if url
         @project = new Project(fs.directory(url))
-        @editor.open(url) if fs.isFile(url)
+        @editor.setBuffer(@project.open(url)) if fs.isFile(url)
 
     addPane: (view) ->
       pane = $('<div class="pane">')
@@ -37,7 +38,10 @@ class RootView extends Template
         @fileFinder.remove()
         @fileFinder = null
       else
-        @project.getFilePaths().done (urls) =>
-          @fileFinder = FileFinder.build({urls, selected: (url) => @editor.open(url)})
-          @addPane(@fileFinder)
+        @project.getFilePaths().done (paths) =>
+          relativePaths = (path.replace(@project.url, "") for path in paths)
+          @fileFinder = FileFinder.build
+            urls: relativePaths
+            selected: (relativePath) => @editor.setBuffer(@project.open(relativePath))
+          @addPane @fileFinder
           @fileFinder.input.focus()

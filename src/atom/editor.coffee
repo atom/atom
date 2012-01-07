@@ -12,11 +12,11 @@ class Editor extends Template
   viewProperties:
     aceEditor: null
     buffer: null
-    editorElement: null
 
     initialize: () ->
+      @aceSessions = {}
       @buildAceEditor()
-      @open()
+      @setBuffer(new Buffer)
 
     shutdown: ->
       @destroy()
@@ -24,10 +24,11 @@ class Editor extends Template
     destroy: ->
       @aceEditor.destroy()
 
-    open: (url) ->
-      @buffer = new Buffer(url)
-      session = new EditSession(@buffer.aceDocument, @buffer.getMode())
-      @aceEditor.setSession(session)
+    setBuffer: (@buffer) ->
+      @aceEditor.setSession @getAceSessionForBuffer(buffer)
+
+    getAceSessionForBuffer: (buffer) ->
+      @aceSessions[@buffer.url] ?= new EditSession(@buffer.aceDocument, @buffer.getMode())
 
     buildAceEditor: ->
       @aceEditor = ace.edit this[0]

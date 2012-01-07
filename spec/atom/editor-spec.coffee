@@ -1,3 +1,4 @@
+Buffer = require 'buffer'
 Editor = require 'editor'
 $ = require 'jquery'
 ck = require 'coffeekup'
@@ -12,7 +13,6 @@ describe "Editor", ->
   beforeEach ->
     filePath = require.resolve 'fixtures/sample.txt'
     tempFilePath = '/tmp/temp.txt'
-    spyOn(Editor.prototype.viewProperties, 'open').andCallThrough()
     editor = Editor.build()
 
   afterEach ->
@@ -29,41 +29,45 @@ describe "Editor", ->
       editor.destroy()
       expect(editor.aceEditor.destroy).toHaveBeenCalled()
 
-  describe "open(url)", ->
-    describe "when called with a url", ->
-      it "loads a buffer for the given url into the editor", ->
-        editor.open(filePath)
-        fileContents = fs.read(filePath)
-        expect(editor.getAceSession().getValue()).toBe fileContents
-        expect(editor.buffer.url).toBe(filePath)
-        expect(editor.buffer.getText()).toEqual fileContents
+  describe "setBuffer(buffer)", ->
+    it "sets the document on the aceSession", ->
+      buffer = new Buffer filePath
+      editor.setBuffer buffer
 
-      it "sets the mode on the session based on the file extension", ->
-        editor.open('something.js')
-        expect(editor.getAceSession().getMode().name).toBe 'javascript'
+      fileContents = fs.read(filePath)
+      expect(editor.getAceSession().getValue()).toBe fileContents
 
-        editor.open('something.text')
-        expect(editor.getAceSession().getMode().name).toBe 'text'
+    it "restores the ace edit session for a previously assigned buffer", ->
+      buffer = new Buffer filePath
+      editor.setBuffer buffer
 
-    describe "when called with null", ->
-      it "loads an empty buffer with no url", ->
-        editor.open()
-        expect(editor.getAceSession().getValue()).toBe ""
-        expect(editor.buffer.url).toBeUndefined()
-        expect(editor.buffer.getText()).toEqual ""
+      aceSession = editor.getAceSession()
+
+      editor.setBuffer new Buffer(tempFilePath)
+      expect(editor.getAceSession()).not.toBe(aceSession)
+
+      editor.setBuffer(buffer)
+      expect(editor.getAceSession()).toBe aceSession
+
+    it "sets the language mode based on the file extension", ->
+      buffer = new Buffer "something.js"
+      editor.setBuffer buffer
+
+      expect(editor.getAceSession().getMode().name).toBe 'javascript'
 
   describe "when the text is changed via the ace editor", ->
     it "updates the buffer text", ->
-      editor.open(filePath)
-      expect(editor.buffer.getText()).not.toMatch /^.ooo/
+      buffer = new Buffer(filePath)
+      editor.setBuffer(buffer)
+      expect(buffer.getText()).not.toMatch /^.ooo/
       editor.getAceSession().insert {row: 0, column: 1}, 'ooo'
-      expect(editor.buffer.getText()).toMatch /^.ooo/
+      expect(buffer.getText()).toMatch /^.ooo/
 
   describe "save", ->
     describe "when the current buffer has a url", ->
       beforeEach ->
-        editor.open tempFilePath
-        expect(editor.buffer.url).toBe tempFilePath
+        buffer = new Buffer(tempFilePath)
+        editor.setBuffer(buffer)
 
       it "saves the current buffer to disk", ->
         editor.buffer.setText 'Edited buffer!'

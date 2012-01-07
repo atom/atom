@@ -35,6 +35,11 @@ module.exports =
   exists: (path) ->
     OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory path, null
 
+  join: (paths...) ->
+    return paths[0] if paths.length == 1
+    [first, rest...] = paths
+    first.replace(/\/?$/, "/") + @join(rest...)
+
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
