@@ -20,6 +20,8 @@ class CommandMap
     ';': 186, '\'': 222,
     '[': 219, ']': 221, '\\': 220
 
+  inputTimeout: 200
+
   constructor: (@delegate) ->
     @mappings = {}
     @bufferedEvents = []
@@ -28,16 +30,35 @@ class CommandMap
     @mappings[pattern] = action
 
   handleKeyEvent: (event) ->
+    window.clearTimeout(@inputTimeoutHandle) if @inputTimeoutHandle
     @bufferedEvents.push(event)
 
+    candidatePatterns =
+      (pattern for pattern of @mappings when @keyEventsMatchPatternPrefix(@bufferedEvents, pattern))
+
+    if candidatePatterns.length > 1
+      @inputTimeoutHandle = _.delay (=> @triggerActionForBufferedKeyEvents()), @inputTimeout
+    else if candidatePatterns.length == 1
+      @triggerActionForBufferedKeyEvents()
+    else
+      @clearBufferedEvents()
+
+  triggerActionForBufferedKeyEvents: ->
     for pattern, action of @mappings
       if @keyEventsMatchPattern(@bufferedEvents, pattern)
         @delegate[action](event)
+        @clearBufferedEvents()
 
   keyEventsMatchPattern: (events, pattern) ->
     patternKeys = @parseKeyPattern(pattern)
     return false unless events.length == patternKeys.length
     _.all(_.zip(events, patternKeys), ([event, pattern]) -> 
+      event.which == pattern.which)
+
+  keyEventsMatchPatternPrefix: (events, pattern) ->
+    patternKeys = @parseKeyPattern(pattern)
+    return false if events.length > patternKeys.length
+    _.all(_.zip(events, patternKeys[0...events.length]), ([event, pattern]) -> 
       event.which == pattern.which)
 
   parseKeyPattern: (pattern) ->
