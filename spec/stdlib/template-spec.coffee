@@ -95,10 +95,10 @@ describe "Template", ->
           view.someMethod = jasmine.createSpy('someMethod')
           view.li1.bindKey 'ctrl+m', 'someMethod'
 
-          view.li1.trigger window.createKeyEvent('meta+z')
+          view.li1.trigger window.keydownEvent('meta+z')
           expect(view.someMethod).not.toHaveBeenCalled()
 
-          view.li1.trigger window.createKeyEvent('ctrl+m')
+          view.li1.trigger window.keydownEvent('ctrl+m')
           expect(view.someMethod).toHaveBeenCalled()
 
       describe "when passed a key pattern and a function", ->
@@ -106,9 +106,9 @@ describe "Template", ->
           action = jasmine.createSpy('someMethod')
           view.li1.bindKey 'ctrl+m', action
 
-          view.li1.trigger window.createKeyEvent('meta+z')
+          view.li1.trigger window.keydownEvent('meta+z')
           expect(action).not.toHaveBeenCalled()
 
-          view.li1.trigger window.createKeyEvent('ctrl+m')
+          view.li1.trigger window.keydownEvent('ctrl+m')
           expect(action).toHaveBeenCalled()
 

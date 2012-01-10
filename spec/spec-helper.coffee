@@ -8,15 +8,11 @@ afterEach ->
 
 window.atom = new (require 'app')
 
-window.keydown = (pattern) ->
-  console.log @createKeyEvent(pattern)
-  $(document).trigger @createKeyEvent(pattern)
-
-window.createKeyEvent = (pattern) ->
-  $.Event "keydown", atom.keyBinder.parseKeyPattern(pattern)
-
 window.keypressEvent = (pattern, properties={}) ->
   $.Event "keypress", _.extend(atom.keyBinder.parseKeyPattern(pattern), properties)
+
+window.keydownEvent = (pattern, properties={}) ->
+  $.Event "keydown", _.extend(atom.keyBinder.parseKeyPattern(pattern), properties)
 
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->

@@ -6,10 +6,10 @@ describe "KeyBinder", ->
 
   describe 'keyEventMatchesPattern', ->
     expectMatch = (pattern) ->
-      expect(keyBinder.keyEventMatchesPattern(window.createKeyEvent(pattern), pattern)).toBeTruthy()
+      expect(keyBinder.keyEventMatchesPattern(window.keydownEvent(pattern), pattern)).toBeTruthy()
 
     expectNoMatch = (eventPattern, patternToTest) ->
-      event = window.createKeyEvent(eventPattern)
+      event = window.keydownEvent(eventPattern)
       expect(keyBinder.keyEventMatchesPattern(event, patternToTest)).toBeFalsy()
 
     it 'returns true if the modifiers and letter in the pattern match the key event', ->

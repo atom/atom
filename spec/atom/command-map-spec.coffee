@@ -8,9 +8,9 @@ describe "CommandMap", ->
   y = null
 
   beforeEach ->
-    d = createKeyEvent 'd'
-    a = createKeyEvent 'a'
-    y = createKeyEvent 'y'
+    d = keydownEvent 'd'
+    a = keydownEvent 'a'
+    y = keydownEvent 'y'
     delegate = {
       action1: jasmine.createSpy('action1')
       action2: jasmine.createSpy('action2')
@@ -23,10 +23,10 @@ describe "CommandMap", ->
         commandMap.mapKey 'd', 'action1'
 
       it "calls the named method on the delegate with the given event when the event matches the pattern", ->
-        commandMap.handleKeyEvent createKeyEvent('z')
+        commandMap.handleKeyEvent keydownEvent('z')
         expect(delegate.action1).not.toHaveBeenCalled()
 
-        event = createKeyEvent 'd'
+        event = keydownEvent 'd'
         commandMap.handleKeyEvent event
         expect(delegate.action1).toHaveBeenCalled()
 
