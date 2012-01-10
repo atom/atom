@@ -12,8 +12,12 @@ class KeyEventHandler
     @bindingSets.push(new BindingSet(selector, bindings))
 
   handleKeypress: (event) ->
-    for bindingSet in @bindingSets
-      if command = bindingSet.commandForEvent(event)
-        $(event.target).trigger(command)
-        return
+    currentNode = event.target
+    while currentNode
+      for bindingSet in @bindingSets
+        if $(currentNode).is(bindingSet.selector)
+          if command = bindingSet.commandForEvent(event)
+            $(event.target).trigger(command)
+            return
+      currentNode = currentNode.parentNode
 

@@ -7,7 +7,7 @@ describe "KeyEventHandler", ->
   beforeEach ->
     handler = new KeyEventHandler
 
-  describe "handleKeypress", ->
+  fdescribe "handleKeypress", ->
     fragment = null
     deleteCharHandler = null
     insertCharHandler = null
@@ -18,7 +18,9 @@ describe "KeyEventHandler", ->
 
       fragment = $ """
         <div class="command-mode">
-          <div class="descendant-node"/>
+          <div class="child-node">
+            <div class="grandchild-node"/>
+          </div>
         </div>
       """
 
@@ -42,7 +44,7 @@ describe "KeyEventHandler", ->
 
     describe "when the event's target node *descends* from a selector with a matching binding", ->
       it "triggers the command event associated with that binding on the target node", ->
-        target = fragment.find('.descendant-node')[0]
+        target = fragment.find('.child-node')[0]
         handler.handleKeypress(keypressEvent('x', target: target))
         expect(deleteCharHandler).toHaveBeenCalled()
         expect(insertCharHandler).not.toHaveBeenCalled()
@@ -53,4 +55,16 @@ describe "KeyEventHandler", ->
         handler.handleKeypress(keypressEvent('x', target: target))
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).toHaveBeenCalled()
+
+    describe "when the event's target node descends from *multiple* selectors with a matching binding", ->
+      it "only triggers bindings on selectors associated with the closest ancestor node", ->
+        handler.bindKeys '.child-node', 'x': 'foo'
+        fooHandler = jasmine.createSpy 'fooHandler'
+        fragment.on 'foo', fooHandler
+
+        target = fragment.find('.grandchild-node')[0]
+        handler.handleKeypress(keypressEvent('x', target: target))
+        expect(fooHandler).toHaveBeenCalled()
+        expect(deleteCharHandler).not.toHaveBeenCalled()
+        expect(insertCharHandler).not.toHaveBeenCalled()
 

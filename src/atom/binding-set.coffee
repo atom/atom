@@ -15,9 +15,8 @@ class BindingSet
   constructor: (@selector, @bindings) ->
 
   commandForEvent: (event) ->
-    if @selectorMatchesEvent(event)
-      for pattern, command of @bindings
-        return command if @eventMatchesPattern(event, pattern)
+    for pattern, command of @bindings
+      return command if @eventMatchesPattern(event, pattern)
     null
 
   eventMatchesPattern: (event, pattern) ->
@@ -43,11 +42,4 @@ class BindingSet
     metaKey: 'meta' in modifiers
     which: charCode
     key: key
-
-  selectorMatchesEvent: (event) ->
-    currentNode = event.target
-    while currentNode
-      return true if $(currentNode).is(@selector)
-      currentNode = currentNode.parentNode
-    false
 
