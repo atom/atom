@@ -81,6 +81,15 @@ describe "RootView", ->
         rootView.fileFinder.select()
         expect(rootView.editor.buffer.url).toBe(project.url + firstLi.text())
 
+  describe "when a key is typed in the editor that has a binding in the keymap", ->
+    it "triggers the key binding's command as an event and does not insert a character", ->
+      rootView.keyEventHandler.bindKeys('.editor', 'x': 'fooCommand')
 
+      fooCommandHandler = jasmine.createSpy('fooCommandHandler')
+      rootView.editor.on('fooCommand', fooCommandHandler)
 
+      event = keydownEvent 'x', target: rootView.find('textarea')[0]
+      rootView.editor.aceEditor.onCommandKey event, 0, event.which
+
+      expect(fooCommandHandler).toHaveBeenCalled()
 

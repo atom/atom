@@ -12,9 +12,9 @@ class KeyEventHandler
   bindKeys: (selector, bindings) ->
     @bindingSets.push(new BindingSet(selector, bindings))
 
-  handleKeypress: (event) ->
+  handleKeyEvent: (event) ->
     currentNode = $(event.target)
-    while currentNode
+    while currentNode isnt document
       candidateBindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
       candidateBindingSets.sort (a, b) -> b.specificity - a.specificity
       for bindingSet in candidateBindingSets

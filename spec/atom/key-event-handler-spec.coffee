@@ -7,7 +7,7 @@ describe "KeyEventHandler", ->
   beforeEach ->
     handler = new KeyEventHandler
 
-  describe "handleKeypress", ->
+  describe "handleKeyEvent", ->
     fragment = null
     deleteCharHandler = null
     insertCharHandler = null
@@ -31,28 +31,28 @@ describe "KeyEventHandler", ->
 
     describe "when the event's target node matches a selector with a matching binding", ->
       it "triggers the command event associated with that binding on the target node", ->
-        handler.handleKeypress(keypressEvent('x', target: fragment[0]))
+        handler.handleKeyEvent(keypressEvent('x', target: fragment[0]))
         expect(deleteCharHandler).toHaveBeenCalled()
         expect(insertCharHandler).not.toHaveBeenCalled()
 
         deleteCharHandler.reset()
         fragment.removeClass('command-mode').addClass('insert-mode')
 
-        handler.handleKeypress(keypressEvent('x', target: fragment[0]))
+        handler.handleKeyEvent(keypressEvent('x', target: fragment[0]))
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).toHaveBeenCalled()
 
     describe "when the event's target node *descends* from a selector with a matching binding", ->
       it "triggers the command event associated with that binding on the target node", ->
         target = fragment.find('.child-node')[0]
-        handler.handleKeypress(keypressEvent('x', target: target))
+        handler.handleKeyEvent(keypressEvent('x', target: target))
         expect(deleteCharHandler).toHaveBeenCalled()
         expect(insertCharHandler).not.toHaveBeenCalled()
 
         deleteCharHandler.reset()
         fragment.removeClass('command-mode').addClass('insert-mode')
 
-        handler.handleKeypress(keypressEvent('x', target: target))
+        handler.handleKeyEvent(keypressEvent('x', target: target))
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).toHaveBeenCalled()
 
@@ -63,7 +63,7 @@ describe "KeyEventHandler", ->
         fragment.on 'foo', fooHandler
 
         target = fragment.find('.grandchild-node')[0]
-        handler.handleKeypress(keypressEvent('x', target: target))
+        handler.handleKeyEvent(keypressEvent('x', target: target))
         expect(fooHandler).toHaveBeenCalled()
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).not.toHaveBeenCalled()
@@ -82,7 +82,7 @@ describe "KeyEventHandler", ->
         fragment.on 'baz', bazHandler
 
         target = fragment.find('.grandchild-node')[0]
-        handler.handleKeypress(keypressEvent('x', target: target))
+        handler.handleKeyEvent(keypressEvent('x', target: target))
 
         expect(fooHandler).not.toHaveBeenCalled()
         expect(barHandler).not.toHaveBeenCalled()

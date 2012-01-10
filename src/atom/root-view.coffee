@@ -6,6 +6,7 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 FileFinder = require 'file-finder'
 Project = require 'project'
+KeyEventHandler = require 'key-event-handler'
 
 module.exports =
 class RootView extends Template
@@ -17,7 +18,11 @@ class RootView extends Template
           @subview 'editor', Editor.build()
 
   viewProperties:
+    keyEventHandler: null
+
     initialize: ({url}) ->
+      @keyEventHandler = new KeyEventHandler
+      @editor.keyEventHandler = @keyEventHandler
       @bindKey 'meta+s', => @editor.save()
       @bindKey 'meta+w', => window.close()
       @bindKey 'meta+t', => @toggleFileFinder()
