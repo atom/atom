@@ -1,5 +1,6 @@
 $ = require 'jquery'
 BindingSet = require 'binding-set'
+Specificity = require 'specificity'
 
 module.exports =
 class KeyEventHandler
@@ -12,12 +13,13 @@ class KeyEventHandler
     @bindingSets.push(new BindingSet(selector, bindings))
 
   handleKeypress: (event) ->
-    currentNode = event.target
+    currentNode = $(event.target)
     while currentNode
-      for bindingSet in @bindingSets
-        if $(currentNode).is(bindingSet.selector)
-          if command = bindingSet.commandForEvent(event)
-            $(event.target).trigger(command)
-            return
-      currentNode = currentNode.parentNode
+      candidateBindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
+      candidateBindingSets.sort (a, b) -> b.specificity - a.specificity
+      for bindingSet in candidateBindingSets
+        if command = bindingSet.commandForEvent(event)
+          $(event.target).trigger(command)
+          return
+      currentNode = currentNode.parent()
 

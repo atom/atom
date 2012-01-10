@@ -1,4 +1,5 @@
 $ = require 'jquery'
+Specificity = require 'specificity'
 
 module.exports =
 class BindingSet
@@ -13,6 +14,7 @@ class BindingSet
   bindings: null
 
   constructor: (@selector, @bindings) ->
+    @specificity = Specificity(@selector)
 
   commandForEvent: (event) ->
     for pattern, command of @bindings

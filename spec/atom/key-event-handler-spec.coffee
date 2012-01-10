@@ -7,7 +7,7 @@ describe "KeyEventHandler", ->
   beforeEach ->
     handler = new KeyEventHandler
 
-  fdescribe "handleKeypress", ->
+  describe "handleKeypress", ->
     fragment = null
     deleteCharHandler = null
     insertCharHandler = null
@@ -68,3 +68,22 @@ describe "KeyEventHandler", ->
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).not.toHaveBeenCalled()
 
+    describe "when the event bubbles to a node that matches multiple selectors", ->
+      it "triggers the binding for the most specific selector", ->
+        handler.bindKeys 'div .child-node', 'x': 'foo'
+        handler.bindKeys '.command-mode .child-node', 'x': 'baz'
+        handler.bindKeys '.child-node', 'x': 'bar'
+
+        fooHandler = jasmine.createSpy 'fooHandler'
+        barHandler = jasmine.createSpy 'barHandler'
+        bazHandler = jasmine.createSpy 'bazHandler'
+        fragment.on 'foo', fooHandler
+        fragment.on 'bar', barHandler
+        fragment.on 'baz', bazHandler
+
+        target = fragment.find('.grandchild-node')[0]
+        handler.handleKeypress(keypressEvent('x', target: target))
+
+        expect(fooHandler).not.toHaveBeenCalled()
+        expect(barHandler).not.toHaveBeenCalled()
+        expect(bazHandler).toHaveBeenCalled()
