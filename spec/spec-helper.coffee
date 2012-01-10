@@ -15,6 +15,9 @@ window.keydown = (pattern) ->
 window.createKeyEvent = (pattern) ->
   $.Event "keydown", atom.keyBinder.parseKeyPattern(pattern)
 
+window.keypressEvent = (pattern, properties={}) ->
+  $.Event "keypress", _.extend(atom.keyBinder.parseKeyPattern(pattern), properties)
+
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->
     fn().done(moveOn)
