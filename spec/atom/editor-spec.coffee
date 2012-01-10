@@ -106,3 +106,47 @@ describe "Editor", ->
 
           expect(fs.exists(selectedFilePath)).toBeFalsy()
 
+  describe "when a keydown event is handled by the ace editor", ->
+    returnValue = null
+    handler = null
+    event = null
+
+    beforeEach ->
+      event = keydownEvent 'x'
+      spyOn(event, 'stopPropagation')
+
+    describe "when no key event handler has been assigned", ->
+      beforeEach ->
+        expect(editor.keyEventHandler).toBeNull()
+
+      it "handles the event without crashing", ->
+        editor.aceEditor.onCommandKey event, 0, event.which
+
+    describe "when a key event handler has been assigned", ->
+      beforeEach ->
+        handler = {
+          handleKeyEvent: jasmine.createSpy('handleKeyEvent').andCallFake ->
+            returnValue
+        }
+        editor.keyEventHandler = handler
+
+      it "asks the key event handler to handle the event", ->
+        editor.aceEditor.onCommandKey event, 0, event.which
+        expect(handler.handleKeyEvent).toHaveBeenCalled()
+
+      describe "if the atom key event handler returns false, indicating that it did not handle the event", ->
+        beforeEach ->
+          returnValue = false
+
+        it "does not stop the propagation of the event, allowing Ace to handle it as normal", ->
+          editor.aceEditor.onCommandKey event, 0, event.which
+          expect(event.stopPropagation).not.toHaveBeenCalled()
+
+      describe "if the atom key event handler returns true, indicating that it handled the event", ->
+        beforeEach ->
+          returnValue = true
+
+        it "stops propagation of the event, so Ace does not attempt to handle it", ->
+          editor.aceEditor.onCommandKey event, 0, event.which
+          expect(event.stopPropagation).toHaveBeenCalled()
+
