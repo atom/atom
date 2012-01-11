@@ -63,7 +63,12 @@ describe "Editor", ->
       editor.getAceSession().insert {row: 0, column: 1}, 'ooo'
       expect(buffer.getText()).toMatch /^.ooo/
 
-  describe "save", ->
+  describe ".save()", ->
+    it "is triggered by the 'save' event", ->
+      spyOn(editor, 'save')
+      editor.trigger('save')
+      expect(editor.save).toHaveBeenCalled()
+
     describe "when the current buffer has a url", ->
       beforeEach ->
         buffer = new Buffer(tempFilePath)

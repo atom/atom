@@ -42,7 +42,3 @@ describe "Window", ->
 
         expect(handler).toHaveBeenCalled()
 
-    describe "menu items", ->
-      it "adds a Save item to the main menu after startup", ->
-        expect(OSX.NSApp.mainMenu.itemWithTitle('File').submenu.itemWithTitle('Save')).not.toBeNull()
-

@@ -23,9 +23,9 @@ class RootView extends Template
     initialize: ({url}) ->
       @globalKeymap = new GlobalKeymap
       @globalKeymap.bindKeys '*'
-        'meta+s': 'save'
-        'meta+w': 'close'
-        'meta+t': 'find-files'
+        'meta-s': 'save'
+        'meta-w': 'close'
+        'meta-t': 'find-files'
 
       @editor.keyEventHandler = @globalKeymap
 

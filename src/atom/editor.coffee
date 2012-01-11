@@ -18,6 +18,7 @@ class Editor extends Template
       @aceSessions = {}
       @buildAceEditor()
       @setBuffer(new Buffer)
+      @on 'save', => @save()
 
     shutdown: ->
       @destroy()

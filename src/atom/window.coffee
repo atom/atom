@@ -25,7 +25,8 @@ windowAdditions =
     $(window).unbind('blur')
 
   bindMenuItems: ->
-    @bindMenuItem "File > Save", "meta+s", => @rootView.editor.save()
+    # we want to integrate this better with keybindings
+    # @bindMenuItem "File > Save", "meta+s", => @rootView.editor.save()
 
   bindMenuItem: (path, pattern, action) ->
     @menuItemActions[path] = {action: action, pattern: pattern}
