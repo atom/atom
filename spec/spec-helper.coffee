@@ -18,3 +18,7 @@ window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->
     fn().done(moveOn)
 
+$.fn.resultOfTrigger = (type) ->
+  event = $.Event(type)
+  this.trigger(event)
+  event.result

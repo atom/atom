@@ -44,16 +44,16 @@ describe "RootView", ->
           expect(rootView.find('.file-finder')).not.toExist()
 
         waitsForPromise ->
-          rootView.toggleFileFinder()
+          rootView.resultOfTrigger 'toggle-file-finder'
 
         runs ->
           expect(rootView.find('.file-finder')).toExist()
-          rootView.toggleFileFinder()
+          rootView.trigger 'toggle-file-finder'
           expect(rootView.find('.file-finder')).not.toExist()
 
       it "shows all relative file paths for the current project", ->
         waitsForPromise ->
-          rootView.toggleFileFinder()
+          rootView.resultOfTrigger 'toggle-file-finder'
 
         waitsForPromise ->
           project.getFilePaths().done (paths) ->
@@ -70,12 +70,12 @@ describe "RootView", ->
       it "does not open the FileFinder", ->
         expect(rootView.editor.buffer.url).toBeUndefined()
         expect(rootView.find('.file-finder')).not.toExist()
-        rootView.toggleFileFinder()
+        rootView.trigger 'toggle-file-finder'
         expect(rootView.find('.file-finder')).not.toExist()
 
   describe "when a path is selected in the file finder", ->
     it "opens the file associated with that path in the editor", ->
-      waitsForPromise -> rootView.toggleFileFinder()
+      waitsForPromise -> rootView.resultOfTrigger 'toggle-file-finder'
       runs ->
         firstLi = rootView.fileFinder.find('li:first')
         rootView.fileFinder.select()

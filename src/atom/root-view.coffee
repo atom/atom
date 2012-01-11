@@ -11,8 +11,8 @@ GlobalKeymap = require 'global-keymap'
 module.exports =
 class RootView extends Template
   content: ->
-    @link rel: 'stylesheet', href: "#{require.resolve('atom.css')}?#{(new Date).getTime()}"
     @div id: 'app-horizontal', =>
+      @link rel: 'stylesheet', href: "#{require.resolve('atom.css')}?#{(new Date).getTime()}"
       @div id: 'app-vertical', outlet: 'vertical', =>
         @div id: 'main', outlet: 'main', =>
           @subview 'editor', Editor.build()
@@ -22,12 +22,15 @@ class RootView extends Template
 
     initialize: ({url}) ->
       @globalKeymap = new GlobalKeymap
+
+      @editor.keyEventHandler = @globalKeymap
+
       @globalKeymap.bindKeys '*'
         'meta-s': 'save'
         'meta-w': 'close'
-        'meta-t': 'find-files'
+        'meta-t': 'toggle-file-finder'
 
-      @editor.keyEventHandler = @globalKeymap
+      @on 'toggle-file-finder', (e) => @toggleFileFinder()
 
       if url
         @project = new Project(fs.directory(url))
