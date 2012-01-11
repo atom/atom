@@ -30,7 +30,10 @@ class BindingSet
       pattern.which == event.which
 
   parseKeyPattern: (pattern) ->
-    [modifiers..., key] = pattern.split '+'
+    pattern = pattern.replace(/<|>/g, "")
+    [modifiers..., key] = pattern.split '-'
+
+    modifiers.push 'shift' if key == key.toUpperCase() and key.toUpperCase() != key.toLowerCase()
 
     if @namedKeys[key]
       charCode = @namedKeys[key]
