@@ -2,6 +2,7 @@ nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
 Native = require 'native'
+BindingSet = require 'binding-set'
 
 afterEach ->
   (new Native).resetMainMenu()
@@ -9,10 +10,12 @@ afterEach ->
 window.atom = new (require 'app')
 
 window.keypressEvent = (pattern, properties={}) ->
-  $.Event "keypress", _.extend(atom.keyBinder.parseKeyPattern(pattern), properties)
+  bindingSet = new BindingSet("*", {})
+  $.Event "keypress", _.extend(bindingSet.parseKeyPattern(pattern), properties)
 
 window.keydownEvent = (pattern, properties={}) ->
-  $.Event "keydown", _.extend(atom.keyBinder.parseKeyPattern(pattern), properties)
+  bindingSet = new BindingSet("*", {})
+  $.Event "keydown", _.extend(bindingSet.parseKeyPattern(pattern), properties)
 
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->

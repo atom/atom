@@ -53,7 +53,8 @@ $.fn.view = ->
 
 $.fn.bindKey = (pattern, action) ->
   @on 'keydown', (event) =>
-    if atom.keyBinder.keyEventMatchesPattern(event, pattern)
+    bindingSet = new (require('binding-set'))("*", {})
+    if bindingSet.eventMatchesPattern(event, pattern)
       if _.isString(action)
         this.view()[action]()
       else

@@ -40,7 +40,7 @@ describe "Native", ->
       expect(item1).toBeDefined()
 
     it "adds a key equivalent to menu item when one is given", ->
-      nativeModule.addMenuItem('Submenu 1 > Item 1', "meta+r")
+      nativeModule.addMenuItem('Submenu 1 > Item 1', "meta-r")
 
       submenu1 = mainMenu.itemWithTitle('Submenu 1').submenu
       item1 = submenu1.itemWithTitle('Item 1')

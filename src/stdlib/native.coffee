@@ -51,10 +51,11 @@ class Native
     title = _.last(itemPathComponents)
     unless submenu.itemWithTitle(title)
       item = OSX.AtomMenuItem.alloc.initWithTitle_itemPath(title, itemPath).autorelease
-      item.setKeyEquivalentModifierMask 0 # Because it Cocoa defaults it to NSCommandKeyMask
+      item.setKeyEquivalentModifierMask 0 # Because in Cocoa defaults it to NSCommandKeyMask
 
       if keyPattern
-        keys = atom.keyBinder.parseKeyPattern keyPattern
+        bindingSet = new (require('binding-set'))("*", {})
+        keys = bindingSet.parseKeyPattern keyPattern
 
         modifierMask = (keys.metaKey and OSX.NSCommandKeyMask ) |
                        (keys.shiftKey and OSX.NSShiftKeyMask) |
