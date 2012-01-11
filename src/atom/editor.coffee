@@ -35,10 +35,9 @@ class Editor extends Template
     buildAceEditor: ->
       @aceEditor = ace.edit this[0]
       @aceEditor.setTheme(require "ace/theme/twilight")
-
       @aceEditor.setKeyboardHandler
-        handleKeyboard: (data, hashId, keyString, keyCode, e) =>
-          if @keyEventHandler?.handleKeyEvent(e)
+        handleKeyboard: (data, hashId, keyString, keyCode, event) =>
+          if event and @keyEventHandler?.handleKeyEvent(event)
             {command: {exec: ->}}
           else
             null

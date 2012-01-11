@@ -111,47 +111,62 @@ describe "Editor", ->
 
           expect(fs.exists(selectedFilePath)).toBeFalsy()
 
-  describe "when a keydown event is handled by the ace editor", ->
-    returnValue = null
+  describe "key event handling", ->
     handler = null
-    event = null
+    returnValue = null
 
     beforeEach ->
-      event = keydownEvent 'x'
-      spyOn(event, 'stopPropagation')
+      handler =
+        handleKeyEvent: jasmine.createSpy('handleKeyEvent').andCallFake ->
+          returnValue
 
-    describe "when no key event handler has been assigned", ->
+    describe "when onCommandKey is called on the aceEditor (triggered by a keydown event on the textarea)", ->
+      event = null
+
       beforeEach ->
-        expect(editor.keyEventHandler).toBeNull()
+        event = keydownEvent 'x'
+        spyOn(event, 'stopPropagation')
 
-      it "handles the event without crashing", ->
-        editor.aceEditor.onCommandKey event, 0, event.which
+      describe "when no key event handler has been assigned", ->
+        beforeEach ->
+          expect(editor.keyEventHandler).toBeNull()
 
-    describe "when a key event handler has been assigned", ->
-      beforeEach ->
-        handler = {
-          handleKeyEvent: jasmine.createSpy('handleKeyEvent').andCallFake ->
-            returnValue
-        }
+        it "handles the event without crashing", ->
+          editor.aceEditor.onCommandKey event, 0, event.which
+
+      describe "when a key event handler has been assigned", ->
+        beforeEach ->
+          editor.keyEventHandler = handler
+
+        it "asks the key event handler to handle the event", ->
+          editor.aceEditor.onCommandKey event, 0, event.which
+          expect(handler.handleKeyEvent).toHaveBeenCalled()
+
+        describe "if the atom key event handler returns false, indicating that it did not handle the event", ->
+          beforeEach ->
+            returnValue = false
+
+          it "does not stop the propagation of the event, allowing Ace to handle it as normal", ->
+            editor.aceEditor.onCommandKey event, 0, event.which
+            expect(event.stopPropagation).not.toHaveBeenCalled()
+
+        describe "if the atom key event handler returns true, indicating that it handled the event", ->
+          beforeEach ->
+            returnValue = true
+
+          it "stops propagation of the event, so Ace does not attempt to handle it", ->
+            editor.aceEditor.onCommandKey event, 0, event.which
+            expect(event.stopPropagation).toHaveBeenCalled()
+
+    describe "when onTextInput is called on the aceEditor (triggered by an input event)", ->
+      it "does not call handleKeyEvent on the key event handler, because there is no event", ->
         editor.keyEventHandler = handler
 
-      it "asks the key event handler to handle the event", ->
-        editor.aceEditor.onCommandKey event, 0, event.which
-        expect(handler.handleKeyEvent).toHaveBeenCalled()
+        editor.aceEditor.onTextInput("x", false)
 
-      describe "if the atom key event handler returns false, indicating that it did not handle the event", ->
-        beforeEach ->
-          returnValue = false
+        expect(handler.handleKeyEvent).not.toHaveBeenCalled()
 
-        it "does not stop the propagation of the event, allowing Ace to handle it as normal", ->
-          editor.aceEditor.onCommandKey event, 0, event.which
-          expect(event.stopPropagation).not.toHaveBeenCalled()
 
-      describe "if the atom key event handler returns true, indicating that it handled the event", ->
-        beforeEach ->
-          returnValue = true
 
-        it "stops propagation of the event, so Ace does not attempt to handle it", ->
-          editor.aceEditor.onCommandKey event, 0, event.which
-          expect(event.stopPropagation).toHaveBeenCalled()
+
 
