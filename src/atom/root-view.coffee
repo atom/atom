@@ -6,7 +6,7 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 FileFinder = require 'file-finder'
 Project = require 'project'
-KeyEventHandler = require 'key-event-handler'
+GlobalKeymap = require 'global-keymap'
 
 module.exports =
 class RootView extends Template
@@ -18,14 +18,16 @@ class RootView extends Template
           @subview 'editor', Editor.build()
 
   viewProperties:
-    keyEventHandler: null
+    globalKeymap: null
 
     initialize: ({url}) ->
-      @keyEventHandler = new KeyEventHandler
-      @editor.keyEventHandler = @keyEventHandler
-      @bindKey 'meta+s', => @editor.save()
-      @bindKey 'meta+w', => window.close()
-      @bindKey 'meta+t', => @toggleFileFinder()
+      @globalKeymap = new GlobalKeymap
+      @globalKeymap.bindKeys '*'
+        'meta+s': 'save'
+        'meta+w': 'close'
+        'meta+t': 'find-files'
+
+      @editor.keyEventHandler = @globalKeymap
 
       if url
         @project = new Project(fs.directory(url))

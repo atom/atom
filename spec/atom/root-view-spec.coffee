@@ -83,7 +83,7 @@ describe "RootView", ->
 
   describe "when a key is typed in the editor that has a binding in the keymap", ->
     it "triggers the key binding's command as an event and does not insert a character", ->
-      rootView.keyEventHandler.bindKeys('.editor', 'x': 'fooCommand')
+      rootView.globalKeymap.bindKeys('.editor', 'x': 'fooCommand')
 
       fooCommandHandler = jasmine.createSpy('fooCommandHandler')
       rootView.editor.on('fooCommand', fooCommandHandler)

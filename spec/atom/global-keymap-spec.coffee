@@ -1,11 +1,11 @@
-KeyEventHandler = require 'key-event-handler'
+GlobalKeymap = require 'global-keymap'
 $ = require 'jquery'
 
-describe "KeyEventHandler", ->
+describe "GlobalKeymap", ->
   handler = null
 
   beforeEach ->
-    handler = new KeyEventHandler
+    handler = new GlobalKeymap
 
   describe "handleKeyEvent", ->
     fragment = null
