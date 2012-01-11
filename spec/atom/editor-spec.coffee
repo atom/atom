@@ -142,17 +142,17 @@ describe "Editor", ->
           editor.aceEditor.onCommandKey event, 0, event.which
           expect(handler.handleKeyEvent).toHaveBeenCalled()
 
-        describe "if the atom key event handler returns false, indicating that it did not handle the event", ->
+        describe "if the atom key event handler returns true, indicating that it did not handle the event", ->
           beforeEach ->
-            returnValue = false
+            returnValue = true
 
           it "does not stop the propagation of the event, allowing Ace to handle it as normal", ->
             editor.aceEditor.onCommandKey event, 0, event.which
             expect(event.stopPropagation).not.toHaveBeenCalled()
 
-        describe "if the atom key event handler returns true, indicating that it handled the event", ->
+        describe "if the atom key event handler returns false, indicating that it handled the event", ->
           beforeEach ->
-            returnValue = true
+            returnValue = false
 
           it "stops propagation of the event, so Ace does not attempt to handle it", ->
             editor.aceEditor.onCommandKey event, 0, event.which

@@ -20,9 +20,9 @@ class GlobalKeymap
       for bindingSet in candidateBindingSets
         if command = bindingSet.commandForEvent(event)
           $(event.target).trigger(command)
-          return true
+          return false
       currentNode = currentNode.parent()
-    false
+    true
 
   reset: ->
     @BindingSets = []
