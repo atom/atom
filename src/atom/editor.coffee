@@ -55,3 +55,14 @@ class Editor extends Template
         @buffer.url = url
         @buffer.save()
 
+    setCursor: ({column, row}) ->
+      @aceEditor.moveCursorToPosition({column, row})
+
+    getCursor: ->
+      @getAceSession().getSelection().getCursor()
+
+    delete: ->
+      @aceEditor.remove 'right'
+
+
+

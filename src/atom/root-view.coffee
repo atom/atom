@@ -8,6 +8,7 @@ Editor = require 'editor'
 FileFinder = require 'file-finder'
 Project = require 'project'
 GlobalKeymap = require 'global-keymap'
+VimMode = require 'vim-mode'
 
 module.exports =
 class RootView extends Template
@@ -22,6 +23,7 @@ class RootView extends Template
     globalKeymap: null
 
     initialize: ({url}) ->
+      new VimMode(@editor)
       @editor.keyEventHandler = atom.globalKeymap
       @createProject(url)
 
