@@ -17,6 +17,7 @@ windowAdditions =
     $('body').append @rootView
     @registerEventHandlers()
     @bindMenuItems()
+    $(this).on 'close', => @close()
     $(window).focus()
 
   shutdown: ->

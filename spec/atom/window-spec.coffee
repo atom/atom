@@ -9,6 +9,12 @@ describe "Window", ->
     afterEach ->
       window.shutdown()
 
+    describe ".close()", ->
+      it "is triggered by the 'close' event", ->
+        spyOn window, 'close'
+        $(window).trigger 'close'
+        expect(window.close).toHaveBeenCalled()
+
     describe "bindMenuItem(path, keyPattern, action)", ->
       it "causes the given menu item to be added to the menu when the window is focused and removed when it is blurred", ->
         addedPaths = []
