@@ -22,21 +22,15 @@ class RootView extends Template
     globalKeymap: null
 
     initialize: ({url}) ->
-      @createGlobalKeymap()
+      @editor.keyEventHandler = atom.globalKeymap
       @createProject(url)
 
-      @bindKeys '*'
+      atom.bindKeys '*'
         'meta-s': 'save'
         'meta-w': 'close'
         'meta-t': 'toggle-file-finder'
 
       @on 'toggle-file-finder', => @toggleFileFinder()
-
-
-    createGlobalKeymap: ->
-      @globalKeymap = new GlobalKeymap
-      @on 'keydown', (e) => @globalKeymap.handleKeyEvent(e)
-      @editor.keyEventHandler = @globalKeymap
 
     createProject: (url) ->
       if url

@@ -10,6 +10,7 @@ describe "RootView", ->
   beforeEach ->
     url = require.resolve 'fixtures/dir/a'
     rootView = RootView.build {url}
+    rootView.enableKeymap()
     project = rootView.project
 
   describe "initialize", ->
@@ -86,7 +87,7 @@ describe "RootView", ->
     beforeEach ->
       commandHandler = jasmine.createSpy('commandHandler')
       rootView.on('foo-command', commandHandler)
-      rootView.globalKeymap.bindKeys('*', 'x': 'foo-command')
+      atom.globalKeymap.bindKeys('*', 'x': 'foo-command')
 
     describe "when a key is typed in the editor that has a binding in the keymap", ->
       it "triggers the key binding's command as an event and stops its propagation", ->
@@ -99,6 +100,7 @@ describe "RootView", ->
     describe "when a keydown event is triggered on the RootView (not originating from Ace)", ->
       it "triggers matching keybindings for that event", ->
         event = keydownEvent 'x', target: rootView[0]
+
         rootView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
 

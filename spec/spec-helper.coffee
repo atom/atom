@@ -6,6 +6,7 @@ BindingSet = require 'binding-set'
 
 afterEach ->
   (new Native).resetMainMenu()
+  atom.globalKeymap.reset()
 
 window.atom = new (require 'app')
 
@@ -25,3 +26,7 @@ $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)
   this.trigger(event)
   event.result
+
+$.fn.enableKeymap = ->
+  @on 'keydown', (e) => atom.globalKeymap.handleKeyEvent(e)
+

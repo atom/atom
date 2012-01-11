@@ -23,3 +23,6 @@ class GlobalKeymap
           return true
       currentNode = currentNode.parent()
     false
+
+  reset: ->
+    @BindingSets = []
