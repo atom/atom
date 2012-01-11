@@ -22,7 +22,7 @@ class RootView extends Template
 
     initialize: ({url}) ->
       @globalKeymap = new GlobalKeymap
-
+      @on 'keydown', (e) => @globalKeymap.handleKeyEvent(e)
       @editor.keyEventHandler = @globalKeymap
 
       @globalKeymap.bindKeys '*'
@@ -30,7 +30,7 @@ class RootView extends Template
         'meta-w': 'close'
         'meta-t': 'toggle-file-finder'
 
-      @on 'toggle-file-finder', (e) => @toggleFileFinder()
+      @on 'toggle-file-finder', => @toggleFileFinder()
 
       if url
         @project = new Project(fs.directory(url))

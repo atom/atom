@@ -161,12 +161,6 @@ describe "Editor", ->
     describe "when onTextInput is called on the aceEditor (triggered by an input event)", ->
       it "does not call handleKeyEvent on the key event handler, because there is no event", ->
         editor.keyEventHandler = handler
-
         editor.aceEditor.onTextInput("x", false)
-
         expect(handler.handleKeyEvent).not.toHaveBeenCalled()
-
-
-
-
 

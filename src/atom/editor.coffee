@@ -38,7 +38,7 @@ class Editor extends Template
       @aceEditor.setKeyboardHandler
         handleKeyboard: (data, hashId, keyString, keyCode, event) =>
           if event and @keyEventHandler?.handleKeyEvent(event)
-            {command: {exec: ->}}
+            { command: { exec: -> }}
           else
             null
 

@@ -81,15 +81,24 @@ describe "RootView", ->
         rootView.fileFinder.select()
         expect(rootView.editor.buffer.url).toBe(project.url + firstLi.text())
 
-  describe "when a key is typed in the editor that has a binding in the keymap", ->
-    it "triggers the key binding's command as an event and does not insert a character", ->
-      rootView.globalKeymap.bindKeys('.editor', 'x': 'fooCommand')
+  describe "global keymap wiring", ->
+    commandHandler = null
+    beforeEach ->
+      commandHandler = jasmine.createSpy('commandHandler')
+      rootView.on('foo-command', commandHandler)
+      rootView.globalKeymap.bindKeys('*', 'x': 'foo-command')
 
-      fooCommandHandler = jasmine.createSpy('fooCommandHandler')
-      rootView.editor.on('fooCommand', fooCommandHandler)
+    describe "when a key is typed in the editor that has a binding in the keymap", ->
+      it "triggers the key binding's command as an event and stops its propagation", ->
+        event = keydownEvent 'x', target: rootView.find('textarea')[0]
+        spyOn event, 'stopPropagation'
+        rootView.editor.aceEditor.onCommandKey event, 0, event.which
+        expect(commandHandler).toHaveBeenCalled()
+        expect(event.stopPropagation).toHaveBeenCalled()
 
-      event = keydownEvent 'x', target: rootView.find('textarea')[0]
-      rootView.editor.aceEditor.onCommandKey event, 0, event.which
-
-      expect(fooCommandHandler).toHaveBeenCalled()
+    describe "when a keydown event is triggered on the RootView (not originating from Ace)", ->
+      it "triggers matching keybindings for that event", ->
+        event = keydownEvent 'x', target: rootView[0]
+        rootView.trigger(event)
+        expect(commandHandler).toHaveBeenCalled()
 
