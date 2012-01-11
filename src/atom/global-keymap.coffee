@@ -14,7 +14,7 @@ class GlobalKeymap
 
   handleKeyEvent: (event) ->
     currentNode = $(event.target)
-    while currentNode isnt document
+    while currentNode.length
       candidateBindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
       candidateBindingSets.sort (a, b) -> b.specificity - a.specificity
       for bindingSet in candidateBindingSets
@@ -22,4 +22,4 @@ class GlobalKeymap
           $(event.target).trigger(command)
           return
       currentNode = currentNode.parent()
-
+    false
