@@ -32,29 +32,30 @@ describe 'FileFinder', ->
       expect(finder.urlList.children().length).toBe 1
       expect(finder.urlList.find('li:contains(atom/app.coffee)').length).toBe 1
 
-  describe "moveDown / moveUp", ->
+  describe "move-down / move-up events", ->
     it "selects the next / previous url in the list", ->
       expect(finder.find('li:eq(0)')).toHaveClass "selected"
       expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
 
-      finder.moveDown()
-      finder.moveDown()
+      finder.trigger 'move-down'
+      finder.trigger 'move-down'
 
       expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
       expect(finder.find('li:eq(2)')).toHaveClass "selected"
 
-      finder.moveUp()
+      finder.trigger 'move-up'
+
       expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
       expect(finder.find('li:eq(1)')).toHaveClass "selected"
       expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
 
     it "does not fall off the end or begining of the list", ->
       expect(finder.find('li:first')).toHaveClass "selected"
-      finder.moveUp()
+      finder.trigger 'move-up'
       expect(finder.find('li:first')).toHaveClass "selected"
 
       for i in [1..urls.length+10]
-        finder.moveDown()
+        finder.trigger 'move-down'
 
       expect(finder.find('li:last')).toHaveClass "selected"
 
@@ -67,7 +68,7 @@ describe 'FileFinder', ->
     it "when a file is selected Editor.open is called", ->
       spyOn(finder, 'remove')
       finder.moveDown()
-      finder.select()
+      finder.trigger 'select'
       expect(selectedCallback).toHaveBeenCalledWith(urls[1])
       expect(finder.remove).toHaveBeenCalled()
 
@@ -75,7 +76,7 @@ describe 'FileFinder', ->
       spyOn(atom, 'open')
       finder.input.val('this-will-match-nothing-hopefully')
       finder.populateUrlList()
-      finder.select()
+      finder.trigger 'select'
       expect(atom.open).not.toHaveBeenCalled()
 
   describe "findMatches(queryString)", ->

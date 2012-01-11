@@ -10,7 +10,7 @@ class App
   constructor: ->
     @native = new Native
     @globalKeymap = new GlobalKeymap
-    $(document).on 'keydown', (e) => console.log e; @globalKeymap.handleKeyEvent(e)
+    $(document).on 'keydown', (e) => @globalKeymap.handleKeyEvent(e)
 
   bindKeys: (selector, bindings) ->
     @globalKeymap.bindKeys(selector, bindings)

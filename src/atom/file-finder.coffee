@@ -5,8 +5,8 @@ stringScore = require 'stringscore'
 module.exports =
 class FileFinder extends Template
   content: ->
-    @link rel: 'stylesheet', href: "#{require.resolve('file-finder.css')}?#{(new Date).getTime()}"
     @div class: 'file-finder', =>
+      @link rel: 'stylesheet', href: "#{require.resolve('file-finder.css')}?#{(new Date).getTime()}"
       @ol outlet: 'urlList'
       @input outlet: 'input', input: 'populateUrlList'
 
@@ -18,9 +18,14 @@ class FileFinder extends Template
       @maxResults = 10
 
       @populateUrlList()
-      @bindKey 'up', 'moveUp'
-      @bindKey 'down', 'moveDown'
-      @bindKey 'enter', 'select'
+      atom.bindKeys ".file-finder",
+        'up': 'move-up'
+        'down': 'move-down'
+        'enter': 'select'
+
+      @on 'move-up', => @moveUp()
+      @on 'move-down', => @moveDown()
+      @on 'select', => @select()
 
     populateUrlList: ->
       @urlList.empty()

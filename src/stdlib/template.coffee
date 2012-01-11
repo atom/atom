@@ -51,12 +51,3 @@ class Template
 $.fn.view = ->
   this.data('view')
 
-$.fn.bindKey = (pattern, action) ->
-  @on 'keydown', (event) =>
-    bindingSet = new (require('binding-set'))("*", {})
-    if bindingSet.eventMatchesPattern(event, pattern)
-      if _.isString(action)
-        this.view()[action]()
-      else
-        action()
-

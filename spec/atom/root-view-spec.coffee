@@ -79,7 +79,7 @@ describe "RootView", ->
       waitsForPromise -> rootView.resultOfTrigger 'toggle-file-finder'
       runs ->
         firstLi = rootView.fileFinder.find('li:first')
-        rootView.fileFinder.select()
+        rootView.fileFinder.trigger 'select'
         expect(rootView.editor.buffer.url).toBe(project.url + firstLi.text())
 
   describe "global keymap wiring", ->
