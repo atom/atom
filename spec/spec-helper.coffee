@@ -7,6 +7,7 @@ BindingSet = require 'binding-set'
 afterEach ->
   (new Native).resetMainMenu()
   atom.globalKeymap.reset()
+  $('#jasmine-content').empty()
 
 window.atom = new (require 'app')
 

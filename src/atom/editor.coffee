@@ -37,13 +37,16 @@ class Editor extends Template
       @aceEditor.setTheme(require "ace/theme/twilight")
       @aceEditor.setKeyboardHandler
         handleKeyboard: (data, hashId, keyString, keyCode, event) =>
-          if event and @keyEventHandler?.handleKeyEvent(event)
+          if event and @keyEventHandler and @keyEventHandler.handleKeyEvent(event) == false
             { command: { exec: -> }}
           else
             null
 
     getAceSession: ->
       @aceEditor.getSession()
+
+    focus: ->
+      @aceEditor.focus()
 
     save: ->
       if @buffer.url

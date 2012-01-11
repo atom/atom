@@ -32,6 +32,9 @@ class RootView extends Template
 
       @on 'toggle-file-finder', => @toggleFileFinder()
 
+      @on 'focusout', (e) =>
+        @editor.focus() unless e.target is @editor.find('textarea')[0]
+
     createProject: (url) ->
       if url
         @project = new Project(fs.directory(url))
