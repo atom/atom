@@ -1,5 +1,6 @@
 $ = require 'jquery'
 fs = require 'fs'
+_ = require 'underscore'
 
 Template = require 'template'
 Buffer = require 'buffer'
@@ -21,20 +22,29 @@ class RootView extends Template
     globalKeymap: null
 
     initialize: ({url}) ->
-      @globalKeymap = new GlobalKeymap
-      @on 'keydown', (e) => @globalKeymap.handleKeyEvent(e)
-      @editor.keyEventHandler = @globalKeymap
+      @createGlobalKeymap()
+      @createProject(url)
 
-      @globalKeymap.bindKeys '*'
+      @bindKeys '*'
         'meta-s': 'save'
         'meta-w': 'close'
         'meta-t': 'toggle-file-finder'
 
       @on 'toggle-file-finder', => @toggleFileFinder()
 
+
+    createGlobalKeymap: ->
+      @globalKeymap = new GlobalKeymap
+      @on 'keydown', (e) => @globalKeymap.handleKeyEvent(e)
+      @editor.keyEventHandler = @globalKeymap
+
+    createProject: (url) ->
       if url
         @project = new Project(fs.directory(url))
         @editor.setBuffer(@project.open(url)) if fs.isFile(url)
+
+    bindKeys: (selector, bindings) ->
+      @globalKeymap.bindKeys(selector, bindings)
 
     addPane: (view) ->
       pane = $('<div class="pane">')

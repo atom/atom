@@ -7,6 +7,9 @@ class App
   constructor: ->
     @native = new Native
 
+  bindKeys: (selector, bindings) ->
+    window.rootView.bindKeys(selector, bindings)
+
   open: (url) ->
     OSX.NSApp.open url
 
