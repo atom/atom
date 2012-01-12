@@ -19,10 +19,20 @@ class GlobalKeymap
       candidateBindingSets.sort (a, b) -> b.specificity - a.specificity
       for bindingSet in candidateBindingSets
         if command = bindingSet.commandForEvent(event)
-          $(event.target).trigger(command)
+          @triggerCommandEvent(event, command)
           return false
       currentNode = currentNode.parent()
     true
 
   reset: ->
     @BindingSets = []
+
+  triggerCommandEvent: (keyEvent, commandName) ->
+    commandEvent = $.Event(commandName)
+    keyEvent.char = @charForKeyEvent(keyEvent)
+    commandEvent.keyEvent = keyEvent
+    $(keyEvent.target).trigger(commandEvent)
+
+  charForKeyEvent: (keyEvent) ->
+    String.fromCharCode(keyEvent.which).toLowerCase()
+

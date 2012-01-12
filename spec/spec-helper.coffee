@@ -11,13 +11,17 @@ afterEach ->
 
 window.atom = new (require 'app')
 
-window.keypressEvent = (pattern, properties={}) ->
+eventPropertiesFromPattern = (pattern) ->
   bindingSet = new BindingSet("*", {})
-  $.Event "keypress", _.extend(bindingSet.parseKeyPattern(pattern), properties)
+  parsedPattern = bindingSet.parseKeyPattern(pattern)
+  delete parsedPattern.key # key doesn't exist on browser-generated key events
+  parsedPattern
+
+window.keypressEvent = (pattern, properties={}) ->
+  $.Event "keypress", _.extend(eventPropertiesFromPattern(pattern), properties)
 
 window.keydownEvent = (pattern, properties={}) ->
-  bindingSet = new BindingSet("*", {})
-  $.Event "keydown", _.extend(bindingSet.parseKeyPattern(pattern), properties)
+  $.Event "keydown", _.extend(eventPropertiesFromPattern(pattern), properties)
 
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->

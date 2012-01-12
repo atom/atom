@@ -1,20 +1,23 @@
+_ = require 'underscore'
+$ = require 'jquery'
+{ NumericPrefix, DeleteChar } = require 'vim-mode-operators'
+
 module.exports =
 class VimMode
   editor: null
+  opStack: null
 
   constructor: (@editor) ->
-    atom.bindKeys '.command-mode'
-      'i': 'insert-mode:activate'
-      'x': 'command-mode:delete'
-
-    atom.bindKeys '.insert-mode'
-      '<esc>': 'command-mode:activate'
+    @opStack = []
+    atom.bindKeys '.command-mode', @commandModeBindings()
+    atom.bindKeys '.insert-mode', '<esc>': 'command-mode:activate'
 
     @editor.addClass('command-mode')
 
     @editor.on 'insert-mode:activate', => @activateInsertMode()
     @editor.on 'command-mode:activate', => @activateCommandMode()
-    @editor.on 'command-mode:delete', => @delete()
+    @editor.on 'command-mode:delete-char', => @deleteChar()
+    @editor.on 'command-mode:numeric-prefix', (e) => @numericPrefix(e)
 
   activateInsertMode: ->
     @editor.removeClass('command-mode')
@@ -24,5 +27,33 @@ class VimMode
     @editor.removeClass('insert-mode')
     @editor.addClass('command-mode')
 
-  delete: ->
-    @editor.delete()
+  deleteChar: ->
+    @pushOperator(new DeleteChar)
+
+  numericPrefix: (e) ->
+    @pushOperator(new NumericPrefix(e.keyEvent.char))
+
+  commandModeBindings: ->
+    bindings =
+      'i': 'insert-mode:activate'
+      'x': 'command-mode:delete-char'
+    for i in [0..9]
+      bindings[i] = 'command-mode:numeric-prefix'
+    bindings
+
+  pushOperator: (op) ->
+    @opStack.push(op)
+    @processOpStack()
+
+  processOpStack: ->
+    return unless @topOperator().isComplete()
+    poppedOperator = @opStack.pop()
+    if @opStack.length
+      @topOperator().compose(poppedOperator)
+      @processOpStack()
+    else
+      poppedOperator.execute(@editor)
+
+  topOperator: ->
+    _.last @opStack
+

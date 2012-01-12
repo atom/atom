@@ -23,7 +23,7 @@ describe "VimMode", ->
         expect(editor).toHaveClass 'insert-mode'
         expect(editor).not.toHaveClass 'command-mode'
 
-    fdescribe "the x keybinding", ->
+    describe "the x keybinding", ->
       it "deletes a charachter", ->
         editor.buffer.setText("12345")
         editor.setCursor(column: 1, row: 0)
@@ -32,6 +32,16 @@ describe "VimMode", ->
 
         expect(editor.buffer.getText()).toBe '1345'
         expect(editor.getCursor()).toEqual(column: 1, row: 0)
+
+    describe "numeric prefix binding", ->
+      it "repeats the following operation N times", ->
+        editor.buffer.setText("12345")
+        editor.setCursor(column: 1, row: 0)
+
+        editor.trigger keydownEvent('3')
+        editor.trigger keydownEvent('x')
+
+        expect(editor.buffer.getText()).toBe '15'
 
   describe "insert-mode", ->
     beforeEach ->

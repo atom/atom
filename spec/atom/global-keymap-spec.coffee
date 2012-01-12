@@ -43,9 +43,13 @@ describe "GlobalKeymap", ->
         deleteCharHandler.reset()
         fragment.removeClass('command-mode').addClass('insert-mode')
 
-        keymap.handleKeyEvent(keypressEvent('x', target: fragment[0]))
+        event = keypressEvent('x', target: fragment[0])
+        keymap.handleKeyEvent(event)
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).toHaveBeenCalled()
+        commandEvent = insertCharHandler.argsForCall[0][0]
+        expect(commandEvent.keyEvent).toBe event
+        expect(event.char).toBe 'x'
 
     describe "when the event's target node *descends* from a selector with a matching binding", ->
       it "triggers the command event associated with that binding on the target node and returns false", ->

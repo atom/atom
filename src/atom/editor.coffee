@@ -61,7 +61,7 @@ class Editor extends Template
     getCursor: ->
       @getAceSession().getSelection().getCursor()
 
-    delete: ->
+    deleteChar: ->
       @aceEditor.remove 'right'
 
 
