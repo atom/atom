@@ -23,7 +23,7 @@ describe "Editor", ->
     it "has a buffer", ->
       expect(editor.buffer).toBeDefined()
 
-  fdescribe '.set/getCursor', ->
+  describe '.set/getCursor', ->
     it "moves the cursor", ->
       editor.buffer.setText("012345")
       expect(editor.getCursor()).toEqual {column: 6, row: 0}

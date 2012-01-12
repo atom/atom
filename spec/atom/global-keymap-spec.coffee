@@ -29,6 +29,10 @@ describe "GlobalKeymap", ->
       fragment.on 'deleteChar', deleteCharHandler
       fragment.on 'insertChar', insertCharHandler
 
+    describe "when no binding matches the event", ->
+      it "returns true, so the event continues to propagate", ->
+        expect(keymap.handleKeyEvent(keypressEvent('0', target: fragment[0]))).toBeTruthy()
+
     describe "when the event's target node matches a selector with a matching binding", ->
       it "triggers the command event associated with that binding on the target node and returns false", ->
         result = keymap.handleKeyEvent(keypressEvent('x', target: fragment[0]))
@@ -42,10 +46,6 @@ describe "GlobalKeymap", ->
         keymap.handleKeyEvent(keypressEvent('x', target: fragment[0]))
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).toHaveBeenCalled()
-
-    describe "when no binding matches the event", ->
-      it "returns true, so the event continues to propagate", ->
-        expect(keymap.handleKeyEvent(keypressEvent('0', target: fragment[0]))).toBeTruthy()
 
     describe "when the event's target node *descends* from a selector with a matching binding", ->
       it "triggers the command event associated with that binding on the target node and returns false", ->
