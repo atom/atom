@@ -17,9 +17,6 @@ eventPropertiesFromPattern = (pattern) ->
   delete parsedPattern.key # key doesn't exist on browser-generated key events
   parsedPattern
 
-window.keypressEvent = (pattern, properties={}) ->
-  $.Event "keypress", _.extend(eventPropertiesFromPattern(pattern), properties)
-
 window.keydownEvent = (pattern, properties={}) ->
   $.Event "keydown", _.extend(eventPropertiesFromPattern(pattern), properties)
 

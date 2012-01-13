@@ -28,13 +28,18 @@ describe "GlobalKeymap", ->
       fragment.on 'deleteChar', deleteCharHandler
       fragment.on 'insertChar', insertCharHandler
 
+    it "adds a 'keystroke' string to the event object", ->
+      event = keydownEvent('x', altKey: true, metaKey: true)
+      keymap.handleKeyEvent(event)
+      expect(event.keystroke).toBe 'alt-meta-x'
+
     describe "when no binding matches the event", ->
       it "returns true, so the event continues to propagate", ->
-        expect(keymap.handleKeyEvent(keypressEvent('0', target: fragment[0]))).toBeTruthy()
+        expect(keymap.handleKeyEvent(keydownEvent('0', target: fragment[0]))).toBeTruthy()
 
     describe "when the event's target node matches a selector with a matching binding", ->
       it "triggers the command event associated with that binding on the target node and returns false", ->
-        result = keymap.handleKeyEvent(keypressEvent('x', target: fragment[0]))
+        result = keymap.handleKeyEvent(keydownEvent('x', target: fragment[0]))
         expect(result).toBe(false)
         expect(deleteCharHandler).toHaveBeenCalled()
         expect(insertCharHandler).not.toHaveBeenCalled()
@@ -42,18 +47,18 @@ describe "GlobalKeymap", ->
         deleteCharHandler.reset()
         fragment.removeClass('command-mode').addClass('insert-mode')
 
-        event = keypressEvent('x', target: fragment[0])
+        event = keydownEvent('x', target: fragment[0])
         keymap.handleKeyEvent(event)
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).toHaveBeenCalled()
         commandEvent = insertCharHandler.argsForCall[0][0]
         expect(commandEvent.keyEvent).toBe event
-        expect(event.char).toBe 'x'
+        expect(event.keystroke).toBe 'x'
 
     describe "when the event's target node *descends* from a selector with a matching binding", ->
       it "triggers the command event associated with that binding on the target node and returns false", ->
         target = fragment.find('.child-node')[0]
-        result = keymap.handleKeyEvent(keypressEvent('x', target: target))
+        result = keymap.handleKeyEvent(keydownEvent('x', target: target))
         expect(result).toBe(false)
         expect(deleteCharHandler).toHaveBeenCalled()
         expect(insertCharHandler).not.toHaveBeenCalled()
@@ -61,7 +66,7 @@ describe "GlobalKeymap", ->
         deleteCharHandler.reset()
         fragment.removeClass('command-mode').addClass('insert-mode')
 
-        keymap.handleKeyEvent(keypressEvent('x', target: target))
+        keymap.handleKeyEvent(keydownEvent('x', target: target))
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).toHaveBeenCalled()
 
@@ -72,7 +77,7 @@ describe "GlobalKeymap", ->
         fragment.on 'foo', fooHandler
 
         target = fragment.find('.grandchild-node')[0]
-        keymap.handleKeyEvent(keypressEvent('x', target: target))
+        keymap.handleKeyEvent(keydownEvent('x', target: target))
         expect(fooHandler).toHaveBeenCalled()
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).not.toHaveBeenCalled()
@@ -92,7 +97,7 @@ describe "GlobalKeymap", ->
           fragment.on 'baz', bazHandler
 
           target = fragment.find('.grandchild-node')[0]
-          keymap.handleKeyEvent(keypressEvent('x', target: target))
+          keymap.handleKeyEvent(keydownEvent('x', target: target))
 
           expect(fooHandler).not.toHaveBeenCalled()
           expect(barHandler).not.toHaveBeenCalled()
@@ -111,12 +116,12 @@ describe "GlobalKeymap", ->
           fragment.on 'baz', bazHandler
 
           target = fragment.find('.grandchild-node')[0]
-          keymap.handleKeyEvent(keypressEvent('x', target: target))
+          keymap.handleKeyEvent(keydownEvent('x', target: target))
 
           expect(barHandler).toHaveBeenCalled()
           expect(fooHandler).not.toHaveBeenCalled()
 
-          keymap.handleKeyEvent(keypressEvent('y', target: target))
+          keymap.handleKeyEvent(keydownEvent('y', target: target))
           expect(bazHandler).toHaveBeenCalled()
 
   describe ".bindKeys(selector, fnOrMap)", ->
@@ -126,7 +131,7 @@ describe "GlobalKeymap", ->
         keymap.bindKeys '.child-node', handler
 
         target = fragment.find('.grandchild-node')[0]
-        event = keypressEvent('y', target: target)
+        event = keydownEvent('y', target: target)
         keymap.handleKeyEvent event
 
         expect(handler).toHaveBeenCalledWith(event)
@@ -181,4 +186,4 @@ describe "GlobalKeymap", ->
       keymap.handleKeyEvent(keydownEvent('z', target: target))
 
       expect(fooHandler).toHaveBeenCalled()
-  
+
