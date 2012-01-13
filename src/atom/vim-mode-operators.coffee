@@ -14,6 +14,9 @@ module.exports =
 
     isComplete: -> @complete
 
+    addDigit: (digit) ->
+      @count = @count * 10 + digit
+
     execute: (editor) ->
       _.times @count, => @operatorToRepeat.execute(editor)
 

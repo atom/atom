@@ -64,7 +64,7 @@ describe "VimMode", ->
           editor.trigger keydownEvent('j')
           expect(editor.getCursor()).toEqual(column: 1, row: 0)
 
-    describe "numeric prefix binding", ->
+    describe "numeric prefix bindings", ->
       it "repeats the following operation N times", ->
         editor.buffer.setText("12345")
         editor.setCursor(column: 1, row: 0)
@@ -73,6 +73,14 @@ describe "VimMode", ->
         editor.trigger keydownEvent('x')
 
         expect(editor.buffer.getText()).toBe '15'
+
+        editor.buffer.setText("123456789abc")
+        editor.setCursor(column: 0, row: 0)
+        editor.trigger keydownEvent('1')
+        editor.trigger keydownEvent('0')
+        editor.trigger keydownEvent('x')
+
+        expect(editor.buffer.getText()).toBe 'bc'
 
   describe "insert-mode", ->
     beforeEach ->

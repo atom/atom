@@ -48,7 +48,7 @@ class VimMode
       eventName = "command-mode:#{commandName}"
       @editor.on eventName, (e) =>
         possibleOperator = fn(e)
-        @pushOperator(possibleOperator) if possibleOperator.execute?
+        @pushOperator(possibleOperator) if possibleOperator?.execute
 
   activateInsertMode: ->
     @editor.removeClass('command-mode')
@@ -60,7 +60,10 @@ class VimMode
 
   numericPrefix: (e) ->
     num = parseInt(e.keyEvent.keystroke)
-    new op.NumericPrefix(num)
+    if @topOperator() instanceof op.NumericPrefix
+      @topOperator().addDigit(num)
+    else
+      @pushOperator(new op.NumericPrefix(num))
 
   pushOperator: (op) ->
     @opStack.push(op)
