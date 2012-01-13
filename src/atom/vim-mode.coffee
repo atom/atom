@@ -1,6 +1,6 @@
 _ = require 'underscore'
 $ = require 'jquery'
-{ NumericPrefix, DeleteChar, MoveLeft, MoveUp} = require 'vim-mode-operators'
+op = require 'vim-mode-operators'
 
 module.exports =
 class VimMode
@@ -9,21 +9,33 @@ class VimMode
 
   constructor: (@editor) ->
     @opStack = []
-    atom.bindKeys '.command-mode', -> false
-    atom.bindKeys '.command-mode', @commandModeBindings()
-    atom.bindKeys '.insert-mode', '<esc>': 'command-mode:activate'
-
     @editor.addClass('command-mode')
 
-    @editor.on 'insert-mode:activate', => @activateInsertMode()
-    @editor.on 'command-mode:activate', => @activateCommandMode()
-    @editor.on 'command-mode:delete-char', => @pushOperator(new DeleteChar)
-    @editor.on 'command-mode:numeric-prefix', (e) => @pushOperator(new NumericPrefix(e.keyEvent.char))
-    @editor.on 'command-mode:move-left', => @pushOperator(new MoveLeft)
-    @editor.on 'command-mode:move-up', => @pushOperator(new MoveUp)
+    atom.bindKeys '.editor', '<esc>': 'activate-command-mode'
+    @editor.on 'activate-command-mode', => @activateCommandMode()
 
-  registerCommand: (name, handler) ->
-    @editor.on "command-mode:#{name}", handler
+    @setupCommandMode()
+
+  setupCommandMode: ->
+    atom.bindKeys '.command-mode', -> false
+
+    @registerCommand 'i', 'insert', => @activateInsertMode()
+    @registerCommand 'x', 'delete-char', => new op.DeleteChar
+    @registerCommand 'h', 'move-left', => new op.MoveLeft
+    @registerCommand 'j', 'move-up', => new op.MoveUp
+
+    for i in [0..9]
+      do (i) =>
+        @registerCommand i, "numeric-prefix-#{i}", => new op.NumericPrefix(i)
+
+  registerCommand: (binding, commandName, fn)->
+    bindings = {}
+    eventName = "command-mode:#{commandName}"
+    bindings[binding] = eventName
+    atom.bindKeys '.command-mode', bindings
+    @editor.on eventName, =>
+      possibleOperator = fn()
+      @pushOperator(possibleOperator) if possibleOperator.execute?
 
   activateInsertMode: ->
     @editor.removeClass('command-mode')
@@ -32,16 +44,6 @@ class VimMode
   activateCommandMode: ->
     @editor.removeClass('insert-mode')
     @editor.addClass('command-mode')
-
-  commandModeBindings: ->
-    bindings =
-      'i': 'insert-mode:activate'
-      'x': 'command-mode:delete-char'
-      'h': 'command-mode:move-left'
-      'j': 'command-mode:move-up'
-    for i in [0..9]
-      bindings[i] = 'command-mode:numeric-prefix'
-    bindings
 
   pushOperator: (op) ->
     @opStack.push(op)
