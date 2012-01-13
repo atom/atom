@@ -66,7 +66,7 @@ describe "GlobalKeymap", ->
         expect(deleteCharHandler).not.toHaveBeenCalled()
         expect(insertCharHandler).toHaveBeenCalled()
 
-    describe "when the event's target node descends from *multiple* selectors with a matching binding", ->
+    describe "when the event's target node descends from multiple nodes that match selectors with a binding", ->
       it "only triggers bindings on selectors associated with the closest ancestor node", ->
         keymap.bindKeys '.child-node', 'x': 'foo'
         fooHandler = jasmine.createSpy 'fooHandler'
@@ -79,22 +79,46 @@ describe "GlobalKeymap", ->
         expect(insertCharHandler).not.toHaveBeenCalled()
 
     describe "when the event bubbles to a node that matches multiple selectors", ->
-      it "triggers the binding for the most specific selector", ->
-        keymap.bindKeys 'div .child-node', 'x': 'foo'
-        keymap.bindKeys '.command-mode .child-node', 'x': 'baz'
-        keymap.bindKeys '.child-node', 'x': 'bar'
+      describe "when the matching selectors differ in specificity", ->
+        it "triggers the binding for the most specific selector", ->
+          keymap.bindKeys 'div .child-node', 'x': 'foo'
+          keymap.bindKeys '.command-mode .child-node', 'x': 'baz'
+          keymap.bindKeys '.child-node', 'x': 'bar'
 
-        fooHandler = jasmine.createSpy 'fooHandler'
-        barHandler = jasmine.createSpy 'barHandler'
-        bazHandler = jasmine.createSpy 'bazHandler'
-        fragment.on 'foo', fooHandler
-        fragment.on 'bar', barHandler
-        fragment.on 'baz', bazHandler
+          fooHandler = jasmine.createSpy 'fooHandler'
+          barHandler = jasmine.createSpy 'barHandler'
+          bazHandler = jasmine.createSpy 'bazHandler'
+          fragment.on 'foo', fooHandler
+          fragment.on 'bar', barHandler
+          fragment.on 'baz', bazHandler
 
-        target = fragment.find('.grandchild-node')[0]
-        keymap.handleKeyEvent(keypressEvent('x', target: target))
+          target = fragment.find('.grandchild-node')[0]
+          keymap.handleKeyEvent(keypressEvent('x', target: target))
 
-        expect(fooHandler).not.toHaveBeenCalled()
-        expect(barHandler).not.toHaveBeenCalled()
-        expect(bazHandler).toHaveBeenCalled()
+          expect(fooHandler).not.toHaveBeenCalled()
+          expect(barHandler).not.toHaveBeenCalled()
+          expect(bazHandler).toHaveBeenCalled()
+
+      describe "when the matching selectors have the same specificity", ->
+        it "triggers the bindings for the most recently declared selector", ->
+          keymap.bindKeys '.child-node', 'x': 'foo', 'y': 'baz'
+          keymap.bindKeys '.child-node', 'x': 'bar'
+
+          fooHandler = jasmine.createSpy 'fooHandler'
+          barHandler = jasmine.createSpy 'barHandler'
+          bazHandler = jasmine.createSpy 'bazHandler'
+          fragment.on 'foo', fooHandler
+          fragment.on 'bar', barHandler
+          fragment.on 'baz', bazHandler
+
+          target = fragment.find('.grandchild-node')[0]
+          keymap.handleKeyEvent(keypressEvent('x', target: target))
+
+          expect(barHandler).toHaveBeenCalled()
+          expect(fooHandler).not.toHaveBeenCalled()
+
+          keymap.handleKeyEvent(keypressEvent('y', target: target))
+          expect(bazHandler).toHaveBeenCalled()
+
+
 

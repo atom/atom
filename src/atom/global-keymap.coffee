@@ -10,7 +10,7 @@ class GlobalKeymap
     @bindingSets = []
 
   bindKeys: (selector, bindings) ->
-    @bindingSets.push(new BindingSet(selector, bindings))
+    @bindingSets.unshift(new BindingSet(selector, bindings))
 
   handleKeyEvent: (event) ->
     currentNode = $(event.target)
