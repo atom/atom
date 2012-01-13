@@ -23,3 +23,9 @@ module.exports =
 
     isComplete: -> true
 
+  MoveLeft: class
+    execute: (editor) ->
+      {column, row} = editor.getCursor()
+      editor.navigateLeft() if column > 0
+
+    isComplete: -> true

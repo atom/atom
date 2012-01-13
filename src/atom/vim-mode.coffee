@@ -1,6 +1,6 @@
 _ = require 'underscore'
 $ = require 'jquery'
-{ NumericPrefix, DeleteChar } = require 'vim-mode-operators'
+{ NumericPrefix, DeleteChar, MoveLeft } = require 'vim-mode-operators'
 
 module.exports =
 class VimMode
@@ -19,6 +19,7 @@ class VimMode
     @editor.on 'command-mode:activate', => @activateCommandMode()
     @editor.on 'command-mode:delete-char', => @deleteChar()
     @editor.on 'command-mode:numeric-prefix', (e) => @numericPrefix(e)
+    @editor.on 'command-mode:move-left', => @pushOperator(new MoveLeft)
 
   activateInsertMode: ->
     @editor.removeClass('command-mode')
@@ -38,6 +39,7 @@ class VimMode
     bindings =
       'i': 'insert-mode:activate'
       'x': 'command-mode:delete-char'
+      'h': 'command-mode:move-left'
     for i in [0..9]
       bindings[i] = 'command-mode:numeric-prefix'
     bindings
