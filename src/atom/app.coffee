@@ -15,6 +15,9 @@ class App
   bindKeys: (selector, bindings) ->
     @globalKeymap.bindKeys(selector, bindings)
 
+  bindKey: (selector, pattern, eventName) ->
+    @globalKeymap.bindKey(selector, pattern, eventName)
+
   open: (url) ->
     OSX.NSApp.open url
 

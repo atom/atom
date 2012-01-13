@@ -1,6 +1,6 @@
 _ = require 'underscore'
 $ = require 'jquery'
-{ NumericPrefix, DeleteChar } = require 'vim-mode-operators'
+op = require 'vim-mode-operators'
 
 module.exports =
 class VimMode
@@ -9,16 +9,52 @@ class VimMode
 
   constructor: (@editor) ->
     @opStack = []
-    atom.bindKeys '.command-mode', -> false
-    atom.bindKeys '.command-mode', @commandModeBindings()
-    atom.bindKeys '.insert-mode', '<esc>': 'command-mode:activate'
-
     @editor.addClass('command-mode')
 
-    @editor.on 'insert-mode:activate', => @activateInsertMode()
-    @editor.on 'command-mode:activate', => @activateCommandMode()
-    @editor.on 'command-mode:delete-char', => @deleteChar()
-    @editor.on 'command-mode:numeric-prefix', (e) => @numericPrefix(e)
+    atom.bindKeys '.editor', '<esc>': 'activate-command-mode'
+    @editor.on 'activate-command-mode', => @activateCommandMode()
+
+    @setupCommandMode()
+
+  setupCommandMode: ->
+    atom.bindKeys '.command-mode', -> false
+
+    @bindCommandModeKeys
+      'i': 'insert'
+      'x': 'delete-char'
+      'h': 'move-left'
+      'j': 'move-up'
+
+    @handleCommands
+      'insert': => @activateInsertMode()
+      'delete-char': => new op.DeleteChar
+      'move-left': => new op.MoveLeft
+      'move-up': => new op.MoveUp
+
+    for i in [0..9]
+      do (i) =>
+        @registerCommand i, "numeric-prefix-#{i}", => new op.NumericPrefix(i)
+
+  bindCommandModeKeys: (bindings) ->
+    prefixedBindings = {}
+    for pattern, commandName of bindings
+      prefixedBindings[pattern] = "command-mode:#{commandName}"
+
+    atom.bindKeys ".command-mode", prefixedBindings
+
+  handleCommands: (commands) ->
+    _.each commands, (fn, commandName) =>
+      eventName = "command-mode:#{commandName}"
+      @editor.on eventName, =>
+        possibleOperator = fn()
+        @pushOperator(possibleOperator) if possibleOperator.execute?
+
+  registerCommand: (binding, commandName, fn)->
+    eventName = "command-mode:#{commandName}"
+    atom.bindKey '.command-mode', binding, eventName
+    @editor.on eventName, =>
+      possibleOperator = fn()
+      @pushOperator(possibleOperator) if possibleOperator.execute?
 
   activateInsertMode: ->
     @editor.removeClass('command-mode')
@@ -27,20 +63,6 @@ class VimMode
   activateCommandMode: ->
     @editor.removeClass('insert-mode')
     @editor.addClass('command-mode')
-
-  deleteChar: ->
-    @pushOperator(new DeleteChar)
-
-  numericPrefix: (e) ->
-    @pushOperator(new NumericPrefix(e.keyEvent.char))
-
-  commandModeBindings: ->
-    bindings =
-      'i': 'insert-mode:activate'
-      'x': 'command-mode:delete-char'
-    for i in [0..9]
-      bindings[i] = 'command-mode:numeric-prefix'
-    bindings
 
   pushOperator: (op) ->
     @opStack.push(op)
