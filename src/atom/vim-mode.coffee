@@ -17,7 +17,11 @@ class VimMode
     @setupCommandMode()
 
   setupCommandMode: ->
-    atom.bindKeys '.command-mode', -> false
+    atom.bindKeys '.command-mode', (e) ->
+      if e.keystroke.match /\d/
+        return 'command-mode:numeric-prefix'
+      if e.keystroke.match /./
+        return false
 
     @bindCommandModeKeys
       'i': 'insert'
@@ -30,10 +34,7 @@ class VimMode
       'delete-char': => new op.DeleteChar
       'move-left': => new op.MoveLeft
       'move-up': => new op.MoveUp
-
-    for i in [0..9]
-      do (i) =>
-        @registerCommand i, "numeric-prefix-#{i}", => new op.NumericPrefix(i)
+      'numeric-prefix': (e) => @numericPrefix(e)
 
   bindCommandModeKeys: (bindings) ->
     prefixedBindings = {}
@@ -45,16 +46,9 @@ class VimMode
   handleCommands: (commands) ->
     _.each commands, (fn, commandName) =>
       eventName = "command-mode:#{commandName}"
-      @editor.on eventName, =>
-        possibleOperator = fn()
+      @editor.on eventName, (e) =>
+        possibleOperator = fn(e)
         @pushOperator(possibleOperator) if possibleOperator.execute?
-
-  registerCommand: (binding, commandName, fn)->
-    eventName = "command-mode:#{commandName}"
-    atom.bindKey '.command-mode', binding, eventName
-    @editor.on eventName, =>
-      possibleOperator = fn()
-      @pushOperator(possibleOperator) if possibleOperator.execute?
 
   activateInsertMode: ->
     @editor.removeClass('command-mode')
@@ -63,6 +57,10 @@ class VimMode
   activateCommandMode: ->
     @editor.removeClass('insert-mode')
     @editor.addClass('command-mode')
+
+  numericPrefix: (e) ->
+    num = parseInt(e.keyEvent.keystroke)
+    new op.NumericPrefix(num)
 
   pushOperator: (op) ->
     @opStack.push(op)
