@@ -66,3 +66,6 @@ class Editor extends Template
 
     moveLeft: ->
       @aceEditor.navigateLeft()
+
+    moveUp: ->
+      @aceEditor.navigateUp()

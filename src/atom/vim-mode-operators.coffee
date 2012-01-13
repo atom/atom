@@ -29,3 +29,11 @@ module.exports =
       editor.moveLeft() if column > 0
 
     isComplete: -> true
+
+  MoveUp: class
+    execute: (editor) ->
+      {column, row} = editor.getCursor()
+      editor.moveUp() if row > 0
+
+    isComplete: -> true
+

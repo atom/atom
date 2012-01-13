@@ -39,15 +39,24 @@ describe "VimMode", ->
         expect(editor.buffer.getText()).toBe '1345'
         expect(editor.getCursor()).toEqual(column: 1, row: 0)
 
-    describe "the h/j/k/l keybindings", ->
-      it "move the cursor left/up/down/right", ->
+    describe "basic motion bindings", ->
+      beforeEach ->
         editor.buffer.setText("12345\nabcde\nABCDE")
         editor.setCursor(column: 1, row: 1)
 
-        editor.trigger keydownEvent('h')
-        expect(editor.getCursor()).toEqual(column: 0, row: 1)
-        editor.trigger keydownEvent('h')
-        expect(editor.getCursor()).toEqual(column: 0, row: 1)
+      describe "the h keybinding", ->
+        it "move the cursor left", ->
+          editor.trigger keydownEvent('h')
+          expect(editor.getCursor()).toEqual(column: 0, row: 1)
+          editor.trigger keydownEvent('h')
+          expect(editor.getCursor()).toEqual(column: 0, row: 1)
+
+      describe "the j keybinding", ->
+        it "move the cursor up", ->
+          editor.trigger keydownEvent('j')
+          expect(editor.getCursor()).toEqual(column: 1, row: 0)
+          editor.trigger keydownEvent('j')
+          expect(editor.getCursor()).toEqual(column: 1, row: 0)
 
     describe "numeric prefix binding", ->
       it "repeats the following operation N times", ->
