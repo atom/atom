@@ -119,53 +119,66 @@ describe "GlobalKeymap", ->
           keymap.handleKeyEvent(keypressEvent('y', target: target))
           expect(bazHandler).toHaveBeenCalled()
 
-  describe ".bindAllKeys(fn)", ->
-    it "calls given fn when selector matches", ->
-      handler = jasmine.createSpy 'handler'
-      keymap.bindKeys '.child-node', handler
+  describe ".bindKeys(selector, fnOrMap)", ->
+    describe "when called with a function", ->
+      it "calls the given function when selector matches", ->
+        handler = jasmine.createSpy 'handler'
+        keymap.bindKeys '.child-node', handler
 
-      target = fragment.find('.grandchild-node')[0]
-      event = keypressEvent('y', target: target)
-      keymap.handleKeyEvent event
+        target = fragment.find('.grandchild-node')[0]
+        event = keypressEvent('y', target: target)
+        keymap.handleKeyEvent event
 
-      expect(handler).toHaveBeenCalledWith(event)
+        expect(handler).toHaveBeenCalledWith(event)
 
-    describe "when the handler function returns a command string", ->
-      it "triggers the command event on the target and stops propagating the event", ->
-        keymap.bindKeys '*', 'x': 'foo'
-        keymap.bindKeys '*', -> 'bar'
-        fooHandler = jasmine.createSpy('fooHandler')
-        barHandler = jasmine.createSpy('barHandler')
-        fragment.on 'foo', fooHandler
-        fragment.on 'bar', barHandler
+      describe "when the function returns a command string", ->
+        it "triggers the command event on the target and stops propagating the event", ->
+          keymap.bindKeys '*', 'x': 'foo'
+          keymap.bindKeys '*', -> 'bar'
+          fooHandler = jasmine.createSpy('fooHandler')
+          barHandler = jasmine.createSpy('barHandler')
+          fragment.on 'foo', fooHandler
+          fragment.on 'bar', barHandler
 
-        target = fragment.find('.child-node')[0]
-        keymap.handleKeyEvent(keydownEvent('x', target: target))
+          target = fragment.find('.child-node')[0]
+          keymap.handleKeyEvent(keydownEvent('x', target: target))
 
-        expect(fooHandler).not.toHaveBeenCalled()
-        expect(barHandler).toHaveBeenCalled()
+          expect(fooHandler).not.toHaveBeenCalled()
+          expect(barHandler).toHaveBeenCalled()
 
-    describe "when the handler function returns false", ->
-      it "stops propagating the event", ->
-        keymap.bindKeys '*', 'x': 'foo'
-        keymap.bindKeys '*', -> false
-        fooHandler = jasmine.createSpy('fooHandler')
-        fragment.on 'foo', fooHandler
+      describe "when the function returns false", ->
+        it "stops propagating the event", ->
+          keymap.bindKeys '*', 'x': 'foo'
+          keymap.bindKeys '*', -> false
+          fooHandler = jasmine.createSpy('fooHandler')
+          fragment.on 'foo', fooHandler
 
-        target = fragment.find('.child-node')[0]
-        keymap.handleKeyEvent(keydownEvent('x', target: target))
+          target = fragment.find('.child-node')[0]
+          keymap.handleKeyEvent(keydownEvent('x', target: target))
 
-        expect(fooHandler).not.toHaveBeenCalled()
+          expect(fooHandler).not.toHaveBeenCalled()
 
-    describe "when the handler function returns anything other than a string or false", ->
-      it "continues to propagate the event", ->
-        keymap.bindKeys '*', 'x': 'foo'
-        keymap.bindKeys '*', -> undefined
-        fooHandler = jasmine.createSpy('fooHandler')
-        fragment.on 'foo', fooHandler
+      describe "when the function returns anything other than a string or false", ->
+        it "continues to propagate the event", ->
+          keymap.bindKeys '*', 'x': 'foo'
+          keymap.bindKeys '*', -> undefined
+          fooHandler = jasmine.createSpy('fooHandler')
+          fragment.on 'foo', fooHandler
 
-        target = fragment.find('.child-node')[0]
-        keymap.handleKeyEvent(keydownEvent('x', target: target))
+          target = fragment.find('.child-node')[0]
+          keymap.handleKeyEvent(keydownEvent('x', target: target))
 
-        expect(fooHandler).toHaveBeenCalled()
+          expect(fooHandler).toHaveBeenCalled()
 
+  describe ".bindKey(selector, pattern, eventName)", ->
+    it "binds a single key", ->
+      keymap.bindKey '.child-node', 'z', 'foo'
+
+      fooHandler = jasmine.createSpy('fooHandler')
+      fragment.on 'foo', fooHandler
+
+      target = fragment.find('.child-node')[0]
+      keymap.handleKeyEvent(keydownEvent('z', target: target))
+
+      expect(fooHandler).toHaveBeenCalled()
+  

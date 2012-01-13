@@ -29,10 +29,8 @@ class VimMode
         @registerCommand i, "numeric-prefix-#{i}", => new op.NumericPrefix(i)
 
   registerCommand: (binding, commandName, fn)->
-    bindings = {}
     eventName = "command-mode:#{commandName}"
-    bindings[binding] = eventName
-    atom.bindKeys '.command-mode', bindings
+    atom.bindKey '.command-mode', binding, eventName
     @editor.on eventName, =>
       possibleOperator = fn()
       @pushOperator(possibleOperator) if possibleOperator.execute?

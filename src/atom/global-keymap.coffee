@@ -12,6 +12,11 @@ class GlobalKeymap
   bindKeys: (selector, bindings) ->
     @bindingSets.unshift(new BindingSet(selector, bindings))
 
+  bindKey: (selector, pattern, eventName) ->
+    bindings = {}
+    bindings[pattern] = eventName
+    @bindKeys(selector, bindings)
+
   handleKeyEvent: (event) ->
     currentNode = $(event.target)
     while currentNode.length
