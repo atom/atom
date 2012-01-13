@@ -1,3 +1,4 @@
+_ = require 'underscore'
 $ = require 'jquery'
 Specificity = require 'specificity'
 
@@ -11,13 +12,19 @@ class BindingSet
     '=': 187, ';': 186, '\'': 222, '[': 219, ']': 221, '\\': 220
 
   selector: null
-  bindings: null
+  bindingMap: null
+  bindingFunction: null
 
-  constructor: (@selector, @bindings) ->
+  constructor: (@selector, mapOrFunction) ->
+    if _.isFunction(mapOrFunction)
+      @bindingFunction = mapOrFunction
+    else
+      @bindingMap = mapOrFunction
     @specificity = Specificity(@selector)
 
   commandForEvent: (event) ->
-    for pattern, command of @bindings
+    return @bindingFunction(event) if @bindingFunction
+    for pattern, command of @bindingMap
       return command if @eventMatchesPattern(event, pattern)
     null
 

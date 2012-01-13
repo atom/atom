@@ -2,27 +2,26 @@ GlobalKeymap = require 'global-keymap'
 $ = require 'jquery'
 
 describe "GlobalKeymap", ->
+  fragment = null
   keymap = null
 
   beforeEach ->
     keymap = new GlobalKeymap
+    fragment = $ """
+      <div class="command-mode">
+        <div class="child-node">
+          <div class="grandchild-node"/>
+        </div>
+      </div>
+    """
 
-  describe "handleKeyEvent", ->
-    fragment = null
+  describe ".handleKeyEvent(event)", ->
     deleteCharHandler = null
     insertCharHandler = null
 
     beforeEach ->
       keymap.bindKeys '.command-mode', 'x': 'deleteChar'
       keymap.bindKeys '.insert-mode', 'x': 'insertChar'
-
-      fragment = $ """
-        <div class="command-mode">
-          <div class="child-node">
-            <div class="grandchild-node"/>
-          </div>
-        </div>
-      """
 
       deleteCharHandler = jasmine.createSpy 'deleteCharHandler'
       insertCharHandler = jasmine.createSpy 'insertCharHandler'
@@ -120,5 +119,53 @@ describe "GlobalKeymap", ->
           keymap.handleKeyEvent(keypressEvent('y', target: target))
           expect(bazHandler).toHaveBeenCalled()
 
+  describe ".bindAllKeys(fn)", ->
+    it "calls given fn when selector matches", ->
+      handler = jasmine.createSpy 'handler'
+      keymap.bindKeys '.child-node', handler
 
+      target = fragment.find('.grandchild-node')[0]
+      event = keypressEvent('y', target: target)
+      keymap.handleKeyEvent event
+
+      expect(handler).toHaveBeenCalledWith(event)
+
+    describe "when the handler function returns a command string", ->
+      it "triggers the command event on the target and stops propagating the event", ->
+        keymap.bindKeys '*', 'x': 'foo'
+        keymap.bindKeys '*', -> 'bar'
+        fooHandler = jasmine.createSpy('fooHandler')
+        barHandler = jasmine.createSpy('barHandler')
+        fragment.on 'foo', fooHandler
+        fragment.on 'bar', barHandler
+
+        target = fragment.find('.child-node')[0]
+        keymap.handleKeyEvent(keydownEvent('x', target: target))
+
+        expect(fooHandler).not.toHaveBeenCalled()
+        expect(barHandler).toHaveBeenCalled()
+
+    describe "when the handler function returns false", ->
+      it "stops propagating the event", ->
+        keymap.bindKeys '*', 'x': 'foo'
+        keymap.bindKeys '*', -> false
+        fooHandler = jasmine.createSpy('fooHandler')
+        fragment.on 'foo', fooHandler
+
+        target = fragment.find('.child-node')[0]
+        keymap.handleKeyEvent(keydownEvent('x', target: target))
+
+        expect(fooHandler).not.toHaveBeenCalled()
+
+    describe "when the handler function returns anything other than a string or false", ->
+      it "continues to propagate the event", ->
+        keymap.bindKeys '*', 'x': 'foo'
+        keymap.bindKeys '*', -> undefined
+        fooHandler = jasmine.createSpy('fooHandler')
+        fragment.on 'foo', fooHandler
+
+        target = fragment.find('.child-node')[0]
+        keymap.handleKeyEvent(keydownEvent('x', target: target))
+
+        expect(fooHandler).toHaveBeenCalled()
 

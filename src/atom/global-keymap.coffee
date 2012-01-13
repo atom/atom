@@ -18,8 +18,11 @@ class GlobalKeymap
       candidateBindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
       candidateBindingSets.sort (a, b) -> b.specificity - a.specificity
       for bindingSet in candidateBindingSets
-        if command = bindingSet.commandForEvent(event)
+        command = bindingSet.commandForEvent(event)
+        if command
           @triggerCommandEvent(event, command)
+          return false
+        else if command == false
           return false
       currentNode = currentNode.parent()
     true

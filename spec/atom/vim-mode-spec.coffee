@@ -13,7 +13,13 @@ describe "VimMode", ->
     it "puts the editor in command-mode initially", ->
       expect(editor).toHaveClass 'command-mode'
 
-  describe "command-mode", ->
+  fdescribe "command-mode", ->
+    it "stops propagation on key events that don't have bindings so that they don't get inserted", ->
+      event = keydownEvent('\\')
+      spyOn(event, 'stopPropagation')
+      editor.trigger event
+      expect(event.stopPropagation).toHaveBeenCalled()
+
     describe "the i keybinding", ->
       it "puts the editor into insert mode", ->
         expect(editor).not.toHaveClass 'insert-mode'
