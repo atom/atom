@@ -19,14 +19,35 @@ class VimMode
   setupCommandMode: ->
     atom.bindKeys '.command-mode', -> false
 
-    @registerCommand 'i', 'insert', => @activateInsertMode()
-    @registerCommand 'x', 'delete-char', => new op.DeleteChar
-    @registerCommand 'h', 'move-left', => new op.MoveLeft
-    @registerCommand 'j', 'move-up', => new op.MoveUp
+    @bindCommandModeKeys
+      'i': 'insert'
+      'x': 'delete-char'
+      'h': 'move-left'
+      'j': 'move-up'
+
+    @handleCommands
+      'insert': => @activateInsertMode()
+      'delete-char': => new op.DeleteChar
+      'move-left': => new op.MoveLeft
+      'move-up': => new op.MoveUp
 
     for i in [0..9]
       do (i) =>
         @registerCommand i, "numeric-prefix-#{i}", => new op.NumericPrefix(i)
+
+  bindCommandModeKeys: (bindings) ->
+    prefixedBindings = {}
+    for pattern, commandName of bindings
+      prefixedBindings[pattern] = "command-mode:#{commandName}"
+
+    atom.bindKeys ".command-mode", prefixedBindings
+
+  handleCommands: (commands) ->
+    _.each commands, (fn, commandName) =>
+      eventName = "command-mode:#{commandName}"
+      @editor.on eventName, =>
+        possibleOperator = fn()
+        @pushOperator(possibleOperator) if possibleOperator.execute?
 
   registerCommand: (binding, commandName, fn)->
     eventName = "command-mode:#{commandName}"
