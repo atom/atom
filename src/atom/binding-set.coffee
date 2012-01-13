@@ -16,10 +16,13 @@ class BindingSet
 
   constructor: (@selector, mapOrFunction) ->
     @specificity = Specificity(@selector)
+    @commandForEvent = @buildEventHandler(mapOrFunction)
+
+  buildEventHandler: (mapOrFunction) ->
     if _.isFunction(mapOrFunction)
-      @commandForEvent = mapOrFunction
+      mapOrFunction
     else
-      @commandForEvent = (event) =>
+      (event) =>
         for pattern, command of mapOrFunction
           return command if @eventMatchesPattern(event, pattern)
         null
