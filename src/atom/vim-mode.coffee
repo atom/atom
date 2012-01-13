@@ -9,7 +9,7 @@ class VimMode
 
   constructor: (@editor) ->
     @opStack = []
-    atom.bindKeys '.command-mode', > false
+    atom.bindKeys '.command-mode', -> false
     atom.bindKeys '.command-mode', @commandModeBindings()
     atom.bindKeys '.insert-mode', '<esc>': 'command-mode:activate'
 

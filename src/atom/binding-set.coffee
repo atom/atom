@@ -1,5 +1,5 @@
-_ = require 'underscore'
 $ = require 'jquery'
+_ = require 'underscore'
 Specificity = require 'specificity'
 
 module.exports =
@@ -12,21 +12,17 @@ class BindingSet
     '=': 187, ';': 186, '\'': 222, '[': 219, ']': 221, '\\': 220
 
   selector: null
-  bindingMap: null
-  bindingFunction: null
+  commandForEvent: null
 
   constructor: (@selector, mapOrFunction) ->
-    if _.isFunction(mapOrFunction)
-      @bindingFunction = mapOrFunction
-    else
-      @bindingMap = mapOrFunction
     @specificity = Specificity(@selector)
-
-  commandForEvent: (event) ->
-    return @bindingFunction(event) if @bindingFunction
-    for pattern, command of @bindingMap
-      return command if @eventMatchesPattern(event, pattern)
-    null
+    if _.isFunction(mapOrFunction)
+      @commandForEvent = mapOrFunction
+    else
+      @commandForEvent = (event) =>
+        for pattern, command of mapOrFunction
+          return command if @eventMatchesPattern(event, pattern)
+        null
 
   eventMatchesPattern: (event, pattern) ->
     pattern = @parseKeyPattern pattern
