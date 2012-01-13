@@ -18,9 +18,9 @@ class VimMode
 
   setupCommandMode: ->
     atom.bindKeys '.command-mode', (e) ->
-      if e.keystroke.match /\d/
+      if e.keystroke.match /^\d$/
         return 'command-mode:numeric-prefix'
-      if e.keystroke.match /./
+      if e.keystroke.match /^.$/
         return false
 
     @bindCommandModeKeys
