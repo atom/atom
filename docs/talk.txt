@@ -1,0 +1,60 @@
+vision:
+  -extensible
+    - web technology
+    - built-in syntactic awareness
+    - github integration - can serve as a community sponsor / focal point
+
+  -real time collaboration
+    - github has made coding social, but it' like email
+      - now we can make coding social like campfire, real time
+
+    - scenario 1: (collaborating) you're on a team. in your editor you see your teammates and can effortlessly join them in their working copy
+      - can message someone for help, lower barrier of interruption
+      - fluid pairing... easily transition from soloing to working together, without unplugging keyboards or changing desks
+      - benefits of pivotal, digitized
+
+    - scenario 2: (learning / sharing) imagine two haskell programmers, or authors of a library you are pairing on, and allow you to come watch them... think of what you could learn from their conversation
+      - imagine search for commits involving the work "Riak" that are broadcast, now you see it working
+      - code instant replay... don't just read a commit, watch a commit
+
+    - mud vs mmorpg analogy
+
+example:
+  - cascading keymaps
+  - command-t
+    - extension, example of ckm (up and down)
+  - vim
+
+theory:
+  parsing expression grammars and doing it in real time (NS)
+
+
+--------
+why do we need another editor?
+- ease of extensibility
+  - javascript / web tech
+    web is new lingua franca has emerged in the last decade... a common language / set of patterns for application dev
+  - many current extensible editors are older than us
+  - syntactic awareness: middle ground between vim/textmate and eclipse/intelli-j/visual studio
+
+- collaboration
+  deep github integration...
+  github is async collaboration... this would be synchronous
+
+  replaying the actual keystrokes of code being written or a pairing session to understand why it was done that way
+
+--------------
+pair programming:
+pros:
+raid array for team knowledge
+reduced ego, a sense of collective ownership
+learning opportunity... someone can add value on day 1
+explaining your thinking can make it clearer
+continuous code review
+
+cons:
+handcuffed to your pair because you're using one computer
+friction between starting and stopping
+  simple/wrote tasks might not need a pair, but how do you transition between pairing and soloing?
+same physical location at the same time
+
