@@ -64,5 +64,5 @@ class Editor extends Template
     deleteChar: ->
       @aceEditor.remove 'right'
 
-
-
+    moveLeft: ->
+      @aceEditor.navigateLeft()

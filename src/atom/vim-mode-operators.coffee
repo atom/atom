@@ -26,6 +26,6 @@ module.exports =
   MoveLeft: class
     execute: (editor) ->
       {column, row} = editor.getCursor()
-      editor.navigateLeft() if column > 0
+      editor.moveLeft() if column > 0
 
     isComplete: -> true
