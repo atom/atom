@@ -64,14 +64,14 @@ describe "VimMode", ->
         editor.setCursor(column: 1, row: 1)
 
       describe "the h keybinding", ->
-        it "move the cursor left", ->
+        it "moves the cursor left, but not to the previous line", ->
           editor.trigger keydownEvent('h')
           expect(editor.getCursor()).toEqual(column: 0, row: 1)
           editor.trigger keydownEvent('h')
           expect(editor.getCursor()).toEqual(column: 0, row: 1)
 
       describe "the j keybinding", ->
-        it "move the cursor up", ->
+        it "moves the cursor up, but not to the beginning of the first line", ->
           editor.trigger keydownEvent('j')
           expect(editor.getCursor()).toEqual(column: 1, row: 0)
           editor.trigger keydownEvent('j')

@@ -23,7 +23,7 @@ describe 'Buffer', ->
         buffer = new Buffer null
         expect(buffer.getText()).toBe ""
 
-  describe "save", ->
+  describe ".save()", ->
     describe "when the buffer has a url", ->
       filePath = null
 
@@ -45,7 +45,7 @@ describe 'Buffer', ->
         buffer = new Buffer
         expect(-> buffer.save()).toThrow()
 
-  describe "getMode", ->
+  describe ".getMode()", ->
     describe "when given a url", ->
       it "sets 'mode' based on the file extension", ->
         buffer = new Buffer 'something.js'
@@ -58,3 +58,4 @@ describe 'Buffer', ->
       it "sets 'mode' to text mode", ->
         buffer = new Buffer null
         expect(buffer.getMode().name).toBe 'text'
+

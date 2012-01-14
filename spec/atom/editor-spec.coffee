@@ -24,7 +24,7 @@ describe "Editor", ->
       expect(editor.buffer).toBeDefined()
 
   describe '.set/getCursor', ->
-    it "moves the cursor", ->
+    it "gets the cursor location / moves the cursor location", ->
       editor.buffer.setText("012345")
       expect(editor.getCursor()).toEqual {column: 6, row: 0}
       editor.setCursor(column: 2, row: 0)
