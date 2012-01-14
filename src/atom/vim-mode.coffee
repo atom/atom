@@ -71,10 +71,9 @@ class VimMode
 
   delete: () ->
     if @topOperator() instanceof op.Delete
-      @topOperator().complete = true
-      @processOpStack()
+      @pushOperator(new op.SelectLine)
     else
-      @pushOperator new op.Delete()
+      @pushOperator(new op.Delete)
 
   pushOperator: (op) ->
     @opStack.push(op)

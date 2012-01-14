@@ -87,4 +87,9 @@ module.exports =
         column = nextLineMatch?.index or 0
       { row, column }
 
+  SelectLine: class
+    isComplete: -> true
+
+    select: (editor) ->
+      editor.selectLine()
 

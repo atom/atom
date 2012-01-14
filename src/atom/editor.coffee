@@ -80,6 +80,9 @@ class Editor extends Template
     deleteChar: ->
       @aceEditor.remove 'right'
 
+    selectLine: ->
+      @aceEditor.selection.selectLine()
+
     deleteLine: ->
       @aceEditor.removeLines()
 
