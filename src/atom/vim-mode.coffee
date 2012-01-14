@@ -1,6 +1,8 @@
 _ = require 'underscore'
 $ = require 'jquery'
-op = require 'vim-mode-operators'
+operators = require 'vim-mode/operators'
+commands = require 'vim-mode/commands'
+motions = require 'vim-mode/motions'
 
 module.exports =
 class VimMode
@@ -34,10 +36,10 @@ class VimMode
     @handleCommands
       'insert': => @activateInsertMode()
       'delete': => @delete()
-      'delete-char': => new op.DeleteChar
-      'move-left': => new op.MoveLeft
-      'move-up': => new op.MoveUp
-      'move-to-next-word': => new op.MoveToNextWord
+      'delete-char': => new commands.DeleteChar
+      'move-left': => new motions.MoveLeft
+      'move-up': => new motions.MoveUp
+      'move-to-next-word': => new motions.MoveToNextWord
       'numeric-prefix': (e) => @numericPrefix(e)
 
   bindCommandModeKeys: (bindings) ->
@@ -64,16 +66,16 @@ class VimMode
 
   numericPrefix: (e) ->
     num = parseInt(e.keyEvent.keystroke)
-    if @topOperator() instanceof op.NumericPrefix
+    if @topOperator() instanceof operators.NumericPrefix
       @topOperator().addDigit(num)
     else
-      @pushOperator(new op.NumericPrefix(num))
+      @pushOperator(new operators.NumericPrefix(num))
 
   delete: () ->
-    if @topOperator() instanceof op.Delete
-      @pushOperator(new op.SelectLine)
+    if @topOperator() instanceof operators.Delete
+      @pushOperator(new motions.SelectLine)
     else
-      @pushOperator(new op.Delete)
+      @pushOperator(new operators.Delete)
 
   pushOperator: (op) ->
     @opStack.push(op)
