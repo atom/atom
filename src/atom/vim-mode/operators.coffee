@@ -16,27 +16,27 @@ class NumericPrefix
   addDigit: (digit) ->
     @count = @count * 10 + digit
 
-  execute: (editor) ->
-    _.times @count, => @operatorToRepeat.execute(editor)
+  execute: ->
+    _.times @count, => @operatorToRepeat.execute()
 
-  select: (editor) ->
-    _.times @count, => @operatorToRepeat.select(editor)
+  select: ->
+    _.times @count, => @operatorToRepeat.select()
 
 class Delete
   motion: null
   complete: null
 
-  constructor: ->
+  constructor: (@editor) ->
     @complete = false
 
   isComplete: -> @complete
 
-  execute: (editor) ->
+  execute: ->
     if @motion
-      @motion.select(editor)
-      editor.delete()
+      @motion.select()
+      @editor.delete()
     else
-      editor.deleteLine()
+      @editor.deleteLine()
 
   compose: (motion) ->
     @motion = motion

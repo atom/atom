@@ -36,10 +36,10 @@ class VimMode
     @handleCommands
       'insert': => @activateInsertMode()
       'delete': => @delete()
-      'delete-char': => new commands.DeleteChar
-      'move-left': => new motions.MoveLeft
-      'move-up': => new motions.MoveUp
-      'move-to-next-word': => new motions.MoveToNextWord
+      'delete-char': => new commands.DeleteChar(@editor)
+      'move-left': => new motions.MoveLeft(@editor)
+      'move-up': => new motions.MoveUp(@editor)
+      'move-to-next-word': => new motions.MoveToNextWord(@editor)
       'numeric-prefix': (e) => @numericPrefix(e)
 
   bindCommandModeKeys: (bindings) ->
@@ -73,9 +73,9 @@ class VimMode
 
   delete: () ->
     if @topOperator() instanceof operators.Delete
-      @pushOperator(new motions.SelectLine)
+      @pushOperator(new motions.SelectLine(@editor))
     else
-      @pushOperator(new operators.Delete)
+      @pushOperator(new operators.Delete(@editor))
 
   pushOperator: (op) ->
     @opStack.push(op)
@@ -88,7 +88,7 @@ class VimMode
       @topOperator().compose(poppedOperator)
       @processOpStack()
     else
-      poppedOperator.execute(@editor)
+      poppedOperator.execute()
 
   topOperator: ->
     _.last @opStack
