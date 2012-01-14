@@ -55,26 +55,26 @@ class Editor extends Template
         @buffer.url = url
         @buffer.save()
 
-    setCursor: ({column, row}) ->
+    getPosition: ->
+      @getAceSession().getSelection().getCursor()
+
+    setPosition: ({column, row}) ->
       @aceEditor.navigateTo(row, column)
 
     selectToPosition: (position) ->
       if @aceEditor.selection.isEmpty()
-        { row, column } = @getCursor()
+        { row, column } = @getPosition()
         @aceEditor.selection.setSelectionAnchor(row, column)
       @aceEditor.moveCursorToPosition(position)
 
     delete: ->
       @getAceSession().remove(@aceEditor.getSelectionRange())
 
-    getCursor: ->
-      @getAceSession().getSelection().getCursor()
-
     getLineText: (row) ->
       @buffer.getLine(row)
 
     getRow: ->
-      { row } = @getCursor()
+      { row } = @getPosition()
       row
 
     deleteChar: ->

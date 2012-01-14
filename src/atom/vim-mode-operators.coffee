@@ -50,14 +50,14 @@ module.exports =
 
   MoveLeft: class
     execute: (editor) ->
-      {column, row} = editor.getCursor()
+      {column, row} = editor.getPosition()
       editor.moveLeft() if column > 0
 
     isComplete: -> true
 
   MoveUp: class
     execute: (editor) ->
-      {column, row} = editor.getCursor()
+      {column, row} = editor.getPosition()
       editor.moveUp() if row > 0
 
     isComplete: -> true
@@ -66,14 +66,14 @@ module.exports =
     isComplete: -> true
 
     execute: (editor) ->
-      editor.setCursor(@nextWordPosition(editor))
+      editor.setPosition(@nextWordPosition(editor))
 
     select: (editor) ->
       editor.selectToPosition(@nextWordPosition(editor))
 
     nextWordPosition: (editor) ->
       regex = getWordRegex()
-      { row, column } = editor.getCursor()
+      { row, column } = editor.getPosition()
       rightOfCursor = editor.getLineText(row).substring(column)
 
       match = regex.exec(rightOfCursor)

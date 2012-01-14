@@ -23,12 +23,12 @@ describe "Editor", ->
     it "has a buffer", ->
       expect(editor.buffer).toBeDefined()
 
-  describe '.set/getCursor', ->
+  describe '.set/getPosition', ->
     it "gets the cursor location / moves the cursor location", ->
       editor.buffer.setText("012345")
-      expect(editor.getCursor()).toEqual {column: 6, row: 0}
-      editor.setCursor(column: 2, row: 0)
-      expect(editor.getCursor()).toEqual {column: 2, row: 0}
+      expect(editor.getPosition()).toEqual {column: 6, row: 0}
+      editor.setPosition(column: 2, row: 0)
+      expect(editor.getPosition()).toEqual {column: 2, row: 0}
 
   describe 'destroy', ->
     it 'destroys the ace editor', ->
