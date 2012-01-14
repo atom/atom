@@ -41,3 +41,7 @@ class Buffer
   save: ->
     if not @url then throw new Error("Tried to save buffer with no url")
     fs.write @url, @getText()
+
+  getLine: (row) ->
+    @aceDocument.getLine(row)
+

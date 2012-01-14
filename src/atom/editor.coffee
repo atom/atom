@@ -56,10 +56,17 @@ class Editor extends Template
         @buffer.save()
 
     setCursor: ({column, row}) ->
-      @aceEditor.moveCursorToPosition({column, row})
+      @aceEditor.navigateTo(row, column)
 
     getCursor: ->
       @getAceSession().getSelection().getCursor()
+
+    getLineText: ->
+      @buffer.getLine(@getRow())
+
+    getRow: ->
+      { row } = @getCursor()
+      row
 
     deleteChar: ->
       @aceEditor.remove 'right'

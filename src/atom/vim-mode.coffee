@@ -29,6 +29,7 @@ class VimMode
       'x': 'delete-char'
       'h': 'move-left'
       'j': 'move-up'
+      'w': 'move-to-next-word'
 
     @handleCommands
       'insert': => @activateInsertMode()
@@ -36,6 +37,7 @@ class VimMode
       'delete-char': => new op.DeleteChar
       'move-left': => new op.MoveLeft
       'move-up': => new op.MoveUp
+      'move-to-next-word': => new op.MoveToNextWord
       'numeric-prefix': (e) => @numericPrefix(e)
 
   bindCommandModeKeys: (bindings) ->
