@@ -59,8 +59,9 @@ class Editor extends Template
       @aceEditor.navigateTo(row, column)
 
     selectToPosition: (position) ->
-      { row, column } = @getCursor()
-      @aceEditor.selection.setSelectionAnchor(row, column)
+      if @aceEditor.selection.isEmpty()
+        { row, column } = @getCursor()
+        @aceEditor.selection.setSelectionAnchor(row, column)
       @aceEditor.moveCursorToPosition(position)
 
     delete: ->

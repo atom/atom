@@ -68,6 +68,16 @@ describe "VimMode", ->
           expect(editor.buffer.getText()).toBe "abefg"
           expect(editor.getCursor()).toEqual {column: 2, row: 0}
 
+          editor.buffer.setText("one two three four")
+          editor.setCursor(column: 0, row: 0)
+
+          editor.trigger keydownEvent('d')
+          editor.trigger keydownEvent('3')
+          editor.trigger keydownEvent('w')
+
+          expect(editor.buffer.getText()).toBe "four"
+          expect(editor.getCursor()).toEqual {column: 0, row: 0}
+
     describe "basic motion bindings", ->
       beforeEach ->
         editor.buffer.setText("12345\nabcde\nABCDE")

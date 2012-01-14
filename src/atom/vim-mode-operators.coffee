@@ -22,6 +22,9 @@ module.exports =
     execute: (editor) ->
       _.times @count, => @operatorToRepeat.execute(editor)
 
+    select: (editor) ->
+      _.times @count, => @operatorToRepeat.select(editor)
+
   Delete: class
     complete: null
     motion: null
