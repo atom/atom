@@ -25,12 +25,14 @@ class VimMode
 
     @bindCommandModeKeys
       'i': 'insert'
+      'd': 'delete'
       'x': 'delete-char'
       'h': 'move-left'
       'j': 'move-up'
 
     @handleCommands
       'insert': => @activateInsertMode()
+      'delete': => @delete()
       'delete-char': => new op.DeleteChar
       'move-left': => new op.MoveLeft
       'move-up': => new op.MoveUp
@@ -64,6 +66,13 @@ class VimMode
       @topOperator().addDigit(num)
     else
       @pushOperator(new op.NumericPrefix(num))
+
+  delete: () ->
+    if @topOperator() instanceof op.Delete
+      @topOperator().complete = true
+      @processOpStack()
+    else
+      @pushOperator new op.Delete()
 
   pushOperator: (op) ->
     @opStack.push(op)

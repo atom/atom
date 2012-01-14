@@ -20,6 +20,14 @@ module.exports =
     execute: (editor) ->
       _.times @count, => @operatorToRepeat.execute(editor)
 
+  Delete: class
+    complete: null
+
+    execute: (editor) ->
+      editor.deleteLine()
+
+    isComplete: -> @complete
+
   DeleteChar: class
     execute: (editor) ->
       editor.deleteChar()

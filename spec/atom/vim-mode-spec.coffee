@@ -45,6 +45,19 @@ describe "VimMode", ->
         expect(editor.buffer.getText()).toBe '1345'
         expect(editor.getCursor()).toEqual(column: 1, row: 0)
 
+    describe "the d keybinding", ->
+      it "deletes the line the cursor is on when 'd' is pressed again", ->
+        editor.buffer.setText("12345\nabcde\nABCDE")
+        editor.setCursor(column: 1, row: 1)
+        spyOn(editor, 'deleteLine').andCallThrough()
+
+        editor.trigger keydownEvent('d')
+        editor.trigger keydownEvent('d')
+
+        expect(editor.deleteLine).toHaveBeenCalled()
+        expect(editor.buffer.getText()).toBe "12345\nABCDE"
+        expect(editor.getCursor()).toEqual(column: 0, row: 1)
+
     describe "basic motion bindings", ->
       beforeEach ->
         editor.buffer.setText("12345\nabcde\nABCDE")
