@@ -58,6 +58,14 @@ class Editor extends Template
     setCursor: ({column, row}) ->
       @aceEditor.navigateTo(row, column)
 
+    selectToPosition: (position) ->
+      { row, column } = @getCursor()
+      @aceEditor.selection.setSelectionAnchor(row, column)
+      @aceEditor.moveCursorToPosition(position)
+
+    delete: ->
+      @getAceSession().remove(@aceEditor.getSelectionRange())
+
     getCursor: ->
       @getAceSession().getSelection().getCursor()
 

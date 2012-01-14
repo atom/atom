@@ -24,9 +24,18 @@ module.exports =
 
   Delete: class
     complete: null
+    motion: null
 
     execute: (editor) ->
-      editor.deleteLine()
+      if @motion
+        @motion.select(editor)
+        editor.delete()
+      else
+        editor.deleteLine()
+
+    compose: (motion) ->
+      @motion = motion
+      @complete = true
 
     isComplete: -> @complete
 
@@ -51,7 +60,15 @@ module.exports =
     isComplete: -> true
 
   MoveToNextWord: class
+    isComplete: -> true
+
     execute: (editor) ->
+      editor.setCursor(@nextWordPosition(editor))
+
+    select: (editor) ->
+      editor.selectToPosition(@nextWordPosition(editor))
+
+    nextWordPosition: (editor) ->
       regex = getWordRegex()
       { row, column } = editor.getCursor()
       rightOfCursor = editor.getLineText(row).substring(column)
@@ -65,8 +82,6 @@ module.exports =
       else
         nextLineMatch = regex.exec(editor.getLineText(++row))
         column = nextLineMatch?.index or 0
+      { row, column }
 
-      editor.setCursor { row, column }
-
-    isComplete: -> true
 

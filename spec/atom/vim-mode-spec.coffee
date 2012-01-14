@@ -46,17 +46,27 @@ describe "VimMode", ->
         expect(editor.getCursor()).toEqual(column: 1, row: 0)
 
     describe "the d keybinding", ->
-      it "deletes the line the cursor is on when 'd' is pressed again", ->
-        editor.buffer.setText("12345\nabcde\nABCDE")
-        editor.setCursor(column: 1, row: 1)
-        spyOn(editor, 'deleteLine').andCallThrough()
+      describe "when followed by a d", ->
+        it "deletes the current line", ->
+          editor.buffer.setText("12345\nabcde\nABCDE")
+          editor.setCursor(column: 1, row: 1)
 
-        editor.trigger keydownEvent('d')
-        editor.trigger keydownEvent('d')
+          editor.trigger keydownEvent('d')
+          editor.trigger keydownEvent('d')
 
-        expect(editor.deleteLine).toHaveBeenCalled()
-        expect(editor.buffer.getText()).toBe "12345\nABCDE"
-        expect(editor.getCursor()).toEqual(column: 0, row: 1)
+          expect(editor.buffer.getText()).toBe "12345\nABCDE"
+          expect(editor.getCursor()).toEqual(column: 0, row: 1)
+
+      describe "when followed by a w", ->
+        it "deletes to the beginning of the next word", ->
+          editor.buffer.setText("abcd efg")
+          editor.setCursor(column: 2, row: 0)
+
+          editor.trigger keydownEvent('d')
+          editor.trigger keydownEvent('w')
+
+          expect(editor.buffer.getText()).toBe "abefg"
+          expect(editor.getCursor()).toEqual {column: 2, row: 0}
 
     describe "basic motion bindings", ->
       beforeEach ->
@@ -78,7 +88,7 @@ describe "VimMode", ->
           expect(editor.getCursor()).toEqual(column: 1, row: 0)
 
       describe "the w keybinding", ->
-        fit "moves the cursor to the beginning of the next word", ->
+        it "moves the cursor to the beginning of the next word", ->
           editor.buffer.setText("ab cde1+- \n xyz\n\nzip")
           editor.setCursor(column: 0, row: 0)
 
