@@ -78,13 +78,27 @@ describe "VimMode", ->
           expect(editor.getCursor()).toEqual(column: 1, row: 0)
 
       describe "the w keybinding", ->
-        it "moves the cursor to the beginning of the next word", ->
-          editor.buffer.setText("ab cde 123+- \n xyz")
+        fit "moves the cursor to the beginning of the next word", ->
+          editor.buffer.setText("ab cde1+- \n xyz\n\nzip")
           editor.setCursor(column: 0, row: 0)
 
           editor.trigger keydownEvent('w')
           expect(editor.getCursor()).toEqual(column: 3, row: 0)
 
+          editor.trigger keydownEvent('w')
+          expect(editor.getCursor()).toEqual(column: 7, row: 0)
+
+          editor.trigger keydownEvent('w')
+          expect(editor.getCursor()).toEqual(column: 1, row: 1)
+
+          editor.trigger keydownEvent('w')
+          expect(editor.getCursor()).toEqual(column: 0, row: 2)
+
+          editor.trigger keydownEvent('w')
+          expect(editor.getCursor()).toEqual(column: 0, row: 3)
+
+          editor.trigger keydownEvent('w')
+          expect(editor.getCursor()).toEqual(column: 3, row: 3)
 
     describe "numeric prefix bindings", ->
       it "repeats the following operation N times", ->

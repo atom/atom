@@ -61,8 +61,8 @@ class Editor extends Template
     getCursor: ->
       @getAceSession().getSelection().getCursor()
 
-    getLineText: ->
-      @buffer.getLine(@getRow())
+    getLineText: (row) ->
+      @buffer.getLine(row)
 
     getRow: ->
       { row } = @getCursor()

@@ -54,12 +54,17 @@ module.exports =
     execute: (editor) ->
       regex = getWordRegex()
       { row, column } = editor.getCursor()
-      rightOfCursor = editor.getLineText().substring(column)
+      rightOfCursor = editor.getLineText(row).substring(column)
 
       match = regex.exec(rightOfCursor)
       # If we're on top of part of a word, match the next one.
       match = regex.exec(rightOfCursor) if match?.index is 0
-      column += match.index
+
+      if match
+        column += match.index
+      else
+        nextLineMatch = regex.exec(editor.getLineText(++row))
+        column = nextLineMatch?.index or 0
 
       editor.setCursor { row, column }
 
