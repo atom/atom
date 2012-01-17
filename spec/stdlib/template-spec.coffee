@@ -1,3 +1,4 @@
+$ = require 'jquery'
 Template = require 'template'
 
 describe "Template", ->
@@ -88,4 +89,32 @@ describe "Template", ->
         expect(view.header.view()).toBe view
         expect(view.subview.view()).toBe view.subview
         expect(view.subview.header.view()).toBe view.subview
+
+    describe "when a view is inserted within another element with jquery", ->
+      attachHandler = null
+
+      beforeEach ->
+        attachHandler = jasmine.createSpy 'attachHandler'
+        view.on 'attach', attachHandler
+
+      describe "when attached to an element that is on the DOM", ->
+        it "triggers the 'attach' event on the view", ->
+          content = $('#jasmine-content')
+          content.append view
+          expect(attachHandler).toHaveBeenCalled()
+
+          view.detach()
+          content.empty()
+          attachHandler.reset()
+
+          otherElt = $('<div>')
+          content.append(otherElt)
+          view.insertBefore(otherElt)
+          expect(attachHandler).toHaveBeenCalled()
+
+      describe "when attached to an element that is not on the DOM", ->
+        it "does not trigger an attach event", ->
+          fragment = $('<div>')
+          fragment.append view
+          expect(attachHandler).not.toHaveBeenCalled()
 
