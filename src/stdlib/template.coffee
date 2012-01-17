@@ -27,7 +27,7 @@ class Template
     @bindEvents(view)
     if @viewProperties
       $.extend(view, @viewProperties)
-    view.data('triggerAttach', true)
+    view.attr('triggerAttachEvents', true)
     view.initialize?(attributes)
     view
 
@@ -53,21 +53,21 @@ $.fn.view = ->
   this.data('view')
 
 # Trigger attach event when views are added to the DOM
-checkIfAttached = (elt) ->
-  if elt.data?('triggerAttach') and elt.parents('html').length
-    elt.trigger('attach')
+triggerAttachEvent = (elt) ->
+  if elt.attr?('triggerAttachEvents') and elt.parents('html').length
+    elt.find('[triggerAttachEvents]').add(elt).trigger('attach')
 
 _.each ['append', 'prepend', 'after', 'before'], (methodName) ->
   originalMethod = $.fn[methodName]
   $.fn[methodName] = (args...) ->
     result = originalMethod.apply(this, args)
-    checkIfAttached(args[0])
+    triggerAttachEvent(args[0])
     result
 
 _.each ['prependTo', 'appendTo', 'insertAfter', 'insertBefore'], (methodName) ->
   originalMethod = $.fn[methodName]
   $.fn[methodName] = (args...) ->
     result = originalMethod.apply(this, args)
-    checkIfAttached(this)
+    triggerAttachEvent(this)
     result
 
