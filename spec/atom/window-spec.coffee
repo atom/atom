@@ -1,5 +1,5 @@
-require 'window'
 $ = require 'jquery'
+fs = require 'fs'
 
 describe "Window", ->
   describe "keybindings", ->
@@ -14,6 +14,23 @@ describe "Window", ->
         spyOn window, 'close'
         $(window).trigger 'close'
         expect(window.close).toHaveBeenCalled()
+
+    describe "requireStylesheet(path)", ->
+      it "synchronously loads the stylesheet at the given path and installs a style tag for it in the head", ->
+        $('head style').remove()
+        expect($('head style').length).toBe 0
+        requireStylesheet('atom.css')
+        expect($('head style').length).toBe 1
+
+        styleElt = $('head style')
+
+        fullPath = require.resolve('atom.css')
+        expect(styleElt.attr('path')).toBe fullPath
+        expect(styleElt.text()).toBe fs.read(fullPath)
+
+        requireStylesheet('atom.css')
+        expect($('head style').length).toBe 1
+
 
     describe "bindMenuItem(path, keyPattern, action)", ->
       it "causes the given menu item to be added to the menu when the window is focused and removed when it is blurred", ->
