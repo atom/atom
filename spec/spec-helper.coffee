@@ -3,11 +3,13 @@ $ = require 'jquery'
 _ = require 'underscore'
 Native = require 'native'
 BindingSet = require 'binding-set'
+require 'window'
 
 afterEach ->
   (new Native).resetMainMenu()
   atom.globalKeymap.reset()
   # $('#jasmine-content').empty()
+  $('head style[path]').remove()
 
 window.atom = new (require 'app')
 

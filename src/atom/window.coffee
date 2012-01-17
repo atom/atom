@@ -1,6 +1,7 @@
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
+fs = require 'fs'
 
 RootView = require 'root-view'
 
@@ -24,6 +25,12 @@ windowAdditions =
     @rootView.remove()
     $(window).unbind('focus')
     $(window).unbind('blur')
+
+  requireStylesheet: (path) ->
+    fullPath = require.resolve(path)
+    content = fs.read(fullPath)
+    return if $("head style[path='#{fullPath}']").length
+    $('head').append "<style path='#{fullPath}'>#{content}</style>"
 
   bindMenuItems: ->
     # we want to integrate this better with keybindings
