@@ -36,8 +36,15 @@ body {
   background-color: blue;
 }
 
-.ace_editor {
+.editor {
   font: 18px Inconsolata, Monaco, Courier !important;
   width: 100%;
   height: 100%;
+  background: #333;
+  color: white;
+}
+
+.editor .cursor {
+  background: #9dff9d;
+  opacity: .3;
 }

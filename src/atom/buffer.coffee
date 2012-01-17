@@ -3,45 +3,27 @@ fs = require 'fs'
 
 module.exports =
 class Buffer
-  aceDocument: null
-  url: null
+  lines: null
 
-  constructor: (@url) ->
-    text = if @url and fs.exists(@url)
-      fs.read(@url)
+  constructor: (@path) ->
+    if @path and fs.exists(@path)
+      @setText(fs.read(@path))
     else
-      ""
-
-    @aceDocument = new Document text
+      @setText('')
 
   getText: ->
-    @aceDocument.getValue()
+    @lines.join('\n')
 
   setText: (text) ->
-    @aceDocument.setValue text
+    @lines = text.split('\n')
 
-  getMode: ->
-    return @mode if @mode
+  getLines: ->
+    @lines
 
-    extension = if @url then @url.split('/').pop().split('.').pop() else null
-    modeName = switch extension
-      when 'js' then 'javascript'
-      when 'coffee' then 'coffee'
-      when 'rb', 'ru' then 'ruby'
-      when 'c', 'h', 'cpp' then 'c_cpp'
-      when 'html', 'htm' then 'html'
-      when 'css' then 'css'
-
-      else 'text'
-
-    @mode = new (require("ace/mode/#{modeName}").Mode)
-    @mode.name = modeName
-    @mode
+  numLines: ->
+    @getLines().length
 
   save: ->
-    if not @url then throw new Error("Tried to save buffer with no url")
-    fs.write @url, @getText()
-
-  getLine: (row) ->
-    @aceDocument.getLine(row)
+    if not @path then throw new Error("Tried to save buffer with no url")
+    fs.write @path, @getText()
 

@@ -23,7 +23,6 @@ class RootView extends Template
     globalKeymap: null
 
     initialize: ({url}) ->
-      new VimMode(@editor)
       @editor.keyEventHandler = atom.globalKeymap
       @createProject(url)
 

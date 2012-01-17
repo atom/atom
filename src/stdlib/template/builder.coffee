@@ -48,6 +48,7 @@ class Builder
     @tag 'div', id: subviewId
     @postProcessingFns.push (view) ->
       view[outletName] = subview
+      subview.parentView = view
       view.find("div##{subviewId}").replaceWith(subview)
 
   elementIsVoid: (name) ->

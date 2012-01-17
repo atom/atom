@@ -1,93 +1,44 @@
 Template = require 'template'
 Buffer = require 'buffer'
-{EditSession} = require 'ace/edit_session'
-ace = require 'ace/ace'
+Cursor = require 'cursor'
 $ = require 'jquery'
 
 module.exports =
 class Editor extends Template
   content: ->
-    @div class: 'editor'
+    @div class: 'editor', =>
+      @div outlet: 'lines'
+      @subview 'cursor', Cursor.build()
 
   viewProperties:
-    aceEditor: null
     buffer: null
-    keyEventHandler: null
 
     initialize: () ->
-      @aceSessions = {}
-      @buildAceEditor()
       @setBuffer(new Buffer)
-      @on 'save', => @save()
-
-    shutdown: ->
-      @destroy()
-
-    destroy: ->
-      @aceEditor.destroy()
 
     setBuffer: (@buffer) ->
-      @aceEditor.setSession @getAceSessionForBuffer(buffer)
+      @lines.empty()
+      for line in @buffer.getLines()
+        @lines.append "<pre>#{line}</pre>"
+      @setPosition(row: 0, col: 0)
 
-    getAceSessionForBuffer: (buffer) ->
-      @aceSessions[@buffer.url] ?= new EditSession(@buffer.aceDocument, @buffer.getMode())
-
-    buildAceEditor: ->
-      @aceEditor = ace.edit this[0]
-      @aceEditor.setTheme(require "ace/theme/twilight")
-      @aceEditor.setKeyboardHandler
-        handleKeyboard: (data, hashId, keyString, keyCode, event) =>
-          if event and @keyEventHandler and @keyEventHandler.handleKeyEvent(event) == false
-            { command: { exec: -> }}
-          else
-            null
-
-    getAceSession: ->
-      @aceEditor.getSession()
-
-    focus: ->
-      @aceEditor.focus()
-
-    save: ->
-      if @buffer.url
-        @buffer.save()
-      else if url = atom.native.savePanel()
-        @buffer.url = url
-        @buffer.save()
+    setPosition: (position) ->
+      @cursor.setPosition(position)
 
     getPosition: ->
-      @getAceSession().getSelection().getCursor()
+      @cursor.getPosition()
 
-    setPosition: ({column, row}) ->
-      @aceEditor.navigateTo(row, column)
+    toPixelPosition: ({row, col}) ->
+      { top: row * @lineHeight(), left: col * @charWidth() }
 
-    selectToPosition: (position) ->
-      if @aceEditor.selection.isEmpty()
-        { row, column } = @getPosition()
-        @aceEditor.selection.setSelectionAnchor(row, column)
-      @aceEditor.moveCursorToPosition(position)
+    lineHeight: ->
+      @lines.css('line-height')
 
-    delete: ->
-      @getAceSession().remove(@aceEditor.getSelectionRange())
+    charWidth: ->
+      return @cachedCharWidth if @cachedCharWidth
+      fragment = $('<pre style="position: absolute; visibility: hidden;">x</pre>')
+      @lines.append(fragment)
+      @cachedCharWidth = fragment.width()
+      fragment.remove()
+      @cachedCharWidth
 
-    getLineText: (row) ->
-      @buffer.getLine(row)
-
-    getRow: ->
-      { row } = @getPosition()
-      row
-
-    deleteChar: ->
-      @aceEditor.remove 'right'
-
-    selectLine: ->
-      @aceEditor.selection.selectLine()
-
-    deleteLine: ->
-      @aceEditor.removeLines()
-
-    moveLeft: ->
-      @aceEditor.navigateLeft()
-
-    moveUp: ->
-      @aceEditor.navigateUp()
