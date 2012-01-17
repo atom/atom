@@ -19,7 +19,7 @@ describe "Editor", ->
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
-  fdescribe ".setPosition({row, col})", ->
+  describe ".setPosition({row, col})", ->
     it "moves the cursor to cover the character at the given row and column", ->
       editor.attachToDom()
       editor.setBuffer(buffer)

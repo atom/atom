@@ -8,8 +8,7 @@ require 'window'
 afterEach ->
   (new Native).resetMainMenu()
   atom.globalKeymap.reset()
-  # $('#jasmine-content').empty()
-  # $('head style[path]').remove()
+  $('#jasmine-content').empty()
 
 window.atom = new (require 'app')
 

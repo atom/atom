@@ -17,6 +17,7 @@ class Editor extends Template
     initialize: () ->
       requireStylesheet 'editor.css'
       @setBuffer(new Buffer)
+      @one 'attach', => @calculateDimensions()
 
     setBuffer: (@buffer) ->
       @lines.empty()
@@ -34,11 +35,9 @@ class Editor extends Template
       { top: row * @lineHeight(), left: col * @charWidth() }
 
     lineHeight: ->
-      @calculateDimensions() unless @cachedLineHeight
       @cachedLineHeight
 
     charWidth: ->
-      @calculateDimensions() unless @cachedCharWidth
       @cachedCharWidth
 
     calculateDimensions: ->
@@ -46,6 +45,5 @@ class Editor extends Template
       @lines.append(fragment)
       @cachedCharWidth = fragment.width()
       @cachedLineHeight = fragment.outerHeight()
-      console.log @cachedLineHeight
       fragment.remove()
 

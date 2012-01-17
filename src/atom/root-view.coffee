@@ -14,8 +14,6 @@ module.exports =
 class RootView extends Template
   content: ->
     @div id: 'app-horizontal', =>
-      @link rel: 'stylesheet', href: "#{require.resolve('atom.css')}?#{(new Date).getTime()}"
-      @link rel: 'stylesheet', href: "#{require.resolve('editor.css')}?#{(new Date).getTime()}"
       @div id: 'app-vertical', outlet: 'vertical', =>
         @div id: 'main', outlet: 'main', =>
           @subview 'editor', Editor.build()
