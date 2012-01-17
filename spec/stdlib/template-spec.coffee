@@ -91,26 +91,31 @@ describe "Template", ->
         expect(view.subview.header.view()).toBe view.subview
 
     describe "when a view is inserted within another element with jquery", ->
-      attachHandler = null
+      [attachHandler, subviewAttachHandler] = []
 
       beforeEach ->
         attachHandler = jasmine.createSpy 'attachHandler'
+        subviewAttachHandler = jasmine.createSpy 'subviewAttachHandler'
         view.on 'attach', attachHandler
+        view.subview.on 'attach', subviewAttachHandler
 
       describe "when attached to an element that is on the DOM", ->
-        it "triggers the 'attach' event on the view", ->
+        it "triggers an 'attach' event on the view and its subviews", ->
           content = $('#jasmine-content')
           content.append view
           expect(attachHandler).toHaveBeenCalled()
+          expect(subviewAttachHandler).toHaveBeenCalled()
 
           view.detach()
           content.empty()
           attachHandler.reset()
+          subviewAttachHandler.reset()
 
           otherElt = $('<div>')
           content.append(otherElt)
           view.insertBefore(otherElt)
           expect(attachHandler).toHaveBeenCalled()
+          expect(subviewAttachHandler).toHaveBeenCalled()
 
       describe "when attached to an element that is not on the DOM", ->
         it "does not trigger an attach event", ->
