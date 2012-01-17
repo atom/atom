@@ -9,7 +9,7 @@ afterEach ->
   (new Native).resetMainMenu()
   atom.globalKeymap.reset()
   # $('#jasmine-content').empty()
-  $('head style[path]').remove()
+  # $('head style[path]').remove()
 
 window.atom = new (require 'app')
 

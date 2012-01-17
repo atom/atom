@@ -8,7 +8,6 @@ module.exports =
 class Editor extends Template
   content: ->
     @div class: 'editor', =>
-      # @link rel: 'stylesheet', href: "#{require.resolve('editor.css')}?#{(new Date).getTime()}"
       @style       @div outlet: 'lines'
       @subview 'cursor', Cursor.build()
 
@@ -16,30 +15,7 @@ class Editor extends Template
     buffer: null
 
     initialize: () ->
-      $('head').append """
-<style>
-.editor {
-  font-family: Inconsolata, Monaco, Courier;
-  font: 18px Inconsolata, Monaco, Courier !important;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: #333;
-  color: white;
-}
-
-.editor pre {
-  margin: 0;
-}
-
-.editor .cursor {
-  background: #9dff9d;
-  opacity: .3;
-}
-</style>
-
-      """
-
+      requireStylesheet 'editor.css'
       @setBuffer(new Buffer)
 
     setBuffer: (@buffer) ->
