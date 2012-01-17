@@ -1,7 +1,7 @@
 Buffer = require 'buffer'
 fs = require 'fs'
 
-fdescribe 'Buffer', ->
+describe 'Buffer', ->
   [filePath, fileContents, buffer] = []
 
   beforeEach ->

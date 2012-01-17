@@ -6,9 +6,9 @@ class Cursor extends Template
     @pre class: 'cursor', style: 'position: absolute;', '&nbsp;'
 
   viewProperties:
-    setPosition: (@position) ->
-      @css(@parentView.toPixelPosition(position))
+    setPosition: (@_position) ->
+      @css(@parentView.toPixelPosition(@_position))
 
     getPosition: ->
-      @position
+      @_position
 

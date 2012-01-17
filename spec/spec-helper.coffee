@@ -7,7 +7,7 @@ BindingSet = require 'binding-set'
 afterEach ->
   (new Native).resetMainMenu()
   atom.globalKeymap.reset()
-  $('#jasmine-content').empty()
+  # $('#jasmine-content').empty()
 
 window.atom = new (require 'app')
 
@@ -31,4 +31,8 @@ $.fn.resultOfTrigger = (type) ->
 
 $.fn.enableKeymap = ->
   @on 'keydown', (e) => atom.globalKeymap.handleKeyEvent(e)
+
+$.fn.attachToDom = ->
+  console.log this
+  $('#jasmine-content').append(this)
 

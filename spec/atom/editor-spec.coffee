@@ -3,7 +3,7 @@ Editor = require 'editor'
 $ = require 'jquery'
 fs = require 'fs'
 
-fdescribe "Editor", ->
+describe "Editor", ->
   buffer = null
   editor = null
 
@@ -18,4 +18,13 @@ fdescribe "Editor", ->
 
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getPosition()).toEqual(row: 0, col: 0)
+
+  fdescribe ".setPosition({row, col})", ->
+    it "moves the cursor to cover the character at the given row and column", ->
+      editor.attachToDom()
+      editor.setBuffer(buffer)
+      editor.setPosition(row: 2, col: 2)
+
+      expect(editor.cursor.position().top).toBe(2 * editor.lineHeight())
+      expect(editor.cursor.position().left).toBe(2 * editor.charWidth())
 
