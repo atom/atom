@@ -7,8 +7,8 @@ _ = require 'underscore'
 module.exports =
 class Editor extends Template
   content: ->
-    @div class: 'editor', =>
-      @style       @div outlet: 'lines'
+    @div class: 'editor', tabindex: -1, =>
+      @div outlet: 'lines'
       @subview 'cursor', Cursor.build()
 
   viewProperties:
@@ -17,13 +17,43 @@ class Editor extends Template
     initialize: () ->
       requireStylesheet 'editor.css'
       @setBuffer(new Buffer)
-      @one 'attach', => @calculateDimensions()
+
+      atom.bindKeys '*',
+        right: 'move-right'
+        left: 'move-left'
+        down: 'move-down'
+        up: 'move-up'
+
+      @on 'move-right', => @moveRight()
+      @on 'move-left', => @moveLeft()
+      @on 'move-down', => @moveDown()
+      @on 'move-up', => @moveUp()
+
+      @one 'attach', =>
+        @calculateDimensions()
+
+
+    moveRight: ->
+      { row, col } = @getPosition()
+      @setPosition({row, col: col + 1})
+
+    moveDown: ->
+      { row, col } = @getPosition()
+      @setPosition({row: row + 1, col})
+
+    moveLeft: ->
+      { row, col } = @getPosition()
+      @setPosition({row, col: col - 1})
+
+    moveUp: ->
+      { row, col } = @getPosition()
+      @setPosition({row: row - 1, col})
 
     setBuffer: (@buffer) ->
       @lines.empty()
       for line in @buffer.getLines()
         @lines.append "<pre>#{line}</pre>"
-      _.defer => @setPosition(row: 3, col: 4)
+      @setPosition(row: 0, col: 0)
 
     setPosition: (position) ->
       @cursor.setPosition(position)
@@ -46,4 +76,5 @@ class Editor extends Template
       @cachedCharWidth = fragment.width()
       @cachedLineHeight = fragment.outerHeight()
       fragment.remove()
+      @cursor.updateAbsolutePosition()
 

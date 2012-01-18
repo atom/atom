@@ -34,6 +34,5 @@ $.fn.enableKeymap = ->
   @on 'keydown', (e) => atom.globalKeymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
-  console.log this
   $('#jasmine-content').append(this)
 

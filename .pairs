@@ -1,6 +1,7 @@
 pairs:
   ns: Nathan Sobo; nathan
   cj: Corey Johnson; cj
+  dg: Danny Greg; danny
 email:
   domain: github.com
 #global: true

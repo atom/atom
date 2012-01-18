@@ -7,8 +7,12 @@ class Cursor extends Template
 
   viewProperties:
     setPosition: (@_position) ->
-      @css(@parentView.toPixelPosition(@_position))
+      @updateAbsolutePosition()
 
     getPosition: ->
       @_position
+
+    updateAbsolutePosition: ->
+      position = @parentView.toPixelPosition(@_position)
+      @css(position)
 
