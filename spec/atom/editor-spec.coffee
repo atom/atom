@@ -36,6 +36,33 @@ fdescribe "Editor", ->
       editor.trigger keydownEvent('up')
       expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
+    describe "when up is pressed on the first line", ->
+      it "moves the cursor to the beginning of the line", ->
+        editor.setPosition(row: 0, col: 4)
+        editor.moveUp()
+        expect(editor.getPosition()).toEqual(row: 0, col: 0)
+
+    describe "when down is pressed on the last line", ->
+      it "moves the cursor to the end of line", ->
+        lastLineIndex = buffer.getLines().length - 1
+        lastLine = buffer.getLine(lastLineIndex)
+        expect(lastLine.length).toBeGreaterThan(0)
+
+        editor.setPosition(row: lastLineIndex, col: 0)
+        editor.moveDown()
+        expect(editor.getPosition()).toEqual(row: lastLineIndex, col: lastLine.length)
+
+    describe "when left is pressed on the first column", ->
+      it "wraps to the end of the previous line", ->
+        editor.setPosition(row: 1, col: 0)
+        editor.moveLeft()
+        expect(editor.getPosition()).toEqual(row: 0, col: buffer.getLine(0).length)
+
+    describe "when right is pressed on the last column", ->
+      it "wraps to the beginning of the next line", ->
+        editor.setPosition(row: 0, col: buffer.getLine(0).length)
+        editor.moveRight()
+        expect(editor.getPosition()).toEqual(row: 1, col: 0)
 
   describe ".setPosition({row, col})", ->
     it "moves the cursor to cover the character at the given row and column", ->

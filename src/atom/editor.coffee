@@ -35,23 +35,43 @@ class Editor extends Template
 
     moveRight: ->
       { row, col } = @getPosition()
-      @setPosition({row, col: col + 1})
+      if col < @buffer.getLine(row).length
+        col++
+      else
+        row++
+        col = 0
+      @setPosition({row, col})
 
     moveDown: ->
       { row, col } = @getPosition()
-      @setPosition({row: row + 1, col})
+      if row < @buffer.numLines() - 1
+        row++
+      else
+        col = @buffer.getLine(row).length
+      @setPosition({row, col})
 
     moveLeft: ->
       { row, col } = @getPosition()
-      @setPosition({row, col: col - 1})
+      if col > 0
+        col--
+      else
+        row--
+        col = @buffer.getLine(row).length
+
+      @setPosition({row, col})
 
     moveUp: ->
       { row, col } = @getPosition()
-      @setPosition({row: row - 1, col})
+      if row is 0
+        col = 0
+      else
+        row--
+      @setPosition({row, col})
 
     setBuffer: (@buffer) ->
       @lines.empty()
       for line in @buffer.getLines()
+        line = '&nbsp;' if line is ''
         @lines.append "<pre>#{line}</pre>"
       @setPosition(row: 0, col: 0)
 

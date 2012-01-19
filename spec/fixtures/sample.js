@@ -10,4 +10,3 @@ var quicksort = function () {
   };
   return sort(Array.apply(this, arguments));
 };
-

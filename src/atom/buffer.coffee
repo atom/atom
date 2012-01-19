@@ -20,6 +20,9 @@ class Buffer
   getLines: ->
     @lines
 
+  getLine: (n) ->
+    @lines[n]
+
   numLines: ->
     @getLines().length
 
