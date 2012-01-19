@@ -37,7 +37,7 @@ class Editor extends Template
       { row, col } = @getPosition()
       if col < @buffer.getLine(row).length
         col++
-      else
+      else if row < @buffer.numLines() - 1
         row++
         col = 0
       @setPosition({row, col})
@@ -54,7 +54,7 @@ class Editor extends Template
       { row, col } = @getPosition()
       if col > 0
         col--
-      else
+      else if row > 0
         row--
         col = @buffer.getLine(row).length
 

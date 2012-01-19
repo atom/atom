@@ -53,16 +53,37 @@ fdescribe "Editor", ->
         expect(editor.getPosition()).toEqual(row: lastLineIndex, col: lastLine.length)
 
     describe "when left is pressed on the first column", ->
-      it "wraps to the end of the previous line", ->
-        editor.setPosition(row: 1, col: 0)
-        editor.moveLeft()
-        expect(editor.getPosition()).toEqual(row: 0, col: buffer.getLine(0).length)
+      describe "when there is a previous line", ->
+        it "wraps to the end of the previous line", ->
+          editor.setPosition(row: 1, col: 0)
+          editor.moveLeft()
+          expect(editor.getPosition()).toEqual(row: 0, col: buffer.getLine(0).length)
+
+      describe "when the cursor is on the first line", ->
+        it "remains in the same position (0,0)", ->
+          editor.setPosition(row: 0, col: 0)
+          editor.moveLeft()
+          expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
     describe "when right is pressed on the last column", ->
-      it "wraps to the beginning of the next line", ->
-        editor.setPosition(row: 0, col: buffer.getLine(0).length)
-        editor.moveRight()
-        expect(editor.getPosition()).toEqual(row: 1, col: 0)
+      describe "when there is a subsequent line", ->
+        it "wraps to the beginning of the next line", ->
+          editor.setPosition(row: 0, col: buffer.getLine(0).length)
+          editor.moveRight()
+          expect(editor.getPosition()).toEqual(row: 1, col: 0)
+
+      fdescribe "when the cursor is on the last line", ->
+        it "remains in the same position", ->
+          lastLineIndex = buffer.getLines().length - 1
+          lastLine = buffer.getLine(lastLineIndex)
+          expect(lastLine.length).toBeGreaterThan(0)
+
+          lastPosition = { row: lastLineIndex, col: lastLine.length }
+          editor.setPosition(lastPosition)
+          editor.moveRight()
+
+          expect(editor.getPosition()).toEqual(lastPosition)
+
 
   describe ".setPosition({row, col})", ->
     it "moves the cursor to cover the character at the given row and column", ->
