@@ -1,28 +1,21 @@
 # Atom — Futuristic Text Editing
 
+## Be forwarned: Atom is pre-alpha software!
+
+## Instalation
+
+1. Get [xcode 4.2](http://itunes.apple.com/us/app/xcode/id448457090?mt=12).
+
+2. Clone atom from github/atom.
+
+3. Open Atom.xcodeproject.
+
+4. Press cmd-r to build and run.
+
 ## Informative Links
 
-### Ace
+* [Ace](https://github.com/ajaxorg/ace)
 
-* https://github.com/ajaxorg/ace/wiki/Creating-or-Extending-an-Edit-Mode
-* https://github.com/ajaxorg/ace/blob/master/lib/ace/selection.js
-* https://github.com/ajaxorg/ace/blob/master/lib/ace/commands/default_commands.js
-* https://github.com/ajaxorg/ace/blob/master/lib/ace/document.js
+* [commonjs](http://wiki.commonjs.org)
 
-### commonjs
-
-* http://ringojs.org/api/master/
-* http://wiki.commonjs.org/wiki/Filesystem/A
-* https://github.com/280north/narwhal
-
-### JSCocoa
-
-* http://parmanoir.com/Taming_JavascriptCore_within_and_without_WebView
-* https://github.com/parmanoir/jscocoa/
-* http://code.google.com/p/jscocoa/
-
-### Cloud9
-
-* Extensions: http://cloud9ide.posterous.com/writing-an-extension-for-cloud9-javascript-id
-* https://github.com/ajaxorg/cloud9/blob/master/client/ext/extension_template/extension_template.js
-
+* [JSCocoa](https://github.com/parmanoir/jscocoa/)
