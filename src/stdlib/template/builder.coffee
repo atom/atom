@@ -23,12 +23,24 @@ class Builder
     void: 'area base br col command embed hr img input keygen link meta param
       source track wbr'.split /\s+/
 
-
   @allElements: ->
     @elements.normal.concat(@elements.void)
 
-  _.each @allElements(), (tagName) =>
+  @buildTagClassMethod: (tagName) ->
+    this[tagName] = (args...) ->
+      @render ->
+        argsWithBoundFunctions = args.map (arg) =>
+          if _.isFunction(arg)
+            _.bind(arg, this)
+          else
+            arg
+        @tag(tagName, argsWithBoundFunctions...)
+
+  @buildTagInstanceMethod: (tagName) ->
     @prototype[tagName] = (args...) -> @tag(tagName, args...)
+
+  @allElements().forEach (tagName) => @buildTagClassMethod(tagName)
+  @allElements().forEach (tagName) => @buildTagInstanceMethod(tagName)
 
   constructor: ->
     @reset()

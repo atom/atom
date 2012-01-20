@@ -6,8 +6,20 @@ describe "Builder", ->
 
   beforeEach -> builder = new Builder
 
+  describe "tag class methods", ->
+    it "calls render, assuming the arguments to the current method as the first tag", ->
+      fragment =
+        Builder.div ->
+          @ol class: 'cool-list', =>
+            @li()
+            @li()
+
+      expect(fragment).toMatchSelector('div')
+      expect(fragment.find('ol.cool-list')).toExist()
+      expect(fragment.find('li').length).toBe 2
+
   describe "@render", ->
-    fit "runs the given function in a fresh builder instance and returns the resulting view fragment", ->
+    it "runs the given function in a fresh builder instance and returns the resulting view fragment", ->
       fragment =
         Builder.render ->
           @div =>
