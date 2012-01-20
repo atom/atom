@@ -39,6 +39,9 @@ class Template
   subview: (args...) ->
     @builder.subview.apply(@builder, args)
 
+  raw: (text) ->
+    @builder.raw(text)
+
   bindEvents: (view) ->
     for eventName in this.constructor.events
       selector = "[#{eventName}]"
