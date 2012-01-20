@@ -8,5 +8,6 @@ var quicksort = function () {
     }
     return sort(left).concat(pivot).concat(sort(right));
   };
+
   return sort(Array.apply(this, arguments));
 };

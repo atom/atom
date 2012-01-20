@@ -16,8 +16,14 @@ fdescribe "Editor", ->
   describe ".setBuffer", ->
     beforeEach ->
 
-    it "creates a pre element for each line in the buffer", ->
+    it "creates a pre element for each line in the buffer, with the html-escaped text of the line", ->
       expect(editor.lines.find('pre').length).toEqual(buffer.numLines())
+      expect(buffer.getLine(2)).toContain('<')
+      expect(editor.lines.find('pre:eq(2)').html()).toContain '&lt;'
+
+    it "renders a non-breaking space for empty lines", ->
+      expect(buffer.getLine(10)).toBe ''
+      expect(editor.lines.find('pre:eq(10)').html()).toBe '&nbsp;'
 
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getPosition()).toEqual(row: 0, col: 0)

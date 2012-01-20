@@ -2,6 +2,7 @@ Template = require 'template'
 Buffer = require 'buffer'
 Cursor = require 'cursor'
 $ = require 'jquery'
+$$ = require 'template/builder'
 _ = require 'underscore'
 
 module.exports =
@@ -71,8 +72,10 @@ class Editor extends Template
     setBuffer: (@buffer) ->
       @lines.empty()
       for line in @buffer.getLines()
-        line = '&nbsp;' if line is ''
-        @lines.append "<pre>#{line}</pre>"
+        if line is ''
+          @lines.append $$.pre -> @raw('&nbsp;')
+        else
+          @lines.append $$.pre(line)
       @setPosition(row: 0, col: 0)
 
     setPosition: (position) ->
