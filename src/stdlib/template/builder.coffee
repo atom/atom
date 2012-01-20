@@ -66,6 +66,9 @@ class Builder
   text: (string) ->
     @document.push(new Text(string))
 
+  raw: (string) ->
+    @document.push(new Text(string, true))
+
   wireOutlets: (view) ->
     view.find('[outlet]').each ->
       elt = $(this)

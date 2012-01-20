@@ -44,6 +44,11 @@ describe "Builder", ->
       builder.tag 'br', id: 'foo'
       expect(builder.toHtml()).toBe '<br id="foo">'
 
+  describe ".raw(text)", ->
+    it "does not escape html entities", ->
+      builder.raw '&nbsp;'
+      expect(builder.toHtml()).toBe '&nbsp;'
+
   describe ".subview(name, template, attrs)", ->
     template = null
 

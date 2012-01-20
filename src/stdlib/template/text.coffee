@@ -1,12 +1,15 @@
 module.exports =
 class Text
-  constructor: (@string) ->
+  constructor: (@string, @raw=false) ->
 
   toHtml: ->
-    @string
-      .replace(/&/g, '&amp;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
+    if @raw
+      @string
+    else
+      @string
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
 
