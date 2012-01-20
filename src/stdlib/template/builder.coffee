@@ -6,6 +6,11 @@ Text = require 'template/text'
 
 module.exports =
 class Builder
+  @render: (fn) ->
+    builder = new this
+    fn.call(builder)
+    builder.toFragment()
+
   @elements:
     normal: 'a abbr address article aside audio b bdi bdo blockquote body button
       canvas caption cite code colgroup datalist dd del details dfn div dl dt em
@@ -17,6 +22,13 @@ class Builder
 
     void: 'area base br col command embed hr img input keygen link meta param
       source track wbr'.split /\s+/
+
+
+  @allElements: ->
+    @elements.normal.concat(@elements.void)
+
+  _.each @allElements(), (tagName) =>
+    @prototype[tagName] = (args...) -> @tag(tagName, args...)
 
   constructor: ->
     @reset()
@@ -37,7 +49,7 @@ class Builder
     @document.push(new OpenTag(name, options.attributes))
     if @elementIsVoid(name)
       if (options.text? or options.content?)
-        throw new Error("Self-closing tag #{tag} cannot have text or content")
+        throw new Error("Self-closing tag #{name} cannot have text or content")
     else
       options.content?()
       @text(options.text) if options.text
