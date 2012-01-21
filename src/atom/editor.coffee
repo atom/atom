@@ -91,3 +91,6 @@ class Editor extends Template
 
     moveUp: ->
       @aceEditor.navigateUp()
+
+    moveDown: ->
+      @aceEditor.navigateDown()
