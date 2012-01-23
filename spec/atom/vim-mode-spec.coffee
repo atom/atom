@@ -57,6 +57,23 @@ describe "VimMode", ->
           expect(editor.buffer.getText()).toBe "12345\nABCDE"
           expect(editor.getPosition()).toEqual(column: 0, row: 1)
 
+      describe "when followed by an h", ->
+        it "deletes the previous letter on the current line", ->
+          editor.buffer.setText("abcd\n01234")
+          editor.setPosition(column: 1, row: 1)
+
+          editor.trigger keydownEvent 'd'
+          editor.trigger keydownEvent 'h'
+
+          expect(editor.buffer.getText()).toBe "abcd\n1234"
+          expect(editor.getPosition()).toEqual {column: 0, row: 1}
+
+          editor.trigger keydownEvent 'd'
+          editor.trigger keydownEvent 'h'
+
+          expect(editor.buffer.getText()).toBe "abcd\n1234"
+          expect(editor.getPosition()).toEqual {column: 0, row: 1}
+
       describe "when followed by a w", ->
         it "deletes to the beginning of the next word", ->
           editor.buffer.setText("abcd efg")

@@ -9,6 +9,11 @@ class MoveLeft extends Motion
     {column, row} = @editor.getPosition()
     @editor.moveLeft() if column > 0
 
+  select: ->
+    position = @editor.getPosition()
+    position.column-- if position.column > 0
+    @editor.selectToPosition position
+
 class MoveUp extends Motion
   execute: ->
     {column, row} = @editor.getPosition()
