@@ -33,42 +33,6 @@ class Editor extends Template
       @one 'attach', =>
         @calculateDimensions()
 
-
-    moveRight: ->
-      { row, col } = @getPosition()
-      if col < @buffer.getLine(row).length
-        col++
-      else if row < @buffer.numLines() - 1
-        row++
-        col = 0
-      @setPosition({row, col})
-
-    moveDown: ->
-      { row, col } = @getPosition()
-      if row < @buffer.numLines() - 1
-        row++
-      else
-        col = @buffer.getLine(row).length
-      @setPosition({row, col})
-
-    moveLeft: ->
-      { row, col } = @getPosition()
-      if col > 0
-        col--
-      else if row > 0
-        row--
-        col = @buffer.getLine(row).length
-
-      @setPosition({row, col})
-
-    moveUp: ->
-      { row, col } = @getPosition()
-      if row is 0
-        col = 0
-      else
-        row--
-      @setPosition({row, col})
-
     setBuffer: (@buffer) ->
       @lines.empty()
       for line in @buffer.getLines()
@@ -78,26 +42,20 @@ class Editor extends Template
           @lines.append $$.pre(line)
       @setPosition(row: 0, col: 0)
 
-    setPosition: (position) ->
-      @cursor.setPosition(position)
-
-    getPosition: ->
-      @cursor.getPosition()
-
     toPixelPosition: ({row, col}) ->
-      { top: row * @lineHeight(), left: col * @charWidth() }
-
-    lineHeight: ->
-      @cachedLineHeight
-
-    charWidth: ->
-      @cachedCharWidth
+      { top: row * @lineHeight, left: col * @charWidth }
 
     calculateDimensions: ->
       fragment = $('<pre style="position: absolute; visibility: hidden;">x</pre>')
       @lines.append(fragment)
-      @cachedCharWidth = fragment.width()
-      @cachedLineHeight = fragment.outerHeight()
+      @charWidth = fragment.width()
+      @lineHeight = fragment.outerHeight()
       fragment.remove()
       @cursor.updateAbsolutePosition()
 
+    moveUp: -> @cursor.moveUp()
+    moveDown: -> @cursor.moveDown()
+    moveRight: -> @cursor.moveRight()
+    moveLeft: -> @cursor.moveLeft()
+    setPosition: (position) -> @cursor.setPosition(position)
+    getPosition: -> @cursor.getPosition()

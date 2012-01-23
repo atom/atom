@@ -96,8 +96,8 @@ fdescribe "Editor", ->
       editor.attachToDom()
       editor.setPosition(row: 2, col: 2)
 
-      expect(editor.cursor.position().top).toBe(2 * editor.lineHeight())
-      expect(editor.cursor.position().left).toBe(2 * editor.charWidth())
+      expect(editor.cursor.position().top).toBe(2 * editor.lineHeight)
+      expect(editor.cursor.position().left).toBe(2 * editor.charWidth)
 
 
   describe "when the editor is attached to the dom", ->
@@ -106,6 +106,6 @@ fdescribe "Editor", ->
 
       editor.attachToDom()
 
-      expect(editor.cursor.position().top).toBe(2 * editor.lineHeight())
-      expect(editor.cursor.position().left).toBe(2 * editor.charWidth())
+      expect(editor.cursor.position().top).toBe(2 * editor.lineHeight)
+      expect(editor.cursor.position().left).toBe(2 * editor.charWidth)
 
