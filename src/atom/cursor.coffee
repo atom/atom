@@ -6,7 +6,8 @@ class Cursor extends Template
     @pre class: 'cursor', style: 'position: absolute;', => @raw '&nbsp;'
 
   viewProperties:
-    setPosition: (@point) ->
+    setPosition: (point) ->
+      @point = @parentView.clipPosition(point)
       @updateAbsolutePosition()
 
     getPosition: -> @point
@@ -21,11 +22,14 @@ class Cursor extends Template
 
     moveDown: ->
       { row, col } = @getPosition()
+
       if row < @parentView.buffer.numLines() - 1
         row++
       else
         col = @parentView.buffer.getLine(row).length
-      @setPosition({row, col})
+
+      @goalColumn ?= col
+      @setPosition({row, col: @goalColumn || col})
 
     moveRight: ->
       { row, col } = @getPosition()
@@ -45,7 +49,6 @@ class Cursor extends Template
         col = @parentView.buffer.getLine(row).length
 
       @setPosition({row, col})
-
 
     updateAbsolutePosition: ->
       position = @parentView.pixelPositionFromPoint(@point)

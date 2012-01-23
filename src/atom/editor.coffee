@@ -42,6 +42,10 @@ class Editor extends Template
           @lines.append $$.pre(line)
       @setPosition(row: 0, col: 0)
 
+    clipPosition: ({row, col}) ->
+      line = @buffer.getLine(row)
+      { row: row, col: Math.min(line.length, col) }
+
     pixelPositionFromPoint: ({row, col}) ->
       { top: row * @lineHeight, left: col * @charWidth }
 

@@ -48,15 +48,35 @@ fdescribe "Editor", ->
         editor.moveUp()
         expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
-    describe "when down is pressed on the last line", ->
-      it "moves the cursor to the end of line", ->
-        lastLineIndex = buffer.getLines().length - 1
-        lastLine = buffer.getLine(lastLineIndex)
-        expect(lastLine.length).toBeGreaterThan(0)
+    describe "down", ->
+      describe "when moving between lines of varying length", ->
+        fit "retains a goal column, keeping the cursor as close to the original x position as possible", ->
+          lineLengths = buffer.getLines().map (line) -> line.length
+          expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
+          expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
+          expect(lineLengths[6]).toBeGreaterThan(lineLengths[3])
 
-        editor.setPosition(row: lastLineIndex, col: 0)
-        editor.moveDown()
-        expect(editor.getPosition()).toEqual(row: lastLineIndex, col: lastLine.length)
+          editor.setPosition(row: 3, col: lineLengths[3])
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe lineLengths[4]
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe lineLengths[5]
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe lineLengths[3]
+
+
+      describe "when on the last line", ->
+        it "moves the cursor to the end of line", ->
+          lastLineIndex = buffer.getLines().length - 1
+          lastLine = buffer.getLine(lastLineIndex)
+          expect(lastLine.length).toBeGreaterThan(0)
+
+          editor.setPosition(row: lastLineIndex, col: 0)
+          editor.moveDown()
+          expect(editor.getPosition()).toEqual(row: lastLineIndex, col: lastLine.length)
 
     describe "when left is pressed on the first column", ->
       describe "when there is a previous line", ->
