@@ -90,12 +90,19 @@ describe "VimMode", ->
           editor.trigger keydownEvent('h')
           expect(editor.getPosition()).toEqual(column: 0, row: 1)
 
-      describe "the j keybinding", ->
+      describe "the k keybinding", ->
         it "moves the cursor up, but not to the beginning of the first line", ->
-          editor.trigger keydownEvent('j')
+          editor.trigger keydownEvent('k')
           expect(editor.getPosition()).toEqual(column: 1, row: 0)
-          editor.trigger keydownEvent('j')
+          editor.trigger keydownEvent('k')
           expect(editor.getPosition()).toEqual(column: 1, row: 0)
+
+      describe "the j keybinding", ->
+        it "moves the cursor down, but not to the end of the last line", ->
+          editor.trigger keydownEvent 'j'
+          expect(editor.getPosition()).toEqual(column: 1, row: 2)
+          editor.trigger keydownEvent 'j'
+          expect(editor.getPosition()).toEqual(column: 1, row: 2)
 
       describe "the w keybinding", ->
         it "moves the cursor to the beginning of the next word", ->
