@@ -31,14 +31,18 @@ class Cursor extends Template
     moveDown: ->
       { row, col } = @getPosition()
 
+      col = @goalColumn if @goalColumn
       if row < @parentView.buffer.numLines() - 1
         row++
+        @setPosition({row, col})
       else
-        col = @parentView.buffer.getLine(row).length
+        @moveToEndOfLine()
 
-      col = @goalColumn if @goalColumn
-      @setPosition({row, col})
-      @goalColumn ?= col
+      @goalColumn = col
+
+    moveToEndOfLine: ->
+      { row } = @getPosition()
+      @setPosition({ row, col: @parentView.buffer.getLine(row).length })
 
     moveRight: ->
       { row, col } = @getPosition()

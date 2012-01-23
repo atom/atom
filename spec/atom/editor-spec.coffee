@@ -3,7 +3,7 @@ Editor = require 'editor'
 $ = require 'jquery'
 fs = require 'fs'
 
-fdescribe "Editor", ->
+describe "Editor", ->
   buffer = null
   editor = null
 
@@ -98,14 +98,18 @@ fdescribe "Editor", ->
 
     describe "down", ->
       describe "when on the last line", ->
-        it "moves the cursor to the end of line", ->
+        it "moves the cursor to the end of line, but retains the goal column", ->
           lastLineIndex = buffer.getLines().length - 1
           lastLine = buffer.getLine(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
-          editor.setPosition(row: lastLineIndex, col: 0)
+          editor.setPosition(row: lastLineIndex, col: 1)
           editor.moveDown()
           expect(editor.getPosition()).toEqual(row: lastLineIndex, col: lastLine.length)
+
+          editor.moveUp()
+          expect(editor.getPosition().col).toBe 1
+
 
     describe "when left is pressed on the first column", ->
       describe "when there is a previous line", ->
@@ -127,7 +131,7 @@ fdescribe "Editor", ->
           editor.moveRight()
           expect(editor.getPosition()).toEqual(row: 1, col: 0)
 
-      fdescribe "when the cursor is on the last line", ->
+      describe "when the cursor is on the last line", ->
         it "remains in the same position", ->
           lastLineIndex = buffer.getLines().length - 1
           lastLine = buffer.getLine(lastLineIndex)
