@@ -23,7 +23,10 @@ class Cursor extends Template
         col = 0
       else
         row--
+
+      col = @goalColumn if @goalColumn
       @setPosition({row, col})
+      @goalColumn ?= col
 
     moveDown: ->
       { row, col } = @getPosition()

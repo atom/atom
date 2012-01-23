@@ -48,35 +48,55 @@ fdescribe "Editor", ->
         editor.moveUp()
         expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
+
+    describe "goal column retention", ->
+      lineLengths = null
+
+      beforeEach ->
+        lineLengths = buffer.getLines().map (line) -> line.length
+        expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
+        expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
+        expect(lineLengths[6]).toBeGreaterThan(lineLengths[3])
+
+      it "retains the goal column when moving up", ->
+        expect(lineLengths[6]).toBeGreaterThan(32)
+        editor.setPosition(row: 6, col: 32)
+
+        editor.moveUp()
+        expect(editor.getPosition().col).toBe lineLengths[5]
+
+        editor.moveUp()
+        expect(editor.getPosition().col).toBe lineLengths[4]
+
+        editor.moveUp()
+        expect(editor.getPosition().col).toBe 32
+
+      it "retains the goal column when moving down", ->
+        editor.setPosition(row: 3, col: lineLengths[3])
+
+        editor.moveDown()
+        expect(editor.getPosition().col).toBe lineLengths[4]
+
+        editor.moveDown()
+        expect(editor.getPosition().col).toBe lineLengths[5]
+
+        editor.moveDown()
+        expect(editor.getPosition().col).toBe lineLengths[3]
+
+      it "clears the goal column when the cursor is set", ->
+        # set a goal column by moving down
+        editor.setPosition(row: 3, col: lineLengths[3])
+        editor.moveDown()
+        expect(editor.getPosition().col).not.toBe 6
+
+        # clear the goal column by explicitly setting the cursor position
+        editor.setColumn(6)
+        expect(editor.getPosition().col).toBe 6
+
+        editor.moveDown()
+        expect(editor.getPosition().col).toBe 6
+
     describe "down", ->
-      describe "when moving between lines of varying length", ->
-        it "retains a goal column, keeping the cursor as close to the original x position as possible", ->
-          lineLengths = buffer.getLines().map (line) -> line.length
-          expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
-          expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
-          expect(lineLengths[6]).toBeGreaterThan(lineLengths[3])
-
-          editor.setPosition(row: 3, col: lineLengths[3])
-
-          editor.moveDown()
-          expect(editor.getPosition().col).toBe lineLengths[4]
-
-          editor.moveDown()
-          expect(editor.getPosition().col).toBe lineLengths[5]
-
-          editor.moveDown()
-          expect(editor.getPosition().col).toBe lineLengths[3]
-
-          # ensure goal column gets reset when there's non-vertical movement
-          editor.setColumn(6)
-          expect(editor.getPosition().col).toBe 6
-
-          editor.moveDown()
-          expect(editor.getPosition().col).toBe lineLengths[7]
-
-          editor.moveDown()
-          expect(editor.getPosition().col).toBe 6
-
       describe "when on the last line", ->
         it "moves the cursor to the end of line", ->
           lastLineIndex = buffer.getLines().length - 1
