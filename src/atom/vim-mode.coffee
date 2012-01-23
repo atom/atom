@@ -30,7 +30,8 @@ class VimMode
       'd': 'delete'
       'x': 'delete-char'
       'h': 'move-left'
-      'j': 'move-up'
+      'j': 'move-down'
+      'k': 'move-up'
       'w': 'move-to-next-word'
 
     @handleCommands
@@ -39,6 +40,7 @@ class VimMode
       'delete-char': => new commands.DeleteChar(@editor)
       'move-left': => new motions.MoveLeft(@editor)
       'move-up': => new motions.MoveUp(@editor)
+      'move-down': => new motions.MoveDown @editor
       'move-to-next-word': => new motions.MoveToNextWord(@editor)
       'numeric-prefix': (e) => @numericPrefix(e)
 
