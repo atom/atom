@@ -8,9 +8,14 @@ class Cursor extends Template
   viewProperties:
     setPosition: (point) ->
       @point = @parentView.clipPosition(point)
+      @goalColumn = null
       @updateAbsolutePosition()
 
     getPosition: -> @point
+
+    setColumn: (col) ->
+      { row } = @getPosition()
+      @setPosition {row, col}
 
     moveUp: ->
       { row, col } = @getPosition()
@@ -28,8 +33,9 @@ class Cursor extends Template
       else
         col = @parentView.buffer.getLine(row).length
 
+      col = @goalColumn if @goalColumn
+      @setPosition({row, col})
       @goalColumn ?= col
-      @setPosition({row, col: @goalColumn || col})
 
     moveRight: ->
       { row, col } = @getPosition()

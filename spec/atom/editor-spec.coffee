@@ -50,7 +50,7 @@ fdescribe "Editor", ->
 
     describe "down", ->
       describe "when moving between lines of varying length", ->
-        fit "retains a goal column, keeping the cursor as close to the original x position as possible", ->
+        it "retains a goal column, keeping the cursor as close to the original x position as possible", ->
           lineLengths = buffer.getLines().map (line) -> line.length
           expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
           expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
@@ -67,6 +67,15 @@ fdescribe "Editor", ->
           editor.moveDown()
           expect(editor.getPosition().col).toBe lineLengths[3]
 
+          # ensure goal column gets reset when there's non-vertical movement
+          editor.setColumn(6)
+          expect(editor.getPosition().col).toBe 6
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe lineLengths[7]
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe 6
 
       describe "when on the last line", ->
         it "moves the cursor to the end of line", ->

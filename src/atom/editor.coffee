@@ -63,3 +63,4 @@ class Editor extends Template
     moveLeft: -> @cursor.moveLeft()
     setPosition: (point) -> @cursor.setPosition(point)
     getPosition: -> @cursor.getPosition()
+    setColumn: (column)-> @cursor.setColumn column
