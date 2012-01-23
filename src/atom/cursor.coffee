@@ -19,30 +19,31 @@ class Cursor extends Template
 
     moveUp: ->
       { row, col } = @getPosition()
-      if row is 0
-        col = 0
+      col = @goalColumn if @goalColumn?
+      if row > 0
+        @setPosition({row: row - 1, col: col})
       else
-        row--
-
-      col = @goalColumn if @goalColumn
-      @setPosition({row, col})
-      @goalColumn ?= col
-
-    moveDown: ->
-      { row, col } = @getPosition()
-
-      col = @goalColumn if @goalColumn
-      if row < @parentView.buffer.numLines() - 1
-        row++
-        @setPosition({row, col})
-      else
-        @moveToEndOfLine()
+        @moveToLineStart()
 
       @goalColumn = col
 
-    moveToEndOfLine: ->
+    moveDown: ->
+      { row, col } = @getPosition()
+      col = @goalColumn if @goalColumn?
+      if row < @parentView.buffer.numLines() - 1
+        @setPosition({row: row + 1, col: col})
+      else
+        @moveToLineEnd()
+
+      @goalColumn = col
+
+    moveToLineEnd: ->
       { row } = @getPosition()
       @setPosition({ row, col: @parentView.buffer.getLine(row).length })
+
+    moveToLineStart: ->
+      { row } = @getPosition()
+      @setPosition({ row, col: 0 })
 
     moveRight: ->
       { row, col } = @getPosition()

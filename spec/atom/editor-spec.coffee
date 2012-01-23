@@ -42,62 +42,17 @@ describe "Editor", ->
       editor.trigger keydownEvent('up')
       expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
-    describe "when up is pressed on the first line", ->
-      it "moves the cursor to the beginning of the line", ->
-        editor.setPosition(row: 0, col: 4)
-        editor.moveUp()
-        expect(editor.getPosition()).toEqual(row: 0, col: 0)
+    describe "vertical movement", ->
+      describe "when up is pressed on the first line", ->
+        it "moves the cursor to the beginning of the line, but retains the goal column", ->
+          editor.setPosition(row: 0, col: 4)
+          editor.moveUp()
+          expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
+          editor.moveDown()
+          expect(editor.getPosition()).toEqual(row: 1, col: 4)
 
-    describe "goal column retention", ->
-      lineLengths = null
-
-      beforeEach ->
-        lineLengths = buffer.getLines().map (line) -> line.length
-        expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
-        expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
-        expect(lineLengths[6]).toBeGreaterThan(lineLengths[3])
-
-      it "retains the goal column when moving up", ->
-        expect(lineLengths[6]).toBeGreaterThan(32)
-        editor.setPosition(row: 6, col: 32)
-
-        editor.moveUp()
-        expect(editor.getPosition().col).toBe lineLengths[5]
-
-        editor.moveUp()
-        expect(editor.getPosition().col).toBe lineLengths[4]
-
-        editor.moveUp()
-        expect(editor.getPosition().col).toBe 32
-
-      it "retains the goal column when moving down", ->
-        editor.setPosition(row: 3, col: lineLengths[3])
-
-        editor.moveDown()
-        expect(editor.getPosition().col).toBe lineLengths[4]
-
-        editor.moveDown()
-        expect(editor.getPosition().col).toBe lineLengths[5]
-
-        editor.moveDown()
-        expect(editor.getPosition().col).toBe lineLengths[3]
-
-      it "clears the goal column when the cursor is set", ->
-        # set a goal column by moving down
-        editor.setPosition(row: 3, col: lineLengths[3])
-        editor.moveDown()
-        expect(editor.getPosition().col).not.toBe 6
-
-        # clear the goal column by explicitly setting the cursor position
-        editor.setColumn(6)
-        expect(editor.getPosition().col).toBe 6
-
-        editor.moveDown()
-        expect(editor.getPosition().col).toBe 6
-
-    describe "down", ->
-      describe "when on the last line", ->
+      describe "when down is pressed on the last line", ->
         it "moves the cursor to the end of line, but retains the goal column", ->
           lastLineIndex = buffer.getLines().length - 1
           lastLine = buffer.getLine(lastLineIndex)
@@ -110,6 +65,62 @@ describe "Editor", ->
           editor.moveUp()
           expect(editor.getPosition().col).toBe 1
 
+        fit "retains a goal column of 0", ->
+          lastLineIndex = buffer.getLines().length - 1
+          lastLine = buffer.getLine(lastLineIndex)
+          expect(lastLine.length).toBeGreaterThan(0)
+
+          editor.setPosition(row: lastLineIndex, col: 0)
+          editor.moveDown()
+          editor.moveUp()
+          expect(editor.getPosition().col).toBe 0
+
+      describe "goal column retention", ->
+        lineLengths = null
+
+        beforeEach ->
+          lineLengths = buffer.getLines().map (line) -> line.length
+          expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
+          expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
+          expect(lineLengths[6]).toBeGreaterThan(lineLengths[3])
+
+        it "retains the goal column when moving up", ->
+          expect(lineLengths[6]).toBeGreaterThan(32)
+          editor.setPosition(row: 6, col: 32)
+
+          editor.moveUp()
+          expect(editor.getPosition().col).toBe lineLengths[5]
+
+          editor.moveUp()
+          expect(editor.getPosition().col).toBe lineLengths[4]
+
+          editor.moveUp()
+          expect(editor.getPosition().col).toBe 32
+
+        it "retains the goal column when moving down", ->
+          editor.setPosition(row: 3, col: lineLengths[3])
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe lineLengths[4]
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe lineLengths[5]
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe lineLengths[3]
+
+        it "clears the goal column when the cursor is set", ->
+          # set a goal column by moving down
+          editor.setPosition(row: 3, col: lineLengths[3])
+          editor.moveDown()
+          expect(editor.getPosition().col).not.toBe 6
+
+          # clear the goal column by explicitly setting the cursor position
+          editor.setColumn(6)
+          expect(editor.getPosition().col).toBe 6
+
+          editor.moveDown()
+          expect(editor.getPosition().col).toBe 6
 
     describe "when left is pressed on the first column", ->
       describe "when there is a previous line", ->
