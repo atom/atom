@@ -57,6 +57,18 @@ describe "VimMode", ->
           expect(editor.buffer.getText()).toBe "12345\nABCDE"
           expect(editor.getPosition()).toEqual(column: 0, row: 1)
 
+        describe "when the second d is prefixed by a count", ->
+          it "deletes n lines, starting from the current", ->
+            editor.buffer.setText("12345\nabcde\nABCDE\nQWERT")
+            editor.setPosition(column: 1, row: 1)
+
+            editor.trigger keydownEvent('d')
+            editor.trigger keydownEvent('2')
+            editor.trigger keydownEvent('d')
+
+            expect(editor.buffer.getText()).toBe "12345\nQWERT"
+            expect(editor.getPosition()).toEqual(column: 0, row: 1)
+
       describe "when followed by an h", ->
         it "deletes the previous letter on the current line", ->
           editor.buffer.setText("abcd\n01234")

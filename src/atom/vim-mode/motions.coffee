@@ -47,9 +47,17 @@ class MoveToNextWord extends Motion
       column = nextLineMatch?.index or 0
     { row, column }
 
-class SelectLine extends Motion
-  select: ->
-    @editor.selectLine()
+class SelectLines extends Motion
+  count: null
 
-module.exports = { MoveLeft, MoveUp, MoveDown, MoveToNextWord, SelectLine }
+  constructor: (@editor) ->
+    @count = 1
+
+  setCount: (@count) ->
+
+  select: ->
+    @editor.setPosition(column: 0, row: @editor.getRow())
+    @editor.selectToPosition(column: 0, row: @editor.getRow() + @count)
+
+module.exports = { MoveLeft, MoveUp, MoveDown, MoveToNextWord, SelectLines }
 
