@@ -6,11 +6,10 @@ class Cursor extends Template
     @pre class: 'cursor', style: 'position: absolute;', => @raw '&nbsp;'
 
   viewProperties:
-    setPosition: (@_position) ->
+    setPosition: (@point) ->
       @updateAbsolutePosition()
 
-    getPosition: ->
-      @_position
+    getPosition: -> @point
 
     moveUp: ->
       { row, col } = @getPosition()
@@ -49,6 +48,6 @@ class Cursor extends Template
 
 
     updateAbsolutePosition: ->
-      position = @parentView.toPixelPosition(@_position)
+      position = @parentView.pixelPositionFromPoint(@point)
       @css(position)
 

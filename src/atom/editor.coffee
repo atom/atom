@@ -42,7 +42,7 @@ class Editor extends Template
           @lines.append $$.pre(line)
       @setPosition(row: 0, col: 0)
 
-    toPixelPosition: ({row, col}) ->
+    pixelPositionFromPoint: ({row, col}) ->
       { top: row * @lineHeight, left: col * @charWidth }
 
     calculateDimensions: ->
@@ -57,5 +57,5 @@ class Editor extends Template
     moveDown: -> @cursor.moveDown()
     moveRight: -> @cursor.moveRight()
     moveLeft: -> @cursor.moveLeft()
-    setPosition: (position) -> @cursor.setPosition(position)
+    setPosition: (point) -> @cursor.setPosition(point)
     getPosition: -> @cursor.getPosition()
