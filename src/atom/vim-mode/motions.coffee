@@ -17,7 +17,7 @@ class MoveUp extends Motion
 class MoveDown extends Motion
   execute: ->
     {column, row} = @editor.getPosition()
-    @editor.moveDown()
+    @editor.moveDown() if row < (@editor.getAceSession().getLength() - 1)
 
 class MoveToNextWord extends Motion
   execute: ->
