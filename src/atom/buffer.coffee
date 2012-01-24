@@ -6,6 +6,7 @@ class Buffer
   lines: null
 
   constructor: (@path) ->
+    @url = @path # we want this to be path on master, but let's not break it on a branch
     if @path and fs.exists(@path)
       @setText(fs.read(@path))
     else

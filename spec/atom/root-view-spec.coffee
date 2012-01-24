@@ -17,7 +17,7 @@ describe "RootView", ->
     describe "when called with a url that references a file", ->
       it "creates a project for the file's parent directory and opens it in the editor", ->
         expect(rootView.project.url).toBe fs.directory(url)
-        expect(rootView.editor.buffer.url).toBe url
+        expect(rootView.editor.buffer.path).toBe url
 
     describe "when called with a url that references a directory", ->
       it "creates a project for the directory and opens an empty buffer", ->
@@ -44,6 +44,7 @@ describe "RootView", ->
         it "shows the FileFinder when it is not on screen and hides it when it is", ->
           runs ->
             $('#jasmine-content').append(rootView)
+
             expect(rootView.find('.file-finder')).not.toExist()
 
           waitsForPromise ->
@@ -53,8 +54,7 @@ describe "RootView", ->
             expect(rootView.find('.file-finder')).toExist()
             expect(rootView.find('.file-finder input:focus')).toExist()
             rootView.trigger 'toggle-file-finder'
-
-            expect(rootView.find('.editor textarea:focus')).toExist()
+            expect(rootView.find('.editor:focus')).toExist()
             expect(rootView.find('.file-finder')).not.toExist()
 
         it "shows all relative file paths for the current project", ->
@@ -93,14 +93,6 @@ describe "RootView", ->
       commandHandler = jasmine.createSpy('commandHandler')
       rootView.on('foo-command', commandHandler)
       atom.globalKeymap.bindKeys('*', 'x': 'foo-command')
-
-    describe "when a key is typed in the editor that has a binding in the keymap", ->
-      it "triggers the key binding's command as an event and stops its propagation", ->
-        event = keydownEvent 'x', target: rootView.find('textarea')[0]
-        spyOn event, 'stopPropagation'
-        rootView.editor.aceEditor.onCommandKey event, 0, event.which
-        expect(commandHandler).toHaveBeenCalled()
-        expect(event.stopPropagation).toHaveBeenCalled()
 
     describe "when a keydown event is triggered on the RootView (not originating from Ace)", ->
       it "triggers matching keybindings for that event", ->

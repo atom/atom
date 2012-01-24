@@ -1,7 +1,7 @@
 Editor = require 'editor'
 VimMode = require 'vim-mode'
 
-describe "VimMode", ->
+xdescribe "VimMode", ->
   editor = null
 
   beforeEach ->
