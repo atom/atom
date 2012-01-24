@@ -16,3 +16,10 @@
   background: #9dff9d;
   opacity: .3;
 }
+
+.editor .hidden-input {
+  position: fixed;
+  top: 0;
+  left: 100%;
+}
+

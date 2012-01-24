@@ -11,6 +11,7 @@ class Editor extends Template
     @div class: 'editor', tabindex: -1, =>
       @div outlet: 'lines'
       @subview 'cursor', Cursor.build()
+      @input class: 'hidden-input', outlet: 'hiddenInput'
 
   viewProperties:
     buffer: null
@@ -30,6 +31,10 @@ class Editor extends Template
       @on 'move-left', => @moveLeft()
       @on 'move-down', => @moveDown()
       @on 'move-up', => @moveUp()
+
+      @on 'focus', =>
+        @hiddenInput.focus()
+        false
 
       @one 'attach', =>
         @calculateDimensions()
