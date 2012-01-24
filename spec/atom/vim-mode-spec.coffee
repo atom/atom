@@ -133,7 +133,7 @@ describe "VimMode", ->
           editor.trigger keydownEvent('k')
           expect(editor.getPosition()).toEqual(column: 1, row: 0)
 
-      fdescribe "the l keybinding", ->
+      describe "the l keybinding", ->
         it "moves the cursor right, but not to the next line", ->
           editor.setPosition(column: 4, row: 1)
           editor.trigger keydownEvent('l')
