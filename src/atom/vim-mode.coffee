@@ -32,6 +32,7 @@ class VimMode
       'h': 'move-left'
       'j': 'move-down'
       'k': 'move-up'
+      'l': 'move-right'
       'w': 'move-to-next-word'
 
     @handleCommands
@@ -41,6 +42,7 @@ class VimMode
       'move-left': => new motions.MoveLeft(@editor)
       'move-up': => new motions.MoveUp(@editor)
       'move-down': => new motions.MoveDown @editor
+      'move-right': => new motions.MoveRight @editor
       'move-to-next-word': => new motions.MoveToNextWord(@editor)
       'numeric-prefix': (e) => @numericPrefix(e)
 

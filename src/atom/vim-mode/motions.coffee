@@ -14,6 +14,12 @@ class MoveLeft extends Motion
     position.column-- if position.column > 0
     @editor.selectToPosition position
 
+class MoveRight extends Motion
+  execute: ->
+    {column, row} = @editor.getPosition()
+    currentLineLength = @editor.getLineText(row).length
+    @editor.moveRight() if column < currentLineLength
+
 class MoveUp extends Motion
   execute: ->
     {column, row} = @editor.getPosition()
@@ -59,5 +65,5 @@ class SelectLines extends Motion
     @editor.setPosition(column: 0, row: @editor.getRow())
     @editor.selectToPosition(column: 0, row: @editor.getRow() + @count)
 
-module.exports = { MoveLeft, MoveUp, MoveDown, MoveToNextWord, SelectLines }
+module.exports = { MoveLeft, MoveRight, MoveUp, MoveDown, MoveToNextWord, SelectLines }
 
