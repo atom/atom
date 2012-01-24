@@ -44,29 +44,40 @@ describe "Editor", ->
       expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
     describe "vertical movement", ->
+      describe "scroll margins", ->
+        beforeEach ->
+          editor.attachToDom()
+          editor.focus()
+          editor.scrollMargin = 3
 
-      fit "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
-        editor.attachToDom()
-        editor.focus()
-        editor.scrollMargin = 3
-        editor.height(editor.lineHeight * 10)
+        it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
+          editor.height(editor.lineHeight * 10)
 
-        _.times 6, -> editor.moveDown()
-        expect(editor.scrollTop()).toBe(0)
+          _.times 6, -> editor.moveDown()
+          expect(editor.scrollTop()).toBe(0)
 
-        editor.moveDown()
-        expect(editor.scrollTop()).toBe(editor.lineHeight)
-        editor.moveDown()
-        expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
+          editor.moveDown()
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
+          editor.moveDown()
+          expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
-        _.times 3, -> editor.moveUp()
-        expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
+          _.times 3, -> editor.moveUp()
+          expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
-        editor.moveUp()
-        expect(editor.scrollTop()).toBe(editor.lineHeight)
+          editor.moveUp()
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
 
-        editor.moveUp()
-        expect(editor.scrollTop()).toBe(0)
+          editor.moveUp()
+          expect(editor.scrollTop()).toBe(0)
+
+        it "sacrifices margins when there isn't enough height", ->
+          editor.height(editor.lineHeight * 5)
+
+          _.times 3, -> editor.moveDown()
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+          editor.moveUp()
+          expect(editor.scrollTop()).toBe(0)
 
       describe "when up is pressed on the first line", ->
         it "moves the cursor to the beginning of the line, but retains the goal column", ->
