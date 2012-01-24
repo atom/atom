@@ -68,3 +68,12 @@ class Cursor extends Template
       position = @parentView.pixelPositionFromPoint(@point)
       @css(position)
 
+      margin = @parentView.scrollMargin * @height()
+      desiredTop = position.top - margin
+      desiredBottom = position.top + @height() + margin
+
+      if desiredBottom > @parentView.scrollBottom()
+        @parentView.scrollBottom(desiredBottom)
+      else if desiredTop < @parentView.scrollTop()
+        @parentView.scrollTop(desiredTop)
+

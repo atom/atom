@@ -378,6 +378,7 @@
 				GCC_PREFIX_HEADER = "Atom/Atom-Prefix.pch";
 				INFOPLIST_FILE = "Atom/Atom-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -389,6 +390,7 @@
 				GCC_PREFIX_HEADER = "Atom/Atom-Prefix.pch";
 				INFOPLIST_FILE = "Atom/Atom-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

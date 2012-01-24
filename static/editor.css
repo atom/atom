@@ -5,6 +5,7 @@
   height: 100%;
   background: #333;
   color: white;
+  overflow-y: scroll;
 }
 
 .editor pre {

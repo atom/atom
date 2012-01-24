@@ -1,6 +1,7 @@
 Buffer = require 'buffer'
 Editor = require 'editor'
 $ = require 'jquery'
+_ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
@@ -43,6 +44,30 @@ describe "Editor", ->
       expect(editor.getPosition()).toEqual(row: 0, col: 0)
 
     describe "vertical movement", ->
+
+      fit "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
+        editor.attachToDom()
+        editor.focus()
+        editor.scrollMargin = 3
+        editor.height(editor.lineHeight * 10)
+
+        _.times 6, -> editor.moveDown()
+        expect(editor.scrollTop()).toBe(0)
+
+        editor.moveDown()
+        expect(editor.scrollTop()).toBe(editor.lineHeight)
+        editor.moveDown()
+        expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
+
+        _.times 3, -> editor.moveUp()
+        expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
+
+        editor.moveUp()
+        expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+        editor.moveUp()
+        expect(editor.scrollTop()).toBe(0)
+
       describe "when up is pressed on the first line", ->
         it "moves the cursor to the beginning of the line, but retains the goal column", ->
           editor.setPosition(row: 0, col: 4)
@@ -65,7 +90,7 @@ describe "Editor", ->
           editor.moveUp()
           expect(editor.getPosition().col).toBe 1
 
-        fit "retains a goal column of 0", ->
+        it "retains a goal column of 0", ->
           lastLineIndex = buffer.getLines().length - 1
           lastLine = buffer.getLine(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)

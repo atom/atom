@@ -14,6 +14,7 @@ class Editor extends Template
 
   viewProperties:
     buffer: null
+    scrollMargin: 2
 
     initialize: () ->
       requireStylesheet 'editor.css'
@@ -56,6 +57,12 @@ class Editor extends Template
       @lineHeight = fragment.outerHeight()
       fragment.remove()
       @cursor.updateAbsolutePosition()
+
+    scrollBottom: (newValue) ->
+      if newValue?
+        @scrollTop(newValue - @height())
+      else
+        @scrollTop() + @height()
 
     moveUp: -> @cursor.moveUp()
     moveDown: -> @cursor.moveDown()
