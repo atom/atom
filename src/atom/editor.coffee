@@ -20,10 +20,15 @@ class Editor extends Template
     initialize: () ->
       requireStylesheet 'editor.css'
 
-      @cursor = Cursor.build(this).appendTo(this)
-
+      @bindKeys()
+      @attachCursor()
+      @handleEvents()
       @setBuffer(new Buffer)
 
+    attachCursor: ->
+      @cursor = Cursor.build(this).appendTo(this)
+
+    bindKeys: ->
       atom.bindKeys '*',
         right: 'move-right'
         left: 'move-left'
@@ -35,6 +40,7 @@ class Editor extends Template
       @on 'move-down', => @moveDown()
       @on 'move-up', => @moveUp()
 
+    handleEvents: ->
       @on 'focus', =>
         @hiddenInput.focus()
         false
