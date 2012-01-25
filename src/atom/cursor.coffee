@@ -6,15 +6,17 @@ class Cursor extends Template
     @pre class: 'cursor', style: 'position: absolute;', => @raw '&nbsp;'
 
   viewProperties:
-    editor: ->
-      @parentView
+    editor: null
+
+    initialize: (editor) ->
+      @editor = editor
 
     setBuffer: (@buffer) ->
       @buffer.on 'insert', (e) =>
         @setY(@getY() + e.string.length)
 
     setPosition: (point) ->
-      @point = @editor().clipPosition(point)
+      @point = @editor.clipPosition(point)
       @goalY = null
       @updateAbsolutePosition()
 
@@ -40,7 +42,7 @@ class Cursor extends Template
     moveDown: ->
       { x, y } = @getPosition()
       y = @goalY if @goalY?
-      if x < @editor().buffer.numLines() - 1
+      if x < @editor.buffer.numLines() - 1
         @setPosition({x: x + 1, y: y})
       else
         @moveToLineEnd()
@@ -49,7 +51,7 @@ class Cursor extends Template
 
     moveToLineEnd: ->
       { x } = @getPosition()
-      @setPosition({ x, y: @editor().buffer.getLine(x).length })
+      @setPosition({ x, y: @editor.buffer.getLine(x).length })
 
     moveToLineStart: ->
       { x } = @getPosition()
@@ -57,9 +59,9 @@ class Cursor extends Template
 
     moveRight: ->
       { x, y } = @getPosition()
-      if y < @editor().buffer.getLine(x).length
+      if y < @editor.buffer.getLine(x).length
         y++
-      else if x < @editor().buffer.numLines() - 1
+      else if x < @editor.buffer.numLines() - 1
         x++
         y = 0
       @setPosition({x, y})
@@ -70,24 +72,24 @@ class Cursor extends Template
         y--
       else if x > 0
         x--
-        y = @editor().buffer.getLine(x).length
+        y = @editor.buffer.getLine(x).length
 
       @setPosition({x, y})
 
     updateAbsolutePosition: ->
-      position = @editor().pixelPositionFromPoint(@point)
+      position = @editor.pixelPositionFromPoint(@point)
       @css(position)
 
-      linesInView = @editor().height() / @height()
+      linesInView = @editor.height() / @height()
 
       maxScrollMargin = Math.floor((linesInView - 1) / 2)
-      scrollMargin = Math.min(@editor().scrollMargin, maxScrollMargin)
+      scrollMargin = Math.min(@editor.scrollMargin, maxScrollMargin)
       margin = scrollMargin * @height()
       desiredTop = position.top - margin
       desiredBottom = position.top + @height() + margin
 
-      if desiredBottom > @editor().scrollBottom()
-        @editor().scrollBottom(desiredBottom)
-      else if desiredTop < @editor().scrollTop()
-        @editor().scrollTop(desiredTop)
+      if desiredBottom > @editor.scrollBottom()
+        @editor.scrollBottom(desiredBottom)
+      else if desiredTop < @editor.scrollTop()
+        @editor.scrollTop(desiredTop)
 

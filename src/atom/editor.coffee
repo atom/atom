@@ -10,15 +10,18 @@ class Editor extends Template
   content: ->
     @div class: 'editor', tabindex: -1, =>
       @div outlet: 'lines'
-      @subview 'cursor', Cursor.build()
       @input class: 'hidden-input', outlet: 'hiddenInput'
 
   viewProperties:
     buffer: null
+    cursor: null
     scrollMargin: 2
 
     initialize: () ->
       requireStylesheet 'editor.css'
+
+      @cursor = Cursor.build(this).appendTo(this)
+
       @setBuffer(new Buffer)
 
       atom.bindKeys '*',
