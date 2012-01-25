@@ -207,6 +207,10 @@ describe "Editor", ->
       expect(editor.cursor.position().top).toBe(2 * editor.lineHeight)
       expect(editor.cursor.position().left).toBe(2 * editor.charWidth)
 
+    it "is focused", ->
+      editor.attachToDom()
+      expect(editor).toMatchSelector ":has(:focus)"
+
   describe "when the editor is focused", ->
     it "focuses the hidden input", ->
       editor.attachToDom()

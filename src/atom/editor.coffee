@@ -41,6 +41,7 @@ class Editor extends Template
 
       @one 'attach', =>
         @calculateDimensions()
+        @focus()
 
     setBuffer: (@buffer) ->
       @lines.empty()
