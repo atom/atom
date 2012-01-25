@@ -34,11 +34,13 @@ class Editor extends Template
         left: 'move-left'
         down: 'move-down'
         up: 'move-up'
+        enter: 'newline'
 
       @on 'move-right', => @moveRight()
       @on 'move-left', => @moveLeft()
       @on 'move-down', => @moveDown()
       @on 'move-up', => @moveUp()
+      @on 'newline', => @buffer.insert @getPosition(), "\n"
 
     handleEvents: ->
       @on 'focus', =>
@@ -52,18 +54,27 @@ class Editor extends Template
         @calculateDimensions()
         @focus()
 
+    buildLineElement: (lineText) ->
+      if lineText is ''
+        $$.pre -> @raw('&nbsp;')
+      else
+        $$.pre(lineText)
+
     setBuffer: (@buffer) ->
       @lines.empty()
       for line in @buffer.getLines()
-        if line is ''
-          @lines.append $$.pre -> @raw('&nbsp;')
-        else
-          @lines.append $$.pre(line)
+        @lines.append @buildLineElement(line)
+
       @setPosition(row: 0, col: 0)
       @cursor.setBuffer(@buffer)
+
       @buffer.on 'insert', (e) =>
         {row} = e.range.start
-        @lines.find('pre').eq(row).replaceWith $$.pre(@buffer.getLine(row))
+
+        updatedLine = @buildLineElement(@buffer.getLine(row))
+        @lines.find('pre').eq(row).replaceWith(updatedLine)
+        if e.string == '\n'
+          updatedLine.after @buildLineElement(@buffer.getLine(row + 1))
 
     clipPosition: ({row, col}) ->
       line = @buffer.getLine(row)

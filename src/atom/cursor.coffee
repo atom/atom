@@ -13,7 +13,10 @@ class Cursor extends Template
 
     setBuffer: (@buffer) ->
       @buffer.on 'insert', (e) =>
-        @setColumn(@getColumn() + e.string.length)
+        if e.string == "\n"
+          @setPosition {row: @getRow() + 1, col: 0}
+        else
+          @setColumn(@getColumn() + e.string.length)
 
     setPosition: (point) ->
       @point = @editor.clipPosition(point)
@@ -28,6 +31,9 @@ class Cursor extends Template
 
     getColumn: ->
       @getPosition().col
+
+    getRow: ->
+      @getPosition().row
 
     moveUp: ->
       { row, col } = @getPosition()

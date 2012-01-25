@@ -218,7 +218,7 @@ describe "Editor", ->
       expect(editor).not.toMatchSelector ':focus'
       expect(editor.hiddenInput).toMatchSelector ':focus'
 
-  describe "when text input events are triggered on the hidden input element", ->
+  fdescribe "when text input events are triggered on the hidden input element", ->
     it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
       editor.setPosition(row: 1, col: 6)
 
@@ -230,3 +230,35 @@ describe "Editor", ->
       expect(editor.getPosition()).toEqual(row: 1, col: 7)
       expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
 
+  fdescribe "when return is pressed", ->
+    describe "when the cursor is at the beginning of a line", ->
+      it "inserts an empty line before it", ->
+        editor.setPosition(row: 1, col: 0)
+
+        editor.trigger keydownEvent('enter')
+
+        expect(editor.lines.find('pre:eq(1)')).toHaveHtml '&nbsp;'
+        expect(editor.getPosition()).toEqual(row: 2, col: 0)
+
+    describe "when the cursor is in the middle of a line", ->
+      it "splits the current line to form a new line", ->
+        editor.setPosition(row: 1, col: 6)
+
+        originalLine = editor.lines.find('pre:eq(1)').text()
+        lineBelowOriginalLine = editor.lines.find('pre:eq(2)').text()
+        editor.trigger keydownEvent('enter')
+
+        expect(editor.lines.find('pre:eq(1)')).toHaveText originalLine[0...6]
+        expect(editor.lines.find('pre:eq(2)')).toHaveText originalLine[6..]
+        expect(editor.lines.find('pre:eq(3)')).toHaveText lineBelowOriginalLine
+        expect(editor.getPosition()).toEqual(row: 2, col: 0)
+
+    describe "when the cursor is on the end of a line", ->
+      it "inserts an empty line after it", ->
+        editor.setPosition(row: 1, col: buffer.getLine(1).length)
+
+        editor.trigger keydownEvent('enter')
+
+        expect(editor.lines.find('pre:eq(2)')).toHaveHtml '&nbsp;'
+        expect(editor.getPosition()).toEqual(row: 2, col: 0)
+      
