@@ -38,20 +38,20 @@ describe 'Buffer', ->
   describe "insert(position, string)", ->
     it "inserts the given string at the given position", ->
       expect(buffer.getLine(1).charAt(6)).not.toBe 'q'
-      buffer.insert({row: 1, col: 6}, 'q')
+      buffer.insert({x: 1, y: 6}, 'q')
       expect(buffer.getLine(1).charAt(6)).toBe 'q'
 
     it "emits an event with the range of the change and the new text", ->
       insertHandler = jasmine.createSpy 'insertHandler'
       buffer.on 'insert', insertHandler
 
-      buffer.insert({row: 1, col: 6}, 'q')
+      buffer.insert({x: 1, y: 6}, 'q')
 
       expect(insertHandler).toHaveBeenCalled()
       [event] = insertHandler.argsForCall[0]
 
-      expect(event.range.start).toEqual(row: 1, col: 6)
-      expect(event.range.end).toEqual(row: 1, col: 6)
+      expect(event.range.start).toEqual(x: 1, y: 6)
+      expect(event.range.end).toEqual(x: 1, y: 6)
       expect(event.string).toBe 'q'
 
   describe ".save()", ->

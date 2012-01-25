@@ -8,68 +8,68 @@ class Cursor extends Template
   viewProperties:
     setBuffer: (@buffer) ->
       @buffer.on 'insert', (e) =>
-        @setColumn(@getColumn() + e.string.length)
+        @setY(@getY() + e.string.length)
 
     setPosition: (point) ->
       @point = @parentView.clipPosition(point)
-      @goalColumn = null
+      @goalY = null
       @updateAbsolutePosition()
 
     getPosition: -> @point
 
-    setColumn: (col) ->
-      { row } = @getPosition()
-      @setPosition {row, col}
+    setY: (y) ->
+      { x } = @getPosition()
+      @setPosition {x, y}
 
-    getColumn: ->
-      @getPosition().col
+    getY: ->
+      @getPosition().y
 
     moveUp: ->
-      { row, col } = @getPosition()
-      col = @goalColumn if @goalColumn?
-      if row > 0
-        @setPosition({row: row - 1, col: col})
+      { x, y } = @getPosition()
+      y = @goalY if @goalY?
+      if x > 0
+        @setPosition({x: x - 1, y: y})
       else
         @moveToLineStart()
 
-      @goalColumn = col
+      @goalY = y
 
     moveDown: ->
-      { row, col } = @getPosition()
-      col = @goalColumn if @goalColumn?
-      if row < @parentView.buffer.numLines() - 1
-        @setPosition({row: row + 1, col: col})
+      { x, y } = @getPosition()
+      y = @goalY if @goalY?
+      if x < @parentView.buffer.numLines() - 1
+        @setPosition({x: x + 1, y: y})
       else
         @moveToLineEnd()
 
-      @goalColumn = col
+      @goalY = y
 
     moveToLineEnd: ->
-      { row } = @getPosition()
-      @setPosition({ row, col: @parentView.buffer.getLine(row).length })
+      { x } = @getPosition()
+      @setPosition({ x, y: @parentView.buffer.getLine(x).length })
 
     moveToLineStart: ->
-      { row } = @getPosition()
-      @setPosition({ row, col: 0 })
+      { x } = @getPosition()
+      @setPosition({ x, y: 0 })
 
     moveRight: ->
-      { row, col } = @getPosition()
-      if col < @parentView.buffer.getLine(row).length
-        col++
-      else if row < @parentView.buffer.numLines() - 1
-        row++
-        col = 0
-      @setPosition({row, col})
+      { x, y } = @getPosition()
+      if y < @parentView.buffer.getLine(x).length
+        y++
+      else if x < @parentView.buffer.numLines() - 1
+        x++
+        y = 0
+      @setPosition({x, y})
 
     moveLeft: ->
-      { row, col } = @getPosition()
-      if col > 0
-        col--
-      else if row > 0
-        row--
-        col = @parentView.buffer.getLine(row).length
+      { x, y } = @getPosition()
+      if y > 0
+        y--
+      else if x > 0
+        x--
+        y = @parentView.buffer.getLine(x).length
 
-      @setPosition({row, col})
+      @setPosition({x, y})
 
     updateAbsolutePosition: ->
       position = @parentView.pixelPositionFromPoint(@point)
