@@ -43,8 +43,7 @@ describe "RootView", ->
       describe "when there is a project", ->
         it "shows the FileFinder when it is not on screen and hides it when it is", ->
           runs ->
-            $('#jasmine-content').append(rootView)
-
+            rootView.attachToDom()
             expect(rootView.find('.file-finder')).not.toExist()
 
           waitsForPromise ->
