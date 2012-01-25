@@ -36,23 +36,38 @@ describe 'Buffer', ->
       expect(buffer.getLines().join('\n')).toBe fileContents
 
   describe "insert(position, string)", ->
-    it "inserts the given string at the given position", ->
-      expect(buffer.getLine(1).charAt(6)).not.toBe 'q'
-      buffer.insert({row: 1, col: 6}, 'q')
-      expect(buffer.getLine(1).charAt(6)).toBe 'q'
+    describe "when inserting a single character", ->
+      it "inserts the given string at the given position", ->
+        expect(buffer.getLine(1).charAt(6)).not.toBe 'q'
+        buffer.insert({row: 1, col: 6}, 'q')
+        expect(buffer.getLine(1).charAt(6)).toBe 'q'
 
-    it "emits an event with the range of the change and the new text", ->
-      insertHandler = jasmine.createSpy 'insertHandler'
-      buffer.on 'insert', insertHandler
+      it "emits an event with the range of the change and the new text", ->
+        insertHandler = jasmine.createSpy 'insertHandler'
+        buffer.on 'insert', insertHandler
 
-      buffer.insert({row: 1, col: 6}, 'q')
+        buffer.insert({row: 1, col: 6}, 'q')
 
-      expect(insertHandler).toHaveBeenCalled()
-      [event] = insertHandler.argsForCall[0]
+        expect(insertHandler).toHaveBeenCalled()
+        [event] = insertHandler.argsForCall[0]
 
-      expect(event.range.start).toEqual(row: 1, col: 6)
-      expect(event.range.end).toEqual(row: 1, col: 6)
-      expect(event.string).toBe 'q'
+        expect(event.range.start).toEqual(row: 1, col: 6)
+        expect(event.range.end).toEqual(row: 1, col: 6)
+        expect(event.string).toBe 'q'
+
+    describe "when inserting a newline", ->
+      it "splits the portion of the line following the given position onto the next line", ->
+        initialLineCount = buffer.getLines().length
+
+        originalLine = buffer.getLine(2)
+        lineBelowOriginalLine = buffer.getLine(3)
+
+        buffer.insert({row: 2, col: 27}, '\n')
+
+        expect(buffer.getLines().length).toBe(initialLineCount + 1)
+        expect(buffer.getLine(2)).toBe originalLine.substring(0, 27)
+        expect(buffer.getLine(3)).toBe originalLine.substring(27)
+        expect(buffer.getLine(4)).toBe lineBelowOriginalLine
 
   describe ".save()", ->
     describe "when the buffer has a path", ->

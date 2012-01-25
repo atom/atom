@@ -25,10 +25,15 @@ class Buffer
     @lines[n]
 
   insert: ({row, col}, string) ->
-    line = @getLine(row)
-    before = line.substring(0, col)
-    after = line.substring(col)
-    @lines[row] = before + string + after
+    originalLine = @getLine(row)
+    originalPrefix = originalLine[0...col]
+    originalSuffix = originalLine[col..]
+
+    if string == '\n'
+      @lines[row] = originalPrefix
+      @lines[row + 1...row + 1] = originalSuffix
+    else
+      @lines[row] = originalPrefix + string + originalSuffix
 
     @trigger 'insert'
       string: string
