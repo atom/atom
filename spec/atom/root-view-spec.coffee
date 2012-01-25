@@ -53,9 +53,9 @@ describe "RootView", ->
           runs ->
             expect(rootView.find('.file-finder')).toExist()
             expect(rootView.find('.file-finder input:focus')).toExist()
-            # rootView.trigger 'toggle-file-finder'
-            # expect(rootView.find('.editor:has(:focus)')).toExist()
-            # expect(rootView.find('.file-finder')).not.toExist()
+            rootView.trigger 'toggle-file-finder'
+            expect(rootView.find('.editor:has(:focus)')).toExist()
+            expect(rootView.find('.file-finder')).not.toExist()
 
         it "shows all relative file paths for the current project", ->
           waitsForPromise ->
