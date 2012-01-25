@@ -24,17 +24,17 @@ class Buffer
   getLine: (n) ->
     @lines[n]
 
-  insert: ({x, y}, string) ->
-    line = @getLine(x)
-    before = line.substring(0, y)
-    after = line.substring(y)
-    @lines[x] = before + string + after
+  insert: ({row, col}, string) ->
+    line = @getLine(row)
+    before = line.substring(0, col)
+    after = line.substring(col)
+    @lines[row] = before + string + after
 
     @trigger 'insert'
       string: string
       range:
-        start: {x, y}
-        end: {x, y}
+        start: {row, col}
+        end: {row, col}
 
   numLines: ->
     @getLines().length

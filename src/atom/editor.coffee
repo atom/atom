@@ -59,18 +59,18 @@ class Editor extends Template
           @lines.append $$.pre -> @raw('&nbsp;')
         else
           @lines.append $$.pre(line)
-      @setPosition(x: 0, y: 0)
+      @setPosition(row: 0, col: 0)
       @cursor.setBuffer(@buffer)
       @buffer.on 'insert', (e) =>
-        {x} = e.range.start
-        @lines.find('pre').eq(x).replaceWith $$.pre(@buffer.getLine(x))
+        {row} = e.range.start
+        @lines.find('pre').eq(row).replaceWith $$.pre(@buffer.getLine(row))
 
-    clipPosition: ({x, y}) ->
-      line = @buffer.getLine(x)
-      { x: x, y: Math.min(line.length, y) }
+    clipPosition: ({row, col}) ->
+      line = @buffer.getLine(row)
+      { row: row, col: Math.min(line.length, col) }
 
-    pixelPositionFromPoint: ({x, y}) ->
-      { top: x * @lineHeight, left: y * @charWidth }
+    pixelPositionFromPoint: ({row, col}) ->
+      { top: row * @lineHeight, left: col * @charWidth }
 
     calculateDimensions: ->
       fragment = $('<pre style="position: absolute; visibility: hidden;">x</pre>')
@@ -86,7 +86,7 @@ class Editor extends Template
       else
         @scrollTop() + @height()
 
-    getCurrentLine: -> @buffer.getLine(@getPosition().x)
+    getCurrentLine: -> @buffer.getLine(@getPosition().row)
 
     moveUp: -> @cursor.moveUp()
     moveDown: -> @cursor.moveDown()
@@ -94,4 +94,4 @@ class Editor extends Template
     moveLeft: -> @cursor.moveLeft()
     setPosition: (point) -> @cursor.setPosition(point)
     getPosition: -> @cursor.getPosition()
-    setY: (y)-> @cursor.setY y
+    setColumn: (column)-> @cursor.setColumn column
