@@ -13,6 +13,8 @@ windowAdditions =
   menuItemActions: null
 
   startup: ->
+    @showConsole()
+
     @menuItemActions = {}
     @rootView = RootView.build(url: $atomController.url?.toString())
     $('body').append @rootView
