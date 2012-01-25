@@ -41,6 +41,13 @@ class Buffer
         start: {row, col}
         end: {row, col}
 
+  backspace: ({row, col}) ->
+    line = @lines[row]
+    if col == 0
+      @lines[row-1..row] = @lines[row - 1] + @lines[row]
+    else
+      @lines[row] = line[row..col] + line[col + 1..]
+
   numLines: ->
     @getLines().length
 

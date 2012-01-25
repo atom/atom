@@ -218,7 +218,7 @@ describe "Editor", ->
       expect(editor).not.toMatchSelector ':focus'
       expect(editor.hiddenInput).toMatchSelector ':focus'
 
-  fdescribe "when text input events are triggered on the hidden input element", ->
+  describe "when text input events are triggered on the hidden input element", ->
     it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
       editor.setPosition(row: 1, col: 6)
 
@@ -230,7 +230,7 @@ describe "Editor", ->
       expect(editor.getPosition()).toEqual(row: 1, col: 7)
       expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
 
-  fdescribe "when return is pressed", ->
+  describe "when return is pressed", ->
     describe "when the cursor is at the beginning of a line", ->
       it "inserts an empty line before it", ->
         editor.setPosition(row: 1, col: 0)

@@ -69,6 +69,31 @@ describe 'Buffer', ->
         expect(buffer.getLine(3)).toBe originalLine.substring(27)
         expect(buffer.getLine(4)).toBe lineBelowOriginalLine
 
+  describe ".backspace(position)", ->
+    it "can remove a character from middle of line", ->
+      originalLineLength = buffer.getLine(1).length
+      expect(buffer.getLine(1).charAt(6)).toBe 's'
+      buffer.backspace({row: 1, col: 7})
+      expect(buffer.getLine(1).charAt(6)).toBe 'o'
+      expect(buffer.getLine(1).length).toBe originalLineLength - 1
+
+    it "can remove a character from the end of the line", ->
+      originalLineLength = buffer.getLine(1).length
+      expect(buffer.getLine(1).charAt(originalLineLength - 1)).toBe '{'
+      buffer.backspace({row: 1, col: originalLineLength})
+      expect(buffer.getLine(1).length).toBe originalLineLength - 1
+      expect(buffer.getLine(1).charAt(originalLineLength - 2)).toBe '{'
+
+    it "can remove a character from the begining of the line", ->
+      originalLineCount = buffer.getLines().length
+      originalLineLengthFromAbove = buffer.getLine(11).length
+      originalLineLength = buffer.getLine(12).length
+      expect(buffer.getLine(12).charAt(0)).toBe '}'
+      buffer.backspace({row: 12, col: 0})
+      expect(buffer.getLines().length).toBe originalLineCount - 1
+      expect(buffer.getLine(11).charAt(originalLineLengthFromAbove)).toBe '}'
+      expect(buffer.getLine(11).length).toBe originalLineLengthFromAbove + originalLineLength
+
   describe ".save()", ->
     describe "when the buffer has a path", ->
       filePath = null
