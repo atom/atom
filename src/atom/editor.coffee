@@ -36,6 +36,9 @@ class Editor extends Template
         @hiddenInput.focus()
         false
 
+      @hiddenInput.on "textInput", (e) =>
+        @buffer.insert(@getPosition(), e.originalEvent.data)
+
       @one 'attach', =>
         @calculateDimensions()
 
@@ -47,6 +50,10 @@ class Editor extends Template
         else
           @lines.append $$.pre(line)
       @setPosition(row: 0, col: 0)
+      @cursor.setBuffer(@buffer)
+      @buffer.on 'insert', (e) =>
+        {row} = e.range.start
+        @lines.find('pre').eq(row).replaceWith $$.pre(@buffer.getLine(row))
 
     clipPosition: ({row, col}) ->
       line = @buffer.getLine(row)
@@ -68,6 +75,8 @@ class Editor extends Template
         @scrollTop(newValue - @height())
       else
         @scrollTop() + @height()
+
+    getCurrentLine: -> @buffer.getLine(@getPosition().row)
 
     moveUp: -> @cursor.moveUp()
     moveDown: -> @cursor.moveDown()

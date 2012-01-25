@@ -6,6 +6,10 @@ class Cursor extends Template
     @pre class: 'cursor', style: 'position: absolute;', => @raw '&nbsp;'
 
   viewProperties:
+    setBuffer: (@buffer) ->
+      @buffer.on 'insert', (e) =>
+        @setColumn(@getColumn() + e.string.length)
+
     setPosition: (point) ->
       @point = @parentView.clipPosition(point)
       @goalColumn = null
@@ -16,6 +20,9 @@ class Cursor extends Template
     setColumn: (col) ->
       { row } = @getPosition()
       @setPosition {row, col}
+
+    getColumn: ->
+      @getPosition().col
 
     moveUp: ->
       { row, col } = @getPosition()

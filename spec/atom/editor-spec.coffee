@@ -214,6 +214,15 @@ describe "Editor", ->
       expect(editor).not.toMatchSelector ':focus'
       expect(editor.hiddenInput).toMatchSelector ':focus'
 
+  describe "when text input events are triggered on the hidden input element", ->
+    it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
+      editor.setPosition(row: 1, col: 6)
 
+      expect(editor.getCurrentLine().charAt(6)).not.toBe 'q'
 
+      editor.hiddenInput.textInput 'q'
+
+      expect(editor.getCurrentLine().charAt(6)).toBe 'q'
+      expect(editor.getPosition()).toEqual(row: 1, col: 7)
+      expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
 
