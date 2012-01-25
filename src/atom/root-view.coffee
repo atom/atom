@@ -33,7 +33,9 @@ class RootView extends Template
       @on 'toggle-file-finder', => @toggleFileFinder()
 
       @on 'focusout', (e) =>
-        @editor.focus() unless e.target is @editor.find('input')[0]
+        # if anything but the editor and its input loses focus, restore focus to the editor
+        unless $(e.target).closest('.editor').length
+          @editor.focus()
 
     createProject: (url) ->
       if url
