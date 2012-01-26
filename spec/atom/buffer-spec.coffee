@@ -70,29 +70,47 @@ describe 'Buffer', ->
         expect(buffer.getLine(4)).toBe lineBelowOriginalLine
 
   describe ".backspace(position)", ->
-    it "can remove a character from middle of line", ->
-      originalLineLength = buffer.getLine(1).length
-      expect(buffer.getLine(1).charAt(6)).toBe 's'
-      buffer.backspace({row: 1, col: 7})
-      expect(buffer.getLine(1).charAt(6)).toBe 'o'
-      expect(buffer.getLine(1).length).toBe originalLineLength - 1
+    changeHandler = null
+    beforeEach ->
+      changeHandler = jasmine.createSpy('changeHandler')
+      buffer.on 'change', changeHandler
 
-    it "can remove a character from the end of the line", ->
-      originalLineLength = buffer.getLine(1).length
-      expect(buffer.getLine(1).charAt(originalLineLength - 1)).toBe '{'
-      buffer.backspace({row: 1, col: originalLineLength})
-      expect(buffer.getLine(1).length).toBe originalLineLength - 1
-      expect(buffer.getLine(1).charAt(originalLineLength - 2)).toBe '{'
+    describe "when the given position is in the middle of a line", ->
+      it "removes the preceding character and emits a change event", ->
+        originalLineLength = buffer.getLine(1).length
 
-    it "can remove a character from the begining of the line", ->
-      originalLineCount = buffer.getLines().length
-      originalLineLengthFromAbove = buffer.getLine(11).length
-      originalLineLength = buffer.getLine(12).length
-      expect(buffer.getLine(12).charAt(0)).toBe '}'
-      buffer.backspace({row: 12, col: 0})
-      expect(buffer.getLines().length).toBe originalLineCount - 1
-      expect(buffer.getLine(11).charAt(originalLineLengthFromAbove)).toBe '}'
-      expect(buffer.getLine(11).length).toBe originalLineLengthFromAbove + originalLineLength
+        expect(buffer.getLine(1)).toBe '  var sort = function(items) {'
+        buffer.backspace({row: 1, col: 7})
+        expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
+        expect(buffer.getLine(1).length).toBe originalLineLength - 1
+
+        expect(changeHandler).toHaveBeenCalled()
+        [event] = changeHandler.argsForCall[0]
+        expect(event.string).toBe ''
+        expect(event.preRange.start).toEqual { row: 1, col: 6 }
+        expect(event.preRange.end).toEqual { row: 1, col: 7 }
+        expect(event.postRange.start).toEqual { row: 1, col: 6 }
+        expect(event.postRange.end).toEqual { row: 1, col: 6 }
+
+    describe "when the given position is at the beginning of a line", ->
+      it "appends the current line to the previous and emits a change event", ->
+        originalLineCount = buffer.getLines().length
+
+        lineAboveOriginalLine = buffer.getLine(11)
+        originalLine = buffer.getLine(12)
+
+        buffer.backspace({row: 12, col: 0})
+
+        expect(buffer.getLines().length).toBe(originalLineCount - 1)
+        expect(buffer.getLine(11)).toBe lineAboveOriginalLine + originalLine
+
+        expect(changeHandler).toHaveBeenCalled()
+        [event] = changeHandler.argsForCall[0]
+        expect(event.string).toBe ''
+        expect(event.preRange.start).toEqual { row: 11, col: lineAboveOriginalLine.length }
+        expect(event.preRange.end).toEqual { row: 12, col: 0 }
+        expect(event.postRange.start).toEqual { row: 11, col: lineAboveOriginalLine.length }
+        expect(event.postRange.end).toEqual { row: 11, col: lineAboveOriginalLine.length }
 
   describe ".save()", ->
     describe "when the buffer has a path", ->

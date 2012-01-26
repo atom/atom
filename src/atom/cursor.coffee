@@ -18,6 +18,9 @@ class Cursor extends Template
         else
           @setColumn(@getColumn() + e.string.length)
 
+    bufferChanged: (e) ->
+      @setPosition(e.postRange.end)
+
     setPosition: (point) ->
       @point = @editor.clipPosition(point)
       @goalColumn = null

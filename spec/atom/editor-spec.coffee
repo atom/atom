@@ -261,4 +261,16 @@ describe "Editor", ->
 
         expect(editor.lines.find('pre:eq(2)')).toHaveHtml '&nbsp;'
         expect(editor.getPosition()).toEqual(row: 2, col: 0)
-      
+
+  describe "when backspace is pressed", ->
+    describe "when the cursor is on the middle of the line", ->
+      it "removes the character before the cursor", ->
+        editor.setPosition(row: 1, col: 7)
+        spyOn(buffer, 'backspace').andCallThrough()
+
+        editor.trigger keydownEvent('backspace')
+
+        expect(buffer.backspace).toHaveBeenCalledWith(row: 1, col: 7)
+        expect(editor.lines.find('pre:eq(1)')).toHaveText buffer.getLine(1)
+        expect(editor.getPosition()).toEqual {row: 1, col: 6}
+

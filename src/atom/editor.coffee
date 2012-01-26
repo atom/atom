@@ -35,12 +35,14 @@ class Editor extends Template
         down: 'move-down'
         up: 'move-up'
         enter: 'newline'
+        backspace: 'backspace'
 
       @on 'move-right', => @moveRight()
       @on 'move-left', => @moveLeft()
       @on 'move-down', => @moveDown()
       @on 'move-up', => @moveUp()
       @on 'newline', => @buffer.insert @getPosition(), "\n"
+      @on 'backspace', => @buffer.backspace @getPosition()
 
     handleEvents: ->
       @on 'focus', =>
@@ -70,11 +72,31 @@ class Editor extends Template
 
       @buffer.on 'insert', (e) =>
         {row} = e.range.start
-
         updatedLine = @buildLineElement(@buffer.getLine(row))
         @lines.find('pre').eq(row).replaceWith(updatedLine)
         if e.string == '\n'
           updatedLine.after @buildLineElement(@buffer.getLine(row + 1))
+
+      @buffer.on 'change', (e) =>
+        curRow = e.preRange.start.row
+        while curRow <= e.preRange.end.row
+          if curRow <= e.postRange.end.row
+            @updateLineElement(curRow)
+          else
+            @removeLineElement(curRow)
+          curRow++
+
+        console.log @buffer.getText()
+        @cursor.bufferChanged(e)
+
+    updateLineElement: (row) ->
+      @getLineElement(row).replaceWith(@buildLineElement(@buffer.getLine(row)))
+
+    removeLineElement: (row) ->
+      @getLineElement(row).remove()
+
+    getLineElement: (row) ->
+      @lines.find("pre:eq(#{row})")
 
     clipPosition: ({row, col}) ->
       line = @buffer.getLine(row)

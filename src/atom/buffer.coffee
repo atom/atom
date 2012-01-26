@@ -43,10 +43,22 @@ class Buffer
 
   backspace: ({row, col}) ->
     line = @lines[row]
+
+    preRange =
+      start: { row, col }
+      end: { row, col }
+
     if col == 0
+      preRange.start.col = @lines[row - 1].length
+      preRange.start.row--
       @lines[row-1..row] = @lines[row - 1] + @lines[row]
     else
-      @lines[row] = line[row..col] + line[col + 1..]
+      preRange.start.col--
+      @lines[row] = line[0...col-1] + line[col..]
+
+    postRange = { start: preRange.start, end: preRange.start }
+
+    @trigger 'change', { preRange, postRange,  string: '' }
 
   numLines: ->
     @getLines().length
