@@ -33,8 +33,8 @@ describe "Editor", ->
         editor.attachToDom()
         editor.setPosition(row: 2, column: 2)
 
-        expect(editor.cursor.position().top).toBe(2 * editor.lineHeight)
-        expect(editor.cursor.position().left).toBe(2 * editor.charWidth)
+        expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
+        expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
 
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->
@@ -204,8 +204,8 @@ describe "Editor", ->
 
       editor.attachToDom()
 
-      expect(editor.cursor.position().top).toBe(2 * editor.lineHeight)
-      expect(editor.cursor.position().left).toBe(2 * editor.charWidth)
+      expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
+      expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
 
     it "is focused", ->
       editor.attachToDom()

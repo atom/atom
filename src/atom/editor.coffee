@@ -1,6 +1,6 @@
 Template = require 'template'
 Buffer = require 'buffer'
-Cursor = require 'cursor'
+Selection = require 'selection'
 $ = require 'jquery'
 $$ = require 'template/builder'
 _ = require 'underscore'
@@ -14,19 +14,16 @@ class Editor extends Template
 
   viewProperties:
     buffer: null
-    cursor: null
+    selection: null
     scrollMargin: 2
 
     initialize: () ->
       requireStylesheet 'editor.css'
-
       @bindKeys()
-      @attachCursor()
+      @selection = Selection.build(this)
+      @append(@selection)
       @handleEvents()
       @setBuffer(new Buffer)
-
-    attachCursor: ->
-      @cursor = Cursor.build(this).appendTo(this)
 
     bindKeys: ->
       atom.bindKeys '*',
@@ -84,7 +81,7 @@ class Editor extends Template
             @updateLineElement(curRow)
           curRow++
 
-        @cursor.bufferChanged(e)
+        @selection.bufferChanged(e)
 
     updateLineElement: (row) ->
       line = @buffer.getLine(row)
@@ -116,7 +113,7 @@ class Editor extends Template
       @charWidth = fragment.width()
       @lineHeight = fragment.outerHeight()
       fragment.remove()
-      @cursor.updateAbsolutePosition()
+      @selection.updateScreenPosition()
 
     scrollBottom: (newValue) ->
       if newValue?
@@ -126,10 +123,12 @@ class Editor extends Template
 
     getCurrentLine: -> @buffer.getLine(@getPosition().row)
 
-    moveUp: -> @cursor.moveUp()
-    moveDown: -> @cursor.moveDown()
-    moveRight: -> @cursor.moveRight()
-    moveLeft: -> @cursor.moveLeft()
-    setPosition: (point) -> @cursor.setPosition(point)
-    getPosition: -> @cursor.getPosition()
-    setColumn: (column)-> @cursor.setColumn column
+    getCursor: -> @selection.cursor
+    moveUp: -> @selection.moveCursorUp()
+    moveDown: -> @selection.moveCursorDown()
+    moveRight: -> @selection.moveCursorRight()
+    moveLeft: -> @selection.moveCursorLeft()
+    setPosition: (point) -> @selection.setCursorPosition(point)
+    getPosition: -> @selection.getCursorPosition()
+    setColumn: (column) -> @selection.setCursorColumn(column)
+

@@ -17,7 +17,7 @@ class Cursor extends Template
     setPosition: (point) ->
       @point = @editor.clipPosition(point)
       @goalColumn = null
-      @updateAbsolutePosition()
+      @updateScreenPosition()
 
     getPosition: -> @point
 
@@ -78,7 +78,7 @@ class Cursor extends Template
 
       @setPosition({row, column})
 
-    updateAbsolutePosition: ->
+    updateScreenPosition: ->
       position = @editor.pixelPositionFromPoint(@point)
       @css(position)
 
