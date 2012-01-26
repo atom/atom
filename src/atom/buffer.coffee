@@ -24,41 +24,56 @@ class Buffer
   getLine: (n) ->
     @lines[n]
 
+  change: (preRange, string) ->
+    @remove(preRange)
+    postRange = @insert(preRange.start, string)
+    @trigger 'change', { preRange, postRange, string }
+
+  remove: (range) ->
+    prefix = @lines[range.start.row][0...range.start.col]
+    suffix = @lines[range.end.row][range.end.col..]
+
+    @lines[range.start.row..range.end.row] = prefix + suffix
+
   insert: ({row, col}, string) ->
-    originalLine = @getLine(row)
-    originalPrefix = originalLine[0...col]
-    originalSuffix = originalLine[col..]
+    postRange =
+      start: { row, col }
+      end: { row, col }
 
-    if string == '\n'
-      @lines[row] = originalPrefix
-      @lines[row + 1...row + 1] = originalSuffix
+    prefix = @lines[row][0...col]
+    suffix = @lines[row][col..]
+
+    lines = string.split('\n')
+
+    if lines.length == 1
+      @lines[row] = prefix + string + suffix
+      postRange.end.col += string.length
     else
-      @lines[row] = originalPrefix + string + originalSuffix
+      for line, i in lines
+        curRow = row + i
+        if i == 0 # replace first line
+          @lines[curRow] = prefix + line
+        else if i < lines.length - 1 # insert middle lines
+          @lines[curRow...curRow] = line
+        else # insert last line
+          @lines[curRow...curRow] = line + suffix
+          postRange.end.row = curRow
+          postRange.end.col = line.length
 
-    @trigger 'insert'
-      string: string
-      range:
-        start: {row, col}
-        end: {row, col}
+    postRange
 
   backspace: ({row, col}) ->
-    line = @lines[row]
-
-    preRange =
+    range =
       start: { row, col }
       end: { row, col }
 
     if col == 0
-      preRange.start.col = @lines[row - 1].length
-      preRange.start.row--
-      @lines[row-1..row] = @lines[row - 1] + @lines[row]
+      range.start.col = @lines[row - 1].length
+      range.start.row--
     else
-      preRange.start.col--
-      @lines[row] = line[0...col-1] + line[col..]
+      range.start.col--
 
-    postRange = { start: preRange.start, end: preRange.start }
-
-    @trigger 'change', { preRange, postRange,  string: '' }
+    @change range, ''
 
   numLines: ->
     @getLines().length

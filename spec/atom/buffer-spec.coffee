@@ -35,39 +35,71 @@ describe 'Buffer', ->
       expect(buffer.getLines().length).toBe fileContents.split("\n").length
       expect(buffer.getLines().join('\n')).toBe fileContents
 
-  describe "insert(position, string)", ->
-    describe "when inserting a single character", ->
-      it "inserts the given string at the given position", ->
-        expect(buffer.getLine(1).charAt(6)).not.toBe 'q'
-        buffer.insert({row: 1, col: 6}, 'q')
-        expect(buffer.getLine(1).charAt(6)).toBe 'q'
+  describe ".change(range, string)", ->
+    describe "when used to insert (called with an empty range and a non-empty string)", ->
+      describe "when the given string has no newlines", ->
+        it "inserts the string at the location of the given range", ->
+          range =
+            start: {row: 3, col: 4}
+            end: {row: 3, col: 4}
 
-      it "emits an event with the range of the change and the new text", ->
-        insertHandler = jasmine.createSpy 'insertHandler'
-        buffer.on 'insert', insertHandler
+          buffer.change range, "foo"
 
-        buffer.insert({row: 1, col: 6}, 'q')
+          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.getLine(3)).toBe "    foovar pivot = items.shift(), current, left = [], right = [];"
+          expect(buffer.getLine(4)).toBe "    while(items.length > 0) {"
 
-        expect(insertHandler).toHaveBeenCalled()
-        [event] = insertHandler.argsForCall[0]
+      describe "when the given string has newlines", ->
+        it "inserts the lines at the location of the given range", ->
+          range =
+            start: {row: 3, col: 4}
+            end: {row: 3, col: 4}
 
-        expect(event.range.start).toEqual(row: 1, col: 6)
-        expect(event.range.end).toEqual(row: 1, col: 6)
-        expect(event.string).toBe 'q'
+          buffer.change range, "foo\n\nbar\nbaz"
 
-    describe "when inserting a newline", ->
-      it "splits the portion of the line following the given position onto the next line", ->
-        initialLineCount = buffer.getLines().length
+          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.getLine(3)).toBe "    foo"
+          expect(buffer.getLine(4)).toBe ""
+          expect(buffer.getLine(5)).toBe "bar"
+          expect(buffer.getLine(6)).toBe "bazvar pivot = items.shift(), current, left = [], right = [];"
+          expect(buffer.getLine(7)).toBe "    while(items.length > 0) {"
 
-        originalLine = buffer.getLine(2)
-        lineBelowOriginalLine = buffer.getLine(3)
+    describe "when used to remove (called with a non-empty range and an empty string)", ->
+      describe "when the range is contained within a single line", ->
+        it "removes the characters within the range", ->
+          range =
+            start: {row: 3, col: 4}
+            end: {row: 3, col: 7}
 
-        buffer.insert({row: 2, col: 27}, '\n')
+          buffer.change range, ""
 
-        expect(buffer.getLines().length).toBe(initialLineCount + 1)
-        expect(buffer.getLine(2)).toBe originalLine.substring(0, 27)
-        expect(buffer.getLine(3)).toBe originalLine.substring(27)
-        expect(buffer.getLine(4)).toBe lineBelowOriginalLine
+          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.getLine(3)).toBe "     pivot = items.shift(), current, left = [], right = [];"
+          expect(buffer.getLine(4)).toBe "    while(items.length > 0) {"
+
+      describe "when the range spans 2 lines", ->
+        it "removes the characters within the range and joins the lines", ->
+          range =
+            start: {row: 3, col: 16}
+            end: {row: 4, col: 4}
+
+          buffer.change range, ""
+
+          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.getLine(3)).toBe "    var pivot = while(items.length > 0) {"
+          expect(buffer.getLine(4)).toBe "      current = items.shift();"
+
+      describe "when the range spans more than 2 lines", ->
+        it "removes the characters within the range, joining the first and last line and removing the lines in-between", ->
+          range =
+            start: {row: 3, col: 16}
+            end: {row: 11, col: 9}
+
+          buffer.change range, ""
+
+          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.getLine(3)).toBe "    var pivot = sort(Array.apply(this, arguments));"
+          expect(buffer.getLine(4)).toBe "};"
 
   describe ".backspace(position)", ->
     changeHandler = null

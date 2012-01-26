@@ -41,7 +41,7 @@ class Editor extends Template
       @on 'move-left', => @moveLeft()
       @on 'move-down', => @moveDown()
       @on 'move-up', => @moveUp()
-      @on 'newline', => @buffer.insert @getPosition(), "\n"
+      @on 'newline', => @buffer.change({ start: @getPosition(), end: @getPosition() }, "\n")
       @on 'backspace', => @buffer.backspace @getPosition()
 
     handleEvents: ->
@@ -50,7 +50,7 @@ class Editor extends Template
         false
 
       @hiddenInput.on "textInput", (e) =>
-        @buffer.insert(@getPosition(), e.originalEvent.data)
+        @buffer.change({ start: @getPosition(), end: @getPosition() }, e.originalEvent.data)
 
       @one 'attach', =>
         @calculateDimensions()
@@ -68,29 +68,36 @@ class Editor extends Template
         @lines.append @buildLineElement(line)
 
       @setPosition(row: 0, col: 0)
-      @cursor.setBuffer(@buffer)
 
-      @buffer.on 'insert', (e) =>
-        {row} = e.range.start
-        updatedLine = @buildLineElement(@buffer.getLine(row))
-        @lines.find('pre').eq(row).replaceWith(updatedLine)
-        if e.string == '\n'
-          updatedLine.after @buildLineElement(@buffer.getLine(row + 1))
+      # @buffer.on 'insert', (e) =>
+      #   {row} = e.range.start
+      #   updatedLine = @buildLineElement(@buffer.getLine(row))
+      #   @lines.find('pre').eq(row).replaceWith(updatedLine)
+      #   if e.string == '\n'
+      #     updatedLine.after @buildLineElement(@buffer.getLine(row + 1))
 
       @buffer.on 'change', (e) =>
-        curRow = e.preRange.start.row
-        while curRow <= e.preRange.end.row
-          if curRow <= e.postRange.end.row
-            @updateLineElement(curRow)
-          else
+        { preRange, postRange } = e
+
+        curRow = preRange.start.row
+        maxRow = Math.max(preRange.end.row, postRange.end.row)
+
+        while curRow <= maxRow
+          if curRow > postRange.end.row
             @removeLineElement(curRow)
+          else if curRow > preRange.end.row
+            @insertLineElement(curRow)
+          else
+            @updateLineElement(curRow)
           curRow++
 
-        console.log @buffer.getText()
         @cursor.bufferChanged(e)
 
     updateLineElement: (row) ->
       @getLineElement(row).replaceWith(@buildLineElement(@buffer.getLine(row)))
+
+    insertLineElement: (row) ->
+      @getLineElement(row).before(@buildLineElement(@buffer.getLine(row)))
 
     removeLineElement: (row) ->
       @getLineElement(row).remove()

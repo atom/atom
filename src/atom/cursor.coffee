@@ -11,13 +11,6 @@ class Cursor extends Template
     initialize: (editor) ->
       @editor = editor
 
-    setBuffer: (@buffer) ->
-      @buffer.on 'insert', (e) =>
-        if e.string == "\n"
-          @setPosition {row: @getRow() + 1, col: 0}
-        else
-          @setColumn(@getColumn() + e.string.length)
-
     bufferChanged: (e) ->
       @setPosition(e.postRange.end)
 
