@@ -41,8 +41,8 @@ class Editor extends Template
       @on 'move-left', => @moveLeft()
       @on 'move-down', => @moveDown()
       @on 'move-up', => @moveUp()
-      @on 'newline', => @buffer.change({ start: @getPosition(), end: @getPosition() }, "\n")
-      @on 'backspace', => @buffer.backspace @getPosition()
+      @on 'newline', => @bench = @buffer.change({ start: @getPosition(), end: @getPosition() }, "\n")
+      @on 'backspace', => @benrch = @buffer.backspace @getPosition()
 
     handleEvents: ->
       @on 'focus', =>
@@ -69,13 +69,6 @@ class Editor extends Template
 
       @setPosition(row: 0, col: 0)
 
-      # @buffer.on 'insert', (e) =>
-      #   {row} = e.range.start
-      #   updatedLine = @buildLineElement(@buffer.getLine(row))
-      #   @lines.find('pre').eq(row).replaceWith(updatedLine)
-      #   if e.string == '\n'
-      #     updatedLine.after @buildLineElement(@buffer.getLine(row + 1))
-
       @buffer.on 'change', (e) =>
         { preRange, postRange } = e
 
@@ -94,7 +87,12 @@ class Editor extends Template
         @cursor.bufferChanged(e)
 
     updateLineElement: (row) ->
-      @getLineElement(row).replaceWith(@buildLineElement(@buffer.getLine(row)))
+      line = @buffer.getLine(row)
+      elt = @getLineElement(row)
+      if line == ''
+        elt.html('&nbsp;')
+      else
+        elt.text(line)
 
     insertLineElement: (row) ->
       @getLineElement(row).before(@buildLineElement(@buffer.getLine(row)))
