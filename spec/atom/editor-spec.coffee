@@ -228,7 +228,7 @@ describe "Editor", ->
 
       expect(editor.getCurrentLine().charAt(6)).toBe 'q'
       expect(editor.getPosition()).toEqual(row: 1, column: 7)
-      # expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
+      expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
 
   describe "when return is pressed", ->
     describe "when the cursor is at the beginning of a line", ->
