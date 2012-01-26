@@ -41,8 +41,8 @@ class Editor extends Template
       @on 'move-left', => @moveLeft()
       @on 'move-down', => @moveDown()
       @on 'move-up', => @moveUp()
-      @on 'newline', => @bench = @buffer.change({ start: @getPosition(), end: @getPosition() }, "\n")
-      @on 'backspace', => @benrch = @buffer.backspace @getPosition()
+      @on 'newline', =>  @buffer.change({ start: @getPosition(), end: @getPosition() }, "\n")
+      @on 'backspace', => @buffer.backspace @getPosition()
 
     handleEvents: ->
       @on 'focus', =>
@@ -88,11 +88,11 @@ class Editor extends Template
 
     updateLineElement: (row) ->
       line = @buffer.getLine(row)
-      elt = @getLineElement(row)
+      element = @getLineElement(row)
       if line == ''
-        elt.html('&nbsp;')
+        element.html('&nbsp;')
       else
-        elt.text(line)
+        element.text(line)
 
     insertLineElement: (row) ->
       @getLineElement(row).before(@buildLineElement(@buffer.getLine(row)))
