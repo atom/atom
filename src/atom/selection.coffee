@@ -23,14 +23,17 @@ class Selection extends Template
     getCursorPosition: ->
       @cursor.getPosition()
 
+    setCursorRow: (row) ->
+      @cursor.setRow(row)
+
+    getCursorRow: ->
+      @cursor.getRow()
+
     setCursorColumn: (column) ->
       @cursor.setColumn(column)
 
     getCursorColumn: ->
       @cursor.getColumn()
-
-    getCursorRow: ->
-      @cursor.getRow()
 
     moveCursorUp: ->
       @cursor.moveUp()

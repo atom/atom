@@ -34,12 +34,12 @@ class Editor extends Template
         enter: 'newline'
         backspace: 'backspace'
 
-      @on 'move-right', => @moveRight()
-      @on 'move-left', => @moveLeft()
-      @on 'move-down', => @moveDown()
-      @on 'move-up', => @moveUp()
-      @on 'newline', =>  @buffer.change({ start: @getPosition(), end: @getPosition() }, "\n")
-      @on 'backspace', => @buffer.backspace @getPosition()
+      @on 'move-right', => @moveCursorRight()
+      @on 'move-left', => @moveCursorLeft()
+      @on 'move-down', => @moveCursorDown()
+      @on 'move-up', => @moveCursorUp()
+      @on 'newline', =>  @buffer.change({ start: @getCursorPosition(), end: @getCursorPosition() }, "\n")
+      @on 'backspace', => @buffer.backspace @getCursorPosition()
 
     handleEvents: ->
       @on 'focus', =>
@@ -47,7 +47,7 @@ class Editor extends Template
         false
 
       @hiddenInput.on "textInput", (e) =>
-        @buffer.change({ start: @getPosition(), end: @getPosition() }, e.originalEvent.data)
+        @buffer.change({ start: @getCursorPosition(), end: @getCursorPosition() }, e.originalEvent.data)
 
       @one 'attach', =>
         @calculateDimensions()
@@ -64,7 +64,7 @@ class Editor extends Template
       for line in @buffer.getLines()
         @lines.append @buildLineElement(line)
 
-      @setPosition(row: 0, column: 0)
+      @setCursorPosition(row: 0, column: 0)
 
       @buffer.on 'change', (e) =>
         { preRange, postRange } = e
@@ -121,14 +121,18 @@ class Editor extends Template
       else
         @scrollTop() + @height()
 
-    getCurrentLine: -> @buffer.getLine(@getPosition().row)
-
+    getCurrentLine: -> @buffer.getLine(@getCursorRow())
     getCursor: -> @selection.cursor
-    moveUp: -> @selection.moveCursorUp()
-    moveDown: -> @selection.moveCursorDown()
-    moveRight: -> @selection.moveCursorRight()
-    moveLeft: -> @selection.moveCursorLeft()
-    setPosition: (point) -> @selection.setCursorPosition(point)
-    getPosition: -> @selection.getCursorPosition()
-    setColumn: (column) -> @selection.setCursorColumn(column)
+    moveCursorUp: -> @selection.moveCursorUp()
+    moveCursorDown: -> @selection.moveCursorDown()
+    moveCursorRight: -> @selection.moveCursorRight()
+    moveCursorLeft: -> @selection.moveCursorLeft()
+    setCursorPosition: (point) -> @selection.setCursorPosition(point)
+    getCursorPosition: -> @selection.getCursorPosition()
+    setCursorRow: (row) -> @selection.setCursorRow(row)
+    getCursorRow: -> @selection.getCursorRow()
+    setCursorColumn: (column) -> @selection.setCursorColumn(column)
+    getCursorColumn: -> @selection.getCursorColumn()
+
+
 
