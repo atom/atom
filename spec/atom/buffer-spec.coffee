@@ -101,49 +101,6 @@ describe 'Buffer', ->
           expect(buffer.getLine(3)).toBe "    var pivot = sort(Array.apply(this, arguments));"
           expect(buffer.getLine(4)).toBe "};"
 
-  describe ".backspace(position)", ->
-    changeHandler = null
-    beforeEach ->
-      changeHandler = jasmine.createSpy('changeHandler')
-      buffer.on 'change', changeHandler
-
-    describe "when the given position is in the middle of a line", ->
-      it "removes the preceding character and emits a change event", ->
-        originalLineLength = buffer.getLine(1).length
-
-        expect(buffer.getLine(1)).toBe '  var sort = function(items) {'
-        buffer.backspace({row: 1, column: 7})
-        expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
-        expect(buffer.getLine(1).length).toBe originalLineLength - 1
-
-        expect(changeHandler).toHaveBeenCalled()
-        [event] = changeHandler.argsForCall[0]
-        expect(event.string).toBe ''
-        expect(event.preRange.start).toEqual { row: 1, column: 6 }
-        expect(event.preRange.end).toEqual { row: 1, column: 7 }
-        expect(event.postRange.start).toEqual { row: 1, column: 6 }
-        expect(event.postRange.end).toEqual { row: 1, column: 6 }
-
-    describe "when the given position is at the beginning of a line", ->
-      it "appends the current line to the previous and emits a change event", ->
-        originalLineCount = buffer.getLines().length
-
-        lineAboveOriginalLine = buffer.getLine(11)
-        originalLine = buffer.getLine(12)
-
-        buffer.backspace({row: 12, column: 0})
-
-        expect(buffer.getLines().length).toBe(originalLineCount - 1)
-        expect(buffer.getLine(11)).toBe lineAboveOriginalLine + originalLine
-
-        expect(changeHandler).toHaveBeenCalled()
-        [event] = changeHandler.argsForCall[0]
-        expect(event.string).toBe ''
-        expect(event.preRange.start).toEqual { row: 11, column: lineAboveOriginalLine.length }
-        expect(event.preRange.end).toEqual { row: 12, column: 0 }
-        expect(event.postRange.start).toEqual { row: 11, column: lineAboveOriginalLine.length }
-        expect(event.postRange.end).toEqual { row: 11, column: lineAboveOriginalLine.length }
-
   describe ".save()", ->
     describe "when the buffer has a path", ->
       filePath = null

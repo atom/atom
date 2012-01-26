@@ -17,6 +17,28 @@ class Selection extends Template
     updateScreenPosition: ->
       @cursor.updateScreenPosition()
 
+    insertText: (text) ->
+      @editor.buffer.change(@getRange(), text)
+
+    insertNewline: ->
+      @insertText('\n')
+
+    backspace: ->
+      range = @getRange()
+
+      if range.start.column == 0
+        return if range.start.row == 0
+        range.start.column = @editor.buffer.lines[range.start.row - 1].length
+        range.start.row--
+      else
+        range.start.column--
+
+      @editor.buffer.change(range, '')
+
+    getRange: ->
+      start: @getCursorPosition()
+      end: @getCursorPosition()
+
     setCursorPosition: (point) ->
       @cursor.setPosition(point)
 

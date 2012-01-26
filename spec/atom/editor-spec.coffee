@@ -266,11 +266,36 @@ describe "Editor", ->
     describe "when the cursor is on the middle of the line", ->
       it "removes the character before the cursor", ->
         editor.setCursorPosition(row: 1, column: 7)
-        spyOn(buffer, 'backspace').andCallThrough()
+        expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
 
         editor.trigger keydownEvent('backspace')
 
-        expect(buffer.backspace).toHaveBeenCalledWith(row: 1, column: 7)
-        expect(editor.lines.find('pre:eq(1)')).toHaveText buffer.getLine(1)
+        line = buffer.getLine(1)
+        expect(line).toBe "  var ort = function(items) {"
+        expect(editor.lines.find('pre:eq(1)')).toHaveText line
         expect(editor.getCursorPosition()).toEqual {row: 1, column: 6}
 
+    describe "when the cursor is at the beginning of a line", ->
+      it "joins it with the line above", ->
+        originalLine0 = buffer.getLine(0)
+        expect(originalLine0).toBe "var quicksort = function () {"
+        expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
+
+        editor.setCursorPosition(row: 1, column: 0)
+        editor.trigger keydownEvent('backspace')
+
+        line0 = buffer.getLine(0)
+        line1 = buffer.getLine(1)
+        expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
+        expect(line1).toBe "    if (items.length <= 1) return items;"
+
+        expect(editor.lines.find('pre:eq(0)')).toHaveText line0
+        expect(editor.lines.find('pre:eq(1)')).toHaveText line1
+        expect(editor.getCursorPosition()).toEqual {row: 0, column: originalLine0.length}
+
+    describe "when the cursor is at the first column of the first line", ->
+      it "does nothing, but doesn't raise an error", ->
+        editor.setCursorPosition(row: 0, column: 0)
+        editor.trigger keydownEvent('backspace')
+
+        

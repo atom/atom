@@ -38,8 +38,8 @@ class Editor extends Template
       @on 'move-left', => @moveCursorLeft()
       @on 'move-down', => @moveCursorDown()
       @on 'move-up', => @moveCursorUp()
-      @on 'newline', =>  @buffer.change({ start: @getCursorPosition(), end: @getCursorPosition() }, "\n")
-      @on 'backspace', => @buffer.backspace @getCursorPosition()
+      @on 'newline', =>  @insertNewline()
+      @on 'backspace', => @backspace()
 
     handleEvents: ->
       @on 'focus', =>
@@ -47,7 +47,7 @@ class Editor extends Template
         false
 
       @hiddenInput.on "textInput", (e) =>
-        @buffer.change({ start: @getCursorPosition(), end: @getCursorPosition() }, e.originalEvent.data)
+        @insertText(e.originalEvent.data)
 
       @one 'attach', =>
         @calculateDimensions()
@@ -134,5 +134,7 @@ class Editor extends Template
     setCursorColumn: (column) -> @selection.setCursorColumn(column)
     getCursorColumn: -> @selection.getCursorColumn()
 
-
+    insertText: (text) -> @selection.insertText(text)
+    insertNewline: -> @selection.insertNewline()
+    backspace: -> @selection.backspace()
 

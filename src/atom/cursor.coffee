@@ -1,4 +1,5 @@
 Template = require 'template'
+_ = require 'underscore'
 
 module.exports =
 class Cursor extends Template
@@ -19,7 +20,7 @@ class Cursor extends Template
       @goalColumn = null
       @updateScreenPosition()
 
-    getPosition: -> @point
+    getPosition: -> _.clone(@point)
 
     setColumn: (column) ->
       { row } = @getPosition()

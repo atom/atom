@@ -62,19 +62,6 @@ class Buffer
 
     postRange
 
-  backspace: ({row, column}) ->
-    range =
-      start: { row, column }
-      end: { row, column }
-
-    if column == 0
-      range.start.column = @lines[row - 1].length
-      range.start.row--
-    else
-      range.start.column--
-
-    @change range, ''
-
   numLines: ->
     @getLines().length
 
