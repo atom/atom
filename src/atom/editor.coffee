@@ -1,5 +1,6 @@
 Template = require 'template'
 Buffer = require 'buffer'
+Point = require 'point'
 Selection = require 'selection'
 $ = require 'jquery'
 $$ = require 'template/builder'
@@ -31,6 +32,7 @@ class Editor extends Template
         left: 'move-left'
         down: 'move-down'
         up: 'move-up'
+        'shift-right': 'select-right'
         enter: 'newline'
         backspace: 'backspace'
 
@@ -38,6 +40,7 @@ class Editor extends Template
       @on 'move-left', => @moveCursorLeft()
       @on 'move-down', => @moveCursorDown()
       @on 'move-up', => @moveCursorUp()
+      @on 'select-right', => @selectRight()
       @on 'newline', =>  @insertNewline()
       @on 'backspace', => @backspace()
 
@@ -101,8 +104,7 @@ class Editor extends Template
       @lines.find("pre:eq(#{row})")
 
     clipPosition: ({row, column}) ->
-      line = @buffer.getLine(row)
-      { row: row, column: Math.min(line.length, column) }
+      new Point(row, Math.min(@buffer.getLine(row).length, column))
 
     pixelPositionFromPoint: ({row, column}) ->
       { top: row * @lineHeight, left: column * @charWidth }
@@ -133,6 +135,8 @@ class Editor extends Template
     getCursorRow: -> @selection.getCursorRow()
     setCursorColumn: (column) -> @selection.setCursorColumn(column)
     getCursorColumn: -> @selection.getCursorColumn()
+
+    selectRight: -> @selection.selectRight()
 
     insertText: (text) -> @selection.insertText(text)
     insertNewline: -> @selection.insertNewline()

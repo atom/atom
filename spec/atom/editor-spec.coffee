@@ -27,6 +27,26 @@ describe "Editor", ->
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
 
+  describe "when the editor is attached to the dom", ->
+    it "updates the pixel position of the cursor", ->
+      editor.setCursorPosition(row: 2, column: 2)
+
+      editor.attachToDom()
+
+      expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
+      expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
+
+    it "is focused", ->
+      editor.attachToDom()
+      expect(editor).toMatchSelector ":has(:focus)"
+
+  describe "when the editor is focused", ->
+    it "focuses the hidden input", ->
+      editor.attachToDom()
+      editor.focus()
+      expect(editor).not.toMatchSelector ':focus'
+      expect(editor.hiddenInput).toMatchSelector ':focus'
+
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->
       it "moves the cursor to cover the character at the given row and column", ->
@@ -198,25 +218,32 @@ describe "Editor", ->
 
             expect(editor.getCursorPosition()).toEqual(lastPosition)
 
-  describe "when the editor is attached to the dom", ->
-    it "updates the pixel position of the cursor", ->
-      editor.setCursorPosition(row: 2, column: 2)
+  describe "selection creation", ->
+    selection = null
 
-      editor.attachToDom()
+    beforeEach ->
+      selection = editor.selection
 
-      expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
-      expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
+    describe "when the arrow keys are pressed with the shift modifier", ->
+      it "expands the selection up to the cursor's new location", ->
+        editor.setCursorPosition(row: 1, column: 6)
 
-    it "is focused", ->
-      editor.attachToDom()
-      expect(editor).toMatchSelector ":has(:focus)"
+        expect(selection.isEmpty()).toBeTruthy()
 
-  describe "when the editor is focused", ->
-    it "focuses the hidden input", ->
-      editor.attachToDom()
-      editor.focus()
-      expect(editor).not.toMatchSelector ':focus'
-      expect(editor.hiddenInput).toMatchSelector ':focus'
+        editor.trigger keydownEvent('right', shiftKey: true)
+
+        expect(selection.isEmpty()).toBeFalsy()
+        expect(selection.anchor.getPosition()).toEqual(row: 1, column: 6)
+        expect(selection.cursor.getPosition()).toEqual(row: 1, column: 7)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 1, column: 7)
+
+        editor.trigger keydownEvent('right', shiftKey: true)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 1, column: 8)
+
 
   describe "when text input events are triggered on the hidden input element", ->
     it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
@@ -298,4 +325,4 @@ describe "Editor", ->
         editor.setCursorPosition(row: 0, column: 0)
         editor.trigger keydownEvent('backspace')
 
-        
+

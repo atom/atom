@@ -1,4 +1,5 @@
 Template = require 'template'
+Point = require 'point'
 _ = require 'underscore'
 
 module.exports =
@@ -16,6 +17,7 @@ class Cursor extends Template
       @setPosition(e.postRange.end)
 
     setPosition: (point) ->
+      point = Point.fromObject(point)
       @point = @editor.clipPosition(point)
       @goalColumn = null
       @updateScreenPosition()

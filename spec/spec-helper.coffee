@@ -12,6 +12,9 @@ afterEach ->
 
 window.atom = new (require 'app')
 
+# Use underscore's definition of equality for toEqual assertions
+jasmine.Env.prototype.equals_ = _.isEqual
+
 eventPropertiesFromPattern = (pattern) ->
   bindingSet = new BindingSet("*", {})
   parsedPattern = bindingSet.parseKeyPattern(pattern)

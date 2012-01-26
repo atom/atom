@@ -1,5 +1,6 @@
 Template = require 'template'
 Cursor = require 'cursor'
+Range = require 'range'
 
 module.exports =
 class Selection extends Template
@@ -35,9 +36,19 @@ class Selection extends Template
 
       @editor.buffer.change(range, '')
 
+    isEmpty: ->
+      @getRange().isEmpty()
+
     getRange: ->
-      start: @getCursorPosition()
-      end: @getCursorPosition()
+      if @anchor
+        new Range(@anchor.getPosition(), @cursor.getPosition())
+      else
+        new Range(@cursor.getPosition(), @cursor.getPosition())
+
+    placeAnchor: ->
+      return if @anchor
+      cursorPosition = @cursor.getPosition()
+      @anchor = { getPosition: -> cursorPosition }
 
     setCursorPosition: (point) ->
       @cursor.setPosition(point)
@@ -67,6 +78,10 @@ class Selection extends Template
       @cursor.moveLeft()
 
     moveCursorRight: ->
+      @cursor.moveRight()
+
+    selectRight: ->
+      @placeAnchor()
       @cursor.moveRight()
 
     moveCursorToLineEnd: ->
