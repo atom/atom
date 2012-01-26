@@ -67,7 +67,7 @@ class Editor extends Template
       for line in @buffer.getLines()
         @lines.append @buildLineElement(line)
 
-      @setPosition(row: 0, col: 0)
+      @setPosition(row: 0, column: 0)
 
       @buffer.on 'change', (e) =>
         { preRange, postRange } = e
@@ -103,12 +103,12 @@ class Editor extends Template
     getLineElement: (row) ->
       @lines.find("pre:eq(#{row})")
 
-    clipPosition: ({row, col}) ->
+    clipPosition: ({row, column}) ->
       line = @buffer.getLine(row)
-      { row: row, col: Math.min(line.length, col) }
+      { row: row, column: Math.min(line.length, column) }
 
-    pixelPositionFromPoint: ({row, col}) ->
-      { top: row * @lineHeight, left: col * @charWidth }
+    pixelPositionFromPoint: ({row, column}) ->
+      { top: row * @lineHeight, left: column * @charWidth }
 
     calculateDimensions: ->
       fragment = $('<pre style="position: absolute; visibility: hidden;">x</pre>')

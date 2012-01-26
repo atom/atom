@@ -30,24 +30,24 @@ class Buffer
     @trigger 'change', { preRange, postRange, string }
 
   remove: (range) ->
-    prefix = @lines[range.start.row][0...range.start.col]
-    suffix = @lines[range.end.row][range.end.col..]
+    prefix = @lines[range.start.row][0...range.start.column]
+    suffix = @lines[range.end.row][range.end.column..]
 
     @lines[range.start.row..range.end.row] = prefix + suffix
 
-  insert: ({row, col}, string) ->
+  insert: ({row, column}, string) ->
     postRange =
-      start: { row, col }
-      end: { row, col }
+      start: { row, column }
+      end: { row, column }
 
-    prefix = @lines[row][0...col]
-    suffix = @lines[row][col..]
+    prefix = @lines[row][0...column]
+    suffix = @lines[row][column..]
 
     lines = string.split('\n')
 
     if lines.length == 1
       @lines[row] = prefix + string + suffix
-      postRange.end.col += string.length
+      postRange.end.column += string.length
     else
       for line, i in lines
         curRow = row + i
@@ -58,20 +58,20 @@ class Buffer
         else # insert last line
           @lines[curRow...curRow] = line + suffix
           postRange.end.row = curRow
-          postRange.end.col = line.length
+          postRange.end.column = line.length
 
     postRange
 
-  backspace: ({row, col}) ->
+  backspace: ({row, column}) ->
     range =
-      start: { row, col }
-      end: { row, col }
+      start: { row, column }
+      end: { row, column }
 
-    if col == 0
-      range.start.col = @lines[row - 1].length
+    if column == 0
+      range.start.column = @lines[row - 1].length
       range.start.row--
     else
-      range.start.col--
+      range.start.column--
 
     @change range, ''
 

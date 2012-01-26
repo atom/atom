@@ -21,62 +21,62 @@ class Cursor extends Template
 
     getPosition: -> @point
 
-    setColumn: (col) ->
+    setColumn: (column) ->
       { row } = @getPosition()
-      @setPosition {row, col}
+      @setPosition {row, column}
 
     getColumn: ->
-      @getPosition().col
+      @getPosition().column
 
     getRow: ->
       @getPosition().row
 
     moveUp: ->
-      { row, col } = @getPosition()
-      col = @goalColumn if @goalColumn?
+      { row, column } = @getPosition()
+      column = @goalColumn if @goalColumn?
       if row > 0
-        @setPosition({row: row - 1, col: col})
+        @setPosition({row: row - 1, column: column})
       else
         @moveToLineStart()
 
-      @goalColumn = col
+      @goalColumn = column
 
     moveDown: ->
-      { row, col } = @getPosition()
-      col = @goalColumn if @goalColumn?
+      { row, column } = @getPosition()
+      column = @goalColumn if @goalColumn?
       if row < @editor.buffer.numLines() - 1
-        @setPosition({row: row + 1, col: col})
+        @setPosition({row: row + 1, column: column})
       else
         @moveToLineEnd()
 
-      @goalColumn = col
+      @goalColumn = column
 
     moveToLineEnd: ->
       { row } = @getPosition()
-      @setPosition({ row, col: @editor.buffer.getLine(row).length })
+      @setPosition({ row, column: @editor.buffer.getLine(row).length })
 
     moveToLineStart: ->
       { row } = @getPosition()
-      @setPosition({ row, col: 0 })
+      @setPosition({ row, column: 0 })
 
     moveRight: ->
-      { row, col } = @getPosition()
-      if col < @editor.buffer.getLine(row).length
-        col++
+      { row, column } = @getPosition()
+      if column < @editor.buffer.getLine(row).length
+        column++
       else if row < @editor.buffer.numLines() - 1
         row++
-        col = 0
-      @setPosition({row, col})
+        column = 0
+      @setPosition({row, column})
 
     moveLeft: ->
-      { row, col } = @getPosition()
-      if col > 0
-        col--
+      { row, column } = @getPosition()
+      if column > 0
+        column--
       else if row > 0
         row--
-        col = @editor.buffer.getLine(row).length
+        column = @editor.buffer.getLine(row).length
 
-      @setPosition({row, col})
+      @setPosition({row, column})
 
     updateAbsolutePosition: ->
       position = @editor.pixelPositionFromPoint(@point)

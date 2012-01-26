@@ -40,8 +40,8 @@ describe 'Buffer', ->
       describe "when the given string has no newlines", ->
         it "inserts the string at the location of the given range", ->
           range =
-            start: {row: 3, col: 4}
-            end: {row: 3, col: 4}
+            start: {row: 3, column: 4}
+            end: {row: 3, column: 4}
 
           buffer.change range, "foo"
 
@@ -52,8 +52,8 @@ describe 'Buffer', ->
       describe "when the given string has newlines", ->
         it "inserts the lines at the location of the given range", ->
           range =
-            start: {row: 3, col: 4}
-            end: {row: 3, col: 4}
+            start: {row: 3, column: 4}
+            end: {row: 3, column: 4}
 
           buffer.change range, "foo\n\nbar\nbaz"
 
@@ -68,8 +68,8 @@ describe 'Buffer', ->
       describe "when the range is contained within a single line", ->
         it "removes the characters within the range", ->
           range =
-            start: {row: 3, col: 4}
-            end: {row: 3, col: 7}
+            start: {row: 3, column: 4}
+            end: {row: 3, column: 7}
 
           buffer.change range, ""
 
@@ -80,8 +80,8 @@ describe 'Buffer', ->
       describe "when the range spans 2 lines", ->
         it "removes the characters within the range and joins the lines", ->
           range =
-            start: {row: 3, col: 16}
-            end: {row: 4, col: 4}
+            start: {row: 3, column: 16}
+            end: {row: 4, column: 4}
 
           buffer.change range, ""
 
@@ -92,8 +92,8 @@ describe 'Buffer', ->
       describe "when the range spans more than 2 lines", ->
         it "removes the characters within the range, joining the first and last line and removing the lines in-between", ->
           range =
-            start: {row: 3, col: 16}
-            end: {row: 11, col: 9}
+            start: {row: 3, column: 16}
+            end: {row: 11, column: 9}
 
           buffer.change range, ""
 
@@ -112,17 +112,17 @@ describe 'Buffer', ->
         originalLineLength = buffer.getLine(1).length
 
         expect(buffer.getLine(1)).toBe '  var sort = function(items) {'
-        buffer.backspace({row: 1, col: 7})
+        buffer.backspace({row: 1, column: 7})
         expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
         expect(buffer.getLine(1).length).toBe originalLineLength - 1
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
         expect(event.string).toBe ''
-        expect(event.preRange.start).toEqual { row: 1, col: 6 }
-        expect(event.preRange.end).toEqual { row: 1, col: 7 }
-        expect(event.postRange.start).toEqual { row: 1, col: 6 }
-        expect(event.postRange.end).toEqual { row: 1, col: 6 }
+        expect(event.preRange.start).toEqual { row: 1, column: 6 }
+        expect(event.preRange.end).toEqual { row: 1, column: 7 }
+        expect(event.postRange.start).toEqual { row: 1, column: 6 }
+        expect(event.postRange.end).toEqual { row: 1, column: 6 }
 
     describe "when the given position is at the beginning of a line", ->
       it "appends the current line to the previous and emits a change event", ->
@@ -131,7 +131,7 @@ describe 'Buffer', ->
         lineAboveOriginalLine = buffer.getLine(11)
         originalLine = buffer.getLine(12)
 
-        buffer.backspace({row: 12, col: 0})
+        buffer.backspace({row: 12, column: 0})
 
         expect(buffer.getLines().length).toBe(originalLineCount - 1)
         expect(buffer.getLine(11)).toBe lineAboveOriginalLine + originalLine
@@ -139,10 +139,10 @@ describe 'Buffer', ->
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
         expect(event.string).toBe ''
-        expect(event.preRange.start).toEqual { row: 11, col: lineAboveOriginalLine.length }
-        expect(event.preRange.end).toEqual { row: 12, col: 0 }
-        expect(event.postRange.start).toEqual { row: 11, col: lineAboveOriginalLine.length }
-        expect(event.postRange.end).toEqual { row: 11, col: lineAboveOriginalLine.length }
+        expect(event.preRange.start).toEqual { row: 11, column: lineAboveOriginalLine.length }
+        expect(event.preRange.end).toEqual { row: 12, column: 0 }
+        expect(event.postRange.start).toEqual { row: 11, column: lineAboveOriginalLine.length }
+        expect(event.postRange.end).toEqual { row: 11, column: lineAboveOriginalLine.length }
 
   describe ".save()", ->
     describe "when the buffer has a path", ->
