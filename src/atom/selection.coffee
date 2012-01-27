@@ -1,6 +1,7 @@
 Template = require 'template'
 Cursor = require 'cursor'
 Range = require 'range'
+$$ = require 'template/builder'
 
 module.exports =
 class Selection extends Template
@@ -8,15 +9,59 @@ class Selection extends Template
     @div()
 
   viewProperties:
+    regions: null
+
     initialize: (editor) ->
       @editor = editor
-      @cursor = Cursor.build(editor).appendTo(this)
+      @cursor = Cursor.build(this).appendTo(this)
+      @regions = []
 
     bufferChanged: (e) ->
       @cursor.setPosition(e.postRange.end)
 
-    updateScreenPosition: ->
-      @cursor.updateScreenPosition()
+    updateAppearance: ->
+      @cursor.updateAppearance()
+      @clearRegions()
+
+      range = @getRange()
+      return if range.isEmpty()
+      for row in [range.start.row..range.end.row]
+        start =
+          if row == range.start.row
+            range.start
+          else
+            { row: row, column: 0 }
+
+        end =
+          if row == range.end.row
+            range.end
+          else
+            null
+
+        @appendRegion(start, end)
+
+    appendRegion: (start, end) ->
+      { lineHeight, charWidth } = @editor
+      top = start.row * lineHeight
+      left = start.column * charWidth
+      height = lineHeight
+      width = if end
+        end.column * charWidth - left
+      else
+        @editor.width() - left
+
+      region = $$.div(class: 'selection').css({top, left, height, width})
+      @append(region)
+      @regions.push(region)
+
+    clearRegions: ->
+      region.remove() for region in @regions
+      @regions = []
+
+    setRange: (range) ->
+      @cursor.setPosition(range.start)
+      @placeAnchor()
+      @cursor.setPosition(range.end)
 
     insertText: (text) ->
       @editor.buffer.change(@getRange(), text)

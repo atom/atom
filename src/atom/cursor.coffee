@@ -10,8 +10,8 @@ class Cursor extends Template
   viewProperties:
     editor: null
 
-    initialize: (editor) ->
-      @editor = editor
+    initialize: (@selection) ->
+      @editor = @selection.editor
 
     bufferChanged: (e) ->
       @setPosition(e.postRange.end)
@@ -20,7 +20,7 @@ class Cursor extends Template
       point = Point.fromObject(point)
       @point = @editor.clipPosition(point)
       @goalColumn = null
-      @updateScreenPosition()
+      @selection.updateAppearance()
 
     getPosition: -> _.clone(@point)
 
@@ -81,7 +81,7 @@ class Cursor extends Template
 
       @setPosition({row, column})
 
-    updateScreenPosition: ->
+    updateAppearance: ->
       position = @editor.pixelPositionFromPoint(@point)
       @css(position)
 

@@ -10,7 +10,7 @@ describe "Range", ->
       range2 = new Range(new Point(1, 4), new Point(0, 1))
       expect(range2.start).toEqual(row: 0, column: 1)
 
-  describe "isEmpty", ->
+  describe ".isEmpty()", ->
     it "returns true if @start equals @end", ->
       expect(new Range(new Point(1, 1), new Point(1, 1)).isEmpty()).toBeTruthy()
       expect(new Range(new Point(1, 1), new Point(1, 2)).isEmpty()).toBeFalsy()

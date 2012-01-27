@@ -233,8 +233,6 @@ describe "Editor", ->
         editor.trigger keydownEvent('right', shiftKey: true)
 
         expect(selection.isEmpty()).toBeFalsy()
-        expect(selection.anchor.getPosition()).toEqual(row: 1, column: 6)
-        expect(selection.cursor.getPosition()).toEqual(row: 1, column: 7)
         range = selection.getRange()
         expect(range.start).toEqual(row: 1, column: 6)
         expect(range.end).toEqual(row: 1, column: 7)
