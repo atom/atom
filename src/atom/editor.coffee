@@ -39,6 +39,7 @@ class Editor extends Template
         'shift-down': 'select-down'
         enter: 'newline'
         backspace: 'backspace'
+        delete: 'delete'
 
       @on 'move-right', => @moveCursorRight()
       @on 'move-left', => @moveCursorLeft()
@@ -50,6 +51,7 @@ class Editor extends Template
       @on 'select-down', => @selectDown()
       @on 'newline', =>  @insertNewline()
       @on 'backspace', => @backspace()
+      @on 'delete', => @delete()
 
 
     buildCursorAndSelection: ->
@@ -158,4 +160,5 @@ class Editor extends Template
     insertText: (text) -> @selection.insertText(text)
     insertNewline: -> @selection.insertNewline()
     backspace: -> @selection.backspace()
+    delete: -> @selection.delete()
 

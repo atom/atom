@@ -293,7 +293,7 @@ describe "Editor", ->
         expect(editor.getCursorPosition()).toEqual(row: 1, column: 7)
         expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
 
-    fdescribe "when there is a selection", ->
+    describe "when there is a selection", ->
       it "replaces the selected text with the typed text", ->
         editor.selection.setRange(new Range([1, 6], [2, 4]))
         editor.hiddenInput.textInput 'q'
@@ -367,9 +367,34 @@ describe "Editor", ->
         editor.setCursorPosition(row: 0, column: 0)
         editor.trigger keydownEvent('backspace')
 
-    fdescribe "when there is a selection", ->
+    describe "when there is a selection", ->
       it "deletes the selection, but not the character before it", ->
         editor.selection.setRange(new Range([0,5], [0,9]))
         editor.trigger keydownEvent('backspace')
         expect(editor.buffer.getLine(0)).toBe 'var qsort = function () {'
+
+  describe "when delete is pressed", ->
+    describe "when the cursor is on the middle of a line", ->
+      it "deletes the character following the cursor", ->
+        editor.setCursorPosition([1, 6])
+        editor.trigger keydownEvent('delete')
+        expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
+
+    describe "when the cursor is on the end of a line", ->
+      it "joins the line with the following line", ->
+        editor.setCursorPosition([1, buffer.getLine(1).length])
+        editor.trigger keydownEvent('delete')
+        expect(buffer.getLine(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
+
+    describe "when there is a selection", ->
+      it "deletes the selection, but not the character following it", ->
+        editor.selection.setRange(new Range([1,6], [1,8]))
+        editor.trigger keydownEvent 'delete'
+        expect(buffer.getLine(1)).toBe '  var rt = function(items) {'
+
+    describe "when the cursor is on the last column of the last line", ->
+      it "does nothing, but doesn't raise an error", ->
+        editor.setCursorPosition([12, buffer.getLine(12).length])
+        editor.trigger keydownEvent('delete')
+        expect(buffer.getLine(12)).toBe '};'
 
