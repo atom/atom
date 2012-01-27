@@ -1,6 +1,7 @@
 Template = require 'template'
 Buffer = require 'buffer'
 Point = require 'point'
+Cursor = require 'cursor'
 Selection = require 'selection'
 $ = require 'jquery'
 $$ = require 'template/builder'
@@ -14,6 +15,7 @@ class Editor extends Template
       @input class: 'hidden-input', outlet: 'hiddenInput'
 
   viewProperties:
+    cursor: null
     buffer: null
     selection: null
     scrollMargin: 2
@@ -21,8 +23,7 @@ class Editor extends Template
     initialize: () ->
       requireStylesheet 'editor.css'
       @bindKeys()
-      @selection = Selection.build(this)
-      @append(@selection)
+      @buildCursorAndSelection()
       @handleEvents()
       @setBuffer(new Buffer)
 
@@ -49,6 +50,14 @@ class Editor extends Template
       @on 'select-down', => @selectDown()
       @on 'newline', =>  @insertNewline()
       @on 'backspace', => @backspace()
+
+
+    buildCursorAndSelection: ->
+      @cursor = Cursor.build(this)
+      @append(@cursor)
+
+      @selection = Selection.build(this)
+      @append(@selection)
 
     handleEvents: ->
       @on 'focus', =>
@@ -130,16 +139,16 @@ class Editor extends Template
 
     getCurrentLine: -> @buffer.getLine(@getCursorRow())
     getCursor: -> @selection.cursor
-    moveCursorUp: -> @selection.moveCursorUp()
-    moveCursorDown: -> @selection.moveCursorDown()
-    moveCursorRight: -> @selection.moveCursorRight()
-    moveCursorLeft: -> @selection.moveCursorLeft()
-    setCursorPosition: (point) -> @selection.setCursorPosition(point)
-    getCursorPosition: -> @selection.getCursorPosition()
-    setCursorRow: (row) -> @selection.setCursorRow(row)
-    getCursorRow: -> @selection.getCursorRow()
-    setCursorColumn: (column) -> @selection.setCursorColumn(column)
-    getCursorColumn: -> @selection.getCursorColumn()
+    moveCursorUp: -> @cursor.moveUp()
+    moveCursorDown: -> @cursor.moveDown()
+    moveCursorRight: -> @cursor.moveRight()
+    moveCursorLeft: -> @cursor.moveLeft()
+    setCursorPosition: (point) -> @cursor.setPosition(point)
+    getCursorPosition: -> @cursor.getPosition()
+    setCursorRow: (row) -> @cursor.setRow(row)
+    getCursorRow: -> @cursor.getRow()
+    setCursorColumn: (column) -> @cursor.setColumn(column)
+    getCursorColumn: -> @cursor.getColumn()
 
     selectRight: -> @selection.selectRight()
     selectLeft: -> @selection.selectLeft()

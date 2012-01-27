@@ -13,10 +13,9 @@ class Selection extends Template
     modifyingSelection: null
     regions: null
 
-    initialize: (editor) ->
-      @editor = editor
+    initialize: (@editor) ->
       @regions = []
-      @cursor = Cursor.build(@editor).appendTo(this)
+      @cursor = @editor.cursor
       @cursor.on 'cursor:position-changed', =>
         if @modifyingSelection
           @updateAppearance()
@@ -110,36 +109,6 @@ class Selection extends Template
       return if @anchor
       cursorPosition = @cursor.getPosition()
       @anchor = { getPosition: -> cursorPosition }
-
-    setCursorPosition: (point) ->
-      @cursor.setPosition(point)
-
-    getCursorPosition: ->
-      @cursor.getPosition()
-
-    setCursorRow: (row) ->
-      @cursor.setRow(row)
-
-    getCursorRow: ->
-      @cursor.getRow()
-
-    setCursorColumn: (column) ->
-      @cursor.setColumn(column)
-
-    getCursorColumn: ->
-      @cursor.getColumn()
-
-    moveCursorUp: ->
-      @cursor.moveUp()
-
-    moveCursorDown: ->
-      @cursor.moveDown()
-
-    moveCursorLeft: ->
-      @cursor.moveLeft()
-
-    moveCursorRight: ->
-      @cursor.moveRight()
 
     selectRight: ->
       @modifySelection =>
