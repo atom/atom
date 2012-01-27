@@ -16,9 +16,12 @@ class Selection extends Template
     initialize: (editor) ->
       @editor = editor
       @regions = []
-      @cursor = Cursor.build(this).appendTo(this)
+      @cursor = Cursor.build(@editor).appendTo(this)
       @cursor.on 'cursor:position-changed', =>
-        @clearSelection() unless @modifyingSelection
+        if @modifyingSelection
+          @updateAppearance()
+        else
+          @clearSelection()
 
     clearSelection: ->
       @anchor = null
@@ -28,7 +31,6 @@ class Selection extends Template
       @cursor.setPosition(e.postRange.end)
 
     updateAppearance: ->
-      @cursor.updateAppearance()
       @clearRegions()
 
       range = @getRange()

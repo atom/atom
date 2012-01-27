@@ -121,7 +121,6 @@ class Editor extends Template
       @charWidth = fragment.width()
       @lineHeight = fragment.outerHeight()
       fragment.remove()
-      @selection.updateAppearance()
 
     scrollBottom: (newValue) ->
       if newValue?
