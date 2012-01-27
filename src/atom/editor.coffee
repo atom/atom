@@ -33,6 +33,9 @@ class Editor extends Template
         down: 'move-down'
         up: 'move-up'
         'shift-right': 'select-right'
+        'shift-left': 'select-left'
+        'shift-up': 'select-up'
+        'shift-down': 'select-down'
         enter: 'newline'
         backspace: 'backspace'
 
@@ -41,6 +44,9 @@ class Editor extends Template
       @on 'move-down', => @moveCursorDown()
       @on 'move-up', => @moveCursorUp()
       @on 'select-right', => @selectRight()
+      @on 'select-left', => @selectLeft()
+      @on 'select-up', => @selectUp()
+      @on 'select-down', => @selectDown()
       @on 'newline', =>  @insertNewline()
       @on 'backspace', => @backspace()
 
@@ -137,6 +143,9 @@ class Editor extends Template
     getCursorColumn: -> @selection.getCursorColumn()
 
     selectRight: -> @selection.selectRight()
+    selectLeft: -> @selection.selectLeft()
+    selectUp: -> @selection.selectUp()
+    selectDown: -> @selection.selectDown()
 
     insertText: (text) -> @selection.insertText(text)
     insertNewline: -> @selection.insertNewline()

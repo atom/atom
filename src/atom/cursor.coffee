@@ -21,6 +21,7 @@ class Cursor extends Template
       @point = @editor.clipPosition(point)
       @goalColumn = null
       @selection.updateAppearance()
+      @trigger 'cursor:position-changed'
 
     getPosition: -> _.clone(@point)
 

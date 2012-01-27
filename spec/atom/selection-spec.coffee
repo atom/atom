@@ -19,7 +19,7 @@ describe "Selection", ->
       expect(selection.anchor.getPosition()).toEqual range.start
       expect(selection.cursor.getPosition()).toEqual range.end
 
-  fdescribe ".updateAppearence()", ->
+  describe ".updateAppearence()", ->
     [charWidth, lineHeight] = []
 
     beforeEach ->

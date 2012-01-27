@@ -1,5 +1,6 @@
 Buffer = require 'buffer'
 Editor = require 'editor'
+Range = require 'range'
 $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
@@ -218,7 +219,7 @@ describe "Editor", ->
 
             expect(editor.getCursorPosition()).toEqual(lastPosition)
 
-  describe "selection creation", ->
+  describe "selection bindings", ->
     selection = null
 
     beforeEach ->
@@ -241,6 +242,43 @@ describe "Editor", ->
         range = selection.getRange()
         expect(range.start).toEqual(row: 1, column: 6)
         expect(range.end).toEqual(row: 1, column: 8)
+
+        editor.trigger keydownEvent('down', shiftKey: true)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 2, column: 8)
+
+        editor.trigger keydownEvent('left', shiftKey: true)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 2, column: 7)
+
+        editor.trigger keydownEvent('up', shiftKey: true)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 1, column: 7)
+
+    describe "when the arrow keys are pressed without the shift modifier", ->
+      makeNonEmpty = ->
+        selection.setRange(new Range({row: 1, column: 2}, {row: 1, column: 5}))
+        expect(selection.isEmpty()).toBeFalsy()
+
+      it "clears the selection", ->
+        makeNonEmpty()
+        editor.trigger keydownEvent('right')
+        expect(selection.isEmpty()).toBeTruthy()
+
+        makeNonEmpty()
+        editor.trigger keydownEvent('left')
+        expect(selection.isEmpty()).toBeTruthy()
+
+        makeNonEmpty()
+        editor.trigger keydownEvent('up')
+        expect(selection.isEmpty()).toBeTruthy()
+
+        makeNonEmpty()
+        editor.trigger keydownEvent('down')
+        expect(selection.isEmpty()).toBeTruthy()
 
 
   describe "when text input events are triggered on the hidden input element", ->

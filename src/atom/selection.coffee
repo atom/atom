@@ -9,12 +9,20 @@ class Selection extends Template
     @div()
 
   viewProperties:
+    anchor: null
+    modifyingSelection: null
     regions: null
 
     initialize: (editor) ->
       @editor = editor
-      @cursor = Cursor.build(this).appendTo(this)
       @regions = []
+      @cursor = Cursor.build(this).appendTo(this)
+      @cursor.on 'cursor:position-changed', =>
+        @clearSelection() unless @modifyingSelection
+
+    clearSelection: ->
+      @anchor = null
+      @updateAppearance()
 
     bufferChanged: (e) ->
       @cursor.setPosition(e.postRange.end)
@@ -58,10 +66,16 @@ class Selection extends Template
       region.remove() for region in @regions
       @regions = []
 
+    getRange: ->
+      if @anchor
+        new Range(@anchor.getPosition(), @cursor.getPosition())
+      else
+        new Range(@cursor.getPosition(), @cursor.getPosition())
+
     setRange: (range) ->
       @cursor.setPosition(range.start)
-      @placeAnchor()
-      @cursor.setPosition(range.end)
+      @modifySelection =>
+        @cursor.setPosition(range.end)
 
     insertText: (text) ->
       @editor.buffer.change(@getRange(), text)
@@ -84,11 +98,11 @@ class Selection extends Template
     isEmpty: ->
       @getRange().isEmpty()
 
-    getRange: ->
-      if @anchor
-        new Range(@anchor.getPosition(), @cursor.getPosition())
-      else
-        new Range(@cursor.getPosition(), @cursor.getPosition())
+    modifySelection: (fn) ->
+      @placeAnchor()
+      @modifyingSelection = true
+      fn()
+      @modifyingSelection = false
 
     placeAnchor: ->
       return if @anchor
@@ -126,8 +140,20 @@ class Selection extends Template
       @cursor.moveRight()
 
     selectRight: ->
-      @placeAnchor()
-      @cursor.moveRight()
+      @modifySelection =>
+        @cursor.moveRight()
+
+    selectLeft: ->
+      @modifySelection =>
+        @cursor.moveLeft()
+
+    selectUp: ->
+      @modifySelection =>
+        @cursor.moveUp()
+
+    selectDown: ->
+      @modifySelection =>
+        @cursor.moveDown()
 
     moveCursorToLineEnd: ->
       @cursor.moveToLineEnd()

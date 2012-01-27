@@ -1,5 +1,4 @@
 fs = require 'fs'
-{Document} = require 'ace/document'
 
 module.exports =
 class Buffer
@@ -70,10 +69,10 @@ class Buffer
     fs.write @path, @getText()
 
   on: (eventName, handler) ->
-    @handlers ?= {}
-    @handlers[eventName] ?= []
-    @handlers[eventName].push(handler)
+    @eventHandlers ?= {}
+    @eventHandlers[eventName] ?= []
+    @eventHandlers[eventName].push(handler)
 
-  trigger: (eventName, data) ->
-    @handlers?[eventName]?.forEach (handler) -> handler(data)
+  trigger: (eventName, event) ->
+    @eventHandlers?[eventName]?.forEach (handler) -> handler(event)
 
