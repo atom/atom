@@ -87,12 +87,13 @@ class Selection extends Template
     backspace: ->
       range = @getRange()
 
-      if range.start.column == 0
-        return if range.start.row == 0
-        range.start.column = @editor.buffer.lines[range.start.row - 1].length
-        range.start.row--
-      else
-        range.start.column--
+      if range.isEmpty()
+        if range.start.column == 0
+          return if range.start.row == 0
+          range.start.column = @editor.buffer.lines[range.start.row - 1].length
+          range.start.row--
+        else
+          range.start.column--
 
       @editor.buffer.change(range, '')
 

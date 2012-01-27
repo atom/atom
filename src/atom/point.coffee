@@ -4,7 +4,11 @@ class Point
     if object instanceof Point
       object
     else
-      { row, column } = object
+      if object instanceof Array
+        [row, column] = object
+      else
+        { row, column } = object
+
       new Point(row, column)
 
   constructor: (@row, @column) ->

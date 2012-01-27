@@ -280,18 +280,24 @@ describe "Editor", ->
         editor.trigger keydownEvent('down')
         expect(selection.isEmpty()).toBeTruthy()
 
-
   describe "when text input events are triggered on the hidden input element", ->
-    it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
-      editor.setCursorPosition(row: 1, column: 6)
+    describe "when there is no selection", ->
+      it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
+        editor.setCursorPosition(row: 1, column: 6)
 
-      expect(editor.getCurrentLine().charAt(6)).not.toBe 'q'
+        expect(editor.getCurrentLine().charAt(6)).not.toBe 'q'
 
-      editor.hiddenInput.textInput 'q'
+        editor.hiddenInput.textInput 'q'
 
-      expect(editor.getCurrentLine().charAt(6)).toBe 'q'
-      expect(editor.getCursorPosition()).toEqual(row: 1, column: 7)
-      expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
+        expect(editor.getCurrentLine().charAt(6)).toBe 'q'
+        expect(editor.getCursorPosition()).toEqual(row: 1, column: 7)
+        expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
+
+    fdescribe "when there is a selection", ->
+      it "replaces the selected text with the typed text", ->
+        editor.selection.setRange(new Range([1, 6], [2, 4]))
+        editor.hiddenInput.textInput 'q'
+        expect(buffer.getLine(1)).toBe '  var qif (items.length <= 1) return items;'
 
   describe "when return is pressed", ->
     describe "when the cursor is at the beginning of a line", ->
@@ -361,4 +367,9 @@ describe "Editor", ->
         editor.setCursorPosition(row: 0, column: 0)
         editor.trigger keydownEvent('backspace')
 
+    fdescribe "when there is a selection", ->
+      it "deletes the selection, but not the character before it", ->
+        editor.selection.setRange(new Range([0,5], [0,9]))
+        editor.trigger keydownEvent('backspace')
+        expect(editor.buffer.getLine(0)).toBe 'var qsort = function () {'
 
