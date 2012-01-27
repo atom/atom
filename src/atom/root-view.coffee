@@ -29,8 +29,10 @@ class RootView extends Template
         'meta-s': 'save'
         'meta-w': 'close'
         'meta-t': 'toggle-file-finder'
+        'alt-meta-i': 'show-console'
 
       @on 'toggle-file-finder', => @toggleFileFinder()
+      @on 'show-console', -> window.showConsole()
 
       @on 'focusout', (e) =>
         # if anything but the editor and its input loses focus, restore focus to the editor
