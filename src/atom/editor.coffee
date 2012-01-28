@@ -18,7 +18,7 @@ class Editor extends Template
     cursor: null
     buffer: null
     selection: null
-    scrollMargin: 2
+    vScrollMargin: 2
     hScrollMargin: 10
 
     initialize: () ->
