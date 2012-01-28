@@ -7,6 +7,7 @@
   color: white;
   overflow-y: scroll;
   overflow-x: auto;
+  cursor: default;
 }
 
 .editor pre {
