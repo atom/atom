@@ -19,6 +19,7 @@ class Editor extends Template
     buffer: null
     selection: null
     scrollMargin: 2
+    hScrollMargin: 10
 
     initialize: () ->
       requireStylesheet 'editor.css'
@@ -138,6 +139,12 @@ class Editor extends Template
         @scrollTop(newValue - @height())
       else
         @scrollTop() + @height()
+
+    scrollRight: (newValue) ->
+      if newValue?
+        @scrollLeft(newValue - @width())
+      else
+        @scrollLeft() + @width()
 
     getCurrentLine: -> @buffer.getLine(@getCursorRow())
     getCursor: -> @selection.cursor

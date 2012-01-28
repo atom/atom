@@ -76,7 +76,7 @@ describe "Editor", ->
         beforeEach ->
           editor.attachToDom()
           editor.focus()
-          editor.scrollMargin = 3
+          editor.vScrollMargin = 3
 
         it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
           editor.height(editor.lineHeight * 10)
@@ -187,6 +187,49 @@ describe "Editor", ->
           expect(editor.getCursorPosition().column).toBe 0
 
     describe "horizontal movement", ->
+      describe "auto-scrolling", ->
+        charWidth = null
+        beforeEach ->
+          editor.attachToDom()
+          {charWidth} = editor
+          editor.hScrollMargin = 5
+
+        it "scrolls horizontally to keep the cursor on screen", ->
+          editor.width(charWidth * 30)
+
+          # moving right
+          editor.setCursorPosition([2, 24])
+          expect(editor.scrollLeft()).toBe 0
+
+          editor.setCursorPosition([2, 25])
+          expect(editor.scrollLeft()).toBe charWidth
+
+          editor.setCursorPosition([2, 28])
+          expect(editor.scrollLeft()).toBe charWidth * 4
+
+          # moving left
+          editor.setCursorPosition([2, 9])
+          expect(editor.scrollLeft()).toBe charWidth * 4
+
+          editor.setCursorPosition([2, 8])
+          expect(editor.scrollLeft()).toBe charWidth * 3
+
+          editor.setCursorPosition([2, 5])
+          expect(editor.scrollLeft()).toBe 0
+
+        it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
+          editor.hScrollMargin = 6
+          editor.width(charWidth * 7)
+
+          editor.setCursorPosition([2, 3])
+          expect(editor.scrollLeft()).toBe(0)
+
+          editor.setCursorPosition([2, 4])
+          expect(editor.scrollLeft()).toBe(charWidth)
+
+          editor.setCursorPosition([2, 3])
+          expect(editor.scrollLeft()).toBe(0)
+
       describe "when left is pressed on the first column", ->
         describe "when there is a previous line", ->
           it "wraps to the end of the previous line", ->

@@ -89,11 +89,13 @@ class Cursor extends Template
     updateAppearance: ->
       position = @editor.pixelPositionFromPoint(@point)
       @css(position)
+      @autoScrollVertically(position)
+      @autoScrollHorizontally(position)
 
+    autoScrollVertically: (position) ->
       linesInView = @editor.height() / @height()
-
       maxScrollMargin = Math.floor((linesInView - 1) / 2)
-      scrollMargin = Math.min(@editor.scrollMargin, maxScrollMargin)
+      scrollMargin = Math.min(@editor.vScrollMargin, maxScrollMargin)
       margin = scrollMargin * @height()
       desiredTop = position.top - margin
       desiredBottom = position.top + @height() + margin
@@ -102,4 +104,17 @@ class Cursor extends Template
         @editor.scrollBottom(desiredBottom)
       else if desiredTop < @editor.scrollTop()
         @editor.scrollTop(desiredTop)
+
+    autoScrollHorizontally: (position) ->
+      charsInView = @editor.width() / @width()
+      maxScrollMargin = Math.floor((charsInView - 1) / 2)
+      scrollMargin = Math.min(@editor.hScrollMargin, maxScrollMargin)
+      margin = scrollMargin * @width()
+      desiredRight = position.left + @width() + margin
+      desiredLeft = position.left - margin
+
+      if desiredRight > @editor.scrollRight()
+        @editor.scrollRight(desiredRight)
+      else if desiredLeft < @editor.scrollLeft()
+        @editor.scrollLeft(desiredLeft)
 
