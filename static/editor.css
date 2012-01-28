@@ -6,6 +6,7 @@
   background: #333;
   color: white;
   overflow-y: scroll;
+  overflow-x: auto;
 }
 
 .editor pre {
@@ -31,9 +32,11 @@
 }
 
 .editor .hidden-input {
-  position: fixed;
+  position: absolute;
+  z-index: -1;
   top: 0;
-  left: 100%;
+  left: 0;
+  opacity: 0;
 }
 
 .editor .selection {
