@@ -5,7 +5,7 @@ _ = require 'underscore'
 module.exports =
 class Cursor extends Template
   content: ->
-    @pre class: 'cursor', style: 'position: absolute;', => @raw '&nbsp;'
+    @pre class: 'cursor idle', style: 'position: absolute;', => @raw '&nbsp;'
 
   viewProperties:
     editor: null
@@ -22,6 +22,10 @@ class Cursor extends Template
       @goalColumn = null
       @updateAppearance()
       @trigger 'cursor:position-changed'
+
+      @removeClass 'idle'
+      window.clearTimeout(@idleTimeout) if @idleTimeout
+      @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
 
     getPosition: -> _.clone(@point)
 
