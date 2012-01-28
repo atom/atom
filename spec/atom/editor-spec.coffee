@@ -275,8 +275,6 @@ describe "Editor", ->
 
         expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
 
-
-
   describe "selection bindings", ->
     selection = null
 
