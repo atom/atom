@@ -28,6 +28,9 @@ eventPropertiesFromPattern = (pattern) ->
 window.keydownEvent = (pattern, properties={}) ->
   $.Event "keydown", _.extend(eventPropertiesFromPattern(pattern), properties)
 
+window.clickEvent = (properties={}) ->
+  $.Event "click", properties
+
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->
     fn().done(moveOn)

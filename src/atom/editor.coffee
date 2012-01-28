@@ -67,6 +67,12 @@ class Editor extends Template
         @hiddenInput.focus()
         false
 
+      @on 'click', (e) =>
+        { pageX, pageY } = e
+        left = pageX - @lines.offset().left
+        top = pageY - @lines.offset().top
+        @setCursorPosition(@pointFromPixelPosition({left, top}))
+
       @hiddenInput.on "textInput", (e) =>
         @insertText(e.originalEvent.data)
 
@@ -126,6 +132,9 @@ class Editor extends Template
 
     pixelPositionFromPoint: ({row, column}) ->
       { top: row * @lineHeight, left: column * @charWidth }
+
+    pointFromPixelPosition: ({top, left}) ->
+      { row: Math.floor(top / @lineHeight), column: Math.floor(left / @charWidth) }
 
     calculateDimensions: ->
       fragment = $('<pre style="position: absolute; visibility: hidden;">x</pre>')

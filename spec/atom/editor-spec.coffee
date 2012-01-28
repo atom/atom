@@ -262,6 +262,21 @@ describe "Editor", ->
 
             expect(editor.getCursorPosition()).toEqual(lastPosition)
 
+    describe "when a click event occurs in the editor", ->
+      it "re-positions the cursor to the clicked row / column", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+        pageX = editor.offset().left + 10 * editor.charWidth + 3
+        pageY = editor.offset().top + 4 * editor.lineHeight - 2
+
+        expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+
+        editor.lines.trigger clickEvent({pageX, pageY})
+
+        expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
+
+
+
   describe "selection bindings", ->
     selection = null
 
