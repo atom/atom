@@ -262,7 +262,7 @@ describe "Editor", ->
 
             expect(editor.getCursorPosition()).toEqual(lastPosition)
 
-    describe "when a click event occurs in the editor", ->
+    describe "when a mousedown event occurs in the editor", ->
       it "re-positions the cursor to the clicked row / column", ->
         editor.attachToDom()
         editor.css(position: 'absolute', top: 10, left: 10)
@@ -271,7 +271,7 @@ describe "Editor", ->
 
         expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
 
-        editor.lines.trigger clickEvent({pageX, pageY})
+        editor.lines.trigger mousedownEvent({pageX, pageY})
 
         expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
 
@@ -335,6 +335,39 @@ describe "Editor", ->
         makeNonEmpty()
         editor.trigger keydownEvent('down')
         expect(selection.isEmpty()).toBeTruthy()
+
+    describe "when the mouse is dragged across the text", ->
+      it "creates a selection from the initial click to mouse cursor's location ", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        # start
+        pageX = editor.offset().left + 10 * editor.charWidth + 3
+        pageY = editor.offset().top + 4 * editor.lineHeight + 3
+        editor.lines.trigger mousedownEvent({pageX, pageY})
+
+        # moving changes selection
+        pageX = editor.offset().left + 27 * editor.charWidth + 3
+        pageY = editor.offset().top + 5 * editor.lineHeight + 3
+        editor.lines.trigger mousemoveEvent({pageX, pageY})
+
+        range = editor.selection.getRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+
+        # mouse up may occur outside of editor, but still need to halt selection
+        $(document).trigger 'mouseup'
+
+        # moving after mouse up should not change selection
+        pageX = editor.offset().left + 3 * editor.charWidth + 3
+        pageY = editor.offset().top + 8 * editor.lineHeight + 3
+        editor.lines.trigger mousemoveEvent({pageX, pageY})
+
+        range = editor.selection.getRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
 
   describe "when text input events are triggered on the hidden input element", ->
     describe "when there is no selection", ->
@@ -453,4 +486,14 @@ describe "Editor", ->
         editor.setCursorPosition([12, buffer.getLine(12).length])
         editor.trigger keydownEvent('delete')
         expect(buffer.getLine(12)).toBe '};'
+
+  describe ".clipPosition(point)", ->
+    it "selects the nearest valid position to the given point", ->
+      expect(editor.clipPosition(row: 1000, column: 0)).toEqual(row: buffer.numLines() - 1, column: 0)
+      expect(editor.clipPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
+      expect(editor.clipPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.getLine(1).length)
+      expect(editor.clipPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
+
+
+
 

@@ -31,6 +31,12 @@ window.keydownEvent = (pattern, properties={}) ->
 window.clickEvent = (properties={}) ->
   $.Event "click", properties
 
+window.mousedownEvent = (properties={}) ->
+  $.Event "mousedown", properties
+
+window.mousemoveEvent = (properties={}) ->
+  $.Event "mousemove", properties
+
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->
     fn().done(moveOn)

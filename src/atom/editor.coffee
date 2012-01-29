@@ -67,11 +67,11 @@ class Editor extends Template
         @hiddenInput.focus()
         false
 
-      @on 'click', (e) =>
-        { pageX, pageY } = e
-        left = pageX - @lines.offset().left
-        top = pageY - @lines.offset().top
-        @setCursorPosition(@pointFromPixelPosition({left, top}))
+      @on 'mousedown', (e) =>
+        @setCursorPosition(@pointFromMouseEvent(e))
+        moveHandler = (e) => @selectToPosition(@pointFromMouseEvent(e))
+        @on 'mousemove', moveHandler
+        $(document).one 'mouseup', => @off 'mousemove', moveHandler
 
       @hiddenInput.on "textInput", (e) =>
         @insertText(e.originalEvent.data)
@@ -128,13 +128,21 @@ class Editor extends Template
       @lines.find("pre:eq(#{row})")
 
     clipPosition: ({row, column}) ->
-      new Point(row, Math.min(@buffer.getLine(row).length, column))
+      row = Math.min(Math.max(0, row), @buffer.numLines() - 1)
+      column = Math.min(Math.max(0, column), @buffer.getLine(row).length)
+      new Point(row, column)
 
     pixelPositionFromPoint: ({row, column}) ->
       { top: row * @lineHeight, left: column * @charWidth }
 
     pointFromPixelPosition: ({top, left}) ->
       { row: Math.floor(top / @lineHeight), column: Math.floor(left / @charWidth) }
+
+    pointFromMouseEvent: (e) ->
+      { pageX, pageY } = e
+      @pointFromPixelPosition
+        top: pageY - @lines.offset().top
+        left: pageX - @lines.offset().left
 
     calculateDimensions: ->
       fragment = $('<pre style="position: absolute; visibility: hidden;">x</pre>')
@@ -172,6 +180,7 @@ class Editor extends Template
     selectLeft: -> @selection.selectLeft()
     selectUp: -> @selection.selectUp()
     selectDown: -> @selection.selectDown()
+    selectToPosition: (position) -> @selection.selectToPosition(position)
 
     insertText: (text) -> @selection.insertText(text)
     insertNewline: -> @selection.insertNewline()

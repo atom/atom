@@ -140,6 +140,10 @@ class Selection extends Template
       @modifySelection =>
         @cursor.moveDown()
 
+    selectToPosition: (position) ->
+      @modifySelection =>
+        @cursor.setPosition(position)
+
     moveCursorToLineEnd: ->
       @cursor.moveToLineEnd()
 
