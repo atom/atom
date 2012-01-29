@@ -64,6 +64,7 @@ class Editor extends Template
 
     handleEvents: ->
       @on 'focus', =>
+        @hiddenInput.css(top: @scrollTop())
         @hiddenInput.focus()
         false
 
