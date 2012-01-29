@@ -487,6 +487,12 @@ describe "Editor", ->
         editor.trigger keydownEvent('delete')
         expect(buffer.getLine(12)).toBe '};'
 
+  describe "when multiple lines are removed from the buffer (regression)", ->
+    it "removes all of them from the dom", ->
+      buffer.change(new Range([6, 24], [12, 0]), '')
+      expect(editor.find('.line').length).toBe 7
+      expect(editor.find('.line:eq(6)').text()).toBe(buffer.getLine(6))
+
   describe ".clipPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
       expect(editor.clipPosition(row: 1000, column: 0)).toEqual(row: buffer.numLines() - 1, column: 0)

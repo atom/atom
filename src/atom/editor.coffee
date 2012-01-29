@@ -82,9 +82,9 @@ class Editor extends Template
 
     buildLineElement: (lineText) ->
       if lineText is ''
-        $$.pre -> @raw('&nbsp;')
+        $$.pre class: "line", -> @raw('&nbsp;')
       else
-        $$.pre(lineText)
+        $$.pre class: "line", lineText
 
     setBuffer: (@buffer) ->
       @lines.empty()
@@ -96,17 +96,20 @@ class Editor extends Template
       @buffer.on 'change', (e) =>
         { preRange, postRange } = e
 
-        curRow = preRange.start.row
-        maxRow = Math.max(preRange.end.row, postRange.end.row)
-
-        while curRow <= maxRow
-          if curRow > postRange.end.row
-            @removeLineElement(curRow)
-          else if curRow > preRange.end.row
-            @insertLineElement(curRow)
-          else
-            @updateLineElement(curRow)
-          curRow++
+        if postRange.end.row > preRange.end.row
+          # update, then insert elements
+          for row in [preRange.start.row..postRange.end.row]
+            if row <= preRange.end.row
+              @updateLineElement(row)
+            else
+              @insertLineElement(row)
+        else
+          # traverse in reverse... remove, then update elements
+          for row in [preRange.end.row..preRange.start.row]
+            if row > postRange.end.row
+              @removeLineElement(row)
+            else
+              @updateLineElement(row)
 
         @selection.bufferChanged(e)
 
@@ -125,7 +128,7 @@ class Editor extends Template
       @getLineElement(row).remove()
 
     getLineElement: (row) ->
-      @lines.find("pre:eq(#{row})")
+      @lines.find("pre.line:eq(#{row})")
 
     clipPosition: ({row, column}) ->
       row = Math.min(Math.max(0, row), @buffer.numLines() - 1)

@@ -31,7 +31,6 @@ class Buffer
   remove: (range) ->
     prefix = @lines[range.start.row][0...range.start.column]
     suffix = @lines[range.end.row][range.end.column..]
-
     @lines[range.start.row..range.end.row] = prefix + suffix
 
   insert: ({row, column}, string) ->
