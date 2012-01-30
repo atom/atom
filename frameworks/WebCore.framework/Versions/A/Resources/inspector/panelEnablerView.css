@@ -1,0 +1,168 @@
+/*
+ * Copyright (C) 2006, 2007, 2008 Apple Inc.  All rights reserved.
+ * Copyright (C) 2009 Anthony Ricaud <rik@webkit.org>
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1.  Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ * 2.  Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+ *     its contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL APPLE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+.panel-enabler-view {
+    z-index: 1000;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    font-size: 13px;
+    text-align: center;
+    overflow-x: hidden;
+    overflow-y: overlay;
+    display: none;
+}
+
+.panel-enabler-view.visible {
+    display: block;
+}
+
+.panel-enabler-view .panel-enabler-view-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 390px;
+    margin: auto;
+    white-space: nowrap;
+}
+
+.panel-enabler-view h1 {
+    color: rgb(110, 116, 128);
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: normal;
+    margin-top: 0;
+}
+
+.panel-enabler-disclaimer {
+    font-size: 10px;
+    color: rgb(110, 116, 128);
+    margin-bottom: 12px;
+    margin-left: 20px;
+}
+
+.panel-enabler-disclaimer:empty {
+    display: none;
+}
+
+.panel-enabler-view img {
+    height: 100%;
+    min-height: 200px;
+    max-width: 100%;
+    top: 0;
+    bottom: 0;
+    padding: 20px 0 20px 20px;
+    margin: auto;
+    vertical-align: middle;
+}
+
+.panel-enabler-view img.hidden {
+    display: initial !important;
+    width: 0;
+}
+
+.panel-enabler-view .flexible-space {
+    -webkit-box-flex: 1;
+}
+
+.panel-enabler-view form {
+    display: inline-block;
+    vertical-align: middle;
+    width: 330px;
+    margin: 0;
+    padding: 15px;
+    white-space: normal;
+}
+
+.panel-enabler-view label {
+    position: relative;
+    display: block;
+    text-align: left;
+    word-break: break-word;
+    margin: 0 0 5px 20px;
+}
+
+.panel-enabler-view button:not(.status-bar-item) {
+    font-size: 13px;
+    margin: 6px 0 0 0;
+    padding: 3px 20px;
+    height: 24px;
+    color: rgb(6, 6, 6);
+    background-color: transparent;
+    border: 1px solid rgb(165, 165, 165);
+    background-color: rgb(237, 237, 237);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(252, 252, 252)), to(rgb(223, 223, 223)));
+    -webkit-border-radius: 12px;
+    -webkit-appearance: none;
+}
+
+body.inactive .panel-enabler-view button, .panel-enabler-view button:disabled {
+    color: rgb(130, 130, 130);
+    border-color: rgb(212, 212, 212);
+    background-color: rgb(239, 239, 239);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(250, 250, 250)), to(rgb(235, 235, 235)));
+}
+
+.panel-enabler-view input[type="radio"] {
+    height: 17px;
+    width: 17px;
+    border: 1px solid rgb(165, 165, 165);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(252, 252, 252)), to(rgb(223, 223, 223)));
+    -webkit-border-radius: 8px;
+    -webkit-appearance: none;
+    vertical-align: middle;
+    margin: 0 5px 5px 0;
+}
+
+.panel-enabler-view input[type="radio"]:active:not(:disabled) {
+    background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(194, 194, 194)), to(rgb(239, 239, 239)));
+}
+
+.panel-enabler-view input[type="radio"]:checked {
+    background: url(Images/radioDot.png) center no-repeat,
+                -webkit-gradient(linear, left top, left bottom, from(rgb(252, 252, 252)), to(rgb(223, 223, 223)));
+}
+
+.panel-enabler-view input[type="radio"]:checked:active {
+    background: url(Images/radioDot.png) center no-repeat,
+                -webkit-gradient(linear, left top, left bottom, from(rgb(194, 194, 194)), to(rgb(239, 239, 239)));
+}
+
+.panel-enabler-view.scripts img {
+    content: url(Images/scriptsSilhouette.png);
+}
+
+.panel-enabler-view.profiles img {
+    content: url(Images/profilesSilhouette.png);
+}

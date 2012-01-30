@@ -1,0 +1,221 @@
+.help-window-outer {
+    position: absolute;
+    top: 60px;
+    left: 5%;
+    width: 90%;
+    bottom: 40px;
+    z-index: 2000;
+}
+
+body.compact .help-window-outer {
+    top: 32px;
+    left: 0;
+    width: 100%;
+    bottom: 23px;
+}
+
+.help-window-main {
+    max-height: 100%;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    border-top-width: 0;
+    border-radius: 15px;
+    -webkit-box-shadow: 10px 10px 8px rgba(40, 40, 40, 0.40);
+}
+
+body.compact .help-window-main {
+    height: 100%;
+    padding: 10px;
+}
+
+body.compact .help-window-main {
+    border-radius: 0;
+    -webkit-box-shadow: 0 0 0;
+}
+
+.help-window-caption {
+    margin: 8px 8px 0 8px;
+}
+
+body.compact .help-window-caption {
+    margin: 0;
+}
+
+.help-window-title {
+    border-bottom: solid 1px lightGrey;
+    font-size: 18px;
+    padding-bottom: 6px;
+}
+
+.help-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: 11px;
+    -webkit-box-flex: 1;
+    margin: 10px;
+    font-size: 13px;
+}
+
+.help-content::-webkit-scrollbar {
+    width: 11px;
+}
+
+.help-content::-webkit-scrollbar-corner,
+.help-content::-webkit-resizer {
+    display: none;
+}
+
+.help-content::-webkit-scrollbar-thumb:vertical {
+    background: -webkit-gradient(linear, left top, right top, from(rgb(128, 128, 128)), to(rgb(128, 128, 128)), color-stop(40%, rgb(96, 96, 96)));
+    border-radius: 5px;
+    min-height: 20px;
+}
+
+.help-content::-webkit-scrollbar-thumb:vertical:hover,
+.help-content::-webkit-scrollbar-thumb:vertical:active {
+    background: -webkit-gradient(linear, left top, right top, from(rgb(176, 176, 176)), to(rgb(176, 176, 176)), color-stop(40%, rgb(144, 144, 144)));
+}
+
+.help-content::-webkit-scrollbar-track:vertical {
+    background: -webkit-gradient(linear, left top, right top, from(rgb(10, 10, 10)), to(rgb(32, 32, 32)), color-stop(25%, rgb(32, 32, 32)));
+    border-radius: 5px;
+}
+
+.help-close-button {
+    border: 0;
+    padding: 0;
+    font-size: 14px;
+    color: rgb(222, 222, 222);
+    background: -webkit-gradient(radial, 30% 30%, 1, 50% 50%, 8, from(rgb(128, 128, 128)), to(rgb(80, 80, 80)));
+    border-radius: 8px;
+    height: 16px;
+    width: 16px;
+}
+
+body.compact .help-close-button {
+    margin: 0;
+}
+
+body.compact .help-content {
+    margin: 8px 0 0 8px;
+}
+
+.help-close-button:hover {
+    color: white;
+}
+
+body.platform-mac .help-close-button {
+    float: left;
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+body:not(.platform-mac) .help-close-button {
+    float: right;
+}
+
+.help-table {
+    width: 100%;
+    -webkit-user-select: auto;
+}
+
+.help-table th {
+    padding-top: 6px;
+    text-align: left;
+    color: yellow;
+}
+
+.help-table td {
+    white-space: nowrap;
+    vertical-align: top;
+    width: 50%;
+}
+
+.help-key-cell {
+    text-align: right;
+}
+
+.help-key {
+    color: yellow;
+}
+
+body:not(.platform-mac) .help-key {
+    text-shadow: black 1px 1px 7px;
+}
+
+body.platform-mac .help-key {
+    font-family: Lucida Grande, sans-serif;
+}
+
+.help-combine-keys {
+    color: white;
+    margin: 0 0.3em;
+    font-size: 12px;
+}
+
+.help-key-delimiter {
+    color: white;
+    margin: 0 0.5em;
+}
+
+.help-content p {
+    margin: 5px 0 5px 0;
+}
+
+.help-content fieldset {
+    border: none;
+    margin-left: 9px;
+}
+
+.help-content fieldset p {
+    border-left: 1px solid rgb(128,128,128);
+    margin: 0 0 0 6px;
+    padding-left: 3px;
+}
+
+
+.help-content fieldset label {
+    padding-right: 4px;
+}
+
+.help-content p.help-section {
+    margin-bottom: 15px;
+}
+
+.help-section-title {
+    color: yellow;
+}
+
+.settings-experiments-warning-subsection-warning {
+    color: rgb(200, 0, 0);
+}
+
+.settings-experiments-warning-subsection-message {
+    color: rgb(150, 150, 150);
+}
+
+.help-content input[type=checkbox] {
+    height: 13px;
+    width: 13px;
+    margin-right: 0;
+    margin-right: 4px;
+}
+
+.help-content select {
+    background-color: rgb(64, 64, 64);
+    color: white;
+    border-color: black;
+    padding: 0px 4px;
+}
+
+.help-content select:disabled {
+    background-color: rgb(32, 32, 32);
+    color: graytext;
+}
+
+.help-content option {
+    background-color: black;
+    color: white;
+}

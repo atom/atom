@@ -1,0 +1,504 @@
+/*
+ * Copyright (C) 2006, 2007, 2008 Apple Inc.  All rights reserved.
+ * Copyright (C) 2009 Anthony Ricaud <rik@webkit.org>
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1.  Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ * 2.  Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+ *     its contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL APPLE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#timeline-overview-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+}
+
+#timeline-overview-panel .timeline-graph-bar {
+    pointer-events: none;
+}
+
+.timeline .sidebar {
+    overflow-y: hidden;
+    min-height: 100%;
+    bottom: auto;
+}
+
+.timeline-sidebar-background {
+    top: 90px;
+    bottom: 0;
+}
+
+#timeline-overview-separator {
+    position: absolute;
+    top: 80px;
+    left: 0;
+    right: 0;
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(253, 253, 253)), to(rgb(213, 213, 213)));
+    border-top: 1px solid rgb(140, 140, 140);
+    border-bottom: 1px solid rgb(115, 115, 115);
+    height: 10px;
+}
+
+#timeline-overview-sidebar {
+    position: absolute;
+    width: 200px;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    padding-top: 2px;
+    background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(rgb(242, 242, 242)), to(rgb(209, 209, 209)));
+    border-right: 1px solid rgb(163, 163, 163);
+}
+
+#timeline-overview-grid {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 200px;
+    right: 0px;
+    background-color: rgb(255, 255, 255);
+}
+
+.timeline-window-selector {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(125, 173, 217, 0.5);
+    z-index: 250;
+}
+
+#timeline-overview-window {
+    background-color: white;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 60px;
+    z-index: 150;
+}
+
+.timeline-overview-dividers-background {
+    left: 0%;
+    right: 0%;
+    top: 0px;
+    bottom: 60px;
+    background-color: black;
+    position: absolute;
+}
+
+.timeline-overview-window-rulers {
+    top: 0;
+    bottom: 0;
+    position: absolute;
+    opacity: 0.2;
+    border-right: 1px solid black;
+    border-left: 1px solid black;
+    z-index: 150;
+}
+
+.timeline-window-resizer {
+    position: absolute;
+    top: 0px;
+    bottom: 60px;
+    width: 5px;
+    margin-left: -3px;
+    margin-right: -2px;
+    background-color: rgb(153, 153, 153);
+    z-index: 500;
+    cursor: ew-resize;
+    -webkit-border-radius: 2px;
+    -webkit-box-shadow: white 1px 0 0, white -1px 0 0, white 0 1px 0, white 0 -1px 0;
+}
+
+#timeline-overview-grid #resources-graphs {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+}
+
+#timeline-container {
+    position: absolute;
+    top: 90px;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    border-right: 0 none transparent;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#timeline-container .split-view-sidebar-left {
+    z-index: 1;
+}
+
+.timeline-category-statusbar-item {
+    height: 24px;
+    line-height: 24px;
+    padding-left: 6px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-weight: bold;
+}
+
+.timeline-category-statusbar-item .timeline-category-checkbox {
+    width: 10px;
+    height: 11px;
+    margin: 0 3px 0 5px;
+    padding: 0;
+    background-image: url(Images/timelineCheckmarks.png);
+    background-repeat: no-repeat;
+    background-position: 0 -66px;
+    vertical-align: -1px;
+    -webkit-appearance: none;
+}
+
+.timeline-category-statusbar-item .timeline-category-checkbox:checked {
+    background-position-x: -10px;
+}
+
+.timeline-category-statusbar-item.timeline-category-loading .timeline-category-checkbox {
+    background-position-y: 0;
+}
+
+.timeline-category-statusbar-item.timeline-category-scripting .timeline-category-checkbox {
+    background-position-y: -33px;
+}
+
+.timeline-category-statusbar-item.timeline-category-rendering .timeline-category-checkbox {
+    background-position-y: -11px;
+}
+
+.timeline-tree-item {
+    height: 18px;
+    line-height: 15px;
+    padding-right: 5px;
+    padding-left: 10px;
+    padding-top: 2px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.timeline-expandable {
+    position: absolute;
+    border-left: 1px solid rgb(163, 163, 163);
+}
+
+.timeline-expandable-left {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    border-top: 1px solid rgb(163, 163, 163);
+    border-bottom: 1px solid rgb(163, 163, 163);
+}
+
+.timeline-expandable-collapsed {
+    background-image: url(Images/disclosureTriangleSmallRightBlack.png);
+    background-position-x: 1px;
+    background-position-y: 2px;
+    background-repeat: no-repeat;
+}
+
+.timeline-expandable-expanded {
+    background-image: url(Images/disclosureTriangleSmallDownBlack.png);
+    background-position-x: 1px;
+    background-position-y: 3px;
+    background-repeat: no-repeat;
+}
+
+.timeline-tree-item .type {
+    padding-left: 14px;
+}
+
+.timeline-tree-item .count {
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+}
+
+.timeline-tree-item .timeline-tree-icon {
+    background-image: url(Images/timelineDots.png);
+    margin-top: 2px;
+    width: 12px;
+    height: 12px;
+    position: absolute;
+}
+
+.timeline-tree-item.even {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.timeline-tree-item .data.dimmed {
+    color: rgba(0, 0, 0, 0.7);
+}
+
+#timeline-overview-timelines,
+#timeline-overview-memory {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 20px;
+    z-index: 160;
+}
+
+#timeline-overview-memory > canvas {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 5px;
+}
+
+
+#timeline-graphs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    max-height: 100%;
+    top: 19px;
+}
+
+.timeline-graph-side {
+    position: relative;
+    height: 18px;
+    padding: 0 5px;
+    white-space: nowrap;
+    margin-top: 0px;
+    border-top: 1px solid transparent;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.timeline-overview-graph-side {
+    height: 20px;
+    z-index: 170;
+    pointer-events: none;
+}
+
+.timeline-overview-graph-side .timeline-graph-bar {
+    height: 13px;
+}
+
+.timeline-graph-bar-area {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 3px;
+    pointer-events: none;
+}
+
+.timeline-graph-bar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto -2px;
+    border-width: 4px 4px 5px;
+    height: 9px;
+    min-width: 5px;
+    opacity: 0.8;
+    -webkit-border-image: url(Images/timelineBarGray.png) 4 4 5 4;
+    z-index: 180;
+    pointer-events: visibleFill;
+}
+
+.timeline-graph-bar.with-children {
+    opacity: 0.2;
+}
+
+.timeline-graph-bar.cpu {
+    opacity: 0.6;
+}
+
+.timeline-graph-side.even {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.timeline-category-loading .timeline-graph-bar {
+    -webkit-border-image: url(Images/timelineBarBlue.png) 4 4 5 4;
+}
+
+.timeline-category-scripting .timeline-graph-bar {
+    -webkit-border-image: url(Images/timelineBarOrange.png) 4 4 5 4;
+}
+
+.timeline-category-rendering .timeline-graph-bar {
+    -webkit-border-image: url(Images/timelineBarPurple.png) 4 4 5 4;
+}
+
+.timeline-aggregated-category {
+    display: inline-block;
+    height: 11px;
+    margin-right: 2px;
+    margin-left: 6px;
+    position: relative;
+    top: 2px;
+    width: 10px;
+}
+
+.timeline-loading {
+    -webkit-border-image: url(Images/timelineBarBlue.png) 4 4 5 4;
+}
+
+.timeline-scripting {
+    -webkit-border-image: url(Images/timelineBarOrange.png) 4 4 5 4;
+}
+
+.timeline-rendering {
+    -webkit-border-image: url(Images/timelineBarPurple.png) 4 4 5 4;
+}
+
+.popover .timeline-aggregated-category.timeline-loading {
+    margin-left: 0px;
+}
+
+.timeline-category-loading .timeline-tree-icon {
+    background-position-y: 0px;
+}
+
+.timeline-category-scripting .timeline-tree-icon {
+    background-position-y: 48px;
+}
+
+.timeline-category-rendering .timeline-tree-icon {
+    background-position-y: 72px;
+}
+
+.timeline-details {
+    -webkit-user-select: text;
+    vertical-align: top;
+}
+
+.timeline-function-name {
+    text-align: right;
+}
+
+.timeline-stacktrace-title {
+    padding-top: 4px;
+}
+
+.timeline-details-row-title {
+    font-weight: bold;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.timeline-details-row-data {
+    white-space: nowrap;
+}
+
+.timeline-details-title {
+    border-bottom: 1px solid #B8B8B8;
+    font-size: 11px;
+    font-weight: bold;
+    padding-bottom: 5px;
+    padding-top: 0px;
+    white-space: nowrap;
+}
+
+.timeline-filter-status-bar-item .glyph {
+    -webkit-mask-position: -32px -48px;
+}
+
+.timeline-filter-status-bar-item.toggled-on .glyph {
+    background-color: rgb(66, 129, 235) !important;
+}
+
+.garbage-collect-status-bar-item .glyph {
+    -webkit-mask-position: -128px -24px;
+}
+
+.timeline-records-counter, .storage-application-cache-status, .storage-application-cache-connectivity {
+    font-size: 11px;
+    text-shadow: white 0 1px 0;
+}
+
+#main-status-bar > .timeline-records-counter {
+    float: right;
+    margin-top: 4px;
+    margin-right: 25px;
+}
+
+#counters > .timeline-records-counter {
+    float: left;
+    margin-top: -2px;
+}
+
+#resources-container-content {
+    overflow: visible;
+    min-height: 100%;
+}
+
+#resources-graphs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    max-height: 100%;
+    top: 112px;
+}
+
+.resources-graph-side {
+    position: relative;
+    height: 36px;
+    padding: 0 5px;
+    white-space: nowrap;
+    margin-top: 1px;
+    border-top: 1px solid transparent;
+    overflow: hidden;
+}
+
+.resources-graph-bar-area {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 8px;
+    left: 9px;
+}
+
+.resources-time-graph-sidebar-item .icon {
+    content: url(Images/resourcesTimeGraphIcon.png);
+}
+
+.resources-size-graph-sidebar-item .icon {
+    content: url(Images/resourcesSizeGraphIcon.png);
+}
+
+.resources-size-graph-sidebar-item .icon {
+    content: url(Images/resourcesSizeGraphIcon.png);
+}
+
+.memory-graph-label {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 9px;
+    color: rgb(50%, 50%, 50%);
+    white-space: nowrap;
+}

@@ -1,0 +1,216 @@
+/*
+ * Copyright (C) 2009 Google Inc. All rights reserved.
+ * Copyright (C) 2010 Apple Inc. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following disclaimer
+ * in the documentation and/or other materials provided with the
+ * distribution.
+ *     * Neither the name of Google Inc. nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+.heap-snapshot-sidebar-tree-item .icon {
+    content: url(Images/profileIcon.png);
+}
+
+.heap-snapshot-sidebar-tree-item.wait .icon {
+    content: url(Images/spinnerActive.gif);
+}
+
+.heap-snapshot-sidebar-tree-item.wait.selected .icon {
+    content: url(Images/spinnerActiveSelected.gif);
+}
+
+body.inactive .heap-snapshot-sidebar-tree-item.wait .icon {
+    content: url(Images/spinnerInactive.gif);
+}
+
+body.inactive .heap-snapshot-sidebar-tree-item.wait.selected .icon {
+    content: url(Images/spinnerInactiveSelected.gif);
+}
+
+.heap-snapshot-sidebar-tree-item.small .icon {
+    content: url(Images/profileSmallIcon.png);
+}
+
+.detailed-heapshot-view {
+    display: none;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.detailed-heapshot-view.visible {
+    display: block;
+}
+
+.detailed-heapshot-view .view {
+    display: none;
+}
+
+.detailed-heapshot-view .view.visible {
+    display: block;
+}
+
+.detailed-heapshot-view .data-grid {
+    border: none;
+}
+
+.detailed-heapshot-view .data-grid td.count-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .data-grid td.addedCount-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .data-grid td.removedCount-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .data-grid td.countDelta-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .data-grid td.addedSize-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .data-grid td.removedSize-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .data-grid td.sizeDelta-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .data-grid td.shallowSize-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .data-grid td.retainedSize-column {
+    text-align: right;
+}
+
+.detailed-heapshot-view .console-formatted-object, .console-formatted-node {
+    display: inline;
+    position: static;
+}
+
+.detached-dom-tree-node {
+    background-color: #FF9999;
+}
+
+.detailed-heapshot-view .console-formatted-string {
+    white-space: nowrap;
+}
+
+.detailed-heapshot-view .data-grid tr.selected * {
+    color: inherit;
+}
+
+.detailed-heapshot-view .data-grid:focus tr.selected * {
+    color: white;
+}
+
+.detailed-heapshot-view .delimiter {
+    height: 24px;
+    background-color: #d6dde5;
+}
+
+.detailed-heapshot-view .data-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.detailed-heapshot-view .views-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 173px;
+}
+
+.detailed-heapshot-view .views-container .view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.detailed-heapshot-view .retaining-paths-view {
+    height: 150px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.detailed-heapshot-view .retainers-view-header {
+    background-image: url(Images/statusbarResizerVertical.png), url(Images/statusbarBackground.png);
+    background-repeat: no-repeat, repeat-x;
+    background-position: right center, center;
+    cursor: row-resize;
+    height: 23px;
+    font: -webkit-small-control;
+    font-weight: bold;
+    color: rgb(48, 48, 48);
+    text-shadow: rgba(255, 255, 255, 0.75) 0 1px 0;
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 150px;
+}
+
+.detailed-heapshot-view .retainers-view-header .title > span {
+    display: inline-block;
+    padding-top: 3px;
+    vertical-align: middle;
+    margin-left: 4px;
+    margin-right: 8px;
+}
+
+.detailed-heapshot-view tr:not(.selected) td.object-column span.highlight {
+    background-color: rgb(255, 255, 200);
+}
+
+.heapshot-help-status-bar-item .glyph {
+    -webkit-mask-position: -160px 0;
+}
+
+table.heapshot-help {
+    border-spacing: 12px 2px;
+}
+
+div.retaining-paths-view td.path-column div:hover {
+    text-decoration: underline;
+    color: blue;
+}
