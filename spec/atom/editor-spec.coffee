@@ -50,12 +50,17 @@ describe "Editor", ->
 
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->
-      it "moves the cursor to cover the character at the given row and column", ->
+      beforeEach ->
         editor.attachToDom()
         editor.setCursorPosition(row: 2, column: 2)
 
+      it "moves the cursor to cover the character at the given row and column", ->
         expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
         expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
+
+      it "moves the hidden input element to the position of the cursor to prevent scrolling misbehavior", ->
+        expect(editor.hiddenInput.position().top).toBe(2 * editor.lineHeight)
+        expect(editor.hiddenInput.position().left).toBe(2 * editor.charWidth)
 
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->

@@ -66,7 +66,6 @@ class Editor extends Template
 
     handleEvents: ->
       @on 'focus', =>
-        @hiddenInput.css(top: @scrollTop())
         @hiddenInput.focus()
         false
 
@@ -79,8 +78,12 @@ class Editor extends Template
       @hiddenInput.on "textInput", (e) =>
         @insertText(e.originalEvent.data)
 
+      @on 'cursor:position-changed', =>
+        @hiddenInput.css(@pixelPositionFromPoint(@cursor.getPosition()))
+
       @one 'attach', =>
         @calculateDimensions()
+        @hiddenInput.width(@charWidth)
         @focus()
 
     buildLineElement: (lineText) ->
