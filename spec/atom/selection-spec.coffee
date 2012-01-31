@@ -94,19 +94,23 @@ describe "Selection", ->
       expect(selection.regions.length).toBe 3
       expect(selection.find('.selection').length).toBe 3
 
-  describe ".copy()", ->
+  describe "when a copy event is triggered", ->
     beforeEach ->
       atom.native.writeToPasteboard('first')
       expect(atom.native.readFromPasteboard()).toBe 'first'
 
     it "places selected text on the clipboard", ->
       selection.setRange new Range([0,4], [0,13])
-      selection.copy()
+      editor.trigger "copy"
       expect(atom.native.readFromPasteboard()).toBe 'quicksort'
+
+      selection.setRange new Range([0,4], [3,13])
+      editor.trigger "copy"
+      expect(atom.native.readFromPasteboard()).toBe "quicksort = function () {\n  var sort = function(items) {\n    if (items.length <= 1) return items;\n    var pivot"
 
     it "places nothing on the clipboard when there is no selection", ->
       selection.setRange new Range([0,4], [0,4])
-      selection.copy()
+      editor.trigger "copy"
       expect(atom.native.readFromPasteboard()).toBe 'first'
 
 
