@@ -194,4 +194,3 @@ class Editor extends Template
     delete: -> @selection.delete()
     copySelection: -> @selection().copy()
 
-

@@ -12,6 +12,9 @@ class NumericPrefix
 
   compose: (@operatorToRepeat) ->
     @complete = true
+    if @operatorToRepeat.setCount?
+      @operatorToRepeat.setCount @count
+      @count = 1
 
   addDigit: (digit) ->
     @count = @count * 10 + digit
