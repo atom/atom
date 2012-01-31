@@ -30,7 +30,9 @@ class VimMode
       'd': 'delete'
       'x': 'delete-char'
       'h': 'move-left'
-      'j': 'move-up'
+      'j': 'move-down'
+      'k': 'move-up'
+      'l': 'move-right'
       'w': 'move-to-next-word'
 
     @handleCommands
@@ -39,6 +41,8 @@ class VimMode
       'delete-char': => new commands.DeleteChar(@editor)
       'move-left': => new motions.MoveLeft(@editor)
       'move-up': => new motions.MoveUp(@editor)
+      'move-down': => new motions.MoveDown @editor
+      'move-right': => new motions.MoveRight @editor
       'move-to-next-word': => new motions.MoveToNextWord(@editor)
       'numeric-prefix': (e) => @numericPrefix(e)
 
@@ -72,10 +76,15 @@ class VimMode
       @pushOperator(new operators.NumericPrefix(num))
 
   delete: () ->
-    if @topOperator() instanceof operators.Delete
-      @pushOperator(new motions.SelectLine(@editor))
+    if @isDeletePending()
+      @pushOperator(new motions.SelectLines(@editor))
     else
       @pushOperator(new operators.Delete(@editor))
+
+  isDeletePending: () ->
+    for op in @opStack
+      return true if op instanceof operators.Delete
+    false
 
   pushOperator: (op) ->
     @opStack.push(op)

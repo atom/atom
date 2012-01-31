@@ -57,6 +57,35 @@ describe "VimMode", ->
           expect(editor.buffer.getText()).toBe "12345\nABCDE"
           expect(editor.getPosition()).toEqual(column: 0, row: 1)
 
+        describe "when the second d is prefixed by a count", ->
+          it "deletes n lines, starting from the current", ->
+            editor.buffer.setText("12345\nabcde\nABCDE\nQWERT")
+            editor.setPosition(column: 1, row: 1)
+
+            editor.trigger keydownEvent('d')
+            editor.trigger keydownEvent('2')
+            editor.trigger keydownEvent('d')
+
+            expect(editor.buffer.getText()).toBe "12345\nQWERT"
+            expect(editor.getPosition()).toEqual(column: 0, row: 1)
+
+      describe "when followed by an h", ->
+        it "deletes the previous letter on the current line", ->
+          editor.buffer.setText("abcd\n01234")
+          editor.setPosition(column: 1, row: 1)
+
+          editor.trigger keydownEvent 'd'
+          editor.trigger keydownEvent 'h'
+
+          expect(editor.buffer.getText()).toBe "abcd\n1234"
+          expect(editor.getPosition()).toEqual {column: 0, row: 1}
+
+          editor.trigger keydownEvent 'd'
+          editor.trigger keydownEvent 'h'
+
+          expect(editor.buffer.getText()).toBe "abcd\n1234"
+          expect(editor.getPosition()).toEqual {column: 0, row: 1}
+
       describe "when followed by a w", ->
         it "deletes to the beginning of the next word", ->
           editor.buffer.setText("abcd efg")
@@ -91,11 +120,26 @@ describe "VimMode", ->
           expect(editor.getPosition()).toEqual(column: 0, row: 1)
 
       describe "the j keybinding", ->
+        it "moves the cursor down, but not to the end of the last line", ->
+          editor.trigger keydownEvent 'j'
+          expect(editor.getPosition()).toEqual(column: 1, row: 2)
+          editor.trigger keydownEvent 'j'
+          expect(editor.getPosition()).toEqual(column: 1, row: 2)
+
+      describe "the k keybinding", ->
         it "moves the cursor up, but not to the beginning of the first line", ->
-          editor.trigger keydownEvent('j')
+          editor.trigger keydownEvent('k')
           expect(editor.getPosition()).toEqual(column: 1, row: 0)
-          editor.trigger keydownEvent('j')
+          editor.trigger keydownEvent('k')
           expect(editor.getPosition()).toEqual(column: 1, row: 0)
+
+      describe "the l keybinding", ->
+        it "moves the cursor right, but not to the next line", ->
+          editor.setPosition(column: 4, row: 1)
+          editor.trigger keydownEvent('l')
+          expect(editor.getPosition()).toEqual(column: 5, row: 1)
+          editor.trigger keydownEvent('l')
+          expect(editor.getPosition()).toEqual(column: 5, row: 1)
 
       describe "the w keybinding", ->
         it "moves the cursor to the beginning of the next word", ->

@@ -9,10 +9,26 @@ class MoveLeft extends Motion
     {column, row} = @editor.getPosition()
     @editor.moveLeft() if column > 0
 
+  select: ->
+    position = @editor.getPosition()
+    position.column-- if position.column > 0
+    @editor.selectToPosition position
+
+class MoveRight extends Motion
+  execute: ->
+    {column, row} = @editor.getPosition()
+    currentLineLength = @editor.getLineText(row).length
+    @editor.moveRight() if column < currentLineLength
+
 class MoveUp extends Motion
   execute: ->
     {column, row} = @editor.getPosition()
     @editor.moveUp() if row > 0
+
+class MoveDown extends Motion
+  execute: ->
+    {column, row} = @editor.getPosition()
+    @editor.moveDown() if row < (@editor.getAceSession().getLength() - 1)
 
 class MoveToNextWord extends Motion
   execute: ->
@@ -37,9 +53,17 @@ class MoveToNextWord extends Motion
       column = nextLineMatch?.index or 0
     { row, column }
 
-class SelectLine extends Motion
-  select: ->
-    @editor.selectLine()
+class SelectLines extends Motion
+  count: null
 
-module.exports = { MoveLeft, MoveUp, MoveToNextWord, SelectLine }
+  constructor: (@editor) ->
+    @count = 1
+
+  setCount: (@count) ->
+
+  select: ->
+    @editor.setPosition(column: 0, row: @editor.getRow())
+    @editor.selectToPosition(column: 0, row: @editor.getRow() + @count)
+
+module.exports = { MoveLeft, MoveRight, MoveUp, MoveDown, MoveToNextWord, SelectLines }
 
