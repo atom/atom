@@ -88,3 +88,20 @@ describe "Selection", ->
       expect(selection.regions.length).toBe 3
       expect(selection.find('.selection').length).toBe 3
 
+  describe ".copy()", ->
+    beforeEach ->
+      atom.native.writeToPasteboard('first')
+      expect(atom.native.readFromPasteboard()).toBe 'first'
+
+    it "places selected text on the clipboard", ->
+      selection.setRange new Range([0,4], [0,13])
+      selection.copy()
+      expect(atom.native.readFromPasteboard()).toBe 'quicksort'
+
+    it "places nothing on the clipboard when there is no selection", ->
+      selection.setRange new Range([0,4], [0,4])
+      selection.copy()
+      expect(atom.native.readFromPasteboard()).toBe 'first'
+
+
+

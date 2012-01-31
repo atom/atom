@@ -17,6 +17,15 @@ class Buffer
   setText: (text) ->
     @lines = text.split('\n')
 
+  getTextInRange: (range) ->
+    if range.start.row == range.end.row
+      return @lines[range.start.row][range.start.column...range.end.column]
+
+    text = @lines[range.start.row][range.start.column..]
+    for row in [range.start.row...range.end.row]
+      text += @lines[row]
+    text += @lines[range.end.row][0...range.end.column]
+
   getLines: ->
     @lines
 
