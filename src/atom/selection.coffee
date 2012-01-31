@@ -47,15 +47,16 @@ class Selection extends Template
 
     appendRegion: (rows, start, end) ->
       { lineHeight, charWidth } = @editor
-      top = start.row * lineHeight
-      left = start.column * charWidth
-      height = lineHeight * rows
-      width = if end
-        end.column * charWidth - left
+      css = {}
+      css.top = start.row * lineHeight
+      css.left = start.column * charWidth
+      css.height = lineHeight * rows
+      if end
+        css.width = end.column * charWidth - css.left
       else
-        @editor.width() - left
+        css.right = 0
 
-      region = $$.div(class: 'selection').css({top, left, height, width})
+      region = $$.div(class: 'selection').css(css)
       @append(region)
       @regions.push(region)
 

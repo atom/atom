@@ -24,6 +24,7 @@ describe "Selection", ->
 
     beforeEach ->
       editor.attachToDom()
+      editor.width(500)
       { charWidth, lineHeight } = editor
 
     describe "when the selection is within a single line", ->
@@ -71,6 +72,11 @@ describe "Selection", ->
         expect(region2.position().top).toBe(3 * lineHeight)
         expect(region2.position().left).toBe(0)
         expect(region2.height()).toBe(3 * lineHeight)
+        expect(region2.width()).toBe(editor.width())
+
+        # resizes with the editor
+        expect(editor.width()).toBeLessThan(800)
+        editor.width(800)
         expect(region2.width()).toBe(editor.width())
 
         region3 = selection.regions[2]
