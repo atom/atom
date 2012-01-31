@@ -34,26 +34,22 @@ class Selection extends Template
 
       range = @getRange()
       return if range.isEmpty()
-      for row in [range.start.row..range.end.row]
-        start =
-          if row == range.start.row
-            range.start
-          else
-            { row: row, column: 0 }
 
-        end =
-          if row == range.end.row
-            range.end
-          else
-            null
+      rowSpan = range.end.row - range.start.row
 
-        @appendRegion(start, end)
+      if rowSpan == 0
+        @appendRegion(1, range.start, range.end)
+      else
+        @appendRegion(1, range.start, null)
+        if rowSpan > 1
+          @appendRegion(rowSpan - 1, { row: range.start.row + 1, column: 0}, null)
+        @appendRegion(1, { row: range.end.row, column: 0 }, range.end)
 
-    appendRegion: (start, end) ->
+    appendRegion: (rows, start, end) ->
       { lineHeight, charWidth } = @editor
       top = start.row * lineHeight
       left = start.column * charWidth
-      height = lineHeight
+      height = lineHeight * rows
       width = if end
         end.column * charWidth - left
       else

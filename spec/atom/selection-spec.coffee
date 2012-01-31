@@ -56,8 +56,8 @@ describe "Selection", ->
         expect(region2.width()).toBe(25 * charWidth)
 
     describe "when the selection spans more than 2 lines", ->
-      it "covers the selection's range with a region for each line", ->
-        selection.setRange(new Range({row: 2, column: 7}, {row: 4, column: 25}))
+      it "covers the selection's range with 3 regions", ->
+        selection.setRange(new Range({row: 2, column: 7}, {row: 6, column: 25}))
 
         expect(selection.regions.length).toBe 3
 
@@ -70,11 +70,11 @@ describe "Selection", ->
         region2 = selection.regions[1]
         expect(region2.position().top).toBe(3 * lineHeight)
         expect(region2.position().left).toBe(0)
-        expect(region2.height()).toBe lineHeight
+        expect(region2.height()).toBe(3 * lineHeight)
         expect(region2.width()).toBe(editor.width())
 
         region3 = selection.regions[2]
-        expect(region3.position().top).toBe(4 * lineHeight)
+        expect(region3.position().top).toBe(6 * lineHeight)
         expect(region3.position().left).toBe(0)
         expect(region3.height()).toBe lineHeight
         expect(region3.width()).toBe(25 * charWidth)

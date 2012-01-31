@@ -54,7 +54,7 @@ class Editor extends Template
       @on 'newline', =>  @insertNewline()
       @on 'backspace', => @backspace()
       @on 'delete', => @delete()
-      @on 'copy', => @copyText()
+      @on 'copy', => @copySelection()
 
 
     buildCursorAndSelection: ->
@@ -192,5 +192,5 @@ class Editor extends Template
     insertNewline: -> @selection.insertNewline()
     backspace: -> @selection.backspace()
     delete: -> @selection.delete()
-    copySelection: -> @selection().copy()
+    copySelection: -> @selection.copy()
 
