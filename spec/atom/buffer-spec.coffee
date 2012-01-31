@@ -1,4 +1,5 @@
 Buffer = require 'buffer'
+Range = require 'range'
 fs = require 'fs'
 
 describe 'Buffer', ->
@@ -123,3 +124,27 @@ describe 'Buffer', ->
         buffer = new Buffer
         expect(-> buffer.save()).toThrow()
 
+  describe ".getTextInRange(range)", ->
+    describe "when range is empty", ->
+      it "returns an empty string", ->
+        range = new Range([1,1], [1,1])
+        expect(buffer.getTextInRange(range)).toBe ""
+
+    describe "when range spans one line", ->
+      it "returns characters in range", ->
+        range = new Range([2,8], [2,13])
+        expect(buffer.getTextInRange(range)).toBe "items"
+
+        lineLength = buffer.getLine(2).length
+        range = new Range([2,0], [2,lineLength])
+        expect(buffer.getTextInRange(range)).toBe "    if (items.length <= 1) return items;"
+
+    describe "when range spans multiple lines", ->
+      it "returns characters in range (including newlines)", ->
+        lineLength = buffer.getLine(2).length
+        range = new Range([2,0], [3,0])
+        expect(buffer.getTextInRange(range)).toBe "    if (items.length <= 1) return items;\n"
+
+        lineLength = buffer.getLine(2).length
+        range = new Range([2,10], [4,10])
+        expect(buffer.getTextInRange(range)).toBe "ems.length <= 1) return items;\n    var pivot = items.shift(), current, left = [], right = [];\n    while("

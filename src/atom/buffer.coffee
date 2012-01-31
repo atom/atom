@@ -21,10 +21,13 @@ class Buffer
     if range.start.row == range.end.row
       return @lines[range.start.row][range.start.column...range.end.column]
 
-    text = @lines[range.start.row][range.start.column..]
-    for row in [range.start.row...range.end.row]
-      text += @lines[row]
-    text += @lines[range.end.row][0...range.end.column]
+    multipleLines = []
+    multipleLines.push @lines[range.start.row][range.start.column..] # first line
+    for row in [range.start.row + 1...range.end.row]
+      multipleLines.push @lines[row] # middle lines
+    multipleLines.push @lines[range.end.row][0...range.end.column] # last line
+
+    return multipleLines.join '\n'
 
   getLines: ->
     @lines
