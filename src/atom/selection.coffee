@@ -1,6 +1,6 @@
-Template = require 'template'
 Cursor = require 'cursor'
 Range = require 'range'
+Template = require 'template'
 $$ = require 'template/builder'
 
 module.exports =
