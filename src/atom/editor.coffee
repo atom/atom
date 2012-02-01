@@ -3,6 +3,8 @@ Buffer = require 'buffer'
 Point = require 'point'
 Cursor = require 'cursor'
 Selection = require 'selection'
+Highlighter = require 'highlighter'
+
 $ = require 'jquery'
 $$ = require 'template/builder'
 _ = require 'underscore'
@@ -88,16 +90,23 @@ class Editor extends Template
         @hiddenInput.width(@charWidth)
         @focus()
 
-    buildLineElement: (lineText) ->
-      if lineText is ''
-        $$.pre class: "line", -> @raw('&nbsp;')
-      else
-        $$.pre class: "line", lineText
+    buildLineElement: (row) ->
+      tokens = @highlighter.tokensForLine(row)
+      $$.pre class: 'line', ->
+        if tokens.length
+          for token in tokens
+            classes = token.type.split('.').map((c) -> "ace_#{c}").join(' ')
+            @span { class: token.type.replace('.', ' ') }, token.value
+        else
+          @raw '&nbsp;'
 
     setBuffer: (@buffer) ->
+      @highlighter = new Highlighter(@buffer)
+
       @lines.empty()
-      for line in @buffer.getLines()
-        @lines.append @buildLineElement(line)
+      for row in [0..@buffer.lastRow()]
+        line = @buildLineElement(row)
+        @lines.append line
 
       @setCursorPosition(row: 0, column: 0)
 
@@ -130,7 +139,7 @@ class Editor extends Template
         element.text(line)
 
     insertLineElement: (row) ->
-      @getLineElement(row).before(@buildLineElement(@buffer.getLine(row)))
+      @getLineElement(row).before(@buildLineElement(row))
 
     removeLineElement: (row) ->
       @getLineElement(row).remove()
