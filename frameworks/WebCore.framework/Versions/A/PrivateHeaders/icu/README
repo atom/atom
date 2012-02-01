@@ -1,0 +1,4 @@
+The headers in this directory are for compiling on Mac OS X 10.4.
+The Mac OS X 10.4 release includes the ICU binary, but not ICU headers.
+For other platforms, installed ICU headers should be used rather than these.
+They are specific to Mac OS X 10.4.

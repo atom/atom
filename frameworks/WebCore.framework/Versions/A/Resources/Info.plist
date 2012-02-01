@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BuildMachineOSBuild</key>
+	<string>11A511</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>WebCore</string>
+	<key>CFBundleGetInfoString</key>
+	<string>535.19+, Copyright 2003-2012 Apple Inc.; Copyright 1997 Martin Jones &lt;mjones@kde.org&gt;; Copyright 1998, 1999 Torben Weis &lt;weis@kde.org&gt;; Copyright 1998, 1999, 2002 Waldo Bastian &lt;bastian@kde.org&gt;; Copyright 1998-2000 Lars Knoll &lt;knoll@kde.org&gt;; Copyright 1999, 2001 Antti Koivisto &lt;koivisto@kde.org&gt;; Copyright 1999-2001 Harri Porten &lt;porten@kde.org&gt;; Copyright 2000 Simon Hausmann &lt;hausmann@kde.org&gt;; Copyright 2000, 2001 Dirk Mueller &lt;mueller@kde.org&gt;; Copyright 2000, 2001 Peter Kelly &lt;pmk@post.com&gt;; Copyright 2000 Daniel Molkentin &lt;molkentin@kde.org&gt;; Copyright 2000 Stefan Schimanski &lt;schimmi@kde.org&gt;; Copyright 1998-2000 Netscape Communications Corporation; Copyright 1998, 1999, 2000 Thai Open Source Software Center Ltd and Clark Cooper; Copyright 2001, 2002 Expat maintainers.</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.apple.WebCore</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>WebCore</string>
+	<key>CFBundlePackageType</key>
+	<string>FMWK</string>
+	<key>CFBundleShortVersionString</key>
+	<string>535+</string>
+	<key>CFBundleVersion</key>
+	<string>535.19+</string>
+	<key>DTCompiler</key>
+	<string>com.apple.compilers.llvm.clang.1_0</string>
+	<key>DTPlatformBuild</key>
+	<string>4D199</string>
+	<key>DTPlatformVersion</key>
+	<string>GM</string>
+	<key>DTSDKBuild</key>
+	<string>11A511</string>
+	<key>DTSDKName</key>
+	<string></string>
+	<key>DTXcode</key>
+	<string>0420</string>
+	<key>DTXcodeBuild</key>
+	<string>4D199</string>
+</dict>
+</plist>

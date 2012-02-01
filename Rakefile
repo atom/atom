@@ -28,6 +28,22 @@ task :install do
   cp_r "Cocoa/build/Debug/Atomicity.app /Applications"
 end
 
+desc "Change webkit frameworks to use @rpath as install name"
+task :"webkit-fix" do
+  for framework in FileList["frameworks/*.framework"]
+    name = framework[/\/([^.]+)/, 1]
+    executable = framework + "/" + name
+
+    `install_name_tool -id @rpath/#{name}.framework/Versions/A/#{name} #{executable}`
+
+    libs = `otool -L #{executable}`
+    for name in ["JavaScriptCore", "WebKit", "WebCore"]
+      _, path, suffix = *libs.match(/\t(\S+(#{name}.framework\S+))/i)
+      `install_name_tool -change #{path} @rpath/../Frameworks/#{suffix} #{executable}` if path
+    end
+  end
+end
+
 desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
 task :nof do
   system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f(it|describe) +(['\\"])/\\1 \\2/g"}
