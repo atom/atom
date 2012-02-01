@@ -1,0 +1,247 @@
+/*
+ * Copyright (C) 2008 Apple Inc. All Rights Reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ */
+
+#include <WebKit/WebKitPluginHostTypes.defs>
+
+subsystem WebKitPluginHost 300;
+
+serverprefix WK;
+userprefix _WK;
+
+routine PHCheckInWithPluginHost(pluginHostPort :mach_port_t;
+                              options :plist_bytes_t;
+                              clientPort :mach_port_make_send_t;
+                              clientPSNHigh :uint32_t;
+                              clientPSNLow :uint32_t;
+                              renderPort :mach_port_copy_send_t;
+                              out pluginHostPSNHigh :uint32_t;
+                              out pluginHostPSNLow :uint32_t);
+
+simpleroutine PHInstantiatePlugin(pluginHostPort :mach_port_t;
+                                requestID :uint32_t;
+                                options :plist_bytes_t;
+                                pluginID :uint32_t);
+                                
+simpleroutine PHResizePluginInstance(pluginHostPort :mach_port_t;
+                                     pluginID :uint32_t;
+                                requestID :uint32_t;
+                                     pluginX :double;
+                                     pluginY :double;
+                                     pluginWidth :double;
+                                     pluginHeight :double;
+                                     clipX :double;
+                                     clipY :double;
+                                     clipWidth :double;
+                                     clipHeight :double);
+
+simpleroutine PHPluginInstanceFocusChanged(pluginHostPort :mach_port_t;
+                                         pluginID :uint32_t;
+                                         hasFocus :boolean_t);
+simpleroutine PHPluginInstanceWindowFocusChanged(pluginHostPort :mach_port_t;
+                                         pluginID :uint32_t;
+                                         hasFocus :boolean_t);
+simpleroutine PHPluginInstanceWindowFrameChanged(pluginHostPort :mach_port_t;
+                                               pluginID :uint32_t;
+                                               x :double;
+                                               y :double;
+                                               width :double;
+                                               height :double;
+                                               maxScreenY :double);
+
+simpleroutine PHPluginInstanceMouseEvent(pluginHostPort :mach_port_t;
+                                       pluginID :uint32_t;
+                                       timestamp :double;
+                                       eventType :uint32_t;
+                                       modifierFlags :uint32_t;
+                                       pluginX :double;
+                                       pluginY :double;
+                                       screenX :double;
+                                       screenY :double;
+                                       maxScreenY :double;
+                                       buttonNumber :int32_t;
+                                       clickCount :int32_t;
+                                       deltaX :double;
+                                       deltaY :double;
+                                       deltaZ: double);
+
+simpleroutine PHPluginInstanceKeyboardEvent(pluginHostPort :mach_port_t;
+                                          pluginID :uint32_t;
+                                          timestamp :double;
+                                          eventType :uint32_t;
+                                          modifierFlags :uint32_t;
+                                          characters :data_t;
+                                          charactersIgnoringModifiers :data_t;
+                                          isARepeat :boolean_t;
+                                          keyCode :uint16_t;
+                                          keyChar :uint8_t);
+
+simpleroutine PHPluginInstanceWheelEvent(pluginHostPort :mach_port_t;
+                                         pluginID :uint32_t;
+                                         requestID :uint32_t;
+                                         timestamp :double;
+                                         modifierFlags :uint32_t;
+                                         pluginX :double;
+                                         pluginY :double;
+                                         buttonNumber :int32_t;
+                                         deltaX :double;
+                                         deltaY :double;
+                                         deltaZ: double);
+
+simpleroutine PHPluginInstanceInsertText(pluginHostPort :mach_port_t;
+                                         pluginID :uint32_t;
+                                         text :data_t);
+                                        
+simpleroutine PHPluginInstanceStartTimers(pluginHostPort :mach_port_t;
+                                        pluginID :uint32_t;
+                                        throttleTimers :boolean_t);
+simpleroutine PHPluginInstanceStopTimers(pluginHostPort :mach_port_t;
+                                       pluginID :uint32_t);
+
+simpleroutine PHPluginInstancePrint(pluginHostPort :mach_port_t;
+                                    pluginID :uint32_t;
+                                    requestID :uint32_t;
+                                    width :uint32_t;
+                                    height :uint32_t);
+
+simpleroutine PHDestroyPluginInstance(pluginHostPort :mach_port_t;
+                                    pluginID :uint32_t;
+                                    requestID :uint32_t);
+
+simpleroutine PHCheckIfAllowedToLoadURLResult(clientPort :mach_port_t;
+                                              pluginID :uint32_t;
+                                              checkID :uint32_t;
+                                              result :boolean_t);
+
+// Streams
+simpleroutine PHStartStream(pluginHostPort :mach_port_t;
+                          pluginID :uint32_t;
+                          streamID :uint32_t;
+                          responseURL :data_t;
+                          expectedContentLength :int64_t;
+                          lastModifiedTimeInterval :double;
+                          mimeType :data_t;
+                          headers :data_t);
+
+simpleroutine PHStreamDidReceiveData(pluginHostPort :mach_port_t;
+                                   pluginID :uint32_t;
+                                   streamID :uint32_t;
+                                   data :data_t);
+
+simpleroutine PHStreamDidFinishLoading(pluginHostPort :mach_port_t;
+                                     pluginID :uint32_t;
+                                     streamID :uint32_t);
+
+simpleroutine PHStreamDidFail(pluginHostPort :mach_port_t;
+                            pluginID :uint32_t;
+                            streamID :uint32_t;
+                            reason :int16_t);
+
+simpleroutine PHLoadURLNotify(pluginHostPort :mach_port_t;
+                            pluginID :uint32_t;
+                            requestID :uint32_t;
+                            reason :int16_t);
+
+// NPRuntime
+
+simpleroutine PHGetScriptableNPObject(pluginHostPort :mach_port_t;
+                                      pluginID :uint32_t;
+                                      requestID :uint32_t);
+
+simpleroutine PHNPObjectHasProperty(pluginHostPort :mach_port_t;
+                                  pluginID :uint32_t;
+                                  requestID :uint32_t;
+                                  objectID :uint32_t;
+                                  propertyName :uint64_t);
+
+simpleroutine PHNPObjectHasMethod(pluginHostPort :mach_port_t;
+                                pluginID :uint32_t;
+                                requestID :uint32_t;
+                                objectID :uint32_t;
+                                methodName :uint64_t);
+
+simpleroutine PHNPObjectInvoke(pluginHostPort :mach_port_t;
+                             pluginID :uint32_t;
+                             requestID :uint32_t;
+                             objectID :uint32_t;
+                             invokeType :uint32_t;
+                             methodName :uint64_t;
+                             arguments :data_t);
+
+simpleroutine PHNPObjectHasInvokeDefaultMethod(pluginHostPort :mach_port_t;
+                                             pluginID :uint32_t;
+                                             requestID :uint32_t;
+                                             objectID :uint32_t);
+
+simpleroutine PHNPObjectHasConstructMethod(pluginHostPort :mach_port_t;
+                                         pluginID :uint32_t;
+                                         requestID :uint32_t;
+                                         objectID :uint32_t);
+                                       
+simpleroutine PHNPObjectGetProperty(pluginHostPort :mach_port_t;
+                                  pluginID :uint32_t;
+                                  requestID :uint32_t;
+                                  objectID :uint32_t;
+                                  propertyName :uint64_t);
+
+simpleroutine PHNPObjectSetProperty(pluginHostPort :mach_port_t;
+                                  pluginID :uint32_t;
+                                  requestID :uint32_t;
+                                  objectID :uint32_t;
+                                  propertyName :uint64_t;
+                                  value :data_t);
+                                  
+simpleroutine PHNPObjectRelease(pluginHostPort :mach_port_t;
+                              pluginID :uint32_t;
+                              objectID :uint32_t);
+
+simpleroutine PHNPObjectEnumerate(pluginHostPort :mach_port_t;
+                                  pluginID :uint32_t;
+                                  requestID :uint32_t;
+                                  objectID :uint32_t);
+
+// Replies
+
+simpleroutine PHBooleanReply(clientPort :mach_port_t;
+                             pluginID :uint32_t;
+                             requestID :uint32_t;
+                             result :boolean_t);
+                           
+simpleroutine PHBooleanAndDataReply(pluginHostPort :mach_port_t;
+                                    pluginID :uint32_t;
+                                    requestID :uint32_t;
+                                    returnValue :boolean_t;
+                                    result :data_t);
+             
+simpleroutine PHPluginInstanceDidDraw(pluginHostPort :mach_port_t;
+                                      pluginID :uint32_t);
+simpleroutine PHPluginInstancePrivateBrowsingModeDidChange(pluginHostPort :mach_port_t;
+                                                           pluginID :uint32_t;
+                                                           privateBrowsingEnabled :boolean_t);
+
+simpleroutine PHPluginInstanceSnapshot(pluginHostPort :mach_port_t;
+                                    pluginID :uint32_t;
+                                    requestID :uint32_t;
+                                    width :uint32_t;
+                                    height :uint32_t);

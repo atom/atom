@@ -1,0 +1,90 @@
+.popover {
+    position: absolute;
+    -webkit-border-image: url(Images/popoverBackground.png) 25 25 25 25;
+    border-width: 25px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.popover .content {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    pointer-events: auto;
+    overflow: auto;
+    -webkit-user-select: text;
+}
+
+.popover .arrow {
+    position: absolute;
+    background-image: url(Images/popoverArrows.png);
+    width: 19px;
+    height: 19px;
+    margin-left: 15px;
+    margin-top: -25px;
+    top: 0;
+    left: 0;
+}
+
+.popover.top-left-arrow .arrow {
+    /* The default is top-left, no styles needed. */
+}
+
+.popover.top-right-arrow .arrow {
+    right: 25px;
+    left: auto;
+}
+
+.popover.bottom-left-arrow .arrow {
+    top: auto;
+    bottom: 0;
+    margin-top: 0;
+    margin-bottom: -25px;
+    background-position: 0 -19px;
+}
+
+.popover.bottom-right-arrow .arrow {
+    right: 15px;
+    left: auto;
+    top: auto;
+    bottom: 0;
+    margin-top: 0;
+    margin-bottom: -25px;
+    background-position: 0 -19px;
+}
+
+.popover.left-top-arrow .arrow {
+    top: 0;
+    margin-top: 15px;
+    margin-left: -25px;
+    background-position: 0 -38px;
+}
+
+.popover.left-bottom-arrow .arrow {
+    top: auto;
+    bottom: 0;
+    margin-bottom: 15px;
+    margin-left: -25px;
+    background-position: 0 -38px;
+}
+
+.popover.right-top-arrow .arrow {
+    right: 0;
+    left: auto;
+    top: 0;
+    margin-top: 15px;
+    margin-right: -25px;
+    background-position: 0 -57px;
+}
+
+.popover.right-bottom-arrow .arrow {
+    right: 0;
+    left: auto;
+    top: auto;
+    bottom: 0;
+    margin-bottom: 15px;
+    margin-right: -25px;
+    background-position: 0 -57px;
+}

@@ -1,0 +1,238 @@
+/*
+ * Copyright (C) 2008 Apple Inc. All Rights Reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY APPLE INC. ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL APPLE INC. OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ */
+
+#include <WebKit/WebKitPluginHostTypes.defs>
+
+// FIXME: Come up with a better name.
+subsystem WebKitPluginClient 300;
+
+serverprefix WK;
+userprefix _WK;
+
+simpleroutine PCStatusText(clientPort :mach_port_t;
+                         pluginID :uint32_t;
+                         text :data_t);
+
+routine PCLoadURL(clientPort :mach_port_t;
+                      pluginID :uint32_t;
+                      url :data_t;
+                      target :data_t;
+                      postData :data_t;
+                      flags: uint32_t;
+                      out resultCode :uint16_t;
+                      out requestID :uint32_t);
+
+simpleroutine PCCancelLoadURL(clientPort :mach_port_t;
+                            pluginID :uint32_t;
+                            streamID :uint32_t;
+                            reason :int16_t);
+
+simpleroutine PCInvalidateRect(clientPort :mach_port_t;
+                             pluginID :uint32_t;
+                             x :double;
+                             y :double;
+                             width :double;
+                             height :double);
+
+routine PCGetCookies(clientPort :mach_port_t;
+                     pluginID :uint32_t;
+                     url :data_t;
+                     out returnValue :boolean_t;
+                     out cookies :data_t, dealloc);
+
+routine PCSetCookies(clientPort :mach_port_t;
+                     pluginID :uint32_t;
+                     url :data_t;
+                     cookies :data_t;
+                     out returnValue :boolean_t);
+
+routine PCGetProxy(clientPort :mach_port_t;
+                   pluginID :uint32_t;
+                   url :data_t;
+                   out returnValue :boolean_t;
+                   out proxy :data_t, dealloc);
+
+routine PCGetAuthenticationInfo(clientPort :mach_port_t;
+                                pluginID :uint32_t;
+                                protocol :data_t;
+                                host :data_t;
+                                port :uint32_t;
+                                scheme :data_t;
+                                realm :data_t;
+                                out returnValue :boolean_t;
+                                out username :data_t, dealloc;
+                                out password :data_t, dealloc);
+                                
+routine PCConvertPoint(clientPort :mach_port_t;
+                       pluginID :uint32_t;
+                       sourceX :double;
+                       sourceY :double;
+                       sourceSpace :uint32_t;
+                       destSpace :uint32_t;
+                       out returnValue :boolean_t;
+                       out destX :double;
+                       out destY :double);
+
+// NPRuntime
+
+routine PCGetStringIdentifier(clientPort :mach_port_t;
+                            name :data_t;
+                            out identifier :uint64_t);
+
+routine PCGetIntIdentifier(clientPort :mach_port_t;
+                         value :int32_t;
+                         out identifier: uint64_t);
+
+routine PCGetWindowNPObject(clientPort :mach_port_t;
+                          pluginID :uint32_t;
+                          out objectID :uint32_t);
+routine PCGetPluginElementNPObject(clientPort :mach_port_t;
+                                 pluginID :uint32_t;
+                                 out objectID :uint32_t);
+                      
+routine PCForgetBrowserObject(clientPort :mach_port_t;
+                      pluginID :uint32_t;
+                      objectID :uint32_t);
+                      
+simpleroutine PCEvaluate(clientPort :mach_port_t;
+                       pluginID :uint32_t;
+                       requestID :uint32_t;
+                       objectID :uint32_t;
+                       script :data_t;
+                       allowPopups :boolean_t);
+
+simpleroutine PCInvoke(clientPort :mach_port_t;
+                     pluginID :uint32_t;
+                     requestID :uint32_t;
+                     objectID :uint32_t;
+                     methodNameIdentifier :uint64_t;
+                     arguments :data_t);
+
+simpleroutine PCInvokeDefault(clientPort :mach_port_t;
+               pluginID :uint32_t;
+               requestID :uint32_t;
+               objectID :uint32_t;
+               arguments :data_t);
+
+routine PCConstruct(clientPort :mach_port_t;
+                  pluginID :uint32_t;
+                  objectID :uint32_t;
+                  arguments :data_t;
+                  out returnValue :boolean_t;
+                  out result :data_t, dealloc);
+
+simpleroutine PCGetProperty(clientPort :mach_port_t;
+                            pluginID :uint32_t;
+                            requestID :uint32_t;
+                            objectID :uint32_t;
+                            propertyNameIdentifier :uint64_t);
+
+simpleroutine PCSetProperty(clientPort :mach_port_t;
+                    pluginID :uint32_t;
+                    requestID :uint32_t;
+                    objectID :uint32_t;
+                    propertyNameIdentifier :uint64_t;
+                    value :data_t);
+
+simpleroutine PCRemoveProperty(clientPort :mach_port_t;
+                       pluginID :uint32_t;
+                       requestID :uint32_t;
+                       objectID :uint32_t;
+                       propertyNameIdentifier :uint64_t);
+
+simpleroutine PCHasProperty(clientPort :mach_port_t;
+                            pluginID :uint32_t;
+                            requestID :uint32_t;
+                            objectID :uint32_t;
+                            propertyNameIdentifier :uint64_t);
+
+simpleroutine PCHasMethod(clientPort :mach_port_t;
+                           pluginID :uint32_t;
+                           requestID :uint32_t;
+                           objectID :uint32_t;
+                           methodNameIdentifier :uint64_t);
+
+routine PCIdentifierInfo(clientPort :mach_port_t;
+                       identifier :uint64_t;
+                       out info :data_t, dealloc);
+
+simpleroutine PCEnumerate(clientPort :mach_port_t;
+                          pluginID :uint32_t;
+                          requestID :uint32_t;
+                          objectID :uint32_t);
+
+// Misc
+
+simpleroutine PCSetMenuBarVisible(clientPort :mach_port_t;
+                                visible :boolean_t);
+
+simpleroutine PCSetModal(clientPort :mach_port_t;
+                       modal :boolean_t);
+
+routine PCCheckIfAllowedToLoadURL(clientPort :mach_port_t;
+                                  pluginID :uint32_t;
+                                  url :data_t;
+                                  target :data_t;
+                                  out checkID :uint32_t);
+
+simpleroutine PCCancelCheckIfAllowedToLoadURL(clientPort :mach_port_t;
+                                              pluginID :uint32_t;
+                                              checkID :uint32_t);
+
+routine PCResolveURL(clientPort :mach_port_t;
+                     pluginID :uint32_t;
+                     url :data_t;
+                     target :data_t;
+                     out resolvedURL :data_t, dealloc);
+
+// Replies
+simpleroutine PCInstantiatePluginReply(clientPort :mach_port_t;
+                                     pluginID :uint32_t;
+                                     requestID :uint32_t;
+                                     result :kern_return_t;
+                                     renderContextID :uint32_t;
+                                     rendererType :uint32_t);
+
+simpleroutine PCGetScriptableNPObjectReply(clientPort :mach_port_t;
+                                         pluginID :uint32_t;
+                                         requestID :uint32_t;
+                                         objectID :uint32_t);
+
+simpleroutine PCBooleanReply(clientPort :mach_port_t;
+                             pluginID :uint32_t;
+                             requestID :uint32_t;
+                             result :boolean_t);
+
+simpleroutine PCBooleanAndDataReply(clientPort :mach_port_t;
+                                    pluginID :uint32_t;
+                                    requestID :uint32_t;
+                                    returnValue :boolean_t;
+                                    result :data_t);  
+
+simpleroutine PCSetFullscreenWindowIsShowing(clientPort :mach_port_t;
+                                             isShowing :boolean_t);
+
+simpleroutine PCSetException(clientPort :mach_port_t;
+                             message :data_t);
