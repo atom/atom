@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var CommandManager = require("./command_manager").CommandManager;
 var keys = require("../lib/keys");
@@ -56,7 +57,7 @@ module.exports = {
             },
             called: false,
             exec: function(editor) { this.called = true; }
-        }
+        };
 
         this.cm = new CommandManager("mac", [this.command]);
     },
@@ -113,7 +114,7 @@ module.exports = {
             },
             called: false,
             exec: function(editor) { this.called = true; }
-        }
+        };
         this.cm.addCommand(command);
 
         this.cm.exec("gotoline");
@@ -127,16 +128,16 @@ module.exports = {
         var called = "";
         this.cm.addCommands({
             togglerecording: function(editor) {
-                editor.cm.toggleRecording()
+                editor.cm.toggleRecording();
             },
             replay: function(editor) {
-                editor.cm.replay()
+                editor.cm.replay();
             },
             cm1: function(editor, arg) {
-                called += "1" + (arg || "")
+                called += "1" + (arg || "");
             },
             cm2: function(editor) {
-                called += "2"
+                called += "2";
             }
         });
 
@@ -158,17 +159,17 @@ module.exports = {
         var called = "";
         this.cm.addCommands({
             cm1: function(editor, arg) {
-                called += "1" + (arg || "")
+                called += "1" + (arg || "");
             },
             cm2: function(editor) {
-                called += "2"
+                called += "2";
             }
         });
 
         this.cm.bindKeys({
             "Ctrl-L|Command-C": "cm1",
-            "Ctrl-R": "cm2",
-        })
+            "Ctrl-R": "cm2"
+        });
 
         var command = this.cm.findKeyCommand(keys.KEY_MODS.command, "C");
         assert.equal(command, "cm1");
@@ -178,7 +179,7 @@ module.exports = {
 
         this.cm.bindKeys({
             "Ctrl-R": null
-        })
+        });
 
         var command = this.cm.findKeyCommand(keys.KEY_MODS.ctrl, "R");
         assert.equal(command, null);
@@ -188,5 +189,5 @@ module.exports = {
 });
 
 if (typeof module !== "undefined" && module === require.main) {
-    require("asyncjs").test.testcase(module.exports).exec()
+    require("asyncjs").test.testcase(module.exports).exec();
 }

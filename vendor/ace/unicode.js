@@ -1,4 +1,5 @@
 define(function(require, exports, module) {
+"use strict";
 
 /*
 XRegExp Unicode plugin pack: Categories 1.0

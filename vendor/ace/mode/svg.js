@@ -36,40 +36,41 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
-var XmlMode = require("./text").Mode;
+var XmlMode = require("./xml").Mode;
 var JavaScriptMode = require("./javascript").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var SvgHighlightRules = require("./svg_highlight_rules").SvgHighlightRules;
-var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
+var MixedFoldMode = require("./folding/mixed").FoldMode;
+var XmlFoldMode = require("./folding/xml").FoldMode;
+var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
+    XmlMode.call(this);
+    
     this.highlighter = new SvgHighlightRules();
     this.$tokenizer = new Tokenizer(this.highlighter.getRules());
-    this.$behaviour = new XmlBehaviour();
     
     this.$embeds = this.highlighter.getEmbeds();
     this.createModeDelegates({
-      "js-": JavaScriptMode
+        "js-": JavaScriptMode
+    });
+    
+    this.foldingRules = new MixedFoldMode(new XmlFoldMode({}), {
+        "js-": new CStyleFoldMode()
     });
 };
 
 oop.inherits(Mode, XmlMode);
 
 (function() {
-    
-    this.toggleCommentLines = function(state, doc, startRow, endRow) {
-        return 0;
-    };
 
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
     };
-
-    this.checkOutdent = function(state, line, input) {
-        return false;
-    };
+    
 
 }).call(Mode.prototype);
 

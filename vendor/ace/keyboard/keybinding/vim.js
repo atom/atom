@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var StateHandler = require("../state_handler").StateHandler;
 var matchCharacterOnly =  require("../state_handler").matchCharacterOnly;

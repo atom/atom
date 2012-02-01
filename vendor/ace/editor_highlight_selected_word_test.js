@@ -42,11 +42,11 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var EditSession = require("./edit_session").EditSession;
 var Editor = require("./editor").Editor;
 var MockRenderer = require("./test/mockrenderer").MockRenderer;
-var TextMode = require("./mode/text").Mode;
 var assert = require("./test/assertions");
 
 var lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +

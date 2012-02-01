@@ -1,3 +1,5 @@
+"no use strict";
+
 var console = {
     log: function(msg) {
         postMessage({type: "log", data: msg});
@@ -41,7 +43,7 @@ var require = function(parentId, id) {
     
     var chunks = id.split("/");
     chunks[0] = require.tlns[chunks[0]] || chunks[0];
-    path = chunks.join("/") + ".js";
+    var path = chunks.join("/") + ".js";
     
     require.id = id;
     importScripts(path);
@@ -64,7 +66,7 @@ var define = function(id, deps, factory) {
     
     var req = function(deps, factory) {
         return require(id, deps, factory);
-    }
+    };
 
     require.modules[id] = {
         factory: function() {
@@ -131,6 +133,6 @@ onmessage = function(e) {
         main = new clazz(sender);
     } 
     else if (msg.event && sender) {
-        sender._dispatchEvent(msg.event, msg.data);
+        sender._emit(msg.event, msg.data);
     }
 };

@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("./lib/oop");
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
@@ -106,7 +107,7 @@ var Document = function(text) {
           case "auto":
               return this.$autoNewLine;
       }
-    },
+    };
 
     this.$autoNewLine = "\n";
     this.$newLineMode = "auto";
@@ -169,7 +170,7 @@ var Document = function(text) {
             position.column = this.getLine(length-1).length;
         }
         return position;
-    }
+    };
 
     this.insert = function(position, text) {
         if (text.length == 0)
@@ -207,9 +208,9 @@ var Document = function(text) {
             range: range,
             lines: lines
         };
-        this._dispatchEvent("change", { data: delta });
+        this._emit("change", { data: delta });
         return range.end;
-    },
+    };
 
     this.insertNewLine = function(position) {
         position = this.$clipPosition(position);
@@ -228,7 +229,7 @@ var Document = function(text) {
             range: Range.fromPoints(position, end),
             text: this.getNewLineCharacter()
         };
-        this._dispatchEvent("change", { data: delta });
+        this._emit("change", { data: delta });
 
         return end;
     };
@@ -252,7 +253,7 @@ var Document = function(text) {
             range: Range.fromPoints(position, end),
             text: text
         };
-        this._dispatchEvent("change", { data: delta });
+        this._emit("change", { data: delta });
 
         return end;
     };
@@ -304,7 +305,7 @@ var Document = function(text) {
             range: range,
             text: removed
         };
-        this._dispatchEvent("change", { data: delta });
+        this._emit("change", { data: delta });
         return range.start;
     };
 
@@ -325,7 +326,7 @@ var Document = function(text) {
             nl: this.getNewLineCharacter(),
             lines: removed
         };
-        this._dispatchEvent("change", { data: delta });
+        this._emit("change", { data: delta });
         return removed;
     };
 
@@ -343,7 +344,7 @@ var Document = function(text) {
             range: range,
             text: this.getNewLineCharacter()
         };
-        this._dispatchEvent("change", { data: delta });
+        this._emit("change", { data: delta });
     };
 
     this.replace = function(range, text) {
@@ -372,13 +373,13 @@ var Document = function(text) {
             var range = Range.fromPoints(delta.range.start, delta.range.end);
 
             if (delta.action == "insertLines")
-                this.insertLines(range.start.row, delta.lines)
+                this.insertLines(range.start.row, delta.lines);
             else if (delta.action == "insertText")
-                this.insert(range.start, delta.text)
+                this.insert(range.start, delta.text);
             else if (delta.action == "removeLines")
-                this.removeLines(range.start.row, range.end.row - 1)
+                this.removeLines(range.start.row, range.end.row - 1);
             else if (delta.action == "removeText")
-                this.remove(range)
+                this.remove(range);
         }
     };
 
@@ -389,13 +390,13 @@ var Document = function(text) {
             var range = Range.fromPoints(delta.range.start, delta.range.end);
 
             if (delta.action == "insertLines")
-                this.removeLines(range.start.row, range.end.row - 1)
+                this.removeLines(range.start.row, range.end.row - 1);
             else if (delta.action == "insertText")
-                this.remove(range)
+                this.remove(range);
             else if (delta.action == "removeLines")
-                this.insertLines(range.start.row, delta.lines)
+                this.insertLines(range.start.row, delta.lines);
             else if (delta.action == "removeText")
-                this.insert(range.start, delta.text)
+                this.insert(range.start, delta.text);
         }
     };
 

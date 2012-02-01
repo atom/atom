@@ -37,6 +37,7 @@
  */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var lang = require("../lib/lang");
@@ -44,6 +45,7 @@ var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocComme
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PhpHighlightRules = function() {
+    var docComment = new DocCommentHighlightRules();
     // http://php.net/quickref.php
     var builtinFunctions = lang.arrayToMap(
         ('abs|acos|acosh|addcslashes|addslashes|aggregate|aggregate_info|aggregate_methods|aggregate_methods_by_list|aggregate_methods_by_regexp|' +
@@ -903,12 +905,31 @@ var PhpHighlightRules = function() {
     this.$rules = {
         "start" : [
             {
-                token : "support", // php open tag
+                token : "support.php_tag", // php open tag
                 regex : "<\\?(?:php|\\=)"
             },
             {
-                token : "support", // php close tag
+                token : "support.php_tag", // php close tag
                 regex : "\\?>"
+            },
+            {
+                token : "comment",
+                regex : "<\\!--",
+                next : "htmlcomment"
+            }, 
+            {
+                token : "meta.tag",
+                regex : "<style",
+                next : "css"
+            },
+            {
+                token : "meta.tag", // opening tag
+                regex : "<\\/?[-_a-zA-Z0-9:]+",
+                next : "htmltag"
+            },
+            {
+                token : 'meta.tag',
+                regex : '<\!DOCTYPE.*?>'
             },
             {
                 token : "comment",
@@ -918,10 +939,9 @@ var PhpHighlightRules = function() {
                token : "comment",
                regex : "#.*$"
             },
-            new DocCommentHighlightRules().getStartRule("doc-start"),
+            docComment.getStartRule("doc-start"),
             {
                 token : "comment", // multi line comment
-                merge : true,
                 regex : "\\/\\*",
                 next : "comment"
             }, {
@@ -932,7 +952,6 @@ var PhpHighlightRules = function() {
                 regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
             }, {
                 token : "string", // multi line string start
-                merge : true,
                 regex : '["].*\\\\$',
                 next : "qqstring"
             }, {
@@ -940,7 +959,6 @@ var PhpHighlightRules = function() {
                 regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
             }, {
                 token : "string", // multi line string start
-                merge : true,
                 regex : "['].*\\\\$",
                 next : "qstring"
             }, {
@@ -976,11 +994,7 @@ var PhpHighlightRules = function() {
                         "T(?:HOUS(?:ANDS_SEP|EP)|_FMT(?:_AMPM|))|YES(?:EXPR|STR)|STD(?:IN|OUT|ERR))\\b"
             }, {
                 token : function(value) {
-                    if (keywordsDeprecated.hasOwnProperty(value))
-                        return "invalid.deprecated";
-                    else if (keywords.hasOwnProperty(value))
-                        return "keyword";
-                    else if (languageConstructs.hasOwnProperty(value))
+                    if (keywords.hasOwnProperty(value))
                         return "keyword";
                     else if (builtinConstants.hasOwnProperty(value))
                         return "constant.language";
@@ -988,12 +1002,12 @@ var PhpHighlightRules = function() {
                         return "variable.language";
                     else if (futureReserved.hasOwnProperty(value))
                         return "invalid.illegal";
-                    else if (builtinFunctionsDeprecated.hasOwnProperty(value))
-                        return "invalid.deprecated";
                     else if (builtinFunctions.hasOwnProperty(value))
                         return "support.function";
+                    else if (value == "debugger")
+                        return "invalid.deprecated";
                     else
-                        if(value.match(/^(\$[a-zA-Z_][a-zA-Z0-9_]*|self|parent)$/))
+                        if(value.match(/^(\$[a-zA-Z][a-zA-Z0-9_]*|self|parent)$/))
                             return "variable";
                         return "identifier";
                 },
@@ -1004,10 +1018,10 @@ var PhpHighlightRules = function() {
                 token : "keyword.operator",
                 regex : "!|\\$|%|&|\\*|\\-\\-|\\-|\\+\\+|\\+|~|===|==|=|!=|!==|<=|>=|<<=|>>=|>>>=|<>|<|>|!|&&|\\|\\||\\?\\:|\\*=|%=|\\+=|\\-=|&=|\\^=|\\b(?:in|instanceof|new|delete|typeof|void)"
             }, {
-                token : "paren.lparen",
+                token : "lparen",
                 regex : "[[({]"
             }, {
-                token : "paren.rparen",
+                token : "rparen",
                 regex : "[\\])}]"
             }, {
                 token : "text",
@@ -1021,7 +1035,6 @@ var PhpHighlightRules = function() {
                 next : "start"
             }, {
                 token : "comment", // comment spanning whole line
-                merge : true,
                 regex : ".+"
             }
         ],
@@ -1032,7 +1045,6 @@ var PhpHighlightRules = function() {
                 next : "start"
             }, {
                 token : "string",
-                merge : true,
                 regex : '.+'
             }
         ],
@@ -1043,10 +1055,98 @@ var PhpHighlightRules = function() {
                 next : "start"
             }, {
                 token : "string",
-                merge : true,
                 regex : '.+'
             }
-        ]
+        ],
+        "htmlcomment" : [
+             {
+                 token : "comment",
+                 regex : ".*?-->",
+                 next : "start"
+             }, {
+                 token : "comment",
+                 regex : ".+"
+             } 
+         ],
+         "htmltag" : [ 
+             {
+                 token : "meta.tag",
+                 regex : ">",
+                 next : "start"
+             }, {
+                 token : "text",
+                 regex : "[-_a-zA-Z0-9:]+"
+             }, {
+                 token : "text",
+                 regex : "\\s+"
+             }, {
+                 token : "string",
+                 regex : '".*?"'
+             }, {
+                 token : "string",
+                 regex : "'.*?'"
+             } 
+         ],
+        "css" : [ 
+             {
+                 token : "meta.tag",
+                 regex : "<\/style>",
+                 next : "htmltag"
+             }, {
+                 token : "meta.tag",
+                 regex : ">",
+             }, {
+                 token : 'text',
+                 regex : "(?:media|type|href)"
+             }, {
+                 token : 'string',
+                 regex : '=".*?"'
+             }, {
+                 token : "paren.lparen",
+                 regex : "\{",
+                 next : "cssdeclaration",
+             }, {
+                 token : "keyword",
+                 regex : "#[A-Za-z0-9\-\_\.]+"
+             }, {
+                 token : "variable",
+                 regex : "\\.[A-Za-z0-9\-\_\.]+"
+             }, {
+                 token : "constant",
+                 regex : "[A-Za-z0-9]+"
+             }
+         ],
+         "cssdeclaration" : [
+             {
+                 token : "support.type",
+                 regex : "[\-a-zA-Z]+",
+                 next  : "cssvalue"
+             }, 
+             {
+                 token : "paren.rparen",
+                 regex : '\}',
+                 next : "css"
+             }
+         ],
+         "cssvalue" : [
+               {
+                   token : "text",
+                   regex : "\:"
+               }, 
+               {
+                   token : "constant",
+                   regex : "#[0-9a-zA-Z]+"
+               },
+               {
+                   token : "text",
+                   regex : "[\-\_0-9a-zA-Z\"' ,%]+"
+               },
+               {
+                   token : "text",
+                   regex : ";",
+                   next : "cssdeclaration"
+               }
+         ],
     };
 
     this.embedRules(DocCommentHighlightRules, "doc-",

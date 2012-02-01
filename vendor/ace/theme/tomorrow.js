@@ -36,8 +36,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+
 exports.isDark = false;
-exports.cssText = ".ace-tomorrow .ace_editor {\
+exports.cssClass = "ace-tomorrow";
+exports.cssText = "\
+.ace-tomorrow .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -46,19 +49,8 @@ exports.cssText = ".ace-tomorrow .ace_editor {\
 }\
 \
 .ace-tomorrow .ace_gutter {\
-  width: 50px;\
   background: #e8e8e8;\
   color: #333;\
-  overflow : hidden;\
-}\
-\
-.ace-tomorrow .ace_gutter-layer {\
-  width: 100%;\
-  text-align: right;\
-}\
-\
-.ace-tomorrow .ace_gutter-layer .ace_gutter-cell {\
-  padding-right: 6px;\
 }\
 \
 .ace-tomorrow .ace_print_margin {\
@@ -101,6 +93,9 @@ exports.cssText = ".ace-tomorrow .ace_editor {\
   background: #EFEFEF;\
 }\
 \
+.ace-tomorrow .ace_marker-layer .ace_selected_word {\
+  border: 1px solid #D6D6D6;\
+}\
        \
 .ace-tomorrow .ace_invisible {\
   color: #D1D1D1;\
@@ -114,16 +109,8 @@ exports.cssText = ".ace-tomorrow .ace_editor {\
   color:#3E999F;\
 }\
 \
-.ace-tomorrow .ace_constant {\
-  \
-}\
-\
 .ace-tomorrow .ace_constant.ace_language {\
   color:#F5871F;\
-}\
-\
-.ace-tomorrow .ace_constant.ace_library {\
-  \
 }\
 \
 .ace-tomorrow .ace_constant.ace_numeric {\
@@ -135,25 +122,18 @@ exports.cssText = ".ace-tomorrow .ace_editor {\
 background-color:#C82829;\
 }\
 \
-.ace-tomorrow .ace_invalid.ace_illegal {\
-  \
-}\
-\
 .ace-tomorrow .ace_invalid.ace_deprecated {\
   color:#FFFFFF;\
 background-color:#8959A8;\
 }\
 \
-.ace-tomorrow .ace_support {\
-  \
+.ace-tomorrow .ace_fold {\
+    background-color: #4271AE;\
+    border-color: #4D4D4C;\
 }\
 \
 .ace-tomorrow .ace_support.ace_function {\
   color:#4271AE;\
-}\
-\
-.ace-tomorrow .ace_function.ace_buildin {\
-  \
 }\
 \
 .ace-tomorrow .ace_string {\
@@ -168,44 +148,16 @@ background-color:#8959A8;\
   color:#8E908C;\
 }\
 \
-.ace-tomorrow .ace_comment.ace_doc {\
-  \
-}\
-\
-.ace-tomorrow .ace_comment.ace_doc.ace_tag {\
-  \
-}\
-\
 .ace-tomorrow .ace_variable {\
   color:#C82829;\
-}\
-\
-.ace-tomorrow .ace_variable.ace_language {\
-  \
-}\
-\
-.ace-tomorrow .ace_xml_pe {\
-  \
-}\
-\
-.ace-tomorrow .ace_meta {\
-  \
 }\
 \
 .ace-tomorrow .ace_meta.ace_tag {\
   color:#C82829;\
 }\
 \
-.ace-tomorrow .ace_meta.ace_tag.ace_input {\
-  \
-}\
-\
 .ace-tomorrow .ace_entity.ace_other.ace_attribute-name {\
   color:#C82829;\
-}\
-\
-.ace-tomorrow .ace_entity.ace_name {\
-  \
 }\
 \
 .ace-tomorrow .ace_entity.ace_name.ace_function {\
@@ -218,42 +170,8 @@ background-color:#8959A8;\
 \
 .ace-tomorrow .ace_markup.ace_heading {\
   color:#718C00;\
-}\
-\
-.ace-tomorrow .ace_markup.ace_heading.ace_1 {\
-  \
-}\
-\
-.ace-tomorrow .ace_markup.ace_heading.ace_2 {\
-  \
-}\
-\
-.ace-tomorrow .ace_markup.ace_heading.ace_3 {\
-  \
-}\
-\
-.ace-tomorrow .ace_markup.ace_heading.ace_4 {\
-  \
-}\
-\
-.ace-tomorrow .ace_markup.ace_heading.ace_5 {\
-  \
-}\
-\
-.ace-tomorrow .ace_markup.ace_heading.ace_6 {\
-  \
-}\
-\
-.ace-tomorrow .ace_markup.ace_list {\
-  \
-}\
-\
-.ace-tomorrow .ace_collab.ace_user1 {\
-     \
 }";
 
-    exports.cssClass = "ace-tomorrow";
-    
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
 });

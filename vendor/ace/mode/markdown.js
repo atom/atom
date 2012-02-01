@@ -39,6 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
@@ -47,7 +48,6 @@ var XmlMode = require("./xml").Mode;
 var HtmlMode = require("./html").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var MarkdownHighlightRules = require("./markdown_highlight_rules").MarkdownHighlightRules;
-var Range = require("../range").Range;
 
 var Mode = function() {
     var highlighter = new MarkdownHighlightRules();

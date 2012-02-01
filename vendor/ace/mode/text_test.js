@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var EditSession = require("../edit_session").EditSession;
 var TextMode = require("./text").Mode;
@@ -53,7 +54,7 @@ module.exports = {
     "test: toggle comment lines should not do anything" : function() {
         var session = new EditSession(["  abc", "cde", "fg"]);
 
-        var comment = this.mode.toggleCommentLines("start", session, 0, 1);
+        this.mode.toggleCommentLines("start", session, 0, 1);
         assert.equal(["  abc", "cde", "fg"].join("\n"), session.toString());
     },
 

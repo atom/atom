@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
@@ -46,11 +47,11 @@ var HtmlHighlightRules = require("./html_highlight_rules").HtmlHighlightRules;
 var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
 
 function github_embed(tag, prefix) {
-  return { // Github style block
-    token : "support.function",
-    regex : "^```" + tag + "\\s*$",
-    next  : prefix + "start"
-  }
+    return { // Github style block
+        token : "support.function",
+        regex : "^```" + tag + "\\s*$",
+        next  : prefix + "start"
+    };
 }
 
 var MarkdownHighlightRules = function() {

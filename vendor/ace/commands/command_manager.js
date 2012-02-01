@@ -1,4 +1,5 @@
 define(function(require, exports, module) {
+"use strict";
 
 var keyUtil = require("../lib/keys");
 
@@ -146,8 +147,13 @@ var CommandManager = function(platform, commands) {
         if (this.recording) {
             this.macro.pop();
             this.exec = this.normal_exec;
+
+            if (!this.macro.length)
+                this.macro = this.oldMacro;
+
             return this.recording = false;
         }
+        this.oldMacro = this.macro;
         this.macro = [];
         this.normal_exec = this.exec;
         this.exec = function(command, editor, args) {
@@ -158,10 +164,10 @@ var CommandManager = function(platform, commands) {
     };
 
     this.replay = function(editor) {
-        if (this.$inReplay)
+        if (this.$inReplay || !this.macro)
             return;
 
-        if (!this.macro || this.recording)
+        if (this.recording)
             return this.toggleRecording();
 
         try {

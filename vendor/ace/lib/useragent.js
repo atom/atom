@@ -36,10 +36,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var os = (navigator.platform.match(/mac|win|linux/i) || ["other"])[0].toLowerCase();
 var ua = navigator.userAgent;
-var av = navigator.appVersion;
 
 /** Is the user using a browser that identifies itself as Windows */
 exports.isWin = (os == "win");
@@ -60,7 +60,7 @@ exports.isOldIE = exports.isIE && exports.isIE < 9;
 exports.isGecko = exports.isMozilla = window.controllers && window.navigator.product === "Gecko";
 
 /** oldGecko == rev < 2.0 **/
-exports.isOldGecko = exports.isGecko && parseInt((navigator.userAgent.match(/rv\:(\d+)/)||[])[1]) < 4;
+exports.isOldGecko = exports.isGecko && parseInt((navigator.userAgent.match(/rv\:(\d+)/)||[])[1], 10) < 4;
 
 /** Is this Opera */
 exports.isOpera = window.opera && Object.prototype.toString.call(window.opera) == "[object Opera]";
@@ -84,9 +84,9 @@ exports.isTouchPad = ua.indexOf("TouchPad") >= 0;
  * Windows folks expect to use CTRL + C
  */
 exports.OS = {
-    LINUX: 'LINUX',
-    MAC: 'MAC',
-    WINDOWS: 'WINDOWS'
+    LINUX: "LINUX",
+    MAC: "MAC",
+    WINDOWS: "WINDOWS"
 };
 
 /**
@@ -94,11 +94,11 @@ exports.OS = {
  */
 exports.getOS = function() {
     if (exports.isMac) {
-        return exports.OS['MAC'];
+        return exports.OS.MAC;
     } else if (exports.isLinux) {
-        return exports.OS['LINUX'];
+        return exports.OS.LINUX;
     } else {
-        return exports.OS['WINDOWS'];
+        return exports.OS.WINDOWS;
     }
 };
 

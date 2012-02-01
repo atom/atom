@@ -36,8 +36,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+
 exports.isDark = true;
-exports.cssText = ".ace-vibrant-ink .ace_editor {\
+exports.cssClass = "ace-vibrant-ink";
+exports.cssText = "\
+.ace-vibrant-ink .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -46,19 +49,8 @@ exports.cssText = ".ace-vibrant-ink .ace_editor {\
 }\
 \
 .ace-vibrant-ink .ace_gutter {\
-  width: 50px;\
   background: #e8e8e8;\
   color: #333;\
-  overflow : hidden;\
-}\
-\
-.ace-vibrant-ink .ace_gutter-layer {\
-  width: 100%;\
-  text-align: right;\
-}\
-\
-.ace-vibrant-ink .ace_gutter-layer .ace_gutter-cell {\
-  padding-right: 6px;\
 }\
 \
 .ace-vibrant-ink .ace_print_margin {\
@@ -94,13 +86,16 @@ exports.cssText = ".ace-vibrant-ink .ace_editor {\
 \
 .ace-vibrant-ink .ace_marker-layer .ace_bracket {\
   margin: -1px 0 0 -1px;\
-  border: 1px solid #99CC99;\
+  border: 1px solid #404040;\
 }\
 \
 .ace-vibrant-ink .ace_marker-layer .ace_active_line {\
   background: #333333;\
 }\
 \
+.ace-vibrant-ink .ace_marker-layer .ace_selected_word {\
+  border: 1px solid #6699CC;\
+}\
        \
 .ace-vibrant-ink .ace_invisible {\
   color: #404040;\
@@ -110,20 +105,8 @@ exports.cssText = ".ace-vibrant-ink .ace_editor {\
   color:#FF6600;\
 }\
 \
-.ace-vibrant-ink .ace_keyword.ace_operator {\
-  \
-}\
-\
 .ace-vibrant-ink .ace_constant {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_constant.ace_language {\
   color:#339999;\
-}\
-\
-.ace-vibrant-ink .ace_constant.ace_library {\
-  \
 }\
 \
 .ace-vibrant-ink .ace_constant.ace_numeric {\
@@ -132,28 +115,21 @@ exports.cssText = ".ace-vibrant-ink .ace_editor {\
 \
 .ace-vibrant-ink .ace_invalid {\
   color:#CCFF33;\
-  background-color:#000000;\
-}\
-\
-.ace-vibrant-ink .ace_invalid.ace_illegal {\
-  \
+background-color:#000000;\
 }\
 \
 .ace-vibrant-ink .ace_invalid.ace_deprecated {\
   color:#CCFF33;\
-  background-color:#000000;\
+background-color:#000000;\
 }\
 \
-.ace-vibrant-ink .ace_support {\
-  \
+.ace-vibrant-ink .ace_fold {\
+    background-color: #FFCC00;\
+    border-color: #FFFFFF;\
 }\
 \
 .ace-vibrant-ink .ace_support.ace_function {\
   color:#FFCC00;\
-}\
-\
-.ace-vibrant-ink .ace_function.ace_buildin {\
-  \
 }\
 \
 .ace-vibrant-ink .ace_string {\
@@ -168,45 +144,9 @@ exports.cssText = ".ace-vibrant-ink .ace_editor {\
   color:#9933CC;\
 }\
 \
-.ace-vibrant-ink .ace_comment.ace_doc {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_comment.ace_doc.ace_tag {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_variable {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_variable.ace_language {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_xml_pe {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_meta {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_meta.ace_tag {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_meta.ace_tag.ace_input {\
-  \
-}\
-\
 .ace-vibrant-ink .ace_entity.ace_other.ace_attribute-name {\
   font-style:italic;\
 color:#99CC99;\
-}\
-\
-.ace-vibrant-ink .ace_entity.ace_name {\
-  \
 }\
 \
 .ace-vibrant-ink .ace_entity.ace_name.ace_function {\
@@ -215,47 +155,8 @@ color:#99CC99;\
 \
 .ace-vibrant-ink .ace_markup.ace_underline {\
     text-decoration:underline;\
-}\
-\
-.ace-vibrant-ink .ace_markup.ace_heading {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_markup.ace_heading.ace_1 {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_markup.ace_heading.ace_2 {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_markup.ace_heading.ace_3 {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_markup.ace_heading.ace_4 {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_markup.ace_heading.ace_5 {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_markup.ace_heading.ace_6 {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_markup.ace_list {\
-  \
-}\
-\
-.ace-vibrant-ink .ace_collab.ace_user1 {\
-     \
 }";
 
-exports.cssClass = "ace-vibrant-ink";
-
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
-
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
 });

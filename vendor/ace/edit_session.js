@@ -39,6 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("./lib/oop");
 var lang = require("./lib/lang");
@@ -58,6 +59,7 @@ var EditSession = function(text, mode) {
     this.$rowCache = [];
     this.$wrapData = [];
     this.$foldData = [];
+    this.$undoSelect = true;
     this.$foldData.toString = function() {
         var str = "";
         this.forEach(function(foldLine) {
@@ -141,7 +143,7 @@ var EditSession = function(text, mode) {
         }
 
         this.bgTokenizer.start(delta.range.start.row);
-        this._dispatchEvent("change", e);
+        this._emit("change", e);
     };
 
     this.setValue = function(text) {
@@ -274,7 +276,7 @@ var EditSession = function(text, mode) {
 
         this.$modified = true;
         this.$tabSize = tabSize;
-        this._dispatchEvent("changeTabSize");
+        this._emit("changeTabSize");
     };
 
     this.getTabSize = function() {
@@ -290,7 +292,7 @@ var EditSession = function(text, mode) {
         if (this.$overwrite == overwrite) return;
 
         this.$overwrite = overwrite;
-        this._dispatchEvent("changeOverwrite");
+        this._emit("changeOverwrite");
     };
 
     this.getOverwrite = function() {
@@ -310,22 +312,22 @@ var EditSession = function(text, mode) {
         for (var i=0; i<rows.length; i++) {
             this.$breakpoints[rows[i]] = true;
         }
-        this._dispatchEvent("changeBreakpoint", {});
+        this._emit("changeBreakpoint", {});
     };
 
     this.clearBreakpoints = function() {
         this.$breakpoints = [];
-        this._dispatchEvent("changeBreakpoint", {});
+        this._emit("changeBreakpoint", {});
     };
 
     this.setBreakpoint = function(row) {
         this.$breakpoints[row] = true;
-        this._dispatchEvent("changeBreakpoint", {});
+        this._emit("changeBreakpoint", {});
     };
 
     this.clearBreakpoint = function(row) {
         delete this.$breakpoints[row];
-        this._dispatchEvent("changeBreakpoint", {});
+        this._emit("changeBreakpoint", {});
     };
 
     this.getBreakpoints = function() {
@@ -345,10 +347,10 @@ var EditSession = function(text, mode) {
 
         if (inFront) {
             this.$frontMarkers[id] = marker;
-            this._dispatchEvent("changeFrontMarker")
+            this._emit("changeFrontMarker")
         } else {
             this.$backMarkers[id] = marker;
-            this._dispatchEvent("changeBackMarker")
+            this._emit("changeBackMarker")
         }
 
         return id;
@@ -362,7 +364,7 @@ var EditSession = function(text, mode) {
         var markers = marker.inFront ? this.$frontMarkers : this.$backMarkers;
         if (marker) {
             delete (markers[markerId]);
-            this._dispatchEvent(marker.inFront ? "changeFrontMarker" : "changeBackMarker");
+            this._emit(marker.inFront ? "changeFrontMarker" : "changeBackMarker");
         }
     };
 
@@ -389,7 +391,7 @@ var EditSession = function(text, mode) {
             else
                 this.$annotations[row] = [annotation];
         }
-        this._dispatchEvent("changeAnnotation", {});
+        this._emit("changeAnnotation", {});
     };
 
     this.getAnnotations = function() {
@@ -398,7 +400,7 @@ var EditSession = function(text, mode) {
 
     this.clearAnnotations = function() {
         this.$annotations = {};
-        this._dispatchEvent("changeAnnotation", {});
+        this._emit("changeAnnotation", {});
     };
 
     this.$detectNewLine = function(text) {
@@ -479,7 +481,7 @@ var EditSession = function(text, mode) {
     this.onReloadTokenizer = function(e) {
         var rows = e.data;
         this.bgTokenizer.start(rows.first);
-        this._dispatchEvent("tokenizerUpdate", e);
+        this._emit("tokenizerUpdate", e);
     };
 
     this.$mode = null;
@@ -503,7 +505,7 @@ var EditSession = function(text, mode) {
             this.bgTokenizer = new BackgroundTokenizer(tokenizer);
             var _self = this;
             this.bgTokenizer.addEventListener("update", function(e) {
-                _self._dispatchEvent("tokenizerUpdate", e);
+                _self._emit("tokenizerUpdate", e);
             });
         } else {
             this.bgTokenizer.setTokenizer(tokenizer);
@@ -515,7 +517,9 @@ var EditSession = function(text, mode) {
         this.tokenRe = mode.tokenRe;
         this.nonTokenRe = mode.nonTokenRe;
 
-        this._dispatchEvent("changeMode");
+        this.$setFolding(mode.foldingRules);
+
+        this._emit("changeMode");
     };
 
     this.$stopWorker = function() {
@@ -542,17 +546,33 @@ var EditSession = function(text, mode) {
     this.getMode = function() {
         return this.$mode;
     };
-
+    
     this.$scrollTop = 0;
-    this.setScrollTopRow = function(scrollTopRow) {
-        if (this.$scrollTop === scrollTopRow) return;
+    this.setScrollTop = function(scrollTop) {
+        scrollTop = Math.round(Math.max(0, scrollTop));
+        if (this.$scrollTop === scrollTop)
+            return;
 
-        this.$scrollTop = scrollTopRow;
-        this._dispatchEvent("changeScrollTop");
+        this.$scrollTop = scrollTop;
+        this._emit("changeScrollTop", scrollTop);
     };
 
-    this.getScrollTopRow = function() {
+    this.getScrollTop = function() {
         return this.$scrollTop;
+    };
+    
+    this.$scrollLeft = 0;
+    this.setScrollLeft = function(scrollLeft) {
+        scrollLeft = Math.round(Math.max(0, scrollLeft));
+        if (this.$scrollLeft === scrollLeft)
+            return;
+
+        this.$scrollLeft = scrollLeft;
+        this._emit("changeScrollLeft", scrollLeft);
+    };
+
+    this.getScrollLeft = function() {
+        return this.$scrollLeft;
     };
 
     this.getWidth = function() {
@@ -638,7 +658,7 @@ var EditSession = function(text, mode) {
         this.$fromUndo = true;
         var lastUndoRange = null;
         for (var i = deltas.length - 1; i != -1; i--) {
-            delta = deltas[i];
+            var delta = deltas[i];
             if (delta.group == "doc") {
                 this.doc.revertDeltas(delta.deltas);
                 lastUndoRange =
@@ -651,10 +671,11 @@ var EditSession = function(text, mode) {
         }
         this.$fromUndo = false;
         lastUndoRange &&
+            this.$undoSelect &&
             !dontSelect &&
             this.selection.setSelectionRange(lastUndoRange);
         return lastUndoRange;
-    },
+    };
 
     this.redoChanges = function(deltas, dontSelect) {
         if (!deltas.length)
@@ -663,7 +684,7 @@ var EditSession = function(text, mode) {
         this.$fromUndo = true;
         var lastUndoRange = null;
         for (var i = 0; i < deltas.length; i++) {
-            delta = deltas[i];
+            var delta = deltas[i];
             if (delta.group == "doc") {
                 this.doc.applyDeltas(delta.deltas);
                 lastUndoRange =
@@ -672,10 +693,15 @@ var EditSession = function(text, mode) {
         }
         this.$fromUndo = false;
         lastUndoRange &&
+            this.$undoSelect &&
             !dontSelect &&
             this.selection.setSelectionRange(lastUndoRange);
         return lastUndoRange;
-    },
+    };
+    
+    this.setUndoSelect = function(enable) {
+        this.$undoSelect = enable;
+    };
 
     this.$getUndoSelection = function(deltas, isUndo, lastUndoRange) {
         function isInsert(delta) {
@@ -835,6 +861,12 @@ var EditSession = function(text, mode) {
         return Math.max(0, Math.min(row, this.doc.getLength()-1));
     };
 
+    this.$clipColumnToRow = function(row, column) {
+        if (column < 0)
+            return 0;
+        return Math.min(this.doc.getLine(row).length, column);
+    };
+
     this.$clipPositionToDocument = function(row, column) {
         column = Math.max(0, column);
 
@@ -857,6 +889,30 @@ var EditSession = function(text, mode) {
         };
     };
 
+    this.$clipRangeToDocument = function(range) {
+        if (range.start.row < 0) {
+            range.start.row = 0;
+            range.start.column = 0
+        } else {
+            range.start.column = this.$clipColumnToRow(
+                range.start.row,
+                range.start.column
+            );
+        }
+        
+        var len = this.doc.getLength() - 1;
+        if (range.end.row > len) {
+            range.end.row = len;
+            range.end.column = this.doc.getLine(len).length;
+        } else {
+            range.end.column = this.$clipColumnToRow(
+                range.end.row,
+                range.end.column
+            );
+        }
+        return range;
+    };
+
     // WRAPMODE
     this.$wrapLimit = 80;
     this.$useWrapMode = false;
@@ -875,13 +931,13 @@ var EditSession = function(text, mode) {
             if (useWrapMode) {
                 var len = this.getLength();
                 this.$wrapData = [];
-                for (i = 0; i < len; i++) {
+                for (var i = 0; i < len; i++) {
                     this.$wrapData.push([]);
                 }
                 this.$updateWrapData(0, len - 1);
             }
 
-            this._dispatchEvent("changeWrapMode");
+            this._emit("changeWrapMode");
         }
     };
 
@@ -899,7 +955,7 @@ var EditSession = function(text, mode) {
             this.$wrapLimitRange.max = max;
             this.$modified = true;
             // This will force a recalculation of the wrap limit
-            this._dispatchEvent("changeWrapMode");
+            this._emit("changeWrapMode");
         }
     };
 
@@ -913,7 +969,7 @@ var EditSession = function(text, mode) {
             if (this.$useWrapMode) {
                 this.$updateWrapData(0, this.getLength() - 1);
                 this.$resetRowCache(0)
-                this._dispatchEvent("changeWrapLimit");
+                this._emit("changeWrapLimit");
             }
             return true;
         }
@@ -949,10 +1005,10 @@ var EditSession = function(text, mode) {
         var useWrapMode = this.$useWrapMode;
         var len;
         var action = e.data.action;
-        var firstRow = e.data.range.start.row,
-            lastRow = e.data.range.end.row,
-            start = e.data.range.start,
-            end = e.data.range.end;
+        var firstRow = e.data.range.start.row;
+        var lastRow = e.data.range.end.row;
+        var start = e.data.range.start;
+        var end = e.data.range.end;
         var removedFolds = null;
 
         if (action.indexOf("Lines") != -1) {
@@ -1037,7 +1093,6 @@ var EditSession = function(text, mode) {
         } else {
             // Realign folds. E.g. if you add some new chars before a fold, the
             // fold should "move" to the right.
-            var column;
             len = Math.abs(e.data.range.start.column - e.data.range.end.column);
             if (action.indexOf("remove") != -1) {
                 // Get all the folds in the change range and remove them.
@@ -1120,12 +1175,11 @@ var EditSession = function(text, mode) {
         TAB = 11,
         TAB_SPACE = 12;
 
-    this.$computeWrapSplits = function(tokens, wrapLimit, tabSize) {
+    this.$computeWrapSplits = function(tokens, wrapLimit) {
         if (tokens.length == 0) {
             return [];
         }
 
-        var tabSize = this.getTabSize();
         var splits = [];
         var displayLength = tokens.length;
         var lastSplit = 0, lastDocSplit = 0;
@@ -1138,11 +1192,11 @@ var EditSession = function(text, mode) {
             var len = displayed.length;
             displayed.join("").
                 // Get all the TAB_SPACEs.
-                replace(/12/g, function(m) {
+                replace(/12/g, function() {
                     len -= 1;
                 }).
                 // Get all the CHAR_EXT/multipleWidth characters.
-                replace(/2/g, function(m) {
+                replace(/2/g, function() {
                     len -= 1;
                 });
 
@@ -1381,7 +1435,6 @@ var EditSession = function(text, mode) {
         var docRow = 0;
         var docColumn = 0;
         var column;
-        var foldLineRowLength;
         var row = 0;
         var rowLength = 0;
 
@@ -1481,8 +1534,6 @@ var EditSession = function(text, mode) {
         docRow = pos.row;
         docColumn = pos.column;
 
-        var LL = this.$rowCache.length;
-
         var wrapData;
         // Special case in wrapMode if the doc is at the end of the document.
         if (this.$useWrapMode) {
@@ -1498,7 +1549,6 @@ var EditSession = function(text, mode) {
         }
 
         var screenRow = 0;
-        var screenColumn = 0;
         var foldStartRow = null;
         var fold = null;
 

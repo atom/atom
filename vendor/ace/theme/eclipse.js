@@ -36,6 +36,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
+
 exports.isDark = false;
 exports.cssText = ".ace-eclipse .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
@@ -46,25 +48,20 @@ exports.cssText = ".ace-eclipse .ace_editor {\
 }\
 \
 .ace-eclipse .ace_gutter {\
-  width: 50px;\
   background: rgb(227, 227, 227);\
-  border-right: 1px solid rgb(159, 159, 159);	 \
+  border-right: 1px solid rgb(159, 159, 159);\
   color: rgb(136, 136, 136);\
-}\
-\
-.ace-eclipse .ace_gutter-layer {\
-  width: 100%;\
-  text-align: right;\
-}\
-\
-.ace-eclipse .ace_gutter-layer .ace_gutter-cell {\
-  padding-right: 6px;\
 }\
 \
 .ace-eclipse .ace_print_margin {\
   width: 1px;\
   background: #b1b4ba;\
 }\
+\
+.ace-eclipse .ace_fold {\
+    background-color: rgb(60, 76, 114);\
+}\
+\
 .ace-eclipse .ace_text-layer {\
   cursor: text;\
 }\
@@ -143,7 +140,6 @@ exports.cssText = ".ace-eclipse .ace_editor {\
 
 exports.cssClass = "ace-eclipse";
 
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
-
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
 });

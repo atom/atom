@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var assert = require("../test/assertions");
 var Worker = require("./css_worker").Worker;

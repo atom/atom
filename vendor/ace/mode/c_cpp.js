@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
@@ -45,11 +46,13 @@ var c_cppHighlightRules = require("./c_cpp_highlight_rules").c_cppHighlightRules
 var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
 var Range = require("../range").Range;
 var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
+var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new c_cppHighlightRules().getRules());
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CstyleBehaviour();
+    this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
@@ -57,7 +60,6 @@ oop.inherits(Mode, TextMode);
 
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         var outdent = true;
-        var outentedRows = [];
         var re = /^(\s*)\/\//;
 
         for (var i=startRow; i<= endRow; i++) {

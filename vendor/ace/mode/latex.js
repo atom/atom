@@ -1,4 +1,5 @@
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
@@ -12,12 +13,10 @@ var Mode = function()
 };
 oop.inherits(Mode, TextMode);
 
-(function()
-{
+(function() {
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         // This code is adapted from ruby.js
         var outdent = true;
-        var outentedRows = [];
         
         // LaTeX comments begin with % and go to the end of the line
         var commentRegEx = /^(\s*)\%/;

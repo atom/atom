@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var keys = require("./keys");
 var useragent = require("./useragent");
@@ -285,7 +286,7 @@ function normalizeCommandKeys(callback, e, keyCode) {
 
 exports.addCommandKeyListener = function(el, callback) {
     var addListener = exports.addListener;
-    if (useragent.isOldGecko) {
+    if (useragent.isOldGecko || useragent.isOpera) {
         // Old versions of Gecko aka. Firefox < 4.0 didn't repeat the keydown
         // event if the user pressed the key for a longer time. Instead, the
         // keydown event was fired once and later on only the keypress event.
@@ -306,18 +307,6 @@ exports.addCommandKeyListener = function(el, callback) {
             lastDown = e.keyIdentifier || e.keyCode;
             return normalizeCommandKeys(callback, e, e.keyCode);
         });
-
-        // repeated keys are fired as keypress and not keydown events
-        if (useragent.isMac && useragent.isOpera) {
-            addListener(el, "keypress", function(e) {
-                var keyId = e.keyIdentifier || e.keyCode;
-                if (lastDown !== keyId) {
-                    return normalizeCommandKeys(callback, e, lastDown);
-                } else {
-                    lastDown = null;
-                }
-            });
-        }
     }
 };
 

@@ -36,25 +36,22 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var TextileHighlightRules = require("./textile_highlight_rules").TextileHighlightRules;
 var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
-var Range = require("../range").Range;
 
-var Mode = function()
-{
+var Mode = function() {
     this.$tokenizer = new Tokenizer(new TextileHighlightRules().getRules());
     this.$outdent = new MatchingBraceOutdent();
 };
 oop.inherits(Mode, TextMode);
 
-(function()
-{
-    this.getNextLineIndent = function(state, line, tab)
-    {
+(function() {
+    this.getNextLineIndent = function(state, line, tab) {
         if (state == "intag")
             return tab;
         

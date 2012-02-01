@@ -36,40 +36,42 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
-    require("./lib/fixoldbrowsers");
+require("./lib/fixoldbrowsers");
 
-    var Dom = require("./lib/dom");
-    var Event = require("./lib/event");
+var Dom = require("./lib/dom");
+var Event = require("./lib/event");
 
-    var Editor = require("./editor").Editor;
-    var EditSession = require("./edit_session").EditSession;
-    var UndoManager = require("./undomanager").UndoManager;
-    var Renderer = require("./virtual_renderer").VirtualRenderer;
+var Editor = require("./editor").Editor;
+var EditSession = require("./edit_session").EditSession;
+var UndoManager = require("./undomanager").UndoManager;
+var Renderer = require("./virtual_renderer").VirtualRenderer;
 
-    exports.edit = function(el) {
-        if (typeof(el) == "string") {
-            el = document.getElementById(el);
-        }
+exports.edit = function(el) {
+    if (typeof(el) == "string") {
+        el = document.getElementById(el);
+    }
 
-        var doc = new EditSession(Dom.getInnerText(el));
-        doc.setUndoManager(new UndoManager());
-        el.innerHTML = '';
+    var doc = new EditSession(Dom.getInnerText(el));
+    doc.setUndoManager(new UndoManager());
+    el.innerHTML = '';
 
-        var editor = new Editor(new Renderer(el, require("ace/theme/textmate")));
-        editor.setSession(doc);
+    var editor = new Editor(new Renderer(el, require("./theme/textmate")));
+    editor.setSession(doc);
 
-        var env = {};
-        env.document = doc;
-        env.editor = editor;
+    var env = {};
+    env.document = doc;
+    env.editor = editor;
+    editor.resize();
+    Event.addListener(window, "resize", function() {
         editor.resize();
-        Event.addListener(window, "resize", function() {
-            editor.resize();
-        });
-        el.env = env;
-        // Store env on editor such that it can be accessed later on from
-        // the returned object.
-        editor.env = env;
-        return editor;
-    };
+    });
+    el.env = env;
+    // Store env on editor such that it can be accessed later on from
+    // the returned object.
+    editor.env = env;
+    return editor;
+};
+
 });

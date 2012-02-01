@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var event = require("../lib/event");
 var useragent = require("../lib/useragent");
@@ -48,9 +49,10 @@ var TextInput = function(parentNode, host) {
     var text = dom.createElement("textarea");
     if (useragent.isTouchPad)
         text.setAttribute("x-palm-disable-auto-cap", true);
-
+        
     text.style.left = "-10000px";
-    parentNode.appendChild(text);
+    text.style.position = "fixed";
+    parentNode.insertBefore(text, parentNode.firstChild);
 
     var PLACEHOLDER = String.fromCharCode(0);
     sendText();
@@ -97,10 +99,10 @@ var TextInput = function(parentNode, host) {
     var onTextInput = function(e) {
         setTimeout(function () {
             if (!inCompostion)
-                sendText(e.data);
+                sendText(e.data);                
         }, 0);
     };
-
+    
     var onPropertyChange = function(e) {
         if (useragent.isOldIE && text.value.charCodeAt(0) > 128) return;
         setTimeout(function() {
@@ -137,7 +139,7 @@ var TextInput = function(parentNode, host) {
             sendText();
         }, 0);
     };
-
+    
     var onCut = function(e) {
         copied = true;
         var copyText = host.getCopyText();
@@ -164,12 +166,12 @@ var TextInput = function(parentNode, host) {
             inCompostion ? onCompositionUpdate() : onCompositionStart();
         });
     }
-
+    
     if ("onpropertychange" in text && !("oninput" in text))
         event.addListener(text, "propertychange", onPropertyChange);
     else
         event.addListener(text, "input", onTextInput);
-
+    
     event.addListener(text, "paste", function(e) {
         // Mark that the next input text comes from past.
         pasted = true;
@@ -178,7 +180,7 @@ var TextInput = function(parentNode, host) {
         if (e.clipboardData && e.clipboardData.getData) {
             sendText(e.clipboardData.getData("text/plain"));
             e.preventDefault();
-        }
+        } 
         else {
             // If a browser doesn't support any of the things above, use the regular
             // method to detect the pasted input.
@@ -189,7 +191,7 @@ var TextInput = function(parentNode, host) {
     if ("onbeforecopy" in text && typeof clipboardData !== "undefined") {
         event.addListener(text, "beforecopy", function(e) {
             var copyText = host.getCopyText();
-            if(copyText)
+            if (copyText)
                 clipboardData.setData("Text", copyText);
             else
                 e.preventDefault();
@@ -251,8 +253,8 @@ var TextInput = function(parentNode, host) {
         if (mousePos) {
             if (!tempStyle)
                 tempStyle = text.style.cssText;
-
-            text.style.cssText =
+                
+            text.style.cssText = 
                 'position:fixed; z-index:1000;' +
                 'left:' + (mousePos.x - 2) + 'px; top:' + (mousePos.y - 2) + 'px;';
 

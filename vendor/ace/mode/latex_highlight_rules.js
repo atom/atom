@@ -1,10 +1,10 @@
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var LatexHighlightRules = function()
-{   
+var LatexHighlightRules = function() {   
     this.$rules = {
         "start" : [{
             // A tex command e.g. \foo

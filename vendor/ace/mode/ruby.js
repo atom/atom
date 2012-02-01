@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
@@ -55,7 +56,6 @@ oop.inherits(Mode, TextMode);
 
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         var outdent = true;
-        var outentedRows = [];
         var re = /^(\s*)#/;
 
         for (var i=startRow; i<= endRow; i++) {
@@ -87,7 +87,6 @@ oop.inherits(Mode, TextMode);
 
         var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
         var tokens = tokenizedLine.tokens;
-        var endState = tokenizedLine.state;
 
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;

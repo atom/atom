@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var HtmlMode = require("./html").Mode;
 var assert = require("../test/assertions");
@@ -50,22 +51,22 @@ module.exports = {
     },
 
     "test: tokenize embedded script" : function() {
-
         var line = "<script a='a'>var</script>'123'";
         var tokens = this.tokenizer.getLineTokens(line, "start").tokens;
 
-        //assert.equal(10, tokens.length);
-        assert.equal("text", tokens[0].type);
-        assert.equal("meta.tag", tokens[1].type);
+        assert.equal(12, tokens.length);
+        assert.equal("meta.tag", tokens[0].type);
+        assert.equal("meta.tag.script", tokens[1].type);
         assert.equal("text", tokens[2].type);
         assert.equal("entity.other.attribute-name", tokens[3].type);
-        assert.equal("text", tokens[4].type);
+        assert.equal("keyword.operator", tokens[4].type);
         assert.equal("string", tokens[5].type);
-        assert.equal("text", tokens[6].type);
+        assert.equal("meta.tag", tokens[6].type);
         assert.equal("keyword.definition", tokens[7].type);
-        assert.equal("text", tokens[8].type);
-        assert.equal("meta.tag", tokens[9].type);
-        assert.equal("text", tokens[10].type);
+        assert.equal("meta.tag", tokens[8].type);
+        assert.equal("meta.tag.script", tokens[9].type);
+        assert.equal("meta.tag", tokens[10].type);
+        assert.equal("text", tokens[11].type);
     },
     
     "test: tokenize multiline attribute value with double quotes": function() {
@@ -88,5 +89,5 @@ module.exports = {
 });
 
 if (typeof module !== "undefined" && module === require.main) {
-    require("asyncjs").test.testcase(module.exports).exec()
+    require("asyncjs").test.testcase(module.exports).exec();
 }

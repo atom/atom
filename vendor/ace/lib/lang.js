@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 exports.stringReverse = function(string) {
     return string.split("").reverse().join("");
@@ -49,7 +50,7 @@ var trimBeginRegexp = /^\s\s*/;
 var trimEndRegexp = /\s\s*$/;
 
 exports.stringTrimLeft = function (string) {
-    return string.replace(trimBeginRegexp, '')
+    return string.replace(trimBeginRegexp, '');
 };
 
 exports.stringTrimRight = function (string) {
@@ -66,11 +67,11 @@ exports.copyObject = function(obj) {
 
 exports.copyArray = function(array){
     var copy = [];
-    for (i=0, l=array.length; i<l; i++) {
+    for (var i=0, l=array.length; i<l; i++) {
         if (array[i] && typeof array[i] == "object")
             copy[i] = this.copyObject( array[i] );
         else 
-            copy[i] = array[i]
+            copy[i] = array[i];
     }
     return copy;
 };
@@ -89,7 +90,7 @@ exports.deepCopy = function (obj) {
         }
     }
     return copy;
-}
+};
 
 exports.arrayToMap = function(arr) {
     var map = {};
@@ -127,7 +128,7 @@ exports.deferredCall = function(fcn) {
         deferred.cancel();
         timer = setTimeout(callback, timeout || 0);
         return deferred;
-    }
+    };
 
     deferred.schedule = deferred;
 

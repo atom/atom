@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
@@ -43,10 +44,12 @@ var Tokenizer = require("../tokenizer").Tokenizer;
 var PerlHighlightRules = require("./perl_highlight_rules").PerlHighlightRules;
 var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
 var Range = require("../range").Range;
+var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new PerlHighlightRules().getRules());
     this.$outdent = new MatchingBraceOutdent();
+    this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
@@ -54,7 +57,6 @@ oop.inherits(Mode, TextMode);
 
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         var outdent = true;
-        var outentedRows = [];
         var re = /^(\s*)#/;
 
         for (var i=startRow; i<= endRow; i++) {
@@ -86,7 +88,6 @@ oop.inherits(Mode, TextMode);
 
         var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
         var tokens = tokenizedLine.tokens;
-        var endState = tokenizedLine.state;
 
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;

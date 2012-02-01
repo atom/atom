@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var Range = require("../range").Range;
 var dom = require("../lib/dom");
@@ -140,10 +141,11 @@ var Marker = function(parentEl) {
      * Draws a multi line marker, where lines span the full width
      */
      this.drawMultiLineMarker = function(stringBuilder, range, clazz, layerConfig, type) {
-        // from selection start to the end of the line
         var padding = type === "background" ? 0 : this.$padding;
+        var layerWidth = layerConfig.width + 2 * this.$padding - padding;
+        // from selection start to the end of the line
         var height = layerConfig.lineHeight;
-        var width = Math.round(layerConfig.width - (range.start.column * layerConfig.characterWidth));
+        var width = Math.round(layerWidth - (range.start.column * layerConfig.characterWidth));
         var top = this.$getTop(range.start.row, layerConfig);
         var left = Math.round(
             padding + range.start.column * layerConfig.characterWidth
@@ -174,12 +176,11 @@ var Marker = function(parentEl) {
         if (height < 0)
             return;
         top = this.$getTop(range.start.row + 1, layerConfig);
-        width = layerConfig.width;
 
         stringBuilder.push(
             "<div class='", clazz, "' style='",
             "height:", height, "px;",
-            "width:", width, "px;",
+            "width:", layerWidth, "px;",
             "top:", top, "px;",
             "left:", padding, "px;'></div>"
         );

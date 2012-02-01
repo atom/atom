@@ -36,21 +36,24 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var ScssHighlightRules = require("./scss_highlight_rules").ScssHighlightRules;
 var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.$tokenizer = new Tokenizer(new ScssHighlightRules().getRules());
+    this.$tokenizer = new Tokenizer(new ScssHighlightRules().getRules(), "i");
     this.$outdent = new MatchingBraceOutdent();
+    this.foldingRules = new CStyleFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+    
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
 

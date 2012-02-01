@@ -37,11 +37,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var Range = require("../range").Range;
 
 /**
- * If the an array is passed in, the folds are expected to be sorted already.
+ * If an array is passed in, the folds are expected to be sorted already.
  */
 function FoldLine(foldData, folds) {
     this.foldData = foldData;

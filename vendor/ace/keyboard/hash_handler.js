@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var keyUtil  = require("../lib/keys");
 

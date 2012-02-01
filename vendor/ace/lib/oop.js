@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 exports.inherits = (function() {
     var tempCtor = function() {};
@@ -44,7 +45,7 @@ exports.inherits = (function() {
         ctor.super_ = superCtor.prototype;
         ctor.prototype = new tempCtor();
         ctor.prototype.constructor = ctor;
-    }
+    };
 }());
 
 exports.mixin = function(obj, mixin) {

@@ -37,9 +37,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("ace/lib/oop");
-var lang = require("ace/lib/lang");
 var EventEmitter = require("ace/lib/event_emitter").EventEmitter;
 
 var Editor = exports.Editor = function() {

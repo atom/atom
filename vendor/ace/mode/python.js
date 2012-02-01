@@ -37,16 +37,18 @@
 * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var PythonHighlightRules = require("./python_highlight_rules").PythonHighlightRules;
-var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var PythonFoldMode = require("./folding/pythonic").FoldMode;
 var Range = require("../range").Range;
 
 var Mode = function() {
     this.$tokenizer = new Tokenizer(new PythonHighlightRules().getRules());
+    this.foldingRules = new PythonFoldMode("\\:");
 };
 oop.inherits(Mode, TextMode);
 
@@ -54,7 +56,6 @@ oop.inherits(Mode, TextMode);
 
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         var outdent = true;
-        var outentedRows = [];
         var re = /^(\s*)#/;
 
         for (var i=startRow; i<= endRow; i++) {
@@ -86,7 +87,6 @@ oop.inherits(Mode, TextMode);
 
         var tokenizedLine = this.$tokenizer.getLineTokens(line, state);
         var tokens = tokenizedLine.tokens;
-        var endState = tokenizedLine.state;
 
         if (tokens.length && tokens[tokens.length-1].type == "comment") {
             return indent;

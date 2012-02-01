@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var Range = require("./range").Range;
 var EditSession = require("./edit_session").EditSession;

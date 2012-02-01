@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var keyUtil  = require("../lib/keys");
 var event = require("../lib/event");
@@ -71,7 +72,7 @@ var KeyBinding = function(editor) {
     };
 
     this.getKeyboardHandler = function() {
-        return this.$handlers[this.$handlers - 1];
+        return this.$handlers[this.$handlers.length - 1];
     };
 
     this.$callKeyboardHandlers = function (hashId, keyString, keyCode, e) {
@@ -86,7 +87,9 @@ var KeyBinding = function(editor) {
 
         if (!toExecute || !toExecute.command)
             return false;
-        var success = false, commands = this.$editor.commands;
+
+        var success = false;
+        var commands = this.$editor.commands;
 
         // allow keyboardHandler to consume keys
         if (toExecute.command != "null")

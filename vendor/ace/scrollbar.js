@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("./lib/oop");
 var dom = require("./lib/dom");
@@ -67,7 +68,7 @@ var ScrollBar = function(parent) {
     oop.implement(this, EventEmitter);
 
     this.onScroll = function() {
-        this._dispatchEvent("scroll", {data: this.element.scrollTop});
+        this._emit("scroll", {data: this.element.scrollTop});
     };
 
     this.getWidth = function() {

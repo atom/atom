@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var dom = require("../lib/dom");
 
@@ -92,7 +93,7 @@ var Cursor = function(parentEl) {
         }, 1000);
     };
 
-    this.getPixelPosition = function(onScreen) {
+    this.getPixelPosition = function(position, onScreen) {
         if (!this.config || !this.session) {
             return {
                 left : 0,
@@ -100,7 +101,8 @@ var Cursor = function(parentEl) {
             };
         }
 
-        var position = this.session.selection.getCursor();
+        if (!position)
+            position = this.session.selection.getCursor();
         var pos = this.session.documentToScreenPosition(position);
         var cursorLeft = Math.round(this.$padding +
                                     pos.column * this.config.characterWidth);
@@ -116,7 +118,7 @@ var Cursor = function(parentEl) {
     this.update = function(config) {
         this.config = config;
 
-        this.pixelPos = this.getPixelPosition(true);
+        this.pixelPos = this.getPixelPosition(null, true);
 
         this.cursor.style.left = this.pixelPos.left + "px";
         this.cursor.style.top =  this.pixelPos.top + "px";

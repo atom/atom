@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var lang = require("./lib/lang");
 var oop = require("./lib/oop");

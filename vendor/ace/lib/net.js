@@ -1,4 +1,3 @@
-
 /**
  * based on code from:
  * 
@@ -7,7 +6,8 @@
  * see: http://github.com/jrburke/requirejs for details
  */
 define(function(require, exports, module) {
-    
+"use strict";
+
 exports.get = function (url, callback) {
     var xhr = exports.createXhr();
     xhr.open('GET', url, true);
@@ -23,7 +23,7 @@ exports.get = function (url, callback) {
 
 var progIds = ['Msxml2.XMLHTTP', 'Microsoft.XMLHTTP', 'Msxml2.XMLHTTP.4.0'];
 
-exports.createXhr = function () {
+exports.createXhr = function() {
     //Would love to dump the ActiveX crap in here. Need IE 6 to die first.
     var xhr, i, progId;
     if (typeof XMLHttpRequest !== "undefined") {

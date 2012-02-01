@@ -36,8 +36,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+
 exports.isDark = false;
-exports.cssText = ".ace-solarized-light .ace_editor {\
+exports.cssClass = "ace-solarized-light";
+exports.cssText = "\
+.ace-solarized-light .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -46,19 +49,8 @@ exports.cssText = ".ace-solarized-light .ace_editor {\
 }\
 \
 .ace-solarized-light .ace_gutter {\
-  width: 50px;\
   background: #e8e8e8;\
   color: #333;\
-  overflow : hidden;\
-}\
-\
-.ace-solarized-light .ace_gutter-layer {\
-  width: 100%;\
-  text-align: right;\
-}\
-\
-.ace-solarized-light .ace_gutter-layer .ace_gutter-cell {\
-  padding-right: 6px;\
 }\
 \
 .ace-solarized-light .ace_print_margin {\
@@ -101,6 +93,9 @@ exports.cssText = ".ace-solarized-light .ace_editor {\
   background: #EEE8D5;\
 }\
 \
+.ace-solarized-light .ace_marker-layer .ace_selected_word {\
+  border: 1px solid #073642;\
+}\
        \
 .ace-solarized-light .ace_invisible {\
   color: rgba(147, 161, 161, 0.50);\
@@ -110,48 +105,21 @@ exports.cssText = ".ace-solarized-light .ace_editor {\
   color:#859900;\
 }\
 \
-.ace-solarized-light .ace_keyword.ace_operator {\
-  \
-}\
-\
-.ace-solarized-light .ace_constant {\
-  \
-}\
-\
 .ace-solarized-light .ace_constant.ace_language {\
   color:#B58900;\
-}\
-\
-.ace-solarized-light .ace_constant.ace_library {\
-  \
 }\
 \
 .ace-solarized-light .ace_constant.ace_numeric {\
   color:#D33682;\
 }\
 \
-.ace-solarized-light .ace_invalid {\
-  \
-}\
-\
-.ace-solarized-light .ace_invalid.ace_illegal {\
-  \
-}\
-\
-.ace-solarized-light .ace_invalid.ace_deprecated {\
-  \
-}\
-\
-.ace-solarized-light .ace_support {\
-  \
+.ace-solarized-light .ace_fold {\
+    background-color: #268BD2;\
+    border-color: #586E75;\
 }\
 \
 .ace-solarized-light .ace_support.ace_function {\
   color:#268BD2;\
-}\
-\
-.ace-solarized-light .ace_function.ace_buildin {\
-  \
 }\
 \
 .ace-solarized-light .ace_string {\
@@ -166,44 +134,12 @@ exports.cssText = ".ace-solarized-light .ace_editor {\
   color:#93A1A1;\
 }\
 \
-.ace-solarized-light .ace_comment.ace_doc {\
-  \
-}\
-\
-.ace-solarized-light .ace_comment.ace_doc.ace_tag {\
-  \
-}\
-\
-.ace-solarized-light .ace_variable {\
-  \
-}\
-\
 .ace-solarized-light .ace_variable.ace_language {\
   color:#268BD2;\
 }\
 \
-.ace-solarized-light .ace_xml_pe {\
-  \
-}\
-\
-.ace-solarized-light .ace_meta {\
-  \
-}\
-\
-.ace-solarized-light .ace_meta.ace_tag {\
-  \
-}\
-\
-.ace-solarized-light .ace_meta.ace_tag.ace_input {\
-  \
-}\
-\
 .ace-solarized-light .ace_entity.ace_other.ace_attribute-name {\
   color:#93A1A1;\
-}\
-\
-.ace-solarized-light .ace_entity.ace_name {\
-  \
 }\
 \
 .ace-solarized-light .ace_entity.ace_name.ace_function {\
@@ -212,47 +148,8 @@ exports.cssText = ".ace-solarized-light .ace_editor {\
 \
 .ace-solarized-light .ace_markup.ace_underline {\
     text-decoration:underline;\
-}\
-\
-.ace-solarized-light .ace_markup.ace_heading {\
-  \
-}\
-\
-.ace-solarized-light .ace_markup.ace_heading.ace_1 {\
-  \
-}\
-\
-.ace-solarized-light .ace_markup.ace_heading.ace_2 {\
-  \
-}\
-\
-.ace-solarized-light .ace_markup.ace_heading.ace_3 {\
-  \
-}\
-\
-.ace-solarized-light .ace_markup.ace_heading.ace_4 {\
-  \
-}\
-\
-.ace-solarized-light .ace_markup.ace_heading.ace_5 {\
-  \
-}\
-\
-.ace-solarized-light .ace_markup.ace_heading.ace_6 {\
-  \
-}\
-\
-.ace-solarized-light .ace_markup.ace_list {\
-  \
-}\
-\
-.ace-solarized-light .ace_collab.ace_user1 {\
-     \
 }";
 
-exports.cssClass = "ace-solarized-light";
-
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
-
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
 });

@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var EventEmitter = require("./event_emitter").EventEmitter;
@@ -59,7 +60,7 @@ module.exports = {
            assert.equal(e.type, "juhu");
         });
 
-        emitter._dispatchEvent("juhu");
+        emitter._emit("juhu");
         assert.ok(called);
     }
 };

@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var lang = require("../lib/lang");
@@ -205,10 +206,9 @@ var JavaScriptHighlightRules = function() {
                 regex : "\\/\\/.*$"
             }, {
                 token: "string.regexp",
-                regex: "\\/(?:(?:\\[(?:\\\\]|[^\\]])+\\])"
-                    + "|(?:\\\\/|[^\\]/]))*" 
-                    + "[/]\\w*",
-                next: "start"
+                regex: "\\/",
+                next: "regex",
+                merge: true
             }, {
                 token : "text",
                 regex : "\\s+"
@@ -218,6 +218,54 @@ var JavaScriptHighlightRules = function() {
                 token: "empty", 
                 regex: "",
                 next: "start"
+            }
+        ],
+        "regex": [
+            {
+                token: "regexp.keyword.operator",
+                regex: "\\\\(?:u[\\da-fA-F]{4}|x[\\da-fA-F]{2}|.)",
+                next: "regex"
+            }, {
+				// flag
+                token: "string.regexp", 
+                regex: "/\\w*",
+                next: "start",
+                merge: true 
+            }, {
+                token: "string.regexp",
+                regex: "[^\\\\/\\[]+",
+                next: "regex",
+                merge: true
+            }, {
+                token: "string.regexp.charachterclass",
+                regex: "\\[",
+                next: "regex_character_class",
+                merge: true
+            }, {
+                token: "empty", 
+                regex: "",
+                next: "start" 
+            }
+        ],
+        "regex_character_class": [
+            {
+                token: "regexp.keyword.operator",
+                regex: "\\\\(?:u[\\da-fA-F]{4}|x[\\da-fA-F]{2}|.)",
+                next: "regex_character_class"
+            }, {
+                token: "string.regexp.charachterclass",
+                regex: "]",
+                next: "regex",
+                merge: true
+            }, {
+                token: "string.regexp.charachterclass",
+                regex: "[^\\\\\\]]+",
+                next: "regex_character_class",
+                merge: true
+            }, {
+                token: "empty", 
+                regex: "",
+                next: "start" 
             }
         ],
         "comment_regex_allowed" : [

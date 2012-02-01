@@ -36,19 +36,20 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
-var TextMode = require("./text").Mode;
+var XmlMode = require("./xml").Mode;
 var JavaScriptMode = require("./javascript").Mode;
 var CssMode = require("./css").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var ColdfusionHighlightRules = require("./coldfusion_highlight_rules").ColdfusionHighlightRules;
-var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
 
 var Mode = function() {
+    XmlMode.call(this);
+    
     var highlighter = new ColdfusionHighlightRules();
     this.$tokenizer = new Tokenizer(highlighter.getRules());
-    this.$behaviour = new XmlBehaviour();
     
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
@@ -56,20 +57,12 @@ var Mode = function() {
       "css-": CssMode
     });
 };
-oop.inherits(Mode, TextMode);
+oop.inherits(Mode, XmlMode);
 
 (function() {
 
-    this.toggleCommentLines = function(state, doc, startRow, endRow) {
-        return 0;
-    };
-
     this.getNextLineIndent = function(state, line, tab) {
         return this.$getIndent(line);
-    };
-
-    this.checkOutdent = function(state, line, input) {
-        return false;
     };
 
 }).call(Mode.prototype);

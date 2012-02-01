@@ -42,6 +42,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var lang = require("./lib/lang");
 var EditSession = require("./edit_session").EditSession;
@@ -109,10 +110,10 @@ module.exports = {
         assert.position(session.findMatchingBracket({row: 6, column: 20}), 1, 15);
         assert.position(session.findMatchingBracket({row: 1, column: 22}), 1, 20);
         assert.position(session.findMatchingBracket({row: 3, column: 31}), 3, 21);
-        assert.position(session.findMatchingBracket({row: 4, column: 24}), 4, 19);        
+        assert.position(session.findMatchingBracket({row: 4, column: 24}), 4, 19);
         assert.equal(session.findMatchingBracket({row: 0, column: 1}), null);
     },
-    
+
     "test: find matching closing bracket in JavaScript mode" : function() {
         var lines = [
             "function foo() {",
@@ -131,7 +132,7 @@ module.exports = {
         assert.position(session.findMatchingBracket({row: 1, column: 16}), 6, 19);
         assert.position(session.findMatchingBracket({row: 1, column: 21}), 1, 21);
         assert.position(session.findMatchingBracket({row: 3, column: 22}), 3, 30);
-        assert.position(session.findMatchingBracket({row: 4, column: 20}), 4, 23);        
+        assert.position(session.findMatchingBracket({row: 4, column: 20}), 4, 23);
     },
 
     "test: handle unbalanced brackets in JavaScript mode" : function() {
@@ -223,7 +224,7 @@ module.exports = {
             "12\t\t34",
             "ぁぁa"
         ]);
-        
+
         assert.equal(session.getScreenLastRowColumn(0), 4);
         assert.equal(session.getScreenLastRowColumn(1), 10);
         assert.equal(session.getScreenLastRowColumn(2), 5);
@@ -267,13 +268,13 @@ module.exports = {
             "12\t\t34",
             "ぁぁa"
         ]);
-        
+
         assert.position(session.documentToScreenPosition(0, 3), 0, 3);
         assert.position(session.documentToScreenPosition(1, 3), 1, 4);
         assert.position(session.documentToScreenPosition(1, 4), 1, 8);
         assert.position(session.documentToScreenPosition(2, 2), 2, 4);
     },
-    
+
     "test: documentToScreen with soft wrap": function() {
         var session = new EditSession(["foo bar foo bar"]);
         session.setUseWrapMode(true);
@@ -283,10 +284,9 @@ module.exports = {
         assert.position(session.documentToScreenPosition(0, 11), 0, 11);
         assert.position(session.documentToScreenPosition(0, 12), 1, 0);
     },
-    
-    "test: documentToScreen with soft wrap and multibyte characters": function() {
 
-        session = new EditSession(["ぁぁa"]);
+    "test: documentToScreen with soft wrap and multibyte characters": function() {
+        var session = new EditSession(["ぁぁa"]);
         session.setUseWrapMode(true);
         session.setWrapLimitRange(2, 2);
         session.adjustWrapLimit(80);
@@ -298,7 +298,7 @@ module.exports = {
 
     "test: documentToScreen should clip position to the document boundaries": function() {
         var session = new EditSession("foo bar\njuhu kinners");
-        
+
         assert.position(session.documentToScreenPosition(-1, 4), 0, 0);
         assert.position(session.documentToScreenPosition(3, 0), 1, 12);
     },
@@ -340,9 +340,9 @@ module.exports = {
         assert.position(session.screenToDocumentPosition(0, 12), 0, 11);
         assert.position(session.screenToDocumentPosition(0, 20), 0, 11);
     },
-    
+
     "test: screenToDocument with soft wrap and multi byte characters": function() {
-        session = new EditSession(["ぁ a"]);
+        var session = new EditSession(["ぁ a"]);
         session.setUseWrapMode(true);
         session.adjustWrapLimit(80);
 
@@ -352,10 +352,10 @@ module.exports = {
         assert.position(session.screenToDocumentPosition(0, 4), 0, 3);
         assert.position(session.screenToDocumentPosition(0, 5), 0, 3);
     },
-    
+
     "test: screenToDocument should clip position to the document boundaries": function() {
         var session = new EditSession("foo bar\njuhu kinners");
-        
+
         assert.position(session.screenToDocumentPosition(-1, 4), 0, 0);
         assert.position(session.screenToDocumentPosition(0, -1), 0, 0);
         assert.position(session.screenToDocumentPosition(0, 30), 0, 7);
@@ -374,9 +374,6 @@ module.exports = {
     },
 
     "test: wrapLine split function" : function() {
-        var splits;
-        var c = 0;
-
         function computeAndAssert(line, assertEqual, wrapLimit, tabSize) {
             wrapLimit = wrapLimit || 12;
             tabSize = tabSize || 4;
@@ -618,9 +615,9 @@ module.exports = {
     },
 
     "test getFoldsInRange()": function() {
-        var session = createFoldTestSession(),
-            foldLines = session.$foldData;
-            folds = foldLines[0].folds.concat(foldLines[1].folds);
+        var session = createFoldTestSession();
+        var foldLines = session.$foldData;
+        var folds = foldLines[0].folds.concat(foldLines[1].folds);
 
         function test(startRow, startColumn, endColumn, endRow, folds) {
             var r = new Range(startRow, startColumn, endColumn, endRow);
@@ -649,7 +646,7 @@ module.exports = {
         var session = createFoldTestSession();
         var undoManager = session.getUndoManager();
         var foldLines = session.$foldData;
-        
+
         function insert(row, column, text) {
             session.insert({row: row, column: column}, text);
 
@@ -930,7 +927,7 @@ module.exports = {
             }
         }
 
-        tryAddFold("foo", new Range(0, 13, 0, 17), true);
+        tryAddFold("foo", new Range(0, 13, 0, 17), false);
         tryAddFold("foo", new Range(0, 14, 0, 18), true);
         tryAddFold("foo", new Range(0, 13, 0, 18), false);
         assert.equal(session.$foldData[0].folds.length, 1);
@@ -940,9 +937,9 @@ module.exports = {
         assert.equal(session.$foldData[0].folds.length, 2);
         session.removeFold(fold);
 
-        tryAddFold("foo", new Range(0, 18, 0, 22), true);
+        tryAddFold("foo", new Range(0, 18, 0, 22), false);
         tryAddFold("foo", new Range(0, 18, 0, 19), true);
-        tryAddFold("foo", new Range(0, 22, 1, 10), true);
+        tryAddFold("foo", new Range(0, 22, 1, 10), false);
     },
 
     "test add subfolds": function() {
@@ -972,6 +969,12 @@ module.exports = {
         assert.equal(foldData[0].folds.length, 1);
         assert.equal(foldData[0].folds[0], oldFold);
         assert.equal(fold.subFolds.length, 0);
+
+        session.unfold(null, true);
+        fold = session.addFold("fold0", new Range(0, 0, 0, 21));
+        session.addFold("fold0", new Range(0, 1, 0, 5));
+        session.addFold("fold0", new Range(0, 6, 0, 8));
+        assert.equal(fold.subFolds.length, 2);
     }
 };
 

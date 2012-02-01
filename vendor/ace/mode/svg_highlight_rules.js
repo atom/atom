@@ -36,47 +36,33 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
 var XmlHighlightRules = require("./xml_highlight_rules").XmlHighlightRules;
+var xmlUtil = require("./xml_util");
 
 var SvgHighlightRules = function() {
     XmlHighlightRules.call(this);
 
     this.$rules.start.splice(3, 0, {
-        token : "text",
+        token : "meta.tag",
         regex : "<(?=\s*script)",
         next : "script"
     });
-    this.$rules.script = [{
-        token : "text",
-        regex : ">",
-        next : "js-start"
-    }, {
-        token : "keyword",
-        regex : "[-_a-zA-Z0-9:]+"
-    }, {
-        token : "text",
-        regex : "\\s+"
-    }, {
-        token : "string",
-        regex : '".*?"'
-    }, {
-        token : "string",
-        regex : "'.*?'"
-    }];
+    
+    xmlUtil.tag(this.$rules, "script", "js-start");
     
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
         next: "tag"
     }, {
-        token: "text",
+        token: "meta.tag",
         regex: "<\\/(?=script)",
         next: "tag"
     }]);
-
 };
 
 oop.inherits(SvgHighlightRules, XmlHighlightRules);

@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var JavaScriptMode = require("./javascript").Mode;
 var assert = require("../test/assertions");

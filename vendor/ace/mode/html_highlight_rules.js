@@ -36,84 +36,20 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var CssHighlightRules = require("./css_highlight_rules").CssHighlightRules;
 var JavaScriptHighlightRules = require("./javascript_highlight_rules").JavaScriptHighlightRules;
+var xmlUtil = require("./xml_util");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var HtmlHighlightRules = function() {
 
     // regexp must not have capturing parentheses
     // regexps are ordered -> the first match is used
-    function string(state) {
-        return [{
-            token : "string",
-            regex : '".*?"'
-        }, {
-            token : "string", // multi line string start
-            merge : true,
-            regex : '["].*$',
-            next : state + "-qqstring"
-        }, {
-            token : "string",
-            regex : "'.*?'"
-        }, {
-            token : "string", // multi line string start
-            merge : true,
-            regex : "['].*$",
-            next : state + "-qstring"
-        }]
-    }
-    
-    function multiLineString(quote, state) {
-        return [{
-            token : "string",
-            merge : true,
-            regex : ".*" + quote,
-            next : state
-        }, {
-            token : "string",
-            merge : true,
-            regex : '.+'
-        }]
-    }
-    
-    function tag(states, name, nextState) {
-        states[name] = [{
-            token : "text",
-            regex : "\\s+"
-        }, {
-            token : "meta.tag",
-            regex : "[-_a-zA-Z0-9:]+",
-            next : name + "embed-attribute-list" 
-        }, {
-            token: "empty",
-            regex: "",
-            next : name + "embed-attribute-list"
-        }];
-
-        states[name + "-qstring"] = multiLineString("'", name);
-        states[name + "-qqstring"] = multiLineString("\"", name);
-        
-        states[name + "embed-attribute-list"] = [{
-            token : "text",
-            regex : ">",
-            next : nextState
-        }, {
-            token : "entity.other.attribute-name",
-            regex : "[-_a-zA-Z0-9:]+"
-        }, {
-            token : "constant.numeric", // float
-            regex : "[+-]?\\d+(?:(?:\\.\\d*)?(?:[eE][+-]?\\d+)?)?\\b"
-        }, {
-            token : "text",
-            regex : "\\s+"
-        }].concat(string(name));
-    };
-
     this.$rules = {
-        start : [ {
+        start : [{
             token : "text",
             merge : true,
             regex : "<\\!\\[CDATA\\[",
@@ -127,15 +63,15 @@ var HtmlHighlightRules = function() {
             regex : "<\\!--",
             next : "comment"
         }, {
-            token : "text",
-            regex : "<(?=\s*script)",
+            token : "meta.tag",
+            regex : "<(?=\s*script\\b)",
             next : "script"
         }, {
-            token : "text",
-            regex : "<(?=\s*style)",
-            next : "css"
+            token : "meta.tag",
+            regex : "<(?=\s*style\\b)",
+            next : "style"
         }, {
-            token : "text", // opening tag
+            token : "meta.tag", // opening tag
             regex : "<\\/?",
             next : "tag"
         }, {
@@ -171,22 +107,22 @@ var HtmlHighlightRules = function() {
         } ]
     };
     
-    tag(this.$rules, "tag", "start");
-    tag(this.$rules, "css", "css-start");
-    tag(this.$rules, "script", "js-start");
+    xmlUtil.tag(this.$rules, "tag", "start");
+    xmlUtil.tag(this.$rules, "style", "css-start");
+    xmlUtil.tag(this.$rules, "script", "js-start");
     
     this.embedRules(JavaScriptHighlightRules, "js-", [{
         token: "comment",
         regex: "\\/\\/.*(?=<\\/script>)",
         next: "tag"
     }, {
-        token: "text",
+        token: "meta.tag",
         regex: "<\\/(?=script)",
         next: "tag"
     }]);
     
     this.embedRules(CssHighlightRules, "css-", [{
-        token: "text",
+        token: "meta.tag",
         regex: "<\\/(?=style)",
         next: "tag"
     }]);

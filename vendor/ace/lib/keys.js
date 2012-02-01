@@ -32,6 +32,7 @@ For more information about SproutCore, visit http://www.sproutcore.com
 // Most of the following code is taken from SproutCore with a few changes.
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("./oop");
 

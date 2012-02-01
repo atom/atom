@@ -41,7 +41,8 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
-    
+"use strict";
+
 var assert = require("../test/assertions");
 var EditSession = require("../edit_session").EditSession;
 var TextLayer = require("./text").Text;
