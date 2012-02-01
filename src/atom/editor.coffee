@@ -15,11 +15,13 @@ class Editor extends Template
       @input class: 'hidden-input', outlet: 'hiddenInput'
 
   viewProperties:
+    vScrollMargin: 2
+    hScrollMargin: 10
     cursor: null
     buffer: null
     selection: null
-    vScrollMargin: 2
-    hScrollMargin: 10
+    lineHeight: null
+    charWidth: null
 
     initialize: () ->
       requireStylesheet 'editor.css'

@@ -15,38 +15,15 @@ describe "Editor", ->
     editor.enableKeymap()
     editor.setBuffer(buffer)
 
-  describe ".setBuffer", ->
-    it "creates a pre element for each line in the buffer, with the html-escaped text of the line", ->
+  describe "text rendering", ->
+    it "creates a pre element for each line in the buffer with the html-escaped text of the line", ->
       expect(editor.lines.find('pre').length).toEqual(buffer.numLines())
       expect(buffer.getLine(2)).toContain('<')
       expect(editor.lines.find('pre:eq(2)').html()).toContain '&lt;'
 
-    it "renders a non-breaking space for empty lines", ->
+      # renders empty lines with a non breaking space
       expect(buffer.getLine(10)).toBe ''
       expect(editor.lines.find('pre:eq(10)').html()).toBe '&nbsp;'
-
-    it "sets the cursor to the beginning of the file", ->
-      expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
-
-  describe "when the editor is attached to the dom", ->
-    it "updates the pixel position of the cursor", ->
-      editor.setCursorPosition(row: 2, column: 2)
-
-      editor.attachToDom()
-
-      expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
-      expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
-
-    it "is focused", ->
-      editor.attachToDom()
-      expect(editor).toMatchSelector ":has(:focus)"
-
-  describe "when the editor is focused", ->
-    it "focuses the hidden input", ->
-      editor.attachToDom()
-      editor.focus()
-      expect(editor).not.toMatchSelector ':focus'
-      expect(editor.hiddenInput).toMatchSelector ':focus'
 
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->
@@ -280,7 +257,7 @@ describe "Editor", ->
 
         expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
 
-  describe "selection bindings", ->
+  describe "selection", ->
     selection = null
 
     beforeEach ->
@@ -374,129 +351,158 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
 
-  describe "when text input events are triggered on the hidden input element", ->
-    describe "when there is no selection", ->
-      it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
-        editor.setCursorPosition(row: 1, column: 6)
+  describe "buffer manipulation", ->
+    describe "when text input events are triggered on the hidden input element", ->
+      describe "when there is no selection", ->
+        it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
+          editor.setCursorPosition(row: 1, column: 6)
 
-        expect(editor.getCurrentLine().charAt(6)).not.toBe 'q'
+          expect(editor.getCurrentLine().charAt(6)).not.toBe 'q'
 
-        editor.hiddenInput.textInput 'q'
+          editor.hiddenInput.textInput 'q'
 
-        expect(editor.getCurrentLine().charAt(6)).toBe 'q'
-        expect(editor.getCursorPosition()).toEqual(row: 1, column: 7)
-        expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
+          expect(editor.getCurrentLine().charAt(6)).toBe 'q'
+          expect(editor.getCursorPosition()).toEqual(row: 1, column: 7)
+          expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
 
-    describe "when there is a selection", ->
-      it "replaces the selected text with the typed text", ->
-        editor.selection.setRange(new Range([1, 6], [2, 4]))
-        editor.hiddenInput.textInput 'q'
-        expect(buffer.getLine(1)).toBe '  var qif (items.length <= 1) return items;'
+      describe "when there is a selection", ->
+        it "replaces the selected text with the typed text", ->
+          editor.selection.setRange(new Range([1, 6], [2, 4]))
+          editor.hiddenInput.textInput 'q'
+          expect(buffer.getLine(1)).toBe '  var qif (items.length <= 1) return items;'
 
-  describe "when return is pressed", ->
-    describe "when the cursor is at the beginning of a line", ->
-      it "inserts an empty line before it", ->
-        editor.setCursorPosition(row: 1, column: 0)
+    describe "when return is pressed", ->
+      describe "when the cursor is at the beginning of a line", ->
+        it "inserts an empty line before it", ->
+          editor.setCursorPosition(row: 1, column: 0)
 
-        editor.trigger keydownEvent('enter')
+          editor.trigger keydownEvent('enter')
 
-        expect(editor.lines.find('pre:eq(1)')).toHaveHtml '&nbsp;'
-        expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+          expect(editor.lines.find('pre:eq(1)')).toHaveHtml '&nbsp;'
+          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
 
-    describe "when the cursor is in the middle of a line", ->
-      it "splits the current line to form a new line", ->
-        editor.setCursorPosition(row: 1, column: 6)
+      describe "when the cursor is in the middle of a line", ->
+        it "splits the current line to form a new line", ->
+          editor.setCursorPosition(row: 1, column: 6)
 
-        originalLine = editor.lines.find('pre:eq(1)').text()
-        lineBelowOriginalLine = editor.lines.find('pre:eq(2)').text()
-        editor.trigger keydownEvent('enter')
+          originalLine = editor.lines.find('pre:eq(1)').text()
+          lineBelowOriginalLine = editor.lines.find('pre:eq(2)').text()
+          editor.trigger keydownEvent('enter')
 
-        expect(editor.lines.find('pre:eq(1)')).toHaveText originalLine[0...6]
-        expect(editor.lines.find('pre:eq(2)')).toHaveText originalLine[6..]
-        expect(editor.lines.find('pre:eq(3)')).toHaveText lineBelowOriginalLine
-        expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+          expect(editor.lines.find('pre:eq(1)')).toHaveText originalLine[0...6]
+          expect(editor.lines.find('pre:eq(2)')).toHaveText originalLine[6..]
+          expect(editor.lines.find('pre:eq(3)')).toHaveText lineBelowOriginalLine
+          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
 
-    describe "when the cursor is on the end of a line", ->
-      it "inserts an empty line after it", ->
-        editor.setCursorPosition(row: 1, column: buffer.getLine(1).length)
+      describe "when the cursor is on the end of a line", ->
+        it "inserts an empty line after it", ->
+          editor.setCursorPosition(row: 1, column: buffer.getLine(1).length)
 
-        editor.trigger keydownEvent('enter')
+          editor.trigger keydownEvent('enter')
 
-        expect(editor.lines.find('pre:eq(2)')).toHaveHtml '&nbsp;'
-        expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+          expect(editor.lines.find('pre:eq(2)')).toHaveHtml '&nbsp;'
+          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
 
-  describe "when backspace is pressed", ->
-    describe "when the cursor is on the middle of the line", ->
-      it "removes the character before the cursor", ->
-        editor.setCursorPosition(row: 1, column: 7)
-        expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
+    describe "when backspace is pressed", ->
+      describe "when the cursor is on the middle of the line", ->
+        it "removes the character before the cursor", ->
+          editor.setCursorPosition(row: 1, column: 7)
+          expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
 
-        editor.trigger keydownEvent('backspace')
+          editor.trigger keydownEvent('backspace')
 
-        line = buffer.getLine(1)
-        expect(line).toBe "  var ort = function(items) {"
-        expect(editor.lines.find('pre:eq(1)')).toHaveText line
-        expect(editor.getCursorPosition()).toEqual {row: 1, column: 6}
+          line = buffer.getLine(1)
+          expect(line).toBe "  var ort = function(items) {"
+          expect(editor.lines.find('pre:eq(1)')).toHaveText line
+          expect(editor.getCursorPosition()).toEqual {row: 1, column: 6}
 
-    describe "when the cursor is at the beginning of a line", ->
-      it "joins it with the line above", ->
-        originalLine0 = buffer.getLine(0)
-        expect(originalLine0).toBe "var quicksort = function () {"
-        expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
+      describe "when the cursor is at the beginning of a line", ->
+        it "joins it with the line above", ->
+          originalLine0 = buffer.getLine(0)
+          expect(originalLine0).toBe "var quicksort = function () {"
+          expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
 
-        editor.setCursorPosition(row: 1, column: 0)
-        editor.trigger keydownEvent('backspace')
+          editor.setCursorPosition(row: 1, column: 0)
+          editor.trigger keydownEvent('backspace')
 
-        line0 = buffer.getLine(0)
-        line1 = buffer.getLine(1)
-        expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
-        expect(line1).toBe "    if (items.length <= 1) return items;"
+          line0 = buffer.getLine(0)
+          line1 = buffer.getLine(1)
+          expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
+          expect(line1).toBe "    if (items.length <= 1) return items;"
 
-        expect(editor.lines.find('pre:eq(0)')).toHaveText line0
-        expect(editor.lines.find('pre:eq(1)')).toHaveText line1
-        expect(editor.getCursorPosition()).toEqual {row: 0, column: originalLine0.length}
+          expect(editor.lines.find('pre:eq(0)')).toHaveText line0
+          expect(editor.lines.find('pre:eq(1)')).toHaveText line1
+          expect(editor.getCursorPosition()).toEqual {row: 0, column: originalLine0.length}
 
-    describe "when the cursor is at the first column of the first line", ->
-      it "does nothing, but doesn't raise an error", ->
-        editor.setCursorPosition(row: 0, column: 0)
-        editor.trigger keydownEvent('backspace')
+      describe "when the cursor is at the first column of the first line", ->
+        it "does nothing, but doesn't raise an error", ->
+          editor.setCursorPosition(row: 0, column: 0)
+          editor.trigger keydownEvent('backspace')
 
-    describe "when there is a selection", ->
-      it "deletes the selection, but not the character before it", ->
-        editor.selection.setRange(new Range([0,5], [0,9]))
-        editor.trigger keydownEvent('backspace')
-        expect(editor.buffer.getLine(0)).toBe 'var qsort = function () {'
+      describe "when there is a selection", ->
+        it "deletes the selection, but not the character before it", ->
+          editor.selection.setRange(new Range([0,5], [0,9]))
+          editor.trigger keydownEvent('backspace')
+          expect(editor.buffer.getLine(0)).toBe 'var qsort = function () {'
 
-  describe "when delete is pressed", ->
-    describe "when the cursor is on the middle of a line", ->
-      it "deletes the character following the cursor", ->
-        editor.setCursorPosition([1, 6])
-        editor.trigger keydownEvent('delete')
-        expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
+    describe "when delete is pressed", ->
+      describe "when the cursor is on the middle of a line", ->
+        it "deletes the character following the cursor", ->
+          editor.setCursorPosition([1, 6])
+          editor.trigger keydownEvent('delete')
+          expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
 
-    describe "when the cursor is on the end of a line", ->
-      it "joins the line with the following line", ->
-        editor.setCursorPosition([1, buffer.getLine(1).length])
-        editor.trigger keydownEvent('delete')
-        expect(buffer.getLine(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
+      describe "when the cursor is on the end of a line", ->
+        it "joins the line with the following line", ->
+          editor.setCursorPosition([1, buffer.getLine(1).length])
+          editor.trigger keydownEvent('delete')
+          expect(buffer.getLine(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
-    describe "when there is a selection", ->
-      it "deletes the selection, but not the character following it", ->
-        editor.selection.setRange(new Range([1,6], [1,8]))
-        editor.trigger keydownEvent 'delete'
-        expect(buffer.getLine(1)).toBe '  var rt = function(items) {'
+      describe "when there is a selection", ->
+        it "deletes the selection, but not the character following it", ->
+          editor.selection.setRange(new Range([1,6], [1,8]))
+          editor.trigger keydownEvent 'delete'
+          expect(buffer.getLine(1)).toBe '  var rt = function(items) {'
 
-    describe "when the cursor is on the last column of the last line", ->
-      it "does nothing, but doesn't raise an error", ->
-        editor.setCursorPosition([12, buffer.getLine(12).length])
-        editor.trigger keydownEvent('delete')
-        expect(buffer.getLine(12)).toBe '};'
+      describe "when the cursor is on the last column of the last line", ->
+        it "does nothing, but doesn't raise an error", ->
+          editor.setCursorPosition([12, buffer.getLine(12).length])
+          editor.trigger keydownEvent('delete')
+          expect(buffer.getLine(12)).toBe '};'
 
-  describe "when multiple lines are removed from the buffer (regression)", ->
-    it "removes all of them from the dom", ->
-      buffer.change(new Range([6, 24], [12, 0]), '')
-      expect(editor.find('.line').length).toBe 7
-      expect(editor.find('.line:eq(6)').text()).toBe(buffer.getLine(6))
+    describe "when multiple lines are removed from the buffer (regression)", ->
+      it "removes all of them from the dom", ->
+        buffer.change(new Range([6, 24], [12, 0]), '')
+        expect(editor.find('.line').length).toBe 7
+        expect(editor.find('.line:eq(6)').text()).toBe(buffer.getLine(6))
+
+  describe "when the editor is attached to the dom", ->
+    it "calculates line height and char width and updates the pixel position of the cursor", ->
+      expect(editor.lineHeight).toBeNull()
+      expect(editor.charWidth).toBeNull()
+      editor.setCursorPosition(row: 2, column: 2)
+
+      editor.attachToDom()
+
+      expect(editor.lineHeight).not.toBeNull()
+      expect(editor.charWidth).not.toBeNull()
+      expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
+      expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
+
+    it "is focused", ->
+      editor.attachToDom()
+      expect(editor).toMatchSelector ":has(:focus)"
+
+  describe "when the editor is focused", ->
+    it "focuses the hidden input", ->
+      editor.attachToDom()
+      editor.focus()
+      expect(editor).not.toMatchSelector ':focus'
+      expect(editor.hiddenInput).toMatchSelector ':focus'
+
+  describe ".setBuffer(buffer)", ->
+    it "sets the cursor to the beginning of the file", ->
+      expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
 
   describe ".clipPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
@@ -504,7 +510,5 @@ describe "Editor", ->
       expect(editor.clipPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
       expect(editor.clipPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.getLine(1).length)
       expect(editor.clipPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
-
-
 
 
