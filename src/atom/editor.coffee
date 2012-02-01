@@ -3,6 +3,7 @@ Buffer = require 'buffer'
 Point = require 'point'
 Cursor = require 'cursor'
 Selection = require 'selection'
+Range = require 'range'
 $ = require 'jquery'
 $$ = require 'template/builder'
 _ = require 'underscore'
@@ -41,8 +42,8 @@ class Editor extends Template
         'shift-up': 'select-up'
         'shift-down': 'select-down'
         enter: 'newline'
-        backspace: 'backspace'
-        delete: 'delete'
+        backspace: 'delete-left'
+        delete: 'delete-right'
         'meta-c': 'copy'
 
       @on 'move-right', => @moveCursorRight()
@@ -54,8 +55,8 @@ class Editor extends Template
       @on 'select-up', => @selectUp()
       @on 'select-down', => @selectDown()
       @on 'newline', =>  @insertNewline()
-      @on 'backspace', => @backspace()
-      @on 'delete', => @delete()
+      @on 'delete-left', => @deleteLeft()
+      @on 'delete-right', => @deleteRight()
       @on 'copy', => @copySelection()
 
 
@@ -191,11 +192,18 @@ class Editor extends Template
     selectLeft: -> @selection.selectLeft()
     selectUp: -> @selection.selectUp()
     selectDown: -> @selection.selectDown()
-    selectToPosition: (position) -> @selection.selectToPosition(position)
+    selectToPosition: (position) ->
+      @selection.selectToPosition(position)
 
     insertText: (text) -> @selection.insertText(text)
     insertNewline: -> @selection.insertNewline()
-    backspace: -> @selection.backspace()
-    delete: -> @selection.delete()
     copySelection: -> @selection.copy()
+
+    deleteLeft: ->
+      @selectLeft() if @selection.isEmpty()
+      @selection.delete()
+
+    deleteRight: ->
+      @selectRight() if @selection.isEmpty()
+      @selection.delete()
 
