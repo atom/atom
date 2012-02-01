@@ -14,7 +14,10 @@ class Point
   constructor: (@row, @column) ->
 
   isEqual: (other) ->
-    @row == other.row && @column == other.column
+    if other instanceof Array
+      @row == other[0] and @column == other[1]
+    else
+      @row == other.row and @column == other.column
 
   compare: (other) ->
     if @row > other.row
