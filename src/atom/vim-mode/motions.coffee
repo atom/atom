@@ -48,8 +48,10 @@ class MoveToNextWord extends Motion
 
     if match
       column += match.index
+    else if row + 1 == @editor.buffer.numLines()
+      column = @editor.buffer.getLine(row).length
     else
-      nextLineMatch = regex.exec(@editor.getLineText(++row))
+      nextLineMatch = regex.exec(@editor.buffer.getLine(++row))
       column = nextLineMatch?.index or 0
     { row, column }
 
