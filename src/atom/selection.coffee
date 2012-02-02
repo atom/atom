@@ -81,31 +81,9 @@ class Selection extends Template
     insertNewline: ->
       @insertText('\n')
 
-    backspace: ->
-      range = @getRange()
-
-      if range.isEmpty()
-        if range.start.column == 0
-          return if range.start.row == 0
-          range.start.column = @editor.buffer.getLine(range.start.row - 1).length
-          range.start.row--
-        else
-          range.start.column--
-
-      @editor.buffer.change(range, '')
-
     delete: ->
       range = @getRange()
-
-      if range.isEmpty()
-        if range.end.column == @editor.buffer.getLine(range.end.row).length
-          return if range.end.row == @editor.buffer.numLines() - 1
-          range.end.column = 0
-          range.end.row++
-        else
-          range.end.column++
-
-      @editor.buffer.change(range, '')
+      @editor.buffer.change(range, '') unless range.isEmpty()
 
     isEmpty: ->
       @getRange().isEmpty()

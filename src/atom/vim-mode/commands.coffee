@@ -2,9 +2,9 @@ class Command
   constructor: (@editor) ->
   isComplete: -> true
 
-class DeleteChar extends Command
+class DeleteRight extends Command
   execute: ->
-    @editor.deleteChar()
+    @editor.deleteRight()
 
-module.exports = { DeleteChar }
+module.exports = { DeleteRight }
 
