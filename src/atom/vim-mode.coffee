@@ -28,7 +28,7 @@ class VimMode
     @bindCommandModeKeys
       'i': 'insert'
       'd': 'delete'
-      'x': 'delete-char'
+      'x': 'delete-right'
       'h': 'move-left'
       'j': 'move-down'
       'k': 'move-up'
@@ -38,7 +38,7 @@ class VimMode
     @handleCommands
       'insert': => @activateInsertMode()
       'delete': => @delete()
-      'delete-char': => new commands.DeleteChar(@editor)
+      'delete-right': => new commands.DeleteRight(@editor)
       'move-left': => new motions.MoveLeft(@editor)
       'move-up': => new motions.MoveUp(@editor)
       'move-down': => new motions.MoveDown @editor
@@ -101,4 +101,3 @@ class VimMode
 
   topOperator: ->
     _.last @opStack
-
