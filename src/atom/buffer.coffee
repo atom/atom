@@ -8,6 +8,7 @@ class Buffer
 
   constructor: (@path) ->
     @url = @path # we want this to be path on master, but let's not break it on a branch
+    @lines = ['']
     if @path and fs.exists(@path)
       @setText(fs.read(@path))
     else
@@ -17,7 +18,10 @@ class Buffer
     @lines.join('\n')
 
   setText: (text) ->
-    @lines = text.split('\n')
+    @change(@getRange(), text)
+
+  getRange: ->
+    new Range([0, 0], [@lastRow(), @lastLine().length])
 
   getTextInRange: (range) ->
     if range.start.row == range.end.row
@@ -39,6 +43,15 @@ class Buffer
 
   insert: (point, text) ->
     @change(new Range(point, point), text)
+
+  numLines: ->
+    @getLines().length
+
+  lastRow: ->
+    @getLines().length - 1
+
+  lastLine: ->
+    @getLine(@lastRow())
 
   change: (preRange, newText) ->
     postRange = new Range(_.clone(preRange.start), _.clone(preRange.start))
@@ -67,12 +80,6 @@ class Buffer
 
     @lines[preRange.start.row..preRange.end.row] = linesToInsert
     @trigger 'change', { preRange, postRange, string: newText }
-
-  numLines: ->
-    @getLines().length
-
-  lastRow: ->
-    @numLines() - 1
 
   save: ->
     if not @path then throw new Error("Tried to save buffer with no url")
