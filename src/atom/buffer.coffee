@@ -37,6 +37,9 @@ class Buffer
   getLine: (row) ->
     @lines[row]
 
+  insert: (point, text) ->
+    @change(new Range(point, point), text)
+
   change: (preRange, newText) ->
     postRange = new Range(_.clone(preRange.start), _.clone(preRange.start))
     prefix = @lines[preRange.start.row][0...preRange.start.column]
@@ -63,7 +66,6 @@ class Buffer
               line
 
     @lines[preRange.start.row..preRange.end.row] = linesToInsert
-
     @trigger 'change', { preRange, postRange, string: newText }
 
   numLines: ->

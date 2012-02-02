@@ -15,16 +15,7 @@ describe "Highlighter", ->
       expect(highlighter.tokensForRow(11)[1]).toEqual(type: 'keyword', value: 'return')
 
   describe "when the buffer changes", ->
-    describe "when a single line is changed", ->
-      it "updates tokens for the changed line", ->
-        expect(highlighter.tokensForRow(0)[0]).toEqual(type: 'keyword.definition', value: 'var')
-        buffer.change(new Range([0, 0], [0, 4]), '')
-        expect(highlighter.tokensForRow(0)[0]).toEqual(type: 'identifier', value: 'quicksort')
-
-      it "preserves the scanning state when tokenizing the changed line"
-        # change the second line of a multi line comment and make sure it's still recognized as such
-
-    describe "when multiple lines are updated, but none are added or removed", ->
+    describe "when lines are updated, but none are added or removed", ->
       it "updates tokens for each of the changed lines", ->
         buffer.change(new Range([0, 0], [2, 0]), "foo()\nbar()\n")
 
@@ -33,6 +24,13 @@ describe "Highlighter", ->
 
         # line 2 is unchanged
         expect(highlighter.tokensForRow(2)[1]).toEqual(type: 'keyword', value: 'if')
+
+      it "updates tokens for lines beyond the changed lines if needed", ->
+        buffer.insert([5, 30], '/* */')
+        buffer.insert([2, 0], '/*')
+        expect(highlighter.tokensForRow(3)[0].type).toBe 'comment'
+        expect(highlighter.tokensForRow(4)[0].type).toBe 'comment'
+        expect(highlighter.tokensForRow(5)[0].type).toBe 'comment'
 
     describe "when lines are both updated and removed", ->
       it "updates tokens to reflect the removed lines", ->
