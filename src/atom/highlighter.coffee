@@ -2,24 +2,29 @@ module.exports =
 class Highlighter
   buffer: null
   tokenizer: null
-  lineTokens: []
+  tokensByRow: []
 
   constructor: (@buffer) ->
     @buildTokenizer()
-    @tokenizeLines()
+    @tokensByRow = @tokenizeRows('start', 0, @buffer.lastRow())
+
+    @buffer.on 'change', (e) =>
+      { preRange, postRange } = e
+      postRangeTokens = @tokenizeRows('start', postRange.start.row, postRange.end.row)
+      @tokensByRow[preRange.start.row..preRange.end.row] = postRangeTokens
 
   buildTokenizer: ->
     Mode = require("ace/mode/#{@buffer.modeName()}").Mode
     @tokenizer = (new Mode).getTokenizer()
 
-  tokenizeLines: ->
-    @lineTokens = []
+  tokenizeRows: (state, start, end) ->
+    for row in [start..end]
+      { state, tokens } = @tokenizeRow(state, row)
+      tokens
 
-    state = "start"
-    for line in @buffer.getLines()
-      { state, tokens } = @tokenizer.getLineTokens(line, state)
-      @lineTokens.push tokens
+  tokenizeRow: (state, row) ->
+    @tokenizer.getLineTokens(@buffer.getLine(row), state)
 
-  tokensForLine: (row) ->
-    @lineTokens[row]
+  tokensForRow: (row) ->
+    @tokensByRow[row]
 

@@ -91,7 +91,7 @@ class Editor extends Template
         @focus()
 
     buildLineElement: (row) ->
-      tokens = @highlighter.tokensForLine(row)
+      tokens = @highlighter.tokensForRow(row)
       $$.pre class: 'line', ->
         if tokens.length
           for token in tokens
