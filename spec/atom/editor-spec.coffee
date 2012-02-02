@@ -512,7 +512,7 @@ describe "Editor", ->
       expect(editor.clipPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
 
   describe "cut, copy & paste", ->
-    describe "when a past event is triggered", ->
+    describe "when a paste event is triggered", ->
       beforeEach ->
         atom.native.writeToPasteboard('first')
         expect(atom.native.readFromPasteboard()).toBe 'first'
