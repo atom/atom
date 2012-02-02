@@ -37,7 +37,7 @@ class Delete
   execute: ->
     if @motion
       @motion.select()
-      @editor.delete()
+      @editor.getSelection().delete()
     else
       @editor.deleteLine()
 
