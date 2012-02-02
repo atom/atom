@@ -41,9 +41,6 @@ class Buffer
   getLine: (row) ->
     @lines[row]
 
-  insert: (point, text) ->
-    @change(new Range(point, point), text)
-
   numLines: ->
     @getLines().length
 
@@ -52,6 +49,9 @@ class Buffer
 
   lastLine: ->
     @getLine(@lastRow())
+
+  insert: (point, text) ->
+    @change(new Range(point, point), text)
 
   change: (preRange, newText) ->
     postRange = new Range(_.clone(preRange.start), _.clone(preRange.start))
