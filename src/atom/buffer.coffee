@@ -1,4 +1,6 @@
+_ = require 'underscore'
 fs = require 'fs'
+Range = require 'range'
 
 module.exports =
 class Buffer
@@ -35,42 +37,34 @@ class Buffer
   getLine: (row) ->
     @lines[row]
 
-  change: (preRange, string) ->
-    @remove(preRange)
-    postRange = @insert(preRange.start, string)
-    @trigger 'change', { preRange, postRange, string }
+  change: (preRange, newText) ->
+    postRange = new Range(_.clone(preRange.start), _.clone(preRange.start))
+    prefix = @lines[preRange.start.row][0...preRange.start.column]
+    suffix = @lines[preRange.end.row][preRange.end.column..]
+    newTextLines = newText.split('\n')
 
-  remove: (range) ->
-    prefix = @lines[range.start.row][0...range.start.column]
-    suffix = @lines[range.end.row][range.end.column..]
-    @lines[range.start.row..range.end.row] = prefix + suffix
-
-  insert: ({row, column}, string) ->
-    postRange =
-      start: { row, column }
-      end: { row, column }
-
-    prefix = @lines[row][0...column]
-    suffix = @lines[row][column..]
-
-    lines = string.split('\n')
-
-    if lines.length == 1
-      @lines[row] = prefix + string + suffix
-      postRange.end.column += string.length
+    if newTextLines.length == 1
+      postRange.end.column += newText.length
+      linesToInsert = [prefix + newText + suffix]
     else
-      for line, i in lines
-        curRow = row + i
-        if i == 0 # replace first line
-          @lines[curRow] = prefix + line
-        else if i < lines.length - 1 # insert middle lines
-          @lines[curRow...curRow] = line
-        else # insert last line
-          @lines[curRow...curRow] = line + suffix
-          postRange.end.row = curRow
-          postRange.end.column = line.length
+      firstLineIndex = 0
+      lastLineIndex = newTextLines.length - 1
 
-    postRange
+      linesToInsert =
+        for line, i in newTextLines
+          switch i
+            when firstLineIndex
+              prefix + line
+            when lastLineIndex
+              postRange.end.row += i
+              postRange.end.column = line.length
+              line + suffix
+            else
+              line
+
+    @lines[preRange.start.row..preRange.end.row] = linesToInsert
+
+    @trigger 'change', { preRange, postRange, string: newText }
 
   numLines: ->
     @getLines().length
