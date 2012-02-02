@@ -19,20 +19,18 @@ class Highlighter
     { preRange, postRange } = e
 
     previousState = @lines[preRange.end.row].state
-
     newLines = @tokenizeRows('start', postRange.start.row, postRange.end.row)
     @lines[preRange.start.row..preRange.end.row] = newLines
 
-    row = postRange.end.row + 1
-    state = _.last(newLines).state
-    until state == previousState
-      previousState = @lines[row].state
-      @lines[row] = line = @tokenizeRow(state, row)
-      { state } = line
-      row++
+    for row in [postRange.end.row...@buffer.lastRow()]
+      break if @lines[row].state == previousState
+      nextRow = row + 1
+      previousState = @lines[nextRow].state
+      @lines[nextRow] = @tokenizeRow(@lines[row].state, nextRow)
 
-  tokenizeRows: (state, start, end) ->
-    for row in [start..end]
+  tokenizeRows: (startState, startRow, endRow) ->
+    state = startState
+    for row in [startRow..endRow]
       line = @tokenizeRow(state, row)
       state = line.state
       line
