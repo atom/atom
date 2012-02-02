@@ -129,7 +129,7 @@ class Editor extends Template
             else
               @updateLineElement(row)
 
-        @selection.bufferChanged(e)
+        @cursor.bufferChanged(e)
 
     updateLineElement: (row) ->
       line = @buffer.getLine(row)
