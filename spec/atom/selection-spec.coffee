@@ -125,16 +125,16 @@ describe "Selection", ->
 
     it "places selected text on the clipboard", ->
       selection.setRange new Range([0,4], [0,13])
-      editor.trigger "copy"
+      selection.copy()
       expect(atom.native.readFromPasteboard()).toBe 'quicksort'
 
       selection.setRange new Range([0,4], [3,13])
-      editor.trigger "copy"
+      selection.copy()
       expect(atom.native.readFromPasteboard()).toBe "quicksort = function () {\n  var sort = function(items) {\n    if (items.length <= 1) return items;\n    var pivot"
 
     it "places nothing on the clipboard when there is no selection", ->
       selection.setRange new Range([0,4], [0,4])
-      editor.trigger "copy"
+      selection.copy()
       expect(atom.native.readFromPasteboard()).toBe 'first'
 
 

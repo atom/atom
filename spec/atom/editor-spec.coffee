@@ -511,4 +511,14 @@ describe "Editor", ->
       expect(editor.clipPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.getLine(1).length)
       expect(editor.clipPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
 
+  describe "cut, copy & paste", ->
+    describe "when a copy event is triggered", ->
+      beforeEach ->
+        editor.getSelection().setRange new Range([0,4], [0, 13])
+        atom.native.writeToPasteboard('first')
+        expect(atom.native.readFromPasteboard()).toBe 'first'
+
+      it "copies selected text onto the clipboard", ->
+        editor.trigger "copy"
+        expect(atom.native.readFromPasteboard()).toBe 'quicksort'
 
