@@ -253,6 +253,14 @@ describe "Editor", ->
         editor.lines.trigger mousedownEvent({pageX, pageY})
         expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
 
+    describe "when doubleclick occurs in the editor", ->
+      it "selects the word under the cursor", ->
+        editor.attachToDom()
+        expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
+        editor.lines.trigger mouseupEvent({pageX, pageY, originalEvent: {detail: 2}})
+        expect(editor.getSelectedText()).toBe "quicksort"
+
   describe "selection", ->
     selection = null
 

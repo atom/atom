@@ -35,6 +35,9 @@ window.clickEvent = (properties={}) ->
 window.mousedownEvent = (properties={}) ->
   $.Event "mousedown", properties
 
+window.mouseupEvent = (properties={}) ->
+  $.Event "mouseup", properties
+
 window.mousemoveEvent = (properties={}) ->
   $.Event "mousemove", properties
 

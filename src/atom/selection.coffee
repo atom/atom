@@ -75,6 +75,9 @@ class Selection extends Template
       @modifySelection =>
         @cursor.setPosition(range.end)
 
+    getText: ->
+      @editor.buffer.getTextInRange @getRange()
+
     insertText: (text) ->
       @editor.buffer.change(@getRange(), text)
 
@@ -98,6 +101,21 @@ class Selection extends Template
       return if @anchor
       cursorPosition = @cursor.getPosition()
       @anchor = { getPosition: -> cursorPosition }
+
+    selectWord: ->
+      row = @cursor.getRow()
+      column = @cursor.getColumn()
+
+      line = @editor.buffer.getLine(row)
+      leftSide = line[0...column].split('').reverse().join('') # reverse left side
+      rightSide = line[column..]
+
+      regex = /^\w*/
+      startOffset = -regex.exec(leftSide)?[0]?.length or 0
+      endOffset = regex.exec(rightSide)?[0]?.length or 0
+
+      range = new Range([row, column + startOffset], [row, column + endOffset])
+      @setRange range
 
     selectRight: ->
       @modifySelection =>

@@ -158,3 +158,33 @@ describe "Selection", ->
       selection.setRange new Range([0,4], [0,4])
       selection.copy()
       expect(atom.native.readFromPasteboard()).toBe 'first'
+
+  describe ".selectWord()", ->
+     describe "when the cursor is inside a word", ->
+       it "selects the entire word", ->
+         editor.setCursorPosition [0,8]
+         selection.selectWord()
+         expect(selection.getText()).toBe 'quicksort'
+
+     describe "when the cursor is on beginning of a word", ->
+       it "selects the entire word", ->
+         editor.setCursorPosition [0,4]
+         selection.selectWord()
+         expect(selection.getText()).toBe 'quicksort'
+
+     describe "when the cursor is at the end of a word", ->
+       it "selects the entire word", ->
+         editor.setCursorPosition [0,13]
+         selection.selectWord()
+         expect(selection.getText()).toBe 'quicksort'
+
+     describe "when the cursor is not on a word", ->
+       it "selects nothing", ->
+         editor.setCursorPosition [5,2]
+         selection.selectWord()
+         expect(selection.getText()).toBe ''
+
+
+
+
+

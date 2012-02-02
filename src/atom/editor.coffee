@@ -76,10 +76,16 @@ class Editor extends Template
         false
 
       @on 'mousedown', (e) =>
-        @setCursorPosition(@pointFromMouseEvent(e))
+        @setCursorPosition @pointFromMouseEvent(e)
         moveHandler = (e) => @selectToPosition(@pointFromMouseEvent(e))
         @on 'mousemove', moveHandler
         $(document).one 'mouseup', => @off 'mousemove', moveHandler
+
+      @on 'mouseup', (e) =>
+        clickCount = e.originalEvent.detail
+        if clickCount == 2
+          @setCursorPosition @pointFromMouseEvent(e)
+          @selection.selectWord()
 
       @hiddenInput.on "textInput", (e) =>
         @insertText(e.originalEvent.data)
@@ -182,6 +188,7 @@ class Editor extends Template
     getSelection: -> @selection
 
     getCurrentLine: -> @buffer.getLine(@getCursorRow())
+    getSelectedText: -> @selection.getText()
     moveCursorUp: -> @cursor.moveUp()
     moveCursorDown: -> @cursor.moveDown()
     moveCursorRight: -> @cursor.moveRight()
