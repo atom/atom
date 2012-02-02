@@ -175,8 +175,10 @@ class Editor extends Template
       else
         @scrollLeft() + @width()
 
+    getCursor: -> @cursor
+    getSelection: -> @selection
+
     getCurrentLine: -> @buffer.getLine(@getCursorRow())
-    getCursor: -> @selection.cursor
     moveCursorUp: -> @cursor.moveUp()
     moveCursorDown: -> @cursor.moveDown()
     moveCursorRight: -> @cursor.moveRight()
