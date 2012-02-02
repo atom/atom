@@ -102,6 +102,24 @@ describe 'Buffer', ->
           expect(buffer.getLine(3)).toBe "    var pivot = sort(Array.apply(this, arguments));"
           expect(buffer.getLine(4)).toBe "};"
 
+  describe ".setText(text)", ->
+    it "changes the entire contents of the buffer and emits a change event", ->
+      lastRow = buffer.lastRow()
+      expectedPreRange = new Range([0,0], [lastRow, buffer.getLine(lastRow).length])
+      changeHandler = jasmine.createSpy('changeHandler')
+      buffer.on 'change', changeHandler
+
+      newText = "I know you are.\nBut what am I?"
+      buffer.setText(newText)
+
+      expect(buffer.getText()).toBe newText
+      expect(changeHandler).toHaveBeenCalled()
+
+      [event] = changeHandler.argsForCall[0]
+      expect(event.string).toBe newText
+      expect(event.preRange).toEqual expectedPreRange
+      expect(event.postRange).toEqual(new Range([0, 0], [1, 14]))
+
   describe ".save()", ->
     describe "when the buffer has a path", ->
       filePath = null
