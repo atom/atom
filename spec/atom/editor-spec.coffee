@@ -247,14 +247,10 @@ describe "Editor", ->
     describe "when a mousedown event occurs in the editor", ->
       it "re-positions the cursor to the clicked row / column", ->
         editor.attachToDom()
-        editor.css(position: 'absolute', top: 10, left: 10)
-        pageX = editor.offset().left + 10 * editor.charWidth + 3
-        pageY = editor.offset().top + 4 * editor.lineHeight - 2
-
         expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
 
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [3, 10])
         editor.lines.trigger mousedownEvent({pageX, pageY})
-
         expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
 
   describe "selection", ->
@@ -321,16 +317,13 @@ describe "Editor", ->
     describe "when the mouse is dragged across the text", ->
       it "creates a selection from the initial click to mouse cursor's location ", ->
         editor.attachToDom()
-        editor.css(position: 'absolute', top: 10, left: 10)
 
         # start
-        pageX = editor.offset().left + 10 * editor.charWidth + 3
-        pageY = editor.offset().top + 4 * editor.lineHeight + 3
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 10])
         editor.lines.trigger mousedownEvent({pageX, pageY})
 
         # moving changes selection
-        pageX = editor.offset().left + 27 * editor.charWidth + 3
-        pageY = editor.offset().top + 5 * editor.lineHeight + 3
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [5, 27])
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
         range = editor.selection.getRange()
@@ -342,8 +335,7 @@ describe "Editor", ->
         $(document).trigger 'mouseup'
 
         # moving after mouse up should not change selection
-        pageX = editor.offset().left + 3 * editor.charWidth + 3
-        pageY = editor.offset().top + 8 * editor.lineHeight + 3
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 8])
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
         range = editor.selection.getRange()

@@ -3,6 +3,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 Native = require 'native'
 BindingSet = require 'binding-set'
+Point = require 'point'
 require 'window'
 window.showConsole()
 
@@ -62,6 +63,14 @@ window.advanceClock = (delta) ->
       false
     else
       true
+
+window.pixelPositionForPoint = (editor, point) ->
+  editor.css(position: 'absolute', top: 10, left: 10)
+
+  point = Point.fromObject point
+  pageY = editor.offset().top + point.row * editor.lineHeight + 1 # ensure the pixel is inside the char
+  pageX = editor.offset().left + point.column * editor.charWidth + 1 # ensure the pixel is inside the char
+  [pageX, pageY]
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)
