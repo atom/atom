@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var TokenIterator = require("../token_iterator").TokenIterator;
 
@@ -92,15 +93,15 @@ function BracketMatch() {
         while (true) {
         
             while (valueIndex >= 0) {
-                var char = value.charAt(valueIndex);
-                if (char == openBracket) {
+                var chr = value.charAt(valueIndex);
+                if (chr == openBracket) {
                     depth -= 1;
                     if (depth == 0) {
                         return {row: iterator.getCurrentTokenRow(),
                             column: valueIndex + iterator.getCurrentTokenColumn()};
                     }
                 }
-                else if (char == bracket) {
+                else if (chr == bracket) {
                     depth += 1;
                 }
                 valueIndex -= 1;
@@ -146,15 +147,15 @@ function BracketMatch() {
             var value = token.value;
             var valueLength = value.length;
             while (valueIndex < valueLength) {
-                var char = value.charAt(valueIndex);
-                if (char == closingBracket) {
+                var chr = value.charAt(valueIndex);
+                if (chr == closingBracket) {
                     depth -= 1;
                     if (depth == 0) {
                         return {row: iterator.getCurrentTokenRow(),
                             column: valueIndex + iterator.getCurrentTokenColumn()};
                     }
                 }
-                else if (char == bracket) {
+                else if (chr == bracket) {
                     depth += 1;
                 }
                 valueIndex += 1;

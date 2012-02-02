@@ -12,7 +12,7 @@
     margin-right: 3px;
 }
 
-.ace-row { clear: both; }
+.ace_line { clear: both; }
 
 *.ace_gutter-cell {
   -moz-user-select: -moz-none;

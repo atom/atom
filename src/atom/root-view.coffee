@@ -14,7 +14,6 @@ module.exports =
 class RootView extends Template
   content: ->
     @div id: 'app-horizontal', =>
-      @link rel: 'stylesheet', href: "#{require.resolve('atom.css')}?#{(new Date).getTime()}"
       @div id: 'app-vertical', outlet: 'vertical', =>
         @div id: 'main', outlet: 'main', =>
           @subview 'editor', Editor.build()
@@ -23,7 +22,6 @@ class RootView extends Template
     globalKeymap: null
 
     initialize: ({url}) ->
-      new VimMode(@editor)
       @editor.keyEventHandler = atom.globalKeymap
       @createProject(url)
 
@@ -31,11 +29,15 @@ class RootView extends Template
         'meta-s': 'save'
         'meta-w': 'close'
         'meta-t': 'toggle-file-finder'
+        'alt-meta-i': 'show-console'
 
       @on 'toggle-file-finder', => @toggleFileFinder()
+      @on 'show-console', -> window.showConsole()
 
       @on 'focusout', (e) =>
-        @editor.focus() unless e.target is @editor.find('textarea')[0]
+        # if anything but the editor and its input loses focus, restore focus to the editor
+        unless $(e.target).closest('.editor').length
+          @editor.focus()
 
     createProject: (url) ->
       if url

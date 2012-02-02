@@ -1,14 +1,15 @@
-body {
+.jasmine_reporter {
   font-family: "Helvetica Neue Light", "Lucida Grande", "Calibri", "Arial", sans-serif;
+  font-size: 16px;
 }
 
 
 .jasmine_reporter a:visited, .jasmine_reporter a {
-  color: #303; 
+  color: #303;
 }
 
 .jasmine_reporter a:hover, .jasmine_reporter a:active {
-  color: blue; 
+  color: blue;
 }
 
 .run_spec {
@@ -59,7 +60,7 @@ body {
 }
 
 .suite .suite {
-  margin: 5px; 
+  margin: 5px;
 }
 
 .suite.passed {

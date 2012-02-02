@@ -53,6 +53,7 @@ describe "Template", ->
       it "constructs and wires outlets for subviews", ->
         expect(view.subview).toExist()
         expect(view.subview.find('h2:contains(Subview)')).toExist()
+        expect(view.subview.parentView).toBe view
 
       it "does not overwrite outlets on the superview with outlets from the subviews", ->
         expect(view.header).toMatchSelector "h1"

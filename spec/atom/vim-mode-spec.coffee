@@ -38,136 +38,137 @@ describe "VimMode", ->
     describe "the x keybinding", ->
       it "deletes a charachter", ->
         editor.buffer.setText("12345")
-        editor.setPosition(column: 1, row: 0)
+        editor.setCursorPosition([0, 1])
 
         editor.trigger keydownEvent('x')
 
         expect(editor.buffer.getText()).toBe '1345'
-        expect(editor.getPosition()).toEqual(column: 1, row: 0)
+        expect(editor.getCursorPosition()).toEqual([0, 1])
 
     describe "the d keybinding", ->
       describe "when followed by a d", ->
         it "deletes the current line", ->
           editor.buffer.setText("12345\nabcde\nABCDE")
-          editor.setPosition(column: 1, row: 1)
+          editor.setCursorPosition([1,1])
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('d')
 
           expect(editor.buffer.getText()).toBe "12345\nABCDE"
-          expect(editor.getPosition()).toEqual(column: 0, row: 1)
+          expect(editor.getCursorPosition()).toEqual([1,0])
 
         describe "when the second d is prefixed by a count", ->
           it "deletes n lines, starting from the current", ->
             editor.buffer.setText("12345\nabcde\nABCDE\nQWERT")
-            editor.setPosition(column: 1, row: 1)
+            editor.setCursorPosition([1,1])
 
             editor.trigger keydownEvent('d')
             editor.trigger keydownEvent('2')
             editor.trigger keydownEvent('d')
 
             expect(editor.buffer.getText()).toBe "12345\nQWERT"
-            expect(editor.getPosition()).toEqual(column: 0, row: 1)
+            expect(editor.getCursorPosition()).toEqual([1,0])
 
       describe "when followed by an h", ->
         it "deletes the previous letter on the current line", ->
           editor.buffer.setText("abcd\n01234")
-          editor.setPosition(column: 1, row: 1)
+          editor.setCursorPosition([1,1])
 
           editor.trigger keydownEvent 'd'
           editor.trigger keydownEvent 'h'
 
           expect(editor.buffer.getText()).toBe "abcd\n1234"
-          expect(editor.getPosition()).toEqual {column: 0, row: 1}
+          expect(editor.getCursorPosition()).toEqual([1,0])
 
           editor.trigger keydownEvent 'd'
           editor.trigger keydownEvent 'h'
 
           expect(editor.buffer.getText()).toBe "abcd\n1234"
-          expect(editor.getPosition()).toEqual {column: 0, row: 1}
+          expect(editor.getCursorPosition()).toEqual([1,0])
 
       describe "when followed by a w", ->
         it "deletes to the beginning of the next word", ->
           editor.buffer.setText("abcd efg")
-          editor.setPosition(column: 2, row: 0)
+          editor.setCursorPosition([0,2])
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('w')
 
           expect(editor.buffer.getText()).toBe "abefg"
-          expect(editor.getPosition()).toEqual {column: 2, row: 0}
+          expect(editor.getCursorPosition()).toEqual([0,2])
 
           editor.buffer.setText("one two three four")
-          editor.setPosition(column: 0, row: 0)
+          editor.setCursorPosition([0,0])
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('3')
           editor.trigger keydownEvent('w')
 
           expect(editor.buffer.getText()).toBe "four"
-          expect(editor.getPosition()).toEqual {column: 0, row: 0}
+          expect(editor.getCursorPosition()).toEqual([0,0])
 
     describe "basic motion bindings", ->
       beforeEach ->
         editor.buffer.setText("12345\nabcde\nABCDE")
-        editor.setPosition(column: 1, row: 1)
+        editor.setCursorPosition([1,1])
 
       describe "the h keybinding", ->
         it "moves the cursor left, but not to the previous line", ->
           editor.trigger keydownEvent('h')
-          expect(editor.getPosition()).toEqual(column: 0, row: 1)
+          expect(editor.getCursorPosition()).toEqual([1,0])
           editor.trigger keydownEvent('h')
-          expect(editor.getPosition()).toEqual(column: 0, row: 1)
+          expect(editor.getCursorPosition()).toEqual([1,0])
 
       describe "the j keybinding", ->
         it "moves the cursor down, but not to the end of the last line", ->
           editor.trigger keydownEvent 'j'
-          expect(editor.getPosition()).toEqual(column: 1, row: 2)
+          expect(editor.getCursorPosition()).toEqual([2,1])
           editor.trigger keydownEvent 'j'
-          expect(editor.getPosition()).toEqual(column: 1, row: 2)
+          expect(editor.getCursorPosition()).toEqual([2,1])
 
       describe "the k keybinding", ->
         it "moves the cursor up, but not to the beginning of the first line", ->
           editor.trigger keydownEvent('k')
-          expect(editor.getPosition()).toEqual(column: 1, row: 0)
+          expect(editor.getCursorPosition()).toEqual([0,1])
           editor.trigger keydownEvent('k')
-          expect(editor.getPosition()).toEqual(column: 1, row: 0)
+          expect(editor.getCursorPosition()).toEqual([0,1])
 
       describe "the l keybinding", ->
         it "moves the cursor right, but not to the next line", ->
-          editor.setPosition(column: 4, row: 1)
+          editor.setCursorPosition([1,4])
           editor.trigger keydownEvent('l')
-          expect(editor.getPosition()).toEqual(column: 5, row: 1)
+          expect(editor.getCursorPosition()).toEqual([1,5])
           editor.trigger keydownEvent('l')
-          expect(editor.getPosition()).toEqual(column: 5, row: 1)
+          expect(editor.getCursorPosition()).toEqual([1,5])
 
       describe "the w keybinding", ->
         it "moves the cursor to the beginning of the next word", ->
           editor.buffer.setText("ab cde1+- \n xyz\n\nzip")
-          editor.setPosition(column: 0, row: 0)
+          editor.setCursorPosition([0,0])
 
           editor.trigger keydownEvent('w')
-          expect(editor.getPosition()).toEqual(column: 3, row: 0)
+          expect(editor.getCursorPosition()).toEqual([0,3])
 
           editor.trigger keydownEvent('w')
-          expect(editor.getPosition()).toEqual(column: 7, row: 0)
+          expect(editor.getCursorPosition()).toEqual([0,7])
 
           editor.trigger keydownEvent('w')
-          expect(editor.getPosition()).toEqual(column: 1, row: 1)
+          expect(editor.getCursorPosition()).toEqual([1,1])
 
           editor.trigger keydownEvent('w')
-          expect(editor.getPosition()).toEqual(column: 0, row: 2)
+          expect(editor.getCursorPosition()).toEqual([2,0])
 
           editor.trigger keydownEvent('w')
-          expect(editor.getPosition()).toEqual(column: 0, row: 3)
+          expect(editor.getCursorPosition()).toEqual([3,0])
 
+          editor.setCursorPosition [3,0]
           editor.trigger keydownEvent('w')
-          expect(editor.getPosition()).toEqual(column: 3, row: 3)
+          expect(editor.getCursorPosition()).toEqual([3,3])
 
     describe "numeric prefix bindings", ->
       it "repeats the following operation N times", ->
         editor.buffer.setText("12345")
-        editor.setPosition(column: 1, row: 0)
+        editor.setCursorPosition([0,1])
 
         editor.trigger keydownEvent('3')
         editor.trigger keydownEvent('x')
@@ -175,7 +176,7 @@ describe "VimMode", ->
         expect(editor.buffer.getText()).toBe '15'
 
         editor.buffer.setText("123456789abc")
-        editor.setPosition(column: 0, row: 0)
+        editor.setCursorPosition([0,0])
         editor.trigger keydownEvent('1')
         editor.trigger keydownEvent('0')
         editor.trigger keydownEvent('x')

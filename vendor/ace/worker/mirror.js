@@ -1,6 +1,6 @@
-
 define(function(require, exports, module) {
-    
+"use strict";
+
 var Document = require("../document").Document;
 var lang = require("../lib/lang");
     

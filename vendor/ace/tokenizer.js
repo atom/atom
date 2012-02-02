@@ -36,8 +36,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
-var Tokenizer = function(rules) {
+var Tokenizer = function(rules, flag) {
+    flag = flag ? "g" + flag : "g";
     this.rules = rules;
 
     this.regExps = {};
@@ -68,7 +70,7 @@ var Tokenizer = function(rules) {
             ruleRegExps.push(adjustedregex);
         }
 
-        this.regExps[key] = new RegExp("(?:(" + ruleRegExps.join(")|(") + ")|(.))", "g");
+        this.regExps[key] = new RegExp("(?:(" + ruleRegExps.join(")|(") + ")|(.))", flag);
     }
 };
 

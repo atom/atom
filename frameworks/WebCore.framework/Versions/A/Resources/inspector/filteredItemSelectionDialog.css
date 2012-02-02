@@ -1,0 +1,41 @@
+.js-outline-dialog > input {
+    font-size: 11px;
+    width: 100%;
+    height: 24px;
+}
+
+.js-outline-dialog > div.progress {
+    position: absolute;
+    top: 35px;
+    left: 10px;
+    right: 10px;
+    height: 2px;
+}
+
+.js-outline-dialog > div.container {
+    position: absolute;
+    top: 38px;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    overflow-y: auto;
+    border: 1px solid rgb(187, 187, 187);
+    background-color: white;
+}
+
+.js-outline-dialog > .container > div.item {
+    padding: 2px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: rgb(105, 105, 105);
+}
+
+.js-outline-dialog > .container > div.item.selected {
+    background-color: rgb(224, 224, 224);
+}
+
+.js-outline-dialog > .container > div.item > span.highlight {
+    color: black;
+    font-weight: bold;
+}

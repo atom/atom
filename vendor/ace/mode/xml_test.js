@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var EditSession = require("../edit_session").EditSession;
 var Tokenizer = require("../tokenizer").Tokenizer;
@@ -57,13 +58,13 @@ module.exports = {
         assert.ok(tokenizer instanceof Tokenizer);
 
         var tokens = tokenizer.getLineTokens("<juhu>", "start").tokens;
-        assert.equal("keyword", tokens[1].type);
+        assert.equal("meta.tag", tokens[0].type);
     },
 
     "test: toggle comment lines should not do anything" : function() {
         var session = new EditSession(["  abc", "cde", "fg"]);
 
-        var comment = this.mode.toggleCommentLines("start", session, 0, 1);
+        this.mode.toggleCommentLines("start", session, 0, 1);
         assert.equal(["  abc", "cde", "fg"].join("\n"), session.toString());
     },
 
@@ -77,5 +78,5 @@ module.exports = {
 });
 
 if (typeof module !== "undefined" && module === require.main) {
-    require("asyncjs").test.testcase(module.exports).exec()
+    require("asyncjs").test.testcase(module.exports).exec();
 }

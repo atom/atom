@@ -58,8 +58,7 @@ exts =
     __jsc__.evalJSString_withScriptPath code, file
     __defines.pop()?.call()
   coffee: (file) ->
-    {CoffeeScript} = require 'coffee-script'
-    exts.js(file, CoffeeScript.compile(__read(file), filename: file))
+    exts.js(file, __coffeeCache(file))
 
 resolve = (file) ->
   if /!/.test file
@@ -109,6 +108,14 @@ __expand = (path) ->
 
 __exists = (path) ->
   OSX.NSFileManager.defaultManager.fileExistsAtPath path
+
+__coffeeCache = (filePath) ->
+  js = OSX.NSApp.getCachedScript(filePath)
+  if not js
+    {CoffeeScript} = require 'coffee-script'
+    js = CoffeeScript.compile(__read(filePath), filename: filePath)
+    OSX.NSApp.setCachedScript_contents(filePath, js)
+  js
 
 __read = (path) ->
   try

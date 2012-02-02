@@ -42,7 +42,8 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
-    
+"use strict";
+
 var Document = require("./document").Document;
 var Range = require("./range").Range;
 var assert = require("./test/assertions");

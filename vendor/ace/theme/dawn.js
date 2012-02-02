@@ -49,19 +49,8 @@ exports.cssText = "\
 }\
 \
 .ace-dawn .ace_gutter {\
-  width: 50px;\
   background: #e8e8e8;\
   color: #333;\
-  overflow : hidden;\
-}\
-\
-.ace-dawn .ace_gutter-layer {\
-  width: 100%;\
-  text-align: right;\
-}\
-\
-.ace-dawn .ace_gutter-layer .ace_gutter-cell {\
-  padding-right: 6px;\
 }\
 \
 .ace-dawn .ace_print_margin {\
@@ -138,7 +127,8 @@ color:#B52A1D;\
 }\
 \
 .ace-dawn .ace_fold {\
-    outline-color: #794938\
+    background-color: #794938;\
+    border-color: #080808;\
 }\
 \
 .ace-dawn .ace_support.ace_function {\
@@ -174,6 +164,6 @@ color:#5A525F;\
   color:#693A17;\
 }";
 
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
 });

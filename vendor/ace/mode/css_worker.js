@@ -36,7 +36,8 @@
  * ***** END LICENSE BLOCK ***** */
  
 define(function(require, exports, module) {
-    
+"use strict";
+
 var oop = require("../lib/oop");
 var Mirror = require("../worker/mirror").Mirror;
 var CSSLint = require("./css/csslint").CSSLint;
@@ -53,7 +54,7 @@ oop.inherits(Worker, Mirror);
     this.onUpdate = function() {
         var value = this.doc.getValue();
         
-        result = CSSLint.verify(value);
+        var result = CSSLint.verify(value);
         this.sender.emit("csslint", result.messages.map(function(msg) {
             delete msg.rule;
             return msg;

@@ -36,21 +36,22 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var EventEmitter = require("../lib/event_emitter").EventEmitter;
 
-var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
+var WorkerClient = function(topLevelNamespaces, packagedJs, mod, classname) {
 
     this.changeListener = this.changeListener.bind(this);
 
-    if (window.require.packaged) {
+    if (module.packaged) {
         var base = this.$guessBasePath();
-        var worker = this.$worker = new Worker(base + packagedJs);
+        this.$worker = new Worker(base + packagedJs);
     }
     else {
         var workerUrl = this.$normalizePath(require.nameToUrl("ace/worker/worker", null, "_"));
-        var worker = this.$worker = new Worker(workerUrl);
+        this.$worker = new Worker(workerUrl);
 
         var tlns = {};
         for (var i=0; i<topLevelNamespaces.length; i++) {
@@ -64,7 +65,7 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
     this.$worker.postMessage({
         init : true,
         tlns: tlns,
-        module: module,
+        module: mod,
         classname: classname
     });
 
@@ -84,7 +85,7 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
                 break;
 
             case "event":
-                _self._dispatchEvent(msg.name, {data: msg.data});
+                _self._emit(msg.name, {data: msg.data});
                 break;
 
             case "call":
@@ -103,12 +104,11 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
     oop.implement(this, EventEmitter);
 
     this.$normalizePath = function(path) {
-        if (!path.match(/^\w+:/)) {
-            path = location.protocol + "//" + location.host
-                // paths starting with a slash are relative to the root (host)
-                + (path.charAt(0) == "/" ? "" : location.pathname.replace(/\/[^\/]*$/, ""))
-                + "/" + path.replace(/^[\/]+/, "");
-        }
+        path = path.replace(/^[a-z]+:\/\/[^\/]+\//, ""); // Remove domain name and rebuild it
+        path = location.protocol + "//" + location.host
+            // paths starting with a slash are relative to the root (host)
+            + (path.charAt(0) == "/" ? "" : location.pathname.replace(/\/[^\/]*$/, ""))
+            + "/" + path.replace(/^[\/]+/, "");
         return path;
     };
 
@@ -128,7 +128,7 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
             if (!src) {
                 continue;
             }
-            var m = src.match(/^(?:(.*\/)ace\.js|(.*\/)ace-uncompressed\.js)(?:\?|$)/);
+            var m = src.match(/^(?:(.*\/)ace\.js|(.*\/)ace(-uncompressed)?(-noconflict)?\.js)(?:\?|$)/);
             if (m)
                 return m[1] || m[2];
         }
@@ -136,7 +136,7 @@ var WorkerClient = function(topLevelNamespaces, packagedJs, module, classname) {
     };
 
     this.terminate = function() {
-        this._dispatchEvent("terminate", {});
+        this._emit("terminate", {});
         this.$worker.terminate();
         this.$worker = null;
         this.$doc.removeEventListener("change", this.changeListener);

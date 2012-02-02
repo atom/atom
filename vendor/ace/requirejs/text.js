@@ -38,10 +38,21 @@
 /**
  * Extremely simplified version of the requireJS text plugin
  */
+ 
+(function() {
+    
+var globalRequire = require;
+ 
 define(function (require, exports, module) {
-    var net = require("ace/lib/net");
-
+    "use strict";
+    
     exports.load = function (name, req, onLoad, config) {
-         net.get(req.toUrl(name), onLoad);
-    }
+        if (req.isBrowser)
+            require("ace/lib/net").get(req.toUrl(name), onLoad);
+        else
+            //Using special require.nodeRequire, something added by r.js.
+            globalRequire.nodeRequire('fs').readFileSync(req.toUrl(name), 'utf8');
+    };
 });
+
+})();

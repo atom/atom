@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var EditSession = require("../edit_session").EditSession;
 var TextLayer = require("../layer/text").Text;
@@ -51,7 +52,9 @@ var baseStyles = require("../requirejs/text!./static.css");
 * @returns {object} An object containing: html, css
 */
 
-exports.render = function(input, mode, theme) {
+exports.render = function(input, mode, theme, lineStart) {
+    lineStart = parseInt(lineStart || 1, 10);
+    
     var session = new EditSession("");
     session.setMode(mode);
     session.setUseWorker(false);
@@ -71,8 +74,8 @@ exports.render = function(input, mode, theme) {
     
     for(var ix = 0; ix < length; ix++) {
         var lineTokens = tokens[ix].tokens;
-        stringBuilder.push("<div class='ace-row'>");
-        stringBuilder.push("<span class='ace_gutter ace_gutter-cell' unselectable='on'>" + (ix+1) + "</span>");
+        stringBuilder.push("<div class='ace_line'>");
+        stringBuilder.push("<span class='ace_gutter ace_gutter-cell' unselectable='on'>" + (ix + lineStart) + "</span>");
         textLayer.$renderLine(stringBuilder, 0, lineTokens, true);
         stringBuilder.push("</div>");
     }

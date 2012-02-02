@@ -36,15 +36,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
+var xmlUtil = require("./xml_util");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var XmlHighlightRules = function() {
 
     // regexp must not have capturing parentheses
     // regexps are ordered -> the first match is used
-
     this.$rules = {
         start : [{
             token : "text",
@@ -59,7 +60,7 @@ var XmlHighlightRules = function() {
             regex : "<\\!--",
             next : "comment"
         }, {
-            token : "text", // opening tag
+            token : "meta.tag", // opening tag
             regex : "<\\/?",
             next : "tag"
         }, {
@@ -68,54 +69,6 @@ var XmlHighlightRules = function() {
         }, {
             token : "text",
             regex : "[^<]+"
-        }],
-
-        tag : [{
-            token : "text",
-            regex : ">",
-            next : "start"
-        }, {
-            token : "keyword",
-            regex : "[-_a-zA-Z0-9:]+"
-        }, {
-            token : "text",
-            regex : "\\s+"
-        }, {
-            token : "string",
-            regex : '".*?"'
-        }, {
-            token : "string", // multi line string start
-            merge : true,
-            regex : '["].*',
-            next : "qqstring"
-        }, {
-            token : "string",
-            regex : "'.*?'"
-        }, {
-            token : "string", // multi line string start
-            merge : true,
-            regex : "['].*",
-            next : "qstring"
-        }],
-
-        qstring: [{
-            token : "string",
-            regex : ".*?'",
-            next : "tag"
-        }, {
-            token : "string",
-            merge : true,
-            regex : '.+'
-        }],
-        
-        qqstring: [{
-            token : "string",
-            regex : ".*?\"",
-            next : "tag"
-        }, {
-            token : "string",
-            merge : true,
-            regex : '.+'
         }],
         
         cdata : [{
@@ -140,6 +93,8 @@ var XmlHighlightRules = function() {
             regex : ".+"
         }]
     };
+    
+    xmlUtil.tag(this.$rules, "tag", "start");
 };
 
 oop.inherits(XmlHighlightRules, TextHighlightRules);

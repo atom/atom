@@ -41,6 +41,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var RubyMode = require("./ruby").Mode;
 var assert = require("../test/assertions");

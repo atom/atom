@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("./lib/oop");
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
@@ -100,7 +101,7 @@ var BackgroundTokenizer = function(tokenizer, editor) {
             first: firstRow,
             last: lastRow
         };
-        this._dispatchEvent("update", {data: data});
+        this._emit("update", {data: data});
     };
 
     this.start = function(startRow) {
@@ -130,8 +131,8 @@ var BackgroundTokenizer = function(tokenizer, editor) {
     };
 
     this.$tokenizeRows = function(firstRow, lastRow) {
-        if (!this.doc)
-            return [];
+        if (!this.doc || isNaN(firstRow) || isNaN(lastRow))
+            return [{'state':'start','tokens':[]}];
             
         var rows = [];
 

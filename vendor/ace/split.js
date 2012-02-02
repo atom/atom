@@ -37,9 +37,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("./lib/oop");
-var dom = require("./lib/dom");
 var lang = require("./lib/lang");
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
 
@@ -76,7 +76,6 @@ var Split = function(container, theme, splits) {
         el.className = this.$editorCSS;
         el.style.cssText = "position: absolute; top:0px; bottom:0px";
         this.$container.appendChild(el);
-        var session = new EditSession("");
         var editor = new Editor(new Renderer(el, this.$theme));
 
         editor.on("focus", function() {
@@ -189,7 +188,7 @@ var Split = function(container, theme, splits) {
     };
 
     this.setSession = function(session, idx) {
-        var editor
+        var editor;
         if (idx == null) {
             editor = this.$cEditor;
         } else {

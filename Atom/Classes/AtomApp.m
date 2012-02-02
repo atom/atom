@@ -9,6 +9,11 @@
 #define ATOM_USER_PATH ([[NSString stringWithString:@"~/.atom/"] stringByStandardizingPath])
 #define ATOM_STORAGE_PATH ([ATOM_USER_PATH stringByAppendingPathComponent:@".app-storage"])
 
+@interface AtomApp () {
+  NSMutableDictionary *_coffeeCache;
+}
+@end
+
 @implementation AtomApp
 
 @synthesize controllers = _controllers;
@@ -75,6 +80,8 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  _coffeeCache = [[NSMutableDictionary alloc] init];
+
   if ([[[NSProcessInfo  processInfo] environment] objectForKey:@"AUTO-TEST"]) {
     [self runSpecs:self];
   }
@@ -103,6 +110,35 @@
 
 - (void)resetMainMenu {
   [self resetMenu:self.mainMenu];
+}
+
+- (NSString *)getCachedScript:(NSString *)filePath {
+  NSDictionary *cachedObject = [_coffeeCache objectForKey:filePath];
+  if (!cachedObject) return nil;
+  
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSError *error = nil;
+  NSDictionary *attributes = [fm attributesOfItemAtPath:filePath error:&error];
+  if (error) {
+    NSLog(@"Error reading cached scripts: %@", [error localizedDescription]);
+    return nil;
+  }
+
+  NSDate *cachedAt = [cachedObject objectForKey:@"cachedAt"];
+  NSDate *modifedAt = [attributes objectForKey:NSFileModificationDate];
+  if (modifedAt && [modifedAt compare:cachedAt] == NSOrderedAscending) {
+    return [cachedObject objectForKey:@"script"];
+  }
+  else {
+    return nil;
+  }
+}
+
+- (void)setCachedScript:(NSString *)filePath contents:(NSString *)contents {
+  NSMutableDictionary *cachedObject = [NSMutableDictionary dictionary];
+  [cachedObject setObject:[NSDate date] forKey:@"cachedAt"];
+  [cachedObject setObject:contents forKey:@"script"];
+  [_coffeeCache setObject:cachedObject forKey:filePath];
 }
 
 @end

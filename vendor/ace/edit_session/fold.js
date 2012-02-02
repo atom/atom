@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 /**
  * Simple fold-data struct.
@@ -73,6 +74,42 @@ var Fold = exports.Fold = function(range, placeholder) {
         });
         return fold;
     };
+
+    this.addSubFold = function(fold) {
+        if (this.range.isEequal(fold))
+            return this;
+
+        if (!this.range.containsRange(fold))
+            throw "A fold can't intersect already existing fold" + fold.range + this.range;
+
+        var row = fold.range.start.row, column = fold.range.start.column;
+        for (var i = 0, cmp = -1; i < this.subFolds.length; i++) {
+            cmp = this.subFolds[i].range.compare(row, column);
+            if (cmp != 1)
+                break;
+        }
+        var afterStart = this.subFolds[i];
+
+        if (cmp == 0)
+            return afterStart.addSubFold(fold)
+
+        // cmp == -1
+        var row = fold.range.end.row, column = fold.range.end.column;
+        for (var j = i, cmp = -1; j < this.subFolds.length; j++) {
+            cmp = this.subFolds[j].range.compare(row, column);
+            if (cmp != 1)
+                break;
+        }
+        var afterEnd = this.subFolds[j];
+
+        if (cmp == 0)
+            throw "A fold can't intersect already existing fold" + fold.range + this.range;
+
+        var consumedFolds = this.subFolds.splice(i, j - i, fold)
+        fold.setFoldLine(this.foldLine);
+
+        return fold;
+    }
 
 }).call(Fold.prototype);
 

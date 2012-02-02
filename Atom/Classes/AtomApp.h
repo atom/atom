@@ -11,4 +11,7 @@
 - (void)performActionForMenuItem:(AtomMenuItem *)item;
 - (void)resetMainMenu;
 
+- (NSString *)getCachedScript:(NSString *)filePath;
+- (void)setCachedScript:(NSString *)filePath contents:(NSString *)contents;
+
 @end

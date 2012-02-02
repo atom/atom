@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
@@ -44,6 +45,7 @@ var CssMode = require("./css").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var HtmlHighlightRules = require("./html_highlight_rules").HtmlHighlightRules;
 var XmlBehaviour = require("./behaviour/xml").XmlBehaviour;
+var HtmlFoldMode = require("./folding/html").FoldMode;
 
 var Mode = function() {
     var highlighter = new HtmlHighlightRules();
@@ -52,14 +54,17 @@ var Mode = function() {
     
     this.$embeds = highlighter.getEmbeds();
     this.createModeDelegates({
-      "js-": JavaScriptMode,
-      "css-": CssMode
+        "js-": JavaScriptMode,
+        "css-": CssMode
     });
+    
+    this.foldingRules = new HtmlFoldMode();
 };
 oop.inherits(Mode, TextMode);
 
 (function() {
 
+    
     this.toggleCommentLines = function(state, doc, startRow, endRow) {
         return 0;
     };

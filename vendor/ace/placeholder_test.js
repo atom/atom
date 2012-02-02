@@ -42,6 +42,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var EditSession = require("./edit_session").EditSession;
 var Editor = require("./editor").Editor;
@@ -49,6 +50,7 @@ var MockRenderer = require("./test/mockrenderer").MockRenderer;
 var assert = require("./test/assertions");
 var JavaScriptMode = require("./mode/javascript").Mode;
 var PlaceHolder = require('./placeholder').PlaceHolder;
+var UndoManager = require('./undomanager').UndoManager;
 
 module.exports = {
 
@@ -133,6 +135,25 @@ module.exports = {
         editor.moveCursorTo(1, 0);
         p.onCursorChange(); // Have to do this by hand because moveCursorTo doesn't trigger the event
         assert.ok(left);
+    },
+    
+    "test: cancel": function(next) {
+        var session = new EditSession("var a = 10;\nconsole.log(a, a);", new JavaScriptMode());
+        session.setUndoManager(new UndoManager());
+        var editor = new Editor(new MockRenderer(), session);
+        var p = new PlaceHolder(session, 1, {row: 0, column: 4}, [{row: 1, column: 12}, {row: 1, column: 15}]);
+        
+        editor.moveCursorTo(0, 5);
+        editor.insert('b');
+        editor.insert('cd');
+        editor.remove('left');
+        assert.equal(session.doc.getValue(), "var abc = 10;\nconsole.log(abc, abc);");
+        // Wait a little for the changes to enter the undo stack
+        setTimeout(function() {
+            p.cancel();
+            assert.equal(session.doc.getValue(), "var a = 10;\nconsole.log(a, a);");
+            next();
+        }, 80);
     }
 };
 

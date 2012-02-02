@@ -1,9 +1,9 @@
 define(function(require, exports, module) {
+"use strict";
 
 require("ace/lib/fixoldbrowsers");
 var AsyncTest = require("asyncjs").test;
 var async = require("asyncjs");
-var dom = require("ace/lib/dom");
 
 var passed = 0
 var failed = 0
@@ -37,6 +37,10 @@ var tests = [
      require("ace/mode/text_test"),
      require("ace/mode/xml_test"),
      require("ace/mode/xml_tokenizer_test"),
+     require("ace/mode/folding/cstyle_test"),
+     require("ace/mode/folding/html_test"),
+     require("ace/mode/folding/pythonic_test"),
+     require("ace/mode/folding/xml_test"),
      require("ace/range_test"),
      require("ace/search_test"),
      require("ace/selection_test"),

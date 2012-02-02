@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var TokenIterator = function(session, initialRow, initialColumn) {
     this.$session = session;
@@ -54,15 +55,17 @@ var TokenIterator = function(session, initialRow, initialColumn) {
         
         while (this.$tokenIndex < 0) {
             this.$row -= 1;
-            if (this.$row < 0)
+            if (this.$row < 0) {
+                this.$row = 0;
                 return null;
+            }
                 
             this.$rowTokens = this.$session.getTokens(this.$row, this.$row)[0].tokens;
             this.$tokenIndex = this.$rowTokens.length - 1;
         }
             
         return this.$rowTokens[this.$tokenIndex];
-    }
+    };
     
     this.stepForward = function() {
         var rowCount = this.$session.getLength();
@@ -70,23 +73,25 @@ var TokenIterator = function(session, initialRow, initialColumn) {
         
         while (this.$tokenIndex >= this.$rowTokens.length) {
             this.$row += 1;
-            if (this.$row >= rowCount)
+            if (this.$row >= rowCount) {
+                this.$row = rowCount - 1;
                 return null;
+            }
 
             this.$rowTokens = this.$session.getTokens(this.$row, this.$row)[0].tokens;
             this.$tokenIndex = 0;
         }
             
         return this.$rowTokens[this.$tokenIndex];
-    }
+    };
     
     this.getCurrentToken = function () {
         return this.$rowTokens[this.$tokenIndex];
-    }
+    };
     
     this.getCurrentTokenRow = function () {
         return this.$row;
-    }
+    };
     
     this.getCurrentTokenColumn = function() {
         var rowTokens = this.$rowTokens;
@@ -104,7 +109,7 @@ var TokenIterator = function(session, initialRow, initialColumn) {
         }
         
         return column;  
-    }
+    };
             
 }).call(TokenIterator.prototype);
 

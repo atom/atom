@@ -6,11 +6,10 @@
 body {
   font-family: Lucida Grande;
   font-size: 12px;
-  overflow: hidden;
 }
 
 #app-horizontal {
-  background-image: url(images/linen.png);
+  background-image: url(static/images/linen.png);
   display: -webkit-box;
   min-height: 100%;
   -webkit-box-orient: horizontal;
@@ -36,8 +35,3 @@ body {
   background-color: blue;
 }
 
-.ace_editor {
-  font: 18px Inconsolata, Monaco, Courier !important;
-  width: 100%;
-  height: 100%;
-}

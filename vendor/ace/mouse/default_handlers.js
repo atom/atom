@@ -38,17 +38,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var event = require("../lib/event");
 var dom = require("../lib/dom");
-var EventEmitter = require("../lib/event_emitter").EventEmitter;
 var BrowserFocus = require("../lib/browser_focus").BrowserFocus;
 
 var STATE_UNKNOWN = 0;
 var STATE_SELECT = 1;
 var STATE_DRAG = 2;
 
-var DRAG_TIMER = 250; // milliseconds
 var DRAG_OFFSET = 5; // pixels
 
 function DefaultHandlers(editor) {
@@ -95,19 +94,11 @@ function DefaultHandlers(editor) {
             if (selectionEmpty) {
                 editor.moveCursorToPosition(pos);
             }
-            if(button == 2) {
-                editor.textInput.onContextMenu({x: pageX, y: pageY}, selectionEmpty);
+            if (button == 2) {
+                editor.textInput.onContextMenu({x: ev.clientX, y: ev.clientY}, selectionEmpty);
                 event.capture(editor.container, function(){}, editor.textInput.onContextMenuClose);
             }
             return;
-        }
-        else {
-            // Select the fold as the user clicks it.
-            var fold = editor.session.getFoldAt(pos.row, pos.column, 1);
-            if (fold) {
-                editor.selection.setSelectionRange(fold.range);
-                return;
-            }
         }
 
         if (!inSelection) {
@@ -117,9 +108,8 @@ function DefaultHandlers(editor) {
         }
 
         var mousePageX = pageX, mousePageY = pageY;
-        var overwrite = editor.getOverwrite();
         var mousedownTime = (new Date()).getTime();
-        var dragCursor, dragRange;
+        var dragCursor, dragRange, dragSelectionMarker;
 
         var onMouseSelection = function(e) {
             mousePageX = event.getDocumentX(e);
@@ -182,7 +172,7 @@ function DefaultHandlers(editor) {
                     cursor.row = Math.max(0, Math.min(cursor.row, editor.session.getLength()-1));
                     onStartSelect(cursor);
                 }
-                else if ((time - mousedownTime) > DRAG_TIMER) {
+                else if ((time - mousedownTime) > editor.getDragDelay()) {
                     state = STATE_DRAG;
                     dragRange = editor.getSelectionRange();
                     var style = editor.getSelectionStyle();
@@ -256,16 +246,9 @@ function DefaultHandlers(editor) {
         var pos = ev.getDocumentPosition();
         var editor = this.editor;
         
-        // If the user dclicked on a fold, then expand it.
-        var fold = editor.session.getFoldAt(pos.row, pos.column, 1);
-        if (fold) {
-            editor.session.expandFold(fold);
-        }
-        else {
-            editor.moveCursorToPosition(pos);
-            editor.selection.selectWord();
-            this.$clickSelection = editor.getSelectionRange();
-        }
+        editor.moveCursorToPosition(pos);
+        editor.selection.selectWord();
+        this.$clickSelection = editor.getSelectionRange();
     };
     
     this.onTripleClick = function(ev) {

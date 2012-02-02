@@ -40,6 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var dom = require("../lib/dom");
@@ -50,7 +51,6 @@ var EventEmitter = require("../lib/event_emitter").EventEmitter;
 var Text = function(parentEl) {
     this.element = dom.createElement("div");
     this.element.className = "ace_layer ace_text-layer";
-    this.element.style.width = "auto";
     parentEl.appendChild(this.element);
 
     this.$characterSize = this.$measureSizes() || {width: 0, height: 0};
@@ -84,7 +84,7 @@ var Text = function(parentEl) {
         var size = this.$measureSizes();
         if (size && (this.$characterSize.width !== size.width || this.$characterSize.height !== size.height)) {
             this.$characterSize = size;
-            this._dispatchEvent("changeCharaterSize", {data: size});
+            this._emit("changeCharacterSize", {data: size});
         }
     };
 
@@ -389,7 +389,10 @@ var Text = function(parentEl) {
 
         if (!this.$textToken[token.type]) {
             var classes = "ace_" + token.type.replace(/\./g, " ace_");
-            stringBuilder.push("<span class='", classes, "'>", output, "</span>");
+            var style = "";
+            if (token.type == "fold")
+                style = " style='width:" + (token.value.length * this.config.characterWidth) + "px;' ";
+            stringBuilder.push("<span class='", classes, "'", style, ">", output, "</span>");
         }
         else {
             stringBuilder.push(output);
@@ -401,7 +404,6 @@ var Text = function(parentEl) {
         var chars = 0;
         var split = 0;
         var splitChars;
-        var characterWidth = this.config.characterWidth;
         var screenColumn = 0;
         var self = this;
 

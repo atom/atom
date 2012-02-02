@@ -40,6 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
+"use strict";
 
 var EditSession = require("./edit_session").EditSession;
 var assert = require("./test/assertions");
@@ -94,43 +95,35 @@ module.exports = {
     },
 
     "test: move cursor word right" : function() {
-        var session = new EditSession( ["ab",
-                " Juhu Kinners (abc, 12)", " cde"].join("\n"));
+        var session = new EditSession([
+            "ab",
+            " Juhu Kinners (abc, 12)",
+            " cde"
+        ].join("\n"));
+        
         var selection = session.getSelection();
 
         selection.moveCursorDown();
         assert.position(selection.getCursor(), 1, 0);
 
         selection.moveCursorWordRight();
-        assert.position(selection.getCursor(), 1, 1);
-
-        selection.moveCursorWordRight();
         assert.position(selection.getCursor(), 1, 5);
-
-        selection.moveCursorWordRight();
-        assert.position(selection.getCursor(), 1, 6);
 
         selection.moveCursorWordRight();
         assert.position(selection.getCursor(), 1, 13);
 
         selection.moveCursorWordRight();
-        assert.position(selection.getCursor(), 1, 15);
-
-        selection.moveCursorWordRight();
         assert.position(selection.getCursor(), 1, 18);
-
-        selection.moveCursorWordRight();
-        assert.position(selection.getCursor(), 1, 20);
 
         selection.moveCursorWordRight();
         assert.position(selection.getCursor(), 1, 22);
 
-        selection.moveCursorWordRight();
-        assert.position(selection.getCursor(), 1, 23);
-
         // wrap line
         selection.moveCursorWordRight();
-        assert.position(selection.getCursor(), 2, 0);
+        assert.position(selection.getCursor(), 2, 4);
+        
+        selection.moveCursorWordRight();
+        assert.position(selection.getCursor(), 2, 4);
     },
 
     "test: select word right if cursor in word" : function() {
@@ -157,38 +150,26 @@ module.exports = {
         assert.position(selection.getCursor(), 1, 23);
 
         selection.moveCursorWordLeft();
-        assert.position(selection.getCursor(), 1, 22);
-
-        selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 1, 20);
-
-        selection.moveCursorWordLeft();
-        assert.position(selection.getCursor(), 1, 18);
 
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 1, 15);
 
         selection.moveCursorWordLeft();
-        assert.position(selection.getCursor(), 1, 13);
-
-        selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 1, 6);
-
-        selection.moveCursorWordLeft();
-        assert.position(selection.getCursor(), 1, 5);
 
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 1, 1);
 
-        selection.moveCursorWordLeft();
-        assert.position(selection.getCursor(), 1, 0);
-
         // wrap line
         selection.moveCursorWordLeft();
-        assert.position(selection.getCursor(), 0, 2);
+        assert.position(selection.getCursor(), 0, 0);
+
+        selection.moveCursorWordLeft();
+        assert.position(selection.getCursor(), 0, 0);
     },
 
-    "test: moveCursor word left" : function() {
+    "test: moveCursor word left with umlauts" : function() {
         var session = new EditSession(" Fuß Füße");
 
         var selection = session.getSelection();
@@ -197,7 +178,7 @@ module.exports = {
         assert.position(selection.getCursor(), 0, 5);
 
         selection.moveCursorWordLeft();
-        assert.position(selection.getCursor(), 0, 4);
+        assert.position(selection.getCursor(), 0, 1);
     },
 
     "test: select word left if cursor in word" : function() {
@@ -321,15 +302,11 @@ module.exports = {
         assert.notOk(called);
     },
 
-    "test: moveWordLeft should move past || and [": function() {
+    "test: moveWordright should move past || and [": function() {
         var session = new EditSession("||foo[");
         var selection = session.getSelection();
 
-        // Move behind ||
-        selection.moveCursorWordRight();
-        assert.position(selection.getCursor(), 0, 2);
-
-        // Move beind foo
+        // Move behind ||foo
         selection.moveCursorWordRight();
         assert.position(selection.getCursor(), 0, 5);
 
@@ -338,17 +315,13 @@ module.exports = {
         assert.position(selection.getCursor(), 0, 6);
     },
 
-    "test: moveWordRight should move past || and [": function() {
+    "test: moveWordLeft should move past || and [": function() {
         var session = new EditSession("||foo[");
         var selection = session.getSelection();
 
         selection.moveCursorTo(0, 6);
 
-        // Move behind [
-        selection.moveCursorWordLeft();
-        assert.position(selection.getCursor(), 0, 5);
-
-        // Move beind foo
+        // Move behind [foo
         selection.moveCursorWordLeft();
         assert.position(selection.getCursor(), 0, 2);
 

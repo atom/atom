@@ -37,9 +37,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var event = require("../lib/event");
-var dom = require("../lib/dom");
 
 /**
  * Custom Ace mouse event
@@ -51,6 +51,9 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
     this.pageX = event.getDocumentX(domEvent);
     this.pageY = event.getDocumentY(domEvent);
     
+    this.clientX = domEvent.clientX;
+    this.clientY = domEvent.clientY;
+
     this.$pos = null;
     this.$inSelection = null;
     
@@ -68,6 +71,11 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
     this.preventDefault = function() {
         event.preventDefault(this.domEvent);
         this.defaultPrevented = true;
+    };
+    
+    this.stop = function() {
+        this.stopPropagation();
+        this.preventDefault();
     };
 
     /**
@@ -126,6 +134,10 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
      */
     this.getShiftKey = function() {
         return this.domEvent.shiftKey;
+    };
+    
+    this.getAccelKey = function() {
+        return this.domEvent.ctrlKey || this.domEvent.metaKey ;
     };
     
 }).call(MouseEvent.prototype);

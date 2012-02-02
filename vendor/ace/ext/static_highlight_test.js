@@ -4,7 +4,8 @@ if (typeof process !== "undefined") {
 }
 
 define(function(require, exports, module) {
-    
+"use strict";
+
 var assert = require("assert");
 var highlighter = require("./static_highlight");
 var JavaScriptMode = require("../mode/javascript").Mode;

@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var MockRenderer = exports.MockRenderer = function(visibleRowCount) {
     this.container = document.createElement("div");
@@ -47,6 +48,8 @@ var MockRenderer = exports.MockRenderer = function(visibleRowCount) {
     };
 
     this.isMockRenderer = true;
+    
+    this.$gutter = {};
 };
 
 
@@ -92,9 +95,15 @@ MockRenderer.prototype.getSession = function(session) {
 MockRenderer.prototype.setTokenizer = function() {
 };
 
+MockRenderer.prototype.on = function() {
+};
+
 MockRenderer.prototype.updateCursor = function() {
 };
 
+MockRenderer.prototype.scrollToX = function(scrollTop) {};
+MockRenderer.prototype.scrollToY = function(scrollLeft) {};
+    
 MockRenderer.prototype.scrollToLine = function(line, center) {
     var lineHeight = { lineHeight: 16 };
     var row = 0;

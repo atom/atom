@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
@@ -44,7 +45,6 @@ var TextileHighlightRules = function() {
     this.$rules = {
         "start" : [
             {
-                token : "keyword", // start of block
                 token : function(value) {
                     if (value.match(/^h\d$/))
                         return "markup.heading." + value.charAt(1);

@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("./lib/oop");
 var lang = require("./lib/lang");
@@ -60,16 +61,16 @@ var Selection = function(session) {
 
     var _self = this;
     this.selectionLead.on("change", function(e) {
-        _self._dispatchEvent("changeCursor");
+        _self._emit("changeCursor");
         if (!_self.$isEmpty)
-            _self._dispatchEvent("changeSelection");
+            _self._emit("changeSelection");
         if (!_self.$preventUpdateDesiredColumnOnChange && e.old.column != e.value.column)
             _self.$updateDesiredColumn();
     });
 
     this.selectionAnchor.on("change", function() {
         if (!_self.$isEmpty)
-            _self._dispatchEvent("changeSelection");
+            _self._emit("changeSelection");
     });
 };
 
@@ -101,7 +102,7 @@ var Selection = function(session) {
 
         if (this.$isEmpty) {
             this.$isEmpty = false;
-            this._dispatchEvent("changeSelection");
+            this._emit("changeSelection");
         }
     };
 
@@ -161,7 +162,7 @@ var Selection = function(session) {
     this.clearSelection = function() {
         if (!this.$isEmpty) {
             this.$isEmpty = true;
-            this._dispatchEvent("changeSelection");
+            this._emit("changeSelection");
         }
     };
 
@@ -385,19 +386,31 @@ var Selection = function(session) {
         this.session.nonTokenRe.lastIndex = 0;
         this.session.tokenRe.lastIndex = 0;
 
-        var fold;
-        if (fold = this.session.getFoldAt(row, column, 1)) {
+        // skip folds
+        var fold = this.session.getFoldAt(row, column, 1);
+        if (fold) {
             this.moveCursorTo(fold.end.row, fold.end.column);
             return;
-        } else if (column == line.length) {
-            this.moveCursorRight();
-            return;
         }
-        else if (match = this.session.nonTokenRe.exec(rightOfCursor)) {
+        
+        // first skip space
+        if (match = this.session.nonTokenRe.exec(rightOfCursor)) {
             column += this.session.nonTokenRe.lastIndex;
             this.session.nonTokenRe.lastIndex = 0;
+            rightOfCursor = line.substring(column);
         }
-        else if (match = this.session.tokenRe.exec(rightOfCursor)) {
+        
+        // if at line end proceed with next line
+        if (column >= line.length) {
+            this.moveCursorTo(row, line.length);
+            this.moveCursorRight();
+            if (row < this.doc.getLength() - 1)
+                this.moveCursorWordRight();
+            return;
+        }
+        
+        // advance to the end of the next token
+        if (match = this.session.tokenRe.exec(rightOfCursor)) {
             column += this.session.tokenRe.lastIndex;
             this.session.tokenRe.lastIndex = 0;
         }
@@ -409,14 +422,10 @@ var Selection = function(session) {
         var row = this.selectionLead.row;
         var column = this.selectionLead.column;
 
+        // skip folds
         var fold;
         if (fold = this.session.getFoldAt(row, column, -1)) {
             this.moveCursorTo(fold.start.row, fold.start.column);
-            return;
-        }
-
-        if (column == 0) {
-            this.moveCursorLeft();
             return;
         }
 
@@ -424,17 +433,30 @@ var Selection = function(session) {
         if (str == null) {
             str = this.doc.getLine(row).substring(0, column)
         }
+        
         var leftOfCursor = lang.stringReverse(str);
-
         var match;
         this.session.nonTokenRe.lastIndex = 0;
         this.session.tokenRe.lastIndex = 0;
-
+        
+        // skip whitespace
         if (match = this.session.nonTokenRe.exec(leftOfCursor)) {
             column -= this.session.nonTokenRe.lastIndex;
+            leftOfCursor = leftOfCursor.slice(this.session.nonTokenRe.lastIndex);
             this.session.nonTokenRe.lastIndex = 0;
         }
-        else if (match = this.session.tokenRe.exec(leftOfCursor)) {
+        
+        // if at begin of the line proceed in line above
+        if (column <= 0) {
+            this.moveCursorTo(row, 0);
+            this.moveCursorLeft();
+            if (row > 0)
+                this.moveCursorWordLeft();
+            return;
+        }
+
+        // move to the begin of the word
+        if (match = this.session.tokenRe.exec(leftOfCursor)) {
             column -= this.session.tokenRe.lastIndex;
             this.session.tokenRe.lastIndex = 0;
         }

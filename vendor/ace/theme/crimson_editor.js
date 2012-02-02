@@ -110,7 +110,6 @@ exports.cssText = ".ace-crimson-editor .ace_editor {\
 }\
 \
 .ace-crimson-editor .ace_line .ace_fold {\
-    background-color: rgba(228, 228, 228, 0.5);\
 }\
 \
 .ace-crimson-editor .ace_line .ace_support.ace_function {\
@@ -194,7 +193,6 @@ exports.cssText = ".ace-crimson-editor .ace_editor {\
 
 exports.cssClass = "ace-crimson-editor";
 
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
-
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
 });

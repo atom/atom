@@ -1,16 +1,15 @@
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var JavaScriptMode = require("./javascript").Mode;
 var Tokenizer = require("../tokenizer").Tokenizer;
 var JavaHighlightRules = require("./java_highlight_rules").JavaHighlightRules;
-var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
-var CstyleBehaviour = require("./behaviour/cstyle").CstyleBehaviour;
 
 var Mode = function() {
+    JavaScriptMode.call(this);
+    
     this.$tokenizer = new Tokenizer(new JavaHighlightRules().getRules());
-    this.$outdent = new MatchingBraceOutdent();
-    this.$behaviour = new CstyleBehaviour();
 };
 oop.inherits(Mode, JavaScriptMode);
 

@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var assert = require("assert");
     
@@ -51,7 +52,7 @@ assert.range = function(range, startRow, startColumn, endRow, endColumn) {
 
 assert.notOk = function(value) {
     assert.equal(value, false);   
-}
+};
 
 exports.jsonEquals = function(foundJson, expectedJson) {
     assert.equal(JSON.stringify(foundJson), JSON.stringify(expectedJson));

@@ -1,11 +1,12 @@
 <html>
 <head>
+  <link rel="stylesheet" type="text/css" src="static/reset.css">
   <script src='src/stdlib/require.js'></script>
 
   <script>
-    window.measure = function(name) {
+    window.measure = function(name, fn) {
         var start = new Date().getTime();
-        return {stop: function() {
+        obj = {stop: function() {
           var end = new Date().getTime();
           var total = (end - start) / 1000;
           while(name.length < 40) {
@@ -13,6 +14,14 @@
           }
           console.log(name + (end - start) / 1000);
         }}
+
+        if (fn) {
+          fn()
+          obj.stop()
+        }
+        else {
+          return obj
+        }
     }
 
     window.onload = function() {

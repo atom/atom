@@ -1,173 +1,514 @@
 Buffer = require 'buffer'
 Editor = require 'editor'
+Range = require 'range'
 $ = require 'jquery'
-ck = require 'coffeekup'
+_ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  mainDiv = null
+  buffer = null
   editor = null
-  filePath = null
-  tempFilePath = null
 
   beforeEach ->
-    filePath = require.resolve 'fixtures/sample.txt'
-    tempFilePath = '/tmp/temp.txt'
+    buffer = new Buffer(require.resolve('fixtures/sample.js'))
     editor = Editor.build()
+    editor.enableKeymap()
+    editor.setBuffer(buffer)
 
-  afterEach ->
-    fs.remove tempFilePath
-    editor.destroy()
+  describe "text rendering", ->
+    it "creates a pre element for each line in the buffer with the html-escaped text of the line", ->
+      expect(editor.lines.find('pre').length).toEqual(buffer.numLines())
+      expect(buffer.getLine(2)).toContain('<')
+      expect(editor.lines.find('pre:eq(2)').html()).toContain '&lt;'
 
-  describe "initialize", ->
-    it "has a buffer", ->
-      expect(editor.buffer).toBeDefined()
+      # renders empty lines with a non breaking space
+      expect(buffer.getLine(10)).toBe ''
+      expect(editor.lines.find('pre:eq(10)').html()).toBe '&nbsp;'
 
-  describe '.set/getPosition', ->
-    it "gets the cursor location / moves the cursor location", ->
-      editor.buffer.setText("012345")
-      expect(editor.getPosition()).toEqual {column: 6, row: 0}
-      editor.setPosition(column: 2, row: 0)
-      expect(editor.getPosition()).toEqual {column: 2, row: 0}
-
-  describe 'destroy', ->
-    it 'destroys the ace editor', ->
-      spyOn(editor.aceEditor, 'destroy').andCallThrough()
-      editor.destroy()
-      expect(editor.aceEditor.destroy).toHaveBeenCalled()
-
-  describe "setBuffer(buffer)", ->
-    it "sets the document on the aceSession", ->
-      buffer = new Buffer filePath
-      editor.setBuffer buffer
-
-      fileContents = fs.read(filePath)
-      expect(editor.getAceSession().getValue()).toBe fileContents
-
-    it "restores the ace edit session for a previously assigned buffer", ->
-      buffer = new Buffer filePath
-      editor.setBuffer buffer
-
-      aceSession = editor.getAceSession()
-
-      editor.setBuffer new Buffer(tempFilePath)
-      expect(editor.getAceSession()).not.toBe(aceSession)
-
-      editor.setBuffer(buffer)
-      expect(editor.getAceSession()).toBe aceSession
-
-    it "sets the language mode based on the file extension", ->
-      buffer = new Buffer "something.js"
-      editor.setBuffer buffer
-
-      expect(editor.getAceSession().getMode().name).toBe 'javascript'
-
-  describe "when the text is changed via the ace editor", ->
-    it "updates the buffer text", ->
-      buffer = new Buffer(filePath)
-      editor.setBuffer(buffer)
-      expect(buffer.getText()).not.toMatch /^.ooo/
-      editor.getAceSession().insert {row: 0, column: 1}, 'ooo'
-      expect(buffer.getText()).toMatch /^.ooo/
-
-  describe ".save()", ->
-    it "is triggered by the 'save' event", ->
-      spyOn(editor, 'save')
-      editor.trigger('save')
-      expect(editor.save).toHaveBeenCalled()
-
-    describe "when the current buffer has a url", ->
+  describe "cursor movement", ->
+    describe ".setCursorPosition({row, column})", ->
       beforeEach ->
-        buffer = new Buffer(tempFilePath)
-        editor.setBuffer(buffer)
+        editor.attachToDom()
+        editor.setCursorPosition(row: 2, column: 2)
 
-      it "saves the current buffer to disk", ->
-        editor.buffer.setText 'Edited buffer!'
-        expect(fs.exists(tempFilePath)).toBeFalsy()
+      it "moves the cursor to cover the character at the given row and column", ->
+        expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
+        expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
 
-        editor.save()
+      it "moves the hidden input element to the position of the cursor to prevent scrolling misbehavior", ->
+        expect(editor.hiddenInput.position().top).toBe(2 * editor.lineHeight)
+        expect(editor.hiddenInput.position().left).toBe(2 * editor.charWidth)
 
-        expect(fs.exists(tempFilePath)).toBeTruthy()
-        expect(fs.read(tempFilePath)).toBe 'Edited buffer!'
+    describe "when the arrow keys are pressed", ->
+      it "moves the cursor by a single row/column", ->
+        editor.trigger keydownEvent('right')
+        expect(editor.getCursorPosition()).toEqual(row: 0, column: 1)
 
-    describe "when the current buffer has no url", ->
-      selectedFilePath = null
-      beforeEach ->
-        expect(editor.buffer.url).toBeUndefined()
-        editor.buffer.setText 'Save me to a new url'
-        spyOn(atom.native, 'savePanel').andCallFake -> selectedFilePath
+        editor.trigger keydownEvent('down')
+        expect(editor.getCursorPosition()).toEqual(row: 1, column: 1)
 
-      it "presents a 'save as' dialog", ->
-        editor.save()
-        expect(atom.native.savePanel).toHaveBeenCalled()
+        editor.trigger keydownEvent('left')
+        expect(editor.getCursorPosition()).toEqual(row: 1, column: 0)
 
-      describe "when a url is chosen", ->
-        it "saves the buffer to the chosen url", ->
-          selectedFilePath = '/tmp/temp.txt'
+        editor.trigger keydownEvent('up')
+        expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
 
-          editor.save()
+    describe "vertical movement", ->
+      describe "auto-scrolling", ->
+        beforeEach ->
+          editor.attachToDom()
+          editor.focus()
+          editor.vScrollMargin = 3
 
-          expect(fs.exists(selectedFilePath)).toBeTruthy()
-          expect(fs.read(selectedFilePath)).toBe 'Save me to a new url'
+        it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
+          editor.height(editor.lineHeight * 10)
 
-      describe "when dialog is cancelled", ->
-        it "does not save the buffer", ->
-          selectedFilePath = null
+          _.times 6, -> editor.moveCursorDown()
+          expect(editor.scrollTop()).toBe(0)
 
-          editor.save()
+          editor.moveCursorDown()
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
+          editor.moveCursorDown()
+          expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
-          expect(fs.exists(selectedFilePath)).toBeFalsy()
+          _.times 3, -> editor.moveCursorUp()
+          expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
-  describe "key event handling", ->
-    handler = null
-    returnValue = null
+          editor.moveCursorUp()
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+          editor.moveCursorUp()
+          expect(editor.scrollTop()).toBe(0)
+
+        it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
+          editor.height(editor.lineHeight * 5)
+
+          _.times 3, -> editor.moveCursorDown()
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+          editor.moveCursorUp()
+          expect(editor.scrollTop()).toBe(0)
+
+      describe "goal column retention", ->
+        lineLengths = null
+
+        beforeEach ->
+          lineLengths = buffer.getLines().map (line) -> line.length
+          expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
+          expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
+          expect(lineLengths[6]).toBeGreaterThan(lineLengths[3])
+
+        it "retains the goal column when moving up", ->
+          expect(lineLengths[6]).toBeGreaterThan(32)
+          editor.setCursorPosition(row: 6, column: 32)
+
+          editor.moveCursorUp()
+          expect(editor.getCursorPosition().column).toBe lineLengths[5]
+
+          editor.moveCursorUp()
+          expect(editor.getCursorPosition().column).toBe lineLengths[4]
+
+          editor.moveCursorUp()
+          expect(editor.getCursorPosition().column).toBe 32
+
+        it "retains the goal column when moving down", ->
+          editor.setCursorPosition(row: 3, column: lineLengths[3])
+
+          editor.moveCursorDown()
+          expect(editor.getCursorPosition().column).toBe lineLengths[4]
+
+          editor.moveCursorDown()
+          expect(editor.getCursorPosition().column).toBe lineLengths[5]
+
+          editor.moveCursorDown()
+          expect(editor.getCursorPosition().column).toBe lineLengths[3]
+
+        it "clears the goal column when the cursor is set", ->
+          # set a goal column by moving down
+          editor.setCursorPosition(row: 3, column: lineLengths[3])
+          editor.moveCursorDown()
+          expect(editor.getCursorPosition().column).not.toBe 6
+
+          # clear the goal column by explicitly setting the cursor position
+          editor.setCursorColumn(6)
+          expect(editor.getCursorPosition().column).toBe 6
+
+          editor.moveCursorDown()
+          expect(editor.getCursorPosition().column).toBe 6
+
+      describe "when up is pressed on the first line", ->
+        it "moves the cursor to the beginning of the line, but retains the goal column", ->
+          editor.setCursorPosition(row: 0, column: 4)
+          editor.moveCursorUp()
+          expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+
+          editor.moveCursorDown()
+          expect(editor.getCursorPosition()).toEqual(row: 1, column: 4)
+
+      describe "when down is pressed on the last line", ->
+        it "moves the cursor to the end of line, but retains the goal column", ->
+          lastLineIndex = buffer.getLines().length - 1
+          lastLine = buffer.getLine(lastLineIndex)
+          expect(lastLine.length).toBeGreaterThan(0)
+
+          editor.setCursorPosition(row: lastLineIndex, column: 1)
+          editor.moveCursorDown()
+          expect(editor.getCursorPosition()).toEqual(row: lastLineIndex, column: lastLine.length)
+
+          editor.moveCursorUp()
+          expect(editor.getCursorPosition().column).toBe 1
+
+        it "retains a goal column of 0", ->
+          lastLineIndex = buffer.getLines().length - 1
+          lastLine = buffer.getLine(lastLineIndex)
+          expect(lastLine.length).toBeGreaterThan(0)
+
+          editor.setCursorPosition(row: lastLineIndex, column: 0)
+          editor.moveCursorDown()
+          editor.moveCursorUp()
+          expect(editor.getCursorPosition().column).toBe 0
+
+    describe "horizontal movement", ->
+      describe "auto-scrolling", ->
+        charWidth = null
+        beforeEach ->
+          editor.attachToDom()
+          {charWidth} = editor
+          editor.hScrollMargin = 5
+
+        it "scrolls horizontally to keep the cursor on screen", ->
+          editor.width(charWidth * 30)
+
+          # moving right
+          editor.setCursorPosition([2, 24])
+          expect(editor.scrollLeft()).toBe 0
+
+          editor.setCursorPosition([2, 25])
+          expect(editor.scrollLeft()).toBe charWidth
+
+          editor.setCursorPosition([2, 28])
+          expect(editor.scrollLeft()).toBe charWidth * 4
+
+          # moving left
+          editor.setCursorPosition([2, 9])
+          expect(editor.scrollLeft()).toBe charWidth * 4
+
+          editor.setCursorPosition([2, 8])
+          expect(editor.scrollLeft()).toBe charWidth * 3
+
+          editor.setCursorPosition([2, 5])
+          expect(editor.scrollLeft()).toBe 0
+
+        it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
+          editor.hScrollMargin = 6
+          editor.width(charWidth * 7)
+
+          editor.setCursorPosition([2, 3])
+          expect(editor.scrollLeft()).toBe(0)
+
+          editor.setCursorPosition([2, 4])
+          expect(editor.scrollLeft()).toBe(charWidth)
+
+          editor.setCursorPosition([2, 3])
+          expect(editor.scrollLeft()).toBe(0)
+
+      describe "when left is pressed on the first column", ->
+        describe "when there is a previous line", ->
+          it "wraps to the end of the previous line", ->
+            editor.setCursorPosition(row: 1, column: 0)
+            editor.moveCursorLeft()
+            expect(editor.getCursorPosition()).toEqual(row: 0, column: buffer.getLine(0).length)
+
+        describe "when the cursor is on the first line", ->
+          it "remains in the same position (0,0)", ->
+            editor.setCursorPosition(row: 0, column: 0)
+            editor.moveCursorLeft()
+            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+
+      describe "when right is pressed on the last column", ->
+        describe "when there is a subsequent line", ->
+          it "wraps to the beginning of the next line", ->
+            editor.setCursorPosition(row: 0, column: buffer.getLine(0).length)
+            editor.moveCursorRight()
+            expect(editor.getCursorPosition()).toEqual(row: 1, column: 0)
+
+        describe "when the cursor is on the last line", ->
+          it "remains in the same position", ->
+            lastLineIndex = buffer.getLines().length - 1
+            lastLine = buffer.getLine(lastLineIndex)
+            expect(lastLine.length).toBeGreaterThan(0)
+
+            lastPosition = { row: lastLineIndex, column: lastLine.length }
+            editor.setCursorPosition(lastPosition)
+            editor.moveCursorRight()
+
+            expect(editor.getCursorPosition()).toEqual(lastPosition)
+
+    describe "when a mousedown event occurs in the editor", ->
+      it "re-positions the cursor to the clicked row / column", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+        pageX = editor.offset().left + 10 * editor.charWidth + 3
+        pageY = editor.offset().top + 4 * editor.lineHeight - 2
+
+        expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+
+        editor.lines.trigger mousedownEvent({pageX, pageY})
+
+        expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
+
+  describe "selection", ->
+    selection = null
 
     beforeEach ->
-      handler =
-        handleKeyEvent: jasmine.createSpy('handleKeyEvent').andCallFake ->
-          returnValue
+      selection = editor.selection
 
-    describe "when onCommandKey is called on the aceEditor (triggered by a keydown event on the textarea)", ->
-      event = null
+    describe "when the arrow keys are pressed with the shift modifier", ->
+      it "expands the selection up to the cursor's new location", ->
+        editor.setCursorPosition(row: 1, column: 6)
 
-      beforeEach ->
-        event = keydownEvent 'x'
-        spyOn(event, 'stopPropagation')
+        expect(selection.isEmpty()).toBeTruthy()
 
-      describe "when no key event handler has been assigned", ->
-        beforeEach ->
-          expect(editor.keyEventHandler).toBeNull()
+        editor.trigger keydownEvent('right', shiftKey: true)
 
-        it "handles the event without crashing", ->
-          editor.aceEditor.onCommandKey event, 0, event.which
+        expect(selection.isEmpty()).toBeFalsy()
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 1, column: 7)
 
-      describe "when a key event handler has been assigned", ->
-        beforeEach ->
-          editor.keyEventHandler = handler
+        editor.trigger keydownEvent('right', shiftKey: true)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 1, column: 8)
 
-        it "asks the key event handler to handle the event", ->
-          editor.aceEditor.onCommandKey event, 0, event.which
-          expect(handler.handleKeyEvent).toHaveBeenCalled()
+        editor.trigger keydownEvent('down', shiftKey: true)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 2, column: 8)
 
-        describe "if the atom key event handler returns true, indicating that it did not handle the event", ->
-          beforeEach ->
-            returnValue = true
+        editor.trigger keydownEvent('left', shiftKey: true)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 2, column: 7)
 
-          it "does not stop the propagation of the event, allowing Ace to handle it as normal", ->
-            editor.aceEditor.onCommandKey event, 0, event.which
-            expect(event.stopPropagation).not.toHaveBeenCalled()
+        editor.trigger keydownEvent('up', shiftKey: true)
+        range = selection.getRange()
+        expect(range.start).toEqual(row: 1, column: 6)
+        expect(range.end).toEqual(row: 1, column: 7)
 
-        describe "if the atom key event handler returns false, indicating that it handled the event", ->
-          beforeEach ->
-            returnValue = false
+    describe "when the arrow keys are pressed without the shift modifier", ->
+      makeNonEmpty = ->
+        selection.setRange(new Range({row: 1, column: 2}, {row: 1, column: 5}))
+        expect(selection.isEmpty()).toBeFalsy()
 
-          it "stops propagation of the event, so Ace does not attempt to handle it", ->
-            editor.aceEditor.onCommandKey event, 0, event.which
-            expect(event.stopPropagation).toHaveBeenCalled()
+      it "clears the selection", ->
+        makeNonEmpty()
+        editor.trigger keydownEvent('right')
+        expect(selection.isEmpty()).toBeTruthy()
 
-    describe "when onTextInput is called on the aceEditor (triggered by an input event)", ->
-      it "does not call handleKeyEvent on the key event handler, because there is no event", ->
-        editor.keyEventHandler = handler
-        editor.aceEditor.onTextInput("x", false)
-        expect(handler.handleKeyEvent).not.toHaveBeenCalled()
+        makeNonEmpty()
+        editor.trigger keydownEvent('left')
+        expect(selection.isEmpty()).toBeTruthy()
+
+        makeNonEmpty()
+        editor.trigger keydownEvent('up')
+        expect(selection.isEmpty()).toBeTruthy()
+
+        makeNonEmpty()
+        editor.trigger keydownEvent('down')
+        expect(selection.isEmpty()).toBeTruthy()
+
+    describe "when the mouse is dragged across the text", ->
+      it "creates a selection from the initial click to mouse cursor's location ", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        # start
+        pageX = editor.offset().left + 10 * editor.charWidth + 3
+        pageY = editor.offset().top + 4 * editor.lineHeight + 3
+        editor.lines.trigger mousedownEvent({pageX, pageY})
+
+        # moving changes selection
+        pageX = editor.offset().left + 27 * editor.charWidth + 3
+        pageY = editor.offset().top + 5 * editor.lineHeight + 3
+        editor.lines.trigger mousemoveEvent({pageX, pageY})
+
+        range = editor.selection.getRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+
+        # mouse up may occur outside of editor, but still need to halt selection
+        $(document).trigger 'mouseup'
+
+        # moving after mouse up should not change selection
+        pageX = editor.offset().left + 3 * editor.charWidth + 3
+        pageY = editor.offset().top + 8 * editor.lineHeight + 3
+        editor.lines.trigger mousemoveEvent({pageX, pageY})
+
+        range = editor.selection.getRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+
+  describe "buffer manipulation", ->
+    describe "when text input events are triggered on the hidden input element", ->
+      describe "when there is no selection", ->
+        it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
+          editor.setCursorPosition(row: 1, column: 6)
+
+          expect(editor.getCurrentLine().charAt(6)).not.toBe 'q'
+
+          editor.hiddenInput.textInput 'q'
+
+          expect(editor.getCurrentLine().charAt(6)).toBe 'q'
+          expect(editor.getCursorPosition()).toEqual(row: 1, column: 7)
+          expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
+
+      describe "when there is a selection", ->
+        it "replaces the selected text with the typed text", ->
+          editor.selection.setRange(new Range([1, 6], [2, 4]))
+          editor.hiddenInput.textInput 'q'
+          expect(buffer.getLine(1)).toBe '  var qif (items.length <= 1) return items;'
+
+    describe "when return is pressed", ->
+      describe "when the cursor is at the beginning of a line", ->
+        it "inserts an empty line before it", ->
+          editor.setCursorPosition(row: 1, column: 0)
+
+          editor.trigger keydownEvent('enter')
+
+          expect(editor.lines.find('pre:eq(1)')).toHaveHtml '&nbsp;'
+          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+
+      describe "when the cursor is in the middle of a line", ->
+        it "splits the current line to form a new line", ->
+          editor.setCursorPosition(row: 1, column: 6)
+
+          originalLine = editor.lines.find('pre:eq(1)').text()
+          lineBelowOriginalLine = editor.lines.find('pre:eq(2)').text()
+          editor.trigger keydownEvent('enter')
+
+          expect(editor.lines.find('pre:eq(1)')).toHaveText originalLine[0...6]
+          expect(editor.lines.find('pre:eq(2)')).toHaveText originalLine[6..]
+          expect(editor.lines.find('pre:eq(3)')).toHaveText lineBelowOriginalLine
+          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+
+      describe "when the cursor is on the end of a line", ->
+        it "inserts an empty line after it", ->
+          editor.setCursorPosition(row: 1, column: buffer.getLine(1).length)
+
+          editor.trigger keydownEvent('enter')
+
+          expect(editor.lines.find('pre:eq(2)')).toHaveHtml '&nbsp;'
+          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+
+    describe "when backspace is pressed", ->
+      describe "when the cursor is on the middle of the line", ->
+        it "removes the character before the cursor", ->
+          editor.setCursorPosition(row: 1, column: 7)
+          expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
+
+          editor.trigger keydownEvent('backspace')
+
+          line = buffer.getLine(1)
+          expect(line).toBe "  var ort = function(items) {"
+          expect(editor.lines.find('pre:eq(1)')).toHaveText line
+          expect(editor.getCursorPosition()).toEqual {row: 1, column: 6}
+
+      describe "when the cursor is at the beginning of a line", ->
+        it "joins it with the line above", ->
+          originalLine0 = buffer.getLine(0)
+          expect(originalLine0).toBe "var quicksort = function () {"
+          expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
+
+          editor.setCursorPosition(row: 1, column: 0)
+          editor.trigger keydownEvent('backspace')
+
+          line0 = buffer.getLine(0)
+          line1 = buffer.getLine(1)
+          expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
+          expect(line1).toBe "    if (items.length <= 1) return items;"
+
+          expect(editor.lines.find('pre:eq(0)')).toHaveText line0
+          expect(editor.lines.find('pre:eq(1)')).toHaveText line1
+          expect(editor.getCursorPosition()).toEqual {row: 0, column: originalLine0.length}
+
+      describe "when the cursor is at the first column of the first line", ->
+        it "does nothing, but doesn't raise an error", ->
+          editor.setCursorPosition(row: 0, column: 0)
+          editor.trigger keydownEvent('backspace')
+
+      describe "when there is a selection", ->
+        it "deletes the selection, but not the character before it", ->
+          editor.selection.setRange(new Range([0,5], [0,9]))
+          editor.trigger keydownEvent('backspace')
+          expect(editor.buffer.getLine(0)).toBe 'var qsort = function () {'
+
+    describe "when delete is pressed", ->
+      describe "when the cursor is on the middle of a line", ->
+        it "deletes the character following the cursor", ->
+          editor.setCursorPosition([1, 6])
+          editor.trigger keydownEvent('delete')
+          expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
+
+      describe "when the cursor is on the end of a line", ->
+        it "joins the line with the following line", ->
+          editor.setCursorPosition([1, buffer.getLine(1).length])
+          editor.trigger keydownEvent('delete')
+          expect(buffer.getLine(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
+
+      describe "when there is a selection", ->
+        it "deletes the selection, but not the character following it", ->
+          editor.selection.setRange(new Range([1,6], [1,8]))
+          editor.trigger keydownEvent 'delete'
+          expect(buffer.getLine(1)).toBe '  var rt = function(items) {'
+
+      describe "when the cursor is on the last column of the last line", ->
+        it "does nothing, but doesn't raise an error", ->
+          editor.setCursorPosition([12, buffer.getLine(12).length])
+          editor.trigger keydownEvent('delete')
+          expect(buffer.getLine(12)).toBe '};'
+
+    describe "when multiple lines are removed from the buffer (regression)", ->
+      it "removes all of them from the dom", ->
+        buffer.change(new Range([6, 24], [12, 0]), '')
+        expect(editor.find('.line').length).toBe 7
+        expect(editor.find('.line:eq(6)').text()).toBe(buffer.getLine(6))
+
+  describe "when the editor is attached to the dom", ->
+    it "calculates line height and char width and updates the pixel position of the cursor", ->
+      expect(editor.lineHeight).toBeNull()
+      expect(editor.charWidth).toBeNull()
+      editor.setCursorPosition(row: 2, column: 2)
+
+      editor.attachToDom()
+
+      expect(editor.lineHeight).not.toBeNull()
+      expect(editor.charWidth).not.toBeNull()
+      expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
+      expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
+
+    it "is focused", ->
+      editor.attachToDom()
+      expect(editor).toMatchSelector ":has(:focus)"
+
+  describe "when the editor is focused", ->
+    it "focuses the hidden input", ->
+      editor.attachToDom()
+      editor.focus()
+      expect(editor).not.toMatchSelector ':focus'
+      expect(editor.hiddenInput).toMatchSelector ':focus'
+
+  describe ".setBuffer(buffer)", ->
+    it "sets the cursor to the beginning of the file", ->
+      expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+
+  describe ".clipPosition(point)", ->
+    it "selects the nearest valid position to the given point", ->
+      expect(editor.clipPosition(row: 1000, column: 0)).toEqual(row: buffer.numLines() - 1, column: 0)
+      expect(editor.clipPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
+      expect(editor.clipPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.getLine(1).length)
+      expect(editor.clipPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
+
 

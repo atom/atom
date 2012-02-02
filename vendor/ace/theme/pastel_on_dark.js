@@ -36,8 +36,11 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+
 exports.isDark = true;
-exports.cssText = ".ace-pastel-on-dark .ace_editor {\
+exports.cssClass = "ace-pastel-on-dark";
+exports.cssText = "\
+.ace-pastel-on-dark .ace_editor {\
   border: 2px solid rgb(159, 159, 159);\
 }\
 \
@@ -46,19 +49,8 @@ exports.cssText = ".ace-pastel-on-dark .ace_editor {\
 }\
 \
 .ace-pastel-on-dark .ace_gutter {\
-  width: 50px;\
   background: #e8e8e8;\
   color: #333;\
-  overflow : hidden;\
-}\
-\
-.ace-pastel-on-dark .ace_gutter-layer {\
-  width: 100%;\
-  text-align: right;\
-}\
-\
-.ace-pastel-on-dark .ace_gutter-layer .ace_gutter-cell {\
-  padding-right: 6px;\
 }\
 \
 .ace-pastel-on-dark .ace_print_margin {\
@@ -67,12 +59,12 @@ exports.cssText = ".ace-pastel-on-dark .ace_editor {\
 }\
 \
 .ace-pastel-on-dark .ace_scroller {\
-  background-color: #2c2828;\
+  background-color: #2C2828;\
 }\
 \
 .ace-pastel-on-dark .ace_text-layer {\
   cursor: text;\
-  color: #8f938f;\
+  color: #8F938F;\
 }\
 \
 .ace-pastel-on-dark .ace_cursor {\
@@ -101,13 +93,16 @@ exports.cssText = ".ace-pastel-on-dark .ace_editor {\
   background: rgba(255, 255, 255, 0.031);\
 }\
 \
+.ace-pastel-on-dark .ace_marker-layer .ace_selected_word {\
+  border: 1px solid rgba(221, 240, 255, 0.20);\
+}\
        \
 .ace-pastel-on-dark .ace_invisible {\
   color: rgba(255, 255, 255, 0.25);\
 }\
 \
 .ace-pastel-on-dark .ace_keyword {\
-  color:#757ad8;\
+  color:#757aD8;\
 }\
 \
 .ace-pastel-on-dark .ace_keyword.ace_operator {\
@@ -115,23 +110,20 @@ exports.cssText = ".ace-pastel-on-dark .ace_editor {\
 }\
 \
 .ace-pastel-on-dark .ace_constant {\
-  color:#4fb7c5;\
+  color:#4FB7C5;\
 }\
 \
 .ace-pastel-on-dark .ace_constant.ace_language {\
-  \
-}\
-\
-.ace-pastel-on-dark .ace_constant.ace_library {\
-  \
+  color:#DE8E30;\
 }\
 \
 .ace-pastel-on-dark .ace_constant.ace_numeric {\
-  \
+  color:#CCCCCC;\
 }\
 \
 .ace-pastel-on-dark .ace_invalid {\
-  \
+  color:#F8F8F8;\
+background-color:rgba(86, 45, 86, 0.75);\
 }\
 \
 .ace-pastel-on-dark .ace_invalid.ace_illegal {\
@@ -145,20 +137,17 @@ font-style:italic;\
 color:#D2A8A1;\
 }\
 \
-.ace-pastel-on-dark .ace_support {\
-  color:#9a9a9a;\
+.ace-pastel-on-dark .ace_fold {\
+    background-color: #757aD8;\
+    border-color: #8F938F;\
 }\
 \
 .ace-pastel-on-dark .ace_support.ace_function {\
-  color:#aeb2f8;\
-}\
-\
-.ace-pastel-on-dark .ace_function.ace_buildin {\
-  \
+  color:#AEB2F8;\
 }\
 \
 .ace-pastel-on-dark .ace_string {\
-  color:#66a968;\
+  color:#66A968;\
 }\
 \
 .ace-pastel-on-dark .ace_string.ace_regexp {\
@@ -166,36 +155,25 @@ color:#D2A8A1;\
 }\
 \
 .ace-pastel-on-dark .ace_comment {\
-  color:#656865;\
-}\
-\
-.ace-pastel-on-dark .ace_comment.ace_doc {\
-  color:A6C6FF;\
-}\
-\
-.ace-pastel-on-dark .ace_comment.ace_doc.ace_tag {\
-  color:A6C6FF;\
+  color:#A6C6FF;\
 }\
 \
 .ace-pastel-on-dark .ace_variable {\
-  color:#bebf55;\
+  color:#BEBF55;\
 }\
 \
 .ace-pastel-on-dark .ace_variable.ace_language {\
-  color:#bebf55;\
-}\
-\
-.ace-pastel-on-dark .ace_markup.ace_underline {\
-    text-decoration:underline;\
+  color:#C1C144;\
 }\
 \
 .ace-pastel-on-dark .ace_xml_pe {\
   color:#494949;\
+}\
+\
+.ace-pastel-on-dark .ace_markup.ace_underline {\
+    text-decoration:underline;\
 }";
 
-exports.cssClass = "ace-pastel-on-dark";
-
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText);
-
+var dom = require("../lib/dom");
+dom.importCssString(exports.cssText, exports.cssClass);
 });

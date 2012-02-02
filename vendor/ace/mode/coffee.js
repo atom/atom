@@ -36,10 +36,12 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var Tokenizer = require("../tokenizer").Tokenizer;
 var Rules = require("./coffee_highlight_rules").CoffeeHighlightRules;
 var Outdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var PythonFoldMode = require("./folding/pythonic").FoldMode;
 var Range = require("../range").Range;
 var TextMode = require("./text").Mode;
 var WorkerClient = require("../worker/worker_client").WorkerClient;
@@ -48,6 +50,7 @@ var oop = require("../lib/oop");
 function Mode() {
     this.$tokenizer = new Tokenizer(new Rules().getRules());
     this.$outdent   = new Outdent();
+    this.foldingRules = new PythonFoldMode("=|=>|->|\\s*class [^#]*");
 }
 
 oop.inherits(Mode, TextMode);

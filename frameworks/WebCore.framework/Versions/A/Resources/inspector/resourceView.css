@@ -1,0 +1,105 @@
+/*
+ * Copyright (C) 2006, 2007, 2008 Apple Inc.  All rights reserved.
+ * Copyright (C) 2009 Anthony Ricaud <rik@webkit.org>
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1.  Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ * 2.  Redistributions in binary form must reproduce the above copyright
+ *     notice, this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 3.  Neither the name of Apple Computer, Inc. ("Apple") nor the names of
+ *     its contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY APPLE AND ITS CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL APPLE OR ITS CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+.resource-view {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    overflow: auto;
+}
+
+.resource-view.visible {
+    display: block;
+}
+
+.resource-view.font {
+    font-size: 60px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    text-align: center;
+    padding: 15px;
+}
+
+.resource-view.image > .image {
+    padding: 20px 20px 10px 20px;
+    text-align: center;
+}
+
+.resource-view.image > .info {
+    padding-bottom: 10px;
+    font-size: 11px;
+    -webkit-user-select: text;
+}
+
+.resource-view.image img.resource-image-view {
+    max-width: 100%;
+    max-height: 1000px;
+    background-image: url(Images/checker.png);
+    -webkit-box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.5);
+    -webkit-user-select: text;
+    -webkit-user-drag: auto;
+}
+
+.resource-status-image {
+    margin-top: -3px;
+    vertical-align: middle;
+}
+
+.resource-view.image .title {
+    text-align: center;
+    font-size: 13px;
+}
+
+.resource-view.image .infoList {
+    margin: 0;
+}
+
+.resource-view.image .infoList dt {
+    font-weight: bold;
+    display: inline-block;
+    width: 50%;
+    text-align: right;
+    color: rgb(76, 76, 76);
+}
+
+.resource-view.image .infoList dd {
+    display: inline-block;
+    padding-left: 8px;
+    width: 50%;
+    text-align: left;
+    margin: 0;
+}
+
+.resource-view.image .infoList dd::after {
+    white-space: pre;
+    content: "\A";
+}

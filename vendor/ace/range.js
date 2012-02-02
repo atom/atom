@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var Range = function(startRow, startColumn, endRow, endColumn) {
     this.start = {
@@ -50,6 +51,12 @@ var Range = function(startRow, startColumn, endRow, endColumn) {
 };
 
 (function() {
+    this.isEequal = function(range) {
+        return this.start.row == range.start.row &&
+            this.end.row == range.end.row &&
+            this.start.column == range.start.column &&
+            this.end.column == range.end.column
+    };
 
     this.toString = function() {
         return ("Range: [" + this.start.row + "/" + this.start.column +

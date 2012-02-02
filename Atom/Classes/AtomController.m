@@ -88,9 +88,7 @@
   
   NSURLRequest *request = [NSURLRequest requestWithURL:indexURL]; 
   [[self.webView mainFrame] loadRequest:request];
-  
-  [[self.webView inspector] showConsole:self];
-  
+    
   [self blockUntilWebViewLoads];
 }
 

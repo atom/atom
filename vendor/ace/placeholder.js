@@ -35,6 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 define(function(require, exports, module) {
+"use strict";
 
 var Range = require('./range').Range;
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
@@ -58,6 +59,8 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
     };
     
     this.$pos = pos;
+    // Used for reset
+    this.$undoStackDepth = session.getUndoManager().$undoStack ? session.getUndoManager().$undoStack.length : -1;
     this.setup();
 
     session.selection.on("changeCursor", this.$onCursorChange);
@@ -84,6 +87,7 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
             var anchor = doc.createAnchor(other.row, other.column);
             _self.others.push(anchor);
         });
+        session.setUndoSelect(false);
     };
     
     this.showOtherMarkers = function() {
@@ -113,6 +117,8 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         var range = delta.range;
         if(range.start.row !== range.end.row) return;
         if(range.start.row !== this.pos.row) return;
+        if (this.$updating) return;
+        this.$updating = true;
         var lengthDiff = delta.action === "insertText" ? range.end.column - range.start.column : range.start.column - range.end.column;
         
         if(range.start.column >= this.pos.column && range.start.column <= this.pos.column + this.length + 1) {
@@ -160,21 +166,23 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
                     }.bind(this), 0);
                 }
             }
-            this.pos._dispatchEvent("change", {value: this.pos});
+            this.pos._emit("change", {value: this.pos});
             for (var i = 0; i < this.others.length; i++) {
-                this.others[i]._dispatchEvent("change", {value: this.others[i]});
+                this.others[i]._emit("change", {value: this.others[i]});
             }
         }
+        this.$updating = false;
     };
     
     this.onCursorChange = function(event) {
+        if (this.$updating) return;
         var pos = this.session.selection.getCursor();
         if(pos.row === this.pos.row && pos.column >= this.pos.column && pos.column <= this.pos.column + this.length) {
             this.showOtherMarkers();
-            this._dispatchEvent("cursorEnter", event);
+            this._emit("cursorEnter", event);
         } else {
             this.hideOtherMarkers();
-            this._dispatchEvent("cursorLeave", event);
+            this._emit("cursorLeave", event);
         }
     };
     
@@ -186,6 +194,17 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         this.pos.detach();
         for (var i = 0; i < this.others.length; i++) {
             this.others[i].detach();
+        }
+        this.session.setUndoSelect(true);
+    };
+    
+    this.cancel = function() {
+        if(this.$undoStackDepth === -1)
+            throw Error("Canceling placeholders only supported with undo manager attached to session.");
+        var undoManager = this.session.getUndoManager();
+        var undosRequired = undoManager.$undoStack.length - this.$undoStackDepth;
+        for (var i = 0; i < undosRequired; i++) {
+            undoManager.undo(true);
         }
     };
 }).call(PlaceHolder.prototype);

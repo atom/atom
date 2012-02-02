@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 // If you're developing a new keymapping and want to get an idea what's going
 // on, then enable debugging.
@@ -73,7 +74,7 @@ StateHandler.prototype = {
         });
     },
 
-    $composeBuffer: function(data, hashId, key) {
+    $composeBuffer: function(data, hashId, key, e) {
         // Initialize the data object.
         if (data.state == null || data.buffer == null) {
             data.state = "start";
@@ -102,17 +103,23 @@ StateHandler.prototype = {
             data.buffer = bufferToUse;
         }
 
-        return {
-            bufferToUse:    bufferToUse,
-            symbolicName:   symbolicName
+        var bufferObj = {
+            bufferToUse: bufferToUse,
+            symbolicName: symbolicName,
         };
+
+        if (e) {
+            bufferObj.keyIdentifier = e.keyIdentifier
+        }
+
+        return bufferObj;
     },
 
-    $find: function(data, buffer, symbolicName, hashId, key) {
+    $find: function(data, buffer, symbolicName, hashId, key, keyIdentifier) {
         // Holds the command to execute and the args if a command matched.
         var result = {};
 
-        // Loop over all the bindings of the keymapp until a match is found.
+        // Loop over all the bindings of the keymap until a match is found.
         this.keymapping[data.state].some(function(binding) {
             var match;
 
@@ -127,7 +134,7 @@ StateHandler.prototype = {
             }
 
             // Check if the match function matches.
-            if (binding.match && !binding.match(buffer, hashId, key, symbolicName)) {
+            if (binding.match && !binding.match(buffer, hashId, key, symbolicName, keyIdentifier)) {
                 return false;
             }
 
@@ -194,20 +201,21 @@ StateHandler.prototype = {
     /**
      * This function is called by keyBinding.
      */
-    handleKeyboard: function(data, hashId, key) {
+    handleKeyboard: function(data, hashId, key, keyCode, e) {
         // If we pressed any command key but no other key, then ignore the input.
         // Otherwise "shift-" is added to the buffer, and later on "shift-g"
-        // which results in "shift-shift-g" which doesn't make senese.
+        // which results in "shift-shift-g" which doesn't make sense.
         if (hashId != 0 && (key == "" || key == String.fromCharCode(0))) {
             return null;
         }
 
         // Compute the current value of the keyboard input buffer.
-        var r = this.$composeBuffer(data, hashId, key);
+        var r = this.$composeBuffer(data, hashId, key, e);
         var buffer = r.bufferToUse;
         var symbolicName = r.symbolicName;
+        var keyId = r.keyIdentifier;
 
-        r = this.$find(data, buffer, symbolicName, hashId, key);
+        r = this.$find(data, buffer, symbolicName, hashId, key, keyId);
         if (DEBUG) {
             console.log("KeyboardStateMapper#match", buffer, symbolicName, r);
         }

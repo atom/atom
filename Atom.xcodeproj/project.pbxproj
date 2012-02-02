@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		040BDC9114D71A5600CEE2A4 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 040BDC8E14D71A5600CEE2A4 /* JavaScriptCore.framework */; };
+		040BDC9314D71A5600CEE2A4 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 040BDC9014D71A5600CEE2A4 /* WebKit.framework */; };
+		040BDC9414D71A6400CEE2A4 /* JavaScriptCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 040BDC8E14D71A5600CEE2A4 /* JavaScriptCore.framework */; };
+		040BDC9514D71A6400CEE2A4 /* WebCore.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 040BDC8F14D71A5600CEE2A4 /* WebCore.framework */; };
+		040BDC9614D71A6400CEE2A4 /* WebKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 040BDC9014D71A5600CEE2A4 /* WebKit.framework */; };
 		043D7E4C145794990078D710 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 043D7E4B145794990078D710 /* Cocoa.framework */; };
 		043D7E56145794990078D710 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 043D7E54145794990078D710 /* InfoPlist.strings */; };
 		043D7E58145794990078D710 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E57145794990078D710 /* main.m */; };
@@ -24,14 +29,30 @@
 		043D7E8E145795B20078D710 /* AtomWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 043D7E83145795B20078D710 /* AtomWindow.xib */; };
 		043D7E94145795B70078D710 /* AtomApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E91145795B70078D710 /* AtomApp.m */; };
 		043D7E95145795B70078D710 /* AtomController.m in Sources */ = {isa = PBXBuildFile; fileRef = 043D7E93145795B70078D710 /* AtomController.m */; };
-		047F26021457978C006DC904 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 047F26011457978C006DC904 /* JavaScriptCore.framework */; };
-		047F260414579792006DC904 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 047F260314579792006DC904 /* WebKit.framework */; };
 		047F260E145883B9006DC904 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 047F260D145883B9006DC904 /* Icon.icns */; };
 		EC846C4114B529120021AF1F /* FileSystemHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = EC846C4014B529120021AF1F /* FileSystemHelper.m */; };
 		ECBB172814A4F92400ACAAC1 /* AtomMenuItem.m in Sources */ = {isa = PBXBuildFile; fileRef = ECBB172714A4F92400ACAAC1 /* AtomMenuItem.m */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		040BDC8A14D70E1100CEE2A4 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				040BDC9414D71A6400CEE2A4 /* JavaScriptCore.framework in CopyFiles */,
+				040BDC9514D71A6400CEE2A4 /* WebCore.framework in CopyFiles */,
+				040BDC9614D71A6400CEE2A4 /* WebKit.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		040BDC8E14D71A5600CEE2A4 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = frameworks/JavaScriptCore.framework; sourceTree = "<group>"; };
+		040BDC8F14D71A5600CEE2A4 /* WebCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebCore.framework; path = frameworks/WebCore.framework; sourceTree = "<group>"; };
+		040BDC9014D71A5600CEE2A4 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = frameworks/WebKit.framework; sourceTree = "<group>"; };
 		043D7E47145794990078D710 /* Atom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		043D7E4B145794990078D710 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		043D7E4E145794990078D710 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -68,8 +89,6 @@
 		043D7E91145795B70078D710 /* AtomApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomApp.m; path = Classes/AtomApp.m; sourceTree = "<group>"; };
 		043D7E92145795B70078D710 /* AtomController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomController.h; path = Classes/AtomController.h; sourceTree = "<group>"; };
 		043D7E93145795B70078D710 /* AtomController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AtomController.m; path = Classes/AtomController.m; sourceTree = "<group>"; };
-		047F26011457978C006DC904 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		047F260314579792006DC904 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		047F260D145883B9006DC904 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
 		EC846C3F14B529120021AF1F /* FileSystemHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FileSystemHelper.h; path = Classes/FileSystemHelper.h; sourceTree = "<group>"; };
 		EC846C4014B529120021AF1F /* FileSystemHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = FileSystemHelper.m; path = Classes/FileSystemHelper.m; sourceTree = "<group>"; };
@@ -82,9 +101,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				047F260414579792006DC904 /* WebKit.framework in Frameworks */,
-				047F26021457978C006DC904 /* JavaScriptCore.framework in Frameworks */,
 				043D7E4C145794990078D710 /* Cocoa.framework in Frameworks */,
+				040BDC9114D71A5600CEE2A4 /* JavaScriptCore.framework in Frameworks */,
+				040BDC9314D71A5600CEE2A4 /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -111,8 +130,9 @@
 		043D7E4A145794990078D710 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				047F260314579792006DC904 /* WebKit.framework */,
-				047F26011457978C006DC904 /* JavaScriptCore.framework */,
+				040BDC8E14D71A5600CEE2A4 /* JavaScriptCore.framework */,
+				040BDC8F14D71A5600CEE2A4 /* WebCore.framework */,
+				040BDC9014D71A5600CEE2A4 /* WebKit.framework */,
 				043D7E4B145794990078D710 /* Cocoa.framework */,
 				043D7E4D145794990078D710 /* Other Frameworks */,
 			);
@@ -203,6 +223,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 043D7E651457949A0078D710 /* Build configuration list for PBXNativeTarget "Atom" */;
 			buildPhases = (
+				040BDC8A14D70E1100CEE2A4 /* CopyFiles */,
 				043D7E43145794990078D710 /* Sources */,
 				043D7E44145794990078D710 /* Frameworks */,
 				043D7E45145794990078D710 /* Resources */,
@@ -374,10 +395,16 @@
 		043D7E661457949A0078D710 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/frameworks\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Atom/Atom-Prefix.pch";
 				INFOPLIST_FILE = "Atom/Atom-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -385,10 +412,16 @@
 		043D7E671457949A0078D710 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/frameworks\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Atom/Atom-Prefix.pch";
 				INFOPLIST_FILE = "Atom/Atom-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

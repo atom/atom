@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var lang = require("../lib/lang");
@@ -171,21 +172,6 @@ var ScssHighlightRules = function() {
 
     var numRe = "\\-?(?:(?:[0-9]+)|(?:[0-9]*\\.[0-9]+))";
 
-    function ic(str) {
-        var re = [];
-        var chars = str.split("");
-        for (var i=0; i<chars.length; i++) {
-            re.push(
-                "[",
-                chars[i].toLowerCase(),
-                chars[i].toUpperCase(),
-                "]"
-            );
-        }
-        return re.join("");
-    }
-
-
     // regexp must not have capturing parentheses. Use (?:) instead.
     // regexps are ordered -> the first match is used
 
@@ -218,58 +204,13 @@ var ScssHighlightRules = function() {
                 next : "qstring"
             }, {
                 token : "constant.numeric",
-                regex : numRe + ic("em")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("ex")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("px")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("cm")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("mm")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("in")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("pt")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("pc")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("deg")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("rad")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("grad")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("ms")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("s")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("hz")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + ic("khz")
-            }, {
-                token : "constant.numeric",
-                regex : numRe + "%"
+                regex : numRe + "(?:em|ex|px|cm|mm|in|pt|pc|deg|rad|grad|ms|s|hz|khz|%)"
             }, {
                 token : "constant.numeric", // hex6 color
-                regex : "#[a-fA-F0-9]{6}"
+                regex : "#[a-f0-9]{6}"
             }, {
                 token : "constant.numeric", // hex3 color
-                regex : "#[a-fA-F0-9]{3}"
+                regex : "#[a-f0-9]{3}"
             }, {
                 token : "constant.numeric",
                 regex : numRe
@@ -290,22 +231,22 @@ var ScssHighlightRules = function() {
                     else
                         return "text";
                 },
-                regex : "\\-?[@a-zA-Z_][@a-zA-Z0-9_\\-]*"
+                regex : "\\-?[@a-z_][@a-z0-9_\\-]*"
             }, {
                 token : "variable",
-                regex : "[a-zA-Z_\\-$][a-zA-Z0-9_\\-$]*\\b"
+                regex : "[a-z_\\-$][a-z0-9_\\-$]*\\b"
             }, {
                 token: "variable.language",
-                regex: "#[a-zA-Z0-9-_]+"
+                regex: "#[a-z0-9-_]+"
             }, {
                 token: "variable.language",
-                regex: "\\.[a-zA-Z0-9-_]+"
+                regex: "\\.[a-z0-9-_]+"
             }, {
                 token: "variable.language",
-                regex: ":[a-zA-Z0-9-_]+"
+                regex: ":[a-z0-9-_]+"
             }, {
                 token: "constant",
-                regex: "[a-zA-Z0-9-_]+"
+                regex: "[a-z0-9-_]+"
             }, {
                 token : "keyword.operator",
                 regex : "<|>|<=|>=|==|!=|-|%|#|\\+|\\$|\\+|\\*"

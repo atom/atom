@@ -36,6 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
 var oop = require("../lib/oop");
 var lang = require("../lib/lang");
@@ -44,8 +45,9 @@ var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 var CssHighlightRules = function() {
 
     var properties = lang.arrayToMap(
-        ("-moz-box-sizing|-webkit-box-sizing|appearance|azimuth|background-attachment|background-color|background-image|" +
-        "background-position|background-repeat|background|border-bottom-color|" +
+        ("-moz-appearance|-moz-box-sizing|-webkit-box-sizing|-moz-outline-radius|-moz-transform|-webkit-transform|" +
+        "appearance|azimuth|background-attachment|background-color|background-image|" +
+        "background-origin|background-position|background-repeat|background|border-bottom-color|" +
         "border-bottom-style|border-bottom-width|border-bottom|border-collapse|" +
         "border-color|border-left-color|border-left-style|border-left-width|" +
         "border-left|border-right-color|border-right-style|border-right-width|" +
@@ -58,14 +60,14 @@ var CssHighlightRules = function() {
         "letter-spacing|line-height|list-style-image|list-style-position|" +
         "list-style-type|list-style|margin-bottom|margin-left|margin-right|" +
         "margin-top|marker-offset|margin|marks|max-height|max-width|min-height|" +
-        "min-width|-moz-border-radius|opacity|orphans|outline-color|" +
+        "min-width|-moz-border-radius|opacity|orphans|outline-color|outline-offset|outline-radius|" +
         "outline-style|outline-width|outline|overflow|overflow-x|overflow-y|padding-bottom|" +
         "padding-left|padding-right|padding-top|padding|page-break-after|" +
         "page-break-before|page-break-inside|page|pause-after|pause-before|" +
-        "pause|pitch-range|pitch|play-during|position|quotes|richness|right|" +
+        "pause|pitch-range|pitch|play-during|pointer-events|position|quotes|resize|richness|right|" +
         "size|speak-header|speak-numeral|speak-punctuation|speech-rate|speak|" +
         "stress|table-layout|text-align|text-decoration|text-indent|" +
-        "text-shadow|text-transform|top|unicode-bidi|vertical-align|" +
+        "text-shadow|text-transform|top|transform|unicode-bidi|vertical-align|" +
         "visibility|voice-family|volume|white-space|widows|width|word-spacing|" +
         "z-index").split("|")
     );
@@ -108,20 +110,6 @@ var CssHighlightRules = function() {
 
     var numRe = "\\-?(?:(?:[0-9]+)|(?:[0-9]*\\.[0-9]+))";
 
-    function ic(str) {
-        var re = [];
-        var chars = str.split("");
-        for (var i=0; i<chars.length; i++) {
-            re.push(
-                "[",
-                chars[i].toLowerCase(),
-                chars[i].toUpperCase(),
-                "]"
-            );
-        }
-        return re.join("");
-    }
-
     var base_ruleset = [
         {
             token : "comment", // multi line comment
@@ -136,61 +124,13 @@ var CssHighlightRules = function() {
             regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
         }, {
             token : "constant.numeric",
-            regex : numRe + ic("em")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("ex")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("px")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("cm")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("mm")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("in")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("pt")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("pc")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("deg")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("rad")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("grad")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("ms")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("s")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("hz")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + ic("khz")
-        }, {
-            token : "constant.numeric",
-            regex : numRe + "%"
-        }, {
-            token : "constant.numeric",
-            regex : numRe
+            regex : numRe + "(?:em|ex|px|cm|mm|in|pt|pc|deg|rad|grad|ms|s|hz|khz|%)"
         }, {
             token : "constant.numeric",  // hex6 color
-            regex : "#[a-fA-F0-9]{6}"
+            regex : "#[a-f0-9]{6}"
         }, {
             token : "constant.numeric", // hex3 color
-            regex : "#[a-fA-F0-9]{3}"
+            regex : "#[a-f0-9]{3}"
         }, {
             token : function(value) {
                 if (properties.hasOwnProperty(value.toLowerCase())) {
@@ -266,20 +206,20 @@ var CssHighlightRules = function() {
             next:  "ruleset"
         }, {
             token: "string",
-            regex: "@media.*?{",
+            regex: "@.*?{",
             next:  "media"
         },{
             token: "keyword",
-            regex: "#[a-zA-Z0-9-_]+"
+            regex: "#[a-z0-9-_]+"
         },{
             token: "variable",
-            regex: "\\.[a-zA-Z0-9-_]+"
+            regex: "\\.[a-z0-9-_]+"
         },{
             token: "string",
-            regex: ":[a-zA-Z0-9-_]+"
+            regex: ":[a-z0-9-_]+"
         },{
             token: "constant",
-            regex: "[a-zA-Z0-9-_]+"
+            regex: "[a-z0-9-_]+"
         }],
 
         "media" : [ {
@@ -297,16 +237,16 @@ var CssHighlightRules = function() {
             next:  "start"
         },{
             token: "keyword",
-            regex: "#[a-zA-Z0-9-_]+"
+            regex: "#[a-z0-9-_]+"
         },{
             token: "variable",
-            regex: "\\.[a-zA-Z0-9-_]+"
+            regex: "\\.[a-z0-9-_]+"
         },{
             token: "string",
-            regex: ":[a-zA-Z0-9-_]+"
+            regex: ":[a-z0-9-_]+"
         },{
             token: "constant",
-            regex: "[a-zA-Z0-9-_]+"
+            regex: "[a-z0-9-_]+"
         }],
 
         "comment" : comment,
