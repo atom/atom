@@ -33,10 +33,8 @@ window.clickEvent = (properties={}) ->
   $.Event "click", properties
 
 window.mousedownEvent = (properties={}) ->
+  properties.originalEvent ?= {detail: 1}
   $.Event "mousedown", properties
-
-window.mouseupEvent = (properties={}) ->
-  $.Event "mouseup", properties
 
 window.mousemoveEvent = (properties={}) ->
   $.Event "mousemove", properties
@@ -68,8 +66,6 @@ window.advanceClock = (delta) ->
       true
 
 window.pixelPositionForPoint = (editor, point) ->
-  editor.css(position: 'absolute', top: 10, left: 10)
-
   point = Point.fromObject point
   pageY = editor.offset().top + point.row * editor.lineHeight + 1 # ensure the pixel is inside the char
   pageX = editor.offset().left + point.column * editor.charWidth + 1 # ensure the pixel is inside the char

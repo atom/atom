@@ -244,22 +244,30 @@ describe "Editor", ->
 
             expect(editor.getCursorPosition()).toEqual(lastPosition)
 
+
     describe "when a mousedown event occurs in the editor", ->
-      it "re-positions the cursor to the clicked row / column", ->
+      beforeEach ->
         editor.attachToDom()
-        expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+        editor.css(position: 'absolute', top: 10, left: 10)
 
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [3, 10])
-        editor.lines.trigger mousedownEvent({pageX, pageY})
-        expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
+      describe "when it is a single click", ->
+        it "re-positions the cursor to the clicked row / column", ->
+          editor.attachToDom()
+          editor.css(position: 'absolute', top: 10, left: 10)
 
-    describe "when doubleclick occurs in the editor", ->
-      it "selects the word under the cursor", ->
-        editor.attachToDom()
-        expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
-        editor.lines.trigger mouseupEvent({pageX, pageY, originalEvent: {detail: 2}})
-        expect(editor.getSelectedText()).toBe "quicksort"
+          expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+
+          [pageX, pageY] = window.pixelPositionForPoint(editor, [3, 10])
+          editor.lines.trigger mousedownEvent({pageX, pageY})
+          expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
+
+      describe "when it is a double click", ->
+        it "selects the word under the cursor", ->
+          expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+          [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+          expect(editor.getSelectedText()).toBe "quicksort"
 
   describe "selection", ->
     selection = null
@@ -325,6 +333,7 @@ describe "Editor", ->
     describe "when the mouse is dragged across the text", ->
       it "creates a selection from the initial click to mouse cursor's location ", ->
         editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
 
         # start
         [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 10])
