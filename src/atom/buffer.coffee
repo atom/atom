@@ -57,28 +57,20 @@ class Buffer
     postRange = new Range(_.clone(preRange.start), _.clone(preRange.start))
     prefix = @lines[preRange.start.row][0...preRange.start.column]
     suffix = @lines[preRange.end.row][preRange.end.column..]
+
     newTextLines = newText.split('\n')
 
     if newTextLines.length == 1
       postRange.end.column += newText.length
-      linesToInsert = [prefix + newText + suffix]
+      newTextLines = [prefix + newText + suffix]
     else
-      firstLineIndex = 0
       lastLineIndex = newTextLines.length - 1
+      newTextLines[0] = prefix + newTextLines[0]
+      postRange.end.row += lastLineIndex
+      postRange.end.column = newTextLines[lastLineIndex].length
+      newTextLines[lastLineIndex] += suffix
 
-      linesToInsert =
-        for line, i in newTextLines
-          switch i
-            when firstLineIndex
-              prefix + line
-            when lastLineIndex
-              postRange.end.row += i
-              postRange.end.column = line.length
-              line + suffix
-            else
-              line
-
-    @lines[preRange.start.row..preRange.end.row] = linesToInsert
+    @lines[preRange.start.row..preRange.end.row] = newTextLines
     @trigger 'change', { preRange, postRange, string: newText }
 
   save: ->
