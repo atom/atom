@@ -44,6 +44,7 @@ class Editor extends Template
         enter: 'newline'
         backspace: 'delete-left'
         delete: 'delete-right'
+        'meta-x': 'cut'
         'meta-c': 'copy'
         'meta-v': 'paste'
 
@@ -58,6 +59,7 @@ class Editor extends Template
       @on 'newline', =>  @insertNewline()
       @on 'delete-left', => @deleteLeft()
       @on 'delete-right', => @deleteRight()
+      @on 'cut', => @cutSelection()
       @on 'copy', => @copySelection()
       @on 'paste', => @paste()
 
@@ -201,6 +203,7 @@ class Editor extends Template
     insertText: (text) -> @selection.insertText(text)
     insertNewline: -> @selection.insertNewline()
 
+    cutSelection: -> @selection.cut()
     copySelection: -> @selection.copy()
     paste: -> @selection.insertText(atom.native.readFromPasteboard())
 

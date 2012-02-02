@@ -118,6 +118,28 @@ describe "Selection", ->
       expect(selection.regions.length).toBe 3
       expect(selection.find('.selection').length).toBe 3
 
+  describe ".cut()", ->
+    beforeEach ->
+      atom.native.writeToPasteboard('first')
+      expect(atom.native.readFromPasteboard()).toBe 'first'
+
+    it "removes selected text from the buffer and places it on the clipboard", ->
+      selection.setRange new Range([0,4], [0,13])
+      selection.cut()
+      expect(atom.native.readFromPasteboard()).toBe 'quicksort'
+      expect(editor.buffer.getLine(0)).toBe "var  = function () {"
+      expect(selection.isEmpty()).toBeTruthy()
+
+      selection.setRange new Range([1,6], [3,8])
+      selection.cut()
+      expect(atom.native.readFromPasteboard()).toBe "sort = function(items) {\n    if (items.length <= 1) return items;\n    var "
+      expect(editor.buffer.getLine(1)).toBe "  var pivot = items.shift(), current, left = [], right = [];"
+
+    it "places nothing on the clipboard when there is no selection", ->
+      selection.setRange new Range([0,4], [0,4])
+      selection.copy()
+      expect(atom.native.readFromPasteboard()).toBe 'first'
+
   describe ".copy()", ->
     beforeEach ->
       atom.native.writeToPasteboard('first')
@@ -136,4 +158,3 @@ describe "Selection", ->
       selection.setRange new Range([0,4], [0,4])
       selection.copy()
       expect(atom.native.readFromPasteboard()).toBe 'first'
-

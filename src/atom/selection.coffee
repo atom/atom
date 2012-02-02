@@ -125,9 +125,11 @@ class Selection extends Template
     moveCursorToLineStart: ->
       @cursor.moveToLineStart()
 
+    cut: ->
+      @copy()
+      @delete()
+
     copy: ->
       return if @isEmpty()
-
       text = @editor.buffer.getTextInRange @getRange()
       atom.native.writeToPasteboard text
-
