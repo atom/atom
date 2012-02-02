@@ -524,7 +524,8 @@ describe "Editor", ->
 
         editor.getSelection().setRange new Range([1,6], [1,10])
         editor.trigger "paste"
-        expect(editor.buffer.getLine(0)).toBe "var firstquicksort = function () {"
+        expect(editor.buffer.getLine(1)).toBe "  var first = function(items) {"
+        expect(editor.buffer.getLine(1)).toBe "  var sort = function(items) {"
 
     describe "when a copy event is triggered", ->
       it "copies selected text onto the clipboard", ->
