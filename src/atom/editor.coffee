@@ -28,6 +28,7 @@ class Editor extends Template
 
     initialize: () ->
       requireStylesheet 'editor.css'
+      requireStylesheet 'theme/twilight.css'
       @bindKeys()
       @buildCursorAndSelection()
       @handleEvents()
