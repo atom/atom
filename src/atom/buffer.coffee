@@ -32,8 +32,8 @@ class Buffer
   getLines: ->
     @lines
 
-  getLine: (n) ->
-    @lines[n]
+  getLine: (row) ->
+    @lines[row]
 
   change: (preRange, string) ->
     @remove(preRange)
