@@ -45,6 +45,7 @@ class Editor extends Template
         backspace: 'delete-left'
         delete: 'delete-right'
         'meta-c': 'copy'
+        'meta-v': 'paste'
 
       @on 'move-right', => @moveCursorRight()
       @on 'move-left', => @moveCursorLeft()
@@ -58,7 +59,7 @@ class Editor extends Template
       @on 'delete-left', => @deleteLeft()
       @on 'delete-right', => @deleteRight()
       @on 'copy', => @copySelection()
-
+      @on 'paste', => @paste()
 
     buildCursorAndSelection: ->
       @cursor = Cursor.build(this)
@@ -199,7 +200,9 @@ class Editor extends Template
 
     insertText: (text) -> @selection.insertText(text)
     insertNewline: -> @selection.insertNewline()
+
     copySelection: -> @selection.copy()
+    paste: -> @selection.insertText(atom.native.readFromPasteboard())
 
     deleteLeft: ->
       @selectLeft() if @selection.isEmpty()

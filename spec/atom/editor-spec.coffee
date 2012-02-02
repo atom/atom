@@ -512,13 +512,23 @@ describe "Editor", ->
       expect(editor.clipPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
 
   describe "cut, copy & paste", ->
-    describe "when a copy event is triggered", ->
+    describe "when a past event is triggered", ->
       beforeEach ->
-        editor.getSelection().setRange new Range([0,4], [0, 13])
         atom.native.writeToPasteboard('first')
         expect(atom.native.readFromPasteboard()).toBe 'first'
 
+      it "pastes text into the buffer", ->
+        editor.setCursorPosition [0, 4]
+        editor.trigger "paste"
+        expect(editor.buffer.getLine(0)).toBe "var firstquicksort = function () {"
+
+        editor.getSelection().setRange new Range([1,6], [1,10])
+        editor.trigger "paste"
+        expect(editor.buffer.getLine(0)).toBe "var firstquicksort = function () {"
+
+    describe "when a copy event is triggered", ->
       it "copies selected text onto the clipboard", ->
+        editor.getSelection().setRange new Range([0,4], [0, 13])
         editor.trigger "copy"
         expect(atom.native.readFromPasteboard()).toBe 'quicksort'
 
