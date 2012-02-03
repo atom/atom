@@ -86,7 +86,7 @@ class Editor extends Template
         else if clickCount == 2
           @selection.selectWord()
         else if clickCount >= 3
-          @selection.selectLine()
+          @selection.selectLine(@getCursorRow())
 
         @selectTextOnMouseMovement()
 
