@@ -49,8 +49,15 @@ describe "Highlighter", ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.preRange).toEqual new Range([2, 0], [6, buffer.getLine(6).length])
-        expect(event.postRange).toEqual new Range([2, 0], [6, buffer.getLine(6).length])
+        expect(event.preRange).toEqual new Range([2, 0], [5, buffer.getLine(5).length])
+        expect(event.postRange).toEqual new Range([2, 0], [5, buffer.getLine(5).length])
+
+      it "resumes highlighting with the state of the previous line", ->
+        buffer.insert([0, 0], '/*')
+        buffer.insert([5, 0], '*/')
+
+        buffer.insert([1, 0], 'var ')
+        expect(highlighter.tokensForRow(1)[0].type).toBe 'comment'
 
     describe "when lines are both updated and removed", ->
       it "updates tokens to reflect the removed lines", ->
@@ -85,8 +92,8 @@ describe "Highlighter", ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.preRange).toEqual new Range([2, 0], [6, buffer.getLine(5).length])
-        expect(event.postRange).toEqual new Range([2, 0], [5, buffer.getLine(5).length])
+        expect(event.preRange).toEqual new Range([2, 0], [5, buffer.getLine(4).length])
+        expect(event.postRange).toEqual new Range([2, 0], [4, buffer.getLine(4).length])
 
     describe "when lines are both updated and inserted", ->
       it "updates tokens to reflect the inserted lines", ->
@@ -128,5 +135,5 @@ describe "Highlighter", ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.preRange).toEqual new Range([2, 0], [6, buffer.getLine(8).length])
-        expect(event.postRange).toEqual new Range([2, 0], [8, buffer.getLine(8).length])
+        expect(event.preRange).toEqual new Range([2, 0], [5, buffer.getLine(7).length])
+        expect(event.postRange).toEqual new Range([2, 0], [7, buffer.getLine(7).length])

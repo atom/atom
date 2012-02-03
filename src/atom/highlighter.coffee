@@ -20,8 +20,9 @@ class Highlighter
     postRange = e.postRange.copy()
 
     previousState = @lines[preRange.end.row].state
-    newLines = @tokenizeRows('start', postRange.start.row, postRange.end.row)
-    @lines[preRange.start.row..preRange.end.row] = newLines
+    startState = @lines[postRange.start.row - 1]?.state or 'start'
+    @lines[preRange.start.row..preRange.end.row] =
+      @tokenizeRows(startState, postRange.start.row, postRange.end.row)
 
     for row in [postRange.end.row...@buffer.lastRow()]
       break if @lines[row].state == previousState
