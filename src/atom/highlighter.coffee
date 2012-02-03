@@ -16,7 +16,8 @@ class Highlighter
     @tokenizer = (new Mode).getTokenizer()
 
   handleBufferChange: (e) ->
-    { preRange, postRange } = e
+    preRange = e.preRange.copy()
+    postRange = e.postRange.copy()
 
     previousState = @lines[preRange.end.row].state
     newLines = @tokenizeRows('start', postRange.start.row, postRange.end.row)
@@ -27,6 +28,13 @@ class Highlighter
       nextRow = row + 1
       previousState = @lines[nextRow].state
       @lines[nextRow] = @tokenizeRow(@lines[row].state, nextRow)
+
+      preRange.end.row++
+      preRange.end.column = @buffer.getLine(nextRow).length
+      postRange.end.row++
+      postRange.end.column = @buffer.getLine(nextRow).length
+
+    @trigger("change", {preRange, postRange})
 
   tokenizeRows: (startState, startRow, endRow) ->
     state = startState
@@ -41,3 +49,10 @@ class Highlighter
   tokensForRow: (row) ->
     @lines[row].tokens
 
+  on: (eventName, handler) ->
+    @eventHandlers ?= {}
+    @eventHandlers[eventName] ?= []
+    @eventHandlers[eventName].push(handler)
+
+  trigger: (eventName, event) ->
+    @eventHandlers?[eventName]?.forEach (handler) -> handler(event)
