@@ -1,4 +1,5 @@
 Point = require 'point'
+_ = require 'underscore'
 
 module.exports =
 class Range
@@ -12,6 +13,9 @@ class Range
     else
       @start = pointB
       @end = pointA
+
+  copy: (range) ->
+    new Range(_.clone(@start), _.clone(@end))
 
   toString: ->
     "[#{@start.toString()} - #{@end.toString()}]"
