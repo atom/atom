@@ -45,6 +45,11 @@ describe "Editor", ->
         buffer.insert([0, 4], "g")
         expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
 
+        # verify that re-highlighting can occur below the changed line
+        buffer.insert([5,0], "/* */")
+        buffer.insert([1,0], "/*")
+        expect(editor.lines.find('.line:eq(2) span:eq(0)')).toMatchSelector '.comment'
+
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->
       beforeEach ->
