@@ -412,12 +412,12 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
 
-      it "creates a selection from the initial double click to mouse cursor's location ", ->
+      it "creates a selection from word underneath double click to mouse cursor's location ", ->
         editor.attachToDom()
         editor.css(position: 'absolute', top: 10, left: 10)
 
         # double click
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 10])
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
         editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
         $(document).trigger 'mouseup'
         editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
@@ -427,7 +427,7 @@ describe "Editor", ->
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
         range = editor.selection.getRange()
-        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.start).toEqual({row: 4, column: 4})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
 
@@ -439,7 +439,41 @@ describe "Editor", ->
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
         range = editor.selection.getRange()
-        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.start).toEqual({row: 4, column: 4})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+
+
+      it "creates a selection from line underneath triple click to mouse cursor's location ", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        # double click
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
+        editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+        $(document).trigger 'mouseup'
+        editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+        $(document).trigger 'mouseup'
+        editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+
+        # moving changes selection
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [5, 27])
+        editor.lines.trigger mousemoveEvent({pageX, pageY})
+
+        range = editor.selection.getRange()
+        expect(range.start).toEqual({row: 4, column: 0})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+
+        # mouse up may occur outside of editor, but still need to halt selection
+        $(document).trigger 'mouseup'
+
+        # moving after mouse up should not change selection
+        [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 8])
+        editor.lines.trigger mousemoveEvent({pageX, pageY})
+
+        range = editor.selection.getRange()
+        expect(range.start).toEqual({row: 4, column: 0})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
 
