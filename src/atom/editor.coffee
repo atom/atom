@@ -83,10 +83,12 @@ class Editor extends Template
 
         if clickCount == 1
           @setCursorPosition @pointFromMouseEvent(e)
-          @selectTextOnMouseMovement()
         else if clickCount == 2
           @selection.selectWord()
-          @selectTextOnMouseMovement()
+        else if clickCount >= 3
+          @selection.selectLine()
+
+        @selectTextOnMouseMovement()
 
       @hiddenInput.on "textInput", (e) =>
         @insertText(e.originalEvent.data)

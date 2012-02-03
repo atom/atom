@@ -114,6 +114,10 @@ class Selection extends Template
       range = new Range([row, column + startOffset], [row, column + endOffset])
       @setRange range
 
+    selectLine: ->
+      row = @cursor.getRow()
+      @setRange new Range([row, 0], [row, @editor.getCurrentLine().length])
+
     selectRight: ->
       @modifySelection =>
         @cursor.moveRight()

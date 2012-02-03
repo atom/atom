@@ -291,8 +291,35 @@ describe "Editor", ->
           expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
           [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
           editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+          $(document).trigger 'mouseup'
           editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
           expect(editor.getSelectedText()).toBe "quicksort"
+
+      describe "when it is clicked more then twice (tripple, quadruple, etc...)", ->
+        it "selects the line under the cursor", ->
+          expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+
+          # Triple click
+          [pageX, pageY] = window.pixelPositionForPoint(editor, [1, 8])
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+          $(document).trigger 'mouseup'
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+          $(document).trigger 'mouseup'
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+          expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
+          $(document).trigger 'mouseup'
+
+          # Quad click
+          [pageX, pageY] = window.pixelPositionForPoint(editor, [2, 3])
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+          $(document).trigger 'mouseup'
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+          $(document).trigger 'mouseup'
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+          $(document).trigger 'mouseup'
+          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 4}})
+          expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
+          $(document).trigger 'mouseup'
 
   describe "selection", ->
     selection = null
