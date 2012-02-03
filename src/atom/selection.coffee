@@ -26,9 +26,6 @@ class Selection extends Template
       @anchor = null
       @updateAppearance()
 
-    bufferChanged: (e) ->
-      @cursor.setPosition(e.postRange.end)
-
     updateAppearance: ->
       @clearRegions()
 

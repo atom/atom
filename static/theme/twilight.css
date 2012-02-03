@@ -1,0 +1,134 @@
+.editor {
+  border: 2px solid rgb(159, 159, 159);
+}
+
+.editor.focus {
+  border: 2px solid #327fbd;
+}
+
+.gutter {
+  background: #e8e8e8;
+  color: #333;
+}
+
+.print_margin {
+  width: 1px;
+  background: #e8e8e8;
+}
+
+.scroller {
+  background-color: #141414;
+}
+
+.text-layer {
+  cursor: text;
+  color: #F8F8F8;
+}
+
+.cursor {
+  border-left: 2px solid #A7A7A7;
+}
+
+.cursor.overwrite {
+  border-left: 0px;
+  border-bottom: 1px solid #A7A7A7;
+}
+
+.marker-layer .selection {
+  background: rgba(221, 240, 255, 0.20);
+}
+
+.marker-layer .step {
+  background: rgb(198, 219, 174);
+}
+
+.marker-layer .bracket {
+  margin: -1px 0 0 -1px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.marker-layer .active_line {
+  background: rgba(255, 255, 255, 0.031);
+}
+
+.marker-layer .selected_word {
+  border: 1px solid rgba(221, 240, 255, 0.20);
+}
+
+.invisible {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.keyword {
+  color:#CDA869;
+}
+
+.constant {
+  color:#CF6A4C;
+}
+
+.invalid.illegal {
+  color:#F8F8F8;
+background-color:rgba(86, 45, 86, 0.75);
+}
+
+.invalid.deprecated {
+  text-decoration:underline;
+font-style:italic;
+color:#D2A8A1;
+}
+
+.support {
+  color:#9B859D;
+}
+
+.fold {
+    background-color: #AC885B;
+    border-color: #F8F8F8;
+}
+
+.support.function {
+  color:#DAD085;
+}
+
+.string {
+  color:#8F9D6A;
+}
+
+.string.regexp {
+  color:#E9C062;
+}
+
+.comment {
+  font-style:italic;
+color:#5F5A60;
+}
+
+.variable {
+  color:#7587A6;
+}
+
+.xml_pe {
+  color:#494949;
+}
+
+.meta.tag {
+  color:#AC885B;
+}
+
+.entity.name.function {
+  color:#AC885B;
+}
+
+.markup.underline {
+    text-decoration:underline;
+}
+
+.markup.heading {
+  color:#CF6A4C;
+}
+
+.markup.list {
+  color:#F9EE98;
+}";
+

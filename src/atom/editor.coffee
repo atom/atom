@@ -3,7 +3,9 @@ Buffer = require 'buffer'
 Point = require 'point'
 Cursor = require 'cursor'
 Selection = require 'selection'
+Highlighter = require 'highlighter'
 Range = require 'range'
+
 $ = require 'jquery'
 $$ = require 'template/builder'
 _ = require 'underscore'
@@ -26,6 +28,7 @@ class Editor extends Template
 
     initialize: () ->
       requireStylesheet 'editor.css'
+      requireStylesheet 'theme/twilight.css'
       @bindKeys()
       @buildCursorAndSelection()
       @handleEvents()
@@ -97,16 +100,23 @@ class Editor extends Template
         @hiddenInput.width(@charWidth)
         @focus()
 
-    buildLineElement: (lineText) ->
-      if lineText is ''
-        $$.pre class: "line", -> @raw('&nbsp;')
-      else
-        $$.pre class: "line", lineText
+    buildLineElement: (row) ->
+      tokens = @highlighter.tokensForRow(row)
+      $$.pre class: 'line', ->
+        if tokens.length
+          for token in tokens
+            classes = token.type.split('.').map((c) -> "ace_#{c}").join(' ')
+            @span { class: token.type.replace('.', ' ') }, token.value
+        else
+          @raw '&nbsp;'
 
     setBuffer: (@buffer) ->
+      @highlighter = new Highlighter(@buffer)
+
       @lines.empty()
-      for line in @buffer.getLines()
-        @lines.append @buildLineElement(line)
+      for row in [0..@buffer.lastRow()]
+        line = @buildLineElement(row)
+        @lines.append line
 
       @setCursorPosition(row: 0, column: 0)
 
@@ -128,18 +138,13 @@ class Editor extends Template
             else
               @updateLineElement(row)
 
-        @selection.bufferChanged(e)
+        @cursor.bufferChanged(e)
 
     updateLineElement: (row) ->
-      line = @buffer.getLine(row)
-      element = @getLineElement(row)
-      if line == ''
-        element.html('&nbsp;')
-      else
-        element.text(line)
+      @getLineElement(row).replaceWith(@buildLineElement(row))
 
     insertLineElement: (row) ->
-      @getLineElement(row).before(@buildLineElement(@buffer.getLine(row)))
+      @getLineElement(row).before(@buildLineElement(row))
 
     removeLineElement: (row) ->
       @getLineElement(row).remove()

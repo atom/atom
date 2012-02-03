@@ -1,4 +1,6 @@
+_ = require 'underscore'
 fs = require 'fs'
+Range = require 'range'
 
 module.exports =
 class Buffer
@@ -6,6 +8,7 @@ class Buffer
 
   constructor: (@path) ->
     @url = @path # we want this to be path on master, but let's not break it on a branch
+    @lines = ['']
     if @path and fs.exists(@path)
       @setText(fs.read(@path))
     else
@@ -15,7 +18,10 @@ class Buffer
     @lines.join('\n')
 
   setText: (text) ->
-    @lines = text.split('\n')
+    @change(@getRange(), text)
+
+  getRange: ->
+    new Range([0, 0], [@lastRow(), @lastLine().length])
 
   getTextInRange: (range) ->
     if range.start.row == range.end.row
@@ -35,45 +41,37 @@ class Buffer
   getLine: (row) ->
     @lines[row]
 
-  change: (preRange, string) ->
-    @remove(preRange)
-    postRange = @insert(preRange.start, string)
-    @trigger 'change', { preRange, postRange, string }
-
-  remove: (range) ->
-    prefix = @lines[range.start.row][0...range.start.column]
-    suffix = @lines[range.end.row][range.end.column..]
-    @lines[range.start.row..range.end.row] = prefix + suffix
-
-  insert: ({row, column}, string) ->
-    postRange =
-      start: { row, column }
-      end: { row, column }
-
-    prefix = @lines[row][0...column]
-    suffix = @lines[row][column..]
-
-    lines = string.split('\n')
-
-    if lines.length == 1
-      @lines[row] = prefix + string + suffix
-      postRange.end.column += string.length
-    else
-      for line, i in lines
-        curRow = row + i
-        if i == 0 # replace first line
-          @lines[curRow] = prefix + line
-        else if i < lines.length - 1 # insert middle lines
-          @lines[curRow...curRow] = line
-        else # insert last line
-          @lines[curRow...curRow] = line + suffix
-          postRange.end.row = curRow
-          postRange.end.column = line.length
-
-    postRange
-
   numLines: ->
     @getLines().length
+
+  lastRow: ->
+    @getLines().length - 1
+
+  lastLine: ->
+    @getLine(@lastRow())
+
+  insert: (point, text) ->
+    @change(new Range(point, point), text)
+
+  change: (preRange, newText) ->
+    postRange = new Range(_.clone(preRange.start), _.clone(preRange.start))
+    prefix = @lines[preRange.start.row][0...preRange.start.column]
+    suffix = @lines[preRange.end.row][preRange.end.column..]
+
+    newTextLines = newText.split('\n')
+
+    if newTextLines.length == 1
+      postRange.end.column += newText.length
+      newTextLines = [prefix + newText + suffix]
+    else
+      lastLineIndex = newTextLines.length - 1
+      newTextLines[0] = prefix + newTextLines[0]
+      postRange.end.row += lastLineIndex
+      postRange.end.column = newTextLines[lastLineIndex].length
+      newTextLines[lastLineIndex] += suffix
+
+    @lines[preRange.start.row..preRange.end.row] = newTextLines
+    @trigger 'change', { preRange, postRange, string: newText }
 
   save: ->
     if not @path then throw new Error("Tried to save buffer with no url")
@@ -86,4 +84,15 @@ class Buffer
 
   trigger: (eventName, event) ->
     @eventHandlers?[eventName]?.forEach (handler) -> handler(event)
+
+  modeName: ->
+    extension = if @path then @path.split('/').pop().split('.').pop() else null
+    switch extension
+      when 'js' then 'javascript'
+      when 'coffee' then 'coffee'
+      when 'rb', 'ru' then 'ruby'
+      when 'c', 'h', 'cpp' then 'c_cpp'
+      when 'html', 'htm' then 'html'
+      when 'css' then 'css'
+      else 'text'
 
