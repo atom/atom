@@ -385,7 +385,7 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
 
-      fit "creates a selection from the initial double click to mouse cursor's location ", ->
+      it "creates a selection from the initial double click to mouse cursor's location ", ->
         editor.attachToDom()
         editor.css(position: 'absolute', top: 10, left: 10)
 
