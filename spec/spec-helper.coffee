@@ -67,9 +67,10 @@ window.advanceClock = (delta) ->
 
 window.pixelPositionForPoint = (editor, point) ->
   point = Point.fromObject point
-  pageY = editor.offset().top + point.row * editor.lineHeight + 1 # ensure the pixel is inside the char
-  pageX = editor.offset().left + point.column * editor.charWidth + 1 # ensure the pixel is inside the char
+  pageY = editor.lines.offset().top + point.row * editor.lineHeight + 1 # ensure the pixel is inside the char
+  pageX = editor.lines.offset().left + point.column * editor.charWidth + 1 # ensure the pixel is inside the char
   [pageX, pageY]
+
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)
