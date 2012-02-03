@@ -20,6 +20,13 @@ window.atom = new (require 'app')
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual
 
+emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
+jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
+  if obj.toString
+    @append obj.toString()
+  else
+    emitObject.call(this, obj)
+
 eventPropertiesFromPattern = (pattern) ->
   bindingSet = new BindingSet("*", {})
   parsedPattern = bindingSet.parseKeyPattern(pattern)

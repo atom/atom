@@ -13,6 +13,9 @@ class Range
       @start = pointB
       @end = pointA
 
+  toString: ->
+    "[#{@start.toString()} - #{@end.toString()}]"
+
   isEmpty: ->
     @start.isEqual(@end)
 

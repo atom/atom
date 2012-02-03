@@ -19,6 +19,9 @@ class Point
     else
       @row == other.row and @column == other.column
 
+  toString: ->
+    "(#{@row}, #{@column})"
+
   compare: (other) ->
     if @row > other.row
       1
