@@ -83,11 +83,10 @@ class Editor extends Template
 
         if clickCount == 1
           @setCursorPosition @pointFromMouseEvent(e)
-          moveHandler = (e) => @selectToPosition(@pointFromMouseEvent(e))
-          @on 'mousemove', moveHandler
-          $(document).one 'mouseup', => @off 'mousemove', moveHandler
+          @selectTextOnMouseMovement()
         else if clickCount == 2
           @selection.selectWord()
+          @selectTextOnMouseMovement()
 
       @hiddenInput.on "textInput", (e) =>
         @insertText(e.originalEvent.data)
@@ -99,6 +98,12 @@ class Editor extends Template
         @calculateDimensions()
         @hiddenInput.width(@charWidth)
         @focus()
+
+    selectTextOnMouseMovement: ->
+      moveHandler = (e) => @selectToPosition(@pointFromMouseEvent(e))
+      @on 'mousemove', moveHandler
+      $(document).one 'mouseup', => @off 'mousemove', moveHandler
+
 
     buildLineElement: (row) ->
       tokens = @highlighter.tokensForRow(row)
