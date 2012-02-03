@@ -39,6 +39,12 @@ describe "Editor", ->
       line12 = editor.lines.find('.line:eq(11)')
       expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
 
+    describe "when lines are updated in the buffer", ->
+      it "syntax highlights the updated lines", ->
+        expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
+        buffer.insert([0, 4], "g")
+        expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
+
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->
       beforeEach ->

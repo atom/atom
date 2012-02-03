@@ -133,12 +133,7 @@ class Editor extends Template
         @cursor.bufferChanged(e)
 
     updateLineElement: (row) ->
-      line = @buffer.getLine(row)
-      element = @getLineElement(row)
-      if line == ''
-        element.html('&nbsp;')
-      else
-        element.text(line)
+      @getLineElement(row).replaceWith(@buildLineElement(row))
 
     insertLineElement: (row) ->
       @getLineElement(row).before(@buildLineElement(row))
