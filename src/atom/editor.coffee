@@ -121,6 +121,9 @@ class Editor extends Template
       @setCursorPosition(row: 0, column: 0)
 
       @buffer.on 'change', (e) =>
+        @cursor.bufferChanged(e)
+
+      @highlighter.on 'change', (e) =>
         { preRange, postRange } = e
 
         if postRange.end.row > preRange.end.row
@@ -137,8 +140,6 @@ class Editor extends Template
               @removeLineElement(row)
             else
               @updateLineElement(row)
-
-        @cursor.bufferChanged(e)
 
     updateLineElement: (row) ->
       @getLineElement(row).replaceWith(@buildLineElement(row))
