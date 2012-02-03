@@ -10,6 +10,8 @@ class VimMode
   opStack: null
 
   constructor: (@editor) ->
+    requireStylesheet 'vim-mode.css'
+
     @opStack = []
     @editor.addClass('command-mode')
 

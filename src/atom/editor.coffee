@@ -5,6 +5,7 @@ Cursor = require 'cursor'
 Selection = require 'selection'
 Highlighter = require 'highlighter'
 Range = require 'range'
+VimMode = require 'vim-mode'
 
 $ = require 'jquery'
 $$ = require 'template/builder'
@@ -33,6 +34,7 @@ class Editor extends Template
       @buildCursorAndSelection()
       @handleEvents()
       @setBuffer(new Buffer)
+      new VimMode(this)
 
     bindKeys: ->
       atom.bindKeys '*',
