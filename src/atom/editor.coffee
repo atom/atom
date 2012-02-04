@@ -161,8 +161,13 @@ class Editor extends Template
       @lines.find("pre.line:eq(#{row})")
 
     clipPosition: ({row, column}) ->
-      row = Math.min(Math.max(0, row), @buffer.numLines() - 1)
-      column = Math.min(Math.max(0, column), @buffer.getLine(row).length)
+      if row > @buffer.lastRow()
+        row = @buffer.lastRow()
+        column = @buffer.getLine(row).length
+      else
+        row = Math.min(Math.max(0, row), @buffer.numLines() - 1)
+        column = Math.min(Math.max(0, column), @buffer.getLine(row).length)
+
       new Point(row, column)
 
     pixelPositionFromPoint: ({row, column}) ->

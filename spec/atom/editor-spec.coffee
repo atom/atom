@@ -632,7 +632,7 @@ describe "Editor", ->
 
   describe ".clipPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
-      expect(editor.clipPosition(row: 1000, column: 0)).toEqual(row: buffer.numLines() - 1, column: 0)
+      expect(editor.clipPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.getLine(buffer.lastRow()).length)
       expect(editor.clipPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
       expect(editor.clipPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.getLine(1).length)
       expect(editor.clipPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
