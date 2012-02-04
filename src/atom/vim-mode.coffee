@@ -78,14 +78,15 @@ class VimMode
       @pushOperator(new operators.NumericPrefix(num))
 
   delete: () ->
-    if @isDeletePending()
-      @pushOperator(new motions.SelectLines(@editor))
+    if deleteOperation = @isDeletePending()
+      deleteOperation.complete = true
+      @processOpStack()
     else
       @pushOperator(new operators.Delete(@editor))
 
   isDeletePending: () ->
     for op in @opStack
-      return true if op instanceof operators.Delete
+      return op if op instanceof operators.Delete
     false
 
   pushOperator: (op) ->

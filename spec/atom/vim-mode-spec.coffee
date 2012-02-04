@@ -53,11 +53,18 @@ describe "VimMode", ->
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('d')
-
           expect(editor.buffer.getText()).toBe "12345\nABCDE"
           expect(editor.getCursorPosition()).toEqual([1,0])
 
-        describe "when the second d is prefixed by a count", ->
+        it "deletes the last line", ->
+          editor.buffer.setText("12345\nabcde\nABCDE")
+          editor.setCursorPosition([2,1])
+          editor.trigger keydownEvent('d')
+          editor.trigger keydownEvent('d')
+          expect(editor.buffer.getText()).toBe "12345\nabcde"
+          expect(editor.getCursorPosition()).toEqual([1,0])
+
+        xdescribe "when the second d is prefixed by a count", ->
           it "deletes n lines, starting from the current", ->
             editor.buffer.setText("12345\nabcde\nABCDE\nQWERT")
             editor.setCursorPosition([1,1])

@@ -41,6 +41,9 @@ class Buffer
   getLine: (row) ->
     @lines[row]
 
+  getLineLength: (row) ->
+    @lines[row].length
+
   numLines: ->
     @getLines().length
 
@@ -49,6 +52,17 @@ class Buffer
 
   lastLine: ->
     @getLine(@lastRow())
+
+  deleteRow: (row) ->
+    range = null
+    if row == @lastRow()
+      range = new Range([row - 1, @getLineLength(row - 1)], [row, @getLineLength(row)])
+    else
+      range = new Range([row, 0], [row + 1, 0])
+
+    console.log range
+
+    @change(range, '')
 
   insert: (point, text) ->
     @change(new Range(point, point), text)
