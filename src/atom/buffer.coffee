@@ -60,8 +60,6 @@ class Buffer
     else
       range = new Range([row, 0], [row + 1, 0])
 
-    console.log range
-
     @change(range, '')
 
   insert: (point, text) ->
