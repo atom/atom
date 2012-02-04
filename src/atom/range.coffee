@@ -17,7 +17,7 @@ class Range
   copy: (range) ->
     new Range(_.clone(@start), _.clone(@end))
 
-  toString: ->
+  inpsect: ->
     "[#{@start.toString()} - #{@end.toString()}]"
 
   isEmpty: ->

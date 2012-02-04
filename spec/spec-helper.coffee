@@ -22,8 +22,8 @@ jasmine.Env.prototype.equals_ = _.isEqual
 
 emitObject = jasmine.StringPrettyPrinter.prototype.emitObject
 jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
-  if obj.toString
-    @append obj.toString()
+  if obj.inspect
+    @append obj.inspect()
   else
     emitObject.call(this, obj)
 

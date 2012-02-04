@@ -19,7 +19,7 @@ class Point
     else
       @row == other.row and @column == other.column
 
-  toString: ->
+  inspect: ->
     "(#{@row}, #{@column})"
 
   compare: (other) ->
