@@ -1,7 +1,7 @@
 Editor = require 'editor'
 VimMode = require 'vim-mode'
 
-describe "VimMode", ->
+fdescribe "VimMode", ->
   editor = null
 
   beforeEach ->
@@ -149,11 +149,11 @@ describe "VimMode", ->
 
       describe "the l keybinding", ->
         it "moves the cursor right, but not to the next line", ->
-          editor.setCursorPosition([1,4])
+          editor.setCursorPosition([1,3])
           editor.trigger keydownEvent('l')
-          expect(editor.getCursorPosition()).toEqual([1,5])
+          expect(editor.getCursorPosition()).toEqual([1,4])
           editor.trigger keydownEvent('l')
-          expect(editor.getCursorPosition()).toEqual([1,5])
+          expect(editor.getCursorPosition()).toEqual([1,4])
 
       describe "the w keybinding", ->
         it "moves the cursor to the beginning of the next word", ->

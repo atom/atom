@@ -17,8 +17,9 @@ class MoveLeft extends Motion
 class MoveRight extends Motion
   execute: ->
     {column, row} = @editor.getCursorPosition()
-    currentLineLength = @editor.buffer.getLine(row).length
-    @editor.moveCursorRight() if column < currentLineLength
+    console.log @editor.getCurrentLine().length
+    isOnLastCharachter = @editor.getCursorColumn() == @editor.getCurrentLine().length - 1
+    @editor.moveCursorRight() unless isOnLastCharachter
 
 class MoveUp extends Motion
   execute: ->
