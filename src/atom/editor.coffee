@@ -45,8 +45,8 @@ class Editor extends Template
         'shift-up': 'select-up'
         'shift-down': 'select-down'
         enter: 'newline'
-        backspace: 'delete-left'
-        delete: 'delete-right'
+        backspace: 'backspace'
+        delete: 'delete'
         'meta-x': 'cut'
         'meta-c': 'copy'
         'meta-v': 'paste'
@@ -60,8 +60,8 @@ class Editor extends Template
       @on 'select-up', => @selectUp()
       @on 'select-down', => @selectDown()
       @on 'newline', =>  @insertNewline()
-      @on 'delete-left', => @deleteLeft()
-      @on 'delete-right', => @deleteRight()
+      @on 'backspace', => @backspace()
+      @on 'delete', => @delete()
       @on 'cut', => @cutSelection()
       @on 'copy', => @copySelection()
       @on 'paste', => @paste()
@@ -231,11 +231,11 @@ class Editor extends Template
     copySelection: -> @selection.copy()
     paste: -> @selection.insertText(atom.native.readFromPasteboard())
 
-    deleteLeft: ->
+    backspace: ->
       @selectLeft() if @selection.isEmpty()
       @selection.delete()
 
-    deleteRight: ->
+    delete: ->
       @selectRight() if @selection.isEmpty()
       @selection.delete()
 
