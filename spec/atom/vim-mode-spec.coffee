@@ -218,6 +218,14 @@ describe "VimMode", ->
     beforeEach ->
       editor.trigger keydownEvent('i')
 
+    it "allows the cursor to reach the end of the line", ->
+      editor.buffer.setText("012345\n\nabcdef")
+      editor.setCursorPosition([0, 5])
+      expect(editor.getCursorPosition()).toEqual [0,5]
+
+      editor.setCursorPosition([0, 6])
+      expect(editor.getCursorPosition()).toEqual [0,6]
+
     it "puts the editor into command mode when <esc> is pressed", ->
       expect(editor).not.toHaveClass 'command-mode'
 

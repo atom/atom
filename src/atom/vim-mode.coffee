@@ -66,14 +66,17 @@ class VimMode
     @editor.removeClass('command-mode')
     @editor.addClass('insert-mode')
 
+    @editor.off 'cursor:position-changed', @moveCursorBeforeNewline
+
   activateCommandMode: ->
     @editor.removeClass('insert-mode')
     @editor.addClass('command-mode')
 
-    @editor.on 'cursor:position-changed', =>
-      moveCursorBeforeNewline = not @editor.selection.modifyingSelection and @editor.cursor.isOnEOL() and @editor.getCurrentLine().length > 0
-      if moveCursorBeforeNewline
-        @editor.setCursorColumn(@editor.getCurrentLine().length - 1)
+    @editor.on 'cursor:position-changed', @moveCursorBeforeNewline
+
+  moveCursorBeforeNewline: =>
+    if not @editor.selection.modifyingSelection and @editor.cursor.isOnEOL() and @editor.getCurrentLine().length > 0
+      @editor.setCursorColumn(@editor.getCurrentLine().length - 1)
 
   numericPrefix: (e) ->
     num = parseInt(e.keyEvent.keystroke)
