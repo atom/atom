@@ -25,6 +25,16 @@ describe "VimMode", ->
       editor.trigger event
       expect(event.stopPropagation).not.toHaveBeenCalled()
 
+    it "does not allow the cursor to be placed on the \n charachter, unless the line is empty", ->
+      editor.buffer.setText("012345\n\nabcdef")
+      editor.setCursorPosition([0, 5])
+      expect(editor.getCursorPosition()).toEqual [0,5]
+
+      editor.setCursorPosition([0, 6])
+      expect(editor.getCursorPosition()).toEqual [0,5]
+
+      editor.setCursorPosition([1, 0])
+      expect(editor.getCursorPosition()).toEqual [1,0]
 
     describe "the i keybinding", ->
       it "puts the editor into insert mode", ->
@@ -51,6 +61,13 @@ describe "VimMode", ->
         editor.trigger keydownEvent('x')
         expect(editor.buffer.getText()).toBe '012'
         expect(editor.getCursorPosition()).toEqual([0, 2])
+
+      it "deletes nothing when cursor is on empty line", ->
+        editor.buffer.setText "012345\n\nabcdef"
+        editor.setCursorPosition [1, 0]
+
+        editor.trigger keydownEvent 'x'
+        expect(editor.buffer.getText()).toBe "012345\n\nabcdef"
 
     describe "the d keybinding", ->
       describe "when followed by a d", ->
@@ -177,7 +194,7 @@ describe "VimMode", ->
 
           editor.setCursorPosition [3,0]
           editor.trigger keydownEvent('w')
-          expect(editor.getCursorPosition()).toEqual([3,3])
+          expect(editor.getCursorPosition()).toEqual([3,2])
 
     describe "numeric prefix bindings", ->
       it "repeats the following operation N times", ->

@@ -4,10 +4,7 @@ class Command
 
 class DeleteRight extends Command
   execute: ->
-    @editor.delete()
-    isOnEOL = @editor.getCursorColumn() == @editor.getCurrentLine().length
-    if isOnEOL
-      @editor.setCursorColumn(@editor.getCursorColumn() - 1)
+    @editor.delete() unless @editor.getCurrentLine().length == 0
 
 module.exports = { DeleteRight }
 

@@ -13,7 +13,7 @@ class VimMode
     requireStylesheet 'vim-mode.css'
 
     @opStack = []
-    @editor.addClass('command-mode')
+    @activateCommandMode()
 
     atom.bindKeys '.editor', '<esc>': 'activate-command-mode'
     @editor.on 'activate-command-mode', => @activateCommandMode()
@@ -69,6 +69,11 @@ class VimMode
   activateCommandMode: ->
     @editor.removeClass('insert-mode')
     @editor.addClass('command-mode')
+
+    @editor.on 'cursor:position-changed', =>
+      moveCursorBeforeNewline = not @editor.selection.modifyingSelection and @editor.cursor.isOnEOL() and @editor.getCurrentLine().length > 0
+      if moveCursorBeforeNewline
+        @editor.setCursorColumn(@editor.getCurrentLine().length - 1)
 
   numericPrefix: (e) ->
     num = parseInt(e.keyEvent.keystroke)
