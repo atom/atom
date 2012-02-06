@@ -25,7 +25,7 @@ describe "VimMode", ->
       editor.trigger event
       expect(event.stopPropagation).not.toHaveBeenCalled()
 
-    it "does not allow the cursor to be placed on the \n charachter, unless the line is empty", ->
+    it "does not allow the cursor to be placed on the \n character, unless the line is empty", ->
       editor.buffer.setText("012345\n\nabcdef")
       editor.setCursorPosition([0, 5])
       expect(editor.getCursorPosition()).toEqual [0,5]
