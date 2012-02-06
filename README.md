@@ -1,4 +1,5 @@
 # Atom — Futuristic Text Editing
+![atom](http://www.gvsd.org/1891205613507883/lib/1891205613507883/atom_animated.gif)
 
 ## Be forwarned: Atom is pre-alpha software!
 
