@@ -111,7 +111,6 @@ class Editor extends View
       @pre class: 'line', =>
         if tokens.length
           for token in tokens
-            classes = token.type.split('.').map((c) -> "ace_#{c}").join(' ')
             @span { class: token.type.replace('.', ' ') }, token.value
         else
           @raw '&nbsp;'
