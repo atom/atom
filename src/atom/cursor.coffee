@@ -38,6 +38,9 @@ class Cursor extends View
   getRow: ->
     @getPosition().row
 
+  isOnEOL: ->
+    @getColumn() == @editor.getCurrentLine().length
+
   moveUp: ->
     { row, column } = @getPosition()
     column = @goalColumn if @goalColumn?
