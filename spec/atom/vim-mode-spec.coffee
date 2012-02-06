@@ -48,6 +48,10 @@ describe "VimMode", ->
         expect(editor.buffer.getText()).toBe '0123'
         expect(editor.getCursorPosition()).toEqual([0, 3])
 
+        editor.trigger keydownEvent('x')
+        expect(editor.buffer.getText()).toBe '012'
+        expect(editor.getCursorPosition()).toEqual([0, 2])
+
     describe "the d keybinding", ->
       describe "when followed by a d", ->
         it "deletes the current line", ->
