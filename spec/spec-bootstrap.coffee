@@ -1,14 +1,14 @@
-$$ = require 'template/builder'
+{$$} = require 'space-pen'
 nakedLoad 'jasmine'
 nakedLoad 'jasmine-html'
 nakedLoad 'jasmine-focused'
 
 $ = require 'jquery'
 
-$('head').append $$.render ->
+$('head').append $$ ->
   @link rel: "stylesheet", type: "text/css", href: "static/jasmine.css"
 
-$('body').append $$.render ->
+$('body').append $$ ->
   @div id: 'jasmine_runner'
   @div id: 'jasmine-content'
 

@@ -1,4 +1,4 @@
-# Modified from 26fca5374e546fd8cc2f12d1140f915185611bdc
+# Modified from e2c7296822952f9dcb4b7d3a39e16cca7b5dd462
 # Add require 'jquery'
 $ = jQuery = require('jquery')
 
@@ -24,15 +24,41 @@ events =
 idCounter = 0
 
 class View extends jQuery
-  elements.forEach (tagName) ->
-    View[tagName] = (args...) -> @builder.tag(tagName, args...)
+  @builderStack: []
 
-  @subview: (name, view) -> @builder.subview(name, view)
-  @text: (string) -> @builder.text(string)
-  @raw: (string) -> @builder.raw(string)
+  elements.forEach (tagName) ->
+    View[tagName] = (args...) -> @currentBuilder().tag(tagName, args...)
+
+  @subview: (name, view) ->
+    @currentBuilder().subview(name, view)
+
+  @text: (string) -> @currentBuilder().text(string)
+
+  @raw: (string) -> @currentBuilder().raw(string)
+
+  @currentBuilder: ->
+    @builderStack[@builderStack.length - 1]
+
+  @pushBuilder: ->
+    @builderStack.push(new Builder)
+
+  @popBuilder: ->
+    @builderStack.pop()
+
+  @buildHtml: (fn) ->
+    @pushBuilder()
+    fn.call(this)
+    [html, postProcessingSteps] = @popBuilder().buildHtml()
+
+  @render: (fn) ->
+    [html, postProcessingSteps] = @buildHtml(fn)
+    fragment = $(html)
+    step(fragment) for step in postProcessingSteps
+    fragment
 
   constructor: (params={}) ->
-    postProcessingSteps = @buildHtml(params)
+    [html, postProcessingSteps] = @constructor.buildHtml -> @content(params)
+    jQuery.fn.init.call(this, html)
     @constructor = jQuery # sadly, jQuery assumes this.constructor == jQuery in pushStack
     @wireOutlets(this)
     @bindEventHandlers(this)
@@ -46,7 +72,6 @@ class View extends jQuery
     @constructor.content(params)
     [html, postProcessingSteps] = @constructor.builder.buildHtml()
     @constructor.builder = null
-    jQuery.fn.init.call(this, html)
     postProcessingSteps
 
   wireOutlets: (view) ->
@@ -157,5 +182,5 @@ for methodName in ['prependTo', 'appendTo', 'insertAfter', 'insertBefore']
       result
 
 (exports ? this).View = View
-
+(exports ? this).$$ = (fn) -> View.render.call(View, fn)
 

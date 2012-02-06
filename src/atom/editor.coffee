@@ -1,4 +1,4 @@
-{View} = require 'space-pen'
+{View, $$} = require 'space-pen'
 Buffer = require 'buffer'
 Point = require 'point'
 Cursor = require 'cursor'
@@ -7,7 +7,6 @@ Highlighter = require 'highlighter'
 Range = require 'range'
 
 $ = require 'jquery'
-$$ = require 'template/builder'
 _ = require 'underscore'
 
 module.exports =
@@ -108,13 +107,14 @@ class Editor extends View
 
   buildLineElement: (row) ->
     tokens = @highlighter.tokensForRow(row)
-    $$.pre class: 'line', ->
-      if tokens.length
-        for token in tokens
-          classes = token.type.split('.').map((c) -> "ace_#{c}").join(' ')
-          @span { class: token.type.replace('.', ' ') }, token.value
-      else
-        @raw '&nbsp;'
+    $$ ->
+      @pre class: 'line', =>
+        if tokens.length
+          for token in tokens
+            classes = token.type.split('.').map((c) -> "ace_#{c}").join(' ')
+            @span { class: token.type.replace('.', ' ') }, token.value
+        else
+          @raw '&nbsp;'
 
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)

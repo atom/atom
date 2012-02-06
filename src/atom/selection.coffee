@@ -1,7 +1,6 @@
 Cursor = require 'cursor'
 Range = require 'range'
-{View} = require 'space-pen'
-$$ = require 'template/builder'
+{View, $$} = require 'space-pen'
 
 module.exports =
 class Selection extends View
@@ -52,7 +51,7 @@ class Selection extends View
     else
       css.right = 0
 
-    region = $$.div(class: 'selection').css(css)
+    region = ($$ -> @div class: 'selection').css(css)
     @append(region)
     @regions.push(region)
 
