@@ -8,6 +8,7 @@
   overflow-y: scroll;
   overflow-x: auto;
   cursor: default;
+  -webkit-user-select: none;
 }
 
 .editor pre {

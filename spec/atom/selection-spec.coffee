@@ -184,7 +184,8 @@ describe "Selection", ->
          selection.selectWord()
          expect(selection.getText()).toBe ''
 
-
-
-
-
+  describe ".selectLine(row)", ->
+    it "selects the entire line at given row", ->
+       editor.setCursorPosition [0,2]
+       selection.selectLine(1)
+       expect(selection.getText()).toBe "  var sort = function(items) {"

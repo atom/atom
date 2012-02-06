@@ -28,12 +28,12 @@ class Cursor extends View
 
   getPosition: -> _.clone(@point)
 
+  getColumn: ->
+    @getPosition().column
+
   setColumn: (column) ->
     { row } = @getPosition()
     @setPosition {row, column}
-
-  getColumn: ->
-    @getPosition().column
 
   getRow: ->
     @getPosition().row

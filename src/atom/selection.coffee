@@ -113,6 +113,10 @@ class Selection extends View
     range = new Range([row, column + startOffset], [row, column + endOffset])
     @setRange range
 
+  selectLine: (row) ->
+    rowLength = @editor.buffer.getLine(row).length
+    @setRange new Range([row, 0], [row, rowLength])
+
   selectRight: ->
     @modifySelection =>
       @cursor.moveRight()

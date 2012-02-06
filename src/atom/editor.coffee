@@ -44,8 +44,8 @@ class Editor extends View
       'shift-up': 'select-up'
       'shift-down': 'select-down'
       enter: 'newline'
-      backspace: 'delete-left'
-      delete: 'delete-right'
+      backspace: 'backspace'
+      delete: 'delete'
       'meta-x': 'cut'
       'meta-c': 'copy'
       'meta-v': 'paste'
@@ -59,8 +59,8 @@ class Editor extends View
     @on 'select-up', => @selectUp()
     @on 'select-down', => @selectDown()
     @on 'newline', =>  @insertNewline()
-    @on 'delete-left', => @deleteLeft()
-    @on 'delete-right', => @deleteRight()
+    @on 'backspace', => @backspace()
+    @on 'delete', => @delete()
     @on 'cut', => @cutSelection()
     @on 'copy', => @copySelection()
     @on 'paste', => @paste()
@@ -82,10 +82,12 @@ class Editor extends View
 
       if clickCount == 1
         @setCursorPosition @pointFromMouseEvent(e)
-        @selectTextOnMouseMovement()
       else if clickCount == 2
         @selection.selectWord()
-        @selectTextOnMouseMovement()
+      else if clickCount >= 3
+        @selection.selectLine(@getCursorRow())
+
+      @selectTextOnMouseMovement()
 
     @hiddenInput.on "textInput", (e) =>
       @insertText(e.originalEvent.data)
@@ -158,8 +160,13 @@ class Editor extends View
     @lines.find("pre.line:eq(#{row})")
 
   clipPosition: ({row, column}) ->
-    row = Math.min(Math.max(0, row), @buffer.numLines() - 1)
-    column = Math.min(Math.max(0, column), @buffer.getLine(row).length)
+    if row > @buffer.lastRow()
+      row = @buffer.lastRow()
+      column = @buffer.getLine(row).length
+    else
+      row = Math.min(Math.max(0, row), @buffer.numLines() - 1)
+      column = Math.min(Math.max(0, column), @buffer.getLine(row).length)
+
     new Point(row, column)
 
   pixelPositionFromPoint: ({row, column}) ->
@@ -223,11 +230,11 @@ class Editor extends View
   copySelection: -> @selection.copy()
   paste: -> @selection.insertText(atom.native.readFromPasteboard())
 
-  deleteLeft: ->
+  backspace: ->
     @selectLeft() if @selection.isEmpty()
     @selection.delete()
 
-  deleteRight: ->
+  delete: ->
     @selectRight() if @selection.isEmpty()
     @selection.delete()
 

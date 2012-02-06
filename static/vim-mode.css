@@ -1,0 +1,4 @@
+.editor.command-mode .cursor {
+  border-left: 0;
+  background-color: #9dff9d;
+}
