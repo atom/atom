@@ -1,7 +1,7 @@
 Editor = require 'editor'
 VimMode = require 'vim-mode'
 
-describe "VimMode", ->
+fdescribe "VimMode", ->
   editor = null
 
   beforeEach ->
@@ -37,13 +37,16 @@ describe "VimMode", ->
 
     describe "the x keybinding", ->
       it "deletes a charachter", ->
-        editor.buffer.setText("12345")
-        editor.setCursorPosition([0, 1])
+        editor.buffer.setText("012345")
+        editor.setCursorPosition([0, 4])
 
         editor.trigger keydownEvent('x')
+        expect(editor.buffer.getText()).toBe '01235'
+        expect(editor.getCursorPosition()).toEqual([0, 4])
 
-        expect(editor.buffer.getText()).toBe '1345'
-        expect(editor.getCursorPosition()).toEqual([0, 1])
+        editor.trigger keydownEvent('x')
+        expect(editor.buffer.getText()).toBe '0123'
+        expect(editor.getCursorPosition()).toEqual([0, 3])
 
     describe "the d keybinding", ->
       describe "when followed by a d", ->
