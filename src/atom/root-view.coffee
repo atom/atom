@@ -2,7 +2,7 @@ $ = require 'jquery'
 fs = require 'fs'
 _ = require 'underscore'
 
-Template = require 'template'
+{View} = require 'space-pen'
 Buffer = require 'buffer'
 Editor = require 'editor'
 FileFinder = require 'file-finder'
@@ -11,58 +11,57 @@ GlobalKeymap = require 'global-keymap'
 VimMode = require 'vim-mode'
 
 module.exports =
-class RootView extends Template
-  content: ->
+class RootView extends View
+  @content: ->
     @div id: 'app-horizontal', =>
       @div id: 'app-vertical', outlet: 'vertical', =>
         @div id: 'main', outlet: 'main', =>
-          @subview 'editor', Editor.build()
+          @subview 'editor', new Editor
 
-  viewProperties:
-    globalKeymap: null
+  globalKeymap: null
 
-    initialize: ({url}) ->
-      @editor.keyEventHandler = atom.globalKeymap
-      @createProject(url)
+  initialize: ({url}) ->
+    @editor.keyEventHandler = atom.globalKeymap
+    @createProject(url)
 
-      atom.bindKeys '*'
-        'meta-s': 'save'
-        'meta-w': 'close'
-        'meta-t': 'toggle-file-finder'
-        'alt-meta-i': 'show-console'
+    atom.bindKeys '*'
+      'meta-s': 'save'
+      'meta-w': 'close'
+      'meta-t': 'toggle-file-finder'
+      'alt-meta-i': 'show-console'
 
-      @on 'toggle-file-finder', => @toggleFileFinder()
-      @on 'show-console', -> window.showConsole()
+    @on 'toggle-file-finder', => @toggleFileFinder()
+    @on 'show-console', -> window.showConsole()
 
-      @on 'focusout', (e) =>
-        # if anything but the editor and its input loses focus, restore focus to the editor
-        unless $(e.target).closest('.editor').length
-          @editor.focus()
+    @on 'focusout', (e) =>
+      # if anything but the editor and its input loses focus, restore focus to the editor
+      unless $(e.target).closest('.editor').length
+        @editor.focus()
 
-    createProject: (url) ->
-      if url
-        @project = new Project(fs.directory(url))
-        @editor.setBuffer(@project.open(url)) if fs.isFile(url)
+  createProject: (url) ->
+    if url
+      @project = new Project(fs.directory(url))
+      @editor.setBuffer(@project.open(url)) if fs.isFile(url)
 
-    bindKeys: (selector, bindings) ->
-      @globalKeymap.bindKeys(selector, bindings)
+  bindKeys: (selector, bindings) ->
+    @globalKeymap.bindKeys(selector, bindings)
 
-    addPane: (view) ->
-      pane = $('<div class="pane">')
-      pane.append(view)
-      @main.after(pane)
+  addPane: (view) ->
+    pane = $('<div class="pane">')
+    pane.append(view)
+    @main.after(pane)
 
-    toggleFileFinder: ->
-      return unless @project
+  toggleFileFinder: ->
+    return unless @project
 
-      if @fileFinder and @fileFinder.parent()[0]
-        @fileFinder.remove()
-        @fileFinder = null
-      else
-        @project.getFilePaths().done (paths) =>
-          relativePaths = (path.replace(@project.url, "") for path in paths)
-          @fileFinder = FileFinder.build
-            urls: relativePaths
-            selected: (relativePath) => @editor.setBuffer(@project.open(relativePath))
-          @addPane @fileFinder
-          @fileFinder.input.focus()
+    if @fileFinder and @fileFinder.parent()[0]
+      @fileFinder.remove()
+      @fileFinder = null
+    else
+      @project.getFilePaths().done (paths) =>
+        relativePaths = (path.replace(@project.url, "") for path in paths)
+        @fileFinder = new FileFinder
+          urls: relativePaths
+          selected: (relativePath) => @editor.setBuffer(@project.open(relativePath))
+        @addPane @fileFinder
+        @fileFinder.input.focus()

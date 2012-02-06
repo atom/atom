@@ -9,7 +9,7 @@ describe "RootView", ->
 
   beforeEach ->
     url = require.resolve 'fixtures/dir/a'
-    rootView = RootView.build {url}
+    rootView = new RootView({url})
     rootView.enableKeymap()
     project = rootView.project
 
@@ -22,14 +22,14 @@ describe "RootView", ->
     describe "when called with a url that references a directory", ->
       it "creates a project for the directory and opens an empty buffer", ->
         url = require.resolve 'fixtures/dir/'
-        rootView = RootView.build {url}
+        rootView = new RootView({url})
 
         expect(rootView.project.url).toBe url
         expect(rootView.editor.buffer.url).toBeUndefined()
 
     describe "when not called with a url", ->
       it "opens an empty buffer", ->
-        rootView = RootView.build()
+        rootView = new RootView
         expect(rootView.editor.buffer.url).toBeUndefined()
 
   describe ".addPane(view)", ->
@@ -70,7 +70,7 @@ describe "RootView", ->
 
       describe "when there is no project", ->
         beforeEach ->
-          rootView = RootView.build()
+          rootView = new RootView
 
         it "does not open the FileFinder", ->
           expect(rootView.editor.buffer.url).toBeUndefined()

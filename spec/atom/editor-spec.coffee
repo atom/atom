@@ -11,7 +11,7 @@ describe "Editor", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editor = Editor.build()
+    editor = new Editor
     editor.enableKeymap()
     editor.setBuffer(buffer)
 

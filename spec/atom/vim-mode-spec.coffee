@@ -5,7 +5,7 @@ describe "VimMode", ->
   editor = null
 
   beforeEach ->
-    editor = Editor.build()
+    editor = new Editor
     editor.enableKeymap()
     vimMode = new VimMode(editor)
 

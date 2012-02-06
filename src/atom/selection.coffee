@@ -1,150 +1,149 @@
 Cursor = require 'cursor'
 Range = require 'range'
-Template = require 'template'
+{View} = require 'space-pen'
 $$ = require 'template/builder'
 
 module.exports =
-class Selection extends Template
-  content: ->
+class Selection extends View
+  @content: ->
     @div()
 
-  viewProperties:
-    anchor: null
-    modifyingSelection: null
-    regions: null
+  anchor: null
+  modifyingSelection: null
+  regions: null
 
-    initialize: (@editor) ->
-      @regions = []
-      @cursor = @editor.cursor
-      @cursor.on 'cursor:position-changed', =>
-        if @modifyingSelection
-          @updateAppearance()
-        else
-          @clearSelection()
-
-    clearSelection: ->
-      @anchor = null
-      @updateAppearance()
-
-    updateAppearance: ->
-      @clearRegions()
-
-      range = @getRange()
-      return if range.isEmpty()
-
-      rowSpan = range.end.row - range.start.row
-
-      if rowSpan == 0
-        @appendRegion(1, range.start, range.end)
+  initialize: (@editor) ->
+    @regions = []
+    @cursor = @editor.cursor
+    @cursor.on 'cursor:position-changed', =>
+      if @modifyingSelection
+        @updateAppearance()
       else
-        @appendRegion(1, range.start, null)
-        if rowSpan > 1
-          @appendRegion(rowSpan - 1, { row: range.start.row + 1, column: 0}, null)
-        @appendRegion(1, { row: range.end.row, column: 0 }, range.end)
+        @clearSelection()
 
-    appendRegion: (rows, start, end) ->
-      { lineHeight, charWidth } = @editor
-      css = {}
-      css.top = start.row * lineHeight
-      css.left = start.column * charWidth
-      css.height = lineHeight * rows
-      if end
-        css.width = end.column * charWidth - css.left
-      else
-        css.right = 0
+  clearSelection: ->
+    @anchor = null
+    @updateAppearance()
 
-      region = $$.div(class: 'selection').css(css)
-      @append(region)
-      @regions.push(region)
+  updateAppearance: ->
+    @clearRegions()
 
-    clearRegions: ->
-      region.remove() for region in @regions
-      @regions = []
+    range = @getRange()
+    return if range.isEmpty()
 
-    getRange: ->
-      if @anchor
-        new Range(@anchor.getPosition(), @cursor.getPosition())
-      else
-        new Range(@cursor.getPosition(), @cursor.getPosition())
+    rowSpan = range.end.row - range.start.row
 
-    setRange: (range) ->
-      @cursor.setPosition(range.start)
-      @modifySelection =>
-        @cursor.setPosition(range.end)
+    if rowSpan == 0
+      @appendRegion(1, range.start, range.end)
+    else
+      @appendRegion(1, range.start, null)
+      if rowSpan > 1
+        @appendRegion(rowSpan - 1, { row: range.start.row + 1, column: 0}, null)
+      @appendRegion(1, { row: range.end.row, column: 0 }, range.end)
 
-    getText: ->
-      @editor.buffer.getTextInRange @getRange()
+  appendRegion: (rows, start, end) ->
+    { lineHeight, charWidth } = @editor
+    css = {}
+    css.top = start.row * lineHeight
+    css.left = start.column * charWidth
+    css.height = lineHeight * rows
+    if end
+      css.width = end.column * charWidth - css.left
+    else
+      css.right = 0
 
-    insertText: (text) ->
-      @editor.buffer.change(@getRange(), text)
+    region = $$.div(class: 'selection').css(css)
+    @append(region)
+    @regions.push(region)
 
-    insertNewline: ->
-      @insertText('\n')
+  clearRegions: ->
+    region.remove() for region in @regions
+    @regions = []
 
-    delete: ->
-      range = @getRange()
-      @editor.buffer.change(range, '') unless range.isEmpty()
+  getRange: ->
+    if @anchor
+      new Range(@anchor.getPosition(), @cursor.getPosition())
+    else
+      new Range(@cursor.getPosition(), @cursor.getPosition())
 
-    isEmpty: ->
-      @getRange().isEmpty()
+  setRange: (range) ->
+    @cursor.setPosition(range.start)
+    @modifySelection =>
+      @cursor.setPosition(range.end)
 
-    modifySelection: (fn) ->
-      @placeAnchor()
-      @modifyingSelection = true
-      fn()
-      @modifyingSelection = false
+  getText: ->
+    @editor.buffer.getTextInRange @getRange()
 
-    placeAnchor: ->
-      return if @anchor
-      cursorPosition = @cursor.getPosition()
-      @anchor = { getPosition: -> cursorPosition }
+  insertText: (text) ->
+    @editor.buffer.change(@getRange(), text)
 
-    selectWord: ->
-      row = @cursor.getRow()
-      column = @cursor.getColumn()
+  insertNewline: ->
+    @insertText('\n')
 
-      line = @editor.buffer.getLine(row)
-      leftSide = line[0...column].split('').reverse().join('') # reverse left side
-      rightSide = line[column..]
+  delete: ->
+    range = @getRange()
+    @editor.buffer.change(range, '') unless range.isEmpty()
 
-      regex = /^\w*/
-      startOffset = -regex.exec(leftSide)?[0]?.length or 0
-      endOffset = regex.exec(rightSide)?[0]?.length or 0
+  isEmpty: ->
+    @getRange().isEmpty()
 
-      range = new Range([row, column + startOffset], [row, column + endOffset])
-      @setRange range
+  modifySelection: (fn) ->
+    @placeAnchor()
+    @modifyingSelection = true
+    fn()
+    @modifyingSelection = false
 
-    selectRight: ->
-      @modifySelection =>
-        @cursor.moveRight()
+  placeAnchor: ->
+    return if @anchor
+    cursorPosition = @cursor.getPosition()
+    @anchor = { getPosition: -> cursorPosition }
 
-    selectLeft: ->
-      @modifySelection =>
-        @cursor.moveLeft()
+  selectWord: ->
+    row = @cursor.getRow()
+    column = @cursor.getColumn()
 
-    selectUp: ->
-      @modifySelection =>
-        @cursor.moveUp()
+    line = @editor.buffer.getLine(row)
+    leftSide = line[0...column].split('').reverse().join('') # reverse left side
+    rightSide = line[column..]
 
-    selectDown: ->
-      @modifySelection =>
-        @cursor.moveDown()
+    regex = /^\w*/
+    startOffset = -regex.exec(leftSide)?[0]?.length or 0
+    endOffset = regex.exec(rightSide)?[0]?.length or 0
 
-    selectToPosition: (position) ->
-      @modifySelection =>
-        @cursor.setPosition(position)
+    range = new Range([row, column + startOffset], [row, column + endOffset])
+    @setRange range
 
-    moveCursorToLineEnd: ->
-      @cursor.moveToLineEnd()
+  selectRight: ->
+    @modifySelection =>
+      @cursor.moveRight()
 
-    moveCursorToLineStart: ->
-      @cursor.moveToLineStart()
+  selectLeft: ->
+    @modifySelection =>
+      @cursor.moveLeft()
 
-    cut: ->
-      @copy()
-      @delete()
+  selectUp: ->
+    @modifySelection =>
+      @cursor.moveUp()
 
-    copy: ->
-      return if @isEmpty()
-      text = @editor.buffer.getTextInRange @getRange()
-      atom.native.writeToPasteboard text
+  selectDown: ->
+    @modifySelection =>
+      @cursor.moveDown()
+
+  selectToPosition: (position) ->
+    @modifySelection =>
+      @cursor.setPosition(position)
+
+  moveCursorToLineEnd: ->
+    @cursor.moveToLineEnd()
+
+  moveCursorToLineStart: ->
+    @cursor.moveToLineStart()
+
+  cut: ->
+    @copy()
+    @delete()
+
+  copy: ->
+    return if @isEmpty()
+    text = @editor.buffer.getTextInRange @getRange()
+    atom.native.writeToPasteboard text

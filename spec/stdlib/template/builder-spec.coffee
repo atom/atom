@@ -1,5 +1,4 @@
 Builder = require 'template/builder'
-Template = require 'template'
 
 describe "Builder", ->
   builder = null
@@ -73,29 +72,4 @@ describe "Builder", ->
     it "does not escape html entities", ->
       builder.raw '&nbsp;'
       expect(builder.toHtml()).toBe '&nbsp;'
-
-  describe ".subview(name, template, attrs)", ->
-    template = null
-
-    beforeEach ->
-      template = class extends Template
-        content: (params) ->
-          @div =>
-            @h2 params.title
-            @div "I am a subview"
-
-        viewProperties:
-          foo: "bar"
-
-    it "inserts a view built from the given template with the given params", ->
-      builder.tag 'div', ->
-        builder.tag 'h1', "Superview"
-        builder.subview 'sub', template.build(title: "Subview")
-
-      fragment = builder.toFragment()
-      expect(fragment.find("h1:contains(Superview)")).toExist()
-      expect(fragment.find("h2:contains(Subview)")).toExist()
-      subview = fragment.sub
-      expect(subview).toMatchSelector ':has(h2):contains(I am a subview)'
-      expect(subview.foo).toBe 'bar'
 

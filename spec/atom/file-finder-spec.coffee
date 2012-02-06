@@ -6,7 +6,7 @@ describe 'FileFinder', ->
 
   beforeEach ->
     urls = ['app.coffee', 'buffer.coffee', 'atom/app.coffee', 'atom/buffer.coffee']
-    finder = FileFinder.build {urls}
+    finder = new FileFinder({urls})
 
   describe "initialize", ->
     it "populates the ol with all urls and selects the first element", ->
@@ -63,7 +63,7 @@ describe 'FileFinder', ->
     selectedCallback = jasmine.createSpy 'selected'
 
     beforeEach ->
-      finder = FileFinder.build {urls, selected: selectedCallback}
+      finder = new FileFinder({urls, selected: selectedCallback})
 
     it "when a file is selected Editor.open is called", ->
       spyOn(finder, 'remove')
