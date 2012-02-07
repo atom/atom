@@ -149,15 +149,15 @@ describe "VimMode", ->
           expect(editor.buffer.getText()).toBe "cd efg"
           expect(editor.getCursorPosition()).toEqual([0,0])
 
-          # editor.buffer.setText("one two three four")
-          # editor.setCursorPosition([0,11])
+          editor.buffer.setText("one two three four")
+          editor.setCursorPosition([0,11])
 
-          # editor.trigger keydownEvent('d')
-          # editor.trigger keydownEvent('3')
-          # editor.trigger keydownEvent('b')
+          editor.trigger keydownEvent('d')
+          editor.trigger keydownEvent('3')
+          editor.trigger keydownEvent('b')
 
-          # expect(editor.buffer.getText()).toBe "ee four"
-          # expect(editor.getCursorPosition()).toEqual([0,0])
+          expect(editor.buffer.getText()).toBe "ee four"
+          expect(editor.getCursorPosition()).toEqual([0,0])
 
     describe "basic motion bindings", ->
       beforeEach ->
