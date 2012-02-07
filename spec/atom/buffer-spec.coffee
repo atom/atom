@@ -37,6 +37,12 @@ describe 'Buffer', ->
       expect(buffer.getLines().join('\n')).toBe fileContents
 
   describe ".change(range, string)", ->
+    changeHandler = null
+
+    beforeEach ->
+      changeHandler = jasmine.createSpy('changeHandler')
+      buffer.on 'change', changeHandler
+
     describe "when used to insert (called with an empty range and a non-empty string)", ->
       describe "when the given string has no newlines", ->
         it "inserts the string at the location of the given range", ->
@@ -49,6 +55,13 @@ describe 'Buffer', ->
           expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
           expect(buffer.getLine(3)).toBe "    foovar pivot = items.shift(), current, left = [], right = [];"
           expect(buffer.getLine(4)).toBe "    while(items.length > 0) {"
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual(range)
+          expect(event.newRange).toEqual(new Range([3, 4], [3, 7]))
+          expect(event.oldText).toBe ""
+          expect(event.newText).toBe "foo"
 
       describe "when the given string has newlines", ->
         it "inserts the lines at the location of the given range", ->
@@ -65,6 +78,13 @@ describe 'Buffer', ->
           expect(buffer.getLine(6)).toBe "bazvar pivot = items.shift(), current, left = [], right = [];"
           expect(buffer.getLine(7)).toBe "    while(items.length > 0) {"
 
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual(range)
+          expect(event.newRange).toEqual(new Range([3, 4], [6, 3]))
+          expect(event.oldText).toBe ""
+          expect(event.newText).toBe "foo\n\nbar\nbaz"
+
     describe "when used to remove (called with a non-empty range and an empty string)", ->
       describe "when the range is contained within a single line", ->
         it "removes the characters within the range", ->
@@ -78,6 +98,13 @@ describe 'Buffer', ->
           expect(buffer.getLine(3)).toBe "     pivot = items.shift(), current, left = [], right = [];"
           expect(buffer.getLine(4)).toBe "    while(items.length > 0) {"
 
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual(range)
+          expect(event.newRange).toEqual(new Range([3, 4], [3, 4]))
+          expect(event.oldText).toBe "var"
+          expect(event.newText).toBe ""
+
       describe "when the range spans 2 lines", ->
         it "removes the characters within the range and joins the lines", ->
           range =
@@ -90,6 +117,13 @@ describe 'Buffer', ->
           expect(buffer.getLine(3)).toBe "    var pivot = while(items.length > 0) {"
           expect(buffer.getLine(4)).toBe "      current = items.shift();"
 
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual(range)
+          expect(event.newRange).toEqual(new Range([3, 16], [3, 16]))
+          expect(event.oldText).toBe "items.shift(), current, left = [], right = [];\n    "
+          expect(event.newText).toBe ""
+
       describe "when the range spans more than 2 lines", ->
         it "removes the characters within the range, joining the first and last line and removing the lines in-between", ->
           range =
@@ -101,6 +135,27 @@ describe 'Buffer', ->
           expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
           expect(buffer.getLine(3)).toBe "    var pivot = sort(Array.apply(this, arguments));"
           expect(buffer.getLine(4)).toBe "};"
+
+    describe "when used to replace text with other text (called with non-empty range and non-empty string)", ->
+      it "replaces the old text with the new text", ->
+        range =
+          start: {row: 3, column: 16}
+          end: {row: 11, column: 9}
+        oldText = buffer.getTextInRange(range)
+
+        buffer.change range, "foo\nbar"
+
+        expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
+        expect(buffer.getLine(3)).toBe "    var pivot = foo"
+        expect(buffer.getLine(4)).toBe "barsort(Array.apply(this, arguments));"
+        expect(buffer.getLine(5)).toBe "};"
+
+        expect(changeHandler).toHaveBeenCalled()
+        [event] = changeHandler.argsForCall[0]
+        expect(event.oldRange).toEqual(range)
+        expect(event.newRange).toEqual(new Range([3, 16], [4, 3]))
+        expect(event.oldText).toBe oldText
+        expect(event.newText).toBe "foo\nbar"
 
   describe ".setText(text)", ->
     it "changes the entire contents of the buffer and emits a change event", ->

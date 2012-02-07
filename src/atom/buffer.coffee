@@ -69,6 +69,7 @@ class Buffer
     newRange = new Range(_.clone(oldRange.start), _.clone(oldRange.start))
     prefix = @lines[oldRange.start.row][0...oldRange.start.column]
     suffix = @lines[oldRange.end.row][oldRange.end.column..]
+    oldText = @getTextInRange(oldRange)
 
     newTextLines = newText.split('\n')
 
@@ -83,7 +84,7 @@ class Buffer
       newTextLines[lastLineIndex] += suffix
 
     @lines[oldRange.start.row..oldRange.end.row] = newTextLines
-    @trigger 'change', { oldRange, newRange, newText }
+    @trigger 'change', { oldRange, newRange, oldText, newText }
 
   save: ->
     if not @path then throw new Error("Tried to save buffer with no url")
