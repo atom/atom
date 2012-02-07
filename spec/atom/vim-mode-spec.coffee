@@ -138,6 +138,27 @@ describe "VimMode", ->
           expect(editor.buffer.getText()).toBe "four"
           expect(editor.getCursorPosition()).toEqual([0,0])
 
+      describe "when followed by a b", ->
+        it "deletes to the beginning of the previous word", ->
+          editor.buffer.setText("abcd efg")
+          editor.setCursorPosition([0,2])
+
+          editor.trigger keydownEvent('d')
+          editor.trigger keydownEvent('b')
+
+          expect(editor.buffer.getText()).toBe "cd efg"
+          expect(editor.getCursorPosition()).toEqual([0,0])
+
+          # editor.buffer.setText("one two three four")
+          # editor.setCursorPosition([0,11])
+
+          # editor.trigger keydownEvent('d')
+          # editor.trigger keydownEvent('3')
+          # editor.trigger keydownEvent('b')
+
+          # expect(editor.buffer.getText()).toBe "ee four"
+          # expect(editor.getCursorPosition()).toEqual([0,0])
+
     describe "basic motion bindings", ->
       beforeEach ->
         editor.buffer.setText("12345\nabcde\nABCDE")
