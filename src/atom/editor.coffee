@@ -19,6 +19,7 @@ class Editor extends View
 
   vScrollMargin: 2
   hScrollMargin: 10
+  softWrap: false
   cursor: null
   buffer: null
   undoManager: null
@@ -112,24 +113,43 @@ class Editor extends View
 
 
   buildLineElement: (row) ->
-    tokens = @highlighter.tokensForRow(row)
+    maxSegmentLength =
+      if @softWrap
+        Math.floor(@width() / @charWidth)
+      else
+        Infinity
+    currentSegmentLength = 0
+    currentSegment = []
+    segments = [currentSegment]
+
+    for token in @highlighter.tokensForRow(row)
+      if (currentSegmentLength + token.value.length) <= maxSegmentLength
+        currentSegmentLength += token.value.length
+        currentSegment.push(token)
+      else
+        currentSegment = [token]
+        currentSegmentLength = token.value.length
+        segments.push(currentSegment)
+
     $$ ->
-      @pre class: 'line', =>
-        if tokens.length
-          for token in tokens
-            @span { class: token.type.replace('.', ' ') }, token.value
-        else
-          @raw '&nbsp;'
+      for segment in segments
+        @pre class: 'line', =>
+          if segment.length
+            for token in segment
+              @span { class: token.type.replace('.', ' ') }, token.value
+          else
+            @raw '&nbsp;'
 
-  setBuffer: (@buffer) ->
-    @highlighter = new Highlighter(@buffer)
-    @undoManager = new UndoManager(@buffer)
-
+  renderLines: ->
     @lines.empty()
     for row in [0..@buffer.lastRow()]
       line = @buildLineElement(row)
       @lines.append line
 
+  setBuffer: (@buffer) ->
+    @highlighter = new Highlighter(@buffer)
+    @undoManager = new UndoManager(@buffer)
+    @renderLines()
     @setCursorPosition(row: 0, column: 0)
 
     @buffer.on 'change', (e) =>
@@ -164,6 +184,9 @@ class Editor extends View
 
   getLineElement: (row) ->
     @lines.find("pre.line:eq(#{row})")
+
+  setSoftWrap: (@softWrap) ->
+    @renderLines()
 
   clipPosition: ({row, column}) ->
     if row > @buffer.lastRow()
