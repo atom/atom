@@ -132,6 +132,10 @@ class Selection extends View
     @modifySelection =>
       @cursor.moveDown()
 
+  selectLeftUntilMatch: (regex) ->
+    @modifySelection =>
+      @cursor.moveLeftUntilMatch(regex)
+
   selectToPosition: (position) ->
     @modifySelection =>
       @cursor.setPosition(position)
