@@ -596,6 +596,12 @@ describe "Editor", ->
           editor.trigger keydownEvent('delete')
           expect(buffer.getLine(12)).toBe '};'
 
+    describe "when undo events are triggered on the editor", ->
+      it "undoes the last change", ->
+        buffer.insert [0, 0], "foo"
+        editor.trigger 'undo'
+        expect(buffer.getLine(0)).not.toContain "foo"
+
     describe "when multiple lines are removed from the buffer (regression)", ->
       it "removes all of them from the dom", ->
         buffer.change(new Range([6, 24], [12, 0]), '')

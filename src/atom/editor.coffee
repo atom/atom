@@ -4,6 +4,7 @@ Point = require 'point'
 Cursor = require 'cursor'
 Selection = require 'selection'
 Highlighter = require 'highlighter'
+UndoManager = require 'undo-manager'
 Range = require 'range'
 
 $ = require 'jquery'
@@ -20,6 +21,7 @@ class Editor extends View
   hScrollMargin: 10
   cursor: null
   buffer: null
+  undoManager: null
   selection: null
   lineHeight: null
   charWidth: null
@@ -48,6 +50,7 @@ class Editor extends View
       'meta-x': 'cut'
       'meta-c': 'copy'
       'meta-v': 'paste'
+      'meta-z': 'undo'
 
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
@@ -63,6 +66,7 @@ class Editor extends View
     @on 'cut', => @cutSelection()
     @on 'copy', => @copySelection()
     @on 'paste', => @paste()
+    @on 'undo', => @undo()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -117,6 +121,7 @@ class Editor extends View
 
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
+    @undoManager = new UndoManager(@buffer)
 
     @lines.empty()
     for row in [0..@buffer.lastRow()]
@@ -237,3 +242,5 @@ class Editor extends View
     @selectRight() if @selection.isEmpty()
     @selection.delete()
 
+  undo: ->
+    @undoManager.undo()
