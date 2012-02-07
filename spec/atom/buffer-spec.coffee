@@ -117,8 +117,8 @@ describe 'Buffer', ->
 
       [event] = changeHandler.argsForCall[0]
       expect(event.string).toBe newText
-      expect(event.preRange).toEqual expectedPreRange
-      expect(event.postRange).toEqual(new Range([0, 0], [1, 14]))
+      expect(event.oldRange).toEqual expectedPreRange
+      expect(event.newRange).toEqual(new Range([0, 0], [1, 14]))
 
   describe ".save()", ->
     describe "when the buffer has a path", ->

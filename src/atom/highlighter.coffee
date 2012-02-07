@@ -16,20 +16,20 @@ class Highlighter
     @tokenizer = (new Mode).getTokenizer()
 
   handleBufferChange: (e) ->
-    preRange = e.preRange.copy()
-    postRange = e.postRange.copy()
-    previousState = @lines[preRange.end.row].state # used in spill detection below
+    oldRange = e.oldRange.copy()
+    newRange = e.newRange.copy()
+    previousState = @lines[oldRange.end.row].state # used in spill detection below
 
-    startState = @lines[postRange.start.row - 1]?.state or 'start'
-    @lines[preRange.start.row..preRange.end.row] =
-      @tokenizeRows(startState, postRange.start.row, postRange.end.row)
+    startState = @lines[newRange.start.row - 1]?.state or 'start'
+    @lines[oldRange.start.row..oldRange.end.row] =
+      @tokenizeRows(startState, newRange.start.row, newRange.end.row)
 
     # spill detection
     # compare scanner state of last re-highlighted line with its previous state.
     # if it differs, re-tokenize the next line with the new state and repeat for
     # each line until the line's new state matches the previous state. this covers
     # cases like inserting a /* needing to comment out lines below until we see a */
-    for row in [postRange.end.row...@buffer.lastRow()]
+    for row in [newRange.end.row...@buffer.lastRow()]
       break if @lines[row].state == previousState
       nextRow = row + 1
       previousState = @lines[nextRow].state
@@ -37,14 +37,14 @@ class Highlighter
 
     # if highlighting spilled beyond the bounds of the textual change, update
     # the pre and post range to reflect area of highlight changes
-    if nextRow > postRange.end.row
-      preRange.end.row += (nextRow - postRange.end.row)
-      postRange.end.row = nextRow
+    if nextRow > newRange.end.row
+      oldRange.end.row += (nextRow - newRange.end.row)
+      newRange.end.row = nextRow
       endColumn = @buffer.getLine(nextRow).length
-      postRange.end.column = endColumn
-      preRange.end.column = endColumn
+      newRange.end.column = endColumn
+      oldRange.end.column = endColumn
 
-    @trigger("change", {preRange, postRange})
+    @trigger("change", {oldRange, newRange})
 
   tokenizeRows: (startState, startRow, endRow) ->
     state = startState

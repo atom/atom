@@ -129,19 +129,19 @@ class Editor extends View
       @cursor.bufferChanged(e)
 
     @highlighter.on 'change', (e) =>
-      { preRange, postRange } = e
+      { oldRange, newRange } = e
 
-      if postRange.end.row > preRange.end.row
+      if newRange.end.row > oldRange.end.row
         # update, then insert elements
-        for row in [preRange.start.row..postRange.end.row]
-          if row <= preRange.end.row
+        for row in [oldRange.start.row..newRange.end.row]
+          if row <= oldRange.end.row
             @updateLineElement(row)
           else
             @insertLineElement(row)
       else
         # traverse in reverse... remove, then update elements
-        for row in [preRange.end.row..preRange.start.row]
-          if row > postRange.end.row
+        for row in [oldRange.end.row..oldRange.start.row]
+          if row > newRange.end.row
             @removeLineElement(row)
           else
             @updateLineElement(row)

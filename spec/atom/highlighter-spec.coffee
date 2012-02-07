@@ -35,8 +35,8 @@ describe "Highlighter", ->
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
 
-        expect(event.preRange).toEqual range
-        expect(event.postRange).toEqual new Range([0, 0], [2,0])
+        expect(event.oldRange).toEqual range
+        expect(event.newRange).toEqual new Range([0, 0], [2,0])
 
       it "updates tokens for lines beyond the changed lines if needed", ->
         buffer.insert([5, 30], '/* */')
@@ -49,8 +49,8 @@ describe "Highlighter", ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.preRange).toEqual new Range([2, 0], [5, buffer.getLine(5).length])
-        expect(event.postRange).toEqual new Range([2, 0], [5, buffer.getLine(5).length])
+        expect(event.oldRange).toEqual new Range([2, 0], [5, buffer.getLine(5).length])
+        expect(event.newRange).toEqual new Range([2, 0], [5, buffer.getLine(5).length])
 
       it "resumes highlighting with the state of the previous line", ->
         buffer.insert([0, 0], '/*')
@@ -78,8 +78,8 @@ describe "Highlighter", ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.preRange).toEqual range
-        expect(event.postRange).toEqual new Range([1, 0], [1, 5])
+        expect(event.oldRange).toEqual range
+        expect(event.newRange).toEqual new Range([1, 0], [1, 5])
 
       it "updates tokens for lines beyond the changed lines if needed", ->
         buffer.insert([5, 30], '/* */')
@@ -92,8 +92,8 @@ describe "Highlighter", ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.preRange).toEqual new Range([2, 0], [5, buffer.getLine(4).length])
-        expect(event.postRange).toEqual new Range([2, 0], [4, buffer.getLine(4).length])
+        expect(event.oldRange).toEqual new Range([2, 0], [5, buffer.getLine(4).length])
+        expect(event.newRange).toEqual new Range([2, 0], [4, buffer.getLine(4).length])
 
     describe "when lines are both updated and inserted", ->
       it "updates tokens to reflect the inserted lines", ->
@@ -117,8 +117,8 @@ describe "Highlighter", ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.preRange).toEqual range
-        expect(event.postRange).toEqual new Range([1, 0], [4, 6])
+        expect(event.oldRange).toEqual range
+        expect(event.newRange).toEqual new Range([1, 0], [4, 6])
 
       it "updates tokens for lines beyond the changed lines if needed", ->
         buffer.insert([5, 30], '/* */')
@@ -135,5 +135,5 @@ describe "Highlighter", ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.preRange).toEqual new Range([2, 0], [5, buffer.getLine(7).length])
-        expect(event.postRange).toEqual new Range([2, 0], [7, buffer.getLine(7).length])
+        expect(event.oldRange).toEqual new Range([2, 0], [5, buffer.getLine(7).length])
+        expect(event.newRange).toEqual new Range([2, 0], [7, buffer.getLine(7).length])

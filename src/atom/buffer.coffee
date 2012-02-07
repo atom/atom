@@ -65,25 +65,25 @@ class Buffer
   insert: (point, text) ->
     @change(new Range(point, point), text)
 
-  change: (preRange, newText) ->
-    postRange = new Range(_.clone(preRange.start), _.clone(preRange.start))
-    prefix = @lines[preRange.start.row][0...preRange.start.column]
-    suffix = @lines[preRange.end.row][preRange.end.column..]
+  change: (oldRange, newText) ->
+    newRange = new Range(_.clone(oldRange.start), _.clone(oldRange.start))
+    prefix = @lines[oldRange.start.row][0...oldRange.start.column]
+    suffix = @lines[oldRange.end.row][oldRange.end.column..]
 
     newTextLines = newText.split('\n')
 
     if newTextLines.length == 1
-      postRange.end.column += newText.length
+      newRange.end.column += newText.length
       newTextLines = [prefix + newText + suffix]
     else
       lastLineIndex = newTextLines.length - 1
       newTextLines[0] = prefix + newTextLines[0]
-      postRange.end.row += lastLineIndex
-      postRange.end.column = newTextLines[lastLineIndex].length
+      newRange.end.row += lastLineIndex
+      newRange.end.column = newTextLines[lastLineIndex].length
       newTextLines[lastLineIndex] += suffix
 
-    @lines[preRange.start.row..preRange.end.row] = newTextLines
-    @trigger 'change', { preRange, postRange, string: newText }
+    @lines[oldRange.start.row..oldRange.end.row] = newTextLines
+    @trigger 'change', { oldRange, newRange, string: newText }
 
   save: ->
     if not @path then throw new Error("Tried to save buffer with no url")

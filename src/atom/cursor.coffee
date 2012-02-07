@@ -13,7 +13,7 @@ class Cursor extends View
     @one 'attach', => @updateAppearance()
 
   bufferChanged: (e) ->
-    @setPosition(e.postRange.end)
+    @setPosition(e.newRange.end)
 
   setPosition: (point) ->
     point = Point.fromObject(point)
