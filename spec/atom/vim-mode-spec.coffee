@@ -192,9 +192,40 @@ describe "VimMode", ->
           editor.trigger keydownEvent('w')
           expect(editor.getCursorPosition()).toEqual([3,0])
 
-          editor.setCursorPosition [3,0]
           editor.trigger keydownEvent('w')
           expect(editor.getCursorPosition()).toEqual([3,2])
+
+      describe "the b keybinding", ->
+        it "moves the cursor to the beginning of the previous word", ->
+          editor.buffer.setText(" ab cde1+- \n xyz\n\nzip }\n last")
+          editor.setCursorPosition [4,1]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [3,4]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [3,0]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [2,0]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [1,1]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [0,8]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [0,4]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [0,1]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [0,0]
+
+          editor.trigger keydownEvent('b')
+          expect(editor.getCursorPosition()).toEqual [0,0]
 
     describe "numeric prefix bindings", ->
       it "repeats the following operation N times", ->

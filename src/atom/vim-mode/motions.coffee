@@ -29,6 +29,10 @@ class MoveDown extends Motion
     {column, row} = @editor.getCursorPosition()
     @editor.moveCursorDown() if row < (@editor.buffer.numLines() - 1)
 
+class MoveToPreviousWord extends Motion
+  execute: ->
+    @editor.cursor.moveLeftWhile /^\s*(\w+|[^A-Za-z0-9_ ]+)/g
+
 class MoveToNextWord extends Motion
   execute: ->
     @editor.setCursorPosition(@nextWordPosition())
@@ -54,4 +58,4 @@ class MoveToNextWord extends Motion
       column = nextLineMatch?.index or 0
     { row, column }
 
-module.exports = { MoveLeft, MoveRight, MoveUp, MoveDown, MoveToNextWord }
+module.exports = { MoveLeft, MoveRight, MoveUp, MoveDown, MoveToNextWord, MoveToPreviousWord }

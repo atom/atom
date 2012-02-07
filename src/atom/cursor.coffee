@@ -88,6 +88,28 @@ class Cursor extends View
 
     @setPosition({row, column})
 
+  moveLeftWhile: (regex) ->
+    row = @getRow()
+    column = @getColumn()
+    offset = 0
+
+    matchBackwards = =>
+      line = @editor.buffer.getLine(row)
+      reversedLine = line[0...column].split('').reverse().join('')
+      regex.exec reversedLine
+
+    if not match = matchBackwards()
+      if row > 0
+        row--
+        column = @editor.buffer.getLineLength(row)
+        match = matchBackwards()
+      else
+        column = 0
+
+    offset = match and -match[0].length or 0
+
+    @setPosition [row, column + offset]
+
   updateAppearance: ->
     position = @editor.pixelPositionFromPoint(@point)
     @css(position)

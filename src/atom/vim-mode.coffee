@@ -36,6 +36,7 @@ class VimMode
       'k': 'move-up'
       'l': 'move-right'
       'w': 'move-to-next-word'
+      'b': 'move-to-previous-word'
 
     @handleCommands
       'insert': => @activateInsertMode()
@@ -46,6 +47,7 @@ class VimMode
       'move-down': => new motions.MoveDown @editor
       'move-right': => new motions.MoveRight @editor
       'move-to-next-word': => new motions.MoveToNextWord(@editor)
+      'move-to-previous-word': => new motions.MoveToPreviousWord(@editor)
       'numeric-prefix': (e) => @numericPrefix(e)
 
   bindCommandModeKeys: (bindings) ->
