@@ -37,6 +37,8 @@ class VimMode
       'l': 'move-right'
       'w': 'move-to-next-word'
       'b': 'move-to-previous-word'
+      'left': 'move-left'
+      'right': 'move-right'
 
     @handleCommands
       'insert': => @activateInsertMode()
