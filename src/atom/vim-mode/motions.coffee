@@ -31,7 +31,7 @@ class MoveDown extends Motion
 
 class MoveToPreviousWord extends Motion
   execute: ->
-    @editor.cursor.moveLeftWhile /^\s*(\w+|[^A-Za-z0-9_ ]+)/g
+    @editor.getCursor().moveLeftUntilMatch /^\s*(\w+|[^A-Za-z0-9_ ]+)/g
 
 class MoveToNextWord extends Motion
   execute: ->

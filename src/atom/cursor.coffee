@@ -88,7 +88,7 @@ class Cursor extends View
 
     @setPosition({row, column})
 
-  moveLeftWhile: (regex) ->
+  moveLeftUntilMatch: (regex) ->
     row = @getRow()
     column = @getColumn()
     offset = 0
