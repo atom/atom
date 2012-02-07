@@ -33,7 +33,6 @@ class Editor extends View
     @buildCursorAndSelection()
     @handleEvents()
     @setBuffer(new Buffer)
-    new (require('vim-mode'))(this)
 
   bindKeys: ->
     atom.bindKeys '*:not(.editor *)',
