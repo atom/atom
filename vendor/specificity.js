@@ -1,10 +1,12 @@
 // source: MooTools DOM branch -> https://raw.github.com/arian/DOM/matcher-specificity/Source/specificity.js
 // changed to be compatible with our require system
+// change line
+//    for (var ii = nots.length; ii--;) s += this.specificity(nots[ii]);
+//    for (var ii = nots.length; ii--;) s += nots[ii];
 
 var Slick = require('slick');
 
 module.exports = function(selector){
-
   var parsed = Slick.parse(selector);
   var expressions = parsed.expressions;
   var specificity = -1;
@@ -25,7 +27,7 @@ module.exports = function(selector){
       }
     }
     s = b * 1e6 + c * 1e3 + d;
-    for (var ii = nots.length; ii--;) s += this.specificity(nots[ii]);
+    for (var ii = nots.length; ii--;) s += nots[ii];
     if (s > specificity) specificity = s;
   }
   return specificity;
