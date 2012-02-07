@@ -83,7 +83,7 @@ class Buffer
       newTextLines[lastLineIndex] += suffix
 
     @lines[oldRange.start.row..oldRange.end.row] = newTextLines
-    @trigger 'change', { oldRange, newRange, string: newText }
+    @trigger 'change', { oldRange, newRange, newText }
 
   save: ->
     if not @path then throw new Error("Tried to save buffer with no url")

@@ -116,7 +116,7 @@ describe 'Buffer', ->
       expect(changeHandler).toHaveBeenCalled()
 
       [event] = changeHandler.argsForCall[0]
-      expect(event.string).toBe newText
+      expect(event.newText).toBe newText
       expect(event.oldRange).toEqual expectedPreRange
       expect(event.newRange).toEqual(new Range([0, 0], [1, 14]))
 
