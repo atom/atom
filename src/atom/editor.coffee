@@ -33,9 +33,10 @@ class Editor extends View
     @buildCursorAndSelection()
     @handleEvents()
     @setBuffer(new Buffer)
+    new (require('vim-mode'))(this)
 
   bindKeys: ->
-    atom.bindKeys '*',
+    atom.bindKeys '*:not(.editor *)',
       right: 'move-right'
       left: 'move-left'
       down: 'move-down'
