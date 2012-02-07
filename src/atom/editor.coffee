@@ -51,6 +51,7 @@ class Editor extends View
       'meta-c': 'copy'
       'meta-v': 'paste'
       'meta-z': 'undo'
+      'meta-Z': 'redo'
 
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
@@ -67,6 +68,7 @@ class Editor extends View
     @on 'copy', => @copySelection()
     @on 'paste', => @paste()
     @on 'undo', => @undo()
+    @on 'redo', => @redo()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -244,3 +246,6 @@ class Editor extends View
 
   undo: ->
     @undoManager.undo()
+
+  redo: ->
+    @undoManager.redo()

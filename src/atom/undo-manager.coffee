@@ -1,17 +1,30 @@
 module.exports =
 class UndoManager
   undoHistory: null
-  undoInProgress: null
+  redoHistory: null
+  preserveHistory: false
 
   constructor: (@buffer) ->
     @undoHistory = []
+    @redoHistory = []
     @buffer.on 'change', (op) =>
-      @undoHistory.push(op) unless @undoInProgress
+      unless @preserveHistory
+        @undoHistory.push(op)
+        @redoHistory = []
 
   undo: ->
-    return unless @undoHistory.length
-    op = @undoHistory.pop()
-    @undoInProgress = true
-    @buffer.change op.newRange, op.oldText
-    @undoInProgress = false
+    if op = @undoHistory.pop()
+      @preservingHistory =>
+        @buffer.change op.newRange, op.oldText
+        @redoHistory.push op
 
+  redo: ->
+    if op = @redoHistory.pop()
+      @preservingHistory =>
+        @buffer.change op.oldRange, op.newText
+        @undoHistory.push op
+
+  preservingHistory: (fn) ->
+    @preserveHistory = true
+    fn()
+    @preserveHistory = false

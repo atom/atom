@@ -596,11 +596,14 @@ describe "Editor", ->
           editor.trigger keydownEvent('delete')
           expect(buffer.getLine(12)).toBe '};'
 
-    describe "when undo events are triggered on the editor", ->
-      it "undoes the last change", ->
+    describe "when undo/redo events are triggered on the editor", ->
+      it "undoes/redoes the last change", ->
         buffer.insert [0, 0], "foo"
         editor.trigger 'undo'
         expect(buffer.getLine(0)).not.toContain "foo"
+
+        editor.trigger 'redo'
+        expect(buffer.getLine(0)).toContain "foo"
 
     describe "when multiple lines are removed from the buffer (regression)", ->
       it "removes all of them from the dom", ->
