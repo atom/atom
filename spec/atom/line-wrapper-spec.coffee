@@ -47,5 +47,17 @@ fdescribe "LineWrapper", ->
         expect(segments[2].lastIndex).toBe 65
         expect(_.pluck(segments[2], 'value').join('')).toBe 'right.push(current);'
 
-  describe "when the buffer changes", ->
-    
+  describe ".displayPositionFromBufferPosition(point)", ->
+    it "returns the position of the indicated row and column on screen, accounting for wrapped lines", ->
+      # no wrap
+      expect(wrapper.displayPositionFromBufferPosition(row: 0, column: 5)).toEqual(row: 0, column: 5)
+
+      # wrap once
+      expect(wrapper.displayPositionFromBufferPosition(row: 3, column: 5)).toEqual(row: 3, column: 5)
+      expect(wrapper.displayPositionFromBufferPosition(row: 3, column: 50)).toEqual(row: 3, column: 50)
+      expect(wrapper.displayPositionFromBufferPosition(row: 3, column: 51)).toEqual(row: 4, column: 0)
+
+      # following a wrap
+      expect(wrapper.displayPositionFromBufferPosition(row: 4, column: 5)).toEqual(row: 5, column: 5)
+
+

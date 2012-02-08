@@ -50,7 +50,7 @@ describe "Editor", ->
         buffer.insert([1,0], "/*")
         expect(editor.lines.find('.line:eq(2) span:eq(0)')).toMatchSelector '.comment'
 
-    fdescribe "when soft-wrap is enabled", ->
+    describe "when soft-wrap is enabled", ->
       beforeEach ->
         editor.attachToDom()
         editor.width(editor.charWidth * 50)

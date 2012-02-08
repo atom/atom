@@ -35,6 +35,7 @@ class LineWrapper
 
     currentSegment = []
     currentSegment.lastIndex = 0
+    currentSegment.textLength = 0
     segments = [currentSegment]
     nextBreak = breakIndices.shift()
     for token in @highlighter.tokensForRow(row)
@@ -50,3 +51,17 @@ class LineWrapper
       currentSegment.textLength += token.value.length
 
     segments
+
+  displayPositionFromBufferPosition: (bufferPosition) ->
+    row = 0
+    for segments in @lines[0...bufferPosition.row]
+      row += segments.length
+
+    column = bufferPosition.column
+    for segment in @lines[bufferPosition.row]
+      break if segment.lastIndex > bufferPosition.column
+      column -= segment.textLength
+      row++
+
+    { row, column }
+
