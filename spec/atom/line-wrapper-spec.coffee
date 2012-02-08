@@ -4,7 +4,7 @@ Highlighter = require 'highlighter'
 Range = require 'range'
 _ = require 'underscore'
 
-describe "LineWrapper", ->
+fdescribe "LineWrapper", ->
   [wrapper, buffer] = []
 
   beforeEach ->
@@ -27,10 +27,10 @@ describe "LineWrapper", ->
         screenLines = wrapper.wrappedLines[6].screenLines
         expect(screenLines.length).toBe 2
         expect(screenLines[0].endColumn).toBe 45
-        expect(screenLines[0].map((t) -> t.value).join('')).toBe '      current < pivot ? left.push(current) : '
+        expect(tokensText(screenLines[0])).toBe '      current < pivot ? left.push(current) : '
 
         expect(screenLines[1].endColumn).toBe 65
-        expect(screenLines[1].map((t) -> t.value).join('')).toBe 'right.push(current);'
+        expect(tokensText(screenLines[1])).toBe 'right.push(current);'
 
     describe "when the line needs to wrap more than once", ->
       it "returns multiple screen lines", ->
@@ -40,13 +40,13 @@ describe "LineWrapper", ->
         expect(screenLines.length).toBe 3
 
         expect(screenLines[0].endColumn).toBe 24
-        expect(_.pluck(screenLines[0], 'value').join('')).toBe '      current < pivot ? '
+        expect(tokensText(screenLines[0])).toBe '      current < pivot ? '
 
         expect(screenLines[1].endColumn).toBe 45
-        expect(_.pluck(screenLines[1], 'value').join('')).toBe 'left.push(current) : '
+        expect(tokensText(screenLines[1])).toBe 'left.push(current) : '
 
         expect(screenLines[2].endColumn).toBe 65
-        expect(_.pluck(screenLines[2], 'value').join('')).toBe 'right.push(current);'
+        expect(tokensText(screenLines[2])).toBe 'right.push(current);'
 
   describe "when the buffer changes", ->
     changeHandler = null
