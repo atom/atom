@@ -4,6 +4,7 @@ Point = require 'point'
 Cursor = require 'cursor'
 Selection = require 'selection'
 Highlighter = require 'highlighter'
+LineWrapper = require 'line-wrapper'
 UndoManager = require 'undo-manager'
 Range = require 'range'
 
@@ -20,12 +21,14 @@ class Editor extends View
   vScrollMargin: 2
   hScrollMargin: 10
   softWrap: false
-  cursor: null
-  buffer: null
-  undoManager: null
-  selection: null
   lineHeight: null
   charWidth: null
+  cursor: null
+  selection: null
+  buffer: null
+  highlighter: null
+  lineWrapper: null
+  undoManager: null
 
   initialize: () ->
     requireStylesheet 'editor.css'
@@ -111,26 +114,8 @@ class Editor extends View
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', => @off 'mousemove', moveHandler
 
-
   buildLineElement: (row) ->
-    maxSegmentLength =
-      if @softWrap
-        Math.floor(@width() / @charWidth)
-      else
-        Infinity
-    currentSegmentLength = 0
-    currentSegment = []
-    segments = [currentSegment]
-
-    for token in @highlighter.tokensForRow(row)
-      if (currentSegmentLength + token.value.length) <= maxSegmentLength
-        currentSegmentLength += token.value.length
-        currentSegment.push(token)
-      else
-        currentSegment = [token]
-        currentSegmentLength = token.value.length
-        segments.push(currentSegment)
-
+    segments = @lineWrapper.segmentsForRow(row)
     $$ ->
       for segment in segments
         @pre class: 'line', =>
@@ -148,6 +133,7 @@ class Editor extends View
 
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
+    @lineWrapper = new LineWrapper(Infinity, @highlighter)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
     @setCursorPosition(row: 0, column: 0)
@@ -186,6 +172,13 @@ class Editor extends View
     @lines.find("pre.line:eq(#{row})")
 
   setSoftWrap: (@softWrap) ->
+    maxLength =
+      if @softWrap
+        Math.floor(@width() / @charWidth)
+      else
+        infinity
+
+    @lineWrapper.setMaxLength(maxLength)
     @renderLines()
 
   clipPosition: ({row, column}) ->
@@ -199,7 +192,17 @@ class Editor extends View
     new Point(row, column)
 
   pixelPositionFromPoint: ({row, column}) ->
-    { top: row * @lineHeight, left: column * @charWidth }
+    segmentsAbove = 0
+    segmentsAbove += @lineWrapper.segmentsForRow(i).length for i in [0...row]
+
+    for segment in @lineWrapper.segmentsForRow(row)
+      if column > segment.lastIndex
+        segmentsAbove++
+        column -= segment.textLength
+      else
+        break
+
+    { top: segmentsAbove * @lineHeight, left: column * @charWidth }
 
   pointFromPixelPosition: ({top, left}) ->
     { row: Math.floor(top / @lineHeight), column: Math.floor(left / @charWidth) }
