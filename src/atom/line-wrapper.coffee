@@ -69,7 +69,6 @@ class LineWrapper
 
     new Point(row, column)
 
-
   bufferPositionFromScreenPosition: (screenPosition) ->
     screenPosition = Point.fromObject(screenPosition)
     bufferRow = 0
@@ -81,3 +80,9 @@ class LineWrapper
         currentScreenRow++
       bufferRow++
 
+  tokensForScreenRow: (screenRow) ->
+    currentScreenRow = 0
+    for screenLines in @lines
+      for screenLine in screenLines
+        return screenLine if currentScreenRow == screenRow
+        currentScreenRow++

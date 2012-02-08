@@ -47,11 +47,11 @@ fdescribe "LineWrapper", ->
         expect(segments[2].endColumn).toBe 65
         expect(_.pluck(segments[2], 'value').join('')).toBe 'right.push(current);'
 
-  xdescribe ".tokensForScreenRow(row)", ->
+  describe ".tokensForScreenRow(row)", ->
     it "returns tokens for the line fragment corresponding to the given screen row", ->
-      expect(buffer.tokensForScreenRow(3)).toEqual(wrapper.segmentsForRow(3)[0])
-      expect(buffer.tokensForScreenRow(4)).toEqual(wrapper.segmentsForRow(3)[1])
-      expect(buffer.tokensForScreenRow(5)).toEqual(wrapper.segmentsForRow(4)[0])
+      expect(wrapper.tokensForScreenRow(3)).toEqual(wrapper.segmentsForRow(3)[0])
+      expect(wrapper.tokensForScreenRow(4)).toEqual(wrapper.segmentsForRow(3)[1])
+      expect(wrapper.tokensForScreenRow(5)).toEqual(wrapper.segmentsForRow(4)[0])
 
   describe ".screenPositionFromBufferPosition(point)", ->
     it "translates the given buffer position to a screen position, accounting for wrapped lines", ->
