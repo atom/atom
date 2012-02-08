@@ -1,6 +1,7 @@
 _ = require 'underscore'
 fs = require 'fs'
 Range = require 'range'
+EventEmitter = require 'event-emitter'
 
 module.exports =
 class Buffer
@@ -90,14 +91,6 @@ class Buffer
     if not @path then throw new Error("Tried to save buffer with no url")
     fs.write @path, @getText()
 
-  on: (eventName, handler) ->
-    @eventHandlers ?= {}
-    @eventHandlers[eventName] ?= []
-    @eventHandlers[eventName].push(handler)
-
-  trigger: (eventName, event) ->
-    @eventHandlers?[eventName]?.forEach (handler) -> handler(event)
-
   modeName: ->
     extension = if @path then @path.split('/').pop().split('.').pop() else null
     switch extension
@@ -109,3 +102,4 @@ class Buffer
       when 'css' then 'css'
       else 'text'
 
+_.extend(Buffer.prototype, EventEmitter)

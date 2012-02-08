@@ -1,4 +1,7 @@
+_ = require 'underscore'
 Point = require 'point'
+EventEmitter = require 'event-emitter'
+
 getWordRegex = -> /\b[^\s]+/g
 
 module.exports =
@@ -6,6 +9,8 @@ class LineWrapper
   constructor: (@maxLength, @highlighter) ->
     @buffer = @highlighter.buffer
     @buildWrappedLines()
+    @highlighter.on 'change', (e) =>
+      @wrappedLines[e.oldRange.start.row] = @buildWrappedLineForBufferRow(e.newRange.start.row)
 
   setMaxLength: (@maxLength) ->
     @buildWrappedLines()
@@ -83,3 +88,5 @@ class LineWrapper
       for screenLine in wrappedLine.screenLines
         return screenLine if currentScreenRow == screenRow
         currentScreenRow++
+
+_.extend(LineWrapper.prototype, EventEmitter)
