@@ -34,6 +34,7 @@ class LineWrapper
         lastBreakIndex = startIndex
 
     currentSegment = []
+    currentSegment.startColumn = 0
     currentSegment.lastIndex = 0
     currentSegment.textLength = 0
     segments = [currentSegment]
@@ -42,6 +43,7 @@ class LineWrapper
       if currentSegment.lastIndex >= nextBreak
         nextBreak = breakIndices.shift()
         newSegment = []
+        newSegment.startColumn = currentSegment.lastIndex
         newSegment.lastIndex = currentSegment.lastIndex
         newSegment.textLength = 0
         segments.push(newSegment)
@@ -65,3 +67,13 @@ class LineWrapper
 
     { row, column }
 
+
+  bufferPositionFromDisplayPosition: (displayPosition) ->
+    bufferRow = 0
+    currentScreenRow = 0
+    for screenLines in @lines
+      for screenLine in screenLines
+        if currentScreenRow == displayPosition.row
+          return { row: bufferRow, column: screenLine.startColumn + displayPosition.column }
+        currentScreenRow++
+      bufferRow++

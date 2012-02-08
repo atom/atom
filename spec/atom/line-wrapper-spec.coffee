@@ -47,17 +47,35 @@ fdescribe "LineWrapper", ->
         expect(segments[2].lastIndex).toBe 65
         expect(_.pluck(segments[2], 'value').join('')).toBe 'right.push(current);'
 
+  xdescribe ".tokensForDisplayRow(row)", ->
+    it "returns tokens for the line fragment corresponding to the given display row", ->
+      expect(buffer.tokensForDisplayRow(3)).toEqual(wrapper.segmentsForRow(3)[0])
+      expect(buffer.tokensForDisplayRow(4)).toEqual(wrapper.segmentsForRow(3)[1])
+      expect(buffer.tokensForDisplayRow(5)).toEqual(wrapper.segmentsForRow(4)[0])
+
   describe ".displayPositionFromBufferPosition(point)", ->
-    it "returns the position of the indicated row and column on screen, accounting for wrapped lines", ->
-      # no wrap
+    it "translates the given buffer position to a display position, accounting for wrapped lines", ->
+      # before any wrapped lines
       expect(wrapper.displayPositionFromBufferPosition(row: 0, column: 5)).toEqual(row: 0, column: 5)
 
-      # wrap once
+      # on a wrapped line
       expect(wrapper.displayPositionFromBufferPosition(row: 3, column: 5)).toEqual(row: 3, column: 5)
       expect(wrapper.displayPositionFromBufferPosition(row: 3, column: 50)).toEqual(row: 3, column: 50)
       expect(wrapper.displayPositionFromBufferPosition(row: 3, column: 51)).toEqual(row: 4, column: 0)
 
-      # following a wrap
+      # following a wrapped line
       expect(wrapper.displayPositionFromBufferPosition(row: 4, column: 5)).toEqual(row: 5, column: 5)
 
+  describe ".bufferPositionFromDisplayPosition(point)", ->
+    it "translates the given display position to a buffer position, account for wrapped lines", ->
+      # before any wrapped lines
+      expect(wrapper.bufferPositionFromDisplayPosition(row: 0, column: 5)).toEqual(row: 0, column: 5)
+
+      # on a wrapped line
+      expect(wrapper.bufferPositionFromDisplayPosition(row: 3, column: 5)).toEqual(row: 3, column: 5)
+      expect(wrapper.bufferPositionFromDisplayPosition(row: 4, column: 0)).toEqual(row: 3, column: 51)
+      expect(wrapper.bufferPositionFromDisplayPosition(row: 4, column: 5)).toEqual(row: 3, column: 56)
+
+      # following a wrapped line
+      expect(wrapper.bufferPositionFromDisplayPosition(row: 5, column: 5)).toEqual(row: 4, column: 5)
 
