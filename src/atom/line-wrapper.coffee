@@ -5,24 +5,21 @@ module.exports =
 class LineWrapper
   constructor: (@maxLength, @highlighter) ->
     @buffer = @highlighter.buffer
-    @segmentBuffer()
+    @buildWrappedLines()
 
   setMaxLength: (@maxLength) ->
-    @segmentBuffer()
+    @buildWrappedLines()
 
-  segmentBuffer: ->
-    @lines = @segmentRows(0, @buffer.lastRow())
+  buildWrappedLines: ->
+    @wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
 
-  segmentsForRow: (row) ->
-    @lines[row]
-
-  segmentRows: (start, end) ->
+  buildWrappedLinesForBufferRows: (start, end) ->
     for row in [start..end]
-      @segmentRow(row)
+      @buildWrappedLineForBufferRow(row)
 
-  segmentRow: (row) ->
+  buildWrappedLineForBufferRow: (bufferRow) ->
     wordRegex = getWordRegex()
-    line = @buffer.getLine(row)
+    line = @buffer.getLine(bufferRow)
 
     breakIndices = []
     lastBreakIndex = 0
@@ -34,37 +31,37 @@ class LineWrapper
         breakIndices.push(startIndex)
         lastBreakIndex = startIndex
 
-    currentSegment = []
-    currentSegment.startColumn = 0
-    currentSegment.endColumn = 0
-    currentSegment.textLength = 0
-    segments = [currentSegment]
+    currentScreenLine = []
+    currentScreenLine.startColumn = 0
+    currentScreenLine.endColumn = 0
+    currentScreenLine.textLength = 0
+    screenLines = [currentScreenLine]
     nextBreak = breakIndices.shift()
-    for token in @highlighter.tokensForRow(row)
-      if currentSegment.endColumn >= nextBreak
+    for token in @highlighter.tokensForRow(bufferRow)
+      if currentScreenLine.endColumn >= nextBreak
         nextBreak = breakIndices.shift()
-        newSegment = []
-        newSegment.startColumn = currentSegment.endColumn
-        newSegment.endColumn = currentSegment.endColumn
-        newSegment.textLength = 0
-        segments.push(newSegment)
-        currentSegment = newSegment
-      currentSegment.push token
-      currentSegment.endColumn += token.value.length
-      currentSegment.textLength += token.value.length
+        newScreenLine = []
+        newScreenLine.startColumn = currentScreenLine.endColumn
+        newScreenLine.endColumn = currentScreenLine.endColumn
+        newScreenLine.textLength = 0
+        screenLines.push(newScreenLine)
+        currentScreenLine = newScreenLine
+      currentScreenLine.push token
+      currentScreenLine.endColumn += token.value.length
+      currentScreenLine.textLength += token.value.length
 
-    segments
+    { screenLines }
 
   screenPositionFromBufferPosition: (bufferPosition) ->
     bufferPosition = Point.fromObject(bufferPosition)
     row = 0
-    for segments in @lines[0...bufferPosition.row]
-      row += segments.length
+    for wrappedLine in @wrappedLines[0...bufferPosition.row]
+      row += wrappedLine.screenLines.length
 
     column = bufferPosition.column
-    for segment in @lines[bufferPosition.row]
-      break if segment.endColumn > bufferPosition.column
-      column -= segment.textLength
+    for screenLine in @wrappedLines[bufferPosition.row].screenLines
+      break if screenLine.endColumn > bufferPosition.column
+      column -= screenLine.textLength
       row++
 
     new Point(row, column)
@@ -73,8 +70,8 @@ class LineWrapper
     screenPosition = Point.fromObject(screenPosition)
     bufferRow = 0
     currentScreenRow = 0
-    for screenLines in @lines
-      for screenLine in screenLines
+    for wrappedLine in @wrappedLines
+      for screenLine in wrappedLine.screenLines
         if currentScreenRow == screenPosition.row
           return new Point(bufferRow, screenLine.startColumn + screenPosition.column)
         currentScreenRow++
@@ -82,7 +79,7 @@ class LineWrapper
 
   tokensForScreenRow: (screenRow) ->
     currentScreenRow = 0
-    for screenLines in @lines
-      for screenLine in screenLines
+    for wrappedLine in @wrappedLines
+      for screenLine in wrappedLine.screenLines
         return screenLine if currentScreenRow == screenRow
         currentScreenRow++

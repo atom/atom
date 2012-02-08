@@ -10,48 +10,48 @@ fdescribe "LineWrapper", ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     wrapper = new LineWrapper(50, new Highlighter(buffer))
 
-  describe ".segmentsForRow(row)", ->
+  describe "line wrapping", ->
     describe "when the line does not need to wrap", ->
       it "returns tokens for a single segment", ->
         line = buffer.getLine(0)
         expect(line.length).toBeLessThan(50)
-        segments = wrapper.segmentsForRow(0)
-        expect(segments.length).toBe 1
-        expect(segments[0].endColumn).toBe line.length
+        screenLines = wrapper.wrappedLines[0].screenLines
+        expect(screenLines.length).toBe 1
+        expect(screenLines[0].endColumn).toBe line.length
 
     describe "when the line needs to wrap once", ->
-      it "breaks the line into 2 segments at the beginning of the first word that exceeds the max length", ->
+      it "breaks the line into 2 screenLines at the beginning of the first word that exceeds the max length", ->
         line = buffer.getLine(6)
         expect(line.length).toBeGreaterThan 50
-        segments = wrapper.segmentsForRow(6)
-        expect(segments.length).toBe 2
-        expect(segments[0].endColumn).toBe 45
-        expect(segments[0].map((t) -> t.value).join('')).toBe '      current < pivot ? left.push(current) : '
+        screenLines = wrapper.wrappedLines[6].screenLines
+        expect(screenLines.length).toBe 2
+        expect(screenLines[0].endColumn).toBe 45
+        expect(screenLines[0].map((t) -> t.value).join('')).toBe '      current < pivot ? left.push(current) : '
 
-        expect(segments[1].endColumn).toBe 65
-        expect(segments[1].map((t) -> t.value).join('')).toBe 'right.push(current);'
+        expect(screenLines[1].endColumn).toBe 65
+        expect(screenLines[1].map((t) -> t.value).join('')).toBe 'right.push(current);'
 
     describe "when the line needs to wrap more than once", ->
-      it "breaks the line into multiple segments", ->
+      it "breaks the line into multiple screenLines", ->
         wrapper.setMaxLength(30)
-        segments = wrapper.segmentsForRow(6)
+        screenLines = wrapper.wrappedLines[6].screenLines
 
-        expect(segments.length).toBe 3
+        expect(screenLines.length).toBe 3
 
-        expect(segments[0].endColumn).toBe 24
-        expect(_.pluck(segments[0], 'value').join('')).toBe '      current < pivot ? '
+        expect(screenLines[0].endColumn).toBe 24
+        expect(_.pluck(screenLines[0], 'value').join('')).toBe '      current < pivot ? '
 
-        expect(segments[1].endColumn).toBe 45
-        expect(_.pluck(segments[1], 'value').join('')).toBe 'left.push(current) : '
+        expect(screenLines[1].endColumn).toBe 45
+        expect(_.pluck(screenLines[1], 'value').join('')).toBe 'left.push(current) : '
 
-        expect(segments[2].endColumn).toBe 65
-        expect(_.pluck(segments[2], 'value').join('')).toBe 'right.push(current);'
+        expect(screenLines[2].endColumn).toBe 65
+        expect(_.pluck(screenLines[2], 'value').join('')).toBe 'right.push(current);'
 
   describe ".tokensForScreenRow(row)", ->
     it "returns tokens for the line fragment corresponding to the given screen row", ->
-      expect(wrapper.tokensForScreenRow(3)).toEqual(wrapper.segmentsForRow(3)[0])
-      expect(wrapper.tokensForScreenRow(4)).toEqual(wrapper.segmentsForRow(3)[1])
-      expect(wrapper.tokensForScreenRow(5)).toEqual(wrapper.segmentsForRow(4)[0])
+      expect(wrapper.tokensForScreenRow(3)).toEqual(wrapper.wrappedLines[3].screenLines[0])
+      expect(wrapper.tokensForScreenRow(4)).toEqual(wrapper.wrappedLines[3].screenLines[1])
+      expect(wrapper.tokensForScreenRow(5)).toEqual(wrapper.wrappedLines[4].screenLines[0])
 
   describe ".screenPositionFromBufferPosition(point)", ->
     it "translates the given buffer position to a screen position, accounting for wrapped lines", ->
