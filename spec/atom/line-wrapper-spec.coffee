@@ -4,7 +4,7 @@ Highlighter = require 'highlighter'
 Range = require 'range'
 _ = require 'underscore'
 
-fdescribe "LineWrapper", ->
+describe "LineWrapper", ->
   [wrapper, buffer] = []
 
   beforeEach ->
@@ -90,6 +90,19 @@ fdescribe "LineWrapper", ->
           expect(event.newRange).toEqual(new Range([2, 4], [3, 6]))
 
       describe "when the update causes the line to wrap multiple times", ->
+        it "updates tokens for the corresponding screen lines and emits a change event", ->
+          console.log '!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+          buffer.insert([2, 4], ["/*",longText, longText, longText, longText, "*/"].join(' '))
+          expect(tokensText(wrapper.tokensForScreenRow(2))).toBe '    0123456789ABCDEF 0123456789ABCDEF '
+          # expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '0123456789ABCDEF 0123456789ABCDEF if (items.length '
+          # expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '<= 1) return items;'
+          # expect(tokensText(wrapper.tokensForScreenRow(3))).toBe 'items;'
+          # expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '    var pivot = items.shift(), current, left = [], '
+
+          # expect(changeHandler).toHaveBeenCalled()
+          # [event] = changeHandler.argsForCall[0]
+          # expect(event.oldRange).toEqual(new Range([2, 4], [2, 4]))
+          # expect(event.newRange).toEqual(new Range([2, 4], [3, 6]))
 
     describe "when a wrapped line is updated", ->
       describe "when the update does not cause the line to un-wrap", ->
@@ -115,6 +128,33 @@ fdescribe "LineWrapper", ->
       expect(wrapper.tokensForScreenRow(3)).toEqual(wrapper.wrappedLines[3].screenLines[0])
       expect(wrapper.tokensForScreenRow(4)).toEqual(wrapper.wrappedLines[3].screenLines[1])
       expect(wrapper.tokensForScreenRow(5)).toEqual(wrapper.wrappedLines[4].screenLines[0])
+
+  fdescribe "splitTokens(tokens)", ->
+    beforeEach ->
+      wrapper.setMaxLength(10)
+
+    describe "when the text length of the given tokens is less then the max line length", ->
+      it "only returns 1 screen line", ->
+        screenLines = wrapper.splitTokens [{value: '12345'}, {value: '12345'}]
+        expect(screenLines.length).toBe 1
+
+    describe "when the text length of the given tokens exceeds the max line length", ->
+      describe "when the exceeding token begins at the max line length", ->
+        describe "when the token has no whitespace", ->
+          it "places exceeding token on the next screen line", ->
+            screenLines = wrapper.splitTokens([{value: '12345'}, {value: '12345'}, {value: 'abcde'}])
+            expect(screenLines.length).toBe 2
+            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '12345'}]
+            expect(screenLines[1]).toEqual [{value: 'abcde'}]
+
+        describe "when token has leading whitespace", ->
+        describe "when the exceeding token is whitespace", ->
+      describe "when the exceeding token straddles the max line length", ->
+        describe "when token contains no whitespace", ->
+        describe "when token contains whitespace", ->
+        describe "when the exceeding token is whitespace", ->
+
+    buildWrappedLineFromTokens: (tokens) ->
 
   describe ".screenPositionFromBufferPosition(point)", ->
     it "translates the given buffer position to a screen position, accounting for wrapped lines", ->

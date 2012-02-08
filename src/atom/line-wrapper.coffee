@@ -34,6 +34,19 @@ class LineWrapper
     for row in [start..end]
       @buildWrappedLineForBufferRow(row)
 
+  splitTokens: (tokens) ->
+    return [] unless tokens.length
+
+    length = 0
+    screenLine = []
+    while tokens.length
+      break if length + tokens[0].value.length > @maxLength
+      token = tokens.shift()
+      length += token.value.length
+      screenLine.push token
+
+    [screenLine].concat @splitTokens(tokens)
+
   buildWrappedLineForBufferRow: (bufferRow) ->
     wordRegex = getWordRegex()
     line = @buffer.getLine(bufferRow)
