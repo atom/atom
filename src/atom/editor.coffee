@@ -191,18 +191,9 @@ class Editor extends View
 
     new Point(row, column)
 
-  pixelPositionFromPoint: ({row, column}) ->
-    segmentsAbove = 0
-    segmentsAbove += @lineWrapper.segmentsForRow(i).length for i in [0...row]
-
-    for segment in @lineWrapper.segmentsForRow(row)
-      if column > segment.lastIndex
-        segmentsAbove++
-        column -= segment.textLength
-      else
-        break
-
-    { top: segmentsAbove * @lineHeight, left: column * @charWidth }
+  pixelPositionFromPoint: (position) ->
+    { row, column } = @lineWrapper.displayPositionFromBufferPosition(position)
+    { top: row * @lineHeight, left: column * @charWidth }
 
   pointFromPixelPosition: ({top, left}) ->
     { row: Math.floor(top / @lineHeight), column: Math.floor(left / @charWidth) }

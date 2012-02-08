@@ -50,7 +50,7 @@ describe "Editor", ->
         buffer.insert([1,0], "/*")
         expect(editor.lines.find('.line:eq(2) span:eq(0)')).toMatchSelector '.comment'
 
-    describe "when soft-wrap is enabled", ->
+    fdescribe "when soft-wrap is enabled", ->
       beforeEach ->
         editor.attachToDom()
         editor.width(editor.charWidth * 50)
@@ -60,7 +60,7 @@ describe "Editor", ->
         expect(editor.lines.find('pre:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
         expect(editor.lines.find('pre:eq(4)').text()).toBe "right = [];"
 
-        editor.cursor.setPosition([3, 52])
+        editor.cursor.setPosition([3, 51])
         expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(4)').position())
 
         editor.cursor.setPosition([4, 0])
