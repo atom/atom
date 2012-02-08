@@ -10,9 +10,9 @@ fdescribe "LineWrapper", ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     wrapper = new LineWrapper(50, new Highlighter(buffer))
 
-  describe "line wrapping", ->
+  describe ".screenLinesForBufferRow(bufferRow)", ->
     describe "when the line does not need to wrap", ->
-      it "returns tokens for a single segment", ->
+      it "returns tokens for a single screen line", ->
         line = buffer.getLine(0)
         expect(line.length).toBeLessThan(50)
         screenLines = wrapper.wrappedLines[0].screenLines
@@ -20,7 +20,7 @@ fdescribe "LineWrapper", ->
         expect(screenLines[0].endColumn).toBe line.length
 
     describe "when the line needs to wrap once", ->
-      it "breaks the line into 2 screenLines at the beginning of the first word that exceeds the max length", ->
+      it "returns 2 screen lines, with the linebreak at the beginning of the first word that exceeds the max length", ->
         line = buffer.getLine(6)
         expect(line.length).toBeGreaterThan 50
         screenLines = wrapper.wrappedLines[6].screenLines
@@ -32,7 +32,7 @@ fdescribe "LineWrapper", ->
         expect(screenLines[1].map((t) -> t.value).join('')).toBe 'right.push(current);'
 
     describe "when the line needs to wrap more than once", ->
-      it "breaks the line into multiple screenLines", ->
+      it "returns multiple screen lines", ->
         wrapper.setMaxLength(30)
         screenLines = wrapper.wrappedLines[6].screenLines
 
