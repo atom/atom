@@ -11,9 +11,17 @@ class LineWrapper
     @buffer = @highlighter.buffer
     @buildWrappedLines()
     @highlighter.on 'change', (e) =>
+      oldCount = @wrappedLines[e.oldRange.start.row].screenLines.length
       @wrappedLines[e.oldRange.start.row] = @buildWrappedLineForBufferRow(e.newRange.start.row)
+      newCount = @wrappedLines[e.oldRange.start.row].screenLines.length
+
       oldRange = @screenRangeFromBufferRange(e.oldRange)
       newRange = @screenRangeFromBufferRange(e.newRange)
+
+      if newCount > oldCount
+        newRange.end.row += newCount - oldCount
+        newRange.end.column = @tokensForScreenRow(newRange.end.row).textLength
+
       @trigger 'change', { oldRange, newRange }
 
   setMaxLength: (@maxLength) ->

@@ -78,13 +78,16 @@ fdescribe "LineWrapper", ->
 
 
       describe "when the update causes the line to wrap once", ->
-        fit "updates tokens for the corresponding screen lines and emits a change event", ->
+        it "updates tokens for the corresponding screen lines and emits a change event", ->
           buffer.insert([2, 4], longText)
           expect(tokensText(wrapper.tokensForScreenRow(2))).toBe '    0123456789ABCDEFif (items.length <= 1) return '
           expect(tokensText(wrapper.tokensForScreenRow(3))).toBe 'items;'
           expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '    var pivot = items.shift(), current, left = [], '
 
-          # LEFT OFF HERE: Test change event
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual(new Range([2, 4], [2, 4]))
+          expect(event.newRange).toEqual(new Range([2, 4], [3, 6]))
 
       describe "when the update causes the line to wrap multiple times", ->
 
