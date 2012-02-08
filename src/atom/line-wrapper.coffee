@@ -1,6 +1,7 @@
 _ = require 'underscore'
-Point = require 'point'
 EventEmitter = require 'event-emitter'
+Point = require 'point'
+Range = require 'range'
 
 getWordRegex = -> /\b[^\s]+/g
 
@@ -11,7 +12,9 @@ class LineWrapper
     @buildWrappedLines()
     @highlighter.on 'change', (e) =>
       @wrappedLines[e.oldRange.start.row] = @buildWrappedLineForBufferRow(e.newRange.start.row)
-      @trigger 'change', e
+      oldRange = @screenRangeFromBufferRange(e.oldRange)
+      newRange = @screenRangeFromBufferRange(e.newRange)
+      @trigger 'change', { oldRange, newRange }
 
   setMaxLength: (@maxLength) ->
     @buildWrappedLines()
@@ -57,6 +60,12 @@ class LineWrapper
       currentScreenLine.textLength += token.value.length
 
     { screenLines }
+
+
+  screenRangeFromBufferRange: (bufferRange) ->
+    start = @screenPositionFromBufferPosition(bufferRange.start)
+    end = @screenPositionFromBufferPosition(bufferRange.end)
+    new Range(start,end)
 
   screenPositionFromBufferPosition: (bufferPosition) ->
     bufferPosition = Point.fromObject(bufferPosition)

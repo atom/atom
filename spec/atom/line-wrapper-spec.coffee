@@ -48,8 +48,9 @@ describe "LineWrapper", ->
         expect(screenLines[2].endColumn).toBe 65
         expect(_.pluck(screenLines[2], 'value').join('')).toBe 'right.push(current);'
 
-  fdescribe "when the buffer changes", ->
+  describe "when the buffer changes", ->
     changeHandler = null
+    longText = '0123456789ABCDEF'
 
     beforeEach ->
       changeHandler = jasmine.createSpy('changeHandler')
@@ -65,8 +66,25 @@ describe "LineWrapper", ->
           [event] = changeHandler.argsForCall[0]
           expect(event.oldRange).toEqual(new Range([0, 10], [0, 10]))
           expect(event.newRange).toEqual(new Range([0, 10], [0, 11]))
+          changeHandler.reset()
+
+          # below a wrapped line
+          buffer.insert([4, 10], 'foo')
+          expect(tokensText(wrapper.tokensForScreenRow(5))).toContain 'fooitems'
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual(new Range([5, 10], [5, 10]))
+          expect(event.newRange).toEqual(new Range([5, 10], [5, 13]))
+
 
       describe "when the update causes the line to wrap once", ->
+        fit "updates tokens for the corresponding screen lines and emits a change event", ->
+          buffer.insert([2, 4], longText)
+          expect(tokensText(wrapper.tokensForScreenRow(2))).toBe '    0123456789ABCDEFif (items.length <= 1) return '
+          expect(tokensText(wrapper.tokensForScreenRow(3))).toBe 'items;'
+          expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '    var pivot = items.shift(), current, left = [], '
+
+          # LEFT OFF HERE: Test change event
 
       describe "when the update causes the line to wrap multiple times", ->
 
