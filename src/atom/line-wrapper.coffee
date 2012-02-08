@@ -1,3 +1,4 @@
+Point = require 'point'
 getWordRegex = -> /\b[^\s]+/g
 
 module.exports =
@@ -35,45 +36,48 @@ class LineWrapper
 
     currentSegment = []
     currentSegment.startColumn = 0
-    currentSegment.lastIndex = 0
+    currentSegment.endColumn = 0
     currentSegment.textLength = 0
     segments = [currentSegment]
     nextBreak = breakIndices.shift()
     for token in @highlighter.tokensForRow(row)
-      if currentSegment.lastIndex >= nextBreak
+      if currentSegment.endColumn >= nextBreak
         nextBreak = breakIndices.shift()
         newSegment = []
-        newSegment.startColumn = currentSegment.lastIndex
-        newSegment.lastIndex = currentSegment.lastIndex
+        newSegment.startColumn = currentSegment.endColumn
+        newSegment.endColumn = currentSegment.endColumn
         newSegment.textLength = 0
         segments.push(newSegment)
         currentSegment = newSegment
       currentSegment.push token
-      currentSegment.lastIndex += token.value.length
+      currentSegment.endColumn += token.value.length
       currentSegment.textLength += token.value.length
 
     segments
 
-  displayPositionFromBufferPosition: (bufferPosition) ->
+  screenPositionFromBufferPosition: (bufferPosition) ->
+    bufferPosition = Point.fromObject(bufferPosition)
     row = 0
     for segments in @lines[0...bufferPosition.row]
       row += segments.length
 
     column = bufferPosition.column
     for segment in @lines[bufferPosition.row]
-      break if segment.lastIndex > bufferPosition.column
+      break if segment.endColumn > bufferPosition.column
       column -= segment.textLength
       row++
 
-    { row, column }
+    new Point(row, column)
 
 
-  bufferPositionFromDisplayPosition: (displayPosition) ->
+  bufferPositionFromScreenPosition: (screenPosition) ->
+    screenPosition = Point.fromObject(screenPosition)
     bufferRow = 0
     currentScreenRow = 0
     for screenLines in @lines
       for screenLine in screenLines
-        if currentScreenRow == displayPosition.row
-          return { row: bufferRow, column: screenLine.startColumn + displayPosition.column }
+        if currentScreenRow == screenPosition.row
+          return new Point(bufferRow, screenLine.startColumn + screenPosition.column)
         currentScreenRow++
       bufferRow++
+
