@@ -78,6 +78,8 @@ window.pixelPositionForPoint = (editor, point) ->
   pageX = editor.lines.offset().left + point.column * editor.charWidth + 1 # ensure the pixel is inside the char
   [pageX, pageY]
 
+window.tokensText = (tokens) ->
+  _.pluck(tokens, 'value').join('')
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)

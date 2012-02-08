@@ -1,9 +1,10 @@
 Buffer = require 'buffer'
 LineWrapper = require 'line-wrapper'
 Highlighter = require 'highlighter'
+Range = require 'range'
 _ = require 'underscore'
 
-fdescribe "LineWrapper", ->
+describe "LineWrapper", ->
   [wrapper, buffer] = []
 
   beforeEach ->
@@ -46,6 +47,47 @@ fdescribe "LineWrapper", ->
 
         expect(screenLines[2].endColumn).toBe 65
         expect(_.pluck(screenLines[2], 'value').join('')).toBe 'right.push(current);'
+
+  fdescribe "when the buffer changes", ->
+    changeHandler = null
+
+    beforeEach ->
+      changeHandler = jasmine.createSpy('changeHandler')
+      wrapper.on 'change', changeHandler
+
+    describe "when an unwrapped line is updated", ->
+      describe "when the update does not cause the line to wrap", ->
+        it "updates tokens for the corresponding screen line and emits a change event", ->
+          buffer.insert([0, 10], 'h')
+          expect(tokensText(wrapper.tokensForScreenRow(0))).toContain 'quickshort'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual(new Range([0, 10], [0, 10]))
+          expect(event.newRange).toEqual(new Range([0, 10], [0, 11]))
+
+      describe "when the update causes the line to wrap once", ->
+
+      describe "when the update causes the line to wrap multiple times", ->
+
+    describe "when a wrapped line is updated", ->
+      describe "when the update does not cause the line to un-wrap", ->
+
+      describe "when the update causes the line to no longer be wrapped", ->
+
+      describe "when the update causes a line that was wrapped twice to be only wrapped once", ->
+
+      describe "when the update causes the line to wrap a second time", ->
+
+    describe "when a line is inserted", ->
+      describe "when the line is wrapped", ->
+
+      describe "when the line is not wrapped", ->
+
+    describe "when a line is removed", ->
+      describe "when the line is wrapped", ->
+
+      describe "when the line is not wrapped", ->
 
   describe ".tokensForScreenRow(row)", ->
     it "returns tokens for the line fragment corresponding to the given screen row", ->

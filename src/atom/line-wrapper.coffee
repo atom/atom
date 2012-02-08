@@ -11,6 +11,7 @@ class LineWrapper
     @buildWrappedLines()
     @highlighter.on 'change', (e) =>
       @wrappedLines[e.oldRange.start.row] = @buildWrappedLineForBufferRow(e.newRange.start.row)
+      @trigger 'change', e
 
   setMaxLength: (@maxLength) ->
     @buildWrappedLines()
