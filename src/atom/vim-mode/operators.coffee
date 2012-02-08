@@ -1,5 +1,9 @@
 _ = require 'underscore'
 
+class OperatorError
+  constructor: (@message) ->
+    @name = "Operator Error"
+
 class NumericPrefix
   count: null
   complete: null
@@ -43,8 +47,11 @@ class Delete
       @editor.setCursorPosition([@editor.getCursorRow(), 0])
 
   compose: (motion) ->
+    if not motion.select
+      throw new OperatorError("Delete must compose with a motion")
+
     @motion = motion
     @complete = true
 
-module.exports = { NumericPrefix, Delete }
+module.exports = { NumericPrefix, Delete, OperatorError }
 

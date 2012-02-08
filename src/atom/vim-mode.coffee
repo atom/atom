@@ -21,24 +21,26 @@ class VimMode
     @setupCommandMode()
 
   setupCommandMode: ->
-    atom.bindKeys '.command-mode', (e) ->
+    atom.bindKeys '.command-mode', (e) =>
       if e.keystroke.match /^\d$/
         return 'command-mode:numeric-prefix'
       if e.keystroke.match /^.$/
+        @resetCommandMode()
         return false
 
     @bindCommandModeKeys
-      'i': 'insert'
-      'd': 'delete'
-      'x': 'delete-right'
-      'h': 'move-left'
-      'j': 'move-down'
-      'k': 'move-up'
-      'l': 'move-right'
-      'w': 'move-to-next-word'
-      'b': 'move-to-previous-word'
-      'left': 'move-left'
-      'right': 'move-right'
+      i: 'insert'
+      d: 'delete'
+      x: 'delete-right'
+      h: 'move-left'
+      j: 'move-down'
+      k: 'move-up'
+      l: 'move-right'
+      w: 'move-to-next-word'
+      b: 'move-to-previous-word'
+      esc: 'reset-command-mode'
+      left: 'move-left'
+      right: 'move-right'
 
     @handleCommands
       'insert': => @activateInsertMode()
@@ -51,6 +53,7 @@ class VimMode
       'move-to-next-word': => new motions.MoveToNextWord(@editor)
       'move-to-previous-word': => new motions.MoveToPreviousWord(@editor)
       'numeric-prefix': (e) => @numericPrefix(e)
+      'reset-command-mode': => @resetCommandMode()
 
   bindCommandModeKeys: (bindings) ->
     prefixedBindings = {}
@@ -77,6 +80,9 @@ class VimMode
     @editor.addClass('command-mode')
 
     @editor.on 'cursor:position-changed', @moveCursorBeforeNewline
+
+  resetCommandMode: ->
+    @opStack = []
 
   moveCursorBeforeNewline: =>
     if not @editor.selection.modifyingSelection and @editor.cursor.isOnEOL() and @editor.getCurrentLine().length > 0
@@ -107,10 +113,14 @@ class VimMode
 
   processOpStack: ->
     return unless @topOperator().isComplete()
+
     poppedOperator = @opStack.pop()
     if @opStack.length
-      @topOperator().compose(poppedOperator)
-      @processOpStack()
+      try
+        @topOperator().compose(poppedOperator)
+        @processOpStack()
+      catch e
+        (e instanceof operators.OperatorError) and @resetCommandMode() or throw e
     else
       poppedOperator.execute()
 

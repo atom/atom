@@ -61,4 +61,4 @@ class MoveToNextWord extends Motion
       column = nextLineMatch?.index or 0
     { row, column }
 
-module.exports = { MoveLeft, MoveRight, MoveUp, MoveDown, MoveToNextWord, MoveToPreviousWord }
+module.exports = { Motion, MoveLeft, MoveRight, MoveUp, MoveDown, MoveToNextWord, MoveToPreviousWord }

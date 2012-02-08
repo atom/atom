@@ -2,7 +2,7 @@ Editor = require 'editor'
 VimMode = require 'vim-mode'
 
 describe "VimMode", ->
-  editor = null
+  [editor, vimMode] = []
 
   beforeEach ->
     editor = new Editor
@@ -35,6 +35,25 @@ describe "VimMode", ->
 
       editor.setCursorPosition([1, 0])
       expect(editor.getCursorPosition()).toEqual [1,0]
+
+    it "clears the operator stack when commands can't be composed", ->
+      editor.trigger keydownEvent('d')
+      expect(vimMode.opStack.length).toBe 1
+      editor.trigger keydownEvent('x')
+      expect(vimMode.opStack.length).toBe 0
+
+      editor.trigger keydownEvent('d')
+      expect(vimMode.opStack.length).toBe 1
+      editor.trigger keydownEvent('\\') # \ is an unused key in vim
+      expect(vimMode.opStack.length).toBe 0
+
+    describe "the esc keybinding", ->
+      it "clears the operator stack", ->
+        editor.trigger keydownEvent('d')
+        expect(vimMode.opStack.length).toBe 1
+
+        editor.trigger keydownEvent('esc')
+        expect(vimMode.opStack.length).toBe 0
 
     describe "the i keybinding", ->
       it "puts the editor into insert mode", ->
