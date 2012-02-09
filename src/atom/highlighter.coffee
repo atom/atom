@@ -58,6 +58,6 @@ class Highlighter
     @tokenizer.getLineTokens(@buffer.getLine(row), state)
 
   tokensForRow: (row) ->
-    @lines[row].tokens
+    _.clone(@lines[row].tokens)
 
 _.extend(Highlighter.prototype, EventEmitter)

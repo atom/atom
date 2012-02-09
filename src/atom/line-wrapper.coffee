@@ -3,8 +3,6 @@ EventEmitter = require 'event-emitter'
 Point = require 'point'
 Range = require 'range'
 
-getWordRegex = -> /\b[^\s]+/g
-
 module.exports =
 class LineWrapper
   constructor: (@maxLength, @highlighter) ->
@@ -33,6 +31,9 @@ class LineWrapper
   buildWrappedLinesForBufferRows: (start, end) ->
     for row in [start..end]
       @buildWrappedLineForBufferRow(row)
+
+  buildWrappedLineForBufferRow: (bufferRow) ->
+    { screenLines: @splitTokens(@highlighter.tokensForRow(bufferRow)) }
 
   splitTokens: (tokens, startColumn = 0) ->
     return [] unless tokens.length
@@ -85,40 +86,6 @@ class LineWrapper
     value2 = value.substring(splitIndex)
     [{value: value1, type }, {value: value2, type}]
 
-  buildWrappedLineForBufferRow: (bufferRow) ->
-    wordRegex = getWordRegex()
-    line = @buffer.getLine(bufferRow)
-
-    breakIndices = []
-    lastBreakIndex = 0
-
-    while match = wordRegex.exec(line)
-      startIndex = match.index
-      endIndex = startIndex + match[0].length
-      if endIndex - lastBreakIndex > @maxLength
-        breakIndices.push(startIndex)
-        lastBreakIndex = startIndex
-
-    currentScreenLine = []
-    currentScreenLine.startColumn = 0
-    currentScreenLine.endColumn = 0
-    currentScreenLine.textLength = 0
-    screenLines = [currentScreenLine]
-    nextBreak = breakIndices.shift()
-    for token in @highlighter.tokensForRow(bufferRow)
-      if currentScreenLine.endColumn >= nextBreak
-        nextBreak = breakIndices.shift()
-        newScreenLine = []
-        newScreenLine.startColumn = currentScreenLine.endColumn
-        newScreenLine.endColumn = currentScreenLine.endColumn
-        newScreenLine.textLength = 0
-        screenLines.push(newScreenLine)
-        currentScreenLine = newScreenLine
-      currentScreenLine.push token
-      currentScreenLine.endColumn += token.value.length
-      currentScreenLine.textLength += token.value.length
-
-    { screenLines }
 
 
   screenRangeFromBufferRange: (bufferRange) ->
