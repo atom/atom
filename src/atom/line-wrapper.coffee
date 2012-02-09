@@ -91,15 +91,22 @@ class LineWrapper
     end = @screenPositionFromBufferPosition(bufferRange.end)
     new Range(start,end)
 
-  screenPositionFromBufferPosition: (bufferPosition) ->
+  screenPositionFromBufferPosition: (bufferPosition, allowEOL=false) ->
     bufferPosition = Point.fromObject(bufferPosition)
     row = 0
     for wrappedLine in @wrappedLines[0...bufferPosition.row]
       row += wrappedLine.screenLines.length
 
     column = bufferPosition.column
-    for screenLine in @wrappedLines[bufferPosition.row].screenLines
-      break if screenLine.endColumn > bufferPosition.column
+
+    screenLines = @wrappedLines[bufferPosition.row].screenLines
+    for screenLine, index in screenLines
+      break if index == screenLines.length - 1
+      if allowEOL
+        break if screenLine.endColumn >= bufferPosition.column
+      else
+        break if screenLine.endColumn > bufferPosition.column
+
       column -= screenLine.textLength
       row++
 
