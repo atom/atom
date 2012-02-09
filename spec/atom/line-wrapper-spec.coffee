@@ -148,7 +148,20 @@ describe "LineWrapper", ->
             expect(screenLines[1]).toEqual [{value: 'abcde'}]
 
         describe "when token has leading whitespace", ->
-        describe "when the exceeding token is whitespace", ->
+          it "splits the token in half and places the non-whitespace portion on the next line", ->
+            screenLines = wrapper.splitTokens([{value: '12345'}, {value: '12345'}, {value: '   abcde', type: 'foo'}, {value: 'ghi'}])
+            expect(screenLines.length).toBe 2
+            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '12345'}, {value: '   ', type: 'foo'}]
+            expect(screenLines[1]).toEqual [{value: 'abcde', type: 'foo'}, {value: 'ghi'}]
+
+        describe "when the exceeding token is only whitespace", ->
+          it "keeps the token on the first line and places the following token on the next line", ->
+            screenLines = wrapper.splitTokens([{value: '12345'}, {value: '12345'}, {value: '   '}, {value: 'ghi'}])
+            expect(screenLines.length).toBe 2
+            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '12345'}, {value: '   '}]
+            expect(screenLines[1]).toEqual [{value: 'ghi'}]
+
+
       describe "when the exceeding token straddles the max line length", ->
         describe "when token contains no whitespace", ->
         describe "when token contains whitespace", ->

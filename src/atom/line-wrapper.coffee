@@ -40,12 +40,25 @@ class LineWrapper
     length = 0
     screenLine = []
     while tokens.length
-      break if length + tokens[0].value.length > @maxLength
-      token = tokens.shift()
-      length += token.value.length
-      screenLine.push token
+      nextToken = tokens[0]
+      if length + nextToken.value.length > @maxLength
+        # keep any leading whitespace on current line
+        if match = /\b/.exec(nextToken.value)
+          if match.index > 0
+            tokens[0..0] = @splitTokenAt(nextToken, match.index)
+          else
+            break
+      nextToken = tokens.shift()
+      length += nextToken.value.length
+      screenLine.push nextToken
 
     [screenLine].concat @splitTokens(tokens)
+
+  splitTokenAt: (token, index) ->
+    { type, value} = token
+    value1 = value.substring(0, index)
+    value2 = value.substring(index)
+    [{value: value1, type }, {value: value2, type}]
 
   buildWrappedLineForBufferRow: (bufferRow) ->
     wordRegex = getWordRegex()
