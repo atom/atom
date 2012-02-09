@@ -71,19 +71,17 @@ fdescribe "LineWrapper", ->
           expect(event.newRange).toEqual(new Range([2, 4], [3, 6]))
 
       describe "when the update causes the line to wrap multiple times", ->
-        xit "updates tokens for the corresponding screen lines and emits a change event", ->
-          console.log '!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        it "updates tokens for the corresponding screen lines and emits a change event", ->
           buffer.insert([2, 4], ["/*",longText, longText, longText, longText, "*/"].join(' '))
-          expect(tokensText(wrapper.tokensForScreenRow(2))).toBe '    0123456789ABCDEF 0123456789ABCDEF '
-          # expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '0123456789ABCDEF 0123456789ABCDEF if (items.length '
-          # expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '<= 1) return items;'
-          # expect(tokensText(wrapper.tokensForScreenRow(3))).toBe 'items;'
-          # expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '    var pivot = items.shift(), current, left = [], '
+          expect(tokensText(wrapper.tokensForScreenRow(2))).toBe '    /* 0123456789ABCDEF 0123456789ABCDEF '
+          expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '0123456789ABCDEF 0123456789ABCDEF */if '
+          expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '(items.length <= 1) return items;'
+          expect(tokensText(wrapper.tokensForScreenRow(5))).toBe '    var pivot = items.shift(), current, left = [], '
 
-          # expect(changeHandler).toHaveBeenCalled()
-          # [event] = changeHandler.argsForCall[0]
-          # expect(event.oldRange).toEqual(new Range([2, 4], [2, 4]))
-          # expect(event.newRange).toEqual(new Range([2, 4], [3, 6]))
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual(new Range([2, 4], [2, 4]))
+          expect(event.newRange).toEqual(new Range([2, 4], [4, 33]))
 
     describe "when a wrapped line is updated", ->
       describe "when the update does not cause the line to un-wrap", ->
