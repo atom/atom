@@ -70,13 +70,13 @@ class LineWrapper
     wordStart = /\b\w/g
 
     while match = wordStart.exec(value)
-      breakIndex = match.index
-      break if breakIndex > boundaryIndex
+      splitIndex = match.index
+      break if splitIndex > boundaryIndex
 
     # if the only word start is at the beginning of the token, put the whole token on the next line
-    return [null, token] if breakIndex == 0
+    return [null, token] if splitIndex == 0
 
-    @splitTokenAt(token, breakIndex)
+    @splitTokenAt(token, splitIndex)
 
   splitTokenAt: (token, splitIndex) ->
     { type, value } = token
