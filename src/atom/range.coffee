@@ -17,8 +17,8 @@ class Range
   copy: (range) ->
     new Range(_.clone(@start), _.clone(@end))
 
-  inpsect: ->
-    "[#{@start.toString()} - #{@end.toString()}]"
+  inspect: ->
+    "[#{@start.inspect()} - #{@end.inspect()}]"
 
   isEmpty: ->
     @start.isEqual(@end)
