@@ -38,12 +38,13 @@ class LineWrapper
   splitTokens: (tokens, startColumn = 0) ->
     return [] unless tokens.length
 
-    textLength = 0
+    splitColumn = @findSplitColumn(tokens)
     screenLine = []
+    textLength = 0
     while tokens.length
       nextToken = tokens[0]
-      if textLength + nextToken.value.length > @maxLength
-        tokenFragments = @splitBoundaryToken(nextToken, @maxLength - textLength)
+      if textLength + nextToken.value.length > splitColumn
+        tokenFragments = @splitTokenAt(nextToken, splitColumn - textLength)
         [token1, token2] = tokenFragments
         tokens[0..0] = _.compact(tokenFragments)
         break unless token1
@@ -51,40 +52,37 @@ class LineWrapper
       textLength += nextToken.value.length
       screenLine.push nextToken
 
-    _.extend(screenLine, { startColumn, textLength, endColumn: startColumn + textLength })
-    [screenLine].concat @splitTokens(tokens, screenLine.endColumn)
+    endColumn = startColumn + textLength
+    _.extend(screenLine, { textLength, startColumn, endColumn })
+    [screenLine].concat @splitTokens(tokens, endColumn)
 
-  splitBoundaryToken: (token, boundaryIndex) ->
-    { value } = token
+  findSplitColumn: (tokens) ->
+    lineText = _.pluck(tokens, 'value').join('')
+    lineLength = lineText.length
+    return lineLength unless lineLength > @maxLength
 
-    # if no whitespace, split it all to next line if it will fit.
-    # if it's longer than the max width, chop it without regard for whitespace.
-    unless /\s/.test(value)
-      if value.length > @maxLength
-        return @splitTokenAt(token, boundaryIndex)
-      else
-        return [null, token]
-
-    # if only whitespace, keep it all on current line.
-    return [token, null] unless /\w/.test(value)
-
-    # if words + whitespace, try to split on start of word closest to the boundary
-    wordStart = /\b\w/g
-
-    while match = wordStart.exec(value)
-      splitIndex = match.index
-      break if splitIndex > boundaryIndex
-
-    # if the only word start is at the beginning of the token, put the whole token on the next line
-    return [null, token] if splitIndex == 0
-
-    @splitTokenAt(token, splitIndex)
+    if /\s/.test(tokensText[@maxLength])
+      # search forward for the start of a word past the boundary
+      for column in [@maxLength..lineLength]
+        return column if /\S/.test(lineText[column])
+      return lineLength
+    else
+      # search backward for the start of the word on the boundary
+      for column in [@maxLength..0]
+        return column + 1 if /\s/.test(lineText[column])
+      return @maxLength
 
   splitTokenAt: (token, splitIndex) ->
     { type, value } = token
-    value1 = value.substring(0, splitIndex)
-    value2 = value.substring(splitIndex)
-    [{value: value1, type }, {value: value2, type}]
+    switch splitIndex
+      when 0
+        [null, token]
+      when value.length
+        [token, null]
+      else
+        value1 = value.substring(0, splitIndex)
+        value2 = value.substring(splitIndex)
+        [{value: value1, type }, {value: value2, type}]
 
 
 
