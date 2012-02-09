@@ -17,6 +17,12 @@ class Range
   copy: (range) ->
     new Range(_.clone(@start), _.clone(@end))
 
+  isEqual: (other) ->
+    if other instanceof Array and other.length == 2
+      other = new Range(other...)
+
+    other.start.isEqual(@start) and other.end.isEqual(@end)
+
   inspect: ->
     "[#{@start.inspect()} - #{@end.inspect()}]"
 
