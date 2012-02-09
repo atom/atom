@@ -34,23 +34,24 @@ class LineWrapper
     for row in [start..end]
       @buildWrappedLineForBufferRow(row)
 
-  splitTokens: (tokens) ->
+  splitTokens: (tokens, startColumn = 0) ->
     return [] unless tokens.length
 
-    length = 0
+    textLength = 0
     screenLine = []
     while tokens.length
       nextToken = tokens[0]
-      if length + nextToken.value.length > @maxLength
-        tokenFragments = @splitBoundaryToken(nextToken, @maxLength - length)
+      if textLength + nextToken.value.length > @maxLength
+        tokenFragments = @splitBoundaryToken(nextToken, @maxLength - textLength)
         [token1, token2] = tokenFragments
         tokens[0..0] = _.compact(tokenFragments)
         break unless token1
       nextToken = tokens.shift()
-      length += nextToken.value.length
+      textLength += nextToken.value.length
       screenLine.push nextToken
 
-    [screenLine].concat @splitTokens(tokens)
+    _.extend(screenLine, { startColumn, textLength, endColumn: startColumn + textLength })
+    [screenLine].concat @splitTokens(tokens, screenLine.endColumn)
 
   splitBoundaryToken: (token, boundaryIndex) ->
     { value } = token

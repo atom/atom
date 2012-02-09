@@ -12,41 +12,21 @@ fdescribe "LineWrapper", ->
     wrapper = new LineWrapper(50, new Highlighter(buffer))
 
   describe ".screenLinesForBufferRow(bufferRow)", ->
-    describe "when the line does not need to wrap", ->
-      it "returns tokens for a single screen line", ->
-        line = buffer.getLine(0)
-        expect(line.length).toBeLessThan(50)
-        screenLines = wrapper.wrappedLines[0].screenLines
-        expect(screenLines.length).toBe 1
-        expect(screenLines[0].endColumn).toBe line.length
+    it "returns an array of tokens for each screen line associated with the buffer row", ->
+      wrapper.setMaxLength(30)
+      screenLines = wrapper.wrappedLines[6].screenLines
 
-    describe "when the line needs to wrap once", ->
-      it "returns 2 screen lines, with the linebreak at the beginning of the first word that exceeds the max length", ->
-        line = buffer.getLine(6)
-        expect(line.length).toBeGreaterThan 50
-        screenLines = wrapper.wrappedLines[6].screenLines
-        expect(screenLines.length).toBe 2
-        expect(screenLines[0].endColumn).toBe 45
-        expect(tokensText(screenLines[0])).toBe '      current < pivot ? left.push(current) : '
+      expect(screenLines.length).toBe 3
+      [line1, line2, line3] = screenLines
 
-        expect(screenLines[1].endColumn).toBe 65
-        expect(tokensText(screenLines[1])).toBe 'right.push(current);'
+      expect(line1.endColumn).toBe 24
+      expect(tokensText(line1)).toBe '      current < pivot ? '
 
-    describe "when the line needs to wrap more than once", ->
-      it "returns multiple screen lines", ->
-        wrapper.setMaxLength(30)
-        screenLines = wrapper.wrappedLines[6].screenLines
+      expect(line2.endColumn).toBe 45
+      expect(tokensText(line2)).toBe 'left.push(current) : '
 
-        expect(screenLines.length).toBe 3
-
-        expect(screenLines[0].endColumn).toBe 24
-        expect(tokensText(screenLines[0])).toBe '      current < pivot ? '
-
-        expect(screenLines[1].endColumn).toBe 45
-        expect(tokensText(screenLines[1])).toBe 'left.push(current) : '
-
-        expect(screenLines[2].endColumn).toBe 65
-        expect(tokensText(screenLines[2])).toBe 'right.push(current);'
+      expect(line3.endColumn).toBe 65
+      expect(tokensText(line3)).toBe 'right.push(current);'
 
   describe "when the buffer changes", ->
     changeHandler = null
@@ -129,7 +109,7 @@ fdescribe "LineWrapper", ->
       expect(wrapper.tokensForScreenRow(4)).toEqual(wrapper.wrappedLines[3].screenLines[1])
       expect(wrapper.tokensForScreenRow(5)).toEqual(wrapper.wrappedLines[4].screenLines[0])
 
-  describe "splitTokens(tokens)", ->
+  describe ".splitTokens(tokens)", ->
     beforeEach ->
       wrapper.setMaxLength(10)
 
@@ -137,6 +117,10 @@ fdescribe "LineWrapper", ->
       it "only returns 1 screen line", ->
         screenLines = wrapper.splitTokens [{value: '12345'}, {value: '12345'}]
         expect(screenLines.length).toBe 1
+        [line] = screenLines
+        expect(line.startColumn).toBe 0
+        expect(line.endColumn).toBe 10
+        expect(line.textLength).toBe 10
 
     describe "when the text length of the given tokens exceeds the max line length", ->
       describe "when the exceeding token begins at the max line length", ->
@@ -144,67 +128,89 @@ fdescribe "LineWrapper", ->
           it "places exceeding token on the next screen line", ->
             screenLines = wrapper.splitTokens([{value: '12345'}, {value: '12345'}, {value: 'abcde'}])
             expect(screenLines.length).toBe 2
-            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '12345'}]
-            expect(screenLines[1]).toEqual [{value: 'abcde'}]
+            [line1, line2] = screenLines
+            expect(line1).toEqual [{value: '12345'}, {value: '12345'}]
+            expect(line2).toEqual [{value: 'abcde'}]
+
+            expect(line1.startColumn).toBe 0
+            expect(line1.endColumn).toBe 10
+            expect(line1.textLength).toBe 10
+            expect(line2.startColumn).toBe 10
+            expect(line2.endColumn).toBe 15
+            expect(line2.textLength).toBe 5
 
         describe "when token has leading whitespace", ->
           it "splits the token in half and places the non-whitespace portion on the next line", ->
             screenLines = wrapper.splitTokens([{value: '12345'}, {value: '12345'}, {value: '   abcde', type: 'foo'}, {value: 'ghi'}])
             expect(screenLines.length).toBe 2
-            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '12345'}, {value: '   ', type: 'foo'}]
-            expect(screenLines[1]).toEqual [{value: 'abcde', type: 'foo'}, {value: 'ghi'}]
+            [line1, line2] = screenLines
+            expect(line1).toEqual [{value: '12345'}, {value: '12345'}, {value: '   ', type: 'foo'}]
+            expect(line2).toEqual [{value: 'abcde', type: 'foo'}, {value: 'ghi'}]
+
+            expect(line1.startColumn).toBe 0
+            expect(line1.endColumn).toBe 13
+            expect(line1.textLength).toBe 13
+            expect(line2.startColumn).toBe 13
+            expect(line2.endColumn).toBe 21
+            expect(line2.textLength).toBe 8
 
         describe "when the exceeding token is only whitespace", ->
           it "keeps the token on the first line and places the following token on the next line", ->
             screenLines = wrapper.splitTokens([{value: '12345'}, {value: '12345'}, {value: '   '}, {value: 'ghi'}])
             expect(screenLines.length).toBe 2
-            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '12345'}, {value: '   '}]
-            expect(screenLines[1]).toEqual [{value: 'ghi'}]
+            [line1, line2] = screenLines
+            expect(line1).toEqual [{value: '12345'}, {value: '12345'}, {value: '   '}]
+            expect(line2).toEqual [{value: 'ghi'}]
 
       describe "when the exceeding token straddles the max line length", ->
         describe "when the token has no whitespace", ->
           describe "when the token's length does not exceed the max length", ->
             it "places the entire token on the next line", ->
               screenLines = wrapper.splitTokens([{value: '12345'}, {value: '123'}, {value: 'abcde'}])
+              [line1, line2] = screenLines
               expect(screenLines.length).toBe 2
-              expect(screenLines[0]).toEqual [{value: '12345'}, {value: '123'}]
-              expect(screenLines[1]).toEqual [{value: 'abcde'}]
+              expect(line1).toEqual [{value: '12345'}, {value: '123'}]
+              expect(line2).toEqual [{value: 'abcde'}]
 
           describe "when the token's length exceeds the max length", ->
             it "splits the token arbitrarily at max length because it won't fit on the next line anyway", ->
               screenLines = wrapper.splitTokens([{value: '12345'}, {value: '123'}, {value: 'abcdefghijk', type: 'foo'}])
               expect(screenLines.length).toBe 2
-              expect(screenLines[0]).toEqual [{value: '12345'}, {value: '123'}, {value: 'ab', type: 'foo'}]
-              expect(screenLines[1]).toEqual [{value: 'cdefghijk', type: 'foo'}]
+              [line1, line2] = screenLines
+              expect(line1).toEqual [{value: '12345'}, {value: '123'}, {value: 'ab', type: 'foo'}]
+              expect(line2).toEqual [{value: 'cdefghijk', type: 'foo'}]
 
         describe "when the token has leading whitespace", ->
           it "splits the token in half and places the non-whitespace portion on the next line", ->
             screenLines = wrapper.splitTokens([{value: '12345'}, {value: '123'}, {value: '   abcde', type: 'foo'}, {value: 'ghi'}])
             expect(screenLines.length).toBe 2
-            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '123'}, {value: '   ', type: 'foo'}]
-            expect(screenLines[1]).toEqual [{value: 'abcde', type: 'foo'}, {value: 'ghi'}]
+            [line1, line2] = screenLines
+            expect(line1).toEqual [{value: '12345'}, {value: '123'}, {value: '   ', type: 'foo'}]
+            expect(line2).toEqual [{value: 'abcde', type: 'foo'}, {value: 'ghi'}]
 
         describe "when the token has trailing whitespace", ->
           it "places the entire token on the next lien", ->
             screenLines = wrapper.splitTokens([{value: '12345'}, {value: '123'}, {value: 'abcde   '}])
             expect(screenLines.length).toBe 2
-            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '123'}]
-            expect(screenLines[1]).toEqual [{value: 'abcde   '}]
-          
+            [line1, line2] = screenLines
+            expect(line1).toEqual [{value: '12345'}, {value: '123'}]
+            expect(line2).toEqual [{value: 'abcde   '}]
 
         describe "when the token has interstitial whitespace preceding the max line length", ->
           it "splits the token at the first word boundary following the max line length", ->
             screenLines = wrapper.splitTokens([{value: '123'}, {value: '456'}, {value: 'a b   de', type: 'foo'}, {value: 'ghi'}])
             expect(screenLines.length).toBe 2
-            expect(screenLines[0]).toEqual [{value: '123'}, {value: '456'}, {value: 'a b   ', type: 'foo'}]
-            expect(screenLines[1]).toEqual [{value: 'de', type: 'foo'}, {value: 'ghi'}]
+            [line1, line2] = screenLines
+            expect(line1).toEqual [{value: '123'}, {value: '456'}, {value: 'a b   ', type: 'foo'}]
+            expect(line2).toEqual [{value: 'de', type: 'foo'}, {value: 'ghi'}]
 
         describe "when the exceeding token is only whitespace", ->
           it "keeps the token on the first line and places the following token on the next line", ->
             screenLines = wrapper.splitTokens([{value: '12345'}, {value: '123'}, {value: '   '}, {value: 'ghi'}])
             expect(screenLines.length).toBe 2
-            expect(screenLines[0]).toEqual [{value: '12345'}, {value: '123'}, {value: '   '}]
-            expect(screenLines[1]).toEqual [{value: 'ghi'}]
+            [line1, line2] = screenLines
+            expect(line1).toEqual [{value: '12345'}, {value: '123'}, {value: '   '}]
+            expect(line2).toEqual [{value: 'ghi'}]
 
   describe ".screenPositionFromBufferPosition(point)", ->
     it "translates the given buffer position to a screen position, accounting for wrapped lines", ->
