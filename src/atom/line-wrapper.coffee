@@ -9,15 +9,15 @@ class LineWrapper
     @buffer = @highlighter.buffer
     @buildWrappedLines()
     @highlighter.on 'change', (e) =>
+      oldRange = @screenRangeFromBufferRange(e.oldRange)
       oldCount = @wrappedLines[e.oldRange.start.row].screenLines.length
       @wrappedLines[e.oldRange.start.row] = @buildWrappedLineForBufferRow(e.newRange.start.row)
       newCount = @wrappedLines[e.oldRange.start.row].screenLines.length
 
-      oldRange = @screenRangeFromBufferRange(e.oldRange)
       newRange = @screenRangeFromBufferRange(e.newRange)
 
       if newCount > oldCount
-        newRange.end.row += newCount - oldCount
+        newRange.end.row = newRange.start.row + (newCount - 1)
         newRange.end.column = @tokensForScreenRow(newRange.end.row).textLength
 
       @trigger 'change', { oldRange, newRange }
@@ -84,11 +84,9 @@ class LineWrapper
         value2 = value.substring(splitIndex)
         [{value: value1, type }, {value: value2, type}]
 
-
-
   screenRangeFromBufferRange: (bufferRange) ->
-    start = @screenPositionFromBufferPosition(bufferRange.start)
-    end = @screenPositionFromBufferPosition(bufferRange.end)
+    start = @screenPositionFromBufferPosition(bufferRange.start, true)
+    end = @screenPositionFromBufferPosition(bufferRange.end, true)
     new Range(start,end)
 
   screenPositionFromBufferPosition: (bufferPosition, allowEOL=false) ->

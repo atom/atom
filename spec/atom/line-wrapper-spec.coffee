@@ -4,7 +4,7 @@ Highlighter = require 'highlighter'
 Range = require 'range'
 _ = require 'underscore'
 
-fdescribe "LineWrapper", ->
+describe "LineWrapper", ->
   [wrapper, buffer] = []
 
   beforeEach ->
@@ -32,6 +32,8 @@ fdescribe "LineWrapper", ->
   describe "when the buffer changes", ->
     changeHandler = null
     longText = '0123456789ABCDEF'
+    text10 = '0123456789'
+    text60 = '0123456789 123456789 123456789 123456789 123456789 123456789'
 
     beforeEach ->
       changeHandler = jasmine.createSpy('changeHandler')
@@ -84,13 +86,48 @@ fdescribe "LineWrapper", ->
           expect(event.newRange).toEqual(new Range([2, 4], [4, 33]))
 
     describe "when a wrapped line is updated", ->
-      describe "when the update does not cause the line to un-wrap", ->
+      describe "when the old text spans multiple screen lines", ->
+        describe "when the new text spans fewer screen lines than the old text", ->
+          fit "updates tokens for the corresponding screen lines and emits a change event", ->
+            wrapper.setMaxLength(15)
 
-      describe "when the update causes the line to no longer be wrapped", ->
+            range = new Range([3, 8], [3, 47])
+            buffer.change(range, "a")
+            expect(tokensText(wrapper.tokensForScreenRow(9))).toBe '    var a [], '
+            expect(tokensText(wrapper.tokensForScreenRow(10))).toBe 'right = [];'
+            expect(tokensText(wrapper.tokensForScreenRow(11))).toBe '    '
 
-      describe "when the update causes a line that was wrapped twice to be only wrapped once", ->
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            expect(event.oldRange).toEqual [[9, 8], [11, 16]]
+            expect(event.newRange).toEqual [[9, 8], [9, 9]]
 
-      describe "when the update causes the line to wrap a second time", ->
+        describe "when the new text spans as many screen lines than the old text", ->
+          it "updates tokens for the corresponding screen lines and emits a change event", ->
+            range = new Range([3, 40], [3, 57])
+            buffer.change(range, text10)
+            expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '    var pivot = items.shift(), current, '
+            expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '0123456789= [];'
+            expect(tokensText(wrapper.tokensForScreenRow(5))).toBe '    while(items.length > 0) {'
+
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            expect(event.oldRange).toEqual [[3, 40], [4, 6]]
+            expect(event.newRange).toEqual [[3, 40], [4, 10]]
+
+        describe "when the new text spans more screen lines than the old text", ->
+          it "updates tokens for the corresponding screen lines and emits a change event", ->
+            range = new Range([3, 40], [3, 57])
+            buffer.change(range, text60)
+            expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '    var pivot = items.shift(), current, 0123456789 '
+            expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '123456789 123456789 123456789 123456789 123456789= '
+            expect(tokensText(wrapper.tokensForScreenRow(5))).toBe '[];'
+            expect(tokensText(wrapper.tokensForScreenRow(6))).toBe '    while(items.length > 0) {'
+
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            expect(event.oldRange).toEqual [[3, 40], [4, 6]]
+            expect(event.newRange).toEqual [[3, 40], [5, 3]]
 
     describe "when a line is inserted", ->
       describe "when the line is wrapped", ->
