@@ -59,7 +59,8 @@ class LineWrapper
 
     # if no whitespace, split it all to next line if it will fit.
     # if it's longer than the max width, chop it without regard for whitespace.
-    unless /\s/.test(value)
+    hasNoWhitespace = not /\s/.test(value)
+    if hasNoWhitespace
       if value.length > @maxLength
         return @splitTokenAt(token, boundaryIndex)
       else
@@ -72,8 +73,8 @@ class LineWrapper
     wordStart = /\b\w/g
 
     while match = wordStart.exec(value)
+      break if match.index > boundaryIndex
       splitIndex = match.index
-      break if splitIndex > boundaryIndex
 
     # if the only word start is at the beginning of the token, put the whole token on the next line
     return [null, token] if splitIndex == 0

@@ -71,14 +71,13 @@ fdescribe "LineWrapper", ->
           expect(event.newRange).toEqual(new Range([2, 4], [3, 6]))
 
       describe "when the update causes the line to wrap multiple times", ->
-        xit "updates tokens for the corresponding screen lines and emits a change event", ->
+        it "updates tokens for the corresponding screen lines and emits a change event", ->
           console.log '!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-          buffer.insert([2, 4], ["/*",longText, longText, longText, longText, "*/"].join(' '))
-          expect(tokensText(wrapper.tokensForScreenRow(2))).toBe '    0123456789ABCDEF 0123456789ABCDEF '
-          # expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '0123456789ABCDEF 0123456789ABCDEF if (items.length '
-          # expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '<= 1) return items;'
-          # expect(tokensText(wrapper.tokensForScreenRow(3))).toBe 'items;'
-          # expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '    var pivot = items.shift(), current, left = [], '
+          buffer.insert([2, 4], ["/*", longText, longText, longText, longText, "*/"].join(' '))
+          expect(tokensText(wrapper.tokensForScreenRow(2))).toBe '    /* 0123456789ABCDEF 0123456789ABCDEF '
+          expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '0123456789ABCDEF 0123456789ABCDEF */if (items.'
+          expect(tokensText(wrapper.tokensForScreenRow(4))).toBe 'length <= 1) return items;'
+          expect(tokensText(wrapper.tokensForScreenRow(5))).toBe '    var pivot = items.shift(), current, left = [], '
 
           # expect(changeHandler).toHaveBeenCalled()
           # [event] = changeHandler.argsForCall[0]
@@ -204,6 +203,15 @@ fdescribe "LineWrapper", ->
             [line1, line2] = screenLines
             expect(line1).toEqual [{value: '123'}, {value: '456'}, {value: 'a b   ', type: 'foo'}]
             expect(line2).toEqual [{value: 'de', type: 'foo'}, {value: 'ghi'}]
+
+        describe "when the token is greater than max line length and has interstitial whitespace preceding the max line length", ->
+          it "splits the token at the first word boundary following the max line length", ->
+            screenLines = wrapper.splitTokens [{value: "01234 67891234 6789", type: 1}]
+            expect(screenLines.length).toBe 3
+            [line1, line2, line3] = screenLines
+            expect(line1).toEqual [{value: "01234 ", type: 1}]
+            expect(line2).toEqual [{value: "67891234 ", type: 1}]
+            expect(line3).toEqual [{value: "6789", type: 1}]
 
         describe "when the exceeding token is only whitespace", ->
           it "keeps the token on the first line and places the following token on the next line", ->
