@@ -12,9 +12,9 @@ class LineWrapper
       oldRange = new Range
 
       bufferRow = e.oldRange.start.row
-      oldRange.start.row = @firstScreenRowForBufferRow(bufferRow)
-      oldRange.end.row = @lastScreenRowForBufferRow(bufferRow)
-      oldRange.end.column = _.last(@wrappedLines[bufferRow].screenLines).textLength
+      oldRange.start.row = @firstScreenRowForBufferRow(e.oldRange.start.row)
+      oldRange.end.row = @lastScreenRowForBufferRow(e.oldRange.end.row)
+      oldRange.end.column = _.last(@wrappedLines[e.oldRange.end.row].screenLines).textLength
 
       @wrappedLines[e.oldRange.start.row..e.oldRange.end.row] = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
 
@@ -28,7 +28,8 @@ class LineWrapper
     @screenPositionFromBufferPosition([bufferRow, 0]).row
 
   lastScreenRowForBufferRow: (bufferRow) ->
-    @screenPositionFromBufferPosition([bufferRow, @buffer.getLine(bufferRow).length]).row
+    startRow = @screenPositionFromBufferPosition([bufferRow, 0]).row
+    startRow + (@wrappedLines[bufferRow].screenLines.length - 1)
 
   setMaxLength: (@maxLength) ->
     @buildWrappedLines()

@@ -65,7 +65,7 @@ fdescribe "LineWrapper", ->
           expect(event.newRange).toEqual([[7, 0], [7, 47]])
 
     describe "when buffer lines are inserted", ->
-      fit "re-wraps existing and new screen lines and emits a change event", ->
+      it "re-wraps existing and new screen lines and emits a change event", ->
         buffer.insert([6, 21], '1234567890 abcdefghij 1234567890\nabcdefghij')
         expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot1234567890 abcdefghij '
         expect(tokensText(wrapper.tokensForScreenRow(8))).toBe '1234567890'
@@ -78,6 +78,17 @@ fdescribe "LineWrapper", ->
         expect(event.newRange).toEqual([[7, 0], [10, 20]])
 
     describe "when buffer lines are removed", ->
+      it "removes screen lines and emits a change event", ->
+        buffer.change(new Range([3, 21], [7, 5]), ';')
+        expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '    var pivot = items;'
+        expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '    return '
+        expect(tokensText(wrapper.tokensForScreenRow(5))).toBe 'sort(left).concat(pivot).concat(sort(right));'
+        expect(tokensText(wrapper.tokensForScreenRow(6))).toBe '  };'
+
+        expect(changeHandler).toHaveBeenCalled()
+        [event] = changeHandler.argsForCall[0]
+        expect(event.oldRange).toEqual([[3, 0], [11, 45]])
+        expect(event.newRange).toEqual([[3, 0], [5, 45]])
 
   describe ".screenPositionFromBufferPosition(point, allowEOL=false)", ->
     it "translates the given buffer position to a screen position, accounting for wrapped lines", ->
