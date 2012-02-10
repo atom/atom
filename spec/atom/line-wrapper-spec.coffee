@@ -17,6 +17,10 @@ fdescribe "LineWrapper", ->
       expect(tokensText wrapper.tokensForScreenRow(4)).toEqual('right = [];')
       expect(tokensText wrapper.tokensForScreenRow(5)).toEqual('    while(items.length > 0) {')
 
+  describe ".screenLineCount()", ->
+    it "returns the total number of screen lines", ->
+      expect(wrapper.screenLineCount()).toBe 16
+
   describe "when the buffer changes", ->
     changeHandler = null
     longText = '0123456789ABCDEF'
@@ -132,7 +136,7 @@ fdescribe "LineWrapper", ->
     beforeEach ->
       wrapper.setMaxLength(10)
 
-    describe "when the line is shorter than max length", ->
+    describe "when the buffer line is shorter than max length", ->
       it "does not split the line", ->
         screenLines = wrapper.splitTokens(makeTokens ['abc', 'def'])
         expect(screenLines).toEqual [makeTokens ['abc', 'def']]
@@ -141,6 +145,10 @@ fdescribe "LineWrapper", ->
         expect(line1.startColumn).toBe 0
         expect(line1.endColumn).toBe 6
         expect(line1.textLength).toBe 6
+
+    describe "when the buffer line is empty", ->
+      it "returns a single empty screen line", ->
+        expect(wrapper.splitTokens([])).toEqual [[]]
 
     describe "when there is a non-whitespace character at the max-length boundary", ->
       describe "when there is whitespace before the max-length boundary", ->

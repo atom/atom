@@ -8,21 +8,29 @@ class LineWrapper
   constructor: (@maxLength, @highlighter) ->
     @buffer = @highlighter.buffer
     @buildWrappedLines()
-    @highlighter.on 'change', (e) =>
-      oldRange = new Range
+    @highlighter.on 'change', (e) => @handleChange(e)
 
-      bufferRow = e.oldRange.start.row
-      oldRange.start.row = @firstScreenRowForBufferRow(e.oldRange.start.row)
-      oldRange.end.row = @lastScreenRowForBufferRow(e.oldRange.end.row)
-      oldRange.end.column = _.last(@wrappedLines[e.oldRange.end.row].screenLines).textLength
+  setMaxLength: (@maxLength) ->
+    @buildWrappedLines()
 
-      @wrappedLines[e.oldRange.start.row..e.oldRange.end.row] = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
+  buildWrappedLines: ->
+    @wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
 
-      newRange = oldRange.copy()
-      newRange.end.row = @lastScreenRowForBufferRow(e.newRange.end.row)
-      newRange.end.column = _.last(@wrappedLines[e.newRange.end.row].screenLines).textLength
+  handleChange: (e) ->
+    oldRange = new Range
 
-      @trigger 'change', { oldRange, newRange }
+    bufferRow = e.oldRange.start.row
+    oldRange.start.row = @firstScreenRowForBufferRow(e.oldRange.start.row)
+    oldRange.end.row = @lastScreenRowForBufferRow(e.oldRange.end.row)
+    oldRange.end.column = _.last(@wrappedLines[e.oldRange.end.row].screenLines).textLength
+
+    @wrappedLines[e.oldRange.start.row..e.oldRange.end.row] = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
+
+    newRange = oldRange.copy()
+    newRange.end.row = @lastScreenRowForBufferRow(e.newRange.end.row)
+    newRange.end.column = _.last(@wrappedLines[e.newRange.end.row].screenLines).textLength
+
+    @trigger 'change', { oldRange, newRange }
 
   firstScreenRowForBufferRow: (bufferRow) ->
     @screenPositionFromBufferPosition([bufferRow, 0]).row
@@ -30,12 +38,6 @@ class LineWrapper
   lastScreenRowForBufferRow: (bufferRow) ->
     startRow = @screenPositionFromBufferPosition([bufferRow, 0]).row
     startRow + (@wrappedLines[bufferRow].screenLines.length - 1)
-
-  setMaxLength: (@maxLength) ->
-    @buildWrappedLines()
-
-  buildWrappedLines: ->
-    @wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
 
   buildWrappedLinesForBufferRows: (start, end) ->
     for row in [start..end]
@@ -45,8 +47,6 @@ class LineWrapper
     { screenLines: @splitTokens(@highlighter.tokensForRow(bufferRow)) }
 
   splitTokens: (tokens, startColumn = 0) ->
-    return [] unless tokens.length
-
     splitColumn = @findSplitColumn(tokens)
     screenLine = []
     textLength = 0
@@ -63,7 +63,11 @@ class LineWrapper
 
     endColumn = startColumn + textLength
     _.extend(screenLine, { textLength, startColumn, endColumn })
-    [screenLine].concat @splitTokens(tokens, endColumn)
+
+    if tokens.length
+      [screenLine].concat @splitTokens(tokens, endColumn)
+    else
+      [screenLine]
 
   findSplitColumn: (tokens) ->
     lineText = _.pluck(tokens, 'value').join('')
@@ -136,5 +140,11 @@ class LineWrapper
       for screenLine in wrappedLine.screenLines
         return screenLine if currentScreenRow == screenRow
         currentScreenRow++
+
+  screenLineCount: ->
+    count = 0
+    for wrappedLine, i in @wrappedLines
+      count += wrappedLine.screenLines.length
+    count
 
 _.extend(LineWrapper.prototype, EventEmitter)
