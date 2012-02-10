@@ -1,4 +1,5 @@
 _ = require 'underscore'
+EventEmitter = require 'event-emitter'
 
 module.exports =
 class Highlighter
@@ -57,12 +58,6 @@ class Highlighter
     @tokenizer.getLineTokens(@buffer.getLine(row), state)
 
   tokensForRow: (row) ->
-    @lines[row].tokens
+    _.clone(@lines[row].tokens)
 
-  on: (eventName, handler) ->
-    @eventHandlers ?= {}
-    @eventHandlers[eventName] ?= []
-    @eventHandlers[eventName].push(handler)
-
-  trigger: (eventName, event) ->
-    @eventHandlers?[eventName]?.forEach (handler) -> handler(event)
+_.extend(Highlighter.prototype, EventEmitter)

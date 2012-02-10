@@ -50,6 +50,50 @@ describe "Editor", ->
         buffer.insert([1,0], "/*")
         expect(editor.lines.find('.line:eq(2) span:eq(0)')).toMatchSelector '.comment'
 
+    describe "when soft-wrap is enabled", ->
+      beforeEach ->
+        editor.attachToDom()
+        editor.width(editor.charWidth * 50)
+        editor.setSoftWrap(true)
+
+      it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
+        expect(editor.lines.find('.line').length).toBe 16
+        expect(editor.lines.find('pre:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
+        expect(editor.lines.find('pre:eq(4)').text()).toBe "right = [];"
+
+        editor.cursor.setPosition([3, 51])
+        expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(4)').position())
+
+        editor.cursor.setPosition([4, 0])
+        expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(5)').position())
+
+        editor.selection.setRange(new Range([6, 30], [6, 55]))
+        [region1, region2] = editor.selection.regions
+        expect(region1.position().top).toBe(editor.lines.find('.line:eq(7)').position().top)
+        expect(region2.position().top).toBe(editor.lines.find('.line:eq(8)').position().top)
+
+      # Many more tests for change events in the LineWrapper spec
+      it "handles changes to wrapped lines correctly", ->
+        buffer.insert([6, 28], '1234567')
+        expect(editor.lines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
+        expect(editor.lines.find('.line:eq(8)').text()).toBe ': right.push(current);'
+        expect(editor.lines.find('.line:eq(9)').text()).toBe '    }'
+
+      it "changes the max line length when the window size changes", ->
+        editor.width(editor.charWidth * 40)
+        $(window).trigger 'resize'
+        expect(editor.lines.find('.line').length).toBe 19
+        expect(editor.lines.find('pre:eq(4)').text()).toBe "left = [], right = [];"
+        expect(editor.lines.find('pre:eq(5)').text()).toBe "    while(items.length > 0) {"
+
+      it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
+        editor.toggleSoftWrap()
+        expect(editor.lines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
+        spyOn(editor, 'setMaxLineLength')
+        $(window).trigger 'resize'
+        expect(editor.setMaxLineLength).not.toHaveBeenCalled()
+
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->
       beforeEach ->
@@ -269,57 +313,67 @@ describe "Editor", ->
 
             expect(editor.getCursorPosition()).toEqual(lastPosition)
 
-
     describe "when a mousedown event occurs in the editor", ->
       beforeEach ->
         editor.attachToDom()
         editor.css(position: 'absolute', top: 10, left: 10)
 
-      describe "when it is a single click", ->
-        it "re-positions the cursor to the clicked row / column", ->
-          editor.attachToDom()
-          editor.css(position: 'absolute', top: 10, left: 10)
+      describe "when soft-wrap is enabled", ->
+        beforeEach ->
+          editor.width(editor.charWidth * 50)
+          editor.setSoftWrap(true)
 
-          expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+        describe "when it is a single click", ->
+          it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
+            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
 
-          [pageX, pageY] = window.pixelPositionForPoint(editor, [3, 10])
-          editor.lines.trigger mousedownEvent({pageX, pageY})
-          expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
+            [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
+            editor.lines.trigger mousedownEvent({pageX, pageY})
+            expect(editor.getCursorPosition()).toEqual(row: 3, column: 58)
 
-      describe "when it is a double click", ->
-        it "selects the word under the cursor", ->
-          expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
-          [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
-          $(document).trigger 'mouseup'
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
-          expect(editor.getSelectedText()).toBe "quicksort"
+      describe "when soft-wrap is disabled", ->
+        describe "when it is a single click", ->
+          it "re-positions the cursor to the clicked row / column", ->
+            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
 
-      describe "when it is clicked more then twice (tripple, quadruple, etc...)", ->
-        it "selects the line under the cursor", ->
-          expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+            [pageX, pageY] = window.pixelPositionForPoint(editor, [3, 10])
+            editor.lines.trigger mousedownEvent({pageX, pageY})
+            expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
 
-          # Triple click
-          [pageX, pageY] = window.pixelPositionForPoint(editor, [1, 8])
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
-          $(document).trigger 'mouseup'
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
-          $(document).trigger 'mouseup'
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
-          expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
-          $(document).trigger 'mouseup'
+        describe "when it is a double click", ->
+          it "selects the word under the cursor", ->
+            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+            [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            $(document).trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            expect(editor.getSelectedText()).toBe "quicksort"
 
-          # Quad click
-          [pageX, pageY] = window.pixelPositionForPoint(editor, [2, 3])
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
-          $(document).trigger 'mouseup'
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
-          $(document).trigger 'mouseup'
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
-          $(document).trigger 'mouseup'
-          editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 4}})
-          expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
-          $(document).trigger 'mouseup'
+        describe "when it is clicked more then twice (tripple, quadruple, etc...)", ->
+          it "selects the line under the cursor", ->
+            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+
+            # Triple click
+            [pageX, pageY] = window.pixelPositionForPoint(editor, [1, 8])
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            $(document).trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            $(document).trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
+            $(document).trigger 'mouseup'
+
+            # Quad click
+            [pageX, pageY] = window.pixelPositionForPoint(editor, [2, 3])
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            $(document).trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            $(document).trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            $(document).trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 4}})
+            expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
+            $(document).trigger 'mouseup'
 
   describe "selection", ->
     selection = null
@@ -628,7 +682,7 @@ describe "Editor", ->
       editor.attachToDom()
       expect(editor).toMatchSelector ":has(:focus)"
 
-  describe "when the editor is focused", ->
+  describe "when the editor recieves focused", ->
     it "focuses the hidden input", ->
       editor.attachToDom()
       editor.focus()

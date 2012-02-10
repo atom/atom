@@ -27,7 +27,7 @@ class Selection extends View
   updateAppearance: ->
     @clearRegions()
 
-    range = @getRange()
+    range = @getScreenRange()
     return if range.isEmpty()
 
     rowSpan = range.end.row - range.start.row
@@ -69,6 +69,9 @@ class Selection extends View
     @cursor.setPosition(range.start)
     @modifySelection =>
       @cursor.setPosition(range.end)
+
+  getScreenRange: ->
+    @editor.lineWrapper.screenRangeFromBufferRange(@getRange())
 
   getText: ->
     @editor.buffer.getTextInRange @getRange()

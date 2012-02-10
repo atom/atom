@@ -4,6 +4,7 @@ Point = require 'point'
 Cursor = require 'cursor'
 Selection = require 'selection'
 Highlighter = require 'highlighter'
+LineWrapper = require 'line-wrapper'
 UndoManager = require 'undo-manager'
 Range = require 'range'
 
@@ -19,12 +20,15 @@ class Editor extends View
 
   vScrollMargin: 2
   hScrollMargin: 10
-  cursor: null
-  buffer: null
-  undoManager: null
-  selection: null
+  softWrap: false
   lineHeight: null
   charWidth: null
+  cursor: null
+  selection: null
+  buffer: null
+  highlighter: null
+  lineWrapper: null
+  undoManager: null
 
   initialize: () ->
     requireStylesheet 'editor.css'
@@ -52,6 +56,7 @@ class Editor extends View
       'meta-v': 'paste'
       'meta-z': 'undo'
       'meta-Z': 'redo'
+      'alt-meta-w': 'toggle-soft-wrap'
 
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
@@ -69,6 +74,7 @@ class Editor extends View
     @on 'paste', => @paste()
     @on 'undo', => @undo()
     @on 'redo', => @redo()
+    @on 'toggle-soft-wrap', => @toggleSoftWrap()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -110,9 +116,8 @@ class Editor extends View
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', => @off 'mousemove', moveHandler
 
-
-  buildLineElement: (row) ->
-    tokens = @highlighter.tokensForRow(row)
+  buildLineElement: (screenRow) ->
+    tokens = @lineWrapper.tokensForScreenRow(screenRow)
     $$ ->
       @pre class: 'line', =>
         if tokens.length
@@ -121,23 +126,23 @@ class Editor extends View
         else
           @raw '&nbsp;'
 
+  renderLines: ->
+    @lines.empty()
+    for screenRow in [0...@lineWrapper.screenLineCount()]
+      @lines.append @buildLineElement(screenRow)
+
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
+    @lineWrapper = new LineWrapper(Infinity, @highlighter)
     @undoManager = new UndoManager(@buffer)
-
-    @lines.empty()
-    for row in [0..@buffer.lastRow()]
-      line = @buildLineElement(row)
-      @lines.append line
-
+    @renderLines()
     @setCursorPosition(row: 0, column: 0)
 
     @buffer.on 'change', (e) =>
       @cursor.bufferChanged(e)
 
-    @highlighter.on 'change', (e) =>
+    @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e
-
       if newRange.end.row > oldRange.end.row
         # update, then insert elements
         for row in [oldRange.start.row..newRange.end.row]
@@ -157,13 +162,38 @@ class Editor extends View
     @getLineElement(row).replaceWith(@buildLineElement(row))
 
   insertLineElement: (row) ->
-    @getLineElement(row).before(@buildLineElement(row))
+    newLineElement = @buildLineElement(row)
+    insertBefore = @getLineElement(row)
+    if insertBefore.length
+      insertBefore.before(newLineElement)
+    else
+      @lines.append(newLineElement)
 
   removeLineElement: (row) ->
     @getLineElement(row).remove()
 
   getLineElement: (row) ->
     @lines.find("pre.line:eq(#{row})")
+
+  toggleSoftWrap: ->
+    @setSoftWrap(not @softWrap)
+
+  setMaxLineLength: ->
+    maxLength =
+      if @softWrap
+        Math.floor(@width() / @charWidth)
+      else
+        Infinity
+
+    @lineWrapper.setMaxLength(maxLength)
+
+  setSoftWrap: (@softWrap) ->
+    @setMaxLineLength()
+    if @softWrap
+      @_setMaxLineLength = => @setMaxLineLength()
+      $(window).on 'resize', @_setMaxLineLength
+    else
+      $(window).off 'resize', @_setMaxLineLength
 
   clipPosition: ({row, column}) ->
     if row > @buffer.lastRow()
@@ -175,11 +205,13 @@ class Editor extends View
 
     new Point(row, column)
 
-  pixelPositionFromPoint: ({row, column}) ->
+  pixelPositionFromPoint: (position) ->
+    { row, column } = @lineWrapper.screenPositionFromBufferPosition(position)
     { top: row * @lineHeight, left: column * @charWidth }
 
   pointFromPixelPosition: ({top, left}) ->
-    { row: Math.floor(top / @lineHeight), column: Math.floor(left / @charWidth) }
+    screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
+    @lineWrapper.bufferPositionFromScreenPosition screenPosition
 
   pointFromMouseEvent: (e) ->
     { pageX, pageY } = e
