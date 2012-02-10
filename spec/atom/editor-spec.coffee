@@ -79,6 +79,9 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(8)').text()).toBe ': right.push(current);'
         expect(editor.lines.find('.line:eq(9)').text()).toBe '    }'
 
+      it "unwraps lines when softwrap is disabled", ->
+        editor.toggleSoftWrap()
+        expect(editor.lines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
 
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->

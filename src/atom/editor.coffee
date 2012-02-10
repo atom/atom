@@ -56,6 +56,7 @@ class Editor extends View
       'meta-v': 'paste'
       'meta-z': 'undo'
       'meta-Z': 'redo'
+      'alt-meta-w': 'toggle-soft-wrap'
 
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
@@ -73,6 +74,7 @@ class Editor extends View
     @on 'paste', => @paste()
     @on 'undo', => @undo()
     @on 'redo', => @redo()
+    @on 'toggle-soft-wrap', => @toggleSoftWrap()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -141,7 +143,6 @@ class Editor extends View
 
     @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e
-
       if newRange.end.row > oldRange.end.row
         # update, then insert elements
         for row in [oldRange.start.row..newRange.end.row]
@@ -161,7 +162,12 @@ class Editor extends View
     @getLineElement(row).replaceWith(@buildLineElement(row))
 
   insertLineElement: (row) ->
-    @getLineElement(row).before(@buildLineElement(row))
+    newLineElement = @buildLineElement(row)
+    insertBefore = @getLineElement(row)
+    if insertBefore.length
+      insertBefore.before(newLineElement)
+    else
+      @lines.append(newLineElement)
 
   removeLineElement: (row) ->
     @getLineElement(row).remove()
@@ -169,15 +175,17 @@ class Editor extends View
   getLineElement: (row) ->
     @lines.find("pre.line:eq(#{row})")
 
+  toggleSoftWrap: ->
+    @setSoftWrap(not @softWrap)
+
   setSoftWrap: (@softWrap) ->
     maxLength =
       if @softWrap
         Math.floor(@width() / @charWidth)
       else
-        infinity
+        Infinity
 
     @lineWrapper.setMaxLength(maxLength)
-    @renderLines()
 
   clipPosition: ({row, column}) ->
     if row > @buffer.lastRow()
