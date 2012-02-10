@@ -235,6 +235,23 @@ describe "VimMode", ->
           editor.trigger keydownEvent('w')
           expect(editor.getCursorPosition()).toEqual([3,2])
 
+      describe "the { keybinding", ->
+        fit "moves the cursor to the beginning of the paragraph", ->
+          editor.buffer.setText("abcde\n\nfghij\nhijk\n  xyz  \n\nzip\n\n  \nthe end")
+          editor.setCursorPosition([0,0])
+
+          editor.trigger keydownEvent('}')
+          expect(editor.getCursorPosition()).toEqual [1,0]
+
+          editor.trigger keydownEvent('}')
+          expect(editor.getCursorPosition()).toEqual [5,0]
+
+          editor.trigger keydownEvent('}')
+          expect(editor.getCursorPosition()).toEqual [7,0]
+
+          editor.trigger keydownEvent('}')
+          expect(editor.getCursorPosition()).toEqual [9,6]
+
       describe "the b keybinding", ->
         it "moves the cursor to the beginning of the previous word", ->
           editor.buffer.setText(" ab cde1+- \n xyz\n\nzip }\n last")

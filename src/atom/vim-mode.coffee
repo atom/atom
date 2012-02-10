@@ -29,18 +29,19 @@ class VimMode
         return false
 
     @bindCommandModeKeys
-      i: 'insert'
-      d: 'delete'
-      x: 'delete-right'
-      h: 'move-left'
-      j: 'move-down'
-      k: 'move-up'
-      l: 'move-right'
-      w: 'move-to-next-word'
-      b: 'move-to-previous-word'
-      esc: 'reset-command-mode'
-      left: 'move-left'
-      right: 'move-right'
+      'i': 'insert'
+      'd': 'delete'
+      'x': 'delete-right'
+      'h': 'move-left'
+      'j': 'move-down'
+      'k': 'move-up'
+      'l': 'move-right'
+      'w': 'move-to-next-word'
+      'b': 'move-to-previous-word'
+      '}': 'move-to-next-paragraph'
+      'esc': 'reset-command-mode'
+      'left': 'move-left'
+      'right': 'move-right'
 
     @handleCommands
       'insert': => @activateInsertMode()
@@ -52,6 +53,7 @@ class VimMode
       'move-right': => new motions.MoveRight @editor
       'move-to-next-word': => new motions.MoveToNextWord(@editor)
       'move-to-previous-word': => new motions.MoveToPreviousWord(@editor)
+      'move-to-next-paragraph': => new motions.MoveToNextParagraph(@editor)
       'numeric-prefix': (e) => @numericPrefix(e)
       'reset-command-mode': => @resetCommandMode()
 

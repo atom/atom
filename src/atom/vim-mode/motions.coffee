@@ -1,3 +1,4 @@
+Point = require 'point'
 getWordRegex = -> /(\w+)|([^\w\s]+)/g
 
 class Motion
@@ -61,4 +62,28 @@ class MoveToNextWord extends Motion
       column = nextLineMatch?.index or 0
     { row, column }
 
-module.exports = { Motion, MoveLeft, MoveRight, MoveUp, MoveDown, MoveToNextWord, MoveToPreviousWord }
+class MoveToNextParagraph extends Motion
+  execute: ->
+    @editor.setCursorPosition(@nextPosition())
+
+  select: ->
+    @editor.selectToPosition(@nextPosition())
+
+  nextPosition: ->
+    regex = /[^\n]\n^$/gm
+    row = null
+    column = 0
+
+    startRow = @editor.getCursorRow() + 1
+    for r in [startRow..@editor.buffer.lastRow()]
+      if @editor.buffer.getLine(r).length == 0
+        row = r
+        break
+
+    if not row
+      row = @editor.buffer.lastRow()
+      column = @editor.buffer.lastLine().length - 1
+
+    new Point(row, column)
+
+module.exports = { Motion, MoveLeft, MoveRight, MoveUp, MoveDown, MoveToNextWord, MoveToPreviousWord, MoveToNextParagraph }
