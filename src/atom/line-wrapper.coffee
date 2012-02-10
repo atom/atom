@@ -9,18 +9,26 @@ class LineWrapper
     @buffer = @highlighter.buffer
     @buildWrappedLines()
     @highlighter.on 'change', (e) =>
-      oldRange = @screenRangeFromBufferRange(e.oldRange)
-      oldCount = @wrappedLines[e.oldRange.start.row].screenLines.length
+      oldRange = new Range
+
+      bufferRow = e.oldRange.start.row
+      oldRange.start.row = @firstScreenRowForBufferRow(bufferRow)
+      oldRange.end.row = @lastScreenRowForBufferRow(bufferRow)
+      oldRange.end.column = _.last(@wrappedLines[bufferRow].screenLines).textLength
+
       @wrappedLines[e.oldRange.start.row] = @buildWrappedLineForBufferRow(e.newRange.start.row)
-      newCount = @wrappedLines[e.oldRange.start.row].screenLines.length
 
-      newRange = @screenRangeFromBufferRange(e.newRange)
-
-      if newCount > oldCount
-        newRange.end.row = newRange.start.row + (newCount - 1)
-        newRange.end.column = @tokensForScreenRow(newRange.end.row).textLength
+      newRange = oldRange.copy()
+      newRange.end.row = @lastScreenRowForBufferRow(bufferRow)
+      newRange.end.column = _.last(@wrappedLines[bufferRow].screenLines).textLength
 
       @trigger 'change', { oldRange, newRange }
+
+  firstScreenRowForBufferRow: (bufferRow) ->
+    @screenPositionFromBufferPosition([bufferRow, 0]).row
+
+  lastScreenRowForBufferRow: (bufferRow) ->
+    @screenPositionFromBufferPosition([bufferRow, @buffer.getLine(bufferRow).length]).row
 
   setMaxLength: (@maxLength) ->
     @buildWrappedLines()

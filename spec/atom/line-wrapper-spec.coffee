@@ -39,6 +39,47 @@ describe "LineWrapper", ->
       changeHandler = jasmine.createSpy('changeHandler')
       wrapper.on 'change', changeHandler
 
+    fdescribe "when a single buffer line is updated", ->
+      describe "when the number of screen lines remains the same for the changed buffer line", ->
+        it "re-wraps the existing lines and emits a change event for all its screen lines", ->
+          buffer.insert([6, 28], '1234567')
+          expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot ? left1234567.push(current) '
+          expect(tokensText(wrapper.tokensForScreenRow(8))).toBe ': right.push(current);'
+          expect(tokensText(wrapper.tokensForScreenRow(9))).toBe '    }'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual([[7, 0], [8, 20]])
+          expect(event.newRange).toEqual([[7, 0], [8, 22]])
+
+      describe "when the number of screen lines increases for the changed buffer line", ->
+        it "re-wraps and adds an additional screen line and emits a change event for all screen lines", ->
+          buffer.insert([6, 28], '1234567890')
+          expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot ? '
+          expect(tokensText(wrapper.tokensForScreenRow(8))).toBe 'left1234567890.push(current) : '
+          expect(tokensText(wrapper.tokensForScreenRow(9))).toBe 'right.push(current);'
+          expect(tokensText(wrapper.tokensForScreenRow(10))).toBe '    }'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual([[7, 0], [8, 20]])
+          expect(event.newRange).toEqual([[7, 0], [9, 20]])
+
+      describe "when the number of screen lines decreases for the changed buffer line", ->
+        it "re-wraps and removes a screen line and emits a change event for all screen lines", ->
+          buffer.change(new Range([6, 24], [6, 42]), '')
+          expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot ?  : right.push(current);'
+          expect(tokensText(wrapper.tokensForScreenRow(8))).toBe '    }'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual([[7, 0], [8, 20]])
+          expect(event.newRange).toEqual([[7, 0], [7, 47]])
+
+    describe "when buffer lines are inserted", ->
+
+    describe "when buffer lines are removed", ->
+
     describe "when an unwrapped line is updated", ->
       describe "when the update does not cause the line to wrap", ->
         it "updates tokens for the corresponding screen line and emits a change event", ->
@@ -88,7 +129,7 @@ describe "LineWrapper", ->
     describe "when a wrapped line is updated", ->
       describe "when the old text spans multiple screen lines", ->
         describe "when the new text spans fewer screen lines than the old text", ->
-          fit "updates tokens for the corresponding screen lines and emits a change event", ->
+          it "updates tokens for the corresponding screen lines and emits a change event", ->
             wrapper.setMaxLength(15)
 
             range = new Range([3, 8], [3, 47])

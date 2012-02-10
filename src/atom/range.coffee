@@ -3,7 +3,7 @@ _ = require 'underscore'
 
 module.exports =
 class Range
-  constructor: (pointA, pointB) ->
+  constructor: (pointA = new Point(0, 0), pointB = new Point(0, 0)) ->
     pointA = Point.fromObject(pointA)
     pointB = Point.fromObject(pointB)
 
