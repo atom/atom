@@ -236,7 +236,7 @@ describe "VimMode", ->
           expect(editor.getCursorPosition()).toEqual([3,2])
 
       describe "the { keybinding", ->
-        fit "moves the cursor to the beginning of the paragraph", ->
+        it "moves the cursor to the beginning of the paragraph", ->
           editor.buffer.setText("abcde\n\nfghij\nhijk\n  xyz  \n\nzip\n\n  \nthe end")
           editor.setCursorPosition([0,0])
 
