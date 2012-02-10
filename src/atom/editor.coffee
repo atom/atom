@@ -178,7 +178,7 @@ class Editor extends View
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
 
-  setSoftWrap: (@softWrap) ->
+  setMaxLineLength: ->
     maxLength =
       if @softWrap
         Math.floor(@width() / @charWidth)
@@ -186,6 +186,14 @@ class Editor extends View
         Infinity
 
     @lineWrapper.setMaxLength(maxLength)
+
+  setSoftWrap: (@softWrap) ->
+    @setMaxLineLength()
+    if @softWrap
+      @_setMaxLineLength = => @setMaxLineLength()
+      $(window).on 'resize', @_setMaxLineLength
+    else
+      $(window).off 'resize', @_setMaxLineLength
 
   clipPosition: ({row, column}) ->
     if row > @buffer.lastRow()

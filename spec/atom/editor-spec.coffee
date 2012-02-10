@@ -79,9 +79,20 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(8)').text()).toBe ': right.push(current);'
         expect(editor.lines.find('.line:eq(9)').text()).toBe '    }'
 
-      it "unwraps lines when softwrap is disabled", ->
+      it "changes the max line length when the window size changes", ->
+        editor.width(editor.charWidth * 40)
+        $(window).trigger 'resize'
+        expect(editor.lines.find('.line').length).toBe 19
+        expect(editor.lines.find('pre:eq(4)').text()).toBe "left = [], right = [];"
+        expect(editor.lines.find('pre:eq(5)').text()).toBe "    while(items.length > 0) {"
+
+      it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
         editor.toggleSoftWrap()
         expect(editor.lines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
+        spyOn(editor, 'setMaxLineLength')
+        $(window).trigger 'resize'
+        expect(editor.setMaxLineLength).not.toHaveBeenCalled()
 
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->
