@@ -56,7 +56,7 @@ describe "Editor", ->
         editor.width(editor.charWidth * 50)
         editor.setSoftWrap(true)
 
-      it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
+      fit "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
         expect(editor.lines.find('.line').length).toBe 16
         expect(editor.lines.find('pre:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
         expect(editor.lines.find('pre:eq(4)').text()).toBe "right = [];"
@@ -66,6 +66,11 @@ describe "Editor", ->
 
         editor.cursor.setPosition([4, 0])
         expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(5)').position())
+
+        editor.selection.setRange(new Range([6, 30], [6, 55]))
+        [region1, region2] = editor.selection.regions
+        expect(region1.position().top).toBe(editor.lines.find('.line:eq(7)').position().top)
+        expect(region2.position().top).toBe(editor.lines.find('.line:eq(8)').position().top)
 
       # Many more tests for change events in the LineWrapper spec
       it "handles changes to wrapped lines correctly", ->
