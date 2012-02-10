@@ -81,7 +81,7 @@ class LineWrapper
     lineLength = lineText.length
     return lineLength unless lineLength > @maxLength
 
-    if /\s/.test(tokensText[@maxLength])
+    if /\s/.test(lineText[@maxLength])
       # search forward for the start of a word past the boundary
       for column in [@maxLength..lineLength]
         return column if /\S/.test(lineText[column])
