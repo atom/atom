@@ -67,6 +67,14 @@ describe "Editor", ->
         editor.cursor.setPosition([4, 0])
         expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(5)').position())
 
+      # Many more tests for change events in the LineWrapper spec
+      it "handles changes to wrapped lines correctly", ->
+        buffer.insert([6, 28], '1234567')
+        expect(editor.lines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
+        expect(editor.lines.find('.line:eq(8)').text()).toBe ': right.push(current);'
+        expect(editor.lines.find('.line:eq(9)').text()).toBe '    }'
+
+
   describe "cursor movement", ->
     describe ".setCursorPosition({row, column})", ->
       beforeEach ->

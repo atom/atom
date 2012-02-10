@@ -139,7 +139,7 @@ class Editor extends View
     @buffer.on 'change', (e) =>
       @cursor.bufferChanged(e)
 
-    @highlighter.on 'change', (e) =>
+    @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e
 
       if newRange.end.row > oldRange.end.row
