@@ -5,11 +5,13 @@ Range = require 'range'
 _ = require 'underscore'
 
 describe "LineWrapper", ->
-  [wrapper, buffer] = []
+  [wrapper, buffer, changeHandler] = []
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     wrapper = new LineWrapper(50, new Highlighter(buffer))
+    changeHandler = jasmine.createSpy('changeHandler')
+    wrapper.on 'change', changeHandler
 
   describe ".tokensForScreenRow(row)", ->
     it "returns tokens for the line fragment corresponding to the given screen row", ->
@@ -22,15 +24,6 @@ describe "LineWrapper", ->
       expect(wrapper.screenLineCount()).toBe 16
 
   describe "when the buffer changes", ->
-    changeHandler = null
-    longText = '0123456789ABCDEF'
-    text10 = '0123456789'
-    text60 = '0123456789 123456789 123456789 123456789 123456789 123456789'
-
-    beforeEach ->
-      changeHandler = jasmine.createSpy('changeHandler')
-      wrapper.on 'change', changeHandler
-
     describe "when a buffer line is updated", ->
       describe "when the number of screen lines remains the same for the changed buffer line", ->
         it "re-wraps the existing lines and emits a change event for all its screen lines", ->
@@ -93,6 +86,18 @@ describe "LineWrapper", ->
         [event] = changeHandler.argsForCall[0]
         expect(event.oldRange).toEqual([[3, 0], [11, 45]])
         expect(event.newRange).toEqual([[3, 0], [5, 45]])
+
+  describe ".setMaxLength(length)", ->
+    it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
+      wrapper.setMaxLength(40)
+      expect(tokensText wrapper.tokensForScreenRow(4)).toBe 'left = [], right = [];'
+      expect(tokensText wrapper.tokensForScreenRow(5)).toBe '    while(items.length > 0) {'
+      expect(tokensText wrapper.tokensForScreenRow(12)).toBe 'sort(left).concat(pivot).concat(sort(rig'
+
+      expect(changeHandler).toHaveBeenCalled()
+      [event] = changeHandler.argsForCall[0]
+      expect(event.oldRange).toEqual([[0, 0], [15, 2]])
+      expect(event.newRange).toEqual([[0, 0], [18, 2]])
 
   describe ".screenPositionFromBufferPosition(point, allowEOL=false)", ->
     it "translates the given buffer position to a screen position, accounting for wrapped lines", ->
