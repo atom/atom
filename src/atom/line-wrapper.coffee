@@ -16,11 +16,11 @@ class LineWrapper
       oldRange.end.row = @lastScreenRowForBufferRow(bufferRow)
       oldRange.end.column = _.last(@wrappedLines[bufferRow].screenLines).textLength
 
-      @wrappedLines[e.oldRange.start.row] = @buildWrappedLineForBufferRow(e.newRange.start.row)
+      @wrappedLines[e.oldRange.start.row..e.oldRange.end.row] = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
 
       newRange = oldRange.copy()
-      newRange.end.row = @lastScreenRowForBufferRow(bufferRow)
-      newRange.end.column = _.last(@wrappedLines[bufferRow].screenLines).textLength
+      newRange.end.row = @lastScreenRowForBufferRow(e.newRange.end.row)
+      newRange.end.column = _.last(@wrappedLines[e.newRange.end.row].screenLines).textLength
 
       @trigger 'change', { oldRange, newRange }
 

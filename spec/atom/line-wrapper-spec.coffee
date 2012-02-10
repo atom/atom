@@ -39,7 +39,7 @@ describe "LineWrapper", ->
       changeHandler = jasmine.createSpy('changeHandler')
       wrapper.on 'change', changeHandler
 
-    fdescribe "when a single buffer line is updated", ->
+    describe "when a single buffer line is updated", ->
       describe "when the number of screen lines remains the same for the changed buffer line", ->
         it "re-wraps the existing lines and emits a change event for all its screen lines", ->
           buffer.insert([6, 28], '1234567')
@@ -76,7 +76,18 @@ describe "LineWrapper", ->
           expect(event.oldRange).toEqual([[7, 0], [8, 20]])
           expect(event.newRange).toEqual([[7, 0], [7, 47]])
 
-    describe "when buffer lines are inserted", ->
+    describe "when buffer lines are updated and inserted", ->
+      fit "re-wraps existing and new screen lines and emits a change event", ->
+        buffer.insert([6, 21], '1234567890 abcdefghij 1234567890\nabcdefghij')
+        expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot1234567890 abcdefghij '
+        expect(tokensText(wrapper.tokensForScreenRow(8))).toBe '1234567890'
+        expect(tokensText(wrapper.tokensForScreenRow(9))).toBe 'abcdefghij ? left.push(current) : '
+        expect(tokensText(wrapper.tokensForScreenRow(10))).toBe 'right.push(current);'
+
+        expect(changeHandler).toHaveBeenCalled()
+        [event] = changeHandler.argsForCall[0]
+        expect(event.oldRange).toEqual([[7, 0], [8, 20]])
+        expect(event.newRange).toEqual([[7, 0], [10, 20]])
 
     describe "when buffer lines are removed", ->
 
