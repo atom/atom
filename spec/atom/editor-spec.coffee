@@ -57,6 +57,7 @@ describe "Editor", ->
         editor.setSoftWrap(true)
 
       it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
+        expect(editor.lines.find('.line').length).toBe 16
         expect(editor.lines.find('pre:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
         expect(editor.lines.find('pre:eq(4)').text()).toBe "right = [];"
 

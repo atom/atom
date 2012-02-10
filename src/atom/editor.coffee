@@ -114,22 +114,20 @@ class Editor extends View
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', => @off 'mousemove', moveHandler
 
-  buildLineElement: (row) ->
-    segments = @lineWrapper.segmentsForRow(row)
+  buildLineElement: (screenRow) ->
+    tokens = @lineWrapper.tokensForScreenRow(screenRow)
     $$ ->
-      for segment in segments
-        @pre class: 'line', =>
-          if segment.length
-            for token in segment
-              @span { class: token.type.replace('.', ' ') }, token.value
-          else
-            @raw '&nbsp;'
+      @pre class: 'line', =>
+        if tokens.length
+          for token in tokens
+            @span { class: token.type.replace('.', ' ') }, token.value
+        else
+          @raw '&nbsp;'
 
   renderLines: ->
     @lines.empty()
-    for row in [0..@buffer.lastRow()]
-      line = @buildLineElement(row)
-      @lines.append line
+    for screenRow in [0...@lineWrapper.screenLineCount()]
+      @lines.append @buildLineElement(screenRow)
 
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
@@ -192,7 +190,7 @@ class Editor extends View
     new Point(row, column)
 
   pixelPositionFromPoint: (position) ->
-    { row, column } = @lineWrapper.displayPositionFromBufferPosition(position)
+    { row, column } = @lineWrapper.screenPositionFromBufferPosition(position)
     { top: row * @lineHeight, left: column * @charWidth }
 
   pointFromPixelPosition: ({top, left}) ->

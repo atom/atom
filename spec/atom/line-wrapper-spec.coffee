@@ -4,7 +4,7 @@ Highlighter = require 'highlighter'
 Range = require 'range'
 _ = require 'underscore'
 
-fdescribe "LineWrapper", ->
+describe "LineWrapper", ->
   [wrapper, buffer] = []
 
   beforeEach ->
