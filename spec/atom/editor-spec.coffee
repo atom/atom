@@ -52,9 +52,13 @@ describe "Editor", ->
 
     describe "when soft-wrap is enabled", ->
       beforeEach ->
-        editor.attachToDom()
-        editor.width(editor.charWidth * 50)
+        editor.width(9 * 50)
         editor.setSoftWrap(true)
+        editor.attachToDom()
+        # this verifies the assumption made above in setting the editor's width
+        # charWidth isn't be calculated until it's the editor is on the DOM, but
+        # we need to ensure that the maxLineLength is recalculated when we attach.
+        expect(editor.charWidth).toBe 9
 
       it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
         expect(editor.lines.find('.line').length).toBe 16

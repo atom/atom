@@ -109,6 +109,7 @@ class Editor extends View
     @one 'attach', =>
       @calculateDimensions()
       @hiddenInput.width(@charWidth)
+      @setMaxLineLength() if @softWrap
       @focus()
 
   selectTextOnMouseMovement: ->
@@ -185,7 +186,7 @@ class Editor extends View
       else
         Infinity
 
-    @lineWrapper.setMaxLength(maxLength)
+    @lineWrapper.setMaxLength(maxLength) if maxLength
 
   setSoftWrap: (@softWrap) ->
     @setMaxLineLength()
