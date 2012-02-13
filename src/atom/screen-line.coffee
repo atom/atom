@@ -2,7 +2,11 @@ _ = require 'underscore'
 
 module.exports =
 class ScreenLine
-  constructor: (@tokens, @text) ->
+  tokens: null
+  text: null
+  state: null
+
+  constructor: (@tokens, @text, @state) ->
 
   splitAt: (column) ->
     return [this] if column == 0 or column >= @text.length

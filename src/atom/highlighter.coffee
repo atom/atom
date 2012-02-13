@@ -6,11 +6,11 @@ module.exports =
 class Highlighter
   buffer: null
   tokenizer: null
-  lines: []
+  screenLines: []
 
   constructor: (@buffer) ->
     @buildTokenizer()
-    @lines = @tokenizeRows('start', 0, @buffer.lastRow())
+    @screenLines = @buildScreenLinesForRows('start', 0, @buffer.lastRow())
     @buffer.on 'change', (e) => @handleBufferChange(e)
 
   buildTokenizer: ->
@@ -20,11 +20,11 @@ class Highlighter
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
     newRange = e.newRange.copy()
-    previousState = @lines[oldRange.end.row].state # used in spill detection below
+    previousState = @screenLines[oldRange.end.row].state # used in spill detection below
 
-    startState = @lines[newRange.start.row - 1]?.state or 'start'
-    @lines[oldRange.start.row..oldRange.end.row] =
-      @tokenizeRows(startState, newRange.start.row, newRange.end.row)
+    startState = @screenLines[newRange.start.row - 1]?.state or 'start'
+    @screenLines[oldRange.start.row..oldRange.end.row] =
+      @buildScreenLinesForRows(startState, newRange.start.row, newRange.end.row)
 
     # spill detection
     # compare scanner state of last re-highlighted line with its previous state.
@@ -32,10 +32,10 @@ class Highlighter
     # each line until the line's new state matches the previous state. this covers
     # cases like inserting a /* needing to comment out lines below until we see a */
     for row in [newRange.end.row...@buffer.lastRow()]
-      break if @lines[row].state == previousState
+      break if @screenLines[row].state == previousState
       nextRow = row + 1
-      previousState = @lines[nextRow].state
-      @lines[nextRow] = @tokenizeRow(@lines[row].state, nextRow)
+      previousState = @screenLines[nextRow].state
+      @screenLines[nextRow] = @buildScreenLineForRow(@screenLines[row].state, nextRow)
 
     # if highlighting spilled beyond the bounds of the textual change, update
     # the pre and post range to reflect area of highlight changes
@@ -48,20 +48,19 @@ class Highlighter
 
     @trigger("change", {oldRange, newRange})
 
-  tokenizeRows: (startState, startRow, endRow) ->
+  buildScreenLinesForRows: (startState, startRow, endRow) ->
     state = startState
     for row in [startRow..endRow]
-      line = @tokenizeRow(state, row)
-      state = line.state
-      line
+      screenLine = @buildScreenLineForRow(state, row)
+      state = screenLine.state
+      screenLine
 
-  tokenizeRow: (state, row) ->
-    @tokenizer.getLineTokens(@buffer.getLine(row), state)
+  buildScreenLineForRow: (state, row) ->
+    line = @buffer.getLine(row)
+    {tokens, state} = @tokenizer.getLineTokens(line, state)
+    new ScreenLine(tokens, line, state)
 
   screenLineForRow: (row) ->
-    new ScreenLine(@tokensForRow(row), @buffer.getLine(row))
-
-  tokensForRow: (row) ->
-    _.clone(@lines[row].tokens)
+    @screenLines[row]
 
 _.extend(Highlighter.prototype, EventEmitter)
