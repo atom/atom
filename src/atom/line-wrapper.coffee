@@ -13,11 +13,11 @@ class LineWrapper
   setMaxLength: (@maxLength) ->
     oldRange = new Range
     oldRange.end.row = @screenLineCount() - 1
-    oldRange.end.column = _.last(_.last(@wrappedLines).screenLines).textLength
+    oldRange.end.column = _.last(_.last(@wrappedLines).screenLines).text.length
     @buildWrappedLines()
     newRange = new Range
     newRange.end.row = @screenLineCount() - 1
-    newRange.end.column = _.last(_.last(@wrappedLines).screenLines).textLength
+    newRange.end.column = _.last(_.last(@wrappedLines).screenLines).text.length
     @trigger 'change', { oldRange, newRange }
 
   buildWrappedLines: ->
@@ -29,13 +29,13 @@ class LineWrapper
     bufferRow = e.oldRange.start.row
     oldRange.start.row = @firstScreenRowForBufferRow(e.oldRange.start.row)
     oldRange.end.row = @lastScreenRowForBufferRow(e.oldRange.end.row)
-    oldRange.end.column = _.last(@wrappedLines[e.oldRange.end.row].screenLines).textLength
+    oldRange.end.column = _.last(@wrappedLines[e.oldRange.end.row].screenLines).text.length
 
     @wrappedLines[e.oldRange.start.row..e.oldRange.end.row] = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
 
     newRange = oldRange.copy()
     newRange.end.row = @lastScreenRowForBufferRow(e.newRange.end.row)
-    newRange.end.column = _.last(@wrappedLines[e.newRange.end.row].screenLines).textLength
+    newRange.end.column = _.last(@wrappedLines[e.newRange.end.row].screenLines).text.length
 
     @trigger 'change', { oldRange, newRange }
 
@@ -51,58 +51,30 @@ class LineWrapper
       @buildWrappedLineForBufferRow(row)
 
   buildWrappedLineForBufferRow: (bufferRow) ->
-    { screenLines: @splitTokens(@highlighter.tokensForRow(bufferRow)) }
+    { screenLines: @wrapScreenLine(@highlighter.screenLineForRow(bufferRow)) }
 
-  splitTokens: (tokens, startColumn = 0) ->
-    splitColumn = @findSplitColumn(tokens)
-    screenLine = []
-    textLength = 0
-    while tokens.length
-      nextToken = tokens[0]
-      if textLength + nextToken.value.length > splitColumn
-        tokenFragments = @splitTokenAt(nextToken, splitColumn - textLength)
-        [token1, token2] = tokenFragments
-        tokens[0..0] = _.compact(tokenFragments)
-        break unless token1
-      nextToken = tokens.shift()
-      textLength += nextToken.value.length
-      screenLine.push nextToken
-
-    endColumn = startColumn + textLength
-    _.extend(screenLine, { textLength, startColumn, endColumn })
-
-    if tokens.length
-      [screenLine].concat @splitTokens(tokens, endColumn)
+  wrapScreenLine: (screenLine, startColumn=0) ->
+    [leftHalf, rightHalf] = screenLine.splitAt(@findSplitColumn(screenLine.text))
+    endColumn = startColumn + leftHalf.text.length
+    _.extend(leftHalf, {startColumn, endColumn})
+    if rightHalf
+      [leftHalf].concat @wrapScreenLine(rightHalf, endColumn)
     else
-      [screenLine]
+      [leftHalf]
 
-  findSplitColumn: (tokens) ->
-    lineText = _.pluck(tokens, 'value').join('')
-    lineLength = lineText.length
-    return lineLength unless lineLength > @maxLength
+  findSplitColumn: (line) ->
+    return line.length unless line.length > @maxLength
 
-    if /\s/.test(lineText[@maxLength])
+    if /\s/.test(line[@maxLength])
       # search forward for the start of a word past the boundary
-      for column in [@maxLength..lineLength]
-        return column if /\S/.test(lineText[column])
-      return lineLength
+      for column in [@maxLength..line.length]
+        return column if /\S/.test(line[column])
+      return line.length
     else
       # search backward for the start of the word on the boundary
       for column in [@maxLength..0]
-        return column + 1 if /\s/.test(lineText[column])
+        return column + 1 if /\s/.test(line[column])
       return @maxLength
-
-  splitTokenAt: (token, splitIndex) ->
-    { type, value } = token
-    switch splitIndex
-      when 0
-        [null, token]
-      when value.length
-        [token, null]
-      else
-        value1 = value.substring(0, splitIndex)
-        value2 = value.substring(splitIndex)
-        [{value: value1, type }, {value: value2, type}]
 
   screenRangeFromBufferRange: (bufferRange) ->
     start = @screenPositionFromBufferPosition(bufferRange.start, true)
@@ -125,7 +97,7 @@ class LineWrapper
       else
         break if screenLine.endColumn > bufferPosition.column
 
-      column -= screenLine.textLength
+      column -= screenLine.text.length
       row++
 
     new Point(row, column)
@@ -145,7 +117,7 @@ class LineWrapper
     currentScreenRow = 0
     for wrappedLine in @wrappedLines
       for screenLine in wrappedLine.screenLines
-        return screenLine if currentScreenRow == screenRow
+        return screenLine.tokens if currentScreenRow == screenRow
         currentScreenRow++
 
   screenLineCount: ->

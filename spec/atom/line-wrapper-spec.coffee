@@ -2,6 +2,7 @@ Buffer = require 'buffer'
 LineWrapper = require 'line-wrapper'
 Highlighter = require 'highlighter'
 Range = require 'range'
+ScreenLine = require 'screen-line'
 _ = require 'underscore'
 
 describe "LineWrapper", ->
@@ -134,73 +135,81 @@ describe "LineWrapper", ->
       # following a wrapped line
       expect(wrapper.bufferPositionFromScreenPosition([5, 5])).toEqual([4, 5])
 
-  describe ".splitTokens(tokens)", ->
-    makeTokens = (array) ->
-      array.map (value) -> { value, type: 'foo' }
+  describe ".wrapScreenLine(screenLine)", ->
+    makeTokens = (tokenValues...) ->
+      tokenValues.map (value) -> { value, type: 'foo' }
+
+    makeScreenLine = (tokenValues...) ->
+      tokens = makeTokens(tokenValues...)
+      text = tokenValues.join('')
+      new ScreenLine(tokens, text)
 
     beforeEach ->
       wrapper.setMaxLength(10)
 
     describe "when the buffer line is shorter than max length", ->
       it "does not split the line", ->
-        screenLines = wrapper.splitTokens(makeTokens ['abc', 'def'])
-        expect(screenLines).toEqual [makeTokens ['abc', 'def']]
+        screenLines = wrapper.wrapScreenLine(makeScreenLine 'abc', 'def')
+        expect(screenLines.length).toBe 1
+        expect(screenLines[0].tokens).toEqual(makeTokens 'abc', 'def')
 
         [line1] = screenLines
         expect(line1.startColumn).toBe 0
         expect(line1.endColumn).toBe 6
-        expect(line1.textLength).toBe 6
+        expect(line1.text.length).toBe 6
 
     describe "when the buffer line is empty", ->
       it "returns a single empty screen line", ->
-        expect(wrapper.splitTokens([])).toEqual [[]]
+        screenLines = wrapper.wrapScreenLine(makeScreenLine())
+        expect(screenLines.length).toBe 1
+        expect(screenLines[0].tokens).toEqual []
 
     describe "when there is a non-whitespace character at the max-length boundary", ->
       describe "when there is whitespace before the max-length boundary", ->
         it "splits the line at the start of the first word before the boundary", ->
-          screenLines = wrapper.splitTokens(makeTokens ['12 ', '45 ', ' 89A', 'BC'])
+          screenLines = wrapper.wrapScreenLine(makeScreenLine '12 ', '45 ', ' 89A', 'BC')
           expect(screenLines.length).toBe 2
           [line1, line2] = screenLines
-          expect(line1).toEqual(makeTokens ['12 ', '45 ', ' '])
-          expect(line2).toEqual(makeTokens ['89A', 'BC'])
+          expect(line1.tokens).toEqual(makeTokens '12 ', '45 ', ' ')
+          expect(line2.tokens).toEqual(makeTokens '89A', 'BC')
 
           expect(line1.startColumn).toBe 0
           expect(line1.endColumn).toBe 7
-          expect(line1.textLength).toBe 7
+          expect(line1.text.length).toBe 7
 
           expect(line2.startColumn).toBe 7
           expect(line2.endColumn).toBe 12
-          expect(line2.textLength).toBe 5
+          expect(line2.text.length).toBe 5
 
       describe "when there is no whitespace before the max-length boundary", ->
         it "splits the line at the boundary, because there's no 'good' place to split it", ->
-          screenLines = wrapper.splitTokens(makeTokens ['123', '456', '789AB', 'CD'])
+          screenLines = wrapper.wrapScreenLine(makeScreenLine '123', '456', '789AB', 'CD')
           expect(screenLines.length).toBe 2
           [line1, line2] = screenLines
-          expect(line1).toEqual(makeTokens ['123', '456', '789A'])
-          expect(line2).toEqual(makeTokens ['B', 'CD'])
+          expect(line1.tokens).toEqual(makeTokens '123', '456', '789A')
+          expect(line2.tokens).toEqual(makeTokens 'B', 'CD')
 
           expect(line1.startColumn).toBe 0
           expect(line1.endColumn).toBe 10
-          expect(line1.textLength).toBe 10
+          expect(line1.text.length).toBe 10
 
           expect(line2.startColumn).toBe 10
           expect(line2.endColumn).toBe 13
-          expect(line2.textLength).toBe 3
+          expect(line2.text.length).toBe 3
 
     describe "when there is a whitespace character at the max-length boundary", ->
       it "splits the line at the start of the first word beyond the boundary", ->
-          screenLines = wrapper.splitTokens(makeTokens ['12 ', '45 ', ' 89  C', 'DE'])
+          screenLines = wrapper.wrapScreenLine(makeScreenLine '12 ', '45 ', ' 89  C', 'DE')
           expect(screenLines.length).toBe 2
           [line1, line2] = screenLines
-          expect(line1).toEqual(makeTokens ['12 ', '45 ', ' 89  '])
-          expect(line2).toEqual(makeTokens ['C', 'DE'])
+          expect(line1.tokens).toEqual(makeTokens '12 ', '45 ', ' 89  ')
+          expect(line2.tokens).toEqual(makeTokens 'C', 'DE')
 
           expect(line1.startColumn).toBe 0
           expect(line1.endColumn).toBe 11
-          expect(line1.textLength).toBe 11
+          expect(line1.text.length).toBe 11
 
           expect(line2.startColumn).toBe 11
           expect(line2.endColumn).toBe 14
-          expect(line2.textLength).toBe 3
+          expect(line2.text.length).toBe 3
 

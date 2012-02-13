@@ -1,4 +1,5 @@
 _ = require 'underscore'
+ScreenLine = require 'screen-line'
 EventEmitter = require 'event-emitter'
 
 module.exports =
@@ -56,6 +57,9 @@ class Highlighter
 
   tokenizeRow: (state, row) ->
     @tokenizer.getLineTokens(@buffer.getLine(row), state)
+
+  screenLineForRow: (row) ->
+    new ScreenLine(@tokensForRow(row), @buffer.getLine(row))
 
   tokensForRow: (row) ->
     _.clone(@lines[row].tokens)
