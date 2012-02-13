@@ -118,7 +118,7 @@ class Editor extends View
     $(document).one 'mouseup', => @off 'mousemove', moveHandler
 
   buildLineElement: (screenRow) ->
-    tokens = @lineWrapper.tokensForScreenRow(screenRow)
+    { tokens } = @lineWrapper.screenLineForRow(screenRow)
     $$ ->
       @pre class: 'line', =>
         if tokens.length

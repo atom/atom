@@ -113,11 +113,11 @@ class LineWrapper
         currentScreenRow++
       bufferRow++
 
-  tokensForScreenRow: (screenRow) ->
+  screenLineForRow: (screenRow) ->
     currentScreenRow = 0
     for wrappedLine in @wrappedLines
       for screenLine in wrappedLine.screenLines
-        return screenLine.tokens if currentScreenRow == screenRow
+        return screenLine if currentScreenRow == screenRow
         currentScreenRow++
 
   screenLineCount: ->

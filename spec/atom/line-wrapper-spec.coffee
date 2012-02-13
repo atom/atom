@@ -16,9 +16,9 @@ describe "LineWrapper", ->
 
   describe ".tokensForScreenRow(row)", ->
     it "returns tokens for the line fragment corresponding to the given screen row", ->
-      expect(tokensText wrapper.tokensForScreenRow(3)).toEqual('    var pivot = items.shift(), current, left = [], ')
-      expect(tokensText wrapper.tokensForScreenRow(4)).toEqual('right = [];')
-      expect(tokensText wrapper.tokensForScreenRow(5)).toEqual('    while(items.length > 0) {')
+      expect(tokensText wrapper.screenLineForRow(3).tokens).toEqual('    var pivot = items.shift(), current, left = [], ')
+      expect(tokensText wrapper.screenLineForRow(4).tokens).toEqual('right = [];')
+      expect(tokensText wrapper.screenLineForRow(5).tokens).toEqual('    while(items.length > 0) {')
 
   describe ".screenLineCount()", ->
     it "returns the total number of screen lines", ->
@@ -29,9 +29,9 @@ describe "LineWrapper", ->
       describe "when the number of screen lines remains the same for the changed buffer line", ->
         it "re-wraps the existing lines and emits a change event for all its screen lines", ->
           buffer.insert([6, 28], '1234567')
-          expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot ? left1234567.push(current) '
-          expect(tokensText(wrapper.tokensForScreenRow(8))).toBe ': right.push(current);'
-          expect(tokensText(wrapper.tokensForScreenRow(9))).toBe '    }'
+          expect(tokensText(wrapper.screenLineForRow(7).tokens)).toBe '      current < pivot ? left1234567.push(current) '
+          expect(tokensText(wrapper.screenLineForRow(8).tokens)).toBe ': right.push(current);'
+          expect(tokensText(wrapper.screenLineForRow(9).tokens)).toBe '    }'
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -41,10 +41,10 @@ describe "LineWrapper", ->
       describe "when the number of screen lines increases for the changed buffer line", ->
         it "re-wraps and adds an additional screen line and emits a change event for all screen lines", ->
           buffer.insert([6, 28], '1234567890')
-          expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot ? '
-          expect(tokensText(wrapper.tokensForScreenRow(8))).toBe 'left1234567890.push(current) : '
-          expect(tokensText(wrapper.tokensForScreenRow(9))).toBe 'right.push(current);'
-          expect(tokensText(wrapper.tokensForScreenRow(10))).toBe '    }'
+          expect(tokensText(wrapper.screenLineForRow(7).tokens)).toBe '      current < pivot ? '
+          expect(tokensText(wrapper.screenLineForRow(8).tokens)).toBe 'left1234567890.push(current) : '
+          expect(tokensText(wrapper.screenLineForRow(9).tokens)).toBe 'right.push(current);'
+          expect(tokensText(wrapper.screenLineForRow(10).tokens)).toBe '    }'
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -54,8 +54,8 @@ describe "LineWrapper", ->
       describe "when the number of screen lines decreases for the changed buffer line", ->
         it "re-wraps and removes a screen line and emits a change event for all screen lines", ->
           buffer.change(new Range([6, 24], [6, 42]), '')
-          expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot ?  : right.push(current);'
-          expect(tokensText(wrapper.tokensForScreenRow(8))).toBe '    }'
+          expect(tokensText(wrapper.screenLineForRow(7).tokens)).toBe '      current < pivot ?  : right.push(current);'
+          expect(tokensText(wrapper.screenLineForRow(8).tokens)).toBe '    }'
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -65,10 +65,10 @@ describe "LineWrapper", ->
     describe "when buffer lines are inserted", ->
       it "re-wraps existing and new screen lines and emits a change event", ->
         buffer.insert([6, 21], '1234567890 abcdefghij 1234567890\nabcdefghij')
-        expect(tokensText(wrapper.tokensForScreenRow(7))).toBe '      current < pivot1234567890 abcdefghij '
-        expect(tokensText(wrapper.tokensForScreenRow(8))).toBe '1234567890'
-        expect(tokensText(wrapper.tokensForScreenRow(9))).toBe 'abcdefghij ? left.push(current) : '
-        expect(tokensText(wrapper.tokensForScreenRow(10))).toBe 'right.push(current);'
+        expect(tokensText(wrapper.screenLineForRow(7).tokens)).toBe '      current < pivot1234567890 abcdefghij '
+        expect(tokensText(wrapper.screenLineForRow(8).tokens)).toBe '1234567890'
+        expect(tokensText(wrapper.screenLineForRow(9).tokens)).toBe 'abcdefghij ? left.push(current) : '
+        expect(tokensText(wrapper.screenLineForRow(10).tokens)).toBe 'right.push(current);'
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -78,10 +78,10 @@ describe "LineWrapper", ->
     describe "when buffer lines are removed", ->
       it "removes screen lines and emits a change event", ->
         buffer.change(new Range([3, 21], [7, 5]), ';')
-        expect(tokensText(wrapper.tokensForScreenRow(3))).toBe '    var pivot = items;'
-        expect(tokensText(wrapper.tokensForScreenRow(4))).toBe '    return '
-        expect(tokensText(wrapper.tokensForScreenRow(5))).toBe 'sort(left).concat(pivot).concat(sort(right));'
-        expect(tokensText(wrapper.tokensForScreenRow(6))).toBe '  };'
+        expect(tokensText(wrapper.screenLineForRow(3).tokens)).toBe '    var pivot = items;'
+        expect(tokensText(wrapper.screenLineForRow(4).tokens)).toBe '    return '
+        expect(tokensText(wrapper.screenLineForRow(5).tokens)).toBe 'sort(left).concat(pivot).concat(sort(right));'
+        expect(tokensText(wrapper.screenLineForRow(6).tokens)).toBe '  };'
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -91,9 +91,9 @@ describe "LineWrapper", ->
   describe ".setMaxLength(length)", ->
     it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
       wrapper.setMaxLength(40)
-      expect(tokensText wrapper.tokensForScreenRow(4)).toBe 'left = [], right = [];'
-      expect(tokensText wrapper.tokensForScreenRow(5)).toBe '    while(items.length > 0) {'
-      expect(tokensText wrapper.tokensForScreenRow(12)).toBe 'sort(left).concat(pivot).concat(sort(rig'
+      expect(tokensText wrapper.screenLineForRow(4).tokens).toBe 'left = [], right = [];'
+      expect(tokensText wrapper.screenLineForRow(5).tokens).toBe '    while(items.length > 0) {'
+      expect(tokensText wrapper.screenLineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
 
       expect(changeHandler).toHaveBeenCalled()
       [event] = changeHandler.argsForCall[0]
