@@ -1,5 +1,6 @@
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
+SpanIndex = require 'span-index'
 Point = require 'point'
 Range = require 'range'
 
@@ -13,15 +14,20 @@ class LineWrapper
   setMaxLength: (@maxLength) ->
     oldRange = new Range
     oldRange.end.row = @screenLineCount() - 1
-    oldRange.end.column = _.last(_.last(@wrappedLines).screenLines).text.length
+    oldRange.end.column = _.last(@index.last().screenLines).text.length
     @buildWrappedLines()
     newRange = new Range
     newRange.end.row = @screenLineCount() - 1
-    newRange.end.column = _.last(_.last(@wrappedLines).screenLines).text.length
+    newRange.end.column = _.last(@index.last().screenLines).text.length
     @trigger 'change', { oldRange, newRange }
 
+  getSpans: (wrappedLines) ->
+    wrappedLines.map (line) -> line.screenLines.length
+
   buildWrappedLines: ->
-    @wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
+    @index = new SpanIndex
+    wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
+    @index.insert 0, @getSpans(wrappedLines), wrappedLines
 
   handleChange: (e) ->
     oldRange = new Range
@@ -29,13 +35,15 @@ class LineWrapper
     bufferRow = e.oldRange.start.row
     oldRange.start.row = @firstScreenRowForBufferRow(e.oldRange.start.row)
     oldRange.end.row = @lastScreenRowForBufferRow(e.oldRange.end.row)
-    oldRange.end.column = _.last(@wrappedLines[e.oldRange.end.row].screenLines).text.length
+    oldRange.end.column = _.last(@index.at(e.oldRange.end.row).screenLines).text.length
 
-    @wrappedLines[e.oldRange.start.row..e.oldRange.end.row] = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
+    { start, end } = e.oldRange
+    wrappedLines = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
+    @index.splice start.row, end.row, @getSpans(wrappedLines), wrappedLines
 
     newRange = oldRange.copy()
     newRange.end.row = @lastScreenRowForBufferRow(e.newRange.end.row)
-    newRange.end.column = _.last(@wrappedLines[e.newRange.end.row].screenLines).text.length
+    newRange.end.column = _.last(@index.at(e.newRange.end.row).screenLines).text.length
 
     @trigger 'change', { oldRange, newRange }
 
@@ -44,7 +52,7 @@ class LineWrapper
 
   lastScreenRowForBufferRow: (bufferRow) ->
     startRow = @screenPositionFromBufferPosition([bufferRow, 0]).row
-    startRow + (@wrappedLines[bufferRow].screenLines.length - 1)
+    startRow + (@index.at(bufferRow).screenLines.length - 1)
 
   buildWrappedLinesForBufferRows: (start, end) ->
     for row in [start..end]
@@ -83,13 +91,10 @@ class LineWrapper
 
   screenPositionFromBufferPosition: (bufferPosition, allowEOL=false) ->
     bufferPosition = Point.fromObject(bufferPosition)
-    row = 0
-    for wrappedLine in @wrappedLines[0...bufferPosition.row]
-      row += wrappedLine.screenLines.length
-
+    row = @index.spanForIndex(bufferPosition.row)
     column = bufferPosition.column
 
-    screenLines = @wrappedLines[bufferPosition.row].screenLines
+    screenLines = @index.at(bufferPosition.row).screenLines
     for screenLine, index in screenLines
       break if index == screenLines.length - 1
       if allowEOL
@@ -104,34 +109,29 @@ class LineWrapper
 
   bufferPositionFromScreenPosition: (screenPosition) ->
     screenPosition = Point.fromObject(screenPosition)
-    bufferRow = 0
-    currentScreenRow = 0
-    for wrappedLine in @wrappedLines
-      for screenLine in wrappedLine.screenLines
-        if currentScreenRow == screenPosition.row
-          return new Point(bufferRow, screenLine.startColumn + screenPosition.column)
-        currentScreenRow++
-      bufferRow++
+    { index, offset } = @index.indexForSpan(screenPosition.row)
+    row = index
+    column = @index.at(row).screenLines[offset].startColumn + screenPosition.column
+    new Point(row, column)
 
   screenLineForRow: (screenRow) ->
     @screenLinesForRows(screenRow, screenRow)[0]
 
   screenLinesForRows: (startRow, endRow) ->
     screenLines = []
-    currentScreenRow = 0
-    for wrappedLine in @wrappedLines
-      for screenLine in wrappedLine.screenLines
-        screenLines.push screenLine if currentScreenRow >= startRow
-        currentScreenRow++
-        return screenLines if currentScreenRow > endRow
+
+    { values, startOffset, endOffset } = @index.sliceBySpan(startRow, endRow)
+
+    screenLines.push(values[0].screenLines[startOffset..-1]...)
+    for wrappedLine in values[1...-1]
+      screenLines.push(wrappedLine.screenLines...)
+    screenLines.push(_.last(values).screenLines[0..endOffset]...)
+    screenLines
 
   screenLines: ->
     @screenLinesForRows(0, @screenLineCount() - 1)
 
   screenLineCount: ->
-    count = 0
-    for wrappedLine, i in @wrappedLines
-      count += wrappedLine.screenLines.length
-    count
+    @index.lengthBySpan()
 
 _.extend(LineWrapper.prototype, EventEmitter)
