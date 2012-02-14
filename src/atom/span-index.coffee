@@ -11,8 +11,20 @@ class SpanIndex
   splice: (start, end, spans, values) ->
     @entries[start..end] = @buildIndexEntries(spans, values)
 
+  at: (index) ->
+    @entries[index].value
+
+  last: ->
+    _.last(@entries).value
+
   clear: ->
     @entries = []
+
+  lengthBySpan: ->
+    length = 0
+    for entry in @entries
+      length += entry.span
+    length
 
   sliceBySpan: (start, end) ->
     currentSpan = 0
@@ -31,6 +43,25 @@ class SpanIndex
       currentSpan = nextSpan
 
     { values, startOffset, endOffset }
+
+
+  indexForSpan: (targetSpan) ->
+    currentSpan = 0
+    index = 0
+    offset = 0
+    for entry in @entries
+      nextSpan = currentSpan + entry.span
+      if nextSpan > targetSpan
+        offset = targetSpan - currentSpan
+        return { index, offset}
+      currentSpan = nextSpan
+      index++
+
+  spanForIndex: (index) ->
+    span = 0
+    for i in [0...index]
+      span += @entries[i].span
+    span
 
   buildIndexEntries: (spans, values) ->
     _.zip(spans, values).map ([span, value]) -> new SpanIndexEntry(span, value)
