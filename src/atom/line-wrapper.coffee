@@ -114,15 +114,16 @@ class LineWrapper
       bufferRow++
 
   screenLineForRow: (screenRow) ->
+    @screenLinesForRows(screenRow, screenRow)[0]
+
+  screenLinesForRows: (startRow, endRow) ->
+    screenLines = []
     currentScreenRow = 0
     for wrappedLine in @wrappedLines
       for screenLine in wrappedLine.screenLines
-        return screenLine if currentScreenRow == screenRow
+        screenLines.push screenLine if currentScreenRow >= startRow
         currentScreenRow++
-
-  screenLinesForRows: (startRow, endRow) ->
-    for row in [startRow..endRow]
-      @screenLineForRow(row)
+        return screenLines if currentScreenRow > endRow
 
   screenLines: ->
     @screenLinesForRows(0, @screenLineCount() - 1)
