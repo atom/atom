@@ -117,8 +117,11 @@ class Editor extends View
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', => @off 'mousemove', moveHandler
 
-  buildLineElement: (screenRow) ->
-    { tokens } = @lineWrapper.screenLineForRow(screenRow)
+  buildLineElement: (screenLine) ->
+    { tokens } = screenLine
+    unless tokens
+      debugger
+
     $$ ->
       @pre class: 'line', =>
         if tokens.length
@@ -129,8 +132,8 @@ class Editor extends View
 
   renderLines: ->
     @lines.empty()
-    for screenRow in [0...@lineWrapper.screenLineCount()]
-      @lines.append @buildLineElement(screenRow)
+    for screenLine in @lineWrapper.screenLines()
+      @lines.append @buildLineElement(screenLine)
 
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
@@ -144,26 +147,28 @@ class Editor extends View
 
     @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e
+      screenLines = @lineWrapper.screenLinesForRows(newRange.start.row, newRange.end.row)
       if newRange.end.row > oldRange.end.row
         # update, then insert elements
-        for row in [oldRange.start.row..newRange.end.row]
+        for row in [newRange.start.row..newRange.end.row]
           if row <= oldRange.end.row
-            @updateLineElement(row)
+            @updateLineElement(row, screenLines.shift())
           else
-            @insertLineElement(row)
+            @insertLineElement(row, screenLines.shift())
       else
         # traverse in reverse... remove, then update elements
+        screenLines.reverse()
         for row in [oldRange.end.row..oldRange.start.row]
           if row > newRange.end.row
             @removeLineElement(row)
           else
-            @updateLineElement(row)
+            @updateLineElement(row, screenLines.shift())
 
-  updateLineElement: (row) ->
-    @getLineElement(row).replaceWith(@buildLineElement(row))
+  updateLineElement: (row, screenLine) ->
+    @getLineElement(row).replaceWith(@buildLineElement(screenLine))
 
-  insertLineElement: (row) ->
-    newLineElement = @buildLineElement(row)
+  insertLineElement: (row, screenLine) ->
+    newLineElement = @buildLineElement(screenLine)
     insertBefore = @getLineElement(row)
     if insertBefore.length
       insertBefore.before(newLineElement)

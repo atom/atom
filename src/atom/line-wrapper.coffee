@@ -120,6 +120,13 @@ class LineWrapper
         return screenLine if currentScreenRow == screenRow
         currentScreenRow++
 
+  screenLinesForRows: (startRow, endRow) ->
+    for row in [startRow..endRow]
+      @screenLineForRow(row)
+
+  screenLines: ->
+    @screenLinesForRows(0, @screenLineCount() - 1)
+
   screenLineCount: ->
     count = 0
     for wrappedLine, i in @wrappedLines
