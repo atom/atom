@@ -1,13 +1,27 @@
+_ = require 'underscore'
 Buffer = require 'buffer'
 Highlighter = require 'highlighter'
 
 describe "ScreenLine", ->
-  screenLine = null
+  [screenLine, highlighter] = []
 
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
     highlighter = new Highlighter(buffer)
     screenLine = highlighter.screenLineForRow(3)
+
+  describe ".pushToken(token)", ->
+    it "appends the given token to the screen line", ->
+      screenLine.pushToken(value: "foo", type: "bar")
+      expect(_.last(screenLine.tokens)).toEqual(value: "foo", type: "bar")
+      expect(screenLine.text).toBe '    var pivot = items.shift(), current, left = [], right = [];foo'
+
+  describe ".concat(screenLine)", ->
+    it "returns a new screen line combining the contents of the receiver and the given screen line", ->
+      otherLine = highlighter.screenLineForRow(4)
+      concatenated = screenLine.concat(otherLine)
+      expect(concatenated.text).toBe screenLine.text + otherLine.text
+      expect(concatenated.tokens).toEqual screenLine.tokens.concat(otherLine.tokens)
 
   describe ".splitAt(splitColumn)", ->
     describe "when the split column is less than the line length", ->

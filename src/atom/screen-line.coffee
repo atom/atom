@@ -8,6 +8,13 @@ class ScreenLine
 
   constructor: (@tokens, @text, @state) ->
 
+  pushToken: (token) ->
+    @tokens.push(token)
+    @text += token.value
+
+  concat: (otherLine) ->
+    new ScreenLine(@tokens.concat(otherLine.tokens), @text + otherLine.text)
+
   splitAt: (column) ->
     return [this] if column == 0 or column >= @text.length
 
