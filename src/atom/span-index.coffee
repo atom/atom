@@ -71,7 +71,10 @@ class SpanIndex
     span
 
   buildIndexEntries: (spans, values) ->
-    _.zip(spans, values).map ([span, value]) -> new SpanIndexEntry(span, value)
+    if _.isArray(spans)
+      _.zip(spans, values).map ([span, value]) -> new SpanIndexEntry(span, value)
+    else
+      values.map (value) -> new SpanIndexEntry(spans, value)
 
 class SpanIndexEntry
   constructor: (@span, @value) ->

@@ -5,6 +5,19 @@ describe "SpanIndex", ->
   beforeEach ->
     index = new SpanIndex
 
+  describe ".insert(index, span(s), values)", ->
+    describe "when called with an array of spans", ->
+      it "assigns each span in the array to the corresponding entry", ->
+        index.insert(0, [2, 1], ['a', 'b'])
+        expect(index.indexForSpan(1).index).toBe 0
+        expect(index.indexForSpan(2).index).toBe 1
+
+    describe "when called with a single number as the span", ->
+      it "assigns that span to all entries", ->
+        index.insert(0, 1, ['a', 'b'])
+        expect(index.indexForSpan(0).index).toBe 0
+        expect(index.indexForSpan(1).index).toBe 1
+
   describe ".updateSpans(start, end, spans)", ->
     it "updates the spans of a range of entries indicated by the given index to the given value", ->
       index.insert(0, [3, 2, 3, 1, 2], ['a', 'b', 'c', 'd', 'e'])
