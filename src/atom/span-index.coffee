@@ -8,8 +8,15 @@ class SpanIndex
   insert: (index, spans, values) ->
     @entries[index..index] = @buildIndexEntries(spans, values)
 
+  replace: (index, span, value) ->
+    @splice(index, index, span, [value])
+
   splice: (start, end, spans, values) ->
     @entries[start..end] = @buildIndexEntries(spans, values)
+
+  updateSpans: (start, end, span) ->
+    for i in [start..end]
+      @entries[i].span = span
 
   at: (index) ->
     @entries[index].value
