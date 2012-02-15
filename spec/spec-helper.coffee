@@ -2,7 +2,7 @@ nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
 Native = require 'native'
-BindingSet = require 'binding-set'
+GlobalKeymap = require 'global-keymap'
 Point = require 'point'
 require 'window'
 window.showConsole()
@@ -27,14 +27,30 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
   else
     emitObject.call(this, obj)
 
-eventPropertiesFromPattern = (pattern) ->
-  bindingSet = new BindingSet("*", {})
-  parsedPattern = bindingSet.parseKeyPattern(pattern)
-  delete parsedPattern.key # key doesn't exist on browser-generated key events
-  parsedPattern
+window.eventPropertiesForPattern = (pattern) ->
+  [modifiers..., key] = pattern.split '-'
+
+  modifiers.push 'shift' if key == key.toUpperCase() and key.toUpperCase() != key.toLowerCase()
+  charCode = key.toUpperCase().charCodeAt 0
+
+  isNamedKey = key.length > 1
+  if isNamedKey
+    keyIdentifier = key
+  else
+    keyIdentifier = "U+00" + charCode.toString(16)
+
+  ctrlKey: 'ctrl' in modifiers
+  altKey: 'alt' in modifiers
+  shiftKey: 'shift' in modifiers
+  metaKey: 'meta' in modifiers
+  which: charCode
+  originalEvent:
+    keyIdentifier: keyIdentifier
 
 window.keydownEvent = (pattern, properties={}) ->
-  $.Event "keydown", _.extend(eventPropertiesFromPattern(pattern), properties)
+  event = $.Event "keydown", _.extend(eventPropertiesForPattern(pattern), properties)
+  event.keystroke = (new GlobalKeymap).keystrokeStringForEvent(event)
+  event
 
 window.clickEvent = (properties={}) ->
   $.Event "click", properties

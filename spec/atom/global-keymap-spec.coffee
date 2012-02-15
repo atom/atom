@@ -187,3 +187,25 @@ describe "GlobalKeymap", ->
 
       expect(fooHandler).toHaveBeenCalled()
 
+  describe ".keystrokeStringForEvent(event)", ->
+    describe "when no modifiers are pressed", ->
+      it "returns a string that identifies the key pressed", ->
+        expect(keymap.keystrokeStringForEvent(keydownEvent('a'))).toBe 'a'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('['))).toBe '['
+        expect(keymap.keystrokeStringForEvent(keydownEvent('*'))).toBe '*'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('left'))).toBe 'left'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('\b'))).toBe 'backspace'
+
+    describe "when ctrl, alt or meta is pressed with a non-modifier key", ->
+      it "returns a string that identifies the key pressed", ->
+        expect(keymap.keystrokeStringForEvent(keydownEvent('a', altKey: true))).toBe 'alt-a'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('[', metaKey: true))).toBe 'meta-['
+        expect(keymap.keystrokeStringForEvent(keydownEvent('*', ctrlKey: true))).toBe 'ctrl-*'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('left', ctrlKey: true, metaKey: true, altKey: true))).toBe 'alt-ctrl-meta-left'
+
+    describe "when shift is pressed when a non-modifer key", ->
+      it "returns a string that identifies the key pressed", ->
+        expect(keymap.keystrokeStringForEvent(keydownEvent('A', shiftKey: true))).toBe 'A'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('{', shiftKey: true))).toBe '{'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('left', shiftKey: true))).toBe 'shift-left'
+        expect(keymap.keystrokeStringForEvent(keydownEvent('Left', shiftKey: true))).toBe 'shift-left'

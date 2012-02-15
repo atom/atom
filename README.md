@@ -3,7 +3,7 @@
 
 ## Be forwarned: Atom is pre-alpha software!
 
-## Instalation
+## Installation
 
 1. Get [xcode 4.2](http://itunes.apple.com/us/app/xcode/id448457090?mt=12).
 

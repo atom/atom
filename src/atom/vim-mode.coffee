@@ -15,7 +15,7 @@ class VimMode
     @opStack = []
     @activateCommandMode()
 
-    atom.bindKeys '.editor', '<esc>': 'activate-command-mode'
+    atom.bindKeys '.editor', 'escape': 'activate-command-mode'
     @editor.on 'activate-command-mode', => @activateCommandMode()
 
     @setupCommandMode()
@@ -39,7 +39,7 @@ class VimMode
       'w': 'move-to-next-word'
       'b': 'move-to-previous-word'
       '}': 'move-to-next-paragraph'
-      'esc': 'reset-command-mode'
+      'escape': 'reset-command-mode'
       'left': 'move-left'
       'right': 'move-right'
 
