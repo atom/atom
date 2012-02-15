@@ -47,12 +47,12 @@ describe "VimMode", ->
       editor.trigger keydownEvent('\\') # \ is an unused key in vim
       expect(vimMode.opStack.length).toBe 0
 
-    describe "the esc keybinding", ->
+    describe "the escape keybinding", ->
       it "clears the operator stack", ->
         editor.trigger keydownEvent('d')
         expect(vimMode.opStack.length).toBe 1
 
-        editor.trigger keydownEvent('esc')
+        editor.trigger keydownEvent('escape')
         expect(vimMode.opStack.length).toBe 0
 
     describe "the i keybinding", ->
@@ -314,10 +314,10 @@ describe "VimMode", ->
       editor.setCursorPosition([0, 6])
       expect(editor.getCursorPosition()).toEqual [0,6]
 
-    it "puts the editor into command mode when <esc> is pressed", ->
+    it "puts the editor into command mode when <escape> is pressed", ->
       expect(editor).not.toHaveClass 'command-mode'
 
-      editor.trigger keydownEvent('<esc>')
+      editor.trigger keydownEvent('escape')
 
       expect(editor).toHaveClass 'command-mode'
       expect(editor).not.toHaveClass 'insert-mode'
