@@ -119,9 +119,6 @@ class Editor extends View
 
   buildLineElement: (screenLine) ->
     { tokens } = screenLine
-    unless tokens
-      debugger
-
     $$ ->
       @pre class: 'line', =>
         if tokens.length
