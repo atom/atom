@@ -3,7 +3,7 @@ Higlighter = require 'highlighter'
 LineFolder = require 'line-folder'
 Range = require 'range'
 
-fdescribe "LineFolder", ->
+describe "LineFolder", ->
   [buffer, folder] = []
 
   beforeEach ->
@@ -11,13 +11,10 @@ fdescribe "LineFolder", ->
     highlighter = new Higlighter(buffer)
     folder = new LineFolder(highlighter)
 
-  describe ".screenLineForRow(row)", ->
-    beforeEach ->
-      folder.createFold(new Range([4, 29], [7, 4]))
-
+  describe ".screenLinesForRows(startRow, endRow)", ->
     it "renders a placeholder on the first line of a fold, and skips subsequent lines", ->
-      line4 = folder.screenLineForRow(4)
-      line5 = folder.screenLineForRow(5)
+      folder.createFold(new Range([4, 29], [7, 4]))
+      [line4, line5] = folder.screenLinesForRows(4, 5)
       expect(line4.text).toBe '    while(items.length > 0) {...}'
       expect(line5.text).toBe '    return sort(left).concat(pivot).concat(sort(right));'
 
