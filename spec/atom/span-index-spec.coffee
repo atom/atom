@@ -22,11 +22,11 @@ describe "SpanIndex", ->
     it "updates the spans of a range of entries indicated by the given index to the given value", ->
       index.insert(0, [3, 2, 3, 1, 2], ['a', 'b', 'c', 'd', 'e'])
       index.updateSpans(1, 3, 1)
-      expect(index.spanForIndex(1)).toBe 3
-      expect(index.spanForIndex(2)).toBe 4
-      expect(index.spanForIndex(3)).toBe 5
-      expect(index.spanForIndex(4)).toBe 6
-      expect(index.spanForIndex(5)).toBe 8
+      expect(index.spanForIndex(0)).toBe 3
+      expect(index.spanForIndex(1)).toBe 4
+      expect(index.spanForIndex(2)).toBe 5
+      expect(index.spanForIndex(3)).toBe 6
+      expect(index.spanForIndex(4)).toBe 8
 
   describe ".sliceBySpan(start, end)", ->
     describe "when the index contains values that start and end evenly on the given start/end span indices", ->
@@ -85,12 +85,13 @@ describe "SpanIndex", ->
       expect(index.indexForSpan(5)).toEqual(index: 3, offset: 0)
 
   describe ".spanForIndex(index)", ->
-    it "returns the aggregate of spans for elements preceding the given index", ->
+    it "returns the aggregate of spans for all elements up to and including the given index", ->
       index.insert(0, [3, 0, 2, 0, 3, 1], ['a', 'b', 'c', 'd', 'e', 'f'])
-      expect(index.spanForIndex(0)).toBe 0
+      expect(index.spanForIndex(0)).toBe 3
       expect(index.spanForIndex(1)).toBe 3
-      expect(index.spanForIndex(2)).toBe 3
+      expect(index.spanForIndex(2)).toBe 5
       expect(index.spanForIndex(3)).toBe 5
+      expect(index.spanForIndex(4)).toBe 8
 
 
 

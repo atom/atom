@@ -91,10 +91,10 @@ class LineWrapper
 
   screenPositionFromBufferPosition: (bufferPosition, allowEOL=false) ->
     bufferPosition = Point.fromObject(bufferPosition)
-    row = @index.spanForIndex(bufferPosition.row)
+    screenLines = @index.at(bufferPosition.row).screenLines
+    row = @index.spanForIndex(bufferPosition.row) - screenLines.length
     column = bufferPosition.column
 
-    screenLines = @index.at(bufferPosition.row).screenLines
     for screenLine, index in screenLines
       break if index == screenLines.length - 1
       if allowEOL

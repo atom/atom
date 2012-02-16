@@ -66,7 +66,7 @@ class SpanIndex
 
   spanForIndex: (index) ->
     span = 0
-    for i in [0...index]
+    for i in [0..index]
       span += @entries[i].span
     span
 
