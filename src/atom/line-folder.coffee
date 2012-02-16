@@ -17,17 +17,32 @@ class LineFolder
     @index.sliceBySpan(startRow, endRow).values
 
   foldRows: (startRow, endRow) ->
-    @index.replace(startRow, 1, @buildScreenLineForBufferRow(startRow))
-    @index.updateSpans(startRow + 1, endRow, 0)
+    @refreshScreenRow(@screenRowForBufferRow(startRow))
+    if endRow > startRow
+      @index.updateSpans(startRow + 1, endRow, 0)
 
-  buildScreenLineForBufferRow: (bufferRow) ->
-    if fold = @activeFolds[bufferRow]
+  refreshScreenRow: (screenRow) ->
+    bufferRow = @bufferRowForScreenRow(screenRow)
+    @index.replace(bufferRow, 1, @buildScreenLineForBufferRow(bufferRow))
+
+  buildScreenLineForBufferRow: (bufferRow, startColumn=0) ->
+    screenLine = @highlighter.screenLineForRow(bufferRow)
+    screenLine = screenLine.splitAt(startColumn)[1] if startColumn
+
+    fold = @activeFolds[bufferRow]
+    if fold and fold.range.start.column >= startColumn
       { start, end } = fold.range
-      endRow = fold.range.end.row
-      prefix = @highlighter.screenLineForRow(start.row).splitAt(start.column)[0]
-      suffix = @highlighter.screenLineForRow(end.row).splitAt(end.column)[1]
+      prefix = screenLine.splitAt(start.column - startColumn)[0]
+      suffix = @buildScreenLineForBufferRow(end.row, end.column)
       prefix.pushToken(type: 'placeholder', value: '...')
-      prefix.concat(suffix)
+      return prefix.concat(suffix)
+    screenLine
+
+  screenRowForBufferRow: (bufferRow) ->
+    @index.spanForIndex(bufferRow) - 1
+
+  bufferRowForScreenRow: (screenRow) ->
+    @index.indexForSpan(screenRow).index
 
 class Fold
   constructor: (@lineFolder, @range) ->
