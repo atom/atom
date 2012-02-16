@@ -1,4 +1,5 @@
 SpanIndex = require 'span-index'
+Point = require 'point'
 
 module.exports =
 class LineFolder
@@ -43,6 +44,31 @@ class LineFolder
 
   bufferRowForScreenRow: (screenRow) ->
     @index.indexForSpan(screenRow).index
+
+  screenPositionForBufferPosition: (bufferPosition) ->
+    bufferPosition = Point.fromObject(bufferPosition)
+    screenRow = 0
+    screenColumn = 0
+    bufferRow = 0
+
+    while bufferRow < bufferPosition.row
+      console.log "HI", bufferRow, screenColumn
+      if fold = @maximalFoldStartingAtBufferRow(bufferRow)
+        bufferRow = fold.range.end.row
+        screenColumn += fold.range.start.column + 3 + bufferPosition.column - fold.range.end.column
+      else
+        bufferRow++
+        screenRow++
+        if bufferRow == bufferPosition.row
+          screenColumn = bufferPosition.column
+        else
+          screenColumn = 0
+
+    new Point(screenRow, screenColumn)
+
+  maximalFoldStartingAtBufferRow: (bufferRow) ->
+    @activeFolds[bufferRow]
+
 
 class Fold
   constructor: (@lineFolder, @range) ->
