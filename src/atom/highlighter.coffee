@@ -1,4 +1,5 @@
 _ = require 'underscore'
+ScreenLineFragment = require 'screen-line-fragment'
 ScreenLine = require 'screen-line'
 EventEmitter = require 'event-emitter'
 
@@ -62,5 +63,13 @@ class Highlighter
 
   screenLineForRow: (row) ->
     @screenLines[row]
+
+  lineFragmentsForRows: (startRow, endRow) ->
+    for row in [startRow..endRow]
+      @lineFragmentForRow(row)
+
+  lineFragmentForRow: (row) ->
+    { tokens, text } = @screenLines[row]
+    new ScreenLineFragment(tokens, text, [1, 0], [1, 0])
 
 _.extend(Highlighter.prototype, EventEmitter)

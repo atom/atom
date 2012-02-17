@@ -13,8 +13,8 @@ describe "LineFolder", ->
 
   describe "screen line rendering", ->
     describe "when there is a single fold spanning multiple lines", ->
-      it "renders a placeholder on the first line of a fold, and skips subsequent lines", ->
-        folder.createFold(new Range([4, 29], [7, 4]))
+      fit "renders a placeholder on the first line of a fold, and skips subsequent lines", ->
+        folder.fold(new Range([4, 29], [7, 4]))
         [line4, line5] = folder.screenLinesForRows(4, 5)
 
         expect(line4.text).toBe '    while(items.length > 0) {...}'
@@ -54,7 +54,7 @@ describe "LineFolder", ->
 
           expect(line4.text).toBe  '    while(items.length > 0) {...}...concat(sort(right));'
 
-  fdescribe ".screenPositionForBufferPosition(bufferPosition)", ->
+  describe ".screenPositionForBufferPosition(bufferPosition)", ->
     describe "when there is single fold spanning multiple lines", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
         folder.createFold(new Range([4, 29], [7, 4]))
