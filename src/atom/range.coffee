@@ -1,5 +1,7 @@
 Point = require 'point'
+Delta = require 'delta'
 _ = require 'underscore'
+
 
 module.exports =
 class Range
@@ -28,4 +30,12 @@ class Range
 
   isEmpty: ->
     @start.isEqual(@end)
+
+  toDelta: ->
+    rows = @end.row - @start.row
+    if rows == 0
+      columns = @end.column - @start.column
+    else
+      columns = @end.column
+    new Delta(rows, columns)
 

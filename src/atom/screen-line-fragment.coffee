@@ -7,10 +7,8 @@ class ScreenLineFragment
     @screenDelta = Delta.fromObject(screenDelta)
     @bufferDelta = Delta.fromObject(bufferDelta)
 
-
   splitAt: (column) ->
     return [undefined, this] if column == 0
-    return [this, undefined] if column >= @text.length
 
     rightTokens = _.clone(@tokens)
     leftTokens = []
@@ -37,3 +35,13 @@ class ScreenLineFragment
     value1 = value.substring(0, splitIndex)
     value2 = value.substring(splitIndex)
     [{value: value1, type }, {value: value2, type}]
+
+  concat: (other) ->
+    tokens = @tokens.concat(other.tokens)
+    text = @text + other.text
+    screenDelta = @screenDelta.add(other.screenDelta)
+    bufferDelta = @bufferDelta.add(other.bufferDelta)
+    new ScreenLineFragment(tokens, text, screenDelta, bufferDelta)
+
+  isEqual: (other) ->
+    _.isEqual(@tokens, other.tokens) and @screenDelta.isEqual(other.screenDelta) and @bufferDelta.isEqual(other.bufferDelta)

@@ -1,5 +1,7 @@
 Point = require 'point'
 LineMap = require 'line-map'
+ScreenLineFragment = require 'screen-line-fragment'
+_ = require 'underscore'
 
 module.exports =
 class LineFolder
@@ -9,33 +11,61 @@ class LineFolder
 
   buildLineMap: ->
     @lineMap = new LineMap
-    @lineMap.insertAtBufferRow(0, @highlighter.screenLines)
+    @lineMap.insertAtBufferRow(0, @highlighter.lineFragments())
 
-  fold: (range) ->
-    { start, end } = range
-    @activeFolds[start.row] ?= []
-    @activeFolds[start.row].push(new Fold(this, range))
+  fold: (bufferRange) ->
+    @activeFolds[bufferRange.start.row] ?= []
+    @activeFolds[bufferRange.start.row].push(new Fold(this, bufferRange))
+    screenRange = @screenRangeForBufferRange(bufferRange)
+    @lineMap.replaceScreenRows(screenRange.start.row, screenRange.end.row, @renderScreenLine(screenRange.start.row))
 
-    screenRow = @screenRowForBufferRow(start.row)
-    @lineMap.replaceBufferRows(start.row, end.row, @buildScreenLineForRow(screenRow))
+  renderScreenLine: (screenRow) ->
+    @renderScreenLineForBufferRow(@bufferRowForScreenRow(screenRow))
 
-  buildScreenLineForBufferRow: (bufferRow, startColumn) ->
-    screenLine = @highlighter.screenLineForRow(bufferRow).splitAt(startColumn)[1]
+  renderScreenLineForBufferRow: (bufferRow, startColumn=0) ->
+    screenLine = @highlighter.lineFragmentForRow(bufferRow).splitAt(startColumn)[1]
     for fold in @foldsForBufferRow(bufferRow)
-      if fold.start.column > startColumn
-        prefix = screenLine.splitAt(fold.start.column - startColumn)[0]
-        suffix = @buildScreenLineForBufferRow(fold.end.row, fold.end.column)
-        return [prefix, @foldPlaceholder(fold), suffix]
+      { start, end } = fold.range
+      if start.column > startColumn
+        prefix = screenLine.splitAt(start.column - startColumn)[0]
+        suffix = @buildScreenLineForBufferRow(end.row, end.column)
+        return _.flatten([prefix, @buildFoldPlaceholder(fold), suffix])
     screenLine
 
-  screenRowForBufferRow: (screenRow) ->
-    @lineMap.screenPositionForBufferPosition([screenRow, 0]).row
+  buildScreenLineForBufferRow: (bufferRow, startColumn=0) ->
+    screenLine = @highlighter.lineFragmentForRow(bufferRow).splitAt(startColumn)[1]
+    for fold in @foldsForBufferRow(bufferRow)
+      { start, end } = fold.range
+      if start.column > startColumn
+        prefix = screenLine.splitAt(start.column - startColumn)[0]
+        suffix = @buildScreenLineForBufferRow(end.row, end.column)
+        screenLine = _.flatten([prefix, @buildFoldPlaceholder(fold), suffix])
+        return screenLine
+    screenLine
 
-  lineFragmentsForScreenRows: (startRow, endRow) ->
-    @lineMap.lineFragmentsForScreenRows(startRow, endRow)
+  buildFoldPlaceholder: (fold) ->
+    new ScreenLineFragment([{value: '...', type: 'fold-placeholder'}], '...', [0, 3], fold.range.toDelta())
+
+  foldsForBufferRow: (bufferRow) ->
+    @activeFolds[bufferRow] or []
+
+  linesForScreenRows: (startRow, endRow) ->
+    @lineMap.linesForScreenRows(startRow, endRow)
+
+  screenRowForBufferRow: (bufferRow) ->
+    @screenPositionForBufferPosition([bufferRow, 0]).row
+
+  bufferRowForScreenRow: (screenRow) ->
+    @bufferPositionForScreenPosition([screenRow, 0]).row
 
   screenPositionForBufferPosition: (bufferPosition) ->
     @lineMap.screenPositionForBufferPosition(bufferPosition)
+
+  bufferPositionForScreenPosition: (screenPosition) ->
+    @lineMap.bufferPositionForScreenPosition(screenPosition)
+
+  screenRangeForBufferRange: (bufferRange) ->
+    @lineMap.screenRangeForBufferRange(bufferRange)
 
 class Fold
   constructor: (@lineFolder, @range) ->

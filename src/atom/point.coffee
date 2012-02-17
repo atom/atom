@@ -34,3 +34,6 @@ class Point
         -1
       else
         0
+
+  greaterThan: (other) ->
+    @compare(other) > 0

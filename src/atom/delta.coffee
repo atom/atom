@@ -1,3 +1,5 @@
+Point = require 'point'
+
 module.exports =
 class Delta
   @fromObject: (object) ->
@@ -9,6 +11,7 @@ class Delta
   constructor: (@rows=0, @columns=0) ->
 
   add: (other) ->
+    debugger unless other
     rows = @rows + other.rows
     if other.rows == 0
       columns = @columns + other.columns
@@ -25,6 +28,12 @@ class Delta
 
     [new Delta(0, column), new Delta(@rows, rightColumns)]
 
+  inspect: ->
+    "(#{@rows}, #{@columns})"
+
   isEqual: (other) ->
     other = Delta.fromObject(other)
     @rows == other.rows and @columns == other.columns
+
+  toPoint: ->
+    new Point(@rows, @columns)

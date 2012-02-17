@@ -3,7 +3,7 @@ Buffer = require 'buffer'
 Highlighter = require 'highlighter'
 
 describe "screenLineFragment", ->
-  lineFragment = null
+  [lineFragment, highlighter] = []
 
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
@@ -48,6 +48,30 @@ describe "screenLineFragment", ->
       it "returns undefined for the left half", ->
         expect(lineFragment.splitAt(0)).toEqual [undefined, lineFragment]
 
-    describe "if splitting at a column >= the line length", ->
-      it "returns undefined for the right half", ->
-        expect(lineFragment.splitAt(lineFragment.text.length)).toEqual [lineFragment, undefined]
+    describe "if splitting at a column equal to the line length", ->
+      it "returns an empty line fragment that spans a row for the right half", ->
+        [left, right] = lineFragment.splitAt(lineFragment.text.length)
+
+        expect(left.text).toBe lineFragment.text
+        expect(left.screenDelta).toEqual [0, lineFragment.text.length]
+        expect(left.bufferDelta).toEqual [0, lineFragment.text.length]
+
+        expect(right.text).toBe ''
+        expect(right.screenDelta).toEqual [1, 0]
+        expect(right.bufferDelta).toEqual [1, 0]
+
+  describe ".concat(otherFragment)", ->
+    it "returns the concatenation of the receiver and the given fragment", ->
+      [left, right] = lineFragment.splitAt(14)
+      expect(left.concat(right)).toEqual lineFragment
+
+      concatenated = lineFragment.concat(highlighter.lineFragmentForRow(4))
+      expect(concatenated.text).toBe '    var pivot = items.shift(), current, left = [], right = [];    while(items.length > 0) {'
+      expect(tokensText concatenated.tokens).toBe concatenated.text
+      expect(concatenated.screenDelta).toEqual [2, 0]
+      expect(concatenated.bufferDelta).toEqual [2, 0]
+
+
+
+
+

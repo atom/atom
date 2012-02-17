@@ -89,19 +89,81 @@ describe "LineMap", ->
         expect(map.lineFragmentsForScreenRow(1)).toEqual [line3a, line3b]
         expect(map.lineFragmentsForScreenRow(2)).toEqual [line4]
 
-  describe ".lineFragmentsForScreenRows(startRow, endRow)", ->
-    it "returns all line fragments for the given row range", ->
-      [line1a, line1b] = line1.splitAt(10)
-      [line3a, line3b] = line3.splitAt(10)
-      map.insertAtBufferRow(0, [line0, line1a, line1b, line2, line3a, line3b, line4])
+  describe ".spliceAtScreenRow(startRow, rowCount, lineFragemnts)", ->
+    describe "when called with a row count of 0", ->
+      it "inserts the given line fragments before the specified buffer row", ->
+        map.insertAtBufferRow(0, [line0, line1, line2])
+        map.spliceAtScreenRow(1, 0, [line3, line4])
 
-      expect(map.lineFragmentsForScreenRows(1, 3)).toEqual [line1a, line1b, line2, line3a, line3b]
+        expect(map.lineFragmentsForScreenRow(0)).toEqual [line0]
+        expect(map.lineFragmentsForScreenRow(1)).toEqual [line3]
+        expect(map.lineFragmentsForScreenRow(2)).toEqual [line4]
+        expect(map.lineFragmentsForScreenRow(3)).toEqual [line1]
+        expect(map.lineFragmentsForScreenRow(4)).toEqual [line2]
+
+    describe "when called with a row count of 1", ->
+      describe "when the specified screen row is spanned by a single line fragment", ->
+        it "replaces the spanning line fragment with the given line fragments", ->
+          map.insertAtBufferRow(0, [line0, line1, line2])
+          map.spliceAtScreenRow(1, 1, [line3, line4])
+
+          expect(map.bufferLineCount()).toBe 4
+          expect(map.lineFragmentsForScreenRow(0)).toEqual [line0]
+          expect(map.lineFragmentsForScreenRow(1)).toEqual [line3]
+          expect(map.lineFragmentsForScreenRow(2)).toEqual [line4]
+          expect(map.lineFragmentsForScreenRow(3)).toEqual [line2]
+
+      describe "when the specified screen row is spanned by multiple line fragments", ->
+        it "replaces all spanning line fragments with the given line fragments", ->
+          [line1a, line1b] = line1.splitAt(10)
+          [line3a, line3b] = line3.splitAt(10)
+
+          map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
+          map.spliceAtScreenRow(1, 1, [line3a, line3b, line4])
+
+          expect(map.bufferLineCount()).toBe 4
+          expect(map.lineFragmentsForScreenRow(0)).toEqual [line0]
+          expect(map.lineFragmentsForScreenRow(1)).toEqual [line3a, line3b]
+          expect(map.lineFragmentsForScreenRow(2)).toEqual [line4]
+          expect(map.lineFragmentsForScreenRow(3)).toEqual [line2]
+
+    describe "when called with a row count greater than 1", ->
+      it "replaces all line fragments spanning the multiple buffer rows with the given line fragments", ->
+        [line1a, line1b] = line1.splitAt(10)
+        [line3a, line3b] = line3.splitAt(10)
+
+        map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
+        map.spliceAtScreenRow(1, 2, [line3a, line3b, line4])
+
+        expect(map.bufferLineCount()).toBe 3
+        expect(map.lineFragmentsForScreenRow(0)).toEqual [line0]
+        expect(map.lineFragmentsForScreenRow(1)).toEqual [line3a, line3b]
+        expect(map.lineFragmentsForScreenRow(2)).toEqual [line4]
+
+
+  describe ".linesForScreenRows(startRow, endRow)", ->
+    it "returns lines for the given row range, concatenating fragments that belong on a single screen line", ->
+      line1Text = line1.text
+      [line1a, line1b] = line1.splitAt(11)
+      [line3a, line3b] = line3.splitAt(16)
+      map.insertAtBufferRow(0, [line0, line1a, line1b, line2, line3a, line3b, line4])
+      expect(map.linesForScreenRows(1, 3)).toEqual [line1, line2, line3]
+      # repeating assertion to cover a regression where this method mutated lines
+      expect(map.linesForScreenRows(1, 3)).toEqual [line1, line2, line3]
 
   describe ".screenPositionFromBufferPosition(bufferPosition)", ->
-    describe "", ->
-      
-    
+    it "translates the given buffer position based on buffer and screen deltas of the line fragments in the map", ->
+      [line1a, line1b] = line1.splitAt(10)
+      [line3a, line3b] = line3.splitAt(20)
 
+      line1a.bufferDelta.rows = 2
+      line1a.bufferDelta.columns = 20
 
+      map.insertAtBufferRow(0, [line0, line1a, line3b, line4])
 
-
+      expect(map.screenPositionForBufferPosition([0, 0])).toEqual [0, 0]
+      expect(map.screenPositionForBufferPosition([0, 5])).toEqual [0, 5]
+      expect(map.screenPositionForBufferPosition([1, 5])).toEqual [1, 5]
+      expect(map.screenPositionForBufferPosition([3, 20])).toEqual [1, 10]
+      expect(map.screenPositionForBufferPosition([3, 30])).toEqual [1, 20]
+      expect(map.screenPositionForBufferPosition([4, 5])).toEqual [2, 5 ]

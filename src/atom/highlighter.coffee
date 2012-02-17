@@ -64,6 +64,9 @@ class Highlighter
   screenLineForRow: (row) ->
     @screenLines[row]
 
+  lineFragments: ->
+    @lineFragmentsForRows(0, @buffer.lastRow())
+
   lineFragmentsForRows: (startRow, endRow) ->
     for row in [startRow..endRow]
       @lineFragmentForRow(row)
