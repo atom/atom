@@ -1,6 +1,7 @@
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 SpanIndex = require 'span-index'
+LineMap = require 'line-map'
 Point = require 'point'
 Range = require 'range'
 
@@ -24,10 +25,15 @@ class LineWrapper
   getSpans: (wrappedLines) ->
     wrappedLines.map (line) -> line.screenLines.length
 
+  unpackWrappedLines: (wrappedLines) ->
+    _.flatten(_.pluck(wrappedLines, 'screenLines'))
+
   buildWrappedLines: ->
     @index = new SpanIndex
+    @lineMap = new LineMap
     wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
     @index.insert 0, @getSpans(wrappedLines), wrappedLines
+    @lineMap.insertAtBufferRow 0, @unpackWrappedLines(wrappedLines)
 
   handleChange: (e) ->
     oldRange = new Range
@@ -40,6 +46,7 @@ class LineWrapper
     { start, end } = e.oldRange
     wrappedLines = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
     @index.splice start.row, end.row, @getSpans(wrappedLines), wrappedLines
+    @lineMap.replaceBufferRows start.row, end.row, @unpackWrappedLines(wrappedLines)
 
     newRange = oldRange.copy()
     newRange.end.row = @lastScreenRowForBufferRow(e.newRange.end.row)
@@ -59,16 +66,23 @@ class LineWrapper
       @buildWrappedLineForBufferRow(row)
 
   buildWrappedLineForBufferRow: (bufferRow) ->
-    { screenLines: @wrapScreenLine(@highlighter.screenLineForRow(bufferRow)) }
+    { screenLines: @wrapScreenLine(@highlighter.lineFragmentForRow(bufferRow)) }
 
   wrapScreenLine: (screenLine, startColumn=0) ->
-    [leftHalf, rightHalf] = screenLine.splitAt(@findSplitColumn(screenLine.text))
-    endColumn = startColumn + leftHalf.text.length
-    _.extend(leftHalf, {startColumn, endColumn})
-    if rightHalf
-      [leftHalf].concat @wrapScreenLine(rightHalf, endColumn)
+    screenLines = []
+    splitColumn = @findSplitColumn(screenLine.text)
+
+    if splitColumn == 0 or splitColumn == screenLine.text.length
+      screenLines.push screenLine
+      endColumn = startColumn + screenLine.text.length
     else
-      [leftHalf]
+      [leftHalf, rightHalf] = screenLine.splitAt(splitColumn)
+      screenLines.push leftHalf
+      endColumn = startColumn + leftHalf.text.length
+      screenLines.push @wrapScreenLine(rightHalf, endColumn)...
+
+    _.extend(screenLines[0], {startColumn, endColumn})
+    screenLines
 
   findSplitColumn: (line) ->
     return line.length unless line.length > @maxLength

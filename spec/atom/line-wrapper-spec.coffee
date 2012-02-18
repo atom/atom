@@ -2,7 +2,7 @@ Buffer = require 'buffer'
 LineWrapper = require 'line-wrapper'
 Highlighter = require 'highlighter'
 Range = require 'range'
-ScreenLine = require 'screen-line'
+ScreenLineFragment = require 'screen-line-fragment'
 _ = require 'underscore'
 
 describe "LineWrapper", ->
@@ -142,7 +142,7 @@ describe "LineWrapper", ->
     makeScreenLine = (tokenValues...) ->
       tokens = makeTokens(tokenValues...)
       text = tokenValues.join('')
-      new ScreenLine(tokens, text)
+      new ScreenLineFragment(tokens, text, [1, 0], [1, 0])
 
     beforeEach ->
       wrapper.setMaxLength(10)
@@ -157,12 +157,17 @@ describe "LineWrapper", ->
         expect(line1.startColumn).toBe 0
         expect(line1.endColumn).toBe 6
         expect(line1.text.length).toBe 6
+        expect(line1.screenDelta).toEqual [1, 0]
+        expect(line1.bufferDelta).toEqual [1, 0]
 
     describe "when the buffer line is empty", ->
       it "returns a single empty screen line", ->
         screenLines = wrapper.wrapScreenLine(makeScreenLine())
         expect(screenLines.length).toBe 1
-        expect(screenLines[0].tokens).toEqual []
+        [screenLine] = screenLines
+        expect(screenLine.tokens).toEqual []
+        expect(screenLine.screenDelta).toEqual [1, 0]
+        expect(screenLine.bufferDelta).toEqual [1, 0]
 
     describe "when there is a non-whitespace character at the max-length boundary", ->
       describe "when there is whitespace before the max-length boundary", ->
