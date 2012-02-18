@@ -181,10 +181,14 @@ describe "LineWrapper", ->
           expect(line1.startColumn).toBe 0
           expect(line1.endColumn).toBe 7
           expect(line1.text.length).toBe 7
+          expect(line1.screenDelta).toEqual [1, 0]
+          expect(line1.bufferDelta).toEqual [0, 7]
 
           expect(line2.startColumn).toBe 7
           expect(line2.endColumn).toBe 12
           expect(line2.text.length).toBe 5
+          expect(line2.screenDelta).toEqual [1, 0]
+          expect(line2.bufferDelta).toEqual [1, 0]
 
       describe "when there is no whitespace before the max-length boundary", ->
         it "splits the line at the boundary, because there's no 'good' place to split it", ->

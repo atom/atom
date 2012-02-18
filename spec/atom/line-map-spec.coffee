@@ -2,6 +2,7 @@ LineMap = require 'line-map'
 ScreenLineFragment = require 'screen-line-fragment'
 Buffer = require 'buffer'
 Highlighter = require 'highlighter'
+Delta = require 'delta'
 
 describe "LineMap", ->
   [highlighter, map] = []
@@ -140,7 +141,6 @@ describe "LineMap", ->
         expect(map.lineFragmentsForScreenRow(1)).toEqual [line3a, line3b]
         expect(map.lineFragmentsForScreenRow(2)).toEqual [line4]
 
-
   describe ".linesForScreenRows(startRow, endRow)", ->
     it "returns lines for the given row range, concatenating fragments that belong on a single screen line", ->
       line1Text = line1.text
@@ -167,3 +167,16 @@ describe "LineMap", ->
       expect(map.screenPositionForBufferPosition([3, 20])).toEqual [1, 10]
       expect(map.screenPositionForBufferPosition([3, 30])).toEqual [1, 20]
       expect(map.screenPositionForBufferPosition([4, 5])).toEqual [2, 5 ]
+
+  describe ".screenLineCount()", ->
+    it "returns the total of all inserted screen row deltas", ->
+      [line1a, line1b] = line1.splitAt(10)
+      [line3a, line3b] = line3.splitAt(10)
+      line1a.screenDelta = new Delta(1, 0)
+      line3a.screenDelta = new Delta(1, 0)
+
+      map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
+
+      expect(map.screenLineCount()).toBe 4
+      
+      
