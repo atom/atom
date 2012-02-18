@@ -86,6 +86,12 @@ class LineMap
       delta = delta.add(lineFragment.bufferDelta)
     delta.rows
 
+  screenLineCount: ->
+    delta = new Delta
+    for lineFragment in @lineFragments
+      delta = delta.add(lineFragment.screenDelta)
+    delta.rows
+
   screenPositionForBufferPosition: (bufferPosition) ->
     bufferPosition = Point.fromObject(bufferPosition)
     bufferDelta = new Delta

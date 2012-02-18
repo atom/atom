@@ -4,6 +4,7 @@ SpanIndex = require 'span-index'
 LineMap = require 'line-map'
 Point = require 'point'
 Range = require 'range'
+Delta = require 'delta'
 
 module.exports =
 class LineWrapper
@@ -77,6 +78,7 @@ class LineWrapper
       endColumn = startColumn + screenLine.text.length
     else
       [leftHalf, rightHalf] = screenLine.splitAt(splitColumn)
+      leftHalf.screenDelta = new Delta(1, 0)
       screenLines.push leftHalf
       endColumn = startColumn + leftHalf.text.length
       screenLines.push @wrapScreenLine(rightHalf, endColumn)...
@@ -146,6 +148,6 @@ class LineWrapper
     @screenLinesForRows(0, @screenLineCount() - 1)
 
   screenLineCount: ->
-    @index.lengthBySpan()
+    @lineMap.screenLineCount()
 
 _.extend(LineWrapper.prototype, EventEmitter)
