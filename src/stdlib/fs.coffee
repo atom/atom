@@ -22,7 +22,7 @@ module.exports =
   changeWorkingDirectory: (path) ->
     OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
 
-  # Return the dirname of the given path. That is the path with any trailing 
+  # Return the dirname of the given path. That is the path with any trailing
   # non-directory component removed.
   directory: (path) ->
     absPath = @absolute(path)
@@ -79,10 +79,7 @@ module.exports =
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
-    path = @absolute path
-    enc  = OSX.NSUTF8StringEncoding
-    OSX.NSString.stringWithContentsOfFile_encoding_error(path, enc, null)
-    .toString()
+    $native.read(path)
 
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->

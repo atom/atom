@@ -1,5 +1,4 @@
-# Hack to get code reloading working in dev mode
-resourcePath = $atomController.projectPath ? OSX.NSBundle.mainBundle.resourcePath
+resourcePath = $atom.loadPath
 
 paths = [
   "#{resourcePath}/spec"
@@ -16,7 +15,7 @@ window.__filename = null
 nakedLoad = (file) ->
   file = resolve file
   code = __read file
-  __jsc__.evalJSString_withScriptPath code, file
+  window.eval(code + "\n//@ sourceURL=" + file)
 
 require = (file, cb) ->
   return cb require file if cb?
@@ -55,7 +54,7 @@ exts =
         define(function(require, exports, module) { 'use strict'; #{code};
         });
       """
-    __jsc__.evalJSString_withScriptPath code, file
+    eval(code + "\n//@ sourceURL=" + file)
     __defines.pop()?.call()
   coffee: (file) ->
     exts.js(file, __coffeeCache(file))
@@ -64,10 +63,6 @@ resolve = (file) ->
   if /!/.test file
     parts = file.split '!'
     file = parts[parts.length-1]
-
-  if file[0] is '~'
-    file = OSX.NSString.stringWithString(file)
-      .stringByExpandingTildeInPath.toString()
 
   if file[0..1] is './'
     prefix = __filename.split('/')[0..-2].join '/'
@@ -107,19 +102,15 @@ __expand = (path) ->
   return null
 
 __exists = (path) ->
-  OSX.NSFileManager.defaultManager.fileExistsAtPath path
+  $native.exists path
 
 __coffeeCache = (filePath) ->
-  js = OSX.NSApp.getCachedScript(filePath)
-  if not js
-    {CoffeeScript} = require 'coffee-script'
-    js = CoffeeScript.compile(__read(filePath), filename: filePath)
-    OSX.NSApp.setCachedScript_contents(filePath, js)
-  js
+  {CoffeeScript} = require 'coffee-script'
+  CoffeeScript.compile(__read(filePath), filename: filePath)
 
 __read = (path) ->
   try
-    OSX.NSString.stringWithContentsOfFile(path).toString()
+    $native.read(path)
   catch e
     throw "require: can't read #{path}"
 

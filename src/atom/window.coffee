@@ -12,9 +12,9 @@ windowAdditions =
   rootView: null
   menuItemActions: null
 
-  startup: ->
+  startup: (url) ->
     @menuItemActions = {}
-    @rootView = new RootView(url: $atomController.url?.toString())
+    @rootView = new RootView {url}
     $('body').append @rootView
     @registerEventHandlers()
     @bindMenuItems()
@@ -51,7 +51,7 @@ windowAdditions =
     @menuItemActions[path].action()
 
   showConsole: ->
-    $atomController.webView.inspector.showConsole true
+    # $atomController.webView.inspector.showConsole true
 
   onerror: ->
     @showConsole true

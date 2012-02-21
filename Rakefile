@@ -19,6 +19,7 @@ task :build do
           "http://coffeescript.org/ - (try `npm i -g coffee-script`)"
   end
 
+  puts contents_dir
   sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/extensions #{dest}/spec"
 end
 

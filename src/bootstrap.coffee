@@ -3,5 +3,5 @@ App = require 'app'
 window.atom = new App
 
 require 'window'
-window.startup()
+window.startup $pathToOpen
 
