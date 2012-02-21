@@ -22,10 +22,18 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		041C615214F453610018D40C /* AtomController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F9A6EE14F44F1B005E9C30 /* AtomController.mm */; };
+		041C615314F453630018D40C /* client_handler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F9A6F014F44F1B005E9C30 /* client_handler.mm */; };
+		041C615414F453640018D40C /* native_handler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F9A6F314F44F1B005E9C30 /* native_handler.mm */; };
+		041C615514F453670018D40C /* Atom.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F9A6EC14F44F1B005E9C30 /* Atom.mm */; };
+		041C615614F4536A0018D40C /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 048A10D314F4522200C9E06B /* main.mm */; };
+		041C615914F453A50018D40C /* Atom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 04F9A6F414F44F31005E9C30 /* Atom.icns */; };
+		041C615A14F453A90018D40C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 041C615714F453970018D40C /* InfoPlist.strings */; };
+		041C615B14F453AC0018D40C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04F9A6F814F44F5A005E9C30 /* MainMenu.xib */; };
+		041C615C14F453AD0018D40C /* ClientWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04F9A6F614F44F46005E9C30 /* ClientWindow.xib */; };
 		04F9A6E714F44E80005E9C30 /* libcef.dylib in Copy Required Chrome Frameworks */ = {isa = PBXBuildFile; fileRef = 04F9A6E414F44D6D005E9C30 /* libcef.dylib */; };
 		04F9A6E814F44E86005E9C30 /* ffmpegsumo.so in Copy Required Chrome Frameworks */ = {isa = PBXBuildFile; fileRef = 04F9A6E314F44D6D005E9C30 /* ffmpegsumo.so */; };
 		04F9A6E914F44EB7005E9C30 /* libcef.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 04F9A6E414F44D6D005E9C30 /* libcef.dylib */; };
-		04F9A6EA14F44EC0005E9C30 /* ffmpegsumo.so in Frameworks */ = {isa = PBXBuildFile; fileRef = 04F9A6E314F44D6D005E9C30 /* ffmpegsumo.so */; };
 		05D08528E099C178B00B1260 /* browser_ctocpp.cc in Sources */ = {isa = PBXBuildFile; fileRef = 659F873974A982D7F1F3A259 /* browser_ctocpp.cc */; };
 		0FBF704635D05A87B4859B52 /* write_handler_cpptoc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 34CD2C0FE82A67E9EDAFB617 /* write_handler_cpptoc.cc */; };
 		1061A7425FD8481F30411B53 /* scheme_handler_cpptoc.cc in Sources */ = {isa = PBXBuildFile; fileRef = B11864C37BCFB8E7EDD0AF23 /* scheme_handler_cpptoc.cc */; };
@@ -141,6 +149,8 @@
 		0092CB55903D016B3004BB67 /* response_ctocpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = response_ctocpp.h; sourceTree = "<group>"; };
 		02D02DBAFD451063CD5301BE /* cef_string_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cef_string_list.h; sourceTree = "<group>"; };
 		02EC892952094A790B013E64 /* cef_types_mac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cef_types_mac.h; sourceTree = "<group>"; };
+		041C615814F453970018D40C /* English */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = English; path = Classes/mac/English.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
+		048A10D314F4522200C9E06B /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.mm; path = Classes/main.mm; sourceTree = SOURCE_ROOT; };
 		04D99B5772F3FB9CDB60BD4F /* download_handler_cpptoc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = download_handler_cpptoc.h; sourceTree = "<group>"; };
 		04F9A6E314F44D6D005E9C30 /* ffmpegsumo.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = ffmpegsumo.so; path = frameworks/ffmpegsumo.so; sourceTree = "<group>"; };
 		04F9A6E414F44D6D005E9C30 /* libcef.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcef.dylib; path = frameworks/libcef.dylib; sourceTree = "<group>"; };
@@ -150,7 +160,6 @@
 		04F9A6EE14F44F1B005E9C30 /* AtomController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AtomController.mm; path = Classes/AtomController.mm; sourceTree = "<group>"; };
 		04F9A6EF14F44F1B005E9C30 /* client_handler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = client_handler.h; path = Classes/client_handler.h; sourceTree = "<group>"; };
 		04F9A6F014F44F1B005E9C30 /* client_handler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = client_handler.mm; path = Classes/client_handler.mm; sourceTree = "<group>"; };
-		04F9A6F114F44F1B005E9C30 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.mm; path = ../../Classes/main.mm; sourceTree = "<group>"; };
 		04F9A6F214F44F1B005E9C30 /* native_handler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = native_handler.h; path = Classes/native_handler.h; sourceTree = "<group>"; };
 		04F9A6F314F44F1B005E9C30 /* native_handler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = native_handler.mm; path = Classes/native_handler.mm; sourceTree = "<group>"; };
 		04F9A6F414F44F31005E9C30 /* Atom.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Atom.icns; path = Classes/mac/Atom.icns; sourceTree = SOURCE_ROOT; };
@@ -317,7 +326,6 @@
 			files = (
 				5343B749CFA415821812AC27 /* libcef_dll_wrapper.a in Frameworks */,
 				CC51D6353D859FAFCBF315BA /* AppKit.framework in Frameworks */,
-				04F9A6EA14F44EC0005E9C30 /* ffmpegsumo.so in Frameworks */,
 				04F9A6E914F44EB7005E9C30 /* libcef.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -411,11 +419,12 @@
 		57338A9AD1F426E475F2A4CA /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				048A10D314F4522200C9E06B /* main.mm */,
 				04F9A6F414F44F31005E9C30 /* Atom.icns */,
-				04F9A6F114F44F1B005E9C30 /* main.mm */,
 				04F9A6F514F44F37005E9C30 /* Info.plist */,
 				04F9A6F614F44F46005E9C30 /* ClientWindow.xib */,
 				04F9A6F814F44F5A005E9C30 /* MainMenu.xib */,
+				041C615714F453970018D40C /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
 			path = cefclient/mac;
@@ -658,6 +667,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				041C615C14F453AD0018D40C /* ClientWindow.xib in Resources */,
+				041C615914F453A50018D40C /* Atom.icns in Resources */,
+				041C615A14F453A90018D40C /* InfoPlist.strings in Resources */,
+				041C615B14F453AC0018D40C /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -717,6 +730,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				041C615514F453670018D40C /* Atom.mm in Sources */,
+				041C615214F453610018D40C /* AtomController.mm in Sources */,
+				041C615314F453630018D40C /* client_handler.mm in Sources */,
+				041C615414F453640018D40C /* native_handler.mm in Sources */,
+				041C615614F4536A0018D40C /* main.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -804,6 +822,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		041C615714F453970018D40C /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				041C615814F453970018D40C /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		04F9A6F814F44F5A005E9C30 /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (

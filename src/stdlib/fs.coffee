@@ -9,7 +9,7 @@ module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (path) ->
-    $atomController.absolute(path).toString()
+    $native.absolute(path)
 
   # Return the basename of the given path. That is the path with
   # any leading directory components removed. If specified, also
@@ -25,7 +25,6 @@ module.exports =
   # Return the dirname of the given path. That is the path with any trailing
   # non-directory component removed.
   directory: (path) ->
-    absPath = @absolute(path)
     if @isDirectory(absPath)
       absPath.replace(/\/?$/, '/')
     else
@@ -55,21 +54,9 @@ module.exports =
 
   # Returns an array with all the names of files contained
   # in the directory path.
-  list: (path, recursive) ->
-    path = @absolute path
+  list: (path) ->
     fm = OSX.NSFileManager.defaultManager
-    if recursive
-      paths = fm.subpathsAtPath path
-    else
-      paths = fm.contentsOfDirectoryAtPath_error path, null
-    _.map paths, (entry) -> "#{path}/#{entry}"
-
-  # Return an array with all directories below (and including)
-  # the given path, as discovered by depth-first traversal. Entries
-  # are in lexically sorted order within directories. Symbolic links
-  # to directories are not traversed into.
-  listDirectoryTree: (path) ->
-    @list path, true
+    $native.list(path, recursive)
 
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
@@ -84,7 +71,6 @@ module.exports =
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
     str  = OSX.NSString.stringWithUTF8String content
-    path = @absolute path
     enc  = OSX.NSUTF8StringEncoding
     str.writeToFile_atomically_encoding_error path, true, enc, null
 

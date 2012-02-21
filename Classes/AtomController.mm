@@ -72,16 +72,8 @@ CefRefPtr<ClientHandler> g_handler;
   global->SetValue("$atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
   
   // $native
-  CefRefPtr<CefV8Value> native = CefV8Value::CreateObject(NULL);
-  CefRefPtr<CefV8Handler> nativeHandler = new NativeHandler();
-
-  CefRefPtr<CefV8Value> exists = CefV8Value::CreateFunction("exists", nativeHandler);
-  native->SetValue(exists->GetFunctionName(), exists, V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  CefRefPtr<CefV8Value> read = CefV8Value::CreateFunction("read", nativeHandler);
-  native->SetValue(read->GetFunctionName(), read, V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  global->SetValue("$native", native, V8_PROPERTY_ATTRIBUTE_NONE);
+  CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();    
+  global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
   
   jsContext->Exit();
 }
