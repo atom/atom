@@ -106,7 +106,7 @@ class LineWrapper
     new Range(start,end)
 
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
-    return @lineMap.screenPositionForBufferPosition(bufferPosition, eagerWrap)
+    @lineMap.screenPositionForBufferPosition(bufferPosition, eagerWrap)
 
   bufferPositionFromScreenPosition: (screenPosition) ->
     screenPosition = Point.fromObject(screenPosition)
