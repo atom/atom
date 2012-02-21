@@ -151,22 +151,35 @@ describe "LineMap", ->
       # repeating assertion to cover a regression where this method mutated lines
       expect(map.linesForScreenRows(1, 3)).toEqual [line1, line2, line3]
 
-  describe ".screenPositionFromBufferPosition(bufferPosition)", ->
-    it "translates the given buffer position based on buffer and screen deltas of the line fragments in the map", ->
+  describe ".screenPositionForBufferPosition(bufferPosition, allowEOL=true)", ->
+    beforeEach ->
+      # line1a-line3b describes a fold
       [line1a, line1b] = line1.splitAt(10)
       [line3a, line3b] = line3.splitAt(20)
-
       line1a.bufferDelta.rows = 2
       line1a.bufferDelta.columns = 20
 
-      map.insertAtBufferRow(0, [line0, line1a, line3b, line4])
+      # line4a-line4b describes a wrapped line
+      [line4a, line4b] = line4.splitAt(20)
+      line4a.screenDelta = new Delta(1, 0)
 
+      map.insertAtBufferRow(0, [line0, line1a, line3b, line4a, line4b])
+
+    it "translates the given buffer position based on buffer and screen deltas of the line fragments in the map", ->
       expect(map.screenPositionForBufferPosition([0, 0])).toEqual [0, 0]
       expect(map.screenPositionForBufferPosition([0, 5])).toEqual [0, 5]
       expect(map.screenPositionForBufferPosition([1, 5])).toEqual [1, 5]
       expect(map.screenPositionForBufferPosition([3, 20])).toEqual [1, 10]
       expect(map.screenPositionForBufferPosition([3, 30])).toEqual [1, 20]
-      expect(map.screenPositionForBufferPosition([4, 5])).toEqual [2, 5 ]
+      expect(map.screenPositionForBufferPosition([4, 5])).toEqual [2, 5]
+
+    describe "when eagerWrap is false", ->
+      it "does not wrap buffer positions at the end of a screen line to the beginning of the next screen line", ->
+        expect(map.screenPositionForBufferPosition([4, 20], false)).toEqual [2, 20]
+
+    describe "when eagerWrap is true", ->
+      it "wraps buffer positions at the end of a screen line to the end end of the next screen line", ->
+        expect(map.screenPositionForBufferPosition([4, 20], true)).toEqual [3, 0]
 
   describe ".screenLineCount()", ->
     it "returns the total of all inserted screen row deltas", ->
@@ -178,5 +191,5 @@ describe "LineMap", ->
       map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
 
       expect(map.screenLineCount()).toBe 4
-      
-      
+
+

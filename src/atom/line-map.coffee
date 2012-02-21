@@ -92,7 +92,7 @@ class LineMap
       delta = delta.add(lineFragment.screenDelta)
     delta.rows
 
-  screenPositionForBufferPosition: (bufferPosition) ->
+  screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
     bufferPosition = Point.fromObject(bufferPosition)
     bufferDelta = new Delta
     screenDelta = new Delta
@@ -100,6 +100,8 @@ class LineMap
     for lineFragment in @lineFragments
       nextDelta = bufferDelta.add(lineFragment.bufferDelta)
       break if nextDelta.toPoint().greaterThan(bufferPosition)
+      break if nextDelta.toPoint().isEqual(bufferPosition) and not eagerWrap
+
       bufferDelta = nextDelta
       screenDelta = screenDelta.add(lineFragment.screenDelta)
 
