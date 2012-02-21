@@ -108,12 +108,8 @@ class LineWrapper
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
     @lineMap.screenPositionForBufferPosition(bufferPosition, eagerWrap)
 
-  bufferPositionFromScreenPosition: (screenPosition) ->
-    screenPosition = Point.fromObject(screenPosition)
-    { index, offset } = @index.indexForSpan(screenPosition.row)
-    row = index
-    column = @index.at(row).screenLines[offset].startColumn + screenPosition.column
-    new Point(row, column)
+  bufferPositionForScreenPosition: (screenPosition) ->
+    @lineMap.bufferPositionForScreenPosition(screenPosition)
 
   screenLineForRow: (screenRow) ->
     @screenLinesForRows(screenRow, screenRow)[0]

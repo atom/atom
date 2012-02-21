@@ -122,18 +122,18 @@ describe "LineWrapper", ->
       it "translates a position at the end of a wrapped screen line to the begining of the next screen line", ->
         expect(wrapper.screenPositionForBufferPosition([3, 51], true)).toEqual([4, 0])
 
-  describe ".bufferPositionFromScreenPosition(point)", ->
+  describe ".bufferPositionForScreenPosition(point)", ->
     it "translates the given screen position to a buffer position, account for wrapped lines", ->
       # before any wrapped lines
-      expect(wrapper.bufferPositionFromScreenPosition([0, 5])).toEqual([0, 5])
+      expect(wrapper.bufferPositionForScreenPosition([0, 5])).toEqual([0, 5])
 
       # on a wrapped line
-      expect(wrapper.bufferPositionFromScreenPosition([3, 5])).toEqual([3, 5])
-      expect(wrapper.bufferPositionFromScreenPosition([4, 0])).toEqual([3, 51])
-      expect(wrapper.bufferPositionFromScreenPosition([4, 5])).toEqual([3, 56])
+      expect(wrapper.bufferPositionForScreenPosition([3, 5])).toEqual([3, 5])
+      expect(wrapper.bufferPositionForScreenPosition([4, 0])).toEqual([3, 51])
+      expect(wrapper.bufferPositionForScreenPosition([4, 5])).toEqual([3, 56])
 
       # following a wrapped line
-      expect(wrapper.bufferPositionFromScreenPosition([5, 5])).toEqual([4, 5])
+      expect(wrapper.bufferPositionForScreenPosition([5, 5])).toEqual([4, 5])
 
   describe ".wrapScreenLine(screenLine)", ->
     makeTokens = (tokenValues...) ->

@@ -214,7 +214,7 @@ class Editor extends View
 
   pointFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
-    @lineWrapper.bufferPositionFromScreenPosition screenPosition
+    @lineWrapper.bufferPositionForScreenPosition screenPosition
 
   pointFromMouseEvent: (e) ->
     { pageX, pageY } = e
