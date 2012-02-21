@@ -56,10 +56,10 @@ class LineWrapper
     @trigger 'change', { oldRange, newRange }
 
   firstScreenRowForBufferRow: (bufferRow) ->
-    @screenPositionFromBufferPosition([bufferRow, 0]).row
+    @screenPositionForBufferPosition([bufferRow, 0]).row
 
   lastScreenRowForBufferRow: (bufferRow) ->
-    startRow = @screenPositionFromBufferPosition([bufferRow, 0]).row
+    startRow = @screenPositionForBufferPosition([bufferRow, 0]).row
     startRow + (@index.at(bufferRow).screenLines.length - 1)
 
   buildWrappedLinesForBufferRows: (start, end) ->
@@ -101,27 +101,12 @@ class LineWrapper
       return @maxLength
 
   screenRangeFromBufferRange: (bufferRange) ->
-    start = @screenPositionFromBufferPosition(bufferRange.start, true)
-    end = @screenPositionFromBufferPosition(bufferRange.end, true)
+    start = @screenPositionForBufferPosition(bufferRange.start, false)
+    end = @screenPositionForBufferPosition(bufferRange.end, false)
     new Range(start,end)
 
-  screenPositionFromBufferPosition: (bufferPosition, allowEOL=false) ->
-    bufferPosition = Point.fromObject(bufferPosition)
-    screenLines = @index.at(bufferPosition.row).screenLines
-    row = @index.spanForIndex(bufferPosition.row) - screenLines.length
-    column = bufferPosition.column
-
-    for screenLine, index in screenLines
-      break if index == screenLines.length - 1
-      if allowEOL
-        break if screenLine.endColumn >= bufferPosition.column
-      else
-        break if screenLine.endColumn > bufferPosition.column
-
-      column -= screenLine.text.length
-      row++
-
-    new Point(row, column)
+  screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
+    return @lineMap.screenPositionForBufferPosition(bufferPosition, eagerWrap)
 
   bufferPositionFromScreenPosition: (screenPosition) ->
     screenPosition = Point.fromObject(screenPosition)

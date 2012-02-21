@@ -100,27 +100,27 @@ describe "LineWrapper", ->
       expect(event.oldRange).toEqual([[0, 0], [15, 2]])
       expect(event.newRange).toEqual([[0, 0], [18, 2]])
 
-  describe ".screenPositionFromBufferPosition(point, allowEOL=false)", ->
+  describe ".screenPositionForBufferPosition(point, eagerWrap=true)", ->
     it "translates the given buffer position to a screen position, accounting for wrapped lines", ->
       # before any wrapped lines
-      expect(wrapper.screenPositionFromBufferPosition([0, 5])).toEqual([0, 5])
-      expect(wrapper.screenPositionFromBufferPosition([0, 29])).toEqual([0, 29])
+      expect(wrapper.screenPositionForBufferPosition([0, 5])).toEqual([0, 5])
+      expect(wrapper.screenPositionForBufferPosition([0, 29])).toEqual([0, 29])
 
       # on a wrapped line
-      expect(wrapper.screenPositionFromBufferPosition([3, 5])).toEqual([3, 5])
-      expect(wrapper.screenPositionFromBufferPosition([3, 50])).toEqual([3, 50])
-      expect(wrapper.screenPositionFromBufferPosition([3, 62])).toEqual([4, 11])
+      expect(wrapper.screenPositionForBufferPosition([3, 5])).toEqual([3, 5])
+      expect(wrapper.screenPositionForBufferPosition([3, 50])).toEqual([3, 50])
+      expect(wrapper.screenPositionForBufferPosition([3, 62])).toEqual([4, 11])
 
       # following a wrapped line
-      expect(wrapper.screenPositionFromBufferPosition([4, 5])).toEqual([5, 5])
+      expect(wrapper.screenPositionForBufferPosition([4, 5])).toEqual([5, 5])
 
-    describe "when allowEOL is true", ->
+    describe "when eagerWrap is false", ->
       it "preserves a position at the end of a wrapped screen line ", ->
-        expect(wrapper.screenPositionFromBufferPosition([3, 51], true)).toEqual([3, 51])
+        expect(wrapper.screenPositionForBufferPosition([3, 51], false)).toEqual([3, 51])
 
-    describe "when allowEOL is false", ->
+    describe "when eagerWrap is true", ->
       it "translates a position at the end of a wrapped screen line to the begining of the next screen line", ->
-        expect(wrapper.screenPositionFromBufferPosition([3, 51])).toEqual([4, 0])
+        expect(wrapper.screenPositionForBufferPosition([3, 51], true)).toEqual([4, 0])
 
   describe ".bufferPositionFromScreenPosition(point)", ->
     it "translates the given screen position to a buffer position, account for wrapped lines", ->

@@ -209,7 +209,7 @@ class Editor extends View
     new Point(row, column)
 
   pixelPositionFromPoint: (position) ->
-    { row, column } = @lineWrapper.screenPositionFromBufferPosition(position)
+    { row, column } = @lineWrapper.screenPositionForBufferPosition(position)
     { top: row * @lineHeight, left: column * @charWidth }
 
   pointFromPixelPosition: ({top, left}) ->
