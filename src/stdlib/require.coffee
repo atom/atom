@@ -1,13 +1,11 @@
-resourcePath = $atom.loadPath
-
 paths = [
-  "#{resourcePath}/spec"
-  "#{resourcePath}/src/stdlib"
-  "#{resourcePath}/src/atom"
-  "#{resourcePath}/src"
-  "#{resourcePath}/extensions"
-  "#{resourcePath}/vendor"
-  "#{resourcePath}/static"
+  "#{$atom.loadPath}/spec"
+  "#{$atom.loadPath}/src/stdlib"
+  "#{$atom.loadPath}/src/atom"
+  "#{$atom.loadPath}/src"
+  "#{$atom.loadPath}/extensions"
+  "#{$atom.loadPath}/vendor"
+  "#{$atom.loadPath}/static"
 ]
 
 window.__filename = null
@@ -73,7 +71,7 @@ resolve = (file) ->
     file = file.replace '../', "#{prefix}/"
 
   if file[0] isnt '/'
-    require.paths.some (path) ->
+    paths.some (path) ->
       fileExists = /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
       jsFileExists = not /\.(.+)$/.test(file) and __exists "#{path}/#{file}.js"
 
@@ -121,7 +119,6 @@ this.require = require
 this.nakedLoad = nakedLoad
 this.define  = define
 
-this.require.resourcePath = resourcePath
 this.require.paths = paths
 this.require.exts  = exts
 

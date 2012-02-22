@@ -79,7 +79,7 @@ bool NativeHandler::Execute(const CefString& name,
       retval = CefV8Value::CreateArray();      
       for (NSUInteger i = 0; i < relativePaths.count; i++) {
         NSString *relativePath = [relativePaths objectAtIndex:i];
-        NSString *fullPath = [path stringByAppendingString:relativePath];
+        NSString *fullPath = [path stringByAppendingPathComponent:relativePath];
         retval->SetValue(i, CefV8Value::CreateString([fullPath UTF8String]));
       }
     }
