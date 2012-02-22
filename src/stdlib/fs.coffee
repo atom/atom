@@ -55,8 +55,15 @@ module.exports =
   # Returns an array with all the names of files contained
   # in the directory path.
   list: (path) ->
-    fm = OSX.NSFileManager.defaultManager
-    $native.list(path, recursive)
+    $native.list(path, false)
+
+  # Returns an Array that starts with the given directory, and all the
+  # directories relative to the given path, discovered by a depth first
+  # traversal of every directory in any visited directory, not traversing
+  # symbolic links to directories, in lexically sorted order within
+  # directories.
+  listDirectoryTree: (path) ->
+    $native.list(path, true)
 
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.

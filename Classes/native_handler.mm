@@ -59,11 +59,18 @@ bool NativeHandler::Execute(const CefString& name,
   }
   else if (name == "list") {
     NSString *path = stringFromCefV8Value(arguments[0]);
+    bool recursive = arguments[1]->GetBoolValue();
     
     NSFileManager *fm = [NSFileManager defaultManager];
     NSArray *relativePaths = [NSArray array];
     NSError *error = nil;
-    relativePaths = [fm contentsOfDirectoryAtPath:path error:&error];
+    
+    if (recursive) {
+      relativePaths = [fm subpathsOfDirectoryAtPath:path error:&error];
+    }
+    else {
+      relativePaths = [fm contentsOfDirectoryAtPath:path error:&error];
+    }
     
     if (error) {
       exception = [[error localizedDescription] UTF8String];
