@@ -57,36 +57,32 @@ describe "LineFolder", ->
 
   describe "position translation", ->
     describe "when there is single fold spanning multiple lines", ->
-      it "translates positions to account for folded lines and characters and the placeholder", ->
+      fit "translates positions to account for folded lines and characters and the placeholder", ->
         folder.fold(new Range([4, 29], [7, 4]))
 
         # preceding fold: identity
-        # expect(folder.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
-        # expect(folder.screenPositionForBufferPosition([4, 0])).toEqual [4, 0]
-        # expect(folder.screenPositionForBufferPosition([4, 29])).toEqual [4, 29]
+        expect(folder.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
+        expect(folder.screenPositionForBufferPosition([4, 0])).toEqual [4, 0]
+        expect(folder.screenPositionForBufferPosition([4, 29])).toEqual [4, 29]
 
-        # expect(folder.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
-        # expect(folder.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
-        # expect(folder.bufferPositionForScreenPosition([4, 29])).toEqual [4, 29]
+        expect(folder.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
+        expect(folder.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
+        expect(folder.bufferPositionForScreenPosition([4, 29])).toEqual [4, 29]
 
         # inside of fold: translate to the start of the fold
-        console.log "!!!!!!!!!"
         expect(folder.screenPositionForBufferPosition([4, 35])).toEqual [4, 29]
-        # expect(folder.screenPositionForBufferPosition([5, 5])).toEqual [4, 29]
+        expect(folder.screenPositionForBufferPosition([5, 5])).toEqual [4, 29]
 
         # following fold, on last line of fold
-        # expect(folder.screenPositionForBufferPosition([7, 4])).toEqual [4, 32]
-        # expect(folder.screenPositionForBufferPosition([7, 7])).toEqual [4, 35]
-
-        # expect(folder.bufferPositionForScreenPosition([4, 32])).toEqual [7, 4]
-        # expect(folder.bufferPositionForScreenPosition([4, 35])).toEqual [7, 7]
+        expect(folder.screenPositionForBufferPosition([7, 4])).toEqual [4, 32]
+        expect(folder.bufferPositionForScreenPosition([4, 32])).toEqual [7, 4]
 
         # # following fold, subsequent line
-        # expect(folder.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
-        # expect(folder.screenPositionForBufferPosition([13, 13])).toEqual [10, 13]
+        expect(folder.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
+        expect(folder.screenPositionForBufferPosition([11, 13])).toEqual [8, 13]
 
-        # expect(folder.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
-        # expect(folder.bufferPositionForScreenPosition([10, 13])).toEqual [13, 13]
+        expect(folder.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
+        expect(folder.bufferPositionForScreenPosition([10, 13])).toEqual [13, 13]
 
     describe "when there is a single fold spanning a single line", ->
       it "translates positions to account for folded characters and the placeholder", ->

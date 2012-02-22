@@ -121,7 +121,8 @@ class LineMap
       screenDelta = screenDelta.add(screenLine.screenDelta)
 
     remainingBufferColumns = bufferPosition.column - bufferDelta.columns
-    additionalScreenColumns = Math.min(remainingBufferColumns, screenLine.lengthForClipping())
+    additionalScreenColumns = Math.max(0, Math.min(remainingBufferColumns, screenLine.lengthForClipping()))
+
     new Point(screenDelta.rows, screenDelta.columns + additionalScreenColumns)
 
   bufferPositionForScreenPosition: (screenPosition) ->
