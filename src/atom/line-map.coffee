@@ -62,6 +62,9 @@ class LineMap
 
     lineFragments
 
+  lineForScreenRow: (row) ->
+    @linesForScreenRows(row, row)[0]
+
   linesForScreenRows: (startRow, endRow) ->
     lastLine = null
     lines = []
@@ -79,6 +82,19 @@ class LineMap
           pendingFragment = null
       delta = delta.add(fragment.screenDelta)
     lines
+
+  lineForBufferRow: (row) ->
+    line = null
+    delta = new Delta
+    for fragment in @lineFragments
+      break if delta.rows > row
+      if delta.rows == row
+        if line
+          line = line.concat(fragment)
+        else
+          line = fragment
+      delta = delta.add(fragment.bufferDelta)
+    line
 
   bufferLineCount: ->
     delta = new Delta

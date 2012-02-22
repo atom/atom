@@ -143,7 +143,6 @@ describe "LineMap", ->
 
   describe ".linesForScreenRows(startRow, endRow)", ->
     it "returns lines for the given row range, concatenating fragments that belong on a single screen line", ->
-      line1Text = line1.text
       [line1a, line1b] = line1.splitAt(11)
       [line3a, line3b] = line3.splitAt(16)
       map.insertAtBufferRow(0, [line0, line1a, line1b, line2, line3a, line3b, line4])
@@ -151,7 +150,18 @@ describe "LineMap", ->
       # repeating assertion to cover a regression where this method mutated lines
       expect(map.linesForScreenRows(1, 3)).toEqual [line1, line2, line3]
 
-  describe ".screenPositionForBufferPosition(bufferPosition, allowEOL=true)", ->
+  describe ".lineForBufferRow(bufferRow)", ->
+    it "returns the concatenated screen line fragments that comprise the given buffer row", ->
+      line1Text = line1.text
+      [line1a, line1b] = line1.splitAt(11)
+      line1a.screenDelta = new Delta(1, 0)
+
+      map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
+
+      expect(map.lineForBufferRow(0).text).toBe line0.text
+      expect(map.lineForBufferRow(1).text).toBe line1Text
+
+  describe ".screenPositionForBufferPosition(bufferPosition, eagerWrap=true)", ->
     beforeEach ->
       # line1a-line3b describes a fold
       [line1a, line1b] = line1.splitAt(10)
@@ -176,6 +186,7 @@ describe "LineMap", ->
     describe "when eagerWrap is false", ->
       it "does not wrap buffer positions at the end of a screen line to the beginning of the next screen line", ->
         expect(map.screenPositionForBufferPosition([4, 20], false)).toEqual [2, 20]
+        expect(map.screenPositionForBufferPosition([4, 29], false)).toEqual [3, 9]
 
     describe "when eagerWrap is true", ->
       it "wraps buffer positions at the end of a screen line to the end end of the next screen line", ->
