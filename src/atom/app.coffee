@@ -19,10 +19,11 @@ class App
     @globalKeymap.bindKey(selector, pattern, eventName)
 
   open: (url) ->
-    OSX.NSApp.open url
+    $native.open url
 
   quit: ->
-    OSX.NSApp.terminate null
+    $native.terminate null
 
   windows: ->
-    controller.jsWindow for controller in OSX.NSApp.controllers
+		#		controller.jsWindow for controller in OSX.NSApp.controllers
+		[]

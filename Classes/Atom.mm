@@ -6,13 +6,15 @@
 @implementation Atom
 
 + (NSApplication *)sharedApplication {
-  // Populate the settings based on command line arguments.
-  CefSettings settings;
-  AppGetSettings(settings);
-  
-  // Initialize CEF.
-  CefRefPtr<CefApp> app;
-  CefInitialize(settings, app);
+  if (!NSApp) {
+    // Populate the settings based on command line arguments.
+    CefSettings settings;
+    AppGetSettings(settings);
+    
+    // Initialize CEF.
+    CefRefPtr<CefApp> app;
+    CefInitialize(settings, app);
+  }
   
   return [super sharedApplication];  
 }
@@ -30,9 +32,10 @@
   [super sendEvent:event];
 }
 
-- (void)applicationDidFinishLaunching:(NSNotification *)notification {
-
+- (void)open:(NSString *)path {
+  
 }
+
 
 - (IBAction)runSpecs:(id)sender {
   [[AtomController alloc] initForSpecs];

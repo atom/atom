@@ -7,6 +7,7 @@
   BOOL handlingSendEvent_;
 }
 
+- (void)open:(NSString *)path;
 - (IBAction)runSpecs:(id)sender;
 
 @end

@@ -1,5 +1,6 @@
 #import "native_handler.h"
 #import "include/cef.h"
+#import "Atom.h"
 
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   std::string cc_value = value->GetStringValue().ToString();
@@ -9,7 +10,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "absolute", "list"};
+  const char *functionNames[] = {"exists", "read", "absolute", "list", "open", "terminate"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -84,6 +85,16 @@ bool NativeHandler::Execute(const CefString& name,
       }
     }
     
+    return true;
+  }
+  else if (name == "open") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    [NSApp open:path];
+    
+    return true;
+  }
+  else if (name == "quit") {
+    [NSApp terminate:nil];
     return true;
   }
   
