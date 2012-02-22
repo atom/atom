@@ -16,11 +16,11 @@ class LineWrapper
   setMaxLength: (@maxLength) ->
     oldRange = new Range
     oldRange.end.row = @screenLineCount() - 1
-    oldRange.end.column = _.last(@index.last().screenLines).text.length
+    oldRange.end.column = @lineMap.lineForScreenRow(oldRange.end.row).text.length
     @buildWrappedLines()
     newRange = new Range
     newRange.end.row = @screenLineCount() - 1
-    newRange.end.column = _.last(@index.last().screenLines).text.length
+    newRange.end.column = @lineMap.lineForScreenRow(newRange.end.row).text.length
     @trigger 'change', { oldRange, newRange }
 
   getSpans: (wrappedLines) ->
@@ -30,37 +30,24 @@ class LineWrapper
     _.flatten(_.pluck(wrappedLines, 'screenLines'))
 
   buildWrappedLines: ->
-    @index = new SpanIndex
     @lineMap = new LineMap
     wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
-    @index.insert 0, @getSpans(wrappedLines), wrappedLines
     @lineMap.insertAtBufferRow 0, @unpackWrappedLines(wrappedLines)
 
   handleChange: (e) ->
-    oldRange = new Range
-
-    bufferRow = e.oldRange.start.row
-    oldRange.start.row = @firstScreenRowForBufferRow(e.oldRange.start.row)
-    oldRange.end.row = @lastScreenRowForBufferRow(e.oldRange.end.row)
-    oldRange.end.column = _.last(@index.at(e.oldRange.end.row).screenLines).text.length
+    oldScreenRange = @lineMap.screenRangeForBufferRange(@expandRangeToLineEnds(e.oldRange))
 
     { start, end } = e.oldRange
     wrappedLines = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
-    @index.splice start.row, end.row, @getSpans(wrappedLines), wrappedLines
     @lineMap.replaceBufferRows start.row, end.row, @unpackWrappedLines(wrappedLines)
 
-    newRange = oldRange.copy()
-    newRange.end.row = @lastScreenRowForBufferRow(e.newRange.end.row)
-    newRange.end.column = _.last(@index.at(e.newRange.end.row).screenLines).text.length
+    newScreenRange = @lineMap.screenRangeForBufferRange(@expandRangeToLineEnds(e.newRange))
 
-    @trigger 'change', { oldRange, newRange }
+    @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange }
 
-  firstScreenRowForBufferRow: (bufferRow) ->
-    @screenPositionForBufferPosition([bufferRow, 0]).row
-
-  lastScreenRowForBufferRow: (bufferRow) ->
-    startRow = @screenPositionForBufferPosition([bufferRow, 0]).row
-    startRow + (@index.at(bufferRow).screenLines.length - 1)
+  expandRangeToLineEnds: (bufferRange) ->
+    { start, end } = bufferRange
+    new Range([start.row, 0], [end.row, @lineMap.lineForBufferRow(end.row).text.length])
 
   buildWrappedLinesForBufferRows: (start, end) ->
     for row in [start..end]
@@ -100,10 +87,8 @@ class LineWrapper
         return column + 1 if /\s/.test(line[column])
       return @maxLength
 
-  screenRangeFromBufferRange: (bufferRange) ->
-    start = @screenPositionForBufferPosition(bufferRange.start, false)
-    end = @screenPositionForBufferPosition(bufferRange.end, false)
-    new Range(start,end)
+  screenRangeForBufferRange: (bufferRange) ->
+    @lineMap.screenRangeForBufferRange(bufferRange)
 
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
     @lineMap.screenPositionForBufferPosition(bufferPosition, eagerWrap)
@@ -115,15 +100,7 @@ class LineWrapper
     @screenLinesForRows(screenRow, screenRow)[0]
 
   screenLinesForRows: (startRow, endRow) ->
-    screenLines = []
-
-    { values, startOffset, endOffset } = @index.sliceBySpan(startRow, endRow)
-
-    screenLines.push(values[0].screenLines[startOffset..-1]...)
-    for wrappedLine in values[1...-1]
-      screenLines.push(wrappedLine.screenLines...)
-    screenLines.push(_.last(values).screenLines[0..endOffset]...)
-    screenLines
+    @lineMap.linesForScreenRows(startRow, endRow)
 
   screenLines: ->
     @screenLinesForRows(0, @screenLineCount() - 1)

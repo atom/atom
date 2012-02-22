@@ -71,7 +71,7 @@ class Selection extends View
       @cursor.setPosition(range.end)
 
   getScreenRange: ->
-    @editor.lineWrapper.screenRangeFromBufferRange(@getRange())
+    @editor.lineWrapper.screenRangeForBufferRange(@getRange())
 
   getText: ->
     @editor.buffer.getTextInRange @getRange()
