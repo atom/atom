@@ -1,6 +1,5 @@
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
-SpanIndex = require 'span-index'
 LineMap = require 'line-map'
 Point = require 'point'
 Range = require 'range'
@@ -10,38 +9,27 @@ module.exports =
 class LineWrapper
   constructor: (@maxLength, @highlighter) ->
     @buffer = @highlighter.buffer
-    @buildWrappedLines()
+    @buildLineMap()
     @highlighter.on 'change', (e) => @handleChange(e)
 
   setMaxLength: (@maxLength) ->
-    oldRange = new Range
-    oldRange.end.row = @screenLineCount() - 1
-    oldRange.end.column = @lineMap.lineForScreenRow(oldRange.end.row).text.length
-    @buildWrappedLines()
-    newRange = new Range
-    newRange.end.row = @screenLineCount() - 1
-    newRange.end.column = @lineMap.lineForScreenRow(newRange.end.row).text.length
+    oldRange = @rangeForAllScreenLines()
+    @buildLineMap()
+    newRange = @rangeForAllScreenLines()
     @trigger 'change', { oldRange, newRange }
 
-  getSpans: (wrappedLines) ->
-    wrappedLines.map (line) -> line.screenLines.length
-
-  unpackWrappedLines: (wrappedLines) ->
-    _.flatten(_.pluck(wrappedLines, 'screenLines'))
-
-  buildWrappedLines: ->
+  buildLineMap: ->
     @lineMap = new LineMap
-    wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
-    @lineMap.insertAtBufferRow 0, @unpackWrappedLines(wrappedLines)
+    @lineMap.insertAtBufferRow 0, @buildScreenLinesForBufferRows(0, @buffer.lastRow())
 
   handleChange: (e) ->
-    oldScreenRange = @lineMap.screenRangeForBufferRange(@expandRangeToLineEnds(e.oldRange))
+    oldBufferRange = e.oldRange
+    newBufferRange = e.newRange
 
-    { start, end } = e.oldRange
-    wrappedLines = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
-    @lineMap.replaceBufferRows start.row, end.row, @unpackWrappedLines(wrappedLines)
-
-    newScreenRange = @lineMap.screenRangeForBufferRange(@expandRangeToLineEnds(e.newRange))
+    oldScreenRange = @lineMap.screenRangeForBufferRange(@expandRangeToLineEnds(oldBufferRange))
+    newScreenLines = @buildScreenLinesForBufferRows(newBufferRange.start.row, newBufferRange.end.row)
+    @lineMap.replaceBufferRows oldBufferRange.start.row, oldBufferRange.end.row, newScreenLines
+    newScreenRange = @lineMap.screenRangeForBufferRange(@expandRangeToLineEnds(newBufferRange))
 
     @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange }
 
@@ -49,12 +37,15 @@ class LineWrapper
     { start, end } = bufferRange
     new Range([start.row, 0], [end.row, @lineMap.lineForBufferRow(end.row).text.length])
 
-  buildWrappedLinesForBufferRows: (start, end) ->
-    for row in [start..end]
-      @buildWrappedLineForBufferRow(row)
+  rangeForAllScreenLines: ->
+    endRow = @screenLineCount() - 1
+    endColumn = @lineMap.lineForScreenRow(endRow).text.length
+    new Range([0, 0], [endRow, endColumn])
 
-  buildWrappedLineForBufferRow: (bufferRow) ->
-    { screenLines: @wrapScreenLine(@highlighter.lineFragmentForRow(bufferRow)) }
+  buildScreenLinesForBufferRows: (start, end) ->
+    _(@highlighter
+      .lineFragmentsForRows(start, end)
+      .map((screenLine) => @wrapScreenLine(screenLine))).flatten()
 
   wrapScreenLine: (screenLine, startColumn=0) ->
     screenLines = []
