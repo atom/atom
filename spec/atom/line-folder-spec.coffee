@@ -55,7 +55,7 @@ describe "LineFolder", ->
           expect(line4.text).toBe  '    while(items.length > 0) {...}...concat(sort(right));'
           expect(line5.text).toBe '  };'
 
-  describe ".screenPositionForBufferPosition(bufferPosition)", ->
+  fdescribe "position translation", ->
     describe "when there is single fold spanning multiple lines", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
         folder.fold(new Range([4, 29], [7, 4]))
@@ -65,6 +65,10 @@ describe "LineFolder", ->
         expect(folder.screenPositionForBufferPosition([4, 0])).toEqual [4, 0]
         expect(folder.screenPositionForBufferPosition([4, 29])).toEqual [4, 29]
 
+        expect(folder.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
+        expect(folder.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
+        expect(folder.bufferPositionForScreenPosition([4, 29])).toEqual [4, 29]
+
         # inside of fold: translate to the start of the fold
         # expect(folder.screenPositionForBufferPosition([4, 30])).toEqual [4, 29]
         # expect(folder.screenPositionForBufferPosition([5, 5])).toEqual [4, 29]
@@ -73,7 +77,24 @@ describe "LineFolder", ->
         expect(folder.screenPositionForBufferPosition([7, 4])).toEqual [4, 32]
         expect(folder.screenPositionForBufferPosition([7, 7])).toEqual [4, 35]
 
+        expect(folder.bufferPositionForScreenPosition([4, 32])).toEqual [7, 4]
+        expect(folder.bufferPositionForScreenPosition([4, 35])).toEqual [7, 7]
+
         # # following fold, subsequent line
         expect(folder.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
         expect(folder.screenPositionForBufferPosition([13, 13])).toEqual [10, 13]
 
+        expect(folder.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
+        expect(folder.bufferPositionForScreenPosition([10, 13])).toEqual [13, 13]
+
+    describe "when there is a single fold spanning a single line", ->
+      it "translates positions to account for folded characters and the placeholder", ->
+        folder.fold(new Range([4, 10], [4, 15]))
+
+        expect(folder.screenPositionForBufferPosition([4, 5])).toEqual [4, 5]
+        expect(folder.screenPositionForBufferPosition([4, 15])).toEqual [4, 13]
+        expect(folder.screenPositionForBufferPosition([4, 20])).toEqual [4, 18]
+
+        expect(folder.bufferPositionForScreenPosition([4, 5])).toEqual [4, 5]
+        expect(folder.bufferPositionForScreenPosition([4, 13])).toEqual [4, 15]
+        expect(folder.bufferPositionForScreenPosition([4, 18])).toEqual [4, 20]
