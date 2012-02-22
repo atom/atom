@@ -25,14 +25,14 @@ class LineWrapper
     oldBufferRange = e.oldRange
     newBufferRange = e.newRange
 
-    oldScreenRange = @lineMap.screenRangeForBufferRange(@expandRangeToLineEnds(oldBufferRange))
+    oldScreenRange = @lineMap.screenRangeForBufferRange(@expandBufferRangeToLineEnds(oldBufferRange))
     newScreenLines = @buildScreenLinesForBufferRows(newBufferRange.start.row, newBufferRange.end.row)
     @lineMap.replaceBufferRows oldBufferRange.start.row, oldBufferRange.end.row, newScreenLines
-    newScreenRange = @lineMap.screenRangeForBufferRange(@expandRangeToLineEnds(newBufferRange))
+    newScreenRange = @lineMap.screenRangeForBufferRange(@expandBufferRangeToLineEnds(newBufferRange))
 
     @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange }
 
-  expandRangeToLineEnds: (bufferRange) ->
+  expandBufferRangeToLineEnds: (bufferRange) ->
     { start, end } = bufferRange
     new Range([start.row, 0], [end.row, @lineMap.lineForBufferRow(end.row).text.length])
 

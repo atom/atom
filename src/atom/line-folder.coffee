@@ -1,7 +1,9 @@
+_ = require 'underscore'
 Point = require 'point'
+Range = require 'range'
 LineMap = require 'line-map'
 ScreenLineFragment = require 'screen-line-fragment'
-_ = require 'underscore'
+EventEmitter = require 'event-emitter'
 
 module.exports =
 class LineFolder
@@ -14,10 +16,44 @@ class LineFolder
     @lineMap.insertAtBufferRow(0, @highlighter.screenLines)
 
   fold: (bufferRange) ->
+    fold = new Fold(this, bufferRange)
     @activeFolds[bufferRange.start.row] ?= []
-    @activeFolds[bufferRange.start.row].push(new Fold(this, bufferRange))
-    screenRange = @screenRangeForBufferRange(bufferRange)
-    @lineMap.replaceScreenRows(screenRange.start.row, screenRange.end.row, @renderScreenLine(screenRange.start.row))
+    @activeFolds[bufferRange.start.row].push(fold)
+    oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
+
+    lineWithFold = @renderScreenLine(oldScreenRange.start.row)
+    @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lineWithFold)
+
+    newScreenRange = oldScreenRange.copy()
+    newScreenRange.end = _.clone(newScreenRange.start)
+    for fragment in lineWithFold
+      newScreenRange.end.column += fragment.text.length
+
+    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+    fold
+
+  destroyFold: (fold) ->
+    bufferRange = fold.range
+    folds = @activeFolds[bufferRange.start.row]
+    foldIndex = folds.indexOf(fold)
+    folds[foldIndex..foldIndex] = []
+
+    startScreenRow = @screenRowForBufferRow(bufferRange.start.row)
+
+    oldScreenRange = new Range()
+    oldScreenRange.start.row = startScreenRow
+    oldScreenRange.end.row = startScreenRow
+    oldScreenRange.end.column = @lineMap.lineForScreenRow(startScreenRow).text.length
+
+    @lineMap.replaceScreenRow(startScreenRow, @renderScreenLinesForBufferRows(bufferRange.start.row, bufferRange.end.row))
+
+    newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
+
+    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+
+  renderScreenLinesForBufferRows: (start, end) ->
+    for row in [start..end]
+      @renderScreenLineForBufferRow(row)
 
   renderScreenLine: (screenRow) ->
     @renderScreenLineForBufferRow(@bufferRowForScreenRow(screenRow))
@@ -56,5 +92,15 @@ class LineFolder
   screenRangeForBufferRange: (bufferRange) ->
     @lineMap.screenRangeForBufferRange(bufferRange)
 
+  expandScreenRangeToLineEnds: (screenRange) ->
+    { start, end } = screenRange
+    new Range([start.row, 0], [end.row, @lineMap.lineForScreenRow(end.row).text.length])
+
+_.extend LineFolder.prototype, EventEmitter
+
 class Fold
   constructor: (@lineFolder, @range) ->
+
+  destroy: ->
+    @lineFolder.destroyFold(this)
+

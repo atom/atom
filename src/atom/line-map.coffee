@@ -45,6 +45,10 @@ class LineMap
   replaceBufferRows: (start, end, screenLines) ->
     @spliceAtBufferRow(start, end - start + 1, screenLines)
 
+
+  replaceScreenRow: (row, screenLines) ->
+    @replaceScreenRows(row, row, screenLines)
+
   replaceScreenRows: (start, end, screenLines) ->
     @spliceAtScreenRow(start, end - start + 1, screenLines)
 
