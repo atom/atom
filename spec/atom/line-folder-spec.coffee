@@ -57,7 +57,7 @@ describe "LineFolder", ->
 
   describe "position translation", ->
     describe "when there is single fold spanning multiple lines", ->
-      fit "translates positions to account for folded lines and characters and the placeholder", ->
+      it "translates positions to account for folded lines and characters and the placeholder", ->
         folder.fold(new Range([4, 29], [7, 4]))
 
         # preceding fold: identity
