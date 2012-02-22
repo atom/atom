@@ -52,8 +52,11 @@ class LineFolder
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
 
   renderScreenLinesForBufferRows: (start, end) ->
-    for row in [start..end]
-      @renderScreenLineForBufferRow(row)
+    lines = [@renderScreenLine(@screenRowForBufferRow(start))]
+    if end > start
+      for row in [start + 1..end]
+        lines.push @renderScreenLineForBufferRow(row)
+    _.flatten(lines)
 
   renderScreenLine: (screenRow) ->
     @renderScreenLineForBufferRow(@bufferRowForScreenRow(screenRow))

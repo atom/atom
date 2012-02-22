@@ -44,13 +44,30 @@ describe "LineFolder", ->
 
     describe "when there is a single fold contained on a single line", ->
       it "renders a placeholder for the folded region, but does not skip any lines", ->
-        folder.fold(new Range([2, 8], [2, 25]))
-        [line2, line3] = folder.linesForScreenRows(2, 3)
+        fold = folder.fold(new Range([2, 8], [2, 25]))
 
+        [line2, line3] = folder.linesForScreenRows(2, 3)
         expect(line2.text).toBe '    if (...) return items;'
         expect(line3.text).toBe '    var pivot = items.shift(), current, left = [], right = [];'
 
-  describe "screen line rendering", ->
+        expect(changeHandler).toHaveBeenCalled()
+        [event] = changeHandler.argsForCall[0]
+        expect(event.oldRange).toEqual [[2, 0], [2, 40]]
+        expect(event.newRange).toEqual [[2, 0], [2, 26]]
+        changeHandler.reset()
+
+        fold.destroy()
+
+        [line2, line3] = folder.linesForScreenRows(2, 3)
+        expect(line2.text).toBe '    if (items.length <= 1) return items;'
+        expect(line3.text).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
+        expect(changeHandler).toHaveBeenCalled()
+        [event] = changeHandler.argsForCall[0]
+        expect(event.newRange).toEqual [[2, 0], [2, 40]]
+        expect(event.oldRange).toEqual [[2, 0], [2, 26]]
+        changeHandler.reset()
+
     describe "when there is a nested fold on the last line of another fold", ->
       it "does not render a placeholder for the nested fold because it is inside of the other fold", ->
         folder.fold(new Range([8, 5], [8, 10]))
@@ -63,51 +80,80 @@ describe "LineFolder", ->
     describe "when another fold begins on the last line of a fold", ->
       describe "when the second fold is created before the first fold", ->
         it "renders a placeholder for both folds on the first line of the first fold", ->
-          folder.fold(new Range([7, 5], [8, 36]))
-          folder.fold(new Range([4, 29], [7, 4]))
-          [line4, line5] = folder.linesForScreenRows(4, 5)
+          fold1 = folder.fold(new Range([7, 5], [8, 36]))
+          fold2 = folder.fold(new Range([4, 29], [7, 4]))
 
+          [line4, line5] = folder.linesForScreenRows(4, 5)
           expect(line4.text).toBe  '    while(items.length > 0) {...}...concat(sort(right));'
           expect(line5.text).toBe '  };'
+
+          expect(changeHandler.callCount).toBe 2
+          [[event1], [event2]] = changeHandler.argsForCall
+          expect(event1.oldRange).toEqual [[7, 0], [8, 56]]
+          expect(event1.newRange).toEqual [[7, 0], [7, 28]]
+          expect(event2.oldRange).toEqual [[4, 0], [7, 28]]
+          expect(event2.newRange).toEqual [[4, 0], [4, 56]]
+          changeHandler.reset()
+
+          fold1.destroy()
+          [line4, line5] = folder.linesForScreenRows(4, 5)
+          expect(line4.text).toBe '    while(items.length > 0) {...}'
+          expect(line5.text).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+          expect(event.newRange).toEqual [[4, 0], [5, 56]]
+          changeHandler.reset()
+
+          fold2.destroy()
+          [line4, line5] = folder.linesForScreenRows(4, 5)
+          expect(line4.text).toBe '    while(items.length > 0) {'
+          expect(line5.text).toBe '      current = items.shift();'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual [[4, 0], [4, 33]]
+          expect(event.newRange).toEqual [[4, 0], [7, 5]]
 
       describe "when the second fold is created after the first fold", ->
         it "renders a placeholder for both folds on the first line of the first fold", ->
-          folder.fold(new Range([4, 29], [7, 4]))
-          folder.fold(new Range([7, 5], [8, 36]))
+          fold1 = folder.fold(new Range([4, 29], [7, 4]))
+          fold2 = folder.fold(new Range([7, 5], [8, 36]))
           [line4, line5] = folder.linesForScreenRows(4, 5)
           expect(line4.text).toBe  '    while(items.length > 0) {...}...concat(sort(right));'
           expect(line5.text).toBe '  };'
 
-  describe "change events", ->
-    changeHandler = null
+          expect(changeHandler.callCount).toBe 2
+          [[event1], [event2]] = changeHandler.argsForCall
+          expect(event1.oldRange).toEqual [[4, 0], [7, 5]]
+          expect(event1.newRange).toEqual [[4, 0], [4, 33]]
+          expect(event2.oldRange).toEqual [[4, 0], [5, 56]]
+          expect(event2.newRange).toEqual [[4, 0], [4, 56]]
+          changeHandler.reset()
 
-    beforeEach ->
+          fold1.destroy()
+          [line4, line5] = folder.linesForScreenRows(4, 5)
+          [line7] = folder.linesForScreenRows(7, 7)
+          expect(line4.text).toBe '    while(items.length > 0) {'
+          expect(line5.text).toBe '      current = items.shift();'
+          expect(line7.text).toBe '    }...concat(sort(right));'
 
-    describe "when folds are created or destroyed", ->
-      it "emits a change event for the lines that are folded / unfolded", ->
-        fold1 = folder.fold(new Range([4, 29], [7, 4]))
-        changeHandler.reset()
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+          expect(event.newRange).toEqual [[4, 0], [7, 28]]
+          changeHandler.reset()
 
-        fold2 = folder.fold(new Range([7, 5], [8, 34]))
-        expect(changeHandler).toHaveBeenCalled()
-        [event] = changeHandler.argsForCall[0]
-        expect(event.oldRange).toEqual [[4, 0], [5, 56]]
-        expect(event.newRange).toEqual [[4, 0], [4, 58]]
-        changeHandler.reset()
+          fold2.destroy()
+          [line4, line5] = folder.linesForScreenRows(4, 5)
+          expect(line4.text).toBe '    while(items.length > 0) {'
+          expect(line5.text).toBe '      current = items.shift();'
 
-        # fold1.destroy()
-        # expect(changeHandler).toHaveBeenCalled()
-        # [event] = changeHandler.argsForCall[0]
-        # expect(event.oldRange).toEqual [[4, 0], [4, 33]]
-        # expect(event.newRange).toEqual [[4, 0], [7, 5]]
-        # changeHandler.reset()
-
-    describe "when the buffer changes", ->
-      describe "when the change precedes any folds", ->
-
-      describe "when the change follows a fold", ->
-
-      describe "when the change is inside of a fold", ->
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual [[7, 0], [7, 28]]
+          expect(event.newRange).toEqual [[7, 0], [8, 56]]
 
   describe "position translation", ->
     describe "when there is single fold spanning multiple lines", ->
