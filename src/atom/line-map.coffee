@@ -117,12 +117,12 @@ class LineMap
       nextDelta = bufferDelta.add(screenLine.bufferDelta)
       break if nextDelta.toPoint().greaterThan(bufferPosition)
       break if nextDelta.toPoint().isEqual(bufferPosition) and not eagerWrap
-
       bufferDelta = nextDelta
       screenDelta = screenDelta.add(screenLine.screenDelta)
 
-    columns = screenDelta.columns + (bufferPosition.column - bufferDelta.columns)
-    new Point(screenDelta.rows, columns)
+    remainingBufferColumns = bufferPosition.column - bufferDelta.columns
+    additionalScreenColumns = Math.min(remainingBufferColumns, screenLine.lengthForClipping())
+    new Point(screenDelta.rows, screenDelta.columns + additionalScreenColumns)
 
   bufferPositionForScreenPosition: (screenPosition) ->
     screenPosition = Point.fromObject(screenPosition)

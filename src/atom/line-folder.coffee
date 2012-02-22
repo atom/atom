@@ -33,7 +33,7 @@ class LineFolder
     screenLine
 
   buildFoldPlaceholder: (fold) ->
-    new ScreenLineFragment([{value: '...', type: 'fold-placeholder'}], '...', [0, 3], fold.range.toDelta())
+    new ScreenLineFragment([{value: '...', type: 'fold-placeholder'}], '...', [0, 3], fold.range.toDelta(), isAtomic: true)
 
   foldsForBufferRow: (bufferRow) ->
     @activeFolds[bufferRow] or []

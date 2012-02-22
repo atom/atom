@@ -3,6 +3,8 @@ Delta = require 'delta'
 
 module.exports =
 class ScreenLineFragment
+  isAtomic: false
+
   constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
     @screenDelta = Delta.fromObject(screenDelta)
     @bufferDelta = Delta.fromObject(bufferDelta)
@@ -43,6 +45,12 @@ class ScreenLineFragment
     screenDelta = @screenDelta.add(other.screenDelta)
     bufferDelta = @bufferDelta.add(other.bufferDelta)
     new ScreenLineFragment(tokens, text, screenDelta, bufferDelta)
+
+  lengthForClipping: ->
+    if @isAtomic
+      0
+    else
+      @text.length
 
   isEqual: (other) ->
     _.isEqual(@tokens, other.tokens) and @screenDelta.isEqual(other.screenDelta) and @bufferDelta.isEqual(other.bufferDelta)
