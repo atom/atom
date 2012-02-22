@@ -20,7 +20,7 @@ describe "LineFolder", ->
         previousLine4Text = line4.text
         previousLine5Text = line5.text
 
-        fold = folder.fold(new Range([4, 29], [7, 4]))
+        fold = folder.createFold(new Range([4, 29], [7, 4]))
         [line4, line5] = folder.linesForScreenRows(4, 5)
 
         expect(line4.text).toBe '    while(items.length > 0) {...}'
@@ -44,7 +44,7 @@ describe "LineFolder", ->
 
     describe "when there is a single fold contained on a single line", ->
       it "renders a placeholder for the folded region, but does not skip any lines", ->
-        fold = folder.fold(new Range([2, 8], [2, 25]))
+        fold = folder.createFold(new Range([2, 8], [2, 25]))
 
         [line2, line3] = folder.linesForScreenRows(2, 3)
         expect(line2.text).toBe '    if (...) return items;'
@@ -70,8 +70,8 @@ describe "LineFolder", ->
 
     describe "when there is a nested fold on the last line of another fold", ->
       it "does not render a placeholder for the nested fold because it is inside of the other fold", ->
-        folder.fold(new Range([8, 5], [8, 10]))
-        folder.fold(new Range([4, 29], [8, 36]))
+        folder.createFold(new Range([8, 5], [8, 10]))
+        folder.createFold(new Range([4, 29], [8, 36]))
         [line4, line5] = folder.linesForScreenRows(4, 5)
 
         expect(line4.text).toBe '    while(items.length > 0) {...concat(sort(right));'
@@ -80,8 +80,8 @@ describe "LineFolder", ->
     describe "when another fold begins on the last line of a fold", ->
       describe "when the second fold is created before the first fold", ->
         it "renders a placeholder for both folds on the first line of the first fold", ->
-          fold1 = folder.fold(new Range([7, 5], [8, 36]))
-          fold2 = folder.fold(new Range([4, 29], [7, 4]))
+          fold1 = folder.createFold(new Range([7, 5], [8, 36]))
+          fold2 = folder.createFold(new Range([4, 29], [7, 4]))
 
           [line4, line5] = folder.linesForScreenRows(4, 5)
           expect(line4.text).toBe  '    while(items.length > 0) {...}...concat(sort(right));'
@@ -118,8 +118,8 @@ describe "LineFolder", ->
 
       describe "when the second fold is created after the first fold", ->
         it "renders a placeholder for both folds on the first line of the first fold", ->
-          fold1 = folder.fold(new Range([4, 29], [7, 4]))
-          fold2 = folder.fold(new Range([7, 5], [8, 36]))
+          fold1 = folder.createFold(new Range([4, 29], [7, 4]))
+          fold2 = folder.createFold(new Range([7, 5], [8, 36]))
           [line4, line5] = folder.linesForScreenRows(4, 5)
           expect(line4.text).toBe  '    while(items.length > 0) {...}...concat(sort(right));'
           expect(line5.text).toBe '  };'
@@ -158,7 +158,7 @@ describe "LineFolder", ->
   describe "position translation", ->
     describe "when there is single fold spanning multiple lines", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
-        folder.fold(new Range([4, 29], [7, 4]))
+        folder.createFold(new Range([4, 29], [7, 4]))
 
         # preceding fold: identity
         expect(folder.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
@@ -186,7 +186,7 @@ describe "LineFolder", ->
 
     describe "when there is a single fold spanning a single line", ->
       it "translates positions to account for folded characters and the placeholder", ->
-        folder.fold(new Range([4, 10], [4, 15]))
+        folder.createFold(new Range([4, 10], [4, 15]))
 
         expect(folder.screenPositionForBufferPosition([4, 5])).toEqual [4, 5]
         expect(folder.screenPositionForBufferPosition([4, 15])).toEqual [4, 13]

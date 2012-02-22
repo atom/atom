@@ -15,7 +15,7 @@ class LineFolder
     @lineMap = new LineMap
     @lineMap.insertAtBufferRow(0, @highlighter.screenLines)
 
-  fold: (bufferRange) ->
+  createFold: (bufferRange) ->
     fold = new Fold(this, bufferRange)
     @activeFolds[bufferRange.start.row] ?= []
     @activeFolds[bufferRange.start.row].push(fold)
