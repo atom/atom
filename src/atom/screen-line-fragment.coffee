@@ -3,9 +3,10 @@ Delta = require 'delta'
 
 module.exports =
 class ScreenLineFragment
-  constructor: (@tokens, @text, screenDelta, bufferDelta) ->
+  constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
     @screenDelta = Delta.fromObject(screenDelta)
     @bufferDelta = Delta.fromObject(bufferDelta)
+    _.extend(this, extraFields)
 
   splitAt: (column) ->
     return [undefined, this] if column == 0

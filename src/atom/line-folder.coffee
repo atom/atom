@@ -11,7 +11,7 @@ class LineFolder
 
   buildLineMap: ->
     @lineMap = new LineMap
-    @lineMap.insertAtBufferRow(0, @highlighter.lineFragments())
+    @lineMap.insertAtBufferRow(0, @highlighter.screenLines)
 
   fold: (bufferRange) ->
     @activeFolds[bufferRange.start.row] ?= []
@@ -23,24 +23,13 @@ class LineFolder
     @renderScreenLineForBufferRow(@bufferRowForScreenRow(screenRow))
 
   renderScreenLineForBufferRow: (bufferRow, startColumn=0) ->
-    screenLine = @highlighter.lineFragmentForRow(bufferRow).splitAt(startColumn)[1]
+    screenLine = @highlighter.screenLineForRow(bufferRow).splitAt(startColumn)[1]
     for fold in @foldsForBufferRow(bufferRow)
       { start, end } = fold.range
       if start.column > startColumn
         prefix = screenLine.splitAt(start.column - startColumn)[0]
-        suffix = @buildScreenLineForBufferRow(end.row, end.column)
+        suffix = @renderScreenLineForBufferRow(end.row, end.column)
         return _.flatten([prefix, @buildFoldPlaceholder(fold), suffix])
-    screenLine
-
-  buildScreenLineForBufferRow: (bufferRow, startColumn=0) ->
-    screenLine = @highlighter.lineFragmentForRow(bufferRow).splitAt(startColumn)[1]
-    for fold in @foldsForBufferRow(bufferRow)
-      { start, end } = fold.range
-      if start.column > startColumn
-        prefix = screenLine.splitAt(start.column - startColumn)[0]
-        suffix = @buildScreenLineForBufferRow(end.row, end.column)
-        screenLine = _.flatten([prefix, @buildFoldPlaceholder(fold), suffix])
-        return screenLine
     screenLine
 
   buildFoldPlaceholder: (fold) ->

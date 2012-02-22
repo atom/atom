@@ -1,6 +1,5 @@
 _ = require 'underscore'
 ScreenLineFragment = require 'screen-line-fragment'
-ScreenLine = require 'screen-line'
 EventEmitter = require 'event-emitter'
 
 module.exports =
@@ -59,20 +58,15 @@ class Highlighter
   buildScreenLineForRow: (state, row) ->
     line = @buffer.getLine(row)
     {tokens, state} = @tokenizer.getLineTokens(line, state)
-    new ScreenLine(tokens, line, state)
+    new ScreenLineFragment(tokens, line, [1, 0], [1, 0], { state })
 
   screenLineForRow: (row) ->
     @screenLines[row]
 
-  lineFragments: ->
-    @lineFragmentsForRows(0, @buffer.lastRow())
+  screenLinesForRows: (startRow, endRow) ->
+    @screenLines[startRow..endRow]
 
-  lineFragmentsForRows: (startRow, endRow) ->
-    for row in [startRow..endRow]
-      @lineFragmentForRow(row)
-
-  lineFragmentForRow: (row) ->
-    { tokens, text } = @screenLines[row]
-    new ScreenLineFragment(tokens, text, [1, 0], [1, 0])
+  lastRow: ->
+    @screenLines.length - 1
 
 _.extend(Highlighter.prototype, EventEmitter)

@@ -8,7 +8,6 @@ Delta = require 'delta'
 module.exports =
 class LineWrapper
   constructor: (@maxLength, @highlighter) ->
-    @buffer = @highlighter.buffer
     @buildLineMap()
     @highlighter.on 'change', (e) => @handleChange(e)
 
@@ -20,7 +19,7 @@ class LineWrapper
 
   buildLineMap: ->
     @lineMap = new LineMap
-    @lineMap.insertAtBufferRow 0, @buildScreenLinesForBufferRows(0, @buffer.lastRow())
+    @lineMap.insertAtBufferRow 0, @buildScreenLinesForBufferRows(0, @highlighter.lastRow())
 
   handleChange: (e) ->
     oldBufferRange = e.oldRange
@@ -44,7 +43,7 @@ class LineWrapper
 
   buildScreenLinesForBufferRows: (start, end) ->
     _(@highlighter
-      .lineFragmentsForRows(start, end)
+      .screenLinesForRows(start, end)
       .map((screenLine) => @wrapScreenLine(screenLine))).flatten()
 
   wrapScreenLine: (screenLine, startColumn=0) ->

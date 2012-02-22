@@ -6,61 +6,61 @@ Range = require 'range'
 module.exports =
 class LineMap
   constructor: ->
-    @lineFragments = []
+    @screenLines = []
 
-  insertAtBufferRow: (bufferRow, lineFragments) ->
-    lineFragments = [lineFragments] unless _.isArray(lineFragments)
+  insertAtBufferRow: (bufferRow, screenLines) ->
+    screenLines = [screenLines] unless _.isArray(screenLines)
     delta = new Delta
     insertIndex = 0
 
-    for lineFragment in @lineFragments
-      nextDelta = delta.add(lineFragment.bufferDelta)
+    for screenLine in @screenLines
+      nextDelta = delta.add(screenLine.bufferDelta)
       break if nextDelta.rows > bufferRow
       delta = nextDelta
       insertIndex++
 
-    @lineFragments[insertIndex...insertIndex] = lineFragments
+    @screenLines[insertIndex...insertIndex] = screenLines
 
-  spliceAtBufferRow: (startRow, rowCount, lineFragments) ->
-    @spliceByDelta('bufferDelta', startRow, rowCount, lineFragments)
+  spliceAtBufferRow: (startRow, rowCount, screenLines) ->
+    @spliceByDelta('bufferDelta', startRow, rowCount, screenLines)
 
-  spliceAtScreenRow: (startRow, rowCount, lineFragments) ->
-    @spliceByDelta('screenDelta', startRow, rowCount, lineFragments)
+  spliceAtScreenRow: (startRow, rowCount, screenLines) ->
+    @spliceByDelta('screenDelta', startRow, rowCount, screenLines)
 
-  spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
+  spliceByDelta: (deltaType, startRow, rowCount, screenLines) ->
     stopRow = startRow + rowCount
     startIndex = undefined
     stopIndex = 0
     delta = new Delta
 
-    for lineFragment, i in @lineFragments
+    for screenLine, i in @screenLines
       startIndex = i if delta.rows == startRow and not startIndex
-      nextDelta = delta.add(lineFragment[deltaType])
+      nextDelta = delta.add(screenLine[deltaType])
       break if nextDelta.rows > stopRow
       delta = nextDelta
       stopIndex++
 
-    @lineFragments[startIndex...stopIndex] = lineFragments
+    @screenLines[startIndex...stopIndex] = screenLines
 
-  replaceBufferRows: (start, end, lineFragments) ->
-    @spliceAtBufferRow(start, end - start + 1, lineFragments)
+  replaceBufferRows: (start, end, screenLines) ->
+    @spliceAtBufferRow(start, end - start + 1, screenLines)
 
-  replaceScreenRows: (start, end, lineFragments) ->
-    @spliceAtScreenRow(start, end - start + 1, lineFragments)
+  replaceScreenRows: (start, end, screenLines) ->
+    @spliceAtScreenRow(start, end - start + 1, screenLines)
 
-  lineFragmentsForScreenRow: (screenRow) ->
-    @lineFragmentsForScreenRows(screenRow, screenRow)
+  screenLinesForScreenRow: (screenRow) ->
+    @screenLinesForScreenRows(screenRow, screenRow)
 
-  lineFragmentsForScreenRows: (startRow, endRow) ->
-    lineFragments = []
+  screenLinesForScreenRows: (startRow, endRow) ->
+    screenLines = []
     delta = new Delta
 
-    for lineFragment in @lineFragments
+    for screenLine in @screenLines
       break if delta.rows > endRow
-      lineFragments.push(lineFragment) if delta.rows >= startRow
-      delta = delta.add(lineFragment.screenDelta)
+      screenLines.push(screenLine) if delta.rows >= startRow
+      delta = delta.add(screenLine.screenDelta)
 
-    lineFragments
+    screenLines
 
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
@@ -70,7 +70,7 @@ class LineMap
     lines = []
     delta = new Delta
 
-    for fragment in @lineFragments
+    for fragment in @screenLines
       break if delta.rows > endRow
       if delta.rows >= startRow
         if pendingFragment
@@ -86,7 +86,7 @@ class LineMap
   lineForBufferRow: (row) ->
     line = null
     delta = new Delta
-    for fragment in @lineFragments
+    for fragment in @screenLines
       break if delta.rows > row
       if delta.rows == row
         if line
@@ -98,14 +98,14 @@ class LineMap
 
   bufferLineCount: ->
     delta = new Delta
-    for lineFragment in @lineFragments
-      delta = delta.add(lineFragment.bufferDelta)
+    for screenLine in @screenLines
+      delta = delta.add(screenLine.bufferDelta)
     delta.rows
 
   screenLineCount: ->
     delta = new Delta
-    for lineFragment in @lineFragments
-      delta = delta.add(lineFragment.screenDelta)
+    for screenLine in @screenLines
+      delta = delta.add(screenLine.screenDelta)
     delta.rows
 
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
@@ -113,13 +113,13 @@ class LineMap
     bufferDelta = new Delta
     screenDelta = new Delta
 
-    for lineFragment in @lineFragments
-      nextDelta = bufferDelta.add(lineFragment.bufferDelta)
+    for screenLine in @screenLines
+      nextDelta = bufferDelta.add(screenLine.bufferDelta)
       break if nextDelta.toPoint().greaterThan(bufferPosition)
       break if nextDelta.toPoint().isEqual(bufferPosition) and not eagerWrap
 
       bufferDelta = nextDelta
-      screenDelta = screenDelta.add(lineFragment.screenDelta)
+      screenDelta = screenDelta.add(screenLine.screenDelta)
 
     columns = screenDelta.columns + (bufferPosition.column - bufferDelta.columns)
     new Point(screenDelta.rows, columns)
@@ -129,11 +129,11 @@ class LineMap
     bufferDelta = new Delta
     screenDelta = new Delta
 
-    for lineFragment in @lineFragments
-      nextDelta = screenDelta.add(lineFragment.screenDelta)
+    for screenLine in @screenLines
+      nextDelta = screenDelta.add(screenLine.screenDelta)
       break if nextDelta.toPoint().greaterThan(screenPosition)
       screenDelta = nextDelta
-      bufferDelta = bufferDelta.add(lineFragment.bufferDelta)
+      bufferDelta = bufferDelta.add(screenLine.bufferDelta)
 
     columns = bufferDelta.columns + (screenPosition.column - screenDelta.columns)
     new Point(bufferDelta.rows, columns)
