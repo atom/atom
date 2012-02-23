@@ -18,10 +18,6 @@ module.exports =
     base = path.split("/").pop()
     if ext then base.replace(RegEx(ext + "$"), "") else base
 
-  # Set the current working directory to `path`.
-  changeWorkingDirectory: (path) ->
-    OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
-
   # Return the dirname of the given path. That is the path with any trailing
   # non-directory component removed.
   directory: (path) ->
@@ -32,7 +28,7 @@ module.exports =
 
   # Returns true if the file specified by path exists
   exists: (path) ->
-    OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory path, null
+    $native.exists path
 
   join: (paths...) ->
     return paths[0] if paths.length == 1
@@ -42,15 +38,12 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
-    isDir = new jscocoa.outArgument
-    exists = OSX.NSFileManager.defaultManager.
-      fileExistsAtPath_isDirectory path, isDir
-    exists and isDir.valueOf()
+    $native.isDirectory path
 
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    $atomController.fs.isFile path
+    $native.isFile path
 
   # Returns an array with all the names of files contained
   # in the directory path.
@@ -68,8 +61,7 @@ module.exports =
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
   remove: (path) ->
-    fm = OSX.NSFileManager.defaultManager
-    paths = fm.removeItemAtPath_error path, null
+    $native.remove path
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
@@ -80,10 +72,6 @@ module.exports =
     str  = OSX.NSString.stringWithUTF8String content
     enc  = OSX.NSUTF8StringEncoding
     str.writeToFile_atomically_encoding_error path, true, enc, null
-
-  # Return the path name of the current working directory.
-  workingDirectory: ->
-    OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
 
   async:
     listFiles: (path, recursive) ->

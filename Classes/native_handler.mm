@@ -10,7 +10,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "absolute", "list", "open", "terminate"};
+  const char *functionNames[] = {"exists", "read", "absolute", "list", "isFile", "isDirectory", "remove", "open", "terminate"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -83,6 +83,36 @@ bool NativeHandler::Execute(const CefString& name,
         NSString *fullPath = [path stringByAppendingPathComponent:relativePath];
         retval->SetValue(i, CefV8Value::CreateString([fullPath UTF8String]));
       }
+    }
+    
+    return true;
+  }
+  else if (name == "isDirectory") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+
+    BOOL isDir = false;
+    BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];
+    retval = CefV8Value::CreateBool(exists && isDir);
+    
+    return true;
+  }
+  else if (name == "isFile") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    
+    BOOL isDir = false;
+    BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];
+    retval = CefV8Value::CreateBool(exists && !isDir);
+    
+    return true;
+  }
+  else if (name == "remove") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    
+    NSError *error = nil;
+    [[NSFileManager defaultManager] removeItemAtPath:path error:&error];
+    
+    if (error) {
+      exception = [[error localizedDescription] UTF8String];
     }
     
     return true;
