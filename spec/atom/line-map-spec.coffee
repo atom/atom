@@ -22,10 +22,10 @@ describe "LineMap", ->
         map.insertAtBufferRow(2, line3)
         map.insertAtBufferRow(2, line2)
 
-        expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-        expect(map.screenLinesForScreenRow(1)).toEqual [line1]
-        expect(map.screenLinesForScreenRow(2)).toEqual [line2]
-        expect(map.screenLinesForScreenRow(3)).toEqual [line3]
+        expect(map.lineForScreenRow(0)).toEqual line0
+        expect(map.lineForScreenRow(1)).toEqual line1
+        expect(map.lineForScreenRow(2)).toEqual line2
+        expect(map.lineForScreenRow(3)).toEqual line3
 
     describe "when passed an array of line fragments", ->
       it "inserts the given line fragments before the specified buffer row", ->
@@ -33,11 +33,11 @@ describe "LineMap", ->
         map.insertAtBufferRow(0, [line0, line1])
         map.insertAtBufferRow(4, [line4])
 
-        expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-        expect(map.screenLinesForScreenRow(1)).toEqual [line1]
-        expect(map.screenLinesForScreenRow(2)).toEqual [line2]
-        expect(map.screenLinesForScreenRow(3)).toEqual [line3]
-        expect(map.screenLinesForScreenRow(4)).toEqual [line4]
+        expect(map.lineForScreenRow(0)).toEqual line0
+        expect(map.lineForScreenRow(1)).toEqual line1
+        expect(map.lineForScreenRow(2)).toEqual line2
+        expect(map.lineForScreenRow(3)).toEqual line3
+        expect(map.lineForScreenRow(4)).toEqual line4
 
   describe ".spliceAtBufferRow(bufferRow, rowCount, screenLines)", ->
     describe "when called with a row count of 0", ->
@@ -45,11 +45,11 @@ describe "LineMap", ->
         map.insertAtBufferRow(0, [line0, line1, line2])
         map.spliceAtBufferRow(1, 0, [line3, line4])
 
-        expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-        expect(map.screenLinesForScreenRow(1)).toEqual [line3]
-        expect(map.screenLinesForScreenRow(2)).toEqual [line4]
-        expect(map.screenLinesForScreenRow(3)).toEqual [line1]
-        expect(map.screenLinesForScreenRow(4)).toEqual [line2]
+        expect(map.lineForScreenRow(0)).toEqual line0
+        expect(map.lineForScreenRow(1)).toEqual line3
+        expect(map.lineForScreenRow(2)).toEqual line4
+        expect(map.lineForScreenRow(3)).toEqual line1
+        expect(map.lineForScreenRow(4)).toEqual line2
 
     describe "when called with a row count of 1", ->
       describe "when the specified buffer row is spanned by a single line fragment", ->
@@ -58,10 +58,10 @@ describe "LineMap", ->
           map.spliceAtBufferRow(1, 1, [line3, line4])
 
           expect(map.bufferLineCount()).toBe 4
-          expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-          expect(map.screenLinesForScreenRow(1)).toEqual [line3]
-          expect(map.screenLinesForScreenRow(2)).toEqual [line4]
-          expect(map.screenLinesForScreenRow(3)).toEqual [line2]
+          expect(map.lineForScreenRow(0)).toEqual line0
+          expect(map.lineForScreenRow(1)).toEqual line3
+          expect(map.lineForScreenRow(2)).toEqual line4
+          expect(map.lineForScreenRow(3)).toEqual line2
 
       describe "when the specified buffer row is spanned by multiple line fragments", ->
         it "replaces all spanning line fragments with the given line fragments", ->
@@ -72,10 +72,10 @@ describe "LineMap", ->
           map.spliceAtBufferRow(1, 1, [line3a, line3b, line4])
 
           expect(map.bufferLineCount()).toBe 4
-          expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-          expect(map.screenLinesForScreenRow(1)).toEqual [line3a, line3b]
-          expect(map.screenLinesForScreenRow(2)).toEqual [line4]
-          expect(map.screenLinesForScreenRow(3)).toEqual [line2]
+          expect(map.lineForScreenRow(0)).toEqual line0
+          expect(map.lineForScreenRow(1)).toEqual line3a.concat(line3b)
+          expect(map.lineForScreenRow(2)).toEqual line4
+          expect(map.lineForScreenRow(3)).toEqual line2
 
     describe "when called with a row count greater than 1", ->
       it "replaces all line fragments spanning the multiple buffer rows with the given line fragments", ->
@@ -86,9 +86,9 @@ describe "LineMap", ->
         map.spliceAtBufferRow(1, 2, [line3a, line3b, line4])
 
         expect(map.bufferLineCount()).toBe 3
-        expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-        expect(map.screenLinesForScreenRow(1)).toEqual [line3a, line3b]
-        expect(map.screenLinesForScreenRow(2)).toEqual [line4]
+        expect(map.lineForScreenRow(0)).toEqual line0
+        expect(map.lineForScreenRow(1)).toEqual line3a.concat(line3b)
+        expect(map.lineForScreenRow(2)).toEqual line4
 
   describe ".spliceAtScreenRow(startRow, rowCount, lineFragemnts)", ->
     describe "when called with a row count of 0", ->
@@ -96,11 +96,11 @@ describe "LineMap", ->
         map.insertAtBufferRow(0, [line0, line1, line2])
         map.spliceAtScreenRow(1, 0, [line3, line4])
 
-        expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-        expect(map.screenLinesForScreenRow(1)).toEqual [line3]
-        expect(map.screenLinesForScreenRow(2)).toEqual [line4]
-        expect(map.screenLinesForScreenRow(3)).toEqual [line1]
-        expect(map.screenLinesForScreenRow(4)).toEqual [line2]
+        expect(map.lineForScreenRow(0)).toEqual line0
+        expect(map.lineForScreenRow(1)).toEqual line3
+        expect(map.lineForScreenRow(2)).toEqual line4
+        expect(map.lineForScreenRow(3)).toEqual line1
+        expect(map.lineForScreenRow(4)).toEqual line2
 
     describe "when called with a row count of 1", ->
       describe "when the specified screen row is spanned by a single line fragment", ->
@@ -109,10 +109,10 @@ describe "LineMap", ->
           map.spliceAtScreenRow(1, 1, [line3, line4])
 
           expect(map.bufferLineCount()).toBe 4
-          expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-          expect(map.screenLinesForScreenRow(1)).toEqual [line3]
-          expect(map.screenLinesForScreenRow(2)).toEqual [line4]
-          expect(map.screenLinesForScreenRow(3)).toEqual [line2]
+          expect(map.lineForScreenRow(0)).toEqual line0
+          expect(map.lineForScreenRow(1)).toEqual line3
+          expect(map.lineForScreenRow(2)).toEqual line4
+          expect(map.lineForScreenRow(3)).toEqual line2
 
       describe "when the specified screen row is spanned by multiple line fragments", ->
         it "replaces all spanning line fragments with the given line fragments", ->
@@ -123,10 +123,10 @@ describe "LineMap", ->
           map.spliceAtScreenRow(1, 1, [line3a, line3b, line4])
 
           expect(map.bufferLineCount()).toBe 4
-          expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-          expect(map.screenLinesForScreenRow(1)).toEqual [line3a, line3b]
-          expect(map.screenLinesForScreenRow(2)).toEqual [line4]
-          expect(map.screenLinesForScreenRow(3)).toEqual [line2]
+          expect(map.lineForScreenRow(0)).toEqual line0
+          expect(map.lineForScreenRow(1)).toEqual line3a.concat(line3b)
+          expect(map.lineForScreenRow(2)).toEqual line4
+          expect(map.lineForScreenRow(3)).toEqual line2
 
     describe "when called with a row count greater than 1", ->
       it "replaces all line fragments spanning the multiple buffer rows with the given line fragments", ->
@@ -137,9 +137,9 @@ describe "LineMap", ->
         map.spliceAtScreenRow(1, 2, [line3a, line3b, line4])
 
         expect(map.bufferLineCount()).toBe 3
-        expect(map.screenLinesForScreenRow(0)).toEqual [line0]
-        expect(map.screenLinesForScreenRow(1)).toEqual [line3a, line3b]
-        expect(map.screenLinesForScreenRow(2)).toEqual [line4]
+        expect(map.lineForScreenRow(0)).toEqual line0
+        expect(map.lineForScreenRow(1)).toEqual line3a.concat(line3b)
+        expect(map.lineForScreenRow(2)).toEqual line4
 
   describe ".linesForScreenRows(startRow, endRow)", ->
     it "returns lines for the given row range, concatenating fragments that belong on a single screen line", ->

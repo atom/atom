@@ -92,7 +92,7 @@ class LineWrapper
   linesForScreenRows: (startRow, endRow) ->
     @lineMap.linesForScreenRows(startRow, endRow)
 
-  lines: ->
+  getLines: ->
     @linesForScreenRows(0, @lineCount() - 1)
 
   lineCount: ->

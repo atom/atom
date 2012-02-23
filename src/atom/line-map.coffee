@@ -45,26 +45,14 @@ class LineMap
   replaceBufferRows: (start, end, screenLines) ->
     @spliceAtBufferRow(start, end - start + 1, screenLines)
 
-
   replaceScreenRow: (row, screenLines) ->
     @replaceScreenRows(row, row, screenLines)
 
   replaceScreenRows: (start, end, screenLines) ->
     @spliceAtScreenRow(start, end - start + 1, screenLines)
 
-  screenLinesForScreenRow: (screenRow) ->
-    @screenLinesForScreenRows(screenRow, screenRow)
-
-  screenLinesForScreenRows: (startRow, endRow) ->
-    screenLines = []
-    delta = new Delta
-
-    for screenLine in @screenLines
-      break if delta.rows > endRow
-      screenLines.push(screenLine) if delta.rows >= startRow
-      delta = delta.add(screenLine.screenDelta)
-
-    screenLines
+  getScreenLines: ->
+    return @screenLines
 
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]

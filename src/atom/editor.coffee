@@ -129,7 +129,7 @@ class Editor extends View
 
   renderLines: ->
     @lines.empty()
-    for screenLine in @lineWrapper.lines()
+    for screenLine in @lineWrapper.getLines()
       @lines.append @buildLineElement(screenLine)
 
   setBuffer: (@buffer) ->

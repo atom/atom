@@ -80,6 +80,12 @@ class LineFolder
   linesForScreenRows: (startRow, endRow) ->
     @lineMap.linesForScreenRows(startRow, endRow)
 
+  getLines: ->
+    @lineMap.getScreenLines()
+
+  lineCount: ->
+    @lineMap.screenLineCount()
+
   screenRowForBufferRow: (bufferRow) ->
     @screenPositionForBufferPosition([bufferRow, 0]).row
 
