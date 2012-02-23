@@ -2,7 +2,7 @@ LineMap = require 'line-map'
 ScreenLineFragment = require 'screen-line-fragment'
 Buffer = require 'buffer'
 Highlighter = require 'highlighter'
-Delta = require 'delta'
+Point = require 'point'
 
 describe "LineMap", ->
   [highlighter, map] = []
@@ -154,7 +154,7 @@ describe "LineMap", ->
     it "returns the concatenated screen line fragments that comprise the given buffer row", ->
       line1Text = line1.text
       [line1a, line1b] = line1.splitAt(11)
-      line1a.screenDelta = new Delta(1, 0)
+      line1a.screenDelta = new Point(1, 0)
 
       map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
 
@@ -166,12 +166,12 @@ describe "LineMap", ->
       # line1a-line3b describes a fold
       [line1a, line1b] = line1.splitAt(10)
       [line3a, line3b] = line3.splitAt(20)
-      line1a.bufferDelta.rows = 2
-      line1a.bufferDelta.columns = 20
+      line1a.bufferDelta.row = 2
+      line1a.bufferDelta.column = 20
 
       # line4a-line4b describes a wrapped line
       [line4a, line4b] = line4.splitAt(20)
-      line4a.screenDelta = new Delta(1, 0)
+      line4a.screenDelta = new Point(1, 0)
 
       map.insertAtBufferRow(0, [line0, line1a, line3b, line4a, line4b])
 
@@ -196,8 +196,8 @@ describe "LineMap", ->
     it "returns the total of all inserted screen row deltas", ->
       [line1a, line1b] = line1.splitAt(10)
       [line3a, line3b] = line3.splitAt(10)
-      line1a.screenDelta = new Delta(1, 0)
-      line3a.screenDelta = new Delta(1, 0)
+      line1a.screenDelta = new Point(1, 0)
+      line3a.screenDelta = new Point(1, 0)
 
       map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
 

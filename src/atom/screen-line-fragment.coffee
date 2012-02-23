@@ -1,13 +1,13 @@
 _ = require 'underscore'
-Delta = require 'delta'
+Point = require 'point'
 
 module.exports =
 class ScreenLineFragment
   isAtomic: false
 
   constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
-    @screenDelta = Delta.fromObject(screenDelta)
-    @bufferDelta = Delta.fromObject(bufferDelta)
+    @screenDelta = Point.fromObject(screenDelta)
+    @bufferDelta = Point.fromObject(bufferDelta)
     _.extend(this, extraFields)
 
   splitAt: (column) ->
