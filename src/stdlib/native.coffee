@@ -48,39 +48,39 @@ class Native
     results?[0]?.toString()
 
   resetMainMenu: (menu) ->
-    OSX.NSApp.resetMainMenu
+    # OSX.NSApp.resetMainMenu
 
   addMenuItem: (itemPath, keyPattern) ->
-    itemPathComponents = itemPath.split /\s*>\s*/
-    submenu = @buildSubmenuPath(OSX.NSApp.mainMenu, itemPathComponents[0..-2])
-    title = _.last(itemPathComponents)
-    unless submenu.itemWithTitle(title)
-      item = OSX.AtomMenuItem.alloc.initWithTitle_itemPath(title, itemPath).autorelease
-      item.setKeyEquivalentModifierMask 0 # Because in Cocoa defaults it to NSCommandKeyMask
+    # itemPathComponents = itemPath.split /\s*>\s*/
+    # submenu = @buildSubmenuPath(OSX.NSApp.mainMenu, itemPathComponents[0..-2])
+    # title = _.last(itemPathComponents)
+    # unless submenu.itemWithTitle(title)
+    #   item = OSX.AtomMenuItem.alloc.initWithTitle_itemPath(title, itemPath).autorelease
+    #   item.setKeyEquivalentModifierMask 0 # Because in Cocoa defaults it to NSCommandKeyMask
 
-      if keyPattern
-        bindingSet = new (require('binding-set'))("*", {})
-        keys = bindingSet.parseKeyPattern keyPattern
+    #   if keyPattern
+    #     bindingSet = new (require('binding-set'))("*", {})
+    #     keys = bindingSet.parseKeyPattern keyPattern
 
-        modifierMask = (keys.metaKey and OSX.NSCommandKeyMask ) |
-                       (keys.shiftKey and OSX.NSShiftKeyMask) |
-                       (keys.altKey and OSX.NSAlternateKeyMask) |
-                       (keys.ctrlKey and OSX.NSControlKeyMask)
+    #     modifierMask = (keys.metaKey and OSX.NSCommandKeyMask ) |
+    #                    (keys.shiftKey and OSX.NSShiftKeyMask) |
+    #                    (keys.altKey and OSX.NSAlternateKeyMask) |
+    #                    (keys.ctrlKey and OSX.NSControlKeyMask)
 
-        item.setKeyEquivalent keys.key
-        item.setKeyEquivalentModifierMask modifierMask
-      submenu.addItem(item)
+    #     item.setKeyEquivalent keys.key
+    #     item.setKeyEquivalentModifierMask modifierMask
+    #   submenu.addItem(item)
 
   buildSubmenuPath: (menu, path) ->
-    return menu if path.length == 0
+    # return menu if path.length == 0
 
-    first = path[0]
-    unless item = menu.itemWithTitle(first)
-      item = OSX.AtomMenuItem.alloc.initWithTitle_action_keyEquivalent(first, null, "").autorelease
-      menu.addItem(item)
-    unless submenu = item.submenu
-      submenu = OSX.NSMenu.alloc.initWithTitle(first)
-      item.submenu = submenu
+    # first = path[0]
+    # unless item = menu.itemWithTitle(first)
+    #   item = OSX.AtomMenuItem.alloc.initWithTitle_action_keyEquivalent(first, null, "").autorelease
+    #   menu.addItem(item)
+    # unless submenu = item.submenu
+    #   submenu = OSX.NSMenu.alloc.initWithTitle(first)
+    #   item.submenu = submenu
 
-    @buildSubmenuPath(submenu, path[1..-1])
+    # @buildSubmenuPath(submenu, path[1..-1])
 
