@@ -1,7 +1,7 @@
 App = require 'app'
 fs = require 'fs'
 
-describe "App", ->
+xdescribe "App", ->
   app = null
 
   beforeEach ->
