@@ -8,7 +8,7 @@ describe "screenLineFragment", ->
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
     highlighter = new Highlighter(buffer)
-    screenLine = highlighter.screenLineForRow(3)
+    screenLine = highlighter.lineForScreenRow(3)
 
   describe ".splitAt(column)", ->
     it "breaks the line fragment into two fragments", ->
@@ -65,7 +65,7 @@ describe "screenLineFragment", ->
       [left, right] = screenLine.splitAt(14)
       expect(left.concat(right)).toEqual screenLine
 
-      concatenated = screenLine.concat(highlighter.screenLineForRow(4))
+      concatenated = screenLine.concat(highlighter.lineForScreenRow(4))
       expect(concatenated.text).toBe '    var pivot = items.shift(), current, left = [], right = [];    while(items.length > 0) {'
       expect(tokensText concatenated.tokens).toBe concatenated.text
       expect(concatenated.screenDelta).toEqual [2, 0]

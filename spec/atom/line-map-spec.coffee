@@ -12,7 +12,7 @@ describe "LineMap", ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
     highlighter = new Highlighter(buffer)
     map = new LineMap
-    [line0, line1, line2, line3, line4] = highlighter.screenLinesForRows(0, 4)
+    [line0, line1, line2, line3, line4] = highlighter.linesForScreenRows(0, 4)
 
   describe ".insertAtBufferRow(row, screenLine(s))", ->
     describe "when passed a single, line fragment", ->
@@ -192,7 +192,7 @@ describe "LineMap", ->
       it "wraps buffer positions at the end of a screen line to the end end of the next screen line", ->
         expect(map.screenPositionForBufferPosition([4, 20], true)).toEqual [3, 0]
 
-  describe ".screenLineCount()", ->
+  describe ".lineCount()", ->
     it "returns the total of all inserted screen row deltas", ->
       [line1a, line1b] = line1.splitAt(10)
       [line3a, line3b] = line3.splitAt(10)
@@ -201,6 +201,6 @@ describe "LineMap", ->
 
       map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
 
-      expect(map.screenLineCount()).toBe 4
+      expect(map.lineCount()).toBe 4
 
 

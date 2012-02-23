@@ -62,7 +62,7 @@ class LineFolder
     @renderScreenLineForBufferRow(@bufferRowForScreenRow(screenRow))
 
   renderScreenLineForBufferRow: (bufferRow, startColumn=0) ->
-    screenLine = @highlighter.screenLineForRow(bufferRow).splitAt(startColumn)[1]
+    screenLine = @highlighter.lineForScreenRow(bufferRow).splitAt(startColumn)[1]
     for fold in @foldsForBufferRow(bufferRow)
       { start, end } = fold.range
       if start.column > startColumn

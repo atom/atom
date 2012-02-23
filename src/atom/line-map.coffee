@@ -106,7 +106,7 @@ class LineMap
       delta = delta.add(screenLine.bufferDelta)
     delta.rows
 
-  screenLineCount: ->
+  lineCount: ->
     delta = new Delta
     for screenLine in @screenLines
       delta = delta.add(screenLine.screenDelta)

@@ -12,9 +12,9 @@ class LineWrapper
     @highlighter.on 'change', (e) => @handleChange(e)
 
   setMaxLength: (@maxLength) ->
-    oldRange = @rangeForAllScreenLines()
+    oldRange = @rangeForAllLines()
     @buildLineMap()
-    newRange = @rangeForAllScreenLines()
+    newRange = @rangeForAllLines()
     @trigger 'change', { oldRange, newRange }
 
   buildLineMap: ->
@@ -36,14 +36,14 @@ class LineWrapper
     { start, end } = bufferRange
     new Range([start.row, 0], [end.row, @lineMap.lineForBufferRow(end.row).text.length])
 
-  rangeForAllScreenLines: ->
-    endRow = @screenLineCount() - 1
+  rangeForAllLines: ->
+    endRow = @lineCount() - 1
     endColumn = @lineMap.lineForScreenRow(endRow).text.length
     new Range([0, 0], [endRow, endColumn])
 
   buildScreenLinesForBufferRows: (start, end) ->
     _(@highlighter
-      .screenLinesForRows(start, end)
+      .linesForScreenRows(start, end)
       .map((screenLine) => @wrapScreenLine(screenLine))).flatten()
 
   wrapScreenLine: (screenLine, startColumn=0) ->
@@ -86,16 +86,16 @@ class LineWrapper
   bufferPositionForScreenPosition: (screenPosition) ->
     @lineMap.bufferPositionForScreenPosition(screenPosition)
 
-  screenLineForRow: (screenRow) ->
-    @screenLinesForRows(screenRow, screenRow)[0]
+  lineForScreenRow: (screenRow) ->
+    @linesForScreenRows(screenRow, screenRow)[0]
 
-  screenLinesForRows: (startRow, endRow) ->
+  linesForScreenRows: (startRow, endRow) ->
     @lineMap.linesForScreenRows(startRow, endRow)
 
-  screenLines: ->
-    @screenLinesForRows(0, @screenLineCount() - 1)
+  lines: ->
+    @linesForScreenRows(0, @lineCount() - 1)
 
-  screenLineCount: ->
-    @lineMap.screenLineCount()
+  lineCount: ->
+    @lineMap.lineCount()
 
 _.extend(LineWrapper.prototype, EventEmitter)

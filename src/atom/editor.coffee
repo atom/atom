@@ -129,7 +129,7 @@ class Editor extends View
 
   renderLines: ->
     @lines.empty()
-    for screenLine in @lineWrapper.screenLines()
+    for screenLine in @lineWrapper.lines()
       @lines.append @buildLineElement(screenLine)
 
   setBuffer: (@buffer) ->
@@ -144,7 +144,7 @@ class Editor extends View
 
     @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e
-      screenLines = @lineWrapper.screenLinesForRows(newRange.start.row, newRange.end.row)
+      screenLines = @lineWrapper.linesForScreenRows(newRange.start.row, newRange.end.row)
       if newRange.end.row > oldRange.end.row
         # update, then insert elements
         for row in [newRange.start.row..newRange.end.row]
