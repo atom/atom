@@ -7,11 +7,14 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class LineFolder
+  lineMap: null
+  lastHighlighterChangeEvent: null
+
   constructor: (@highlighter) ->
     @activeFolds = {}
     @buildLineMap()
     @highlighter.buffer.on 'change', (e) => @handleBufferChange(e)
-    @highlighter.on 'change', (e) => @handleHighlighterChange(e)
+    @highlighter.on 'change', (e) => @lastHighlighterChangeEvent = e
 
   buildLineMap: ->
     @lineMap = new LineMap
@@ -64,11 +67,12 @@ class LineFolder
   handleBufferChange: (e) ->
     for row, folds of @activeFolds
       fold.handleBufferChange(e) for fold in folds
+    @handleHighlighterChange(@lastHighlighterChangeEvent)
 
   handleHighlighterChange: (e) ->
     oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(e.oldRange))
     lines = @buildLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
-    @lineMap.replaceScreenRows(e.oldRange.start.row, e.oldRange.end.row, lines)
+    @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
     newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(e.newRange))
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange

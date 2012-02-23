@@ -162,7 +162,7 @@ describe "LineFolder", ->
       fold2 = folder.createFold(new Range([7, 5], [8, 36]))
       changeHandler.reset()
 
-    describe "when the old range precedes a fold", ->
+    describe "when the old range precedes lines with a fold", ->
       it "updates the buffer and re-positions subsequent folds", ->
         buffer.change(new Range([1, 5], [2, 10]), 'abc')
 
@@ -184,8 +184,30 @@ describe "LineFolder", ->
         expect(event.oldRange).toEqual [[3, 0], [3, 56]]
         expect(event.newRange).toEqual [[3, 0], [6, 28]]
 
-    describe "when the old range follows a fold", ->
-      it "re-positions the change based on the preceding fold", ->
+    describe "when the old range follows lines with a fold", ->
+      it "re-positions the screen ranges for the change event based on the preceding fold", ->
+        buffer.change(new Range([9, 3], [10, 0]), 'abc')
+
+        expect(folder.lineForScreenRow(5).text).toBe '  }abc'
+        expect(folder.lineForScreenRow(6).text).toBe '  return sort(Array.apply(this, arguments));'
+
+        expect(changeHandler).toHaveBeenCalled()
+        [[event]] = changeHandler.argsForCall
+        expect(event.oldRange).toEqual [[5, 0], [6, 0]]
+        expect(event.newRange).toEqual [[5, 0], [5, 6]]
+
+    fdescribe "when the old range contains unfolded text on the first line of a fold, preceding the fold placeholder", ->
+      it "re-renders the line with the placeholder and re-positions the fold", ->
+        buffer.change(new Range([4, 4], [4, 9]), 'slongaz')
+
+        expect(folder.lineForScreenRow(4).text).toBe '    slongaz(items.length > 0) {...}...concat(sort(right));'
+        expect(changeHandler).toHaveBeenCalled()
+        [[event]] = changeHandler.argsForCall
+        expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+        expect(event.newRange).toEqual [[4, 0], [4, 58]]
+
+        fold1.destroy()
+        expect(folder.lineForScreenRow(4).text).toBe '    slongaz(items.length > 0) {'
 
     describe "when the old range is contained to a single line in-between two fold placeholders", ->
       describe "when the line is updated", ->
