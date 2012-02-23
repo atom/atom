@@ -21,7 +21,7 @@ class LineFolder
     @activeFolds[bufferRange.start.row].push(fold)
     oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
 
-    lineWithFold = @renderScreenLine(oldScreenRange.start.row)
+    lineWithFold = @buildLine(oldScreenRange.start.row)
     @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lineWithFold)
 
     newScreenRange = oldScreenRange.copy()
@@ -45,29 +45,29 @@ class LineFolder
     oldScreenRange.end.row = startScreenRow
     oldScreenRange.end.column = @lineMap.lineForScreenRow(startScreenRow).text.length
 
-    @lineMap.replaceScreenRow(startScreenRow, @renderScreenLinesForBufferRows(bufferRange.start.row, bufferRange.end.row))
+    @lineMap.replaceScreenRow(startScreenRow, @buildLinesForBufferRows(bufferRange.start.row, bufferRange.end.row))
 
     newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
 
-  renderScreenLinesForBufferRows: (start, end) ->
-    lines = [@renderScreenLine(@screenRowForBufferRow(start))]
+  buildLinesForBufferRows: (start, end) ->
+    lines = [@buildLine(@screenRowForBufferRow(start))]
     if end > start
       for row in [start + 1..end]
-        lines.push @renderScreenLineForBufferRow(row)
+        lines.push @buildLineForBufferRow(row)
     _.flatten(lines)
 
-  renderScreenLine: (screenRow) ->
-    @renderScreenLineForBufferRow(@bufferRowForScreenRow(screenRow))
+  buildLine: (screenRow) ->
+    @buildLineForBufferRow(@bufferRowForScreenRow(screenRow))
 
-  renderScreenLineForBufferRow: (bufferRow, startColumn=0) ->
+  buildLineForBufferRow: (bufferRow, startColumn=0) ->
     screenLine = @highlighter.lineForScreenRow(bufferRow).splitAt(startColumn)[1]
     for fold in @foldsForBufferRow(bufferRow)
       { start, end } = fold.range
       if start.column > startColumn
         prefix = screenLine.splitAt(start.column - startColumn)[0]
-        suffix = @renderScreenLineForBufferRow(end.row, end.column)
+        suffix = @buildLineForBufferRow(end.row, end.column)
         return _.flatten([prefix, @buildFoldPlaceholder(fold), suffix])
     screenLine
 
