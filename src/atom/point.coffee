@@ -14,12 +14,20 @@ class Point
   constructor: (@row=0, @column=0) ->
 
   add: (other) ->
-    debugger unless other
     row = @row + other.row
     if other.row == 0
       column = @column + other.column
     else
       column = other.column
+
+    new Point(row, column)
+
+  subtract: (other) ->
+    row = @row - other.row
+    if @row == other.row
+      column = @column - other.column
+    else
+      column = @column
 
     new Point(row, column)
 

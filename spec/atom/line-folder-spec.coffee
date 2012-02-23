@@ -155,6 +155,55 @@ describe "LineFolder", ->
           expect(event.oldRange).toEqual [[7, 0], [7, 28]]
           expect(event.newRange).toEqual [[7, 0], [8, 56]]
 
+  describe "when the buffer changes", ->
+    [fold1, fold2] = []
+    beforeEach ->
+      fold1 = folder.createFold(new Range([4, 29], [7, 4]))
+      fold2 = folder.createFold(new Range([7, 5], [8, 36]))
+      changeHandler.reset()
+
+    describe "when the old range precedes a fold", ->
+      it "updates the buffer and re-positions subsequent folds", ->
+        buffer.change(new Range([1, 5], [2, 10]), 'abc')
+
+        expect(folder.lineForScreenRow(1).text).toBe '  varabcems.length <= 1) return items;'
+        expect(folder.lineForScreenRow(3).text).toBe '    while(items.length > 0) {...}...concat(sort(right));'
+
+        expect(changeHandler).toHaveBeenCalled()
+        [[event]] = changeHandler.argsForCall
+        expect(event.oldRange).toEqual [[1, 0], [2, 40]]
+        expect(event.newRange).toEqual [[1, 0], [1, 38]]
+        changeHandler.reset()
+
+        fold1.destroy()
+        expect(folder.lineForScreenRow(3).text).toBe '    while(items.length > 0) {'
+        expect(folder.lineForScreenRow(6).text).toBe '    }...concat(sort(right));'
+
+        expect(changeHandler).toHaveBeenCalled()
+        [[event]] = changeHandler.argsForCall
+        expect(event.oldRange).toEqual [[3, 0], [3, 56]]
+        expect(event.newRange).toEqual [[3, 0], [6, 28]]
+
+    describe "when the old range follows a fold", ->
+      it "re-positions the change based on the preceding fold", ->
+
+    describe "when the old range is contained to a single line in-between two fold placeholders", ->
+      describe "when the line is updated", ->
+
+      describe "when lines are inserted", ->
+
+    describe "when the old range is inside a fold", ->
+      it "does not trigger a change event, but ensures the change is present when the fold is destroyed", ->
+
+    describe "when the old range surrounds a fold", ->
+      it "removes the fold and replaces the placeholder with the new text", ->
+
+    describe "when the old range straddles the start of a fold", ->
+      it "moves the start of the fold to the end of the new range", ->
+
+    describe "when the old region straddles the end of a fold", ->
+      it "moves the start of the fold to the beginning of the new range", ->
+
   describe "position translation", ->
     describe "when there is single fold spanning multiple lines", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->

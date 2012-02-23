@@ -10,15 +10,20 @@ class LineFolder
   constructor: (@highlighter) ->
     @activeFolds = {}
     @buildLineMap()
+    @highlighter.buffer.on 'change', (e) => @handleBufferChange(e)
+    @highlighter.on 'change', (e) => @handleHighlighterChange(e)
 
   buildLineMap: ->
     @lineMap = new LineMap
     @lineMap.insertAtBufferRow(0, @highlighter.screenLines)
 
+  logLines: (start=0, end=@lastRow())->
+    for row in [start..end]
+      console.log row, @lineForScreenRow(row).text
+
   createFold: (bufferRange) ->
     fold = new Fold(this, bufferRange)
-    @activeFolds[bufferRange.start.row] ?= []
-    @activeFolds[bufferRange.start.row].push(fold)
+    @registerFold(bufferRange.start.row, fold)
     oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
 
     lineWithFold = @buildLine(oldScreenRange.start.row)
@@ -33,11 +38,8 @@ class LineFolder
     fold
 
   destroyFold: (fold) ->
-    bufferRange = fold.range
-    folds = @activeFolds[bufferRange.start.row]
-    foldIndex = folds.indexOf(fold)
-    folds[foldIndex..foldIndex] = []
-
+    bufferRange = fold.getRange()
+    @unregisterFold(bufferRange.start.row, fold)
     startScreenRow = @screenRowForBufferRow(bufferRange.start.row)
 
     oldScreenRange = new Range()
@@ -48,6 +50,26 @@ class LineFolder
     @lineMap.replaceScreenRow(startScreenRow, @buildLinesForBufferRows(bufferRange.start.row, bufferRange.end.row))
 
     newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
+
+    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+
+  registerFold: (bufferRow, fold) ->
+    @activeFolds[bufferRow] ?= []
+    @activeFolds[bufferRow].push(fold)
+
+  unregisterFold: (bufferRow, fold) ->
+    folds = @activeFolds[bufferRow]
+    folds.splice(folds.indexOf(fold), 1)
+
+  handleBufferChange: (e) ->
+    for row, folds of @activeFolds
+      fold.handleBufferChange(e) for fold in folds
+
+  handleHighlighterChange: (e) ->
+    oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(e.oldRange))
+    lines = @buildLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
+    @lineMap.replaceScreenRows(e.oldRange.start.row, e.oldRange.end.row, lines)
+    newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(e.newRange))
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
 
@@ -64,7 +86,7 @@ class LineFolder
   buildLineForBufferRow: (bufferRow, startColumn=0) ->
     screenLine = @highlighter.lineForScreenRow(bufferRow).splitAt(startColumn)[1]
     for fold in @foldsForBufferRow(bufferRow)
-      { start, end } = fold.range
+      { start, end } = fold.getRange()
       if start.column > startColumn
         prefix = screenLine.splitAt(start.column - startColumn)[0]
         suffix = @buildLineForBufferRow(end.row, end.column)
@@ -72,13 +94,16 @@ class LineFolder
     screenLine
 
   buildFoldPlaceholder: (fold) ->
-    new ScreenLineFragment([{value: '...', type: 'fold-placeholder'}], '...', [0, 3], fold.range.toDelta(), isAtomic: true)
+    new ScreenLineFragment([{value: '...', type: 'fold-placeholder'}], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
 
   foldsForBufferRow: (bufferRow) ->
     @activeFolds[bufferRow] or []
 
   linesForScreenRows: (startRow, endRow) ->
     @lineMap.linesForScreenRows(startRow, endRow)
+
+  lineForScreenRow: (screenRow) ->
+    @lineMap.lineForScreenRow(screenRow)
 
   getLines: ->
     @lineMap.getScreenLines()
@@ -111,8 +136,29 @@ class LineFolder
 _.extend LineFolder.prototype, EventEmitter
 
 class Fold
-  constructor: (@lineFolder, @range) ->
+  constructor: (@lineFolder, {start, end}) ->
+    @start = new Anchor(start)
+    @end = new Anchor(end)
 
   destroy: ->
     @lineFolder.destroyFold(this)
+
+  getRange: ->
+    new Range(@start.position, @end.position)
+
+  handleBufferChange: (event) ->
+    oldStartRow = @start.position.row
+    @start.handleBufferChange(event)
+    @end.handleBufferChange(event)
+    newStartRow = @start.position.row
+
+    if newStartRow != oldStartRow
+      @lineFolder.unregisterFold(oldStartRow, this)
+      @lineFolder.registerFold(newStartRow, this)
+
+class Anchor
+  constructor: (@position) ->
+
+  handleBufferChange: (e) ->
+    @position = e.newRange.end.add(@position.subtract(e.oldRange.end))
 

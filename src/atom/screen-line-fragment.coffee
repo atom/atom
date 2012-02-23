@@ -17,6 +17,7 @@ class ScreenLineFragment
     leftTokens = []
     leftTextLength = 0
     while leftTextLength < column
+      debugger unless rightTokens[0]
       if leftTextLength + rightTokens[0].value.length > column
         rightTokens[0..0] = @splitTokenAt(rightTokens[0], column - leftTextLength)
       nextToken = rightTokens.shift()
