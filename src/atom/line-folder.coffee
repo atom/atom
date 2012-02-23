@@ -86,6 +86,9 @@ class LineFolder
   lineCount: ->
     @lineMap.screenLineCount()
 
+  lastRow: ->
+    @lineCount() - 1
+
   screenRowForBufferRow: (bufferRow) ->
     @screenPositionForBufferPosition([bufferRow, 0]).row
 
