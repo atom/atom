@@ -192,7 +192,7 @@ describe "LineMap", ->
       it "wraps buffer positions at the end of a screen line to the end end of the next screen line", ->
         expect(map.screenPositionForBufferPosition([4, 20], true)).toEqual [3, 0]
 
-  describe ".lineCount()", ->
+  describe ".screenLineCount()", ->
     it "returns the total of all inserted screen row deltas", ->
       [line1a, line1b] = line1.splitAt(10)
       [line3a, line3b] = line3.splitAt(10)
@@ -201,6 +201,6 @@ describe "LineMap", ->
 
       map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
 
-      expect(map.lineCount()).toBe 4
+      expect(map.screenLineCount()).toBe 4
 
 

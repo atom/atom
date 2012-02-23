@@ -96,7 +96,6 @@ class LineWrapper
     @linesForScreenRows(0, @lineCount() - 1)
 
   lineCount: ->
-    @lineMap.lineCount()
     @lineMap.screenLineCount()
 
 _.extend(LineWrapper.prototype, EventEmitter)
