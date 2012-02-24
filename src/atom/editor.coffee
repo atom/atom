@@ -95,7 +95,7 @@ class Editor extends View
       clickCount = e.originalEvent.detail
 
       if clickCount == 1
-        @setCursorPosition @pointFromMouseEvent(e)
+        @setCursorScreenPosition @pointFromMouseEvent(e)
       else if clickCount == 2
         @selection.selectWord()
       else if clickCount >= 3
@@ -107,7 +107,7 @@ class Editor extends View
       @insertText(e.originalEvent.data)
 
     @on 'cursor:position-changed', =>
-      @hiddenInput.css(@pixelPositionFromPoint(@cursor.getPosition()))
+      @hiddenInput.css(@pixelPositionFromPoint(@cursor.getScreenPosition()))
 
     @one 'attach', =>
       @calculateDimensions()
@@ -141,7 +141,7 @@ class Editor extends View
     @lineWrapper = new LineWrapper(Infinity, @lineFolder)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
-    @setCursorPosition(row: 0, column: 0)
+    @setCursorScreenPosition(row: 0, column: 0)
 
     @buffer.on 'change', (e) =>
       @cursor.bufferChanged(e)
@@ -254,8 +254,8 @@ class Editor extends View
   moveCursorDown: -> @cursor.moveDown()
   moveCursorRight: -> @cursor.moveRight()
   moveCursorLeft: -> @cursor.moveLeft()
-  setCursorPosition: (point) -> @cursor.setPosition(point)
-  getCursorPosition: -> @cursor.getPosition()
+  setCursorScreenPosition: (point) -> @cursor.setScreenPosition(point)
+  getCursorScreenPosition: -> @cursor.getScreenPosition()
   setCursorRow: (row) -> @cursor.setRow(row)
   getCursorRow: -> @cursor.getRow()
   setCursorColumn: (column) -> @cursor.setColumn(column)

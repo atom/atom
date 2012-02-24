@@ -44,7 +44,7 @@ class Delete
       @editor.getSelection().delete()
     else
       @editor.buffer.deleteRow(@editor.getCursorRow())
-      @editor.setCursorPosition([@editor.getCursorRow(), 0])
+      @editor.setCursorScreenPosition([@editor.getCursorRow(), 0])
 
   compose: (motion) ->
     if not motion.select

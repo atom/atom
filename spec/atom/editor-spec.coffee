@@ -65,10 +65,10 @@ describe "Editor", ->
         expect(editor.lines.find('pre:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
         expect(editor.lines.find('pre:eq(4)').text()).toBe "right = [];"
 
-        editor.cursor.setPosition([3, 51])
+        editor.cursor.setScreenPosition([3, 51])
         expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(4)').position())
 
-        editor.cursor.setPosition([4, 0])
+        editor.cursor.setScreenPosition([4, 0])
         expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(5)').position())
 
         editor.selection.setRange(new Range([6, 30], [6, 55]))
@@ -99,10 +99,10 @@ describe "Editor", ->
         expect(editor.setMaxLineLength).not.toHaveBeenCalled()
 
   describe "cursor movement", ->
-    describe ".setCursorPosition({row, column})", ->
+    describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->
         editor.attachToDom()
-        editor.setCursorPosition(row: 2, column: 2)
+        editor.setCursorScreenPosition(row: 2, column: 2)
 
       it "moves the cursor to cover the character at the given row and column", ->
         expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
@@ -115,16 +115,16 @@ describe "Editor", ->
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->
         editor.trigger keydownEvent('right')
-        expect(editor.getCursorPosition()).toEqual(row: 0, column: 1)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 1)
 
         editor.trigger keydownEvent('down')
-        expect(editor.getCursorPosition()).toEqual(row: 1, column: 1)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 1)
 
         editor.trigger keydownEvent('left')
-        expect(editor.getCursorPosition()).toEqual(row: 1, column: 0)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 0)
 
         editor.trigger keydownEvent('up')
-        expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
     describe "vertical movement", ->
       describe "auto-scrolling", ->
@@ -173,50 +173,50 @@ describe "Editor", ->
 
         it "retains the goal column when moving up", ->
           expect(lineLengths[6]).toBeGreaterThan(32)
-          editor.setCursorPosition(row: 6, column: 32)
+          editor.setCursorScreenPosition(row: 6, column: 32)
 
           editor.moveCursorUp()
-          expect(editor.getCursorPosition().column).toBe lineLengths[5]
+          expect(editor.getCursorScreenPosition().column).toBe lineLengths[5]
 
           editor.moveCursorUp()
-          expect(editor.getCursorPosition().column).toBe lineLengths[4]
+          expect(editor.getCursorScreenPosition().column).toBe lineLengths[4]
 
           editor.moveCursorUp()
-          expect(editor.getCursorPosition().column).toBe 32
+          expect(editor.getCursorScreenPosition().column).toBe 32
 
         it "retains the goal column when moving down", ->
-          editor.setCursorPosition(row: 3, column: lineLengths[3])
+          editor.setCursorScreenPosition(row: 3, column: lineLengths[3])
 
           editor.moveCursorDown()
-          expect(editor.getCursorPosition().column).toBe lineLengths[4]
+          expect(editor.getCursorScreenPosition().column).toBe lineLengths[4]
 
           editor.moveCursorDown()
-          expect(editor.getCursorPosition().column).toBe lineLengths[5]
+          expect(editor.getCursorScreenPosition().column).toBe lineLengths[5]
 
           editor.moveCursorDown()
-          expect(editor.getCursorPosition().column).toBe lineLengths[3]
+          expect(editor.getCursorScreenPosition().column).toBe lineLengths[3]
 
         it "clears the goal column when the cursor is set", ->
           # set a goal column by moving down
-          editor.setCursorPosition(row: 3, column: lineLengths[3])
+          editor.setCursorScreenPosition(row: 3, column: lineLengths[3])
           editor.moveCursorDown()
-          expect(editor.getCursorPosition().column).not.toBe 6
+          expect(editor.getCursorScreenPosition().column).not.toBe 6
 
           # clear the goal column by explicitly setting the cursor position
           editor.setCursorColumn(6)
-          expect(editor.getCursorPosition().column).toBe 6
+          expect(editor.getCursorScreenPosition().column).toBe 6
 
           editor.moveCursorDown()
-          expect(editor.getCursorPosition().column).toBe 6
+          expect(editor.getCursorScreenPosition().column).toBe 6
 
       describe "when up is pressed on the first line", ->
         it "moves the cursor to the beginning of the line, but retains the goal column", ->
-          editor.setCursorPosition(row: 0, column: 4)
+          editor.setCursorScreenPosition(row: 0, column: 4)
           editor.moveCursorUp()
-          expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
           editor.moveCursorDown()
-          expect(editor.getCursorPosition()).toEqual(row: 1, column: 4)
+          expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 4)
 
       describe "when down is pressed on the last line", ->
         it "moves the cursor to the end of line, but retains the goal column", ->
@@ -224,22 +224,22 @@ describe "Editor", ->
           lastLine = buffer.getLine(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
-          editor.setCursorPosition(row: lastLineIndex, column: 1)
+          editor.setCursorScreenPosition(row: lastLineIndex, column: 1)
           editor.moveCursorDown()
-          expect(editor.getCursorPosition()).toEqual(row: lastLineIndex, column: lastLine.length)
+          expect(editor.getCursorScreenPosition()).toEqual(row: lastLineIndex, column: lastLine.length)
 
           editor.moveCursorUp()
-          expect(editor.getCursorPosition().column).toBe 1
+          expect(editor.getCursorScreenPosition().column).toBe 1
 
         it "retains a goal column of 0", ->
           lastLineIndex = buffer.getLines().length - 1
           lastLine = buffer.getLine(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
-          editor.setCursorPosition(row: lastLineIndex, column: 0)
+          editor.setCursorScreenPosition(row: lastLineIndex, column: 0)
           editor.moveCursorDown()
           editor.moveCursorUp()
-          expect(editor.getCursorPosition().column).toBe 0
+          expect(editor.getCursorScreenPosition().column).toBe 0
 
     describe "horizontal movement", ->
       describe "auto-scrolling", ->
@@ -253,57 +253,57 @@ describe "Editor", ->
           editor.width(charWidth * 30)
 
           # moving right
-          editor.setCursorPosition([2, 24])
+          editor.setCursorScreenPosition([2, 24])
           expect(editor.scrollLeft()).toBe 0
 
-          editor.setCursorPosition([2, 25])
+          editor.setCursorScreenPosition([2, 25])
           expect(editor.scrollLeft()).toBe charWidth
 
-          editor.setCursorPosition([2, 28])
+          editor.setCursorScreenPosition([2, 28])
           expect(editor.scrollLeft()).toBe charWidth * 4
 
           # moving left
-          editor.setCursorPosition([2, 9])
+          editor.setCursorScreenPosition([2, 9])
           expect(editor.scrollLeft()).toBe charWidth * 4
 
-          editor.setCursorPosition([2, 8])
+          editor.setCursorScreenPosition([2, 8])
           expect(editor.scrollLeft()).toBe charWidth * 3
 
-          editor.setCursorPosition([2, 5])
+          editor.setCursorScreenPosition([2, 5])
           expect(editor.scrollLeft()).toBe 0
 
         it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
           editor.hScrollMargin = 6
           editor.width(charWidth * 7)
 
-          editor.setCursorPosition([2, 3])
+          editor.setCursorScreenPosition([2, 3])
           expect(editor.scrollLeft()).toBe(0)
 
-          editor.setCursorPosition([2, 4])
+          editor.setCursorScreenPosition([2, 4])
           expect(editor.scrollLeft()).toBe(charWidth)
 
-          editor.setCursorPosition([2, 3])
+          editor.setCursorScreenPosition([2, 3])
           expect(editor.scrollLeft()).toBe(0)
 
       describe "when left is pressed on the first column", ->
         describe "when there is a previous line", ->
           it "wraps to the end of the previous line", ->
-            editor.setCursorPosition(row: 1, column: 0)
+            editor.setCursorScreenPosition(row: 1, column: 0)
             editor.moveCursorLeft()
-            expect(editor.getCursorPosition()).toEqual(row: 0, column: buffer.getLine(0).length)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.getLine(0).length)
 
         describe "when the cursor is on the first line", ->
           it "remains in the same position (0,0)", ->
-            editor.setCursorPosition(row: 0, column: 0)
+            editor.setCursorScreenPosition(row: 0, column: 0)
             editor.moveCursorLeft()
-            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
       describe "when right is pressed on the last column", ->
         describe "when there is a subsequent line", ->
           it "wraps to the beginning of the next line", ->
-            editor.setCursorPosition(row: 0, column: buffer.getLine(0).length)
+            editor.setCursorScreenPosition(row: 0, column: buffer.getLine(0).length)
             editor.moveCursorRight()
-            expect(editor.getCursorPosition()).toEqual(row: 1, column: 0)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 0)
 
         describe "when the cursor is on the last line", ->
           it "remains in the same position", ->
@@ -312,10 +312,10 @@ describe "Editor", ->
             expect(lastLine.length).toBeGreaterThan(0)
 
             lastPosition = { row: lastLineIndex, column: lastLine.length }
-            editor.setCursorPosition(lastPosition)
+            editor.setCursorScreenPosition(lastPosition)
             editor.moveCursorRight()
 
-            expect(editor.getCursorPosition()).toEqual(lastPosition)
+            expect(editor.getCursorScreenPosition()).toEqual(lastPosition)
 
     describe "when a mousedown event occurs in the editor", ->
       beforeEach ->
@@ -329,24 +329,24 @@ describe "Editor", ->
 
         describe "when it is a single click", ->
           it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
-            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
             editor.lines.trigger mousedownEvent({pageX, pageY})
-            expect(editor.getCursorPosition()).toEqual(row: 3, column: 58)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 58)
 
       describe "when soft-wrap is disabled", ->
         describe "when it is a single click", ->
           it "re-positions the cursor to the clicked row / column", ->
-            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             [pageX, pageY] = window.pixelPositionForPoint(editor, [3, 10])
             editor.lines.trigger mousedownEvent({pageX, pageY})
-            expect(editor.getCursorPosition()).toEqual(row: 3, column: 10)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
 
         describe "when it is a double click", ->
           it "selects the word under the cursor", ->
-            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
             [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
             $(document).trigger 'mouseup'
@@ -355,7 +355,7 @@ describe "Editor", ->
 
         describe "when it is clicked more then twice (tripple, quadruple, etc...)", ->
           it "selects the line under the cursor", ->
-            expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             # Triple click
             [pageX, pageY] = window.pixelPositionForPoint(editor, [1, 8])
@@ -387,7 +387,7 @@ describe "Editor", ->
 
     describe "when the arrow keys are pressed with the shift modifier", ->
       it "expands the selection up to the cursor's new location", ->
-        editor.setCursorPosition(row: 1, column: 6)
+        editor.setCursorScreenPosition(row: 1, column: 6)
 
         expect(selection.isEmpty()).toBeTruthy()
 
@@ -456,7 +456,7 @@ describe "Editor", ->
         range = editor.selection.getRange()
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
         # mouse up may occur outside of editor, but still need to halt selection
         $(document).trigger 'mouseup'
@@ -468,7 +468,7 @@ describe "Editor", ->
         range = editor.selection.getRange()
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
       it "creates a selection from word underneath double click to mouse cursor's location ", ->
         editor.attachToDom()
@@ -487,7 +487,7 @@ describe "Editor", ->
         range = editor.selection.getRange()
         expect(range.start).toEqual({row: 4, column: 4})
         expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
         # mouse up may occur outside of editor, but still need to halt selection
         $(document).trigger 'mouseup'
@@ -499,7 +499,7 @@ describe "Editor", ->
         range = editor.selection.getRange()
         expect(range.start).toEqual({row: 4, column: 4})
         expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
 
       it "creates a selection from line underneath triple click to mouse cursor's location ", ->
@@ -521,7 +521,7 @@ describe "Editor", ->
         range = editor.selection.getRange()
         expect(range.start).toEqual({row: 4, column: 0})
         expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
         # mouse up may occur outside of editor, but still need to halt selection
         $(document).trigger 'mouseup'
@@ -533,20 +533,20 @@ describe "Editor", ->
         range = editor.selection.getRange()
         expect(range.start).toEqual({row: 4, column: 0})
         expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorPosition()).toEqual(row: 5, column: 27)
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
   describe "buffer manipulation", ->
     describe "when text input events are triggered on the hidden input element", ->
       describe "when there is no selection", ->
         it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
-          editor.setCursorPosition(row: 1, column: 6)
+          editor.setCursorScreenPosition(row: 1, column: 6)
 
           expect(editor.getCurrentLine().charAt(6)).not.toBe 'q'
 
           editor.hiddenInput.textInput 'q'
 
           expect(editor.getCurrentLine().charAt(6)).toBe 'q'
-          expect(editor.getCursorPosition()).toEqual(row: 1, column: 7)
+          expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
           expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
 
       describe "when there is a selection", ->
@@ -558,16 +558,16 @@ describe "Editor", ->
     describe "when return is pressed", ->
       describe "when the cursor is at the beginning of a line", ->
         it "inserts an empty line before it", ->
-          editor.setCursorPosition(row: 1, column: 0)
+          editor.setCursorScreenPosition(row: 1, column: 0)
 
           editor.trigger keydownEvent('enter')
 
           expect(editor.lines.find('pre:eq(1)')).toHaveHtml '&nbsp;'
-          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+          expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
       describe "when the cursor is in the middle of a line", ->
         it "splits the current line to form a new line", ->
-          editor.setCursorPosition(row: 1, column: 6)
+          editor.setCursorScreenPosition(row: 1, column: 6)
 
           originalLine = editor.lines.find('pre:eq(1)').text()
           lineBelowOriginalLine = editor.lines.find('pre:eq(2)').text()
@@ -576,21 +576,21 @@ describe "Editor", ->
           expect(editor.lines.find('pre:eq(1)')).toHaveText originalLine[0...6]
           expect(editor.lines.find('pre:eq(2)')).toHaveText originalLine[6..]
           expect(editor.lines.find('pre:eq(3)')).toHaveText lineBelowOriginalLine
-          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+          expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
       describe "when the cursor is on the end of a line", ->
         it "inserts an empty line after it", ->
-          editor.setCursorPosition(row: 1, column: buffer.getLine(1).length)
+          editor.setCursorScreenPosition(row: 1, column: buffer.getLine(1).length)
 
           editor.trigger keydownEvent('enter')
 
           expect(editor.lines.find('pre:eq(2)')).toHaveHtml '&nbsp;'
-          expect(editor.getCursorPosition()).toEqual(row: 2, column: 0)
+          expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
     describe "when backspace is pressed", ->
       describe "when the cursor is on the middle of the line", ->
         it "removes the character before the cursor", ->
-          editor.setCursorPosition(row: 1, column: 7)
+          editor.setCursorScreenPosition(row: 1, column: 7)
           expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
 
           editor.trigger keydownEvent('backspace')
@@ -598,7 +598,7 @@ describe "Editor", ->
           line = buffer.getLine(1)
           expect(line).toBe "  var ort = function(items) {"
           expect(editor.lines.find('pre:eq(1)')).toHaveText line
-          expect(editor.getCursorPosition()).toEqual {row: 1, column: 6}
+          expect(editor.getCursorScreenPosition()).toEqual {row: 1, column: 6}
 
       describe "when the cursor is at the beginning of a line", ->
         it "joins it with the line above", ->
@@ -606,7 +606,7 @@ describe "Editor", ->
           expect(originalLine0).toBe "var quicksort = function () {"
           expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
 
-          editor.setCursorPosition(row: 1, column: 0)
+          editor.setCursorScreenPosition(row: 1, column: 0)
           editor.trigger keydownEvent('backspace')
 
           line0 = buffer.getLine(0)
@@ -616,11 +616,11 @@ describe "Editor", ->
 
           expect(editor.lines.find('pre:eq(0)')).toHaveText line0
           expect(editor.lines.find('pre:eq(1)')).toHaveText line1
-          expect(editor.getCursorPosition()).toEqual {row: 0, column: originalLine0.length}
+          expect(editor.getCursorScreenPosition()).toEqual {row: 0, column: originalLine0.length}
 
       describe "when the cursor is at the first column of the first line", ->
         it "does nothing, but doesn't raise an error", ->
-          editor.setCursorPosition(row: 0, column: 0)
+          editor.setCursorScreenPosition(row: 0, column: 0)
           editor.trigger keydownEvent('backspace')
 
       describe "when there is a selection", ->
@@ -632,13 +632,13 @@ describe "Editor", ->
     describe "when delete is pressed", ->
       describe "when the cursor is on the middle of a line", ->
         it "deletes the character following the cursor", ->
-          editor.setCursorPosition([1, 6])
+          editor.setCursorScreenPosition([1, 6])
           editor.trigger keydownEvent('delete')
           expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
 
       describe "when the cursor is on the end of a line", ->
         it "joins the line with the following line", ->
-          editor.setCursorPosition([1, buffer.getLine(1).length])
+          editor.setCursorScreenPosition([1, buffer.getLine(1).length])
           editor.trigger keydownEvent('delete')
           expect(buffer.getLine(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
@@ -650,7 +650,7 @@ describe "Editor", ->
 
       describe "when the cursor is on the last column of the last line", ->
         it "does nothing, but doesn't raise an error", ->
-          editor.setCursorPosition([12, buffer.getLine(12).length])
+          editor.setCursorScreenPosition([12, buffer.getLine(12).length])
           editor.trigger keydownEvent('delete')
           expect(buffer.getLine(12)).toBe '};'
 
@@ -673,7 +673,7 @@ describe "Editor", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
       expect(editor.lineHeight).toBeNull()
       expect(editor.charWidth).toBeNull()
-      editor.setCursorPosition(row: 2, column: 2)
+      editor.setCursorScreenPosition(row: 2, column: 2)
 
       editor.attachToDom()
 
@@ -695,7 +695,7 @@ describe "Editor", ->
 
   describe ".setBuffer(buffer)", ->
     it "sets the cursor to the beginning of the file", ->
-      expect(editor.getCursorPosition()).toEqual(row: 0, column: 0)
+      expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
   describe ".clipPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
@@ -724,7 +724,7 @@ describe "Editor", ->
 
     describe "when a paste event is triggered", ->
       it "pastes text into the buffer", ->
-        editor.setCursorPosition [0, 4]
+        editor.setCursorScreenPosition [0, 4]
         editor.trigger "paste"
         expect(editor.buffer.getLine(0)).toBe "var firstquicksort = function () {"
 

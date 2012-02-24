@@ -62,14 +62,14 @@ class Selection extends View
 
   getRange: ->
     if @anchor
-      new Range(@anchor.getPosition(), @cursor.getPosition())
+      new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())
     else
-      new Range(@cursor.getPosition(), @cursor.getPosition())
+      new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
   setRange: (range) ->
-    @cursor.setPosition(range.start)
+    @cursor.setScreenPosition(range.start)
     @modifySelection =>
-      @cursor.setPosition(range.end)
+      @cursor.setScreenPosition(range.end)
 
   getScreenRange: ->
     @editor.lineWrapper.screenRangeForBufferRange(@getRange())
@@ -98,8 +98,8 @@ class Selection extends View
 
   placeAnchor: ->
     return if @anchor
-    cursorPosition = @cursor.getPosition()
-    @anchor = { getPosition: -> cursorPosition }
+    cursorPosition = @cursor.getScreenPosition()
+    @anchor = { getScreenPosition: -> cursorPosition }
 
   selectWord: ->
     row = @cursor.getRow()
@@ -142,7 +142,7 @@ class Selection extends View
 
   selectToPosition: (position) ->
     @modifySelection =>
-      @cursor.setPosition(position)
+      @cursor.setScreenPosition(position)
 
   moveCursorToLineEnd: ->
     @cursor.moveToLineEnd()

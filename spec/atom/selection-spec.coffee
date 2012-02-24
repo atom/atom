@@ -16,8 +16,8 @@ describe "Selection", ->
     it "places the anchor at the start of the range and the cursor at the end", ->
       range = new Range({row: 2, column: 7}, {row: 3, column: 18})
       selection.setRange(range)
-      expect(selection.anchor.getPosition()).toEqual range.start
-      expect(selection.cursor.getPosition()).toEqual range.end
+      expect(selection.anchor.getScreenPosition()).toEqual range.start
+      expect(selection.cursor.getScreenPosition()).toEqual range.end
 
   describe ".delete()", ->
     describe "when nothing is selected", ->
@@ -162,30 +162,30 @@ describe "Selection", ->
   describe ".selectWord()", ->
      describe "when the cursor is inside a word", ->
        it "selects the entire word", ->
-         editor.setCursorPosition [0,8]
+         editor.setCursorScreenPosition [0,8]
          selection.selectWord()
          expect(selection.getText()).toBe 'quicksort'
 
      describe "when the cursor is on beginning of a word", ->
        it "selects the entire word", ->
-         editor.setCursorPosition [0,4]
+         editor.setCursorScreenPosition [0,4]
          selection.selectWord()
          expect(selection.getText()).toBe 'quicksort'
 
      describe "when the cursor is at the end of a word", ->
        it "selects the entire word", ->
-         editor.setCursorPosition [0,13]
+         editor.setCursorScreenPosition [0,13]
          selection.selectWord()
          expect(selection.getText()).toBe 'quicksort'
 
      describe "when the cursor is not on a word", ->
        it "selects nothing", ->
-         editor.setCursorPosition [5,2]
+         editor.setCursorScreenPosition [5,2]
          selection.selectWord()
          expect(selection.getText()).toBe ''
 
   describe ".selectLine(row)", ->
     it "selects the entire line at given row", ->
-       editor.setCursorPosition [0,2]
+       editor.setCursorScreenPosition [0,2]
        selection.selectLine(1)
        expect(selection.getText()).toBe "  var sort = function(items) {"
