@@ -59,6 +59,9 @@ class Point
   isGreaterThan: (other) ->
     @compare(other) > 0
 
+  isGreaterThanOrEqual: (other) ->
+    @compare(other) >= 0
+
   inspect: ->
     "(#{@row}, #{@column})"
 

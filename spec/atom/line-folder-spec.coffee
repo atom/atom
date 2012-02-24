@@ -196,7 +196,7 @@ describe "LineFolder", ->
         expect(event.oldRange).toEqual [[5, 0], [6, 0]]
         expect(event.newRange).toEqual [[5, 0], [5, 6]]
 
-    fdescribe "when the old range contains unfolded text on the first line of a fold, preceding the fold placeholder", ->
+    describe "when the old range contains unfolded text on the first line of a fold, preceding the fold placeholder", ->
       it "re-renders the line with the placeholder and re-positions the fold", ->
         buffer.change(new Range([4, 4], [4, 9]), 'slongaz')
 
@@ -210,9 +210,17 @@ describe "LineFolder", ->
         expect(folder.lineForScreenRow(4).text).toBe '    slongaz(items.length > 0) {'
 
     describe "when the old range is contained to a single line in-between two fold placeholders", ->
-      describe "when the line is updated", ->
+      it "re-renders the line with the placeholder and re-positions the second fold", ->
+        buffer.insert([7, 4], 'abc')
+        expect(folder.lineForScreenRow(4).text).toBe '    while(items.length > 0) {...abc}...concat(sort(right));'
+        expect(changeHandler).toHaveBeenCalled()
+        [[event]] = changeHandler.argsForCall
+        expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+        expect(event.newRange).toEqual [[4, 0], [4, 59]]
 
-      describe "when lines are inserted", ->
+        fold2.destroy()
+
+        expect(folder.lineForScreenRow(4).text).toBe '    while(items.length > 0) {...abc}'
 
     describe "when the old range is inside a fold", ->
       it "does not trigger a change event, but ensures the change is present when the fold is destroyed", ->

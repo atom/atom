@@ -140,29 +140,29 @@ class LineFolder
 _.extend LineFolder.prototype, EventEmitter
 
 class Fold
-  constructor: (@lineFolder, {start, end}) ->
-    @start = new Anchor(start)
-    @end = new Anchor(end)
+  constructor: (@lineFolder, {@start, @end}) ->
 
   destroy: ->
     @lineFolder.destroyFold(this)
 
   getRange: ->
-    new Range(@start.position, @end.position)
+    new Range(@start, @end)
 
   handleBufferChange: (event) ->
-    oldStartRow = @start.position.row
-    @start.handleBufferChange(event)
-    @end.handleBufferChange(event)
-    newStartRow = @start.position.row
+    oldStartRow = @start.row
+    @start = @updateAnchorPoint(@start, event)
+    @end = @updateAnchorPoint(@end, event, false)
 
-    if newStartRow != oldStartRow
+    if @start.row != oldStartRow
       @lineFolder.unregisterFold(oldStartRow, this)
-      @lineFolder.registerFold(newStartRow, this)
+      @lineFolder.registerFold(@start.row, this)
 
-class Anchor
-  constructor: (@position) ->
+  updateAnchorPoint: (point, event, inclusive=true) ->
+    { newRange, oldRange } = event
+    if inclusive
+      return point if oldRange.end.isGreaterThan(point)
+    else
+      return point if oldRange.end.isGreaterThanOrEqual(point)
 
-  handleBufferChange: (e) ->
-    @position = e.newRange.end.add(@position.subtract(e.oldRange.end))
+    newRange.end.add(point.subtract(oldRange.end))
 
