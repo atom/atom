@@ -58,6 +58,7 @@ class Editor extends View
       'meta-z': 'undo'
       'meta-Z': 'redo'
       'alt-meta-w': 'toggle-soft-wrap'
+      'alt-meta-f': 'fold-selection'
 
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
@@ -76,6 +77,7 @@ class Editor extends View
     @on 'undo', => @undo()
     @on 'redo', => @redo()
     @on 'toggle-soft-wrap', => @toggleSoftWrap()
+    @on 'fold-selection', => @foldSelection()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -272,6 +274,8 @@ class Editor extends View
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
   paste: -> @selection.insertText(atom.native.readFromPasteboard())
+
+  foldSelection: -> @selection.fold()
 
   backspace: ->
     @selectLeft() if @selection.isEmpty()

@@ -1,4 +1,5 @@
 Cursor = require 'cursor'
+
 Range = require 'range'
 {View, $$} = require 'space-pen'
 
@@ -157,3 +158,6 @@ class Selection extends View
     return if @isEmpty()
     text = @editor.buffer.getTextInRange @getRange()
     atom.native.writeToPasteboard text
+
+  fold: ->
+    @editor.lineFolder.createFold(@getRange())

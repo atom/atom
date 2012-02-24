@@ -733,3 +733,10 @@ describe "Editor", ->
         editor.trigger "paste"
         expect(editor.buffer.getLine(1)).toBe "  var first = function(items) {"
 
+  describe "folding", ->
+    describe "when a fold-selection event is triggered", ->
+      it "folds the selected text and renders a placeholder for it", ->
+        editor.selection.setRange(new Range([4, 29], [7, 4]))
+        editor.trigger 'fold-selection'
+        expect(editor.lines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {...}'
+
