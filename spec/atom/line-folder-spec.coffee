@@ -223,7 +223,20 @@ describe "LineFolder", ->
         expect(folder.lineForScreenRow(4).text).toBe '    while(items.length > 0) {...abc}'
 
     describe "when the old range is inside a fold", ->
-      it "does not trigger a change event, but ensures the change is present when the fold is destroyed", ->
+      it "does not trigger a change event, but updates the fold and ensures the change is present when the fold is destroyed", ->
+        buffer.change(new Range([4, 29], [6, 0]), 'abc')
+
+        expect(folder.lineForScreenRow(4).text).toBe '    while(items.length > 0) {...}...concat(sort(right));'
+        expect(changeHandler).not.toHaveBeenCalled()
+
+        fold1.destroy()
+        expect(folder.lineForScreenRow(4).text).toBe '    while(items.length > 0) {abc      current < pivot ? left.push(current) : right.push(current);'
+        expect(folder.lineForScreenRow(5).text).toBe '    }...concat(sort(right));'
+
+        expect(changeHandler).toHaveBeenCalled()
+        [[event]] = changeHandler.argsForCall
+        expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+        expect(event.newRange).toEqual [[4, 0], [5, 28]]
 
     describe "when the old range surrounds a fold", ->
       it "removes the fold and replaces the placeholder with the new text", ->

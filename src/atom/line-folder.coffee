@@ -22,7 +22,8 @@ class LineFolder
 
   logLines: (start=0, end=@lastRow())->
     for row in [start..end]
-      console.log row, @lineForScreenRow(row).text
+      line = @lineForScreenRow(row).text
+      console.log row, line, line.length
 
   createFold: (bufferRange) ->
     fold = new Fold(this, bufferRange)
@@ -70,12 +71,15 @@ class LineFolder
     @handleHighlighterChange(@lastHighlighterChangeEvent)
 
   handleHighlighterChange: (e) ->
-    oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(e.oldRange))
+    oldScreenRange = @screenRangeForBufferRange(e.oldRange)
+    expandedOldScreenRange = @expandScreenRangeToLineEnds(oldScreenRange)
     lines = @buildLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
     @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
-    newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(e.newRange))
+    newScreenRange = @screenRangeForBufferRange(e.newRange)
+    expandedNewScreenRange = @expandScreenRangeToLineEnds(newScreenRange)
 
-    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+    unless oldScreenRange.isEmpty() and newScreenRange.isEmpty()
+      @trigger 'change', oldRange: expandedOldScreenRange, newRange: expandedNewScreenRange
 
   buildLinesForBufferRows: (start, end) ->
     lines = [@buildLine(@screenRowForBufferRow(start))]
