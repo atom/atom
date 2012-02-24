@@ -239,7 +239,14 @@ describe "LineFolder", ->
         expect(event.newRange).toEqual [[4, 0], [5, 28]]
 
     describe "when the old range surrounds a fold", ->
-      it "removes the fold and replaces the placeholder with the new text", ->
+      it "removes the fold and replaces the fold placeholder with the new text", ->
+        buffer.change(new Range([4, 29], [7, 4]), 'party()')
+
+        expect(folder.lineForScreenRow(4).text).toBe '    while(items.length > 0) {party()}...concat(sort(right));'
+        expect(changeHandler).toHaveBeenCalled()
+        [[event]] = changeHandler.argsForCall
+        expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+        expect(event.newRange).toEqual [[4, 0], [4, 60]]
 
     describe "when the old range straddles the start of a fold", ->
       it "moves the start of the fold to the end of the new range", ->

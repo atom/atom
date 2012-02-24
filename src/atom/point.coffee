@@ -56,6 +56,12 @@ class Point
     other = Point.fromObject(other)
     @compare(other) == 0
 
+  isLessThan: (other) ->
+    @compare(other) < 0
+
+  isLessThanOrEqual: (other) ->
+    @compare(other) <= 0
+
   isGreaterThan: (other) ->
     @compare(other) > 0
 

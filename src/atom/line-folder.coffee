@@ -154,6 +154,12 @@ class Fold
 
   handleBufferChange: (event) ->
     oldStartRow = @start.row
+
+    { oldRange } = event
+    if oldRange.start.isLessThanOrEqual(@start) and oldRange.end.isGreaterThanOrEqual(@end)
+      @lineFolder.unregisterFold(oldStartRow, this)
+      return
+
     @start = @updateAnchorPoint(@start, event)
     @end = @updateAnchorPoint(@end, event, false)
 
