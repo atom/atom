@@ -14,6 +14,25 @@ describe "LineFolder", ->
     folder.on 'change', changeHandler
 
   describe "when folds are created and removed", ->
+    it "emits 'fold' and 'unfold' events", ->
+      foldHandler = jasmine.createSpy 'foldHandler'
+      unfoldHandler = jasmine.createSpy 'unfoldHandler'
+      folder.on 'fold', foldHandler
+      folder.on 'unfold', unfoldHandler
+
+      foldRange = new Range([4, 29], [7, 4])
+      fold = folder.createFold(foldRange)
+
+      expect(foldHandler).toHaveBeenCalled()
+      [[range]] = foldHandler.argsForCall
+      expect(range).toEqual foldRange
+
+      fold.destroy()
+      expect(unfoldHandler).toHaveBeenCalled()
+      [[range]] = unfoldHandler.argsForCall
+      expect(range).toEqual foldRange
+
+
     describe "when there is a single fold spanning multiple lines", ->
       it "replaces folded lines with a single line containing a placeholder and emits a change event", ->
         [line4, line5] = folder.linesForScreenRows(4, 5)

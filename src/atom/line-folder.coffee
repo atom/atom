@@ -39,6 +39,7 @@ class LineFolder
       newScreenRange.end.column += fragment.text.length
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+    @trigger 'fold', bufferRange
     fold
 
   destroyFold: (fold) ->
@@ -56,6 +57,7 @@ class LineFolder
     newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+    @trigger 'unfold', fold.getRange()
 
   registerFold: (bufferRow, fold) ->
     @activeFolds[bufferRow] ?= []
