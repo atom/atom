@@ -135,3 +135,18 @@ class LineMap
     end = @screenPositionForBufferPosition(bufferRange.end)
     new Range(start, end)
 
+  clipScreenPosition: (screenPosition) ->
+    screenPosition = Point.fromObject(screenPosition)
+    screenPosition = new Point(Math.max(0, screenPosition.row), Math.max(0, screenPosition.column))
+
+    screenDelta = new Point
+    for screenLine in @screenLines
+      nextDelta = screenDelta.add(screenLine.screenDelta)
+      break if nextDelta.isGreaterThan(screenPosition)
+      screenDelta = nextDelta
+
+    maxColumn = screenDelta.column + screenLine.lengthForClipping()
+    screenDelta.column = Math.min(maxColumn, screenPosition.column)
+
+    screenDelta
+
