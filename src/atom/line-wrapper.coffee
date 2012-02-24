@@ -6,9 +6,9 @@ Range = require 'range'
 
 module.exports =
 class LineWrapper
-  constructor: (@maxLength, @highlighter) ->
+  constructor: (@maxLength, @lineFolder) ->
     @buildLineMap()
-    @highlighter.on 'change', (e) => @handleChange(e)
+    @lineFolder.on 'change', (e) => @handleChange(e)
 
   setMaxLength: (@maxLength) ->
     oldRange = @rangeForAllLines()
@@ -18,7 +18,7 @@ class LineWrapper
 
   buildLineMap: ->
     @lineMap = new LineMap
-    @lineMap.insertAtBufferRow 0, @buildScreenLinesForBufferRows(0, @highlighter.lastRow())
+    @lineMap.insertAtBufferRow 0, @buildScreenLinesForBufferRows(0, @lineFolder.lastRow())
 
   handleChange: (e) ->
     oldBufferRange = e.oldRange
@@ -41,7 +41,7 @@ class LineWrapper
     new Range([0, 0], [endRow, endColumn])
 
   buildScreenLinesForBufferRows: (start, end) ->
-    _(@highlighter
+    _(@lineFolder
       .linesForScreenRows(start, end)
       .map((screenLine) => @wrapScreenLine(screenLine))).flatten()
 

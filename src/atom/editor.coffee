@@ -4,6 +4,7 @@ Point = require 'point'
 Cursor = require 'cursor'
 Selection = require 'selection'
 Highlighter = require 'highlighter'
+LineFolder = require 'line-folder'
 LineWrapper = require 'line-wrapper'
 UndoManager = require 'undo-manager'
 Range = require 'range'
@@ -134,7 +135,8 @@ class Editor extends View
 
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
-    @lineWrapper = new LineWrapper(Infinity, @highlighter)
+    @lineFolder = new LineFolder(@highlighter)
+    @lineWrapper = new LineWrapper(Infinity, @lineFolder)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
     @setCursorPosition(row: 0, column: 0)

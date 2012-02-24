@@ -1,6 +1,7 @@
-Buffer = require 'buffer'
 LineWrapper = require 'line-wrapper'
+Buffer = require 'buffer'
 Highlighter = require 'highlighter'
+LineFolder = require 'line-folder'
 Range = require 'range'
 ScreenLineFragment = require 'screen-line-fragment'
 _ = require 'underscore'
@@ -10,7 +11,9 @@ describe "LineWrapper", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    wrapper = new LineWrapper(50, new Highlighter(buffer))
+    highlighter = new Highlighter(buffer)
+    folder = new LineFolder(highlighter)
+    wrapper = new LineWrapper(50, folder)
     changeHandler = jasmine.createSpy('changeHandler')
     wrapper.on 'change', changeHandler
 
