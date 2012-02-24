@@ -7,7 +7,7 @@ ScreenLineFragment = require 'screen-line-fragment'
 _ = require 'underscore'
 
 describe "LineWrapper", ->
-  [wrapper, buffer, changeHandler] = []
+  [wrapper, folder, buffer, changeHandler] = []
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
@@ -125,6 +125,11 @@ describe "LineWrapper", ->
       it "translates a position at the end of a wrapped screen line to the begining of the next screen line", ->
         expect(wrapper.screenPositionForBufferPosition([3, 51], true)).toEqual([4, 0])
 
+    describe "when the position follows a fold", ->
+      it "adjusts the position to account for the fold", ->
+        fold = folder.createFold(new Range([4, 29], [7, 4]))
+        expect(wrapper.screenPositionForBufferPosition([7, 4])).toEqual [5, 32]
+
   describe ".bufferPositionForScreenPosition(point)", ->
     it "translates the given screen position to a buffer position, account for wrapped lines", ->
       # before any wrapped lines
@@ -137,6 +142,11 @@ describe "LineWrapper", ->
 
       # following a wrapped line
       expect(wrapper.bufferPositionForScreenPosition([5, 5])).toEqual([4, 5])
+
+    describe "when the position follows a fold placeholder", ->
+      it "adjusts the position to account for the fold", ->
+        fold = folder.createFold(new Range([4, 29], [7, 4]))
+        expect(wrapper.bufferPositionForScreenPosition([5, 32])).toEqual [7, 4]
 
   describe ".wrapScreenLine(screenLine)", ->
     makeTokens = (tokenValues...) ->

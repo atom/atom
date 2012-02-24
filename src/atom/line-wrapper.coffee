@@ -80,10 +80,13 @@ class LineWrapper
     @lineMap.screenRangeForBufferRange(bufferRange)
 
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
-    @lineMap.screenPositionForBufferPosition(bufferPosition, eagerWrap)
+    @lineMap.screenPositionForBufferPosition(
+      @lineFolder.screenPositionForBufferPosition(bufferPosition),
+      eagerWrap)
 
   bufferPositionForScreenPosition: (screenPosition) ->
-    @lineMap.bufferPositionForScreenPosition(screenPosition)
+    @lineFolder.bufferPositionForScreenPosition(
+      @lineMap.bufferPositionForScreenPosition(screenPosition))
 
   lineForScreenRow: (screenRow) ->
     @linesForScreenRows(screenRow, screenRow)[0]
