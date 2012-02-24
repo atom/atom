@@ -14,7 +14,7 @@ describe "LineWrapper", ->
     changeHandler = jasmine.createSpy('changeHandler')
     wrapper.on 'change', changeHandler
 
-  describe ".tokensForScreenRow(row)", ->
+  describe ".lineForScreenRow(row)", ->
     it "returns tokens for the line fragment corresponding to the given screen row", ->
       expect(tokensText wrapper.lineForScreenRow(3).tokens).toEqual('    var pivot = items.shift(), current, left = [], ')
       expect(tokensText wrapper.lineForScreenRow(4).tokens).toEqual('right = [];')
