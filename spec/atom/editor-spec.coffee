@@ -745,3 +745,9 @@ describe "Editor", ->
 
         editor.setCursorScreenPosition([9, 2])
         expect(editor.getCursorScreenPosition()).toEqual [9, 2]
+
+        buffer.insert([9, 4], 'x')
+        expect(editor.getCursorScreenPosition()).toEqual [6, 5]
+        expect(editor.getCursorBufferPosition()).toEqual [9, 5]
+
+

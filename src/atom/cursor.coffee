@@ -13,7 +13,7 @@ class Cursor extends View
     @one 'attach', => @updateAppearance()
 
   bufferChanged: (e) ->
-    @setScreenPosition(e.newRange.end)
+    @setBufferPosition(e.newRange.end)
 
   setScreenPosition: (position) ->
     position = Point.fromObject(position)
