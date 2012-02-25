@@ -21,9 +21,7 @@ class LineFolder
     @lineMap.insertAtBufferRow(0, @highlighter.screenLines)
 
   logLines: (start=0, end=@lastRow())->
-    for row in [start..end]
-      line = @lineForScreenRow(row).text
-      console.log row, line, line.length
+    @lineMap.logLines(start, end)
 
   createFold: (bufferRange) ->
     fold = new Fold(this, bufferRange)
@@ -141,6 +139,9 @@ class LineFolder
 
   screenRangeForBufferRange: (bufferRange) ->
     @lineMap.screenRangeForBufferRange(bufferRange)
+
+  bufferRangeForScreenRange: (screenRange) ->
+    @lineMap.bufferRangeForScreenRange(screenRange)
 
   expandScreenRangeToLineEnds: (screenRange) ->
     { start, end } = screenRange

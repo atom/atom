@@ -65,13 +65,13 @@ describe "Editor", ->
         expect(editor.lines.find('pre:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
         expect(editor.lines.find('pre:eq(4)').text()).toBe "right = [];"
 
-        editor.cursor.setScreenPosition([3, 51])
+        editor.cursor.setBufferPosition([3, 51])
         expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(4)').position())
 
-        editor.cursor.setScreenPosition([4, 0])
+        editor.cursor.setBufferPosition([4, 0])
         expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(5)').position())
 
-        editor.selection.setRange(new Range([6, 30], [6, 55]))
+        editor.selection.setBufferRange(new Range([6, 30], [6, 55]))
         [region1, region2] = editor.selection.regions
         expect(region1.position().top).toBe(editor.lines.find('.line:eq(7)').position().top)
         expect(region2.position().top).toBe(editor.lines.find('.line:eq(8)').position().top)
@@ -333,7 +333,7 @@ describe "Editor", ->
 
             [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
             editor.lines.trigger mousedownEvent({pageX, pageY})
-            expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 58)
+            expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 58)
 
       describe "when soft-wrap is disabled", ->
         describe "when it is a single click", ->
@@ -394,33 +394,33 @@ describe "Editor", ->
         editor.trigger keydownEvent('right', shiftKey: true)
 
         expect(selection.isEmpty()).toBeFalsy()
-        range = selection.getRange()
+        range = selection.getScreenRange()
         expect(range.start).toEqual(row: 1, column: 6)
         expect(range.end).toEqual(row: 1, column: 7)
 
         editor.trigger keydownEvent('right', shiftKey: true)
-        range = selection.getRange()
+        range = selection.getScreenRange()
         expect(range.start).toEqual(row: 1, column: 6)
         expect(range.end).toEqual(row: 1, column: 8)
 
         editor.trigger keydownEvent('down', shiftKey: true)
-        range = selection.getRange()
+        range = selection.getScreenRange()
         expect(range.start).toEqual(row: 1, column: 6)
         expect(range.end).toEqual(row: 2, column: 8)
 
         editor.trigger keydownEvent('left', shiftKey: true)
-        range = selection.getRange()
+        range = selection.getScreenRange()
         expect(range.start).toEqual(row: 1, column: 6)
         expect(range.end).toEqual(row: 2, column: 7)
 
         editor.trigger keydownEvent('up', shiftKey: true)
-        range = selection.getRange()
+        range = selection.getScreenRange()
         expect(range.start).toEqual(row: 1, column: 6)
         expect(range.end).toEqual(row: 1, column: 7)
 
     describe "when the arrow keys are pressed without the shift modifier", ->
       makeNonEmpty = ->
-        selection.setRange(new Range({row: 1, column: 2}, {row: 1, column: 5}))
+        selection.setBufferRange(new Range({row: 1, column: 2}, {row: 1, column: 5}))
         expect(selection.isEmpty()).toBeFalsy()
 
       it "clears the selection", ->
@@ -453,7 +453,7 @@ describe "Editor", ->
         [pageX, pageY] = window.pixelPositionForPoint(editor, [5, 27])
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
-        range = editor.selection.getRange()
+        range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -465,7 +465,7 @@ describe "Editor", ->
         [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 8])
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
-        range = editor.selection.getRange()
+        range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -484,7 +484,7 @@ describe "Editor", ->
         [pageX, pageY] = window.pixelPositionForPoint(editor, [5, 27])
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
-        range = editor.selection.getRange()
+        range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 4})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -496,7 +496,7 @@ describe "Editor", ->
         [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 8])
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
-        range = editor.selection.getRange()
+        range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 4})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -518,7 +518,7 @@ describe "Editor", ->
         [pageX, pageY] = window.pixelPositionForPoint(editor, [5, 27])
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
-        range = editor.selection.getRange()
+        range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 0})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -530,7 +530,7 @@ describe "Editor", ->
         [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 8])
         editor.lines.trigger mousemoveEvent({pageX, pageY})
 
-        range = editor.selection.getRange()
+        range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 0})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -551,7 +551,7 @@ describe "Editor", ->
 
       describe "when there is a selection", ->
         it "replaces the selected text with the typed text", ->
-          editor.selection.setRange(new Range([1, 6], [2, 4]))
+          editor.selection.setBufferRange(new Range([1, 6], [2, 4]))
           editor.hiddenInput.textInput 'q'
           expect(buffer.getLine(1)).toBe '  var qif (items.length <= 1) return items;'
 
@@ -625,7 +625,7 @@ describe "Editor", ->
 
       describe "when there is a selection", ->
         it "deletes the selection, but not the character before it", ->
-          editor.selection.setRange(new Range([0,5], [0,9]))
+          editor.selection.setBufferRange(new Range([0,5], [0,9]))
           editor.trigger keydownEvent('backspace')
           expect(editor.buffer.getLine(0)).toBe 'var qsort = function () {'
 
@@ -644,7 +644,7 @@ describe "Editor", ->
 
       describe "when there is a selection", ->
         it "deletes the selection, but not the character following it", ->
-          editor.selection.setRange(new Range([1,6], [1,8]))
+          editor.selection.setBufferRange(new Range([1,6], [1,8]))
           editor.trigger keydownEvent 'delete'
           expect(buffer.getLine(1)).toBe '  var rt = function(items) {'
 
@@ -697,12 +697,12 @@ describe "Editor", ->
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
-  describe ".clipPosition(point)", ->
+  describe ".clipScreenPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
-      expect(editor.clipPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.getLine(buffer.lastRow()).length)
-      expect(editor.clipPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
-      expect(editor.clipPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.getLine(1).length)
-      expect(editor.clipPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
+      expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.getLine(buffer.lastRow()).length)
+      expect(editor.clipScreenPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
+      expect(editor.clipScreenPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.getLine(1).length)
+      expect(editor.clipScreenPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
 
   describe "cut, copy & paste", ->
     beforeEach ->
@@ -711,14 +711,14 @@ describe "Editor", ->
 
     describe "when a cut event is triggered", ->
       it "removes the selected text from the buffer and places it on the pasteboard", ->
-        editor.getSelection().setRange new Range([0,4], [0,9])
+        editor.getSelection().setBufferRange new Range([0,4], [0,9])
         editor.trigger "cut"
         expect(editor.buffer.getLine(0)).toBe "var sort = function () {"
         expect(atom.native.readFromPasteboard()).toBe 'quick'
 
     describe "when a copy event is triggered", ->
       it "copies selected text onto the clipboard", ->
-        editor.getSelection().setRange new Range([0,4], [0, 13])
+        editor.getSelection().setBufferRange new Range([0,4], [0, 13])
         editor.trigger "copy"
         expect(atom.native.readFromPasteboard()).toBe 'quicksort'
 
@@ -729,14 +729,17 @@ describe "Editor", ->
         expect(editor.buffer.getLine(0)).toBe "var firstquicksort = function () {"
 
         expect(editor.buffer.getLine(1)).toBe "  var sort = function(items) {"
-        editor.getSelection().setRange new Range([1,6], [1,10])
+        editor.getSelection().setBufferRange new Range([1,6], [1,10])
         editor.trigger "paste"
         expect(editor.buffer.getLine(1)).toBe "  var first = function(items) {"
 
   describe "folding", ->
     describe "when a fold-selection event is triggered", ->
-      it "folds the selected text and renders a placeholder for it", ->
-        editor.selection.setRange(new Range([4, 29], [7, 4]))
+      it "folds the selected text and moves the cursor to just after the placeholder", ->
+        editor.selection.setBufferRange(new Range([4, 29], [7, 4]))
+
         editor.trigger 'fold-selection'
         expect(editor.lines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {...}'
+        expect(editor.selection.isEmpty()).toBeTruthy()
+        expect(editor.getCursorScreenPosition()).toEqual [4, 32]
 

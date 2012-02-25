@@ -95,7 +95,7 @@ class Editor extends View
       clickCount = e.originalEvent.detail
 
       if clickCount == 1
-        @setCursorScreenPosition @pointFromMouseEvent(e)
+        @setCursorScreenPosition @screenPositionFromMouseEvent(e)
       else if clickCount == 2
         @selection.selectWord()
       else if clickCount >= 3
@@ -107,7 +107,7 @@ class Editor extends View
       @insertText(e.originalEvent.data)
 
     @on 'cursor:position-changed', =>
-      @hiddenInput.css(@pixelPositionFromPoint(@cursor.getScreenPosition()))
+      @hiddenInput.css(@pixelPositionForScreenPosition(@cursor.getScreenPosition()))
 
     @one 'attach', =>
       @calculateDimensions()
@@ -116,7 +116,7 @@ class Editor extends View
       @focus()
 
   selectTextOnMouseMovement: ->
-    moveHandler = (e) => @selectToPosition(@pointFromMouseEvent(e))
+    moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', => @off 'mousemove', moveHandler
 
@@ -145,6 +145,9 @@ class Editor extends View
 
     @buffer.on 'change', (e) =>
       @cursor.bufferChanged(e)
+
+    @lineFolder.on 'fold', (range) =>
+      @setCursorBufferPosition(range.end)
 
     @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e
@@ -202,27 +205,30 @@ class Editor extends View
     else
       $(window).off 'resize', @_setMaxLineLength
 
-  clipPosition: ({row, column}) ->
-    if row > @buffer.lastRow()
-      row = @buffer.lastRow()
-      column = @buffer.getLine(row).length
-    else
-      row = Math.min(Math.max(0, row), @buffer.numLines() - 1)
-      column = Math.min(Math.max(0, column), @buffer.getLine(row).length)
+  clipScreenPosition: (screenPosition) ->
+    @lineWrapper.clipScreenPosition(screenPosition)
 
-    new Point(row, column)
-
-  pixelPositionFromPoint: (position) ->
-    { row, column } = @lineWrapper.screenPositionForBufferPosition(position)
+  pixelPositionForScreenPosition: ({row, column}) ->
     { top: row * @lineHeight, left: column * @charWidth }
 
-  pointFromPixelPosition: ({top, left}) ->
+  screenPositionFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
-    @lineWrapper.bufferPositionForScreenPosition screenPosition
 
-  pointFromMouseEvent: (e) ->
+  screenPositionForBufferPosition: (position) ->
+    @lineWrapper.screenPositionForBufferPosition(position)
+
+  bufferPositionForScreenPosition: (position) ->
+    @lineWrapper.bufferPositionForScreenPosition(position)
+
+  screenRangeForBufferRange: (range) ->
+    @lineWrapper.screenRangeForBufferRange(range)
+
+  bufferRangeForScreenRange: (range) ->
+    @lineWrapper.bufferRangeForScreenRange(range)
+
+  screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
-    @pointFromPixelPosition
+    @screenPositionFromPixelPosition
       top: pageY - @lines.offset().top
       left: pageX - @lines.offset().left
 
@@ -254,8 +260,10 @@ class Editor extends View
   moveCursorDown: -> @cursor.moveDown()
   moveCursorRight: -> @cursor.moveRight()
   moveCursorLeft: -> @cursor.moveLeft()
-  setCursorScreenPosition: (point) -> @cursor.setScreenPosition(point)
+  setCursorScreenPosition: (position) -> @cursor.setScreenPosition(position)
   getCursorScreenPosition: -> @cursor.getScreenPosition()
+  setCursorBufferPosition: (position) -> @cursor.setBufferPosition(position)
+  getCursorBufferPosition: -> @cursor.getBufferPosition()
   setCursorRow: (row) -> @cursor.setRow(row)
   getCursorRow: -> @cursor.getRow()
   setCursorColumn: (column) -> @cursor.setColumn(column)
@@ -265,8 +273,10 @@ class Editor extends View
   selectLeft: -> @selection.selectLeft()
   selectUp: -> @selection.selectUp()
   selectDown: -> @selection.selectDown()
-  selectToPosition: (position) ->
-    @selection.selectToPosition(position)
+  selectToScreenPosition: (position) ->
+    @selection.selectToScreenPosition(position)
+  selectToBufferPosition: (position) ->
+    @selection.selectToBufferPosition(position)
 
   insertText: (text) -> @selection.insertText(text)
   insertNewline: -> @selection.insertNewline()

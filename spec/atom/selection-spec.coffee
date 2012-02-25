@@ -12,34 +12,34 @@ describe "Selection", ->
     editor.setBuffer(buffer)
     selection = editor.selection
 
-  describe ".setRange(range)", ->
+  describe ".setBufferRange(range)", ->
     it "places the anchor at the start of the range and the cursor at the end", ->
       range = new Range({row: 2, column: 7}, {row: 3, column: 18})
-      selection.setRange(range)
+      selection.setBufferRange(range)
       expect(selection.anchor.getScreenPosition()).toEqual range.start
       expect(selection.cursor.getScreenPosition()).toEqual range.end
 
   describe ".delete()", ->
     describe "when nothing is selected", ->
       it "deletes nothing", ->
-        selection.setRange new Range([0,3], [0,3])
+        selection.setBufferRange new Range([0,3], [0,3])
         selection.delete()
         expect(editor.buffer.getLine(0)).toBe "var quicksort = function () {"
 
     describe "when one line is selected", ->
       it "deletes selected text", ->
-        selection.setRange new Range([0,4], [0,14])
+        selection.setBufferRange new Range([0,4], [0,14])
         selection.delete()
         expect(editor.buffer.getLine(0)).toBe "var = function () {"
 
         endOfLine = editor.buffer.getLine(0).length
-        selection.setRange new Range([0,0], [0, endOfLine])
+        selection.setBufferRange new Range([0,0], [0, endOfLine])
         selection.delete()
         expect(editor.buffer.getLine(0)).toBe ""
 
     describe "when multiple lines are selected", ->
       it "deletes selected text", ->
-        selection.setRange new Range([0,1], [2,39])
+        selection.setBufferRange new Range([0,1], [2,39])
         selection.delete()
         expect(editor.buffer.getLine(0)).toBe "v;"
 
@@ -53,7 +53,7 @@ describe "Selection", ->
 
     describe "when the selection is within a single line", ->
       it "covers the selection's range with a single region", ->
-        selection.setRange(new Range({row: 2, column: 7}, {row: 2, column: 25}))
+        selection.setBufferRange(new Range({row: 2, column: 7}, {row: 2, column: 25}))
 
         expect(selection.regions.length).toBe 1
         region = selection.regions[0]
@@ -64,7 +64,7 @@ describe "Selection", ->
 
     describe "when the selection spans 2 lines", ->
       it "covers the selection's range with 2 regions", ->
-        selection.setRange(new Range({row: 2, column: 7}, {row: 3, column: 25}))
+        selection.setBufferRange(new Range({row: 2, column: 7}, {row: 3, column: 25}))
 
         expect(selection.regions.length).toBe 2
 
@@ -82,7 +82,7 @@ describe "Selection", ->
 
     describe "when the selection spans more than 2 lines", ->
       it "covers the selection's range with 3 regions", ->
-        selection.setRange(new Range({row: 2, column: 7}, {row: 6, column: 25}))
+        selection.setBufferRange(new Range({row: 2, column: 7}, {row: 6, column: 25}))
 
         expect(selection.regions.length).toBe 3
 
@@ -110,7 +110,7 @@ describe "Selection", ->
         expect(region3.width()).toBe(25 * charWidth)
 
     it "clears previously drawn regions before creating new ones", ->
-      selection.setRange(new Range({row: 2, column: 7}, {row: 4, column: 25}))
+      selection.setBufferRange(new Range({row: 2, column: 7}, {row: 4, column: 25}))
       expect(selection.regions.length).toBe 3
       expect(selection.find('.selection').length).toBe 3
 
@@ -124,19 +124,19 @@ describe "Selection", ->
       expect(atom.native.readFromPasteboard()).toBe 'first'
 
     it "removes selected text from the buffer and places it on the clipboard", ->
-      selection.setRange new Range([0,4], [0,13])
+      selection.setBufferRange new Range([0,4], [0,13])
       selection.cut()
       expect(atom.native.readFromPasteboard()).toBe 'quicksort'
       expect(editor.buffer.getLine(0)).toBe "var  = function () {"
       expect(selection.isEmpty()).toBeTruthy()
 
-      selection.setRange new Range([1,6], [3,8])
+      selection.setBufferRange new Range([1,6], [3,8])
       selection.cut()
       expect(atom.native.readFromPasteboard()).toBe "sort = function(items) {\n    if (items.length <= 1) return items;\n    var "
       expect(editor.buffer.getLine(1)).toBe "  var pivot = items.shift(), current, left = [], right = [];"
 
     it "places nothing on the clipboard when there is no selection", ->
-      selection.setRange new Range([0,4], [0,4])
+      selection.setBufferRange new Range([0,4], [0,4])
       selection.copy()
       expect(atom.native.readFromPasteboard()).toBe 'first'
 
@@ -146,16 +146,16 @@ describe "Selection", ->
       expect(atom.native.readFromPasteboard()).toBe 'first'
 
     it "places selected text on the clipboard", ->
-      selection.setRange new Range([0,4], [0,13])
+      selection.setBufferRange new Range([0,4], [0,13])
       selection.copy()
       expect(atom.native.readFromPasteboard()).toBe 'quicksort'
 
-      selection.setRange new Range([0,4], [3,13])
+      selection.setBufferRange new Range([0,4], [3,13])
       selection.copy()
       expect(atom.native.readFromPasteboard()).toBe "quicksort = function () {\n  var sort = function(items) {\n    if (items.length <= 1) return items;\n    var pivot"
 
     it "places nothing on the clipboard when there is no selection", ->
-      selection.setRange new Range([0,4], [0,4])
+      selection.setBufferRange new Range([0,4], [0,4])
       selection.copy()
       expect(atom.native.readFromPasteboard()).toBe 'first'
 

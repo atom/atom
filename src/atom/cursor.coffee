@@ -15,9 +15,9 @@ class Cursor extends View
   bufferChanged: (e) ->
     @setScreenPosition(e.newRange.end)
 
-  setScreenPosition: (point) ->
-    point = Point.fromObject(point)
-    @$position = @editor.clipPosition(point)
+  setScreenPosition: (position) ->
+    position = Point.fromObject(position)
+    @screenPosition = @editor.clipScreenPosition(position)
     @goalColumn = null
     @updateAppearance()
     @trigger 'cursor:position-changed'
@@ -26,7 +26,13 @@ class Cursor extends View
     window.clearTimeout(@idleTimeout) if @idleTimeout
     @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
 
-  getScreenPosition: -> _.clone(@$position)
+  setBufferPosition: (bufferPosition) ->
+    @setScreenPosition(@editor.screenPositionForBufferPosition(bufferPosition))
+
+  getBufferPosition: ->
+    @editor.bufferPositionForScreenPosition(@getScreenPosition())
+
+  getScreenPosition: -> _.clone(@screenPosition)
 
   getColumn: ->
     @getScreenPosition().column
@@ -111,7 +117,7 @@ class Cursor extends View
     @setScreenPosition [row, column + offset]
 
   updateAppearance: ->
-    position = @editor.pixelPositionFromPoint(@getScreenPosition())
+    position = @editor.pixelPositionForScreenPosition(@getScreenPosition())
     @css(position)
     @autoScrollVertically(position)
     @autoScrollHorizontally(position)

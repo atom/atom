@@ -60,35 +60,38 @@ class Selection extends View
     region.remove() for region in @regions
     @regions = []
 
-  getRange: ->
+  getScreenRange: ->
     if @anchor
       new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())
     else
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
-  setRange: (range) ->
+  setScreenRange: (range) ->
     @cursor.setScreenPosition(range.start)
     @modifySelection =>
       @cursor.setScreenPosition(range.end)
 
-  getScreenRange: ->
-    @editor.lineWrapper.screenRangeForBufferRange(@getRange())
+  getBufferRange: ->
+    @editor.bufferRangeForScreenRange(@getScreenRange())
+
+  setBufferRange: (bufferRange) ->
+    @setScreenRange(@editor.screenRangeForBufferRange(bufferRange))
 
   getText: ->
-    @editor.buffer.getTextInRange @getRange()
+    @editor.buffer.getTextInRange @getBufferRange()
 
   insertText: (text) ->
-    @editor.buffer.change(@getRange(), text)
+    @editor.buffer.change(@getBufferRange(), text)
 
   insertNewline: ->
     @insertText('\n')
 
   delete: ->
-    range = @getRange()
+    range = @getBufferRange()
     @editor.buffer.change(range, '') unless range.isEmpty()
 
   isEmpty: ->
-    @getRange().isEmpty()
+    @getBufferRange().isEmpty()
 
   modifySelection: (fn) ->
     @placeAnchor()
@@ -114,11 +117,11 @@ class Selection extends View
     endOffset = regex.exec(rightSide)?[0]?.length or 0
 
     range = new Range([row, column + startOffset], [row, column + endOffset])
-    @setRange range
+    @setBufferRange range
 
   selectLine: (row) ->
     rowLength = @editor.buffer.getLine(row).length
-    @setRange new Range([row, 0], [row, rowLength])
+    @setBufferRange new Range([row, 0], [row, rowLength])
 
   selectRight: ->
     @modifySelection =>
@@ -140,9 +143,13 @@ class Selection extends View
     @modifySelection =>
       @cursor.moveLeftUntilMatch(regex)
 
-  selectToPosition: (position) ->
+  selectToScreenPosition: (position) ->
     @modifySelection =>
       @cursor.setScreenPosition(position)
+
+  selectToBufferPosition: (position) ->
+    @modifySelection =>
+      @cursor.setBufferPosition(position)
 
   moveCursorToLineEnd: ->
     @cursor.moveToLineEnd()
@@ -156,8 +163,8 @@ class Selection extends View
 
   copy: ->
     return if @isEmpty()
-    text = @editor.buffer.getTextInRange @getRange()
+    text = @editor.buffer.getTextInRange(@getBufferRange())
     atom.native.writeToPasteboard text
 
   fold: ->
-    @editor.lineFolder.createFold(@getRange())
+    @editor.lineFolder.createFold(@getBufferRange())

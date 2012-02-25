@@ -235,3 +235,21 @@ describe "LineWrapper", ->
           expect(line2.endColumn).toBe 14
           expect(line2.text.length).toBe 3
 
+  describe ".clipScreenPosition(screenPosition)", ->
+    it "returns the nearest valid position based on the current screen lines", ->
+      expect(wrapper.clipScreenPosition([-1, -1])).toEqual [0, 0]
+      expect(wrapper.clipScreenPosition([0, -1])).toEqual [0, 0]
+      expect(wrapper.clipScreenPosition([1, 10000])).toEqual [1, 30]
+      expect(wrapper.clipScreenPosition([3, 51])).toEqual [4, 0]
+      expect(wrapper.clipScreenPosition([3, 58])).toEqual [4, 0]
+      expect(wrapper.clipScreenPosition([4, 5])).toEqual [4, 5]
+      expect(wrapper.clipScreenPosition([4, 11])).toEqual [4, 11]
+      expect(wrapper.clipScreenPosition([4, 30])).toEqual [4, 11]
+      expect(wrapper.clipScreenPosition([4, 1000])).toEqual [4, 11]
+      expect(wrapper.clipScreenPosition([1000, 1000])).toEqual [15, 2]
+
+    it "also clips the screen position with respect to fold placeholders", ->
+      folder.createFold(new Range([3, 55], [3, 59]))
+      expect(wrapper.clipScreenPosition([4, 5])).toEqual [4, 4]
+      expect(wrapper.clipScreenPosition([4, 6])).toEqual [4, 4]
+      

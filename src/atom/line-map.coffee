@@ -99,6 +99,9 @@ class LineMap
       delta = delta.add(screenLine.screenDelta)
     delta.row
 
+  lastScreenRow: ->
+    @screenLineCount() - 1
+
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
     bufferPosition = Point.fromObject(bufferPosition)
     bufferDelta = new Point
@@ -135,9 +138,20 @@ class LineMap
     end = @screenPositionForBufferPosition(bufferRange.end)
     new Range(start, end)
 
+  bufferRangeForScreenRange: (screenRange) ->
+    start = @bufferPositionForScreenPosition(screenRange.start)
+    end = @bufferPositionForScreenPosition(screenRange.end)
+    new Range(start, end)
+
   clipScreenPosition: (screenPosition) ->
     screenPosition = Point.fromObject(screenPosition)
+
+    debugger if screenPosition.isEqual [7,4]
     screenPosition = new Point(Math.max(0, screenPosition.row), Math.max(0, screenPosition.column))
+    maxRow = @lastScreenRow()
+    if screenPosition.row > maxRow
+      screenPosition.row = maxRow
+      screenPosition.column = Infinity
 
     screenDelta = new Point
     for screenLine in @screenLines
@@ -147,6 +161,9 @@ class LineMap
 
     maxColumn = screenDelta.column + screenLine.lengthForClipping()
     screenDelta.column = Math.min(maxColumn, screenPosition.column)
-
     screenDelta
 
+  logLines: (start=0, end=@screenLineCount() - 1)->
+    for row in [start..end]
+      line = @lineForScreenRow(row).text
+      console.log row, line, line.length
