@@ -94,13 +94,10 @@ class LineWrapper
       @lineMap.bufferRangeForScreenRange(screenRange))
 
   clipScreenPosition: (screenPosition) ->
-    # console.log @lineMap.bufferPositionForScreenPosition(@lineMap.clipScreenPosition(screenPosition)).inspect()
-    @lineFolder.clipScreenPosition(@lineMap.clipScreenPosition(screenPosition))
-    # @lineMap.clipScreenPosition(screenPosition)
-    # @lineMap.screenPositionForBufferPosition(
-    #   @lineFolder.clipScreenPosition(
-    #     @lineMap.bufferPositionForScreenPosition(
-    #       @lineMap.clipScreenPosition(screenPosition))))
+    @lineMap.screenPositionForBufferPosition(
+      @lineFolder.clipScreenPosition(
+        @lineMap.bufferPositionForScreenPosition(
+          @lineMap.clipScreenPosition(screenPosition))))
 
   lineForScreenRow: (screenRow) ->
     @linesForScreenRows(screenRow, screenRow)[0]
