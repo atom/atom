@@ -106,10 +106,13 @@ class LineWrapper
     @lineMap.linesForScreenRows(startRow, endRow)
 
   getLines: ->
-    @linesForScreenRows(0, @lineCount() - 1)
+    @linesForScreenRows(0, @lastRow())
 
   lineCount: ->
     @lineMap.screenLineCount()
+
+  lastRow: ->
+    @lineCount() - 1
 
   logLines: (start=0, end=@lineCount() - 1)->
     @lineMap.logLines(start, end)

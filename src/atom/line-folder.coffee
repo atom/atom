@@ -114,7 +114,7 @@ class LineFolder
     @lineMap.lineForScreenRow(screenRow)
 
   getLines: ->
-    @lineMap.getScreenLines()
+    @lineMap.screenLinesForRows(0, @lastRow())
 
   lineCount: ->
     @lineMap.screenLineCount()

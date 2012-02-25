@@ -50,14 +50,10 @@ class LineMap
   replaceScreenRows: (start, end, screenLines) ->
     @spliceAtScreenRow(start, end - start + 1, screenLines)
 
-  getScreenLines: ->
-    return @screenLines
-
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
 
   linesForScreenRows: (startRow, endRow) ->
-    lastLine = null
     lines = []
     delta = new Point
 
@@ -67,11 +63,13 @@ class LineMap
         if pendingFragment
           pendingFragment = pendingFragment.concat(fragment)
         else
-          pendingFragment = fragment
+          pendingFragment = _.clone(fragment)
         if pendingFragment.screenDelta.row > 0
+          pendingFragment.bufferDelta = new Point(1, 0)
           lines.push pendingFragment
           pendingFragment = null
       delta = delta.add(fragment.screenDelta)
+
     lines
 
   lineForBufferRow: (row) ->

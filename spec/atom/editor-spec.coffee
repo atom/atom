@@ -743,3 +743,5 @@ describe "Editor", ->
         expect(editor.selection.isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [4, 32]
 
+        editor.setCursorScreenPosition([9, 2])
+        expect(editor.getCursorScreenPosition()).toEqual [9, 2]

@@ -129,6 +129,7 @@ describe "LineWrapper", ->
       it "adjusts the position to account for the fold", ->
         fold = folder.createFold(new Range([4, 29], [7, 4]))
         expect(wrapper.screenPositionForBufferPosition([7, 4])).toEqual [5, 32]
+        expect(wrapper.screenPositionForBufferPosition([8, 12])).toEqual [6, 12]
 
   describe ".bufferPositionForScreenPosition(point)", ->
     it "translates the given screen position to a buffer position, account for wrapped lines", ->
@@ -147,6 +148,7 @@ describe "LineWrapper", ->
       it "adjusts the position to account for the fold", ->
         fold = folder.createFold(new Range([4, 29], [7, 4]))
         expect(wrapper.bufferPositionForScreenPosition([5, 32])).toEqual [7, 4]
+        expect(wrapper.bufferPositionForScreenPosition([6, 12])).toEqual [8, 12]
 
   describe ".wrapScreenLine(screenLine)", ->
     makeTokens = (tokenValues...) ->
