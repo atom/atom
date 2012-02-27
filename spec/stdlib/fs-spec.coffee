@@ -19,19 +19,19 @@ describe "fs", ->
       expect(fs.join('a', 'b/c/', 'd/')).toBe 'a/b/c/d/'
 
   describe ".async", ->
-    describe ".listFiles(directoryPath, recursive)", ->
-      directoryPath = null
-      beforeEach -> directoryPath = require.resolve 'fixtures/dir'
+    directoryPath = null
+    beforeEach ->
+      directoryPath = require.resolve 'fixtures/dir'
 
-      describe "when recursive is true", ->
-        it "returns a promise that resolves to the recursive contents of that directory that are files", ->
-          waitsForPromise ->
-            fs.async.listFiles(directoryPath, true).done (result) ->
-              expect(result).toEqual (path for path in fs.list(directoryPath, true) when fs.isFile(path))
+    describe ".listTree(directoryPath)", ->
+      it "returns a promise that resolves to the recursive contents of that directory", ->
+        waitsForPromise ->
+          fs.async.listTree(directoryPath).done (result) ->
+            expect(result).toEqual fs.listTree(directoryPath)
 
-      describe "when recursive is false", ->
-        it "returns a promise that resolves to the contents of that directory that are files", ->
-          waitsForPromise ->
-            fs.async.listFiles(directoryPath).done (result) ->
-              expect(result).toEqual (path for path in fs.list(directoryPath) when fs.isFile(path))
+    describe ".listFiles(directoryPath)", ->
+      it "returns a promise that resolves to the contents of that directory", ->
+        waitsForPromise ->
+          fs.async.listFiles(directoryPath).done (result) ->
+            expect(result).toEqual fs.list(directoryPath)
 

@@ -21,10 +21,10 @@ module.exports =
   # Return the dirname of the given path. That is the path with any trailing
   # non-directory component removed.
   directory: (path) ->
-    if @isDirectory(absPath)
-      absPath.replace(/\/?$/, '/')
+    if @isDirectory(path)
+      path.replace(/\/?$/, '/')
     else
-      absPath.replace(new RegExp("/#{@base(path)}$"), '/')
+      path.replace(new RegExp("/#{@base(path)}$"), '/')
 
   # Returns true if the file specified by path exists
   exists: (path) ->
@@ -43,19 +43,14 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    $native.isFile path
+    not $native.isDirectory path
 
   # Returns an array with all the names of files contained
   # in the directory path.
   list: (path) ->
     $native.list(path, false)
 
-  # Returns an Array that starts with the given directory, and all the
-  # directories relative to the given path, discovered by a depth first
-  # traversal of every directory in any visited directory, not traversing
-  # symbolic links to directories, in lexically sorted order within
-  # directories.
-  listDirectoryTree: (path) ->
+  listTree: (path) ->
     $native.list(path, true)
 
   # Remove a file at the given path. Throws an error if path is not a
@@ -69,14 +64,18 @@ module.exports =
 
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
-    str  = OSX.NSString.stringWithUTF8String content
-    enc  = OSX.NSUTF8StringEncoding
-    str.writeToFile_atomically_encoding_error path, true, enc, null
+    $native.write(path, content)
 
   async:
-    listFiles: (path, recursive) ->
+    listFiles: (path) ->
       deferred = $.Deferred()
-      $atomController.fs.listFilesAtPath_recursive_onComplete path, recursive, (subpaths) ->
+      $native.asyncList path, false, (subpaths) ->
+        deferred.resolve subpaths
+      deferred
+
+    listTree: (path) ->
+      deferred = $.Deferred()
+      $native.asyncList path, true, (subpaths) ->
         deferred.resolve subpaths
       deferred
 
