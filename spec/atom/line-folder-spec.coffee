@@ -313,7 +313,7 @@ describe "LineFolder", ->
         expect(folder.bufferPositionForScreenPosition([4, 13])).toEqual [4, 15]
         expect(folder.bufferPositionForScreenPosition([4, 18])).toEqual [4, 20]
 
-  describe ".clipScreenPosition(screenPosition)", ->
+  describe ".clipScreenPosition(screenPosition, eagerWrap=false)", ->
     beforeEach ->
       folder.createFold(new Range([4, 29], [7, 4]))
 
@@ -326,10 +326,18 @@ describe "LineFolder", ->
       expect(folder.clipScreenPosition([4, 1000])).toEqual [4, 33]
       expect(folder.clipScreenPosition([1000, 1000])).toEqual [9, 2]
 
-    it "clips positions inside a placeholder to the beginning of the placeholder", ->
-      expect(folder.clipScreenPosition([4, 30])).toEqual [4, 29]
-      # expect(folder.clipScreenPosition([4, 31])).toEqual [4, 29]
-      # expect(folder.clipScreenPosition([4, 32])).toEqual [4, 32]
+    describe "when eagerWrap is false (the default)", ->
+      it "clips positions inside a placeholder to the beginning of the placeholder", ->
+        expect(folder.clipScreenPosition([4, 30])).toEqual [4, 29]
+        expect(folder.clipScreenPosition([4, 31])).toEqual [4, 29]
+        expect(folder.clipScreenPosition([4, 32])).toEqual [4, 32]
+
+    describe "when eagerWrap is true", ->
+      it "clips positions inside a placeholder to the end of the placeholder", ->
+        expect(folder.clipScreenPosition([4, 29], true)).toEqual [4, 29]
+        expect(folder.clipScreenPosition([4, 30], true)).toEqual [4, 32]
+        expect(folder.clipScreenPosition([4, 31], true)).toEqual [4, 32]
+        expect(folder.clipScreenPosition([4, 32], true)).toEqual [4, 32]
 
 
 

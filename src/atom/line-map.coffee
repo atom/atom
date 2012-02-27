@@ -141,10 +141,9 @@ class LineMap
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
-  clipScreenPosition: (screenPosition) ->
+  clipScreenPosition: (screenPosition, eagerWrap) ->
     screenPosition = Point.fromObject(screenPosition)
 
-    debugger if screenPosition.isEqual [7,4]
     screenPosition = new Point(Math.max(0, screenPosition.row), Math.max(0, screenPosition.column))
     maxRow = @lastScreenRow()
     if screenPosition.row > maxRow
@@ -157,8 +156,17 @@ class LineMap
       break if nextDelta.isGreaterThan(screenPosition)
       screenDelta = nextDelta
 
-    maxColumn = screenDelta.column + screenLine.lengthForClipping()
-    screenDelta.column = Math.min(maxColumn, screenPosition.column)
+    if screenLine.isAtomic
+      if eagerWrap and screenPosition.column > screenDelta.column
+        screenDelta.column = screenDelta.column + screenLine.text.length
+    else
+      maxColumn = screenDelta.column + screenLine.text.length
+      if eagerWrap and screenPosition.column > maxColumn
+        screenDelta.row++
+        screenDelta.column = 0
+      else
+        screenDelta.column = Math.min(maxColumn, screenPosition.column)
+
     screenDelta
 
   logLines: (start=0, end=@screenLineCount() - 1)->

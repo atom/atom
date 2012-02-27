@@ -93,11 +93,15 @@ class LineWrapper
     @lineFolder.bufferRangeForScreenRange(
       @lineMap.bufferRangeForScreenRange(screenRange))
 
-  clipScreenPosition: (screenPosition) ->
+  clipScreenPosition: (screenPosition, eagerWrap=false) ->
     @lineMap.screenPositionForBufferPosition(
       @lineFolder.clipScreenPosition(
         @lineMap.bufferPositionForScreenPosition(
-          @lineMap.clipScreenPosition(screenPosition))))
+          @lineMap.clipScreenPosition(screenPosition, eagerWrap)
+        ),
+        eagerWrap
+      )
+    )
 
   lineForScreenRow: (screenRow) ->
     @linesForScreenRows(screenRow, screenRow)[0]

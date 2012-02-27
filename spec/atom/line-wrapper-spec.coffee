@@ -237,21 +237,45 @@ describe "LineWrapper", ->
           expect(line2.endColumn).toBe 14
           expect(line2.text.length).toBe 3
 
-  describe ".clipScreenPosition(screenPosition)", ->
-    it "returns the nearest valid position based on the current screen lines", ->
-      expect(wrapper.clipScreenPosition([-1, -1])).toEqual [0, 0]
-      expect(wrapper.clipScreenPosition([0, -1])).toEqual [0, 0]
-      expect(wrapper.clipScreenPosition([1, 10000])).toEqual [1, 30]
-      expect(wrapper.clipScreenPosition([3, 51])).toEqual [4, 0]
-      expect(wrapper.clipScreenPosition([3, 58])).toEqual [4, 0]
+  describe ".clipScreenPosition(screenPosition, eagerWrap=false)", ->
+    it "allows valid positions", ->
       expect(wrapper.clipScreenPosition([4, 5])).toEqual [4, 5]
       expect(wrapper.clipScreenPosition([4, 11])).toEqual [4, 11]
-      expect(wrapper.clipScreenPosition([4, 30])).toEqual [4, 11]
-      expect(wrapper.clipScreenPosition([4, 1000])).toEqual [4, 11]
+
+    it "disallows negative positions", ->
+      expect(wrapper.clipScreenPosition([-1, -1])).toEqual [0, 0]
+      expect(wrapper.clipScreenPosition([0, -1])).toEqual [0, 0]
+
+    it "disallows positions beyond the last row", ->
+      expect(wrapper.clipScreenPosition([1000, 0])).toEqual [15, 2]
       expect(wrapper.clipScreenPosition([1000, 1000])).toEqual [15, 2]
 
-    it "also clips the screen position with respect to fold placeholders", ->
-      folder.createFold(new Range([3, 55], [3, 59]))
-      expect(wrapper.clipScreenPosition([4, 5])).toEqual [4, 4]
-      expect(wrapper.clipScreenPosition([4, 6])).toEqual [4, 4]
-      
+    it "wraps positions at the end of soft-wrapped lines to the next screen line", ->
+      expect(wrapper.clipScreenPosition([3, 51])).toEqual [4, 0]
+      expect(wrapper.clipScreenPosition([3, 58])).toEqual [4, 0]
+      expect(wrapper.clipScreenPosition([3, 1000])).toEqual [4, 0]
+
+    describe "when eagerWrap is false (the default)", ->
+      it "wraps positions beyond the end of hard lines to the end of the line", ->
+        expect(wrapper.clipScreenPosition([1, 10000])).toEqual [1, 30]
+        expect(wrapper.clipScreenPosition([4, 30])).toEqual [4, 11]
+        expect(wrapper.clipScreenPosition([4, 1000])).toEqual [4, 11]
+
+      it "clips screen positions in the middle of fold placeholders to the to the beginning of fold placeholders", ->
+        folder.createFold(new Range([3, 55], [3, 59]))
+        expect(wrapper.clipScreenPosition([4, 5])).toEqual [4, 4]
+        expect(wrapper.clipScreenPosition([4, 6])).toEqual [4, 4]
+        expect(wrapper.clipScreenPosition([4, 7])).toEqual [4, 7]
+
+    describe "when eagerWrap is true", ->
+      it "wraps positions past the end of non-softwrapped lines to the next line", ->
+        expect(wrapper.clipScreenPosition([0, 29], true)).toEqual [0, 29]
+        expect(wrapper.clipScreenPosition([0, 30], true)).toEqual [1, 0]
+        expect(wrapper.clipScreenPosition([0, 1000], true)).toEqual [1, 0]
+
+      it "wraps the screen positions in the middle of fold placeholders to the end of the placeholder", ->
+        folder.createFold(new Range([3, 55], [3, 59]))
+        expect(wrapper.clipScreenPosition([4, 4], true)).toEqual [4, 4]
+        expect(wrapper.clipScreenPosition([4, 5], true)).toEqual [4, 7]
+        expect(wrapper.clipScreenPosition([4, 6], true)).toEqual [4, 7]
+
