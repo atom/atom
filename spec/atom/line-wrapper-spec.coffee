@@ -237,7 +237,7 @@ describe "LineWrapper", ->
           expect(line2.endColumn).toBe 14
           expect(line2.text.length).toBe 3
 
-  describe ".clipScreenPosition(screenPosition, eagerWrap=false)", ->
+  describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     it "allows valid positions", ->
       expect(wrapper.clipScreenPosition([4, 5])).toEqual [4, 5]
       expect(wrapper.clipScreenPosition([4, 11])).toEqual [4, 11]
@@ -251,32 +251,42 @@ describe "LineWrapper", ->
       expect(wrapper.clipScreenPosition([1000, 0])).toEqual [15, 2]
       expect(wrapper.clipScreenPosition([1000, 1000])).toEqual [15, 2]
 
-    it "wraps positions at the end of soft-wrapped lines to the next screen line", ->
-      expect(wrapper.clipScreenPosition([3, 51])).toEqual [4, 0]
-      expect(wrapper.clipScreenPosition([3, 58])).toEqual [4, 0]
-      expect(wrapper.clipScreenPosition([3, 1000])).toEqual [4, 0]
-
-    describe "when eagerWrap is false (the default)", ->
-      it "wraps positions beyond the end of hard lines to the end of the line", ->
+    describe "when wrapBeyondNewlines is false (the default)", ->
+      it "wraps positions beyond the end of hard newlines to the end of the line", ->
         expect(wrapper.clipScreenPosition([1, 10000])).toEqual [1, 30]
         expect(wrapper.clipScreenPosition([4, 30])).toEqual [4, 11]
         expect(wrapper.clipScreenPosition([4, 1000])).toEqual [4, 11]
 
+    describe "when wrapBeyondNewlines is true", ->
+      it "wraps positions past the end of hard newlines to the next line", ->
+        expect(wrapper.clipScreenPosition([0, 29], wrapBeyondNewlines: true)).toEqual [0, 29]
+        expect(wrapper.clipScreenPosition([0, 30], wrapBeyondNewlines: true)).toEqual [1, 0]
+        expect(wrapper.clipScreenPosition([0, 1000], wrapBeyondNewlines: true)).toEqual [1, 0]
+
+    describe "when wrapAtSoftNewlines is false (the default)", ->
+      it "wraps positions at the end of soft-wrapped lines to the character preceding the end of the line", ->
+        expect(wrapper.clipScreenPosition([3, 50])).toEqual [3, 50]
+        expect(wrapper.clipScreenPosition([3, 51])).toEqual [3, 50]
+        expect(wrapper.clipScreenPosition([3, 58])).toEqual [3, 50]
+        expect(wrapper.clipScreenPosition([3, 1000])).toEqual [3, 50]
+
+    describe "when wrapAtSoftNewlines is true", ->
+      it "wraps positions at the end of soft-wrapped lines to the next screen line", ->
+        expect(wrapper.clipScreenPosition([3, 50], wrapAtSoftNewlines: true)).toEqual [3, 50]
+        expect(wrapper.clipScreenPosition([3, 51], wrapAtSoftNewlines: true)).toEqual [4, 0]
+        expect(wrapper.clipScreenPosition([3, 58], wrapAtSoftNewlines: true)).toEqual [4, 0]
+        expect(wrapper.clipScreenPosition([3, 1000], wrapAtSoftNewlines: true)).toEqual [4, 0]
+
+    describe "when skipAtomicTokens is false (the default)", ->
       it "clips screen positions in the middle of fold placeholders to the to the beginning of fold placeholders", ->
         folder.createFold(new Range([3, 55], [3, 59]))
         expect(wrapper.clipScreenPosition([4, 5])).toEqual [4, 4]
         expect(wrapper.clipScreenPosition([4, 6])).toEqual [4, 4]
         expect(wrapper.clipScreenPosition([4, 7])).toEqual [4, 7]
 
-    describe "when eagerWrap is true", ->
-      it "wraps positions past the end of non-softwrapped lines to the next line", ->
-        expect(wrapper.clipScreenPosition([0, 29], true)).toEqual [0, 29]
-        expect(wrapper.clipScreenPosition([0, 30], true)).toEqual [1, 0]
-        expect(wrapper.clipScreenPosition([0, 1000], true)).toEqual [1, 0]
-
+    describe "when skipAtomicTokens is true", ->
       it "wraps the screen positions in the middle of fold placeholders to the end of the placeholder", ->
         folder.createFold(new Range([3, 55], [3, 59]))
-        expect(wrapper.clipScreenPosition([4, 4], true)).toEqual [4, 4]
-        expect(wrapper.clipScreenPosition([4, 5], true)).toEqual [4, 7]
-        expect(wrapper.clipScreenPosition([4, 6], true)).toEqual [4, 7]
-
+        expect(wrapper.clipScreenPosition([4, 4], skipAtomicTokens: true)).toEqual [4, 4]
+        expect(wrapper.clipScreenPosition([4, 5], skipAtomicTokens: true)).toEqual [4, 7]
+        expect(wrapper.clipScreenPosition([4, 6], skipAtomicTokens: true)).toEqual [4, 7]

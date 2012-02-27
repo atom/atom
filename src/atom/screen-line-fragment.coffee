@@ -52,5 +52,8 @@ class ScreenLineFragment
     else
       @text.length
 
+  isSoftWrapped: ->
+    @screenDelta.row == 1 and @bufferDelta.row == 0
+
   isEqual: (other) ->
     _.isEqual(@tokens, other.tokens) and @screenDelta.isEqual(other.screenDelta) and @bufferDelta.isEqual(other.bufferDelta)

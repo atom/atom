@@ -69,15 +69,16 @@ class Cursor extends View
 
   moveRight: ->
     { row, column } = @getScreenPosition()
-    @setScreenPosition(@editor.clipScreenPosition([row, column + 1], true))
+    @setScreenPosition(@editor.clipScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true))
 
   moveLeft: ->
     { row, column } = @getScreenPosition()
+
     if column > 0
       column--
-    else if row > 0
+    else
       row--
-      column = @editor.buffer.getLine(row).length
+      column = Infinity
 
     @setScreenPosition({row, column})
 

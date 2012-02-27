@@ -134,8 +134,8 @@ class LineFolder
   bufferPositionForScreenPosition: (screenPosition) ->
     @lineMap.bufferPositionForScreenPosition(screenPosition)
 
-  clipScreenPosition: (screenPosition, eagerWrap=false) ->
-    @lineMap.clipScreenPosition(screenPosition, eagerWrap)
+  clipScreenPosition: (screenPosition, options={}) ->
+    @lineMap.clipScreenPosition(screenPosition, options)
 
   screenRangeForBufferRange: (bufferRange) ->
     @lineMap.screenRangeForBufferRange(bufferRange)

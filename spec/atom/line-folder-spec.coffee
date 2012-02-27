@@ -327,18 +327,18 @@ describe "LineFolder", ->
       expect(folder.clipScreenPosition([4, 1000])).toEqual [4, 33]
       expect(folder.clipScreenPosition([1000, 1000])).toEqual [9, 2]
 
-    describe "when eagerWrap is false (the default)", ->
+    describe "when skipAtomicTokens is false (the default)", ->
       it "clips positions inside a placeholder to the beginning of the placeholder", ->
         expect(folder.clipScreenPosition([4, 30])).toEqual [4, 29]
         expect(folder.clipScreenPosition([4, 31])).toEqual [4, 29]
         expect(folder.clipScreenPosition([4, 32])).toEqual [4, 32]
 
-    describe "when eagerWrap is true", ->
+    describe "when skipAtomicTokens is true", ->
       it "clips positions inside a placeholder to the end of the placeholder", ->
-        expect(folder.clipScreenPosition([4, 29], true)).toEqual [4, 29]
-        expect(folder.clipScreenPosition([4, 30], true)).toEqual [4, 32]
-        expect(folder.clipScreenPosition([4, 31], true)).toEqual [4, 32]
-        expect(folder.clipScreenPosition([4, 32], true)).toEqual [4, 32]
+        expect(folder.clipScreenPosition([4, 29], skipAtomicTokens: true)).toEqual [4, 29]
+        expect(folder.clipScreenPosition([4, 30], skipAtomicTokens: true)).toEqual [4, 32]
+        expect(folder.clipScreenPosition([4, 31], skipAtomicTokens: true)).toEqual [4, 32]
+        expect(folder.clipScreenPosition([4, 32], skipAtomicTokens: true)).toEqual [4, 32]
 
 
 

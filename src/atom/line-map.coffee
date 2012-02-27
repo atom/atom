@@ -141,7 +141,10 @@ class LineMap
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
-  clipScreenPosition: (screenPosition, eagerWrap) ->
+  clipScreenPosition: (screenPosition, options) ->
+    wrapBeyondNewlines = options.wrapBeyondNewlines ? false
+    wrapAtSoftNewlines = options.wrapAtSoftNewlines ? false
+    skipAtomicTokens = options.skipAtomicTokens ? false
     screenPosition = Point.fromObject(screenPosition)
 
     screenPosition.column = Math.max(0, screenPosition.column)
@@ -150,29 +153,33 @@ class LineMap
       screenPosition.row = 0
       screenPosition.column = 0
 
-    maxRow = @lastScreenRow()
-    if screenPosition.row > maxRow
-      screenPosition.row = maxRow
+    if screenPosition.row > @lastScreenRow()
+      screenPosition.row = @lastScreenRow()
       screenPosition.column = Infinity
 
     screenDelta = new Point
-    for screenLine in @screenLines
-      nextDelta = screenDelta.add(screenLine.screenDelta)
+    for lineFragment in @screenLines
+      nextDelta = screenDelta.add(lineFragment.screenDelta)
       break if nextDelta.isGreaterThan(screenPosition)
       screenDelta = nextDelta
 
-    if screenLine.isAtomic
-      if eagerWrap and screenPosition.column > screenDelta.column
-        screenDelta.column = screenDelta.column + screenLine.text.length
-    else
-      maxColumn = screenDelta.column + screenLine.text.length
-      if eagerWrap and screenPosition.column > maxColumn
-        screenDelta.row++
-        screenDelta.column = 0
+    if lineFragment.isAtomic
+      if skipAtomicTokens and screenPosition.column > screenDelta.column
+        return new Point(screenDelta.row, screenDelta.column + lineFragment.text.length)
       else
-        screenDelta.column = Math.min(maxColumn, screenPosition.column)
+        return screenDelta
 
-    screenDelta
+    maxColumn = screenDelta.column + lineFragment.text.length
+    if lineFragment.isSoftWrapped() and screenPosition.column >= maxColumn
+      if wrapAtSoftNewlines
+        return new Point(screenDelta.row + 1, 0)
+      else
+        return new Point(screenDelta.row, maxColumn - 1)
+
+    if screenPosition.column > maxColumn and wrapBeyondNewlines
+      return new Point(screenDelta.row + 1, 0)
+
+    new Point(screenDelta.row, Math.min(maxColumn, screenPosition.column))
 
   logLines: (start=0, end=@screenLineCount() - 1)->
     for row in [start..end]

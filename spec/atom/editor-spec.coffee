@@ -104,6 +104,24 @@ describe "Editor", ->
         editor.moveCursorDown()
         expect(editor.getCursorScreenPosition()).toEqual [editor.lastScreenRow(), 2]
 
+      it "allows the cursor to move up to a shorter soft wrapped line", ->
+        editor.setCursorScreenPosition([11, 15])
+        editor.moveCursorUp()
+        expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+        editor.moveCursorUp()
+        editor.moveCursorUp()
+        expect(editor.getCursorScreenPosition()).toEqual [8, 15]
+
+      it "it allows the cursor to wrap when moving horizontally past the beginning / end of a wrapped line", ->
+        editor.setCursorScreenPosition([11, 0])
+        editor.moveCursorLeft()
+        expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+
+        editor.moveCursorRight()
+        expect(editor.getCursorScreenPosition()).toEqual [11, 0]
+
+
+
 
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->
