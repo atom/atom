@@ -320,6 +320,7 @@ describe "LineFolder", ->
     it "returns the nearest valid position based on the current screen lines", ->
       expect(folder.clipScreenPosition([-1, -1])).toEqual [0, 0]
       expect(folder.clipScreenPosition([0, -1])).toEqual [0, 0]
+      expect(folder.clipScreenPosition([-1, 5])).toEqual [0, 0]
       expect(folder.clipScreenPosition([1, 10000])).toEqual [1, 30]
       expect(folder.clipScreenPosition([2, 15])).toEqual [2, 15]
       expect(folder.clipScreenPosition([4, 32])).toEqual [4, 32]

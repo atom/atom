@@ -244,6 +244,7 @@ describe "LineWrapper", ->
 
     it "disallows negative positions", ->
       expect(wrapper.clipScreenPosition([-1, -1])).toEqual [0, 0]
+      expect(wrapper.clipScreenPosition([-1, 10])).toEqual [0, 0]
       expect(wrapper.clipScreenPosition([0, -1])).toEqual [0, 0]
 
     it "disallows positions beyond the last row", ->

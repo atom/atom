@@ -144,7 +144,12 @@ class LineMap
   clipScreenPosition: (screenPosition, eagerWrap) ->
     screenPosition = Point.fromObject(screenPosition)
 
-    screenPosition = new Point(Math.max(0, screenPosition.row), Math.max(0, screenPosition.column))
+    screenPosition.column = Math.max(0, screenPosition.column)
+
+    if screenPosition.row < 0
+      screenPosition.row = 0
+      screenPosition.column = 0
+
     maxRow = @lastScreenRow()
     if screenPosition.row > maxRow
       screenPosition.row = maxRow

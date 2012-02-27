@@ -50,11 +50,7 @@ class Cursor extends View
   moveUp: ->
     { row, column } = @getScreenPosition()
     column = @goalColumn if @goalColumn?
-    if row > 0
-      @setScreenPosition({row: row - 1, column: column})
-    else
-      @moveToLineStart()
-
+    @setScreenPosition({row: row - 1, column: column})
     @goalColumn = column
 
   moveDown: ->
