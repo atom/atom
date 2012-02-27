@@ -6,7 +6,7 @@ describe "Native", ->
   beforeEach ->
     nativeModule = new Native
 
-  describe "addMenuItem(path, keyPattern)", ->
+  xdescribe "addMenuItem(path, keyPattern)", ->
     mainMenu = null
     mainMenuItems = null
 

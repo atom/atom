@@ -32,7 +32,7 @@ describe "Window", ->
         expect($('head style').length).toBe 1
 
 
-    describe "bindMenuItem(path, keyPattern, action)", ->
+    xdescribe "bindMenuItem(path, keyPattern, action)", ->
       it "causes the given menu item to be added to the menu when the window is focused and removed when it is blurred", ->
         addedPaths = []
         spyOn(atom.native, 'addMenuItem').andCallFake (path) -> addedPaths.push(path)

@@ -35,7 +35,7 @@ class Native
     $native.readFromPasteboard()
 
   resetMainMenu: (menu) ->
-    OSX.NSApp.resetMainMenu
+    # OSX.NSApp.resetMainMenu
 
   addMenuItem: (itemPath, keyPattern) ->
     itemPathComponents = itemPath.split /\s*>\s*/
