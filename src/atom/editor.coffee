@@ -132,8 +132,14 @@ class Editor extends View
 
   renderLines: ->
     @lines.empty()
-    for screenLine in @lineWrapper.getLines()
+    for screenLine in @getScreenLines()
       @lines.append @buildLineElement(screenLine)
+
+  getScreenLines: ->
+    @lineWrapper.getLines()
+
+  linesForScreenRows: (start, end) ->
+    @lineWrapper.linesForScreenRows(start, end)
 
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
@@ -151,7 +157,7 @@ class Editor extends View
 
     @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e
-      screenLines = @lineWrapper.linesForScreenRows(newRange.start.row, newRange.end.row)
+      screenLines = @linesForScreenRows(newRange.start.row, newRange.end.row)
       if newRange.end.row > oldRange.end.row
         # update, then insert elements
         for row in [newRange.start.row..newRange.end.row]
