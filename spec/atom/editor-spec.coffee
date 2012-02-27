@@ -750,4 +750,9 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual [6, 5]
         expect(editor.getCursorBufferPosition()).toEqual [9, 5]
 
+        editor.setCursorScreenPosition([4, 30])
+        expect(editor.getCursorScreenPosition()).toEqual [4, 29]
+        editor.moveCursorRight()
+        expect(editor.getCursorScreenPosition()).toEqual [4, 32]
+
 
