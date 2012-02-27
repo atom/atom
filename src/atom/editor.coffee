@@ -141,6 +141,12 @@ class Editor extends View
   linesForScreenRows: (start, end) ->
     @lineWrapper.linesForScreenRows(start, end)
 
+  screenLineCount: ->
+    @lineWrapper.lineCount()
+
+  lastScreenRow: ->
+    @screenLineCount() - 1
+
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
     @lineFolder = new LineFolder(@highlighter)

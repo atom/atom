@@ -98,6 +98,13 @@ describe "Editor", ->
         $(window).trigger 'resize'
         expect(editor.setMaxLineLength).not.toHaveBeenCalled()
 
+      it "allows the cursor to move down to the last line", ->
+        _.times editor.lastScreenRow(), -> editor.moveCursorDown()
+        expect(editor.getCursorScreenPosition()).toEqual [editor.lastScreenRow(), 0]
+        editor.moveCursorDown()
+        expect(editor.getCursorScreenPosition()).toEqual [editor.lastScreenRow(), 2]
+
+
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->

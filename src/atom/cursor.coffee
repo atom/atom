@@ -60,11 +60,7 @@ class Cursor extends View
   moveDown: ->
     { row, column } = @getScreenPosition()
     column = @goalColumn if @goalColumn?
-    if row < @editor.buffer.numLines() - 1
-      @setScreenPosition({row: row + 1, column: column})
-    else
-      @moveToLineEnd()
-
+    @setScreenPosition({row: row + 1, column: column})
     @goalColumn = column
 
   moveToLineEnd: ->
