@@ -67,7 +67,7 @@ module.exports =
     $native.write(path, content)
 
   async:
-    listFiles: (path) ->
+    list: (path) ->
       deferred = $.Deferred()
       $native.asyncList path, false, (subpaths) ->
         deferred.resolve subpaths

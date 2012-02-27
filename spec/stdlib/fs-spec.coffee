@@ -29,9 +29,9 @@ describe "fs", ->
           fs.async.listTree(directoryPath).done (result) ->
             expect(result).toEqual fs.listTree(directoryPath)
 
-    describe ".listFiles(directoryPath)", ->
+    describe ".list(directoryPath)", ->
       it "returns a promise that resolves to the contents of that directory", ->
         waitsForPromise ->
-          fs.async.listFiles(directoryPath).done (result) ->
+          fs.async.list(directoryPath).done (result) ->
             expect(result).toEqual fs.list(directoryPath)
 

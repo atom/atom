@@ -11,8 +11,8 @@ class Project
 
   getFilePaths: ->
     projectUrl = @url
-    fs.async.listFiles(@url, true).pipe (urls) ->
-      url.replace(projectUrl, "") for url in urls
+    fs.async.listTree(@url).pipe (urls) ->
+      url.replace(projectUrl, "") for url in urls when fs.isFile(url)
 
   open: (filePath) ->
     filePath = @resolve filePath
