@@ -10,7 +10,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", " absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "quit"};
+  const char *functionNames[] = {"exists", "read", "write", " absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "quit", "writeToPasteboard", "readFromPasteboard"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -155,7 +155,57 @@ bool NativeHandler::Execute(const CefString& name,
       args.push_back(paths);
       CefRefPtr<CefV8Exception> e;
       arguments[2]->ExecuteFunction(arguments[2], args, retval, e, true);
-      exception = e->GetMessage();
+      if (e) exception = e->GetMessage();
+    }
+    
+    return true;
+  }
+  else if (name == "alert") {
+    NSString *message = stringFromCefV8Value(arguments[0]);
+    NSString *detailedMessage = stringFromCefV8Value(arguments[1]);
+    CefRefPtr<CefV8Value> buttons = arguments[2];
+    
+    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+    [alert setMessageText:message];
+    [alert setInformativeText:detailedMessage];
+    
+    std::vector<CefString> buttonTitles;
+    std::vector<CefString>::iterator iter;
+    NSMutableDictionary *titleForTag = [NSMutableDictionary dictionary];
+    
+    buttons->GetKeys(buttonTitles);
+    
+    for (iter = buttonTitles.begin(); iter != buttonTitles.end(); iter++) {
+      NSString *buttonTitle = [NSString stringWithUTF8String:(*iter).ToString().c_str()];
+      NSButton *button = [alert addButtonWithTitle:buttonTitle];
+      [titleForTag setObject:buttonTitle forKey:[NSNumber numberWithInt:button.tag]];
+    }
+    
+    NSUInteger buttonTag = [alert runModal];
+    const char *buttonTitle = [[titleForTag objectForKey:[NSNumber numberWithInt:buttonTag]] UTF8String];
+    CefRefPtr<CefV8Value> callback = buttons->GetValue(buttonTitle);
+    
+    CefV8ValueList args; 
+    CefRefPtr<CefV8Exception> e;
+    callback->ExecuteFunction(callback  , args, retval, e, true);
+    if (e) exception = e->GetMessage();
+      
+    return true;
+  }
+  else if (name == "writeToPasteboard") {
+    NSString *text = stringFromCefV8Value(arguments[0]);
+    
+    NSPasteboard *pb = [NSPasteboard generalPasteboard];
+    [pb declareTypes:[NSArray arrayWithObjects:NSStringPboardType, nil] owner:nil];
+    [pb setString:text forType:NSStringPboardType];
+    
+    return true;
+  }
+  else if (name == "readFromPasteboard") {
+    NSPasteboard *pb = [NSPasteboard generalPasteboard];
+    NSArray *results = [pb readObjectsForClasses:[NSArray arrayWithObjects:[NSString class], nil] options:nil];
+    if (results) {
+      retval = CefV8Value::CreateString([[results objectAtIndex:0] UTF8String]);
     }
     
     return true;
