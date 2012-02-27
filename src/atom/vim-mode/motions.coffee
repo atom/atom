@@ -7,27 +7,27 @@ class Motion
 
 class MoveLeft extends Motion
   execute: ->
-    {column, row} = @editor.getCursorPosition()
+    {column, row} = @editor.getCursorScreenPosition()
     @editor.moveCursorLeft() if column > 0
 
   select: ->
-    position = @editor.getCursorPosition()
+    position = @editor.getCursorScreenPosition()
     position.column-- if position.column > 0
     @editor.selectToPosition position
 
 class MoveRight extends Motion
   execute: ->
-    {column, row} = @editor.getCursorPosition()
+    {column, row} = @editor.getCursorScreenPosition()
     @editor.moveCursorRight()
 
 class MoveUp extends Motion
   execute: ->
-    {column, row} = @editor.getCursorPosition()
+    {column, row} = @editor.getCursorScreenPosition()
     @editor.moveCursorUp() if row > 0
 
 class MoveDown extends Motion
   execute: ->
-    {column, row} = @editor.getCursorPosition()
+    {column, row} = @editor.getCursorScreenPosition()
     @editor.moveCursorDown() if row < (@editor.buffer.numLines() - 1)
 
 class MoveToPreviousWord extends Motion
@@ -39,14 +39,14 @@ class MoveToPreviousWord extends Motion
 
 class MoveToNextWord extends Motion
   execute: ->
-    @editor.setCursorPosition(@nextWordPosition())
+    @editor.setCursorScreenPosition(@nextWordPosition())
 
   select: ->
     @editor.selectToPosition(@nextWordPosition())
 
   nextWordPosition: ->
     regex = getWordRegex()
-    { row, column } = @editor.getCursorPosition()
+    { row, column } = @editor.getCursorScreenPosition()
     rightOfCursor = @editor.buffer.getLine(row).substring(column)
 
     match = regex.exec(rightOfCursor)
@@ -64,7 +64,7 @@ class MoveToNextWord extends Motion
 
 class MoveToNextParagraph extends Motion
   execute: ->
-    @editor.setCursorPosition(@nextPosition())
+    @editor.setCursorScreenPosition(@nextPosition())
 
   select: ->
     @editor.selectToPosition(@nextPosition())

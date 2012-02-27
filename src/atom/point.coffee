@@ -11,16 +11,33 @@ class Point
 
       new Point(row, column)
 
-  constructor: (@row, @column) ->
+  constructor: (@row=0, @column=0) ->
 
-  isEqual: (other) ->
-    if other instanceof Array
-      @row == other[0] and @column == other[1]
+  add: (other) ->
+    row = @row + other.row
+    if other.row == 0
+      column = @column + other.column
     else
-      @row == other.row and @column == other.column
+      column = other.column
 
-  inspect: ->
-    "(#{@row}, #{@column})"
+    new Point(row, column)
+
+  subtract: (other) ->
+    row = @row - other.row
+    if @row == other.row
+      column = @column - other.column
+    else
+      column = @column
+
+    new Point(row, column)
+
+  splitAt: (column) ->
+    if @row == 0
+      rightColumn = @column - column
+    else
+      rightColumn = @column
+
+    [new Point(0, column), new Point(@row, rightColumn)]
 
   compare: (other) ->
     if @row > other.row
@@ -35,5 +52,22 @@ class Point
       else
         0
 
-  greaterThan: (other) ->
+  isEqual: (other) ->
+    other = Point.fromObject(other)
+    @compare(other) == 0
+
+  isLessThan: (other) ->
+    @compare(other) < 0
+
+  isLessThanOrEqual: (other) ->
+    @compare(other) <= 0
+
+  isGreaterThan: (other) ->
     @compare(other) > 0
+
+  isGreaterThanOrEqual: (other) ->
+    @compare(other) >= 0
+
+  inspect: ->
+    "(#{@row}, #{@column})"
+

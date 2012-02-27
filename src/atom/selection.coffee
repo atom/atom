@@ -1,4 +1,5 @@
 Cursor = require 'cursor'
+
 Range = require 'range'
 {View, $$} = require 'space-pen'
 
@@ -61,17 +62,17 @@ class Selection extends View
 
   getRange: ->
     if @anchor
-      new Range(@anchor.getPosition(), @cursor.getPosition())
+      new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())
     else
-      new Range(@cursor.getPosition(), @cursor.getPosition())
+      new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
   setRange: (range) ->
-    @cursor.setPosition(range.start)
+    @cursor.setScreenPosition(range.start)
     @modifySelection =>
-      @cursor.setPosition(range.end)
+      @cursor.setScreenPosition(range.end)
 
   getScreenRange: ->
-    @editor.lineWrapper.screenRangeFromBufferRange(@getRange())
+    @editor.lineWrapper.screenRangeForBufferRange(@getRange())
 
   getText: ->
     @editor.buffer.getTextInRange @getRange()
@@ -97,8 +98,8 @@ class Selection extends View
 
   placeAnchor: ->
     return if @anchor
-    cursorPosition = @cursor.getPosition()
-    @anchor = { getPosition: -> cursorPosition }
+    cursorPosition = @cursor.getScreenPosition()
+    @anchor = { getScreenPosition: -> cursorPosition }
 
   selectWord: ->
     row = @cursor.getRow()
@@ -141,7 +142,7 @@ class Selection extends View
 
   selectToPosition: (position) ->
     @modifySelection =>
-      @cursor.setPosition(position)
+      @cursor.setScreenPosition(position)
 
   moveCursorToLineEnd: ->
     @cursor.moveToLineEnd()
@@ -157,3 +158,6 @@ class Selection extends View
     return if @isEmpty()
     text = @editor.buffer.getTextInRange @getRange()
     atom.native.writeToPasteboard text
+
+  fold: ->
+    @editor.lineFolder.createFold(@getRange())

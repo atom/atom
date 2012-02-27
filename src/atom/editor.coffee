@@ -4,6 +4,7 @@ Point = require 'point'
 Cursor = require 'cursor'
 Selection = require 'selection'
 Highlighter = require 'highlighter'
+LineFolder = require 'line-folder'
 LineWrapper = require 'line-wrapper'
 UndoManager = require 'undo-manager'
 Range = require 'range'
@@ -57,6 +58,7 @@ class Editor extends View
       'meta-z': 'undo'
       'meta-Z': 'redo'
       'alt-meta-w': 'toggle-soft-wrap'
+      'alt-meta-f': 'fold-selection'
 
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
@@ -75,6 +77,7 @@ class Editor extends View
     @on 'undo', => @undo()
     @on 'redo', => @redo()
     @on 'toggle-soft-wrap', => @toggleSoftWrap()
+    @on 'fold-selection', => @foldSelection()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -92,7 +95,7 @@ class Editor extends View
       clickCount = e.originalEvent.detail
 
       if clickCount == 1
-        @setCursorPosition @pointFromMouseEvent(e)
+        @setCursorScreenPosition @pointFromMouseEvent(e)
       else if clickCount == 2
         @selection.selectWord()
       else if clickCount >= 3
@@ -104,7 +107,7 @@ class Editor extends View
       @insertText(e.originalEvent.data)
 
     @on 'cursor:position-changed', =>
-      @hiddenInput.css(@pixelPositionFromPoint(@cursor.getPosition()))
+      @hiddenInput.css(@pixelPositionFromPoint(@cursor.getScreenPosition()))
 
     @one 'attach', =>
       @calculateDimensions()
@@ -129,22 +132,23 @@ class Editor extends View
 
   renderLines: ->
     @lines.empty()
-    for screenLine in @lineWrapper.screenLines()
+    for screenLine in @lineWrapper.getLines()
       @lines.append @buildLineElement(screenLine)
 
   setBuffer: (@buffer) ->
     @highlighter = new Highlighter(@buffer)
-    @lineWrapper = new LineWrapper(Infinity, @highlighter)
+    @lineFolder = new LineFolder(@highlighter)
+    @lineWrapper = new LineWrapper(Infinity, @lineFolder)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
-    @setCursorPosition(row: 0, column: 0)
+    @setCursorScreenPosition(row: 0, column: 0)
 
     @buffer.on 'change', (e) =>
       @cursor.bufferChanged(e)
 
     @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e
-      screenLines = @lineWrapper.screenLinesForRows(newRange.start.row, newRange.end.row)
+      screenLines = @lineWrapper.linesForScreenRows(newRange.start.row, newRange.end.row)
       if newRange.end.row > oldRange.end.row
         # update, then insert elements
         for row in [newRange.start.row..newRange.end.row]
@@ -250,8 +254,8 @@ class Editor extends View
   moveCursorDown: -> @cursor.moveDown()
   moveCursorRight: -> @cursor.moveRight()
   moveCursorLeft: -> @cursor.moveLeft()
-  setCursorPosition: (point) -> @cursor.setPosition(point)
-  getCursorPosition: -> @cursor.getPosition()
+  setCursorScreenPosition: (point) -> @cursor.setScreenPosition(point)
+  getCursorScreenPosition: -> @cursor.getScreenPosition()
   setCursorRow: (row) -> @cursor.setRow(row)
   getCursorRow: -> @cursor.getRow()
   setCursorColumn: (column) -> @cursor.setColumn(column)
@@ -270,6 +274,8 @@ class Editor extends View
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
   paste: -> @selection.insertText(atom.native.readFromPasteboard())
+
+  foldSelection: -> @selection.fold()
 
   backspace: ->
     @selectLeft() if @selection.isEmpty()

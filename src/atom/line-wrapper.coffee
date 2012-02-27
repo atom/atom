@@ -1,73 +1,49 @@
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
-SpanIndex = require 'span-index'
 LineMap = require 'line-map'
 Point = require 'point'
 Range = require 'range'
-Delta = require 'delta'
 
 module.exports =
 class LineWrapper
-  constructor: (@maxLength, @highlighter) ->
-    @buffer = @highlighter.buffer
-    @buildWrappedLines()
-    @highlighter.on 'change', (e) => @handleChange(e)
+  constructor: (@maxLength, @lineFolder) ->
+    @buildLineMap()
+    @lineFolder.on 'change', (e) => @handleChange(e)
 
   setMaxLength: (@maxLength) ->
-    oldRange = new Range
-    oldRange.end.row = @screenLineCount() - 1
-    oldRange.end.column = _.last(@index.last().screenLines).text.length
-    @buildWrappedLines()
-    newRange = new Range
-    newRange.end.row = @screenLineCount() - 1
-    newRange.end.column = _.last(@index.last().screenLines).text.length
+    oldRange = @rangeForAllLines()
+    @buildLineMap()
+    newRange = @rangeForAllLines()
     @trigger 'change', { oldRange, newRange }
 
-  getSpans: (wrappedLines) ->
-    wrappedLines.map (line) -> line.screenLines.length
-
-  unpackWrappedLines: (wrappedLines) ->
-    _.flatten(_.pluck(wrappedLines, 'screenLines'))
-
-  buildWrappedLines: ->
-    @index = new SpanIndex
+  buildLineMap: ->
     @lineMap = new LineMap
-    wrappedLines = @buildWrappedLinesForBufferRows(0, @buffer.lastRow())
-    @index.insert 0, @getSpans(wrappedLines), wrappedLines
-    @lineMap.insertAtBufferRow 0, @unpackWrappedLines(wrappedLines)
+    @lineMap.insertAtBufferRow 0, @buildScreenLinesForBufferRows(0, @lineFolder.lastRow())
 
   handleChange: (e) ->
-    oldRange = new Range
+    oldBufferRange = e.oldRange
+    newBufferRange = e.newRange
 
-    bufferRow = e.oldRange.start.row
-    oldRange.start.row = @firstScreenRowForBufferRow(e.oldRange.start.row)
-    oldRange.end.row = @lastScreenRowForBufferRow(e.oldRange.end.row)
-    oldRange.end.column = _.last(@index.at(e.oldRange.end.row).screenLines).text.length
+    oldScreenRange = @lineMap.screenRangeForBufferRange(@expandBufferRangeToLineEnds(oldBufferRange))
+    newScreenLines = @buildScreenLinesForBufferRows(newBufferRange.start.row, newBufferRange.end.row)
+    @lineMap.replaceBufferRows oldBufferRange.start.row, oldBufferRange.end.row, newScreenLines
+    newScreenRange = @lineMap.screenRangeForBufferRange(@expandBufferRangeToLineEnds(newBufferRange))
 
-    { start, end } = e.oldRange
-    wrappedLines = @buildWrappedLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
-    @index.splice start.row, end.row, @getSpans(wrappedLines), wrappedLines
-    @lineMap.replaceBufferRows start.row, end.row, @unpackWrappedLines(wrappedLines)
+    @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange }
 
-    newRange = oldRange.copy()
-    newRange.end.row = @lastScreenRowForBufferRow(e.newRange.end.row)
-    newRange.end.column = _.last(@index.at(e.newRange.end.row).screenLines).text.length
+  expandBufferRangeToLineEnds: (bufferRange) ->
+    { start, end } = bufferRange
+    new Range([start.row, 0], [end.row, @lineMap.lineForBufferRow(end.row).text.length])
 
-    @trigger 'change', { oldRange, newRange }
+  rangeForAllLines: ->
+    endRow = @lineCount() - 1
+    endColumn = @lineMap.lineForScreenRow(endRow).text.length
+    new Range([0, 0], [endRow, endColumn])
 
-  firstScreenRowForBufferRow: (bufferRow) ->
-    @screenPositionForBufferPosition([bufferRow, 0]).row
-
-  lastScreenRowForBufferRow: (bufferRow) ->
-    startRow = @screenPositionForBufferPosition([bufferRow, 0]).row
-    startRow + (@index.at(bufferRow).screenLines.length - 1)
-
-  buildWrappedLinesForBufferRows: (start, end) ->
-    for row in [start..end]
-      @buildWrappedLineForBufferRow(row)
-
-  buildWrappedLineForBufferRow: (bufferRow) ->
-    { screenLines: @wrapScreenLine(@highlighter.lineFragmentForRow(bufferRow)) }
+  buildScreenLinesForBufferRows: (start, end) ->
+    _(@lineFolder
+      .linesForScreenRows(start, end)
+      .map((screenLine) => @wrapScreenLine(screenLine))).flatten()
 
   wrapScreenLine: (screenLine, startColumn=0) ->
     screenLines = []
@@ -78,7 +54,7 @@ class LineWrapper
       endColumn = startColumn + screenLine.text.length
     else
       [leftHalf, rightHalf] = screenLine.splitAt(splitColumn)
-      leftHalf.screenDelta = new Delta(1, 0)
+      leftHalf.screenDelta = new Point(1, 0)
       screenLines.push leftHalf
       endColumn = startColumn + leftHalf.text.length
       screenLines.push @wrapScreenLine(rightHalf, endColumn)...
@@ -100,35 +76,28 @@ class LineWrapper
         return column + 1 if /\s/.test(line[column])
       return @maxLength
 
-  screenRangeFromBufferRange: (bufferRange) ->
-    start = @screenPositionForBufferPosition(bufferRange.start, false)
-    end = @screenPositionForBufferPosition(bufferRange.end, false)
-    new Range(start,end)
+  screenRangeForBufferRange: (bufferRange) ->
+    @lineMap.screenRangeForBufferRange(bufferRange)
 
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
-    @lineMap.screenPositionForBufferPosition(bufferPosition, eagerWrap)
+    @lineMap.screenPositionForBufferPosition(
+      @lineFolder.screenPositionForBufferPosition(bufferPosition),
+      eagerWrap)
 
   bufferPositionForScreenPosition: (screenPosition) ->
-    @lineMap.bufferPositionForScreenPosition(screenPosition)
+    @lineFolder.bufferPositionForScreenPosition(
+      @lineMap.bufferPositionForScreenPosition(screenPosition))
 
-  screenLineForRow: (screenRow) ->
-    @screenLinesForRows(screenRow, screenRow)[0]
+  lineForScreenRow: (screenRow) ->
+    @linesForScreenRows(screenRow, screenRow)[0]
 
-  screenLinesForRows: (startRow, endRow) ->
-    screenLines = []
+  linesForScreenRows: (startRow, endRow) ->
+    @lineMap.linesForScreenRows(startRow, endRow)
 
-    { values, startOffset, endOffset } = @index.sliceBySpan(startRow, endRow)
+  getLines: ->
+    @linesForScreenRows(0, @lineCount() - 1)
 
-    screenLines.push(values[0].screenLines[startOffset..-1]...)
-    for wrappedLine in values[1...-1]
-      screenLines.push(wrappedLine.screenLines...)
-    screenLines.push(_.last(values).screenLines[0..endOffset]...)
-    screenLines
-
-  screenLines: ->
-    @screenLinesForRows(0, @screenLineCount() - 1)
-
-  screenLineCount: ->
+  lineCount: ->
     @lineMap.screenLineCount()
 
 _.extend(LineWrapper.prototype, EventEmitter)

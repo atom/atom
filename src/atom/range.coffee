@@ -1,5 +1,4 @@
 Point = require 'point'
-Delta = require 'delta'
 _ = require 'underscore'
 
 
@@ -37,5 +36,5 @@ class Range
       columns = @end.column - @start.column
     else
       columns = @end.column
-    new Delta(rows, columns)
+    new Point(rows, columns)
 

@@ -1,11 +1,14 @@
 _ = require 'underscore'
-Delta = require 'delta'
+Point = require 'point'
 
 module.exports =
 class ScreenLineFragment
-  constructor: (@tokens, @text, screenDelta, bufferDelta) ->
-    @screenDelta = Delta.fromObject(screenDelta)
-    @bufferDelta = Delta.fromObject(bufferDelta)
+  isAtomic: false
+
+  constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
+    @screenDelta = Point.fromObject(screenDelta)
+    @bufferDelta = Point.fromObject(bufferDelta)
+    _.extend(this, extraFields)
 
   splitAt: (column) ->
     return [undefined, this] if column == 0
@@ -42,6 +45,12 @@ class ScreenLineFragment
     screenDelta = @screenDelta.add(other.screenDelta)
     bufferDelta = @bufferDelta.add(other.bufferDelta)
     new ScreenLineFragment(tokens, text, screenDelta, bufferDelta)
+
+  lengthForClipping: ->
+    if @isAtomic
+      0
+    else
+      @text.length
 
   isEqual: (other) ->
     _.isEqual(@tokens, other.tokens) and @screenDelta.isEqual(other.screenDelta) and @bufferDelta.isEqual(other.bufferDelta)

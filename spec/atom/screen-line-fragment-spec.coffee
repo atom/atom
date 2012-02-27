@@ -3,16 +3,16 @@ Buffer = require 'buffer'
 Highlighter = require 'highlighter'
 
 describe "screenLineFragment", ->
-  [lineFragment, highlighter] = []
+  [screenLine, highlighter] = []
 
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
     highlighter = new Highlighter(buffer)
-    lineFragment = highlighter.lineFragmentForRow(3)
+    screenLine = highlighter.lineForScreenRow(3)
 
   describe ".splitAt(column)", ->
     it "breaks the line fragment into two fragments", ->
-      [left, right] = lineFragment.splitAt(31)
+      [left, right] = screenLine.splitAt(31)
       expect(left.text).toBe '    var pivot = items.shift(), '
       expect(tokensText left.tokens).toBe left.text
 
@@ -20,7 +20,7 @@ describe "screenLineFragment", ->
       expect(tokensText right.tokens).toBe right.text
 
     it "splits tokens if they straddle the split boundary", ->
-      [left, right] = lineFragment.splitAt(34)
+      [left, right] = screenLine.splitAt(34)
       expect(left.text).toBe '    var pivot = items.shift(), cur'
       expect(tokensText left.tokens).toBe left.text
 
@@ -30,7 +30,7 @@ describe "screenLineFragment", ->
       expect(_.last(left.tokens).type).toBe right.tokens[0].type
 
     it "ensures the returned fragments cover the span of the original line", ->
-      [left, right] = lineFragment.splitAt(15)
+      [left, right] = screenLine.splitAt(15)
       expect(left.bufferDelta).toEqual [0, 15]
       expect(left.screenDelta).toEqual [0, 15]
 
@@ -46,15 +46,15 @@ describe "screenLineFragment", ->
 
     describe "if splitting at 0", ->
       it "returns undefined for the left half", ->
-        expect(lineFragment.splitAt(0)).toEqual [undefined, lineFragment]
+        expect(screenLine.splitAt(0)).toEqual [undefined, screenLine]
 
     describe "if splitting at a column equal to the line length", ->
       it "returns an empty line fragment that spans a row for the right half", ->
-        [left, right] = lineFragment.splitAt(lineFragment.text.length)
+        [left, right] = screenLine.splitAt(screenLine.text.length)
 
-        expect(left.text).toBe lineFragment.text
-        expect(left.screenDelta).toEqual [0, lineFragment.text.length]
-        expect(left.bufferDelta).toEqual [0, lineFragment.text.length]
+        expect(left.text).toBe screenLine.text
+        expect(left.screenDelta).toEqual [0, screenLine.text.length]
+        expect(left.bufferDelta).toEqual [0, screenLine.text.length]
 
         expect(right.text).toBe ''
         expect(right.screenDelta).toEqual [1, 0]
@@ -62,10 +62,10 @@ describe "screenLineFragment", ->
 
   describe ".concat(otherFragment)", ->
     it "returns the concatenation of the receiver and the given fragment", ->
-      [left, right] = lineFragment.splitAt(14)
-      expect(left.concat(right)).toEqual lineFragment
+      [left, right] = screenLine.splitAt(14)
+      expect(left.concat(right)).toEqual screenLine
 
-      concatenated = lineFragment.concat(highlighter.lineFragmentForRow(4))
+      concatenated = screenLine.concat(highlighter.lineForScreenRow(4))
       expect(concatenated.text).toBe '    var pivot = items.shift(), current, left = [], right = [];    while(items.length > 0) {'
       expect(tokensText concatenated.tokens).toBe concatenated.text
       expect(concatenated.screenDelta).toEqual [2, 0]
