@@ -13,10 +13,10 @@
   [super dealloc];
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript appContext:(CefRefPtr<CefV8Context>)appContext {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript atomContext:(CefRefPtr<CefV8Context>)atomContext {
   self = [super initWithWindowNibName:@"ClientWindow"];
   _bootstrapScript = [bootstrapScript retain];
-  _appContext = appContext;
+  _atomContext = atomContext;
   
   [self createBrowser];
   [self.window makeKeyAndOrderFront:nil];
@@ -24,15 +24,15 @@
   return self;
 }
 
-- (id)initSpecsWithAppContext:(CefRefPtr<CefV8Context>)appContext {
-  return [self initWithBootstrapScript:@"spec-bootstrap" appContext:appContext];
+- (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
+  return [self initWithBootstrapScript:@"spec-bootstrap" atomContext:atomContext];
 }
 
 - (void)createBrowser {
   [self.window setDelegate:self];  
   [self.window setReleasedWhenClosed:NO];
   
-  _handler = new ClientHandler(self);
+  _clientHandler = new ClientHandler(self);
   
   CefWindowInfo window_info;
   CefBrowserSettings settings;
@@ -43,7 +43,7 @@
   
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-  CefBrowser::CreateBrowser(window_info, _handler.get(), [indexURLString UTF8String], settings);  
+  CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);  
 }
 
 - (void)afterCreated:(CefRefPtr<CefBrowser>) browser {
@@ -63,7 +63,7 @@
   CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString("~/");
   global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
     
-  global->SetValue("atom", _appContext->GetGlobal()->GetValue("atom"), V8_PROPERTY_ATTRIBUTE_NONE);
+  global->SetValue("atom", _atomContext->GetGlobal()->GetValue("atom"), V8_PROPERTY_ATTRIBUTE_NONE);
   
   context->Exit();
 }
@@ -74,10 +74,10 @@
 // sequence by getting rid of the window. By returning YES, we allow the window
 // to be removed from the screen.
 - (BOOL)windowShouldClose:(id)window {  
-  _handler->GetBrowser()->CloseDevTools();  
+  _clientHandler->GetBrowser()->CloseDevTools();  
   
-  _appContext = NULL;
-  _handler = NULL;
+  _atomContext = NULL;
+  _clientHandler = NULL;
     
   // Clean ourselves up after clearing the stack of anything that might have the window on it.
   [self autorelease];

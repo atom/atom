@@ -8,7 +8,7 @@ class ClientHandler;
 @interface Atom : NSApplication<CefAppProtocol> {
   NSView *_hiddenGlobalView;
   BOOL handlingSendEvent_;
-  CefRefPtr<ClientHandler> _globalHandler;
+  CefRefPtr<ClientHandler> _clientHandler;
 }
 
 - (void)open:(NSString *)path;

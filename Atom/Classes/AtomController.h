@@ -7,12 +7,12 @@ class ClientHandler;
   NSView *_webView;
   NSString *_bootstrapScript;
   
-  CefRefPtr<CefV8Context> _appContext;
-  CefRefPtr<ClientHandler> _handler;
+  CefRefPtr<CefV8Context> _atomContext;
+  CefRefPtr<ClientHandler> _clientHandler;
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript appContext:(CefRefPtr<CefV8Context>) context;
-- (id)initSpecsWithAppContext:(CefRefPtr<CefV8Context>)appContext;
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript atomContext:(CefRefPtr<CefV8Context>) context;
+- (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext;
 
 - (void)createBrowser;
 

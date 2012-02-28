@@ -40,8 +40,8 @@
   [super sendEvent:event];
 }
 
-- (void)createSharedContext {
-  _globalHandler = new ClientHandler(self);
+- (void)createAtomContext {
+  _clientHandler = new ClientHandler(self);
   
   CefWindowInfo window_info;
   _hiddenGlobalView = [[NSView alloc] init];
@@ -50,7 +50,7 @@
   CefBrowserSettings settings;  
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-  CefBrowser::CreateBrowser(window_info, _globalHandler.get(), [indexURLString UTF8String], settings);
+  CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
 }
 
 - (void)open:(NSString *)path {
@@ -58,12 +58,12 @@
 }
 
 - (IBAction)runSpecs:(id)sender {
-  CefRefPtr<CefV8Context> appContext = _globalHandler->GetBrowser()->GetMainFrame()->GetV8Context();
-  [[AtomController alloc] initSpecsWithAppContext:appContext];
+  CefRefPtr<CefV8Context> atomContext = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+  [[AtomController alloc] initSpecsWithAtomContext:atomContext];
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  [self createSharedContext];
+  [self createAtomContext];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
