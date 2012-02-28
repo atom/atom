@@ -86,9 +86,11 @@
 // sequence by getting rid of the window. By returning YES, we allow the window
 // to be removed from the screen.
 - (BOOL)windowShouldClose:(id)window {  
+  _handler->GetBrowser()->CloseDevTools();  
+  
   _appContext = NULL;
   _handler = NULL;
-  
+    
   // Clean ourselves up after clearing the stack of anything that might have the window on it.
   [self autorelease];
   
