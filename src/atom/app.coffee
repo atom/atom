@@ -1,14 +1,15 @@
 Native = require 'native'
 GlobalKeymap = require 'global-keymap'
 $ = require 'jquery'
+_ = require 'underscore'
 
 module.exports =
 class App
   globalKeymap: null
   native: null
 
-  constructor: ->
-    @native = new Native
+  constructor: (@loadPath, nativeMethods)->
+    @native = new Native(nativeMethods)
     @globalKeymap = new GlobalKeymap
     $(document).on 'keydown', (e) => @globalKeymap.handleKeyEvent(e)
 
@@ -19,11 +20,11 @@ class App
     @globalKeymap.bindKey(selector, pattern, eventName)
 
   open: (url) ->
-    $native.open url
+    @native.open url
 
   quit: ->
-    $native.terminate null
+    @native.terminate null
 
   windows: ->
-		#		controller.jsWindow for controller in OSX.NSApp.controllers
-		[]
+    #    controller.jsWindow for controller in OSX.NSApp.controllers
+    []

@@ -15,8 +15,6 @@ afterEach ->
   atom.globalKeymap.reset()
   $('#jasmine-content').empty()
 
-window.atom = new (require 'app')
-
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual
 

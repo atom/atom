@@ -9,7 +9,7 @@ module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (path) ->
-    $native.absolute(path)
+    atom.native.absolute(path)
 
   # Return the basename of the given path. That is the path with
   # any leading directory components removed. If specified, also
@@ -28,7 +28,7 @@ module.exports =
 
   # Returns true if the file specified by path exists
   exists: (path) ->
-    $native.exists path
+    atom.native.exists path
 
   join: (paths...) ->
     return paths[0] if paths.length == 1
@@ -38,44 +38,44 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
-    $native.isDirectory path
+    atom.native.isDirectory path
 
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    not $native.isDirectory path
+    not atom.native.isDirectory path
 
   # Returns an array with all the names of files contained
   # in the directory path.
   list: (path) ->
-    $native.list(path, false)
+    atom.native.list(path, false)
 
   listTree: (path) ->
-    $native.list(path, true)
+    atom.native.list(path, true)
 
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
   remove: (path) ->
-    $native.remove path
+    atom.native.remove path
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
-    $native.read(path)
+    atom.native.read(path)
 
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
-    $native.write(path, content)
+    atom.native.write(path, content)
 
   async:
     list: (path) ->
       deferred = $.Deferred()
-      $native.asyncList path, false, (subpaths) ->
+      atom.native.asyncList path, false, (subpaths) ->
         deferred.resolve subpaths
       deferred
 
     listTree: (path) ->
       deferred = $.Deferred()
-      $native.asyncList path, true, (subpaths) ->
+      atom.native.asyncList path, true, (subpaths) ->
         deferred.resolve subpaths
       deferred
 

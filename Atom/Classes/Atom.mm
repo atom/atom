@@ -2,6 +2,7 @@
 #import "include/cef.h"
 #import "AtomController.h"
 
+#import "native_handler.h"
 #import "client_handler.h"
 
 // Provide the CefAppProtocol implementation required by CEF.
@@ -39,7 +40,7 @@
   [super sendEvent:event];
 }
 
-- (void)createGlobalContext {
+- (void)createSharedContext {
   _globalHandler = new ClientHandler(self);
   
   CefWindowInfo window_info;
@@ -47,7 +48,9 @@
   window_info.SetAsChild(_hiddenGlobalView, 0, 0, 0, 0);
 
   CefBrowserSettings settings;  
-  CefBrowser::CreateBrowser(window_info, _globalHandler.get(), "", settings);
+  NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
+  NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
+  CefBrowser::CreateBrowser(window_info, _globalHandler.get(), [indexURLString UTF8String], settings);
 }
 
 - (void)open:(NSString *)path {
@@ -60,11 +63,33 @@
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  [self createGlobalContext];
+  [self createSharedContext];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
   CefShutdown();
+}
+
+- (void)loadStart:(CefRefPtr<CefBrowser>) browser {
+  CefRefPtr<CefFrame> frame = browser->GetMainFrame();
+  CefRefPtr<CefV8Context> context = frame->GetV8Context();
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
+
+  context->Enter();
+
+  CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString("atom-bootstrap");
+  global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
+  
+  CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);
+  global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
+  
+  CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
+  atom->SetValue("native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
+  
+  CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(PROJECT_DIR);
+  atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
+  
+  context->Exit();
 }
 
 @end

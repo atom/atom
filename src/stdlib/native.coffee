@@ -2,8 +2,11 @@ _ = require 'underscore'
 
 module.exports =
 class Native
+  constructor: (nativeMethods)->
+    _.extend(this, nativeMethods)
+
   alert: (message, detailedMessage, buttons) ->
-	  $native.alert(message, detailedMessage, buttons)
+    atom.native.alert(message, detailedMessage, buttons)
 
   # path - Optional. The String path to the file to base it on.
   newWindow: (path) ->
@@ -29,10 +32,10 @@ class Native
     panel.filenames.lastObject.valueOf()
 
   writeToPasteboard: (text) ->
-    $native.writeToPasteboard text
+    atom.native.writeToPasteboard text
 
   readFromPasteboard: ->
-    $native.readFromPasteboard()
+    atom.native.readFromPasteboard()
 
   resetMainMenu: (menu) ->
     # OSX.NSApp.resetMainMenu

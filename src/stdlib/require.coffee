@@ -1,11 +1,11 @@
 paths = [
-  "#{$atom.loadPath}/spec"
-  "#{$atom.loadPath}/src/stdlib"
-  "#{$atom.loadPath}/src/atom"
-  "#{$atom.loadPath}/src"
-  "#{$atom.loadPath}/extensions"
-  "#{$atom.loadPath}/vendor"
-  "#{$atom.loadPath}/static"
+  "#{atom.loadPath}/spec"
+  "#{atom.loadPath}/src/stdlib"
+  "#{atom.loadPath}/src/atom"
+  "#{atom.loadPath}/src"
+  "#{atom.loadPath}/extensions"
+  "#{atom.loadPath}/vendor"
+  "#{atom.loadPath}/static"
 ]
 
 window.__filename = null
@@ -100,7 +100,7 @@ __expand = (path) ->
   return null
 
 __exists = (path) ->
-  $native.exists path
+  atom.native.exists path
 
 __coffeeCache = (filePath) ->
   {CoffeeScript} = require 'coffee-script'
@@ -108,7 +108,7 @@ __coffeeCache = (filePath) ->
 
 __read = (path) ->
   try
-    $native.read(path)
+    atom.native.read(path)
   catch e
     throw "require: can't read #{path}"
 

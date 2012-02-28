@@ -2,7 +2,6 @@
 
 #import "include/cef.h"
 #import "client_handler.h"
-#import "native_handler.h"
 
 @implementation AtomController
 
@@ -63,18 +62,8 @@
   
   CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString("~/");
   global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  // $atom
-  global->SetValue("$app", _appContext->GetGlobal(), V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);  
-  CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(PROJECT_DIR);
-  atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
-  global->SetValue("$atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  // $native
-  CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();    
-  global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
+    
+  global->SetValue("atom", _appContext->GetGlobal()->GetValue("atom"), V8_PROPERTY_ATTRIBUTE_NONE);
   
   context->Exit();
 }
@@ -118,7 +107,7 @@ void AppGetBrowserSettings(CefBrowserSettings& settings) {
   settings.plugins_disabled = true;
   settings.universal_access_from_file_urls_allowed = true;
   settings.file_access_from_file_urls_allowed = false;
-  settings.web_security_disabled = false;
+  settings.web_security_disabled = true;
   settings.xss_auditor_enabled = false;
   settings.image_load_disabled = false;
   settings.shrink_standalone_images_to_fit = false;
