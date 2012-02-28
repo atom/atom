@@ -22,15 +22,15 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		041C615214F453610018D40C /* AtomController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F9A6EE14F44F1B005E9C30 /* AtomController.mm */; };
-		041C615314F453630018D40C /* client_handler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F9A6F014F44F1B005E9C30 /* client_handler.mm */; };
-		041C615414F453640018D40C /* native_handler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F9A6F314F44F1B005E9C30 /* native_handler.mm */; };
-		041C615514F453670018D40C /* Atom.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04F9A6EC14F44F1B005E9C30 /* Atom.mm */; };
-		041C615614F4536A0018D40C /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 048A10D314F4522200C9E06B /* main.mm */; };
-		041C615914F453A50018D40C /* Atom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 04F9A6F414F44F31005E9C30 /* Atom.icns */; };
-		041C615A14F453A90018D40C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 041C615714F453970018D40C /* InfoPlist.strings */; };
-		041C615B14F453AC0018D40C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04F9A6F814F44F5A005E9C30 /* MainMenu.xib */; };
-		041C615C14F453AD0018D40C /* ClientWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04F9A6F614F44F46005E9C30 /* ClientWindow.xib */; };
+		04557A0314FC5B5900CC81BE /* Resources in Copy Chrome Resources */ = {isa = PBXBuildFile; fileRef = 045579F114FC5A8700CC81BE /* Resources */; };
+		04557A0D14FC5DA400CC81BE /* Atom.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04557A0514FC5DA400CC81BE /* Atom.mm */; };
+		04557A0E14FC5DA400CC81BE /* AtomController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04557A0714FC5DA400CC81BE /* AtomController.mm */; };
+		04557A0F14FC5DA400CC81BE /* client_handler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04557A0914FC5DA400CC81BE /* client_handler.mm */; };
+		04557A1014FC5DA400CC81BE /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04557A0A14FC5DA400CC81BE /* main.mm */; };
+		04557A1114FC5DA400CC81BE /* native_handler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04557A0C14FC5DA400CC81BE /* native_handler.mm */; };
+		04557A1614FC5DB100CC81BE /* Atom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 04557A1214FC5DB100CC81BE /* Atom.icns */; };
+		04557A1714FC5DB100CC81BE /* ClientWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04557A1314FC5DB100CC81BE /* ClientWindow.xib */; };
+		04557A1914FC5DB100CC81BE /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 04557A1514FC5DB100CC81BE /* MainMenu.xib */; };
 		04F9A6E714F44E80005E9C30 /* libcef.dylib in Copy Required Chrome Frameworks */ = {isa = PBXBuildFile; fileRef = 04F9A6E414F44D6D005E9C30 /* libcef.dylib */; };
 		04F9A6E814F44E86005E9C30 /* ffmpegsumo.so in Copy Required Chrome Frameworks */ = {isa = PBXBuildFile; fileRef = 04F9A6E314F44D6D005E9C30 /* ffmpegsumo.so */; };
 		04F9A6E914F44EB7005E9C30 /* libcef.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 04F9A6E414F44D6D005E9C30 /* libcef.dylib */; };
@@ -71,7 +71,6 @@
 		9AB7BAE066C1FE6519A6A430 /* transfer_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53F9B8E65A0F4D7D858D488B /* transfer_util.cpp */; };
 		9F53B2A644830CF5A6491646 /* proxy_handler_cpptoc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 6EAC341FFEE4D072E67B5192 /* proxy_handler_cpptoc.cc */; };
 		A567514080B5F4402DF25CE2 /* domdocument_ctocpp.cc in Sources */ = {isa = PBXBuildFile; fileRef = 30DFF13217531261F3073931 /* domdocument_ctocpp.cc */; };
-		A7554B63AC8A3A0BDB57A843 /* Resources in Copy Chrome Resources */ = {isa = PBXBuildFile; fileRef = D43BA9971C6D68D7C2647EEE /* Resources */; };
 		A994049B1C7471928ED5F10E /* menu_handler_cpptoc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 671094828288E02684059C14 /* menu_handler_cpptoc.cc */; };
 		B45A148ED1C20F299A3CDB90 /* frame_ctocpp.cc in Sources */ = {isa = PBXBuildFile; fileRef = 4DCF53F778F27B432F859A31 /* frame_ctocpp.cc */; };
 		B75C4FAC09E3EC517EC22C65 /* client_cpptoc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 94416A48A8A205F4EF806B6C /* client_cpptoc.cc */; };
@@ -138,7 +137,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
-				A7554B63AC8A3A0BDB57A843 /* Resources in Copy Chrome Resources */,
+				04557A0314FC5B5900CC81BE /* Resources in Copy Chrome Resources */,
 			);
 			name = "Copy Chrome Resources";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -149,23 +148,23 @@
 		0092CB55903D016B3004BB67 /* response_ctocpp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = response_ctocpp.h; sourceTree = "<group>"; };
 		02D02DBAFD451063CD5301BE /* cef_string_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cef_string_list.h; sourceTree = "<group>"; };
 		02EC892952094A790B013E64 /* cef_types_mac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cef_types_mac.h; sourceTree = "<group>"; };
-		041C615814F453970018D40C /* English */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = English; path = Classes/mac/English.lproj/InfoPlist.strings; sourceTree = SOURCE_ROOT; };
-		048A10D314F4522200C9E06B /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.mm; path = Classes/main.mm; sourceTree = SOURCE_ROOT; };
+		045579F114FC5A8700CC81BE /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
+		04557A0414FC5DA400CC81BE /* Atom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Atom.h; path = Atom/Classes/Atom.h; sourceTree = "<group>"; };
+		04557A0514FC5DA400CC81BE /* Atom.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Atom.mm; path = Atom/Classes/Atom.mm; sourceTree = "<group>"; };
+		04557A0614FC5DA400CC81BE /* AtomController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomController.h; path = Atom/Classes/AtomController.h; sourceTree = "<group>"; };
+		04557A0714FC5DA400CC81BE /* AtomController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AtomController.mm; path = Atom/Classes/AtomController.mm; sourceTree = "<group>"; };
+		04557A0814FC5DA400CC81BE /* client_handler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = client_handler.h; path = Atom/Classes/client_handler.h; sourceTree = "<group>"; };
+		04557A0914FC5DA400CC81BE /* client_handler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = client_handler.mm; path = Atom/Classes/client_handler.mm; sourceTree = "<group>"; };
+		04557A0A14FC5DA400CC81BE /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = main.mm; path = Atom/Classes/main.mm; sourceTree = "<group>"; };
+		04557A0B14FC5DA400CC81BE /* native_handler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = native_handler.h; path = Atom/Classes/native_handler.h; sourceTree = "<group>"; };
+		04557A0C14FC5DA400CC81BE /* native_handler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = native_handler.mm; path = Atom/Classes/native_handler.mm; sourceTree = "<group>"; };
+		04557A1214FC5DB100CC81BE /* Atom.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Atom.icns; path = Atom/Atom.icns; sourceTree = "<group>"; };
+		04557A1314FC5DB100CC81BE /* ClientWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ClientWindow.xib; path = Atom/ClientWindow.xib; sourceTree = "<group>"; };
+		04557A1414FC5DB100CC81BE /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Atom/Info.plist; sourceTree = "<group>"; };
+		04557A1514FC5DB100CC81BE /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = MainMenu.xib; path = Atom/MainMenu.xib; sourceTree = "<group>"; };
 		04D99B5772F3FB9CDB60BD4F /* download_handler_cpptoc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = download_handler_cpptoc.h; sourceTree = "<group>"; };
 		04F9A6E314F44D6D005E9C30 /* ffmpegsumo.so */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = ffmpegsumo.so; path = frameworks/ffmpegsumo.so; sourceTree = "<group>"; };
 		04F9A6E414F44D6D005E9C30 /* libcef.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcef.dylib; path = frameworks/libcef.dylib; sourceTree = "<group>"; };
-		04F9A6EB14F44F1B005E9C30 /* Atom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Atom.h; path = Classes/Atom.h; sourceTree = "<group>"; };
-		04F9A6EC14F44F1B005E9C30 /* Atom.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Atom.mm; path = Classes/Atom.mm; sourceTree = "<group>"; };
-		04F9A6ED14F44F1B005E9C30 /* AtomController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AtomController.h; path = Classes/AtomController.h; sourceTree = "<group>"; };
-		04F9A6EE14F44F1B005E9C30 /* AtomController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AtomController.mm; path = Classes/AtomController.mm; sourceTree = "<group>"; };
-		04F9A6EF14F44F1B005E9C30 /* client_handler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = client_handler.h; path = Classes/client_handler.h; sourceTree = "<group>"; };
-		04F9A6F014F44F1B005E9C30 /* client_handler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = client_handler.mm; path = Classes/client_handler.mm; sourceTree = "<group>"; };
-		04F9A6F214F44F1B005E9C30 /* native_handler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = native_handler.h; path = Classes/native_handler.h; sourceTree = "<group>"; };
-		04F9A6F314F44F1B005E9C30 /* native_handler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = native_handler.mm; path = Classes/native_handler.mm; sourceTree = "<group>"; };
-		04F9A6F414F44F31005E9C30 /* Atom.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Atom.icns; path = Classes/mac/Atom.icns; sourceTree = SOURCE_ROOT; };
-		04F9A6F514F44F37005E9C30 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Classes/mac/Info.plist; sourceTree = SOURCE_ROOT; };
-		04F9A6F614F44F46005E9C30 /* ClientWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ClientWindow.xib; path = Classes/mac/ClientWindow.xib; sourceTree = SOURCE_ROOT; };
-		04F9A6F914F44F5A005E9C30 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = Classes/mac/English.lproj/MainMenu.xib; sourceTree = SOURCE_ROOT; };
 		05262FC2D4068D3E2A58A718 /* content_filter_cpptoc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = content_filter_cpptoc.h; sourceTree = "<group>"; };
 		0B9416B81CE32E64CBB368C5 /* client_cpptoc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = client_cpptoc.h; sourceTree = "<group>"; };
 		0E91F7ED6D31C5BEA70B4A02 /* cef_string.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cef_string.h; sourceTree = "<group>"; };
@@ -291,7 +290,6 @@
 		D0EB29117FD77B07DC919B8D /* cef_runnable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cef_runnable.h; sourceTree = "<group>"; };
 		D2CDB702FAC6D94127B53441 /* libcef_dll_wrapper2.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libcef_dll_wrapper2.cc; sourceTree = "<group>"; };
 		D2D241557CEF7C81ABDF80D9 /* cef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cef.h; sourceTree = "<group>"; };
-		D43BA9971C6D68D7C2647EEE /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 		D4ACCA6D35C528FB7672AF89 /* jsdialog_handler_cpptoc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = jsdialog_handler_cpptoc.h; sourceTree = "<group>"; };
 		DCEFB82C247377FD4550FC22 /* read_handler_cpptoc.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = read_handler_cpptoc.cc; sourceTree = "<group>"; };
 		DEB4E62AD93E4733EB21D735 /* domevent_ctocpp.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = domevent_ctocpp.cc; sourceTree = "<group>"; };
@@ -343,6 +341,17 @@
 				D2CDB702FAC6D94127B53441 /* libcef_dll_wrapper2.cc */,
 			);
 			path = wrapper;
+			sourceTree = "<group>";
+		};
+		045579F314FC5B0500CC81BE /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				04557A1214FC5DB100CC81BE /* Atom.icns */,
+				04557A1314FC5DB100CC81BE /* ClientWindow.xib */,
+				04557A1414FC5DB100CC81BE /* Info.plist */,
+				04557A1514FC5DB100CC81BE /* MainMenu.xib */,
+			);
+			name = "Support Files";
 			sourceTree = "<group>";
 		};
 		05F5075C02F82DAA866108D4 /* ctocpp */ = {
@@ -414,20 +423,6 @@
 				E07938F71CFB6B3F62A8E872 /* libcef_dll_wrapper.a */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		57338A9AD1F426E475F2A4CA /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				048A10D314F4522200C9E06B /* main.mm */,
-				04F9A6F414F44F31005E9C30 /* Atom.icns */,
-				04F9A6F514F44F37005E9C30 /* Info.plist */,
-				04F9A6F614F44F46005E9C30 /* ClientWindow.xib */,
-				04F9A6F814F44F5A005E9C30 /* MainMenu.xib */,
-				041C615714F453970018D40C /* InfoPlist.strings */,
-			);
-			name = "Supporting Files";
-			path = cefclient/mac;
 			sourceTree = "<group>";
 		};
 		6ED0009987D570F63BA0EC90 /* cpptoc */ = {
@@ -569,16 +564,16 @@
 		C77A844E0338A27E10E3B4F6 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				04F9A6EB14F44F1B005E9C30 /* Atom.h */,
-				04F9A6EC14F44F1B005E9C30 /* Atom.mm */,
-				04F9A6ED14F44F1B005E9C30 /* AtomController.h */,
-				04F9A6EE14F44F1B005E9C30 /* AtomController.mm */,
-				04F9A6EF14F44F1B005E9C30 /* client_handler.h */,
-				04F9A6F014F44F1B005E9C30 /* client_handler.mm */,
-				04F9A6F214F44F1B005E9C30 /* native_handler.h */,
-				04F9A6F314F44F1B005E9C30 /* native_handler.mm */,
-				57338A9AD1F426E475F2A4CA /* Supporting Files */,
-				D43BA9971C6D68D7C2647EEE /* Resources */,
+				04557A0414FC5DA400CC81BE /* Atom.h */,
+				04557A0514FC5DA400CC81BE /* Atom.mm */,
+				04557A0614FC5DA400CC81BE /* AtomController.h */,
+				04557A0714FC5DA400CC81BE /* AtomController.mm */,
+				04557A0814FC5DA400CC81BE /* client_handler.h */,
+				04557A0914FC5DA400CC81BE /* client_handler.mm */,
+				04557A0A14FC5DA400CC81BE /* main.mm */,
+				04557A0B14FC5DA400CC81BE /* native_handler.h */,
+				04557A0C14FC5DA400CC81BE /* native_handler.mm */,
+				045579F314FC5B0500CC81BE /* Support Files */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -587,6 +582,7 @@
 			isa = PBXGroup;
 			children = (
 				C77A844E0338A27E10E3B4F6 /* Source */,
+				045579F114FC5A8700CC81BE /* Resources */,
 				AD5FB74ED6EF38CC02239AC3 /* Frameworks */,
 				3A2837DB3B133B0C9A10B0B2 /* Products */,
 				8C159A74C6290E98B9902B9B /* Build */,
@@ -668,10 +664,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				041C615C14F453AD0018D40C /* ClientWindow.xib in Resources */,
-				041C615914F453A50018D40C /* Atom.icns in Resources */,
-				041C615A14F453A90018D40C /* InfoPlist.strings in Resources */,
-				041C615B14F453AC0018D40C /* MainMenu.xib in Resources */,
+				04557A1614FC5DB100CC81BE /* Atom.icns in Resources */,
+				04557A1714FC5DB100CC81BE /* ClientWindow.xib in Resources */,
+				04557A1914FC5DB100CC81BE /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -731,11 +726,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				041C615514F453670018D40C /* Atom.mm in Sources */,
-				041C615214F453610018D40C /* AtomController.mm in Sources */,
-				041C615314F453630018D40C /* client_handler.mm in Sources */,
-				041C615414F453640018D40C /* native_handler.mm in Sources */,
-				041C615614F4536A0018D40C /* main.mm in Sources */,
+				04557A0D14FC5DA400CC81BE /* Atom.mm in Sources */,
+				04557A0E14FC5DA400CC81BE /* AtomController.mm in Sources */,
+				04557A0F14FC5DA400CC81BE /* client_handler.mm in Sources */,
+				04557A1014FC5DA400CC81BE /* main.mm in Sources */,
+				04557A1114FC5DA400CC81BE /* native_handler.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -822,25 +817,6 @@
 		};
 /* End PBXTargetDependency section */
 
-/* Begin PBXVariantGroup section */
-		041C615714F453970018D40C /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				041C615814F453970018D40C /* English */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-		04F9A6F814F44F5A005E9C30 /* MainMenu.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				04F9A6F914F44F5A005E9C30 /* English */,
-			);
-			name = MainMenu.xib;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
 		3FC791A8E8240C180FCC4994 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -853,10 +829,22 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_WARN_CXX0X_EXTENSIONS = NO;
-				GCC_PREPROCESSOR_DEFINITIONS = "PROJECT_DIR=\"\\\"$PROJECT_DIR\\\"\"";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"PROJECT_DIR=\"\\\"$PROJECT_DIR\\\"\"",
+					"\"ENABLE_REMOTING=1\"",
+					"\"ENABLE_P2P_APIS=1\"",
+					"\"ENABLE_CONFIGURATION_POLICY\"",
+					"\"ENABLE_INPUT_SPEECH\"",
+					"\"ENABLE_NOTIFICATIONS\"",
+					"\"ENABLE_GPU=1\"",
+					"\"ENABLE_EGLIMAGE=1\"",
+					"\"ENABLE_REGISTER_PROTOCOL_HANDLER=1\"",
+					"\"USING_CEF_SHARED\"",
+					"\"__STDC_FORMAT_MACROS\"",
+					"\"DYNAMIC_ANNOTATIONS_ENABLED=1\"",
+					"\"WTF_USE_DYNAMIC_ANNOTATIONS=1\"",
+				);
 				SDKROOT = macosx;
-				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
-				SYMROOT = build;
 			};
 			name = Release;
 		};
@@ -875,21 +863,6 @@
 				GCC_OBJC_CALL_CXX_CDTORS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					$inherited,
-					"\"ENABLE_REMOTING=1\"",
-					"\"ENABLE_P2P_APIS=1\"",
-					"\"ENABLE_CONFIGURATION_POLICY\"",
-					"\"ENABLE_INPUT_SPEECH\"",
-					"\"ENABLE_NOTIFICATIONS\"",
-					"\"ENABLE_GPU=1\"",
-					"\"ENABLE_EGLIMAGE=1\"",
-					"\"ENABLE_REGISTER_PROTOCOL_HANDLER=1\"",
-					"\"USING_CEF_SHARED\"",
-					"\"__STDC_FORMAT_MACROS\"",
-					"\"DYNAMIC_ANNOTATIONS_ENABLED=1\"",
-					"\"WTF_USE_DYNAMIC_ANNOTATIONS=1\"",
-				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THREADSAFE_STATICS = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
@@ -899,7 +872,7 @@
 					.,
 					..,
 				);
-				INFOPLIST_FILE = Classes/mac/Info.plist;
+				INFOPLIST_FILE = Atom/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/System/Library/Frameworks",
 					"\"$(SRCROOT)/frameworks\"",
@@ -951,19 +924,8 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					$inherited,
 					"\"CHROMIUM_BUILD\"",
-					"\"ENABLE_REMOTING=1\"",
-					"\"ENABLE_P2P_APIS=1\"",
-					"\"ENABLE_CONFIGURATION_POLICY\"",
-					"\"ENABLE_INPUT_SPEECH\"",
-					"\"ENABLE_NOTIFICATIONS\"",
-					"\"ENABLE_GPU=1\"",
-					"\"ENABLE_EGLIMAGE=1\"",
-					"\"ENABLE_REGISTER_PROTOCOL_HANDLER=1\"",
-					"\"USING_CEF_SHARED\"",
-					"\"__STDC_FORMAT_MACROS\"",
-					"\"DYNAMIC_ANNOTATIONS_ENABLED=1\"",
-					"\"WTF_USE_DYNAMIC_ANNOTATIONS=1\"",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THREADSAFE_STATICS = NO;
@@ -980,7 +942,6 @@
 					"-fstack-protector-all",
 				);
 				PRODUCT_NAME = cef_dll_wrapper;
-				SHARED_PRECOMPS_DIR = "$(CONFIGURATION_BUILD_DIR)/SharedPrecompiledHeaders";
 				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = (
 					"-Wall",
@@ -997,12 +958,23 @@
 			buildSettings = {
 				CLANG_WARN_CXX0X_EXTENSIONS = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"PROJECT_DIR=\"\\\"$PROJECT_DIR\\\"\"",
 					"DEBUG=1",
+					"PROJECT_DIR=\"\\\"$PROJECT_DIR\\\"\"",
+					"\"ENABLE_REMOTING=1\"",
+					"\"ENABLE_P2P_APIS=1\"",
+					"\"ENABLE_CONFIGURATION_POLICY\"",
+					"\"ENABLE_INPUT_SPEECH\"",
+					"\"ENABLE_NOTIFICATIONS\"",
+					"\"ENABLE_GPU=1\"",
+					"\"ENABLE_EGLIMAGE=1\"",
+					"\"ENABLE_REGISTER_PROTOCOL_HANDLER=1\"",
+					"\"USING_CEF_SHARED\"",
+					"\"__STDC_FORMAT_MACROS\"",
+					NDEBUG,
+					"\"DYNAMIC_ANNOTATIONS_ENABLED=1\"",
+					"\"WTF_USE_DYNAMIC_ANNOTATIONS=1\"",
 				);
 				SDKROOT = macosx;
-				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
-				SYMROOT = build;
 			};
 			name = Debug;
 		};
@@ -1021,23 +993,6 @@
 				GCC_OBJC_CALL_CXX_CDTORS = YES;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					$inherited,
-					"\"CHROMIUM_BUILD\"",
-					"\"ENABLE_REMOTING=1\"",
-					"\"ENABLE_P2P_APIS=1\"",
-					"\"ENABLE_CONFIGURATION_POLICY\"",
-					"\"ENABLE_INPUT_SPEECH\"",
-					"\"ENABLE_NOTIFICATIONS\"",
-					"\"ENABLE_GPU=1\"",
-					"\"ENABLE_EGLIMAGE=1\"",
-					"\"ENABLE_REGISTER_PROTOCOL_HANDLER=1\"",
-					"\"USING_CEF_SHARED\"",
-					"\"__STDC_FORMAT_MACROS\"",
-					"\"NDEBUG\"",
-					"\"NVALGRIND\"",
-					"\"DYNAMIC_ANNOTATIONS_ENABLED=0\"",
-				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THREADSAFE_STATICS = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
@@ -1047,7 +1002,7 @@
 					.,
 					..,
 				);
-				INFOPLIST_FILE = Classes/mac/Info.plist;
+				INFOPLIST_FILE = Atom/Info.plist;
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/System/Library/Frameworks",
 					"\"$(SRCROOT)/frameworks\"",
@@ -1089,20 +1044,8 @@
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					$inherited,
 					"\"CHROMIUM_BUILD\"",
-					"\"ENABLE_REMOTING=1\"",
-					"\"ENABLE_P2P_APIS=1\"",
-					"\"ENABLE_CONFIGURATION_POLICY\"",
-					"\"ENABLE_INPUT_SPEECH\"",
-					"\"ENABLE_NOTIFICATIONS\"",
-					"\"ENABLE_GPU=1\"",
-					"\"ENABLE_EGLIMAGE=1\"",
-					"\"ENABLE_REGISTER_PROTOCOL_HANDLER=1\"",
-					"\"USING_CEF_SHARED\"",
-					"\"__STDC_FORMAT_MACROS\"",
-					"\"NDEBUG\"",
-					"\"NVALGRIND\"",
-					"\"DYNAMIC_ANNOTATIONS_ENABLED=0\"",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THREADSAFE_STATICS = NO;
@@ -1116,7 +1059,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
 				OTHER_CFLAGS = "-fno-strict-aliasing";
 				PRODUCT_NAME = cef_dll_wrapper;
-				SHARED_PRECOMPS_DIR = "$(CONFIGURATION_BUILD_DIR)/SharedPrecompiledHeaders";
 				USE_HEADERMAP = NO;
 				WARNING_CFLAGS = (
 					"-Wall",
