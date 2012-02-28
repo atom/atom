@@ -70,6 +70,11 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame)
 {
   REQUIRE_UI_THREAD();  
+  
+  if ([m_delegate respondsToSelector:@selector(loadStart:)]) {
+    [m_delegate loadStart:browser];
+  }
+
 }
 
 void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,

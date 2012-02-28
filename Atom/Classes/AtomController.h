@@ -17,6 +17,7 @@ class ClientHandler;
 - (void)createBrowser;
 
 - (void)afterCreated:(CefRefPtr<CefBrowser>) browser;
+- (void)loadStart:(CefRefPtr<CefBrowser>) browser;
 
 @property (nonatomic, retain) IBOutlet NSView *webView;
 

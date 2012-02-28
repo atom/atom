@@ -48,23 +48,25 @@
 }
 
 - (void)afterCreated:(CefRefPtr<CefBrowser>) browser {
-  browser->ShowDevTools();
-  
+  browser->ShowDevTools();  
+}
+
+- (void)loadStart:(CefRefPtr<CefBrowser>) browser {
   CefRefPtr<CefFrame> frame = browser->GetMainFrame();
   CefRefPtr<CefV8Context> context = frame->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
   
   context->Enter();
   
-  global->SetValue("$app", _appContext->GetGlobal(), V8_PROPERTY_ATTRIBUTE_NONE);
-  
   CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString([_bootstrapScript UTF8String]);
   global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
   
   CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString("~/");
   global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
-
+  
   // $atom
+  global->SetValue("$app", _appContext->GetGlobal(), V8_PROPERTY_ATTRIBUTE_NONE);
+  
   CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);  
   CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(PROJECT_DIR);
   atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
