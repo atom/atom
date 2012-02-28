@@ -4,37 +4,36 @@
 #import "client_handler.h"
 #import "native_handler.h"
 
-CefRefPtr<ClientHandler> g_handler;
-
 @implementation AtomController
 
 @synthesize webView=_webView;
 
 - (void)dealloc {
   [_bootstrapScript release];
+
   [super dealloc];
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript appContext:(CefRefPtr<CefV8Context>)appContext {
   self = [super initWithWindowNibName:@"ClientWindow"];
   _bootstrapScript = [bootstrapScript retain];
+  _appContext = appContext;
   
-  [self.window makeKeyWindow];
+  [self createBrowser];
+  [self.window makeKeyAndOrderFront:nil];
     
   return self;
 }
 
-- (id)initForSpecs {
-  return [self initWithBootstrapScript:@"spec-bootstrap"];
+- (id)initSpecsWithAppContext:(CefRefPtr<CefV8Context>)appContext {
+  return [self initWithBootstrapScript:@"spec-bootstrap" appContext:appContext];
 }
 
-- (void)windowDidLoad {
-  [super windowDidLoad];
-  
+- (void)createBrowser {
   [self.window setDelegate:self];  
   [self.window setReleasedWhenClosed:NO];
   
-  g_handler = new ClientHandler(self);
+  _handler = new ClientHandler(self);
   
   CefWindowInfo window_info;
   CefBrowserSettings settings;
@@ -45,19 +44,19 @@ CefRefPtr<ClientHandler> g_handler;
   
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-  CefBrowser::CreateBrowser(window_info, g_handler.get(), [indexURLString UTF8String], settings);
-
-  [self.window makeKeyAndOrderFront:nil];
+  CefBrowser::CreateBrowser(window_info, _handler.get(), [indexURLString UTF8String], settings);  
 }
 
 - (void)afterCreated:(CefRefPtr<CefBrowser>) browser {
   browser->ShowDevTools();
   
   CefRefPtr<CefFrame> frame = browser->GetMainFrame();
-  CefRefPtr<CefV8Context> jsContext = frame->GetV8Context();
-  CefRefPtr<CefV8Value> global = jsContext->GetGlobal();
+  CefRefPtr<CefV8Context> context = frame->GetV8Context();
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
   
-  jsContext->Enter();
+  context->Enter();
+  
+  global->SetValue("$app", _appContext->GetGlobal(), V8_PROPERTY_ATTRIBUTE_NONE);
   
   CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString([_bootstrapScript UTF8String]);
   global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
@@ -75,7 +74,7 @@ CefRefPtr<ClientHandler> g_handler;
   CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();    
   global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
   
-  jsContext->Exit();
+  context->Exit();
 }
 
 #pragma mark NSWindowDelegate
@@ -87,7 +86,8 @@ CefRefPtr<ClientHandler> g_handler;
 // sequence by getting rid of the window. By returning YES, we allow the window
 // to be removed from the screen.
 - (BOOL)windowShouldClose:(id)window {  
-  g_handler = NULL;
+  _appContext = NULL;
+  _handler = NULL;
   
   // Clean ourselves up after clearing the stack of anything that might have the window on it.
   [self autorelease];
@@ -113,9 +113,9 @@ void AppGetBrowserSettings(CefBrowserSettings& settings) {
   settings.javascript_access_clipboard_disallowed = false;
   settings.dom_paste_disabled = false;
   settings.caret_browsing_enabled = false;
-  settings.java_disabled = false;
-  settings.plugins_disabled = false;
-  settings.universal_access_from_file_urls_allowed = false;
+  settings.java_disabled = true;
+  settings.plugins_disabled = true;
+  settings.universal_access_from_file_urls_allowed = true;
   settings.file_access_from_file_urls_allowed = false;
   settings.web_security_disabled = false;
   settings.xss_auditor_enabled = false;

@@ -22,7 +22,7 @@ class ClientHandler : public CefClient,
                       public CefDragHandler
 {
 public:
-  ClientHandler(AtomController *clientController);
+  ClientHandler(id delegate);
   virtual ~ClientHandler();
 
   // CefClient methods
@@ -117,7 +117,7 @@ protected:
   // The child browser window handle
   CefWindowHandle m_BrowserHwnd;
   
-  AtomController *m_clientController;
+  id m_delegate;
 
   // Include the default reference counting implementation.
   IMPLEMENT_REFCOUNTING(ClientHandler);

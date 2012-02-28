@@ -20,11 +20,11 @@
 #define REQUIRE_IO_THREAD()   ASSERT(CefCurrentlyOn(TID_IO));
 #define REQUIRE_FILE_THREAD() ASSERT(CefCurrentlyOn(TID_FILE));
 
-ClientHandler::ClientHandler(AtomController *clientController)
+ClientHandler::ClientHandler(id delegate)
   : m_MainHwnd(NULL),
     m_BrowserHwnd(NULL)
 {
-  m_clientController = clientController;
+  m_delegate = delegate;
 }
 
 ClientHandler::~ClientHandler()
@@ -43,7 +43,9 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     m_Browser = browser;
     m_BrowserHwnd = browser->GetWindowHandle();
     
-    [m_clientController afterCreated:browser];
+    if ([m_delegate respondsToSelector:@selector(afterCreated:)]) {
+      [m_delegate afterCreated:browser];
+    }
   }
 }
 
