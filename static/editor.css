@@ -11,8 +11,11 @@
   -webkit-user-select: none;
 }
 
-.editor pre {
+.editor .line {
+  position: relative;
+  white-space: pre;
   margin: 0;
+  padding: 0;
   z-index: 1;
 }
 
@@ -45,4 +48,27 @@
   position: absolute;
   background: white;
   opacity: .1;
+}
+
+.fold-placeholder {
+  position: relative;
+  display: inline-block;
+  vertical-align: text-bottom;
+  -webkit-border-radius: 3px;
+  background: rgba(255, 255, 255, .07);
+  border: 1px solid rgba(255, 255, 255, .25);
+  color: rgba(255, 255, 255, .95);
+}
+
+.fold-placeholder:hover {
+  background: rgba(255, 255, 255, .2);
+  border: 1px solid rgba(255, 255, 255, .3);
+  color: white;
+}
+
+.fold-placeholder .ellipsis {
+  position: relative;
+  width: 100%;
+  bottom: 40%;
+  text-align: center;
 }

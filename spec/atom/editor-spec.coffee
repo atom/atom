@@ -16,14 +16,14 @@ describe "Editor", ->
     editor.setBuffer(buffer)
 
   describe "text rendering", ->
-    it "creates a pre element for each line in the buffer with the html-escaped text of the line", ->
-      expect(editor.lines.find('pre').length).toEqual(buffer.numLines())
+    it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
+      expect(editor.lines.find('.line').length).toEqual(buffer.numLines())
       expect(buffer.getLine(2)).toContain('<')
-      expect(editor.lines.find('pre:eq(2)').html()).toContain '&lt;'
+      expect(editor.lines.find('.line:eq(2)').html()).toContain '&lt;'
 
       # renders empty lines with a non breaking space
       expect(buffer.getLine(10)).toBe ''
-      expect(editor.lines.find('pre:eq(10)').html()).toBe '&nbsp;'
+      expect(editor.lines.find('.line:eq(10)').html()).toBe '&nbsp;'
 
     it "syntax highlights code based on the file type", ->
       line1 = editor.lines.find('.line:first')
@@ -62,14 +62,14 @@ describe "Editor", ->
 
       it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
         expect(editor.lines.find('.line').length).toBe 16
-        expect(editor.lines.find('pre:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
-        expect(editor.lines.find('pre:eq(4)').text()).toBe "right = [];"
+        expect(editor.lines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
+        expect(editor.lines.find('.line:eq(4)').text()).toBe "right = [];"
 
         editor.cursor.setBufferPosition([3, 51])
-        expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(4)').position())
+        expect(editor.cursor.position()).toEqual(editor.lines.find('.line:eq(4)').position())
 
         editor.cursor.setBufferPosition([4, 0])
-        expect(editor.cursor.position()).toEqual(editor.lines.find('pre:eq(5)').position())
+        expect(editor.cursor.position()).toEqual(editor.lines.find('.line:eq(5)').position())
 
         editor.selection.setBufferRange(new Range([6, 30], [6, 55]))
         [region1, region2] = editor.selection.regions
@@ -87,8 +87,8 @@ describe "Editor", ->
         editor.width(editor.charWidth * 40)
         $(window).trigger 'resize'
         expect(editor.lines.find('.line').length).toBe 19
-        expect(editor.lines.find('pre:eq(4)').text()).toBe "left = [], right = [];"
-        expect(editor.lines.find('pre:eq(5)').text()).toBe "    while(items.length > 0) {"
+        expect(editor.lines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
+        expect(editor.lines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
 
       it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
         editor.toggleSoftWrap()
@@ -119,9 +119,6 @@ describe "Editor", ->
 
         editor.moveCursorRight()
         expect(editor.getCursorScreenPosition()).toEqual [11, 0]
-
-
-
 
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->
@@ -572,7 +569,7 @@ describe "Editor", ->
 
           expect(editor.getCurrentLine().charAt(6)).toBe 'q'
           expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
-          expect(editor.lines.find('pre:eq(1)')).toHaveText editor.getCurrentLine()
+          expect(editor.lines.find('.line:eq(1)')).toHaveText editor.getCurrentLine()
 
       describe "when there is a selection", ->
         it "replaces the selected text with the typed text", ->
@@ -587,20 +584,20 @@ describe "Editor", ->
 
           editor.trigger keydownEvent('enter')
 
-          expect(editor.lines.find('pre:eq(1)')).toHaveHtml '&nbsp;'
+          expect(editor.lines.find('.line:eq(1)')).toHaveHtml '&nbsp;'
           expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
       describe "when the cursor is in the middle of a line", ->
         it "splits the current line to form a new line", ->
           editor.setCursorScreenPosition(row: 1, column: 6)
 
-          originalLine = editor.lines.find('pre:eq(1)').text()
-          lineBelowOriginalLine = editor.lines.find('pre:eq(2)').text()
+          originalLine = editor.lines.find('.line:eq(1)').text()
+          lineBelowOriginalLine = editor.lines.find('.line:eq(2)').text()
           editor.trigger keydownEvent('enter')
 
-          expect(editor.lines.find('pre:eq(1)')).toHaveText originalLine[0...6]
-          expect(editor.lines.find('pre:eq(2)')).toHaveText originalLine[6..]
-          expect(editor.lines.find('pre:eq(3)')).toHaveText lineBelowOriginalLine
+          expect(editor.lines.find('.line:eq(1)')).toHaveText originalLine[0...6]
+          expect(editor.lines.find('.line:eq(2)')).toHaveText originalLine[6..]
+          expect(editor.lines.find('.line:eq(3)')).toHaveText lineBelowOriginalLine
           expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
       describe "when the cursor is on the end of a line", ->
@@ -609,7 +606,7 @@ describe "Editor", ->
 
           editor.trigger keydownEvent('enter')
 
-          expect(editor.lines.find('pre:eq(2)')).toHaveHtml '&nbsp;'
+          expect(editor.lines.find('.line:eq(2)')).toHaveHtml '&nbsp;'
           expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
     describe "when backspace is pressed", ->
@@ -622,7 +619,7 @@ describe "Editor", ->
 
           line = buffer.getLine(1)
           expect(line).toBe "  var ort = function(items) {"
-          expect(editor.lines.find('pre:eq(1)')).toHaveText line
+          expect(editor.lines.find('.line:eq(1)')).toHaveText line
           expect(editor.getCursorScreenPosition()).toEqual {row: 1, column: 6}
 
       describe "when the cursor is at the beginning of a line", ->
@@ -639,8 +636,8 @@ describe "Editor", ->
           expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
           expect(line1).toBe "    if (items.length <= 1) return items;"
 
-          expect(editor.lines.find('pre:eq(0)')).toHaveText line0
-          expect(editor.lines.find('pre:eq(1)')).toHaveText line1
+          expect(editor.lines.find('.line:eq(0)')).toHaveText line0
+          expect(editor.lines.find('.line:eq(1)')).toHaveText line1
           expect(editor.getCursorScreenPosition()).toEqual {row: 0, column: originalLine0.length}
 
       describe "when the cursor is at the first column of the first line", ->
@@ -764,7 +761,7 @@ describe "Editor", ->
         editor.selection.setBufferRange(new Range([4, 29], [7, 4]))
 
         editor.trigger 'fold-selection'
-        expect(editor.lines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {...}'
+        expect(editor.lines.find('.line:eq(4)').find('.fold-placeholder')).toExist()
         expect(editor.selection.isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [4, 32]
 

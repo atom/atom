@@ -24,6 +24,7 @@ class Editor extends View
   softWrap: false
   lineHeight: null
   charWidth: null
+  charHeight: null
   cursor: null
   selection: null
   buffer: null
@@ -122,11 +123,17 @@ class Editor extends View
 
   buildLineElement: (screenLine) ->
     { tokens } = screenLine
+    charWidth = @charWidth
+    charHeight = @charHeight
     $$ ->
-      @pre class: 'line', =>
+      @div class: 'line', =>
         if tokens.length
           for token in tokens
-            @span { class: token.type.replace('.', ' ') }, token.value
+            if token.type is 'fold-placeholder'
+              @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight * .85 }px;", =>
+                @div class: "ellipsis", => @raw "&hellip;"
+            else
+              @span { class: token.type.replace('.', ' ') }, token.value
         else
           @raw '&nbsp;'
 
@@ -195,7 +202,7 @@ class Editor extends View
     @getLineElement(row).remove()
 
   getLineElement: (row) ->
-    @lines.find("pre.line:eq(#{row})")
+    @lines.find("div.line:eq(#{row})")
 
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
@@ -245,9 +252,10 @@ class Editor extends View
       left: pageX - @lines.offset().left
 
   calculateDimensions: ->
-    fragment = $('<pre style="position: absolute; visibility: hidden;">x</pre>')
+    fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @lines.append(fragment)
     @charWidth = fragment.width()
+    @charHeight = fragment.find('span').height()
     @lineHeight = fragment.outerHeight()
     fragment.remove()
 
