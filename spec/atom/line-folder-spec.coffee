@@ -86,7 +86,7 @@ describe "LineFolder", ->
         expect(event.oldRange).toEqual [[2, 0], [2, 26]]
         changeHandler.reset()
 
-    describe "when there is a nested fold on the last line of another fold", ->
+    describe "when there is a nested fold", ->
       it "does not render a placeholder for the nested fold because it is inside of the other fold", ->
         folder.createFold(new Range([8, 5], [8, 10]))
         folder.createFold(new Range([4, 29], [8, 36]))
@@ -178,6 +178,12 @@ describe "LineFolder", ->
           [event] = changeHandler.argsForCall[0]
           expect(event.oldRange).toEqual [[7, 0], [7, 28]]
           expect(event.newRange).toEqual [[7, 0], [8, 56]]
+
+      describe "when creating a fold on the first line of an existing fold", ->
+        fit "renders the line correctly", ->
+          folder.createFold(new Range([4, 29], [7, 4]))
+          folder.createFold(new Range([4, 10], [4, 26]))
+          expect(folder.lineForScreenRow(4).text).toBe '    while(...) {...}'
 
       describe "when a fold starts at the beginning of a line", ->
         it "renders a placeholder at the beginning of the line", ->

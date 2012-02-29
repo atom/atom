@@ -114,7 +114,8 @@ class LineFolder
     new ScreenLineFragment([{value: '...', type: 'fold-placeholder', fold}], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
 
   foldsForBufferRow: (bufferRow) ->
-    @activeFolds[bufferRow] or []
+    folds = @activeFolds[bufferRow] or []
+    folds.sort (a, b) -> a.compare(b)
 
   linesForScreenRows: (startRow, endRow) ->
     @lineMap.linesForScreenRows(startRow, endRow)
@@ -194,3 +195,5 @@ class Fold
 
     newRange.end.add(point.subtract(oldRange.end))
 
+  compare: (other) ->
+    @start.compare(other.start)
