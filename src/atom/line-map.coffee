@@ -28,6 +28,15 @@ class LineMap
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
 
+  linesForScreenRows: (startRow, endRow) ->
+    @linesByDelta('screenDelta', startRow, endRow)
+
+  lineForBufferRow: (row) ->
+    @linesForBufferRows(row, row)[0]
+
+  linesForBufferRows: (startRow, endRow) ->
+    @linesByDelta('bufferDelta', startRow, endRow)
+
   bufferLineCount: ->
     @bufferPositionForScreenPosition([Infinity, 0]).row
 
@@ -74,7 +83,7 @@ class LineMap
 
     @lineFragments[startIndex...stopIndex] = lineFragments
 
-  linesForScreenRows: (startRow, endRow) ->
+  linesByDelta: (deltaType, startRow, endRow) ->
     lines = []
     delta = new Point
 
@@ -85,26 +94,15 @@ class LineMap
           pendingFragment = pendingFragment.concat(lineFragment)
         else
           pendingFragment = _.clone(lineFragment)
-        if pendingFragment.screenDelta.row > 0
+        if pendingFragment[deltaType].row > 0
           pendingFragment.bufferDelta = new Point(1, 0)
           lines.push pendingFragment
           pendingFragment = null
-      delta = delta.add(lineFragment.screenDelta)
+      delta = delta.add(lineFragment[deltaType])
 
     lines
 
-  lineForBufferRow: (row) ->
-    line = null
-    delta = new Point
-    for lineFragment in @lineFragments
-      break if delta.row > row
-      if delta.row == row
-        if line
-          line = line.concat(lineFragment)
-        else
-          line = lineFragment
-      delta = delta.add(lineFragment.bufferDelta)
-    line
+
 
   translatePosition: (sourceDeltaType, targetDeltaType, sourcePosition) ->
     sourcePosition = Point.fromObject(sourcePosition)
