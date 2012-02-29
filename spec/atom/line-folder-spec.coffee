@@ -179,17 +179,21 @@ describe "LineFolder", ->
           expect(event.oldRange).toEqual [[7, 0], [7, 28]]
           expect(event.newRange).toEqual [[7, 0], [8, 56]]
 
-      describe "when the fold starts at the beginning of the line", ->
+      describe "when a fold starts at the beginning of a line", ->
         it "renders a placeholder at the beginning of the line", ->
           folder.createFold(new Range([4, 0], [7, 4]))
           expect(folder.lineForScreenRow(4).text).toBe '...}'
+
+      describe "when a fold ends at the beginning of a line", ->
+        it "renders a placeholder at the beginning of the line", ->
+          folder.createFold(new Range([4, 29], [7, 0]))
+          expect(folder.lineForScreenRow(4).text).toBe '    while(items.length > 0) {...    }'
 
       describe "when a fold starts on the first line of the buffer", ->
         it "renders the first line correctly when the fold is destroyed", ->
           fold = folder.createFold(new Range([0, 14], [0, 27]))
           fold.destroy()
           expect(folder.lineForScreenRow(0).text).toBe 'var quicksort = function () {'
-
 
   describe "when the buffer changes", ->
     [fold1, fold2] = []

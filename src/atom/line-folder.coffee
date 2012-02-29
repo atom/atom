@@ -92,8 +92,9 @@ class LineFolder
   buildLinesForBufferRows: (startRow, endRow) ->
     @$buildLinesForBufferRows(@foldStartRowForBufferRow(startRow), endRow)
 
-  $buildLinesForBufferRows: (startRow, endRow, startColumn = 0) ->
-    return [] if startRow > endRow and startColumn == 0
+  $buildLinesForBufferRows: (startRow, endRow, startColumn) ->
+    return [] if startRow > endRow and not startColumn?
+    startColumn ?= 0
 
     screenLine = @highlighter.lineForScreenRow(startRow).splitAt(startColumn)[1]
 
