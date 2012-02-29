@@ -13,7 +13,6 @@ beforeEach ->
   window.resetTimeouts()
 
 afterEach ->
-  (new Native).resetMainMenu()
   $('#jasmine-content').empty()
 
 # Use underscore's definition of equality for toEqual assertions
