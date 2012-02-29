@@ -15,20 +15,24 @@ windowAdditions =
 
   startup: (url) ->
     @menuItemActions = {}
+
+    @setupKeymap()
     @attachRootView(url)
     @registerEventHandlers()
     @bindMenuItems()
+    
     $(window).focus()
     atom.windowOpened this
-
-    @keymap = new GlobalKeymap()
-    $(document).on 'keydown', (e) -> @keymap.handleKeyEvent(e)
 
   shutdown: ->
     @rootView.remove()
     $(window).unbind('focus')
     $(window).unbind('blur')
     atom.windowClosed this
+
+  setupKeymap: ->
+    @keymap = new GlobalKeymap()
+    $(document).on 'keydown', (e) -> @keymap.handleKeyEvent(e)
 
   attachRootView: (url) ->
     @rootView = new RootView {url}
@@ -48,7 +52,9 @@ windowAdditions =
     @menuItemActions[path] = {action: action, pattern: pattern}
 
   registerEventHandlers: ->
-    $(window).on 'close', => @close()
+    $(window).on 'close', => 
+      @shutdown()
+      @close()
     $(window).focus => @registerMenuItems()
     $(window).blur -> atom.native.resetMainMenu()
 
