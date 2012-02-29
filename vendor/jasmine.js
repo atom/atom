@@ -1,3 +1,7 @@
+// Modified line 1769
+// -        if (self.blocks[self.index].abort) {
+// +        if (self.blocks[self.index] && self.blocks[self.index].abort) {
+
 var isCommonJS = typeof window == "undefined";
 
 /**
@@ -996,7 +1000,7 @@ jasmine.Block = function(env, func, spec) {
   this.spec = spec;
 };
 
-jasmine.Block.prototype.execute = function(onComplete) {  
+jasmine.Block.prototype.execute = function(onComplete) {
   try {
     this.func.apply(this.spec);
   } catch (e) {
@@ -1036,7 +1040,7 @@ jasmine.JsApiReporter.prototype.summarize_ = function(suiteOrSpec) {
     type: isSuite ? 'suite' : 'spec',
     children: []
   };
-  
+
   if (isSuite) {
     var children = suiteOrSpec.children();
     for (var i = 0; i < children.length; i++) {
@@ -1652,7 +1656,7 @@ jasmine.PrettyPrinter.prototype.format = function(value) {
 jasmine.PrettyPrinter.prototype.iterateObject = function(obj, fn) {
   for (var property in obj) {
     if (property == '__Jasmine_been_here_before__') continue;
-    fn(property, obj.__lookupGetter__ ? (obj.__lookupGetter__(property) !== jasmine.undefined && 
+    fn(property, obj.__lookupGetter__ ? (obj.__lookupGetter__(property) !== jasmine.undefined &&
                                          obj.__lookupGetter__(property) !== null) : false);
   }
 };
@@ -1755,7 +1759,7 @@ jasmine.Queue.prototype.next_ = function() {
 
   while (goAgain) {
     goAgain = false;
-    
+
     if (self.index < self.blocks.length && !this.abort) {
       var calledSynchronously = true;
       var completedSynchronously = false;
@@ -1766,7 +1770,7 @@ jasmine.Queue.prototype.next_ = function() {
           return;
         }
 
-        if (self.blocks[self.index].abort) {
+        if (self.blocks[self.index] && self.blocks[self.index].abort) {
           self.abort = true;
         }
 
@@ -1793,7 +1797,7 @@ jasmine.Queue.prototype.next_ = function() {
       if (completedSynchronously) {
         onComplete();
       }
-      
+
     } else {
       self.running = false;
       if (self.onComplete) {
