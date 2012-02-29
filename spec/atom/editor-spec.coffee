@@ -757,11 +757,13 @@ describe "Editor", ->
 
   describe "folding", ->
     describe "when a fold-selection event is triggered", ->
-      it "folds the selected text and moves the cursor to just after the placeholder", ->
+      it "folds the selected text and moves the cursor to just after the placeholder, then treats the placeholder as a single character", ->
         editor.selection.setBufferRange(new Range([4, 29], [7, 4]))
-
         editor.trigger 'fold-selection'
+
         expect(editor.lines.find('.line:eq(4)').find('.fold-placeholder')).toExist()
+        expect(editor.lines.find('.line:eq(5)').text()).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+
         expect(editor.selection.isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [4, 32]
 
@@ -776,5 +778,15 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual [4, 29]
         editor.moveCursorRight()
         expect(editor.getCursorScreenPosition()).toEqual [4, 32]
+
+    describe "when a fold placeholder is clicked", ->
+      it "removes the associated fold", ->
+        editor.selection.setBufferRange(new Range([4, 29], [7, 4]))
+        editor.trigger 'fold-selection'
+
+        editor.find('.fold-placeholder .ellipsis').mousedown()
+
+        expect(editor.find('.fold-placeholder')).not.toExist()
+        expect(editor.lines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
 
 

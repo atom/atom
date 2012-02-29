@@ -7,11 +7,14 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class LineFolder
+  activeFolds: null
+  foldsById: null
   lineMap: null
   lastHighlighterChangeEvent: null
 
   constructor: (@highlighter) ->
     @activeFolds = {}
+    @foldsById = {}
     @buildLineMap()
     @highlighter.buffer.on 'change', (e) => @handleBufferChange(e)
     @highlighter.on 'change', (e) => @lastHighlighterChangeEvent = e
@@ -57,13 +60,18 @@ class LineFolder
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
     @trigger 'unfold', fold.getRange()
 
+  destroyFoldById: (foldId) ->
+    @foldsById[foldId]?.destroy()
+
   registerFold: (bufferRow, fold) ->
     @activeFolds[bufferRow] ?= []
     @activeFolds[bufferRow].push(fold)
+    @foldsById[fold.id] = fold
 
   unregisterFold: (bufferRow, fold) ->
     folds = @activeFolds[bufferRow]
     folds.splice(folds.indexOf(fold), 1)
+    delete @foldsById[fold.id]
 
   handleBufferChange: (e) ->
     for row, folds of @activeFolds
@@ -102,7 +110,7 @@ class LineFolder
     screenLine
 
   buildFoldPlaceholder: (fold) ->
-    new ScreenLineFragment([{value: '...', type: 'fold-placeholder'}], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
+    new ScreenLineFragment([{value: '...', type: 'fold-placeholder', fold}], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
 
   foldsForBufferRow: (bufferRow) ->
     @activeFolds[bufferRow] or []
@@ -150,7 +158,10 @@ class LineFolder
 _.extend LineFolder.prototype, EventEmitter
 
 class Fold
+  @idCounter: 1
+
   constructor: (@lineFolder, {@start, @end}) ->
+    @id = @constructor.idCounter++
 
   destroy: ->
     @lineFolder.destroyFold(this)

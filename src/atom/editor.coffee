@@ -92,6 +92,10 @@ class Editor extends View
       @hiddenInput.focus()
       false
 
+    @on 'mousedown', '.fold-placeholder', (e) =>
+      @lineFolder.destroyFoldById($(e.currentTarget).attr('foldId'))
+      false
+
     @on 'mousedown', (e) =>
       clickCount = e.originalEvent.detail
 
@@ -130,7 +134,7 @@ class Editor extends View
         if tokens.length
           for token in tokens
             if token.type is 'fold-placeholder'
-              @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight * .85 }px;", =>
+              @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight * .85 }px;", 'foldId': token.fold.id, =>
                 @div class: "ellipsis", => @raw "&hellip;"
             else
               @span { class: token.type.replace('.', ' ') }, token.value
