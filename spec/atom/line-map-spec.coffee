@@ -42,14 +42,16 @@ describe "LineMap", ->
   describe ".spliceAtBufferRow(bufferRow, rowCount, screenLines)", ->
     describe "when called with a row count of 0", ->
       it "inserts the given line fragments before the specified buffer row", ->
-        map.insertAtBufferRow(0, [line0, line1, line2])
+        map.insertAtBufferRow(0, [line0, line1])
         map.spliceAtBufferRow(1, 0, [line3, line4])
 
         expect(map.lineForScreenRow(0)).toEqual line0
         expect(map.lineForScreenRow(1)).toEqual line3
         expect(map.lineForScreenRow(2)).toEqual line4
         expect(map.lineForScreenRow(3)).toEqual line1
-        expect(map.lineForScreenRow(4)).toEqual line2
+
+        map.spliceAtBufferRow(0, 0, [line2])
+        expect(map.lineForScreenRow(0)).toEqual line2
 
     describe "when called with a row count of 1", ->
       describe "when the specified buffer row is spanned by a single line fragment", ->
@@ -116,17 +118,18 @@ describe "LineMap", ->
 
       describe "when the specified screen row is spanned by multiple line fragments", ->
         it "replaces all spanning line fragments with the given line fragments", ->
-          [line1a, line1b] = line1.splitAt(10)
+          [line0a, line0b] = line0.splitAt(10)
           [line3a, line3b] = line3.splitAt(10)
 
-          map.insertAtBufferRow(0, [line0, line1a, line1b, line2])
-          map.spliceAtScreenRow(1, 1, [line3a, line3b, line4])
+          map.insertAtBufferRow(0, [line0a, line0b, line1, line2])
+          map.spliceAtScreenRow(0, 1, [line3a, line3b, line4])
 
           expect(map.bufferLineCount()).toBe 4
-          expect(map.lineForScreenRow(0)).toEqual line0
-          expect(map.lineForScreenRow(1)).toEqual line3a.concat(line3b)
-          expect(map.lineForScreenRow(2)).toEqual line4
+          expect(map.lineForScreenRow(0)).toEqual line3a.concat(line3b)
+          expect(map.lineForScreenRow(1)).toEqual line4
+          expect(map.lineForScreenRow(2)).toEqual line1
           expect(map.lineForScreenRow(3)).toEqual line2
+
 
     describe "when called with a row count greater than 1", ->
       it "replaces all line fragments spanning the multiple buffer rows with the given line fragments", ->

@@ -33,7 +33,7 @@ class LineMap
     delta = new Point
 
     for screenLine, i in @screenLines
-      startIndex = i if delta.row == startRow and not startIndex
+      startIndex ?= i if delta.row == startRow
       nextDelta = delta.add(screenLine[deltaType])
       break if nextDelta.row > stopRow
       delta = nextDelta
