@@ -5,49 +5,49 @@ Range = require 'range'
 module.exports =
 class LineMap
   constructor: ->
-    @screenLines = []
+    @lineFragments = []
 
-  insertAtBufferRow: (bufferRow, screenLines) ->
+  insertAtBufferRow: (bufferRow, lineFragments) ->
     delta = new Point
     insertIndex = 0
 
-    for screenLine in @screenLines
-      nextDelta = delta.add(screenLine.bufferDelta)
+    for lineFragment in @lineFragments
+      nextDelta = delta.add(lineFragment.bufferDelta)
       break if nextDelta.row > bufferRow
       delta = nextDelta
       insertIndex++
 
-    @screenLines[insertIndex...insertIndex] = screenLines
+    @lineFragments[insertIndex...insertIndex] = lineFragments
 
-  spliceAtBufferRow: (startRow, rowCount, screenLines) ->
-    @spliceByDelta('bufferDelta', startRow, rowCount, screenLines)
+  spliceAtBufferRow: (startRow, rowCount, lineFragments) ->
+    @spliceByDelta('bufferDelta', startRow, rowCount, lineFragments)
 
-  spliceAtScreenRow: (startRow, rowCount, screenLines) ->
-    @spliceByDelta('screenDelta', startRow, rowCount, screenLines)
+  spliceAtScreenRow: (startRow, rowCount, lineFragments) ->
+    @spliceByDelta('screenDelta', startRow, rowCount, lineFragments)
 
-  spliceByDelta: (deltaType, startRow, rowCount, screenLines) ->
+  spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
     stopRow = startRow + rowCount
     startIndex = undefined
     stopIndex = 0
     delta = new Point
 
-    for screenLine, i in @screenLines
+    for lineFragment, i in @lineFragments
       startIndex ?= i if delta.row == startRow
-      nextDelta = delta.add(screenLine[deltaType])
+      nextDelta = delta.add(lineFragment[deltaType])
       break if nextDelta.row > stopRow
       delta = nextDelta
       stopIndex++
 
-    @screenLines[startIndex...stopIndex] = screenLines
+    @lineFragments[startIndex...stopIndex] = lineFragments
 
-  replaceBufferRows: (start, end, screenLines) ->
-    @spliceAtBufferRow(start, end - start + 1, screenLines)
+  replaceBufferRows: (start, end, lineFragments) ->
+    @spliceAtBufferRow(start, end - start + 1, lineFragments)
 
-  replaceScreenRow: (row, screenLines) ->
-    @replaceScreenRows(row, row, screenLines)
+  replaceScreenRow: (row, lineFragments) ->
+    @replaceScreenRows(row, row, lineFragments)
 
-  replaceScreenRows: (start, end, screenLines) ->
-    @spliceAtScreenRow(start, end - start + 1, screenLines)
+  replaceScreenRows: (start, end, lineFragments) ->
+    @spliceAtScreenRow(start, end - start + 1, lineFragments)
 
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
@@ -56,44 +56,44 @@ class LineMap
     lines = []
     delta = new Point
 
-    for fragment in @screenLines
+    for lineFragment in @lineFragments
       break if delta.row > endRow
       if delta.row >= startRow
         if pendingFragment
-          pendingFragment = pendingFragment.concat(fragment)
+          pendingFragment = pendingFragment.concat(lineFragment)
         else
-          pendingFragment = _.clone(fragment)
+          pendingFragment = _.clone(lineFragment)
         if pendingFragment.screenDelta.row > 0
           pendingFragment.bufferDelta = new Point(1, 0)
           lines.push pendingFragment
           pendingFragment = null
-      delta = delta.add(fragment.screenDelta)
+      delta = delta.add(lineFragment.screenDelta)
 
     lines
 
   lineForBufferRow: (row) ->
     line = null
     delta = new Point
-    for fragment in @screenLines
+    for lineFragment in @lineFragments
       break if delta.row > row
       if delta.row == row
         if line
-          line = line.concat(fragment)
+          line = line.concat(lineFragment)
         else
-          line = fragment
-      delta = delta.add(fragment.bufferDelta)
+          line = lineFragment
+      delta = delta.add(lineFragment.bufferDelta)
     line
 
   bufferLineCount: ->
     delta = new Point
-    for screenLine in @screenLines
-      delta = delta.add(screenLine.bufferDelta)
+    for lineFragment in @lineFragments
+      delta = delta.add(lineFragment.bufferDelta)
     delta.row
 
   screenLineCount: ->
     delta = new Point
-    for screenLine in @screenLines
-      delta = delta.add(screenLine.screenDelta)
+    for lineFragment in @lineFragments
+      delta = delta.add(lineFragment.screenDelta)
     delta.row
 
   lastScreenRow: ->
@@ -104,15 +104,15 @@ class LineMap
     bufferDelta = new Point
     screenDelta = new Point
 
-    for screenLine in @screenLines
-      nextDelta = bufferDelta.add(screenLine.bufferDelta)
+    for lineFragment in @lineFragments
+      nextDelta = bufferDelta.add(lineFragment.bufferDelta)
       break if nextDelta.isGreaterThan(bufferPosition)
       break if nextDelta.isEqual(bufferPosition) and not eagerWrap
       bufferDelta = nextDelta
-      screenDelta = screenDelta.add(screenLine.screenDelta)
+      screenDelta = screenDelta.add(lineFragment.screenDelta)
 
     remainingBufferColumn = bufferPosition.column - bufferDelta.column
-    additionalScreenColumn = Math.max(0, Math.min(remainingBufferColumn, screenLine.lengthForClipping()))
+    additionalScreenColumn = Math.max(0, Math.min(remainingBufferColumn, lineFragment.lengthForClipping()))
 
     new Point(screenDelta.row, screenDelta.column + additionalScreenColumn)
 
@@ -121,11 +121,11 @@ class LineMap
     bufferDelta = new Point
     screenDelta = new Point
 
-    for screenLine in @screenLines
-      nextDelta = screenDelta.add(screenLine.screenDelta)
+    for lineFragment in @lineFragments
+      nextDelta = screenDelta.add(lineFragment.screenDelta)
       break if nextDelta.isGreaterThan(screenPosition)
       screenDelta = nextDelta
-      bufferDelta = bufferDelta.add(screenLine.bufferDelta)
+      bufferDelta = bufferDelta.add(lineFragment.bufferDelta)
 
     column = bufferDelta.column + (screenPosition.column - screenDelta.column)
     new Point(bufferDelta.row, column)
@@ -157,7 +157,7 @@ class LineMap
       screenPosition.column = Infinity
 
     screenDelta = new Point
-    for lineFragment in @screenLines
+    for lineFragment in @lineFragments
       nextDelta = screenDelta.add(lineFragment.screenDelta)
       break if nextDelta.isGreaterThan(screenPosition)
       screenDelta = nextDelta
