@@ -173,6 +173,11 @@ describe "LineFolder", ->
           expect(event.oldRange).toEqual [[7, 0], [7, 28]]
           expect(event.newRange).toEqual [[7, 0], [8, 56]]
 
+        describe "when the fold is at the beginning of the line", ->
+          it "renders a placeholder at the beginning of the line", ->
+            folder.createFold(new Range([4, 0], [7, 4]))
+            expect(folder.lineForScreenRow(4).text).toBe '...}'
+
   describe "when the buffer changes", ->
     [fold1, fold2] = []
     beforeEach ->

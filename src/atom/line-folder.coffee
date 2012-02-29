@@ -95,10 +95,10 @@ class LineFolder
     screenLine = @highlighter.lineForScreenRow(bufferRow).splitAt(startColumn)[1]
     for fold in @foldsForBufferRow(bufferRow)
       { start, end } = fold.getRange()
-      if start.column > startColumn
+      if start.column >= startColumn
         prefix = screenLine.splitAt(start.column - startColumn)[0]
         suffix = @buildLineForBufferRow(end.row, end.column)
-        return _.flatten([prefix, @buildFoldPlaceholder(fold), suffix])
+        return _.compact(_.flatten([prefix, @buildFoldPlaceholder(fold), suffix]))
     screenLine
 
   buildFoldPlaceholder: (fold) ->
