@@ -62,10 +62,14 @@ class LineMap
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
 
-  logLines: (start=0, end=@screenLineCount() - 1)->
-    for row in [start..end]
-      line = @lineForScreenRow(row).text
-      console.log row, line, line.length
+  clipScreenPosition: (screenPosition, options) ->
+    screenPosition = Point.fromObject(screenPosition)
+    maxScreenRow = @lastScreenRow()
+    if screenPosition.row > maxScreenRow
+      screenPosition.row = maxScreenRow
+      screenPosition.column = Infinity
+
+    @translatePosition('screenDelta', 'screenDelta', screenPosition, options)
 
   spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
     stopRow = startRow + rowCount
@@ -102,12 +106,21 @@ class LineMap
 
     lines
 
-
-
-  translatePosition: (sourceDeltaType, targetDeltaType, sourcePosition) ->
+  translatePosition: (sourceDeltaType, targetDeltaType, sourcePosition, options={}) ->
     sourcePosition = Point.fromObject(sourcePosition)
+    wrapBeyondNewlines = options.wrapBeyondNewlines ? false
+    wrapAtSoftNewlines = options.wrapAtSoftNewlines ? false
+    skipAtomicTokens = options.skipAtomicTokens ? false
+
     sourceDelta = new Point
     targetDelta = new Point
+
+    if sourcePosition.column < 0
+      sourcePosition.column = 0
+
+    if sourcePosition.row < 0
+      sourcePosition.row = 0
+      sourcePosition.column = 0
 
     for lineFragment in @lineFragments
       nextSourceDelta = sourceDelta.add(lineFragment[sourceDeltaType])
@@ -115,48 +128,28 @@ class LineMap
       sourceDelta = nextSourceDelta
       targetDelta = targetDelta.add(lineFragment[targetDeltaType])
 
-    unless lineFragment.isAtomic
-      targetDelta.column += Math.max(0, sourcePosition.column - sourceDelta.column)
-
-    targetDelta
-
-  clipScreenPosition: (screenPosition, options) ->
-    wrapBeyondNewlines = options.wrapBeyondNewlines ? false
-    wrapAtSoftNewlines = options.wrapAtSoftNewlines ? false
-    skipAtomicTokens = options.skipAtomicTokens ? false
-    screenPosition = Point.fromObject(screenPosition)
-
-    screenPosition.column = Math.max(0, screenPosition.column)
-
-    if screenPosition.row < 0
-      screenPosition.row = 0
-      screenPosition.column = 0
-
-    if screenPosition.row > @lastScreenRow()
-      screenPosition.row = @lastScreenRow()
-      screenPosition.column = Infinity
-
-    screenDelta = new Point
-    for lineFragment in @lineFragments
-      nextDelta = screenDelta.add(lineFragment.screenDelta)
-      break if nextDelta.isGreaterThan(screenPosition)
-      screenDelta = nextDelta
-
     if lineFragment.isAtomic
-      if skipAtomicTokens and screenPosition.column > screenDelta.column
-        return new Point(screenDelta.row, screenDelta.column + lineFragment.text.length)
+      if skipAtomicTokens and sourcePosition.column > sourceDelta.column
+        return new Point(targetDelta.row, targetDelta.column + lineFragment.text.length)
       else
-        return screenDelta
+        return targetDelta
 
-    maxColumn = screenDelta.column + lineFragment.text.length
-    if lineFragment.isSoftWrapped() and screenPosition.column >= maxColumn
+    maxSourceColumn = sourceDelta.column + lineFragment.text.length
+    maxTargetColumn = targetDelta.column + lineFragment.text.length
+    if lineFragment.isSoftWrapped() and sourcePosition.column >= maxSourceColumn
       if wrapAtSoftNewlines
-        return new Point(screenDelta.row + 1, 0)
+        return new Point(targetDelta.row + 1, 0)
       else
-        return new Point(screenDelta.row, maxColumn - 1)
+        return new Point(targetDelta.row, maxTargetColumn - 1)
 
-    if screenPosition.column > maxColumn and wrapBeyondNewlines
-      return new Point(screenDelta.row + 1, 0)
+    if sourcePosition.column > maxSourceColumn and wrapBeyondNewlines
+      return new Point(targetDelta.row + 1, 0)
 
-    new Point(screenDelta.row, Math.min(maxColumn, screenPosition.column))
+    targetColumn = targetDelta.column + (sourcePosition.column - sourceDelta.column)
+    new Point(targetDelta.row, Math.min(maxTargetColumn, targetColumn))
+
+  logLines: (start=0, end=@screenLineCount() - 1)->
+    for row in [start..end]
+      line = @lineForScreenRow(row).text
+      console.log row, line, line.length
 

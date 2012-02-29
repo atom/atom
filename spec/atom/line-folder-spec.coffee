@@ -332,7 +332,7 @@ describe "LineFolder", ->
         expect(folder.screenPositionForBufferPosition([11, 13])).toEqual [8, 13]
 
         expect(folder.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
-        expect(folder.bufferPositionForScreenPosition([10, 13])).toEqual [13, 13]
+        expect(folder.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
 
     describe "when there is a single fold spanning a single line", ->
       it "translates positions to account for folded characters and the placeholder", ->
