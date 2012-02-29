@@ -93,7 +93,7 @@ class Editor extends View
       false
 
     @on 'mousedown', '.fold-placeholder', (e) =>
-      @lineFolder.destroyFoldById($(e.currentTarget).attr('foldId'))
+      @destroyFold($(e.currentTarget).attr('foldId'))
       false
 
     @on 'mousedown', (e) =>
@@ -324,3 +324,8 @@ class Editor extends View
 
   redo: ->
     @undoManager.redo()
+
+  destroyFold: (foldId) ->
+    fold = @lineFolder.foldsById[foldId]
+    fold.destroy()
+    @setCursorBufferPosition(fold.start)

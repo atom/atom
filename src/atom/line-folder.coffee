@@ -60,9 +60,6 @@ class LineFolder
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
     @trigger 'unfold', fold.getRange()
 
-  destroyFoldById: (foldId) ->
-    @foldsById[foldId]?.destroy()
-
   registerFold: (bufferRow, fold) ->
     @activeFolds[bufferRow] ?= []
     @activeFolds[bufferRow].push(fold)

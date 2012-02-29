@@ -780,7 +780,7 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual [4, 32]
 
     describe "when a fold placeholder is clicked", ->
-      it "removes the associated fold", ->
+      it "removes the associated fold and places the cursor at its beginning", ->
         editor.selection.setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'fold-selection'
 
@@ -788,5 +788,7 @@ describe "Editor", ->
 
         expect(editor.find('.fold-placeholder')).not.toExist()
         expect(editor.lines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
+
+        expect(editor.getCursorBufferPosition()).toEqual [4, 29]
 
 
