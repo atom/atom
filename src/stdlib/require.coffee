@@ -3,7 +3,6 @@ paths = [
   "#{atom.loadPath}/src/stdlib"
   "#{atom.loadPath}/src/atom"
   "#{atom.loadPath}/src"
-  "#{atom.loadPath}/extensions"
   "#{atom.loadPath}/vendor"
   "#{atom.loadPath}/static"
 ]

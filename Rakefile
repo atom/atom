@@ -8,7 +8,7 @@ task :build do
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
-  %w(index.html src docs static extensions vendor spec).each do |dir|
+  %w(index.html src static vendor spec).each do |dir|
     rm_rf File.join(dest, dir)
     cp_r dir, File.join(dest, dir)
   end
@@ -20,7 +20,7 @@ task :build do
   end
 
   puts contents_dir
-  sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/extensions #{dest}/spec"
+  sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec"
 end
 
 desc "Install the app in /Applications"
