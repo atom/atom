@@ -85,16 +85,10 @@ class LineMap
     line
 
   bufferLineCount: ->
-    delta = new Point
-    for lineFragment in @lineFragments
-      delta = delta.add(lineFragment.bufferDelta)
-    delta.row
+    @bufferPositionForScreenPosition([Infinity, 0]).row
 
   screenLineCount: ->
-    delta = new Point
-    for lineFragment in @lineFragments
-      delta = delta.add(lineFragment.screenDelta)
-    delta.row
+    @screenPositionForBufferPosition([Infinity, 0]).row
 
   lastScreenRow: ->
     @screenLineCount() - 1
