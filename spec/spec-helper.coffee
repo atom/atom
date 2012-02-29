@@ -4,6 +4,7 @@ _ = require 'underscore'
 Native = require 'native'
 GlobalKeymap = require 'global-keymap'
 Point = require 'point'
+
 require 'window'
 window.showConsole()
 

@@ -9,6 +9,8 @@
 
 - (void)dealloc {
   [_bootstrapScript release];
+  [_webView release];
+  [_pathToOpen release];
 
   [super dealloc];
 }
@@ -17,21 +19,28 @@
   self = [super initWithWindowNibName:@"ClientWindow"];
   _bootstrapScript = [bootstrapScript retain];
   _atomContext = atomContext;
-  
-  [self createBrowser];
+
   [self.window makeKeyAndOrderFront:nil];
+  [self createBrowser];
     
   return self;
+}
+
+- (id)initWithPath:(NSString *)path atomContext:(CefRefPtr<CefV8Context>)atomContext {
+  _pathToOpen = [path retain];
+  return [self initWithBootstrapScript:@"window-bootstrap" atomContext:atomContext];
 }
 
 - (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
   return [self initWithBootstrapScript:@"spec-bootstrap" atomContext:atomContext];
 }
 
-- (void)createBrowser {
+- (void)windowDidLoad {
   [self.window setDelegate:self];  
   [self.window setReleasedWhenClosed:NO];
-  
+}
+
+- (void)createBrowser {  
   _clientHandler = new ClientHandler(self);
   
   CefWindowInfo window_info;
@@ -47,7 +56,7 @@
 }
 
 - (void)afterCreated:(CefRefPtr<CefBrowser>) browser {
-  browser->ShowDevTools();  
+    browser->ShowDevTools();
 }
 
 - (void)loadStart:(CefRefPtr<CefBrowser>) browser {
@@ -60,8 +69,10 @@
   CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString([_bootstrapScript UTF8String]);
   global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
   
-  CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString("~/");
-  global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
+  if (_pathToOpen) {
+    CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString([_pathToOpen UTF8String]);
+    global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
+  }
     
   global->SetValue("atom", _atomContext->GetGlobal()->GetValue("atom"), V8_PROPERTY_ATTRIBUTE_NONE);
   
@@ -70,14 +81,27 @@
 
 #pragma mark NSWindowDelegate
 
-// Called when the window is about to close. Perform the self-destruction
-// sequence by getting rid of the window. By returning YES, we allow the window
-// to be removed from the screen.
-- (BOOL)windowShouldClose:(id)window {  
-  _clientHandler->GetBrowser()->CloseDevTools();  
+- (BOOL)windowShouldClose:(id)window {
+  CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
+  
+  context->Enter();
+  
+  CefRefPtr<CefV8Value> atom = context->GetGlobal()->GetValue("atom");
+
+  CefRefPtr<CefV8Value> retval;
+  CefRefPtr<CefV8Exception> exception;
+  CefV8ValueList arguments;
+  arguments.push_back(global);
+  
+  atom->GetValue("windowClosed")->ExecuteFunction(atom, arguments, retval, exception, true);
+  
+  context->Exit();
+  
+  _clientHandler->GetBrowser()->CloseDevTools();
   
   _atomContext = NULL;
-  _clientHandler = NULL;
+  _clientHandler = NULL;  
     
   // Clean ourselves up after clearing the stack of anything that might have the window on it.
   [self autorelease];

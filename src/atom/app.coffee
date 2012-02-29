@@ -1,3 +1,4 @@
+EventEmitter = require 'event-emitter'
 Native = require 'native'
 GlobalKeymap = require 'global-keymap'
 $ = require 'jquery'
@@ -7,11 +8,12 @@ module.exports =
 class App
   globalKeymap: null
   native: null
+  windows: null
 
   constructor: (@loadPath, nativeMethods)->
-    @native = new Native(nativeMethods)
     @globalKeymap = new GlobalKeymap
-    $(document).on 'keydown', (e) => @globalKeymap.handleKeyEvent(e)
+    @native = new Native(nativeMethods)
+    @windows = []
 
   bindKeys: (selector, bindings) ->
     @globalKeymap.bindKeys(selector, bindings)
@@ -25,6 +27,12 @@ class App
   quit: ->
     @native.terminate null
 
-  windows: ->
-    #    controller.jsWindow for controller in OSX.NSApp.controllers
-    []
+  windowOpened: (window) ->
+    @windows.push window
+    @trigger "open", window
+
+  windowClosed: (window) ->
+    index = @windows.indexOf(window)
+    @windows.splice(index, 1) if index >= 0
+
+_.extend(App.prototype, EventEmitter)

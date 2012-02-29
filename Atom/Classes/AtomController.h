@@ -6,12 +6,14 @@ class ClientHandler;
 @interface AtomController : NSWindowController <NSWindowDelegate> {
   NSView *_webView;
   NSString *_bootstrapScript;
+  NSString *_pathToOpen;
   
   CefRefPtr<CefV8Context> _atomContext;
   CefRefPtr<ClientHandler> _clientHandler;
 }
 
 - (id)initWithBootstrapScript:(NSString *)bootstrapScript atomContext:(CefRefPtr<CefV8Context>) context;
+- (id)initWithPath:(NSString *)path atomContext:(CefRefPtr<CefV8Context>)atomContext;
 - (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext;
 
 - (void)createBrowser;

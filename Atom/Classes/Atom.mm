@@ -54,7 +54,8 @@
 }
 
 - (void)open:(NSString *)path {
-  
+  CefRefPtr<CefV8Context> atomContext = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+  [[AtomController alloc] initWithPath:path atomContext:atomContext];
 }
 
 - (IBAction)runSpecs:(id)sender {
@@ -70,7 +71,11 @@
   CefShutdown();
 }
 
-- (void)loadStart:(CefRefPtr<CefBrowser>) browser {
+- (void)afterCreated:(CefRefPtr<CefBrowser>) browser {
+  browser->ShowDevTools();
+}
+
+- (void)loadStart:(CefRefPtr<CefBrowser>)browser {
   CefRefPtr<CefFrame> frame = browser->GetMainFrame();
   CefRefPtr<CefV8Context> context = frame->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
