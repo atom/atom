@@ -15,29 +15,16 @@ describe "LineMap", ->
     [line0, line1, line2, line3, line4] = highlighter.linesForScreenRows(0, 4)
 
   describe ".insertAtBufferRow(row, screenLine(s))", ->
-    describe "when passed a single, line fragment", ->
-      it "inserts the line fragment before the specified buffer row", ->
-        map.insertAtBufferRow(0, line1)
-        map.insertAtBufferRow(0, line0)
-        map.insertAtBufferRow(2, line3)
-        map.insertAtBufferRow(2, line2)
+    it "inserts the given line fragments before the specified buffer row", ->
+      map.insertAtBufferRow(0, [line2, line3])
+      map.insertAtBufferRow(0, [line0, line1])
+      map.insertAtBufferRow(4, [line4])
 
-        expect(map.lineForScreenRow(0)).toEqual line0
-        expect(map.lineForScreenRow(1)).toEqual line1
-        expect(map.lineForScreenRow(2)).toEqual line2
-        expect(map.lineForScreenRow(3)).toEqual line3
-
-    describe "when passed an array of line fragments", ->
-      it "inserts the given line fragments before the specified buffer row", ->
-        map.insertAtBufferRow(0, [line2, line3])
-        map.insertAtBufferRow(0, [line0, line1])
-        map.insertAtBufferRow(4, [line4])
-
-        expect(map.lineForScreenRow(0)).toEqual line0
-        expect(map.lineForScreenRow(1)).toEqual line1
-        expect(map.lineForScreenRow(2)).toEqual line2
-        expect(map.lineForScreenRow(3)).toEqual line3
-        expect(map.lineForScreenRow(4)).toEqual line4
+      expect(map.lineForScreenRow(0)).toEqual line0
+      expect(map.lineForScreenRow(1)).toEqual line1
+      expect(map.lineForScreenRow(2)).toEqual line2
+      expect(map.lineForScreenRow(3)).toEqual line3
+      expect(map.lineForScreenRow(4)).toEqual line4
 
   describe ".spliceAtBufferRow(bufferRow, rowCount, screenLines)", ->
     describe "when called with a row count of 0", ->

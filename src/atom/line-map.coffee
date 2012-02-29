@@ -8,7 +8,6 @@ class LineMap
     @screenLines = []
 
   insertAtBufferRow: (bufferRow, screenLines) ->
-    screenLines = [screenLines] unless _.isArray(screenLines)
     delta = new Point
     insertIndex = 0
 
