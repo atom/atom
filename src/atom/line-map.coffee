@@ -8,37 +8,13 @@ class LineMap
     @lineFragments = []
 
   insertAtBufferRow: (bufferRow, lineFragments) ->
-    delta = new Point
-    insertIndex = 0
-
-    for lineFragment in @lineFragments
-      nextDelta = delta.add(lineFragment.bufferDelta)
-      break if nextDelta.row > bufferRow
-      delta = nextDelta
-      insertIndex++
-
-    @lineFragments[insertIndex...insertIndex] = lineFragments
+    @spliceAtBufferRow(bufferRow, 0, lineFragments)
 
   spliceAtBufferRow: (startRow, rowCount, lineFragments) ->
     @spliceByDelta('bufferDelta', startRow, rowCount, lineFragments)
 
   spliceAtScreenRow: (startRow, rowCount, lineFragments) ->
     @spliceByDelta('screenDelta', startRow, rowCount, lineFragments)
-
-  spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
-    stopRow = startRow + rowCount
-    startIndex = undefined
-    stopIndex = 0
-    delta = new Point
-
-    for lineFragment, i in @lineFragments
-      startIndex ?= i if delta.row == startRow
-      nextDelta = delta.add(lineFragment[deltaType])
-      break if nextDelta.row > stopRow
-      delta = nextDelta
-      stopIndex++
-
-    @lineFragments[startIndex...stopIndex] = lineFragments
 
   replaceBufferRows: (start, end, lineFragments) ->
     @spliceAtBufferRow(start, end - start + 1, lineFragments)
@@ -51,6 +27,52 @@ class LineMap
 
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
+
+  bufferLineCount: ->
+    @bufferPositionForScreenPosition([Infinity, 0]).row
+
+  screenLineCount: ->
+    @screenPositionForBufferPosition([Infinity, 0]).row
+
+  lastScreenRow: ->
+    @screenLineCount() - 1
+
+  screenPositionForBufferPosition: (bufferPosition) ->
+    @translatePosition('bufferDelta', 'screenDelta', bufferPosition)
+
+  bufferPositionForScreenPosition: (screenPosition) ->
+    @translatePosition('screenDelta', 'bufferDelta', screenPosition)
+
+  screenRangeForBufferRange: (bufferRange) ->
+    start = @screenPositionForBufferPosition(bufferRange.start)
+    end = @screenPositionForBufferPosition(bufferRange.end)
+    new Range(start, end)
+
+  bufferRangeForScreenRange: (screenRange) ->
+    start = @bufferPositionForScreenPosition(screenRange.start)
+    end = @bufferPositionForScreenPosition(screenRange.end)
+    new Range(start, end)
+
+  logLines: (start=0, end=@screenLineCount() - 1)->
+    for row in [start..end]
+      line = @lineForScreenRow(row).text
+      console.log row, line, line.length
+
+  spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
+    stopRow = startRow + rowCount
+    startIndex = undefined
+    stopIndex = 0
+
+    delta = new Point
+    for lineFragment, i in @lineFragments
+      startIndex ?= i if delta.row == startRow
+      break if rowCount == 0 and delta.row == stopRow
+      delta = delta.add(lineFragment[deltaType])
+      break if delta.row > stopRow
+      stopIndex++
+    startIndex ?= i
+
+    @lineFragments[startIndex...stopIndex] = lineFragments
 
   linesForScreenRows: (startRow, endRow) ->
     lines = []
@@ -84,31 +106,6 @@ class LineMap
       delta = delta.add(lineFragment.bufferDelta)
     line
 
-  bufferLineCount: ->
-    @bufferPositionForScreenPosition([Infinity, 0]).row
-
-  screenLineCount: ->
-    @screenPositionForBufferPosition([Infinity, 0]).row
-
-  lastScreenRow: ->
-    @screenLineCount() - 1
-
-  screenPositionForBufferPosition: (bufferPosition) ->
-    @translatePosition('bufferDelta', 'screenDelta', bufferPosition)
-
-  bufferPositionForScreenPosition: (screenPosition) ->
-    @translatePosition('screenDelta', 'bufferDelta', screenPosition)
-
-  screenRangeForBufferRange: (bufferRange) ->
-    start = @screenPositionForBufferPosition(bufferRange.start)
-    end = @screenPositionForBufferPosition(bufferRange.end)
-    new Range(start, end)
-
-  bufferRangeForScreenRange: (screenRange) ->
-    start = @bufferPositionForScreenPosition(screenRange.start)
-    end = @bufferPositionForScreenPosition(screenRange.end)
-    new Range(start, end)
-
   translatePosition: (sourceDeltaType, targetDeltaType, sourcePosition) ->
     sourcePosition = Point.fromObject(sourcePosition)
     sourceDelta = new Point
@@ -124,7 +121,6 @@ class LineMap
       targetDelta.column += Math.max(0, sourcePosition.column - sourceDelta.column)
 
     targetDelta
-
 
   clipScreenPosition: (screenPosition, options) ->
     wrapBeyondNewlines = options.wrapBeyondNewlines ? false
@@ -166,7 +162,3 @@ class LineMap
 
     new Point(screenDelta.row, Math.min(maxColumn, screenPosition.column))
 
-  logLines: (start=0, end=@screenLineCount() - 1)->
-    for row in [start..end]
-      line = @lineForScreenRow(row).text
-      console.log row, line, line.length

@@ -26,6 +26,15 @@ describe "LineMap", ->
       expect(map.lineForScreenRow(3)).toEqual line3
       expect(map.lineForScreenRow(4)).toEqual line4
 
+    it "allows for partial line fragments on the row following the insertion", ->
+      [line0a, line0b] = line0.splitAt(10)
+      map.insertAtBufferRow(0, [line0a, line0b])
+      map.insertAtBufferRow(0, [line1])
+
+      expect(map.lineForScreenRow(0)).toEqual line1
+      expect(map.lineForScreenRow(1)).toEqual line0a.concat(line0b)
+
+
   describe ".spliceAtBufferRow(bufferRow, rowCount, screenLines)", ->
     describe "when called with a row count of 0", ->
       it "inserts the given line fragments before the specified buffer row", ->
