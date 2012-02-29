@@ -50,14 +50,10 @@ class LineMap
   replaceScreenRows: (start, end, screenLines) ->
     @spliceAtScreenRow(start, end - start + 1, screenLines)
 
-  getScreenLines: ->
-    return @screenLines
-
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
 
   linesForScreenRows: (startRow, endRow) ->
-    lastLine = null
     lines = []
     delta = new Point
 
@@ -67,11 +63,13 @@ class LineMap
         if pendingFragment
           pendingFragment = pendingFragment.concat(fragment)
         else
-          pendingFragment = fragment
+          pendingFragment = _.clone(fragment)
         if pendingFragment.screenDelta.row > 0
+          pendingFragment.bufferDelta = new Point(1, 0)
           lines.push pendingFragment
           pendingFragment = null
       delta = delta.add(fragment.screenDelta)
+
     lines
 
   lineForBufferRow: (row) ->
@@ -98,6 +96,9 @@ class LineMap
     for screenLine in @screenLines
       delta = delta.add(screenLine.screenDelta)
     delta.row
+
+  lastScreenRow: ->
+    @screenLineCount() - 1
 
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
     bufferPosition = Point.fromObject(bufferPosition)
@@ -135,18 +136,52 @@ class LineMap
     end = @screenPositionForBufferPosition(bufferRange.end)
     new Range(start, end)
 
-  clipScreenPosition: (screenPosition) ->
+  bufferRangeForScreenRange: (screenRange) ->
+    start = @bufferPositionForScreenPosition(screenRange.start)
+    end = @bufferPositionForScreenPosition(screenRange.end)
+    new Range(start, end)
+
+  clipScreenPosition: (screenPosition, options) ->
+    wrapBeyondNewlines = options.wrapBeyondNewlines ? false
+    wrapAtSoftNewlines = options.wrapAtSoftNewlines ? false
+    skipAtomicTokens = options.skipAtomicTokens ? false
     screenPosition = Point.fromObject(screenPosition)
-    screenPosition = new Point(Math.max(0, screenPosition.row), Math.max(0, screenPosition.column))
+
+    screenPosition.column = Math.max(0, screenPosition.column)
+
+    if screenPosition.row < 0
+      screenPosition.row = 0
+      screenPosition.column = 0
+
+    if screenPosition.row > @lastScreenRow()
+      screenPosition.row = @lastScreenRow()
+      screenPosition.column = Infinity
 
     screenDelta = new Point
-    for screenLine in @screenLines
-      nextDelta = screenDelta.add(screenLine.screenDelta)
+    for lineFragment in @screenLines
+      nextDelta = screenDelta.add(lineFragment.screenDelta)
       break if nextDelta.isGreaterThan(screenPosition)
       screenDelta = nextDelta
 
-    maxColumn = screenDelta.column + screenLine.lengthForClipping()
-    screenDelta.column = Math.min(maxColumn, screenPosition.column)
+    if lineFragment.isAtomic
+      if skipAtomicTokens and screenPosition.column > screenDelta.column
+        return new Point(screenDelta.row, screenDelta.column + lineFragment.text.length)
+      else
+        return screenDelta
 
-    screenDelta
+    maxColumn = screenDelta.column + lineFragment.text.length
+    if lineFragment.isSoftWrapped() and screenPosition.column >= maxColumn
+      if wrapAtSoftNewlines
+        return new Point(screenDelta.row + 1, 0)
+      else
+        return new Point(screenDelta.row, maxColumn - 1)
 
+    if screenPosition.column > maxColumn and wrapBeyondNewlines
+      return new Point(screenDelta.row + 1, 0)
+
+    new Point(screenDelta.row, Math.min(maxColumn, screenPosition.column))
+
+  logLines: (start=0, end=@screenLineCount() - 1)->
+    for row in [start..end]
+      line = @lineForScreenRow(row).text
+      console.log row, line, line.length

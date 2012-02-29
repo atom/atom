@@ -76,9 +76,6 @@ class LineWrapper
         return column + 1 if /\s/.test(line[column])
       return @maxLength
 
-  screenRangeForBufferRange: (bufferRange) ->
-    @lineMap.screenRangeForBufferRange(bufferRange)
-
   screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
     @lineMap.screenPositionForBufferPosition(
       @lineFolder.screenPositionForBufferPosition(bufferPosition),
@@ -88,6 +85,22 @@ class LineWrapper
     @lineFolder.bufferPositionForScreenPosition(
       @lineMap.bufferPositionForScreenPosition(screenPosition))
 
+  screenRangeForBufferRange: (bufferRange) ->
+    @lineMap.screenRangeForBufferRange(
+      @lineFolder.screenRangeForBufferRange(bufferRange))
+
+  bufferRangeForScreenRange: (screenRange) ->
+    @lineFolder.bufferRangeForScreenRange(
+      @lineMap.bufferRangeForScreenRange(screenRange))
+
+  clipScreenPosition: (screenPosition, options={}) ->
+    @lineMap.screenPositionForBufferPosition(
+      @lineFolder.clipScreenPosition(
+        @lineMap.bufferPositionForScreenPosition(@lineMap.clipScreenPosition(screenPosition, options)),
+        options
+      )
+    )
+
   lineForScreenRow: (screenRow) ->
     @linesForScreenRows(screenRow, screenRow)[0]
 
@@ -95,9 +108,15 @@ class LineWrapper
     @lineMap.linesForScreenRows(startRow, endRow)
 
   getLines: ->
-    @linesForScreenRows(0, @lineCount() - 1)
+    @linesForScreenRows(0, @lastRow())
 
   lineCount: ->
     @lineMap.screenLineCount()
+
+  lastRow: ->
+    @lineCount() - 1
+
+  logLines: (start=0, end=@lineCount() - 1)->
+    @lineMap.logLines(start, end)
 
 _.extend(LineWrapper.prototype, EventEmitter)

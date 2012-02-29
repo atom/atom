@@ -13,7 +13,7 @@ class MoveLeft extends Motion
   select: ->
     position = @editor.getCursorScreenPosition()
     position.column-- if position.column > 0
-    @editor.selectToPosition position
+    @editor.selectToBufferPosition(position)
 
 class MoveRight extends Motion
   execute: ->
@@ -42,7 +42,7 @@ class MoveToNextWord extends Motion
     @editor.setCursorScreenPosition(@nextWordPosition())
 
   select: ->
-    @editor.selectToPosition(@nextWordPosition())
+    @editor.selectToBufferPosition(@nextWordPosition())
 
   nextWordPosition: ->
     regex = getWordRegex()

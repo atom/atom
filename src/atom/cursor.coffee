@@ -13,11 +13,11 @@ class Cursor extends View
     @one 'attach', => @updateAppearance()
 
   bufferChanged: (e) ->
-    @setScreenPosition(e.newRange.end)
+    @setBufferPosition(e.newRange.end)
 
-  setScreenPosition: (point) ->
-    point = Point.fromObject(point)
-    @$position = @editor.clipPosition(point)
+  setScreenPosition: (position) ->
+    position = Point.fromObject(position)
+    @screenPosition = @editor.clipScreenPosition(position)
     @goalColumn = null
     @updateAppearance()
     @trigger 'cursor:position-changed'
@@ -26,7 +26,13 @@ class Cursor extends View
     window.clearTimeout(@idleTimeout) if @idleTimeout
     @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
 
-  getScreenPosition: -> _.clone(@$position)
+  setBufferPosition: (bufferPosition) ->
+    @setScreenPosition(@editor.screenPositionForBufferPosition(bufferPosition))
+
+  getBufferPosition: ->
+    @editor.bufferPositionForScreenPosition(@getScreenPosition())
+
+  getScreenPosition: -> _.clone(@screenPosition)
 
   getColumn: ->
     @getScreenPosition().column
@@ -44,21 +50,13 @@ class Cursor extends View
   moveUp: ->
     { row, column } = @getScreenPosition()
     column = @goalColumn if @goalColumn?
-    if row > 0
-      @setScreenPosition({row: row - 1, column: column})
-    else
-      @moveToLineStart()
-
+    @setScreenPosition({row: row - 1, column: column})
     @goalColumn = column
 
   moveDown: ->
     { row, column } = @getScreenPosition()
     column = @goalColumn if @goalColumn?
-    if row < @editor.buffer.numLines() - 1
-      @setScreenPosition({row: row + 1, column: column})
-    else
-      @moveToLineEnd()
-
+    @setScreenPosition({row: row + 1, column: column})
     @goalColumn = column
 
   moveToLineEnd: ->
@@ -71,20 +69,16 @@ class Cursor extends View
 
   moveRight: ->
     { row, column } = @getScreenPosition()
-    if column < @editor.buffer.getLine(row).length
-      column++
-    else if row < @editor.buffer.numLines() - 1
-      row++
-      column = 0
-    @setScreenPosition({row, column})
+    @setScreenPosition(@editor.clipScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true))
 
   moveLeft: ->
     { row, column } = @getScreenPosition()
+
     if column > 0
       column--
-    else if row > 0
+    else
       row--
-      column = @editor.buffer.getLine(row).length
+      column = Infinity
 
     @setScreenPosition({row, column})
 
@@ -111,7 +105,7 @@ class Cursor extends View
     @setScreenPosition [row, column + offset]
 
   updateAppearance: ->
-    position = @editor.pixelPositionFromPoint(@getScreenPosition())
+    position = @editor.pixelPositionForScreenPosition(@getScreenPosition())
     @css(position)
     @autoScrollVertically(position)
     @autoScrollHorizontally(position)

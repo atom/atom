@@ -312,22 +312,33 @@ describe "LineFolder", ->
         expect(folder.bufferPositionForScreenPosition([4, 5])).toEqual [4, 5]
         expect(folder.bufferPositionForScreenPosition([4, 13])).toEqual [4, 15]
         expect(folder.bufferPositionForScreenPosition([4, 18])).toEqual [4, 20]
-  describe ".clipScreenPosition(screenPosition)", ->
+
+  describe ".clipScreenPosition(screenPosition, eagerWrap=false)", ->
     beforeEach ->
       folder.createFold(new Range([4, 29], [7, 4]))
 
     it "returns the nearest valid position based on the current screen lines", ->
       expect(folder.clipScreenPosition([-1, -1])).toEqual [0, 0]
       expect(folder.clipScreenPosition([0, -1])).toEqual [0, 0]
+      expect(folder.clipScreenPosition([-1, 5])).toEqual [0, 0]
       expect(folder.clipScreenPosition([1, 10000])).toEqual [1, 30]
       expect(folder.clipScreenPosition([2, 15])).toEqual [2, 15]
       expect(folder.clipScreenPosition([4, 32])).toEqual [4, 32]
       expect(folder.clipScreenPosition([4, 1000])).toEqual [4, 33]
-      expect(folder.clipScreenPosition([1000, 1000])).toEqual [10, 2]
+      expect(folder.clipScreenPosition([1000, 1000])).toEqual [9, 2]
 
-    it "clips positions inside a placeholder to the beginning of the placeholder", ->
-      expect(folder.clipScreenPosition([4, 30])).toEqual [4, 29]
-      expect(folder.clipScreenPosition([4, 31])).toEqual [4, 29]
+    describe "when skipAtomicTokens is false (the default)", ->
+      it "clips positions inside a placeholder to the beginning of the placeholder", ->
+        expect(folder.clipScreenPosition([4, 30])).toEqual [4, 29]
+        expect(folder.clipScreenPosition([4, 31])).toEqual [4, 29]
+        expect(folder.clipScreenPosition([4, 32])).toEqual [4, 32]
+
+    describe "when skipAtomicTokens is true", ->
+      it "clips positions inside a placeholder to the end of the placeholder", ->
+        expect(folder.clipScreenPosition([4, 29], skipAtomicTokens: true)).toEqual [4, 29]
+        expect(folder.clipScreenPosition([4, 30], skipAtomicTokens: true)).toEqual [4, 32]
+        expect(folder.clipScreenPosition([4, 31], skipAtomicTokens: true)).toEqual [4, 32]
+        expect(folder.clipScreenPosition([4, 32], skipAtomicTokens: true)).toEqual [4, 32]
 
 
 
