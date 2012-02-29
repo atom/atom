@@ -95,6 +95,12 @@ describe "LineFolder", ->
         expect(line4.text).toBe '    while(items.length > 0) {...concat(sort(right));'
         expect(line5.text).toBe '  };'
 
+      it "renders the contents of the outer fold correctly, including the inner fold's placeholder, when the outer fold is destroyed", ->
+        fold1 = folder.createFold(new Range([4, 29], [7, 4]))
+        fold2 = folder.createFold(new Range([3, 4], [8, 56]))
+        fold2.destroy()
+        expect(folder.lineForScreenRow(5).text).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+
     describe "when another fold begins on the last line of a fold", ->
       describe "when the second fold is created before the first fold", ->
         it "renders a placeholder for both folds on the first line of the first fold", ->
@@ -173,10 +179,10 @@ describe "LineFolder", ->
           expect(event.oldRange).toEqual [[7, 0], [7, 28]]
           expect(event.newRange).toEqual [[7, 0], [8, 56]]
 
-        describe "when the fold is at the beginning of the line", ->
-          it "renders a placeholder at the beginning of the line", ->
-            folder.createFold(new Range([4, 0], [7, 4]))
-            expect(folder.lineForScreenRow(4).text).toBe '...}'
+      describe "when the fold starts at the beginning of the line", ->
+        it "renders a placeholder at the beginning of the line", ->
+          folder.createFold(new Range([4, 0], [7, 4]))
+          expect(folder.lineForScreenRow(4).text).toBe '...}'
 
   describe "when the buffer changes", ->
     [fold1, fold2] = []

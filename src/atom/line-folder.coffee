@@ -31,7 +31,7 @@ class LineFolder
     @registerFold(bufferRange.start.row, fold)
     oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
 
-    lineWithFold = @buildLine(oldScreenRange.start.row)
+    lineWithFold = @buildLineForBufferRow(bufferRange.start.row)
     @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lineWithFold)
 
     newScreenRange = oldScreenRange.copy()
@@ -86,25 +86,28 @@ class LineFolder
     unless oldScreenRange.isEmpty() and newScreenRange.isEmpty()
       @trigger 'change', oldRange: expandedOldScreenRange, newRange: expandedNewScreenRange
 
-  buildLinesForBufferRows: (start, end) ->
-    lines = [@buildLine(@screenRowForBufferRow(start))]
-    if end > start
-      for row in [start + 1..end]
-        lines.push @buildLineForBufferRow(row)
-    _.flatten(lines)
+  buildLineForBufferRow: (bufferRow) ->
+    @buildLinesForBufferRows(bufferRow, bufferRow)
 
-  buildLine: (screenRow) ->
-    @buildLineForBufferRow(@bufferRowForScreenRow(screenRow))
+  buildLinesForBufferRows: (startRow, endRow) ->
+    @$buildLinesForBufferRows(@foldStartRowForBufferRow(startRow), endRow)
 
-  buildLineForBufferRow: (bufferRow, startColumn=0) ->
-    screenLine = @highlighter.lineForScreenRow(bufferRow).splitAt(startColumn)[1]
-    for fold in @foldsForBufferRow(bufferRow)
+  $buildLinesForBufferRows: (startRow, endRow, startColumn = 0) ->
+    return [] if startRow > endRow and startColumn == 0
+
+    screenLine = @highlighter.lineForScreenRow(startRow).splitAt(startColumn)[1]
+
+    for fold in @foldsForBufferRow(startRow)
       { start, end } = fold.getRange()
       if start.column >= startColumn
         prefix = screenLine.splitAt(start.column - startColumn)[0]
-        suffix = @buildLineForBufferRow(end.row, end.column)
+        suffix = @$buildLinesForBufferRows(end.row, endRow, end.column)
         return _.compact(_.flatten([prefix, @buildFoldPlaceholder(fold), suffix]))
-    screenLine
+
+    [screenLine].concat(@$buildLinesForBufferRows(startRow + 1, endRow))
+
+  foldStartRowForBufferRow: (bufferRow) ->
+    @bufferRowForScreenRow(@screenRowForBufferRow(bufferRow))
 
   buildFoldPlaceholder: (fold) ->
     new ScreenLineFragment([{value: '...', type: 'fold-placeholder', fold}], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
