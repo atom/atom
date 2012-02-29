@@ -184,6 +184,13 @@ describe "LineFolder", ->
           folder.createFold(new Range([4, 0], [7, 4]))
           expect(folder.lineForScreenRow(4).text).toBe '...}'
 
+      describe "when a fold starts on the first line of the buffer", ->
+        it "renders the first line correctly when the fold is destroyed", ->
+          fold = folder.createFold(new Range([0, 14], [0, 27]))
+          fold.destroy()
+          expect(folder.lineForScreenRow(0).text).toBe 'var quicksort = function () {'
+
+
   describe "when the buffer changes", ->
     [fold1, fold2] = []
     beforeEach ->
