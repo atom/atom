@@ -130,7 +130,6 @@ describe "LineMap", ->
           expect(map.lineForScreenRow(2)).toEqual line1
           expect(map.lineForScreenRow(3)).toEqual line2
 
-
     describe "when called with a row count greater than 1", ->
       it "replaces all line fragments spanning the multiple buffer rows with the given line fragments", ->
         [line1a, line1b] = line1.splitAt(10)
