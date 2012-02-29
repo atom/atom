@@ -100,34 +100,10 @@ class LineMap
     @screenLineCount() - 1
 
   screenPositionForBufferPosition: (bufferPosition) ->
-    bufferPosition = Point.fromObject(bufferPosition)
-    bufferDelta = new Point
-    screenDelta = new Point
-
-    for lineFragment in @lineFragments
-      nextDelta = bufferDelta.add(lineFragment.bufferDelta)
-      break if nextDelta.isGreaterThan(bufferPosition)
-      bufferDelta = nextDelta
-      screenDelta = screenDelta.add(lineFragment.screenDelta)
-
-    remainingBufferColumn = bufferPosition.column - bufferDelta.column
-    additionalScreenColumn = Math.max(0, Math.min(remainingBufferColumn, lineFragment.lengthForClipping()))
-
-    new Point(screenDelta.row, screenDelta.column + additionalScreenColumn)
+    @translatePosition('bufferDelta', 'screenDelta', bufferPosition)
 
   bufferPositionForScreenPosition: (screenPosition) ->
-    screenPosition = Point.fromObject(screenPosition)
-    bufferDelta = new Point
-    screenDelta = new Point
-
-    for lineFragment in @lineFragments
-      nextDelta = screenDelta.add(lineFragment.screenDelta)
-      break if nextDelta.isGreaterThan(screenPosition)
-      screenDelta = nextDelta
-      bufferDelta = bufferDelta.add(lineFragment.bufferDelta)
-
-    column = bufferDelta.column + (screenPosition.column - screenDelta.column)
-    new Point(bufferDelta.row, column)
+    @translatePosition('screenDelta', 'bufferDelta', screenPosition)
 
   screenRangeForBufferRange: (bufferRange) ->
     start = @screenPositionForBufferPosition(bufferRange.start)
@@ -138,6 +114,23 @@ class LineMap
     start = @bufferPositionForScreenPosition(screenRange.start)
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
+
+  translatePosition: (sourceDeltaType, targetDeltaType, sourcePosition) ->
+    sourcePosition = Point.fromObject(sourcePosition)
+    sourceDelta = new Point
+    targetDelta = new Point
+
+    for lineFragment in @lineFragments
+      nextSourceDelta = sourceDelta.add(lineFragment[sourceDeltaType])
+      break if nextSourceDelta.isGreaterThan(sourcePosition)
+      sourceDelta = nextSourceDelta
+      targetDelta = targetDelta.add(lineFragment[targetDeltaType])
+
+    unless lineFragment.isAtomic
+      targetDelta.column += Math.max(0, sourcePosition.column - sourceDelta.column)
+
+    targetDelta
+
 
   clipScreenPosition: (screenPosition, options) ->
     wrapBeyondNewlines = options.wrapBeyondNewlines ? false
