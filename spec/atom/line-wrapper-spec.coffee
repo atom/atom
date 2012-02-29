@@ -103,7 +103,7 @@ describe "LineWrapper", ->
       expect(event.oldRange).toEqual([[0, 0], [15, 2]])
       expect(event.newRange).toEqual([[0, 0], [18, 2]])
 
-  describe ".screenPositionForBufferPosition(point, eagerWrap=true)", ->
+  describe ".screenPositionForBufferPosition(point)", ->
     it "translates the given buffer position to a screen position, accounting for wrapped lines", ->
       # before any wrapped lines
       expect(wrapper.screenPositionForBufferPosition([0, 5])).toEqual([0, 5])
@@ -117,13 +117,8 @@ describe "LineWrapper", ->
       # following a wrapped line
       expect(wrapper.screenPositionForBufferPosition([4, 5])).toEqual([5, 5])
 
-    describe "when eagerWrap is false", ->
-      it "preserves a position at the end of a wrapped screen line ", ->
-        expect(wrapper.screenPositionForBufferPosition([3, 51], false)).toEqual([3, 51])
-
-    describe "when eagerWrap is true", ->
-      it "translates a position at the end of a wrapped screen line to the begining of the next screen line", ->
-        expect(wrapper.screenPositionForBufferPosition([3, 51], true)).toEqual([4, 0])
+    it "translates a position at the end of a wrapped screen line to the begining of the next screen line", ->
+      expect(wrapper.screenPositionForBufferPosition([3, 51], true)).toEqual([4, 0])
 
     describe "when the position follows a fold", ->
       it "adjusts the position to account for the fold", ->

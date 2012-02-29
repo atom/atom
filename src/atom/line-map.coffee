@@ -99,7 +99,7 @@ class LineMap
   lastScreenRow: ->
     @screenLineCount() - 1
 
-  screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
+  screenPositionForBufferPosition: (bufferPosition) ->
     bufferPosition = Point.fromObject(bufferPosition)
     bufferDelta = new Point
     screenDelta = new Point
@@ -107,7 +107,6 @@ class LineMap
     for lineFragment in @lineFragments
       nextDelta = bufferDelta.add(lineFragment.bufferDelta)
       break if nextDelta.isGreaterThan(bufferPosition)
-      break if nextDelta.isEqual(bufferPosition) and not eagerWrap
       bufferDelta = nextDelta
       screenDelta = screenDelta.add(lineFragment.screenDelta)
 

@@ -346,7 +346,7 @@ describe "LineFolder", ->
         expect(folder.bufferPositionForScreenPosition([4, 13])).toEqual [4, 15]
         expect(folder.bufferPositionForScreenPosition([4, 18])).toEqual [4, 20]
 
-  describe ".clipScreenPosition(screenPosition, eagerWrap=false)", ->
+  describe ".clipScreenPosition(screenPosition)", ->
     beforeEach ->
       folder.createFold(new Range([4, 29], [7, 4]))
 
@@ -372,7 +372,4 @@ describe "LineFolder", ->
         expect(folder.clipScreenPosition([4, 30], skipAtomicTokens: true)).toEqual [4, 32]
         expect(folder.clipScreenPosition([4, 31], skipAtomicTokens: true)).toEqual [4, 32]
         expect(folder.clipScreenPosition([4, 32], skipAtomicTokens: true)).toEqual [4, 32]
-
-
-
 

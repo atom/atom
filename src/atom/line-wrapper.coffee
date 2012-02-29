@@ -76,10 +76,9 @@ class LineWrapper
         return column + 1 if /\s/.test(line[column])
       return @maxLength
 
-  screenPositionForBufferPosition: (bufferPosition, eagerWrap=true) ->
+  screenPositionForBufferPosition: (bufferPosition) ->
     @lineMap.screenPositionForBufferPosition(
-      @lineFolder.screenPositionForBufferPosition(bufferPosition),
-      eagerWrap)
+      @lineFolder.screenPositionForBufferPosition(bufferPosition))
 
   bufferPositionForScreenPosition: (screenPosition) ->
     @lineFolder.bufferPositionForScreenPosition(

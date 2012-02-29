@@ -150,7 +150,7 @@ describe "LineMap", ->
       expect(map.lineForBufferRow(0).text).toBe line0.text
       expect(map.lineForBufferRow(1).text).toBe line1Text
 
-  describe ".screenPositionForBufferPosition(bufferPosition, eagerWrap=true)", ->
+  describe ".screenPositionForBufferPosition(bufferPosition)", ->
     beforeEach ->
       # line1a-line3b describes a fold
       [line1a, line1b] = line1.splitAt(10)
@@ -172,14 +172,8 @@ describe "LineMap", ->
       expect(map.screenPositionForBufferPosition([3, 30])).toEqual [1, 20]
       expect(map.screenPositionForBufferPosition([4, 5])).toEqual [2, 5]
 
-    describe "when eagerWrap is false", ->
-      it "does not wrap buffer positions at the end of a screen line to the beginning of the next screen line", ->
-        expect(map.screenPositionForBufferPosition([4, 20], false)).toEqual [2, 20]
-        expect(map.screenPositionForBufferPosition([4, 29], false)).toEqual [3, 9]
-
-    describe "when eagerWrap is true", ->
-      it "wraps buffer positions at the end of a screen line to the end end of the next screen line", ->
-        expect(map.screenPositionForBufferPosition([4, 20], true)).toEqual [3, 0]
+    it "wraps buffer positions at the end of a screen line to the end end of the next screen line", ->
+      expect(map.screenPositionForBufferPosition([4, 20])).toEqual [3, 0]
 
   describe ".screenLineCount()", ->
     it "returns the total of all inserted screen row deltas", ->

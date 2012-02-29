@@ -228,8 +228,8 @@ class Editor extends View
     else
       $(window).off 'resize', @_setMaxLineLength
 
-  clipScreenPosition: (screenPosition, eagerWrap=false) ->
-    @lineWrapper.clipScreenPosition(screenPosition, eagerWrap)
+  clipScreenPosition: (screenPosition, options={}) ->
+    @lineWrapper.clipScreenPosition(screenPosition, options)
 
   pixelPositionForScreenPosition: ({row, column}) ->
     { top: row * @lineHeight, left: column * @charWidth }
