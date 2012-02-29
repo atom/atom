@@ -9,11 +9,11 @@ require 'window'
 window.showConsole()
 
 beforeEach ->
+  window.keymap = new GlobalKeymap
   window.resetTimeouts()
 
 afterEach ->
   (new Native).resetMainMenu()
-  atom.globalKeymap.reset()
   $('#jasmine-content').empty()
 
 # Use underscore's definition of equality for toEqual assertions
@@ -102,7 +102,7 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => atom.globalKeymap.handleKeyEvent(e)
+  @on 'keydown', (e) => window.keymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
   $('#jasmine-content').append(this)

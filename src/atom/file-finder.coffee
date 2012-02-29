@@ -17,7 +17,7 @@ class FileFinder extends View
     @maxResults = 10
 
     @populateUrlList()
-    atom.bindKeys ".file-finder",
+    window.keymap.bindKeys ".file-finder",
       'up': 'move-up'
       'down': 'move-down'
       'enter': 'select'

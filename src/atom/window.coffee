@@ -1,8 +1,8 @@
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
-fs = require 'fs'
 
+GlobalKeymap = require 'global-keymap'
 RootView = require 'root-view'
 
 # This a weirdo file. We don't create a Window class, we just add stuff to
@@ -11,20 +11,28 @@ RootView = require 'root-view'
 windowAdditions =
   rootView: null
   menuItemActions: null
+  keymap: null
 
   startup: (url) ->
     @menuItemActions = {}
-    @rootView = new RootView {url}
-    $('body').append @rootView
+    @attachRootView(url)
     @registerEventHandlers()
     @bindMenuItems()
-    $(this).on 'close', => @close()
     $(window).focus()
+    atom.windowOpened this
+
+    @keymap = new GlobalKeymap()
+    $(document).on 'keydown', (e) -> @keymap.handleKeyEvent(e)
 
   shutdown: ->
     @rootView.remove()
     $(window).unbind('focus')
     $(window).unbind('blur')
+    atom.windowClosed this
+
+  attachRootView: (url) ->
+    @rootView = new RootView {url}
+    $('body').append @rootView
 
   requireStylesheet: (path) ->
     fullPath = require.resolve(path)
@@ -40,6 +48,7 @@ windowAdditions =
     @menuItemActions[path] = {action: action, pattern: pattern}
 
   registerEventHandlers: ->
+    $(window).on 'close', => @close()
     $(window).focus => @registerMenuItems()
     $(window).blur -> atom.native.resetMainMenu()
 

@@ -40,7 +40,7 @@ class Editor extends View
     @setBuffer(new Buffer)
 
   bindKeys: ->
-    atom.bindKeys '*:not(.editor *)',
+    window.keymap.bindKeys '*:not(.editor *)',
       right: 'move-right'
       left: 'move-left'
       down: 'move-down'
