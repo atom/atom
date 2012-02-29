@@ -196,4 +196,10 @@ class Fold
     newRange.end.add(point.subtract(oldRange.end))
 
   compare: (other) ->
-    @start.compare(other.start)
+    startComparison = @start.compare(other.start)
+    if startComparison == 0
+      other.end.compare(@end)
+    else
+      startComparison
+
+

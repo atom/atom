@@ -101,6 +101,11 @@ describe "LineFolder", ->
         fold2.destroy()
         expect(folder.lineForScreenRow(5).text).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
+      it "allows the outer fold to start at the same location as the inner fold", ->
+        fold1 = folder.createFold(new Range([4, 29], [7, 4]))
+        fold2 = folder.createFold(new Range([4, 29], [9, 2]))
+        expect(folder.lineForScreenRow(4).text).toBe "    while(items.length > 0) {...};"
+
     describe "when another fold begins on the last line of a fold", ->
       describe "when the second fold is created before the first fold", ->
         it "renders a placeholder for both folds on the first line of the first fold", ->
@@ -180,7 +185,7 @@ describe "LineFolder", ->
           expect(event.newRange).toEqual [[7, 0], [8, 56]]
 
       describe "when creating a fold on the first line of an existing fold", ->
-        fit "renders the line correctly", ->
+        it "renders the line correctly", ->
           folder.createFold(new Range([4, 29], [7, 4]))
           folder.createFold(new Range([4, 10], [4, 26]))
           expect(folder.lineForScreenRow(4).text).toBe '    while(...) {...}'
