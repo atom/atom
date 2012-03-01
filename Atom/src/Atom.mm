@@ -23,7 +23,7 @@
 }
 
 - (void)dealloc {
-  [_hiddenGlobalView release];
+  [_hiddenWindow release];
   [self dealloc];
 }
 
@@ -37,21 +37,28 @@
 
 - (void)sendEvent:(NSEvent*)event {
   CefScopedSendingEvent sendingEventScoper;
-  [super sendEvent:event];
+
+  if (_clientHandler && ![self keyWindow] && [event type] == NSKeyDown) {
+    [_hiddenWindow makeKeyAndOrderFront:self];
+    [_hiddenWindow sendEvent:event];
+  }
+  else {
+    [super sendEvent:event];
+  }
 }
 
 - (void)createAtomContext {
   _clientHandler = new ClientHandler(self);
   
   CefWindowInfo window_info;
-  _hiddenGlobalView = [[NSView alloc] init];
-  window_info.SetAsChild(_hiddenGlobalView, 0, 0, 0, 0);
-
+  _hiddenWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 0, 0) styleMask:nil backing:nil defer:YES];
+  window_info.SetAsChild([_hiddenWindow contentView], 0, 0, 0, 0);
+  
   CefBrowserSettings settings;  
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
   CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
-}
+  }
 
 - (void)open:(NSString *)path {
   CefRefPtr<CefV8Context> atomContext = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
@@ -71,9 +78,7 @@
   CefShutdown();
 }
 
-- (void)afterCreated {
-  _clientHandler->GetBrowser()->ShowDevTools();
-}
+#pragma mark BrowserDelegate
 
 - (void)loadStart {
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();

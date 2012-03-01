@@ -7,7 +7,7 @@ class ClientHandler;
 @class AtomController;
 
 @interface Atom : NSApplication<CefAppProtocol, BrowserDelegate> {
-  NSView *_hiddenGlobalView;
+  NSWindow *_hiddenWindow;
   BOOL handlingSendEvent_;
   CefRefPtr<ClientHandler> _clientHandler;
 }
