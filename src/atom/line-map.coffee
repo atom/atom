@@ -89,21 +89,16 @@ class LineMap
 
   linesByDelta: (deltaType, startRow, endRow) ->
     lines = []
-    delta = new Point
-
-    for lineFragment in @lineFragments
-      break if delta.row > endRow
-      if delta.row >= startRow
-        if pendingFragment
-          pendingFragment = pendingFragment.concat(lineFragment)
-        else
-          pendingFragment = _.clone(lineFragment)
-        if pendingFragment[deltaType].row > 0
-          pendingFragment.bufferDelta = new Point(1, 0)
-          lines.push pendingFragment
-          pendingFragment = null
-      delta = delta.add(lineFragment[deltaType])
-
+    pendingFragment = null
+    @traverseByDelta deltaType, new Point(startRow, 0), new Point(endRow, Infinity), (lineFragment) ->
+      if pendingFragment
+        pendingFragment = pendingFragment.concat(lineFragment)
+      else
+        pendingFragment = _.clone(lineFragment)
+      if pendingFragment[deltaType].row > 0
+        pendingFragment.bufferDelta = new Point(1, 0)
+        lines.push pendingFragment
+        pendingFragment = null
     lines
 
   translatePosition: (sourceDeltaType, targetDeltaType, sourcePosition, options={}) ->
@@ -112,9 +107,6 @@ class LineMap
     wrapAtSoftNewlines = options.wrapAtSoftNewlines ? false
     skipAtomicTokens = options.skipAtomicTokens ? false
 
-    sourceDelta = new Point
-    targetDelta = new Point
-
     if sourcePosition.column < 0
       sourcePosition.column = 0
 
@@ -122,21 +114,20 @@ class LineMap
       sourcePosition.row = 0
       sourcePosition.column = 0
 
-    for lineFragment in @lineFragments
-      nextSourceDelta = sourceDelta.add(lineFragment[sourceDeltaType])
-      break if nextSourceDelta.isGreaterThan(sourcePosition)
-      sourceDelta = nextSourceDelta
-      targetDelta = targetDelta.add(lineFragment[targetDeltaType])
+    traversalResult = @traverseByDelta(sourceDeltaType, sourcePosition)
+    lastLineFragment = traversalResult.lastLineFragment
+    sourceDelta = traversalResult[sourceDeltaType]
+    targetDelta = traversalResult[targetDeltaType]
 
-    if lineFragment.isAtomic
+    if lastLineFragment.isAtomic
       if skipAtomicTokens and sourcePosition.column > sourceDelta.column
-        return new Point(targetDelta.row, targetDelta.column + lineFragment.text.length)
+        return new Point(targetDelta.row, targetDelta.column + lastLineFragment.text.length)
       else
         return targetDelta
 
-    maxSourceColumn = sourceDelta.column + lineFragment.text.length
-    maxTargetColumn = targetDelta.column + lineFragment.text.length
-    if lineFragment.isSoftWrapped() and sourcePosition.column >= maxSourceColumn
+    maxSourceColumn = sourceDelta.column + lastLineFragment.text.length
+    maxTargetColumn = targetDelta.column + lastLineFragment.text.length
+    if lastLineFragment.isSoftWrapped() and sourcePosition.column >= maxSourceColumn
       if wrapAtSoftNewlines
         return new Point(targetDelta.row + 1, 0)
       else
@@ -147,6 +138,20 @@ class LineMap
 
     targetColumn = targetDelta.column + (sourcePosition.column - sourceDelta.column)
     new Point(targetDelta.row, Math.min(maxTargetColumn, targetColumn))
+
+  traverseByDelta: (deltaType, startPosition, endPosition=startPosition, iterator=null) ->
+    traversalDelta = new Point
+    screenDelta = new Point
+    bufferDelta = new Point
+
+    for lineFragment in @lineFragments
+      iterator(lineFragment) if traversalDelta.isGreaterThanOrEqual(startPosition) and iterator?
+      traversalDelta = traversalDelta.add(lineFragment[deltaType])
+      break if traversalDelta.isGreaterThan(endPosition)
+      screenDelta = screenDelta.add(lineFragment.screenDelta)
+      bufferDelta = bufferDelta.add(lineFragment.bufferDelta)
+
+    { screenDelta, bufferDelta, lastLineFragment: lineFragment }
 
   logLines: (start=0, end=@screenLineCount() - 1)->
     for row in [start..end]
