@@ -212,12 +212,13 @@ bool NativeHandler::Execute(const CefString& name,
   else if (name == "openDialog") {
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     [panel setCanChooseDirectories:YES];
-    if ([panel runModal] != NSFileHandlingPanelOKButton) {
-      retval = CefV8Value::CreateNull();
+    if ([panel runModal] == NSFileHandlingPanelOKButton) {
+      NSURL *url = [[panel URLs] lastObject];
+      NSLog(@"An URL %@", [url path]);
+      retval = CefV8Value::CreateString([[url path] UTF8String]);
     }
     else {
-      NSURL *url = [[panel URLs] lastObject];
-      retval = CefV8Value::CreateString([[url absoluteString] UTF8String]);
+      retval = CefV8Value::CreateNull();
     }
       
     return true;
