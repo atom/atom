@@ -99,7 +99,7 @@ __expand = (path) ->
   return null
 
 __exists = (path) ->
-  atom.native.exists path
+  $native.exists path
 
 __coffeeCache = (filePath) ->
   {CoffeeScript} = require 'coffee-script'
@@ -107,7 +107,7 @@ __coffeeCache = (filePath) ->
 
 __read = (path) ->
   try
-    atom.native.read(path)
+    $native.read(path)
   catch e
     throw "require: can't read #{path}"
 

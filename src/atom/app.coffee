@@ -1,4 +1,3 @@
-Native = require 'native'
 GlobalKeymap = require 'global-keymap'
 $ = require 'jquery'
 _ = require 'underscore'
@@ -6,13 +5,10 @@ _ = require 'underscore'
 module.exports =
 class App
   keymap: null
-  native: null
   windows: null
 
   constructor: (@loadPath, nativeMethods)->
-    @native = new Native(nativeMethods)
     @windows = []
-
     @setupKeymap()
 
   setupKeymap: ->
@@ -21,15 +17,15 @@ class App
       'meta-o': 'open'
 
     $(document).on 'open', => 
-      url = @native.openDialog()
+      url = $native.openDialog()
       @open(url) if url
     $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
 
   open: (url) ->
-    @native.open url
+    $native.open url
 
   quit: ->
-    @native.terminate null
+    $native.terminate null
 
   windowOpened: (window) ->
     @windows.push window

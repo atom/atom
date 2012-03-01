@@ -731,21 +731,21 @@ describe "Editor", ->
 
   describe "cut, copy & paste", ->
     beforeEach ->
-      atom.native.writeToPasteboard('first')
-      expect(atom.native.readFromPasteboard()).toBe 'first'
+      $native.writeToPasteboard('first')
+      expect($native.readFromPasteboard()).toBe 'first'
 
     describe "when a cut event is triggered", ->
       it "removes the selected text from the buffer and places it on the pasteboard", ->
         editor.getSelection().setBufferRange new Range([0,4], [0,9])
         editor.trigger "cut"
         expect(editor.buffer.getLine(0)).toBe "var sort = function () {"
-        expect(atom.native.readFromPasteboard()).toBe 'quick'
+        expect($native.readFromPasteboard()).toBe 'quick'
 
     describe "when a copy event is triggered", ->
       it "copies selected text onto the clipboard", ->
         editor.getSelection().setBufferRange new Range([0,4], [0, 13])
         editor.trigger "copy"
-        expect(atom.native.readFromPasteboard()).toBe 'quicksort'
+        expect($native.readFromPasteboard()).toBe 'quicksort'
 
     describe "when a paste event is triggered", ->
       it "pastes text into the buffer", ->

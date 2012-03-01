@@ -44,7 +44,7 @@ windowAdditions =
     $('head').append "<style path='#{fullPath}'>#{content}</style>"
 
   showConsole: ->
-    atom.native.showDevTools()
+    $native.showDevTools()
 
   onerror: ->
     @showConsole()

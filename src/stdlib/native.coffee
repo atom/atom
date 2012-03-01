@@ -6,7 +6,7 @@ class Native
     _.extend(this, nativeMethods)
 
   alert: (message, detailedMessage, buttons) ->
-    atom.native.alert(message, detailedMessage, buttons)
+    $native.alert(message, detailedMessage, buttons)
 
   # path - Optional. The String path to the file to base it on.
   newWindow: (path) ->
@@ -16,7 +16,7 @@ class Native
 
   # Returns null or a file path.
   openPanel: ->
-    atom.native.openPanel()
+    $native.openPanel()
 
   # Returns null or a file path.
   savePanel: ->
@@ -26,7 +26,7 @@ class Native
     panel.filenames.lastObject.valueOf()
 
   writeToPasteboard: (text) ->
-    atom.native.writeToPasteboard text
+    $native.writeToPasteboard text
 
   readFromPasteboard: ->
-    atom.native.readFromPasteboard()
+    $native.readFromPasteboard()

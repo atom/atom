@@ -1,2 +1,2 @@
 App = require 'app'
-window.atom = new App(atom.loadPath, atom.native)
+window.atom = new App(atom.loadPath, $native)

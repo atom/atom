@@ -295,7 +295,7 @@ class Editor extends View
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
-  paste: -> @selection.insertText(atom.native.readFromPasteboard())
+  paste: -> @selection.insertText($native.readFromPasteboard())
 
   foldSelection: -> @selection.fold()
 
