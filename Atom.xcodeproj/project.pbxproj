@@ -309,11 +309,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		042180E71500266500DF25EA /* cef */ = {
+			isa = PBXGroup;
+			children = (
+				0487D0B214FEE6D60045E5E3 /* libcef_wrapper */,
+				0487CF3514FEE5C40045E5E3 /* include */,
+			);
+			name = cef;
+			path = Atom;
+			sourceTree = "<group>";
+		};
 		0487C90714FED5360045E5E3 = {
 			isa = PBXGroup;
 			children = (
 				0487C91C14FED5360045E5E3 /* Atom */,
-				0487C91514FED5360045E5E3 /* Frameworks */,
+				042180E71500266500DF25EA /* cef */,
+				0487C91514FED5360045E5E3 /* frameworks */,
 				0487C91314FED5360045E5E3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -327,17 +338,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		0487C91514FED5360045E5E3 /* Frameworks */ = {
+		0487C91514FED5360045E5E3 /* frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				0487D0B214FEE6D60045E5E3 /* libcef_dll */,
-				0487CF3514FEE5C40045E5E3 /* include */,
 				0487CD6B14FEE0EC0045E5E3 /* ffmpegsumo.so */,
 				0487CD6C14FEE0EC0045E5E3 /* libcef.dylib */,
 				0487C91614FED5360045E5E3 /* Cocoa.framework */,
 				0487C91814FED5360045E5E3 /* Other Frameworks */,
 			);
-			name = Frameworks;
+			name = frameworks;
 			sourceTree = "<group>";
 		};
 		0487C91814FED5360045E5E3 /* Other Frameworks */ = {
@@ -402,7 +411,7 @@
 				0487CF3E14FEE5C40045E5E3 /* internal */,
 			);
 			name = include;
-			path = cef/include;
+			path = ../cef/include;
 			sourceTree = "<group>";
 		};
 		0487CF3E14FEE5C40045E5E3 /* internal */ = {
@@ -446,7 +455,7 @@
 			path = npapi;
 			sourceTree = "<group>";
 		};
-		0487D0B214FEE6D60045E5E3 /* libcef_dll */ = {
+		0487D0B214FEE6D60045E5E3 /* libcef_wrapper */ = {
 			isa = PBXGroup;
 			children = (
 				0487D0B314FEE6D60045E5E3 /* cef_logging.h */,
@@ -456,8 +465,8 @@
 				0487D11F14FEE6D60045E5E3 /* transfer_util.h */,
 				0487D12014FEE6D60045E5E3 /* wrapper */,
 			);
-			name = libcef_dll;
-			path = cef/libcef_dll;
+			name = libcef_wrapper;
+			path = ../cef/libcef_dll;
 			sourceTree = "<group>";
 		};
 		0487D0B414FEE6D60045E5E3 /* cpptoc */ = {
