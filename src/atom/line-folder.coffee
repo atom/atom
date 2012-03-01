@@ -112,7 +112,8 @@ class LineFolder
     @bufferRowForScreenRow(@screenRowForBufferRow(bufferRow))
 
   buildFoldPlaceholder: (fold) ->
-    new ScreenLineFragment([{value: '...', type: 'fold-placeholder', fold}], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
+    token = {value: '...', type: 'fold-placeholder', fold, isAtomic: true}
+    new ScreenLineFragment([token], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
 
   foldsForBufferRow: (bufferRow) ->
     folds = @activeFolds[bufferRow] or []

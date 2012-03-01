@@ -23,8 +23,8 @@ class ScreenLineFragment
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    leftText = @text.substring(0, column)
-    rightText = @text.substring(column)
+    leftText = _.pluck(leftTokens, 'value').join('')
+    rightText = _.pluck(rightTokens, 'value').join('')
 
     [leftScreenDelta, rightScreenDelta] = @outputDelta.splitAt(column)
     [leftBufferDelta, rightBufferDelta] = @inputDelta.splitAt(column)
@@ -34,10 +34,17 @@ class ScreenLineFragment
     [leftFragment, rightFragment]
 
   splitTokenAt: (token, splitIndex) ->
-    { type, value } = token
-    value1 = value.substring(0, splitIndex)
-    value2 = value.substring(splitIndex)
-    [{value: value1, type }, {value: value2, type}]
+    if token.isAtomic
+      [@buildFillerToken(splitIndex), token]
+    else
+      { type, value } = token
+      value1 = value.substring(0, splitIndex)
+      value2 = value.substring(splitIndex)
+      [{value: value1, type }, {value: value2, type}]
+
+  buildFillerToken: (length) ->
+    text = (' ' for i in [0...length]).join('')
+    { value: text, type: 'text' }
 
   concat: (other) ->
     tokens = @tokens.concat(other.tokens)

@@ -23,6 +23,13 @@ describe "LineWrapper", ->
       expect(tokensText wrapper.lineForScreenRow(4).tokens).toEqual('right = [];')
       expect(tokensText wrapper.lineForScreenRow(5).tokens).toEqual('    while(items.length > 0) {')
 
+    it "does not attempt to wrap in the middle of a fold placeholder", ->
+      buffer.insert([0, 0], '0123456789ABCD\n')
+      wrapper.setMaxLength(10)
+      folder.createFold(new Range([0, 8], [0, 12]))
+      expect(tokensText wrapper.lineForScreenRow(0).tokens).toEqual('01234567  ')
+      expect(tokensText wrapper.lineForScreenRow(1).tokens).toEqual('...CD')
+
   describe ".lineCount()", ->
     it "returns the total number of screen lines", ->
       expect(wrapper.lineCount()).toBe 16
@@ -201,20 +208,46 @@ describe "LineWrapper", ->
           expect(line2.inputDelta).toEqual [1, 0]
 
       describe "when there is no whitespace before the max-length boundary", ->
-        it "splits the line at the boundary, because there's no 'good' place to split it", ->
-          screenLines = wrapper.wrapScreenLine(makeScreenLine '123', '456', '789AB', 'CD')
-          expect(screenLines.length).toBe 2
-          [line1, line2] = screenLines
-          expect(line1.tokens).toEqual(makeTokens '123', '456', '789A')
-          expect(line2.tokens).toEqual(makeTokens 'B', 'CD')
+        describe "when there is a non-atomic token at the boundary", ->
+          it "splits the line at the boundary, because there's no 'good' place to split it", ->
+            screenLines = wrapper.wrapScreenLine(makeScreenLine '123', '456', '789AB', 'CD')
+            expect(screenLines.length).toBe 2
+            [line1, line2] = screenLines
+            expect(line1.tokens).toEqual(makeTokens '123', '456', '789A')
+            expect(line2.tokens).toEqual(makeTokens 'B', 'CD')
 
-          expect(line1.startColumn).toBe 0
-          expect(line1.endColumn).toBe 10
-          expect(line1.text.length).toBe 10
+            expect(line1.startColumn).toBe 0
+            expect(line1.endColumn).toBe 10
+            expect(line1.text.length).toBe 10
 
-          expect(line2.startColumn).toBe 10
-          expect(line2.endColumn).toBe 13
-          expect(line2.text.length).toBe 3
+            expect(line2.startColumn).toBe 10
+            expect(line2.endColumn).toBe 13
+            expect(line2.text.length).toBe 3
+
+        describe "when there is an atomic token at the boundary", ->
+          it "splits the line before the token, because the token itself should not be split", ->
+            screenLine = makeScreenLine '123', '456', '789AB', 'CD'
+            screenLine.tokens[2].isAtomic = true
+            screenLines = wrapper.wrapScreenLine(screenLine)
+            expect(screenLines.length).toBe 2
+            [line1, line2] = screenLines
+
+            expectedLine1Tokens = makeTokens '123', '456', '    '
+            expectedLine1Tokens[2].type = 'text'
+            expect(line1.tokens).toEqual(expectedLine1Tokens)
+
+            expectedLine2Tokens = makeTokens '789AB', 'CD'
+            expectedLine2Tokens[0].isAtomic = true
+            expect(line2.tokens).toEqual expectedLine2Tokens
+
+            expect(line1.startColumn).toBe 0
+            expect(line1.endColumn).toBe 10
+            expect(line1.text).toBe tokensText(expectedLine1Tokens)
+
+            expect(line2.startColumn).toBe 10
+            expect(line2.endColumn).toBe 17
+            expect(line2.text).toBe tokensText(expectedLine2Tokens)
+
 
     describe "when there is a whitespace character at the max-length boundary", ->
       it "splits the line at the start of the first word beyond the boundary", ->
