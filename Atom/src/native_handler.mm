@@ -10,7 +10,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "quit", "writeToPasteboard", "readFromPasteboard"};
+  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -24,8 +24,7 @@ bool NativeHandler::Execute(const CefString& name,
                      CefRefPtr<CefV8Value> object,
                      const CefV8ValueList& arguments,
                      CefRefPtr<CefV8Value>& retval,
-                     CefString& exception)
-{
+                     CefString& exception) {
   if (name == "exists") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     bool exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil];
@@ -210,6 +209,19 @@ bool NativeHandler::Execute(const CefString& name,
     
     return true;
   }
+  else if (name == "openDialog") {
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    [panel setCanChooseDirectories:YES];
+    if ([panel runModal] != NSFileHandlingPanelOKButton) {
+      retval = CefV8Value::CreateNull();
+    }
+    else {
+      NSURL *url = [[panel URLs] lastObject];
+      retval = CefV8Value::CreateString([[url absoluteString] UTF8String]);
+    }
+      
+    return true;
+  }
   else if (name == "open") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     [NSApp open:path];
@@ -218,6 +230,10 @@ bool NativeHandler::Execute(const CefString& name,
   }
   else if (name == "quit") {
     [NSApp terminate:nil];
+    return true;
+  }
+  else if (name == "showDevTools") {
+    CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
     return true;
   }
   
