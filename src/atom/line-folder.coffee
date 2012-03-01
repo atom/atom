@@ -21,7 +21,7 @@ class LineFolder
 
   buildLineMap: ->
     @lineMap = new LineMap
-    @lineMap.insertAtBufferRow(0, @highlighter.screenLines)
+    @lineMap.insertAtInputRow(0, @highlighter.screenLines)
 
   logLines: (start=0, end=@lastRow())->
     @lineMap.logLines(start, end)
@@ -32,7 +32,7 @@ class LineFolder
     oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
 
     lineWithFold = @buildLineForBufferRow(bufferRange.start.row)
-    @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lineWithFold)
+    @lineMap.replaceOutputRows(oldScreenRange.start.row, oldScreenRange.end.row, lineWithFold)
 
     newScreenRange = oldScreenRange.copy()
     newScreenRange.end = _.clone(newScreenRange.start)
@@ -51,9 +51,9 @@ class LineFolder
     oldScreenRange = new Range()
     oldScreenRange.start.row = startScreenRow
     oldScreenRange.end.row = startScreenRow
-    oldScreenRange.end.column = @lineMap.lineForScreenRow(startScreenRow).text.length
+    oldScreenRange.end.column = @lineMap.lineForOutputRow(startScreenRow).text.length
 
-    @lineMap.replaceScreenRow(startScreenRow, @buildLinesForBufferRows(bufferRange.start.row, bufferRange.end.row))
+    @lineMap.replaceOutputRow(startScreenRow, @buildLinesForBufferRows(bufferRange.start.row, bufferRange.end.row))
 
     newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
 
@@ -79,7 +79,7 @@ class LineFolder
     oldScreenRange = @screenRangeForBufferRange(e.oldRange)
     expandedOldScreenRange = @expandScreenRangeToLineEnds(oldScreenRange)
     lines = @buildLinesForBufferRows(e.newRange.start.row, e.newRange.end.row)
-    @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
+    @lineMap.replaceOutputRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
     newScreenRange = @screenRangeForBufferRange(e.newRange)
     expandedNewScreenRange = @expandScreenRangeToLineEnds(newScreenRange)
 
@@ -118,16 +118,16 @@ class LineFolder
     folds.sort (a, b) -> a.compare(b)
 
   linesForScreenRows: (startRow, endRow) ->
-    @lineMap.linesForScreenRows(startRow, endRow)
+    @lineMap.linesForOutputRows(startRow, endRow)
 
   lineForScreenRow: (screenRow) ->
-    @lineMap.lineForScreenRow(screenRow)
+    @lineMap.lineForOutputRow(screenRow)
 
   getLines: ->
-    @lineMap.screenLinesForRows(0, @lastRow())
+    @lineMap.linesForOutputRows(0, @lastRow())
 
   lineCount: ->
-    @lineMap.screenLineCount()
+    @lineMap.outputLineCount()
 
   lastRow: ->
     @lineCount() - 1
@@ -139,23 +139,23 @@ class LineFolder
     @bufferPositionForScreenPosition([screenRow, 0]).row
 
   screenPositionForBufferPosition: (bufferPosition) ->
-    @lineMap.screenPositionForBufferPosition(bufferPosition)
+    @lineMap.outputPositionForInputPosition(bufferPosition)
 
   bufferPositionForScreenPosition: (screenPosition) ->
-    @lineMap.bufferPositionForScreenPosition(screenPosition)
+    @lineMap.inputPositionForOutputPosition(screenPosition)
 
   clipScreenPosition: (screenPosition, options={}) ->
-    @lineMap.clipScreenPosition(screenPosition, options)
+    @lineMap.clipOutputPosition(screenPosition, options)
 
   screenRangeForBufferRange: (bufferRange) ->
-    @lineMap.screenRangeForBufferRange(bufferRange)
+    @lineMap.outputRangeForInputRange(bufferRange)
 
   bufferRangeForScreenRange: (screenRange) ->
-    @lineMap.bufferRangeForScreenRange(screenRange)
+    @lineMap.inputRangeForOutputRange(screenRange)
 
   expandScreenRangeToLineEnds: (screenRange) ->
     { start, end } = screenRange
-    new Range([start.row, 0], [end.row, @lineMap.lineForScreenRow(end.row).text.length])
+    new Range([start.row, 0], [end.row, @lineMap.lineForOutputRow(end.row).text.length])
 
 _.extend LineFolder.prototype, EventEmitter
 

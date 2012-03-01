@@ -31,18 +31,18 @@ describe "screenLineFragment", ->
 
     it "ensures the returned fragments cover the span of the original line", ->
       [left, right] = screenLine.splitAt(15)
-      expect(left.bufferDelta).toEqual [0, 15]
-      expect(left.screenDelta).toEqual [0, 15]
+      expect(left.inputDelta).toEqual [0, 15]
+      expect(left.outputDelta).toEqual [0, 15]
 
-      expect(right.bufferDelta).toEqual [1, 0]
-      expect(right.screenDelta).toEqual [1, 0]
+      expect(right.inputDelta).toEqual [1, 0]
+      expect(right.outputDelta).toEqual [1, 0]
 
       [left2, right2] = left.splitAt(5)
-      expect(left2.bufferDelta).toEqual [0, 5]
-      expect(left2.screenDelta).toEqual [0, 5]
+      expect(left2.inputDelta).toEqual [0, 5]
+      expect(left2.outputDelta).toEqual [0, 5]
 
-      expect(right2.bufferDelta).toEqual [0, 10]
-      expect(right2.screenDelta).toEqual [0, 10]
+      expect(right2.inputDelta).toEqual [0, 10]
+      expect(right2.outputDelta).toEqual [0, 10]
 
     describe "if splitting at 0", ->
       it "returns undefined for the left half", ->
@@ -53,12 +53,12 @@ describe "screenLineFragment", ->
         [left, right] = screenLine.splitAt(screenLine.text.length)
 
         expect(left.text).toBe screenLine.text
-        expect(left.screenDelta).toEqual [0, screenLine.text.length]
-        expect(left.bufferDelta).toEqual [0, screenLine.text.length]
+        expect(left.outputDelta).toEqual [0, screenLine.text.length]
+        expect(left.inputDelta).toEqual [0, screenLine.text.length]
 
         expect(right.text).toBe ''
-        expect(right.screenDelta).toEqual [1, 0]
-        expect(right.bufferDelta).toEqual [1, 0]
+        expect(right.outputDelta).toEqual [1, 0]
+        expect(right.inputDelta).toEqual [1, 0]
 
   describe ".concat(otherFragment)", ->
     it "returns the concatenation of the receiver and the given fragment", ->
@@ -68,8 +68,8 @@ describe "screenLineFragment", ->
       concatenated = screenLine.concat(highlighter.lineForScreenRow(4))
       expect(concatenated.text).toBe '    var pivot = items.shift(), current, left = [], right = [];    while(items.length > 0) {'
       expect(tokensText concatenated.tokens).toBe concatenated.text
-      expect(concatenated.screenDelta).toEqual [2, 0]
-      expect(concatenated.bufferDelta).toEqual [2, 0]
+      expect(concatenated.outputDelta).toEqual [2, 0]
+      expect(concatenated.inputDelta).toEqual [2, 0]
 
 
 

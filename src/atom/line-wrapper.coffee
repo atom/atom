@@ -18,26 +18,26 @@ class LineWrapper
 
   buildLineMap: ->
     @lineMap = new LineMap
-    @lineMap.insertAtBufferRow 0, @buildScreenLinesForBufferRows(0, @lineFolder.lastRow())
+    @lineMap.insertAtInputRow 0, @buildScreenLinesForBufferRows(0, @lineFolder.lastRow())
 
   handleChange: (e) ->
     oldBufferRange = e.oldRange
     newBufferRange = e.newRange
 
-    oldScreenRange = @lineMap.screenRangeForBufferRange(@expandBufferRangeToLineEnds(oldBufferRange))
+    oldScreenRange = @lineMap.outputRangeForInputRange(@expandBufferRangeToLineEnds(oldBufferRange))
     newScreenLines = @buildScreenLinesForBufferRows(newBufferRange.start.row, newBufferRange.end.row)
-    @lineMap.replaceBufferRows oldBufferRange.start.row, oldBufferRange.end.row, newScreenLines
-    newScreenRange = @lineMap.screenRangeForBufferRange(@expandBufferRangeToLineEnds(newBufferRange))
+    @lineMap.replaceInputRows oldBufferRange.start.row, oldBufferRange.end.row, newScreenLines
+    newScreenRange = @lineMap.outputRangeForInputRange(@expandBufferRangeToLineEnds(newBufferRange))
 
     @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange }
 
   expandBufferRangeToLineEnds: (bufferRange) ->
     { start, end } = bufferRange
-    new Range([start.row, 0], [end.row, @lineMap.lineForBufferRow(end.row).text.length])
+    new Range([start.row, 0], [end.row, @lineMap.lineForInputRow(end.row).text.length])
 
   rangeForAllLines: ->
     endRow = @lineCount() - 1
-    endColumn = @lineMap.lineForScreenRow(endRow).text.length
+    endColumn = @lineMap.lineForOutputRow(endRow).text.length
     new Range([0, 0], [endRow, endColumn])
 
   buildScreenLinesForBufferRows: (start, end) ->
@@ -54,7 +54,7 @@ class LineWrapper
       endColumn = startColumn + screenLine.text.length
     else
       [leftHalf, rightHalf] = screenLine.splitAt(splitColumn)
-      leftHalf.screenDelta = new Point(1, 0)
+      leftHalf.outputDelta = new Point(1, 0)
       screenLines.push leftHalf
       endColumn = startColumn + leftHalf.text.length
       screenLines.push @wrapScreenLine(rightHalf, endColumn)...
@@ -77,25 +77,25 @@ class LineWrapper
       return @maxLength
 
   screenPositionForBufferPosition: (bufferPosition) ->
-    @lineMap.screenPositionForBufferPosition(
+    @lineMap.outputPositionForInputPosition(
       @lineFolder.screenPositionForBufferPosition(bufferPosition))
 
   bufferPositionForScreenPosition: (screenPosition) ->
     @lineFolder.bufferPositionForScreenPosition(
-      @lineMap.bufferPositionForScreenPosition(screenPosition))
+      @lineMap.inputPositionForOutputPosition(screenPosition))
 
   screenRangeForBufferRange: (bufferRange) ->
-    @lineMap.screenRangeForBufferRange(
+    @lineMap.outputRangeForInputRange(
       @lineFolder.screenRangeForBufferRange(bufferRange))
 
   bufferRangeForScreenRange: (screenRange) ->
     @lineFolder.bufferRangeForScreenRange(
-      @lineMap.bufferRangeForScreenRange(screenRange))
+      @lineMap.inputRangeForOutputRange(screenRange))
 
   clipScreenPosition: (screenPosition, options={}) ->
-    @lineMap.screenPositionForBufferPosition(
+    @lineMap.outputPositionForInputPosition(
       @lineFolder.clipScreenPosition(
-        @lineMap.bufferPositionForScreenPosition(@lineMap.clipScreenPosition(screenPosition, options)),
+        @lineMap.inputPositionForOutputPosition(@lineMap.clipOutputPosition(screenPosition, options)),
         options
       )
     )
@@ -104,13 +104,13 @@ class LineWrapper
     @linesForScreenRows(screenRow, screenRow)[0]
 
   linesForScreenRows: (startRow, endRow) ->
-    @lineMap.linesForScreenRows(startRow, endRow)
+    @lineMap.linesForOutputRows(startRow, endRow)
 
   getLines: ->
     @linesForScreenRows(0, @lastRow())
 
   lineCount: ->
-    @lineMap.screenLineCount()
+    @lineMap.outputLineCount()
 
   lastRow: ->
     @lineCount() - 1

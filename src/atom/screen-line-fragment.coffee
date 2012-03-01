@@ -5,9 +5,9 @@ module.exports =
 class ScreenLineFragment
   isAtomic: false
 
-  constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
-    @screenDelta = Point.fromObject(screenDelta)
-    @bufferDelta = Point.fromObject(bufferDelta)
+  constructor: (@tokens, @text, outputDelta, inputDelta, extraFields) ->
+    @outputDelta = Point.fromObject(outputDelta)
+    @inputDelta = Point.fromObject(inputDelta)
     _.extend(this, extraFields)
 
   splitAt: (column) ->
@@ -26,8 +26,8 @@ class ScreenLineFragment
     leftText = @text.substring(0, column)
     rightText = @text.substring(column)
 
-    [leftScreenDelta, rightScreenDelta] = @screenDelta.splitAt(column)
-    [leftBufferDelta, rightBufferDelta] = @bufferDelta.splitAt(column)
+    [leftScreenDelta, rightScreenDelta] = @outputDelta.splitAt(column)
+    [leftBufferDelta, rightBufferDelta] = @inputDelta.splitAt(column)
 
     leftFragment = new ScreenLineFragment(leftTokens, leftText, leftScreenDelta, leftBufferDelta)
     rightFragment = new ScreenLineFragment(rightTokens, rightText, rightScreenDelta, rightBufferDelta)
@@ -42,9 +42,9 @@ class ScreenLineFragment
   concat: (other) ->
     tokens = @tokens.concat(other.tokens)
     text = @text + other.text
-    screenDelta = @screenDelta.add(other.screenDelta)
-    bufferDelta = @bufferDelta.add(other.bufferDelta)
-    new ScreenLineFragment(tokens, text, screenDelta, bufferDelta)
+    outputDelta = @outputDelta.add(other.outputDelta)
+    inputDelta = @inputDelta.add(other.inputDelta)
+    new ScreenLineFragment(tokens, text, outputDelta, inputDelta)
 
   lengthForClipping: ->
     if @isAtomic
@@ -53,7 +53,7 @@ class ScreenLineFragment
       @text.length
 
   isSoftWrapped: ->
-    @screenDelta.row == 1 and @bufferDelta.row == 0
+    @outputDelta.row == 1 and @inputDelta.row == 0
 
   isEqual: (other) ->
-    _.isEqual(@tokens, other.tokens) and @screenDelta.isEqual(other.screenDelta) and @bufferDelta.isEqual(other.bufferDelta)
+    _.isEqual(@tokens, other.tokens) and @outputDelta.isEqual(other.outputDelta) and @inputDelta.isEqual(other.inputDelta)

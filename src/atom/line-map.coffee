@@ -7,66 +7,66 @@ class LineMap
   constructor: ->
     @lineFragments = []
 
-  insertAtBufferRow: (bufferRow, lineFragments) ->
-    @spliceAtBufferRow(bufferRow, 0, lineFragments)
+  insertAtInputRow: (inputRow, lineFragments) ->
+    @spliceAtInputRow(inputRow, 0, lineFragments)
 
-  spliceAtBufferRow: (startRow, rowCount, lineFragments) ->
-    @spliceByDelta('bufferDelta', startRow, rowCount, lineFragments)
+  spliceAtInputRow: (startRow, rowCount, lineFragments) ->
+    @spliceByDelta('inputDelta', startRow, rowCount, lineFragments)
 
-  spliceAtScreenRow: (startRow, rowCount, lineFragments) ->
-    @spliceByDelta('screenDelta', startRow, rowCount, lineFragments)
+  spliceAtOutputRow: (startRow, rowCount, lineFragments) ->
+    @spliceByDelta('outputDelta', startRow, rowCount, lineFragments)
 
-  replaceBufferRows: (start, end, lineFragments) ->
-    @spliceAtBufferRow(start, end - start + 1, lineFragments)
+  replaceInputRows: (start, end, lineFragments) ->
+    @spliceAtInputRow(start, end - start + 1, lineFragments)
 
-  replaceScreenRow: (row, lineFragments) ->
-    @replaceScreenRows(row, row, lineFragments)
+  replaceOutputRow: (row, lineFragments) ->
+    @replaceOutputRows(row, row, lineFragments)
 
-  replaceScreenRows: (start, end, lineFragments) ->
-    @spliceAtScreenRow(start, end - start + 1, lineFragments)
+  replaceOutputRows: (start, end, lineFragments) ->
+    @spliceAtOutputRow(start, end - start + 1, lineFragments)
 
-  lineForScreenRow: (row) ->
-    @linesForScreenRows(row, row)[0]
+  lineForOutputRow: (row) ->
+    @linesForOutputRows(row, row)[0]
 
-  linesForScreenRows: (startRow, endRow) ->
-    @linesByDelta('screenDelta', startRow, endRow)
+  linesForOutputRows: (startRow, endRow) ->
+    @linesByDelta('outputDelta', startRow, endRow)
 
-  lineForBufferRow: (row) ->
-    @linesForBufferRows(row, row)[0]
+  lineForInputRow: (row) ->
+    @linesForInputRows(row, row)[0]
 
-  linesForBufferRows: (startRow, endRow) ->
-    @linesByDelta('bufferDelta', startRow, endRow)
+  linesForInputRows: (startRow, endRow) ->
+    @linesByDelta('inputDelta', startRow, endRow)
 
-  bufferLineCount: ->
-    @lineCountByDelta('bufferDelta')
+  inputLineCount: ->
+    @lineCountByDelta('inputDelta')
 
-  screenLineCount: ->
-    @lineCountByDelta('screenDelta')
+  outputLineCount: ->
+    @lineCountByDelta('outputDelta')
 
   lineCountByDelta: (deltaType) ->
     @traverseByDelta(deltaType, new Point(Infinity, 0))[deltaType].row
 
-  lastScreenRow: ->
-    @screenLineCount() - 1
+  lastOutputRow: ->
+    @outputLineCount() - 1
 
-  screenPositionForBufferPosition: (bufferPosition) ->
-    @translatePosition('bufferDelta', 'screenDelta', bufferPosition)
+  outputPositionForInputPosition: (inputPosition) ->
+    @translatePosition('inputDelta', 'outputDelta', inputPosition)
 
-  bufferPositionForScreenPosition: (screenPosition) ->
-    @translatePosition('screenDelta', 'bufferDelta', screenPosition)
+  inputPositionForOutputPosition: (outputPosition) ->
+    @translatePosition('outputDelta', 'inputDelta', outputPosition)
 
-  screenRangeForBufferRange: (bufferRange) ->
-    start = @screenPositionForBufferPosition(bufferRange.start)
-    end = @screenPositionForBufferPosition(bufferRange.end)
+  outputRangeForInputRange: (inputRange) ->
+    start = @outputPositionForInputPosition(inputRange.start)
+    end = @outputPositionForInputPosition(inputRange.end)
     new Range(start, end)
 
-  bufferRangeForScreenRange: (screenRange) ->
-    start = @bufferPositionForScreenPosition(screenRange.start)
-    end = @bufferPositionForScreenPosition(screenRange.end)
+  inputRangeForOutputRange: (outputRange) ->
+    start = @inputPositionForOutputPosition(outputRange.start)
+    end = @inputPositionForOutputPosition(outputRange.end)
     new Range(start, end)
 
-  clipScreenPosition: (screenPosition, options) ->
-    @translatePosition('screenDelta', 'screenDelta', screenPosition, options)
+  clipOutputPosition: (outputPosition, options) ->
+    @translatePosition('outputDelta', 'outputDelta', outputPosition, options)
 
   spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
     stopRow = startRow + rowCount
@@ -93,7 +93,7 @@ class LineMap
       else
         pendingFragment = _.clone(lineFragment)
       if pendingFragment[deltaType].row > 0
-        pendingFragment.bufferDelta = new Point(1, 0)
+        pendingFragment.inputDelta = new Point(1, 0)
         lines.push pendingFragment
         pendingFragment = null
     lines
@@ -145,20 +145,20 @@ class LineMap
 
   traverseByDelta: (deltaType, startPosition, endPosition=startPosition, iterator=null) ->
     traversalDelta = new Point
-    screenDelta = new Point
-    bufferDelta = new Point
+    outputDelta = new Point
+    inputDelta = new Point
 
     for lineFragment in @lineFragments
       iterator(lineFragment) if traversalDelta.isGreaterThanOrEqual(startPosition) and iterator?
       traversalDelta = traversalDelta.add(lineFragment[deltaType])
       break if traversalDelta.isGreaterThan(endPosition)
-      screenDelta = screenDelta.add(lineFragment.screenDelta)
-      bufferDelta = bufferDelta.add(lineFragment.bufferDelta)
+      outputDelta = outputDelta.add(lineFragment.outputDelta)
+      inputDelta = inputDelta.add(lineFragment.inputDelta)
 
-    { screenDelta, bufferDelta, lastLineFragment: lineFragment }
+    { outputDelta, inputDelta, lastLineFragment: lineFragment }
 
-  logLines: (start=0, end=@screenLineCount() - 1)->
+  logLines: (start=0, end=@outputLineCount() - 1)->
     for row in [start..end]
-      line = @lineForScreenRow(row).text
+      line = @lineForOutputRow(row).text
       console.log row, line, line.length
 
