@@ -18,8 +18,10 @@ class ClientHandler;
 
 - (void)createBrowser;
 
-- (void)afterCreated:(CefRefPtr<CefBrowser>) browser;
-- (void)loadStart:(CefRefPtr<CefBrowser>) browser;
+- (void)afterCreated;
+- (void)loadStart;
+- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type code:(int)code modifiers:(int)modifiers isSystemKey:(bool)isSystemKey isAfterJavaScript:(bool)isAfterJavaScript;
+
 
 @property (nonatomic, retain) IBOutlet NSView *webView;
 

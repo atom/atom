@@ -55,13 +55,12 @@
   CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);  
 }
 
-- (void)afterCreated:(CefRefPtr<CefBrowser>) browser {
-    browser->ShowDevTools();
+- (void)afterCreated {
+    _clientHandler->GetBrowser()->ShowDevTools();
 }
 
-- (void)loadStart:(CefRefPtr<CefBrowser>) browser {
-  CefRefPtr<CefFrame> frame = browser->GetMainFrame();
-  CefRefPtr<CefV8Context> context = frame->GetV8Context();
+- (void)loadStart {
+  CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
   
   context->Enter();
@@ -77,6 +76,20 @@
   global->SetValue("atom", _atomContext->GetGlobal()->GetValue("atom"), V8_PROPERTY_ATTRIBUTE_NONE);
   
   context->Exit();
+}
+
+- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type
+                  code:(int)code
+             modifiers:(int)modifiers
+           isSystemKey:(bool)isSystemKey
+     isAfterJavaScript:(bool)isAfterJavaScript {
+  
+  if (isAfterJavaScript && type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
+    _clientHandler->GetBrowser()->ReloadIgnoreCache();
+    return YES;
+  }
+  
+  return NO;
 }
 
 #pragma mark NSWindowDelegate

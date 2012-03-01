@@ -71,13 +71,12 @@
   CefShutdown();
 }
 
-- (void)afterCreated:(CefRefPtr<CefBrowser>) browser {
-  browser->ShowDevTools();
+- (void)afterCreated {
+  _clientHandler->GetBrowser()->ShowDevTools();
 }
 
-- (void)loadStart:(CefRefPtr<CefBrowser>)browser {
-  CefRefPtr<CefFrame> frame = browser->GetMainFrame();
-  CefRefPtr<CefV8Context> context = frame->GetV8Context();
+- (void)loadStart {
+  CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
 
   context->Enter();

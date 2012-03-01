@@ -43,8 +43,8 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     m_Browser = browser;
     m_BrowserHwnd = browser->GetWindowHandle();
     
-    if ([m_delegate respondsToSelector:@selector(afterCreated:)]) {
-      [m_delegate afterCreated:browser];
+    if ([m_delegate respondsToSelector:@selector(afterCreated)]) {
+      [m_delegate afterCreated];
     }
   }
 }
@@ -71,8 +71,8 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
 {
   REQUIRE_UI_THREAD();  
   
-  if ([m_delegate respondsToSelector:@selector(loadStart:)]) {
-    [m_delegate loadStart:browser];
+  if ([m_delegate respondsToSelector:@selector(loadStart)]) {
+    [m_delegate loadStart];
   }
 
 }
@@ -139,8 +139,13 @@ bool ClientHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                bool isAfterJavaScript)
 {
   REQUIRE_UI_THREAD();
-  
-  return false;
+ 
+  if ([m_delegate respondsToSelector:@selector(keyEventOfType:code:modifiers:isSystemKey:isAfterJavaScript:)]) {
+    return [m_delegate keyEventOfType:type code:code modifiers:modifiers isSystemKey:isSystemKey isAfterJavaScript:isAfterJavaScript];
+  }
+  else {
+    return false;
+  }
 }
 
 void ClientHandler::OnContextCreated(CefRefPtr<CefBrowser> browser,

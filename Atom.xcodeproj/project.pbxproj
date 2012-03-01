@@ -352,9 +352,9 @@
 		0487C91C14FED5360045E5E3 /* Atom */ = {
 			isa = PBXGroup;
 			children = (
+				0487C91D14FED5360045E5E3 /* Supporting Files */,
 				0487D15E14FEE7880045E5E3 /* resources */,
 				0487C93B14FED6090045E5E3 /* src */,
-				0487C91D14FED5360045E5E3 /* Supporting Files */,
 			);
 			path = Atom;
 			sourceTree = "<group>";
