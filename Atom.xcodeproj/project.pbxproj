@@ -117,6 +117,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		042180E614FF080D00DF25EA /* BrowserDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BrowserDelegate.h; sourceTree = "<group>"; };
 		0487C91214FED5360045E5E3 /* Atom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0487C91614FED5360045E5E3 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0487C91914FED5360045E5E3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -377,6 +378,7 @@
 				0487C93D14FED6090045E5E3 /* Atom.mm */,
 				0487C93E14FED6090045E5E3 /* AtomController.h */,
 				0487C93F14FED6090045E5E3 /* AtomController.mm */,
+				042180E614FF080D00DF25EA /* BrowserDelegate.h */,
 				0487C94014FED6090045E5E3 /* client_handler.h */,
 				0487C94114FED6090045E5E3 /* client_handler.mm */,
 				0487C94214FED6090045E5E3 /* main.mm */,

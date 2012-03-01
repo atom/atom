@@ -1,9 +1,11 @@
 #import <Cocoa/Cocoa.h>
+
+#import "BrowserDelegate.h"
 #import "include/cef.h"
 
 class ClientHandler;
 
-@interface AtomController : NSWindowController <NSWindowDelegate> {
+@interface AtomController : NSWindowController <NSWindowDelegate, BrowserDelegate> {
   NSView *_webView;
   NSString *_bootstrapScript;
   NSString *_pathToOpen;
@@ -17,11 +19,6 @@ class ClientHandler;
 - (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext;
 
 - (void)createBrowser;
-
-- (void)afterCreated;
-- (void)loadStart;
-- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type code:(int)code modifiers:(int)modifiers isSystemKey:(bool)isSystemKey isAfterJavaScript:(bool)isAfterJavaScript;
-
 
 @property (nonatomic, retain) IBOutlet NSView *webView;
 
