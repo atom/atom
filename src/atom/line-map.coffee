@@ -76,9 +76,8 @@ class LineMap
     delta = new Point
     for lineFragment, i in @lineFragments
       startIndex ?= i if delta.row == startRow
-      break if rowCount == 0 and delta.row == stopRow
+      break if delta.row == stopRow
       delta = delta.add(lineFragment[deltaType])
-      break if delta.row > stopRow
       stopIndex++
     startIndex ?= i
 

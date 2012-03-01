@@ -61,6 +61,10 @@ describe "LineMap", ->
           expect(map.lineForOutputRow(2)).toEqual line4
           expect(map.lineForOutputRow(3)).toEqual line2
 
+          map.spliceAtInputRow(2, 1, [line0])
+          expect(map.lineForOutputRow(2)).toEqual line0
+          expect(map.lineForOutputRow(3)).toEqual line2
+
       describe "when the specified buffer row is spanned by multiple line fragments", ->
         it "replaces all spanning line fragments with the given line fragments", ->
           [line1a, line1b] = line1.splitAt(10)
@@ -74,6 +78,18 @@ describe "LineMap", ->
           expect(map.lineForOutputRow(1)).toEqual line3a.concat(line3b)
           expect(map.lineForOutputRow(2)).toEqual line4
           expect(map.lineForOutputRow(3)).toEqual line2
+
+      describe "when the row following the specified buffer row is spanned by multiple line fragments", ->
+        it "replaces the specified row, but no portion of the following row", ->
+          [line3a, line3b] = line3.splitAt(10)
+
+          map.insertAtInputRow(0, [line0, line1, line2, line3a, line3b])
+          map.spliceAtInputRow(2, 1, [line4])
+
+          expect(map.lineForOutputRow(0)).toEqual line0
+          expect(map.lineForOutputRow(1)).toEqual line1
+          expect(map.lineForOutputRow(2)).toEqual line4
+          expect(map.lineForOutputRow(3)).toEqual line3a.concat(line3b)
 
     describe "when called with a row count greater than 1", ->
       it "replaces all line fragments spanning the multiple buffer rows with the given line fragments", ->
