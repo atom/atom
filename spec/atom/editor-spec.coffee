@@ -344,18 +344,54 @@ describe "Editor", ->
         editor.attachToDom()
         editor.css(position: 'absolute', top: 10, left: 10)
 
-      describe "when soft-wrap is enabled", ->
+      describe "when soft-wrap and is enabled and code is folded", ->
         beforeEach ->
           editor.width(editor.charWidth * 50)
           editor.setSoftWrap(true)
+          editor.lineFolder.createFold(new Range([3, 3], [3, 7]))
 
         describe "when it is a single click", ->
           it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
             [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
             editor.lines.trigger mousedownEvent({pageX, pageY})
             expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 58)
+
+        describe "when it is a double click", ->
+          it "selects the word under the cursor", ->
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+            [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 3])
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            expect(editor.getSelectedText()).toBe "right"
+
+        describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
+          it "selects the line under the cursor", ->
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+            # Triple click
+            [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 3])
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            editor.lines.trigger 'mouseup'
+            expect(editor.getSelectedText()).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+            # Quad click
+            [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 3])
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            editor.lines.trigger 'mouseup'
+            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 4}})
+            editor.lines.trigger 'mouseup'
+
+            expect(editor.getSelectedText()).toBe "      current < pivot ? left.push(current) : right.push(current);"
 
       describe "when soft-wrap is disabled", ->
         describe "when it is a single click", ->
@@ -371,35 +407,36 @@ describe "Editor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
             [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
-            $(document).trigger 'mouseup'
+            editor.lines.trigger 'mouseup'
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "quicksort"
 
-        describe "when it is clicked more then twice (tripple, quadruple, etc...)", ->
+        describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
           it "selects the line under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             # Triple click
             [pageX, pageY] = window.pixelPositionForPoint(editor, [1, 8])
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
-            $(document).trigger 'mouseup'
+            editor.lines.trigger 'mouseup'
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
-            $(document).trigger 'mouseup'
+            editor.lines.trigger 'mouseup'
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
-            $(document).trigger 'mouseup'
 
             # Quad click
             [pageX, pageY] = window.pixelPositionForPoint(editor, [2, 3])
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
-            $(document).trigger 'mouseup'
+            editor.lines.trigger 'mouseup'
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
-            $(document).trigger 'mouseup'
+            editor.lines.trigger 'mouseup'
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
-            $(document).trigger 'mouseup'
+            editor.lines.trigger 'mouseup'
             editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 4}})
+            editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
-            $(document).trigger 'mouseup'
 
   describe "selection", ->
     selection = null

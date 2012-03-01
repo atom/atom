@@ -104,7 +104,7 @@ class Editor extends View
       else if clickCount == 2
         @selection.selectWord()
       else if clickCount >= 3
-        @selection.selectLine(@getCursorRow())
+        @selection.selectLine()
 
       @selectTextOnMouseMovement()
 
@@ -168,9 +168,6 @@ class Editor extends View
 
     @buffer.on 'change', (e) =>
       @cursor.bufferChanged(e)
-
-    @lineFolder.on 'fold', (range) =>
-      @setCursorBufferPosition(range.end)
 
     @lineWrapper.on 'change', (e) =>
       { oldRange, newRange } = e

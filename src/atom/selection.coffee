@@ -108,6 +108,8 @@ class Selection extends View
     row = @cursor.getRow()
     column = @cursor.getColumn()
 
+    { row, column } = @cursor.getBufferPosition()
+
     line = @editor.buffer.getLine(row)
     leftSide = line[0...column].split('').reverse().join('') # reverse left side
     rightSide = line[column..]
@@ -119,7 +121,7 @@ class Selection extends View
     range = new Range([row, column + startOffset], [row, column + endOffset])
     @setBufferRange range
 
-  selectLine: (row) ->
+  selectLine: (row=@cursor.getBufferPosition().row) ->
     rowLength = @editor.buffer.getLine(row).length
     @setBufferRange new Range([row, 0], [row, rowLength])
 
@@ -167,4 +169,6 @@ class Selection extends View
     atom.native.writeToPasteboard text
 
   fold: ->
-    @editor.lineFolder.createFold(@getBufferRange())
+    range = @getBufferRange()
+    @editor.lineFolder.createFold(range)
+    @cursor.setBufferPosition(range.end)
