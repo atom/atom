@@ -44,10 +44,10 @@ windowAdditions =
     $('head').append "<style path='#{fullPath}'>#{content}</style>"
 
   showConsole: ->
-    # $atomController.webView.inspector.showConsole true
+    $native.showDevTools()
 
   onerror: ->
-    @showConsole true
+    @showConsole()
 
 for key, value of windowAdditions
   console.warn "DOMWindow already has a key named `#{key}`" if window[key]
@@ -55,4 +55,3 @@ for key, value of windowAdditions
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
-

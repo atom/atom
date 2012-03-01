@@ -19,7 +19,7 @@ class GlobalKeymap
 
   handleKeyEvent: (event) ->
     event.keystroke = @keystrokeStringForEvent(event)
-    currentNode = $(event.target)
+    currentNode = $(event.target)    
     while currentNode.length
       candidateBindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
       candidateBindingSets.sort (a, b) -> b.specificity - a.specificity

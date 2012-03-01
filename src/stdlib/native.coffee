@@ -16,13 +16,7 @@ class Native
 
   # Returns null or a file path.
   openPanel: ->
-    panel = OSX.NSOpenPanel.openPanel
-    panel.setCanChooseDirectories true
-    if panel.runModal isnt OSX.NSFileHandlingPanelOKButton
-      return null
-    filename = panel.filenames.lastObject
-    localStorage.lastOpenedPath = filename
-    filename.valueOf()
+    atom.native.openPanel()
 
   # Returns null or a file path.
   savePanel: ->
