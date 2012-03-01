@@ -38,13 +38,15 @@
 - (void)sendEvent:(NSEvent*)event {
   CefScopedSendingEvent sendingEventScoper;
 
-  if (_clientHandler && ![self keyWindow] && [event type] == NSKeyDown) {
-    [_hiddenWindow makeKeyAndOrderFront:self];
-    [_hiddenWindow sendEvent:event];
-  }
-  else {
+//  if ([[self mainMenu] performKeyEquivalent:event]) return;
+//  
+//  if (_clientHandler && ![self keyWindow] && [event type] == NSKeyDown) {
+//    [_hiddenWindow makeKeyAndOrderFront:self];
+//    [_hiddenWindow sendEvent:event];
+//  }
+//  else {
     [super sendEvent:event];
-  }
+//  }
 }
 
 - (void)createAtomContext {
