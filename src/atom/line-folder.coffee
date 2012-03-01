@@ -27,6 +27,7 @@ class LineFolder
     @lineMap.logLines(start, end)
 
   createFold: (bufferRange) ->
+    return if bufferRange.isEmpty()
     fold = new Fold(this, bufferRange)
     @registerFold(bufferRange.start.row, fold)
     oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))

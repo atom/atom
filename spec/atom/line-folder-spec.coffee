@@ -206,6 +206,9 @@ describe "LineFolder", ->
           fold.destroy()
           expect(folder.lineForScreenRow(0).text).toBe 'var quicksort = function () {'
 
+    it "doesn't raise an error when attempting to fold empty ranges", ->
+      folder.createFold(new Range([1, 1], [1, 1]))
+
   describe "when the buffer changes", ->
     [fold1, fold2] = []
     beforeEach ->
