@@ -104,42 +104,44 @@ class LineMap
     wrapAtSoftNewlines = options.wrapAtSoftNewlines ? false
     skipAtomicTokens = options.skipAtomicTokens ? false
 
-    if sourcePosition.column < 0
-      sourcePosition.column = 0
-
-    if sourcePosition.row < 0
-      sourcePosition.row = 0
-      sourcePosition.column = 0
-
-    maxSourceRow = @lineCountByDelta(sourceDeltaType) - 1
-    if sourcePosition.row > maxSourceRow
-      sourcePosition.row = maxSourceRow
-      sourcePosition.column = Infinity
-
+    @clipToBounds(sourceDeltaType, sourcePosition)
     traversalResult = @traverseByDelta(sourceDeltaType, sourcePosition)
     lastLineFragment = traversalResult.lastLineFragment
     sourceDelta = traversalResult[sourceDeltaType]
     targetDelta = traversalResult[targetDeltaType]
-
-    if lastLineFragment.isAtomic
-      if skipAtomicTokens and sourcePosition.column > sourceDelta.column
-        return new Point(targetDelta.row, targetDelta.column + lastLineFragment.text.length)
-      else
-        return targetDelta
-
     maxSourceColumn = sourceDelta.column + lastLineFragment.text.length
     maxTargetColumn = targetDelta.column + lastLineFragment.text.length
+
     if lastLineFragment.isSoftWrapped() and sourcePosition.column >= maxSourceColumn
       if wrapAtSoftNewlines
-        return new Point(targetDelta.row + 1, 0)
+        targetDelta.row++
+        targetDelta.column = 0
       else
-        return new Point(targetDelta.row, maxTargetColumn - 1)
+        targetDelta.column = maxTargetColumn - 1
+    else if sourcePosition.column > maxSourceColumn and wrapBeyondNewlines
+      targetDelta.row++
+      targetDelta.column = 0
+    else if lastLineFragment.isAtomic
+      if skipAtomicTokens and sourcePosition.column > sourceDelta.column
+        targetDelta.column += lastLineFragment.text.length
+    else
+      additionalColumns = sourcePosition.column - sourceDelta.column
+      targetDelta.column = Math.min(maxTargetColumn, targetDelta.column + additionalColumns)
 
-    if sourcePosition.column > maxSourceColumn and wrapBeyondNewlines
-      return new Point(targetDelta.row + 1, 0)
+    targetDelta
 
-    targetColumn = targetDelta.column + (sourcePosition.column - sourceDelta.column)
-    new Point(targetDelta.row, Math.min(maxTargetColumn, targetColumn))
+  clipToBounds: (deltaType, position) ->
+    if position.column < 0
+      position.column = 0
+
+    if position.row < 0
+      position.row = 0
+      position.column = 0
+
+    maxSourceRow = @lineCountByDelta(deltaType) - 1
+    if position.row > maxSourceRow
+      position.row = maxSourceRow
+      position.column = Infinity
 
   traverseByDelta: (deltaType, startPosition, endPosition=startPosition, iterator=null) ->
     traversalDelta = new Point
