@@ -38,10 +38,13 @@ class LineMap
     @linesByDelta('bufferDelta', startRow, endRow)
 
   bufferLineCount: ->
-    @traverseByDelta('bufferDelta', new Point(Infinity, 0)).bufferDelta.row
+    @lineCountByDelta('bufferDelta')
 
   screenLineCount: ->
-    @traverseByDelta('screenDelta', new Point(Infinity, 0)).screenDelta.row
+    @lineCountByDelta('screenDelta')
+
+  lineCountByDelta: (deltaType) ->
+    @traverseByDelta(deltaType, new Point(Infinity, 0))[deltaType].row
 
   lastScreenRow: ->
     @screenLineCount() - 1
@@ -63,12 +66,6 @@ class LineMap
     new Range(start, end)
 
   clipScreenPosition: (screenPosition, options) ->
-    screenPosition = Point.fromObject(screenPosition)
-    maxScreenRow = @lastScreenRow()
-    if screenPosition.row > maxScreenRow
-      screenPosition.row = maxScreenRow
-      screenPosition.column = Infinity
-
     @translatePosition('screenDelta', 'screenDelta', screenPosition, options)
 
   spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
@@ -113,6 +110,11 @@ class LineMap
     if sourcePosition.row < 0
       sourcePosition.row = 0
       sourcePosition.column = 0
+
+    maxSourceRow = @lineCountByDelta(sourceDeltaType) - 1
+    if sourcePosition.row > maxSourceRow
+      sourcePosition.row = maxSourceRow
+      sourcePosition.column = Infinity
 
     traversalResult = @traverseByDelta(sourceDeltaType, sourcePosition)
     lastLineFragment = traversalResult.lastLineFragment
