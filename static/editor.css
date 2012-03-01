@@ -51,6 +51,7 @@
 }
 
 .fold-placeholder {
+  -webkit-box-sizing: border-box;
   position: relative;
   display: inline-block;
   vertical-align: text-bottom;
