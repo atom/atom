@@ -38,10 +38,10 @@ class LineMap
     @linesByDelta('bufferDelta', startRow, endRow)
 
   bufferLineCount: ->
-    @bufferPositionForScreenPosition([Infinity, 0]).row
+    @traverseByDelta('bufferDelta', new Point(Infinity, 0)).bufferDelta.row
 
   screenLineCount: ->
-    @screenPositionForBufferPosition([Infinity, 0]).row
+    @traverseByDelta('screenDelta', new Point(Infinity, 0)).screenDelta.row
 
   lastScreenRow: ->
     @screenLineCount() - 1
