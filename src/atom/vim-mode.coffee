@@ -15,13 +15,13 @@ class VimMode
     @opStack = []
     @activateCommandMode()
 
-    atom.bindKeys '.editor', 'escape': 'activate-command-mode'
+    window.keymap.bindKeys '.editor', 'escape': 'activate-command-mode'
     @editor.on 'activate-command-mode', => @activateCommandMode()
 
     @setupCommandMode()
 
   setupCommandMode: ->
-    atom.bindKeys '.command-mode', (e) =>
+    window.keymap.bindKeys '.command-mode', (e) =>
       if e.keystroke.match /^\d$/
         return 'command-mode:numeric-prefix'
       if e.keystroke.match /^.$/
@@ -62,7 +62,7 @@ class VimMode
     for pattern, commandName of bindings
       prefixedBindings[pattern] = "command-mode:#{commandName}"
 
-    atom.bindKeys ".command-mode", prefixedBindings
+    window.keymap.bindKeys ".command-mode", prefixedBindings
 
   handleCommands: (commands) ->
     _.each commands, (fn, commandName) =>

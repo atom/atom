@@ -3,13 +3,12 @@
 
 _ = require 'underscore'
 $ = require 'jquery'
-jscocoa = require 'jscocoa'
 
 module.exports =
   # Make the given path absolute by resolving it against the
   # current working directory.
   absolute: (path) ->
-    $atomController.absolute(path).toString()
+    $native.absolute(path)
 
   # Return the basename of the given path. That is the path with
   # any leading directory components removed. If specified, also
@@ -18,22 +17,17 @@ module.exports =
     base = path.split("/").pop()
     if ext then base.replace(RegEx(ext + "$"), "") else base
 
-  # Set the current working directory to `path`.
-  changeWorkingDirectory: (path) ->
-    OSX.NSFileManager.defaultManager.changeCurrentDirectoryPath path
-
-  # Return the dirname of the given path. That is the path with any trailing 
+  # Return the dirname of the given path. That is the path with any trailing
   # non-directory component removed.
   directory: (path) ->
-    absPath = @absolute(path)
-    if @isDirectory(absPath)
-      absPath.replace(/\/?$/, '/')
+    if @isDirectory(path)
+      path.replace(/\/?$/, '/')
     else
-      absPath.replace(new RegExp("/#{@base(path)}$"), '/')
+      path.replace(new RegExp("/#{@base(path)}$"), '/')
 
   # Returns true if the file specified by path exists
   exists: (path) ->
-    OSX.NSFileManager.defaultManager.fileExistsAtPath_isDirectory path, null
+    $native.exists path
 
   join: (paths...) ->
     return paths[0] if paths.length == 1
@@ -43,62 +37,44 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # directory.
   isDirectory: (path) ->
-    isDir = new jscocoa.outArgument
-    exists = OSX.NSFileManager.defaultManager.
-      fileExistsAtPath_isDirectory path, isDir
-    exists and isDir.valueOf()
+    $native.isDirectory path
 
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    $atomController.fs.isFile path
+    not $native.isDirectory path
 
   # Returns an array with all the names of files contained
   # in the directory path.
-  list: (path, recursive) ->
-    path = @absolute path
-    fm = OSX.NSFileManager.defaultManager
-    if recursive
-      paths = fm.subpathsAtPath path
-    else
-      paths = fm.contentsOfDirectoryAtPath_error path, null
-    _.map paths, (entry) -> "#{path}/#{entry}"
+  list: (path) ->
+    $native.list(path, false)
 
-  # Return an array with all directories below (and including)
-  # the given path, as discovered by depth-first traversal. Entries
-  # are in lexically sorted order within directories. Symbolic links
-  # to directories are not traversed into.
-  listDirectoryTree: (path) ->
-    @list path, true
+  listTree: (path) ->
+    $native.list(path, true)
 
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
   remove: (path) ->
-    fm = OSX.NSFileManager.defaultManager
-    paths = fm.removeItemAtPath_error path, null
+    $native.remove path
 
   # Open, read, and close a file, returning the file's contents.
   read: (path) ->
-    path = @absolute path
-    enc  = OSX.NSUTF8StringEncoding
-    OSX.NSString.stringWithContentsOfFile_encoding_error(path, enc, null)
-    .toString()
+    $native.read(path)
 
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
-    str  = OSX.NSString.stringWithUTF8String content
-    path = @absolute path
-    enc  = OSX.NSUTF8StringEncoding
-    str.writeToFile_atomically_encoding_error path, true, enc, null
-
-  # Return the path name of the current working directory.
-  workingDirectory: ->
-    OSX.NSFileManager.defaultManager.currentDirectoryPath.toString()
+    $native.write(path, content)
 
   async:
-    listFiles: (path, recursive) ->
+    list: (path) ->
       deferred = $.Deferred()
-      $atomController.fs.listFilesAtPath_recursive_onComplete path, recursive, (subpaths) ->
+      $native.asyncList path, false, (subpaths) ->
+        deferred.resolve subpaths
+      deferred
+
+    listTree: (path) ->
+      deferred = $.Deferred()
+      $native.asyncList path, true, (subpaths) ->
         deferred.resolve subpaths
       deferred
 

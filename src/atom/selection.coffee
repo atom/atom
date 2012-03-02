@@ -166,7 +166,7 @@ class Selection extends View
   copy: ->
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
-    atom.native.writeToPasteboard text
+    $native.writeToPasteboard text
 
   fold: ->
     range = @getBufferRange()

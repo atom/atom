@@ -1,4 +1,4 @@
 fs = require 'fs'
-
 require 'spec-helper'
-require path for path in fs.listDirectoryTree(require.resolve '.') when /-spec\.coffee$/.test path
+
+require path for path in fs.listTree(atom.loadPath + "/spec") when /-spec\.coffee$/.test path

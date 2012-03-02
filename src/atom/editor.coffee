@@ -41,7 +41,7 @@ class Editor extends View
     @setBuffer(new Buffer)
 
   bindKeys: ->
-    atom.bindKeys '*:not(.editor *)',
+    window.keymap.bindKeys '*:not(.editor *)',
       right: 'move-right'
       left: 'move-left'
       down: 'move-down'
@@ -304,7 +304,7 @@ class Editor extends View
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
-  paste: -> @selection.insertText(atom.native.readFromPasteboard())
+  paste: -> @selection.insertText($native.readFromPasteboard())
 
   foldSelection: -> @selection.fold()
 

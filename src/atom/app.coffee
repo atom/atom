@@ -1,28 +1,30 @@
-Native = require 'native'
 GlobalKeymap = require 'global-keymap'
 $ = require 'jquery'
+_ = require 'underscore'
 
 module.exports =
 class App
-  globalKeymap: null
-  native: null
+  keymap: null
+  windows: null
 
-  constructor: ->
-    @native = new Native
-    @globalKeymap = new GlobalKeymap
-    $(document).on 'keydown', (e) => @globalKeymap.handleKeyEvent(e)
+  constructor: (@loadPath, nativeMethods)->
+    @windows = []
+    @setupKeymap()
 
-  bindKeys: (selector, bindings) ->
-    @globalKeymap.bindKeys(selector, bindings)
-
-  bindKey: (selector, pattern, eventName) ->
-    @globalKeymap.bindKey(selector, pattern, eventName)
+  setupKeymap: ->
+    @keymap = new GlobalKeymap()
+    
+    $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
 
   open: (url) ->
-    OSX.NSApp.open url
+    $native.open url
 
   quit: ->
-    OSX.NSApp.terminate null
+    $native.terminate null
 
-  windows: ->
-    controller.jsWindow for controller in OSX.NSApp.controllers
+  windowOpened: (window) ->
+    @windows.push window
+
+  windowClosed: (window) ->
+    index = @windows.indexOf(window)
+    @windows.splice(index, 1) if index >= 0

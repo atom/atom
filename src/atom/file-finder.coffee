@@ -17,7 +17,7 @@ class FileFinder extends View
     @maxResults = 10
 
     @populateUrlList()
-    atom.bindKeys ".file-finder",
+    window.keymap.bindKeys ".file-finder",
       'up': 'move-up'
       'down': 'move-down'
       'enter': 'select'
@@ -60,7 +60,12 @@ class FileFinder extends View
       urls = @urls
     else
       scoredUrls = ({url, score: stringScore(url, query)} for url in @urls)
-      scoredUrls.sort (a, b) -> a.score > b.score
+      scoredUrls.sort (a, b) ->
+        if a.score > b.score then -1
+        else if a.score < b.score then 1
+        else 0
+      window.x = scoredUrls
+
       urls = (urlAndScore.url for urlAndScore in scoredUrls when urlAndScore.score > 0)
 
     urls.slice 0, @maxResults

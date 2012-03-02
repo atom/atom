@@ -1,8 +1,0 @@
-Want
-- open raw HTML in browser tab
-
-- cmd-shift-p: preview markdown as HTML
-
-- cmd-t file finder uses project.settings.extraURLs
-
-- atom.process.run "shell-command", -> stdoutCallback()

@@ -9,6 +9,16 @@ class GlobalKeymap
   constructor: ->
     @bindingSets = []
 
+    @bindKeys "*",
+      'meta-n': 'newWindow'
+      'meta-o': 'open'
+
+    $(document).on 'newWindow', => $native.newWindow()
+    $(document).on 'open', => 
+      url = $native.openDialog()
+      atom.open(url) if url
+  
+
   bindKeys: (selector, bindings) ->
     @bindingSets.unshift(new BindingSet(selector, bindings))
 
@@ -19,7 +29,7 @@ class GlobalKeymap
 
   handleKeyEvent: (event) ->
     event.keystroke = @keystrokeStringForEvent(event)
-    currentNode = $(event.target)
+    currentNode = $(event.target)    
     while currentNode.length
       candidateBindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
       candidateBindingSets.sort (a, b) -> b.specificity - a.specificity
