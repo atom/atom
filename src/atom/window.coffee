@@ -5,6 +5,8 @@ $ = require 'jquery'
 GlobalKeymap = require 'global-keymap'
 RootView = require 'root-view'
 
+require 'jquery-extensions'
+
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
