@@ -1,7 +1,6 @@
 nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
-Native = require 'native'
 GlobalKeymap = require 'global-keymap'
 Point = require 'point'
 
