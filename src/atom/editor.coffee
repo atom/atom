@@ -170,6 +170,7 @@ class Editor extends View
       @cursor.bufferChanged(e)
 
     @lineWrapper.on 'change', (e) =>
+      @cursor.refreshScreenPosition()
       { oldRange, newRange } = e
       screenLines = @linesForScreenRows(newRange.start.row, newRange.end.row)
       if newRange.end.row > oldRange.end.row

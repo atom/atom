@@ -83,12 +83,14 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(8)').text()).toBe ': right.push(current);'
         expect(editor.lines.find('.line:eq(9)').text()).toBe '    }'
 
-      it "changes the max line length when the window size changes", ->
+      it "changes the max line length and repositions the cursor when the window size changes", ->
+        editor.setCursorBufferPosition([3, 60])
         editor.width(editor.charWidth * 40)
         $(window).trigger 'resize'
         expect(editor.lines.find('.line').length).toBe 19
         expect(editor.lines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
         expect(editor.lines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
+        expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
       it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
         editor.toggleSoftWrap()

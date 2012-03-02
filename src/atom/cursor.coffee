@@ -8,6 +8,8 @@ class Cursor extends View
     @pre class: 'cursor idle', style: 'position: absolute;', => @raw '&nbsp;'
 
   editor: null
+  screenPosition: null
+  bufferPosition: null
 
   initialize: (@editor) ->
     @one 'attach', => @updateAppearance()
@@ -18,6 +20,7 @@ class Cursor extends View
   setScreenPosition: (position) ->
     position = Point.fromObject(position)
     @screenPosition = @editor.clipScreenPosition(position)
+    @bufferPosition = @editor.bufferPositionForScreenPosition(position)
     @goalColumn = null
     @updateAppearance()
     @trigger 'cursor:position-changed'
@@ -29,9 +32,10 @@ class Cursor extends View
   setBufferPosition: (bufferPosition) ->
     @setScreenPosition(@editor.screenPositionForBufferPosition(bufferPosition))
 
-  getBufferPosition: ->
-    @editor.bufferPositionForScreenPosition(@getScreenPosition())
+  refreshScreenPosition: ->
+    @setBufferPosition(@bufferPosition)
 
+  getBufferPosition: -> _.clone(@bufferPosition)
   getScreenPosition: -> _.clone(@screenPosition)
 
   getColumn: ->
