@@ -70,10 +70,8 @@
   CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
   global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
   
-  if (_pathToOpen) {
-    CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString([_pathToOpen UTF8String]);
-    global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
-  }
+  CefRefPtr<CefV8Value> pathToOpen = _pathToOpen ? CefV8Value::CreateString([_pathToOpen UTF8String]) : CefV8Value::CreateNull();
+  global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
     
   global->SetValue("atom", _atomContext->GetGlobal()->GetValue("atom"), V8_PROPERTY_ATTRIBUTE_NONE);
   

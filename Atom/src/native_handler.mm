@@ -10,7 +10,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools"};
+  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -214,7 +214,6 @@ bool NativeHandler::Execute(const CefString& name,
     [panel setCanChooseDirectories:YES];
     if ([panel runModal] == NSFileHandlingPanelOKButton) {
       NSURL *url = [[panel URLs] lastObject];
-      NSLog(@"An URL %@", [url path]);
       retval = CefV8Value::CreateString([[url path] UTF8String]);
     }
     else {
@@ -226,6 +225,23 @@ bool NativeHandler::Execute(const CefString& name,
   else if (name == "open") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     [NSApp open:path];
+    
+    return true;
+  }
+  else if (name == "newWindow") {
+    [NSApp open:nil];
+
+    return true;
+  }
+  else if (name == "saveDialog") {
+    NSSavePanel *panel = [NSSavePanel savePanel];
+    if ([panel runModal] == NSFileHandlingPanelOKButton) {
+      NSURL *url = [panel URL];
+      retval = CefV8Value::CreateString([[url path] UTF8String]);
+    }
+    else {
+      return CefV8Value::CreateNull();
+    }
     
     return true;
   }

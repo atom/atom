@@ -13,12 +13,7 @@ class App
 
   setupKeymap: ->
     @keymap = new GlobalKeymap()
-    @keymap.bindKeys "*",
-      'meta-o': 'open'
-
-    $(document).on 'open', => 
-      url = $native.openDialog()
-      @open(url) if url
+    
     $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
 
   open: (url) ->

@@ -31,6 +31,7 @@ windowAdditions =
 
   setupKeymap: ->
     @keymap = new GlobalKeymap()
+
     $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
 
   attachRootView: (url) ->
