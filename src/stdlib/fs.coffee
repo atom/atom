@@ -3,7 +3,6 @@
 
 _ = require 'underscore'
 $ = require 'jquery'
-jscocoa = require 'jscocoa'
 
 module.exports =
   # Make the given path absolute by resolving it against the
