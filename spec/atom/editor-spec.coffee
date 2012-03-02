@@ -52,13 +52,13 @@ describe "Editor", ->
 
     describe "when soft-wrap is enabled", ->
       beforeEach ->
-        editor.width(9 * 50)
+        editor.width(11 * 50)
         editor.setSoftWrap(true)
         editor.attachToDom()
         # this verifies the assumption made above in setting the editor's width
         # charWidth isn't be calculated until it's the editor is on the DOM, but
         # we need to ensure that the maxLineLength is recalculated when we attach.
-        expect(editor.charWidth).toBe 9
+        expect(editor.charWidth).toBe 11
 
       it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
         expect(editor.lines.find('.line').length).toBe 16
@@ -765,21 +765,21 @@ describe "Editor", ->
 
   describe "cut, copy & paste", ->
     beforeEach ->
-      atom.native.writeToPasteboard('first')
-      expect(atom.native.readFromPasteboard()).toBe 'first'
+      $native.writeToPasteboard('first')
+      expect($native.readFromPasteboard()).toBe 'first'
 
     describe "when a cut event is triggered", ->
       it "removes the selected text from the buffer and places it on the pasteboard", ->
         editor.getSelection().setBufferRange new Range([0,4], [0,9])
         editor.trigger "cut"
         expect(editor.buffer.getLine(0)).toBe "var sort = function () {"
-        expect(atom.native.readFromPasteboard()).toBe 'quick'
+        expect($native.readFromPasteboard()).toBe 'quick'
 
     describe "when a copy event is triggered", ->
       it "copies selected text onto the clipboard", ->
         editor.getSelection().setBufferRange new Range([0,4], [0, 13])
         editor.trigger "copy"
-        expect(atom.native.readFromPasteboard()).toBe 'quicksort'
+        expect($native.readFromPasteboard()).toBe 'quicksort'
 
     describe "when a paste event is triggered", ->
       it "pastes text into the buffer", ->

@@ -7,7 +7,6 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 FileFinder = require 'file-finder'
 Project = require 'project'
-GlobalKeymap = require 'global-keymap'
 VimMode = require 'vim-mode'
 
 module.exports =
@@ -18,13 +17,11 @@ class RootView extends View
         @div id: 'main', outlet: 'main', =>
           @subview 'editor', new Editor
 
-  globalKeymap: null
-
   initialize: ({url}) ->
-    @editor.keyEventHandler = atom.globalKeymap
+    @editor.keyEventHandler = window.keymap
     @createProject(url)
 
-    atom.bindKeys '*'
+    window.keymap.bindKeys '*'
       'meta-s': 'save'
       'meta-w': 'close'
       'meta-t': 'toggle-file-finder'
@@ -42,9 +39,6 @@ class RootView extends View
     if url
       @project = new Project(fs.directory(url))
       @editor.setBuffer(@project.open(url)) if fs.isFile(url)
-
-  bindKeys: (selector, bindings) ->
-    @globalKeymap.bindKeys(selector, bindings)
 
   addPane: (view) ->
     pane = $('<div class="pane">')
