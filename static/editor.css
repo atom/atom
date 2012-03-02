@@ -5,10 +5,32 @@
   height: 100%;
   background: #333;
   color: white;
-  overflow-y: scroll;
-  overflow-x: auto;
   cursor: default;
+
+  overflow-y: scroll;
+
   -webkit-user-select: none;
+}
+
+.editor .content {
+  display: -webkit-flexbox;
+}
+
+.editor .gutter {
+  padding: 0 1ex;
+  color: rgba(255, 255, 255, .3);
+}
+
+.editor .gutter.drop-shadow {
+  -webkit-box-shadow: -2px 0px 10px 2px #222;  
+}
+
+.editor .lines {
+  overflow-x: auto;
+  width: -webkit-flex(1);
+
+  position: relative;
+
 }
 
 .editor .line {
@@ -27,6 +49,7 @@
 }
 
 .editor .cursor {
+  position: absolute;
   border-left: 3px solid #9dff9d;
   opacity: 0.7;
 }

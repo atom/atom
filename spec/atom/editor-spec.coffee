@@ -66,15 +66,15 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(4)').text()).toBe "right = [];"
 
         editor.cursor.setBufferPosition([3, 51])
-        expect(editor.cursor.position()).toEqual(editor.lines.find('.line:eq(4)').position())
+        expect(editor.cursor.offset()).toEqual(editor.lines.find('.line:eq(4)').offset())
 
         editor.cursor.setBufferPosition([4, 0])
-        expect(editor.cursor.position()).toEqual(editor.lines.find('.line:eq(5)').position())
+        expect(editor.cursor.offset()).toEqual(editor.lines.find('.line:eq(5)').offset())
 
         editor.selection.setBufferRange(new Range([6, 30], [6, 55]))
         [region1, region2] = editor.selection.regions
-        expect(region1.position().top).toBe(editor.lines.find('.line:eq(7)').position().top)
-        expect(region2.position().top).toBe(editor.lines.find('.line:eq(8)').position().top)
+        expect(region1.offset().top).toBe(editor.lines.find('.line:eq(7)').offset().top)
+        expect(region2.offset().top).toBe(editor.lines.find('.line:eq(8)').offset().top)
 
       # Many more tests for change events in the LineWrapper spec
       it "handles changes to wrapped lines correctly", ->
@@ -128,13 +128,13 @@ describe "Editor", ->
         editor.attachToDom()
         editor.setCursorScreenPosition(row: 2, column: 2)
 
-      it "moves the cursor to cover the character at the given row and column", ->
-        expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
-        expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
+      it "moves the cursor to the character at the given row and column", ->
+        { top, left } = editor.lines.offset()
+        expect(editor.getCursor().offset()).toEqual(top: top + 2 * editor.lineHeight, left: left + 2 * editor.charWidth)
 
       it "moves the hidden input element to the position of the cursor to prevent scrolling misbehavior", ->
-        expect(editor.hiddenInput.position().top).toBe(2 * editor.lineHeight)
-        expect(editor.hiddenInput.position().left).toBe(2 * editor.charWidth)
+        { top, left } = editor.lines.offset()
+        expect(editor.hiddenInput.position()).toEqual(top: top + 2 * editor.lineHeight, left: left + 2 * editor.charWidth)
 
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->
@@ -274,40 +274,40 @@ describe "Editor", ->
           editor.hScrollMargin = 5
 
         it "scrolls horizontally to keep the cursor on screen", ->
-          editor.width(charWidth * 30)
+          editor.width(charWidth * 30 + editor.lines.position().left)
 
           # moving right
           editor.setCursorScreenPosition([2, 24])
-          expect(editor.scrollLeft()).toBe 0
+          expect(editor.lines.scrollLeft()).toBe 0
 
           editor.setCursorScreenPosition([2, 25])
-          expect(editor.scrollLeft()).toBe charWidth
+          expect(editor.lines.scrollLeft()).toBe charWidth
 
           editor.setCursorScreenPosition([2, 28])
-          expect(editor.scrollLeft()).toBe charWidth * 4
+          expect(editor.lines.scrollLeft()).toBe charWidth * 4
 
           # moving left
           editor.setCursorScreenPosition([2, 9])
-          expect(editor.scrollLeft()).toBe charWidth * 4
+          expect(editor.lines.scrollLeft()).toBe charWidth * 4
 
           editor.setCursorScreenPosition([2, 8])
-          expect(editor.scrollLeft()).toBe charWidth * 3
+          expect(editor.lines.scrollLeft()).toBe charWidth * 3
 
           editor.setCursorScreenPosition([2, 5])
-          expect(editor.scrollLeft()).toBe 0
+          expect(editor.lines.scrollLeft()).toBe 0
 
         it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
           editor.hScrollMargin = 6
-          editor.width(charWidth * 7)
+          editor.width(charWidth * 7 + editor.lines.position().left)
 
           editor.setCursorScreenPosition([2, 3])
-          expect(editor.scrollLeft()).toBe(0)
+          expect(editor.lines.scrollLeft()).toBe(0)
 
           editor.setCursorScreenPosition([2, 4])
-          expect(editor.scrollLeft()).toBe(charWidth)
+          expect(editor.lines.scrollLeft()).toBe(charWidth)
 
           editor.setCursorScreenPosition([2, 3])
-          expect(editor.scrollLeft()).toBe(0)
+          expect(editor.lines.scrollLeft()).toBe(0)
 
       describe "when left is pressed on the first column", ->
         describe "when there is a previous line", ->
@@ -355,17 +355,15 @@ describe "Editor", ->
         describe "when it is a single click", ->
           it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
-            editor.lines.trigger mousedownEvent({pageX, pageY})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7])
             expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 58)
 
         describe "when it is a double click", ->
           it "selects the word under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 3])
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
             expect(editor.getSelectedText()).toBe "right"
 
         describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
@@ -373,24 +371,22 @@ describe "Editor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             # Triple click
-            [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 3])
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 3})
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    var pivot = items.shift(), current, left = [], right = [];"
 
             # Quad click
-            [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 3])
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 1})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 2})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 3})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 4}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 4})
             editor.lines.trigger 'mouseup'
 
             expect(editor.getSelectedText()).toBe "      current < pivot ? left.push(current) : right.push(current);"
@@ -400,17 +396,15 @@ describe "Editor", ->
           it "re-positions the cursor to the clicked row / column", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
-            [pageX, pageY] = window.pixelPositionForPoint(editor, [3, 10])
-            editor.lines.trigger mousedownEvent({pageX, pageY})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [3, 10])
             expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
 
         describe "when it is a double click", ->
           it "selects the word under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            [pageX, pageY] = window.pixelPositionForPoint(editor, [0, 8])
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "quicksort"
 
@@ -419,24 +413,22 @@ describe "Editor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             # Triple click
-            [pageX, pageY] = window.pixelPositionForPoint(editor, [1, 8])
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
 
             # Quad click
-            [pageX, pageY] = window.pixelPositionForPoint(editor, [2, 3])
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
             editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 4}})
+            editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
 
@@ -507,12 +499,10 @@ describe "Editor", ->
         editor.css(position: 'absolute', top: 10, left: 10)
 
         # start
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 10])
-        editor.lines.trigger mousedownEvent({pageX, pageY})
+        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
 
         # moving changes selection
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [5, 27])
-        editor.lines.trigger mousemoveEvent({pageX, pageY})
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
         range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
@@ -523,8 +513,7 @@ describe "Editor", ->
         $(document).trigger 'mouseup'
 
         # moving after mouse up should not change selection
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 8])
-        editor.lines.trigger mousemoveEvent({pageX, pageY})
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
         range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
@@ -536,14 +525,12 @@ describe "Editor", ->
         editor.css(position: 'absolute', top: 10, left: 10)
 
         # double click
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
-        editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
         $(document).trigger 'mouseup'
-        editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
 
         # moving changes selection
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [5, 27])
-        editor.lines.trigger mousemoveEvent({pageX, pageY})
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
         range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 4})
@@ -554,8 +541,7 @@ describe "Editor", ->
         $(document).trigger 'mouseup'
 
         # moving after mouse up should not change selection
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 8])
-        editor.lines.trigger mousemoveEvent({pageX, pageY})
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
         range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 4})
@@ -568,16 +554,14 @@ describe "Editor", ->
         editor.css(position: 'absolute', top: 10, left: 10)
 
         # double click
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [4, 7])
-        editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 1}})
+        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
         $(document).trigger 'mouseup'
-        editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 2}})
+        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
         $(document).trigger 'mouseup'
-        editor.lines.trigger mousedownEvent({pageX, pageY, originalEvent: {detail: 3}})
+        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 3})
 
         # moving changes selection
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [5, 27])
-        editor.lines.trigger mousemoveEvent({pageX, pageY})
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
         range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 0})
@@ -588,8 +572,7 @@ describe "Editor", ->
         $(document).trigger 'mouseup'
 
         # moving after mouse up should not change selection
-        [pageX, pageY] = window.pixelPositionForPoint(editor, [8, 8])
-        editor.lines.trigger mousemoveEvent({pageX, pageY})
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
         range = editor.selection.getScreenRange()
         expect(range.start).toEqual({row: 4, column: 0})
@@ -740,8 +723,7 @@ describe "Editor", ->
 
       expect(editor.lineHeight).not.toBeNull()
       expect(editor.charWidth).not.toBeNull()
-      expect(editor.getCursor().position().top).toBe(2 * editor.lineHeight)
-      expect(editor.getCursor().position().left).toBe(2 * editor.charWidth)
+      expect(editor.getCursor().offset()).toEqual pagePixelPositionForPoint(editor, [2, 2])
 
     it "is focused", ->
       editor.attachToDom()

@@ -5,7 +5,7 @@ GlobalKeymap = require 'global-keymap'
 Point = require 'point'
 
 require 'window'
-window.showConsole()
+# window.showConsole()
 
 beforeEach ->
   window.keymap = new GlobalKeymap
@@ -52,12 +52,20 @@ window.keydownEvent = (pattern, properties={}) ->
 window.clickEvent = (properties={}) ->
   $.Event "click", properties
 
-window.mousedownEvent = (properties={}) ->
+window.mouseEvent = (type, properties) ->
+  if properties.point
+    {point, editor} = properties
+    {top, left} = @pagePixelPositionForPoint(editor, point)
+    properties.pageX = left + 1
+    properties.pageY = top + 1
   properties.originalEvent ?= {detail: 1}
-  $.Event "mousedown", properties
+  $.Event type, properties
+
+window.mousedownEvent = (properties={}) ->
+  window.mouseEvent('mousedown', properties)
 
 window.mousemoveEvent = (properties={}) ->
-  $.Event "mousemove", properties
+  window.mouseEvent('mousemove', properties)
 
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->
@@ -85,11 +93,11 @@ window.advanceClock = (delta) ->
     else
       true
 
-window.pixelPositionForPoint = (editor, point) ->
+window.pagePixelPositionForPoint = (editor, point) ->
   point = Point.fromObject point
-  pageY = editor.lines.offset().top + point.row * editor.lineHeight + 1 # ensure the pixel is inside the char
-  pageX = editor.lines.offset().left + point.column * editor.charWidth + 1 # ensure the pixel is inside the char
-  [pageX, pageY]
+  top = editor.lines.offset().top + point.row * editor.lineHeight
+  left = editor.lines.offset().left + point.column * editor.charWidth
+  { top, left }
 
 window.tokensText = (tokens) ->
   _.pluck(tokens, 'value').join('')

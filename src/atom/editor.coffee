@@ -16,7 +16,12 @@ module.exports =
 class Editor extends View
   @content: ->
     @div class: 'editor', tabindex: -1, =>
-      @div outlet: 'lines'
+      @div class: 'content', outlet: 'content', =>
+        @div class: 'gutter', outlet: 'gutter', =>
+          @div '1'
+          @div '2'
+          @div '3'
+        @div class: 'lines', outlet: 'lines'
       @input class: 'hidden-input', outlet: 'hiddenInput'
 
   vScrollMargin: 2
@@ -230,7 +235,10 @@ class Editor extends View
     @lineWrapper.clipScreenPosition(screenPosition, options)
 
   pixelPositionForScreenPosition: ({row, column}) ->
-    { top: row * @lineHeight, left: column * @charWidth }
+    { top: row * @lineHeight, left: @linesPositionLeft() + column * @charWidth }
+
+  linesPositionLeft: ->
+    @lines.position().left + @scrollLeft()
 
   screenPositionFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
@@ -260,18 +268,6 @@ class Editor extends View
     @charHeight = fragment.find('span').height()
     @lineHeight = fragment.outerHeight()
     fragment.remove()
-
-  scrollBottom: (newValue) ->
-    if newValue?
-      @scrollTop(newValue - @height())
-    else
-      @scrollTop() + @height()
-
-  scrollRight: (newValue) ->
-    if newValue?
-      @scrollLeft(newValue - @width())
-    else
-      @scrollLeft() + @width()
 
   getCursor: -> @cursor
   getSelection: -> @selection

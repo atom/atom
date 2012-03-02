@@ -1,8 +1,3 @@
-.gutter {
-  background: #e8e8e8;
-  color: #333;
-}
-
 .print_margin {
   width: 1px;
   background: #e8e8e8;
@@ -17,9 +12,9 @@
   color: #F8F8F8;
 }
 
-.cursor {
-  border-left: 2px solid #A7A7A7;
-}
+/* .cursor { */
+/*   border-left: 2px solid #A7A7A7; */
+/* } */
 
 .cursor.overwrite {
   border-left: 0px;

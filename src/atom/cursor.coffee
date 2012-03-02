@@ -5,7 +5,7 @@ _ = require 'underscore'
 module.exports =
 class Cursor extends View
   @content: ->
-    @pre class: 'cursor idle', style: 'position: absolute;', => @raw '&nbsp;'
+    @pre class: 'cursor idle', => @raw '&nbsp;'
 
   editor: null
   screenPosition: null
@@ -128,15 +128,16 @@ class Cursor extends View
       @editor.scrollTop(desiredTop)
 
   autoScrollHorizontally: (position) ->
-    charsInView = @editor.width() / @width()
+    charsInView = @editor.lines.width() / @width()
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
     scrollMargin = Math.min(@editor.hScrollMargin, maxScrollMargin)
     margin = scrollMargin * @width()
-    desiredRight = position.left + @width() + margin
-    desiredLeft = position.left - margin
+    cursorLeft = (position.left - @editor.linesPositionLeft())
+    desiredRight = cursorLeft + @width() + margin
+    desiredLeft = cursorLeft - margin
 
-    if desiredRight > @editor.scrollRight()
-      @editor.scrollRight(desiredRight)
-    else if desiredLeft < @editor.scrollLeft()
-      @editor.scrollLeft(desiredLeft)
+    if desiredRight > @editor.lines.scrollRight()
+      @editor.lines.scrollRight(desiredRight)
+    else if desiredLeft < @editor.lines.scrollLeft()
+      @editor.lines.scrollLeft(desiredLeft)
 
