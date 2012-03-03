@@ -149,8 +149,6 @@ class Editor extends View
     for screenLine in @getScreenLines()
       @lines.append @buildLineElement(screenLine)
 
-    @gutter.renderLines(@getScreenLines())
-
   getScreenLines: ->
     @lineWrapper.getLines()
 
@@ -169,14 +167,16 @@ class Editor extends View
     @lineWrapper = new LineWrapper(Infinity, @lineFolder)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
+    @gutter.renderLineNumbers(@getScreenLines())
+
     @setCursorScreenPosition(row: 0, column: 0)
 
     @buffer.on 'change', (e) =>
       @cursor.bufferChanged(e)
 
     @lineWrapper.on 'change', (e) =>
-      @gutter.renderLines(@getScreenLines())
-      
+      @gutter.renderLineNumbers(@getScreenLines())
+
       @cursor.refreshScreenPosition()
       { oldRange, newRange } = e
       screenLines = @linesForScreenRows(newRange.start.row, newRange.end.row)

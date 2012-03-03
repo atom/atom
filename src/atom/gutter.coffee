@@ -8,7 +8,7 @@ class Gutter extends View
   @content: ->
     @div class: 'gutter'
 
-  renderLines: (screenLines) ->
+  renderLineNumbers: (screenLines) ->
     @empty()
     for screenLine, i in screenLines    
       @append $$ ->
