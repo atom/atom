@@ -102,6 +102,9 @@ window.pagePixelPositionForPoint = (editor, point) ->
 window.tokensText = (tokens) ->
   _.pluck(tokens, 'value').join('')
 
+window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
+  editor.width(charWidth * widthInChars + editor.lines.position().left)
+
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)
   this.trigger(event)

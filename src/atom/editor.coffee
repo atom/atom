@@ -219,7 +219,7 @@ class Editor extends View
   setMaxLineLength: ->
     maxLength =
       if @softWrap
-        Math.floor(@width() / @charWidth)
+        Math.floor(@lines.width() / @charWidth)
       else
         Infinity
 

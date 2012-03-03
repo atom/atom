@@ -52,13 +52,18 @@ describe "Editor", ->
 
     describe "when soft-wrap is enabled", ->
       beforeEach ->
-        otherEditor = new Editor
+        otherEditor = new Editor()
+        otherEditor.setBuffer editor.buffer
         otherEditor.attachToDom()
         charWidth = otherEditor.charWidth
+        linesPositionLeft = otherEditor.linesPositionLeft()
         otherEditor.remove()
-        editor.width(charWidth * 50)
+        editor.width(charWidth * 50 + linesPositionLeft)
         editor.setSoftWrap(true)
         editor.attachToDom()
+
+
+        expect(editor.lineWrapper.maxLength).toBe 50
 
       it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
         expect(editor.lines.find('.line').length).toBe 16
@@ -85,7 +90,7 @@ describe "Editor", ->
 
       it "changes the max line length and repositions the cursor when the window size changes", ->
         editor.setCursorBufferPosition([3, 60])
-        editor.width(editor.charWidth * 40)
+        setEditorWidthInChars(editor, 40)
         $(window).trigger 'resize'
         expect(editor.lines.find('.line').length).toBe 19
         expect(editor.lines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
@@ -139,6 +144,10 @@ describe "Editor", ->
       buffer.deleteRow(0)
       expect(editor.gutter.find('.line-number').length).toEqual 12
       expect(editor.gutter.find('.line-number:last').text()).toBe "12"
+
+    describe "when wrapping is on", ->
+      it "renders a • instead of line number for wrapped portions of lines", ->
+
 
 
   describe "cursor movement", ->
@@ -293,7 +302,7 @@ describe "Editor", ->
           editor.hScrollMargin = 5
 
         it "scrolls horizontally to keep the cursor on screen", ->
-          editor.width(charWidth * 30 + editor.lines.position().left)
+          setEditorWidthInChars(editor, 30)
 
           # moving right
           editor.setCursorScreenPosition([2, 24])
@@ -317,7 +326,7 @@ describe "Editor", ->
 
         it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
           editor.hScrollMargin = 6
-          editor.width(charWidth * 7 + editor.lines.position().left)
+          setEditorWidthInChars(editor, 7)
 
           editor.setCursorScreenPosition([2, 3])
           expect(editor.lines.scrollLeft()).toBe(0)
@@ -367,7 +376,7 @@ describe "Editor", ->
 
       describe "when soft-wrap and is enabled and code is folded", ->
         beforeEach ->
-          editor.width(editor.charWidth * 50)
+          setEditorWidthInChars(editor, 50)
           editor.setSoftWrap(true)
           editor.lineFolder.createFold(new Range([3, 3], [3, 7]))
 
