@@ -128,6 +128,19 @@ describe "Editor", ->
       expect(editor.gutter.find('.line-number:first').text()).toBe "1"
       expect(editor.gutter.find('.line-number:last').text()).toBe "13"
 
+    it "updates line numbers when lines are inserted or removed", ->
+      expect(editor.gutter.find('.line-number').length).toEqual 13
+
+      buffer.insert([0, 0], "a new line\n")
+      expect(editor.gutter.find('.line-number').length).toEqual 14
+      expect(editor.gutter.find('.line-number:last').text()).toBe "14"
+
+      buffer.deleteRow(0)
+      buffer.deleteRow(0)
+      expect(editor.gutter.find('.line-number').length).toEqual 12
+      expect(editor.gutter.find('.line-number:last').text()).toBe "12"
+
+
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->

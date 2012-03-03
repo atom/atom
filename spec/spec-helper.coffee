@@ -5,7 +5,7 @@ GlobalKeymap = require 'global-keymap'
 Point = require 'point'
 
 require 'window'
-# window.showConsole()
+window.showConsole()
 
 beforeEach ->
   window.keymap = new GlobalKeymap

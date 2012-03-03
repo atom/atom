@@ -175,6 +175,8 @@ class Editor extends View
       @cursor.bufferChanged(e)
 
     @lineWrapper.on 'change', (e) =>
+      @gutter.renderLines(@getScreenLines())
+      
       @cursor.refreshScreenPosition()
       { oldRange, newRange } = e
       screenLines = @linesForScreenRows(newRange.start.row, newRange.end.row)
