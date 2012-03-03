@@ -122,6 +122,12 @@ describe "Editor", ->
         editor.moveCursorRight()
         expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
+  describe "gutter rendering", ->
+    it "creates a line number element for each line in the buffer", ->
+      expect(editor.gutter.find('.line-number').length).toEqual(buffer.numLines())
+      expect(editor.gutter.find('.line-number:first').text()).toBe "1"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "13"
+
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->

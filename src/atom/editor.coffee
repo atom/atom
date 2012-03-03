@@ -1,13 +1,14 @@
 {View, $$} = require 'space-pen'
 Buffer = require 'buffer'
-Point = require 'point'
 Cursor = require 'cursor'
-Selection = require 'selection'
+Gutter = require 'gutter'
 Highlighter = require 'highlighter'
 LineFolder = require 'line-folder'
 LineWrapper = require 'line-wrapper'
-UndoManager = require 'undo-manager'
+Point = require 'point'
 Range = require 'range'
+Selection = require 'selection'
+UndoManager = require 'undo-manager'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -17,10 +18,7 @@ class Editor extends View
   @content: ->
     @div class: 'editor', tabindex: -1, =>
       @div class: 'content', outlet: 'content', =>
-        @div class: 'gutter', outlet: 'gutter', =>
-          @div '1'
-          @div '2'
-          @div '3'
+        @subview 'gutter', new Gutter
         @div class: 'lines', outlet: 'lines'
       @input class: 'hidden-input', outlet: 'hiddenInput'
 
@@ -150,6 +148,8 @@ class Editor extends View
     @lines.empty()
     for screenLine in @getScreenLines()
       @lines.append @buildLineElement(screenLine)
+
+    @gutter.renderLines(@getScreenLines())
 
   getScreenLines: ->
     @lineWrapper.getLines()

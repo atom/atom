@@ -17,8 +17,10 @@
 }
 
 .editor .gutter {
-  padding: 0 1ex;
+  padding-left: 0.4em;
+  padding-right: 0.8em;
   color: rgba(255, 255, 255, .3);
+  text-align: right;
 }
 
 .editor .gutter.drop-shadow {
