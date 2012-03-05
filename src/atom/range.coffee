@@ -4,6 +4,13 @@ _ = require 'underscore'
 
 module.exports =
 class Range
+  @fromObject: (object) ->
+    if _.isArray(object)
+      new Range(object...)
+    else
+      object
+
+
   constructor: (pointA = new Point(0, 0), pointB = new Point(0, 0)) ->
     pointA = Point.fromObject(pointA)
     pointB = Point.fromObject(pointB)
