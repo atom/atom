@@ -69,7 +69,7 @@ class Editor extends View
     @on 'select-left', => @selectLeft()
     @on 'select-up', => @selectUp()
     @on 'select-down', => @selectDown()
-    @on 'newline', =>  @insertNewline()
+    @on 'newline', =>  @insertText("\n")
     @on 'backspace', => @backspace()
     @on 'delete', => @delete()
     @on 'cut', => @cutSelection()
@@ -301,7 +301,6 @@ class Editor extends View
     @selection.selectToBufferPosition(position)
 
   insertText: (text) -> @selection.insertText(text)
-  insertNewline: -> @selection.insertNewline()
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
