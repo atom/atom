@@ -5,17 +5,11 @@ EventEmitter = require 'event-emitter'
 module.exports =
 class Highlighter
   buffer: null
-  tokenizer: null
   screenLines: []
 
   constructor: (@buffer) ->
-    @buildTokenizer()
     @screenLines = @buildLinesForScreenRows('start', 0, @buffer.lastRow())
     @buffer.on 'change', (e) => @handleBufferChange(e)
-
-  buildTokenizer: ->
-    Mode = require("ace/mode/#{@buffer.modeName()}").Mode
-    @tokenizer = (new Mode).getTokenizer()
 
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
@@ -56,8 +50,9 @@ class Highlighter
       screenLine
 
   buildLineForScreenRow: (state, row) ->
+    tokenizer = @buffer.getMode().getTokenizer()
     line = @buffer.getLine(row)
-    {tokens, state} = @tokenizer.getLineTokens(line, state)
+    {tokens, state} = tokenizer.getLineTokens(line, state)
     new ScreenLineFragment(tokens, line, [1, 0], [1, 0], { state })
 
   lineForScreenRow: (row) ->
