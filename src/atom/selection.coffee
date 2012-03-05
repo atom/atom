@@ -43,12 +43,10 @@ class Selection extends View
 
   appendRegion: (rows, start, end) ->
     { lineHeight, charWidth } = @editor
-    css = {}
-    css.top = start.row * lineHeight
-    css.left = start.column * charWidth
+    css = @editor.pixelPositionForScreenPosition(start)
     css.height = lineHeight * rows
     if end
-      css.width = end.column * charWidth - css.left
+      css.width = @editor.pixelPositionForScreenPosition(end).left - css.left
     else
       css.right = 0
 

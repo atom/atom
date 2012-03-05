@@ -58,7 +58,7 @@ describe "Selection", ->
         expect(selection.regions.length).toBe 1
         region = selection.regions[0]
         expect(region.position().top).toBe(2 * lineHeight)
-        expect(region.position().left).toBe(7 * charWidth)
+        expect(region.position().left).toBe(7 * charWidth + editor.linesPositionLeft())
         expect(region.height()).toBe lineHeight
         expect(region.width()).toBe((25 - 7) * charWidth)
 
@@ -70,13 +70,13 @@ describe "Selection", ->
 
         region1 = selection.regions[0]
         expect(region1.position().top).toBe(2 * lineHeight)
-        expect(region1.position().left).toBe(7 * charWidth)
+        expect(region1.position().left).toBe(7 * charWidth + editor.linesPositionLeft())
         expect(region1.height()).toBe lineHeight
         expect(region1.width()).toBe(editor.width() - region1.position().left)
 
         region2 = selection.regions[1]
         expect(region2.position().top).toBe(3 * lineHeight)
-        expect(region2.position().left).toBe(0)
+        expect(region2.position().left).toBe(editor.linesPositionLeft())
         expect(region2.height()).toBe lineHeight
         expect(region2.width()).toBe(25 * charWidth)
 
@@ -88,24 +88,24 @@ describe "Selection", ->
 
         region1 = selection.regions[0]
         expect(region1.position().top).toBe(2 * lineHeight)
-        expect(region1.position().left).toBe(7 * charWidth)
+        expect(region1.position().left).toBe(7 * charWidth + editor.linesPositionLeft())
         expect(region1.height()).toBe lineHeight
         expect(region1.width()).toBe(editor.width() - region1.position().left)
 
         region2 = selection.regions[1]
         expect(region2.position().top).toBe(3 * lineHeight)
-        expect(region2.position().left).toBe(0)
+        expect(region2.position().left).toBe(editor.linesPositionLeft())
         expect(region2.height()).toBe(3 * lineHeight)
-        expect(region2.width()).toBe(editor.width())
+        expect(region2.width()).toBe(editor.lines.width())
 
         # resizes with the editor
         expect(editor.width()).toBeLessThan(800)
         editor.width(800)
-        expect(region2.width()).toBe(editor.width())
+        expect(region2.width()).toBe(editor.lines.width())
 
         region3 = selection.regions[2]
         expect(region3.position().top).toBe(6 * lineHeight)
-        expect(region3.position().left).toBe(0)
+        expect(region3.position().left).toBe(editor.linesPositionLeft())
         expect(region3.height()).toBe lineHeight
         expect(region3.width()).toBe(25 * charWidth)
 
