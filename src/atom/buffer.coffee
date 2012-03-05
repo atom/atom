@@ -39,7 +39,7 @@ class Buffer
   getLines: ->
     @lines
 
-  getLine: (row) ->
+  lineForRow: (row) ->
     @lines[row]
 
   getLineLength: (row) ->
@@ -52,7 +52,7 @@ class Buffer
     @getLines().length - 1
 
   lastLine: ->
-    @getLine(@lastRow())
+    @lineForRow(@lastRow())
 
   deleteRow: (row) ->
     range = null
@@ -67,6 +67,7 @@ class Buffer
     @change(new Range(point, point), text)
 
   change: (oldRange, newText) ->
+    oldRange = Range.fromObject(oldRange)
     newRange = new Range(_.clone(oldRange.start), _.clone(oldRange.start))
     prefix = @lines[oldRange.start.row][0...oldRange.start.column]
     suffix = @lines[oldRange.end.row][oldRange.end.column..]

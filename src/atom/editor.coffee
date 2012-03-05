@@ -274,7 +274,7 @@ class Editor extends View
   getCursor: -> @cursor
   getSelection: -> @selection
 
-  getCurrentLine: -> @buffer.getLine(@getCursorRow())
+  getCurrentLine: -> @buffer.lineForRow(@getCursorRow())
   getSelectedText: -> @selection.getText()
   moveCursorUp: -> @cursor.moveUp()
   moveCursorDown: -> @cursor.moveDown()

@@ -52,9 +52,9 @@ describe 'Buffer', ->
 
           buffer.change range, "foo"
 
-          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
-          expect(buffer.getLine(3)).toBe "    foovar pivot = items.shift(), current, left = [], right = [];"
-          expect(buffer.getLine(4)).toBe "    while(items.length > 0) {"
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.lineForRow(3)).toBe "    foovar pivot = items.shift(), current, left = [], right = [];"
+          expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -71,12 +71,12 @@ describe 'Buffer', ->
 
           buffer.change range, "foo\n\nbar\nbaz"
 
-          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
-          expect(buffer.getLine(3)).toBe "    foo"
-          expect(buffer.getLine(4)).toBe ""
-          expect(buffer.getLine(5)).toBe "bar"
-          expect(buffer.getLine(6)).toBe "bazvar pivot = items.shift(), current, left = [], right = [];"
-          expect(buffer.getLine(7)).toBe "    while(items.length > 0) {"
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.lineForRow(3)).toBe "    foo"
+          expect(buffer.lineForRow(4)).toBe ""
+          expect(buffer.lineForRow(5)).toBe "bar"
+          expect(buffer.lineForRow(6)).toBe "bazvar pivot = items.shift(), current, left = [], right = [];"
+          expect(buffer.lineForRow(7)).toBe "    while(items.length > 0) {"
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -94,9 +94,9 @@ describe 'Buffer', ->
 
           buffer.change range, ""
 
-          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
-          expect(buffer.getLine(3)).toBe "     pivot = items.shift(), current, left = [], right = [];"
-          expect(buffer.getLine(4)).toBe "    while(items.length > 0) {"
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.lineForRow(3)).toBe "     pivot = items.shift(), current, left = [], right = [];"
+          expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -113,9 +113,9 @@ describe 'Buffer', ->
 
           buffer.change range, ""
 
-          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
-          expect(buffer.getLine(3)).toBe "    var pivot = while(items.length > 0) {"
-          expect(buffer.getLine(4)).toBe "      current = items.shift();"
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.lineForRow(3)).toBe "    var pivot = while(items.length > 0) {"
+          expect(buffer.lineForRow(4)).toBe "      current = items.shift();"
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -132,9 +132,9 @@ describe 'Buffer', ->
 
           buffer.change range, ""
 
-          expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
-          expect(buffer.getLine(3)).toBe "    var pivot = sort(Array.apply(this, arguments));"
-          expect(buffer.getLine(4)).toBe "};"
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+          expect(buffer.lineForRow(3)).toBe "    var pivot = sort(Array.apply(this, arguments));"
+          expect(buffer.lineForRow(4)).toBe "};"
 
     describe "when used to replace text with other text (called with non-empty range and non-empty string)", ->
       it "replaces the old text with the new text", ->
@@ -145,10 +145,10 @@ describe 'Buffer', ->
 
         buffer.change range, "foo\nbar"
 
-        expect(buffer.getLine(2)).toBe "    if (items.length <= 1) return items;"
-        expect(buffer.getLine(3)).toBe "    var pivot = foo"
-        expect(buffer.getLine(4)).toBe "barsort(Array.apply(this, arguments));"
-        expect(buffer.getLine(5)).toBe "};"
+        expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
+        expect(buffer.lineForRow(3)).toBe "    var pivot = foo"
+        expect(buffer.lineForRow(4)).toBe "barsort(Array.apply(this, arguments));"
+        expect(buffer.lineForRow(5)).toBe "};"
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -160,7 +160,7 @@ describe 'Buffer', ->
   describe ".setText(text)", ->
     it "changes the entire contents of the buffer and emits a change event", ->
       lastRow = buffer.lastRow()
-      expectedPreRange = new Range([0,0], [lastRow, buffer.getLine(lastRow).length])
+      expectedPreRange = new Range([0,0], [lastRow, buffer.lineForRow(lastRow).length])
       changeHandler = jasmine.createSpy('changeHandler')
       buffer.on 'change', changeHandler
 
@@ -208,16 +208,16 @@ describe 'Buffer', ->
         range = new Range([2,8], [2,13])
         expect(buffer.getTextInRange(range)).toBe "items"
 
-        lineLength = buffer.getLine(2).length
+        lineLength = buffer.lineForRow(2).length
         range = new Range([2,0], [2,lineLength])
         expect(buffer.getTextInRange(range)).toBe "    if (items.length <= 1) return items;"
 
     describe "when range spans multiple lines", ->
       it "returns characters in range (including newlines)", ->
-        lineLength = buffer.getLine(2).length
+        lineLength = buffer.lineForRow(2).length
         range = new Range([2,0], [3,0])
         expect(buffer.getTextInRange(range)).toBe "    if (items.length <= 1) return items;\n"
 
-        lineLength = buffer.getLine(2).length
+        lineLength = buffer.lineForRow(2).length
         range = new Range([2,10], [4,10])
         expect(buffer.getTextInRange(range)).toBe "ems.length <= 1) return items;\n    var pivot = items.shift(), current, left = [], right = [];\n    while("

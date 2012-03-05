@@ -18,11 +18,11 @@ describe "Editor", ->
   describe "text rendering", ->
     it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
       expect(editor.lines.find('.line').length).toEqual(buffer.numLines())
-      expect(buffer.getLine(2)).toContain('<')
+      expect(buffer.lineForRow(2)).toContain('<')
       expect(editor.lines.find('.line:eq(2)').html()).toContain '&lt;'
 
       # renders empty lines with a non breaking space
-      expect(buffer.getLine(10)).toBe ''
+      expect(buffer.lineForRow(10)).toBe ''
       expect(editor.lines.find('.line:eq(10)').html()).toBe '&nbsp;'
 
     it "syntax highlights code based on the file type", ->
@@ -273,7 +273,7 @@ describe "Editor", ->
       describe "when down is pressed on the last line", ->
         it "moves the cursor to the end of line, but retains the goal column", ->
           lastLineIndex = buffer.getLines().length - 1
-          lastLine = buffer.getLine(lastLineIndex)
+          lastLine = buffer.lineForRow(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
           editor.setCursorScreenPosition(row: lastLineIndex, column: 1)
@@ -285,7 +285,7 @@ describe "Editor", ->
 
         it "retains a goal column of 0", ->
           lastLineIndex = buffer.getLines().length - 1
-          lastLine = buffer.getLine(lastLineIndex)
+          lastLine = buffer.lineForRow(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
           editor.setCursorScreenPosition(row: lastLineIndex, column: 0)
@@ -342,7 +342,7 @@ describe "Editor", ->
           it "wraps to the end of the previous line", ->
             editor.setCursorScreenPosition(row: 1, column: 0)
             editor.moveCursorLeft()
-            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.getLine(0).length)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.lineForRow(0).length)
 
         describe "when the cursor is on the first line", ->
           it "remains in the same position (0,0)", ->
@@ -353,14 +353,14 @@ describe "Editor", ->
       describe "when right is pressed on the last column", ->
         describe "when there is a subsequent line", ->
           it "wraps to the beginning of the next line", ->
-            editor.setCursorScreenPosition(row: 0, column: buffer.getLine(0).length)
+            editor.setCursorScreenPosition(row: 0, column: buffer.lineForRow(0).length)
             editor.moveCursorRight()
             expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 0)
 
         describe "when the cursor is on the last line", ->
           it "remains in the same position", ->
             lastLineIndex = buffer.getLines().length - 1
-            lastLine = buffer.getLine(lastLineIndex)
+            lastLine = buffer.lineForRow(lastLineIndex)
             expect(lastLine.length).toBeGreaterThan(0)
 
             lastPosition = { row: lastLineIndex, column: lastLine.length }
@@ -625,7 +625,7 @@ describe "Editor", ->
         it "replaces the selected text with the typed text", ->
           editor.selection.setBufferRange(new Range([1, 6], [2, 4]))
           editor.hiddenInput.textInput 'q'
-          expect(buffer.getLine(1)).toBe '  var qif (items.length <= 1) return items;'
+          expect(buffer.lineForRow(1)).toBe '  var qif (items.length <= 1) return items;'
 
     describe "when return is pressed", ->
       describe "when the cursor is at the beginning of a line", ->
@@ -652,7 +652,7 @@ describe "Editor", ->
 
       describe "when the cursor is on the end of a line", ->
         it "inserts an empty line after it", ->
-          editor.setCursorScreenPosition(row: 1, column: buffer.getLine(1).length)
+          editor.setCursorScreenPosition(row: 1, column: buffer.lineForRow(1).length)
 
           editor.trigger keydownEvent('enter')
 
@@ -663,26 +663,26 @@ describe "Editor", ->
       describe "when the cursor is on the middle of the line", ->
         it "removes the character before the cursor", ->
           editor.setCursorScreenPosition(row: 1, column: 7)
-          expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
+          expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
 
           editor.trigger keydownEvent('backspace')
 
-          line = buffer.getLine(1)
+          line = buffer.lineForRow(1)
           expect(line).toBe "  var ort = function(items) {"
           expect(editor.lines.find('.line:eq(1)')).toHaveText line
           expect(editor.getCursorScreenPosition()).toEqual {row: 1, column: 6}
 
       describe "when the cursor is at the beginning of a line", ->
         it "joins it with the line above", ->
-          originalLine0 = buffer.getLine(0)
+          originalLine0 = buffer.lineForRow(0)
           expect(originalLine0).toBe "var quicksort = function () {"
-          expect(buffer.getLine(1)).toBe "  var sort = function(items) {"
+          expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
 
           editor.setCursorScreenPosition(row: 1, column: 0)
           editor.trigger keydownEvent('backspace')
 
-          line0 = buffer.getLine(0)
-          line1 = buffer.getLine(1)
+          line0 = buffer.lineForRow(0)
+          line1 = buffer.lineForRow(1)
           expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
           expect(line1).toBe "    if (items.length <= 1) return items;"
 
@@ -699,47 +699,47 @@ describe "Editor", ->
         it "deletes the selection, but not the character before it", ->
           editor.selection.setBufferRange(new Range([0,5], [0,9]))
           editor.trigger keydownEvent('backspace')
-          expect(editor.buffer.getLine(0)).toBe 'var qsort = function () {'
+          expect(editor.buffer.lineForRow(0)).toBe 'var qsort = function () {'
 
     describe "when delete is pressed", ->
       describe "when the cursor is on the middle of a line", ->
         it "deletes the character following the cursor", ->
           editor.setCursorScreenPosition([1, 6])
           editor.trigger keydownEvent('delete')
-          expect(buffer.getLine(1)).toBe '  var ort = function(items) {'
+          expect(buffer.lineForRow(1)).toBe '  var ort = function(items) {'
 
       describe "when the cursor is on the end of a line", ->
         it "joins the line with the following line", ->
-          editor.setCursorScreenPosition([1, buffer.getLine(1).length])
+          editor.setCursorScreenPosition([1, buffer.lineForRow(1).length])
           editor.trigger keydownEvent('delete')
-          expect(buffer.getLine(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
 
       describe "when there is a selection", ->
         it "deletes the selection, but not the character following it", ->
           editor.selection.setBufferRange(new Range([1,6], [1,8]))
           editor.trigger keydownEvent 'delete'
-          expect(buffer.getLine(1)).toBe '  var rt = function(items) {'
+          expect(buffer.lineForRow(1)).toBe '  var rt = function(items) {'
 
       describe "when the cursor is on the last column of the last line", ->
         it "does nothing, but doesn't raise an error", ->
-          editor.setCursorScreenPosition([12, buffer.getLine(12).length])
+          editor.setCursorScreenPosition([12, buffer.lineForRow(12).length])
           editor.trigger keydownEvent('delete')
-          expect(buffer.getLine(12)).toBe '};'
+          expect(buffer.lineForRow(12)).toBe '};'
 
     describe "when undo/redo events are triggered on the editor", ->
       it "undoes/redoes the last change", ->
         buffer.insert [0, 0], "foo"
         editor.trigger 'undo'
-        expect(buffer.getLine(0)).not.toContain "foo"
+        expect(buffer.lineForRow(0)).not.toContain "foo"
 
         editor.trigger 'redo'
-        expect(buffer.getLine(0)).toContain "foo"
+        expect(buffer.lineForRow(0)).toContain "foo"
 
     describe "when multiple lines are removed from the buffer (regression)", ->
       it "removes all of them from the dom", ->
         buffer.change(new Range([6, 24], [12, 0]), '')
         expect(editor.find('.line').length).toBe 7
-        expect(editor.find('.line:eq(6)').text()).toBe(buffer.getLine(6))
+        expect(editor.find('.line:eq(6)').text()).toBe(buffer.lineForRow(6))
 
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
@@ -770,9 +770,9 @@ describe "Editor", ->
 
   describe ".clipScreenPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
-      expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.getLine(buffer.lastRow()).length)
+      expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.lineForRow(buffer.lastRow()).length)
       expect(editor.clipScreenPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
-      expect(editor.clipScreenPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.getLine(1).length)
+      expect(editor.clipScreenPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.lineForRow(1).length)
       expect(editor.clipScreenPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
 
   describe "cut, copy & paste", ->
@@ -784,7 +784,7 @@ describe "Editor", ->
       it "removes the selected text from the buffer and places it on the pasteboard", ->
         editor.getSelection().setBufferRange new Range([0,4], [0,9])
         editor.trigger "cut"
-        expect(editor.buffer.getLine(0)).toBe "var sort = function () {"
+        expect(editor.buffer.lineForRow(0)).toBe "var sort = function () {"
         expect($native.readFromPasteboard()).toBe 'quick'
 
     describe "when a copy event is triggered", ->
@@ -797,12 +797,12 @@ describe "Editor", ->
       it "pastes text into the buffer", ->
         editor.setCursorScreenPosition [0, 4]
         editor.trigger "paste"
-        expect(editor.buffer.getLine(0)).toBe "var firstquicksort = function () {"
+        expect(editor.buffer.lineForRow(0)).toBe "var firstquicksort = function () {"
 
-        expect(editor.buffer.getLine(1)).toBe "  var sort = function(items) {"
+        expect(editor.buffer.lineForRow(1)).toBe "  var sort = function(items) {"
         editor.getSelection().setBufferRange new Range([1,6], [1,10])
         editor.trigger "paste"
-        expect(editor.buffer.getLine(1)).toBe "  var first = function(items) {"
+        expect(editor.buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
   describe "folding", ->
     describe "when a fold-selection event is triggered", ->

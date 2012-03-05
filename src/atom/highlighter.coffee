@@ -42,7 +42,7 @@ class Highlighter
     if nextRow > newRange.end.row
       oldRange.end.row += (nextRow - newRange.end.row)
       newRange.end.row = nextRow
-      endColumn = @buffer.getLine(nextRow).length
+      endColumn = @buffer.lineForRow(nextRow).length
       newRange.end.column = endColumn
       oldRange.end.column = endColumn
 
@@ -56,12 +56,15 @@ class Highlighter
       screenLine
 
   buildLineForScreenRow: (state, row) ->
-    line = @buffer.getLine(row)
+    line = @buffer.lineForRow(row)
     {tokens, state} = @tokenizer.getLineTokens(line, state)
     new ScreenLineFragment(tokens, line, [1, 0], [1, 0], { state })
 
   lineForScreenRow: (row) ->
     @screenLines[row]
+
+  lineForRow: (row) ->
+    @lineForScreenRow(row)
 
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]

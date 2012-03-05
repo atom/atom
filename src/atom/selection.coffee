@@ -108,7 +108,7 @@ class Selection extends View
 
     { row, column } = @cursor.getBufferPosition()
 
-    line = @editor.buffer.getLine(row)
+    line = @editor.buffer.lineForRow(row)
     leftSide = line[0...column].split('').reverse().join('') # reverse left side
     rightSide = line[column..]
 
@@ -120,7 +120,7 @@ class Selection extends View
     @setBufferRange range
 
   selectLine: (row=@cursor.getBufferPosition().row) ->
-    rowLength = @editor.buffer.getLine(row).length
+    rowLength = @editor.buffer.lineForRow(row).length
     @setBufferRange new Range([row, 0], [row, rowLength])
 
   selectRight: ->

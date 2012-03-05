@@ -65,7 +65,7 @@ class Cursor extends View
 
   moveToLineEnd: ->
     { row } = @getScreenPosition()
-    @setScreenPosition({ row, column: @editor.buffer.getLine(row).length })
+    @setScreenPosition({ row, column: @editor.buffer.lineForRow(row).length })
 
   moveToLineStart: ->
     { row } = @getScreenPosition()
@@ -92,7 +92,7 @@ class Cursor extends View
     offset = 0
 
     matchBackwards = =>
-      line = @editor.buffer.getLine(row)
+      line = @editor.buffer.lineForRow(row)
       reversedLine = line[0...column].split('').reverse().join('')
       regex.exec reversedLine
 
