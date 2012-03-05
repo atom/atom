@@ -440,6 +440,14 @@ describe "Editor", ->
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
 
+  describe "auto indent/outdent", ->
+    describe "when newline is inserted", ->
+      it "indents cursor based on the indentation of previous line", ->
+        editor.setCursorBufferPosition([4, 29])
+        editor.insertText("\n")
+
+        expect(editor.buffer.getLine(5)).toEqual("      ")
+
   describe "selection", ->
     selection = null
 
@@ -829,5 +837,3 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
 
         expect(editor.getCursorBufferPosition()).toEqual [4, 29]
-
-

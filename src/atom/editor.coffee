@@ -300,7 +300,14 @@ class Editor extends View
   selectToBufferPosition: (position) ->
     @selection.selectToBufferPosition(position)
 
-  insertText: (text) -> @selection.insertText(text)
+  insertText: (text) ->
+    if text[0] == "\n"
+      tab = "  "
+      state = @lineWrapper.lineForScreenRow(@getRow).state
+      indent = @buffer.mode.getNextLineIndent(state, @getCurrentLine(), tab)
+      text = text[0] + indent + text[1..]
+
+    @selection.insertText(text)
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
