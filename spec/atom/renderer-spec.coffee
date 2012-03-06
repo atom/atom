@@ -71,6 +71,31 @@ fdescribe "Renderer", ->
           expect(event.newRange).toEqual [[4, 0], [7, 5]]
 
       describe "when a fold spans a single line", ->
+        it "renders a placeholder for the folded region, but does not skip any lines", ->
+          fold = renderer.createFold([[2, 8], [2, 25]])
+
+          [line2, line3] = renderer.linesForRows(2, 3)
+          expect(line2.text).toBe '    if (...) return items;'
+          expect(line3.text).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[2, 0], [2, 40]]
+          expect(event.newRange).toEqual [[2, 0], [2, 26]]
+          changeHandler.reset()
+
+          fold.destroy()
+
+          [line2, line3] = renderer.linesForRows(2, 3)
+          expect(line2.text).toBe '    if (items.length <= 1) return items;'
+          expect(line3.text).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.newRange).toEqual [[2, 0], [2, 40]]
+          expect(event.oldRange).toEqual [[2, 0], [2, 26]]
+          changeHandler.reset()
+
 
       describe "when a fold is nested within another fold", ->
 

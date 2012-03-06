@@ -33,6 +33,9 @@ class Renderer
   lineForRow: (row) ->
     @lineMap.lineForOutputRow(row)
 
+  linesForRows: (startRow, endRow) ->
+    @lineMap.linesForOutputRows(startRow, endRow)
+
   createFold: (bufferRange) ->
     bufferRange = Range.fromObject(bufferRange)
     return if bufferRange.isEmpty()
@@ -100,10 +103,6 @@ class Renderer
     else
       [line].concat @buildLinesForBufferRows(startRow + 1, endRow)
 
-  buildFoldPlaceholder: (fold) ->
-    token = {value: '...', type: 'fold-placeholder', fold, isAtomic: true}
-    new ScreenLineFragment([token], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
-
   findWrapColumn: (line) ->
     return unless line.length > @maxLineLength
 
@@ -131,6 +130,10 @@ class Renderer
   foldsForBufferRow: (bufferRow) ->
     folds = @activeFolds[bufferRow] or []
     folds.sort (a, b) -> a.compare(b)
+
+  buildFoldPlaceholder: (fold) ->
+    token = {value: '...', type: 'fold-placeholder', fold, isAtomic: true}
+    new ScreenLineFragment([token], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
 
   expandScreenRangeToLineEnds: (screenRange) ->
     { start, end } = screenRange
