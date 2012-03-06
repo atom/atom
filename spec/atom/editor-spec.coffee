@@ -450,6 +450,11 @@ describe "Editor", ->
         editor.insertText("\n")
         expect(editor.buffer.getLine(5)).toEqual("      ")
 
+      it "indents cursor based on the indentation of previous line", ->
+        editor.setCursorBufferPosition([4, 29])
+        editor.insertText("\nvar thisIsCool")
+        expect(editor.buffer.getLine(5)).toEqual("      var thisIsCool")
+
     describe "when text that closes a scope entered", ->
       it "outdents the text", ->
         editor.setCursorBufferPosition([1, 30])
