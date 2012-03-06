@@ -1,7 +1,7 @@
 Renderer = require 'renderer'
 Buffer = require 'buffer'
 
-fdescribe "Renderer", ->
+describe "Renderer", ->
   [renderer, buffer, changeHandler] = []
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
@@ -43,7 +43,7 @@ fdescribe "Renderer", ->
 
       describe "when there is a fold placeholder straddling the max length boundary", ->
 
-  describe "folding", ->
+  fdescribe "folding", ->
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
         it "replaces the lines spanned by the fold with a single line containing a placeholder", ->
@@ -112,12 +112,101 @@ fdescribe "Renderer", ->
           expect(line5.text).toBe '      current = items.shift();'
           expect(renderer.lineForRow(8).text).toBe '    r... sort(left).concat(pivot).concat(sort(right));'
 
+        fit "allows the outer fold to start at the same location as the inner fold", ->
+          renderer.createFold([[4, 29], [7, 4]])
+          renderer.createFold([[4, 29], [9, 2]])
+          expect(renderer.lineForRow(4).text).toBe "    while(items.length > 0) {...};"
+
       describe "when a fold begins on the line on which another fold ends", ->
+        describe "when the second fold is created before the first fold", ->
+          it "renders a placeholder for both folds on the first line of the first fold", ->
+            fold1 = renderer.createFold([[7, 5], [8, 36]])
+            fold2 = renderer.createFold([[4, 29], [7, 4]])
+
+            [line4, line5] = renderer.linesForRows(4, 5)
+            expect(line4.text).toBe  '    while(items.length > 0) {...}...concat(sort(right));'
+            expect(line5.text).toBe '  };'
+
+            expect(changeHandler.callCount).toBe 2
+            [[event1], [event2]] = changeHandler.argsForCall
+            expect(event1.oldRange).toEqual [[7, 0], [8, 56]]
+            expect(event1.newRange).toEqual [[7, 0], [7, 28]]
+            expect(event2.oldRange).toEqual [[4, 0], [7, 28]]
+            expect(event2.newRange).toEqual [[4, 0], [4, 56]]
+            changeHandler.reset()
+
+            fold1.destroy()
+            [line4, line5] = renderer.linesForRows(4, 5)
+            expect(line4.text).toBe '    while(items.length > 0) {...}'
+            expect(line5.text).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+            expect(event.newRange).toEqual [[4, 0], [5, 56]]
+            changeHandler.reset()
+
+            fold2.destroy()
+            [line4, line5] = renderer.linesForRows(4, 5)
+            expect(line4.text).toBe '    while(items.length > 0) {'
+            expect(line5.text).toBe '      current = items.shift();'
+
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            expect(event.oldRange).toEqual [[4, 0], [4, 33]]
+            expect(event.newRange).toEqual [[4, 0], [7, 5]]
+
+        describe "when the second fold is created after the first fold", ->
+          it "renders a placeholder for both folds on the first line of the first fold", ->
+            fold1 = renderer.createFold([[4, 29], [7, 4]])
+            fold2 = renderer.createFold([[7, 5], [8, 36]])
+            [line4, line5] = renderer.linesForRows(4, 5)
+            expect(line4.text).toBe  '    while(items.length > 0) {...}...concat(sort(right));'
+            expect(line5.text).toBe '  };'
+
+            expect(changeHandler.callCount).toBe 2
+            [[event1], [event2]] = changeHandler.argsForCall
+            expect(event1.oldRange).toEqual [[4, 0], [7, 5]]
+            expect(event1.newRange).toEqual [[4, 0], [4, 33]]
+            expect(event2.oldRange).toEqual [[4, 0], [5, 56]]
+            expect(event2.newRange).toEqual [[4, 0], [4, 56]]
+            changeHandler.reset()
+
+            fold1.destroy()
+            [line4, line5] = renderer.linesForRows(4, 5)
+            [line7] = renderer.linesForRows(7, 7)
+            expect(line4.text).toBe '    while(items.length > 0) {'
+            expect(line5.text).toBe '      current = items.shift();'
+            expect(line7.text).toBe '    }...concat(sort(right));'
+
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+            expect(event.newRange).toEqual [[4, 0], [7, 28]]
+            changeHandler.reset()
+
+            fold2.destroy()
+            [line4, line5] = renderer.linesForRows(4, 5)
+            expect(line4.text).toBe '    while(items.length > 0) {'
+            expect(line5.text).toBe '      current = items.shift();'
+
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            expect(event.oldRange).toEqual [[7, 0], [7, 28]]
+            expect(event.newRange).toEqual [[7, 0], [8, 56]]
 
       describe "when a fold starts at the beginning of a line", ->
+        it "renders a placeholder at the beginning of the line", ->
+          renderer.createFold([[4, 0], [7, 4]])
+          expect(renderer.lineForRow(4).text).toBe '...}'
 
       describe "when a fold ends at the beginning of a line", ->
+        it "renders a placeholder at the beginning of the line", ->
+          renderer.createFold([[4, 29], [7, 0]])
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...    }'
 
       describe "when a fold starts on the first line of the buffer", ->
-
-
+        it "renders the first line correctly when the fold is destroyed", ->
+          fold = renderer.createFold([[0, 14], [0, 27]])
+          fold.destroy()
+          expect(renderer.lineForRow(0).text).toBe 'var quicksort = function () {'
