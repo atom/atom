@@ -275,6 +275,13 @@ fdescribe "Renderer", ->
           fold.destroy()
           expect(renderer.lineForRow(0).text).toBe 'var quicksort = function () {'
 
+      describe "when a fold causes a wrapped line to become shorter than the max line length", ->
+        fit "unwraps the line", ->
+          renderer.setMaxLineLength(50)
+          renderer.createFold([[3, 0], [3, 15]])
+          expect(renderer.lineForRow(3).text).toBe '... items.shift(), current, left = [], right = [];'
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {'
+
     describe "when the buffer changes", ->
       [fold1, fold2] = []
       beforeEach ->
