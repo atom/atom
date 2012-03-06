@@ -441,12 +441,22 @@ describe "Editor", ->
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
 
   describe "auto indent/outdent", ->
+    beforeEach ->
+      editor.autoIndent = true
+
     describe "when newline is inserted", ->
       it "indents cursor based on the indentation of previous line", ->
         editor.setCursorBufferPosition([4, 29])
         editor.insertText("\n")
-
         expect(editor.buffer.getLine(5)).toEqual("      ")
+
+    describe "when text that closes a scope entered", ->
+      it "outdents the text", ->
+        editor.setCursorBufferPosition([1, 30])
+        editor.insertText("\n")
+        expect(editor.buffer.getLine(2)).toEqual("    ")
+        editor.insertText("}")
+        expect(editor.buffer.getLine(2)).toEqual("  }")
 
   describe "selection", ->
     selection = null

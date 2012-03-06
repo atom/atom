@@ -105,5 +105,14 @@ class Buffer
 
     @mode = new (require("ace/mode/#{modeName}").Mode)
 
+  # API to match Ace's Document class
+  findMatchingBracket: ({row, column}) ->
+    {row: 0, column: 0}
+
+  replace:(range, text) ->
+    # Only used to outdent lines
+    start = range.start
+    end = {row: range.start.row, column: range.start.column + atom.tabText.length}
+    @change(new Range(start, end), "")
 
 _.extend(Buffer.prototype, EventEmitter)

@@ -31,6 +31,8 @@ class Editor extends View
   highlighter: null
   lineWrapper: null
   undoManager: null
+  autoIndent: null
+
 
   initialize: () ->
     requireStylesheet 'editor.css'
@@ -39,6 +41,7 @@ class Editor extends View
     @buildCursorAndSelection()
     @handleEvents()
     @setBuffer(new Buffer)
+    @autoIndent = false
 
   bindKeys: ->
     window.keymap.bindKeys '*:not(.editor *)',
@@ -301,13 +304,23 @@ class Editor extends View
     @selection.selectToBufferPosition(position)
 
   insertText: (text) ->
+    if not @autoIndent
+      @selection.insertText(text)
+      return
+
+    state = @lineWrapper.lineForScreenRow(@getCursorRow()).state
+    shouldOutdent = false
+
     if text[0] == "\n"
-      tab = "  "
-      state = @lineWrapper.lineForScreenRow(@getRow).state
-      indent = @buffer.mode.getNextLineIndent(state, @getCurrentLine(), tab)
+      indent = @buffer.mode.getNextLineIndent(state, @getCurrentLine(), atom.tabText)
       text = text[0] + indent + text[1..]
+    else if @buffer.mode.checkOutdent(state, @getCurrentLine(), text)
+      shouldOutdent = true
 
     @selection.insertText(text)
+
+    if shouldOutdent
+      @buffer.mode.autoOutdent(state, @buffer, @getCursorRow())
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
