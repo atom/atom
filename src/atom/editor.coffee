@@ -304,7 +304,7 @@ class Editor extends View
     @selection.selectToBufferPosition(position)
 
   insertText: (text) ->
-    if not @autoIndent
+    unless @autoIndent
       @selection.insertText(text)
       return
 
