@@ -431,12 +431,17 @@ fdescribe "Renderer", ->
           renderer.createFold([[4, 10], [4, 15]])
 
           expect(renderer.screenPositionForBufferPosition([4, 5])).toEqual [4, 5]
-          expect(renderer.screenPositionForBufferPosition([4, 15])).toEqual [4, 13]
-          expect(renderer.screenPositionForBufferPosition([4, 20])).toEqual [4, 18]
-
           expect(renderer.bufferPositionForScreenPosition([4, 5])).toEqual [4, 5]
+
+          expect(renderer.screenPositionForBufferPosition([4, 15])).toEqual [4, 13]
           expect(renderer.bufferPositionForScreenPosition([4, 13])).toEqual [4, 15]
+
+          expect(renderer.screenPositionForBufferPosition([4, 20])).toEqual [4, 18]
           expect(renderer.bufferPositionForScreenPosition([4, 18])).toEqual [4, 20]
 
-
-
+      describe "when there is a fold on a wrapped line", ->
+        it "translates positions accounting for both the fold and the wrapped line", ->
+          renderer.setMaxLineLength(50)
+          renderer.createFold([[3, 51], [3, 58]])
+          expect(renderer.screenPositionForBufferPosition([3, 58])).toEqual [4, 3]
+          expect(renderer.bufferPositionForScreenPosition([4, 3])).toEqual [3, 58]
