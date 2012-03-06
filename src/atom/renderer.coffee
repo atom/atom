@@ -14,6 +14,7 @@ class Renderer
   highlighter: null
   activeFolds: null
   foldsById: null
+  lastHighlighterChangeEvent: null
   foldPlaceholderLength: 3
 
   constructor: (@buffer) ->
@@ -22,6 +23,8 @@ class Renderer
     @activeFolds = {}
     @foldsById = {}
     @buildLineMap()
+    @highlighter.on 'change', (e) => @lastHighlighterChangeEvent = e
+    @buffer.on 'change', (e) => @handleBufferChange(e)
 
   buildLineMap: ->
     @lineMap = new LineMap
@@ -43,11 +46,7 @@ class Renderer
     fold = new Fold(this, bufferRange)
     @registerFold(bufferRange.start.row, fold)
 
-    oldScreenRange =
-      @expandScreenRangeToLineEnds(
-        @screenRangeForBufferRange(
-          @expandBufferRangeToLineEnds(bufferRange)))
-
+    oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
     lines = @buildLineForBufferRow(bufferRange.start.row)
     @lineMap.replaceOutputRows(
       oldScreenRange.start.row,
@@ -68,7 +67,7 @@ class Renderer
     oldScreenRange = @expandScreenRangeToLineEnds(new Range([startScreenRow, 0], [startScreenRow, 0]))
     @lineMap.replaceOutputRow(startScreenRow,
       @buildLinesForBufferRows(bufferRange.start.row, bufferRange.end.row))
-    newScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
+    newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
     @trigger 'unfold', fold.getRange()
@@ -84,6 +83,26 @@ class Renderer
 
   logLines: ->
     @lineMap.logLines()
+
+  handleBufferChange: (e) ->
+    for row, folds of @activeFolds
+      for fold in folds
+        changeInsideFold = true if fold.handleBufferChange(e)
+
+    unless changeInsideFold
+      @handleHighlighterChange(@lastHighlighterChangeEvent)
+
+  handleHighlighterChange: (e) ->
+    oldBufferRange = e.oldRange
+    newBufferRange = e.newRange
+
+    oldScreenRange = @screenLineRangeForBufferRange(oldBufferRange)
+    newScreenLines = @buildLinesForBufferRows(newBufferRange.start.row, newBufferRange.end.row)
+    @lineMap.replaceOutputRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
+    newScreenRange = @screenLineRangeForBufferRange(newBufferRange)
+
+    @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange }
+
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
@@ -151,6 +170,11 @@ class Renderer
   buildFoldPlaceholder: (fold) ->
     token = {value: '...', type: 'fold-placeholder', fold, isAtomic: true}
     new ScreenLineFragment([token], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
+
+  screenLineRangeForBufferRange: (bufferRange) ->
+    @expandScreenRangeToLineEnds(
+      @lineMap.outputRangeForInputRange(
+        @expandBufferRangeToLineEnds(bufferRange)))
 
   expandScreenRangeToLineEnds: (screenRange) ->
     { start, end } = screenRange

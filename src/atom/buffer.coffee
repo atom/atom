@@ -66,6 +66,9 @@ class Buffer
   insert: (point, text) ->
     @change(new Range(point, point), text)
 
+  delete: (range) ->
+    @change(range, '')
+
   change: (oldRange, newText) ->
     oldRange = Range.fromObject(oldRange)
     newRange = new Range(_.clone(oldRange.start), _.clone(oldRange.start))

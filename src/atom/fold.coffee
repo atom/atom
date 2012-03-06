@@ -23,12 +23,16 @@ class Fold
       @lineFolder.unregisterFold(oldStartRow, this)
       return
 
+    changeInsideFold = @start.isLessThanOrEqual(oldRange.start) and @end.isGreaterThan(oldRange.end)
+
     @start = @updateAnchorPoint(@start, event)
     @end = @updateAnchorPoint(@end, event, false)
 
     if @start.row != oldStartRow
       @lineFolder.unregisterFold(oldStartRow, this)
       @lineFolder.registerFold(@start.row, this)
+
+    changeInsideFold
 
   updateAnchorPoint: (point, event, inclusive=true) ->
     { newRange, oldRange } = event

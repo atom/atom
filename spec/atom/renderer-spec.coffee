@@ -1,7 +1,7 @@
 Renderer = require 'renderer'
 Buffer = require 'buffer'
 
-describe "Renderer", ->
+fdescribe "Renderer", ->
   [renderer, buffer, changeHandler] = []
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
@@ -54,6 +54,58 @@ describe "Renderer", ->
           expect(renderer.lineForRow(6).text).toBe 'right.push(...(left).concat(pivot).concat(sort(rig'
           expect(renderer.lineForRow(7).text).toBe 'ht));'
           expect(renderer.lineForRow(8).text).toBe '  };'
+
+    describe "when the buffer changes", ->
+      describe "when buffer lines are updated", ->
+        describe "when the update makes a soft-wrapped line shorter than the max line length", ->
+          it "rewraps the line and emits a change event", ->
+            buffer.delete([[6, 24], [6, 42]])
+            expect(renderer.lineForRow(7).text).toBe '      current < pivot ?  : right.push(current);'
+            expect(renderer.lineForRow(8).text).toBe '    }'
+
+            expect(changeHandler).toHaveBeenCalled()
+            [[event]]= changeHandler.argsForCall
+            expect(event.oldRange).toEqual([[7, 0], [8, 20]])
+            expect(event.newRange).toEqual([[7, 0], [7, 47]])
+
+        describe "when the update causes a line to softwrap an additional time", ->
+          it "rewraps the line and emits a change event", ->
+            buffer.insert([6, 28], '1234567890')
+            expect(renderer.lineForRow(7).text).toBe '      current < pivot ? '
+            expect(renderer.lineForRow(8).text).toBe 'left1234567890.push(current) : '
+            expect(renderer.lineForRow(9).text).toBe 'right.push(current);'
+            expect(renderer.lineForRow(10).text).toBe '    }'
+
+            expect(changeHandler).toHaveBeenCalled()
+            [[event]] = changeHandler.argsForCall
+            expect(event.oldRange).toEqual([[7, 0], [8, 20]])
+            expect(event.newRange).toEqual([[7, 0], [9, 20]])
+
+      describe "when buffer lines are inserted", ->
+        it "inserts / updates wrapped lines and emits a change event", ->
+          buffer.insert([6, 21], '1234567890 abcdefghij 1234567890\nabcdefghij')
+          expect(renderer.lineForRow(7).text).toBe '      current < pivot1234567890 abcdefghij '
+          expect(renderer.lineForRow(8).text).toBe '1234567890'
+          expect(renderer.lineForRow(9).text).toBe 'abcdefghij ? left.push(current) : '
+          expect(renderer.lineForRow(10).text).toBe 'right.push(current);'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual([[7, 0], [8, 20]])
+          expect(event.newRange).toEqual([[7, 0], [10, 20]])
+
+      describe "when buffer lines are removed", ->
+        it "removes lines and emits a change event", ->
+          buffer.change([[3, 21], [7, 5]], ';')
+          expect(renderer.lineForRow(3).text).toBe '    var pivot = items;'
+          expect(renderer.lineForRow(4).text).toBe '    return '
+          expect(renderer.lineForRow(5).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
+          expect(renderer.lineForRow(6).text).toBe '  };'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual([[3, 0], [11, 45]])
+          expect(event.newRange).toEqual([[3, 0], [5, 45]])
 
   describe "folding", ->
     describe "when folds are created and destroyed", ->
@@ -222,3 +274,97 @@ describe "Renderer", ->
           fold = renderer.createFold([[0, 14], [0, 27]])
           fold.destroy()
           expect(renderer.lineForRow(0).text).toBe 'var quicksort = function () {'
+
+    describe "when the buffer changes", ->
+      [fold1, fold2] = []
+      beforeEach ->
+        fold1 = renderer.createFold([[4, 29], [7, 4]])
+        fold2 = renderer.createFold([[7, 5], [8, 36]])
+        changeHandler.reset()
+
+      describe "when the old range precedes lines with a fold", ->
+        it "updates the buffer and re-positions subsequent folds", ->
+          buffer.change([[1, 5], [2, 10]], 'abc')
+
+          expect(renderer.lineForRow(1).text).toBe '  varabcems.length <= 1) return items;'
+          expect(renderer.lineForRow(3).text).toBe '    while(items.length > 0) {...}...concat(sort(right));'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[1, 0], [2, 40]]
+          expect(event.newRange).toEqual [[1, 0], [1, 38]]
+          changeHandler.reset()
+
+          fold1.destroy()
+          expect(renderer.lineForRow(3).text).toBe '    while(items.length > 0) {'
+          expect(renderer.lineForRow(6).text).toBe '    }...concat(sort(right));'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[3, 0], [3, 56]]
+          expect(event.newRange).toEqual [[3, 0], [6, 28]]
+
+      describe "when the old range follows lines with a fold", ->
+        it "re-positions the screen ranges for the change event based on the preceding fold", ->
+          buffer.change([[9, 3], [10, 0]], 'abc')
+
+          expect(renderer.lineForRow(5).text).toBe '  }abc'
+          expect(renderer.lineForRow(6).text).toBe '  return sort(Array.apply(this, arguments));'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[5, 0], [6, 0]]
+          expect(event.newRange).toEqual [[5, 0], [5, 6]]
+
+      describe "when the old range contains unfolded text on the first line of a fold, preceding the fold placeholder", ->
+        it "re-renders the line with the placeholder and re-positions the fold", ->
+          buffer.change([[4, 4], [4, 9]], 'slongaz')
+
+          expect(renderer.lineForRow(4).text).toBe '    slongaz(items.length > 0) {...}...concat(sort(right));'
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+          expect(event.newRange).toEqual [[4, 0], [4, 58]]
+
+          fold1.destroy()
+          expect(renderer.lineForRow(4).text).toBe '    slongaz(items.length > 0) {'
+
+      fdescribe "when the old range is contained to a single line in-between two fold placeholders", ->
+        it "re-renders the line with the placeholder and re-positions the second fold", ->
+          buffer.insert([7, 4], 'abc')
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...abc}...concat(sort(right));'
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+          expect(event.newRange).toEqual [[4, 0], [4, 59]]
+
+          fold2.destroy()
+
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...abc}'
+
+      describe "when the old range is inside a fold", ->
+        it "does not trigger a change event, but updates the fold and ensures the change is present when the fold is destroyed", ->
+          buffer.change([[4, 29], [6, 0]], 'abc')
+
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...}...concat(sort(right));'
+          expect(changeHandler).not.toHaveBeenCalled()
+
+          fold1.destroy()
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {abc      current < pivot ? left.push(current) : right.push(current);'
+          expect(renderer.lineForRow(5).text).toBe '    }...concat(sort(right));'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+          expect(event.newRange).toEqual [[4, 0], [5, 28]]
+
+      describe "when the old range surrounds a fold", ->
+        it "removes the fold and replaces the fold placeholder with the new text", ->
+          buffer.change([[4, 29], [7, 4]], 'party()')
+
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {party()}...concat(sort(right));'
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+          expect(event.newRange).toEqual [[4, 0], [4, 60]]
+
