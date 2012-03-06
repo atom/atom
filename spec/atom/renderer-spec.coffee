@@ -1,17 +1,19 @@
 Renderer = require 'renderer'
 Buffer = require 'buffer'
 
-describe "Renderer", ->
-  [renderer, buffer] = []
+fdescribe "Renderer", ->
+  [renderer, buffer, changeHandler] = []
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
     renderer = new Renderer(buffer)
+    changeHandler = jasmine.createSpy 'changeHandler'
+    renderer.on 'change', changeHandler
 
-  describe "line rendering", ->
-    fdescribe "soft wrapping", ->
-      beforeEach ->
-        renderer.setMaxLineLength(50)
+  describe "soft wrapping", ->
+    beforeEach ->
+      renderer.setMaxLineLength(50)
 
+    describe "rendering of soft-wrapped lines", ->
       describe "when the line is shorter than the max line length", ->
         it "renders the line unchanged", ->
           expect(renderer.lineForRow(0).text).toBe buffer.lineForRow(0)
@@ -41,8 +43,32 @@ describe "Renderer", ->
 
       describe "when there is a fold placeholder straddling the max length boundary", ->
 
-    describe "folding", ->
+  describe "folding", ->
+    describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
+        it "replaces the lines spanned by the fold with a single line containing a placeholder", ->
+          previousLine4Text = renderer.lineForRow(4).text
+          previousLine5Text = renderer.lineForRow(5).text
+
+          fold = renderer.createFold([[4, 29], [7, 4]])
+
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...}'
+          expect(renderer.lineForRow(5).text).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual [[4, 0], [7, 5]]
+          expect(event.newRange).toEqual [[4, 0], [4, 33]]
+          changeHandler.reset()
+
+          fold.destroy()
+          expect(renderer.lineForRow(4).text).toBe previousLine4Text
+          expect(renderer.lineForRow(5).text).toBe previousLine5Text
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[4, 0], [4, 33]]
+          expect(event.newRange).toEqual [[4, 0], [7, 5]]
 
       describe "when a fold spans a single line", ->
 
@@ -55,15 +81,5 @@ describe "Renderer", ->
       describe "when a fold ends at the beginning of a line", ->
 
       describe "when a fold starts on the first line of the buffer", ->
-
-    describe "soft wrapping combined with folding", ->
-      describe "when a line with a fold placeholder is longer than the max line length", ->
-
-
-
-
-
-
-
 
 
