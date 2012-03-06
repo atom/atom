@@ -24,7 +24,7 @@
 
 - (void)dealloc {
   [_hiddenWindow release];
-  [self dealloc];
+  [super dealloc];
 }
 
 - (BOOL)isHandlingSendEvent {
