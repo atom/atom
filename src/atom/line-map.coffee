@@ -108,6 +108,8 @@ class LineMap
     lastLineFragment = traversalResult.lastLineFragment
     sourceDelta = traversalResult[sourceDeltaType]
     targetDelta = traversalResult[targetDeltaType]
+
+    return targetDelta unless lastLineFragment
     maxSourceColumn = sourceDelta.column + lastLineFragment.text.length
     maxTargetColumn = targetDelta.column + lastLineFragment.text.length
 

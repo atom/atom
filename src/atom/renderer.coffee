@@ -71,6 +71,9 @@ class Renderer
   screenRowForBufferRow: (bufferRow) ->
     @lineMap.outputPositionForInputPosition([bufferRow, 0]).row
 
+  bufferRowForScreenRow: (screenRow) ->
+    @lineMap.inputPositionForOutputPosition([screenRow, 0]).row
+
   screenRangeForBufferRange: (bufferRange) ->
     @lineMap.outputRangeForInputRange(bufferRange)
 
@@ -80,28 +83,34 @@ class Renderer
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
 
-  buildLinesForBufferRows: (startRow, endRow, startColumn) ->
-    return [] if startRow > endRow and not startColumn?
+  buildLinesForBufferRows: (startRow, endRow) ->
+    buildLinesForBufferRows = (startRow, endRow, startColumn) =>
+      return [] if startRow > endRow and not startColumn?
 
-    startColumn ?= 0
-    line = @highlighter.lineForRow(startRow).splitAt(startColumn)[1]
+      startColumn ?= 0
+      line = @highlighter.lineForRow(startRow).splitAt(startColumn)[1]
 
-    wrapColumn = @findWrapColumn(line.text)
+      wrapColumn = @findWrapColumn(line.text)
 
-    for fold in @foldsForBufferRow(startRow)
-      if fold.start.column >= startColumn
-        break if fold.start.column > wrapColumn - foldPlaceholderLength
-        prefix = line.splitAt(fold.start.column - startColumn)[0]
-        placeholder = @buildFoldPlaceholder(fold)
-        suffix = @buildLinesForBufferRows(fold.end.row, endRow, fold.end.column)
-        return _.compact _.flatten [prefix, placeholder, suffix]
+      for fold in @foldsForBufferRow(startRow)
+        if fold.start.column >= startColumn
+          break if fold.start.column > wrapColumn - foldPlaceholderLength
+          prefix = line.splitAt(fold.start.column - startColumn)[0]
+          placeholder = @buildFoldPlaceholder(fold)
+          suffix = buildLinesForBufferRows(fold.end.row, endRow, fold.end.column)
+          return _.compact _.flatten [prefix, placeholder, suffix]
 
-    if wrapColumn
-      line = line.splitAt(wrapColumn)[0]
-      line.outputDelta = new Point(1, 0)
-      [line].concat @buildLinesForBufferRows(startRow, endRow, startColumn + wrapColumn)
-    else
-      [line].concat @buildLinesForBufferRows(startRow + 1, endRow)
+      if wrapColumn
+        line = line.splitAt(wrapColumn)[0]
+        line.outputDelta = new Point(1, 0)
+        [line].concat buildLinesForBufferRows(startRow, endRow, startColumn + wrapColumn)
+      else
+        [line].concat buildLinesForBufferRows(startRow + 1, endRow)
+
+    buildLinesForBufferRows(@foldStartRowForBufferRow(startRow), endRow)
+
+  foldStartRowForBufferRow: (bufferRow) ->
+    @bufferRowForScreenRow(@screenRowForBufferRow(bufferRow))
 
   findWrapColumn: (line) ->
     return unless line.length > @maxLineLength

@@ -96,8 +96,21 @@ fdescribe "Renderer", ->
           expect(event.oldRange).toEqual [[2, 0], [2, 26]]
           changeHandler.reset()
 
-
       describe "when a fold is nested within another fold", ->
+        it "only renders the placeholder for the inner fold when the outer fold is destroyed", ->
+          outerFold = renderer.createFold([[4, 29], [8, 36]])
+          innerFold = renderer.createFold([[8, 5], [8, 10]])
+
+          [line4, line5] = renderer.linesForRows(4, 5)
+          expect(line4.text).toBe '    while(items.length > 0) {...concat(sort(right));'
+          expect(line5.text).toBe '  };'
+
+          outerFold.destroy()
+
+          [line4, line5] = renderer.linesForRows(4, 5)
+          expect(line4.text).toBe '    while(items.length > 0) {'
+          expect(line5.text).toBe '      current = items.shift();'
+          expect(renderer.lineForRow(8).text).toBe '    r... sort(left).concat(pivot).concat(sort(right));'
 
       describe "when a fold begins on the line on which another fold ends", ->
 
