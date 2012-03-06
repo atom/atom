@@ -107,6 +107,28 @@ fdescribe "Renderer", ->
           expect(event.oldRange).toEqual([[3, 0], [11, 45]])
           expect(event.newRange).toEqual([[3, 0], [5, 45]])
 
+    describe "position translation", ->
+      it "translates positions accounting for wrapped lines", ->
+        # before any wrapped lines
+        expect(renderer.screenPositionForBufferPosition([0, 5])).toEqual([0, 5])
+        expect(renderer.bufferPositionForScreenPosition([0, 5])).toEqual([0, 5])
+        expect(renderer.screenPositionForBufferPosition([0, 29])).toEqual([0, 29])
+        expect(renderer.bufferPositionForScreenPosition([0, 29])).toEqual([0, 29])
+
+        # on a wrapped line
+        expect(renderer.screenPositionForBufferPosition([3, 5])).toEqual([3, 5])
+        expect(renderer.bufferPositionForScreenPosition([3, 5])).toEqual([3, 5])
+        expect(renderer.screenPositionForBufferPosition([3, 50])).toEqual([3, 50])
+        expect(renderer.screenPositionForBufferPosition([3, 51])).toEqual([4, 0])
+        expect(renderer.bufferPositionForScreenPosition([4, 0])).toEqual([3, 51])
+        expect(renderer.bufferPositionForScreenPosition([3, 50])).toEqual([3, 50])
+        expect(renderer.screenPositionForBufferPosition([3, 62])).toEqual([4, 11])
+        expect(renderer.bufferPositionForScreenPosition([4, 11])).toEqual([3, 62])
+
+        # following a wrapped line
+        expect(renderer.screenPositionForBufferPosition([4, 5])).toEqual([5, 5])
+        expect(renderer.bufferPositionForScreenPosition([5, 5])).toEqual([4, 5])
+
   describe "folding", ->
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
@@ -276,7 +298,7 @@ fdescribe "Renderer", ->
           expect(renderer.lineForRow(0).text).toBe 'var quicksort = function () {'
 
       describe "when a fold causes a wrapped line to become shorter than the max line length", ->
-        fit "unwraps the line", ->
+        it "unwraps the line", ->
           renderer.setMaxLineLength(50)
           renderer.createFold([[3, 0], [3, 15]])
           expect(renderer.lineForRow(3).text).toBe '... items.shift(), current, left = [], right = [];'
@@ -336,7 +358,7 @@ fdescribe "Renderer", ->
           fold1.destroy()
           expect(renderer.lineForRow(4).text).toBe '    slongaz(items.length > 0) {'
 
-      fdescribe "when the old range is contained to a single line in-between two fold placeholders", ->
+      describe "when the old range is contained to a single line in-between two fold placeholders", ->
         it "re-renders the line with the placeholder and re-positions the second fold", ->
           buffer.insert([7, 4], 'abc')
           expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...abc}...concat(sort(right));'
@@ -374,4 +396,47 @@ fdescribe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[4, 0], [4, 56]]
           expect(event.newRange).toEqual [[4, 0], [4, 60]]
+
+    fdescribe "position translation", ->
+      describe "when there is single fold spanning multiple lines", ->
+        it "translates positions to account for folded lines and characters and the placeholder", ->
+          renderer.createFold([[4, 29], [7, 4]])
+
+          # preceding fold: identity
+          expect(renderer.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
+          expect(renderer.screenPositionForBufferPosition([4, 0])).toEqual [4, 0]
+          expect(renderer.screenPositionForBufferPosition([4, 29])).toEqual [4, 29]
+
+          expect(renderer.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
+          expect(renderer.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
+          expect(renderer.bufferPositionForScreenPosition([4, 29])).toEqual [4, 29]
+
+          # inside of fold: translate to the start of the fold
+          expect(renderer.screenPositionForBufferPosition([4, 35])).toEqual [4, 29]
+          expect(renderer.screenPositionForBufferPosition([5, 5])).toEqual [4, 29]
+
+          # following fold, on last line of fold
+          expect(renderer.screenPositionForBufferPosition([7, 4])).toEqual [4, 32]
+          expect(renderer.bufferPositionForScreenPosition([4, 32])).toEqual [7, 4]
+
+          # # following fold, subsequent line
+          expect(renderer.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
+          expect(renderer.screenPositionForBufferPosition([11, 13])).toEqual [8, 13]
+
+          expect(renderer.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
+          expect(renderer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
+
+      describe "when there is a single fold spanning a single line", ->
+        it "translates positions to account for folded characters and the placeholder", ->
+          renderer.createFold([[4, 10], [4, 15]])
+
+          expect(renderer.screenPositionForBufferPosition([4, 5])).toEqual [4, 5]
+          expect(renderer.screenPositionForBufferPosition([4, 15])).toEqual [4, 13]
+          expect(renderer.screenPositionForBufferPosition([4, 20])).toEqual [4, 18]
+
+          expect(renderer.bufferPositionForScreenPosition([4, 5])).toEqual [4, 5]
+          expect(renderer.bufferPositionForScreenPosition([4, 13])).toEqual [4, 15]
+          expect(renderer.bufferPositionForScreenPosition([4, 18])).toEqual [4, 20]
+
+
 

@@ -84,6 +84,12 @@ class Renderer
   logLines: ->
     @lineMap.logLines()
 
+  screenPositionForBufferPosition: (position) ->
+    @lineMap.outputPositionForInputPosition(position)
+
+  bufferPositionForScreenPosition: (position) ->
+    @lineMap.inputPositionForOutputPosition(position)
+
   handleBufferChange: (e) ->
     for row, folds of @activeFolds
       for fold in folds
