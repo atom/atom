@@ -324,7 +324,7 @@ class Editor extends View
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
-  paste: -> @selection.insertText($native.readFromPasteboard())
+  paste: -> @insertText($native.readFromPasteboard())
 
   foldSelection: -> @selection.fold()
 
