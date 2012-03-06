@@ -42,8 +42,20 @@ describe "Renderer", ->
           expect(renderer.lineForRow(4).text).toBe 'right = [];'
 
       describe "when there is a fold placeholder straddling the max length boundary", ->
+        it "wraps the line before the fold placeholder", ->
+          renderer.createFold([[3, 49], [6, 1]])
 
-  fdescribe "folding", ->
+          expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = []'
+          expect(renderer.lineForRow(4).text).toBe '...     current < pivot ? left.push(current) : '
+          expect(renderer.lineForRow(5).text).toBe 'right.push(current);'
+          expect(renderer.lineForRow(6).text).toBe '    }'
+
+          renderer.createFold([[6, 56], [8, 15]])
+          expect(renderer.lineForRow(6).text).toBe 'right.push(...(left).concat(pivot).concat(sort(rig'
+          expect(renderer.lineForRow(7).text).toBe 'ht));'
+          expect(renderer.lineForRow(8).text).toBe '  };'
+
+  describe "folding", ->
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
         it "replaces the lines spanned by the fold with a single line containing a placeholder", ->
@@ -112,7 +124,7 @@ describe "Renderer", ->
           expect(line5.text).toBe '      current = items.shift();'
           expect(renderer.lineForRow(8).text).toBe '    r... sort(left).concat(pivot).concat(sort(right));'
 
-        fit "allows the outer fold to start at the same location as the inner fold", ->
+        it "allows the outer fold to start at the same location as the inner fold", ->
           renderer.createFold([[4, 29], [7, 4]])
           renderer.createFold([[4, 29], [9, 2]])
           expect(renderer.lineForRow(4).text).toBe "    while(items.length > 0) {...};"

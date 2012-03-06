@@ -43,11 +43,16 @@ class Renderer
     fold = new Fold(this, bufferRange)
     @registerFold(bufferRange.start.row, fold)
 
-    oldScreenRange = @expandScreenRangeToLineEnds(@screenRangeForBufferRange(bufferRange))
+    oldScreenRange =
+      @expandScreenRangeToLineEnds(
+        @screenRangeForBufferRange(
+          @expandBufferRangeToLineEnds(bufferRange)))
+
+    lines = @buildLineForBufferRow(bufferRange.start.row)
     @lineMap.replaceOutputRows(
       oldScreenRange.start.row,
       oldScreenRange.end.row,
-      @buildLineForBufferRow(bufferRange.start.row))
+      lines)
     newScreenRange = @expandScreenRangeToLineEnds(
       new Range(_.clone(oldScreenRange.start), _.clone(oldScreenRange.start)))
 
@@ -84,20 +89,23 @@ class Renderer
     @buildLinesForBufferRows(bufferRow, bufferRow)
 
   buildLinesForBufferRows: (startRow, endRow) ->
-    buildLinesForBufferRows = (startRow, endRow, startColumn) =>
+    buildLinesForBufferRows = (startRow, endRow, startColumn, currentScreenLineLength=0) =>
       return [] if startRow > endRow and not startColumn?
 
       startColumn ?= 0
       line = @highlighter.lineForRow(startRow).splitAt(startColumn)[1]
 
-      wrapColumn = @findWrapColumn(line.text)
+      wrapColumn = @findWrapColumn(line.text, @maxLineLength - currentScreenLineLength)
 
       for fold in @foldsForBufferRow(startRow)
         if fold.start.column >= startColumn
-          break if fold.start.column > wrapColumn - foldPlaceholderLength
+          if fold.start.column > wrapColumn - foldPlaceholderLength
+            wrapColumn = Math.min(wrapColumn, fold.start.column)
+            break
           prefix = line.splitAt(fold.start.column - startColumn)[0]
           placeholder = @buildFoldPlaceholder(fold)
-          suffix = buildLinesForBufferRows(fold.end.row, endRow, fold.end.column)
+          currentScreenLineLength = currentScreenLineLength + (prefix?.text.length ? 0) + foldPlaceholderLength
+          suffix = buildLinesForBufferRows(fold.end.row, endRow, fold.end.column, currentScreenLineLength)
           return _.compact _.flatten [prefix, placeholder, suffix]
 
       if wrapColumn
@@ -112,19 +120,19 @@ class Renderer
   foldStartRowForBufferRow: (bufferRow) ->
     @bufferRowForScreenRow(@screenRowForBufferRow(bufferRow))
 
-  findWrapColumn: (line) ->
-    return unless line.length > @maxLineLength
+  findWrapColumn: (line, maxLineLength) ->
+    return unless line.length > maxLineLength
 
-    if /\s/.test(line[@maxLineLength])
+    if /\s/.test(line[maxLineLength])
       # search forward for the start of a word past the boundary
-      for column in [@maxLineLength..line.length]
+      for column in [maxLineLength..line.length]
         return column if /\S/.test(line[column])
       return line.length
     else
       # search backward for the start of the word on the boundary
-      for column in [@maxLineLength..0]
+      for column in [maxLineLength..0]
         return column + 1 if /\s/.test(line[column])
-      return @maxLineLength
+      return maxLineLength
 
   registerFold: (bufferRow, fold) ->
     @activeFolds[bufferRow] ?= []
@@ -147,5 +155,9 @@ class Renderer
   expandScreenRangeToLineEnds: (screenRange) ->
     { start, end } = screenRange
     new Range([start.row, 0], [end.row, @lineMap.lineForOutputRow(end.row).text.length])
+
+  expandBufferRangeToLineEnds: (bufferRange) ->
+    { start, end } = bufferRange
+    new Range([start.row, 0], [end.row, @lineMap.lineForInputRow(end.row).text.length])
 
 _.extend Renderer.prototype, EventEmitter
