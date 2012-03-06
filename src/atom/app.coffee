@@ -15,8 +15,8 @@ class App
 
   setupKeymap: ->
     @keymap = new GlobalKeymap()
-
     $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
+    @keymap.bindDefaultKeys()
 
   open: (url) ->
     $native.open url
