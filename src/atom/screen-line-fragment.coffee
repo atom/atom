@@ -34,17 +34,10 @@ class ScreenLineFragment
     [leftFragment, rightFragment]
 
   splitTokenAt: (token, splitIndex) ->
-    if token.isAtomic
-      [@buildFillerToken(splitIndex), token]
-    else
-      { type, value } = token
-      value1 = value.substring(0, splitIndex)
-      value2 = value.substring(splitIndex)
-      [{value: value1, type }, {value: value2, type}]
-
-  buildFillerToken: (length) ->
-    text = (' ' for i in [0...length]).join('')
-    { value: text, type: 'text' }
+    { type, value } = token
+    value1 = value.substring(0, splitIndex)
+    value2 = value.substring(splitIndex)
+    [{value: value1, type }, {value: value2, type}]
 
   concat: (other) ->
     tokens = @tokens.concat(other.tokens)
@@ -52,12 +45,6 @@ class ScreenLineFragment
     screenDelta = @screenDelta.add(other.screenDelta)
     bufferDelta = @bufferDelta.add(other.bufferDelta)
     new ScreenLineFragment(tokens, text, screenDelta, bufferDelta)
-
-  lengthForClipping: ->
-    if @isAtomic
-      0
-    else
-      @text.length
 
   isSoftWrapped: ->
     @screenDelta.row == 1 and @bufferDelta.row == 0
