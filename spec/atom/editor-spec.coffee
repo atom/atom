@@ -163,9 +163,6 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
 
-
-
-
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->
@@ -906,3 +903,49 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
 
         expect(editor.getCursorBufferPosition()).toEqual [4, 29]
+
+  describe ".save()", ->
+    describe "when the current buffer has a path", ->
+      tempFilePath = null
+
+      beforeEach ->
+        tempFilePath = '/tmp/temp.txt'
+        expect(fs.remove(tempFilePath))
+        editor.setBuffer new Buffer(tempFilePath)
+        expect(editor.buffer.path).toBe tempFilePath
+
+      it "saves the current buffer to disk", ->
+        editor.buffer.setText 'Edited!'
+        expect(fs.exists(tempFilePath)).toBeFalsy()
+
+        editor.save()
+
+        expect(fs.exists(tempFilePath)).toBeTruthy()
+        expect(fs.read(tempFilePath)).toBe 'Edited!'
+
+    describe "when the current buffer has no path", ->
+      selectedFilePath = null
+      beforeEach ->
+        editor.setBuffer new Buffer()
+        expect(editor.buffer.path).toBeUndefined()
+        editor.buffer.setText 'Save me to a new path'
+        spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
+
+      it "presents a 'save as' dialog", ->
+        editor.save()
+        expect($native.saveDialog).toHaveBeenCalled()
+
+      describe "when a path is chosen", ->
+        it "saves the buffer to the chosen path", ->
+          selectedFilePath = '/tmp/temp.txt'
+
+          editor.save()
+
+          expect(fs.exists(selectedFilePath)).toBeTruthy()
+          expect(fs.read(selectedFilePath)).toBe 'Save me to a new path'
+
+      describe "when dialog is cancelled", ->
+        it "does not save the buffer", ->
+          selectedFilePath = null
+          editor.save()
+          expect(fs.exists(selectedFilePath)).toBeFalsy()

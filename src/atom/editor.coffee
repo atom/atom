@@ -46,6 +46,7 @@ class Editor extends View
 
   bindKeys: ->
     window.keymap.bindKeys '*:not(.editor *)',
+      'meta-s': 'save'
       right: 'move-right'
       left: 'move-left'
       down: 'move-down'
@@ -56,7 +57,7 @@ class Editor extends View
       'shift-down': 'select-down'
       enter: 'newline'
       backspace: 'backspace'
-      delete: 'delete'
+      'delete': 'delete'
       'meta-x': 'cut'
       'meta-c': 'copy'
       'meta-v': 'paste'
@@ -65,6 +66,7 @@ class Editor extends View
       'alt-meta-w': 'toggle-soft-wrap'
       'alt-meta-f': 'fold-selection'
 
+    @on 'save', => @save()
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
     @on 'move-down', => @moveCursorDown()
@@ -237,6 +239,13 @@ class Editor extends View
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setMaxLineLength
 
+  save: ->
+    if not @buffer.path
+      path = $native.saveDialog()
+      return if not path
+      @buffer.path = path
+
+    @buffer.save()
 
   clipScreenPosition: (screenPosition, options={}) ->
     @renderer.clipScreenPosition(screenPosition, options)
