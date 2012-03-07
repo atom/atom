@@ -45,6 +45,9 @@ class Renderer
   getLines: ->
     @lineMap.linesForScreenRows(0, @lineMap.lastScreenRow())
 
+  bufferRowsForScreenRows: ->
+    @lineMap.bufferRowsForScreenRows()
+
   createFold: (bufferRange) ->
     bufferRange = Range.fromObject(bufferRange)
     return if bufferRange.isEmpty()

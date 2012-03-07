@@ -37,6 +37,15 @@ class LineMap
   linesForBufferRows: (startRow, endRow) ->
     @linesByDelta('bufferDelta', startRow, endRow)
 
+  bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow())->
+    bufferRows = []
+    currentScreenRow = -1
+    @traverseByDelta 'screenDelta', [startRow, 0], [endRow, 0], ({ screenDelta, bufferDelta }) ->
+      bufferRows.push(bufferDelta.row) if screenDelta.row > currentScreenRow
+      currentScreenRow = screenDelta.row
+    bufferRows
+
+
   bufferLineCount: ->
     @lineCountByDelta('bufferDelta')
 
@@ -89,7 +98,7 @@ class LineMap
   linesByDelta: (deltaType, startRow, endRow) ->
     lines = []
     pendingFragment = null
-    @traverseByDelta deltaType, new Point(startRow, 0), new Point(endRow, Infinity), (lineFragment) ->
+    @traverseByDelta deltaType, new Point(startRow, 0), new Point(endRow, Infinity), ({lineFragment}) ->
       if pendingFragment
         pendingFragment = pendingFragment.concat(lineFragment)
       else
@@ -154,7 +163,7 @@ class LineMap
     bufferDelta = new Point
 
     for lineFragment in @lineFragments
-      iterator(lineFragment) if traversalDelta.isGreaterThanOrEqual(startPosition) and iterator?
+      iterator({ lineFragment, screenDelta, bufferDelta }) if traversalDelta.isGreaterThanOrEqual(startPosition) and iterator?
       traversalDelta = traversalDelta.add(lineFragment[deltaType])
       break if traversalDelta.isGreaterThan(endPosition)
       screenDelta = screenDelta.add(lineFragment.screenDelta)

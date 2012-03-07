@@ -527,3 +527,8 @@ describe "Renderer", ->
         expect(renderer.clipScreenPosition([4, 5], skipAtomicTokens: true)).toEqual [4, 7]
         expect(renderer.clipScreenPosition([4, 6], skipAtomicTokens: true)).toEqual [4, 7]
 
+  describe ".bufferRowsForScreenRows()", ->
+    it "returns the buffer rows corresponding to each screen row in the given range", ->
+      renderer.setMaxLineLength(50)
+      renderer.createFold([[4, 29], [7, 4]])
+      expect(renderer.bufferRowsForScreenRows()).toEqual [0, 1, 2, 3, 3, 4, 8, 8, 9, 10, 11, 12]

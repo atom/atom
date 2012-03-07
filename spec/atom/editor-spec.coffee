@@ -148,6 +148,23 @@ describe "Editor", ->
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
+        editor.setMaxLineLength(50)
+        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
+        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '•'
+        expect(editor.gutter.find('.line-number:eq(5)').text()).toBe '5'
+
+        expect(editor.gutter.find('.line-number:eq(7)').text()).toBe '7'
+        expect(editor.gutter.find('.line-number:eq(8)').text()).toBe '•'
+        expect(editor.gutter.find('.line-number:eq(9)').text()).toBe '8'
+
+    describe "when there are folds", ->
+      it "skips line numbers", ->
+        editor.createFold([[3, 10], [5, 1]])
+        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
+        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
+
+
+
 
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->

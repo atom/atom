@@ -215,8 +215,8 @@ class Editor extends View
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
 
-  setMaxLineLength: ->
-    maxLength =
+  setMaxLineLength: (maxLength) ->
+    maxLength ?=
       if @softWrap
         Math.floor(@lines.width() / @charWidth)
       else
@@ -258,6 +258,9 @@ class Editor extends View
 
   bufferRangeForScreenRange: (range) ->
     @renderer.bufferRangeForScreenRange(range)
+
+  bufferRowsForScreenRows: ->
+    @renderer.bufferRowsForScreenRows()
 
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
@@ -347,3 +350,6 @@ class Editor extends View
     fold = @renderer.foldsById[foldId]
     fold.destroy()
     @setCursorBufferPosition(fold.start)
+
+  logLines: ->
+    @renderer.logLines()

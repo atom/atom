@@ -8,8 +8,11 @@ class Gutter extends View
   @content: ->
     @div class: 'gutter'
 
-  renderLineNumbers: (screenLines) ->
+  renderLineNumbers: ->
     @empty()
-    for screenLine, i in screenLines    
+
+    lastRow = -1
+    for row in @parentView.bufferRowsForScreenRows()
       @append $$ ->
-        @div {class: 'line-number'}, i + 1
+        @div {class: 'line-number'}, if row == lastRow then '•' else row + 1
+      lastRow = row
