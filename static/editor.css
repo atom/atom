@@ -6,8 +6,8 @@
   background: #333;
   color: white;
   cursor: default;
-
   overflow-y: scroll;
+  overflow-x: auto;
 
   -webkit-user-select: none;
 }
@@ -36,7 +36,6 @@
   width: -webkit-flex(1);
 
   position: relative;
-
 }
 
 .editor .line {

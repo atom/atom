@@ -234,8 +234,8 @@ class Editor extends View
       @_setMaxLineLength = => @setMaxLineLength()
       $(window).on 'resize', @_setMaxLineLength
     else
-      $(window).off 'resize', @_setMaxLineLength
       @removeClass 'soft-wrap'
+      $(window).off 'resize', @_setMaxLineLength
 
 
   clipScreenPosition: (screenPosition, options={}) ->
