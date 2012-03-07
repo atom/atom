@@ -1,4 +1,5 @@
 {View, $$} = require 'space-pen'
+AceOutdentAdaptor = require 'ace-outdent-adaptor'
 Buffer = require 'buffer'
 Cursor = require 'cursor'
 Gutter = require 'gutter'
@@ -32,6 +33,7 @@ class Editor extends View
   highlighter: null
   renderer: null
   undoManager: null
+  autoIndent: null
 
   initialize: () ->
     requireStylesheet 'editor.css'
@@ -40,6 +42,7 @@ class Editor extends View
     @buildCursorAndSelection()
     @handleEvents()
     @setBuffer(new Buffer)
+    @autoIndent = true
 
   bindKeys: ->
     window.keymap.bindKeys '*:not(.editor *)',
@@ -70,7 +73,7 @@ class Editor extends View
     @on 'select-left', => @selectLeft()
     @on 'select-up', => @selectUp()
     @on 'select-down', => @selectDown()
-    @on 'newline', =>  @insertNewline()
+    @on 'newline', =>  @insertText("\n")
     @on 'backspace', => @backspace()
     @on 'delete', => @delete()
     @on 'cut', => @cutSelection()
@@ -297,12 +300,34 @@ class Editor extends View
   selectToBufferPosition: (position) ->
     @selection.selectToBufferPosition(position)
 
-  insertText: (text) -> @selection.insertText(text)
-  insertNewline: -> @selection.insertNewline()
+  insertText: (text) ->
+    { text, shouldOutdent } = @autoIndentText(text)
+
+    @selection.insertText(text)
+
+    @autoOutdentText() if shouldOutdent
+
+  autoIndentText: (text) ->
+    if @autoIndent
+      state = @renderer.lineForRow(@getCursorRow()).state
+
+      if text[0] == "\n"
+        indent = @buffer.mode.getNextLineIndent(state, @getCurrentLine(), atom.tabText)
+        text = text[0] + indent + text[1..]
+      else if @buffer.mode.checkOutdent(state, @getCurrentLine(), text)
+        shouldOutdent = true
+
+    console.log text
+
+    {text, shouldOutdent}
+
+  autoOutdentText: ->
+    state = @renderer.lineForRow(@getCursorRow()).state
+    @buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@buffer, this), @getCursorRow())
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
-  paste: -> @selection.insertText($native.readFromPasteboard())
+  paste: -> @insertText($native.readFromPasteboard())
 
   foldSelection: -> @selection.fold()
 

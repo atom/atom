@@ -12,6 +12,7 @@ describe "Editor", ->
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     editor = new Editor
+    editor.autoIndent = false
     editor.enableKeymap()
     editor.setBuffer(buffer)
 
@@ -457,6 +458,30 @@ describe "Editor", ->
             editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
+
+  describe "auto indent/outdent", ->
+    beforeEach ->
+      editor.autoIndent = true
+
+    describe "when newline is inserted", ->
+      it "indents cursor based on the indentation of previous line", ->
+        editor.setCursorBufferPosition([4, 29])
+        editor.insertText("\n")
+        expect(editor.buffer.lineForRow(5)).toEqual("      ")
+
+      it "indents cursor based on the indentation of previous line", ->
+        editor.setCursorBufferPosition([4, 29])
+        editor.insertText("\nvar thisIsCool")
+        expect(editor.buffer.lineForRow(5)).toEqual("      var thisIsCool")
+
+    describe "when text that closes a scope entered", ->
+      it "outdents the text", ->
+        editor.setCursorBufferPosition([1, 30])
+        editor.insertText("\n")
+        expect(editor.buffer.lineForRow(2)).toEqual("    ")
+        editor.insertText("}")
+        expect(editor.buffer.lineForRow(2)).toEqual("  }")
+        expect(editor.getCursorBufferPosition().column).toBe 3
 
   describe "selection", ->
     selection = null

@@ -24,7 +24,7 @@
 
 - (void)dealloc {
   [_hiddenWindow release];
-  [self dealloc];
+  [super dealloc];
 }
 
 - (BOOL)isHandlingSendEvent {
@@ -40,7 +40,8 @@
 
   if ([[self mainMenu] performKeyEquivalent:event]) return;
   
-  if (_clientHandler && ![self keyWindow] && [event type] == NSKeyDown) {
+  bool windowHandlesKeyEvents = [[[self keyWindow] windowController] handlesKeyEvents];
+  if (_clientHandler && !windowHandlesKeyEvents && [event type] == NSKeyDown) {
     [_hiddenWindow makeKeyAndOrderFront:self];
     [_hiddenWindow sendEvent:event];
   }

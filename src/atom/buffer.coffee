@@ -95,9 +95,10 @@ class Buffer
     if not @path then throw new Error("Tried to save buffer with no url")
     fs.write @path, @getText()
 
-  modeName: ->
+  getMode: ->
+    return @mode if @mode
     extension = if @path then @path.split('/').pop().split('.').pop() else null
-    switch extension
+    modeName = switch extension
       when 'js' then 'javascript'
       when 'coffee' then 'coffee'
       when 'rb', 'ru' then 'ruby'
@@ -105,5 +106,7 @@ class Buffer
       when 'html', 'htm' then 'html'
       when 'css' then 'css'
       else 'text'
+
+    @mode = new (require("ace/mode/#{modeName}").Mode)
 
 _.extend(Buffer.prototype, EventEmitter)

@@ -6,15 +6,17 @@ module.exports =
 class App
   keymap: null
   windows: null
+  tabText: null
 
   constructor: (@loadPath, nativeMethods)->
     @windows = []
     @setupKeymap()
+    @tabText = "  "
 
   setupKeymap: ->
     @keymap = new GlobalKeymap()
-    
     $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
+    @keymap.bindDefaultKeys()
 
   open: (url) ->
     $native.open url

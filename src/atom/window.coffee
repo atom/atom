@@ -17,11 +17,11 @@ windowAdditions =
   startup: (url) ->
     @setupKeymap()
     @attachRootView(url)
-    
-    $(window).on 'close', => 
+
+    $(window).on 'close', =>
       @shutdown()
       @close()
-    
+
     $(window).focus()
     atom.windowOpened this
 
@@ -33,7 +33,7 @@ windowAdditions =
 
   setupKeymap: ->
     @keymap = new GlobalKeymap()
-
+    @keymap.bindDefaultKeys()
     $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
 
   attachRootView: (url) ->

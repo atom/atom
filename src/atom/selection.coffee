@@ -81,9 +81,6 @@ class Selection extends View
   insertText: (text) ->
     @editor.buffer.change(@getBufferRange(), text)
 
-  insertNewline: ->
-    @insertText('\n')
-
   delete: ->
     range = @getBufferRange()
     @editor.buffer.change(range, '') unless range.isEmpty()

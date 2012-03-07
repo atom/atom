@@ -29,10 +29,12 @@
 
 - (id)initWithPath:(NSString *)path atomContext:(CefRefPtr<CefV8Context>)atomContext {
   _pathToOpen = [path retain];
+  _handlesKeyEvents = YES;
   return [self initWithBootstrapScript:@"window-bootstrap" atomContext:atomContext];
 }
 
 - (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
+  _handlesKeyEvents = NO;
   return [self initWithBootstrapScript:@"spec-bootstrap" atomContext:atomContext];
 }
 
@@ -54,6 +56,10 @@
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
   CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);  
+}
+
+- (bool)handlesKeyEvents {
+  return _handlesKeyEvents;
 }
 
 #pragma mark BrowserDelegate
