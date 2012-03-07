@@ -17,6 +17,8 @@ afterEach ->
 specsKeymap = new GlobalKeymap
 specsKeymap.bindDefaultKeys()
 $(window).on 'keydown', (e) -> specsKeymap.handleKeyEvent(e)
+specsKeymap.bindKeys '*', 'meta-w': 'close'
+$(document).on 'close', -> window.close()
 
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual
