@@ -1,4 +1,5 @@
 {View, $$} = require 'space-pen'
+AceOutdentAdaptor = require 'ace-outdent-adaptor'
 Buffer = require 'buffer'
 Point = require 'point'
 Cursor = require 'cursor'
@@ -32,7 +33,6 @@ class Editor extends View
   lineWrapper: null
   undoManager: null
   autoIndent: null
-
 
   initialize: () ->
     requireStylesheet 'editor.css'
@@ -304,23 +304,27 @@ class Editor extends View
     @selection.selectToBufferPosition(position)
 
   insertText: (text) ->
-    unless @autoIndent
-      @selection.insertText(text)
-      return
-
-    state = @lineWrapper.lineForScreenRow(@getCursorRow()).state
-    shouldOutdent = false
-
-    if text[0] == "\n"
-      indent = @buffer.mode.getNextLineIndent(state, @getCurrentLine(), atom.tabText)
-      text = text[0] + indent + text[1..]
-    else if @buffer.mode.checkOutdent(state, @getCurrentLine(), text)
-      shouldOutdent = true
+    { text, shouldOutdent } = @autoIndentText(text)
 
     @selection.insertText(text)
 
-    if shouldOutdent
-      @buffer.mode.autoOutdent(state, @buffer, @getCursorRow())
+    @autoOutdentText() if shouldOutdent
+
+  autoIndentText: (text) ->
+    if @autoIndent
+      state = @lineWrapper.lineForScreenRow(@getCursorRow()).state
+
+      if text[0] == "\n"
+        indent = @buffer.mode.getNextLineIndent(state, @getCurrentLine(), atom.tabText)
+        text = text[0] + indent + text[1..]
+      else if @buffer.mode.checkOutdent(state, @getCurrentLine(), text)
+        shouldOutdent = true
+
+    {text, shouldOutdent}
+
+  autoOutdentText: ->
+    state = @lineWrapper.lineForScreenRow(@getCursorRow()).state
+    @buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@buffer), @getCursorRow())
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()
