@@ -324,7 +324,7 @@ class Editor extends View
 
   autoOutdentText: ->
     state = @lineWrapper.lineForScreenRow(@getCursorRow()).state
-    @buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@buffer), @getCursorRow())
+    @buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@buffer, this), @getCursorRow())
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()

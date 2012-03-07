@@ -2,7 +2,7 @@ Range = require 'range'
 
 module.exports =
 class AceOutdentAdaptor
-  constructor: (@buffer) ->
+  constructor: (@buffer, @editor) ->
 
   getLine: (row) ->
     @buffer.getLine(row)
@@ -13,6 +13,9 @@ class AceOutdentAdaptor
 
   # Does not actually replace text, just line at range.start outdents one level
   replace: (range, text) ->
+    {row, column} = @editor.getCursorBufferPosition()
     start = range.start
     end = {row: range.start.row, column: range.start.column + atom.tabText.length}
     @buffer.change(new Range(start, end), "")
+    @editor.setCursorBufferPosition({row, column: column - atom.tabText.length})
+

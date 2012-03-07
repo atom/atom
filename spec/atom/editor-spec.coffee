@@ -463,6 +463,8 @@ describe "Editor", ->
         editor.insertText("}")
         expect(editor.buffer.getLine(2)).toEqual("  }")
 
+        expect(editor.getCursorBufferPosition().column).toBe 3
+
   describe "selection", ->
     selection = null
 
