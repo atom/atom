@@ -66,7 +66,10 @@ class LineMap
     new Range(start, end)
 
   clipOutputPosition: (outputPosition, options) ->
-    @translatePosition('outputDelta', 'outputDelta', outputPosition, options)
+    @clipPosition('outputDelta', outputPosition, options)
+
+  clipPosition: (deltaType, position, options) ->
+    @translatePosition(deltaType, deltaType, position, options)
 
   spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
     stopRow = startRow + rowCount
@@ -119,6 +122,7 @@ class LineMap
         targetDelta.column = 0
       else
         targetDelta.column = maxTargetColumn - 1
+        return @clipPosition(targetDeltaType, targetDelta)
     else if sourcePosition.column > maxSourceColumn and wrapBeyondNewlines
       targetDelta.row++
       targetDelta.column = 0

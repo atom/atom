@@ -451,3 +451,66 @@ describe "Renderer", ->
           renderer.createFold([[3, 51], [3, 58]])
           expect(renderer.screenPositionForBufferPosition([3, 58])).toEqual [4, 3]
           expect(renderer.bufferPositionForScreenPosition([4, 3])).toEqual [3, 58]
+
+  describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
+    beforeEach ->
+      renderer.setMaxLineLength(50)
+
+    it "allows valid positions", ->
+      expect(renderer.clipScreenPosition([4, 5])).toEqual [4, 5]
+      expect(renderer.clipScreenPosition([4, 11])).toEqual [4, 11]
+
+    it "disallows negative positions", ->
+      expect(renderer.clipScreenPosition([-1, -1])).toEqual [0, 0]
+      expect(renderer.clipScreenPosition([-1, 10])).toEqual [0, 0]
+      expect(renderer.clipScreenPosition([0, -1])).toEqual [0, 0]
+
+    it "disallows positions beyond the last row", ->
+      expect(renderer.clipScreenPosition([1000, 0])).toEqual [15, 2]
+      expect(renderer.clipScreenPosition([1000, 1000])).toEqual [15, 2]
+
+    describe "when wrapBeyondNewlines is false (the default)", ->
+      it "wraps positions beyond the end of hard newlines to the end of the line", ->
+        expect(renderer.clipScreenPosition([1, 10000])).toEqual [1, 30]
+        expect(renderer.clipScreenPosition([4, 30])).toEqual [4, 11]
+        expect(renderer.clipScreenPosition([4, 1000])).toEqual [4, 11]
+
+    describe "when wrapBeyondNewlines is true", ->
+      it "wraps positions past the end of hard newlines to the next line", ->
+        expect(renderer.clipScreenPosition([0, 29], wrapBeyondNewlines: true)).toEqual [0, 29]
+        expect(renderer.clipScreenPosition([0, 30], wrapBeyondNewlines: true)).toEqual [1, 0]
+        expect(renderer.clipScreenPosition([0, 1000], wrapBeyondNewlines: true)).toEqual [1, 0]
+
+    describe "when wrapAtSoftNewlines is false (the default)", ->
+      it "clips positions at the end of soft-wrapped lines to the character preceding the end of the line", ->
+        expect(renderer.clipScreenPosition([3, 50])).toEqual [3, 50]
+        expect(renderer.clipScreenPosition([3, 51])).toEqual [3, 50]
+        expect(renderer.clipScreenPosition([3, 58])).toEqual [3, 50]
+        expect(renderer.clipScreenPosition([3, 1000])).toEqual [3, 50]
+
+      describe "if there is a fold placeholder at the very end of the screen line", ->
+        it "clips positions at the end of the screen line to the position preceding the placeholder", ->
+          renderer.createFold([[3, 47], [3, 51]])
+          expect(renderer.clipScreenPosition([3, 50])).toEqual [3, 47]
+
+    describe "when wrapAtSoftNewlines is true", ->
+      it "wraps positions at the end of soft-wrapped lines to the next screen line", ->
+        expect(renderer.clipScreenPosition([3, 50], wrapAtSoftNewlines: true)).toEqual [3, 50]
+        expect(renderer.clipScreenPosition([3, 51], wrapAtSoftNewlines: true)).toEqual [4, 0]
+        expect(renderer.clipScreenPosition([3, 58], wrapAtSoftNewlines: true)).toEqual [4, 0]
+        expect(renderer.clipScreenPosition([3, 1000], wrapAtSoftNewlines: true)).toEqual [4, 0]
+
+    describe "when skipAtomicTokens is false (the default)", ->
+      it "clips screen positions in the middle of fold placeholders to the to the beginning of fold placeholders", ->
+        renderer.createFold([[3, 55], [3, 59]])
+        expect(renderer.clipScreenPosition([4, 5])).toEqual [4, 4]
+        expect(renderer.clipScreenPosition([4, 6])).toEqual [4, 4]
+        expect(renderer.clipScreenPosition([4, 7])).toEqual [4, 7]
+
+    describe "when skipAtomicTokens is true", ->
+      it "wraps the screen positions in the middle of fold placeholders to the end of the placeholder", ->
+        renderer.createFold([[3, 55], [3, 59]])
+        expect(renderer.clipScreenPosition([4, 4], skipAtomicTokens: true)).toEqual [4, 4]
+        expect(renderer.clipScreenPosition([4, 5], skipAtomicTokens: true)).toEqual [4, 7]
+        expect(renderer.clipScreenPosition([4, 6], skipAtomicTokens: true)).toEqual [4, 7]
+

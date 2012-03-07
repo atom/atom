@@ -90,6 +90,9 @@ class Renderer
   bufferPositionForScreenPosition: (position) ->
     @lineMap.inputPositionForOutputPosition(position)
 
+  clipScreenPosition: (position, options={}) ->
+    @lineMap.clipOutputPosition(position, options)
+
   handleBufferChange: (e) ->
     for row, folds of @activeFolds
       for fold in folds
@@ -133,7 +136,7 @@ class Renderer
           suffix = buildLinesForBufferRows(fold.end.row, endRow, fold.end.column, currentScreenLineLength)
           return _.compact _.flatten [prefix, placeholder, suffix]
 
-      if wrapColumn
+      if wrapColumn?
         line = line.splitAt(wrapColumn)[0]
         line.outputDelta = new Point(1, 0)
         [line].concat buildLinesForBufferRows(startRow, endRow, startColumn + wrapColumn)
