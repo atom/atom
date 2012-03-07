@@ -45,8 +45,12 @@ describe "screenLineFragment", ->
       expect(right2.outputDelta).toEqual [0, 10]
 
     describe "if splitting at 0", ->
-      it "returns undefined for the left half", ->
-        expect(screenLine.splitAt(0)).toEqual [undefined, screenLine]
+      it "returns an empty line fragment for the left half", ->
+        left = screenLine.splitAt(0)[0]
+        expect(left.text).toBe ''
+        expect(left.tokens).toEqual []
+        expect(left.inputDelta).toEqual [0, 0]
+        expect(left.outputDelta).toEqual [0, 0]
 
     describe "if splitting at a column equal to the line length", ->
       it "returns an empty line fragment that spans a row for the right half", ->

@@ -11,7 +11,7 @@ class ScreenLineFragment
     _.extend(this, extraFields)
 
   splitAt: (column) ->
-    return [undefined, this] if column == 0
+    return [new ScreenLineFragment([], '', [0, 0], [0, 0]), this] if column == 0
 
     rightTokens = _.clone(@tokens)
     leftTokens = []

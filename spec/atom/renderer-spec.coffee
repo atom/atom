@@ -1,7 +1,7 @@
 Renderer = require 'renderer'
 Buffer = require 'buffer'
 
-fdescribe "Renderer", ->
+describe "Renderer", ->
   [renderer, buffer, changeHandler] = []
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
@@ -54,6 +54,12 @@ fdescribe "Renderer", ->
           expect(renderer.lineForRow(6).text).toBe 'right.push(...(left).concat(pivot).concat(sort(rig'
           expect(renderer.lineForRow(7).text).toBe 'ht));'
           expect(renderer.lineForRow(8).text).toBe '  };'
+
+      describe "when there is a fold placeholder ending at the max length boundary", ->
+        it "wraps the line after the fold placeholder", ->
+          renderer.createFold([[3, 47], [3, 51]])
+          expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = ...'
+          expect(renderer.lineForRow(4).text).toBe 'right = [];'
 
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
@@ -397,7 +403,7 @@ fdescribe "Renderer", ->
           expect(event.oldRange).toEqual [[4, 0], [4, 56]]
           expect(event.newRange).toEqual [[4, 0], [4, 60]]
 
-    fdescribe "position translation", ->
+    describe "position translation", ->
       describe "when there is single fold spanning multiple lines", ->
         it "translates positions to account for folded lines and characters and the placeholder", ->
           renderer.createFold([[4, 29], [7, 4]])
