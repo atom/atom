@@ -317,8 +317,6 @@ class Editor extends View
       else if @buffer.mode.checkOutdent(state, @getCurrentLine(), text)
         shouldOutdent = true
 
-    console.log text
-
     {text, shouldOutdent}
 
   autoOutdentText: ->
