@@ -380,33 +380,6 @@ describe "Editor", ->
             editor.setCursorScreenPosition([2, 5])
             expect(editor.scrollLeft()).toBe 0
 
-        describe "when soft-wrap is on", ->
-          beforeEach ->
-            editor.setSoftWrap(true)
-
-          it "does not scroll the buffer", ->
-            editor.width(charWidth * 30)
-
-            # moving right
-            editor.setCursorScreenPosition([2, 24])
-            expect(editor.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 25])
-            expect(editor.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 28])
-            expect(editor.scrollLeft()).toBe 0
-
-            # moving left
-            editor.setCursorScreenPosition([2, 9])
-            expect(editor.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 8])
-            expect(editor.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 5])
-            expect(editor.scrollLeft()).toBe 0
-
       describe "when left is pressed on the first column", ->
         describe "when there is a previous line", ->
           it "wraps to the end of the previous line", ->
