@@ -12,6 +12,7 @@ describe "Renderer", ->
   describe "soft wrapping", ->
     beforeEach ->
       renderer.setMaxLineLength(50)
+      changeHandler.reset()
 
     describe "rendering of soft-wrapped lines", ->
       describe "when the line is shorter than the max line length", ->
@@ -134,6 +135,18 @@ describe "Renderer", ->
         # following a wrapped line
         expect(renderer.screenPositionForBufferPosition([4, 5])).toEqual([5, 5])
         expect(renderer.bufferPositionForScreenPosition([5, 5])).toEqual([4, 5])
+
+    describe ".setMaxLineLength(length)", ->
+      it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
+        renderer.setMaxLineLength(40)
+        expect(tokensText renderer.lineForRow(4).tokens).toBe 'left = [], right = [];'
+        expect(tokensText renderer.lineForRow(5).tokens).toBe '    while(items.length > 0) {'
+        expect(tokensText renderer.lineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
+
+        expect(changeHandler).toHaveBeenCalled()
+        [event] = changeHandler.argsForCall[0]
+        expect(event.oldRange).toEqual([[0, 0], [15, 2]])
+        expect(event.newRange).toEqual([[0, 0], [18, 2]])
 
   describe "folding", ->
     describe "when folds are created and destroyed", ->

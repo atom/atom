@@ -31,13 +31,19 @@ class Renderer
     @lineMap.insertAtInputRow 0, @buildLinesForBufferRows(0, @buffer.lastRow())
 
   setMaxLineLength: (@maxLineLength) ->
+    oldRange = @rangeForAllLines()
     @buildLineMap()
+    newRange = @rangeForAllLines()
+    @trigger 'change', { oldRange, newRange }
 
   lineForRow: (row) ->
     @lineMap.lineForOutputRow(row)
 
   linesForRows: (startRow, endRow) ->
     @lineMap.linesForOutputRows(startRow, endRow)
+
+  getLines: ->
+    @lineMap.linesForOutputRows(0, @lineMap.lastOutputRow())
 
   createFold: (bufferRange) ->
     bufferRange = Range.fromObject(bufferRange)
@@ -80,6 +86,15 @@ class Renderer
 
   screenRangeForBufferRange: (bufferRange) ->
     @lineMap.outputRangeForInputRange(bufferRange)
+
+  bufferRangeForScreenRange: (screenRange) ->
+    @lineMap.inputRangeForOutputRange(screenRange)
+
+  lineCount: ->
+    @lineMap.outputLineCount()
+
+  lastRow: ->
+    @lineCount() - 1
 
   logLines: ->
     @lineMap.logLines()
@@ -192,5 +207,8 @@ class Renderer
   expandBufferRangeToLineEnds: (bufferRange) ->
     { start, end } = bufferRange
     new Range([start.row, 0], [end.row, @lineMap.lineForInputRow(end.row).text.length])
+
+  rangeForAllLines: ->
+    new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
 
 _.extend Renderer.prototype, EventEmitter

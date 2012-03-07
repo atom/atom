@@ -63,7 +63,7 @@ describe "Editor", ->
         editor.attachToDom()
 
 
-        expect(editor.lineWrapper.maxLength).toBe 50
+        expect(editor.renderer.maxLineLength).toBe 50
 
       it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
         expect(editor.lines.find('.line').length).toBe 16
@@ -106,10 +106,10 @@ describe "Editor", ->
         expect(editor.setMaxLineLength).not.toHaveBeenCalled()
 
       it "allows the cursor to move down to the last line", ->
-        _.times editor.lastScreenRow(), -> editor.moveCursorDown()
-        expect(editor.getCursorScreenPosition()).toEqual [editor.lastScreenRow(), 0]
+        _.times editor.lastRow(), -> editor.moveCursorDown()
+        expect(editor.getCursorScreenPosition()).toEqual [editor.lastRow(), 0]
         editor.moveCursorDown()
-        expect(editor.getCursorScreenPosition()).toEqual [editor.lastScreenRow(), 2]
+        expect(editor.getCursorScreenPosition()).toEqual [editor.lastRow(), 2]
 
       it "allows the cursor to move up to a shorter soft wrapped line", ->
         editor.setCursorScreenPosition([11, 15])
@@ -147,8 +147,6 @@ describe "Editor", ->
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
-
-
 
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->
@@ -378,7 +376,7 @@ describe "Editor", ->
         beforeEach ->
           setEditorWidthInChars(editor, 50)
           editor.setSoftWrap(true)
-          editor.lineFolder.createFold(new Range([3, 3], [3, 7]))
+          editor.createFold(new Range([3, 3], [3, 7]))
 
         describe "when it is a single click", ->
           it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
@@ -839,5 +837,3 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
 
         expect(editor.getCursorBufferPosition()).toEqual [4, 29]
-
-

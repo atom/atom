@@ -2,9 +2,7 @@
 Buffer = require 'buffer'
 Cursor = require 'cursor'
 Gutter = require 'gutter'
-Highlighter = require 'highlighter'
-LineFolder = require 'line-folder'
-LineWrapper = require 'line-wrapper'
+Renderer = require 'renderer'
 Point = require 'point'
 Range = require 'range'
 Selection = require 'selection'
@@ -32,7 +30,7 @@ class Editor extends View
   selection: null
   buffer: null
   highlighter: null
-  lineWrapper: null
+  renderer: null
   undoManager: null
 
   initialize: () ->
@@ -150,21 +148,19 @@ class Editor extends View
       @lines.append @buildLineElement(screenLine)
 
   getScreenLines: ->
-    @lineWrapper.getLines()
+    @renderer.getLines()
 
-  linesForScreenRows: (start, end) ->
-    @lineWrapper.linesForScreenRows(start, end)
+  linesForRows: (start, end) ->
+    @renderer.linesForRows(start, end)
 
   screenLineCount: ->
-    @lineWrapper.lineCount()
+    @renderer.lineCount()
 
-  lastScreenRow: ->
+  lastRow: ->
     @screenLineCount() - 1
 
   setBuffer: (@buffer) ->
-    @highlighter = new Highlighter(@buffer)
-    @lineFolder = new LineFolder(@highlighter)
-    @lineWrapper = new LineWrapper(Infinity, @lineFolder)
+    @renderer = new Renderer(@buffer)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
     @gutter.renderLineNumbers(@getScreenLines())
@@ -174,12 +170,12 @@ class Editor extends View
     @buffer.on 'change', (e) =>
       @cursor.bufferChanged(e)
 
-    @lineWrapper.on 'change', (e) =>
+    @renderer.on 'change', (e) =>
       @gutter.renderLineNumbers(@getScreenLines())
 
       @cursor.refreshScreenPosition()
       { oldRange, newRange } = e
-      screenLines = @linesForScreenRows(newRange.start.row, newRange.end.row)
+      screenLines = @linesForRows(newRange.start.row, newRange.end.row)
       if newRange.end.row > oldRange.end.row
         # update, then insert elements
         for row in [newRange.start.row..newRange.end.row]
@@ -223,7 +219,10 @@ class Editor extends View
       else
         Infinity
 
-    @lineWrapper.setMaxLength(maxLength) if maxLength
+    @renderer.setMaxLineLength(maxLength) if maxLength
+
+  createFold: (range) ->
+    @renderer.createFold(range)
 
   setSoftWrap: (@softWrap) ->
     @setMaxLineLength()
@@ -234,7 +233,7 @@ class Editor extends View
       $(window).off 'resize', @_setMaxLineLength
 
   clipScreenPosition: (screenPosition, options={}) ->
-    @lineWrapper.clipScreenPosition(screenPosition, options)
+    @renderer.clipScreenPosition(screenPosition, options)
 
   pixelPositionForScreenPosition: ({row, column}) ->
     { top: row * @lineHeight, left: @linesPositionLeft() + column * @charWidth }
@@ -246,16 +245,16 @@ class Editor extends View
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
 
   screenPositionForBufferPosition: (position) ->
-    @lineWrapper.screenPositionForBufferPosition(position)
+    @renderer.screenPositionForBufferPosition(position)
 
   bufferPositionForScreenPosition: (position) ->
-    @lineWrapper.bufferPositionForScreenPosition(position)
+    @renderer.bufferPositionForScreenPosition(position)
 
   screenRangeForBufferRange: (range) ->
-    @lineWrapper.screenRangeForBufferRange(range)
+    @renderer.screenRangeForBufferRange(range)
 
   bufferRangeForScreenRange: (range) ->
-    @lineWrapper.bufferRangeForScreenRange(range)
+    @renderer.bufferRangeForScreenRange(range)
 
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
@@ -322,6 +321,6 @@ class Editor extends View
     @undoManager.redo()
 
   destroyFold: (foldId) ->
-    fold = @lineFolder.foldsById[foldId]
+    fold = @renderer.foldsById[foldId]
     fold.destroy()
     @setCursorBufferPosition(fold.start)

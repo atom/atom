@@ -168,5 +168,5 @@ class Selection extends View
 
   fold: ->
     range = @getBufferRange()
-    @editor.lineFolder.createFold(range)
+    @editor.createFold(range)
     @cursor.setBufferPosition(range.end)
