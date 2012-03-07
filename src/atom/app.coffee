@@ -10,10 +10,10 @@ class App
 
   constructor: (@loadPath, nativeMethods)->
     @windows = []
-    @setupKeymap()
+    @setUpKeymap()
     @tabText = "  "
 
-  setupKeymap: ->
+  setUpKeymap: ->
     @keymap = new GlobalKeymap()
     $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
     @keymap.bindDefaultKeys()

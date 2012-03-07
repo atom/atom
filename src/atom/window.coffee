@@ -15,7 +15,7 @@ windowAdditions =
   keymap: null
 
   startup: (url) ->
-    @setupKeymap()
+    @setUpKeymap()
     @attachRootView(url)
 
     $(window).on 'close', =>
@@ -30,11 +30,18 @@ windowAdditions =
     $(window).unbind('focus')
     $(window).unbind('blur')
     atom.windowClosed this
+    @tearDownKeymap()
 
-  setupKeymap: ->
+  setUpKeymap: ->
     @keymap = new GlobalKeymap()
     @keymap.bindDefaultKeys()
-    $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
+
+    @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
+    $(document).on 'keydown', @_handleKeyEvent
+
+  tearDownKeymap: ->
+    @keymap.unbindDefaultKeys()
+    $(document).off 'keydown', @_handleKeyEvent
 
   attachRootView: (url) ->
     @rootView = new RootView {url}

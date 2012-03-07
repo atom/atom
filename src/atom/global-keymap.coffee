@@ -14,10 +14,17 @@ class GlobalKeymap
       'meta-n': 'newWindow'
       'meta-o': 'open'
 
-    $(document).on 'newWindow', => $native.newWindow()
-    $(document).on 'open', =>
+    @_newWindow = => $native.newWindow()
+    @_open =  =>
       url = $native.openDialog()
       atom.open(url) if url
+
+    $(document).on 'newWindow', @_newWindow
+    $(document).on 'open', @_open
+
+  unbindDefaultKeys: ->
+    $(document).unbind 'newWindow', @_newWindow
+    $(document).unbind 'open', @_open
 
   bindKeys: (selector, bindings) ->
     @bindingSets.unshift(new BindingSet(selector, bindings))
