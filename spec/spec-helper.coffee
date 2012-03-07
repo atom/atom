@@ -14,6 +14,10 @@ beforeEach ->
 afterEach ->
   $('#jasmine-content').empty()
 
+specsKeymap = new GlobalKeymap
+specsKeymap.bindDefaultKeys()
+$(window).on 'keydown', (e) -> specsKeymap.handleKeyEvent(e)
+
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual
 
