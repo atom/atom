@@ -40,8 +40,7 @@
 
   if ([[self mainMenu] performKeyEquivalent:event]) return;
   
-  bool windowHandlesKeyEvents = [[[self keyWindow] windowController] handlesKeyEvents];
-  if (_clientHandler && !windowHandlesKeyEvents && [event type] == NSKeyDown) {
+  if (_clientHandler && ![self keyWindow] && [event type] == NSKeyDown) {
     [_hiddenWindow makeKeyAndOrderFront:self];
     [_hiddenWindow sendEvent:event];
   }

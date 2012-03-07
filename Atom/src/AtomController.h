@@ -9,8 +9,6 @@ class ClientHandler;
   NSView *_webView;
   NSString *_bootstrapScript;
   NSString *_pathToOpen;
-
-  bool _handlesKeyEvents;
   
   CefRefPtr<CefV8Context> _atomContext;
   CefRefPtr<ClientHandler> _clientHandler;
@@ -19,7 +17,6 @@ class ClientHandler;
 - (id)initWithBootstrapScript:(NSString *)bootstrapScript atomContext:(CefRefPtr<CefV8Context>) context;
 - (id)initWithPath:(NSString *)path atomContext:(CefRefPtr<CefV8Context>)atomContext;
 - (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext;
-- (bool)handlesKeyEvents;
 
 - (void)createBrowser;
 
