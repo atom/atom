@@ -130,7 +130,6 @@ class Renderer
 
     @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange }
 
-
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
 
