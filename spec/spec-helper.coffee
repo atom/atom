@@ -1,20 +1,20 @@
 nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
-GlobalKeymap = require 'global-keymap'
+Keymap = require 'keymap'
 Point = require 'point'
 
 require 'window'
 window.showConsole()
 
 beforeEach ->
-  window.keymap = new GlobalKeymap
+  window.keymap = new Keymap
   window.resetTimeouts()
 
 afterEach ->
   $('#jasmine-content').empty()
 
-specsKeymap = new GlobalKeymap
+specsKeymap = new Keymap
 specsKeymap.bindDefaultKeys()
 $(window).on 'keydown', (e) -> specsKeymap.handleKeyEvent(e)
 specsKeymap.bindKeys '*', 'meta-w': 'close'
@@ -52,7 +52,7 @@ window.eventPropertiesForPattern = (pattern) ->
 
 window.keydownEvent = (pattern, properties={}) ->
   event = $.Event "keydown", _.extend(eventPropertiesForPattern(pattern), properties)
-  event.keystroke = (new GlobalKeymap).keystrokeStringForEvent(event)
+  event.keystroke = (new Keymap).keystrokeStringForEvent(event)
   event
 
 window.clickEvent = (properties={}) ->

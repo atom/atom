@@ -1,4 +1,4 @@
-GlobalKeymap = require 'global-keymap'
+Keymap = require 'keymap'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -14,7 +14,7 @@ class App
     @tabText = "  "
 
   setUpKeymap: ->
-    @keymap = new GlobalKeymap()
+    @keymap = new Keymap()
     $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
     @keymap.bindDefaultKeys()
 

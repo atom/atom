@@ -1,12 +1,12 @@
-GlobalKeymap = require 'global-keymap'
+Keymap = require 'keymap'
 $ = require 'jquery'
 
-describe "GlobalKeymap", ->
+describe "Keymap", ->
   fragment = null
   keymap = null
 
   beforeEach ->
-    keymap = new GlobalKeymap
+    keymap = new Keymap
     fragment = $ """
       <div class="command-mode">
         <div class="child-node">

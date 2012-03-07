@@ -2,7 +2,7 @@ fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
 
-GlobalKeymap = require 'global-keymap'
+Keymap = require 'keymap'
 RootView = require 'root-view'
 
 require 'jquery-extensions'
@@ -33,7 +33,7 @@ windowAdditions =
     @tearDownKeymap()
 
   setUpKeymap: ->
-    @keymap = new GlobalKeymap()
+    @keymap = new Keymap()
     @keymap.bindDefaultKeys()
 
     @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)

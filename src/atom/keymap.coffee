@@ -3,7 +3,7 @@ BindingSet = require 'binding-set'
 Specificity = require 'specificity'
 
 module.exports =
-class GlobalKeymap
+class Keymap
   bindingSetsBySelector: null
 
   constructor: ->
