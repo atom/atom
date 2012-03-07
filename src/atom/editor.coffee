@@ -292,6 +292,7 @@ class Editor extends View
   getSelection: -> @selection
 
   getCurrentLine: -> @buffer.lineForRow(@getCursorRow())
+  getCurrentBufferLine: -> @buffer.lineForRow(@getCursorBufferRow())
   getSelectedText: -> @selection.getText()
   moveCursorUp: -> @cursor.moveUp()
   moveCursorDown: -> @cursor.moveDown()
@@ -303,6 +304,7 @@ class Editor extends View
   getCursorBufferPosition: -> @cursor.getBufferPosition()
   setCursorRow: (row) -> @cursor.setRow(row)
   getCursorRow: -> @cursor.getRow()
+  getCursorBufferRow: -> @getCursorBufferPosition().row
   setCursorColumn: (column) -> @cursor.setColumn(column)
   getCursorColumn: -> @cursor.getColumn()
 
@@ -324,19 +326,21 @@ class Editor extends View
 
   autoIndentText: (text) ->
     if @autoIndent
-      state = @renderer.lineForRow(@getCursorRow()).state
-
+      row = @getCursorScreenPosition().row
+      state = @renderer.lineForRow(row).state
       if text[0] == "\n"
-        indent = @buffer.mode.getNextLineIndent(state, @getCurrentLine(), atom.tabText)
+        indent = @buffer.mode.getNextLineIndent(state, @getCurrentBufferLine(), atom.tabText)
         text = text[0] + indent + text[1..]
-      else if @buffer.mode.checkOutdent(state, @getCurrentLine(), text)
+      else if @buffer.mode.checkOutdent(state, @getCurrentBufferLine(), text)
         shouldOutdent = true
 
     {text, shouldOutdent}
 
   autoOutdentText: ->
-    state = @renderer.lineForRow(@getCursorRow()).state
-    @buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@buffer, this), @getCursorRow())
+    screenRow = @getCursorScreenPosition().row
+    bufferRow = @getCursorBufferPosition().row
+    state = @renderer.lineForRow(screenRow).state
+    @buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@buffer, this), bufferRow)
 
   cutSelection: -> @selection.cut()
   copySelection: -> @selection.copy()

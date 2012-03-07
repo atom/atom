@@ -504,25 +504,48 @@ describe "Editor", ->
     beforeEach ->
       editor.autoIndent = true
 
-    describe "when newline is inserted", ->
-      it "indents cursor based on the indentation of previous line", ->
-        editor.setCursorBufferPosition([4, 29])
-        editor.insertText("\n")
-        expect(editor.buffer.lineForRow(5)).toEqual("      ")
+    describe "when line renders on one screen line", ->
+      describe "when newline is inserted", ->
+        it "indents cursor based on the indentation of previous buffer line", ->
+          editor.setCursorBufferPosition([1, 30])
+          editor.insertText("\n")
+          expect(editor.buffer.lineForRow(2)).toEqual("    ")
 
-      it "indents cursor based on the indentation of previous line", ->
-        editor.setCursorBufferPosition([4, 29])
-        editor.insertText("\nvar thisIsCool")
-        expect(editor.buffer.lineForRow(5)).toEqual("      var thisIsCool")
+        it "indents cursor based on the indentation of previous buffer line", ->
+          editor.setCursorBufferPosition([4, 29])
+          editor.insertText("\nvar thisIsCool")
+          expect(editor.buffer.lineForRow(5)).toEqual("      var thisIsCool")
 
-    describe "when text that closes a scope entered", ->
-      it "outdents the text", ->
-        editor.setCursorBufferPosition([1, 30])
-        editor.insertText("\n")
-        expect(editor.buffer.lineForRow(2)).toEqual("    ")
-        editor.insertText("}")
-        expect(editor.buffer.lineForRow(2)).toEqual("  }")
-        expect(editor.getCursorBufferPosition().column).toBe 3
+      describe "when text that closes a scope entered", ->
+        it "outdents the text", ->
+          editor.setCursorBufferPosition([1, 30])
+          editor.insertText("\n")
+          expect(editor.buffer.lineForRow(2)).toEqual("    ")
+          editor.insertText("}")
+          expect(editor.buffer.lineForRow(2)).toEqual("  }")
+          expect(editor.getCursorBufferPosition().column).toBe 3
+
+    describe "when line spans multiple screen lines", ->
+      beforeEach ->
+        editor.attachToDom()
+        editor.setSoftWrap(true)
+        setEditorWidthInChars(editor, 50)
+
+      describe "when newline is inserted", ->
+        it "indents cursor based on the indentation of previous buffer line", ->
+          editor.setCursorBufferPosition([4, 29])
+          editor.insertText("\n")
+          expect(editor.buffer.lineForRow(5)).toEqual("      ")
+
+      describe "when text that closes a scope entered", ->
+        it "outdents the text", ->
+          editor.setCursorBufferPosition([4, 29])
+          editor.insertText("\n")
+          expect(editor.buffer.lineForRow(5)).toEqual("      ")
+          editor.insertText("}")
+          expect(editor.buffer.lineForRow(5)).toEqual("    }")
+          expect(editor.getCursorBufferPosition().column).toBe 5
+
 
   describe "selection", ->
     selection = null
