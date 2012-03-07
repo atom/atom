@@ -20,7 +20,7 @@ describe "VimMode", ->
       editor.trigger event
       expect(event.stopPropagation).toHaveBeenCalled()
 
-      event = keydownEvent('s', metaKey: true)
+      event = keydownEvent('/', metaKey: true)
       spyOn(event, 'stopPropagation')
       editor.trigger event
       expect(event.stopPropagation).not.toHaveBeenCalled()
