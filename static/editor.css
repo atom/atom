@@ -12,6 +12,10 @@
   -webkit-user-select: none;
 }
 
+.editor.soft-wrap {
+  overflow-x: hidden;
+}
+
 .editor .content {
   display: -webkit-flexbox;
 }
@@ -24,7 +28,7 @@
 }
 
 .editor .gutter.drop-shadow {
-  -webkit-box-shadow: -2px 0px 10px 2px #222;  
+  -webkit-box-shadow: -2px 0px 10px 2px #222;
 }
 
 .editor .lines {
