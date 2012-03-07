@@ -12,6 +12,7 @@ describe "Editor", ->
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     editor = new Editor
+    editor.autoIndent = false
     editor.enableKeymap()
     editor.setBuffer(buffer)
 
@@ -462,7 +463,6 @@ describe "Editor", ->
         expect(editor.buffer.getLine(2)).toEqual("    ")
         editor.insertText("}")
         expect(editor.buffer.getLine(2)).toEqual("  }")
-
         expect(editor.getCursorBufferPosition().column).toBe 3
 
   describe "selection", ->

@@ -41,7 +41,7 @@ class Editor extends View
     @buildCursorAndSelection()
     @handleEvents()
     @setBuffer(new Buffer)
-    @autoIndent = false
+    @autoIndent = true
 
   bindKeys: ->
     window.keymap.bindKeys '*:not(.editor *)',
