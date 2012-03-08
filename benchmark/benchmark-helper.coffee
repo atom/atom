@@ -16,9 +16,11 @@ $(document).on 'close', -> window.close()
 window.profile = (description, fn) ->
   window.benchmark(description, fn, true)
 
+window.pbenchmark = window.profile
+
 window.benchmark = (description, fn, profile=false) ->
   it description, ->
-    count = 50
+    count = 100
     total = measure ->
       console.profile(description) if profile
       _.times count, fn

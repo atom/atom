@@ -12,7 +12,7 @@ describe "Editor", ->
   afterEach ->
     window.shutdown()
 
-  profile "inserting and deleting a character", ->
+  benchmark "inserting and deleting a character", ->
     editor.hiddenInput.textInput('x')
     editor.backspace()
 
