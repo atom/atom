@@ -128,7 +128,7 @@ class Renderer
     @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
     newScreenRange = @screenLineRangeForBufferRange(newBufferRange)
 
-    @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange }
+    @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange, bufferChanged: true }
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)

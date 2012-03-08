@@ -179,7 +179,7 @@ class Editor extends View
     @renderer.on 'change', (e) =>
       @gutter.renderLineNumbers(@getScreenLines())
 
-      @cursor.refreshScreenPosition()
+      @cursor.refreshScreenPosition() unless e.bufferChanged
       { oldRange, newRange } = e
       screenLines = @linesForRows(newRange.start.row, newRange.end.row)
       if newRange.end.row > oldRange.end.row
