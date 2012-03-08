@@ -102,9 +102,8 @@ class LineMap
       if pendingFragment
         pendingFragment = pendingFragment.concat(lineFragment)
       else
-        pendingFragment = _.clone(lineFragment)
+        pendingFragment = lineFragment
       if pendingFragment[deltaType].row > 0
-        pendingFragment.bufferDelta = new Point(1, 0)
         lines.push pendingFragment
         pendingFragment = null
     lines
