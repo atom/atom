@@ -100,8 +100,8 @@ class Selection extends View
     @anchor = { getScreenPosition: -> cursorPosition }
 
   selectWord: ->
-    row = @cursor.getRow()
-    column = @cursor.getColumn()
+    row = @cursor.getScreenRow()
+    column = @cursor.getScreenColumn()
 
     { row, column } = @cursor.getBufferPosition()
 

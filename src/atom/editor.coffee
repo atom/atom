@@ -285,40 +285,39 @@ class Editor extends View
     @lineHeight = fragment.outerHeight()
     fragment.remove()
 
-  getCursor: -> @cursor
-  getSelection: -> @selection
 
-  getCurrentLine: -> @buffer.lineForRow(@getCursorRow())
-  getCurrentBufferLine: -> @buffer.lineForRow(@getCursorBufferRow())
-  getSelectedText: -> @selection.getText()
+  getCursor: -> @cursor
   moveCursorUp: -> @cursor.moveUp()
   moveCursorDown: -> @cursor.moveDown()
   moveCursorRight: -> @cursor.moveRight()
   moveCursorLeft: -> @cursor.moveLeft()
+
+  getCurrentScreenLine: -> @buffer.lineForRow(@getCursorScreenRow())
+  getCurrentBufferLine: -> @buffer.lineForRow(@getCursorBufferRow())
   setCursorScreenPosition: (position) -> @cursor.setScreenPosition(position)
   getCursorScreenPosition: -> @cursor.getScreenPosition()
   setCursorBufferPosition: (position) -> @cursor.setBufferPosition(position)
   getCursorBufferPosition: -> @cursor.getBufferPosition()
-  setCursorRow: (row) -> @cursor.setRow(row)
-  getCursorRow: -> @cursor.getRow()
-  getCursorBufferRow: -> @getCursorBufferPosition().row
-  setCursorColumn: (column) -> @cursor.setColumn(column)
-  getCursorColumn: -> @cursor.getColumn()
+  setCursorScreenRow: (row) -> @cursor.setScreenRow(row)
+  getCursorScreenRow: -> @cursor.getScreenRow()
+  getCursorBufferRow: -> @cursor.getBufferRow()
+  setCursorScreenColumn: (column) -> @cursor.setScreenColumn(column)
+  getCursorScreenColumn: -> @cursor.getScreenColumn()
+  setCursorBufferColumn: (column) -> @cursor.setBufferColumn(column)
+  getCursorBufferColumn: -> @cursor.getBufferColumn()
 
+  getSelection: -> @selection
+  getSelectedText: -> @selection.getText()
   selectRight: -> @selection.selectRight()
   selectLeft: -> @selection.selectLeft()
   selectUp: -> @selection.selectUp()
   selectDown: -> @selection.selectDown()
-  selectToScreenPosition: (position) ->
-    @selection.selectToScreenPosition(position)
-  selectToBufferPosition: (position) ->
-    @selection.selectToBufferPosition(position)
+  selectToScreenPosition: (position) -> @selection.selectToScreenPosition(position)
+  selectToBufferPosition: (position) -> @selection.selectToBufferPosition(position)
 
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)
-
     @selection.insertText(text)
-
     @autoOutdentText() if shouldOutdent
 
   autoIndentText: (text) ->

@@ -74,7 +74,7 @@ class MoveToNextParagraph extends Motion
     row = null
     column = 0
 
-    startRow = @editor.getCursorRow() + 1
+    startRow = @editor.getCursorBufferRow() + 1
     for r in [startRow..@editor.buffer.lastRow()]
       if @editor.buffer.lineForRow(r).length == 0
         row = r

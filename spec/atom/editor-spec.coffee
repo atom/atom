@@ -265,7 +265,7 @@ describe "Editor", ->
           expect(editor.getCursorScreenPosition().column).not.toBe 6
 
           # clear the goal column by explicitly setting the cursor position
-          editor.setCursorColumn(6)
+          editor.setCursorScreenColumn(6)
           expect(editor.getCursorScreenPosition().column).toBe 6
 
           editor.moveCursorDown()
@@ -705,13 +705,13 @@ describe "Editor", ->
         it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
           editor.setCursorScreenPosition(row: 1, column: 6)
 
-          expect(editor.getCurrentLine().charAt(6)).not.toBe 'q'
+          expect(editor.getCurrentBufferLine().charAt(6)).not.toBe 'q'
 
           editor.hiddenInput.textInput 'q'
 
-          expect(editor.getCurrentLine().charAt(6)).toBe 'q'
+          expect(editor.getCurrentBufferLine().charAt(6)).toBe 'q'
           expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
-          expect(editor.lines.find('.line:eq(1)')).toHaveText editor.getCurrentLine()
+          expect(editor.lines.find('.line:eq(1)')).toHaveText editor.getCurrentBufferLine()
 
       describe "when there is a selection", ->
         it "replaces the selected text with the typed text", ->

@@ -35,21 +35,34 @@ class Cursor extends View
   refreshScreenPosition: ->
     @setBufferPosition(@bufferPosition)
 
-  getBufferPosition: -> _.clone(@bufferPosition)
-  getScreenPosition: -> _.clone(@screenPosition)
+  getBufferPosition: ->
+    _.clone(@bufferPosition)
 
-  getColumn: ->
+  getScreenPosition: ->
+    _.clone(@screenPosition)
+
+  getBufferColumn: ->
+    @getBufferPosition().column
+
+  setBufferColumn: (column) ->
+    { row } = @getBufferPosition()
+    @setBufferPosition {row, column}
+
+  getScreenColumn: ->
     @getScreenPosition().column
 
-  setColumn: (column) ->
+  setScreenColumn: (column) ->
     { row } = @getScreenPosition()
     @setScreenPosition {row, column}
 
-  getRow: ->
+  getScreenRow: ->
     @getScreenPosition().row
 
+  getBufferRow: ->
+    @getBufferPosition().row
+
   isOnEOL: ->
-    @getColumn() == @editor.getCurrentLine().length
+    @getScreenColumn() == @editor.getCurrentScreenLine().length
 
   moveUp: ->
     { row, column } = @getScreenPosition()
@@ -87,8 +100,8 @@ class Cursor extends View
     @setScreenPosition({row, column})
 
   moveLeftUntilMatch: (regex) ->
-    row = @getRow()
-    column = @getColumn()
+    row = @getScreenRow()
+    column = @getScreenColumn()
     offset = 0
 
     matchBackwards = =>
