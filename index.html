@@ -4,26 +4,6 @@
   <script src='src/stdlib/require.js'></script>
 
   <script>
-    window.measure = function(name, fn) {
-        var start = new Date().getTime();
-        obj = {stop: function() {
-          var end = new Date().getTime();
-          var total = (end - start) / 1000;
-          while(name.length < 40) {
-            name = name + " "
-          }
-          console.log(name + (end - start) / 1000);
-        }}
-
-        if (fn) {
-          fn()
-          obj.stop()
-        }
-        else {
-          return obj
-        }
-    }
-
     window.onload = function() {
       if ($bootstrapScript) require($bootstrapScript);
     }
