@@ -177,10 +177,11 @@ class Editor extends View
       @cursor.bufferChanged(e)
 
     @renderer.on 'change', (e) =>
-      @gutter.renderLineNumbers(@getScreenLines())
+      { oldRange, newRange } = e
+      unless newRange.isSingleLine() and newRange.coversSameRows(oldRange)
+        @gutter.renderLineNumbers(@getScreenLines())
 
       @cursor.refreshScreenPosition() unless e.bufferChanged
-      { oldRange, newRange } = e
       screenLines = @linesForRows(newRange.start.row, newRange.end.row)
       if newRange.end.row > oldRange.end.row
         # update, then insert elements

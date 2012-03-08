@@ -31,6 +31,12 @@ class Range
 
     other.start.isEqual(@start) and other.end.isEqual(@end)
 
+  isSingleLine: ->
+    @start.row == @end.row
+
+  coversSameRows: (other) ->
+    @start.row == other.start.row && @end.row == other.end.row
+
   inspect: ->
     "[#{@start.inspect()} - #{@end.inspect()}]"
 
