@@ -7,20 +7,32 @@ Point = require 'point'
 require 'window'
 window.showConsole()
 
-beforeEach ->
-  window.keymap = new Keymap
-
-afterEach ->
-  $('#jasmine-content').empty()
-
 keymap = new Keymap
 keymap.bindDefaultKeys()
 $(window).on 'keydown', (e) -> keymap.handleKeyEvent(e)
 keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
 
-window.benchmark = (description, fn) ->
-  it description, fn
+window.profile = (description, fn) ->
+  window.benchmark(description, fn, true)
+
+window.benchmark = (description, fn, profile=false) ->
+  it description, ->
+    count = 50
+    total = measure ->
+      console.profile(description) if profile
+      _.times count, fn
+      console.profileEnd(description) if profile
+    avg = total / count
+    report = "#{description}: #{total} / #{count} = #{avg}ms"
+
+    console.log report
+    throw new Error(report)
+
+window.measure = (fn) ->
+  start = new Date().getTime()
+  fn()
+  new Date().getTime() - start
 
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->

@@ -11,6 +11,7 @@ require 'jquery-extensions'
 # the DOM window.
 
 windowAdditions =
+  rootViewParentSelector: 'body'
   rootView: null
   keymap: null
 
@@ -45,7 +46,7 @@ windowAdditions =
 
   attachRootView: (url) ->
     @rootView = new RootView {url}
-    $('body').append @rootView
+    $(@rootViewParentSelector).append @rootView
 
   requireStylesheet: (path) ->
     fullPath = require.resolve(path)
