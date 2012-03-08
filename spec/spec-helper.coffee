@@ -90,7 +90,7 @@ window.setTimeout = (callback, ms) ->
 window.clearTimeout = (idToClear) ->
   window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
 
-window.advanceClock = (delta) ->
+window.advanceClock = (delta=1) ->
   window.now += delta
   window.timeouts = window.timeouts.filter ([id, strikeTime, callback]) ->
     if strikeTime <= window.now

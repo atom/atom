@@ -124,8 +124,9 @@ class Cursor extends View
   updateAppearance: ->
     position = @editor.pixelPositionForScreenPosition(@getScreenPosition())
     @css(position)
-    @autoScrollVertically(position)
-    @autoScrollHorizontally(position)
+    _.defer =>
+      @autoScrollVertically(position)
+      @autoScrollHorizontally(position)
 
   autoScrollVertically: (position) ->
     linesInView = @editor.height() / @height()

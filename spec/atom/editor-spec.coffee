@@ -199,29 +199,38 @@ describe "Editor", ->
           editor.height(editor.lineHeight * 10)
 
           _.times 6, -> editor.moveCursorDown()
+          window.advanceClock()
           expect(editor.scrollTop()).toBe(0)
 
           editor.moveCursorDown()
+          window.advanceClock()
           expect(editor.scrollTop()).toBe(editor.lineHeight)
+
           editor.moveCursorDown()
+          window.advanceClock()
           expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
           _.times 3, -> editor.moveCursorUp()
+          window.advanceClock()
           expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
           editor.moveCursorUp()
+          window.advanceClock()
           expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
+          window.advanceClock()
           expect(editor.scrollTop()).toBe(0)
 
         it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
           editor.height(editor.lineHeight * 5)
 
           _.times 3, -> editor.moveCursorDown()
+          window.advanceClock()
           expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
+          window.advanceClock()
           expect(editor.scrollTop()).toBe(0)
 
       describe "goal column retention", ->
@@ -316,22 +325,28 @@ describe "Editor", ->
 
           # moving right
           editor.setCursorScreenPosition([2, 24])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
           editor.setCursorScreenPosition([2, 25])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe charWidth
 
           editor.setCursorScreenPosition([2, 28])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
 
           # moving left
           editor.setCursorScreenPosition([2, 9])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
 
           editor.setCursorScreenPosition([2, 8])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 3
 
           editor.setCursorScreenPosition([2, 5])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
         it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
@@ -339,12 +354,15 @@ describe "Editor", ->
           setEditorWidthInChars(editor, 7)
 
           editor.setCursorScreenPosition([2, 3])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe(0)
 
           editor.setCursorScreenPosition([2, 4])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe(charWidth)
 
           editor.setCursorScreenPosition([2, 3])
+          window.advanceClock()
           expect(editor.horizontalScroller.scrollLeft()).toBe(0)
 
         describe "when soft-wrap is on", ->
