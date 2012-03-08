@@ -36,6 +36,10 @@
   return [self initWithBootstrapScript:@"spec-bootstrap" atomContext:atomContext];
 }
 
+- (id)initBenchmarksWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
+  return [self initWithBootstrapScript:@"benchmark-bootstrap" atomContext:atomContext];
+}
+
 - (void)windowDidLoad {
   [self.window setDelegate:self];  
   [self.window setReleasedWhenClosed:NO];

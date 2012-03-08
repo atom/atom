@@ -1,5 +1,6 @@
 paths = [
   "#{atom.loadPath}/spec"
+  "#{atom.loadPath}/benchmark"
   "#{atom.loadPath}/src/stdlib"
   "#{atom.loadPath}/src/atom"
   "#{atom.loadPath}/src"

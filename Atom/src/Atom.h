@@ -14,6 +14,7 @@ class ClientHandler;
 
 - (void)open:(NSString *)path;
 - (IBAction)runSpecs:(id)sender;
+- (IBAction)runBenchmarks:(id)sender;
 
 @end
 

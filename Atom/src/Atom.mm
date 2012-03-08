@@ -5,6 +5,10 @@
 #import "native_handler.h"
 #import "client_handler.h"
 
+@interface Atom ()
+- (CefRefPtr<CefV8Context>)atomContext;
+@end
+
 // Provide the CefAppProtocol implementation required by CEF.
 @implementation Atom
 
@@ -63,13 +67,19 @@
   }
 
 - (void)open:(NSString *)path {
-  CefRefPtr<CefV8Context> atomContext = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
-  [[AtomController alloc] initWithPath:path atomContext:atomContext];
+  [[AtomController alloc] initWithPath:path atomContext:[self atomContext]];
 }
 
 - (IBAction)runSpecs:(id)sender {
-  CefRefPtr<CefV8Context> atomContext = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
-  [[AtomController alloc] initSpecsWithAtomContext:atomContext];
+  [[AtomController alloc] initSpecsWithAtomContext:[self atomContext]];
+}
+
+- (IBAction)runBenchmarks:(id)sender {
+  [[AtomController alloc] initBenchmarksWithAtomContext:[self atomContext]];
+}
+
+- (CefRefPtr<CefV8Context>)atomContext {
+  return _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
