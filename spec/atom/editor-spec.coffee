@@ -932,6 +932,11 @@ describe "Editor", ->
 
         expect(editor.getCursorBufferPosition()).toEqual [4, 29]
 
+    describe "when there is nothing on a line except a fold placeholder", ->
+      it "follows the placeholder with a non-breaking space to ensure the line has the proper height", ->
+        editor.createFold([[1, 0], [1, 30]])
+        expect(editor.lines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
+
   describe ".save()", ->
     describe "when the current buffer has a path", ->
       tempFilePath = null

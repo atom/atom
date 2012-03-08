@@ -138,13 +138,15 @@ class Editor extends View
     charHeight = @charHeight
     $$ ->
       @div class: 'line', =>
+        appendNbsp = true
         for token in tokens
           if token.type is 'fold-placeholder'
             @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight}px;", 'foldId': token.fold.id, =>
               @div class: "ellipsis", => @raw "&hellip;"
           else
+            appendNbsp = false
             @span { class: token.type.replace('.', ' ') }, token.value
-        @raw '&nbsp;'
+        @raw '&nbsp;' if appendNbsp
 
   renderLines: ->
     @lines.find('.line').remove()
