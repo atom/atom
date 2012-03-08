@@ -316,63 +316,63 @@ describe "Editor", ->
 
           # moving right
           editor.setCursorScreenPosition([2, 24])
-          expect(editor.lines.scrollLeft()).toBe 0
+          expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
           editor.setCursorScreenPosition([2, 25])
-          expect(editor.lines.scrollLeft()).toBe charWidth
+          expect(editor.horizontalScroller.scrollLeft()).toBe charWidth
 
           editor.setCursorScreenPosition([2, 28])
-          expect(editor.lines.scrollLeft()).toBe charWidth * 4
+          expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
 
           # moving left
           editor.setCursorScreenPosition([2, 9])
-          expect(editor.lines.scrollLeft()).toBe charWidth * 4
+          expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
 
           editor.setCursorScreenPosition([2, 8])
-          expect(editor.lines.scrollLeft()).toBe charWidth * 3
+          expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 3
 
           editor.setCursorScreenPosition([2, 5])
-          expect(editor.lines.scrollLeft()).toBe 0
+          expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
         it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
           editor.hScrollMargin = 6
           setEditorWidthInChars(editor, 7)
 
           editor.setCursorScreenPosition([2, 3])
-          expect(editor.lines.scrollLeft()).toBe(0)
+          expect(editor.horizontalScroller.scrollLeft()).toBe(0)
 
           editor.setCursorScreenPosition([2, 4])
-          expect(editor.lines.scrollLeft()).toBe(charWidth)
+          expect(editor.horizontalScroller.scrollLeft()).toBe(charWidth)
 
           editor.setCursorScreenPosition([2, 3])
-          expect(editor.lines.scrollLeft()).toBe(0)
+          expect(editor.horizontalScroller.scrollLeft()).toBe(0)
 
         describe "when soft-wrap is on", ->
           beforeEach ->
             editor.setSoftWrap(true)
 
-          it "does not scroll the buffer", ->
+          it "does not scroll the buffer horizontally", ->
             editor.width(charWidth * 30)
 
             # moving right
             editor.setCursorScreenPosition([2, 24])
-            expect(editor.scrollLeft()).toBe 0
+            expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 25])
-            expect(editor.scrollLeft()).toBe 0
+            expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 28])
-            expect(editor.scrollLeft()).toBe 0
+            expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
             # moving left
             editor.setCursorScreenPosition([2, 9])
-            expect(editor.scrollLeft()).toBe 0
+            expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 8])
-            expect(editor.scrollLeft()).toBe 0
+            expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 5])
-            expect(editor.scrollLeft()).toBe 0
+            expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
       describe "when left is pressed on the first column", ->
         describe "when there is a previous line", ->

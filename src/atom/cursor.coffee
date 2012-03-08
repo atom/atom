@@ -143,15 +143,15 @@ class Cursor extends View
   autoScrollHorizontally: (position) ->
     return if @editor.softWrap
 
-    charsInView = @editor.lines.width() / @width()
+    charsInView = @editor.horizontalScroller.width() / @width()
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
     scrollMargin = Math.min(@editor.hScrollMargin, maxScrollMargin)
     margin = scrollMargin * @width()
     desiredRight = position.left + @width() + margin
     desiredLeft = position.left - margin
 
-    if desiredRight > @editor.lines.scrollRight()
-      @editor.lines.scrollRight(desiredRight)
-    else if desiredLeft < @editor.lines.scrollLeft()
-      @editor.lines.scrollLeft(desiredLeft)
+    if desiredRight > @editor.horizontalScroller.scrollRight()
+      @editor.horizontalScroller.scrollRight(desiredRight)
+    else if desiredLeft < @editor.horizontalScroller.scrollLeft()
+      @editor.horizontalScroller.scrollLeft(desiredLeft)
 

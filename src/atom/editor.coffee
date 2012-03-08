@@ -18,8 +18,9 @@ class Editor extends View
     @div class: 'editor', tabindex: -1, =>
       @div class: 'content', outlet: 'content', =>
         @subview 'gutter', new Gutter
-        @div class: 'lines', outlet: 'lines', =>
-          @input class: 'hidden-input', outlet: 'hiddenInput'
+        @div class: 'horizontal-scroller', outlet: 'horizontalScroller', =>
+          @div class: 'lines', outlet: 'lines', =>
+            @input class: 'hidden-input', outlet: 'hiddenInput'
 
   vScrollMargin: 2
   hScrollMargin: 10
@@ -220,7 +221,7 @@ class Editor extends View
   setMaxLineLength: (maxLength) ->
     maxLength ?=
       if @softWrap
-        Math.floor(@lines.width() / @charWidth)
+        Math.floor(@horizontalScroller.width() / @charWidth)
       else
         Infinity
 
@@ -274,8 +275,8 @@ class Editor extends View
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
     @screenPositionFromPixelPosition
-      top: pageY - @lines.offset().top
-      left: pageX - @lines.offset().left + @lines.scrollLeft()
+      top: pageY - @horizontalScroller.offset().top
+      left: pageX - @horizontalScroller.offset().left + @horizontalScroller.scrollLeft()
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
