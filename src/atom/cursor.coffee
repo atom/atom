@@ -134,9 +134,8 @@ class Cursor extends View
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
     scrollMargin = Math.min(@editor.hScrollMargin, maxScrollMargin)
     margin = scrollMargin * @width()
-    cursorLeft = (position.left - @editor.linesPositionLeft())
-    desiredRight = cursorLeft + @width() + margin
-    desiredLeft = cursorLeft - margin
+    desiredRight = position.left + @width() + margin
+    desiredLeft = position.left - margin
 
     if desiredRight > @editor.lines.scrollRight()
       @editor.lines.scrollRight(desiredRight)

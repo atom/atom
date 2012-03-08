@@ -18,8 +18,8 @@ class Editor extends View
     @div class: 'editor', tabindex: -1, =>
       @div class: 'content', outlet: 'content', =>
         @subview 'gutter', new Gutter
-        @div class: 'lines', outlet: 'lines'
-      @input class: 'hidden-input', outlet: 'hiddenInput'
+        @div class: 'lines', outlet: 'lines', =>
+          @input class: 'hidden-input', outlet: 'hiddenInput'
 
   vScrollMargin: 2
   hScrollMargin: 10
@@ -88,10 +88,10 @@ class Editor extends View
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
-    @append(@cursor)
+    @lines.append(@cursor)
 
     @selection = new Selection(this)
-    @append(@selection)
+    @lines.append(@selection)
 
   handleEvents: ->
     @on 'focus', =>
@@ -148,7 +148,7 @@ class Editor extends View
           @raw '&nbsp;'
 
   renderLines: ->
-    @lines.empty()
+    @lines.find('.line').remove()
     for screenLine in @getScreenLines()
       @lines.append @buildLineElement(screenLine)
 
@@ -251,10 +251,7 @@ class Editor extends View
     @renderer.clipScreenPosition(screenPosition, options)
 
   pixelPositionForScreenPosition: ({row, column}) ->
-    { top: row * @lineHeight, left: @linesPositionLeft() + column * @charWidth }
-
-  linesPositionLeft: ->
-    @lines.position().left + @scrollLeft()
+    { top: row * @lineHeight, left: column * @charWidth }
 
   screenPositionFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))

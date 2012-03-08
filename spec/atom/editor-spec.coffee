@@ -57,12 +57,11 @@ describe "Editor", ->
         otherEditor.setBuffer editor.buffer
         otherEditor.attachToDom()
         charWidth = otherEditor.charWidth
-        linesPositionLeft = otherEditor.linesPositionLeft()
+        linesPositionLeft = otherEditor.lines.position().left
         otherEditor.remove()
         editor.width(charWidth * 50 + linesPositionLeft)
         editor.setSoftWrap(true)
         editor.attachToDom()
-
 
         expect(editor.renderer.maxLineLength).toBe 50
 
@@ -170,12 +169,10 @@ describe "Editor", ->
         editor.setCursorScreenPosition(row: 2, column: 2)
 
       it "moves the cursor to the character at the given row and column", ->
-        { top, left } = editor.lines.offset()
-        expect(editor.getCursor().offset()).toEqual(top: top + 2 * editor.lineHeight, left: left + 2 * editor.charWidth)
+        expect(editor.getCursor().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
       it "moves the hidden input element to the position of the cursor to prevent scrolling misbehavior", ->
-        { top, left } = editor.lines.offset()
-        expect(editor.hiddenInput.position()).toEqual(top: top + 2 * editor.lineHeight, left: left + 2 * editor.charWidth)
+        expect(editor.hiddenInput.position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->
