@@ -275,7 +275,7 @@ class Editor extends View
     { pageX, pageY } = e
     @screenPositionFromPixelPosition
       top: pageY - @lines.offset().top
-      left: pageX - @lines.offset().left
+      left: pageX - @lines.offset().left + @lines.scrollLeft()
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')

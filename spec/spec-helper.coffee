@@ -102,7 +102,7 @@ window.advanceClock = (delta) ->
 window.pagePixelPositionForPoint = (editor, point) ->
   point = Point.fromObject point
   top = editor.lines.offset().top + point.row * editor.lineHeight
-  left = editor.lines.offset().left + point.column * editor.charWidth
+  left = editor.lines.offset().left + point.column * editor.charWidth - editor.lines.scrollLeft()
   { top, left }
 
 window.tokensText = (tokens) ->

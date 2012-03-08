@@ -464,6 +464,14 @@ describe "Editor", ->
             editor.lines.trigger mousedownEvent(editor: editor, point: [3, 10])
             expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
 
+          describe "when the lines are scrolled to the right", ->
+            it "re-positions the cursor on the clicked location", ->
+              setEditorWidthInChars(editor, 30)
+              expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+              editor.lines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
+              editor.lines.trigger mousedownEvent(editor: editor, point: [3, 50])
+              expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
+
         describe "when it is a double click", ->
           it "selects the word under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
