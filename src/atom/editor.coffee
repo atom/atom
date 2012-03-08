@@ -138,15 +138,13 @@ class Editor extends View
     charHeight = @charHeight
     $$ ->
       @div class: 'line', =>
-        if tokens.length
-          for token in tokens
-            if token.type is 'fold-placeholder'
-              @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight * .85 }px;", 'foldId': token.fold.id, =>
-                @div class: "ellipsis", => @raw "&hellip;"
-            else
-              @span { class: token.type.replace('.', ' ') }, token.value
-        else
-          @raw '&nbsp;'
+        for token in tokens
+          if token.type is 'fold-placeholder'
+            @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight}px;", 'foldId': token.fold.id, =>
+              @div class: "ellipsis", => @raw "&hellip;"
+          else
+            @span { class: token.type.replace('.', ' ') }, token.value
+        @raw '&nbsp;'
 
   renderLines: ->
     @lines.find('.line').remove()
