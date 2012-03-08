@@ -5,15 +5,18 @@ Keymap = require 'keymap'
 Point = require 'point'
 
 require 'window'
-window.showConsole()
 
 keymap = new Keymap
 keymap.bindDefaultKeys()
 $(window).on 'keydown', (e) -> keymap.handleKeyEvent(e)
-keymap.bindKeys '*', 'meta-w': 'close'
+keymap.bindKeys '*',
+  'meta-w': 'close'
+  'alt-meta-i': 'show-console'
 $(document).on 'close', -> window.close()
+$(document).on 'show-console', -> window.showConsole()
 
 window.profile = (description, fn) ->
+  window.showConsole()
   window.benchmark(description, fn, true)
 
 window.pbenchmark = window.profile
