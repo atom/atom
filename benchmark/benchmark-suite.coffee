@@ -13,6 +13,6 @@ describe "Editor", ->
     window.shutdown()
 
   benchmark "inserting and deleting a character", ->
-    editor.hiddenInput.textInput('x')
+    editor.insertText('x')
     editor.backspace()
 
