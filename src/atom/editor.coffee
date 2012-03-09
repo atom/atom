@@ -214,7 +214,7 @@ class Editor extends View
     @getLineElement(row).remove()
 
   getLineElement: (row) ->
-    @lines.find("div.line:eq(#{row})")
+    $(@lines[0].querySelectorAll("div.line")[row])
 
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
