@@ -25,6 +25,7 @@ class Buffer
     new Range([0, 0], [@lastRow(), @lastLine().length])
 
   getTextInRange: (range) ->
+    range = Range.fromObject(range)
     if range.start.row == range.end.row
       return @lines[range.start.row][range.start.column...range.end.column]
 
@@ -71,7 +72,7 @@ class Buffer
 
   change: (oldRange, newText) ->
     oldRange = Range.fromObject(oldRange)
-    newRange = new Range(_.clone(oldRange.start), _.clone(oldRange.start))
+    newRange = new Range(oldRange.start.copy(), oldRange.start.copy())
     prefix = @lines[oldRange.start.row][0...oldRange.start.column]
     suffix = @lines[oldRange.end.row][oldRange.end.column..]
     oldText = @getTextInRange(oldRange)

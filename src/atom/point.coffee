@@ -13,6 +13,9 @@ class Point
 
   constructor: (@row=0, @column=0) ->
 
+  copy: ->
+    new Point(@row, @column)
+
   add: (other) ->
     row = @row + other.row
     if other.row == 0

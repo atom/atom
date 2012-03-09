@@ -13,7 +13,7 @@ class ScreenLineFragment
   splitAt: (column) ->
     return [new ScreenLineFragment([], '', [0, 0], [0, 0]), this] if column == 0
 
-    rightTokens = _.clone(@tokens)
+    rightTokens = new Array(@tokens...)
     leftTokens = []
     leftTextLength = 0
     while leftTextLength < column

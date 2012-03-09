@@ -23,7 +23,7 @@ class Range
       @end = pointA
 
   copy: (range) ->
-    new Range(_.clone(@start), _.clone(@end))
+    new Range(@start.copy(), @end.copy())
 
   isEqual: (other) ->
     if other instanceof Array and other.length == 2

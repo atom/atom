@@ -1,5 +1,4 @@
 Buffer = require 'buffer'
-Range = require 'range'
 fs = require 'fs'
 
 describe 'Buffer', ->
@@ -46,10 +45,7 @@ describe 'Buffer', ->
     describe "when used to insert (called with an empty range and a non-empty string)", ->
       describe "when the given string has no newlines", ->
         it "inserts the string at the location of the given range", ->
-          range =
-            start: {row: 3, column: 4}
-            end: {row: 3, column: 4}
-
+          range = [[3, 4], [3, 4]]
           buffer.change range, "foo"
 
           expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
@@ -58,16 +54,14 @@ describe 'Buffer', ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual(range)
-          expect(event.newRange).toEqual(new Range([3, 4], [3, 7]))
+          expect(event.oldRange).toEqual range
+          expect(event.newRange).toEqual [[3, 4], [3, 7]]
           expect(event.oldText).toBe ""
           expect(event.newText).toBe "foo"
 
       describe "when the given string has newlines", ->
         it "inserts the lines at the location of the given range", ->
-          range =
-            start: {row: 3, column: 4}
-            end: {row: 3, column: 4}
+          range = [[3, 4], [3, 4]]
 
           buffer.change range, "foo\n\nbar\nbaz"
 
@@ -80,18 +74,15 @@ describe 'Buffer', ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual(range)
-          expect(event.newRange).toEqual(new Range([3, 4], [6, 3]))
+          expect(event.oldRange).toEqual range
+          expect(event.newRange).toEqual [[3, 4], [6, 3]]
           expect(event.oldText).toBe ""
           expect(event.newText).toBe "foo\n\nbar\nbaz"
 
     describe "when used to remove (called with a non-empty range and an empty string)", ->
       describe "when the range is contained within a single line", ->
         it "removes the characters within the range", ->
-          range =
-            start: {row: 3, column: 4}
-            end: {row: 3, column: 7}
-
+          range = [[3, 4], [3, 7]]
           buffer.change range, ""
 
           expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
@@ -100,17 +91,14 @@ describe 'Buffer', ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual(range)
-          expect(event.newRange).toEqual(new Range([3, 4], [3, 4]))
+          expect(event.oldRange).toEqual range
+          expect(event.newRange).toEqual [[3, 4], [3, 4]]
           expect(event.oldText).toBe "var"
           expect(event.newText).toBe ""
 
       describe "when the range spans 2 lines", ->
         it "removes the characters within the range and joins the lines", ->
-          range =
-            start: {row: 3, column: 16}
-            end: {row: 4, column: 4}
-
+          range = [[3, 16], [4, 4]]
           buffer.change range, ""
 
           expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
@@ -119,18 +107,14 @@ describe 'Buffer', ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual(range)
-          expect(event.newRange).toEqual(new Range([3, 16], [3, 16]))
+          expect(event.oldRange).toEqual range
+          expect(event.newRange).toEqual [[3, 16], [3, 16]]
           expect(event.oldText).toBe "items.shift(), current, left = [], right = [];\n    "
           expect(event.newText).toBe ""
 
       describe "when the range spans more than 2 lines", ->
         it "removes the characters within the range, joining the first and last line and removing the lines in-between", ->
-          range =
-            start: {row: 3, column: 16}
-            end: {row: 11, column: 9}
-
-          buffer.change range, ""
+          buffer.change [[3, 16], [11, 9]], ""
 
           expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items;"
           expect(buffer.lineForRow(3)).toBe "    var pivot = sort(Array.apply(this, arguments));"
@@ -138,9 +122,7 @@ describe 'Buffer', ->
 
     describe "when used to replace text with other text (called with non-empty range and non-empty string)", ->
       it "replaces the old text with the new text", ->
-        range =
-          start: {row: 3, column: 16}
-          end: {row: 11, column: 9}
+        range = [[3, 16], [11, 9]]
         oldText = buffer.getTextInRange(range)
 
         buffer.change range, "foo\nbar"
@@ -152,15 +134,15 @@ describe 'Buffer', ->
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
-        expect(event.oldRange).toEqual(range)
-        expect(event.newRange).toEqual(new Range([3, 16], [4, 3]))
+        expect(event.oldRange).toEqual range
+        expect(event.newRange).toEqual [[3, 16], [4, 3]]
         expect(event.oldText).toBe oldText
         expect(event.newText).toBe "foo\nbar"
 
   describe ".setText(text)", ->
     it "changes the entire contents of the buffer and emits a change event", ->
       lastRow = buffer.lastRow()
-      expectedPreRange = new Range([0,0], [lastRow, buffer.lineForRow(lastRow).length])
+      expectedPreRange = [[0,0], [lastRow, buffer.lineForRow(lastRow).length]]
       changeHandler = jasmine.createSpy('changeHandler')
       buffer.on 'change', changeHandler
 
@@ -173,7 +155,7 @@ describe 'Buffer', ->
       [event] = changeHandler.argsForCall[0]
       expect(event.newText).toBe newText
       expect(event.oldRange).toEqual expectedPreRange
-      expect(event.newRange).toEqual(new Range([0, 0], [1, 14]))
+      expect(event.newRange).toEqual [[0, 0], [1, 14]]
 
   describe ".save()", ->
     describe "when the buffer has a path", ->
@@ -200,24 +182,24 @@ describe 'Buffer', ->
   describe ".getTextInRange(range)", ->
     describe "when range is empty", ->
       it "returns an empty string", ->
-        range = new Range([1,1], [1,1])
+        range = [[1,1], [1,1]]
         expect(buffer.getTextInRange(range)).toBe ""
 
     describe "when range spans one line", ->
       it "returns characters in range", ->
-        range = new Range([2,8], [2,13])
+        range = [[2,8], [2,13]]
         expect(buffer.getTextInRange(range)).toBe "items"
 
         lineLength = buffer.lineForRow(2).length
-        range = new Range([2,0], [2,lineLength])
+        range = [[2,0], [2,lineLength]]
         expect(buffer.getTextInRange(range)).toBe "    if (items.length <= 1) return items;"
 
     describe "when range spans multiple lines", ->
       it "returns characters in range (including newlines)", ->
         lineLength = buffer.lineForRow(2).length
-        range = new Range([2,0], [3,0])
+        range = [[2,0], [3,0]]
         expect(buffer.getTextInRange(range)).toBe "    if (items.length <= 1) return items;\n"
 
         lineLength = buffer.lineForRow(2).length
-        range = new Range([2,10], [4,10])
+        range = [[2,10], [4,10]]
         expect(buffer.getTextInRange(range)).toBe "ems.length <= 1) return items;\n    var pivot = items.shift(), current, left = [], right = [];\n    while("

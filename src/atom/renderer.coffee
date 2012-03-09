@@ -62,7 +62,7 @@ class Renderer
       oldScreenRange.end.row,
       lines)
     newScreenRange = @expandScreenRangeToLineEnds(
-      new Range(_.clone(oldScreenRange.start), _.clone(oldScreenRange.start)))
+      new Range(oldScreenRange.start.copy(), oldScreenRange.start.copy()))
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
     @trigger 'fold', bufferRange
