@@ -17,11 +17,15 @@ describe "Editor", ->
     editor.insertText('x')
     editor.backspace()
 
-  fdescribe "when editing a ~300 line CoffeeScript file", ->
+  describe "when editing a ~300 line CoffeeScript file", ->
     beforeEach ->
       editor.setBuffer new Buffer(require.resolve('fixtures/medium.coffee'))
 
     benchmark "inserting and deleting a character", ->
       editor.insertText('x')
+      editor.backspace()
+
+    benchmark "inserting and deleting a character that causes massive token changed", ->
+      editor.insertText('"')
       editor.backspace()
 
