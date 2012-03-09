@@ -17,11 +17,11 @@ describe "Editor", ->
     editor.insertText('x')
     editor.backspace()
 
-  fdescribe "when editing a ~300 line CoffeeScript file", ->
+  describe "when editing a ~300 line CoffeeScript file", ->
     beforeEach ->
       editor.setBuffer new Buffer(require.resolve('fixtures/medium.coffee'))
 
-    benchmark "inserting and deleting a character", ->
+    fbenchmark "inserting and deleting a character", ->
       editor.insertText('x')
       editor.backspace()
 

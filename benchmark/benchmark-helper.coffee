@@ -15,14 +15,18 @@ keymap.bindKeys '*',
 $(document).on 'close', -> window.close()
 $(document).on 'show-console', -> window.showConsole()
 
-window.profile = (description, fn) ->
-  window.showConsole()
-  window.benchmark(description, fn, true)
 
 window.pbenchmark = window.profile
+window.fpbenchmark = (description, fn) -> window.profile(description, fn, true)
+window.fbenchmark = (description, fn, profile) -> window.benchmark(description, fn, profile, true)
 
-window.benchmark = (description, fn, profile=false) ->
-  it description, ->
+window.profile = (description, fn, focused) ->
+  window.showConsole()
+  window.benchmark(description, fn, true, focused)
+
+window.benchmark = (description, fn, profile=false, focused=false) ->
+  method = if focused then fit else it
+  method description, ->
     count = 100
     total = measure ->
       console.profile(description) if profile
