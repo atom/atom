@@ -21,7 +21,7 @@ describe "Editor", ->
     beforeEach ->
       editor.setBuffer new Buffer(require.resolve('fixtures/medium.coffee'))
 
-    fbenchmark "inserting and deleting a character", ->
+    benchmark "inserting and deleting a character", ->
       editor.insertText('x')
       editor.backspace()
 
