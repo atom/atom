@@ -35,6 +35,7 @@ class Editor extends View
   renderer: null
   undoManager: null
   autoIndent: null
+  lineCache: null
 
   initialize: () ->
     requireStylesheet 'editor.css'
@@ -44,6 +45,7 @@ class Editor extends View
     @handleEvents()
     @setBuffer(new Buffer)
     @autoIndent = true
+    @lineCache = []
 
   bindKeys: ->
     window.keymap.bindKeys '*:not(.editor *)',
@@ -149,9 +151,12 @@ class Editor extends View
         @raw '&nbsp;' if appendNbsp
 
   renderLines: ->
+    @lineCache = []
     @lines.find('.line').remove()
     for screenLine in @getScreenLines()
-      @lines.append @buildLineElement(screenLine)
+      line = @buildLineElement(screenLine)
+      @lineCache.push line
+      @lines.append line
 
   getScreenLines: ->
     @renderer.getLines()
@@ -201,21 +206,29 @@ class Editor extends View
             @updateLineElement(row, screenLines.shift())
 
   updateLineElement: (row, screenLine) ->
-    @getLineElement(row).replaceWith(@buildLineElement(screenLine))
+    if @lineCache.length == 0
+      @insertLineElement(row, screenLine)
+    else
+      line = @buildLineElement(screenLine)
+      @lineCache[row].replaceWith(line)
+      @lineCache[row] = line
 
   insertLineElement: (row, screenLine) ->
     newLineElement = @buildLineElement(screenLine)
     insertBefore = @getLineElement(row)
-    if insertBefore.length
+    if insertBefore
+      @lineCache.splice(row, 0, newLineElement)
       insertBefore.before(newLineElement)
     else
-      @lines.append(newLineElement)
+      @lineCache.push newLineElement
+      @lines.append newLineElement
 
   removeLineElement: (row) ->
-    @getLineElement(row).remove()
+    [lineElement] = @lineCache.splice(row, 1)
+    lineElement.remove()
 
   getLineElement: (row) ->
-    $(@lines[0].querySelectorAll("div.line")[row])
+    @lineCache[row]
 
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
