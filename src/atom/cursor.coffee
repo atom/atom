@@ -21,6 +21,10 @@ class Cursor extends View
     position = Point.fromObject(position)
     @screenPosition = @editor.clipScreenPosition(position)
     @bufferPosition = @editor.bufferPositionForScreenPosition(position)
+
+    Object.freeze @screenPosition
+    Object.freeze @bufferPosition
+
     @goalColumn = null
     @updateAppearance()
     @trigger 'cursor:position-changed'
@@ -36,10 +40,10 @@ class Cursor extends View
     @setBufferPosition(@bufferPosition)
 
   getBufferPosition: ->
-    _.clone(@bufferPosition)
+    @bufferPosition
 
   getScreenPosition: ->
-    _.clone(@screenPosition)
+    @screenPosition
 
   getBufferColumn: ->
     @getBufferPosition().column

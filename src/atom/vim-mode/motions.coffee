@@ -11,7 +11,7 @@ class MoveLeft extends Motion
     @editor.moveCursorLeft() if column > 0
 
   select: ->
-    position = @editor.getCursorScreenPosition()
+    position = @editor.getCursorScreenPosition().copy()
     position.column-- if position.column > 0
     @editor.selectToBufferPosition(position)
 
