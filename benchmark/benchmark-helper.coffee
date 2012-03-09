@@ -18,6 +18,7 @@ $(document).on 'show-console', -> window.showConsole()
 
 window.pbenchmark = window.profile
 window.fpbenchmark = (description, fn) -> window.profile(description, fn, true)
+window.pfbenchmark = window.fpbenchmark
 window.fbenchmark = (description, fn, profile) -> window.benchmark(description, fn, profile, true)
 
 window.profile = (description, fn, focused) ->
