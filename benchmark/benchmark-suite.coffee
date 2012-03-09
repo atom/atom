@@ -25,3 +25,7 @@ describe "Editor", ->
       editor.insertText('x')
       editor.backspace()
 
+    benchmark "inserting and deleting a character that causes massive token changed", ->
+      editor.insertText('"')
+      editor.backspace()
+
