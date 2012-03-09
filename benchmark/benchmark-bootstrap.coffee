@@ -5,6 +5,8 @@ nakedLoad 'jasmine-focused'
 
 $ = require 'jquery'
 
+document.title = "Benchmark Suite"
+
 $('head').append $$ ->
   @link rel: "stylesheet", type: "text/css", href: "static/jasmine.css"
 
@@ -21,4 +23,3 @@ jasmineEnv.specFilter = (spec) -> trivialReporter.specFilter(spec)
 
 require 'benchmark-suite'
 jasmineEnv.execute()
-

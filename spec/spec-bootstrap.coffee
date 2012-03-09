@@ -5,6 +5,8 @@ nakedLoad 'jasmine-focused'
 
 $ = require 'jquery'
 
+document.title = "Spec Suite"
+
 $('head').append $$ ->
   @link rel: "stylesheet", type: "text/css", href: "static/jasmine.css"
 

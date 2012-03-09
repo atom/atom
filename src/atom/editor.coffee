@@ -166,6 +166,7 @@ class Editor extends View
     @screenLineCount() - 1
 
   setBuffer: (@buffer) ->
+    document.title = @buffer.path
     @renderer = new Renderer(@buffer)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
@@ -245,6 +246,7 @@ class Editor extends View
     if not @buffer.path
       path = $native.saveDialog()
       return if not path
+      document.title = path
       @buffer.path = path
 
     @buffer.save()
