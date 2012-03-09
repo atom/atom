@@ -17,9 +17,11 @@ class Cursor extends View
   bufferChanged: (e) ->
     @setBufferPosition(e.newRange.end)
 
-  setScreenPosition: (position) ->
+  setScreenPosition: (position, options={}) ->
     position = Point.fromObject(position)
-    @screenPosition = @editor.clipScreenPosition(position)
+    clip = options.clip ? true
+
+    @screenPosition = if clip then @editor.clipScreenPosition(position) else position
     @bufferPosition = @editor.bufferPositionForScreenPosition(position)
 
     Object.freeze @screenPosition
@@ -34,7 +36,7 @@ class Cursor extends View
     @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
 
   setBufferPosition: (bufferPosition) ->
-    @setScreenPosition(@editor.screenPositionForBufferPosition(bufferPosition))
+    @setScreenPosition(@editor.screenPositionForBufferPosition(bufferPosition), clip: false)
 
   refreshScreenPosition: ->
     @setBufferPosition(@bufferPosition)
