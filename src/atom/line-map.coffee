@@ -45,7 +45,6 @@ class LineMap
       currentScreenRow = screenDelta.row
     bufferRows
 
-
   bufferLineCount: ->
     @lineCountByDelta('bufferDelta')
 
@@ -77,7 +76,8 @@ class LineMap
   clipScreenPosition: (screenPosition, options) ->
     @clipPosition('screenDelta', screenPosition, options)
 
-  clipPosition: (deltaType, position, options) ->
+  clipPosition: (deltaType, position, options={}) ->
+    options.clipToBounds = true
     @translatePosition(deltaType, deltaType, position, options)
 
   spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
@@ -113,8 +113,9 @@ class LineMap
     wrapBeyondNewlines = options.wrapBeyondNewlines ? false
     wrapAtSoftNewlines = options.wrapAtSoftNewlines ? false
     skipAtomicTokens = options.skipAtomicTokens ? false
+    clipToBounds = options.clipToBounds ? false
 
-    @clipToBounds(sourceDeltaType, sourcePosition)
+    @clipToBounds(sourceDeltaType, sourcePosition) if clipToBounds
     traversalResult = @traverseByDelta(sourceDeltaType, sourcePosition)
     lastLineFragment = traversalResult.lastLineFragment
     sourceDelta = traversalResult[sourceDeltaType]
