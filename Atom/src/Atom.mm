@@ -14,11 +14,9 @@
 
 + (NSApplication *)sharedApplication {
   if (!NSApp) {
-    // Populate the settings based on command line arguments.
     CefSettings settings;
     AppGetSettings(settings);
     
-    // Initialize CEF.
     CefRefPtr<CefApp> app;
     CefInitialize(settings, app);
   }
