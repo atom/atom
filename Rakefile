@@ -32,6 +32,12 @@ task :run => :build do
   end
 end
 
+desc "Run the benchmarks"
+task :benchmark do
+  $ATOM_ENV.push "RUN_BENCHMARKS=1"
+  Rake::Task["run"].invoke
+end
+
 desc "Compile CoffeeScripts"
 task :"compile-coffeescripts" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
