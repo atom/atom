@@ -134,29 +134,10 @@ class Editor extends View
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', => @off 'mousemove', moveHandler
 
-  buildLineElement: (screenLine) ->
-    { tokens } = screenLine
-    charWidth = @charWidth
-    charHeight = @charHeight
-    $$ ->
-      @div class: 'line', =>
-        appendNbsp = true
-        for token in tokens
-          if token.type is 'fold-placeholder'
-            @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight}px;", 'foldId': token.fold.id, =>
-              @div class: "ellipsis", => @raw "&hellip;"
-          else
-            appendNbsp = false
-            @span { class: token.type.replace('.', ' ') }, token.value
-        @raw '&nbsp;' if appendNbsp
-
   renderLines: ->
     @lineCache = []
     @lines.find('.line').remove()
-    for screenLine in @getScreenLines()
-      line = @buildLineElement(screenLine)
-      @lineCache.push line
-      @lines.append line
+    @insertLineElements(0, @buildLineElements(0, @lastRow()))
 
   getScreenLines: ->
     @renderer.getLines()
@@ -179,71 +160,57 @@ class Editor extends View
 
     @setCursorScreenPosition(row: 0, column: 0)
 
-    @buffer.on 'change', (e) =>
-      @cursor.bufferChanged(e)
+    @buffer.on 'change', (e) => @cursor.bufferChanged(e)
+    @renderer.on 'change', (e) => @handleRendererChange(e)
 
-    @renderer.on 'change', (e) =>
-      { oldRange, newRange } = e
-      unless newRange.isSingleLine() and newRange.coversSameRows(oldRange)
-        @gutter.renderLineNumbers(@getScreenLines())
+  handleRendererChange: (e) ->
+    { oldRange, newRange } = e
+    unless newRange.isSingleLine() and newRange.coversSameRows(oldRange)
+      @gutter.renderLineNumbers(@getScreenLines())
 
-      @cursor.refreshScreenPosition() unless e.bufferChanged
-      screenLines = @linesForRows(newRange.start.row, newRange.end.row)
-      if newRange.end.row > oldRange.end.row
-        # update, then insert elements
-        for row in [newRange.start.row..newRange.end.row]
-          if row <= oldRange.end.row
-            @updateLineElement(row, screenLines.shift())
-          else
-            @insertLineElement(row, screenLines.shift())
-      else
-        # traverse in reverse... remove, then update elements
-        screenLines.reverse()
-        for row in [oldRange.end.row..oldRange.start.row]
-          if row > newRange.end.row
-            @removeLineElement(row)
-          else
-            @updateLineElement(row, screenLines.shift())
+    @cursor.refreshScreenPosition() unless e.bufferChanged
 
+    lineElements = @buildLineElements(newRange.start.row, newRange.end.row)
+    @replaceLineElements(oldRange.start.row, oldRange.end.row, lineElements)
+
+  buildLineElements: (startRow, endRow) ->
+    charWidth = @charWidth
+    charHeight = @charHeight
+    lines = @renderer.linesForRows(startRow, endRow)
+    $$ ->
+      for line in lines
+        @div class: 'line', =>
+          appendNbsp = true
+          for token in line.tokens
+            if token.type is 'fold-placeholder'
+              @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight}px;", 'foldId': token.fold.id, =>
+                @div class: "ellipsis", => @raw "&hellip;"
+            else
+              appendNbsp = false
+              @span { class: token.type.replace('.', ' ') }, token.value
+          @raw '&nbsp;' if appendNbsp
+
+  insertLineElements: (row, lineElements) ->
+    @spliceLineElements(row, 0, lineElements)
+
+  replaceLineElements: (startRow, endRow, lineElements) ->
+    @spliceLineElements(startRow, endRow - startRow + 1, lineElements)
 
   spliceLineElements: (startRow, rowCount, lineElements) ->
     endRow = startRow + rowCount
-    insertBeforeElement = @lineCache[startRow]
-    removeElements = $(_.map @lineCache[startRow...endRow], (elt) -> elt[0])
-    @lineCache[startRow...endRow] = lineElements or []
+    elementToInsertBefore = @lineCache[startRow]
+    elementsToReplace = @lineCache[startRow...endRow]
+    @lineCache[startRow...endRow] = lineElements?.toArray() or []
 
     if lineElements
-      if removeElements.length
-        removeElements.replaceWith(lineElements)
-      else if insertBeforeElement
-        insertBeforeElement.before(lineElements)
+      if elementsToReplace.length
+        $(elementsToReplace).replaceWith(lineElements)
+      else if elementToInsertBefore
+        $(elementToInsertBefore).before(lineElements)
       else
         @lines.append(lineElements)
     else
       removeElements.remove()
-
-
-  updateLineElement: (row, screenLine) ->
-    if @lineCache.length == 0
-      @insertLineElement(row, screenLine)
-    else
-      line = @buildLineElement(screenLine)
-      @lineCache[row].replaceWith(line)
-      @lineCache[row] = line
-
-  insertLineElement: (row, screenLine) ->
-    newLineElement = @buildLineElement(screenLine)
-    insertBefore = @getLineElement(row)
-    if insertBefore
-      @lineCache.splice(row, 0, newLineElement)
-      insertBefore.before(newLineElement)
-    else
-      @lineCache.push newLineElement
-      @lines.append newLineElement
-
-  removeLineElement: (row) ->
-    [lineElement] = @lineCache.splice(row, 1)
-    lineElement.remove()
 
   getLineElement: (row) ->
     @lineCache[row]

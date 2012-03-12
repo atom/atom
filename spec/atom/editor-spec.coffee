@@ -82,7 +82,6 @@ describe "Editor", ->
         expect(region1.offset().top).toBe(editor.lines.find('.line:eq(7)').offset().top)
         expect(region2.offset().top).toBe(editor.lines.find('.line:eq(8)').offset().top)
 
-      # Many more tests for change events in the LineWrapper spec
       it "handles changes to wrapped lines correctly", ->
         buffer.insert([6, 28], '1234567')
         expect(editor.lines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
