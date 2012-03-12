@@ -15,3 +15,4 @@ profile
 *.moved-aside
 .DS_Store
 tags
+atom-build
