@@ -1,5 +1,3 @@
-import "benchmark/benchmark.rake"
-
 $ATOM_ENV = []
 
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
