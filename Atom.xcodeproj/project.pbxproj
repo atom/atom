@@ -76,8 +76,8 @@
 		0487D15B14FEE6D60045E5E3 /* cef_zip_archive.cc in Sources */ = {isa = PBXBuildFile; fileRef = 0487D12314FEE6D60045E5E3 /* cef_zip_archive.cc */; };
 		0487D15C14FEE6D60045E5E3 /* libcef_dll_wrapper.cc in Sources */ = {isa = PBXBuildFile; fileRef = 0487D12414FEE6D60045E5E3 /* libcef_dll_wrapper.cc */; };
 		0487D15D14FEE6D60045E5E3 /* libcef_dll_wrapper2.cc in Sources */ = {isa = PBXBuildFile; fileRef = 0487D12514FEE6D60045E5E3 /* libcef_dll_wrapper2.cc */; };
-		0487D15F14FEE7880045E5E3 /* resources in Resources */ = {isa = PBXBuildFile; fileRef = 0487D15E14FEE7880045E5E3 /* resources */; };
-		0487D16014FEE78E0045E5E3 /* resources in Copy Chrome Resources */ = {isa = PBXBuildFile; fileRef = 0487D15E14FEE7880045E5E3 /* resources */; };
+		0487D15F14FEE7880045E5E3 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = 0487D15E14FEE7880045E5E3 /* Resources */; };
+		0487D16014FEE78E0045E5E3 /* Resources in Copy Chrome Resources */ = {isa = PBXBuildFile; fileRef = 0487D15E14FEE7880045E5E3 /* Resources */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -105,11 +105,11 @@
 		};
 		0487CD9C14FEE17D0045E5E3 /* Copy Chrome Resources */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			dstPath = "$(CONTENTS_FOLDER_PATH)";
 			dstSubfolderSpec = 16;
 			files = (
-				0487D16014FEE78E0045E5E3 /* resources in Copy Chrome Resources */,
+				0487D16014FEE78E0045E5E3 /* Resources in Copy Chrome Resources */,
 			);
 			name = "Copy Chrome Resources";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -285,7 +285,7 @@
 		0487D12314FEE6D60045E5E3 /* cef_zip_archive.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cef_zip_archive.cc; sourceTree = "<group>"; };
 		0487D12414FEE6D60045E5E3 /* libcef_dll_wrapper.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = libcef_dll_wrapper.cc; sourceTree = "<group>"; };
 		0487D12514FEE6D60045E5E3 /* libcef_dll_wrapper2.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = libcef_dll_wrapper2.cc; sourceTree = "<group>"; };
-		0487D15E14FEE7880045E5E3 /* resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = resources; sourceTree = "<group>"; };
+		0487D15E14FEE7880045E5E3 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -371,7 +371,7 @@
 		0487C91D14FED5360045E5E3 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				0487D15E14FEE7880045E5E3 /* resources */,
+				0487D15E14FEE7880045E5E3 /* Resources */,
 				0487C93314FED5FB0045E5E3 /* Atom.icns */,
 				0487C93414FED5FB0045E5E3 /* ClientWindow.xib */,
 				0487C93514FED5FB0045E5E3 /* Info.plist */,
@@ -675,7 +675,7 @@
 				0487C93714FED5FB0045E5E3 /* Atom.icns in Resources */,
 				0487C93814FED5FB0045E5E3 /* ClientWindow.xib in Resources */,
 				0487C93A14FED5FB0045E5E3 /* MainMenu.xib in Resources */,
-				0487D15F14FEE7880045E5E3 /* resources in Resources */,
+				0487D15F14FEE7880045E5E3 /* Resources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
