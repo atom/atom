@@ -1,7 +1,7 @@
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
 
-desc "Build the shit."
-task :build do
+desc "Compile CoffeeScripts"
+task :"compile-coffeescripts" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
   contents_dir = ENV['CONTENTS_FOLDER_PATH'].to_s
@@ -21,12 +21,6 @@ task :build do
 
   puts contents_dir
   sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec"
-end
-
-desc "Install the app in /Applications"
-task :install do
-  rm_rf "/Applications/Atomicity.app"
-  cp_r "Cocoa/build/Debug/Atomicity.app /Applications"
 end
 
 desc "Change webkit frameworks to use @rpath as install name"

@@ -726,7 +726,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "rake build";
+			shellScript = "rake compile-coffeescripts";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
