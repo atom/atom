@@ -1,4 +1,36 @@
+import "benchmark/benchmark.rake"
+
+$ATOM_ENV = []
+
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
+BUILD_DIR = 'atom-build'
+
+desc "Build Atom via `xcodebuild`"
+task :build do
+  output = `xcodebuild SYMROOT=#{BUILD_DIR}`
+  if $?.exitstatus != 0
+    $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
+  end
+end
+
+desc "Run Atom"
+task :run => :build do
+  applications = FileList["#{BUILD_DIR}/**/*.app"]
+  if applications.size == 0
+    $stderr.puts "No Atom application found in directory `#{BUILD_DIR}`"
+  elsif applications.size > 1
+    $stderr.puts "Multiple Atom applications found \n\t" + applications.join("\n\t")
+  else
+    app_path = "#{applications.first}/Contents/MacOS/Atom"
+    if File.exists?(app_path)
+      puts "#{$ATOM_ENV.join(' ')} #{applications.first}/Contents/MacOS/Atom"
+      output = `#{applications.first}/Contents/MacOS/Atom --benchmark`
+      puts output
+    else
+      $stderr.puts "Executable `#{app_path}` not found."
+    end
+  end
+end
 
 desc "Compile CoffeeScripts"
 task :"compile-coffeescripts" do
