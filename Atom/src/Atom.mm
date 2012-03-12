@@ -113,6 +113,13 @@
   context->Exit();
 }
 
+- (void)loadEnd {
+  if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--benchmark"]) {
+    NSLog(@"Running Benchmarks");
+    [self runBenchmarks:self];
+  }
+}
+
 @end
   
 // Returns the application settings based on command line arguments.

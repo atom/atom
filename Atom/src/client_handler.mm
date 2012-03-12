@@ -82,6 +82,12 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
                               int httpStatusCode)
 {
   REQUIRE_UI_THREAD();
+  
+  
+  if ([m_delegate respondsToSelector:@selector(loadEnd)]) {
+    [m_delegate loadEnd];
+  }
+
 }
 
 bool ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
