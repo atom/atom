@@ -10,7 +10,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog"};
+  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -251,6 +251,10 @@ bool NativeHandler::Execute(const CefString& name,
   }
   else if (name == "showDevTools") {
     CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
+    return true;
+  }
+  else if (name == "exit") {
+    [NSApp terminate:NSApp];
     return true;
   }
   
