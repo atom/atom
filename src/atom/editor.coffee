@@ -205,6 +205,24 @@ class Editor extends View
           else
             @updateLineElement(row, screenLines.shift())
 
+
+  spliceLineElements: (startRow, rowCount, lineElements) ->
+    endRow = startRow + rowCount
+    insertBeforeElement = @lineCache[startRow]
+    removeElements = $(_.map @lineCache[startRow...endRow], (elt) -> elt[0])
+    @lineCache[startRow...endRow] = lineElements or []
+
+    if lineElements
+      if removeElements.length
+        removeElements.replaceWith(lineElements)
+      else if insertBeforeElement
+        insertBeforeElement.before(lineElements)
+      else
+        @lines.append(lineElements)
+    else
+      removeElements.remove()
+
+
   updateLineElement: (row, screenLine) ->
     if @lineCache.length == 0
       @insertLineElement(row, screenLine)

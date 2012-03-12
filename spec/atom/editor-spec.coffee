@@ -2,6 +2,7 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 Range = require 'range'
 $ = require 'jquery'
+{$$} = require 'space-pen'
 _ = require 'underscore'
 fs = require 'fs'
 
@@ -1000,3 +1001,59 @@ describe "Editor", ->
           selectedFilePath = null
           editor.save()
           expect(fs.exists(selectedFilePath)).toBeFalsy()
+
+  describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
+    elements = null
+
+    beforeEach ->
+      elements = $$ ->
+        @div "A", class: 'line'
+        @div "B", class: 'line'
+
+    describe "when the start row is 0", ->
+      describe "when the row count is 0", ->
+        it "inserts the given elements before the first row", ->
+          editor.spliceLineElements 0, 0, elements
+
+          expect(editor.lines.find('.line:eq(0)').text()).toBe 'A'
+          expect(editor.lines.find('.line:eq(1)').text()).toBe 'B'
+          expect(editor.lines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
+
+      describe "when the row count is > 0", ->
+        it "replaces the initial rows with the given elements", ->
+          editor.spliceLineElements 0, 2, elements
+
+          expect(editor.lines.find('.line:eq(0)').text()).toBe 'A'
+          expect(editor.lines.find('.line:eq(1)').text()).toBe 'B'
+          expect(editor.lines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
+
+    describe "when the start row is less than the last row", ->
+      describe "when the row count is 0", ->
+        it "inserts the elements at the specified location", ->
+          editor.spliceLineElements 2, 0, elements
+
+          expect(editor.lines.find('.line:eq(2)').text()).toBe 'A'
+          expect(editor.lines.find('.line:eq(3)').text()).toBe 'B'
+          expect(editor.lines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
+
+      describe "when the row count is > 0", ->
+        it "replaces the elements at the specified location", ->
+          editor.spliceLineElements 2, 2, elements
+
+          expect(editor.lines.find('.line:eq(2)').text()).toBe 'A'
+          expect(editor.lines.find('.line:eq(3)').text()).toBe 'B'
+          expect(editor.lines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
+
+    describe "when the start row is the last row", ->
+      it "appends the elements to the end of the lines", ->
+        editor.spliceLineElements 13, 0, elements
+
+        expect(editor.lines.find('.line:eq(12)').text()).toBe '};'
+        expect(editor.lines.find('.line:eq(13)').text()).toBe 'A'
+        expect(editor.lines.find('.line:eq(14)').text()).toBe 'B'
+        expect(editor.lines.find('.line:eq(15)')).not.toExist()
+
+
+
+
+
