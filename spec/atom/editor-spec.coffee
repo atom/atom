@@ -536,13 +536,21 @@ describe "Editor", ->
     beforeEach ->
       editor.autoIndent = true
 
-    describe "when line renders on one screen line", ->
-      describe "when newline is inserted", ->
+    describe "when editing a line that spans a single screen line", ->
+      describe "when a newline is inserted", ->
         it "indents cursor based on the indentation of previous buffer line", ->
           editor.setCursorBufferPosition([1, 30])
           editor.insertText("\n")
           expect(editor.buffer.lineForRow(2)).toEqual("    ")
 
+      describe "when a newline is inserted following a fold placeholder", ->
+        it "indents cursor based on the indentation of previous buffer line", ->
+          editor.createFold([[1, 10], [1, 30]])
+          editor.setCursorBufferPosition([1, 30])
+          editor.insertText("\n")
+          expect(editor.buffer.lineForRow(2)).toEqual("    ")
+
+      describe "when text beginning with a newline is inserted", ->
         it "indents cursor based on the indentation of previous buffer line", ->
           editor.setCursorBufferPosition([4, 29])
           editor.insertText("\nvar thisIsCool")
@@ -557,7 +565,7 @@ describe "Editor", ->
           expect(editor.buffer.lineForRow(2)).toEqual("  }")
           expect(editor.getCursorBufferPosition().column).toBe 3
 
-    describe "when line spans multiple screen lines", ->
+    describe "when editing a line that spans multiple screen lines", ->
       beforeEach ->
         editor.attachToDom()
         editor.setSoftWrap(true)

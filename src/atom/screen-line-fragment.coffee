@@ -4,6 +4,7 @@ Point = require 'point'
 module.exports =
 class ScreenLineFragment
   isAtomic: false
+  state: null
 
   constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
     @screenDelta = Point.fromObject(screenDelta)
@@ -29,8 +30,8 @@ class ScreenLineFragment
     [leftScreenDelta, rightScreenDelta] = @screenDelta.splitAt(column)
     [leftBufferDelta, rightBufferDelta] = @bufferDelta.splitAt(column)
 
-    leftFragment = new ScreenLineFragment(leftTokens, leftText, leftScreenDelta, leftBufferDelta)
-    rightFragment = new ScreenLineFragment(rightTokens, rightText, rightScreenDelta, rightBufferDelta)
+    leftFragment = new ScreenLineFragment(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@state})
+    rightFragment = new ScreenLineFragment(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@state})
     [leftFragment, rightFragment]
 
   splitTokenAt: (token, splitIndex) ->
@@ -44,7 +45,7 @@ class ScreenLineFragment
     text = @text + other.text
     screenDelta = @screenDelta.add(other.screenDelta)
     bufferDelta = @bufferDelta.add(other.bufferDelta)
-    new ScreenLineFragment(tokens, text, screenDelta, bufferDelta)
+    new ScreenLineFragment(tokens, text, screenDelta, bufferDelta, {state: other.state})
 
   isSoftWrapped: ->
     @screenDelta.row == 1 and @bufferDelta.row == 0
