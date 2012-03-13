@@ -27,22 +27,22 @@ class View extends jQuery
   @builderStack: []
 
   elements.forEach (tagName) ->
-    View[tagName] = (args...) -> @currentBuilder().tag(tagName, args...)
+    View[tagName] = (args...) -> @currentBuilder.tag(tagName, args...)
 
   @subview: (name, view) ->
-    @currentBuilder().subview(name, view)
+    @currentBuilder.subview(name, view)
 
-  @text: (string) -> @currentBuilder().text(string)
+  @text: (string) -> @currentBuilder.text(string)
 
-  @raw: (string) -> @currentBuilder().raw(string)
-
-  @currentBuilder: ->
-    @builderStack[@builderStack.length - 1]
+  @raw: (string) -> @currentBuilder.raw(string)
 
   @pushBuilder: ->
-    @builderStack.push(new Builder)
+    builder = new Builder
+    @builderStack.push(builder)
+    @currentBuilder = builder
 
   @popBuilder: ->
+    @currentBuilder = @builderStack[@builderStack.length - 2]
     @builderStack.pop()
 
   @buildHtml: (fn) ->
