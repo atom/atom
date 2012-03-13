@@ -161,6 +161,21 @@ describe "Editor", ->
         editor.createFold([[3, 10], [5, 1]])
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
+    it "adds a drop shadow when the horizontal scroller is scrolled to the right", ->
+      editor.attachToDom()
+      editor.width(100)
+
+      expect(editor.gutter).not.toHaveClass('drop-shadow')
+
+      editor.horizontalScroller.scrollLeft(10)
+      editor.horizontalScroller.trigger('scroll')
+
+      expect(editor.gutter).toHaveClass('drop-shadow')
+
+      editor.horizontalScroller.scrollLeft(0)
+      editor.horizontalScroller.trigger('scroll')
+
+      expect(editor.gutter).not.toHaveClass('drop-shadow')
 
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->

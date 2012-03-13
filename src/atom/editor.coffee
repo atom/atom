@@ -127,6 +127,12 @@ class Editor extends View
         position.left = Math.min(position.left, @horizontalScroller.width() - @charWidth)
       @hiddenInput.css(position)
 
+    @horizontalScroller.on 'scroll', =>
+      if @horizontalScroller.scrollLeft() == 0
+        @gutter.removeClass('drop-shadow')
+      else
+        @gutter.addClass('drop-shadow')
+
     @one 'attach', =>
       @calculateDimensions()
       @hiddenInput.width(@charWidth)
