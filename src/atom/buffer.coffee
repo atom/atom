@@ -5,9 +5,11 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class Buffer
+  @idCounter = 1
   lines: null
 
   constructor: (@path) ->
+    @id = @constructor.idCounter++
     @url = @path # we want this to be path on master, but let's not break it on a branch
     @lines = ['']
     if @path and fs.exists(@path)

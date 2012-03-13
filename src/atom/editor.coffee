@@ -8,6 +8,7 @@ Point = require 'point'
 Range = require 'range'
 Selection = require 'selection'
 UndoManager = require 'undo-manager'
+EditSession = require 'edit-session'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -40,6 +41,7 @@ class Editor extends View
   initialize: () ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
+    @editSessionsByBufferId = {}
     @bindKeys()
     @buildCursorAndSelection()
     @handleEvents()
@@ -154,16 +156,28 @@ class Editor extends View
     @screenLineCount() - 1
 
   setBuffer: (@buffer) ->
+    @saveEditSession() if @editSession
     document.title = @buffer.path
     @renderer = new Renderer(@buffer)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
     @gutter.renderLineNumbers()
 
-    @setCursorScreenPosition(row: 0, column: 0)
+    @loadEditSessionForBuffer(@buffer)
 
     @buffer.on 'change', (e) => @cursor.bufferChanged(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
+
+  loadEditSessionForBuffer: (buffer) ->
+    @editSession = (@editSessionsByBufferId[buffer.id] ?= new EditSession)
+    @setCursorScreenPosition(@editSession.cursorScreenPosition)
+    @scrollTop(@editSession.scrollTop)
+    @horizontalScroller.scrollLeft(@editSession.scrollLeft)
+
+  saveEditSession: ->
+    @editSession.cursorScreenPosition = @getCursorScreenPosition()
+    @editSession.scrollTop = @scrollTop()
+    @editSession.scrollLeft = @horizontalScroller.scrollLeft()
 
   handleRendererChange: (e) ->
     { oldRange, newRange } = e

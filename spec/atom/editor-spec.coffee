@@ -894,6 +894,29 @@ describe "Editor", ->
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
+    it "recalls the cursor position and scroll position when the same buffer is re-assigned", ->
+      editor.attachToDom()
+      editor.height(editor.lineHeight * 5)
+      editor.width(editor.charWidth * 30)
+      editor.setCursorScreenPosition([8, 28])
+      advanceClock()
+
+      previousScrollTop = editor.scrollTop()
+      previousScrollLeft = editor.horizontalScroller.scrollLeft()
+
+      console.log "setting empty"
+      console.log editor.scrollTop()
+      editor.setBuffer(new Buffer)
+      expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+      expect(editor.scrollTop()).toBe 0
+      expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+      console.log "setting back to buffer"
+      editor.setBuffer(buffer)
+      expect(editor.getCursorScreenPosition()).toEqual [8, 28]
+      expect(editor.scrollTop()).toBe previousScrollTop
+      expect(editor.horizontalScroller.scrollLeft()).toBe previousScrollLeft
+
   describe ".clipScreenPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
       expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.lineForRow(buffer.lastRow()).length)
