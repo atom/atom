@@ -567,9 +567,7 @@ describe "Editor", ->
 
     describe "when editing a line that spans multiple screen lines", ->
       beforeEach ->
-        editor.attachToDom()
-        editor.setSoftWrap(true)
-        setEditorWidthInChars(editor, 50)
+        editor.setSoftWrap(true, 50)
 
       describe "when newline is inserted", ->
         it "indents cursor based on the indentation of previous buffer line", ->

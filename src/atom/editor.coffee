@@ -236,20 +236,20 @@ class Editor extends View
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
 
-  setMaxLineLength: (maxLength) ->
-    maxLength ?=
+  setMaxLineLength: (maxLineLength) ->
+    maxLineLength ?=
       if @softWrap
         Math.floor(@horizontalScroller.width() / @charWidth)
       else
         Infinity
 
-    @renderer.setMaxLineLength(maxLength) if maxLength
+    @renderer.setMaxLineLength(maxLineLength) if maxLineLength
 
   createFold: (range) ->
     @renderer.createFold(range)
 
-  setSoftWrap: (@softWrap) ->
-    @setMaxLineLength()
+  setSoftWrap: (@softWrap, maxLineLength=undefined) ->
+    @setMaxLineLength(maxLineLength)
     if @softWrap
       @addClass 'soft-wrap'
       @_setMaxLineLength = => @setMaxLineLength()
