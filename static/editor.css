@@ -12,10 +12,6 @@
   -webkit-user-select: none;
 }
 
-.editor.soft-wrap {
-  overflow-x: hidden;
-}
-
 .editor .content {
   display: -webkit-flexbox;
 }
@@ -34,6 +30,10 @@
 .editor .horizontal-scroller {
   overflow-x: auto;
   width: -webkit-flex(1);
+}
+
+.editor.soft-wrap .horizontal-scroller {
+  overflow-x: hidden;
 }
 
 .editor .lines {
