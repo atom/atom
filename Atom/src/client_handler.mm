@@ -4,10 +4,10 @@
 #import "AtomController.h"
 
 #import <Cocoa/Cocoa.h>
+#import <iostream>
 #import <sstream>
 #import <stdio.h>
 #import <string>
-
 #import <assert.h>
 
 #ifndef NDEBUG
@@ -202,4 +202,16 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
   std::string titleStr(title);
   NSString* str = [NSString stringWithUTF8String:titleStr.c_str()];
   [window setTitle:str];
+}
+
+bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
+                              const CefString& message,
+                              const CefString& source,
+                              int line)
+{
+  REQUIRE_UI_THREAD();
+
+  std::cout << std::string(message) << "\n";
+  
+  return true;
 }
