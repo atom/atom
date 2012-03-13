@@ -202,15 +202,16 @@ class Editor extends View
     elementsToReplace = @lineCache[startRow...endRow]
     @lineCache[startRow...endRow] = lineElements?.toArray() or []
 
+    lines = @lines[0]
     if lineElements
-      if elementsToReplace.length
-        $(elementsToReplace).replaceWith(lineElements)
-      else if elementToInsertBefore
-        $(elementToInsertBefore).before(lineElements)
+      if elementToInsertBefore
+        lineElements.each ->
+          lines.insertBefore(this, elementToInsertBefore)
       else
-        @lines.append(lineElements)
-    else
-      removeElements.remove()
+        lineElements.each ->
+          lines.appendChild(this)
+
+    $(elementsToReplace).remove()
 
   getLineElement: (row) ->
     @lineCache[row]
