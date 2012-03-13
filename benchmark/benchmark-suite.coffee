@@ -21,11 +21,21 @@ describe "Editor", ->
     beforeEach ->
       editor.setBuffer new Buffer(require.resolve('fixtures/medium.coffee'))
 
-    benchmark "inserting and deleting a character", ->
-      editor.insertText('x')
-      editor.backspace()
+    describe "when the cursor is at the beginning of the file", ->
+      benchmark "inserting and deleting a character at the beginning of the file", ->
+        editor.insertText('x')
+        editor.backspace()
 
-    benchmark "inserting and deleting a character that causes massive token changed", ->
-      editor.insertText('"')
-      editor.backspace()
+      benchmark "inserting and deleting a character that causes massive re-highlighting", ->
+        editor.insertText('"')
+        editor.backspace()
+
+    describe "when the cursor is at the end of the file", ->
+      beforeEach ->
+        editor.setCursorScreenPosition([Infinity, Infinity])
+
+      benchmark "inserting and deleting a character", ->
+        editor.insertText('"')
+        editor.backspace()
+
 
