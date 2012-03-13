@@ -1,7 +1,43 @@
-ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
+$ATOM_ENV = []
 
-desc "Build the shit."
+ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
+BUILD_DIR = 'atom-build'
+
+desc "Build Atom via `xcodebuild`"
 task :build do
+  output = `xcodebuild SYMROOT=#{BUILD_DIR}`
+  if $?.exitstatus != 0
+    $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
+  end
+end
+
+desc "Run Atom"
+task :run => :build do
+  applications = FileList["#{BUILD_DIR}/**/*.app"]
+  if applications.size == 0
+    $stderr.puts "No Atom application found in directory `#{BUILD_DIR}`"
+  elsif applications.size > 1
+    $stderr.puts "Multiple Atom applications found \n\t" + applications.join("\n\t")
+  else
+    app_path = "#{applications.first}/Contents/MacOS/Atom"
+    if File.exists?(app_path)
+      puts "#{$ATOM_ENV.join(' ')} #{applications.first}/Contents/MacOS/Atom"
+      output = `#{applications.first}/Contents/MacOS/Atom --benchmark`
+      puts output
+    else
+      $stderr.puts "Executable `#{app_path}` not found."
+    end
+  end
+end
+
+desc "Run the benchmarks"
+task :benchmark do
+  $ATOM_ENV.push "RUN_BENCHMARKS=1"
+  Rake::Task["run"].invoke
+end
+
+desc "Compile CoffeeScripts"
+task :"compile-coffeescripts" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
   contents_dir = ENV['CONTENTS_FOLDER_PATH'].to_s
@@ -21,12 +57,6 @@ task :build do
 
   puts contents_dir
   sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec"
-end
-
-desc "Install the app in /Applications"
-task :install do
-  rm_rf "/Applications/Atomicity.app"
-  cp_r "Cocoa/build/Debug/Atomicity.app /Applications"
 end
 
 desc "Change webkit frameworks to use @rpath as install name"

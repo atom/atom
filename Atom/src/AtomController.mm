@@ -120,7 +120,6 @@
   _atomContext = NULL;
   _clientHandler = NULL;  
     
-  // Clean ourselves up after clearing the stack of anything that might have the window on it.
   [self autorelease];
   
   return YES;

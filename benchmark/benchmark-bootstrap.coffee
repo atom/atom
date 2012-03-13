@@ -14,6 +14,12 @@ $('body').append $$ ->
   @div id: 'jasmine_runner'
   @div id: 'jasmine-content'
 
+if atom.exitOnCompletion?
+  originalFinishCallback = jasmine.Runner.prototype.finishCallback
+  jasmine.Runner.prototype.finishCallback = ->
+    originalFinishCallback.call(this)
+    $native.exit()
+
 jasmineEnv = jasmine.getEnv()
 trivialReporter = new jasmine.TrivialReporter(document, 'jasmine_runner')
 

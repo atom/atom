@@ -82,6 +82,11 @@ public:
   virtual void OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
                                     CefRefPtr<CefDOMNode> node) OVERRIDE;
+  
+  virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser,
+                                const CefString& message,
+                                const CefString& source,
+                                int line) OVERRIDE;
 
   // CefKeyboardHandler methods.
   virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser,

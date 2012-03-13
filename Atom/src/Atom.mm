@@ -12,18 +12,12 @@
 // Provide the CefAppProtocol implementation required by CEF.
 @implementation Atom
 
-+ (NSApplication *)sharedApplication {
-  if (!NSApp) {
-    // Populate the settings based on command line arguments.
-    CefSettings settings;
-    AppGetSettings(settings);
-    
-    // Initialize CEF.
-    CefRefPtr<CefApp> app;
-    CefInitialize(settings, app);
-  }
++ (void)load {
+  CefSettings settings;
+  AppGetSettings(settings);
   
-  return [super sharedApplication];  
+  CefRefPtr<CefApp> app;
+  CefInitialize(settings, app);
 }
 
 - (void)dealloc {
@@ -64,7 +58,7 @@
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
   CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
-  }
+}
 
 - (void)open:(NSString *)path {
   [[AtomController alloc] initWithPath:path atomContext:[self atomContext]];
@@ -111,6 +105,18 @@
   atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
   
   context->Exit();
+}
+
+- (void)loadEnd {
+  if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--benchmark"]) {
+    CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+    context->Enter();
+    CefRefPtr<CefV8Value> atom = context->GetGlobal()->GetValue("atom");    
+    atom->SetValue("exitOnCompletion", CefV8Value::CreateBool(YES), V8_PROPERTY_ATTRIBUTE_NONE);
+    context->Exit();
+    
+    [self runBenchmarks:self];
+  }
 }
 
 @end
