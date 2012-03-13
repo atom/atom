@@ -11,8 +11,7 @@ class Gutter extends View
   renderLineNumbers: ->
     lastRow = -1
     screenRows = @parentView.bufferRowsForScreenRows()
-
-    this.innerHTML = $$$ ->
+    this[0].innerHTML = $$$ ->
       for row in screenRows
         @div {class: 'line-number'}, if row == lastRow then '•' else row + 1
         lastRow = row
