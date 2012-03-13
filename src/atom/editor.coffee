@@ -156,7 +156,7 @@ class Editor extends View
     @renderer = new Renderer(@buffer)
     @undoManager = new UndoManager(@buffer)
     @renderLines()
-    @gutter.renderLineNumbers(@getScreenLines())
+    @gutter.renderLineNumbers()
 
     @setCursorScreenPosition(row: 0, column: 0)
 
