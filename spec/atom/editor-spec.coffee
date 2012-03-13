@@ -174,6 +174,15 @@ describe "Editor", ->
       it "moves the hidden input element to the position of the cursor to prevent scrolling misbehavior", ->
         expect(editor.hiddenInput.position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
+      describe "if soft-wrap is enabled", ->
+        beforeEach ->
+          setEditorWidthInChars(editor, 20)
+          editor.setSoftWrap(true)
+
+        it "doesn't move the hidden input beyond the right side of the horizontal scroller to prevent chrome from auto-scrolling", ->
+          editor.setCursorScreenPosition([4, 20])
+          expect(editor.hiddenInput.position()).toEqual(top: 4 * editor.lineHeight, left: editor.horizontalScroller.width() - editor.charWidth)
+
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->
         editor.trigger keydownEvent('right')
@@ -568,7 +577,6 @@ describe "Editor", ->
           editor.insertText("}")
           expect(editor.buffer.lineForRow(5)).toEqual("    }")
           expect(editor.getCursorBufferPosition().column).toBe 5
-
 
   describe "selection", ->
     selection = null

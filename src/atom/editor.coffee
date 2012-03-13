@@ -120,7 +120,10 @@ class Editor extends View
       @insertText(e.originalEvent.data)
 
     @on 'cursor:position-changed', =>
-      @hiddenInput.css(@pixelPositionForScreenPosition(@cursor.getScreenPosition()))
+      position = @pixelPositionForScreenPosition(@cursor.getScreenPosition())
+      if @softWrap
+        position.left = Math.min(position.left, @horizontalScroller.width() - @charWidth)
+      @hiddenInput.css(position)
 
     @one 'attach', =>
       @calculateDimensions()
