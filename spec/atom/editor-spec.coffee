@@ -935,6 +935,26 @@ describe "Editor", ->
       expect(editor.scrollTop()).toBe previousScrollTop
       expect(editor.horizontalScroller.scrollLeft()).toBe previousScrollLeft
 
+    it "recalls the undo history of the buffer when it is re-assigned", ->
+      editor.insertText('xyz')
+
+      otherBuffer = new Buffer
+      editor.setBuffer(otherBuffer)
+      editor.insertText('abc')
+      expect(otherBuffer.lineForRow(0)).toBe 'abc'
+      editor.undo()
+      expect(otherBuffer.lineForRow(0)).toBe ''
+
+      editor.setBuffer(buffer)
+      editor.undo()
+      expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+      editor.redo()
+      expect(buffer.lineForRow(0)).toBe 'xyzvar quicksort = function () {'
+
+      editor.setBuffer(otherBuffer)
+      editor.redo()
+      expect(otherBuffer.lineForRow(0)).toBe 'abc'
+
   describe ".clipScreenPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
       expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.lineForRow(buffer.lastRow()).length)

@@ -2,6 +2,7 @@ _ = require 'underscore'
 fs = require 'fs'
 Range = require 'range'
 EventEmitter = require 'event-emitter'
+UndoManager = require 'undo-manager'
 
 module.exports =
 class Buffer
@@ -16,6 +17,7 @@ class Buffer
       @setText(fs.read(@path))
     else
       @setText('')
+    @undoManager = new UndoManager(this)
 
   getText: ->
     @lines.join('\n')
@@ -93,6 +95,12 @@ class Buffer
 
     @lines[oldRange.start.row..oldRange.end.row] = newTextLines
     @trigger 'change', { oldRange, newRange, oldText, newText }
+
+  undo: ->
+    @undoManager.undo()
+
+  redo: ->
+    @undoManager.redo()
 
   save: ->
     if not @path then throw new Error("Tried to save buffer with no url")

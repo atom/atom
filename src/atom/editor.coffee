@@ -7,7 +7,6 @@ Renderer = require 'renderer'
 Point = require 'point'
 Range = require 'range'
 Selection = require 'selection'
-UndoManager = require 'undo-manager'
 EditSession = require 'edit-session'
 
 $ = require 'jquery'
@@ -34,7 +33,6 @@ class Editor extends View
   buffer: null
   highlighter: null
   renderer: null
-  undoManager: null
   autoIndent: null
   lineCache: null
 
@@ -165,7 +163,6 @@ class Editor extends View
     @saveEditSession() if @editSession
     document.title = @buffer.path
     @renderer = new Renderer(@buffer)
-    @undoManager = new UndoManager(@buffer)
     @renderLines()
     @gutter.renderLineNumbers()
 
@@ -379,10 +376,10 @@ class Editor extends View
     @selection.delete()
 
   undo: ->
-    @undoManager.undo()
+    @buffer.undo()
 
   redo: ->
-    @undoManager.redo()
+    @buffer.redo()
 
   destroyFold: (foldId) ->
     fold = @renderer.foldsById[foldId]
