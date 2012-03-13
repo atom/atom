@@ -202,14 +202,13 @@ class Editor extends View
     elementsToReplace = @lineCache[startRow...endRow]
     @lineCache[startRow...endRow] = lineElements?.toArray() or []
 
-    lines = @lines[0]
     if lineElements
+      fragment = document.createDocumentFragment()
+      lineElements.each -> fragment.appendChild(this)
       if elementToInsertBefore
-        lineElements.each ->
-          lines.insertBefore(this, elementToInsertBefore)
+        @lines[0].insertBefore(fragment, elementToInsertBefore)
       else
-        lineElements.each ->
-          lines.appendChild(this)
+        @lines[0].appendChild(fragment)
 
     $(elementsToReplace).remove()
 
