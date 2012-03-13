@@ -904,14 +904,11 @@ describe "Editor", ->
       previousScrollTop = editor.scrollTop()
       previousScrollLeft = editor.horizontalScroller.scrollLeft()
 
-      console.log "setting empty"
-      console.log editor.scrollTop()
       editor.setBuffer(new Buffer)
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
       expect(editor.scrollTop()).toBe 0
       expect(editor.horizontalScroller.scrollLeft()).toBe 0
 
-      console.log "setting back to buffer"
       editor.setBuffer(buffer)
       expect(editor.getCursorScreenPosition()).toEqual [8, 28]
       expect(editor.scrollTop()).toBe previousScrollTop
