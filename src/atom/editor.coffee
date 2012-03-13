@@ -45,7 +45,6 @@ class Editor extends View
     @handleEvents()
     @setBuffer(new Buffer)
     @autoIndent = true
-    @lineCache = []
 
   bindKeys: ->
     window.keymap.bindKeys '*:not(.editor *)',

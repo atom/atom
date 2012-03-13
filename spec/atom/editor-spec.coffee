@@ -874,6 +874,14 @@ describe "Editor", ->
       expect(editor).not.toMatchSelector ':focus'
       expect(editor.hiddenInput).toMatchSelector ':focus'
 
+  describe "construction", ->
+    it "assigns an empty buffer and correctly handles text input (regression coverage)", ->
+      editor = new Editor
+      expect(editor.buffer.path).toBeUndefined()
+      expect(editor.lines.find('.line').length).toBe 1
+      editor.insertText('x')
+      expect(editor.lines.find('.line').length).toBe 1
+
   describe ".setBuffer(buffer)", ->
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
