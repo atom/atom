@@ -210,14 +210,8 @@ bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                               int line)
 {
   REQUIRE_UI_THREAD();
-
-  std::cout << 
-    std::string(message) <<
-    "\n\t" <<
-    std::string(source) << 
-    ":" << 
-    line << 
-    "\n";
+  
+  std::cout << std::string(message) << "\n";
   
   return true;
 }
