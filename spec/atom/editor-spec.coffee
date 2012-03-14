@@ -24,7 +24,7 @@ describe "Editor", ->
       expect(editor.lines.find('.line:eq(2)').html()).toContain '&lt;'
 
       # renders empty lines with a non breaking space
-      expect(buffer.lineForRow(10)).toBe 'something'
+      expect(buffer.lineForRow(10)).toBe ''
       expect(editor.lines.find('.line:eq(10)').html()).toBe '&nbsp;'
 
     it "syntax highlights code based on the file type", ->
