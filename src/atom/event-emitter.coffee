@@ -28,12 +28,12 @@ module.exports =
 
     if namespace
       if eventName
-        handlers = @eventHandlersByNamespace[namespace]?[eventName] ? []
+        handlers = @eventHandlersByNamespace?[namespace]?[eventName] ? []
         for handler in new Array(handlers...)
           _.remove(handlers, handler)
           @off eventName, handler
       else
-        for eventName, handlers of @eventHandlersByNamespace[namespace] ? {}
+        for eventName, handlers of @eventHandlersByNamespace?[namespace] ? {}
           for handler in new Array(handlers...)
             _.remove(handlers, handler)
             @off eventName, handler
@@ -41,4 +41,11 @@ module.exports =
       if handler
         _.remove(@eventHandlersByEventName[eventName], handler)
       else
-        delete @eventHandlersByEventName[eventName]
+        delete @eventHandlersByEventName?[eventName]
+
+  subscriptionCount: ->
+    count = 0
+    for name, handlers of @eventHandlersByEventName
+      count += handlers.length
+    count
+

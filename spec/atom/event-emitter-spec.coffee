@@ -138,4 +138,14 @@ describe "EventEmitter mixin", ->
             object.off '.garbage'
             object.off 'junk.garbage'
 
+  describe ".subscriptionCount()", ->
+    it "returns the total number of subscriptions on the object", ->
+      expect(object.subscriptionCount()).toBe 3
+
+      object.on 'baz', ->
+      expect(object.subscriptionCount()).toBe 4
+
+      object.off 'foo'
+      expect(object.subscriptionCount()).toBe 2
+
 
