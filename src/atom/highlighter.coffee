@@ -4,12 +4,14 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class Highlighter
+  @idCounter: 1
   buffer: null
   screenLines: []
 
   constructor: (@buffer) ->
+    @id = @constructor.idCounter++
     @screenLines = @buildLinesForScreenRows('start', 0, @buffer.lastRow())
-    @buffer.on 'change', (e) => @handleBufferChange(e)
+    @buffer.on "change.highlighter#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
@@ -66,5 +68,8 @@ class Highlighter
 
   lastRow: ->
     @screenLines.length - 1
+
+  destroy: ->
+    @buffer.off ".highlighter#{@id}"
 
 _.extend(Highlighter.prototype, EventEmitter)

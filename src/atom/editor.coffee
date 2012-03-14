@@ -14,6 +14,8 @@ _ = require 'underscore'
 
 module.exports =
 class Editor extends View
+  @idCounter: 1
+
   @content: ->
     @div class: 'editor', tabindex: -1, =>
       @div class: 'content', outlet: 'content', =>
@@ -39,6 +41,7 @@ class Editor extends View
   initialize: () ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
+    @id = Editor.idCounter++
     @editSessionsByBufferId = {}
     @bindKeys()
     @buildCursorAndSelection()
@@ -159,8 +162,14 @@ class Editor extends View
   lastRow: ->
     @screenLineCount() - 1
 
-  setBuffer: (@buffer) ->
-    @saveEditSession() if @editSession
+  setBuffer: (buffer) ->
+    if @buffer
+      @saveEditSession()
+      @buffer.off ".editor#{@id}"
+      @renderer.destroy()
+
+    @buffer = buffer
+
     document.title = @buffer.path
     @renderer = new Renderer(@buffer)
     @renderLines()
@@ -168,7 +177,7 @@ class Editor extends View
 
     @loadEditSessionForBuffer(@buffer)
 
-    @buffer.on 'change', (e) => @cursor.bufferChanged(e)
+    @buffer.on "change.editor#{@id}", (e) => @cursor.bufferChanged(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
 
   loadEditSessionForBuffer: (buffer) ->

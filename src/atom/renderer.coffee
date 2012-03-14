@@ -10,6 +10,7 @@ foldPlaceholderLength = 3
 
 module.exports =
 class Renderer
+  idCounter: 1
   lineMap: null
   highlighter: null
   activeFolds: null
@@ -18,13 +19,14 @@ class Renderer
   foldPlaceholderLength: 3
 
   constructor: (@buffer) ->
+    @id = @constructor.idCounter++
     @highlighter = new Highlighter(@buffer)
     @maxLineLength = Infinity
     @activeFolds = {}
     @foldsById = {}
     @buildLineMap()
     @highlighter.on 'change', (e) => @lastHighlighterChangeEvent = e
-    @buffer.on 'change', (e) => @handleBufferChange(e)
+    @buffer.on "change.renderer#{@id}", (e) => @handleBufferChange(e)
 
   buildLineMap: ->
     @lineMap = new LineMap
@@ -212,5 +214,9 @@ class Renderer
 
   rangeForAllLines: ->
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
+
+  destroy: ->
+    @highlighter.destroy()
+    @buffer.off ".renderer#{@id}"
 
 _.extend Renderer.prototype, EventEmitter

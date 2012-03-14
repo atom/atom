@@ -955,6 +955,16 @@ describe "Editor", ->
       editor.redo()
       expect(otherBuffer.lineForRow(0)).toBe 'abc'
 
+    it "fully unsubscribes from the previously assigned buffer", ->
+      otherBuffer = new Buffer
+      previousSubscriptionCount = otherBuffer.subscriptionCount()
+
+      editor.setBuffer(otherBuffer)
+      expect(otherBuffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
+
+      editor.setBuffer(buffer)
+      expect(otherBuffer.subscriptionCount()).toBe previousSubscriptionCount
+
   describe ".clipScreenPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
       expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.lineForRow(buffer.lastRow()).length)
