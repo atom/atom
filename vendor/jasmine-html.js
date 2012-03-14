@@ -104,7 +104,7 @@ jasmine.AtomReporter.prototype.reportRunnerResults = function(runner) {
 
   this.finishedAtSpan.appendChild(document.createTextNode("Finished at " + new Date().toString()));
 
-  if (atom.exitAfterSpecs) $native.exit()
+  if (atom.exitAfterSpecs) $native.exit(results.failedCount > 0 ? 1 : 0)
 };
 
 jasmine.AtomReporter.prototype.reportSuiteResults = function(suite) {
