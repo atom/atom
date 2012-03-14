@@ -1,7 +1,7 @@
-jasmine.AtomReporter = function(doc) {
+jasmine.AtomReporter = function(doc, logRunningSpecs) {
   this.document = doc || document;
   this.suiteDivs = {};
-  this.logRunningSpecs = false;
+  this.logRunningSpecs = logRunningSpecs == false ? false : true;
 };
 
 jasmine.AtomReporter.prototype.createDom = function(type, attrs, childrenVarArgs) {
@@ -91,8 +91,6 @@ jasmine.AtomReporter.prototype.reportRunnerResults = function(runner) {
   var results = runner.results();
   var className = (results.failedCount > 0) ? "runner failed" : "runner passed";
   this.runnerDiv.setAttribute("class", className);
-  //do it twice for IE
-  this.runnerDiv.setAttribute("className", className);
   var specs = runner.specs();
   var specCount = 0;
   for (var i = 0; i < specs.length; i++) {
@@ -116,12 +114,6 @@ jasmine.AtomReporter.prototype.reportSuiteResults = function(suite) {
     status = 'skipped';
   }
   this.suiteDivs[suite.id].className += " " + status;
-};
-
-jasmine.AtomReporter.prototype.reportSpecStarting = function(spec) {
-  if (this.logRunningSpecs) {
-    this.log('>> Jasmine Running ' + spec.suite.description + ' ' + spec.description + '...');
-  }
 };
 
 jasmine.AtomReporter.prototype.reportSpecResults = function(spec) {
@@ -148,9 +140,11 @@ jasmine.AtomReporter.prototype.reportSpecResults = function(spec) {
       messagesDiv.appendChild(this.createDom('div', {className: 'resultMessage log'}, result.toString()));
     } else if (result.type == 'expect' && result.passed && !result.passed()) {
       messagesDiv.appendChild(this.createDom('div', {className: 'resultMessage fail'}, result.message));
+      if (this.logRunningSpecs) console.log(spec.getFullName())
 
       if (result.trace.stack) {
         messagesDiv.appendChild(this.createDom('div', {className: 'stackTrace'}, result.trace.stack));
+        if (this.logRunningSpecs) console.log(result.trace.stack)
       }
     }
   }
@@ -160,17 +154,6 @@ jasmine.AtomReporter.prototype.reportSpecResults = function(spec) {
   }
 
   this.suiteDivs[spec.suite.id].appendChild(specDiv);
-};
-
-jasmine.AtomReporter.prototype.log = function() {
-  var console = jasmine.getGlobal().console;
-  if (console && console.log) {
-    if (console.log.apply) {
-      console.log.apply(console, arguments);
-    } else {
-      console.log(arguments); // ie fix: console.log.apply doesn't exist on ie
-    }
-  }
 };
 
 jasmine.AtomReporter.prototype.getLocation = function() {

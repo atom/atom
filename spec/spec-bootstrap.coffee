@@ -11,11 +11,10 @@ $('head').append $$ ->
   @link rel: "stylesheet", type: "text/css", href: "static/jasmine.css"
 
 $('body').append $$ ->
-  @div id: 'jasmine_runner'
   @div id: 'jasmine-content'
 
 jasmineEnv = jasmine.getEnv()
-atomReporter = new jasmine.AtomReporter(document, 'jasmine_runner')
+atomReporter = new jasmine.AtomReporter(document)
 
 jasmineEnv.addReporter(atomReporter)
 
