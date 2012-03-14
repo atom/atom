@@ -6,6 +6,7 @@ Keymap = require 'keymap'
 RootView = require 'root-view'
 
 require 'jquery-extensions'
+require 'underscore-extensions'
 
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
