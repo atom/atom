@@ -21,7 +21,7 @@ var fSpecFilter = function(specOrSuite) {
   return fSpecFilter(parent);
 }
 
-jasmine.TrivialReporter.prototype.specFilter = function(spec) {
+jasmine.AtomReporter.prototype.specFilter = function(spec) {
   var paramMap = {};
   var params = this.getLocation().search.substring(1).split('&');
   for (var i = 0; i < params.length; i++) {

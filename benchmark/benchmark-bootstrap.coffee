@@ -14,18 +14,12 @@ $('body').append $$ ->
   @div id: 'jasmine_runner'
   @div id: 'jasmine-content'
 
-if atom.exitOnCompletion?
-  originalFinishCallback = jasmine.Runner.prototype.finishCallback
-  jasmine.Runner.prototype.finishCallback = ->
-    originalFinishCallback.call(this)
-    $native.exit()
-
 jasmineEnv = jasmine.getEnv()
-trivialReporter = new jasmine.TrivialReporter(document, 'jasmine_runner')
+atomReporter = new jasmine.AtomReporter(document, 'jasmine_runner')
 
-jasmineEnv.addReporter(trivialReporter)
+jasmineEnv.addReporter(atomReporter)
 
-jasmineEnv.specFilter = (spec) -> trivialReporter.specFilter(spec)
+jasmineEnv.specFilter = (spec) -> atomReporter.specFilter(spec)
 
 require 'benchmark-suite'
 jasmineEnv.execute()
