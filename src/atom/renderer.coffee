@@ -10,7 +10,7 @@ foldPlaceholderLength = 3
 
 module.exports =
 class Renderer
-  idCounter: 1
+  @idCounter: 1
   lineMap: null
   highlighter: null
   activeFolds: null
