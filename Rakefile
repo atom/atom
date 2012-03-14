@@ -23,6 +23,7 @@ task :run => :build do
     if File.exists?(app_path)
       output = `#{applications.first}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')} 2> /dev/null`
       puts output
+      exit($?.exitstatus)
     else
       $stderr.puts "Executable `#{app_path}` not found."
     end
