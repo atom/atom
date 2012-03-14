@@ -1,4 +1,4 @@
-$ATOM_ENV = []
+$ATOM_ARGS = []
 
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
 BUILD_DIR = 'atom-build'
@@ -21,8 +21,7 @@ task :run => :build do
   else
     app_path = "#{applications.first}/Contents/MacOS/Atom"
     if File.exists?(app_path)
-      puts "#{$ATOM_ENV.join(' ')} #{applications.first}/Contents/MacOS/Atom"
-      output = `#{applications.first}/Contents/MacOS/Atom --benchmark`
+      output = `#{applications.first}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')}`
       puts output
     else
       $stderr.puts "Executable `#{app_path}` not found."
@@ -30,9 +29,15 @@ task :run => :build do
   end
 end
 
+desc "Run the specs"
+task :test do
+  $ATOM_ARGS.push "--test"
+  Rake::Task["run"].invoke
+end
+
 desc "Run the benchmarks"
 task :benchmark do
-  $ATOM_ENV.push "RUN_BENCHMARKS=1"
+  $ATOM_ARGS.push "--benchmark"
   Rake::Task["run"].invoke
 end
 
