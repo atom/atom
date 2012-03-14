@@ -8,6 +8,7 @@ task :build do
   output = `xcodebuild SYMROOT=#{BUILD_DIR}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
+    exit($?.exitstatus)
   end
 end
 
@@ -21,9 +22,8 @@ task :run => :build do
   else
     app_path = "#{applications.first}/Contents/MacOS/Atom"
     if File.exists?(app_path)
-      output = `#{applications.first}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')} 2> /dev/null`
-      puts output
-      exit($?.exitstatus)
+      exitstatus = system "#{applications.first}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')} 2> /dev/null"
+      exit(exitstatus)
     else
       $stderr.puts "Executable `#{app_path}` not found."
     end
