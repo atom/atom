@@ -896,6 +896,19 @@ describe "Editor", ->
       editor.attachToDom()
       expect(editor).toMatchSelector ":has(:focus)"
 
+    it "unsubscribes from the buffer when it is removed from the dom", ->
+      buffer = new Buffer
+      previousSubscriptionCount = buffer.subscriptionCount()
+
+      editor.attachToDom()
+      editor.setBuffer(buffer)
+
+      expect(buffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
+      expect($('.editor')).toExist()
+      editor.remove()
+      expect(buffer.subscriptionCount()).toBe previousSubscriptionCount
+      expect($('.editor')).not.toExist()
+
   describe "when the editor recieves focused", ->
     it "focuses the hidden input", ->
       editor.attachToDom()

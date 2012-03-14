@@ -165,8 +165,7 @@ class Editor extends View
   setBuffer: (buffer) ->
     if @buffer
       @saveEditSession()
-      @buffer.off ".editor#{@id}"
-      @renderer.destroy()
+      @unsubscribeFromBuffer()
 
     @buffer = buffer
 
@@ -397,3 +396,11 @@ class Editor extends View
 
   logLines: ->
     @renderer.logLines()
+
+  remove: ->
+    @unsubscribeFromBuffer()
+    super
+
+  unsubscribeFromBuffer: ->
+    @buffer.off ".editor#{@id}"
+    @renderer.destroy()
