@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-sha = `git rev-parse HEAD`
+sha = `git rev-parse HEAD`.chop
 key = File.expand_path('../atom.githubapp.com', __FILE__)
 system 'chmod', '600', key
 
