@@ -12,10 +12,9 @@ VimMode = require 'vim-mode'
 module.exports =
 class RootView extends View
   @content: ->
-    @div id: 'app-horizontal', =>
+    @div id: 'app-horizontal', outlet: 'horizontal', =>
       @div id: 'app-vertical', outlet: 'vertical', =>
-        @div id: 'main', outlet: 'main', =>
-          @subview 'editor', new Editor
+        @subview 'editor', new Editor
 
   initialize: ({url}) ->
     @editor.keyEventHandler = window.keymap
@@ -41,9 +40,7 @@ class RootView extends View
       @editor.setBuffer(@project.open(url)) if fs.isFile(url)
 
   addPane: (view) ->
-    pane = $('<div class="pane">')
-    pane.append(view)
-    @main.after(pane)
+    @vertical.append(view)
 
   toggleFileFinder: ->
     return unless @project

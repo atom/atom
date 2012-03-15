@@ -9,29 +9,14 @@ body {
 }
 
 #app-horizontal {
-  background-image: url(static/images/linen.png);
-  display: -webkit-box;
   min-height: 100%;
-  -webkit-box-orient: horizontal;
+  display: -webkit-flexbox;
+  -webkit-flex-flow: row;
+  background-image: url(static/images/linen.png);
 }
 
 #app-vertical {
-  display: -webkit-box;
-  -webkit-box-flex: 1;
-  -webkit-box-orient: vertical;
-  background-color: red;
-}
-
-#main {
-  position: relative;
-  display: -webkit-box;
-  -webkit-box-flex: 1;
-  -webkit-box-orient: vertical;
-  background-color: yellow;
-}
-
-.pane {
-  display: -webkit-box;
-  background-color: blue;
+  min-height: 100%;
+  width: -webkit-flex(1);
 }
 

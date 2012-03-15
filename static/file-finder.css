@@ -1,14 +1,13 @@
-.file-finder {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
+#app-vertical > .file-finder {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
   background-color: #444;
   color: #eee;
-  width: 100%;
-  max-height: 200px;
+  -webkit-box-shadow: 0 0 5px 5px #222;
 }
 
 .file-finder ol {
-  -webkit-box-flex: 1;
   overflow: hidden;
 }
 

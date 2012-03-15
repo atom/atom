@@ -6,7 +6,6 @@ module.exports =
 class FileFinder extends View
   @content: ->
     @div class: 'file-finder', =>
-      @link rel: 'stylesheet', href: "#{require.resolve('file-finder.css')}?#{(new Date).getTime()}"
       @ol outlet: 'urlList'
       @input outlet: 'input', input: 'populateUrlList'
 
@@ -14,8 +13,8 @@ class FileFinder extends View
   maxResults: null
 
   initialize: ({@urls, @selected}) ->
+    requireStylesheet 'file-finder.css'
     @maxResults = 10
-
     @populateUrlList()
     window.keymap.bindKeys ".file-finder",
       'up': 'move-up'
