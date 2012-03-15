@@ -254,7 +254,10 @@ bool NativeHandler::Execute(const CefString& name,
     return true;
   }
   else if (name == "exit") {
-    [NSApp terminate:NSApp];
+    int exitStatus = 0;
+    if (arguments.size() > 0) exitStatus = arguments[0]->GetIntValue();
+    
+    exit(exitStatus);
     return true;
   }
   

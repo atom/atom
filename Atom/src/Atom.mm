@@ -72,6 +72,25 @@
   [[AtomController alloc] initBenchmarksWithAtomContext:[self atomContext]];
 }
 
+- (void)modifyJavaScript:(void(^)(CefRefPtr<CefV8Context>, CefRefPtr<CefV8Value>))callback {
+  CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
+  
+  context->Enter();
+  
+  callback(context, global);
+  
+  context->Exit();
+
+}
+
+- (void)exitAfterSpecs {
+  [self modifyJavaScript:^(CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> global) {
+    CefRefPtr<CefV8Value> atom = context->GetGlobal()->GetValue("atom");    
+    atom->SetValue("exitAfterSpecs", CefV8Value::CreateBool(YES), V8_PROPERTY_ATTRIBUTE_NONE);
+  }]; 
+}
+
 - (CefRefPtr<CefV8Context>)atomContext {
   return _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
 }
@@ -87,35 +106,30 @@
 #pragma mark BrowserDelegate
 
 - (void)loadStart {
-  CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
-  CefRefPtr<CefV8Value> global = context->GetGlobal();
+  [self modifyJavaScript:^(CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> global) {
+    CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString("atom-bootstrap");
+    global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
 
-  context->Enter();
+    CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
+    global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
 
-  CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString("atom-bootstrap");
-  global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
-  global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);
-  global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
-    
-  CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(PROJECT_DIR);
-  atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  context->Exit();
+    CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);
+    global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
+
+    CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(PROJECT_DIR);
+    atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);    
+  }];
 }
 
 - (void)loadEnd {
   if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--benchmark"]) {
-    CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
-    context->Enter();
-    CefRefPtr<CefV8Value> atom = context->GetGlobal()->GetValue("atom");    
-    atom->SetValue("exitOnCompletion", CefV8Value::CreateBool(YES), V8_PROPERTY_ATTRIBUTE_NONE);
-    context->Exit();
-    
+    [self exitAfterSpecs];    
     [self runBenchmarks:self];
+  }
+  
+  if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--test"]) {
+    [self exitAfterSpecs];
+    [self runSpecs:self];
   }
 }
 

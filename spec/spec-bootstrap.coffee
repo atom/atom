@@ -11,15 +11,14 @@ $('head').append $$ ->
   @link rel: "stylesheet", type: "text/css", href: "static/jasmine.css"
 
 $('body').append $$ ->
-  @div id: 'jasmine_runner'
   @div id: 'jasmine-content'
 
 jasmineEnv = jasmine.getEnv()
-trivialReporter = new jasmine.TrivialReporter(document, 'jasmine_runner')
+atomReporter = new jasmine.AtomReporter(document)
 
-jasmineEnv.addReporter(trivialReporter)
+jasmineEnv.addReporter(atomReporter)
 
-jasmineEnv.specFilter = (spec) -> trivialReporter.specFilter(spec)
+jasmineEnv.specFilter = (spec) -> atomReporter.specFilter(spec)
 
 require 'spec-suite'
 jasmineEnv.execute()

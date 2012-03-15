@@ -383,6 +383,7 @@
 		0487C93B14FED6090045E5E3 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				0487C94214FED6090045E5E3 /* main.mm */,
 				0487C93C14FED6090045E5E3 /* Atom.h */,
 				0487C93D14FED6090045E5E3 /* Atom.mm */,
 				0487C93E14FED6090045E5E3 /* AtomController.h */,
@@ -390,7 +391,6 @@
 				042180E614FF080D00DF25EA /* BrowserDelegate.h */,
 				0487C94014FED6090045E5E3 /* client_handler.h */,
 				0487C94114FED6090045E5E3 /* client_handler.mm */,
-				0487C94214FED6090045E5E3 /* main.mm */,
 				0487C94314FED6090045E5E3 /* native_handler.h */,
 				0487C94414FED6090045E5E3 /* native_handler.mm */,
 			);

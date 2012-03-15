@@ -1060,10 +1060,12 @@ describe "Editor", ->
       tempFilePath = null
 
       beforeEach ->
-        tempFilePath = '/tmp/temp.txt'
-        expect(fs.remove(tempFilePath))
+        tempFilePath = '/tmp/atom-temp.txt'
         editor.setBuffer new Buffer(tempFilePath)
         expect(editor.buffer.path).toBe tempFilePath
+
+      afterEach ->
+        expect(fs.remove(tempFilePath))
 
       it "saves the current buffer to disk", ->
         editor.buffer.setText 'Edited!'
