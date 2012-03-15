@@ -19,11 +19,7 @@ windowAdditions =
   startup: (url) ->
     @setUpKeymap()
     @attachRootView(url)
-
-    $(window).on 'close', =>
-      @shutdown()
-      @close()
-
+    $(window).on 'close', => @close()
     $(window).focus()
     atom.windowOpened this
 
