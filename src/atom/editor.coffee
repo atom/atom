@@ -50,7 +50,7 @@ class Editor extends View
     @autoIndent = true
 
   bindKeys: ->
-    window.keymap.bindKeys '*:not(.editor *)',
+    window.keymap.bindKeys '.editor',
       'meta-s': 'save'
       right: 'move-right'
       left: 'move-left'
