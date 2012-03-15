@@ -1,13 +1,14 @@
 $ = require 'jquery'
 {View} = require 'space-pen'
 stringScore = require 'stringscore'
+Editor = require 'editor'
 
 module.exports =
 class FileFinder extends View
   @content: ->
     @div class: 'file-finder', =>
       @ol outlet: 'urlList'
-      @input outlet: 'input', input: 'populateUrlList'
+      @subview 'editor', new Editor
 
   urls: null
   maxResults: null
@@ -16,18 +17,19 @@ class FileFinder extends View
     requireStylesheet 'file-finder.css'
     @maxResults = 10
     @populateUrlList()
-    window.keymap.bindKeys ".file-finder",
-      'up': 'move-up'
-      'down': 'move-down'
-      'enter': 'select'
+    window.keymap.bindKeys ".file-finder .editor",
+      'enter': 'file-finder:select-file'
 
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
-    @on 'select', => @select()
+    @on 'file-finder:select-file', => @select()
+
+    @editor.buffer.on 'change', => @populateUrlList()
+    @editor.off 'move-up move-down'
 
   populateUrlList: ->
     @urlList.empty()
-    for url in @findMatches(@input.val())
+    for url in @findMatches(@editor.buffer.getText())
       @urlList.append $("<li>#{url}</li>")
 
     @urlList.children('li:first').addClass 'selected'

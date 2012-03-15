@@ -30,8 +30,8 @@ class RootView extends View
     @on 'show-console', -> window.showConsole()
 
     @on 'focusout', (e) =>
-      # if anything but the editor and its input loses focus, restore focus to the editor
-      unless $(e.target).closest('.editor').length
+      # if anything but the main editor's hidden input loses focus, restore focus to the main editor
+      unless @editor.containsElement($(e.target))
         @editor.focus()
 
   createProject: (url) ->
@@ -55,4 +55,3 @@ class RootView extends View
           urls: relativePaths
           selected: (relativePath) => @editor.setBuffer(@project.open(relativePath))
         @addPane @fileFinder
-        @fileFinder.input.focus()
