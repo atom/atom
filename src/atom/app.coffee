@@ -25,8 +25,16 @@ class App
   quit: ->
     $native.terminate null
 
+  windowIdCounter: 1
+
   windowOpened: (window) ->
+    id = @windowIdCounter++
+    console.log "window opened! #{id}"
+    window.id = id
     @windows.push window
 
   windowClosed: (window) ->
+    console.log "windowClosed #{window.id}"
+    console.log "windows length before #{@windows.length}"
     _.remove(@windows, window)
+    console.log "windows length after #{@windows.length}"
