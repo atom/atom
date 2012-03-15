@@ -39,6 +39,9 @@ describe "App", ->
     beforeEach ->
       app = new App
 
+    afterEach ->
+      app.destroy()
+
     it "adds the window to the windows array if it isn't already present", ->
       app.windowOpened window
       app.windowOpened window

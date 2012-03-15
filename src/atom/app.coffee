@@ -16,8 +16,13 @@ class App
 
   setUpKeymap: ->
     @keymap = new Keymap()
-    $(document).on 'keydown', (e) => @keymap.handleKeyEvent(e)
+    @handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
+    $(document).on 'keydown', @handleKeyEvent
     @keymap.bindDefaultKeys()
+
+  destroy: ->
+    $(document).off 'keydown', @handleKeyEvent
+    @keymap.unbindDefaultKeys()
 
   open: (url) ->
     $native.open url
