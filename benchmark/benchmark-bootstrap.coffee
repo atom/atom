@@ -1,6 +1,6 @@
 {$$} = require 'space-pen'
 nakedLoad 'jasmine'
-nakedLoad 'jasmine-html'
+nakedLoad 'jasmine-atom-reporter'
 nakedLoad 'jasmine-focused'
 
 $ = require 'jquery'
