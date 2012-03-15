@@ -8,15 +8,9 @@ body {
   font-size: 12px;
 }
 
-#app-horizontal {
-  min-height: 100%;
-  display: -webkit-flexbox;
-  -webkit-flex-flow: row;
+#root-view {
+  height: 100%;
+  position: relative;
   background-image: url(static/images/linen.png);
-}
-
-#app-vertical {
-  min-height: 100%;
-  width: -webkit-flex(1);
 }
 

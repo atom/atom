@@ -34,9 +34,9 @@ describe "RootView", ->
 
   describe ".addPane(view)", ->
     it "adds the given view to the rootView (at the bottom by default)", ->
-      expect(rootView.vertical.children().length).toBe 1
+      expect(rootView.children().length).toBe 1
       rootView.addPane $('<div id="foo">')
-      expect(rootView.vertical.children().length).toBe 2
+      expect(rootView.children().length).toBe 2
 
   describe "the file finder", ->
     describe "when the toggle-file-finder event is triggered", ->

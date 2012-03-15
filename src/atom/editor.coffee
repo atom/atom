@@ -18,11 +18,10 @@ class Editor extends View
 
   @content: ->
     @div class: 'editor', tabindex: -1, =>
-      @div class: 'content', outlet: 'content', =>
-        @subview 'gutter', new Gutter
-        @div class: 'horizontal-scroller', outlet: 'horizontalScroller', =>
-          @div class: 'lines', outlet: 'lines', =>
-            @input class: 'hidden-input', outlet: 'hiddenInput'
+      @subview 'gutter', new Gutter
+      @div class: 'horizontal-scroller', outlet: 'horizontalScroller', =>
+        @div class: 'lines', outlet: 'lines', =>
+          @input class: 'hidden-input', outlet: 'hiddenInput'
 
   vScrollMargin: 2
   hScrollMargin: 10

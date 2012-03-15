@@ -1,4 +1,5 @@
 .editor {
+  display: -webkit-box;
   font: 18px Inconsolata, Monaco, Courier !important;
   position: relative;
   width: 100%;
@@ -6,14 +7,14 @@
   background: #333;
   color: white;
   cursor: default;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: auto;
 
   -webkit-user-select: none;
 }
 
-.editor .content {
-  display: -webkit-flexbox;
+.editor.single-line {
+  overflow-y: hidden;
 }
 
 .editor .gutter {
@@ -29,7 +30,7 @@
 
 .editor .horizontal-scroller {
   overflow-x: auto;
-  width: -webkit-flex(1);
+  -webkit-box-flex: 1;
 }
 
 .editor.soft-wrap .horizontal-scroller {
