@@ -84,13 +84,6 @@
 
 }
 
-- (void)exitAfterSpecs {
-  [self modifyJavaScript:^(CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> global) {
-    CefRefPtr<CefV8Value> atom = context->GetGlobal()->GetValue("atom");    
-    atom->SetValue("exitAfterSpecs", CefV8Value::CreateBool(YES), V8_PROPERTY_ATTRIBUTE_NONE);
-  }]; 
-}
-
 - (CefRefPtr<CefV8Context>)atomContext {
   return _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
 }
@@ -122,13 +115,18 @@
 }
 
 - (void)loadEnd {
+  if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--headless"]) {
+    [self modifyJavaScript:^(CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> global) {
+      CefRefPtr<CefV8Value> atom = context->GetGlobal()->GetValue("atom");    
+      atom->SetValue("headless", CefV8Value::CreateBool(YES), V8_PROPERTY_ATTRIBUTE_NONE);
+    }]; 
+  }
+  
   if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--benchmark"]) {
-    [self exitAfterSpecs];    
     [self runBenchmarks:self];
   }
   
   if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--test"]) {
-    [self exitAfterSpecs];
     [self runSpecs:self];
   }
 }

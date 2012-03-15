@@ -14,7 +14,7 @@ $('head').append $$ ->
 $('body').append $$ ->
   @div id: 'jasmine-content'
 
-reporter = if atom.exitAfterSpecs
+reporter = if atom.headless
   new jasmine.ConsoleReporter(document)
 else
   new jasmine.AtomReporter(document)
@@ -24,4 +24,3 @@ jasmineEnv = jasmine.getEnv()
 jasmineEnv.addReporter(reporter)
 jasmineEnv.specFilter = (spec) -> reporter.specFilter(spec)
 jasmineEnv.execute()
-
