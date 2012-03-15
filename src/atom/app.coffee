@@ -1,6 +1,7 @@
 Keymap = require 'keymap'
 $ = require 'jquery'
 _ = require 'underscore'
+require 'underscore-extensions'
 
 module.exports =
 class App
@@ -28,5 +29,4 @@ class App
     @windows.push window
 
   windowClosed: (window) ->
-    index = @windows.indexOf(window)
-    @windows.splice(index, 1) if index >= 0
+    _.remove(@windows, window)
