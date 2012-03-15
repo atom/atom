@@ -38,7 +38,7 @@ end
 
 desc "Run the benchmarks"
 task :benchmark do
-  $ATOM_ARGS.append "--benchmark", "--headless"
+  $ATOM_ARGS.push "--benchmark", "--headless"
   Rake::Task["run"].invoke
 end
 

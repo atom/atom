@@ -1,4 +1,5 @@
-jasmine.ConsoleReporter = function(doc) {
+jasmine.ConsoleReporter = function(doc, logErrors) {
+  this.logErrors = logErrors == false ? false : true
 };
 
 jasmine.ConsoleReporter.prototype.reportRunnerStarting = function(runner) {
@@ -31,7 +32,7 @@ jasmine.ConsoleReporter.prototype.reportSpecResults = function(spec) {
   for (var i = 0; i < resultItems.length; i++) {
     var result = resultItems[i];
 
-    if (result.type == 'expect' && result.passed && !result.passed()) {
+    if (this.logErrors && result.type == 'expect' && result.passed && !result.passed()) {
       console.log(spec.getFullName())
       if (result.trace.stack) {
         console.log(result.trace.stack)
