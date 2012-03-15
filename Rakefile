@@ -1,7 +1,7 @@
 $ATOM_ARGS = []
 
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
-BUILD_DIR = 'atom-build'
+BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
 task :build do
