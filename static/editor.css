@@ -30,6 +30,7 @@
 .editor .horizontal-scroller {
   overflow-x: auto;
   width: -webkit-flex(1);
+  min-height: 100%;
 }
 
 .editor.soft-wrap .horizontal-scroller {
