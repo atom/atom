@@ -209,7 +209,8 @@ class Renderer
 
   expandBufferRangeToLineEnds: (bufferRange) ->
     { start, end } = bufferRange
-    new Range([start.row, 0], [end.row, @lineMap.lineForBufferRow(end.row).text.length])
+    endColumn = @lineMap.lineForBufferRow(end.row)?.text.length ? 0
+    new Range([start.row, 0], [end.row, endColumn])
 
   rangeForAllLines: ->
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
