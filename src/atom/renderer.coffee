@@ -117,7 +117,7 @@ class Renderer
 
   handleBufferChange: (e) ->
     for row, folds of @activeFolds
-      for fold in folds
+      for fold in new Array(folds...)
         changeInsideFold = true if fold.handleBufferChange(e)
 
     unless changeInsideFold

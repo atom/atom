@@ -464,6 +464,18 @@ describe "Renderer", ->
           expect(event.oldRange).toEqual [[4, 0], [4, 56]]
           expect(event.newRange).toEqual [[4, 0], [4, 60]]
 
+      describe "when the old range surrounds two nested folds", ->
+        it "removes both folds and replaces the fold placeholder with the new text", ->
+          renderer.createFold([[4, 25], [7, 5]])
+          buffer.change([[4, 25], [7, 5]], '4)')
+
+          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 4)...concat(sort(right));'
+          # expect(changeHandler).toHaveBeenCalled()
+          # [[event]] = changeHandler.argsForCall
+          # expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+          # expect(event.newRange).toEqual [[4, 0], [4, 60]]
+
+
     describe "position translation", ->
       describe "when there is single fold spanning multiple lines", ->
         it "translates positions to account for folded lines and characters and the placeholder", ->
