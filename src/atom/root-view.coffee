@@ -28,11 +28,6 @@ class RootView extends View
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', -> window.showConsole()
 
-    @on 'focusout', (e) =>
-      # if anything but the main editor's hidden input loses focus, restore focus to the main editor
-      unless @editor.containsElement($(e.target))
-        @editor.focus()
-
   createProject: (url) ->
     if url
       @project = new Project(fs.directory(url))
@@ -47,6 +42,7 @@ class RootView extends View
     if @fileFinder and @fileFinder.parent()[0]
       @fileFinder.remove()
       @fileFinder = null
+      @editor.focus()
     else
       @project.getFilePaths().done (paths) =>
         relativePaths = (path.replace(@project.url, "") for path in paths)
