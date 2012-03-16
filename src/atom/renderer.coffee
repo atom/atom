@@ -135,7 +135,7 @@ class Renderer
     @buildLinesForBufferRows(bufferRow, bufferRow)
 
   buildLinesForBufferRows: (startRow, endRow) ->
-    buildLinesForBufferRows = (startRow, endRow, startColumn, currentScreenLineLength=0) =>
+    recursiveBuildLinesForBufferRows = (startRow, endRow, startColumn, currentScreenLineLength=0) =>
       return [] if startRow > endRow and not startColumn?
 
       startColumn ?= 0
@@ -145,23 +145,23 @@ class Renderer
 
       for fold in @foldsForBufferRow(startRow)
         if fold.start.column >= startColumn
-          if fold.start.column > wrapColumn - foldPlaceholderLength
-            wrapColumn = Math.min(wrapColumn, fold.start.column)
+          if (fold.start.column - startColumn) > wrapColumn - foldPlaceholderLength
+            wrapColumn = Math.min(wrapColumn, fold.start.column - startColumn)
             break
           prefix = line.splitAt(fold.start.column - startColumn)[0]
           placeholder = @buildFoldPlaceholder(fold)
           currentScreenLineLength = currentScreenLineLength + (prefix?.text.length ? 0) + foldPlaceholderLength
-          suffix = buildLinesForBufferRows(fold.end.row, endRow, fold.end.column, currentScreenLineLength)
+          suffix = recursiveBuildLinesForBufferRows(fold.end.row, endRow, fold.end.column, currentScreenLineLength)
           return _.compact _.flatten [prefix, placeholder, suffix]
 
       if wrapColumn?
         line = line.splitAt(wrapColumn)[0]
         line.screenDelta = new Point(1, 0)
-        [line].concat buildLinesForBufferRows(startRow, endRow, startColumn + wrapColumn)
+        [line].concat recursiveBuildLinesForBufferRows(startRow, endRow, startColumn + wrapColumn)
       else
-        [line].concat buildLinesForBufferRows(startRow + 1, endRow)
+        [line].concat recursiveBuildLinesForBufferRows(startRow + 1, endRow)
 
-    buildLinesForBufferRows(@foldStartRowForBufferRow(startRow), endRow)
+    recursiveBuildLinesForBufferRows(@foldStartRowForBufferRow(startRow), endRow)
 
   foldStartRowForBufferRow: (bufferRow) ->
     @bufferRowForScreenRow(@screenRowForBufferRow(bufferRow))

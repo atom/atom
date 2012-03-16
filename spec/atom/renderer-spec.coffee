@@ -42,7 +42,7 @@ describe "Renderer", ->
           expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
           expect(renderer.lineForRow(4).text).toBe 'right = [];'
 
-      describe "when a fold is created on the second screen line of a wrapped buffer line", ->
+      describe "when a fold is created on the last screen line of a wrapped buffer line", ->
         it "inserts the placeholder in the correct location and fires a change event", ->
           fold = renderer.createFold([[3, 52], [3, 56]])
           expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
@@ -61,6 +61,30 @@ describe "Renderer", ->
           [[event]]= changeHandler.argsForCall
           expect(event.oldRange).toEqual([[3, 0], [4, 10]])
           expect(event.newRange).toEqual([[3, 0], [4, 11]])
+
+      describe "when a fold is created on the penultimate screen line of a wrapped buffer line", ->
+        beforeEach ->
+          renderer.setMaxLineLength(36)
+          changeHandler.reset()
+
+        it "inserts the placeholder in the correct location and fires a change event", ->
+          fold = renderer.createFold([[6, 29], [6, 33]])
+          expect(renderer.lineForRow(8).text).toBe "      current < pivot ? "
+          expect(renderer.lineForRow(9).text).toBe "left....(current) : "
+          expect(renderer.lineForRow(10).text).toBe "right.push(current);"
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]]= changeHandler.argsForCall
+          expect(event.oldRange).toEqual([[8, 0], [10, 20]])
+          expect(event.newRange).toEqual([[8, 0], [10, 20]])
+
+          changeHandler.reset()
+          fold.destroy()
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]]= changeHandler.argsForCall
+          expect(event.oldRange).toEqual([[8, 0], [10, 20]])
+          expect(event.newRange).toEqual([[8, 0], [10, 20]])
 
       describe "when there is a fold placeholder straddling the max length boundary", ->
         it "wraps the line before the fold placeholder", ->
