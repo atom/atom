@@ -34,10 +34,16 @@ window.benchmark = (description, fn, profile=false, focused=false) ->
       _.times count, fn
       console.profileEnd(description) if profile
     avg = total / count
-    report = "#{description}: #{total} / #{count} = #{avg}ms"
 
+    fullname = @getFullName().replace(/\s|\.$/g, "")
+    report = "#{fullname}: #{total} / #{count} = #{avg}ms"
     console.log report
-    throw new Error(report)
+
+    if atom.headless
+      url = "https://github.com/_stats"
+      data = [type: 'timing', metric: "atom.#{fullname}", ms: avg]
+      $.post(url, JSON.stringify(data)).
+        error (e) -> console.log("Failed to store benchmark '#{description}'")
 
 window.measure = (fn) ->
   start = new Date().getTime()

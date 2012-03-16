@@ -2,7 +2,7 @@ Buffer = require 'buffer'
 fs = require 'fs'
 require 'benchmark-helper'
 
-describe "Editor", ->
+describe "editor.", ->
   editor = null
 
   beforeEach ->
@@ -13,28 +13,29 @@ describe "Editor", ->
   afterEach ->
     window.shutdown()
 
-  benchmark "inserting and deleting a character in an empty file", ->
-    editor.insertText('x')
-    editor.backspace()
+  describe "empty-file.", ->
+    benchmark "insert-delete", ->
+      editor.insertText('x')
+      editor.backspace()
 
-  describe "when editing a ~300 line CoffeeScript file", ->
+  describe "300-line-file.", ->
     beforeEach ->
       editor.setBuffer new Buffer(require.resolve('fixtures/medium.coffee'))
 
-    describe "when the cursor is at the beginning of the file", ->
-      benchmark "inserting and deleting a character at the beginning of the file", ->
+    describe "at-begining.", ->
+      benchmark "insert-delete", ->
         editor.insertText('x')
         editor.backspace()
 
-      benchmark "inserting and deleting a character that causes massive re-highlighting", ->
+      benchmark "insert-delete-rehighlight", ->
         editor.insertText('"')
         editor.backspace()
 
-    describe "when the cursor is at the end of the file", ->
+    describe "at-end.", ->
       beforeEach ->
         editor.setCursorScreenPosition([Infinity, Infinity])
 
-      benchmark "inserting and deleting a character", ->
+      benchmark "insert-delete", ->
         editor.insertText('"')
         editor.backspace()
 
