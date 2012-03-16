@@ -63,8 +63,7 @@ class Renderer
       oldScreenRange.start.row,
       oldScreenRange.end.row,
       lines)
-    newScreenRange = @expandScreenRangeToLineEnds(
-      new Range(oldScreenRange.start.copy(), oldScreenRange.start.copy()))
+    newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
     @trigger 'fold', bufferRange
@@ -75,7 +74,7 @@ class Renderer
     @unregisterFold(bufferRange.start.row, fold)
     startScreenRow = @screenRowForBufferRow(bufferRange.start.row)
 
-    oldScreenRange = @expandScreenRangeToLineEnds(new Range([startScreenRow, 0], [startScreenRow, 0]))
+    oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
     @lineMap.replaceScreenRow(startScreenRow,
       @buildLinesForBufferRows(bufferRange.start.row, bufferRange.end.row))
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)

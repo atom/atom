@@ -42,6 +42,26 @@ describe "Renderer", ->
           expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
           expect(renderer.lineForRow(4).text).toBe 'right = [];'
 
+      describe "when a fold is created on the second screen line of a wrapped buffer line", ->
+        it "inserts the placeholder in the correct location and fires a change event", ->
+          fold = renderer.createFold([[3, 52], [3, 56]])
+          expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
+          expect(renderer.lineForRow(4).text).toBe 'r... = [];'
+          expect(renderer.lineForRow(5).text).toBe '    while(items.length > 0) {'
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]]= changeHandler.argsForCall
+          expect(event.oldRange).toEqual([[3, 0], [4, 11]])
+          expect(event.newRange).toEqual([[3, 0], [4, 10]])
+
+          changeHandler.reset()
+          fold.destroy()
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]]= changeHandler.argsForCall
+          expect(event.oldRange).toEqual([[3, 0], [4, 10]])
+          expect(event.newRange).toEqual([[3, 0], [4, 11]])
+
       describe "when there is a fold placeholder straddling the max length boundary", ->
         it "wraps the line before the fold placeholder", ->
           renderer.createFold([[3, 49], [6, 1]])
