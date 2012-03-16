@@ -137,34 +137,35 @@ class Renderer
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
 
-  buildLinesForBufferRows: (startRow, endRow) ->
-    recursiveBuildLinesForBufferRows = (startRow, endRow, startColumn, currentScreenLineLength=0) =>
-      return [] if startRow > endRow and not startColumn?
+  buildLinesForBufferRows: (startBufferRow, endBufferRow) ->
+    recursiveBuildLinesForBufferRows = (startBufferRow, endBufferRow, startBufferColumn, currentScreenLineLength=0) =>
+      return [] if startBufferRow > endBufferRow and not startBufferColumn?
 
-      startColumn ?= 0
-      line = @highlighter.lineForRow(startRow).splitAt(startColumn)[1]
+      startBufferColumn ?= 0
+      line = @highlighter.lineForRow(startBufferRow).splitAt(startBufferColumn)[1]
 
-      wrapColumn = @findWrapColumn(line.text, @maxLineLength - currentScreenLineLength)
+      wrapScreenColumn = @findWrapColumn(line.text, @maxLineLength - currentScreenLineLength)
 
-      for fold in @foldsForBufferRow(startRow)
-        if fold.start.column >= startColumn
-          if (fold.start.column - startColumn) > wrapColumn - foldPlaceholderLength
-            wrapColumn = Math.min(wrapColumn, fold.start.column - startColumn)
+      for fold in @foldsForBufferRow(startBufferRow)
+        if fold.start.column >= startBufferColumn
+          foldStartSceenColumn = fold.start.column - startBufferColumn
+          if (foldStartSceenColumn) > wrapScreenColumn - foldPlaceholderLength
+            wrapScreenColumn = Math.min(wrapScreenColumn, foldStartSceenColumn)
             break
-          prefix = line.splitAt(fold.start.column - startColumn)[0]
+          prefix = line.splitAt(foldStartSceenColumn)[0]
           placeholder = @buildFoldPlaceholder(fold)
           currentScreenLineLength = currentScreenLineLength + (prefix?.text.length ? 0) + foldPlaceholderLength
-          suffix = recursiveBuildLinesForBufferRows(fold.end.row, endRow, fold.end.column, currentScreenLineLength)
+          suffix = recursiveBuildLinesForBufferRows(fold.end.row, endBufferRow, fold.end.column, currentScreenLineLength)
           return _.compact _.flatten [prefix, placeholder, suffix]
 
-      if wrapColumn?
-        line = line.splitAt(wrapColumn)[0]
+      if wrapScreenColumn?
+        line = line.splitAt(wrapScreenColumn)[0]
         line.screenDelta = new Point(1, 0)
-        [line].concat recursiveBuildLinesForBufferRows(startRow, endRow, startColumn + wrapColumn)
+        [line].concat recursiveBuildLinesForBufferRows(startBufferRow, endBufferRow, startBufferColumn + wrapScreenColumn)
       else
-        [line].concat recursiveBuildLinesForBufferRows(startRow + 1, endRow)
+        [line].concat recursiveBuildLinesForBufferRows(startBufferRow + 1, endBufferRow)
 
-    recursiveBuildLinesForBufferRows(@foldStartRowForBufferRow(startRow), endRow)
+    recursiveBuildLinesForBufferRows(@foldStartRowForBufferRow(startBufferRow), endBufferRow)
 
   foldStartRowForBufferRow: (bufferRow) ->
     @bufferRowForScreenRow(@screenRowForBufferRow(bufferRow))
