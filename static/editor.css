@@ -1,16 +1,15 @@
 .editor {
-  display: -webkit-box;
-  font: 18px Inconsolata, Monaco, Courier !important;
-  position: relative;
-  width: 100%;
   height: 100%;
   background: #333;
+  font: 18px Inconsolata, Monaco, Courier !important;
   color: white;
   cursor: default;
   overflow-y: auto;
-  overflow-x: auto;
-
   -webkit-user-select: none;
+}
+
+.editor .scrollable-content {
+  display: -webkit-flexbox;
 }
 
 .editor.single-line {
@@ -30,7 +29,7 @@
 
 .editor .horizontal-scroller {
   overflow-x: auto;
-  -webkit-box-flex: 1;
+  width: -webkit-flex(1);
 }
 
 .editor.soft-wrap .horizontal-scroller {

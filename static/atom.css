@@ -10,6 +10,8 @@ body {
 
 #root-view {
   height: 100%;
+  height: 100%;
+  overflow-y: auto;
   position: relative;
   background-image: url(static/images/linen.png);
 }
