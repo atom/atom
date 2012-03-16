@@ -57,6 +57,10 @@ describe "Renderer", ->
           changeHandler.reset()
           fold.destroy()
 
+          expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
+          expect(renderer.lineForRow(4).text).toBe 'right = [];'
+          expect(renderer.lineForRow(5).text).toBe '    while(items.length > 0) {'
+
           expect(changeHandler).toHaveBeenCalled()
           [[event]]= changeHandler.argsForCall
           expect(event.oldRange).toEqual([[3, 0], [4, 10]])

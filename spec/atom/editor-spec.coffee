@@ -161,6 +161,15 @@ describe "Editor", ->
         editor.createFold([[3, 10], [5, 1]])
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
+
+    describe "when there is a fold on the last screen line of a wrapped line", ->
+      it "renders line numbers correctly when the fold is destroyed (regression)", ->
+        editor.setMaxLineLength(50)
+        fold = editor.createFold([[3, 52], [3, 56]])
+        fold.destroy()
+        # console.log editor.renderer.bufferRowsForScreenRows()
+        expect(editor.gutter.find('.line-number:last').text()).toBe '13'
+
     it "adds a drop shadow when the horizontal scroller is scrolled to the right", ->
       editor.attachToDom()
       editor.width(100)
