@@ -1,6 +1,7 @@
 $ = require 'jquery'
 fs = require 'fs'
 RootView = require 'root-view'
+Buffer = require 'buffer'
 
 describe "RootView", ->
   rootView = null
@@ -34,12 +35,14 @@ describe "RootView", ->
 
   describe "split editor panes", ->
     describe "when split-right is triggered on the editor", ->
-      it "places the a new editor to the right of the current editor in a .horizontal div, and focuses the new editor", ->
+      fit "places the a new editor to the right of the current editor in a .horizontal div, and focuses the new editor", ->
         rootView.attachToDom()
 
         expect(rootView.find('.horizontal')).not.toExist()
 
         editor1 = rootView.find('.editor').view()
+        editor1.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
+        editor1.setCursorScreenPosition([3, 2])
         editor1.trigger 'split-right'
 
         expect(rootView.find('.horizontal')).toExist()
@@ -47,6 +50,12 @@ describe "RootView", ->
         expect(rootView.find('.horizontal .editor:eq(0)').view()).toBe editor1
         editor2 = rootView.find('.horizontal .editor:eq(1)').view()
         expect(editor2.buffer).toBe editor1.buffer
+        expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
+        expect(editor1).toHaveClass 'split'
+        expect(editor2).toHaveClass 'split'
+
+        expect(editor1.has(':focus')).not.toExist()
+        expect(editor2.has(':focus')).toExist()
 
         # insertion reflected in both buffers
         editor1.buffer.insert([0, 0], 'ABC')

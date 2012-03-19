@@ -38,7 +38,7 @@ class Editor extends View
   autoIndent: null
   lineCache: null
 
-  initialize: () ->
+  initialize: ({buffer}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
     @id = Editor.idCounter++
@@ -46,7 +46,7 @@ class Editor extends View
     @bindKeys()
     @buildCursorAndSelection()
     @handleEvents()
-    @setBuffer(new Buffer)
+    @setBuffer(buffer ? new Buffer)
     @autoIndent = true
 
   bindKeys: ->
@@ -404,8 +404,8 @@ class Editor extends View
       horizontal = $$ -> @div class: 'horizontal'
       horizontal.insertBefore(this).append(this.detach())
 
-    editor = new Editor
-    editor.setBuffer(@buffer)
+    editor = new Editor({@buffer})
+    editor.setCursorScreenPosition(@getCursorScreenPosition())
     @after(editor)
     @addClass 'split'
     editor.addClass('split')
