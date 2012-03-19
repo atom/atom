@@ -8,6 +8,14 @@
   -webkit-user-select: none;
 }
 
+.editor.split {
+  width: -webkit-flex(1);
+}
+
+.editor.split + .editor {
+  border-left: 5px solid rgba(255, 255, 255, .15);
+}
+
 .editor .scrollable-content {
   display: -webkit-flexbox;
 }

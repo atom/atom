@@ -32,6 +32,28 @@ describe "RootView", ->
         rootView = new RootView
         expect(rootView.editor.buffer.url).toBeUndefined()
 
+  describe "split editor panes", ->
+    describe "when split-right is triggered on the editor", ->
+      it "places the a new editor to the right of the current editor in a .horizontal div, and focuses the new editor", ->
+        rootView.attachToDom()
+
+        expect(rootView.find('.horizontal')).not.toExist()
+
+        editor1 = rootView.find('.editor').view()
+        editor1.trigger 'split-right'
+
+        expect(rootView.find('.horizontal')).toExist()
+        expect(rootView.find('.horizontal .editor').length).toBe 2
+        expect(rootView.find('.horizontal .editor:eq(0)').view()).toBe editor1
+        editor2 = rootView.find('.horizontal .editor:eq(1)').view()
+        expect(editor2.buffer).toBe editor1.buffer
+
+        # insertion reflected in both buffers
+        editor1.buffer.insert([0, 0], 'ABC')
+        expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
+        expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
+
+
   describe ".addPane(view)", ->
     it "adds the given view to the rootView (at the bottom by default)", ->
       expect(rootView.children().length).toBe 1

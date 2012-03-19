@@ -70,6 +70,7 @@ class Editor extends View
       'meta-Z': 'redo'
       'alt-meta-w': 'toggle-soft-wrap'
       'alt-meta-f': 'fold-selection'
+      'alt-meta-right': 'split-right'
 
     @on 'save', => @save()
     @on 'move-right', => @moveCursorRight()
@@ -90,6 +91,7 @@ class Editor extends View
     @on 'redo', => @redo()
     @on 'toggle-soft-wrap', => @toggleSoftWrap()
     @on 'fold-selection', => @foldSelection()
+    @on 'split-right', => @splitRight()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -397,8 +399,19 @@ class Editor extends View
   logLines: ->
     @renderer.logLines()
 
-  remove: ->
-    @unsubscribeFromBuffer()
+  splitRight: ->
+    unless @parent().is('.horizontal')
+      horizontal = $$ -> @div class: 'horizontal'
+      horizontal.insertBefore(this).append(this.detach())
+
+    editor = new Editor
+    editor.setBuffer(@buffer)
+    @after(editor)
+    @addClass 'split'
+    editor.addClass('split')
+
+  remove: (selector, keepData) ->
+    @unsubscribeFromBuffer() unless keepData
     super
 
   unsubscribeFromBuffer: ->

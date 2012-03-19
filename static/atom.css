@@ -16,3 +16,14 @@ body {
   background-image: url(static/images/linen.png);
 }
 
+.vertical {
+  display: -webkit-flexbox;
+  -webkit-flex-flow: column;
+  overflow-y: visible;
+}
+
+.horizontal {
+  display: -webkit-flexbox;
+  -webkit-flex-flow: row;
+  overflow-x: visible;
+}
