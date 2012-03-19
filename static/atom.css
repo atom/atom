@@ -31,6 +31,11 @@ body {
   position: relative;
 }
 
+/* hack workaround that shouldn't be needed when flexbox works right */
+.horizontal > .vertical {
+  height: 100%;
+}
+
 .horizontal > div {
   width: -webkit-flex(1);
   height: auto;
