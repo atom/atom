@@ -35,7 +35,7 @@ describe "RootView", ->
 
   describe "split editor panes", ->
     describe "when split-right is triggered on the editor", ->
-      fit "places the a new editor to the right of the current editor in a .horizontal div, and focuses the new editor", ->
+      it "places the a new editor to the right of the current editor in a .horizontal div, and focuses the new editor", ->
         rootView.attachToDom()
 
         expect(rootView.find('.horizontal')).not.toExist()

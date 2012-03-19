@@ -16,6 +16,7 @@ describe "Editor", ->
     editor.autoIndent = false
     editor.enableKeymap()
     editor.setBuffer(buffer)
+    editor.isFocused = true
 
   describe "text rendering", ->
     it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
@@ -769,6 +770,11 @@ describe "Editor", ->
           expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
           expect(editor.lines.find('.line:eq(1)')).toHaveText editor.getCurrentBufferLine()
 
+        it "does not update the cursor position if the editor is not focused", ->
+          editor.isFocused = false
+          editor.buffer.insert([5, 0], 'blah')
+          expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+
       describe "when there is a selection", ->
         it "replaces the selected text with the typed text", ->
           editor.selection.setBufferRange(new Range([1, 6], [2, 4]))
@@ -924,6 +930,16 @@ describe "Editor", ->
       editor.focus()
       expect(editor).not.toMatchSelector ':focus'
       expect(editor.hiddenInput).toMatchSelector ':focus'
+
+  describe "when the hidden input is focused / unfocused", ->
+    it "assigns the isFocused flag on the editor", ->
+      editor.attachToDom()
+      editor.isFocused = false
+      editor.hiddenInput.focus()
+      expect(editor.isFocused).toBeTruthy()
+
+      editor.hiddenInput.focusout()
+      expect(editor.isFocused).toBeFalsy()
 
   describe "construction", ->
     it "assigns an empty buffer and correctly handles text input (regression coverage)", ->

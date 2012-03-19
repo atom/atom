@@ -10,6 +10,7 @@ describe "Selection", ->
     editor = new Editor
     editor.enableKeymap()
     editor.setBuffer(buffer)
+    editor.isFocused = true
     selection = editor.selection
 
   describe ".setBufferRange(range)", ->

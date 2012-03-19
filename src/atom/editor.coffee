@@ -37,6 +37,7 @@ class Editor extends View
   renderer: null
   autoIndent: null
   lineCache: null
+  isFocused: false
 
   initialize: ({buffer}) ->
     requireStylesheet 'editor.css'
@@ -104,6 +105,9 @@ class Editor extends View
     @on 'focus', =>
       @hiddenInput.focus()
       false
+
+    @hiddenInput.on 'focus', => @isFocused = true
+    @hiddenInput.on 'focusout', => @isFocused = false
 
     @on 'mousedown', '.fold-placeholder', (e) =>
       @destroyFold($(e.currentTarget).attr('foldId'))
@@ -178,7 +182,7 @@ class Editor extends View
 
     @loadEditSessionForBuffer(@buffer)
 
-    @buffer.on "change.editor#{@id}", (e) => @cursor.bufferChanged(e)
+    @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
 
   loadEditSessionForBuffer: (buffer) ->
@@ -191,6 +195,9 @@ class Editor extends View
     @editSession.cursorScreenPosition = @getCursorScreenPosition()
     @editSession.scrollTop = @scrollTop()
     @editSession.scrollLeft = @horizontalScroller.scrollLeft()
+
+  handleBufferChange: (e) ->
+    @cursor.bufferChanged(e) if @isFocused
 
   handleRendererChange: (e) ->
     { oldRange, newRange } = e

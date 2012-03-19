@@ -7,6 +7,7 @@ describe "VimMode", ->
   beforeEach ->
     editor = new Editor
     editor.enableKeymap()
+    editor.isFocused = true
     vimMode = new VimMode(editor)
 
   describe "initialize", ->
