@@ -20,10 +20,22 @@ body {
   display: -webkit-flexbox;
   -webkit-flex-flow: column;
   overflow-y: visible;
+  height: 100%;
+  position: relative;
 }
 
 .horizontal {
   display: -webkit-flexbox;
   -webkit-flex-flow: row;
   overflow-x: visible;
+  position: relative;
 }
+
+.horizontal > .vertical {
+  width: -webkit-flex(1);
+}
+
+.vertical > .horizontal {
+  height: -webkit-flex(1);
+}
+

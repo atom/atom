@@ -71,8 +71,10 @@ class Editor extends View
       'meta-Z': 'redo'
       'alt-meta-w': 'toggle-soft-wrap'
       'alt-meta-f': 'fold-selection'
-      'alt-meta-right': 'split-right'
       'alt-meta-left': 'split-left'
+      'alt-meta-right': 'split-right'
+      'alt-meta-up': 'split-up'
+      'alt-meta-down': 'split-down'
 
     @on 'save', => @save()
     @on 'move-right', => @moveCursorRight()
@@ -93,8 +95,10 @@ class Editor extends View
     @on 'redo', => @redo()
     @on 'toggle-soft-wrap', => @toggleSoftWrap()
     @on 'fold-selection', => @foldSelection()
-    @on 'split-right', => @splitRight()
     @on 'split-left', => @splitLeft()
+    @on 'split-right', => @splitRight()
+    @on 'split-up', => @splitUp()
+    @on 'split-down', => @splitDown()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -413,25 +417,31 @@ class Editor extends View
   logLines: ->
     @renderer.logLines()
 
-  splitRight: ->
-    @splitVertically(true)
-
   splitLeft: ->
-    @splitVertically(false)
+    @split('horizontal', 'before')
 
-  splitVertically: (right) ->
-    unless @parent().is('.horizontal')
-      horizontal = $$ -> @div class: 'horizontal'
-      horizontal.insertBefore(this).append(this.detach())
+  splitRight: ->
+    @split('horizontal', 'after')
+
+  splitUp: ->
+    @split('vertical', 'before')
+
+  splitDown: ->
+    @split('vertical', 'after')
+
+  split: (axis, side) ->
+    unless @parent().hasClass(axis)
+      container = $$ -> @div class: axis
+      container.insertBefore(this).append(this.detach())
 
     editor = new Editor({@buffer})
     editor.setCursorScreenPosition(@getCursorScreenPosition())
-    if right
-      @after(editor)
-    else
-      @before(editor)
     @addClass 'split'
     editor.addClass('split')
+    if side is 'before'
+      @before(editor)
+    else
+      @after(editor)
 
   remove: (selector, keepData) ->
     @unsubscribeFromBuffer() unless keepData

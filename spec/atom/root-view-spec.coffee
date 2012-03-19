@@ -34,61 +34,108 @@ describe "RootView", ->
         expect(rootView.editor.buffer.url).toBeUndefined()
 
   describe "split editor panes", ->
-    describe "when split-right is triggered on the editor", ->
-      it "places the a new editor to the right of the current editor in a .horizontal div, and focuses the new editor", ->
-        rootView.attachToDom()
+    editor1 = null
 
-        expect(rootView.find('.horizontal')).not.toExist()
+    beforeEach ->
+      rootView.attachToDom()
+      editor1 = rootView.find('.editor').view()
+      editor1.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
+      editor1.setCursorScreenPosition([3, 2])
 
-        editor1 = rootView.find('.editor').view()
-        editor1.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
-        editor1.setCursorScreenPosition([3, 2])
-        editor1.trigger 'split-right'
+    describe "vertical splits", ->
+      describe "when split-right is triggered on the editor", ->
+        it "places a new editor to the right of the current editor in a .horizontal div, and focuses the new editor", ->
+          expect(rootView.find('.horizontal')).not.toExist()
 
-        expect(rootView.find('.horizontal')).toExist()
-        expect(rootView.find('.horizontal .editor').length).toBe 2
-        expect(rootView.find('.horizontal .editor:eq(0)').view()).toBe editor1
-        editor2 = rootView.find('.horizontal .editor:eq(1)').view()
-        expect(editor2.buffer).toBe editor1.buffer
-        expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
-        expect(editor1).toHaveClass 'split'
-        expect(editor2).toHaveClass 'split'
+          editor1.trigger 'split-right'
 
-        expect(editor1.has(':focus')).not.toExist()
-        expect(editor2.has(':focus')).toExist()
+          expect(rootView.find('.horizontal')).toExist()
+          expect(rootView.find('.horizontal .editor').length).toBe 2
+          expect(rootView.find('.horizontal .editor:eq(0)').view()).toBe editor1
+          editor2 = rootView.find('.horizontal .editor:eq(1)').view()
+          expect(editor2.buffer).toBe editor1.buffer
+          expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
+          expect(editor1).toHaveClass 'split'
+          expect(editor2).toHaveClass 'split'
 
-        # insertion reflected in both buffers
-        editor1.buffer.insert([0, 0], 'ABC')
-        expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
-        expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
+          expect(editor1.has(':focus')).not.toExist()
+          expect(editor2.has(':focus')).toExist()
 
-    describe "when split-left is triggered on the editor", ->
-      it "places the a new editor to the left of the current editor in a .horizontal div, and focuses the new editor", ->
-        rootView.attachToDom()
+          # insertion reflected in both buffers
+          editor1.buffer.insert([0, 0], 'ABC')
+          expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
+          expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
 
-        expect(rootView.find('.horizontal')).not.toExist()
+      describe "when split-left is triggered on the editor", ->
+        it "places a new editor to the left of the current editor in a .horizontal div, and focuses the new editor", ->
+          expect(rootView.find('.horizontal')).not.toExist()
 
-        editor1 = rootView.find('.editor').view()
-        editor1.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
-        editor1.setCursorScreenPosition([3, 2])
-        editor1.trigger 'split-left'
+          editor1.trigger 'split-left'
 
-        expect(rootView.find('.horizontal')).toExist()
-        expect(rootView.find('.horizontal .editor').length).toBe 2
-        expect(rootView.find('.horizontal .editor:eq(1)').view()).toBe editor1
-        editor2 = rootView.find('.horizontal .editor:eq(0)').view()
-        expect(editor2.buffer).toBe editor1.buffer
-        expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
-        expect(editor1).toHaveClass 'split'
-        expect(editor2).toHaveClass 'split'
+          expect(rootView.find('.horizontal')).toExist()
+          expect(rootView.find('.horizontal .editor').length).toBe 2
+          expect(rootView.find('.horizontal .editor:eq(1)').view()).toBe editor1
+          editor2 = rootView.find('.horizontal .editor:eq(0)').view()
+          expect(editor2.buffer).toBe editor1.buffer
+          expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
+          expect(editor1).toHaveClass 'split'
+          expect(editor2).toHaveClass 'split'
 
-        expect(editor1.has(':focus')).not.toExist()
-        expect(editor2.has(':focus')).toExist()
+          expect(editor1.has(':focus')).not.toExist()
+          expect(editor2.has(':focus')).toExist()
 
-        # insertion reflected in both buffers
-        editor1.buffer.insert([0, 0], 'ABC')
-        expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
-        expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
+          # insertion reflected in both buffers
+          editor1.buffer.insert([0, 0], 'ABC')
+          expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
+          expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
+
+    describe "horizontal splits", ->
+      describe "when split-up is triggered on the editor", ->
+        it "places a new editor below the current editor in a .vertical div, and focuses the new editor", ->
+          expect(rootView.find('.vertical')).not.toExist()
+
+          editor1.trigger 'split-up'
+
+          expect(rootView.find('.vertical')).toExist()
+          expect(rootView.find('.vertical .editor').length).toBe 2
+          expect(rootView.find('.vertical .editor:eq(1)').view()).toBe editor1
+          editor2 = rootView.find('.vertical .editor:eq(0)').view()
+          expect(editor2.buffer).toBe editor1.buffer
+          expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
+          expect(editor1).toHaveClass 'split'
+          expect(editor2).toHaveClass 'split'
+
+          expect(editor1.has(':focus')).not.toExist()
+          expect(editor2.has(':focus')).toExist()
+
+          # insertion reflected in both buffers
+          editor1.buffer.insert([0, 0], 'ABC')
+          expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
+          expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
+
+      describe "when split-down is triggered on the editor", ->
+        it "places a new editor below the current editor in a .vertical div, and focuses the new editor", ->
+          expect(rootView.find('.vertical')).not.toExist()
+
+          editor1.trigger 'split-down'
+
+          expect(rootView.find('.vertical')).toExist()
+          expect(rootView.find('.vertical .editor').length).toBe 2
+          expect(rootView.find('.vertical .editor:eq(0)').view()).toBe editor1
+          editor2 = rootView.find('.vertical .editor:eq(1)').view()
+          expect(editor2.buffer).toBe editor1.buffer
+          expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
+          expect(editor1).toHaveClass 'split'
+          expect(editor2).toHaveClass 'split'
+
+          expect(editor1.has(':focus')).not.toExist()
+          expect(editor2.has(':focus')).toExist()
+
+          # insertion reflected in both buffers
+          editor1.buffer.insert([0, 0], 'ABC')
+          expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
+          expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
+
 
   describe ".addPane(view)", ->
     it "adds the given view to the rootView (at the bottom by default)", ->
