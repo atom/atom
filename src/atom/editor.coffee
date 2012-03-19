@@ -72,6 +72,7 @@ class Editor extends View
       'alt-meta-w': 'toggle-soft-wrap'
       'alt-meta-f': 'fold-selection'
       'alt-meta-right': 'split-right'
+      'alt-meta-left': 'split-left'
 
     @on 'save', => @save()
     @on 'move-right', => @moveCursorRight()
@@ -93,6 +94,7 @@ class Editor extends View
     @on 'toggle-soft-wrap', => @toggleSoftWrap()
     @on 'fold-selection', => @foldSelection()
     @on 'split-right', => @splitRight()
+    @on 'split-left', => @splitLeft()
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -407,13 +409,22 @@ class Editor extends View
     @renderer.logLines()
 
   splitRight: ->
+    @splitVertically(true)
+
+  splitLeft: ->
+    @splitVertically(false)
+
+  splitVertically: (right) ->
     unless @parent().is('.horizontal')
       horizontal = $$ -> @div class: 'horizontal'
       horizontal.insertBefore(this).append(this.detach())
 
     editor = new Editor({@buffer})
     editor.setCursorScreenPosition(@getCursorScreenPosition())
-    @after(editor)
+    if right
+      @after(editor)
+    else
+      @before(editor)
     @addClass 'split'
     editor.addClass('split')
 
