@@ -1,0 +1,59 @@
+
+<html>
+  <style>
+    .vertical {
+      display: -webkit-flexbox;
+      -webkit-flex-flow: column;
+      overflow-y: visible;
+      height: 100%;
+      position: relative;
+      background-color: rgba(0, 0, 0, .3);
+    }
+
+    .horizontal {
+      display: -webkit-flexbox;
+      -webkit-flex-flow: row;
+      overflow-x: visible;
+      position: relative;
+      background-color: rgba(0, 0, 0, .3);
+    }
+
+    .horizontal > * {
+      width: -webkit-flex(1);
+      height: auto;
+    }
+
+    .vertical > * {
+      height: -webkit-flex(1);
+    }
+
+    .vertical > * + * {
+      border-top: 5px solid blue;
+    }
+
+    .horizontal > * + * {
+      border-left: 5px solid blue;
+    }
+  </style>
+
+  <body>
+    <div class="vertical">
+      <div class="editor">
+      </div>
+      <div class="horizontal">
+        <div class="editor">
+        </div>
+        <div class="vertical">
+          <div class="editor">
+          </div>
+          <div class="horizontal">
+            <div class="editor">
+            </div>
+            <div class="editor">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
