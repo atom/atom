@@ -90,6 +90,30 @@ describe "Renderer", ->
           expect(event.oldRange).toEqual([[8, 0], [10, 20]])
           expect(event.newRange).toEqual([[8, 0], [10, 20]])
 
+      describe "when a fold ends on the penultimate screen line of a wrapped buffer line", ->
+        beforeEach ->
+          renderer.setMaxLineLength(36)
+          changeHandler.reset()
+
+        it "inserts the placeholder in the correct location and fires a change event", ->
+          fold = renderer.createFold([[5, 0], [6, 29]])
+          expect(renderer.lineForRow(6).text).toBe "    while(items.length > 0) {"
+          expect(renderer.lineForRow(7).text).toBe "...push(current) : "
+          expect(renderer.lineForRow(8).text).toBe "right.push(current);"
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]]= changeHandler.argsForCall
+          expect(event.oldRange).toEqual([[7, 0], [10, 20]])
+          expect(event.newRange).toEqual([[7, 0], [8, 20]])
+
+          changeHandler.reset()
+          fold.destroy()
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]]= changeHandler.argsForCall
+          expect(event.oldRange).toEqual([[7, 0], [8, 20]])
+          expect(event.newRange).toEqual([[7, 0], [10, 20]])
+
       describe "when there is a fold placeholder straddling the max length boundary", ->
         it "wraps the line before the fold placeholder", ->
           renderer.createFold([[3, 49], [6, 1]])
