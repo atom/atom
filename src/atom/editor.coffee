@@ -418,30 +418,26 @@ class Editor extends View
     @renderer.logLines()
 
   splitLeft: ->
-    @split('horizontal', 'before')
+    @split('row', 'before')
 
   splitRight: ->
-    @split('horizontal', 'after')
+    @split('row', 'after')
 
   splitUp: ->
-    @split('vertical', 'before')
+    @split('column', 'before')
 
   splitDown: ->
-    @split('vertical', 'after')
+    @split('column', 'after')
 
-  split: (axis, side) ->
-    unless @parent().hasClass(axis)
+  split: (axis, insertMethod) ->
+    unless @parent().hasClass axis
       container = $$ -> @div class: axis
       container.insertBefore(this).append(this.detach())
 
     editor = new Editor({@buffer})
     editor.setCursorScreenPosition(@getCursorScreenPosition())
-    @addClass 'split'
-    editor.addClass('split')
-    if side is 'before'
-      @before(editor)
-    else
-      @after(editor)
+    this[insertMethod](editor)
+    @parents('#root-view').view().adjustSplitPanes()
 
   remove: (selector, keepData) ->
     @unsubscribeFromBuffer() unless keepData
