@@ -932,14 +932,16 @@ describe "Editor", ->
       expect(editor.hiddenInput).toMatchSelector ':focus'
 
   describe "when the hidden input is focused / unfocused", ->
-    it "assigns the isFocused flag on the editor", ->
+    it "assigns the isFocused flag on the editor and also adds/removes the .focused css class", ->
       editor.attachToDom()
       editor.isFocused = false
       editor.hiddenInput.focus()
       expect(editor.isFocused).toBeTruthy()
+      expect(editor).toHaveClass('focused')
 
       editor.hiddenInput.focusout()
       expect(editor.isFocused).toBeFalsy()
+      expect(editor).not.toHaveClass('focused')
 
   describe "construction", ->
     it "assigns an empty buffer and correctly handles text input (regression coverage)", ->

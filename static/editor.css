@@ -67,11 +67,15 @@
 
 .editor .cursor {
   position: absolute;
-  border-left: 3px solid #9dff9d;
+  border-left: 3px solid rgba(255, 255, 255, .4);
   opacity: 0.7;
 }
 
-.editor .cursor.idle {
+.editor.focused .cursor {
+  border-color: #9dff9d;
+}
+
+.editor.focused .cursor.idle {
   -webkit-animation: blink 0.6s;
   -webkit-animation-iteration-count: infinite;
 }

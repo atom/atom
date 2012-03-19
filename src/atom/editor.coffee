@@ -108,8 +108,13 @@ class Editor extends View
       @hiddenInput.focus()
       false
 
-    @hiddenInput.on 'focus', => @isFocused = true
-    @hiddenInput.on 'focusout', => @isFocused = false
+    @hiddenInput.on 'focus', =>
+      @isFocused = true
+      @addClass 'focused'
+
+    @hiddenInput.on 'focusout', =>
+      @isFocused = false
+      @removeClass 'focused'
 
     @on 'mousedown', '.fold-placeholder', (e) =>
       @destroyFold($(e.currentTarget).attr('foldId'))
