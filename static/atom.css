@@ -31,11 +31,19 @@ body {
   position: relative;
 }
 
-.horizontal > .vertical {
+.horizontal > div {
   width: -webkit-flex(1);
+  height: auto;
 }
 
-.vertical > .horizontal {
+.vertical > div {
   height: -webkit-flex(1);
 }
 
+.horizontal > * + * {
+  border-left: 5px solid #515151;
+}
+
+.vertical > * + * {
+  border-top: 5px solid #515151;
+}

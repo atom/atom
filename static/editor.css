@@ -8,23 +8,6 @@
   -webkit-user-select: none;
 }
 
-.horizontal > .editor.split {
-  width: -webkit-flex(1);
-  height: auto;
-}
-
-.horizontal > .editor.split + .editor {
-  border-left: 5px solid rgba(255, 255, 255, .15);
-}
-
-.vertical > .editor.split {
-  height: -webkit-flex(1);
-}
-
-.vertical > .editor.split + .editor {
-  border-top: 5px solid rgba(255, 255, 255, .15);
-}
-
 .editor .scrollable-content {
   display: -webkit-flexbox;
 }
