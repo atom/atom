@@ -262,19 +262,22 @@ describe "RootView", ->
     describe "when the toggle-file-finder event is triggered", ->
       describe "when there is a project", ->
         it "shows the FileFinder when it is not on screen and hides it when it is", ->
-          runs ->
-            rootView.attachToDom()
-            expect(rootView.find('.file-finder')).not.toExist()
+          rootView.attachToDom()
+          expect(rootView.find('.file-finder')).not.toExist()
 
-          waitsForPromise ->
-            rootView.resultOfTrigger 'toggle-file-finder'
+          rootView.find('.editor').trigger 'split-right'
+          [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
 
-          runs ->
-            expect(rootView.find('.file-finder')).toExist()
-            expect(rootView.find('.file-finder input:focus')).toExist()
-            rootView.trigger 'toggle-file-finder'
-            expect(rootView.find('.editor:has(:focus)')).toExist()
-            expect(rootView.find('.file-finder')).not.toExist()
+          rootView.trigger 'toggle-file-finder'
+
+          expect(rootView.find('.file-finder')).toExist()
+          expect(rootView.find('.file-finder input:focus')).toExist()
+          rootView.trigger 'toggle-file-finder'
+
+          expect(editor1.isFocused).toBeFalsy()
+          expect(editor2.isFocused).toBeTruthy()
+          expect(rootView.find('.editor:has(:focus)')).toExist()
+          expect(rootView.find('.file-finder')).not.toExist()
 
         it "shows all relative file paths for the current project", ->
           waitsForPromise ->

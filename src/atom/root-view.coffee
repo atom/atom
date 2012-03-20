@@ -109,7 +109,7 @@ class RootView extends View
     if @fileFinder and @fileFinder.parent()[0]
       @fileFinder.remove()
       @fileFinder = null
-      @editor.focus()
+      @focusLastActiveEditor()
     else
       @project.getFilePaths().done (paths) =>
         relativePaths = (path.replace(@project.url, "") for path in paths)
