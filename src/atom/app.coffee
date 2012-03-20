@@ -16,7 +16,7 @@ class App
     @windows = []
     @setUpKeymap()
     @tabText = "  "
-    @userConfigurationPath = require.resolve(fs.absolute("~/.atom"))
+    @userConfigurationPath = fs.absolute "~/.atom/atom.coffee"
 
   setUpKeymap: ->
     @keymap = new Keymap()
