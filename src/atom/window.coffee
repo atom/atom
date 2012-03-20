@@ -47,11 +47,10 @@ windowAdditions =
     $(@rootViewParentSelector).append @rootView
 
   loadUserConfiguration: ->
-    absolutePath = fs.absolute(atom.userConfigurationPath)
     try
-      require absolutePath if fs.exists(absolutePath)
+      require atom.userConfigurationPath if fs.exists(atom.userConfigurationPath)
     catch error
-      console.error "Failed to load `#{absolutePath}`", error
+      console.error "Failed to load `#{atom.userConfigurationPath}`", error
       @showConsole()
 
   requireStylesheet: (path) ->

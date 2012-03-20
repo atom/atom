@@ -1,4 +1,6 @@
 Keymap = require 'keymap'
+fs = require 'fs'
+
 $ = require 'jquery'
 _ = require 'underscore'
 require 'underscore-extensions'
@@ -14,7 +16,7 @@ class App
     @windows = []
     @setUpKeymap()
     @tabText = "  "
-    @userConfigurationPath = "~/.atom"
+    @userConfigurationPath = require.resolve(fs.absolute("~/.atom"))
 
   setUpKeymap: ->
     @keymap = new Keymap()

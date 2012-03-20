@@ -13,14 +13,18 @@ class Keymap
     @bindKeys "*",
       'meta-n': 'newWindow'
       'meta-o': 'open'
+      'meta-,': 'open-user-configuration'
 
     @_newWindow = => $native.newWindow()
     @_open =  =>
       url = $native.openDialog()
       atom.open(url) if url
+    @_openUserConfiguration = =>
+      atom.open(atom.userConfigurationPath)
 
     $(document).on 'newWindow', @_newWindow
     $(document).on 'open', @_open
+    $(document).on 'open-user-configuration', @_openUserConfiguration
 
   unbindDefaultKeys: ->
     $(document).unbind 'newWindow', @_newWindow
