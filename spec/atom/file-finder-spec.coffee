@@ -1,5 +1,7 @@
 FileFinder = require 'file-finder'
 
+{$$} = require 'space-pen'
+
 describe 'FileFinder', ->
   finder = null
   urls = null
@@ -93,3 +95,22 @@ describe 'FileFinder', ->
       expect(finder.findMatches('ap')).toEqual ["app.coffee", "atom/app.coffee"]
       expect(finder.findMatches('a/ap')).toEqual ["atom/app.coffee"]
 
+  describe "when it is removed", ->
+    input = null
+
+    beforeEach ->
+      input = $$ -> @input value : "this has focus"
+      input.attachToDom()
+      input.focus()
+      expect(document.activeElement).toBe input[0]
+
+      finder = new FileFinder(urls: [])
+      finder.attachToDom()
+      expect(document.activeElement).not.toBe input[0]
+
+    afterEach ->
+      input.remove()
+
+    it "returns focus to previous active element", ->
+      finder.remove()
+      expect(document.activeElement).toBe input[0]

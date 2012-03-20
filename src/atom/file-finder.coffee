@@ -16,6 +16,8 @@ class FileFinder extends View
   initialize: ({@urls, @selected}) ->
     requireStylesheet 'file-finder.css'
     @maxResults = 10
+    @previousFocusedElement = $(document.activeElement)
+
     @populateUrlList()
     window.keymap.bindKeys ".file-finder .editor",
       'enter': 'file-finder:select-file',
@@ -44,6 +46,10 @@ class FileFinder extends View
     filePath = @findSelectedLi().text()
     @selected(filePath) if filePath and @selected
     @remove()
+
+  remove: ->
+    super()
+    @previousFocusedElement.focus()
 
   moveUp: ->
     @findSelectedLi()
