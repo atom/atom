@@ -11,7 +11,7 @@ class Keymap
 
   bindDefaultKeys: ->
     @bindKeys "*",
-      'meta-n': 'newWindow'
+      'meta-n': 'new-window'
       'meta-o': 'open'
       'meta-,': 'open-user-configuration'
 
@@ -22,12 +22,12 @@ class Keymap
     @_openUserConfiguration = =>
       atom.open(atom.userConfigurationPath)
 
-    $(document).on 'newWindow', @_newWindow
+    $(document).on 'new-window', @_newWindow
     $(document).on 'open', @_open
     $(document).on 'open-user-configuration', @_openUserConfiguration
 
   unbindDefaultKeys: ->
-    $(document).unbind 'newWindow', @_newWindow
+    $(document).unbind 'new-window', @_newWindow
     $(document).unbind 'open', @_open
 
   bindKeys: (selector, bindings) ->
