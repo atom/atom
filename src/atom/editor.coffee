@@ -448,7 +448,9 @@ class Editor extends View
     return super if keepData
     @unsubscribeFromBuffer()
     rootView = @rootView()
+    parent = @parent()
     super
+    parent.remove() if parent.is('.row:empty, .column:empty')
     rootView?.editorRemoved(this)
 
   unsubscribeFromBuffer: ->

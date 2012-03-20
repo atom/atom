@@ -232,6 +232,26 @@ describe "RootView", ->
         editor2.trigger 'close'
         expect(window.close).toHaveBeenCalled()
 
+      it "removes a containing row if it becomes empty", ->
+        editor = rootView.find('.editor').view()
+        editor.trigger 'split-up'
+        editor.trigger 'split-left'
+
+        rootView.find('.row .editor').trigger 'close'
+        expect(rootView.find('.row')).not.toExist()
+        expect(rootView.find('.column')).toExist()
+
+      fit "removes a containing column if it becomes empty", ->
+        editor = rootView.find('.editor').view()
+        editor.trigger 'split-left'
+        editor.trigger 'split-up'
+
+        rootView.find('.column .editor').trigger 'close'
+        expect(rootView.find('.column')).not.toExist()
+        expect(rootView.find('.row')).toExist()
+
+        expect(rootView.find('.editor').outerWidth()).toBe rootView.width()
+
   describe ".addPane(view)", ->
     it "adds the given view to the rootView (at the bottom by default)", ->
       expect(rootView.children().length).toBe 1
