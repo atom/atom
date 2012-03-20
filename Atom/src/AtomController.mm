@@ -60,6 +60,10 @@
   CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);  
 }
 
+- (CefRefPtr<CefV8Context>)context {
+  return _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+}
+
 #pragma mark BrowserDelegate
 
 - (void)loadStart {
