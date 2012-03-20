@@ -8,11 +8,13 @@ class App
   keymap: null
   windows: null
   tabText: null
+  userConfigurationPath: null
 
   constructor: (@loadPath, nativeMethods)->
     @windows = []
     @setUpKeymap()
     @tabText = "  "
+    @userConfigurationPath = "~/.atom"
 
   setUpKeymap: ->
     @keymap = new Keymap()
