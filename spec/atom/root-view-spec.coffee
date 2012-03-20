@@ -241,7 +241,7 @@ describe "RootView", ->
         expect(rootView.find('.row')).not.toExist()
         expect(rootView.find('.column')).toExist()
 
-      fit "removes a containing column if it becomes empty", ->
+      it "removes a containing column if it becomes empty", ->
         editor = rootView.find('.editor').view()
         editor.trigger 'split-left'
         editor.trigger 'split-up'
