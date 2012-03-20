@@ -8,7 +8,7 @@ describe "editor.", ->
   beforeEach ->
     window.rootViewParentSelector = '#jasmine-content'
     window.startup()
-    editor = rootView.editor
+    editor = rootView.lastActiveEditor()
 
   afterEach ->
     window.shutdown()
