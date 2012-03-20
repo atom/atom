@@ -18,8 +18,10 @@ class FileFinder extends View
     @maxResults = 10
     @populateUrlList()
     window.keymap.bindKeys ".file-finder .editor",
-      'enter': 'file-finder:select-file'
+      'enter': 'file-finder:select-file',
+      'escape': 'file-finder:close'
 
+    @on 'file-finder:close', => @remove()
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
     @on 'file-finder:select-file', => @select()
