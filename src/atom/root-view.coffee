@@ -13,14 +13,12 @@ module.exports =
 class RootView extends View
   @content: ->
     @div id: 'root-view', =>
-      @div id: 'panes', outlet: 'panes', =>
-        @subview 'editor', new Editor
+      @div id: 'panes', outlet: 'panes'
 
   editors: null
 
   initialize: ({url}) ->
     @editors = []
-    @editor.keyEventHandler = window.keymap
     @createProject(url)
 
     window.keymap.bindKeys '*'
@@ -32,10 +30,13 @@ class RootView extends View
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', -> window.showConsole()
 
-  createProject: (url) ->
-    if url
-      @project = new Project(fs.directory(url))
-      @editor.setBuffer(@project.open(url)) if fs.isFile(url)
+  createProject: (path) ->
+    if path
+      @project = new Project(fs.directory(path))
+      @open(path) if fs.isFile(path)
+
+  open: (path) ->
+    @lastActiveEditor().setBuffer(@project.open(path))
 
   addPane: (view) ->
     @append(view)
@@ -55,7 +56,13 @@ class RootView extends View
         window.close()
 
   lastActiveEditor: ->
-    _.last(@editors)
+    if @editors.length
+      _.last(@editors)
+    else
+      new Editor()
+        .appendTo(@panes)
+        .focus()
+
 
   adjustSplitPanes: (element = @panes.children(':first'))->
     if element.hasClass('row')
@@ -118,6 +125,5 @@ class RootView extends View
         relativePaths = (path.replace(@project.url, "") for path in paths)
         @fileFinder = new FileFinder
           urls: relativePaths
-          selected: (relativePath) =>
-            @lastActiveEditor().setBuffer(@project.open(relativePath))
+          selected: (relativePath) => @open(relativePath)
         @addPane @fileFinder
