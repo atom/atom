@@ -198,14 +198,39 @@ describe "RootView", ->
         expect(editor5.position().top).toBe editor4.outerHeight()
         expect(editor5.outerHeight()).toBe Math.floor(1/3 * rootView.height())
 
+    describe "when close is triggered on an editor pane", ->
+      it "adjusts the layout, focuses the next most-recently active editor, and closes the window when there are no remaining editors", ->
+        spyOn(window, 'close')
+        editor = rootView.find('.editor').view()
+        editor.trigger 'split-right'
+        editor.trigger 'split-right'
+        editor.trigger 'split-right'
 
+        [editor1, editor2, editor3, editor4] = rootView.find('.editor').map -> $(this).view()
 
+        editor2.focus()
+        editor1.focus()
+        editor3.focus()
+        editor4.focus()
 
+        editor4.trigger 'close'
+        expect(editor3.isFocused).toBeTruthy()
+        expect(editor1.outerWidth()).toBe Math.floor(rootView.width() / 3)
+        expect(editor2.outerWidth()).toBe Math.floor(rootView.width() / 3)
+        expect(editor3.outerWidth()).toBe Math.floor(rootView.width() / 3)
 
+        editor3.trigger 'close'
+        expect(editor1.isFocused).toBeTruthy()
+        expect(editor1.outerWidth()).toBe Math.floor(rootView.width() / 2)
+        expect(editor2.outerWidth()).toBe Math.floor(rootView.width() / 2)
 
+        editor1.trigger 'close'
+        expect(editor2.isFocused).toBeTruthy()
+        expect(editor2.outerWidth()).toBe Math.floor(rootView.width())
 
-
-
+        expect(window.close).not.toHaveBeenCalled()
+        editor2.trigger 'close'
+        expect(window.close).toHaveBeenCalled()
 
   describe ".addPane(view)", ->
     it "adds the given view to the rootView (at the bottom by default)", ->

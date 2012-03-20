@@ -2,7 +2,8 @@ _ = require 'underscore'
 
 _.mixin
   remove: (array, element) ->
-    array.splice(array.indexOf(element), 1)
+    index = array.indexOf(element)
+    array.splice(index, 1) if index >= 0
 
   sum: (array) ->
     sum = 0

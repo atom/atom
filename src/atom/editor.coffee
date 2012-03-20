@@ -99,6 +99,7 @@ class Editor extends View
     @on 'split-right', => @splitRight()
     @on 'split-up', => @splitUp()
     @on 'split-down', => @splitDown()
+    @on 'close', => @remove(); false
 
   buildCursorAndSelection: ->
     @cursor = new Cursor(this)
@@ -113,6 +114,7 @@ class Editor extends View
       false
 
     @hiddenInput.on 'focus', =>
+      @rootView()?.editorFocused(this)
       @isFocused = true
       @addClass 'focused'
 
@@ -156,6 +158,9 @@ class Editor extends View
       @hiddenInput.width(@charWidth)
       @setMaxLineLength() if @softWrap
       @focus()
+
+  rootView: ->
+    @parents('#root-view').view()
 
   selectTextOnMouseMovement: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
@@ -440,8 +445,11 @@ class Editor extends View
     @parents('#root-view').view().adjustSplitPanes()
 
   remove: (selector, keepData) ->
-    @unsubscribeFromBuffer() unless keepData
+    return super if keepData
+    @unsubscribeFromBuffer()
+    rootView = @rootView()
     super
+    rootView?.editorRemoved(this)
 
   unsubscribeFromBuffer: ->
     @buffer.off ".editor#{@id}"

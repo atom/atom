@@ -15,7 +15,10 @@ class RootView extends View
     @div id: 'root-view', =>
       @subview 'editor', new Editor
 
+  editors: null
+
   initialize: ({url}) ->
+    @editors = []
     @editor.keyEventHandler = window.keymap
     @createProject(url)
 
@@ -36,10 +39,24 @@ class RootView extends View
   addPane: (view) ->
     @append(view)
 
+  editorFocused: (editor) ->
+    _.remove(@editors, editor)
+    @editors.push(editor)
+
+  editorRemoved: (editor) ->
+    _.remove(@editors, editor)
+    @adjustSplitPanes()
+    if @editors.length
+      @focusLastActiveEditor()
+    else
+      window.close()
+
+  focusLastActiveEditor: ->
+    _.last(@editors).focus()
+
   adjustSplitPanes: (element = @children(':first'))->
     if element.hasClass('row')
       totalUnits = @horizontalGridUnits(element)
-      console.log totalUnits
       unitsSoFar = 0
       for child in element.children()
         child = $(child)
@@ -54,7 +71,6 @@ class RootView extends View
 
     else if element.hasClass('column')
       totalUnits = @verticalGridUnits(element)
-      console.log "total vertical", totalUnits
       unitsSoFar = 0
       for child in element.children()
         child = $(child)
