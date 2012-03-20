@@ -1,6 +1,7 @@
 #import "native_handler.h"
 #import "include/cef.h"
 #import "Atom.h"
+#import "AtomController.h"
 
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   std::string cc_value = value->GetStringValue().ToString();
@@ -233,12 +234,15 @@ bool NativeHandler::Execute(const CefString& name,
   }
   else if (name == "open") {
     NSString *path = stringFromCefV8Value(arguments[0]);
-    [NSApp open:path];
+    AtomController *atomController = [(Atom *)NSApp open:path];
+    
+    CefRefPtr<CefV8Context> context = [atomController context];
+    retval = context->GetGlobal();
     
     return true;
   }
   else if (name == "newWindow") {
-    [NSApp open:nil];
+    [(Atom *)NSApp open:nil];
 
     return true;
   }
