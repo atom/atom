@@ -161,7 +161,7 @@ describe "RootView", ->
         editor = rootView.find('.editor:has(:focus)').view()
         editor.trigger 'split-up'
 
-        row1 = rootView.children(':eq(0)')
+        row1 = rootView.panes.children(':eq(0)')
         expect(row1.children().length).toBe 2
         column1 = row1.children(':eq(0)')
         editor1 = row1.children(':eq(1)')
@@ -280,16 +280,14 @@ describe "RootView", ->
           expect(rootView.find('.file-finder')).not.toExist()
 
         it "shows all relative file paths for the current project", ->
-          waitsForPromise ->
-            rootView.resultOfTrigger 'toggle-file-finder'
+          rootView.trigger 'toggle-file-finder'
 
-          waitsForPromise ->
-            project.getFilePaths().done (paths) ->
-              expect(rootView.fileFinder.urlList.children('li').length).toBe paths.length
+          project.getFilePaths().done (paths) ->
+            expect(rootView.fileFinder.urlList.children('li').length).toBe paths.length
 
-              for path in paths
-                relativePath = path.replace(project.url, '')
-                expect(rootView.fileFinder.urlList.find("li:contains(#{relativePath}):not(:contains(#{project.url}))")).toExist()
+            for path in paths
+              relativePath = path.replace(project.url, '')
+              expect(rootView.fileFinder.urlList.find("li:contains(#{relativePath}):not(:contains(#{project.url}))")).toExist()
 
       describe "when there is no project", ->
         beforeEach ->
@@ -303,11 +301,23 @@ describe "RootView", ->
 
     describe "when a path is selected in the file finder", ->
       it "opens the file associated with that path in the editor", ->
-        waitsForPromise -> rootView.resultOfTrigger 'toggle-file-finder'
-        runs ->
-          firstLi = rootView.fileFinder.find('li:first')
-          rootView.fileFinder.trigger 'select'
-          expect(rootView.editor.buffer.url).toBe(project.url + firstLi.text())
+        rootView.attachToDom()
+        rootView.find('.editor').trigger 'split-right'
+        [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
+
+        rootView.trigger 'toggle-file-finder'
+        rootView.fileFinder.trigger 'move-down'
+        selectedLi = rootView.fileFinder.find('li:eq(1)')
+
+        expectedUrl = project.url + selectedLi.text()
+        expect(editor1.buffer.url).not.toBe expectedUrl
+        expect(editor2.buffer.url).not.toBe expectedUrl
+
+        # debugger
+        rootView.fileFinder.trigger 'file-finder:select-file'
+
+        expect(editor1.buffer.url).not.toBe expectedUrl
+        expect(editor2.buffer.url).toBe expectedUrl
 
   describe "global keymap wiring", ->
     commandHandler = null

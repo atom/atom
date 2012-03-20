@@ -16,6 +16,11 @@ body {
   background-image: url(static/images/linen.png);
 }
 
+#root-view #panes {
+  height: 100%;
+  width: 100%;
+}
+
 .column {
   position: absolute;
   width: 100%;

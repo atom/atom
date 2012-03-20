@@ -13,7 +13,8 @@ module.exports =
 class RootView extends View
   @content: ->
     @div id: 'root-view', =>
-      @subview 'editor', new Editor
+      @div id: 'panes', outlet: 'panes', =>
+        @subview 'editor', new Editor
 
   editors: null
 
@@ -40,21 +41,23 @@ class RootView extends View
     @append(view)
 
   editorFocused: (editor) ->
-    _.remove(@editors, editor)
-    @editors.push(editor)
+    if @panes.containsElement(editor)
+      _.remove(@editors, editor)
+      @editors.push(editor)
 
   editorRemoved: (editor) ->
-    _.remove(@editors, editor)
-    @adjustSplitPanes()
-    if @editors.length
-      @focusLastActiveEditor()
-    else
-      window.close()
+    if @panes.containsElement
+      _.remove(@editors, editor)
+      @adjustSplitPanes()
+      if @editors.length
+        @lastActiveEditor().focus()
+      else
+        window.close()
 
-  focusLastActiveEditor: ->
-    _.last(@editors).focus()
+  lastActiveEditor: ->
+    _.last(@editors)
 
-  adjustSplitPanes: (element = @children(':first'))->
+  adjustSplitPanes: (element = @panes.children(':first'))->
     if element.hasClass('row')
       totalUnits = @horizontalGridUnits(element)
       unitsSoFar = 0
@@ -109,11 +112,12 @@ class RootView extends View
     if @fileFinder and @fileFinder.parent()[0]
       @fileFinder.remove()
       @fileFinder = null
-      @focusLastActiveEditor()
+      @lastActiveEditor().focus()
     else
       @project.getFilePaths().done (paths) =>
         relativePaths = (path.replace(@project.url, "") for path in paths)
         @fileFinder = new FileFinder
           urls: relativePaths
-          selected: (relativePath) => @editor.setBuffer(@project.open(relativePath))
+          selected: (relativePath) =>
+            @lastActiveEditor().setBuffer(@project.open(relativePath))
         @addPane @fileFinder
