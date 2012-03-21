@@ -1,6 +1,8 @@
-$ = require 'jquery'
+fs = require 'fs'
 BindingSet = require 'binding-set'
 Specificity = require 'specificity'
+
+$ = require 'jquery'
 
 module.exports =
 class Keymap
@@ -20,7 +22,9 @@ class Keymap
       url = $native.openDialog()
       atom.open(url) if url
     @_openUserConfiguration = =>
-      atom.open(atom.userConfigurationPath)
+      openedWindow = atom.open(atom.userConfigurationPath)
+      defaultConfiguration = "# This is run when a window is loaded!\nconsole.log('see!')"
+      openedWindow.rootView.editor.buffer.setText defaultConfiguration unless fs.exists(atom.userConfigurationPath)
 
     $(document).on 'new-window', @_newWindow
     $(document).on 'open', @_open
