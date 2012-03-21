@@ -7,8 +7,6 @@ class Substitution
     { buffer } = editor
     selectedText = editor.getSelectedText()
 
-    # console.log editor.getSelection().getBufferRange()
-
     selectionStartIndex = buffer.characterIndexForPosition(editor.getSelection().getBufferRange().start)
 
     match = @findRegex.exec(selectedText)
@@ -18,5 +16,5 @@ class Substitution
     startPosition = buffer.positionForCharacterIndex(matchStartIndex)
     endPosition = buffer.positionForCharacterIndex(matchEndIndex)
 
-    buffer.change([startPosition, endPosition], @replace)
+    buffer.change([startPosition, endPosition], @replaceText)
 

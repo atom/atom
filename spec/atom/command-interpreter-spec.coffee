@@ -11,8 +11,8 @@ describe "CommandInterpreter", ->
     interpreter = new CommandInterpreter(editor)
 
   describe "substitution", ->
-    fit "performs the substitution within the current dot", ->
+    it "performs the substitution within the current dot", ->
       editor.selection.setBufferRange([[6, 0], [6, 44]])
       interpreter.eval('s/current/foo/')
-      expect(buffer.lineForRow(6)).toBe ' foo < pivot ? left.push(current) : right.push(current);'
+      expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
 
