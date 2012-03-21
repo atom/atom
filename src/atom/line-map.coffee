@@ -61,6 +61,7 @@ class LineMap
     @translatePosition('screenDelta', 'bufferDelta', screenPosition)
 
   screenRangeForBufferRange: (bufferRange) ->
+    bufferRange = Range.fromObject(bufferRange)
     start = @screenPositionForBufferPosition(bufferRange.start)
     end = @screenPositionForBufferPosition(bufferRange.end)
     new Range(start, end)
