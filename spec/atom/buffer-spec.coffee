@@ -203,3 +203,11 @@ describe 'Buffer', ->
         lineLength = buffer.lineForRow(2).length
         range = [[2,10], [4,10]]
         expect(buffer.getTextInRange(range)).toBe "ems.length <= 1) return items;\n    var pivot = items.shift(), current, left = [], right = [];\n    while("
+
+  describe ".characterIndexForPosition(position)", ->
+    it "returns the total number of charachters that precede the given position", ->
+      expect(buffer.characterIndexForPosition([0, 0])).toBe 0
+      expect(buffer.characterIndexForPosition([0, 1])).toBe 1
+      expect(buffer.characterIndexForPosition([0, 29])).toBe 29
+      expect(buffer.characterIndexForPosition([1, 0])).toBe 30
+      expect(buffer.characterIndexForPosition([2, 0])).toBe 61
