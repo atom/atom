@@ -11,8 +11,19 @@ describe "CommandInterpreter", ->
     interpreter = new CommandInterpreter()
 
   describe "substitution", ->
-    it "performs the substitution within the current dot", ->
+    it "does nothing if there are no matches", ->
+      editor.selection.setBufferRange([[6, 0], [6, 44]])
+      interpreter.eval(editor, 's/not-in-text/foo/')
+      expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
+
+    it "performs a single substitution within the current dot", ->
       editor.selection.setBufferRange([[6, 0], [6, 44]])
       interpreter.eval(editor, 's/current/foo/')
       expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
+
+    describe "when suffixed with a g", ->
+      it "performs a multiple substitutions within the current dot", ->
+        editor.selection.setBufferRange([[6, 0], [6, 44]])
+        interpreter.eval(editor, 's/current/foo/g')
+        expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
 
