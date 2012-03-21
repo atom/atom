@@ -7,6 +7,7 @@
 @implementation AtomController
 
 @synthesize webView=_webView;
+@synthesize clientHandler=_clientHandler;
 
 - (void)dealloc {
   [_bootstrapScript release];
@@ -20,6 +21,7 @@
   self = [super initWithWindowNibName:@"ClientWindow"];
   _bootstrapScript = [bootstrapScript retain];
   _atomContext = atomContext;
+  _loaded = false;
 
   [self.window makeKeyAndOrderFront:nil];
   [self createBrowser];
@@ -60,13 +62,16 @@
   CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);  
 }
 
-- (CefRefPtr<CefV8Context>)context {
-  return _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+- (void)blockUntilBrowserLoaded {
+  NSRunLoop *runLoop = [NSRunLoop mainRunLoop];
+  while (!_loaded) {
+    [runLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0]];
+  }
 }
 
 #pragma mark BrowserDelegate
-
 - (void)loadStart {
+  _loaded = false;
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
   
@@ -84,6 +89,10 @@
   global->SetValue("atom", _atomContext->GetGlobal()->GetValue("atom"), V8_PROPERTY_ATTRIBUTE_NONE);
   
   context->Exit();
+}
+
+- (void)loadEnd {
+  _loaded = true;
 }
 
 - (bool)keyEventOfType:(cef_handler_keyevent_type_t)type

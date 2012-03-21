@@ -2,6 +2,7 @@
 #import "include/cef.h"
 #import "Atom.h"
 #import "AtomController.h"
+#import "client_handler.h"
 
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   std::string cc_value = value->GetStringValue().ToString();
@@ -235,9 +236,10 @@ bool NativeHandler::Execute(const CefString& name,
   else if (name == "open") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     AtomController *atomController = [(Atom *)NSApp open:path];
+    [atomController blockUntilBrowserLoaded];
     
-    CefRefPtr<CefV8Context> context = [atomController context];
-    retval = context->GetGlobal();
+    CefRefPtr<ClientHandler> clientHandler = [atomController clientHandler];    
+    retval = clientHandler->GetBrowser()->GetMainFrame()->GetV8Context()->GetGlobal();
     
     return true;
   }
