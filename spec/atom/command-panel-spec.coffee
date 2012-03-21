@@ -8,7 +8,7 @@ describe "CommandPanel", ->
     rootView.enableKeymap()
     commandPanel = rootView.commandPanel
 
-  fdescribe "when toggle-command-panel is triggered on the root view", ->
+  describe "when toggle-command-panel is triggered on the root view", ->
     it "toggles the command panel", ->
       rootView.attachToDom()
       expect(rootView.find('.command-panel')).not.toExist()
@@ -31,7 +31,7 @@ describe "CommandPanel", ->
       expect(commandPanel.editor.buffer.getText()).toBe ''
       expect(commandPanel.editor.getCursorScreenPosition()).toEqual [0, 0]
 
-  fdescribe "when esc is pressed in the command panel", ->
+  describe "when esc is pressed in the command panel", ->
     it "closes the command panel", ->
       rootView.trigger 'command-panel:toggle'
       expect(rootView.find('.command-panel').view()).toBe commandPanel
