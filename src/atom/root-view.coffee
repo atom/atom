@@ -38,9 +38,6 @@ class RootView extends View
   open: (path) ->
     @lastActiveEditor().setBuffer(@project.open(path))
 
-  addPane: (view) ->
-    @append(view)
-
   editorFocused: (editor) ->
     if @panes.containsElement(editor)
       _.remove(@editors, editor)
@@ -62,7 +59,6 @@ class RootView extends View
       new Editor()
         .appendTo(@panes)
         .focus()
-
 
   adjustSplitPanes: (element = @panes.children(':first'))->
     if element.hasClass('row')
@@ -126,4 +122,4 @@ class RootView extends View
         @fileFinder = new FileFinder
           urls: relativePaths
           selected: (relativePath) => @open(relativePath)
-        @addPane @fileFinder
+        @append @fileFinder
