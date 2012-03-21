@@ -1,0 +1,10 @@
+.command-panel {
+  position: absolute;
+  bottom: 0;
+  padding: 3px;
+  background: #515151;
+}
+
+.command-panel .editor .gutter {
+  display: none;
+}

@@ -8,6 +8,7 @@ Editor = require 'editor'
 FileFinder = require 'file-finder'
 Project = require 'project'
 VimMode = require 'vim-mode'
+CommandPanel = require 'command-panel'
 
 module.exports =
 class RootView extends View
@@ -25,10 +26,13 @@ class RootView extends View
       'meta-s': 'save'
       'meta-w': 'close'
       'meta-t': 'toggle-file-finder'
+      'meta-:': 'command-panel:toggle'
       'alt-meta-i': 'show-console'
 
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', -> window.showConsole()
+
+    @commandPanel = new CommandPanel({rootView: this})
 
   createProject: (path) ->
     if path
