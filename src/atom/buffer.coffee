@@ -1,5 +1,6 @@
 _ = require 'underscore'
 fs = require 'fs'
+Point = require 'point'
 Range = require 'range'
 EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
@@ -58,6 +59,21 @@ class Buffer
 
   lastLine: ->
     @lineForRow(@lastRow())
+
+  characterIndexForPosition: (position) ->
+    position = Point.fromObject(position)
+
+    index = 0
+    index += @getLineLength(row) + 1 for row in [0...position.row]
+    index + position.column
+
+  positionForCharacterIndex: (index) ->
+    row = 0
+    while index >= (lineLength = @getLineLength(row) + 1)
+      index -= lineLength
+      row++
+
+    new Point(row, index)
 
   deleteRow: (row) ->
     range = null
