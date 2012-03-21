@@ -40,3 +40,21 @@ describe "CommandPanel", ->
       commandPanel.editor.trigger keydownEvent('escape')
       expect(rootView.find('.command-panel')).not.toExist()
 
+  describe "when return is pressed on the panel's editor", ->
+    it "calls execute", ->
+      spyOn(commandPanel, 'execute')
+      rootView.trigger 'command-panel:toggle'
+      commandPanel.editor.insertText 's/hate/love/g'
+      commandPanel.editor.trigger keydownEvent('enter')
+
+      expect(commandPanel.execute).toHaveBeenCalled()
+
+  describe ".execute()", ->
+    it "executes the command and closes the command panel", ->
+      rootView.activeEditor().setText("i hate love")
+      rootView.activeEditor().getSelection().setBufferRange [[0,0], [0,Infinity]]
+      rootView.trigger 'command-panel:toggle'
+      commandPanel.editor.insertText 's/hate/love/'
+      commandPanel.execute()
+      expect(rootView.activeEditor().getText()).toBe "i love love"
+      expect(rootView.find('.command-panel')).not.toExist()

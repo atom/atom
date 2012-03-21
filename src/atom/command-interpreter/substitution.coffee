@@ -17,4 +17,3 @@ class Substitution
     endPosition = buffer.positionForCharacterIndex(matchEndIndex)
 
     buffer.change([startPosition, endPosition], @replaceText)
-

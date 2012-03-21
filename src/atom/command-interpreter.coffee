@@ -3,10 +3,10 @@ PEG = require 'pegjs'
 
 module.exports =
 class CommandInterpreter
-  constructor: (@editor) ->
+  constructor: ->
     @parser = PEG.buildParser(fs.read(require.resolve 'commands.pegjs'))
 
-  eval: (command) ->
+  eval: (editor, command) ->
     operation = @parser.parse(command)
-    operation.perform(@editor)
+    operation.perform(editor)
 

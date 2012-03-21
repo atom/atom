@@ -85,7 +85,7 @@ class Editor extends View
     @on 'select-left', => @selectLeft()
     @on 'select-up', => @selectUp()
     @on 'select-down', => @selectDown()
-    @on 'newline', =>  @insertText("\n")
+    @on 'newline', => @insertText("\n")
     @on 'backspace', => @backspace()
     @on 'delete', => @delete()
     @on 'cut', => @cutSelection()
@@ -370,6 +370,9 @@ class Editor extends View
   selectDown: -> @selection.selectDown()
   selectToScreenPosition: (position) -> @selection.selectToScreenPosition(position)
   selectToBufferPosition: (position) -> @selection.selectToBufferPosition(position)
+
+  setText: (text) -> @buffer.setText(text)
+  getText: -> @buffer.getText()
 
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)
