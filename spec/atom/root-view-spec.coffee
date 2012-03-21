@@ -319,7 +319,7 @@ describe "RootView", ->
         expect(editor1.buffer.url).not.toBe expectedUrl
         expect(editor2.buffer.url).toBe expectedUrl
 
-  describe "global keymap wiring", ->
+  describe "keymap wiring", ->
     commandHandler = null
     beforeEach ->
       commandHandler = jasmine.createSpy('commandHandler')

@@ -19,7 +19,7 @@ windowAdditions =
   startup: (url) ->
     @setUpKeymap()
     @attachRootView(url)
-    @loadUserConfig()
+    @loadUserConfiguration()
     $(window).on 'close', => @close()
     $(window).focus()
     atom.windowOpened this
@@ -46,12 +46,12 @@ windowAdditions =
     @rootView = new RootView {url}
     $(@rootViewParentSelector).append @rootView
 
-  loadUserConfig: (path="~/.atom") ->
-    absolutePath = fs.absolute(path)
+  loadUserConfiguration: ->
     try
-      require absolutePath if fs.exists(absolutePath)
+      require atom.userConfigurationPath if fs.exists(atom.userConfigurationPath)
     catch error
-      console.error "Failed to load `#{absolutePath}`", error
+      console.error "Failed to load `#{atom.userConfigurationPath}`", error
+      @showConsole()
 
   requireStylesheet: (path) ->
     fullPath = require.resolve(path)

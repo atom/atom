@@ -12,7 +12,7 @@ class ClientHandler;
   CefRefPtr<ClientHandler> _clientHandler;
 }
 
-- (void)open:(NSString *)path;
+- (AtomController *)open:(NSString *)path;
 - (IBAction)runSpecs:(id)sender;
 - (IBAction)runBenchmarks:(id)sender;
 

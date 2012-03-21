@@ -1,4 +1,6 @@
 Keymap = require 'keymap'
+fs = require 'fs'
+
 $ = require 'jquery'
 _ = require 'underscore'
 require 'underscore-extensions'
@@ -8,11 +10,13 @@ class App
   keymap: null
   windows: null
   tabText: null
+  userConfigurationPath: null
 
   constructor: (@loadPath, nativeMethods)->
     @windows = []
     @setUpKeymap()
     @tabText = "  "
+    @userConfigurationPath = fs.absolute "~/.atom/atom.coffee"
 
   setUpKeymap: ->
     @keymap = new Keymap()

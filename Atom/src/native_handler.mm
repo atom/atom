@@ -1,6 +1,8 @@
 #import "native_handler.h"
 #import "include/cef.h"
 #import "Atom.h"
+#import "AtomController.h"
+#import "client_handler.h"
 
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   std::string cc_value = value->GetStringValue().ToString();
@@ -51,6 +53,13 @@ bool NativeHandler::Execute(const CefString& name,
     NSString *path = stringFromCefV8Value(arguments[0]);
     NSString *content = stringFromCefV8Value(arguments[1]);
     
+    NSFileManager *fm = [NSFileManager defaultManager];
+    
+    // Create parent directories if they don't exist
+    BOOL exists = [fm fileExistsAtPath:[path stringByDeletingLastPathComponent] isDirectory:nil];
+    if (!exists) {
+      [fm createDirectoryAtPath:[path stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
+    }
     
     NSError *error = nil;
     BOOL success = [content writeToFile:path atomically:YES encoding:NSUTF8StringEncoding error:&error];
@@ -62,7 +71,9 @@ bool NativeHandler::Execute(const CefString& name,
       std::string exception = "Cannot write to '";
       exception += [path UTF8String];
       exception += "'";
-    }    
+    }
+    
+    return true;
   }
   else if (name == "absolute") {
     NSString *path = stringFromCefV8Value(arguments[0]);
@@ -224,12 +235,16 @@ bool NativeHandler::Execute(const CefString& name,
   }
   else if (name == "open") {
     NSString *path = stringFromCefV8Value(arguments[0]);
-    [NSApp open:path];
+    AtomController *atomController = [(Atom *)NSApp open:path];
+    [atomController blockUntilBrowserLoaded];
+    
+    CefRefPtr<ClientHandler> clientHandler = [atomController clientHandler];    
+    retval = clientHandler->GetBrowser()->GetMainFrame()->GetV8Context()->GetGlobal();
     
     return true;
   }
   else if (name == "newWindow") {
-    [NSApp open:nil];
+    [(Atom *)NSApp open:nil];
 
     return true;
   }

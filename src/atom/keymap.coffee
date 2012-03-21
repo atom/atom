@@ -1,6 +1,8 @@
-$ = require 'jquery'
+fs = require 'fs'
 BindingSet = require 'binding-set'
 Specificity = require 'specificity'
+
+$ = require 'jquery'
 
 module.exports =
 class Keymap
@@ -11,19 +13,25 @@ class Keymap
 
   bindDefaultKeys: ->
     @bindKeys "*",
-      'meta-n': 'newWindow'
+      'meta-n': 'new-window'
       'meta-o': 'open'
+      'meta-,': 'open-user-configuration'
 
     @_newWindow = => $native.newWindow()
     @_open =  =>
       url = $native.openDialog()
       atom.open(url) if url
+    @_openUserConfiguration = =>
+      openedWindow = atom.open(atom.userConfigurationPath)
+      defaultConfiguration = "# This is run when a window is loaded!\nconsole.log('see!')"
+      openedWindow.rootView.editor.buffer.setText defaultConfiguration unless fs.exists(atom.userConfigurationPath)
 
-    $(document).on 'newWindow', @_newWindow
+    $(document).on 'new-window', @_newWindow
     $(document).on 'open', @_open
+    $(document).on 'open-user-configuration', @_openUserConfiguration
 
   unbindDefaultKeys: ->
-    $(document).unbind 'newWindow', @_newWindow
+    $(document).unbind 'new-window', @_newWindow
     $(document).unbind 'open', @_open
 
   bindKeys: (selector, bindings) ->
