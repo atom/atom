@@ -3,21 +3,29 @@ class Substitution
   global: false
 
   constructor: (@findText, @replaceText, @options) ->
-    @findRegex = new RegExp(@findText, "g")
+    @findRegex = new RegExp(@findText)
     @global = 'g' in @options
 
   perform: (editor) ->
-    { buffer } = editor
     selectedText = editor.getSelectedText()
-    selectionStartIndex = buffer.characterIndexForPosition(editor.getSelection().getBufferRange().start)
+    selectionStartIndex = editor.buffer.characterIndexForPosition(editor.getSelection().getBufferRange().start)
+    selectionEndIndex = selectionStartIndex + selectedText.length
 
-    while match = @findRegex.exec(selectedText)
-      matchStartIndex = selectionStartIndex + match.index
-      matchEndIndex = matchStartIndex + match[0].length
+    @replace(editor, selectedText, selectionStartIndex)
 
-      startPosition = buffer.positionForCharacterIndex(matchStartIndex)
-      endPosition = buffer.positionForCharacterIndex(matchEndIndex)
+  replace: (editor, text, startIndex) ->
+    return unless match = text.match(@findRegex)
 
-      buffer.change([startPosition, endPosition], @replaceText)
-      break unless @global
-      selectedText = editor.getSelectedText()
+    matchStartIndex = startIndex + match.index
+    matchEndIndex = matchStartIndex + match[0].length
+
+    buffer = editor.buffer
+    startPosition = buffer.positionForCharacterIndex(matchStartIndex)
+    endPosition = buffer.positionForCharacterIndex(matchEndIndex)
+
+    buffer.change([startPosition, endPosition], @replaceText)
+
+    if @global
+      text = text[(match.index + match[0].length)..]
+      startIndex = matchStartIndex + @replaceText.length
+      @replace(editor, text, startIndex)
