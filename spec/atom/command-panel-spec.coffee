@@ -18,6 +18,8 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:toggle'
       expect(rootView.find('.command-panel').view()).toBe commandPanel
       expect(commandPanel.editor.isFocused).toBeTruthy()
+      # this is currently assigned dynamically since our css scheme lacks variables
+      expect(commandPanel.prompt.css('font')).toBe commandPanel.editor.css('font')
       commandPanel.editor.insertText 's/war/peace/g'
 
       rootView.trigger 'command-panel:toggle'

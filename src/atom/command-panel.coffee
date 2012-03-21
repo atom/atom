@@ -5,6 +5,7 @@ module.exports =
 class CommandPanel extends View
   @content: ->
     @div class: 'command-panel', =>
+      @div ':', class: 'prompt', outlet: 'prompt'
       @subview 'editor', new Editor
 
   initialize: ({@rootView})->
@@ -21,6 +22,7 @@ class CommandPanel extends View
       @rootView.lastActiveEditor().focus()
     else
       @rootView.append(this)
+      @prompt.css 'font', @editor.css('font')
       @editor.focus()
       @editor.buffer.setText('')
 

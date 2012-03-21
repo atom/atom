@@ -1,8 +1,17 @@
 .command-panel {
   position: absolute;
   bottom: 0;
-  padding: 3px;
   background: #515151;
+  display: -webkit-box;
+  padding: 3px;
+}
+
+.command-panel .prompt {
+  color: white;
+}
+
+.command-panel .editor {
+  -webkit-box-flex: 1
 }
 
 .command-panel .editor .gutter {
