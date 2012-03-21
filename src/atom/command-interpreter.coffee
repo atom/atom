@@ -8,5 +8,5 @@ class CommandInterpreter
 
   eval: (editor, command) ->
     operation = @parser.parse(command)
-    operation.perform(editor)
+    operation.execute(editor)
 

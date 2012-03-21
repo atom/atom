@@ -6,7 +6,7 @@ class Substitution
     @findRegex = new RegExp(@findText)
     @global = 'g' in @options
 
-  perform: (editor) ->
+  execute: (editor) ->
     selectedText = editor.getSelectedText()
     selectionStartIndex = editor.buffer.characterIndexForPosition(editor.getSelection().getBufferRange().start)
     selectionEndIndex = selectionStartIndex + selectedText.length
