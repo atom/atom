@@ -12,7 +12,7 @@ describe "CommandPanel", ->
     it "toggles the command panel", ->
       rootView.attachToDom()
       expect(rootView.find('.command-panel')).not.toExist()
-      expect(rootView.lastActiveEditor().isFocused).toBeTruthy()
+      expect(rootView.activeEditor().isFocused).toBeTruthy()
       expect(commandPanel.editor.isFocused).toBeFalsy()
 
       rootView.trigger 'command-panel:toggle'
@@ -24,7 +24,7 @@ describe "CommandPanel", ->
 
       rootView.trigger 'command-panel:toggle'
       expect(rootView.find('.command-panel')).not.toExist()
-      expect(rootView.lastActiveEditor().isFocused).toBeTruthy()
+      expect(rootView.activeEditor().isFocused).toBeTruthy()
       expect(commandPanel.editor.isFocused).toBeFalsy()
 
       rootView.trigger 'command-panel:toggle'

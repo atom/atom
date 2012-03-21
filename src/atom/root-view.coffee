@@ -40,7 +40,7 @@ class RootView extends View
       @open(path) if fs.isFile(path)
 
   open: (path) ->
-    @lastActiveEditor().setBuffer(@project.open(path))
+    @activeEditor().setBuffer(@project.open(path))
 
   editorFocused: (editor) ->
     if @panes.containsElement(editor)
@@ -52,11 +52,11 @@ class RootView extends View
       _.remove(@editors, editor)
       @adjustSplitPanes()
       if @editors.length
-        @lastActiveEditor().focus()
+        @activeEditor().focus()
       else
         window.close()
 
-  lastActiveEditor: ->
+  activeEditor: ->
     if @editors.length
       _.last(@editors)
     else
@@ -119,7 +119,7 @@ class RootView extends View
     if @fileFinder and @fileFinder.parent()[0]
       @fileFinder.remove()
       @fileFinder = null
-      @lastActiveEditor().focus()
+      @activeEditor().focus()
     else
       @project.getFilePaths().done (paths) =>
         relativePaths = (path.replace(@project.url, "") for path in paths)

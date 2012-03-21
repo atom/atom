@@ -18,7 +18,7 @@ describe "RootView", ->
     describe "when called with a url that references a file", ->
       it "creates a project for the file's parent directory and opens it in the editor", ->
         expect(rootView.project.url).toBe fs.directory(url)
-        expect(rootView.lastActiveEditor().buffer.path).toBe url
+        expect(rootView.activeEditor().buffer.path).toBe url
 
     describe "when called with a url that references a directory", ->
       it "creates a project for the directory and opens an empty buffer", ->
@@ -26,12 +26,12 @@ describe "RootView", ->
         rootView = new RootView({url})
 
         expect(rootView.project.url).toBe url
-        expect(rootView.lastActiveEditor().buffer.url).toBeUndefined()
+        expect(rootView.activeEditor().buffer.url).toBeUndefined()
 
     describe "when not called with a url", ->
       it "opens an empty buffer", ->
         rootView = new RootView
-        expect(rootView.lastActiveEditor().buffer.url).toBeUndefined()
+        expect(rootView.activeEditor().buffer.url).toBeUndefined()
 
   describe "split editor panes", ->
     editor1 = null
@@ -288,7 +288,7 @@ describe "RootView", ->
           rootView = new RootView
 
         it "does not open the FileFinder", ->
-          expect(rootView.lastActiveEditor().buffer.url).toBeUndefined()
+          expect(rootView.activeEditor().buffer.url).toBeUndefined()
           expect(rootView.find('.file-finder')).not.toExist()
           rootView.trigger 'toggle-file-finder'
           expect(rootView.find('.file-finder')).not.toExist()

@@ -30,8 +30,8 @@ describe "App", ->
         runs ->
           expect(atom.windows.length).toBe 1
           newWindow = atom.windows[0]
-          expect(newWindow.rootView.lastActiveEditor().buffer.url).toEqual filePath
-          expect(newWindow.rootView.lastActiveEditor().buffer.getText()).toEqual fs.read(filePath)
+          expect(newWindow.rootView.activeEditor().buffer.url).toEqual filePath
+          expect(newWindow.rootView.activeEditor().buffer.getText()).toEqual fs.read(filePath)
 
   describe ".windowOpened(window)", ->
     app = null

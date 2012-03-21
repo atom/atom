@@ -19,7 +19,7 @@ class CommandPanel extends View
   toggle: ->
     if @parent().length
       @detach()
-      @rootView.lastActiveEditor().focus()
+      @rootView.activeEditor().focus()
     else
       @rootView.append(this)
       @prompt.css 'font', @editor.css('font')
