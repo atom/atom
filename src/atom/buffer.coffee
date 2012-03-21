@@ -67,6 +67,14 @@ class Buffer
     index += @getLineLength(row) + 1 for row in [0...position.row]
     index + position.column
 
+  positionForCharacterIndex: (index) ->
+    row = 0
+    while index >= (lineLength = @getLineLength(row) + 1)
+      index -= lineLength
+      row++
+
+    new Point(row, index)
+
   deleteRow: (row) ->
     range = null
     if row == @lastRow()

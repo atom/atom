@@ -211,3 +211,13 @@ describe 'Buffer', ->
       expect(buffer.characterIndexForPosition([0, 29])).toBe 29
       expect(buffer.characterIndexForPosition([1, 0])).toBe 30
       expect(buffer.characterIndexForPosition([2, 0])).toBe 61
+      expect(buffer.characterIndexForPosition([12, 2])).toBe 408
+
+  describe ".positionForCharacterIndex(position)", ->
+    it "returns the position based on charachter index", ->
+      expect(buffer.positionForCharacterIndex(0)).toEqual [0, 0]
+      expect(buffer.positionForCharacterIndex(1)).toEqual [0, 1]
+      expect(buffer.positionForCharacterIndex(29)).toEqual [0, 29]
+      expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
+      expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
+      expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
