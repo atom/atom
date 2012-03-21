@@ -235,11 +235,7 @@ bool NativeHandler::Execute(const CefString& name,
   }
   else if (name == "open") {
     NSString *path = stringFromCefV8Value(arguments[0]);
-    AtomController *atomController = [(Atom *)NSApp open:path];
-    [atomController blockUntilBrowserLoaded];
-    
-    CefRefPtr<ClientHandler> clientHandler = [atomController clientHandler];    
-    retval = clientHandler->GetBrowser()->GetMainFrame()->GetV8Context()->GetGlobal();
+    [NSApp open:path];
     
     return true;
   }

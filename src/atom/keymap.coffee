@@ -14,21 +14,18 @@ class Keymap
   bindDefaultKeys: ->
     @bindKeys "*",
       'meta-n': 'new-window'
-      'meta-o': 'open'
       'meta-,': 'open-user-configuration'
+      'meta-o': 'open'
 
     @_newWindow = => $native.newWindow()
+    @_openUserConfiguration = => atom.open(atom.userConfigurationPath)
     @_open =  =>
       url = $native.openDialog()
       atom.open(url) if url
-    @_openUserConfiguration = =>
-      openedWindow = atom.open(atom.userConfigurationPath)
-      defaultConfiguration = "# This is run when a window is loaded!\nconsole.log('see!')"
-      openedWindow.rootView.editor.buffer.setText defaultConfiguration unless fs.exists(atom.userConfigurationPath)
 
     $(document).on 'new-window', @_newWindow
-    $(document).on 'open', @_open
     $(document).on 'open-user-configuration', @_openUserConfiguration
+    $(document).on 'open', @_open
 
   unbindDefaultKeys: ->
     $(document).unbind 'new-window', @_newWindow

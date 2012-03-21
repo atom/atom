@@ -60,8 +60,8 @@
   CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
 }
 
-- (AtomController *)open:(NSString *)path {
-  return [[AtomController alloc] initWithPath:path atomContext:[self atomContext]];
+- (void)open:(NSString *)path {
+  [[AtomController alloc] initWithPath:path atomContext:[self atomContext]];
 }
 
 - (IBAction)runSpecs:(id)sender {
