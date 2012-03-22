@@ -28,7 +28,7 @@ primitiveAddress
   = lineNumber:integer { return new LineAddress(lineNumber) }
   / '$' { return new EofAddress() }
   / '.' { return new CurrentSelectionAddress() }
-  / '/' pattern:pattern '/' { return new RegexAddress(pattern)}
+  / '/' pattern:pattern '/'? { return new RegexAddress(pattern)}
 
 substitution
   = "s" _ "/" find:pattern "/" replace:pattern "/" _ options:[g]* {
