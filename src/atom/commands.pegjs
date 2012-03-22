@@ -17,9 +17,12 @@ address
   }
 
 substitution
-  = "s" _ "/" find:([^/]*) "/" replace:([^/]*) "/" _ options:[g]* {
-    return new Substitution(find.join(''), replace.join(''), options);
+  = "s" _ "/" find:pattern "/" replace:pattern "/" _ options:[g]* {
+    return new Substitution(find, replace, options);
   }
+
+pattern
+  = pattern:[^/]* { return pattern.join('') }
 
 integer
   = digits:[0-9]+ { return parseInt(digits.join('')); }
