@@ -21,6 +21,14 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '4,7')
         expect(editor.selection.getBufferRange()).toEqual [[3, 0], [7, 0]]
 
+    describe "0", ->
+      it "selects the zero-length string at the start of the file", ->
+        interpreter.eval(editor, '0')
+        expect(editor.selection.getBufferRange()).toEqual [[0,0], [0,0]]
+
+        interpreter.eval(editor, '0,1')
+        expect(editor.selection.getBufferRange()).toEqual [[0,0], [1,0]]
+
     describe "$", ->
       it "selects EOF", ->
         interpreter.eval(editor, '$')
