@@ -30,7 +30,7 @@ class Renderer
 
   buildLineMap: ->
     @lineMap = new LineMap
-    @lineMap.insertAtBufferRow 0, @buildLinesForBufferRows(0, @buffer.lastRow())
+    @lineMap.insertAtBufferRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
   setMaxLineLength: (@maxLineLength) ->
     oldRange = @rangeForAllLines()
@@ -99,12 +99,6 @@ class Renderer
 
   lineCount: ->
     @lineMap.screenLineCount()
-
-  lastRow: ->
-    @lineCount() - 1
-
-  logLines: ->
-    @lineMap.logLines()
 
   screenPositionForBufferPosition: (position) ->
     @lineMap.screenPositionForBufferPosition(position)
@@ -221,5 +215,8 @@ class Renderer
   destroy: ->
     @highlighter.destroy()
     @buffer.off ".renderer#{@id}"
+
+  logLines: ->
+    @lineMap.logLines()
 
 _.extend Renderer.prototype, EventEmitter

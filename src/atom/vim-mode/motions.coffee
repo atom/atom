@@ -75,13 +75,13 @@ class MoveToNextParagraph extends Motion
     column = 0
 
     startRow = @editor.getCursorBufferRow() + 1
-    for r in [startRow..@editor.buffer.lastRow()]
+    for r in [startRow..@editor.buffer.getLastRow()]
       if @editor.buffer.lineForRow(r).length == 0
         row = r
         break
 
     if not row
-      row = @editor.buffer.lastRow()
+      row = @editor.buffer.getLastRow()
       column = @editor.buffer.lastLine().length - 1
 
     new Point(row, column)

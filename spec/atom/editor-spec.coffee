@@ -1007,7 +1007,7 @@ describe "Editor", ->
 
   describe ".clipScreenPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
-      expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.lastRow(), column: buffer.lineForRow(buffer.lastRow()).length)
+      expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.getLastRow(), column: buffer.lineForRow(buffer.getLastRow()).length)
       expect(editor.clipScreenPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
       expect(editor.clipScreenPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.lineForRow(1).length)
       expect(editor.clipScreenPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)

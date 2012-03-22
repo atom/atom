@@ -141,7 +141,7 @@ describe 'Buffer', ->
 
   describe ".setText(text)", ->
     it "changes the entire contents of the buffer and emits a change event", ->
-      lastRow = buffer.lastRow()
+      lastRow = buffer.getLastRow()
       expectedPreRange = [[0,0], [lastRow, buffer.lineForRow(lastRow).length]]
       changeHandler = jasmine.createSpy('changeHandler')
       buffer.on 'change', changeHandler

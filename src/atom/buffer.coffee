@@ -27,7 +27,7 @@ class Buffer
     @change(@getRange(), text)
 
   getRange: ->
-    new Range([0, 0], [@lastRow(), @lastLine().length])
+    new Range([0, 0], [@getLastRow(), @lastLine().length])
 
   getTextInRange: (range) ->
     range = Range.fromObject(range)
@@ -54,11 +54,11 @@ class Buffer
   numLines: ->
     @getLines().length
 
-  lastRow: ->
+  getLastRow: ->
     @getLines().length - 1
 
   lastLine: ->
-    @lineForRow(@lastRow())
+    @lineForRow(@getLastRow())
 
   characterIndexForPosition: (position) ->
     position = Point.fromObject(position)
@@ -77,7 +77,7 @@ class Buffer
 
   deleteRow: (row) ->
     range = null
-    if row == @lastRow()
+    if row == @getLastRow()
       range = new Range([row - 1, @getLineLength(row - 1)], [row, @getLineLength(row)])
     else
       range = new Range([row, 0], [row + 1, 0])

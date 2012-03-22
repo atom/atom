@@ -372,7 +372,7 @@ class Editor extends View
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
-  getLastBufferRow: -> @buffer.lastRow()
+  getLastBufferRow: -> @buffer.getLastRow()
   getBufferLineLength: (row) -> @buffer.getLineLength(row)
 
   insertText: (text) ->

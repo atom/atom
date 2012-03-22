@@ -10,7 +10,7 @@ class Highlighter
 
   constructor: (@buffer) ->
     @id = @constructor.idCounter++
-    @screenLines = @buildLinesForScreenRows('start', 0, @buffer.lastRow())
+    @screenLines = @buildLinesForScreenRows('start', 0, @buffer.getLastRow())
     @buffer.on "change.highlighter#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
@@ -27,7 +27,7 @@ class Highlighter
     # if it differs, re-tokenize the next line with the new state and repeat for
     # each line until the line's new state matches the previous state. this covers
     # cases like inserting a /* needing to comment out lines below until we see a */
-    for row in [newRange.end.row...@buffer.lastRow()]
+    for row in [newRange.end.row...@buffer.getLastRow()]
       break if @screenLines[row].state == previousState
       nextRow = row + 1
       previousState = @screenLines[nextRow].state
@@ -65,9 +65,6 @@ class Highlighter
 
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
-
-  lastRow: ->
-    @screenLines.length - 1
 
   destroy: ->
     @buffer.off ".highlighter#{@id}"
