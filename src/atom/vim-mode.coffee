@@ -87,7 +87,7 @@ class VimMode
     @opStack = []
 
   moveCursorBeforeNewline: =>
-    if not @editor.selection.modifyingSelection and @editor.cursor.isOnEOL() and @editor.getCurrentBufferLine().length > 0
+    if not @editor.getSelection().modifyingSelection and @editor.cursor.isOnEOL() and @editor.getCurrentBufferLine().length > 0
       @editor.setCursorBufferColumn(@editor.getCurrentBufferLine().length - 1)
 
   numericPrefix: (e) ->

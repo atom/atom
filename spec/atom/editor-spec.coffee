@@ -86,8 +86,8 @@ describe "Editor", ->
         editor.cursor.setBufferPosition([4, 0])
         expect(editor.cursor.offset()).toEqual(editor.lines.find('.line:eq(5)').offset())
 
-        editor.selection.setBufferRange(new Range([6, 30], [6, 55]))
-        [region1, region2] = editor.selection.regions
+        editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
+        [region1, region2] = editor.getSelection().regions
         expect(region1.offset().top).toBe(editor.lines.find('.line:eq(7)').offset().top)
         expect(region2.offset().top).toBe(editor.lines.find('.line:eq(8)').offset().top)
 
@@ -614,7 +614,7 @@ describe "Editor", ->
     selection = null
 
     beforeEach ->
-      selection = editor.selection
+      selection = editor.getSelection()
 
     describe "when the arrow keys are pressed with the shift modifier", ->
       it "expands the selection up to the cursor's new location", ->
@@ -682,7 +682,7 @@ describe "Editor", ->
         # moving changes selection
         editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
-        range = editor.selection.getScreenRange()
+        range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -693,7 +693,7 @@ describe "Editor", ->
         # moving after mouse up should not change selection
         editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
-        range = editor.selection.getScreenRange()
+        range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -710,7 +710,7 @@ describe "Editor", ->
         # moving changes selection
         editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
-        range = editor.selection.getScreenRange()
+        range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 4})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -721,7 +721,7 @@ describe "Editor", ->
         # moving after mouse up should not change selection
         editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
-        range = editor.selection.getScreenRange()
+        range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 4})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -741,7 +741,7 @@ describe "Editor", ->
         # moving changes selection
         editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
-        range = editor.selection.getScreenRange()
+        range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 0})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -752,7 +752,7 @@ describe "Editor", ->
         # moving after mouse up should not change selection
         editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
-        range = editor.selection.getScreenRange()
+        range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 0})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
@@ -778,7 +778,7 @@ describe "Editor", ->
 
       describe "when there is a selection", ->
         it "replaces the selected text with the typed text", ->
-          editor.selection.setBufferRange(new Range([1, 6], [2, 4]))
+          editor.getSelection().setBufferRange(new Range([1, 6], [2, 4]))
           editor.hiddenInput.textInput 'q'
           expect(buffer.lineForRow(1)).toBe '  var qif (items.length <= 1) return items;'
 
@@ -852,7 +852,7 @@ describe "Editor", ->
 
       describe "when there is a selection", ->
         it "deletes the selection, but not the character before it", ->
-          editor.selection.setBufferRange(new Range([0,5], [0,9]))
+          editor.getSelection().setBufferRange(new Range([0,5], [0,9]))
           editor.trigger keydownEvent('backspace')
           expect(editor.buffer.lineForRow(0)).toBe 'var qsort = function () {'
 
@@ -871,7 +871,7 @@ describe "Editor", ->
 
       describe "when there is a selection", ->
         it "deletes the selection, but not the character following it", ->
-          editor.selection.setBufferRange(new Range([1,6], [1,8]))
+          editor.getSelection().setBufferRange(new Range([1,6], [1,8]))
           editor.trigger keydownEvent 'delete'
           expect(buffer.lineForRow(1)).toBe '  var rt = function(items) {'
 
@@ -1037,13 +1037,13 @@ describe "Editor", ->
   describe "folding", ->
     describe "when a fold-selection event is triggered", ->
       it "folds the selected text and moves the cursor to just after the placeholder, then treats the placeholder as a single character", ->
-        editor.selection.setBufferRange(new Range([4, 29], [7, 4]))
+        editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'fold-selection'
 
         expect(editor.lines.find('.line:eq(4)').find('.fold-placeholder')).toExist()
         expect(editor.lines.find('.line:eq(5)').text()).toBe '    return sort(left).concat(pivot).concat(sort(right));'
 
-        expect(editor.selection.isEmpty()).toBeTruthy()
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [4, 32]
 
         editor.setCursorScreenPosition([9, 2])
@@ -1060,7 +1060,7 @@ describe "Editor", ->
 
     describe "when a fold placeholder is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
-        editor.selection.setBufferRange(new Range([4, 29], [7, 4]))
+        editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'fold-selection'
 
         editor.find('.fold-placeholder .ellipsis').mousedown()
