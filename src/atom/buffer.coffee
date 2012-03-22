@@ -60,6 +60,10 @@ class Buffer
   lastLine: ->
     @lineForRow(@getLastRow())
 
+  getEofPosition: ->
+    lastRow = @getLastRow()
+    new Point(lastRow, @getLineLength(lastRow))
+
   characterIndexForPosition: (position) ->
     position = Point.fromObject(position)
 

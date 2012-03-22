@@ -4,4 +4,6 @@ Range = require 'range'
 module.exports =
 class CurrentSelectionAddress extends Address
   getRange: (editor) ->
-    editor.getSelection().getBufferRange()
+    lastRow = editor.getLastBufferRow()
+    column = editor.getBufferLineLength(lastRow)
+    new Range([lastRow, column], [lastRow, column])

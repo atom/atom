@@ -374,6 +374,8 @@ class Editor extends View
   getText: -> @buffer.getText()
   getLastBufferRow: -> @buffer.getLastRow()
   getBufferLineLength: (row) -> @buffer.getLineLength(row)
+  getTextInRange: (range) -> @buffer.getTextInRange(range)
+  getEofPosition: -> @buffer.getEofPosition()
 
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)

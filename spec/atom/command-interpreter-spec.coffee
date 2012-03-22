@@ -46,6 +46,12 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, ',.')
         expect(editor.selection.getBufferRange()).toEqual [[0,0], [2,2]]
 
+    describe "/regex/", ->
+      it 'selects text matching regex after current selection', ->
+        editor.getSelection().setBufferRange([[4,16], [4,20]])
+        interpreter.eval(editor, '/pivot/')
+        expect(editor.selection.getBufferRange()).toEqual [[6,16], [6,21]]
+
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->

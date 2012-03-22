@@ -9,7 +9,6 @@ class Substitution
   execute: (editor) ->
     selectedText = editor.getSelectedText()
     selectionStartIndex = editor.buffer.characterIndexForPosition(editor.getSelection().getBufferRange().start)
-    selectionEndIndex = selectionStartIndex + selectedText.length
 
     @replace(editor, selectedText, selectionStartIndex)
 

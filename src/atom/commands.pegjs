@@ -4,6 +4,7 @@
   var AddressRange = require('command-interpreter/address-range');
   var EofAddress = require('command-interpreter/eof-address');
   var CurrentSelectionAddress = require('command-interpreter/current-selection-address')
+  var RegexAddress = require('command-interpreter/regex-address')
 }
 
 start
@@ -27,6 +28,7 @@ primitiveAddress
   = lineNumber:integer { return new LineAddress(lineNumber) }
   / '$' { return new EofAddress() }
   / '.' { return new CurrentSelectionAddress() }
+  / '/' pattern:pattern '/' { return new RegexAddress(pattern)}
 
 substitution
   = "s" _ "/" find:pattern "/" replace:pattern "/" _ options:[g]* {
