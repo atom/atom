@@ -5,5 +5,5 @@ module.exports =
 class AddressRange extends Address
   constructor: (@startAddress, @endAddress) ->
 
-  getRange: ->
-    new Range(@startAddress.getRange().start, @endAddress.getRange().end)
+  getRange: (editor) ->
+    new Range(@startAddress.getRange(editor).start, @endAddress.getRange(editor).end)

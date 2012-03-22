@@ -21,6 +21,14 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '4,7')
         expect(editor.selection.getBufferRange()).toEqual [[3, 0], [7, 0]]
 
+    describe "$", ->
+      it "selects EOF", ->
+        interpreter.eval(editor, '$')
+        expect(editor.selection.getBufferRange()).toEqual [[12,2], [12,2]]
+
+        interpreter.eval(editor, '1,$')
+        expect(editor.selection.getBufferRange()).toEqual [[0,0], [12,2]]
+
   describe "substitution", ->
     it "does nothing if there are no matches", ->
       editor.selection.setBufferRange([[6, 0], [6, 44]])

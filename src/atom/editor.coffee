@@ -341,7 +341,6 @@ class Editor extends View
     @lineHeight = fragment.outerHeight()
     fragment.remove()
 
-
   getCursor: -> @cursor
   moveCursorUp: -> @cursor.moveUp()
   moveCursorDown: -> @cursor.moveDown()
@@ -373,6 +372,8 @@ class Editor extends View
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
+  getLastBufferRow: -> @buffer.lastRow()
+  getBufferLineLength: (row) -> @buffer.getLineLength(row)
 
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)
