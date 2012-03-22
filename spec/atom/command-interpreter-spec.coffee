@@ -32,6 +32,20 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '1,$')
         expect(editor.selection.getBufferRange()).toEqual [[0,0], [12,2]]
 
+    describe ".", ->
+      it 'maintains the current selection', ->
+        editor.getSelection().setBufferRange([[1,1], [2,2]])
+        interpreter.eval(editor, '.')
+        expect(editor.selection.getBufferRange()).toEqual [[1,1], [2,2]]
+
+        editor.getSelection().setBufferRange([[1,1], [2,2]])
+        interpreter.eval(editor, '.,')
+        expect(editor.selection.getBufferRange()).toEqual [[1,1], [12,2]]
+
+        editor.getSelection().setBufferRange([[1,1], [2,2]])
+        interpreter.eval(editor, ',.')
+        expect(editor.selection.getBufferRange()).toEqual [[0,0], [2,2]]
+
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->
@@ -60,13 +74,13 @@ describe "CommandInterpreter", ->
       interpreter.eval(editor, 's/not-in-text/foo/')
       expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
 
-    it "performs a single substitution within the current dot", ->
+    it "performs a single substitution within the current selection", ->
       editor.selection.setBufferRange([[6, 0], [6, 44]])
       interpreter.eval(editor, 's/current/foo/')
       expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
 
     describe "when suffixed with a g", ->
-      it "performs a multiple substitutions within the current dot", ->
+      it "performs a multiple substitutions within the current selection", ->
         editor.selection.setBufferRange([[6, 0], [6, 44]])
         interpreter.eval(editor, 's/current/foo/g')
         expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
