@@ -107,10 +107,10 @@ describe "Editor", ->
         expect(editor.setMaxLineLength).not.toHaveBeenCalled()
 
       it "allows the cursor to move down to the last line", ->
-        _.times editor.lastRow(), -> editor.moveCursorDown()
-        expect(editor.getCursorScreenPosition()).toEqual [editor.lastRow(), 0]
+        _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
+        expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 0]
         editor.moveCursorDown()
-        expect(editor.getCursorScreenPosition()).toEqual [editor.lastRow(), 2]
+        expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 2]
 
       it "allows the cursor to move up to a shorter soft wrapped line", ->
         editor.setCursorScreenPosition([11, 15])

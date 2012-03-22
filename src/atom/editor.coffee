@@ -170,7 +170,7 @@ class Editor extends View
   renderLines: ->
     @lineCache = []
     @lines.find('.line').remove()
-    @insertLineElements(0, @buildLineElements(0, @lastRow()))
+    @insertLineElements(0, @buildLineElements(0, @getLastScreenRow()))
 
   getScreenLines: ->
     @renderer.getLines()
@@ -181,7 +181,7 @@ class Editor extends View
   screenLineCount: ->
     @renderer.lineCount()
 
-  lastRow: ->
+  getLastScreenRow: ->
     @screenLineCount() - 1
 
   setBuffer: (buffer) ->
