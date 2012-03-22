@@ -7,6 +7,6 @@ class CommandInterpreter
     @parser = PEG.buildParser(fs.read(require.resolve 'commands.pegjs'))
 
   eval: (editor, command) ->
-    operation = @parser.parse(command)
-    operation.execute(editor)
+    operations = @parser.parse(command)
+    operation.execute(editor) for operation in operations
 
