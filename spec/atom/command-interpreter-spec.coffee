@@ -16,11 +16,6 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '4')
         expect(editor.selection.getBufferRange()).toEqual [[3, 0], [4, 0]]
 
-    describe "an address range with two line addresses", ->
-      it "selects the given lines", ->
-        interpreter.eval(editor, '4,7')
-        expect(editor.selection.getBufferRange()).toEqual [[3, 0], [7, 0]]
-
     describe "0", ->
       it "selects the zero-length string at the start of the file", ->
         interpreter.eval(editor, '0')
@@ -36,6 +31,28 @@ describe "CommandInterpreter", ->
 
         interpreter.eval(editor, '1,$')
         expect(editor.selection.getBufferRange()).toEqual [[0,0], [12,2]]
+
+    describe "address range", ->
+      describe "when two addresses are specified", ->
+        it "selects from the begining of the left address to the end of the right address", ->
+          interpreter.eval(editor, '4,7')
+          expect(editor.selection.getBufferRange()).toEqual [[3, 0], [7, 0]]
+
+      describe "when the left address is unspecified", ->
+        it "selects from the begining of buffer to the end of the right address", ->
+          interpreter.eval(editor, ',7')
+          expect(editor.selection.getBufferRange()).toEqual [[0, 0], [7, 0]]
+
+      describe "when the right address is unspecified", ->
+        it "selects from the begining of left address to the end file", ->
+          interpreter.eval(editor, '4,')
+          expect(editor.selection.getBufferRange()).toEqual [[3, 0], [12, 2]]
+
+      describe "when the neither address is specified", ->
+        it "selects the entire file", ->
+          interpreter.eval(editor, ',')
+          expect(editor.selection.getBufferRange()).toEqual [[0, 0], [12, 2]]
+
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->

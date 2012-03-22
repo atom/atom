@@ -16,7 +16,11 @@ start
 address = addressRange / primitiveAddress
 
 addressRange
-  = start:primitiveAddress _ ',' _ end:address { return new AddressRange(start, end) }
+  = start:primitiveAddress? _ ',' _ end:address? {
+    if (!start) start = new LineAddress(0)
+    if (!end) end = new EofAddress()
+    return new AddressRange(start, end)
+  }
 
 primitiveAddress
   = lineNumber:integer { return new LineAddress(lineNumber) }
