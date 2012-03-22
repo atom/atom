@@ -11,9 +11,15 @@ describe "CommandInterpreter", ->
     interpreter = new CommandInterpreter()
 
   describe "addresses", ->
-    it "selects the given lines", ->
-      interpreter.eval(editor, '4,7')
-      expect(editor.selection.getBufferRange()).toEqual [[3, 0], [6, 0]]
+    describe "a line address", ->
+      it "selects the specified line", ->
+        interpreter.eval(editor, '4')
+        expect(editor.selection.getBufferRange()).toEqual [[3, 0], [4, 0]]
+
+    describe "an address range with two line addresses", ->
+      it "selects the given lines", ->
+        interpreter.eval(editor, '4,7')
+        expect(editor.selection.getBufferRange()).toEqual [[3, 0], [7, 0]]
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->
@@ -34,7 +40,7 @@ describe "CommandInterpreter", ->
 
       describe "when prefixed with an address", ->
         it "only makes substitutions within given lines", ->
-          interpreter.eval(editor, '4,7s/ /!/g')
+          interpreter.eval(editor, '4,6s/ /!/g')
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return items;'
           expect(buffer.lineForRow(3)).toBe '!!!!var!pivot!=!items.shift(),!current,!left!=![],!right!=![];'
           expect(buffer.lineForRow(4)).toBe '!!!!while(items.length!>!0)!{'

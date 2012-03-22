@@ -1,6 +1,7 @@
 {
   var Substitution = require('command-interpreter/substitution');
-  var Address = require('command-interpreter/address');
+  var LineAddress = require('command-interpreter/line-address');
+  var AddressRange = require('command-interpreter/address-range');
 }
 
 start
@@ -11,10 +12,13 @@ start
     return operations;
   }
 
-address
-  = start:integer _ ',' _ end:integer {
-    return new Address(start, end)
-  }
+address = addressRange / primitiveAddress
+
+addressRange
+  = start:primitiveAddress _ ',' _ end:address { return new AddressRange(start, end) }
+
+primitiveAddress
+  = lineNumber:integer { return new LineAddress(lineNumber) }
 
 substitution
   = "s" _ "/" find:pattern "/" replace:pattern "/" _ options:[g]* {
