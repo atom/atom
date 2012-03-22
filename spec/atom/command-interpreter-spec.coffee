@@ -10,6 +10,11 @@ describe "CommandInterpreter", ->
     editor = new Editor({buffer})
     interpreter = new CommandInterpreter()
 
+  describe "addresses", ->
+    it "selects the given lines", ->
+      interpreter.eval(editor, '4,7')
+      expect(editor.selection.getBufferRange()).toEqual [[3, 0], [6, 0]]
+
   describe "substitution", ->
     it "does nothing if there are no matches", ->
       editor.selection.setBufferRange([[6, 0], [6, 44]])

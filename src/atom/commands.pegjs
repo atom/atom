@@ -4,10 +4,10 @@
 }
 
 start
-  = address:address? _ command:substitution {
+  = address:address? _ command:substitution? {
     var operations = [];
     if (address) operations.push(address);
-    operations.push(command);
+    if (command) operations.push(command);
     return operations;
   }
 
