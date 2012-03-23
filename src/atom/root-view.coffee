@@ -13,7 +13,7 @@ CommandPanel = require 'command-panel'
 module.exports =
 class RootView extends View
   @content: ->
-    @div id: 'root-view', =>
+    @div id: 'root-view', tabindex: -1, =>
       @div id: 'panes', outlet: 'panes'
 
   editors: null
@@ -31,6 +31,12 @@ class RootView extends View
 
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', -> window.showConsole()
+
+    @one 'attach', => @focus()
+    @on 'focus', (e) =>
+      if @editors.length
+        @activeEditor().focus()
+        false
 
     @commandPanel = new CommandPanel({rootView: this})
 

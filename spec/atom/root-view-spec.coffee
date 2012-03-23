@@ -33,6 +33,21 @@ describe "RootView", ->
         rootView = new RootView
         expect(rootView.activeEditor().buffer.url).toBeUndefined()
 
+  describe "focus", ->
+    it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
+      rootView = new RootView(require.resolve 'fixtures')
+      rootView.attachToDom()
+      expect(rootView).toMatchSelector(':focus')
+
+      rootView.activeEditor() # lazily create an editor
+      expect(rootView).not.toMatchSelector(':focus')
+      expect(rootView.activeEditor().isFocused).toBeTruthy()
+
+      rootView.focus()
+      expect(rootView).not.toMatchSelector(':focus')
+      expect(rootView.activeEditor().isFocused).toBeTruthy()
+
+
   describe "split editor panes", ->
     editor1 = null
 
