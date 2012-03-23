@@ -28,9 +28,13 @@ class RootView extends View
       'meta-t': 'toggle-file-finder'
       'meta-:': 'command-panel:toggle'
       'alt-meta-i': 'show-console'
+      'meta-f': 'find-in-file'
 
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', -> window.showConsole()
+    @on 'find-in-file', =>
+      @commandPanel.show()
+      @commandPanel.editor.setText("/")
 
     @one 'attach', => @focus()
     @on 'focus', (e) =>

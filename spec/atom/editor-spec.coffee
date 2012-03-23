@@ -18,6 +18,14 @@ describe "Editor", ->
     editor.setBuffer(buffer)
     editor.isFocused = true
 
+  describe "construction", ->
+    it "assigns an empty buffer and correctly handles text input (regression coverage)", ->
+      editor = new Editor
+      expect(editor.buffer.path).toBeUndefined()
+      expect(editor.lines.find('.line').length).toBe 1
+      editor.insertText('x')
+      expect(editor.lines.find('.line').length).toBe 1
+
   describe "text rendering", ->
     it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
       expect(editor.lines.find('.line').length).toEqual(buffer.numLines())
@@ -935,14 +943,6 @@ describe "Editor", ->
       editor.hiddenInput.focusout()
       expect(editor.isFocused).toBeFalsy()
       expect(editor).not.toHaveClass('focused')
-
-  describe "construction", ->
-    it "assigns an empty buffer and correctly handles text input (regression coverage)", ->
-      editor = new Editor
-      expect(editor.buffer.path).toBeUndefined()
-      expect(editor.lines.find('.line').length).toBe 1
-      editor.insertText('x')
-      expect(editor.lines.find('.line').length).toBe 1
 
   describe ".setBuffer(buffer)", ->
     it "sets the cursor to the beginning of the file", ->
