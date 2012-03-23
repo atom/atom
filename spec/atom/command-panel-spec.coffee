@@ -33,6 +33,12 @@ describe "CommandPanel", ->
       expect(commandPanel.editor.buffer.getText()).toBe ''
       expect(commandPanel.editor.getCursorScreenPosition()).toEqual [0, 0]
 
+  describe "when command-panel:repeat-relative-address is triggered on the root view", ->
+    it "calls .repeatRelativeAddress on the command interpreter with the active editor", ->
+      spyOn(commandPanel.commandInterpreter, 'repeatRelativeAddress')
+      rootView.trigger 'command-panel:repeat-relative-address'
+      expect(commandPanel.commandInterpreter.repeatRelativeAddress).toHaveBeenCalledWith(rootView.activeEditor())
+
   describe "when esc is pressed in the command panel", ->
     it "closes the command panel", ->
       rootView.trigger 'command-panel:toggle'

@@ -17,8 +17,12 @@ class CommandPanel extends View
       escape: 'command-panel:toggle'
       enter: 'command-panel:execute'
 
+    window.keymap.bindKeys '.editor',
+      'meta-g': 'command-panel:repeat-relative-address'
+
     @rootView.on 'command-panel:toggle', => @toggle()
     @rootView.on 'command-panel:execute', => @execute()
+    @rootView.on 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
     @editor.addClass 'single-line'
 
     @commandInterpreter = new CommandInterpreter()
@@ -36,3 +40,6 @@ class CommandPanel extends View
   execute: ->
     @commandInterpreter.eval(@rootView.activeEditor(), @editor.getText())
     @toggle()
+
+  repeatRelativeAddress: ->
+    @commandInterpreter.repeatRelativeAddress(@rootView.activeEditor())
