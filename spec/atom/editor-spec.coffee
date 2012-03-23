@@ -749,8 +749,8 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
-  describe "multiple cursor placement", ->
-    fit "places multiple cursor with meta-click", ->
+  fdescribe "multiple cursor placement", ->
+    it "places multiple cursor with meta-click", ->
       editor.attachToDom()
       editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
       editor.lines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
@@ -761,14 +761,34 @@ describe "Editor", ->
       expect(cursor2.position()).toEqual(top: 6 * editor.lineHeight, left: 0)
       expect(cursor2.getBufferPosition()).toEqual [6, 0]
 
-    fit "inserts text for all cursors", ->
+    it "inserts text for all cursors", ->
       editor.setCursorScreenPosition([3, 0])
       editor.addCursorAtScreenPosition([6, 0])
 
       editor.insertText("abc")
-
       expect(editor.lineForBufferRow(3)).toBe "abc    var pivot = items.shift(), current, left = [], right = [];"
       expect(editor.lineForBufferRow(6)).toBe "abc      current < pivot ? left.push(current) : right.push(current);"
+
+      [cursor1, cursor2] = editor.compositeCursor.getCursors()
+      expect(cursor1.getBufferPosition()).toEqual [3,3]
+      expect(cursor2.getBufferPosition()).toEqual [6,3]
+
+    it "inserts newlines for all cursors", ->
+      editor.setCursorScreenPosition([3, 0])
+      editor.addCursorAtScreenPosition([6, 0])
+
+      editor.insertText("\n")
+      expect(editor.lineForBufferRow(3)).toBe ""
+      expect(editor.lineForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+      expect(editor.lineForBufferRow(5)).toBe "    while(items.length > 0) {"
+      expect(editor.lineForBufferRow(6)).toBe "      current = items.shift();"
+      expect(editor.lineForBufferRow(7)).toBe ""
+      expect(editor.lineForBufferRow(8)).toBe "      current < pivot ? left.push(current) : right.push(current);"
+      expect(editor.lineForBufferRow(9)).toBe "    }"
+
+      [cursor1, cursor2] = editor.compositeCursor.getCursors()
+      expect(cursor1.getBufferPosition()).toEqual [4,0]
+      expect(cursor2.getBufferPosition()).toEqual [8,0]
 
   describe "buffer manipulation", ->
     describe "when text input events are triggered on the hidden input element", ->
