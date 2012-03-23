@@ -47,7 +47,6 @@ describe "RootView", ->
       expect(rootView).not.toMatchSelector(':focus')
       expect(rootView.activeEditor().isFocused).toBeTruthy()
 
-
   describe "split editor panes", ->
     editor1 = null
 
@@ -327,6 +326,13 @@ describe "RootView", ->
 
         expect(editor1.buffer.url).not.toBe expectedUrl
         expect(editor2.buffer.url).toBe expectedUrl
+
+  describe "text search", ->
+    describe "when find event is triggered", ->
+      it "pre-populates command panel's editor with /", ->
+        rootView.trigger "find-in-file"
+        expect(rootView.commandPanel.parent).not.toBeEmpty()
+        expect(rootView.commandPanel.editor.getText()).toBe "/"
 
   describe "keymap wiring", ->
     commandHandler = null

@@ -24,15 +24,18 @@ class CommandPanel extends View
     @commandInterpreter = new CommandInterpreter()
 
   toggle: ->
-    if @parent().length
-      @detach()
-      @rootView.activeEditor().focus()
-    else
-      @rootView.append(this)
-      @prompt.css 'font', @editor.css('font')
-      @editor.focus()
-      @editor.buffer.setText('')
+    if @parent().length then @hide() else @show()
+
+  show: ->
+    @rootView.append(this)
+    @prompt.css 'font', @editor.css('font')
+    @editor.focus()
+    @editor.buffer.setText('')
+
+  hide: ->
+    @detach()
+    @rootView.activeEditor().focus()
 
   execute: ->
     @commandInterpreter.eval(@rootView.activeEditor(), @editor.getText())
-    @toggle()
+    @hide()
