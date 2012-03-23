@@ -13,7 +13,7 @@ CommandPanel = require 'command-panel'
 module.exports =
 class RootView extends View
   @content: ->
-    @div id: 'root-view', =>
+    @div id: 'root-view', tabindex: -1, =>
       @div id: 'panes', outlet: 'panes'
 
   editors: null
@@ -28,9 +28,19 @@ class RootView extends View
       'meta-t': 'toggle-file-finder'
       'meta-:': 'command-panel:toggle'
       'alt-meta-i': 'show-console'
+      'meta-f': 'find-in-file'
 
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', -> window.showConsole()
+    @on 'find-in-file', =>
+      @commandPanel.show()
+      @commandPanel.editor.setText("/")
+
+    @one 'attach', => @focus()
+    @on 'focus', (e) =>
+      if @editors.length
+        @activeEditor().focus()
+        false
 
     @commandPanel = new CommandPanel({rootView: this})
 

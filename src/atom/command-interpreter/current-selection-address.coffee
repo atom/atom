@@ -5,3 +5,5 @@ module.exports =
 class CurrentSelectionAddress extends Address
   getRange: (editor) ->
     editor.getSelection().getBufferRange()
+
+  isRelative: -> true

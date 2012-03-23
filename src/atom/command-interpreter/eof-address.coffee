@@ -7,3 +7,5 @@ class EofAddress extends Address
     lastRow = editor.getLastBufferRow()
     column = editor.getBufferLineLength(lastRow)
     new Range([lastRow, column], [lastRow, column])
+
+  isRelative: -> false

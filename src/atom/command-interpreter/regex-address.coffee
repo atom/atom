@@ -24,3 +24,5 @@ class RegexAddress extends Address
       return new Range(startPosition, endPosition)
     else
       return selectedRange
+
+  isRelative: -> true

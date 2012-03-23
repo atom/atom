@@ -7,3 +7,6 @@ class AddressRange extends Address
 
   getRange: (editor) ->
     new Range(@startAddress.getRange(editor).start, @endAddress.getRange(editor).end)
+
+  isRelative: ->
+    @startAddress.isRelative() or @endAddress.isRelative()

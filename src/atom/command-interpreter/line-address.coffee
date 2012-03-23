@@ -8,3 +8,5 @@ class LineAddress extends Address
 
   getRange: ->
     new Range([@row, 0], [@row + 1, 0])
+
+  isRelative: -> false

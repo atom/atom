@@ -14,85 +14,84 @@ describe "CommandInterpreter", ->
     describe "a line address", ->
       it "selects the specified line", ->
         interpreter.eval(editor, '4')
-        expect(editor.selection.getBufferRange()).toEqual [[3, 0], [4, 0]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[3, 0], [4, 0]]
 
     describe "0", ->
       it "selects the zero-length string at the start of the file", ->
         interpreter.eval(editor, '0')
-        expect(editor.selection.getBufferRange()).toEqual [[0,0], [0,0]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [0,0]]
 
         interpreter.eval(editor, '0,1')
-        expect(editor.selection.getBufferRange()).toEqual [[0,0], [1,0]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [1,0]]
 
     describe "$", ->
       it "selects EOF", ->
         interpreter.eval(editor, '$')
-        expect(editor.selection.getBufferRange()).toEqual [[12,2], [12,2]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[12,2], [12,2]]
 
         interpreter.eval(editor, '1,$')
-        expect(editor.selection.getBufferRange()).toEqual [[0,0], [12,2]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [12,2]]
 
     describe ".", ->
       it 'maintains the current selection', ->
         editor.getSelection().setBufferRange([[1,1], [2,2]])
         interpreter.eval(editor, '.')
-        expect(editor.selection.getBufferRange()).toEqual [[1,1], [2,2]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [2,2]]
 
-        editor.getSelection().setBufferRange([[1,1], [2,2]])
-        interpreter.eval(editor, '.,')
-        expect(editor.selection.getBufferRange()).toEqual [[1,1], [12,2]]
+        # editor.getSelection().setBufferRange([[1,1], [2,2]])
+        # interpreter.eval(editor, '.,')
+        # expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [12,2]]
 
-        editor.getSelection().setBufferRange([[1,1], [2,2]])
-        interpreter.eval(editor, ',.')
-        expect(editor.selection.getBufferRange()).toEqual [[0,0], [2,2]]
+        # editor.getSelection().setBufferRange([[1,1], [2,2]])
+        # interpreter.eval(editor, ',.')
+        # expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [2,2]]
 
     describe "/regex/", ->
       it 'selects text matching regex after current selection', ->
         editor.getSelection().setBufferRange([[4,16], [4,20]])
         interpreter.eval(editor, '/pivot/')
-        expect(editor.selection.getBufferRange()).toEqual [[6,16], [6,21]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
       it 'does not require the trailing slash', ->
         editor.getSelection().setBufferRange([[4,16], [4,20]])
         interpreter.eval(editor, '/pivot')
-        expect(editor.selection.getBufferRange()).toEqual [[6,16], [6,21]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->
           interpreter.eval(editor, '4,7')
-          expect(editor.selection.getBufferRange()).toEqual [[3, 0], [7, 0]]
+          expect(editor.getSelection().getBufferRange()).toEqual [[3, 0], [7, 0]]
 
       describe "when the left address is unspecified", ->
         it "selects from the begining of buffer to the end of the right address", ->
           interpreter.eval(editor, ',7')
-          expect(editor.selection.getBufferRange()).toEqual [[0, 0], [7, 0]]
+          expect(editor.getSelection().getBufferRange()).toEqual [[0, 0], [7, 0]]
 
       describe "when the right address is unspecified", ->
         it "selects from the begining of left address to the end file", ->
           interpreter.eval(editor, '4,')
-          expect(editor.selection.getBufferRange()).toEqual [[3, 0], [12, 2]]
+          expect(editor.getSelection().getBufferRange()).toEqual [[3, 0], [12, 2]]
 
       describe "when the neither address is specified", ->
         it "selects the entire file", ->
           interpreter.eval(editor, ',')
-          expect(editor.selection.getBufferRange()).toEqual [[0, 0], [12, 2]]
-
+          expect(editor.getSelection().getBufferRange()).toEqual [[0, 0], [12, 2]]
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->
-      editor.selection.setBufferRange([[6, 0], [6, 44]])
+      editor.getSelection().setBufferRange([[6, 0], [6, 44]])
       interpreter.eval(editor, 's/not-in-text/foo/')
       expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
 
     it "performs a single substitution within the current selection", ->
-      editor.selection.setBufferRange([[6, 0], [6, 44]])
+      editor.getSelection().setBufferRange([[6, 0], [6, 44]])
       interpreter.eval(editor, 's/current/foo/')
       expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
 
     describe "when suffixed with a g", ->
       it "performs a multiple substitutions within the current selection", ->
-        editor.selection.setBufferRange([[6, 0], [6, 44]])
+        editor.getSelection().setBufferRange([[6, 0], [6, 44]])
         interpreter.eval(editor, 's/current/foo/g')
         expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
 
@@ -104,3 +103,27 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(4)).toBe '!!!!while(items.length!>!0)!{'
           expect(buffer.lineForRow(5)).toBe '!!!!!!current!=!items.shift();'
           expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
+
+  describe ".repeatRelativeAddress()", ->
+    it "repeats the last search command if there is one", ->
+      interpreter.repeatRelativeAddress(editor) # don't raise an exception
+
+      editor.setCursorScreenPosition([4, 0])
+
+      interpreter.eval(editor, '/current')
+      expect(editor.getSelection().getBufferRange()).toEqual [[5,6], [5,13]]
+
+      interpreter.repeatRelativeAddress(editor)
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,6], [6,13]]
+
+      interpreter.eval(editor, 's/r/R/g')
+
+      interpreter.repeatRelativeAddress(editor)
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,34], [6,41]]
+
+      interpreter.eval(editor, '0')
+      interpreter.eval(editor, '/sort/ s/r/R/') # this contains a substitution... won't be repeated
+
+      interpreter.repeatRelativeAddress(editor)
+      expect(editor.getSelection().getBufferRange()).toEqual [[3,31], [3,38]]
+

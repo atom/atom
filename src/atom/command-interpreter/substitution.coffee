@@ -1,5 +1,7 @@
+Command = require 'command-interpreter/command'
+
 module.exports =
-class Substitution
+class Substitution extends Command
   global: false
 
   constructor: (@findText, @replaceText, @options) ->
@@ -28,3 +30,4 @@ class Substitution
       text = text[(match.index + match[0].length)..]
       startIndex = matchStartIndex + @replaceText.length
       @replace(editor, text, startIndex)
+
