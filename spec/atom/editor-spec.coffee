@@ -870,6 +870,38 @@ describe "Editor", ->
             expect(cursor1.getBufferPosition()).toEqual [2,40]
             expect(cursor2.getBufferPosition()).toEqual [4,30]
 
+    describe "cursor movement", ->
+      it "moves all cursors", ->
+        editor.setCursorScreenPosition([3, 13])
+        editor.addCursorAtScreenPosition([3, 38])
+        editor.addCursorAtScreenPosition([4, 1])
+        [cursor1, cursor2, cursor3] = editor.compositeCursor.getCursors()
+
+        editor.moveCursorLeft()
+        expect(cursor1.getBufferPosition()).toEqual [3, 12]
+        expect(cursor2.getBufferPosition()).toEqual [3, 37]
+        expect(cursor3.getBufferPosition()).toEqual [4, 0]
+
+        editor.moveCursorLeft()
+        expect(cursor1.getBufferPosition()).toEqual [3, 11]
+        expect(cursor2.getBufferPosition()).toEqual [3, 36]
+        expect(cursor3.getBufferPosition()).toEqual [3, 62]
+
+        editor.moveCursorRight()
+        expect(cursor1.getBufferPosition()).toEqual [3, 12]
+        expect(cursor2.getBufferPosition()).toEqual [3, 37]
+        expect(cursor3.getBufferPosition()).toEqual [4, 0]
+
+        editor.moveCursorDown()
+        expect(cursor1.getBufferPosition()).toEqual [4, 12]
+        expect(cursor2.getBufferPosition()).toEqual [4, 29]
+        expect(cursor3.getBufferPosition()).toEqual [5, 0]
+
+        editor.moveCursorUp()
+        expect(cursor1.getBufferPosition()).toEqual [3, 12]
+        expect(cursor2.getBufferPosition()).toEqual [3, 37]
+        expect(cursor3.getBufferPosition()).toEqual [4, 0]
+
   describe "buffer manipulation", ->
     describe "when text input events are triggered on the hidden input element", ->
       describe "when there is no selection", ->

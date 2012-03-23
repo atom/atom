@@ -28,3 +28,15 @@ class CompositeCursor
 
   handleBufferChange: (e) ->
     cursor.handleBufferChange(e) for cursor in @cursors
+
+  moveLeft: ->
+    cursor.moveLeft() for cursor in @cursors
+
+  moveRight: ->
+    cursor.moveRight() for cursor in @cursors
+
+  moveUp: ->
+    cursor.moveUp() for cursor in @cursors
+
+  moveDown: ->
+    cursor.moveDown() for cursor in @cursors

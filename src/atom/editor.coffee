@@ -343,10 +343,10 @@ class Editor extends View
     fragment.remove()
 
   getCursor: -> @cursor
-  moveCursorUp: -> @cursor.moveUp()
-  moveCursorDown: -> @cursor.moveDown()
-  moveCursorRight: -> @cursor.moveRight()
-  moveCursorLeft: -> @cursor.moveLeft()
+  moveCursorUp: -> @compositeCursor.moveUp()
+  moveCursorDown: -> @compositeCursor.moveDown()
+  moveCursorRight: -> @compositeCursor.moveRight()
+  moveCursorLeft: -> @compositeCursor.moveLeft()
 
   getCurrentScreenLine: -> @buffer.lineForRow(@getCursorScreenRow())
   getCurrentBufferLine: -> @buffer.lineForRow(@getCursorBufferRow())
