@@ -105,7 +105,9 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
 
   describe ".repeatRelativeAddress()", ->
-    it "repeats the last search command", ->
+    it "repeats the last search command if there is one", ->
+      interpreter.repeatRelativeAddress(editor) # don't raise an exception
+
       editor.setCursorScreenPosition([4, 0])
 
       interpreter.eval(editor, '/current')
