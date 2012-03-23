@@ -83,6 +83,7 @@ class Selection extends View
   backspace: ->
     @selectLeft() if @isEmpty()
     @delete()
+    @clearSelection()
 
   delete: ->
     range = @getBufferRange()

@@ -5,6 +5,8 @@ class CompositeSeleciton
   constructor: (@editor) ->
     @selections = []
 
+  getSelections: -> @selections
+
   addSelectionForCursor: (cursor) ->
     selection = new Selection({@editor, cursor})
     @selections.push(selection)

@@ -769,48 +769,73 @@ describe "Editor", ->
       expect(cursor2.position()).toEqual(top: 6 * editor.lineHeight, left: 0)
       expect(cursor2.getBufferPosition()).toEqual [6, 0]
 
-    it "inserts text for all cursors", ->
-      editor.setCursorScreenPosition([3, 0])
-      editor.addCursorAtScreenPosition([6, 0])
+    describe "inserting text", ->
+      describe "when inserting characters other than newlines", ->
+        it "inserts text for all cursors", ->
+          editor.setCursorScreenPosition([3, 0])
+          editor.addCursorAtScreenPosition([6, 0])
 
-      editor.insertText("abc")
-      expect(editor.lineForBufferRow(3)).toBe "abc    var pivot = items.shift(), current, left = [], right = [];"
-      expect(editor.lineForBufferRow(6)).toBe "abc      current < pivot ? left.push(current) : right.push(current);"
+          editor.insertText("abc")
+          expect(editor.lineForBufferRow(3)).toBe "abc    var pivot = items.shift(), current, left = [], right = [];"
+          expect(editor.lineForBufferRow(6)).toBe "abc      current < pivot ? left.push(current) : right.push(current);"
 
-      [cursor1, cursor2] = editor.compositeCursor.getCursors()
-      expect(cursor1.getBufferPosition()).toEqual [3,3]
-      expect(cursor2.getBufferPosition()).toEqual [6,3]
+          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [3,3]
+          expect(cursor2.getBufferPosition()).toEqual [6,3]
 
-    it "inserts newlines for all cursors", ->
-      editor.setCursorScreenPosition([3, 0])
-      editor.addCursorAtScreenPosition([6, 0])
+      describe "when inserting newlines", ->
+        it "inserts newlines for all cursors", ->
+          editor.setCursorScreenPosition([3, 0])
+          editor.addCursorAtScreenPosition([6, 0])
 
-      editor.insertText("\n")
-      expect(editor.lineForBufferRow(3)).toBe ""
-      expect(editor.lineForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
-      expect(editor.lineForBufferRow(5)).toBe "    while(items.length > 0) {"
-      expect(editor.lineForBufferRow(6)).toBe "      current = items.shift();"
-      expect(editor.lineForBufferRow(7)).toBe ""
-      expect(editor.lineForBufferRow(8)).toBe "      current < pivot ? left.push(current) : right.push(current);"
-      expect(editor.lineForBufferRow(9)).toBe "    }"
+          editor.insertText("\n")
+          expect(editor.lineForBufferRow(3)).toBe ""
+          expect(editor.lineForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+          expect(editor.lineForBufferRow(5)).toBe "    while(items.length > 0) {"
+          expect(editor.lineForBufferRow(6)).toBe "      current = items.shift();"
+          expect(editor.lineForBufferRow(7)).toBe ""
+          expect(editor.lineForBufferRow(8)).toBe "      current < pivot ? left.push(current) : right.push(current);"
+          expect(editor.lineForBufferRow(9)).toBe "    }"
 
-      [cursor1, cursor2] = editor.compositeCursor.getCursors()
-      expect(cursor1.getBufferPosition()).toEqual [4,0]
-      expect(cursor2.getBufferPosition()).toEqual [8,0]
+          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [4,0]
+          expect(cursor2.getBufferPosition()).toEqual [8,0]
 
-    it "deletes a line", ->
-      editor.setCursorScreenPosition([3, 0])
-      editor.addCursorAtScreenPosition([6, 0])
+    describe "backspace", ->
+      describe "when cursors are on the same line", ->
+        it "removes the characters preceding each cursor", ->
+          editor.setCursorScreenPosition([3, 13])
+          editor.addCursorAtScreenPosition([3, 38])
 
-      editor.backspace()
-      expect(editor.lineForBufferRow(2)).toBe "    if (items.length <= 1) return items;    var pivot = items.shift(), current, left = [], right = [];"
-      expect(editor.lineForBufferRow(3)).toBe "    while(items.length > 0) {"
-      expect(editor.lineForBufferRow(4)).toBe "      current = items.shift();      current < pivot ? left.push(current) : right.push(current);"
-      expect(editor.lineForBufferRow(5)).toBe "    }"
+          editor.backspace()
 
-      [cursor1, cursor2] = editor.compositeCursor.getCursors()
-      expect(cursor1.getBufferPosition()).toEqual [2,40]
-      expect(cursor2.getBufferPosition()).toEqual [4,30]
+          expect(editor.lineForBufferRow(3)).toBe "    var pivo = items.shift(), curren, left = [], right = [];"
+
+          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [3, 12]
+          expect(cursor2.getBufferPosition()).toEqual [3, 36]
+
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+          expect(selection1.isEmpty()).toBeTruthy()
+          expect(selection2.isEmpty()).toBeTruthy()
+
+      describe "when cursors are on different lines", ->
+        it "removes the characters preceding each cursor", ->
+
+        describe "when backspacing over newlines", ->
+          it "removes the newlines preceding each cursor", ->
+            editor.setCursorScreenPosition([3, 0])
+            editor.addCursorAtScreenPosition([6, 0])
+
+            editor.backspace()
+            expect(editor.lineForBufferRow(2)).toBe "    if (items.length <= 1) return items;    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineForBufferRow(3)).toBe "    while(items.length > 0) {"
+            expect(editor.lineForBufferRow(4)).toBe "      current = items.shift();      current < pivot ? left.push(current) : right.push(current);"
+            expect(editor.lineForBufferRow(5)).toBe "    }"
+
+            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [2,40]
+            expect(cursor2.getBufferPosition()).toEqual [4,30]
 
   describe "buffer manipulation", ->
     describe "when text input events are triggered on the hidden input element", ->
