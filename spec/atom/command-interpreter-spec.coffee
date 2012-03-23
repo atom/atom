@@ -32,7 +32,7 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '1,$')
         expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [12,2]]
 
-    fdescribe ".", ->
+    describe ".", ->
       it 'maintains the current selection', ->
         editor.getSelection().setBufferRange([[1,1], [2,2]])
         interpreter.eval(editor, '.')
