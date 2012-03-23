@@ -790,6 +790,20 @@ describe "Editor", ->
       expect(cursor1.getBufferPosition()).toEqual [4,0]
       expect(cursor2.getBufferPosition()).toEqual [8,0]
 
+    it "deletes a line", ->
+      editor.setCursorScreenPosition([3, 0])
+      editor.addCursorAtScreenPosition([6, 0])
+
+      editor.backspace()
+      expect(editor.lineForBufferRow(2)).toBe "    if (items.length <= 1) return items;    var pivot = items.shift(), current, left = [], right = [];"
+      expect(editor.lineForBufferRow(3)).toBe "    while(items.length > 0) {"
+      expect(editor.lineForBufferRow(4)).toBe "      current = items.shift();      current < pivot ? left.push(current) : right.push(current);"
+      expect(editor.lineForBufferRow(5)).toBe "    }"
+
+      [cursor1, cursor2] = editor.compositeCursor.getCursors()
+      expect(cursor1.getBufferPosition()).toEqual [2,40]
+      expect(cursor2.getBufferPosition()).toEqual [4,30]
+
   describe "buffer manipulation", ->
     describe "when text input events are triggered on the hidden input element", ->
       describe "when there is no selection", ->

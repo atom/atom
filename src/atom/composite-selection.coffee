@@ -12,3 +12,6 @@ class CompositeSeleciton
 
   insertText: (text) ->
     selection.insertText(text) for selection in @selections
+
+  backspace: ->
+    selection.backspace() for selection in @selections

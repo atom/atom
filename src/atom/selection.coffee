@@ -80,6 +80,10 @@ class Selection extends View
   insertText: (text) ->
     @editor.buffer.change(@getBufferRange(), text)
 
+  backspace: ->
+    @selectLeft() if @isEmpty()
+    @delete()
+
   delete: ->
     range = @getBufferRange()
     @editor.buffer.change(range, '') unless range.isEmpty()

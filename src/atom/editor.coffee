@@ -409,8 +409,7 @@ class Editor extends View
   foldSelection: -> @selection.fold()
 
   backspace: ->
-    @selectLeft() if @selection.isEmpty()
-    @selection.delete()
+    @compositeSelection.backspace()
 
   delete: ->
     @selectRight() if @selection.isEmpty()

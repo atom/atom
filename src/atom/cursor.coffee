@@ -19,9 +19,8 @@ class Cursor extends View
     { newRange, oldRange } = e
     delta = newRange.end.subtract(oldRange.end)
 
-    return if delta.row == 0 and newRange.end.row != @getBufferPosition().row
+    delta.column = 0 if newRange.end.row != @getBufferPosition().row
     return if @getBufferPosition().isLessThan(oldRange.end)
-
     @setBufferPosition(@getBufferPosition().add(delta))
 
   setScreenPosition: (position, options={}) ->
