@@ -770,36 +770,54 @@ describe "Editor", ->
       expect(cursor2.getBufferPosition()).toEqual [6, 0]
 
     describe "inserting text", ->
-      describe "when inserting characters other than newlines", ->
-        it "inserts text for all cursors", ->
-          editor.setCursorScreenPosition([3, 0])
-          editor.addCursorAtScreenPosition([6, 0])
+      describe "when cursors are on the same line", ->
+        describe "when inserting newlines", ->
+          it "breaks the line into three lines at the cursor locations", ->
+            editor.setCursorScreenPosition([3, 13])
+            editor.addCursorAtScreenPosition([3, 38])
 
-          editor.insertText("abc")
-          expect(editor.lineForBufferRow(3)).toBe "abc    var pivot = items.shift(), current, left = [], right = [];"
-          expect(editor.lineForBufferRow(6)).toBe "abc      current < pivot ? left.push(current) : right.push(current);"
+            editor.insertText('\n')
 
-          [cursor1, cursor2] = editor.compositeCursor.getCursors()
-          expect(cursor1.getBufferPosition()).toEqual [3,3]
-          expect(cursor2.getBufferPosition()).toEqual [6,3]
+            expect(editor.lineForBufferRow(3)).toBe "    var pivot"
+            expect(editor.lineForBufferRow(4)).toBe " = items.shift(), current"
+            expect(editor.lineForBufferRow(5)).toBe ", left = [], right = [];"
+            expect(editor.lineForBufferRow(6)).toBe "    while(items.length > 0) {"
 
-      describe "when inserting newlines", ->
-        it "inserts newlines for all cursors", ->
-          editor.setCursorScreenPosition([3, 0])
-          editor.addCursorAtScreenPosition([6, 0])
+            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [4, 0]
+            expect(cursor2.getBufferPosition()).toEqual [5, 0]
 
-          editor.insertText("\n")
-          expect(editor.lineForBufferRow(3)).toBe ""
-          expect(editor.lineForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
-          expect(editor.lineForBufferRow(5)).toBe "    while(items.length > 0) {"
-          expect(editor.lineForBufferRow(6)).toBe "      current = items.shift();"
-          expect(editor.lineForBufferRow(7)).toBe ""
-          expect(editor.lineForBufferRow(8)).toBe "      current < pivot ? left.push(current) : right.push(current);"
-          expect(editor.lineForBufferRow(9)).toBe "    }"
+      describe "when cursors are on different lines", ->
+        describe "when inserting characters other than newlines", ->
+          it "inserts text for all cursors", ->
+            editor.setCursorScreenPosition([3, 0])
+            editor.addCursorAtScreenPosition([6, 0])
 
-          [cursor1, cursor2] = editor.compositeCursor.getCursors()
-          expect(cursor1.getBufferPosition()).toEqual [4,0]
-          expect(cursor2.getBufferPosition()).toEqual [8,0]
+            editor.insertText("abc")
+            expect(editor.lineForBufferRow(3)).toBe "abc    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineForBufferRow(6)).toBe "abc      current < pivot ? left.push(current) : right.push(current);"
+
+            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [3,3]
+            expect(cursor2.getBufferPosition()).toEqual [6,3]
+
+        describe "when inserting newlines", ->
+          it "inserts newlines for all cursors", ->
+            editor.setCursorScreenPosition([3, 0])
+            editor.addCursorAtScreenPosition([6, 0])
+
+            editor.insertText("\n")
+            expect(editor.lineForBufferRow(3)).toBe ""
+            expect(editor.lineForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.lineForBufferRow(5)).toBe "    while(items.length > 0) {"
+            expect(editor.lineForBufferRow(6)).toBe "      current = items.shift();"
+            expect(editor.lineForBufferRow(7)).toBe ""
+            expect(editor.lineForBufferRow(8)).toBe "      current < pivot ? left.push(current) : right.push(current);"
+            expect(editor.lineForBufferRow(9)).toBe "    }"
+
+            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [4,0]
+            expect(cursor2.getBufferPosition()).toEqual [8,0]
 
     describe "backspace", ->
       describe "when cursors are on the same line", ->

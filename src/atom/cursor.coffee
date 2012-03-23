@@ -17,11 +17,18 @@ class Cursor extends View
 
   handleBufferChange: (e) ->
     { newRange, oldRange } = e
-    delta = newRange.end.subtract(oldRange.end)
+    position = @getBufferPosition()
+    return if position.isLessThan(oldRange.end)
 
-    delta.column = 0 if newRange.end.row != @getBufferPosition().row
-    return if @getBufferPosition().isLessThan(oldRange.end)
-    @setBufferPosition(@getBufferPosition().add(delta))
+    newRow = newRange.end.row
+    newColumn = newRange.end.column
+    if position.row == oldRange.end.row
+      newColumn += position.column - oldRange.end.column
+    else
+      newColumn = position.column
+      newRow += position.row - oldRange.end.row
+
+    @setBufferPosition([newRow, newColumn])
 
   setScreenPosition: (position, options={}) ->
     position = Point.fromObject(position)
