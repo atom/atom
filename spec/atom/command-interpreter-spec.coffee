@@ -55,7 +55,7 @@ describe "CommandInterpreter", ->
       it 'does not require the trailing slash', ->
         editor.getSelection().setBufferRange([[4,16], [4,20]])
         interpreter.eval(editor, '/pivot')
-        expect(editor.selection.getBufferRange()).toEqual [[6,16], [6,21]]
+        expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
     describe "address range", ->
       describe "when two addresses are specified", ->
@@ -77,7 +77,6 @@ describe "CommandInterpreter", ->
         it "selects the entire file", ->
           interpreter.eval(editor, ',')
           expect(editor.selection.getBufferRange()).toEqual [[0, 0], [12, 2]]
-
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->
@@ -104,3 +103,25 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(4)).toBe '!!!!while(items.length!>!0)!{'
           expect(buffer.lineForRow(5)).toBe '!!!!!!current!=!items.shift();'
           expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
+
+  describe ".repeatLastRelativeAddress()", ->
+    it "repeats the last search command", ->
+      editor.setCursorScreenPosition([4, 0])
+
+      interpreter.eval(editor, '/current')
+      expect(editor.getSelection().getBufferRange()).toEqual [[5,6], [5,13]]
+
+      interpreter.repeatLastRelativeAddress(editor)
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,6], [6,13]]
+
+      interpreter.eval(editor, 's/r/R/g')
+
+      interpreter.repeatLastRelativeAddress(editor)
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,34], [6,41]]
+
+      interpreter.eval(editor, '0')
+      interpreter.eval(editor, '/sort/ s/r/R/') # this contains a substitution... won't be repeated
+
+      interpreter.repeatLastRelativeAddress(editor)
+      expect(editor.getSelection().getBufferRange()).toEqual [[3,31], [3,38]]
+

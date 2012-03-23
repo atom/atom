@@ -6,7 +6,11 @@ class CommandInterpreter
   constructor: ->
     @parser = PEG.buildParser(fs.read(require.resolve 'commands.pegjs'))
 
-  eval: (editor, command) ->
-    operations = @parser.parse(command)
-    operation.execute(editor) for operation in operations
+  eval: (editor, string) ->
+    command = @parser.parse(string)
+    @lastRelativeAddress = command if command.isRelativeAddress()
+    command.execute(editor)
+
+  repeatLastRelativeAddress: (editor) ->
+    @lastRelativeAddress.execute(editor)
 

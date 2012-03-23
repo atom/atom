@@ -1,4 +1,5 @@
 {
+  var CompositeCommand = require('command-interpreter/composite-command')
   var Substitution = require('command-interpreter/substitution');
   var LineAddress = require('command-interpreter/line-address');
   var AddressRange = require('command-interpreter/address-range');
@@ -9,10 +10,11 @@
 
 start
   = address:address? _ command:substitution? {
-    var operations = [];
-    if (address) operations.push(address);
-    if (command) operations.push(command);
-    return operations;
+    var commands = [];
+    if (address) commands.push(address);
+    if (command) commands.push(command);
+
+    return new CompositeCommand(commands);
   }
 
 address = addressRange / primitiveAddress
