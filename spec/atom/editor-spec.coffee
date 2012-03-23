@@ -821,6 +821,21 @@ describe "Editor", ->
 
       describe "when cursors are on different lines", ->
         it "removes the characters preceding each cursor", ->
+          editor.setCursorScreenPosition([3, 13])
+          editor.addCursorAtScreenPosition([4, 10])
+
+          editor.backspace()
+
+          expect(editor.lineForBufferRow(3)).toBe "    var pivo = items.shift(), current, left = [], right = [];"
+          expect(editor.lineForBufferRow(4)).toBe "    whileitems.length > 0) {"
+
+          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [3, 12]
+          expect(cursor2.getBufferPosition()).toEqual [4, 9]
+
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+          expect(selection1.isEmpty()).toBeTruthy()
+          expect(selection2.isEmpty()).toBeTruthy()
 
         describe "when backspacing over newlines", ->
           it "removes the newlines preceding each cursor", ->
