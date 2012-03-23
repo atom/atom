@@ -12,9 +12,8 @@ class Selection extends View
   modifyingSelection: null
   regions: null
 
-  initialize: (@editor) ->
+  initialize: ({@editor, @cursor}) ->
     @regions = []
-    @cursor = @editor.cursor
     @cursor.on 'cursor:position-changed', =>
       if @modifyingSelection
         @updateAppearance()

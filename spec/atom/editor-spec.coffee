@@ -756,6 +756,27 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
+  describe "multiple cursor placement", ->
+    fit "places multiple cursor with meta-click", ->
+      editor.attachToDom()
+      editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
+      editor.lines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
+
+      [cursor1, cursor2] = editor.find('.cursor').map -> $(this).view()
+      expect(cursor1.position()).toEqual(top: 3 * editor.lineHeight, left: 0)
+      expect(cursor1.getBufferPosition()).toEqual [3, 0]
+      expect(cursor2.position()).toEqual(top: 6 * editor.lineHeight, left: 0)
+      expect(cursor2.getBufferPosition()).toEqual [6, 0]
+
+    fit "inserts text for all cursors", ->
+      editor.setCursorScreenPosition([3, 0])
+      editor.addCursorAtScreenPosition([6, 0])
+
+      editor.insertText("abc")
+
+      expect(editor.lineForBufferRow(3)).toBe "abc    var pivot = items.shift(), current, left = [], right = [];"
+      expect(editor.lineForBufferRow(6)).toBe "abc      current < pivot ? left.push(current) : right.push(current);"
+
   describe "buffer manipulation", ->
     describe "when text input events are triggered on the hidden input element", ->
       describe "when there is no selection", ->

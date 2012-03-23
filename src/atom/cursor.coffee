@@ -12,10 +12,14 @@ class Cursor extends View
   bufferPosition: null
 
   initialize: (@editor) ->
+    @screenPosition = new Point(0, 0)
     @one 'attach', => @updateAppearance()
 
-  bufferChanged: (e) ->
-    @setBufferPosition(e.newRange.end)
+  handleBufferChange: (e) ->
+    { newRange, oldRange } = e
+    if oldRange.end.row == newRange.end.row == @getBufferPosition().row
+      delta = newRange.end.subtract(oldRange.end)
+      @setBufferPosition(@getBufferPosition().add(delta))
 
   setScreenPosition: (position, options={}) ->
     position = Point.fromObject(position)

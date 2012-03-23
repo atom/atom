@@ -1,12 +1,12 @@
 {View, $$} = require 'space-pen'
 AceOutdentAdaptor = require 'ace-outdent-adaptor'
 Buffer = require 'buffer'
-Cursor = require 'cursor'
+CompositeCursor = require 'composite-cursor'
+CompositeSelection = require 'composite-selection'
 Gutter = require 'gutter'
 Renderer = require 'renderer'
 Point = require 'point'
 Range = require 'range'
-Selection = require 'selection'
 EditSession = require 'edit-session'
 
 $ = require 'jquery'
@@ -102,11 +102,14 @@ class Editor extends View
     @on 'close', => @remove(); false
 
   buildCursorAndSelection: ->
-    @cursor = new Cursor(this)
-    @lines.append(@cursor)
+    @compositeSelection = new CompositeSelection(this)
+    @compositeCursor = new CompositeCursor(this)
 
-    @selection = new Selection(this)
-    @lines.append(@selection)
+  addCursorAtScreenPosition: (screenPosition) ->
+    @compositeCursor.addCursorAtScreenPosition(screenPosition)
+
+  addSelectionForCursor: (cursor) ->
+    @compositeSelection.addSelectionForCursor(cursor)
 
   handleEvents: ->
     @on 'focus', =>
@@ -130,7 +133,11 @@ class Editor extends View
       clickCount = e.originalEvent.detail
 
       if clickCount == 1
-        @setCursorScreenPosition @screenPositionFromMouseEvent(e)
+        screenPosition = @screenPositionFromMouseEvent(e)
+        if e.metaKey
+          @addCursorAtScreenPosition(screenPosition)
+        else
+          @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
         @selection.selectWord()
       else if clickCount >= 3
@@ -142,7 +149,7 @@ class Editor extends View
       @insertText(e.originalEvent.data)
 
     @on 'cursor:position-changed', =>
-      position = @pixelPositionForScreenPosition(@cursor.getScreenPosition())
+      position = @pixelPositionForScreenPosition(@getCursorScreenPosition())
       if @softWrap
         position.left = Math.min(position.left, @horizontalScroller.width() - @charWidth)
       @hiddenInput.css(position)
@@ -213,7 +220,7 @@ class Editor extends View
     @editSession.scrollLeft = @horizontalScroller.scrollLeft()
 
   handleBufferChange: (e) ->
-    @cursor.bufferChanged(e) if @isFocused
+    @compositeCursor.handleBufferChange(e) if @isFocused
 
   handleRendererChange: (e) ->
     { oldRange, newRange } = e
@@ -349,8 +356,8 @@ class Editor extends View
 
   getCurrentScreenLine: -> @buffer.lineForRow(@getCursorScreenRow())
   getCurrentBufferLine: -> @buffer.lineForRow(@getCursorBufferRow())
-  setCursorScreenPosition: (position) -> @cursor.setScreenPosition(position)
-  getCursorScreenPosition: -> @cursor.getScreenPosition()
+  setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
+  getCursorScreenPosition: -> @compositeCursor.getScreenPosition()
   setCursorBufferPosition: (position) -> @cursor.setBufferPosition(position)
   getCursorBufferPosition: -> @cursor.getBufferPosition()
   setCursorScreenRow: (row) -> @cursor.setScreenRow(row)
@@ -376,11 +383,12 @@ class Editor extends View
   getBufferLineLength: (row) -> @buffer.getLineLength(row)
   getTextInRange: (range) -> @buffer.getTextInRange(range)
   getEofPosition: -> @buffer.getEofPosition()
+  lineForBufferRow: (row) -> @buffer.lineForRow(row)
 
   insertText: (text) ->
-    { text, shouldOutdent } = @autoIndentText(text)
-    @selection.insertText(text)
-    @autoOutdentText() if shouldOutdent
+    # { text, shouldOutdent } = @autoIndentText(text)
+    @compositeSelection.insertText(text)
+    # @autoOutdentText() if shouldOutdent
 
   autoIndentText: (text) ->
     if @autoIndent
