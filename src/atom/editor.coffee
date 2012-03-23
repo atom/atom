@@ -148,12 +148,6 @@ class Editor extends View
     @hiddenInput.on "textInput", (e) =>
       @insertText(e.originalEvent.data)
 
-    @on 'cursor:position-changed', =>
-      position = @pixelPositionForScreenPosition(@getCursorScreenPosition())
-      if @softWrap
-        position.left = Math.min(position.left, @horizontalScroller.width() - @charWidth)
-      @hiddenInput.css(position)
-
     @horizontalScroller.on 'scroll', =>
       if @horizontalScroller.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
