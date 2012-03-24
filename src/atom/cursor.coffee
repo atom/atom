@@ -30,6 +30,11 @@ class Cursor extends View
 
     @setBufferPosition([newRow, newColumn])
 
+  remove: ->
+    @editor.compositeCursor.removeCursor(this)
+    @editor.compositeSelection.removeSelectionForCursor(this)
+    super()
+
   setScreenPosition: (position, options={}) ->
     position = Point.fromObject(position)
     clip = options.clip ? true

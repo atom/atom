@@ -1,4 +1,5 @@
 Cursor = require 'cursor'
+_ = require 'underscore'
 
 module.exports =
 class CompositeCursor
@@ -20,14 +21,14 @@ class CompositeCursor
     cursor = @addCursor()
     cursor.setScreenPosition(screenPosition)
 
+  removeCursor: (cursor) ->
+    _.remove(@cursors, cursor)
+
   setScreenPosition: (screenPosition) ->
     cursor.setScreenPosition(screenPosition) for cursor in @cursors
 
   getScreenPosition: ->
     @cursors[0].getScreenPosition()
-
-  handleBufferChange: (e) ->
-    cursor.handleBufferChange(e) for cursor in @cursors
 
   moveLeft: ->
     cursor.moveLeft() for cursor in @cursors
@@ -40,3 +41,16 @@ class CompositeCursor
 
   moveDown: ->
     cursor.moveDown() for cursor in @cursors
+
+  handleBufferChange: (e) ->
+    cursor.handleBufferChange(e) for cursor in @cursors
+    @mergeCursors()
+
+  mergeCursors: ->
+    positions = []
+    for cursor in new Array(@cursors...)
+      position = cursor.getBufferPosition().toString()
+      if position in positions
+        cursor.remove()
+      else
+        positions.push(position)

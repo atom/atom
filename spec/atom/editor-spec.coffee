@@ -769,6 +769,24 @@ describe "Editor", ->
       expect(cursor2.position()).toEqual(top: 6 * editor.lineHeight, left: 0)
       expect(cursor2.getBufferPosition()).toEqual [6, 0]
 
+    it "consolidates cursors when they overlap", ->
+      editor.setCursorScreenPosition([0, 0])
+      editor.addCursorAtScreenPosition([0, 1])
+      editor.addCursorAtScreenPosition([1, 1])
+
+      [cursor1, cursor2, cursor3] = editor.compositeCursor.getCursors()
+      expect(editor.compositeCursor.getCursors().length).toBe 3
+
+      editor.backspace()
+      expect(editor.compositeCursor.getCursors().length).toBe 2
+      expect(cursor1.getBufferPosition()).toEqual [0,0]
+      expect(cursor3.getBufferPosition()).toEqual [1,0]
+      expect(cursor2.parent().length).toBe 0
+
+      editor.insertText "x"
+      expect(editor.lineForBufferRow(0)).toBe "xar quicksort = function () {"
+      expect(editor.lineForBufferRow(1)).toBe "x var sort = function(items) {"
+
     describe "inserting text", ->
       describe "when cursors are on the same line", ->
         describe "when inserting newlines", ->

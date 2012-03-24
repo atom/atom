@@ -74,3 +74,5 @@ class Point
   inspect: ->
     "(#{@row}, #{@column})"
 
+  toString: ->
+    "#{@row},#{@column}"
