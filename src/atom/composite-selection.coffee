@@ -28,3 +28,13 @@ class CompositeSeleciton
 
   selectToScreenPosition: (position) ->
     _.last(@selections).selectToScreenPosition(position)
+
+  mergeIntersectingSelections: ->
+    for selection in @getSelections()
+      otherSelections = @getSelections()
+      _.remove(otherSelections, selection)
+      for otherSelection in otherSelections
+        if selection.intersectsWith(otherSelection)
+          selection.merge(otherSelection)
+          @mergeIntersectingSelections()
+          return

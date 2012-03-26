@@ -92,6 +92,17 @@ class Selection extends View
   isEmpty: ->
     @getBufferRange().isEmpty()
 
+  intersectsWith: (otherSelection) ->
+    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
+
+  merge: (otherSelection) ->
+    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()))
+    otherSelection.remove()
+
+  remove: ->
+    @cursor?.remove()
+    super
+
   modifySelection: (fn) ->
     @placeAnchor()
     @modifyingSelection = true

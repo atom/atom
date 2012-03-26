@@ -166,7 +166,9 @@ class Editor extends View
   selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
     @on 'mousemove', moveHandler
-    $(document).one 'mouseup', => @off 'mousemove', moveHandler
+    $(document).one 'mouseup', =>
+      @off 'mousemove', moveHandler
+      @compositeSelection.mergeIntersectingSelections()
 
   renderLines: ->
     @lineCache = []

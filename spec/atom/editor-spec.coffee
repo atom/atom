@@ -757,7 +757,7 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
-  fdescribe "multiple cursor placement", ->
+  fdescribe "multiple cursors", ->
     it "places multiple cursor with meta-click", ->
       editor.attachToDom()
       editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
@@ -918,6 +918,22 @@ describe "Editor", ->
         [selection1, selection2] = selections
         expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
         expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
+
+      describe "when multiple selctions intersect", ->
+        it "merges a selection that is completely contained within another", ->
+          editor.attachToDom()
+          editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
+          editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+          editor.lines.trigger 'mouseup'
+
+          editor.lines.trigger mousedownEvent(editor: editor, point: [3, 10], metaKey: true)
+          editor.lines.trigger mousemoveEvent(editor: editor, point: [6, 27], metaKey: true)
+          editor.lines.trigger 'mouseup'
+
+          selections = editor.compositeSelection.getSelections()
+          expect(selections.length).toBe 1
+          [selection1] = selections
+          expect(selection1.getScreenRange()).toEqual [[3, 10], [6, 27]]
 
     describe "cursor merging", ->
       it "merges cursors when they overlap due to a buffer change", ->
