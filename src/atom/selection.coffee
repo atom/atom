@@ -85,12 +85,13 @@ class Selection extends View
 
   autoIndentText: (text) ->
     if @editor.autoIndent
+      mode = @editor.getCurrentMode()
       row = @cursor.getScreenPosition().row
-      state = @editor.renderer.lineForRow(row).state
+      state = @editor.stateForScreenRow(row)
       if text[0] == "\n"
-        indent = @editor.buffer.mode.getNextLineIndent(state, @cursor.getCurrentBufferLine(), atom.tabText)
+        indent = mode.getNextLineIndent(state, @cursor.getCurrentBufferLine(), atom.tabText)
         text = text[0] + indent + text[1..]
-      else if @editor.buffer.mode.checkOutdent(state, @cursor.getCurrentBufferLine(), text)
+      else if mode.checkOutdent(state, @cursor.getCurrentBufferLine(), text)
         shouldOutdent = true
 
     {text, shouldOutdent}
@@ -99,7 +100,7 @@ class Selection extends View
     screenRow = @cursor.getScreenPosition().row
     bufferRow = @cursor.getBufferPosition().row
     state = @editor.renderer.lineForRow(screenRow).state
-    @editor.buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@editor.buffer, @editor), bufferRow)
+    @editor.getCurrentMode().autoOutdent(state, new AceOutdentAdaptor(@editor.buffer, @editor), bufferRow)
 
   backspace: ->
     @selectLeft() if @isEmpty()

@@ -442,3 +442,9 @@ class Editor extends View
   unsubscribeFromBuffer: ->
     @buffer.off ".editor#{@id}"
     @renderer.destroy()
+
+  stateForScreenRow: (row) ->
+    @renderer.lineForRow(row).state
+
+  getCurrentMode: ->
+    @buffer.getMode()
