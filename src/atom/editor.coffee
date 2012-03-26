@@ -349,7 +349,6 @@ class Editor extends View
   moveCursorRight: -> @compositeCursor.moveRight()
   moveCursorLeft: -> @compositeCursor.moveLeft()
 
-  getCurrentBufferLine: -> @buffer.lineForRow(@getCursorBufferRow())
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
   getCursorScreenPosition: -> @getCursor().getScreenPosition()
   setCursorBufferPosition: (position) -> @getCursor().setBufferPosition(position)

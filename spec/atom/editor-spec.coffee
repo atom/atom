@@ -1020,13 +1020,13 @@ describe "Editor", ->
         it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
           editor.setCursorScreenPosition(row: 1, column: 6)
 
-          expect(editor.getCurrentBufferLine().charAt(6)).not.toBe 'q'
+          expect(buffer.lineForRow(1).charAt(6)).not.toBe 'q'
 
           editor.hiddenInput.textInput 'q'
 
-          expect(editor.getCurrentBufferLine().charAt(6)).toBe 'q'
+          expect(buffer.lineForRow(1).charAt(6)).toBe 'q'
           expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
-          expect(editor.lines.find('.line:eq(1)')).toHaveText editor.getCurrentBufferLine()
+          expect(editor.lines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
 
         it "does not update the cursor position if the editor is not focused", ->
           editor.isFocused = false
