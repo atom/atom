@@ -1,5 +1,4 @@
 {View, $$} = require 'space-pen'
-AceOutdentAdaptor = require 'ace-outdent-adaptor'
 Buffer = require 'buffer'
 CompositeCursor = require 'composite-cursor'
 CompositeSelection = require 'composite-selection'
@@ -350,7 +349,6 @@ class Editor extends View
   moveCursorRight: -> @compositeCursor.moveRight()
   moveCursorLeft: -> @compositeCursor.moveLeft()
 
-  getCurrentScreenLine: -> @buffer.lineForRow(@getCursorScreenRow())
   getCurrentBufferLine: -> @buffer.lineForRow(@getCursorBufferRow())
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
   getCursorScreenPosition: -> @getCursor().getScreenPosition()
@@ -381,27 +379,7 @@ class Editor extends View
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
 
   insertText: (text) ->
-    { text, shouldOutdent } = @autoIndentText(text)
     @compositeSelection.insertText(text)
-    @autoOutdentText() if shouldOutdent
-
-  autoIndentText: (text) ->
-    if @autoIndent
-      row = @getCursorScreenPosition().row
-      state = @renderer.lineForRow(row).state
-      if text[0] == "\n"
-        indent = @buffer.mode.getNextLineIndent(state, @getCurrentBufferLine(), atom.tabText)
-        text = text[0] + indent + text[1..]
-      else if @buffer.mode.checkOutdent(state, @getCurrentBufferLine(), text)
-        shouldOutdent = true
-
-    {text, shouldOutdent}
-
-  autoOutdentText: ->
-    screenRow = @getCursorScreenPosition().row
-    bufferRow = @getCursorBufferPosition().row
-    state = @renderer.lineForRow(screenRow).state
-    @buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@buffer, this), bufferRow)
 
   cutSelection: -> @getSelection().cut()
   copySelection: -> @getSelection().copy()

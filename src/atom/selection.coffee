@@ -1,4 +1,5 @@
 Cursor = require 'cursor'
+AceOutdentAdaptor = require 'ace-outdent-adaptor'
 
 Range = require 'range'
 {View, $$} = require 'space-pen'
@@ -78,7 +79,27 @@ class Selection extends View
     @editor.buffer.getTextInRange @getBufferRange()
 
   insertText: (text) ->
+    { text, shouldOutdent } = @autoIndentText(text)
     @editor.buffer.change(@getBufferRange(), text)
+    @autoOutdentText() if shouldOutdent
+
+  autoIndentText: (text) ->
+    if @editor.autoIndent
+      row = @cursor.getScreenPosition().row
+      state = @editor.renderer.lineForRow(row).state
+      if text[0] == "\n"
+        indent = @editor.buffer.mode.getNextLineIndent(state, @cursor.getCurrentBufferLine(), atom.tabText)
+        text = text[0] + indent + text[1..]
+      else if @editor.buffer.mode.checkOutdent(state, @cursor.getCurrentBufferLine(), text)
+        shouldOutdent = true
+
+    {text, shouldOutdent}
+
+  autoOutdentText: ->
+    screenRow = @cursor.getScreenPosition().row
+    bufferRow = @cursor.getBufferPosition().row
+    state = @editor.renderer.lineForRow(screenRow).state
+    @editor.buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@editor.buffer, @editor), bufferRow)
 
   backspace: ->
     @selectLeft() if @isEmpty()

@@ -591,6 +591,14 @@ describe "Editor", ->
           expect(editor.buffer.lineForRow(2)).toEqual("  }")
           expect(editor.getCursorBufferPosition().column).toBe 3
 
+      describe "when newlines are inserted for multiple cursors", ->
+        it "auto-indents the newline for each cursor", ->
+          editor.setCursorScreenPosition([1, 30])
+          editor.addCursorAtScreenPosition([4, 29])
+          editor.insertText("\n")
+          expect(editor.buffer.lineForRow(2)).toEqual("    ")
+          expect(editor.buffer.lineForRow(6)).toEqual("      ")
+
     describe "when editing a line that spans multiple screen lines", ->
       beforeEach ->
         editor.setSoftWrap(true, 50)
