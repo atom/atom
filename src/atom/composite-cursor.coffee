@@ -25,7 +25,7 @@ class CompositeCursor
     _.remove(@cursors, cursor)
 
   setScreenPosition: (screenPosition) ->
-    cursor.setScreenPosition(screenPosition) for cursor in @cursors
+    @modifyCursors (cursor) -> cursor.setScreenPosition(screenPosition)
 
   getScreenPosition: ->
     @cursors[0].getScreenPosition()

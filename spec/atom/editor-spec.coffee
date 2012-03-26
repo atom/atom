@@ -769,59 +769,6 @@ describe "Editor", ->
       expect(cursor2.position()).toEqual(top: 6 * editor.lineHeight, left: 0)
       expect(cursor2.getBufferPosition()).toEqual [6, 0]
 
-    it "consolidates cursors when they overlap due to a buffer change", ->
-      editor.setCursorScreenPosition([0, 0])
-      editor.addCursorAtScreenPosition([0, 1])
-      editor.addCursorAtScreenPosition([1, 1])
-
-      [cursor1, cursor2, cursor3] = editor.compositeCursor.getCursors()
-      expect(editor.compositeCursor.getCursors().length).toBe 3
-
-      editor.backspace()
-      expect(editor.compositeCursor.getCursors().length).toBe 2
-      expect(cursor1.getBufferPosition()).toEqual [0,0]
-      expect(cursor3.getBufferPosition()).toEqual [1,0]
-      expect(cursor2.parent().length).toBe 0
-
-      editor.insertText "x"
-      expect(editor.lineForBufferRow(0)).toBe "xar quicksort = function () {"
-      expect(editor.lineForBufferRow(1)).toBe "x var sort = function(items) {"
-
-    it "consolidates cursors when they overlap due to movement", ->
-      editor.setCursorScreenPosition([0, 0])
-      editor.addCursorAtScreenPosition([0, 1])
-
-      [cursor1, cursor2] = editor.compositeCursor.getCursors()
-      editor.moveCursorLeft()
-      expect(editor.compositeCursor.getCursors().length).toBe 1
-      expect(cursor2.parent()).not.toExist()
-      expect(cursor1.getBufferPosition()).toEqual [0,0]
-
-      editor.addCursorAtScreenPosition([1, 0])
-      [cursor1, cursor2] = editor.compositeCursor.getCursors()
-
-      editor.moveCursorUp()
-      expect(editor.compositeCursor.getCursors().length).toBe 1
-      expect(cursor2.parent()).not.toExist()
-      expect(cursor1.getBufferPosition()).toEqual [0,0]
-
-      editor.setCursorScreenPosition([12, 2])
-      editor.addCursorAtScreenPosition([12, 1])
-      [cursor1, cursor2] = editor.compositeCursor.getCursors()
-
-      editor.moveCursorRight()
-      expect(editor.compositeCursor.getCursors().length).toBe 1
-      expect(cursor2.parent()).not.toExist()
-      expect(cursor1.getBufferPosition()).toEqual [12,2]
-
-      editor.addCursorAtScreenPosition([11, 2])
-      [cursor1, cursor2] = editor.compositeCursor.getCursors()
-
-      editor.moveCursorDown()
-      expect(editor.compositeCursor.getCursors().length).toBe 1
-      expect(cursor2.parent()).not.toExist()
-      expect(cursor1.getBufferPosition()).toEqual [12,2]
-
     describe "inserting text", ->
       describe "when cursors are on the same line", ->
         describe "when inserting newlines", ->
@@ -923,7 +870,7 @@ describe "Editor", ->
             expect(cursor1.getBufferPosition()).toEqual [2,40]
             expect(cursor2.getBufferPosition()).toEqual [4,30]
 
-    describe "cursor movement", ->
+    describe "keyboard movement", ->
       it "moves all cursors", ->
         editor.setCursorScreenPosition([3, 13])
         editor.addCursorAtScreenPosition([3, 38])
@@ -954,6 +901,94 @@ describe "Editor", ->
         expect(cursor1.getBufferPosition()).toEqual [3, 12]
         expect(cursor2.getBufferPosition()).toEqual [3, 37]
         expect(cursor3.getBufferPosition()).toEqual [4, 0]
+
+    describe "selections", ->
+      it "adds an additional selection upon clicking and dragging with the meta-key held down", ->
+        editor.attachToDom()
+        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        editor.lines.trigger 'mouseup'
+
+        editor.lines.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
+        editor.lines.trigger 'mouseup'
+
+        selections = editor.compositeSelection.getSelections()
+        expect(selections.length).toBe 2
+        [selection1, selection2] = selections
+        expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
+        expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
+
+    describe "cursor merging", ->
+      it "merges cursors when they overlap due to a buffer change", ->
+        editor.setCursorScreenPosition([0, 0])
+        editor.addCursorAtScreenPosition([0, 1])
+        editor.addCursorAtScreenPosition([1, 1])
+
+        [cursor1, cursor2, cursor3] = editor.compositeCursor.getCursors()
+        expect(editor.compositeCursor.getCursors().length).toBe 3
+
+        editor.backspace()
+        expect(editor.compositeCursor.getCursors().length).toBe 2
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor3.getBufferPosition()).toEqual [1,0]
+        expect(cursor2.parent().length).toBe 0
+
+        editor.insertText "x"
+        expect(editor.lineForBufferRow(0)).toBe "xar quicksort = function () {"
+        expect(editor.lineForBufferRow(1)).toBe "x var sort = function(items) {"
+
+      it "merges cursors when they overlap due to movement", ->
+        editor.setCursorScreenPosition([0, 0])
+        editor.addCursorAtScreenPosition([0, 1])
+
+        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+        editor.moveCursorLeft()
+        expect(editor.compositeCursor.getCursors().length).toBe 1
+        expect(cursor2.parent()).not.toExist()
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+
+        editor.addCursorAtScreenPosition([1, 0])
+        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+
+        editor.moveCursorUp()
+        expect(editor.compositeCursor.getCursors().length).toBe 1
+        expect(cursor2.parent()).not.toExist()
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+
+        editor.setCursorScreenPosition([12, 2])
+        editor.addCursorAtScreenPosition([12, 1])
+        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+
+        editor.moveCursorRight()
+        expect(editor.compositeCursor.getCursors().length).toBe 1
+        expect(cursor2.parent()).not.toExist()
+        expect(cursor1.getBufferPosition()).toEqual [12,2]
+
+        editor.addCursorAtScreenPosition([11, 2])
+        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+
+        editor.moveCursorDown()
+        expect(editor.compositeCursor.getCursors().length).toBe 1
+        expect(cursor2.parent()).not.toExist()
+        expect(cursor1.getBufferPosition()).toEqual [12,2]
+
+      it "merges cursors when the mouse is clicked without the meta-key", ->
+        editor.attachToDom()
+        editor.setCursorScreenPosition([0, 0])
+        editor.addCursorAtScreenPosition([0, 1])
+
+        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7])
+        expect(editor.compositeCursor.getCursors().length).toBe 1
+        expect(cursor2.parent()).not.toExist()
+        expect(cursor1.getBufferPosition()).toEqual [4, 7]
+
+        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+
+        selections = editor.compositeSelection.getSelections()
+        expect(selections.length).toBe 1
+        expect(selections[0].getBufferRange()).toEqual [[4,7], [5,27]]
 
   describe "buffer manipulation", ->
     describe "when text input events are triggered on the hidden input element", ->

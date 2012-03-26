@@ -143,7 +143,7 @@ class Editor extends View
       else if clickCount >= 3
         @selection.selectLine()
 
-      @selectTextOnMouseMovement()
+      @selectOnMousemoveUntilMouseup()
 
     @hiddenInput.on "textInput", (e) =>
       @insertText(e.originalEvent.data)
@@ -163,7 +163,7 @@ class Editor extends View
   rootView: ->
     @parents('#root-view').view()
 
-  selectTextOnMouseMovement: ->
+  selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', => @off 'mousemove', moveHandler
@@ -368,7 +368,7 @@ class Editor extends View
   selectLeft: -> @selection.selectLeft()
   selectUp: -> @selection.selectUp()
   selectDown: -> @selection.selectDown()
-  selectToScreenPosition: (position) -> @selection.selectToScreenPosition(position)
+  selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
   selectToBufferPosition: (position) -> @selection.selectToBufferPosition(position)
 
   setText: (text) -> @buffer.setText(text)

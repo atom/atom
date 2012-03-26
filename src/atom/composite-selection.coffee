@@ -25,3 +25,6 @@ class CompositeSeleciton
   backspace: ->
     for selection in @getSelections()
       selection.backspace()
+
+  selectToScreenPosition: (position) ->
+    _.last(@selections).selectToScreenPosition(position)
