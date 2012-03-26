@@ -769,7 +769,7 @@ describe "Editor", ->
       expect(cursor2.position()).toEqual(top: 6 * editor.lineHeight, left: 0)
       expect(cursor2.getBufferPosition()).toEqual [6, 0]
 
-    it "consolidates cursors when they overlap", ->
+    it "consolidates cursors when they overlap due to a buffer change", ->
       editor.setCursorScreenPosition([0, 0])
       editor.addCursorAtScreenPosition([0, 1])
       editor.addCursorAtScreenPosition([1, 1])
@@ -786,6 +786,41 @@ describe "Editor", ->
       editor.insertText "x"
       expect(editor.lineForBufferRow(0)).toBe "xar quicksort = function () {"
       expect(editor.lineForBufferRow(1)).toBe "x var sort = function(items) {"
+
+    it "consolidates cursors when they overlap due to movement", ->
+      editor.setCursorScreenPosition([0, 0])
+      editor.addCursorAtScreenPosition([0, 1])
+
+      [cursor1, cursor2] = editor.compositeCursor.getCursors()
+      editor.moveCursorLeft()
+      expect(editor.compositeCursor.getCursors().length).toBe 1
+      expect(cursor2.parent()).not.toExist()
+      expect(cursor1.getBufferPosition()).toEqual [0,0]
+
+      editor.addCursorAtScreenPosition([1, 0])
+      [cursor1, cursor2] = editor.compositeCursor.getCursors()
+
+      editor.moveCursorUp()
+      expect(editor.compositeCursor.getCursors().length).toBe 1
+      expect(cursor2.parent()).not.toExist()
+      expect(cursor1.getBufferPosition()).toEqual [0,0]
+
+      editor.setCursorScreenPosition([12, 2])
+      editor.addCursorAtScreenPosition([12, 1])
+      [cursor1, cursor2] = editor.compositeCursor.getCursors()
+
+      editor.moveCursorRight()
+      expect(editor.compositeCursor.getCursors().length).toBe 1
+      expect(cursor2.parent()).not.toExist()
+      expect(cursor1.getBufferPosition()).toEqual [12,2]
+
+      editor.addCursorAtScreenPosition([11, 2])
+      [cursor1, cursor2] = editor.compositeCursor.getCursors()
+
+      editor.moveCursorDown()
+      expect(editor.compositeCursor.getCursors().length).toBe 1
+      expect(cursor2.parent()).not.toExist()
+      expect(cursor1.getBufferPosition()).toEqual [12,2]
 
     describe "inserting text", ->
       describe "when cursors are on the same line", ->

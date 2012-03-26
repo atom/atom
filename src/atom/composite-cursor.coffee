@@ -30,21 +30,24 @@ class CompositeCursor
   getScreenPosition: ->
     @cursors[0].getScreenPosition()
 
+  modifyCursors: (fn) ->
+    fn(cursor) for cursor in @cursors
+    @mergeCursors()
+
   moveLeft: ->
-    cursor.moveLeft() for cursor in @cursors
+    @modifyCursors (cursor) -> cursor.moveLeft()
 
   moveRight: ->
-    cursor.moveRight() for cursor in @cursors
+    @modifyCursors (cursor) -> cursor.moveRight()
 
   moveUp: ->
-    cursor.moveUp() for cursor in @cursors
+    @modifyCursors (cursor) -> cursor.moveUp()
 
   moveDown: ->
-    cursor.moveDown() for cursor in @cursors
+    @modifyCursors (cursor) -> cursor.moveDown()
 
   handleBufferChange: (e) ->
-    cursor.handleBufferChange(e) for cursor in @cursors
-    @mergeCursors()
+    @modifyCursors (cursor) -> cursor.handleBufferChange(e)
 
   mergeCursors: ->
     positions = []
