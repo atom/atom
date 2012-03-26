@@ -351,14 +351,8 @@ class Editor extends View
 
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
   getCursorScreenPosition: -> @getCursor().getScreenPosition()
-  setCursorBufferPosition: (position) -> @getCursor().setBufferPosition(position)
+  setCursorBufferPosition: (position) -> @compositeCursor.setBufferPosition(position)
   getCursorBufferPosition: -> @getCursor().getBufferPosition()
-  setCursorScreenRow: (row) -> @getCursor().setScreenRow(row)
-  getCursorScreenRow: -> @getCursor().getScreenRow()
-  getCursorBufferRow: -> @getCursor().getBufferPosition().row
-  getCursorScreenColumn: -> @getCursor().getScreenColumn()
-  setCursorBufferColumn: (column) -> @getCursor().setBufferColumn(column)
-  getCursorBufferColumn: -> @getCursor().getBufferColumn()
 
   getSelection: (index) -> @compositeSelection.getSelection(index)
   getSelectedText: -> @compositeSelection.getSelection().getText()

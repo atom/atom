@@ -31,14 +31,8 @@ class CompositeCursor
   setScreenPosition: (screenPosition) ->
     @modifyCursors (cursor) -> cursor.setScreenPosition(screenPosition)
 
-  getScreenPosition: ->
-    @cursors[0].getScreenPosition()
-
   setBufferPosition: (bufferPosition) ->
     @modifyCursors (cursor) -> cursor.setBufferPosition(bufferPosition)
-
-  getBufferPosition: ->
-    @cursors[0].getBufferPosition()
 
   refreshScreenPosition: ->
     @modifyCursors (cursor) -> cursor.refreshScreenPosition()
