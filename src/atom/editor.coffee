@@ -348,7 +348,6 @@ class Editor extends View
   moveCursorDown: -> @compositeCursor.moveDown()
   moveCursorRight: -> @compositeCursor.moveRight()
   moveCursorLeft: -> @compositeCursor.moveLeft()
-
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
   getCursorScreenPosition: -> @getCursor().getScreenPosition()
   setCursorBufferPosition: (position) -> @compositeCursor.setBufferPosition(position)
@@ -356,6 +355,8 @@ class Editor extends View
 
   getSelection: (index) -> @compositeSelection.getSelection(index)
   getSelectedText: -> @compositeSelection.getSelection().getText()
+  setSelectionBufferRange: (bufferRange) -> @compositeSelection.setBufferRange(bufferRange)
+  addSelectionForBufferRange: (bufferRange) -> @compositeSelection.addSelectionForBufferRange(bufferRange)
   selectRight: -> @compositeSelection.getSelection().selectRight()
   selectLeft: -> @compositeSelection.getSelection().selectLeft()
   selectUp: -> @compositeSelection.getSelection().selectUp()
@@ -374,8 +375,8 @@ class Editor extends View
   insertText: (text) ->
     @compositeSelection.insertText(text)
 
-  cutSelection: -> @getSelection().cut()
-  copySelection: -> @getSelection().copy()
+  cutSelection: -> @compositeSelection.cut()
+  copySelection: -> @compositeSelection.copy()
   paste: -> @insertText($native.readFromPasteboard())
 
   foldSelection: -> @getSelection().fold()

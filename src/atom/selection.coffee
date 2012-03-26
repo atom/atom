@@ -10,13 +10,13 @@ class Selection extends View
     @div()
 
   anchor: null
-  modifyingSelection: null
+  retainSelection: null
   regions: null
 
   initialize: ({@editor, @cursor}) ->
     @regions = []
     @cursor.on 'cursor:position-changed', =>
-      if @modifyingSelection
+      if @retainSelection
         @updateAppearance()
       else
         @clearSelection()
@@ -109,7 +109,7 @@ class Selection extends View
 
   delete: ->
     range = @getBufferRange()
-    @editor.buffer.change(range, '') unless range.isEmpty()
+    @editor.buffer.delete(range) unless range.isEmpty()
 
   isEmpty: ->
     @getBufferRange().isEmpty()
@@ -127,9 +127,9 @@ class Selection extends View
 
   modifySelection: (fn) ->
     @placeAnchor()
-    @modifyingSelection = true
+    @retainSelection = true
     fn()
-    @modifyingSelection = false
+    @retainSelection = false
 
   placeAnchor: ->
     return if @anchor
@@ -191,13 +191,14 @@ class Selection extends View
   moveCursorToLineStart: ->
     @cursor.moveToLineStart()
 
-  cut: ->
-    @copy()
+  cut: (maintainPasteboard=false) ->
+    @copy(maintainPasteboard)
     @delete()
 
-  copy: ->
+  copy: (maintainPasteboard=false) ->
     return if @isEmpty()
     text = @editor.buffer.getTextInRange(@getBufferRange())
+    text = $native.readFromPasteboard() + "\n" + text if maintainPasteboard
     $native.writeToPasteboard text
 
   fold: ->

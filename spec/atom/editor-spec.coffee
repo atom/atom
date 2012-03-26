@@ -1263,33 +1263,58 @@ describe "Editor", ->
       expect(editor.clipScreenPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
 
   describe "cut, copy & paste", ->
+    pasteboard = null
     beforeEach ->
-      $native.writeToPasteboard('first')
-      expect($native.readFromPasteboard()).toBe 'first'
+      pasteboard = 'first'
+      spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboard = text
+      spyOn($native, 'readFromPasteboard').andCallFake -> pasteboard
 
-    describe "when a cut event is triggered", ->
-      it "removes the selected text from the buffer and places it on the pasteboard", ->
-        editor.getSelection().setBufferRange new Range([0,4], [0,9])
-        editor.trigger "cut"
-        expect(editor.buffer.lineForRow(0)).toBe "var sort = function () {"
-        expect($native.readFromPasteboard()).toBe 'quick'
+    describe "with a single selection", ->
+      beforeEach ->
+        editor.setSelectionBufferRange([[0, 4], [0, 13]])
 
-    describe "when a copy event is triggered", ->
-      it "copies selected text onto the clipboard", ->
-        editor.getSelection().setBufferRange new Range([0,4], [0, 13])
-        editor.trigger "copy"
-        expect($native.readFromPasteboard()).toBe 'quicksort'
+      describe "when a cut event is triggered", ->
+        it "removes the selected text from the buffer and places it on the pasteboard", ->
+          editor.trigger "cut"
+          expect(buffer.lineForRow(0)).toBe "var  = function () {"
+          expect($native.readFromPasteboard()).toBe 'quicksort'
 
-    describe "when a paste event is triggered", ->
-      it "pastes text into the buffer", ->
-        editor.setCursorScreenPosition [0, 4]
-        editor.trigger "paste"
-        expect(editor.buffer.lineForRow(0)).toBe "var firstquicksort = function () {"
+      describe "when a copy event is triggered", ->
+        it "copies selected text onto the clipboard", ->
+          editor.trigger "copy"
+          expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+          expect($native.readFromPasteboard()).toBe 'quicksort'
 
-        expect(editor.buffer.lineForRow(1)).toBe "  var sort = function(items) {"
-        editor.getSelection().setBufferRange new Range([1,6], [1,10])
-        editor.trigger "paste"
-        expect(editor.buffer.lineForRow(1)).toBe "  var first = function(items) {"
+      describe "when a paste event is triggered", ->
+        it "pastes text into the buffer", ->
+          editor.trigger "paste"
+          expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
+
+    describe "with multiple selections", ->
+      beforeEach ->
+        editor.setSelectionBufferRange([[0, 4], [0, 13]])
+        editor.addSelectionForBufferRange([[1, 6], [1, 10]])
+
+      describe "when a cut event is triggered", ->
+        it "removes the selected text from the buffer and places it on the pasteboard", ->
+          editor.trigger "cut"
+          expect(buffer.lineForRow(0)).toBe "var  = function () {"
+          expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"
+
+          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+
+      describe "when a copy event is triggered", ->
+        it "copies selected text onto the clipboard", ->
+          editor.trigger "copy"
+          expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+          expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+
+      describe "when a paste event is triggered", ->
+        it "pastes text into the buffer", ->
+          editor.trigger "paste"
+          expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
+          expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
   describe "folding", ->
     describe "when a fold-selection event is triggered", ->

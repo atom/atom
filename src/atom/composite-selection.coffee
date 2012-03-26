@@ -17,6 +17,10 @@ class CompositeSeleciton
     @selections.push(selection)
     @editor.lines.append(selection)
 
+  addSelectionForBufferRange: (bufferRange) ->
+    cursor = @editor.compositeCursor.addCursor()
+    @selectionForCursor(cursor).setBufferRange(bufferRange)
+
   removeSelectionForCursor: (cursor) ->
     _.remove(@selections, @selectionForCursor(cursor))
 
@@ -24,7 +28,8 @@ class CompositeSeleciton
     _.find @selections, (selection) -> selection.cursor == cursor
 
   insertText: (text) ->
-    selection.insertText(text) for selection in @selections
+    @modifySelections (selection) ->
+      selection.insertText(text)
 
   backspace: ->
     for selection in @getSelections()
@@ -54,3 +59,21 @@ class CompositeSeleciton
           selection.merge(otherSelection)
           @mergeIntersectingSelections()
           return
+
+  modifySelections: (fn) ->
+    selection.retainSelection = true for selection in @getSelections()
+    for selection in @getSelections()
+      selection.retainSelection = false
+      fn(selection)
+
+  cut: ->
+    maintainPasteboard = false
+    @modifySelections (selection) ->
+      selection.cut(maintainPasteboard)
+      maintainPasteboard = true
+
+  copy: ->
+    maintainPasteboard = false
+    for selection in @getSelections()
+      selection.copy(maintainPasteboard)
+      maintainPasteboard = true
