@@ -80,11 +80,11 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
         expect(editor.lines.find('.line:eq(4)').text()).toBe "right = [];"
 
-        editor.cursor.setBufferPosition([3, 51])
-        expect(editor.cursor.offset()).toEqual(editor.lines.find('.line:eq(4)').offset())
+        editor.setCursorBufferPosition([3, 51])
+        expect(editor.find('.cursor').offset()).toEqual(editor.lines.find('.line:eq(4)').offset())
 
-        editor.cursor.setBufferPosition([4, 0])
-        expect(editor.cursor.offset()).toEqual(editor.lines.find('.line:eq(5)').offset())
+        editor.setCursorBufferPosition([4, 0])
+        expect(editor.find('.cursor').offset()).toEqual(editor.lines.find('.line:eq(5)').offset())
 
         editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
         [region1, region2] = editor.getSelection().regions
@@ -309,7 +309,7 @@ describe "Editor", ->
           expect(editor.getCursorScreenPosition().column).not.toBe 6
 
           # clear the goal column by explicitly setting the cursor position
-          editor.setCursorScreenColumn(6)
+          editor.setCursorScreenPosition([4,6])
           expect(editor.getCursorScreenPosition().column).toBe 6
 
           editor.moveCursorDown()
@@ -757,7 +757,7 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
-  fdescribe "multiple cursors", ->
+  describe "multiple cursors", ->
     it "places multiple cursor with meta-click", ->
       editor.attachToDom()
       editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
@@ -1295,10 +1295,10 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [4, 32]
 
-        editor.setCursorScreenPosition([9, 2])
-        expect(editor.getCursorScreenPosition()).toEqual [9, 2]
+        editor.setCursorBufferPosition([9, 4])
+        expect(editor.getCursorScreenPosition()).toEqual [6, 4]
 
-        buffer.insert([9, 4], 'x')
+        editor.insertText('x')
         expect(editor.getCursorScreenPosition()).toEqual [6, 5]
         expect(editor.getCursorBufferPosition()).toEqual [9, 5]
 
@@ -1422,8 +1422,3 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(13)').text()).toBe 'A'
         expect(editor.lines.find('.line:eq(14)').text()).toBe 'B'
         expect(editor.lines.find('.line:eq(15)')).not.toExist()
-
-
-
-
-

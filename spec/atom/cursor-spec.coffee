@@ -12,7 +12,7 @@ describe "Cursor", ->
     editor = new Editor
     editor.enableKeymap()
     editor.setBuffer(buffer)
-    cursor = editor.cursor
+    cursor = editor.find('.cursor').view()
 
   describe "adding and removing of the idle class", ->
     it "removes the idle class while moving, then adds it back when it stops", ->

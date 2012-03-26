@@ -6,6 +6,10 @@ class CompositeSeleciton
   constructor: (@editor) ->
     @selections = []
 
+  getSelection: (index) ->
+    index ?= @selections.length - 1
+    @selections[index]
+
   getSelections: -> new Array(@selections...)
 
   addSelectionForCursor: (cursor) ->
@@ -27,7 +31,19 @@ class CompositeSeleciton
       selection.backspace()
 
   selectToScreenPosition: (position) ->
-    _.last(@selections).selectToScreenPosition(position)
+    @lastSelection().selectToScreenPosition(position)
+
+  setBufferRange: (bufferRange) ->
+    @lastSelection().setBufferRange(bufferRange)
+
+  getBufferRange: (bufferRange) ->
+    @lastSelection().getBufferRange()
+
+  getText: ->
+    @lastSelection().getText()
+
+  lastSelection: ->
+    _.last(@selections)
 
   mergeIntersectingSelections: ->
     for selection in @getSelections()

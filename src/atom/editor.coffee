@@ -139,9 +139,9 @@ class Editor extends View
         else
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
-        @selection.selectWord()
+        @compositeSelection.lastSelection().selectWord()
       else if clickCount >= 3
-        @selection.selectLine()
+        @compositeSelection.lastSelection().selectLine()
 
       @selectOnMousemoveUntilMouseup()
 
@@ -223,7 +223,7 @@ class Editor extends View
     unless newRange.isSingleLine() and newRange.coversSameRows(oldRange)
       @gutter.renderLineNumbers(@getScreenLines())
 
-    @cursor.refreshScreenPosition() unless e.bufferChanged
+    @compositeCursor.refreshScreenPosition() unless e.bufferChanged
 
     lineElements = @buildLineElements(newRange.start.row, newRange.end.row)
     @replaceLineElements(oldRange.start.row, oldRange.end.row, lineElements)
@@ -344,7 +344,7 @@ class Editor extends View
     @lineHeight = fragment.outerHeight()
     fragment.remove()
 
-  getCursor: -> @cursor
+  getCursor: (index) -> @compositeCursor.getCursor(index)
   moveCursorUp: -> @compositeCursor.moveUp()
   moveCursorDown: -> @compositeCursor.moveDown()
   moveCursorRight: -> @compositeCursor.moveRight()
@@ -353,25 +353,24 @@ class Editor extends View
   getCurrentScreenLine: -> @buffer.lineForRow(@getCursorScreenRow())
   getCurrentBufferLine: -> @buffer.lineForRow(@getCursorBufferRow())
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
-  getCursorScreenPosition: -> @compositeCursor.getScreenPosition()
-  setCursorBufferPosition: (position) -> @cursor.setBufferPosition(position)
-  getCursorBufferPosition: -> @cursor.getBufferPosition()
-  setCursorScreenRow: (row) -> @cursor.setScreenRow(row)
-  getCursorScreenRow: -> @cursor.getScreenRow()
-  getCursorBufferRow: -> @cursor.getBufferRow()
-  setCursorScreenColumn: (column) -> @cursor.setScreenColumn(column)
-  getCursorScreenColumn: -> @cursor.getScreenColumn()
-  setCursorBufferColumn: (column) -> @cursor.setBufferColumn(column)
-  getCursorBufferColumn: -> @cursor.getBufferColumn()
+  getCursorScreenPosition: -> @getCursor().getScreenPosition()
+  setCursorBufferPosition: (position) -> @getCursor().setBufferPosition(position)
+  getCursorBufferPosition: -> @getCursor().getBufferPosition()
+  setCursorScreenRow: (row) -> @getCursor().setScreenRow(row)
+  getCursorScreenRow: -> @getCursor().getScreenRow()
+  getCursorBufferRow: -> @getCursor().getBufferPosition().row
+  getCursorScreenColumn: -> @getCursor().getScreenColumn()
+  setCursorBufferColumn: (column) -> @getCursor().setBufferColumn(column)
+  getCursorBufferColumn: -> @getCursor().getBufferColumn()
 
-  getSelection: -> @selection
-  getSelectedText: -> @selection.getText()
-  selectRight: -> @selection.selectRight()
-  selectLeft: -> @selection.selectLeft()
-  selectUp: -> @selection.selectUp()
-  selectDown: -> @selection.selectDown()
+  getSelection: (index) -> @compositeSelection.getSelection(index)
+  getSelectedText: -> @compositeSelection.getSelection().getText()
+  selectRight: -> @compositeSelection.getSelection().selectRight()
+  selectLeft: -> @compositeSelection.getSelection().selectLeft()
+  selectUp: -> @compositeSelection.getSelection().selectUp()
+  selectDown: -> @compositeSelection.getSelection().selectDown()
   selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
-  selectToBufferPosition: (position) -> @selection.selectToBufferPosition(position)
+  selectToBufferPosition: (position) -> @getSelection().selectToBufferPosition(position)
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
@@ -382,9 +381,9 @@ class Editor extends View
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
 
   insertText: (text) ->
-    # { text, shouldOutdent } = @autoIndentText(text)
+    { text, shouldOutdent } = @autoIndentText(text)
     @compositeSelection.insertText(text)
-    # @autoOutdentText() if shouldOutdent
+    @autoOutdentText() if shouldOutdent
 
   autoIndentText: (text) ->
     if @autoIndent
@@ -404,18 +403,18 @@ class Editor extends View
     state = @renderer.lineForRow(screenRow).state
     @buffer.mode.autoOutdent(state, new AceOutdentAdaptor(@buffer, this), bufferRow)
 
-  cutSelection: -> @selection.cut()
-  copySelection: -> @selection.copy()
+  cutSelection: -> @getSelection().cut()
+  copySelection: -> @getSelection().copy()
   paste: -> @insertText($native.readFromPasteboard())
 
-  foldSelection: -> @selection.fold()
+  foldSelection: -> @getSelection().fold()
 
   backspace: ->
     @compositeSelection.backspace()
 
   delete: ->
-    @selectRight() if @selection.isEmpty()
-    @selection.delete()
+    @selectRight() if @getSelection().isEmpty()
+    @getSelection().delete()
 
   undo: ->
     @buffer.undo()

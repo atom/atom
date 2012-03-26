@@ -86,7 +86,7 @@ class Cursor extends View
     @getBufferPosition().row
 
   isOnEOL: ->
-    @getScreenColumn() == @editor.getCurrentScreenLine().length
+    @getScreenColumn() == @editor.lineForBufferRow(@getBufferRow()).length
 
   moveUp: ->
     { row, column } = @getScreenPosition()
