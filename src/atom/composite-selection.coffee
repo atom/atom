@@ -35,12 +35,10 @@ class CompositeSeleciton
       selection.insertText(text)
 
   backspace: ->
-    @modifySelections (selection) ->
-      selection.backspace()
+    @modifySelections (selection) -> selection.backspace()
 
   delete: ->
-    @modifySelections (selection) ->
-      selection.delete()
+    @modifySelections (selection) -> selection.delete()
 
   selectToScreenPosition: (position) ->
     @lastSelection().selectToScreenPosition(position)
