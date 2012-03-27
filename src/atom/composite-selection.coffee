@@ -49,11 +49,11 @@ class CompositeSeleciton
 
   selectLeft: ->
     selection.selectLeft() for selection in @getSelections()
-    @mergeIntersectingSelections()
+    @mergeIntersectingSelections reverse: true
 
   selectUp: ->
     selection.selectUp() for selection in @getSelections()
-    @mergeIntersectingSelections()
+    @mergeIntersectingSelections reverse: true
 
   selectDown: ->
     selection.selectDown() for selection in @getSelections()
@@ -71,14 +71,14 @@ class CompositeSeleciton
   lastSelection: ->
     _.last(@selections)
 
-  mergeIntersectingSelections: ->
+  mergeIntersectingSelections: (options) ->
     for selection in @getSelections()
       otherSelections = @getSelections()
       _.remove(otherSelections, selection)
       for otherSelection in otherSelections
         if selection.intersectsWith(otherSelection)
-          selection.merge(otherSelection)
-          @mergeIntersectingSelections()
+          selection.merge(otherSelection, options)
+          @mergeIntersectingSelections(options)
           return
 
   modifySelectedText: (fn) ->

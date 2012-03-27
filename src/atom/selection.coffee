@@ -139,11 +139,14 @@ class Selection extends View
   isEmpty: ->
     @getBufferRange().isEmpty()
 
+  isReversed: ->
+    @cursor.getBufferPosition().isLessThan(@anchorBufferPosition)
+
   intersectsWith: (otherSelection) ->
     @getScreenRange().intersectsWith(otherSelection.getScreenRange())
 
-  merge: (otherSelection) ->
-    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()))
+  merge: (otherSelection, options) ->
+    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
     otherSelection.remove()
 
   remove: ->

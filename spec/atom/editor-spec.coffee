@@ -1077,6 +1077,7 @@ describe "Editor", ->
           editor.selectDown()
           expect(editor.compositeSelection.getSelections()).toEqual [selection1]
           expect(selection1.getScreenRange()).toEqual([[0, 9], [4, 25]])
+          expect(selection1.isReversed()).toBeFalsy()
           expect(selection2.parent()).not.toExist()
           expect(selection3.parent()).not.toExist()
 
@@ -1088,6 +1089,7 @@ describe "Editor", ->
           editor.selectUp()
           expect(editor.compositeSelection.getSelections()).toEqual [selection1]
           expect(selection1.getScreenRange()).toEqual([[0, 0], [1, 20]])
+          expect(selection1.isReversed()).toBeTruthy()
           expect(selection2.parent()).not.toExist()
 
         it "merges selections when they intersect when moving left", ->
@@ -1098,6 +1100,7 @@ describe "Editor", ->
           editor.selectLeft()
           expect(editor.compositeSelection.getSelections()).toEqual [selection1]
           expect(selection1.getScreenRange()).toEqual([[0, 8], [1, 20]])
+          expect(selection1.isReversed()).toBeTruthy()
           expect(selection2.parent()).not.toExist()
 
         it "merges selections when they intersect when moving right", ->
@@ -1108,6 +1111,7 @@ describe "Editor", ->
           editor.selectRight()
           expect(editor.compositeSelection.getSelections()).toEqual [selection1]
           expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]])
+          expect(selection1.isReversed()).toBeFalsy()
           expect(selection2.parent()).not.toExist()
 
     describe "cursor merging", ->
