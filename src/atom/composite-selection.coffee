@@ -12,17 +12,31 @@ class CompositeSeleciton
 
   getSelections: -> new Array(@selections...)
 
+  clearSelections: ->
+    for selection in @getSelections()[1..]
+      selection.cursor.remove()
+
+    @getLastSelection().clearSelection()
+
   addSelectionForCursor: (cursor) ->
     selection = new Selection({@editor, cursor})
     @selections.push(selection)
     @editor.lines.append(selection)
 
   addSelectionForBufferRange: (bufferRange, options) ->
-    cursor = @editor.compositeCursor.addCursor()
+    selections = @getSelections()
+    cursor = if selections.length == 1 and selections[0].isEmpty()
+      selections[0].cursor
+    else
+      @editor.compositeCursor.addCursor()
+
     @selectionForCursor(cursor).setBufferRange(bufferRange, options)
 
   removeSelectionForCursor: (cursor) ->
-    _.remove(@selections, @selectionForCursor(cursor))
+    selection = @selectionForCursor(cursor)
+    selection.cursor = null
+    selection.remove()
+    _.remove(@selections, selection)
 
   selectionForCursor: (cursor) ->
     _.find @selections, (selection) -> selection.cursor == cursor

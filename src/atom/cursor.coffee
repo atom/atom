@@ -33,7 +33,7 @@ class Cursor extends View
   remove: ->
     @editor.compositeCursor.removeCursor(this)
     @editor.compositeSelection.removeSelectionForCursor(this)
-    super()
+    super
 
   setScreenPosition: (position, options={}) ->
     position = Point.fromObject(position)

@@ -9,21 +9,18 @@ class SelectAllMatches extends Command
     @regex = new RegExp(pattern)
 
   execute: (editor) ->
-    selectedText = editor.getSelectedText()
-    selectionStartIndex = editor.buffer.characterIndexForPosition(editor.getSelection().getBufferRange().start)
+    rangesToSelect = []
+    for selection in editor.getSelections()
+      selectedText = selection.getText()
+      selectionStartIndex = editor.buffer.characterIndexForPosition(selection.getBufferRange().start)
+      for range in @findMatchingRanges(editor, selectedText, selectionStartIndex)
+        rangesToSelect.push(range)
 
-    matchingRanges = @findMatchingRanges(editor, selectedText, selectionStartIndex)
-    return unless matchingRanges.length
-    editor.setSelectionBufferRange(matchingRanges[0])
-    editor.addSelectionForBufferRange(range) for range in matchingRanges[1..]
-
+    editor.clearSelections()
+    editor.addSelectionForBufferRange(range) for range in rangesToSelect
 
   findMatchingRanges: (editor, text, startIndex) ->
-    console.log text
     return [] unless match = text.match(@regex)
-
-    console.log match
-    console.log match[0]
 
     matchStartIndex = startIndex + match.index
     matchEndIndex = matchStartIndex + match[0].length

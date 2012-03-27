@@ -43,6 +43,8 @@ class Selection extends View
     @updateAppearance()
 
   updateAppearance: ->
+    return unless @cursor
+
     @clearRegions()
 
     range = @getScreenRange()
