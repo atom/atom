@@ -6,7 +6,7 @@ class SelectAllMatches extends Command
   @regex: null
 
   constructor: (pattern) ->
-    @regex = new RegExp(pattern)
+    @regex = @regexForPattern(pattern)
 
   execute: (editor) ->
     rangesToSelect = []

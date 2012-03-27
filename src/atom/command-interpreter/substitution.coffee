@@ -5,7 +5,7 @@ class Substitution extends Command
   global: false
 
   constructor: (@findText, @replaceText, @options) ->
-    @findRegex = new RegExp(@findText)
+    @findRegex = @regexForPattern(@findText)
     @global = 'g' in @options
 
   execute: (editor) ->
@@ -27,7 +27,10 @@ class Substitution extends Command
     buffer.change([startPosition, endPosition], @replaceText)
 
     if @global
-      text = text[(match.index + match[0].length)..]
-      startIndex = matchStartIndex + @replaceText.length
+      offset = if match[0].length then 0 else 1
+      startNextStringFragmentAt = match.index + match[0].length + offset
+      return if startNextStringFragmentAt >= text.length
+      text = text[startNextStringFragmentAt..]
+      startIndex = matchStartIndex + offset + @replaceText.length
       @replace(editor, text, startIndex)
 

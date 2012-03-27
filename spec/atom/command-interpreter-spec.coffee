@@ -11,25 +11,34 @@ describe "CommandInterpreter", ->
     interpreter = new CommandInterpreter()
 
   describe "addresses", ->
+    beforeEach ->
+      editor.addSelectionForBufferRange([[7,0], [7,11]])
+      editor.addSelectionForBufferRange([[8,0], [8,11]])
+
     describe "a line address", ->
       it "selects the specified line", ->
         interpreter.eval(editor, '4')
+        expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[3, 0], [4, 0]]
 
     describe "0", ->
       it "selects the zero-length string at the start of the file", ->
         interpreter.eval(editor, '0')
+        expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [0,0]]
 
         interpreter.eval(editor, '0,1')
+        expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [1,0]]
 
     describe "$", ->
       it "selects EOF", ->
         interpreter.eval(editor, '$')
+        expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[12,2], [12,2]]
 
         interpreter.eval(editor, '1,$')
+        expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [12,2]]
 
     describe ".", ->
@@ -50,32 +59,38 @@ describe "CommandInterpreter", ->
       it 'selects text matching regex after current selection', ->
         editor.getSelection().setBufferRange([[4,16], [4,20]])
         interpreter.eval(editor, '/pivot/')
+        expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
       it 'does not require the trailing slash', ->
         editor.getSelection().setBufferRange([[4,16], [4,20]])
         interpreter.eval(editor, '/pivot')
+        expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->
           interpreter.eval(editor, '4,7')
+          expect(editor.getSelections().length).toBe 1
           expect(editor.getSelection().getBufferRange()).toEqual [[3, 0], [7, 0]]
 
       describe "when the left address is unspecified", ->
         it "selects from the begining of buffer to the end of the right address", ->
           interpreter.eval(editor, ',7')
+          expect(editor.getSelections().length).toBe 1
           expect(editor.getSelection().getBufferRange()).toEqual [[0, 0], [7, 0]]
 
       describe "when the right address is unspecified", ->
         it "selects from the begining of left address to the end file", ->
           interpreter.eval(editor, '4,')
+          expect(editor.getSelections().length).toBe 1
           expect(editor.getSelection().getBufferRange()).toEqual [[3, 0], [12, 2]]
 
       describe "when the neither address is specified", ->
         it "selects the entire file", ->
           interpreter.eval(editor, ',')
+          expect(editor.getSelections().length).toBe 1
           expect(editor.getSelection().getBufferRange()).toEqual [[0, 0], [12, 2]]
 
   describe "x/regex/", ->
@@ -129,6 +144,14 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(4)).toBe '!!!!while(items.length!>!0)!{'
           expect(buffer.lineForRow(5)).toBe '!!!!!!current!=!items.shift();'
           expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
+
+      describe "when the regex matches a zero-width string", ->
+        it "does not infinitely loop when looking for the next match", ->
+          interpreter.eval(editor, ',s/$/!!!/g')
+          expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {!!!'
+          expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return items;!!!'
+          expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);!!!'
+          expect(buffer.lineForRow(12)).toBe '};!!!'
 
   describe ".repeatRelativeAddress()", ->
     it "repeats the last search command if there is one", ->

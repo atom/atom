@@ -6,7 +6,7 @@ class RegexAddress extends Address
   regex: null
 
   constructor: (pattern) ->
-    @regex = new RegExp(pattern)
+    @regex = @regexForPattern(pattern)
 
   getRange: (editor) ->
     selectedRange = editor.getSelection().getBufferRange()
