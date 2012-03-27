@@ -41,7 +41,7 @@ class CompositeSeleciton
     @modifySelectedText (selection) -> selection.delete()
 
   selectToScreenPosition: (position) ->
-    @lastSelection().selectToScreenPosition(position)
+    @getLastSelection().selectToScreenPosition(position)
 
   selectRight: ->
     selection.selectRight() for selection in @getSelections()
@@ -60,15 +60,15 @@ class CompositeSeleciton
     @mergeIntersectingSelections()
 
   setBufferRange: (bufferRange, options) ->
-    @lastSelection().setBufferRange(bufferRange, options)
+    @getLastSelection().setBufferRange(bufferRange, options)
 
   getBufferRange: (bufferRange) ->
-    @lastSelection().getBufferRange()
+    @getLastSelection().getBufferRange()
 
   getText: ->
-    @lastSelection().getText()
+    @getLastSelection().getText()
 
-  lastSelection: ->
+  getLastSelection: ->
     _.last(@selections)
 
   mergeIntersectingSelections: (options) ->

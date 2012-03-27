@@ -138,9 +138,9 @@ class Editor extends View
         else
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
-        @compositeSelection.lastSelection().selectWord()
+        @compositeSelection.getLastSelection().selectWord()
       else if clickCount >= 3
-        @compositeSelection.lastSelection().selectLine()
+        @compositeSelection.getLastSelection().selectLine()
 
       @selectOnMousemoveUntilMouseup()
 
@@ -167,7 +167,8 @@ class Editor extends View
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', =>
       @off 'mousemove', moveHandler
-      @compositeSelection.mergeIntersectingSelections()
+      reverse = @compositeSelection.getLastSelection().isReversed()
+      @compositeSelection.mergeIntersectingSelections({reverse})
 
   renderLines: ->
     @lineCache = []

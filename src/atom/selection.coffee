@@ -140,7 +140,7 @@ class Selection extends View
     @getBufferRange().isEmpty()
 
   isReversed: ->
-    @cursor.getBufferPosition().isLessThan(@anchorBufferPosition)
+    not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchorBufferPosition)
 
   intersectsWith: (otherSelection) ->
     @getScreenRange().intersectsWith(otherSelection.getScreenRange())
