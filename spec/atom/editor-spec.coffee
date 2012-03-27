@@ -827,6 +827,24 @@ describe "Editor", ->
             expect(cursor1.getBufferPosition()).toEqual [4,0]
             expect(cursor2.getBufferPosition()).toEqual [8,0]
 
+      describe "when selections are on the same line", ->
+        it "replaces each selection range with the inserted characters", ->
+          editor.attachToDom()
+          editor.setSelectionBufferRange([[0,4], [0,13]])
+          editor.addSelectionForBufferRange([[0,22], [0,24]])
+
+          editor.insertText("x")
+
+          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+
+          expect(cursor1.getScreenPosition()).toEqual [0, 5]
+          expect(cursor2.getScreenPosition()).toEqual [0, 14]
+          expect(selection1.isEmpty()).toBeTruthy()
+          expect(selection2.isEmpty()).toBeTruthy()
+
+          expect(editor.lineForBufferRow(0)).toBe "var x = functx () {"
+
     describe "backspace", ->
       describe "when cursors are on the same line", ->
         it "removes the characters preceding each cursor", ->

@@ -27,6 +27,9 @@ class CompositeSeleciton
   selectionForCursor: (cursor) ->
     _.find @selections, (selection) -> selection.cursor == cursor
 
+  handleBufferChange: (e) ->
+    selection.handleBufferChange(e) for selection in @getSelections()
+
   insertText: (text) ->
     @modifySelections (selection) ->
       selection.insertText(text)

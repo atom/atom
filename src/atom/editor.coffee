@@ -215,7 +215,8 @@ class Editor extends View
     @editSession.scrollLeft = @horizontalScroller.scrollLeft()
 
   handleBufferChange: (e) ->
-    @compositeCursor.handleBufferChange(e) if @isFocused
+    @compositeCursor.handleBufferChange(e)
+    @compositeSelection.handleBufferChange(e)
 
   handleRendererChange: (e) ->
     { oldRange, newRange } = e

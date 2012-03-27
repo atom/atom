@@ -21,8 +21,28 @@ class Selection extends View
       else
         @clearSelection()
 
+
+
+  handleBufferChange: (e) ->
+    return unless @anchorPosition
+
+    { oldRange, newRange } = e
+    position = @getAnchorBufferPosition()
+    return if position.isLessThan(oldRange.end)
+
+    newRow = newRange.end.row
+    newColumn = newRange.end.column
+    if position.row == oldRange.end.row
+      newColumn += position.column - oldRange.end.column
+    else
+      newColumn = position.column
+      newRow += position.row - oldRange.end.row
+
+    @setAnchorBufferPosition([newRow, newColumn])
+
+
   clearSelection: ->
-    @anchor = null
+    @anchorPosition = null
     @updateAppearance()
 
   updateAppearance: ->
@@ -59,8 +79,8 @@ class Selection extends View
     @regions = []
 
   getScreenRange: ->
-    if @anchor
-      new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())
+    if @anchorPosition
+      new Range(@anchorPosition, @cursor.getScreenPosition())
     else
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
@@ -132,9 +152,15 @@ class Selection extends View
     @retainSelection = false
 
   placeAnchor: ->
-    return if @anchor
+    return if @anchorPosition
     cursorPosition = @cursor.getScreenPosition()
-    @anchor = { getScreenPosition: -> cursorPosition }
+    @anchorPosition = cursorPosition
+
+  getAnchorBufferPosition: ->
+    @editor.bufferPositionForScreenPosition(@anchorPosition)
+
+  setAnchorBufferPosition: (position) ->
+    @anchorPosition = @editor.screenPositionForBufferPosition(position)
 
   selectWord: ->
     row = @cursor.getScreenRow()

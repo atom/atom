@@ -17,7 +17,7 @@ describe "Selection", ->
     it "places the anchor at the start of the range and the cursor at the end", ->
       range = new Range({row: 2, column: 7}, {row: 3, column: 18})
       selection.setBufferRange(range)
-      expect(selection.anchor.getScreenPosition()).toEqual range.start
+      expect(selection.anchorPosition).toEqual range.start
       expect(selection.cursor.getScreenPosition()).toEqual range.end
 
   describe ".delete()", ->
