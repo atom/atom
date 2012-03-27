@@ -81,16 +81,20 @@ class Selection extends View
     else
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
-  setScreenRange: (range) ->
-    @cursor.setScreenPosition(range.start)
+  setScreenRange: (range, options={}) ->
+    { reverse } = options
+    { start, end } = range
+    [start, end] = [end, start] if reverse
+
+    @cursor.setScreenPosition(start)
     @modifySelection =>
-      @cursor.setScreenPosition(range.end)
+      @cursor.setScreenPosition(end)
 
   getBufferRange: ->
     @editor.bufferRangeForScreenRange(@getScreenRange())
 
-  setBufferRange: (bufferRange) ->
-    @setScreenRange(@editor.screenRangeForBufferRange(bufferRange))
+  setBufferRange: (bufferRange, options) ->
+    @setScreenRange(@editor.screenRangeForBufferRange(bufferRange), options)
 
   getText: ->
     @editor.buffer.getTextInRange @getBufferRange()

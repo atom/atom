@@ -17,9 +17,9 @@ class CompositeSeleciton
     @selections.push(selection)
     @editor.lines.append(selection)
 
-  addSelectionForBufferRange: (bufferRange) ->
+  addSelectionForBufferRange: (bufferRange, options) ->
     cursor = @editor.compositeCursor.addCursor()
-    @selectionForCursor(cursor).setBufferRange(bufferRange)
+    @selectionForCursor(cursor).setBufferRange(bufferRange, options)
 
   removeSelectionForCursor: (cursor) ->
     _.remove(@selections, @selectionForCursor(cursor))
@@ -31,32 +31,36 @@ class CompositeSeleciton
     selection.handleBufferChange(e) for selection in @getSelections()
 
   insertText: (text) ->
-    @modifySelections (selection) ->
+    @modifySelectedText (selection) ->
       selection.insertText(text)
 
   backspace: ->
-    @modifySelections (selection) -> selection.backspace()
+    @modifySelectedText (selection) -> selection.backspace()
 
   delete: ->
-    @modifySelections (selection) -> selection.delete()
+    @modifySelectedText (selection) -> selection.delete()
 
   selectToScreenPosition: (position) ->
     @lastSelection().selectToScreenPosition(position)
 
   selectRight: ->
     selection.selectRight() for selection in @getSelections()
+    @mergeIntersectingSelections()
 
   selectLeft: ->
     selection.selectLeft() for selection in @getSelections()
+    @mergeIntersectingSelections()
 
   selectUp: ->
     selection.selectUp() for selection in @getSelections()
+    @mergeIntersectingSelections()
 
   selectDown: ->
     selection.selectDown() for selection in @getSelections()
+    @mergeIntersectingSelections()
 
-  setBufferRange: (bufferRange) ->
-    @lastSelection().setBufferRange(bufferRange)
+  setBufferRange: (bufferRange, options) ->
+    @lastSelection().setBufferRange(bufferRange, options)
 
   getBufferRange: (bufferRange) ->
     @lastSelection().getBufferRange()
@@ -77,7 +81,7 @@ class CompositeSeleciton
           @mergeIntersectingSelections()
           return
 
-  modifySelections: (fn) ->
+  modifySelectedText: (fn) ->
     selection.retainSelection = true for selection in @getSelections()
     for selection in @getSelections()
       selection.retainSelection = false
@@ -85,7 +89,7 @@ class CompositeSeleciton
 
   cut: ->
     maintainPasteboard = false
-    @modifySelections (selection) ->
+    @modifySelectedText (selection) ->
       selection.cut(maintainPasteboard)
       maintainPasteboard = true
 

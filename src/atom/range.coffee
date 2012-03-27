@@ -42,7 +42,7 @@ class Range
 
   intersectsWith: (otherRange) ->
     if @start.isLessThanOrEqual(otherRange.start)
-      @end.isGreaterThan(otherRange.start)
+      @end.isGreaterThanOrEqual(otherRange.start)
     else
       otherRange.intersectsWith(this)
 

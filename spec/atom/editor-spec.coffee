@@ -1013,46 +1013,24 @@ describe "Editor", ->
         expect(cursor3.getBufferPosition()).toEqual [4, 0]
 
     describe "selections", ->
-      it "adds an additional selection upon clicking and dragging with the meta-key held down", ->
-        editor.attachToDom()
-        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-        editor.lines.trigger 'mouseup'
+      describe "upon clicking and dragging with the meta-key held down", ->
+        it "adds an additional selection upon clicking and dragging with the meta-key held down", ->
+          editor.attachToDom()
+          editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
+          editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+          editor.lines.trigger 'mouseup'
 
-        editor.lines.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
-        editor.lines.trigger 'mouseup'
+          editor.lines.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
+          editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
+          editor.lines.trigger 'mouseup'
 
-        selections = editor.compositeSelection.getSelections()
-        expect(selections.length).toBe 2
-        [selection1, selection2] = selections
-        expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
-        expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
+          selections = editor.compositeSelection.getSelections()
+          expect(selections.length).toBe 2
+          [selection1, selection2] = selections
+          expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
+          expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
 
-      it "adjusts all selections based on keyboard movement", ->
-        editor.setSelectionBufferRange [[0,9], [0,13]]
-        editor.addSelectionForBufferRange [[3,16], [3,21]]
-        [selection1, selection2] = editor.compositeSelection.getSelections()
-
-        editor.selectRight()
-        expect(selection1.getBufferRange()).toEqual [[0,9], [0,14]]
-        expect(selection2.getBufferRange()).toEqual [[3,16], [3,22]]
-
-        editor.selectLeft()
-        editor.selectLeft()
-        expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
-        expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
-
-        editor.selectDown()
-        expect(selection1.getBufferRange()).toEqual [[0,9], [1,12]]
-        expect(selection2.getBufferRange()).toEqual [[3,16], [4,20]]
-
-        editor.selectUp()
-        expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
-        expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
-
-      describe "when multiple selctions intersect", ->
-        it "merges a selection that is completely contained within another", ->
+        it "merges selections when they intersect", ->
           editor.attachToDom()
           editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
           editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
@@ -1066,6 +1044,71 @@ describe "Editor", ->
           expect(selections.length).toBe 1
           [selection1] = selections
           expect(selection1.getScreenRange()).toEqual [[3, 10], [6, 27]]
+
+      describe "upon moving the cursor with the arrow keys with the shift key held down", ->
+        it "resizes all selections", ->
+          editor.setSelectionBufferRange [[0,9], [0,13]]
+          editor.addSelectionForBufferRange [[3,16], [3,21]]
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+
+          editor.selectRight()
+          expect(selection1.getBufferRange()).toEqual [[0,9], [0,14]]
+          expect(selection2.getBufferRange()).toEqual [[3,16], [3,22]]
+
+          editor.selectLeft()
+          editor.selectLeft()
+          expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
+          expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
+
+          editor.selectDown()
+          expect(selection1.getBufferRange()).toEqual [[0,9], [1,12]]
+          expect(selection2.getBufferRange()).toEqual [[3,16], [4,20]]
+
+          editor.selectUp()
+          expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
+          expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
+
+        it "merges selections when they intersect when moving down", ->
+          editor.setSelectionBufferRange [[0,9], [0,13]]
+          editor.addSelectionForBufferRange [[1,10], [1,20]]
+          editor.addSelectionForBufferRange [[2,15], [3,25]]
+          [selection1, selection2, selection3] = editor.compositeSelection.getSelections()
+
+          editor.selectDown()
+          expect(editor.compositeSelection.getSelections()).toEqual [selection1]
+          expect(selection1.getScreenRange()).toEqual([[0, 9], [4, 25]])
+          expect(selection2.parent()).not.toExist()
+          expect(selection3.parent()).not.toExist()
+
+        it "merges selections when they intersect when moving up", ->
+          editor.setSelectionBufferRange [[0,9], [0,13]], reverse: true
+          editor.addSelectionForBufferRange [[1,10], [1,20]], reverse: true
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+
+          editor.selectUp()
+          expect(editor.compositeSelection.getSelections()).toEqual [selection1]
+          expect(selection1.getScreenRange()).toEqual([[0, 0], [1, 20]])
+          expect(selection2.parent()).not.toExist()
+
+        it "merges selections when they intersect when moving left", ->
+          editor.setSelectionBufferRange [[0,9], [0,13]], reverse: true
+          editor.addSelectionForBufferRange [[0,14], [1,20]], reverse: true
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+
+          editor.selectLeft()
+          expect(editor.compositeSelection.getSelections()).toEqual [selection1]
+          expect(selection1.getScreenRange()).toEqual([[0, 8], [1, 20]])
+          expect(selection2.parent()).not.toExist()
+
+        it "merges selections when they intersect when moving right", ->
+          editor.setSelectionBufferRange [[0,9], [0,13]]
+          editor.addSelectionForBufferRange [[0,14], [1,20]]
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+
+          editor.selectRight()
+          expect(editor.compositeSelection.getSelections()).toEqual [selection1]
+          expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]])
+          expect(selection2.parent()).not.toExist()
 
     describe "cursor merging", ->
       it "merges cursors when they overlap due to a buffer change", ->

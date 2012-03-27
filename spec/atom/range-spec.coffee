@@ -16,11 +16,13 @@ describe "Range", ->
       expect(new Range(new Point(1, 1), new Point(1, 2)).isEmpty()).toBeFalsy()
 
   describe ".intersectsWith(otherRange)", ->
-    it "returns true if the ranges intersect", ->
+    it "returns true if the ranges intersect or share an endpoint", ->
       expect(new Range([1, 1], [2, 10]).intersectsWith(new Range([2, 1], [3, 10]))).toBeTruthy()
       expect(new Range([2, 1], [3, 10]).intersectsWith(new Range([1, 1], [2, 10]))).toBeTruthy()
       expect(new Range([2, 1], [3, 10]).intersectsWith(new Range([2, 5], [3, 1]))).toBeTruthy()
       expect(new Range([2, 5], [3, 1]).intersectsWith(new Range([2, 1], [3, 10]))).toBeTruthy()
+      expect(new Range([2, 5], [3, 1]).intersectsWith(new Range([3, 1], [3, 10]))).toBeTruthy()
+      expect(new Range([3, 1], [3, 10]).intersectsWith(new Range([2, 5], [3, 1]))).toBeTruthy()
       expect(new Range([2, 5], [3, 1]).intersectsWith(new Range([3, 2], [3, 10]))).toBeFalsy()
       expect(new Range([3, 2], [3, 10]).intersectsWith(new Range([2, 5], [3, 1]))).toBeFalsy()
 
