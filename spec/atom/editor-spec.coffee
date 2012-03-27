@@ -971,6 +971,15 @@ describe "Editor", ->
             expect(cursor1.getBufferPosition()).toEqual [0,29]
             expect(cursor2.getBufferPosition()).toEqual [0,59]
 
+        describe "when selections are on the same line", ->
+          it "removes all selected text", ->
+            editor.setSelectionBufferRange([[0,4], [0,13]])
+            editor.addSelectionForBufferRange([[0,16], [0,24]])
+
+            editor.delete()
+
+            expect(editor.lineForBufferRow(0)).toBe 'var  =  () {'
+
     describe "keyboard movement", ->
       it "moves all cursors", ->
         editor.setCursorScreenPosition([3, 13])

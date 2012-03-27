@@ -39,7 +39,7 @@ class CompositeSeleciton
       selection.backspace()
 
   delete: ->
-    for selection in @getSelections()
+    @modifySelections (selection) ->
       selection.delete()
 
   selectToScreenPosition: (position) ->
