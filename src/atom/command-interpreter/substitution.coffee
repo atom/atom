@@ -14,23 +14,27 @@ class Substitution extends Command
 
     @replace(editor, selectedText, selectionStartIndex)
 
-  replace: (editor, text, startIndex) ->
+  replace: (editor, text, globalStartIndex) ->
     return unless match = text.match(@findRegex)
 
-    matchStartIndex = startIndex + match.index
-    matchEndIndex = matchStartIndex + match[0].length
+    localMatchStartIndex = match.index
+    localMatchEndIndex = localMatchStartIndex + match[0].length
+
+    globalMatchStartIndex = globalStartIndex + localMatchStartIndex
+    globalMatchEndIndex = globalStartIndex + localMatchEndIndex
 
     buffer = editor.buffer
-    startPosition = buffer.positionForCharacterIndex(matchStartIndex)
-    endPosition = buffer.positionForCharacterIndex(matchEndIndex)
-
+    startPosition = buffer.positionForCharacterIndex(globalMatchStartIndex)
+    endPosition = buffer.positionForCharacterIndex(globalMatchEndIndex)
     buffer.change([startPosition, endPosition], @replaceText)
 
+    if match[0].length is 0
+      localMatchEndIndex++
+      globalMatchStartIndex++
+
     if @global
-      offset = if match[0].length then 0 else 1
-      startNextStringFragmentAt = match.index + match[0].length + offset
-      return if startNextStringFragmentAt >= text.length
-      text = text[startNextStringFragmentAt..]
-      startIndex = matchStartIndex + offset + @replaceText.length
-      @replace(editor, text, startIndex)
+      return if localMatchStartIndex >= text.length
+      text = text[localMatchEndIndex..]
+      nextGlobalStartIndex = globalMatchStartIndex + @replaceText.length
+      @replace(editor, text, nextGlobalStartIndex)
 
