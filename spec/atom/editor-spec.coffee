@@ -828,22 +828,40 @@ describe "Editor", ->
             expect(cursor2.getBufferPosition()).toEqual [8,0]
 
       describe "when selections are on the same line", ->
-        it "replaces each selection range with the inserted characters", ->
-          editor.attachToDom()
+        beforeEach ->
           editor.setSelectionBufferRange([[0,4], [0,13]])
           editor.addSelectionForBufferRange([[0,22], [0,24]])
 
-          editor.insertText("x")
+        describe "when inserting characters other than newlines", ->
+          it "replaces each selection range with the inserted characters", ->
+            editor.insertText("x")
 
-          [cursor1, cursor2] = editor.compositeCursor.getCursors()
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [selection1, selection2] = editor.compositeSelection.getSelections()
 
-          expect(cursor1.getScreenPosition()).toEqual [0, 5]
-          expect(cursor2.getScreenPosition()).toEqual [0, 14]
-          expect(selection1.isEmpty()).toBeTruthy()
-          expect(selection2.isEmpty()).toBeTruthy()
+            expect(cursor1.getScreenPosition()).toEqual [0, 5]
+            expect(cursor2.getScreenPosition()).toEqual [0, 15]
+            expect(selection1.isEmpty()).toBeTruthy()
+            expect(selection2.isEmpty()).toBeTruthy()
 
-          expect(editor.lineForBufferRow(0)).toBe "var x = functx () {"
+            expect(editor.lineForBufferRow(0)).toBe "var x = functix () {"
+
+        describe "when inserting newlines", ->
+          it "replaces all selected ranges with newlines", ->
+            editor.insertText("\n")
+
+            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [selection1, selection2] = editor.compositeSelection.getSelections()
+
+            expect(cursor1.getScreenPosition()).toEqual [1, 0]
+            expect(cursor2.getScreenPosition()).toEqual [2, 0]
+            expect(selection1.isEmpty()).toBeTruthy()
+            expect(selection2.isEmpty()).toBeTruthy()
+
+            expect(editor.lineForBufferRow(0)).toBe "var "
+            expect(editor.lineForBufferRow(1)).toBe " = functi"
+            expect(editor.lineForBufferRow(2)).toBe " () {"
+
 
     describe "backspace", ->
       describe "when cursors are on the same line", ->

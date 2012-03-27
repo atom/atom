@@ -1,6 +1,6 @@
 Cursor = require 'cursor'
 AceOutdentAdaptor = require 'ace-outdent-adaptor'
-
+Point = require 'point'
 Range = require 'range'
 {View, $$} = require 'space-pen'
 
@@ -21,13 +21,11 @@ class Selection extends View
       else
         @clearSelection()
 
-
-
   handleBufferChange: (e) ->
-    return unless @anchorPosition
+    return unless @anchorScreenPosition
 
     { oldRange, newRange } = e
-    position = @getAnchorBufferPosition()
+    position = @anchorBufferPosition
     return if position.isLessThan(oldRange.end)
 
     newRow = newRange.end.row
@@ -40,9 +38,8 @@ class Selection extends View
 
     @setAnchorBufferPosition([newRow, newColumn])
 
-
   clearSelection: ->
-    @anchorPosition = null
+    @anchorScreenPosition = null
     @updateAppearance()
 
   updateAppearance: ->
@@ -79,8 +76,8 @@ class Selection extends View
     @regions = []
 
   getScreenRange: ->
-    if @anchorPosition
-      new Range(@anchorPosition, @cursor.getScreenPosition())
+    if @anchorScreenPosition
+      new Range(@anchorScreenPosition, @cursor.getScreenPosition())
     else
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
@@ -152,15 +149,18 @@ class Selection extends View
     @retainSelection = false
 
   placeAnchor: ->
-    return if @anchorPosition
-    cursorPosition = @cursor.getScreenPosition()
-    @anchorPosition = cursorPosition
+    return if @anchorScreenPosition
+    @setAnchorScreenPosition(@cursor.getScreenPosition())
 
-  getAnchorBufferPosition: ->
-    @editor.bufferPositionForScreenPosition(@anchorPosition)
+  setAnchorScreenPosition: (screenPosition) ->
+    bufferPosition = Point.fromObject(screenPosition)
+    @anchorScreenPosition = screenPosition
+    @anchorBufferPosition = @editor.bufferPositionForScreenPosition(screenPosition)
 
-  setAnchorBufferPosition: (position) ->
-    @anchorPosition = @editor.screenPositionForBufferPosition(position)
+  setAnchorBufferPosition: (bufferPosition) ->
+    bufferPosition = Point.fromObject(bufferPosition)
+    @anchorBufferPosition = bufferPosition
+    @anchorScreenPosition = @editor.screenPositionForBufferPosition(bufferPosition)
 
   selectWord: ->
     row = @cursor.getScreenRow()
