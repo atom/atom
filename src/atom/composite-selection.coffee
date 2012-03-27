@@ -45,6 +45,18 @@ class CompositeSeleciton
   selectToScreenPosition: (position) ->
     @lastSelection().selectToScreenPosition(position)
 
+  selectRight: ->
+    @modifySelections (selection) -> selection.selectRight()
+
+  selectLeft: ->
+    @modifySelections (selection) -> selection.selectLeft()
+
+  selectUp: ->
+    @modifySelections (selection) -> selection.selectUp()
+
+  selectDown: ->
+    @modifySelections (selection) -> selection.selectDown()
+
   setBufferRange: (bufferRange) ->
     @lastSelection().setBufferRange(bufferRange)
 

@@ -1029,6 +1029,28 @@ describe "Editor", ->
         expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
         expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
 
+      it "adjusts all selections based on keyboard movement", ->
+        editor.setSelectionBufferRange [[0,9], [0,13]]
+        editor.addSelectionForBufferRange [[3,16], [3,21]]
+        [selection1, selection2] = editor.compositeSelection.getSelections()
+
+        editor.selectRight()
+        expect(selection1.getBufferRange()).toEqual [[0,9], [0,14]]
+        expect(selection2.getBufferRange()).toEqual [[3,16], [3,22]]
+
+        editor.selectLeft()
+        editor.selectLeft()
+        expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
+        expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
+
+        editor.selectDown()
+        expect(selection1.getBufferRange()).toEqual [[0,9], [1,12]]
+        expect(selection2.getBufferRange()).toEqual [[3,16], [4,20]]
+
+        editor.selectUp()
+        expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
+        expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
+
       describe "when multiple selctions intersect", ->
         it "merges a selection that is completely contained within another", ->
           editor.attachToDom()
