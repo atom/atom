@@ -862,7 +862,6 @@ describe "Editor", ->
             expect(editor.lineForBufferRow(1)).toBe " = functi"
             expect(editor.lineForBufferRow(2)).toBe " () {"
 
-
     describe "backspace", ->
       describe "when cursors are on the same line", ->
         it "removes the characters preceding each cursor", ->
@@ -913,6 +912,64 @@ describe "Editor", ->
             [cursor1, cursor2] = editor.compositeCursor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [2,40]
             expect(cursor2.getBufferPosition()).toEqual [4,30]
+
+      describe "when selections are on the same line", ->
+        it "removes all selected text", ->
+          editor.setSelectionBufferRange([[0,4], [0,13]])
+          editor.addSelectionForBufferRange([[0,22], [0,24]])
+
+          editor.backspace()
+
+          expect(editor.lineForBufferRow(0)).toBe 'var  = functio () {'
+
+    describe "delete", ->
+      describe "when cursors are on the same line", ->
+        it "removes the characters following each cursor", ->
+          editor.setCursorScreenPosition([3, 13])
+          editor.addCursorAtScreenPosition([3, 38])
+
+          editor.delete()
+
+          expect(editor.lineForBufferRow(3)).toBe "    var pivot= items.shift(), current left = [], right = [];"
+
+          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [3, 13]
+          expect(cursor2.getBufferPosition()).toEqual [3, 37]
+
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+          expect(selection1.isEmpty()).toBeTruthy()
+          expect(selection2.isEmpty()).toBeTruthy()
+
+      describe "when cursors are on different lines", ->
+        it "removes the characters following each cursor", ->
+          editor.setCursorScreenPosition([3, 13])
+          editor.addCursorAtScreenPosition([4, 10])
+
+          editor.delete()
+
+          expect(editor.lineForBufferRow(3)).toBe "    var pivot= items.shift(), current, left = [], right = [];"
+          expect(editor.lineForBufferRow(4)).toBe "    while(tems.length > 0) {"
+
+          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          expect(cursor1.getBufferPosition()).toEqual [3, 13]
+          expect(cursor2.getBufferPosition()).toEqual [4, 10]
+
+          [selection1, selection2] = editor.compositeSelection.getSelections()
+          expect(selection1.isEmpty()).toBeTruthy()
+          expect(selection2.isEmpty()).toBeTruthy()
+
+        describe "when deleting over newlines", ->
+          it "removes the newlines following each cursor", ->
+            editor.setCursorScreenPosition([0, 29])
+            editor.addCursorAtScreenPosition([1, 30])
+
+            editor.delete()
+
+            expect(editor.lineForBufferRow(0)).toBe "var quicksort = function () {  var sort = function(items) {    if (items.length <= 1) return items;"
+
+            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [0,29]
+            expect(cursor2.getBufferPosition()).toEqual [0,59]
 
     describe "keyboard movement", ->
       it "moves all cursors", ->

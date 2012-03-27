@@ -38,6 +38,10 @@ class CompositeSeleciton
     for selection in @getSelections()
       selection.backspace()
 
+  delete: ->
+    for selection in @getSelections()
+      selection.delete()
+
   selectToScreenPosition: (position) ->
     @lastSelection().selectToScreenPosition(position)
 

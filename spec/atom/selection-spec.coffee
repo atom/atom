@@ -20,28 +20,28 @@ describe "Selection", ->
       expect(selection.anchorScreenPosition).toEqual range.start
       expect(selection.cursor.getScreenPosition()).toEqual range.end
 
-  describe ".delete()", ->
+  describe ".deleteSelectedText()", ->
     describe "when nothing is selected", ->
       it "deletes nothing", ->
         selection.setBufferRange new Range([0,3], [0,3])
-        selection.delete()
+        selection.deleteSelectedText()
         expect(editor.buffer.lineForRow(0)).toBe "var quicksort = function () {"
 
     describe "when one line is selected", ->
       it "deletes selected text", ->
         selection.setBufferRange new Range([0,4], [0,14])
-        selection.delete()
+        selection.deleteSelectedText()
         expect(editor.buffer.lineForRow(0)).toBe "var = function () {"
 
         endOfLine = editor.buffer.lineForRow(0).length
         selection.setBufferRange new Range([0,0], [0, endOfLine])
-        selection.delete()
+        selection.deleteSelectedText()
         expect(editor.buffer.lineForRow(0)).toBe ""
 
     describe "when multiple lines are selected", ->
       it "deletes selected text", ->
         selection.setBufferRange new Range([0,1], [2,39])
-        selection.delete()
+        selection.deleteSelectedText()
         expect(editor.buffer.lineForRow(0)).toBe "v;"
 
   describe ".updateAppearence()", ->

@@ -386,8 +386,7 @@ class Editor extends View
     @compositeSelection.backspace()
 
   delete: ->
-    @selectRight() if @getSelection().isEmpty()
-    @getSelection().delete()
+    @compositeSelection.delete()
 
   undo: ->
     @buffer.undo()

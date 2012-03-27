@@ -121,10 +121,14 @@ class Selection extends View
 
   backspace: ->
     @selectLeft() if @isEmpty()
-    @delete()
+    @deleteSelectedText()
     @clearSelection()
 
   delete: ->
+    @selectRight() if @isEmpty()
+    @deleteSelectedText()
+
+  deleteSelectedText: ->
     range = @getBufferRange()
     @editor.buffer.delete(range) unless range.isEmpty()
 
