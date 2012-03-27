@@ -916,11 +916,11 @@ describe "Editor", ->
       describe "when selections are on the same line", ->
         it "removes all selected text", ->
           editor.setSelectionBufferRange([[0,4], [0,13]])
-          editor.addSelectionForBufferRange([[0,22], [0,24]])
+          editor.addSelectionForBufferRange([[0,16], [0,24]])
 
           editor.backspace()
 
-          expect(editor.lineForBufferRow(0)).toBe 'var  = functio () {'
+          expect(editor.lineForBufferRow(0)).toBe 'var  =  () {'
 
     describe "delete", ->
       describe "when cursors are on the same line", ->

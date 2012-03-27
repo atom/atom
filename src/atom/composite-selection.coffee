@@ -35,7 +35,7 @@ class CompositeSeleciton
       selection.insertText(text)
 
   backspace: ->
-    for selection in @getSelections()
+    @modifySelections (selection) ->
       selection.backspace()
 
   delete: ->
