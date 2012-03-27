@@ -6,16 +6,14 @@
   var EofAddress = require('command-interpreter/eof-address');
   var CurrentSelectionAddress = require('command-interpreter/current-selection-address')
   var RegexAddress = require('command-interpreter/regex-address')
+  var SelectAllMatches = require('command-interpreter/select-all-matches')
 }
 
-start
-  = address:address? _ command:substitution? {
-    var commands = [];
-    if (address) commands.push(address);
-    if (command) commands.push(command);
+start = expressions:(expression+) {
+  return new CompositeCommand(expressions)
+}
 
-    return new CompositeCommand(commands);
-  }
+expression = _ expression:(address / command) _ { return expression; }
 
 address = addressRange / primitiveAddress
 
@@ -32,10 +30,15 @@ primitiveAddress
   / '.' { return new CurrentSelectionAddress() }
   / '/' pattern:pattern '/'? { return new RegexAddress(pattern)}
 
+command = substitution / selectAllMatches
+
 substitution
   = "s" _ "/" find:pattern "/" replace:pattern "/" _ options:[g]* {
     return new Substitution(find, replace, options);
   }
+
+selectAllMatches
+  = 'x' _ '/' pattern:pattern '/'? { return new SelectAllMatches(pattern) }
 
 pattern
   = pattern:[^/]* { return pattern.join('') }

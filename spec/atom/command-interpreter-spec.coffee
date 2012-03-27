@@ -38,13 +38,13 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '.')
         expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [2,2]]
 
-        # editor.getSelection().setBufferRange([[1,1], [2,2]])
-        # interpreter.eval(editor, '.,')
-        # expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [12,2]]
+        editor.getSelection().setBufferRange([[1,1], [2,2]])
+        interpreter.eval(editor, '.,')
+        expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [12,2]]
 
-        # editor.getSelection().setBufferRange([[1,1], [2,2]])
-        # interpreter.eval(editor, ',.')
-        # expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [2,2]]
+        editor.getSelection().setBufferRange([[1,1], [2,2]])
+        interpreter.eval(editor, ',.')
+        expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [2,2]]
 
     describe "/regex/", ->
       it 'selects text matching regex after current selection', ->
@@ -77,6 +77,18 @@ describe "CommandInterpreter", ->
         it "selects the entire file", ->
           interpreter.eval(editor, ',')
           expect(editor.getSelection().getBufferRange()).toEqual [[0, 0], [12, 2]]
+
+  describe "x/regex/", ->
+    it "sets the current selection to every match of the regex in the current selection", ->
+      interpreter.eval(editor, '6,7 x/current/')
+
+      selections = editor.getSelections()
+      expect(selections.length).toBe 4
+
+      expect(selections[0].getBufferRange()).toEqual [[5,6], [5,13]]
+      expect(selections[1].getBufferRange()).toEqual [[6,6], [6,13]]
+      expect(selections[2].getBufferRange()).toEqual [[6,34], [6,41]]
+      expect(selections[3].getBufferRange()).toEqual [[6,56], [6,63]]
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->
