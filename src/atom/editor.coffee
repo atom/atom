@@ -399,9 +399,6 @@ class Editor extends View
     fold.destroy()
     @setCursorBufferPosition(fold.start)
 
-  logLines: ->
-    @renderer.logLines()
-
   splitLeft: ->
     @split('row', 'before')
 
@@ -442,3 +439,6 @@ class Editor extends View
 
   getCurrentMode: ->
     @buffer.getMode()
+
+  logLines: ->
+    @renderer.logLines()
