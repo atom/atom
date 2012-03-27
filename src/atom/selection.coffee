@@ -211,10 +211,6 @@ class Selection extends View
     @modifySelection =>
       @cursor.setScreenPosition(position)
 
-  selectToBufferPosition: (position) ->
-    @modifySelection =>
-      @cursor.setBufferPosition(position)
-
   moveCursorToLineEnd: ->
     @cursor.moveToLineEnd()
 

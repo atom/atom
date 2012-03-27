@@ -363,7 +363,6 @@ class Editor extends View
   selectUp: -> @compositeSelection.selectUp()
   selectDown: -> @compositeSelection.selectDown()
   selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
-  selectToBufferPosition: (position) -> @getSelection().selectToBufferPosition(position)
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
