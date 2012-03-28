@@ -12,10 +12,17 @@ class RegexAddress extends Address
     selectedRange = editor.getLastSelectionInBuffer().getBufferRange()
     rangeToSearch = new Range(selectedRange.end, editor.getEofPosition())
 
-    rangeToReturn = selectedRange
+    rangeToReturn = null
     editor.buffer.traverseRegexMatchesInRange @regex, rangeToSearch, (match, range) ->
       rangeToReturn = range
 
-    rangeToReturn
+    if rangeToReturn
+      rangeToReturn
+    else
+      rangeToSearch = new Range([0, 0], rangeToSearch.start)
+      editor.buffer.traverseRegexMatchesInRange @regex, rangeToSearch, (match, range) ->
+        rangeToReturn = range
+
+      rangeToReturn or selectedRange
 
   isRelative: -> true

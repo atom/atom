@@ -78,6 +78,14 @@ describe "CommandInterpreter", ->
         expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
+      it "wraps around to the beginning of the buffer, but doesn't infinitely loop if no matches are found", ->
+        editor.setSelectionBufferRange([[10, 0], [10,3]])
+        interpreter.eval(editor, '/pivot')
+        expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
+
+        interpreter.eval(editor, '/mike tyson')
+        expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
+
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->
