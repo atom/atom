@@ -79,6 +79,14 @@ class CompositeSeleciton
     selection.selectDown() for selection in @getSelections()
     @mergeIntersectingSelections()
 
+  selectToTop: ->
+    selection.selectToTop() for selection in @getSelections()
+    @mergeIntersectingSelections reverse: true
+
+  selectToBottom: ->
+    selection.selectToBottom() for selection in @getSelections()
+    @mergeIntersectingSelections()
+
   setBufferRange: (bufferRange, options) ->
     @getLastSelection().setBufferRange(bufferRange, options)
 

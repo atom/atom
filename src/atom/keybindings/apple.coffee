@@ -1,0 +1,6 @@
+window.keymap.bindKeys '.editor'
+  'meta-up': 'move-to-top'
+  'meta-shift-up': 'select-to-top'
+  'meta-down': 'move-to-bottom'
+  'meta-shift-down': 'select-to-bottom'
+  'alt-up': 'move-to-start-of-paragraph'

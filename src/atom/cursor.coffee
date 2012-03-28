@@ -139,6 +139,12 @@ class Cursor extends View
 
     @setScreenPosition({row, column})
 
+  moveToTop: ->
+    @setBufferPosition [0,0]
+
+  moveToBottom: ->
+    @setBufferPosition @editor.getEofPosition()
+
   moveLeftUntilMatch: (regex) ->
     row = @getScreenRow()
     column = @getScreenColumn()

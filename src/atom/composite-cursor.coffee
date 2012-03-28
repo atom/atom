@@ -60,6 +60,12 @@ class CompositeCursor
   moveToNextWord: ->
     @modifyCursors (cursor) -> cursor.moveToNextWord()
 
+  moveToTop: ->
+    @modifyCursors (cursor) -> cursor.moveToTop()
+
+  moveToBottom: ->
+    @modifyCursors (cursor) -> cursor.moveToBottom()
+
   handleBufferChange: (e) ->
     @modifyCursors (cursor) -> cursor.handleBufferChange(e)
 
