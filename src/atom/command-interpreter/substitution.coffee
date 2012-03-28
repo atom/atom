@@ -2,12 +2,15 @@ Command = require 'command-interpreter/command'
 
 module.exports =
 class Substitution extends Command
-  global: false
+  regex: null
+  replacementText: null
 
-  constructor: (@findText, @replaceText, @options) ->
-    @findRegex = new RegExp(@findText, options.join(''))
+  constructor: (pattern, replacementText, options) ->
+    @replacementText = replacementText
+    @regex = new RegExp(pattern, options.join(''))
 
   execute: (editor) ->
-    editor.buffer.traverseRegexMatchesInRange @findRegex, editor.getSelection().getBufferRange(), =>
-      @replaceText
+    range = editor.getSelection().getBufferRange()
+    editor.buffer.traverseRegexMatchesInRange @regex, range, =>
+      @replacementText
 
