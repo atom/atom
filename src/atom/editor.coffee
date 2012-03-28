@@ -350,6 +350,7 @@ class Editor extends View
   moveCursorUp: -> @compositeCursor.moveUp()
   moveCursorDown: -> @compositeCursor.moveDown()
   moveCursorRight: -> @compositeCursor.moveRight()
+  getCursors: -> @compositeCursor.getCursors()
   moveCursorLeft: -> @compositeCursor.moveLeft()
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
   getCursorScreenPosition: -> @compositeCursor.getCursor().getScreenPosition()
