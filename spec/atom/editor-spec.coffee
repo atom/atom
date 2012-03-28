@@ -195,55 +195,6 @@ describe "Editor", ->
       expect(editor.gutter).not.toHaveClass('drop-shadow')
 
   describe "cursor movement", ->
-    describe "move-to-top ", ->
-      it "moves cusor to the top of the buffer", ->
-        editor.setCursorScreenPosition [11,1]
-        editor.addCursorAtScreenPosition [12,0]
-        editor.trigger 'move-to-top'
-        expect(editor.getCursors().length).toBe 1
-        expect(editor.getCursorBufferPosition()).toEqual [0,0]
-
-    describe "move-to-bottom", ->
-      it "moves cusor to the bottom of the buffer", ->
-        editor.setCursorScreenPosition [0,0]
-        editor.addCursorAtScreenPosition [1,0]
-        editor.trigger 'move-to-bottom'
-        expect(editor.getCursors().length).toBe 1
-        expect(editor.getCursorBufferPosition()).toEqual [12,2]
-
-    describe "move-to-beginning-of-line", ->
-      it "moves cursor to the beginning of line", ->
-        editor.setCursorScreenPosition [0,5]
-        editor.addCursorAtScreenPosition [1,7]
-        editor.trigger 'move-to-beginning-of-line'
-        expect(editor.getCursors().length).toBe 2
-        [cursor1, cursor2] = editor.getCursors()
-        expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor2.getBufferPosition()).toEqual [1,0]
-
-    describe "move-to-end-of-line", ->
-      it "moves cursor to the end of line", ->
-        editor.setCursorScreenPosition [0,0]
-        editor.addCursorAtScreenPosition [1,0]
-        editor.trigger 'move-to-end-of-line'
-        expect(editor.getCursors().length).toBe 2
-        [cursor1, cursor2] = editor.getCursors()
-        expect(cursor1.getBufferPosition()).toEqual [0,29]
-        expect(cursor2.getBufferPosition()).toEqual [1,30]
-
-    describe ".setCursorScreenPosition({row, column})", ->
-      beforeEach ->
-        editor.attachToDom()
-        editor.setCursorScreenPosition(row: 2, column: 2)
-
-      it "moves the cursor to the character at the given row and column", ->
-        expect(editor.find('.cursor').position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
-
-      describe "if soft-wrap is enabled", ->
-        beforeEach ->
-          setEditorWidthInChars(editor, 20)
-          editor.setSoftWrap(true)
-
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->
         editor.trigger keydownEvent('right')
@@ -493,6 +444,72 @@ describe "Editor", ->
               editor.moveCursorRight()
 
               expect(editor.getCursorScreenPosition()).toEqual(lastPosition)
+    describe "move-to-top ", ->
+      it "moves cusor to the top of the buffer", ->
+        editor.setCursorScreenPosition [11,1]
+        editor.addCursorAtScreenPosition [12,0]
+        editor.trigger 'move-to-top'
+        expect(editor.getCursors().length).toBe 1
+        expect(editor.getCursorBufferPosition()).toEqual [0,0]
+
+    describe "move-to-bottom", ->
+      it "moves cusor to the bottom of the buffer", ->
+        editor.setCursorScreenPosition [0,0]
+        editor.addCursorAtScreenPosition [1,0]
+        editor.trigger 'move-to-bottom'
+        expect(editor.getCursors().length).toBe 1
+        expect(editor.getCursorBufferPosition()).toEqual [12,2]
+
+    describe "move-to-beginning-of-line", ->
+      it "moves cursor to the beginning of line", ->
+        editor.setCursorScreenPosition [0,5]
+        editor.addCursorAtScreenPosition [1,7]
+        editor.trigger 'move-to-beginning-of-line'
+        expect(editor.getCursors().length).toBe 2
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor2.getBufferPosition()).toEqual [1,0]
+
+    describe "move-to-end-of-line", ->
+      it "moves cursor to the end of line", ->
+        editor.setCursorScreenPosition [0,0]
+        editor.addCursorAtScreenPosition [1,0]
+        editor.trigger 'move-to-end-of-line'
+        expect(editor.getCursors().length).toBe 2
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,29]
+        expect(cursor2.getBufferPosition()).toEqual [1,30]
+
+    describe "move-to-next-word", ->
+      it "moves the cursor to the next word or the end of file if there is no next word", ->
+        editor.setCursorBufferPosition [2, 5]
+        editor.addCursorAtBufferPosition [3, 60]
+        [cursor1, cursor2] = editor.getCursors()
+
+        editor.trigger 'move-to-next-word'
+
+        expect(cursor1.getBufferPosition()).toEqual [2, 7]
+        expect(cursor2.getBufferPosition()).toEqual [4, 4]
+
+        buffer.insert([12, 2], '   ')
+        cursor1.setBufferPosition([12, 1])
+        expect(cursor1.getBufferPosition()).toEqual [12, 1]
+        editor.trigger 'move-to-next-word'
+
+        expect(cursor1.getBufferPosition()).toEqual [12, 5]
+
+    describe ".setCursorScreenPosition({row, column})", ->
+      beforeEach ->
+        editor.attachToDom()
+        editor.setCursorScreenPosition(row: 2, column: 2)
+
+      it "moves the cursor to the character at the given row and column", ->
+        expect(editor.find('.cursor').position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
+
+      describe "if soft-wrap is enabled", ->
+        beforeEach ->
+          setEditorWidthInChars(editor, 20)
+          editor.setSoftWrap(true)
 
     describe "when a mousedown event occurs in the editor", ->
       beforeEach ->
@@ -592,24 +609,6 @@ describe "Editor", ->
             editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
-
-    describe "move-to-next-word", ->
-      it "moves the cursor to the next word or the end of file if there is no next word", ->
-        editor.setCursorBufferPosition [2, 5]
-        editor.addCursorAtBufferPosition [3, 60]
-        [cursor1, cursor2] = editor.getCursors()
-
-        editor.trigger 'move-to-next-word'
-
-        expect(cursor1.getBufferPosition()).toEqual [2, 7]
-        expect(cursor2.getBufferPosition()).toEqual [4, 4]
-
-        buffer.insert([12, 2], '   ')
-        cursor1.setBufferPosition([12, 1])
-        expect(cursor1.getBufferPosition()).toEqual [12, 1]
-        editor.trigger 'move-to-next-word'
-
-        expect(cursor1.getBufferPosition()).toEqual [12, 5]
 
   describe "auto indent/outdent", ->
     beforeEach ->
