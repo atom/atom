@@ -41,6 +41,8 @@ class Editor extends View
   initialize: ({buffer}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
+    require 'keybindings/emacs'
+
     @id = Editor.idCounter++
     @editSessionsByBufferId = {}
     @bindKeys()
