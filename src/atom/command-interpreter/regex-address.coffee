@@ -9,7 +9,7 @@ class RegexAddress extends Address
     @regex = new RegExp(pattern)
 
   getRange: (editor) ->
-    selectedRange = editor.getSelection().getBufferRange()
+    selectedRange = editor.getLastSelectionInBuffer().getBufferRange()
     rangeToSearch = new Range(selectedRange.end, editor.getEofPosition())
 
     rangeToReturn = selectedRange

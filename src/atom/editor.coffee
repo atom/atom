@@ -357,6 +357,7 @@ class Editor extends View
 
   getSelection: (index) -> @compositeSelection.getSelection(index)
   getSelections: -> @compositeSelection.getSelections()
+  getLastSelectionInBuffer: -> @compositeSelection.getLastSelectionInBuffer()
   getSelectedText: -> @compositeSelection.getSelection().getText()
   setSelectionBufferRange: (bufferRange, options) -> @compositeSelection.setBufferRange(bufferRange, options)
   addSelectionForBufferRange: (bufferRange, options) -> @compositeSelection.addSelectionForBufferRange(bufferRange, options)

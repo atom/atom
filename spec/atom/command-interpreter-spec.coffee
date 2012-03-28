@@ -56,14 +56,24 @@ describe "CommandInterpreter", ->
         expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [2,2]]
 
     describe "/regex/", ->
+      beforeEach ->
+        editor.clearSelections()
+
       it 'selects text matching regex after current selection', ->
-        editor.getSelection().setBufferRange([[4,16], [4,20]])
+        editor.setSelectionBufferRange([[4,16], [4,20]])
         interpreter.eval(editor, '/pivot/')
-        expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
       it 'does not require the trailing slash', ->
-        editor.getSelection().setBufferRange([[4,16], [4,20]])
+        editor.setSelectionBufferRange([[4,16], [4,20]])
+        interpreter.eval(editor, '/pivot')
+        expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
+
+      it "searches from the end of the selection furthest forward in the buffer", ->
+        editor.clearSelections()
+        editor.setSelectionBufferRange([[4,16], [4,20]])
+        editor.addSelectionForBufferRange([[1,16], [2,20]])
+        expect(editor.getSelections().length).toBe 2
         interpreter.eval(editor, '/pivot')
         expect(editor.getSelections().length).toBe 1
         expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]

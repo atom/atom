@@ -12,6 +12,12 @@ class CompositeSeleciton
 
   getSelections: -> new Array(@selections...)
 
+  getLastSelectionInBuffer: ->
+    _.last(@getSelections().sort (a, b) ->
+      aRange = a.getBufferRange()
+      bRange = b.getBufferRange()
+      aRange.end.compare(bRange.end))
+
   clearSelections: ->
     for selection in @getSelections()[1..]
       selection.cursor.remove()
