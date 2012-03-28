@@ -87,6 +87,14 @@ class CompositeSeleciton
     selection.selectToBottom() for selection in @getSelections()
     @mergeIntersectingSelections()
 
+  selectToBeginningOfLine: ->
+    selection.selectToBeginningOfLine() for selection in @getSelections()
+    @mergeIntersectingSelections reverse: true
+
+  selectToEndOfLine: ->
+    selection.selectToEndOfLine() for selection in @getSelections()
+    @mergeIntersectingSelections()
+
   setBufferRange: (bufferRange, options) ->
     @getLastSelection().setBufferRange(bufferRange, options)
 

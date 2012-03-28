@@ -106,12 +106,14 @@ class Editor extends View
     @on 'close', => @remove(); false
 
     @on 'move-to-top', => @moveCursorToTop()
-    @on 'select-to-top', => @selectToTop()
     @on 'move-to-bottom', => @moveCursorToBottom()
-    @on 'select-to-bottom', => @selectToBottom()
     @on 'move-to-beginning-of-line', => @moveCursorToBeginningOfLine()
     @on 'move-to-end-of-line', => @moveCursorToEndOfLine()
     @on 'move-to-first-character-of-line', => @moveCursorToFirstCharacterOfLine()
+    @on 'select-to-top', => @selectToTop()
+    @on 'select-to-bottom', => @selectToBottom()
+    @on 'select-to-end-of-line', => @selectToEndOfLine()
+    @on 'select-to-beginning-of-line', => @selectToBeginningOfLine()
 
   buildCursorAndSelection: ->
     @compositeSelection = new CompositeSelection(this)
@@ -390,6 +392,8 @@ class Editor extends View
   selectDown: -> @compositeSelection.selectDown()
   selectToTop: -> @compositeSelection.selectToTop()
   selectToBottom: -> @compositeSelection.selectToBottom()
+  selectToEndOfLine: -> @compositeSelection.selectToEndOfLine()
+  selectToBeginningOfLine: -> @compositeSelection.selectToBeginningOfLine()
   selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
   clearSelections: -> @compositeSelection.clearSelections()
 

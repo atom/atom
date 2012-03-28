@@ -863,6 +863,40 @@ describe "Editor", ->
         expect(editor.getSelection().getBufferRange()).toEqual [[9,3], [12,2]]
         expect(editor.getSelection().isReversed()).toBeFalsy()
 
+    describe "select-to-beginning-of-line", ->
+      it "selects text from cusor position to end of line", ->
+        editor.setCursorScreenPosition [12,2]
+        editor.addCursorAtScreenPosition [11,3]
+        editor.trigger 'select-to-beginning-of-line'
+        expect(editor.getCursors().length).toBe 2
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [12,0]
+        expect(cursor2.getBufferPosition()).toEqual [11,0]
+
+        expect(editor.getSelections().length).toBe 2
+        [selection1, selection2] = editor.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[12,0], [12,2]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[11,0], [11,3]]
+        expect(selection2.isReversed()).toBeTruthy()
+
+    describe "select-to-end-of-line", ->
+      it "selects text from cusor position to end of line", ->
+        editor.setCursorScreenPosition [12,0]
+        editor.addCursorAtScreenPosition [11,3]
+        editor.trigger 'select-to-end-of-line'
+        expect(editor.getCursors().length).toBe 2
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [12,2]
+        expect(cursor2.getBufferPosition()).toEqual [11,44]
+
+        expect(editor.getSelections().length).toBe 2
+        [selection1, selection2] = editor.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[12,0], [12,2]]
+        expect(selection1.isReversed()).toBeFalsy()
+        expect(selection2.getBufferRange()).toEqual [[11,3], [11,44]]
+        expect(selection2.isReversed()).toBeFalsy()
+
   describe "multiple cursors", ->
     it "places multiple cursor with meta-click", ->
       editor.attachToDom()
