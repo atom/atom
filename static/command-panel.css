@@ -4,6 +4,11 @@
   background: #515151;
   display: -webkit-box;
   padding: 3px;
+  -webkit-transition: background 200ms ease-out;
+}
+
+.command-panel.error {
+  background: #991212;
 }
 
 .command-panel .prompt {

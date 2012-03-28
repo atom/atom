@@ -55,6 +55,19 @@ describe "CommandPanel", ->
 
       expect(commandPanel.execute).toHaveBeenCalled()
 
+    describe "if the command is malformed", ->
+      it "adds and removes an error class to the command panel and does not close it", ->
+        rootView.trigger 'command-panel:toggle'
+        commandPanel.editor.insertText 'garbage-command!!'
+
+        commandPanel.editor.trigger keydownEvent('enter')
+        expect(commandPanel.parent()).toExist()
+        expect(commandPanel).toHaveClass 'error'
+
+        advanceClock 400
+
+        expect(commandPanel).not.toHaveClass 'error'
+
   describe ".execute()", ->
     it "executes the command and closes the command panel", ->
       rootView.activeEditor().setText("i hate love")

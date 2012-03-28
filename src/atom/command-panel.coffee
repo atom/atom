@@ -1,6 +1,7 @@
 {View} = require 'space-pen'
 CommandInterpreter = require 'command-interpreter'
 Editor = require 'editor'
+{SyntaxError} = require('pegjs').parser
 
 module.exports =
 class CommandPanel extends View
@@ -41,7 +42,17 @@ class CommandPanel extends View
     @rootView.activeEditor().focus()
 
   execute: ->
-    @commandInterpreter.eval(@rootView.activeEditor(), @editor.getText())
+    try
+      @commandInterpreter.eval(@rootView.activeEditor(), @editor.getText())
+    catch error
+      if error instanceof SyntaxError
+        @addClass 'error'
+        removeErrorClass = => @removeClass 'error'
+        window.setTimeout(removeErrorClass, 200)
+        return
+      else
+        throw error
+
     @hide()
 
   repeatRelativeAddress: ->
