@@ -204,7 +204,7 @@ describe 'Buffer', ->
         range = [[2,10], [4,10]]
         expect(buffer.getTextInRange(range)).toBe "ems.length <= 1) return items;\n    var pivot = items.shift(), current, left = [], right = [];\n    while("
 
-  describe ".traverseRegexMatchesInRange(range, regexSource, fn)", ->
+  describe ".traverseRegexMatchesInRange(range, regex, fn)", ->
     describe "when given a regex with no global flag", ->
       it "calls the iterator with the first match for the given regex in the given range", ->
         matches = []
@@ -265,6 +265,70 @@ describe 'Buffer', ->
           stop() if ranges.length == 2
 
         expect(ranges.length).toBe 2
+
+  describe "backwardsTraverseRegexMatchesInRange(range, regex, fn)", ->
+    describe "when given a regex with no global flag", ->
+      it "calls the iterator with the last match for the given regex in the given range", ->
+        matches = []
+        ranges = []
+        buffer.backwardsTraverseRegexMatchesInRange /cu(rr)ent/, [[4,0], [6,44]], (match, range) ->
+          matches.push(match)
+          ranges.push(range)
+
+        expect(matches.length).toBe 1
+        expect(ranges.length).toBe 1
+
+        expect(matches[0][0]).toBe 'current'
+        expect(matches[0][1]).toBe 'rr'
+        expect(ranges[0]).toEqual [[6,34], [6,41]]
+
+    describe "when given a regex with a global flag", ->
+      it "calls the iterator with each match for the given regex in the given range, starting with the last match", ->
+        matches = []
+        ranges = []
+        buffer.backwardsTraverseRegexMatchesInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range) ->
+          matches.push(match)
+          ranges.push(range)
+
+        expect(matches.length).toBe 3
+        expect(ranges.length).toBe 3
+
+        expect(matches[0][0]).toBe 'current'
+        expect(matches[0][1]).toBe 'rr'
+        expect(ranges[0]).toEqual [[6,34], [6,41]]
+
+        expect(matches[1][0]).toBe 'current'
+        expect(matches[1][1]).toBe 'rr'
+        expect(ranges[1]).toEqual [[6,6], [6,13]]
+
+        expect(matches[2][0]).toBe 'current'
+        expect(matches[2][1]).toBe 'rr'
+        expect(ranges[2]).toEqual [[5,6], [5,13]]
+
+    describe "when the iterator calls the 'replace' control function with a replacement string", ->
+      it "replaces each occurrence of the regex match with the string", ->
+        ranges = []
+        buffer.backwardsTraverseRegexMatchesInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { replace }) ->
+          ranges.push(range)
+          replace("foo") unless range.start.isEqual([6,6])
+
+        expect(ranges[0]).toEqual [[6,34], [6,41]]
+        expect(ranges[1]).toEqual [[6,6], [6,13]]
+        expect(ranges[2]).toEqual [[5,6], [5,13]]
+
+        expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'
+        expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(foo) : right.push(current);'
+
+    describe "when the iterator calls the 'stop' control function", ->
+      it "stops the traversal", ->
+        ranges = []
+        buffer.backwardsTraverseRegexMatchesInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { stop }) ->
+          ranges.push(range)
+          stop() if ranges.length == 2
+
+        expect(ranges.length).toBe 2
+        expect(ranges[0]).toEqual [[6,34], [6,41]]
+        expect(ranges[1]).toEqual [[6,6], [6,13]]
 
   describe ".characterIndexForPosition(position)", ->
     it "returns the total number of charachters that precede the given position", ->

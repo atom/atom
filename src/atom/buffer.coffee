@@ -179,4 +179,26 @@ class Buffer
     endIndex = @characterIndexForPosition(range.end)
     traverseRecursively(@getText(), startIndex, endIndex, 0)
 
+  backwardsTraverseRegexMatchesInRange: (regex, range, iterator) ->
+    global = regex.global
+    regex = new RegExp(regex.source, 'gm')
+
+    matches = []
+    @traverseRegexMatchesInRange regex, range, (match, matchRange) ->
+      matches.push([match, matchRange])
+
+    matches.reverse()
+
+    recurse = true
+    stop = -> recurse = false
+    replacementText = null
+    replace = (text) -> replacementText = text
+
+    for [match, matchRange] in matches
+      replacementText = null
+      iterator(match, matchRange, { stop, replace })
+      @change(matchRange, replacementText) if replacementText
+      return unless global and recurse
+
+
 _.extend(Buffer.prototype, EventEmitter)
