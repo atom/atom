@@ -84,6 +84,7 @@ class Editor extends View
     @on 'move-down', => @moveCursorDown()
     @on 'move-up', => @moveCursorUp()
     @on 'move-to-next-word', => @moveCursorToNextWord()
+    @on 'move-to-previous-word', => @moveCursorToPreviousWord()
     @on 'select-right', => @selectRight()
     @on 'select-left', => @selectLeft()
     @on 'select-up', => @selectUp()
@@ -365,6 +366,7 @@ class Editor extends View
   moveCursorRight: -> @compositeCursor.moveRight()
   moveCursorLeft: -> @compositeCursor.moveLeft()
   moveCursorToNextWord: -> @compositeCursor.moveToNextWord()
+  moveCursorToPreviousWord: -> @compositeCursor.moveToPreviousWord()
   moveCursorToTop: -> @compositeCursor.moveToTop()
   moveCursorToBottom: -> @compositeCursor.moveToBottom()
   moveCursorToBeginningOfLine: -> @compositeCursor.moveToBeginningOfLine()
@@ -397,6 +399,7 @@ class Editor extends View
   getEofPosition: -> @buffer.getEofPosition()
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   traverseRegexMatchesInRange: (args...) -> @buffer.traverseRegexMatchesInRange(args...)
+  backwardsTraverseRegexMatchesInRange: (args...) -> @buffer.backwardsTraverseRegexMatchesInRange(args...)
 
   insertText: (text) ->
     @compositeSelection.insertText(text)

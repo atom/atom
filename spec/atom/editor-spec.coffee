@@ -493,10 +493,24 @@ describe "Editor", ->
 
         buffer.insert([12, 2], '   ')
         cursor1.setBufferPosition([12, 1])
-        expect(cursor1.getBufferPosition()).toEqual [12, 1]
         editor.trigger 'move-to-next-word'
-
         expect(cursor1.getBufferPosition()).toEqual [12, 5]
+
+    describe "move-to-previous-word", ->
+      it "moves the cursor to the previous word or the beginning of the file if there is no previous word", ->
+        editor.setCursorBufferPosition [2, 5]
+        editor.addCursorAtBufferPosition [3, 60]
+        [cursor1, cursor2] = editor.getCursors()
+
+        editor.trigger 'move-to-previous-word'
+
+        expect(cursor1.getBufferPosition()).toEqual [1, 29]
+        expect(cursor2.getBufferPosition()).toEqual [3, 57]
+
+        buffer.insert([0, 0], '   ')
+        cursor1.setBufferPosition([0, 3])
+        editor.trigger 'move-to-previous-word'
+        expect(cursor1.getBufferPosition()).toEqual [0, 0]
 
     describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->

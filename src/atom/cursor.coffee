@@ -103,18 +103,30 @@ class Cursor extends View
     @setScreenPosition({row: row + 1, column: column})
     @goalColumn = column
 
+  wordRegex: /(\w+)|([^\w\s]+)/g
+
   moveToNextWord: ->
-    wordRegex = /(\w+)|([^\w\s]+)/g
     bufferPosition = @getBufferPosition()
     range = [bufferPosition, @editor.getEofPosition()]
 
     nextPosition = null
-    @editor.traverseRegexMatchesInRange wordRegex, range, (match, matchRange, { stop }) =>
+    @editor.traverseRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
       if matchRange.start.isGreaterThan(bufferPosition)
         nextPosition = matchRange.start
         stop()
 
     @setBufferPosition(nextPosition or @editor.getEofPosition())
+
+  moveToPreviousWord: ->
+    bufferPosition = @getBufferPosition()
+    range = [[0, 0], bufferPosition]
+
+    nextPosition = null
+    @editor.backwardsTraverseRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
+      nextPosition = matchRange.start
+      stop()
+
+    @setBufferPosition(nextPosition or [0, 0])
 
   moveToEndOfLine: ->
     { row } = @getBufferPosition()
