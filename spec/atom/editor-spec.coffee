@@ -176,7 +176,6 @@ describe "Editor", ->
         editor.setMaxLineLength(50)
         fold = editor.createFold([[3, 52], [3, 56]])
         fold.destroy()
-        # console.log editor.renderer.bufferRowsForScreenRows()
         expect(editor.gutter.find('.line-number:last').text()).toBe '13'
 
     it "adds a drop shadow when the horizontal scroller is scrolled to the right", ->
@@ -196,6 +195,42 @@ describe "Editor", ->
       expect(editor.gutter).not.toHaveClass('drop-shadow')
 
   describe "cursor movement", ->
+    describe "move-to-top ", ->
+      it "moves cusor to the top of the buffer", ->
+        editor.setCursorScreenPosition [11,1]
+        editor.addCursorAtScreenPosition [12,0]
+        editor.trigger 'move-to-top'
+        expect(editor.getCursors().length).toBe 1
+        expect(editor.getCursorBufferPosition()).toEqual [0,0]
+
+    describe "move-to-bottom", ->
+      it "moves cusor to the bottom of the buffer", ->
+        editor.setCursorScreenPosition [0,0]
+        editor.addCursorAtScreenPosition [1,0]
+        editor.trigger 'move-to-bottom'
+        expect(editor.getCursors().length).toBe 1
+        expect(editor.getCursorBufferPosition()).toEqual [12,2]
+
+    describe "move-to-beginning-of-line", ->
+      it "moves cursor to the beginning of line", ->
+        editor.setCursorScreenPosition [0,5]
+        editor.addCursorAtScreenPosition [1,7]
+        editor.trigger 'move-to-beginning-of-line'
+        expect(editor.getCursors().length).toBe 2
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor2.getBufferPosition()).toEqual [1,0]
+
+    describe "move-to-end-of-line", ->
+      it "moves cursor to the end of line", ->
+        editor.setCursorScreenPosition [0,0]
+        editor.addCursorAtScreenPosition [1,0]
+        editor.trigger 'move-to-end-of-line'
+        expect(editor.getCursors().length).toBe 2
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,29]
+        expect(cursor2.getBufferPosition()).toEqual [1,30]
+
     describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->
         editor.attachToDom()
@@ -782,6 +817,26 @@ describe "Editor", ->
         expect(range.start).toEqual({row: 4, column: 0})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+    describe "select-to-top", ->
+      it "selects text from cusor position to the top of the buffer", ->
+        editor.setCursorScreenPosition [11,2]
+        editor.addCursorAtScreenPosition [10,0]
+        editor.trigger 'select-to-top'
+        expect(editor.getCursors().length).toBe 1
+        expect(editor.getCursorBufferPosition()).toEqual [0,0]
+        expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [11,2]]
+        expect(editor.getSelection().isReversed()).toBeTruthy()
+
+    describe "select-to-bottom", ->
+      it "selects text from cusor position to the bottom of the buffer", ->
+        editor.setCursorScreenPosition [10,0]
+        editor.addCursorAtScreenPosition [9,3]
+        editor.trigger 'select-to-bottom'
+        expect(editor.getCursors().length).toBe 1
+        expect(editor.getCursorBufferPosition()).toEqual [12,2]
+        expect(editor.getSelection().getBufferRange()).toEqual [[9,3], [12,2]]
+        expect(editor.getSelection().isReversed()).toBeFalsy()
 
   describe "multiple cursors", ->
     it "places multiple cursor with meta-click", ->

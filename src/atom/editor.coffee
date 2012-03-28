@@ -42,6 +42,7 @@ class Editor extends View
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
     require 'keybindings/emacs'
+    require 'keybindings/apple'
 
     @id = Editor.idCounter++
     @editSessionsByBufferId = {}
@@ -102,6 +103,13 @@ class Editor extends View
     @on 'split-up', => @splitUp()
     @on 'split-down', => @splitDown()
     @on 'close', => @remove(); false
+
+    @on 'move-to-top', => @moveCursorToTop()
+    @on 'select-to-top', => @selectToTop()
+    @on 'move-to-bottom', => @moveCursorToBottom()
+    @on 'select-to-bottom', => @selectToBottom()
+    @on 'move-to-beginning-of-line', => @moveCursorToBeginningOfLine()
+    @on 'move-to-end-of-line', => @moveCursorToEndOfLine()
 
   buildCursorAndSelection: ->
     @compositeSelection = new CompositeSelection(this)
@@ -357,6 +365,10 @@ class Editor extends View
   moveCursorRight: -> @compositeCursor.moveRight()
   moveCursorLeft: -> @compositeCursor.moveLeft()
   moveCursorToNextWord: -> @compositeCursor.moveToNextWord()
+  moveCursorToTop: -> @compositeCursor.moveToTop()
+  moveCursorToBottom: -> @compositeCursor.moveToBottom()
+  moveCursorToBeginningOfLine: -> @compositeCursor.moveToBeginningOfLine()
+  moveCursorToEndOfLine: -> @compositeCursor.moveToEndOfLine()
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
   getCursorScreenPosition: -> @compositeCursor.getCursor().getScreenPosition()
   setCursorBufferPosition: (position) -> @compositeCursor.setBufferPosition(position)
@@ -372,6 +384,8 @@ class Editor extends View
   selectLeft: -> @compositeSelection.selectLeft()
   selectUp: -> @compositeSelection.selectUp()
   selectDown: -> @compositeSelection.selectDown()
+  selectToTop: -> @compositeSelection.selectToTop()
+  selectToBottom: -> @compositeSelection.selectToBottom()
   selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
   clearSelections: -> @compositeSelection.clearSelections()
 

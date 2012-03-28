@@ -212,6 +212,14 @@ class Selection extends View
     @modifySelection =>
       @cursor.moveDown()
 
+  selectToTop: ->
+    @modifySelection =>
+      @cursor.moveToTop()
+
+  selectToBottom: ->
+    @modifySelection =>
+      @cursor.moveToBottom()
+
   selectLeftUntilMatch: (regex) ->
     @modifySelection =>
       @cursor.moveLeftUntilMatch(regex)
@@ -219,12 +227,6 @@ class Selection extends View
   selectToScreenPosition: (position) ->
     @modifySelection =>
       @cursor.setScreenPosition(position)
-
-  moveCursorToLineEnd: ->
-    @cursor.moveToLineEnd()
-
-  moveCursorToLineStart: ->
-    @cursor.moveToLineStart()
 
   cut: (maintainPasteboard=false) ->
     @copy(maintainPasteboard)

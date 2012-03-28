@@ -116,11 +116,11 @@ class Cursor extends View
 
     @setBufferPosition(nextPosition or @editor.getEofPosition())
 
-  moveToLineEnd: ->
+  moveToEndOfLine: ->
     { row } = @getBufferPosition()
     @setBufferPosition({ row, column: @editor.buffer.lineForRow(row).length })
 
-  moveToLineStart: ->
+  moveToBeginningOfLine: ->
     { row } = @getScreenPosition()
     @setScreenPosition({ row, column: 0 })
 
@@ -138,6 +138,12 @@ class Cursor extends View
       column = Infinity
 
     @setScreenPosition({row, column})
+
+  moveToTop: ->
+    @setBufferPosition [0,0]
+
+  moveToBottom: ->
+    @setBufferPosition @editor.getEofPosition()
 
   moveLeftUntilMatch: (regex) ->
     row = @getScreenRow()
