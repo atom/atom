@@ -202,7 +202,7 @@ describe "Editor", ->
         editor.setCursorScreenPosition(row: 2, column: 2)
 
       it "moves the cursor to the character at the given row and column", ->
-        expect(editor.getCursor().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
+        expect(editor.find('.cursor').position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
       describe "if soft-wrap is enabled", ->
         beforeEach ->
@@ -1345,7 +1345,7 @@ describe "Editor", ->
 
       expect(editor.lineHeight).not.toBeNull()
       expect(editor.charWidth).not.toBeNull()
-      expect(editor.getCursor().offset()).toEqual pagePixelPositionForPoint(editor, [2, 2])
+      expect(editor.find('.cursor').offset()).toEqual pagePixelPositionForPoint(editor, [2, 2])
 
     it "is focused", ->
       editor.attachToDom()

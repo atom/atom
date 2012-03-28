@@ -345,15 +345,14 @@ class Editor extends View
     @lineHeight = fragment.outerHeight()
     fragment.remove()
 
-  getCursor: (index) -> @compositeCursor.getCursor(index)
   moveCursorUp: -> @compositeCursor.moveUp()
   moveCursorDown: -> @compositeCursor.moveDown()
   moveCursorRight: -> @compositeCursor.moveRight()
   moveCursorLeft: -> @compositeCursor.moveLeft()
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
-  getCursorScreenPosition: -> @getCursor().getScreenPosition()
+  getCursorScreenPosition: -> @compositeCursor.getCursor().getScreenPosition()
   setCursorBufferPosition: (position) -> @compositeCursor.setBufferPosition(position)
-  getCursorBufferPosition: -> @getCursor().getBufferPosition()
+  getCursorBufferPosition: -> @compositeCursor.getCursor().getBufferPosition()
 
   getSelection: (index) -> @compositeSelection.getSelection(index)
   getSelections: -> @compositeSelection.getSelections()

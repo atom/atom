@@ -43,15 +43,15 @@ describe "CommandInterpreter", ->
 
     describe ".", ->
       it 'maintains the current selection', ->
-        editor.getSelection().setBufferRange([[1,1], [2,2]])
+        editor.setSelectionBufferRange([[1,1], [2,2]])
         interpreter.eval(editor, '.')
         expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [2,2]]
 
-        editor.getSelection().setBufferRange([[1,1], [2,2]])
+        editor.setSelectionBufferRange([[1,1], [2,2]])
         interpreter.eval(editor, '.,')
         expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [12,2]]
 
-        editor.getSelection().setBufferRange([[1,1], [2,2]])
+        editor.setSelectionBufferRange([[1,1], [2,2]])
         interpreter.eval(editor, ',.')
         expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [2,2]]
 
@@ -131,18 +131,21 @@ describe "CommandInterpreter", ->
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->
-      editor.getSelection().setBufferRange([[6, 0], [6, 44]])
+      editor.setSelectionBufferRange([[6, 0], [6, 44]])
       interpreter.eval(editor, 's/not-in-text/foo/')
       expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
 
-    it "performs a single substitution within the current selection", ->
-      editor.getSelection().setBufferRange([[6, 0], [6, 44]])
-      interpreter.eval(editor, 's/current/foo/')
-      expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
+    describe "when not global", ->
+      describe "when there is a single selection", ->
+        it "performs a single substitution within the current selection", ->
+          editor.setSelectionBufferRange([[6, 0], [6, 44]])
+          interpreter.eval(editor, 's/current/foo/')
+          expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
 
     describe "when suffixed with a g", ->
+    describe "when global", ->
       it "performs a multiple substitutions within the current selection", ->
-        editor.getSelection().setBufferRange([[6, 0], [6, 44]])
+        editor.setSelectionBufferRange([[6, 0], [6, 44]])
         interpreter.eval(editor, 's/current/foo/g')
         expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
 
