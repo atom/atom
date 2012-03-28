@@ -25,6 +25,10 @@ class CompositeCursor
     cursor = @addCursor()
     cursor.setScreenPosition(screenPosition)
 
+  addCursorAtBufferPosition: (bufferPosition) ->
+    cursor = @addCursor()
+    cursor.setBufferPosition(bufferPosition)
+
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 
@@ -52,6 +56,9 @@ class CompositeCursor
 
   moveDown: ->
     @modifyCursors (cursor) -> cursor.moveDown()
+
+  moveToNextWord: ->
+    @modifyCursors (cursor) -> cursor.moveToNextWord()
 
   handleBufferChange: (e) ->
     @modifyCursors (cursor) -> cursor.handleBufferChange(e)

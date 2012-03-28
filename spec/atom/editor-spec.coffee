@@ -223,241 +223,241 @@ describe "Editor", ->
         editor.trigger keydownEvent('up')
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
-    describe "vertical movement", ->
-      describe "auto-scrolling", ->
-        beforeEach ->
-          editor.attachToDom()
-          editor.focus()
-          editor.vScrollMargin = 3
-
-        it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
-          editor.height(editor.lineHeight * 10)
-
-          _.times 6, -> editor.moveCursorDown()
-          window.advanceClock()
-          expect(editor.scrollTop()).toBe(0)
-
-          editor.moveCursorDown()
-          window.advanceClock()
-          expect(editor.scrollTop()).toBe(editor.lineHeight)
-
-          editor.moveCursorDown()
-          window.advanceClock()
-          expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
-
-          _.times 3, -> editor.moveCursorUp()
-          window.advanceClock()
-          expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
-
-          editor.moveCursorUp()
-          window.advanceClock()
-          expect(editor.scrollTop()).toBe(editor.lineHeight)
-
-          editor.moveCursorUp()
-          window.advanceClock()
-          expect(editor.scrollTop()).toBe(0)
-
-        it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
-          editor.height(editor.lineHeight * 5)
-
-          _.times 3, -> editor.moveCursorDown()
-          window.advanceClock()
-          expect(editor.scrollTop()).toBe(editor.lineHeight)
-
-          editor.moveCursorUp()
-          window.advanceClock()
-          expect(editor.scrollTop()).toBe(0)
-
-      describe "goal column retention", ->
-        lineLengths = null
-
-        beforeEach ->
-          lineLengths = buffer.getLines().map (line) -> line.length
-          expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
-          expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
-          expect(lineLengths[6]).toBeGreaterThan(lineLengths[3])
-
-        it "retains the goal column when moving up", ->
-          expect(lineLengths[6]).toBeGreaterThan(32)
-          editor.setCursorScreenPosition(row: 6, column: 32)
-
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition().column).toBe lineLengths[5]
-
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition().column).toBe lineLengths[4]
-
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition().column).toBe 32
-
-        it "retains the goal column when moving down", ->
-          editor.setCursorScreenPosition(row: 3, column: lineLengths[3])
-
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition().column).toBe lineLengths[4]
-
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition().column).toBe lineLengths[5]
-
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition().column).toBe lineLengths[3]
-
-        it "clears the goal column when the cursor is set", ->
-          # set a goal column by moving down
-          editor.setCursorScreenPosition(row: 3, column: lineLengths[3])
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition().column).not.toBe 6
-
-          # clear the goal column by explicitly setting the cursor position
-          editor.setCursorScreenPosition([4,6])
-          expect(editor.getCursorScreenPosition().column).toBe 6
-
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition().column).toBe 6
-
-      describe "when up is pressed on the first line", ->
-        it "moves the cursor to the beginning of the line, but retains the goal column", ->
-          editor.setCursorScreenPosition(row: 0, column: 4)
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 4)
-
-      describe "when down is pressed on the last line", ->
-        it "moves the cursor to the end of line, but retains the goal column", ->
-          lastLineIndex = buffer.getLines().length - 1
-          lastLine = buffer.lineForRow(lastLineIndex)
-          expect(lastLine.length).toBeGreaterThan(0)
-
-          editor.setCursorScreenPosition(row: lastLineIndex, column: 1)
-          editor.moveCursorDown()
-          expect(editor.getCursorScreenPosition()).toEqual(row: lastLineIndex, column: lastLine.length)
-
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition().column).toBe 1
-
-        it "retains a goal column of 0", ->
-          lastLineIndex = buffer.getLines().length - 1
-          lastLine = buffer.lineForRow(lastLineIndex)
-          expect(lastLine.length).toBeGreaterThan(0)
-
-          editor.setCursorScreenPosition(row: lastLineIndex, column: 0)
-          editor.moveCursorDown()
-          editor.moveCursorUp()
-          expect(editor.getCursorScreenPosition().column).toBe 0
-
-    describe "horizontal movement", ->
-      describe "auto-scrolling", ->
-        charWidth = null
-        beforeEach ->
-          editor.attachToDom()
-          {charWidth} = editor
-          editor.hScrollMargin = 5
-
-        it "scrolls horizontally to keep the cursor on screen", ->
-          setEditorWidthInChars(editor, 30)
-
-          # moving right
-          editor.setCursorScreenPosition([2, 24])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe 0
-
-          editor.setCursorScreenPosition([2, 25])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe charWidth
-
-          editor.setCursorScreenPosition([2, 28])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
-
-          # moving left
-          editor.setCursorScreenPosition([2, 9])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
-
-          editor.setCursorScreenPosition([2, 8])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 3
-
-          editor.setCursorScreenPosition([2, 5])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe 0
-
-        it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
-          editor.hScrollMargin = 6
-          setEditorWidthInChars(editor, 7)
-
-          editor.setCursorScreenPosition([2, 3])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe(0)
-
-          editor.setCursorScreenPosition([2, 4])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe(charWidth)
-
-          editor.setCursorScreenPosition([2, 3])
-          window.advanceClock()
-          expect(editor.horizontalScroller.scrollLeft()).toBe(0)
-
-        describe "when soft-wrap is on", ->
+      describe "vertical movement", ->
+        describe "auto-scrolling", ->
           beforeEach ->
-            editor.setSoftWrap(true)
+            editor.attachToDom()
+            editor.focus()
+            editor.vScrollMargin = 3
 
-          it "does not scroll the buffer horizontally", ->
-            editor.width(charWidth * 30)
+          it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
+            editor.height(editor.lineHeight * 10)
 
-            # moving right
-            editor.setCursorScreenPosition([2, 24])
-            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+            _.times 6, -> editor.moveCursorDown()
+            window.advanceClock()
+            expect(editor.scrollTop()).toBe(0)
 
-            editor.setCursorScreenPosition([2, 25])
-            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+            editor.moveCursorDown()
+            window.advanceClock()
+            expect(editor.scrollTop()).toBe(editor.lineHeight)
 
-            editor.setCursorScreenPosition([2, 28])
-            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+            editor.moveCursorDown()
+            window.advanceClock()
+            expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
-            # moving left
-            editor.setCursorScreenPosition([2, 9])
-            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+            _.times 3, -> editor.moveCursorUp()
+            window.advanceClock()
+            expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
-            editor.setCursorScreenPosition([2, 8])
-            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+            editor.moveCursorUp()
+            window.advanceClock()
+            expect(editor.scrollTop()).toBe(editor.lineHeight)
 
-            editor.setCursorScreenPosition([2, 5])
-            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+            editor.moveCursorUp()
+            window.advanceClock()
+            expect(editor.scrollTop()).toBe(0)
 
-      describe "when left is pressed on the first column", ->
-        describe "when there is a previous line", ->
-          it "wraps to the end of the previous line", ->
-            editor.setCursorScreenPosition(row: 1, column: 0)
-            editor.moveCursorLeft()
-            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.lineForRow(0).length)
+          it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
+            editor.height(editor.lineHeight * 5)
 
-        describe "when the cursor is on the first line", ->
-          it "remains in the same position (0,0)", ->
-            editor.setCursorScreenPosition(row: 0, column: 0)
-            editor.moveCursorLeft()
+            _.times 3, -> editor.moveCursorDown()
+            window.advanceClock()
+            expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+            editor.moveCursorUp()
+            window.advanceClock()
+            expect(editor.scrollTop()).toBe(0)
+
+        describe "goal column retention", ->
+          lineLengths = null
+
+          beforeEach ->
+            lineLengths = buffer.getLines().map (line) -> line.length
+            expect(lineLengths[3]).toBeGreaterThan(lineLengths[4])
+            expect(lineLengths[5]).toBeGreaterThan(lineLengths[4])
+            expect(lineLengths[6]).toBeGreaterThan(lineLengths[3])
+
+          it "retains the goal column when moving up", ->
+            expect(lineLengths[6]).toBeGreaterThan(32)
+            editor.setCursorScreenPosition(row: 6, column: 32)
+
+            editor.moveCursorUp()
+            expect(editor.getCursorScreenPosition().column).toBe lineLengths[5]
+
+            editor.moveCursorUp()
+            expect(editor.getCursorScreenPosition().column).toBe lineLengths[4]
+
+            editor.moveCursorUp()
+            expect(editor.getCursorScreenPosition().column).toBe 32
+
+          it "retains the goal column when moving down", ->
+            editor.setCursorScreenPosition(row: 3, column: lineLengths[3])
+
+            editor.moveCursorDown()
+            expect(editor.getCursorScreenPosition().column).toBe lineLengths[4]
+
+            editor.moveCursorDown()
+            expect(editor.getCursorScreenPosition().column).toBe lineLengths[5]
+
+            editor.moveCursorDown()
+            expect(editor.getCursorScreenPosition().column).toBe lineLengths[3]
+
+          it "clears the goal column when the cursor is set", ->
+            # set a goal column by moving down
+            editor.setCursorScreenPosition(row: 3, column: lineLengths[3])
+            editor.moveCursorDown()
+            expect(editor.getCursorScreenPosition().column).not.toBe 6
+
+            # clear the goal column by explicitly setting the cursor position
+            editor.setCursorScreenPosition([4,6])
+            expect(editor.getCursorScreenPosition().column).toBe 6
+
+            editor.moveCursorDown()
+            expect(editor.getCursorScreenPosition().column).toBe 6
+
+        describe "when up is pressed on the first line", ->
+          it "moves the cursor to the beginning of the line, but retains the goal column", ->
+            editor.setCursorScreenPosition(row: 0, column: 4)
+            editor.moveCursorUp()
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
-      describe "when right is pressed on the last column", ->
-        describe "when there is a subsequent line", ->
-          it "wraps to the beginning of the next line", ->
-            editor.setCursorScreenPosition(row: 0, column: buffer.lineForRow(0).length)
-            editor.moveCursorRight()
-            expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 0)
+            editor.moveCursorDown()
+            expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 4)
 
-        describe "when the cursor is on the last line", ->
-          it "remains in the same position", ->
+        describe "when down is pressed on the last line", ->
+          it "moves the cursor to the end of line, but retains the goal column", ->
             lastLineIndex = buffer.getLines().length - 1
             lastLine = buffer.lineForRow(lastLineIndex)
             expect(lastLine.length).toBeGreaterThan(0)
 
-            lastPosition = { row: lastLineIndex, column: lastLine.length }
-            editor.setCursorScreenPosition(lastPosition)
-            editor.moveCursorRight()
+            editor.setCursorScreenPosition(row: lastLineIndex, column: 1)
+            editor.moveCursorDown()
+            expect(editor.getCursorScreenPosition()).toEqual(row: lastLineIndex, column: lastLine.length)
 
-            expect(editor.getCursorScreenPosition()).toEqual(lastPosition)
+            editor.moveCursorUp()
+            expect(editor.getCursorScreenPosition().column).toBe 1
+
+          it "retains a goal column of 0", ->
+            lastLineIndex = buffer.getLines().length - 1
+            lastLine = buffer.lineForRow(lastLineIndex)
+            expect(lastLine.length).toBeGreaterThan(0)
+
+            editor.setCursorScreenPosition(row: lastLineIndex, column: 0)
+            editor.moveCursorDown()
+            editor.moveCursorUp()
+            expect(editor.getCursorScreenPosition().column).toBe 0
+
+      describe "horizontal movement", ->
+        describe "auto-scrolling", ->
+          charWidth = null
+          beforeEach ->
+            editor.attachToDom()
+            {charWidth} = editor
+            editor.hScrollMargin = 5
+
+          it "scrolls horizontally to keep the cursor on screen", ->
+            setEditorWidthInChars(editor, 30)
+
+            # moving right
+            editor.setCursorScreenPosition([2, 24])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 25])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe charWidth
+
+            editor.setCursorScreenPosition([2, 28])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
+
+            # moving left
+            editor.setCursorScreenPosition([2, 9])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
+
+            editor.setCursorScreenPosition([2, 8])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 3
+
+            editor.setCursorScreenPosition([2, 5])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+          it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
+            editor.hScrollMargin = 6
+            setEditorWidthInChars(editor, 7)
+
+            editor.setCursorScreenPosition([2, 3])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe(0)
+
+            editor.setCursorScreenPosition([2, 4])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe(charWidth)
+
+            editor.setCursorScreenPosition([2, 3])
+            window.advanceClock()
+            expect(editor.horizontalScroller.scrollLeft()).toBe(0)
+
+          describe "when soft-wrap is on", ->
+            beforeEach ->
+              editor.setSoftWrap(true)
+
+            it "does not scroll the buffer horizontally", ->
+              editor.width(charWidth * 30)
+
+              # moving right
+              editor.setCursorScreenPosition([2, 24])
+              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+              editor.setCursorScreenPosition([2, 25])
+              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+              editor.setCursorScreenPosition([2, 28])
+              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+              # moving left
+              editor.setCursorScreenPosition([2, 9])
+              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+              editor.setCursorScreenPosition([2, 8])
+              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+              editor.setCursorScreenPosition([2, 5])
+              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+
+        describe "when left is pressed on the first column", ->
+          describe "when there is a previous line", ->
+            it "wraps to the end of the previous line", ->
+              editor.setCursorScreenPosition(row: 1, column: 0)
+              editor.moveCursorLeft()
+              expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: buffer.lineForRow(0).length)
+
+          describe "when the cursor is on the first line", ->
+            it "remains in the same position (0,0)", ->
+              editor.setCursorScreenPosition(row: 0, column: 0)
+              editor.moveCursorLeft()
+              expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+        describe "when right is pressed on the last column", ->
+          describe "when there is a subsequent line", ->
+            it "wraps to the beginning of the next line", ->
+              editor.setCursorScreenPosition(row: 0, column: buffer.lineForRow(0).length)
+              editor.moveCursorRight()
+              expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 0)
+
+          describe "when the cursor is on the last line", ->
+            it "remains in the same position", ->
+              lastLineIndex = buffer.getLines().length - 1
+              lastLine = buffer.lineForRow(lastLineIndex)
+              expect(lastLine.length).toBeGreaterThan(0)
+
+              lastPosition = { row: lastLineIndex, column: lastLine.length }
+              editor.setCursorScreenPosition(lastPosition)
+              editor.moveCursorRight()
+
+              expect(editor.getCursorScreenPosition()).toEqual(lastPosition)
 
     describe "when a mousedown event occurs in the editor", ->
       beforeEach ->
@@ -557,6 +557,24 @@ describe "Editor", ->
             editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
+
+    describe "move-to-next-word", ->
+      it "moves the cursor to the next word or the end of file if there is no next word", ->
+        editor.setCursorBufferPosition [2, 5]
+        editor.addCursorAtBufferPosition [3, 60]
+        [cursor1, cursor2] = editor.getCursors()
+
+        editor.trigger 'move-to-next-word'
+
+        expect(cursor1.getBufferPosition()).toEqual [2, 7]
+        expect(cursor2.getBufferPosition()).toEqual [4, 4]
+
+        buffer.insert([12, 2], '   ')
+        cursor1.setBufferPosition([12, 1])
+        expect(cursor1.getBufferPosition()).toEqual [12, 1]
+        editor.trigger 'move-to-next-word'
+
+        expect(cursor1.getBufferPosition()).toEqual [12, 5]
 
   describe "auto indent/outdent", ->
     beforeEach ->

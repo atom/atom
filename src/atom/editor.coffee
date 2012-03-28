@@ -82,6 +82,7 @@ class Editor extends View
     @on 'move-left', => @moveCursorLeft()
     @on 'move-down', => @moveCursorDown()
     @on 'move-up', => @moveCursorUp()
+    @on 'move-to-next-word', => @moveCursorToNextWord()
     @on 'select-right', => @selectRight()
     @on 'select-left', => @selectLeft()
     @on 'select-up', => @selectUp()
@@ -108,6 +109,9 @@ class Editor extends View
 
   addCursorAtScreenPosition: (screenPosition) ->
     @compositeCursor.addCursorAtScreenPosition(screenPosition)
+
+  addCursorAtBufferPosition: (bufferPosition) ->
+    @compositeCursor.addCursorAtBufferPosition(bufferPosition)
 
   addSelectionForCursor: (cursor) ->
     @compositeSelection.addSelectionForCursor(cursor)
@@ -347,11 +351,12 @@ class Editor extends View
     @lineHeight = fragment.outerHeight()
     fragment.remove()
 
+  getCursors: -> @compositeCursor.getCursors()
   moveCursorUp: -> @compositeCursor.moveUp()
   moveCursorDown: -> @compositeCursor.moveDown()
   moveCursorRight: -> @compositeCursor.moveRight()
-  getCursors: -> @compositeCursor.getCursors()
   moveCursorLeft: -> @compositeCursor.moveLeft()
+  moveCursorToNextWord: -> @compositeCursor.moveToNextWord()
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
   getCursorScreenPosition: -> @compositeCursor.getCursor().getScreenPosition()
   setCursorBufferPosition: (position) -> @compositeCursor.setBufferPosition(position)
@@ -377,6 +382,7 @@ class Editor extends View
   getTextInRange: (range) -> @buffer.getTextInRange(range)
   getEofPosition: -> @buffer.getEofPosition()
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  traverseRegexMatchesInRange: (args...) -> @buffer.traverseRegexMatchesInRange(args...)
 
   insertText: (text) ->
     @compositeSelection.insertText(text)

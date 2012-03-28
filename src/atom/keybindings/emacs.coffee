@@ -3,3 +3,4 @@ window.keymap.bindKeys '.editor',
   'ctrl-b': 'move-left'
   'ctrl-p': 'move-up'
   'ctrl-n': 'move-down'
+  'alt-f': 'move-to-next-word'

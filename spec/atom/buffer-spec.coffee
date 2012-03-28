@@ -243,12 +243,12 @@ describe 'Buffer', ->
         expect(matches[2][1]).toBe 'rr'
         expect(ranges[2]).toEqual [[6,34], [6,41]]
 
-    describe "when the iterator returns a replacement string", ->
+    describe "when the iterator calls the 'replace' control function with a replacement string", ->
       it "replaces each occurrence of the regex match with the string", ->
         ranges = []
-        buffer.traverseRegexMatchesInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range) ->
+        buffer.traverseRegexMatchesInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { replace }) ->
           ranges.push(range)
-          "foo"
+          replace("foo")
 
         expect(ranges[0]).toEqual [[5,6], [5,13]]
         expect(ranges[1]).toEqual [[6,6], [6,13]]
@@ -256,6 +256,15 @@ describe 'Buffer', ->
 
         expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'
         expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
+
+    describe "when the iterator calls the 'stop' control function", ->
+      it "stops the traversal", ->
+        ranges = []
+        buffer.traverseRegexMatchesInRange /cu(rr)ent/g, [[4,0], [6,59]], (match, range, { stop }) ->
+          ranges.push(range)
+          stop() if ranges.length == 2
+
+        expect(ranges.length).toBe 2
 
   describe ".characterIndexForPosition(position)", ->
     it "returns the total number of charachters that precede the given position", ->

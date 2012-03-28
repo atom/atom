@@ -158,9 +158,13 @@ class Buffer
       startPosition = @positionForCharacterIndex(matchStartIndex + lengthDelta)
       endPosition = @positionForCharacterIndex(matchEndIndex + lengthDelta)
       range = new Range(startPosition, endPosition)
-      replacementText = iterator(match, range)
+      recurse = true
+      replacementText = null
+      stop = -> recurse = false
+      replace = (text) -> replacementText = text
+      iterator(match, range, { stop, replace })
 
-      if _.isString(replacementText)
+      if replacementText
         @change(range, replacementText)
         lengthDelta += replacementText.length - matchLength
 
@@ -168,7 +172,7 @@ class Buffer
         matchStartIndex++
         matchEndIndex++
 
-      if global
+      if global and recurse
         traverseRecursively(text, matchEndIndex, endIndex, lengthDelta)
 
     startIndex = @characterIndexForPosition(range.start)
