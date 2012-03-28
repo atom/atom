@@ -140,4 +140,39 @@ class Buffer
 
     @mode = new (require("ace/mode/#{modeName}").Mode)
 
+  traverseRegexMatchesInRange: (regex, range, iterator) ->
+    range = Range.fromObject(range)
+    global = regex.global
+    regex = new RegExp(regex.source, 'gm')
+
+    traverseRecursively = (text, startIndex, endIndex, lengthDelta) =>
+      regex.lastIndex = startIndex
+      return unless match = regex.exec(text)
+
+      matchLength = match[0].length
+      matchStartIndex = match.index
+      matchEndIndex = match.index + matchLength
+
+      return if matchEndIndex > endIndex
+
+      startPosition = @positionForCharacterIndex(matchStartIndex + lengthDelta)
+      endPosition = @positionForCharacterIndex(matchEndIndex + lengthDelta)
+      range = new Range(startPosition, endPosition)
+      replacementText = iterator(match, range)
+
+      if _.isString(replacementText)
+        @change(range, replacementText)
+        lengthDelta += replacementText.length - matchLength
+
+      if matchLength is 0
+        matchStartIndex++
+        matchEndIndex++
+
+      if global
+        traverseRecursively(text, matchEndIndex, endIndex, lengthDelta)
+
+    startIndex = @characterIndexForPosition(range.start)
+    endIndex = @characterIndexForPosition(range.end)
+    traverseRecursively(@getText(), startIndex, endIndex, 0)
+
 _.extend(Buffer.prototype, EventEmitter)
