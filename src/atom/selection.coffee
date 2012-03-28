@@ -228,12 +228,6 @@ class Selection extends View
     @modifySelection =>
       @cursor.setScreenPosition(position)
 
-  moveCursorToLineEnd: ->
-    @cursor.moveToLineEnd()
-
-  moveCursorToLineStart: ->
-    @cursor.moveToLineStart()
-
   cut: (maintainPasteboard=false) ->
     @copy(maintainPasteboard)
     @delete()

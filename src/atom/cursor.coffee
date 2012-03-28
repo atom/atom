@@ -116,11 +116,11 @@ class Cursor extends View
 
     @setBufferPosition(nextPosition or @editor.getEofPosition())
 
-  moveToLineEnd: ->
+  moveToEndOfLine: ->
     { row } = @getBufferPosition()
     @setBufferPosition({ row, column: @editor.buffer.lineForRow(row).length })
 
-  moveToLineStart: ->
+  moveToBeginningOfLine: ->
     { row } = @getScreenPosition()
     @setScreenPosition({ row, column: 0 })
 
