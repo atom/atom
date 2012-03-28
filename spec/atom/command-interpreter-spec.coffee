@@ -145,13 +145,21 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(5)).toBe '!!!!!!current!=!items.shift();'
           expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
 
-      describe "when the regex matches a zero-width string", ->
-        it "does not infinitely loop when looking for the next match", ->
+      describe "when matching $", ->
+        it "matches the end of each line and avoids infinitely looping on a zero-width match", ->
           interpreter.eval(editor, ',s/$/!!!/g')
           expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {!!!'
           expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return items;!!!'
           expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);!!!'
           expect(buffer.lineForRow(12)).toBe '};!!!'
+
+      describe "when matching ^", ->
+        it "matches the beginning of each line and avoids infinitely looping on a zero-width match", ->
+          interpreter.eval(editor, ',s/^/!!!/g')
+          expect(buffer.lineForRow(0)).toBe '!!!var quicksort = function () {'
+          expect(buffer.lineForRow(2)).toBe '!!!    if (items.length <= 1) return items;'
+          expect(buffer.lineForRow(6)).toBe '!!!      current < pivot ? left.push(current) : right.push(current);'
+          expect(buffer.lineForRow(12)).toBe '!!!};'
 
   describe ".repeatRelativeAddress()", ->
     it "repeats the last search command if there is one", ->

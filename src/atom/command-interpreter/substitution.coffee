@@ -5,36 +5,40 @@ class Substitution extends Command
   global: false
 
   constructor: (@findText, @replaceText, @options) ->
-    @findRegex = @regexForPattern(@findText)
+    @findRegex = new RegExp(@findText, 'mg')
     @global = 'g' in @options
 
   execute: (editor) ->
     selectedText = editor.getSelectedText()
     selectionStartIndex = editor.buffer.characterIndexForPosition(editor.getSelection().getBufferRange().start)
 
-    @replace(editor, selectedText, selectionStartIndex)
+    buffer = editor.buffer
+    range = editor.getSelection().getBufferRange()
+    startIndex = buffer.characterIndexForPosition(range.start)
+    endIndex = buffer.characterIndexForPosition(range.end)
 
-  replace: (editor, text, globalStartIndex) ->
-    return unless match = text.match(@findRegex)
+    @replace(editor, buffer.getText(), startIndex, endIndex)
 
-    localMatchStartIndex = match.index
-    localMatchEndIndex = localMatchStartIndex + match[0].length
+  replace: (editor, text, startIndex, endIndex, lengthDelta=0) ->
+    @findRegex.lastIndex = startIndex
+    return unless match = @findRegex.exec(text)
 
-    globalMatchStartIndex = globalStartIndex + localMatchStartIndex
-    globalMatchEndIndex = globalStartIndex + localMatchEndIndex
+    matchLength = match[0].length
+    matchStartIndex = match.index
+    matchEndIndex = match.index + matchLength
+
+    return if matchEndIndex > endIndex
 
     buffer = editor.buffer
-    startPosition = buffer.positionForCharacterIndex(globalMatchStartIndex)
-    endPosition = buffer.positionForCharacterIndex(globalMatchEndIndex)
+    startPosition = buffer.positionForCharacterIndex(matchStartIndex + lengthDelta)
+    endPosition = buffer.positionForCharacterIndex(matchEndIndex + lengthDelta)
+
     buffer.change([startPosition, endPosition], @replaceText)
 
-    if match[0].length is 0
-      localMatchEndIndex++
-      globalMatchStartIndex++
+    if matchLength is 0
+      matchStartIndex++
+      matchEndIndex++
 
     if @global
-      return if localMatchStartIndex >= text.length
-      text = text[localMatchEndIndex..]
-      nextGlobalStartIndex = globalMatchStartIndex + @replaceText.length
-      @replace(editor, text, nextGlobalStartIndex)
+      @replace(editor, text, matchEndIndex, endIndex, lengthDelta + @replaceText.length - matchLength)
 
