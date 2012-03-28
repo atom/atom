@@ -228,6 +228,14 @@ class Selection extends View
     @modifySelection =>
       @cursor.setScreenPosition(position)
 
+  selectToBeginningOfLine: ->
+    @modifySelection =>
+      @cursor.moveToBeginningOfLine()
+
+  selectToEndOfLine: ->
+    @modifySelection =>
+      @cursor.moveToEndOfLine()
+
   cut: (maintainPasteboard=false) ->
     @copy(maintainPasteboard)
     @delete()
