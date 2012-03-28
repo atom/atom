@@ -5,3 +5,5 @@ window.keymap.bindKeys '.editor',
   'ctrl-n': 'move-down'
   'alt-f': 'move-to-next-word'
   'alt-b': 'move-to-previous-word'
+  'ctrl-a': 'move-to-first-character-of-line'
+  'ctrl-e': 'move-to-end-of-line'

@@ -480,6 +480,18 @@ describe "Editor", ->
         expect(cursor1.getBufferPosition()).toEqual [0,29]
         expect(cursor2.getBufferPosition()).toEqual [1,30]
 
+    describe "move-to-first-character-of-line", ->
+      it "moves to the first character of the current line or the beginning of the line if it's already on the first character", ->
+        editor.setCursorScreenPosition [0,5]
+        editor.addCursorAtScreenPosition [1,7]
+        editor.trigger 'move-to-first-character-of-line'
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor2.getBufferPosition()).toEqual [1,2]
+        editor.trigger 'move-to-first-character-of-line'
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor2.getBufferPosition()).toEqual [1,0]
+
     describe "move-to-next-word", ->
       it "moves the cursor to the next word or the end of file if there is no next word", ->
         editor.setCursorBufferPosition [2, 5]

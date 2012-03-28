@@ -48,8 +48,11 @@ class Buffer
   lineForRow: (row) ->
     @lines[row]
 
-  getLineLength: (row) ->
+  lineLengthForRow: (row) ->
     @lines[row].length
+
+  rangeForRow: (row) ->
+    new Range([row, 0], [row, @lineLengthForRow(row)])
 
   numLines: ->
     @getLines().length
@@ -62,18 +65,18 @@ class Buffer
 
   getEofPosition: ->
     lastRow = @getLastRow()
-    new Point(lastRow, @getLineLength(lastRow))
+    new Point(lastRow, @lineLengthForRow(lastRow))
 
   characterIndexForPosition: (position) ->
     position = Point.fromObject(position)
 
     index = 0
-    index += @getLineLength(row) + 1 for row in [0...position.row]
+    index += @lineLengthForRow(row) + 1 for row in [0...position.row]
     index + position.column
 
   positionForCharacterIndex: (index) ->
     row = 0
-    while index >= (lineLength = @getLineLength(row) + 1)
+    while index >= (lineLength = @lineLengthForRow(row) + 1)
       index -= lineLength
       row++
 
@@ -82,7 +85,7 @@ class Buffer
   deleteRow: (row) ->
     range = null
     if row == @getLastRow()
-      range = new Range([row - 1, @getLineLength(row - 1)], [row, @getLineLength(row)])
+      range = new Range([row - 1, @lineLengthForRow(row - 1)], [row, @lineLengthForRow(row)])
     else
       range = new Range([row, 0], [row + 1, 0])
 

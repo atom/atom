@@ -136,6 +136,15 @@ class Cursor extends View
     { row } = @getScreenPosition()
     @setScreenPosition({ row, column: 0 })
 
+  moveToFirstCharacterOfLine: ->
+    position = @getBufferPosition()
+    range = @editor.rangeForBufferRow(position.row)
+    newPosition = null
+    @editor.traverseRegexMatchesInRange /^\s*/, range, (match, matchRange) =>
+      newPosition = matchRange.end
+    newPosition = [position.row, 0] if newPosition.isEqual(position)
+    @setBufferPosition(newPosition)
+
   moveRight: ->
     { row, column } = @getScreenPosition()
     @setScreenPosition(@editor.clipScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true))
@@ -170,7 +179,7 @@ class Cursor extends View
     if not match = matchBackwards()
       if row > 0
         row--
-        column = @editor.buffer.getLineLength(row)
+        column = @editor.buffer.lineLengthForRow(row)
         match = matchBackwards()
       else
         column = 0

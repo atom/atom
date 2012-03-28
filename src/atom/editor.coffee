@@ -111,6 +111,7 @@ class Editor extends View
     @on 'select-to-bottom', => @selectToBottom()
     @on 'move-to-beginning-of-line', => @moveCursorToBeginningOfLine()
     @on 'move-to-end-of-line', => @moveCursorToEndOfLine()
+    @on 'move-to-first-character-of-line', => @moveCursorToFirstCharacterOfLine()
 
   buildCursorAndSelection: ->
     @compositeSelection = new CompositeSelection(this)
@@ -370,6 +371,7 @@ class Editor extends View
   moveCursorToTop: -> @compositeCursor.moveToTop()
   moveCursorToBottom: -> @compositeCursor.moveToBottom()
   moveCursorToBeginningOfLine: -> @compositeCursor.moveToBeginningOfLine()
+  moveCursorToFirstCharacterOfLine: -> @compositeCursor.moveToFirstCharacterOfLine()
   moveCursorToEndOfLine: -> @compositeCursor.moveToEndOfLine()
   setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
   getCursorScreenPosition: -> @compositeCursor.getCursor().getScreenPosition()
@@ -394,10 +396,11 @@ class Editor extends View
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
   getLastBufferRow: -> @buffer.getLastRow()
-  getBufferLineLength: (row) -> @buffer.getLineLength(row)
   getTextInRange: (range) -> @buffer.getTextInRange(range)
   getEofPosition: -> @buffer.getEofPosition()
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
+  rangeForBufferRow: (row) -> @buffer.rangeForRow(row)
   traverseRegexMatchesInRange: (args...) -> @buffer.traverseRegexMatchesInRange(args...)
   backwardsTraverseRegexMatchesInRange: (args...) -> @buffer.backwardsTraverseRegexMatchesInRange(args...)
 

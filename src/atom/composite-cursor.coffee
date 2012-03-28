@@ -75,6 +75,9 @@ class CompositeCursor
   moveToEndOfLine: ->
     @modifyCursors (cursor) -> cursor.moveToEndOfLine()
 
+  moveToFirstCharacterOfLine: ->
+    @modifyCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+
   handleBufferChange: (e) ->
     @modifyCursors (cursor) -> cursor.handleBufferChange(e)
 
