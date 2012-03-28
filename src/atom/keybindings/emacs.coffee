@@ -7,3 +7,5 @@ window.keymap.bindKeys '.editor',
   'alt-b': 'move-to-previous-word'
   'ctrl-a': 'move-to-first-character-of-line'
   'ctrl-e': 'move-to-end-of-line'
+  'ctrl-h': 'backspace'
+  'ctrl-d': 'delete'
