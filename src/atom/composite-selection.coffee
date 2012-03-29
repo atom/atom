@@ -30,12 +30,7 @@ class CompositeSeleciton
     @editor.lines.append(selection)
 
   addSelectionForBufferRange: (bufferRange, options) ->
-    selections = @getSelections()
-    cursor = if selections.length == 1 and selections[0].isEmpty()
-      selections[0].cursor
-    else
-      @editor.compositeCursor.addCursor()
-
+    cursor = @editor.compositeCursor.addCursor()
     @selectionForCursor(cursor).setBufferRange(bufferRange, options)
 
   removeSelectionForCursor: (cursor) ->

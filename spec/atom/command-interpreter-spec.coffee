@@ -123,6 +123,17 @@ describe "CommandInterpreter", ->
       expect(selections[2].getBufferRange()).toEqual [[6,34], [6,41]]
       expect(selections[3].getBufferRange()).toEqual [[6,56], [6,63]]
 
+    describe "when matching /$/", ->
+      it "matches the end of each line in the selected region", ->
+        interpreter.eval(editor, '6,8 x/$/')
+
+        cursors = editor.getCursors()
+        expect(cursors.length).toBe 3
+
+        expect(cursors[0].getBufferPosition()).toEqual [5, 30]
+        expect(cursors[1].getBufferPosition()).toEqual [6, 65]
+        expect(cursors[2].getBufferPosition()).toEqual [7, 5]
+
     it "loops through current selections and selects text matching the regex", ->
       editor.setSelectionBufferRange [[3,0], [3,62]]
       editor.addSelectionForBufferRange [[6,0], [6,65]]

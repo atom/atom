@@ -15,4 +15,5 @@ class SelectAllMatches extends Command
         rangesToSelect.push(range)
 
     editor.clearSelections()
-    editor.addSelectionForBufferRange(range) for range in rangesToSelect
+    editor.setSelectionBufferRange(rangesToSelect[0])
+    editor.addSelectionForBufferRange(range) for range in rangesToSelect[1..]
