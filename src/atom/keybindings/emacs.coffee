@@ -9,3 +9,4 @@ window.keymap.bindKeys '.editor',
   'ctrl-e': 'move-to-end-of-line'
   'ctrl-h': 'backspace'
   'ctrl-d': 'delete'
+  'alt-h': 'backspace-to-beginning-of-word'
