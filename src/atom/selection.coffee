@@ -137,6 +137,10 @@ class Selection extends View
     @selectRight() if @isEmpty()
     @deleteSelectedText()
 
+  deleteToEndOfWord: ->
+    @selectToEndOfWord() if @isEmpty()
+    @deleteSelectedText()
+
   deleteSelectedText: ->
     range = @getBufferRange()
     @editor.buffer.delete(range) unless range.isEmpty()

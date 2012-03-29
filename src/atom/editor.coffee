@@ -93,6 +93,7 @@ class Editor extends View
     @on 'backspace', => @backspace()
     @on 'backspace-to-beginning-of-word', => @backspaceToBeginningOfWord()
     @on 'delete', => @delete()
+    @on 'delete-to-end-of-word', => @deleteToEndOfWord()
     @on 'cut', => @cutSelection()
     @on 'copy', => @copySelection()
     @on 'paste', => @paste()
@@ -407,6 +408,7 @@ class Editor extends View
   backspace: -> @compositeSelection.backspace()
   backspaceToBeginningOfWord: -> @compositeSelection.backspaceToBeginningOfWord()
   delete: -> @compositeSelection.delete()
+  deleteToEndOfWord: -> @compositeSelection.deleteToEndOfWord()
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()

@@ -10,3 +10,4 @@ window.keymap.bindKeys '.editor',
   'ctrl-h': 'backspace'
   'ctrl-d': 'delete'
   'alt-h': 'backspace-to-beginning-of-word'
+  'alt-d': 'delete-to-end-of-word'

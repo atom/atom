@@ -58,6 +58,9 @@ class CompositeSeleciton
   delete: ->
     @modifySelectedText (selection) -> selection.delete()
 
+  deleteToEndOfWord: ->
+    @modifySelectedText (selection) -> selection.deleteToEndOfWord()
+
   selectToScreenPosition: (position) ->
     @getLastSelection().selectToScreenPosition(position)
 

@@ -1473,21 +1473,22 @@ describe "Editor", ->
           expect(editor.buffer.lineForRow(0)).toBe 'var qsort = function () {'
 
     describe "backspace-to-beginning-of-word", ->
-      it "deletes all text between the cursor and the beginning of the word", ->
-        editor.setCursorBufferPosition([1, 24])
-        editor.addCursorAtBufferPosition([2, 5])
-        [cursor1, cursor2] = editor.getCursors()
+      describe "when no text is selected", ->
+        it "deletes all text between the cursor and the beginning of the word", ->
+          editor.setCursorBufferPosition([1, 24])
+          editor.addCursorAtBufferPosition([2, 5])
+          [cursor1, cursor2] = editor.getCursors()
 
-        editor.trigger 'backspace-to-beginning-of-word'
-        expect(buffer.lineForRow(1)).toBe '  var sort = function(ems) {'
-        expect(buffer.lineForRow(2)).toBe '    f (items.length <= 1) return items;'
-        expect(cursor1.getBufferPosition()).toEqual [1, 22]
-        expect(cursor2.getBufferPosition()).toEqual [2, 4]
+          editor.trigger 'backspace-to-beginning-of-word'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(ems) {'
+          expect(buffer.lineForRow(2)).toBe '    f (items.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 22]
+          expect(cursor2.getBufferPosition()).toEqual [2, 4]
 
-        editor.trigger 'backspace-to-beginning-of-word'
-        expect(buffer.lineForRow(1)).toBe '  var sort = functionems) f (items.length <= 1) return items;'
-        expect(cursor1.getBufferPosition()).toEqual [1, 21]
-        expect(cursor2.getBufferPosition()).toEqual [1, 26]
+          editor.trigger 'backspace-to-beginning-of-word'
+          expect(buffer.lineForRow(1)).toBe '  var sort = functionems) f (items.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 21]
+          expect(cursor2.getBufferPosition()).toEqual [1, 26]
 
       describe "when text is selected", ->
         it "deletes only selected text", ->
@@ -1519,6 +1520,31 @@ describe "Editor", ->
           editor.setCursorScreenPosition([12, buffer.lineForRow(12).length])
           editor.trigger keydownEvent('delete')
           expect(buffer.lineForRow(12)).toBe '};'
+
+    describe "delete-to-end-of-word", ->
+      describe "when no text is selected", ->
+        it "deletes to the end of the word", ->
+          editor.setCursorBufferPosition([1, 24])
+          editor.addCursorAtBufferPosition([2, 5])
+          [cursor1, cursor2] = editor.getCursors()
+
+          editor.trigger 'delete-to-end-of-word'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+          expect(buffer.lineForRow(2)).toBe '    i (items.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 24]
+          expect(cursor2.getBufferPosition()).toEqual [2, 5]
+
+          editor.trigger 'delete-to-end-of-word'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it {'
+          expect(buffer.lineForRow(2)).toBe '    iitems.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 24]
+          expect(cursor2.getBufferPosition()).toEqual [2, 5]
+
+      describe "when text is selected", ->
+        it "deletes only selected text", ->
+          editor.setSelectionBufferRange([[1, 24], [1, 27]])
+          editor.trigger 'delete-to-end-of-word'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
     describe "when undo/redo events are triggered on the editor", ->
       it "undoes/redoes the last change", ->
