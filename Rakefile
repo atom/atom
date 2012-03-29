@@ -1,10 +1,12 @@
+require 'fileutils'
+
 $ATOM_ARGS = []
 
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
 BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
-task :build do
+task :build => :"verify-prerequisites" do
   output = `xcodebuild SYMROOT=#{BUILD_DIR}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -12,21 +14,24 @@ task :build do
   end
 end
 
+desc "Create the Atom.app for distribution"
+task :package => :build do
+  if path = application_path()
+    FileUtils.rm_r "pkg"
+    FileUtils.mkdir_p "pkg"
+    FileUtils.cp_r path, "pkg/"
+  else
+    exit(1)
+  end
+end
+
 desc "Run Atom"
 task :run => :build do
-  applications = FileList["#{BUILD_DIR}/**/*.app"]
-  if applications.size == 0
-    $stderr.puts "No Atom application found in directory `#{BUILD_DIR}`"
-  elsif applications.size > 1
-    $stderr.puts "Multiple Atom applications found \n\t" + applications.join("\n\t")
+  if path = binary_path()
+    exitstatus = system "#{path}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')} 2> /dev/null"
+    exit(exitstatus)
   else
-    app_path = "#{applications.first}/Contents/MacOS/Atom"
-    if File.exists?(app_path)
-      exitstatus = system "#{applications.first}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')} 2> /dev/null"
-      exit(exitstatus)
-    else
-      $stderr.puts "Executable `#{app_path}` not found."
-    end
+    exit(1)
   end
 end
 
@@ -43,7 +48,7 @@ task :benchmark do
 end
 
 desc "Compile CoffeeScripts"
-task :"compile-coffeescripts" do
+task :"compile-coffeescripts" => :"verify-prerequisites" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
   contents_dir = ENV['CONTENTS_FOLDER_PATH'].to_s
@@ -53,12 +58,6 @@ task :"compile-coffeescripts" do
   %w(index.html src static vendor spec).each do |dir|
     rm_rf File.join(dest, dir)
     cp_r dir, File.join(dest, dir)
-  end
-
-  `hash coffee`
-  if not $?.success?
-    abort "error: coffee is required but it's not installed - " +
-          "http://coffeescript.org/ - (try `npm i -g coffee-script`)"
   end
 
   puts contents_dir
@@ -86,3 +85,36 @@ task :nof do
   system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f(it|describe) +(['\\"])/\\1 \\2/g"}
 end
 
+task :"verify-prerequisites" do
+  `hash coffee`
+  if not $?.success?
+    abort "error: coffee is required but it's not installed - " +
+          "http://coffeescript.org/ - (try `npm i -g coffee-script`)"
+  end
+end
+
+def application_path
+  applications = FileList["#{BUILD_DIR}/**/*.app"]
+  if applications.size == 0
+    $stderr.puts "No Atom application found in directory `#{BUILD_DIR}`"
+  elsif applications.size > 1
+    $stderr.puts "Multiple Atom applications found \n\t" + applications.join("\n\t")
+  else
+    return applications.first
+  end
+
+  return nil
+end
+
+def binary_path
+  if app_path = application_path()
+    binary_path = "#{applications.first}/Contents/MacOS/Atom"
+    if File.exists?(binary_path)
+      return binary_path
+    else
+      $stderr.puts "Executable `#{app_path}` not found."
+    end
+  end
+
+  return nil
+end
