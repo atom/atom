@@ -81,7 +81,6 @@
   callback(context, global);
   
   context->Exit();
-
 }
 
 - (CefRefPtr<CefV8Context>)atomContext {
@@ -108,8 +107,14 @@
 
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
-
-    CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(PROJECT_DIR);
+      
+#ifdef DEBUG
+    char path[] = PROJECT_DIR;
+#else
+    const char *path = [[[NSBundle mainBundle] resourcePath] UTF8String];
+#endif
+    
+    CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(path);
     atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);    
   }];
 }
