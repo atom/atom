@@ -57,6 +57,9 @@ class CompositeSeleciton
   backspace: ->
     @modifySelectedText (selection) -> selection.backspace()
 
+  backspaceToBeginningOfWord: ->
+    @modifySelectedText (selection) -> selection.backspaceToBeginningOfWord()
+
   delete: ->
     @modifySelectedText (selection) -> selection.delete()
 

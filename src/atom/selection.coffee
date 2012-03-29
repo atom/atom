@@ -129,6 +129,10 @@ class Selection extends View
     @selectLeft() if @isEmpty()
     @deleteSelectedText()
 
+  backspaceToBeginningOfWord: ->
+    @selectToBeginningOfWord() if @isEmpty()
+    @deleteSelectedText()
+
   delete: ->
     @selectRight() if @isEmpty()
     @deleteSelectedText()

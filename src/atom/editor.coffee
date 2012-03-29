@@ -91,6 +91,7 @@ class Editor extends View
     @on 'select-down', => @selectDown()
     @on 'newline', => @insertText("\n")
     @on 'backspace', => @backspace()
+    @on 'backspace-to-beginning-of-word', => @backspaceToBeginningOfWord()
     @on 'delete', => @delete()
     @on 'cut', => @cutSelection()
     @on 'copy', => @copySelection()
@@ -403,6 +404,9 @@ class Editor extends View
   selectToEndOfWord: -> @compositeSelection.selectToEndOfWord()
   selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
   clearSelections: -> @compositeSelection.clearSelections()
+  backspace: -> @compositeSelection.backspace()
+  backspaceToBeginningOfWord: -> @compositeSelection.backspaceToBeginningOfWord()
+  delete: -> @compositeSelection.delete()
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
@@ -424,11 +428,6 @@ class Editor extends View
 
   foldSelection: -> @getSelection().fold()
 
-  backspace: ->
-    @compositeSelection.backspace()
-
-  delete: ->
-    @compositeSelection.delete()
 
   undo: ->
     @buffer.undo()

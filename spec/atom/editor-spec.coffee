@@ -1472,6 +1472,29 @@ describe "Editor", ->
           editor.trigger keydownEvent('backspace')
           expect(editor.buffer.lineForRow(0)).toBe 'var qsort = function () {'
 
+    describe "backspace-to-beginning-of-word", ->
+      it "deletes all text between the cursor and the beginning of the word", ->
+        editor.setCursorBufferPosition([1, 24])
+        editor.addCursorAtBufferPosition([2, 5])
+        [cursor1, cursor2] = editor.getCursors()
+
+        editor.trigger 'backspace-to-beginning-of-word'
+        expect(buffer.lineForRow(1)).toBe '  var sort = function(ems) {'
+        expect(buffer.lineForRow(2)).toBe '    f (items.length <= 1) return items;'
+        expect(cursor1.getBufferPosition()).toEqual [1, 22]
+        expect(cursor2.getBufferPosition()).toEqual [2, 4]
+
+        editor.trigger 'backspace-to-beginning-of-word'
+        expect(buffer.lineForRow(1)).toBe '  var sort = functionems) f (items.length <= 1) return items;'
+        expect(cursor1.getBufferPosition()).toEqual [1, 21]
+        expect(cursor2.getBufferPosition()).toEqual [1, 26]
+
+      describe "when text is selected", ->
+        it "deletes only selected text", ->
+          editor.setSelectionBufferRange([[1, 24], [1, 27]])
+          editor.trigger 'backspace-to-beginning-of-word'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+
     describe "when delete is pressed", ->
       describe "when the cursor is on the middle of a line", ->
         it "deletes the character following the cursor", ->
