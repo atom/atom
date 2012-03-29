@@ -117,16 +117,20 @@ class Cursor extends View
 
     @setBufferPosition(nextPosition or @editor.getEofPosition())
 
-  moveToPreviousWord: ->
+  moveToBeginningOfWord: ->
     bufferPosition = @getBufferPosition()
-    range = [[0, 0], bufferPosition]
-
-    nextPosition = null
+    range = [[0,0], bufferPosition]
     @editor.backwardsTraverseRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
-      nextPosition = matchRange.start
+      @setBufferPosition matchRange.start
       stop()
 
-    @setBufferPosition(nextPosition or [0, 0])
+  moveToEndOfWord: ->
+    bufferPosition = @getBufferPosition()
+    range = [bufferPosition, @editor.getEofPosition()]
+
+    @editor.traverseRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
+      @setBufferPosition matchRange.end
+      stop()
 
   moveToEndOfLine: ->
     { row } = @getBufferPosition()

@@ -60,8 +60,11 @@ class CompositeCursor
   moveToNextWord: ->
     @modifyCursors (cursor) -> cursor.moveToNextWord()
 
-  moveToPreviousWord: ->
-    @modifyCursors (cursor) -> cursor.moveToPreviousWord()
+  moveToBeginningOfWord: ->
+    @modifyCursors (cursor) -> cursor.moveToBeginningOfWord()
+
+  moveToEndOfWord: ->
+    @modifyCursors (cursor) -> cursor.moveToEndOfWord()
 
   moveToTop: ->
     @modifyCursors (cursor) -> cursor.moveToTop()

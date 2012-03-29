@@ -444,6 +444,7 @@ describe "Editor", ->
               editor.moveCursorRight()
 
               expect(editor.getCursorScreenPosition()).toEqual(lastPosition)
+
     describe "move-to-top ", ->
       it "moves cusor to the top of the buffer", ->
         editor.setCursorScreenPosition [11,1]
@@ -508,21 +509,31 @@ describe "Editor", ->
         editor.trigger 'move-to-next-word'
         expect(cursor1.getBufferPosition()).toEqual [12, 5]
 
-    describe "move-to-previous-word", ->
-      it "moves the cursor to the previous word or the beginning of the file if there is no previous word", ->
-        editor.setCursorBufferPosition [2, 5]
-        editor.addCursorAtBufferPosition [3, 60]
-        [cursor1, cursor2] = editor.getCursors()
+    describe "move-to-beginning-of-word", ->
+      it "moves the cursor to the beginning of the word", ->
+        editor.setCursorBufferPosition [0, 8]
+        editor.addCursorAtBufferPosition [1, 12]
+        editor.addCursorAtBufferPosition [3, 0]
+        [cursor1, cursor2, cursor3] = editor.getCursors()
 
-        editor.trigger 'move-to-previous-word'
+        editor.trigger 'move-to-beginning-of-word'
 
-        expect(cursor1.getBufferPosition()).toEqual [1, 29]
-        expect(cursor2.getBufferPosition()).toEqual [3, 57]
+        expect(cursor1.getBufferPosition()).toEqual [0, 4]
+        expect(cursor2.getBufferPosition()).toEqual [1, 11]
+        expect(cursor3.getBufferPosition()).toEqual [2, 39]
 
-        buffer.insert([0, 0], '   ')
-        cursor1.setBufferPosition([0, 3])
-        editor.trigger 'move-to-previous-word'
-        expect(cursor1.getBufferPosition()).toEqual [0, 0]
+    describe "move-to-end-of-word", ->
+      it "moves the cursor to the end of the word", ->
+        editor.setCursorBufferPosition [0, 6]
+        editor.addCursorAtBufferPosition [1, 10]
+        editor.addCursorAtBufferPosition [2, 40]
+        [cursor1, cursor2, cursor3] = editor.getCursors()
+
+        editor.trigger 'move-to-end-of-word'
+
+        expect(cursor1.getBufferPosition()).toEqual [0, 13]
+        expect(cursor2.getBufferPosition()).toEqual [1, 12]
+        expect(cursor3.getBufferPosition()).toEqual [3, 7]
 
     describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->
