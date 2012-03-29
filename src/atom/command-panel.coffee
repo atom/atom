@@ -11,6 +11,8 @@ class CommandPanel extends View
       @subview 'editor', new Editor
 
   commandInterpreter: null
+  history: null
+  historyIndex: 0
 
   initialize: ({@rootView})->
     requireStylesheet 'command-panel.css'
@@ -21,12 +23,17 @@ class CommandPanel extends View
     window.keymap.bindKeys '.editor',
       'meta-g': 'command-panel:repeat-relative-address'
 
+    @commandInterpreter = new CommandInterpreter()
+    @history = []
+
     @rootView.on 'command-panel:toggle', => @toggle()
     @rootView.on 'command-panel:execute', => @execute()
     @rootView.on 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
     @editor.addClass 'single-line'
 
-    @commandInterpreter = new CommandInterpreter()
+    @editor.off 'move-up move-down'
+    @editor.on 'move-up', => @navigateBackwardInHistory()
+    @editor.on 'move-down', => @navigateForwardInHistory()
 
   toggle: ->
     if @parent().length then @hide() else @show()
@@ -41,9 +48,9 @@ class CommandPanel extends View
     @detach()
     @rootView.activeEditor().focus()
 
-  execute: ->
+  execute: (command = @editor.getText()) ->
     try
-      @commandInterpreter.eval(@rootView.activeEditor(), @editor.getText())
+      @commandInterpreter.eval(@rootView.activeEditor(), command)
     catch error
       if error instanceof SyntaxError
         @addClass 'error'
@@ -53,7 +60,19 @@ class CommandPanel extends View
       else
         throw error
 
+    @history.push(command)
+    @historyIndex = @history.length
     @hide()
+
+  navigateBackwardInHistory: ->
+    return if @historyIndex == 0
+    @historyIndex--
+    @editor.setText(@history[@historyIndex])
+
+  navigateForwardInHistory: ->
+    return if @historyIndex == @history.length
+    @historyIndex++
+    @editor.setText(@history[@historyIndex] or '')
 
   repeatRelativeAddress: ->
     @commandInterpreter.repeatRelativeAddress(@rootView.activeEditor())

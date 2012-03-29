@@ -68,6 +68,24 @@ describe "CommandPanel", ->
 
         expect(commandPanel).not.toHaveClass 'error'
 
+  describe "when move-up and move-down are triggerred on the editor", ->
+    it "navigates forward and backward through the command history", ->
+      commandPanel.execute 's/war/peace/g'
+      commandPanel.execute 's/twinkies/wheatgrass/g'
+
+      rootView.trigger 'command-panel:toggle'
+
+      commandPanel.editor.trigger 'move-up'
+      expect(commandPanel.editor.getText()).toBe 's/twinkies/wheatgrass/g'
+      commandPanel.editor.trigger 'move-up'
+      expect(commandPanel.editor.getText()).toBe 's/war/peace/g'
+      commandPanel.editor.trigger 'move-up'
+      expect(commandPanel.editor.getText()).toBe 's/war/peace/g'
+      commandPanel.editor.trigger 'move-down'
+      expect(commandPanel.editor.getText()).toBe 's/twinkies/wheatgrass/g'
+      commandPanel.editor.trigger 'move-down'
+      expect(commandPanel.editor.getText()).toBe ''
+
   describe ".execute()", ->
     it "executes the command and closes the command panel", ->
       rootView.activeEditor().setText("i hate love")
