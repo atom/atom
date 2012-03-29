@@ -20,6 +20,7 @@ task :package => :build do
     FileUtils.rm_r "pkg"
     FileUtils.mkdir_p "pkg"
     FileUtils.cp_r path, "pkg/"
+    `cd pkg && zip -r atom.zip .`
   else
     exit(1)
   end
