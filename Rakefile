@@ -7,7 +7,7 @@ BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
 task :build => :"verify-prerequisites" do
-  output = `xcodebuild SYMROOT=#{BUILD_DIR}`
+  output = `xcodebuild -scheme atom-release SYMROOT=#{BUILD_DIR}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
     exit($?.exitstatus)
@@ -108,7 +108,7 @@ end
 
 def binary_path
   if app_path = application_path()
-    binary_path = "#{applications.first}/Contents/MacOS/Atom"
+    binary_path = "#{app_path}/Contents/MacOS/Atom"
     if File.exists?(binary_path)
       return binary_path
     else
