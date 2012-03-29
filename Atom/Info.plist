@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string>Atom</string>
+	<string>atom.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.cef.cefclient</string>
 	<key>CFBundleInfoDictionaryVersion</key>

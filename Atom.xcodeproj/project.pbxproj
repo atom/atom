@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0415A1FE1524EC8A0075C91C /* atom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0415A1FD1524EC8A0075C91C /* atom.icns */; };
 		0487C91714FED5360045E5E3 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0487C91614FED5360045E5E3 /* Cocoa.framework */; };
-		0487C93714FED5FB0045E5E3 /* Atom.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0487C93314FED5FB0045E5E3 /* Atom.icns */; };
 		0487C93814FED5FB0045E5E3 /* ClientWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0487C93414FED5FB0045E5E3 /* ClientWindow.xib */; };
 		0487C93A14FED5FB0045E5E3 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0487C93614FED5FB0045E5E3 /* MainMenu.xib */; };
 		0487CD9414FEE1330045E5E3 /* Atom.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0487C93D14FED6090045E5E3 /* Atom.mm */; };
@@ -117,13 +117,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0415A1FD1524EC8A0075C91C /* atom.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = atom.icns; path = ../atom.icns; sourceTree = "<group>"; };
 		042180E614FF080D00DF25EA /* BrowserDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BrowserDelegate.h; sourceTree = "<group>"; };
 		0487C91214FED5360045E5E3 /* Atom.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atom.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0487C91614FED5360045E5E3 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0487C91914FED5360045E5E3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		0487C91A14FED5360045E5E3 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		0487C91B14FED5360045E5E3 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		0487C93314FED5FB0045E5E3 /* Atom.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Atom.icns; sourceTree = "<group>"; };
 		0487C93414FED5FB0045E5E3 /* ClientWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ClientWindow.xib; sourceTree = "<group>"; };
 		0487C93514FED5FB0045E5E3 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0487C93614FED5FB0045E5E3 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
@@ -372,10 +372,10 @@
 			isa = PBXGroup;
 			children = (
 				0487D15E14FEE7880045E5E3 /* Resources */,
-				0487C93314FED5FB0045E5E3 /* Atom.icns */,
 				0487C93414FED5FB0045E5E3 /* ClientWindow.xib */,
 				0487C93514FED5FB0045E5E3 /* Info.plist */,
 				0487C93614FED5FB0045E5E3 /* MainMenu.xib */,
+				0415A1FD1524EC8A0075C91C /* atom.icns */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -672,10 +672,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0487C93714FED5FB0045E5E3 /* Atom.icns in Resources */,
 				0487C93814FED5FB0045E5E3 /* ClientWindow.xib in Resources */,
 				0487C93A14FED5FB0045E5E3 /* MainMenu.xib in Resources */,
 				0487D15F14FEE7880045E5E3 /* Resources in Resources */,
+				0415A1FE1524EC8A0075C91C /* atom.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
