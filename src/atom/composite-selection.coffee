@@ -95,6 +95,14 @@ class CompositeSeleciton
     selection.selectToEndOfLine() for selection in @getSelections()
     @mergeIntersectingSelections()
 
+  selectToBeginningOfWord: ->
+    selection.selectToBeginningOfWord() for selection in @getSelections()
+    @mergeIntersectingSelections reverse: true
+
+  selectToEndOfWord: ->
+    selection.selectToEndOfWord() for selection in @getSelections()
+    @mergeIntersectingSelections()
+
   setBufferRange: (bufferRange, options) ->
     @getLastSelection().setBufferRange(bufferRange, options)
 
