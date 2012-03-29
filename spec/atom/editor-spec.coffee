@@ -875,7 +875,7 @@ describe "Editor", ->
         expect(editor.getSelection().isReversed()).toBeFalsy()
 
     describe "select-to-beginning-of-line", ->
-      it "selects text from cusor position to end of line", ->
+      it "selects text from cusor position to beginning of line", ->
         editor.setCursorScreenPosition [12,2]
         editor.addCursorAtScreenPosition [11,3]
         editor.trigger 'select-to-beginning-of-line'
@@ -906,6 +906,40 @@ describe "Editor", ->
         expect(selection1.getBufferRange()).toEqual [[12,0], [12,2]]
         expect(selection1.isReversed()).toBeFalsy()
         expect(selection2.getBufferRange()).toEqual [[11,3], [11,44]]
+        expect(selection2.isReversed()).toBeFalsy()
+
+    describe "select-to-beginning-of-word", ->
+      it "selects text from cusor position to beginning of word", ->
+        editor.setCursorScreenPosition [0,13]
+        editor.addCursorAtScreenPosition [3,49]
+        editor.trigger 'select-to-beginning-of-word'
+        expect(editor.getCursors().length).toBe 2
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,4]
+        expect(cursor2.getBufferPosition()).toEqual [3,47]
+
+        expect(editor.getSelections().length).toBe 2
+        [selection1, selection2] = editor.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,4], [0,13]]
+        expect(selection1.isReversed()).toBeTruthy()
+        expect(selection2.getBufferRange()).toEqual [[3,47], [3,49]]
+        expect(selection2.isReversed()).toBeTruthy()
+
+    describe "select-to-end-of-word", ->
+      it "selects text from cusor position to end of word", ->
+        editor.setCursorScreenPosition [0,4]
+        editor.addCursorAtScreenPosition [3,48]
+        editor.trigger 'select-to-end-of-word'
+        expect(editor.getCursors().length).toBe 2
+        [cursor1, cursor2] = editor.getCursors()
+        expect(cursor1.getBufferPosition()).toEqual [0,13]
+        expect(cursor2.getBufferPosition()).toEqual [3,50]
+
+        expect(editor.getSelections().length).toBe 2
+        [selection1, selection2] = editor.getSelections()
+        expect(selection1.getBufferRange()).toEqual [[0,4], [0,13]]
+        expect(selection1.isReversed()).toBeFalsy()
+        expect(selection2.getBufferRange()).toEqual [[3,48], [3,50]]
         expect(selection2.isReversed()).toBeFalsy()
 
   describe "multiple cursors", ->

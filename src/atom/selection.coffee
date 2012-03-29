@@ -236,6 +236,14 @@ class Selection extends View
     @modifySelection =>
       @cursor.moveToEndOfLine()
 
+  selectToBeginningOfWord: ->
+    @modifySelection =>
+      @cursor.moveToBeginningOfWord()
+
+  selectToEndOfWord: ->
+    @modifySelection =>
+      @cursor.moveToEndOfWord()
+
   cut: (maintainPasteboard=false) ->
     @copy(maintainPasteboard)
     @delete()

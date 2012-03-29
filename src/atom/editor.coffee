@@ -116,6 +116,8 @@ class Editor extends View
     @on 'select-to-bottom', => @selectToBottom()
     @on 'select-to-end-of-line', => @selectToEndOfLine()
     @on 'select-to-beginning-of-line', => @selectToBeginningOfLine()
+    @on 'select-to-end-of-word', => @selectToEndOfWord()
+    @on 'select-to-beginning-of-word', => @selectToBeginningOfWord()
 
   buildCursorAndSelection: ->
     @compositeSelection = new CompositeSelection(this)
@@ -395,8 +397,10 @@ class Editor extends View
   selectDown: -> @compositeSelection.selectDown()
   selectToTop: -> @compositeSelection.selectToTop()
   selectToBottom: -> @compositeSelection.selectToBottom()
-  selectToEndOfLine: -> @compositeSelection.selectToEndOfLine()
   selectToBeginningOfLine: -> @compositeSelection.selectToBeginningOfLine()
+  selectToEndOfLine: -> @compositeSelection.selectToEndOfLine()
+  selectToBeginningOfWord: -> @compositeSelection.selectToBeginningOfWord()
+  selectToEndOfWord: -> @compositeSelection.selectToEndOfWord()
   selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
   clearSelections: -> @compositeSelection.clearSelections()
 

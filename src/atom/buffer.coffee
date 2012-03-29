@@ -158,7 +158,7 @@ class Buffer
 
       if matchEndIndex > endIndex
         regex.lastIndex = 0
-        if matchStartIndex < endIndex and match = regex.exec(text[matchStartIndex..endIndex])
+        if matchStartIndex < endIndex and match = regex.exec(text[matchStartIndex...endIndex])
           matchLength = match[0].length
           matchEndIndex = matchStartIndex + matchLength
         else
