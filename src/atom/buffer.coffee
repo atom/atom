@@ -154,9 +154,15 @@ class Buffer
 
       matchLength = match[0].length
       matchStartIndex = match.index
-      matchEndIndex = match.index + matchLength
+      matchEndIndex = matchStartIndex + matchLength
 
-      return if matchEndIndex > endIndex
+      if matchEndIndex > endIndex
+        regex.lastIndex = 0
+        if matchStartIndex < endIndex and match = regex.exec(text[matchStartIndex..endIndex])
+          matchLength = match[0].length
+          matchEndIndex = matchStartIndex + matchLength
+        else
+          return
 
       startPosition = @positionForCharacterIndex(matchStartIndex + lengthDelta)
       endPosition = @positionForCharacterIndex(matchEndIndex + lengthDelta)
