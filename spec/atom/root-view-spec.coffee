@@ -36,7 +36,7 @@ describe "RootView", ->
 
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
-      rootView = new RootView(require.resolve 'fixtures')
+      rootView = new RootView({url: require.resolve 'fixtures'})
       rootView.attachToDom()
       expect(rootView).toMatchSelector(':focus')
 
