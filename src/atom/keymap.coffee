@@ -17,15 +17,11 @@ class Keymap
       'meta-,': 'open-user-configuration'
       'meta-o': 'open'
 
-    @_newWindow = => $native.newWindow()
-    @_openUserConfiguration = => atom.open(atom.userConfigurationPath)
-    @_open =  =>
+    $(document).on 'new-window', => $native.newWindow()
+    $(document).on 'open-user-configuration', => atom.open(atom.userConfigurationPath)
+    $(document).on 'open', =>
       url = $native.openDialog()
       atom.open(url) if url
-
-    $(document).on 'new-window', @_newWindow
-    $(document).on 'open-user-configuration', @_openUserConfiguration
-    $(document).on 'open', @_open
 
   unbindDefaultKeys: ->
     $(document).unbind 'new-window', @_newWindow
