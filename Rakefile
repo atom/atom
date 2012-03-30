@@ -29,7 +29,9 @@ end
 desc "Run Atom"
 task :run => :build do
   if path = binary_path()
-    exitstatus = system "#{path}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')} 2> /dev/null"
+    puts "#{path} #{$ATOM_ARGS.join(' ')} 2> /dev/null"
+    exitstatus = system "#{path} #{$ATOM_ARGS.join(' ')} 2> /dev/null"
+    puts exitstatus
     exit(exitstatus)
   else
     exit(1)
