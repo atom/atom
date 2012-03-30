@@ -18,7 +18,7 @@ describe "RootView", ->
     describe "when called with a url that references a file", ->
       it "creates a project for the file's parent directory and opens it in the editor", ->
         expect(rootView.project.url).toBe fs.directory(url)
-        expect(rootView.activeEditor().buffer.path).toBe url
+        expect(rootView.activeEditor().buffer.getPath()).toBe url
 
     describe "when called with a url that references a directory", ->
       it "creates a project for the directory and opens an empty buffer", ->

@@ -218,7 +218,7 @@ class Editor extends View
 
     @buffer = buffer
 
-    document.title = @buffer.path
+    document.title = @buffer.getPath()
     @renderer = new Renderer(@buffer)
     @renderLines()
     @gutter.renderLineNumbers()
@@ -323,13 +323,13 @@ class Editor extends View
       $(window).off 'resize', @_setMaxLineLength
 
   save: ->
-    if not @buffer.path
+    if not @buffer.getPath()
       path = $native.saveDialog()
       return if not path
       document.title = path
-      @buffer.path = path
-
-    @buffer.save()
+      @buffer.saveAs(path)
+    else
+      @buffer.save()
 
   clipScreenPosition: (screenPosition, options={}) ->
     @renderer.clipScreenPosition(screenPosition, options)
