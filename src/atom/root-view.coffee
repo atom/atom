@@ -48,6 +48,8 @@ class RootView extends View
     if path
       @project = new Project(fs.directory(path))
       @open(path) if fs.isFile(path)
+    else
+      @activeEditor().setBuffer(new Buffer())
 
   open: (path) ->
     @activeEditor().setBuffer(@project.open(path))

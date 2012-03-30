@@ -31,6 +31,7 @@ describe "RootView", ->
     describe "when not called with a url", ->
       it "opens an empty buffer", ->
         rootView = new RootView
+        expect(rootView.editors.length).toBe 1
         expect(rootView.activeEditor().buffer.url).toBeUndefined()
 
   describe "focus", ->
