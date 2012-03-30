@@ -20,8 +20,8 @@ class Keymap
     $(document).on 'new-window', => $native.newWindow()
     $(document).on 'open-user-configuration', => atom.open(atom.userConfigurationPath)
     $(document).on 'open', =>
-      url = $native.openDialog()
-      atom.open(url) if url
+      path = $native.openDialog()
+      atom.open(path) if path
 
   unbindDefaultKeys: ->
     $(document).unbind 'new-window', @_newWindow

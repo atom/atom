@@ -28,8 +28,8 @@ class App
     $(document).off 'keydown', @handleKeyEvent
     @keymap.unbindDefaultKeys()
 
-  open: (url) ->
-    $native.open url
+  open: (path) ->
+    $native.open path
 
   quit: ->
     $native.terminate null

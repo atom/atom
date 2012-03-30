@@ -18,9 +18,9 @@ class RootView extends View
 
   editors: null
 
-  initialize: ({url}) ->
+  initialize: ({path}) ->
     @editors = []
-    @createProject(url)
+    @createProject(path)
 
     window.keymap.bindKeys '*'
       'meta-s': 'save'
@@ -144,8 +144,8 @@ class RootView extends View
       @activeEditor().focus()
     else
       @project.getFilePaths().done (paths) =>
-        relativePaths = (path.replace(@project.url, "") for path in paths)
+        relativePaths = (path.replace(@project.path, "") for path in paths)
         @fileFinder = new FileFinder
-          urls: relativePaths
+          paths: relativePaths
           selected: (relativePath) => @open(relativePath)
         @append @fileFinder

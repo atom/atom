@@ -16,9 +16,9 @@ windowAdditions =
   rootView: null
   keymap: null
 
-  startup: (url) ->
+  startup: (path) ->
     @setUpKeymap()
-    @attachRootView(url)
+    @attachRootView(path)
     @loadUserConfiguration()
     $(window).on 'close', => @close()
     $(window).focus()
@@ -42,8 +42,8 @@ windowAdditions =
     @keymap.unbindDefaultKeys()
     $(document).off 'keydown', @_handleKeyEvent
 
-  attachRootView: (url) ->
-    @rootView = new RootView {url}
+  attachRootView: (path) ->
+    @rootView = new RootView {path}
     $(@rootViewParentSelector).append @rootView
 
   loadUserConfiguration: ->

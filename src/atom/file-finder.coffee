@@ -7,18 +7,18 @@ module.exports =
 class FileFinder extends View
   @content: ->
     @div class: 'file-finder', =>
-      @ol outlet: 'urlList'
+      @ol outlet: 'pathList'
       @subview 'editor', new Editor
 
-  urls: null
+  paths: null
   maxResults: null
 
-  initialize: ({@urls, @selected}) ->
+  initialize: ({@paths, @selected}) ->
     requireStylesheet 'file-finder.css'
     @maxResults = 10
     @previousFocusedElement = $(document.activeElement)
 
-    @populateUrlList()
+    @populatePathList()
     window.keymap.bindKeys ".file-finder .editor",
       'enter': 'file-finder:select-file',
       'escape': 'file-finder:close'
@@ -29,18 +29,18 @@ class FileFinder extends View
     @on 'file-finder:select-file', => @select()
 
     @editor.addClass 'single-line'
-    @editor.buffer.on 'change', => @populateUrlList()
+    @editor.buffer.on 'change', => @populatePathList()
     @editor.off 'move-up move-down'
 
-  populateUrlList: ->
-    @urlList.empty()
-    for url in @findMatches(@editor.buffer.getText())
-      @urlList.append $("<li>#{url}</li>")
+  populatePathList: ->
+    @pathList.empty()
+    for path in @findMatches(@editor.buffer.getText())
+      @pathList.append $("<li>#{path}</li>")
 
-    @urlList.children('li:first').addClass 'selected'
+    @pathList.children('li:first').addClass 'selected'
 
   findSelectedLi: ->
-    @urlList.children('li.selected')
+    @pathList.children('li.selected')
 
   select: ->
     filePath = @findSelectedLi().text()
@@ -67,15 +67,15 @@ class FileFinder extends View
 
   findMatches: (query) ->
     if not query
-      urls = @urls
+      paths = @paths
     else
-      scoredUrls = ({url, score: stringScore(url, query)} for url in @urls)
-      scoredUrls.sort (a, b) ->
+      scoredPaths = ({path, score: stringScore(path, query)} for path in @paths)
+      scoredPaths.sort (a, b) ->
         if a.score > b.score then -1
         else if a.score < b.score then 1
         else 0
-      window.x = scoredUrls
+      window.x = scoredPaths
 
-      urls = (urlAndScore.url for urlAndScore in scoredUrls when urlAndScore.score > 0)
+      paths = (pathAndScore.path for pathAndScore in scoredPaths when pathAndScore.score > 0)
 
-    urls.slice 0, @maxResults
+    paths.slice 0, @maxResults

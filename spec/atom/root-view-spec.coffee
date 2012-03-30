@@ -7,37 +7,37 @@ Editor = require 'editor'
 describe "RootView", ->
   rootView = null
   project = null
-  url = null
+  path = null
 
   beforeEach ->
-    url = require.resolve 'fixtures/dir/a'
-    rootView = new RootView({url})
+    path = require.resolve 'fixtures/dir/a'
+    rootView = new RootView({path})
     rootView.enableKeymap()
     project = rootView.project
 
   describe "initialize", ->
-    describe "when called with a url that references a file", ->
+    describe "when called with a path that references a file", ->
       it "creates a project for the file's parent directory and opens it in the editor", ->
-        expect(rootView.project.url).toBe fs.directory(url)
-        expect(rootView.activeEditor().buffer.getPath()).toBe url
+        expect(rootView.project.path).toBe fs.directory(path)
+        expect(rootView.activeEditor().buffer.getPath()).toBe path
 
-    describe "when called with a url that references a directory", ->
+    describe "when called with a path that references a directory", ->
       it "creates a project for the directory and opens an empty buffer", ->
-        url = require.resolve 'fixtures/dir/'
-        rootView = new RootView({url})
+        path = require.resolve 'fixtures/dir/'
+        rootView = new RootView({path})
 
-        expect(rootView.project.url).toBe url
-        expect(rootView.activeEditor().buffer.url).toBeUndefined()
+        expect(rootView.project.path).toBe path
+        expect(rootView.activeEditor().buffer.path).toBeUndefined()
 
-    describe "when not called with a url", ->
+    describe "when not called with a path", ->
       it "opens an empty buffer", ->
         rootView = new RootView
         expect(rootView.editors.length).toBe 1
-        expect(rootView.activeEditor().buffer.url).toBeUndefined()
+        expect(rootView.activeEditor().buffer.path).toBeUndefined()
 
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
-      rootView = new RootView({url: require.resolve 'fixtures'})
+      rootView = new RootView({path: require.resolve 'fixtures'})
       rootView.attachToDom()
       expect(rootView).toMatchSelector(':focus')
 
@@ -293,18 +293,18 @@ describe "RootView", ->
           rootView.trigger 'toggle-file-finder'
 
           project.getFilePaths().done (paths) ->
-            expect(rootView.fileFinder.urlList.children('li').length).toBe paths.length
+            expect(rootView.fileFinder.pathList.children('li').length).toBe paths.length
 
             for path in paths
-              relativePath = path.replace(project.url, '')
-              expect(rootView.fileFinder.urlList.find("li:contains(#{relativePath}):not(:contains(#{project.url}))")).toExist()
+              relativePath = path.replace(project.path, '')
+              expect(rootView.fileFinder.pathList.find("li:contains(#{relativePath}):not(:contains(#{project.path}))")).toExist()
 
       describe "when there is no project", ->
         beforeEach ->
           rootView = new RootView
 
         it "does not open the FileFinder", ->
-          expect(rootView.activeEditor().buffer.url).toBeUndefined()
+          expect(rootView.activeEditor().buffer.path).toBeUndefined()
           expect(rootView.find('.file-finder')).not.toExist()
           rootView.trigger 'toggle-file-finder'
           expect(rootView.find('.file-finder')).not.toExist()
@@ -319,15 +319,15 @@ describe "RootView", ->
         rootView.fileFinder.trigger 'move-down'
         selectedLi = rootView.fileFinder.find('li:eq(1)')
 
-        expectedUrl = project.url + selectedLi.text()
-        expect(editor1.buffer.url).not.toBe expectedUrl
-        expect(editor2.buffer.url).not.toBe expectedUrl
+        expectedPath = project.path + selectedLi.text()
+        expect(editor1.buffer.path).not.toBe expectedPath
+        expect(editor2.buffer.path).not.toBe expectedPath
 
         # debugger
         rootView.fileFinder.trigger 'file-finder:select-file'
 
-        expect(editor1.buffer.url).not.toBe expectedUrl
-        expect(editor2.buffer.url).toBe expectedUrl
+        expect(editor1.buffer.path).not.toBe expectedPath
+        expect(editor2.buffer.path).toBe expectedPath
 
   describe "text search", ->
     describe "when find event is triggered", ->
@@ -353,11 +353,11 @@ describe "RootView", ->
 
   describe "document.title", ->
     it "is set to activeEditor's buffer path", ->
-      expect(document.title).toBe url
+      expect(document.title).toBe path
 
     it "only listens to focused editors path changes", ->
       editor1 = rootView.activeEditor()
-      expect(document.title).toBe url
+      expect(document.title).toBe path
 
       editor2 = rootView.activeEditor().splitLeft()
       editor2.setBuffer(new Buffer("second.txt"))

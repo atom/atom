@@ -25,7 +25,6 @@ class Buffer
     @path
 
   setPath: (path) ->
-    @url = path # we want this to be path on master, but let's not break it on a branch
     @path = path
     @trigger "path-change", this
 
@@ -135,7 +134,7 @@ class Buffer
     @undoManager.redo()
 
   save: ->
-    if not @getPath() then throw new Error("Tried to save buffer with no url")
+    if not @getPath() then throw new Error("Tried to save buffer with no file path")
     fs.write @getPath(), @getText()
 
   saveAs: (path) ->
