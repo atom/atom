@@ -217,6 +217,8 @@ class Editor extends View
       @unsubscribeFromBuffer()
 
     @buffer = buffer
+    @trigger 'buffer-path-change'
+    @buffer.on "path-change.editor#{@id}", => @trigger 'buffer-path-change'
 
     document.title = @buffer.getPath()
     @renderer = new Renderer(@buffer)

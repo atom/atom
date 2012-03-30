@@ -1863,3 +1863,34 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(13)').text()).toBe 'A'
         expect(editor.lines.find('.line:eq(14)').text()).toBe 'B'
         expect(editor.lines.find('.line:eq(15)')).not.toExist()
+
+
+  describe "path-change event", ->
+    it "emits event when buffer's path is changed", ->
+      editor = new Editor()
+
+      eventHandler = jasmine.createSpy('eventHandler')
+      editor.on 'buffer-path-change', eventHandler
+      editor.buffer.setPath("moo.text")
+
+    it "emits event when editor receives a new buffer", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      editor.on 'buffer-path-change', eventHandler
+      editor.setBuffer(new Buffer("something.txt"))
+      expect(eventHandler).toHaveBeenCalled()
+
+    it "stops listening to events on previously set buffers", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      oldBuffer = editor.buffer
+      editor.on 'buffer-path-change', eventHandler
+
+      editor.setBuffer(new Buffer("something.txt"))
+      expect(eventHandler).toHaveBeenCalled()
+
+      eventHandler.reset()
+      oldBuffer.setPath("bad.txt")
+      expect(eventHandler).not.toHaveBeenCalled()
+
+      eventHandler.reset()
+      editor.buffer.setPath("new.txt")
+      expect(eventHandler).toHaveBeenCalled()
