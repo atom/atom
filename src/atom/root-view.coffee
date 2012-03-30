@@ -59,6 +59,12 @@ class RootView extends View
       _.remove(@editors, editor)
       @editors.push(editor)
 
+      @setTitleToActiveEditorPath()
+
+      editor.on 'buffer-path-change.root-view', (event) =>
+        e = $(event.target).view()
+        @setTitleToActiveEditorPath()
+
   editorRemoved: (editor) ->
     if @panes.containsElement
       _.remove(@editors, editor)
@@ -68,13 +74,17 @@ class RootView extends View
       else
         window.close()
 
+  setTitleToActiveEditorPath: ->
+    document.title = @activeEditor().buffer.path
+
   activeEditor: ->
     if @editors.length
       _.last(@editors)
     else
-      new Editor()
-        .appendTo(@panes)
-        .focus()
+      editor = new Editor()
+      @editors.push(editor)
+      editor.appendTo(@panes)
+      editor.focus()
 
   adjustSplitPanes: (element = @panes.children(':first'))->
     if element.hasClass('row')

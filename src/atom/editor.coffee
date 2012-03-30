@@ -220,7 +220,6 @@ class Editor extends View
     @trigger 'buffer-path-change'
     @buffer.on "path-change.editor#{@id}", => @trigger 'buffer-path-change'
 
-    document.title = @buffer.getPath()
     @renderer = new Renderer(@buffer)
     @renderLines()
     @gutter.renderLineNumbers()
@@ -328,7 +327,6 @@ class Editor extends View
     if not @buffer.getPath()
       path = $native.saveDialog()
       return if not path
-      document.title = path
       @buffer.saveAs(path)
     else
       @buffer.save()
@@ -463,8 +461,10 @@ class Editor extends View
 
     editor = new Editor({@buffer})
     editor.setCursorScreenPosition(@getCursorScreenPosition())
+
     this[insertMethod](editor)
     @parents('#root-view').view().adjustSplitPanes()
+    editor
 
   remove: (selector, keepData) ->
     return super if keepData

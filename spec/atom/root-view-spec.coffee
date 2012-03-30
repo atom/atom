@@ -2,6 +2,7 @@ $ = require 'jquery'
 fs = require 'fs'
 RootView = require 'root-view'
 Buffer = require 'buffer'
+Editor = require 'editor'
 
 describe "RootView", ->
   rootView = null
@@ -350,3 +351,18 @@ describe "RootView", ->
         rootView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
 
+  describe "document.title", ->
+    it "is set to activeEditor's buffer path", ->
+      expect(document.title).toBe url
+
+    it "only listens to focused editors path changes", ->
+      editor1 = rootView.activeEditor()
+      expect(document.title).toBe url
+
+      editor2 = rootView.activeEditor().splitLeft()
+      editor2.setBuffer(new Buffer("second.txt"))
+      editor2.focus()
+      expect(document.title).toBe "second.txt"
+
+      editor1.buffer.setPath("should-not-be-title.txt")
+      expect(document.title).toBe "second.txt"
