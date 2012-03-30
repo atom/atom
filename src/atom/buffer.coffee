@@ -27,7 +27,7 @@ class Buffer
   setPath: (path) ->
     @url = path # we want this to be path on master, but let's not break it on a branch
     @path = path
-    @trigger "path-changed", this
+    @trigger "path-change", this
 
   getText: ->
     @lines.join('\n')

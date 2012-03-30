@@ -192,7 +192,7 @@ describe 'Buffer', ->
     it "saves the contents of the buffer to the path", ->
       buffer = new Buffer()
       eventHandler = jasmine.createSpy('eventHandler')
-      buffer.on 'path-changed', eventHandler
+      buffer.on 'path-change', eventHandler
 
       buffer.setText 'Buffer contents!'
       buffer.saveAs(filePath)
@@ -405,9 +405,9 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
 
 
-  describe "path-changed event", ->
-    it "emits path-changed event when path is changed", ->
+  describe "path-change event", ->
+    it "emits path-change event when path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
-      buffer.on 'path-changed', eventHandler
+      buffer.on 'path-change', eventHandler
       buffer.setPath("moo.text")
       expect(eventHandler).toHaveBeenCalledWith(buffer)

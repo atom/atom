@@ -21,7 +21,7 @@ describe "Editor", ->
   describe "construction", ->
     it "assigns an empty buffer and correctly handles text input (regression coverage)", ->
       editor = new Editor
-      expect(editor.buffer.path).toBeUndefined()
+      expect(editor.buffer.getPath()).toBeUndefined()
       expect(editor.lines.find('.line').length).toBe 1
       editor.insertText('x')
       expect(editor.lines.find('.line').length).toBe 1
@@ -1772,7 +1772,7 @@ describe "Editor", ->
       beforeEach ->
         tempFilePath = '/tmp/atom-temp.txt'
         editor.setBuffer new Buffer(tempFilePath)
-        expect(editor.buffer.path).toBe tempFilePath
+        expect(editor.buffer.getPath()).toBe tempFilePath
 
       afterEach ->
         expect(fs.remove(tempFilePath))
@@ -1790,7 +1790,7 @@ describe "Editor", ->
       selectedFilePath = null
       beforeEach ->
         editor.setBuffer new Buffer()
-        expect(editor.buffer.path).toBeUndefined()
+        expect(editor.buffer.getPath()).toBeUndefined()
         editor.buffer.setText 'Save me to a new path'
         spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
 
