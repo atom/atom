@@ -179,6 +179,27 @@ describe 'Buffer', ->
         buffer = new Buffer
         expect(-> buffer.save()).toThrow()
 
+  describe ".saveAs(path)", ->
+    filePath = null
+
+    beforeEach ->
+      filePath = require.resolve('fixtures') + '/temp.txt'
+      expect(fs.exists(filePath)).toBeFalsy()
+
+    afterEach ->
+      fs.remove filePath
+
+    it "saves the contents of the buffer to the path", ->
+      buffer = new Buffer()
+      eventHandler = jasmine.createSpy('eventHandler')
+      buffer.on 'path-changed', eventHandler
+
+      buffer.setText 'Buffer contents!'
+      buffer.saveAs(filePath)
+      expect(fs.read(filePath)).toEqual 'Buffer contents!'
+
+      expect(eventHandler).toHaveBeenCalledWith(buffer)
+
   describe ".getTextInRange(range)", ->
     describe "when range is empty", ->
       it "returns an empty string", ->
@@ -382,3 +403,11 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
+
+
+  describe "path-changed event", ->
+    it "emits path-changed event when path is changed", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      buffer.on 'path-changed', eventHandler
+      buffer.setPath("moo.text")
+      expect(eventHandler).toHaveBeenCalledWith(buffer)

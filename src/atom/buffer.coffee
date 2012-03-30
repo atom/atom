@@ -9,16 +9,25 @@ module.exports =
 class Buffer
   @idCounter = 1
   lines: null
+  path: null
 
-  constructor: (@path) ->
+  constructor: (path) ->
     @id = @constructor.idCounter++
-    @url = @path # we want this to be path on master, but let's not break it on a branch
+    @setPath(path)
     @lines = ['']
-    if @path and fs.exists(@path)
-      @setText(fs.read(@path))
+    if @getPath() and fs.exists(@getPath())
+      @setText(fs.read(@getPath()))
     else
       @setText('')
     @undoManager = new UndoManager(this)
+
+  getPath: ->
+    @path
+
+  setPath: (path) ->
+    @url = path # we want this to be path on master, but let's not break it on a branch
+    @path = path
+    @trigger "path-changed", this
 
   getText: ->
     @lines.join('\n')
@@ -126,12 +135,16 @@ class Buffer
     @undoManager.redo()
 
   save: ->
-    if not @path then throw new Error("Tried to save buffer with no url")
-    fs.write @path, @getText()
+    if not @getPath() then throw new Error("Tried to save buffer with no url")
+    fs.write @getPath(), @getText()
+
+  saveAs: (path) ->
+    @setPath(path)
+    @save()
 
   getMode: ->
     return @mode if @mode
-    extension = if @path then @path.split('/').pop().split('.').pop() else null
+    extension = if @getPath() then @getPath().split('/').pop().split('.').pop() else null
     modeName = switch extension
       when 'js' then 'javascript'
       when 'coffee' then 'coffee'
