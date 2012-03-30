@@ -463,7 +463,7 @@ class Editor extends View
     editor.setCursorScreenPosition(@getCursorScreenPosition())
 
     this[insertMethod](editor)
-    @parents('#root-view').view().adjustSplitPanes()
+    @rootView().adjustSplitPanes()
     editor
 
   remove: (selector, keepData) ->
