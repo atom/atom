@@ -29,9 +29,7 @@ end
 desc "Run Atom"
 task :run => :build do
   if path = binary_path()
-    puts "#{path} #{$ATOM_ARGS.join(' ')} 2> /dev/null"
     exitstatus = system "#{path} #{$ATOM_ARGS.join(' ')} 2> /dev/null"
-    puts exitstatus
     exit(exitstatus)
   else
     exit(1)
@@ -58,7 +56,7 @@ task :"compile-coffeescripts" => :"verify-prerequisites" do
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
-  %w(index.html src static vendor spec).each do |dir|
+  %w(index.html src static vendor spec benchmark).each do |dir|
     rm_rf File.join(dest, dir)
     cp_r dir, File.join(dest, dir)
   end
