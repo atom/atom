@@ -38,6 +38,15 @@ class Selection extends View
 
     @setAnchorBufferPosition([newRow, newColumn])
 
+  isEmpty: ->
+    @getBufferRange().isEmpty()
+
+  isReversed: ->
+    not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchorBufferPosition)
+
+  intersectsWith: (otherSelection) ->
+    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
+
   clearSelection: ->
     @anchorScreenPosition = null
     @updateAppearance()
@@ -146,15 +155,6 @@ class Selection extends View
     @editor.buffer.delete(range) unless range.isEmpty()
     @clearSelection()
 
-  isEmpty: ->
-    @getBufferRange().isEmpty()
-
-  isReversed: ->
-    not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchorBufferPosition)
-
-  intersectsWith: (otherSelection) ->
-    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
-
   merge: (otherSelection, options) ->
     @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
     otherSelection.remove()
@@ -183,9 +183,13 @@ class Selection extends View
     @anchorBufferPosition = bufferPosition
     @anchorScreenPosition = @editor.screenPositionForBufferPosition(bufferPosition)
 
+  selectToScreenPosition: (position) ->
+    @modifySelection =>
+      @cursor.setScreenPosition(position)
+
   selectWord: ->
-    row = @cursor.getScreenRow()
-    column = @cursor.getScreenColumn()
+    row = @cursor.getScreenPosition().row
+    column = @cursor.getScreenPosition().column
 
     { row, column } = @cursor.getBufferPosition()
 
@@ -227,14 +231,6 @@ class Selection extends View
   selectToBottom: ->
     @modifySelection =>
       @cursor.moveToBottom()
-
-  selectLeftUntilMatch: (regex) ->
-    @modifySelection =>
-      @cursor.moveLeftUntilMatch(regex)
-
-  selectToScreenPosition: (position) ->
-    @modifySelection =>
-      @cursor.setScreenPosition(position)
 
   selectToBeginningOfLine: ->
     @modifySelection =>

@@ -10,6 +10,7 @@ class Cursor extends View
   editor: null
   screenPosition: null
   bufferPosition: null
+  wordRegex: /(\w+)|([^\w\s]+)/g
 
   initialize: (@editor) ->
     @screenPosition = new Point(0, 0)
@@ -65,31 +66,11 @@ class Cursor extends View
   getScreenPosition: ->
     @screenPosition
 
-  getBufferColumn: ->
-    @getBufferPosition().column
-
-  setBufferColumn: (column) ->
-    { row } = @getBufferPosition()
-    @setBufferPosition {row, column}
-
-  getScreenColumn: ->
-    @getScreenPosition().column
-
-  setScreenColumn: (column) ->
-    { row } = @getScreenPosition()
-    @setScreenPosition {row, column}
-
-  getScreenRow: ->
-    @getScreenPosition().row
-
-  getBufferRow: ->
-    @getBufferPosition().row
-
   getCurrentBufferLine: ->
-    @editor.lineForBufferRow(@getBufferRow())
+    @editor.lineForBufferRow(@getBufferPosition().row)
 
   isOnEOL: ->
-    @getScreenColumn() == @getCurrentBufferLine().length
+    @getScreenPosition().column == @getCurrentBufferLine().length
 
   moveUp: ->
     { row, column } = @getScreenPosition()
@@ -102,8 +83,6 @@ class Cursor extends View
     column = @goalColumn if @goalColumn?
     @setScreenPosition({row: row + 1, column: column})
     @goalColumn = column
-
-  wordRegex: /(\w+)|([^\w\s]+)/g
 
   moveToNextWord: ->
     bufferPosition = @getBufferPosition()
@@ -155,13 +134,7 @@ class Cursor extends View
 
   moveLeft: ->
     { row, column } = @getScreenPosition()
-
-    if column > 0
-      column--
-    else
-      row--
-      column = Infinity
-
+    [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
     @setScreenPosition({row, column})
 
   moveToTop: ->
@@ -169,28 +142,6 @@ class Cursor extends View
 
   moveToBottom: ->
     @setBufferPosition @editor.getEofPosition()
-
-  moveLeftUntilMatch: (regex) ->
-    row = @getScreenRow()
-    column = @getScreenColumn()
-    offset = 0
-
-    matchBackwards = =>
-      line = @editor.buffer.lineForRow(row)
-      reversedLine = line[0...column].split('').reverse().join('')
-      regex.exec reversedLine
-
-    if not match = matchBackwards()
-      if row > 0
-        row--
-        column = @editor.buffer.lineLengthForRow(row)
-        match = matchBackwards()
-      else
-        column = 0
-
-    offset = match and -match[0].length or 0
-
-    @setScreenPosition [row, column + offset]
 
   updateAppearance: ->
     position = @editor.pixelPositionForScreenPosition(@getScreenPosition())
