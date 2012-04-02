@@ -7,6 +7,9 @@ class CompositeCursor
     @cursors = []
     @addCursor()
 
+  handleBufferChange: (e) ->
+    @moveCursors (cursor) -> cursor.handleBufferChange(e)
+
   getCursor: (index) ->
     index ?= @cursors.length - 1
     @cursors[index]
@@ -80,9 +83,6 @@ class CompositeCursor
 
   moveToFirstCharacterOfLine: ->
     @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
-
-  handleBufferChange: (e) ->
-    @moveCursors (cursor) -> cursor.handleBufferChange(e)
 
   mergeCursors: ->
     positions = []
