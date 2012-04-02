@@ -95,7 +95,7 @@ task :"verify-prerequisites" do
 end
 
 def application_path
-  applications = FileList["#{BUILD_DIR}/**/*.app"]
+  applications = FileList["#{BUILD_DIR}/**/Atom.app"]
   if applications.size == 0
     $stderr.puts "No Atom application found in directory `#{BUILD_DIR}`"
   elsif applications.size > 1

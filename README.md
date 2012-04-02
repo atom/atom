@@ -3,7 +3,7 @@
 
 ## Download
 
-1. Download [atom.zip](https://github.com/downloads/github/atom/atom.zip)
+1. Download from [speakeasy](https://speakeasy.githubapp.com/apps/com.github.atom-osx)
 
 2. Unzip and open the app
 
