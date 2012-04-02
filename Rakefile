@@ -17,7 +17,7 @@ end
 desc "Create the Atom.app for distribution"
 task :package => :build do
   if path = application_path()
-    FileUtils.rm_r "pkg"
+    FileUtils.rm_rf "pkg"
     FileUtils.mkdir_p "pkg"
     FileUtils.cp_r path, "pkg/"
     `cd pkg && zip -r atom.zip .`
