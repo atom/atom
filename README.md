@@ -15,10 +15,6 @@ explore features.
 
 `cmd-n` : new window
 
-`cmd-r` : reload the current window
-
-`cmd-alt-ctrl-s` : run specs
-
 `cmd-t` : open fuzzy file finder
 
 `cmd-:` : open command prompt
@@ -26,6 +22,10 @@ explore features.
 `cmd-f` : open command prompt with /
 
 `cmd-g` : repeat the last search
+
+`cmd-r` : reload the current window
+
+`cmd-alt-ctrl-s` : run specs
 
 `cmd-alt-arrows` : split screen in direction of arrow
 
