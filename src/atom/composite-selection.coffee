@@ -64,45 +64,43 @@ class CompositeSeleciton
   selectToScreenPosition: (position) ->
     @getLastSelection().selectToScreenPosition(position)
 
-  selectRight: ->
-    selection.selectRight() for selection in @getSelections()
+  moveSelections: (fn) ->
+    fn(selection) for selection in @getSelections()
     @mergeIntersectingSelections()
+
+  reverseMoveSelections: (fn) ->
+    fn(selection) for selection in @getSelections()
+    @mergeIntersectingSelections(reverse: true)
+
+  selectRight: ->
+    @moveSelections (selection) => selection.selectRight()
 
   selectLeft: ->
-    selection.selectLeft() for selection in @getSelections()
-    @mergeIntersectingSelections reverse: true
+    @reverseMoveSelections (selection) => selection.selectLeft()
 
   selectUp: ->
-    selection.selectUp() for selection in @getSelections()
-    @mergeIntersectingSelections reverse: true
+    @reverseMoveSelections (selection) => selection.selectUp()
 
   selectDown: ->
-    selection.selectDown() for selection in @getSelections()
-    @mergeIntersectingSelections()
+    @moveSelections (selection) => selection.selectDown()
 
   selectToTop: ->
-    selection.selectToTop() for selection in @getSelections()
-    @mergeIntersectingSelections reverse: true
+    @reverseMoveSelections (selection) => selection.selectToTop()
 
   selectToBottom: ->
-    selection.selectToBottom() for selection in @getSelections()
-    @mergeIntersectingSelections()
+    @moveSelections (selection) => selection.selectToBottom()
 
   selectToBeginningOfLine: ->
-    selection.selectToBeginningOfLine() for selection in @getSelections()
-    @mergeIntersectingSelections reverse: true
+    @reverseMoveSelections (selection) => selection.selectToBeginningOfLine()
 
   selectToEndOfLine: ->
-    selection.selectToEndOfLine() for selection in @getSelections()
-    @mergeIntersectingSelections()
+    @moveSelections (selection) => selection.selectToEndOfLine()
 
   selectToBeginningOfWord: ->
-    selection.selectToBeginningOfWord() for selection in @getSelections()
-    @mergeIntersectingSelections reverse: true
+    @reverseMoveSelections (selection) => selection.selectToBeginningOfWord()
 
   selectToEndOfWord: ->
-    selection.selectToEndOfWord() for selection in @getSelections()
-    @mergeIntersectingSelections()
+    @moveSelections (selection) => selection.selectToEndOfWord()
 
   setBufferRange: (bufferRange, options) ->
     @getLastSelection().setBufferRange(bufferRange, options)

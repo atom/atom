@@ -98,8 +98,7 @@ class Selection extends View
     [start, end] = [end, start] if reverse
 
     @cursor.setScreenPosition(start)
-    @modifySelection =>
-      @cursor.setScreenPosition(end)
+    @modifySelection => @cursor.setScreenPosition(end)
 
   getBufferRange: ->
     @editor.bufferRangeForScreenRange(@getScreenRange())
@@ -209,44 +208,34 @@ class Selection extends View
     @setBufferRange new Range([row, 0], [row, rowLength])
 
   selectRight: ->
-    @modifySelection =>
-      @cursor.moveRight()
+    @modifySelection => @cursor.moveRight()
 
   selectLeft: ->
-    @modifySelection =>
-      @cursor.moveLeft()
+    @modifySelection => @cursor.moveLeft()
 
   selectUp: ->
-    @modifySelection =>
-      @cursor.moveUp()
+    @modifySelection => @cursor.moveUp()
 
   selectDown: ->
-    @modifySelection =>
-      @cursor.moveDown()
+    @modifySelection => @cursor.moveDown()
 
   selectToTop: ->
-    @modifySelection =>
-      @cursor.moveToTop()
+    @modifySelection => @cursor.moveToTop()
 
   selectToBottom: ->
-    @modifySelection =>
-      @cursor.moveToBottom()
+    @modifySelection => @cursor.moveToBottom()
 
   selectToBeginningOfLine: ->
-    @modifySelection =>
-      @cursor.moveToBeginningOfLine()
+    @modifySelection => @cursor.moveToBeginningOfLine()
 
   selectToEndOfLine: ->
-    @modifySelection =>
-      @cursor.moveToEndOfLine()
+    @modifySelection => @cursor.moveToEndOfLine()
 
   selectToBeginningOfWord: ->
-    @modifySelection =>
-      @cursor.moveToBeginningOfWord()
+    @modifySelection => @cursor.moveToBeginningOfWord()
 
   selectToEndOfWord: ->
-    @modifySelection =>
-      @cursor.moveToEndOfWord()
+    @modifySelection => @cursor.moveToEndOfWord()
 
   cut: (maintainPasteboard=false) ->
     @copy(maintainPasteboard)
