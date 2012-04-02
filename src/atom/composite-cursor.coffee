@@ -32,57 +32,57 @@ class CompositeCursor
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 
-  setScreenPosition: (screenPosition) ->
-    @modifyCursors (cursor) -> cursor.setScreenPosition(screenPosition)
-
-  setBufferPosition: (bufferPosition) ->
-    @modifyCursors (cursor) -> cursor.setBufferPosition(bufferPosition)
-
-  refreshScreenPosition: ->
-    @modifyCursors (cursor) -> cursor.refreshScreenPosition()
-
-  modifyCursors: (fn) ->
+  moveCursors: (fn) ->
     fn(cursor) for cursor in @cursors
     @mergeCursors()
 
+  setScreenPosition: (screenPosition) ->
+    @moveCursors (cursor) -> cursor.setScreenPosition(screenPosition)
+
+  setBufferPosition: (bufferPosition) ->
+    @moveCursors (cursor) -> cursor.setBufferPosition(bufferPosition)
+
+  refreshScreenPosition: ->
+    @moveCursors (cursor) -> cursor.refreshScreenPosition()
+
   moveLeft: ->
-    @modifyCursors (cursor) -> cursor.moveLeft()
+    @moveCursors (cursor) -> cursor.moveLeft()
 
   moveRight: ->
-    @modifyCursors (cursor) -> cursor.moveRight()
+    @moveCursors (cursor) -> cursor.moveRight()
 
   moveUp: ->
-    @modifyCursors (cursor) -> cursor.moveUp()
+    @moveCursors (cursor) -> cursor.moveUp()
 
   moveDown: ->
-    @modifyCursors (cursor) -> cursor.moveDown()
+    @moveCursors (cursor) -> cursor.moveDown()
 
   moveToNextWord: ->
-    @modifyCursors (cursor) -> cursor.moveToNextWord()
+    @moveCursors (cursor) -> cursor.moveToNextWord()
 
   moveToBeginningOfWord: ->
-    @modifyCursors (cursor) -> cursor.moveToBeginningOfWord()
+    @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
 
   moveToEndOfWord: ->
-    @modifyCursors (cursor) -> cursor.moveToEndOfWord()
+    @moveCursors (cursor) -> cursor.moveToEndOfWord()
 
   moveToTop: ->
-    @modifyCursors (cursor) -> cursor.moveToTop()
+    @moveCursors (cursor) -> cursor.moveToTop()
 
   moveToBottom: ->
-    @modifyCursors (cursor) -> cursor.moveToBottom()
+    @moveCursors (cursor) -> cursor.moveToBottom()
 
   moveToBeginningOfLine: ->
-    @modifyCursors (cursor) -> cursor.moveToBeginningOfLine()
+    @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
 
   moveToEndOfLine: ->
-    @modifyCursors (cursor) -> cursor.moveToEndOfLine()
+    @moveCursors (cursor) -> cursor.moveToEndOfLine()
 
   moveToFirstCharacterOfLine: ->
-    @modifyCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
 
   handleBufferChange: (e) ->
-    @modifyCursors (cursor) -> cursor.handleBufferChange(e)
+    @moveCursors (cursor) -> cursor.handleBufferChange(e)
 
   mergeCursors: ->
     positions = []
