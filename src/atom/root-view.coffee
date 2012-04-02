@@ -22,14 +22,6 @@ class RootView extends View
     @editors = []
     @createProject(path)
 
-    window.keymap.bindKeys '*'
-      'meta-s': 'save'
-      'meta-w': 'close'
-      'meta-t': 'toggle-file-finder'
-      'meta-:': 'command-panel:toggle'
-      'alt-meta-i': 'show-console'
-      'meta-f': 'find-in-file'
-
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', -> window.showConsole()
     @on 'find-in-file', =>

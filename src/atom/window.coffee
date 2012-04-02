@@ -1,23 +1,26 @@
+# This a weirdo file. We don't create a Window class, we just add stuff to
+# the DOM window.
+
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
-
-Keymap = require 'keymap'
-RootView = require 'root-view'
-
-require 'jquery-extensions'
-require 'underscore-extensions'
-
-# This a weirdo file. We don't create a Window class, we just add stuff to
-# the DOM window.
 
 windowAdditions =
   rootViewParentSelector: 'body'
   rootView: null
   keymap: null
 
+  setUpKeymap: ->
+    Keymap = require 'keymap'
+
+    @keymap = new Keymap()
+    @keymap.bindDefaultKeys()
+    require(keymapPath) for keymapPath in fs.list(require.resolve("keymaps"))
+
+    @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
+    $(document).on 'keydown', @_handleKeyEvent
+
   startup: (path) ->
-    @setUpKeymap()
     @attachRootView(path)
     @loadUserConfiguration()
     $(window).on 'close', => @close()
@@ -29,18 +32,6 @@ windowAdditions =
     $(window).unbind('focus')
     $(window).unbind('blur')
     atom.windowClosed this
-    @tearDownKeymap()
-
-  setUpKeymap: ->
-    @keymap = new Keymap()
-    @keymap.bindDefaultKeys()
-
-    @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
-    $(document).on 'keydown', @_handleKeyEvent
-
-  tearDownKeymap: ->
-    @keymap.unbindDefaultKeys()
-    $(document).off 'keydown', @_handleKeyEvent
 
   attachRootView: (path) ->
     @rootView = new RootView {path}
@@ -65,9 +56,13 @@ windowAdditions =
   onerror: ->
     @showConsole()
 
-for key, value of windowAdditions
-  console.warn "DOMWindow already has a key named `#{key}`" if window[key]
-  window[key] = value
+window[key] = value for key, value of windowAdditions
+window.setUpKeymap()
+
+RootView = require 'root-view'
+
+require 'jquery-extensions'
+require 'underscore-extensions'
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'

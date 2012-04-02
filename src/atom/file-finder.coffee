@@ -19,9 +19,6 @@ class FileFinder extends View
     @previousFocusedElement = $(document.activeElement)
 
     @populatePathList()
-    window.keymap.bindKeys ".file-finder .editor",
-      'enter': 'file-finder:select-file',
-      'escape': 'file-finder:close'
 
     @on 'file-finder:close', => @remove()
     @on 'move-up', => @moveUp()

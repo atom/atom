@@ -8,7 +8,6 @@ require 'window'
 window.showConsole()
 
 beforeEach ->
-  window.keymap = new Keymap
   window.resetTimeouts()
 
 afterEach ->

@@ -41,8 +41,6 @@ class Editor extends View
   initialize: ({buffer}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
-    require 'keybindings/emacs'
-    require 'keybindings/apple'
 
     @id = Editor.idCounter++
     @editSessionsByBufferId = {}
@@ -53,31 +51,6 @@ class Editor extends View
     @autoIndent = true
 
   bindKeys: ->
-    window.keymap.bindKeys '.editor',
-      'meta-s': 'save'
-      right: 'move-right'
-      left: 'move-left'
-      down: 'move-down'
-      up: 'move-up'
-      'shift-right': 'select-right'
-      'shift-left': 'select-left'
-      'shift-up': 'select-up'
-      'shift-down': 'select-down'
-      enter: 'newline'
-      backspace: 'backspace'
-      'delete': 'delete'
-      'meta-x': 'cut'
-      'meta-c': 'copy'
-      'meta-v': 'paste'
-      'meta-z': 'undo'
-      'meta-Z': 'redo'
-      'alt-meta-w': 'toggle-soft-wrap'
-      'alt-meta-f': 'fold-selection'
-      'alt-meta-left': 'split-left'
-      'alt-meta-right': 'split-right'
-      'alt-meta-up': 'split-up'
-      'alt-meta-down': 'split-down'
-
     @on 'save', => @save()
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
