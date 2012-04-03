@@ -262,10 +262,12 @@ describe "Editor", ->
             expect(editor.scroller.scrollTop()).toBe(0)
 
           it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
-            editor.height(editor.lineHeight * 5)
+            setEditorHeightInChars(editor, 5)
 
-            _.times 3, -> editor.moveCursorDown()
-            window.advanceClock()
+            _.times 3, ->
+              editor.moveCursorDown()
+              window.advanceClock()
+
             expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
 
             editor.moveCursorUp()
@@ -1920,8 +1922,8 @@ describe "Editor", ->
 
     it "returns correct bounds based on scroll position", ->
       expect(editor.bounds()).toEqual [[0,0], [10, 10]]
-      editor.scrollTop(editor.lineHeight * 1)
-      editor.horizontalScroller.scrollLeft(editor.charWidth * 1)
+      editor.scroller.scrollTop(editor.lineHeight * 1)
+      editor.scroller.scrollLeft(editor.charWidth * 1)
       expect(editor.bounds()).toEqual [[1,1], [11, 11]]
 
   describe "screenPositionInBounds(screenPosition)", ->

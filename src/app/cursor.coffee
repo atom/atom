@@ -132,11 +132,21 @@ class Cursor extends View
     @setBufferPosition @editor.getEofPosition()
 
   updateAppearance: ->
-    position = @editor.pixelPositionForScreenPosition(@getScreenPosition())
+    screenPosition = @getScreenPosition()
+    position = @editor.pixelPositionForScreenPosition(screenPosition)
     @css(position)
+
+    if @editor.getCursors().length == 1 or @editor.screenPositionInBounds(screenPosition)
+      @autoScroll(position)
+
+  autoScroll: (position) ->
+    return if @editor._autoScrolling
+
+    @editor._autoScrolling = true
     _.defer =>
-      @autoScrollVertically(position)
-      @autoScrollHorizontally(position)
+       @editor._autoScrolling = false
+       @autoScrollVertically(position)
+       @autoScrollHorizontally(position)
 
   autoScrollVertically: (position) ->
     linesInView = @editor.scroller.height() / @editor.lineHeight

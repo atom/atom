@@ -163,10 +163,10 @@ class Editor extends View
     @parents('#root-view').view()
 
   bounds: ->
-    rows = @height() / @lineHeight
-    columns = @horizontalScroller.width() / @charWidth
+    rows = @scroller.height() / @lineHeight
+    columns = @scroller.width() / @charWidth
 
-    start = new Point(@scrollTop() / @lineHeight, @horizontalScroller.scrollLeft() / @charWidth)
+    start = new Point(@scroller.scrollTop() / @lineHeight, @scroller.scrollLeft() / @charWidth)
     end = new Point(start.row + rows, start.column + columns)
 
     new Range(start, end)
