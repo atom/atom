@@ -1,4 +1,5 @@
 {View} = require 'space-pen'
+Anchor = require 'anchor'
 Point = require 'point'
 _ = require 'underscore'
 
@@ -7,45 +8,38 @@ class Cursor extends View
   @content: ->
     @pre class: 'cursor idle', => @raw '&nbsp;'
 
+  anchor: null
   editor: null
-  screenPosition: null
-  bufferPosition: null
   wordRegex: /(\w+)|([^\w\s]+)/g
 
   initialize: (@editor) ->
-    @screenPosition = new Point(0, 0)
+    @anchor = new Anchor(@editor)
     @one 'attach', => @updateAppearance()
 
   handleBufferChange: (e) ->
-    { newRange, oldRange } = e
-    position = @getBufferPosition()
-    return if position.isLessThan(oldRange.end)
-
-    newRow = newRange.end.row
-    newColumn = newRange.end.column
-    if position.row == oldRange.end.row
-      newColumn += position.column - oldRange.end.column
-    else
-      newColumn = position.column
-      newRow += position.row - oldRange.end.row
-
-    @setBufferPosition([newRow, newColumn])
+    @anchor.handleBufferChange(e)
+    @refreshScreenPosition()
 
   remove: ->
     @editor.compositeCursor.removeCursor(this)
     @editor.compositeSelection.removeSelectionForCursor(this)
     super
 
+  getBufferPosition: ->
+    @anchor.getBufferPosition()
+
+  setBufferPosition: (bufferPosition) ->
+    @anchor.setBufferPosition(bufferPosition)
+    @refreshScreenPosition()
+
+  getScreenPosition: ->
+    @anchor.getScreenPosition()
+
   setScreenPosition: (position, options={}) ->
-    position = Point.fromObject(position)
-    clip = options.clip ? true
+    @anchor.setScreenPosition(position, options)
+    @refreshScreenPosition(position, options)
 
-    @screenPosition = if clip then @editor.clipScreenPosition(position) else position
-    @bufferPosition = @editor.bufferPositionForScreenPosition(position)
-
-    Object.freeze @screenPosition
-    Object.freeze @bufferPosition
-
+  refreshScreenPosition: ->
     @goalColumn = null
     @updateAppearance()
     @trigger 'cursor:position-changed'
@@ -53,18 +47,6 @@ class Cursor extends View
     @removeClass 'idle'
     window.clearTimeout(@idleTimeout) if @idleTimeout
     @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
-
-  setBufferPosition: (bufferPosition) ->
-    @setScreenPosition(@editor.screenPositionForBufferPosition(bufferPosition), clip: false)
-
-  refreshScreenPosition: ->
-    @setBufferPosition(@bufferPosition)
-
-  getBufferPosition: ->
-    @bufferPosition
-
-  getScreenPosition: ->
-    @screenPosition
 
   getCurrentBufferLine: ->
     @editor.lineForBufferRow(@getBufferPosition().row)

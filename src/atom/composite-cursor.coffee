@@ -45,8 +45,8 @@ class CompositeCursor
   setBufferPosition: (bufferPosition) ->
     @moveCursors (cursor) -> cursor.setBufferPosition(bufferPosition)
 
-  refreshScreenPosition: ->
-    @moveCursors (cursor) -> cursor.refreshScreenPosition()
+  updateBufferPosition: ->
+    @moveCursors (cursor) -> cursor.setBufferPosition(cursor.getBufferPosition())
 
   moveLeft: ->
     @moveCursors (cursor) -> cursor.moveLeft()

@@ -222,7 +222,7 @@ class Editor extends View
     unless newRange.isSingleLine() and newRange.coversSameRows(oldRange)
       @gutter.renderLineNumbers(@getScreenLines())
 
-    @compositeCursor.refreshScreenPosition() unless e.bufferChanged
+    @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     lineElements = @buildLineElements(newRange.start.row, newRange.end.row)
     @replaceLineElements(oldRange.start.row, oldRange.end.row, lineElements)
