@@ -139,30 +139,31 @@ class Cursor extends View
       @autoScrollHorizontally(position)
 
   autoScrollVertically: (position) ->
-    linesInView = @editor.height() / @height()
+    linesInView = @editor.scroller.height() / @editor.lineHeight
     maxScrollMargin = Math.floor((linesInView - 1) / 2)
     scrollMargin = Math.min(@editor.vScrollMargin, maxScrollMargin)
     margin = scrollMargin * @height()
     desiredTop = position.top - margin
     desiredBottom = position.top + @height() + margin
 
-    if desiredBottom > @editor.scrollBottom()
-      @editor.scrollBottom(desiredBottom)
-    else if desiredTop < @editor.scrollTop()
-      @editor.scrollTop(desiredTop)
+    if desiredBottom > @editor.scroller.scrollBottom()
+      @editor.scroller.scrollBottom(desiredBottom)
+    else if desiredTop < @editor.scroller.scrollTop()
+      @editor.scroller.scrollTop(desiredTop)
 
   autoScrollHorizontally: (position) ->
     return if @editor.softWrap
 
-    charsInView = @editor.horizontalScroller.width() / @width()
+    charWidth = @editor.charWidth
+    charsInView = @editor.scroller.width() / charWidth
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
     scrollMargin = Math.min(@editor.hScrollMargin, maxScrollMargin)
-    margin = scrollMargin * @width()
-    desiredRight = position.left + @width() + margin
+    margin = scrollMargin * charWidth
+    desiredRight = position.left + charWidth + margin
     desiredLeft = position.left - margin
 
-    if desiredRight > @editor.horizontalScroller.scrollRight()
-      @editor.horizontalScroller.scrollRight(desiredRight)
-    else if desiredLeft < @editor.horizontalScroller.scrollLeft()
-      @editor.horizontalScroller.scrollLeft(desiredLeft)
+    if desiredRight > @editor.scroller.scrollRight()
+      @editor.scroller.scrollRight(desiredRight)
+    else if desiredLeft < @editor.scroller.scrollLeft()
+      @editor.scroller.scrollLeft(desiredLeft)
 

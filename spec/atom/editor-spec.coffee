@@ -184,15 +184,27 @@ describe "Editor", ->
 
       expect(editor.gutter).not.toHaveClass('drop-shadow')
 
-      editor.horizontalScroller.scrollLeft(10)
-      editor.horizontalScroller.trigger('scroll')
+      editor.scroller.scrollLeft(10)
+      editor.scroller.trigger('scroll')
 
       expect(editor.gutter).toHaveClass('drop-shadow')
 
-      editor.horizontalScroller.scrollLeft(0)
-      editor.horizontalScroller.trigger('scroll')
+      editor.scroller.scrollLeft(0)
+      editor.scroller.trigger('scroll')
 
       expect(editor.gutter).not.toHaveClass('drop-shadow')
+
+    it "scrolls the buffer to match the scroll top of the scroller, which contains the lines", ->
+      editor.attachToDom()
+      editor.height(200)
+
+      editor.scroller.scrollTop(50)
+      editor.scroller.trigger('scroll')
+      expect(editor.gutter.scrollTop()).toBe 50
+
+      editor.scroller.scrollTop(20)
+      editor.scroller.trigger('scroll')
+      expect(editor.gutter.scrollTop()).toBe 20
 
   describe "cursor movement", ->
     describe "when the arrow keys are pressed", ->
@@ -221,38 +233,38 @@ describe "Editor", ->
 
             _.times 6, -> editor.moveCursorDown()
             window.advanceClock()
-            expect(editor.scrollTop()).toBe(0)
+            expect(editor.scroller.scrollTop()).toBe(0)
 
             editor.moveCursorDown()
             window.advanceClock()
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
+            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
 
             editor.moveCursorDown()
             window.advanceClock()
-            expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
+            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
 
             _.times 3, -> editor.moveCursorUp()
             window.advanceClock()
-            expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
+            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
 
             editor.moveCursorUp()
             window.advanceClock()
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
+            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
 
             editor.moveCursorUp()
             window.advanceClock()
-            expect(editor.scrollTop()).toBe(0)
+            expect(editor.scroller.scrollTop()).toBe(0)
 
           it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
             editor.height(editor.lineHeight * 5)
 
             _.times 3, -> editor.moveCursorDown()
             window.advanceClock()
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
+            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
 
             editor.moveCursorUp()
             window.advanceClock()
-            expect(editor.scrollTop()).toBe(0)
+            expect(editor.scroller.scrollTop()).toBe(0)
 
         describe "goal column retention", ->
           lineLengths = null
@@ -347,28 +359,28 @@ describe "Editor", ->
             # moving right
             editor.setCursorScreenPosition([2, 24])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+            expect(editor.scroller.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 25])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe charWidth
+            expect(editor.scroller.scrollLeft()).toBe charWidth
 
             editor.setCursorScreenPosition([2, 28])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
+            expect(editor.scroller.scrollLeft()).toBe charWidth * 4
 
             # moving left
             editor.setCursorScreenPosition([2, 9])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 4
+            expect(editor.scroller.scrollLeft()).toBe charWidth * 4
 
             editor.setCursorScreenPosition([2, 8])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe charWidth * 3
+            expect(editor.scroller.scrollLeft()).toBe charWidth * 3
 
             editor.setCursorScreenPosition([2, 5])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe 0
+            expect(editor.scroller.scrollLeft()).toBe 0
 
           it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
             editor.hScrollMargin = 6
@@ -376,15 +388,15 @@ describe "Editor", ->
 
             editor.setCursorScreenPosition([2, 3])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe(0)
+            expect(editor.scroller.scrollLeft()).toBe(0)
 
             editor.setCursorScreenPosition([2, 4])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe(charWidth)
+            expect(editor.scroller.scrollLeft()).toBe(charWidth)
 
             editor.setCursorScreenPosition([2, 3])
             window.advanceClock()
-            expect(editor.horizontalScroller.scrollLeft()).toBe(0)
+            expect(editor.scroller.scrollLeft()).toBe(0)
 
           describe "when soft-wrap is on", ->
             beforeEach ->
@@ -395,23 +407,23 @@ describe "Editor", ->
 
               # moving right
               editor.setCursorScreenPosition([2, 24])
-              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+              expect(editor.scroller.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 25])
-              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+              expect(editor.scroller.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 28])
-              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+              expect(editor.scroller.scrollLeft()).toBe 0
 
               # moving left
               editor.setCursorScreenPosition([2, 9])
-              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+              expect(editor.scroller.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 8])
-              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+              expect(editor.scroller.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 5])
-              expect(editor.horizontalScroller.scrollLeft()).toBe 0
+              expect(editor.scroller.scrollLeft()).toBe 0
 
         describe "when left is pressed on the first column", ->
           describe "when there is a previous line", ->
@@ -1620,18 +1632,18 @@ describe "Editor", ->
       editor.setCursorScreenPosition([8, 28])
       advanceClock()
 
-      previousScrollTop = editor.scrollTop()
-      previousScrollLeft = editor.horizontalScroller.scrollLeft()
+      previousScrollTop = editor.scroller.scrollTop()
+      previousScrollLeft = editor.scroller.scrollLeft()
 
       editor.setBuffer(new Buffer)
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
-      expect(editor.scrollTop()).toBe 0
-      expect(editor.horizontalScroller.scrollLeft()).toBe 0
+      expect(editor.scroller.scrollTop()).toBe 0
+      expect(editor.scroller.scrollLeft()).toBe 0
 
       editor.setBuffer(buffer)
       expect(editor.getCursorScreenPosition()).toEqual [8, 28]
-      expect(editor.scrollTop()).toBe previousScrollTop
-      expect(editor.horizontalScroller.scrollLeft()).toBe previousScrollLeft
+      expect(editor.scroller.scrollTop()).toBe previousScrollTop
+      expect(editor.scroller.scrollLeft()).toBe previousScrollLeft
 
     it "recalls the undo history of the buffer when it is re-assigned", ->
       editor.insertText('xyz')

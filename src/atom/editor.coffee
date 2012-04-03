@@ -17,11 +17,11 @@ class Editor extends View
 
   @content: ->
     @div class: 'editor', tabindex: -1, =>
-      @div class: 'scrollable-content', =>
+      @input class: 'hidden-input', outlet: 'hiddenInput'
+      @div class: 'flexbox', =>
         @subview 'gutter', new Gutter
-        @div class: 'horizontal-scroller', outlet: 'horizontalScroller', =>
+        @div class: 'scroller', outlet: 'scroller', =>
           @div class: 'lines', outlet: 'lines', =>
-            @input class: 'hidden-input', outlet: 'hiddenInput'
 
   vScrollMargin: 2
   hScrollMargin: 10
@@ -121,11 +121,11 @@ class Editor extends View
       @isFocused = false
       @removeClass 'focused'
 
-    @on 'mousedown', '.fold-placeholder', (e) =>
+    @lines.on 'mousedown', '.fold-placeholder', (e) =>
       @destroyFold($(e.currentTarget).attr('foldId'))
       false
 
-    @on 'mousedown', (e) =>
+    @lines.on 'mousedown', (e) =>
       clickCount = e.originalEvent.detail
 
       if clickCount == 1
@@ -141,11 +141,14 @@ class Editor extends View
 
       @selectOnMousemoveUntilMouseup()
 
+      return false
+
     @hiddenInput.on "textInput", (e) =>
       @insertText(e.originalEvent.data)
 
-    @horizontalScroller.on 'scroll', =>
-      if @horizontalScroller.scrollLeft() == 0
+    @scroller.on 'scroll', =>
+      @gutter.scrollTop(@scroller.scrollTop())
+      if @scroller.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
       else
         @gutter.addClass('drop-shadow')
@@ -205,13 +208,13 @@ class Editor extends View
   loadEditSessionForBuffer: (buffer) ->
     @editSession = (@editSessionsByBufferId[buffer.id] ?= new EditSession)
     @setCursorScreenPosition(@editSession.cursorScreenPosition)
-    @scrollTop(@editSession.scrollTop)
-    @horizontalScroller.scrollLeft(@editSession.scrollLeft)
+    @scroller.scrollTop(@editSession.scrollTop)
+    @scroller.scrollLeft(@editSession.scrollLeft)
 
   saveEditSession: ->
     @editSession.cursorScreenPosition = @getCursorScreenPosition()
-    @editSession.scrollTop = @scrollTop()
-    @editSession.scrollLeft = @horizontalScroller.scrollLeft()
+    @editSession.scrollTop = @scroller.scrollTop()
+    @editSession.scrollLeft = @scroller.scrollLeft()
 
   handleBufferChange: (e) ->
     @compositeCursor.handleBufferChange(e)
@@ -277,7 +280,7 @@ class Editor extends View
   setMaxLineLength: (maxLineLength) ->
     maxLineLength ?=
       if @softWrap
-        Math.floor(@horizontalScroller.width() / @charWidth)
+        Math.floor(@scroller.width() / @charWidth)
       else
         Infinity
 
@@ -331,8 +334,8 @@ class Editor extends View
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
     @screenPositionFromPixelPosition
-      top: pageY - @horizontalScroller.offset().top
-      left: pageX - @horizontalScroller.offset().left + @horizontalScroller.scrollLeft()
+      top: pageY - @scroller.offset().top + @scroller.scrollTop()
+      left: pageX - @scroller.offset().left + @scroller.scrollLeft()
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
