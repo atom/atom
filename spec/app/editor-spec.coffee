@@ -106,6 +106,12 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
         expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
+      it "wraps the lines of any newly assigned buffers", ->
+        otherBuffer = new Buffer
+        otherBuffer.setText([1..100].join(''))
+        editor.setBuffer(otherBuffer)
+        expect(editor.lines.find('.line').length).toBeGreaterThan(1)
+
       it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
         editor.toggleSoftWrap()
         expect(editor.lines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'

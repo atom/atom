@@ -18,10 +18,10 @@ class Renderer
   lastHighlighterChangeEvent: null
   foldPlaceholderLength: 3
 
-  constructor: (@buffer) ->
+  constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
     @highlighter = new Highlighter(@buffer)
-    @maxLineLength = Infinity
+    @maxLineLength = options.maxLineLength ? Infinity
     @activeFolds = {}
     @foldsById = {}
     @buildLineMap()

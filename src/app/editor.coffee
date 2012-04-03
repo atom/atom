@@ -196,7 +196,7 @@ class Editor extends View
     @trigger 'buffer-path-change'
     @buffer.on "path-change.editor#{@id}", => @trigger 'buffer-path-change'
 
-    @renderer = new Renderer(@buffer)
+    @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength() })
     @renderLines()
     @gutter.renderLineNumbers()
 
@@ -277,13 +277,14 @@ class Editor extends View
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
 
-  setMaxLineLength: (maxLineLength) ->
-    maxLineLength ?=
-      if @softWrap
-        Math.floor(@scroller.width() / @charWidth)
-      else
-        Infinity
+  calcMaxLineLength: ->
+    if @softWrap
+      Math.floor(@scroller.width() / @charWidth)
+    else
+      Infinity
 
+  setMaxLineLength: (maxLineLength) ->
+    maxLineLength ?= @calcMaxLineLength()
     @renderer.setMaxLineLength(maxLineLength) if maxLineLength
 
   createFold: (range) ->
@@ -405,7 +406,6 @@ class Editor extends View
   paste: -> @insertText($native.readFromPasteboard())
 
   foldSelection: -> @getSelection().fold()
-
 
   undo: ->
     @buffer.undo()
