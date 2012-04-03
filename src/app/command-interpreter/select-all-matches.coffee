@@ -11,7 +11,7 @@ class SelectAllMatches extends Command
   execute: (editor) ->
     rangesToSelect = []
     for selection in editor.getSelections()
-      editor.buffer.traverseRegexMatchesInRange @regex, selection.getBufferRange(), (match, range) ->
+      editor.buffer.scanRegexMatchesInRange @regex, selection.getBufferRange(), (match, range) ->
         rangesToSelect.push(range)
 
     editor.clearSelections()

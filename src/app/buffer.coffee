@@ -155,7 +155,7 @@ class Buffer
 
     @mode = new (require("ace/mode/#{modeName}").Mode)
 
-  traverseRegexMatchesInRange: (regex, range, iterator) ->
+  scanRegexMatchesInRange: (regex, range, iterator) ->
     range = Range.fromObject(range)
     global = regex.global
     regex = new RegExp(regex.source, 'gm')
@@ -205,7 +205,7 @@ class Buffer
     regex = new RegExp(regex.source, 'gm')
 
     matches = []
-    @traverseRegexMatchesInRange regex, range, (match, matchRange) ->
+    @scanRegexMatchesInRange regex, range, (match, matchRange) ->
       matches.push([match, matchRange])
 
     matches.reverse()

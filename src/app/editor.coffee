@@ -394,7 +394,7 @@ class Editor extends View
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
   rangeForBufferRow: (row) -> @buffer.rangeForRow(row)
-  traverseRegexMatchesInRange: (args...) -> @buffer.traverseRegexMatchesInRange(args...)
+  scanRegexMatchesInRange: (args...) -> @buffer.scanRegexMatchesInRange(args...)
   backwardsTraverseRegexMatchesInRange: (args...) -> @buffer.backwardsTraverseRegexMatchesInRange(args...)
 
   insertText: (text) ->
