@@ -6,7 +6,7 @@ _ = require 'underscore'
 require 'underscore-extensions'
 
 module.exports =
-class App
+class Atom
   keymap: null
   windows: null
   tabText: null

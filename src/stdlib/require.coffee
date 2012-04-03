@@ -2,7 +2,7 @@ paths = [
   "#{atom.loadPath}/spec"
   "#{atom.loadPath}/benchmark"
   "#{atom.loadPath}/src/stdlib"
-  "#{atom.loadPath}/src/atom"
+  "#{atom.loadPath}/src/app"
   "#{atom.loadPath}/src"
   "#{atom.loadPath}/vendor"
   "#{atom.loadPath}/static"
@@ -110,7 +110,8 @@ __read = (path) ->
   try
     $native.read(path)
   catch e
-    throw "require: can't read #{path}"
+    console.error "Failed to read `#{path}`"
+    throw e
 
 __modules = { loaded : {} }
 __defines = []
