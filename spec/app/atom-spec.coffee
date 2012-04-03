@@ -1,7 +1,7 @@
-App = require 'app'
+Atom = require 'atom'
 fs = require 'fs'
 
-describe "App", ->
+describe "Atom", ->
   closeAllWindows = ->
     window.close() for window in atom.windows
     waitsFor "there to be no windows", ->
@@ -34,18 +34,18 @@ describe "App", ->
           expect(newWindow.rootView.activeEditor().buffer.getText()).toEqual fs.read(filePath)
 
   describe ".windowOpened(window)", ->
-    app = null
+    atom = null
 
     beforeEach ->
-      app = new App
+      atom = new Atom
 
     afterEach ->
-      app.destroy()
+      atom.destroy()
 
     it "adds the window to the windows array if it isn't already present", ->
-      app.windowOpened window
-      app.windowOpened window
-      expect(app.windows).toEqual [window]
+      atom.windowOpened window
+      atom.windowOpened window
+      expect(atom.windows).toEqual [window]
 
 
 
