@@ -59,11 +59,11 @@ class CompositeSeleciton
   getText: ->
     @getLastSelection().getText()
 
-  moveSelectionsForward: (fn) ->
+  expandSelectionsForward: (fn) ->
     fn(selection) for selection in @getSelections()
     @mergeIntersectingSelections()
 
-  moveSelectionsBackward: (fn) ->
+  expandSelectionsBackward: (fn) ->
     fn(selection) for selection in @getSelections()
     @mergeIntersectingSelections(reverse: true)
 
@@ -86,34 +86,34 @@ class CompositeSeleciton
     @getLastSelection().selectToScreenPosition(position)
 
   selectRight: ->
-    @moveSelectionsForward (selection) => selection.selectRight()
+    @expandSelectionsForward (selection) => selection.selectRight()
 
   selectLeft: ->
-    @moveSelectionsBackward (selection) => selection.selectLeft()
+    @expandSelectionsBackward (selection) => selection.selectLeft()
 
   selectUp: ->
-    @moveSelectionsBackward (selection) => selection.selectUp()
+    @expandSelectionsBackward (selection) => selection.selectUp()
 
   selectDown: ->
-    @moveSelectionsForward (selection) => selection.selectDown()
+    @expandSelectionsForward (selection) => selection.selectDown()
 
   selectToTop: ->
-    @moveSelectionsBackward (selection) => selection.selectToTop()
+    @expandSelectionsBackward (selection) => selection.selectToTop()
 
   selectToBottom: ->
-    @moveSelectionsForward (selection) => selection.selectToBottom()
+    @expandSelectionsForward (selection) => selection.selectToBottom()
 
   selectToBeginningOfLine: ->
-    @moveSelectionsBackward (selection) => selection.selectToBeginningOfLine()
+    @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
 
   selectToEndOfLine: ->
-    @moveSelectionsForward (selection) => selection.selectToEndOfLine()
+    @expandSelectionsForward (selection) => selection.selectToEndOfLine()
 
   selectToBeginningOfWord: ->
-    @moveSelectionsBackward (selection) => selection.selectToBeginningOfWord()
+    @expandSelectionsBackward (selection) => selection.selectToBeginningOfWord()
 
   selectToEndOfWord: ->
-    @moveSelectionsForward (selection) => selection.selectToEndOfWord()
+    @expandSelectionsForward (selection) => selection.selectToEndOfWord()
 
   cut: ->
     maintainPasteboard = false
