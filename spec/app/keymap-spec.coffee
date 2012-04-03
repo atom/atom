@@ -125,7 +125,16 @@ describe "Keymap", ->
           expect(bazHandler).toHaveBeenCalled()
 
   describe ".bindKeys(selector, fnOrMap)", ->
-    describe "when called with a function", ->
+    describe "when called with a selector and a hash", ->
+      it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
+        fooHandler = jasmine.createSpy('fooHandler')
+        fragment.on 'foo', fooHandler
+        keymap.bindKeys '*', 'ctrl-alt-delete': 'foo'
+        result = keymap.handleKeyEvent(keydownEvent('delete', ctrlKey: true, altKey: true, target: fragment[0]))
+        expect(result).toBe(false)
+        expect(fooHandler).toHaveBeenCalled()
+
+    describe "when called with a selector and a function", ->
       it "calls the given function when selector matches", ->
         handler = jasmine.createSpy 'handler'
         keymap.bindKeys '.child-node', handler
