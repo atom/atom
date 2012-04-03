@@ -228,52 +228,6 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
       describe "vertical movement", ->
-        describe "auto-scrolling", ->
-          beforeEach ->
-            editor.attachToDom()
-            editor.focus()
-            editor.vScrollMargin = 3
-
-          it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
-            editor.height(editor.lineHeight * 10)
-
-            _.times 6, -> editor.moveCursorDown()
-            window.advanceClock()
-            expect(editor.scroller.scrollTop()).toBe(0)
-
-            editor.moveCursorDown()
-            window.advanceClock()
-            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
-
-            editor.moveCursorDown()
-            window.advanceClock()
-            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
-
-            _.times 3, -> editor.moveCursorUp()
-            window.advanceClock()
-            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
-
-            editor.moveCursorUp()
-            window.advanceClock()
-            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
-
-            editor.moveCursorUp()
-            window.advanceClock()
-            expect(editor.scroller.scrollTop()).toBe(0)
-
-          it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
-            setEditorHeightInChars(editor, 5)
-
-            _.times 3, ->
-              editor.moveCursorDown()
-              window.advanceClock()
-
-            expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
-
-            editor.moveCursorUp()
-            window.advanceClock()
-            expect(editor.scroller.scrollTop()).toBe(0)
-
         describe "goal column retention", ->
           lineLengths = null
 
@@ -352,86 +306,6 @@ describe "Editor", ->
             editor.moveCursorDown()
             editor.moveCursorUp()
             expect(editor.getCursorScreenPosition().column).toBe 0
-
-      describe "horizontal movement", ->
-        describe "auto-scrolling", ->
-          charWidth = null
-          beforeEach ->
-            editor.attachToDom()
-            {charWidth} = editor
-            editor.hScrollMargin = 5
-
-          it "scrolls horizontally to keep the cursor on screen", ->
-            setEditorWidthInChars(editor, 30)
-
-            # moving right
-            editor.setCursorScreenPosition([2, 24])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 25])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe charWidth
-
-            editor.setCursorScreenPosition([2, 28])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe charWidth * 4
-
-            # moving left
-            editor.setCursorScreenPosition([2, 9])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe charWidth * 4
-
-            editor.setCursorScreenPosition([2, 8])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe charWidth * 3
-
-            editor.setCursorScreenPosition([2, 5])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe 0
-
-          it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
-            editor.hScrollMargin = 6
-            setEditorWidthInChars(editor, 7)
-
-            editor.setCursorScreenPosition([2, 3])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe(0)
-
-            editor.setCursorScreenPosition([2, 4])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe(charWidth)
-
-            editor.setCursorScreenPosition([2, 3])
-            window.advanceClock()
-            expect(editor.scroller.scrollLeft()).toBe(0)
-
-          describe "when soft-wrap is on", ->
-            beforeEach ->
-              editor.setSoftWrap(true)
-
-            it "does not scroll the buffer horizontally", ->
-              editor.width(charWidth * 30)
-
-              # moving right
-              editor.setCursorScreenPosition([2, 24])
-              expect(editor.scroller.scrollLeft()).toBe 0
-
-              editor.setCursorScreenPosition([2, 25])
-              expect(editor.scroller.scrollLeft()).toBe 0
-
-              editor.setCursorScreenPosition([2, 28])
-              expect(editor.scroller.scrollLeft()).toBe 0
-
-              # moving left
-              editor.setCursorScreenPosition([2, 9])
-              expect(editor.scroller.scrollLeft()).toBe 0
-
-              editor.setCursorScreenPosition([2, 8])
-              expect(editor.scroller.scrollLeft()).toBe 0
-
-              editor.setCursorScreenPosition([2, 5])
-              expect(editor.scroller.scrollLeft()).toBe 0
 
         describe "when left is pressed on the first column", ->
           describe "when there is a previous line", ->
@@ -666,6 +540,169 @@ describe "Editor", ->
             editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
             editor.lines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
+
+    describe "scrolling", ->
+      describe "vertical scrolling", ->
+        beforeEach ->
+          editor.attachToDom()
+          editor.focus()
+          editor.vScrollMargin = 3
+
+        it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
+          editor.height(editor.lineHeight * 10)
+
+          _.times 6, -> editor.moveCursorDown()
+          window.advanceClock()
+          expect(editor.scroller.scrollTop()).toBe(0)
+
+          editor.moveCursorDown()
+          window.advanceClock()
+          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
+
+          editor.moveCursorDown()
+          window.advanceClock()
+          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
+
+          _.times 3, -> editor.moveCursorUp()
+          window.advanceClock()
+          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
+
+          editor.moveCursorUp()
+          window.advanceClock()
+          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
+
+          editor.moveCursorUp()
+          window.advanceClock()
+          expect(editor.scroller.scrollTop()).toBe(0)
+
+        it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
+          setEditorHeightInChars(editor, 5)
+
+          _.times 3, ->
+            editor.moveCursorDown()
+            window.advanceClock()
+
+          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
+
+          editor.moveCursorUp()
+          window.advanceClock()
+          expect(editor.scroller.scrollTop()).toBe(0)
+
+      describe "horizontal scrolling", ->
+        charWidth = null
+        beforeEach ->
+          editor.attachToDom()
+          {charWidth} = editor
+          editor.hScrollMargin = 5
+
+        it "scrolls horizontally to keep the cursor on screen", ->
+          setEditorWidthInChars(editor, 30)
+
+          # moving right
+          editor.setCursorScreenPosition([2, 24])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe 0
+
+          editor.setCursorScreenPosition([2, 25])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe charWidth
+
+          editor.setCursorScreenPosition([2, 28])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe charWidth * 4
+
+          # moving left
+          editor.setCursorScreenPosition([2, 9])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe charWidth * 4
+
+          editor.setCursorScreenPosition([2, 8])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe charWidth * 3
+
+          editor.setCursorScreenPosition([2, 5])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe 0
+
+        it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
+          editor.hScrollMargin = 6
+          setEditorWidthInChars(editor, 7)
+
+          editor.setCursorScreenPosition([2, 3])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe(0)
+
+          editor.setCursorScreenPosition([2, 4])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe(charWidth)
+
+          editor.setCursorScreenPosition([2, 3])
+          window.advanceClock()
+          expect(editor.scroller.scrollLeft()).toBe(0)
+
+        describe "when soft-wrap is on", ->
+          beforeEach ->
+            editor.setSoftWrap(true)
+
+          it "does not scroll the buffer horizontally", ->
+            editor.width(charWidth * 30)
+
+            # moving right
+            editor.setCursorScreenPosition([2, 24])
+            expect(editor.scroller.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 25])
+            expect(editor.scroller.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 28])
+            expect(editor.scroller.scrollLeft()).toBe 0
+
+            # moving left
+            editor.setCursorScreenPosition([2, 9])
+            expect(editor.scroller.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 8])
+            expect(editor.scroller.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 5])
+            expect(editor.scroller.scrollLeft()).toBe 0
+
+      describe "when there are multiple cursor", ->
+        beforeEach ->
+          editor.attachToDom()
+          editor.focus()
+          editor.vScrollMargin = 2
+
+        it "only attempts to scroll when a cursor is visible", ->
+          setEditorWidthInChars(editor, 20)
+          setEditorHeightInChars(editor, 10)
+          editor.setCursorBufferPosition([11,0])
+          editor.addCursorAtBufferPosition([0,0])
+          editor.addCursorAtBufferPosition([6,50])
+          window.advanceClock()
+
+          scrollHandler = spyOn(editor, 'scrollVertically')
+
+          editor.moveCursorRight()
+          window.advanceClock()
+          position = editor.pixelPositionForScreenPosition([0,1])
+          expect(scrollHandler).toHaveBeenCalledWith(position)
+
+        it "only attempts to scroll once when multiple cursors are visible", ->
+          setEditorWidthInChars(editor, 20)
+          setEditorHeightInChars(editor, 10)
+          editor.setCursorBufferPosition([11,0])
+          editor.addCursorAtBufferPosition([0,0])
+          editor.addCursorAtBufferPosition([6,0])
+          window.advanceClock()
+
+          scrollHandler = spyOn(editor, 'scrollVertically')
+
+          editor.moveCursorRight()
+          window.advanceClock()
+
+          position = editor.pixelPositionForScreenPosition([0,1])
+          expect(scrollHandler).toHaveBeenCalledWith(position)
 
   describe "auto indent/outdent", ->
     beforeEach ->

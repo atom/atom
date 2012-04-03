@@ -37,6 +37,7 @@ class Editor extends View
   autoIndent: null
   lineCache: null
   isFocused: false
+  isScrolling: false
 
   initialize: ({buffer}) ->
     requireStylesheet 'editor.css'
@@ -328,8 +329,9 @@ class Editor extends View
   clipScreenPosition: (screenPosition, options={}) ->
     @renderer.clipScreenPosition(screenPosition, options)
 
-  pixelPositionForScreenPosition: ({row, column}) ->
-    { top: row * @lineHeight, left: column * @charWidth }
+  pixelPositionForScreenPosition: (position) ->
+    position = Point.fromObject(position)
+    { top: position.row * @lineHeight, left: position.column * @charWidth }
 
   screenPositionFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
@@ -477,6 +479,42 @@ class Editor extends View
 
   getCurrentMode: ->
     @buffer.getMode()
+
+  scrollTo: (position) ->
+    return if @isScrolling
+    @isScrolling = true
+    _.defer =>
+       @isScrolling = false
+       @scrollVertically(position)
+       @scrollHorizontally(position)
+
+  scrollVertically: (position) ->
+    linesInView = @scroller.height() / @lineHeight
+    maxScrollMargin = Math.floor((linesInView - 1) / 2)
+    scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
+    margin = scrollMargin * @lineHeight
+    desiredTop = position.top - margin
+    desiredBottom = position.top + @lineHeight + margin
+
+    if desiredBottom > @scroller.scrollBottom()
+      @scroller.scrollBottom(desiredBottom)
+    else if desiredTop < @scroller.scrollTop()
+      @scroller.scrollTop(desiredTop)
+
+  scrollHorizontally: (position) ->
+    return if @softWrap
+
+    charsInView = @scroller.width() / @charWidth
+    maxScrollMargin = Math.floor((charsInView - 1) / 2)
+    scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
+    margin = scrollMargin * @charWidth
+    desiredRight = position.left + @charWidth + margin
+    desiredLeft = position.left - margin
+
+    if desiredRight > @scroller.scrollRight()
+      @scroller.scrollRight(desiredRight)
+    else if desiredLeft < @scroller.scrollLeft()
+      @scroller.scrollLeft(desiredLeft)
 
   logLines: ->
     @renderer.logLines()
