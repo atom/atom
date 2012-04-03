@@ -136,5 +136,5 @@ class Cursor extends View
     position = @editor.pixelPositionForScreenPosition(screenPosition)
     @css(position)
 
-    if @editor.getCursors().length == 1 or @editor.screenPositionInBounds(screenPosition)
+    if this == _.last(@editor.getCursors())
       @editor.scrollTo(position)

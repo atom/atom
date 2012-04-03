@@ -677,8 +677,8 @@ describe "Editor", ->
           setEditorWidthInChars(editor, 20)
           setEditorHeightInChars(editor, 10)
           editor.setCursorBufferPosition([11,0])
-          editor.addCursorAtBufferPosition([0,0])
           editor.addCursorAtBufferPosition([6,50])
+          editor.addCursorAtBufferPosition([0,0])
           window.advanceClock()
 
           scrollHandler = spyOn(editor, 'scrollVertically')
@@ -701,7 +701,7 @@ describe "Editor", ->
           editor.moveCursorRight()
           window.advanceClock()
 
-          position = editor.pixelPositionForScreenPosition([0,1])
+          position = editor.pixelPositionForScreenPosition([6,1])
           expect(scrollHandler).toHaveBeenCalledWith(position)
 
   describe "auto indent/outdent", ->
