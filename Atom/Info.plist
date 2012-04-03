@@ -25,17 +25,17 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.0</string>
+	<string>0.0.1</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.developer-tools</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>GitHub Inc.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>Atom</string>
 	<key>SUFeedURL</key>
 	<string>https://speakeasy.githubapp.com/apps/com.github.atom-osx/appcast.xml</string>
-	<key>NSHumanReadableCopyright</key>
-	<string>GitHub Inc.</string>
 	<key>SUPublicDSAKeyFile</key>
 	<string>dsa_pub.pem</string>
 </dict>
