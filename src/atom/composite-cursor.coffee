@@ -21,7 +21,6 @@ class CompositeCursor
     cursor = new Cursor(@editor)
     @cursors.push(cursor)
     @editor.lines.append(cursor)
-    @editor.addSelectionForCursor(cursor)
     cursor
 
   addCursorAtScreenPosition: (screenPosition) ->

@@ -35,6 +35,7 @@ class CompositeSeleciton
     selection = new Selection({@editor, cursor})
     @selections.push(selection)
     @editor.lines.append(selection)
+    selection
 
   addSelectionForBufferRange: (bufferRange, options) ->
     cursor = @editor.compositeCursor.addCursor()
@@ -66,26 +67,20 @@ class CompositeSeleciton
     fn(selection) for selection in @getSelections()
     @mergeIntersectingSelections(reverse: true)
 
-  modifySelectedText: (fn) ->
-    selection.retainSelection = true for selection in @getSelections()
-    for selection in @getSelections()
-      selection.retainSelection = false
-      fn(selection)
-
   insertText: (text) ->
-    @modifySelectedText (selection) -> selection.insertText(text)
+    selection.insertText(text) for selection in @getSelections()
 
   backspace: ->
-    @modifySelectedText (selection) -> selection.backspace()
+    selection.backspace() for selection in @getSelections()
 
   backspaceToBeginningOfWord: ->
-    @modifySelectedText (selection) -> selection.backspaceToBeginningOfWord()
+    selection.backspaceToBeginningOfWord() for selection in @getSelections()
 
   delete: ->
-    @modifySelectedText (selection) -> selection.delete()
+    selection.delete() for selection in @getSelections()
 
   deleteToEndOfWord: ->
-    @modifySelectedText (selection) -> selection.deleteToEndOfWord()
+    selection.deleteToEndOfWord() for selection in @getSelections()
 
   selectToScreenPosition: (position) ->
     @getLastSelection().selectToScreenPosition(position)
@@ -122,7 +117,7 @@ class CompositeSeleciton
 
   cut: ->
     maintainPasteboard = false
-    @modifySelectedText (selection) ->
+    for selection in @getSelections()
       selection.cut(maintainPasteboard)
       maintainPasteboard = true
 

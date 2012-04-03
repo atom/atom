@@ -14,6 +14,7 @@ class Cursor extends View
 
   initialize: (@editor) ->
     @anchor = new Anchor(@editor)
+    @selection = @editor.compositeSelection.addSelectionForCursor(this)
     @one 'attach', => @updateAppearance()
 
   handleBufferChange: (e) ->
@@ -31,6 +32,7 @@ class Cursor extends View
   setBufferPosition: (bufferPosition) ->
     @anchor.setBufferPosition(bufferPosition)
     @refreshScreenPosition()
+    @clearSelection()
 
   getScreenPosition: ->
     @anchor.getScreenPosition()
@@ -38,6 +40,7 @@ class Cursor extends View
   setScreenPosition: (position, options={}) ->
     @anchor.setScreenPosition(position, options)
     @refreshScreenPosition(position, options)
+    @clearSelection()
 
   refreshScreenPosition: ->
     @goalColumn = null
@@ -47,6 +50,9 @@ class Cursor extends View
     @removeClass 'idle'
     window.clearTimeout(@idleTimeout) if @idleTimeout
     @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
+
+  clearSelection: ->
+    @selection.clearSelection() unless @selection.retainSelection
 
   getCurrentBufferLine: ->
     @editor.lineForBufferRow(@getBufferPosition().row)

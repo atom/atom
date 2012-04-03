@@ -16,11 +16,7 @@ class Selection extends View
 
   initialize: ({@editor, @cursor}) ->
     @regions = []
-    @cursor.on 'cursor:position-changed', =>
-      if @retainSelection
-        @updateAppearance()
-      else
-        @clearSelection()
+    @cursor.on 'cursor:position-changed', => @updateAppearance()
 
   handleBufferChange: (e) ->
     return unless @anchor
@@ -106,6 +102,7 @@ class Selection extends View
     { text, shouldOutdent } = @autoIndentText(text)
     @editor.buffer.change(@getBufferRange(), text)
     @autoOutdentText() if shouldOutdent
+    @clearSelection()
 
   autoIndentText: (text) ->
     if @editor.autoIndent
