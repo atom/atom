@@ -4,8 +4,15 @@
 
   <script>
     window.onload = function() {
-      if ($bootstrapScript) require($bootstrapScript);
+      try {
+        if ($bootstrapScript) require($bootstrapScript);
+      }
+      catch (error) {
+        $native.showDevTools()
+        console.error(error.stack)
+      }
     }
+
   </script>
 </head>
 <body>
