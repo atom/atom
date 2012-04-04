@@ -186,6 +186,7 @@ class Editor extends View
       @off 'mousemove', moveHandler
       reverse = @compositeSelection.getLastSelection().isReversed()
       @compositeSelection.mergeIntersectingSelections({reverse})
+      @syncCursorAnimations()
 
   renderLines: ->
     @lineCache = []
@@ -513,6 +514,10 @@ class Editor extends View
       @scroller.scrollRight(desiredRight)
     else if desiredLeft < @scroller.scrollLeft()
       @scroller.scrollLeft(desiredLeft)
+
+  syncCursorAnimations: ->
+    for cursor in @getCursors()
+      do (cursor) -> cursor.resetCursorAnimation()
 
   logLines: ->
     @renderer.logLines()

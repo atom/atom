@@ -16,7 +16,9 @@ class Cursor extends View
     @editor = editor
     @anchor = new Anchor(@editor, screenPosition)
     @selection = @editor.compositeSelection.addSelectionForCursor(this)
-    @one 'attach', => @updateAppearance()
+    @one 'attach', =>
+      @updateAppearance()
+      @editor.syncCursorAnimations()
 
   handleBufferChange: (e) ->
     @anchor.handleBufferChange(e)
@@ -51,6 +53,11 @@ class Cursor extends View
     @removeClass 'idle'
     window.clearTimeout(@idleTimeout) if @idleTimeout
     @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
+
+  resetCursorAnimation: ->
+    window.clearTimeout(@idleTimeout) if @idleTimeout
+    @removeClass 'idle'
+    _.defer => @addClass 'idle'
 
   clearSelection: ->
     @selection.clearSelection() unless @selection.retainSelection
