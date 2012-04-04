@@ -8,9 +8,8 @@ class RegexAddress extends Address
   constructor: (pattern) ->
     @regex = new RegExp(pattern)
 
-  getRange: (editor) ->
-    selectedRange = editor.getLastSelectionInBuffer().getBufferRange()
-    rangeToSearch = new Range(selectedRange.end, editor.getEofPosition())
+  getRange: (editor, currentRange) ->
+    rangeToSearch = new Range(currentRange.end, editor.getEofPosition())
 
     rangeToReturn = null
     editor.buffer.scanRegexMatchesInRange @regex, rangeToSearch, (match, range) ->
@@ -23,6 +22,6 @@ class RegexAddress extends Address
       editor.buffer.scanRegexMatchesInRange @regex, rangeToSearch, (match, range) ->
         rangeToReturn = range
 
-      rangeToReturn or selectedRange
+      rangeToReturn or currentRange
 
   isRelative: -> true

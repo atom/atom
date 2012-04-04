@@ -162,11 +162,9 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
 
       describe "when there are multiple selections", ->
-        xit "performs a single substitutions within each of the selections", ->
+        it "performs a single substitutions within each of the selections", ->
           editor.setSelectionBufferRange([[5, 0], [5, 20]])
           editor.addSelectionForBufferRange([[6, 0], [6, 44]])
-
-          console.log editor.getSelections().map (s) -> s.getBufferRange().inspect()
 
           interpreter.eval(editor, 's/current/foo/')
           expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'

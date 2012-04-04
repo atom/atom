@@ -19,11 +19,15 @@ class CompositeSeleciton
   getLastSelection: ->
     _.last(@selections)
 
-  getLastSelectionInBuffer: ->
-    _.last(@getSelections().sort (a, b) ->
+
+  getSelectionsOrderedByBufferPosition: ->
+    @getSelections().sort (a, b) ->
       aRange = a.getBufferRange()
       bRange = b.getBufferRange()
-      aRange.end.compare(bRange.end))
+      aRange.end.compare(bRange.end)
+
+  getLastSelectionInBuffer: ->
+    _.last(@getSelectionsOrderedByBufferPosition())
 
   clearSelections: ->
     for selection in @getSelections()[1..]

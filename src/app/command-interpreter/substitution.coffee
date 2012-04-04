@@ -9,8 +9,7 @@ class Substitution extends Command
     @replacementText = replacementText
     @regex = new RegExp(pattern, options.join(''))
 
-  execute: (editor) ->
-    range = editor.getSelection().getBufferRange()
+  execute: (editor, range) ->
     editor.buffer.scanRegexMatchesInRange @regex, range, (match, matchRange, { replace }) =>
       replace(@replacementText)
 
