@@ -404,7 +404,7 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
 
-
+  describe "undo methods", ->
   describe "path-change event", ->
     it "emits path-change event when path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')

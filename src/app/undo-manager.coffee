@@ -2,6 +2,7 @@ module.exports =
 class UndoManager
   undoHistory: null
   redoHistory: null
+  currentBatch: null
   preserveHistory: false
 
   constructor: (@buffer) ->
@@ -9,22 +10,37 @@ class UndoManager
     @redoHistory = []
     @buffer.on 'change', (op) =>
       unless @preserveHistory
-        @undoHistory.push(op)
+        if @currentBatch
+          @currentBatch.push(op)
+        else
+          @undoHistory.push([op])
         @redoHistory = []
 
   undo: ->
-    if op = @undoHistory.pop()
+    if ops = @undoHistory.pop()
       @preservingHistory =>
-        @buffer.change op.newRange, op.oldText
-        @redoHistory.push op
+        opsInReverse = new Array(ops...)
+        opsInReverse.reverse()
+        for op in opsInReverse
+          @buffer.change op.newRange, op.oldText
+        @redoHistory.push ops
 
   redo: ->
-    if op = @redoHistory.pop()
+    if ops = @redoHistory.pop()
       @preservingHistory =>
-        @buffer.change op.oldRange, op.newText
-        @undoHistory.push op
+        for op in ops
+          @buffer.change op.oldRange, op.newText
+        @undoHistory.push ops
+
+  startUndoBatch: ->
+    @currentBatch = []
+
+  endUndoBatch: ->
+    @undoHistory.push(@currentBatch)
+    @currentBatch = null
 
   preservingHistory: (fn) ->
     @preserveHistory = true
     fn()
     @preserveHistory = false
+

@@ -77,20 +77,29 @@ class CompositeSeleciton
     fn(selection) for selection in @getSelections()
     @mergeIntersectingSelections(reverse: true)
 
+  mutateSelectedText: (fn) ->
+    selections = @getSelections()
+    if selections.length > 1
+      @editor.buffer.startUndoBatch()
+      fn(selection) for selection in selections
+      @editor.buffer.endUndoBatch()
+    else
+      fn(selections[0])
+
   insertText: (text) ->
-    selection.insertText(text) for selection in @getSelections()
+    @mutateSelectedText (selection) -> selection.insertText(text)
 
   backspace: ->
-    selection.backspace() for selection in @getSelections()
+    @mutateSelectedText (selection) -> selection.backspace()
 
   backspaceToBeginningOfWord: ->
-    selection.backspaceToBeginningOfWord() for selection in @getSelections()
+    @mutateSelectedText (selection) -> selection.backspaceToBeginningOfWord()
 
   delete: ->
-    selection.delete() for selection in @getSelections()
+    @mutateSelectedText (selection) -> selection.delete()
 
   deleteToEndOfWord: ->
-    selection.deleteToEndOfWord() for selection in @getSelections()
+    @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
 
   selectToScreenPosition: (position) ->
     @getLastSelection().selectToScreenPosition(position)

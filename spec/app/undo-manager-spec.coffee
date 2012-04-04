@@ -59,3 +59,72 @@ describe "UndoManager", ->
 
       undoManager.redo()
       expect(buffer.getText()).toContain 'qsport'
+
+  describe "startUndoBatch()", ->
+    it "causes all changes before a call to .endUndoBatch to be undone at the same time", ->
+      buffer.insert([0, 0], "foo")
+      undoManager.startUndoBatch()
+      buffer.insert([1, 2], "111")
+      buffer.insert([1, 9], "222")
+      undoManager.endUndoBatch()
+
+      expect(buffer.lineForRow(1)).toBe '  111var 222sort = function(items) {'
+
+      undoManager.undo()
+      expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+      expect(buffer.lineForRow(0)).toContain 'foo'
+
+      undoManager.undo()
+
+      expect(buffer.lineForRow(0)).not.toContain 'foo'
+
+      undoManager.redo()
+      expect(buffer.lineForRow(0)).toContain 'foo'
+
+      undoManager.redo()
+      expect(buffer.lineForRow(1)).toBe '  111var 222sort = function(items) {'
+
+      undoManager.undo()
+      expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
+
+    it "old: causes all changes before a call to .endUndoBatch to be undone at the same time", ->
+      buffer.insert([0, 0], "foo")
+      undoManager.startUndoBatch()
+      buffer.insert([1, 0], "bar")
+      buffer.insert([2, 0], "bar")
+      buffer.delete([[3, 4], [3, 8]])
+      undoManager.endUndoBatch()
+      buffer.change([[4, 4], [4, 9]], "slongaz")
+
+      expect(buffer.lineForRow(4)).not.toContain("while")
+      undoManager.undo()
+      expect(buffer.lineForRow(4)).toContain("while")
+
+      expect(buffer.lineForRow(1)).toContain("bar")
+      expect(buffer.lineForRow(2)).toContain("bar")
+      expect(buffer.lineForRow(3)).not.toContain("var")
+
+      undoManager.undo()
+
+      expect(buffer.lineForRow(1)).not.toContain("bar")
+      expect(buffer.lineForRow(2)).not.toContain("bar")
+      expect(buffer.lineForRow(3)).toContain("var")
+
+      undoManager.undo()
+
+      expect(buffer.lineForRow(0)).not.toContain("foo")
+
+      undoManager.redo()
+
+      expect(buffer.lineForRow(0)).toContain("foo")
+
+      undoManager.redo()
+
+      expect(buffer.lineForRow(1)).toContain("bar")
+      expect(buffer.lineForRow(2)).toContain("bar")
+      expect(buffer.lineForRow(3)).not.toContain("var")
+
+      undoManager.redo()
+
+      expect(buffer.lineForRow(4)).not.toContain("while")
+      expect(buffer.lineForRow(4)).toContain("slongaz")

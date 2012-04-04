@@ -127,6 +127,12 @@ class Buffer
     @lines[oldRange.start.row..oldRange.end.row] = newTextLines
     @trigger 'change', { oldRange, newRange, oldText, newText }
 
+  startUndoBatch: ->
+    @undoManager.startUndoBatch()
+
+  endUndoBatch: ->
+    @undoManager.endUndoBatch()
+
   undo: ->
     @undoManager.undo()
 

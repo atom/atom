@@ -1612,6 +1612,27 @@ describe "Editor", ->
         editor.trigger 'redo'
         expect(buffer.lineForRow(0)).toContain "foo"
 
+      it "batches the undo / redo of changes caused by multiple cursors", ->
+        editor.setCursorScreenPosition([0, 0])
+        editor.addCursorAtScreenPosition([1, 0])
+
+        editor.insertText("foo")
+        editor.backspace()
+
+        expect(buffer.lineForRow(0)).toContain "fovar"
+        expect(buffer.lineForRow(1)).toContain "fo "
+
+        editor.trigger 'undo'
+
+        expect(buffer.lineForRow(0)).toContain "foo"
+        expect(buffer.lineForRow(1)).toContain "foo"
+
+        editor.trigger 'undo'
+
+        expect(buffer.lineForRow(0)).not.toContain "foo"
+        expect(buffer.lineForRow(1)).not.toContain "foo"
+
+
     describe "when multiple lines are removed from the buffer (regression)", ->
       it "removes all of them from the dom", ->
         buffer.change(new Range([6, 24], [12, 0]), '')
