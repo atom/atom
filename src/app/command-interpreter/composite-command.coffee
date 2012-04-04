@@ -6,9 +6,11 @@ class CompositeCommand
 
   execute: (editor) ->
     for command in @subcommands
-      ranges = editor.getSelectionsOrderedByBufferPosition().map (selection) -> selection.getBufferRange()
-      for range in ranges
-        command.execute(editor, range)
+      newRanges = []
+      currentRanges = editor.getSelectionsOrderedByBufferPosition().map (selection) -> selection.getBufferRange()
+      for currentRange in currentRanges
+        newRanges.push(command.execute(editor, currentRange)...)
+      editor.setSelectedBufferRanges(newRanges)
 
   isRelativeAddress: ->
     _.all(@subcommands, (command) -> command.isAddress() and command.isRelative())

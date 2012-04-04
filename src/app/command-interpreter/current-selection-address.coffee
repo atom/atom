@@ -3,7 +3,7 @@ Range = require 'range'
 
 module.exports =
 class CurrentSelectionAddress extends Address
-  getRange: (editor) ->
-    editor.getSelection().getBufferRange()
+  getRange: (editor, currentRange) ->
+    currentRange
 
   isRelative: -> true

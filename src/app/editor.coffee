@@ -388,6 +388,7 @@ class Editor extends View
   getLastSelectionInBuffer: -> @compositeSelection.getLastSelectionInBuffer()
   getSelectedText: -> @compositeSelection.getSelection().getText()
   setSelectionBufferRange: (bufferRange, options) -> @compositeSelection.setBufferRange(bufferRange, options)
+  setSelectedBufferRanges: (bufferRanges) -> @compositeSelection.setBufferRanges(bufferRanges)
   addSelectionForBufferRange: (bufferRange, options) -> @compositeSelection.addSelectionForBufferRange(bufferRange, options)
   selectRight: -> @compositeSelection.selectRight()
   selectLeft: -> @compositeSelection.selectLeft()

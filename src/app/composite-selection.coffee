@@ -19,7 +19,6 @@ class CompositeSeleciton
   getLastSelection: ->
     _.last(@selections)
 
-
   getSelectionsOrderedByBufferPosition: ->
     @getSelections().sort (a, b) ->
       aRange = a.getBufferRange()
@@ -56,6 +55,13 @@ class CompositeSeleciton
 
   setBufferRange: (bufferRange, options) ->
     @getLastSelection().setBufferRange(bufferRange, options)
+
+  setBufferRanges: (bufferRanges) ->
+    @clearSelections()
+    @setBufferRange(bufferRanges[0])
+    for bufferRange in bufferRanges[1..]
+      @addSelectionForBufferRange(bufferRange)
+    @mergeIntersectingSelections()
 
   getBufferRange: (bufferRange) ->
     @getLastSelection().getBufferRange()

@@ -42,18 +42,35 @@ describe "CommandInterpreter", ->
         expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [12,2]]
 
     describe ".", ->
-      it 'maintains the current selection', ->
-        editor.setSelectionBufferRange([[1,1], [2,2]])
-        interpreter.eval(editor, '.')
-        expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [2,2]]
+      describe "when a single selection", ->
+        it 'maintains the current selection', ->
+          editor.clearSelections()
+          editor.setSelectionBufferRange([[1,1], [2,2]])
+          interpreter.eval(editor, '.')
+          expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [2,2]]
 
-        editor.setSelectionBufferRange([[1,1], [2,2]])
-        interpreter.eval(editor, '.,')
-        expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [12,2]]
+          editor.setSelectionBufferRange([[1,1], [2,2]])
+          interpreter.eval(editor, '.,')
+          expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [12,2]]
 
-        editor.setSelectionBufferRange([[1,1], [2,2]])
-        interpreter.eval(editor, ',.')
-        expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [2,2]]
+          editor.setSelectionBufferRange([[1,1], [2,2]])
+          interpreter.eval(editor, ',.')
+          expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [2,2]]
+
+      describe "with multiple selections", ->
+        it "maintains the current selections", ->
+          preSelections = editor.getSelections()
+          expect(preSelections.length).toBe 3
+          [preRange1, preRange2, preRange3] = preSelections.map (s) -> s.getScreenRange()
+
+          interpreter.eval(editor, '.')
+
+          selections = editor.getSelections()
+          expect(selections.length).toBe 3
+          [selection1, selection2, selection3] = selections
+          expect(selection1.getScreenRange()).toEqual preRange1
+          expect(selection2.getScreenRange()).toEqual preRange2
+          expect(selection3.getScreenRange()).toEqual preRange3
 
     describe "/regex/", ->
       beforeEach ->
@@ -69,14 +86,16 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '/pivot')
         expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
-      it "searches from the end of the selection furthest forward in the buffer", ->
+      it "searches from the end of each selection in the buffer", ->
         editor.clearSelections()
         editor.setSelectionBufferRange([[4,16], [4,20]])
         editor.addSelectionForBufferRange([[1,16], [2,20]])
         expect(editor.getSelections().length).toBe 2
         interpreter.eval(editor, '/pivot')
-        expect(editor.getSelections().length).toBe 1
-        expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
+        selections = editor.getSelections()
+        expect(selections.length).toBe 2
+        expect(selections[0].getBufferRange()).toEqual [[3,8], [3,13]]
+        expect(selections[1].getBufferRange()).toEqual [[6,16], [6,21]]
 
       it "wraps around to the beginning of the buffer, but doesn't infinitely loop if no matches are found", ->
         editor.setSelectionBufferRange([[10, 0], [10,3]])
