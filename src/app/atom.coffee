@@ -24,10 +24,6 @@ class Atom
     $(document).on 'keydown', @handleKeyEvent
     @keymap.bindDefaultKeys()
 
-  destroy: ->
-    $(document).off 'keydown', @handleKeyEvent
-    @keymap.unbindDefaultKeys()
-
   open: (path) ->
     $native.open path
 
