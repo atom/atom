@@ -366,3 +366,8 @@ describe "RootView", ->
 
       editor1.buffer.setPath("should-not-be-title.txt")
       expect(document.title).toBe "second.txt"
+
+    it "sets title to 'untitled' when buffer's path is null", ->
+      editor = rootView.activeEditor()
+      editor.setBuffer(new Buffer())
+      expect(document.title).toBe "untitled"

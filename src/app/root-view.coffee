@@ -51,11 +51,10 @@ class RootView extends View
       _.remove(@editors, editor)
       @editors.push(editor)
 
-      @setTitleToActiveEditorPath()
+      @setTitle(editor.buffer.path)
 
-      editor.on 'buffer-path-change.root-view', (event) =>
-        e = $(event.target).view()
-        @setTitleToActiveEditorPath()
+      e.off '.root-view' for e in @editors
+      editor.on 'buffer-path-change.root-view', => @setTitle(editor.buffer.path)
 
   editorRemoved: (editor) ->
     if @panes.containsElement
@@ -66,8 +65,8 @@ class RootView extends View
       else
         window.close()
 
-  setTitleToActiveEditorPath: ->
-    document.title = @activeEditor().buffer.path
+  setTitle: (title='untitled') ->
+    document.title = title
 
   activeEditor: ->
     if @editors.length
