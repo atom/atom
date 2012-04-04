@@ -90,7 +90,7 @@ bool NativeHandler::Execute(const CefString& name,
     bool recursive = arguments[1]->GetBoolValue();
     
     NSFileManager *fm = [NSFileManager defaultManager];
-    NSArray *relativePaths = [NSArray array];
+    NSArray *relativePaths = nil;
     NSError *error = nil;
     
     if (recursive) {
@@ -140,7 +140,7 @@ bool NativeHandler::Execute(const CefString& name,
     bool recursive = arguments[1]->GetBoolValue();
     
     NSFileManager *fm = [NSFileManager defaultManager];
-    NSArray *relativePaths = [NSArray array];
+    NSArray *relativePaths = nil;
     NSError *error = nil;
     
     if (recursive) {
