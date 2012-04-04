@@ -23,10 +23,6 @@ class Keymap
       path = $native.openDialog()
       atom.open(path) if path
 
-  unbindDefaultKeys: ->
-    $(document).unbind 'new-window', @_newWindow
-    $(document).unbind 'open', @_open
-
   bindKeys: (selector, bindings) ->
     @bindingSets.unshift(new BindingSet(selector, bindings))
 

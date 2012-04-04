@@ -37,7 +37,6 @@ class Editor extends View
   autoIndent: null
   lineCache: null
   isFocused: false
-  isScrolling: false
 
   initialize: ({buffer}) ->
     requireStylesheet 'editor.css'
@@ -482,10 +481,7 @@ class Editor extends View
     @buffer.getMode()
 
   scrollTo: (position) ->
-    return if @isScrolling
-    @isScrolling = true
     _.defer =>
-       @isScrolling = false
        @scrollVertically(position)
        @scrollHorizontally(position)
 

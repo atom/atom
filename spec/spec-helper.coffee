@@ -13,10 +13,7 @@ beforeEach ->
 afterEach ->
   $('#jasmine-content').empty()
 
-specsKeymap = new Keymap
-specsKeymap.bindDefaultKeys()
-$(window).on 'keydown', (e) -> specsKeymap.handleKeyEvent(e)
-specsKeymap.bindKeys '*', 'meta-w': 'close'
+window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
 
 # Use underscore's definition of equality for toEqual assertions

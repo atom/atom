@@ -7,6 +7,8 @@ describe "Atom", ->
     waitsFor "there to be no windows", ->
       atom.windows.length == 0
 
+  beforeEach ->
+    spyOn(Atom.prototype, "setUpKeymap")
 
   describe ".open(path)", ->
     beforeEach ->
@@ -38,9 +40,6 @@ describe "Atom", ->
 
     beforeEach ->
       atom = new Atom
-
-    afterEach ->
-      atom.destroy()
 
     it "adds the window to the windows array if it isn't already present", ->
       atom.windowOpened window
