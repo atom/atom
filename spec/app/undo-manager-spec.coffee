@@ -60,31 +60,39 @@ describe "UndoManager", ->
       undoManager.redo()
       expect(buffer.getText()).toContain 'qsport'
 
-  describe "startUndoBatch()", ->
-    it "causes all changes before a call to .endUndoBatch to be undone at the same time", ->
+  describe "startUndoBatch() / endUndoBatch()", ->
+    fit "causes changes in batch to be undone simultaneously and returns an array of ranges to select from undo and redo", ->
       buffer.insert([0, 0], "foo")
-      undoManager.startUndoBatch()
+
+      beforeRanges = [[[1, 2], [1, 2]], [[1, 9], [1, 9]]]
+      undoManager.startUndoBatch(beforeRanges)
       buffer.insert([1, 2], "111")
       buffer.insert([1, 9], "222")
-      undoManager.endUndoBatch()
+      afterRanges =[[[1, 5], [1, 5]], [[1, 12], [1, 12]]]
+      undoManager.endUndoBatch(afterRanges)
 
       expect(buffer.lineForRow(1)).toBe '  111var 222sort = function(items) {'
 
-      undoManager.undo()
+      ranges = undoManager.undo()
+      expect(ranges).toBe beforeRanges
       expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
       expect(buffer.lineForRow(0)).toContain 'foo'
 
-      undoManager.undo()
+      ranges = undoManager.undo()
+      expect(ranges).toBeUndefined()
 
       expect(buffer.lineForRow(0)).not.toContain 'foo'
 
-      undoManager.redo()
+      ranges = undoManager.redo()
+      expect(ranges).toBeUndefined()
       expect(buffer.lineForRow(0)).toContain 'foo'
 
-      undoManager.redo()
+      ranges = undoManager.redo()
+      expect(ranges).toBe afterRanges
       expect(buffer.lineForRow(1)).toBe '  111var 222sort = function(items) {'
 
-      undoManager.undo()
+      ranges = undoManager.undo()
+      expect(ranges).toBe beforeRanges
       expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
 
     it "old: causes all changes before a call to .endUndoBatch to be undone at the same time", ->

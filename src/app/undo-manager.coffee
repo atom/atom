@@ -17,25 +17,29 @@ class UndoManager
         @redoHistory = []
 
   undo: ->
-    if ops = @undoHistory.pop()
+    if batch = @undoHistory.pop()
       @preservingHistory =>
-        opsInReverse = new Array(ops...)
+        opsInReverse = new Array(batch...)
         opsInReverse.reverse()
         for op in opsInReverse
           @buffer.change op.newRange, op.oldText
-        @redoHistory.push ops
+        @redoHistory.push batch
+      batch.oldSelectionRanges
 
   redo: ->
-    if ops = @redoHistory.pop()
+    if batch = @redoHistory.pop()
       @preservingHistory =>
-        for op in ops
+        for op in batch
           @buffer.change op.oldRange, op.newText
-        @undoHistory.push ops
+        @undoHistory.push batch
+      batch.newSelectionRanges
 
-  startUndoBatch: ->
+  startUndoBatch: (ranges) ->
     @currentBatch = []
+    @currentBatch.oldSelectionRanges = ranges
 
-  endUndoBatch: ->
+  endUndoBatch: (ranges) ->
+    @currentBatch.newSelectionRanges = ranges
     @undoHistory.push(@currentBatch)
     @currentBatch = null
 
