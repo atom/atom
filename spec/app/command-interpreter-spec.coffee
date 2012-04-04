@@ -201,6 +201,15 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(6)).toBe '!!!      current < pivot ? left.push(current) : right.push(current);'
           expect(buffer.lineForRow(12)).toBe '!!!};'
 
+      describe "when there are multiple selections", ->
+        it "performs a multiple substitutions within each of the selections", ->
+          editor.setSelectionBufferRange([[5, 0], [5, 20]])
+          editor.addSelectionForBufferRange([[6, 0], [6, 44]])
+
+          interpreter.eval(editor, 's/current/foo/g')
+          expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'
+          expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
+
   describe ".repeatRelativeAddress()", ->
     it "repeats the last search command if there is one", ->
       interpreter.repeatRelativeAddress(editor) # don't raise an exception
