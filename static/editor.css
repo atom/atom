@@ -81,7 +81,7 @@
 .editor .selection {
   position: absolute;
   background: white;
-  opacity: .1;
+  opacity: .25;
 }
 
 .fold-placeholder {
