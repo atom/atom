@@ -481,33 +481,33 @@ class Editor extends View
   getCurrentMode: ->
     @buffer.getMode()
 
-  scrollTo: (position) ->
+  scrollTo: (pixelPosition) ->
     _.defer =>
-       @scrollVertically(position)
-       @scrollHorizontally(position)
+       @scrollVertically(pixelPosition)
+       @scrollHorizontally(pixelPosition)
 
-  scrollVertically: (position) ->
+  scrollVertically: (pixelPosition) ->
     linesInView = @scroller.height() / @lineHeight
     maxScrollMargin = Math.floor((linesInView - 1) / 2)
     scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
     margin = scrollMargin * @lineHeight
-    desiredTop = position.top - margin
-    desiredBottom = position.top + @lineHeight + margin
+    desiredTop = pixelPosition.top - margin
+    desiredBottom = pixelPosition.top + @lineHeight + margin
 
     if desiredBottom > @scroller.scrollBottom()
       @scroller.scrollBottom(desiredBottom)
     else if desiredTop < @scroller.scrollTop()
       @scroller.scrollTop(desiredTop)
 
-  scrollHorizontally: (position) ->
+  scrollHorizontally: (pixelPosition) ->
     return if @softWrap
 
     charsInView = @scroller.width() / @charWidth
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
     scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
     margin = scrollMargin * @charWidth
-    desiredRight = position.left + @charWidth + margin
-    desiredLeft = position.left - margin
+    desiredRight = pixelPosition.left + @charWidth + margin
+    desiredLeft = pixelPosition.left - margin
 
     if desiredRight > @scroller.scrollRight()
       @scroller.scrollRight(desiredRight)

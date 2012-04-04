@@ -133,8 +133,8 @@ class Cursor extends View
 
   updateAppearance: ->
     screenPosition = @getScreenPosition()
-    position = @editor.pixelPositionForScreenPosition(screenPosition)
-    @css(position)
+    pixelPosition = @editor.pixelPositionForScreenPosition(screenPosition)
+    @css(pixelPosition)
 
     if this == _.last(@editor.getCursors())
-      @editor.scrollTo(position)
+      @editor.scrollTo(pixelPosition)
