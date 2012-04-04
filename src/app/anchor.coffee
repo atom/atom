@@ -6,10 +6,14 @@ class Anchor
   bufferPosition: null
   screenPosition: null
 
-  constructor: (editor) ->
+  constructor: (editor, screenPosition) ->
     @editor = editor
-    @bufferPosition = new Point(0, 0)
-    @screenPosition = new Point(0, 0)
+
+    if screenPosition
+      @setScreenPosition(screenPosition)
+    else
+      @bufferPosition = new Point(0,0)
+      @screenPosition = new Point(0,0)
 
   handleBufferChange: (e) ->
     { oldRange, newRange } = e

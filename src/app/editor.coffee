@@ -482,9 +482,9 @@ class Editor extends View
     @buffer.getMode()
 
   scrollTo: (pixelPosition) ->
-    _.defer =>
-       @scrollVertically(pixelPosition)
-       @scrollHorizontally(pixelPosition)
+    _.defer => # Optimization
+      @scrollVertically(pixelPosition)
+      @scrollHorizontally(pixelPosition)
 
   scrollVertically: (pixelPosition) ->
     linesInView = @scroller.height() / @lineHeight
