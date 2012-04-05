@@ -1621,6 +1621,21 @@ describe "Editor", ->
           editor.trigger 'delete-to-end-of-word'
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
+    describe "tab", ->
+      describe "if editor.softTabs is true (the default)", ->
+        it "inserts atom.tabText into the buffer", ->
+          tabRegex = new RegExp("^#{atom.tabText}")
+          expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
+          editor.trigger 'tab'
+          expect(buffer.lineForRow(0)).toMatch(tabRegex)
+
+      describe "if editor.softTabs is false", ->
+        it "inserts a tab character into the buffer", ->
+          editor.softTabs = false
+          expect(buffer.lineForRow(0)).not.toMatch(/^\t/)
+          editor.trigger 'tab'
+          expect(buffer.lineForRow(0)).toMatch(/^\t/)
+
     describe "undo/redo", ->
       it "undoes/redoes the last change", ->
         buffer.insert [0, 0], "foo"

@@ -37,6 +37,7 @@ class Editor extends View
   autoIndent: null
   lineCache: null
   isFocused: false
+  softTabs: true
 
   initialize: ({buffer}) ->
     requireStylesheet 'editor.css'
@@ -67,6 +68,7 @@ class Editor extends View
     @on 'backspace-to-beginning-of-word', => @backspaceToBeginningOfWord()
     @on 'delete', => @delete()
     @on 'delete-to-end-of-word', => @deleteToEndOfWord()
+    @on 'tab', => @insertTab()
     @on 'cut', => @cutSelection()
     @on 'copy', => @copySelection()
     @on 'paste', => @paste()
@@ -404,6 +406,12 @@ class Editor extends View
 
   insertText: (text) ->
     @compositeSelection.insertText(text)
+
+  insertTab: ->
+    if @softTabs
+      @compositeSelection.insertText(atom.tabText)
+    else
+      @compositeSelection.insertText('\t')
 
   cutSelection: -> @compositeSelection.cut()
   copySelection: -> @compositeSelection.copy()
