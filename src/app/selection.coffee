@@ -111,7 +111,7 @@ class Selection extends View
       row = @cursor.getScreenPosition().row
       state = @editor.stateForScreenRow(row)
       if text[0] == "\n"
-        indent = mode.getNextLineIndent(state, @cursor.getCurrentBufferLine(), atom.tabText)
+        indent = mode.getNextLineIndent(state, @cursor.getCurrentBufferLine(), @editor.tabText)
         text = text[0] + indent + text[1..]
       else if mode.checkOutdent(state, @cursor.getCurrentBufferLine(), text)
         shouldOutdent = true

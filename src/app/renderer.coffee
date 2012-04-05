@@ -20,7 +20,7 @@ class Renderer
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
-    @highlighter = new Highlighter(@buffer)
+    @highlighter = new Highlighter(@buffer, options.tabText ? '  ')
     @maxLineLength = options.maxLineLength ? Infinity
     @activeFolds = {}
     @foldsById = {}

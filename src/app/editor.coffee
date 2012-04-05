@@ -38,6 +38,7 @@ class Editor extends View
   lineCache: null
   isFocused: false
   softTabs: true
+  tabText: '  '
 
   initialize: ({buffer}) ->
     requireStylesheet 'editor.css'
@@ -199,7 +200,7 @@ class Editor extends View
     @trigger 'buffer-path-change'
     @buffer.on "path-change.editor#{@id}", => @trigger 'buffer-path-change'
 
-    @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength() })
+    @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
     @renderLines()
     @gutter.renderLineNumbers()
 
@@ -409,7 +410,7 @@ class Editor extends View
 
   insertTab: ->
     if @softTabs
-      @compositeSelection.insertText(atom.tabText)
+      @compositeSelection.insertText(@tabText)
     else
       @compositeSelection.insertText('\t')
 

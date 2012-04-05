@@ -2,10 +2,11 @@ Renderer = require 'renderer'
 Buffer = require 'buffer'
 
 describe "Renderer", ->
-  [renderer, buffer, changeHandler] = []
+  [renderer, buffer, changeHandler, tabText] = []
   beforeEach ->
+    tabText = '  '
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    renderer = new Renderer(buffer)
+    renderer = new Renderer(buffer, {tabText})
     changeHandler = jasmine.createSpy 'changeHandler'
     renderer.on 'change', changeHandler
 
@@ -608,7 +609,7 @@ describe "Renderer", ->
         buffer.insert([0, 0], '\t')
         expect(renderer.clipScreenPosition([0, 0])).toEqual [0, 0]
         expect(renderer.clipScreenPosition([0, 1])).toEqual [0, 0]
-        expect(renderer.clipScreenPosition([0, atom.tabText.length])).toEqual [0, atom.tabText.length]
+        expect(renderer.clipScreenPosition([0, tabText.length])).toEqual [0, tabText.length]
 
     describe "when skipAtomicTokens is true", ->
       it "wraps the screen positions in the middle of fold placeholders to the end of the placeholder", ->
@@ -620,8 +621,8 @@ describe "Renderer", ->
       it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
         buffer.insert([0, 0], '\t')
         expect(renderer.clipScreenPosition([0, 0], skipAtomicTokens: true)).toEqual [0, 0]
-        expect(renderer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, atom.tabText.length]
-        expect(renderer.clipScreenPosition([0, atom.tabText.length], skipAtomicTokens: true)).toEqual [0, atom.tabText.length]
+        expect(renderer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabText.length]
+        expect(renderer.clipScreenPosition([0, tabText.length], skipAtomicTokens: true)).toEqual [0, tabText.length]
 
   describe ".bufferRowsForScreenRows()", ->
     it "returns the buffer rows corresponding to each screen row in the given range", ->

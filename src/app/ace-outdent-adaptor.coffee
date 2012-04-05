@@ -15,7 +15,7 @@ class AceOutdentAdaptor
   replace: (range, text) ->
     {row, column} = @editor.getCursorBufferPosition()
     start = range.start
-    end = {row: range.start.row, column: range.start.column + atom.tabText.length}
+    end = {row: range.start.row, column: range.start.column + @editor.tabText.length}
     @buffer.change(new Range(start, end), "")
-    @editor.setCursorBufferPosition({row, column: column - atom.tabText.length})
+    @editor.setCursorBufferPosition({row, column: column - @editor.tabText.length})
 

@@ -9,13 +9,11 @@ module.exports =
 class Atom
   keymap: null
   windows: null
-  tabText: null
   userConfigurationPath: null
 
   constructor: (@loadPath, nativeMethods)->
     @windows = []
     @setUpKeymap()
-    @tabText = "  "
     @userConfigurationPath = fs.absolute "~/.atom/atom.coffee"
 
   setUpKeymap: ->

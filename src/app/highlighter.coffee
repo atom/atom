@@ -9,7 +9,7 @@ class Highlighter
   buffer: null
   screenLines: []
 
-  constructor: (@buffer) ->
+  constructor: (@buffer, @tabText) ->
     @id = @constructor.idCounter++
     @screenLines = @buildLinesForScreenRows('start', 0, @buffer.getLastRow())
     @buffer.on "change.highlighter#{@id}", (e) => @handleBufferChange(e)
@@ -59,7 +59,7 @@ class Highlighter
     tokenObjects = []
     for tokenProperties in tokens
       token = new Token(tokenProperties)
-      tokenObjects.push(token.breakOutTabCharacters()...)
+      tokenObjects.push(token.breakOutTabCharacters(@tabText)...)
     text = _.pluck(tokenObjects, 'value').join('')
     new ScreenLineFragment(tokenObjects, text, [1, 0], [1, 0], { state })
 

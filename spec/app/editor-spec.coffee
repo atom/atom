@@ -1623,8 +1623,8 @@ describe "Editor", ->
 
     describe "tab", ->
       describe "if editor.softTabs is true (the default)", ->
-        it "inserts atom.tabText into the buffer", ->
-          tabRegex = new RegExp("^#{atom.tabText}")
+        it "inserts editor.tabText into the buffer", ->
+          tabRegex = new RegExp("^#{editor.tabText}")
           expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
           editor.trigger 'tab'
           expect(buffer.lineForRow(0)).toMatch(tabRegex)
