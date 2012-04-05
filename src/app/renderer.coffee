@@ -193,8 +193,8 @@ class Renderer
     folds.sort (a, b) -> a.compare(b)
 
   buildFoldPlaceholder: (fold) ->
-    token = { value: '...', type: 'fold-placeholder', fold }
-    new ScreenLineFragment([token], '...', [0, 3], fold.getRange().toDelta(), isAtomic: true)
+    token = { value: '...', type: 'fold-placeholder', fold, isAtomic: true }
+    new ScreenLineFragment([token], token.value, [0, token.value.length], fold.getRange().toDelta())
 
   screenLineRangeForBufferRange: (bufferRange) ->
     @expandScreenRangeToLineEnds(

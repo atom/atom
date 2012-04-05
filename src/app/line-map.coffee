@@ -133,12 +133,9 @@ class LineMap
     else if sourcePosition.column > maxSourceColumn and wrapBeyondNewlines
       targetDelta.row++
       targetDelta.column = 0
-    else if lastLineFragment.isAtomic
-      if skipAtomicTokens and sourcePosition.column > sourceDelta.column
-        targetDelta.column += lastLineFragment.text.length
     else
       additionalColumns = sourcePosition.column - sourceDelta.column
-      targetDelta.column = Math.min(maxTargetColumn, targetDelta.column + additionalColumns)
+      targetDelta.column += lastLineFragment.clipColumn(additionalColumns, { skipAtomicTokens })
 
     targetDelta
 

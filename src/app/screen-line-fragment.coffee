@@ -3,8 +3,11 @@ Point = require 'point'
 
 module.exports =
 class ScreenLineFragment
-  isAtomic: false
   state: null
+  text: null
+  tokens: null
+  screenDelta: null
+  bufferDelta: null
 
   constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
     @screenDelta = Point.fromObject(screenDelta)
@@ -46,6 +49,23 @@ class ScreenLineFragment
     screenDelta = @screenDelta.add(other.screenDelta)
     bufferDelta = @bufferDelta.add(other.bufferDelta)
     new ScreenLineFragment(tokens, text, screenDelta, bufferDelta, {state: other.state})
+
+  clipColumn: (column, { skipAtomicTokens }) ->
+    column = Math.min(column, @text.length)
+
+    currentColumn = 0
+    for token in @tokens
+      nextColumn = token.value.length + currentColumn
+      break if nextColumn >= column
+      currentColumn = nextColumn
+
+    if token?.isAtomic
+      if skipAtomicTokens and column > currentColumn
+        nextColumn
+      else
+       currentColumn
+    else
+      column
 
   isSoftWrapped: ->
     @screenDelta.row == 1 and @bufferDelta.row == 0
