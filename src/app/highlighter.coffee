@@ -56,8 +56,12 @@ class Highlighter
     tokenizer = @buffer.getMode().getTokenizer()
     line = @buffer.lineForRow(row)
     {tokens, state} = tokenizer.getLineTokens(line, state)
-    tokens = tokens.map (tokenProperties) -> new Token(tokenProperties)
-    new ScreenLineFragment(tokens, line, [1, 0], [1, 0], { state })
+    tokenObjects = []
+    for tokenProperties in tokens
+      token = new Token(tokenProperties)
+      tokenObjects.push(token.breakOutTabCharacters()...)
+    text = _.pluck(tokenObjects, 'value').join('')
+    new ScreenLineFragment(tokenObjects, text, [1, 0], [1, 0], { state })
 
   lineForScreenRow: (row) ->
     @screenLines[row]

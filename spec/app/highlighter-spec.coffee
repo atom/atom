@@ -137,3 +137,20 @@ describe "Highlighter", ->
         [event] = changeHandler.argsForCall[0]
         expect(event.oldRange).toEqual new Range([2, 0], [5, buffer.lineForRow(7).length])
         expect(event.newRange).toEqual new Range([2, 0], [7, buffer.lineForRow(7).length])
+
+  describe "when the buffer contains tab characters", ->
+    beforeEach ->
+      buffer = new Buffer(require.resolve('fixtures/sample-with-tabs.coffee'))
+      highlighter = new Highlighter(buffer)
+
+    it "always renders each tab as its own atomic token containing atom.tabText", ->
+      screenLine0 = highlighter.lineForScreenRow(0)
+      expect(screenLine0.text).toBe "# Econ 101#{atom.tabText}"
+      { tokens } = screenLine0
+      expect(tokens.length).toBe 2
+      expect(tokens[0].value).toBe "# Econ 101"
+      expect(tokens[1].value).toBe atom.tabText
+      expect(tokens[1].type).toBe tokens[0].type
+      expect(tokens[1].isAtomic).toBeTruthy()
+
+      expect(highlighter.lineForScreenRow(2).text).toBe "#{atom.tabText} buy()#{atom.tabText}while supply > demand"

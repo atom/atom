@@ -604,12 +604,24 @@ describe "Renderer", ->
         expect(renderer.clipScreenPosition([4, 6])).toEqual [4, 4]
         expect(renderer.clipScreenPosition([4, 7])).toEqual [4, 7]
 
+      it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
+        buffer.insert([0, 0], '\t')
+        expect(renderer.clipScreenPosition([0, 0])).toEqual [0, 0]
+        expect(renderer.clipScreenPosition([0, 1])).toEqual [0, 0]
+        expect(renderer.clipScreenPosition([0, atom.tabText.length])).toEqual [0, atom.tabText.length]
+
     describe "when skipAtomicTokens is true", ->
       it "wraps the screen positions in the middle of fold placeholders to the end of the placeholder", ->
         renderer.createFold([[3, 55], [3, 59]])
         expect(renderer.clipScreenPosition([4, 4], skipAtomicTokens: true)).toEqual [4, 4]
         expect(renderer.clipScreenPosition([4, 5], skipAtomicTokens: true)).toEqual [4, 7]
         expect(renderer.clipScreenPosition([4, 6], skipAtomicTokens: true)).toEqual [4, 7]
+
+      it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
+        buffer.insert([0, 0], '\t')
+        expect(renderer.clipScreenPosition([0, 0], skipAtomicTokens: true)).toEqual [0, 0]
+        expect(renderer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, atom.tabText.length]
+        expect(renderer.clipScreenPosition([0, atom.tabText.length], skipAtomicTokens: true)).toEqual [0, atom.tabText.length]
 
   describe ".bufferRowsForScreenRows()", ->
     it "returns the buffer rows corresponding to each screen row in the given range", ->

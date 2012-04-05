@@ -45,19 +45,21 @@ class ScreenLineFragment
     new ScreenLineFragment(tokens, text, screenDelta, bufferDelta, {state: other.state})
 
   clipColumn: (column, { skipAtomicTokens }) ->
-    column = Math.min(column, @text.length)
+    textLength = @text.length
+    column = Math.min(column, textLength)
 
     currentColumn = 0
     for token in @tokens
-      nextColumn = token.value.length + currentColumn
-      break if nextColumn >= column
-      currentColumn = nextColumn
+      tokenStartColumn = currentColumn
+      tokenEndColumn = tokenStartColumn + token.value.length
+      break if tokenEndColumn > column
+      currentColumn = tokenEndColumn
 
     if token?.isAtomic
-      if skipAtomicTokens and column > currentColumn
-        nextColumn
+      if skipAtomicTokens and column > tokenStartColumn
+        tokenEndColumn
       else
-       currentColumn
+        tokenStartColumn
     else
       column
 
