@@ -1632,6 +1632,27 @@ describe "Editor", ->
         expect(buffer.lineForRow(0)).not.toContain "foo"
         expect(buffer.lineForRow(1)).not.toContain "foo"
 
+      it "restores the selected ranges after undo", ->
+        editor.setSelectedBufferRanges([[[1, 6], [1, 10]], [[1, 22], [1, 27]]])
+        editor.delete()
+        editor.delete()
+
+        selections = editor.getSelections()
+        expect(buffer.lineForRow(1)).toBe '  var = function( {'
+        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
+        expect(selections[1].getBufferRange()).toEqual [[1, 17], [1, 17]]
+
+        editor.trigger 'undo'
+        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
+        expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
+
+        editor.trigger 'undo'
+        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 10]]
+        expect(selections[1].getBufferRange()).toEqual [[1, 22], [1, 27]]
+
+        editor.trigger 'redo'
+        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
+        expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
 
     describe "when multiple lines are removed from the buffer (regression)", ->
       it "removes all of them from the dom", ->

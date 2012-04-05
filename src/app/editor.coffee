@@ -428,7 +428,8 @@ class Editor extends View
   foldSelection: -> @getSelection().fold()
 
   undo: ->
-    @buffer.undo()
+    if ranges = @buffer.undo()
+      @setSelectedBufferRanges(ranges)
 
   redo: ->
     @buffer.redo()

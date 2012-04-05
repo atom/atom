@@ -16,6 +16,9 @@ class CompositeSeleciton
   getSelections: ->
     new Array(@selections...)
 
+  getSelectedBufferRanges: ->
+    selection.getBufferRange() for selection in @getSelections()
+
   getLastSelection: ->
     _.last(@selections)
 
@@ -57,10 +60,12 @@ class CompositeSeleciton
     @getLastSelection().setBufferRange(bufferRange, options)
 
   setBufferRanges: (bufferRanges) ->
-    @clearSelections()
-    @setBufferRange(bufferRanges[0])
-    for bufferRange in bufferRanges[1..]
-      @addSelectionForBufferRange(bufferRange)
+    selections = @getSelections()
+    for bufferRange, i in bufferRanges
+      if selections[i]
+        selections[i].setBufferRange(bufferRange)
+      else
+        @addSelectionForBufferRange(bufferRange)
     @mergeIntersectingSelections()
 
   getBufferRange: (bufferRange) ->
@@ -79,12 +84,9 @@ class CompositeSeleciton
 
   mutateSelectedText: (fn) ->
     selections = @getSelections()
-    if selections.length > 1
-      @editor.buffer.startUndoBatch()
-      fn(selection) for selection in selections
-      @editor.buffer.endUndoBatch()
-    else
-      fn(selections[0])
+    @editor.buffer.startUndoBatch(@getSelectedBufferRanges())
+    fn(selection) for selection in selections
+    @editor.buffer.endUndoBatch()
 
   insertText: (text) ->
     @mutateSelectedText (selection) -> selection.insertText(text)

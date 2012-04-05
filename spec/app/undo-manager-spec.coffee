@@ -61,7 +61,7 @@ describe "UndoManager", ->
       expect(buffer.getText()).toContain 'qsport'
 
   describe "startUndoBatch() / endUndoBatch()", ->
-    fit "causes changes in batch to be undone simultaneously and returns an array of ranges to select from undo and redo", ->
+    it "causes changes in batch to be undone simultaneously and returns an array of ranges to select from undo and redo", ->
       buffer.insert([0, 0], "foo")
 
       beforeRanges = [[[1, 2], [1, 2]], [[1, 9], [1, 9]]]
