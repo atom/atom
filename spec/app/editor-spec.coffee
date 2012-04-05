@@ -2012,27 +2012,3 @@ describe "Editor", ->
       eventHandler.reset()
       editor.buffer.setPath("new.txt")
       expect(eventHandler).toHaveBeenCalled()
-
-  describe "editorBounds()", ->
-    beforeEach ->
-      editor.attachToDom()
-      setEditorWidthInChars(editor, 10)
-      setEditorHeightInChars(editor, 10)
-
-    it "returns correct bounds based on scroll position", ->
-      expect(editor.bounds()).toEqual [[0,0], [10, 10]]
-      editor.scroller.scrollTop(editor.lineHeight * 1)
-      editor.scroller.scrollLeft(editor.charWidth * 1)
-      expect(editor.bounds()).toEqual [[1,1], [11, 11]]
-
-  describe "screenPositionInBounds(screenPosition)", ->
-    beforeEach ->
-      editor.attachToDom()
-      setEditorWidthInChars(editor, 20)
-      setEditorHeightInChars(editor, 10)
-
-    it "returns true if position is in bounds", ->
-      expect(editor.screenPositionInBounds([0,0])).toBeTruthy()
-      expect(editor.screenPositionInBounds([10,20])).toBeTruthy()
-      expect(editor.screenPositionInBounds([10,21])).toBeFalsy()
-      expect(editor.screenPositionInBounds([11,21])).toBeFalsy()

@@ -162,23 +162,6 @@ class Editor extends View
   rootView: ->
     @parents('#root-view').view()
 
-  bounds: ->
-    rows = @scroller.height() / @lineHeight
-    columns = @scroller.width() / @charWidth
-
-    start = new Point(@scroller.scrollTop() / @lineHeight, @scroller.scrollLeft() / @charWidth)
-    end = new Point(start.row + rows, start.column + columns)
-
-    new Range(start, end)
-
-  screenPositionInBounds: (screenPosition) ->
-    screenPosition = Point.fromObject(screenPosition)
-    bounds = @bounds()
-    bounds.start.row <= screenPosition.row and
-      bounds.start.column <= screenPosition.column and
-      bounds.end.row >= screenPosition.row and
-      bounds.end.column >= screenPosition.column
-
   selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
     @on 'mousemove', moveHandler
