@@ -1457,9 +1457,15 @@ describe "Editor", ->
 
       describe "when there is a selection", ->
         it "replaces the selected text with the typed text", ->
-          editor.getSelection().setBufferRange(new Range([1, 6], [2, 4]))
+          editor.setSelectionBufferRange(new Range([1, 6], [2, 4]))
           editor.hiddenInput.textInput 'q'
           expect(buffer.lineForRow(1)).toBe '  var qif (items.length <= 1) return items;'
+
+        it "always places the cursor after the selection", ->
+          editor.setSelectionBufferRange(new Range([1, 6], [2, 4]), reverse: true)
+          editor.hiddenInput.textInput 'q'
+          expect(buffer.lineForRow(1)).toBe '  var qif (items.length <= 1) return items;'
+          expect(editor.getCursorScreenPosition()).toEqual [1, 7]
 
     describe "when return is pressed", ->
       describe "when the cursor is at the beginning of a line", ->
