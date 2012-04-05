@@ -1467,7 +1467,7 @@ describe "Editor", ->
           expect(buffer.lineForRow(1)).toBe '  var qif (items.length <= 1) return items;'
           expect(editor.getCursorScreenPosition()).toEqual [1, 7]
 
-    describe "when return is pressed", ->
+    describe "return", ->
       describe "when the cursor is at the beginning of a line", ->
         it "inserts an empty line before it", ->
           editor.setCursorScreenPosition(row: 1, column: 0)
@@ -1499,7 +1499,7 @@ describe "Editor", ->
           expect(editor.lines.find('.line:eq(2)')).toHaveHtml '&nbsp;'
           expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
-    describe "when backspace is pressed", ->
+    describe "backspace", ->
       describe "when the cursor is on the middle of the line", ->
         it "removes the character before the cursor", ->
           editor.setCursorScreenPosition(row: 1, column: 7)
@@ -1565,7 +1565,7 @@ describe "Editor", ->
           editor.trigger 'backspace-to-beginning-of-word'
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
-    describe "when delete is pressed", ->
+    describe "delete", ->
       describe "when the cursor is on the middle of a line", ->
         it "deletes the character following the cursor", ->
           editor.setCursorScreenPosition([1, 6])
@@ -1589,6 +1589,12 @@ describe "Editor", ->
           editor.setCursorScreenPosition([12, buffer.lineForRow(12).length])
           editor.trigger keydownEvent('delete')
           expect(buffer.lineForRow(12)).toBe '};'
+
+      describe "when multiple lines are removed from the buffer (regression)", ->
+        it "removes all of them from the dom", ->
+          buffer.change(new Range([6, 24], [12, 0]), '')
+          expect(editor.find('.line').length).toBe 7
+          expect(editor.find('.line:eq(6)').text()).toBe(buffer.lineForRow(6))
 
     describe "delete-to-end-of-word", ->
       describe "when no text is selected", ->
@@ -1615,7 +1621,7 @@ describe "Editor", ->
           editor.trigger 'delete-to-end-of-word'
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
-    describe "when undo/redo events are triggered on the editor", ->
+    describe "undo/redo", ->
       it "undoes/redoes the last change", ->
         buffer.insert [0, 0], "foo"
         editor.trigger 'undo'
@@ -1679,12 +1685,6 @@ describe "Editor", ->
 
         expect(selections[0].getBufferRange()).toEqual [[1, 12], [1, 12]]
         expect(selections[1].getBufferRange()).toEqual [[1, 30], [1, 30]]
-
-    describe "when multiple lines are removed from the buffer (regression)", ->
-      it "removes all of them from the dom", ->
-        buffer.change(new Range([6, 24], [12, 0]), '')
-        expect(editor.find('.line').length).toBe 7
-        expect(editor.find('.line:eq(6)').text()).toBe(buffer.lineForRow(6))
 
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
