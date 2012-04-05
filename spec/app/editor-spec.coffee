@@ -1654,6 +1654,20 @@ describe "Editor", ->
         expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
         expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
 
+      it "restores the selected ranges after redo", ->
+        editor.setSelectedBufferRanges([[[1, 6], [1, 10]], [[1, 22], [1, 27]]])
+        selections = editor.getSelections()
+
+        editor.insertText("booboo")
+        expect(selections[0].getBufferRange()).toEqual [[1, 12], [1, 12]]
+        expect(selections[1].getBufferRange()).toEqual [[1, 30], [1, 30]]
+
+        editor.undo()
+        editor.redo()
+
+        expect(selections[0].getBufferRange()).toEqual [[1, 12], [1, 12]]
+        expect(selections[1].getBufferRange()).toEqual [[1, 30], [1, 30]]
+
     describe "when multiple lines are removed from the buffer (regression)", ->
       it "removes all of them from the dom", ->
         buffer.change(new Range([6, 24], [12, 0]), '')

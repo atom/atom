@@ -432,7 +432,8 @@ class Editor extends View
       @setSelectedBufferRanges(ranges)
 
   redo: ->
-    @buffer.redo()
+    if ranges = @buffer.redo()
+      @setSelectedBufferRanges(ranges)
 
   destroyFold: (foldId) ->
     fold = @renderer.foldsById[foldId]

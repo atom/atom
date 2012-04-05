@@ -86,7 +86,7 @@ class CompositeSeleciton
     selections = @getSelections()
     @editor.buffer.startUndoBatch(@getSelectedBufferRanges())
     fn(selection) for selection in selections
-    @editor.buffer.endUndoBatch()
+    @editor.buffer.endUndoBatch(@getSelectedBufferRanges())
 
   insertText: (text) ->
     @mutateSelectedText (selection) -> selection.insertText(text)
