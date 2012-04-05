@@ -8,11 +8,10 @@
         if ($bootstrapScript) require($bootstrapScript);
       }
       catch (error) {
-        $native.showDevTools()
-        console.error(error.stack)
+        $native.showDevTools();
+        console.error(error.stack || error);
       }
     }
-
   </script>
 </head>
 <body>
