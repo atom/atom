@@ -8,3 +8,8 @@ class Token
 
   isEqual: (other) ->
     @value == other.value and @type == other.type and !!@isAtomic == !!other.isAtomic
+
+  splitAt: (splitIndex) ->
+    value1 = @value.substring(0, splitIndex)
+    value2 = @value.substring(splitIndex)
+    [new Token(value: value1, type: @type), new Token(value: value2, type: @type)]

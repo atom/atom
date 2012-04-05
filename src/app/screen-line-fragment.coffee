@@ -22,7 +22,7 @@ class ScreenLineFragment
     leftTextLength = 0
     while leftTextLength < column
       if leftTextLength + rightTokens[0].value.length > column
-        rightTokens[0..0] = @splitTokenAt(rightTokens[0], column - leftTextLength)
+        rightTokens[0..0] = rightTokens[0].splitAt(column - leftTextLength)
       nextToken = rightTokens.shift()
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
@@ -36,12 +36,6 @@ class ScreenLineFragment
     leftFragment = new ScreenLineFragment(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@state})
     rightFragment = new ScreenLineFragment(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@state})
     [leftFragment, rightFragment]
-
-  splitTokenAt: (token, splitIndex) ->
-    { type, value } = token
-    value1 = value.substring(0, splitIndex)
-    value2 = value.substring(splitIndex)
-    [{value: value1, type }, {value: value2, type}]
 
   concat: (other) ->
     tokens = @tokens.concat(other.tokens)
