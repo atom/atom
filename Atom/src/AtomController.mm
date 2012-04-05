@@ -88,7 +88,6 @@
      isAfterJavaScript:(bool)isAfterJavaScript {
   
   if (isAfterJavaScript && type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
-    _clientHandler->GetBrowser()->CloseDevTools();
     _clientHandler->GetBrowser()->ReloadIgnoreCache();
     return YES;
   }
