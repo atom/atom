@@ -17,19 +17,18 @@ class CompositeCursor
   getCursors: ->
     @cursors
 
-  addCursor: ->
-    cursor = new Cursor(@editor)
+  addCursor: (screenPosition=null) ->
+    cursor = new Cursor({@editor, screenPosition})
     @cursors.push(cursor)
     @editor.lines.append(cursor)
     cursor
 
   addCursorAtScreenPosition: (screenPosition) ->
-    cursor = @addCursor()
-    cursor.setScreenPosition(screenPosition)
+    cursor = @addCursor(screenPosition)
 
   addCursorAtBufferPosition: (bufferPosition) ->
-    cursor = @addCursor()
-    cursor.setBufferPosition(bufferPosition)
+    screenPosition = @editor.screenPositionForBufferPosition(bufferPosition)
+    cursor = @addCursor(screenPosition)
 
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)

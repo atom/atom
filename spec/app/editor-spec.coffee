@@ -1002,8 +1002,14 @@ describe "Editor", ->
   describe "multiple cursors", ->
     it "places multiple cursor with meta-click", ->
       editor.attachToDom()
+      setEditorHeightInChars(editor, 5)
       editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
+      editor.scroller.scrollTop(editor.lineHeight * 6)
+
+      spyOn(editor, "scrollTo").andCallThrough()
+
       editor.lines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
+      expect(editor.scrollTo.callCount).toBe 1
 
       [cursor1, cursor2] = editor.find('.cursor').map -> $(this).view()
       expect(cursor1.position()).toEqual(top: 3 * editor.lineHeight, left: 0)
