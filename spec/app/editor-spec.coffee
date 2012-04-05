@@ -852,7 +852,7 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
-      it "creates a selection from word underneath double click to mouse cursor's location ", ->
+      it "creates a selection from the word underneath an initial double click to mouse's new location ", ->
         editor.attachToDom()
         editor.css(position: 'absolute', top: 10, left: 10)
 
@@ -880,8 +880,7 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
-
-      it "creates a selection from line underneath triple click to mouse cursor's location ", ->
+      it "creates a selection from the line underneath an initial triple click to mouse's new location ", ->
         editor.attachToDom()
         editor.css(position: 'absolute', top: 10, left: 10)
 
