@@ -1,6 +1,7 @@
 _ = require 'underscore'
 ScreenLineFragment = require 'screen-line-fragment'
 EventEmitter = require 'event-emitter'
+Token = require 'token'
 
 module.exports =
 class Highlighter
@@ -55,6 +56,7 @@ class Highlighter
     tokenizer = @buffer.getMode().getTokenizer()
     line = @buffer.lineForRow(row)
     {tokens, state} = tokenizer.getLineTokens(line, state)
+    tokens = tokens.map (tokenProperties) -> new Token(tokenProperties)
     new ScreenLineFragment(tokens, line, [1, 0], [1, 0], { state })
 
   lineForScreenRow: (row) ->
