@@ -44,24 +44,30 @@ class ScreenLineFragment
     bufferDelta = @bufferDelta.add(other.bufferDelta)
     new ScreenLineFragment(tokens, text, screenDelta, bufferDelta, {state: other.state})
 
-  clipColumn: (column, { skipAtomicTokens }) ->
+  translateColumn: (sourceDeltaType, targetDeltaType, sourceColumn, options={}) ->
+    { skipAtomicTokens } = options
     textLength = @text.length
-    column = Math.min(column, textLength)
+    sourceColumn = Math.min(sourceColumn, textLength)
 
-    currentColumn = 0
+    currentSourceColumn = 0
+    currentTargetColumn = 0
     for token in @tokens
-      tokenStartColumn = currentColumn
-      tokenEndColumn = tokenStartColumn + token.value.length
-      break if tokenEndColumn > column
-      currentColumn = tokenEndColumn
+      tokenStartTargetColumn = currentTargetColumn
+      tokenStartSourceColumn = currentSourceColumn
+      tokenEndSourceColumn = currentSourceColumn + token[sourceDeltaType]
+      tokenEndTargetColumn = currentTargetColumn + token[targetDeltaType]
+      break if tokenEndSourceColumn > sourceColumn
+      currentSourceColumn = tokenEndSourceColumn
+      currentTargetColumn = tokenEndTargetColumn
 
     if token?.isAtomic
-      if skipAtomicTokens and column > tokenStartColumn
-        tokenEndColumn
+      if skipAtomicTokens and sourceColumn > tokenStartSourceColumn
+        tokenEndTargetColumn
       else
-        tokenStartColumn
+        tokenStartTargetColumn
     else
-      column
+      remainingColumns = sourceColumn - currentSourceColumn
+      currentTargetColumn + remainingColumns
 
   isSoftWrapped: ->
     @screenDelta.row == 1 and @bufferDelta.row == 0

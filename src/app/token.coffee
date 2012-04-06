@@ -4,7 +4,9 @@ class Token
   type: null
   isAtomic: null
 
-  constructor: ({@value, @type, @isAtomic}) ->
+  constructor: ({@value, @type, @isAtomic, @bufferDelta}) ->
+    @screenDelta = @value.length
+    @bufferDelta ?= @screenDelta
 
   isEqual: (other) ->
     @value == other.value and @type == other.type and !!@isAtomic == !!other.isAtomic
@@ -22,4 +24,4 @@ class Token
         new Token(value: substring, type: @type)
 
   buildTabToken: (tabText) ->
-    new Token(value: tabText, type: @type, isAtomic: true)
+    new Token(value: tabText, type: @type, bufferDelta: 1, isAtomic: true)

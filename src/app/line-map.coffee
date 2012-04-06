@@ -136,7 +136,8 @@ class LineMap
       targetDelta.column = 0
     else
       additionalColumns = sourcePosition.column - sourceDelta.column
-      targetDelta.column += lastLineFragment.clipColumn(additionalColumns, { skipAtomicTokens })
+      additionalColumns = lastLineFragment.translateColumn(sourceDeltaType, targetDeltaType, additionalColumns, { skipAtomicTokens })
+      targetDelta.column += additionalColumns
 
     targetDelta
 

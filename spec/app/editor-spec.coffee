@@ -1661,6 +1661,11 @@ describe "Editor", ->
           expect(editor.getCursorBufferPosition()).toEqual [0, 1]
           expect(editor.getCursorScreenPosition()).toEqual [0, editor.tabText.length]
 
+          editor.trigger 'tab'
+          expect(buffer.lineForRow(0)).toMatch(/^\t\t/)
+          expect(editor.getCursorBufferPosition()).toEqual [0, 2]
+          expect(editor.getCursorScreenPosition()).toEqual [0, editor.tabText.length * 2]
+
     describe "undo/redo", ->
       it "undoes/redoes the last change", ->
         buffer.insert [0, 0], "foo"

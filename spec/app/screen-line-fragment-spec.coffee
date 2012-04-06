@@ -3,11 +3,12 @@ Buffer = require 'buffer'
 Highlighter = require 'highlighter'
 
 describe "screenLineFragment", ->
-  [screenLine, highlighter] = []
+  [buffer, tabText, screenLine, highlighter] = []
 
   beforeEach ->
+    tabText = '  '
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    highlighter = new Highlighter(buffer)
+    highlighter = new Highlighter(buffer, tabText)
     screenLine = highlighter.lineForScreenRow(3)
 
   describe ".splitAt(column)", ->
@@ -75,7 +76,36 @@ describe "screenLineFragment", ->
       expect(concatenated.screenDelta).toEqual [2, 0]
       expect(concatenated.bufferDelta).toEqual [2, 0]
 
+  describe ".translateColumn(sourceDeltaType, targetDeltaType, sourceColumn, skipAtomicTokens: false)", ->
+    beforeEach ->
+      buffer.insert([0, 13], '\t')
+      buffer.insert([0, 0], '\t\t')
+      screenLine = highlighter.lineForScreenRow(0)
 
+    describe "when translating from buffer to screen coordinates", ->
+      it "accounts for tab characters being wider on screen", ->
+        expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 0)).toBe 0
+        expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 1)).toBe 2
+        expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 2)).toBe 4
+        expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 3)).toBe 5
+        expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 15)).toBe 17
+        expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 16)).toBe 19
 
+    describe "when translating from screen coordinates to buffer coordinates", ->
+      describe "when skipAtomicTokens is false (the default)", ->
+        it "clips positions in the middle of tab tokens to the beginning", ->
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 0)).toBe 0
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 1)).toBe 0
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 2)).toBe 1
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 3)).toBe 1
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 4)).toBe 2
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 5)).toBe 3
 
+      describe "when skipAtomicTokens is true", ->
+        it "clips positions in the middle of tab tokens to the end", ->
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 0, skipAtomicTokens: true)).toBe 0
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 1, skipAtomicTokens: true)).toBe 1
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 2, skipAtomicTokens: true)).toBe 1
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 3, skipAtomicTokens: true)).toBe 2
+          expect(screenLine.translateColumn('screenDelta', 'bufferDelta', 5, skipAtomicTokens: true)).toBe 3
 
