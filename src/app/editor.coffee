@@ -145,7 +145,10 @@ class Editor extends View
         else
           @compositeSelection.getLastSelection().selectWord()
       else if clickCount >= 3
-        @compositeSelection.getLastSelection().selectLine()
+        if e.shiftKey
+          @compositeSelection.getLastSelection().expandOverLine()
+        else
+          @compositeSelection.getLastSelection().selectLine()
 
       @selectOnMousemoveUntilMouseup()
 

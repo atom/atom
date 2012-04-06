@@ -126,6 +126,9 @@ class Cursor extends View
   getCurrentWordBufferRange: ->
     new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))
 
+  getCurrentLineBufferRange: ->
+    @editor.rangeForBufferRow(@getBufferPosition().row)
+
   moveToEndOfLine: ->
     { row } = @getBufferPosition()
     @setBufferPosition({ row, column: @editor.buffer.lineForRow(row).length })

@@ -166,8 +166,10 @@ class Selection extends View
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
   selectLine: (row=@cursor.getBufferPosition().row) ->
-    rowLength = @editor.buffer.lineForRow(row).length
-    @setBufferRange new Range([row, 0], [row, rowLength])
+    @setBufferRange(@editor.rangeForBufferRow(row))
+
+  expandOverLine: ->
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))
 
   selectToScreenPosition: (position) ->
     @modifySelection => @cursor.setScreenPosition(position)

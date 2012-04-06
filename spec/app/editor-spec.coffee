@@ -926,6 +926,13 @@ describe "Editor", ->
           editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
           expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 27]]
 
+      describe "when it is a triple-click", ->
+        it "expands the selection to include the triple-clicked line", ->
+          editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+          editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+          editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
+          expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 30]]
+
     describe "select-to-top", ->
       it "selects text from cusor position to the top of the buffer", ->
         editor.setCursorScreenPosition [11,2]
