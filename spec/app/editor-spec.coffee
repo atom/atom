@@ -910,6 +910,16 @@ describe "Editor", ->
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
 
+    describe "shift-click", ->
+      it "selects from the cursor's current location to the clicked location", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        editor.setCursorScreenPosition([4, 7])
+        editor.lines.trigger mousedownEvent(editor: editor, point: [5, 27], shiftKey: true)
+
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 27]]
+
     describe "select-to-top", ->
       it "selects text from cusor position to the top of the buffer", ->
         editor.setCursorScreenPosition [11,2]

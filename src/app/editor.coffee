@@ -135,6 +135,8 @@ class Editor extends View
         screenPosition = @screenPositionFromMouseEvent(e)
         if e.metaKey
           @addCursorAtScreenPosition(screenPosition)
+        else if e.shiftKey
+          @selectToScreenPosition(@screenPositionFromMouseEvent(e))
         else
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
