@@ -1658,6 +1658,8 @@ describe "Editor", ->
           expect(buffer.lineForRow(0)).not.toMatch(/^\t/)
           editor.trigger 'tab'
           expect(buffer.lineForRow(0)).toMatch(/^\t/)
+          expect(editor.getCursorBufferPosition()).toEqual [0, 1]
+          expect(editor.getCursorScreenPosition()).toEqual [0, editor.tabText.length]
 
     describe "undo/redo", ->
       it "undoes/redoes the last change", ->

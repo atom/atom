@@ -33,8 +33,8 @@ class Cursor extends View
   getBufferPosition: ->
     @anchor.getBufferPosition()
 
-  setBufferPosition: (bufferPosition) ->
-    @anchor.setBufferPosition(bufferPosition)
+  setBufferPosition: (bufferPosition, options={}) ->
+    @anchor.setBufferPosition(bufferPosition, options)
     @refreshScreenPosition()
     @clearSelection()
 

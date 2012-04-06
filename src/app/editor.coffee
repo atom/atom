@@ -330,8 +330,8 @@ class Editor extends View
   screenPositionFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
 
-  screenPositionForBufferPosition: (position) ->
-    @renderer.screenPositionForBufferPosition(position)
+  screenPositionForBufferPosition: (position, options) ->
+    @renderer.screenPositionForBufferPosition(position, options)
 
   bufferPositionForScreenPosition: (position, options) ->
     @renderer.bufferPositionForScreenPosition(position, options)

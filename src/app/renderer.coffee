@@ -100,8 +100,8 @@ class Renderer
   lineCount: ->
     @lineMap.screenLineCount()
 
-  screenPositionForBufferPosition: (position) ->
-    @lineMap.screenPositionForBufferPosition(position)
+  screenPositionForBufferPosition: (position, options) ->
+    @lineMap.screenPositionForBufferPosition(position, options)
 
   bufferPositionForScreenPosition: (position, options) ->
     @lineMap.bufferPositionForScreenPosition(position, options)

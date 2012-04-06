@@ -54,8 +54,8 @@ class LineMap
   lastScreenRow: ->
     @screenLineCount() - 1
 
-  screenPositionForBufferPosition: (bufferPosition) ->
-    @translatePosition('bufferDelta', 'screenDelta', bufferPosition)
+  screenPositionForBufferPosition: (bufferPosition, options) ->
+    @translatePosition('bufferDelta', 'screenDelta', bufferPosition, options)
 
   bufferPositionForScreenPosition: (screenPosition, options) ->
     @translatePosition('screenDelta', 'bufferDelta', screenPosition, options)

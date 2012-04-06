@@ -100,9 +100,9 @@ class Selection extends View
 
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)
-    @editor.buffer.change(@getBufferRange(), text)
+    newBufferRange = @editor.buffer.change(@getBufferRange(), text)
+    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true)
     @autoOutdentText() if shouldOutdent
-    @cursor.setScreenPosition(@getScreenRange().end)
     @clearSelection()
 
   autoIndentText: (text) ->
