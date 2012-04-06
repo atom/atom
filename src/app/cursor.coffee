@@ -1,6 +1,7 @@
 {View} = require 'space-pen'
 Anchor = require 'anchor'
 Point = require 'point'
+Range = require 'range'
 _ = require 'underscore'
 
 module.exports =
@@ -93,19 +94,37 @@ class Cursor extends View
     @setBufferPosition(nextPosition or @editor.getEofPosition())
 
   moveToBeginningOfWord: ->
+    @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())
+
+  moveToEndOfWord: ->
+    @setBufferPosition(@getEndOfCurrentWordBufferPosition())
+
+  getBeginningOfCurrentWordBufferPosition: (options = {}) ->
+    allowPrevious = options.allowPrevious ? true
+    position = null
     bufferPosition = @getBufferPosition()
     range = [[0,0], bufferPosition]
     @editor.backwardsTraverseRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
-      @setBufferPosition matchRange.start
+      position = matchRange.start
+      if not allowPrevious and matchRange.end.isLessThan(bufferPosition)
+        position = bufferPosition
       stop()
+    position
 
-  moveToEndOfWord: ->
+  getEndOfCurrentWordBufferPosition: (options = {}) ->
+    allowNext = options.allowNext ? true
+    position = null
     bufferPosition = @getBufferPosition()
     range = [bufferPosition, @editor.getEofPosition()]
-
     @editor.scanRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
-      @setBufferPosition matchRange.end
+      position = matchRange.end
+      if not allowNext and matchRange.start.isGreaterThan(bufferPosition)
+        position = bufferPosition
       stop()
+    position
+
+  getCurrentWordBufferRange: ->
+    new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))
 
   moveToEndOfLine: ->
     { row } = @getBufferPosition()

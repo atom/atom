@@ -160,21 +160,10 @@ class Selection extends View
     @retainSelection = false
 
   selectWord: ->
-    row = @cursor.getScreenPosition().row
-    column = @cursor.getScreenPosition().column
+    @setBufferRange(@cursor.getCurrentWordBufferRange())
 
-    { row, column } = @cursor.getBufferPosition()
-
-    line = @editor.buffer.lineForRow(row)
-    leftSide = line[0...column].split('').reverse().join('') # reverse left side
-    rightSide = line[column..]
-
-    regex = /^\w*/
-    startOffset = -regex.exec(leftSide)?[0]?.length or 0
-    endOffset = regex.exec(rightSide)?[0]?.length or 0
-
-    range = new Range([row, column + startOffset], [row, column + endOffset])
-    @setBufferRange range
+  expandOverWord: ->
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
   selectLine: (row=@cursor.getBufferPosition().row) ->
     rowLength = @editor.buffer.lineForRow(row).length

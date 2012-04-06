@@ -140,7 +140,10 @@ class Editor extends View
         else
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
-        @compositeSelection.getLastSelection().selectWord()
+        if e.shiftKey
+          @compositeSelection.getLastSelection().expandOverWord()
+        else
+          @compositeSelection.getLastSelection().selectWord()
       else if clickCount >= 3
         @compositeSelection.getLastSelection().selectLine()
 
