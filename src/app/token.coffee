@@ -4,7 +4,7 @@ class Token
   type: null
   isAtomic: null
 
-  constructor: ({@value, @type, @isAtomic, @bufferDelta}) ->
+  constructor: ({@value, @type, @isAtomic, @bufferDelta, @fold}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
 

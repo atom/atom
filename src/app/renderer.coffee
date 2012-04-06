@@ -6,6 +6,7 @@ EventEmitter = require 'event-emitter'
 Range = require 'range'
 Fold = require 'fold'
 ScreenLineFragment = require 'screen-line-fragment'
+Token = require 'token'
 foldPlaceholderLength = 3
 
 module.exports =
@@ -193,7 +194,7 @@ class Renderer
     folds.sort (a, b) -> a.compare(b)
 
   buildFoldPlaceholder: (fold) ->
-    token = { value: '...', type: 'fold-placeholder', fold, isAtomic: true }
+    token = new Token(value: '...', type: 'fold-placeholder', fold: fold, isAtomic: true)
     new ScreenLineFragment([token], token.value, [0, token.value.length], fold.getRange().toDelta())
 
   screenLineRangeForBufferRange: (bufferRange) ->

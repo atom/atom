@@ -57,7 +57,7 @@ class Point
 
   isEqual: (other) ->
     other = Point.fromObject(other)
-    @compare(other) == 0
+    @row == other.row and @column == other.column
 
   isLessThan: (other) ->
     @compare(other) < 0
