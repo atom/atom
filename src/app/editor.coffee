@@ -333,8 +333,8 @@ class Editor extends View
   screenPositionForBufferPosition: (position) ->
     @renderer.screenPositionForBufferPosition(position)
 
-  bufferPositionForScreenPosition: (position) ->
-    @renderer.bufferPositionForScreenPosition(position)
+  bufferPositionForScreenPosition: (position, options) ->
+    @renderer.bufferPositionForScreenPosition(position, options)
 
   screenRangeForBufferRange: (range) ->
     @renderer.screenRangeForBufferRange(range)

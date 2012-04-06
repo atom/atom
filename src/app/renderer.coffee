@@ -103,8 +103,8 @@ class Renderer
   screenPositionForBufferPosition: (position) ->
     @lineMap.screenPositionForBufferPosition(position)
 
-  bufferPositionForScreenPosition: (position) ->
-    @lineMap.bufferPositionForScreenPosition(position)
+  bufferPositionForScreenPosition: (position, options) ->
+    @lineMap.bufferPositionForScreenPosition(position, options)
 
   clipScreenPosition: (position, options={}) ->
     @lineMap.clipScreenPosition(position, options)

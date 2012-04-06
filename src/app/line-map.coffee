@@ -57,8 +57,8 @@ class LineMap
   screenPositionForBufferPosition: (bufferPosition) ->
     @translatePosition('bufferDelta', 'screenDelta', bufferPosition)
 
-  bufferPositionForScreenPosition: (screenPosition) ->
-    @translatePosition('screenDelta', 'bufferDelta', screenPosition)
+  bufferPositionForScreenPosition: (screenPosition, options) ->
+    @translatePosition('screenDelta', 'bufferDelta', screenPosition, options)
 
   screenRangeForBufferRange: (bufferRange) ->
     bufferRange = Range.fromObject(bufferRange)
@@ -116,6 +116,7 @@ class LineMap
     @clipToBounds(sourceDeltaType, sourcePosition) if clipToBounds
     traversalResult = @traverseByDelta(sourceDeltaType, sourcePosition)
     lastLineFragment = traversalResult.lastLineFragment
+    traversedAllFragments = traversalResult.traversedAllFragments
     sourceDelta = traversalResult[sourceDeltaType]
     targetDelta = traversalResult[targetDeltaType]
 
@@ -130,7 +131,7 @@ class LineMap
       else
         targetDelta.column = maxTargetColumn - 1
         return @clipPosition(targetDeltaType, targetDelta)
-    else if sourcePosition.column > maxSourceColumn and wrapBeyondNewlines
+    else if sourcePosition.column > maxSourceColumn and wrapBeyondNewlines and not traversedAllFragments
       targetDelta.row++
       targetDelta.column = 0
     else
@@ -157,14 +158,16 @@ class LineMap
     screenDelta = new Point
     bufferDelta = new Point
 
-    for lineFragment in @lineFragments
+    for lineFragment, index in @lineFragments
       iterator({ lineFragment, screenDelta, bufferDelta }) if traversalDelta.isGreaterThanOrEqual(startPosition) and iterator?
       traversalDelta = traversalDelta.add(lineFragment[deltaType])
       break if traversalDelta.isGreaterThan(endPosition)
       screenDelta = screenDelta.add(lineFragment.screenDelta)
       bufferDelta = bufferDelta.add(lineFragment.bufferDelta)
 
-    { screenDelta, bufferDelta, lastLineFragment: lineFragment }
+    lastLineFragment = lineFragment
+    traversedAllFragments = (index == @lineFragments.length - 1)
+    { screenDelta, bufferDelta, lastLineFragment, traversedAllFragments }
 
   logLines: (start=0, end=@screenLineCount() - 1)->
     for row in [start..end]
