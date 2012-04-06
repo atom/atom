@@ -307,6 +307,7 @@ describe "Editor", ->
             editor.moveCursorUp()
             expect(editor.getCursorScreenPosition().column).toBe 0
 
+      describe "horizontal movement", ->
         describe "when left is pressed on the first column", ->
           describe "when there is a previous line", ->
             it "wraps to the end of the previous line", ->
