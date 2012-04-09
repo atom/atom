@@ -167,7 +167,12 @@ class Buffer
     global = regex.global
     regex = new RegExp(regex.source, 'gm')
 
-    traverseRecursively = (text, startIndex, endIndex, lengthDelta) =>
+    text = @getText()
+    startIndex = @characterIndexForPosition(range.start)
+    endIndex = @characterIndexForPosition(range.end)
+    lengthDelta = 0
+
+    while true
       regex.lastIndex = startIndex
       return unless match = regex.exec(text)
 
@@ -186,9 +191,9 @@ class Buffer
       startPosition = @positionForCharacterIndex(matchStartIndex + lengthDelta)
       endPosition = @positionForCharacterIndex(matchEndIndex + lengthDelta)
       range = new Range(startPosition, endPosition)
-      recurse = true
+      keepLooping = true
       replacementText = null
-      stop = -> recurse = false
+      stop = -> keepLooping = false
       replace = (text) -> replacementText = text
       iterator(match, range, { stop, replace })
 
@@ -200,12 +205,8 @@ class Buffer
         matchStartIndex++
         matchEndIndex++
 
-      if global and recurse
-        traverseRecursively(text, matchEndIndex, endIndex, lengthDelta)
-
-    startIndex = @characterIndexForPosition(range.start)
-    endIndex = @characterIndexForPosition(range.end)
-    traverseRecursively(@getText(), startIndex, endIndex, 0)
+      break unless global and keepLooping
+      startIndex = matchEndIndex
 
   backwardsScanInRange: (regex, range, iterator) ->
     global = regex.global
@@ -217,8 +218,8 @@ class Buffer
 
     matches.reverse()
 
-    recurse = true
-    stop = -> recurse = false
+    keepLooping = true
+    stop = -> keepLooping = false
     replacementText = null
     replace = (text) -> replacementText = text
 
@@ -226,7 +227,7 @@ class Buffer
       replacementText = null
       iterator(match, matchRange, { stop, replace })
       @change(matchRange, replacementText) if replacementText
-      return unless global and recurse
+      return unless global and keepLooping
 
 
 _.extend(Buffer.prototype, EventEmitter)
