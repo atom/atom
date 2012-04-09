@@ -47,7 +47,6 @@ describe "editor.", ->
         editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
         editor.moveCursorToBottom()
         endPosition = editor.getCursorScreenPosition()
-        console.log endPosition
 
       fbenchmark "move-to-beginning-of-word", ->
         editor.moveCursorToBeginningOfWord()
