@@ -33,10 +33,22 @@ describe "editor.", ->
 
     describe "at-end.", ->
       beforeEach ->
-        editor.setCursorScreenPosition([Infinity, Infinity])
+        editor.moveCursorToBottom()
 
       benchmark "insert-delete", ->
         editor.insertText('"')
         editor.backspace()
 
+  describe "9000-line-file.", ->
+    describe "at-end.", ->
+      endPosition = null
 
+      beforeEach ->
+        editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
+        editor.moveCursorToBottom()
+        endPosition = editor.getCursorScreenPosition()
+        console.log endPosition
+
+      fbenchmark "move-to-beginning-of-word", ->
+        editor.moveCursorToBeginningOfWord()
+        editor.setCursorScreenPosition(endPosition)
