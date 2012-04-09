@@ -136,9 +136,15 @@ class CompositeSeleciton
   selectToEndOfWord: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfWord()
 
+  cutToEndOfLine: ->
+    maintainPasteboard = false
+    @mutateSelectedText (selection) ->
+      selection.cutToEndOfLine(maintainPasteboard)
+      maintainPasteboard = true
+
   cut: ->
     maintainPasteboard = false
-    for selection in @getSelections()
+    @mutateSelectedText (selection) ->
       selection.cut(maintainPasteboard)
       maintainPasteboard = true
 

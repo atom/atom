@@ -204,6 +204,10 @@ class Selection extends View
   selectToEndOfWord: ->
     @modifySelection => @cursor.moveToEndOfWord()
 
+  cutToEndOfLine: (maintainPasteboard) ->
+    @selectToEndOfLine() if @isEmpty()
+    @cut(maintainPasteboard)
+
   cut: (maintainPasteboard=false) ->
     @copy(maintainPasteboard)
     @delete()

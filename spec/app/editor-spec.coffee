@@ -1644,6 +1644,35 @@ describe "Editor", ->
           editor.trigger 'delete-to-end-of-word'
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
+    describe "cut-to-end-of-line", ->
+      pasteboard = null
+
+      beforeEach ->
+        spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboard = text
+        spyOn($native, 'readFromPasteboard').andCallFake -> pasteboard
+
+      describe "when nothing is selected", ->
+        it "cuts up to the end of the line", ->
+          editor.setCursorBufferPosition([2, 20])
+          editor.addCursorAtBufferPosition([3, 20])
+          editor.trigger 'cut-to-end-of-line'
+
+          expect(buffer.lineForRow(2)).toBe '    if (items.length'
+          expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+
+          expect(pasteboard).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+
+      describe "when text is selected", ->
+        it "only cuts the selected text, not to the end of the line", ->
+          editor.setSelectedBufferRanges([[[2,20], [2, 30]], [[3, 20], [3, 20]]])
+
+          editor.trigger 'cut-to-end-of-line'
+
+          expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
+          expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+
+          expect(pasteboard).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+
     describe "tab", ->
       describe "if editor.softTabs is true (the default)", ->
         it "inserts editor.tabText into the buffer", ->
