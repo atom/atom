@@ -162,7 +162,7 @@ class Buffer
 
     @mode = new (require("ace/mode/#{modeName}").Mode)
 
-  scanRegexMatchesInRange: (regex, range, iterator) ->
+  scanInRange: (regex, range, iterator) ->
     range = Range.fromObject(range)
     global = regex.global
     regex = new RegExp(regex.source, 'gm')
@@ -207,12 +207,12 @@ class Buffer
     endIndex = @characterIndexForPosition(range.end)
     traverseRecursively(@getText(), startIndex, endIndex, 0)
 
-  backwardsTraverseRegexMatchesInRange: (regex, range, iterator) ->
+  backwardsScanInRange: (regex, range, iterator) ->
     global = regex.global
     regex = new RegExp(regex.source, 'gm')
 
     matches = []
-    @scanRegexMatchesInRange regex, range, (match, matchRange) ->
+    @scanInRange regex, range, (match, matchRange) ->
       matches.push([match, matchRange])
 
     matches.reverse()

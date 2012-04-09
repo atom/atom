@@ -86,7 +86,7 @@ class Cursor extends View
     range = [bufferPosition, @editor.getEofPosition()]
 
     nextPosition = null
-    @editor.scanRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
+    @editor.scanInRange @wordRegex, range, (match, matchRange, { stop }) =>
       if matchRange.start.isGreaterThan(bufferPosition)
         nextPosition = matchRange.start
         stop()
@@ -104,7 +104,7 @@ class Cursor extends View
     position = null
     bufferPosition = @getBufferPosition()
     range = [[0,0], bufferPosition]
-    @editor.backwardsTraverseRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
+    @editor.backwardsScanInRange @wordRegex, range, (match, matchRange, { stop }) =>
       position = matchRange.start
       if not allowPrevious and matchRange.end.isLessThan(bufferPosition)
         position = bufferPosition
@@ -116,7 +116,7 @@ class Cursor extends View
     position = null
     bufferPosition = @getBufferPosition()
     range = [bufferPosition, @editor.getEofPosition()]
-    @editor.scanRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
+    @editor.scanInRange @wordRegex, range, (match, matchRange, { stop }) =>
       position = matchRange.end
       if not allowNext and matchRange.start.isGreaterThan(bufferPosition)
         position = bufferPosition
@@ -141,7 +141,7 @@ class Cursor extends View
     position = @getBufferPosition()
     range = @editor.rangeForBufferRow(position.row)
     newPosition = null
-    @editor.scanRegexMatchesInRange /^\s*/, range, (match, matchRange) =>
+    @editor.scanInRange /^\s*/, range, (match, matchRange) =>
       newPosition = matchRange.end
     newPosition = [position.row, 0] if newPosition.isEqual(position)
     @setBufferPosition(newPosition)

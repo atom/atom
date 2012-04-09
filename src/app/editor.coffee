@@ -412,8 +412,8 @@ class Editor extends View
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
   rangeForBufferRow: (row) -> @buffer.rangeForRow(row)
-  scanRegexMatchesInRange: (args...) -> @buffer.scanRegexMatchesInRange(args...)
-  backwardsTraverseRegexMatchesInRange: (args...) -> @buffer.backwardsTraverseRegexMatchesInRange(args...)
+  scanInRange: (args...) -> @buffer.scanInRange(args...)
+  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
   insertText: (text) ->
     @compositeSelection.insertText(text)

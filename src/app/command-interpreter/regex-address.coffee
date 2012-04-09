@@ -12,14 +12,14 @@ class RegexAddress extends Address
     rangeToSearch = new Range(currentRange.end, editor.getEofPosition())
 
     rangeToReturn = null
-    editor.buffer.scanRegexMatchesInRange @regex, rangeToSearch, (match, range) ->
+    editor.buffer.scanInRange @regex, rangeToSearch, (match, range) ->
       rangeToReturn = range
 
     if rangeToReturn
       rangeToReturn
     else
       rangeToSearch = new Range([0, 0], rangeToSearch.start)
-      editor.buffer.scanRegexMatchesInRange @regex, rangeToSearch, (match, range) ->
+      editor.buffer.scanInRange @regex, rangeToSearch, (match, range) ->
         rangeToReturn = range
 
       rangeToReturn or currentRange
