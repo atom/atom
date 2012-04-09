@@ -162,72 +162,65 @@ class Buffer
 
     @mode = new (require("ace/mode/#{modeName}").Mode)
 
-  scanInRange: (regex, range, iterator) ->
-    range = Range.fromObject(range)
-    global = regex.global
-    regex = new RegExp(regex.source, 'gm')
-
+  matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()
-    startIndex = @characterIndexForPosition(range.start)
-    endIndex = @characterIndexForPosition(range.end)
-    lengthDelta = 0
+    matches = []
 
-    while true
-      regex.lastIndex = startIndex
-      return unless match = regex.exec(text)
-
+    regex.lastIndex = startIndex
+    while match = regex.exec(text)
       matchLength = match[0].length
       matchStartIndex = match.index
       matchEndIndex = matchStartIndex + matchLength
 
       if matchEndIndex > endIndex
         regex.lastIndex = 0
-        if matchStartIndex < endIndex and match = regex.exec(text[matchStartIndex...endIndex])
-          matchLength = match[0].length
-          matchEndIndex = matchStartIndex + matchLength
-        else
-          return
+        if matchStartIndex < endIndex and submatch = regex.exec(text[matchStartIndex...endIndex])
+          submatch.index = matchStartIndex
+          matches.push submatch
+        break
+
+      matchEndIndex++ if matchLength is 0
+      regex.lastIndex = matchEndIndex
+      matches.push match
+
+    matches
+
+  scanInRange: (regex, range, iterator, reverse=false) ->
+    range = Range.fromObject(range)
+    global = regex.global
+    regex = new RegExp(regex.source, 'gm')
+
+    startIndex = @characterIndexForPosition(range.start)
+    endIndex = @characterIndexForPosition(range.end)
+
+    matches = @matchesInCharacterRange(regex, startIndex, endIndex)
+    lengthDelta = 0
+
+    keepLooping = null
+    replacementText = null
+    stop = -> keepLooping = false
+    replace = (text) -> replacementText = text
+
+    matches.reverse() if reverse
+    for match in matches
+      matchLength = match[0].length
+      matchStartIndex = match.index
+      matchEndIndex = matchStartIndex + matchLength
 
       startPosition = @positionForCharacterIndex(matchStartIndex + lengthDelta)
       endPosition = @positionForCharacterIndex(matchEndIndex + lengthDelta)
       range = new Range(startPosition, endPosition)
       keepLooping = true
       replacementText = null
-      stop = -> keepLooping = false
-      replace = (text) -> replacementText = text
       iterator(match, range, { stop, replace })
 
       if replacementText
         @change(range, replacementText)
-        lengthDelta += replacementText.length - matchLength
-
-      if matchLength is 0
-        matchStartIndex++
-        matchEndIndex++
+        lengthDelta += replacementText.length - matchLength unless reverse
 
       break unless global and keepLooping
-      startIndex = matchEndIndex
 
   backwardsScanInRange: (regex, range, iterator) ->
-    global = regex.global
-    regex = new RegExp(regex.source, 'gm')
-
-    matches = []
-    @scanInRange regex, range, (match, matchRange) ->
-      matches.push([match, matchRange])
-
-    matches.reverse()
-
-    keepLooping = true
-    stop = -> keepLooping = false
-    replacementText = null
-    replace = (text) -> replacementText = text
-
-    for [match, matchRange] in matches
-      replacementText = null
-      iterator(match, matchRange, { stop, replace })
-      @change(matchRange, replacementText) if replacementText
-      return unless global and keepLooping
-
+    @scanInRange regex, range, iterator, true
 
 _.extend(Buffer.prototype, EventEmitter)
