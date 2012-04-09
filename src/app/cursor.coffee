@@ -101,15 +101,14 @@ class Cursor extends View
 
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
-    position = null
-    bufferPosition = @getBufferPosition()
-    range = [[0,0], bufferPosition]
+    currentBufferPosition = @getBufferPosition()
+    beginningOfWordPosition = currentBufferPosition
+    range = [[0,0], currentBufferPosition]
     @editor.backwardsTraverseRegexMatchesInRange @wordRegex, range, (match, matchRange, { stop }) =>
-      position = matchRange.start
-      if not allowPrevious and matchRange.end.isLessThan(bufferPosition)
-        position = bufferPosition
+      if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
+        beginningOfWordPosition = matchRange.start
       stop()
-    position
+    beginningOfWordPosition
 
   getEndOfCurrentWordBufferPosition: (options = {}) ->
     allowNext = options.allowNext ? true

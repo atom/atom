@@ -417,6 +417,10 @@ describe "Editor", ->
         expect(cursor2.getBufferPosition()).toEqual [1, 11]
         expect(cursor3.getBufferPosition()).toEqual [2, 39]
 
+      it "does not fail at position [0, 0]", ->
+        editor.setCursorBufferPosition([0, 0])
+        editor.trigger 'move-to-beginning-of-word'
+
     describe "move-to-end-of-word", ->
       it "moves the cursor to the end of the word", ->
         editor.setCursorBufferPosition [0, 6]
