@@ -133,14 +133,19 @@ class Renderer
     @buildLinesForBufferRows(bufferRow, bufferRow)
 
   buildLinesForBufferRows: (startBufferRow, endBufferRow) ->
-    recursiveBuildLinesForBufferRows = (startBufferRow, endBufferRow, startBufferColumn, currentScreenLineLength=0) =>
-      return [] if startBufferRow > endBufferRow and not startBufferColumn?
+    lineFragments = []
+    startBufferColumn = null
+    currentScreenLineLength = 0
+    startBufferRow = @foldStartRowForBufferRow(startBufferRow)
 
+    loop
+      break if startBufferRow > endBufferRow and not startBufferColumn?
       startBufferColumn ?= 0
-      line = @highlighter.lineForRow(startBufferRow).splitAt(startBufferColumn)[1]
-
+      line = @highlighter.lineForRow(startBufferRow)
+      line = line.splitAt(startBufferColumn)[1]
       wrapScreenColumn = @findWrapColumn(line.text, @maxLineLength - currentScreenLineLength)
 
+      continueMainLoop = false
       for fold in @foldsForBufferRow(startBufferRow)
         if fold.start.column >= startBufferColumn
           foldStartSceenColumn = fold.start.column - startBufferColumn
@@ -149,18 +154,26 @@ class Renderer
             break
           prefix = line.splitAt(foldStartSceenColumn)[0]
           placeholder = @buildFoldPlaceholder(fold)
+          lineFragments.push(prefix, placeholder)
+          startBufferRow = fold.end.row
+          startBufferColumn = fold.end.column
           currentScreenLineLength = currentScreenLineLength + (prefix?.text.length ? 0) + foldPlaceholderLength
-          suffix = recursiveBuildLinesForBufferRows(fold.end.row, endBufferRow, fold.end.column, currentScreenLineLength)
-          return _.compact _.flatten [prefix, placeholder, suffix]
+          continueMainLoop = true
+          break
+      continue if continueMainLoop
 
       if wrapScreenColumn?
         line = line.splitAt(wrapScreenColumn)[0]
         line.screenDelta = new Point(1, 0)
-        [line].concat recursiveBuildLinesForBufferRows(startBufferRow, endBufferRow, startBufferColumn + wrapScreenColumn)
+        startBufferColumn += wrapScreenColumn
       else
-        [line].concat recursiveBuildLinesForBufferRows(startBufferRow + 1, endBufferRow)
+        startBufferRow++
+        startBufferColumn = null
 
-    recursiveBuildLinesForBufferRows(@foldStartRowForBufferRow(startBufferRow), endBufferRow)
+      lineFragments.push(line)
+      currentScreenLineLength = 0
+
+    lineFragments
 
   foldStartRowForBufferRow: (bufferRow) ->
     @bufferRowForScreenRow(@screenRowForBufferRow(bufferRow))
