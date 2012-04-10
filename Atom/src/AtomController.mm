@@ -66,6 +66,9 @@
   CefRefPtr<CefV8Value> global = context->GetGlobal();
   
   context->Enter();
+
+  CefRefPtr<CefV8Value> windowNumber = CefV8Value::CreateInt(self.window.windowNumber);
+  global->SetValue("$windowNumber", windowNumber, V8_PROPERTY_ATTRIBUTE_NONE);
   
   CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString([_bootstrapScript UTF8String]);
   global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
