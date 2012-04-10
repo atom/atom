@@ -136,3 +136,12 @@ describe "UndoManager", ->
 
       expect(buffer.lineForRow(4)).not.toContain("while")
       expect(buffer.lineForRow(4)).toContain("slongaz")
+
+   it "does not store empty batches", ->
+      buffer.insert([0,0], "foo")
+      undoManager.startUndoBatch()
+      undoManager.endUndoBatch()
+
+      undoManager.undo()
+      expect(buffer.lineForRow(0)).not.toContain("foo")
+

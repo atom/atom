@@ -40,7 +40,7 @@ class UndoManager
 
   endUndoBatch: (ranges) ->
     @currentBatch.newSelectionRanges = ranges
-    @undoHistory.push(@currentBatch)
+    @undoHistory.push(@currentBatch) if @currentBatch.length > 0
     @currentBatch = null
 
   preservingHistory: (fn) ->
