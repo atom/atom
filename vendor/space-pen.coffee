@@ -1,5 +1,4 @@
-# Modified from e2c7296822952f9dcb4b7d3a39e16cca7b5dd462
-# Add require 'jquery'
+# Modified from 98bd6cf5f62e596bb6bfcff8e2dcea07ce007de4 -- add require `jquery`
 $ = jQuery = require('jquery')
 
 elements =
@@ -58,8 +57,8 @@ class View extends jQuery
     step(fragment) for step in postProcessingSteps
     fragment
 
-  constructor: (params={}) ->
-    [html, postProcessingSteps] = @constructor.buildHtml -> @content(params)
+  constructor: (args...) ->
+    [html, postProcessingSteps] = @constructor.buildHtml -> @content(args...)
     jQuery.fn.init.call(this, html)
     @constructor = jQuery # sadly, jQuery assumes this.constructor == jQuery in pushStack
     @wireOutlets(this)
@@ -67,7 +66,7 @@ class View extends jQuery
     @find('*').andSelf().data('view', this)
     @attr('triggerAttachEvents', true)
     step(this) for step in postProcessingSteps
-    @initialize?(params)
+    @initialize?(args...)
 
   buildHtml: (params) ->
     @constructor.builder = new Builder
@@ -79,7 +78,9 @@ class View extends jQuery
   wireOutlets: (view) ->
     @find('[outlet]').each ->
       element = $(this)
-      view[element.attr('outlet')] = element
+      outlet = element.attr('outlet')
+      view[outlet] = element
+      element.attr('outlet', null)
 
   bindEventHandlers: (view) ->
     for eventName in events
@@ -164,15 +165,16 @@ jQuery.fn.view = -> this.data('view')
 
 # Trigger attach event when views are added to the DOM
 triggerAttachEvent = (element) ->
-  if element.attr?('triggerAttachEvents') and element.parents('html').length
+  if element?.attr?('triggerAttachEvents') and element.parents('html').length
     element.find('[triggerAttachEvents]').add(element).trigger('attach')
 
 for methodName in ['append', 'prepend', 'after', 'before']
   do (methodName) ->
     originalMethod = $.fn[methodName]
     jQuery.fn[methodName] = (args...) ->
-      result = originalMethod.apply(this, args)
-      triggerAttachEvent(args[0])
+      flatArgs = [].concat args...
+      result = originalMethod.apply(this, flatArgs)
+      triggerAttachEvent arg for arg in flatArgs
       result
 
 for methodName in ['prependTo', 'appendTo', 'insertAfter', 'insertBefore']
