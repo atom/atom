@@ -1,4 +1,4 @@
-# Modified from 98bd6cf5f62e596bb6bfcff8e2dcea07ce007de4 -- add require `jquery`
+# Modified from 13570cdf3a32bd9f484b2fd838f64e957716fca -- add require `jquery`
 $ = jQuery = require('jquery')
 
 elements =
@@ -58,6 +58,7 @@ class View extends jQuery
     fragment
 
   constructor: (args...) ->
+    args[0] ?= {}
     [html, postProcessingSteps] = @constructor.buildHtml -> @content(args...)
     jQuery.fn.init.call(this, html)
     @constructor = jQuery # sadly, jQuery assumes this.constructor == jQuery in pushStack
