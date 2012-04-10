@@ -47,7 +47,7 @@ class Anchor
     assignBufferPosition = options.assignBufferPosition ? true
 
     @screenPosition = @editor.clipScreenPosition(@screenPosition, options) if clip
-    @bufferPosition = @editor.bufferPositionForScreenPosition(position, options) if assignBufferPosition
+    @bufferPosition = @editor.bufferPositionForScreenPosition(@screenPosition, options) if assignBufferPosition
 
     Object.freeze @screenPosition
     Object.freeze @bufferPosition
