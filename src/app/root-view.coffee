@@ -72,7 +72,7 @@ class RootView extends View
     if @editors.length
       _.last(@editors)
     else
-      editor = new Editor()
+      editor = new Editor
       @editors.push(editor)
       editor.appendTo(@panes)
       editor.focus()

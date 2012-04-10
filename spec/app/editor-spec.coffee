@@ -63,7 +63,7 @@ describe "Editor", ->
 
     describe "when soft-wrap is enabled", ->
       beforeEach ->
-        otherEditor = new Editor()
+        otherEditor = new Editor
         otherEditor.setBuffer editor.buffer
         otherEditor.attachToDom()
         charWidth = otherEditor.charWidth
@@ -2069,7 +2069,7 @@ describe "Editor", ->
 
   describe "path-change event", ->
     it "emits event when buffer's path is changed", ->
-      editor = new Editor()
+      editor = new Editor
 
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'buffer-path-change', eventHandler
