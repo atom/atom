@@ -91,6 +91,9 @@ class CompositeSeleciton
   insertText: (text) ->
     @mutateSelectedText (selection) -> selection.insertText(text)
 
+  outdentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.outdentSelectedRows()
+
   indentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.indentSelectedRows()
 

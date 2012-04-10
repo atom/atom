@@ -222,23 +222,54 @@ describe "Selection", ->
       tabLength = editor.tabText.length
 
     describe "when nothing is selected", ->
-      it "indents line cursor is and retains selection", ->
+      it "indents line and retains selection", ->
         selection.setBufferRange new Range([0,3], [0,3])
         selection.indentSelectedRows()
         expect(editor.buffer.lineForRow(0)).toBe "#{editor.tabText}var quicksort = function () {"
         expect(selection.getBufferRange()).toEqual [[0, 3 + tabLength], [0, 3 + tabLength]]
 
     describe "when one line is selected", ->
-      it "indents line selection and retains selection", ->
+      it "indents line and retains selection", ->
         selection.setBufferRange new Range([0,4], [0,14])
         selection.indentSelectedRows()
         expect(editor.buffer.lineForRow(0)).toBe "#{editor.tabText}var quicksort = function () {"
         expect(selection.getBufferRange()).toEqual [[0, 4 + tabLength], [0, 14 + tabLength]]
 
     describe "when multiple lines are selected", ->
-      it "indents selected lines with text and retains selection", ->
+      it "indents selected lines (that are not empty) and retains selection", ->
         selection.setBufferRange new Range([9,1], [11,15])
         selection.indentSelectedRows()
         expect(editor.buffer.lineForRow(9)).toBe "    };"
         expect(editor.buffer.lineForRow(10)).toBe ""
         expect(editor.buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
+        expect(selection.getBufferRange()).toEqual [[9, 1 + tabLength], [11, 15 + tabLength]]
+
+  describe ".outdentSelectedRows()", ->
+    tabLength = null
+
+    beforeEach ->
+      editor.tabText = "  "
+      tabLength = editor.tabText.length
+
+    describe "when nothing is selected", ->
+      it "outdents line and retains selection", ->
+        selection.setBufferRange new Range([1,3], [1,3])
+        selection.outdentSelectedRows()
+        expect(editor.buffer.lineForRow(1)).toBe "var sort = function(items) {"
+        expect(selection.getBufferRange()).toEqual [[1, 3 - tabLength], [1, 3 - tabLength]]
+
+    describe "when one line is selected", ->
+      it "outdents line and retains selection", ->
+        selection.setBufferRange new Range([1,4], [1,14])
+        selection.outdentSelectedRows()
+        expect(editor.buffer.lineForRow(1)).toBe "var sort = function(items) {"
+        expect(selection.getBufferRange()).toEqual [[1, 4 - tabLength], [1, 14 - tabLength]]
+
+    describe "when multiple lines are selected", ->
+      it "outdents selected lines and retains selection", ->
+        selection.setBufferRange new Range([0,1], [3,15])
+        selection.outdentSelectedRows()
+        expect(editor.buffer.lineForRow(0)).toBe "var quicksort = function () {"
+        expect(editor.buffer.lineForRow(1)).toBe "var sort = function(items) {"
+        expect(editor.buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
+        expect(selection.getBufferRange()).toEqual [[0, 1], [3, 15 - tabLength]]

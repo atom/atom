@@ -29,4 +29,5 @@ window.keymap.bindKeys '.editor',
   'alt-meta-right': 'split-right'
   'alt-meta-up': 'split-up'
   'alt-meta-down': 'split-down'
+  'meta-[': 'outdent-selected-rows'
   'meta-]': 'indent-selected-rows'

@@ -110,6 +110,14 @@ class Selection extends View
     for row in [range.start.row..range.end.row]
       @editor.buffer.insert([row, 0], @editor.tabText) unless @editor.buffer.lineLengthForRow(row) == 0
 
+  outdentSelectedRows: ->
+    range = @getBufferRange()
+    buffer = @editor.buffer
+    leadingTabRegex = new RegExp("^#{@editor.tabText}")
+    for row in [range.start.row..range.end.row]
+      if leadingTabRegex.test buffer.lineForRow(row)
+        buffer.delete [[row, 0], [row, @editor.tabText.length]]
+
   autoIndentText: (text) ->
     if @editor.autoIndent
       mode = @editor.getCurrentMode()

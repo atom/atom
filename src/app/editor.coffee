@@ -67,6 +67,7 @@ class Editor extends View
     @on 'newline', => @insertText("\n")
     @on 'tab', => @insertTab()
     @on 'indent-selected-rows', => @indentSelectedRows()
+    @on 'outdent-selected-rows', => @outdentSelectedRows()
     @on 'backspace', => @backspace()
     @on 'backspace-to-beginning-of-word', => @backspaceToBeginningOfWord()
     @on 'delete', => @delete()
@@ -425,8 +426,8 @@ class Editor extends View
     else
       @compositeSelection.insertText('\t')
 
-  indentSelectedRows: ->
-    @compositeSelection.indentSelectedRows()
+  indentSelectedRows: -> @compositeSelection.indentSelectedRows()
+  outdentSelectedRows: -> @compositeSelection.outdentSelectedRows()
 
   cutSelection: -> @compositeSelection.cut()
   copySelection: -> @compositeSelection.copy()
