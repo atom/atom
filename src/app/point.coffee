@@ -76,3 +76,6 @@ class Point
 
   toString: ->
     "#{@row},#{@column}"
+
+  toArray: ->
+    [@row, @column]

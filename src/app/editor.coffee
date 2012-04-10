@@ -6,7 +6,6 @@ Gutter = require 'gutter'
 Renderer = require 'renderer'
 Point = require 'point'
 Range = require 'range'
-EditSession = require 'edit-session'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -40,17 +39,20 @@ class Editor extends View
   softTabs: true
   tabText: '  '
 
-  initialize: ({buffer}) ->
+  initialize: (editorState={}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
     @id = Editor.idCounter++
-    @editSessionsByBufferId = {}
     @bindKeys()
+    @autoIndent = true
     @buildCursorAndSelection()
     @handleEvents()
-    @setBuffer(buffer ? new Buffer)
-    @autoIndent = true
+
+    buffer = editorState.buffer ? new Buffer
+    @editorStatesByBufferId = {}
+    @editorStatesByBufferId[buffer.id] = editorState
+    @setBuffer(buffer)
 
   bindKeys: ->
     @on 'save', => @save()
@@ -204,7 +206,7 @@ class Editor extends View
 
   setBuffer: (buffer) ->
     if @buffer
-      @saveEditSession()
+      @saveEditorStateForCurrentBuffer()
       @unsubscribeFromBuffer()
 
     @buffer = buffer
@@ -215,21 +217,25 @@ class Editor extends View
     @renderLines()
     @gutter.renderLineNumbers()
 
-    @loadEditSessionForBuffer(@buffer)
+    @loadEditorStateForBuffer(@buffer)
 
     @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
 
-  loadEditSessionForBuffer: (buffer) ->
-    @editSession = (@editSessionsByBufferId[buffer.id] ?= new EditSession)
-    @setCursorScreenPosition(@editSession.cursorScreenPosition)
-    @scroller.scrollTop(@editSession.scrollTop)
-    @scroller.scrollLeft(@editSession.scrollLeft)
+  loadEditorStateForBuffer: (buffer) ->
+    editorState = (@editorStatesByBufferId[buffer.id] ?= {})
+    @setCursorScreenPosition(editorState.cursorScreenPosition ? [0, 0])
+    @scroller.scrollTop(editorState.scrollTop ? 0)
+    @scroller.scrollLeft(editorState.scrollLeft ? 0)
 
-  saveEditSession: ->
-    @editSession.cursorScreenPosition = @getCursorScreenPosition()
-    @editSession.scrollTop = @scroller.scrollTop()
-    @editSession.scrollLeft = @scroller.scrollLeft()
+  getEditorState: ->
+    buffer: @buffer
+    cursorScreenPosition: @getCursorScreenPosition().copy()
+    scrollTop: @scroller.scrollTop()
+    scrollLeft: @scroller.scrollLeft()
+
+  saveEditorStateForCurrentBuffer: ->
+    @editorStatesByBufferId[@buffer.id] = @getEditorState()
 
   handleBufferChange: (e) ->
     @compositeCursor.handleBufferChange(e)
@@ -465,9 +471,7 @@ class Editor extends View
       container = $$ -> @div class: axis
       container.insertBefore(this).append(this.detach())
 
-    editor = new Editor({@buffer})
-    editor.setCursorScreenPosition(@getCursorScreenPosition())
-
+    editor = new Editor(@getEditorState())
     this[insertMethod](editor)
     @rootView().adjustSplitPanes()
     editor

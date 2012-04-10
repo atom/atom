@@ -18,7 +18,8 @@ class RootView extends View
 
   editors: null
 
-  initialize: ({path}) ->
+  initialize: (params) ->
+    {path} = params
     @editors = []
     @createProject(path)
 
