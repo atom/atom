@@ -39,7 +39,7 @@ class Editor extends View
   softTabs: true
   tabText: '  '
 
-  initialize: (editorState={}) ->
+  initialize: (editorState) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -48,11 +48,8 @@ class Editor extends View
     @autoIndent = true
     @buildCursorAndSelection()
     @handleEvents()
-
-    buffer = editorState.buffer ? new Buffer
     @editorStatesByBufferId = {}
-    @editorStatesByBufferId[buffer.id] = editorState
-    @setBuffer(buffer)
+    @setEditorState(editorState)
 
   bindKeys: ->
     @on 'save', => @save()
@@ -227,6 +224,11 @@ class Editor extends View
     @setCursorScreenPosition(editorState.cursorScreenPosition ? [0, 0])
     @scroller.scrollTop(editorState.scrollTop ? 0)
     @scroller.scrollLeft(editorState.scrollLeft ? 0)
+
+  setEditorState: (editorState) ->
+    buffer = editorState.buffer ? new Buffer
+    @editorStatesByBufferId[buffer.id] = editorState
+    @setBuffer(buffer)
 
   getEditorState: ->
     buffer: @buffer
