@@ -214,3 +214,31 @@ describe "Selection", ->
 
       selection.selectToScreenPosition([0, 25])
       expect(selection.isReversed()).toBeFalsy()
+
+  describe ".indentSelectedRows()", ->
+    tabLength = null
+
+    beforeEach ->
+      tabLength = editor.tabText.length
+
+    describe "when nothing is selected", ->
+      it "indents line cursor is and retains selection", ->
+        selection.setBufferRange new Range([0,3], [0,3])
+        selection.indentSelectedRows()
+        expect(editor.buffer.lineForRow(0)).toBe "#{editor.tabText}var quicksort = function () {"
+        expect(selection.getBufferRange()).toEqual [[0, 3 + tabLength], [0, 3 + tabLength]]
+
+    describe "when one line is selected", ->
+      it "indents line selection and retains selection", ->
+        selection.setBufferRange new Range([0,4], [0,14])
+        selection.indentSelectedRows()
+        expect(editor.buffer.lineForRow(0)).toBe "#{editor.tabText}var quicksort = function () {"
+        expect(selection.getBufferRange()).toEqual [[0, 4 + tabLength], [0, 14 + tabLength]]
+
+    describe "when multiple lines are selected", ->
+      it "indents selected lines with text and retains selection", ->
+        selection.setBufferRange new Range([9,1], [11,15])
+        selection.indentSelectedRows()
+        expect(editor.buffer.lineForRow(9)).toBe "    };"
+        expect(editor.buffer.lineForRow(10)).toBe ""
+        expect(editor.buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"

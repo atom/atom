@@ -105,6 +105,11 @@ class Selection extends View
     @autoOutdentText() if shouldOutdent
     @clearSelection()
 
+  indentSelectedRows: ->
+    range = @getBufferRange()
+    for row in [range.start.row..range.end.row]
+      @editor.buffer.insert([row, 0], @editor.tabText) unless @editor.buffer.lineLengthForRow(row) == 0
+
   autoIndentText: (text) ->
     if @editor.autoIndent
       mode = @editor.getCurrentMode()
