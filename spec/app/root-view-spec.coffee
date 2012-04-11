@@ -87,6 +87,13 @@ describe "RootView", ->
       expect(editor4.buffer.path).toBe require.resolve('fixtures/sample.txt')
       expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
 
+      # ensure adjustSplitPanes is called
+      expect(editor1.width()).toBeGreaterThan 0
+      expect(editor2.width()).toBeGreaterThan 0
+      expect(editor3.width()).toBeGreaterThan 0
+      expect(editor4.width()).toBeGreaterThan 0
+
+
   describe "split editor panes", ->
     editor1 = null
 

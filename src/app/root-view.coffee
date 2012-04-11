@@ -90,9 +90,11 @@ class RootView extends View
         @getWindowState($(elt))
 
   setWindowState: (windowState, parent) ->
+    adjustSplitPanes = false
     unless parent
       @panes.empty()
       @editors = []
+      adjustSplitPanes = true
       parent = @panes
 
     switch windowState.shift()
@@ -110,6 +112,8 @@ class RootView extends View
         parent.append column
         for child in windowState
           @setWindowState(child, column)
+
+    @adjustSplitPanes() if adjustSplitPanes
 
   addPane: (view, sibling, axis, side) ->
     unless sibling.parent().hasClass(axis)
