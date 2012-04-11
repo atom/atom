@@ -17,11 +17,8 @@ class RootView extends View
     @div id: 'root-view', tabindex: -1, =>
       @div id: 'panes', outlet: 'panes'
 
-  editors: null
-
   initialize: (params) ->
     {path} = params
-    @editors = []
     @createProject(path)
 
     @on 'toggle-file-finder', => @toggleFileFinder()
@@ -30,7 +27,7 @@ class RootView extends View
 
     @one 'attach', => @focus()
     @on 'focus', (e) =>
-      if @editors.length
+      if @editors().length
         @activeEditor().focus()
         false
 
@@ -54,34 +51,35 @@ class RootView extends View
 
   editorFocused: (editor) ->
     if @panes.containsElement(editor)
-      _.remove(@editors, editor)
-      @editors.push(editor)
+      @panes.find('.editor')
+        .removeClass('active')
+        .off('.root-view')
+
+      editor
+        .addClass('active')
+        .on('buffer-path-change.root-view', => @setTitle(editor.buffer.path))
 
       @setTitle(editor.buffer.path)
 
-      e.off '.root-view' for e in @editors
-      editor.on 'buffer-path-change.root-view', => @setTitle(editor.buffer.path)
-
   editorRemoved: (editor) ->
-    if @panes.containsElement
-      _.remove(@editors, editor)
-      @adjustSplitPanes()
-      if @editors.length
-        @activeEditor().focus()
-      else
-        window.close()
+    @adjustSplitPanes()
+    if @editors().length
+      @editors()[0].focus()
+    else
+      window.close()
 
   setTitle: (title='untitled') ->
     document.title = title
 
+  editors: ->
+    @panes.find('.editor').map -> $(this).view()
+
   activeEditor: ->
-    if @editors.length
-      _.last(@editors)
+    editor = @panes.find('.editor.active')
+    if editor.length
+      editor.view()
     else
-      editor = new Editor
-      @editors.push(editor)
-      editor.appendTo(@panes)
-      editor.focus()
+      new Editor().appendTo(@panes).focus()
 
   getWindowState: (element = @panes.children(':eq(0)')) ->
     if element.hasClass('editor')
@@ -97,14 +95,12 @@ class RootView extends View
     adjustSplitPanes = false
     unless parent
       @panes.empty()
-      @editors = []
       adjustSplitPanes = true
       parent = @panes
 
     switch windowState.shift()
       when 'editor'
         editor = new Editor(windowState[0])
-        @editors.push(editor)
         parent.append(editor)
       when 'row'
         row = $$ -> @div class: 'row'
