@@ -192,3 +192,4 @@ class RootView extends View
           paths: relativePaths
           selected: (relativePath) => @open(relativePath)
         @append @fileFinder
+        @fileFinder.editor.focus()

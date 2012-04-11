@@ -44,6 +44,7 @@ describe "RootView", ->
       delete atom.windowStatesByWindowNumber[$windowNumber]
 
     it "stores its window state on the atom object by window number, then reassigns it next time the root view is constructed", ->
+      rootView.activeEditor().splitLeft()
       expectedWindowState = rootView.getWindowState()
 
       # simulate unload
@@ -52,7 +53,9 @@ describe "RootView", ->
 
       # simulate reload
       newRootView = new RootView
+
       expect(newRootView.getWindowState()).toEqual expectedWindowState
+      expect(newRootView.editors.length).toBe 2
 
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
@@ -81,6 +84,8 @@ describe "RootView", ->
       editor3.setCursorScreenPosition([2, 3])
       editor4.setBuffer(new Buffer(require.resolve 'fixtures/sample.txt'))
       editor4.setCursorScreenPosition([0, 2])
+      rootView.attachToDom()
+      editor2.focus()
       panesHtml = rootView.panes.html()
 
     it "can reconstruct the split pane arrangement from the window state hash returned by getWindowState", ->
@@ -111,6 +116,12 @@ describe "RootView", ->
       expect(editor2.width()).toBeGreaterThan 0
       expect(editor3.width()).toBeGreaterThan 0
       expect(editor4.width()).toBeGreaterThan 0
+
+      # ensure correct editor is focused again
+      expect(editor2.isFocused).toBeTruthy()
+      expect(editor1.isFocused).toBeFalsy()
+      expect(editor3.isFocused).toBeFalsy()
+      expect(editor4.isFocused).toBeFalsy()
 
 
   describe "split editor panes", ->

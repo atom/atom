@@ -168,7 +168,7 @@ class Editor extends View
       @calculateDimensions()
       @hiddenInput.width(@charWidth)
       @setMaxLineLength() if @softWrap
-      @focus()
+      @focus() if @isFocused
 
   rootView: ->
     @parents('#root-view').view()
@@ -227,12 +227,14 @@ class Editor extends View
     buffer = editorState.buffer ? new Buffer
     @editorStatesByBufferId[buffer.id] = editorState
     @setBuffer(buffer)
+    @isFocused = editorState.isFocused
 
   getEditorState: ->
     buffer: @buffer
     cursorScreenPosition: @getCursorScreenPosition().copy()
     scrollTop: @scroller.scrollTop()
     scrollLeft: @scroller.scrollLeft()
+    isFocused: @isFocused
 
   saveEditorStateForCurrentBuffer: ->
     @editorStatesByBufferId[@buffer.id] = @getEditorState()

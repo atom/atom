@@ -16,7 +16,6 @@ class FileFinder extends View
   initialize: ({@paths, @selected}) ->
     requireStylesheet 'file-finder.css'
     @maxResults = 10
-    @previousFocusedElement = $(document.activeElement)
 
     @populatePathList()
 
@@ -43,10 +42,6 @@ class FileFinder extends View
     filePath = @findSelectedLi().text()
     @selected(filePath) if filePath and @selected
     @remove()
-
-  remove: ->
-    super()
-    @previousFocusedElement.focus()
 
   moveUp: ->
     @findSelectedLi()
