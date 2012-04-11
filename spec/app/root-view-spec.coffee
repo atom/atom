@@ -79,8 +79,8 @@ describe "RootView", ->
           expect(editor2.position().left).toBe expectedColumnWidth
           expect(editor2.outerWidth()).toBe expectedColumnWidth
 
-          # expect(editor1.has(':focus')).not.toExist()
-          # expect(editor2.has(':focus')).toExist()
+          expect(editor1.has(':focus')).not.toExist()
+          expect(editor2.has(':focus')).toExist()
 
           # insertion reflected in both buffers
           editor1.buffer.insert([0, 0], 'ABC')
