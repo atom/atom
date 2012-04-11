@@ -1,4 +1,5 @@
 $ = require 'jquery'
+{$$} = require 'space-pen'
 fs = require 'fs'
 _ = require 'underscore'
 
@@ -78,6 +79,37 @@ class RootView extends View
       editor.appendTo(@panes)
       editor.focus()
 
+  getWindowState: (element = @panes.children(':eq(0)')) ->
+    if element.hasClass('editor')
+      ['editor', element.view().getEditorState()]
+    else if element.hasClass('row')
+      ['row'].concat element.children().toArray().map (elt) =>
+        @getWindowState($(elt))
+    else if element.hasClass('column')
+      ['column'].concat element.children().toArray().map (elt) =>
+        @getWindowState($(elt))
+
+  setWindowState: (windowState, parent) ->
+    unless parent
+      @panes.empty()
+      @editors = []
+      parent = @panes
+
+    switch windowState.shift()
+      when 'editor'
+        editor = new Editor(windowState[0])
+        @editors.push(editor)
+        parent.append(editor)
+      when 'row'
+        row = $$ -> @div class: 'row'
+        parent.append row
+        for child in windowState
+          @setWindowState(child, row)
+      when 'column'
+        column = $$ -> @div class: 'column'
+        parent.append column
+        for child in windowState
+          @setWindowState(child, column)
 
   addPane: (view, sibling, axis, side) ->
     unless sibling.parent().hasClass(axis)

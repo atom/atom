@@ -49,6 +49,44 @@ describe "RootView", ->
       expect(rootView).not.toMatchSelector(':focus')
       expect(rootView.activeEditor().isFocused).toBeTruthy()
 
+  describe "windowState getter and setter", ->
+    [editor1, editor2, editor3, editor4, panesHtml] = []
+
+    beforeEach ->
+      editor1 = rootView.activeEditor()
+      editor2 = editor1.splitRight()
+      editor3 = editor2.splitRight()
+      editor4 = editor2.splitDown()
+      editor2.setBuffer(new Buffer(require.resolve 'fixtures/dir/b'))
+      editor3.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
+      editor3.setCursorScreenPosition([2, 3])
+      editor4.setBuffer(new Buffer(require.resolve 'fixtures/sample.txt'))
+      editor4.setCursorScreenPosition([0, 2])
+      panesHtml = rootView.panes.html()
+
+    it "can reconstruct the split pane arrangement from the window state hash returned by getWindowState", ->
+      windowState = rootView.getWindowState()
+
+      editor2.remove()
+      editor3.remove()
+      editor4.remove()
+      expect(rootView.panes.find('.editor').length).toBe 1
+
+      rootView.setWindowState(windowState)
+      expect(rootView.editors.length).toBe 4
+
+      editor1 = rootView.panes.find('.row > .editor:eq(0)').view()
+      editor3 = rootView.panes.find('.row > .editor:eq(1)').view()
+      editor2 = rootView.panes.find('.row > .column > .editor:eq(0)').view()
+      editor4 = rootView.panes.find('.row > .column > .editor:eq(1)').view()
+
+      expect(editor1.buffer.path).toBe require.resolve('fixtures/dir/a')
+      expect(editor2.buffer.path).toBe require.resolve('fixtures/dir/b')
+      expect(editor3.buffer.path).toBe require.resolve('fixtures/sample.js')
+      expect(editor3.getCursorScreenPosition()).toEqual [2, 3]
+      expect(editor4.buffer.path).toBe require.resolve('fixtures/sample.txt')
+      expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
+
   describe "split editor panes", ->
     editor1 = null
 
