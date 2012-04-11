@@ -32,11 +32,11 @@ class CommandPanel extends View
   toggle: ->
     if @parent().length then @hide() else @show()
 
-  show: ->
+  show: (text='') ->
     @rootView.append(this)
     @prompt.css 'font', @editor.css('font')
     @editor.focus()
-    @editor.buffer.setText('')
+    @editor.buffer.setText(text)
 
   hide: ->
     @detach()

@@ -48,7 +48,7 @@ class Editor extends View
     @autoIndent = true
     @buildCursorAndSelection()
     @handleEvents()
-    @editorStatesByBufferId = {}
+    @editorStates = []
     @setEditorState(editorState)
 
   bindKeys: ->
@@ -84,6 +84,8 @@ class Editor extends View
     @on 'split-up', => @splitUp()
     @on 'split-down', => @splitDown()
     @on 'close', => @remove(); false
+    @on 'show-next-buffer', => @loadNextEditorState()
+    @on 'show-previous-buffer', => @loadPreviousEditorState()
 
     @on 'move-to-top', => @moveCursorToTop()
     @on 'move-to-bottom', => @moveCursorToBottom()
@@ -217,15 +219,48 @@ class Editor extends View
     @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
 
+  getEditorStateForBuffer: (buffer) ->
+    _.find @editorStates, (editorState) =>
+      editorState.buffer.id == buffer.id
+
+  setEditorStateForBuffer: (buffer, editorState) ->
+    editorState.buffer = buffer
+    index = @indexOfEditorState(editorState)
+    if index?
+      @editorStates[index] = editorState
+    else
+      @editorStates.push(editorState)
+
+  indexOfEditorState: (editorState) ->
+    for o, i in @editorStates
+      return i if o.buffer.id == editorState.buffer.id
+
+    return null
+
   loadEditorStateForBuffer: (buffer) ->
-    editorState = (@editorStatesByBufferId[buffer.id] ?= {})
+    editorState = @getEditorStateForBuffer(buffer)
+    if not editorState
+      editorState = {}
+      @setEditorStateForBuffer(buffer, editorState)
     @setCursorScreenPosition(editorState.cursorScreenPosition ? [0, 0])
     @scroller.scrollTop(editorState.scrollTop ? 0)
     @scroller.scrollLeft(editorState.scrollLeft ? 0)
 
-  setEditorState: (editorState) ->
-    buffer = editorState.buffer ? new Buffer
-    @editorStatesByBufferId[buffer.id] = editorState
+  loadNextEditorState: ->
+    index = @indexOfEditorState(@getEditorState())
+    if index?
+      nextIndex = (index + 1) % @editorStates.length
+      @setEditorState(@editorStates[nextIndex])
+
+  loadPreviousEditorState: ->
+    index = @indexOfEditorState(@getEditorState())
+    if index?
+      previousIndex = if --index >= 0 then index else @editorStates.length - 1
+      @setEditorState(@editorStates[previousIndex])
+
+  setEditorState: (editorState={}) ->
+    buffer = editorState.buffer ?= new Buffer
+    @setEditorStateForBuffer(buffer, editorState)
     @setBuffer(buffer)
     @isFocused = editorState.isFocused
 
@@ -237,7 +272,7 @@ class Editor extends View
     isFocused: @isFocused
 
   saveEditorStateForCurrentBuffer: ->
-    @editorStatesByBufferId[@buffer.id] = @getEditorState()
+    @setEditorStateForBuffer(@buffer, @getEditorState())
 
   handleBufferChange: (e) ->
     @compositeCursor.handleBufferChange(e)
