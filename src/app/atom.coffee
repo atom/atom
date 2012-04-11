@@ -15,6 +15,7 @@ class Atom
     @windows = []
     @setUpKeymap()
     @userConfigurationPath = fs.absolute "~/.atom/atom.coffee"
+    @windowStatesByWindowNumber = {}
 
   setUpKeymap: ->
     @keymap = new Keymap()

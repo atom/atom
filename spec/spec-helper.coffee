@@ -12,6 +12,7 @@ beforeEach ->
 
 afterEach ->
   $('#jasmine-content').empty()
+  $(window).off 'beforeunload'
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()

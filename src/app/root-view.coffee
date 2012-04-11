@@ -38,6 +38,12 @@ class RootView extends View
 
     @commandPanel = new CommandPanel({rootView: this})
 
+    $(window).on 'beforeunload', =>
+      atom.windowStatesByWindowNumber[$windowNumber] = @getWindowState()
+
+    if windowState = atom.windowStatesByWindowNumber[$windowNumber]
+      @setWindowState(windowState)
+
   createProject: (path) ->
     if path
       @project = new Project(fs.directory(path))

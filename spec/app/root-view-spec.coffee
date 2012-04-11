@@ -10,6 +10,7 @@ describe "RootView", ->
   path = null
 
   beforeEach ->
+    # delete atom.windowStatesByWindowNumber[$windowNumber]
     path = require.resolve 'fixtures/dir/a'
     rootView = new RootView({path})
     rootView.enableKeymap()
@@ -34,6 +35,25 @@ describe "RootView", ->
         rootView = new RootView
         expect(rootView.editors.length).toBe 1
         expect(rootView.activeEditor().buffer.path).toBeUndefined()
+
+    describe "when there is a window state for the current window stored on the atom object", ->
+      it "sets the window state on the root view", ->
+        spyOn(RootView.prototype, 'setWindowState')
+
+  describe "when the window is reloaded", ->
+    afterEach ->
+      delete atom.windowStatesByWindowNumber[$windowNumber]
+
+    it "stores its window state on the atom object by window number, then reassigns it next time the root view is constructed", ->
+      expectedWindowState = rootView.getWindowState()
+
+      # simulate unload
+      $(window).trigger 'beforeunload'
+      expect(atom.windowStatesByWindowNumber[$windowNumber]).toEqual expectedWindowState
+
+      # simulate reload
+      newRootView = new RootView
+      expect(newRootView.getWindowState()).toEqual expectedWindowState
 
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
