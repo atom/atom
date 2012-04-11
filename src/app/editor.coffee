@@ -84,6 +84,7 @@ class Editor extends View
     @on 'split-up', => @splitUp()
     @on 'split-down', => @splitDown()
     @on 'close', => @remove(); false
+    @on 'show-next-buffer', => @loadNextEditorState()
 
     @on 'move-to-top', => @moveCursorToTop()
     @on 'move-to-bottom', => @moveCursorToBottom()
@@ -223,11 +224,17 @@ class Editor extends View
 
   setEditorStateForBuffer: (buffer, editorState) ->
     editorState.buffer = buffer
-    existingEditorState = @getEditorStateForBuffer(buffer)
-    if existingEditorState
-      _.extend(existingEditorState, editorState)
+    index = @indexOfEditorState(editorState)
+    if index?
+      @editorStates[index] = editorState
     else
       @editorStates.push(editorState)
+
+  indexOfEditorState: (editorState) ->
+    for o, i in @editorStates
+      return i if o.buffer.id == editorState.buffer.id
+
+    return null
 
   loadEditorStateForBuffer: (buffer) ->
     editorState = @getEditorStateForBuffer(buffer)
@@ -237,6 +244,12 @@ class Editor extends View
     @setCursorScreenPosition(editorState.cursorScreenPosition ? [0, 0])
     @scroller.scrollTop(editorState.scrollTop ? 0)
     @scroller.scrollLeft(editorState.scrollLeft ? 0)
+
+  loadNextEditorState: ->
+    index = @indexOfEditorState(@getEditorState())
+    if index?
+      nextIndex = (index + 1) % @editorStates.length
+      @setEditorState(@editorStates[nextIndex])
 
   setEditorState: (editorState={}) ->
     buffer = editorState.buffer ?= new Buffer

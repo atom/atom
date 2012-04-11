@@ -31,3 +31,4 @@ window.keymap.bindKeys '.editor',
   'alt-meta-down': 'split-down'
   'meta-[': 'outdent-selected-rows'
   'meta-]': 'indent-selected-rows'
+  'meta-}': 'show-next-buffer'
