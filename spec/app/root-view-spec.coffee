@@ -10,7 +10,6 @@ describe "RootView", ->
   path = null
 
   beforeEach ->
-    # delete atom.windowStatesByWindowNumber[$windowNumber]
     path = require.resolve 'fixtures/dir/a'
     rootView = new RootView({path})
     rootView.enableKeymap()
