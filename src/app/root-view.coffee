@@ -25,10 +25,8 @@ class RootView extends View
     @createProject(path)
 
     @on 'toggle-file-finder', => @toggleFileFinder()
-    @on 'show-console', -> window.showConsole()
-    @on 'find-in-file', =>
-      @commandPanel.show()
-      @commandPanel.editor.setText("/")
+    @on 'show-console', => window.showConsole()
+    @on 'find-in-file', => @commandPanel.show("/")
 
     @one 'attach', => @focus()
     @on 'focus', (e) =>
