@@ -468,15 +468,10 @@ class Editor extends View
   splitDown: ->
     @split('column', 'after')
 
-  split: (axis, insertMethod) ->
-    unless @parent().hasClass axis
-      container = $$ -> @div class: axis
-      container.insertBefore(this).append(this.detach())
-
+  split: (axis, side) ->
+    return unless rootView = @rootView()
     editor = new Editor(@getEditorState())
-    this[insertMethod](editor)
-    @rootView().adjustSplitPanes()
-    editor
+    rootView.addPane(editor, this, axis, side)
 
   remove: (selector, keepData) ->
     return super if keepData

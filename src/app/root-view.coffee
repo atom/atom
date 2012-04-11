@@ -78,6 +78,15 @@ class RootView extends View
       editor.appendTo(@panes)
       editor.focus()
 
+
+  addPane: (view, sibling, axis, side) ->
+    unless sibling.parent().hasClass(axis)
+      container = $$ -> @div class: axis
+      container.insertBefore(sibling).append(sibling.detach())
+    sibling[side](view)
+    @adjustSplitPanes()
+    view
+
   adjustSplitPanes: (element = @panes.children(':first'))->
     if element.hasClass('row')
       totalUnits = @horizontalGridUnits(element)
