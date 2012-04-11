@@ -48,7 +48,7 @@ class Editor extends View
     @autoIndent = true
     @buildCursorAndSelection()
     @handleEvents()
-    @editorStatesByBufferId = {}
+    @editorStates = []
     @setEditorState(editorState)
 
   bindKeys: ->
@@ -217,15 +217,30 @@ class Editor extends View
     @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
 
+  getEditorStateForBuffer: (buffer) ->
+    _.find @editorStates, (editorState) =>
+      editorState.buffer.id == buffer.id
+
+  setEditorStateForBuffer: (buffer, editorState) ->
+    editorState.buffer = buffer
+    existingEditorState = @getEditorStateForBuffer(buffer)
+    if existingEditorState
+      _.extend(existingEditorState, editorState)
+    else
+      @editorStates.push(editorState)
+
   loadEditorStateForBuffer: (buffer) ->
-    editorState = (@editorStatesByBufferId[buffer.id] ?= {})
+    editorState = @getEditorStateForBuffer(buffer)
+    if not editorState
+      editorState = {}
+      @setEditorStateForBuffer(buffer, editorState)
     @setCursorScreenPosition(editorState.cursorScreenPosition ? [0, 0])
     @scroller.scrollTop(editorState.scrollTop ? 0)
     @scroller.scrollLeft(editorState.scrollLeft ? 0)
 
-  setEditorState: (editorState) ->
-    buffer = editorState.buffer ? new Buffer
-    @editorStatesByBufferId[buffer.id] = editorState
+  setEditorState: (editorState={}) ->
+    buffer = editorState.buffer ?= new Buffer
+    @setEditorStateForBuffer(buffer, editorState)
     @setBuffer(buffer)
 
   getEditorState: ->
@@ -235,7 +250,7 @@ class Editor extends View
     scrollLeft: @scroller.scrollLeft()
 
   saveEditorStateForCurrentBuffer: ->
-    @editorStatesByBufferId[@buffer.id] = @getEditorState()
+    @setEditorStateForBuffer(@buffer, @getEditorState())
 
   handleBufferChange: (e) ->
     @compositeCursor.handleBufferChange(e)
