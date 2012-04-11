@@ -290,7 +290,7 @@ describe "RootView", ->
         expect(editor5.outerHeight()).toBe Math.floor(1/3 * rootView.height())
 
     describe "when close is triggered on an editor pane", ->
-      it "adjusts the layout, focuses the next most-recently active editor, and closes the window when there are no remaining editors", ->
+      it "adjusts the layout, focuses the next most-recently active editor, and focuses the RootView when there are no remaining editors", ->
         spyOn(window, 'close')
         editor = rootView.find('.editor').view()
         editor.trigger 'split-right'
@@ -305,18 +305,19 @@ describe "RootView", ->
         expect(editor2.outerWidth()).toBe Math.floor(rootView.width() / 3)
         expect(editor3.outerWidth()).toBe Math.floor(rootView.width() / 3)
 
-        # editor3.trigger 'close'
-        # expect(editor1.isFocused).toBeTruthy()
-        # expect(editor1.outerWidth()).toBe Math.floor(rootView.width() / 2)
-        # expect(editor2.outerWidth()).toBe Math.floor(rootView.width() / 2)
+        editor3.trigger 'close'
+        expect(editor1.isFocused).toBeTruthy()
+        expect(editor1.outerWidth()).toBe Math.floor(rootView.width() / 2)
+        expect(editor2.outerWidth()).toBe Math.floor(rootView.width() / 2)
 
-        # editor1.trigger 'close'
-        # expect(editor2.isFocused).toBeTruthy()
-        # expect(editor2.outerWidth()).toBe Math.floor(rootView.width())
+        editor1.trigger 'close'
+        expect(editor2.isFocused).toBeTruthy()
+        expect(editor2.outerWidth()).toBe Math.floor(rootView.width())
 
-        # expect(window.close).not.toHaveBeenCalled()
-        # editor2.trigger 'close'
-        # expect(window.close).toHaveBeenCalled()
+        expect(window.close).not.toHaveBeenCalled()
+        editor2.trigger 'close'
+
+        expect(rootView).toMatchSelector(':focus')
 
       it "removes a containing row if it becomes empty", ->
         editor = rootView.find('.editor').view()

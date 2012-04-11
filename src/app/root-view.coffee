@@ -66,7 +66,7 @@ class RootView extends View
     if @editors().length
       @editors()[0].focus()
     else
-      window.close()
+      @focus()
 
   setTitle: (title='untitled') ->
     document.title = title
