@@ -166,7 +166,7 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    @one 'attach', =>
+    @on 'attach', =>
       @calculateDimensions()
       @hiddenInput.width(@charWidth)
       @setMaxLineLength() if @softWrap
