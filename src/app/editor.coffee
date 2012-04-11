@@ -85,6 +85,7 @@ class Editor extends View
     @on 'split-down', => @splitDown()
     @on 'close', => @remove(); false
     @on 'show-next-buffer', => @loadNextEditorState()
+    @on 'show-previous-buffer', => @loadPreviousEditorState()
 
     @on 'move-to-top', => @moveCursorToTop()
     @on 'move-to-bottom', => @moveCursorToBottom()
@@ -250,6 +251,12 @@ class Editor extends View
     if index?
       nextIndex = (index + 1) % @editorStates.length
       @setEditorState(@editorStates[nextIndex])
+
+  loadPreviousEditorState: ->
+    index = @indexOfEditorState(@getEditorState())
+    if index?
+      previousIndex = if --index >= 0 then index else @editorStates.length - 1
+      @setEditorState(@editorStates[previousIndex])
 
   setEditorState: (editorState={}) ->
     buffer = editorState.buffer ?= new Buffer

@@ -2097,8 +2097,7 @@ describe "Editor", ->
       editor.buffer.setPath("new.txt")
       expect(eventHandler).toHaveBeenCalled()
 
-
-  fdescribe ".loadNextEditorState()", ->
+  describe ".loadNextEditorState()", ->
     it "loads the next editor state and wraps to beginning when end is reached", ->
       buffer0 = new Buffer("0")
       buffer1 = new Buffer("1")
@@ -2113,4 +2112,21 @@ describe "Editor", ->
       editor.loadNextEditorState()
       expect(editor.buffer.path).toBe "1"
       editor.loadNextEditorState()
+      expect(editor.buffer.path).toBe "2"
+
+  describe ".loadPreviousEditorState()", ->
+    it "loads the next editor state and wraps to beginning when end is reached", ->
+      buffer0 = new Buffer("0")
+      buffer1 = new Buffer("1")
+      buffer2 = new Buffer("2")
+      editor = new Editor {buffer: buffer0}
+      editor.setBuffer(buffer1)
+      editor.setBuffer(buffer2)
+
+      expect(editor.buffer.path).toBe "2"
+      editor.loadPreviousEditorState()
+      expect(editor.buffer.path).toBe "1"
+      editor.loadPreviousEditorState()
+      expect(editor.buffer.path).toBe "0"
+      editor.loadPreviousEditorState()
       expect(editor.buffer.path).toBe "2"
