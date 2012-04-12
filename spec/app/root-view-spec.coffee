@@ -394,11 +394,11 @@ describe "RootView", ->
         expect(editor1.buffer.path).not.toBe expectedPath
         expect(editor2.buffer.path).not.toBe expectedPath
 
-        # debugger
         rootView.fileFinder.trigger 'file-finder:select-file'
 
         expect(editor1.buffer.path).not.toBe expectedPath
         expect(editor2.buffer.path).toBe expectedPath
+        expect(editor2.isFocused).toBeTruthy()
 
   describe "keymap wiring", ->
     commandHandler = null

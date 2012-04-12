@@ -71,3 +71,7 @@ class FileFinder extends View
       paths = (pathAndScore.path for pathAndScore in scoredPaths when pathAndScore.score > 0)
 
     paths.slice 0, @maxResults
+
+  remove: ->
+    $('#panes .editor.active').focus()
+    super
