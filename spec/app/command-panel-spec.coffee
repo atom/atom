@@ -39,6 +39,12 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:repeat-relative-address'
       expect(commandPanel.commandInterpreter.repeatRelativeAddress).toHaveBeenCalledWith(rootView.activeEditor())
 
+  describe "when command-panel:find-in-file is triggered on an editor", ->
+    it "pre-populates command panel's editor with /", ->
+      rootView.activeEditor().trigger "command-panel:find-in-file"
+      expect(rootView.commandPanel.parent).not.toBeEmpty()
+      expect(rootView.commandPanel.editor.getText()).toBe "/"
+
   describe "when esc is pressed in the command panel", ->
     it "closes the command panel", ->
       rootView.trigger 'command-panel:toggle'

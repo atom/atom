@@ -2,7 +2,6 @@ window.keymap.bindKeys '*'
   'meta-s': 'save'
   'meta-w': 'close'
   'alt-meta-i': 'show-console'
-  'meta-f': 'find-in-file'
 
 window.keymap.bindKeys '.editor',
   'meta-s': 'save'

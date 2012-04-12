@@ -7,3 +7,4 @@ window.keymap.bindKeys '.command-panel .editor',
 
 window.keymap.bindKeys '.editor',
   'meta-g': 'command-panel:repeat-relative-address'
+  'meta-f': 'command-panel:find-in-file'

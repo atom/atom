@@ -21,8 +21,6 @@ class RootView extends View
   initialize: ({ pathToOpen, projectPath, panesViewState }) ->
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', => window.showConsole()
-    @on 'find-in-file', => @commandPanel.show("/")
-
     @one 'attach', => @focus()
     @on 'focus', (e) =>
       if @editors().length
@@ -36,7 +34,7 @@ class RootView extends View
     else if pathToOpen?
       @project = new Project(fs.directory(pathToOpen))
       @open(pathToOpen) if fs.isFile(pathToOpen)
-    else if not panesViewState
+    else if not panesViewState?
       @activeEditor().setBuffer(new Buffer)
 
     @deserializePanes(panesViewState) if panesViewState

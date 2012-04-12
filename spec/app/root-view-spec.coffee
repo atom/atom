@@ -400,13 +400,6 @@ describe "RootView", ->
         expect(editor1.buffer.path).not.toBe expectedPath
         expect(editor2.buffer.path).toBe expectedPath
 
-  describe "text search", ->
-    describe "when find event is triggered", ->
-      it "pre-populates command panel's editor with /", ->
-        rootView.trigger "find-in-file"
-        expect(rootView.commandPanel.parent).not.toBeEmpty()
-        expect(rootView.commandPanel.editor.getText()).toBe "/"
-
   describe "keymap wiring", ->
     commandHandler = null
     beforeEach ->
