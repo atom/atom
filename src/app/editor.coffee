@@ -506,15 +506,17 @@ class Editor extends View
   split: (axis, side) ->
     return unless rootView = @rootView()
     editor = new Editor(@getEditorState())
-    rootView.addPane(editor, this, axis, side)
+    rootView.addPane(editor, this.parent(), axis, side)
 
   remove: (selector, keepData) ->
     return super if keepData
     @unsubscribeFromBuffer()
     rootView = @rootView()
-    parent = @parent()
+    pane = @parent('.pane')
+    paneParent = pane.parent()
     super
-    parent.remove() if parent.is('.row:empty, .column:empty')
+    pane.remove()
+    paneParent.remove() if paneParent.is('.row:empty, .column:empty')
     rootView?.editorRemoved(this)
 
   unsubscribeFromBuffer: ->

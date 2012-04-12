@@ -99,10 +99,10 @@ describe "RootView", ->
       rootView.setWindowState(windowState)
       expect(rootView.editors().length).toBe 4
 
-      editor1 = rootView.panes.find('.row > .editor:eq(0)').view()
-      editor3 = rootView.panes.find('.row > .editor:eq(1)').view()
-      editor2 = rootView.panes.find('.row > .column > .editor:eq(0)').view()
-      editor4 = rootView.panes.find('.row > .column > .editor:eq(1)').view()
+      editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
+      editor3 = rootView.panes.find('.row > .pane .editor:eq(1)').view()
+      editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
+      editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
 
       expect(editor1.buffer.path).toBe require.resolve('fixtures/dir/a')
       expect(editor2.buffer.path).toBe require.resolve('fixtures/dir/b')
@@ -143,16 +143,19 @@ describe "RootView", ->
           editor1.trigger 'split-right'
 
           expect(rootView.find('.row')).toExist()
-          expect(rootView.find('.row .editor').length).toBe 2
+          expect(rootView.find('.row .pane .editor').length).toBe 2
           expect(rootView.find('.row .editor:eq(0)').view()).toBe editor1
+
           editor2 = rootView.find('.row .editor:eq(1)').view()
+
           expect(editor2.buffer).toBe editor1.buffer
           expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
 
+          [pane1, pane2] = [editor1.parent(), editor2.parent()]
           expectedColumnWidth = Math.floor(rootView.width() / 2)
-          expect(editor1.outerWidth()).toBe expectedColumnWidth
-          expect(editor2.position().left).toBe expectedColumnWidth
-          expect(editor2.outerWidth()).toBe expectedColumnWidth
+          expect(pane1.outerWidth()).toBe expectedColumnWidth
+          expect(pane2.position().left).toBe expectedColumnWidth
+          expect(pane2.outerWidth()).toBe expectedColumnWidth
 
           expect(editor1.has(':focus')).not.toExist()
           expect(editor2.has(':focus')).toExist()
@@ -175,10 +178,11 @@ describe "RootView", ->
           expect(editor2.buffer).toBe editor1.buffer
           expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
 
+          [pane1, pane2] = [editor1.parent(), editor2.parent()]
           expectedColumnWidth = Math.floor(rootView.width() / 2)
-          expect(editor2.outerWidth()).toBe expectedColumnWidth
-          expect(editor1.position().left).toBe expectedColumnWidth
-          expect(editor1.outerWidth()).toBe expectedColumnWidth
+          expect(pane2.outerWidth()).toBe expectedColumnWidth
+          expect(pane1.position().left).toBe expectedColumnWidth
+          expect(pane1.outerWidth()).toBe expectedColumnWidth
 
           expect(editor1.has(':focus')).not.toExist()
           expect(editor2.has(':focus')).toExist()
@@ -202,10 +206,11 @@ describe "RootView", ->
           expect(editor2.buffer).toBe editor1.buffer
           expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
 
+          [pane1, pane2] = [editor1.parent(), editor2.parent()]
           expectedRowHeight = Math.floor(rootView.height() / 2)
-          expect(editor2.outerHeight()).toBe expectedRowHeight
-          expect(editor1.position().top).toBe expectedRowHeight
-          expect(editor1.outerHeight()).toBe expectedRowHeight
+          expect(pane2.outerHeight()).toBe expectedRowHeight
+          expect(pane1.position().top).toBe expectedRowHeight
+          expect(pane1.outerHeight()).toBe expectedRowHeight
 
           expect(editor1.has(':focus')).not.toExist()
           expect(editor2.has(':focus')).toExist()
@@ -228,10 +233,11 @@ describe "RootView", ->
           expect(editor2.buffer).toBe editor1.buffer
           expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
 
+          [pane1, pane2] = [editor1.parent(), editor2.parent()]
           expectedRowHeight = Math.floor(rootView.height() / 2)
-          expect(editor1.outerHeight()).toBe expectedRowHeight
-          expect(editor2.position().top).toBe expectedRowHeight
-          expect(editor2.outerHeight()).toBe expectedRowHeight
+          expect(pane1.outerHeight()).toBe expectedRowHeight
+          expect(pane2.position().top).toBe expectedRowHeight
+          expect(pane2.outerHeight()).toBe expectedRowHeight
 
           expect(editor1.has(':focus')).not.toExist()
           expect(editor2.has(':focus')).toExist()
@@ -255,39 +261,39 @@ describe "RootView", ->
         row1 = rootView.panes.children(':eq(0)')
         expect(row1.children().length).toBe 2
         column1 = row1.children(':eq(0)')
-        editor1 = row1.children(':eq(1)')
+        pane1 = row1.children(':eq(1)')
         expect(column1.outerWidth()).toBe Math.floor(2/3 * rootView.width())
         expect(column1.outerHeight()).toBe rootView.height()
-        expect(editor1.outerWidth()).toBe Math.floor(1/3 * rootView.width())
-        expect(editor1.outerHeight()).toBe rootView.height()
-        expect(editor1.position().left).toBe column1.outerWidth()
+        expect(pane1.outerWidth()).toBe Math.floor(1/3 * rootView.width())
+        expect(pane1.outerHeight()).toBe rootView.height()
+        expect(pane1.position().left).toBe column1.outerWidth()
 
         expect(column1.children().length).toBe 2
         row2 = column1.children(':eq(0)')
-        editor2 = column1.children(':eq(1)')
+        pane2 = column1.children(':eq(1)')
         expect(row2.outerWidth()).toBe column1.outerWidth()
         expect(row2.height()).toBe Math.floor(2/3 * rootView.height())
-        expect(editor2.outerWidth()).toBe column1.outerWidth()
-        expect(editor2.outerHeight()).toBe Math.floor(1/3 * rootView.height())
-        expect(editor2.position().top).toBe row2.height()
+        expect(pane2.outerWidth()).toBe column1.outerWidth()
+        expect(pane2.outerHeight()).toBe Math.floor(1/3 * rootView.height())
+        expect(pane2.position().top).toBe row2.height()
 
         expect(row2.children().length).toBe 2
         column3 = row2.children(':eq(0)')
-        editor3 = row2.children(':eq(1)')
+        pane3 = row2.children(':eq(1)')
         expect(column3.outerWidth()).toBe Math.floor(1/3 * rootView.width())
         expect(column3.outerHeight()).toBe row2.outerHeight()
-        expect(editor3.outerWidth()).toBe Math.floor(1/3 * rootView.width())
-        expect(editor3.height()).toBe row2.outerHeight()
-        expect(editor3.position().left).toBe column3.width()
+        expect(pane3.outerWidth()).toBe Math.floor(1/3 * rootView.width())
+        expect(pane3.height()).toBe row2.outerHeight()
+        expect(pane3.position().left).toBe column3.width()
 
         expect(column3.children().length).toBe 2
-        editor4 = column3.children(':eq(0)')
-        editor5 = column3.children(':eq(1)')
-        expect(editor4.outerWidth()).toBe column3.width()
-        expect(editor4.outerHeight()).toBe Math.floor(1/3 * rootView.height())
-        expect(editor5.outerWidth()).toBe column3.width()
-        expect(editor5.position().top).toBe editor4.outerHeight()
-        expect(editor5.outerHeight()).toBe Math.floor(1/3 * rootView.height())
+        pane4 = column3.children(':eq(0)')
+        pane5 = column3.children(':eq(1)')
+        expect(pane4.outerWidth()).toBe column3.width()
+        expect(pane4.outerHeight()).toBe Math.floor(1/3 * rootView.height())
+        expect(pane5.outerWidth()).toBe column3.width()
+        expect(pane5.position().top).toBe pane4.outerHeight()
+        expect(pane5.outerHeight()).toBe Math.floor(1/3 * rootView.height())
 
     describe "when close is triggered on an editor pane", ->
       it "adjusts the layout, focuses the next most-recently active editor, and focuses the RootView when there are no remaining editors", ->
@@ -298,21 +304,24 @@ describe "RootView", ->
         editor.trigger 'split-right'
 
         [editor1, editor2, editor3, editor4] = rootView.find('.editor').map -> $(this).view()
+        [pane1, pane2, pane3, pane4] = [editor1.parent(), editor2.parent(), editor3.parent(), editor4.parent()]
 
+        editor4.focus()
         editor4.trigger 'close'
         expect(editor1.isFocused).toBeTruthy()
-        expect(editor1.outerWidth()).toBe Math.floor(rootView.width() / 3)
-        expect(editor2.outerWidth()).toBe Math.floor(rootView.width() / 3)
-        expect(editor3.outerWidth()).toBe Math.floor(rootView.width() / 3)
+        expect(pane1.outerWidth()).toBe Math.floor(rootView.width() / 3)
+        expect(pane2.outerWidth()).toBe Math.floor(rootView.width() / 3)
+        expect(pane3.outerWidth()).toBe Math.floor(rootView.width() / 3)
 
+        editor3.focus()
         editor3.trigger 'close'
         expect(editor1.isFocused).toBeTruthy()
-        expect(editor1.outerWidth()).toBe Math.floor(rootView.width() / 2)
-        expect(editor2.outerWidth()).toBe Math.floor(rootView.width() / 2)
+        expect(pane1.outerWidth()).toBe Math.floor(rootView.width() / 2)
+        expect(pane2.outerWidth()).toBe Math.floor(rootView.width() / 2)
 
         editor1.trigger 'close'
         expect(editor2.isFocused).toBeTruthy()
-        expect(editor2.outerWidth()).toBe Math.floor(rootView.width())
+        expect(pane2.outerWidth()).toBe Math.floor(rootView.width())
 
         expect(window.close).not.toHaveBeenCalled()
         editor2.trigger 'close'

@@ -9,6 +9,7 @@ window.showConsole()
 
 beforeEach ->
   window.resetTimeouts()
+  delete atom.windowStatesByWindowNumber[$windowNumber]
 
 afterEach ->
   $('#jasmine-content').empty()

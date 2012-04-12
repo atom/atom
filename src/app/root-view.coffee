@@ -10,6 +10,7 @@ FileFinder = require 'file-finder'
 Project = require 'project'
 VimMode = require 'vim-mode'
 CommandPanel = require 'command-panel'
+Pane = require 'pane'
 
 module.exports =
 class RootView extends View
@@ -79,11 +80,15 @@ class RootView extends View
     if editor.length
       editor.view()
     else
-      new Editor().appendTo(@panes).focus()
+      editor = new Editor
+      pane = new Pane(editor)
+      @panes.append(pane)
+      editor.focus()
+      editor
 
   getWindowState: (element = @panes.children(':eq(0)')) ->
-    if element.hasClass('editor')
-      ['editor', element.view().getEditorState()]
+    if element.hasClass('pane')
+      ['editor', element.view().content.getEditorState()]
     else if element.hasClass('row')
       ['row'].concat element.children().toArray().map (elt) =>
         @getWindowState($(elt))
@@ -100,8 +105,8 @@ class RootView extends View
 
     switch windowState.shift()
       when 'editor'
-        editor = new Editor(windowState[0])
-        parent.append(editor)
+        editor = new Editor(windowState...)
+        parent.append(new Pane(editor))
       when 'row'
         row = $$ -> @div class: 'row'
         parent.append row
@@ -119,7 +124,8 @@ class RootView extends View
     unless sibling.parent().hasClass(axis)
       container = $$ -> @div class: axis
       container.insertBefore(sibling).append(sibling.detach())
-    sibling[side](view)
+    pane = new Pane(view)
+    sibling[side](pane)
     @adjustSplitPanes()
     view
 
