@@ -1,5 +1,7 @@
+{View} = require 'space-pen'
+
 module.exports =
-class Pane
-  @content: (view) ->
+class Pane extends View
+  @content: (content) ->
     @div class: 'pane', =>
-      @subview 'view', view
+      @subview 'content', content
