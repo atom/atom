@@ -20,6 +20,9 @@ class RootView extends View
     @div id: 'root-view', tabindex: -1, =>
       @div id: 'panes', outlet: 'panes'
 
+  @deserialize: (viewState) ->
+    new RootView(viewState)
+
   initialize: ({ pathToOpen, projectPath, panesViewState }) ->
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', => window.showConsole()
@@ -57,7 +60,7 @@ class RootView extends View
       when 'Pane' then Pane.deserialize(viewState, this)
       when 'PaneRow' then PaneRow.deserialize(viewState, this)
       when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
-      when 'Editor' then new Editor(viewState)
+      when 'Editor' then Editor.deserialize(viewState)
 
   open: (path) ->
     @activeEditor().setBuffer(@project.open(path))

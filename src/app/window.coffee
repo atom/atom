@@ -36,8 +36,11 @@ windowAdditions =
     atom.windowClosed this
 
   attachRootView: (pathToOpen) ->
-    rootViewState = atom.rootViewStates[$windowNumber] or { pathToOpen }
-    @rootView = new RootView(rootViewState)
+    rootViewState = atom.rootViewStates[$windowNumber]
+    @rootView = if rootViewState
+      RootView.deserialize(rootViewState)
+    else
+      new RootView {pathToOpen}
     $(@rootViewParentSelector).append @rootView
 
   saveRootViewState: ->

@@ -39,6 +39,9 @@ class Editor extends View
   softTabs: true
   tabText: '  '
 
+  @deserialize: (viewState) ->
+    new Editor(viewState)
+
   initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
