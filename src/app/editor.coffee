@@ -61,7 +61,7 @@ class Editor extends View
 
   serialize: ->
     @saveCurrentEditSession()
-    { @editSessions, @activeEditSessionIndex, @isFocused }
+    { viewClass: "Editor", @editSessions, @activeEditSessionIndex, @isFocused }
 
   bindKeys: ->
     @on 'save', => @save()

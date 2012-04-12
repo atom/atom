@@ -2,6 +2,13 @@
 
 module.exports =
 class Pane extends View
-  @content: (content) ->
+  @content: (wrappedView) ->
     @div class: 'pane', =>
-      @subview 'content', content
+      @subview 'wrappedView', wrappedView
+
+  @deserialize: ({wrappedView}, rootView) ->
+    new Pane(rootView.deserializeView(wrappedView))
+
+  serialize: ->
+    viewClass: "Pane"
+    wrappedView: @wrappedView.serialize()

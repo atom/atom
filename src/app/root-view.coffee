@@ -11,6 +11,8 @@ Project = require 'project'
 VimMode = require 'vim-mode'
 CommandPanel = require 'command-panel'
 Pane = require 'pane'
+PaneColumn = require 'pane-column'
+PaneRow = require 'pane-row'
 
 module.exports =
 class RootView extends View
@@ -43,39 +45,19 @@ class RootView extends View
     projectPath: @project?.path
     panesViewState: @serializePanes()
 
-  serializePanes: (element = @panes.children(':eq(0)')) ->
-    if element.hasClass('pane')
-      ['editor', element.view().content.serialize()]
-    else if element.hasClass('row')
-      ['row'].concat element.children().toArray().map (elt) =>
-        @serializePanes($(elt))
-    else if element.hasClass('column')
-      ['column'].concat element.children().toArray().map (elt) =>
-        @serializePanes($(elt))
+  serializePanes: () ->
+    @panes.children().view().serialize()
 
-  deserializePanes: (panesViewState, parent) ->
-    adjustSplitPanes = false
-    unless parent
-      @panes.empty()
-      adjustSplitPanes = true
-      parent = @panes
+  deserializePanes: (panesViewState) ->
+    @panes.append @deserializeView(panesViewState)
+    @adjustSplitPanes()
 
-    switch panesViewState.shift()
-      when 'editor'
-        editor = new Editor(panesViewState...)
-        parent.append(new Pane(editor))
-      when 'row'
-        row = $$ -> @div class: 'row'
-        parent.append row
-        for child in panesViewState
-          @deserializePanes(child, row)
-      when 'column'
-        column = $$ -> @div class: 'column'
-        parent.append column
-        for child in panesViewState
-          @deserializePanes(child, column)
-
-    @adjustSplitPanes() if adjustSplitPanes
+  deserializeView: (viewState) ->
+    switch viewState.viewClass
+      when 'Pane' then Pane.deserialize(viewState, this)
+      when 'PaneRow' then PaneRow.deserialize(viewState, this)
+      when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
+      when 'Editor' then new Editor(viewState)
 
   open: (path) ->
     @activeEditor().setBuffer(@project.open(path))
@@ -120,10 +102,9 @@ class RootView extends View
         editor.focus()
         editor
 
-
   addPane: (view, sibling, axis, side) ->
     unless sibling.parent().hasClass(axis)
-      container = $$ -> @div class: axis
+      container = if axis == 'column' then new PaneColumn else new PaneRow
       container.insertBefore(sibling).append(sibling.detach())
     pane = new Pane(view)
     sibling[side](pane)
