@@ -43,10 +43,10 @@ body {
   -webkit-box-shadow: inset 0px 0px 2px 2px rgba(0, 0, 0, .1);
 }
 
-.row > .pane + .pane {
+.row > * + * {
   border-left: 5px solid #515151;
 }
 
-.column > .pane + .pane {
+.column > * + * {
   border-top: 5px solid #515151;
 }
