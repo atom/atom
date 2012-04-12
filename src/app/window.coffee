@@ -24,6 +24,7 @@ windowAdditions =
     @attachRootView(path)
     @loadUserConfiguration()
     $(window).on 'close', => @close()
+    $(window).on 'beforeunload', => @saveRootViewState()
     $(window).focus()
     atom.windowOpened this
 
@@ -31,11 +32,16 @@ windowAdditions =
     @rootView.remove()
     $(window).unbind('focus')
     $(window).unbind('blur')
+    $(window).off('before')
     atom.windowClosed this
 
-  attachRootView: (path) ->
-    @rootView = new RootView {path}
+  attachRootView: (pathToOpen) ->
+    rootViewState = atom.rootViewStates[$windowNumber] or { pathToOpen }
+    @rootView = new RootView(rootViewState)
     $(@rootViewParentSelector).append @rootView
+
+  saveRootViewState: ->
+    atom.rootViewStates[$windowNumber] = @rootView.serialize()
 
   loadUserConfiguration: ->
     try

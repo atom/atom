@@ -18,10 +18,7 @@ class RootView extends View
     @div id: 'root-view', tabindex: -1, =>
       @div id: 'panes', outlet: 'panes'
 
-  initialize: (params) ->
-    {path} = params
-    @createProject(path)
-
+  initialize: ({ pathToOpen, projectPath, panesViewState }) ->
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', => window.showConsole()
     @on 'find-in-file', => @commandPanel.show("/")
@@ -34,18 +31,53 @@ class RootView extends View
 
     @commandPanel = new CommandPanel({rootView: this})
 
-    $(window).on 'beforeunload', =>
-      atom.windowStatesByWindowNumber[$windowNumber] = @getWindowState()
+    if projectPath?
+      @project = new Project(projectPath)
+    else if pathToOpen?
+      @project = new Project(fs.directory(pathToOpen))
+      @open(pathToOpen) if fs.isFile(pathToOpen)
+    else if not panesViewState
+      @activeEditor().setBuffer(new Buffer)
 
-    if windowState = atom.windowStatesByWindowNumber[$windowNumber]
-      @setWindowState(windowState)
+    @deserializePanes(panesViewState) if panesViewState
 
-  createProject: (path) ->
-    if path
-      @project = new Project(fs.directory(path))
-      @open(path) if fs.isFile(path)
-    else
-      @activeEditor().setBuffer(new Buffer())
+  serialize: ->
+    projectPath: @project?.path
+    panesViewState: @serializePanes()
+
+  serializePanes: (element = @panes.children(':eq(0)')) ->
+    if element.hasClass('pane')
+      ['editor', element.view().content.getEditorState()]
+    else if element.hasClass('row')
+      ['row'].concat element.children().toArray().map (elt) =>
+        @serializePanes($(elt))
+    else if element.hasClass('column')
+      ['column'].concat element.children().toArray().map (elt) =>
+        @serializePanes($(elt))
+
+  deserializePanes: (panesViewState, parent) ->
+    adjustSplitPanes = false
+    unless parent
+      @panes.empty()
+      adjustSplitPanes = true
+      parent = @panes
+
+    switch panesViewState.shift()
+      when 'editor'
+        editor = new Editor(panesViewState...)
+        parent.append(new Pane(editor))
+      when 'row'
+        row = $$ -> @div class: 'row'
+        parent.append row
+        for child in panesViewState
+          @deserializePanes(child, row)
+      when 'column'
+        column = $$ -> @div class: 'column'
+        parent.append column
+        for child in panesViewState
+          @deserializePanes(child, column)
+
+    @adjustSplitPanes() if adjustSplitPanes
 
   open: (path) ->
     @activeEditor().setBuffer(@project.open(path))
@@ -80,45 +112,16 @@ class RootView extends View
     if editor.length
       editor.view()
     else
-      editor = new Editor
-      pane = new Pane(editor)
-      @panes.append(pane)
-      editor.focus()
-      editor
+      editor = @panes.find('.editor:first')
+      if editor.length
+        editor.view()
+      else
+        editor = new Editor
+        pane = new Pane(editor)
+        @panes.append(pane)
+        editor.focus()
+        editor
 
-  getWindowState: (element = @panes.children(':eq(0)')) ->
-    if element.hasClass('pane')
-      ['editor', element.view().content.getEditorState()]
-    else if element.hasClass('row')
-      ['row'].concat element.children().toArray().map (elt) =>
-        @getWindowState($(elt))
-    else if element.hasClass('column')
-      ['column'].concat element.children().toArray().map (elt) =>
-        @getWindowState($(elt))
-
-  setWindowState: (windowState, parent) ->
-    adjustSplitPanes = false
-    unless parent
-      @panes.empty()
-      adjustSplitPanes = true
-      parent = @panes
-
-    switch windowState.shift()
-      when 'editor'
-        editor = new Editor(windowState...)
-        parent.append(new Pane(editor))
-      when 'row'
-        row = $$ -> @div class: 'row'
-        parent.append row
-        for child in windowState
-          @setWindowState(child, row)
-      when 'column'
-        column = $$ -> @div class: 'column'
-        parent.append column
-        for child in windowState
-          @setWindowState(child, column)
-
-    @adjustSplitPanes() if adjustSplitPanes
 
   addPane: (view, sibling, axis, side) ->
     unless sibling.parent().hasClass(axis)

@@ -30,3 +30,14 @@ describe "Window", ->
 
         requireStylesheet('atom.css')
         expect($('head style').length).toBe 1
+
+    describe "before the window is unloaded", ->
+      afterEach ->
+        delete atom.rootViewStates[$windowNumber]
+
+      it "saves the serialized state of the root view to the atom object so it can be rehydrated after reload", ->
+        expect(atom.rootViewStates[$windowNumber]).toBeUndefined()
+        $(window).trigger 'beforeunload'
+        expect(atom.rootViewStates[$windowNumber]).toEqual window.rootView.serialize()
+
+

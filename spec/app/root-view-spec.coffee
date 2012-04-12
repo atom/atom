@@ -11,55 +11,99 @@ describe "RootView", ->
 
   beforeEach ->
     path = require.resolve 'fixtures/dir/a'
-    rootView = new RootView({path})
+    rootView = new RootView(pathToOpen: path)
     rootView.enableKeymap()
     project = rootView.project
 
-  describe "initialize", ->
-    describe "when called with a path that references a file", ->
-      it "creates a project for the file's parent directory and opens it in the editor", ->
-        expect(rootView.project.path).toBe fs.directory(path)
-        expect(rootView.activeEditor().buffer.getPath()).toBe path
+  describe "initialize(viewState)", ->
+    describe "when called with a pathToOpen", ->
+      describe "when pathToOpen references a file", ->
+        it "creates a project for the file's parent directory and opens it in the editor", ->
+          expect(rootView.project.path).toBe fs.directory(path)
+          expect(rootView.editors().length).toBe 1
+          expect(rootView.editors()[0]).toHaveClass 'active'
+          expect(rootView.activeEditor().buffer.getPath()).toBe path
 
-    describe "when called with a path that references a directory", ->
-      it "creates a project for the directory and opens an empty buffer", ->
-        path = require.resolve 'fixtures/dir/'
-        rootView = new RootView({path})
+      describe "when pathToOpen references a directory", ->
+        it "creates a project for the directory does not open an editor", ->
+          path = require.resolve 'fixtures/dir/'
+          rootView = new RootView(pathToOpen: path)
 
-        expect(rootView.project.path).toBe path
-        expect(rootView.activeEditor().buffer.path).toBeUndefined()
+          expect(rootView.project.path).toBe path
+          expect(rootView.editors().length).toBe 0
 
-    describe "when not called with a path", ->
+    describe "when called with view state data returned from a previous call to RootView.prototype.serialize", ->
+      viewState = null
+
+      describe "when the serialized RootView does not have a project, only an unsaved buffer", ->
+        buffer = null
+
+        beforeEach ->
+          rootView = new RootView
+          editor1 = rootView.activeEditor()
+          buffer = editor1.buffer
+          editor1.splitRight()
+          viewState = rootView.serialize()
+
+        it "constructs the view with the same panes", ->
+          rootView = new RootView(viewState)
+          expect(rootView.project).toBeUndefined()
+          expect(rootView.editors().length).toBe 2
+
+      describe "when the serialized RootView has a project", ->
+        beforeEach ->
+          editor1 = rootView.activeEditor()
+          editor2 = editor1.splitRight()
+          editor3 = editor2.splitRight()
+          editor4 = editor2.splitDown()
+          editor2.setBuffer(new Buffer(require.resolve 'fixtures/dir/b'))
+          editor3.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
+          editor3.setCursorScreenPosition([2, 3])
+          editor4.setBuffer(new Buffer(require.resolve 'fixtures/sample.txt'))
+          editor4.setCursorScreenPosition([0, 2])
+          rootView.attachToDom()
+          editor2.focus()
+          viewState = rootView.serialize()
+          rootView.remove()
+
+        it "constructs the view with the same project and panes", ->
+          rootView = new RootView(viewState)
+          rootView.attachToDom()
+
+          expect(rootView.editors().length).toBe 4
+          editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
+          editor3 = rootView.panes.find('.row > .pane .editor:eq(1)').view()
+          editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
+          editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
+
+          expect(editor1.buffer.path).toBe require.resolve('fixtures/dir/a')
+          expect(editor2.buffer.path).toBe require.resolve('fixtures/dir/b')
+          expect(editor3.buffer.path).toBe require.resolve('fixtures/sample.js')
+          expect(editor3.getCursorScreenPosition()).toEqual [2, 3]
+          expect(editor4.buffer.path).toBe require.resolve('fixtures/sample.txt')
+          expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
+
+          # ensure adjustSplitPanes is called
+          expect(editor1.width()).toBeGreaterThan 0
+          expect(editor2.width()).toBeGreaterThan 0
+          expect(editor3.width()).toBeGreaterThan 0
+          expect(editor4.width()).toBeGreaterThan 0
+
+          # ensure correct editor is focused again
+          expect(editor2.isFocused).toBeTruthy()
+          expect(editor1.isFocused).toBeFalsy()
+          expect(editor3.isFocused).toBeFalsy()
+          expect(editor4.isFocused).toBeFalsy()
+
+    describe "when called with no state data", ->
       it "opens an empty buffer", ->
         rootView = new RootView
         expect(rootView.editors().length).toBe 1
         expect(rootView.activeEditor().buffer.path).toBeUndefined()
 
-    describe "when there is a window state for the current window stored on the atom object", ->
-      it "sets the window state on the root view", ->
-        spyOn(RootView.prototype, 'setWindowState')
-
-  describe "when the window is reloaded", ->
-    afterEach ->
-      delete atom.windowStatesByWindowNumber[$windowNumber]
-
-    it "stores its window state on the atom object by window number, then reassigns it next time the root view is constructed", ->
-      rootView.activeEditor().splitLeft()
-      expectedWindowState = rootView.getWindowState()
-
-      # simulate unload
-      $(window).trigger 'beforeunload'
-      expect(atom.windowStatesByWindowNumber[$windowNumber]).toEqual expectedWindowState
-
-      # simulate reload
-      newRootView = new RootView
-
-      expect(newRootView.getWindowState()).toEqual expectedWindowState
-      expect(newRootView.editors().length).toBe 2
-
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
-      rootView = new RootView({path: require.resolve 'fixtures'})
+      rootView = new RootView(pathToOpen: require.resolve 'fixtures')
       rootView.attachToDom()
       expect(rootView).toMatchSelector(':focus')
 
@@ -70,59 +114,6 @@ describe "RootView", ->
       rootView.focus()
       expect(rootView).not.toMatchSelector(':focus')
       expect(rootView.activeEditor().isFocused).toBeTruthy()
-
-  describe "windowState getter and setter", ->
-    [editor1, editor2, editor3, editor4, panesHtml] = []
-
-    beforeEach ->
-      editor1 = rootView.activeEditor()
-      editor2 = editor1.splitRight()
-      editor3 = editor2.splitRight()
-      editor4 = editor2.splitDown()
-      editor2.setBuffer(new Buffer(require.resolve 'fixtures/dir/b'))
-      editor3.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
-      editor3.setCursorScreenPosition([2, 3])
-      editor4.setBuffer(new Buffer(require.resolve 'fixtures/sample.txt'))
-      editor4.setCursorScreenPosition([0, 2])
-      rootView.attachToDom()
-      editor2.focus()
-      panesHtml = rootView.panes.html()
-
-    it "can reconstruct the split pane arrangement from the window state hash returned by getWindowState", ->
-      windowState = rootView.getWindowState()
-
-      editor2.remove()
-      editor3.remove()
-      editor4.remove()
-      expect(rootView.panes.find('.editor').length).toBe 1
-
-      rootView.setWindowState(windowState)
-      expect(rootView.editors().length).toBe 4
-
-      editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
-      editor3 = rootView.panes.find('.row > .pane .editor:eq(1)').view()
-      editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
-      editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
-
-      expect(editor1.buffer.path).toBe require.resolve('fixtures/dir/a')
-      expect(editor2.buffer.path).toBe require.resolve('fixtures/dir/b')
-      expect(editor3.buffer.path).toBe require.resolve('fixtures/sample.js')
-      expect(editor3.getCursorScreenPosition()).toEqual [2, 3]
-      expect(editor4.buffer.path).toBe require.resolve('fixtures/sample.txt')
-      expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
-
-      # ensure adjustSplitPanes is called
-      expect(editor1.width()).toBeGreaterThan 0
-      expect(editor2.width()).toBeGreaterThan 0
-      expect(editor3.width()).toBeGreaterThan 0
-      expect(editor4.width()).toBeGreaterThan 0
-
-      # ensure correct editor is focused again
-      expect(editor2.isFocused).toBeTruthy()
-      expect(editor1.isFocused).toBeFalsy()
-      expect(editor3.isFocused).toBeFalsy()
-      expect(editor4.isFocused).toBeFalsy()
-
 
   describe "split editor panes", ->
     editor1 = null

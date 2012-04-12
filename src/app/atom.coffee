@@ -10,12 +10,13 @@ class Atom
   keymap: null
   windows: null
   userConfigurationPath: null
+  rootViewStates: null
 
   constructor: (@loadPath, nativeMethods)->
     @windows = []
     @setUpKeymap()
     @userConfigurationPath = fs.absolute "~/.atom/atom.coffee"
-    @windowStatesByWindowNumber = {}
+    @rootViewStates = {}
 
   setUpKeymap: ->
     @keymap = new Keymap()
