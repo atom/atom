@@ -45,7 +45,7 @@ class RootView extends View
 
   serializePanes: (element = @panes.children(':eq(0)')) ->
     if element.hasClass('pane')
-      ['editor', element.view().content.getEditorState()]
+      ['editor', element.view().content.serialize()]
     else if element.hasClass('row')
       ['row'].concat element.children().toArray().map (elt) =>
         @serializePanes($(elt))

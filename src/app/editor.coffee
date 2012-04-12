@@ -39,7 +39,7 @@ class Editor extends View
   softTabs: true
   tabText: '  '
 
-  initialize: (editorState) ->
+  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -48,8 +48,20 @@ class Editor extends View
     @autoIndent = true
     @buildCursorAndSelection()
     @handleEvents()
-    @editorStates = []
-    @setEditorState(editorState)
+
+    @editSessions = editSessions ? []
+    if activeEditSessionIndex?
+      @loadEditSession(activeEditSessionIndex)
+    else if buffer?
+      @setBuffer(buffer)
+    else
+      @setBuffer(new Buffer)
+
+    @isFocused = isFocused if isFocused?
+
+  serialize: ->
+    @saveCurrentEditSession()
+    { @editSessions, @activeEditSessionIndex, @isFocused }
 
   bindKeys: ->
     @on 'save', => @save()
@@ -84,8 +96,8 @@ class Editor extends View
     @on 'split-up', => @splitUp()
     @on 'split-down', => @splitDown()
     @on 'close', => @remove(); false
-    @on 'show-next-buffer', => @loadNextEditorState()
-    @on 'show-previous-buffer', => @loadPreviousEditorState()
+    @on 'show-next-buffer', => @loadNextEditSession()
+    @on 'show-previous-buffer', => @loadPreviousEditSession()
 
     @on 'move-to-top', => @moveCursorToTop()
     @on 'move-to-bottom', => @moveCursorToBottom()
@@ -203,7 +215,7 @@ class Editor extends View
 
   setBuffer: (buffer) ->
     if @buffer
-      @saveEditorStateForCurrentBuffer()
+      @saveCurrentEditSession()
       @unsubscribeFromBuffer()
 
     @buffer = buffer
@@ -214,65 +226,49 @@ class Editor extends View
     @renderLines()
     @gutter.renderLineNumbers()
 
-    @loadEditorStateForBuffer(@buffer)
+    @loadEditSessionForBuffer(@buffer)
 
     @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
 
-  getEditorStateForBuffer: (buffer) ->
-    _.find @editorStates, (editorState) =>
-      editorState.buffer.id == buffer.id
+  editSessionForBuffer: (buffer) ->
+    for editSession, index in @editSessions
+      return [editSession, index] if editSession.buffer == buffer
+    [undefined, -1]
 
-  setEditorStateForBuffer: (buffer, editorState) ->
-    editorState.buffer = buffer
-    index = @indexOfEditorState(editorState)
-    if index?
-      @editorStates[index] = editorState
+  loadEditSessionForBuffer: (buffer) ->
+    [editSession, index] = @editSessionForBuffer(buffer)
+    if editSession
+      @activeEditSessionIndex = index
     else
-      @editorStates.push(editorState)
+      @editSessions.push({ buffer })
+      @activeEditSessionIndex = @editSessions.length - 1
+    @loadEditSession()
 
-  indexOfEditorState: (editorState) ->
-    for o, i in @editorStates
-      return i if o.buffer.id == editorState.buffer.id
+  loadNextEditSession: ->
+    nextIndex = (@activeEditSessionIndex + 1) % @editSessions.length
+    @loadEditSession(nextIndex)
 
-    return null
+  loadPreviousEditSession: ->
+    previousIndex = @activeEditSessionIndex - 1
+    previousIndex = @editSessions.length - 1 if previousIndex < 0
+    @loadEditSession(previousIndex)
 
-  loadEditorStateForBuffer: (buffer) ->
-    editorState = @getEditorStateForBuffer(buffer)
-    if not editorState
-      editorState = {}
-      @setEditorStateForBuffer(buffer, editorState)
-    @setCursorScreenPosition(editorState.cursorScreenPosition ? [0, 0])
-    @scroller.scrollTop(editorState.scrollTop ? 0)
-    @scroller.scrollLeft(editorState.scrollLeft ? 0)
+  loadEditSession: (index=@activeEditSessionIndex) ->
+    editSession = @editSessions[index]
+    throw new Error("Edit session not found") unless editSession
+    @setBuffer(editSession.buffer) unless @buffer == editSession.buffer
+    @setCursorScreenPosition(editSession.cursorScreenPosition ? [0, 0])
+    @scroller.scrollTop(editSession.scrollTop ? 0)
+    @scroller.scrollLeft(editSession.scrollLeft ? 0)
+    @activeEditSessionIndex = index
 
-  loadNextEditorState: ->
-    index = @indexOfEditorState(@getEditorState())
-    if index?
-      nextIndex = (index + 1) % @editorStates.length
-      @setEditorState(@editorStates[nextIndex])
-
-  loadPreviousEditorState: ->
-    index = @indexOfEditorState(@getEditorState())
-    if index?
-      previousIndex = if --index >= 0 then index else @editorStates.length - 1
-      @setEditorState(@editorStates[previousIndex])
-
-  setEditorState: (editorState={}) ->
-    buffer = editorState.buffer ?= new Buffer
-    @setEditorStateForBuffer(buffer, editorState)
-    @setBuffer(buffer)
-    @isFocused = editorState.isFocused
-
-  getEditorState: ->
-    buffer: @buffer
-    cursorScreenPosition: @getCursorScreenPosition().copy()
-    scrollTop: @scroller.scrollTop()
-    scrollLeft: @scroller.scrollLeft()
-    isFocused: @isFocused
-
-  saveEditorStateForCurrentBuffer: ->
-    @setEditorStateForBuffer(@buffer, @getEditorState())
+  saveCurrentEditSession: ->
+    @editSessions[@activeEditSessionIndex] =
+      buffer: @buffer
+      cursorScreenPosition: @getCursorScreenPosition()
+      scrollTop: @scroller.scrollTop()
+      scrollLeft: @scroller.scrollLeft()
 
   handleBufferChange: (e) ->
     @compositeCursor.handleBufferChange(e)
@@ -505,7 +501,7 @@ class Editor extends View
 
   split: (axis, side) ->
     return unless rootView = @rootView()
-    editor = new Editor(@getEditorState())
+    editor = new Editor(@serialize())
     rootView.addPane(editor, this.parent(), axis, side)
 
   remove: (selector, keepData) ->

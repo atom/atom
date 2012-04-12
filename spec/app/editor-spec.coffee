@@ -2097,7 +2097,24 @@ describe "Editor", ->
       editor.buffer.setPath("new.txt")
       expect(eventHandler).toHaveBeenCalled()
 
-  describe ".loadNextEditorState()", ->
+  describe ".loadNextEditSession()", ->
+    it "loads the next editor state and wraps to beginning when end is reached", ->
+      buffer0 = new Buffer("0")
+      buffer1 = new Buffer("1")
+      buffer2 = new Buffer("2")
+      editor = new Editor(buffer: buffer0)
+      editor.setBuffer(buffer1)
+      editor.setBuffer(buffer2)
+
+      expect(editor.buffer.path).toBe "2"
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe "0"
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe "1"
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe "2"
+
+  describe ".loadPreviousEditSession()", ->
     it "loads the next editor state and wraps to beginning when end is reached", ->
       buffer0 = new Buffer("0")
       buffer1 = new Buffer("1")
@@ -2107,26 +2124,9 @@ describe "Editor", ->
       editor.setBuffer(buffer2)
 
       expect(editor.buffer.path).toBe "2"
-      editor.loadNextEditorState()
-      expect(editor.buffer.path).toBe "0"
-      editor.loadNextEditorState()
+      editor.loadPreviousEditSession()
       expect(editor.buffer.path).toBe "1"
-      editor.loadNextEditorState()
-      expect(editor.buffer.path).toBe "2"
-
-  describe ".loadPreviousEditorState()", ->
-    it "loads the next editor state and wraps to beginning when end is reached", ->
-      buffer0 = new Buffer("0")
-      buffer1 = new Buffer("1")
-      buffer2 = new Buffer("2")
-      editor = new Editor {buffer: buffer0}
-      editor.setBuffer(buffer1)
-      editor.setBuffer(buffer2)
-
-      expect(editor.buffer.path).toBe "2"
-      editor.loadPreviousEditorState()
-      expect(editor.buffer.path).toBe "1"
-      editor.loadPreviousEditorState()
+      editor.loadPreviousEditSession()
       expect(editor.buffer.path).toBe "0"
-      editor.loadPreviousEditorState()
+      editor.loadPreviousEditSession()
       expect(editor.buffer.path).toBe "2"
