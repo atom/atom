@@ -42,6 +42,8 @@ class RootView extends View
     else if not panesViewState?
       @activeEditor().setBuffer(new Buffer)
 
+    @setTitle(@project?.path)
+
     @deserializePanes(panesViewState) if panesViewState
 
   serialize: ->

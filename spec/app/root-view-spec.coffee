@@ -13,24 +13,27 @@ describe "RootView", ->
     path = require.resolve 'fixtures/dir/a'
     rootView = new RootView(pathToOpen: path)
     rootView.enableKeymap()
+    rootView.focus()
     project = rootView.project
 
   describe "initialize(viewState)", ->
     describe "when called with a pathToOpen", ->
       describe "when pathToOpen references a file", ->
-        it "creates a project for the file's parent directory and opens it in the editor", ->
+        it "creates a project for the file's parent directory, then sets the document.title and opens the file in an editor", ->
           expect(rootView.project.path).toBe fs.directory(path)
           expect(rootView.editors().length).toBe 1
           expect(rootView.editors()[0]).toHaveClass 'active'
           expect(rootView.activeEditor().buffer.getPath()).toBe path
+          expect(document.title).toBe path
 
       describe "when pathToOpen references a directory", ->
-        it "creates a project for the directory does not open an editor", ->
+        it "creates a project for the directory and sets the document.title, but does not open an editor", ->
           path = require.resolve 'fixtures/dir/'
           rootView = new RootView(pathToOpen: path)
 
           expect(rootView.project.path).toBe path
           expect(rootView.editors().length).toBe 0
+          expect(document.title).toBe path
 
     describe "when called with view state data returned from a previous call to RootView.prototype.serialize", ->
       viewState = null
@@ -49,6 +52,8 @@ describe "RootView", ->
           rootView = new RootView(viewState)
           expect(rootView.project).toBeUndefined()
           expect(rootView.editors().length).toBe 2
+          expect(rootView.activeEditor().buffer).toBe buffer
+          expect(document.title).toBe 'untitled'
 
       describe "when the serialized RootView has a project", ->
         beforeEach ->
@@ -95,11 +100,14 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
+          expect(document.title).toBe editor2.buffer.path
+
     describe "when called with no state data", ->
-      it "opens an empty buffer", ->
+      it "opens an empty buffer and sets the document.title to untitled", ->
         rootView = new RootView
         expect(rootView.editors().length).toBe 1
         expect(rootView.activeEditor().buffer.path).toBeUndefined()
+        expect(document.title).toBe 'untitled'
 
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
@@ -369,11 +377,8 @@ describe "RootView", ->
         rootView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
 
-  describe "document.title", ->
-    it "is set to activeEditor's buffer path", ->
-      expect(document.title).toBe path
-
-    it "only listens to focused editors path changes", ->
+  describe "when the path of the focused editor changes", ->
+    it "changes the document.title", ->
       editor1 = rootView.activeEditor()
       expect(document.title).toBe path
 
@@ -385,7 +390,3 @@ describe "RootView", ->
       editor1.buffer.setPath("should-not-be-title.txt")
       expect(document.title).toBe "second.txt"
 
-    it "sets title to 'untitled' when buffer's path is null", ->
-      editor = rootView.activeEditor()
-      editor.setBuffer(new Buffer())
-      expect(document.title).toBe "untitled"
