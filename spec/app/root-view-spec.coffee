@@ -89,7 +89,7 @@ describe "RootView", ->
           expect(editor4.buffer.path).toBe require.resolve('fixtures/sample.txt')
           expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
 
-          # ensure adjustSplitPanes is called
+          # ensure adjust pane dimensions is called
           expect(editor1.width()).toBeGreaterThan 0
           expect(editor2.width()).toBeGreaterThan 0
           expect(editor3.width()).toBeGreaterThan 0
@@ -182,6 +182,7 @@ describe "RootView", ->
           expect(rootView.panes.find('.row')).not.toExist()
           expect(rootView.panes.find('.pane').length).toBe 1
           expect(pane1.outerWidth()).toBe rootView.panes.width()
+          expect(pane1.position().left).toBe 0
 
     describe "horizontal splits", ->
       describe "when splitUp(view) is called on a pane", ->
@@ -207,6 +208,7 @@ describe "RootView", ->
           expect(rootView.panes.find('.column')).not.toExist()
           expect(rootView.panes.find('.pane').length).toBe 1
           expect(pane1.outerHeight()).toBe rootView.panes.height()
+          expect(pane1.position().top).toBe 0
 
       describe "when splitDown(view) is called on a pane", ->
         it "places a new pane below the current pane in a .column div", ->
