@@ -26,6 +26,20 @@ describe "Editor", ->
       editor.insertText('x')
       expect(editor.lines.find('.line').length).toBe 1
 
+  describe ".copy()", ->
+    it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
+      editor.setCursorScreenPosition([1, 1])
+
+      # prove this test covers serialization and deserialization
+      spyOn(editor, 'serialize').andCallThrough()
+      spyOn(Editor, 'deserialize').andCallThrough()
+
+      newEditor = editor.copy()
+      expect(editor.serialize).toHaveBeenCalled()
+      expect(Editor.deserialize).toHaveBeenCalled()
+      expect(newEditor.buffer).toBe editor.buffer
+      expect(newEditor.getCursorScreenPosition()).toEqual editor.getCursorScreenPosition()
+
   describe "text rendering", ->
     it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
       expect(editor.lines.find('.line').length).toEqual(buffer.numLines())

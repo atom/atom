@@ -67,7 +67,7 @@ class Editor extends View
     { viewClass: "Editor", @editSessions, @activeEditSessionIndex, @isFocused }
 
   copy: ->
-    new Editor(@serialize())
+    Editor.deserialize(@serialize())
 
   bindKeys: ->
     @on 'save', => @save()
