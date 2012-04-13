@@ -107,6 +107,7 @@ class RootView extends View
 
   adjustPaneDimensions: ->
     rootPane = @panes.children().first().view()
+    rootPane?.css(width: '100%', height: '100%')
     rootPane?.adjustDimensions()
 
   toggleFileFinder: ->

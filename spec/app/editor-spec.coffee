@@ -2149,7 +2149,7 @@ describe "Editor", ->
     describe "when inside a pane", ->
       fakePane = null
       beforeEach ->
-        fakePane = { splitUp: jasmine.createSpy('splitUp') }
+        fakePane = { splitUp: jasmine.createSpy('splitUp').andReturn {} }
         spyOn(editor, 'pane').andReturn(fakePane)
 
       it "calls the corresponding split method on the containing pane with a copy of the editor", ->

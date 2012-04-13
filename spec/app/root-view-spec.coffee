@@ -115,229 +115,183 @@ describe "RootView", ->
       expect(rootView).not.toMatchSelector(':focus')
       expect(rootView.activeEditor().isFocused).toBeTruthy()
 
-  describe "split editor panes", ->
-    editor1 = null
+  describe "panes", ->
+    pane1 = null
 
     beforeEach ->
       rootView.attachToDom()
-      editor1 = rootView.find('.editor').view()
-      editor1.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
-      editor1.setCursorScreenPosition([3, 2])
       rootView.width(800)
       rootView.height(600)
+      pane1 = rootView.find('.pane').view()
+      pane1.attr('id', 'pane-1')
 
     describe "vertical splits", ->
-      describe "when split-right is triggered on the editor", ->
-        it "places a new editor to the right of the current editor in a .horizontal div, and focuses the new editor", ->
+      describe "when .splitRight(view) is called on a pane", ->
+        it "places a new pane to the right of the current pane in a .row div", ->
+          expect(rootView.panes.find('.row')).not.toExist()
+
+          pane2 = pane1.splitRight("<div>New pane content</div>")
+
+          expect(rootView.panes.find('.row')).toExist()
+          expect(rootView.panes.find('.row .pane').length).toBe 2
+          [leftPane, rightPane] = rootView.panes.find('.row .pane').map -> $(this)
+          expect(rightPane[0]).toBe pane2[0]
+          expect(leftPane.attr('id')).toBe 'pane-1'
+          expect(rightPane.html()).toBe "<div>New pane content</div>"
+
+          expectedColumnWidth = Math.floor(rootView.panes.width() / 2)
+          expect(leftPane.outerWidth()).toBe expectedColumnWidth
+          expect(rightPane.position().left).toBe expectedColumnWidth
+          expect(rightPane.outerWidth()).toBe expectedColumnWidth
+
+          pane2.remove()
+
+          expect(rootView.panes.find('.row')).not.toExist()
+          expect(rootView.panes.find('.pane').length).toBe 1
+          expect(pane1.outerWidth()).toBe rootView.panes.width()
+
+      describe "when splitLeft(view) is called on a pane", ->
+        it "places a new pane to the left of the current pane in a .row div", ->
           expect(rootView.find('.row')).not.toExist()
 
-          editor1.trigger 'split-right'
+          pane2 = pane1.splitLeft("<div>New pane content</div>")
 
           expect(rootView.find('.row')).toExist()
-          expect(rootView.find('.row .pane .editor').length).toBe 2
-          expect(rootView.find('.row .editor:eq(0)').view()).toBe editor1
+          expect(rootView.find('.row .pane').length).toBe 2
+          [leftPane, rightPane] = rootView.find('.row .pane').map -> $(this)
+          expect(leftPane[0]).toBe pane2[0]
+          expect(rightPane.attr('id')).toBe 'pane-1'
+          expect(leftPane.html()).toBe "<div>New pane content</div>"
 
-          editor2 = rootView.find('.row .editor:eq(1)').view()
+          expectedColumnWidth = Math.floor(rootView.panes.width() / 2)
+          expect(leftPane.outerWidth()).toBe expectedColumnWidth
+          expect(rightPane.position().left).toBe expectedColumnWidth
+          expect(rightPane.outerWidth()).toBe expectedColumnWidth
 
-          expect(editor2.buffer).toBe editor1.buffer
-          expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
+          pane2.remove()
 
-          [pane1, pane2] = [editor1.parent(), editor2.parent()]
-          expectedColumnWidth = Math.floor(rootView.width() / 2)
-          expect(pane1.outerWidth()).toBe expectedColumnWidth
-          expect(pane2.position().left).toBe expectedColumnWidth
-          expect(pane2.outerWidth()).toBe expectedColumnWidth
-
-          expect(editor1.has(':focus')).not.toExist()
-          expect(editor2.has(':focus')).toExist()
-
-          # insertion reflected in both buffers
-          editor1.buffer.insert([0, 0], 'ABC')
-          expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
-          expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
-
-      describe "when split-left is triggered on the editor", ->
-        it "places a new editor to the left of the current editor in a .row div, and focuses the new editor", ->
-          expect(rootView.find('.row')).not.toExist()
-
-          editor1.trigger 'split-left'
-
-          expect(rootView.find('.row')).toExist()
-          expect(rootView.find('.row .editor').length).toBe 2
-          expect(rootView.find('.row .editor:eq(1)').view()).toBe editor1
-          editor2 = rootView.find('.row .editor:eq(0)').view()
-          expect(editor2.buffer).toBe editor1.buffer
-          expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
-
-          [pane1, pane2] = [editor1.parent(), editor2.parent()]
-          expectedColumnWidth = Math.floor(rootView.width() / 2)
-          expect(pane2.outerWidth()).toBe expectedColumnWidth
-          expect(pane1.position().left).toBe expectedColumnWidth
-          expect(pane1.outerWidth()).toBe expectedColumnWidth
-
-          expect(editor1.has(':focus')).not.toExist()
-          expect(editor2.has(':focus')).toExist()
-
-          # insertion reflected in both buffers
-          editor1.buffer.insert([0, 0], 'ABC')
-          expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
-          expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
+          expect(rootView.panes.find('.row')).not.toExist()
+          expect(rootView.panes.find('.pane').length).toBe 1
+          expect(pane1.outerWidth()).toBe rootView.panes.width()
 
     describe "horizontal splits", ->
-      describe "when split-up is triggered on the editor", ->
-        it "places a new editor below the current editor in a .vertical div, and focuses the new editor", ->
-          expect(rootView.find('.vertical')).not.toExist()
-
-          editor1.trigger 'split-up'
-
-          expect(rootView.find('.column')).toExist()
-          expect(rootView.find('.column .editor').length).toBe 2
-          expect(rootView.find('.column .editor:eq(1)').view()).toBe editor1
-          editor2 = rootView.find('.column .editor:eq(0)').view()
-          expect(editor2.buffer).toBe editor1.buffer
-          expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
-
-          [pane1, pane2] = [editor1.parent(), editor2.parent()]
-          expectedRowHeight = Math.floor(rootView.height() / 2)
-          expect(pane2.outerHeight()).toBe expectedRowHeight
-          expect(pane1.position().top).toBe expectedRowHeight
-          expect(pane1.outerHeight()).toBe expectedRowHeight
-
-          expect(editor1.has(':focus')).not.toExist()
-          expect(editor2.has(':focus')).toExist()
-
-          # insertion reflected in both buffers
-          editor1.buffer.insert([0, 0], 'ABC')
-          expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
-          expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
-
-      describe "when split-down is triggered on the editor", ->
-        it "places a new editor below the current editor in a .vertical div, and focuses the new editor", ->
+      describe "when splitUp(view) is called on a pane", ->
+        it "places a new pane above the current pane in a .column div", ->
           expect(rootView.find('.column')).not.toExist()
 
-          editor1.trigger 'split-down'
+          pane2 = pane1.splitUp("<div>New pane content</div>")
 
           expect(rootView.find('.column')).toExist()
-          expect(rootView.find('.column .editor').length).toBe 2
-          expect(rootView.find('.column .editor:eq(0)').view()).toBe editor1
-          editor2 = rootView.find('.column .editor:eq(1)').view()
-          expect(editor2.buffer).toBe editor1.buffer
-          expect(editor2.getCursorScreenPosition()).toEqual [3, 2]
+          expect(rootView.find('.column .pane').length).toBe 2
+          [topPane, bottomPane] = rootView.find('.column .pane').map -> $(this)
+          expect(topPane[0]).toBe pane2[0]
+          expect(bottomPane.attr('id')).toBe 'pane-1'
+          expect(topPane.html()).toBe "<div>New pane content</div>"
 
-          [pane1, pane2] = [editor1.parent(), editor2.parent()]
-          expectedRowHeight = Math.floor(rootView.height() / 2)
-          expect(pane1.outerHeight()).toBe expectedRowHeight
-          expect(pane2.position().top).toBe expectedRowHeight
-          expect(pane2.outerHeight()).toBe expectedRowHeight
+          expectedRowHeight = Math.floor(rootView.panes.height() / 2)
+          expect(topPane.outerHeight()).toBe expectedRowHeight
+          expect(bottomPane.position().top).toBe expectedRowHeight
+          expect(bottomPane.outerHeight()).toBe expectedRowHeight
 
-          expect(editor1.has(':focus')).not.toExist()
-          expect(editor2.has(':focus')).toExist()
+          pane2.remove()
 
-          # insertion reflected in both buffers
-          editor1.buffer.insert([0, 0], 'ABC')
-          expect(editor1.lines.find('.line:first').text()).toContain 'ABC'
-          expect(editor2.lines.find('.line:first').text()).toContain 'ABC'
+          expect(rootView.panes.find('.column')).not.toExist()
+          expect(rootView.panes.find('.pane').length).toBe 1
+          expect(pane1.outerHeight()).toBe rootView.panes.height()
+
+      describe "when splitDown(view) is called on a pane", ->
+        it "places a new pane below the current pane in a .column div", ->
+          expect(rootView.find('.column')).not.toExist()
+
+          pane2 = pane1.splitDown("<div>New pane content</div>")
+
+          expect(rootView.find('.column')).toExist()
+          expect(rootView.find('.column .pane').length).toBe 2
+          [topPane, bottomPane] = rootView.find('.column .pane').map -> $(this)
+          expect(bottomPane[0]).toBe pane2[0]
+          expect(topPane.attr('id')).toBe 'pane-1'
+          expect(bottomPane.html()).toBe "<div>New pane content</div>"
+
+          expectedRowHeight = Math.floor(rootView.panes.height() / 2)
+          expect(topPane.outerHeight()).toBe expectedRowHeight
+          expect(bottomPane.position().top).toBe expectedRowHeight
+          expect(bottomPane.outerHeight()).toBe expectedRowHeight
+
+          pane2.remove()
+
+          expect(rootView.panes.find('.column')).not.toExist()
+          expect(rootView.panes.find('.pane').length).toBe 1
+          expect(pane1.outerHeight()).toBe rootView.panes.height()
 
     describe "layout of nested vertical and horizontal splits", ->
       it "lays out rows and columns with a consistent width", ->
-        editor = rootView.find('.editor:has(:focus)').view()
-        editor.trigger 'split-left'
-        editor = rootView.find('.editor:has(:focus)').view()
-        editor.trigger 'split-up'
-        editor = rootView.find('.editor:has(:focus)').view()
-        editor.trigger 'split-left'
-        editor = rootView.find('.editor:has(:focus)').view()
-        editor.trigger 'split-up'
+        pane1.html("1")
+
+        pane1
+          .splitLeft("2")
+          .splitUp("3")
+          .splitLeft("4")
+          .splitDown("5")
 
         row1 = rootView.panes.children(':eq(0)')
         expect(row1.children().length).toBe 2
-        column1 = row1.children(':eq(0)')
-        pane1 = row1.children(':eq(1)')
-        expect(column1.outerWidth()).toBe Math.floor(2/3 * rootView.width())
+        column1 = row1.children(':eq(0)').view()
+        pane1 = row1.children(':eq(1)').view()
+        expect(column1.outerWidth()).toBe Math.floor(2/3 * rootView.panes.width())
         expect(column1.outerHeight()).toBe rootView.height()
-        expect(pane1.outerWidth()).toBe Math.floor(1/3 * rootView.width())
+        expect(pane1.outerWidth()).toBe Math.floor(1/3 * rootView.panes.width())
         expect(pane1.outerHeight()).toBe rootView.height()
         expect(pane1.position().left).toBe column1.outerWidth()
 
         expect(column1.children().length).toBe 2
-        row2 = column1.children(':eq(0)')
-        pane2 = column1.children(':eq(1)')
+        row2 = column1.children(':eq(0)').view()
+        pane2 = column1.children(':eq(1)').view()
         expect(row2.outerWidth()).toBe column1.outerWidth()
-        expect(row2.height()).toBe Math.floor(2/3 * rootView.height())
+        expect(row2.height()).toBe Math.floor(2/3 * rootView.panes.height())
         expect(pane2.outerWidth()).toBe column1.outerWidth()
-        expect(pane2.outerHeight()).toBe Math.floor(1/3 * rootView.height())
+        expect(pane2.outerHeight()).toBe Math.floor(1/3 * rootView.panes.height())
         expect(pane2.position().top).toBe row2.height()
 
         expect(row2.children().length).toBe 2
-        column3 = row2.children(':eq(0)')
-        pane3 = row2.children(':eq(1)')
-        expect(column3.outerWidth()).toBe Math.floor(1/3 * rootView.width())
+        column3 = row2.children(':eq(0)').view()
+        pane3 = row2.children(':eq(1)').view()
+        expect(column3.outerWidth()).toBe Math.floor(1/3 * rootView.panes.width())
         expect(column3.outerHeight()).toBe row2.outerHeight()
-        expect(pane3.outerWidth()).toBe Math.floor(1/3 * rootView.width())
+        expect(pane3.outerWidth()).toBe Math.floor(1/3 * rootView.panes.width())
         expect(pane3.height()).toBe row2.outerHeight()
         expect(pane3.position().left).toBe column3.width()
 
         expect(column3.children().length).toBe 2
-        pane4 = column3.children(':eq(0)')
-        pane5 = column3.children(':eq(1)')
+        pane4 = column3.children(':eq(0)').view()
+        pane5 = column3.children(':eq(1)').view()
         expect(pane4.outerWidth()).toBe column3.width()
-        expect(pane4.outerHeight()).toBe Math.floor(1/3 * rootView.height())
+        expect(pane4.outerHeight()).toBe Math.floor(1/3 * rootView.panes.height())
         expect(pane5.outerWidth()).toBe column3.width()
         expect(pane5.position().top).toBe pane4.outerHeight()
-        expect(pane5.outerHeight()).toBe Math.floor(1/3 * rootView.height())
+        expect(pane5.outerHeight()).toBe Math.floor(1/3 * rootView.panes.height())
 
-    describe "when close is triggered on an editor pane", ->
-      it "adjusts the layout, focuses the next most-recently active editor, and focuses the RootView when there are no remaining editors", ->
-        spyOn(window, 'close')
-        editor = rootView.find('.editor').view()
-        editor.trigger 'split-right'
-        editor.trigger 'split-right'
-        editor.trigger 'split-right'
+        pane5.remove()
 
-        [editor1, editor2, editor3, editor4] = rootView.find('.editor').map -> $(this).view()
-        [pane1, pane2, pane3, pane4] = [editor1.parent(), editor2.parent(), editor3.parent(), editor4.parent()]
+        expect(column3.parent()).not.toExist()
+        expect(pane2.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
+        expect(pane3.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
+        expect(pane4.outerHeight()).toBe Math.floor(1/2 * rootView.panes.height())
 
-        editor4.focus()
-        editor4.trigger 'close'
-        expect(editor1.isFocused).toBeTruthy()
-        expect(pane1.outerWidth()).toBe Math.floor(rootView.width() / 3)
-        expect(pane2.outerWidth()).toBe Math.floor(rootView.width() / 3)
-        expect(pane3.outerWidth()).toBe Math.floor(rootView.width() / 3)
+        pane4.remove()
+        expect(row2.parent()).not.toExist()
+        expect(pane1.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
+        expect(pane2.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
+        expect(pane3.outerWidth()).toBe Math.floor(1/2 * rootView.panes.width())
 
-        editor3.focus()
-        editor3.trigger 'close'
-        expect(editor1.isFocused).toBeTruthy()
-        expect(pane1.outerWidth()).toBe Math.floor(rootView.width() / 2)
-        expect(pane2.outerWidth()).toBe Math.floor(rootView.width() / 2)
+        pane3.remove()
+        expect(column1.parent()).not.toExist()
+        expect(pane2.outerHeight()).toBe rootView.panes.height()
 
-        editor1.trigger 'close'
-        expect(editor2.isFocused).toBeTruthy()
-        expect(pane2.outerWidth()).toBe Math.floor(rootView.width())
-
-        expect(window.close).not.toHaveBeenCalled()
-        editor2.trigger 'close'
-
-        expect(rootView).toMatchSelector(':focus')
-
-      it "removes a containing row if it becomes empty", ->
-        editor = rootView.find('.editor').view()
-        editor.trigger 'split-up'
-        editor.trigger 'split-left'
-
-        rootView.find('.row .editor').trigger 'close'
-        expect(rootView.find('.row')).not.toExist()
-        expect(rootView.find('.column')).toExist()
-
-      it "removes a containing column if it becomes empty", ->
-        editor = rootView.find('.editor').view()
-        editor.trigger 'split-left'
-        editor.trigger 'split-up'
-
-        rootView.find('.column .editor').trigger 'close'
-        expect(rootView.find('.column')).not.toExist()
-        expect(rootView.find('.row')).toExist()
-
-        expect(rootView.find('.editor').outerWidth()).toBe rootView.width()
+        pane2.remove()
+        expect(row1.parent()).not.toExist()
+        expect(rootView.panes.children().length).toBe 1
+        expect(rootView.panes.children('.pane').length).toBe 1
+        expect(pane1.outerWidth()).toBe rootView.panes.width()
 
   describe "the file finder", ->
     describe "when the toggle-file-finder event is triggered", ->

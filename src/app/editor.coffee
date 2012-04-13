@@ -494,16 +494,16 @@ class Editor extends View
     @setCursorBufferPosition(fold.start)
 
   splitLeft: ->
-    @pane()?.splitLeft(@copy())
+    @pane()?.splitLeft(@copy()).wrappedView
 
   splitRight: ->
-    @pane()?.splitRight(@copy())
+    @pane()?.splitRight(@copy()).wrappedView
 
   splitUp: ->
-    @pane()?.splitUp(@copy())
+    @pane()?.splitUp(@copy()).wrappedView
 
   splitDown: ->
-    @pane()?.splitDown(@copy())
+    @pane()?.splitDown(@copy()).wrappedView
 
   pane: ->
     @parent('.pane').view()

@@ -44,7 +44,18 @@ class Pane extends View
     pane = new Pane(view)
     this[side](pane)
     @rootView().adjustPaneDimensions()
-    view
+    pane
+
+  remove: (selector, keepData) ->
+    return super if keepData
+    # find parent elements before removing from dom
+    parentAxis = @parent('.row, .column')
+    rootView = @rootView()
+    super
+    if parentAxis.children().length == 1
+      sibling = parentAxis.children().detach()
+      parentAxis.replaceWith(sibling)
+    rootView.adjustPaneDimensions()
 
   buildPaneAxis: (axis) ->
     switch axis
