@@ -1,9 +1,9 @@
 $ = require 'jquery'
 _ = require 'underscore'
-PaneDivision = require 'pane-division'
+PaneGrid = require 'pane-grid'
 
 module.exports =
-class PaneColumn extends PaneDivision
+class PaneColumn extends PaneGrid
   @content: ->
     @div class: 'column'
 
