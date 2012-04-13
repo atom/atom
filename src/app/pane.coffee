@@ -12,3 +12,12 @@ class Pane extends View
   serialize: ->
     viewClass: "Pane"
     wrappedView: @wrappedView.serialize()
+
+  adjustDimensions: ->
+
+  horizontalGridUnits: ->
+    1
+
+  verticalGridUnits: ->
+    1
+

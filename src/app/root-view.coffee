@@ -114,54 +114,9 @@ class RootView extends View
     @adjustSplitPanes()
     view
 
-  adjustSplitPanes: (element = @panes.children(':first'))->
-    if element.hasClass('row')
-      totalUnits = @horizontalGridUnits(element)
-      unitsSoFar = 0
-      for child in element.children()
-        child = $(child)
-        childUnits = @horizontalGridUnits(child)
-        child.css
-          width: "#{childUnits / totalUnits * 100}%"
-          height: '100%'
-          top: 0
-          left: "#{unitsSoFar / totalUnits * 100}%"
-        @adjustSplitPanes(child)
-        unitsSoFar += childUnits
-
-    else if element.hasClass('column')
-      totalUnits = @verticalGridUnits(element)
-      unitsSoFar = 0
-      for child in element.children()
-        child = $(child)
-        childUnits = @verticalGridUnits(child)
-        child.css
-          width: '100%'
-          height: "#{childUnits / totalUnits * 100}%"
-          top: "#{unitsSoFar / totalUnits * 100}%"
-          left: 0
-        @adjustSplitPanes(child)
-        unitsSoFar += childUnits
-
-  horizontalGridUnits: (element) ->
-    if element.is('.row, .column')
-      childUnits = (@horizontalGridUnits($(child)) for child in element.children())
-      if element.hasClass('row')
-        _.sum(childUnits)
-      else # it's a column
-        Math.max(childUnits...)
-    else
-      1
-
-  verticalGridUnits: (element) ->
-    if element.is('.row, .column')
-      childUnits = (@verticalGridUnits($(child)) for child in element.children())
-      if element.hasClass('column')
-        _.sum(childUnits)
-      else # it's a row
-        Math.max(childUnits...)
-    else
-      1
+  adjustSplitPanes: ->
+    view = @panes.children().first().view()
+    view.adjustDimensions() if view
 
   toggleFileFinder: ->
     return unless @project
