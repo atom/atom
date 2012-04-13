@@ -40,6 +40,9 @@ describe "Editor", ->
       expect(newEditor.buffer).toBe editor.buffer
       expect(newEditor.getCursorScreenPosition()).toEqual editor.getCursorScreenPosition()
 
+      expect(newEditor.editSessions[0]).toEqual(editor.editSessions[0])
+      expect(newEditor.editSessions[0]).not.toBe(editor.editSessions[0])
+
   describe "text rendering", ->
     it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
       expect(editor.lines.find('.line').length).toEqual(buffer.numLines())

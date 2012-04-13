@@ -38,6 +38,7 @@ class Editor extends View
   isFocused: false
   softTabs: true
   tabText: '  '
+  editSessions: null
 
   @deserialize: (viewState) ->
     new Editor(viewState)
@@ -64,7 +65,10 @@ class Editor extends View
 
   serialize: ->
     @saveCurrentEditSession()
-    { viewClass: "Editor", @editSessions, @activeEditSessionIndex, @isFocused }
+    { viewClass: "Editor", editSessions: @serializeEditSessions(), @activeEditSessionIndex, @isFocused }
+
+  serializeEditSessions: ->
+    @editSessions.map (session) -> _.clone(session)
 
   copy: ->
     Editor.deserialize(@serialize())
@@ -512,7 +516,7 @@ class Editor extends View
     return super if keepData
     @unsubscribeFromBuffer()
     rootView = @rootView()
-    if @pane() then @pane.remove() else super
+    if @pane() then @pane().remove() else super
     rootView?.focus()
 
   unsubscribeFromBuffer: ->
