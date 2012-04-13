@@ -380,7 +380,7 @@ describe "RootView", ->
         rootView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
 
-  describe "when the path of the focused editor changes", ->
+  describe "when the path of the focused editor's buffer changes", ->
     it "changes the document.title", ->
       editor1 = rootView.activeEditor()
       expect(document.title).toBe path
@@ -392,6 +392,12 @@ describe "RootView", ->
 
       editor1.buffer.setPath("should-not-be-title.txt")
       expect(document.title).toBe "second.txt"
+
+    it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
+      rootView = new RootView
+      expect(rootView.project).toBeUndefined()
+      rootView.activeEditor().buffer.saveAs('/tmp/ignore-me')
+      expect(rootView.project.path).toBe '/tmp/'
 
   describe "when the last editor is removed", ->
     it "updates the title to the project path", ->

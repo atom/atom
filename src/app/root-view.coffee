@@ -75,7 +75,10 @@ class RootView extends View
 
       editor
         .addClass('active')
-        .on('buffer-path-change.root-view', => @setTitle(editor.buffer.path))
+        .on 'buffer-path-change.root-view', =>
+          path = editor.buffer.path
+          @setTitle(path)
+          @project ?= new Project(fs.directory(path)) if path
 
       @setTitle(editor.buffer.path)
 
