@@ -1,26 +1,14 @@
 $ = require 'jquery'
 _ = require 'underscore'
-{View} = require 'space-pen'
-Pane = require 'pane'
+PaneDivision = require 'pane-division'
 
 module.exports =
-class PaneColumn extends View
+class PaneColumn extends PaneDivision
   @content: ->
     @div class: 'column'
 
-  @deserialize: ({children}, rootView) ->
-    childViews = children.map (child) -> rootView.deserializeView(child)
-    new PaneColumn(childViews)
-
-  initialize: (children=[]) ->
-    @append(children...)
-
-  serialize: ->
-    viewClass: "PaneColumn"
-    children: @childViewStates()
-
-  childViewStates: ->
-    $(child).view().serialize() for child in @children()
+  className: ->
+    "PaneColumn"
 
   adjustDimensions: ->
     totalUnits = @verticalGridUnits()
@@ -38,9 +26,7 @@ class PaneColumn extends View
       unitsSoFar += childUnits
 
   horizontalGridUnits: ->
-    childUnits = ($(child).view().horizontalGridUnits() for child in @children())
-    Math.max(childUnits...)
+    Math.max(@horizontalChildUnits()...)
 
   verticalGridUnits:   ->
-    childUnits = ($(child).view().verticalGridUnits() for child in @children())
-    _.sum(childUnits)
+    _.sum(@verticalChildUnits())
