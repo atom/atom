@@ -24,6 +24,7 @@ describe "RootView", ->
           expect(rootView.editors().length).toBe 1
           expect(rootView.editors()[0]).toHaveClass 'active'
           expect(rootView.activeEditor().buffer.getPath()).toBe path
+          expect(rootView.activeEditor().editSessions.length).toBe 1
           expect(document.title).toBe path
 
       describe "when pathToOpen references a directory", ->
@@ -116,7 +117,7 @@ describe "RootView", ->
       rootView.attachToDom()
       expect(rootView).toMatchSelector(':focus')
 
-      rootView.activeEditor() # lazily create an editor
+      rootView.open() # create an editor
       expect(rootView).not.toMatchSelector(':focus')
       expect(rootView.activeEditor().isFocused).toBeTruthy()
 

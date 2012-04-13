@@ -28,7 +28,7 @@ class RootView extends View
     @on 'show-console', => window.showConsole()
     @one 'attach', => @focus()
     @on 'focus', (e) =>
-      if @editors().length
+      if @activeEditor()
         @activeEditor().focus()
         false
       else
@@ -42,7 +42,7 @@ class RootView extends View
       @project = new Project(fs.directory(pathToOpen))
       @open(pathToOpen) if fs.isFile(pathToOpen)
     else if not panesViewState?
-      @activeEditor().setBuffer(new Buffer)
+      @open()
 
     @deserializePanes(panesViewState) if panesViewState
 
@@ -65,7 +65,15 @@ class RootView extends View
       when 'Editor' then Editor.deserialize(viewState)
 
   open: (path) ->
-    @activeEditor().setBuffer(@project.open(path))
+    buffer = if path then @project.open(path) else new Buffer
+
+    if @activeEditor()
+      @activeEditor().setBuffer(buffer)
+    else
+      editor = new Editor({ buffer })
+      pane = new Pane(editor)
+      @panes.append(pane)
+      editor.focus()
 
   editorFocused: (editor) ->
     if @panes.containsElement(editor)
@@ -89,19 +97,10 @@ class RootView extends View
     @panes.find('.editor').map -> $(this).view()
 
   activeEditor: ->
-    editor = @panes.find('.editor.active')
-    if editor.length
+    if (editor = @panes.find('.editor.active')).length
       editor.view()
     else
-      editor = @panes.find('.editor:first')
-      if editor.length
-        editor.view()
-      else
-        editor = new Editor
-        pane = new Pane(editor)
-        @panes.append(pane)
-        editor.focus()
-        editor
+      @panes.find('.editor:first').view()
 
   adjustPaneDimensions: ->
     rootPane = @panes.children().first().view()
