@@ -31,6 +31,8 @@ class RootView extends View
       if @editors().length
         @activeEditor().focus()
         false
+      else
+        @setTitle(@project?.path)
 
     @commandPanel = new CommandPanel({rootView: this})
 
@@ -41,8 +43,6 @@ class RootView extends View
       @open(pathToOpen) if fs.isFile(pathToOpen)
     else if not panesViewState?
       @activeEditor().setBuffer(new Buffer)
-
-    @setTitle(@project?.path)
 
     @deserializePanes(panesViewState) if panesViewState
 

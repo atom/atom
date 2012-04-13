@@ -30,6 +30,7 @@ describe "RootView", ->
         it "creates a project for the directory and sets the document.title, but does not open an editor", ->
           path = require.resolve 'fixtures/dir/'
           rootView = new RootView(pathToOpen: path)
+          rootView.focus()
 
           expect(rootView.project.path).toBe path
           expect(rootView.editors().length).toBe 0
@@ -390,3 +391,7 @@ describe "RootView", ->
       editor1.buffer.setPath("should-not-be-title.txt")
       expect(document.title).toBe "second.txt"
 
+  describe "when the last editor is removed", ->
+    it "updates the title to the project path", ->
+      rootView.editors()[0].remove()
+      expect(document.title).toBe rootView.project.path
