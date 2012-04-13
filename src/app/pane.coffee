@@ -1,4 +1,6 @@
 {View} = require 'space-pen'
+PaneRow = require 'pane-row'
+PaneColumn = require 'pane-column'
 
 module.exports =
 class Pane extends View
@@ -13,7 +15,7 @@ class Pane extends View
     viewClass: "Pane"
     wrappedView: @wrappedView.serialize()
 
-  adjustDimensions: ->
+  adjustDimensions: -> # do nothing
 
   horizontalGridUnits: ->
     1
@@ -21,3 +23,33 @@ class Pane extends View
   verticalGridUnits: ->
     1
 
+  splitUp: (view) ->
+    @split(view, 'column', 'before')
+
+  splitDown: (view) ->
+    @split(view, 'column', 'after')
+
+  splitLeft: (view) ->
+    @split(view, 'row', 'before')
+
+  splitRight: (view) ->
+    @split(view, 'row', 'after')
+
+  split: (view, axis, side) ->
+    unless @parent().hasClass(axis)
+      @buildPaneAxis(axis)
+        .insertBefore(this)
+        .append(@detach())
+
+    pane = new Pane(view)
+    this[side](pane)
+    @rootView().adjustPaneDimensions()
+    view
+
+  buildPaneAxis: (axis) ->
+    switch axis
+      when 'row' then new PaneRow
+      when 'column' then new PaneColumn
+
+  rootView: ->
+    @parents('#root-view').view()

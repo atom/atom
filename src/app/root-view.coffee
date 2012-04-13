@@ -53,7 +53,7 @@ class RootView extends View
 
   deserializePanes: (panesViewState) ->
     @panes.append @deserializeView(panesViewState)
-    @adjustSplitPanes()
+    @adjustPaneDimensions()
 
   deserializeView: (viewState) ->
     switch viewState.viewClass
@@ -78,7 +78,7 @@ class RootView extends View
       @setTitle(editor.buffer.path)
 
   editorRemoved: (editor) ->
-    @adjustSplitPanes()
+    @adjustPaneDimensions()
     if @editors().length
       @editors()[0].focus()
     else
@@ -105,18 +105,9 @@ class RootView extends View
         editor.focus()
         editor
 
-  addPane: (view, sibling, axis, side) ->
-    unless sibling.parent().hasClass(axis)
-      container = if axis == 'column' then new PaneColumn else new PaneRow
-      container.insertBefore(sibling).append(sibling.detach())
-    pane = new Pane(view)
-    sibling[side](pane)
-    @adjustSplitPanes()
-    view
-
-  adjustSplitPanes: ->
-    view = @panes.children().first().view()
-    view.adjustDimensions() if view
+  adjustPaneDimensions: ->
+    rootPane = @panes.children().first().view()
+    rootPane?.adjustDimensions()
 
   toggleFileFinder: ->
     return unless @project

@@ -66,6 +66,9 @@ class Editor extends View
     @saveCurrentEditSession()
     { viewClass: "Editor", @editSessions, @activeEditSessionIndex, @isFocused }
 
+  copy: ->
+    new Editor(@serialize())
+
   bindKeys: ->
     @on 'save', => @save()
     @on 'move-right', => @moveCursorRight()
@@ -491,21 +494,19 @@ class Editor extends View
     @setCursorBufferPosition(fold.start)
 
   splitLeft: ->
-    @split('row', 'before')
+    @pane().splitLeft(@copy())
 
   splitRight: ->
-    @split('row', 'after')
+    @pane().splitRight(@copy())
 
   splitUp: ->
-    @split('column', 'before')
+    @pane().splitUp(@copy())
 
   splitDown: ->
-    @split('column', 'after')
+    @pane().splitDown(@copy())
 
-  split: (axis, side) ->
-    return unless rootView = @rootView()
-    editor = new Editor(@serialize())
-    rootView.addPane(editor, this.parent(), axis, side)
+  pane: ->
+    @parent('.pane').view()
 
   remove: (selector, keepData) ->
     return super if keepData
