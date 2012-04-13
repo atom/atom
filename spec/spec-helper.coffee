@@ -7,11 +7,14 @@ Point = require 'point'
 require 'window'
 window.showConsole()
 
+defaultTitle = document.title
+
 beforeEach ->
   window.resetTimeouts()
 
 afterEach ->
   $('#jasmine-content').empty()
+  document.title = defaultTitle
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
