@@ -77,13 +77,6 @@ class RootView extends View
 
       @setTitle(editor.buffer.path)
 
-  editorRemoved: (editor) ->
-    @adjustPaneDimensions()
-    if @editors().length
-      @editors()[0].focus()
-    else
-      @focus()
-
   setTitle: (title='untitled') ->
     document.title = title
 

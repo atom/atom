@@ -512,12 +512,8 @@ class Editor extends View
     return super if keepData
     @unsubscribeFromBuffer()
     rootView = @rootView()
-    pane = @parent('.pane')
-    paneParent = pane.parent()
-    super
-    pane.remove()
-    paneParent.remove() if paneParent.is('.row:empty, .column:empty')
-    rootView?.editorRemoved(this)
+    if @pane() then @pane.remove() else super
+    rootView?.focus()
 
   unsubscribeFromBuffer: ->
     @buffer.off ".editor#{@id}"
