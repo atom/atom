@@ -15,7 +15,6 @@ class Autocomplete
 
   setCurrentBuffer: (buffer) ->
     @currentBuffer.off '.autocomplete' if @currentBuffer
-
     @currentBuffer = buffer
     @currentBuffer.on 'change.autocomplete', => @buildWordList()
     @buildWordList()
@@ -24,26 +23,28 @@ class Autocomplete
     @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
 
   completeWordAtEditorCursorPosition: () ->
-    position = @editor.getCursorBufferPosition()
-    lineRange = [[position.row, 0], [position.row, @editor.lineLengthForBufferRow(position.row)]]
+    selectionRange = @editor.getSelection().getBufferRange()
+    lineRange = [[selectionRange.start.row, 0], [selectionRange.end.row, @editor.lineLengthForBufferRow(selectionRange.end.row)]]
     [prefix, suffix] = ["", ""]
 
     @currentBuffer.scanInRange @wordRegex, lineRange, (match, range, {stop}) ->
-      if range.start.isLessThan(position)
-        if range.end.isEqual(position)
-          prefix = match[0]
-        else if range.end.isGreaterThan(position)
-          index = position.column - range.start.column
-          prefix = match[0][0...index]
-          suffix = match[0][index..]
-          stop()
-      else if range.start.isEqual(position)
-        suffix = match[0]
-        stop()
+      if range.intersectsWith(selectionRange)
+        prefixOffset = selectionRange.start.column - range.start.column
+        suffixOffset = selectionRange.end.column - range.end.column
 
-    if match = @matches(prefix, suffix)[0]
+        if range.start.isLessThan(selectionRange.start)
+          prefix = match[0][0...prefixOffset]
+
+        if range.end.isGreaterThan(selectionRange.end)
+          suffix = match[0][suffixOffset..]
+          stop()
+
+    for match in @matches(prefix, suffix)
+      continue if match[0] == prefix + @editor.getSelectedText() + suffix
+      startPosition = @editor.getSelection().getBufferRange().start
       @editor.insertText(match[1])
-      @editor.setSelectionBufferRange([position, [position.row, position.column + match[1].length]])
+      @editor.setSelectionBufferRange([startPosition, [startPosition.row, startPosition.column + match[1].length]])
+      break
 
   matches: (prefix, suffix) ->
     regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")

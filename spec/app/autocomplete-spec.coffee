@@ -35,31 +35,58 @@ describe "Autocomplete", ->
   describe ".completeWordAtEditorCursorPosition()", ->
     describe "when no text is selected", ->
       it 'autocompletes word when there is only a prefix', ->
-        editor.buffer.insert([10, 0] ,"extra:s:extra")
-        editor.setCursorBufferPosition([10, 7])
+        editor.buffer.insert([10,0] ,"extra:s:extra")
+        editor.setCursorBufferPosition([10,7])
         autocomplete.completeWordAtEditorCursorPosition()
 
         expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
-        expect(editor.getCursorBufferPosition()).toEqual [10, 10]
-        expect(editor.getSelection().getBufferRange()).toEqual [[10, 7], [10,10]]
+        expect(editor.getCursorBufferPosition()).toEqual [10,10]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10,7], [10,10]]
 
       it 'autocompletes word when there is only a suffix', ->
-        editor.buffer.insert([10, 0] ,"extra:e:extra")
-        editor.setCursorBufferPosition([10, 6])
+        editor.buffer.insert([10,0] ,"extra:e:extra")
+        editor.setCursorBufferPosition([10,6])
         autocomplete.completeWordAtEditorCursorPosition()
 
         expect(editor.lineForBufferRow(10)).toBe "extra:while:extra"
-        expect(editor.getCursorBufferPosition()).toEqual [10, 10]
-        expect(editor.getSelection().getBufferRange()).toEqual [[10, 6], [10,10]]
+        expect(editor.getCursorBufferPosition()).toEqual [10,10]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10,6], [10,10]]
 
       it 'autocompletes word when there is a prefix and suffix', ->
-        editor.buffer.insert([8, 43] ,"q")
-        editor.setCursorBufferPosition([8, 44])
+        editor.buffer.insert([8,43] ,"q")
+        editor.setCursorBufferPosition([8,44])
         autocomplete.completeWordAtEditorCursorPosition()
 
         expect(editor.lineForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(quicksort(right));"
-        expect(editor.getCursorBufferPosition()).toEqual [8, 48]
-        expect(editor.getSelection().getBufferRange()).toEqual [[8, 44], [8,48]]
+        expect(editor.getCursorBufferPosition()).toEqual [8,48]
+        expect(editor.getSelection().getBufferRange()).toEqual [[8,44], [8,48]]
+
+    describe "when text is selected", ->
+      it 'autocompletes word when there is only a prefix', ->
+        editor.buffer.insert([10,0] ,"extra:sort:extra")
+        editor.setSelectionBufferRange [[10,7], [10,10]]
+        autocomplete.completeWordAtEditorCursorPosition()
+
+        expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
+        expect(editor.getCursorBufferPosition()).toEqual [10,11]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10,7],[10,11]]
+
+      it 'autocompletes word when there is only a suffix', ->
+        editor.buffer.insert([10,0] ,"extra:current:extra")
+        editor.setSelectionBufferRange [[10,6],[10,12]]
+        autocomplete.completeWordAtEditorCursorPosition()
+
+        expect(editor.lineForBufferRow(10)).toBe "extra:quicksort:extra"
+        expect(editor.getCursorBufferPosition()).toEqual [10,14]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10,6],[10,14]]
+
+      it 'autocompletes word when there is a prefix and suffix', ->
+        editor.setSelectionBufferRange [[5,7],[5,12]]
+        autocomplete.completeWordAtEditorCursorPosition()
+
+        expect(editor.lineForBufferRow(5)).toBe "      concat = items.shift();"
+        expect(editor.getCursorBufferPosition()).toEqual [5,11]
+        expect(editor.getSelection().getBufferRange()).toEqual [[5,7], [5,11]]
 
   describe 'when changes are made to the buffer', ->
     it 'updates word list', ->
@@ -93,4 +120,3 @@ describe "Autocomplete", ->
       previousBuffer.change([[0,0],[0,1]], "sauron")
 
       expect(autocomplete.buildWordList).not.toHaveBeenCalled()
-
