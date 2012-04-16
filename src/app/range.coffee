@@ -1,7 +1,6 @@
 Point = require 'point'
 _ = require 'underscore'
 
-
 module.exports =
 class Range
   @fromObject: (object) ->
