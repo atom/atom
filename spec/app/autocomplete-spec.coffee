@@ -81,3 +81,13 @@ describe "Autocomplete", ->
       wordList = autocomplete.wordList
       expect(wordList).not.toContain "quicksort"
       expect(wordList).toContain "Some"
+
+    it 'stops listening to previous buffers change events', ->
+      previousBuffer = editor.buffer
+      editor.setBuffer new Buffer(require.resolve('fixtures/sample.txt'))
+      spyOn(autocomplete, "buildWordList")
+
+      previousBuffer.change([[0,0],[0,1]], "sauron")
+
+      expect(autocomplete.buildWordList).not.toHaveBeenCalled()
+

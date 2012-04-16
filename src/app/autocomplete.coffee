@@ -14,8 +14,10 @@ class Autocomplete
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
 
   setCurrentBuffer: (buffer) ->
+    @currentBuffer.off '.autocomplete' if @currentBuffer
+
     @currentBuffer = buffer
-    @currentBuffer.on 'change', => @buildWordList()
+    @currentBuffer.on 'change.autocomplete', => @buildWordList()
     @buildWordList()
 
   buildWordList: () ->
