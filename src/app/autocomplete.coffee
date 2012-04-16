@@ -43,6 +43,7 @@ class Autocomplete
 
     if match = @matches(prefix, suffix)[0]
       @editor.insertText(match[1])
+      @editor.setSelectionBufferRange([position, [position.row, position.column + match[1].length]])
 
   matches: (prefix, suffix) ->
     regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")

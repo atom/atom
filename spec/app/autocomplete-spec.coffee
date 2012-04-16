@@ -41,6 +41,7 @@ describe "Autocomplete", ->
 
         expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
         expect(editor.getCursorBufferPosition()).toEqual [10, 10]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10, 7], [10,10]]
 
       it 'autocompletes word when there is only a suffix', ->
         editor.buffer.insert([10, 0] ,"extra:e:extra")
@@ -49,6 +50,7 @@ describe "Autocomplete", ->
 
         expect(editor.lineForBufferRow(10)).toBe "extra:while:extra"
         expect(editor.getCursorBufferPosition()).toEqual [10, 10]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10, 6], [10,10]]
 
       it 'autocompletes word when there is a prefix and suffix', ->
         editor.buffer.insert([8, 43] ,"q")
@@ -57,6 +59,7 @@ describe "Autocomplete", ->
 
         expect(editor.lineForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(quicksort(right));"
         expect(editor.getCursorBufferPosition()).toEqual [8, 48]
+        expect(editor.getSelection().getBufferRange()).toEqual [[8, 44], [8,48]]
 
   describe 'when changes are made to the buffer', ->
     it 'updates word list', ->
