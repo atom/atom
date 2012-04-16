@@ -216,10 +216,12 @@ class Renderer
         @expandBufferRangeToLineEnds(bufferRange)))
 
   expandScreenRangeToLineEnds: (screenRange) ->
+    screenRange = Range.fromObject(screenRange)
     { start, end } = screenRange
     new Range([start.row, 0], [end.row, @lineMap.lineForScreenRow(end.row).text.length])
 
   expandBufferRangeToLineEnds: (bufferRange) ->
+    bufferRange = Range.fromObject(bufferRange)
     { start, end } = bufferRange
     new Range([start.row, 0], [end.row, Infinity])
 
