@@ -4,25 +4,29 @@ Range = require 'range'
 module.exports =
 class Autocomplete
   editor: null
-  wordListForBufferId = null
+  currentBuffer: null
+  wordList = null
   wordRegex: /\w+/g
 
   constructor: (@editor) ->
-    @wordListForBufferId = {}
-    @buildWordListForBuffer(@editor.buffer)
+    @setCurrentBuffer(@editor.buffer)
     @editor.on 'autocomplete:complete-word', => @completeWordAtEditorCursorPosition()
-    @editor.on 'buffer-path-change', => @buildWordListForBuffer(editor.buffer)
-    @editor.buffer.on 'change', => @buildWordListForBuffer(@editor.buffer)
+    @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
 
-  buildWordListForBuffer: (buffer) ->
-    @wordListForBufferId[buffer.id] = _.unique(buffer.getText().match(@wordRegex))
+  setCurrentBuffer: (buffer) ->
+    @currentBuffer = buffer
+    @currentBuffer.on 'change', => @buildWordList()
+    @buildWordList()
+
+  buildWordList: () ->
+    @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
 
   completeWordAtEditorCursorPosition: () ->
     position = @editor.getCursorBufferPosition()
     lineRange = [[position.row, 0], [position.row, @editor.lineLengthForBufferRow(position.row)]]
     [prefix, suffix] = ["", ""]
 
-    @editor.buffer.scanInRange @wordRegex, lineRange, (match, range, {stop}) ->
+    @currentBuffer.scanInRange @wordRegex, lineRange, (match, range, {stop}) ->
       if range.start.isLessThan(position)
         if range.end.isEqual(position)
           prefix = match[0]
@@ -40,5 +44,4 @@ class Autocomplete
 
   matches: (prefix, suffix) ->
     regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")
-    wordList = @wordListForBufferId[@editor.buffer.id]
-    regex.exec(word) for word in wordList when regex.test(word)
+    regex.exec(word) for word in @wordList when regex.test(word)

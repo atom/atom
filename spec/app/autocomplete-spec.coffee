@@ -60,24 +60,24 @@ describe "Autocomplete", ->
 
   describe 'when changes are made to the buffer', ->
     it 'updates word list', ->
-      wordList = autocomplete.wordListForBufferId[editor.buffer.id]
+      wordList = autocomplete.wordList
       expect(wordList).toContain "quicksort"
       expect(wordList).not.toContain "sauron"
 
       editor.buffer.change([[0,4],[0,13]], "sauron")
 
-      wordList = autocomplete.wordListForBufferId[editor.buffer.id]
+      wordList = autocomplete.wordList
       expect(wordList).not.toContain "quicksort"
       expect(wordList).toContain "sauron"
 
   describe "when editor's buffer is changed", ->
     it 'creates and uses a new word list based on new buffer', ->
-      wordList = autocomplete.wordListForBufferId[editor.buffer.id]
+      wordList = autocomplete.wordList
       expect(wordList).toContain "quicksort"
       expect(wordList).not.toContain "Some"
 
       editor.setBuffer new Buffer(require.resolve('fixtures/sample.txt'))
 
-      wordList = autocomplete.wordListForBufferId[editor.buffer.id]
+      wordList = autocomplete.wordList
       expect(wordList).not.toContain "quicksort"
       expect(wordList).toContain "Some"
