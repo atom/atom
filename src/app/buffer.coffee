@@ -142,7 +142,9 @@ class Buffer
 
   save: ->
     if not @getPath() then throw new Error("Tried to save buffer with no file path")
+    @trigger 'before-save'
     fs.write @getPath(), @getText()
+    @trigger 'after-save'
 
   saveAs: (path) ->
     @setPath(path)
@@ -185,6 +187,9 @@ class Buffer
 
     matches
 
+  scan: (regex, iterator) ->
+    @scanInRange(regex, @getRange(), iterator)
+
   scanInRange: (regex, range, iterator, reverse=false) ->
     range = Range.fromObject(range)
     global = regex.global
@@ -214,7 +219,7 @@ class Buffer
       replacementText = null
       iterator(match, range, { stop, replace })
 
-      if replacementText
+      if replacementText?
         @change(range, replacementText)
         lengthDelta += replacementText.length - matchLength unless reverse
 
