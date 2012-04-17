@@ -3,8 +3,10 @@
 module.exports =
 class StatusBar extends View
   @initialize: (rootView) ->
+    requireStylesheet 'status-bar.css'
+
     for editor in rootView.editors()
-      @appendToEditorPane(rootView, editor)
+      @appendToEditorPane(rootView, editor) if rootView.parents('html').length
 
     rootView.on 'editor-open', (e, editor) =>
       @appendToEditorPane(rootView, editor)
@@ -27,3 +29,8 @@ class StatusBar extends View
 
     position = @editor.getCursorBufferPosition()
     @cursorPosition.text("#{position.row},#{position.column}")
+
+    @height(@editor.lineHeight)
+    console.log "HELLO"
+    console.log height: "-webkit-calc(100% - #{@editor.lineHeight}px)"
+    @editor.css(height: "-webkit-calc(100% - #{@editor.lineHeight}px)")

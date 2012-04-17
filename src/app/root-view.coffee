@@ -13,6 +13,7 @@ CommandPanel = require 'command-panel'
 Pane = require 'pane'
 PaneColumn = require 'pane-column'
 PaneRow = require 'pane-row'
+StatusBar = require 'status-bar'
 
 module.exports =
 class RootView extends View
@@ -45,6 +46,8 @@ class RootView extends View
       @open()
 
     @deserializePanes(panesViewState) if panesViewState
+
+    StatusBar.initialize(this)
 
   serialize: ->
     projectPath: @project?.path

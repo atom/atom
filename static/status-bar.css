@@ -1,0 +1,15 @@
+.status-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: black;
+  color: white;
+  padding: 5px;
+}
+
+.status-bar .cursor-position {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}

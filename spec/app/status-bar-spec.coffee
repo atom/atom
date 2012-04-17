@@ -2,13 +2,13 @@ $ = require 'jquery'
 RootView = require 'root-view'
 StatusBar = require 'status-bar'
 
-describe "StatusBar", ->
+fdescribe "StatusBar", ->
   [rootView, statusBar] = []
 
   beforeEach ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
     rootView.simulateDomAttachment()
-    StatusBar.initialize(rootView)
+    # StatusBar.initialize(rootView)
     statusBar = rootView.find('.status-bar').view()
 
   describe "@initialize", ->
@@ -28,7 +28,7 @@ describe "StatusBar", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
         rootView = new RootView
         rootView.simulateDomAttachment()
-        StatusBar.initialize(rootView)
+        # StatusBar.initialize(rootView)
         statusBar = rootView.find('.status-bar').view()
         expect(statusBar.currentPath.text()).toBe 'untitled'
         expect(statusBar.cursorPosition.text()).toBe '0,0'
