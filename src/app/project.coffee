@@ -22,3 +22,5 @@ class Project
     filePath = fs.join(@path, filePath) unless filePath[0] == '/'
     fs.absolute filePath
 
+  relativize: (path) ->
+    path.replace(@path, '')
