@@ -5,10 +5,12 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class Project
+  buffersByPath: null
   buffers: null
 
   constructor: (@path) ->
-    @buffers = {}
+    @buffersByPath = {}
+    @buffers = []
 
   getFilePaths: ->
     projectPath = @path
@@ -18,13 +20,14 @@ class Project
   open: (filePath) ->
     if filePath?
       filePath = @resolve(filePath)
-      buffer = @buffers[filePath]
-      unless buffer
-        @buffers[filePath] = buffer = new Buffer(filePath)
-        @trigger 'new-buffer', buffer
+      @buffersByPath[filePath] ?= @buildBuffer(filePath)
     else
-      buffer = new Buffer
-      @trigger 'new-buffer', buffer
+      @buildBuffer()
+
+  buildBuffer: (filePath) ->
+    buffer = new Buffer(filePath)
+    @buffers.push(buffer)
+    @trigger 'new-buffer', buffer
     buffer
 
   resolve: (filePath) ->
