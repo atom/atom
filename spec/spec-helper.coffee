@@ -124,6 +124,9 @@ $.fn.enableKeymap = ->
 $.fn.attachToDom = ->
   $('#jasmine-content').append(this)
 
+$.fn.simulateDomAttachment = ->
+  $('<html>').append(this)
+
 $.fn.textInput = (data) ->
   event = document.createEvent 'TextEvent'
   event.initTextEvent('textInput', true, true, window, data)

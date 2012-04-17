@@ -39,6 +39,7 @@ class Editor extends View
   softTabs: true
   tabText: '  '
   editSessions: null
+  attached: false
 
   @deserialize: (viewState) ->
     new Editor(viewState)
@@ -188,11 +189,14 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    @on 'attach', =>
+    @on 'attach', (e) =>
+      return if @attached or e.target != this[0]
+      @attached = true
       @calculateDimensions()
       @hiddenInput.width(@charWidth)
       @setMaxLineLength() if @softWrap
       @focus() if @isFocused
+      @trigger 'editor-open', [this]
 
   rootView: ->
     @parents('#root-view').view()
