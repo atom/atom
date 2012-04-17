@@ -1,2 +1,2 @@
 window.keymap.bindKeys '.editor',
-  'escape': 'autocomplete:complete-word'
+  'escape': 'autocomplete:toggle'

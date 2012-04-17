@@ -1,0 +1,21 @@
+#autocomplete {
+  position: absolute;
+  width: 200px;
+  height: 300px;
+  overflow: scroll;
+  overflow-x: hidden;
+  background-color: #444;
+  border: 2px solid #222;
+  color: #eee;
+  -webkit-box-shadow: 0 0 5px 5px #222;
+  margin: 5px;
+}
+
+#autocomplete ol {
+  overflow: hidden;
+}
+
+#autocomplete ol li.selected {
+  background-color: #a3fd97;
+  color: black;
+}
