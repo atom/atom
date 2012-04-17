@@ -396,7 +396,7 @@ describe "RootView", ->
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
       rootView = new RootView
-      expect(rootView.project).toBeUndefined()
+      expect(rootView.project.path).toBeUndefined()
       rootView.activeEditor().buffer.saveAs('/tmp/ignore-me')
       expect(rootView.project.path).toBe '/tmp/'
 

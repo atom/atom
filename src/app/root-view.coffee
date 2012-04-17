@@ -42,6 +42,7 @@ class RootView extends View
       @project = new Project(fs.directory(pathToOpen))
       @open(pathToOpen) if fs.isFile(pathToOpen)
     else if not panesViewState?
+      @project = new Project
       @open()
 
     @deserializePanes(panesViewState) if panesViewState
@@ -65,7 +66,7 @@ class RootView extends View
       when 'Editor' then Editor.deserialize(viewState)
 
   open: (path) ->
-    buffer = if path then @project.open(path) else new Buffer
+    buffer = @project.open(path)
 
     if @activeEditor()
       @activeEditor().setBuffer(buffer)
@@ -86,7 +87,7 @@ class RootView extends View
         .on 'buffer-path-change.root-view', =>
           path = editor.buffer.path
           @setTitle(path)
-          @project ?= new Project(fs.directory(path)) if path
+          @project.path ?= fs.directory(path) if path
 
       @setTitle(editor.buffer.path)
 
@@ -108,7 +109,7 @@ class RootView extends View
     rootPane?.adjustDimensions()
 
   toggleFileFinder: ->
-    return unless @project
+    return unless @project.path?
 
     if @fileFinder and @fileFinder.parent()[0]
       @fileFinder.remove()
