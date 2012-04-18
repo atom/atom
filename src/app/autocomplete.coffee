@@ -28,8 +28,9 @@ class Autocomplete extends View
   handleEvents: ->
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
     @editor.on 'autocomplete:toggle', => @toggle()
+    @editor.on 'autocomplete:select', => @select()
+
     @on 'autocomplete:cancel', => @cancel()
-    @on 'autocomplete:select', => @select()
     @on 'move-up', => @previousMatch()
     @on 'move-down', => @nextMatch()
 
