@@ -6,7 +6,7 @@ Range = require 'range'
 module.exports =
 class Autocomplete extends View
   @content: ->
-    @div id: 'autocomplete', =>
+    @div id: 'autocomplete', tabindex: -1, =>
       @ol outlet: 'matchesList'
 
   editor: null
@@ -19,7 +19,7 @@ class Autocomplete extends View
 
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
-    @on 'autocomplete:toggle', => @toggle()
+    @editor.on 'autocomplete:toggle', => @toggle()
     @on 'move-up', => @previousMatch()
     @on 'move-down', => @nextMatch()
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
@@ -45,6 +45,7 @@ class Autocomplete extends View
     {left, top} = @editor.pixelOffsetForScreenPosition(cursorScreenPosition)
     @css {left: left, top: top + @editor.lineHeight}
     $(document.body).append(this)
+    @focus()
 
   previousMatch: ->
     previousIndex = @currentMatchIndex - 1
