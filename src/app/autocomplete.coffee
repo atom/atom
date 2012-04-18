@@ -49,12 +49,13 @@ class Autocomplete extends View
   cancel: ->
     @editor.getSelection().insertText @originalSelectedText
     @editor.setSelectionBufferRange(@originalSelectionBufferRange)
-    @remove()
+    @detach()
 
   toggle: ->
-    if @parent()[0] then @remove() else @show()
+    if @parent()[0] then @detach() else @attach()
 
-  show: ->
+  attach: ->
+    @editor.addClass('autocomplete')
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @buildMatchList()
@@ -65,6 +66,10 @@ class Autocomplete extends View
     @css {left: left, top: top + @editor.lineHeight}
     $(document.body).append(this)
     @focus()
+
+  detach: ->
+    @editor.removeClass('autocomplete')
+    super
 
   previousMatch: ->
     previousIndex = @currentMatchIndex - 1
@@ -90,7 +95,7 @@ class Autocomplete extends View
 
   select: ->
     @editor.getSelection().clearSelection()
-    @remove()
+    @detach()
     @editor.focus()
 
   buildWordList: () ->
