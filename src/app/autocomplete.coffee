@@ -14,11 +14,11 @@ class Autocomplete extends View
   currentBuffer: null
   wordList: null
   wordRegex: /\w+/g
-  originalSelectionBufferRange: null
-  originalSelectedText: null
   matches: null
   currentMatchIndex: null
   isAutocompleting: false
+  originalSelectionBufferRange: null
+  originalSelectedText: null
 
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
@@ -29,8 +29,8 @@ class Autocomplete extends View
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
     @editor.on 'autocomplete:toggle', => @toggle()
     @editor.on 'autocomplete:select', => @select()
+    @editor.on 'autocomplete:cancel', => @cancel()
 
-    @on 'autocomplete:cancel', => @cancel()
     @on 'move-up', => @previousMatch()
     @on 'move-down', => @nextMatch()
 

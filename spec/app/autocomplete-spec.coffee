@@ -121,7 +121,7 @@ describe "Autocomplete", ->
       originalSelectionBufferRange = editor.getSelection().getBufferRange()
 
       editor.trigger "autocomplete:toggle"
-      autocomplete.trigger "autocomplete:cancel"
+      editor.trigger "autocomplete:cancel"
 
       expect(editor.lineForBufferRow(10)).toBe "extra:so:extra"
       expect(editor.getSelection().getBufferRange()).toEqual originalSelectionBufferRange
