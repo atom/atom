@@ -379,6 +379,11 @@ class Editor extends View
     position = Point.fromObject(position)
     { top: position.row * @lineHeight, left: position.column * @charWidth }
 
+  pixelOffsetForScreenPosition: (position) ->
+    {top, left} = @pixelPositionForScreenPosition(position)
+    offset = @lines.offset()
+    {top: top + offset.top, left: left + offset.left}
+
   screenPositionFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
 
