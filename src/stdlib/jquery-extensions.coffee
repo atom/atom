@@ -19,5 +19,6 @@ $.fn.preempt = (eventName, handler) ->
   @on eventName, (e) ->
     if handler() == false then e.stopImmediatePropagation()
 
-  handlers = @data('events')[eventName]
+  eventNameWithoutNamespace = eventName.split('.')[0]
+  handlers = @data('events')[eventNameWithoutNamespace]
   handlers.unshift(handlers.pop())
