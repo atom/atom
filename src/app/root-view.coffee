@@ -52,7 +52,7 @@ class RootView extends View
     panesViewState: @serializePanes()
 
   serializePanes: () ->
-    @panes.children().view().serialize()
+    @panes.children().view()?.serialize()
 
   deserializePanes: (panesViewState) ->
     @panes.append @deserializeView(panesViewState)
@@ -122,3 +122,7 @@ class RootView extends View
           selected: (relativePath) => @open(relativePath)
         @append @fileFinder
         @fileFinder.editor.focus()
+
+  remove: ->
+    editor.remove() for editor in @editors()
+    super

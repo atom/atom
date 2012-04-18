@@ -1,6 +1,7 @@
 Buffer = require 'buffer'
 fs = require 'fs'
 require 'benchmark-helper'
+$ = require 'jquery'
 
 describe "editor.", ->
   editor = null
@@ -11,6 +12,7 @@ describe "editor.", ->
     editor = rootView.activeEditor()
 
   afterEach ->
+    $(window).off 'beforeunload'
     window.shutdown()
 
   describe "empty-file.", ->

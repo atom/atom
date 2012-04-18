@@ -24,11 +24,14 @@ windowAdditions =
     @attachRootView(path)
     @loadUserConfiguration()
     $(window).on 'close', => @close()
-    $(window).on 'beforeunload', => @saveRootViewState()
+    $(window).on 'beforeunload', =>
+      @shutdown()
+      false
     $(window).focus()
     atom.windowOpened this
 
   shutdown: ->
+    @saveRootViewState()
     @rootView.remove()
     $(window).unbind('focus')
     $(window).unbind('blur')
@@ -38,6 +41,7 @@ windowAdditions =
   attachRootView: (pathToOpen) ->
     rootViewState = atom.rootViewStates[$windowNumber]
     @rootView = if rootViewState
+      console.log "RootView deserialize", rootViewState
       RootView.deserialize(rootViewState)
     else
       new RootView {pathToOpen}
