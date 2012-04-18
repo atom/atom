@@ -14,11 +14,13 @@ class Autocomplete extends View
   wordList: null
   wordRegex: /\w+/g
   matches: null
+  currentMatchIndex: null
   isAutocompleting: false
 
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
-    @editor.on 'autocomplete:toggle', => @toggle()
+    @on 'autocomplete:toggle', => @toggle()
+    @on 'move-down', => @nextMatch()
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
 
     @setCurrentBuffer(@editor.buffer)
@@ -31,9 +33,8 @@ class Autocomplete extends View
     @currentBuffer.on 'change.autocomplete', =>
       @buildWordList() unless @isAutocompleting
 
-
   toggle: ->
-    if @parent()[0] then @hide() else @show()
+    if @parent()[0] then @remove() else @show()
 
   show: ->
     @buildMatchList()
@@ -44,8 +45,9 @@ class Autocomplete extends View
     @css {left: left, top: top + @editor.lineHeight}
     $(document.body).append(this)
 
-  hide: ->
-    @remove()
+  nextMatch: ->
+    nextIndex = (@currentMatchIndex + 1) % @matches.length
+    @selectMatch(nextIndex)
 
   buildMatchList: ->
     selection = @editor.getSelection()
@@ -60,16 +62,18 @@ class Autocomplete extends View
     else
       @matchesList.append($$ -> @li "No matches found")
 
+  buildWordList: () ->
+    @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
+
   wordMatches: (prefix, suffix) ->
     regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")
     regex.exec(word) for word in @wordList when regex.test(word)
 
   selectMatch: (index) ->
+    @currentMatchIndex = index
+    @matchesList.find("li").removeClass "selected"
     @matchesList.find("li:eq(#{index})").addClass "selected"
     @completeUsingMatch(index)
-
-  buildWordList: () ->
-    @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
 
   completeUsingMatch: (matchIndex) ->
     match = @matches[matchIndex]
