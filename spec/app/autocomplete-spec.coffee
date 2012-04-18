@@ -78,6 +78,24 @@ describe "Autocomplete", ->
         expect(editor.getCursorBufferPosition()).toEqual [5,11]
         expect(editor.getSelection().getBufferRange()).toEqual [[5,7], [5,11]]
 
+  describe 'move-up event', ->
+    it 'replaces selection with previous match', ->
+      editor.buffer.insert([10,0] ,"extra:t:extra")
+      editor.setCursorBufferPosition([10,6])
+      autocomplete.trigger "autocomplete:toggle"
+
+      autocomplete.trigger "move-up"
+      expect(editor.lineForBufferRow(10)).toBe "extra:concat:extra"
+      expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
+      expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
+      expect(autocomplete.find('li:eq(7)')).toHaveClass('selected')
+
+      autocomplete.trigger "move-up"
+      expect(editor.lineForBufferRow(10)).toBe "extra:right:extra"
+      expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
+      expect(autocomplete.find('li:eq(7)')).not.toHaveClass('selected')
+      expect(autocomplete.find('li:eq(6)')).toHaveClass('selected')
+
   describe 'move-down event', ->
     it 'replaces selection with next match', ->
       editor.buffer.insert([10,0] ,"extra:s:extra")

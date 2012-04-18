@@ -20,6 +20,7 @@ class Autocomplete extends View
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
     @on 'autocomplete:toggle', => @toggle()
+    @on 'move-up', => @previousMatch()
     @on 'move-down', => @nextMatch()
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
 
@@ -44,6 +45,11 @@ class Autocomplete extends View
     {left, top} = @editor.pixelOffsetForScreenPosition(cursorScreenPosition)
     @css {left: left, top: top + @editor.lineHeight}
     $(document.body).append(this)
+
+  previousMatch: ->
+    previousIndex = @currentMatchIndex - 1
+    previousIndex = @matches.length - 1 if previousIndex < 0
+    @selectMatch(previousIndex)
 
   nextMatch: ->
     nextIndex = (@currentMatchIndex + 1) % @matches.length
