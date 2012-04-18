@@ -7,24 +7,35 @@ module.exports =
 class Autocomplete extends View
   @content: ->
     @div id: 'autocomplete', tabindex: -1, =>
+      @input class: 'hidden-input', outlet: 'hiddenInput'
       @ol outlet: 'matchesList'
 
   editor: null
   currentBuffer: null
   wordList: null
   wordRegex: /\w+/g
+  originalSelectionBufferRange: null
+  originalSelectedText: null
   matches: null
   currentMatchIndex: null
   isAutocompleting: false
 
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
-    @on 'autocomplete:toggle', => @toggle()
+    @handleEvents()
+    @setCurrentBuffer(@editor.buffer)
+
+  handleEvents: ->
+    @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
+    @editor.on 'autocomplete:toggle', => @toggle()
+    @on 'autocomplete:cancel', => @cancel()
+    @on 'autocomplete:select', => @select()
     @on 'move-up', => @previousMatch()
     @on 'move-down', => @nextMatch()
-    @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
 
-    @setCurrentBuffer(@editor.buffer)
+    @on 'focus', =>
+      @hiddenInput.focus()
+      false
 
   setCurrentBuffer: (buffer) ->
     @currentBuffer.off '.autocomplete' if @currentBuffer
@@ -34,10 +45,17 @@ class Autocomplete extends View
     @currentBuffer.on 'change.autocomplete', =>
       @buildWordList() unless @isAutocompleting
 
+  cancel: ->
+    @editor.getSelection().insertText @originalSelectedText
+    @editor.setSelectionBufferRange(@originalSelectionBufferRange)
+    @remove()
+
   toggle: ->
     if @parent()[0] then @remove() else @show()
 
   show: ->
+    @originalSelectedText = @editor.getSelectedText()
+    @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @buildMatchList()
     @selectMatch(0) if @matches.length > 0
 
@@ -68,6 +86,11 @@ class Autocomplete extends View
       @matchesList.append($$ -> @li match[0]) for match in @matches
     else
       @matchesList.append($$ -> @li "No matches found")
+
+  select: ->
+    @editor.getSelection().clearSelection()
+    @remove()
+    @editor.focus()
 
   buildWordList: () ->
     @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
