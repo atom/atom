@@ -8,7 +8,6 @@ window.keymap.bindKeys '*'
   down: 'move-down'
   up: 'move-up'
 
-
 window.keymap.bindKeys '.editor',
   'meta-s': 'save'
   'shift-right': 'select-right'
