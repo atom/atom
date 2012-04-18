@@ -86,15 +86,13 @@ class Autocomplete extends View
     [prefix, suffix] = ["", ""]
 
     @currentBuffer.scanInRange @wordRegex, lineRange, (match, range, {stop}) ->
+      stop() if range.start.isGreaterThan(selectionRange.end)
+
       if range.intersectsWith(selectionRange)
         prefixOffset = selectionRange.start.column - range.start.column
         suffixOffset = selectionRange.end.column - range.end.column
 
-        if range.start.isLessThan(selectionRange.start)
-          prefix = match[0][0...prefixOffset]
-
-        if range.end.isGreaterThan(selectionRange.end)
-          suffix = match[0][suffixOffset..]
-          stop()
+        prefix = match[0][0...prefixOffset] if range.start.isLessThan(selectionRange.start)
+        suffix = match[0][suffixOffset..] if range.end.isGreaterThan(selectionRange.end)
 
     {prefix, suffix}
