@@ -3,6 +3,4 @@ window.keymap.bindKeys '.editor',
 
 window.keymap.bindKeys '.editor.autocomplete',
   'enter': 'autocomplete:select'
-
-window.keymap.bindKeys '#autocomplete',
-  'escape': 'autocomplete:remove'
+  'escape': 'autocomplete:cancel'
