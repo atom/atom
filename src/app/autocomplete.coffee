@@ -6,8 +6,7 @@ Range = require 'range'
 module.exports =
 class Autocomplete extends View
   @content: ->
-    @div id: 'autocomplete', tabindex: -1, =>
-      @input class: 'hidden-input', outlet: 'hiddenInput'
+    @div id: 'autocomplete', =>
       @ol outlet: 'matchesList'
 
   editor: null
@@ -30,16 +29,10 @@ class Autocomplete extends View
     @editor.on 'autocomplete:toggle', => @toggle()
     @editor.on 'autocomplete:select', => @select()
     @editor.on 'autocomplete:cancel', => @cancel()
-
-    @on 'move-up', => @previousMatch()
-    @on 'move-down', => @nextMatch()
-
-    @on 'focus', =>
-      @hiddenInput.focus()
-      false
+    @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
   setCurrentBuffer: (buffer) ->
-    @currentBuffer.off '.autocomplete' if @currentBuffer
+    @currentBuffer?.off '.autocomplete'
     @currentBuffer = buffer
     @buildWordList()
 
@@ -55,6 +48,14 @@ class Autocomplete extends View
     if @parent()[0] then @detach() else @attach()
 
   attach: ->
+    @editor.preempt 'move-up.autocomplete', =>
+      @previousMatch()
+      false
+
+    @editor.preempt 'move-down.autocomplete', =>
+      @nextMatch()
+      false
+
     @editor.addClass('autocomplete')
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
@@ -68,6 +69,7 @@ class Autocomplete extends View
     @focus()
 
   detach: ->
+    @editor.off(".autocomplete")
     @editor.removeClass('autocomplete')
     super
 

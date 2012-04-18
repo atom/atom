@@ -519,6 +519,8 @@ class Editor extends View
 
   remove: (selector, keepData) ->
     return super if keepData
+
+    @trigger 'before-remove'
     @unsubscribeFromBuffer()
     rootView = @rootView()
     if @pane() then @pane().remove() else super

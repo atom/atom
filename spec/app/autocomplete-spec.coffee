@@ -133,13 +133,13 @@ describe "Autocomplete", ->
       editor.setCursorBufferPosition([10,6])
       editor.trigger "autocomplete:toggle"
 
-      autocomplete.trigger "move-up"
+      editor.trigger "move-up"
       expect(editor.lineForBufferRow(10)).toBe "extra:concat:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(7)')).toHaveClass('selected')
 
-      autocomplete.trigger "move-up"
+      editor.trigger "move-up"
       expect(editor.lineForBufferRow(10)).toBe "extra:right:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(7)')).not.toHaveClass('selected')
@@ -151,12 +151,12 @@ describe "Autocomplete", ->
       editor.setCursorBufferPosition([10,7])
       editor.trigger "autocomplete:toggle"
 
-      autocomplete.trigger "move-down"
+      editor.trigger "move-down"
       expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).toHaveClass('selected')
 
-      autocomplete.trigger "move-down"
+      editor.trigger "move-down"
       expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
@@ -197,6 +197,17 @@ describe "Autocomplete", ->
       editor.trigger "autocomplete:toggle"
       expect(autocomplete.buildWordList).not.toHaveBeenCalled()
 
+  describe 'when the editor is removed', ->
+    it 'removes event listeners from its buffer', ->
+      spyOn(autocomplete, 'buildWordList').andCallThrough()
+      editor.buffer.insert([0,0], "s")
+      expect(autocomplete.buildWordList).toHaveBeenCalled()
+
+      autocomplete.buildWordList.reset()
+      editor.remove()
+      editor.buffer.insert([0,0], "s")
+      expect(autocomplete.buildWordList).not.toHaveBeenCalled()
+
   describe '.wordMatches(prefix, suffix)', ->
     it 'returns wordMatches on buffer starting with given prefix and ending with given suffix', ->
       wordMatches = autocomplete.wordMatches("s", "").map (match) -> match[0]
@@ -227,3 +238,16 @@ describe "Autocomplete", ->
       expect($(document).find('#autocomplete')).toExist()
       expect(autocomplete.position().top).toBeGreaterThan 0
       expect(autocomplete.position().left).toBeGreaterThan 0
+
+  describe ".detach()", ->
+    it "unbinds autocomplete event handlers for move-up and move-down", ->
+      autocomplete.attach()
+      autocomplete.detach()
+
+      editor.trigger 'move-down'
+      expect(editor.getCursorBufferPosition().row).toBe 1
+
+      editor.trigger 'move-up'
+      expect(editor.getCursorBufferPosition().row).toBe 0
+
+
