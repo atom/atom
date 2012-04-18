@@ -19,7 +19,7 @@ class Autocomplete extends View
 
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
-    @editor.on 'autocomplete:toggle', => @toggle()
+    @on 'autocomplete:toggle', => @toggle()
     @on 'move-up', => @previousMatch()
     @on 'move-down', => @nextMatch()
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
