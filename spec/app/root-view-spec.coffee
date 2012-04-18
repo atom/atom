@@ -40,7 +40,7 @@ describe "RootView", ->
     describe "when called with view state data returned from a previous call to RootView.prototype.serialize", ->
       viewState = null
 
-      describe "when the serialized RootView does not have a project, only an unsaved buffer", ->
+      describe "when the serialized RootView has an unsaved buffer", ->
         buffer = null
 
         beforeEach ->
@@ -52,9 +52,9 @@ describe "RootView", ->
 
         it "constructs the view with the same panes", ->
           rootView = new RootView(viewState)
-          expect(rootView.project).toBeUndefined()
+          expect(rootView.project.path).toBeUndefined()
           expect(rootView.editors().length).toBe 2
-          expect(rootView.activeEditor().buffer).toBe buffer
+          expect(rootView.activeEditor().buffer.getText()).toBe buffer.getText()
           expect(document.title).toBe 'untitled'
 
       describe "when the serialized RootView has a project", ->

@@ -36,14 +36,12 @@ class RootView extends View
 
     @commandPanel = new CommandPanel({rootView: this})
 
-    if projectPath?
-      @project = new Project(projectPath)
-    else if pathToOpen?
+    if pathToOpen?
       @project = new Project(fs.directory(pathToOpen))
       @open(pathToOpen) if fs.isFile(pathToOpen)
-    else if not panesViewState?
-      @project = new Project
-      @open()
+    else
+      @project = new Project(projectPath)
+      @open() unless panesViewState?
 
     @deserializePanes(panesViewState) if panesViewState
 
@@ -63,7 +61,7 @@ class RootView extends View
       when 'Pane' then Pane.deserialize(viewState, this)
       when 'PaneRow' then PaneRow.deserialize(viewState, this)
       when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
-      when 'Editor' then Editor.deserialize(viewState)
+      when 'Editor' then Editor.deserialize(viewState, this)
 
   open: (path) ->
     buffer = @project.open(path)

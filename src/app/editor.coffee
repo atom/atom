@@ -40,7 +40,12 @@ class Editor extends View
   tabText: '  '
   editSessions: null
 
-  @deserialize: (viewState) ->
+  @deserialize: (viewState, rootView) ->
+    viewState.editSessions = viewState.editSessions.map (editSession) ->
+      editSession = _.clone(editSession)
+      editSession.buffer = Buffer.deserialize(editSession.buffer, rootView.project)
+      editSession
+
     new Editor(viewState)
 
   initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused}) ->
@@ -68,16 +73,19 @@ class Editor extends View
     { viewClass: "Editor", editSessions: @serializeEditSessions(), @activeEditSessionIndex, @isFocused }
 
   serializeEditSessions: ->
-    @editSessions.map (session) -> _.clone(session)
+    @editSessions.map (session) ->
+      session = _.clone(session)
+      session.buffer = session.buffer.serialize()
+      session
 
   copy: ->
-    Editor.deserialize(@serialize())
+    Editor.deserialize(@serialize(), @rootView())
 
   bindKeys: ->
     @on 'save', => @save()
     @on 'move-right', => @moveCursorRight()
     @on 'move-left', => @moveCursorLeft()
-    @on 'move-down', => @moveCursorDown()
+    @on 'move-down', (e) => @moveCursorDown()
     @on 'move-up', => @moveCursorUp()
     @on 'move-to-next-word', => @moveCursorToNextWord()
     @on 'move-to-previous-word', => @moveCursorToPreviousWord()

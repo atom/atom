@@ -1,6 +1,7 @@
 Buffer = require 'buffer'
 Editor = require 'editor'
 Range = require 'range'
+Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
@@ -11,11 +12,18 @@ describe "Editor", ->
   editor = null
 
   beforeEach ->
-    buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editor = new Editor
+    project = new Project(require.resolve('fixtures'))
+    buffer = project.open("sample.js")
+    editor = new Editor { buffer }
+
+    fakeRootView =
+      project: project
+      editorFocused: ->
+      focus: ->
+
+    editor.rootView = -> fakeRootView
     editor.autoIndent = false
     editor.enableKeymap()
-    editor.setBuffer(buffer)
     editor.isFocused = true
 
   describe "construction", ->

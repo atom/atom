@@ -11,6 +11,14 @@ class Buffer
   lines: null
   path: null
 
+  @deserialize: (state, project) ->
+    if state.path
+      project.open(state.path)
+    else
+      buffer = project.bufferWithId(state.id) ? project.open()
+      buffer.setText(state.text)
+      buffer
+
   constructor: (path) ->
     @id = @constructor.idCounter++
     @setPath(path)
@@ -20,6 +28,12 @@ class Buffer
     else
       @setText('')
     @undoManager = new UndoManager(this)
+
+  serialize: ->
+    if @getPath()
+      { path: @path }
+    else
+      { text: @getText(), id: @id }
 
   getPath: ->
     @path

@@ -1,3 +1,4 @@
+Project = require 'project'
 Buffer = require 'buffer'
 fs = require 'fs'
 
@@ -29,6 +30,25 @@ describe 'Buffer', ->
       it "creates an empty buffer", ->
         buffer = new Buffer
         expect(buffer.getText()).toBe ""
+
+  describe '.deserialize(state, project)', ->
+    project = null
+
+    beforeEach ->
+      project = new Project(fs.directory(filePath))
+
+    describe 'when the state has a path', ->
+      it 'use the project to open the path', ->
+        savedBuffer = project.open(filePath)
+        buffer = Buffer.deserialize(savedBuffer.serialize(), project)
+        expect(buffer).toBe savedBuffer
+
+    describe 'when the state has text (and no path)', ->
+      it 'creates a new buffer with the given text', ->
+        unsavedBuffer = project.open()
+        unsavedBuffer.setText("OMGWTFBBQ")
+        buffer = Buffer.deserialize(unsavedBuffer.serialize(), project)
+        expect(buffer).toBe unsavedBuffer
 
   describe ".getLines()", ->
     it "returns an array of lines in the text contents", ->

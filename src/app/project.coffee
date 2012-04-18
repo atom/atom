@@ -5,11 +5,9 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class Project
-  buffersByPath: null
   buffers: null
 
   constructor: (@path) ->
-    @buffersByPath = {}
     @buffers = []
 
   getFilePaths: ->
@@ -20,7 +18,7 @@ class Project
   open: (filePath) ->
     if filePath?
       filePath = @resolve(filePath)
-      @buffersByPath[filePath] ?= @buildBuffer(filePath)
+      @bufferWithPath(filePath) ? @buildBuffer(filePath)
     else
       @buildBuffer()
 
@@ -33,5 +31,11 @@ class Project
   resolve: (filePath) ->
     filePath = fs.join(@path, filePath) unless filePath[0] == '/'
     fs.absolute filePath
+
+  bufferWithId: (id) ->
+    return buffer for buffer in @buffers when buffer.id == id
+
+  bufferWithPath: (path) ->
+    return buffer for buffer in @buffers when buffer.path == path
 
 _.extend Project.prototype, EventEmitter
