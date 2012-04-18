@@ -14,3 +14,10 @@ $.fn.scrollRight = (newValue) ->
 
 $.fn.containsElement = (element) ->
   (element[0].compareDocumentPosition(this[0]) & 8) == 8
+
+$.fn.preempt = (eventName, handler) ->
+  @on eventName, (e) ->
+    if handler() == false then e.stopImmediatePropagation()
+
+  handlers = @data('events')[eventName]
+  handlers.unshift(handlers.pop())
