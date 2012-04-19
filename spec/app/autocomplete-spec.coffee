@@ -173,10 +173,41 @@ describe "Autocomplete", ->
       expect(editor.lineForBufferRow(10)).toBe "extra:s:extra"
 
   describe 'when changes are made to the buffer', ->
-    it 'updates word list', ->
-      spyOn(autocomplete, 'buildWordList')
-      editor.buffer.change([[0,4],[0,13]], "sauron")
-      expect(autocomplete.buildWordList).toHaveBeenCalled()
+    describe "when the autocomplete menu is detached", ->
+      it 'updates word list', ->
+        spyOn(autocomplete, 'buildWordList')
+        editor.buffer.change([[0,4],[0,13]], "sauron")
+        expect(autocomplete.buildWordList).toHaveBeenCalled()
+
+    describe "when the autocomplete menu is attached", ->
+      describe 'when the change was caused by autocomplete', ->
+        it 'does not rebuild the word list', ->
+          editor.buffer.insert([10,0] ,"extra:s:extra")
+
+          spyOn(autocomplete, 'buildWordList')
+          editor.setCursorBufferPosition([10,7])
+          editor.trigger "autocomplete:toggle"
+          expect(autocomplete.buildWordList).not.toHaveBeenCalled()
+
+      describe "when the change was not caused by autocomplete", ->
+        it "rebuilds the match list based on the new prefix and suffix", ->
+          editor.buffer.insert([10, 0] ,"t")
+          editor.setCursorBufferPosition [10, 0]
+          editor.trigger "autocomplete:toggle"
+          expect($(document).find('#autocomplete')).toExist()
+
+          console.log "inserting!!!!!!!!!!!"
+          editor.insertText('c')
+
+          expect($(document).find('#autocomplete')).toExist()
+
+          expect(editor.lineForBufferRow(10)).toBe "current"
+          # expect(editor.getCursorBufferPosition()).toEqual [10,10]
+          # expect(editor.getSelection().getBufferRange()).toEqual [[10,7], [10,10]]
+
+          # expect(autocomplete.matchesList.find('li').length).toBe 2
+          # expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('sort')
+          # expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('shift')
 
   describe "when editor's buffer is assigned a new buffer", ->
     it 'creates and uses a new word list based on new buffer', ->
@@ -197,15 +228,6 @@ describe "Autocomplete", ->
 
       previousBuffer.change([[0,0],[0,1]], "sauron")
 
-      expect(autocomplete.buildWordList).not.toHaveBeenCalled()
-
-  describe 'when autocomplete changes buffer', ->
-    it 'does not rebuild the word list', ->
-      editor.buffer.insert([10,0] ,"extra:s:extra")
-
-      spyOn(autocomplete, 'buildWordList')
-      editor.setCursorBufferPosition([10,7])
-      editor.trigger "autocomplete:toggle"
       expect(autocomplete.buildWordList).not.toHaveBeenCalled()
 
   describe 'when the editor is removed', ->

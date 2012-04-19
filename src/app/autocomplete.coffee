@@ -37,8 +37,7 @@ class Autocomplete extends View
     @currentBuffer = buffer
     @buildWordList()
 
-    @currentBuffer.on 'change.autocomplete', =>
-      @buildWordList() unless @isAutocompleting
+    @currentBuffer.on 'change.autocomplete', => @bufferChanged()
 
   cancel: ->
     @detach()
@@ -60,13 +59,12 @@ class Autocomplete extends View
       false
 
     @editor.on 'cursor-move.autocomplete', (e, data) =>
-      @cancel() unless @isAutocompleting
+      @cancel() unless @isAutocompleting or data.bufferChange
 
     @editor.addClass('autocomplete')
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @buildMatchList()
-    @selectMatch(0) if @matches.length > 0
 
     cursorScreenPosition = @editor.getCursorScreenPosition()
     {left, top} = @editor.pixelOffsetForScreenPosition(cursorScreenPosition)
@@ -88,6 +86,10 @@ class Autocomplete extends View
     nextIndex = (@currentMatchIndex + 1) % @matches.length
     @selectMatch(nextIndex)
 
+  bufferChanged: ->
+    @buildMatchList() if @parent()[0] and not @isAutocompleting
+    @buildWordList() unless @isAutocompleting
+
   buildMatchList: ->
     selection = @editor.getSelection()
     {prefix, suffix} = @prefixAndSuffixOfSelection(selection)
@@ -100,6 +102,8 @@ class Autocomplete extends View
       @matchesList.append($$ -> @li match[0]) for match in @matches
     else
       @matchesList.append($$ -> @li "No matches found")
+
+    @selectMatch(0) if @matches.length > 0
 
   select: ->
     @editor.getSelection().clearSelection()
