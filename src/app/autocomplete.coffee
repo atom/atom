@@ -28,7 +28,7 @@ class Autocomplete extends View
   handleEvents: ->
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
     @editor.on 'autocomplete:toggle', => @toggle()
-    @editor.on 'autocomplete:select', => @select()
+    @editor.on 'autocomplete:confirm', => @confirm()
     @editor.on 'autocomplete:cancel', => @cancel()
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
@@ -38,6 +38,11 @@ class Autocomplete extends View
     @buildWordList()
 
     @currentBuffer.on 'change.autocomplete', (e) => @bufferChanged(e)
+
+  confirm: ->
+    @editor.getSelection().clearSelection()
+    @detach()
+    @editor.focus()
 
   cancel: ->
     @detach()
@@ -51,11 +56,11 @@ class Autocomplete extends View
 
   attach: ->
     @editor.preempt 'move-up.autocomplete', =>
-      @previousMatch()
+      @selectPreviousMatch()
       false
 
     @editor.preempt 'move-down.autocomplete', =>
-      @nextMatch()
+      @selectNextMatch()
       false
 
     @editor.on 'cursor-move.autocomplete', (e, data) =>
@@ -77,14 +82,23 @@ class Autocomplete extends View
     @editor.removeClass('autocomplete')
     super
 
-  previousMatch: ->
+  selectPreviousMatch: ->
     previousIndex = @currentMatchIndex - 1
     previousIndex = @matches.length - 1 if previousIndex < 0
-    @selectMatch(previousIndex)
+    @selectMatchAtIndex(previousIndex)
 
-  nextMatch: ->
+  selectNextMatch: ->
     nextIndex = (@currentMatchIndex + 1) % @matches.length
-    @selectMatch(nextIndex)
+    @selectMatchAtIndex(nextIndex)
+
+  selectMatchAtIndex: (index) ->
+    @currentMatchIndex = index
+    @matchesList.find("li").removeClass "selected"
+    @matchesList.find("li:eq(#{index})").addClass "selected"
+    @completeUsingMatch(@selectedMatch())
+
+  selectedMatch: ->
+    @matches[@currentMatchIndex]
 
   bufferChanged: (e) ->
     if @parent()[0] and not @isAutocompleting
@@ -117,12 +131,7 @@ class Autocomplete extends View
     else
       @matchesList.append($$ -> @li "No matches found")
 
-    @selectMatch(0) if @matches.length > 0
-
-  select: ->
-    @editor.getSelection().clearSelection()
-    @detach()
-    @editor.focus()
+    @selectMatchAtIndex(0) if @matches.length > 0
 
   buildWordList: () ->
     @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
@@ -130,15 +139,6 @@ class Autocomplete extends View
   wordMatches: (prefix, suffix) ->
     regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")
     regex.exec(word) for word in @wordList when regex.test(word)
-
-  selectMatch: (index) ->
-    @currentMatchIndex = index
-    @matchesList.find("li").removeClass "selected"
-    @matchesList.find("li:eq(#{index})").addClass "selected"
-    @completeUsingMatch(@selectedMatch())
-
-  selectedMatch: ->
-    @matches[@currentMatchIndex]
 
   completeUsingMatch: (match) ->
     selection = @editor.getSelection()

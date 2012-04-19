@@ -102,12 +102,12 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li').length).toBe 1
         expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('concat')
 
-  describe 'autocomplete:select event', ->
+  describe 'autocomplete:confirm event', ->
     it 'replaces selection with selected match, removes autocomplete view and returns focus to editor', ->
       editor.buffer.insert([10,0] ,"extra:sort:extra")
       editor.setSelectionBufferRange [[10,7], [10,10]]
       editor.trigger "autocomplete:toggle"
-      editor.trigger "autocomplete:select"
+      editor.trigger "autocomplete:confirm"
 
       expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(editor.getCursorBufferPosition()).toEqual [10,11]
