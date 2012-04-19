@@ -24,6 +24,7 @@ class Cursor extends View
   handleBufferChange: (e) ->
     @anchor.handleBufferChange(e)
     @refreshScreenPosition()
+    @trigger 'cursor-move', bufferChange: true
 
   remove: ->
     @editor.compositeCursor.removeCursor(this)
@@ -36,6 +37,7 @@ class Cursor extends View
   setBufferPosition: (bufferPosition, options={}) ->
     @anchor.setBufferPosition(bufferPosition, options)
     @refreshScreenPosition()
+    @trigger 'cursor-move', bufferChange: false
     @clearSelection()
 
   getScreenPosition: ->
@@ -44,12 +46,12 @@ class Cursor extends View
   setScreenPosition: (position, options={}) ->
     @anchor.setScreenPosition(position, options)
     @refreshScreenPosition(position, options)
+    @trigger 'cursor-move', bufferChange: false
     @clearSelection()
 
   refreshScreenPosition: ->
     @goalColumn = null
     @updateAppearance()
-    @trigger 'cursor:position-changed'
 
     @removeClass 'idle'
     window.clearTimeout(@idleTimeout) if @idleTimeout
@@ -167,3 +169,5 @@ class Cursor extends View
 
     if this == _.last(@editor.getCursors())
       @editor.scrollTo(pixelPosition)
+
+    @selection.updateAppearance()

@@ -16,6 +16,7 @@ class Autocomplete extends View
   matches: null
   currentMatchIndex: null
   isAutocompleting: false
+  currentSelectionBufferRange: null
   originalSelectionBufferRange: null
   originalSelectedText: null
 
@@ -40,9 +41,11 @@ class Autocomplete extends View
       @buildWordList() unless @isAutocompleting
 
   cancel: ->
-    @editor.getSelection().insertText @originalSelectedText
-    @editor.setSelectionBufferRange(@originalSelectionBufferRange)
     @detach()
+    if @currentSelectionBufferRange
+      @editor.setSelectionBufferRange(@currentSelectionBufferRange)
+      @editor.getSelection().insertText @originalSelectedText
+      @editor.setSelectionBufferRange(@originalSelectionBufferRange)
 
   toggle: ->
     if @parent()[0] then @detach() else @attach()
@@ -55,6 +58,9 @@ class Autocomplete extends View
     @editor.preempt 'move-down.autocomplete', =>
       @nextMatch()
       false
+
+    @editor.on 'cursor-move.autocomplete', (e, data) =>
+      @cancel() unless @isAutocompleting
 
     @editor.addClass('autocomplete')
     @originalSelectedText = @editor.getSelectedText()
@@ -120,6 +126,7 @@ class Autocomplete extends View
     @isAutocompleting = true
     @editor.insertText(match[1])
     @editor.setSelectionBufferRange([startPosition, [startPosition.row, startPosition.column + match[1].length]])
+    @currentSelectionBufferRange = @editor.getSelection().getBufferRange()
     @isAutocompleting = false
 
   prefixAndSuffixOfSelection: (selection) ->

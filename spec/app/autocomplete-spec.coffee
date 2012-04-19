@@ -161,6 +161,17 @@ describe "Autocomplete", ->
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
 
+  describe 'when the cursor is moved', ->
+    it "cancels the autocomplete", ->
+      editor.buffer.insert([10,0] ,"extra:s:extra")
+      editor.setCursorBufferPosition([10,7])
+      editor.trigger "autocomplete:toggle"
+
+      spyOn(autocomplete, "cancel").andCallThrough()
+      editor.moveCursorRight()
+      expect(autocomplete.cancel).toHaveBeenCalled()
+      expect(editor.lineForBufferRow(10)).toBe "extra:s:extra"
+
   describe 'when changes are made to the buffer', ->
     it 'updates word list', ->
       spyOn(autocomplete, 'buildWordList')

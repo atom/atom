@@ -16,7 +16,6 @@ class Selection extends View
 
   initialize: ({@editor, @cursor}) ->
     @regions = []
-    @cursor.on 'cursor:position-changed', => @updateAppearance()
 
   handleBufferChange: (e) ->
     return unless @anchor
