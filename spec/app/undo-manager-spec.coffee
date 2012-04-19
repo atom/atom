@@ -64,11 +64,15 @@ describe "UndoManager", ->
     it "causes changes in batch to be undone simultaneously and returns an array of ranges to select from undo and redo", ->
       buffer.insert([0, 0], "foo")
 
+      ignoredRanges = [[[666, 666], [666, 666]], [[666, 666], [666, 666]]]
       beforeRanges = [[[1, 2], [1, 2]], [[1, 9], [1, 9]]]
+      afterRanges =[[[1, 5], [1, 5]], [[1, 12], [1, 12]]]
+
       undoManager.startUndoBatch(beforeRanges)
+      undoManager.startUndoBatch(ignoredRanges) # calls can be nested
       buffer.insert([1, 2], "111")
       buffer.insert([1, 9], "222")
-      afterRanges =[[[1, 5], [1, 5]], [[1, 12], [1, 12]]]
+      undoManager.endUndoBatch(ignoredRanges) # calls can be nested
       undoManager.endUndoBatch(afterRanges)
 
       expect(buffer.lineForRow(1)).toBe '  111var 222sort = function(items) {'
@@ -95,49 +99,7 @@ describe "UndoManager", ->
       expect(ranges).toBe beforeRanges
       expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {'
 
-    it "old: causes all changes before a call to .endUndoBatch to be undone at the same time", ->
-      buffer.insert([0, 0], "foo")
-      undoManager.startUndoBatch()
-      buffer.insert([1, 0], "bar")
-      buffer.insert([2, 0], "bar")
-      buffer.delete([[3, 4], [3, 8]])
-      undoManager.endUndoBatch()
-      buffer.change([[4, 4], [4, 9]], "slongaz")
-
-      expect(buffer.lineForRow(4)).not.toContain("while")
-      undoManager.undo()
-      expect(buffer.lineForRow(4)).toContain("while")
-
-      expect(buffer.lineForRow(1)).toContain("bar")
-      expect(buffer.lineForRow(2)).toContain("bar")
-      expect(buffer.lineForRow(3)).not.toContain("var")
-
-      undoManager.undo()
-
-      expect(buffer.lineForRow(1)).not.toContain("bar")
-      expect(buffer.lineForRow(2)).not.toContain("bar")
-      expect(buffer.lineForRow(3)).toContain("var")
-
-      undoManager.undo()
-
-      expect(buffer.lineForRow(0)).not.toContain("foo")
-
-      undoManager.redo()
-
-      expect(buffer.lineForRow(0)).toContain("foo")
-
-      undoManager.redo()
-
-      expect(buffer.lineForRow(1)).toContain("bar")
-      expect(buffer.lineForRow(2)).toContain("bar")
-      expect(buffer.lineForRow(3)).not.toContain("var")
-
-      undoManager.redo()
-
-      expect(buffer.lineForRow(4)).not.toContain("while")
-      expect(buffer.lineForRow(4)).toContain("slongaz")
-
-   it "does not store empty batches", ->
+    it "does not store empty batches", ->
       buffer.insert([0,0], "foo")
       undoManager.startUndoBatch()
       undoManager.endUndoBatch()
