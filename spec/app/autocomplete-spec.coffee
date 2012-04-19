@@ -196,18 +196,17 @@ describe "Autocomplete", ->
           editor.trigger "autocomplete:toggle"
           expect($(document).find('#autocomplete')).toExist()
 
-          console.log "inserting!!!!!!!!!!!"
           editor.insertText('c')
 
           expect($(document).find('#autocomplete')).toExist()
 
           expect(editor.lineForBufferRow(10)).toBe "current"
-          # expect(editor.getCursorBufferPosition()).toEqual [10,10]
-          # expect(editor.getSelection().getBufferRange()).toEqual [[10,7], [10,10]]
+          expect(editor.getCursorBufferPosition()).toEqual [10,6]
+          expect(editor.getSelection().getBufferRange()).toEqual [[10,1], [10,6]]
 
-          # expect(autocomplete.matchesList.find('li').length).toBe 2
-          # expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('sort')
-          # expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('shift')
+          expect(autocomplete.matchesList.find('li').length).toBe 2
+          expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('current')
+          expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('concat')
 
   describe "when editor's buffer is assigned a new buffer", ->
     it 'creates and uses a new word list based on new buffer', ->
