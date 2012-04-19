@@ -190,23 +190,39 @@ describe "Autocomplete", ->
           expect(autocomplete.buildWordList).not.toHaveBeenCalled()
 
       describe "when the change was not caused by autocomplete", ->
-        it "rebuilds the match list based on the new prefix and suffix", ->
-          editor.buffer.insert([10, 0] ,"t")
-          editor.setCursorBufferPosition [10, 0]
-          editor.trigger "autocomplete:toggle"
-          expect($(document).find('#autocomplete')).toExist()
+        describe "when the change produces a prefix that still has matches in the word list", ->
+          it "rebuilds the match list based on the new prefix and suffix", ->
+            editor.buffer.insert([10, 0] ,"t")
+            editor.setCursorBufferPosition [10, 0]
+            editor.trigger "autocomplete:toggle"
+            expect($(document).find('#autocomplete')).toExist()
 
-          editor.insertText('c')
+            editor.insertText('c')
 
-          expect($(document).find('#autocomplete')).toExist()
+            expect($(document).find('#autocomplete')).toExist()
 
-          expect(editor.lineForBufferRow(10)).toBe "current"
-          expect(editor.getCursorBufferPosition()).toEqual [10,6]
-          expect(editor.getSelection().getBufferRange()).toEqual [[10,1], [10,6]]
+            expect(editor.lineForBufferRow(10)).toBe "current"
+            expect(editor.getCursorBufferPosition()).toEqual [10,6]
+            expect(editor.getSelection().getBufferRange()).toEqual [[10,1], [10,6]]
 
-          expect(autocomplete.matchesList.find('li').length).toBe 2
-          expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('current')
-          expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('concat')
+            expect(autocomplete.matchesList.find('li').length).toBe 2
+            expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('current')
+            expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('concat')
+
+        describe "when the change produces a prefix that has no matches in the word list", ->
+          it "accepts the selected match and appends the change after it", ->
+            editor.buffer.insert([10, 0] ,"c")
+            editor.setCursorBufferPosition [10, 1]
+            editor.trigger "autocomplete:toggle"
+            expect($(document).find('#autocomplete')).toExist()
+
+            editor.insertText(' ')
+
+            expect(editor.lineForBufferRow(10)).toBe "current "
+            expect(editor.getCursorBufferPosition()).toEqual [10,8]
+            expect(editor.getSelection().getBufferRange()).toEqual [[10,8], [10,8]]
+
+            expect($(document).find('#autocomplete')).not.toExist()
 
   describe "when editor's buffer is assigned a new buffer", ->
     it 'creates and uses a new word list based on new buffer', ->

@@ -37,7 +37,7 @@ class Autocomplete extends View
     @currentBuffer = buffer
     @buildWordList()
 
-    @currentBuffer.on 'change.autocomplete', => @bufferChanged()
+    @currentBuffer.on 'change.autocomplete', (e) => @bufferChanged(e)
 
   cancel: ->
     @detach()
@@ -86,13 +86,27 @@ class Autocomplete extends View
     nextIndex = (@currentMatchIndex + 1) % @matches.length
     @selectMatch(nextIndex)
 
-  bufferChanged: ->
-    @buildMatchList() if @parent()[0] and not @isAutocompleting
+  bufferChanged: (e) ->
+    if @parent()[0] and not @isAutocompleting
+      selectedMatch = @selectedMatch()
+      @buildMatchList()
+      if @matches.length == 0
+        @detach()
+        @currentBuffer.undo()
+        @completeUsingMatch(selectedMatch)
+        @editor.getSelection().clearSelection()
+        @editor.insertText(e.newText)
+        return
+
     @buildWordList() unless @isAutocompleting
 
   buildMatchList: ->
     selection = @editor.getSelection()
     {prefix, suffix} = @prefixAndSuffixOfSelection(selection)
+    if (prefix.length + suffix.length) == 0
+      @matches = []
+      return
+
     currentWord = prefix + @editor.getSelectedText() + suffix
 
     @matches = (match for match in @wordMatches(prefix, suffix) when match[0] != currentWord)
@@ -121,10 +135,12 @@ class Autocomplete extends View
     @currentMatchIndex = index
     @matchesList.find("li").removeClass "selected"
     @matchesList.find("li:eq(#{index})").addClass "selected"
-    @completeUsingMatch(index)
+    @completeUsingMatch(@selectedMatch())
 
-  completeUsingMatch: (matchIndex) ->
-    match = @matches[matchIndex]
+  selectedMatch: ->
+    @matches[@currentMatchIndex]
+
+  completeUsingMatch: (match) ->
     selection = @editor.getSelection()
     startPosition = selection.getBufferRange().start
     @isAutocompleting = true
