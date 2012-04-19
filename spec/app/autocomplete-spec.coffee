@@ -6,33 +6,36 @@ Editor = require 'editor'
 describe "Autocomplete", ->
   autocomplete = null
   editor = null
+  miniEditor = null
 
   beforeEach ->
     editor = new Editor()
     editor.setBuffer new Buffer(require.resolve('fixtures/sample.js'))
     autocomplete = new Autocomplete(editor)
+    miniEditor = autocomplete.miniEditor
 
   afterEach ->
     autocomplete.remove()
 
   describe 'autocomplete:toggle event', ->
-    it "shows autocomplete view and adds 'autocomplete' class to editor", ->
+    it "shows autocomplete view and focuses its mini-editor", ->
       expect($(document).find('#autocomplete')).not.toExist()
-      expect(editor).not.toHaveClass('autocomplete')
 
       editor.trigger "autocomplete:toggle"
       expect($(document).find('#autocomplete')).toExist()
-      expect(editor).toHaveClass('autocomplete')
+      expect(autocomplete.editor.isFocused).toBeFalsy()
+      expect(autocomplete.miniEditor.isFocused).toBeTruthy()
 
-      editor.trigger "autocomplete:toggle"
+      miniEditor.trigger "autocomplete:toggle"
       expect($(document).find('#autocomplete')).not.toExist()
-      expect(editor).not.toHaveClass('autocomplete')
+      expect(autocomplete.editor.isFocused).toBeTruthy()
+      expect(autocomplete.miniEditor.isFocused).toBeFalsy()
 
     describe "when no text is selected", ->
       it 'autocompletes word when there is only a prefix', ->
         editor.buffer.insert([10,0] ,"extra:s:extra")
         editor.setCursorBufferPosition([10,7])
-        editor.trigger "autocomplete:toggle"
+        autocomplete.attach()
 
         expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
         expect(editor.getCursorBufferPosition()).toEqual [10,10]
@@ -45,7 +48,7 @@ describe "Autocomplete", ->
       it 'autocompletes word when there is only a suffix', ->
         editor.buffer.insert([10,0] ,"extra:e:extra")
         editor.setCursorBufferPosition([10,6])
-        editor.trigger "autocomplete:toggle"
+        autocomplete.attach()
 
         expect(editor.lineForBufferRow(10)).toBe "extra:while:extra"
         expect(editor.getCursorBufferPosition()).toEqual [10,10]
@@ -57,7 +60,7 @@ describe "Autocomplete", ->
       it 'autocompletes word when there is a prefix and suffix', ->
         editor.buffer.insert([8,43] ,"q")
         editor.setCursorBufferPosition([8,44])
-        editor.trigger "autocomplete:toggle"
+        autocomplete.attach()
 
         expect(editor.lineForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(quicksort(right));"
         expect(editor.getCursorBufferPosition()).toEqual [8,48]
@@ -70,7 +73,7 @@ describe "Autocomplete", ->
       it 'autocompletes word when there is only a prefix', ->
         editor.buffer.insert([10,0] ,"extra:sort:extra")
         editor.setSelectionBufferRange [[10,7], [10,10]]
-        editor.trigger "autocomplete:toggle"
+        autocomplete.attach()
 
         expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
         expect(editor.getCursorBufferPosition()).toEqual [10,11]
@@ -82,7 +85,7 @@ describe "Autocomplete", ->
       it 'autocompletes word when there is only a suffix', ->
         editor.buffer.insert([10,0] ,"extra:current:extra")
         editor.setSelectionBufferRange [[10,6],[10,12]]
-        editor.trigger "autocomplete:toggle"
+        autocomplete.attach()
 
         expect(editor.lineForBufferRow(10)).toBe "extra:quicksort:extra"
         expect(editor.getCursorBufferPosition()).toEqual [10,14]
@@ -93,7 +96,7 @@ describe "Autocomplete", ->
 
       it 'autocompletes word when there is a prefix and suffix', ->
         editor.setSelectionBufferRange [[5,7],[5,12]]
-        editor.trigger "autocomplete:toggle"
+        autocomplete.attach()
 
         expect(editor.lineForBufferRow(5)).toBe "      concat = items.shift();"
         expect(editor.getCursorBufferPosition()).toEqual [5,11]
@@ -106,9 +109,8 @@ describe "Autocomplete", ->
     it 'replaces selection with selected match, moves the cursor to the end of the match, and removes the autocomplete menu', ->
       editor.buffer.insert([10,0] ,"extra:sort:extra")
       editor.setSelectionBufferRange [[10,7], [10,9]]
-      editor.trigger "autocomplete:toggle"
-
-      editor.trigger "autocomplete:confirm"
+      autocomplete.attach()
+      miniEditor.trigger "autocomplete:confirm"
 
       expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(editor.getCursorBufferPosition()).toEqual [10,11]
@@ -121,8 +123,8 @@ describe "Autocomplete", ->
       editor.setSelectionBufferRange [[10,7], [10,8]]
       originalSelectionBufferRange = editor.getSelection().getBufferRange()
 
-      editor.trigger "autocomplete:toggle"
-      editor.trigger "autocomplete:cancel"
+      autocomplete.attach()
+      miniEditor.trigger "autocomplete:cancel"
 
       expect(editor.lineForBufferRow(10)).toBe "extra:so:extra"
       expect(editor.getSelection().getBufferRange()).toEqual originalSelectionBufferRange
@@ -132,15 +134,15 @@ describe "Autocomplete", ->
     it 'replaces selection with previous match', ->
       editor.buffer.insert([10,0] ,"extra:t:extra")
       editor.setCursorBufferPosition([10,6])
-      editor.trigger "autocomplete:toggle"
+      autocomplete.attach()
 
-      editor.trigger "move-up"
+      miniEditor.trigger "move-up"
       expect(editor.lineForBufferRow(10)).toBe "extra:concat:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(7)')).toHaveClass('selected')
 
-      editor.trigger "move-up"
+      miniEditor.trigger "move-up"
       expect(editor.lineForBufferRow(10)).toBe "extra:right:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(7)')).not.toHaveClass('selected')
@@ -150,28 +152,25 @@ describe "Autocomplete", ->
     it 'replaces selection with next match', ->
       editor.buffer.insert([10,0] ,"extra:s:extra")
       editor.setCursorBufferPosition([10,7])
-      editor.trigger "autocomplete:toggle"
+      autocomplete.attach()
 
-      editor.trigger "move-down"
+      miniEditor.trigger "move-down"
       expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).toHaveClass('selected')
 
-      editor.trigger "move-down"
+      miniEditor.trigger "move-down"
       expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
 
-  describe 'when the cursor is moved', ->
+  describe 'when the editor is focused', ->
     it "cancels the autocomplete", ->
-      editor.buffer.insert([10,0] ,"extra:s:extra")
-      editor.setCursorBufferPosition([10,7])
-      editor.trigger "autocomplete:toggle"
+      autocomplete.attach()
 
-      spyOn(autocomplete, "cancel").andCallThrough()
-      editor.moveCursorRight()
+      spyOn(autocomplete, "cancel")
+      editor.focus()
       expect(autocomplete.cancel).toHaveBeenCalled()
-      expect(editor.lineForBufferRow(10)).toBe "extra:s:extra"
 
   describe 'when changes are made to the buffer', ->
     describe "when the autocomplete menu is detached", ->
@@ -187,43 +186,8 @@ describe "Autocomplete", ->
 
           spyOn(autocomplete, 'buildWordList')
           editor.setCursorBufferPosition([10,7])
-          editor.trigger "autocomplete:toggle"
+          autocomplete.attach()
           expect(autocomplete.buildWordList).not.toHaveBeenCalled()
-
-      describe "when the change was not caused by autocomplete", ->
-        describe "when the change produces a prefix that still has matches in the word list", ->
-          it "rebuilds the match list based on the new prefix and suffix", ->
-            editor.buffer.insert([10, 0] ,"t")
-            editor.setCursorBufferPosition [10, 0]
-            editor.trigger "autocomplete:toggle"
-            expect($(document).find('#autocomplete')).toExist()
-
-            editor.insertText('c')
-
-            expect($(document).find('#autocomplete')).toExist()
-
-            expect(editor.lineForBufferRow(10)).toBe "current"
-            expect(editor.getCursorBufferPosition()).toEqual [10,6]
-            expect(editor.getSelection().getBufferRange()).toEqual [[10,1], [10,6]]
-
-            expect(autocomplete.matchesList.find('li').length).toBe 2
-            expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('current')
-            expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('concat')
-
-        describe "when the change produces a prefix that has no matches in the word list", ->
-          it "accepts the selected match and appends the change after it", ->
-            editor.buffer.insert([10, 0] ,"c")
-            editor.setCursorBufferPosition [10, 1]
-            editor.trigger "autocomplete:toggle"
-            expect($(document).find('#autocomplete')).toExist()
-
-            editor.insertText(' ')
-
-            expect(editor.lineForBufferRow(10)).toBe "current "
-            expect(editor.getCursorBufferPosition()).toEqual [10,8]
-            expect(editor.getSelection().getBufferRange()).toEqual [[10,8], [10,8]]
-
-            expect($(document).find('#autocomplete')).not.toExist()
 
   describe "when editor's buffer is assigned a new buffer", ->
     it 'creates and uses a new word list based on new buffer', ->

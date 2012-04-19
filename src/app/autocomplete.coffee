@@ -2,14 +2,17 @@
 $ = require 'jquery'
 _ = require 'underscore'
 Range = require 'range'
+Editor = require 'editor'
 
 module.exports =
 class Autocomplete extends View
   @content: ->
     @div id: 'autocomplete', =>
       @ol outlet: 'matchesList'
+      @subview 'miniEditor', new Editor
 
   editor: null
+  miniEditor: null
   currentBuffer: null
   wordList: null
   wordRegex: /\w+/g
@@ -27,16 +30,25 @@ class Autocomplete extends View
 
   handleEvents: ->
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
-    @editor.on 'autocomplete:toggle', => @toggle()
-    @editor.on 'autocomplete:confirm', => @confirm()
-    @editor.on 'autocomplete:cancel', => @cancel()
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
+
+    @editor.on 'autocomplete:toggle', => @attach()
+    @on 'autocomplete:toggle', => @detach()
+    @on 'autocomplete:confirm', => @confirm()
+    @on 'autocomplete:cancel', => @cancel()
+
+    @miniEditor.preempt 'move-up', =>
+      @selectPreviousMatch()
+      false
+
+    @miniEditor.preempt 'move-down', =>
+      @selectNextMatch()
+      false
 
   setCurrentBuffer: (buffer) ->
     @currentBuffer?.off '.autocomplete'
     @currentBuffer = buffer
     @buildWordList()
-
     @currentBuffer.on 'change.autocomplete', (e) => @bufferChanged(e)
 
   confirm: ->
@@ -53,35 +65,23 @@ class Autocomplete extends View
       @editor.getSelection().insertText @originalSelectedText
       @editor.setSelectionBufferRange(@originalSelectionBufferRange)
 
-  toggle: ->
-    if @parent()[0] then @detach() else @attach()
-
   attach: ->
-    @editor.preempt 'move-up.autocomplete', =>
-      @selectPreviousMatch()
-      false
+    @editor.on 'focus.autocomplete', => @cancel()
 
-    @editor.preempt 'move-down.autocomplete', =>
-      @selectNextMatch()
-      false
-
-    @editor.on 'cursor-move.autocomplete', (e, data) =>
-      @cancel() unless @isAutocompleting or data.bufferChange
-
-    @editor.addClass('autocomplete')
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @buildMatchList()
+    @selectMatchAtIndex(0) if @matches.length > 0
 
     cursorScreenPosition = @editor.getCursorScreenPosition()
     {left, top} = @editor.pixelOffsetForScreenPosition(cursorScreenPosition)
     @css {left: left, top: top + @editor.lineHeight}
     $(document.body).append(this)
-    @focus()
+    @miniEditor.focus()
 
   detach: ->
     @editor.off(".autocomplete")
-    @editor.removeClass('autocomplete')
+    @editor.focus()
     super
 
   selectPreviousMatch: ->
@@ -103,17 +103,6 @@ class Autocomplete extends View
     @matches[@currentMatchIndex]
 
   bufferChanged: (e) ->
-    if @parent()[0] and not @isAutocompleting
-      selectedMatch = @selectedMatch()
-      @buildMatchList()
-      if @matches.length == 0
-        @detach()
-        @currentBuffer.undo()
-        @completeUsingMatch(selectedMatch)
-        @editor.getSelection().clearSelection()
-        @editor.insertText(e.newText)
-        return
-
     @buildWordList() unless @isAutocompleting
 
   buildMatchList: ->
@@ -124,6 +113,7 @@ class Autocomplete extends View
       return
 
     currentWord = prefix + @editor.getSelectedText() + suffix
+
     @matches = (match for match in @wordMatches(prefix, suffix) when match.word != currentWord)
 
     @matchesList.empty()
@@ -131,8 +121,6 @@ class Autocomplete extends View
       @matchesList.append($$ -> @li match.word) for match in @matches
     else
       @matchesList.append($$ -> @li "No matches found")
-
-    @selectMatchAtIndex(0) if @matches.length > 0
 
   buildWordList: () ->
     @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
