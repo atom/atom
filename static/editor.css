@@ -8,6 +8,10 @@
   -webkit-user-select: none;
 }
 
+.editor.mini {
+  height: auto;
+}
+
 .editor .flexbox {
   display: -webkit-flexbox;
 }
@@ -21,6 +25,10 @@
   text-align: right;
 }
 
+.editor.mini .gutter {
+  display: none;
+}
+
 .editor .gutter.drop-shadow {
   -webkit-box-shadow: -2px 0px 10px 2px #222;
 }
@@ -29,6 +37,10 @@
   overflow: scroll;
   width: -webkit-flex(1);
   height: 100%;
+}
+
+.editor.mini .scroller {
+  overflow: hidden;
 }
 
 .editor.soft-wrap .scroller {

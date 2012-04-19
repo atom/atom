@@ -8,7 +8,7 @@ class CommandPanel extends View
   @content: ->
     @div class: 'command-panel', =>
       @div ':', class: 'prompt', outlet: 'prompt'
-      @subview 'editor', new Editor
+      @subview 'editor', new Editor(mini: true)
 
   commandInterpreter: null
   history: null

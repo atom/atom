@@ -14,13 +14,18 @@ module.exports =
 class Editor extends View
   @idCounter: 1
 
-  @content: ->
-    @div class: 'editor', tabindex: -1, =>
+  @content: (params) ->
+    @div class: @classes(params), tabindex: -1, =>
       @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'flexbox', =>
         @subview 'gutter', new Gutter
         @div class: 'scroller', outlet: 'scroller', =>
           @div class: 'lines', outlet: 'lines', =>
+
+  @classes: ({mini}) ->
+    classes = ['editor']
+    classes.push 'mini' if mini
+    classes.join(' ')
 
   vScrollMargin: 2
   hScrollMargin: 10

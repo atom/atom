@@ -9,7 +9,7 @@ class Autocomplete extends View
   @content: ->
     @div id: 'autocomplete', =>
       @ol outlet: 'matchesList'
-      @subview 'miniEditor', new Editor
+      @subview 'miniEditor', new Editor(mini: true)
 
   editor: null
   miniEditor: null

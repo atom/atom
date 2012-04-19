@@ -8,7 +8,7 @@ class FileFinder extends View
   @content: ->
     @div class: 'file-finder', =>
       @ol outlet: 'pathList'
-      @subview 'editor', new Editor
+      @subview 'editor', new Editor(mini: true)
 
   paths: null
   maxResults: null
