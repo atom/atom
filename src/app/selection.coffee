@@ -100,7 +100,7 @@ class Selection extends View
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)
     newBufferRange = @editor.buffer.change(@getBufferRange(), text)
-    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true)
+    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if @isReversed()
     @autoOutdentText() if shouldOutdent
     @clearSelection()
 
