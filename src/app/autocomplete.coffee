@@ -42,7 +42,9 @@ class Autocomplete extends View
   confirm: ->
     @editor.getSelection().clearSelection()
     @detach()
-    @editor.focus()
+    match = @selectedMatch()
+    position = @editor.getCursorBufferPosition()
+    @editor.setCursorBufferPosition([position.row, position.column + match.suffix.length])
 
   cancel: ->
     @detach()
@@ -122,12 +124,11 @@ class Autocomplete extends View
       return
 
     currentWord = prefix + @editor.getSelectedText() + suffix
-
-    @matches = (match for match in @wordMatches(prefix, suffix) when match[0] != currentWord)
+    @matches = (match for match in @wordMatches(prefix, suffix) when match.word != currentWord)
 
     @matchesList.empty()
     if @matches.length > 0
-      @matchesList.append($$ -> @li match[0]) for match in @matches
+      @matchesList.append($$ -> @li match.word) for match in @matches
     else
       @matchesList.append($$ -> @li "No matches found")
 
@@ -138,14 +139,16 @@ class Autocomplete extends View
 
   wordMatches: (prefix, suffix) ->
     regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")
-    regex.exec(word) for word in @wordList when regex.test(word)
+    for word in @wordList when regex.test(word)
+      match = regex.exec(word)
+      {prefix, suffix, word, infix: match[1]}
 
   completeUsingMatch: (match) ->
     selection = @editor.getSelection()
     startPosition = selection.getBufferRange().start
     @isAutocompleting = true
-    @editor.insertText(match[1])
-    @editor.setSelectionBufferRange([startPosition, [startPosition.row, startPosition.column + match[1].length]])
+    @editor.insertText(match.infix)
+    @editor.setSelectionBufferRange([startPosition, [startPosition.row, startPosition.column + match.infix.length]])
     @currentSelectionBufferRange = @editor.getSelection().getBufferRange()
     @isAutocompleting = false
 

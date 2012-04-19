@@ -103,10 +103,11 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('concat')
 
   describe 'autocomplete:confirm event', ->
-    it 'replaces selection with selected match, removes autocomplete view and returns focus to editor', ->
+    it 'replaces selection with selected match, moves the cursor to the end of the match, and removes the autocomplete menu', ->
       editor.buffer.insert([10,0] ,"extra:sort:extra")
-      editor.setSelectionBufferRange [[10,7], [10,10]]
+      editor.setSelectionBufferRange [[10,7], [10,9]]
       editor.trigger "autocomplete:toggle"
+
       editor.trigger "autocomplete:confirm"
 
       expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
@@ -258,22 +259,22 @@ describe "Autocomplete", ->
 
   describe '.wordMatches(prefix, suffix)', ->
     it 'returns wordMatches on buffer starting with given prefix and ending with given suffix', ->
-      wordMatches = autocomplete.wordMatches("s", "").map (match) -> match[0]
+      wordMatches = autocomplete.wordMatches("s", "").map (match) -> match.word
       expect(wordMatches.length).toBe 2
       expect(wordMatches).toContain("sort")
       expect(wordMatches).toContain("shift")
 
-      wordMatches = autocomplete.wordMatches("l", "t").map (match) -> match[0]
+      wordMatches = autocomplete.wordMatches("l", "t").map (match) -> match.word
       expect(wordMatches.length).toBe 1
       expect(wordMatches).toContain("left")
 
     it 'ignores case when finding matches', ->
-      wordMatches = autocomplete.wordMatches("S", "").map (match) -> match[0]
+      wordMatches = autocomplete.wordMatches("S", "").map (match) -> match.word
       expect(wordMatches.length).toBe 2
       expect(wordMatches).toContain("sort")
       expect(wordMatches).toContain("shift")
 
-      wordMatches = autocomplete.wordMatches("l", "t").map (match) -> match[0]
+      wordMatches = autocomplete.wordMatches("l", "t").map (match) -> match.word
       expect(wordMatches.length).toBe 1
       expect(wordMatches).toContain("left")
 
