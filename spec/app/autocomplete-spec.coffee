@@ -178,7 +178,7 @@ describe "Autocomplete", ->
       editor.buffer.change([[0,4],[0,13]], "sauron")
       expect(autocomplete.buildWordList).toHaveBeenCalled()
 
-  describe "when editor's buffer is changed", ->
+  describe "when editor's buffer is assigned a new buffer", ->
     it 'creates and uses a new word list based on new buffer', ->
       wordList = autocomplete.wordList
       expect(wordList).toContain "quicksort"
