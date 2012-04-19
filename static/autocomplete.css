@@ -1,9 +1,7 @@
 #autocomplete {
   position: absolute;
   width: 150px;
-  height: 200px;
-  overflow: scroll;
-  overflow-x: hidden;
+  overflow: hidden;
   background-color: #444;
   border: 2px solid #222;
   color: #eee;
@@ -12,7 +10,8 @@
 }
 
 #autocomplete ol {
-  overflow: hidden;
+  overflow-y: scroll;
+  max-height: 200px;
 }
 
 #autocomplete ol li.selected {
@@ -20,10 +19,3 @@
   color: black;
 }
 
-#autocomplete .hidden-input {
-  position: fixed;
-  z-index: -1;
-  top: 0;
-  left: 0;
-  opacity: 0;
-}
