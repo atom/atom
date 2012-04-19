@@ -186,7 +186,7 @@ class Editor extends View
 
       @selectOnMousemoveUntilMouseup()
 
-    @hiddenInput.on "textInput", (e) =>
+    @on "textInput", (e) =>
       @insertText(e.originalEvent.data)
 
     @scroller.on 'scroll', =>
