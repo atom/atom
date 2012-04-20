@@ -100,12 +100,12 @@ class Autocomplete extends View
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @allMatches = @findMatchesForCurrentSelection()
 
-    cursorScreenPosition = @editor.getCursorScreenPosition()
-    {left, top} = @editor.pixelPositionForScreenPosition(cursorScreenPosition)
-    @css {left: left, top: top + @editor.lineHeight}
 
+    originalCursorPosition = @editor.getCursorScreenPosition()
     @filterMatches()
     @editor.lines.append(this)
+    @setPosition(originalCursorPosition)
+
     @miniEditor.focus()
 
   detach: ->
@@ -113,6 +113,15 @@ class Autocomplete extends View
     @editor.focus()
     super
     @miniEditor.buffer.setText('')
+
+  setPosition: (originalCursorPosition) ->
+    { left, top } = @editor.pixelPositionForScreenPosition(originalCursorPosition)
+    potentialTop = top + @editor.lineHeight
+    potentialBottom = potentialTop + @outerHeight()
+    if potentialBottom > @editor.scroller.scrollBottom()
+      @css(left: left, bottom: @editor.lines.height() - top, top: 'inherit')
+    else
+      @css(left: left, top: potentialTop, bottom: 'inherit')
 
   selectPreviousMatch: ->
     previousIndex = @currentMatchIndex - 1

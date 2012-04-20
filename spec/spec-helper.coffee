@@ -110,7 +110,7 @@ window.tokensText = (tokens) ->
 window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
   editor.width(charWidth * widthInChars + editor.lines.position().left)
 
-window.setEditorHeightInChars = (editor, heightInChars, charHeight=editor.lineHeight) ->
+window.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
   editor.height(charHeight * heightInChars + editor.lines.position().top)
 
 $.fn.resultOfTrigger = (type) ->

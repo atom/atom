@@ -15,9 +15,6 @@ describe "Autocomplete", ->
     autocomplete = new Autocomplete(editor)
     miniEditor = autocomplete.miniEditor
 
-  afterEach ->
-    autocomplete.remove()
-
   describe "@activate(rootView)", ->
     it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
       rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
@@ -370,14 +367,31 @@ describe "Autocomplete", ->
 
   describe ".attach()", ->
     beforeEach ->
-      editor.setCursorBufferPosition [1, 1]
       editor.attachToDom()
-      autocomplete.attach()
+      setEditorHeightInLines(editor, 8)
+      editor.setCursorBufferPosition [1, 1]
 
-    it "adds the autocomplete view to the editor", ->
-      expect(editor.find('.autocomplete')).toExist()
-      expect(autocomplete.position().top).toBeGreaterThan 0
-      expect(autocomplete.position().left).toBeGreaterThan 0
+    describe "when the autocomplete view fits below the cursor", ->
+      it "adds the autocomplete view to the editor below the cursor", ->
+        cursorPixelPosition = editor.pixelPositionForScreenPosition(editor.getCursorScreenPosition())
+        autocomplete.attach()
+        expect(editor.find('.autocomplete')).toExist()
+
+        expect(autocomplete.position().top).toBe cursorPixelPosition.top + editor.lineHeight
+        expect(autocomplete.position().left).toBe cursorPixelPosition.left
+
+    describe "when the autocomplete view does not fit below the cursor", ->
+      it "adds the autocomplete view to the editor above the cursor", ->
+        editor.setCursorScreenPosition([6, 0])
+        editor.insertText('t ')
+        editor.setCursorScreenPosition([6, 0])
+        cursorPixelPosition = editor.pixelPositionForScreenPosition(editor.getCursorScreenPosition())
+        autocomplete.attach()
+
+        expect(autocomplete.parent()).toExist()
+        autocompleteBottom = autocomplete.position().top + autocomplete.outerHeight()
+        expect(autocompleteBottom).toBe cursorPixelPosition.top
+        expect(autocomplete.position().left).toBe cursorPixelPosition.left
 
   describe ".detach()", ->
     it "clears the mini-editor and unbinds autocomplete event handlers for move-up and move-down", ->

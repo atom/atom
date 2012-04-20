@@ -620,7 +620,7 @@ describe "Editor", ->
           expect(editor.scroller.scrollTop()).toBe(0)
 
         it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
-          setEditorHeightInChars(editor, 5)
+          setEditorHeightInLines(editor, 5)
 
           _.times 3, ->
             editor.moveCursorDown()
@@ -719,7 +719,7 @@ describe "Editor", ->
 
         it "only attempts to scroll when a cursor is visible", ->
           setEditorWidthInChars(editor, 20)
-          setEditorHeightInChars(editor, 10)
+          setEditorHeightInLines(editor, 10)
           editor.setCursorBufferPosition([11,0])
           editor.addCursorAtBufferPosition([6,50])
           editor.addCursorAtBufferPosition([0,0])
@@ -734,7 +734,7 @@ describe "Editor", ->
 
         it "only attempts to scroll once when multiple cursors are visible", ->
           setEditorWidthInChars(editor, 20)
-          setEditorHeightInChars(editor, 10)
+          setEditorHeightInLines(editor, 10)
           editor.setCursorBufferPosition([11,0])
           editor.addCursorAtBufferPosition([0,0])
           editor.addCursorAtBufferPosition([6,0])
@@ -1068,7 +1068,7 @@ describe "Editor", ->
   describe "multiple cursors", ->
     it "places multiple cursor with meta-click", ->
       editor.attachToDom()
-      setEditorHeightInChars(editor, 5)
+      setEditorHeightInLines(editor, 5)
       editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
       editor.scroller.scrollTop(editor.lineHeight * 6)
 
