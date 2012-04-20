@@ -237,6 +237,31 @@ describe "Autocomplete", ->
       miniEditor.trigger 'move-down'
       expect(matchesList.scrollTop()).toBe 0
 
+  describe "when a match is clicked in the match list", ->
+    it "selects and confirms the match", ->
+      editor.buffer.insert([10,0] ,"t")
+      editor.setCursorBufferPosition([10, 0])
+      autocomplete.attach()
+
+      matchToSelect = autocomplete.matchesList.find('li:eq(1)')
+      matchToSelect.mousedown()
+      expect(matchToSelect).toMatchSelector('.selected')
+      matchToSelect.mouseup()
+
+      expect(autocomplete.parent()).not.toExist()
+      expect(editor.lineForBufferRow(10)).toBe matchToSelect.text()
+
+    it "cancels the autocomplete when clicking on the 'No matches found' li", ->
+      editor.buffer.insert([10,0] ,"t")
+      editor.setCursorBufferPosition([10, 0])
+      autocomplete.attach()
+
+      miniEditor.insertText('xxx')
+      autocomplete.matchesList.find('li').mousedown().mouseup()
+
+      expect(autocomplete.parent()).not.toExist()
+      expect(editor.lineForBufferRow(10)).toBe "t"
+
   describe "when the mini-editor receives keyboard input", ->
     describe "when text is removed from the mini-editor", ->
       it "reloads the match list based on the mini-editor's text", ->

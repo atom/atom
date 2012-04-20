@@ -8,7 +8,7 @@ fuzzyFilter = require 'fuzzy-filter'
 module.exports =
 class Autocomplete extends View
   @content: ->
-    @div class: 'autocomplete', =>
+    @div class: 'autocomplete', tabindex: -1, =>
       @ol outlet: 'matchesList'
       @subview 'miniEditor', new Editor(mini: true)
 
@@ -41,6 +41,17 @@ class Autocomplete extends View
     @editor.on 'autocomplete:attach', => @attach()
     @editor.on 'autocomplete:cancel', => @cancel()
     @on 'autocomplete:confirm', => @confirm()
+
+    @matchesList.on 'mousedown', (e) =>
+      index = $(e.target).attr('index')
+      @selectMatchAtIndex(index) if index?
+      false
+
+    @matchesList.on 'mouseup', =>
+      if @selectedMatch()
+        @confirm()
+      else
+        @cancel()
 
     @miniEditor.buffer.on 'change', (e) =>
       @filterMatches() if @parent()[0]
@@ -138,7 +149,7 @@ class Autocomplete extends View
   renderMatchList: ->
     @matchesList.empty()
     if @filteredMatches.length > 0
-      @matchesList.append($$ -> @li match.word) for match in @filteredMatches
+      @matchesList.append($$ -> @li match.word, index: index) for match, index in @filteredMatches
     else
       @matchesList.append($$ -> @li "No matches found")
 
