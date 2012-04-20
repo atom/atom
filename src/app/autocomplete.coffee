@@ -87,11 +87,12 @@ class Autocomplete extends View
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @allMatches = @findMatchesForCurrentSelection()
-    @filterMatches()
 
     cursorScreenPosition = @editor.getCursorScreenPosition()
     {left, top} = @editor.pixelPositionForScreenPosition(cursorScreenPosition)
     @css {left: left, top: top + @editor.lineHeight}
+
+    @filterMatches()
     @editor.lines.append(this)
     @miniEditor.focus()
 
