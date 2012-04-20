@@ -21,8 +21,8 @@ windowAdditions =
     $(document).on 'keydown', @_handleKeyEvent
 
   startup: (path) ->
-    @attachRootView(path)
     @loadUserConfiguration()
+    @attachRootView(path)
     $(window).on 'close', => @close()
     $(window).on 'beforeunload', =>
       @shutdown()
@@ -53,7 +53,7 @@ windowAdditions =
     try
       require atom.userConfigurationPath if fs.exists(atom.userConfigurationPath)
     catch error
-      console.error "Failed to load `#{atom.userConfigurationPath}`", error
+      console.error "Failed to load `#{atom.userConfigurationPath}`", error.message, error
       @showConsole()
 
   requireStylesheet: (path) ->

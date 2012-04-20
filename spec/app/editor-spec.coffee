@@ -51,6 +51,20 @@ describe "Editor", ->
       expect(newEditor.editSessions[0]).toEqual(editor.editSessions[0])
       expect(newEditor.editSessions[0]).not.toBe(editor.editSessions[0])
 
+  describe "editor-open event", ->
+    it 'only triggers an editor-open event when it is first added to the DOM', ->
+      openHandler = jasmine.createSpy('openHandler')
+      editor.on 'editor-open', openHandler
+
+      editor.simulateDomAttachment()
+      expect(openHandler).toHaveBeenCalled()
+      [event, eventEditor] = openHandler.argsForCall[0]
+      expect(eventEditor).toBe editor
+
+      openHandler.reset()
+      editor.simulateDomAttachment()
+      expect(openHandler).not.toHaveBeenCalled()
+
   describe "text rendering", ->
     it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
       expect(editor.lines.find('.line').length).toEqual(buffer.numLines())
