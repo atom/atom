@@ -21,8 +21,8 @@ windowAdditions =
     $(document).on 'keydown', @_handleKeyEvent
 
   startup: (path) ->
-    @loadUserConfiguration()
     @attachRootView(path)
+    @loadUserConfiguration()
     $(window).on 'close', => @close()
     $(window).on 'beforeunload', =>
       @shutdown()
