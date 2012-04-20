@@ -24,6 +24,10 @@ class Autocomplete extends View
   originalSelectionBufferRange: null
   originalSelectedText: null
 
+  @activate: (rootView) ->
+    new Autocomplete(editor) for editor in rootView.editors()
+    rootView.on 'editor-open', (e, editor) -> new Autocomplete(editor)
+
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
     @handleEvents()
@@ -34,8 +38,8 @@ class Autocomplete extends View
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
     @editor.on 'autocomplete:attach', => @attach()
+    @editor.on 'autocomplete:cancel', => @cancel()
     @on 'autocomplete:confirm', => @confirm()
-    @on 'autocomplete:cancel', => @cancel()
 
     @miniEditor.buffer.on 'change', (e) =>
       @filterMatches() if @parent()[0]
@@ -86,9 +90,9 @@ class Autocomplete extends View
     @filterMatches()
 
     cursorScreenPosition = @editor.getCursorScreenPosition()
-    {left, top} = @editor.pixelOffsetForScreenPosition(cursorScreenPosition)
+    {left, top} = @editor.pixelPositionForScreenPosition(cursorScreenPosition)
     @css {left: left, top: top + @editor.lineHeight}
-    $(document.body).append(this)
+    @editor.lines.append(this)
     @miniEditor.focus()
 
   detach: ->

@@ -2,6 +2,7 @@ $ = require 'jquery'
 Autocomplete = require 'autocomplete'
 Buffer = require 'buffer'
 Editor = require 'editor'
+RootView = require 'root-view'
 
 describe "Autocomplete", ->
   autocomplete = null
@@ -17,12 +18,29 @@ describe "Autocomplete", ->
   afterEach ->
     autocomplete.remove()
 
-  describe 'autocomplete:show event', ->
+  describe '@activate(rootView)', ->
+    it 'activates autocomplete on all existing and future editors', ->
+      rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
+      rootView.simulateDomAttachment()
+      Autocomplete.activate(rootView)
+      leftEditor = rootView.activeEditor()
+      rightEditor = rootView.activeEditor().splitRight()
+
+      leftEditor.trigger 'autocomplete:attach'
+      expect(leftEditor.find('#autocomplete')).toExist()
+      expect(rightEditor.find('#autocomplete')).not.toExist()
+
+      leftEditor.trigger 'autocomplete:cancel'
+      rightEditor.trigger 'autocomplete:attach'
+      expect(leftEditor.find('#autocomplete')).not.toExist()
+      expect(rightEditor.find('#autocomplete')).toExist()
+
+  describe 'autocomplete:attach event', ->
     it "shows autocomplete view and focuses its mini-editor", ->
-      expect($(document).find('#autocomplete')).not.toExist()
+      expect(editor.find('#autocomplete')).not.toExist()
 
       editor.trigger "autocomplete:attach"
-      expect($(document).find('#autocomplete')).toExist()
+      expect(editor.find('#autocomplete')).toExist()
       expect(autocomplete.editor.isFocused).toBeFalsy()
       expect(autocomplete.miniEditor.isFocused).toBeTruthy()
 
@@ -117,7 +135,7 @@ describe "Autocomplete", ->
       expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(editor.getCursorBufferPosition()).toEqual [10,11]
       expect(editor.getSelection().isEmpty()).toBeTruthy()
-      expect($(document).find('#autocomplete')).not.toExist()
+      expect(editor.find('#autocomplete')).not.toExist()
 
     describe "when there are no matches", ->
       it "closes the menu without changing the buffer", ->
@@ -132,7 +150,7 @@ describe "Autocomplete", ->
         expect(editor.lineForBufferRow(10)).toBe "xxx"
         expect(editor.getCursorBufferPosition()).toEqual [10,3]
         expect(editor.getSelection().isEmpty()).toBeTruthy()
-        expect($(document).find('#autocomplete')).not.toExist()
+        expect(editor.find('#autocomplete')).not.toExist()
 
   describe 'autocomplete:cancel event', ->
     it 'does not replace selection, removes autocomplete view and returns focus to editor', ->
@@ -145,7 +163,7 @@ describe "Autocomplete", ->
 
       expect(editor.lineForBufferRow(10)).toBe "extra:so:extra"
       expect(editor.getSelection().getBufferRange()).toEqual originalSelectionBufferRange
-      expect($(document).find('#autocomplete')).not.toExist()
+      expect(editor.find('#autocomplete')).not.toExist()
 
   describe 'move-up event', ->
     it 'replaces selection with previous match', ->
@@ -181,7 +199,7 @@ describe "Autocomplete", ->
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
 
-  describe "when the mini-editor's buffer changes", ->
+  describe "when the mini-editor receives keyboard input", ->
     describe "when text is removed from the mini-editor", ->
       it "reloads the match list based on the mini-editor's text", ->
         editor.buffer.insert([10,0] ,"t")
@@ -286,11 +304,12 @@ describe "Autocomplete", ->
 
   describe ".attach()", ->
     beforeEach ->
+      editor.setCursorBufferPosition [1, 1]
       editor.attachToDom()
       autocomplete.attach()
 
     it "adds the autocomplete view to the editor", ->
-      expect($(document).find('#autocomplete')).toExist()
+      expect(editor.find('#autocomplete')).toExist()
       expect(autocomplete.position().top).toBeGreaterThan 0
       expect(autocomplete.position().left).toBeGreaterThan 0
 
