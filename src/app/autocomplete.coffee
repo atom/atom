@@ -37,8 +37,9 @@ class Autocomplete extends View
     @on 'autocomplete:confirm', => @confirm()
     @on 'autocomplete:cancel', => @cancel()
 
-    @miniEditor.buffer.on 'change', =>
-      @filterMatchList() if @parent()[0]
+    @miniEditor.buffer.on 'change', (e) =>
+      return unless @parent()[0]
+      @filterMatchList()
 
     @miniEditor.preempt 'move-up', =>
       @selectPreviousMatch()
@@ -121,13 +122,14 @@ class Autocomplete extends View
 
     if (prefix.length + suffix.length) > 0
       currentWord = prefix + @editor.getSelectedText() + suffix
-      @matches = (match for match in @wordMatches(prefix, suffix) when match.word != currentWord)
+      @baseMatches = (match for match in @wordMatches(prefix, suffix) when match.word != currentWord)
     else
-      @matches = []
-    @renderMatchList()
+      @baseMatches = []
+
+    @filterMatchList()
 
   filterMatchList: ->
-    @matches = fuzzyFilter(@matches, @miniEditor.buffer.getText(), key: 'word')
+    @matches = fuzzyFilter(@baseMatches, @miniEditor.getText(), key: 'word')
     @renderMatchList()
 
   renderMatchList: ->

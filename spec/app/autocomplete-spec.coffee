@@ -166,7 +166,19 @@ describe "Autocomplete", ->
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
 
-  describe "when the mini-editor receives text input", ->
+  describe "when the mini-editor's buffer changes", ->
+    describe "when text is removed from the mini-editor", ->
+      it "reloads the match list based on the mini-editor's text", ->
+        editor.buffer.insert([10,0] ,"t")
+        editor.setCursorBufferPosition([10,0])
+        autocomplete.attach()
+
+        expect(autocomplete.matchesList.find('li').length).toBe 8
+        miniEditor.textInput('c')
+        expect(autocomplete.matchesList.find('li').length).toBe 3
+        miniEditor.backspace()
+        expect(autocomplete.matchesList.find('li').length).toBe 8
+
     describe "when the text contains only word characters", ->
       it "narrows the list of completions with the fuzzy match algorithm", ->
         editor.buffer.insert([10,0] ,"t")
