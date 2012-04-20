@@ -114,7 +114,17 @@ class Autocomplete extends View
   selectMatchAtIndex: (index) ->
     @currentMatchIndex = index
     @matchesList.find("li").removeClass "selected"
-    @matchesList.find("li:eq(#{index})").addClass "selected"
+
+    liToSelect = @matchesList.find("li:eq(#{index})")
+    liToSelect.addClass "selected"
+
+    topOfLiToSelect = liToSelect.position().top + @matchesList.scrollTop()
+    bottomOfLiToSelect = topOfLiToSelect + liToSelect.outerHeight()
+    if topOfLiToSelect < @matchesList.scrollTop()
+      @matchesList.scrollTop(topOfLiToSelect)
+    else if bottomOfLiToSelect > @matchesList.scrollBottom()
+      @matchesList.scrollBottom(bottomOfLiToSelect)
+
     @replaceSelectedTextWithMatch @selectedMatch()
 
   selectedMatch: ->

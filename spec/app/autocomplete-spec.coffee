@@ -166,7 +166,7 @@ describe "Autocomplete", ->
       expect(editor.find('.autocomplete')).not.toExist()
 
   describe 'move-up event', ->
-    it 'replaces selection with previous match', ->
+    it "highlights the previous match and replaces the selection with it", ->
       editor.buffer.insert([10,0] ,"extra:t:extra")
       editor.setCursorBufferPosition([10,6])
       autocomplete.attach()
@@ -183,8 +183,25 @@ describe "Autocomplete", ->
       expect(autocomplete.find('li:eq(7)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(6)')).toHaveClass('selected')
 
+    it "scrolls to the selected match if it is out of view", ->
+      editor.buffer.insert([10,0] ,"t")
+      editor.setCursorBufferPosition([10, 0])
+      editor.attachToDom()
+      autocomplete.attach()
+
+      matchesList = autocomplete.matchesList
+      matchesList.height(100)
+      expect(matchesList.height()).toBeLessThan matchesList[0].scrollHeight
+
+      matchCount = matchesList.find('li').length
+      miniEditor.trigger 'move-up'
+      expect(matchesList.scrollBottom()).toBe matchesList[0].scrollHeight
+
+      miniEditor.trigger 'move-up' for i in [1...matchCount]
+      expect(matchesList.scrollTop()).toBe 0
+
   describe 'move-down event', ->
-    it 'replaces selection with next match', ->
+    it "highlights the next match and replaces the selection with it", ->
       editor.buffer.insert([10,0] ,"extra:s:extra")
       editor.setCursorBufferPosition([10,7])
       autocomplete.attach()
@@ -198,6 +215,23 @@ describe "Autocomplete", ->
       expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
+
+    it "scrolls to the selected match if it is out of view", ->
+      editor.buffer.insert([10,0] ,"t")
+      editor.setCursorBufferPosition([10, 0])
+      editor.attachToDom()
+      autocomplete.attach()
+
+      matchesList = autocomplete.matchesList
+      matchesList.height(100)
+      expect(matchesList.height()).toBeLessThan matchesList[0].scrollHeight
+
+      matchCount = matchesList.find('li').length
+      miniEditor.trigger 'move-down' for i in [1...matchCount]
+      expect(matchesList.scrollBottom()).toBe matchesList[0].scrollHeight
+
+      miniEditor.trigger 'move-down'
+      expect(matchesList.scrollTop()).toBe 0
 
   describe "when the mini-editor receives keyboard input", ->
     describe "when text is removed from the mini-editor", ->

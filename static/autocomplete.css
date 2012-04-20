@@ -10,6 +10,7 @@
 }
 
 .autocomplete ol {
+  position: relative;
   overflow-y: scroll;
   max-height: 200px;
 }
