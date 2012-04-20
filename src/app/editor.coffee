@@ -206,6 +206,7 @@ class Editor extends View
       @hiddenInput.width(@charWidth)
       @setMaxLineLength() if @softWrap
       @focus() if @isFocused
+      @trigger 'editor-open', [this]
 
   rootView: ->
     @parents('#root-view').view()
