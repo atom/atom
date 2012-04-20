@@ -1,4 +1,4 @@
-#autocomplete {
+.autocomplete {
   display: table;
   position: absolute;
   min-width: 150px;
@@ -9,16 +9,16 @@
   margin: 5px;
 }
 
-#autocomplete ol {
+.autocomplete ol {
   overflow-y: scroll;
   max-height: 200px;
 }
 
-#autocomplete ol li {
+.autocomplete ol li {
   padding: 0.1em 0.2em;
 }
 
-#autocomplete ol li.selected {
+.autocomplete ol li.selected {
   background-color: #a3fd97;
   color: black;
 }

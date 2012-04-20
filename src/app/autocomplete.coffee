@@ -8,7 +8,7 @@ fuzzyFilter = require 'fuzzy-filter'
 module.exports =
 class Autocomplete extends View
   @content: ->
-    @div id: 'autocomplete', =>
+    @div class: 'autocomplete', =>
       @ol outlet: 'matchesList'
       @subview 'miniEditor', new Editor(mini: true)
 

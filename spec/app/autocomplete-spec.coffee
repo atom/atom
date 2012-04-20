@@ -27,20 +27,20 @@ describe "Autocomplete", ->
       rightEditor = rootView.activeEditor().splitRight()
 
       leftEditor.trigger 'autocomplete:attach'
-      expect(leftEditor.find('#autocomplete')).toExist()
-      expect(rightEditor.find('#autocomplete')).not.toExist()
+      expect(leftEditor.find('.autocomplete')).toExist()
+      expect(rightEditor.find('.autocomplete')).not.toExist()
 
       leftEditor.trigger 'autocomplete:cancel'
       rightEditor.trigger 'autocomplete:attach'
-      expect(leftEditor.find('#autocomplete')).not.toExist()
-      expect(rightEditor.find('#autocomplete')).toExist()
+      expect(leftEditor.find('.autocomplete')).not.toExist()
+      expect(rightEditor.find('.autocomplete')).toExist()
 
   describe 'autocomplete:attach event', ->
     it "shows autocomplete view and focuses its mini-editor", ->
-      expect(editor.find('#autocomplete')).not.toExist()
+      expect(editor.find('.autocomplete')).not.toExist()
 
       editor.trigger "autocomplete:attach"
-      expect(editor.find('#autocomplete')).toExist()
+      expect(editor.find('.autocomplete')).toExist()
       expect(autocomplete.editor.isFocused).toBeFalsy()
       expect(autocomplete.miniEditor.isFocused).toBeTruthy()
 
@@ -135,7 +135,7 @@ describe "Autocomplete", ->
       expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(editor.getCursorBufferPosition()).toEqual [10,11]
       expect(editor.getSelection().isEmpty()).toBeTruthy()
-      expect(editor.find('#autocomplete')).not.toExist()
+      expect(editor.find('.autocomplete')).not.toExist()
 
     describe "when there are no matches", ->
       it "closes the menu without changing the buffer", ->
@@ -150,7 +150,7 @@ describe "Autocomplete", ->
         expect(editor.lineForBufferRow(10)).toBe "xxx"
         expect(editor.getCursorBufferPosition()).toEqual [10,3]
         expect(editor.getSelection().isEmpty()).toBeTruthy()
-        expect(editor.find('#autocomplete')).not.toExist()
+        expect(editor.find('.autocomplete')).not.toExist()
 
   describe 'autocomplete:cancel event', ->
     it 'does not replace selection, removes autocomplete view and returns focus to editor', ->
@@ -163,7 +163,7 @@ describe "Autocomplete", ->
 
       expect(editor.lineForBufferRow(10)).toBe "extra:so:extra"
       expect(editor.getSelection().getBufferRange()).toEqual originalSelectionBufferRange
-      expect(editor.find('#autocomplete')).not.toExist()
+      expect(editor.find('.autocomplete')).not.toExist()
 
   describe 'move-up event', ->
     it 'replaces selection with previous match', ->
@@ -309,7 +309,7 @@ describe "Autocomplete", ->
       autocomplete.attach()
 
     it "adds the autocomplete view to the editor", ->
-      expect(editor.find('#autocomplete')).toExist()
+      expect(editor.find('.autocomplete')).toExist()
       expect(autocomplete.position().top).toBeGreaterThan 0
       expect(autocomplete.position().left).toBeGreaterThan 0
 
