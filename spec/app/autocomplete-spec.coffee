@@ -69,6 +69,13 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li').length).toBe 1
         expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('quicksort')
 
+      it "show's that there are no matches found when there is no prefix or suffix", ->
+        editor.setCursorBufferPosition([10, 0])
+        autocomplete.attach()
+
+        expect(autocomplete.matchesList.find('li').length).toBe 1
+        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText "No matches found"
+
     describe "when text is selected", ->
       it 'autocompletes word when there is only a prefix', ->
         editor.buffer.insert([10,0] ,"extra:sort:extra")
@@ -164,6 +171,41 @@ describe "Autocomplete", ->
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
 
+  describe "when the mini-editor receives text input", ->
+    describe "when the text contains only word characters", ->
+      it "narrows the list of completions with the fuzzy match algorithm", ->
+        editor.buffer.insert([10,0] ,"t")
+        editor.setCursorBufferPosition([10,0])
+        autocomplete.attach()
+
+        expect(autocomplete.matchesList.find('li').length).toBe 8
+        miniEditor.textInput('i')
+        expect(autocomplete.matchesList.find('li').length).toBe 4
+        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText 'pivot'
+        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveClass 'selected'
+        expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText 'shift'
+        expect(autocomplete.matchesList.find('li:eq(2)')).toHaveText 'right'
+        expect(autocomplete.matchesList.find('li:eq(3)')).toHaveText 'quicksort'
+        expect(editor.lineForBufferRow(10)).toEqual 'pivot'
+
+        miniEditor.textInput('o')
+        expect(autocomplete.matchesList.find('li').length).toBe 2
+        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText 'pivot'
+        expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText 'quicksort'
+
+    describe "when a non-word character is typed in the mini-editor", ->
+      it "immediately confirms the current completion choice and inserts that character into the buffer", ->
+        editor.buffer.insert([10,0] ,"t")
+        editor.setCursorBufferPosition([10,0])
+        autocomplete.attach()
+
+        miniEditor.textInput('iv')
+        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText 'pivot'
+
+        miniEditor.textInput(' ')
+        expect(autocomplete.parent()).not.toExist()
+        expect(editor.lineForBufferRow(10)).toEqual 'pivot '
+
   describe 'when the editor is focused', ->
     it "cancels the autocomplete", ->
       autocomplete.attach()
@@ -179,17 +221,16 @@ describe "Autocomplete", ->
         editor.buffer.change([[0,4],[0,13]], "sauron")
         expect(autocomplete.buildWordList).toHaveBeenCalled()
 
-    describe "when the autocomplete menu is attached", ->
-      describe 'when the change was caused by autocomplete', ->
-        it 'does not rebuild the word list', ->
-          editor.buffer.insert([10,0] ,"extra:s:extra")
+    describe "when the autocomplete menu is attached and the change was caused by autocomplete itself", ->
+      it 'does not rebuild the word list', ->
+        editor.buffer.insert([10,0] ,"extra:s:extra")
 
-          spyOn(autocomplete, 'buildWordList')
-          editor.setCursorBufferPosition([10,7])
-          autocomplete.attach()
-          expect(autocomplete.buildWordList).not.toHaveBeenCalled()
+        spyOn(autocomplete, 'buildWordList')
+        editor.setCursorBufferPosition([10,7])
+        autocomplete.attach()
+        expect(autocomplete.buildWordList).not.toHaveBeenCalled()
 
-  describe "when editor's buffer is assigned a new buffer", ->
+  describe "when a new buffer is assigned on editor", ->
     it 'creates and uses a new word list based on new buffer', ->
       wordList = autocomplete.wordList
       expect(wordList).toContain "quicksort"
@@ -253,9 +294,12 @@ describe "Autocomplete", ->
       expect(autocomplete.position().left).toBeGreaterThan 0
 
   describe ".detach()", ->
-    it "unbinds autocomplete event handlers for move-up and move-down", ->
+    it "clears the mini-editor and unbinds autocomplete event handlers for move-up and move-down", ->
       autocomplete.attach()
+      miniEditor.buffer.setText('foo')
+
       autocomplete.detach()
+      expect(miniEditor.buffer.getText()).toBe ''
 
       editor.trigger 'move-down'
       expect(editor.getCursorBufferPosition().row).toBe 1

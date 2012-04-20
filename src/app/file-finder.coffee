@@ -1,6 +1,7 @@
 $ = require 'jquery'
 {View} = require 'space-pen'
 stringScore = require 'stringscore'
+fuzzyFilter = require 'fuzzy-filter'
 Editor = require 'editor'
 
 module.exports =
@@ -58,19 +59,7 @@ class FileFinder extends View
       .addClass('selected')
 
   findMatches: (query) ->
-    if not query
-      paths = @paths
-    else
-      scoredPaths = ({path, score: stringScore(path, query)} for path in @paths)
-      scoredPaths.sort (a, b) ->
-        if a.score > b.score then -1
-        else if a.score < b.score then 1
-        else 0
-      window.x = scoredPaths
-
-      paths = (pathAndScore.path for pathAndScore in scoredPaths when pathAndScore.score > 0)
-
-    paths.slice 0, @maxResults
+    fuzzyFilter(@paths, query, maxResults: @maxResults)
 
   remove: ->
     $('#panes .editor.active').focus()

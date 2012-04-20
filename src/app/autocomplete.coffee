@@ -3,6 +3,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 Range = require 'range'
 Editor = require 'editor'
+fuzzyFilter = require 'fuzzy-filter'
 
 module.exports =
 class Autocomplete extends View
@@ -37,6 +38,9 @@ class Autocomplete extends View
     @on 'autocomplete:confirm', => @confirm()
     @on 'autocomplete:cancel', => @cancel()
 
+    @miniEditor.buffer.on 'change', =>
+      @filterMatchList() if @parent()[0]
+
     @miniEditor.preempt 'move-up', =>
       @selectPreviousMatch()
       false
@@ -44,6 +48,13 @@ class Autocomplete extends View
     @miniEditor.preempt 'move-down', =>
       @selectNextMatch()
       false
+
+    @miniEditor.preempt 'textInput', (e) =>
+      text = e.originalEvent.data
+      unless text.match(@wordRegex)
+        @confirm()
+        @editor.insertText(text)
+        false
 
   setCurrentBuffer: (buffer) ->
     @currentBuffer?.off '.autocomplete'
@@ -71,7 +82,6 @@ class Autocomplete extends View
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @buildMatchList()
-    @selectMatchAtIndex(0) if @matches.length > 0
 
     cursorScreenPosition = @editor.getCursorScreenPosition()
     {left, top} = @editor.pixelOffsetForScreenPosition(cursorScreenPosition)
@@ -83,6 +93,7 @@ class Autocomplete extends View
     @editor.off(".autocomplete")
     @editor.focus()
     super
+    @miniEditor.buffer.setText('')
 
   selectPreviousMatch: ->
     previousIndex = @currentMatchIndex - 1
@@ -108,19 +119,26 @@ class Autocomplete extends View
   buildMatchList: ->
     selection = @editor.getSelection()
     {prefix, suffix} = @prefixAndSuffixOfSelection(selection)
-    if (prefix.length + suffix.length) == 0
+
+    if (prefix.length + suffix.length) > 0
+      currentWord = prefix + @editor.getSelectedText() + suffix
+      @matches = (match for match in @wordMatches(prefix, suffix) when match.word != currentWord)
+    else
       @matches = []
-      return
+    @renderMatchList()
 
-    currentWord = prefix + @editor.getSelectedText() + suffix
+  filterMatchList: ->
+    @matches = fuzzyFilter(@matches, @miniEditor.buffer.getText(), key: 'word')
+    @renderMatchList()
 
-    @matches = (match for match in @wordMatches(prefix, suffix) when match.word != currentWord)
-
+  renderMatchList: ->
     @matchesList.empty()
     if @matches.length > 0
       @matchesList.append($$ -> @li match.word) for match in @matches
     else
       @matchesList.append($$ -> @li "No matches found")
+
+    @selectMatchAtIndex(0) if @matches.length > 0
 
   buildWordList: () ->
     @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
