@@ -18,13 +18,15 @@ describe "Autocomplete", ->
   afterEach ->
     autocomplete.remove()
 
-  describe '@activate(rootView)', ->
-    it 'activates autocomplete on all existing and future editors', ->
+  describe "@activate(rootView)", ->
+    it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
       rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
       rootView.simulateDomAttachment()
       Autocomplete.activate(rootView)
       leftEditor = rootView.activeEditor()
       rightEditor = rootView.activeEditor().splitRight()
+
+      spyOn(Autocomplete.prototype, 'initialize')
 
       leftEditor.trigger 'autocomplete:attach'
       expect(leftEditor.find('.autocomplete')).toExist()
@@ -34,6 +36,8 @@ describe "Autocomplete", ->
       rightEditor.trigger 'autocomplete:attach'
       expect(leftEditor.find('.autocomplete')).not.toExist()
       expect(rightEditor.find('.autocomplete')).toExist()
+
+      expect(Autocomplete.prototype.initialize).not.toHaveBeenCalled()
 
   describe 'autocomplete:attach event', ->
     it "shows autocomplete view and focuses its mini-editor", ->

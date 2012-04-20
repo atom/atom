@@ -26,7 +26,8 @@ class Autocomplete extends View
 
   @activate: (rootView) ->
     new Autocomplete(editor) for editor in rootView.editors()
-    rootView.on 'editor-open', (e, editor) -> new Autocomplete(editor)
+    rootView.on 'editor-open', (e, editor) ->
+      new Autocomplete(editor) unless editor.is('.autocomplete .mini')
 
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
