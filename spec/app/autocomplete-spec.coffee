@@ -124,6 +124,21 @@ describe "Autocomplete", ->
       expect(editor.getSelection().isEmpty()).toBeTruthy()
       expect($(document).find('#autocomplete')).not.toExist()
 
+    describe "when there are no matches", ->
+      it "closes the menu without changing the buffer", ->
+        editor.buffer.insert([10,0] ,"xxx")
+        editor.setCursorBufferPosition [10, 3]
+        autocomplete.attach()
+        expect(autocomplete.matchesList.find('li').length).toBe 1
+        expect(autocomplete.matchesList.find('li')).toHaveText ('No matches found')
+
+        miniEditor.trigger "autocomplete:confirm"
+
+        expect(editor.lineForBufferRow(10)).toBe "xxx"
+        expect(editor.getCursorBufferPosition()).toEqual [10,3]
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
+        expect($(document).find('#autocomplete')).not.toExist()
+
   describe 'autocomplete:cancel event', ->
     it 'does not replace selection, removes autocomplete view and returns focus to editor', ->
       editor.buffer.insert([10,0] ,"extra:so:extra")

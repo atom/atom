@@ -65,7 +65,7 @@ class Autocomplete extends View
   confirm: ->
     @editor.getSelection().clearSelection()
     @detach()
-    match = @selectedMatch()
+    return unless match = @selectedMatch()
     position = @editor.getCursorBufferPosition()
     @editor.setCursorBufferPosition([position.row, position.column + match.suffix.length])
 
