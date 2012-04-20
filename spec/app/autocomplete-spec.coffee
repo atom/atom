@@ -17,19 +17,14 @@ describe "Autocomplete", ->
   afterEach ->
     autocomplete.remove()
 
-  describe 'autocomplete:toggle event', ->
+  describe 'autocomplete:show event', ->
     it "shows autocomplete view and focuses its mini-editor", ->
       expect($(document).find('#autocomplete')).not.toExist()
 
-      editor.trigger "autocomplete:toggle"
+      editor.trigger "autocomplete:attach"
       expect($(document).find('#autocomplete')).toExist()
       expect(autocomplete.editor.isFocused).toBeFalsy()
       expect(autocomplete.miniEditor.isFocused).toBeTruthy()
-
-      miniEditor.trigger "autocomplete:toggle"
-      expect($(document).find('#autocomplete')).not.toExist()
-      expect(autocomplete.editor.isFocused).toBeTruthy()
-      expect(autocomplete.miniEditor.isFocused).toBeFalsy()
 
     describe "when no text is selected", ->
       it 'autocompletes word when there is only a prefix', ->

@@ -33,8 +33,7 @@ class Autocomplete extends View
     @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
-    @editor.on 'autocomplete:toggle', => @attach()
-    @on 'autocomplete:toggle', => @detach()
+    @editor.on 'autocomplete:attach', => @attach()
     @on 'autocomplete:confirm', => @confirm()
     @on 'autocomplete:cancel', => @cancel()
 

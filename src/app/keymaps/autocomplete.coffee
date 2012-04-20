@@ -1,5 +1,5 @@
 window.keymap.bindKeys '.editor',
-  'escape': 'autocomplete:toggle'
+  'escape': 'autocomplete:attach'
 
 window.keymap.bindKeys '#autocomplete .editor',
   'enter': 'autocomplete:confirm'
