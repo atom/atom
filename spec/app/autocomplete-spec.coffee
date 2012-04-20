@@ -163,6 +163,7 @@ describe "Autocomplete", ->
       originalSelectionBufferRange = editor.getSelection().getBufferRange()
 
       autocomplete.attach()
+      editor.setCursorBufferPosition [0, 0] # even if selection changes before cancel, it should work
       miniEditor.trigger "autocomplete:cancel"
 
       expect(editor.lineForBufferRow(10)).toBe "extra:so:extra"
@@ -314,7 +315,9 @@ describe "Autocomplete", ->
       autocomplete.attach()
 
       spyOn(autocomplete, "cancel")
+
       editor.focus()
+
       expect(autocomplete.cancel).toHaveBeenCalled()
 
   describe 'when changes are made to the buffer', ->

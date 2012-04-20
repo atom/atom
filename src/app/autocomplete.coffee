@@ -90,7 +90,7 @@ class Autocomplete extends View
 
   cancel: ->
     @detach()
-    @editor.getSelection().insertText @originalSelectedText
+    @editor.buffer.change(@currentMatchBufferRange, @originalSelectedText) if @currentMatchBufferRange
     @editor.setSelectionBufferRange(@originalSelectionBufferRange)
 
   attach: ->
@@ -173,7 +173,9 @@ class Autocomplete extends View
     startPosition = selection.getBufferRange().start
     @isAutocompleting = true
     @editor.insertText(match.infix)
-    @editor.setSelectionBufferRange([startPosition, [startPosition.row, startPosition.column + match.infix.length]])
+
+    @currentMatchBufferRange = [startPosition, [startPosition.row, startPosition.column + match.infix.length]]
+    @editor.setSelectionBufferRange(@currentMatchBufferRange)
     @isAutocompleting = false
 
   prefixAndSuffixOfSelection: (selection) ->
