@@ -17,10 +17,10 @@ class Autocomplete extends View
   currentBuffer: null
   wordList: null
   wordRegex: /\w+/g
-  matches: null
+  allMatches: null
+  filteredMatches: null
   currentMatchIndex: null
   isAutocompleting: false
-  currentSelectionBufferRange: null
   originalSelectionBufferRange: null
   originalSelectedText: null
 
@@ -38,8 +38,7 @@ class Autocomplete extends View
     @on 'autocomplete:cancel', => @cancel()
 
     @miniEditor.buffer.on 'change', (e) =>
-      return unless @parent()[0]
-      @filterMatchList()
+      @filterMatches() if @parent()[0]
 
     @miniEditor.preempt 'move-up', =>
       @selectPreviousMatch()
@@ -60,7 +59,11 @@ class Autocomplete extends View
     @currentBuffer?.off '.autocomplete'
     @currentBuffer = buffer
     @buildWordList()
-    @currentBuffer.on 'change.autocomplete', (e) => @bufferChanged(e)
+    @currentBuffer.on 'change.autocomplete', (e) =>
+      @buildWordList() unless @isAutocompleting
+
+  buildWordList: () ->
+    @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
 
   confirm: ->
     @editor.getSelection().clearSelection()
@@ -71,17 +74,16 @@ class Autocomplete extends View
 
   cancel: ->
     @detach()
-    if @currentSelectionBufferRange
-      @editor.setSelectionBufferRange(@currentSelectionBufferRange)
-      @editor.getSelection().insertText @originalSelectedText
-      @editor.setSelectionBufferRange(@originalSelectionBufferRange)
+    @editor.getSelection().insertText @originalSelectedText
+    @editor.setSelectionBufferRange(@originalSelectionBufferRange)
 
   attach: ->
     @editor.on 'focus.autocomplete', => @cancel()
 
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
-    @buildMatchList()
+    @allMatches = @findMatchesForCurrentSelection()
+    @filterMatches()
 
     cursorScreenPosition = @editor.getCursorScreenPosition()
     {left, top} = @editor.pixelOffsetForScreenPosition(cursorScreenPosition)
@@ -97,66 +99,54 @@ class Autocomplete extends View
 
   selectPreviousMatch: ->
     previousIndex = @currentMatchIndex - 1
-    previousIndex = @matches.length - 1 if previousIndex < 0
+    previousIndex = @filteredMatches.length - 1 if previousIndex < 0
     @selectMatchAtIndex(previousIndex)
 
   selectNextMatch: ->
-    nextIndex = (@currentMatchIndex + 1) % @matches.length
+    nextIndex = (@currentMatchIndex + 1) % @filteredMatches.length
     @selectMatchAtIndex(nextIndex)
 
   selectMatchAtIndex: (index) ->
     @currentMatchIndex = index
     @matchesList.find("li").removeClass "selected"
     @matchesList.find("li:eq(#{index})").addClass "selected"
-    @completeUsingMatch(@selectedMatch())
+    @replaceSelectedTextWithMatch @selectedMatch()
 
   selectedMatch: ->
-    @matches[@currentMatchIndex]
+    @filteredMatches[@currentMatchIndex]
 
-  bufferChanged: (e) ->
-    @buildWordList() unless @isAutocompleting
-
-  buildMatchList: ->
-    selection = @editor.getSelection()
-    {prefix, suffix} = @prefixAndSuffixOfSelection(selection)
-
-    if (prefix.length + suffix.length) > 0
-      currentWord = prefix + @editor.getSelectedText() + suffix
-      @baseMatches = (match for match in @wordMatches(prefix, suffix) when match.word != currentWord)
-    else
-      @baseMatches = []
-
-    @filterMatchList()
-
-  filterMatchList: ->
-    @matches = fuzzyFilter(@baseMatches, @miniEditor.getText(), key: 'word')
+  filterMatches: ->
+    @filteredMatches = fuzzyFilter(@allMatches, @miniEditor.getText(), key: 'word')
     @renderMatchList()
 
   renderMatchList: ->
     @matchesList.empty()
-    if @matches.length > 0
-      @matchesList.append($$ -> @li match.word) for match in @matches
+    if @filteredMatches.length > 0
+      @matchesList.append($$ -> @li match.word) for match in @filteredMatches
     else
       @matchesList.append($$ -> @li "No matches found")
 
-    @selectMatchAtIndex(0) if @matches.length > 0
+    @selectMatchAtIndex(0) if @filteredMatches.length > 0
 
-  buildWordList: () ->
-    @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
+  findMatchesForCurrentSelection: ->
+    selection = @editor.getSelection()
+    {prefix, suffix} = @prefixAndSuffixOfSelection(selection)
 
-  wordMatches: (prefix, suffix) ->
-    regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")
-    for word in @wordList when regex.test(word)
-      match = regex.exec(word)
-      {prefix, suffix, word, infix: match[1]}
+    if (prefix.length + suffix.length) > 0
+      regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")
+      currentWord = prefix + @editor.getSelectedText() + suffix
+      for word in @wordList when regex.test(word) and word != currentWord
+        match = regex.exec(word)
+        {prefix, suffix, word, infix: match[1]}
+    else
+      []
 
-  completeUsingMatch: (match) ->
+  replaceSelectedTextWithMatch: (match) ->
     selection = @editor.getSelection()
     startPosition = selection.getBufferRange().start
     @isAutocompleting = true
     @editor.insertText(match.infix)
     @editor.setSelectionBufferRange([startPosition, [startPosition.row, startPosition.column + match.infix.length]])
-    @currentSelectionBufferRange = @editor.getSelection().getBufferRange()
     @isAutocompleting = false
 
   prefixAndSuffixOfSelection: (selection) ->

@@ -284,27 +284,6 @@ describe "Autocomplete", ->
       editor.buffer.insert([0,0], "s")
       expect(autocomplete.buildWordList).not.toHaveBeenCalled()
 
-  describe '.wordMatches(prefix, suffix)', ->
-    it 'returns wordMatches on buffer starting with given prefix and ending with given suffix', ->
-      wordMatches = autocomplete.wordMatches("s", "").map (match) -> match.word
-      expect(wordMatches.length).toBe 2
-      expect(wordMatches).toContain("sort")
-      expect(wordMatches).toContain("shift")
-
-      wordMatches = autocomplete.wordMatches("l", "t").map (match) -> match.word
-      expect(wordMatches.length).toBe 1
-      expect(wordMatches).toContain("left")
-
-    it 'ignores case when finding matches', ->
-      wordMatches = autocomplete.wordMatches("S", "").map (match) -> match.word
-      expect(wordMatches.length).toBe 2
-      expect(wordMatches).toContain("sort")
-      expect(wordMatches).toContain("shift")
-
-      wordMatches = autocomplete.wordMatches("l", "t").map (match) -> match.word
-      expect(wordMatches.length).toBe 1
-      expect(wordMatches).toContain("left")
-
   describe ".attach()", ->
     beforeEach ->
       editor.attachToDom()
