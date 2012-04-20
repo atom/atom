@@ -53,7 +53,7 @@ class Editor extends View
 
     new Editor(viewState)
 
-  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused}) ->
+  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused, @mini}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -119,7 +119,7 @@ class Editor extends View
       'split-right': @splitRight
       'split-up': @splitUp
       'split-down': @splitDown
-      'close': @remove
+      'close': @close
       'show-next-buffer': @loadNextEditSession
       'show-previous-buffer': @loadPreviousEditSession
 
@@ -541,6 +541,9 @@ class Editor extends View
 
   pane: ->
     @parent('.pane').view()
+
+  close: ->
+    @remove() unless @mini
 
   remove: (selector, keepData) ->
     return super if keepData

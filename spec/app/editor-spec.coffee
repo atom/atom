@@ -2191,4 +2191,14 @@ describe "Editor", ->
         editor.splitLeft()
         editor.splitRight()
 
+  describe "when 'close' is triggered", ->
+    it "calls remove on the editor if mini is false", ->
+      expect(editor.mini).toBeFalsy()
+      spyOn(editor, 'remove')
+      editor.trigger 'close'
+      expect(editor.remove).toHaveBeenCalled()
 
+      editor = new Editor(mini: true)
+      spyOn(editor, 'remove')
+      editor.trigger 'close'
+      expect(editor.remove).not.toHaveBeenCalled()
