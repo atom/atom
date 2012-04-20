@@ -1,7 +1,7 @@
 #autocomplete {
+  display: table;
   position: absolute;
-  width: 150px;
-  overflow: hidden;
+  min-width: 150px;
   background-color: #444;
   border: 2px solid #222;
   color: #eee;
@@ -12,6 +12,10 @@
 #autocomplete ol {
   overflow-y: scroll;
   max-height: 200px;
+}
+
+#autocomplete ol li {
+  padding: 0.1em 0.2em;
 }
 
 #autocomplete ol li.selected {
