@@ -193,6 +193,7 @@ class Editor extends View
 
     @on "textInput", (e) =>
       @insertText(e.originalEvent.data)
+      false
 
     @scroller.on 'scroll', =>
       @gutter.scrollTop(@scroller.scrollTop())
