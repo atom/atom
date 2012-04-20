@@ -131,3 +131,5 @@ $.fn.textInput = (data) ->
     event = jQuery.event.fix(event)
     $(this).trigger(event)
 
+$.fn.simulateDomAttachment = ->
+  $('<html>').append(this)
