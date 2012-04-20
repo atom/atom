@@ -87,54 +87,59 @@ class Editor extends View
     Editor.deserialize(@serialize(), @rootView())
 
   bindKeys: ->
-    @on 'save', => @save()
-    @on 'move-right', => @moveCursorRight()
-    @on 'move-left', => @moveCursorLeft()
-    @on 'move-down', (e) => @moveCursorDown()
-    @on 'move-up', => @moveCursorUp()
-    @on 'move-to-next-word', => @moveCursorToNextWord()
-    @on 'move-to-previous-word', => @moveCursorToPreviousWord()
-    @on 'select-right', => @selectRight()
-    @on 'select-left', => @selectLeft()
-    @on 'select-up', => @selectUp()
-    @on 'select-down', => @selectDown()
-    @on 'newline', => @insertText("\n")
-    @on 'tab', => @insertTab()
-    @on 'indent-selected-rows', => @indentSelectedRows()
-    @on 'outdent-selected-rows', => @outdentSelectedRows()
-    @on 'backspace', => @backspace()
-    @on 'backspace-to-beginning-of-word', => @backspaceToBeginningOfWord()
-    @on 'delete', => @delete()
-    @on 'delete-to-end-of-word', => @deleteToEndOfWord()
-    @on 'cut-to-end-of-line', => @cutToEndOfLine()
-    @on 'cut', => @cutSelection()
-    @on 'copy', => @copySelection()
-    @on 'paste', => @paste()
-    @on 'undo', => @undo()
-    @on 'redo', => @redo()
-    @on 'toggle-soft-wrap', => @toggleSoftWrap()
-    @on 'fold-selection', => @foldSelection()
-    @on 'split-left', => @splitLeft()
-    @on 'split-right', => @splitRight()
-    @on 'split-up', => @splitUp()
-    @on 'split-down', => @splitDown()
-    @on 'close', => @remove(); false
-    @on 'show-next-buffer', => @loadNextEditSession()
-    @on 'show-previous-buffer', => @loadPreviousEditSession()
+    editorBindings =
+      'save': @save
+      'move-right': @moveCursorRight
+      'move-left': @moveCursorLeft
+      'move-down': @moveCursorDown
+      'move-up': @moveCursorUp
+      'move-to-next-word': @moveCursorToNextWord
+      'move-to-previous-word': @moveCursorToPreviousWord
+      'select-right': @selectRight
+      'select-left': @selectLeft
+      'select-up': @selectUp
+      'select-down': @selectDown
+      'newline': @insertNewline
+      'tab': @insertTab
+      'indent-selected-rows': @indentSelectedRows
+      'outdent-selected-rows': @outdentSelectedRows
+      'backspace': @backspace
+      'backspace-to-beginning-of-word': @backspaceToBeginningOfWord
+      'delete': @delete
+      'delete-to-end-of-word': @deleteToEndOfWord
+      'cut-to-end-of-line': @cutToEndOfLine
+      'cut': @cutSelection
+      'copy': @copySelection
+      'paste': @paste
+      'undo': @undo
+      'redo': @redo
+      'toggle-soft-wrap': @toggleSoftWrap
+      'fold-selection': @foldSelection
+      'split-left': @splitLeft
+      'split-right': @splitRight
+      'split-up': @splitUp
+      'split-down': @splitDown
+      'close': @remove
+      'show-next-buffer': @loadNextEditSession
+      'show-previous-buffer': @loadPreviousEditSession
 
-    @on 'move-to-top', => @moveCursorToTop()
-    @on 'move-to-bottom', => @moveCursorToBottom()
-    @on 'move-to-beginning-of-line', => @moveCursorToBeginningOfLine()
-    @on 'move-to-end-of-line', => @moveCursorToEndOfLine()
-    @on 'move-to-first-character-of-line', => @moveCursorToFirstCharacterOfLine()
-    @on 'move-to-beginning-of-word', => @moveCursorToBeginningOfWord()
-    @on 'move-to-end-of-word', => @moveCursorToEndOfWord()
-    @on 'select-to-top', => @selectToTop()
-    @on 'select-to-bottom', => @selectToBottom()
-    @on 'select-to-end-of-line', => @selectToEndOfLine()
-    @on 'select-to-beginning-of-line', => @selectToBeginningOfLine()
-    @on 'select-to-end-of-word', => @selectToEndOfWord()
-    @on 'select-to-beginning-of-word', => @selectToBeginningOfWord()
+      'move-to-top': @moveCursorToTop
+      'move-to-bottom': @moveCursorToBottom
+      'move-to-beginning-of-line': @moveCursorToBeginningOfLine
+      'move-to-end-of-line': @moveCursorToEndOfLine
+      'move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
+      'move-to-beginning-of-word': @moveCursorToBeginningOfWord
+      'move-to-end-of-word': @moveCursorToEndOfWord
+      'select-to-top': @selectToTop
+      'select-to-bottom': @selectToBottom
+      'select-to-end-of-line': @selectToEndOfLine
+      'select-to-beginning-of-line': @selectToBeginningOfLine
+      'select-to-end-of-word': @selectToEndOfWord
+      'select-to-beginning-of-word': @selectToBeginningOfWord
+
+    for name, method of editorBindings
+      do (name, method) =>
+        @on name, => method.call(this); false
 
   buildCursorAndSelection: ->
     @compositeSelection = new CompositeSelection(this)
@@ -490,6 +495,9 @@ class Editor extends View
 
   insertText: (text) ->
     @compositeSelection.insertText(text)
+
+  insertNewline: ->
+    @insertText('\n')
 
   insertTab: ->
     if @softTabs
