@@ -144,6 +144,7 @@ class Cursor extends View
     newPosition = null
     @editor.scanInRange /^\s*/, range, (match, matchRange) =>
       newPosition = matchRange.end
+    return unless newPosition
     newPosition = [position.row, 0] if newPosition.isEqual(position)
     @setBufferPosition(newPosition)
 

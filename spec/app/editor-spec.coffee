@@ -427,6 +427,10 @@ describe "Editor", ->
         expect(cursor1.getBufferPosition()).toEqual [0,0]
         expect(cursor2.getBufferPosition()).toEqual [1,0]
 
+      it "does not throw an exception on an empty line", ->
+        editor.setCursorBufferPosition([10, 0])
+        editor.trigger 'move-to-first-character-of-line'
+
     describe "move-to-next-word", ->
       it "moves the cursor to the next word or the end of file if there is no next word", ->
         editor.setCursorBufferPosition [2, 5]
