@@ -4,10 +4,12 @@
   color: white;
   overflow: auto;
   padding: 0 1em;
+  cursor: default;
 }
 
-.tree-view .disclosure {
-  margin-right: .5em;
+.tree-view .disclosure-arrow {
+  width: 2ex;
+  display: inline-block;
 }
 
 .tree-view .directory .entries {

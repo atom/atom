@@ -16,15 +16,11 @@ class TreeView extends View
 class DirectoryView extends View
   @content: ({directory, isExpanded}) ->
     @li class: 'directory', =>
-      @disclosureArrow(isExpanded)
+      @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow', click: 'toggleExpansion'
       @span directory.getName() + '/', class: 'name'
 
-  @disclosureArrow: (isExpanded) ->
-    arrowCharacter = if isExpanded then '▾' else '▸'
-    @span arrowCharacter, class: 'disclosure'
-
   initialize: ({@directory, @isExpanded}) ->
-    @buildEntries() if @isExpanded
+    @expand() if @isExpanded
 
   buildEntries: ->
     contents = $$ -> @ol class: 'entries'
@@ -34,3 +30,20 @@ class DirectoryView extends View
       else
         contents.append $$ -> @li entry.getName(), class: 'file'
     @append(contents)
+
+  toggleExpansion: ->
+    if @isExpanded then @collapse() else @expand()
+
+  expand: ->
+    @disclosureArrow.text('▾')
+    @buildEntries()
+    @isExpanded = true
+
+  collapse: ->
+    @disclosureArrow.text('▸')
+    @find('.entries').remove()
+    @isExpanded = false
+
+
+
+
