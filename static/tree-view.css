@@ -6,11 +6,14 @@
   padding: 0 1em;
 }
 
-
 .tree-view .disclosure {
   margin-right: .5em;
 }
 
 .tree-view .directory .entries {
-  padding-left: 2em;
+  padding-left: 2ex;
+}
+
+.tree-view .directory .entries .file {
+  padding-left: 2ex;
 }

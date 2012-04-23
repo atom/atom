@@ -9,10 +9,12 @@ class Directory
     fs.base(@path)
 
   getEntries: ->
-    fs.list(@path).map (path) ->
+    directories = []
+    files = []
+    for path in fs.list(@path)
       if fs.isDirectory(path)
-        new Directory(path)
+        directories.push(new Directory(path))
       else
-        new File(path)
-
+        files.push(new File(path))
+    directories.concat(files)
 
