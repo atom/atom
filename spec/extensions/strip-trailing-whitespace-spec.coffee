@@ -1,4 +1,4 @@
-StripTrailingWhitespace = require 'extensions/strip-trailing-whitespace'
+StripTrailingWhitespace = require 'strip-trailing-whitespace'
 RootView = require 'root-view'
 fs = require 'fs'
 

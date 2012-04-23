@@ -4,7 +4,7 @@ PEG = require 'pegjs'
 module.exports =
 class CommandInterpreter
   constructor: ->
-    @parser = PEG.buildParser(fs.read(require.resolve 'commands.pegjs'))
+    @parser = PEG.buildParser(fs.read(require.resolve 'command-interpreter/commands.pegjs'))
 
   eval: (editor, string) ->
     command = @parser.parse(string)
