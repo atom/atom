@@ -9,7 +9,7 @@ describe "TreeView", ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/'))
     project = rootView.project
     treeView = new TreeView(rootView)
-    rootDirectoryView = treeView.find('> li:first')
+    rootDirectoryView = treeView.find('> li:first').view()
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
@@ -62,6 +62,12 @@ describe "TreeView", ->
 
       # collapsed descendants remain collapsed
       expect(rootDirectoryView.find('> .entries > li.contains(zed/) > .entries')).not.toExist()
+
+    it "selects file entries that correspond to the path of the active editor's buffer", ->
+      rootDirectoryView.collapse()
+      rootView.open(require.resolve 'fixtures/sample.js')
+      rootDirectoryView.disclosureArrow.click()
+      expect(rootDirectoryView.entries.find('li:contains(sample.js)')).toHaveClass 'selected'
 
   describe "when a file is clicked", ->
     it "opens it in the active editor and selects it", ->

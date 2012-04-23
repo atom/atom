@@ -19,6 +19,13 @@ class TreeView extends View
       @find('.selected').removeClass('selected')
       clickedLi.addClass('selected')
 
+    @on 'tree-view:expand-directory', => @selectActiveFile()
+
+  selectActiveFile: ->
+    @find('.selected').removeClass('selected')
+    activeFilePath = @rootView.activeEditor()?.buffer.path
+    @find(".file[path='#{activeFilePath}']").addClass('selected')
+
 class DirectoryView extends View
   @content: ({directory, isExpanded}) ->
     @li class: 'directory', =>
@@ -49,6 +56,7 @@ class DirectoryView extends View
     @buildEntries()
     @deserializeEntries(@entryStates) if @entryStates?
     @isExpanded = true
+    @trigger 'tree-view:expand-directory'
 
   collapse: ->
     @entryStates = @serializeEntries()
