@@ -2,6 +2,7 @@ fs = require 'fs'
 Buffer = require 'buffer'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
+Directory = require 'directory'
 
 module.exports =
 class Project
@@ -9,6 +10,9 @@ class Project
 
   constructor: (@path) ->
     @buffers = []
+
+  getRootDirectory: ->
+    new Directory(@path)
 
   getFilePaths: ->
     projectPath = @path

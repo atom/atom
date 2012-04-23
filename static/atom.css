@@ -14,11 +14,13 @@ body {
   overflow-y: auto;
   position: relative;
   background-image: url(static/images/linen.png);
+  display: -webkit-flexbox;
 }
 
 #root-view #panes {
   height: 100%;
   width: 100%;
+  position: relative;
 }
 
 #root-view #panes .column {

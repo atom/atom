@@ -27,6 +27,10 @@ hgroup, nav, section {
   vertical-align: baseline;
 }
 
+li {
+  list-style-type: none;
+}
+
 /* This helps to make newer HTML5 elements behave like DIVs in older browers */
 article, aside, details, figcaption, figure, dialog,
 footer, header, hgroup, menu, nav, section {

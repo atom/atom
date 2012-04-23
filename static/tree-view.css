@@ -1,0 +1,16 @@
+.tree-view {
+  height: 100%;
+  background: black;
+  color: white;
+  overflow: auto;
+  padding: 0 1em;
+}
+
+
+.tree-view .disclosure {
+  margin-right: .5em;
+}
+
+.tree-view .directory .entries {
+  padding-left: 2em;
+}

@@ -14,7 +14,8 @@ module.exports =
   # any leading directory components removed. If specified, also
   # remove a trailing extension.
   base: (path, ext) ->
-    base = path.split("/").pop()
+    path =
+    base = path.replace(/\/$/, '').split("/").pop()
     if ext then base.replace(RegEx(ext + "$"), "") else base
 
   # Return the dirname of the given path. That is the path with any trailing
