@@ -7,7 +7,7 @@ describe "StripTrailingWhitespace", ->
 
   beforeEach ->
     rootView = new RootView
-    StripTrailingWhitespace.initialize(rootView)
+    StripTrailingWhitespace.activate(rootView)
     rootView.focus()
     editor = rootView.activeEditor()
 
@@ -15,9 +15,9 @@ describe "StripTrailingWhitespace", ->
     spyOn(fs, 'write')
 
     # works for buffers that are already open when extension is initialized
-    editor.insertText("foo   ")
+    editor.insertText("foo   \nbar\t   \n\nbaz")
     editor.buffer.saveAs("/tmp/test")
-    expect(editor.buffer.getText()).toBe "foo"
+    expect(editor.buffer.getText()).toBe "foo\nbar\n\nbaz"
 
     # works for buffers that are opened after extension is initialized
     rootView.open(require.resolve('fixtures/sample.txt'))
@@ -25,4 +25,4 @@ describe "StripTrailingWhitespace", ->
     editor.insertText("           ")
 
     editor.buffer.save()
-    expect(editor.buffer.getText()).toBe 'Some text.'
+    expect(editor.buffer.getText()).toBe 'Some text.\n'

@@ -1,5 +1,5 @@
 module.exports =
-  initialize: (rootView) ->
+  activate: (rootView) ->
     for buffer in rootView.project.buffers
       @stripTrailingWhitespaceBeforeSave(buffer)
 
@@ -8,5 +8,5 @@ module.exports =
 
   stripTrailingWhitespaceBeforeSave: (buffer) ->
     buffer.on 'before-save', ->
-      buffer.scan /\s+$/, (match, range, { replace }) ->
+      buffer.scan /[ \t]+$/g, (match, range, { replace }) ->
         replace('')
