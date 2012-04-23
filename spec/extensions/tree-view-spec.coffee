@@ -32,11 +32,32 @@ describe "TreeView", ->
     it "expands / collapses the associated directory", ->
       subdir = rootDirectoryView.find('.entries > li:contains(dir/)')
 
-      expect(subdir.find('.disclosure-arrow')).toHaveText('▸')
+      disclosureArrow = subdir.find('.disclosure-arrow')
+      expect(disclosureArrow).toHaveText('▸')
       expect(subdir.find('.entries')).not.toExist()
 
-      subdir.find('.disclosure-arrow').click()
+      disclosureArrow.click()
 
-      expect(subdir.find('> .disclosure-arrow')).toHaveText('▾')
+      expect(disclosureArrow).toHaveText('▾')
       expect(subdir.find('.entries')).toExist()
+
+      disclosureArrow.click()
+      expect(disclosureArrow).toHaveText('▸')
+      expect(subdir.find('.entries')).not.toExist()
+
+    it "restores the expansion state of descendant directories", ->
+      child = rootDirectoryView.find('.entries > li:contains(dir/)')
+      child.find('> .disclosure-arrow').click()
+
+      grandchild = child.find('.entries > li:contains(a-dir/)')
+      grandchild.find('> .disclosure-arrow').click()
+
+      rootDirectoryView.find('> .disclosure-arrow').click()
+      rootDirectoryView.find('> .disclosure-arrow').click()
+
+      # previously expanded descendants remain expanded
+      expect(rootDirectoryView.find('> .entries > li:contains(dir/) > .entries > li:contains(a-dir/) > .entries').length).toBe 1
+
+      # collapsed descendants remain collapsed
+      expect(rootDirectoryView.find('> .entries > li.contains(zed/) > .entries')).not.toExist()
 

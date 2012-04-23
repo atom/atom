@@ -6,7 +6,7 @@ class Directory
   constructor: (@path) ->
 
   getName: ->
-    fs.base(@path)
+    fs.base(@path) + '/'
 
   getEntries: ->
     directories = []
