@@ -16,6 +16,10 @@
   padding-left: 2ex;
 }
 
+.tree-view .directory .selected {
+  background: #333;
+}
+
 .tree-view .directory .entries .file {
   padding-left: 2ex;
 }

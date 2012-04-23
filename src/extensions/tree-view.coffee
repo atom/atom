@@ -6,13 +6,18 @@ module.exports =
 class TreeView extends View
   @activate: (rootView) ->
     requireStylesheet 'tree-view.css'
-    rootView.prepend(new TreeView(rootView.project.getRootDirectory()))
+    rootView.prepend(new TreeView(rootView))
 
-  @content: (directory) ->
+  @content: (rootView) ->
     @div class: 'tree-view', =>
-      @subview 'root', new DirectoryView(directory: directory, isExpanded: true)
+      @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true)
 
-  initialize: (@project) ->
+  initialize: (@rootView) ->
+    @on 'click', '.file', (e) =>
+      clickedLi = $(e.target)
+      @rootView.open(clickedLi.attr('path'))
+      @find('.selected').removeClass('selected')
+      clickedLi.addClass('selected')
 
 class DirectoryView extends View
   @content: ({directory, isExpanded}) ->
@@ -31,7 +36,7 @@ class DirectoryView extends View
       if entry instanceof Directory
         @entries.append(new DirectoryView(directory: entry, isExpanded: false))
       else
-        @entries.append $$ -> @li entry.getName(), class: 'file'
+        @entries.append $$ -> @li entry.getName(), class: 'file', path: entry.path
     @append(@entries)
 
   toggleExpansion: ->
@@ -66,7 +71,3 @@ class DirectoryView extends View
         view = $(this).view()
         view.entryStates = childEntryStates
         view.expand()
-
-
-
-

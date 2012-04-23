@@ -1,12 +1,14 @@
 TreeView = require 'tree-view'
+RootView = require 'root-view'
 Directory = require 'directory'
 
 describe "TreeView", ->
-  [project, treeView, rootDirectoryView] = []
+  [rootView, project, treeView, rootDirectoryView] = []
 
   beforeEach ->
-    project = new Directory(require.resolve('fixtures/'))
-    treeView = new TreeView(project)
+    rootView = new RootView(pathToOpen: require.resolve('fixtures/'))
+    project = rootView.project
+    treeView = new TreeView(rootView)
     rootDirectoryView = treeView.find('> li:first')
 
   describe ".initialize(project)", ->
@@ -60,4 +62,19 @@ describe "TreeView", ->
 
       # collapsed descendants remain collapsed
       expect(rootDirectoryView.find('> .entries > li.contains(zed/) > .entries')).not.toExist()
+
+  describe "when a file is clicked", ->
+    it "opens it in the active editor and selects it", ->
+      sampleJs = treeView.find('.file:contains(sample.js)')
+      sampleTxt = treeView.find('.file:contains(sample.txt)')
+
+      expect(rootView.activeEditor()).toBeUndefined()
+      sampleJs.click()
+      expect(sampleJs).toHaveClass 'selected'
+      expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.js')
+
+      sampleTxt.click()
+      expect(sampleTxt).toHaveClass 'selected'
+      expect(treeView.find('.selected').length).toBe 1
+      expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.txt')
 
