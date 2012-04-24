@@ -2,7 +2,7 @@ TreeView = require 'tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
 
-describe "TreeView", ->
+fdescribe "TreeView", ->
   [rootView, project, treeView, rootDirectoryView, sampleJs, sampleTxt] = []
 
   beforeEach ->
@@ -120,9 +120,29 @@ describe "TreeView", ->
 
       describe "if an expanded directory is selected", ->
         it "selects the first entry of the directory", ->
+          subdir = rootDirectoryView.find('.directory:eq(1)').view()
+          subdir.expand()
+          subdir.click()
+
+          treeView.trigger 'move-down'
+
+          expect(subdir.entries.find('.entry:first')).toHaveClass 'selected'
 
       describe "if the last entry of an expanded directory is selected", ->
         it "selects the entry after its parent directory", ->
+          subdir1 = rootDirectoryView.find('.directory:eq(1)').view()
+          subdir1.expand()
+          subdir1.entries.find('.entry:last').click()
+
+          treeView.trigger 'move-down'
+
+          expect(rootDirectoryView.find('.entries > .entry:eq(2)')).toHaveClass 'selected'
 
       describe "if the last entry of the last directory is selected", ->
         it "does not change the selection", ->
+          lastEntry = rootDirectoryView.find('> .entries .entry:last')
+          lastEntry.click()
+
+          treeView.trigger 'move-down'
+
+          expect(lastEntry).toHaveClass 'selected'

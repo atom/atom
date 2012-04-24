@@ -28,9 +28,11 @@ class TreeView extends View
 
   moveDown: ->
     selectedEntry = @selectedEntry()
-
-    if selectedEntry.length
-      @selectEntry(selectedEntry.next())
+    if selectedEntry[0]
+      if selectedEntry.is('.expanded.directory')
+        return if @selectEntry(selectedEntry.find('.entry:first'))
+      return if @selectEntry(selectedEntry.next())
+      return if @selectEntry(selectedEntry.closest('.directory').next())
     else
       @selectEntry(@root)
 
@@ -38,6 +40,7 @@ class TreeView extends View
     @find('.selected')
 
   selectEntry: (entry) ->
+    return false unless entry[0]
     @find('.selected').removeClass('selected')
     entry.addClass('selected')
 
