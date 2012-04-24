@@ -251,8 +251,8 @@ class Editor extends View
       @unsubscribeFromBuffer()
 
     @buffer = buffer
-    @trigger 'buffer-path-change'
-    @buffer.on "path-change.editor#{@id}", => @trigger 'buffer-path-change'
+    @trigger 'editor-path-change'
+    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
 
     @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
     @renderLines()

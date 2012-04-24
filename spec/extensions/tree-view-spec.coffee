@@ -3,13 +3,15 @@ RootView = require 'root-view'
 Directory = require 'directory'
 
 describe "TreeView", ->
-  [rootView, project, treeView, rootDirectoryView] = []
+  [rootView, project, treeView, rootDirectoryView, sampleJs, sampleTxt] = []
 
   beforeEach ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/'))
     project = rootView.project
     treeView = new TreeView(rootView)
     rootDirectoryView = treeView.find('> li:first').view()
+    sampleJs = treeView.find('.file:contains(sample.js)')
+    sampleTxt = treeView.find('.file:contains(sample.txt)')
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
@@ -71,10 +73,8 @@ describe "TreeView", ->
 
   describe "when a file is clicked", ->
     it "opens it in the active editor and selects it", ->
-      sampleJs = treeView.find('.file:contains(sample.js)')
-      sampleTxt = treeView.find('.file:contains(sample.txt)')
-
       expect(rootView.activeEditor()).toBeUndefined()
+
       sampleJs.click()
       expect(sampleJs).toHaveClass 'selected'
       expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.js')
@@ -84,3 +84,21 @@ describe "TreeView", ->
       expect(treeView.find('.selected').length).toBe 1
       expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.txt')
 
+  describe "when a new file is opened in the active editor", ->
+    it "is selected in the tree view if visible", ->
+      sampleJs.click()
+      rootView.open(require.resolve('fixtures/sample.txt'))
+
+      expect(sampleTxt).toHaveClass 'selected'
+      expect(treeView.find('.selected').length).toBe 1
+
+  describe "when a different editor becomes active", ->
+    it "selects the file in that is open in that editor", ->
+      sampleJs.click()
+      leftEditor = rootView.activeEditor()
+      rightEditor = leftEditor.splitRight()
+      sampleTxt.click()
+
+      expect(sampleTxt).toHaveClass('selected')
+      leftEditor.focus()
+      expect(sampleJs).toHaveClass('selected')

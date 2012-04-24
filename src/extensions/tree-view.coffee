@@ -20,8 +20,10 @@ class TreeView extends View
       clickedLi.addClass('selected')
 
     @on 'tree-view:expand-directory', => @selectActiveFile()
+    @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   selectActiveFile: ->
+    console.log ""
     @find('.selected').removeClass('selected')
     activeFilePath = @rootView.activeEditor()?.buffer.path
     @find(".file[path='#{activeFilePath}']").addClass('selected')

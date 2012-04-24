@@ -44,6 +44,7 @@ class Pane extends View
     pane = new Pane(view)
     this[side](pane)
     @rootView().adjustPaneDimensions()
+    view.focus?()
     pane
 
   remove: (selector, keepData) ->

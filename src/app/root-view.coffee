@@ -34,6 +34,11 @@ class RootView extends View
       else
         @setTitle(@project?.path)
 
+    @on 'active-editor-path-change', (e, path) =>
+      @project.path ?= fs.directory(path) if path
+      @setTitle(path)
+
+
     @commandPanel = new CommandPanel({rootView: this})
 
     if pathToOpen?
@@ -82,12 +87,10 @@ class RootView extends View
 
       editor
         .addClass('active')
-        .on 'buffer-path-change.root-view', =>
-          path = editor.buffer.path
-          @setTitle(path)
-          @project.path ?= fs.directory(path) if path
+        .on 'editor-path-change.root-view', =>
+          @trigger 'active-editor-path-change', editor.buffer.path
 
-      @setTitle(editor.buffer.path)
+      @trigger 'active-editor-path-change', editor.buffer.path
 
   setTitle: (title='untitled') ->
     document.title = title

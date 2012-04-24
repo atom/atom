@@ -126,7 +126,7 @@ describe "RootView", ->
       expect(rootView.activeEditor().isFocused).toBeTruthy()
 
   describe "panes", ->
-    pane1 = null
+    [pane1, newPaneContent] = []
 
     beforeEach ->
       rootView.attachToDom()
@@ -134,13 +134,16 @@ describe "RootView", ->
       rootView.height(600)
       pane1 = rootView.find('.pane').view()
       pane1.attr('id', 'pane-1')
+      newPaneContent = $("<div>New pane content</div>")
+      spyOn(newPaneContent, 'focus')
 
     describe "vertical splits", ->
       describe "when .splitRight(view) is called on a pane", ->
         it "places a new pane to the right of the current pane in a .row div", ->
           expect(rootView.panes.find('.row')).not.toExist()
 
-          pane2 = pane1.splitRight("<div>New pane content</div>")
+          pane2 = pane1.splitRight(newPaneContent)
+          expect(newPaneContent.focus).toHaveBeenCalled()
 
           expect(rootView.panes.find('.row')).toExist()
           expect(rootView.panes.find('.row .pane').length).toBe 2
@@ -164,7 +167,8 @@ describe "RootView", ->
         it "places a new pane to the left of the current pane in a .row div", ->
           expect(rootView.find('.row')).not.toExist()
 
-          pane2 = pane1.splitLeft("<div>New pane content</div>")
+          pane2 = pane1.splitLeft(newPaneContent)
+          expect(newPaneContent.focus).toHaveBeenCalled()
 
           expect(rootView.find('.row')).toExist()
           expect(rootView.find('.row .pane').length).toBe 2
@@ -190,7 +194,8 @@ describe "RootView", ->
         it "places a new pane above the current pane in a .column div", ->
           expect(rootView.find('.column')).not.toExist()
 
-          pane2 = pane1.splitUp("<div>New pane content</div>")
+          pane2 = pane1.splitUp(newPaneContent)
+          expect(newPaneContent.focus).toHaveBeenCalled()
 
           expect(rootView.find('.column')).toExist()
           expect(rootView.find('.column .pane').length).toBe 2
@@ -215,7 +220,8 @@ describe "RootView", ->
         it "places a new pane below the current pane in a .column div", ->
           expect(rootView.find('.column')).not.toExist()
 
-          pane2 = pane1.splitDown("<div>New pane content</div>")
+          pane2 = pane1.splitDown(newPaneContent)
+          expect(newPaneContent.focus).toHaveBeenCalled()
 
           expect(rootView.find('.column')).toExist()
           expect(rootView.find('.column .pane').length).toBe 2

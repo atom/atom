@@ -35,7 +35,7 @@ class Autocomplete extends View
     @setCurrentBuffer(@editor.buffer)
 
   handleEvents: ->
-    @editor.on 'buffer-path-change', => @setCurrentBuffer(@editor.buffer)
+    @editor.on 'editor-path-change', => @setCurrentBuffer(@editor.buffer)
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
     @editor.on 'autocomplete:attach', => @attach()
