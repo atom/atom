@@ -20,7 +20,6 @@ class TreeView extends View
       false
 
     @on 'move-down', => @moveDown()
-    @on 'tree-view:expand-directory', => @selectActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   selectActiveFile: ->
@@ -73,7 +72,6 @@ class DirectoryView extends View
     @buildEntries()
     @deserializeEntries(@entryStates) if @entryStates?
     @isExpanded = true
-    @trigger 'tree-view:expand-directory'
     false
 
   collapse: ->

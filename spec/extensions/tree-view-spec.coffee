@@ -64,12 +64,6 @@ describe "TreeView", ->
       # collapsed descendants remain collapsed
       expect(rootDirectoryView.find('> .entries > li.contains(zed/) > .entries')).not.toExist()
 
-    it "selects file entries that correspond to the path of the active editor's buffer", ->
-      rootDirectoryView.collapse()
-      rootView.open(require.resolve 'fixtures/sample.js')
-      rootDirectoryView.disclosureArrow.click()
-      expect(rootDirectoryView.entries.find('li:contains(sample.js)')).toHaveClass 'selected'
-
   describe "when a file is clicked", ->
     it "opens it in the active editor and selects it", ->
       expect(rootView.activeEditor()).toBeUndefined()
