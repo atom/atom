@@ -16,7 +16,7 @@
   padding-left: 2ex;
 }
 
-.tree-view .directory .selected {
+.tree-view .file.selected, .tree-view .directory.selected > .header {
   background: #333;
 }
 

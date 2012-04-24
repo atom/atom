@@ -15,8 +15,8 @@ describe "TreeView", ->
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
-      expect(rootDirectoryView.find('> .disclosure-arrow')).toHaveText('▾')
-      expect(rootDirectoryView.find('> .name')).toHaveText('fixtures/')
+      expect(rootDirectoryView.find('> .header .disclosure-arrow')).toHaveText('▾')
+      expect(rootDirectoryView.find('> .header .name')).toHaveText('fixtures/')
 
       rootEntries = rootDirectoryView.find('.entries')
       subdir1 = rootEntries.find('> li:eq(0)')
@@ -34,27 +34,26 @@ describe "TreeView", ->
 
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->
-      subdir = rootDirectoryView.find('.entries > li:contains(dir/)')
+      subdir = rootDirectoryView.find('.entries > li:contains(dir/)').view()
 
-      disclosureArrow = subdir.find('.disclosure-arrow')
-      expect(disclosureArrow).toHaveText('▸')
+      expect(subdir.disclosureArrow).toHaveText('▸')
       expect(subdir.find('.entries')).not.toExist()
 
-      disclosureArrow.click()
+      subdir.disclosureArrow.click()
 
-      expect(disclosureArrow).toHaveText('▾')
+      expect(subdir.disclosureArrow).toHaveText('▾')
       expect(subdir.find('.entries')).toExist()
 
-      disclosureArrow.click()
-      expect(disclosureArrow).toHaveText('▸')
+      subdir.disclosureArrow.click()
+      expect(subdir.disclosureArrow).toHaveText('▸')
       expect(subdir.find('.entries')).not.toExist()
 
     it "restores the expansion state of descendant directories", ->
-      child = rootDirectoryView.find('.entries > li:contains(dir/)')
-      child.find('> .disclosure-arrow').click()
+      child = rootDirectoryView.find('.entries > li:contains(dir/)').view()
+      child.disclosureArrow.click()
 
-      grandchild = child.find('.entries > li:contains(a-dir/)')
-      grandchild.find('> .disclosure-arrow').click()
+      grandchild = child.find('.entries > li:contains(a-dir/)').view()
+      grandchild.disclosureArrow.click()
 
       rootDirectoryView.find('> .disclosure-arrow').click()
       rootDirectoryView.find('> .disclosure-arrow').click()
@@ -84,6 +83,12 @@ describe "TreeView", ->
       expect(treeView.find('.selected').length).toBe 1
       expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.txt')
 
+  describe "when a directory is clicked", ->
+    it "is selected", ->
+      subdir = rootDirectoryView.find('.directory:first').view()
+      subdir.click()
+      expect(subdir).toHaveClass 'selected'
+
   describe "when a new file is opened in the active editor", ->
     it "is selected in the tree view if visible", ->
       sampleJs.click()
@@ -102,3 +107,28 @@ describe "TreeView", ->
       expect(sampleTxt).toHaveClass('selected')
       leftEditor.focus()
       expect(sampleJs).toHaveClass('selected')
+
+  describe "keyboard navigation", ->
+    afterEach ->
+      expect(treeView.find('.selected').length).toBeLessThan 2
+
+    describe "move-down", ->
+      describe "if nothing is selected", ->
+        it "selects the first entry", ->
+          treeView.trigger 'move-down'
+          expect(rootDirectoryView).toHaveClass 'selected'
+
+      describe "if a collapsed directory is selected", ->
+        it "skips to the next directory", ->
+          rootDirectoryView.find('.directory:eq(0)').click()
+          treeView.trigger 'move-down'
+          expect(rootDirectoryView.find('.directory:eq(1)')).toHaveClass 'selected'
+
+      describe "if an expanded directory is selected", ->
+        it "selects the first entry of the directory", ->
+
+      describe "if the last entry of an expanded directory is selected", ->
+        it "selects the entry after its parent directory", ->
+
+      describe "if the last entry of the last directory is selected", ->
+        it "does not change the selection", ->
