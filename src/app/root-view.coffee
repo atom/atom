@@ -81,16 +81,16 @@ class RootView extends View
 
   editorFocused: (editor) ->
     if @panes.containsElement(editor)
-      @panes.find('.editor')
-        .removeClass('active')
-        .off('.root-view')
+      previousActiveEditor = @panes.find('.editor.active').view()
+      previousActiveEditor?.removeClass('active').off('.root-view')
 
       editor
         .addClass('active')
         .on 'editor-path-change.root-view', =>
           @trigger 'active-editor-path-change', editor.buffer.path
 
-      @trigger 'active-editor-path-change', editor.buffer.path
+      if not previousActiveEditor or editor.buffer.path != previousActiveEditor.buffer.path
+        @trigger 'active-editor-path-change', editor.buffer.path
 
   setTitle: (title='untitled') ->
     document.title = title

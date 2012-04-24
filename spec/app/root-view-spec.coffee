@@ -388,16 +388,21 @@ describe "RootView", ->
         expect(commandHandler).toHaveBeenCalled()
 
   describe "when the path of the focused editor's buffer changes", ->
-    it "changes the document.title", ->
+    it "changes the document.title and emits an active-editor-path-change event", ->
+      pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
+      rootView.on 'active-editor-path-change', pathChangeHandler
+
       editor1 = rootView.activeEditor()
       expect(document.title).toBe path
 
       editor2 = rootView.activeEditor().splitLeft()
       editor2.setBuffer(new Buffer("second.txt"))
-      editor2.focus()
+      expect(pathChangeHandler).toHaveBeenCalled()
       expect(document.title).toBe "second.txt"
 
+      pathChangeHandler.reset()
       editor1.buffer.setPath("should-not-be-title.txt")
+      expect(pathChangeHandler).not.toHaveBeenCalled()
       expect(document.title).toBe "second.txt"
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
@@ -406,7 +411,30 @@ describe "RootView", ->
       rootView.activeEditor().buffer.saveAs('/tmp/ignore-me')
       expect(rootView.project.path).toBe '/tmp/'
 
+  describe "when editors are focused", ->
+    it "triggers 'active-editor-path-change' events if the path of the active editor actually changes", ->
+      pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
+      rootView.on 'active-editor-path-change', pathChangeHandler
+
+      editor1 = rootView.activeEditor()
+      editor2 = rootView.activeEditor().splitLeft()
+
+      rootView.open(require.resolve('fixtures/sample.txt'))
+      expect(pathChangeHandler).toHaveBeenCalled()
+      pathChangeHandler.reset()
+
+      editor1.focus()
+      expect(pathChangeHandler).toHaveBeenCalled()
+      pathChangeHandler.reset()
+
+      rootView.focus()
+      expect(pathChangeHandler).not.toHaveBeenCalled()
+
+      editor2.setBuffer editor1.buffer
+      editor2.focus()
+      expect(pathChangeHandler).not.toHaveBeenCalled()
+
   describe "when the last editor is removed", ->
-    it "updates the title to the project path", ->
+    it   "updates the title to the project path", ->
       rootView.editors()[0].remove()
       expect(document.title).toBe rootView.project.path
