@@ -2,7 +2,7 @@ TreeView = require 'tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
 
-fdescribe "TreeView", ->
+describe "TreeView", ->
   [rootView, project, treeView, rootDirectoryView, sampleJs, sampleTxt] = []
 
   beforeEach ->
@@ -107,18 +107,18 @@ fdescribe "TreeView", ->
       expect(treeView.find('.selected').length).toBeLessThan 2
 
     describe "move-down", ->
-      describe "if nothing is selected", ->
+      describe "when nothing is selected", ->
         it "selects the first entry", ->
           treeView.trigger 'move-down'
           expect(rootDirectoryView).toHaveClass 'selected'
 
-      describe "if a collapsed directory is selected", ->
+      describe "when a collapsed directory is selected", ->
         it "skips to the next directory", ->
           rootDirectoryView.find('.directory:eq(0)').click()
           treeView.trigger 'move-down'
           expect(rootDirectoryView.find('.directory:eq(1)')).toHaveClass 'selected'
 
-      describe "if an expanded directory is selected", ->
+      describe "when an expanded directory is selected", ->
         it "selects the first entry of the directory", ->
           subdir = rootDirectoryView.find('.directory:eq(1)').view()
           subdir.expand()
@@ -128,7 +128,7 @@ fdescribe "TreeView", ->
 
           expect(subdir.entries.find('.entry:first')).toHaveClass 'selected'
 
-      describe "if the last entry of an expanded directory is selected", ->
+      describe "when the last entry of an expanded directory is selected", ->
         it "selects the entry after its parent directory", ->
           subdir1 = rootDirectoryView.find('.directory:eq(1)').view()
           subdir1.expand()
@@ -138,7 +138,7 @@ fdescribe "TreeView", ->
 
           expect(rootDirectoryView.find('.entries > .entry:eq(2)')).toHaveClass 'selected'
 
-      describe "if the last entry of the last directory is selected", ->
+      describe "when the last entry of the last directory is selected", ->
         it "does not change the selection", ->
           lastEntry = rootDirectoryView.find('> .entries .entry:last')
           lastEntry.click()
@@ -146,3 +146,36 @@ fdescribe "TreeView", ->
           treeView.trigger 'move-down'
 
           expect(lastEntry).toHaveClass 'selected'
+
+    describe "move-up", ->
+      describe "when nothing is selected", ->
+        it "selects the last entry", ->
+          treeView.trigger 'move-up'
+          expect(rootDirectoryView.find('.entry:last')).toHaveClass 'selected'
+
+      describe "when there is an entry before the currently selected entry", ->
+        it "selects the previous entry", ->
+          lastEntry = rootDirectoryView.find('.entry:last')
+          lastEntry.click()
+
+          treeView.trigger 'move-up'
+
+          expect(lastEntry.prev()).toHaveClass 'selected'
+
+      describe "when there is no entry before the currently selected entry, but there is a parent directory", ->
+        it "selects the parent directory", ->
+          subdir = rootDirectoryView.find('.directory:first').view()
+          subdir.expand()
+          subdir.find('> .entries > .entry:first').click()
+
+
+          treeView.trigger 'move-up'
+
+          expect(subdir).toHaveClass 'selected'
+
+      describe "when there is no parent directory or previous entry", ->
+        it "does not change the selection", ->
+          rootDirectoryView.click()
+          treeView.trigger 'move-up'
+          expect(rootDirectoryView).toHaveClass 'selected'
+
