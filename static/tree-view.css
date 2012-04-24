@@ -5,6 +5,7 @@
   overflow: auto;
   padding: 0 1em;
   cursor: default;
+  font: 16px Inconsolata, Monaco, Courier !important;
 }
 
 .tree-view .disclosure-arrow {
@@ -13,13 +14,23 @@
 }
 
 .tree-view .directory .entries {
-  padding-left: 2ex;
+  padding-left: 1ex;
 }
 
-.tree-view .file.selected, .tree-view .directory.selected > .header {
-  background: #333;
+.file, .directory > .header {
+  padding: 0 1ex;
 }
 
 .tree-view .directory .entries .file {
-  padding-left: 2ex;
+  padding-left: 3ex;
 }
+
+.tree-view .file.selected, .tree-view .directory.selected > .header {
+  background: #444;
+}
+
+.tree-view:focus .file.selected, .tree-view:focus .directory.selected > .header {
+  background: #a3fd97;
+  color: black;
+}
+

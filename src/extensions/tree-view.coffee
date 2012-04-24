@@ -9,7 +9,7 @@ class TreeView extends View
     rootView.prepend(new TreeView(rootView))
 
   @content: (rootView) ->
-    @div class: 'tree-view', =>
+    @div class: 'tree-view', tabindex: -1, =>
       @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true)
 
   initialize: (@rootView) ->
