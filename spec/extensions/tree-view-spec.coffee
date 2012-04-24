@@ -179,3 +179,17 @@ describe "TreeView", ->
           treeView.trigger 'move-up'
           expect(rootDirectoryView).toHaveClass 'selected'
 
+    describe "tree-view:expand-directory", ->
+      describe "when a directory entry is selected", ->
+        it "expands the current directory", ->
+          subdir = rootDirectoryView.find('.directory:first')
+          subdir.click()
+
+          expect(subdir).not.toHaveClass 'expanded'
+          treeView.trigger 'tree-view:expand-directory'
+          expect(subdir).toHaveClass 'expanded'
+
+      describe "when a file entry is selected", ->
+        it "does nothing", ->
+          rootDirectoryView.find('.file').click()
+          treeView.trigger 'tree-view:expand-directory'

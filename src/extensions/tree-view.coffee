@@ -21,6 +21,7 @@ class TreeView extends View
 
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
+    @on 'tree-view:expand-directory', => @expandDirectory()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   selectActiveFile: ->
@@ -44,6 +45,10 @@ class TreeView extends View
       return if @selectEntry(selectedEntry.parents('.directory').first())
     else
       @selectEntry(@find('.entry').last())
+
+  expandDirectory: ->
+    selectedEntry = @selectedEntry()
+    selectedEntry.view().expand() if selectedEntry.is('.directory')
 
   selectedEntry: ->
     @find('.selected')
