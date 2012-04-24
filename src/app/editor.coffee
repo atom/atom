@@ -46,6 +46,7 @@ class Editor extends View
   editSessions: null
 
   @deserialize: (viewState, rootView) ->
+    viewState = _.clone(viewState)
     viewState.editSessions = viewState.editSessions.map (editSession) ->
       editSession = _.clone(editSession)
       editSession.buffer = Buffer.deserialize(editSession.buffer, rootView.project)
