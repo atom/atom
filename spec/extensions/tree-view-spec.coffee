@@ -229,3 +229,26 @@ describe "TreeView", ->
           expect(subdir).toHaveClass 'selected'
           expect(rootDirectoryView).toHaveClass 'expanded'
 
+    describe "tree-view:open-selected-entry", ->
+      describe "when a file is selected", ->
+        it "opens the file in the editor", ->
+          rootDirectoryView.find('.file:contains(sample.js)').click()
+          rootDirectoryView.trigger 'tree-view:open-selected-entry'
+          expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.js')
+
+      describe "when a directory is selected", ->
+        it "expands or collapses the directory", ->
+          subdir = rootDirectoryView.find('.directory').first()
+          subdir.click()
+
+          expect(subdir).not.toHaveClass 'expanded'
+          rootDirectoryView.trigger 'tree-view:open-selected-entry'
+          expect(subdir).toHaveClass 'expanded'
+          rootDirectoryView.trigger 'tree-view:open-selected-entry'
+          expect(subdir).not.toHaveClass 'expanded'
+
+      describe "when nothing is selected", ->
+        it "does nothing", ->
+          rootDirectoryView.trigger 'tree-view:open-selected-entry'
+          expect(rootView.activeEditor()).toBeUndefined()
+

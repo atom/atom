@@ -15,14 +15,15 @@ class TreeView extends View
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) =>
       entry = $(e.currentTarget)
-      @rootView.open(entry.attr('path')) if entry.is('.file')
       @selectEntry(entry)
+      @openSelectedEntry() if entry.is('.file')
       false
 
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
     @on 'tree-view:expand-directory', => @expandDirectory()
     @on 'tree-view:collapse-directory', => @collapseDirectory()
+    @on 'tree-view:open-selected-entry', => @openSelectedEntry()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   selectActiveFile: ->
@@ -56,6 +57,13 @@ class TreeView extends View
     directory = selectedEntry.closest('.expanded.directory').view()
     directory.collapse()
     @selectEntry(directory)
+
+  openSelectedEntry: ->
+    selectedEntry = @selectedEntry()
+    if selectedEntry.is('.directory')
+      selectedEntry.view().toggleExpansion()
+    else if selectedEntry.is('.file')
+      @rootView.open(selectedEntry.attr('path'))
 
   selectedEntry: ->
     @find('.selected')
