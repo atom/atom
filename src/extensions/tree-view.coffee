@@ -85,6 +85,7 @@ class DirectoryView extends View
   initialize: ({@directory, isExpanded}) ->
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
+    @on 'DOMNodeRemoved', (e) => @unwatchEntries() if e.target == this[0]
 
   buildEntries: ->
     @entries?.remove()
