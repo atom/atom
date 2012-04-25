@@ -87,6 +87,7 @@ class DirectoryView extends View
     @disclosureArrow.on 'click', => @toggleExpansion()
 
   buildEntries: ->
+    @entries?.remove()
     @entries = $$ -> @ol class: 'entries'
     for entry in @directory.getEntries()
       if entry instanceof Directory
@@ -105,6 +106,7 @@ class DirectoryView extends View
     @buildEntries()
     @deserializeEntryExpansionsStates(@entryStates) if @entryStates?
     @isExpanded = true
+    @watchEntries()
     false
 
   collapse: ->
@@ -113,7 +115,14 @@ class DirectoryView extends View
     @disclosureArrow.text('▸')
     @entries.remove()
     @entries = null
+    @unwatchEntries()
     @isExpanded = false
+
+  watchEntries: ->
+    @directory.on "contents-change.#{@directory.path}", => @buildEntries()
+
+  unwatchEntries: ->
+    @directory.off ".#{@directory.path}"
 
   serializeEntryExpansionStates: ->
     entryStates = {}

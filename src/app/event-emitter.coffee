@@ -14,6 +14,8 @@ module.exports =
       @eventHandlersByNamespace[namespace][eventName] ?= []
       @eventHandlersByNamespace[namespace][eventName].push(handler)
 
+    @afterSubscribe?()
+
   trigger: (eventName, event) ->
     [eventName, namespace] = eventName.split('.')
 
@@ -42,6 +44,8 @@ module.exports =
         _.remove(@eventHandlersByEventName[eventName], handler)
       else
         delete @eventHandlersByEventName?[eventName]
+
+    @afterUnsubscribe?()
 
   subscriptionCount: ->
     count = 0

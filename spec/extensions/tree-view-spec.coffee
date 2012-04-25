@@ -1,6 +1,7 @@
 TreeView = require 'tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
+fs = require 'fs'
 
 describe "TreeView", ->
   [rootView, project, treeView, rootDirectoryView, sampleJs, sampleTxt] = []
@@ -251,4 +252,25 @@ describe "TreeView", ->
         it "does nothing", ->
           rootDirectoryView.trigger 'tree-view:open-selected-entry'
           expect(rootView.activeEditor()).toBeUndefined()
+
+  describe "file system events", ->
+    temporaryFilePath = null
+
+    beforeEach ->
+      temporaryFilePath = fs.join(require.resolve('fixtures'), 'temporary')
+
+    afterEach ->
+      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+
+    describe "when a file is added or removed in an expanded directory", ->
+      fit "updates the directory view to display the directory's new contents", ->
+        entriesCountBefore = rootDirectoryView.entries.find('.entry').length
+
+        fs.write temporaryFilePath, 'hi'
+
+        expect(rootDirectoryView.entries.find('.entry').length).toBe entriesCountBefore + 1
+        expect(rootDirectoryView.entries.find('.file:contains(temporary)')).toExist()
+
+    describe "when a file is renamed in an expanded directory", ->
+
 

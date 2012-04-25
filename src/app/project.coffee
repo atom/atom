@@ -10,9 +10,10 @@ class Project
 
   constructor: (@path) ->
     @buffers = []
+    @rootDirectory = new Directory(@path)
 
   getRootDirectory: ->
-    new Directory(@path)
+    @rootDirectory
 
   getFilePaths: ->
     projectPath = @path
@@ -35,6 +36,9 @@ class Project
   resolve: (filePath) ->
     filePath = fs.join(@path, filePath) unless filePath[0] == '/'
     fs.absolute filePath
+
+  relativize: (fullPath) ->
+    fullPath.replace(@path, "")
 
   bufferWithId: (id) ->
     return buffer for buffer in @buffers when buffer.id == id

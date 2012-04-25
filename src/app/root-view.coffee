@@ -117,7 +117,7 @@ class RootView extends View
       @fileFinder = null
     else
       @project.getFilePaths().done (paths) =>
-        relativePaths = (path.replace(@project.path, "") for path in paths)
+        relativePaths = (@project.relativize(path) for path in paths)
         @fileFinder = new FileFinder
           paths: relativePaths
           selected: (relativePath) => @open(relativePath)
