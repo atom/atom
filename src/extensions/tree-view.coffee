@@ -22,6 +22,7 @@ class TreeView extends View
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
     @on 'tree-view:expand-directory', => @expandDirectory()
+    @on 'tree-view:collapse-directory', => @collapseDirectory()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   selectActiveFile: ->
@@ -49,6 +50,12 @@ class TreeView extends View
   expandDirectory: ->
     selectedEntry = @selectedEntry()
     selectedEntry.view().expand() if selectedEntry.is('.directory')
+
+  collapseDirectory: ->
+    selectedEntry = @selectedEntry()
+    directory = selectedEntry.closest('.expanded.directory').view()
+    directory.collapse()
+    @selectEntry(directory)
 
   selectedEntry: ->
     @find('.selected')

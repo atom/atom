@@ -193,3 +193,39 @@ describe "TreeView", ->
         it "does nothing", ->
           rootDirectoryView.find('.file').click()
           treeView.trigger 'tree-view:expand-directory'
+
+    describe "tree-view:collapse-directory", ->
+      subdir = null
+
+      beforeEach ->
+        subdir = rootDirectoryView.find('> .entries > .directory').eq(0).view()
+        subdir.expand()
+
+      describe "when an expanded directory is selected", ->
+        it "collapses the selected directory", ->
+          expect(subdir).toHaveClass 'expanded'
+
+          subdir.click()
+          treeView.trigger 'tree-view:collapse-directory'
+
+          expect(subdir).not.toHaveClass 'expanded'
+          expect(rootDirectoryView).toHaveClass 'expanded'
+
+      describe "when a collapsed directory is selected", ->
+        it "collapses and selects the selected directory's parent directory", ->
+          subdir.find('.directory').click()
+          treeView.trigger 'tree-view:collapse-directory'
+
+          expect(subdir).not.toHaveClass 'expanded'
+          expect(subdir).toHaveClass 'selected'
+          expect(rootDirectoryView).toHaveClass 'expanded'
+
+      describe "when a file is selected", ->
+        it "collapses and selects the selected file's parent directory", ->
+          subdir.find('.file').click()
+          treeView.trigger 'tree-view:collapse-directory'
+
+          expect(subdir).not.toHaveClass 'expanded'
+          expect(subdir).toHaveClass 'selected'
+          expect(rootDirectoryView).toHaveClass 'expanded'
+
