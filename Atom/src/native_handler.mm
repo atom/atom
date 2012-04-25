@@ -3,6 +3,7 @@
 #import "Atom.h"
 #import "AtomController.h"
 #import "client_handler.h"
+#import "PathWatcher.h"
 
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   std::string cc_value = value->GetStringValue().ToString();
@@ -12,7 +13,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit"};
+  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -269,6 +270,34 @@ bool NativeHandler::Execute(const CefString& name,
     if (arguments.size() > 0) exitStatus = arguments[0]->GetIntValue();
     
     exit(exitStatus);
+    return true;
+  }
+  else if (name == "watchPath") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    CefRefPtr<CefV8Value> function = arguments[1];
+
+    CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
+    
+    WatchCallback callback = ^(NSArray *eventList) {
+      context->Enter();
+      
+      CefV8ValueList args;
+      CefRefPtr<CefV8Value> retval;
+      CefRefPtr<CefV8Exception> e;
+      
+      CefRefPtr<CefV8Value> eventObject = CefV8Value::CreateObject(NULL);
+      for (NSString *event in eventList) {
+        eventObject->SetValue([event UTF8String], CefV8Value::CreateBool(true), V8_PROPERTY_ATTRIBUTE_NONE);
+      }
+      
+      args.push_back(eventObject);
+      function->ExecuteFunction(function, args, retval, e, true);
+      
+      context->Exit();
+    };
+
+    [PathWatcher watchPath:path callback:[[callback copy] autorelease]];
+    
     return true;
   }
   

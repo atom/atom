@@ -119,7 +119,8 @@ class DirectoryView extends View
     @isExpanded = false
 
   watchEntries: ->
-    @directory.on "contents-change.#{@directory.path}", => @buildEntries()
+    @directory.on "contents-change.#{@directory.path}", =>
+      @buildEntries()
 
   unwatchEntries: ->
     @directory.off ".#{@directory.path}"

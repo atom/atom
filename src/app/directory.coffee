@@ -34,4 +34,3 @@ class Directory
     $native.unwatchPath(@path)
 
 _.extend Directory.prototype, EventEmitter
-
