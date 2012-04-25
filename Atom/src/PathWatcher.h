@@ -4,6 +4,7 @@ typedef void (^WatchCallback)(NSArray *);
 
 @interface PathWatcher : NSObject {
   int _kq;
+  NSMutableDictionary *_fileDescriptorsByPath;
   NSMutableDictionary *_callbacksByFileDescriptor;
 }
 
