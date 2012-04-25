@@ -77,13 +77,14 @@ class DirectoryView extends View
   @content: ({directory, isExpanded}) ->
     @li class: 'directory entry', =>
       @div class: 'header', =>
-        @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow', click: 'toggleExpansion'
+        @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow'
         @span directory.getName(), class: 'name'
 
   entries: null
 
   initialize: ({@directory, isExpanded}) ->
     @expand() if isExpanded
+    @disclosureArrow.on 'click', => @toggleExpansion()
 
   buildEntries: ->
     @entries = $$ -> @ol class: 'entries'
@@ -102,26 +103,26 @@ class DirectoryView extends View
     @addClass('expanded')
     @disclosureArrow.text('▾')
     @buildEntries()
-    @deserializeEntries(@entryStates) if @entryStates?
+    @deserializeEntryExpansionsStates(@entryStates) if @entryStates?
     @isExpanded = true
     false
 
   collapse: ->
-    @entryStates = @serializeEntries()
+    @entryStates = @serializeEntryExpansionStates()
     @removeClass('expanded')
     @disclosureArrow.text('▸')
     @entries.remove()
     @entries = null
     @isExpanded = false
 
-  serializeEntries: ->
+  serializeEntryExpansionStates: ->
     entryStates = {}
     @entries.find('> .directory.expanded').each ->
       view = $(this).view()
       entryStates[view.directory.getName()] = view.serializeEntries()
     entryStates
 
-  deserializeEntries: (entryStates) ->
+  deserializeEntryExpansionStates: (entryStates) ->
     for directoryName, childEntryStates of entryStates
       @entries.find("> .directory:contains('#{directoryName}')").each ->
         view = $(this).view()
