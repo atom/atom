@@ -24,13 +24,16 @@ module.exports =
     else
       @eventHandlersByEventName?[eventName]?.forEach (handler) -> handler(event)
 
-  off: (eventName, handler) ->
+  off: (eventName='', handler) ->
     [eventName, namespace] = eventName.split('.')
-    eventName = undefined if eventName is ''
+    eventName = undefined if eventName == ''
 
     subscriptionCountBefore = @subscriptionCount()
 
-    if namespace
+    if !eventName? and !namespace?
+      @eventHandlersByEventName = {}
+      @eventHandlersByNamespace = {}
+    else if namespace
       if eventName
         handlers = @eventHandlersByNamespace?[namespace]?[eventName] ? []
         for handler in new Array(handlers...)

@@ -52,6 +52,13 @@ describe "EventEmitter mixin", ->
       object.trigger('junk.garbage')
 
   describe ".off", ->
+    describe "when called with no arguments", ->
+      it "removes all subscriptions", ->
+        object.off()
+        object.trigger 'foo'
+        expect(fooHandler1).not.toHaveBeenCalled()
+        expect(fooHandler2).not.toHaveBeenCalled()
+
     describe "when called with a non-namespaced event name", ->
       it "removes all handlers for that event name", ->
         object.off 'foo'
