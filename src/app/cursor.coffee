@@ -17,9 +17,11 @@ class Cursor extends View
     @editor = editor
     @anchor = new Anchor(@editor, screenPosition)
     @selection = @editor.compositeSelection.addSelectionForCursor(this)
-    @one 'attach', =>
-      @updateAppearance()
-      @editor.syncCursorAnimations()
+
+  afterAttach: (onDom) ->
+    return unless onDom
+    @updateAppearance()
+    @editor.syncCursorAnimations()
 
   handleBufferChange: (e) ->
     @anchor.handleBufferChange(e)
