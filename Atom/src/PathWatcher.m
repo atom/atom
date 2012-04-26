@@ -10,6 +10,7 @@
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
 - (void)watchFileDescriptor:(int)fd;
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId;
+- (void)unwatchAll;
 @end
 
 @implementation PathWatcher
@@ -26,6 +27,10 @@
 
 + (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId {
   return [[self instance] unwatchPath:path callbackId:callbackId];
+}
+
++ (void)unwatchAll {
+  return [[self instance] unwatchAll];
 }
 
 - (void)dealloc {
@@ -81,14 +86,34 @@
 
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId {
   @synchronized(self) {
-    NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];    
+    NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
     if (!fdNumber) return;    
 
     NSMutableDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
     if (!callbacks) return; 
     
-    [callbacks removeObjectForKey:callbackId];
+    if (callbackId) {
+      [callbacks removeObjectForKey:callbackId];
+    }
+    else {
+      [callbacks removeAllObjects];
+    }
+    
+    if (callbacks.count == 0) {
+      close([fdNumber intValue]);
+      [_fileDescriptorsByPath removeObjectForKey:path];
+      [_callbacksByFileDescriptor removeObjectForKey:fdNumber];
+    }
   }
+}
+
+- (void)unwatchAll {
+  @synchronized(self) {
+    NSArray *paths = [_fileDescriptorsByPath allKeys];
+    for (NSString *path in paths) {
+      [self unwatchPath:path callbackId:nil];
+    }
+  }  
 }
 
 - (void)watchFileDescriptor:(int)fd {

@@ -3,6 +3,7 @@
 #import "include/cef.h"
 #import "client_handler.h"
 #import "native_handler.h"
+#import "PathWatcher.h"
 
 @implementation AtomController
 
@@ -84,13 +85,9 @@
   context->Exit();
 }
 
-- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type
-                  code:(int)code
-             modifiers:(int)modifiers
-           isSystemKey:(bool)isSystemKey
-     isAfterJavaScript:(bool)isAfterJavaScript {
-  
+- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type code:(int)code modifiers:(int)modifiers isSystemKey:(bool)isSystemKey isAfterJavaScript:(bool)isAfterJavaScript {  
   if (isAfterJavaScript && type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
+    [PathWatcher unwatchAll];
     _clientHandler->GetBrowser()->ReloadIgnoreCache();
     return YES;
   }
