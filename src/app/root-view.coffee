@@ -26,7 +26,6 @@ class RootView extends View
   initialize: ({ pathToOpen, projectPath, panesViewState }) ->
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', => window.showConsole()
-    @one 'attach', => @focus()
     @on 'focus', (e) =>
       if @activeEditor()
         @activeEditor().focus()
@@ -49,6 +48,9 @@ class RootView extends View
       @open() unless panesViewState?
 
     @deserializePanes(panesViewState) if panesViewState
+
+  afterAttach: (onDom) ->
+    @focus() if onDom
 
   serialize: ->
     projectPath: @project?.path

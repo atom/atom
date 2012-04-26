@@ -62,10 +62,11 @@ class View extends jQuery
     [html, postProcessingSteps] = @constructor.buildHtml -> @content(args...)
     jQuery.fn.init.call(this, html)
     @constructor = jQuery # sadly, jQuery assumes this.constructor == jQuery in pushStack
+    throw new Error("View markup must have a single root element") if this.length != 1
     @wireOutlets(this)
     @bindEventHandlers(this)
     @find('*').andSelf().data('view', this)
-    @attr('triggerAttachEvents', true)
+    @attr('callAttachHooks', true)
     step(this) for step in postProcessingSteps
     @initialize?(args...)
 
@@ -165,9 +166,18 @@ class Builder
 jQuery.fn.view = -> this.data('view')
 
 # Trigger attach event when views are added to the DOM
-triggerAttachEvent = (element) ->
-  if element?.attr?('triggerAttachEvents') and element.parents('html').length
-    element.find('[triggerAttachEvents]').add(element).trigger('attach')
+callAttachHook = (element) ->
+  return unless element
+  onDom = element.parents?('html').length > 0
+
+  elementsWithHooks = []
+  elementsWithHooks.push(element[0]) if element.attr?('callAttachHooks')
+  elementsWithHooks = elementsWithHooks.concat(element.find?('[callAttachHooks]').toArray() ? []) if onDom
+
+  parent = element
+  for element in elementsWithHooks
+    view = $(element).view()
+    $(element).view()?.afterAttach?(onDom)
 
 for methodName in ['append', 'prepend', 'after', 'before']
   do (methodName) ->
@@ -175,7 +185,7 @@ for methodName in ['append', 'prepend', 'after', 'before']
     jQuery.fn[methodName] = (args...) ->
       flatArgs = [].concat args...
       result = originalMethod.apply(this, flatArgs)
-      triggerAttachEvent arg for arg in flatArgs
+      callAttachHook arg for arg in flatArgs
       result
 
 for methodName in ['prependTo', 'appendTo', 'insertAfter', 'insertBefore']
@@ -183,10 +193,9 @@ for methodName in ['prependTo', 'appendTo', 'insertAfter', 'insertBefore']
     originalMethod = $.fn[methodName]
     jQuery.fn[methodName] = (args...) ->
       result = originalMethod.apply(this, args)
-      triggerAttachEvent(this)
+      callAttachHook(this)
       result
 
 (exports ? this).View = View
 (exports ? this).$$ = (fn) -> View.render.call(View, fn)
 (exports ? this).$$$ = (fn) -> View.buildHtml.call(View, fn)[0]
-
