@@ -260,11 +260,10 @@ describe "TreeView", ->
       temporaryFilePath = fs.join(require.resolve('fixtures'), 'temporary')
 
     afterEach ->
-      console.log "REMOVE" if fs.exists(temporaryFilePath)
       fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     describe "when a file is added or removed in an expanded directory", ->
-      fit "updates the directory view to display the directory's new contents", ->
+      it "updates the directory view to display the directory's new contents", ->
         entriesCountBefore = rootDirectoryView.entries.find('.entry').length
 
         fs.write temporaryFilePath, 'hi'

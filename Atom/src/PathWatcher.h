@@ -8,6 +8,7 @@ typedef void (^WatchCallback)(NSArray *);
   NSMutableDictionary *_callbacksByFileDescriptor;
 }
 
-+ (void)watchPath:(NSString *)path callback:(WatchCallback)callback;
++ (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
++ (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId;
 
 @end

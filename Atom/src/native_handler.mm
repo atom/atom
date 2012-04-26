@@ -13,7 +13,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath"};
+  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -299,6 +299,13 @@ bool NativeHandler::Execute(const CefString& name,
     [PathWatcher watchPath:path callback:[[callback copy] autorelease]];
     
     return true;
+  }
+  else if (name == "unwatchPath") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    NSString *callbackId = stringFromCefV8Value(arguments[1]);
+    [PathWatcher unwatchPath:path callbackId:callbackId];
+    
+    return true;    
   }
   
   return false;

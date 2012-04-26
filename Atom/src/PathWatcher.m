@@ -4,18 +4,28 @@
 #import <sys/time.h> 
 #import <fcntl.h>
 
+
+
 @interface PathWatcher ()
-- (void)watchPath:(NSString *)path callback:(WatchCallback)callback;
+- (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
 - (void)watchFileDescriptor:(int)fd;
+- (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId;
 @end
 
 @implementation PathWatcher
 
-+ (void)watchPath:(NSString *)path callback:(WatchCallback)callback {
-  static PathWatcher *pathWatcher;
-  
++ (id)instance {
+  static PathWatcher *pathWatcher;  
   if (!pathWatcher) pathWatcher = [[PathWatcher alloc] init];
-  [pathWatcher watchPath:path callback:callback];
+  return pathWatcher;
+}
+
++ (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback {
+  return [[self instance] watchPath:path callback:callback];
+}
+
++ (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId {
+  return [[self instance] unwatchPath:path callbackId:callbackId];
 }
 
 - (void)dealloc {
@@ -41,35 +51,47 @@
   return self;
 }
 
-- (void)watchPath:(NSString *)path callback:(WatchCallback)callback {  
-  NSLog(@"Watching path %@", path);
-  
+- (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback {
   path = [path stringByStandardizingPath];
+  NSString *callbackId;
   
   @synchronized(self) {
     NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];    
     if (!fdNumber) {
       int fd = open([path fileSystemRepresentation], O_EVTONLY, 0);      
-      if (fd < 0) return; // TODO: Decide what to do here
+      if (fd < 0) return nil; // TODO: Decide what to do here
       [self watchFileDescriptor:fd];
 
       fdNumber = [NSNumber numberWithInt:fd];
       [_fileDescriptorsByPath setObject:fdNumber forKey:path];
     }
     
-    NSMutableArray *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
+    NSMutableDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
     if (!callbacks) {      
-      callbacks = [NSMutableArray array];
+      callbacks = [NSMutableDictionary dictionary];
       [_callbacksByFileDescriptor setObject:callbacks forKey:fdNumber];      
     }
     
-    [callbacks addObject:callback];
+    callbackId = [[NSProcessInfo processInfo] globallyUniqueString];
+    [callbacks setObject:callback forKey:callbackId];
+  }
+  
+  return callbackId;
+}
+
+- (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId {
+  @synchronized(self) {
+    NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];    
+    if (!fdNumber) return;    
+
+    NSMutableDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
+    if (!callbacks) return; 
+    
+    [callbacks removeObjectForKey:callbackId];
   }
 }
 
 - (void)watchFileDescriptor:(int)fd {
-  NSLog(@"Watching fd %d", fd);
-  
   struct timespec timeout = { 0, 0 };
   struct kevent event;
   int filter = EVFILT_VNODE;
@@ -80,8 +102,6 @@
 }
 
 - (void)watch {  
-  NSLog(@"kicking off watch");
-  
   @autoreleasepool {
     struct kevent event;    
     struct timespec timeout = { 5, 0 }; // 5 seconds timeout.
@@ -98,8 +118,6 @@
 
       NSMutableArray *eventFlags = [NSMutableArray array];
 
-      NSLog(@"flags are: %d, fd is: %d", event.fflags, (int)event.ident);
-      
       if (event.fflags & NOTE_WRITE) {
         [eventFlags addObject:@"modified"];
       }
@@ -107,7 +125,9 @@
       @synchronized(self) {
         NSNumber *fdNumber = [NSNumber numberWithInt:event.ident];
         
-        for (WatchCallback callback in [_callbacksByFileDescriptor objectForKey:fdNumber]) {
+        NSDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
+        for (NSString *key in callbacks) {
+          WatchCallback callback = [callbacks objectForKey:key];
           dispatch_async(dispatch_get_main_queue(), ^{
             callback(eventFlags);
           });
