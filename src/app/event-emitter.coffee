@@ -36,13 +36,13 @@ module.exports =
         for handler in new Array(handlers...)
           _.remove(handlers, handler)
           @off eventName, handler
-          return
+        return
       else
         for eventName, handlers of @eventHandlersByNamespace?[namespace] ? {}
           for handler in new Array(handlers...)
             _.remove(handlers, handler)
             @off eventName, handler
-            return
+        return
     else
       if handler
         _.remove(@eventHandlersByEventName[eventName], handler)
