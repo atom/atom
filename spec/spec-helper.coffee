@@ -3,21 +3,39 @@ $ = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
 Point = require 'point'
-
+Directory = require 'directory'
 require 'window'
 window.showConsole()
 
 defaultTitle = document.title
+directoriesWithSubscriptions = null
 
 beforeEach ->
   window.resetTimeouts()
+  directoriesWithSubscriptions = []
 
 afterEach ->
   $('#jasmine-content').empty()
   document.title = defaultTitle
+  ensureNoDirectorySubscriptions()
+
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
+
+Directory.prototype.originalOn = Directory.prototype.on
+Directory.prototype.on = (args...) ->
+  directoriesWithSubscriptions.push(this) if @subscriptionCount() == 0
+  @originalOn(args...)
+
+ensureNoDirectorySubscriptions = ->
+  totalSubscriptionCount = 0
+  for directory in directoriesWithSubscriptions
+    totalSubscriptionCount += directory.subscriptionCount()
+    console.log "Non-zero subscription count on", directory if directory.subscriptionCount() > 0
+
+  if totalSubscriptionCount > 0
+    throw new Error("Total directory subscription count was #{totalSubscriptionCount}, when it should have been 0.\nSee console for details.")
 
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual

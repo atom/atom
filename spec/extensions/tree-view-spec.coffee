@@ -14,6 +14,11 @@ describe "TreeView", ->
     sampleJs = treeView.find('.file:contains(sample.js)')
     sampleTxt = treeView.find('.file:contains(sample.txt)')
 
+    expect(rootDirectoryView.directory.subscriptionCount()).toBeGreaterThan 0
+
+  afterEach ->
+    treeView.deactivate()
+
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
       expect(rootDirectoryView.find('> .header .disclosure-arrow')).toHaveText('▾')
@@ -299,8 +304,8 @@ describe "TreeView", ->
           expect(rootDirectoryView.entries.find('.entry').length).toBe entriesCountBefore + 1
           expect(rootDirectoryView.entries.find('.file:contains(temporary)')).toExist()
 
-          rootDirectoryView.remove()
-
     describe "when a file is renamed in an expanded directory", ->
+
+
 
 

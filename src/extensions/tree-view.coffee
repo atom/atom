@@ -27,6 +27,10 @@ class TreeView extends View
     @on 'tree-view:open-selected-entry', => @openSelectedEntry()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
+  deactivate: ->
+    @find('.expanded.directory').each ->
+      $(this).view().unwatchEntries()
+
   selectActiveFile: ->
     activeFilePath = @rootView.activeEditor()?.buffer.path
     @selectEntry(@find(".file[path='#{activeFilePath}']"))

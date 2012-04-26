@@ -7,6 +7,9 @@ describe "Directory", ->
   beforeEach ->
     directory = new Directory(require.resolve('fixtures'))
 
+  afterEach ->
+    directory.off()
+
   describe "when the contents of the directory change on disk", ->
     temporaryFilePath = null
 
