@@ -1,7 +1,7 @@
 Directory = require 'directory'
 fs = require 'fs'
 
-fdescribe "Directory", ->
+describe "Directory", ->
   directory = null
 
   beforeEach ->

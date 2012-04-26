@@ -1,6 +1,7 @@
 {View, $$} = require 'space-pen'
 Directory = require 'directory'
 $ = require 'jquery'
+_ = require 'underscore'
 
 module.exports =
 class TreeView extends View
@@ -85,7 +86,12 @@ class DirectoryView extends View
   initialize: ({@directory, isExpanded}) ->
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
-    @on 'DOMNodeRemoved', (e) => @unwatchEntries() if e.target == this[0]
+
+    _.defer =>
+      @on 'DOMNodeRemoved', (e) =>
+        if e.target == this[0] and @hasClass('expanded')
+          console.log "unwatching!"
+          @unwatchEntries()
 
   buildEntries: ->
     @entries?.remove()

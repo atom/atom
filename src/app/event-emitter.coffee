@@ -28,24 +28,28 @@ module.exports =
     [eventName, namespace] = eventName.split('.')
     eventName = undefined if eventName is ''
 
+    subscriptionCountBefore = @subscriptionCount()
+
     if namespace
       if eventName
         handlers = @eventHandlersByNamespace?[namespace]?[eventName] ? []
         for handler in new Array(handlers...)
           _.remove(handlers, handler)
           @off eventName, handler
+          return
       else
         for eventName, handlers of @eventHandlersByNamespace?[namespace] ? {}
           for handler in new Array(handlers...)
             _.remove(handlers, handler)
             @off eventName, handler
+            return
     else
       if handler
         _.remove(@eventHandlersByEventName[eventName], handler)
       else
         delete @eventHandlersByEventName?[eventName]
 
-    @afterUnsubscribe?()
+    @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
 
   subscriptionCount: ->
     count = 0
