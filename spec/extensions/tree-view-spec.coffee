@@ -258,13 +258,15 @@ describe "TreeView", ->
 
     beforeEach ->
       temporaryFilePath = fs.join(require.resolve('fixtures'), 'temporary')
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      if fs.exists(temporaryFilePath)
+        fs.remove(temporaryFilePath)
+        waits(20)
 
     afterEach ->
       fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     describe "when a file is added or removed in an expanded directory", ->
-      fit "updates the directory view to display the directory's new contents", ->
+      it "updates the directory view to display the directory's new contents", ->
         entriesCountBefore = null
 
         runs ->
@@ -278,6 +280,8 @@ describe "TreeView", ->
         runs ->
           expect(rootDirectoryView.entries.find('.entry').length).toBe entriesCountBefore + 1
           expect(rootDirectoryView.entries.find('.file:contains(temporary)')).toExist()
+
+          rootDirectoryView.remove()
 
     describe "when a file is renamed in an expanded directory", ->
 
