@@ -1,13 +1,13 @@
 Directory = require 'directory'
 fs = require 'fs'
 
-describe "Directory", ->
+fdescribe "Directory", ->
   directory = null
 
   beforeEach ->
     directory = new Directory(require.resolve('fixtures'))
 
-  fdescribe "when the contents of the directory change on disk", ->
+  describe "when the contents of the directory change on disk", ->
     temporaryFilePath = null
 
     beforeEach ->
@@ -33,7 +33,7 @@ describe "Directory", ->
 
       waitsFor "second change", -> changeHandler.callCount > 0
 
-  fdescribe "when the directory unsubscribes from events", ->
+  describe "when the directory unsubscribes from events", ->
     temporaryFilePath = null
 
     beforeEach ->
@@ -51,14 +51,14 @@ describe "Directory", ->
         directory.on 'contents-change', changeHandler
         fs.write(temporaryFilePath, '')
 
-      waitsFor "first change", -> changeHandler.callCount > 0
+      waitsFor "change event", -> changeHandler.callCount > 0
 
       runs ->
         changeHandler.reset()
         directory.unsubscribeFromNativeChangeEvents()
+      waits 20
 
-      ticks = 0
-      waitsFor "100 ticks", -> ticks++ < 100
+      runs -> fs.remove(temporaryFilePath)
+      waits 20
+      runs -> expect(changeHandler.callCount).toBe 0
 
-      runs ->
-        expect(changeHandler.callCount).toBe 0

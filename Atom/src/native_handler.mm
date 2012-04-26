@@ -296,7 +296,8 @@ bool NativeHandler::Execute(const CefString& name,
       context->Exit();
     };
 
-    [PathWatcher watchPath:path callback:[[callback copy] autorelease]];
+    NSString *watchId = [PathWatcher watchPath:path callback:[[callback copy] autorelease]];
+    retval = CefV8Value::CreateString([watchId UTF8String]);
     
     return true;
   }
