@@ -111,7 +111,7 @@ class DirectoryView extends View
     @addClass('expanded')
     @disclosureArrow.text('▾')
     @buildEntries()
-    @deserializeEntryExpansionsStates(@entryStates) if @entryStates?
+    @deserializeEntryExpansionStates(@entryStates) if @entryStates?
     @isExpanded = true
     @watchEntries()
     false
@@ -136,7 +136,7 @@ class DirectoryView extends View
     entryStates = {}
     @entries.find('> .directory.expanded').each ->
       view = $(this).view()
-      entryStates[view.directory.getName()] = view.serializeEntries()
+      entryStates[view.directory.getName()] = view.serializeEntryExpansionStates()
     entryStates
 
   deserializeEntryExpansionStates: (entryStates) ->
