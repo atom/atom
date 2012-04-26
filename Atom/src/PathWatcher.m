@@ -39,6 +39,8 @@
     close([fdNumber intValue]);
   }
   [_callbacksByFileDescriptor release];
+
+  [super dealloc];
 }
 
 - (id)init {
