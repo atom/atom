@@ -3,7 +3,7 @@ RootView = require 'root-view'
 Directory = require 'directory'
 fs = require 'fs'
 
-describe "TreeView", ->
+fdescribe "TreeView", ->
   [rootView, project, treeView, rootDirectoryView, sampleJs, sampleTxt] = []
 
   beforeEach ->
@@ -56,14 +56,32 @@ describe "TreeView", ->
       grandchild = child.find('.entries > li:contains(a-dir/)').view()
       grandchild.disclosureArrow.click()
 
-      rootDirectoryView.collapse()
-      rootDirectoryView.expand()
+      rootDirectoryView.disclosureArrow.click()
+      expect(rootDirectoryView.find('.entries')).not.toExist()
+      rootDirectoryView.disclosureArrow.click()
 
       # previously expanded descendants remain expanded
       expect(rootDirectoryView.find('> .entries > li:contains(dir/) > .entries > li:contains(a-dir/) > .entries').length).toBe 1
 
       # collapsed descendants remain collapsed
       expect(rootDirectoryView.find('> .entries > li.contains(zed/) > .entries')).not.toExist()
+
+    it "when collapsing a directory, removes change subscriptions from the collapsed directory and its descendants", ->
+      child = rootDirectoryView.entries.find('li:contains(dir/)').view()
+      child.disclosureArrow.click()
+
+      grandchild = child.entries.find('li:contains(a-dir/)').view()
+      grandchild.disclosureArrow.click()
+
+      expect(rootDirectoryView.directory.subscriptionCount()).toBe 1
+      expect(child.directory.subscriptionCount()).toBe 1
+      expect(grandchild.directory.subscriptionCount()).toBe 1
+
+      rootDirectoryView.disclosureArrow.click()
+
+      expect(rootDirectoryView.directory.subscriptionCount()).toBe 0
+      expect(child.directory.subscriptionCount()).toBe 0
+      expect(grandchild.directory.subscriptionCount()).toBe 0
 
   describe "when a file is clicked", ->
     it "opens it in the active editor and selects it", ->

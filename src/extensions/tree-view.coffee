@@ -87,12 +87,6 @@ class DirectoryView extends View
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
 
-    _.defer =>
-      @on 'DOMNodeRemoved', (e) =>
-        if e.target == this[0] and @hasClass('expanded')
-          console.log "unwatching!"
-          @unwatchEntries()
-
   buildEntries: ->
     @entries?.remove()
     @entries = $$ -> @ol class: 'entries'
@@ -111,18 +105,19 @@ class DirectoryView extends View
     @addClass('expanded')
     @disclosureArrow.text('▾')
     @buildEntries()
+    @watchEntries()
     @deserializeEntryExpansionStates(@entryStates) if @entryStates?
     @isExpanded = true
-    @watchEntries()
     false
 
   collapse: ->
     @entryStates = @serializeEntryExpansionStates()
     @removeClass('expanded')
     @disclosureArrow.text('▸')
+    @unwatchEntries()
+    @find('.expanded.directory').each -> $(this).view().unwatchEntries()
     @entries.remove()
     @entries = null
-    @unwatchEntries()
     @isExpanded = false
 
   watchEntries: ->
