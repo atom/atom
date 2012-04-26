@@ -1,7 +1,7 @@
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
 
-fdescribe "EventEmitter mixin", ->
+describe "EventEmitter mixin", ->
   [object, fooHandler1, fooHandler2, barHandler] = []
 
   beforeEach ->

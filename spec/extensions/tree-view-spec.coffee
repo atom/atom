@@ -264,7 +264,7 @@ describe "TreeView", ->
       fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     describe "when a file is added or removed in an expanded directory", ->
-      fit "updates the directory view to display the directory's new contents", ->
+      it "updates the directory view to display the directory's new contents", ->
         entriesCountBefore = null
 
         runs ->
