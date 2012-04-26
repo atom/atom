@@ -56,8 +56,8 @@ describe "TreeView", ->
       grandchild = child.find('.entries > li:contains(a-dir/)').view()
       grandchild.disclosureArrow.click()
 
-      rootDirectoryView.find('> .disclosure-arrow').click()
-      rootDirectoryView.find('> .disclosure-arrow').click()
+      rootDirectoryView.collapse()
+      rootDirectoryView.expand()
 
       # previously expanded descendants remain expanded
       expect(rootDirectoryView.find('> .entries > li:contains(dir/) > .entries > li:contains(a-dir/) > .entries').length).toBe 1
