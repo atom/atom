@@ -3,7 +3,7 @@ RootView = require 'root-view'
 Directory = require 'directory'
 fs = require 'fs'
 
-fdescribe "TreeView", ->
+describe "TreeView", ->
   [rootView, project, treeView, rootDirectoryView, sampleJs, sampleTxt] = []
 
   beforeEach ->
