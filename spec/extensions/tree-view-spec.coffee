@@ -303,9 +303,7 @@ describe "TreeView", ->
         runs ->
           expect(rootDirectoryView.entries.find('.entry').length).toBe entriesCountBefore + 1
           expect(rootDirectoryView.entries.find('.file:contains(temporary)')).toExist()
+          fs.remove(temporaryFilePath)
 
-    describe "when a file is renamed in an expanded directory", ->
-
-
-
-
+        waitsFor "directory view contens to refresh", ->
+          rootDirectoryView.entries.find('.entry').length == entriesCountBefore
