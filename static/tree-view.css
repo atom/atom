@@ -39,8 +39,8 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-
-  background-color: #444;
+  background-color: #333;
+  color: white;
   border: 2px solid #222;
   -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
 }

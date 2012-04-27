@@ -158,6 +158,7 @@ fs = require 'fs'
 class MoveDialog extends View
   @content: ->
     @div class: 'move-dialog', =>
+      @div "Enter the new path for the file:", outlet: 'prompt'
       @subview 'editor', new Editor(mini: true)
 
   initialize: (@project, @path) ->

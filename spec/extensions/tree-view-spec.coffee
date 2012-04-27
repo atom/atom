@@ -313,6 +313,7 @@ describe "TreeView", ->
 
         it "opens a move dialog with the file's current path populated", ->
           expect(moveDialog).toExist()
+          expect(moveDialog.prompt.text()).toBe "Enter the new path for the file:"
           expect(moveDialog.editor.getText()).toBe(project.relativize(filePath))
           expect(moveDialog.editor.getSelectedText()).toBe fs.base(filePath)
           expect(moveDialog.editor.isFocused).toBeTruthy()
@@ -328,7 +329,6 @@ describe "TreeView", ->
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.exists(filePath)).toBeFalsy()
               expect(moveDialog.parent()).not.toExist()
-
 
             waitsFor "tree view to update", ->
               treeView.root.find('> .entries > .file:contains(renamed-test-file.txt)').length > 0
