@@ -66,6 +66,9 @@ module.exports =
   write: (path, content) ->
     $native.write(path, content)
 
+  makeDirectory: (path) ->
+    $native.makeDirectory(path)
+
   async:
     list: (path) ->
       deferred = $.Deferred()

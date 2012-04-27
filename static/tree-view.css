@@ -1,4 +1,5 @@
 .tree-view {
+  position: relative;
   height: 100%;
   background: black;
   color: white;
@@ -34,3 +35,11 @@
   color: black;
 }
 
+.move-dialog {
+  position: absolute;
+  width: 100%;
+
+  background-color: #444;
+  border: 2px solid #222;
+  -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
+}
