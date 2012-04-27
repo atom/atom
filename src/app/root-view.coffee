@@ -18,7 +18,8 @@ module.exports =
 class RootView extends View
   @content: ->
     @div id: 'root-view', tabindex: -1, =>
-      @div id: 'panes', outlet: 'panes'
+      @div id: 'horizontal', outlet: 'horizontal', =>
+        @div id: 'panes', outlet: 'panes'
 
   @deserialize: (viewState) ->
     new RootView(viewState)

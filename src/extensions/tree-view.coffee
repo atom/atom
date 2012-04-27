@@ -7,7 +7,7 @@ module.exports =
 class TreeView extends View
   @activate: (rootView) ->
     requireStylesheet 'tree-view.css'
-    rootView.prepend(new TreeView(rootView))
+    rootView.horizontal.prepend(new TreeView(rootView))
 
   @content: (rootView) ->
     @div class: 'tree-view', tabindex: -1, =>
