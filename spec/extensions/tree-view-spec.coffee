@@ -276,6 +276,51 @@ describe "TreeView", ->
           rootDirectoryView.trigger 'tree-view:open-selected-entry'
           expect(rootView.activeEditor()).toBeUndefined()
 
+  describe "file modification", ->
+    [fileElement, rootDirPath, dirPath, filePath] = []
+
+    beforeEach ->
+      treeView.deactivate()
+
+      rootDirPath = "/tmp/atom-tests"
+      dirPath = fs.join(rootDirPath, "test-dir")
+      filePath = fs.join(dirPath, "test-file.txt")
+      fs.makeDirectory(rootDirPath)
+      fs.makeDirectory(dirPath)
+      fs.write(filePath, "doesn't matter")
+
+      rootView = new RootView(pathToOpen: rootDirPath)
+      project = rootView.project
+      treeView = new TreeView(rootView)
+      dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
+      dirView.expand()
+      fileElement = treeView.find('.file:contains(test-file.txt)')
+
+    afterEach ->
+      fs.remove(rootDirPath)
+
+    describe "tree-view:move", ->
+      describe "when a file is selected", ->
+        moveDialog = null
+
+        beforeEach ->
+          fileElement.click()
+          treeView.trigger "tree-view:move"
+          moveDialog = treeView.find(".move-dialog").view()
+
+        it "opens a move dialog with the file's current path populated", ->
+          expect(moveDialog).toExist()
+          expect(moveDialog.editor.getText()).toBe(project.relativize(filePath))
+          expect(moveDialog.editor.getSelectedText()).toBe fs.base(filePath)
+          expect(moveDialog.editor.isFocused).toBeTruthy()
+
+        describe "when the move dialog's editor loses focus", ->
+          it "removes the dialog", ->
+            treeView.attachToDom()
+            treeView.focus()
+            expect(moveDialog.parent()).not.toExist()
+
+
   describe "file system events", ->
     temporaryFilePath = null
 

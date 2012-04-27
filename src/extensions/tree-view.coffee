@@ -25,6 +25,7 @@ class TreeView extends View
     @on 'tree-view:expand-directory', => @expandDirectory()
     @on 'tree-view:collapse-directory', => @collapseDirectory()
     @on 'tree-view:open-selected-entry', => @openSelectedEntry()
+    @on 'tree-view:move', => @move()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   deactivate: ->
@@ -69,6 +70,15 @@ class TreeView extends View
       selectedEntry.view().toggleExpansion()
     else if selectedEntry.is('.file')
       @rootView.open(selectedEntry.attr('path'))
+
+  move: ->
+    entry = @selectedEntry()
+    dialog = new MoveDialog(@rootView.project, entry.attr('path'))
+    @append dialog
+
+    dialog.css
+      top: entry.position().top + entry.outerHeight() + @scrollTop()
+      left: 0
 
   selectedEntry: ->
     @find('.selected')
@@ -144,3 +154,20 @@ class DirectoryView extends View
         view = $(this).view()
         view.entryStates = childEntryStates
         view.expand()
+
+Editor = require 'editor'
+fs = require 'fs'
+class MoveDialog extends View
+  @content: ->
+    @div class: 'move-dialog', =>
+      @subview 'editor', new Editor(mini: true)
+
+  initialize: (@project, path) ->
+    @editor.focus()
+    @editor.on 'focusout', => @remove()
+
+    relativePath = @project.relativize(path)
+    @editor.setText(relativePath)
+    baseName = fs.base(path)
+    range = [[0, relativePath.length - baseName.length], [0, relativePath.length]]
+    @editor.setSelectionBufferRange(range)
