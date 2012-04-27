@@ -29,8 +29,7 @@ class TreeView extends View
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   deactivate: ->
-    @find('.expanded.directory').each ->
-      $(this).view().unwatchEntries()
+    @root.unwatchEntries()
 
   selectActiveFile: ->
     activeFilePath = @rootView.activeEditor()?.buffer.path
@@ -96,6 +95,7 @@ class DirectoryView extends View
     @disclosureArrow.on 'click', => @toggleExpansion()
 
   buildEntries: ->
+    @unwatchDescendantEntries()
     @entries?.remove()
     @entries = $$ -> @ol class: 'entries'
     for entry in @directory.getEntries()
@@ -123,7 +123,6 @@ class DirectoryView extends View
     @removeClass('expanded')
     @disclosureArrow.text('▸')
     @unwatchEntries()
-    @find('.expanded.directory').each -> $(this).view().unwatchEntries()
     @entries.remove()
     @entries = null
     @isExpanded = false
@@ -133,7 +132,12 @@ class DirectoryView extends View
       @buildEntries()
 
   unwatchEntries: ->
+    @unwatchDescendantEntries()
     @directory.off ".#{@directory.path}"
+
+  unwatchDescendantEntries: ->
+    @find('.expanded.directory').each ->
+      $(this).view().unwatchEntries()
 
   serializeEntryExpansionStates: ->
     entryStates = {}
@@ -156,12 +160,17 @@ class MoveDialog extends View
     @div class: 'move-dialog', =>
       @subview 'editor', new Editor(mini: true)
 
-  initialize: (@project, path) ->
+  initialize: (@project, @path) ->
     @editor.focus()
     @editor.on 'focusout', => @remove()
+    @on 'tree-view:confirm', => @confirm()
 
-    relativePath = @project.relativize(path)
+    relativePath = @project.relativize(@path)
     @editor.setText(relativePath)
     baseName = fs.base(path)
     range = [[0, relativePath.length - baseName.length], [0, relativePath.length]]
     @editor.setSelectionBufferRange(range)
+
+  confirm: ->
+    fs.move(@path, @project.resolve(@editor.getText()))
+    @remove()

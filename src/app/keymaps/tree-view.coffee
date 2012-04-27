@@ -4,3 +4,5 @@ window.keymap.bindKeys '.tree-view'
   'enter': 'tree-view:open-selected-entry'
   'm': 'tree-view:move'
 
+window.keymap.bindKeys '.move-dialog .mini.editor'
+  'enter': 'tree-view:confirm'

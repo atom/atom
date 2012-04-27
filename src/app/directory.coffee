@@ -5,7 +5,10 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class Directory
+  @idCounter = 0
+
   constructor: (@path) ->
+    @id = ++Directory.idCounter
 
   getName: ->
     fs.base(@path) + '/'

@@ -51,7 +51,7 @@
   _kq = kqueue();
   
   if (_kq == -1) {
-    [NSException raise:@"Could not create kqueue" format:nil];
+    [NSException raise:@"PathWatcher" format:@"Could not create kqueue"];
   }
   
   [self performSelectorInBackground:@selector(watch) withObject:NULL];
@@ -87,9 +87,14 @@
 }
 
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId {
+  path = [path stringByStandardizingPath];
+  
   @synchronized(self) {
     NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
-    if (!fdNumber) return;    
+    if (!fdNumber) {
+      [NSException raise:@"PathWatcher" format:@"Trying to unwatch %@, which we aren't watching"];
+      return;    
+    }
 
     NSMutableDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
     if (!callbacks) return; 
@@ -105,6 +110,9 @@
       close([fdNumber intValue]);
       [_fileDescriptorsByPath removeObjectForKey:path];
       [_callbacksByFileDescriptor removeObjectForKey:fdNumber];
+    }
+    else {
+      printf("WTF\n");
     }
   }
 }
@@ -137,7 +145,7 @@
       int numberOfEvents = kevent(_kq, NULL, 0, &event, 1, &timeout);
       
       if (numberOfEvents < 0) {
-        [NSException raise:@"KQueue Error" format:@"error %d", numberOfEvents, nil];
+        [NSException raise:@"PathWatcher" format:@"error %d", numberOfEvents, nil];
       }
       if (numberOfEvents == 0) {
         continue;

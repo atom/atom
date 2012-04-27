@@ -13,7 +13,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory"};
+  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -319,6 +319,20 @@ bool NativeHandler::Execute(const CefString& name,
     }
 
     return true;
+  } 
+  else if (name == "move") {
+    NSString *sourcePath = stringFromCefV8Value(arguments[0]);
+    NSString *targetPath = stringFromCefV8Value(arguments[1]);
+    NSFileManager *fm = [NSFileManager defaultManager];
+    
+    NSError *error = nil;
+    [fm moveItemAtPath:sourcePath toPath:targetPath error:&error];
+    
+    if (error) {
+      exception = [[error localizedDescription] UTF8String];
+    }
+    
+    return true;    
   }
   
   return false;

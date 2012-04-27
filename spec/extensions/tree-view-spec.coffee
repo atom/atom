@@ -4,27 +4,27 @@ Directory = require 'directory'
 fs = require 'fs'
 
 describe "TreeView", ->
-  [rootView, project, treeView, rootDirectoryView, sampleJs, sampleTxt] = []
+  [rootView, project, treeView, sampleJs, sampleTxt] = []
 
   beforeEach ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/'))
     project = rootView.project
     treeView = new TreeView(rootView)
-    rootDirectoryView = treeView.find('> li:first').view()
+    treeView.root = treeView.find('> li:first').view()
     sampleJs = treeView.find('.file:contains(sample.js)')
     sampleTxt = treeView.find('.file:contains(sample.txt)')
 
-    expect(rootDirectoryView.directory.subscriptionCount()).toBeGreaterThan 0
+    expect(treeView.root.directory.subscriptionCount()).toBeGreaterThan 0
 
   afterEach ->
     treeView.deactivate()
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
-      expect(rootDirectoryView.find('> .header .disclosure-arrow')).toHaveText('▾')
-      expect(rootDirectoryView.find('> .header .name')).toHaveText('fixtures/')
+      expect(treeView.root.find('> .header .disclosure-arrow')).toHaveText('▾')
+      expect(treeView.root.find('> .header .name')).toHaveText('fixtures/')
 
-      rootEntries = rootDirectoryView.find('.entries')
+      rootEntries = treeView.root.find('.entries')
       subdir1 = rootEntries.find('> li:eq(0)')
       expect(subdir1.find('.disclosure-arrow')).toHaveText('▸')
       expect(subdir1.find('.name')).toHaveText('dir/')
@@ -40,7 +40,7 @@ describe "TreeView", ->
 
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->
-      subdir = rootDirectoryView.find('.entries > li:contains(dir/)').view()
+      subdir = treeView.root.find('.entries > li:contains(dir/)').view()
 
       expect(subdir.disclosureArrow).toHaveText('▸')
       expect(subdir.find('.entries')).not.toExist()
@@ -55,36 +55,36 @@ describe "TreeView", ->
       expect(subdir.find('.entries')).not.toExist()
 
     it "restores the expansion state of descendant directories", ->
-      child = rootDirectoryView.find('.entries > li:contains(dir/)').view()
+      child = treeView.root.find('.entries > li:contains(dir/)').view()
       child.disclosureArrow.click()
 
       grandchild = child.find('.entries > li:contains(a-dir/)').view()
       grandchild.disclosureArrow.click()
 
-      rootDirectoryView.disclosureArrow.click()
-      expect(rootDirectoryView.find('.entries')).not.toExist()
-      rootDirectoryView.disclosureArrow.click()
+      treeView.root.disclosureArrow.click()
+      expect(treeView.root.find('.entries')).not.toExist()
+      treeView.root.disclosureArrow.click()
 
       # previously expanded descendants remain expanded
-      expect(rootDirectoryView.find('> .entries > li:contains(dir/) > .entries > li:contains(a-dir/) > .entries').length).toBe 1
+      expect(treeView.root.find('> .entries > li:contains(dir/) > .entries > li:contains(a-dir/) > .entries').length).toBe 1
 
       # collapsed descendants remain collapsed
-      expect(rootDirectoryView.find('> .entries > li.contains(zed/) > .entries')).not.toExist()
+      expect(treeView.root.find('> .entries > li.contains(zed/) > .entries')).not.toExist()
 
     it "when collapsing a directory, removes change subscriptions from the collapsed directory and its descendants", ->
-      child = rootDirectoryView.entries.find('li:contains(dir/)').view()
+      child = treeView.root.entries.find('li:contains(dir/)').view()
       child.disclosureArrow.click()
 
       grandchild = child.entries.find('li:contains(a-dir/)').view()
       grandchild.disclosureArrow.click()
 
-      expect(rootDirectoryView.directory.subscriptionCount()).toBe 1
+      expect(treeView.root.directory.subscriptionCount()).toBe 1
       expect(child.directory.subscriptionCount()).toBe 1
       expect(grandchild.directory.subscriptionCount()).toBe 1
 
-      rootDirectoryView.disclosureArrow.click()
+      treeView.root.disclosureArrow.click()
 
-      expect(rootDirectoryView.directory.subscriptionCount()).toBe 0
+      expect(treeView.root.directory.subscriptionCount()).toBe 0
       expect(child.directory.subscriptionCount()).toBe 0
       expect(grandchild.directory.subscriptionCount()).toBe 0
 
@@ -103,7 +103,7 @@ describe "TreeView", ->
 
   describe "when a directory is clicked", ->
     it "is selected", ->
-      subdir = rootDirectoryView.find('.directory:first').view()
+      subdir = treeView.root.find('.directory:first').view()
       subdir.click()
       expect(subdir).toHaveClass 'selected'
 
@@ -134,17 +134,17 @@ describe "TreeView", ->
       describe "when nothing is selected", ->
         it "selects the first entry", ->
           treeView.trigger 'move-down'
-          expect(rootDirectoryView).toHaveClass 'selected'
+          expect(treeView.root).toHaveClass 'selected'
 
       describe "when a collapsed directory is selected", ->
         it "skips to the next directory", ->
-          rootDirectoryView.find('.directory:eq(0)').click()
+          treeView.root.find('.directory:eq(0)').click()
           treeView.trigger 'move-down'
-          expect(rootDirectoryView.find('.directory:eq(1)')).toHaveClass 'selected'
+          expect(treeView.root.find('.directory:eq(1)')).toHaveClass 'selected'
 
       describe "when an expanded directory is selected", ->
         it "selects the first entry of the directory", ->
-          subdir = rootDirectoryView.find('.directory:eq(1)').view()
+          subdir = treeView.root.find('.directory:eq(1)').view()
           subdir.expand()
           subdir.click()
 
@@ -154,17 +154,17 @@ describe "TreeView", ->
 
       describe "when the last entry of an expanded directory is selected", ->
         it "selects the entry after its parent directory", ->
-          subdir1 = rootDirectoryView.find('.directory:eq(1)').view()
+          subdir1 = treeView.root.find('.directory:eq(1)').view()
           subdir1.expand()
           subdir1.entries.find('.entry:last').click()
 
           treeView.trigger 'move-down'
 
-          expect(rootDirectoryView.find('.entries > .entry:eq(2)')).toHaveClass 'selected'
+          expect(treeView.root.find('.entries > .entry:eq(2)')).toHaveClass 'selected'
 
       describe "when the last entry of the last directory is selected", ->
         it "does not change the selection", ->
-          lastEntry = rootDirectoryView.find('> .entries .entry:last')
+          lastEntry = treeView.root.find('> .entries .entry:last')
           lastEntry.click()
 
           treeView.trigger 'move-down'
@@ -175,11 +175,11 @@ describe "TreeView", ->
       describe "when nothing is selected", ->
         it "selects the last entry", ->
           treeView.trigger 'move-up'
-          expect(rootDirectoryView.find('.entry:last')).toHaveClass 'selected'
+          expect(treeView.root.find('.entry:last')).toHaveClass 'selected'
 
       describe "when there is an entry before the currently selected entry", ->
         it "selects the previous entry", ->
-          lastEntry = rootDirectoryView.find('.entry:last')
+          lastEntry = treeView.root.find('.entry:last')
           lastEntry.click()
 
           treeView.trigger 'move-up'
@@ -188,7 +188,7 @@ describe "TreeView", ->
 
       describe "when there is no entry before the currently selected entry, but there is a parent directory", ->
         it "selects the parent directory", ->
-          subdir = rootDirectoryView.find('.directory:first').view()
+          subdir = treeView.root.find('.directory:first').view()
           subdir.expand()
           subdir.find('> .entries > .entry:first').click()
 
@@ -199,14 +199,14 @@ describe "TreeView", ->
 
       describe "when there is no parent directory or previous entry", ->
         it "does not change the selection", ->
-          rootDirectoryView.click()
+          treeView.root.click()
           treeView.trigger 'move-up'
-          expect(rootDirectoryView).toHaveClass 'selected'
+          expect(treeView.root).toHaveClass 'selected'
 
     describe "tree-view:expand-directory", ->
       describe "when a directory entry is selected", ->
         it "expands the current directory", ->
-          subdir = rootDirectoryView.find('.directory:first')
+          subdir = treeView.root.find('.directory:first')
           subdir.click()
 
           expect(subdir).not.toHaveClass 'expanded'
@@ -215,14 +215,14 @@ describe "TreeView", ->
 
       describe "when a file entry is selected", ->
         it "does nothing", ->
-          rootDirectoryView.find('.file').click()
+          treeView.root.find('.file').click()
           treeView.trigger 'tree-view:expand-directory'
 
     describe "tree-view:collapse-directory", ->
       subdir = null
 
       beforeEach ->
-        subdir = rootDirectoryView.find('> .entries > .directory').eq(0).view()
+        subdir = treeView.root.find('> .entries > .directory').eq(0).view()
         subdir.expand()
 
       describe "when an expanded directory is selected", ->
@@ -233,7 +233,7 @@ describe "TreeView", ->
           treeView.trigger 'tree-view:collapse-directory'
 
           expect(subdir).not.toHaveClass 'expanded'
-          expect(rootDirectoryView).toHaveClass 'expanded'
+          expect(treeView.root).toHaveClass 'expanded'
 
       describe "when a collapsed directory is selected", ->
         it "collapses and selects the selected directory's parent directory", ->
@@ -242,7 +242,7 @@ describe "TreeView", ->
 
           expect(subdir).not.toHaveClass 'expanded'
           expect(subdir).toHaveClass 'selected'
-          expect(rootDirectoryView).toHaveClass 'expanded'
+          expect(treeView.root).toHaveClass 'expanded'
 
       describe "when a file is selected", ->
         it "collapses and selects the selected file's parent directory", ->
@@ -251,29 +251,29 @@ describe "TreeView", ->
 
           expect(subdir).not.toHaveClass 'expanded'
           expect(subdir).toHaveClass 'selected'
-          expect(rootDirectoryView).toHaveClass 'expanded'
+          expect(treeView.root).toHaveClass 'expanded'
 
     describe "tree-view:open-selected-entry", ->
       describe "when a file is selected", ->
         it "opens the file in the editor", ->
-          rootDirectoryView.find('.file:contains(sample.js)').click()
-          rootDirectoryView.trigger 'tree-view:open-selected-entry'
+          treeView.root.find('.file:contains(sample.js)').click()
+          treeView.root.trigger 'tree-view:open-selected-entry'
           expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.js')
 
       describe "when a directory is selected", ->
         it "expands or collapses the directory", ->
-          subdir = rootDirectoryView.find('.directory').first()
+          subdir = treeView.root.find('.directory').first()
           subdir.click()
 
           expect(subdir).not.toHaveClass 'expanded'
-          rootDirectoryView.trigger 'tree-view:open-selected-entry'
+          treeView.root.trigger 'tree-view:open-selected-entry'
           expect(subdir).toHaveClass 'expanded'
-          rootDirectoryView.trigger 'tree-view:open-selected-entry'
+          treeView.root.trigger 'tree-view:open-selected-entry'
           expect(subdir).not.toHaveClass 'expanded'
 
       describe "when nothing is selected", ->
         it "does nothing", ->
-          rootDirectoryView.trigger 'tree-view:open-selected-entry'
+          treeView.root.trigger 'tree-view:open-selected-entry'
           expect(rootView.activeEditor()).toBeUndefined()
 
   describe "file modification", ->
@@ -283,6 +283,8 @@ describe "TreeView", ->
       treeView.deactivate()
 
       rootDirPath = "/tmp/atom-tests"
+      fs.remove(rootDirPath) if fs.exists(rootDirPath)
+
       dirPath = fs.join(rootDirPath, "test-dir")
       filePath = fs.join(dirPath, "test-file.txt")
       fs.makeDirectory(rootDirPath)
@@ -292,12 +294,13 @@ describe "TreeView", ->
       rootView = new RootView(pathToOpen: rootDirPath)
       project = rootView.project
       treeView = new TreeView(rootView)
+      treeView.root = treeView.root
       dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
       dirView.expand()
       fileElement = treeView.find('.file:contains(test-file.txt)')
 
     afterEach ->
-      fs.remove(rootDirPath)
+      fs.remove(rootDirPath) if fs.exists(rootDirPath)
 
     describe "tree-view:move", ->
       describe "when a file is selected", ->
@@ -314,12 +317,32 @@ describe "TreeView", ->
           expect(moveDialog.editor.getSelectedText()).toBe fs.base(filePath)
           expect(moveDialog.editor.isFocused).toBeTruthy()
 
+        describe "when the path is changed and confirmed", ->
+          it "moves the file, updates the tree view, and closes the dialog", ->
+            runs ->
+              newPath = fs.join(rootDirPath, 'renamed-test-file.txt')
+              moveDialog.editor.setText(newPath)
+
+              moveDialog.trigger 'tree-view:confirm'
+
+              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.exists(filePath)).toBeFalsy()
+              expect(moveDialog.parent()).not.toExist()
+
+
+            waitsFor "tree view to update", ->
+              treeView.root.find('> .entries > .file:contains(renamed-test-file.txt)').length > 0
+
+            runs ->
+              dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
+              dirView.expand()
+              expect(dirView.entries.children().length).toBe 0
+
         describe "when the move dialog's editor loses focus", ->
           it "removes the dialog", ->
             rootView.attachToDom()
             rootView.focus()
             expect(moveDialog.parent()).not.toExist()
-
 
   describe "file system events", ->
     temporaryFilePath = null
@@ -339,16 +362,16 @@ describe "TreeView", ->
 
         runs ->
           expect(fs.exists(temporaryFilePath)).toBeFalsy()
-          entriesCountBefore = rootDirectoryView.entries.find('.entry').length
+          entriesCountBefore = treeView.root.entries.find('.entry').length
           fs.write temporaryFilePath, 'hi'
 
         waitsFor "directory view contens to refresh", ->
-          rootDirectoryView.entries.find('.entry').length == entriesCountBefore + 1
+          treeView.root.entries.find('.entry').length == entriesCountBefore + 1
 
         runs ->
-          expect(rootDirectoryView.entries.find('.entry').length).toBe entriesCountBefore + 1
-          expect(rootDirectoryView.entries.find('.file:contains(temporary)')).toExist()
+          expect(treeView.root.entries.find('.entry').length).toBe entriesCountBefore + 1
+          expect(treeView.root.entries.find('.file:contains(temporary)')).toExist()
           fs.remove(temporaryFilePath)
 
         waitsFor "directory view contens to refresh", ->
-          rootDirectoryView.entries.find('.entry').length == entriesCountBefore
+          treeView.root.entries.find('.entry').length == entriesCountBefore
