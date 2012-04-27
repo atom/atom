@@ -72,13 +72,7 @@ class TreeView extends View
       @rootView.open(selectedEntry.attr('path'))
 
   move: ->
-    entry = @selectedEntry()
-    dialog = new MoveDialog(@rootView.project, entry.attr('path'))
-    @append dialog
-
-    dialog.css
-      top: entry.position().top + entry.outerHeight() + @scrollTop()
-      left: 0
+    @rootView.append(new MoveDialog(@rootView.project, @selectedEntry().attr('path')))
 
   selectedEntry: ->
     @find('.selected')

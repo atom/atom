@@ -306,7 +306,7 @@ describe "TreeView", ->
         beforeEach ->
           fileElement.click()
           treeView.trigger "tree-view:move"
-          moveDialog = treeView.find(".move-dialog").view()
+          moveDialog = rootView.find(".move-dialog").view()
 
         it "opens a move dialog with the file's current path populated", ->
           expect(moveDialog).toExist()
@@ -316,8 +316,8 @@ describe "TreeView", ->
 
         describe "when the move dialog's editor loses focus", ->
           it "removes the dialog", ->
-            treeView.attachToDom()
-            treeView.focus()
+            rootView.attachToDom()
+            rootView.focus()
             expect(moveDialog.parent()).not.toExist()
 
 
