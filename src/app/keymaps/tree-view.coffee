@@ -6,3 +6,4 @@ window.keymap.bindKeys '.tree-view'
 
 window.keymap.bindKeys '.move-dialog .mini.editor'
   'enter': 'tree-view:confirm'
+  'escape': 'tree-view:cancel'

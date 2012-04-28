@@ -338,11 +338,20 @@ describe "TreeView", ->
               dirView.expand()
               expect(dirView.entries.children().length).toBe 0
 
+        describe "when 'tree-view:cancel' is triggered on the move dialog", ->
+          it "removes the dialog and focuses root view", ->
+            rootView.attachToDom()
+            moveDialog.trigger 'tree-view:cancel'
+            expect(moveDialog.parent()).not.toExist()
+            expect(rootView.activeEditor().isFocused).toBeTruthy()
+
         describe "when the move dialog's editor loses focus", ->
-          it "removes the dialog", ->
+          it "removes the dialog and focuses root view", ->
             rootView.attachToDom()
             rootView.focus()
             expect(moveDialog.parent()).not.toExist()
+            expect(rootView.activeEditor().isFocused).toBeTruthy()
+            # expect(rootView).toMatchSelector(':focus')
 
   describe "file system events", ->
     temporaryFilePath = null

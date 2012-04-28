@@ -163,8 +163,9 @@ class MoveDialog extends View
 
   initialize: (@project, @path) ->
     @editor.focus()
-    @editor.on 'focusout', => @remove()
     @on 'tree-view:confirm', => @confirm()
+    @on 'tree-view:cancel', => @cancel()
+    @editor.on 'focusout', => @remove()
 
     relativePath = @project.relativize(@path)
     @editor.setText(relativePath)
@@ -175,3 +176,9 @@ class MoveDialog extends View
   confirm: ->
     fs.move(@path, @project.resolve(@editor.getText()))
     @remove()
+    $('#root-view').focus()
+
+  cancel: ->
+    @remove()
+    $('#root-view').focus()
+
