@@ -180,5 +180,5 @@ class MoveDialog extends View
 
   cancel: ->
     @remove()
-    $('#root-view').focus()
+    $('.tree-view').focus()
 
