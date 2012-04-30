@@ -2,6 +2,7 @@
 Directory = require 'directory'
 DirectoryView = require 'tree-view/directory-view'
 MoveDialog = require 'tree-view/move-dialog'
+AddDialog = require 'tree-view/add-dialog'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -28,6 +29,7 @@ class TreeView extends View
     @on 'tree-view:collapse-directory', => @collapseDirectory()
     @on 'tree-view:open-selected-entry', => @openSelectedEntry()
     @on 'tree-view:move', => @move()
+    @on 'tree-view:add', => @add()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   deactivate: ->
@@ -74,6 +76,9 @@ class TreeView extends View
 
   move: ->
     @rootView.append(new MoveDialog(@rootView.project, @selectedEntry().attr('path')))
+
+  add: ->
+    @rootView.append(new AddDialog(@rootView, @selectedEntry().attr('path')))
 
   selectedEntry: ->
     @find('.selected')

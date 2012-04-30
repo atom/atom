@@ -302,6 +302,57 @@ describe "TreeView", ->
     afterEach ->
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
 
+    describe "tree-view:add", ->
+      addDialog = null
+
+      beforeEach ->
+        fileElement.click()
+        treeView.trigger "tree-view:add"
+        addDialog = rootView.find(".add-dialog").view()
+
+      describe "when a file is selected", ->
+        it "opens an add dialog with the file's current directory path populated", ->
+          expect(addDialog).toExist()
+          expect(addDialog.prompt.text()).toBeTruthy()
+          expect(project.relativize(dirPath)).toMatch(/[^\/]$/)
+          expect(addDialog.miniEditor.getText()).toBe(project.relativize(dirPath) + "/")
+          expect(addDialog.miniEditor.getCursorBufferPosition().column).toBe addDialog.miniEditor.getText().length
+          expect(addDialog.miniEditor.isFocused).toBeTruthy()
+
+        describe "when the path without a trailing '/' is changed and confirmed", ->
+          it "add a file and closes the dialog", ->
+            newPath = fs.join(dirPath, "new-test-file.txt")
+            addDialog.miniEditor.insertText(fs.base(newPath))
+            addDialog.trigger 'tree-view:confirm'
+            expect(fs.exists(newPath)).toBeTruthy()
+            expect(fs.isFile(newPath)).toBeTruthy()
+            expect(addDialog.parent()).not.toExist()
+            expect(rootView.activeEditor().buffer.path).toBe newPath
+
+        describe "when the path with a trailing '/' is changed and confirmed", ->
+          it "adds a directory and closes the dialog", ->
+            newPath = fs.join(dirPath, "new-dir")
+            addDialog.miniEditor.insertText("new-dir/")
+            addDialog.trigger 'tree-view:confirm'
+            expect(fs.exists(newPath)).toBeTruthy()
+            expect(fs.isDirectory(newPath)).toBeTruthy()
+            expect(addDialog.parent()).not.toExist()
+            expect(rootView.activeEditor().buffer.path).not.toBe newPath
+
+        describe "when 'tree-view:cancel' is triggered on the add dialog", ->
+          it "removes the dialog and focuses the tree view", ->
+            treeView.attachToDom()
+            addDialog.trigger 'tree-view:cancel'
+            expect(addDialog.parent()).not.toExist()
+            expect(treeView).toMatchSelector(':focus')
+
+        describe "when the add dialog's editor loses focus", ->
+          it "removes the dialog and focuses root view", ->
+            rootView.attachToDom()
+            rootView.focus()
+            expect(addDialog.parent()).not.toExist()
+            expect(rootView.activeEditor().isFocused).toBeTruthy()
+
     describe "tree-view:move", ->
       describe "when a file is selected", ->
         moveDialog = null

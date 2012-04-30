@@ -35,7 +35,7 @@
   color: black;
 }
 
-.move-dialog {
+.add-dialog, .move-dialog {
   position: absolute;
   bottom: 0;
   width: 100%;
