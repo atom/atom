@@ -111,9 +111,6 @@
       [_fileDescriptorsByPath removeObjectForKey:path];
       [_callbacksByFileDescriptor removeObjectForKey:fdNumber];
     }
-    else {
-      printf("WTF\n");
-    }
   }
 }
 
