@@ -21,7 +21,7 @@ class AddDialog extends View
     @miniEditor.on 'focusout', => @remove()
 
     directoryPath = if fs.isFile(@path) then fs.directory(@path) else @path
-    relativePath = @rootView.project.relativize(directoryPath)
+    relativePath = @rootView.project.relativize(directoryPath) + '/'
     @miniEditor.setText(relativePath)
 
   confirm: ->

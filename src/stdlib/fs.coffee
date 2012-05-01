@@ -22,9 +22,9 @@ module.exports =
   # non-directory component removed.
   directory: (path) ->
     if @isDirectory(path)
-      path.replace(/\/?$/, '/')
+      path.replace(/\/?$/, '')
     else
-      path.replace(new RegExp("/#{@base(path)}$"), '/')
+      path.replace(new RegExp("/#{@base(path)}$"), '')
 
   # Returns true if the file specified by path exists
   exists: (path) ->

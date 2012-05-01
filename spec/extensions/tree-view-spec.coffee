@@ -312,10 +312,10 @@ describe "TreeView", ->
 
       describe "when a directory is selected", ->
         it "opens an add dialog with the directory's path populated", ->
-          treeView.trigger "tree-view:cancel"
+          addDialog.cancel()
           dirView.click()
-          console.log 'boom'
           treeView.trigger "tree-view:add"
+          addDialog = rootView.find(".add-dialog").view()
 
           expect(addDialog).toExist()
           expect(addDialog.prompt.text()).toBeTruthy()

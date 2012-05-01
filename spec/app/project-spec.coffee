@@ -28,17 +28,17 @@ describe "Project", ->
     describe "when passed the path to a buffer that has already been opened", ->
       it "returns the previously opened buffer", ->
         buffer = project.open(absolutePath)
-        newBufferHandler.reset()        
-        expect(project.open(absolutePath)).toBe buffer        
+        newBufferHandler.reset()
+        expect(project.open(absolutePath)).toBe buffer
         expect(project.open('a')).toBe buffer
         expect(newBufferHandler).not.toHaveBeenCalled()
-        
+
     describe "when not passed a path", ->
       it "returns a new buffer and emits a new-buffer event", ->
         buffer = project.open()
         expect(buffer.path).toBeUndefined()
         expect(newBufferHandler).toHaveBeenCalledWith(buffer)
-    
+
   describe ".getFilePaths()", ->
     it "returns a promise which resolves to a list of all file paths in the project, recursively", ->
       expectedPaths = (path.replace(project.path, '') for path in fs.listTree(project.path) when fs.isFile path)
@@ -53,3 +53,10 @@ describe "Project", ->
       expect(project.resolve('a')).toBe absolutePath
       expect(project.resolve(absolutePath + '/../a')).toBe absolutePath
       expect(project.resolve('a/../a')).toBe absolutePath
+
+  describe ".relativize(path)", ->
+    it "returns an relative path based on the project's root", ->
+      absolutePath = require.resolve('fixtures/dir')
+      expect(project.relativize(fs.join(absolutePath, "b"))).toBe "b"
+      expect(project.relativize(fs.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
+      expect(project.relativize(fs.join(absolutePath, "file.coffee"))).toBe "file.coffee"

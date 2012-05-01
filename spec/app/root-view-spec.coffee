@@ -29,7 +29,7 @@ describe "RootView", ->
 
       describe "when pathToOpen references a directory", ->
         it "creates a project for the directory and sets the document.title, but does not open an editor", ->
-          path = require.resolve 'fixtures/dir/'
+          path = require.resolve 'fixtures/dir'
           rootView = new RootView(pathToOpen: path)
           rootView.focus()
 
@@ -339,7 +339,7 @@ describe "RootView", ->
             expect(rootView.fileFinder.pathList.children('li').length).toBe paths.length
 
             for path in paths
-              relativePath = path.replace(project.path, '')
+              relativePath = project.relativize(path)
               expect(rootView.fileFinder.pathList.find("li:contains(#{relativePath}):not(:contains(#{project.path}))")).toExist()
 
       describe "when there is no project", ->
@@ -362,7 +362,7 @@ describe "RootView", ->
         rootView.fileFinder.trigger 'move-down'
         selectedLi = rootView.fileFinder.find('li:eq(1)')
 
-        expectedPath = project.path + selectedLi.text()
+        expectedPath = fs.join(project.path, selectedLi.text())
         expect(editor1.buffer.path).not.toBe expectedPath
         expect(editor2.buffer.path).not.toBe expectedPath
 
@@ -409,7 +409,7 @@ describe "RootView", ->
       rootView = new RootView
       expect(rootView.project.path).toBeUndefined()
       rootView.activeEditor().buffer.saveAs('/tmp/ignore-me')
-      expect(rootView.project.path).toBe '/tmp/'
+      expect(rootView.project.path).toBe '/tmp'
 
   describe "when editors are focused", ->
     it "triggers 'active-editor-path-change' events if the path of the active editor actually changes", ->

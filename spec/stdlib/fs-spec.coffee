@@ -4,12 +4,12 @@ describe "fs", ->
   describe ".directory(path)", ->
     describe "when called with a file path", ->
       it "returns the path to the directory", ->
-        expect(fs.directory(require.resolve('fixtures/dir/a'))).toBe require.resolve('fixtures/dir/')
+        expect(fs.directory(require.resolve('fixtures/dir/a'))).toBe require.resolve('fixtures/dir')
 
     describe "when called with a directory path", ->
       it "return the path it was given", ->
-        expect(fs.directory(require.resolve('fixtures/dir'))).toBe require.resolve('fixtures/dir/')
-        expect(fs.directory(require.resolve('fixtures/dir/'))).toBe require.resolve('fixtures/dir/')
+        expect(fs.directory(require.resolve('fixtures/dir'))).toBe require.resolve('fixtures/dir')
+        expect(fs.directory(require.resolve('fixtures/dir/'))).toBe require.resolve('fixtures/dir')
 
   describe ".join(paths...)", ->
     it "concatenates the given paths with the directory seperator", ->

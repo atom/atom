@@ -38,7 +38,7 @@ class Project
     fs.absolute filePath
 
   relativize: (fullPath) ->
-    fullPath.replace(@path, "")
+    fullPath.replace(@path, "").replace(/^\//, '')
 
   bufferWithId: (id) ->
     return buffer for buffer in @buffers when buffer.id == id
