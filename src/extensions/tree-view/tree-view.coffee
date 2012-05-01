@@ -1,6 +1,7 @@
 {View, $$} = require 'space-pen'
 Directory = require 'directory'
 DirectoryView = require 'tree-view/directory-view'
+FileView = require 'tree-view/file-view'
 MoveDialog = require 'tree-view/move-dialog'
 AddDialog = require 'tree-view/add-dialog'
 $ = require 'jquery'
@@ -18,9 +19,9 @@ class TreeView extends View
 
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) =>
-      entry = $(e.currentTarget)
+      entry = $(e.currentTarget).view()
       @selectEntry(entry)
-      @openSelectedEntry() if entry.is('.file')
+      @openSelectedEntry() if (entry instanceof FileView)
       false
 
     @on 'move-up', => @moveUp()
@@ -37,11 +38,14 @@ class TreeView extends View
 
   selectActiveFile: ->
     activeFilePath = @rootView.activeEditor()?.buffer.path
-    @selectEntry(@find(".file[path='#{activeFilePath}']"))
+    for element in @find(".file")
+      fileView = $(element).view()
+      if fileView.getPath() == activeFilePath
+        @selectEntry(fileView)
 
   moveDown: ->
     selectedEntry = @selectedEntry()
-    if selectedEntry[0]
+    if selectedEntry
       if selectedEntry.is('.expanded.directory')
         return if @selectEntry(selectedEntry.find('.entry:first'))
       return if @selectEntry(selectedEntry.next())
@@ -51,7 +55,7 @@ class TreeView extends View
 
   moveUp: ->
     selectedEntry = @selectedEntry()
-    if selectedEntry[0]
+    if selectedEntry
       return if @selectEntry(selectedEntry.prev())
       return if @selectEntry(selectedEntry.parents('.directory').first())
     else
@@ -59,7 +63,7 @@ class TreeView extends View
 
   expandDirectory: ->
     selectedEntry = @selectedEntry()
-    selectedEntry.view().expand() if selectedEntry.is('.directory')
+    selectedEntry.view().expand() if (selectedEntry instanceof DirectoryView)
 
   collapseDirectory: ->
     selectedEntry = @selectedEntry()
@@ -69,22 +73,22 @@ class TreeView extends View
 
   openSelectedEntry: ->
     selectedEntry = @selectedEntry()
-    if selectedEntry.is('.directory')
+    if (selectedEntry instanceof DirectoryView)
       selectedEntry.view().toggleExpansion()
-    else if selectedEntry.is('.file')
-      @rootView.open(selectedEntry.attr('path'))
+    else if (selectedEntry instanceof FileView)
+      @rootView.open(selectedEntry.getPath())
 
   move: ->
-    @rootView.append(new MoveDialog(@rootView.project, @selectedEntry().attr('path')))
+    @rootView.append(new MoveDialog(@rootView.project, @selectedEntry().getPath()))
 
   add: ->
-    @rootView.append(new AddDialog(@rootView, @selectedEntry().attr('path')))
+    @rootView.append(new AddDialog(@rootView, @selectedEntry().getPath()))
 
   selectedEntry: ->
-    @find('.selected')
+    @find('.selected')?.view()
 
   selectEntry: (entry) ->
-    return false unless entry[0]
+    return false unless entry.get(0)
     @find('.selected').removeClass('selected')
     entry.addClass('selected')
 
