@@ -73,3 +73,9 @@ describe "Project", ->
         project.setPath(require.resolve('fixtures/dir/a-dir'))
         expect(project.getPath()).toEqual require.resolve('fixtures/dir/a-dir')
         expect(project.getRootDirectory().path).toEqual require.resolve('fixtures/dir/a-dir')
+
+    describe "when path is null", ->
+      it "sets its path and root directory to null", ->
+        project.setPath(null)
+        expect(project.getPath()).toBeNull()
+        expect(project.getRootDirectory()).toBeNull()

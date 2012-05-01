@@ -32,7 +32,7 @@ class RootView extends View
         @activeEditor().focus()
         false
       else
-        @setTitle(@project?.path)
+        @setTitle(@project?.getPath())
 
     @on 'active-editor-path-change', (e, path) =>
       @project.setPath(path) unless @project.getPath()
@@ -112,7 +112,7 @@ class RootView extends View
     rootPane?.adjustDimensions()
 
   toggleFileFinder: ->
-    return unless @project.path?
+    return unless @project.getPath()?
 
     if @fileFinder and @fileFinder.parent()[0]
       @fileFinder.remove()

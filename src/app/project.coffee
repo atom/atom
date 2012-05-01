@@ -18,9 +18,14 @@ class Project
     @path
 
   setPath: (path) ->
-    @path = if fs.isDirectory(path) then path else fs.directory(path)
     @rootDirectory.off() if @rootDirectory
-    @rootDirectory = new Directory(@path)
+
+    if path?
+      @path = if fs.isDirectory(path) then path else fs.directory(path)
+      @rootDirectory = new Directory(@path)
+    else
+      @path = null
+      @rootDirectory = null
 
   getRootDirectory: ->
     @rootDirectory

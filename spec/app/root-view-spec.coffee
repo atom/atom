@@ -52,7 +52,7 @@ describe "RootView", ->
 
         it "constructs the view with the same panes", ->
           rootView = new RootView(viewState)
-          expect(rootView.project.path).toBeUndefined()
+          expect(rootView.project.path).toBeNull()
           expect(rootView.editors().length).toBe 2
           expect(rootView.activeEditor().buffer.getText()).toBe buffer.getText()
           expect(document.title).toBe 'untitled'
@@ -407,7 +407,7 @@ describe "RootView", ->
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
       rootView = new RootView
-      expect(rootView.project.path).toBeUndefined()
+      expect(rootView.project.path).toBeNull()
       rootView.activeEditor().buffer.saveAs('/tmp/ignore-me')
       expect(rootView.project.path).toBe '/tmp'
 
