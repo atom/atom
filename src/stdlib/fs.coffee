@@ -15,7 +15,7 @@ module.exports =
   # remove a trailing extension.
   base: (path, ext) ->
     base = path.replace(/\/$/, '').split("/").pop()
-    if ext then base.replace(RegEx(ext + "$"), "") else base
+    if ext then base.replace(RegExp(ext + "$"), "") else base
 
   # Returns the path of a file's containing directory, albeit the
   # parent directory if the file is a directory. A terminal directory
