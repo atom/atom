@@ -27,6 +27,17 @@ module.exports =
   exists: (path) ->
     $native.exists path
 
+  # Returns the extension of a file. The extension of a file is the
+  # last dot (excluding any number of initial dots) followed by one or
+  # more non-dot characters. Returns an empty string if no valid
+  # extension exists.
+  extension: (path) ->
+    match = @base(path).match(/\.[^\.]+$/)
+    if match
+      match[0]
+    else
+      ""
+
   join: (paths...) ->
     return paths[0] if paths.length == 1
     [first, rest...] = paths

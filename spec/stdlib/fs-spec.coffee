@@ -18,6 +18,14 @@ describe "fs", ->
       expect(fs.join('/a/b/', 'c', 'd')).toBe '/a/b/c/d'
       expect(fs.join('a', 'b/c/', 'd/')).toBe 'a/b/c/d/'
 
+  describe ".extension(path)", ->
+    it "returns the extension of a file", ->
+      expect(fs.extension("a/b/corey.txt")).toBe '.txt'
+      expect(fs.extension("a/b/corey.txt.coffee")).toBe '.coffee'
+
+    it "returns an empty string for paths without an extension", ->
+      expect(fs.extension("a/b.not-extension/a-dir")).toBe ''
+
   describe ".async", ->
     directoryPath = null
     beforeEach ->
