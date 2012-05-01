@@ -18,8 +18,10 @@ class MoveDialog extends View
 
     relativePath = @project.relativize(@path)
     @editor.setText(relativePath)
+
+    extension = fs.extension(path)
     baseName = fs.base(path)
-    range = [[0, relativePath.length - baseName.length], [0, relativePath.length]]
+    range = [[0, relativePath.length - baseName.length], [0, relativePath.length - extension.length]]
     @editor.setSelectionBufferRange(range)
 
   confirm: ->

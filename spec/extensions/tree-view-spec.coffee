@@ -391,11 +391,13 @@ describe "TreeView", ->
           treeView.trigger "tree-view:move"
           moveDialog = rootView.find(".move-dialog").view()
 
-        it "opens a move dialog with the file's current path populated", ->
+        it "opens a move dialog with the file's current path (excluding extension) populated", ->
+          extension = fs.extension(filePath)
+          fileNameWithoutExtension = fs.base(filePath, extension)
           expect(moveDialog).toExist()
           expect(moveDialog.prompt.text()).toBe "Enter the new path for the file:"
           expect(moveDialog.editor.getText()).toBe(project.relativize(filePath))
-          expect(moveDialog.editor.getSelectedText()).toBe fs.base(filePath)
+          expect(moveDialog.editor.getSelectedText()).toBe fs.base(fileNameWithoutExtension)
           expect(moveDialog.editor.isFocused).toBeTruthy()
 
         describe "when the path is changed and confirmed", ->
