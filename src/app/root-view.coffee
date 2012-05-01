@@ -35,14 +35,13 @@ class RootView extends View
         @setTitle(@project?.path)
 
     @on 'active-editor-path-change', (e, path) =>
-      @project.path ?= fs.directory(path) if path
+      @project.setPath(path) unless @project.getPath()
       @setTitle(path)
-
 
     @commandPanel = new CommandPanel({rootView: this})
 
     if pathToOpen?
-      @project = new Project(fs.directory(pathToOpen))
+      @project = new Project(pathToOpen)
       @open(pathToOpen) if fs.isFile(pathToOpen)
     else
       @project = new Project(projectPath)

@@ -6,10 +6,20 @@ Directory = require 'directory'
 
 module.exports =
 class Project
+  path: null
+  rootDirectory: null
   buffers: null
 
-  constructor: (@path) ->
+  constructor: (path) ->
+    @setPath(path)
     @buffers = []
+
+  getPath: ->
+    @path
+
+  setPath: (path) ->
+    @path = if fs.isDirectory(path) then path else fs.directory(path)
+    @rootDirectory.off() if @rootDirectory
     @rootDirectory = new Directory(@path)
 
   getRootDirectory: ->

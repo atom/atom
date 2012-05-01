@@ -18,7 +18,7 @@ describe "Project", ->
         buffer = project.open(absolutePath)
         expect(buffer.path).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith buffer
-        
+
     describe "when given a relative path that hasn't been opened previously", ->
       it "returns a buffer for the given path (relative to the project root) and emits a 'new-buffer' event", ->
         buffer = project.open('a')
@@ -60,3 +60,16 @@ describe "Project", ->
       expect(project.relativize(fs.join(absolutePath, "b"))).toBe "b"
       expect(project.relativize(fs.join(absolutePath, "b/file.coffee"))).toBe "b/file.coffee"
       expect(project.relativize(fs.join(absolutePath, "file.coffee"))).toBe "file.coffee"
+
+  describe ".setPath(path)", ->
+    describe "when path is a file", ->
+      it "sets its path to the files parent directory and updates the root directory", ->
+        project.setPath(require.resolve('fixtures/dir/a'))
+        expect(project.getPath()).toEqual require.resolve('fixtures/dir')
+        expect(project.getRootDirectory().path).toEqual require.resolve('fixtures/dir')
+
+    describe "when path is a directory", ->
+      it "sets its path to the directory and updates the root directory", ->
+        project.setPath(require.resolve('fixtures/dir/a-dir'))
+        expect(project.getPath()).toEqual require.resolve('fixtures/dir/a-dir')
+        expect(project.getRootDirectory().path).toEqual require.resolve('fixtures/dir/a-dir')
