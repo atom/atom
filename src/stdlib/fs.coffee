@@ -14,17 +14,14 @@ module.exports =
   # any leading directory components removed. If specified, also
   # remove a trailing extension.
   base: (path, ext) ->
-    path =
     base = path.replace(/\/$/, '').split("/").pop()
     if ext then base.replace(RegEx(ext + "$"), "") else base
 
-  # Return the dirname of the given path. That is the path with any trailing
-  # non-directory component removed.
+  # Returns the path of a file's containing directory, albeit the
+  # parent directory if the file is a directory. A terminal directory
+  # separator is ignored.
   directory: (path) ->
-    if @isDirectory(path)
-      path.replace(/\/?$/, '')
-    else
-      path.replace(new RegExp("/#{@base(path)}$"), '')
+    path.replace(new RegExp("/#{@base(path)}\/?$"), '')
 
   # Returns true if the file specified by path exists
   exists: (path) ->
