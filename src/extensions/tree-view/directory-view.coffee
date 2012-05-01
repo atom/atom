@@ -5,7 +5,7 @@ $ = require 'jquery'
 module.exports =
 class DirectoryView extends View
   @content: ({directory, isExpanded}) ->
-    @li class: 'directory entry', =>
+    @li class: 'directory entry', path: directory.path, =>
       @div class: 'header', =>
         @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow'
         @span directory.getName(), class: 'name'

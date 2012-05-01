@@ -277,7 +277,7 @@ describe "TreeView", ->
           expect(rootView.activeEditor()).toBeUndefined()
 
   describe "file modification", ->
-    [fileElement, rootDirPath, dirPath, filePath] = []
+    [dirView, fileElement, rootDirPath, dirPath, filePath] = []
 
     beforeEach ->
       treeView.deactivate()
@@ -309,6 +309,20 @@ describe "TreeView", ->
         fileElement.click()
         treeView.trigger "tree-view:add"
         addDialog = rootView.find(".add-dialog").view()
+
+      describe "when a directory is selected", ->
+        it "opens an add dialog with the directory's path populated", ->
+          treeView.trigger "tree-view:cancel"
+          dirView.click()
+          console.log 'boom'
+          treeView.trigger "tree-view:add"
+
+          expect(addDialog).toExist()
+          expect(addDialog.prompt.text()).toBeTruthy()
+          expect(project.relativize(dirPath)).toMatch(/[^\/]$/)
+          expect(addDialog.miniEditor.getText()).toBe(project.relativize(dirPath) + "/")
+          expect(addDialog.miniEditor.getCursorBufferPosition().column).toBe addDialog.miniEditor.getText().length
+          expect(addDialog.miniEditor.isFocused).toBeTruthy()
 
       describe "when a file is selected", ->
         it "opens an add dialog with the file's current directory path populated", ->
