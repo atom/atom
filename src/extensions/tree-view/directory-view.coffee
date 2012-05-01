@@ -1,4 +1,5 @@
 {View, $$} = require 'space-pen'
+FileView = require 'tree-view/file-view'
 Directory = require 'directory'
 $ = require 'jquery'
 
@@ -24,7 +25,7 @@ class DirectoryView extends View
       if entry instanceof Directory
         @entries.append(new DirectoryView(directory: entry, isExpanded: false))
       else
-        @entries.append $$ -> @li entry.getName(), class: 'file entry', path: entry.path
+        @entries.append(new FileView(entry))
     @append(@entries)
 
   toggleExpansion: ->

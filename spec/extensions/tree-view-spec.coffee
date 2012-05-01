@@ -277,7 +277,7 @@ describe "TreeView", ->
           expect(rootView.activeEditor()).toBeUndefined()
 
   describe "file modification", ->
-    [dirView, fileElement, rootDirPath, dirPath, filePath] = []
+    [dirView, fileView, rootDirPath, dirPath, filePath] = []
 
     beforeEach ->
       treeView.deactivate()
@@ -297,7 +297,7 @@ describe "TreeView", ->
       treeView.root = treeView.root
       dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
       dirView.expand()
-      fileElement = treeView.find('.file:contains(test-file.txt)')
+      fileView = treeView.find('.file:contains(test-file.txt)').view()
 
     afterEach ->
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
@@ -306,7 +306,7 @@ describe "TreeView", ->
       addDialog = null
 
       beforeEach ->
-        fileElement.click()
+        fileView.click()
         treeView.trigger "tree-view:add"
         addDialog = rootView.find(".add-dialog").view()
 
@@ -372,7 +372,7 @@ describe "TreeView", ->
         moveDialog = null
 
         beforeEach ->
-          fileElement.click()
+          fileView.click()
           treeView.trigger "tree-view:move"
           moveDialog = rootView.find(".move-dialog").view()
 
