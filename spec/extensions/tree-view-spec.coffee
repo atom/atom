@@ -310,20 +310,6 @@ describe "TreeView", ->
         treeView.trigger "tree-view:add"
         addDialog = rootView.find(".add-dialog").view()
 
-      describe "when a directory is selected", ->
-        it "opens an add dialog with the directory's path populated", ->
-          addDialog.cancel()
-          dirView.click()
-          treeView.trigger "tree-view:add"
-          addDialog = rootView.find(".add-dialog").view()
-
-          expect(addDialog).toExist()
-          expect(addDialog.prompt.text()).toBeTruthy()
-          expect(project.relativize(dirPath)).toMatch(/[^\/]$/)
-          expect(addDialog.miniEditor.getText()).toBe(project.relativize(dirPath) + "/")
-          expect(addDialog.miniEditor.getCursorBufferPosition().column).toBe addDialog.miniEditor.getText().length
-          expect(addDialog.miniEditor.isFocused).toBeTruthy()
-
       describe "when a file is selected", ->
         it "opens an add dialog with the file's current directory path populated", ->
           expect(addDialog).toExist()
@@ -333,8 +319,17 @@ describe "TreeView", ->
           expect(addDialog.miniEditor.getCursorBufferPosition().column).toBe addDialog.miniEditor.getText().length
           expect(addDialog.miniEditor.isFocused).toBeTruthy()
 
+        describe "when parent directory of the selected file changes", ->
+          it "active file is still shown as selected in the tree view", ->
+            directoryChangeHandler = jasmine.createSpy("directory-change")
+            dirView.on "tree-view:directory-change", directoryChangeHandler
+
+            dirView.directory.trigger 'contents-change'
+            expect(directoryChangeHandler).toHaveBeenCalled()
+            expect(treeView.find('.selected').text()).toBe fs.base(filePath)
+
         describe "when the path without a trailing '/' is changed and confirmed", ->
-          it "add a file and closes the dialog", ->
+          it "add a file, closes the dialog and selects the file in the tree-view", ->
             newPath = fs.join(dirPath, "new-test-file.txt")
             addDialog.miniEditor.insertText(fs.base(newPath))
             addDialog.trigger 'tree-view:confirm'
@@ -342,6 +337,12 @@ describe "TreeView", ->
             expect(fs.isFile(newPath)).toBeTruthy()
             expect(addDialog.parent()).not.toExist()
             expect(rootView.activeEditor().buffer.path).toBe newPath
+
+            waitsFor "tree view to be updated", ->
+              dirView.entries.find("> .file").length > 1
+
+            runs ->
+              expect(treeView.find('.selected').text()).toBe fs.base(newPath)
 
         describe "when the path with a trailing '/' is changed and confirmed", ->
           it "adds a directory and closes the dialog", ->
@@ -366,6 +367,20 @@ describe "TreeView", ->
             rootView.focus()
             expect(addDialog.parent()).not.toExist()
             expect(rootView.activeEditor().isFocused).toBeTruthy()
+
+      describe "when a directory is selected", ->
+        it "opens an add dialog with the directory's path populated", ->
+          addDialog.cancel()
+          dirView.click()
+          treeView.trigger "tree-view:add"
+          addDialog = rootView.find(".add-dialog").view()
+
+          expect(addDialog).toExist()
+          expect(addDialog.prompt.text()).toBeTruthy()
+          expect(project.relativize(dirPath)).toMatch(/[^\/]$/)
+          expect(addDialog.miniEditor.getText()).toBe(project.relativize(dirPath) + "/")
+          expect(addDialog.miniEditor.getCursorBufferPosition().column).toBe addDialog.miniEditor.getText().length
+          expect(addDialog.miniEditor.isFocused).toBeTruthy()
 
     describe "tree-view:move", ->
       describe "when a file is selected", ->

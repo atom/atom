@@ -31,6 +31,7 @@ class TreeView extends View
     @on 'tree-view:open-selected-entry', => @openSelectedEntry()
     @on 'tree-view:move', => @move()
     @on 'tree-view:add', => @add()
+    @on 'tree-view:directory-change', => @selectActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
   deactivate: ->
