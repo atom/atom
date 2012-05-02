@@ -24,7 +24,10 @@ class RootView extends View
   @deserialize: (viewState) ->
     new RootView(viewState)
 
-  initialize: ({ pathToOpen, projectPath, panesViewState }) ->
+  extensions: null
+  extensionStates: null
+
+  initialize: ({ pathToOpen, projectPath, panesViewState, @extensionStates }) ->
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', => window.showConsole()
     @on 'focus', (e) =>
@@ -49,19 +52,30 @@ class RootView extends View
 
     @deserializePanes(panesViewState) if panesViewState
 
+    @extensionStates ?= {}
+    @extensions = {}
+
   afterAttach: (onDom) ->
     @focus() if onDom
 
   serialize: ->
     projectPath: @project?.path
     panesViewState: @serializePanes()
+    extensionStates: @serializeExtensions()
 
-  serializePanes: () ->
+  serializePanes: ->
     @panes.children().view()?.serialize()
 
   deserializePanes: (panesViewState) ->
     @panes.append @deserializeView(panesViewState)
     @adjustPaneDimensions()
+
+  serializeExtensions:  ->
+    extensionStates = {}
+    for name, extension of @extensions
+      extensionStates[name] = extension.serialize()
+
+    extensionStates
 
   deserializeView: (viewState) ->
     switch viewState.viewClass
@@ -69,6 +83,10 @@ class RootView extends View
       when 'PaneRow' then PaneRow.deserialize(viewState, this)
       when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
       when 'Editor' then Editor.deserialize(viewState, this)
+
+  registerExtension: (extension) ->
+    @extensions[extension.name] = extension
+    extension.activate(this, @extensionStates[extension.name])
 
   open: (path) ->
     buffer = @project.open(path)

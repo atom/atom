@@ -311,6 +311,26 @@ describe "RootView", ->
         expect(rootView.panes.children('.pane').length).toBe 1
         expect(pane1.outerWidth()).toBe rootView.panes.width()
 
+  describe ".registerExtension(extension)", ->
+    extension = null
+    beforeEach ->
+      extension =
+        name: 'extension'
+        activate: jasmine.createSpy("activate")
+        serialize: -> "it worked"
+
+    it "calls activate on the extension", ->
+      rootView.registerExtension(extension)
+      expect(extension.activate).toHaveBeenCalledWith(rootView, undefined)
+
+    it "calls activate on the extension with its previous state", ->
+      rootView.registerExtension(extension)
+      extension.activate.reset()
+
+      newRootView = RootView.deserialize(rootView.serialize())
+      newRootView.registerExtension(extension)
+      expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked")
+
   describe "the file finder", ->
     describe "when the toggle-file-finder event is triggered", ->
       describe "when there is a project", ->
@@ -438,3 +458,4 @@ describe "RootView", ->
     it   "updates the title to the project path", ->
       rootView.editors()[0].remove()
       expect(document.title).toBe rootView.project.path
+
