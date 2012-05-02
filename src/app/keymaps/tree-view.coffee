@@ -1,4 +1,4 @@
-window.keymap.bindKeys '.editor'
+window.keymap.bindKeys '#root-view'
   'alt-tab': 'tree-view:focus'
 
 window.keymap.bindKeys '.tree-view'

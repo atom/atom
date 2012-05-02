@@ -34,7 +34,7 @@ class TreeView extends View
     @on 'tree-view:directory-modified', => @selectActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
-    @on 'tree-view:unfocus', => @rootView.activeEditor().focus()
+    @on 'tree-view:unfocus', => @rootView.activeEditor()?.focus()
     @rootView.on 'tree-view:focus', => this.focus()
 
   deactivate: ->
