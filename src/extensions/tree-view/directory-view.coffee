@@ -57,7 +57,7 @@ class DirectoryView extends View
   watchEntries: ->
     @directory.on "contents-change.#{@directory.path}", =>
       @buildEntries()
-      @trigger "tree-view:directory-change"
+      @trigger "tree-view:directory-modified"
 
   unwatchEntries: ->
     @unwatchDescendantEntries()

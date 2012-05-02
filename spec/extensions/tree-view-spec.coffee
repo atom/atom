@@ -322,7 +322,7 @@ describe "TreeView", ->
         describe "when parent directory of the selected file changes", ->
           it "active file is still shown as selected in the tree view", ->
             directoryChangeHandler = jasmine.createSpy("directory-change")
-            dirView.on "tree-view:directory-change", directoryChangeHandler
+            dirView.on "tree-view:directory-modified", directoryChangeHandler
 
             dirView.directory.trigger 'contents-change'
             expect(directoryChangeHandler).toHaveBeenCalled()
