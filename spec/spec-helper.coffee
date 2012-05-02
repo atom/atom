@@ -19,7 +19,6 @@ afterEach ->
   document.title = defaultTitle
   ensureNoDirectorySubscriptions()
 
-
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
 

@@ -9,7 +9,9 @@ describe "TreeView", ->
   beforeEach ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/'))
     project = rootView.project
-    treeView = new TreeView(rootView)
+
+    rootView.registerExtension(TreeView)
+    treeView = rootView.find(".tree-view").view()
     treeView.root = treeView.find('> li:first').view()
     sampleJs = treeView.find('.file:contains(sample.js)')
     sampleTxt = treeView.find('.file:contains(sample.txt)')
@@ -37,6 +39,24 @@ describe "TreeView", ->
 
       expect(rootEntries.find('> .file:contains(sample.js)')).toExist()
       expect(rootEntries.find('> .file:contains(sample.txt)')).toExist()
+
+  describe "serialization", ->
+    newTreeView = null
+
+    afterEach ->
+      newTreeView.deactivate()
+
+    it "restores expanded directories and selected file when deserialized", ->
+      treeView.find('.directory:contains(zed)').click()
+      sampleJs.click()
+      newRootView = RootView.deserialize(rootView.serialize())
+      newRootView.registerExtension(TreeView)
+
+      newTreeView = newRootView.find(".tree-view").view()
+
+      expect(newTreeView).toExist()
+      expect(newTreeView.selectedEntry()).toMatchSelector(".file:contains(sample.js)")
+      expect(newTreeView.find(".directory:contains(zed)")).toHaveClass("expanded")
 
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->

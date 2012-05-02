@@ -9,13 +9,30 @@ _ = require 'underscore'
 
 module.exports =
 class TreeView extends View
-  @activate: (rootView) ->
+  @activate: (rootView, state) ->
     requireStylesheet 'tree-view.css'
-    rootView.horizontal.prepend(new TreeView(rootView))
+
+    if state
+      @treeView = TreeView.deserialize(state, rootView)
+    else
+      @treeView = new TreeView(rootView)
+
+    rootView.horizontal.prepend(@treeView)
 
   @content: (rootView) ->
     @div class: 'tree-view', tabindex: -1, =>
       @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true)
+
+  @deserialize: (state, rootView) ->
+    treeView = new TreeView(rootView)
+    treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
+    treeView.selectEntryForPath(state.selectedPath)
+    treeView
+
+  @serialize: ->
+    @treeView.serialize()
+
+  root: null
 
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) =>
@@ -37,15 +54,23 @@ class TreeView extends View
     @on 'tree-view:unfocus', => @rootView.activeEditor()?.focus()
     @rootView.on 'tree-view:focus', => this.focus()
 
+  serialize: ->
+    directoryExpansionStates: @root.serializeEntryExpansionStates()
+    selectedPath: @selectedEntry()?.getPath()
+
   deactivate: ->
     @root.unwatchEntries()
 
   selectActiveFile: ->
     activeFilePath = @rootView.activeEditor()?.buffer.path
-    for element in @find(".file")
-      fileView = $(element).view()
-      if fileView.getPath() == activeFilePath
-        @selectEntry(fileView)
+    @selectEntryForPath(activeFilePath)
+
+  selectEntryForPath: (path) ->
+    for element in @find(".entry")
+      view = $(element).view()
+      if view.getPath() == path
+        @selectEntry(view)
+        return
 
   moveDown: ->
     selectedEntry = @selectedEntry()
