@@ -19,6 +19,9 @@ class TreeView extends View
 
     rootView.horizontal.prepend(@treeView)
 
+  @serialize: ->
+    @treeView.serialize()
+
   @content: (rootView) ->
     @div class: 'tree-view', tabindex: -1, =>
       @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true)
@@ -28,9 +31,6 @@ class TreeView extends View
     treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
     treeView.selectEntryForPath(state.selectedPath)
     treeView
-
-  @serialize: ->
-    @treeView.serialize()
 
   root: null
 
