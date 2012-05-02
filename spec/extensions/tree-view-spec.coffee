@@ -382,6 +382,15 @@ describe "TreeView", ->
           expect(addDialog.miniEditor.getCursorBufferPosition().column).toBe addDialog.miniEditor.getText().length
           expect(addDialog.miniEditor.isFocused).toBeTruthy()
 
+      describe "when the root directory is selected", ->
+        it "opens an add dialog with no path populated", ->
+          addDialog.cancel()
+          treeView.root.click()
+          treeView.trigger "tree-view:add"
+          addDialog = rootView.find(".add-dialog").view()
+
+          expect(addDialog.miniEditor.getText().length).toBe 0
+
     describe "tree-view:move", ->
       describe "when a file is selected", ->
         moveDialog = null
