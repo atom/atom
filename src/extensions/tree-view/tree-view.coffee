@@ -37,7 +37,6 @@ class TreeView extends View
     @on 'tree-view:unfocus', => @rootView.activeEditor().focus()
     @rootView.on 'tree-view:focus', => this.focus()
 
-
   deactivate: ->
     @root.unwatchEntries()
 
@@ -82,6 +81,7 @@ class TreeView extends View
       selectedEntry.view().toggleExpansion()
     else if (selectedEntry instanceof FileView)
       @rootView.open(selectedEntry.getPath())
+      @rootView.focus()
 
   move: ->
     @rootView.append(new MoveDialog(@rootView.project, @selectedEntry().getPath()))

@@ -89,7 +89,7 @@ describe "TreeView", ->
       expect(grandchild.directory.subscriptionCount()).toBe 0
 
   describe "when a file is clicked", ->
-    it "opens it in the active editor and selects it", ->
+    it "opens it in the active editor, focuses it and selects it", ->
       expect(rootView.activeEditor()).toBeUndefined()
 
       sampleJs.click()
