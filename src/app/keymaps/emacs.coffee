@@ -1,11 +1,13 @@
-window.keymap.bindKeys '.editor',
+window.keymap.bindKeys '*',
   'ctrl-f': 'move-right'
-  'ctrl-F': 'select-right'
   'ctrl-b': 'move-left'
-  'ctrl-B': 'select-left'
   'ctrl-p': 'move-up'
-  'ctrl-P': 'select-up'
   'ctrl-n': 'move-down'
+
+window.keymap.bindKeys '.editor',
+  'ctrl-F': 'select-right'
+  'ctrl-B': 'select-left'
+  'ctrl-P': 'select-up'
   'ctrl-N': 'select-down'
   'alt-f': 'move-to-end-of-word'
   'alt-F': 'select-to-end-of-word'
