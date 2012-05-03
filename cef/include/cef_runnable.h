@@ -30,11 +30,12 @@
 //
 // The contents of this file are a modified extract of base/task.h
 
-#ifndef _CEF_RUNNABLE_H
-#define _CEF_RUNNABLE_H
+#ifndef CEF_INCLUDE_CEF_RUNNABLE_H_
+#define CEF_INCLUDE_CEF_RUNNABLE_H_
 #pragma once
 
-#include "cef.h"
+#include "include/cef_base.h"
+#include "include/cef_task.h"
 #ifdef BUILDING_CEF_SHARED
 #include "base/tuple.h"
 #else
@@ -342,4 +343,4 @@ inline CefRefPtr<CefTask> NewCefRunnableFunction(Function function,
       function, MakeTuple(a, b, c, d, e, f, g, h));
 }
 
-#endif // _CEF_RUNNABLE_H
+#endif  // CEF_INCLUDE_CEF_RUNNABLE_H_

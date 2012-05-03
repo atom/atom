@@ -28,31 +28,37 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef _CEF_TYPES_H
-#define _CEF_TYPES_H
+#ifndef CEF_INCLUDE_INTERNAL_CEF_TYPES_H_
+#define CEF_INCLUDE_INTERNAL_CEF_TYPES_H_
+#pragma once
 
-#include "cef_build.h"
-#include "cef_string.h"
-#include "cef_string_list.h"
-#include "cef_time.h"
+#include "include/internal/cef_build.h"
+#include "include/internal/cef_string.h"
+#include "include/internal/cef_string_list.h"
+#include "include/internal/cef_time.h"
 
 // Bring in platform-specific definitions.
 #if defined(OS_WIN)
-#include "cef_types_win.h"
+#include "include/internal/cef_types_win.h"
 #elif defined(OS_MACOSX)
-#include "cef_types_mac.h"
+#include "include/internal/cef_types_mac.h"
 #elif defined(OS_LINUX)
-#include "cef_types_linux.h"
+#include "include/internal/cef_types_linux.h"
 #endif
 
-// The NSPR system headers define 64-bit as |long| when possible.  In order to
-// not have typedef mismatches, we do the same on LP64.
-#if __LP64__
-typedef long                int64;
-typedef unsigned long       uint64;
+#include <stddef.h>         // For size_t
+
+// The NSPR system headers define 64-bit as |long| when possible, except on
+// Mac OS X.  In order to not have typedef mismatches, we do the same on LP64.
+//
+// On Mac OS X, |long long| is used for 64-bit types for compatibility with
+// <inttypes.h> format macros even in the LP64 model.
+#if defined(__LP64__) && !defined(OS_MACOSX) && !defined(OS_OPENBSD)
+typedef long                int64;  // NOLINT(runtime/int)
+typedef unsigned long       uint64;  // NOLINT(runtime/int)
 #else
-typedef long long           int64;
-typedef unsigned long long  uint64;
+typedef long long           int64;  // NOLINT(runtime/int)
+typedef unsigned long long  uint64;  // NOLINT(runtime/int)
 #endif
 
 #ifdef __cplusplus
@@ -62,8 +68,7 @@ extern "C" {
 ///
 // Log severity levels.
 ///
-enum cef_log_severity_t
-{
+enum cef_log_severity_t {
   LOGSEVERITY_VERBOSE = -1,
   LOGSEVERITY_INFO,
   LOGSEVERITY_WARNING,
@@ -77,8 +82,7 @@ enum cef_log_severity_t
 // Initialization settings. Specify NULL or 0 to get the recommended default
 // values.
 ///
-typedef struct _cef_settings_t
-{
+typedef struct _cef_settings_t {
   ///
   // Size of this structure.
   ///
@@ -90,14 +94,14 @@ typedef struct _cef_settings_t
   // your application message loop.
   ///
   bool multi_threaded_message_loop;
-  
+
   ///
   // The location where cache data will be stored on disk. If empty an
   // in-memory cache will be used. HTML5 databases such as localStorage will
   // only persist across sessions if a cache path is specified.
   ///
   cef_string_t cache_path;
-  
+
   ///
   // Value that will be returned as the User-Agent HTTP header. If empty the
   // default User-Agent string will be used.
@@ -113,7 +117,9 @@ typedef struct _cef_settings_t
 
   ///
   // The locale string that will be passed to WebKit. If empty the default
-  // locale of "en-US" will be used.
+  // locale of "en-US" will be used. This value is ignored on Linux where locale
+  // is determined using environment variable parsing with the precedence order:
+  // LANGUAGE, LC_ALL, LC_MESSAGES and LANG.
   ///
   cef_string_t locale;
 
@@ -160,12 +166,36 @@ typedef struct _cef_settings_t
 
 #if defined(OS_WIN)
   ///
-  // Set to true (1) to use the system proxy resolver on Windows when 
+  // Set to true (1) to use the system proxy resolver on Windows when
   // "Automatically detect settings" is checked. This setting is disabled
   // by default for performance reasons.
   ///
   bool auto_detect_proxy_settings_enabled;
 #endif
+
+  ///
+  // The fully qualified path for the cef.pak file. If this value is empty
+  // the cef.pak file must be located in the module directory. This value is
+  // ignored on Mac OS X where pack files are always loaded from the app bundle
+  // resource directory.
+  ///
+  cef_string_t pack_file_path;
+
+  ///
+  // The fully qualified path for the locales directory. If this value is empty
+  // the locales directory must be located in the module directory. This value
+  // is ignored on Mac OS X where pack files are always loaded from the app
+  // bundle resource directory.
+  ///
+  cef_string_t locales_dir_path;
+
+  ///
+  // Set to true (1) to disable loading of pack files for resources and locales.
+  // A resource bundle handler must be provided for the browser and renderer
+  // processes via CefApp::GetResourceBundleHandler() if loading of pack files
+  // is disabled.
+  ///
+  bool pack_loading_disabled;
 } cef_settings_t;
 
 ///
@@ -173,8 +203,7 @@ typedef struct _cef_settings_t
 // default values. The consequences of using custom values may not be well
 // tested.
 ///
-typedef struct _cef_browser_settings_t
-{
+typedef struct _cef_browser_settings_t {
   ///
   // Size of this structure.
   ///
@@ -328,7 +357,7 @@ typedef struct _cef_browser_settings_t
   // Set to true (1) to enable the user style sheet for all pages.
   ///
   bool user_style_sheet_enabled;
-  
+
   ///
   // Location of the user style sheet. This must be a data URL of the form
   // "data:text/css;charset=utf-8;base64,csscontent" where "csscontent" is the
@@ -391,9 +420,14 @@ typedef struct _cef_browser_settings_t
   bool accelerated_2d_canvas_disabled;
 
   ///
-  // Set to true (1) to disable accelerated drawing.
+  // Set to true (1) to disable accelerated painting.
   ///
-  bool accelerated_drawing_disabled;
+  bool accelerated_painting_disabled;
+
+  ///
+  // Set to true (1) to disable accelerated filters.
+  ///
+  bool accelerated_filters_disabled;
 
   ///
   // Set to true (1) to disable accelerated plugins.
@@ -414,8 +448,7 @@ typedef struct _cef_browser_settings_t
 ///
 // URL component parts.
 ///
-typedef struct _cef_urlparts_t
-{
+typedef struct _cef_urlparts_t {
   ///
   // The complete URL specification.
   ///
@@ -461,8 +494,7 @@ typedef struct _cef_urlparts_t
 ///
 // Cookie information.
 ///
-typedef struct _cef_cookie_t
-{
+typedef struct _cef_cookie_t {
   ///
   // The cookie name.
   ///
@@ -501,7 +533,7 @@ typedef struct _cef_cookie_t
   // cookie creation.
   ///
   cef_time_t creation;
-  
+
   ///
   // The cookie last access date. This is automatically populated by the system
   // on access.
@@ -518,8 +550,7 @@ typedef struct _cef_cookie_t
 ///
 // Storage types.
 ///
-enum cef_storage_type_t
-{
+enum cef_storage_type_t {
   ST_LOCALSTORAGE = 0,
   ST_SESSIONSTORAGE,
 };
@@ -527,8 +558,7 @@ enum cef_storage_type_t
 ///
 // Mouse button types.
 ///
-enum cef_mouse_button_type_t
-{
+enum cef_mouse_button_type_t {
   MBT_LEFT   = 0,
   MBT_MIDDLE,
   MBT_RIGHT,
@@ -537,8 +567,7 @@ enum cef_mouse_button_type_t
 ///
 // Key types.
 ///
-enum cef_key_type_t
-{
+enum cef_key_type_t {
   KT_KEYUP    = 0,
   KT_KEYDOWN,
   KT_CHAR,
@@ -547,8 +576,7 @@ enum cef_key_type_t
 ///
 // Various browser navigation types supported by chrome.
 ///
-enum cef_handler_navtype_t
-{
+enum cef_handler_navtype_t {
   NAVTYPE_LINKCLICKED = 0,
   NAVTYPE_FORMSUBMITTED,
   NAVTYPE_BACKFORWARD,
@@ -562,8 +590,7 @@ enum cef_handler_navtype_t
 // Supported error code values. See net\base\net_error_list.h for complete
 // descriptions of the error codes.
 ///
-enum cef_handler_errorcode_t
-{
+enum cef_handler_errorcode_t {
   ERR_FAILED = -2,
   ERR_ABORTED = -3,
   ERR_INVALID_ARGUMENT = -4,
@@ -619,8 +646,7 @@ enum cef_handler_errorcode_t
 // destination. These constants match their equivalents in WebCore's
 // DragActions.h and should not be renumbered.
 ///
-enum cef_drag_operations_mask_t
-{
+enum cef_drag_operations_mask_t {
     DRAG_OPERATION_NONE    = 0,
     DRAG_OPERATION_COPY    = 1,
     DRAG_OPERATION_LINK    = 2,
@@ -634,8 +660,7 @@ enum cef_drag_operations_mask_t
 ///
 // V8 access control values.
 ///
-enum cef_v8_accesscontrol_t
-{
+enum cef_v8_accesscontrol_t {
   V8_ACCESS_CONTROL_DEFAULT               = 0,
   V8_ACCESS_CONTROL_ALL_CAN_READ          = 1,
   V8_ACCESS_CONTROL_ALL_CAN_WRITE         = 1 << 1,
@@ -645,9 +670,8 @@ enum cef_v8_accesscontrol_t
 ///
 // V8 property attribute values.
 ///
-enum cef_v8_propertyattribute_t
-{
-  V8_PROPERTY_ATTRIBUTE_NONE       = 0,       // Writeable, Enumerable, 
+enum cef_v8_propertyattribute_t {
+  V8_PROPERTY_ATTRIBUTE_NONE       = 0,       // Writeable, Enumerable,
                                               //   Configurable
   V8_PROPERTY_ATTRIBUTE_READONLY   = 1 << 0,  // Not writeable
   V8_PROPERTY_ATTRIBUTE_DONTENUM   = 1 << 1,  // Not enumerable
@@ -657,8 +681,7 @@ enum cef_v8_propertyattribute_t
 ///
 // Structure representing menu information.
 ///
-typedef struct _cef_menu_info_t
-{
+typedef struct _cef_menu_info_t {
   ///
   // Values from the cef_handler_menutypebits_t enumeration.
   ///
@@ -690,8 +713,7 @@ typedef struct _cef_menu_info_t
 // The cef_menu_info_t typeFlags value will be a combination of the
 // following values.
 ///
-enum cef_menu_typebits_t
-{
+enum cef_menu_typebits_t {
   ///
   // No node is selected
   ///
@@ -738,8 +760,7 @@ enum cef_menu_typebits_t
 // The cef_menu_info_t editFlags value will be a combination of the
 // following values.
 ///
-enum cef_menu_capabilitybits_t
-{
+enum cef_menu_capabilitybits_t {
   // Values from WebContextMenuData::EditFlags in WebContextMenuData.h
   MENU_CAN_DO_NONE = 0x0,
   MENU_CAN_UNDO = 0x1,
@@ -758,8 +779,7 @@ enum cef_menu_capabilitybits_t
 ///
 // Supported menu ID values.
 ///
-enum cef_menu_id_t
-{
+enum cef_menu_id_t {
   MENU_ID_NAV_BACK = 10,
   MENU_ID_NAV_FORWARD = 11,
   MENU_ID_NAV_RELOAD = 12,
@@ -776,8 +796,7 @@ enum cef_menu_id_t
   MENU_ID_VIEWSOURCE = 31,
 };
 
-enum cef_paint_element_type_t
-{
+enum cef_paint_element_type_t {
   PET_VIEW  = 0,
   PET_POPUP,
 };
@@ -785,15 +804,13 @@ enum cef_paint_element_type_t
 ///
 // Post data elements may represent either bytes or files.
 ///
-enum cef_postdataelement_type_t
-{
+enum cef_postdataelement_type_t {
   PDE_TYPE_EMPTY  = 0,
   PDE_TYPE_BYTES,
   PDE_TYPE_FILE,
 };
 
-enum cef_weburlrequest_flags_t
-{
+enum cef_weburlrequest_flags_t {
   WUR_FLAG_NONE = 0,
   WUR_FLAG_SKIP_CACHE = 0x1,
   WUR_FLAG_ALLOW_CACHED_CREDENTIALS = 0x2,
@@ -803,8 +820,7 @@ enum cef_weburlrequest_flags_t
   WUR_FLAG_REPORT_RAW_HEADERS = 0x20
 };
 
-enum cef_weburlrequest_state_t
-{
+enum cef_weburlrequest_state_t {
   WUR_STATE_UNSENT = 0,
   WUR_STATE_STARTED = 1,
   WUR_STATE_HEADERS_RECEIVED = 2,
@@ -817,8 +833,7 @@ enum cef_weburlrequest_state_t
 ///
 // Focus sources.
 ///
-enum cef_handler_focus_source_t
-{
+enum cef_handler_focus_source_t {
   ///
   // The source is explicit navigation via the API (LoadURL(), etc).
   ///
@@ -836,8 +851,7 @@ enum cef_handler_focus_source_t
 ///
 // Key event types.
 ///
-enum cef_handler_keyevent_type_t
-{
+enum cef_handler_keyevent_type_t {
   KEYEVENT_RAWKEYDOWN = 0,
   KEYEVENT_KEYDOWN,
   KEYEVENT_KEYUP,
@@ -847,8 +861,7 @@ enum cef_handler_keyevent_type_t
 ///
 // Key event modifiers.
 ///
-enum cef_handler_keyevent_modifiers_t
-{
+enum cef_handler_keyevent_modifiers_t {
   KEY_SHIFT = 1 << 0,
   KEY_CTRL  = 1 << 1,
   KEY_ALT   = 1 << 2,
@@ -858,8 +871,7 @@ enum cef_handler_keyevent_modifiers_t
 ///
 // Structure representing a rectangle.
 ///
-typedef struct _cef_rect_t
-{
+typedef struct _cef_rect_t {
   int x;
   int y;
   int width;
@@ -869,8 +881,7 @@ typedef struct _cef_rect_t
 ///
 // Existing thread IDs.
 ///
-enum cef_thread_id_t
-{
+enum cef_thread_id_t {
   TID_UI      = 0,
   TID_IO      = 1,
   TID_FILE    = 2,
@@ -879,8 +890,7 @@ enum cef_thread_id_t
 ///
 // Paper type for printing.
 ///
-enum cef_paper_type_t
-{
+enum cef_paper_type_t {
   PT_LETTER = 0,
   PT_LEGAL,
   PT_EXECUTIVE,
@@ -892,11 +902,10 @@ enum cef_paper_type_t
 ///
 // Paper metric information for printing.
 ///
-struct cef_paper_metrics
-{
+struct cef_paper_metrics {
   enum cef_paper_type_t paper_type;
-  //Length and width needed if paper_type is custom_size
-  //Units are in inches.
+  // Length and width needed if paper_type is custom_size
+  // Units are in inches.
   double length;
   double width;
 };
@@ -904,14 +913,13 @@ struct cef_paper_metrics
 ///
 // Paper print margins.
 ///
-struct cef_print_margins
-{
-  //Margin size in inches for left/right/top/bottom (this is content margins).
+struct cef_print_margins {
+  // Margin size in inches for left/right/top/bottom (this is content margins).
   double left;
   double right;
   double top;
   double bottom;
-  //Margin size (top/bottom) in inches for header/footer.
+  // Margin size (top/bottom) in inches for header/footer.
   double header;
   double footer;
 };
@@ -919,8 +927,7 @@ struct cef_print_margins
 ///
 // Page orientation for printing.
 ///
-enum cef_page_orientation
-{
+enum cef_page_orientation {
   PORTRAIT = 0,
   LANDSCAPE
 };
@@ -928,8 +935,7 @@ enum cef_page_orientation
 ///
 // Printing options.
 ///
-typedef struct _cef_print_options_t
-{
+typedef struct _cef_print_options_t {
   enum cef_page_orientation page_orientation;
   struct cef_paper_metrics paper_metrics;
   struct cef_print_margins paper_margins;
@@ -941,8 +947,7 @@ typedef struct _cef_print_options_t
 // before being passed to the parser. If a BOM is detected and the correct
 // decoder is available then that decoder will be used automatically.
 ///
-enum cef_xml_encoding_type_t
-{
+enum cef_xml_encoding_type_t {
   XML_ENCODING_NONE = 0,
   XML_ENCODING_UTF8,
   XML_ENCODING_UTF16LE,
@@ -953,8 +958,7 @@ enum cef_xml_encoding_type_t
 ///
 // XML node types.
 ///
-enum cef_xml_node_type_t
-{
+enum cef_xml_node_type_t {
   XML_NODE_UNSUPPORTED = 0,
   XML_NODE_PROCESSING_INSTRUCTION,
   XML_NODE_DOCUMENT_TYPE,
@@ -971,8 +975,7 @@ enum cef_xml_node_type_t
 ///
 // Status message types.
 ///
-enum cef_handler_statustype_t
-{
+enum cef_handler_statustype_t {
   STATUSTYPE_TEXT = 0,
   STATUSTYPE_MOUSEOVER_URL,
   STATUSTYPE_KEYBOARD_FOCUS_URL,
@@ -981,8 +984,7 @@ enum cef_handler_statustype_t
 ///
 // Popup window features.
 ///
-typedef struct _cef_popup_features_t
-{
+typedef struct _cef_popup_features_t {
   int x;
   bool xSet;
   int y;
@@ -1007,8 +1009,7 @@ typedef struct _cef_popup_features_t
 ///
 // DOM document types.
 ///
-enum cef_dom_document_type_t
-{
+enum cef_dom_document_type_t {
   DOM_DOCUMENT_TYPE_UNKNOWN = 0,
   DOM_DOCUMENT_TYPE_HTML,
   DOM_DOCUMENT_TYPE_XHTML,
@@ -1018,8 +1019,7 @@ enum cef_dom_document_type_t
 ///
 // DOM event category flags.
 ///
-enum cef_dom_event_category_t
-{
+enum cef_dom_event_category_t {
   DOM_EVENT_CATEGORY_UNKNOWN = 0x0,
   DOM_EVENT_CATEGORY_UI = 0x1,
   DOM_EVENT_CATEGORY_MOUSE = 0x2,
@@ -1045,8 +1045,7 @@ enum cef_dom_event_category_t
 ///
 // DOM event processing phases.
 ///
-enum cef_dom_event_phase_t
-{
+enum cef_dom_event_phase_t {
   DOM_EVENT_PHASE_UNKNOWN = 0,
   DOM_EVENT_PHASE_CAPTURING,
   DOM_EVENT_PHASE_AT_TARGET,
@@ -1056,8 +1055,7 @@ enum cef_dom_event_phase_t
 ///
 // DOM node types.
 ///
-enum cef_dom_node_type_t
-{
+enum cef_dom_node_type_t {
   DOM_NODE_TYPE_UNSUPPORTED = 0,
   DOM_NODE_TYPE_ELEMENT,
   DOM_NODE_TYPE_ATTRIBUTE,
@@ -1077,8 +1075,7 @@ enum cef_dom_node_type_t
 ///
 // Proxy types.
 ///
-enum cef_proxy_type_t
-{
+enum cef_proxy_type_t {
   PROXY_TYPE_DIRECT = 0,
   PROXY_TYPE_NAMED,
   PROXY_TYPE_PAC_STRING,
@@ -1087,8 +1084,7 @@ enum cef_proxy_type_t
 ///
 // Proxy information.
 ///
-typedef struct _cef_proxy_info_t
-{
+typedef struct _cef_proxy_info_t {
   enum cef_proxy_type_t proxyType;
   cef_string_t proxyList;
 } cef_proxy_info_t;
@@ -1097,4 +1093,4 @@ typedef struct _cef_proxy_info_t
 }
 #endif
 
-#endif // _CEF_TYPES_H
+#endif  // CEF_INCLUDE_INTERNAL_CEF_TYPES_H_

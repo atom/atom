@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -15,8 +15,7 @@
 
 // STATIC METHODS - Body may be edited by hand.
 
-CefRefPtr<CefPostDataElement> CefPostDataElement::CreatePostDataElement()
-{
+CefRefPtr<CefPostDataElement> CefPostDataElement::CreatePostDataElement() {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -27,11 +26,9 @@ CefRefPtr<CefPostDataElement> CefPostDataElement::CreatePostDataElement()
 }
 
 
-
 // VIRTUAL METHODS - Body may be edited by hand.
 
-void CefPostDataElementCToCpp::SetToEmpty()
-{
+void CefPostDataElementCToCpp::SetToEmpty() {
   if (CEF_MEMBER_MISSING(struct_, set_to_empty))
     return;
 
@@ -41,9 +38,7 @@ void CefPostDataElementCToCpp::SetToEmpty()
   struct_->set_to_empty(struct_);
 }
 
-
-void CefPostDataElementCToCpp::SetToFile(const CefString& fileName)
-{
+void CefPostDataElementCToCpp::SetToFile(const CefString& fileName) {
   if (CEF_MEMBER_MISSING(struct_, set_to_file))
     return;
 
@@ -59,9 +54,7 @@ void CefPostDataElementCToCpp::SetToFile(const CefString& fileName)
       fileName.GetStruct());
 }
 
-
-void CefPostDataElementCToCpp::SetToBytes(size_t size, const void* bytes)
-{
+void CefPostDataElementCToCpp::SetToBytes(size_t size, const void* bytes) {
   if (CEF_MEMBER_MISSING(struct_, set_to_bytes))
     return;
 
@@ -78,9 +71,7 @@ void CefPostDataElementCToCpp::SetToBytes(size_t size, const void* bytes)
       bytes);
 }
 
-
-CefPostDataElement::Type CefPostDataElementCToCpp::GetType()
-{
+CefPostDataElement::Type CefPostDataElementCToCpp::GetType() {
   if (CEF_MEMBER_MISSING(struct_, get_type))
     return PDE_TYPE_EMPTY;
 
@@ -93,9 +84,7 @@ CefPostDataElement::Type CefPostDataElementCToCpp::GetType()
   return _retval;
 }
 
-
-CefString CefPostDataElementCToCpp::GetFile()
-{
+CefString CefPostDataElementCToCpp::GetFile() {
   if (CEF_MEMBER_MISSING(struct_, get_file))
     return CefString();
 
@@ -110,9 +99,7 @@ CefString CefPostDataElementCToCpp::GetFile()
   return _retvalStr;
 }
 
-
-size_t CefPostDataElementCToCpp::GetBytesCount()
-{
+size_t CefPostDataElementCToCpp::GetBytesCount() {
   if (CEF_MEMBER_MISSING(struct_, get_bytes_count))
     return 0;
 
@@ -125,9 +112,7 @@ size_t CefPostDataElementCToCpp::GetBytesCount()
   return _retval;
 }
 
-
-size_t CefPostDataElementCToCpp::GetBytes(size_t size, void* bytes)
-{
+size_t CefPostDataElementCToCpp::GetBytes(size_t size, void* bytes) {
   if (CEF_MEMBER_MISSING(struct_, get_bytes))
     return 0;
 
@@ -146,7 +131,6 @@ size_t CefPostDataElementCToCpp::GetBytes(size_t size, void* bytes)
   // Return type: simple
   return _retval;
 }
-
 
 
 #ifndef NDEBUG

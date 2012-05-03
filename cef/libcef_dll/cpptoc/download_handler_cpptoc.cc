@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -16,8 +16,7 @@
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
 int CEF_CALLBACK download_handler_received_data(
-    struct _cef_download_handler_t* self, void* data, int data_size)
-{
+    struct _cef_download_handler_t* self, void* data, int data_size) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -37,10 +36,8 @@ int CEF_CALLBACK download_handler_received_data(
   return _retval;
 }
 
-
 void CEF_CALLBACK download_handler_complete(
-    struct _cef_download_handler_t* self)
-{
+    struct _cef_download_handler_t* self) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -52,13 +49,11 @@ void CEF_CALLBACK download_handler_complete(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefDownloadHandlerCppToC::CefDownloadHandlerCppToC(CefDownloadHandler* cls)
     : CefCppToC<CefDownloadHandlerCppToC, CefDownloadHandler,
-        cef_download_handler_t>(cls)
-{
+        cef_download_handler_t>(cls) {
   struct_.struct_.received_data = download_handler_received_data;
   struct_.struct_.complete = download_handler_complete;
 }

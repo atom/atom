@@ -1,5 +1,5 @@
 #import "native_handler.h"
-#import "include/cef.h"
+#import "include/cef_base.h"
 #import "Atom.h"
 #import "AtomController.h"
 #import "client_handler.h"
@@ -14,7 +14,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 }
 
 NativeHandler::NativeHandler() : CefV8Handler() {  
-  m_object = CefV8Value::CreateObject(NULL);
+  m_object = CefV8Value::CreateObject(NULL, NULL);
   
   const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
@@ -288,7 +288,7 @@ bool NativeHandler::Execute(const CefString& name,
       CefRefPtr<CefV8Value> retval;
       CefRefPtr<CefV8Exception> e;
       
-      CefRefPtr<CefV8Value> eventObject = CefV8Value::CreateObject(NULL);
+      CefRefPtr<CefV8Value> eventObject = CefV8Value::CreateObject(NULL, NULL);
       for (NSString *event in eventList) {
         eventObject->SetValue([event UTF8String], CefV8Value::CreateBool(true), V8_PROPERTY_ATTRIBUTE_NONE);
       }

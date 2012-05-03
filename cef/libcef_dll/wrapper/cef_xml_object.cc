@@ -2,24 +2,22 @@
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 
-#include "include/cef_wrapper.h"
+#include "include/wrapper/cef_xml_object.h"
+#include "include/cef_stream.h"
 #include "libcef_dll/cef_logging.h"
 #include <sstream>
 
 namespace {
 
-class CefXmlObjectLoader
-{
-public:
-  CefXmlObjectLoader(CefRefPtr<CefXmlObject> root_object)
-    : root_object_(root_object)
-  {
+class CefXmlObjectLoader {
+ public:
+  explicit CefXmlObjectLoader(CefRefPtr<CefXmlObject> root_object)
+    : root_object_(root_object) {
   }
 
   bool Load(CefRefPtr<CefStreamReader> stream,
             CefXmlReader::EncodingType encodingType,
-            const CefString& URI)
-  {
+            const CefString& URI) {
     CefRefPtr<CefXmlReader> reader(
         CefXmlReader::Create(stream, encodingType, URI));
     if (!reader.get())
@@ -33,7 +31,7 @@ public:
       CefXmlReader::NodeType cur_type;
       std::stringstream cur_value;
       bool last_has_ns = false;
-      
+
       queue.push_back(root_object_);
 
       do {
@@ -49,7 +47,7 @@ public:
             // Add to the current value.
             cur_value << std::string(reader->GetOuterXml());
             continue;
-          } else if(last_has_ns && reader->GetPrefix().empty()) {
+          } else if (last_has_ns && reader->GetPrefix().empty()) {
             if (!cur_object->HasChildren()) {
               // Start a new value because the last element has a namespace and
               // this element does not.
@@ -82,11 +80,11 @@ public:
               do {
                 new_object->SetAttributeValue(reader->GetQualifiedName(),
                     reader->GetValue());
-              } while(reader->MoveToNextAttribute());
+              } while (reader->MoveToNextAttribute());
               reader->MoveToCarryingElement();
             }
           }
-        } else if(cur_type == XML_NODE_ELEMENT_END) {
+        } else if (cur_type == XML_NODE_ELEMENT_END) {
           if (cur_depth == value_depth) {
             // Ending an element that is already in the value.
             continue;
@@ -116,8 +114,8 @@ public:
 
           // Set the current object to the previous object in the queue.
           cur_object = queue.back().get();
-        } else if(cur_type == XML_NODE_TEXT || cur_type == XML_NODE_CDATA ||
-                  cur_type == XML_NODE_ENTITY_REFERENCE) {
+        } else if (cur_type == XML_NODE_TEXT || cur_type == XML_NODE_CDATA ||
+                   cur_type == XML_NODE_ENTITY_REFERENCE) {
           if (cur_depth == value_depth) {
             // Add to the current value.
             cur_value << std::string(reader->GetValue());
@@ -135,7 +133,7 @@ public:
             break;
           }
         }
-      } while(reader->MoveToNextNode());
+      } while (reader->MoveToNextNode());
     }
 
     if (reader->HasError()) {
@@ -148,26 +146,23 @@ public:
 
   CefString GetLoadError() { return load_error_; }
 
-private:
+ private:
   CefString load_error_;
   CefRefPtr<CefXmlObject> root_object_;
 };
 
-} // namespace
+}  // namespace
 
 CefXmlObject::CefXmlObject(const CefString& name)
-  : name_(name), parent_(NULL)
-{
+  : name_(name), parent_(NULL) {
 }
 
-CefXmlObject::~CefXmlObject()
-{
+CefXmlObject::~CefXmlObject() {
 }
 
 bool CefXmlObject::Load(CefRefPtr<CefStreamReader> stream,
                         CefXmlReader::EncodingType encodingType,
-                        const CefString& URI, CefString* loadError)
-{
+                        const CefString& URI, CefString* loadError) {
   AutoLock lock_scope(this);
   Clear();
 
@@ -180,8 +175,7 @@ bool CefXmlObject::Load(CefRefPtr<CefStreamReader> stream,
   return true;
 }
 
-void CefXmlObject::Set(CefRefPtr<CefXmlObject> object)
-{
+void CefXmlObject::Set(CefRefPtr<CefXmlObject> object) {
   DCHECK(object.get());
 
   AutoLock lock_scope1(this);
@@ -193,8 +187,7 @@ void CefXmlObject::Set(CefRefPtr<CefXmlObject> object)
 }
 
 void CefXmlObject::Append(CefRefPtr<CefXmlObject> object,
-                          bool overwriteAttributes)
-{
+                          bool overwriteAttributes) {
   DCHECK(object.get());
 
   AutoLock lock_scope1(this);
@@ -219,8 +212,7 @@ void CefXmlObject::Append(CefRefPtr<CefXmlObject> object,
   }
 }
 
-CefRefPtr<CefXmlObject> CefXmlObject::Duplicate()
-{
+CefRefPtr<CefXmlObject> CefXmlObject::Duplicate() {
   CefRefPtr<CefXmlObject> new_obj;
   {
     AutoLock lock_scope(this);
@@ -230,15 +222,13 @@ CefRefPtr<CefXmlObject> CefXmlObject::Duplicate()
   return new_obj;
 }
 
-void CefXmlObject::Clear()
-{
+void CefXmlObject::Clear() {
   AutoLock lock_scope(this);
   ClearChildren();
   ClearAttributes();
 }
 
-CefString CefXmlObject::GetName()
-{
+CefString CefXmlObject::GetName() {
   CefString name;
   {
     AutoLock lock_scope(this);
@@ -247,8 +237,7 @@ CefString CefXmlObject::GetName()
   return name;
 }
 
-bool CefXmlObject::SetName(const CefString& name)
-{
+bool CefXmlObject::SetName(const CefString& name) {
   DCHECK(!name.empty());
   if (name.empty())
     return false;
@@ -258,14 +247,12 @@ bool CefXmlObject::SetName(const CefString& name)
   return true;
 }
 
-bool CefXmlObject::HasParent()
-{
+bool CefXmlObject::HasParent() {
   AutoLock lock_scope(this);
   return (parent_ != NULL);
 }
 
-CefRefPtr<CefXmlObject> CefXmlObject::GetParent()
-{
+CefRefPtr<CefXmlObject> CefXmlObject::GetParent() {
   CefRefPtr<CefXmlObject> parent;
   {
     AutoLock lock_scope(this);
@@ -274,14 +261,12 @@ CefRefPtr<CefXmlObject> CefXmlObject::GetParent()
   return parent;
 }
 
-bool CefXmlObject::HasValue()
-{
+bool CefXmlObject::HasValue() {
   AutoLock lock_scope(this);
   return !value_.empty();
 }
 
-CefString CefXmlObject::GetValue()
-{
+CefString CefXmlObject::GetValue() {
   CefString value;
   {
     AutoLock lock_scope(this);
@@ -290,8 +275,7 @@ CefString CefXmlObject::GetValue()
   return value;
 }
 
-bool CefXmlObject::SetValue(const CefString& value)
-{
+bool CefXmlObject::SetValue(const CefString& value) {
   AutoLock lock_scope(this);
   DCHECK(children_.empty());
   if (!children_.empty())
@@ -300,20 +284,17 @@ bool CefXmlObject::SetValue(const CefString& value)
   return true;
 }
 
-bool CefXmlObject::HasAttributes()
-{
+bool CefXmlObject::HasAttributes() {
   AutoLock lock_scope(this);
   return !attributes_.empty();
 }
 
-size_t CefXmlObject::GetAttributeCount()
-{
+size_t CefXmlObject::GetAttributeCount() {
   AutoLock lock_scope(this);
   return attributes_.size();
 }
 
-bool CefXmlObject::HasAttribute(const CefString& name)
-{
+bool CefXmlObject::HasAttribute(const CefString& name) {
   if (name.empty())
     return false;
 
@@ -322,8 +303,7 @@ bool CefXmlObject::HasAttribute(const CefString& name)
   return (it != attributes_.end());
 }
 
-CefString CefXmlObject::GetAttributeValue(const CefString& name)
-{
+CefString CefXmlObject::GetAttributeValue(const CefString& name) {
   DCHECK(!name.empty());
   CefString value;
   if (!name.empty()) {
@@ -336,8 +316,7 @@ CefString CefXmlObject::GetAttributeValue(const CefString& name)
 }
 
 bool CefXmlObject::SetAttributeValue(const CefString& name,
-                                     const CefString& value)
-{
+                                     const CefString& value) {
   DCHECK(!name.empty());
   if (name.empty())
     return false;
@@ -352,33 +331,28 @@ bool CefXmlObject::SetAttributeValue(const CefString& name,
   return true;
 }
 
-size_t CefXmlObject::GetAttributes(AttributeMap& attributes)
-{
+size_t CefXmlObject::GetAttributes(AttributeMap& attributes) {
   AutoLock lock_scope(this);
   attributes = attributes_;
   return attributes_.size();
 }
 
-void CefXmlObject::ClearAttributes()
-{
+void CefXmlObject::ClearAttributes() {
   AutoLock lock_scope(this);
   attributes_.clear();
 }
 
-bool CefXmlObject::HasChildren()
-{
+bool CefXmlObject::HasChildren() {
   AutoLock lock_scope(this);
   return !children_.empty();
 }
 
-size_t CefXmlObject::GetChildCount()
-{
+size_t CefXmlObject::GetChildCount() {
   AutoLock lock_scope(this);
   return children_.size();
 }
 
-bool CefXmlObject::HasChild(CefRefPtr<CefXmlObject> child)
-{
+bool CefXmlObject::HasChild(CefRefPtr<CefXmlObject> child) {
   DCHECK(child.get());
 
   AutoLock lock_scope(this);
@@ -390,27 +364,25 @@ bool CefXmlObject::HasChild(CefRefPtr<CefXmlObject> child)
   return false;
 }
 
-bool CefXmlObject::AddChild(CefRefPtr<CefXmlObject> child)
-{
+bool CefXmlObject::AddChild(CefRefPtr<CefXmlObject> child) {
   DCHECK(child.get());
   if (!child.get())
     return false;
 
   AutoLock lock_scope1(child);
-  
+
   DCHECK(child->GetParent() == NULL);
   if (child->GetParent() != NULL)
     return false;
 
   AutoLock lock_scope2(this);
-  
+
   children_.push_back(child);
   child->SetParent(this);
   return true;
 }
 
-bool CefXmlObject::RemoveChild(CefRefPtr<CefXmlObject> child)
-{
+bool CefXmlObject::RemoveChild(CefRefPtr<CefXmlObject> child) {
   DCHECK(child.get());
 
   AutoLock lock_scope(this);
@@ -425,15 +397,13 @@ bool CefXmlObject::RemoveChild(CefRefPtr<CefXmlObject> child)
   return false;
 }
 
-size_t CefXmlObject::GetChildren(ObjectVector& children)
-{
+size_t CefXmlObject::GetChildren(ObjectVector& children) {
   AutoLock lock_scope(this);
   children = children_;
   return children_.size();
 }
 
-void CefXmlObject::ClearChildren()
-{
+void CefXmlObject::ClearChildren() {
   AutoLock lock_scope(this);
   ObjectVector::iterator it = children_.begin();
   for (; it != children_.end(); ++it)
@@ -441,8 +411,7 @@ void CefXmlObject::ClearChildren()
   children_.clear();
 }
 
-CefRefPtr<CefXmlObject> CefXmlObject::FindChild(const CefString& name)
-{
+CefRefPtr<CefXmlObject> CefXmlObject::FindChild(const CefString& name) {
   DCHECK(!name.empty());
   if (name.empty())
     return NULL;
@@ -450,15 +419,14 @@ CefRefPtr<CefXmlObject> CefXmlObject::FindChild(const CefString& name)
   AutoLock lock_scope(this);
   ObjectVector::const_iterator it = children_.begin();
   for (; it != children_.end(); ++it) {
-    if((*it)->GetName() == name)
+    if ((*it)->GetName() == name)
       return (*it);
   }
   return NULL;
 }
 
 size_t CefXmlObject::FindChildren(const CefString& name,
-                                  ObjectVector& children)
-{
+                                  ObjectVector& children) {
   DCHECK(!name.empty());
   if (name.empty())
     return 0;
@@ -468,7 +436,7 @@ size_t CefXmlObject::FindChildren(const CefString& name,
   AutoLock lock_scope(this);
   ObjectVector::const_iterator it = children_.begin();
   for (; it != children_.end(); ++it) {
-    if((*it)->GetName() == name) {
+    if ((*it)->GetName() == name) {
       children.push_back(*it);
       ct++;
     }
@@ -476,8 +444,7 @@ size_t CefXmlObject::FindChildren(const CefString& name,
   return ct;
 }
 
-void CefXmlObject::SetParent(CefXmlObject* parent)
-{
+void CefXmlObject::SetParent(CefXmlObject* parent) {
   AutoLock lock_scope(this);
   if (parent) {
     DCHECK(parent_ == NULL);

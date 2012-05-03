@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -10,36 +10,36 @@
 // for more information.
 //
 
-#ifndef _STREAMWRITER_CTOCPP_H
-#define _STREAMWRITER_CTOCPP_H
+#ifndef CEF_LIBCEF_DLL_CTOCPP_STREAM_WRITER_CTOCPP_H_
+#define CEF_LIBCEF_DLL_CTOCPP_STREAM_WRITER_CTOCPP_H_
+#pragma once
 
 #ifndef USING_CEF_SHARED
 #pragma message("Warning: "__FILE__" may be accessed wrapper-side only")
-#else // USING_CEF_SHARED
+#else  // USING_CEF_SHARED
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_stream.h"
+#include "include/capi/cef_stream_capi.h"
 #include "libcef_dll/ctocpp/ctocpp.h"
 
 // Wrap a C structure with a C++ class.
 // This class may be instantiated and accessed wrapper-side only.
 class CefStreamWriterCToCpp
     : public CefCToCpp<CefStreamWriterCToCpp, CefStreamWriter,
-        cef_stream_writer_t>
-{
-public:
-  CefStreamWriterCToCpp(cef_stream_writer_t* str)
+        cef_stream_writer_t> {
+ public:
+  explicit CefStreamWriterCToCpp(cef_stream_writer_t* str)
       : CefCToCpp<CefStreamWriterCToCpp, CefStreamWriter, cef_stream_writer_t>(
           str) {}
   virtual ~CefStreamWriterCToCpp() {}
 
   // CefStreamWriter methods
   virtual size_t Write(const void* ptr, size_t size, size_t n) OVERRIDE;
-  virtual int Seek(long offset, int whence) OVERRIDE;
-  virtual long Tell() OVERRIDE;
+  virtual int Seek(int64 offset, int whence) OVERRIDE;
+  virtual int64 Tell() OVERRIDE;
   virtual int Flush() OVERRIDE;
 };
 
-#endif // USING_CEF_SHARED
-#endif // _STREAMWRITER_CTOCPP_H
+#endif  // USING_CEF_SHARED
+#endif  // CEF_LIBCEF_DLL_CTOCPP_STREAM_WRITER_CTOCPP_H_
 

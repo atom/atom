@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 
 // STATIC METHODS - Body may be edited by hand.
 
-CefRefPtr<CefCommandLine> CefCommandLine::CreateCommandLine()
-{
+CefRefPtr<CefCommandLine> CefCommandLine::CreateCommandLine() {
   int build_revision = cef_build_revision();
   if (build_revision != CEF_REVISION) {
     // The libcef build revision does not match the CEF API revision.
@@ -36,11 +35,9 @@ CefRefPtr<CefCommandLine> CefCommandLine::CreateCommandLine()
 }
 
 
-
 // VIRTUAL METHODS - Body may be edited by hand.
 
-void CefCommandLineCToCpp::InitFromArgv(int argc, const char* const* argv)
-{
+void CefCommandLineCToCpp::InitFromArgv(int argc, const char* const* argv) {
   if (CEF_MEMBER_MISSING(struct_, init_from_argv))
     return;
 
@@ -57,9 +54,7 @@ void CefCommandLineCToCpp::InitFromArgv(int argc, const char* const* argv)
       argv);
 }
 
-
-void CefCommandLineCToCpp::InitFromString(const CefString& command_line)
-{
+void CefCommandLineCToCpp::InitFromString(const CefString& command_line) {
   if (CEF_MEMBER_MISSING(struct_, init_from_string))
     return;
 
@@ -75,9 +70,7 @@ void CefCommandLineCToCpp::InitFromString(const CefString& command_line)
       command_line.GetStruct());
 }
 
-
-CefString CefCommandLineCToCpp::GetCommandLineString()
-{
+CefString CefCommandLineCToCpp::GetCommandLineString() {
   if (CEF_MEMBER_MISSING(struct_, get_command_line_string))
     return CefString();
 
@@ -92,9 +85,7 @@ CefString CefCommandLineCToCpp::GetCommandLineString()
   return _retvalStr;
 }
 
-
-CefString CefCommandLineCToCpp::GetProgram()
-{
+CefString CefCommandLineCToCpp::GetProgram() {
   if (CEF_MEMBER_MISSING(struct_, get_program))
     return CefString();
 
@@ -109,9 +100,7 @@ CefString CefCommandLineCToCpp::GetProgram()
   return _retvalStr;
 }
 
-
-void CefCommandLineCToCpp::SetProgram(const CefString& program)
-{
+void CefCommandLineCToCpp::SetProgram(const CefString& program) {
   if (CEF_MEMBER_MISSING(struct_, set_program))
     return;
 
@@ -127,9 +116,7 @@ void CefCommandLineCToCpp::SetProgram(const CefString& program)
       program.GetStruct());
 }
 
-
-bool CefCommandLineCToCpp::HasSwitches()
-{
+bool CefCommandLineCToCpp::HasSwitches() {
   if (CEF_MEMBER_MISSING(struct_, has_switches))
     return false;
 
@@ -142,9 +129,7 @@ bool CefCommandLineCToCpp::HasSwitches()
   return _retval?true:false;
 }
 
-
-bool CefCommandLineCToCpp::HasSwitch(const CefString& name)
-{
+bool CefCommandLineCToCpp::HasSwitch(const CefString& name) {
   if (CEF_MEMBER_MISSING(struct_, has_switch))
     return false;
 
@@ -163,9 +148,7 @@ bool CefCommandLineCToCpp::HasSwitch(const CefString& name)
   return _retval?true:false;
 }
 
-
-CefString CefCommandLineCToCpp::GetSwitchValue(const CefString& name)
-{
+CefString CefCommandLineCToCpp::GetSwitchValue(const CefString& name) {
   if (CEF_MEMBER_MISSING(struct_, get_switch_value))
     return CefString();
 
@@ -186,9 +169,7 @@ CefString CefCommandLineCToCpp::GetSwitchValue(const CefString& name)
   return _retvalStr;
 }
 
-
-void CefCommandLineCToCpp::GetSwitches(SwitchMap& switches)
-{
+void CefCommandLineCToCpp::GetSwitches(SwitchMap& switches) {
   if (CEF_MEMBER_MISSING(struct_, get_switches))
     return;
 
@@ -212,9 +193,7 @@ void CefCommandLineCToCpp::GetSwitches(SwitchMap& switches)
   }
 }
 
-
-void CefCommandLineCToCpp::AppendSwitch(const CefString& name)
-{
+void CefCommandLineCToCpp::AppendSwitch(const CefString& name) {
   if (CEF_MEMBER_MISSING(struct_, append_switch))
     return;
 
@@ -230,10 +209,8 @@ void CefCommandLineCToCpp::AppendSwitch(const CefString& name)
       name.GetStruct());
 }
 
-
 void CefCommandLineCToCpp::AppendSwitchWithValue(const CefString& name,
-    const CefString& value)
-{
+    const CefString& value) {
   if (CEF_MEMBER_MISSING(struct_, append_switch_with_value))
     return;
 
@@ -254,9 +231,7 @@ void CefCommandLineCToCpp::AppendSwitchWithValue(const CefString& name,
       value.GetStruct());
 }
 
-
-bool CefCommandLineCToCpp::HasArguments()
-{
+bool CefCommandLineCToCpp::HasArguments() {
   if (CEF_MEMBER_MISSING(struct_, has_arguments))
     return false;
 
@@ -269,9 +244,7 @@ bool CefCommandLineCToCpp::HasArguments()
   return _retval?true:false;
 }
 
-
-void CefCommandLineCToCpp::GetArguments(ArgumentList& arguments)
-{
+void CefCommandLineCToCpp::GetArguments(ArgumentList& arguments) {
   if (CEF_MEMBER_MISSING(struct_, get_arguments))
     return;
 
@@ -295,9 +268,7 @@ void CefCommandLineCToCpp::GetArguments(ArgumentList& arguments)
   }
 }
 
-
-void CefCommandLineCToCpp::AppendArgument(const CefString& argument)
-{
+void CefCommandLineCToCpp::AppendArgument(const CefString& argument) {
   if (CEF_MEMBER_MISSING(struct_, append_argument))
     return;
 
@@ -312,7 +283,6 @@ void CefCommandLineCToCpp::AppendArgument(const CefString& argument)
   struct_->append_argument(struct_,
       argument.GetStruct());
 }
-
 
 
 #ifndef NDEBUG

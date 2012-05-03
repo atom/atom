@@ -5,7 +5,8 @@
 #ifndef _CLIENT_HANDLER_H
 #define _CLIENT_HANDLER_H
 
-#import "include/cef.h"
+#import "include/cef_base.h"
+#import "include/cef_client.h"
 
 @class AtomController;
 

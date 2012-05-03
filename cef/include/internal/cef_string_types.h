@@ -27,8 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef _CEF_STRING_TYPES_T
-#define _CEF_STRING_TYPES_T
+#ifndef CEF_INCLUDE_INTERNAL_CEF_STRING_TYPES_H_
+#define CEF_INCLUDE_INTERNAL_CEF_STRING_TYPES_H_
+#pragma once
 
 // CEF provides functions for converting between UTF-8, -16 and -32 strings.
 // CEF string types are safe for reading from multiple threads but not for
@@ -39,8 +40,8 @@
 extern "C" {
 #endif
 
-#include "cef_build.h"
-#include "cef_export.h"
+#include "include/internal/cef_build.h"
+#include "include/internal/cef_export.h"
 #include <stddef.h>
 
 // CEF character type definitions. wchar_t is 2 bytes on Windows and 4 bytes on
@@ -48,12 +49,12 @@ extern "C" {
 
 #if defined(OS_WIN)
 typedef wchar_t char16;
-#else // !OS_WIN
-typedef unsigned short char16;
+#else  // !OS_WIN
+typedef unsigned short char16;  // NOLINT (runtime/int)
 #ifndef WCHAR_T_IS_UTF32
 #define WCHAR_T_IS_UTF32
-#endif // WCHAR_T_IS_UTF32
-#endif // !OS_WIN
+#endif  // WCHAR_T_IS_UTF32
+#endif  // !OS_WIN
 
 
 // CEF string type definitions. Whomever allocates |str| is responsible for
@@ -200,4 +201,4 @@ CEF_EXPORT void cef_string_userfree_utf16_free(cef_string_userfree_utf16_t str);
 }
 #endif
 
-#endif // _CEF_STRING_TYPES_T
+#endif  // CEF_INCLUDE_INTERNAL_CEF_STRING_TYPES_H_

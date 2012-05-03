@@ -2,24 +2,23 @@
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 
-#ifndef _BASE_CPPTOC_H
-#define _BASE_CPPTOC_H
+#ifndef CEF_LIBCEF_DLL_CPPTOC_BASE_CPPTOC_H_
+#define CEF_LIBCEF_DLL_CPPTOC_BASE_CPPTOC_H_
+#pragma once
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_base.h"
+#include "include/capi/cef_base_capi.h"
 #include "libcef_dll/cef_logging.h"
 
 
 // CefCppToC implementation for CefBase.
-class CefBaseCppToC : public CefBase
-{
-public:
+class CefBaseCppToC : public CefBase {
+ public:
   // Use this method to retrieve the underlying class instance from our
   // own structure when the structure is passed as the required first
   // parameter of a C API function call. No explicit reference counting
   // is done in this case.
-  static CefRefPtr<CefBase> Get(cef_base_t* s)
-  {
+  static CefRefPtr<CefBase> Get(cef_base_t* s) {
     DCHECK(s);
 
     // Cast our structure to the wrapper structure type.
@@ -28,11 +27,10 @@ public:
     // Return the underlying object instance.
     return wrapperStruct->class_->GetClass();
   }
-  
+
   // Use this method to create a wrapper structure for passing our class
   // instance to the other side.
-  static cef_base_t* Wrap(CefRefPtr<CefBase> c)
-  {
+  static cef_base_t* Wrap(CefRefPtr<CefBase> c) {
     if (!c.get())
       return NULL;
 
@@ -47,8 +45,7 @@ public:
 
   // Use this method to retrieve the underlying class instance when receiving
   // our wrapper structure back from the other side.
-  static CefRefPtr<CefBase> Unwrap(cef_base_t* s)
-  {
+  static CefRefPtr<CefBase> Unwrap(cef_base_t* s) {
     if (!s)
       return NULL;
 
@@ -65,19 +62,17 @@ public:
   }
 
   // Structure representation with pointer to the C++ class.
-  struct Struct
-  {
+  struct Struct {
     cef_base_t struct_;
     CefBaseCppToC* class_;
   };
 
-  CefBaseCppToC(CefBase* cls)
-    : class_(cls)
-  {
+  explicit CefBaseCppToC(CefBase* cls)
+    : class_(cls) {
     DCHECK(cls);
 
     struct_.class_ = this;
-    
+
     // zero the underlying structure and set base members
     memset(&struct_.struct_, 0, sizeof(cef_base_t));
     struct_.struct_.size = sizeof(cef_base_t);
@@ -96,13 +91,11 @@ public:
 
   // CefBase methods increment/decrement reference counts on both this object
   // and the underlying wrapper class.
-  int AddRef()
-  {
+  int AddRef() {
     UnderlyingAddRef();
     return refct_.AddRef();
   }
-  int Release()
-  {
+  int Release() {
     UnderlyingRelease();
     int retval = refct_.Release();
     if (retval == 0)
@@ -116,41 +109,38 @@ public:
   int UnderlyingRelease() { return class_->Release(); }
   int UnderlyingGetRefCt() { return class_->GetRefCt(); }
 
-private:
-  static int CEF_CALLBACK struct_add_ref(struct _cef_base_t* base)
-  {
+ private:
+  static int CEF_CALLBACK struct_add_ref(struct _cef_base_t* base) {
     DCHECK(base);
-    if(!base)
+    if (!base)
       return 0;
 
     Struct* impl = reinterpret_cast<Struct*>(base);
     return impl->class_->AddRef();
   }
 
-  static int CEF_CALLBACK struct_release(struct _cef_base_t* base)
-  {
+  static int CEF_CALLBACK struct_release(struct _cef_base_t* base) {
     DCHECK(base);
-    if(!base)
+    if (!base)
       return 0;
 
     Struct* impl = reinterpret_cast<Struct*>(base);
     return impl->class_->Release();
   }
 
-  static int CEF_CALLBACK struct_get_refct(struct _cef_base_t* base)
-  {
+  static int CEF_CALLBACK struct_get_refct(struct _cef_base_t* base) {
     DCHECK(base);
-    if(!base)
+    if (!base)
       return 0;
 
     Struct* impl = reinterpret_cast<Struct*>(base);
     return impl->class_->GetRefCt();
   }
 
-protected:
+ protected:
   CefRefCount refct_;
   Struct struct_;
   CefBase* class_;
 };
 
-#endif // _BASE_CPPTOC_H
+#endif  // CEF_LIBCEF_DLL_CPPTOC_BASE_CPPTOC_H_

@@ -1,5 +1,6 @@
 #import <Cocoa/Cocoa.h>
-#import "include/cef.h"
+#import "include/cef_base.h"
+#import "include/cef_v8.h"
 
 class NativeHandler : public CefV8Handler {
 public:

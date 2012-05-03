@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -19,8 +19,7 @@
 int CEF_CALLBACK keyboard_handler_on_key_event(
     struct _cef_keyboard_handler_t* self, cef_browser_t* browser,
     enum cef_handler_keyevent_type_t type, int code, int modifiers,
-    int isSystemKey, int isAfterJavaScript)
-{
+    int isSystemKey, int isAfterJavaScript) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -45,13 +44,11 @@ int CEF_CALLBACK keyboard_handler_on_key_event(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefKeyboardHandlerCppToC::CefKeyboardHandlerCppToC(CefKeyboardHandler* cls)
     : CefCppToC<CefKeyboardHandlerCppToC, CefKeyboardHandler,
-        cef_keyboard_handler_t>(cls)
-{
+        cef_keyboard_handler_t>(cls) {
   struct_.struct_.on_key_event = keyboard_handler_on_key_event;
 }
 

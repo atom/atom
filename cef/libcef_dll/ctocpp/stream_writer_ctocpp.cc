@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 // STATIC METHODS - Body may be edited by hand.
 
 CefRefPtr<CefStreamWriter> CefStreamWriter::CreateForFile(
-    const CefString& fileName)
-{
+    const CefString& fileName) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: fileName; type: string_byref_const
@@ -34,10 +33,8 @@ CefRefPtr<CefStreamWriter> CefStreamWriter::CreateForFile(
   return CefStreamWriterCToCpp::Wrap(_retval);
 }
 
-
 CefRefPtr<CefStreamWriter> CefStreamWriter::CreateForHandler(
-    CefRefPtr<CefWriteHandler> handler)
-{
+    CefRefPtr<CefWriteHandler> handler) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: handler; type: refptr_diff
@@ -54,11 +51,9 @@ CefRefPtr<CefStreamWriter> CefStreamWriter::CreateForHandler(
 }
 
 
-
 // VIRTUAL METHODS - Body may be edited by hand.
 
-size_t CefStreamWriterCToCpp::Write(const void* ptr, size_t size, size_t n)
-{
+size_t CefStreamWriterCToCpp::Write(const void* ptr, size_t size, size_t n) {
   if (CEF_MEMBER_MISSING(struct_, write))
     return 0;
 
@@ -79,9 +74,7 @@ size_t CefStreamWriterCToCpp::Write(const void* ptr, size_t size, size_t n)
   return _retval;
 }
 
-
-int CefStreamWriterCToCpp::Seek(long offset, int whence)
-{
+int CefStreamWriterCToCpp::Seek(int64 offset, int whence) {
   if (CEF_MEMBER_MISSING(struct_, seek))
     return 0;
 
@@ -96,24 +89,20 @@ int CefStreamWriterCToCpp::Seek(long offset, int whence)
   return _retval;
 }
 
-
-long CefStreamWriterCToCpp::Tell()
-{
+int64 CefStreamWriterCToCpp::Tell() {
   if (CEF_MEMBER_MISSING(struct_, tell))
     return 0;
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
-  long _retval = struct_->tell(struct_);
+  int64 _retval = struct_->tell(struct_);
 
   // Return type: simple
   return _retval;
 }
 
-
-int CefStreamWriterCToCpp::Flush()
-{
+int CefStreamWriterCToCpp::Flush() {
   if (CEF_MEMBER_MISSING(struct_, flush))
     return 0;
 
@@ -125,7 +114,6 @@ int CefStreamWriterCToCpp::Flush()
   // Return type: simple
   return _retval;
 }
-
 
 
 #ifndef NDEBUG

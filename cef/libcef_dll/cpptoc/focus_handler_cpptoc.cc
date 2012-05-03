@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -19,8 +19,7 @@
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
 void CEF_CALLBACK focus_handler_on_take_focus(struct _cef_focus_handler_t* self,
-    cef_browser_t* browser, int next)
-{
+    cef_browser_t* browser, int next) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -37,10 +36,8 @@ void CEF_CALLBACK focus_handler_on_take_focus(struct _cef_focus_handler_t* self,
       next?true:false);
 }
 
-
 int CEF_CALLBACK focus_handler_on_set_focus(struct _cef_focus_handler_t* self,
-    cef_browser_t* browser, enum cef_handler_focus_source_t source)
-{
+    cef_browser_t* browser, enum cef_handler_focus_source_t source) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -60,11 +57,9 @@ int CEF_CALLBACK focus_handler_on_set_focus(struct _cef_focus_handler_t* self,
   return _retval;
 }
 
-
 void CEF_CALLBACK focus_handler_on_focused_node_changed(
     struct _cef_focus_handler_t* self, cef_browser_t* browser,
-    cef_frame_t* frame, struct _cef_domnode_t* node)
-{
+    struct _cef_frame_t* frame, cef_domnode_t* node) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -84,13 +79,11 @@ void CEF_CALLBACK focus_handler_on_focused_node_changed(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefFocusHandlerCppToC::CefFocusHandlerCppToC(CefFocusHandler* cls)
     : CefCppToC<CefFocusHandlerCppToC, CefFocusHandler, cef_focus_handler_t>(
-        cls)
-{
+        cls) {
   struct_.struct_.on_take_focus = focus_handler_on_take_focus;
   struct_.struct_.on_set_focus = focus_handler_on_set_focus;
   struct_.struct_.on_focused_node_changed =

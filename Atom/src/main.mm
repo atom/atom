@@ -1,6 +1,7 @@
 #import <Cocoa/Cocoa.h>
 
-#include "include/cef.h"
+#include "include/cef_base.h"
+#include "include/cef_app.h"
 
 int main(int argc, char* argv[]) {
   NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];

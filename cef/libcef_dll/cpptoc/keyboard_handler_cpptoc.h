@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -10,28 +10,28 @@
 // for more information.
 //
 
-#ifndef _KEYBOARDHANDLER_CPPTOC_H
-#define _KEYBOARDHANDLER_CPPTOC_H
+#ifndef CEF_LIBCEF_DLL_CPPTOC_KEYBOARD_HANDLER_CPPTOC_H_
+#define CEF_LIBCEF_DLL_CPPTOC_KEYBOARD_HANDLER_CPPTOC_H_
+#pragma once
 
 #ifndef USING_CEF_SHARED
 #pragma message("Warning: "__FILE__" may be accessed wrapper-side only")
-#else // USING_CEF_SHARED
+#else  // USING_CEF_SHARED
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_keyboard_handler.h"
+#include "include/capi/cef_keyboard_handler_capi.h"
 #include "libcef_dll/cpptoc/cpptoc.h"
 
 // Wrap a C++ class with a C structure.
 // This class may be instantiated and accessed wrapper-side only.
 class CefKeyboardHandlerCppToC
     : public CefCppToC<CefKeyboardHandlerCppToC, CefKeyboardHandler,
-        cef_keyboard_handler_t>
-{
-public:
-  CefKeyboardHandlerCppToC(CefKeyboardHandler* cls);
+        cef_keyboard_handler_t> {
+ public:
+  explicit CefKeyboardHandlerCppToC(CefKeyboardHandler* cls);
   virtual ~CefKeyboardHandlerCppToC() {}
 };
 
-#endif // USING_CEF_SHARED
-#endif // _KEYBOARDHANDLER_CPPTOC_H
+#endif  // USING_CEF_SHARED
+#endif  // CEF_LIBCEF_DLL_CPPTOC_KEYBOARD_HANDLER_CPPTOC_H_
 

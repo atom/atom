@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -20,8 +20,7 @@
 
 void CEF_CALLBACK v8context_handler_on_context_created(
     struct _cef_v8context_handler_t* self, cef_browser_t* browser,
-    cef_frame_t* frame, struct _cef_v8context_t* context)
-{
+    cef_frame_t* frame, cef_v8context_t* context) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -47,11 +46,9 @@ void CEF_CALLBACK v8context_handler_on_context_created(
       CefV8ContextCToCpp::Wrap(context));
 }
 
-
 void CEF_CALLBACK v8context_handler_on_context_released(
     struct _cef_v8context_handler_t* self, cef_browser_t* browser,
-    cef_frame_t* frame, struct _cef_v8context_t* context)
-{
+    cef_frame_t* frame, cef_v8context_t* context) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -78,13 +75,11 @@ void CEF_CALLBACK v8context_handler_on_context_released(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefV8ContextHandlerCppToC::CefV8ContextHandlerCppToC(CefV8ContextHandler* cls)
     : CefCppToC<CefV8ContextHandlerCppToC, CefV8ContextHandler,
-        cef_v8context_handler_t>(cls)
-{
+        cef_v8context_handler_t>(cls) {
   struct_.struct_.on_context_created = v8context_handler_on_context_created;
   struct_.struct_.on_context_released = v8context_handler_on_context_released;
 }

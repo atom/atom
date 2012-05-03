@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -18,8 +18,8 @@
 
 void CEF_CALLBACK find_handler_on_find_result(struct _cef_find_handler_t* self,
     cef_browser_t* browser, int identifier, int count,
-    const cef_rect_t* selectionRect, int activeMatchOrdinal, int finalUpdate)
-{
+    const cef_rect_t* selectionRect, int activeMatchOrdinal,
+    int finalUpdate) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -48,12 +48,10 @@ void CEF_CALLBACK find_handler_on_find_result(struct _cef_find_handler_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefFindHandlerCppToC::CefFindHandlerCppToC(CefFindHandler* cls)
-    : CefCppToC<CefFindHandlerCppToC, CefFindHandler, cef_find_handler_t>(cls)
-{
+    : CefCppToC<CefFindHandlerCppToC, CefFindHandler, cef_find_handler_t>(cls) {
   struct_.struct_.on_find_result = find_handler_on_find_result;
 }
 

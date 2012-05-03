@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -16,8 +16,7 @@
 
 // VIRTUAL METHODS - Body may be edited by hand.
 
-int CefResponseCToCpp::GetStatus()
-{
+int CefResponseCToCpp::GetStatus() {
   if (CEF_MEMBER_MISSING(struct_, get_status))
     return 0;
 
@@ -30,9 +29,7 @@ int CefResponseCToCpp::GetStatus()
   return _retval;
 }
 
-
-void CefResponseCToCpp::SetStatus(int status)
-{
+void CefResponseCToCpp::SetStatus(int status) {
   if (CEF_MEMBER_MISSING(struct_, set_status))
     return;
 
@@ -43,9 +40,7 @@ void CefResponseCToCpp::SetStatus(int status)
       status);
 }
 
-
-CefString CefResponseCToCpp::GetStatusText()
-{
+CefString CefResponseCToCpp::GetStatusText() {
   if (CEF_MEMBER_MISSING(struct_, get_status_text))
     return CefString();
 
@@ -60,9 +55,7 @@ CefString CefResponseCToCpp::GetStatusText()
   return _retvalStr;
 }
 
-
-void CefResponseCToCpp::SetStatusText(const CefString& statusText)
-{
+void CefResponseCToCpp::SetStatusText(const CefString& statusText) {
   if (CEF_MEMBER_MISSING(struct_, set_status_text))
     return;
 
@@ -78,9 +71,7 @@ void CefResponseCToCpp::SetStatusText(const CefString& statusText)
       statusText.GetStruct());
 }
 
-
-CefString CefResponseCToCpp::GetMimeType()
-{
+CefString CefResponseCToCpp::GetMimeType() {
   if (CEF_MEMBER_MISSING(struct_, get_mime_type))
     return CefString();
 
@@ -95,9 +86,7 @@ CefString CefResponseCToCpp::GetMimeType()
   return _retvalStr;
 }
 
-
-void CefResponseCToCpp::SetMimeType(const CefString& mimeType)
-{
+void CefResponseCToCpp::SetMimeType(const CefString& mimeType) {
   if (CEF_MEMBER_MISSING(struct_, set_mime_type))
     return;
 
@@ -113,9 +102,7 @@ void CefResponseCToCpp::SetMimeType(const CefString& mimeType)
       mimeType.GetStruct());
 }
 
-
-CefString CefResponseCToCpp::GetHeader(const CefString& name)
-{
+CefString CefResponseCToCpp::GetHeader(const CefString& name) {
   if (CEF_MEMBER_MISSING(struct_, get_header))
     return CefString();
 
@@ -136,9 +123,7 @@ CefString CefResponseCToCpp::GetHeader(const CefString& name)
   return _retvalStr;
 }
 
-
-void CefResponseCToCpp::GetHeaderMap(HeaderMap& headerMap)
-{
+void CefResponseCToCpp::GetHeaderMap(HeaderMap& headerMap) {
   if (CEF_MEMBER_MISSING(struct_, get_header_map))
     return;
 
@@ -162,9 +147,7 @@ void CefResponseCToCpp::GetHeaderMap(HeaderMap& headerMap)
   }
 }
 
-
-void CefResponseCToCpp::SetHeaderMap(const HeaderMap& headerMap)
-{
+void CefResponseCToCpp::SetHeaderMap(const HeaderMap& headerMap) {
   if (CEF_MEMBER_MISSING(struct_, set_header_map))
     return;
 
@@ -184,7 +167,6 @@ void CefResponseCToCpp::SetHeaderMap(const HeaderMap& headerMap)
   if (headerMapMultimap)
     cef_string_multimap_free(headerMapMultimap);
 }
-
 
 
 #ifndef NDEBUG

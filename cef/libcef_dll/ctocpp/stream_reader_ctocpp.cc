@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 // STATIC METHODS - Body may be edited by hand.
 
 CefRefPtr<CefStreamReader> CefStreamReader::CreateForFile(
-    const CefString& fileName)
-{
+    const CefString& fileName) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: fileName; type: string_byref_const
@@ -34,10 +33,8 @@ CefRefPtr<CefStreamReader> CefStreamReader::CreateForFile(
   return CefStreamReaderCToCpp::Wrap(_retval);
 }
 
-
 CefRefPtr<CefStreamReader> CefStreamReader::CreateForData(void* data,
-    size_t size)
-{
+    size_t size) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: data; type: simple_byaddr
@@ -54,10 +51,8 @@ CefRefPtr<CefStreamReader> CefStreamReader::CreateForData(void* data,
   return CefStreamReaderCToCpp::Wrap(_retval);
 }
 
-
 CefRefPtr<CefStreamReader> CefStreamReader::CreateForHandler(
-    CefRefPtr<CefReadHandler> handler)
-{
+    CefRefPtr<CefReadHandler> handler) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: handler; type: refptr_diff
@@ -74,11 +69,9 @@ CefRefPtr<CefStreamReader> CefStreamReader::CreateForHandler(
 }
 
 
-
 // VIRTUAL METHODS - Body may be edited by hand.
 
-size_t CefStreamReaderCToCpp::Read(void* ptr, size_t size, size_t n)
-{
+size_t CefStreamReaderCToCpp::Read(void* ptr, size_t size, size_t n) {
   if (CEF_MEMBER_MISSING(struct_, read))
     return 0;
 
@@ -99,9 +92,7 @@ size_t CefStreamReaderCToCpp::Read(void* ptr, size_t size, size_t n)
   return _retval;
 }
 
-
-int CefStreamReaderCToCpp::Seek(long offset, int whence)
-{
+int CefStreamReaderCToCpp::Seek(int64 offset, int whence) {
   if (CEF_MEMBER_MISSING(struct_, seek))
     return 0;
 
@@ -116,24 +107,20 @@ int CefStreamReaderCToCpp::Seek(long offset, int whence)
   return _retval;
 }
 
-
-long CefStreamReaderCToCpp::Tell()
-{
+int64 CefStreamReaderCToCpp::Tell() {
   if (CEF_MEMBER_MISSING(struct_, tell))
     return 0;
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
-  long _retval = struct_->tell(struct_);
+  int64 _retval = struct_->tell(struct_);
 
   // Return type: simple
   return _retval;
 }
 
-
-int CefStreamReaderCToCpp::Eof()
-{
+int CefStreamReaderCToCpp::Eof() {
   if (CEF_MEMBER_MISSING(struct_, eof))
     return 0;
 
@@ -145,7 +132,6 @@ int CefStreamReaderCToCpp::Eof()
   // Return type: simple
   return _retval;
 }
-
 
 
 #ifndef NDEBUG

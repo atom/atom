@@ -1,5 +1,5 @@
 #import <Foundation/Foundation.h>
-#import "include/cef.h"
+#import "include/cef_base.h"
 
 @protocol BrowserDelegate <NSObject>
 

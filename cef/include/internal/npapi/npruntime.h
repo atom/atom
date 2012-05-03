@@ -1,12 +1,12 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
- * Copyright (c) 2004, Apple Computer, Inc. and The Mozilla Foundation. 
+ * Copyright (c) 2004, Apple Computer, Inc. and The Mozilla Foundation.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
@@ -16,7 +16,7 @@
  * Foundation ("Mozilla") nor the names of their contributors may be used
  * to endorse or promote products derived from this software without
  * specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY APPLE, MOZILLA AND THEIR CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -48,7 +48,7 @@ extern "C" {
     objects.  The API in this header does not assume the presence of a
     user agent.  That is, it can be used to bind C code to scripting
     environments outside of the context of a user agent.
-    
+
     However, the normal use of the this API is in the context of a
     scripting environment running in a browser or other user agent.
     In particular it is used to support the extended Netscape
@@ -359,7 +359,7 @@ void NPN_ReleaseObject(NPObject *npobj);
     value, it will be supplied via the result NPVariant
     argument. Successful calls will return true, false will be
     returned in case of an error.
-    
+
     Calls made from plugin code to script must be made from the thread
     on which the plugin was initialized.
 */

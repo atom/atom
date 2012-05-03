@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -19,8 +19,7 @@
 
 int CEF_CALLBACK jsdialog_handler_on_jsalert(
     struct _cef_jsdialog_handler_t* self, cef_browser_t* browser,
-    cef_frame_t* frame, const cef_string_t* message)
-{
+    cef_frame_t* frame, const cef_string_t* message) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -49,11 +48,9 @@ int CEF_CALLBACK jsdialog_handler_on_jsalert(
   return _retval;
 }
 
-
 int CEF_CALLBACK jsdialog_handler_on_jsconfirm(
     struct _cef_jsdialog_handler_t* self, cef_browser_t* browser,
-    cef_frame_t* frame, const cef_string_t* message, int* retval)
-{
+    cef_frame_t* frame, const cef_string_t* message, int* retval) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -94,12 +91,10 @@ int CEF_CALLBACK jsdialog_handler_on_jsconfirm(
   return _retval;
 }
 
-
 int CEF_CALLBACK jsdialog_handler_on_jsprompt(
     struct _cef_jsdialog_handler_t* self, cef_browser_t* browser,
     cef_frame_t* frame, const cef_string_t* message,
-    const cef_string_t* defaultValue, int* retval, cef_string_t* result)
-{
+    const cef_string_t* defaultValue, int* retval, cef_string_t* result) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -153,13 +148,11 @@ int CEF_CALLBACK jsdialog_handler_on_jsprompt(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefJSDialogHandlerCppToC::CefJSDialogHandlerCppToC(CefJSDialogHandler* cls)
     : CefCppToC<CefJSDialogHandlerCppToC, CefJSDialogHandler,
-        cef_jsdialog_handler_t>(cls)
-{
+        cef_jsdialog_handler_t>(cls) {
   struct_.struct_.on_jsalert = jsdialog_handler_on_jsalert;
   struct_.struct_.on_jsconfirm = jsdialog_handler_on_jsconfirm;
   struct_.struct_.on_jsprompt = jsdialog_handler_on_jsprompt;

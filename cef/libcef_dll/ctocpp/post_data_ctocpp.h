@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -10,24 +10,24 @@
 // for more information.
 //
 
-#ifndef _POSTDATA_CTOCPP_H
-#define _POSTDATA_CTOCPP_H
+#ifndef CEF_LIBCEF_DLL_CTOCPP_POST_DATA_CTOCPP_H_
+#define CEF_LIBCEF_DLL_CTOCPP_POST_DATA_CTOCPP_H_
+#pragma once
 
 #ifndef USING_CEF_SHARED
 #pragma message("Warning: "__FILE__" may be accessed wrapper-side only")
-#else // USING_CEF_SHARED
+#else  // USING_CEF_SHARED
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_request.h"
+#include "include/capi/cef_request_capi.h"
 #include "libcef_dll/ctocpp/ctocpp.h"
 
 // Wrap a C structure with a C++ class.
 // This class may be instantiated and accessed wrapper-side only.
 class CefPostDataCToCpp
-    : public CefCToCpp<CefPostDataCToCpp, CefPostData, cef_post_data_t>
-{
-public:
-  CefPostDataCToCpp(cef_post_data_t* str)
+    : public CefCToCpp<CefPostDataCToCpp, CefPostData, cef_post_data_t> {
+ public:
+  explicit CefPostDataCToCpp(cef_post_data_t* str)
       : CefCToCpp<CefPostDataCToCpp, CefPostData, cef_post_data_t>(str) {}
   virtual ~CefPostDataCToCpp() {}
 
@@ -39,6 +39,6 @@ public:
   virtual void RemoveElements() OVERRIDE;
 };
 
-#endif // USING_CEF_SHARED
-#endif // _POSTDATA_CTOCPP_H
+#endif  // USING_CEF_SHARED
+#endif  // CEF_LIBCEF_DLL_CTOCPP_POST_DATA_CTOCPP_H_
 
