@@ -58,7 +58,7 @@ describe "Directory", ->
 
       runs ->
         changeHandler.reset()
-        directory.unsubscribeFromNativeChangeEvents()
+        directory.off()
       waits 20
 
       runs -> fs.remove(temporaryFilePath)
