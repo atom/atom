@@ -9,7 +9,7 @@ typedef void (^WatchCallback)(NSArray *);
 }
 
 + (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
-+ (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId;
++ (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error;
 + (void)unwatchAll;
 
 @end

@@ -9,7 +9,7 @@
 @interface PathWatcher ()
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
 - (void)watchFileDescriptor:(int)fd;
-- (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId;
+- (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error;
 - (void)unwatchAll;
 @end
 
@@ -25,8 +25,8 @@
   return [[self instance] watchPath:path callback:callback];
 }
 
-+ (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId {
-  return [[self instance] unwatchPath:path callbackId:callbackId];
++ (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error {
+  return [[self instance] unwatchPath:path callbackId:callbackId error:error];
 }
 
 + (void)unwatchAll {
@@ -86,13 +86,16 @@
   return callbackId;
 }
 
-- (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId {
+- (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error {
   path = [path stringByStandardizingPath];
   
   @synchronized(self) {
     NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
     if (!fdNumber) {
-      [NSException raise:@"PathWatcher" format:@"Trying to unwatch %@, which we aren't watching"];
+      NSString *message = [NSString stringWithFormat:@"Trying to unwatch %@, which we aren't watching", path];
+      NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:message, NSLocalizedDescriptionKey, nil];
+      NSError *e = [NSError errorWithDomain:@"PathWatcher" code:0 userInfo:userInfo];
+      error = &e;
       return;    
     }
 
@@ -118,7 +121,7 @@
   @synchronized(self) {
     NSArray *paths = [_fileDescriptorsByPath allKeys];
     for (NSString *path in paths) {
-      [self unwatchPath:path callbackId:nil];
+      [self unwatchPath:path callbackId:nil error:nil];
     }
   }  
 }
@@ -142,7 +145,7 @@
       int numberOfEvents = kevent(_kq, NULL, 0, &event, 1, &timeout);
       
       if (numberOfEvents < 0) {
-        [NSException raise:@"PathWatcher" format:@"error %d", numberOfEvents, nil];
+        NSLog(@"PathWatcher: error %d", numberOfEvents);
       }
       if (numberOfEvents == 0) {
         continue;

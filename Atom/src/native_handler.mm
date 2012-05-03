@@ -5,6 +5,9 @@
 #import "client_handler.h"
 #import "PathWatcher.h"
 
+#define MY_EXCEPTION_TRY @try {
+#define MY_EXCEPTION_HANDLE } @catch (NSException *localException) {}
+
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   std::string cc_value = value->GetStringValue().ToString();
   return [NSString stringWithUTF8String:cc_value.c_str()];
@@ -304,7 +307,12 @@ bool NativeHandler::Execute(const CefString& name,
   else if (name == "unwatchPath") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     NSString *callbackId = stringFromCefV8Value(arguments[1]);
-    [PathWatcher unwatchPath:path callbackId:callbackId];
+    NSError *error = nil;
+    [PathWatcher unwatchPath:path callbackId:callbackId error:&error];
+    
+    if (error) {
+      exception = [[error localizedDescription] UTF8String];
+    }
     
     return true;    
   }
