@@ -95,7 +95,7 @@
       NSString *message = [NSString stringWithFormat:@"Trying to unwatch %@, which we aren't watching", path];
       NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:message, NSLocalizedDescriptionKey, nil];
       NSError *e = [NSError errorWithDomain:@"PathWatcher" code:0 userInfo:userInfo];
-      error = &e;
+      *error = e;
       return;    
     }
 
