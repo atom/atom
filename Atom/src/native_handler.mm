@@ -16,7 +16,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL, NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move"};
+  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -342,6 +342,21 @@ bool NativeHandler::Execute(const CefString& name,
     
     return true;    
   }
-  
+  else if (name == "moveToTrash") {
+    NSString *sourcePath = stringFromCefV8Value(arguments[0]);
+    bool success = [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation 
+                                                                source:[sourcePath stringByDeletingLastPathComponent]
+                                                           destination:@"" 
+                                                                 files:[NSArray arrayWithObject:[sourcePath lastPathComponent]]
+                                                                   tag:nil];
+    
+    if (!success) {
+      std::string exception = "Can not move ";
+      exception += [sourcePath UTF8String];
+      exception += " to trash.";
+    }
+    
+    return true;
+  }
   return false;
 };
