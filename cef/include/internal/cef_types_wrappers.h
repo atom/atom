@@ -27,40 +27,37 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef _CEF_TYPES_WRAPPERS_H
-#define _CEF_TYPES_WRAPPERS_H
+#ifndef CEF_INCLUDE_INTERNAL_CEF_TYPES_WRAPPERS_H_
+#define CEF_INCLUDE_INTERNAL_CEF_TYPES_WRAPPERS_H_
+#pragma once
 
-#include "cef_string.h"
-#include "cef_string_list.h"
-#include "cef_types.h"
+#include "include/internal/cef_string.h"
+#include "include/internal/cef_string_list.h"
+#include "include/internal/cef_types.h"
 
 ///
 // Template class that provides common functionality for CEF structure wrapping.
 ///
 template <class traits>
 class CefStructBase : public traits::struct_type {
-public:
+ public:
   typedef typename traits::struct_type struct_type;
 
-  CefStructBase() : attached_to_(NULL)
-  {
+  CefStructBase() : attached_to_(NULL) {
     Init();
   }
-  virtual ~CefStructBase()
-  {
+  virtual ~CefStructBase() {
     // Only clear this object's data if it isn't currently attached to a
     // structure.
     if (!attached_to_)
-      Clear(this); 
+      Clear(this);
   }
 
-  CefStructBase(const CefStructBase& r)
-  {
+  CefStructBase(const CefStructBase& r) {
     Init();
     *this = r;
   }
-  CefStructBase(const struct_type& r)
-  {
+  CefStructBase(const struct_type& r) {  // NOLINT(runtime/explicit)
     Init();
     *this = r;
   }
@@ -68,8 +65,7 @@ public:
   ///
   // Clear this object's values.
   ///
-  void Reset()
-  {
+  void Reset() {
     Clear(this);
     Init();
   }
@@ -78,16 +74,15 @@ public:
   // Attach to the source structure's existing values. DetachTo() can be called
   // to insert the values back into the existing structure.
   ///
-  void AttachTo(struct_type& source)
-  {
+  void AttachTo(struct_type& source) {
     // Only clear this object's data if it isn't currently attached to a
     // structure.
     if (!attached_to_)
       Clear(this);
-    
+
     // This object is now attached to the new structure.
     attached_to_ = &source;
-    
+
     // Transfer ownership of the values from the source structure.
     memcpy(static_cast<struct_type*>(this), &source, sizeof(struct_type));
   }
@@ -95,8 +90,7 @@ public:
   ///
   // Relinquish ownership of values to the target structure.
   ///
-  void DetachTo(struct_type& target)
-  {
+  void DetachTo(struct_type& target) {
     if (attached_to_ != &target) {
       // Clear the target structure's values only if we are not currently
       // attached to that structure.
@@ -114,25 +108,21 @@ public:
   // Set this object's values. If |copy| is true the source structure's values
   // will be copied instead of referenced.
   ///
-  void Set(const struct_type& source, bool copy)
-  {
+  void Set(const struct_type& source, bool copy) {
     traits::set(&source, this, copy);
   }
 
-  CefStructBase& operator=(const CefStructBase& s)
-  {
+  CefStructBase& operator=(const CefStructBase& s) {
     return operator=(static_cast<const struct_type&>(s));
   }
 
-  CefStructBase& operator=(const struct_type& s)
-  {
+  CefStructBase& operator=(const struct_type& s) {
     Set(s, true);
     return *this;
   }
 
-protected:
-  void Init()
-  {
+ protected:
+  void Init() {
     memset(static_cast<struct_type*>(this), 0, sizeof(struct_type));
     attached_to_ = NULL;
     traits::init(this);
@@ -150,8 +140,8 @@ struct CefRectTraits {
   static inline void init(struct_type* s) {}
   static inline void clear(struct_type* s) {}
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     *target = *src;
   }
 };
@@ -159,33 +149,28 @@ struct CefRectTraits {
 ///
 // Class representing a rectangle.
 ///
-class CefRect : public CefStructBase<CefRectTraits>
-{
-public:
+class CefRect : public CefStructBase<CefRectTraits> {
+ public:
   typedef CefStructBase<CefRectTraits> parent;
 
   CefRect() : parent() {}
-  CefRect(const cef_rect_t& r) : parent(r) {}
-  CefRect(const CefRect& r) : parent(r) {}
-  CefRect(int x, int y, int width, int height) : parent()
-  {
+  CefRect(const cef_rect_t& r) : parent(r) {}  // NOLINT(runtime/explicit)
+  CefRect(const CefRect& r) : parent(r) {}  // NOLINT(runtime/explicit)
+  CefRect(int x, int y, int width, int height) : parent() {
     Set(x, y, width, height);
   }
 
   bool IsEmpty() const { return width <= 0 || height <= 0; }
-  void Set(int x, int y, int width, int height)
-  {
+  void Set(int x, int y, int width, int height) {
     this->x = x, this->y = y, this->width = width, this->height = height;
   }
 };
 
-inline bool operator==(const CefRect& a, const CefRect& b)
-{
+inline bool operator==(const CefRect& a, const CefRect& b) {
   return a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height;
 }
 
-inline bool operator!=(const CefRect& a, const CefRect& b)
-{
+inline bool operator!=(const CefRect& a, const CefRect& b) {
   return !(a == b);
 }
 
@@ -196,8 +181,8 @@ struct CefPrintOptionsTraits {
   static inline void init(struct_type* s) {}
   static inline void clear(struct_type* s) {}
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     *target = *src;
   }
 };
@@ -212,8 +197,7 @@ typedef CefStructBase<CefPrintOptionsTraits> CefPrintOptions;
 struct CefPopupFeaturesTraits {
   typedef cef_popup_features_t struct_type;
 
-  static inline void init(struct_type* s)
-  {
+  static inline void init(struct_type* s) {
     s->menuBarVisible = true;
     s->statusBarVisible = true;
     s->toolBarVisible = true;
@@ -221,16 +205,15 @@ struct CefPopupFeaturesTraits {
     s->scrollbarsVisible = true;
     s->resizable = true;
   }
-  
-  static inline void clear(struct_type* s)
-  {
-    if(s->additionalFeatures)
+
+  static inline void clear(struct_type* s) {
+    if (s->additionalFeatures)
       cef_string_list_free(s->additionalFeatures);
   }
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
-    if(target->additionalFeatures)
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
+    if (target->additionalFeatures)
       cef_string_list_free(target->additionalFeatures);
     target->additionalFeatures = src->additionalFeatures ?
         cef_string_list_copy(src->additionalFeatures) : NULL;
@@ -263,25 +246,25 @@ typedef CefStructBase<CefPopupFeaturesTraits> CefPopupFeatures;
 struct CefSettingsTraits {
   typedef cef_settings_t struct_type;
 
-  static inline void init(struct_type* s)
-  {
+  static inline void init(struct_type* s) {
     s->size = sizeof(struct_type);
   }
-  
-  static inline void clear(struct_type* s)
-  {
+
+  static inline void clear(struct_type* s) {
     cef_string_clear(&s->cache_path);
     cef_string_clear(&s->user_agent);
     cef_string_clear(&s->product_version);
     cef_string_clear(&s->locale);
-    if(s->extra_plugin_paths)
+    if (s->extra_plugin_paths)
       cef_string_list_free(s->extra_plugin_paths);
     cef_string_clear(&s->log_file);
     cef_string_clear(&s->javascript_flags);
+    cef_string_clear(&s->pack_file_path);
+    cef_string_clear(&s->locales_dir_path);
   }
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     target->multi_threaded_message_loop = src->multi_threaded_message_loop;
 
     cef_string_set(src->cache_path.str, src->cache_path.length,
@@ -292,7 +275,7 @@ struct CefSettingsTraits {
         &target->product_version, copy);
     cef_string_set(src->locale.str, src->locale.length, &target->locale, copy);
 
-    if(target->extra_plugin_paths)
+    if (target->extra_plugin_paths)
       cef_string_list_free(target->extra_plugin_paths);
     target->extra_plugin_paths = src->extra_plugin_paths ?
         cef_string_list_copy(src->extra_plugin_paths) : NULL;
@@ -310,6 +293,12 @@ struct CefSettingsTraits {
     target->auto_detect_proxy_settings_enabled =
         src->auto_detect_proxy_settings_enabled;
 #endif
+
+    cef_string_set(src->pack_file_path.str, src->pack_file_path.length,
+        &target->pack_file_path, copy);
+    cef_string_set(src->locales_dir_path.str, src->locales_dir_path.length,
+        &target->locales_dir_path, copy);
+    target->pack_loading_disabled = src->pack_loading_disabled;
   }
 };
 
@@ -322,13 +311,11 @@ typedef CefStructBase<CefSettingsTraits> CefSettings;
 struct CefBrowserSettingsTraits {
   typedef cef_browser_settings_t struct_type;
 
-  static inline void init(struct_type* s)
-  {
+  static inline void init(struct_type* s) {
     s->size = sizeof(struct_type);
   }
-  
-  static inline void clear(struct_type* s)
-  {
+
+  static inline void clear(struct_type* s) {
     cef_string_clear(&s->standard_font_family);
     cef_string_clear(&s->fixed_font_family);
     cef_string_clear(&s->serif_font_family);
@@ -339,8 +326,8 @@ struct CefBrowserSettingsTraits {
     cef_string_clear(&s->user_style_sheet_location);
   }
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     target->drag_drop_disabled = src->drag_drop_disabled;
     target->load_drops_disabled = src->load_drops_disabled;
     target->history_disabled = src->history_disabled;
@@ -413,7 +400,8 @@ struct CefBrowserSettingsTraits {
     target->accelerated_video_disabled = src->accelerated_video_disabled;
     target->accelerated_2d_canvas_disabled =
         src->accelerated_2d_canvas_disabled;
-    target->accelerated_drawing_disabled = src->accelerated_drawing_disabled;
+    target->accelerated_painting_disabled = src->accelerated_painting_disabled;
+    target->accelerated_filters_disabled = src->accelerated_filters_disabled;
     target->accelerated_plugins_disabled = src->accelerated_plugins_disabled;
     target->developer_tools_disabled = src->developer_tools_disabled;
     target->fullscreen_enabled = src->fullscreen_enabled;
@@ -430,9 +418,8 @@ struct CefURLPartsTraits {
   typedef cef_urlparts_t struct_type;
 
   static inline void init(struct_type* s) {}
-  
-  static inline void clear(struct_type* s)
-  {
+
+  static inline void clear(struct_type* s) {
     cef_string_clear(&s->spec);
     cef_string_clear(&s->scheme);
     cef_string_clear(&s->username);
@@ -443,8 +430,8 @@ struct CefURLPartsTraits {
     cef_string_clear(&s->query);
   }
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     cef_string_set(src->spec.str, src->spec.length, &target->spec, copy);
     cef_string_set(src->scheme.str, src->scheme.length, &target->scheme, copy);
     cef_string_set(src->username.str, src->username.length, &target->username,
@@ -468,11 +455,11 @@ struct CefTimeTraits {
   typedef cef_time_t struct_type;
 
   static inline void init(struct_type* s) {}
-  
+
   static inline void clear(struct_type* s) {}
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     *target = *src;
   }
 };
@@ -480,15 +467,15 @@ struct CefTimeTraits {
 ///
 // Class representing a time.
 ///
-class CefTime : public CefStructBase<CefTimeTraits>
-{
-public:
+class CefTime : public CefStructBase<CefTimeTraits> {
+ public:
   typedef CefStructBase<CefTimeTraits> parent;
 
   CefTime() : parent() {}
-  CefTime(const cef_time_t& r) : parent(r) {}
-  CefTime(time_t r) : parent() { SetTimeT(r); }
-  CefTime(double r) : parent() { SetDoubleT(r); }
+  CefTime(const cef_time_t& r) : parent(r) {}  // NOLINT(runtime/explicit)
+  CefTime(const CefTime& r) : parent(r) {}  // NOLINT(runtime/explicit)
+  explicit CefTime(time_t r) : parent() { SetTimeT(r); }
+  explicit CefTime(double r) : parent() { SetDoubleT(r); }
 
   // Converts to/from time_t.
   void SetTimeT(time_t r) {
@@ -518,17 +505,16 @@ struct CefCookieTraits {
   typedef cef_cookie_t struct_type;
 
   static inline void init(struct_type* s) {}
-  
-  static inline void clear(struct_type* s)
-  {
+
+  static inline void clear(struct_type* s) {
     cef_string_clear(&s->name);
     cef_string_clear(&s->value);
     cef_string_clear(&s->domain);
     cef_string_clear(&s->path);
   }
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     cef_string_set(src->name.str, src->name.length, &target->name, copy);
     cef_string_set(src->value.str, src->value.length, &target->value, copy);
     cef_string_set(src->domain.str, src->domain.length, &target->domain, copy);
@@ -553,8 +539,7 @@ struct CefMenuInfoTraits {
 
   static inline void init(struct_type* s) {}
 
-  static inline void clear(struct_type* s)
-  {
+  static inline void clear(struct_type* s) {
     cef_string_clear(&s->linkUrl);
     cef_string_clear(&s->imageUrl);
     cef_string_clear(&s->pageUrl);
@@ -564,8 +549,8 @@ struct CefMenuInfoTraits {
     cef_string_clear(&s->securityInfo);
   }
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     target->typeFlags = src->typeFlags;
     target->x = src->x;
     target->y = src->y;
@@ -599,14 +584,13 @@ struct CefProxyInfoTraits {
   typedef cef_proxy_info_t struct_type;
 
   static inline void init(struct_type* s) {}
-  
-  static inline void clear(struct_type* s)
-  {
+
+  static inline void clear(struct_type* s) {
     cef_string_clear(&s->proxyList);
   }
 
-  static inline void set(const struct_type* src, struct_type* target, bool copy)
-  {
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
     target->proxyType = src->proxyType;
     cef_string_set(src->proxyList.str, src->proxyList.length,
         &target->proxyList, copy);
@@ -616,14 +600,12 @@ struct CefProxyInfoTraits {
 ///
 // Class representing the results of proxy resolution.
 ///
-class CefProxyInfo : public CefStructBase<CefProxyInfoTraits>
-{
-public:
+class CefProxyInfo : public CefStructBase<CefProxyInfoTraits> {
+ public:
   ///
   // Use a direction connection instead of a proxy.
   ///
-  void UseDirect()
-  {
+  void UseDirect() {
     proxyType = PROXY_TYPE_DIRECT;
   }
 
@@ -636,8 +618,7 @@ public:
   // Multiple values may be separated by semicolons or whitespace. For example,
   // "foo1:80;foo2:80".
   ///
-  void UseNamedProxy(const CefString& proxy_uri_list)
-  {
+  void UseNamedProxy(const CefString& proxy_uri_list) {
     proxyType = PROXY_TYPE_NAMED;
     (CefString(&proxyList)) = proxy_uri_list;
   }
@@ -646,8 +627,7 @@ public:
   // Use one or more named proxy servers specified in PAC script format. For
   // example, "PROXY foobar:99; SOCKS fml:2; DIRECT".
   ///
-  void UsePacString(const CefString& pac_string)
-  {
+  void UsePacString(const CefString& pac_string) {
     proxyType = PROXY_TYPE_PAC_STRING;
     (CefString(&proxyList)) = pac_string;
   }
@@ -659,4 +639,4 @@ public:
   CefString ProxyList() const { return CefString(&proxyList); }
 };
 
-#endif // _CEF_TYPES_WRAPPERS_H
+#endif  // CEF_INCLUDE_INTERNAL_CEF_TYPES_WRAPPERS_H_

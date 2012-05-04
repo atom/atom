@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -18,8 +18,7 @@
 
 void CEF_CALLBACK content_filter_process_data(
     struct _cef_content_filter_t* self, const void* data, int data_size,
-    cef_stream_reader_t** substitute_data)
-{
+    struct _cef_stream_reader_t** substitute_data) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -58,10 +57,8 @@ void CEF_CALLBACK content_filter_process_data(
   }
 }
 
-
 void CEF_CALLBACK content_filter_drain(struct _cef_content_filter_t* self,
-    cef_stream_reader_t** remainder)
-{
+    struct _cef_stream_reader_t** remainder) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -95,13 +92,11 @@ void CEF_CALLBACK content_filter_drain(struct _cef_content_filter_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefContentFilterCppToC::CefContentFilterCppToC(CefContentFilter* cls)
     : CefCppToC<CefContentFilterCppToC, CefContentFilter, cef_content_filter_t>(
-        cls)
-{
+        cls) {
   struct_.struct_.process_data = content_filter_process_data;
   struct_.struct_.drain = content_filter_drain;
 }

@@ -2,14 +2,16 @@
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 
-#ifndef _TRANSFER_UTIL_H
-#define _TRANSFER_UTIL_H
+#ifndef CEF_LIBCEF_DLL_TRANSFER_UTIL_H_
+#define CEF_LIBCEF_DLL_TRANSFER_UTIL_H_
+#pragma once
+
+#include <map>
+#include <vector>
 
 #include "include/internal/cef_string_list.h"
 #include "include/internal/cef_string_map.h"
 #include "include/internal/cef_string_multimap.h"
-#include <map>
-#include <vector>
 
 // Copy contents from one list type to another.
 typedef std::vector<CefString> StringList;
@@ -32,4 +34,4 @@ void transfer_string_multimap_contents(cef_string_multimap_t fromMap,
 void transfer_string_multimap_contents(const StringMultimap& fromMap,
                                        cef_string_multimap_t toMap);
 
-#endif // _TRANSFER_UTIL_H
+#endif  // CEF_LIBCEF_DLL_TRANSFER_UTIL_H_

@@ -1,6 +1,6 @@
 #import "AtomController.h"
 
-#import "include/cef.h"
+#import "include/cef_base.h"
 #import "client_handler.h"
 #import "native_handler.h"
 #import "PathWatcher.h"
@@ -167,7 +167,6 @@ void AppGetBrowserSettings(CefBrowserSettings& settings) {
   settings.accelerated_layers_disabled = false;
   settings.accelerated_video_disabled = false;
   settings.accelerated_2d_canvas_disabled = false;
-  settings.accelerated_drawing_disabled = false;
   settings.accelerated_plugins_disabled = false;
   settings.developer_tools_disabled = false;
 }

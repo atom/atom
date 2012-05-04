@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Authors. All rights reserved.
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -69,11 +69,6 @@
 // Use tcmalloc
 #if (defined(OS_WIN) || defined(OS_LINUX)) && !defined(NO_TCMALLOC)
 #define USE_TCMALLOC 1
-#endif
-
-// Use heapchecker.
-#if defined(OS_LINUX) && !defined(NO_HEAPCHECKER)
-#define USE_HEAPCHECKER 1
 #endif
 
 // Compiler detection.

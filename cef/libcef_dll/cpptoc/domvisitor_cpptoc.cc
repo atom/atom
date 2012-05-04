@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
 void CEF_CALLBACK domvisitor_visit(struct _cef_domvisitor_t* self,
-    struct _cef_domdocument_t* document)
-{
+    struct _cef_domdocument_t* document) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -35,12 +34,10 @@ void CEF_CALLBACK domvisitor_visit(struct _cef_domvisitor_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefDOMVisitorCppToC::CefDOMVisitorCppToC(CefDOMVisitor* cls)
-    : CefCppToC<CefDOMVisitorCppToC, CefDOMVisitor, cef_domvisitor_t>(cls)
-{
+    : CefCppToC<CefDOMVisitorCppToC, CefDOMVisitor, cef_domvisitor_t>(cls) {
   struct_.struct_.visit = domvisitor_visit;
 }
 

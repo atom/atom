@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 // STATIC METHODS - Body may be edited by hand.
 
 CefRefPtr<CefXmlReader> CefXmlReader::Create(CefRefPtr<CefStreamReader> stream,
-    EncodingType encodingType, const CefString& URI)
-{
+    EncodingType encodingType, const CefString& URI) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: stream; type: refptr_same
@@ -41,11 +40,9 @@ CefRefPtr<CefXmlReader> CefXmlReader::Create(CefRefPtr<CefStreamReader> stream,
 }
 
 
-
 // VIRTUAL METHODS - Body may be edited by hand.
 
-bool CefXmlReaderCToCpp::MoveToNextNode()
-{
+bool CefXmlReaderCToCpp::MoveToNextNode() {
   if (CEF_MEMBER_MISSING(struct_, move_to_next_node))
     return false;
 
@@ -58,9 +55,7 @@ bool CefXmlReaderCToCpp::MoveToNextNode()
   return _retval?true:false;
 }
 
-
-bool CefXmlReaderCToCpp::Close()
-{
+bool CefXmlReaderCToCpp::Close() {
   if (CEF_MEMBER_MISSING(struct_, close))
     return false;
 
@@ -73,9 +68,7 @@ bool CefXmlReaderCToCpp::Close()
   return _retval?true:false;
 }
 
-
-bool CefXmlReaderCToCpp::HasError()
-{
+bool CefXmlReaderCToCpp::HasError() {
   if (CEF_MEMBER_MISSING(struct_, has_error))
     return false;
 
@@ -88,9 +81,7 @@ bool CefXmlReaderCToCpp::HasError()
   return _retval?true:false;
 }
 
-
-CefString CefXmlReaderCToCpp::GetError()
-{
+CefString CefXmlReaderCToCpp::GetError() {
   if (CEF_MEMBER_MISSING(struct_, get_error))
     return CefString();
 
@@ -105,9 +96,7 @@ CefString CefXmlReaderCToCpp::GetError()
   return _retvalStr;
 }
 
-
-CefXmlReader::NodeType CefXmlReaderCToCpp::GetType()
-{
+CefXmlReader::NodeType CefXmlReaderCToCpp::GetType() {
   if (CEF_MEMBER_MISSING(struct_, get_type))
     return XML_NODE_UNSUPPORTED;
 
@@ -120,9 +109,7 @@ CefXmlReader::NodeType CefXmlReaderCToCpp::GetType()
   return _retval;
 }
 
-
-int CefXmlReaderCToCpp::GetDepth()
-{
+int CefXmlReaderCToCpp::GetDepth() {
   if (CEF_MEMBER_MISSING(struct_, get_depth))
     return 0;
 
@@ -135,9 +122,7 @@ int CefXmlReaderCToCpp::GetDepth()
   return _retval;
 }
 
-
-CefString CefXmlReaderCToCpp::GetLocalName()
-{
+CefString CefXmlReaderCToCpp::GetLocalName() {
   if (CEF_MEMBER_MISSING(struct_, get_local_name))
     return CefString();
 
@@ -152,9 +137,7 @@ CefString CefXmlReaderCToCpp::GetLocalName()
   return _retvalStr;
 }
 
-
-CefString CefXmlReaderCToCpp::GetPrefix()
-{
+CefString CefXmlReaderCToCpp::GetPrefix() {
   if (CEF_MEMBER_MISSING(struct_, get_prefix))
     return CefString();
 
@@ -169,9 +152,7 @@ CefString CefXmlReaderCToCpp::GetPrefix()
   return _retvalStr;
 }
 
-
-CefString CefXmlReaderCToCpp::GetQualifiedName()
-{
+CefString CefXmlReaderCToCpp::GetQualifiedName() {
   if (CEF_MEMBER_MISSING(struct_, get_qualified_name))
     return CefString();
 
@@ -186,9 +167,7 @@ CefString CefXmlReaderCToCpp::GetQualifiedName()
   return _retvalStr;
 }
 
-
-CefString CefXmlReaderCToCpp::GetNamespaceURI()
-{
+CefString CefXmlReaderCToCpp::GetNamespaceURI() {
   if (CEF_MEMBER_MISSING(struct_, get_namespace_uri))
     return CefString();
 
@@ -203,9 +182,7 @@ CefString CefXmlReaderCToCpp::GetNamespaceURI()
   return _retvalStr;
 }
 
-
-CefString CefXmlReaderCToCpp::GetBaseURI()
-{
+CefString CefXmlReaderCToCpp::GetBaseURI() {
   if (CEF_MEMBER_MISSING(struct_, get_base_uri))
     return CefString();
 
@@ -220,9 +197,7 @@ CefString CefXmlReaderCToCpp::GetBaseURI()
   return _retvalStr;
 }
 
-
-CefString CefXmlReaderCToCpp::GetXmlLang()
-{
+CefString CefXmlReaderCToCpp::GetXmlLang() {
   if (CEF_MEMBER_MISSING(struct_, get_xml_lang))
     return CefString();
 
@@ -237,9 +212,7 @@ CefString CefXmlReaderCToCpp::GetXmlLang()
   return _retvalStr;
 }
 
-
-bool CefXmlReaderCToCpp::IsEmptyElement()
-{
+bool CefXmlReaderCToCpp::IsEmptyElement() {
   if (CEF_MEMBER_MISSING(struct_, is_empty_element))
     return false;
 
@@ -252,9 +225,7 @@ bool CefXmlReaderCToCpp::IsEmptyElement()
   return _retval?true:false;
 }
 
-
-bool CefXmlReaderCToCpp::HasValue()
-{
+bool CefXmlReaderCToCpp::HasValue() {
   if (CEF_MEMBER_MISSING(struct_, has_value))
     return false;
 
@@ -267,9 +238,7 @@ bool CefXmlReaderCToCpp::HasValue()
   return _retval?true:false;
 }
 
-
-CefString CefXmlReaderCToCpp::GetValue()
-{
+CefString CefXmlReaderCToCpp::GetValue() {
   if (CEF_MEMBER_MISSING(struct_, get_value))
     return CefString();
 
@@ -284,9 +253,7 @@ CefString CefXmlReaderCToCpp::GetValue()
   return _retvalStr;
 }
 
-
-bool CefXmlReaderCToCpp::HasAttributes()
-{
+bool CefXmlReaderCToCpp::HasAttributes() {
   if (CEF_MEMBER_MISSING(struct_, has_attributes))
     return false;
 
@@ -299,9 +266,7 @@ bool CefXmlReaderCToCpp::HasAttributes()
   return _retval?true:false;
 }
 
-
-size_t CefXmlReaderCToCpp::GetAttributeCount()
-{
+size_t CefXmlReaderCToCpp::GetAttributeCount() {
   if (CEF_MEMBER_MISSING(struct_, get_attribute_count))
     return 0;
 
@@ -314,16 +279,14 @@ size_t CefXmlReaderCToCpp::GetAttributeCount()
   return _retval;
 }
 
-
-CefString CefXmlReaderCToCpp::GetAttribute(int index)
-{
+CefString CefXmlReaderCToCpp::GetAttribute(int index) {
   if (CEF_MEMBER_MISSING(struct_, get_attribute_byindex))
     return CefString();
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: index; type: simple_byval
-  DCHECK(index >= 0);
+  DCHECK_GE(index, 0);
   if (index < 0)
     return CefString();
 
@@ -337,9 +300,7 @@ CefString CefXmlReaderCToCpp::GetAttribute(int index)
   return _retvalStr;
 }
 
-
-CefString CefXmlReaderCToCpp::GetAttribute(const CefString& qualifiedName)
-{
+CefString CefXmlReaderCToCpp::GetAttribute(const CefString& qualifiedName) {
   if (CEF_MEMBER_MISSING(struct_, get_attribute_byqname))
     return CefString();
 
@@ -360,10 +321,8 @@ CefString CefXmlReaderCToCpp::GetAttribute(const CefString& qualifiedName)
   return _retvalStr;
 }
 
-
 CefString CefXmlReaderCToCpp::GetAttribute(const CefString& localName,
-    const CefString& namespaceURI)
-{
+    const CefString& namespaceURI) {
   if (CEF_MEMBER_MISSING(struct_, get_attribute_bylname))
     return CefString();
 
@@ -389,9 +348,7 @@ CefString CefXmlReaderCToCpp::GetAttribute(const CefString& localName,
   return _retvalStr;
 }
 
-
-CefString CefXmlReaderCToCpp::GetInnerXml()
-{
+CefString CefXmlReaderCToCpp::GetInnerXml() {
   if (CEF_MEMBER_MISSING(struct_, get_inner_xml))
     return CefString();
 
@@ -406,9 +363,7 @@ CefString CefXmlReaderCToCpp::GetInnerXml()
   return _retvalStr;
 }
 
-
-CefString CefXmlReaderCToCpp::GetOuterXml()
-{
+CefString CefXmlReaderCToCpp::GetOuterXml() {
   if (CEF_MEMBER_MISSING(struct_, get_outer_xml))
     return CefString();
 
@@ -423,9 +378,7 @@ CefString CefXmlReaderCToCpp::GetOuterXml()
   return _retvalStr;
 }
 
-
-int CefXmlReaderCToCpp::GetLineNumber()
-{
+int CefXmlReaderCToCpp::GetLineNumber() {
   if (CEF_MEMBER_MISSING(struct_, get_line_number))
     return 0;
 
@@ -438,16 +391,14 @@ int CefXmlReaderCToCpp::GetLineNumber()
   return _retval;
 }
 
-
-bool CefXmlReaderCToCpp::MoveToAttribute(int index)
-{
+bool CefXmlReaderCToCpp::MoveToAttribute(int index) {
   if (CEF_MEMBER_MISSING(struct_, move_to_attribute_byindex))
     return false;
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: index; type: simple_byval
-  DCHECK(index >= 0);
+  DCHECK_GE(index, 0);
   if (index < 0)
     return false;
 
@@ -459,9 +410,7 @@ bool CefXmlReaderCToCpp::MoveToAttribute(int index)
   return _retval?true:false;
 }
 
-
-bool CefXmlReaderCToCpp::MoveToAttribute(const CefString& qualifiedName)
-{
+bool CefXmlReaderCToCpp::MoveToAttribute(const CefString& qualifiedName) {
   if (CEF_MEMBER_MISSING(struct_, move_to_attribute_byqname))
     return false;
 
@@ -480,10 +429,8 @@ bool CefXmlReaderCToCpp::MoveToAttribute(const CefString& qualifiedName)
   return _retval?true:false;
 }
 
-
 bool CefXmlReaderCToCpp::MoveToAttribute(const CefString& localName,
-    const CefString& namespaceURI)
-{
+    const CefString& namespaceURI) {
   if (CEF_MEMBER_MISSING(struct_, move_to_attribute_bylname))
     return false;
 
@@ -507,9 +454,7 @@ bool CefXmlReaderCToCpp::MoveToAttribute(const CefString& localName,
   return _retval?true:false;
 }
 
-
-bool CefXmlReaderCToCpp::MoveToFirstAttribute()
-{
+bool CefXmlReaderCToCpp::MoveToFirstAttribute() {
   if (CEF_MEMBER_MISSING(struct_, move_to_first_attribute))
     return false;
 
@@ -522,9 +467,7 @@ bool CefXmlReaderCToCpp::MoveToFirstAttribute()
   return _retval?true:false;
 }
 
-
-bool CefXmlReaderCToCpp::MoveToNextAttribute()
-{
+bool CefXmlReaderCToCpp::MoveToNextAttribute() {
   if (CEF_MEMBER_MISSING(struct_, move_to_next_attribute))
     return false;
 
@@ -537,9 +480,7 @@ bool CefXmlReaderCToCpp::MoveToNextAttribute()
   return _retval?true:false;
 }
 
-
-bool CefXmlReaderCToCpp::MoveToCarryingElement()
-{
+bool CefXmlReaderCToCpp::MoveToCarryingElement() {
   if (CEF_MEMBER_MISSING(struct_, move_to_carrying_element))
     return false;
 
@@ -551,7 +492,6 @@ bool CefXmlReaderCToCpp::MoveToCarryingElement()
   // Return type: bool
   return _retval?true:false;
 }
-
 
 
 #ifndef NDEBUG

@@ -27,27 +27,28 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef _CEF_STRING_H
-#define _CEF_STRING_H
+#ifndef CEF_INCLUDE_INTERNAL_CEF_STRING_H_
+#define CEF_INCLUDE_INTERNAL_CEF_STRING_H_
+#pragma once
 
 // The CEF interface is built with one string type as the default. Comment out
 // all but one of the CEF_STRING_TYPE_* defines below to specify the default.
 // If you change the default you MUST recompile all of CEF.
 
 // Build with the UTF8 string type as default.
-//#define CEF_STRING_TYPE_UTF8 1
+// #define CEF_STRING_TYPE_UTF8 1
 
 // Build with the UTF16 string type as default.
 #define CEF_STRING_TYPE_UTF16 1
 
 // Build with the wide string type as default.
-//#define CEF_STRING_TYPE_WIDE 1
+// #define CEF_STRING_TYPE_WIDE 1
 
 
-#include "cef_string_types.h"
+#include "include/internal/cef_string_types.h"
 
 #ifdef __cplusplus
-#include "cef_string_wrappers.h"
+#include "include/internal/cef_string_wrappers.h"
 #if defined(CEF_STRING_TYPE_UTF16)
 typedef CefStringUTF16 CefString;
 #elif defined(CEF_STRING_TYPE_UTF8)
@@ -55,7 +56,7 @@ typedef CefStringUTF8 CefString;
 #elif defined(CEF_STRING_TYPE_WIDE)
 typedef CefStringWide CefString;
 #endif
-#endif // __cplusplus
+#endif  // __cplusplus
 
 #if defined(CEF_STRING_TYPE_UTF8)
 typedef char cef_char_t;
@@ -109,4 +110,4 @@ typedef cef_string_userfree_wide_t cef_string_userfree_t;
 #error Please choose a string type.
 #endif
 
-#endif // _CEF_STRING_H
+#endif  // CEF_INCLUDE_INTERNAL_CEF_STRING_H_

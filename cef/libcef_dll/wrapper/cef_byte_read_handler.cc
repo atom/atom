@@ -2,17 +2,16 @@
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 
-#include "include/cef_wrapper.h"
+#include "include/wrapper/cef_byte_read_handler.h"
+#include <stdlib.h>
 #include "libcef_dll/cef_logging.h"
 
 CefByteReadHandler::CefByteReadHandler(const unsigned char* bytes, size_t size,
                                        CefRefPtr<CefBase> source)
-  : bytes_(bytes), size_(size), offset_(0), source_(source)
-{
+  : bytes_(bytes), size_(size), offset_(0), source_(source) {
 }
 
-size_t CefByteReadHandler::Read(void* ptr, size_t size, size_t n)
-{
+size_t CefByteReadHandler::Read(void* ptr, size_t size, size_t n) {
   AutoLock lock_scope(this);
   size_t s = (size_ - offset_) / size;
   size_t ret = std::min(n, s);
@@ -21,25 +20,26 @@ size_t CefByteReadHandler::Read(void* ptr, size_t size, size_t n)
   return ret;
 }
 
-int CefByteReadHandler::Seek(long offset, int whence)
-{
+int CefByteReadHandler::Seek(int64 offset, int whence) {
   int rv = -1L;
   AutoLock lock_scope(this);
-  switch(whence) {
+  switch (whence) {
   case SEEK_CUR:
-    if(offset_ + offset > size_)
+    if (offset_ + offset > size_ || offset_ + offset < 0)
       break;
     offset_ += offset;
     rv = 0;
     break;
-  case SEEK_END:
-    if(offset > static_cast<long>(size_))
+  case SEEK_END: {
+    int64 offset_abs = abs(offset);
+    if (offset_abs > size_)
       break;
-    offset_ = size_ - offset;
+    offset_ = size_ - offset_abs;
     rv = 0;
     break;
+  }
   case SEEK_SET:
-    if(offset > static_cast<long>(size_))
+    if (offset > size_ || offset < 0)
       break;
     offset_ = offset;
     rv = 0;
@@ -49,14 +49,12 @@ int CefByteReadHandler::Seek(long offset, int whence)
   return rv;
 }
 
-long CefByteReadHandler::Tell()
-{
+int64 CefByteReadHandler::Tell() {
   AutoLock lock_scope(this);
   return offset_;
 }
 
-int CefByteReadHandler::Eof()
-{
+int CefByteReadHandler::Eof() {
   AutoLock lock_scope(this);
   return (offset_ >= size_);
 }

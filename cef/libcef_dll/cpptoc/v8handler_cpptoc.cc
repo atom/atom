@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -19,8 +19,7 @@
 int CEF_CALLBACK v8handler_execute(struct _cef_v8handler_t* self,
     const cef_string_t* name, struct _cef_v8value_t* object,
     size_t argumentsCount, struct _cef_v8value_t* const* arguments,
-    struct _cef_v8value_t** retval, cef_string_t* exception)
-{
+    struct _cef_v8value_t** retval, cef_string_t* exception) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -86,12 +85,10 @@ int CEF_CALLBACK v8handler_execute(struct _cef_v8handler_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefV8HandlerCppToC::CefV8HandlerCppToC(CefV8Handler* cls)
-    : CefCppToC<CefV8HandlerCppToC, CefV8Handler, cef_v8handler_t>(cls)
-{
+    : CefCppToC<CefV8HandlerCppToC, CefV8Handler, cef_v8handler_t>(cls) {
   struct_.struct_.execute = v8handler_execute;
 }
 

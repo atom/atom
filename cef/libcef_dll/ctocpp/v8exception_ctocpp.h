@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -10,24 +10,25 @@
 // for more information.
 //
 
-#ifndef _V8EXCEPTION_CTOCPP_H
-#define _V8EXCEPTION_CTOCPP_H
+#ifndef CEF_LIBCEF_DLL_CTOCPP_V8EXCEPTION_CTOCPP_H_
+#define CEF_LIBCEF_DLL_CTOCPP_V8EXCEPTION_CTOCPP_H_
+#pragma once
 
 #ifndef USING_CEF_SHARED
 #pragma message("Warning: "__FILE__" may be accessed wrapper-side only")
-#else // USING_CEF_SHARED
+#else  // USING_CEF_SHARED
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_v8.h"
+#include "include/capi/cef_v8_capi.h"
 #include "libcef_dll/ctocpp/ctocpp.h"
 
 // Wrap a C structure with a C++ class.
 // This class may be instantiated and accessed wrapper-side only.
 class CefV8ExceptionCToCpp
-    : public CefCToCpp<CefV8ExceptionCToCpp, CefV8Exception, cef_v8exception_t>
-{
-public:
-  CefV8ExceptionCToCpp(cef_v8exception_t* str)
+    : public CefCToCpp<CefV8ExceptionCToCpp, CefV8Exception,
+        cef_v8exception_t> {
+ public:
+  explicit CefV8ExceptionCToCpp(cef_v8exception_t* str)
       : CefCToCpp<CefV8ExceptionCToCpp, CefV8Exception, cef_v8exception_t>(
           str) {}
   virtual ~CefV8ExceptionCToCpp() {}
@@ -43,6 +44,6 @@ public:
   virtual int GetEndColumn() OVERRIDE;
 };
 
-#endif // USING_CEF_SHARED
-#endif // _V8EXCEPTION_CTOCPP_H
+#endif  // USING_CEF_SHARED
+#endif  // CEF_LIBCEF_DLL_CTOCPP_V8EXCEPTION_CTOCPP_H_
 

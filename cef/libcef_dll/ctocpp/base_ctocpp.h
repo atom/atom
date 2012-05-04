@@ -2,22 +2,21 @@
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 
-#ifndef _BASE_CTOCPP_H
-#define _BASE_CTOCPP_H
+#ifndef CEF_LIBCEF_DLL_CTOCPP_BASE_CTOCPP_H_
+#define CEF_LIBCEF_DLL_CTOCPP_BASE_CTOCPP_H_
+#pragma once
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_base.h"
+#include "include/capi/cef_base_capi.h"
 #include "libcef_dll/cef_logging.h"
 
 
 // CefCToCpp implementation for CefBase.
-class CefBaseCToCpp : public CefBase
-{
-public:
+class CefBaseCToCpp : public CefBase {
+ public:
   // Use this method to create a wrapper class instance for a structure
   // received from the other side.
-  static CefRefPtr<CefBase> Wrap(cef_base_t* s)
-  {
+  static CefRefPtr<CefBase> Wrap(cef_base_t* s) {
     if (!s)
       return NULL;
 
@@ -34,8 +33,7 @@ public:
 
   // Use this method to retrieve the underlying structure from a wrapper class
   // instance for return back to the other side.
-  static cef_base_t* Unwrap(CefRefPtr<CefBase> c)
-  {
+  static cef_base_t* Unwrap(CefRefPtr<CefBase> c) {
     if (!c.get())
       return NULL;
 
@@ -48,9 +46,8 @@ public:
     return wrapper->GetStruct();
   }
 
-  CefBaseCToCpp(cef_base_t* str)
-    : struct_(str)
-  {
+  explicit CefBaseCToCpp(cef_base_t* str)
+    : struct_(str) {
     DCHECK(str);
   }
   virtual ~CefBaseCToCpp() {}
@@ -62,13 +59,11 @@ public:
 
   // CefBase methods increment/decrement reference counts on both this object
   // and the underlying wrapped structure.
-  int AddRef()
-  {
+  int AddRef() {
     UnderlyingAddRef();
     return refct_.AddRef();
   }
-  int Release()
-  {
+  int Release() {
     UnderlyingRelease();
     int retval = refct_.Release();
     if (retval == 0)
@@ -78,29 +73,26 @@ public:
   int GetRefCt() { return refct_.GetRefCt(); }
 
   // Increment/decrement reference counts on only the underlying class.
-  int UnderlyingAddRef()
-  {
-    if(!struct_->add_ref)
+  int UnderlyingAddRef() {
+    if (!struct_->add_ref)
       return 0;
     return struct_->add_ref(struct_);
   }
-  int UnderlyingRelease()
-  {
-    if(!struct_->release)
+  int UnderlyingRelease() {
+    if (!struct_->release)
       return 0;
     return struct_->release(struct_);
   }
-  int UnderlyingGetRefCt()
-  {
-    if(!struct_->get_refct)
+  int UnderlyingGetRefCt() {
+    if (!struct_->get_refct)
       return 0;
     return struct_->get_refct(struct_);
   }
 
-protected:
+ protected:
   CefRefCount refct_;
   cef_base_t* struct_;
 };
 
 
-#endif // _BASE_CTOCPP_H
+#endif  // CEF_LIBCEF_DLL_CTOCPP_BASE_CTOCPP_H_

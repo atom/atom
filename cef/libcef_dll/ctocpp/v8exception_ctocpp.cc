@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -15,8 +15,7 @@
 
 // VIRTUAL METHODS - Body may be edited by hand.
 
-CefString CefV8ExceptionCToCpp::GetMessage()
-{
+CefString CefV8ExceptionCToCpp::GetMessage() {
   if (CEF_MEMBER_MISSING(struct_, get_message))
     return CefString();
 
@@ -31,9 +30,7 @@ CefString CefV8ExceptionCToCpp::GetMessage()
   return _retvalStr;
 }
 
-
-CefString CefV8ExceptionCToCpp::GetSourceLine()
-{
+CefString CefV8ExceptionCToCpp::GetSourceLine() {
   if (CEF_MEMBER_MISSING(struct_, get_source_line))
     return CefString();
 
@@ -48,9 +45,7 @@ CefString CefV8ExceptionCToCpp::GetSourceLine()
   return _retvalStr;
 }
 
-
-CefString CefV8ExceptionCToCpp::GetScriptResourceName()
-{
+CefString CefV8ExceptionCToCpp::GetScriptResourceName() {
   if (CEF_MEMBER_MISSING(struct_, get_script_resource_name))
     return CefString();
 
@@ -65,9 +60,7 @@ CefString CefV8ExceptionCToCpp::GetScriptResourceName()
   return _retvalStr;
 }
 
-
-int CefV8ExceptionCToCpp::GetLineNumber()
-{
+int CefV8ExceptionCToCpp::GetLineNumber() {
   if (CEF_MEMBER_MISSING(struct_, get_line_number))
     return 0;
 
@@ -80,9 +73,7 @@ int CefV8ExceptionCToCpp::GetLineNumber()
   return _retval;
 }
 
-
-int CefV8ExceptionCToCpp::GetStartPosition()
-{
+int CefV8ExceptionCToCpp::GetStartPosition() {
   if (CEF_MEMBER_MISSING(struct_, get_start_position))
     return 0;
 
@@ -95,9 +86,7 @@ int CefV8ExceptionCToCpp::GetStartPosition()
   return _retval;
 }
 
-
-int CefV8ExceptionCToCpp::GetEndPosition()
-{
+int CefV8ExceptionCToCpp::GetEndPosition() {
   if (CEF_MEMBER_MISSING(struct_, get_end_position))
     return 0;
 
@@ -110,9 +99,7 @@ int CefV8ExceptionCToCpp::GetEndPosition()
   return _retval;
 }
 
-
-int CefV8ExceptionCToCpp::GetStartColumn()
-{
+int CefV8ExceptionCToCpp::GetStartColumn() {
   if (CEF_MEMBER_MISSING(struct_, get_start_column))
     return 0;
 
@@ -125,9 +112,7 @@ int CefV8ExceptionCToCpp::GetStartColumn()
   return _retval;
 }
 
-
-int CefV8ExceptionCToCpp::GetEndColumn()
-{
+int CefV8ExceptionCToCpp::GetEndColumn() {
   if (CEF_MEMBER_MISSING(struct_, get_end_column))
     return 0;
 
@@ -139,7 +124,6 @@ int CefV8ExceptionCToCpp::GetEndColumn()
   // Return type: simple
   return _retval;
 }
-
 
 
 #ifndef NDEBUG

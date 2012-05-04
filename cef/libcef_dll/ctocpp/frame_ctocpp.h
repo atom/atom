@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -10,24 +10,28 @@
 // for more information.
 //
 
-#ifndef _FRAME_CTOCPP_H
-#define _FRAME_CTOCPP_H
+#ifndef CEF_LIBCEF_DLL_CTOCPP_FRAME_CTOCPP_H_
+#define CEF_LIBCEF_DLL_CTOCPP_FRAME_CTOCPP_H_
+#pragma once
 
 #ifndef USING_CEF_SHARED
 #pragma message("Warning: "__FILE__" may be accessed wrapper-side only")
-#else // USING_CEF_SHARED
+#else  // USING_CEF_SHARED
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_frame.h"
+#include "include/capi/cef_frame_capi.h"
+#include "include/cef_browser.h"
+#include "include/capi/cef_browser_capi.h"
+#include "include/cef_v8.h"
+#include "include/capi/cef_v8_capi.h"
 #include "libcef_dll/ctocpp/ctocpp.h"
 
 // Wrap a C structure with a C++ class.
 // This class may be instantiated and accessed wrapper-side only.
 class CefFrameCToCpp
-    : public CefCToCpp<CefFrameCToCpp, CefFrame, cef_frame_t>
-{
-public:
-  CefFrameCToCpp(cef_frame_t* str)
+    : public CefCToCpp<CefFrameCToCpp, CefFrame, cef_frame_t> {
+ public:
+  explicit CefFrameCToCpp(cef_frame_t* str)
       : CefCToCpp<CefFrameCToCpp, CefFrame, cef_frame_t>(str) {}
   virtual ~CefFrameCToCpp() {}
 
@@ -45,7 +49,7 @@ public:
   virtual CefString GetText() OVERRIDE;
   virtual void LoadRequest(CefRefPtr<CefRequest> request) OVERRIDE;
   virtual void LoadURL(const CefString& url) OVERRIDE;
-  virtual void LoadString(const CefString& string,
+  virtual void LoadString(const CefString& string_val,
       const CefString& url) OVERRIDE;
   virtual void LoadStream(CefRefPtr<CefStreamReader> stream,
       const CefString& url) OVERRIDE;
@@ -54,7 +58,7 @@ public:
   virtual bool IsMain() OVERRIDE;
   virtual bool IsFocused() OVERRIDE;
   virtual CefString GetName() OVERRIDE;
-  virtual long long GetIdentifier() OVERRIDE;
+  virtual int64 GetIdentifier() OVERRIDE;
   virtual CefRefPtr<CefFrame> GetParent() OVERRIDE;
   virtual CefString GetURL() OVERRIDE;
   virtual CefRefPtr<CefBrowser> GetBrowser() OVERRIDE;
@@ -62,6 +66,6 @@ public:
   virtual CefRefPtr<CefV8Context> GetV8Context() OVERRIDE;
 };
 
-#endif // USING_CEF_SHARED
-#endif // _FRAME_CTOCPP_H
+#endif  // USING_CEF_SHARED
+#endif  // CEF_LIBCEF_DLL_CTOCPP_FRAME_CTOCPP_H_
 

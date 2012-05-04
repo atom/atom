@@ -28,22 +28,58 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef _CEF_NPLUGIN_CAPI_H
-#define _CEF_NPLUGIN_CAPI_H
+#ifndef CEF_INCLUDE_CAPI_CEF_BASE_CAPI_H_
+#define CEF_INCLUDE_CAPI_CEF_BASE_CAPI_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "internal/cef_nplugin_types.h"
+#include "include/internal/cef_export.h"
+#include "include/internal/cef_string.h"
+#include "include/internal/cef_string_list.h"
+#include "include/internal/cef_string_map.h"
+#include "include/internal/cef_string_multimap.h"
+#include "include/internal/cef_types.h"
 
 ///
-// Register a plugin with the system.  Returns true (1) on success.
+// Structure defining the reference count implementation functions. All
+// framework structures must include the cef_base_t structure first.
 ///
-CEF_EXPORT int cef_register_plugin(const cef_plugin_info_t* plugin_info);
+typedef struct _cef_base_t {
+  ///
+  // Size of the data structure.
+  ///
+  size_t size;
+
+  ///
+  // Increment the reference count.
+  ///
+  int (CEF_CALLBACK *add_ref)(struct _cef_base_t* self);
+
+  ///
+  // Decrement the reference count.  Delete this object when no references
+  // remain.
+  ///
+  int (CEF_CALLBACK *release)(struct _cef_base_t* self);
+
+  ///
+  // Returns the current number of references.
+  ///
+  int (CEF_CALLBACK *get_refct)(struct _cef_base_t* self);
+} cef_base_t;
+
+
+// Check that the structure |s|, which is defined with a cef_base_t member named
+// |base|, is large enough to contain the specified member |f|.
+#define CEF_MEMBER_EXISTS(s, f)   \
+  ((intptr_t)&((s)->f) - (intptr_t)(s) + sizeof((s)->f) <= (s)->base.size)
+
+#define CEF_MEMBER_MISSING(s, f)  (!CEF_MEMBER_EXISTS(s, f) || !((s)->f))
+
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // _CEF_NPLUGIN_CAPI_H
+#endif  // CEF_INCLUDE_CAPI_CEF_BASE_CAPI_H_

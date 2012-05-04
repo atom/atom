@@ -1,4 +1,4 @@
-// Copyright (c) 2010 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2011 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -33,12 +33,16 @@
 // against the libcef_dll_wrapper target.
 //
 
-#ifndef _CEF_WRAPPER_H
-#define _CEF_WRAPPER_H
+#ifndef CEF_INCLUDE_WRAPPER_CEF_XML_OBJECT_H_
+#define CEF_INCLUDE_WRAPPER_CEF_XML_OBJECT_H_
+#pragma once
 
-#include "cef.h"
+#include "include/cef_base.h"
+#include "include/cef_xml_reader.h"
 #include <map>
 #include <vector>
+
+class CefStreamReader;
 
 ///
 // Thread safe class for representing XML data as a structured object. This
@@ -63,9 +67,8 @@
 //     (c) Element nodes are represented by their outer XML string.
 // </pre>
 ///
-class CefXmlObject : public CefBase
-{
-public:
+class CefXmlObject : public CefBase {
+ public:
   typedef std::vector<CefRefPtr<CefXmlObject> > ObjectVector;
   typedef std::map<CefString, CefString > AttributeMap;
 
@@ -73,7 +76,7 @@ public:
   // Create a new object with the specified name. An object name must always be
   // at least one character long.
   ///
-  CefXmlObject(const CefString& name);
+  explicit CefXmlObject(const CefString& name);
   virtual ~CefXmlObject();
 
   ///
@@ -169,7 +172,7 @@ public:
   ///
   size_t FindChildren(const CefString& name, ObjectVector& children);
 
-private:
+ private:
   void SetParent(CefXmlObject* parent);
 
   CefString name_;
@@ -182,141 +185,4 @@ private:
   IMPLEMENT_LOCKING(CefXmlObject);
 };
 
-
-///
-// Thread safe implementation of the CefReadHandler class for reading an
-// in-memory array of bytes.
-///
-class CefByteReadHandler : public CefReadHandler
-{
-public:
-  ///
-  // Create a new object for reading an array of bytes. An optional |source|
-  // reference can be kept to keep the underlying data source from being
-  // released while the reader exists.
-  ///
-  CefByteReadHandler(const unsigned char* bytes, size_t size,
-                     CefRefPtr<CefBase> source);
-
-  ///
-  // Read raw binary data.
-  ///
-  virtual size_t Read(void* ptr, size_t size, size_t n);
-
-  ///
-  // Seek to the specified offset position. |whence| may be any one of
-  // SEEK_CUR, SEEK_END or SEEK_SET.
-  ///
-  virtual int Seek(long offset, int whence);
-
-  ///
-  // Return the current offset position.
-  ///
-  virtual long Tell();
-
-  ///
-  // Return non-zero if at end of file.
-  ///
-  virtual int Eof();
-
-private:
-  const unsigned char* bytes_;
-  size_t size_;
-  size_t offset_;
-  CefRefPtr<CefBase> source_;
-
-  IMPLEMENT_REFCOUNTING(CefByteReadHandler);
-  IMPLEMENT_LOCKING(CefByteReadHandler);
-};
-
-
-///
-// Thread-safe class for accessing zip archive file contents. This class should
-// not be used with large archive files because all data will be resident in
-// memory at the same time. This implementation supports a restricted set of zip
-// archive features:
-// (1) Password-protected files are not supported.
-// (2) All file names are stored and compared in lower case.
-// (3) File ordering from the original zip archive is not maintained. This
-//     means that files from the same folder may not be located together in the
-//     file content map.
-///
-class CefZipArchive : public CefBase
-{
-public:
-  ///
-  // Class representing a file in the archive. Accessing the file data from
-  // multiple threads is safe provided a reference to the File object is kept.
-  ///
-  class File : public CefBase
-  {
-  public:
-    ///
-    // Returns the read-only data contained in the file.
-    ///
-    virtual const unsigned char* GetData() =0;
-
-    ///
-    // Returns the size of the data in the file.
-    ///
-    virtual size_t GetDataSize() =0;
-
-    ///
-    // Returns a CefStreamReader object for streaming the contents of the file.
-    ///
-    virtual CefRefPtr<CefStreamReader> GetStreamReader() =0;
-  };
-  typedef std::map<CefString, CefRefPtr<File> > FileMap;
-
-  ///
-  // Create a new object.
-  ///
-  CefZipArchive();
-  virtual ~CefZipArchive();
-
-  ///
-  // Load the contents of the specified zip archive stream into this object.
-  // If |overwriteExisting| is true then any files in this object that also
-  // exist in the specified archive will be replaced with the new files.
-  // Returns the number of files successfully loaded.
-  ///
-  size_t Load(CefRefPtr<CefStreamReader> stream, bool overwriteExisting);
-
-  ///
-  // Clears the contents of this object.
-  ///
-  void Clear();
-
-  ///
-  // Returns the number of files in the archive.
-  ///
-  size_t GetFileCount();
-
-  ///
-  // Returns true if the specified file exists and has contents.
-  ///
-  bool HasFile(const CefString& fileName);
-
-  ///
-  // Returns the specified file.
-  ///
-  CefRefPtr<File> GetFile(const CefString& fileName);
-
-  ///
-  // Removes the specified file.
-  ///
-  bool RemoveFile(const CefString& fileName);
-
-  ///
-  // Returns the map of all files.
-  ///
-  size_t GetFiles(FileMap& map);
-
-private:
-  FileMap contents_;
-
-  IMPLEMENT_REFCOUNTING(CefZipArchive);
-  IMPLEMENT_LOCKING(CefZipArchive);
-};
-
-#endif // _CEF_WRAPPER_H
+#endif  // CEF_INCLUDE_WRAPPER_CEF_XML_OBJECT_H_

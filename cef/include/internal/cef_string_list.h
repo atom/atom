@@ -27,11 +27,12 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef _CEF_STRING_LIST_H
-#define _CEF_STRING_LIST_H
+#ifndef CEF_INCLUDE_INTERNAL_CEF_STRING_LIST_H_
+#define CEF_INCLUDE_INTERNAL_CEF_STRING_LIST_H_
+#pragma once
 
-#include "cef_export.h"
-#include "cef_string.h"
+#include "include/internal/cef_export.h"
+#include "include/internal/cef_string.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,4 +85,4 @@ CEF_EXPORT cef_string_list_t cef_string_list_copy(cef_string_list_t list);
 }
 #endif
 
-#endif // _CEF_STRING_LIST_H
+#endif  // CEF_INCLUDE_INTERNAL_CEF_STRING_LIST_H_

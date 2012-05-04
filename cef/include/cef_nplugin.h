@@ -28,8 +28,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef _CEF_NPLUGIN_H
-#define _CEF_NPLUGIN_H
+#ifndef CEF_INCLUDE_CEF_NPLUGIN_H_
+#define CEF_INCLUDE_CEF_NPLUGIN_H_
+#pragma once
 
 #include "internal/cef_nplugin_types.h"
 
@@ -44,31 +45,25 @@
 // This class provides attribute information and entry point functions for a
 // plugin.
 ///
-class CefPluginInfo : public cef_plugin_info_t
-{
-public:
-  CefPluginInfo()
-  {
+class CefPluginInfo : public cef_plugin_info_t {
+ public:
+  CefPluginInfo() {
     Init();
   }
-  virtual ~CefPluginInfo()
-  {
+  virtual ~CefPluginInfo() {
     Reset();
   }
 
-  CefPluginInfo(const CefPluginInfo& r)
-  {
+  CefPluginInfo(const CefPluginInfo& r) {  // NOLINT(runtime/explicit)
     Init();
     *this = r;
   }
-  CefPluginInfo(const cef_plugin_info_t& r)
-  {
+  CefPluginInfo(const cef_plugin_info_t& r) {  // NOLINT(runtime/explicit)
     Init();
     *this = r;
   }
 
-  void Reset()
-  {
+  void Reset() {
     cef_string_clear(&unique_name);
     cef_string_clear(&display_name);
     cef_string_clear(&version);
@@ -79,24 +74,20 @@ public:
     Init();
   }
 
-  void Attach(const cef_plugin_info_t& r)
-  {
+  void Attach(const cef_plugin_info_t& r) {
     Reset();
     *static_cast<cef_plugin_info_t*>(this) = r;
   }
 
-  void Detach()
-  {
+  void Detach() {
     Init();
   }
 
-  CefPluginInfo& operator=(const CefPluginInfo& r)
-  {
+  CefPluginInfo& operator=(const CefPluginInfo& r) {
     return operator=(static_cast<const cef_plugin_info_t&>(r));
   }
 
-  CefPluginInfo& operator=(const cef_plugin_info_t& r)
-  {
+  CefPluginInfo& operator=(const cef_plugin_info_t& r) {
     cef_string_copy(r.unique_name.str, r.unique_name.length, &unique_name);
     cef_string_copy(r.display_name.str, r.display_name.length, &display_name);
     cef_string_copy(r.version.str, r.version.length, &version);
@@ -114,9 +105,8 @@ public:
     return *this;
   }
 
-protected:
-  void Init()
-  {
+ protected:
+  void Init() {
     memset(static_cast<cef_plugin_info_t*>(this), 0, sizeof(cef_plugin_info_t));
   }
 };
@@ -126,4 +116,4 @@ protected:
 ///
 bool CefRegisterPlugin(const CefPluginInfo& plugin_info);
 
-#endif // _CEF_NPLUGIN_H
+#endif  // CEF_INCLUDE_CEF_NPLUGIN_H_

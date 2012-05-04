@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 
 void CEF_CALLBACK proxy_handler_get_proxy_for_url(
     struct _cef_proxy_handler_t* self, const cef_string_t* url,
-    struct _cef_proxy_info_t* proxy_info)
-{
+    struct _cef_proxy_info_t* proxy_info) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -49,13 +48,11 @@ void CEF_CALLBACK proxy_handler_get_proxy_for_url(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefProxyHandlerCppToC::CefProxyHandlerCppToC(CefProxyHandler* cls)
     : CefCppToC<CefProxyHandlerCppToC, CefProxyHandler, cef_proxy_handler_t>(
-        cls)
-{
+        cls) {
   struct_.struct_.get_proxy_for_url = proxy_handler_get_proxy_for_url;
 }
 

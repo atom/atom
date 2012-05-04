@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -10,24 +10,24 @@
 // for more information.
 //
 
-#ifndef _ZIPREADER_CTOCPP_H
-#define _ZIPREADER_CTOCPP_H
+#ifndef CEF_LIBCEF_DLL_CTOCPP_ZIP_READER_CTOCPP_H_
+#define CEF_LIBCEF_DLL_CTOCPP_ZIP_READER_CTOCPP_H_
+#pragma once
 
 #ifndef USING_CEF_SHARED
 #pragma message("Warning: "__FILE__" may be accessed wrapper-side only")
-#else // USING_CEF_SHARED
+#else  // USING_CEF_SHARED
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_zip_reader.h"
+#include "include/capi/cef_zip_reader_capi.h"
 #include "libcef_dll/ctocpp/ctocpp.h"
 
 // Wrap a C structure with a C++ class.
 // This class may be instantiated and accessed wrapper-side only.
 class CefZipReaderCToCpp
-    : public CefCToCpp<CefZipReaderCToCpp, CefZipReader, cef_zip_reader_t>
-{
-public:
-  CefZipReaderCToCpp(cef_zip_reader_t* str)
+    : public CefCToCpp<CefZipReaderCToCpp, CefZipReader, cef_zip_reader_t> {
+ public:
+  explicit CefZipReaderCToCpp(cef_zip_reader_t* str)
       : CefCToCpp<CefZipReaderCToCpp, CefZipReader, cef_zip_reader_t>(str) {}
   virtual ~CefZipReaderCToCpp() {}
 
@@ -38,15 +38,15 @@ public:
       bool caseSensitive) OVERRIDE;
   virtual bool Close() OVERRIDE;
   virtual CefString GetFileName() OVERRIDE;
-  virtual long GetFileSize() OVERRIDE;
+  virtual int64 GetFileSize() OVERRIDE;
   virtual time_t GetFileLastModified() OVERRIDE;
   virtual bool OpenFile(const CefString& password) OVERRIDE;
   virtual bool CloseFile() OVERRIDE;
   virtual int ReadFile(void* buffer, size_t bufferSize) OVERRIDE;
-  virtual long Tell() OVERRIDE;
+  virtual int64 Tell() OVERRIDE;
   virtual bool Eof() OVERRIDE;
 };
 
-#endif // USING_CEF_SHARED
-#endif // _ZIPREADER_CTOCPP_H
+#endif  // USING_CEF_SHARED
+#endif  // CEF_LIBCEF_DLL_CTOCPP_ZIP_READER_CTOCPP_H_
 

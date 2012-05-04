@@ -53,8 +53,8 @@
 //   DispatchToMethod(&foo, &Foo::SomeMeth, MakeTuple(1, 2, 3));
 //   // foo->SomeMeth(1, 2, 3);
 
-#ifndef BASE_TUPLE_H__
-#define BASE_TUPLE_H__
+#ifndef CEF_INCLUDE_INTERNAL_CEF_TUPLE_H_
+#define CEF_INCLUDE_INTERNAL_CEF_TUPLE_H_
 #pragma once
 
 #if defined(OS_CHROMEOS)
@@ -144,7 +144,7 @@ struct Tuple3 {
   Tuple3(typename TupleTraits<A>::ParamType a,
          typename TupleTraits<B>::ParamType b,
          typename TupleTraits<C>::ParamType c)
-      : a(a), b(b), c(c){
+      : a(a), b(b), c(c) {
   }
 
   A a;
@@ -575,7 +575,6 @@ inline void DispatchToMethod(ObjT* obj, Method method, const A& arg) {
 
 template <class ObjT, class Method, class A>
 inline void DispatchToMethod(ObjT* obj, Method method, const Tuple1<A>& arg) {
-
 #if defined(OS_CHROMEOS)
   // To troubleshoot crosbug.com/7327.
   CHECK(obj);
@@ -1080,4 +1079,4 @@ inline void DispatchToMethod(ObjT* obj, Method method,
                  &out->a, &out->b, &out->c, &out->d, &out->e);
 }
 
-#endif  // BASE_TUPLE_H__
+#endif  // CEF_INCLUDE_INTERNAL_CEF_TUPLE_H_

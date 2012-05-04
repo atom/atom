@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -18,8 +18,7 @@
 int CEF_CALLBACK storage_visitor_visit(struct _cef_storage_visitor_t* self,
     enum cef_storage_type_t type, const cef_string_t* origin,
     const cef_string_t* key, const cef_string_t* value, int count, int total,
-    int* deleteData)
-{
+    int* deleteData) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -64,13 +63,11 @@ int CEF_CALLBACK storage_visitor_visit(struct _cef_storage_visitor_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefStorageVisitorCppToC::CefStorageVisitorCppToC(CefStorageVisitor* cls)
     : CefCppToC<CefStorageVisitorCppToC, CefStorageVisitor,
-        cef_storage_visitor_t>(cls)
-{
+        cef_storage_visitor_t>(cls) {
   struct_.struct_.visit = storage_visitor_visit;
 }
 

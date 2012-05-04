@@ -28,15 +28,16 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef _CEF_NPLUGIN_TYPES_H
-#define _CEF_NPLUGIN_TYPES_H
+#ifndef CEF_INCLUDE_INTERNAL_CEF_NPLUGIN_TYPES_H_
+#define CEF_INCLUDE_INTERNAL_CEF_NPLUGIN_TYPES_H_
+#pragma once
 
-#include "cef_export.h"
-#include "cef_string.h"
+#include "include/internal/cef_export.h"
+#include "include/internal/cef_string.h"
 // Include path modified for CEF Binary Distribution.
-#include "npapi/npapi.h"
+#include "include/internal/npapi/npapi.h"
 // Include path modified for CEF Binary Distribution.
-#include "npapi/nphostapi.h"
+#include "include/internal/npapi/nphostapi.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,15 +64,15 @@ typedef struct _cef_plugin_info_t {
 
   // A description of the plugin.
   cef_string_t description;
-  
+
   // A pipe (|) delimited list of mime type values that the plugin supports.
   cef_string_t mime_types;
-  
+
   // A pipe (|) delimited list of extension values. Each value is associated
   // with the mime type value at the same position. Multiple file extensions
   // for the same mime type may be delimited with commas (,).
   cef_string_t file_extensions;
-  
+
   // A pipe (|) delimited list of description values. Each value is associated
   // with the mime type value at the same position.
   cef_string_t type_descriptions;
@@ -88,4 +89,4 @@ typedef struct _cef_plugin_info_t {
 }
 #endif
 
-#endif // _CEF_NPLUGIN_TYPES_H
+#endif  // CEF_INCLUDE_INTERNAL_CEF_NPLUGIN_TYPES_H_

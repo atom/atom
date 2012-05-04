@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -18,8 +18,7 @@
 
 // STATIC METHODS - Body may be edited by hand.
 
-CefRefPtr<CefV8Context> CefV8Context::GetCurrentContext()
-{
+CefRefPtr<CefV8Context> CefV8Context::GetCurrentContext() {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -29,9 +28,7 @@ CefRefPtr<CefV8Context> CefV8Context::GetCurrentContext()
   return CefV8ContextCToCpp::Wrap(_retval);
 }
 
-
-CefRefPtr<CefV8Context> CefV8Context::GetEnteredContext()
-{
+CefRefPtr<CefV8Context> CefV8Context::GetEnteredContext() {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -41,9 +38,7 @@ CefRefPtr<CefV8Context> CefV8Context::GetEnteredContext()
   return CefV8ContextCToCpp::Wrap(_retval);
 }
 
-
-bool CefV8Context::InContext()
-{
+bool CefV8Context::InContext() {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -54,11 +49,9 @@ bool CefV8Context::InContext()
 }
 
 
-
 // VIRTUAL METHODS - Body may be edited by hand.
 
-CefRefPtr<CefBrowser> CefV8ContextCToCpp::GetBrowser()
-{
+CefRefPtr<CefBrowser> CefV8ContextCToCpp::GetBrowser() {
   if (CEF_MEMBER_MISSING(struct_, get_browser))
     return NULL;
 
@@ -71,9 +64,7 @@ CefRefPtr<CefBrowser> CefV8ContextCToCpp::GetBrowser()
   return CefBrowserCToCpp::Wrap(_retval);
 }
 
-
-CefRefPtr<CefFrame> CefV8ContextCToCpp::GetFrame()
-{
+CefRefPtr<CefFrame> CefV8ContextCToCpp::GetFrame() {
   if (CEF_MEMBER_MISSING(struct_, get_frame))
     return NULL;
 
@@ -86,9 +77,7 @@ CefRefPtr<CefFrame> CefV8ContextCToCpp::GetFrame()
   return CefFrameCToCpp::Wrap(_retval);
 }
 
-
-CefRefPtr<CefV8Value> CefV8ContextCToCpp::GetGlobal()
-{
+CefRefPtr<CefV8Value> CefV8ContextCToCpp::GetGlobal() {
   if (CEF_MEMBER_MISSING(struct_, get_global))
     return NULL;
 
@@ -101,9 +90,7 @@ CefRefPtr<CefV8Value> CefV8ContextCToCpp::GetGlobal()
   return CefV8ValueCToCpp::Wrap(_retval);
 }
 
-
-bool CefV8ContextCToCpp::Enter()
-{
+bool CefV8ContextCToCpp::Enter() {
   if (CEF_MEMBER_MISSING(struct_, enter))
     return false;
 
@@ -116,9 +103,7 @@ bool CefV8ContextCToCpp::Enter()
   return _retval?true:false;
 }
 
-
-bool CefV8ContextCToCpp::Exit()
-{
+bool CefV8ContextCToCpp::Exit() {
   if (CEF_MEMBER_MISSING(struct_, exit))
     return false;
 
@@ -131,9 +116,7 @@ bool CefV8ContextCToCpp::Exit()
   return _retval?true:false;
 }
 
-
-bool CefV8ContextCToCpp::IsSame(CefRefPtr<CefV8Context> that)
-{
+bool CefV8ContextCToCpp::IsSame(CefRefPtr<CefV8Context> that) {
   if (CEF_MEMBER_MISSING(struct_, is_same))
     return false;
 
@@ -151,7 +134,6 @@ bool CefV8ContextCToCpp::IsSame(CefRefPtr<CefV8Context> that)
   // Return type: bool
   return _retval?true:false;
 }
-
 
 
 #ifndef NDEBUG

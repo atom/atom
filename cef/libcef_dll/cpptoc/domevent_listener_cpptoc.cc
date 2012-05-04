@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
 void CEF_CALLBACK domevent_listener_handle_event(
-    struct _cef_domevent_listener_t* self, cef_domevent_t* event)
-{
+    struct _cef_domevent_listener_t* self, cef_domevent_t* event) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -35,13 +34,11 @@ void CEF_CALLBACK domevent_listener_handle_event(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefDOMEventListenerCppToC::CefDOMEventListenerCppToC(CefDOMEventListener* cls)
     : CefCppToC<CefDOMEventListenerCppToC, CefDOMEventListener,
-        cef_domevent_listener_t>(cls)
-{
+        cef_domevent_listener_t>(cls) {
   struct_.struct_.handle_event = domevent_listener_handle_event;
 }
 

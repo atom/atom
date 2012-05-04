@@ -2,20 +2,23 @@
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 
-#include "include/cef_wrapper.h"
-#include "libcef_dll/cef_logging.h"
-#include <algorithm>
-
 #if defined(__linux__)
 #include <wctype.h>
 #endif
 
+#include <algorithm>
+#include <vector>
+#include "include/wrapper/cef_zip_archive.h"
+#include "include/cef_stream.h"
+#include "include/cef_zip_reader.h"
+#include "include/wrapper/cef_byte_read_handler.h"
+#include "libcef_dll/cef_logging.h"
+
 namespace {
 
-class CefZipFile : public CefZipArchive::File
-{
-public:
-  CefZipFile(size_t size) : data_(size) {}
+class CefZipFile : public CefZipArchive::File {
+ public:
+  explicit CefZipFile(size_t size) : data_(size) {}
   ~CefZipFile() {}
 
   // Returns the read-only data contained in the file.
@@ -33,27 +36,24 @@ public:
 
   std::vector<unsigned char>* GetDataVector() { return &data_; }
 
-private:
+ private:
   std::vector<unsigned char> data_;
 
   IMPLEMENT_REFCOUNTING(CefZipFile);
 };
 
-} // namespace
+}  // namespace
 
 // CefZipArchive implementation
 
-CefZipArchive::CefZipArchive()
-{
+CefZipArchive::CefZipArchive() {
 }
 
-CefZipArchive::~CefZipArchive()
-{
+CefZipArchive::~CefZipArchive() {
 }
 
 size_t CefZipArchive::Load(CefRefPtr<CefStreamReader> stream,
-                           bool overwriteExisting)
-{
+                           bool overwriteExisting) {
   AutoLock lock_scope(this);
 
   CefRefPtr<CefZipReader> reader(CefZipReader::Create(stream));
@@ -78,7 +78,7 @@ size_t CefZipArchive::Load(CefRefPtr<CefStreamReader> stream,
 
     if (!reader->OpenFile(CefString()))
       break;
-    
+
     name = reader->GetFileName();
     std::transform(name.begin(), name.end(), name.begin(), towlower);
 
@@ -86,7 +86,7 @@ size_t CefZipArchive::Load(CefRefPtr<CefStreamReader> stream,
     if (it != contents_.end()) {
       if (overwriteExisting)
         contents_.erase(it);
-      else // Skip files that already exist.
+      else  // Skip files that already exist.
         continue;
     }
 
@@ -111,20 +111,17 @@ size_t CefZipArchive::Load(CefRefPtr<CefStreamReader> stream,
   return count;
 }
 
-void CefZipArchive::Clear()
-{
+void CefZipArchive::Clear() {
   AutoLock lock_scope(this);
-  contents_.empty();
+  contents_.clear();
 }
 
-size_t CefZipArchive::GetFileCount()
-{
+size_t CefZipArchive::GetFileCount() {
   AutoLock lock_scope(this);
   return contents_.size();
 }
 
-bool CefZipArchive::HasFile(const CefString& fileName)
-{
+bool CefZipArchive::HasFile(const CefString& fileName) {
   std::wstring str = fileName;
   std::transform(str.begin(), str.end(), str.begin(), towlower);
 
@@ -134,8 +131,7 @@ bool CefZipArchive::HasFile(const CefString& fileName)
 }
 
 CefRefPtr<CefZipArchive::File> CefZipArchive::GetFile(
-    const CefString& fileName)
-{
+    const CefString& fileName) {
   std::wstring str = fileName;
   std::transform(str.begin(), str.end(), str.begin(), towlower);
 
@@ -146,8 +142,7 @@ CefRefPtr<CefZipArchive::File> CefZipArchive::GetFile(
   return NULL;
 }
 
-bool CefZipArchive::RemoveFile(const CefString& fileName)
-{
+bool CefZipArchive::RemoveFile(const CefString& fileName) {
   std::wstring str = fileName;
   std::transform(str.begin(), str.end(), str.begin(), towlower);
 
@@ -160,9 +155,8 @@ bool CefZipArchive::RemoveFile(const CefString& fileName)
   return false;
 }
 
-size_t CefZipArchive::GetFiles(FileMap& map)
-{
-   AutoLock lock_scope(this);
-   map = contents_;
-   return contents_.size();
+size_t CefZipArchive::GetFiles(FileMap& map) {
+  AutoLock lock_scope(this);
+  map = contents_;
+  return contents_.size();
 }

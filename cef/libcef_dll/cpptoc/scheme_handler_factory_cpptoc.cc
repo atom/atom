@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -20,8 +20,7 @@
 
 struct _cef_scheme_handler_t* CEF_CALLBACK scheme_handler_factory_create(
     struct _cef_scheme_handler_factory_t* self, cef_browser_t* browser,
-    const cef_string_t* scheme_name, cef_request_t* request)
-{
+    const cef_string_t* scheme_name, cef_request_t* request) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -52,14 +51,12 @@ struct _cef_scheme_handler_t* CEF_CALLBACK scheme_handler_factory_create(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefSchemeHandlerFactoryCppToC::CefSchemeHandlerFactoryCppToC(
     CefSchemeHandlerFactory* cls)
     : CefCppToC<CefSchemeHandlerFactoryCppToC, CefSchemeHandlerFactory,
-        cef_scheme_handler_factory_t>(cls)
-{
+        cef_scheme_handler_factory_t>(cls) {
   struct_.struct_.create = scheme_handler_factory_create;
 }
 
