@@ -311,7 +311,7 @@ describe "RootView", ->
         expect(rootView.panes.children('.pane').length).toBe 1
         expect(pane1.outerWidth()).toBe rootView.panes.width()
 
-  describe ".registerExtension(extension)", ->
+  describe ".activateExtension(extension)", ->
     extension = null
     beforeEach ->
       extension =
@@ -320,15 +320,15 @@ describe "RootView", ->
         serialize: -> "it worked"
 
     it "calls activate on the extension", ->
-      rootView.registerExtension(extension)
+      rootView.activateExtension(extension)
       expect(extension.activate).toHaveBeenCalledWith(rootView, undefined)
 
     it "calls activate on the extension with its previous state", ->
-      rootView.registerExtension(extension)
+      rootView.activateExtension(extension)
       extension.activate.reset()
 
       newRootView = RootView.deserialize(rootView.serialize())
-      newRootView.registerExtension(extension)
+      newRootView.activateExtension(extension)
       expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked")
 
   describe "the file finder", ->

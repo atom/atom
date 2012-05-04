@@ -10,7 +10,7 @@ describe "TreeView", ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/'))
     project = rootView.project
 
-    rootView.registerExtension(TreeView)
+    rootView.activateExtension(TreeView)
     treeView = rootView.find(".tree-view").view()
     treeView.root = treeView.find('> li:first').view()
     sampleJs = treeView.find('.file:contains(sample.js)')
@@ -50,7 +50,7 @@ describe "TreeView", ->
       treeView.find('.directory:contains(zed)').click()
       sampleJs.click()
       newRootView = RootView.deserialize(rootView.serialize())
-      newRootView.registerExtension(TreeView)
+      newRootView.activateExtension(TreeView)
 
       newTreeView = newRootView.find(".tree-view").view()
 

@@ -84,7 +84,7 @@ class RootView extends View
       when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
       when 'Editor' then Editor.deserialize(viewState, this)
 
-  registerExtension: (extension) ->
+  activateExtension: (extension) ->
     @extensions[extension.name] = extension
     extension.activate(this, @extensionStates[extension.name])
 
