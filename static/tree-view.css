@@ -1,0 +1,46 @@
+.tree-view {
+  position: relative;
+  height: 100%;
+  background: black;
+  color: white;
+  overflow: auto;
+  padding: 0 1em;
+  cursor: default;
+  font: 16px Inconsolata, Monaco, Courier !important;
+}
+
+.tree-view .disclosure-arrow {
+  width: 2ex;
+  display: inline-block;
+}
+
+.tree-view .directory .entries {
+  padding-left: 1ex;
+}
+
+.file, .directory > .header {
+  padding: 0 1ex;
+}
+
+.tree-view .directory .entries .file {
+  padding-left: 3ex;
+}
+
+.tree-view .file.selected, .tree-view .directory.selected > .header {
+  background: #444;
+}
+
+.tree-view:focus .file.selected, .tree-view:focus .directory.selected > .header {
+  background: #a3fd97;
+  color: black;
+}
+
+.add-dialog, .move-dialog {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: #333;
+  color: white;
+  border: 2px solid #222;
+  -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
+}

@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -16,8 +16,7 @@
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
 void CEF_CALLBACK task_execute(struct _cef_task_t* self,
-    cef_thread_id_t threadId)
-{
+    cef_thread_id_t threadId) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -30,12 +29,10 @@ void CEF_CALLBACK task_execute(struct _cef_task_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefTaskCppToC::CefTaskCppToC(CefTask* cls)
-    : CefCppToC<CefTaskCppToC, CefTask, cef_task_t>(cls)
-{
+    : CefCppToC<CefTaskCppToC, CefTask, cef_task_t>(cls) {
   struct_.struct_.execute = task_execute;
 }
 

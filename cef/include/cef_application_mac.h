@@ -27,11 +27,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef _CEF_APPLICATION_MAC_H
-#define _CEF_APPLICATION_MAC_H
+#ifndef CEF_INCLUDE_CEF_APPLICATION_MAC_H_
+#define CEF_INCLUDE_CEF_APPLICATION_MAC_H_
 #pragma once
 
-#include "cef.h"
+#include "include/cef_base.h"
 
 #if defined(OS_MACOSX) && defined(__OBJC__)
 
@@ -43,7 +43,7 @@
 // Use the existing empty protocol definitions.
 #import "base/mac/cocoa_protocols.h"
 
-#else // BUILDING_CEF_SHARED
+#else  // BUILDING_CEF_SHARED
 
 #import <AppKit/AppKit.h>
 #import <Cocoa/Cocoa.h>
@@ -88,7 +88,7 @@ DEFINE_EMPTY_PROTOCOL(NSWindowDelegate)
 
 #endif
 
-#endif // BUILDING_CEF_SHARED
+#endif  // BUILDING_CEF_SHARED
 
 // All CEF client applications must subclass NSApplication and implement this
 // protocol.
@@ -99,7 +99,7 @@ DEFINE_EMPTY_PROTOCOL(NSWindowDelegate)
 // Controls the state of |isHandlingSendEvent| in the event loop so that it is
 // reset properly.
 class CefScopedSendingEvent {
-public:
+ public:
   CefScopedSendingEvent()
     : app_(static_cast<NSApplication<CefAppProtocol>*>(
               [NSApplication sharedApplication])),
@@ -109,12 +109,12 @@ public:
   ~CefScopedSendingEvent() {
     [app_ setHandlingSendEvent:handling_];
   }
-  
-private:
+
+ private:
   NSApplication<CefAppProtocol>* app_;
   BOOL handling_;
 };
 
 #endif  // defined(OS_MACOSX) && defined(__OBJC__)
 
-#endif // _CEF_APPLICATION_MAC_H
+#endif  // CEF_INCLUDE_CEF_APPLICATION_MAC_H_

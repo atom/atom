@@ -21,7 +21,3 @@
 .file-finder li.selected {
   background-color: green;
 }
-
-.file-finder .editor .gutter {
-  display: none;
-}

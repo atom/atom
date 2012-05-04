@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 
 int CEF_CALLBACK cookie_visitor_visit(struct _cef_cookie_visitor_t* self,
     const struct _cef_cookie_t* cookie, int count, int total,
-    int* deleteCookie)
-{
+    int* deleteCookie) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -56,13 +55,11 @@ int CEF_CALLBACK cookie_visitor_visit(struct _cef_cookie_visitor_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefCookieVisitorCppToC::CefCookieVisitorCppToC(CefCookieVisitor* cls)
     : CefCppToC<CefCookieVisitorCppToC, CefCookieVisitor, cef_cookie_visitor_t>(
-        cls)
-{
+        cls) {
   struct_.struct_.visit = cookie_visitor_visit;
 }
 

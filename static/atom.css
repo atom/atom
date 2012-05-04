@@ -16,9 +16,14 @@ body {
   background-image: url(static/images/linen.png);
 }
 
+#root-view #horizontal {
+  display: -webkit-flexbox;
+}
+
 #root-view #panes {
   height: 100%;
-  width: 100%;
+  width: -webkit-flex(1 0);
+  position: relative;
 }
 
 #root-view #panes .column {

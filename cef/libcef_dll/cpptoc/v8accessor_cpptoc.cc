@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -18,8 +18,7 @@
 
 int CEF_CALLBACK v8accessor_get(struct _cef_v8accessor_t* self,
     const cef_string_t* name, struct _cef_v8value_t* object,
-    struct _cef_v8value_t** retval, cef_string_t* exception)
-{
+    struct _cef_v8value_t** retval, cef_string_t* exception) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -72,11 +71,9 @@ int CEF_CALLBACK v8accessor_get(struct _cef_v8accessor_t* self,
   return _retval;
 }
 
-
 int CEF_CALLBACK v8accessor_set(struct _cef_v8accessor_t* self,
     const cef_string_t* name, struct _cef_v8value_t* object,
-    struct _cef_v8value_t* value, cef_string_t* exception)
-{
+    struct _cef_v8value_t* value, cef_string_t* exception) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -114,12 +111,10 @@ int CEF_CALLBACK v8accessor_set(struct _cef_v8accessor_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefV8AccessorCppToC::CefV8AccessorCppToC(CefV8Accessor* cls)
-    : CefCppToC<CefV8AccessorCppToC, CefV8Accessor, cef_v8accessor_t>(cls)
-{
+    : CefCppToC<CefV8AccessorCppToC, CefV8Accessor, cef_v8accessor_t>(cls) {
   struct_.struct_.get = v8accessor_get;
   struct_.struct_.set = v8accessor_set;
 }

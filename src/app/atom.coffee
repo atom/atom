@@ -12,7 +12,7 @@ class Atom
   userConfigurationPath: null
   rootViewStates: null
 
-  constructor: (@loadPath, nativeMethods)->
+  constructor: (@loadPath, nativeMethods) ->
     @windows = []
     @setUpKeymap()
     @userConfigurationPath = fs.absolute "~/.atom/atom.coffee"

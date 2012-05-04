@@ -69,7 +69,7 @@
   #endif
 #elif defined(bsdi) || defined(FREEBSD) || defined(OPENBSD)
   /*
-   * BSD/OS, FreeBSD, and OpenBSD ship sys/types.h that define int32_t and 
+   * BSD/OS, FreeBSD, and OpenBSD ship sys/types.h that define int32_t and
    * u_int32_t.
    */
   #include <sys/types.h>

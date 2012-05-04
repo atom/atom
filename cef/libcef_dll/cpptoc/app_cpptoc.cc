@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -12,12 +12,29 @@
 
 #include "libcef_dll/cpptoc/app_cpptoc.h"
 #include "libcef_dll/cpptoc/proxy_handler_cpptoc.h"
+#include "libcef_dll/cpptoc/resource_bundle_handler_cpptoc.h"
 
 
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
-cef_proxy_handler_t* CEF_CALLBACK app_get_proxy_handler(struct _cef_app_t* self)
-{
+struct _cef_resource_bundle_handler_t* CEF_CALLBACK app_get_resource_bundle_handler(
+    struct _cef_app_t* self) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return NULL;
+
+  // Execute
+  CefRefPtr<CefResourceBundleHandler> _retval = CefAppCppToC::Get(
+      self)->GetResourceBundleHandler();
+
+  // Return type: refptr_same
+  return CefResourceBundleHandlerCppToC::Wrap(_retval);
+}
+
+struct _cef_proxy_handler_t* CEF_CALLBACK app_get_proxy_handler(
+    struct _cef_app_t* self) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -33,12 +50,11 @@ cef_proxy_handler_t* CEF_CALLBACK app_get_proxy_handler(struct _cef_app_t* self)
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefAppCppToC::CefAppCppToC(CefApp* cls)
-    : CefCppToC<CefAppCppToC, CefApp, cef_app_t>(cls)
-{
+    : CefCppToC<CefAppCppToC, CefApp, cef_app_t>(cls) {
+  struct_.struct_.get_resource_bundle_handler = app_get_resource_bundle_handler;
   struct_.struct_.get_proxy_handler = app_get_proxy_handler;
 }
 

@@ -1,0 +1,12 @@
+module.exports =
+  activate: (rootView) ->
+    for buffer in rootView.project.buffers
+      @stripTrailingWhitespaceBeforeSave(buffer)
+
+    rootView.project.on 'new-buffer', (buffer) =>
+      @stripTrailingWhitespaceBeforeSave(buffer)
+
+  stripTrailingWhitespaceBeforeSave: (buffer) ->
+    buffer.on 'before-save', ->
+      buffer.scan /[ \t]+$/g, (match, range, { replace }) ->
+        replace('')

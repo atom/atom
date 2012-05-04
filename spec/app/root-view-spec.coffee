@@ -29,7 +29,7 @@ describe "RootView", ->
 
       describe "when pathToOpen references a directory", ->
         it "creates a project for the directory and sets the document.title, but does not open an editor", ->
-          path = require.resolve 'fixtures/dir/'
+          path = require.resolve 'fixtures/dir'
           rootView = new RootView(pathToOpen: path)
           rootView.focus()
 
@@ -40,7 +40,7 @@ describe "RootView", ->
     describe "when called with view state data returned from a previous call to RootView.prototype.serialize", ->
       viewState = null
 
-      describe "when the serialized RootView does not have a project, only an unsaved buffer", ->
+      describe "when the serialized RootView has an unsaved buffer", ->
         buffer = null
 
         beforeEach ->
@@ -52,9 +52,9 @@ describe "RootView", ->
 
         it "constructs the view with the same panes", ->
           rootView = new RootView(viewState)
-          expect(rootView.project).toBeUndefined()
+          expect(rootView.project.path).toBeNull()
           expect(rootView.editors().length).toBe 2
-          expect(rootView.activeEditor().buffer).toBe buffer
+          expect(rootView.activeEditor().buffer.getText()).toBe buffer.getText()
           expect(document.title).toBe 'untitled'
 
       describe "when the serialized RootView has a project", ->
@@ -126,7 +126,7 @@ describe "RootView", ->
       expect(rootView.activeEditor().isFocused).toBeTruthy()
 
   describe "panes", ->
-    pane1 = null
+    [pane1, newPaneContent] = []
 
     beforeEach ->
       rootView.attachToDom()
@@ -134,13 +134,16 @@ describe "RootView", ->
       rootView.height(600)
       pane1 = rootView.find('.pane').view()
       pane1.attr('id', 'pane-1')
+      newPaneContent = $("<div>New pane content</div>")
+      spyOn(newPaneContent, 'focus')
 
     describe "vertical splits", ->
       describe "when .splitRight(view) is called on a pane", ->
         it "places a new pane to the right of the current pane in a .row div", ->
           expect(rootView.panes.find('.row')).not.toExist()
 
-          pane2 = pane1.splitRight("<div>New pane content</div>")
+          pane2 = pane1.splitRight(newPaneContent)
+          expect(newPaneContent.focus).toHaveBeenCalled()
 
           expect(rootView.panes.find('.row')).toExist()
           expect(rootView.panes.find('.row .pane').length).toBe 2
@@ -164,7 +167,8 @@ describe "RootView", ->
         it "places a new pane to the left of the current pane in a .row div", ->
           expect(rootView.find('.row')).not.toExist()
 
-          pane2 = pane1.splitLeft("<div>New pane content</div>")
+          pane2 = pane1.splitLeft(newPaneContent)
+          expect(newPaneContent.focus).toHaveBeenCalled()
 
           expect(rootView.find('.row')).toExist()
           expect(rootView.find('.row .pane').length).toBe 2
@@ -190,7 +194,8 @@ describe "RootView", ->
         it "places a new pane above the current pane in a .column div", ->
           expect(rootView.find('.column')).not.toExist()
 
-          pane2 = pane1.splitUp("<div>New pane content</div>")
+          pane2 = pane1.splitUp(newPaneContent)
+          expect(newPaneContent.focus).toHaveBeenCalled()
 
           expect(rootView.find('.column')).toExist()
           expect(rootView.find('.column .pane').length).toBe 2
@@ -215,7 +220,8 @@ describe "RootView", ->
         it "places a new pane below the current pane in a .column div", ->
           expect(rootView.find('.column')).not.toExist()
 
-          pane2 = pane1.splitDown("<div>New pane content</div>")
+          pane2 = pane1.splitDown(newPaneContent)
+          expect(newPaneContent.focus).toHaveBeenCalled()
 
           expect(rootView.find('.column')).toExist()
           expect(rootView.find('.column .pane').length).toBe 2
@@ -305,6 +311,36 @@ describe "RootView", ->
         expect(rootView.panes.children('.pane').length).toBe 1
         expect(pane1.outerWidth()).toBe rootView.panes.width()
 
+  describe "extensions", ->
+    extension = null
+
+    beforeEach ->
+      extension =
+        name: 'extension'
+        deactivate: ->
+        activate: jasmine.createSpy("activate")
+        serialize: -> "it worked"
+
+    describe "activation", ->
+      it "calls activate on the extension", ->
+        rootView.activateExtension(extension)
+        expect(extension.activate).toHaveBeenCalledWith(rootView, undefined)
+
+      it "calls activate on the extension with its previous state", ->
+        rootView.activateExtension(extension)
+        extension.activate.reset()
+
+        newRootView = RootView.deserialize(rootView.serialize())
+        newRootView.activateExtension(extension)
+        expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked")
+
+    describe "deactivation", ->
+      it "is deactivated when the rootView is deactivated", ->
+        rootView.activateExtension(extension)
+        spyOn(extension, "deactivate").andCallThrough()
+        rootView.deactivate()
+        expect(extension.deactivate).toHaveBeenCalled()
+
   describe "the file finder", ->
     describe "when the toggle-file-finder event is triggered", ->
       describe "when there is a project", ->
@@ -333,7 +369,7 @@ describe "RootView", ->
             expect(rootView.fileFinder.pathList.children('li').length).toBe paths.length
 
             for path in paths
-              relativePath = path.replace(project.path, '')
+              relativePath = project.relativize(path)
               expect(rootView.fileFinder.pathList.find("li:contains(#{relativePath}):not(:contains(#{project.path}))")).toExist()
 
       describe "when there is no project", ->
@@ -356,7 +392,7 @@ describe "RootView", ->
         rootView.fileFinder.trigger 'move-down'
         selectedLi = rootView.fileFinder.find('li:eq(1)')
 
-        expectedPath = project.path + selectedLi.text()
+        expectedPath = fs.join(project.path, selectedLi.text())
         expect(editor1.buffer.path).not.toBe expectedPath
         expect(editor2.buffer.path).not.toBe expectedPath
 
@@ -382,25 +418,54 @@ describe "RootView", ->
         expect(commandHandler).toHaveBeenCalled()
 
   describe "when the path of the focused editor's buffer changes", ->
-    it "changes the document.title", ->
+    it "changes the document.title and emits an active-editor-path-change event", ->
+      pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
+      rootView.on 'active-editor-path-change', pathChangeHandler
+
       editor1 = rootView.activeEditor()
       expect(document.title).toBe path
 
       editor2 = rootView.activeEditor().splitLeft()
       editor2.setBuffer(new Buffer("second.txt"))
-      editor2.focus()
+      expect(pathChangeHandler).toHaveBeenCalled()
       expect(document.title).toBe "second.txt"
 
+      pathChangeHandler.reset()
       editor1.buffer.setPath("should-not-be-title.txt")
+      expect(pathChangeHandler).not.toHaveBeenCalled()
       expect(document.title).toBe "second.txt"
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
       rootView = new RootView
-      expect(rootView.project).toBeUndefined()
+      expect(rootView.project.path).toBeNull()
       rootView.activeEditor().buffer.saveAs('/tmp/ignore-me')
-      expect(rootView.project.path).toBe '/tmp/'
+      expect(rootView.project.path).toBe '/tmp'
+
+  describe "when editors are focused", ->
+    it "triggers 'active-editor-path-change' events if the path of the active editor actually changes", ->
+      pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
+      rootView.on 'active-editor-path-change', pathChangeHandler
+
+      editor1 = rootView.activeEditor()
+      editor2 = rootView.activeEditor().splitLeft()
+
+      rootView.open(require.resolve('fixtures/sample.txt'))
+      expect(pathChangeHandler).toHaveBeenCalled()
+      pathChangeHandler.reset()
+
+      editor1.focus()
+      expect(pathChangeHandler).toHaveBeenCalled()
+      pathChangeHandler.reset()
+
+      rootView.focus()
+      expect(pathChangeHandler).not.toHaveBeenCalled()
+
+      editor2.setBuffer editor1.buffer
+      editor2.focus()
+      expect(pathChangeHandler).not.toHaveBeenCalled()
 
   describe "when the last editor is removed", ->
-    it "updates the title to the project path", ->
+    it   "updates the title to the project path", ->
       rootView.editors()[0].remove()
       expect(document.title).toBe rootView.project.path
+

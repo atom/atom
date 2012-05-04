@@ -24,12 +24,14 @@ windowAdditions =
     @attachRootView(path)
     @loadUserConfiguration()
     $(window).on 'close', => @close()
-    $(window).on 'beforeunload', => @saveRootViewState()
+    $(window).on 'beforeunload', =>
+      @shutdown()
+      false
     $(window).focus()
     atom.windowOpened this
 
   shutdown: ->
-    @rootView.remove()
+    @rootView.deactivate()
     $(window).unbind('focus')
     $(window).unbind('blur')
     $(window).off('before')
@@ -43,14 +45,11 @@ windowAdditions =
       new RootView {pathToOpen}
     $(@rootViewParentSelector).append @rootView
 
-  saveRootViewState: ->
-    atom.rootViewStates[$windowNumber] = @rootView.serialize()
-
   loadUserConfiguration: ->
     try
       require atom.userConfigurationPath if fs.exists(atom.userConfigurationPath)
     catch error
-      console.error "Failed to load `#{atom.userConfigurationPath}`", error
+      console.error "Failed to load `#{atom.userConfigurationPath}`", error.message, error
       @showConsole()
 
   requireStylesheet: (path) ->

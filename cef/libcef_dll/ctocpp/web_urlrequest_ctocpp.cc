@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -18,8 +18,7 @@
 // STATIC METHODS - Body may be edited by hand.
 
 CefRefPtr<CefWebURLRequest> CefWebURLRequest::CreateWebURLRequest(
-    CefRefPtr<CefRequest> request, CefRefPtr<CefWebURLRequestClient> client)
-{
+    CefRefPtr<CefRequest> request, CefRefPtr<CefWebURLRequestClient> client) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: request; type: refptr_same
@@ -41,11 +40,9 @@ CefRefPtr<CefWebURLRequest> CefWebURLRequest::CreateWebURLRequest(
 }
 
 
-
 // VIRTUAL METHODS - Body may be edited by hand.
 
-void CefWebURLRequestCToCpp::Cancel()
-{
+void CefWebURLRequestCToCpp::Cancel() {
   if (CEF_MEMBER_MISSING(struct_, cancel))
     return;
 
@@ -55,9 +52,7 @@ void CefWebURLRequestCToCpp::Cancel()
   struct_->cancel(struct_);
 }
 
-
-CefWebURLRequest::RequestState CefWebURLRequestCToCpp::GetState()
-{
+CefWebURLRequest::RequestState CefWebURLRequestCToCpp::GetState() {
   if (CEF_MEMBER_MISSING(struct_, get_state))
     return WUR_STATE_UNSENT;
 
@@ -69,7 +64,6 @@ CefWebURLRequest::RequestState CefWebURLRequestCToCpp::GetState()
   // Return type: simple
   return _retval;
 }
-
 
 
 #ifndef NDEBUG

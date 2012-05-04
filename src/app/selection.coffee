@@ -16,7 +16,6 @@ class Selection extends View
 
   initialize: ({@editor, @cursor}) ->
     @regions = []
-    @cursor.on 'cursor:position-changed', => @updateAppearance()
 
   handleBufferChange: (e) ->
     return unless @anchor
@@ -100,10 +99,12 @@ class Selection extends View
 
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)
-    newBufferRange = @editor.buffer.change(@getBufferRange(), text)
-    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true)
-    @autoOutdentText() if shouldOutdent
+    oldBufferRange = @getBufferRange()
+    isReversed = @isReversed()
     @clearSelection()
+    newBufferRange = @editor.buffer.change(oldBufferRange, text)
+    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if isReversed
+    @autoOutdentText() if shouldOutdent
 
   indentSelectedRows: ->
     range = @getBufferRange()

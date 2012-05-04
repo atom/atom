@@ -1,9 +1,10 @@
 #import "Atom.h"
-#import "include/cef.h"
+#import "include/cef_base.h"
 #import "AtomController.h"
 
 #import "native_handler.h"
 #import "client_handler.h"
+#import "include/cef_app.h"
 
 @interface Atom ()
 - (CefRefPtr<CefV8Context>)atomContext;
@@ -12,12 +13,16 @@
 // Provide the CefAppProtocol implementation required by CEF.
 @implementation Atom
 
-+ (void)load {
++ (id)sharedApplication {
+  id atomApp = [super sharedApplication];
+  
   CefSettings settings;
   AppGetSettings(settings);
   
   CefRefPtr<CefApp> app;
   CefInitialize(settings, app);
+  
+  return atomApp;
 }
 
 - (void)dealloc {
@@ -105,7 +110,7 @@
     CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
     global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
 
-    CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);
+    CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
       
 #ifdef DEBUG

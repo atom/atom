@@ -1,8 +1,9 @@
 #import "AtomController.h"
 
-#import "include/cef.h"
+#import "include/cef_base.h"
 #import "client_handler.h"
 #import "native_handler.h"
+#import "PathWatcher.h"
 
 @implementation AtomController
 
@@ -62,6 +63,8 @@
 
 #pragma mark BrowserDelegate
 - (void)loadStart {
+  [PathWatcher unwatchAll];
+
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
   
@@ -84,12 +87,7 @@
   context->Exit();
 }
 
-- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type
-                  code:(int)code
-             modifiers:(int)modifiers
-           isSystemKey:(bool)isSystemKey
-     isAfterJavaScript:(bool)isAfterJavaScript {
-  
+- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type code:(int)code modifiers:(int)modifiers isSystemKey:(bool)isSystemKey isAfterJavaScript:(bool)isAfterJavaScript {  
   if (isAfterJavaScript && type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
     _clientHandler->GetBrowser()->ReloadIgnoreCache();
     return YES;
@@ -169,7 +167,6 @@ void AppGetBrowserSettings(CefBrowserSettings& settings) {
   settings.accelerated_layers_disabled = false;
   settings.accelerated_video_disabled = false;
   settings.accelerated_2d_canvas_disabled = false;
-  settings.accelerated_drawing_disabled = false;
   settings.accelerated_plugins_disabled = false;
   settings.developer_tools_disabled = false;
 }

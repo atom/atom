@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -10,24 +10,24 @@
 // for more information.
 //
 
-#ifndef _REQUEST_CTOCPP_H
-#define _REQUEST_CTOCPP_H
+#ifndef CEF_LIBCEF_DLL_CTOCPP_REQUEST_CTOCPP_H_
+#define CEF_LIBCEF_DLL_CTOCPP_REQUEST_CTOCPP_H_
+#pragma once
 
 #ifndef USING_CEF_SHARED
 #pragma message("Warning: "__FILE__" may be accessed wrapper-side only")
-#else // USING_CEF_SHARED
+#else  // USING_CEF_SHARED
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_request.h"
+#include "include/capi/cef_request_capi.h"
 #include "libcef_dll/ctocpp/ctocpp.h"
 
 // Wrap a C structure with a C++ class.
 // This class may be instantiated and accessed wrapper-side only.
 class CefRequestCToCpp
-    : public CefCToCpp<CefRequestCToCpp, CefRequest, cef_request_t>
-{
-public:
-  CefRequestCToCpp(cef_request_t* str)
+    : public CefCToCpp<CefRequestCToCpp, CefRequest, cef_request_t> {
+ public:
+  explicit CefRequestCToCpp(cef_request_t* str)
       : CefCToCpp<CefRequestCToCpp, CefRequest, cef_request_t>(str) {}
   virtual ~CefRequestCToCpp() {}
 
@@ -48,6 +48,6 @@ public:
   virtual void SetFirstPartyForCookies(const CefString& url) OVERRIDE;
 };
 
-#endif // USING_CEF_SHARED
-#endif // _REQUEST_CTOCPP_H
+#endif  // USING_CEF_SHARED
+#endif  // CEF_LIBCEF_DLL_CTOCPP_REQUEST_CTOCPP_H_
 

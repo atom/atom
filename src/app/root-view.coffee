@@ -19,56 +19,83 @@ module.exports =
 class RootView extends View
   @content: ->
     @div id: 'root-view', tabindex: -1, =>
-      @div id: 'panes', outlet: 'panes'
+      @div id: 'horizontal', outlet: 'horizontal', =>
+        @div id: 'panes', outlet: 'panes'
 
   @deserialize: (viewState) ->
     new RootView(viewState)
 
-  initialize: ({ pathToOpen, projectPath, panesViewState }) ->
+  extensions: null
+  extensionStates: null
+
+  initialize: ({ pathToOpen, projectPath, panesViewState, @extensionStates }) ->
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', => window.showConsole()
-    @one 'attach', => @focus()
     @on 'focus', (e) =>
       if @activeEditor()
         @activeEditor().focus()
         false
       else
-        @setTitle(@project?.path)
+        @setTitle(@project?.getPath())
+
+    @on 'active-editor-path-change', (e, path) =>
+      @project.setPath(path) unless @project.getPath()
+      @setTitle(path)
 
     @commandPanel = new CommandPanel({rootView: this})
 
-    if projectPath?
-      @project = new Project(projectPath)
-    else if pathToOpen?
-      @project = new Project(fs.directory(pathToOpen))
+    if pathToOpen?
+      @project = new Project(pathToOpen)
       @open(pathToOpen) if fs.isFile(pathToOpen)
-    else if not panesViewState?
-      @open()
+    else
+      @project = new Project(projectPath)
+      @open() unless panesViewState?
 
     @deserializePanes(panesViewState) if panesViewState
 
-    StatusBar.initialize(this)
+    @extensionStates ?= {}
+    @extensions = {}
+
+  afterAttach: (onDom) ->
+    @focus() if onDom
 
   serialize: ->
     projectPath: @project?.path
     panesViewState: @serializePanes()
+    extensionStates: @serializeExtensions()
 
-  serializePanes: () ->
-    @panes.children().view().serialize()
+  serializePanes: ->
+    @panes.children().view()?.serialize()
 
   deserializePanes: (panesViewState) ->
     @panes.append @deserializeView(panesViewState)
     @adjustPaneDimensions()
+
+  serializeExtensions:  ->
+    extensionStates = {}
+    for name, extension of @extensions
+      extensionStates[name] = extension.serialize()
+
+    extensionStates
 
   deserializeView: (viewState) ->
     switch viewState.viewClass
       when 'Pane' then Pane.deserialize(viewState, this)
       when 'PaneRow' then PaneRow.deserialize(viewState, this)
       when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
-      when 'Editor' then Editor.deserialize(viewState)
+      when 'Editor' then Editor.deserialize(viewState, this)
+
+  activateExtension: (extension) ->
+    @extensions[extension.name] = extension
+    extension.activate(this, @extensionStates[extension.name])
+
+  deactivate: ->
+    atom.rootViewStates[$windowNumber] = @serialize()
+    extension.deactivate() for name, extension of @extensions
+    @remove()
 
   open: (path) ->
-    buffer = if path then @project.open(path) else new Buffer
+    buffer = @project.open(path)
 
     if @activeEditor()
       @activeEditor().setBuffer(buffer)
@@ -80,18 +107,16 @@ class RootView extends View
 
   editorFocused: (editor) ->
     if @panes.containsElement(editor)
-      @panes.find('.editor')
-        .removeClass('active')
-        .off('.root-view')
+      previousActiveEditor = @panes.find('.editor.active').view()
+      previousActiveEditor?.removeClass('active').off('.root-view')
 
       editor
         .addClass('active')
-        .on 'buffer-path-change.root-view', =>
-          path = editor.buffer.path
-          @setTitle(path)
-          @project ?= new Project(fs.directory(path)) if path
+        .on 'editor-path-change.root-view', =>
+          @trigger 'active-editor-path-change', editor.buffer.path
 
-      @setTitle(editor.buffer.path)
+      if not previousActiveEditor or editor.buffer.path != previousActiveEditor.buffer.path
+        @trigger 'active-editor-path-change', editor.buffer.path
 
   setTitle: (title='untitled') ->
     document.title = title
@@ -111,7 +136,7 @@ class RootView extends View
     rootPane?.adjustDimensions()
 
   toggleFileFinder: ->
-    return unless @project
+    return unless @project.getPath()?
 
     if @fileFinder and @fileFinder.parent()[0]
       @fileFinder.remove()
@@ -124,3 +149,7 @@ class RootView extends View
           selected: (relativePath) => @open(relativePath)
         @append @fileFinder
         @fileFinder.editor.focus()
+
+  remove: ->
+    editor.remove() for editor in @editors()
+    super

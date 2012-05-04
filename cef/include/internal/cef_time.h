@@ -27,24 +27,26 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef _CEF_TIME_H
-#define _CEF_TIME_H
+#ifndef CEF_INCLUDE_INTERNAL_CEF_TIME_H_
+#define CEF_INCLUDE_INTERNAL_CEF_TIME_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "cef_export.h"
+#include "include/internal/cef_export.h"
 #include <time.h>
 
 ///
 // Time information. Values should always be in UTC.
 ///
-typedef struct _cef_time_t
-{
+typedef struct _cef_time_t {
   int year;          // Four digit year "2007"
   int month;         // 1-based month (values 1 = January, etc.)
+#if !defined(OS_MACOSX)
   int day_of_week;   // 0-based day of week (0 = Sunday, etc.)
+#endif
   int day_of_month;  // 1-based day of month (1-31)
   int hour;          // Hour within the current day (0-23)
   int minute;        // Minute within the current hour (0-59)
@@ -73,4 +75,4 @@ CEF_EXPORT int cef_time_from_doublet(double time, cef_time_t* cef_time);
 }
 #endif
 
-#endif // _CEF_TIME_H
+#endif  // CEF_INCLUDE_INTERNAL_CEF_TIME_H_

@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -18,8 +18,7 @@
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
 void CEF_CALLBACK load_handler_on_load_start(struct _cef_load_handler_t* self,
-    cef_browser_t* browser, cef_frame_t* frame)
-{
+    cef_browser_t* browser, cef_frame_t* frame) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -40,10 +39,8 @@ void CEF_CALLBACK load_handler_on_load_start(struct _cef_load_handler_t* self,
       CefFrameCToCpp::Wrap(frame));
 }
 
-
 void CEF_CALLBACK load_handler_on_load_end(struct _cef_load_handler_t* self,
-    cef_browser_t* browser, cef_frame_t* frame, int httpStatusCode)
-{
+    cef_browser_t* browser, cef_frame_t* frame, int httpStatusCode) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -65,12 +62,10 @@ void CEF_CALLBACK load_handler_on_load_end(struct _cef_load_handler_t* self,
       httpStatusCode);
 }
 
-
 int CEF_CALLBACK load_handler_on_load_error(struct _cef_load_handler_t* self,
     cef_browser_t* browser, cef_frame_t* frame,
     enum cef_handler_errorcode_t errorCode, const cef_string_t* failedUrl,
-    cef_string_t* errorText)
-{
+    cef_string_t* errorText) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -109,12 +104,10 @@ int CEF_CALLBACK load_handler_on_load_error(struct _cef_load_handler_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefLoadHandlerCppToC::CefLoadHandlerCppToC(CefLoadHandler* cls)
-    : CefCppToC<CefLoadHandlerCppToC, CefLoadHandler, cef_load_handler_t>(cls)
-{
+    : CefCppToC<CefLoadHandlerCppToC, CefLoadHandler, cef_load_handler_t>(cls) {
   struct_.struct_.on_load_start = load_handler_on_load_start;
   struct_.struct_.on_load_end = load_handler_on_load_end;
   struct_.struct_.on_load_error = load_handler_on_load_error;

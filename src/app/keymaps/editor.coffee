@@ -3,12 +3,13 @@ window.keymap.bindKeys '*'
   'meta-w': 'close'
   'alt-meta-i': 'show-console'
 
-window.keymap.bindKeys '.editor',
-  'meta-s': 'save'
   right: 'move-right'
   left: 'move-left'
   down: 'move-down'
   up: 'move-up'
+
+window.keymap.bindKeys '.editor',
+  'meta-s': 'save'
   'shift-right': 'select-right'
   'shift-left': 'select-left'
   'shift-up': 'select-up'

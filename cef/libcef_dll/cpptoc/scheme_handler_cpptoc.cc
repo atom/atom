@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -20,8 +20,7 @@
 
 int CEF_CALLBACK scheme_handler_process_request(
     struct _cef_scheme_handler_t* self, cef_request_t* request,
-    cef_scheme_handler_callback_t* callback)
-{
+    cef_scheme_handler_callback_t* callback) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -45,11 +44,9 @@ int CEF_CALLBACK scheme_handler_process_request(
   return _retval;
 }
 
-
 void CEF_CALLBACK scheme_handler_get_response_headers(
     struct _cef_scheme_handler_t* self, cef_response_t* response,
-    int64* response_length, cef_string_t* redirectUrl)
-{
+    int64* response_length, cef_string_t* redirectUrl) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -84,11 +81,9 @@ void CEF_CALLBACK scheme_handler_get_response_headers(
     *response_length = response_lengthVal;
 }
 
-
 int CEF_CALLBACK scheme_handler_read_response(
     struct _cef_scheme_handler_t* self, void* data_out, int bytes_to_read,
-    int* bytes_read, cef_scheme_handler_callback_t* callback)
-{
+    int* bytes_read, cef_scheme_handler_callback_t* callback) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -125,9 +120,7 @@ int CEF_CALLBACK scheme_handler_read_response(
   return _retval;
 }
 
-
-void CEF_CALLBACK scheme_handler_cancel(struct _cef_scheme_handler_t* self)
-{
+void CEF_CALLBACK scheme_handler_cancel(struct _cef_scheme_handler_t* self) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -139,13 +132,11 @@ void CEF_CALLBACK scheme_handler_cancel(struct _cef_scheme_handler_t* self)
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefSchemeHandlerCppToC::CefSchemeHandlerCppToC(CefSchemeHandler* cls)
     : CefCppToC<CefSchemeHandlerCppToC, CefSchemeHandler, cef_scheme_handler_t>(
-        cls)
-{
+        cls) {
   struct_.struct_.process_request = scheme_handler_process_request;
   struct_.struct_.get_response_headers = scheme_handler_get_response_headers;
   struct_.struct_.read_response = scheme_handler_read_response;

@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -15,8 +15,7 @@
 
 // VIRTUAL METHODS - Body may be edited by hand.
 
-void CefSchemeHandlerCallbackCToCpp::HeadersAvailable()
-{
+void CefSchemeHandlerCallbackCToCpp::HeadersAvailable() {
   if (CEF_MEMBER_MISSING(struct_, headers_available))
     return;
 
@@ -26,9 +25,7 @@ void CefSchemeHandlerCallbackCToCpp::HeadersAvailable()
   struct_->headers_available(struct_);
 }
 
-
-void CefSchemeHandlerCallbackCToCpp::BytesAvailable()
-{
+void CefSchemeHandlerCallbackCToCpp::BytesAvailable() {
   if (CEF_MEMBER_MISSING(struct_, bytes_available))
     return;
 
@@ -38,9 +35,7 @@ void CefSchemeHandlerCallbackCToCpp::BytesAvailable()
   struct_->bytes_available(struct_);
 }
 
-
-void CefSchemeHandlerCallbackCToCpp::Cancel()
-{
+void CefSchemeHandlerCallbackCToCpp::Cancel() {
   if (CEF_MEMBER_MISSING(struct_, cancel))
     return;
 
@@ -49,7 +44,6 @@ void CefSchemeHandlerCallbackCToCpp::Cancel()
   // Execute
   struct_->cancel(struct_);
 }
-
 
 
 #ifndef NDEBUG

@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -16,8 +16,7 @@
 
 // STATIC METHODS - Body may be edited by hand.
 
-CefRefPtr<CefPostData> CefPostData::CreatePostData()
-{
+CefRefPtr<CefPostData> CefPostData::CreatePostData() {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -28,11 +27,9 @@ CefRefPtr<CefPostData> CefPostData::CreatePostData()
 }
 
 
-
 // VIRTUAL METHODS - Body may be edited by hand.
 
-size_t CefPostDataCToCpp::GetElementCount()
-{
+size_t CefPostDataCToCpp::GetElementCount() {
   if (CEF_MEMBER_MISSING(struct_, get_element_count))
     return 0;
 
@@ -45,9 +42,7 @@ size_t CefPostDataCToCpp::GetElementCount()
   return _retval;
 }
 
-
-void CefPostDataCToCpp::GetElements(ElementVector& elements)
-{
+void CefPostDataCToCpp::GetElements(ElementVector& elements) {
   if (CEF_MEMBER_MISSING(struct_, get_elements))
     return;
 
@@ -85,9 +80,7 @@ void CefPostDataCToCpp::GetElements(ElementVector& elements)
   }
 }
 
-
-bool CefPostDataCToCpp::RemoveElement(CefRefPtr<CefPostDataElement> element)
-{
+bool CefPostDataCToCpp::RemoveElement(CefRefPtr<CefPostDataElement> element) {
   if (CEF_MEMBER_MISSING(struct_, remove_element))
     return false;
 
@@ -106,9 +99,7 @@ bool CefPostDataCToCpp::RemoveElement(CefRefPtr<CefPostDataElement> element)
   return _retval?true:false;
 }
 
-
-bool CefPostDataCToCpp::AddElement(CefRefPtr<CefPostDataElement> element)
-{
+bool CefPostDataCToCpp::AddElement(CefRefPtr<CefPostDataElement> element) {
   if (CEF_MEMBER_MISSING(struct_, add_element))
     return false;
 
@@ -127,9 +118,7 @@ bool CefPostDataCToCpp::AddElement(CefRefPtr<CefPostDataElement> element)
   return _retval?true:false;
 }
 
-
-void CefPostDataCToCpp::RemoveElements()
-{
+void CefPostDataCToCpp::RemoveElements() {
   if (CEF_MEMBER_MISSING(struct_, remove_elements))
     return;
 
@@ -138,7 +127,6 @@ void CefPostDataCToCpp::RemoveElements()
   // Execute
   struct_->remove_elements(struct_);
 }
-
 
 
 #ifndef NDEBUG

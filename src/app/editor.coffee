@@ -14,13 +14,18 @@ module.exports =
 class Editor extends View
   @idCounter: 1
 
-  @content: ->
-    @div class: 'editor', tabindex: -1, =>
+  @content: (params) ->
+    @div class: @classes(params), tabindex: -1, =>
       @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'flexbox', =>
         @subview 'gutter', new Gutter
         @div class: 'scroller', outlet: 'scroller', =>
           @div class: 'lines', outlet: 'lines', =>
+
+  @classes: ({mini}) ->
+    classes = ['editor']
+    classes.push 'mini' if mini
+    classes.join(' ')
 
   vScrollMargin: 2
   hScrollMargin: 10
@@ -41,10 +46,16 @@ class Editor extends View
   editSessions: null
   attached: false
 
-  @deserialize: (viewState) ->
+  @deserialize: (viewState, rootView) ->
+    viewState = _.clone(viewState)
+    viewState.editSessions = viewState.editSessions.map (editSession) ->
+      editSession = _.clone(editSession)
+      editSession.buffer = Buffer.deserialize(editSession.buffer, rootView.project)
+      editSession
+
     new Editor(viewState)
 
-  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused}) ->
+  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused, @mini}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -69,60 +80,68 @@ class Editor extends View
     { viewClass: "Editor", editSessions: @serializeEditSessions(), @activeEditSessionIndex, @isFocused }
 
   serializeEditSessions: ->
-    @editSessions.map (session) -> _.clone(session)
+    @editSessions.map (session) ->
+      session = _.clone(session)
+      session.buffer = session.buffer.serialize()
+      session
 
   copy: ->
-    Editor.deserialize(@serialize())
+    Editor.deserialize(@serialize(), @rootView())
 
   bindKeys: ->
-    @on 'save', => @save()
-    @on 'move-right', => @moveCursorRight()
-    @on 'move-left', => @moveCursorLeft()
-    @on 'move-down', => @moveCursorDown()
-    @on 'move-up', => @moveCursorUp()
-    @on 'move-to-next-word', => @moveCursorToNextWord()
-    @on 'move-to-previous-word', => @moveCursorToPreviousWord()
-    @on 'select-right', => @selectRight()
-    @on 'select-left', => @selectLeft()
-    @on 'select-up', => @selectUp()
-    @on 'select-down', => @selectDown()
-    @on 'newline', => @insertText("\n")
-    @on 'tab', => @insertTab()
-    @on 'indent-selected-rows', => @indentSelectedRows()
-    @on 'outdent-selected-rows', => @outdentSelectedRows()
-    @on 'backspace', => @backspace()
-    @on 'backspace-to-beginning-of-word', => @backspaceToBeginningOfWord()
-    @on 'delete', => @delete()
-    @on 'delete-to-end-of-word', => @deleteToEndOfWord()
-    @on 'cut-to-end-of-line', => @cutToEndOfLine()
-    @on 'cut', => @cutSelection()
-    @on 'copy', => @copySelection()
-    @on 'paste', => @paste()
-    @on 'undo', => @undo()
-    @on 'redo', => @redo()
-    @on 'toggle-soft-wrap', => @toggleSoftWrap()
-    @on 'fold-selection', => @foldSelection()
-    @on 'split-left', => @splitLeft()
-    @on 'split-right', => @splitRight()
-    @on 'split-up', => @splitUp()
-    @on 'split-down', => @splitDown()
-    @on 'close', => @remove(); false
-    @on 'show-next-buffer', => @loadNextEditSession()
-    @on 'show-previous-buffer', => @loadPreviousEditSession()
+    editorBindings =
+      'save': @save
+      'move-right': @moveCursorRight
+      'move-left': @moveCursorLeft
+      'move-down': @moveCursorDown
+      'move-up': @moveCursorUp
+      'move-to-next-word': @moveCursorToNextWord
+      'move-to-previous-word': @moveCursorToPreviousWord
+      'select-right': @selectRight
+      'select-left': @selectLeft
+      'select-up': @selectUp
+      'select-down': @selectDown
+      'newline': @insertNewline
+      'tab': @insertTab
+      'indent-selected-rows': @indentSelectedRows
+      'outdent-selected-rows': @outdentSelectedRows
+      'backspace': @backspace
+      'backspace-to-beginning-of-word': @backspaceToBeginningOfWord
+      'delete': @delete
+      'delete-to-end-of-word': @deleteToEndOfWord
+      'cut-to-end-of-line': @cutToEndOfLine
+      'cut': @cutSelection
+      'copy': @copySelection
+      'paste': @paste
+      'undo': @undo
+      'redo': @redo
+      'toggle-soft-wrap': @toggleSoftWrap
+      'fold-selection': @foldSelection
+      'split-left': @splitLeft
+      'split-right': @splitRight
+      'split-up': @splitUp
+      'split-down': @splitDown
+      'close': @close
+      'show-next-buffer': @loadNextEditSession
+      'show-previous-buffer': @loadPreviousEditSession
 
-    @on 'move-to-top', => @moveCursorToTop()
-    @on 'move-to-bottom', => @moveCursorToBottom()
-    @on 'move-to-beginning-of-line', => @moveCursorToBeginningOfLine()
-    @on 'move-to-end-of-line', => @moveCursorToEndOfLine()
-    @on 'move-to-first-character-of-line', => @moveCursorToFirstCharacterOfLine()
-    @on 'move-to-beginning-of-word', => @moveCursorToBeginningOfWord()
-    @on 'move-to-end-of-word', => @moveCursorToEndOfWord()
-    @on 'select-to-top', => @selectToTop()
-    @on 'select-to-bottom', => @selectToBottom()
-    @on 'select-to-end-of-line', => @selectToEndOfLine()
-    @on 'select-to-beginning-of-line', => @selectToBeginningOfLine()
-    @on 'select-to-end-of-word', => @selectToEndOfWord()
-    @on 'select-to-beginning-of-word', => @selectToBeginningOfWord()
+      'move-to-top': @moveCursorToTop
+      'move-to-bottom': @moveCursorToBottom
+      'move-to-beginning-of-line': @moveCursorToBeginningOfLine
+      'move-to-end-of-line': @moveCursorToEndOfLine
+      'move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
+      'move-to-beginning-of-word': @moveCursorToBeginningOfWord
+      'move-to-end-of-word': @moveCursorToEndOfWord
+      'select-to-top': @selectToTop
+      'select-to-bottom': @selectToBottom
+      'select-to-end-of-line': @selectToEndOfLine
+      'select-to-beginning-of-line': @selectToBeginningOfLine
+      'select-to-end-of-word': @selectToEndOfWord
+      'select-to-beginning-of-word': @selectToBeginningOfWord
+
+    for name, method of editorBindings
+      do (name, method) =>
+        @on name, => method.call(this); false
 
   buildCursorAndSelection: ->
     @compositeSelection = new CompositeSelection(this)
@@ -179,8 +198,9 @@ class Editor extends View
 
       @selectOnMousemoveUntilMouseup()
 
-    @hiddenInput.on "textInput", (e) =>
+    @on "textInput", (e) =>
       @insertText(e.originalEvent.data)
+      false
 
     @scroller.on 'scroll', =>
       @gutter.scrollTop(@scroller.scrollTop())
@@ -189,14 +209,14 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    @on 'attach', (e) =>
-      return if @attached or e.target != this[0]
-      @attached = true
-      @calculateDimensions()
-      @hiddenInput.width(@charWidth)
-      @setMaxLineLength() if @softWrap
-      @focus() if @isFocused
-      @trigger 'editor-open', [this]
+  afterAttach: (onDom) ->
+    return if @attached or not onDom
+    @attached = true
+    @calculateDimensions()
+    @hiddenInput.width(@charWidth)
+    @setMaxLineLength() if @softWrap
+    @focus() if @isFocused
+    @trigger 'editor-open', [this]
 
   rootView: ->
     @parents('#root-view').view()
@@ -233,8 +253,8 @@ class Editor extends View
       @unsubscribeFromBuffer()
 
     @buffer = buffer
-    @trigger 'buffer-path-change'
-    @buffer.on "path-change.editor#{@id}", => @trigger 'buffer-path-change'
+    @trigger 'editor-path-change'
+    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
 
     @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
     @renderLines()
@@ -383,6 +403,11 @@ class Editor extends View
     position = Point.fromObject(position)
     { top: position.row * @lineHeight, left: position.column * @charWidth }
 
+  pixelOffsetForScreenPosition: (position) ->
+    {top, left} = @pixelPositionForScreenPosition(position)
+    offset = @lines.offset()
+    {top: top + offset.top, left: left + offset.left}
+
   screenPositionFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
 
@@ -473,6 +498,9 @@ class Editor extends View
   insertText: (text) ->
     @compositeSelection.insertText(text)
 
+  insertNewline: ->
+    @insertText('\n')
+
   insertTab: ->
     if @softTabs
       @compositeSelection.insertText(@tabText)
@@ -516,8 +544,13 @@ class Editor extends View
   pane: ->
     @parent('.pane').view()
 
+  close: ->
+    @remove() unless @mini
+
   remove: (selector, keepData) ->
     return super if keepData
+
+    @trigger 'before-remove'
     @unsubscribeFromBuffer()
     rootView = @rootView()
     if @pane() then @pane().remove() else super

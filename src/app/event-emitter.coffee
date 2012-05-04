@@ -14,6 +14,8 @@ module.exports =
       @eventHandlersByNamespace[namespace][eventName] ?= []
       @eventHandlersByNamespace[namespace][eventName].push(handler)
 
+    @afterSubscribe?()
+
   trigger: (eventName, event) ->
     [eventName, namespace] = eventName.split('.')
 
@@ -22,26 +24,35 @@ module.exports =
     else
       @eventHandlersByEventName?[eventName]?.forEach (handler) -> handler(event)
 
-  off: (eventName, handler) ->
+  off: (eventName='', handler) ->
     [eventName, namespace] = eventName.split('.')
-    eventName = undefined if eventName is ''
+    eventName = undefined if eventName == ''
 
-    if namespace
+    subscriptionCountBefore = @subscriptionCount()
+
+    if !eventName? and !namespace?
+      @eventHandlersByEventName = {}
+      @eventHandlersByNamespace = {}
+    else if namespace
       if eventName
         handlers = @eventHandlersByNamespace?[namespace]?[eventName] ? []
         for handler in new Array(handlers...)
           _.remove(handlers, handler)
           @off eventName, handler
+        return
       else
         for eventName, handlers of @eventHandlersByNamespace?[namespace] ? {}
           for handler in new Array(handlers...)
             _.remove(handlers, handler)
             @off eventName, handler
+        return
     else
       if handler
         _.remove(@eventHandlersByEventName[eventName], handler)
       else
         delete @eventHandlersByEventName?[eventName]
+
+    @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
 
   subscriptionCount: ->
     count = 0

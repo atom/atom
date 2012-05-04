@@ -29,8 +29,11 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef _CEF_PTR_H
-#define _CEF_PTR_H
+#ifndef CEF_INCLUDE_INTERNAL_CEF_PTR_H_
+#define CEF_INCLUDE_INTERNAL_CEF_PTR_H_
+#pragma once
+
+#include <stddef.h>
 
 ///
 // Smart pointer implementation borrowed from base/ref_counted.h
@@ -146,7 +149,7 @@ class CefRefPtr {
   CefRefPtr() : ptr_(NULL) {
   }
 
-  CefRefPtr(T* p) : ptr_(p) {
+  CefRefPtr(T* p) : ptr_(p) {  // NOLINT(runtime/explicit)
     if (ptr_)
       ptr_->AddRef();
   }
@@ -186,11 +189,11 @@ class CefRefPtr {
   }
 
   void swap(CefRefPtr<T>& r) {
-    swap(&r.ptr_);
+    swap(&r.ptr_);  // NOLINT(build/include_what_you_use)
   }
 
  private:
   T* ptr_;
 };
 
-#endif // _CEF_PTR_H
+#endif  // CEF_INCLUDE_INTERNAL_CEF_PTR_H_

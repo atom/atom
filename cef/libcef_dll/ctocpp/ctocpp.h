@@ -2,11 +2,12 @@
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 
-#ifndef _CTOCPP_H
-#define _CTOCPP_H
+#ifndef CEF_LIBCEF_DLL_CTOCPP_CTOCPP_H_
+#define CEF_LIBCEF_DLL_CTOCPP_CTOCPP_H_
+#pragma once
 
-#include "include/cef.h"
-#include "include/cef_capi.h"
+#include "include/cef_base.h"
+#include "include/capi/cef_base_capi.h"
 #include "libcef_dll/cef_logging.h"
 
 
@@ -14,13 +15,11 @@
 // exists on the other side of the DLL boundary but will have methods called on
 // this side of the DLL boundary.
 template <class ClassName, class BaseName, class StructName>
-class CefCToCpp : public BaseName
-{
-public:
+class CefCToCpp : public BaseName {
+ public:
   // Use this method to create a wrapper class instance for a structure
   // received from the other side.
-  static CefRefPtr<BaseName> Wrap(StructName* s)
-  {
+  static CefRefPtr<BaseName> Wrap(StructName* s) {
     if (!s)
       return NULL;
 
@@ -37,8 +36,7 @@ public:
 
   // Use this method to retrieve the underlying structure from a wrapper class
   // instance for return back to the other side.
-  static StructName* Unwrap(CefRefPtr<BaseName> c)
-  {
+  static StructName* Unwrap(CefRefPtr<BaseName> c) {
     if (!c.get())
       return NULL;
 
@@ -51,17 +49,15 @@ public:
     return wrapper->GetStruct();
   }
 
-  CefCToCpp(StructName* str)
-    : struct_(str)
-  {
+  explicit CefCToCpp(StructName* str)
+    : struct_(str) {
     DCHECK(str);
 
 #ifndef NDEBUG
     CefAtomicIncrement(&DebugObjCt);
 #endif
   }
-  virtual ~CefCToCpp()
-  {
+  virtual ~CefCToCpp() {
 #ifndef NDEBUG
     CefAtomicDecrement(&DebugObjCt);
 #endif
@@ -74,13 +70,11 @@ public:
 
   // CefBase methods increment/decrement reference counts on both this object
   // and the underlying wrapped structure.
-  int AddRef()
-  {
+  int AddRef() {
     UnderlyingAddRef();
     return refct_.AddRef();
   }
-  int Release()
-  {
+  int Release() {
     UnderlyingRelease();
     int retval = refct_.Release();
     if (retval == 0)
@@ -90,33 +84,30 @@ public:
   int GetRefCt() { return refct_.GetRefCt(); }
 
   // Increment/decrement reference counts on only the underlying class.
-  int UnderlyingAddRef()
-  {
-    if(!struct_->base.add_ref)
+  int UnderlyingAddRef() {
+    if (!struct_->base.add_ref)
       return 0;
     return struct_->base.add_ref(&struct_->base);
   }
-  int UnderlyingRelease()
-  {
-    if(!struct_->base.release)
+  int UnderlyingRelease() {
+    if (!struct_->base.release)
       return 0;
     return struct_->base.release(&struct_->base);
   }
-  int UnderlyingGetRefCt()
-  {
-    if(!struct_->base.get_refct)
+  int UnderlyingGetRefCt() {
+    if (!struct_->base.get_refct)
       return 0;
     return struct_->base.get_refct(&struct_->base);
   }
 
 #ifndef NDEBUG
   // Simple tracking of allocated objects.
-  static long DebugObjCt;
+  static long DebugObjCt;  // NOLINT(runtime/int)
 #endif
 
-protected:
+ protected:
   CefRefCount refct_;
   StructName* struct_;
 };
 
-#endif // _CTOCPP_H
+#endif  // CEF_LIBCEF_DLL_CTOCPP_CTOCPP_H_

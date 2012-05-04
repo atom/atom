@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -17,8 +17,7 @@
 // MEMBER FUNCTIONS - Body may be edited by hand.
 
 int CEF_CALLBACK menu_handler_on_before_menu(struct _cef_menu_handler_t* self,
-    cef_browser_t* browser, const struct _cef_menu_info_t* menuInfo)
-{
+    cef_browser_t* browser, const struct _cef_menu_info_t* menuInfo) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -47,10 +46,8 @@ int CEF_CALLBACK menu_handler_on_before_menu(struct _cef_menu_handler_t* self,
   return _retval;
 }
 
-
 void CEF_CALLBACK menu_handler_get_menu_label(struct _cef_menu_handler_t* self,
-    cef_browser_t* browser, enum cef_menu_id_t menuId, cef_string_t* label)
-{
+    cef_browser_t* browser, enum cef_menu_id_t menuId, cef_string_t* label) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -75,10 +72,8 @@ void CEF_CALLBACK menu_handler_get_menu_label(struct _cef_menu_handler_t* self,
       labelStr);
 }
 
-
 int CEF_CALLBACK menu_handler_on_menu_action(struct _cef_menu_handler_t* self,
-    cef_browser_t* browser, enum cef_menu_id_t menuId)
-{
+    cef_browser_t* browser, enum cef_menu_id_t menuId) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -99,12 +94,10 @@ int CEF_CALLBACK menu_handler_on_menu_action(struct _cef_menu_handler_t* self,
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefMenuHandlerCppToC::CefMenuHandlerCppToC(CefMenuHandler* cls)
-    : CefCppToC<CefMenuHandlerCppToC, CefMenuHandler, cef_menu_handler_t>(cls)
-{
+    : CefCppToC<CefMenuHandlerCppToC, CefMenuHandler, cef_menu_handler_t>(cls) {
   struct_.struct_.on_before_menu = menu_handler_on_before_menu;
   struct_.struct_.get_menu_label = menu_handler_get_menu_label;
   struct_.struct_.on_menu_action = menu_handler_on_menu_action;

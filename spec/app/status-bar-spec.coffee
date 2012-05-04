@@ -8,7 +8,7 @@ fdescribe "StatusBar", ->
   beforeEach ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
     rootView.simulateDomAttachment()
-    # StatusBar.initialize(rootView)
+    StatusBar.activate(rootView)
     statusBar = rootView.find('.status-bar').view()
 
   describe "@initialize", ->
@@ -28,7 +28,7 @@ fdescribe "StatusBar", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
         rootView = new RootView
         rootView.simulateDomAttachment()
-        # StatusBar.initialize(rootView)
+        StatusBar.activate(rootView)
         statusBar = rootView.find('.status-bar').view()
         expect(statusBar.currentPath.text()).toBe 'untitled'
         expect(statusBar.cursorPosition.text()).toBe '0,0'

@@ -4,8 +4,10 @@ class UndoManager
   redoHistory: null
   currentBatch: null
   preserveHistory: false
+  startBatchCallCount: null
 
   constructor: (@buffer) ->
+    @startBatchCallCount = 0
     @undoHistory = []
     @redoHistory = []
     @buffer.on 'change', (op) =>
@@ -35,10 +37,14 @@ class UndoManager
       batch.newSelectionRanges
 
   startUndoBatch: (ranges) ->
+    @startBatchCallCount++
+    return if @startBatchCallCount > 1
     @currentBatch = []
     @currentBatch.oldSelectionRanges = ranges
 
   endUndoBatch: (ranges) ->
+    @startBatchCallCount--
+    return if @startBatchCallCount > 0
     @currentBatch.newSelectionRanges = ranges
     @undoHistory.push(@currentBatch) if @currentBatch.length > 0
     @currentBatch = null

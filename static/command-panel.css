@@ -18,7 +18,3 @@
 .command-panel .editor {
   -webkit-box-flex: 1
 }
-
-.command-panel .editor .gutter {
-  display: none;
-}

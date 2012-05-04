@@ -1,8 +1,12 @@
 #import "native_handler.h"
-#import "include/cef.h"
+#import "include/cef_base.h"
 #import "Atom.h"
 #import "AtomController.h"
 #import "client_handler.h"
+#import "PathWatcher.h"
+
+#define MY_EXCEPTION_TRY @try {
+#define MY_EXCEPTION_HANDLE } @catch (NSException *localException) {}
 
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   std::string cc_value = value->GetStringValue().ToString();
@@ -10,9 +14,9 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 }
 
 NativeHandler::NativeHandler() : CefV8Handler() {  
-  m_object = CefV8Value::CreateObject(NULL);
+  m_object = CefV8Value::CreateObject(NULL, NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit"};
+  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -270,6 +274,73 @@ bool NativeHandler::Execute(const CefString& name,
     
     exit(exitStatus);
     return true;
+  }
+  else if (name == "watchPath") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    CefRefPtr<CefV8Value> function = arguments[1];
+
+    CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
+    
+    WatchCallback callback = ^(NSArray *eventList) {
+      context->Enter();
+      
+      CefV8ValueList args;
+      CefRefPtr<CefV8Value> retval;
+      CefRefPtr<CefV8Exception> e;
+      
+      CefRefPtr<CefV8Value> eventObject = CefV8Value::CreateObject(NULL, NULL);
+      for (NSString *event in eventList) {
+        eventObject->SetValue([event UTF8String], CefV8Value::CreateBool(true), V8_PROPERTY_ATTRIBUTE_NONE);
+      }
+      
+      args.push_back(eventObject);
+      function->ExecuteFunction(function, args, retval, e, true);
+      
+      context->Exit();
+    };
+
+    NSString *watchId = [PathWatcher watchPath:path callback:[[callback copy] autorelease]];
+    retval = CefV8Value::CreateString([watchId UTF8String]);
+    
+    return true;
+  }
+  else if (name == "unwatchPath") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    NSString *callbackId = stringFromCefV8Value(arguments[1]);
+    NSError *error = nil;
+    [PathWatcher unwatchPath:path callbackId:callbackId error:&error];
+    
+    if (error) {
+      exception = [[error localizedDescription] UTF8String];
+    }
+    
+    return true;    
+  }
+  else if (name == "makeDirectory") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSError *error = nil;
+    [fm createDirectoryAtPath:path withIntermediateDirectories:NO attributes:nil error:&error];
+    
+    if (error) {
+      exception = [[error localizedDescription] UTF8String];
+    }
+
+    return true;
+  } 
+  else if (name == "move") {
+    NSString *sourcePath = stringFromCefV8Value(arguments[0]);
+    NSString *targetPath = stringFromCefV8Value(arguments[1]);
+    NSFileManager *fm = [NSFileManager defaultManager];
+    
+    NSError *error = nil;
+    [fm moveItemAtPath:sourcePath toPath:targetPath error:&error];
+    
+    if (error) {
+      exception = [[error localizedDescription] UTF8String];
+    }
+    
+    return true;    
   }
   
   return false;

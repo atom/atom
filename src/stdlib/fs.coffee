@@ -14,20 +14,29 @@ module.exports =
   # any leading directory components removed. If specified, also
   # remove a trailing extension.
   base: (path, ext) ->
-    base = path.split("/").pop()
-    if ext then base.replace(RegEx(ext + "$"), "") else base
+    base = path.replace(/\/$/, '').split("/").pop()
+    if ext then base.replace(RegExp(ext + "$"), "") else base
 
-  # Return the dirname of the given path. That is the path with any trailing
-  # non-directory component removed.
+  # Returns the path of a file's containing directory, albeit the
+  # parent directory if the file is a directory. A terminal directory
+  # separator is ignored.
   directory: (path) ->
-    if @isDirectory(path)
-      path.replace(/\/?$/, '/')
-    else
-      path.replace(new RegExp("/#{@base(path)}$"), '/')
+    path.replace(new RegExp("/#{@base(path)}\/?$"), '')
 
   # Returns true if the file specified by path exists
   exists: (path) ->
     $native.exists path
+
+  # Returns the extension of a file. The extension of a file is the
+  # last dot (excluding any number of initial dots) followed by one or
+  # more non-dot characters. Returns an empty string if no valid
+  # extension exists.
+  extension: (path) ->
+    match = @base(path).match(/\.[^\.]+$/)
+    if match
+      match[0]
+    else
+      ""
 
   join: (paths...) ->
     return paths[0] if paths.length == 1
@@ -52,6 +61,9 @@ module.exports =
   listTree: (path) ->
     $native.list(path, true)
 
+  move: (source, target) ->
+    $native.move(source, target)
+
   # Remove a file at the given path. Throws an error if path is not a
   # file or a symbolic link to a file.
   remove: (path) ->
@@ -64,6 +76,9 @@ module.exports =
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
     $native.write(path, content)
+
+  makeDirectory: (path) ->
+    $native.makeDirectory(path)
 
   async:
     list: (path) ->

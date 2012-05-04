@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -19,8 +19,7 @@
 
 int CEF_CALLBACK print_handler_get_print_options(
     struct _cef_print_handler_t* self, cef_browser_t* browser,
-    struct _cef_print_options_t* printOptions)
-{
+    struct _cef_print_options_t* printOptions) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -53,15 +52,13 @@ int CEF_CALLBACK print_handler_get_print_options(
   return _retval;
 }
 
-
 int CEF_CALLBACK print_handler_get_print_header_footer(
     struct _cef_print_handler_t* self, cef_browser_t* browser,
     cef_frame_t* frame, const cef_print_info_t* printInfo,
     const cef_string_t* url, const cef_string_t* title, int currentPage,
     int maxPages, cef_string_t* topLeft, cef_string_t* topCenter,
     cef_string_t* topRight, cef_string_t* bottomLeft,
-    cef_string_t* bottomCenter, cef_string_t* bottomRight)
-{
+    cef_string_t* bottomCenter, cef_string_t* bottomRight) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -150,13 +147,11 @@ int CEF_CALLBACK print_handler_get_print_header_footer(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefPrintHandlerCppToC::CefPrintHandlerCppToC(CefPrintHandler* cls)
     : CefCppToC<CefPrintHandlerCppToC, CefPrintHandler, cef_print_handler_t>(
-        cls)
-{
+        cls) {
   struct_.struct_.get_print_options = print_handler_get_print_options;
   struct_.struct_.get_print_header_footer =
       print_handler_get_print_header_footer;

@@ -11,6 +11,14 @@ class Buffer
   lines: null
   path: null
 
+  @deserialize: (state, project) ->
+    if state.path
+      project.open(state.path)
+    else
+      buffer = project.bufferWithId(state.id) ? project.open()
+      buffer.setText(state.text)
+      buffer
+
   constructor: (path) ->
     @id = @constructor.idCounter++
     @setPath(path)
@@ -20,6 +28,12 @@ class Buffer
     else
       @setText('')
     @undoManager = new UndoManager(this)
+
+  serialize: ->
+    if @getPath()
+      { path: @path }
+    else
+      { text: @getText(), id: @id }
 
   getPath: ->
     @path
@@ -142,7 +156,9 @@ class Buffer
 
   save: ->
     if not @getPath() then throw new Error("Tried to save buffer with no file path")
+    @trigger 'before-save'
     fs.write @getPath(), @getText()
+    @trigger 'after-save'
 
   saveAs: (path) ->
     @setPath(path)
@@ -185,6 +201,9 @@ class Buffer
 
     matches
 
+  scan: (regex, iterator) ->
+    @scanInRange(regex, @getRange(), iterator)
+
   scanInRange: (regex, range, iterator, reverse=false) ->
     range = Range.fromObject(range)
     global = regex.global
@@ -214,7 +233,7 @@ class Buffer
       replacementText = null
       iterator(match, range, { stop, replace })
 
-      if replacementText
+      if replacementText?
         @change(range, replacementText)
         lengthDelta += replacementText.length - matchLength unless reverse
 

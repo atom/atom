@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
+// Copyright (c) 2012 The Chromium Embedded Framework Authors. All rights
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 //
@@ -18,8 +18,7 @@
 
 int CEF_CALLBACK render_handler_get_view_rect(
     struct _cef_render_handler_t* self, cef_browser_t* browser,
-    cef_rect_t* rect)
-{
+    cef_rect_t* rect) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -50,11 +49,9 @@ int CEF_CALLBACK render_handler_get_view_rect(
   return _retval;
 }
 
-
 int CEF_CALLBACK render_handler_get_screen_rect(
     struct _cef_render_handler_t* self, cef_browser_t* browser,
-    cef_rect_t* rect)
-{
+    cef_rect_t* rect) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -85,11 +82,9 @@ int CEF_CALLBACK render_handler_get_screen_rect(
   return _retval;
 }
 
-
 int CEF_CALLBACK render_handler_get_screen_point(
     struct _cef_render_handler_t* self, cef_browser_t* browser, int viewX,
-    int viewY, int* screenX, int* screenY)
-{
+    int viewY, int* screenX, int* screenY) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -132,10 +127,8 @@ int CEF_CALLBACK render_handler_get_screen_point(
   return _retval;
 }
 
-
 void CEF_CALLBACK render_handler_on_popup_show(
-    struct _cef_render_handler_t* self, cef_browser_t* browser, int show)
-{
+    struct _cef_render_handler_t* self, cef_browser_t* browser, int show) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -152,11 +145,9 @@ void CEF_CALLBACK render_handler_on_popup_show(
       show?true:false);
 }
 
-
 void CEF_CALLBACK render_handler_on_popup_size(
     struct _cef_render_handler_t* self, cef_browser_t* browser,
-    const cef_rect_t* rect)
-{
+    const cef_rect_t* rect) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -180,11 +171,10 @@ void CEF_CALLBACK render_handler_on_popup_size(
       rectVal);
 }
 
-
 void CEF_CALLBACK render_handler_on_paint(struct _cef_render_handler_t* self,
     cef_browser_t* browser, enum cef_paint_element_type_t type,
-    size_t dirtyRectsCount, cef_rect_t const* dirtyRects, const void* buffer)
-{
+    size_t dirtyRectsCount, cef_rect_t const* dirtyRects,
+    const void* buffer) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -219,11 +209,9 @@ void CEF_CALLBACK render_handler_on_paint(struct _cef_render_handler_t* self,
       buffer);
 }
 
-
 void CEF_CALLBACK render_handler_on_cursor_change(
     struct _cef_render_handler_t* self, cef_browser_t* browser,
-    cef_cursor_handle_t cursor)
-{
+    cef_cursor_handle_t cursor) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -241,13 +229,11 @@ void CEF_CALLBACK render_handler_on_cursor_change(
 }
 
 
-
 // CONSTRUCTOR - Do not edit by hand.
 
 CefRenderHandlerCppToC::CefRenderHandlerCppToC(CefRenderHandler* cls)
     : CefCppToC<CefRenderHandlerCppToC, CefRenderHandler, cef_render_handler_t>(
-        cls)
-{
+        cls) {
   struct_.struct_.get_view_rect = render_handler_get_view_rect;
   struct_.struct_.get_screen_rect = render_handler_get_screen_rect;
   struct_.struct_.get_screen_point = render_handler_get_screen_point;

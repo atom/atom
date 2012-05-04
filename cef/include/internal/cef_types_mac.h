@@ -28,11 +28,14 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef _CEF_TYPES_MAC_H
-#define _CEF_TYPES_MAC_H
+#ifndef CEF_INCLUDE_INTERNAL_CEF_TYPES_MAC_H_
+#define CEF_INCLUDE_INTERNAL_CEF_TYPES_MAC_H_
+#pragma once
+
+#include "include/internal/cef_build.h"
 
 #if defined(OS_MACOSX)
-#include "cef_string.h"
+#include "include/internal/cef_string.h"
 
 // Window handle.
 #ifdef __cplusplus
@@ -54,8 +57,7 @@ extern "C" {
 ///
 // Supported graphics implementations.
 ///
-enum cef_graphics_implementation_t
-{
+enum cef_graphics_implementation_t {
   DESKTOP_IN_PROCESS = 0,
   DESKTOP_IN_PROCESS_COMMAND_BUFFER,
 };
@@ -63,8 +65,7 @@ enum cef_graphics_implementation_t
 ///
 // Class representing window information.
 ///
-typedef struct _cef_window_info_t
-{
+typedef struct _cef_window_info_t {
   cef_string_t m_windowName;
   int m_x;
   int m_y;
@@ -74,7 +75,7 @@ typedef struct _cef_window_info_t
 
   // NSView pointer for the parent view.
   cef_window_handle_t m_ParentView;
-  
+
   // NSView pointer for the new browser view.
   cef_window_handle_t m_View;
 } cef_window_info_t;
@@ -82,8 +83,7 @@ typedef struct _cef_window_info_t
 ///
 // Class representing print context information.
 ///
-typedef struct _cef_print_info_t
-{
+typedef struct _cef_print_info_t {
   double m_Scale;
 } cef_print_info_t;
 
@@ -91,6 +91,6 @@ typedef struct _cef_print_info_t
 }
 #endif
 
-#endif // OS_MACOSX
+#endif  // OS_MACOSX
 
-#endif // _CEF_TYPES_MAC_H
+#endif  // CEF_INCLUDE_INTERNAL_CEF_TYPES_MAC_H_

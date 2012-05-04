@@ -1,6 +1,7 @@
 Buffer = require 'buffer'
 Editor = require 'editor'
 Range = require 'range'
+Project = require 'project'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
@@ -11,11 +12,18 @@ describe "Editor", ->
   editor = null
 
   beforeEach ->
-    buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editor = new Editor
+    project = new Project(require.resolve('fixtures'))
+    buffer = project.open("sample.js")
+    editor = new Editor { buffer }
+
+    fakeRootView =
+      project: project
+      editorFocused: ->
+      focus: ->
+
+    editor.rootView = -> fakeRootView
     editor.autoIndent = false
     editor.enableKeymap()
-    editor.setBuffer(buffer)
     editor.isFocused = true
 
   describe "construction", ->
@@ -42,6 +50,20 @@ describe "Editor", ->
 
       expect(newEditor.editSessions[0]).toEqual(editor.editSessions[0])
       expect(newEditor.editSessions[0]).not.toBe(editor.editSessions[0])
+
+  describe "editor-open event", ->
+    it 'only triggers an editor-open event when it is first added to the DOM', ->
+      openHandler = jasmine.createSpy('openHandler')
+      editor.on 'editor-open', openHandler
+
+      editor.simulateDomAttachment()
+      expect(openHandler).toHaveBeenCalled()
+      [event, eventEditor] = openHandler.argsForCall[0]
+      expect(eventEditor).toBe editor
+
+      openHandler.reset()
+      editor.simulateDomAttachment()
+      expect(openHandler).not.toHaveBeenCalled()
 
   describe "text rendering", ->
     it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
@@ -405,6 +427,10 @@ describe "Editor", ->
         expect(cursor1.getBufferPosition()).toEqual [0,0]
         expect(cursor2.getBufferPosition()).toEqual [1,0]
 
+      it "does not throw an exception on an empty line", ->
+        editor.setCursorBufferPosition([10, 0])
+        editor.trigger 'move-to-first-character-of-line'
+
     describe "move-to-next-word", ->
       it "moves the cursor to the next word or the end of file if there is no next word", ->
         editor.setCursorBufferPosition [2, 5]
@@ -598,7 +624,7 @@ describe "Editor", ->
           expect(editor.scroller.scrollTop()).toBe(0)
 
         it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
-          setEditorHeightInChars(editor, 5)
+          setEditorHeightInLines(editor, 5)
 
           _.times 3, ->
             editor.moveCursorDown()
@@ -697,7 +723,7 @@ describe "Editor", ->
 
         it "only attempts to scroll when a cursor is visible", ->
           setEditorWidthInChars(editor, 20)
-          setEditorHeightInChars(editor, 10)
+          setEditorHeightInLines(editor, 10)
           editor.setCursorBufferPosition([11,0])
           editor.addCursorAtBufferPosition([6,50])
           editor.addCursorAtBufferPosition([0,0])
@@ -712,7 +738,7 @@ describe "Editor", ->
 
         it "only attempts to scroll once when multiple cursors are visible", ->
           setEditorWidthInChars(editor, 20)
-          setEditorHeightInChars(editor, 10)
+          setEditorHeightInLines(editor, 10)
           editor.setCursorBufferPosition([11,0])
           editor.addCursorAtBufferPosition([0,0])
           editor.addCursorAtBufferPosition([6,0])
@@ -1046,7 +1072,7 @@ describe "Editor", ->
   describe "multiple cursors", ->
     it "places multiple cursor with meta-click", ->
       editor.attachToDom()
-      setEditorHeightInChars(editor, 5)
+      setEditorHeightInLines(editor, 5)
       editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
       editor.scroller.scrollTop(editor.lineHeight * 6)
 
@@ -2084,24 +2110,24 @@ describe "Editor", ->
         expect(editor.lines.find('.line:eq(14)').text()).toBe 'B'
         expect(editor.lines.find('.line:eq(15)')).not.toExist()
 
-  describe "path-change event", ->
+  describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->
       editor = new Editor
 
       eventHandler = jasmine.createSpy('eventHandler')
-      editor.on 'buffer-path-change', eventHandler
+      editor.on 'editor-path-change', eventHandler
       editor.buffer.setPath("moo.text")
 
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
-      editor.on 'buffer-path-change', eventHandler
+      editor.on 'editor-path-change', eventHandler
       editor.setBuffer(new Buffer("something.txt"))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
       eventHandler = jasmine.createSpy('eventHandler')
       oldBuffer = editor.buffer
-      editor.on 'buffer-path-change', eventHandler
+      editor.on 'editor-path-change', eventHandler
 
       editor.setBuffer(new Buffer("something.txt"))
       expect(eventHandler).toHaveBeenCalled()
@@ -2169,4 +2195,14 @@ describe "Editor", ->
         editor.splitLeft()
         editor.splitRight()
 
+  describe "when 'close' is triggered", ->
+    it "calls remove on the editor if mini is false", ->
+      expect(editor.mini).toBeFalsy()
+      spyOn(editor, 'remove')
+      editor.trigger 'close'
+      expect(editor.remove).toHaveBeenCalled()
 
+      editor = new Editor(mini: true)
+      spyOn(editor, 'remove')
+      editor.trigger 'close'
+      expect(editor.remove).not.toHaveBeenCalled()

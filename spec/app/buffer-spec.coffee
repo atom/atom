@@ -1,3 +1,4 @@
+Project = require 'project'
 Buffer = require 'buffer'
 fs = require 'fs'
 
@@ -29,6 +30,25 @@ describe 'Buffer', ->
       it "creates an empty buffer", ->
         buffer = new Buffer
         expect(buffer.getText()).toBe ""
+
+  describe '.deserialize(state, project)', ->
+    project = null
+
+    beforeEach ->
+      project = new Project(fs.directory(filePath))
+
+    describe 'when the state has a path', ->
+      it 'use the project to open the path', ->
+        savedBuffer = project.open(filePath)
+        buffer = Buffer.deserialize(savedBuffer.serialize(), project)
+        expect(buffer).toBe savedBuffer
+
+    describe 'when the state has text (and no path)', ->
+      it 'creates a new buffer with the given text', ->
+        unsavedBuffer = project.open()
+        unsavedBuffer.setText("OMGWTFBBQ")
+        buffer = Buffer.deserialize(unsavedBuffer.serialize(), project)
+        expect(buffer).toBe unsavedBuffer
 
   describe ".getLines()", ->
     it "returns an array of lines in the text contents", ->
@@ -159,23 +179,39 @@ describe 'Buffer', ->
 
   describe ".save()", ->
     describe "when the buffer has a path", ->
-      filePath = null
+      [filePath, buffer] = []
 
       beforeEach ->
-        filePath = require.resolve('fixtures') + '/temp.txt'
-        expect(fs.exists(filePath)).toBeFalsy()
+        filePath = '/tmp/temp.txt'
+        fs.remove filePath if fs.exists(filePath)
+        buffer = new Buffer filePath
 
       afterEach ->
-        fs.remove filePath
+        fs.remove filePath if fs.exists(filePath)
 
       it "saves the contents of the buffer to the path", ->
-        buffer = new Buffer filePath
         buffer.setText 'Buffer contents!'
         buffer.save()
         expect(fs.read(filePath)).toEqual 'Buffer contents!'
 
+      it "fires beforeSave and afterSave events around the call to fs.write", ->
+        events = []
+        beforeSave1 = -> events.push('beforeSave1')
+        beforeSave2 = -> events.push('beforeSave2')
+        afterSave1 = -> events.push('afterSave1')
+        afterSave2 = -> events.push('afterSave2')
+
+        buffer.on 'before-save', beforeSave1
+        buffer.on 'before-save', beforeSave2
+        spyOn(fs, 'write').andCallFake -> events.push 'fs.write'
+        buffer.on 'after-save', afterSave1
+        buffer.on 'after-save', afterSave2
+
+        buffer.save()
+        expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fs.write', 'afterSave1', 'afterSave2']
+
     describe "when the buffer no path", ->
-      it "throw an exception", ->
+      it "throws an exception", ->
         buffer = new Buffer
         expect(-> buffer.save()).toThrow()
 
@@ -312,6 +348,13 @@ describe 'Buffer', ->
 
         expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'
         expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
+
+      it "allows the match to be replaced with the empty string", ->
+        buffer.scanInRange /current/g, [[4,0], [6,59]], (match, range, { replace }) ->
+          replace("")
+
+        expect(buffer.lineForRow(5)).toBe '       = items.shift();'
+        expect(buffer.lineForRow(6)).toBe '       < pivot ? left.push() : right.push(current);'
 
     describe "when the iterator calls the 'stop' control function", ->
       it "stops the traversal", ->
