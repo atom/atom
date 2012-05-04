@@ -6,7 +6,9 @@
   color: white;
   cursor: default;
   -webkit-user-select: none;
+  -webkit-box-flex: 1;
 }
+
 
 .editor.mini {
   height: auto;

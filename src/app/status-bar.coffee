@@ -21,11 +21,20 @@ class StatusBar extends View
       @div class: 'cursor-position', outlet: 'cursorPosition'
 
   initialize: (@rootView, @editor) ->
+    @updatePathText()
+    @editor.on 'editor-path-change', => @updatePathText()
+
+    @updateCursorPositionText()
+    @editor.on 'cursor-move', => @updateCursorPositionText()
+
+  updatePathText: ->
     path = @editor.buffer.path
     if path
       @currentPath.text(@rootView.project.relativize(path))
     else
       @currentPath.text('untitled')
 
-    position = @editor.getCursorBufferPosition()
-    @cursorPosition.text("#{position.row},#{position.column}")
+  updateCursorPositionText: ->
+    { row, column } = @editor.getCursorBufferPosition()
+    @cursorPosition.text("#{row + 1},#{column + 1}")
+
