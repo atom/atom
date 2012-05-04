@@ -1,58 +1,49 @@
-
+<!DOCTYPE html>
 <html>
-  <style>
-    .vertical {
-      display: -webkit-flexbox;
-      -webkit-flex-flow: column;
-      overflow-y: visible;
-      height: 100%;
-      position: relative;
-      background-color: rgba(0, 0, 0, .3);
-    }
+  <head>
+    <style>
+      body {
+        background: blue;
+      }
 
-    .horizontal {
-      display: -webkit-flexbox;
-      -webkit-flex-flow: row;
-      overflow-x: visible;
-      position: relative;
-      background-color: rgba(0, 0, 0, .3);
-    }
+      .pane {
+        background: black;
+        position: absolute;*
+        top: 100px;
+        left: 100px;
+        height: 200px;
+        width: 200px;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
 
-    .horizontal > * {
-      width: -webkit-flex(1);
-      height: auto;
-    }
+        overflow: hidden;
+        border: 1px solid navy;
+      }
 
-    .vertical > * {
-      height: -webkit-flex(1);
-    }
+      .editor {
+        background: green;
+        overflow: auto;
+        -webkit-box-flex: 1;
+      }
 
-    .vertical > * + * {
-      border-top: 5px solid blue;
-    }
-
-    .horizontal > * + * {
-      border-left: 5px solid blue;
-    }
-  </style>
-
+      .status-bar {
+        background: goldenrod;
+      }
+    </style>
+  </head>
   <body>
-    <div class="vertical">
-      <div class="editor">
+    <div class="pane">
+      <div class ="editor">
+        Fugiat PBR mumblecore qui sed chillwave. Before they sold out minim typewriter, bicycle rights assumenda nostrud bushwick cliche food truck you probably haven't heard of them wolf single-origin coffee sed eu godard. Helvetica irure ex, kogi hella PBR beard readymade. Tumblr pariatur aliqua bespoke occaecat godard. Duis cupidatat messenger bag, small batch tofu DIY next level scenester gentrify proident cliche selvage carles. Vice bespoke excepteur, retro +1 banh mi wayfarers gluten-free cardigan truffaut. Etsy aesthetic sustainable wes anderson irony, small batch keffiyeh stumptown kale chips biodiesel pour-over mcsweeney's magna sint helvetica.
+
+        Ethical occupy vero, freegan chillwave helvetica exercitation polaroid cillum. Trust fund chambray skateboard lo-fi adipisicing next level. Cillum polaroid typewriter id bicycle rights. Nulla terry richardson reprehenderit pour-over master cleanse ea. Brunch synth thundercats nisi vice. Umami laboris mollit fingerstache, kogi irony pop-up irure. Vero ea aute, accusamus pariatur narwhal stumptown post-ironic.
+
+        Readymade commodo vero food truck, delectus pour-over echo park incididunt williamsburg nostrud you probably haven't heard of them odio cillum fap organic. Small batch minim bushwick nulla next level chillwave ex, truffaut photo booth. Wolf veniam before they sold out ethnic banksy. Squid gastropub cillum ethical VHS labore. Veniam bushwick pinterest umami minim delectus. Magna keytar leggings bushwick retro mcsweeney's. Cray selvage wes anderson nulla non.
+
+        Dolor bushwick sapiente terry richardson do. Excepteur sriracha scenester keffiyeh minim, irure truffaut. Aute chillwave etsy esse, swag eiusmod truffaut four loko terry richardson deserunt cliche laborum leggings sartorial. Bespoke carles dolor, non ad incididunt ex eiusmod duis pitchfork synth quinoa cosby sweater. Nostrud wolf direct trade quinoa, PBR +1 voluptate. Gastropub odd future cliche pinterest +1 sint occupy. Velit gluten-free cred mollit, adipisicing iphone next level accusamus irony culpa ut.
       </div>
-      <div class="horizontal">
-        <div class="editor">
-        </div>
-        <div class="vertical">
-          <div class="editor">
-          </div>
-          <div class="horizontal">
-            <div class="editor">
-            </div>
-            <div class="editor">
-            </div>
-          </div>
-        </div>
+      <div class ="status-bar">
+        i am a status bar
       </div>
     </div>
   </body>
