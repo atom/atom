@@ -13,12 +13,16 @@
 // Provide the CefAppProtocol implementation required by CEF.
 @implementation Atom
 
-+ (void)load {
++ (id)sharedApplication {
+  id atomApp = [super sharedApplication];
+  
   CefSettings settings;
   AppGetSettings(settings);
   
   CefRefPtr<CefApp> app;
   CefInitialize(settings, app);
+  
+  return atomApp;
 }
 
 - (void)dealloc {
