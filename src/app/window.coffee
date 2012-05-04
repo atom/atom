@@ -31,8 +31,7 @@ windowAdditions =
     atom.windowOpened this
 
   shutdown: ->
-    @saveRootViewState()
-    @rootView.remove()
+    @rootView.deactivate()
     $(window).unbind('focus')
     $(window).unbind('blur')
     $(window).off('before')
@@ -45,9 +44,6 @@ windowAdditions =
     else
       new RootView {pathToOpen}
     $(@rootViewParentSelector).append @rootView
-
-  saveRootViewState: ->
-    atom.rootViewStates[$windowNumber] = @rootView.serialize()
 
   loadUserConfiguration: ->
     try

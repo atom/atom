@@ -88,6 +88,11 @@ class RootView extends View
     @extensions[extension.name] = extension
     extension.activate(this, @extensionStates[extension.name])
 
+  deactivate: ->
+    atom.rootViewStates[$windowNumber] = @serialize()
+    extension.deactivate() for name, extension of @extensions
+    @remove()
+
   open: (path) ->
     buffer = @project.open(path)
 

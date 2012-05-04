@@ -311,25 +311,35 @@ describe "RootView", ->
         expect(rootView.panes.children('.pane').length).toBe 1
         expect(pane1.outerWidth()).toBe rootView.panes.width()
 
-  describe ".activateExtension(extension)", ->
+  describe "extensions", ->
     extension = null
+
     beforeEach ->
       extension =
         name: 'extension'
+        deactivate: ->
         activate: jasmine.createSpy("activate")
         serialize: -> "it worked"
 
-    it "calls activate on the extension", ->
-      rootView.activateExtension(extension)
-      expect(extension.activate).toHaveBeenCalledWith(rootView, undefined)
+    describe "activation", ->
+      it "calls activate on the extension", ->
+        rootView.activateExtension(extension)
+        expect(extension.activate).toHaveBeenCalledWith(rootView, undefined)
 
-    it "calls activate on the extension with its previous state", ->
-      rootView.activateExtension(extension)
-      extension.activate.reset()
+      it "calls activate on the extension with its previous state", ->
+        rootView.activateExtension(extension)
+        extension.activate.reset()
 
-      newRootView = RootView.deserialize(rootView.serialize())
-      newRootView.activateExtension(extension)
-      expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked")
+        newRootView = RootView.deserialize(rootView.serialize())
+        newRootView.activateExtension(extension)
+        expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked")
+
+    describe "deactivation", ->
+      it "is deactivated when the rootView is deactivated", ->
+        rootView.activateExtension(extension)
+        spyOn(extension, "deactivate").andCallThrough()
+        rootView.deactivate()
+        expect(extension.deactivate).toHaveBeenCalled()
 
   describe "the file finder", ->
     describe "when the toggle-file-finder event is triggered", ->
