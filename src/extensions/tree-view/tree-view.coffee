@@ -4,6 +4,8 @@ DirectoryView = require 'tree-view/directory-view'
 FileView = require 'tree-view/file-view'
 MoveDialog = require 'tree-view/move-dialog'
 AddDialog = require 'tree-view/add-dialog'
+Native = require 'native'
+fs = require 'fs'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -55,8 +57,9 @@ class TreeView extends View
     @on 'tree-view:expand-directory', => @expandDirectory()
     @on 'tree-view:collapse-directory', => @collapseDirectory()
     @on 'tree-view:open-selected-entry', => @openSelectedEntry()
-    @on 'tree-view:move', => @move()
+    @on 'tree-view:move', => @moveSelectedEntry()
     @on 'tree-view:add', => @add()
+    @on 'tree-view:remove', => @removeSelectedEntry()
     @on 'tree-view:directory-modified', => @selectActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
 
@@ -128,8 +131,25 @@ class TreeView extends View
     else if (selectedEntry instanceof FileView)
       @rootView.open(selectedEntry.getPath(), false)
 
-  move: ->
-    @rootView.append(new MoveDialog(@rootView.project, @selectedEntry().getPath()))
+  moveSelectedEntry: ->
+    entry = @selectedEntry()
+    return unless entry
+    @rootView.append(new MoveDialog(@rootView.project, entry.getPath()))
+
+  removeSelectedEntry: ->
+    entry = @selectedEntry()
+    return unless entry
+
+    entryType = if entry instanceof DirectoryView then "directory" else "file"
+    message = "Are you sure you would like to delete the selected #{entryType}?"
+    detailedMessage = "You are delteing #{entry.getPath()}"
+    buttons = [
+      ["Move to Trash", => Native.moveToTrash(entry.getPath())]
+      ["Cancel", => ] # Do Nothing
+      ["Delete", => fs.remove(entry.getPath())]
+    ]
+
+    Native.alert message, detailedMessage, buttons
 
   add: ->
     @rootView.append(new AddDialog(@rootView, @selectedEntry().getPath()))

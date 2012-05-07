@@ -3,6 +3,7 @@ _ = require 'underscore'
 TreeView = require 'tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
+Native = require 'native'
 fs = require 'fs'
 
 describe "TreeView", ->
@@ -525,6 +526,13 @@ describe "TreeView", ->
             rootView.focus()
             expect(moveDialog.parent()).not.toExist()
             expect(rootView.activeEditor().isFocused).toBeTruthy()
+
+    describe "tree-view:remove", ->
+      it "shows the native alert dialog", ->
+        fileView.click()
+        spyOn(Native, 'alert')
+        treeView.trigger 'tree-view:remove'
+        expect(Native.alert).toHaveBeenCalled()
 
   describe "file system events", ->
     temporaryFilePath = null
