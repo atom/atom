@@ -307,10 +307,10 @@ describe "Autocomplete", ->
         expect(autocomplete.parent()).not.toExist()
         expect(editor.lineForBufferRow(10)).toEqual 'pivot '
 
-  describe 'when the editor is focused', ->
+  describe 'when the mini-editor loses focus before the selection is confirmed', ->
     it "cancels the autocomplete", ->
+      editor.attachToDom()
       autocomplete.attach()
-
       spyOn(autocomplete, "cancel")
 
       editor.focus()

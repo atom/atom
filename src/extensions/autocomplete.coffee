@@ -82,6 +82,7 @@ class Autocomplete extends View
     @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
 
   confirm: ->
+    @confirmed = true
     @editor.getSelection().clearSelection()
     @detach()
     return unless match = @selectedMatch()
@@ -94,7 +95,8 @@ class Autocomplete extends View
     @editor.setSelectionBufferRange(@originalSelectionBufferRange)
 
   attach: ->
-    @editor.on 'focus.autocomplete', => @cancel()
+    @confirmed = false
+    @miniEditor.on 'focusout', => @cancel() unless @confirmed
 
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
