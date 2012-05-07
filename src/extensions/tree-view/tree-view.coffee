@@ -30,9 +30,11 @@ class TreeView extends View
     treeView = new TreeView(rootView)
     treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
     treeView.selectEntryForPath(state.selectedPath)
+    treeView.focusAfterAttach = state.hasFocus
     treeView
 
   root: null
+  focusAfterAttach: false
 
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) =>
@@ -54,9 +56,13 @@ class TreeView extends View
     @on 'tree-view:unfocus', => @rootView.activeEditor()?.focus()
     @rootView.on 'tree-view:focus', => this.focus()
 
+  afterAttach: (onDom) ->
+    @focus() if @focusAfterAttach
+
   serialize: ->
     directoryExpansionStates: @root.serializeEntryExpansionStates()
     selectedPath: @selectedEntry()?.getPath()
+    hasFocus: @is(':focus')
 
   deactivate: ->
     @root.unwatchEntries()

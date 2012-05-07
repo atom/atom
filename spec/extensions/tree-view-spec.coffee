@@ -60,6 +60,19 @@ describe "TreeView", ->
       expect(newTreeView.selectedEntry()).toMatchSelector(".file:contains(sample.js)")
       expect(newTreeView.find(".directory:contains(zed)")).toHaveClass("expanded")
 
+    it "restores the focus state of the tree view", ->
+      treeView.attachToDom()
+      treeView.focus()
+      expect(treeView).toMatchSelector ':focus'
+
+      newRootView = RootView.deserialize(rootView.serialize())
+      rootView.remove()
+      newRootView.attachToDom()
+      newRootView.activateExtension(TreeView)
+
+      newTreeView = newRootView.find(".tree-view").view()
+      expect(newTreeView).toMatchSelector ':focus'
+
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->
       subdir = treeView.root.find('.entries > li:contains(dir/)').view()
