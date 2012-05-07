@@ -177,7 +177,14 @@ bool NativeHandler::Execute(const CefString& name,
   else if (name == "alert") {
     NSString *message = stringFromCefV8Value(arguments[0]);
     NSString *detailedMessage = stringFromCefV8Value(arguments[1]);
-    CefRefPtr<CefV8Value> buttons = arguments[2];
+      
+    CefRefPtr<CefV8Value> buttons;
+    if (arguments.size() < 3) {
+      buttons = CefV8Value::CreateObject(NULL, NULL);
+    }
+    else {
+      buttons = arguments[2];
+    }
     
     NSAlert *alert = [[[NSAlert alloc] init] autorelease];
     [alert setMessageText:message];
@@ -195,13 +202,17 @@ bool NativeHandler::Execute(const CefString& name,
       [titleForTag setObject:buttonTitle forKey:[NSNumber numberWithInt:button.tag]];
     }
     
-    NSUInteger buttonTag = [alert runModal];
+    NSUInteger buttonTag = [alert runModal];    
     const char *buttonTitle = [[titleForTag objectForKey:[NSNumber numberWithInt:buttonTag]] UTF8String];
-    CefRefPtr<CefV8Value> callback = buttons->GetValue(buttonTitle);
     
+    if (!buttonTitle) { // No button title if there were no buttons specified.
+      return true; 
+    }
+    
+    CefRefPtr<CefV8Value> callback = buttons->GetValue(buttonTitle);
     CefV8ValueList args; 
     CefRefPtr<CefV8Exception> e;
-    callback->ExecuteFunction(callback  , args, retval, e, true);
+    callback->ExecuteFunction(callback, args, retval, e, true);
     if (e) exception = e->GetMessage();
       
     return true;
