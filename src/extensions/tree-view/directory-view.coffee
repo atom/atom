@@ -7,12 +7,13 @@ module.exports =
 class DirectoryView extends View
   @content: ({directory, isExpanded}) ->
     @li class: 'directory entry', =>
-      @div class: 'header', =>
+      @div outlet: 'header', class: 'header', =>
         @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow'
         @span directory.getName(), class: 'name'
 
   directory: null
   entries: null
+  header: null
 
   initialize: ({@directory, isExpanded}) ->
     @expand() if isExpanded

@@ -1,3 +1,5 @@
+$ = require 'jquery'
+_ = require 'underscore'
 TreeView = require 'tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
@@ -231,6 +233,23 @@ describe "TreeView", ->
           treeView.root.click()
           treeView.trigger 'move-up'
           expect(treeView.root).toHaveClass 'selected'
+
+    describe "movement outside of viewable region", ->
+      it "scrolls the tree view to the selected item", ->
+        treeView.height(100)
+        treeView.attachToDom()
+        $(element).view().expand() for element in treeView.find('.directory')
+        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+
+        treeView.moveDown()
+        expect(treeView.scrollTop()).toBe 0
+
+        entryCount = treeView.find(".entry").length
+        _.times entryCount, -> treeView.moveDown()
+        expect(treeView.scrollBottom()).toBe treeView.prop('scrollHeight')
+
+        _.times entryCount, -> treeView.moveUp()
+        expect(treeView.scrollTop()).toBe 0
 
     describe "tree-view:expand-directory", ->
       describe "when a directory entry is selected", ->

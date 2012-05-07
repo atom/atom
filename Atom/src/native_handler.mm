@@ -16,7 +16,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   m_object = CefV8Value::CreateObject(NULL, NULL);
   
-  const char *functionNames[] = {"exists", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash"};
+  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
