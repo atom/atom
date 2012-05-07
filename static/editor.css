@@ -36,7 +36,7 @@
 }
 
 .editor .scroller {
-  overflow: scroll;
+  overflow: auto;
   width: -webkit-flex(1);
   height: 100%;
 }
