@@ -120,9 +120,9 @@ class TreeView extends View
 
   collapseDirectory: ->
     selectedEntry = @selectedEntry()
-    directory = selectedEntry.closest('.expanded.directory').view()
-    directory.collapse()
-    @selectEntry(directory)
+    if directory = selectedEntry.closest('.expanded.directory').view()
+      directory.collapse()
+      @selectEntry(directory)
 
   openSelectedEntry: ->
     selectedEntry = @selectedEntry()

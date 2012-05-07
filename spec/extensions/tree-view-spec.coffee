@@ -328,6 +328,13 @@ describe "TreeView", ->
           expect(subdir).toHaveClass 'selected'
           expect(treeView.root).toHaveClass 'expanded'
 
+      describe "when collapsed root directory is selected", ->
+        it "does not raise an error", ->
+          treeView.root.collapse()
+          treeView.selectEntry(treeView.root)
+
+          treeView.trigger 'tree-view:collapse-directory'
+
       describe "when a file is selected", ->
         it "collapses and selects the selected file's parent directory", ->
           subdir.find('.file').click()
