@@ -85,8 +85,11 @@ class TreeView extends View
   moveUp: ->
     selectedEntry = @selectedEntry()
     if selectedEntry
-      return if @selectEntry(selectedEntry.prev())
-      return if @selectEntry(selectedEntry.parents('.directory').first())
+      if previousEntry = @selectEntry(selectedEntry.prev())
+        if previousEntry.is('.expanded.directory')
+          @selectEntry(previousEntry.find('.entry:last'))
+      else
+        @selectEntry(selectedEntry.parents('.directory').first())
     else
       @selectEntry(@find('.entry').last())
 

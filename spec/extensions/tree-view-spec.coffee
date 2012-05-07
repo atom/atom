@@ -197,6 +197,16 @@ describe "TreeView", ->
           treeView.trigger 'move-up'
           expect(treeView.root.find('.entry:last')).toHaveClass 'selected'
 
+      describe "when there is an expanded directory before the currently selected entry", ->
+        it "selects the last entry in the expanded directory", ->
+          lastDir = treeView.root.find('.directory:last').view()
+          fileAfterDir = lastDir.next().view()
+          lastDir.expand()
+          fileAfterDir.click()
+
+          treeView.trigger 'move-up'
+          expect(lastDir.find('.entry:last')).toHaveClass 'selected'
+
       describe "when there is an entry before the currently selected entry", ->
         it "selects the previous entry", ->
           lastEntry = treeView.root.find('.entry:last')
@@ -211,7 +221,6 @@ describe "TreeView", ->
           subdir = treeView.root.find('.directory:first').view()
           subdir.expand()
           subdir.find('> .entries > .entry:first').click()
-
 
           treeView.trigger 'move-up'
 
