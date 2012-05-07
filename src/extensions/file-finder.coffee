@@ -62,5 +62,5 @@ class FileFinder extends View
     fuzzyFilter(@paths, query, maxResults: @maxResults)
 
   remove: ->
-    $('#panes .editor.active').focus()
+    $('#root-view').focus()
     super
