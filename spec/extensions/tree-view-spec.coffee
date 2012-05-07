@@ -123,24 +123,46 @@ describe "TreeView", ->
       expect(child.directory.subscriptionCount()).toBe 0
       expect(grandchild.directory.subscriptionCount()).toBe 0
 
-  describe "when a file is clicked", ->
-    it "opens it in the active editor, focuses it and selects it", ->
+  describe "when a file is single-clicked", ->
+    it "selects the files and opens it in the active editor, without changing focus", ->
       expect(rootView.activeEditor()).toBeUndefined()
 
-      sampleJs.click()
+      sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleJs).toHaveClass 'selected'
       expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.js')
+      expect(rootView.activeEditor().isFocused).toBeFalsy()
 
-      sampleTxt.click()
+      sampleTxt.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleTxt).toHaveClass 'selected'
       expect(treeView.find('.selected').length).toBe 1
       expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.txt')
+      expect(rootView.activeEditor().isFocused).toBeFalsy()
 
-  describe "when a directory is clicked", ->
+  describe "when a file is double-clicked", ->
+    it "selects the file and opens it in the active editor on the first click, then changes focus to the active editor on the second", ->
+      sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
+      expect(sampleJs).toHaveClass 'selected'
+      expect(rootView.activeEditor().buffer.path).toBe require.resolve('fixtures/sample.js')
+      expect(rootView.activeEditor().isFocused).toBeFalsy()
+
+      sampleJs.trigger clickEvent(originalEvent: { detail: 2 })
+      expect(rootView.activeEditor().isFocused).toBeTruthy()
+
+  describe "when a directory is single-clicked", ->
     it "is selected", ->
       subdir = treeView.root.find('.directory:first').view()
-      subdir.click()
+      subdir.trigger clickEvent(originalEvent: { detail: 1 })
       expect(subdir).toHaveClass 'selected'
+
+  describe "when a directory is double-clicked", ->
+    it "toggles the directory expansion state and does not change the focus to the editor", ->
+      sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
+      subdir = treeView.root.find('.directory:first').view()
+      subdir.trigger clickEvent(originalEvent: { detail: 1 })
+      expect(subdir).toHaveClass 'selected'
+      subdir.trigger clickEvent(originalEvent: { detail: 2 })
+      expect(subdir).toHaveClass 'expanded'
+      expect(rootView.activeEditor().isFocused).toBeFalsy()
 
   describe "when a new file is opened in the active editor", ->
     it "is selected in the tree view if visible", ->

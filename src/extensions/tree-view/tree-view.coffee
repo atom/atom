@@ -39,8 +39,15 @@ class TreeView extends View
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) =>
       entry = $(e.currentTarget).view()
-      @selectEntry(entry)
-      @openSelectedEntry() if (entry instanceof FileView)
+      switch e.originalEvent?.detail ? 1
+        when 1
+          @selectEntry(entry)
+          @openSelectedEntry() if (entry instanceof FileView)
+        when 2
+          if entry.is('.selected.file')
+            @rootView.activeEditor().focus()
+          else if entry.is('.selected.directory')
+            entry.toggleExpansion()
       false
 
     @on 'move-up', => @moveUp()
@@ -119,8 +126,7 @@ class TreeView extends View
     if (selectedEntry instanceof DirectoryView)
       selectedEntry.view().toggleExpansion()
     else if (selectedEntry instanceof FileView)
-      @rootView.open(selectedEntry.getPath())
-      @rootView.focus()
+      @rootView.open(selectedEntry.getPath(), false)
 
   move: ->
     @rootView.append(new MoveDialog(@rootView.project, @selectedEntry().getPath()))

@@ -94,7 +94,7 @@ class RootView extends View
     extension.deactivate() for name, extension of @extensions
     @remove()
 
-  open: (path) ->
+  open: (path, changeFocus=true) ->
     buffer = @project.open(path)
 
     if @activeEditor()
@@ -103,20 +103,24 @@ class RootView extends View
       editor = new Editor({ buffer })
       pane = new Pane(editor)
       @panes.append(pane)
-      editor.focus()
+      if changeFocus
+        editor.focus()
+      else
+        @makeEditorActive(editor)
 
   editorFocused: (editor) ->
-    if @panes.containsElement(editor)
-      previousActiveEditor = @panes.find('.editor.active').view()
-      previousActiveEditor?.removeClass('active').off('.root-view')
+    @makeEditorActive(editor) if @panes.containsElement(editor)
 
-      editor
-        .addClass('active')
-        .on 'editor-path-change.root-view', =>
-          @trigger 'active-editor-path-change', editor.buffer.path
-
-      if not previousActiveEditor or editor.buffer.path != previousActiveEditor.buffer.path
+  makeEditorActive: (editor) ->
+    previousActiveEditor = @panes.find('.editor.active').view()
+    previousActiveEditor?.removeClass('active').off('.root-view')
+    editor
+      .addClass('active')
+      .on 'editor-path-change.root-view', =>
         @trigger 'active-editor-path-change', editor.buffer.path
+
+    if not previousActiveEditor or editor.buffer.path != previousActiveEditor.buffer.path
+      @trigger 'active-editor-path-change', editor.buffer.path
 
   setTitle: (title='untitled') ->
     document.title = title

@@ -71,9 +71,6 @@ window.keydownEvent = (pattern, properties={}) ->
   event.keystroke = (new Keymap).keystrokeStringForEvent(event)
   event
 
-window.clickEvent = (properties={}) ->
-  $.Event "click", properties
-
 window.mouseEvent = (type, properties) ->
   if properties.point
     {point, editor} = properties
@@ -82,6 +79,9 @@ window.mouseEvent = (type, properties) ->
     properties.pageY = top + 1
   properties.originalEvent ?= {detail: 1}
   $.Event type, properties
+
+window.clickEvent = (properties={}) ->
+  window.mouseEvent("click", properties)
 
 window.mousedownEvent = (properties={}) ->
   window.mouseEvent('mousedown', properties)
