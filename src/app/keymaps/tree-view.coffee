@@ -7,6 +7,8 @@ window.keymap.bindKeys '.tree-view'
   'enter': 'tree-view:open-selected-entry'
   'm': 'tree-view:move'
   'a': 'tree-view:add'
+  'delete': 'tree-view:remove'
+  'backspace': 'tree-view:remove'
   'alt-tab': 'tree-view:unfocus'
 
 window.keymap.bindKeys '.move-dialog .mini.editor, .add-dialog .mini.editor'

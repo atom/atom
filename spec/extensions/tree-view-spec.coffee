@@ -3,6 +3,7 @@ _ = require 'underscore'
 TreeView = require 'tree-view'
 RootView = require 'root-view'
 Directory = require 'directory'
+Native = require 'native'
 fs = require 'fs'
 
 describe "TreeView", ->
@@ -327,6 +328,13 @@ describe "TreeView", ->
           expect(subdir).toHaveClass 'selected'
           expect(treeView.root).toHaveClass 'expanded'
 
+      describe "when collapsed root directory is selected", ->
+        it "does not raise an error", ->
+          treeView.root.collapse()
+          treeView.selectEntry(treeView.root)
+
+          treeView.trigger 'tree-view:collapse-directory'
+
       describe "when a file is selected", ->
         it "collapses and selects the selected file's parent directory", ->
           subdir.find('.file').click()
@@ -525,6 +533,13 @@ describe "TreeView", ->
             rootView.focus()
             expect(moveDialog.parent()).not.toExist()
             expect(rootView.activeEditor().isFocused).toBeTruthy()
+
+    describe "tree-view:remove", ->
+      it "shows the native alert dialog", ->
+        fileView.click()
+        spyOn(Native, 'alert')
+        treeView.trigger 'tree-view:remove'
+        expect(Native.alert).toHaveBeenCalled()
 
   describe "file system events", ->
     temporaryFilePath = null

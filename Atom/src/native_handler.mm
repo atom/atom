@@ -177,31 +177,36 @@ bool NativeHandler::Execute(const CefString& name,
   else if (name == "alert") {
     NSString *message = stringFromCefV8Value(arguments[0]);
     NSString *detailedMessage = stringFromCefV8Value(arguments[1]);
-    CefRefPtr<CefV8Value> buttons = arguments[2];
+      
+    CefRefPtr<CefV8Value> buttonNamesAndCallbacks;
+    if (arguments.size() < 3) {
+      buttonNamesAndCallbacks = CefV8Value::CreateArray();
+    }
+    else {
+      buttonNamesAndCallbacks = arguments[2];
+    }
     
     NSAlert *alert = [[[NSAlert alloc] init] autorelease];
     [alert setMessageText:message];
     [alert setInformativeText:detailedMessage];
     
-    std::vector<CefString> buttonTitles;
-    std::vector<CefString>::iterator iter;
-    NSMutableDictionary *titleForTag = [NSMutableDictionary dictionary];
-    
-    buttons->GetKeys(buttonTitles);
-    
-    for (iter = buttonTitles.begin(); iter != buttonTitles.end(); iter++) {
-      NSString *buttonTitle = [NSString stringWithUTF8String:(*iter).ToString().c_str()];
+    for (int i = 0; i < buttonNamesAndCallbacks->GetArrayLength(); i++) {
+      std::string title = buttonNamesAndCallbacks->GetValue(i)->GetValue(0)->GetStringValue().ToString();
+      NSString *buttonTitle = [NSString stringWithUTF8String:title.c_str()];
       NSButton *button = [alert addButtonWithTitle:buttonTitle];
-      [titleForTag setObject:buttonTitle forKey:[NSNumber numberWithInt:button.tag]];
+      [button setTag:i];
     }
     
-    NSUInteger buttonTag = [alert runModal];
-    const char *buttonTitle = [[titleForTag objectForKey:[NSNumber numberWithInt:buttonTag]] UTF8String];
-    CefRefPtr<CefV8Value> callback = buttons->GetValue(buttonTitle);
+    NSUInteger buttonTag = [alert runModal];    
     
+    if (buttonNamesAndCallbacks->GetArrayLength() == 0) { // No button title if there were no buttons specified.
+      return true; 
+    }
+    
+    CefRefPtr<CefV8Value> callback = buttonNamesAndCallbacks->GetValue(buttonTag)->GetValue(1);
     CefV8ValueList args; 
     CefRefPtr<CefV8Exception> e;
-    callback->ExecuteFunction(callback  , args, retval, e, true);
+    callback->ExecuteFunction(callback, args, retval, e, true);
     if (e) exception = e->GetMessage();
       
     return true;
