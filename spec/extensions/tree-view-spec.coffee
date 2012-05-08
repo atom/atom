@@ -43,13 +43,27 @@ describe "TreeView", ->
       expect(rootEntries.find('> .file:contains(sample.js)')).toExist()
       expect(rootEntries.find('> .file:contains(sample.txt)')).toExist()
 
-    it "is empty when the project has not path", ->
-      treeView.deactivate()
+    describe "when the project has not path", ->
+      beforeEach ->
+        treeView.deactivate()
 
-      rootView = new RootView
-      rootView.activateExtension(TreeView)
-      treeView = rootView.find(".tree-view").view()
-      expect(treeView.root).not.toExist()
+        rootView = new RootView
+        rootView.activateExtension(TreeView)
+        treeView = rootView.find(".tree-view").view()
+
+      it "does not create a root node", ->
+        expect(treeView.root).not.toExist()
+
+      it "creates a root view when the project path is created", ->
+        rootView.open(require.resolve('fixtures/sample.js'))
+        expect(treeView.root.getPath()).toBe require.resolve('fixtures')
+        expect(treeView.root.parent()).toMatchSelector(".tree-view")
+
+        oldRoot = treeView.root
+
+        rootView.project.setPath('/tmp')
+        expect(treeView.root).not.toEqual oldRoot
+        expect(oldRoot.hasParent()).toBeFalsy()
 
   describe "serialization", ->
     newTreeView = null

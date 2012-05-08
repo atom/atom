@@ -51,6 +51,7 @@ class TreeView extends View
     @on 'tree-view:remove', => @removeSelectedEntry()
     @on 'tree-view:directory-modified', => @selectActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
+    @rootView.project.on 'path-change', => @updateRoot()
 
     @on 'tree-view:unfocus', => @rootView.activeEditor()?.focus()
     @rootView.on 'tree-view:focus', => this.focus()
@@ -79,6 +80,11 @@ class TreeView extends View
           entry.toggleExpansion()
 
     false
+
+  updateRoot: ->
+    @root?.remove()
+    @root = new DirectoryView(directory: @rootView.project.getRootDirectory(), isExpanded: true)
+    @append(@root)
 
   selectActiveFile: ->
     activeFilePath = @rootView.activeEditor()?.buffer.path
