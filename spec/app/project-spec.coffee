@@ -69,5 +69,5 @@ describe "Project", ->
     describe "when path is null", ->
       it "sets its path and root directory to null", ->
         project.setPath(null)
-        expect(project.getPath()).toBeNull()
-        expect(project.getRootDirectory()).toBeNull()
+        expect(project.getPath()?).toBeFalsy()
+        expect(project.getRootDirectory()?).toBeFalsy()

@@ -8,7 +8,6 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 Project = require 'project'
 VimMode = require 'vim-mode'
-CommandPanel = require 'command-panel'
 Pane = require 'pane'
 PaneColumn = require 'pane-column'
 PaneRow = require 'pane-row'
@@ -31,19 +30,16 @@ class RootView extends View
   extensionStates: null
 
   initialize: ({ pathToOpen }) ->
-    @handleEvents()
-
     @extensions = {}
     @extensionStates = {}
-    @commandPanel = new CommandPanel({rootView: this})
-
-    @setTitle()
     @project = new Project(pathToOpen)
-    if pathToOpen? and fs.isFile(pathToOpen)
-      @open(pathToOpen)
+
+    @handleEvents()
+    @setTitle()
+    @open(pathToOpen) if fs.isFile(pathToOpen)
 
   serialize: ->
-    projectPath: @project?.path
+    projectPath: @project?.getPath()
     panesViewState: @panes.children().view()?.serialize()
     extensionStates: @serializeExtensions()
 
@@ -57,7 +53,7 @@ class RootView extends View
         @setTitle(@project?.getPath())
 
     @on 'active-editor-path-change', (e, path) =>
-      @project.setPath(path) unless @project.getPath()
+      @project.setPath(path) unless @project.getRootDirectory()
       @setTitle(path)
 
   afterAttach: (onDom) ->

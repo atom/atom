@@ -43,7 +43,7 @@ describe 'FileFinder', ->
 
     describe "when root view's project has no path", ->
       beforeEach ->
-        rootView.project.path = undefined
+        rootView.project.setPath(null)
 
       it "does not open the FileFinder", ->
         expect(rootView.find('.file-finder')).not.toExist()

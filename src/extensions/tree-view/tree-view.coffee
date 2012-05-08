@@ -14,14 +14,14 @@ class TreeView extends View
     requireStylesheet 'tree-view.css'
 
     if state
-      @treeView = TreeView.deserialize(state, rootView)
+      @instance = TreeView.deserialize(state, rootView)
     else
-      @treeView = new TreeView(rootView)
+      @instance = new TreeView(rootView)
 
-    rootView.horizontal.prepend(@treeView)
+    rootView.horizontal.prepend(@instance)
 
   @serialize: ->
-    @treeView.serialize()
+    @instance.serialize()
 
   @content: (rootView) ->
     @div class: 'tree-view', tabindex: -1, =>

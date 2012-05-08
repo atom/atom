@@ -1,6 +1,20 @@
 fs = require 'fs'
 
 describe "fs", ->
+  describe ".isFile(path)", ->
+    fixturesDir = require.resolve('fixtures')
+    beforeEach ->
+
+    it "returns true with a file path", ->
+      expect(fs.isFile(fs.join(fixturesDir,  'sample.js'))).toBe true
+
+    it "returns false with a directory path", ->
+      expect(fs.isFile(fixturesDir)).toBe false
+
+    it "returns false with a non-existent path", ->
+      expect(fs.isFile(fs.join(fixturesDir, 'non-existent'))).toBe false
+      expect(fs.isFile(null)).toBe false
+
   describe ".directory(path)", ->
     describe "when called with a file path", ->
       it "returns the path to the directory", ->

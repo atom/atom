@@ -20,7 +20,7 @@ describe "RootView", ->
     describe "when called with a pathToOpen", ->
       describe "when pathToOpen references a file", ->
         it "creates a project for the file's parent directory, then sets the document.title and opens the file in an editor", ->
-          expect(rootView.project.path).toBe fs.directory(path)
+          expect(rootView.project.getPath()).toBe fs.directory(path)
           expect(rootView.editors().length).toBe 1
           expect(rootView.editors()[0]).toHaveClass 'active'
           expect(rootView.activeEditor().buffer.getPath()).toBe path
@@ -33,7 +33,7 @@ describe "RootView", ->
           rootView = new RootView(pathToOpen: path)
           rootView.focus()
 
-          expect(rootView.project.path).toBe path
+          expect(rootView.project.getPath()).toBe path
           expect(rootView.editors().length).toBe 0
           expect(document.title).toBe path
 
@@ -53,7 +53,7 @@ describe "RootView", ->
 
         it "constructs the view with the same panes", ->
           rootView = RootView.deserialize(viewState)
-          expect(rootView.project.path).toBeNull()
+          expect(rootView.project.getPath()?).toBeFalsy()
           expect(rootView.editors().length).toBe 2
           expect(rootView.activeEditor().buffer.getText()).toBe buffer.getText()
           expect(document.title).toBe 'untitled'
@@ -377,9 +377,9 @@ describe "RootView", ->
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
       rootView = new RootView
       rootView.open()
-      expect(rootView.project.path).toBeNull()
+      expect(rootView.project.getPath()?).toBeFalsy()
       rootView.activeEditor().buffer.saveAs('/tmp/ignore-me')
-      expect(rootView.project.path).toBe '/tmp'
+      expect(rootView.project.getPath()).toBe '/tmp'
 
   describe "when editors are focused", ->
     it "triggers 'active-editor-path-change' events if the path of the active editor actually changes", ->
@@ -407,5 +407,5 @@ describe "RootView", ->
   describe "when the last editor is removed", ->
     it   "updates the title to the project path", ->
       rootView.editors()[0].remove()
-      expect(document.title).toBe rootView.project.path
+      expect(document.title).toBe rootView.project.getPath()
 

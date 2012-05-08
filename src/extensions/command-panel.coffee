@@ -5,6 +5,22 @@ Editor = require 'editor'
 
 module.exports =
 class CommandPanel extends View
+  @activate: (rootView, state) ->
+    requireStylesheet 'command-panel.css'
+    if state?
+      @instance = CommandPanel.deserialize(state, rootView)
+    else
+      @instance = new CommandPanel(rootView)
+
+  @serialize: ->
+    text: @instance.editor.getText()
+    visible: @instance.hasParent()
+
+  @deserialize: (state, rootView) ->
+    commandPanel = new CommandPanel(rootView)
+    commandPanel.show(state.text) if state.visible
+    commandPanel
+
   @content: ->
     @div class: 'command-panel', =>
       @div ':', class: 'prompt', outlet: 'prompt'
@@ -14,9 +30,7 @@ class CommandPanel extends View
   history: null
   historyIndex: 0
 
-  initialize: ({@rootView})->
-    requireStylesheet 'command-panel.css'
-
+  initialize: (@rootView)->
     @commandInterpreter = new CommandInterpreter()
     @history = []
 

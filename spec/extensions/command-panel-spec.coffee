@@ -1,4 +1,5 @@
 RootView = require 'root-view'
+CommandPanel = require 'command-panel'
 
 describe "CommandPanel", ->
   [rootView, commandPanel] = []
@@ -7,7 +8,7 @@ describe "CommandPanel", ->
     rootView = new RootView
     rootView.open()
     rootView.enableKeymap()
-    commandPanel = rootView.commandPanel
+    commandPanel = rootView.activateExtension(CommandPanel)
 
   describe "when toggle-command-panel is triggered on the root view", ->
     it "toggles the command panel", ->
@@ -43,8 +44,8 @@ describe "CommandPanel", ->
   describe "when command-panel:find-in-file is triggered on an editor", ->
     it "pre-populates command panel's editor with /", ->
       rootView.activeEditor().trigger "command-panel:find-in-file"
-      expect(rootView.commandPanel.parent).not.toBeEmpty()
-      expect(rootView.commandPanel.editor.getText()).toBe "/"
+      expect(commandPanel.parent).not.toBeEmpty()
+      expect(commandPanel.editor.getText()).toBe "/"
 
   describe "when esc is pressed in the command panel", ->
     it "closes the command panel", ->

@@ -6,7 +6,6 @@ Directory = require 'directory'
 
 module.exports =
 class Project
-  path: null
   rootDirectory: null
   buffers: null
 
@@ -15,16 +14,15 @@ class Project
     @buffers = []
 
   getPath: ->
-    @path
+    @rootDirectory?.path
 
   setPath: (path) ->
-    @rootDirectory.off() if @rootDirectory
+    @rootDirectory?.off()
 
     if path?
-      @path = if fs.isDirectory(path) then path else fs.directory(path)
-      @rootDirectory = new Directory(@path)
+      directory = if fs.isDirectory(path) then path else fs.directory(path)
+      @rootDirectory = new Directory(directory)
     else
-      @path = null
       @rootDirectory = null
 
     @trigger "path-change"
@@ -33,8 +31,7 @@ class Project
     @rootDirectory
 
   getFilePaths: ->
-    projectPath = @path
-    fs.async.listTree(@path).pipe (paths) =>
+    fs.async.listTree(@getPath()).pipe (paths) =>
       @relativize(path) for path in paths when fs.isFile(path)
 
   open: (filePath) ->
@@ -51,11 +48,11 @@ class Project
     buffer
 
   resolve: (filePath) ->
-    filePath = fs.join(@path, filePath) unless filePath[0] == '/'
+    filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
     fs.absolute filePath
 
   relativize: (fullPath) ->
-    fullPath.replace(@path, "").replace(/^\//, '')
+    fullPath.replace(@getPath(), "").replace(/^\//, '')
 
   bufferWithId: (id) ->
     return buffer for buffer in @buffers when buffer.id == id
