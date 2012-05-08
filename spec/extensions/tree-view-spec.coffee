@@ -96,6 +96,19 @@ describe "TreeView", ->
       newTreeView = newRootView.find(".tree-view").view()
       expect(newTreeView).toMatchSelector ':focus'
 
+  describe "when tree-view:toggle is triggered on the root view", ->
+    it "shows/hides the tree view", ->
+      rootView.attachToDom()
+      treeView.focus()
+      expect(treeView.hasParent()).toBeTruthy()
+      rootView.trigger 'tree-view:toggle'
+      expect(treeView.hasParent()).toBeFalsy()
+      expect(rootView).toMatchSelector(':focus')
+
+      rootView.trigger 'tree-view:toggle'
+      expect(treeView.hasParent()).toBeTruthy()
+      expect(treeView).toMatchSelector(':focus')
+
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->
       subdir = treeView.root.find('.entries > li:contains(dir/)').view()

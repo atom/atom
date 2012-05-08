@@ -18,7 +18,7 @@ class TreeView extends View
     else
       @instance = new TreeView(rootView)
 
-    rootView.horizontal.prepend(@instance)
+    @instance.attach()
 
   @serialize: ->
     @instance.serialize()
@@ -49,6 +49,7 @@ class TreeView extends View
     @on 'tree-view:add', => @add()
     @on 'tree-view:remove', => @removeSelectedEntry()
     @on 'tree-view:directory-modified', => @selectActiveFile()
+    @rootView.on 'tree-view:toggle', => @toggle()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
     @rootView.project.on 'path-change', => @updateRoot()
 
@@ -65,6 +66,17 @@ class TreeView extends View
 
   deactivate: ->
     @root?.unwatchEntries()
+
+  toggle: ->
+    if @hasParent()
+      @detach()
+      @rootView.focus()
+    else
+      @attach()
+      @focus()
+
+  attach: ->
+    @rootView.horizontal.prepend(this)
 
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()

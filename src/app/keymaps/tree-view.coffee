@@ -1,5 +1,6 @@
 window.keymap.bindKeys '#root-view'
   'alt-tab': 'tree-view:focus'
+  'meta-/': 'tree-view:toggle'
 
 window.keymap.bindKeys '.tree-view'
   'right': 'tree-view:expand-directory'
