@@ -27,6 +27,8 @@ class Project
       @path = null
       @rootDirectory = null
 
+    @trigger "path-change"
+
   getRootDirectory: ->
     @rootDirectory
 
