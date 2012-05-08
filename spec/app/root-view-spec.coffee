@@ -52,7 +52,6 @@ describe "RootView", ->
           viewState = rootView.serialize()
 
         it "constructs the view with the same panes", ->
-          console.log 'spec'
           rootView = RootView.deserialize(viewState)
           expect(rootView.project.path).toBeNull()
           expect(rootView.editors().length).toBe 2
