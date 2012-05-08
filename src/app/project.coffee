@@ -32,8 +32,8 @@ class Project
 
   getFilePaths: ->
     projectPath = @path
-    fs.async.listTree(@path).pipe (paths) ->
-      path.replace(projectPath, "") for path in paths when fs.isFile(path)
+    fs.async.listTree(@path).pipe (paths) =>
+      @relativize(path) for path in paths when fs.isFile(path)
 
   open: (filePath) ->
     if filePath?

@@ -341,67 +341,6 @@ describe "RootView", ->
         rootView.deactivate()
         expect(extension.deactivate).toHaveBeenCalled()
 
-  describe "the file finder", ->
-    describe "when the toggle-file-finder event is triggered", ->
-      describe "when there is a project", ->
-        it "shows the FileFinder when it is not on screen and hides it when it is", ->
-          rootView.attachToDom()
-          expect(rootView.find('.file-finder')).not.toExist()
-
-          rootView.find('.editor').trigger 'split-right'
-          [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
-
-          rootView.trigger 'toggle-file-finder'
-
-          expect(rootView.find('.file-finder')).toExist()
-          expect(rootView.find('.file-finder input:focus')).toExist()
-          rootView.trigger 'toggle-file-finder'
-
-          expect(editor1.isFocused).toBeFalsy()
-          expect(editor2.isFocused).toBeTruthy()
-          expect(rootView.find('.editor:has(:focus)')).toExist()
-          expect(rootView.find('.file-finder')).not.toExist()
-
-        it "shows all relative file paths for the current project", ->
-          rootView.trigger 'toggle-file-finder'
-
-          project.getFilePaths().done (paths) ->
-            expect(rootView.fileFinder.pathList.children('li').length).toBe paths.length
-
-            for path in paths
-              relativePath = project.relativize(path)
-              expect(rootView.fileFinder.pathList.find("li:contains(#{relativePath}):not(:contains(#{project.path}))")).toExist()
-
-      describe "when there is no project", ->
-        beforeEach ->
-          rootView = new RootView
-
-        it "does not open the FileFinder", ->
-          expect(rootView.activeEditor().buffer.path).toBeUndefined()
-          expect(rootView.find('.file-finder')).not.toExist()
-          rootView.trigger 'toggle-file-finder'
-          expect(rootView.find('.file-finder')).not.toExist()
-
-    describe "when a path is selected in the file finder", ->
-      it "opens the file associated with that path in the editor", ->
-        rootView.attachToDom()
-        rootView.find('.editor').trigger 'split-right'
-        [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
-
-        rootView.trigger 'toggle-file-finder'
-        rootView.fileFinder.trigger 'move-down'
-        selectedLi = rootView.fileFinder.find('li:eq(1)')
-
-        expectedPath = fs.join(project.path, selectedLi.text())
-        expect(editor1.buffer.path).not.toBe expectedPath
-        expect(editor2.buffer.path).not.toBe expectedPath
-
-        rootView.fileFinder.trigger 'file-finder:select-file'
-
-        expect(editor1.buffer.path).not.toBe expectedPath
-        expect(editor2.buffer.path).toBe expectedPath
-        expect(editor2.isFocused).toBeTruthy()
-
   describe "keymap wiring", ->
     commandHandler = null
     beforeEach ->

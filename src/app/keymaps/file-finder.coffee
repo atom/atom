@@ -1,6 +1,6 @@
 window.keymap.bindKeys '*'
-  'meta-t': 'toggle-file-finder'
+  'meta-t': 'file-finder:toggle'
 
 window.keymap.bindKeys ".file-finder .editor",
   'enter': 'file-finder:select-file',
-  'escape': 'file-finder:close'
+  'escape': 'file-finder:cancel'

@@ -39,14 +39,6 @@ describe "Project", ->
         expect(buffer.path).toBeUndefined()
         expect(newBufferHandler).toHaveBeenCalledWith(buffer)
 
-  describe ".getFilePaths()", ->
-    it "returns a promise which resolves to a list of all file paths in the project, recursively", ->
-      expectedPaths = (path.replace(project.path, '') for path in fs.listTree(project.path) when fs.isFile path)
-
-      waitsForPromise ->
-        project.getFilePaths().done (result) ->
-          expect(result).toEqual(expectedPaths)
-
   describe ".resolve(path)", ->
     it "returns an absolute path based on the project's root", ->
       absolutePath = require.resolve('fixtures/dir/a')

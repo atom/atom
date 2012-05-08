@@ -1,11 +1,14 @@
-$ = require 'jquery'
-{View} = require 'space-pen'
+{View, $$} = require 'space-pen'
 stringScore = require 'stringscore'
 fuzzyFilter = require 'fuzzy-filter'
 Editor = require 'editor'
 
 module.exports =
 class FileFinder extends View
+  @activate: (rootView) ->
+    @instance = new FileFinder(rootView)
+    rootView.on 'file-finder:toggle', => @instance.toggle()
+
   @content: ->
     @div class: 'file-finder', =>
       @ol outlet: 'pathList'
@@ -14,13 +17,11 @@ class FileFinder extends View
   paths: null
   maxResults: null
 
-  initialize: ({@paths, @selected}) ->
+  initialize: (@rootView) ->
     requireStylesheet 'file-finder.css'
     @maxResults = 10
 
-    @populatePathList()
-
-    @on 'file-finder:close', => @remove()
+    @on 'file-finder:cancel', => @detach()
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
     @on 'file-finder:select-file', => @select()
@@ -29,10 +30,25 @@ class FileFinder extends View
     @editor.buffer.on 'change', => @populatePathList()
     @editor.off 'move-up move-down'
 
+  toggle: ->
+    if @hasParent()
+      @detach()
+    else
+      @attach() if @rootView.project.path?
+
+  attach: ->
+    @rootView.project.getFilePaths().done (@paths) => @populatePathList()
+    @rootView.append(this)
+    @editor.focus()
+
+  detach: ->
+    @rootView.focus()
+    super
+
   populatePathList: ->
     @pathList.empty()
     for path in @findMatches(@editor.buffer.getText())
-      @pathList.append $("<li>#{path}</li>")
+      @pathList.append $$ -> @li path
 
     @pathList.children('li:first').addClass 'selected'
 
@@ -40,8 +56,9 @@ class FileFinder extends View
     @pathList.children('li.selected')
 
   select: ->
-    filePath = @findSelectedLi().text()
-    @selected(filePath) if filePath and @selected
+    selectedLi = @findSelectedLi()
+    return unless selectedLi.length
+    @rootView.open(selectedLi.text())
     @remove()
 
   moveUp: ->
@@ -60,7 +77,3 @@ class FileFinder extends View
 
   findMatches: (query) ->
     fuzzyFilter(@paths, query, maxResults: @maxResults)
-
-  remove: ->
-    $('#root-view').focus()
-    super

@@ -22,3 +22,6 @@ $.fn.preempt = (eventName, handler) ->
   eventNameWithoutNamespace = eventName.split('.')[0]
   handlers = @data('events')[eventNameWithoutNamespace]
   handlers.unshift(handlers.pop())
+
+$.fn.hasParent = ->
+  @parent()[0]?

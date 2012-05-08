@@ -6,7 +6,6 @@ _ = require 'underscore'
 {View} = require 'space-pen'
 Buffer = require 'buffer'
 Editor = require 'editor'
-FileFinder = require 'file-finder'
 Project = require 'project'
 VimMode = require 'vim-mode'
 CommandPanel = require 'command-panel'
@@ -29,7 +28,6 @@ class RootView extends View
   extensionStates: null
 
   initialize: ({ pathToOpen, projectPath, panesViewState, @extensionStates }) ->
-    @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', => window.showConsole()
     @on 'focus', (e) =>
       if @activeEditor()
@@ -74,7 +72,7 @@ class RootView extends View
   serializeExtensions:  ->
     extensionStates = {}
     for name, extension of @extensions
-      extensionStates[name] = extension.serialize()
+      extensionStates[name] = extension.serialize?()
 
     extensionStates
 
@@ -91,7 +89,7 @@ class RootView extends View
 
   deactivate: ->
     atom.rootViewStates[$windowNumber] = @serialize()
-    extension.deactivate() for name, extension of @extensions
+    extension.deactivate?() for name, extension of @extensions
     @remove()
 
   open: (path, changeFocus=true) ->
@@ -138,21 +136,6 @@ class RootView extends View
     rootPane = @panes.children().first().view()
     rootPane?.css(width: '100%', height: '100%', top: 0, left: 0)
     rootPane?.adjustDimensions()
-
-  toggleFileFinder: ->
-    return unless @project.getPath()?
-
-    if @fileFinder and @fileFinder.parent()[0]
-      @fileFinder.remove()
-      @fileFinder = null
-    else
-      @project.getFilePaths().done (paths) =>
-        relativePaths = (@project.relativize(path) for path in paths)
-        @fileFinder = new FileFinder
-          paths: relativePaths
-          selected: (relativePath) => @open(relativePath)
-        @append @fileFinder
-        @fileFinder.editor.focus()
 
   remove: ->
     editor.remove() for editor in @editors()
