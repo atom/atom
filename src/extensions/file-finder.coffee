@@ -27,7 +27,7 @@ class FileFinder extends View
     @on 'file-finder:select-file', => @select()
 
     @editor.addClass 'single-line'
-    @editor.buffer.on 'change', => @populatePathList()
+    @editor.buffer.on 'change', => @populatePathList() if @hasParent()
     @editor.off 'move-up move-down'
 
   toggle: ->
@@ -44,6 +44,7 @@ class FileFinder extends View
   detach: ->
     @rootView.focus()
     super
+    @editor.setText('')
 
   populatePathList: ->
     @pathList.empty()

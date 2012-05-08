@@ -23,11 +23,15 @@ describe 'FileFinder', ->
         rootView.trigger 'file-finder:toggle'
         expect(rootView.find('.file-finder')).toExist()
         expect(rootView.find('.file-finder input:focus')).toExist()
+        finder.editor.insertText('this should not show up next time we toggle')
 
         rootView.trigger 'file-finder:toggle'
         expect(editor1.isFocused).toBeFalsy()
         expect(editor2.isFocused).toBeTruthy()
         expect(rootView.find('.file-finder')).not.toExist()
+
+        rootView.trigger 'file-finder:toggle'
+        expect(finder.editor.getText()).toBe ''
 
       it "shows all relative file paths for the current project and selects the first", ->
         rootView.trigger 'file-finder:toggle'
