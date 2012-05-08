@@ -58,9 +58,18 @@ describe 'FileFinder', ->
       finder.trigger 'file-finder:cancel'
       expect(finder.hasParent()).toBeFalsy()
 
-    it "removes text from editor", ->
+    it "focuses previously focused element", ->
+      rootView.attachToDom()
+      activeEditor = rootView.activeEditor()
+      activeEditor.focus()
+
       rootView.trigger 'file-finder:toggle'
-      expect(finder.miniEditor)
+      expect(activeEditor.isFocused).toBeFalsy()
+      expect(finder.miniEditor.isFocused).toBeTruthy()
+
+      finder.trigger 'file-finder:cancel'
+      expect(activeEditor.isFocused).toBeTruthy()
+      expect(finder.miniEditor.isFocused).toBeFalsy()
 
   describe "when characters are typed into the input element", ->
     it "displays matching paths in the ol element and selects the first", ->

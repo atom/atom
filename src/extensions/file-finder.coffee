@@ -15,6 +15,7 @@ class FileFinder extends View
 
   paths: null
   maxResults: null
+  previouslyActiveElement: null
 
   initialize: (@rootView) ->
     requireStylesheet 'file-finder.css'
@@ -37,12 +38,14 @@ class FileFinder extends View
       @attach() if @rootView.project.getPath()?
 
   attach: ->
+    @previouslyActiveElement = document.activeElement
     @rootView.project.getFilePaths().done (@paths) => @populatePathList()
     @rootView.append(this)
     @miniEditor.focus()
 
   detach: ->
-    @rootView.focus()
+    console.log @previouslyActiveElement
+    (@previouslyActiveElement or @rootView).focus()
     super
     @miniEditor.setText('')
 
