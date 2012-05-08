@@ -502,10 +502,13 @@ class Editor extends View
     @insertText('\n')
 
   insertTab: ->
-    if @softTabs
-      @compositeSelection.insertText(@tabText)
+    if @getSelection().isEmpty()
+      if @softTabs
+        @compositeSelection.insertText(@tabText)
+      else
+        @compositeSelection.insertText('\t')
     else
-      @compositeSelection.insertText('\t')
+      @compositeSelection.indentSelectedRows()
 
   indentSelectedRows: -> @compositeSelection.indentSelectedRows()
   outdentSelectedRows: -> @compositeSelection.outdentSelectedRows()

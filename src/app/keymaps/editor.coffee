@@ -29,6 +29,7 @@ window.keymap.bindKeys '.editor',
   'alt-meta-right': 'split-right'
   'alt-meta-up': 'split-up'
   'alt-meta-down': 'split-down'
+  'shift-tab': 'outdent-selected-rows'
   'meta-[': 'outdent-selected-rows'
   'meta-]': 'indent-selected-rows'
   'meta-{': 'show-previous-buffer'
