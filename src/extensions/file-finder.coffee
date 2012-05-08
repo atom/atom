@@ -44,7 +44,6 @@ class FileFinder extends View
     @miniEditor.focus()
 
   detach: ->
-    console.log @previouslyActiveElement
     (@previouslyActiveElement or @rootView).focus()
     super
     @miniEditor.setText('')
@@ -63,7 +62,7 @@ class FileFinder extends View
     selectedLi = @findSelectedLi()
     return unless selectedLi.length
     @rootView.open(selectedLi.text())
-    @remove()
+    @detach()
 
   moveUp: ->
     @findSelectedLi()
