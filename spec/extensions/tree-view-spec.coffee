@@ -501,24 +501,36 @@ describe "TreeView", ->
           expect(moveDialog.editor.isFocused).toBeTruthy()
 
         describe "when the path is changed and confirmed", ->
-          it "moves the file, updates the tree view, and closes the dialog", ->
-            runs ->
-              newPath = fs.join(rootDirPath, 'renamed-test-file.txt')
-              moveDialog.editor.setText(newPath)
+          describe "when all the directories along the new path exist", ->
+            it "moves the file, updates the tree view, and closes the dialog", ->
+              runs ->
+                newPath = fs.join(rootDirPath, 'renamed-test-file.txt')
+                moveDialog.editor.setText(newPath)
 
-              moveDialog.trigger 'tree-view:confirm'
+                moveDialog.trigger 'tree-view:confirm'
 
-              expect(fs.exists(newPath)).toBeTruthy()
-              expect(fs.exists(filePath)).toBeFalsy()
-              expect(moveDialog.parent()).not.toExist()
+                expect(fs.exists(newPath)).toBeTruthy()
+                expect(fs.exists(filePath)).toBeFalsy()
+                expect(moveDialog.parent()).not.toExist()
 
-            waitsFor "tree view to update", ->
-              treeView.root.find('> .entries > .file:contains(renamed-test-file.txt)').length > 0
+              waitsFor "tree view to update", ->
+                treeView.root.find('> .entries > .file:contains(renamed-test-file.txt)').length > 0
 
-            runs ->
-              dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
-              dirView.expand()
-              expect(dirView.entries.children().length).toBe 0
+              runs ->
+                dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
+                dirView.expand()
+                expect(dirView.entries.children().length).toBe 0
+
+          describe "when the directories along the new path don't exist", ->
+            it "creates the target directory before moving the file", ->
+              runs ->
+                newPath = fs.join(rootDirPath, 'new-directory', 'renamed-test-file.txt')
+                moveDialog.editor.setText(newPath)
+
+                moveDialog.trigger 'tree-view:confirm'
+
+                expect(fs.exists(newPath)).toBeTruthy()
+                expect(fs.exists(filePath)).toBeFalsy()
 
         describe "when 'tree-view:cancel' is triggered on the move dialog", ->
           it "removes the dialog and focuses the tree view", ->

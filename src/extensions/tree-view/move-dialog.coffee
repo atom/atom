@@ -25,7 +25,10 @@ class MoveDialog extends View
     @editor.setSelectionBufferRange(range)
 
   confirm: ->
-    fs.move(@path, @project.resolve(@editor.getText()))
+    path = @project.resolve(@editor.getText())
+    directoryPath = fs.directory(path)
+    fs.makeDirectory(directoryPath) unless fs.exists(directoryPath)
+    fs.move(@path, path)
     @remove()
     $('#root-view').focus()
 
