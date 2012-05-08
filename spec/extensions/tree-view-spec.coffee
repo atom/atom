@@ -43,7 +43,7 @@ describe "TreeView", ->
       expect(rootEntries.find('> .file:contains(sample.js)')).toExist()
       expect(rootEntries.find('> .file:contains(sample.txt)')).toExist()
 
-    describe "when the project has not path", ->
+    describe "when the project has no path", ->
       beforeEach ->
         treeView.deactivate()
 
@@ -442,30 +442,56 @@ describe "TreeView", ->
             expect(treeView.find('.selected').text()).toBe fs.base(filePath)
 
         describe "when the path without a trailing '/' is changed and confirmed", ->
-          it "add a file, closes the dialog and selects the file in the tree-view", ->
-            newPath = fs.join(dirPath, "new-test-file.txt")
-            addDialog.miniEditor.insertText(fs.base(newPath))
-            addDialog.trigger 'tree-view:confirm'
-            expect(fs.exists(newPath)).toBeTruthy()
-            expect(fs.isFile(newPath)).toBeTruthy()
-            expect(addDialog.parent()).not.toExist()
-            expect(rootView.activeEditor().buffer.path).toBe newPath
+          describe "when no file exists at that location", ->
+            it "add a file, closes the dialog and selects the file in the tree-view", ->
+              newPath = fs.join(dirPath, "new-test-file.txt")
+              addDialog.miniEditor.insertText(fs.base(newPath))
+              addDialog.trigger 'tree-view:confirm'
+              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.isFile(newPath)).toBeTruthy()
+              expect(addDialog.parent()).not.toExist()
+              expect(rootView.activeEditor().buffer.path).toBe newPath
 
-            waitsFor "tree view to be updated", ->
-              dirView.entries.find("> .file").length > 1
+              waitsFor "tree view to be updated", ->
+                dirView.entries.find("> .file").length > 1
 
-            runs ->
-              expect(treeView.find('.selected').text()).toBe fs.base(newPath)
+              runs ->
+                expect(treeView.find('.selected').text()).toBe fs.base(newPath)
+
+          describe "when a file already exists at that location", ->
+            it "shows an error message and does not close the dialog", ->
+              newPath = fs.join(dirPath, "new-test-file.txt")
+              fs.write(newPath, '')
+              addDialog.miniEditor.insertText(fs.base(newPath))
+              addDialog.trigger 'tree-view:confirm'
+
+              expect(addDialog.prompt.text()).toContain 'Error'
+              expect(addDialog.prompt.text()).toContain 'already exists'
+              expect(addDialog.prompt).toHaveClass('error')
+              expect(addDialog.hasParent()).toBeTruthy()
 
         describe "when the path with a trailing '/' is changed and confirmed", ->
-          it "adds a directory and closes the dialog", ->
-            newPath = fs.join(dirPath, "new-dir")
-            addDialog.miniEditor.insertText("new-dir/")
-            addDialog.trigger 'tree-view:confirm'
-            expect(fs.exists(newPath)).toBeTruthy()
-            expect(fs.isDirectory(newPath)).toBeTruthy()
-            expect(addDialog.parent()).not.toExist()
-            expect(rootView.activeEditor().buffer.path).not.toBe newPath
+          describe "when no file or directory exists at the given path", ->
+            it "adds a directory and closes the dialog", ->
+              newPath = fs.join(dirPath, "new-dir")
+              addDialog.miniEditor.insertText("new-dir/")
+              addDialog.trigger 'tree-view:confirm'
+              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.isDirectory(newPath)).toBeTruthy()
+              expect(addDialog.parent()).not.toExist()
+              expect(rootView.activeEditor().buffer.path).not.toBe newPath
+
+          describe "when a or directory already exists at the given path", ->
+            it "shows an error message and does not close the dialog", ->
+              newPath = fs.join(dirPath, "new-dir")
+              fs.makeDirectory(newPath)
+              addDialog.miniEditor.insertText("new-dir/")
+              addDialog.trigger 'tree-view:confirm'
+
+              expect(addDialog.prompt.text()).toContain 'Error'
+              expect(addDialog.prompt.text()).toContain 'already exists'
+              expect(addDialog.prompt).toHaveClass('error')
+              expect(addDialog.hasParent()).toBeTruthy()
 
         describe "when 'tree-view:cancel' is triggered on the add dialog", ->
           it "removes the dialog and focuses the tree view", ->

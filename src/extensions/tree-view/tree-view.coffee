@@ -188,11 +188,19 @@ class TreeView extends View
       onConfirm: (relativePath) =>
         endsWithDirectorySeperator = /\/$/.test(relativePath)
         path = @rootView.project.resolve(relativePath)
-        if endsWithDirectorySeperator
-          fs.makeDirectory(path)
-        else
-          fs.write(path, "")
-          @rootView.open(path)
+        try
+          if endsWithDirectorySeperator
+            fs.makeDirectory(path)
+          else
+            if fs.exists(path)
+              dialog.showError("Error: A file already exists at path '#{path}'. Try a different path:")
+              false
+            else
+              fs.write(path, "")
+              @rootView.open(path)
+        catch e
+          dialog.showError("Error: " + e.message + " Try a different path:")
+          return false
 
     @rootView.append(dialog)
 
