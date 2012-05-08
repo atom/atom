@@ -43,7 +43,7 @@ describe "TreeView", ->
       expect(rootEntries.find('> .file:contains(sample.js)')).toExist()
       expect(rootEntries.find('> .file:contains(sample.txt)')).toExist()
 
-    describe "when the project has not path", ->
+    describe "when the project has no path", ->
       beforeEach ->
         treeView.deactivate()
 

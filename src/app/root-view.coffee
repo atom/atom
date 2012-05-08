@@ -39,11 +39,10 @@ class RootView extends View
 
     @setTitle()
     @project = new Project(pathToOpen)
-    if pathToOpen? and fs.isFile(pathToOpen)
-      @open(pathToOpen)
+    @open(pathToOpen) if fs.isFile(pathToOpen)
 
   serialize: ->
-    projectPath: @project?.path
+    projectPath: @project?.getPath()
     panesViewState: @panes.children().view()?.serialize()
     extensionStates: @serializeExtensions()
 
@@ -57,7 +56,7 @@ class RootView extends View
         @setTitle(@project?.getPath())
 
     @on 'active-editor-path-change', (e, path) =>
-      @project.setPath(path) unless @project.getPath()
+      @project.setPath(path) unless @project.getRootDirectory()
       @setTitle(path)
 
   afterAttach: (onDom) ->

@@ -33,7 +33,7 @@ class FileFinder extends View
     if @hasParent()
       @detach()
     else
-      @attach() if @rootView.project.path?
+      @attach() if @rootView.project.getPath()?
 
   attach: ->
     @rootView.project.getFilePaths().done (@paths) => @populatePathList()
