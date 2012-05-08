@@ -127,6 +127,15 @@ bool NativeHandler::Execute(const CefString& name,
     
     return true;
   }
+  else if (name == "isFile") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    
+    BOOL isDir = false;
+    BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&isDir];
+    retval = CefV8Value::CreateBool(exists && !isDir);
+    
+    return true;
+  }
   else if (name == "remove") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     
