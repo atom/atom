@@ -5,6 +5,7 @@ describe "CommandPanel", ->
 
   beforeEach ->
     rootView = new RootView
+    rootView.open()
     rootView.enableKeymap()
     commandPanel = rootView.commandPanel
 

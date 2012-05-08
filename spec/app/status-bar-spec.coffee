@@ -28,6 +28,7 @@ describe "StatusBar", ->
     describe "when associated with an unsaved buffer", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
         rootView = new RootView
+        rootView.open()
         rootView.simulateDomAttachment()
         StatusBar.activate(rootView)
         statusBar = rootView.find('.status-bar').view()

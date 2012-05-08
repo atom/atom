@@ -23,6 +23,7 @@ windowAdditions =
   startup: (path) ->
     @attachRootView(path)
     @loadUserConfiguration()
+    rootView.activateExtension(require 'tree-view')
     $(window).on 'close', => @close()
     $(window).on 'beforeunload', =>
       @shutdown()
@@ -39,10 +40,12 @@ windowAdditions =
 
   attachRootView: (pathToOpen) ->
     rootViewState = atom.rootViewStates[$windowNumber]
-    @rootView = if rootViewState
-      RootView.deserialize(rootViewState)
+    if rootViewState
+      @rootView = RootView.deserialize(rootViewState)
     else
-      new RootView {pathToOpen}
+      @rootView = new RootView(pathToOpen: pathToOpen)
+      @rootView.open() unless pathToOpen
+
     $(@rootViewParentSelector).append @rootView
 
   loadUserConfiguration: ->

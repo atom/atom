@@ -16,7 +16,7 @@ describe "RootView", ->
     rootView.focus()
     project = rootView.project
 
-  describe "initialize(viewState)", ->
+  describe "initialize(pathToOpen)", ->
     describe "when called with a pathToOpen", ->
       describe "when pathToOpen references a file", ->
         it "creates a project for the file's parent directory, then sets the document.title and opens the file in an editor", ->
@@ -45,13 +45,15 @@ describe "RootView", ->
 
         beforeEach ->
           rootView = new RootView
+          rootView.open()
           editor1 = rootView.activeEditor()
           buffer = editor1.buffer
           editor1.splitRight()
           viewState = rootView.serialize()
 
         it "constructs the view with the same panes", ->
-          rootView = new RootView(viewState)
+          console.log 'spec'
+          rootView = RootView.deserialize(viewState)
           expect(rootView.project.path).toBeNull()
           expect(rootView.editors().length).toBe 2
           expect(rootView.activeEditor().buffer.getText()).toBe buffer.getText()
@@ -74,7 +76,7 @@ describe "RootView", ->
           rootView.remove()
 
         it "constructs the view with the same project and panes", ->
-          rootView = new RootView(viewState)
+          rootView = RootView.deserialize(viewState)
           rootView.attachToDom()
 
           expect(rootView.editors().length).toBe 4
@@ -104,11 +106,10 @@ describe "RootView", ->
 
           expect(document.title).toBe editor2.buffer.path
 
-    describe "when called with no state data", ->
-      it "opens an empty buffer and sets the document.title to untitled", ->
+    describe "when called with no pathToOpen", ->
+      it "opens no buffer", ->
         rootView = new RootView
-        expect(rootView.editors().length).toBe 1
-        expect(rootView.activeEditor().buffer.path).toBeUndefined()
+        expect(rootView.editors().length).toBe 0
         expect(document.title).toBe 'untitled'
 
   describe "focus", ->
@@ -376,6 +377,7 @@ describe "RootView", ->
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
       rootView = new RootView
+      rootView.open()
       expect(rootView.project.path).toBeNull()
       rootView.activeEditor().buffer.saveAs('/tmp/ignore-me')
       expect(rootView.project.path).toBe '/tmp'
