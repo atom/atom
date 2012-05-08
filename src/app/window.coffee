@@ -23,7 +23,6 @@ windowAdditions =
   startup: (path) ->
     @attachRootView(path)
     @loadUserConfiguration()
-    rootView.activateExtension(require 'tree-view')
     $(window).on 'close', => @close()
     $(window).on 'beforeunload', =>
       @shutdown()
