@@ -2,8 +2,7 @@
 Directory = require 'directory'
 DirectoryView = require 'tree-view/directory-view'
 FileView = require 'tree-view/file-view'
-MoveDialog = require 'tree-view/move-dialog'
-AddDialog = require 'tree-view/add-dialog'
+Dialog = require 'tree-view/dialog'
 Native = require 'native'
 fs = require 'fs'
 $ = require 'jquery'
@@ -143,7 +142,19 @@ class TreeView extends View
   moveSelectedEntry: ->
     entry = @selectedEntry()
     return unless entry
-    @rootView.append(new MoveDialog(@rootView.project, entry.getPath()))
+    oldPath = @selectedEntry().getPath()
+
+    dialog = new Dialog
+      prompt: "Enter the new path for the file:"
+      path: @rootView.project.relativize(oldPath)
+      select: true
+      onConfirm: (newPath) =>
+        newPath = @rootView.project.resolve(newPath)
+        directoryPath = fs.directory(newPath)
+        fs.makeDirectory(directoryPath) unless fs.exists(directoryPath)
+        fs.move(oldPath, newPath)
+
+    @rootView.append(dialog)
 
   removeSelectedEntry: ->
     entry = @selectedEntry()
@@ -161,7 +172,25 @@ class TreeView extends View
     Native.alert message, detailedMessage, buttons
 
   add: ->
-    @rootView.append(new AddDialog(@rootView, @selectedEntry().getPath()))
+    selectedPath = @selectedEntry().getPath()
+    directoryPath = if fs.isFile(selectedPath) then fs.directory(selectedPath) else selectedPath
+    relativeDirectoryPath = @rootView.project.relativize(directoryPath)
+    relativeDirectoryPath += '/' if relativeDirectoryPath.length > 0
+
+    dialog = new Dialog
+      prompt: "Enter the path for the new file/directory. Directories end with '/':"
+      path: relativeDirectoryPath
+      select: false
+      onConfirm: (relativePath) =>
+        endsWithDirectorySeperator = /\/$/.test(relativePath)
+        path = @rootView.project.resolve(relativePath)
+        if endsWithDirectorySeperator
+          fs.makeDirectory(path)
+        else
+          fs.write(path, "")
+          @rootView.open(path)
+
+    @rootView.append(dialog)
 
   selectedEntry: ->
     @find('.selected')?.view()

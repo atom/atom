@@ -11,6 +11,6 @@ window.keymap.bindKeys '.tree-view'
   'backspace': 'tree-view:remove'
   'alt-tab': 'tree-view:unfocus'
 
-window.keymap.bindKeys '.move-dialog .mini.editor, .add-dialog .mini.editor'
+window.keymap.bindKeys '.tree-view-dialog .mini.editor'
   'enter': 'tree-view:confirm'
   'escape': 'tree-view:cancel'

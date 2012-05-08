@@ -421,7 +421,7 @@ describe "TreeView", ->
       beforeEach ->
         fileView.click()
         treeView.trigger "tree-view:add"
-        addDialog = rootView.find(".add-dialog").view()
+        addDialog = rootView.find(".tree-view-dialog").view()
 
       describe "when a file is selected", ->
         it "opens an add dialog with the file's current directory path populated", ->
@@ -486,7 +486,7 @@ describe "TreeView", ->
           addDialog.cancel()
           dirView.click()
           treeView.trigger "tree-view:add"
-          addDialog = rootView.find(".add-dialog").view()
+          addDialog = rootView.find(".tree-view-dialog").view()
 
           expect(addDialog).toExist()
           expect(addDialog.prompt.text()).toBeTruthy()
@@ -500,7 +500,7 @@ describe "TreeView", ->
           addDialog.cancel()
           treeView.root.click()
           treeView.trigger "tree-view:add"
-          addDialog = rootView.find(".add-dialog").view()
+          addDialog = rootView.find(".tree-view-dialog").view()
 
           expect(addDialog.miniEditor.getText().length).toBe 0
 
@@ -511,23 +511,23 @@ describe "TreeView", ->
         beforeEach ->
           fileView.click()
           treeView.trigger "tree-view:move"
-          moveDialog = rootView.find(".move-dialog").view()
+          moveDialog = rootView.find(".tree-view-dialog").view()
 
         it "opens a move dialog with the file's current path (excluding extension) populated", ->
           extension = fs.extension(filePath)
           fileNameWithoutExtension = fs.base(filePath, extension)
           expect(moveDialog).toExist()
           expect(moveDialog.prompt.text()).toBe "Enter the new path for the file:"
-          expect(moveDialog.editor.getText()).toBe(project.relativize(filePath))
-          expect(moveDialog.editor.getSelectedText()).toBe fs.base(fileNameWithoutExtension)
-          expect(moveDialog.editor.isFocused).toBeTruthy()
+          expect(moveDialog.miniEditor.getText()).toBe(project.relativize(filePath))
+          expect(moveDialog.miniEditor.getSelectedText()).toBe fs.base(fileNameWithoutExtension)
+          expect(moveDialog.miniEditor.isFocused).toBeTruthy()
 
         describe "when the path is changed and confirmed", ->
           describe "when all the directories along the new path exist", ->
             it "moves the file, updates the tree view, and closes the dialog", ->
               runs ->
                 newPath = fs.join(rootDirPath, 'renamed-test-file.txt')
-                moveDialog.editor.setText(newPath)
+                moveDialog.miniEditor.setText(newPath)
 
                 moveDialog.trigger 'tree-view:confirm'
 
@@ -547,7 +547,7 @@ describe "TreeView", ->
             it "creates the target directory before moving the file", ->
               runs ->
                 newPath = fs.join(rootDirPath, 'new-directory', 'renamed-test-file.txt')
-                moveDialog.editor.setText(newPath)
+                moveDialog.miniEditor.setText(newPath)
 
                 moveDialog.trigger 'tree-view:confirm'
 

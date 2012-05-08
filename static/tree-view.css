@@ -36,7 +36,7 @@
   color: black;
 }
 
-.add-dialog, .move-dialog {
+.tree-view-dialog {
   position: absolute;
   bottom: 0;
   width: 100%;
