@@ -24,7 +24,6 @@ class CommandPanel extends View
     @rootView.on 'command-panel:execute', => @execute()
     @rootView.on 'command-panel:find-in-file', => @show("/")
     @rootView.on 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
-    @editor.addClass 'single-line'
 
     @editor.off 'move-up move-down'
     @editor.on 'move-up', => @navigateBackwardInHistory()

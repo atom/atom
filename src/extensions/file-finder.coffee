@@ -26,7 +26,6 @@ class FileFinder extends View
     @on 'move-down', => @moveDown()
     @on 'file-finder:select-file', => @select()
 
-    @editor.addClass 'single-line'
     @editor.buffer.on 'change', => @populatePathList() if @hasParent()
     @editor.off 'move-up move-down'
 
