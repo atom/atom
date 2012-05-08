@@ -43,6 +43,14 @@ describe "TreeView", ->
       expect(rootEntries.find('> .file:contains(sample.js)')).toExist()
       expect(rootEntries.find('> .file:contains(sample.txt)')).toExist()
 
+    it "is empty when the project has not path", ->
+      treeView.deactivate()
+
+      rootView = new RootView
+      rootView.activateExtension(TreeView)
+      treeView = rootView.find(".tree-view").view()
+      expect(treeView.root).not.toExist()
+
   describe "serialization", ->
     newTreeView = null
 
