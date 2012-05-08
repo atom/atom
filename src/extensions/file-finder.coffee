@@ -7,12 +7,11 @@ module.exports =
 class FileFinder extends View
   @activate: (rootView) ->
     @instance = new FileFinder(rootView)
-    rootView.on 'file-finder:toggle', => @instance.toggle()
 
   @content: ->
     @div class: 'file-finder', =>
       @ol outlet: 'pathList'
-      @subview 'editor', new Editor(mini: true)
+      @subview 'miniEditor', new Editor(mini: true)
 
   paths: null
   maxResults: null
@@ -21,13 +20,15 @@ class FileFinder extends View
     requireStylesheet 'file-finder.css'
     @maxResults = 10
 
+    @rootView.on 'file-finder:toggle', => @toggle()
+
     @on 'file-finder:cancel', => @detach()
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
     @on 'file-finder:select-file', => @select()
 
-    @editor.buffer.on 'change', => @populatePathList() if @hasParent()
-    @editor.off 'move-up move-down'
+    @miniEditor.buffer.on 'change', => @populatePathList() if @hasParent()
+    @miniEditor.off 'move-up move-down'
 
   toggle: ->
     if @hasParent()
@@ -38,16 +39,16 @@ class FileFinder extends View
   attach: ->
     @rootView.project.getFilePaths().done (@paths) => @populatePathList()
     @rootView.append(this)
-    @editor.focus()
+    @miniEditor.focus()
 
   detach: ->
     @rootView.focus()
     super
-    @editor.setText('')
+    @miniEditor.setText('')
 
   populatePathList: ->
     @pathList.empty()
-    for path in @findMatches(@editor.buffer.getText())
+    for path in @findMatches(@miniEditor.buffer.getText())
       @pathList.append $$ -> @li path
 
     @pathList.children('li:first').addClass 'selected'

@@ -23,7 +23,7 @@ describe 'FileFinder', ->
         rootView.trigger 'file-finder:toggle'
         expect(rootView.find('.file-finder')).toExist()
         expect(rootView.find('.file-finder input:focus')).toExist()
-        finder.editor.insertText('this should not show up next time we toggle')
+        finder.miniEditor.insertText('this should not show up next time we toggle')
 
         rootView.trigger 'file-finder:toggle'
         expect(editor1.isFocused).toBeFalsy()
@@ -31,7 +31,7 @@ describe 'FileFinder', ->
         expect(rootView.find('.file-finder')).not.toExist()
 
         rootView.trigger 'file-finder:toggle'
-        expect(finder.editor.getText()).toBe ''
+        expect(finder.miniEditor.getText()).toBe ''
 
       it "shows all relative file paths for the current project and selects the first", ->
         rootView.trigger 'file-finder:toggle'
@@ -58,20 +58,24 @@ describe 'FileFinder', ->
       finder.trigger 'file-finder:cancel'
       expect(finder.hasParent()).toBeFalsy()
 
+    it "removes text from editor", ->
+      rootView.trigger 'file-finder:toggle'
+      expect(finder.miniEditor)
+
   describe "when characters are typed into the input element", ->
     it "displays matching paths in the ol element and selects the first", ->
       rootView.trigger 'file-finder:toggle'
 
       listLengthBefore = finder.pathList.children().length
 
-      finder.editor.insertText('samp')
+      finder.miniEditor.insertText('samp')
 
       expect(finder.pathList.children().length).toBeLessThan(listLengthBefore)
       expect(finder.pathList.find('li:first')).toHaveClass 'selected'
       expect(finder.pathList.find('li.selected').length).toBe 1
 
       # we should clear the list before re-populating it
-      finder.editor.insertText('txt')
+      finder.miniEditor.insertText('txt')
 
       expect(finder.pathList.children().length).toBe 1
       expect(finder.pathList.find('li:first')).toHaveClass 'selected'
@@ -85,13 +89,13 @@ describe 'FileFinder', ->
       expect(finder.find('li:eq(0)')).toHaveClass "selected"
       expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
 
-      finder.editor.trigger keydownEvent('down')
-      finder.editor.trigger keydownEvent('down')
+      finder.miniEditor.trigger keydownEvent('down')
+      finder.miniEditor.trigger keydownEvent('down')
 
       expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
       expect(finder.find('li:eq(2)')).toHaveClass "selected"
 
-      finder.editor.trigger keydownEvent('up')
+      finder.miniEditor.trigger keydownEvent('up')
 
       expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
       expect(finder.find('li:eq(1)')).toHaveClass "selected"
@@ -99,11 +103,11 @@ describe 'FileFinder', ->
 
     it "does not fall off the end or begining of the list", ->
       expect(finder.find('li:first')).toHaveClass "selected"
-      finder.editor.trigger keydownEvent('up')
+      finder.miniEditor.trigger keydownEvent('up')
       expect(finder.find('li:first')).toHaveClass "selected"
 
       for i in [1..finder.pathList.children().length+2]
-        finder.editor.trigger keydownEvent('down')
+        finder.miniEditor.trigger keydownEvent('down')
 
       expect(finder.find('li:last')).toHaveClass "selected"
 
@@ -134,7 +138,7 @@ describe 'FileFinder', ->
 
     describe "when there is no path selected", ->
       it "does nothing", ->
-        finder.editor.insertText('this should match nothing, because no one wants to drink battery acid')
+        finder.miniEditor.insertText('this should match nothing, because no one wants to drink battery acid')
         finder.trigger 'file-finder:select-file'
         expect(finder.hasParent()).toBeTruthy()
 
