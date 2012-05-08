@@ -151,8 +151,12 @@ class TreeView extends View
       onConfirm: (newPath) =>
         newPath = @rootView.project.resolve(newPath)
         directoryPath = fs.directory(newPath)
-        fs.makeDirectory(directoryPath) unless fs.exists(directoryPath)
-        fs.move(oldPath, newPath)
+        try
+          fs.makeDirectory(directoryPath) unless fs.exists(directoryPath)
+          fs.move(oldPath, newPath)
+        catch e
+          dialog.showError("Error: " + e.message + " Try a different path:")
+          return false
 
     @rootView.append(dialog)
 

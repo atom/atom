@@ -58,3 +58,8 @@ body {
   border-top: 5px solid #515151;
 }
 
+.error {
+  background: #991212;
+  -webkit-transition: background 200ms ease-out;
+}
+

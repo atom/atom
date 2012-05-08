@@ -47,9 +47,7 @@ class CommandPanel extends View
       @commandInterpreter.eval(@rootView.activeEditor(), command)
     catch error
       if error instanceof SyntaxError
-        @addClass 'error'
-        removeErrorClass = => @removeClass 'error'
-        window.setTimeout(removeErrorClass, 200)
+        @flashError()
         return
       else
         throw error

@@ -554,6 +554,20 @@ describe "TreeView", ->
                 expect(fs.exists(newPath)).toBeTruthy()
                 expect(fs.exists(filePath)).toBeFalsy()
 
+          describe "when a file or directory already exists at the target path", ->
+            it "shows an error message and does not close the dialog", ->
+              runs ->
+                fs.write(fs.join(rootDirPath, 'target.txt'), '')
+                newPath = fs.join(rootDirPath, 'target.txt')
+                moveDialog.miniEditor.setText(newPath)
+
+                moveDialog.trigger 'tree-view:confirm'
+
+                expect(moveDialog.prompt.text()).toContain 'Error'
+                expect(moveDialog.prompt.text()).toContain 'already exists'
+                expect(moveDialog.prompt).toHaveClass('error')
+                expect(moveDialog.hasParent()).toBeTruthy()
+
         describe "when 'tree-view:cancel' is triggered on the move dialog", ->
           it "removes the dialog and focuses the tree view", ->
             treeView.attachToDom()

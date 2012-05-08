@@ -25,10 +25,14 @@ class Dialog extends View
       @miniEditor.setSelectionBufferRange(range)
 
   confirm: ->
-    @onConfirm(@miniEditor.getText())
+    return if @onConfirm(@miniEditor.getText()) is false
     @remove()
     $('#root-view').focus()
 
   cancel: ->
     @remove()
     $('.tree-view').focus()
+
+  showError: (message) ->
+    @prompt.text(message)
+    @prompt.flashError()

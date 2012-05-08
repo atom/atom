@@ -25,3 +25,8 @@ $.fn.preempt = (eventName, handler) ->
 
 $.fn.hasParent = ->
   @parent()[0]?
+
+$.fn.flashError = ->
+  @addClass 'error'
+  removeErrorClass = => @removeClass 'error'
+  window.setTimeout(removeErrorClass, 200)
