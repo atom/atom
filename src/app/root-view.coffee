@@ -22,13 +22,33 @@ class RootView extends View
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'panes', outlet: 'panes'
 
-  @deserialize: (viewState) ->
-    new RootView(viewState)
+  @deserialize: ({ projectPath, panesViewState, extensionStates }) ->
+    rootView = new RootView(pathToOpen: projectPath)
+    rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
+    rootView.extensionStates = extensionStates if extensionStates
+    rootView
 
   extensions: null
   extensionStates: null
 
-  initialize: ({ pathToOpen, projectPath, panesViewState, @extensionStates }) ->
+  initialize: ({ pathToOpen }) ->
+    @handleEvents()
+
+    @extensions = {}
+    @extensionStates = {}
+    @commandPanel = new CommandPanel({rootView: this})
+
+    @setTitle()
+    @project = new Project(pathToOpen)
+    if pathToOpen? and fs.isFile(pathToOpen)
+      @open(pathToOpen)
+
+  serialize: ->
+    projectPath: @project?.path
+    panesViewState: @panes.children().view()?.serialize()
+    extensionStates: @serializeExtensions()
+
+  handleEvents: ->
     @on 'toggle-file-finder', => @toggleFileFinder()
     @on 'show-console', => window.showConsole()
     @on 'focus', (e) =>
@@ -42,34 +62,8 @@ class RootView extends View
       @project.setPath(path) unless @project.getPath()
       @setTitle(path)
 
-    @commandPanel = new CommandPanel({rootView: this})
-
-    if pathToOpen?
-      @project = new Project(pathToOpen)
-      @open(pathToOpen) if fs.isFile(pathToOpen)
-    else
-      @project = new Project(projectPath)
-      @open() unless panesViewState?
-
-    @deserializePanes(panesViewState) if panesViewState
-
-    @extensionStates ?= {}
-    @extensions = {}
-
   afterAttach: (onDom) ->
     @focus() if onDom
-
-  serialize: ->
-    projectPath: @project?.path
-    panesViewState: @serializePanes()
-    extensionStates: @serializeExtensions()
-
-  serializePanes: ->
-    @panes.children().view()?.serialize()
-
-  deserializePanes: (panesViewState) ->
-    @panes.append @deserializeView(panesViewState)
-    @adjustPaneDimensions()
 
   serializeExtensions:  ->
     extensionStates = {}
@@ -133,6 +127,11 @@ class RootView extends View
       editor.view()
     else
       @panes.find('.editor:first').view()
+
+  setRootPane: (pane) ->
+    @panes.empty()
+    @panes.append(pane)
+    @adjustPaneDimensions()
 
   adjustPaneDimensions: ->
     rootPane = @panes.children().first().view()

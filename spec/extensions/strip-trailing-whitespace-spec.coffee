@@ -7,6 +7,8 @@ describe "StripTrailingWhitespace", ->
 
   beforeEach ->
     rootView = new RootView
+    rootView.open()
+
     StripTrailingWhitespace.activate(rootView)
     rootView.focus()
     editor = rootView.activeEditor()
