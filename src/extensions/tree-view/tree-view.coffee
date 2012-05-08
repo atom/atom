@@ -26,7 +26,8 @@ class TreeView extends View
 
   @content: (rootView) ->
     @div class: 'tree-view', tabindex: -1, =>
-      @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true)
+      if rootView.project.getRootDirectory()
+        @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true)
 
   @deserialize: (state, rootView) ->
     treeView = new TreeView(rootView)
@@ -39,19 +40,7 @@ class TreeView extends View
   focusAfterAttach: false
 
   initialize: (@rootView) ->
-    @on 'click', '.entry', (e) =>
-      entry = $(e.currentTarget).view()
-      switch e.originalEvent?.detail ? 1
-        when 1
-          @selectEntry(entry)
-          @openSelectedEntry() if (entry instanceof FileView)
-        when 2
-          if entry.is('.selected.file')
-            @rootView.activeEditor().focus()
-          else if entry.is('.selected.directory')
-            entry.toggleExpansion()
-      false
-
+    @on 'click', '.entry', (e) => @entryClicked(e)
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
     @on 'tree-view:expand-directory', => @expandDirectory()
@@ -62,6 +51,7 @@ class TreeView extends View
     @on 'tree-view:remove', => @removeSelectedEntry()
     @on 'tree-view:directory-modified', => @selectActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
+    @rootView.project.on 'path-change', => @updateRoot()
 
     @on 'tree-view:unfocus', => @rootView.activeEditor()?.focus()
     @rootView.on 'tree-view:focus', => this.focus()
@@ -75,7 +65,26 @@ class TreeView extends View
     hasFocus: @is(':focus')
 
   deactivate: ->
-    @root.unwatchEntries()
+    @root?.unwatchEntries()
+
+  entryClicked: (e) ->
+    entry = $(e.currentTarget).view()
+    switch e.originalEvent?.detail ? 1
+      when 1
+        @selectEntry(entry)
+        @openSelectedEntry() if (entry instanceof FileView)
+      when 2
+        if entry.is('.selected.file')
+          @rootView.activeEditor().focus()
+        else if entry.is('.selected.directory')
+          entry.toggleExpansion()
+
+    false
+
+  updateRoot: ->
+    @root?.remove()
+    @root = new DirectoryView(directory: @rootView.project.getRootDirectory(), isExpanded: true)
+    @append(@root)
 
   selectActiveFile: ->
     activeFilePath = @rootView.activeEditor()?.buffer.path
