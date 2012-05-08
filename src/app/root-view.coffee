@@ -8,7 +8,6 @@ Buffer = require 'buffer'
 Editor = require 'editor'
 Project = require 'project'
 VimMode = require 'vim-mode'
-CommandPanel = require 'command-panel'
 Pane = require 'pane'
 PaneColumn = require 'pane-column'
 PaneRow = require 'pane-row'
@@ -31,14 +30,12 @@ class RootView extends View
   extensionStates: null
 
   initialize: ({ pathToOpen }) ->
-    @handleEvents()
-
     @extensions = {}
     @extensionStates = {}
-    @commandPanel = new CommandPanel({rootView: this})
-
-    @setTitle()
     @project = new Project(pathToOpen)
+
+    @handleEvents()
+    @setTitle()
     @open(pathToOpen) if fs.isFile(pathToOpen)
 
   serialize: ->

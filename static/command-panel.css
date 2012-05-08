@@ -1,10 +1,12 @@
 .command-panel {
   position: absolute;
   bottom: 0;
+  width: 100%;
   background: #515151;
-  display: -webkit-box;
   padding: 3px;
   -webkit-transition: background 200ms ease-out;
+
+  display: -webkit-box;
 }
 
 .command-panel.error {
@@ -13,8 +15,6 @@
 
 .command-panel .prompt {
   color: white;
-}
-
-.command-panel .editor {
-  -webkit-box-flex: 1
+  font-weight: bold;
+  padding: .2em;
 }
