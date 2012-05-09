@@ -409,3 +409,14 @@ describe "RootView", ->
       rootView.editors()[0].remove()
       expect(document.title).toBe rootView.project.getPath()
 
+  describe "font size adjustment", ->
+    it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
+      fontSizeBefore = rootView.getFontSize()
+      rootView.trigger 'increase-font-size'
+      expect(rootView.getFontSize()).toBe fontSizeBefore + 1
+      rootView.trigger 'increase-font-size'
+      expect(rootView.getFontSize()).toBe fontSizeBefore + 2
+      rootView.trigger 'decrease-font-size'
+      expect(rootView.getFontSize()).toBe fontSizeBefore + 1
+      rootView.trigger 'decrease-font-size'
+      expect(rootView.getFontSize()).toBe fontSizeBefore

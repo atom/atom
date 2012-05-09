@@ -28,7 +28,7 @@ class RootView extends View
 
   extensions: null
   extensionStates: null
-  fontSize: null
+  fontSize: 18
 
   initialize: ({ pathToOpen }) ->
     @extensions = {}
@@ -56,6 +56,9 @@ class RootView extends View
     @on 'active-editor-path-change', (e, path) =>
       @project.setPath(path) unless @project.getRootDirectory()
       @setTitle(path)
+
+    @on 'increase-font-size', => @setFontSize(@getFontSize() + 1)
+    @on 'decrease-font-size', => @setFontSize(@getFontSize() - 1)
 
   afterAttach: (onDom) ->
     @focus() if onDom

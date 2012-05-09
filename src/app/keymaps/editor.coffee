@@ -2,6 +2,8 @@ window.keymap.bindKeys '*'
   'meta-s': 'save'
   'meta-w': 'close'
   'alt-meta-i': 'show-console'
+  'meta-+': 'increase-font-size'
+  'meta--': 'decrease-font-size'
 
   right: 'move-right'
   left: 'move-left'
