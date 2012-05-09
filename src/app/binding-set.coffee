@@ -1,13 +1,18 @@
 $ = require 'jquery'
 _ = require 'underscore'
 Specificity = require 'specificity'
+fs = require 'fs'
+
+PEG = require 'pegjs'
 
 module.exports =
 class BindingSet
   selector: null
   commandForEvent: null
+  keystrokePatternParser: null
 
   constructor: (@selector, mapOrFunction) ->
+    @parser = PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(@selector)
     @commandForEvent = @buildEventHandler(mapOrFunction)
 
@@ -18,12 +23,8 @@ class BindingSet
       mapOrFunction = @normalizeKeystrokePatterns(mapOrFunction)
       (event) =>
         for pattern, command of mapOrFunction
-          return command if @eventMatchesPattern(event, pattern)
+          return command if event.keystroke == pattern
         null
-
-  eventMatchesPattern: (event, pattern) ->
-    pattern = pattern.replace(/^<|>$/g, '')
-    event.keystroke == pattern
 
   normalizeKeystrokePatterns: (map) ->
     normalizedMap = {}
@@ -32,7 +33,7 @@ class BindingSet
     normalizedMap
 
   normalizeKeystrokePattern: (pattern) ->
-    keys = pattern.split('-')
+    keys = @parser.parse(pattern)
     modifiers = keys[0...-1]
     modifiers.sort()
     [modifiers..., _.last(keys)].join('-')

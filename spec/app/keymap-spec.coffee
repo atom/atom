@@ -134,6 +134,12 @@ describe "Keymap", ->
         expect(result).toBe(false)
         expect(fooHandler).toHaveBeenCalled()
 
+        fooHandler.reset()
+        keymap.bindKeys '*', 'ctrl-alt--': 'foo'
+        result = keymap.handleKeyEvent(keydownEvent('-', ctrlKey: true, altKey: true, target: fragment[0]))
+        expect(result).toBe(false)
+        expect(fooHandler).toHaveBeenCalled()
+
     describe "when called with a selector and a function", ->
       it "calls the given function when selector matches", ->
         handler = jasmine.createSpy 'handler'

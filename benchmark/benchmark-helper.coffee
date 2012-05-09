@@ -75,7 +75,7 @@ window.eventPropertiesForPattern = (pattern) ->
 
 window.keydownEvent = (pattern, properties={}) ->
   event = $.Event "keydown", _.extend(eventPropertiesForPattern(pattern), properties)
-  event.keystroke = (new Keymap).keystrokeStringForEvent(event)
+  # event.keystroke = (new Keymap).keystrokeStringForEvent(event)
   event
 
 window.clickEvent = (properties={}) ->
