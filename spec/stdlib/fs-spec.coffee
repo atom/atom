@@ -54,7 +54,6 @@ describe "fs", ->
     it "does not recurse into a directory if it is pruned", ->
       paths = []
       fs.traverseTree fixturesDir, (path, prune) ->
-        console.log path
         if path.match(/\/dir$/)
           prune()
         else
