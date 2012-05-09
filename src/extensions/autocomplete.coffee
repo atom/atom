@@ -79,7 +79,11 @@ class Autocomplete extends View
       @buildWordList() unless @isAutocompleting
 
   buildWordList: () ->
-    @wordList = _.unique(@currentBuffer.getText().match(@wordRegex))
+    wordHash = {}
+    for word in @currentBuffer.getText().match(@wordRegex)
+      wordHash[word] ?= true
+
+    @wordList = Object.keys(wordHash)
 
   confirm: ->
     @confirmed = true
