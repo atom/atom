@@ -80,6 +80,15 @@ module.exports =
   makeDirectory: (path) ->
     $native.makeDirectory(path)
 
+  traverseTree: (rootPath, fn) ->
+    recurse = null
+    prune = -> recurse = false
+
+    for path in @list(rootPath)
+      recurse = true
+      fn(path, prune)
+      @traverseTree(path, fn) if @isDirectory(path) and recurse
+
   async:
     list: (path) ->
       deferred = $.Deferred()
@@ -92,4 +101,3 @@ module.exports =
       $native.asyncList path, true, (subpaths) ->
         deferred.resolve subpaths
       deferred
-

@@ -40,6 +40,31 @@ describe "fs", ->
     it "returns an empty string for paths without an extension", ->
       expect(fs.extension("a/b.not-extension/a-dir")).toBe ''
 
+  describe ".traverseTree(path, fn)", ->
+    fixturesDir = null
+
+    beforeEach ->
+      fixturesDir = require.resolve('fixtures')
+
+    it "calls fn for every path in the tree at the given path", ->
+      paths = []
+      fs.traverseTree fixturesDir, (path) -> paths.push(path)
+      expect(paths).toEqual fs.listTree(fixturesDir)
+
+    it "does not recurse into a directory if it is pruned", ->
+      paths = []
+      fs.traverseTree fixturesDir, (path, prune) ->
+        console.log path
+        if path.match(/\/dir$/)
+          prune()
+        else
+          paths.push(path)
+
+      expect(paths.length).toBeGreaterThan 0
+      for path in paths
+        expect(path).not.toMatch /dir/
+
+
   describe ".async", ->
     directoryPath = null
     beforeEach ->
@@ -56,4 +81,3 @@ describe "fs", ->
         waitsForPromise ->
           fs.async.list(directoryPath).done (result) ->
             expect(result).toEqual fs.list(directoryPath)
-
