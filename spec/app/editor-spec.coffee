@@ -1,3 +1,4 @@
+RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 Range = require 'range'
@@ -12,16 +13,11 @@ describe "Editor", ->
   editor = null
 
   beforeEach ->
-    project = new Project(require.resolve('fixtures'))
-    buffer = project.open("sample.js")
-    editor = new Editor { buffer }
+    rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
+    project = rootView.project
+    editor = rootView.activeEditor()
+    buffer = editor.buffer
 
-    fakeRootView =
-      project: project
-      editorFocused: ->
-      focus: ->
-
-    editor.rootView = -> fakeRootView
     editor.autoIndent = false
     editor.enableKeymap()
     editor.isFocused = true
