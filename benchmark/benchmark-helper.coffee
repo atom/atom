@@ -37,6 +37,7 @@ window.benchmark = (description, fn, profile=false, focused=false) ->
 
     fullname = @getFullName().replace(/\s|\.$/g, "")
     report = "#{fullname}: #{total} / #{count} = #{avg}ms"
+    console.log(report)
 
     if atom.headless
       url = "https://github.com/_stats"
