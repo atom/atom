@@ -28,6 +28,7 @@ class RootView extends View
 
   extensions: null
   extensionStates: null
+  fontSize: null
 
   initialize: ({ pathToOpen }) ->
     @extensions = {}
@@ -135,3 +136,9 @@ class RootView extends View
   remove: ->
     editor.remove() for editor in @editors()
     super
+
+  setFontSize: (newFontSize) ->
+    [oldFontSize, @fontSize] = [@fontSize, newFontSize]
+    @trigger 'font-size-change' if oldFontSize != newFontSize
+
+  getFontSize: -> @fontSize

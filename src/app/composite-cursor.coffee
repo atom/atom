@@ -33,6 +33,9 @@ class CompositeCursor
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)
 
+  updateAppearance: ->
+    cursor.updateAppearance() for cursor in @cursors
+
   moveCursors: (fn) ->
     fn(cursor) for cursor in @cursors
     @mergeCursors()

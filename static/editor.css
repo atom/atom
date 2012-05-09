@@ -2,7 +2,7 @@
   height: 100%;
   overflow: hidden;
   background: #333;
-  font: 18px Inconsolata, Monaco, Courier !important;
+  font: 18px Inconsolata, Monaco, Courier;
   color: white;
   cursor: default;
   -webkit-user-select: none;

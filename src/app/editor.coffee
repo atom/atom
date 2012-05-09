@@ -212,6 +212,7 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
+    @subscribeToFontSize()
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setMaxLineLength() if @softWrap
@@ -440,6 +441,17 @@ class Editor extends View
     @lineHeight = fragment.outerHeight()
     fragment.remove()
 
+  subscribeToFontSize: ->
+    return unless rootView = @rootView()
+    @setFontSize(rootView.getFontSize())
+    rootView.on "font-size-change.editor#{@id}", =>
+      @setFontSize(rootView.getFontSize())
+      @calculateDimensions()
+      @compositeCursor.updateAppearance()
+
+  setFontSize: (fontSize) ->
+    @css('font-size', fontSize + 'px') if fontSize
+
   getCursors: -> @compositeCursor.getCursors()
   moveCursorUp: -> @compositeCursor.moveUp()
   moveCursorDown: -> @compositeCursor.moveDown()
@@ -556,6 +568,7 @@ class Editor extends View
     @trigger 'before-remove'
     @unsubscribeFromBuffer()
     rootView = @rootView()
+    rootView?.off ".editor#{@id}"
     if @pane() then @pane().remove() else super
     rootView?.focus()
 

@@ -9,8 +9,7 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  buffer = null
-  editor = null
+  [rootView, buffer, editor] = []
 
   beforeEach ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
@@ -246,6 +245,35 @@ describe "Editor", ->
       editor.scroller.scrollTop(20)
       editor.scroller.trigger('scroll')
       expect(editor.gutter.scrollTop()).toBe 20
+
+  describe "font size", ->
+    it "sets the initial font size based on the value assigned to the root view", ->
+      rootView.setFontSize(20)
+      rootView.simulateDomAttachment()
+      newEditor = editor.splitRight()
+      expect(editor.css('font-size')).toBe '20px'
+      expect(newEditor.css('font-size')).toBe '20px'
+
+    describe "when the font size changes on the view", ->
+      it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
+        rootView.attachToDom()
+        expect(editor.css('font-size')).not.toBe '30px'
+        lineHeightBefore = editor.lineHeight
+        charWidthBefore = editor.charWidth
+        editor.setCursorScreenPosition [5, 5]
+
+        rootView.setFontSize(30)
+
+        expect(editor.css('font-size')).toBe '30px'
+        expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
+        expect(editor.charWidth).toBeGreaterThan charWidthBefore
+        expect(editor.getCursors()[0].position()).toEqual { top: 5 * editor.lineHeight, left: 5 * editor.charWidth }
+
+        # ensure we clean up font size subscription
+        editor.trigger('close')
+        rootView.setFontSize(22)
+        expect(editor.css('font-size')).toBe '30px'
+
 
   describe "cursor movement", ->
     describe "when the arrow keys are pressed", ->
