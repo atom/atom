@@ -42,6 +42,9 @@ describe "editor.", ->
         editor.backspace()
 
   describe "9000-line-file.", ->
+    benchmarkOnce "opening", ->
+      editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
+
     describe "at-end.", ->
       endPosition = null
 
@@ -50,6 +53,6 @@ describe "editor.", ->
         editor.moveCursorToBottom()
         endPosition = editor.getCursorScreenPosition()
 
-      fbenchmark "move-to-beginning-of-word", ->
+      benchmark "move-to-beginning-of-word", ->
         editor.moveCursorToBeginningOfWord()
         editor.setCursorScreenPosition(endPosition)
