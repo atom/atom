@@ -106,12 +106,16 @@ class Cursor extends View
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
+
+    previousRow = Math.max(0, currentBufferPosition.row - 1)
+    previousLinesRange = [[previousRow, 0], currentBufferPosition]
     beginningOfWordPosition = currentBufferPosition
-    range = [[0,0], currentBufferPosition]
-    @editor.backwardsScanInRange @wordRegex, range, (match, matchRange, { stop }) =>
+
+    @editor.backwardsScanInRange @wordRegex, previousLinesRange, (match, matchRange, { stop }) =>
       if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
         beginningOfWordPosition = matchRange.start
       stop()
+
     beginningOfWordPosition
 
   getEndOfCurrentWordBufferPosition: (options = {}) ->
