@@ -71,6 +71,15 @@ describe 'FileFinder', ->
       expect(activeEditor.isFocused).toBeTruthy()
       expect(finder.miniEditor.isFocused).toBeFalsy()
 
+  describe "when the file finder loses focus", ->
+    it "detaches itself", ->
+      rootView.attachToDom()
+      rootView.trigger 'file-finder:toggle'
+
+      expect(finder.hasParent()).toBeTruthy()
+      rootView.focus()
+      expect(finder.hasParent()).toBeFalsy()
+
   describe "when characters are typed into the input element", ->
     it "displays matching paths in the ol element and selects the first", ->
       rootView.trigger 'file-finder:toggle'

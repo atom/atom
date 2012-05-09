@@ -28,6 +28,7 @@ class FileFinder extends View
     @on 'move-down', => @moveDown()
     @on 'file-finder:select-file', => @select()
 
+    @miniEditor.on 'focusout', => @detach()
     @miniEditor.buffer.on 'change', => @populatePathList() if @hasParent()
     @miniEditor.off 'move-up move-down'
 
