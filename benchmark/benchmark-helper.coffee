@@ -15,20 +15,25 @@ keymap.bindKeys '*',
 $(document).on 'close', -> window.close()
 $(document).on 'show-console', -> window.showConsole()
 
+window.fpbenchmarkOnce = (description, fn) -> window.profile(1, description, fn, true)
+window.pfbenchmark = window.fpbenchmarkOnce
 
-window.pbenchmark = window.profile
-window.fpbenchmark = (description, fn) -> window.profile(description, fn, true)
+defaultCount = 100
+window.fpbenchmark = (description, fn) -> window.profile(defaultCount, description, fn, true)
 window.pfbenchmark = window.fpbenchmark
-window.fbenchmark = (description, fn, profile) -> window.benchmark(description, fn, profile, true)
+window.pbenchmark = (description, fn) -> window.profile(defaultCount, description, fn, false)
+window.fbenchmark = (description, fn) -> window.benchmark(description, fn, false, true)
 
-window.profile = (description, fn, focused) ->
+window.profile = (count, description, fn, focused) ->
   window.showConsole()
-  window.benchmark(description, fn, true, focused)
+  window.rawBenchmark(count, description, fn, true, focused)
 
-window.benchmark = (description, fn, profile=false, focused=false) ->
+window.benchmarkOnce = (args...) -> window.rawBenchmark(1, args...)
+window.benchmark = (args...) -> window.rawBenchmark(defaultCount, args...)
+
+window.rawBenchmark = (count, description, fn, profile=false, focused=false) ->
   method = if focused then fit else it
   method description, ->
-    count = 100
     total = measure ->
       console.profile(description) if profile
       _.times count, fn
