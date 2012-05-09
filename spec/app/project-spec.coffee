@@ -71,3 +71,12 @@ describe "Project", ->
         project.setPath(null)
         expect(project.getPath()?).toBeFalsy()
         expect(project.getRootDirectory()?).toBeFalsy()
+
+
+  describe ".getFilePaths()", ->
+    it "ignores files that return true from atom.ignorePath(path)", ->
+      spyOn(project, 'ignorePath').andCallFake (path) -> fs.base(path).match /a$/
+
+      project.getFilePaths().done (paths) ->
+        expect(paths).not.toContain('a')
+        expect(paths).toContain('b')

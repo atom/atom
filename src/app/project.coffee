@@ -1,6 +1,8 @@
 fs = require 'fs'
-Buffer = require 'buffer'
 _ = require 'underscore'
+$ = require 'jquery'
+
+Buffer = require 'buffer'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 
@@ -31,8 +33,20 @@ class Project
     @rootDirectory
 
   getFilePaths: ->
-    fs.async.listTree(@getPath()).pipe (paths) =>
-      @relativize(path) for path in paths when fs.isFile(path)
+    deferred = $.Deferred()
+
+    filePaths = []
+    fs.traverseTree @getPath(), (path, prune) =>
+      if @ignorePath(path)
+        prune()
+      else if fs.isFile(path)
+        filePaths.push @relativize(path)
+
+    deferred.resolve filePaths
+    deferred
+
+  ignorePath: (path) ->
+    fs.base(path).match(/\.DS_Store/) or path.match(/(^|\/)\.git(\/|$)/)
 
   open: (filePath) ->
     if filePath?
