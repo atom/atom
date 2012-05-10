@@ -250,19 +250,26 @@ class Editor extends View
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
-    console.log "updateLines", firstVisibleScreenRow, lastVisibleScreenRow
-    # console.log "cursor screen position", @getCursorScreenPosition().inspect()
-
     if firstVisibleScreenRow > @firstRenderedScreenRow
-      console.log "removing from", @firstRenderedScreenRow, "to", firstVisibleScreenRow - 1
       @removeLineElements(@firstRenderedScreenRow, firstVisibleScreenRow - 1)
       @lines.css('padding-top', firstVisibleScreenRow * @lineHeight)
-      console.log @lines
+
+    if lastVisibleScreenRow < @lastRenderedScreenRow
+      @removeLineElements(lastVisibleScreenRow + 1, @lastRenderedScreenRow)
+      @lines.css('padding-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
+
+    if firstVisibleScreenRow < @firstRenderedScreenRow
+      newLinesStartRow = firstVisibleScreenRow
+      newLinesEndRow = Math.min(@firstRenderedScreenRow - 1, lastVisibleScreenRow)
+      lineElements = @buildLineElements(newLinesStartRow, newLinesEndRow)
+      @insertLineElements(newLinesStartRow, lineElements)
+      @lines.css('padding-top', firstVisibleScreenRow * @lineHeight)
 
     if lastVisibleScreenRow > @lastRenderedScreenRow
-      startRow = Math.max(@lastRenderedScreenRow + 1, firstVisibleScreenRow)
-      lineElements = @buildLineElements(startRow, lastVisibleScreenRow)
-      @insertLineElements(startRow, lineElements)
+      newLinesStartRow = Math.max(@lastRenderedScreenRow + 1, firstVisibleScreenRow)
+      newLinesEndRow = lastVisibleScreenRow
+      lineElements = @buildLineElements(newLinesStartRow, newLinesEndRow)
+      @insertLineElements(newLinesStartRow, lineElements)
       @lines.css('padding-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
 
     @firstRenderedScreenRow = firstVisibleScreenRow
@@ -385,8 +392,13 @@ class Editor extends View
     @spliceLineElements(startRow, endRow - startRow + 1)
 
   spliceLineElements: (startScreenRow, rowCount, lineElements) ->
-    startRow = startScreenRow - @firstRenderedScreenRow
+    if startScreenRow < @firstRenderedScreenRow
+      startRow = 0
+    else
+      startRow = startScreenRow - @firstRenderedScreenRow
     endRow = startRow + rowCount
+
+
     elementToInsertBefore = @lineCache[startRow]
     elementsToReplace = @lineCache[startRow...endRow]
     @lineCache[startRow...endRow] = lineElements?.toArray() or []

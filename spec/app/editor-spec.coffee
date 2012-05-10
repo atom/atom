@@ -391,55 +391,68 @@ describe "Editor", ->
 
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
-
     describe "when some lines at the end of the buffer are not visible on screen when the editor is attached", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
 
-      it "only renders the visible lines, giving the final line a margin-bottom to account for the missing lines", ->
+      it "only renders the visible lines, setting the padding-bottom of the lines element to account for the missing lines", ->
         expect(editor.lines.find('.line').length).toBe 6
-        expectedMarginBottom = (buffer.numLines() - 6) * editor.lineHeight
-        expect(editor.lines.find('.line:last').css('margin-bottom')).toBe "#{expectedMarginBottom}px"
+        expectedPaddingBottom = (buffer.numLines() - 6) * editor.lineHeight
+        expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
-      it "when the lines are scrolled down, removes lines that become invisible and builds lines that become visisble", ->
-        editor.scroller.scrollTop(editor.lineHeight * 2.5)
-        editor.scroller.trigger 'scroll'
+      describe "when the scroller element is scrolled", ->
+        describe "whes scrolling less than the editor's height", ->
+          it "removes lines that become invisible and builds lines that become visisble", ->
+            editor.scroller.scrollTop(editor.lineHeight * 2.5)
+            editor.scroller.trigger 'scroll'
+            expect(editor.lines.find('.line').length).toBe 6
+            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
+            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
-        expect(editor.lines.find('.line').length).toBe 6
-        expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
-        expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
+            editor.scroller.scrollTop(editor.lineHeight * 3.5)
+            editor.scroller.trigger 'scroll'
+            expect(editor.lines.find('.line').length).toBe 6
+            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(3)
+            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(8)
 
-        editor.scroller.scrollTop(editor.lineHeight * 3.5)
-        editor.scroller.trigger 'scroll'
+            editor.scroller.scrollTop(editor.lineHeight * 2.5)
+            editor.scroller.trigger 'scroll'
+            expect(editor.lines.find('.line').length).toBe 6
+            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
+            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
-        expect(editor.lines.find('.line').length).toBe 6
-        expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(3)
-        expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(8)
+            editor.scroller.scrollTop(0)
+            editor.scroller.trigger 'scroll'
+            expect(editor.lines.find('.line').length).toBe 6
+            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
+            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(5)
 
-      fit "when the scroller is scrolled to the end, removes lines that become invisible and builds lines that become visible", ->
-        editor.scroller.scrollBottom(editor.scroller[0].scrollHeight)
-        editor.scroller.trigger 'scroll'
+        describe "when scrolling more than the editors height", ->
+          it "removes lines that become invisible and builds lines that become visible", ->
+            editor.scroller.scrollBottom(editor.scroller.prop('scrollHeight'))
+            editor.scroller.trigger 'scroll'
+            expect(editor.lines.find('.line').length).toBe 6
+            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(7)
+            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(12)
 
-        expect(editor.lines.find('.line').length).toBe 6
-        expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(7)
-        expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(12)
+            editor.scroller.scrollBottom(0)
+            editor.scroller.trigger 'scroll'
+            expect(editor.lines.find('.line').length).toBe 6
+            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
+            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(5)
 
-      it "adjusts margins to account for non-rendered lines", ->
-        editor.scroller.scrollTop(editor.lineHeight * 2.5)
-        editor.scroller.trigger 'scroll'
+        it "adjusts the vertical padding of the lines element to account for non-rendered lines", ->
+          editor.scroller.scrollTop(editor.lineHeight * 2.5)
+          editor.scroller.trigger 'scroll'
+          expect(editor.lines.css('padding-top')).toBe "#{2 * editor.lineHeight}px"
+          expectedPaddingBottom = (buffer.numLines() - 8) * editor.lineHeight
+          expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
-        for line, index in editor.lines.find('.line')
-          marginTop = $(line).css('margin-top')
-          marginBottom = $(line).css('margin-bottom')
-          if index == 0
-            expectedMarginTop = editor.lineHeight * 2
-            expect(marginTop).toBe "#{expectedMarginTop}px"
-          else if index == 5
-            expectedMarginBottom = (editor.getLastScreenRow() - 7) * editor.lineHeight
-            expect(marginBottom).toBe "#{expectedMarginBottom}px"
-          else
-            expect(marginBottom).toBe '0px'
-            expect(marginTop).toBe '0px'
+          editor.scroller.scrollBottom(editor.scroller.prop('scrollHeight'))
+          editor.scroller.trigger 'scroll'
+          expect(editor.lines.css('padding-top')).toBe "#{7 * editor.lineHeight}px"
+          expect(editor.lines.css('padding-bottom')).toBe "0px"
+
 
       it "renders additional lines when the editor is resized", ->
         setEditorHeightInLines(editor, 10)
@@ -448,16 +461,6 @@ describe "Editor", ->
         expect(editor.lines.find('.line').length).toBe 10
         expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(9)
-
-    # describe "when lines at the beginning of the buffer are not visible on screen when the editor is attached", ->
-    #   beforeEach ->
-    #     editor.attachToDom(heightInLines: 5.5)
-
-    #   it "only renders the visible lines, giving the first line a margin-top to account for the missing lines", ->
-    #     expect(editor.lines.find('.line').length).toBe 6
-    #     expectedMarginBottom = (buffer.numLines() - 6) * editor.lineHeight
-    #     expect(editor.lines.find('.line:last').css('margin-bottom')).toBe "#{expectedMarginBottom}px"
-
 
   describe "gutter rendering", ->
     it "creates a line number element for each line in the buffer", ->
