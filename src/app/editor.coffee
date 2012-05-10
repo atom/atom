@@ -21,6 +21,8 @@ class Editor extends View
         @subview 'gutter', new Gutter
         @div class: 'scroller', outlet: 'scroller', =>
           @div class: 'lines', outlet: 'lines', =>
+      @div class: 'scrollbar', outlet: 'scrollbar', =>
+        @div outlet: 'scrollbarContent'
 
   @classes: ({mini}) ->
     classes = ['editor']
@@ -202,8 +204,14 @@ class Editor extends View
       @insertText(e.originalEvent.data)
       false
 
-    @scroller.on 'scroll', =>
+    # @scroller.on 'mousewheel', =>
+    #   console.log "loving that wheel"
+    #   false
+
+    @scrollbar.on 'scroll', =>
+      console.log "scrolling"
       @updateLines()
+      @scroller.scrollTop(@scrollbar.scrollTop())
       @gutter.scrollTop(@scroller.scrollTop())
       if @scroller.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
@@ -245,6 +253,7 @@ class Editor extends View
 
     @insertLineElements(0, @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow))
     @lines.css('padding-bottom', (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight)
+    @scrollbarContent.height(@lineHeight * @screenLineCount())
 
   updateLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
@@ -276,10 +285,10 @@ class Editor extends View
     @lastRenderedScreenRow = lastVisibleScreenRow
 
   getFirstVisibleScreenRow: ->
-    Math.floor(@scroller.scrollTop() / @lineHeight)
+    Math.floor(@scrollbar.scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    Math.ceil((@scroller.scrollTop() + @scroller.height()) / @lineHeight) - 1
+    Math.ceil((@scrollbar.scrollTop() + @scroller.height()) / @lineHeight) - 1
 
   getScreenLines: ->
     @renderer.getLines()
@@ -364,6 +373,7 @@ class Editor extends View
     if @attached
       lineElements = @buildLineElements(newRange.start.row, newRange.end.row)
       @replaceLineElements(oldRange.start.row, oldRange.end.row, lineElements)
+      @scrollbarContent.height(@lineHeight * @screenLineCount())
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
