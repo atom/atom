@@ -60,6 +60,201 @@ describe "Editor", ->
       expect(newEditor.editSessions[0]).toEqual(editor.editSessions[0])
       expect(newEditor.editSessions[0]).not.toBe(editor.editSessions[0])
 
+    describe ".setBuffer(buffer)", ->
+    it "sets the cursor to the beginning of the file", ->
+      expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+    it "recalls the cursor position and scroll position when the same buffer is re-assigned", ->
+      editor.attachToDom()
+      editor.height(editor.lineHeight * 5)
+      editor.width(editor.charWidth * 30)
+      editor.setCursorScreenPosition([8, 28])
+      advanceClock()
+
+      previousScrollTop = editor.scroller.scrollTop()
+      previousScrollLeft = editor.scroller.scrollLeft()
+
+      editor.setBuffer(new Buffer)
+      expect(editor.getCursorScreenPosition()).toEqual [0, 0]
+      expect(editor.scroller.scrollTop()).toBe 0
+      expect(editor.scroller.scrollLeft()).toBe 0
+
+      editor.setBuffer(buffer)
+      expect(editor.getCursorScreenPosition()).toEqual [8, 28]
+      expect(editor.scroller.scrollTop()).toBe previousScrollTop
+      expect(editor.scroller.scrollLeft()).toBe previousScrollLeft
+
+    it "recalls the undo history of the buffer when it is re-assigned", ->
+      editor.insertText('xyz')
+
+      otherBuffer = new Buffer
+      editor.setBuffer(otherBuffer)
+      editor.insertText('abc')
+      expect(otherBuffer.lineForRow(0)).toBe 'abc'
+      editor.undo()
+      expect(otherBuffer.lineForRow(0)).toBe ''
+
+      editor.setBuffer(buffer)
+      editor.undo()
+      expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
+      editor.redo()
+      expect(buffer.lineForRow(0)).toBe 'xyzvar quicksort = function () {'
+
+      editor.setBuffer(otherBuffer)
+      editor.redo()
+      expect(otherBuffer.lineForRow(0)).toBe 'abc'
+
+    it "fully unsubscribes from the previously assigned buffer", ->
+      otherBuffer = new Buffer
+      previousSubscriptionCount = otherBuffer.subscriptionCount()
+
+      editor.setBuffer(otherBuffer)
+      expect(otherBuffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
+
+      editor.setBuffer(buffer)
+      expect(otherBuffer.subscriptionCount()).toBe previousSubscriptionCount
+
+  describe ".clipScreenPosition(point)", ->
+    it "selects the nearest valid position to the given point", ->
+      expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.getLastRow(), column: buffer.lineForRow(buffer.getLastRow()).length)
+      expect(editor.clipScreenPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
+      expect(editor.clipScreenPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.lineForRow(1).length)
+      expect(editor.clipScreenPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
+
+  describe ".save()", ->
+    describe "when the current buffer has a path", ->
+      tempFilePath = null
+
+      beforeEach ->
+        tempFilePath = '/tmp/atom-temp.txt'
+        editor.setBuffer new Buffer(tempFilePath)
+        expect(editor.buffer.getPath()).toBe tempFilePath
+
+      afterEach ->
+        expect(fs.remove(tempFilePath))
+
+      it "saves the current buffer to disk", ->
+        editor.buffer.setText 'Edited!'
+        expect(fs.exists(tempFilePath)).toBeFalsy()
+
+        editor.save()
+
+        expect(fs.exists(tempFilePath)).toBeTruthy()
+        expect(fs.read(tempFilePath)).toBe 'Edited!'
+
+    describe "when the current buffer has no path", ->
+      selectedFilePath = null
+      beforeEach ->
+        editor.setBuffer new Buffer()
+        expect(editor.buffer.getPath()).toBeUndefined()
+        editor.buffer.setText 'Save me to a new path'
+        spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
+
+      it "presents a 'save as' dialog", ->
+        editor.save()
+        expect($native.saveDialog).toHaveBeenCalled()
+
+      describe "when a path is chosen", ->
+        it "saves the buffer to the chosen path", ->
+          selectedFilePath = '/tmp/temp.txt'
+
+          editor.save()
+
+          expect(fs.exists(selectedFilePath)).toBeTruthy()
+          expect(fs.read(selectedFilePath)).toBe 'Save me to a new path'
+
+      describe "when dialog is cancelled", ->
+        it "does not save the buffer", ->
+          selectedFilePath = null
+          editor.save()
+          expect(fs.exists(selectedFilePath)).toBeFalsy()
+
+  describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
+    elements = null
+
+    beforeEach ->
+      editor.attachToDom()
+      elements = $$ ->
+        @div "A", class: 'line'
+        @div "B", class: 'line'
+
+    describe "when the start row is 0", ->
+      describe "when the row count is 0", ->
+        it "inserts the given elements before the first row", ->
+          editor.spliceLineElements 0, 0, elements
+
+          expect(editor.lines.find('.line:eq(0)').text()).toBe 'A'
+          expect(editor.lines.find('.line:eq(1)').text()).toBe 'B'
+          expect(editor.lines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
+
+      describe "when the row count is > 0", ->
+        it "replaces the initial rows with the given elements", ->
+          editor.spliceLineElements 0, 2, elements
+
+          expect(editor.lines.find('.line:eq(0)').text()).toBe 'A'
+          expect(editor.lines.find('.line:eq(1)').text()).toBe 'B'
+          expect(editor.lines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
+
+    describe "when the start row is less than the last row", ->
+      describe "when the row count is 0", ->
+        it "inserts the elements at the specified location", ->
+          editor.spliceLineElements 2, 0, elements
+
+          expect(editor.lines.find('.line:eq(2)').text()).toBe 'A'
+          expect(editor.lines.find('.line:eq(3)').text()).toBe 'B'
+          expect(editor.lines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
+
+      describe "when the row count is > 0", ->
+        it "replaces the elements at the specified location", ->
+          editor.spliceLineElements 2, 2, elements
+
+          expect(editor.lines.find('.line:eq(2)').text()).toBe 'A'
+          expect(editor.lines.find('.line:eq(3)').text()).toBe 'B'
+          expect(editor.lines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
+
+    describe "when the start row is the last row", ->
+      it "appends the elements to the end of the lines", ->
+        editor.spliceLineElements 13, 0, elements
+
+        expect(editor.lines.find('.line:eq(12)').text()).toBe '};'
+        expect(editor.lines.find('.line:eq(13)').text()).toBe 'A'
+        expect(editor.lines.find('.line:eq(14)').text()).toBe 'B'
+        expect(editor.lines.find('.line:eq(15)')).not.toExist()
+
+  describe ".loadNextEditSession()", ->
+    it "loads the next editor state and wraps to beginning when end is reached", ->
+      buffer0 = new Buffer("0")
+      buffer1 = new Buffer("1")
+      buffer2 = new Buffer("2")
+      editor = new Editor(buffer: buffer0)
+      editor.setBuffer(buffer1)
+      editor.setBuffer(buffer2)
+
+      expect(editor.buffer.path).toBe "2"
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe "0"
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe "1"
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe "2"
+
+  describe ".loadPreviousEditSession()", ->
+    it "loads the next editor state and wraps to beginning when end is reached", ->
+      buffer0 = new Buffer("0")
+      buffer1 = new Buffer("1")
+      buffer2 = new Buffer("2")
+      editor = new Editor {buffer: buffer0}
+      editor.setBuffer(buffer1)
+      editor.setBuffer(buffer2)
+
+      expect(editor.buffer.path).toBe "2"
+      editor.loadPreviousEditSession()
+      expect(editor.buffer.path).toBe "1"
+      editor.loadPreviousEditSession()
+      expect(editor.buffer.path).toBe "0"
+      editor.loadPreviousEditSession()
+      expect(editor.buffer.path).toBe "2"
+
   describe "editor-open event", ->
     it 'only triggers an editor-open event when it is first added to the DOM', ->
       openHandler = jasmine.createSpy('openHandler')
@@ -319,7 +514,6 @@ describe "Editor", ->
         editor.trigger('close')
         rootView.setFontSize(22)
         expect(editor.css('font-size')).toBe '30px'
-
 
   describe "cursor movement", ->
     describe "when the arrow keys are pressed", ->
@@ -1928,67 +2122,6 @@ describe "Editor", ->
       expect(editor.isFocused).toBeFalsy()
       expect(editor).not.toHaveClass('focused')
 
-  describe ".setBuffer(buffer)", ->
-    it "sets the cursor to the beginning of the file", ->
-      expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
-    it "recalls the cursor position and scroll position when the same buffer is re-assigned", ->
-      editor.attachToDom()
-      editor.height(editor.lineHeight * 5)
-      editor.width(editor.charWidth * 30)
-      editor.setCursorScreenPosition([8, 28])
-      advanceClock()
-
-      previousScrollTop = editor.scroller.scrollTop()
-      previousScrollLeft = editor.scroller.scrollLeft()
-
-      editor.setBuffer(new Buffer)
-      expect(editor.getCursorScreenPosition()).toEqual [0, 0]
-      expect(editor.scroller.scrollTop()).toBe 0
-      expect(editor.scroller.scrollLeft()).toBe 0
-
-      editor.setBuffer(buffer)
-      expect(editor.getCursorScreenPosition()).toEqual [8, 28]
-      expect(editor.scroller.scrollTop()).toBe previousScrollTop
-      expect(editor.scroller.scrollLeft()).toBe previousScrollLeft
-
-    it "recalls the undo history of the buffer when it is re-assigned", ->
-      editor.insertText('xyz')
-
-      otherBuffer = new Buffer
-      editor.setBuffer(otherBuffer)
-      editor.insertText('abc')
-      expect(otherBuffer.lineForRow(0)).toBe 'abc'
-      editor.undo()
-      expect(otherBuffer.lineForRow(0)).toBe ''
-
-      editor.setBuffer(buffer)
-      editor.undo()
-      expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
-      editor.redo()
-      expect(buffer.lineForRow(0)).toBe 'xyzvar quicksort = function () {'
-
-      editor.setBuffer(otherBuffer)
-      editor.redo()
-      expect(otherBuffer.lineForRow(0)).toBe 'abc'
-
-    it "fully unsubscribes from the previously assigned buffer", ->
-      otherBuffer = new Buffer
-      previousSubscriptionCount = otherBuffer.subscriptionCount()
-
-      editor.setBuffer(otherBuffer)
-      expect(otherBuffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
-
-      editor.setBuffer(buffer)
-      expect(otherBuffer.subscriptionCount()).toBe previousSubscriptionCount
-
-  describe ".clipScreenPosition(point)", ->
-    it "selects the nearest valid position to the given point", ->
-      expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.getLastRow(), column: buffer.lineForRow(buffer.getLastRow()).length)
-      expect(editor.clipScreenPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
-      expect(editor.clipScreenPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.lineForRow(1).length)
-      expect(editor.clipScreenPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
-
   describe "cut, copy & paste", ->
     pasteboard = null
     beforeEach ->
@@ -2087,106 +2220,6 @@ describe "Editor", ->
         editor.createFold([[1, 0], [1, 30]])
         expect(editor.lines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
 
-  describe ".save()", ->
-    describe "when the current buffer has a path", ->
-      tempFilePath = null
-
-      beforeEach ->
-        tempFilePath = '/tmp/atom-temp.txt'
-        editor.setBuffer new Buffer(tempFilePath)
-        expect(editor.buffer.getPath()).toBe tempFilePath
-
-      afterEach ->
-        expect(fs.remove(tempFilePath))
-
-      it "saves the current buffer to disk", ->
-        editor.buffer.setText 'Edited!'
-        expect(fs.exists(tempFilePath)).toBeFalsy()
-
-        editor.save()
-
-        expect(fs.exists(tempFilePath)).toBeTruthy()
-        expect(fs.read(tempFilePath)).toBe 'Edited!'
-
-    describe "when the current buffer has no path", ->
-      selectedFilePath = null
-      beforeEach ->
-        editor.setBuffer new Buffer()
-        expect(editor.buffer.getPath()).toBeUndefined()
-        editor.buffer.setText 'Save me to a new path'
-        spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
-
-      it "presents a 'save as' dialog", ->
-        editor.save()
-        expect($native.saveDialog).toHaveBeenCalled()
-
-      describe "when a path is chosen", ->
-        it "saves the buffer to the chosen path", ->
-          selectedFilePath = '/tmp/temp.txt'
-
-          editor.save()
-
-          expect(fs.exists(selectedFilePath)).toBeTruthy()
-          expect(fs.read(selectedFilePath)).toBe 'Save me to a new path'
-
-      describe "when dialog is cancelled", ->
-        it "does not save the buffer", ->
-          selectedFilePath = null
-          editor.save()
-          expect(fs.exists(selectedFilePath)).toBeFalsy()
-
-  describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
-    elements = null
-
-    beforeEach ->
-      editor.attachToDom()
-      elements = $$ ->
-        @div "A", class: 'line'
-        @div "B", class: 'line'
-
-    describe "when the start row is 0", ->
-      describe "when the row count is 0", ->
-        it "inserts the given elements before the first row", ->
-          editor.spliceLineElements 0, 0, elements
-
-          expect(editor.lines.find('.line:eq(0)').text()).toBe 'A'
-          expect(editor.lines.find('.line:eq(1)').text()).toBe 'B'
-          expect(editor.lines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
-
-      describe "when the row count is > 0", ->
-        it "replaces the initial rows with the given elements", ->
-          editor.spliceLineElements 0, 2, elements
-
-          expect(editor.lines.find('.line:eq(0)').text()).toBe 'A'
-          expect(editor.lines.find('.line:eq(1)').text()).toBe 'B'
-          expect(editor.lines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
-
-    describe "when the start row is less than the last row", ->
-      describe "when the row count is 0", ->
-        it "inserts the elements at the specified location", ->
-          editor.spliceLineElements 2, 0, elements
-
-          expect(editor.lines.find('.line:eq(2)').text()).toBe 'A'
-          expect(editor.lines.find('.line:eq(3)').text()).toBe 'B'
-          expect(editor.lines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
-
-      describe "when the row count is > 0", ->
-        it "replaces the elements at the specified location", ->
-          editor.spliceLineElements 2, 2, elements
-
-          expect(editor.lines.find('.line:eq(2)').text()).toBe 'A'
-          expect(editor.lines.find('.line:eq(3)').text()).toBe 'B'
-          expect(editor.lines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
-
-    describe "when the start row is the last row", ->
-      it "appends the elements to the end of the lines", ->
-        editor.spliceLineElements 13, 0, elements
-
-        expect(editor.lines.find('.line:eq(12)').text()).toBe '};'
-        expect(editor.lines.find('.line:eq(13)').text()).toBe 'A'
-        expect(editor.lines.find('.line:eq(14)').text()).toBe 'B'
-        expect(editor.lines.find('.line:eq(15)')).not.toExist()
-
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->
       editor = new Editor
@@ -2216,40 +2249,6 @@ describe "Editor", ->
       eventHandler.reset()
       editor.buffer.setPath("new.txt")
       expect(eventHandler).toHaveBeenCalled()
-
-  describe ".loadNextEditSession()", ->
-    it "loads the next editor state and wraps to beginning when end is reached", ->
-      buffer0 = new Buffer("0")
-      buffer1 = new Buffer("1")
-      buffer2 = new Buffer("2")
-      editor = new Editor(buffer: buffer0)
-      editor.setBuffer(buffer1)
-      editor.setBuffer(buffer2)
-
-      expect(editor.buffer.path).toBe "2"
-      editor.loadNextEditSession()
-      expect(editor.buffer.path).toBe "0"
-      editor.loadNextEditSession()
-      expect(editor.buffer.path).toBe "1"
-      editor.loadNextEditSession()
-      expect(editor.buffer.path).toBe "2"
-
-  describe ".loadPreviousEditSession()", ->
-    it "loads the next editor state and wraps to beginning when end is reached", ->
-      buffer0 = new Buffer("0")
-      buffer1 = new Buffer("1")
-      buffer2 = new Buffer("2")
-      editor = new Editor {buffer: buffer0}
-      editor.setBuffer(buffer1)
-      editor.setBuffer(buffer2)
-
-      expect(editor.buffer.path).toBe "2"
-      editor.loadPreviousEditSession()
-      expect(editor.buffer.path).toBe "1"
-      editor.loadPreviousEditSession()
-      expect(editor.buffer.path).toBe "0"
-      editor.loadPreviousEditSession()
-      expect(editor.buffer.path).toBe "2"
 
   describe "split methods", ->
     describe "when inside a pane", ->
