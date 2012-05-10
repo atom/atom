@@ -214,6 +214,7 @@ class Editor extends View
     @attached = true
     @subscribeToFontSize()
     @calculateDimensions()
+    @renderLines()
     @hiddenInput.width(@charWidth)
     @setMaxLineLength() if @softWrap
     @focus() if @isFocused
@@ -258,7 +259,7 @@ class Editor extends View
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
 
     @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
-    @renderLines()
+    @renderLines() if @attached
     @gutter.renderLineNumbers()
 
     @loadEditSessionForBuffer(@buffer)
@@ -316,8 +317,9 @@ class Editor extends View
 
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
-    lineElements = @buildLineElements(newRange.start.row, newRange.end.row)
-    @replaceLineElements(oldRange.start.row, oldRange.end.row, lineElements)
+    if @attached
+      lineElements = @buildLineElements(newRange.start.row, newRange.end.row)
+      @replaceLineElements(oldRange.start.row, oldRange.end.row, lineElements)
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
@@ -380,7 +382,7 @@ class Editor extends View
     @renderer.createFold(range)
 
   setSoftWrap: (@softWrap, maxLineLength=undefined) ->
-    @setMaxLineLength(maxLineLength)
+    @setMaxLineLength(maxLineLength) if @attached
     if @softWrap
       @addClass 'soft-wrap'
       @_setMaxLineLength = => @setMaxLineLength()

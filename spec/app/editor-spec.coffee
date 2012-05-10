@@ -24,6 +24,7 @@ describe "Editor", ->
   describe "construction", ->
     it "assigns an empty buffer and correctly handles text input (regression coverage)", ->
       editor = new Editor
+      editor.attachToDom()
       expect(editor.buffer.getPath()).toBeUndefined()
       expect(editor.lines.find('.line').length).toBe 1
       editor.insertText('x')
@@ -61,6 +62,9 @@ describe "Editor", ->
       expect(openHandler).not.toHaveBeenCalled()
 
   describe "text rendering", ->
+    beforeEach ->
+      editor.attachToDom()
+
     it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
       expect(editor.lines.find('.line').length).toEqual(buffer.numLines())
       expect(buffer.lineForRow(2)).toContain('<')
@@ -97,16 +101,8 @@ describe "Editor", ->
 
     describe "when soft-wrap is enabled", ->
       beforeEach ->
-        otherEditor = new Editor
-        otherEditor.setBuffer editor.buffer
-        otherEditor.attachToDom()
-        charWidth = otherEditor.charWidth
-        linesPositionLeft = otherEditor.lines.position().left
-        otherEditor.remove()
-        editor.width(charWidth * 50 + linesPositionLeft)
+        setEditorWidthInChars(editor, 50)
         editor.setSoftWrap(true)
-        editor.attachToDom()
-
         expect(editor.renderer.maxLineLength).toBe 50
 
       it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
@@ -175,6 +171,16 @@ describe "Editor", ->
 
         editor.moveCursorRight()
         expect(editor.getCursorScreenPosition()).toEqual [11, 0]
+
+      it "calls .setMaxLineLength() when the editor is attached because now its dimensions are available to calculate it", ->
+        otherEditor = new Editor()
+        spyOn(otherEditor, 'setMaxLineLength')
+
+        otherEditor.setSoftWrap(true)
+        expect(otherEditor.setMaxLineLength).not.toHaveBeenCalled()
+
+        otherEditor.simulateDomAttachment()
+        expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
 
   describe "gutter rendering", ->
     it "creates a line number element for each line in the buffer", ->
@@ -1531,6 +1537,9 @@ describe "Editor", ->
         expect(selections[0].getBufferRange()).toEqual [[4,7], [5,27]]
 
   describe "buffer manipulation", ->
+    beforeEach ->
+      editor.attachToDom()
+
     describe "when text input events are triggered on the hidden input element", ->
       describe "when there is no selection", ->
         it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
@@ -1995,6 +2004,9 @@ describe "Editor", ->
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
   describe "folding", ->
+    beforeEach ->
+      editor.attachToDom()
+
     describe "when a fold-selection event is triggered", ->
       it "folds the selected text and moves the cursor to just after the placeholder, then treats the placeholder as a single character", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
@@ -2087,6 +2099,7 @@ describe "Editor", ->
     elements = null
 
     beforeEach ->
+      editor.attachToDom()
       elements = $$ ->
         @div "A", class: 'line'
         @div "B", class: 'line'
