@@ -214,11 +214,11 @@ class Editor extends View
       @lines.css('margin-top', -@scrollbar.scrollTop() % @lineHeight)
 
       # @scroller.scrollTop(@scrollbar.scrollTop())
-      @gutter.scrollTop(@scrollbar.scrollTop())
-      if @scroller.scrollLeft() == 0
-        @gutter.removeClass('drop-shadow')
-      else
-        @gutter.addClass('drop-shadow')
+      # @gutter.scrollTop(@scrollbar.scrollTop())
+      # if @scroller.scrollLeft() == 0
+      #   @gutter.removeClass('drop-shadow')
+      # else
+      #   @gutter.addClass('drop-shadow')
 
     $(window).on "resize", =>
       @updateLines()
