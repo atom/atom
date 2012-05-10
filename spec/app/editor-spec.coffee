@@ -9,13 +9,26 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  [rootView, buffer, editor] = []
+  [rootView, buffer, editor, cachedLineHeight] = []
+
+  getLineHeight = ->
+    return cachedLineHeight if cachedLineHeight
+    editorForMeasurement = new Editor()
+    editorForMeasurement.attachToDom()
+    cachedLineHeight = editorForMeasurement.lineHeight
+    editorForMeasurement.remove()
+    cachedLineHeight
 
   beforeEach ->
     rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
     project = rootView.project
     editor = rootView.activeEditor()
     buffer = editor.buffer
+
+    editor.attachToDom = (options={}) ->
+      heightInLines = options.heightInLines ? this.buffer.numLines()
+      this.height(getLineHeight() * heightInLines)
+      $('#jasmine-content').append(this)
 
     editor.autoIndent = false
     editor.enableKeymap()
@@ -62,125 +75,152 @@ describe "Editor", ->
       expect(openHandler).not.toHaveBeenCalled()
 
   describe "text rendering", ->
-    beforeEach ->
-      editor.attachToDom()
-
-    it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
-      expect(editor.lines.find('.line').length).toEqual(buffer.numLines())
-      expect(buffer.lineForRow(2)).toContain('<')
-      expect(editor.lines.find('.line:eq(2)').html()).toContain '&lt;'
-
-      # renders empty lines with a non breaking space
-      expect(buffer.lineForRow(10)).toBe ''
-      expect(editor.lines.find('.line:eq(10)').html()).toBe '&nbsp;'
-
-    it "syntax highlights code based on the file type", ->
-      line1 = editor.lines.find('.line:first')
-      expect(line1.find('span:eq(0)')).toMatchSelector '.keyword.definition'
-      expect(line1.find('span:eq(0)').text()).toBe 'var'
-      expect(line1.find('span:eq(1)')).toMatchSelector '.text'
-      expect(line1.find('span:eq(1)').text()).toBe ' '
-      expect(line1.find('span:eq(2)')).toMatchSelector '.identifier'
-      expect(line1.find('span:eq(2)').text()).toBe 'quicksort'
-      expect(line1.find('span:eq(4)')).toMatchSelector '.operator'
-      expect(line1.find('span:eq(4)').text()).toBe '='
-
-      line12 = editor.lines.find('.line:eq(11)')
-      expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
-
-    describe "when lines are updated in the buffer", ->
-      it "syntax highlights the updated lines", ->
-        expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
-        buffer.insert([0, 4], "g")
-        expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
-
-        # verify that re-highlighting can occur below the changed line
-        buffer.insert([5,0], "/* */")
-        buffer.insert([1,0], "/*")
-        expect(editor.lines.find('.line:eq(2) span:eq(0)')).toMatchSelector '.comment'
-
-    describe "when soft-wrap is enabled", ->
+    describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->
-        setEditorWidthInChars(editor, 50)
-        editor.setSoftWrap(true)
-        expect(editor.renderer.maxLineLength).toBe 50
+        editor.attachToDom()
+        expect(editor.height()).toBe buffer.numLines() * editor.lineHeight
 
-      it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
-        expect(editor.lines.find('.line').length).toBe 16
-        expect(editor.lines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
-        expect(editor.lines.find('.line:eq(4)').text()).toBe "right = [];"
+      it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
+        expect(editor.lines.find('.line').length).toEqual(buffer.numLines())
+        expect(buffer.lineForRow(2)).toContain('<')
+        expect(editor.lines.find('.line:eq(2)').html()).toContain '&lt;'
 
-        editor.setCursorBufferPosition([3, 51])
-        expect(editor.find('.cursor').offset()).toEqual(editor.lines.find('.line:eq(4)').offset())
+        # renders empty lines with a non breaking space
+        expect(buffer.lineForRow(10)).toBe ''
+        expect(editor.lines.find('.line:eq(10)').html()).toBe '&nbsp;'
 
-        editor.setCursorBufferPosition([4, 0])
-        expect(editor.find('.cursor').offset()).toEqual(editor.lines.find('.line:eq(5)').offset())
+      it "syntax highlights code based on the file type", ->
+        line1 = editor.lines.find('.line:first')
+        expect(line1.find('span:eq(0)')).toMatchSelector '.keyword.definition'
+        expect(line1.find('span:eq(0)').text()).toBe 'var'
+        expect(line1.find('span:eq(1)')).toMatchSelector '.text'
+        expect(line1.find('span:eq(1)').text()).toBe ' '
+        expect(line1.find('span:eq(2)')).toMatchSelector '.identifier'
+        expect(line1.find('span:eq(2)').text()).toBe 'quicksort'
+        expect(line1.find('span:eq(4)')).toMatchSelector '.operator'
+        expect(line1.find('span:eq(4)').text()).toBe '='
 
-        editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
-        [region1, region2] = editor.getSelection().regions
-        expect(region1.offset().top).toBe(editor.lines.find('.line:eq(7)').offset().top)
-        expect(region2.offset().top).toBe(editor.lines.find('.line:eq(8)').offset().top)
+        line12 = editor.lines.find('.line:eq(11)')
+        expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
 
-      it "handles changes to wrapped lines correctly", ->
-        buffer.insert([6, 28], '1234567')
-        expect(editor.lines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
-        expect(editor.lines.find('.line:eq(8)').text()).toBe ': right.push(current);'
-        expect(editor.lines.find('.line:eq(9)').text()).toBe '    }'
+      describe "when lines are updated in the buffer", ->
+        it "syntax highlights the updated lines", ->
+          expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
+          buffer.insert([0, 4], "g")
+          expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
 
-      it "changes the max line length and repositions the cursor when the window size changes", ->
-        editor.setCursorBufferPosition([3, 60])
-        setEditorWidthInChars(editor, 40)
-        $(window).trigger 'resize'
-        expect(editor.lines.find('.line').length).toBe 19
-        expect(editor.lines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
-        expect(editor.lines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
-        expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
+          # verify that re-highlighting can occur below the changed line
+          buffer.insert([5,0], "/* */")
+          buffer.insert([1,0], "/*")
+          expect(editor.lines.find('.line:eq(2) span:eq(0)')).toMatchSelector '.comment'
 
-      it "wraps the lines of any newly assigned buffers", ->
-        otherBuffer = new Buffer
-        otherBuffer.setText([1..100].join(''))
-        editor.setBuffer(otherBuffer)
-        expect(editor.lines.find('.line').length).toBeGreaterThan(1)
+      describe "when soft-wrap is enabled", ->
+        beforeEach ->
+          setEditorWidthInChars(editor, 50)
+          editor.setSoftWrap(true)
+          expect(editor.renderer.maxLineLength).toBe 50
 
-      it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
-        editor.toggleSoftWrap()
-        expect(editor.lines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+        it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
+          expect(editor.lines.find('.line').length).toBe 16
+          expect(editor.lines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
+          expect(editor.lines.find('.line:eq(4)').text()).toBe "right = [];"
 
-        spyOn(editor, 'setMaxLineLength')
-        $(window).trigger 'resize'
-        expect(editor.setMaxLineLength).not.toHaveBeenCalled()
+          editor.setCursorBufferPosition([3, 51])
+          expect(editor.find('.cursor').offset()).toEqual(editor.lines.find('.line:eq(4)').offset())
 
-      it "allows the cursor to move down to the last line", ->
-        _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
-        expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 0]
-        editor.moveCursorDown()
-        expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 2]
+          editor.setCursorBufferPosition([4, 0])
+          expect(editor.find('.cursor').offset()).toEqual(editor.lines.find('.line:eq(5)').offset())
 
-      it "allows the cursor to move up to a shorter soft wrapped line", ->
-        editor.setCursorScreenPosition([11, 15])
-        editor.moveCursorUp()
-        expect(editor.getCursorScreenPosition()).toEqual [10, 10]
-        editor.moveCursorUp()
-        editor.moveCursorUp()
-        expect(editor.getCursorScreenPosition()).toEqual [8, 15]
+          editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
+          [region1, region2] = editor.getSelection().regions
+          expect(region1.offset().top).toBe(editor.lines.find('.line:eq(7)').offset().top)
+          expect(region2.offset().top).toBe(editor.lines.find('.line:eq(8)').offset().top)
 
-      it "it allows the cursor to wrap when moving horizontally past the beginning / end of a wrapped line", ->
-        editor.setCursorScreenPosition([11, 0])
-        editor.moveCursorLeft()
-        expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+        it "handles changes to wrapped lines correctly", ->
+          buffer.insert([6, 28], '1234567')
+          expect(editor.lines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
+          expect(editor.lines.find('.line:eq(8)').text()).toBe ': right.push(current);'
+          expect(editor.lines.find('.line:eq(9)').text()).toBe '    }'
 
-        editor.moveCursorRight()
-        expect(editor.getCursorScreenPosition()).toEqual [11, 0]
+        it "changes the max line length and repositions the cursor when the window size changes", ->
+          editor.setCursorBufferPosition([3, 60])
+          setEditorWidthInChars(editor, 40)
+          $(window).trigger 'resize'
+          expect(editor.lines.find('.line').length).toBe 19
+          expect(editor.lines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
+          expect(editor.lines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
+          expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
-      it "calls .setMaxLineLength() when the editor is attached because now its dimensions are available to calculate it", ->
-        otherEditor = new Editor()
-        spyOn(otherEditor, 'setMaxLineLength')
+        it "wraps the lines of any newly assigned buffers", ->
+          otherBuffer = new Buffer
+          otherBuffer.setText([1..100].join(''))
+          editor.setBuffer(otherBuffer)
+          expect(editor.lines.find('.line').length).toBeGreaterThan(1)
 
-        otherEditor.setSoftWrap(true)
-        expect(otherEditor.setMaxLineLength).not.toHaveBeenCalled()
+        it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
+          editor.toggleSoftWrap()
+          expect(editor.lines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
 
-        otherEditor.simulateDomAttachment()
-        expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
+          spyOn(editor, 'setMaxLineLength')
+          $(window).trigger 'resize'
+          expect(editor.setMaxLineLength).not.toHaveBeenCalled()
+
+        it "allows the cursor to move down to the last line", ->
+          _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
+          expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 0]
+          editor.moveCursorDown()
+          expect(editor.getCursorScreenPosition()).toEqual [editor.getLastScreenRow(), 2]
+
+        it "allows the cursor to move up to a shorter soft wrapped line", ->
+          editor.setCursorScreenPosition([11, 15])
+          editor.moveCursorUp()
+          expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+          editor.moveCursorUp()
+          editor.moveCursorUp()
+          expect(editor.getCursorScreenPosition()).toEqual [8, 15]
+
+        it "it allows the cursor to wrap when moving horizontally past the beginning / end of a wrapped line", ->
+          editor.setCursorScreenPosition([11, 0])
+          editor.moveCursorLeft()
+          expect(editor.getCursorScreenPosition()).toEqual [10, 10]
+
+          editor.moveCursorRight()
+          expect(editor.getCursorScreenPosition()).toEqual [11, 0]
+
+        it "calls .setMaxLineLength() when the editor is attached because now its dimensions are available to calculate it", ->
+          otherEditor = new Editor()
+          spyOn(otherEditor, 'setMaxLineLength')
+
+          otherEditor.setSoftWrap(true)
+          expect(otherEditor.setMaxLineLength).not.toHaveBeenCalled()
+
+          otherEditor.simulateDomAttachment()
+          expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
+
+    fdescribe "when some lines at the end of the buffer are not visible on screen", ->
+      beforeEach ->
+        editor.attachToDom(heightInLines: 5.5)
+
+      it "only renders the visible lines, giving the final line a margin-bottom to account for the missing lines", ->
+        expect(editor.lines.find('.line').length).toBe 6
+        expectedMarginBottom = (buffer.numLines() - 6) * editor.lineHeight
+        expect(editor.lines.find('.line:last').css('margin-bottom')).toBe "#{expectedMarginBottom}px"
+
+      it "renders additional lines when the editor is scrolled down, adjusting margins appropriately", ->
+        editor.scroller.scrollTop(editor.lineHeight * 2.5)
+        editor.scroller.trigger 'scroll'
+
+        expect(editor.lines.find('.line').length).toBe 6
+        expect(editor.lines.find('.line:first')).toHaveText buffer.lineForRow(2)
+        expect(editor.lines.find('.line:last')).toHaveText buffer.lineForRow(7)
+
+        for line, index in editor.lines.find('.line')
+          marginBottom = $(line).css('margin-bottom')
+          if index == 5
+            expectedMarginBottom = (buffer.numLines() - 8) * editor.lineHeight
+            expect(marginBottom).toBe "#{expectedMarginBottom}px"
+          else
+            expect(marginBottom).toBe '0px'
 
   describe "gutter rendering", ->
     it "creates a line number element for each line in the buffer", ->

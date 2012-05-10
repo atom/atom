@@ -42,7 +42,7 @@ describe "editor.", ->
         editor.backspace()
 
   describe "9000-line-file.", ->
-    benchmark "opening", 1, ->
+    fbenchmark "opening", 1, ->
       editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
 
     describe "at-end.", ->
