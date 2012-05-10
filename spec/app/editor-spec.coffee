@@ -401,7 +401,7 @@ describe "Editor", ->
         expectedMarginBottom = (buffer.numLines() - 6) * editor.lineHeight
         expect(editor.lines.find('.line:last').css('margin-bottom')).toBe "#{expectedMarginBottom}px"
 
-      fit "when the lines are scrolled down, removes lines that become invisible and build lines that are become visisble", ->
+      it "when the lines are scrolled down, removes lines that become invisible and builds lines that become visisble", ->
         editor.scroller.scrollTop(editor.lineHeight * 2.5)
         editor.scroller.trigger 'scroll'
 
@@ -415,6 +415,14 @@ describe "Editor", ->
         expect(editor.lines.find('.line').length).toBe 6
         expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(3)
         expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(8)
+
+      fit "when the scroller is scrolled to the end, removes lines that become invisible and builds lines that become visible", ->
+        editor.scroller.scrollBottom(editor.scroller[0].scrollHeight)
+        editor.scroller.trigger 'scroll'
+
+        expect(editor.lines.find('.line').length).toBe 6
+        expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(7)
+        expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(12)
 
       it "adjusts margins to account for non-rendered lines", ->
         editor.scroller.scrollTop(editor.lineHeight * 2.5)

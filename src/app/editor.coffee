@@ -243,27 +243,30 @@ class Editor extends View
     @firstRenderedScreenRow = 0
     @lastRenderedScreenRow = @getLastVisibleScreenRow()
 
-    lineElements = @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow)
-    lineElements.last().css('margin-bottom', (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight)
-    @insertLineElements(0, lineElements)
+    @insertLineElements(0, @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow))
+    @lines.css('padding-bottom', (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight)
 
   updateLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
+    console.log "updateLines", firstVisibleScreenRow, lastVisibleScreenRow
+    # console.log "cursor screen position", @getCursorScreenPosition().inspect()
+
     if firstVisibleScreenRow > @firstRenderedScreenRow
-      @lines.find('.line:first').css('margin-top', 'inherit')
+      console.log "removing from", @firstRenderedScreenRow, "to", firstVisibleScreenRow - 1
       @removeLineElements(@firstRenderedScreenRow, firstVisibleScreenRow - 1)
-      @lines.find('.line:first').css('margin-top', firstVisibleScreenRow * @lineHeight)
+      @lines.css('padding-top', firstVisibleScreenRow * @lineHeight)
+      console.log @lines
 
     if lastVisibleScreenRow > @lastRenderedScreenRow
-      @lines.find('.line:last').css('margin-bottom', 'inherit')
-      lineElements = @buildLineElements(@lastRenderedScreenRow + 1, lastVisibleScreenRow)
-      lineElements.last().css('margin-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
-      @insertLineElements(@lastRenderedScreenRow + 1, lineElements)
-      @lastRenderedScreenRow = lastVisibleScreenRow
+      startRow = Math.max(@lastRenderedScreenRow + 1, firstVisibleScreenRow)
+      lineElements = @buildLineElements(startRow, lastVisibleScreenRow)
+      @insertLineElements(startRow, lineElements)
+      @lines.css('padding-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
 
     @firstRenderedScreenRow = firstVisibleScreenRow
+    @lastRenderedScreenRow = lastVisibleScreenRow
 
   getFirstVisibleScreenRow: ->
     Math.floor(@scroller.scrollTop() / @lineHeight)
