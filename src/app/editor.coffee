@@ -209,7 +209,6 @@ class Editor extends View
     #   false
 
     @scrollbar.on 'scroll', =>
-      console.log "scrolling"
       @updateLines()
       @scroller.scrollTop(@scrollbar.scrollTop())
       @gutter.scrollTop(@scroller.scrollTop())
