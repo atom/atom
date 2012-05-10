@@ -417,6 +417,14 @@ describe "Editor", ->
           else
             expect(marginBottom).toBe '0px'
 
+      it "renders additional lines when the editor is resized", ->
+        setEditorHeightInLines(editor, 10)
+        $(window).trigger 'resize'
+
+        expect(editor.lines.find('.line').length).toBe 10
+        expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
+        expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(9)
+
   describe "gutter rendering", ->
     it "creates a line number element for each line in the buffer", ->
       expect(editor.gutter.find('.line-number').length).toEqual(buffer.numLines())
