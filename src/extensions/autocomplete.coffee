@@ -80,8 +80,8 @@ class Autocomplete extends View
 
   buildWordList: () ->
     wordHash = {}
-    for word in @currentBuffer.getText().match(@wordRegex)
-      wordHash[word] ?= true
+    matches = @currentBuffer.getText().match(@wordRegex)
+    wordHash[word] ?= true for word in (matches or [])
 
     @wordList = Object.keys(wordHash)
 
