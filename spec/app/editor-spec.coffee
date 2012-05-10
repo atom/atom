@@ -25,8 +25,8 @@ describe "Editor", ->
     editor = rootView.activeEditor()
     buffer = editor.buffer
 
-    editor.attachToDom = (options={}) ->
-      heightInLines = options.heightInLines ? this.buffer.numLines()
+    editor.attachToDom = ({ heightInLines } = {}) ->
+      heightInLines ?= this.buffer.numLines()
       this.height(getLineHeight() * heightInLines)
       $('#jasmine-content').append(this)
 
@@ -60,7 +60,7 @@ describe "Editor", ->
       expect(newEditor.editSessions[0]).toEqual(editor.editSessions[0])
       expect(newEditor.editSessions[0]).not.toBe(editor.editSessions[0])
 
-    describe ".setBuffer(buffer)", ->
+  describe ".setBuffer(buffer)", ->
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
@@ -392,7 +392,7 @@ describe "Editor", ->
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
 
-    fdescribe "when some lines at the end of the buffer are not visible on screen", ->
+    describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
 
@@ -405,13 +405,13 @@ describe "Editor", ->
         editor.scroller.scrollTop(editor.lineHeight * 2.5)
         editor.scroller.trigger 'scroll'
 
-        expect(editor.lines.find('.line').length).toBe 6
-        expect(editor.lines.find('.line:first')).toHaveText buffer.lineForRow(2)
-        expect(editor.lines.find('.line:last')).toHaveText buffer.lineForRow(7)
+        expect(editor.lines.find('.line').length).toBe 8
+        expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
+        expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
         for line, index in editor.lines.find('.line')
           marginBottom = $(line).css('margin-bottom')
-          if index == 5
+          if index == 7
             expectedMarginBottom = (buffer.numLines() - 8) * editor.lineHeight
             expect(marginBottom).toBe "#{expectedMarginBottom}px"
           else

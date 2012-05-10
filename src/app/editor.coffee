@@ -237,34 +237,26 @@ class Editor extends View
     @lineCache = []
     @lines.find('.line').remove()
 
-    lastVisibleRow = @getLastVisibleRow()
-    @firstRenderedScreenRow = 0
-    @lastRenderedScreenRow = lastVisibleRow
+    lastVisibleScreenRow = @getLastVisibleScreenRow()
 
-    lineElements = @buildLineElements(0, lastVisibleRow)
-    lineElements.last().css('margin-bottom', (@getLastScreenRow() - lastVisibleRow) * @lineHeight)
+    lineElements = @buildLineElements(0, lastVisibleScreenRow)
+    lineElements.last().css('margin-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
     @insertLineElements(0, lineElements)
 
   updateLines: ->
-    firstVisibleRow = @getFirstVisibleRow()
-    lastVisibleRow = @getLastVisibleRow()
+    lastVisibleScreenRow = @getLastVisibleScreenRow()
+    highestRenderedScreenRow = @lines.find('.line').length - 1
 
-    # if @firstRenderedScreenRow < firstVisibleRow
-    #   @lines.find('.line:first').remove() for row in [@firstRenderedScreenRow...firstVisibleRow]
-    #   @firstRenderedScreenRow = firstVisibleRow
-
-    if @lastRenderedScreenRow < lastVisibleRow
+    if lastVisibleScreenRow > highestRenderedScreenRow
       @lines.find('.line:last').css('margin-bottom', 'inherit')
-      console.log "building line elements for", @lastRenderedScreenRow + 1, lastVisibleRow
-      lineElements = @buildLineElements(@lastRenderedScreenRow + 1, lastVisibleRow)
-      lineElements.last().css('margin-bottom', (@getLastScreenRow() - lastVisibleRow) * @lineHeight)
-      @insertLineElements(@lastRenderedScreenRow + 1, lineElements)
-      @lastRenderedScreenRow = lastVisibleRow
+      lineElements = @buildLineElements(highestRenderedScreenRow + 1, lastVisibleScreenRow)
+      lineElements.last().css('margin-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
+      @insertLineElements(highestRenderedScreenRow + 1, lineElements)
 
-  getFirstVisibleRow: ->
+  getFirstVisibleScreenRow: ->
     Math.floor(@scroller.scrollTop() / @lineHeight)
 
-  getLastVisibleRow: ->
+  getLastVisibleScreenRow: ->
     Math.ceil((@scroller.scrollTop() + @scroller.height()) / @lineHeight) - 1
 
   getScreenLines: ->
@@ -375,7 +367,6 @@ class Editor extends View
     @spliceLineElements(startRow, endRow - startRow + 1, lineElements)
 
   spliceLineElements: (startRow, rowCount, lineElements) ->
-    console.log "splice", startRow, rowCount, lineElements.length
     endRow = startRow + rowCount
     elementToInsertBefore = @lineCache[startRow]
     elementsToReplace = @lineCache[startRow...endRow]
@@ -388,7 +379,6 @@ class Editor extends View
       if elementToInsertBefore
         lines.insertBefore(fragment, elementToInsertBefore)
       else
-        console.log "appending child at start row", startRow, lineElements.text()
         lines.appendChild(fragment)
 
     elementsToReplace.forEach (element) =>
