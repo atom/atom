@@ -42,17 +42,25 @@ describe "editor.", ->
         editor.backspace()
 
   describe "9000-line-file.", ->
-    fbenchmark "opening", 1, ->
+    benchmark "opening.", 1, ->
       editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
 
-    describe "at-end.", ->
-      endPosition = null
-
+    describe "after-opening.", ->
       beforeEach ->
         editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
-        editor.moveCursorToBottom()
-        endPosition = editor.getCursorScreenPosition()
 
-      benchmark "move-to-beginning-of-word", ->
-        editor.moveCursorToBeginningOfWord()
-        editor.setCursorScreenPosition(endPosition)
+      benchmark "moving-to-eof.", 1, ->
+        editor.moveCursorToBottom()
+        waitsFor (scrollComplete) ->
+          editor.scroller.on 'scroll', scrollComplete
+
+      describe "at-eof.", ->
+        endPosition = null
+
+        beforeEach ->
+          editor.moveCursorToBottom()
+          endPosition = editor.getCursorScreenPosition()
+
+        benchmark "move-to-beginning-of-word", ->
+          editor.moveCursorToBeginningOfWord()
+          editor.setCursorScreenPosition(endPosition)
