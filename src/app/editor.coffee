@@ -240,21 +240,30 @@ class Editor extends View
     @lineCache = []
     @lines.find('.line').remove()
 
-    lastVisibleScreenRow = @getLastVisibleScreenRow()
+    @firstRenderedScreenRow = 0
+    @lastRenderedScreenRow = @getLastVisibleScreenRow()
 
-    lineElements = @buildLineElements(0, lastVisibleScreenRow)
-    lineElements.last().css('margin-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
+    lineElements = @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow)
+    lineElements.last().css('margin-bottom', (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight)
     @insertLineElements(0, lineElements)
 
   updateLines: ->
+    firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
-    highestRenderedScreenRow = @lines.find('.line').length - 1
 
-    if lastVisibleScreenRow > highestRenderedScreenRow
+    if firstVisibleScreenRow > @firstRenderedScreenRow
+      @lines.find('.line:first').css('margin-top', 'inherit')
+      @removeLineElements(@firstRenderedScreenRow, firstVisibleScreenRow - 1)
+      @lines.find('.line:first').css('margin-top', firstVisibleScreenRow * @lineHeight)
+
+    if lastVisibleScreenRow > @lastRenderedScreenRow
       @lines.find('.line:last').css('margin-bottom', 'inherit')
-      lineElements = @buildLineElements(highestRenderedScreenRow + 1, lastVisibleScreenRow)
+      lineElements = @buildLineElements(@lastRenderedScreenRow + 1, lastVisibleScreenRow)
       lineElements.last().css('margin-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
-      @insertLineElements(highestRenderedScreenRow + 1, lineElements)
+      @insertLineElements(@lastRenderedScreenRow + 1, lineElements)
+      @lastRenderedScreenRow = lastVisibleScreenRow
+
+    @firstRenderedScreenRow = firstVisibleScreenRow
 
   getFirstVisibleScreenRow: ->
     Math.floor(@scroller.scrollTop() / @lineHeight)
@@ -369,7 +378,11 @@ class Editor extends View
   replaceLineElements: (startRow, endRow, lineElements) ->
     @spliceLineElements(startRow, endRow - startRow + 1, lineElements)
 
-  spliceLineElements: (startRow, rowCount, lineElements) ->
+  removeLineElements: (startRow, endRow) ->
+    @spliceLineElements(startRow, endRow - startRow + 1)
+
+  spliceLineElements: (startScreenRow, rowCount, lineElements) ->
+    startRow = startScreenRow - @firstRenderedScreenRow
     endRow = startRow + rowCount
     elementToInsertBefore = @lineCache[startRow]
     elementsToReplace = @lineCache[startRow...endRow]
