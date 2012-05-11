@@ -45,18 +45,18 @@
   overflow-y: auto;
 }
 
-.editor .scroller {
+.editor .scroll-view {
   overflow-x: auto;
   overflow-y: hidden;
   width: -webkit-flex(1);
   height: 100%;
 }
 
-.editor.mini .scroller {
+.editor.mini .scroll-view {
   overflow: hidden;
 }
 
-.editor.soft-wrap .scroller {
+.editor.soft-wrap .scroll-view {
   overflow-x: hidden;
 }
 

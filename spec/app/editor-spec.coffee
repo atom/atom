@@ -71,18 +71,18 @@ describe "Editor", ->
       editor.setCursorScreenPosition([8, 28])
       advanceClock()
 
-      previousScrollTop = editor.scroller.scrollTop()
-      previousScrollLeft = editor.scroller.scrollLeft()
+      previousScrollTop = editor.scrollbar.scrollTop()
+      previousScrollLeft = editor.scrollView.scrollLeft()
 
       editor.setBuffer(new Buffer)
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
-      expect(editor.scroller.scrollTop()).toBe 0
-      expect(editor.scroller.scrollLeft()).toBe 0
+      expect(editor.scrollbar.scrollTop()).toBe 0
+      expect(editor.scrollView.scrollLeft()).toBe 0
 
       editor.setBuffer(buffer)
       expect(editor.getCursorScreenPosition()).toEqual [8, 28]
-      expect(editor.scroller.scrollTop()).toBe previousScrollTop
-      expect(editor.scroller.scrollLeft()).toBe previousScrollLeft
+      expect(editor.scrollbar.scrollTop()).toBe previousScrollTop
+      expect(editor.scrollView.scrollLeft()).toBe previousScrollLeft
 
     it "recalls the undo history of the buffer when it is re-assigned", ->
       editor.insertText('xyz')
@@ -400,7 +400,7 @@ describe "Editor", ->
         expectedPaddingBottom = (buffer.numLines() - 6) * editor.lineHeight
         expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
-      describe "when the scroller element is scrolled", ->
+      describe "when the vertical scrollbar element is scrolled", ->
         describe "whes scrolling less than the editor's height", ->
           it "removes lines that become invisible and builds lines that become visisble", ->
             editor.scrollbar.scrollTop(editor.lineHeight * 2.5)
@@ -429,7 +429,7 @@ describe "Editor", ->
 
         describe "when scrolling more than the editors height", ->
           it "removes lines that become invisible and builds lines that become visible", ->
-            editor.scrollbar.scrollBottom(editor.scroller.prop('scrollHeight'))
+            editor.scrollbar.scrollBottom(editor.scrollView.prop('scrollHeight'))
             editor.scrollbar.trigger 'scroll'
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(7)
@@ -448,7 +448,7 @@ describe "Editor", ->
           expectedPaddingBottom = (buffer.numLines() - 8) * editor.lineHeight
           expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
-          editor.scrollbar.scrollBottom(editor.scroller.prop('scrollHeight'))
+          editor.scrollbar.scrollBottom(editor.scrollView.prop('scrollHeight'))
           editor.scrollbar.trigger 'scroll'
           expect(editor.lines.css('padding-top')).toBe "#{7 * editor.lineHeight}px"
           expect(editor.lines.css('padding-bottom')).toBe "0px"
@@ -503,23 +503,23 @@ describe "Editor", ->
         fold.destroy()
         expect(editor.gutter.find('.line-number:last').text()).toBe '13'
 
-    it "adds a drop shadow when the horizontal scroller is scrolled to the right", ->
+    it "adds a drop shadow when the scroll view is scrolled to the right", ->
       editor.attachToDom()
       editor.width(100)
 
       expect(editor.gutter).not.toHaveClass('drop-shadow')
 
-      editor.scroller.scrollLeft(10)
-      editor.scroller.trigger('scroll')
+      editor.scrollView.scrollLeft(10)
+      editor.scrollView.trigger('scroll')
 
       expect(editor.gutter).toHaveClass('drop-shadow')
 
-      editor.scroller.scrollLeft(0)
-      editor.scroller.trigger('scroll')
+      editor.scrollView.scrollLeft(0)
+      editor.scrollView.trigger('scroll')
 
       expect(editor.gutter).not.toHaveClass('drop-shadow')
 
-    it "scrolls the buffer to match the scroll top of the scroller, which contains the lines", ->
+    it "scrolls the buffer to match the scroll top of the scrollbar", ->
       editor.attachToDom()
       editor.height(200)
 
@@ -909,13 +909,13 @@ describe "Editor", ->
 
           _.times 6, -> editor.moveCursorDown()
           window.advanceClock()
-          expect(editor.scroller.scrollTop()).toBe(0)
+          expect(editor.scrollView.scrollTop()).toBe(0)
 
           editor.moveCursorDown()
           advanceClock()
           editor.scrollbar.trigger 'scroll'
 
-          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
+          expect(editor.scrollView.scrollTop()).toBe(editor.lineHeight)
           expect(editor.lines.find('.line').length).toBe 10
           expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(1)
           expect(editor.lines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank, but a nbsp holds its height
@@ -924,7 +924,7 @@ describe "Editor", ->
           window.advanceClock()
           editor.scrollbar.trigger 'scroll'
 
-          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
+          expect(editor.scrollView.scrollTop()).toBe(editor.lineHeight * 2)
           expect(editor.lines.find('.line').length).toBe 10
           expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
           expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(11)
@@ -936,13 +936,13 @@ describe "Editor", ->
           window.advanceClock()
           editor.scrollbar.trigger 'scroll'
 
-          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
+          expect(editor.scrollView.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
           window.advanceClock()
           editor.scrollbar.trigger 'scroll'
 
-          expect(editor.scroller.scrollTop()).toBe(0)
+          expect(editor.scrollView.scrollTop()).toBe(0)
 
         it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
           setEditorHeightInLines(editor, 5)
@@ -952,12 +952,12 @@ describe "Editor", ->
             window.advanceClock()
             editor.scrollbar.trigger 'scroll'
 
-          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
+          expect(editor.scrollView.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
           window.advanceClock()
           editor.scrollbar.trigger 'scroll'
-          expect(editor.scroller.scrollTop()).toBe(0)
+          expect(editor.scrollView.scrollTop()).toBe(0)
 
       describe "horizontal scrolling", ->
         charWidth = null
@@ -972,28 +972,28 @@ describe "Editor", ->
           # moving right
           editor.setCursorScreenPosition([2, 24])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe 0
+          expect(editor.scrollView.scrollLeft()).toBe 0
 
           editor.setCursorScreenPosition([2, 25])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe charWidth
+          expect(editor.scrollView.scrollLeft()).toBe charWidth
 
           editor.setCursorScreenPosition([2, 28])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe charWidth * 4
+          expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
 
           # moving left
           editor.setCursorScreenPosition([2, 9])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe charWidth * 4
+          expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
 
           editor.setCursorScreenPosition([2, 8])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe charWidth * 3
+          expect(editor.scrollView.scrollLeft()).toBe charWidth * 3
 
           editor.setCursorScreenPosition([2, 5])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe 0
+          expect(editor.scrollView.scrollLeft()).toBe 0
 
         it "reduces scroll margins when there isn't enough width to maintain them and scroll smoothly", ->
           editor.hScrollMargin = 6
@@ -1001,15 +1001,15 @@ describe "Editor", ->
 
           editor.setCursorScreenPosition([2, 3])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe(0)
+          expect(editor.scrollView.scrollLeft()).toBe(0)
 
           editor.setCursorScreenPosition([2, 4])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe(charWidth)
+          expect(editor.scrollView.scrollLeft()).toBe(charWidth)
 
           editor.setCursorScreenPosition([2, 3])
           window.advanceClock()
-          expect(editor.scroller.scrollLeft()).toBe(0)
+          expect(editor.scrollView.scrollLeft()).toBe(0)
 
         describe "when soft-wrap is on", ->
           beforeEach ->
@@ -1020,23 +1020,23 @@ describe "Editor", ->
 
             # moving right
             editor.setCursorScreenPosition([2, 24])
-            expect(editor.scroller.scrollLeft()).toBe 0
+            expect(editor.scrollView.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 25])
-            expect(editor.scroller.scrollLeft()).toBe 0
+            expect(editor.scrollView.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 28])
-            expect(editor.scroller.scrollLeft()).toBe 0
+            expect(editor.scrollView.scrollLeft()).toBe 0
 
             # moving left
             editor.setCursorScreenPosition([2, 9])
-            expect(editor.scroller.scrollLeft()).toBe 0
+            expect(editor.scrollView.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 8])
-            expect(editor.scroller.scrollLeft()).toBe 0
+            expect(editor.scrollView.scrollLeft()).toBe 0
 
             editor.setCursorScreenPosition([2, 5])
-            expect(editor.scroller.scrollLeft()).toBe 0
+            expect(editor.scrollView.scrollLeft()).toBe 0
 
       describe "when there are multiple cursor", ->
         beforeEach ->
@@ -1397,7 +1397,7 @@ describe "Editor", ->
       editor.attachToDom()
       setEditorHeightInLines(editor, 5)
       editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
-      editor.scroller.scrollTop(editor.lineHeight * 6)
+      editor.scrollView.scrollTop(editor.lineHeight * 6)
 
       spyOn(editor, "scrollTo").andCallThrough()
 

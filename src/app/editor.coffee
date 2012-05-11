@@ -19,7 +19,7 @@ class Editor extends View
       @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'flexbox', =>
         @subview 'gutter', new Gutter
-        @div class: 'scroller', outlet: 'scroller', =>
+        @div class: 'scroll-view', outlet: 'scrollView', =>
           @div class: 'lines', outlet: 'lines', =>
       @div class: 'scrollbar', outlet: 'scrollbar', =>
         @div outlet: 'scrollbarContent'
@@ -204,7 +204,7 @@ class Editor extends View
       @insertText(e.originalEvent.data)
       false
 
-    @scroller.on 'mousewheel', (e) =>
+    @scrollView.on 'mousewheel', (e) =>
       e = e.originalEvent
       if e.wheelDeltaY
         newEvent = document.createEvent("WheelEvent");
@@ -214,11 +214,12 @@ class Editor extends View
 
     @scrollbar.on 'scroll', =>
       @updateLines()
-      @scroller.scrollTop(@scrollbar.scrollTop())
-      @gutter.scrollTop(@scroller.scrollTop())
+      scrollTop = @scrollbar.scrollTop()
+      @scrollView.scrollTop(scrollTop)
+      @gutter.scrollTop(scrollTop)
 
-    @scroller.on 'scroll', =>
-      if @scroller.scrollLeft() == 0
+    @scrollView.on 'scroll', =>
+      if @scrollView.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
       else
         @gutter.addClass('drop-shadow')
@@ -295,7 +296,7 @@ class Editor extends View
     Math.floor(@scrollbar.scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    Math.ceil((@scrollbar.scrollTop() + @scroller.height()) / @lineHeight) - 1
+    Math.ceil((@scrollbar.scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
   getScreenLines: ->
     @renderer.getLines()
@@ -355,16 +356,16 @@ class Editor extends View
     throw new Error("Edit session not found") unless editSession
     @setBuffer(editSession.buffer) unless @buffer == editSession.buffer
     @setCursorScreenPosition(editSession.cursorScreenPosition ? [0, 0])
-    @scroller.scrollTop(editSession.scrollTop ? 0)
-    @scroller.scrollLeft(editSession.scrollLeft ? 0)
+    @scrollbar.scrollTop(editSession.scrollTop ? 0)
+    @scrollView.scrollLeft(editSession.scrollLeft ? 0)
     @activeEditSessionIndex = index
 
   saveCurrentEditSession: ->
     @editSessions[@activeEditSessionIndex] =
       buffer: @buffer
       cursorScreenPosition: @getCursorScreenPosition()
-      scrollTop: @scroller.scrollTop()
-      scrollLeft: @scroller.scrollLeft()
+      scrollTop: @scrollbar.scrollTop()
+      scrollLeft: @scrollView.scrollLeft()
 
   handleBufferChange: (e) ->
     @compositeCursor.handleBufferChange(e)
@@ -440,7 +441,7 @@ class Editor extends View
 
   calcMaxLineLength: ->
     if @softWrap
-      Math.floor(@scroller.width() / @charWidth)
+      Math.floor(@scrollView.width() / @charWidth)
     else
       Infinity
 
@@ -502,8 +503,8 @@ class Editor extends View
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
     @screenPositionFromPixelPosition
-      top: pageY - @scroller.offset().top + @scroller.scrollTop()
-      left: pageX - @scroller.offset().left + @scroller.scrollLeft()
+      top: pageY - @scrollView.offset().top + @scrollView.scrollTop()
+      left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
@@ -661,32 +662,32 @@ class Editor extends View
       @scrollHorizontally(pixelPosition)
 
   scrollVertically: (pixelPosition) ->
-    linesInView = @scroller.height() / @lineHeight
+    linesInView = @scrollView.height() / @lineHeight
     maxScrollMargin = Math.floor((linesInView - 1) / 2)
     scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
     margin = scrollMargin * @lineHeight
     desiredTop = pixelPosition.top - margin
     desiredBottom = pixelPosition.top + @lineHeight + margin
 
-    if desiredBottom > @scroller.scrollBottom()
+    if desiredBottom > @scrollbar.scrollBottom()
       @scrollbar.scrollBottom(desiredBottom)
-    else if desiredTop < @scroller.scrollTop()
+    else if desiredTop < @scrollbar.scrollTop()
       @scrollbar.scrollTop(desiredTop)
 
   scrollHorizontally: (pixelPosition) ->
     return if @softWrap
 
-    charsInView = @scroller.width() / @charWidth
+    charsInView = @scrollView.width() / @charWidth
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
     scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
     margin = scrollMargin * @charWidth
     desiredRight = pixelPosition.left + @charWidth + margin
     desiredLeft = pixelPosition.left - margin
 
-    if desiredRight > @scroller.scrollRight()
-      @scroller.scrollRight(desiredRight)
-    else if desiredLeft < @scroller.scrollLeft()
-      @scroller.scrollLeft(desiredLeft)
+    if desiredRight > @scrollView.scrollRight()
+      @scrollView.scrollRight(desiredRight)
+    else if desiredLeft < @scrollView.scrollLeft()
+      @scrollView.scrollLeft(desiredLeft)
 
   syncCursorAnimations: ->
     for cursor in @getCursors()
