@@ -204,6 +204,14 @@ class Editor extends View
       @insertText(e.originalEvent.data)
       false
 
+    @scroller.on 'mousewheel', (e) =>
+      e = e.originalEvent
+      if e.wheelDeltaY
+        newEvent = document.createEvent("WheelEvent");
+        newEvent.initWebKitWheelEvent(0, e.wheelDeltaY, e.view, e.screenX, e.screenY, e.clientX, e.clientY, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)
+        @scrollbar.get(0).dispatchEvent(newEvent)
+        false
+
     @scrollbar.on 'scroll', =>
       @updateLines()
       @scroller.scrollTop(@scrollbar.scrollTop())

@@ -43,7 +43,6 @@
   bottom: 0;
   width: 10px;
   overflow-y: auto;
-  background: blue;
 }
 
 .editor .scroller {
