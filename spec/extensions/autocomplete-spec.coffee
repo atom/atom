@@ -368,7 +368,7 @@ describe "Autocomplete", ->
   describe ".attach()", ->
     beforeEach ->
       editor.attachToDom()
-      setEditorHeightInLines(editor, 8)
+      setEditorHeightInLines(editor, 13)
       editor.setCursorBufferPosition [1, 1]
 
     describe "when the autocomplete view fits below the cursor", ->
@@ -381,17 +381,17 @@ describe "Autocomplete", ->
         expect(autocomplete.position().left).toBe cursorPixelPosition.left
 
     describe "when the autocomplete view does not fit below the cursor", ->
-      fit "adds the autocomplete view to the editor above the cursor", ->
-        editor.setCursorScreenPosition([6, 0])
+      it "adds the autocomplete view to the editor above the cursor", ->
+        editor.setCursorScreenPosition([11, 0])
         editor.insertText('t ')
-        editor.setCursorScreenPosition([6, 0])
+        editor.setCursorScreenPosition([11, 0])
         cursorPixelPosition = editor.pixelPositionForScreenPosition(editor.getCursorScreenPosition())
         autocomplete.attach()
 
         expect(autocomplete.parent()).toExist()
         autocompleteBottom = autocomplete.position().top + autocomplete.outerHeight()
         expect(autocompleteBottom).toBe cursorPixelPosition.top
-        # expect(autocomplete.position().left).toBe cursorPixelPosition.left
+        expect(autocomplete.position().left).toBe cursorPixelPosition.left
 
   describe ".detach()", ->
     it "clears the mini-editor and unbinds autocomplete event handlers for move-up and move-down", ->
