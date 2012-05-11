@@ -36,7 +36,7 @@
   -webkit-box-shadow: -2px 0px 10px 2px #222;
 }
 
-.editor .scrollbar {
+.editor .vertical-scrollbar {
   position: absolute;
   right: 0;
   top: 0;
