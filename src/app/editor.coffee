@@ -204,14 +204,12 @@ class Editor extends View
       @insertText(e.originalEvent.data)
       false
 
-    # @scroller.on 'mousewheel', =>
-    #   console.log "loving that wheel"
-    #   false
-
     @scrollbar.on 'scroll', =>
       @updateLines()
       @scroller.scrollTop(@scrollbar.scrollTop())
       @gutter.scrollTop(@scroller.scrollTop())
+
+    @scroller.on 'scroll', =>
       if @scroller.scrollLeft() == 0
         @gutter.removeClass('drop-shadow')
       else
@@ -252,6 +250,7 @@ class Editor extends View
 
     @insertLineElements(0, @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow))
     @lines.css('padding-bottom', (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight)
+
     @scrollbarContent.height(@lineHeight * @screenLineCount())
 
   updateLines: ->
@@ -277,6 +276,7 @@ class Editor extends View
       newLinesStartRow = Math.max(@lastRenderedScreenRow + 1, firstVisibleScreenRow)
       newLinesEndRow = lastVisibleScreenRow
       lineElements = @buildLineElements(newLinesStartRow, newLinesEndRow)
+
       @insertLineElements(newLinesStartRow, lineElements)
       @lines.css('padding-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
 
@@ -503,6 +503,7 @@ class Editor extends View
     @charWidth = fragment.width()
     @charHeight = fragment.find('span').height()
     @lineHeight = fragment.outerHeight()
+    @height(@lineHeight) if @mini
     fragment.remove()
 
   subscribeToFontSize: ->
@@ -660,9 +661,9 @@ class Editor extends View
     desiredBottom = pixelPosition.top + @lineHeight + margin
 
     if desiredBottom > @scroller.scrollBottom()
-      @scroller.scrollBottom(desiredBottom)
+      @scrollbar.scrollBottom(desiredBottom)
     else if desiredTop < @scroller.scrollTop()
-      @scroller.scrollTop(desiredTop)
+      @scrollbar.scrollTop(desiredTop)
 
   scrollHorizontally: (pixelPosition) ->
     return if @softWrap

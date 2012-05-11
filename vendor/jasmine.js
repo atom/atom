@@ -2342,7 +2342,10 @@ jasmine.WaitsForBlock.MultiCompletion.prototype.attemptCompletion = function() {
 
 jasmine.WaitsForBlock.MultiCompletion.prototype.buildCompletionFunction = function(i) {
   var self = this;
+  var spent = false;
   return function() {
+    if (spent) return;
+    spent = true;
     self.completionStatuses[i] = true;
     self.attemptCompletion();
   };

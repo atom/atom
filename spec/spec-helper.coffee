@@ -15,7 +15,7 @@ beforeEach ->
   directoriesWithSubscriptions = []
 
 afterEach ->
-  $('#jasmine-content').empty()
+  # $('#jasmine-content').empty()
   document.title = defaultTitle
   ensureNoDirectorySubscriptions()
 
@@ -116,6 +116,7 @@ window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth
 
 window.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
   editor.height(charHeight * heightInChars + editor.lines.position().top)
+  $(window).trigger 'resize' # update editor's on-screen lines
 
 $.fn.resultOfTrigger = (type) ->
   event = $.Event(type)

@@ -403,56 +403,55 @@ describe "Editor", ->
       describe "when the scroller element is scrolled", ->
         describe "whes scrolling less than the editor's height", ->
           it "removes lines that become invisible and builds lines that become visisble", ->
-            editor.scroller.scrollTop(editor.lineHeight * 2.5)
-            editor.scroller.trigger 'scroll'
+            editor.scrollbar.scrollTop(editor.lineHeight * 2.5)
+            editor.scrollbar.trigger 'scroll'
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
-            editor.scroller.scrollTop(editor.lineHeight * 3.5)
-            editor.scroller.trigger 'scroll'
+            editor.scrollbar.scrollTop(editor.lineHeight * 3.5)
+            editor.scrollbar.trigger 'scroll'
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(3)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(8)
 
-            editor.scroller.scrollTop(editor.lineHeight * 2.5)
-            editor.scroller.trigger 'scroll'
+            editor.scrollbar.scrollTop(editor.lineHeight * 2.5)
+            editor.scrollbar.trigger 'scroll'
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
-            editor.scroller.scrollTop(0)
-            editor.scroller.trigger 'scroll'
+            editor.scrollbar.scrollTop(0)
+            editor.scrollbar.trigger 'scroll'
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(5)
 
         describe "when scrolling more than the editors height", ->
           it "removes lines that become invisible and builds lines that become visible", ->
-            editor.scroller.scrollBottom(editor.scroller.prop('scrollHeight'))
-            editor.scroller.trigger 'scroll'
+            editor.scrollbar.scrollBottom(editor.scroller.prop('scrollHeight'))
+            editor.scrollbar.trigger 'scroll'
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(7)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(12)
 
-            editor.scroller.scrollBottom(0)
-            editor.scroller.trigger 'scroll'
+            editor.scrollbar.scrollBottom(0)
+            editor.scrollbar.trigger 'scroll'
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(5)
 
         it "adjusts the vertical padding of the lines element to account for non-rendered lines", ->
-          editor.scroller.scrollTop(editor.lineHeight * 2.5)
-          editor.scroller.trigger 'scroll'
+          editor.scrollbar.scrollTop(editor.lineHeight * 2.5)
+          editor.scrollbar.trigger 'scroll'
           expect(editor.lines.css('padding-top')).toBe "#{2 * editor.lineHeight}px"
           expectedPaddingBottom = (buffer.numLines() - 8) * editor.lineHeight
           expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
-          editor.scroller.scrollBottom(editor.scroller.prop('scrollHeight'))
-          editor.scroller.trigger 'scroll'
+          editor.scrollbar.scrollBottom(editor.scroller.prop('scrollHeight'))
+          editor.scrollbar.trigger 'scroll'
           expect(editor.lines.css('padding-top')).toBe "#{7 * editor.lineHeight}px"
           expect(editor.lines.css('padding-bottom')).toBe "0px"
-
 
       it "renders additional lines when the editor is resized", ->
         setEditorHeightInLines(editor, 10)
@@ -524,12 +523,12 @@ describe "Editor", ->
       editor.attachToDom()
       editor.height(200)
 
-      editor.scroller.scrollTop(50)
-      editor.scroller.trigger('scroll')
+      editor.scrollbar.scrollTop(50)
+      editor.scrollbar.trigger('scroll')
       expect(editor.gutter.scrollTop()).toBe 50
 
-      editor.scroller.scrollTop(20)
-      editor.scroller.trigger('scroll')
+      editor.scrollbar.scrollTop(20)
+      editor.scrollbar.trigger('scroll')
       expect(editor.gutter.scrollTop()).toBe 20
 
   describe "font size", ->
@@ -906,30 +905,43 @@ describe "Editor", ->
           editor.vScrollMargin = 3
 
         it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
-          editor.height(editor.lineHeight * 10)
+          setEditorHeightInLines(editor, 10)
 
           _.times 6, -> editor.moveCursorDown()
           window.advanceClock()
           expect(editor.scroller.scrollTop()).toBe(0)
 
           editor.moveCursorDown()
-          window.advanceClock()
+          advanceClock()
+          editor.scrollbar.trigger 'scroll'
+
           expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
+          expect(editor.lines.find('.line').length).toBe 10
+          expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(1)
+          expect(editor.lines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank, but a nbsp holds its height
 
           editor.moveCursorDown()
           window.advanceClock()
+          editor.scrollbar.trigger 'scroll'
+
           expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
+          expect(editor.lines.find('.line').length).toBe 10
+          expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
+          expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
           _.times 3, -> editor.moveCursorUp()
           window.advanceClock()
-          expect(editor.scroller.scrollTop()).toBe(editor.lineHeight * 2)
 
           editor.moveCursorUp()
           window.advanceClock()
+          editor.scrollbar.trigger 'scroll'
+
           expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
           window.advanceClock()
+          editor.scrollbar.trigger 'scroll'
+
           expect(editor.scroller.scrollTop()).toBe(0)
 
         it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
@@ -938,11 +950,13 @@ describe "Editor", ->
           _.times 3, ->
             editor.moveCursorDown()
             window.advanceClock()
+            editor.scrollbar.trigger 'scroll'
 
           expect(editor.scroller.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
           window.advanceClock()
+          editor.scrollbar.trigger 'scroll'
           expect(editor.scroller.scrollTop()).toBe(0)
 
       describe "horizontal scrolling", ->

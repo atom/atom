@@ -7,6 +7,7 @@
   cursor: default;
   -webkit-user-select: none;
   -webkit-box-flex: 1;
+  position: relative;
 }
 
 
