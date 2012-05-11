@@ -104,11 +104,15 @@ class TreeView extends View
     @selectEntryForPath(activeFilePath)
 
   selectEntryForPath: (path) ->
-    for element in @find(".entry")
-      view = $(element).view()
-      if view.getPath() == path
-        @selectEntry(view)
-        return
+    fn = (bestMatchEntry, element) ->
+      entry = $(element).view()
+      regex = new RegExp("^" + _.escapeRegExp(entry.getPath()))
+      if regex.test(path) and entry.getPath().length > bestMatchEntry.getPath().length
+        entry
+      else
+        bestMatchEntry
+
+    @selectEntry(@find(".entry").toArray().reduce(fn, @root))
 
   moveDown: ->
     selectedEntry = @selectedEntry()

@@ -204,12 +204,23 @@ describe "TreeView", ->
       expect(rootView.activeEditor().isFocused).toBeFalsy()
 
   describe "when a new file is opened in the active editor", ->
-    it "is selected in the tree view if visible", ->
+    it "is selected in the tree view if the file's entry visible", ->
       sampleJs.click()
       rootView.open(require.resolve('fixtures/sample.txt'))
 
       expect(sampleTxt).toHaveClass 'selected'
       expect(treeView.find('.selected').length).toBe 1
+
+    it "selected a file's parent dir if the file's entry is not visible", ->
+      # treeView.attachToDom()
+      rootView.open(require.resolve('fixtures/dir/a-dir/oh-git'))
+
+      dirView = treeView.root.find('.directory:contains(dir)').view()
+      expect(dirView).toHaveClass 'selected'
+
+      # dirView.expand()
+      # aDirView = dirView.find('.directory:contains(a-dir)').view()
+      # expect(aDirView).toHaveClass 'selected'
 
   describe "when a different editor becomes active", ->
     it "selects the file in that is open in that editor", ->

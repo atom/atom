@@ -15,7 +15,7 @@ beforeEach ->
   directoriesWithSubscriptions = []
 
 afterEach ->
-  $('#jasmine-content').empty()
+  # $('#jasmine-content').empty()
   document.title = defaultTitle
   ensureNoDirectorySubscriptions()
 
