@@ -62,7 +62,6 @@
 
 .editor .lines {
   position: relative;
-  -webkit-transition: margin-top 30ms ease-in-out;
   display: table;
   width: 100%;
   height: 100%;
