@@ -232,9 +232,15 @@ class Editor extends View
     @attached = true
     @subscribeToFontSize()
     @calculateDimensions()
-    @renderLines()
-    @hiddenInput.width(@charWidth)
     @setMaxLineLength() if @softWrap
+    @prepareForVerticalScrolling()
+    @setScrollPositionFromActiveEditSession()
+    @renderLines()
+    # TODO: The redundant assignment of scrollLeft below is needed because the lines weren't render
+    # rendered when we called setScrollPositionFromActiveEditSession above. Remove this when we fix
+    # that problem by setting the width of the lines container based on the max line width
+    @scrollView.scrollLeft(@getActiveEditSession().scrollLeft ? 0)
+    @hiddenInput.width(@charWidth)
     @focus() if @isFocused
     @trigger 'editor-open', [this]
 
@@ -250,17 +256,21 @@ class Editor extends View
       @compositeSelection.mergeIntersectingSelections({reverse})
       @syncCursorAnimations()
 
+  prepareForVerticalScrolling: ->
+    linesHeight = @lineHeight * @screenLineCount()
+    @verticalScrollbarContent.height(linesHeight)
+    @lines.css('padding-bottom', linesHeight)
+
   renderLines: ->
     @lineCache = []
     @lines.find('.line').remove()
 
-    @firstRenderedScreenRow = 0
+    @firstRenderedScreenRow = @getFirstVisibleScreenRow()
     @lastRenderedScreenRow = @getLastVisibleScreenRow()
 
     @insertLineElements(0, @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow))
+    @lines.css('padding-top', @firstRenderedScreenRow * @lineHeight)
     @lines.css('padding-bottom', (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight)
-
-    @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
   updateLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
@@ -355,10 +365,18 @@ class Editor extends View
     editSession = @editSessions[index]
     throw new Error("Edit session not found") unless editSession
     @setBuffer(editSession.buffer) unless @buffer == editSession.buffer
+    @activeEditSessionIndex = index
+    @setScrollPositionFromActiveEditSession() if @attached
     @setCursorScreenPosition(editSession.cursorScreenPosition ? [0, 0])
+
+  getActiveEditSession: ->
+    @editSessions[@activeEditSessionIndex]
+
+  setScrollPositionFromActiveEditSession: ->
+    editSession = @getActiveEditSession()
     @verticalScrollbar.scrollTop(editSession.scrollTop ? 0)
     @scrollView.scrollLeft(editSession.scrollLeft ? 0)
-    @activeEditSessionIndex = index
+    @verticalScrollbar.trigger 'scroll'
 
   saveCurrentEditSession: ->
     @editSessions[@activeEditSessionIndex] =
@@ -657,6 +675,7 @@ class Editor extends View
     @buffer.getMode()
 
   scrollTo: (pixelPosition) ->
+    return unless @attached
     _.defer => # Optimization
       @scrollVertically(pixelPosition)
       @scrollHorizontally(pixelPosition)

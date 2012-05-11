@@ -45,7 +45,14 @@ describe "Editor", ->
 
   describe ".copy()", ->
     it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
-      editor.setCursorScreenPosition([1, 1])
+      rootView.attachToDom()
+      rootView.height(8 * editor.lineHeight)
+      rootView.width(50 * editor.charWidth)
+
+      editor.setCursorScreenPosition([5, 20])
+      advanceClock()
+      editor.verticalScrollbar.scrollTop(1.5 * editor.lineHeight)
+      editor.scrollView.scrollLeft(44)
 
       # prove this test covers serialization and deserialization
       spyOn(editor, 'serialize').andCallThrough()
@@ -54,11 +61,20 @@ describe "Editor", ->
       newEditor = editor.copy()
       expect(editor.serialize).toHaveBeenCalled()
       expect(Editor.deserialize).toHaveBeenCalled()
+
       expect(newEditor.buffer).toBe editor.buffer
       expect(newEditor.getCursorScreenPosition()).toEqual editor.getCursorScreenPosition()
-
       expect(newEditor.editSessions[0]).toEqual(editor.editSessions[0])
       expect(newEditor.editSessions[0]).not.toBe(editor.editSessions[0])
+
+      newEditor.height(editor.height())
+      newEditor.width(editor.width())
+      rootView.remove()
+      newEditor.attachToDom()
+      advanceClock() # ensure any deferred scrollTo code completes (this was causing a regression)
+      expect(newEditor.verticalScrollbar.scrollTop()).toBe 1.5 * editor.lineHeight
+      expect(newEditor.lines.css('padding-top')).toBe "#{editor.lineHeight}px"
+      expect(newEditor.scrollView.scrollLeft()).toBe 44
 
   describe ".setBuffer(buffer)", ->
     it "sets the cursor to the beginning of the file", ->
