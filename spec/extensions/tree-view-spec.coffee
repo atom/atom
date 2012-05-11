@@ -238,11 +238,6 @@ describe "TreeView", ->
       expect(treeView.find('.selected').length).toBeLessThan 2
 
     describe "move-down", ->
-      describe "when nothing is selected", ->
-        it "selects the first entry", ->
-          treeView.trigger 'move-down'
-          expect(treeView.root).toHaveClass 'selected'
-
       describe "when a collapsed directory is selected", ->
         it "skips to the next directory", ->
           treeView.root.find('.directory:eq(0)').click()
@@ -279,11 +274,6 @@ describe "TreeView", ->
           expect(lastEntry).toHaveClass 'selected'
 
     describe "move-up", ->
-      describe "when nothing is selected", ->
-        it "selects the last entry", ->
-          treeView.trigger 'move-up'
-          expect(treeView.root.find('.entry:last')).toHaveClass 'selected'
-
       describe "when there is an expanded directory before the currently selected entry", ->
         it "selects the last entry in the expanded directory", ->
           lastDir = treeView.root.find('.directory:last').view()

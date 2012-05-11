@@ -56,7 +56,7 @@ class TreeView extends View
     @on 'tree-view:unfocus', => @rootView.activeEditor()?.focus()
     @rootView.on 'tree-view:focus', => this.focus()
 
-    @selectEntry(@root)
+    @selectEntry(@root) if @root
 
   afterAttach: (onDom) ->
     @focus() if @focusAfterAttach
