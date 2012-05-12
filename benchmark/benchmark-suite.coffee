@@ -54,6 +54,10 @@ describe "editor.", ->
         waitsFor (scrollComplete) ->
           editor.scroller.on 'scroll', scrollComplete
 
+      describe "on-first-line.", ->
+        benchmark "inserting-newline", 5, ->
+          editor.insertNewline()
+
       describe "at-eof.", ->
         endPosition = null
 
