@@ -133,13 +133,14 @@ describe 'FileFinder', ->
     [editor1, editor2] = []
 
     beforeEach ->
-      rootView.find('.editor').trigger 'split-right'
-      [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
-
+      rootView.attachToDom()
+      editor1 = rootView.activeEditor()
+      editor2 = editor1.splitRight()
+      expect(rootView.activeEditor()).toBe editor2
       rootView.trigger 'file-finder:toggle'
 
     describe "when there is a path selected", ->
-      it "opens the file associated with that path in the editor", ->
+      fit "opens the file associated with that path in the editor", ->
         finder.trigger 'move-down'
         selectedLi = finder.find('li:eq(1)')
 

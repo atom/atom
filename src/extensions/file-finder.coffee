@@ -27,7 +27,6 @@ class FileFinder extends View
     @on 'move-down', => @moveDown()
     @on 'file-finder:select-file', => @select()
 
-    @miniEditor.on 'focusout', => @detach()
     @miniEditor.buffer.on 'change', => @populatePathList() if @hasParent()
     @miniEditor.off 'move-up move-down'
 
@@ -41,8 +40,11 @@ class FileFinder extends View
     @rootView.project.getFilePaths().done (@paths) => @populatePathList()
     @rootView.append(this)
     @miniEditor.focus()
+    @miniEditor.on 'focusout', => @detach()
 
   detach: ->
+    console.log "in detach, focusing root view"
+    @miniEditor.off 'focusout'
     @rootView.focus()
     super
     @miniEditor.setText('')
