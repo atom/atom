@@ -8,10 +8,14 @@ class Gutter extends View
   @content: ->
     @div class: 'gutter'
 
-  renderLineNumbers: ->
-    lastRow = -1
-    rows = @parentView.bufferRowsForScreenRows()
+  renderLineNumbers: (startScreenRow, endScreenRow) ->
+    editor = @parentView
+    lastScreenRow = -1
+    rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
+
+    @css('margin-top', -editor.verticalScrollbar.scrollTop() % editor.lineHeight)
+
     this[0].innerHTML = $$$ ->
       for row in rows
-        @div {class: 'line-number'}, if row == lastRow then '•' else row + 1
-        lastRow = row
+        @div {class: 'line-number'}, if row == lastScreenRow then '•' else row + 1
+        lastScreenRow = row

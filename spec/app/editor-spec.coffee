@@ -478,33 +478,27 @@ describe "Editor", ->
         expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(9)
 
   describe "gutter rendering", ->
-    it "creates a line number element for each line in the buffer", ->
-      expect(editor.gutter.find('.line-number').length).toEqual(buffer.numLines())
+    beforeEach ->
+      editor.attachToDom(heightInLines: 5.5)
+
+    it "creates a line number element for visible lines", ->
+      expect(editor.gutter.find('.line-number').length).toEqual(6)
       expect(editor.gutter.find('.line-number:first').text()).toBe "1"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "13"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "6"
 
-    it "updates line numbers when lines are inserted or removed", ->
-      expect(editor.gutter.find('.line-number').length).toEqual 13
-
-      buffer.insert([0, 0], "a new line\n")
-      expect(editor.gutter.find('.line-number').length).toEqual 14
-      expect(editor.gutter.find('.line-number:last').text()).toBe "14"
-
-      buffer.deleteRow(0)
-      buffer.deleteRow(0)
-      expect(editor.gutter.find('.line-number').length).toEqual 12
-      expect(editor.gutter.find('.line-number:last').text()).toBe "12"
+      editor.verticalScrollbar.scrollTop(editor.lineHeight * 1.5)
+      editor.verticalScrollbar.trigger 'scroll'
+      expect(editor.lines.find('.line').length).toBe 6
+      expect(editor.gutter.find('.line-number:first').text()).toBe "2"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "7"
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editor.setMaxLineLength(50)
+        expect(editor.gutter.find('.line-number').length).toEqual(6)
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '•'
         expect(editor.gutter.find('.line-number:eq(5)').text()).toBe '5'
-
-        expect(editor.gutter.find('.line-number:eq(7)').text()).toBe '7'
-        expect(editor.gutter.find('.line-number:eq(8)').text()).toBe '•'
-        expect(editor.gutter.find('.line-number:eq(9)').text()).toBe '8'
 
     describe "when there are folds", ->
       it "skips line numbers", ->
@@ -515,6 +509,7 @@ describe "Editor", ->
     describe "when there is a fold on the last screen line of a wrapped line", ->
       it "renders line numbers correctly when the fold is destroyed (regression)", ->
         editor.setMaxLineLength(50)
+        editor.verticalScrollbar.scrollBottom(editor.scrollView.prop('scrollHeight'))
         fold = editor.createFold([[3, 52], [3, 56]])
         fold.destroy()
         expect(editor.gutter.find('.line-number:last').text()).toBe '13'
@@ -535,17 +530,17 @@ describe "Editor", ->
 
       expect(editor.gutter).not.toHaveClass('drop-shadow')
 
-    it "scrolls the buffer to match the scroll top of the verticalScrollbar", ->
+    it "adjusts the margin-top to offset the line numbers", ->
       editor.attachToDom()
       editor.height(200)
 
-      editor.verticalScrollbar.scrollTop(50)
+      editor.verticalScrollbar.scrollTop(editor.lineHeight / 2)
       editor.verticalScrollbar.trigger('scroll')
-      expect(editor.gutter.scrollTop()).toBe 50
+      expect(editor.gutter.css('margin-top')).toBe "#{-editor.lineHeight / 2}px"
 
-      editor.verticalScrollbar.scrollTop(20)
+      editor.verticalScrollbar.scrollTop(editor.lineHeight * 2)
       editor.verticalScrollbar.trigger('scroll')
-      expect(editor.gutter.scrollTop()).toBe 20
+      expect(editor.gutter.css('margin-top')).toBe "0px"
 
   describe "font size", ->
     it "sets the initial font size based on the value assigned to the root view", ->
