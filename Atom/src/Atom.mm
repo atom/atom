@@ -113,8 +113,8 @@
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
       
-#ifdef DEBUG
-    char path[] = PROJECT_DIR;
+#ifdef LOAD_RESOURCES_FROM_DIR
+    char path[] = LOAD_RESOURCES_FROM_DIR;
 #else
     const char *path = [[[NSBundle mainBundle] resourcePath] UTF8String];
 #endif
