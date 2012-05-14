@@ -43,7 +43,7 @@ describe "editor.", ->
         editor.backspace()
 
   describe "9000-line-file.", ->
-    benchmark "opening.", 1, ->
+    benchmark "opening.", 5, ->
       editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
 
     describe "after-opening.", ->
