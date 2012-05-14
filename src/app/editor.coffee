@@ -216,7 +216,6 @@ class Editor extends View
       @updateLines()
       scrollTop = @verticalScrollbar.scrollTop()
       @scrollView.scrollTop(scrollTop)
-      @gutter.scrollTop(scrollTop)
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
@@ -268,6 +267,8 @@ class Editor extends View
     @firstRenderedScreenRow = @getFirstVisibleScreenRow()
     @lastRenderedScreenRow = @getLastVisibleScreenRow()
 
+    @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
+
     @insertLineElements(0, @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow))
     @lines.css('padding-top', @firstRenderedScreenRow * @lineHeight)
     @lines.css('padding-bottom', (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight)
@@ -275,6 +276,8 @@ class Editor extends View
   updateLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
+
+    @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow)
 
     if firstVisibleScreenRow > @firstRenderedScreenRow
       @removeLineElements(@firstRenderedScreenRow, firstVisibleScreenRow - 1)
@@ -331,7 +334,6 @@ class Editor extends View
 
     @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
     @renderLines() if @attached
-    @gutter.renderLineNumbers()
 
     @loadEditSessionForBuffer(@buffer)
 
@@ -392,7 +394,7 @@ class Editor extends View
   handleRendererChange: (e) ->
     { oldRange, newRange } = e
     unless newRange.isSingleLine() and newRange.coversSameRows(oldRange)
-      @gutter.renderLineNumbers(@getScreenLines())
+      @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
 
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
@@ -515,8 +517,8 @@ class Editor extends View
   bufferRangeForScreenRange: (range) ->
     @renderer.bufferRangeForScreenRange(range)
 
-  bufferRowsForScreenRows: ->
-    @renderer.bufferRowsForScreenRows()
+  bufferRowsForScreenRows: (startRow, endRow) ->
+    @renderer.bufferRowsForScreenRows(startRow, endRow)
 
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
