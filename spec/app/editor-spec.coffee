@@ -508,8 +508,8 @@ describe "Editor", ->
 
     describe "when there is a fold on the last screen line of a wrapped line", ->
       it "renders line numbers correctly when the fold is destroyed (regression)", ->
+        setEditorHeightInLines(editor, 20)
         editor.setMaxLineLength(50)
-        editor.verticalScrollbar.scrollBottom(editor.scrollView.prop('scrollHeight'))
         fold = editor.createFold([[3, 52], [3, 56]])
         fold.destroy()
         expect(editor.gutter.find('.line-number:last').text()).toBe '13'
