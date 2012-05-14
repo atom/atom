@@ -8,6 +8,7 @@ describe "editor.", ->
 
   beforeEach ->
     window.rootViewParentSelector = '#jasmine-content'
+    spyOn(window, 'loadUserConfiguration')
     window.startup()
     editor = rootView.activeEditor()
 
