@@ -59,6 +59,13 @@ describe "editor.", ->
         benchmark "inserting-newline", 5, ->
           editor.insertNewline()
 
+      describe "on-last-visible-line.", ->
+        beforeEach ->
+          editor.setCursorScreenPosition([editor.getLastVisibleScreenRow(), 0])
+
+        fbenchmark "move-down-and-scroll", 300, ->
+          editor.trigger 'move-down'
+
       describe "at-eof.", ->
         endPosition = null
 
