@@ -140,7 +140,7 @@ describe 'FileFinder', ->
       rootView.trigger 'file-finder:toggle'
 
     describe "when there is a path selected", ->
-      fit "opens the file associated with that path in the editor", ->
+      it "opens the file associated with that path in the editor", ->
         finder.trigger 'move-down'
         selectedLi = finder.find('li:eq(1)')
 
