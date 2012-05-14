@@ -34,7 +34,7 @@ class LineMap
   linesForBufferRows: (startRow, endRow) ->
     @linesByDelta('bufferDelta', startRow, endRow)
 
-  bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow())->
+  bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow()) ->
     bufferRows = []
     currentScreenRow = -1
     @traverseByDelta 'screenDelta', [startRow, 0], [endRow, 0], ({ screenDelta, bufferDelta }) ->
@@ -158,6 +158,8 @@ class LineMap
     traversalDelta = new Point
     screenDelta = new Point
     bufferDelta = new Point
+    startPosition = Point.fromObject(startPosition)
+    endPosition = Point.fromObject(endPosition)
 
     for lineFragment, index in @lineFragments
       iterator({ lineFragment, screenDelta, bufferDelta }) if traversalDelta.isGreaterThanOrEqual(startPosition) and iterator?
