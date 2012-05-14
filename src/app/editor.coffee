@@ -216,6 +216,7 @@ class Editor extends View
       @updateLines()
       scrollTop = @verticalScrollbar.scrollTop()
       @scrollView.scrollTop(scrollTop)
+      @gutter.scrollTop(scrollTop)
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
@@ -268,12 +269,17 @@ class Editor extends View
     @lastRenderedScreenRow = @getLastVisibleScreenRow()
 
     @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
-
     @insertLineElements(0, @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow))
-    @lines.css('padding-top', @firstRenderedScreenRow * @lineHeight)
-    @lines.css('padding-bottom', (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight)
+
+    paddingTop = @firstRenderedScreenRow * @lineHeight
+    paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
+    @lines.css('padding-top', paddingTop)
+    @gutter.lineNumbers.css('padding-top', paddingTop)
+    @lines.css('padding-bottom', paddingBottom)
+    @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
   updateLines: ->
+    window.xxx = this
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
@@ -281,29 +287,33 @@ class Editor extends View
 
     if firstVisibleScreenRow > @firstRenderedScreenRow
       @removeLineElements(@firstRenderedScreenRow, firstVisibleScreenRow - 1)
-      @lines.css('padding-top', firstVisibleScreenRow * @lineHeight)
 
     if lastVisibleScreenRow < @lastRenderedScreenRow
       @removeLineElements(lastVisibleScreenRow + 1, @lastRenderedScreenRow)
-      @lines.css('padding-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
 
     if firstVisibleScreenRow < @firstRenderedScreenRow
       newLinesStartRow = firstVisibleScreenRow
       newLinesEndRow = Math.min(@firstRenderedScreenRow - 1, lastVisibleScreenRow)
       lineElements = @buildLineElements(newLinesStartRow, newLinesEndRow)
       @insertLineElements(newLinesStartRow, lineElements)
-      @lines.css('padding-top', firstVisibleScreenRow * @lineHeight)
 
     if lastVisibleScreenRow > @lastRenderedScreenRow
       newLinesStartRow = Math.max(@lastRenderedScreenRow + 1, firstVisibleScreenRow)
       newLinesEndRow = lastVisibleScreenRow
       lineElements = @buildLineElements(newLinesStartRow, newLinesEndRow)
-
       @insertLineElements(newLinesStartRow, lineElements)
-      @lines.css('padding-bottom', (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight)
 
-    @firstRenderedScreenRow = firstVisibleScreenRow
-    @lastRenderedScreenRow = lastVisibleScreenRow
+    if firstVisibleScreenRow != @firstRenderedScreenRow
+      paddingTop = firstVisibleScreenRow * @lineHeight
+      @lines.css('padding-top', paddingTop)
+      @gutter.lineNumbers.css('padding-top', paddingTop)
+      @firstRenderedScreenRow = firstVisibleScreenRow
+
+    if lastVisibleScreenRow != @lastRenderedScreenRow
+      paddingBottom = (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight
+      @lines.css('padding-bottom', paddingBottom)
+      @gutter.lineNumbers.css('padding-bottom', paddingBottom)
+      @lastRenderedScreenRow = lastVisibleScreenRow
 
   getFirstVisibleScreenRow: ->
     Math.floor(@verticalScrollbar.scrollTop() / @lineHeight)

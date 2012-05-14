@@ -530,17 +530,12 @@ describe "Editor", ->
 
       expect(editor.gutter).not.toHaveClass('drop-shadow')
 
-    it "adjusts the margin-top to offset the line numbers", ->
-      editor.attachToDom()
-      editor.height(200)
-
-      editor.verticalScrollbar.scrollTop(editor.lineHeight / 2)
+    it "adjusts the padding-top to account for non-rendered line numbers", ->
+      editor.verticalScrollbar.scrollTop(editor.lineHeight * 2.5)
       editor.verticalScrollbar.trigger('scroll')
-      expect(editor.gutter.css('margin-top')).toBe "#{-editor.lineHeight / 2}px"
-
-      editor.verticalScrollbar.scrollTop(editor.lineHeight * 2)
-      editor.verticalScrollbar.trigger('scroll')
-      expect(editor.gutter.css('margin-top')).toBe "0px"
+      expect(editor.gutter.scrollTop()).toBe(editor.lineHeight * 2.5)
+      expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 2}px"
+      expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 5}px"
 
   describe "font size", ->
     it "sets the initial font size based on the value assigned to the root view", ->

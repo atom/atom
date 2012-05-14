@@ -6,16 +6,15 @@ _ = require 'underscore'
 module.exports =
 class Gutter extends View
   @content: ->
-    @div class: 'gutter'
+    @div class: 'gutter', =>
+      @div outlet: 'lineNumbers', class: 'wtf'
 
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     editor = @parentView
     lastScreenRow = -1
     rows = editor.bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
-    @css('margin-top', -editor.verticalScrollbar.scrollTop() % editor.lineHeight)
-
-    this[0].innerHTML = $$$ ->
+    @lineNumbers[0].innerHTML = $$$ ->
       for row in rows
         @div {class: 'line-number'}, if row == lastScreenRow then '•' else row + 1
         lastScreenRow = row
