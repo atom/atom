@@ -688,9 +688,8 @@ class Editor extends View
 
   scrollTo: (pixelPosition) ->
     return unless @attached
-    _.defer => # Optimization
-      @scrollVertically(pixelPosition)
-      @scrollHorizontally(pixelPosition)
+    @scrollVertically(pixelPosition)
+    @scrollHorizontally(pixelPosition)
 
   scrollVertically: (pixelPosition) ->
     linesInView = @scrollView.height() / @lineHeight
