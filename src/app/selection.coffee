@@ -206,6 +206,9 @@ class Selection extends View
   selectToBottom: ->
     @modifySelection => @cursor.moveToBottom()
 
+  selectAll: ->
+    @setBufferRange(@editor.buffer.getRange())
+
   selectToBeginningOfLine: ->
     @modifySelection => @cursor.moveToBeginningOfLine()
 

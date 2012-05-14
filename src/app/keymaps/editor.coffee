@@ -16,6 +16,7 @@ window.keymap.bindKeys '.editor',
   'shift-left': 'select-left'
   'shift-up': 'select-up'
   'shift-down': 'select-down'
+  'meta-a': 'select-all'
   enter: 'newline'
   tab: 'tab'
   backspace: 'backspace'

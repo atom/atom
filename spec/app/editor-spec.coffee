@@ -407,6 +407,7 @@ describe "Editor", ->
 
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
+
     describe "when some lines at the end of the buffer are not visible on screen when the editor is attached", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
@@ -1329,6 +1330,11 @@ describe "Editor", ->
         expect(editor.getCursorBufferPosition()).toEqual [12,2]
         expect(editor.getSelection().getBufferRange()).toEqual [[9,3], [12,2]]
         expect(editor.getSelection().isReversed()).toBeFalsy()
+
+    describe "select-all", ->
+      it "selects the entire buffer", ->
+        editor.trigger 'select-all'
+        expect(editor.getSelection().getBufferRange()).toEqual buffer.getRange()
 
     describe "select-to-beginning-of-line", ->
       it "selects text from cusor position to beginning of line", ->

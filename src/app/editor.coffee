@@ -140,6 +140,7 @@ class Editor extends View
       'select-to-beginning-of-line': @selectToBeginningOfLine
       'select-to-end-of-word': @selectToEndOfWord
       'select-to-beginning-of-word': @selectToBeginningOfWord
+      'select-all': @selectAll
 
     for name, method of editorBindings
       do (name, method) =>
@@ -588,6 +589,7 @@ class Editor extends View
   selectDown: -> @compositeSelection.selectDown()
   selectToTop: -> @compositeSelection.selectToTop()
   selectToBottom: -> @compositeSelection.selectToBottom()
+  selectAll: -> @compositeSelection.selectAll()
   selectToBeginningOfLine: -> @compositeSelection.selectToBeginningOfLine()
   selectToEndOfLine: -> @compositeSelection.selectToEndOfLine()
   selectToBeginningOfWord: -> @compositeSelection.selectToBeginningOfWord()

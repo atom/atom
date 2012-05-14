@@ -127,6 +127,9 @@ class CompositeSeleciton
   selectToTop: ->
     @expandSelectionsBackward (selection) => selection.selectToTop()
 
+  selectAll: ->
+    @expandSelectionsForward (selection) => selection.selectAll()
+
   selectToBottom: ->
     @expandSelectionsForward (selection) => selection.selectToBottom()
 
