@@ -17,6 +17,8 @@ class Token
     [new Token(value: value1, type: @type), new Token(value: value2, type: @type)]
 
   breakOutTabCharacters: (tabText) ->
+    return [this] unless /\t/.test(tabText)
+
     for substring in @value.match(/([^\t]+|\t)/g)
       if substring == '\t'
         @buildTabToken(tabText)
