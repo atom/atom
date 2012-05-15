@@ -266,18 +266,9 @@ class Editor extends View
     @lineCache = []
     @lines.find('.line').remove()
 
-    @firstRenderedScreenRow = @getFirstVisibleScreenRow()
-    @lastRenderedScreenRow = @getLastVisibleScreenRow()
-
-    @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
-    @insertLineElements(0, @buildLineElements(@firstRenderedScreenRow, @lastRenderedScreenRow))
-
-    paddingTop = @firstRenderedScreenRow * @lineHeight
-    paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
-    @lines.css('padding-top', paddingTop)
-    @gutter.lineNumbers.css('padding-top', paddingTop)
-    @lines.css('padding-bottom', paddingBottom)
-    @gutter.lineNumbers.css('padding-bottom', paddingBottom)
+    @firstRenderedScreenRow = -1
+    @lastRenderedScreenRow = -1
+    @updateLines()
 
   updateLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
