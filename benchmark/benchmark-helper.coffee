@@ -46,8 +46,11 @@ window.benchmark = (args...) ->
     if atom.headless
       url = "https://github.com/_stats"
       data = [type: 'timing', metric: "atom.#{fullname}", ms: avg]
-      $.post(url, JSON.stringify(data)).
-        error (e) -> console.log("Failed to store benchmark '#{description}'")
+      $.ajax url,
+        async: false
+        data: JSON.stringify(data)
+        error: (args...) ->
+          console.log "Failed to send atom.#{fullname}\n#{JSON.stringify(args)}"
 
 window.measure = (fn) ->
   start = new Date().getTime()
