@@ -10,6 +10,6 @@ system 'ssh',
   '-o', 'StrictHostKeyChecking=no',
   '-p', '6000',
   'atom.githubapp.com',
-  "cd /Users/github/code/atom && git fetch -q origin && git reset -q --hard #{sha} && rake test && ( rake benchmark  || echo 'benchmark failed' )"
+  "cd /Users/github/code/atom && git fetch -q origin && git reset -q --hard #{sha} && rake test && rake benchmark"
 
 exit $?.exitstatus

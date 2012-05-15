@@ -63,7 +63,7 @@ describe "editor.", ->
         beforeEach ->
           editor.setCursorScreenPosition([editor.getLastVisibleScreenRow(), 0])
 
-        fbenchmark "move-down-and-scroll", 300, ->
+        benchmark "move-down-and-scroll", 300, ->
           editor.trigger 'move-down'
 
       describe "at-eof.", ->
