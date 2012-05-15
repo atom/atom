@@ -344,7 +344,9 @@ class Editor extends View
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
 
     @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
-    @renderLines() if @attached
+    if @attached
+      @prepareForVerticalScrolling()
+      @renderLines()
 
     @loadEditSessionForBuffer(@buffer)
 

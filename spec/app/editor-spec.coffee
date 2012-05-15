@@ -130,6 +130,14 @@ describe "Editor", ->
       editor.setBuffer(buffer)
       expect(otherBuffer.subscriptionCount()).toBe previousSubscriptionCount
 
+    it "resizes the vertical scrollbar based on the new buffer's height", ->
+      editor.attachToDom(heightInLines: 5)
+      originalHeight = editor.verticalScrollbar.prop('scrollHeight')
+      expect(originalHeight).toBeGreaterThan 0
+
+      editor.setBuffer(new Buffer(require.resolve('fixtures/sample.txt')))
+      expect(editor.verticalScrollbar.prop('scrollHeight')).toBeLessThan originalHeight
+
   describe ".clipScreenPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
       expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.getLastRow(), column: buffer.lineForRow(buffer.getLastRow()).length)
