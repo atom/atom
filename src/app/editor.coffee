@@ -404,16 +404,18 @@ class Editor extends View
     @compositeSelection.handleBufferChange(e)
 
   handleRendererChange: (e) ->
-    { oldRange, newRange } = e
-    unless newRange.isSingleLine() and newRange.coversSameRows(oldRange)
+    oldScreenRange = e.oldRange
+    newScreenRange = e.newRange
+    unless newScreenRange.isSingleLine() and newScreenRange.coversSameRows(oldScreenRange)
       @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
 
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
-      lineElements = @buildLineElements(newRange.start.row, newRange.end.row)
-      @replaceLineElements(oldRange.start.row, oldRange.end.row, lineElements)
+      lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
+      @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
+      @lastRenderedScreenRow += newScreenRange.end.row - oldScreenRange.end.row
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
@@ -447,7 +449,6 @@ class Editor extends View
     else
       startRow = startScreenRow - @firstRenderedScreenRow
     endRow = startRow + rowCount
-
 
     elementToInsertBefore = @lineCache[startRow]
     elementsToReplace = @lineCache[startRow...endRow]

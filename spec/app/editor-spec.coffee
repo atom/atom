@@ -486,6 +486,15 @@ describe "Editor", ->
         expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(9)
 
+      it "renders correctly when scrolling after buffer change", ->
+        editor.attachToDom(heightInLines: 5.5)
+        editor.insertText("1\n")
+        _.times 4, ->
+          editor.moveCursorDown()
+          editor.verticalScrollbar.trigger 'scroll'
+        expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(2)
+        expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(7)
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
