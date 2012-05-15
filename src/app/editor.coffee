@@ -381,7 +381,6 @@ class Editor extends View
     editSession = @getActiveEditSession()
     @verticalScrollbar.scrollTop(editSession.scrollTop ? 0)
     @scrollView.scrollLeft(editSession.scrollLeft ? 0)
-    @verticalScrollbar.trigger 'scroll'
 
   saveCurrentEditSession: ->
     @editSessions[@activeEditSessionIndex] =
