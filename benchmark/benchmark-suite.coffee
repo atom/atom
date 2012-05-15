@@ -66,13 +66,13 @@ describe "editor.", ->
         fbenchmark "move-down-and-scroll", 300, ->
           editor.trigger 'move-down'
 
-      # describe "at-eof.", ->
-      #   endPosition = null
+      describe "at-eof.", ->
+        endPosition = null
 
-      #   beforeEach ->
-      #     editor.moveCursorToBottom()
-      #     endPosition = editor.getCursorScreenPosition()
+        beforeEach ->
+          editor.moveCursorToBottom()
+          endPosition = editor.getCursorScreenPosition()
 
-      #   benchmark "move-to-beginning-of-word", ->
-      #     editor.moveCursorToBeginningOfWord()
-      #     editor.setCursorScreenPosition(endPosition)
+        benchmark "move-to-beginning-of-word", ->
+          editor.moveCursorToBeginningOfWord()
+          editor.setCursorScreenPosition(endPosition)
