@@ -406,12 +406,13 @@ class Editor extends View
   handleRendererChange: (e) ->
     oldScreenRange = e.oldRange
     newScreenRange = e.newRange
-    unless newScreenRange.isSingleLine() and newScreenRange.coversSameRows(oldScreenRange)
-      @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
 
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
+      unless newScreenRange.isSingleLine() and newScreenRange.coversSameRows(oldScreenRange)
+        @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
+
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
       @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
