@@ -280,7 +280,6 @@ class Editor extends View
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
   updateLines: ->
-    window.xxx = this
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
