@@ -416,7 +416,7 @@ describe "Editor", ->
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
 
-    describe "when some lines at the end of the buffer are not visible on screen when the editor is attached", ->
+    describe "when the editor is attached and some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
 
@@ -486,7 +486,7 @@ describe "Editor", ->
         expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(9)
 
-      it "renders correctly when scrolling after buffer change", ->
+      it "renders correctly when scrolling after text added to buffer", ->
         editor.attachToDom(heightInLines: 5.5)
         editor.insertText("1\n")
         _.times 4, ->
@@ -494,6 +494,17 @@ describe "Editor", ->
           editor.verticalScrollbar.trigger 'scroll'
         expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(2)
         expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(7)
+
+      it "renders correctly when scrolling after text is removed from buffer", ->
+        editor.attachToDom(heightInLines: 5.5)
+        editor.buffer.delete([[0,0],[1,0]])
+        expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
+        expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
+        _.times 4, ->
+          editor.moveCursorDown()
+          editor.verticalScrollbar.trigger 'scroll'
+        expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(1)
+        expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(6)
 
   describe "gutter rendering", ->
     beforeEach ->

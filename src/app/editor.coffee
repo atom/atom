@@ -416,7 +416,10 @@ class Editor extends View
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
       @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
-      @lastRenderedScreenRow += newScreenRange.end.row - oldScreenRange.end.row
+
+      rowDelta = newScreenRange.end.row - oldScreenRange.end.row
+      @lastRenderedScreenRow += rowDelta
+      @updateLines() if rowDelta < 0
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
