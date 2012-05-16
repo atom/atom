@@ -15,6 +15,7 @@ describe "editor.", ->
   afterEach ->
     $(window).off 'beforeunload'
     window.shutdown()
+    delete atom.rootViewStates[$windowNumber]
 
   describe "empty-file.", ->
     benchmark "insert-delete", ->
