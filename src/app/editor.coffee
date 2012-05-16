@@ -231,6 +231,7 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
+    @clearLines()
     @subscribeToFontSize()
     @calculateDimensions()
     @setMaxLineLength() if @softWrap
