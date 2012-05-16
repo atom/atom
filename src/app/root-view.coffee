@@ -21,7 +21,7 @@ class RootView extends View
         @div id: 'panes', outlet: 'panes'
 
   @deserialize: ({ projectPath, panesViewState, extensionStates }) ->
-    rootView = new RootView(pathToOpen: projectPath)
+    rootView = new RootView(projectPath)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView.extensionStates = extensionStates if extensionStates
     rootView
@@ -30,7 +30,7 @@ class RootView extends View
   extensionStates: null
   fontSize: 18
 
-  initialize: ({ pathToOpen }) ->
+  initialize: (pathToOpen) ->
     @extensions = {}
     @extensionStates = {}
     @project = new Project(pathToOpen)

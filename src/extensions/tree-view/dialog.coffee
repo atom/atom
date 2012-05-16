@@ -5,12 +5,12 @@ $ = require 'jquery'
 
 module.exports =
 class Dialog extends View
-  @content: ({prompt}) ->
+  @content: ({prompt} = {}) ->
     @div class: 'tree-view-dialog', =>
       @div prompt, outlet: 'prompt'
       @subview 'miniEditor', new Editor(mini: true)
 
-  initialize: ({path, @onConfirm, select}) ->
+  initialize: ({path, @onConfirm, select} = {}) ->
     @miniEditor.focus()
     @on 'tree-view:confirm', => @confirm()
     @on 'tree-view:cancel', => @cancel()

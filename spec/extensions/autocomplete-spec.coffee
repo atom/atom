@@ -17,7 +17,7 @@ describe "Autocomplete", ->
 
   describe "@activate(rootView)", ->
     it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
-      rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
+      rootView = new RootView(require.resolve('fixtures/sample.js'))
       rootView.simulateDomAttachment()
       Autocomplete.activate(rootView)
       leftEditor = rootView.activeEditor()
@@ -369,6 +369,8 @@ describe "Autocomplete", ->
     beforeEach ->
       editor.attachToDom()
       setEditorHeightInLines(editor, 13)
+      editor.renderLines() # Ensures the editor only has 13 lines visible
+
       editor.setCursorBufferPosition [1, 1]
 
     describe "when the autocomplete view fits below the cursor", ->

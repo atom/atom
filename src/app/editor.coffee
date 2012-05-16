@@ -24,7 +24,7 @@ class Editor extends View
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
-  @classes: ({mini}) ->
+  @classes: ({mini} = {}) ->
     classes = ['editor']
     classes.push 'mini' if mini
     classes.join(' ')
@@ -57,7 +57,7 @@ class Editor extends View
 
     new Editor(viewState)
 
-  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused, @mini}) ->
+  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused, @mini} = {}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -228,6 +228,7 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
+    @clearLines()
     @subscribeToFontSize()
     @calculateDimensions()
     @setMaxLineLength() if @softWrap
@@ -278,16 +279,21 @@ class Editor extends View
     @scrollTop() + @scrollView.height()
 
   renderVisibleLines: ->
+    @clearLines()
+    @updateVisibleLines()
+
+  clearLines: ->
     @lineCache = []
     @lines.find('.line').remove()
 
     @firstRenderedScreenRow = -1
     @lastRenderedScreenRow = -1
-    @updateVisibleLines()
 
   updateVisibleLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
+
+    return if @firstRenderedScreenRow <= firstVisibleScreenRow and @lastRenderedScreenRow >= lastVisibleScreenRow
 
     @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow)
 
@@ -396,6 +402,7 @@ class Editor extends View
     editSession = @getActiveEditSession()
     @scrollTop(editSession.scrollTop ? 0)
     @scrollView.scrollLeft(editSession.scrollLeft ? 0)
+    @verticalScrollbar.trigger 'scroll'
 
   saveCurrentEditSession: ->
     @editSessions[@activeEditSessionIndex] =
@@ -560,13 +567,14 @@ class Editor extends View
   subscribeToFontSize: ->
     return unless rootView = @rootView()
     @setFontSize(rootView.getFontSize())
-    rootView.on "font-size-change.editor#{@id}", =>
-      @setFontSize(rootView.getFontSize())
-      @calculateDimensions()
-      @compositeCursor.updateAppearance()
+    rootView.on "font-size-change.editor#{@id}", => @setFontSize(rootView.getFontSize())
 
   setFontSize: (fontSize) ->
-    @css('font-size', fontSize + 'px') if fontSize
+    if fontSize
+      @css('font-size', fontSize + 'px')
+      @calculateDimensions()
+      @compositeCursor.updateAppearance()
+      @updateVisibleLines()
 
   getCursors: -> @compositeCursor.getCursors()
   moveCursorUp: -> @compositeCursor.moveUp()

@@ -10,7 +10,7 @@ describe "TreeView", ->
   [rootView, project, treeView, sampleJs, sampleTxt] = []
 
   beforeEach ->
-    rootView = new RootView(pathToOpen: require.resolve('fixtures/'))
+    rootView = new RootView(require.resolve('fixtures/'))
     project = rootView.project
 
     rootView.activateExtension(TreeView)
@@ -421,7 +421,7 @@ describe "TreeView", ->
       fs.makeDirectory(dirPath)
       fs.write(filePath, "doesn't matter")
 
-      rootView = new RootView(pathToOpen: rootDirPath)
+      rootView = new RootView(rootDirPath)
       project = rootView.project
       treeView = new TreeView(rootView)
       treeView.root = treeView.root

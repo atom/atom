@@ -58,7 +58,7 @@ class View extends jQuery
     fragment
 
   constructor: (args...) ->
-    args[0] ?= {}
+    # args[0] ?= {}
     [html, postProcessingSteps] = @constructor.buildHtml -> @content(args...)
     jQuery.fn.init.call(this, html)
     @constructor = jQuery # sadly, jQuery assumes this.constructor == jQuery in pushStack

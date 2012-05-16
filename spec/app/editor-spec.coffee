@@ -8,7 +8,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-describe "Editor", ->
+fdescribe "Editor", ->
   [rootView, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -20,7 +20,7 @@ describe "Editor", ->
     cachedLineHeight
 
   beforeEach ->
-    rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
+    rootView = new RootView(require.resolve('fixtures/sample.js'))
     project = rootView.project
     editor = rootView.activeEditor()
     buffer = editor.buffer
@@ -634,6 +634,14 @@ describe "Editor", ->
         rootView.setFontSize(22)
         expect(editor.css('font-size')).toBe '30px'
 
+      it "updates lines if there are unrendered lines", ->
+        editor.attachToDom(heightInLines: 5)
+        originalLineCount = editor.lines.find(".line").length
+        expect(originalLineCount).toBeGreaterThan 0
+        editor.setFontSize(10)
+        expect(editor.lines.find(".line").length).toBeGreaterThan originalLineCount
+
+
   describe "cursor movement", ->
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->
@@ -981,6 +989,7 @@ describe "Editor", ->
 
         it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
           setEditorHeightInLines(editor, 10)
+          editor.renderVisibleLines() # Ensures the editor only has 10 lines visible
 
           _.times 6, -> editor.moveCursorDown()
           window.advanceClock()

@@ -946,7 +946,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# rake compile-coffeescripts\n";
+			shellScript = "rake compile-coffeescripts\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -1054,7 +1054,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					"PROJECT_DIR=\"\\\"$PROJECT_DIR\\\"\"",
+					"LOAD_RESOURCES_FROM_DIR=\"\\\"$PROJECT_DIR\\\"\"",
 					"\"ENABLE_REMOTING=1\"",
 					"\"ENABLE_P2P_APIS=1\"",
 					"\"ENABLE_CONFIGURATION_POLICY\"",
@@ -1131,23 +1131,6 @@
 				GCC_ENABLE_PASCAL_STRINGS = NO;
 				GCC_OBJC_CALL_CXX_CDTORS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"\"LOAD_RESOURCES_FROM_DIR=\\\"$PROJECT_DIR\\\"\"",
-					"\"ENABLE_REMOTING=1\"",
-					"\"ENABLE_P2P_APIS=1\"",
-					"\"ENABLE_CONFIGURATION_POLICY\"",
-					"\"ENABLE_INPUT_SPEECH\"",
-					"\"ENABLE_NOTIFICATIONS\"",
-					"\"ENABLE_GPU=1\"",
-					"\"ENABLE_EGLIMAGE=1\"",
-					"\"ENABLE_REGISTER_PROTOCOL_HANDLER=1\"",
-					"\"USING_CEF_SHARED\"",
-					"\"__STDC_FORMAT_MACROS\"",
-					NDEBUG,
-					"\"DYNAMIC_ANNOTATIONS_ENABLED=1\"",
-					"\"WTF_USE_DYNAMIC_ANNOTATIONS=1\"",
-				);
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/cef\"";
 				INFOPLIST_FILE = Atom/Info.plist;
@@ -1194,23 +1177,6 @@
 				GCC_ENABLE_PASCAL_STRINGS = NO;
 				GCC_OBJC_CALL_CXX_CDTORS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"\"LOAD_RESOURCES_FROM_DIR=\\\"$PROJECT_DIR\\\"\"",
-					"\"CHROMIUM_BUILD\"",
-					"\"ENABLE_REMOTING=1\"",
-					"\"ENABLE_P2P_APIS=1\"",
-					"\"ENABLE_CONFIGURATION_POLICY\"",
-					"\"ENABLE_INPUT_SPEECH\"",
-					"\"ENABLE_NOTIFICATIONS\"",
-					"\"ENABLE_GPU=1\"",
-					"\"ENABLE_EGLIMAGE=1\"",
-					"\"ENABLE_REGISTER_PROTOCOL_HANDLER=1\"",
-					"\"USING_CEF_SHARED\"",
-					"\"__STDC_FORMAT_MACROS\"",
-					"\"NDEBUG\"",
-					"\"NVALGRIND\"",
-					"\"DYNAMIC_ANNOTATIONS_ENABLED=0\"",
-				);
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/cef\"";
 				INFOPLIST_FILE = Atom/Info.plist;

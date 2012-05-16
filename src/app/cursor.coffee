@@ -13,7 +13,7 @@ class Cursor extends View
   editor: null
   wordRegex: /(\w+)|([^\w\s]+)/g
 
-  initialize: ({editor, screenPosition}) ->
+  initialize: ({editor, screenPosition} = {}) ->
     @editor = editor
     @anchor = new Anchor(@editor, screenPosition)
     @selection = @editor.compositeSelection.addSelectionForCursor(this)

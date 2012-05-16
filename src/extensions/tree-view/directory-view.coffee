@@ -5,7 +5,7 @@ $ = require 'jquery'
 
 module.exports =
 class DirectoryView extends View
-  @content: ({directory, isExpanded}) ->
+  @content: ({directory, isExpanded} = {}) ->
     @li class: 'directory entry', =>
       @div outlet: 'header', class: 'header', =>
         @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow'
@@ -15,7 +15,7 @@ class DirectoryView extends View
   entries: null
   header: null
 
-  initialize: ({@directory, isExpanded}) ->
+  initialize: ({@directory, isExpanded} = {}) ->
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
 
