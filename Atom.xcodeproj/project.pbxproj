@@ -948,7 +948,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ -z $LOAD_RESOURCES_FROM_DIR ]; then\n    rake compile-coffeescripts\nfi;";
+			shellScript = "rake copy-files-to-bundle\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

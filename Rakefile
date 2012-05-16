@@ -48,8 +48,8 @@ task :benchmark do
   Rake::Task["run"].invoke
 end
 
-desc "Compile CoffeeScripts"
-task :"compile-coffeescripts" => :"verify-prerequisites" do
+desc "Copy files to bundle and compile CoffeeScripts"
+task :"copy-files-to-bundle" => :"verify-prerequisites" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
   contents_dir = ENV['CONTENTS_FOLDER_PATH'].to_s
@@ -61,8 +61,11 @@ task :"compile-coffeescripts" => :"verify-prerequisites" do
     cp_r dir, File.join(dest, dir)
   end
 
-  puts contents_dir
-  sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec"
+  if ENV['LOAD_RESOURCES_FROM_DIR']
+    sh "coffee -c #{dest}/src/stdlib/require.coffee"
+  else
+    sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec"
+  end
 end
 
 desc "Change webkit frameworks to use @rpath as install name"
