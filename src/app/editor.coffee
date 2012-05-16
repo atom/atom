@@ -274,6 +274,8 @@ class Editor extends View
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
+    return if @firstRenderedScreenRow <= firstVisibleScreenRow and @lastRenderedScreenRow >= lastVisibleScreenRow
+
     @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow)
 
     if firstVisibleScreenRow > @firstRenderedScreenRow
