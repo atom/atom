@@ -369,7 +369,7 @@ describe "Autocomplete", ->
     beforeEach ->
       editor.attachToDom()
       setEditorHeightInLines(editor, 13)
-      editor.renderLines() # Ensures the editor only has 13 lines visible
+      editor.renderVisibleLines() # Ensures the editor only has 13 lines visible
 
       editor.setCursorBufferPosition [1, 1]
 
