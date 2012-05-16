@@ -223,7 +223,7 @@ class Editor extends View
         @gutter.addClass('drop-shadow')
 
     $(window).on "resize", =>
-      @updateLines()
+      @updateVisibleLines()
 
   afterAttach: (onDom) ->
     return if @attached or not onDom
@@ -233,7 +233,7 @@ class Editor extends View
     @setMaxLineLength() if @softWrap
     @prepareForVerticalScrolling()
     @setScrollPositionFromActiveEditSession()
-    @renderLines()
+    @renderVisibleLines()
     # TODO: The redundant assignment of scrollLeft below is needed because the lines weren't render
     # rendered when we called setScrollPositionFromActiveEditSession above. Remove this when we fix
     # that problem by setting the width of the lines container based on the max line width
@@ -266,7 +266,7 @@ class Editor extends View
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
-    @updateLines() if @attached
+    @updateVisibleLines() if @attached
 
     transform = "translate3d(0px, #{-scrollTop}px, 0px)"
     @lines.css('-webkit-transform', transform)
@@ -277,15 +277,15 @@ class Editor extends View
   scrollBottom: ->
     @scrollTop() + @scrollView.height()
 
-  renderLines: ->
+  renderVisibleLines: ->
     @lineCache = []
     @lines.find('.line').remove()
 
     @firstRenderedScreenRow = -1
     @lastRenderedScreenRow = -1
-    @updateLines()
+    @updateVisibleLines()
 
-  updateLines: ->
+  updateVisibleLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
@@ -351,7 +351,7 @@ class Editor extends View
     @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
     if @attached
       @prepareForVerticalScrolling()
-      @renderLines()
+      @renderVisibleLines()
 
     @loadEditSessionForBuffer(@buffer)
 
@@ -424,7 +424,7 @@ class Editor extends View
 
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
       @lastRenderedScreenRow += rowDelta
-      @updateLines() if rowDelta < 0
+      @updateVisibleLines() if rowDelta < 0
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
