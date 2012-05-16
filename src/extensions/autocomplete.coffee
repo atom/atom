@@ -122,10 +122,12 @@ class Autocomplete extends View
 
   setPosition: (originalCursorPosition) ->
     { left, top } = @editor.pixelPositionForScreenPosition(originalCursorPosition)
+
     potentialTop = top + @editor.lineHeight
     potentialBottom = potentialTop + @outerHeight()
-    if potentialBottom > @editor.verticalScrollbar.scrollBottom()
-      @css(left: left, bottom: @editor.lines.height() - top, top: 'inherit')
+
+    if potentialBottom > @editor.scrollBottom()
+      @css(left: left, bottom: @editor.lines.outerHeight() - top, top: 'inherit')
     else
       @css(left: left, top: potentialTop, bottom: 'inherit')
 

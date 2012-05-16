@@ -12,7 +12,7 @@ describe "Editor", ->
   [rootView, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
-    return cachedLineHeight if cachedLineHeight
+    return cachedLineHeight if cachedLineHeight?
     editorForMeasurement = new Editor()
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
@@ -51,7 +51,7 @@ describe "Editor", ->
 
       editor.setCursorScreenPosition([5, 20])
       advanceClock()
-      editor.verticalScrollbar.scrollTop(1.5 * editor.lineHeight)
+      editor.scrollTop(1.5 * editor.lineHeight)
       editor.scrollView.scrollLeft(44)
 
       # prove this test covers serialization and deserialization
@@ -71,8 +71,7 @@ describe "Editor", ->
       newEditor.width(editor.width())
       rootView.remove()
       newEditor.attachToDom()
-      advanceClock() # ensure any deferred scrollTo code completes (this was causing a regression)
-      expect(newEditor.verticalScrollbar.scrollTop()).toBe 1.5 * editor.lineHeight
+      expect(newEditor.scrollTop()).toBe 1.5 * editor.lineHeight
       expect(newEditor.lines.css('padding-top')).toBe "#{editor.lineHeight}px"
       expect(newEditor.scrollView.scrollLeft()).toBe 44
 
@@ -425,28 +424,25 @@ describe "Editor", ->
         expectedPaddingBottom = (buffer.numLines() - 6) * editor.lineHeight
         expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
-      describe "when the vertical verticalScrollbar element is scrolled", ->
+      describe "when scrolling vertically", ->
         describe "whes scrolling less than the editor's height", ->
           it "removes lines that become invisible and builds lines that become visisble", ->
-            editor.verticalScrollbar.scrollTop(editor.lineHeight * 2.5)
-            editor.verticalScrollbar.trigger 'scroll'
+            editor.scrollTop(editor.lineHeight * 2.5)
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
-            editor.verticalScrollbar.scrollTop(editor.lineHeight * 3.5)
-            editor.verticalScrollbar.trigger 'scroll'
+            editor.scrollTop(editor.lineHeight * 3.5)
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(3)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(8)
 
-            editor.verticalScrollbar.scrollTop(editor.lineHeight * 2.5)
-            editor.verticalScrollbar.trigger 'scroll'
+            editor.scrollTop(editor.lineHeight * 2.5)
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
-            editor.verticalScrollbar.scrollTop(0)
+            editor.scrollTop(0)
             editor.verticalScrollbar.trigger 'scroll'
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
@@ -454,8 +450,7 @@ describe "Editor", ->
 
         describe "when scrolling more than the editors height", ->
           it "removes lines that become invisible and builds lines that become visible", ->
-            editor.verticalScrollbar.scrollBottom(editor.scrollView.prop('scrollHeight'))
-            editor.verticalScrollbar.trigger 'scroll'
+            editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
             expect(editor.lines.find('.line').length).toBe 6
             expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(7)
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(12)
@@ -467,8 +462,7 @@ describe "Editor", ->
             expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(5)
 
         it "adjusts the vertical padding of the lines element to account for non-rendered lines", ->
-          editor.verticalScrollbar.scrollTop(editor.lineHeight * 2.5)
-          editor.verticalScrollbar.trigger 'scroll'
+          editor.scrollTop(editor.lineHeight * 2.5)
           expect(editor.lines.css('padding-top')).toBe "#{2 * editor.lineHeight}px"
           expectedPaddingBottom = (buffer.numLines() - 8) * editor.lineHeight
           expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
@@ -489,9 +483,7 @@ describe "Editor", ->
       it "renders correctly when scrolling after text added to buffer", ->
         editor.attachToDom(heightInLines: 5.5)
         editor.insertText("1\n")
-        _.times 4, ->
-          editor.moveCursorDown()
-          editor.verticalScrollbar.trigger 'scroll'
+        _.times 4, -> editor.moveCursorDown()
         expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(2)
         expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(7)
 
@@ -500,9 +492,7 @@ describe "Editor", ->
         editor.buffer.delete([[0,0],[1,0]])
         expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
         expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
-        _.times 4, ->
-          editor.moveCursorDown()
-          editor.verticalScrollbar.trigger 'scroll'
+        _.times 4, -> editor.moveCursorDown()
         expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(1)
         expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(6)
 
@@ -543,28 +533,78 @@ describe "Editor", ->
         fold.destroy()
         expect(editor.gutter.find('.line-number:last').text()).toBe '13'
 
-    it "adds a drop shadow when the scroll view is scrolled to the right", ->
-      editor.attachToDom()
-      editor.width(100)
+    describe "when the scrollView is scrolled to the right", ->
+      it "adds a drop shadow to the gutter", ->
+        editor.attachToDom()
+        editor.width(100)
 
-      expect(editor.gutter).not.toHaveClass('drop-shadow')
+        expect(editor.gutter).not.toHaveClass('drop-shadow')
 
-      editor.scrollView.scrollLeft(10)
-      editor.scrollView.trigger('scroll')
+        editor.scrollView.scrollLeft(10)
+        editor.scrollView.trigger('scroll')
 
-      expect(editor.gutter).toHaveClass('drop-shadow')
+        expect(editor.gutter).toHaveClass('drop-shadow')
 
-      editor.scrollView.scrollLeft(0)
-      editor.scrollView.trigger('scroll')
+        editor.scrollView.scrollLeft(0)
+        editor.scrollView.trigger('scroll')
 
-      expect(editor.gutter).not.toHaveClass('drop-shadow')
+        expect(editor.gutter).not.toHaveClass('drop-shadow')
 
-    it "adjusts the padding-top to account for non-rendered line numbers", ->
-      editor.verticalScrollbar.scrollTop(editor.lineHeight * 2.5)
-      editor.verticalScrollbar.trigger('scroll')
-      expect(editor.gutter.scrollTop()).toBe(editor.lineHeight * 2.5)
-      expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 2}px"
-      expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 5}px"
+    describe "when the editor is scrolled vertically", ->
+      it "adjusts the padding-top to account for non-rendered line numbers", ->
+        editor.scrollTop(editor.lineHeight * 3.5)
+        expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 3}px"
+        expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 4}px"
+        expect(editor.lines.find('.line').length).toBe 6
+        expect(editor.gutter.find('.line-number:first').text()).toBe "4"
+        expect(editor.gutter.find('.line-number:last').text()).toBe "9"
+
+  describe ".scrollTop(n)", ->
+    beforeEach ->
+      editor.attachToDom(heightInLines: 5)
+      expect(editor.verticalScrollbar.scrollTop()).toBe 0
+      expect(editor.lines.css('-webkit-tranform')).toBeNull()
+      expect(editor.gutter.lineNumbers.css('-webkit-tranform')).toBeNull()
+
+    describe "when called with a scroll top argument", ->
+      it "sets the scrollTop of the vertical scrollbar and sets a transform on the line numbers and lines", ->
+        editor.scrollTop(100)
+        expect(editor.verticalScrollbar.scrollTop()).toBe 100
+        expect(editor.lines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+        expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+
+        editor.scrollTop(150)
+        expect(editor.verticalScrollbar.scrollTop()).toBe 150
+        expect(editor.lines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
+        expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
+
+      it "does not allow negative scrollTops to be assigned", ->
+        editor.scrollTop(-100)
+        expect(editor.scrollTop()).toBe 0
+
+      it "doesn't do anything if the scrollTop hasn't changed", ->
+        editor.scrollTop(100)
+        spyOn(editor.verticalScrollbar, 'scrollTop')
+        spyOn(editor.lines, 'css')
+        spyOn(editor.gutter.lineNumbers, 'css')
+
+        editor.scrollTop(100)
+        expect(editor.verticalScrollbar.scrollTop).not.toHaveBeenCalled()
+        expect(editor.lines.css).not.toHaveBeenCalled()
+        expect(editor.gutter.lineNumbers.css).not.toHaveBeenCalled()
+
+      describe "when the 'adjustVerticalScrollbar' option is false (defaults to true)", ->
+        it "doesn't adjust the scrollTop of the vertical scrollbar", ->
+          editor.scrollTop(100, adjustVerticalScrollbar: false)
+          expect(editor.verticalScrollbar.scrollTop()).toBe 0
+          expect(editor.lines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+          expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+
+    describe "when called with no argument", ->
+      it "returns the last assigned value or 0 if none has been assigned", ->
+        expect(editor.scrollTop()).toBe 0
+        editor.scrollTop(50)
+        expect(editor.scrollTop()).toBe 50
 
   describe "font size", ->
     it "sets the initial font size based on the value assigned to the root view", ->
@@ -944,22 +984,21 @@ describe "Editor", ->
 
           _.times 6, -> editor.moveCursorDown()
           window.advanceClock()
-          expect(editor.scrollView.scrollTop()).toBe(0)
+          expect(editor.scrollTop()).toBe(0)
 
           editor.moveCursorDown()
           advanceClock()
           editor.verticalScrollbar.trigger 'scroll'
 
-          expect(editor.scrollView.scrollTop()).toBe(editor.lineHeight)
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
           expect(editor.lines.find('.line').length).toBe 10
           expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(1)
           expect(editor.lines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank, but a nbsp holds its height
 
           editor.moveCursorDown()
           window.advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
 
-          expect(editor.scrollView.scrollTop()).toBe(editor.lineHeight * 2)
+          expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
           expect(editor.lines.find('.line').length).toBe 10
           expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
           expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(11)
@@ -971,13 +1010,13 @@ describe "Editor", ->
           window.advanceClock()
           editor.verticalScrollbar.trigger 'scroll'
 
-          expect(editor.scrollView.scrollTop()).toBe(editor.lineHeight)
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
           window.advanceClock()
           editor.verticalScrollbar.trigger 'scroll'
 
-          expect(editor.scrollView.scrollTop()).toBe(0)
+          expect(editor.scrollTop()).toBe(0)
 
         it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
           setEditorHeightInLines(editor, 5)
@@ -987,7 +1026,7 @@ describe "Editor", ->
             window.advanceClock()
             editor.verticalScrollbar.trigger 'scroll'
 
-          expect(editor.scrollView.scrollTop()).toBe(editor.lineHeight)
+          expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
           window.advanceClock()
@@ -1433,11 +1472,11 @@ describe "Editor", ->
         expect(selection2.isReversed()).toBeFalsy()
 
   describe "multiple cursors", ->
-    it "places multiple cursor with meta-click", ->
+    it "places multiple cursors with meta-click", ->
       editor.attachToDom()
       setEditorHeightInLines(editor, 5)
       editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
-      editor.scrollView.scrollTop(editor.lineHeight * 6)
+      editor.scrollTop(editor.lineHeight * 6)
 
       spyOn(editor, "scrollTo").andCallThrough()
 

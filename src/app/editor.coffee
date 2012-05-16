@@ -214,10 +214,7 @@ class Editor extends View
         false
 
     @verticalScrollbar.on 'scroll', =>
-      @updateLines()
-      scrollTop = @verticalScrollbar.scrollTop()
-      @scrollView.scrollTop(scrollTop)
-      @gutter.scrollTop(scrollTop)
+      @scrollTop(@verticalScrollbar.scrollTop(), adjustVerticalScrollbar: false)
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
@@ -261,6 +258,24 @@ class Editor extends View
     linesHeight = @lineHeight * @screenLineCount()
     @verticalScrollbarContent.height(linesHeight)
     @lines.css('padding-bottom', linesHeight)
+
+  scrollTop: (scrollTop, options) ->
+    return @cachedScrollTop or 0 unless scrollTop?
+
+    scrollTop = Math.max(0, scrollTop)
+    return if scrollTop == @cachedScrollTop
+    @cachedScrollTop = scrollTop
+
+    @updateLines() if @attached
+
+    transform = "translate3d(0px, #{-scrollTop}px, 0px)"
+    @lines.css('-webkit-transform', transform)
+    @gutter.lineNumbers.css('-webkit-transform', transform)
+    if options?.adjustVerticalScrollbar ? true
+      @verticalScrollbar.scrollTop(scrollTop)
+
+  scrollBottom: ->
+    @scrollTop() + @scrollView.height()
 
   renderLines: ->
     @lineCache = []
@@ -307,10 +322,10 @@ class Editor extends View
       @lastRenderedScreenRow = lastVisibleScreenRow
 
   getFirstVisibleScreenRow: ->
-    Math.floor(@verticalScrollbar.scrollTop() / @lineHeight)
+    Math.floor(@scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    Math.ceil((@verticalScrollbar.scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
   getScreenLines: ->
     @renderer.getLines()
@@ -379,14 +394,14 @@ class Editor extends View
 
   setScrollPositionFromActiveEditSession: ->
     editSession = @getActiveEditSession()
-    @verticalScrollbar.scrollTop(editSession.scrollTop ? 0)
+    @scrollTop(editSession.scrollTop ? 0)
     @scrollView.scrollLeft(editSession.scrollLeft ? 0)
 
   saveCurrentEditSession: ->
     @editSessions[@activeEditSessionIndex] =
       buffer: @buffer
       cursorScreenPosition: @getCursorScreenPosition()
-      scrollTop: @verticalScrollbar.scrollTop()
+      scrollTop: @scrollTop()
       scrollLeft: @scrollView.scrollLeft()
 
   handleBufferChange: (e) ->
@@ -530,7 +545,7 @@ class Editor extends View
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
     @screenPositionFromPixelPosition
-      top: pageY - @scrollView.offset().top + @scrollView.scrollTop()
+      top: pageY - @scrollView.offset().top + @scrollTop()
       left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
 
   calculateDimensions: ->
@@ -697,10 +712,11 @@ class Editor extends View
     desiredTop = pixelPosition.top - margin
     desiredBottom = pixelPosition.top + @lineHeight + margin
 
-    if desiredBottom > @verticalScrollbar.scrollBottom()
-      @verticalScrollbar.scrollBottom(desiredBottom)
-    else if desiredTop < @verticalScrollbar.scrollTop()
-      @verticalScrollbar.scrollTop(desiredTop)
+    scrollViewHeight = @scrollView.height()
+    if desiredBottom > @scrollTop() + scrollViewHeight
+      @scrollTop(desiredBottom - scrollViewHeight)
+    else if desiredTop < @scrollTop()
+      @scrollTop(desiredTop)
 
   scrollHorizontally: (pixelPosition) ->
     return if @softWrap
