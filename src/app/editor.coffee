@@ -263,12 +263,15 @@ class Editor extends View
     @lines.css('padding-bottom', linesHeight)
 
   renderLines: ->
+    @clearLines()
+    @updateLines()
+
+  clearLines: ->
     @lineCache = []
     @lines.find('.line').remove()
 
     @firstRenderedScreenRow = -1
     @lastRenderedScreenRow = -1
-    @updateLines()
 
   updateLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
