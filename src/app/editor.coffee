@@ -24,7 +24,7 @@ class Editor extends View
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
-  @classes: ({mini}) ->
+  @classes: ({mini} = {}) ->
     classes = ['editor']
     classes.push 'mini' if mini
     classes.join(' ')
@@ -57,7 +57,7 @@ class Editor extends View
 
     new Editor(viewState)
 
-  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused, @mini}) ->
+  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused, @mini} = {}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 

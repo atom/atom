@@ -6,7 +6,7 @@ describe "StatusBar", ->
   [rootView, editor, statusBar] = []
 
   beforeEach ->
-    rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
+    rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.simulateDomAttachment()
     StatusBar.activate(rootView)
     editor = rootView.activeEditor()

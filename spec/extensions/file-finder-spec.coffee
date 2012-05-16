@@ -7,7 +7,7 @@ describe 'FileFinder', ->
   [rootView, finder] = []
 
   beforeEach ->
-    rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
+    rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
     rootView.activateExtension(FileFinder)
     finder = FileFinder.instance

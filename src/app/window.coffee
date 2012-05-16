@@ -42,7 +42,7 @@ windowAdditions =
     if rootViewState
       @rootView = RootView.deserialize(rootViewState)
     else
-      @rootView = new RootView(pathToOpen: pathToOpen)
+      @rootView = new RootView(pathToOpen)
       @rootView.open() unless pathToOpen
 
     $(@rootViewParentSelector).append @rootView

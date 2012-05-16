@@ -20,7 +20,7 @@ describe "Editor", ->
     cachedLineHeight
 
   beforeEach ->
-    rootView = new RootView(pathToOpen: require.resolve('fixtures/sample.js'))
+    rootView = new RootView(require.resolve('fixtures/sample.js'))
     project = rootView.project
     editor = rootView.activeEditor()
     buffer = editor.buffer

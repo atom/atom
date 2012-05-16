@@ -11,7 +11,7 @@ describe "RootView", ->
 
   beforeEach ->
     path = require.resolve 'fixtures/dir/a'
-    rootView = new RootView(pathToOpen: path)
+    rootView = new RootView(path)
     rootView.enableKeymap()
     rootView.focus()
     project = rootView.project
@@ -30,7 +30,7 @@ describe "RootView", ->
       describe "when pathToOpen references a directory", ->
         it "creates a project for the directory and sets the document.title, but does not open an editor", ->
           path = require.resolve 'fixtures/dir'
-          rootView = new RootView(pathToOpen: path)
+          rootView = new RootView(path)
           rootView.focus()
 
           expect(rootView.project.getPath()).toBe path
@@ -113,7 +113,7 @@ describe "RootView", ->
 
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
-      rootView = new RootView(pathToOpen: require.resolve 'fixtures')
+      rootView = new RootView(require.resolve 'fixtures')
       rootView.attachToDom()
       expect(rootView).toMatchSelector(':focus')
 

@@ -14,7 +14,7 @@ class Selection extends View
   retainSelection: null
   regions: null
 
-  initialize: ({@editor, @cursor}) ->
+  initialize: ({@editor, @cursor} = {}) ->
     @regions = []
 
   handleBufferChange: (e) ->
