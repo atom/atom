@@ -113,9 +113,9 @@
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
 
-#define STR_VALUE(arg) #arg
-#if defined(LOAD_RESOURCES_FROM_DIR)
-    char path[] = STR_VALUE(LOAD_RESOURCES_FROM_DIR);
+    
+#ifdef LOAD_RESOURCES_FROM_DIR
+    char path[] = LOAD_RESOURCES_FROM_DIR;
 #else
     const char *path = [[[NSBundle mainBundle] resourcePath] UTF8String];
 #endif
