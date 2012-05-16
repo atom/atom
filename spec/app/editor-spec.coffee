@@ -949,6 +949,7 @@ describe "Editor", ->
 
         it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
           setEditorHeightInLines(editor, 10)
+          editor.renderLines() # Ensures the editor only has 10 lines visible
 
           _.times 6, -> editor.moveCursorDown()
           window.advanceClock()

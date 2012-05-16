@@ -369,6 +369,8 @@ describe "Autocomplete", ->
     beforeEach ->
       editor.attachToDom()
       setEditorHeightInLines(editor, 13)
+      editor.renderLines() # Ensures the editor only has 13 lines visible
+
       editor.setCursorBufferPosition [1, 1]
 
     describe "when the autocomplete view fits below the cursor", ->
