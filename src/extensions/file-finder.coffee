@@ -43,7 +43,6 @@ class FileFinder extends View
     @miniEditor.on 'focusout', => @detach()
 
   detach: ->
-    console.log "in detach, focusing root view"
     @miniEditor.off 'focusout'
     @rootView.focus()
     super
