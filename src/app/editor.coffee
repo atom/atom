@@ -20,7 +20,7 @@ class Editor extends View
       @div class: 'flexbox', =>
         @subview 'gutter', new Gutter
         @div class: 'scroll-view', outlet: 'scrollView', =>
-          @div class: 'lines', outlet: 'lines', =>
+          @div class: 'lines', outlet: 'visibleLines', =>
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
@@ -173,11 +173,11 @@ class Editor extends View
       @isFocused = false
       @removeClass 'focused'
 
-    @lines.on 'mousedown', '.fold-placeholder', (e) =>
+    @visibleLines.on 'mousedown', '.fold-placeholder', (e) =>
       @destroyFold($(e.currentTarget).attr('foldId'))
       false
 
-    @lines.on 'mousedown', (e) =>
+    @visibleLines.on 'mousedown', (e) =>
       clickCount = e.originalEvent.detail
 
       if clickCount == 1
@@ -258,7 +258,7 @@ class Editor extends View
   prepareForVerticalScrolling: ->
     linesHeight = @lineHeight * @screenLineCount()
     @verticalScrollbarContent.height(linesHeight)
-    @lines.css('padding-bottom', linesHeight)
+    @visibleLines.css('padding-bottom', linesHeight)
 
   scrollTop: (scrollTop, options) ->
     return @cachedScrollTop or 0 unless scrollTop?
@@ -270,7 +270,7 @@ class Editor extends View
     @updateVisibleLines() if @attached
 
     transform = "translate3d(0px, #{-scrollTop}px, 0px)"
-    @lines.css('-webkit-transform', transform)
+    @visibleLines.css('-webkit-transform', transform)
     @gutter.lineNumbers.css('-webkit-transform', transform)
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
@@ -284,7 +284,7 @@ class Editor extends View
 
   clearLines: ->
     @lineCache = []
-    @lines.find('.line').remove()
+    @visibleLines.find('.line').remove()
 
     @firstRenderedScreenRow = -1
     @lastRenderedScreenRow = -1
@@ -317,13 +317,13 @@ class Editor extends View
 
     if firstVisibleScreenRow != @firstRenderedScreenRow
       paddingTop = firstVisibleScreenRow * @lineHeight
-      @lines.css('padding-top', paddingTop)
+      @visibleLines.css('padding-top', paddingTop)
       @gutter.lineNumbers.css('padding-top', paddingTop)
       @firstRenderedScreenRow = firstVisibleScreenRow
 
     if lastVisibleScreenRow != @lastRenderedScreenRow
       paddingBottom = (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight
-      @lines.css('padding-bottom', paddingBottom)
+      @visibleLines.css('padding-bottom', paddingBottom)
       @gutter.lineNumbers.css('padding-bottom', paddingBottom)
       @lastRenderedScreenRow = lastVisibleScreenRow
 
@@ -470,7 +470,7 @@ class Editor extends View
     elementsToReplace = @lineCache[startRow...endRow]
     @lineCache[startRow...endRow] = lineElements?.toArray() or []
 
-    lines = @lines[0]
+    lines = @visibleLines[0]
     if lineElements
       fragment = document.createDocumentFragment()
       lineElements.each -> fragment.appendChild(this)
@@ -528,7 +528,7 @@ class Editor extends View
 
   pixelOffsetForScreenPosition: (position) ->
     {top, left} = @pixelPositionForScreenPosition(position)
-    offset = @lines.offset()
+    offset = @visibleLines.offset()
     {top: top + offset.top, left: left + offset.left}
 
   screenPositionFromPixelPosition: ({top, left}) ->
@@ -557,7 +557,7 @@ class Editor extends View
 
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
-    @lines.append(fragment)
+    @visibleLines.append(fragment)
     @charWidth = fragment.width()
     @charHeight = fragment.find('span').height()
     @lineHeight = fragment.outerHeight()

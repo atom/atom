@@ -39,9 +39,9 @@ describe "Editor", ->
       editor = new Editor
       editor.attachToDom()
       expect(editor.buffer.getPath()).toBeUndefined()
-      expect(editor.lines.find('.line').length).toBe 1
+      expect(editor.visibleLines.find('.line').length).toBe 1
       editor.insertText('x')
-      expect(editor.lines.find('.line').length).toBe 1
+      expect(editor.visibleLines.find('.line').length).toBe 1
 
   describe ".copy()", ->
     it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
@@ -72,7 +72,7 @@ describe "Editor", ->
       rootView.remove()
       newEditor.attachToDom()
       expect(newEditor.scrollTop()).toBe 1.5 * editor.lineHeight
-      expect(newEditor.lines.css('padding-top')).toBe "#{editor.lineHeight}px"
+      expect(newEditor.visibleLines.css('padding-top')).toBe "#{editor.lineHeight}px"
       expect(newEditor.scrollView.scrollLeft()).toBe 44
 
   describe ".setBuffer(buffer)", ->
@@ -206,43 +206,43 @@ describe "Editor", ->
         it "inserts the given elements before the first row", ->
           editor.spliceLineElements 0, 0, elements
 
-          expect(editor.lines.find('.line:eq(0)').text()).toBe 'A'
-          expect(editor.lines.find('.line:eq(1)').text()).toBe 'B'
-          expect(editor.lines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
+          expect(editor.visibleLines.find('.line:eq(0)').text()).toBe 'A'
+          expect(editor.visibleLines.find('.line:eq(1)').text()).toBe 'B'
+          expect(editor.visibleLines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
 
       describe "when the row count is > 0", ->
         it "replaces the initial rows with the given elements", ->
           editor.spliceLineElements 0, 2, elements
 
-          expect(editor.lines.find('.line:eq(0)').text()).toBe 'A'
-          expect(editor.lines.find('.line:eq(1)').text()).toBe 'B'
-          expect(editor.lines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
+          expect(editor.visibleLines.find('.line:eq(0)').text()).toBe 'A'
+          expect(editor.visibleLines.find('.line:eq(1)').text()).toBe 'B'
+          expect(editor.visibleLines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
 
     describe "when the start row is less than the last row", ->
       describe "when the row count is 0", ->
         it "inserts the elements at the specified location", ->
           editor.spliceLineElements 2, 0, elements
 
-          expect(editor.lines.find('.line:eq(2)').text()).toBe 'A'
-          expect(editor.lines.find('.line:eq(3)').text()).toBe 'B'
-          expect(editor.lines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
+          expect(editor.visibleLines.find('.line:eq(2)').text()).toBe 'A'
+          expect(editor.visibleLines.find('.line:eq(3)').text()).toBe 'B'
+          expect(editor.visibleLines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
 
       describe "when the row count is > 0", ->
         it "replaces the elements at the specified location", ->
           editor.spliceLineElements 2, 2, elements
 
-          expect(editor.lines.find('.line:eq(2)').text()).toBe 'A'
-          expect(editor.lines.find('.line:eq(3)').text()).toBe 'B'
-          expect(editor.lines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
+          expect(editor.visibleLines.find('.line:eq(2)').text()).toBe 'A'
+          expect(editor.visibleLines.find('.line:eq(3)').text()).toBe 'B'
+          expect(editor.visibleLines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
 
     describe "when the start row is the last row", ->
       it "appends the elements to the end of the lines", ->
         editor.spliceLineElements 13, 0, elements
 
-        expect(editor.lines.find('.line:eq(12)').text()).toBe '};'
-        expect(editor.lines.find('.line:eq(13)').text()).toBe 'A'
-        expect(editor.lines.find('.line:eq(14)').text()).toBe 'B'
-        expect(editor.lines.find('.line:eq(15)')).not.toExist()
+        expect(editor.visibleLines.find('.line:eq(12)').text()).toBe '};'
+        expect(editor.visibleLines.find('.line:eq(13)').text()).toBe 'A'
+        expect(editor.visibleLines.find('.line:eq(14)').text()).toBe 'B'
+        expect(editor.visibleLines.find('.line:eq(15)')).not.toExist()
 
   describe ".loadNextEditSession()", ->
     it "loads the next editor state and wraps to beginning when end is reached", ->
@@ -299,16 +299,16 @@ describe "Editor", ->
         expect(editor.height()).toBe buffer.numLines() * editor.lineHeight
 
       it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
-        expect(editor.lines.find('.line').length).toEqual(buffer.numLines())
+        expect(editor.visibleLines.find('.line').length).toEqual(buffer.numLines())
         expect(buffer.lineForRow(2)).toContain('<')
-        expect(editor.lines.find('.line:eq(2)').html()).toContain '&lt;'
+        expect(editor.visibleLines.find('.line:eq(2)').html()).toContain '&lt;'
 
         # renders empty lines with a non breaking space
         expect(buffer.lineForRow(10)).toBe ''
-        expect(editor.lines.find('.line:eq(10)').html()).toBe '&nbsp;'
+        expect(editor.visibleLines.find('.line:eq(10)').html()).toBe '&nbsp;'
 
       it "syntax highlights code based on the file type", ->
-        line1 = editor.lines.find('.line:first')
+        line1 = editor.visibleLines.find('.line:first')
         expect(line1.find('span:eq(0)')).toMatchSelector '.keyword.definition'
         expect(line1.find('span:eq(0)').text()).toBe 'var'
         expect(line1.find('span:eq(1)')).toMatchSelector '.text'
@@ -318,19 +318,19 @@ describe "Editor", ->
         expect(line1.find('span:eq(4)')).toMatchSelector '.operator'
         expect(line1.find('span:eq(4)').text()).toBe '='
 
-        line12 = editor.lines.find('.line:eq(11)')
+        line12 = editor.visibleLines.find('.line:eq(11)')
         expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
-          expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
+          expect(editor.visibleLines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
           buffer.insert([0, 4], "g")
-          expect(editor.lines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
+          expect(editor.visibleLines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
 
           # verify that re-highlighting can occur below the changed line
           buffer.insert([5,0], "/* */")
           buffer.insert([1,0], "/*")
-          expect(editor.lines.find('.line:eq(2) span:eq(0)')).toMatchSelector '.comment'
+          expect(editor.visibleLines.find('.line:eq(2) span:eq(0)')).toMatchSelector '.comment'
 
       describe "when soft-wrap is enabled", ->
         beforeEach ->
@@ -339,45 +339,45 @@ describe "Editor", ->
           expect(editor.renderer.maxLineLength).toBe 50
 
         it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
-          expect(editor.lines.find('.line').length).toBe 16
-          expect(editor.lines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
-          expect(editor.lines.find('.line:eq(4)').text()).toBe "right = [];"
+          expect(editor.visibleLines.find('.line').length).toBe 16
+          expect(editor.visibleLines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
+          expect(editor.visibleLines.find('.line:eq(4)').text()).toBe "right = [];"
 
           editor.setCursorBufferPosition([3, 51])
-          expect(editor.find('.cursor').offset()).toEqual(editor.lines.find('.line:eq(4)').offset())
+          expect(editor.find('.cursor').offset()).toEqual(editor.visibleLines.find('.line:eq(4)').offset())
 
           editor.setCursorBufferPosition([4, 0])
-          expect(editor.find('.cursor').offset()).toEqual(editor.lines.find('.line:eq(5)').offset())
+          expect(editor.find('.cursor').offset()).toEqual(editor.visibleLines.find('.line:eq(5)').offset())
 
           editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
           [region1, region2] = editor.getSelection().regions
-          expect(region1.offset().top).toBe(editor.lines.find('.line:eq(7)').offset().top)
-          expect(region2.offset().top).toBe(editor.lines.find('.line:eq(8)').offset().top)
+          expect(region1.offset().top).toBe(editor.visibleLines.find('.line:eq(7)').offset().top)
+          expect(region2.offset().top).toBe(editor.visibleLines.find('.line:eq(8)').offset().top)
 
         it "handles changes to wrapped lines correctly", ->
           buffer.insert([6, 28], '1234567')
-          expect(editor.lines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
-          expect(editor.lines.find('.line:eq(8)').text()).toBe ': right.push(current);'
-          expect(editor.lines.find('.line:eq(9)').text()).toBe '    }'
+          expect(editor.visibleLines.find('.line:eq(7)').text()).toBe '      current < pivot ? left1234567.push(current) '
+          expect(editor.visibleLines.find('.line:eq(8)').text()).toBe ': right.push(current);'
+          expect(editor.visibleLines.find('.line:eq(9)').text()).toBe '    }'
 
         it "changes the max line length and repositions the cursor when the window size changes", ->
           editor.setCursorBufferPosition([3, 60])
           setEditorWidthInChars(editor, 40)
           $(window).trigger 'resize'
-          expect(editor.lines.find('.line').length).toBe 19
-          expect(editor.lines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
-          expect(editor.lines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
+          expect(editor.visibleLines.find('.line').length).toBe 19
+          expect(editor.visibleLines.find('.line:eq(4)').text()).toBe "left = [], right = [];"
+          expect(editor.visibleLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
           expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
         it "wraps the lines of any newly assigned buffers", ->
           otherBuffer = new Buffer
           otherBuffer.setText([1..100].join(''))
           editor.setBuffer(otherBuffer)
-          expect(editor.lines.find('.line').length).toBeGreaterThan(1)
+          expect(editor.visibleLines.find('.line').length).toBeGreaterThan(1)
 
         it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
           editor.toggleSoftWrap()
-          expect(editor.lines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(editor.visibleLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
 
           spyOn(editor, 'setMaxLineLength')
           $(window).trigger 'resize'
@@ -420,81 +420,81 @@ describe "Editor", ->
         editor.attachToDom(heightInLines: 5.5)
 
       it "only renders the visible lines, setting the padding-bottom of the lines element to account for the missing lines", ->
-        expect(editor.lines.find('.line').length).toBe 6
+        expect(editor.visibleLines.find('.line').length).toBe 6
         expectedPaddingBottom = (buffer.numLines() - 6) * editor.lineHeight
-        expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
+        expect(editor.visibleLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
       describe "when scrolling vertically", ->
         describe "whes scrolling less than the editor's height", ->
           it "removes lines that become invisible and builds lines that become visisble", ->
             editor.scrollTop(editor.lineHeight * 2.5)
-            expect(editor.lines.find('.line').length).toBe 6
-            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
-            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
+            expect(editor.visibleLines.find('.line').length).toBe 6
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(2)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
             editor.scrollTop(editor.lineHeight * 3.5)
-            expect(editor.lines.find('.line').length).toBe 6
-            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(3)
-            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(8)
+            expect(editor.visibleLines.find('.line').length).toBe 6
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(3)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(8)
 
             editor.scrollTop(editor.lineHeight * 2.5)
-            expect(editor.lines.find('.line').length).toBe 6
-            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
-            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(7)
+            expect(editor.visibleLines.find('.line').length).toBe 6
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(2)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
             editor.scrollTop(0)
             editor.verticalScrollbar.trigger 'scroll'
-            expect(editor.lines.find('.line').length).toBe 6
-            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
-            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(5)
+            expect(editor.visibleLines.find('.line').length).toBe 6
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(5)
 
         describe "when scrolling more than the editors height", ->
           it "removes lines that become invisible and builds lines that become visible", ->
             editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
-            expect(editor.lines.find('.line').length).toBe 6
-            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(7)
-            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(12)
+            expect(editor.visibleLines.find('.line').length).toBe 6
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(7)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(12)
 
             editor.verticalScrollbar.scrollBottom(0)
             editor.verticalScrollbar.trigger 'scroll'
-            expect(editor.lines.find('.line').length).toBe 6
-            expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
-            expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(5)
+            expect(editor.visibleLines.find('.line').length).toBe 6
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(5)
 
         it "adjusts the vertical padding of the lines element to account for non-rendered lines", ->
           editor.scrollTop(editor.lineHeight * 2.5)
-          expect(editor.lines.css('padding-top')).toBe "#{2 * editor.lineHeight}px"
+          expect(editor.visibleLines.css('padding-top')).toBe "#{2 * editor.lineHeight}px"
           expectedPaddingBottom = (buffer.numLines() - 8) * editor.lineHeight
-          expect(editor.lines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
+          expect(editor.visibleLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
           editor.verticalScrollbar.scrollBottom(editor.scrollView.prop('scrollHeight'))
           editor.verticalScrollbar.trigger 'scroll'
-          expect(editor.lines.css('padding-top')).toBe "#{7 * editor.lineHeight}px"
-          expect(editor.lines.css('padding-bottom')).toBe "0px"
+          expect(editor.visibleLines.css('padding-top')).toBe "#{7 * editor.lineHeight}px"
+          expect(editor.visibleLines.css('padding-bottom')).toBe "0px"
 
       it "renders additional lines when the editor is resized", ->
         setEditorHeightInLines(editor, 10)
         $(window).trigger 'resize'
 
-        expect(editor.lines.find('.line').length).toBe 10
-        expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(0)
-        expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(9)
+        expect(editor.visibleLines.find('.line').length).toBe 10
+        expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+        expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(9)
 
       it "renders correctly when scrolling after text added to buffer", ->
         editor.attachToDom(heightInLines: 5.5)
         editor.insertText("1\n")
         _.times 4, -> editor.moveCursorDown()
-        expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(2)
-        expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(7)
+        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(2)
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(7)
 
       it "renders correctly when scrolling after text is removed from buffer", ->
         editor.attachToDom(heightInLines: 5.5)
         editor.buffer.delete([[0,0],[1,0]])
-        expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
-        expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
+        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
         _.times 4, -> editor.moveCursorDown()
-        expect(editor.lines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(1)
-        expect(editor.lines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(6)
+        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(1)
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(6)
 
   describe "gutter rendering", ->
     beforeEach ->
@@ -507,7 +507,7 @@ describe "Editor", ->
 
       editor.verticalScrollbar.scrollTop(editor.lineHeight * 1.5)
       editor.verticalScrollbar.trigger 'scroll'
-      expect(editor.lines.find('.line').length).toBe 6
+      expect(editor.visibleLines.find('.line').length).toBe 6
       expect(editor.gutter.find('.line-number:first').text()).toBe "2"
       expect(editor.gutter.find('.line-number:last').text()).toBe "7"
 
@@ -555,7 +555,7 @@ describe "Editor", ->
         editor.scrollTop(editor.lineHeight * 3.5)
         expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 3}px"
         expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 4}px"
-        expect(editor.lines.find('.line').length).toBe 6
+        expect(editor.visibleLines.find('.line').length).toBe 6
         expect(editor.gutter.find('.line-number:first').text()).toBe "4"
         expect(editor.gutter.find('.line-number:last').text()).toBe "9"
 
@@ -563,19 +563,19 @@ describe "Editor", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5)
       expect(editor.verticalScrollbar.scrollTop()).toBe 0
-      expect(editor.lines.css('-webkit-tranform')).toBeNull()
+      expect(editor.visibleLines.css('-webkit-tranform')).toBeNull()
       expect(editor.gutter.lineNumbers.css('-webkit-tranform')).toBeNull()
 
     describe "when called with a scroll top argument", ->
       it "sets the scrollTop of the vertical scrollbar and sets a transform on the line numbers and lines", ->
         editor.scrollTop(100)
         expect(editor.verticalScrollbar.scrollTop()).toBe 100
-        expect(editor.lines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+        expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
         expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
 
         editor.scrollTop(150)
         expect(editor.verticalScrollbar.scrollTop()).toBe 150
-        expect(editor.lines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
+        expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
         expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
 
       it "does not allow negative scrollTops to be assigned", ->
@@ -585,19 +585,19 @@ describe "Editor", ->
       it "doesn't do anything if the scrollTop hasn't changed", ->
         editor.scrollTop(100)
         spyOn(editor.verticalScrollbar, 'scrollTop')
-        spyOn(editor.lines, 'css')
+        spyOn(editor.visibleLines, 'css')
         spyOn(editor.gutter.lineNumbers, 'css')
 
         editor.scrollTop(100)
         expect(editor.verticalScrollbar.scrollTop).not.toHaveBeenCalled()
-        expect(editor.lines.css).not.toHaveBeenCalled()
+        expect(editor.visibleLines.css).not.toHaveBeenCalled()
         expect(editor.gutter.lineNumbers.css).not.toHaveBeenCalled()
 
       describe "when the 'adjustVerticalScrollbar' option is false (defaults to true)", ->
         it "doesn't adjust the scrollTop of the vertical scrollbar", ->
           editor.scrollTop(100, adjustVerticalScrollbar: false)
           expect(editor.verticalScrollbar.scrollTop()).toBe 0
-          expect(editor.lines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+          expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
           expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
 
     describe "when called with no argument", ->
@@ -636,10 +636,10 @@ describe "Editor", ->
 
       it "updates lines if there are unrendered lines", ->
         editor.attachToDom(heightInLines: 5)
-        originalLineCount = editor.lines.find(".line").length
+        originalLineCount = editor.visibleLines.find(".line").length
         expect(originalLineCount).toBeGreaterThan 0
         editor.setFontSize(10)
-        expect(editor.lines.find(".line").length).toBeGreaterThan originalLineCount
+        expect(editor.visibleLines.find(".line").length).toBeGreaterThan originalLineCount
 
 
   describe "cursor movement", ->
@@ -895,15 +895,15 @@ describe "Editor", ->
         describe "when it is a single click", ->
           it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7])
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7])
             expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 58)
 
         describe "when it is a double click", ->
           it "selects the word under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
             expect(editor.getSelectedText()).toBe "right"
 
         describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
@@ -911,23 +911,23 @@ describe "Editor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             # Triple click
-            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 3})
-            editor.lines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 3})
+            editor.visibleLines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    var pivot = items.shift(), current, left = [], right = [];"
 
             # Quad click
-            editor.lines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 1})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 2})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 3})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 4})
-            editor.lines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 1})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 2})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 3})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 4})
+            editor.visibleLines.trigger 'mouseup'
 
             expect(editor.getSelectedText()).toBe "      current < pivot ? left.push(current) : right.push(current);"
 
@@ -936,24 +936,24 @@ describe "Editor", ->
           it "re-positions the cursor to the clicked row / column", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
-            editor.lines.trigger mousedownEvent(editor: editor, point: [3, 10])
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [3, 10])
             expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
 
           describe "when the lines are scrolled to the right", ->
             it "re-positions the cursor on the clicked location", ->
               setEditorWidthInChars(editor, 30)
               expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-              editor.lines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
-              editor.lines.trigger mousedownEvent(editor: editor, point: [3, 50])
+              editor.visibleLines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
+              editor.visibleLines.trigger mousedownEvent(editor: editor, point: [3, 50])
               expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
 
         describe "when it is a double click", ->
           it "selects the word under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.lines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
-            editor.lines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
+            editor.visibleLines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "quicksort"
 
         describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
@@ -961,23 +961,23 @@ describe "Editor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             # Triple click
-            editor.lines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
-            editor.lines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
+            editor.visibleLines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
 
             # Quad click
-            editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
-            editor.lines.trigger 'mouseup'
-            editor.lines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
-            editor.lines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
+            editor.visibleLines.trigger 'mouseup'
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
+            editor.visibleLines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
 
     describe "scrolling", ->
@@ -1000,17 +1000,17 @@ describe "Editor", ->
           editor.verticalScrollbar.trigger 'scroll'
 
           expect(editor.scrollTop()).toBe(editor.lineHeight)
-          expect(editor.lines.find('.line').length).toBe 10
-          expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(1)
-          expect(editor.lines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank, but a nbsp holds its height
+          expect(editor.visibleLines.find('.line').length).toBe 10
+          expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(1)
+          expect(editor.visibleLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank, but a nbsp holds its height
 
           editor.moveCursorDown()
           window.advanceClock()
 
           expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
-          expect(editor.lines.find('.line').length).toBe 10
-          expect(editor.lines.find('.line:first').text()).toBe buffer.lineForRow(2)
-          expect(editor.lines.find('.line:last').text()).toBe buffer.lineForRow(11)
+          expect(editor.visibleLines.find('.line').length).toBe 10
+          expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(2)
+          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
           _.times 3, -> editor.moveCursorUp()
           window.advanceClock()
@@ -1285,10 +1285,10 @@ describe "Editor", ->
         editor.css(position: 'absolute', top: 10, left: 10)
 
         # start
-        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
+        editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 10])
 
         # moving changes selection
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
@@ -1299,7 +1299,7 @@ describe "Editor", ->
         $(document).trigger 'mouseup'
 
         # moving after mouse up should not change selection
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
+        editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
@@ -1311,12 +1311,12 @@ describe "Editor", ->
         editor.css(position: 'absolute', top: 10, left: 10)
 
         # double click
-        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
+        editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
         $(document).trigger 'mouseup'
-        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
+        editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
 
         # moving changes selection
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 4})
@@ -1327,7 +1327,7 @@ describe "Editor", ->
         $(document).trigger 'mouseup'
 
         # moving after mouse up should not change selection
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
+        editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 4})
@@ -1339,14 +1339,14 @@ describe "Editor", ->
         editor.css(position: 'absolute', top: 10, left: 10)
 
         # double click
-        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
+        editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
         $(document).trigger 'mouseup'
-        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
+        editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
         $(document).trigger 'mouseup'
-        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 3})
+        editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 3})
 
         # moving changes selection
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 0})
@@ -1357,7 +1357,7 @@ describe "Editor", ->
         $(document).trigger 'mouseup'
 
         # moving after mouse up should not change selection
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 8])
+        editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 0})
@@ -1371,20 +1371,20 @@ describe "Editor", ->
         editor.setCursorScreenPosition([4, 7])
 
       it "selects from the cursor's current location to the clicked location", ->
-        editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true)
+        editor.visibleLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true)
         expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
       describe "when it is a double-click", ->
         it "expands the selection to include the double-clicked word", ->
-          editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
-          editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
           expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 27]]
 
       describe "when it is a triple-click", ->
         it "expands the selection to include the triple-clicked line", ->
-          editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
-          editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
-          editor.lines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
           expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 30]]
 
     describe "select-to-top", ->
@@ -1484,12 +1484,12 @@ describe "Editor", ->
     it "places multiple cursors with meta-click", ->
       editor.attachToDom()
       setEditorHeightInLines(editor, 5)
-      editor.lines.trigger mousedownEvent(editor: editor, point: [3, 0])
+      editor.visibleLines.trigger mousedownEvent(editor: editor, point: [3, 0])
       editor.scrollTop(editor.lineHeight * 6)
 
       spyOn(editor, "scrollTo").andCallThrough()
 
-      editor.lines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
+      editor.visibleLines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
       expect(editor.scrollTo.callCount).toBe 1
 
       [cursor1, cursor2] = editor.find('.cursor').map -> $(this).view()
@@ -1737,13 +1737,13 @@ describe "Editor", ->
       describe "upon clicking and dragging with the meta-key held down", ->
         it "adds an additional selection upon clicking and dragging with the meta-key held down", ->
           editor.attachToDom()
-          editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
-          editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-          editor.lines.trigger 'mouseup'
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 10])
+          editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+          editor.visibleLines.trigger 'mouseup'
 
-          editor.lines.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
-          editor.lines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
-          editor.lines.trigger 'mouseup'
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
+          editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
+          editor.visibleLines.trigger 'mouseup'
 
           selections = editor.compositeSelection.getSelections()
           expect(selections.length).toBe 2
@@ -1753,13 +1753,13 @@ describe "Editor", ->
 
         it "merges selections when they intersect, maintaining the directionality of the newest selection", ->
           editor.attachToDom()
-          editor.lines.trigger mousedownEvent(editor: editor, point: [4, 10])
-          editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-          editor.lines.trigger 'mouseup'
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 10])
+          editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+          editor.visibleLines.trigger 'mouseup'
 
-          editor.lines.trigger mousedownEvent(editor: editor, point: [3, 10], metaKey: true)
-          editor.lines.trigger mousemoveEvent(editor: editor, point: [6, 27], metaKey: true)
-          editor.lines.trigger 'mouseup'
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [3, 10], metaKey: true)
+          editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [6, 27], metaKey: true)
+          editor.visibleLines.trigger 'mouseup'
 
           selections = editor.compositeSelection.getSelections()
           expect(selections.length).toBe 1
@@ -1767,9 +1767,9 @@ describe "Editor", ->
           expect(selection1.getScreenRange()).toEqual [[3, 10], [6, 27]]
           expect(selection1.isReversed()).toBeFalsy()
 
-          editor.lines.trigger mousedownEvent(editor: editor, point: [7, 4], metaKey: true)
-          editor.lines.trigger mousemoveEvent(editor: editor, point: [4, 11], metaKey: true)
-          editor.lines.trigger 'mouseup'
+          editor.visibleLines.trigger mousedownEvent(editor: editor, point: [7, 4], metaKey: true)
+          editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [4, 11], metaKey: true)
+          editor.visibleLines.trigger 'mouseup'
 
           selections = editor.compositeSelection.getSelections()
           expect(selections.length).toBe 1
@@ -1906,12 +1906,12 @@ describe "Editor", ->
         editor.addCursorAtScreenPosition([0, 1])
 
         [cursor1, cursor2] = editor.compositeCursor.getCursors()
-        editor.lines.trigger mousedownEvent(editor: editor, point: [4, 7])
+        editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7])
         expect(editor.compositeCursor.getCursors().length).toBe 1
         expect(cursor2.parent()).not.toExist()
         expect(cursor1.getBufferPosition()).toEqual [4, 7]
 
-        editor.lines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        editor.visibleLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
         selections = editor.compositeSelection.getSelections()
         expect(selections.length).toBe 1
@@ -1932,7 +1932,7 @@ describe "Editor", ->
 
           expect(buffer.lineForRow(1).charAt(6)).toBe 'q'
           expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
-          expect(editor.lines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
+          expect(editor.visibleLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
 
         it "does not update the cursor position if the editor is not focused", ->
           editor.isFocused = false
@@ -1958,20 +1958,20 @@ describe "Editor", ->
 
           editor.trigger keydownEvent('enter')
 
-          expect(editor.lines.find('.line:eq(1)')).toHaveHtml '&nbsp;'
+          expect(editor.visibleLines.find('.line:eq(1)')).toHaveHtml '&nbsp;'
           expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
       describe "when the cursor is in the middle of a line", ->
         it "splits the current line to form a new line", ->
           editor.setCursorScreenPosition(row: 1, column: 6)
 
-          originalLine = editor.lines.find('.line:eq(1)').text()
-          lineBelowOriginalLine = editor.lines.find('.line:eq(2)').text()
+          originalLine = editor.visibleLines.find('.line:eq(1)').text()
+          lineBelowOriginalLine = editor.visibleLines.find('.line:eq(2)').text()
           editor.trigger keydownEvent('enter')
 
-          expect(editor.lines.find('.line:eq(1)')).toHaveText originalLine[0...6]
-          expect(editor.lines.find('.line:eq(2)')).toHaveText originalLine[6..]
-          expect(editor.lines.find('.line:eq(3)')).toHaveText lineBelowOriginalLine
+          expect(editor.visibleLines.find('.line:eq(1)')).toHaveText originalLine[0...6]
+          expect(editor.visibleLines.find('.line:eq(2)')).toHaveText originalLine[6..]
+          expect(editor.visibleLines.find('.line:eq(3)')).toHaveText lineBelowOriginalLine
           expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
       describe "when the cursor is on the end of a line", ->
@@ -1980,7 +1980,7 @@ describe "Editor", ->
 
           editor.trigger keydownEvent('enter')
 
-          expect(editor.lines.find('.line:eq(2)')).toHaveHtml '&nbsp;'
+          expect(editor.visibleLines.find('.line:eq(2)')).toHaveHtml '&nbsp;'
           expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
     describe "backspace", ->
@@ -1993,7 +1993,7 @@ describe "Editor", ->
 
           line = buffer.lineForRow(1)
           expect(line).toBe "  var ort = function(items) {"
-          expect(editor.lines.find('.line:eq(1)')).toHaveText line
+          expect(editor.visibleLines.find('.line:eq(1)')).toHaveText line
           expect(editor.getCursorScreenPosition()).toEqual {row: 1, column: 6}
 
       describe "when the cursor is at the beginning of a line", ->
@@ -2010,8 +2010,8 @@ describe "Editor", ->
           expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
           expect(line1).toBe "    if (items.length <= 1) return items;"
 
-          expect(editor.lines.find('.line:eq(0)')).toHaveText line0
-          expect(editor.lines.find('.line:eq(1)')).toHaveText line1
+          expect(editor.visibleLines.find('.line:eq(0)')).toHaveText line0
+          expect(editor.visibleLines.find('.line:eq(1)')).toHaveText line1
           expect(editor.getCursorScreenPosition()).toEqual {row: 0, column: originalLine0.length}
 
       describe "when the cursor is at the first column of the first line", ->
@@ -2332,8 +2332,8 @@ describe "Editor", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'fold-selection'
 
-        expect(editor.lines.find('.line:eq(4)').find('.fold-placeholder')).toExist()
-        expect(editor.lines.find('.line:eq(5)').text()).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+        expect(editor.visibleLines.find('.line:eq(4)').find('.fold-placeholder')).toExist()
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '    return sort(left).concat(pivot).concat(sort(right));'
 
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [4, 32]
@@ -2358,14 +2358,14 @@ describe "Editor", ->
         editor.find('.fold-placeholder .ellipsis').mousedown()
 
         expect(editor.find('.fold-placeholder')).not.toExist()
-        expect(editor.lines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
 
         expect(editor.getCursorBufferPosition()).toEqual [4, 29]
 
     describe "when there is nothing on a line except a fold placeholder", ->
       it "follows the placeholder with a non-breaking space to ensure the line has the proper height", ->
         editor.createFold([[1, 0], [1, 30]])
-        expect(editor.lines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
+        expect(editor.visibleLines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
 
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->
