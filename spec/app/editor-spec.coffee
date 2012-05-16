@@ -594,6 +594,14 @@ describe "Editor", ->
         rootView.setFontSize(22)
         expect(editor.css('font-size')).toBe '30px'
 
+      it "updates lines if there are unrendered lines", ->
+        editor.attachToDom(heightInLines: 5)
+        originalLineCount = editor.lines.find(".line").length
+        expect(originalLineCount).toBeGreaterThan 0
+        editor.setFontSize(10)
+        expect(editor.lines.find(".line").length).toBeGreaterThan originalLineCount
+
+
   describe "cursor movement", ->
     describe "when the arrow keys are pressed", ->
       it "moves the cursor by a single row/column", ->

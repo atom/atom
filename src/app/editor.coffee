@@ -548,13 +548,15 @@ class Editor extends View
   subscribeToFontSize: ->
     return unless rootView = @rootView()
     @setFontSize(rootView.getFontSize())
-    rootView.on "font-size-change.editor#{@id}", =>
-      @setFontSize(rootView.getFontSize())
-      @calculateDimensions()
-      @compositeCursor.updateAppearance()
+    rootView.on "font-size-change.editor#{@id}", => @setFontSize(rootView.getFontSize())
 
   setFontSize: (fontSize) ->
-    @css('font-size', fontSize + 'px') if fontSize
+    if fontSize
+      @css('font-size', fontSize + 'px')
+      @calculateDimensions()
+      @compositeCursor.updateAppearance()
+      console.log @getFirstVisibleScreenRow(), @getLastVisibleScreenRow()
+      @updateLines()
 
   getCursors: -> @compositeCursor.getCursors()
   moveCursorUp: -> @compositeCursor.moveUp()
