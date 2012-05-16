@@ -555,7 +555,6 @@ class Editor extends View
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
       @compositeCursor.updateAppearance()
-      console.log @getFirstVisibleScreenRow(), @getLastVisibleScreenRow()
       @updateLines()
 
   getCursors: -> @compositeCursor.getCursors()
