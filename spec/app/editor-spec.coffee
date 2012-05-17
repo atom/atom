@@ -2236,6 +2236,88 @@ describe "Editor", ->
         expect(selections[0].getBufferRange()).toEqual [[1, 12], [1, 12]]
         expect(selections[1].getBufferRange()).toEqual [[1, 30], [1, 30]]
 
+    describe "when lines are added", ->
+      beforeEach ->
+        setEditorHeightInLines(editor, 5)
+        spyOn(editor, "scrollTo")
+
+      describe "when the change the precedes the first rendered row", ->
+        it "inserts and removes rendered lines to account for upstream change", ->
+          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[1,0], [3,0]], "1\n2\n3\n")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+      describe "when the change straddles the first rendered row", ->
+        it "doesn't render rows that were not previously rendered", ->
+          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+      describe "when the change the straddles the last rendered row", ->
+        it "doesn't render rows that were not previously rendered", ->
+          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+
+      describe "when the change the follows the last rendered row", ->
+        it "does not change the rendered lines", ->
+          buffer.change([[12,0], [12,0]], "12\n13\n14\n")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+
+    describe "when lines are removed", ->
+      beforeEach ->
+        setEditorHeightInLines(editor, 5)
+        spyOn(editor, "scrollTo")
+
+      describe "when the change the precedes the first rendered row", ->
+        it "removes rendered lines to account for upstream change", ->
+          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[1,0], [2,0]], "")
+          expect(editor.visibleLines.find(".line").length).toBe 4
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(11)
+
+      describe "when the change straddles the first rendered row", ->
+        it "renders the correct rows", ->
+          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[7,0], [11,0]], "1\n2\n")
+          expect(editor.visibleLines.find(".line").length).toBe 3
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(10)
+
+      describe "when the change the straddles the last rendered row", ->
+        it "renders the correct rows", ->
+          buffer.change([[2,0], [7,0]], "")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+
+      describe "when the change the follows the last rendered row", ->
+        it "does not change the rendered lines", ->
+          buffer.change([[12,0], [12,0]], "")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
       expect(editor.lineHeight).toBeNull()

@@ -296,8 +296,6 @@ class Editor extends View
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
-    return if @firstRenderedScreenRow <= firstVisibleScreenRow and @lastRenderedScreenRow >= lastVisibleScreenRow
-
     @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow)
 
     if firstVisibleScreenRow > @firstRenderedScreenRow
@@ -428,11 +426,31 @@ class Editor extends View
       unless newScreenRange.isSingleLine() and newScreenRange.coversSameRows(oldScreenRange)
         @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
 
-      lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
-      @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
+      return if oldScreenRange.start.row > @lastRenderedScreenRow
+
+      newScreenRange = newScreenRange.copy()
+      oldScreenRange = oldScreenRange.copy()
+      endOfShortestRange = Math.min(oldScreenRange.end.row, newScreenRange.end.row)
+
+      delta = @firstRenderedScreenRow - endOfShortestRange
+      if delta > 0
+        newScreenRange.start.row += delta
+        newScreenRange.end.row += delta
+        oldScreenRange.start.row += delta
+        oldScreenRange.end.row += delta
+
+      newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
+      oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
+      newScreenRange.end.row = Math.min(newScreenRange.end.row, @lastRenderedScreenRow)
+      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
+
+      lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
+      @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
+
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
+
       if rowDelta > 0
         @removeLineElements(@lastRenderedScreenRow + 1, @lastRenderedScreenRow + rowDelta)
       else
