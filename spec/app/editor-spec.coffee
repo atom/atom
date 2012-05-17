@@ -558,6 +558,15 @@ describe "Editor", ->
       expect(editor.gutter.find('.line-number:first').text()).toBe "2"
       expect(editor.gutter.find('.line-number:last').text()).toBe "7"
 
+    describe "width", ->
+      it "sets the width based on last line number", ->
+        expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 2
+
+      it "updates the width when total number of lines gains a digit", ->
+        oneHundredLines = [0..100].join("\n")
+        editor.insertText(oneHundredLines)
+        expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 3
+
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editor.setMaxLineLength(50)
