@@ -567,6 +567,12 @@ describe "Editor", ->
         editor.insertText(oneHundredLines)
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 3
 
+    describe "when the insertion of lines causes the editor to scroll", ->
+      it "renders line numbers correctly", ->
+        oneHundredLines = [0..100].join("\n")
+        editor.insertText(oneHundredLines)
+        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 6
+
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editor.setMaxLineLength(50)
