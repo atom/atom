@@ -53,8 +53,6 @@ describe "editor.", ->
 
       benchmark "moving-to-eof.", 1, ->
         editor.moveCursorToBottom()
-        waitsFor (scrollComplete) ->
-          editor.scrollView.on 'scroll', scrollComplete
 
       describe "on-first-line.", ->
         benchmark "inserting-newline", 5, ->
