@@ -278,6 +278,53 @@ describe "Editor", ->
       editor.loadPreviousEditSession()
       expect(editor.buffer.path).toBe "2"
 
+  describe ".scrollTop(n)", ->
+    beforeEach ->
+      editor.attachToDom(heightInLines: 5)
+      expect(editor.verticalScrollbar.scrollTop()).toBe 0
+      expect(editor.visibleLines.css('-webkit-tranform')).toBeNull()
+      expect(editor.gutter.lineNumbers.css('-webkit-tranform')).toBeNull()
+
+    describe "when called with a scroll top argument", ->
+      it "sets the scrollTop of the vertical scrollbar and sets a transform on the line numbers and lines", ->
+        editor.scrollTop(100)
+        expect(editor.verticalScrollbar.scrollTop()).toBe 100
+        expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+        expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+
+        editor.scrollTop(150)
+        expect(editor.verticalScrollbar.scrollTop()).toBe 150
+        expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
+        expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
+
+      it "does not allow negative scrollTops to be assigned", ->
+        editor.scrollTop(-100)
+        expect(editor.scrollTop()).toBe 0
+
+      it "doesn't do anything if the scrollTop hasn't changed", ->
+        editor.scrollTop(100)
+        spyOn(editor.verticalScrollbar, 'scrollTop')
+        spyOn(editor.visibleLines, 'css')
+        spyOn(editor.gutter.lineNumbers, 'css')
+
+        editor.scrollTop(100)
+        expect(editor.verticalScrollbar.scrollTop).not.toHaveBeenCalled()
+        expect(editor.visibleLines.css).not.toHaveBeenCalled()
+        expect(editor.gutter.lineNumbers.css).not.toHaveBeenCalled()
+
+      describe "when the 'adjustVerticalScrollbar' option is false (defaults to true)", ->
+        it "doesn't adjust the scrollTop of the vertical scrollbar", ->
+          editor.scrollTop(100, adjustVerticalScrollbar: false)
+          expect(editor.verticalScrollbar.scrollTop()).toBe 0
+          expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+          expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+
+    describe "when called with no argument", ->
+      it "returns the last assigned value or 0 if none has been assigned", ->
+        expect(editor.scrollTop()).toBe 0
+        editor.scrollTop(50)
+        expect(editor.scrollTop()).toBe 50
+
   describe "editor-open event", ->
     it 'only triggers an editor-open event when it is first added to the DOM', ->
       openHandler = jasmine.createSpy('openHandler')
@@ -559,53 +606,6 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:first').text()).toBe "4"
         expect(editor.gutter.find('.line-number:last').text()).toBe "9"
 
-  describe ".scrollTop(n)", ->
-    beforeEach ->
-      editor.attachToDom(heightInLines: 5)
-      expect(editor.verticalScrollbar.scrollTop()).toBe 0
-      expect(editor.visibleLines.css('-webkit-tranform')).toBeNull()
-      expect(editor.gutter.lineNumbers.css('-webkit-tranform')).toBeNull()
-
-    describe "when called with a scroll top argument", ->
-      it "sets the scrollTop of the vertical scrollbar and sets a transform on the line numbers and lines", ->
-        editor.scrollTop(100)
-        expect(editor.verticalScrollbar.scrollTop()).toBe 100
-        expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
-        expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
-
-        editor.scrollTop(150)
-        expect(editor.verticalScrollbar.scrollTop()).toBe 150
-        expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
-        expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
-
-      it "does not allow negative scrollTops to be assigned", ->
-        editor.scrollTop(-100)
-        expect(editor.scrollTop()).toBe 0
-
-      it "doesn't do anything if the scrollTop hasn't changed", ->
-        editor.scrollTop(100)
-        spyOn(editor.verticalScrollbar, 'scrollTop')
-        spyOn(editor.visibleLines, 'css')
-        spyOn(editor.gutter.lineNumbers, 'css')
-
-        editor.scrollTop(100)
-        expect(editor.verticalScrollbar.scrollTop).not.toHaveBeenCalled()
-        expect(editor.visibleLines.css).not.toHaveBeenCalled()
-        expect(editor.gutter.lineNumbers.css).not.toHaveBeenCalled()
-
-      describe "when the 'adjustVerticalScrollbar' option is false (defaults to true)", ->
-        it "doesn't adjust the scrollTop of the vertical scrollbar", ->
-          editor.scrollTop(100, adjustVerticalScrollbar: false)
-          expect(editor.verticalScrollbar.scrollTop()).toBe 0
-          expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
-          expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
-
-    describe "when called with no argument", ->
-      it "returns the last assigned value or 0 if none has been assigned", ->
-        expect(editor.scrollTop()).toBe 0
-        editor.scrollTop(50)
-        expect(editor.scrollTop()).toBe 50
-
   describe "font size", ->
     it "sets the initial font size based on the value assigned to the root view", ->
       rootView.setFontSize(20)
@@ -640,7 +640,6 @@ describe "Editor", ->
         expect(originalLineCount).toBeGreaterThan 0
         editor.setFontSize(10)
         expect(editor.visibleLines.find(".line").length).toBeGreaterThan originalLineCount
-
 
   describe "cursor movement", ->
     describe "when the arrow keys are pressed", ->
