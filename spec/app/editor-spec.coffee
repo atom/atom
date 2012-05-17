@@ -381,6 +381,7 @@ describe "Editor", ->
 
       describe "when soft-wrap is enabled", ->
         beforeEach ->
+          setEditorHeightInLines(editor, 20)
           setEditorWidthInChars(editor, 50)
           editor.setSoftWrap(true)
           expect(editor.renderer.maxLineLength).toBe 50
