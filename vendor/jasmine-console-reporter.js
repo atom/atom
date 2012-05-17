@@ -27,15 +27,16 @@ jasmine.ConsoleReporter.prototype.reportSpecResults = function(spec) {
   if (results.skipped) {
     status = 'skipped';
   }
-
   var resultItems = results.getItems();
   for (var i = 0; i < resultItems.length; i++) {
     var result = resultItems[i];
-
     if (this.logErrors && result.type == 'expect' && result.passed && !result.passed()) {
-      console.log(spec.getFullName())
+      console.log("ERROR: %s", spec.getFullName())
       if (result.trace.stack) {
         console.log(result.trace.stack)
+      }
+      else {
+       console.log(result.message)
       }
     }
   }
