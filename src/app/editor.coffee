@@ -275,8 +275,11 @@ class Editor extends View
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
 
-  scrollBottom: ->
-    @scrollTop() + @scrollView.height()
+  scrollBottom: (scrollBottom) ->
+    if scrollBottom?
+      @scrollTop(scrollBottom - @scrollView.height())
+    else
+      @scrollTop() + @scrollView.height()
 
   renderVisibleLines: ->
     @clearLines()
