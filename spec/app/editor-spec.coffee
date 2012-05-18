@@ -2424,6 +2424,18 @@ describe "Editor", ->
     beforeEach ->
       editor.attachToDom()
 
+    describe "???", ->
+      fit "won't fuck up", ->
+        setEditorHeightInLines(editor, 50)
+        editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))
+        editor.toggleSoftWrap()
+        fold8 = editor.createFold([[163, 3], [169, 33]])
+        fold9 = editor.createFold([[169, 34], [184, 10]])
+        editor.destroyFold(fold8.id)
+
+        editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+
+
     describe "when a fold-selection event is triggered", ->
       it "folds the selected text and moves the cursor to just after the placeholder, then treats the placeholder as a single character", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
