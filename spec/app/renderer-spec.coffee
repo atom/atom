@@ -125,9 +125,9 @@ describe "Renderer", ->
           expect(renderer.lineForRow(6).text).toBe '    }'
 
           renderer.createFold([[6, 56], [8, 15]])
-          expect(renderer.lineForRow(6).text).toBe 'right.push(...(left).concat(pivot).concat(sort(rig'
-          expect(renderer.lineForRow(7).text).toBe 'ht));'
-          expect(renderer.lineForRow(8).text).toBe '  };'
+          expect(renderer.lineForRow(5).text).toBe 'right.push(...(left).concat(pivot).concat(sort(rig'
+          expect(renderer.lineForRow(6).text).toBe 'ht));'
+          expect(renderer.lineForRow(7).text).toBe '  };'
 
       describe "when there is a fold placeholder ending at the max length boundary", ->
         it "wraps the line after the fold placeholder", ->
@@ -460,7 +460,6 @@ describe "Renderer", ->
           expect(event.newRange).toEqual [[4, 0], [4, 59]]
 
           fold2.destroy()
-
           expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...abc}'
 
       describe "when the old range is inside a fold", ->
@@ -495,11 +494,10 @@ describe "Renderer", ->
           buffer.change([[4, 25], [7, 5]], '4)')
 
           expect(renderer.lineForRow(4).text).toBe '    while(items.length > 4)...concat(sort(right));'
-          # expect(changeHandler).toHaveBeenCalled()
-          # [[event]] = changeHandler.argsForCall
-          # expect(event.oldRange).toEqual [[4, 0], [4, 56]]
-          # expect(event.newRange).toEqual [[4, 0], [4, 60]]
-
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
+          expect(event.newRange).toEqual [[4, 0], [4, 51]]
 
     describe "position translation", ->
       describe "when there is single fold spanning multiple lines", ->

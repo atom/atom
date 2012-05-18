@@ -769,5 +769,5 @@ class Editor extends View
     for cursor in @getCursors()
       do (cursor) -> cursor.resetCursorAnimation()
 
-  logLines: ->
-    @renderer.logLines()
+  logLines: (start, end) ->
+    @renderer.logLines(start, end)

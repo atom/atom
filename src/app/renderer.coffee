@@ -58,12 +58,17 @@ class Renderer
     fold = new Fold(this, bufferRange)
     @registerFold(bufferRange.start.row, fold)
 
+    # If this fold starts on a screen line that contains other folds, we'll
+    # need to the re-render the screen lines corresponding to these preceding
+    # folds as well.  So we alter the start row of the buffer range we
+    # are going to change to the buffer row of the first fold in a potential
+    # series of folds that ends on the current fold's starting buffer row.
+    bufferRange = bufferRange.copy()
+    bufferRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(bufferRange.start.row))
+
     oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
     lines = @buildLineForBufferRow(bufferRange.start.row)
-    @lineMap.replaceScreenRows(
-      oldScreenRange.start.row,
-      oldScreenRange.end.row,
-      lines)
+    @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
@@ -71,8 +76,10 @@ class Renderer
     fold
 
   destroyFold: (fold) ->
-    bufferRange = fold.getRange()
+    bufferRange = fold.getRange().copy()
     @unregisterFold(bufferRange.start.row, fold)
+
+    bufferRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(bufferRange.start.row))
     startScreenRow = @screenRowForBufferRow(bufferRange.start.row)
 
     oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
@@ -119,8 +126,11 @@ class Renderer
       @handleHighlighterChange(@lastHighlighterChangeEvent)
 
   handleHighlighterChange: (e) ->
-    oldBufferRange = e.oldRange
-    newBufferRange = e.newRange
+    oldBufferRange = e.oldRange.copy()
+    newBufferRange = e.newRange.copy()
+
+    oldBufferRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(oldBufferRange.start.row))
+    newBufferRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(newBufferRange.start.row))
 
     oldScreenRange = @screenLineRangeForBufferRange(oldBufferRange)
     newScreenLines = @buildLinesForBufferRows(newBufferRange.start.row, newBufferRange.end.row)
@@ -136,7 +146,6 @@ class Renderer
     lineFragments = []
     startBufferColumn = null
     currentScreenLineLength = 0
-    startBufferRow = @foldStartRowForBufferRow(startBufferRow)
 
     loop
       break if startBufferRow > endBufferRow and not startBufferColumn?
@@ -174,9 +183,6 @@ class Renderer
       currentScreenLineLength = 0
 
     lineFragments
-
-  foldStartRowForBufferRow: (bufferRow) ->
-    @bufferRowForScreenRow(@screenRowForBufferRow(bufferRow))
 
   findWrapColumn: (line, maxLineLength) ->
     return unless line.length > maxLineLength
@@ -232,7 +238,7 @@ class Renderer
     @highlighter.destroy()
     @buffer.off ".renderer#{@id}"
 
-  logLines: ->
-    @lineMap.logLines()
+  logLines: (start, end) ->
+    @lineMap.logLines(start, end)
 
 _.extend Renderer.prototype, EventEmitter
