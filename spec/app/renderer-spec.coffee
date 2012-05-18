@@ -222,31 +222,34 @@ describe "Renderer", ->
         expect(event.newRange).toEqual([[0, 0], [18, 2]])
 
   describe "folding", ->
+    beforeEach ->
+      buffer = new Buffer(require.resolve 'fixtures/two-hundred.js')
+      renderer = new Renderer(buffer, {tabText})
+
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
-        it "replaces the lines spanned by the fold with a single line containing a placeholder", ->
-          previousLine4Text = renderer.lineForRow(4).text
-          previousLine5Text = renderer.lineForRow(5).text
+        fit "replaces the lines spanned by the fold with a single line with a html class of 'fold'", ->
+          fold = renderer.createFold(4, 7)
 
-          fold = renderer.createFold([[4, 29], [7, 4]])
-
-          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...}'
-          expect(renderer.lineForRow(5).text).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+          expect(renderer.lineForRow(4).text).toHaveClass('fold')
+          expect(renderer.lineForRow(4).text).toMatch /^4-+/
+          expect(renderer.lineForRow(5).text).toBe '8'
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual [[4, 0], [7, 5]]
-          expect(event.newRange).toEqual [[4, 0], [4, 33]]
+          expect(event.oldRange).toEqual [[4, 0], [7, 1]]
+          expect(event.newRange).toEqual [[4, 0], [4, 101]]
           changeHandler.reset()
 
           fold.destroy()
-          expect(renderer.lineForRow(4).text).toBe previousLine4Text
-          expect(renderer.lineForRow(5).text).toBe previousLine5Text
+          expect(renderer.lineForRow(4).text).not.toHaveClass('fold')
+          expect(renderer.lineForRow(4).text).toMatch /^4-+/
+          expect(renderer.lineForRow(5).text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 33]]
-          expect(event.newRange).toEqual [[4, 0], [7, 5]]
+          expect(event.oldRange).toEqual [[4, 0], [4, 101]]
+          expect(event.newRange).toEqual [[4, 0], [7, 1]]
 
       describe "when a fold spans a single line", ->
         it "renders a placeholder for the folded region, but does not skip any lines", ->

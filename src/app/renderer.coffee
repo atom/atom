@@ -51,23 +51,13 @@ class Renderer
   bufferRowsForScreenRows: (startRow, endRow) ->
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
-  createFold: (bufferRange) ->
-    bufferRange = Range.fromObject(bufferRange)
-    return if bufferRange.isEmpty()
+  createFold: (startRow, endRow) ->
+    fold = new Fold(this, startRow, endRow)
+    @registerFold(startRow, fold)
 
-    fold = new Fold(this, bufferRange)
-    @registerFold(bufferRange.start.row, fold)
-
-    # If this fold starts on a screen line that contains other folds, we'll
-    # need to the re-render the screen lines corresponding to these preceding
-    # folds as well.  So we alter the start row of the buffer range we
-    # are going to change to the buffer row of the first fold in a potential
-    # series of folds that ends on the current fold's starting buffer row.
-    bufferRange = bufferRange.copy()
-    bufferRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(bufferRange.start.row))
-
+    bufferRange = new Range([[startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)]])
     oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
-    lines = @buildLineForBufferRow(bufferRange.start.row)
+    lines = @buildLineForBufferRow(startRow)
     @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
@@ -147,29 +137,20 @@ class Renderer
     startBufferColumn = null
     currentScreenLineLength = 0
 
-    loop
-      break if startBufferRow > endBufferRow and not startBufferColumn?
+    while startBufferRow <= endBufferRow
+      break if
       startBufferColumn ?= 0
       line = @highlighter.lineForRow(startBufferRow)
       line = line.splitAt(startBufferColumn)[1]
       wrapScreenColumn = @findWrapColumn(line.text, @maxLineLength - currentScreenLineLength)
 
-      continueMainLoop = false
-      for fold in @foldsForBufferRow(startBufferRow)
-        if fold.start.column >= startBufferColumn
-          foldStartSceenColumn = fold.start.column - startBufferColumn
-          if (foldStartSceenColumn) > wrapScreenColumn - foldPlaceholderLength
-            wrapScreenColumn = Math.min(wrapScreenColumn, foldStartSceenColumn)
-            break
-          prefix = line.splitAt(foldStartSceenColumn)[0]
-          placeholder = @buildFoldPlaceholder(fold)
-          lineFragments.push(prefix, placeholder)
-          startBufferRow = fold.end.row
-          startBufferColumn = fold.end.column
-          currentScreenLineLength = currentScreenLineLength + (prefix?.text.length ? 0) + foldPlaceholderLength
-          continueMainLoop = true
-          break
-      continue if continueMainLoop
+      if fold = @foldForBufferRow(startBufferRow)
+        placeholder = @buildFoldPlaceholder(fold)
+        lineFragments.push(placeholder)
+        startBufferRow = fold.end.row + 1
+        startBufferColumn = 0
+        currentScreenLineLength = 0
+        continue
 
       if wrapScreenColumn?
         line = line.splitAt(wrapScreenColumn)[0]

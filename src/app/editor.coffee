@@ -522,8 +522,8 @@ class Editor extends View
     maxLineLength ?= @calcMaxLineLength()
     @renderer.setMaxLineLength(maxLineLength) if maxLineLength
 
-  createFold: (range) ->
-    @renderer.createFold(range)
+  createFold: (startRow, endRow) ->
+    @renderer.createFold(startRow, endRow)
 
   setSoftWrap: (@softWrap, maxLineLength=undefined) ->
     @setMaxLineLength(maxLineLength) if @attached

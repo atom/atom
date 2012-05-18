@@ -237,5 +237,5 @@ class Selection extends View
 
   fold: ->
     range = @getBufferRange()
-    @editor.createFold(range)
-    @cursor.setBufferPosition(range.end)
+    @editor.createFold(range.start.row, range.end.row)
+    @cursor.setBufferPosition([range.end.row + 1, 0])

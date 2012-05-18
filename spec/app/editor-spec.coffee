@@ -1,4 +1,4 @@
-RootView = require 'root-view'
+  RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 Range = require 'range'
@@ -2422,47 +2422,36 @@ describe "Editor", ->
 
   describe "folding", ->
     beforeEach ->
+      editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))
       editor.attachToDom()
 
     describe "when a fold-selection event is triggered", ->
-      it "folds the selected text and moves the cursor to just after the placeholder, then treats the placeholder as a single character", ->
+      fit "folds the lines covered by the selection into a single line with a fold class", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'fold-selection'
 
-        expect(editor.visibleLines.find('.line:eq(4)').find('.fold-placeholder')).toExist()
-        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+        expect(editor.visibleLines.find('.line:eq(4)').toHaveClass('fold')
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '8'
 
         expect(editor.getSelection().isEmpty()).toBeTruthy()
-        expect(editor.getCursorScreenPosition()).toEqual [4, 32]
+        expect(editor.getCursorScreenPosition()).toEqual [5, 0]
 
-        editor.setCursorBufferPosition([9, 4])
-        expect(editor.getCursorScreenPosition()).toEqual [6, 4]
+    # describe "when a fold placeholder is clicked", ->
+    #   it "removes the associated fold and places the cursor at its beginning", ->
+    #     editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
+    #     editor.trigger 'fold-selection'
 
-        editor.insertText('x')
-        expect(editor.getCursorScreenPosition()).toEqual [6, 5]
-        expect(editor.getCursorBufferPosition()).toEqual [9, 5]
+    #     editor.find('.fold-placeholder .ellipsis').mousedown()
 
-        editor.setCursorScreenPosition([4, 30])
-        expect(editor.getCursorScreenPosition()).toEqual [4, 29]
-        editor.moveCursorRight()
-        expect(editor.getCursorScreenPosition()).toEqual [4, 32]
+    #     expect(editor.find('.fold-placeholder')).not.toExist()
+    #     expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
 
-    describe "when a fold placeholder is clicked", ->
-      it "removes the associated fold and places the cursor at its beginning", ->
-        editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
-        editor.trigger 'fold-selection'
+    #     expect(editor.getCursorBufferPosition()).toEqual [4, 29]
 
-        editor.find('.fold-placeholder .ellipsis').mousedown()
-
-        expect(editor.find('.fold-placeholder')).not.toExist()
-        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
-
-        expect(editor.getCursorBufferPosition()).toEqual [4, 29]
-
-    describe "when there is nothing on a line except a fold placeholder", ->
-      it "follows the placeholder with a non-breaking space to ensure the line has the proper height", ->
-        editor.createFold([[1, 0], [1, 30]])
-        expect(editor.visibleLines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
+    # describe "when there is nothing on a line except a fold placeholder", ->
+    #   it "follows the placeholder with a non-breaking space to ensure the line has the proper height", ->
+    #     editor.createFold([[1, 0], [1, 30]])
+    #     expect(editor.visibleLines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
 
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->

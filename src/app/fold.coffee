@@ -3,49 +3,53 @@ Range = require 'range'
 module.exports =
 class Fold
   @idCounter: 1
-  start: null
-  end: null
 
-  constructor: (@lineFolder, {@start, @end}) ->
+  renderer: null
+  startRow: null
+  endRow: null
+
+  constructor: (@renderer, @startRow, @endRow) ->
     @id = @constructor.idCounter++
 
   destroy: ->
-    @lineFolder.destroyFold(this)
+    @renderer.destroyFold(this)
 
   getRange: ->
-    new Range(@start, @end)
+    # new Range([@startRow, 0], @endRow)
+    throw "Don't worry about this yet -- sobo"
 
   handleBufferChange: (event) ->
-    oldStartRow = @start.row
+    # oldStartRow = @start.row
 
-    { oldRange } = event
-    if oldRange.start.isLessThanOrEqual(@start) and oldRange.end.isGreaterThanOrEqual(@end)
-      @lineFolder.unregisterFold(oldStartRow, this)
-      return
+    # { oldRange } = event
+    # if oldRange.start.isLessThanOrEqual(@start) and oldRange.end.isGreaterThanOrEqual(@end)
+    #   @renderer.unregisterFold(oldStartRow, this)
+    #   return
 
-    changeInsideFold = @start.isLessThanOrEqual(oldRange.start) and @end.isGreaterThan(oldRange.end)
+    # changeInsideFold = @start.isLessThanOrEqual(oldRange.start) and @end.isGreaterThan(oldRange.end)
 
-    @start = @updateAnchorPoint(@start, event)
-    @end = @updateAnchorPoint(@end, event, false)
+    # @start = @updateAnchorPoint(@start, event)
+    # @end = @updateAnchorPoint(@end, event, false)
 
-    if @start.row != oldStartRow
-      @lineFolder.unregisterFold(oldStartRow, this)
-      @lineFolder.registerFold(@start.row, this)
+    # if @start.row != oldStartRow
+    #   @renderer.unregisterFold(oldStartRow, this)
+    #   @lineFolder.registerFold(@start.row, this)
 
-    changeInsideFold
+    # changeInsideFold
 
   updateAnchorPoint: (point, event, inclusive=true) ->
-    { newRange, oldRange } = event
-    if inclusive
-      return point if oldRange.end.isGreaterThan(point)
-    else
-      return point if oldRange.end.isGreaterThanOrEqual(point)
+    # { newRange, oldRange } = event
+    # if inclusive
+    #   return point if oldRange.end.isGreaterThan(point)
+    # else
+    #   return point if oldRange.end.isGreaterThanOrEqual(point)
 
-    newRange.end.add(point.subtract(oldRange.end))
+    # newRange.end.add(point.subtract(oldRange.end))
 
   compare: (other) ->
-    startComparison = @start.compare(other.start)
-    if startComparison == 0
-      other.end.compare(@end)
-    else
-      startComparison
+    other
+    # startComparison = @start.compare(other.start)
+    # if startComparison == 0
+    #   other.end.compare(@end)
+    # else
+    #   startComparison
