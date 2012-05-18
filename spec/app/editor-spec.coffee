@@ -2464,6 +2464,18 @@ describe "Editor", ->
         editor.createFold([[1, 0], [1, 30]])
         expect(editor.visibleLines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
 
+    describe "???", ->
+      fit "should render lines correctly", ->
+        setEditorHeightInLines(editor, 20)
+        setEditorWidthInChars(editor, 50)
+        editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))
+        editor.toggleSoftWrap()
+        editor.createFold([[4, 90], [6, 1]])
+        editor.createFold([[6, 1], [8, 1]])
+
+        expect(editor.renderer.lineForRow(6).text).toBe "9"
+        expect(editor.renderer.lineForRow(7).text).toMatch /^10\.+/
+
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->
       editor = new Editor
