@@ -229,15 +229,15 @@ describe "Renderer", ->
 
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
-        fit "replaces the lines spanned by the fold with a single line with a html class of 'fold'", ->
+        it "replaces the lines spanned by the fold with a placeholder that references the fold object", ->
           fold = renderer.createFold(4, 7)
 
-          foldPlaceholder = renderer.lineForRow(4)
-          expect(foldPlaceholder.fold).toBe fold
-          expect(foldPlaceholder.text).toMatch /^4-+/
-          expect(foldPlaceholder.bufferDelta).toEqual [4, 0]
-          expect(foldPlaceholder.screenDelta).toEqual [1, 0]
-          expect(renderer.lineForRow(5).text).toBe '8'
+          [line4, line5] = renderer.linesForRows(4, 5)
+          expect(line4.fold).toBe fold
+          expect(line4.text).toMatch /^4-+/
+          expect(line4.bufferDelta).toEqual [4, 0]
+          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line5.text).toBe '8'
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -246,11 +246,12 @@ describe "Renderer", ->
           changeHandler.reset()
 
           fold.destroy()
-          expect(renderer.lineForRow(4).fold).toBeUndefined()
-          expect(renderer.lineForRow(4).text).toMatch /^4-+/
-          expect(renderer.lineForRow(4).bufferDelta).toEqual [1, 0]
-          expect(renderer.lineForRow(4).screenDelta).toEqual [1, 0]
-          expect(renderer.lineForRow(5).text).toBe '5'
+          [line4, line5] = renderer.linesForRows(4, 5)
+          expect(line4.fold).toBeUndefined()
+          expect(line4.text).toMatch /^4-+/
+          expect(line4.bufferDelta).toEqual [1, 0]
+          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
@@ -258,15 +259,15 @@ describe "Renderer", ->
           expect(event.newRange).toEqual [[4, 0], [7, 1]]
 
       describe "when a fold spans a single line", ->
-        fit "renders a fold placeholder for the folded line but does not skip any lines", ->
+        it "renders a fold placeholder for the folded line but does not skip any lines", ->
           fold = renderer.createFold(4, 4)
 
-          foldPlaceholder = renderer.lineForRow(4)
-          expect(foldPlaceholder.fold).toBe fold
-          expect(foldPlaceholder.text).toMatch /^4-+/
-          expect(foldPlaceholder.bufferDelta).toEqual [1, 0]
-          expect(foldPlaceholder.screenDelta).toEqual [1, 0]
-          expect(renderer.lineForRow(5).text).toBe '5'
+          [line4, line5] = renderer.linesForRows(4, 5)
+          expect(line4.fold).toBe fold
+          expect(line4.text).toMatch /^4-+/
+          expect(line4.bufferDelta).toEqual [1, 0]
+          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
@@ -276,11 +277,12 @@ describe "Renderer", ->
 
           fold.destroy()
 
-          expect(renderer.lineForRow(4).fold).toBeUndefined()
-          expect(renderer.lineForRow(4).text).toMatch /^4-+/
-          expect(renderer.lineForRow(4).bufferDelta).toEqual [1, 0]
-          expect(renderer.lineForRow(4).screenDelta).toEqual [1, 0]
-          expect(renderer.lineForRow(5).text).toBe '5'
+          [line4, line5] = renderer.linesForRows(4, 5)
+          expect(line4.fold).toBeUndefined()
+          expect(line4.text).toMatch /^4-+/
+          expect(line4.bufferDelta).toEqual [1, 0]
+          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
@@ -289,20 +291,30 @@ describe "Renderer", ->
           changeHandler.reset()
 
       describe "when a fold is nested within another fold", ->
-        it "only renders the placeholder for the inner fold when the outer fold is destroyed", ->
-          outerFold = renderer.createFold([[4, 29], [8, 36]])
-          innerFold = renderer.createFold([[8, 5], [8, 10]])
+        fit "does not render the placeholder for the inner fold until the outer fold is destroyed", ->
+          innerFold = renderer.createFold(6, 7)
+          outerFold = renderer.createFold(4, 8)
 
           [line4, line5] = renderer.linesForRows(4, 5)
-          expect(line4.text).toBe '    while(items.length > 0) {...concat(sort(right));'
-          expect(line5.text).toBe '  };'
+          expect(line4.fold).toBe outerFold
+          expect(line4.text).toMatch /4-+/
+          expect(line4.bufferDelta).toEqual [5, 0]
+          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line5.text).toMatch /9-+/
 
           outerFold.destroy()
 
-          [line4, line5] = renderer.linesForRows(4, 5)
-          expect(line4.text).toBe '    while(items.length > 0) {'
-          expect(line5.text).toBe '      current = items.shift();'
-          expect(renderer.lineForRow(8).text).toBe '    r... sort(left).concat(pivot).concat(sort(right));'
+          [line4, line5, line6, line7] = renderer.linesForRows(4, 7)
+          expect(line4.fold).toBeUndefined()
+          expect(line4.text).toMatch /^4-+/
+          expect(line4.bufferDelta).toEqual [1, 0]
+          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line5.text).toBe '5'
+          expect(line6.fold).toBe innerFold
+          expect(line6.text).toBe '6'
+          expect(line6.bufferDelta).toEqual [2, 0]
+          expect(line6.screenDelta).toEqual [1, 0]
+          expect(line7.text).toBe '8'
 
         it "allows the outer fold to start at the same location as the inner fold", ->
           renderer.createFold([[4, 29], [7, 4]])
