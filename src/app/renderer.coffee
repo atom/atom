@@ -137,7 +137,7 @@ class Renderer
     while startBufferRow <= endBufferRow
       screenLine = @highlighter.lineForRow(startBufferRow)
 
-      if fold = @foldForBufferRow(startBufferRow)
+      if fold = @largestFoldForBufferRow(startBufferRow)
         screenLine = screenLine.copy()
         screenLine.fold = fold
         screenLine.bufferDelta = fold.getBufferDelta()
@@ -184,8 +184,9 @@ class Renderer
     _.remove(folds, fold)
     delete @foldsById[fold.id]
 
-  foldForBufferRow: (bufferRow) ->
-    @activeFolds[bufferRow]?[0]
+  largestFoldForBufferRow: (bufferRow) ->
+    return unless folds = @activeFolds[bufferRow]
+    (folds.sort (a, b) -> b.endRow - a.endRow)[0]
 
   buildFoldPlaceholder: (fold) ->
 

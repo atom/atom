@@ -316,10 +316,16 @@ describe "Renderer", ->
           expect(line6.screenDelta).toEqual [1, 0]
           expect(line7.text).toBe '8'
 
-        it "allows the outer fold to start at the same location as the inner fold", ->
-          renderer.createFold([[4, 29], [7, 4]])
-          renderer.createFold([[4, 29], [9, 2]])
-          expect(renderer.lineForRow(4).text).toBe "    while(items.length > 0) {...};"
+        fit "allows the outer fold to start at the same location as the inner fold", ->
+          innerFold = renderer.createFold(4, 6)
+          outerFold = renderer.createFold(4, 8)
+
+          [line4, line5] = renderer.linesForRows(4, 5)
+          expect(line4.fold).toBe outerFold
+          expect(line4.text).toMatch /4-+/
+          expect(line4.bufferDelta).toEqual [5, 0]
+          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line5.text).toMatch /9-+/
 
       describe "when a fold begins on the line on which another fold ends", ->
         describe "when the second fold is created before the first fold", ->
