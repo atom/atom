@@ -55,8 +55,9 @@ class Renderer
     fold = new Fold(this, startRow, endRow)
     @registerFold(startRow, fold)
 
-    bufferRange = new Range([[startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)]])
+    bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
     oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
+
     lines = @buildLineForBufferRow(startRow)
     @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)
@@ -66,22 +67,17 @@ class Renderer
     fold
 
   destroyFold: (fold) ->
-    bufferRange = fold.getRange().copy()
-    @unregisterFold(bufferRange.start.row, fold)
+    @unregisterFold(fold.startRow, fold)
 
-    bufferRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(bufferRange.start.row))
-    startScreenRow = @screenRowForBufferRow(bufferRange.start.row)
-
+    { startRow, endRow } = fold
+    bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
     oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
-    lines = @buildLinesForBufferRows(bufferRange.start.row, bufferRange.end.row)
-    @lineMap.replaceScreenRows(
-      oldScreenRange.start.row,
-      oldScreenRange.end.row
-      lines)
+    lines = @buildLinesForBufferRows(startRow, endRow)
+    @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
-    @trigger 'unfold', fold.getRange()
+    @trigger 'unfold', bufferRange
 
   screenRowForBufferRow: (bufferRow) ->
     @lineMap.screenPositionForBufferPosition([bufferRow, 0]).row
@@ -137,31 +133,30 @@ class Renderer
     startBufferColumn = null
     currentScreenLineLength = 0
 
+    startBufferColumn = 0
     while startBufferRow <= endBufferRow
-      break if
-      startBufferColumn ?= 0
-      line = @highlighter.lineForRow(startBufferRow)
-      line = line.splitAt(startBufferColumn)[1]
-      wrapScreenColumn = @findWrapColumn(line.text, @maxLineLength - currentScreenLineLength)
+      screenLine = @highlighter.lineForRow(startBufferRow)
 
       if fold = @foldForBufferRow(startBufferRow)
-        placeholder = @buildFoldPlaceholder(fold)
-        lineFragments.push(placeholder)
-        startBufferRow = fold.end.row + 1
-        startBufferColumn = 0
-        currentScreenLineLength = 0
+        screenLine = screenLine.copy()
+        screenLine.fold = fold
+        screenLine.bufferDelta = fold.getBufferDelta()
+        lineFragments.push(screenLine)
+        startBufferRow = fold.endRow + 1
         continue
 
+      startBufferColumn ?= 0
+      screenLine = screenLine.splitAt(startBufferColumn)[1] if startBufferColumn > 0
+      wrapScreenColumn = @findWrapColumn(screenLine.text, @maxLineLength)
       if wrapScreenColumn?
-        line = line.splitAt(wrapScreenColumn)[0]
-        line.screenDelta = new Point(1, 0)
+        screenLine = screenLine.splitAt(wrapScreenColumn)[0]
+        screenLine.screenDelta = new Point(1, 0)
         startBufferColumn += wrapScreenColumn
       else
         startBufferRow++
-        startBufferColumn = null
+        startBufferColumn = 0
 
-      lineFragments.push(line)
-      currentScreenLineLength = 0
+      lineFragments.push(screenLine)
 
     lineFragments
 
@@ -186,16 +181,17 @@ class Renderer
 
   unregisterFold: (bufferRow, fold) ->
     folds = @activeFolds[bufferRow]
-    folds.splice(folds.indexOf(fold), 1)
+    _.remove(folds, fold)
     delete @foldsById[fold.id]
 
-  foldsForBufferRow: (bufferRow) ->
-    folds = @activeFolds[bufferRow] or []
-    folds.sort (a, b) -> a.compare(b)
+  foldForBufferRow: (bufferRow) ->
+    @activeFolds[bufferRow]?[0]
 
   buildFoldPlaceholder: (fold) ->
-    token = new Token(value: '...', type: 'fold-placeholder', fold: fold, isAtomic: true)
-    new ScreenLineFragment([token], token.value, [0, token.value.length], fold.getRange().toDelta())
+
+    # token = new Token(value: '...', type: 'fold-placeholder', fold: fold, isAtomic: true)
+    # delta = new Point(fold.endRow - fold.startRow + 1, 0)
+    # new ScreenLineFragment([token], token.value, [0, token.value.length], delta)
 
   screenLineRangeForBufferRange: (bufferRange) ->
     @expandScreenRangeToLineEnds(

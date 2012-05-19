@@ -223,16 +223,20 @@ describe "Renderer", ->
 
   describe "folding", ->
     beforeEach ->
-      buffer = new Buffer(require.resolve 'fixtures/two-hundred.js')
+      buffer = new Buffer(require.resolve 'fixtures/two-hundred.txt')
       renderer = new Renderer(buffer, {tabText})
+      renderer.on 'change', changeHandler
 
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->
         fit "replaces the lines spanned by the fold with a single line with a html class of 'fold'", ->
           fold = renderer.createFold(4, 7)
 
-          expect(renderer.lineForRow(4).text).toHaveClass('fold')
-          expect(renderer.lineForRow(4).text).toMatch /^4-+/
+          foldPlaceholder = renderer.lineForRow(4)
+          expect(foldPlaceholder.fold).toBe fold
+          expect(foldPlaceholder.text).toMatch /^4-+/
+          expect(foldPlaceholder.bufferDelta).toEqual [4, 0]
+          expect(foldPlaceholder.screenDelta).toEqual [1, 0]
           expect(renderer.lineForRow(5).text).toBe '8'
 
           expect(changeHandler).toHaveBeenCalled()
@@ -242,8 +246,10 @@ describe "Renderer", ->
           changeHandler.reset()
 
           fold.destroy()
-          expect(renderer.lineForRow(4).text).not.toHaveClass('fold')
+          expect(renderer.lineForRow(4).fold).toBeUndefined()
           expect(renderer.lineForRow(4).text).toMatch /^4-+/
+          expect(renderer.lineForRow(4).bufferDelta).toEqual [1, 0]
+          expect(renderer.lineForRow(4).screenDelta).toEqual [1, 0]
           expect(renderer.lineForRow(5).text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
@@ -252,29 +258,34 @@ describe "Renderer", ->
           expect(event.newRange).toEqual [[4, 0], [7, 1]]
 
       describe "when a fold spans a single line", ->
-        it "renders a placeholder for the folded region, but does not skip any lines", ->
-          fold = renderer.createFold([[2, 8], [2, 25]])
+        fit "renders a fold placeholder for the folded line but does not skip any lines", ->
+          fold = renderer.createFold(4, 4)
 
-          [line2, line3] = renderer.linesForRows(2, 3)
-          expect(line2.text).toBe '    if (...) return items;'
-          expect(line3.text).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          foldPlaceholder = renderer.lineForRow(4)
+          expect(foldPlaceholder.fold).toBe fold
+          expect(foldPlaceholder.text).toMatch /^4-+/
+          expect(foldPlaceholder.bufferDelta).toEqual [1, 0]
+          expect(foldPlaceholder.screenDelta).toEqual [1, 0]
+          expect(renderer.lineForRow(5).text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[2, 0], [2, 40]]
-          expect(event.newRange).toEqual [[2, 0], [2, 26]]
+          expect(event.oldRange).toEqual [[4, 0], [4, 101]]
+          expect(event.newRange).toEqual [[4, 0], [4, 101]]
           changeHandler.reset()
 
           fold.destroy()
 
-          [line2, line3] = renderer.linesForRows(2, 3)
-          expect(line2.text).toBe '    if (items.length <= 1) return items;'
-          expect(line3.text).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+          expect(renderer.lineForRow(4).fold).toBeUndefined()
+          expect(renderer.lineForRow(4).text).toMatch /^4-+/
+          expect(renderer.lineForRow(4).bufferDelta).toEqual [1, 0]
+          expect(renderer.lineForRow(4).screenDelta).toEqual [1, 0]
+          expect(renderer.lineForRow(5).text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.newRange).toEqual [[2, 0], [2, 40]]
-          expect(event.oldRange).toEqual [[2, 0], [2, 26]]
+          expect(event.oldRange).toEqual [[4, 0], [4, 101]]
+          expect(event.newRange).toEqual [[4, 0], [4, 101]]
           changeHandler.reset()
 
       describe "when a fold is nested within another fold", ->

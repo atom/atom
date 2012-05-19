@@ -1,4 +1,5 @@
 Range = require 'range'
+Point = require 'point'
 
 module.exports =
 class Fold
@@ -17,6 +18,9 @@ class Fold
   getRange: ->
     # new Range([@startRow, 0], @endRow)
     throw "Don't worry about this yet -- sobo"
+
+  getBufferDelta: ->
+    new Point(@endRow - @startRow + 1, 0)
 
   handleBufferChange: (event) ->
     # oldStartRow = @start.row

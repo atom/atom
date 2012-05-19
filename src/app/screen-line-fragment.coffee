@@ -14,6 +14,9 @@ class ScreenLineFragment
     @bufferDelta = Point.fromObject(bufferDelta)
     _.extend(this, extraFields)
 
+  copy: ->
+    new ScreenLineFragment(@tokens, @text, @screenDelta, @bufferDelta, { @state })
+
   splitAt: (column) ->
     return [new ScreenLineFragment([], '', [0, 0], [0, 0]), this] if column == 0
 

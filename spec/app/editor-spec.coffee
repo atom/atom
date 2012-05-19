@@ -2426,11 +2426,11 @@ describe "Editor", ->
       editor.attachToDom()
 
     describe "when a fold-selection event is triggered", ->
-      fit "folds the lines covered by the selection into a single line with a fold class", ->
+      it "folds the lines covered by the selection into a single line with a fold class", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'fold-selection'
 
-        expect(editor.visibleLines.find('.line:eq(4)').toHaveClass('fold')
+        expect(editor.visibleLines.find('.line:eq(4)')).toHaveClass('fold')
         expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '8'
 
         expect(editor.getSelection().isEmpty()).toBeTruthy()
