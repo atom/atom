@@ -461,18 +461,17 @@ class Editor extends View
     charWidth = @charWidth
     charHeight = @charHeight
     lines = @renderer.linesForRows(startRow, endRow)
+
     $$ ->
       for line in lines
-        @div class: 'line', =>
-          appendNbsp = true
-          for token in line.tokens
-            if token.type is 'fold-placeholder'
-              @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight}px;", 'foldId': token.fold.id, =>
-                @div class: "ellipsis", => @raw "&hellip;"
-            else
-              appendNbsp = false
+        lineClass = 'line'
+        lineClass += ' fold' if line.fold?
+        @div class: lineClass, =>
+          if line.text == ''
+            @raw '&nbsp;' if line.text == ''
+          else
+            for token in line.tokens
               @span { class: token.type.replace('.', ' ') }, token.value
-          @raw '&nbsp;' if appendNbsp
 
   insertLineElements: (row, lineElements) ->
     @spliceLineElements(row, 0, lineElements)

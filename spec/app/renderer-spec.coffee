@@ -291,7 +291,7 @@ describe "Renderer", ->
           changeHandler.reset()
 
       describe "when a fold is nested within another fold", ->
-        fit "does not render the placeholder for the inner fold until the outer fold is destroyed", ->
+        it "does not render the placeholder for the inner fold until the outer fold is destroyed", ->
           innerFold = renderer.createFold(6, 7)
           outerFold = renderer.createFold(4, 8)
 
@@ -316,7 +316,7 @@ describe "Renderer", ->
           expect(line6.screenDelta).toEqual [1, 0]
           expect(line7.text).toBe '8'
 
-        fit "allows the outer fold to start at the same location as the inner fold", ->
+        it "allows the outer fold to start at the same location as the inner fold", ->
           innerFold = renderer.createFold(4, 6)
           outerFold = renderer.createFold(4, 8)
 
