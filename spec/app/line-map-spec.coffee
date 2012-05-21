@@ -34,7 +34,6 @@ describe "LineMap", ->
       expect(map.lineForScreenRow(0)).toEqual line1
       expect(map.lineForScreenRow(1)).toEqual line0a.concat(line0b)
 
-
   describe ".spliceAtBufferRow(bufferRow, rowCount, lineFragments)", ->
     describe "when called with a row count of 0", ->
       it "inserts the given line fragments before the specified buffer row", ->
