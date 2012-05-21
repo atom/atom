@@ -556,5 +556,5 @@ describe "Renderer", ->
   describe ".bufferRowsForScreenRows()", ->
     it "returns the buffer rows corresponding to each screen row in the given range", ->
       renderer.setMaxLineLength(50)
-      renderer.createFold([[4, 29], [7, 4]])
+      renderer.createFold(4, 7)
       expect(renderer.bufferRowsForScreenRows()).toEqual [0, 1, 2, 3, 3, 4, 8, 8, 9, 10, 11, 12]
