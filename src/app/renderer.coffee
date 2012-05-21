@@ -120,6 +120,7 @@ class Renderer
 
     oldScreenRange = @screenLineRangeForBufferRange(oldBufferRange)
     newScreenLines = @buildLinesForBufferRows(newBufferRange.start.row, newBufferRange.end.row)
+
     @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
     newScreenRange = @screenLineRangeForBufferRange(newBufferRange)
 
@@ -190,7 +191,6 @@ class Renderer
     (folds.sort (a, b) -> b.endRow - a.endRow)[0]
 
   buildFoldPlaceholder: (fold) ->
-
     # token = new Token(value: '...', type: 'fold-placeholder', fold: fold, isAtomic: true)
     # delta = new Point(fold.endRow - fold.startRow + 1, 0)
     # new ScreenLineFragment([token], token.value, [0, token.value.length], delta)
