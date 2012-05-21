@@ -1,4 +1,4 @@
-  RootView = require 'root-view'
+RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 Range = require 'range'
