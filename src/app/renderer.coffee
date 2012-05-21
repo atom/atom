@@ -131,18 +131,19 @@ class Renderer
   buildLinesForBufferRows: (startBufferRow, endBufferRow) ->
     lineFragments = []
     startBufferColumn = null
+    currentBufferRow = startBufferRow
     currentScreenLineLength = 0
 
     startBufferColumn = 0
-    while startBufferRow <= endBufferRow
-      screenLine = @highlighter.lineForRow(startBufferRow)
+    while currentBufferRow <= endBufferRow
+      screenLine = @highlighter.lineForRow(currentBufferRow)
 
-      if fold = @largestFoldForBufferRow(startBufferRow)
+      if fold = @largestFoldForBufferRow(currentBufferRow)
         screenLine = screenLine.copy()
         screenLine.fold = fold
         screenLine.bufferDelta = fold.getBufferDelta()
         lineFragments.push(screenLine)
-        startBufferRow = fold.endRow + 1
+        currentBufferRow = fold.endRow + 1
         continue
 
       startBufferColumn ?= 0
@@ -153,7 +154,7 @@ class Renderer
         screenLine.screenDelta = new Point(1, 0)
         startBufferColumn += wrapScreenColumn
       else
-        startBufferRow++
+        currentBufferRow++
         startBufferColumn = 0
 
       lineFragments.push(screenLine)
