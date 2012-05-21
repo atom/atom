@@ -584,17 +584,9 @@ describe "Editor", ->
 
     describe "when there are folds", ->
       it "skips line numbers", ->
-        editor.createFold([[3, 10], [5, 1]])
+        editor.createFold(3, 5)
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
-
-    describe "when there is a fold on the last screen line of a wrapped line", ->
-      it "renders line numbers correctly when the fold is destroyed (regression)", ->
-        setEditorHeightInLines(editor, 20)
-        editor.setMaxLineLength(50)
-        fold = editor.createFold([[3, 52], [3, 56]])
-        fold.destroy()
-        expect(editor.gutter.find('.line-number:last').text()).toBe '13'
 
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->
@@ -905,46 +897,50 @@ describe "Editor", ->
         beforeEach ->
           setEditorWidthInChars(editor, 50)
           editor.setSoftWrap(true)
-          editor.createFold(new Range([3, 3], [3, 7]))
+          editor.createFold(2, 3)
 
         describe "when it is a single click", ->
           it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7])
-            expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 58)
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [9, 0])
+            expect(editor.getCursorBufferPosition()).toEqual(row: 8, column: 11)
 
         describe "when it is a double click", ->
           it "selects the word under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [9, 0], originalEvent: {detail: 1})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
-            expect(editor.getSelectedText()).toBe "right"
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [9, 0], originalEvent: {detail: 2})
+            expect(editor.getSelectedText()).toBe "sort"
 
         describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
           it "selects the line under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             # Triple click
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
+            point = [9, 3]
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 1})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 2})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 3})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 3})
             editor.visibleLines.trigger 'mouseup'
-            expect(editor.getSelectedText()).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.getSelectedText()).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+
+            editor.logLines()
 
             # Quad click
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 1})
+            point = [12, 3]
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 1})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 2})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 2})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 3})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 3})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 4})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 4})
             editor.visibleLines.trigger 'mouseup'
 
-            expect(editor.getSelectedText()).toBe "      current < pivot ? left.push(current) : right.push(current);"
+            expect(editor.getSelectedText()).toBe "  return sort(Array.apply(this, arguments));"
 
       describe "when soft-wrap is disabled", ->
         describe "when it is a single click", ->
@@ -1180,13 +1176,6 @@ describe "Editor", ->
     describe "when editing a line that spans a single screen line", ->
       describe "when a newline is inserted", ->
         it "indents cursor based on the indentation of previous buffer line", ->
-          editor.setCursorBufferPosition([1, 30])
-          editor.insertText("\n")
-          expect(editor.buffer.lineForRow(2)).toEqual("    ")
-
-      describe "when a newline is inserted following a fold placeholder", ->
-        it "indents cursor based on the indentation of previous buffer line", ->
-          editor.createFold([[1, 10], [1, 30]])
           editor.setCursorBufferPosition([1, 30])
           editor.insertText("\n")
           expect(editor.buffer.lineForRow(2)).toEqual("    ")
