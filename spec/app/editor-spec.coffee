@@ -2426,7 +2426,7 @@ describe "Editor", ->
         expect(editor.getCursorScreenPosition()).toEqual [5, 0]
 
     describe "when a fold placeholder line is clicked", ->
-      fit "removes the associated fold and places the cursor at its beginning", ->
+      it "removes the associated fold and places the cursor at its beginning", ->
         editor.getSelection().setBufferRange(new Range([3, 0], [9, 0]))
         editor.trigger 'fold-selection'
 
