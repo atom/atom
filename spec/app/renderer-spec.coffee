@@ -345,33 +345,26 @@ describe "Renderer", ->
           expect(event.newRange).toEqual [[1, 0], [1, 9]]
 
     describe "position translation", ->
-      describe "when there is single fold spanning multiple lines", ->
-        it "translates positions to account for folded lines and characters and the placeholder", ->
-          renderer.createFold([[4, 29], [7, 4]])
+      it "translates positions to account for folded lines and characters and the placeholder", ->
+        renderer.createFold(4, 7)
 
-          # preceding fold: identity
-          expect(renderer.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
-          expect(renderer.screenPositionForBufferPosition([4, 0])).toEqual [4, 0]
-          expect(renderer.screenPositionForBufferPosition([4, 29])).toEqual [4, 29]
+        # preceding fold: identity
+        expect(renderer.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
+        expect(renderer.screenPositionForBufferPosition([4, 0])).toEqual [4, 0]
 
-          expect(renderer.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
-          expect(renderer.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
-          expect(renderer.bufferPositionForScreenPosition([4, 29])).toEqual [4, 29]
+        expect(renderer.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
+        expect(renderer.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
 
-          # inside of fold: translate to the start of the fold
-          expect(renderer.screenPositionForBufferPosition([4, 35])).toEqual [4, 29]
-          expect(renderer.screenPositionForBufferPosition([5, 5])).toEqual [4, 29]
+        # inside of fold: translate to the start of the fold
+        expect(renderer.screenPositionForBufferPosition([4, 35])).toEqual [4, 0]
+        expect(renderer.screenPositionForBufferPosition([5, 5])).toEqual [4, 0]
 
-          # following fold, on last line of fold
-          expect(renderer.screenPositionForBufferPosition([7, 4])).toEqual [4, 32]
-          expect(renderer.bufferPositionForScreenPosition([4, 32])).toEqual [7, 4]
+        # following fold
+        expect(renderer.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
+        expect(renderer.screenPositionForBufferPosition([11, 2])).toEqual [8, 2]
 
-          # # following fold, subsequent line
-          expect(renderer.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
-          expect(renderer.screenPositionForBufferPosition([11, 13])).toEqual [8, 13]
-
-          expect(renderer.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
-          expect(renderer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
+        expect(renderer.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
+        expect(renderer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
 
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
