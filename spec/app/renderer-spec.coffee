@@ -395,6 +395,10 @@ describe "Renderer", ->
         expect(renderer.clipScreenPosition([0, 30], wrapBeyondNewlines: true)).toEqual [1, 0]
         expect(renderer.clipScreenPosition([0, 1000], wrapBeyondNewlines: true)).toEqual [1, 0]
 
+      it "wraps positions in the middle of fold lines to the next screen line", ->
+        renderer.createFold(3, 5)
+        expect(renderer.clipScreenPosition([3, 5], wrapBeyondNewlines: true)).toEqual [4, 0]
+
     describe "when wrapAtSoftNewlines is false (the default)", ->
       it "clips positions at the end of soft-wrapped lines to the character preceding the end of the line", ->
         expect(renderer.clipScreenPosition([3, 50])).toEqual [3, 50]

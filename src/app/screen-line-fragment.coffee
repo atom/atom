@@ -49,11 +49,7 @@ class ScreenLineFragment
 
   translateColumn: (sourceDeltaType, targetDeltaType, sourceColumn, options={}) ->
     { skipAtomicTokens } = options
-    if @fold
-      textLength = 0
-    else
-      textLength = @text.length
-    sourceColumn = Math.min(sourceColumn, textLength)
+    sourceColumn = Math.min(sourceColumn, @textLength())
 
     currentSourceColumn = 0
     currentTargetColumn = 0
@@ -74,6 +70,12 @@ class ScreenLineFragment
     else
       remainingColumns = sourceColumn - currentSourceColumn
       currentTargetColumn + remainingColumns
+
+  textLength: ->
+    if @fold
+      textLength = 0
+    else
+      textLength = @text.length
 
   isSoftWrapped: ->
     @screenDelta.row == 1 and @bufferDelta.row == 0
