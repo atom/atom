@@ -111,17 +111,12 @@ class Renderer
     @handleHighlighterChange(@lastHighlighterChangeEvent)
 
   handleHighlighterChange: (e) ->
-    oldBufferRange = e.oldRange.copy()
-    newBufferRange = e.newRange.copy()
+    { oldRange, newRange } = e
 
-    oldBufferRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(oldBufferRange.start.row))
-    newBufferRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(newBufferRange.start.row))
-
-    oldScreenRange = @screenLineRangeForBufferRange(oldBufferRange)
-    newScreenLines = @buildLinesForBufferRows(newBufferRange.start.row, newBufferRange.end.row)
-
+    oldScreenRange = @screenLineRangeForBufferRange(oldRange)
+    newScreenLines = @buildLinesForBufferRows(newRange.start.row, newRange.end.row)
     @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
-    newScreenRange = @screenLineRangeForBufferRange(newBufferRange)
+    newScreenRange = @screenLineRangeForBufferRange(newRange)
 
     @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange, bufferChanged: true }
 
