@@ -16,39 +16,35 @@ class Fold
     @renderer.destroyFold(this)
 
   getRange: ->
-    # new Range([@startRow, 0], @endRow)
     throw "Don't worry about this yet -- sobo"
 
   getBufferDelta: ->
     new Point(@endRow - @startRow + 1, 0)
 
   handleBufferChange: (event) ->
-    # oldStartRow = @start.row
+    oldStartRow = @startRow
 
-    # { oldRange } = event
-    # if oldRange.start.isLessThanOrEqual(@start) and oldRange.end.isGreaterThanOrEqual(@end)
-    #   @renderer.unregisterFold(oldStartRow, this)
-    #   return
+    { oldRange } = event
+    if oldRange.start.row <= @startRow and oldRange.end.row >= @endRow
+      @renderer.unregisterFold(oldStartRow, this)
+      return
 
-    # changeInsideFold = @start.isLessThanOrEqual(oldRange.start) and @end.isGreaterThan(oldRange.end)
+    changeInsideFold = @startRow <= oldRange.start.row and @endRow >= oldRange.end.row
+    @startRow = @updateAnchorRow(@startRow, event)
+    @endRow = @updateAnchorRow(@endRow, event)
 
-    # @start = @updateAnchorPoint(@start, event)
-    # @end = @updateAnchorPoint(@end, event, false)
+    if @startRow != oldStartRow
+      @renderer.unregisterFold(oldStartRow, this)
+      @renderer.registerFold(@startRow, this)
 
-    # if @start.row != oldStartRow
-    #   @renderer.unregisterFold(oldStartRow, this)
-    #   @lineFolder.registerFold(@start.row, this)
+    changeInsideFold
 
-    # changeInsideFold
+  updateAnchorRow: (row, event) ->
+    { newRange, oldRange } = event
+    return row if row < oldRange.start.row
 
-  updateAnchorPoint: (point, event, inclusive=true) ->
-    # { newRange, oldRange } = event
-    # if inclusive
-    #   return point if oldRange.end.isGreaterThan(point)
-    # else
-    #   return point if oldRange.end.isGreaterThanOrEqual(point)
-
-    # newRange.end.add(point.subtract(oldRange.end))
+    deltaFromOldRangeEndRow = row - oldRange.end.row
+    newRange.end.row + deltaFromOldRangeEndRow
 
   compare: (other) ->
     other

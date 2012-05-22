@@ -330,105 +330,111 @@ describe "Renderer", ->
     describe "when the buffer changes", ->
       [fold1, fold2] = []
       beforeEach ->
-        fold1 = renderer.createFold([[4, 29], [7, 4]])
-        fold2 = renderer.createFold([[7, 5], [8, 36]])
+        fold1 = renderer.createFold(2, 4)
+        fold2 = renderer.createFold(6, 8)
         changeHandler.reset()
 
       describe "when the old range precedes lines with a fold", ->
         it "updates the buffer and re-positions subsequent folds", ->
-          buffer.change([[1, 5], [2, 10]], 'abc')
+          buffer.change([[0, 0], [1, 1]], 'abc')
 
-          expect(renderer.lineForRow(1).text).toBe '  varabcems.length <= 1) return items;'
-          expect(renderer.lineForRow(3).text).toBe '    while(items.length > 0) {...}...concat(sort(right));'
+          expect(renderer.lineForRow(0).text).toBe "abc"
+          expect(renderer.lineForRow(1).fold).toBe fold1
+          expect(renderer.lineForRow(2).text).toBe "5"
+          expect(renderer.lineForRow(3).fold).toBe fold2
+          expect(renderer.lineForRow(4).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[1, 0], [2, 40]]
-          expect(event.newRange).toEqual [[1, 0], [1, 38]]
+          expect(event.oldRange).toEqual [[0, 0], [1, 1]]
+          expect(event.newRange).toEqual [[0, 0], [0, 3]]
           changeHandler.reset()
 
           fold1.destroy()
-          expect(renderer.lineForRow(3).text).toBe '    while(items.length > 0) {'
-          expect(renderer.lineForRow(6).text).toBe '    }...concat(sort(right));'
+          expect(renderer.lineForRow(0).text).toBe "abc"
+          expect(renderer.lineForRow(1).text).toBe "2"
+          expect(renderer.lineForRow(3).text).toMatch /^4-+/
+          expect(renderer.lineForRow(4).text).toBe "5"
+          expect(renderer.lineForRow(5).fold).toBe fold2
+          expect(renderer.lineForRow(6).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[3, 0], [3, 56]]
-          expect(event.newRange).toEqual [[3, 0], [6, 28]]
+          expect(event.oldRange).toEqual [[1, 0], [1, 1]]
+          expect(event.newRange).toEqual [[1, 0], [3, 101]]
 
       describe "when the old range follows lines with a fold", ->
         it "re-positions the screen ranges for the change event based on the preceding fold", ->
-          buffer.change([[9, 3], [10, 0]], 'abc')
+          buffer.change([[10, 0], [11, 0]], 'abc')
 
-          expect(renderer.lineForRow(5).text).toBe '  }abc'
-          expect(renderer.lineForRow(6).text).toBe '  return sort(Array.apply(this, arguments));'
+          expect(renderer.lineForRow(1).text).toBe "1"
+          expect(renderer.lineForRow(2).fold).toBe fold1
+          expect(renderer.lineForRow(3).text).toBe "5"
+          expect(renderer.lineForRow(4).fold).toBe fold2
+          expect(renderer.lineForRow(5).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[5, 0], [6, 0]]
-          expect(event.newRange).toEqual [[5, 0], [5, 6]]
+          expect(event.oldRange).toEqual [[6, 0], [7, 2]] # Expands ranges to encompes entire line
+          expect(event.newRange).toEqual [[6, 0], [6, 5]]
 
-      describe "when the old range contains unfolded text on the first line of a fold, preceding the fold placeholder", ->
-        it "re-renders the line with the placeholder and re-positions the fold", ->
-          buffer.change([[4, 4], [4, 9]], 'slongaz')
-
-          expect(renderer.lineForRow(4).text).toBe '    slongaz(items.length > 0) {...}...concat(sort(right));'
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
-          expect(event.newRange).toEqual [[4, 0], [4, 58]]
-
-          fold1.destroy()
-          expect(renderer.lineForRow(4).text).toBe '    slongaz(items.length > 0) {'
-
-      describe "when the old range is contained to a single line in-between two fold placeholders", ->
+      describe "when the old range is contained to a single line in-between two folds", ->
         it "re-renders the line with the placeholder and re-positions the second fold", ->
-          buffer.insert([7, 4], 'abc')
-          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...abc}...concat(sort(right));'
+          buffer.insert([5, 0], 'abc\n')
+
+          expect(renderer.lineForRow(1).text).toBe "1"
+          expect(renderer.lineForRow(2).fold).toBe fold1
+          expect(renderer.lineForRow(3).text).toMatch "abc"
+          expect(renderer.lineForRow(4).text).toBe "5"
+          expect(renderer.lineForRow(5).fold).toBe fold2
+          expect(renderer.lineForRow(6).text).toMatch /^9-+/
+
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
-          expect(event.newRange).toEqual [[4, 0], [4, 59]]
-
-          fold2.destroy()
-          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...abc}'
+          expect(event.oldRange).toEqual [[3, 0], [3, 1]]
+          expect(event.newRange).toEqual [[3, 0], [4, 1]]
 
       describe "when the old range is inside a fold", ->
         it "does not trigger a change event, but updates the fold and ensures the change is present when the fold is destroyed", ->
-          buffer.change([[4, 29], [6, 0]], 'abc')
+          buffer.change([[2, 0], [2, 0]], 'abc')
 
-          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {...}...concat(sort(right));'
+          expect(renderer.lineForRow(1).text).toBe "1"
+          expect(renderer.lineForRow(2).fold).toBe fold1
+          expect(renderer.lineForRow(3).text).toMatch "5"
+          expect(renderer.lineForRow(4).fold).toBe fold2
+          expect(renderer.lineForRow(5).text).toMatch /^9-+/
+
           expect(changeHandler).not.toHaveBeenCalled()
-
-          fold1.destroy()
-          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {abc      current < pivot ? left.push(current) : right.push(current);'
-          expect(renderer.lineForRow(5).text).toBe '    }...concat(sort(right));'
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
-          expect(event.newRange).toEqual [[4, 0], [5, 28]]
 
       describe "when the old range surrounds a fold", ->
         it "removes the fold and replaces the fold placeholder with the new text", ->
-          buffer.change([[4, 29], [7, 4]], 'party()')
+          buffer.change([[1, 0], [5, 1]], 'party!')
 
-          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 0) {party()}...concat(sort(right));'
+          expect(renderer.lineForRow(0).text).toBe "0"
+          expect(renderer.lineForRow(1).text).toBe "party!"
+          expect(renderer.lineForRow(2).fold).toBe fold2
+          expect(renderer.lineForRow(3).text).toMatch /^9-+/
+
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
-          expect(event.newRange).toEqual [[4, 0], [4, 60]]
+          expect(event.oldRange).toEqual [[1, 0], [3, 1]]
+          expect(event.newRange).toEqual [[1, 0], [1, 6]]
 
       describe "when the old range surrounds two nested folds", ->
         it "removes both folds and replaces the fold placeholder with the new text", ->
-          renderer.createFold([[4, 25], [7, 5]])
-          buffer.change([[4, 25], [7, 5]], '4)')
+          renderer.createFold(2, 9)
+          changeHandler.reset()
 
-          expect(renderer.lineForRow(4).text).toBe '    while(items.length > 4)...concat(sort(right));'
+          buffer.change([[1, 0], [10, 0]], 'goodbye')
+
+          expect(renderer.lineForRow(0).text).toBe "0"
+          expect(renderer.lineForRow(1).text).toBe "goodbye10"
+          expect(renderer.lineForRow(2).text).toBe "11"
+
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 56]]
-          expect(event.newRange).toEqual [[4, 0], [4, 51]]
+          expect(event.oldRange).toEqual [[1, 0], [3, 2]]
+          expect(event.newRange).toEqual [[1, 0], [1, 9]]
 
     describe "position translation", ->
       describe "when there is single fold spanning multiple lines", ->
@@ -556,5 +562,5 @@ describe "Renderer", ->
   describe ".bufferRowsForScreenRows()", ->
     it "returns the buffer rows corresponding to each screen row in the given range", ->
       renderer.setMaxLineLength(50)
-      renderer.createFold([[4, 29], [7, 4]])
+      renderer.createFold(4, 7)
       expect(renderer.bufferRowsForScreenRows()).toEqual [0, 1, 2, 3, 3, 4, 8, 8, 9, 10, 11, 12]
