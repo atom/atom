@@ -927,8 +927,6 @@ describe "Editor", ->
             editor.visibleLines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
-            editor.logLines()
-
             # Quad click
             point = [12, 3]
             editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 1})
