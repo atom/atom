@@ -15,9 +15,6 @@ class Fold
   destroy: ->
     @renderer.destroyFold(this)
 
-  getRange: ->
-    throw "Don't worry about this yet -- sobo"
-
   getBufferDelta: ->
     new Point(@endRow - @startRow + 1, 0)
 
@@ -45,11 +42,3 @@ class Fold
 
     deltaFromOldRangeEndRow = row - oldRange.end.row
     newRange.end.row + deltaFromOldRangeEndRow
-
-  compare: (other) ->
-    other
-    # startComparison = @start.compare(other.start)
-    # if startComparison == 0
-    #   other.end.compare(@end)
-    # else
-    #   startComparison
