@@ -119,6 +119,7 @@ class Editor extends View
       'redo': @redo
       'toggle-soft-wrap': @toggleSoftWrap
       'fold-selection': @foldSelection
+      'unfold': => @unfoldRow(@getCursorBufferPosition().row)
       'split-left': @splitLeft
       'split-right': @splitRight
       'split-up': @splitUp
@@ -680,6 +681,9 @@ class Editor extends View
   paste: -> @insertText($native.readFromPasteboard())
 
   foldSelection: -> @getSelection().fold()
+
+  unfoldRow: (row) ->
+    @renderer.largestFoldForBufferRow(row)?.destroy()
 
   undo: ->
     if ranges = @buffer.undo()

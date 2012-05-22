@@ -2436,6 +2436,20 @@ describe "Editor", ->
 
         expect(editor.getCursorBufferPosition()).toEqual [3, 0]
 
+    describe "when a cursor is on a fold placeholder line", ->
+      it "removes the associated fold and places the cursor at its beginning", ->
+        editor.getSelection().setBufferRange(new Range([3, 0], [9, 0]))
+        editor.trigger 'fold-selection'
+
+        editor.setCursorBufferPosition([3,0])
+        editor.trigger 'unfold'
+
+        expect(editor.find('.fold')).not.toExist()
+        expect(editor.visibleLines.find('.line:eq(4)').text()).toMatch /4-+/
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toMatch /5/
+
+        expect(editor.getCursorBufferPosition()).toEqual [3, 0]
+
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->
       editor = new Editor
