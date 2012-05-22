@@ -27,8 +27,8 @@ class Fold
       return
 
     changeInsideFold = @startRow <= oldRange.start.row and @endRow >= oldRange.end.row
-    @startRow = @updateAnchorRow(@startRow, event)
-    @endRow = @updateAnchorRow(@endRow, event)
+    @updateStartRow(event)
+    @updateEndRow(event)
 
     if @startRow != oldStartRow
       @renderer.unregisterFold(oldStartRow, this)
@@ -36,9 +36,16 @@ class Fold
 
     changeInsideFold
 
-  updateAnchorRow: (row, event) ->
+  updateStartRow: (event) ->
     { newRange, oldRange } = event
-    return row if row < oldRange.start.row
+    return if oldRange.start.row >= @startRow
 
-    deltaFromOldRangeEndRow = row - oldRange.end.row
-    newRange.end.row + deltaFromOldRangeEndRow
+    deltaFromOldRangeEndRow = @startRow - oldRange.end.row
+    @startRow = newRange.end.row + deltaFromOldRangeEndRow
+
+  updateEndRow: (event) ->
+    { newRange, oldRange } = event
+    return if oldRange.start.row > @endRow
+
+    deltaFromOldRangeEndRow = @endRow - oldRange.end.row
+    @endRow = newRange.end.row + deltaFromOldRangeEndRow

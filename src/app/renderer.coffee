@@ -106,10 +106,9 @@ class Renderer
   handleBufferChange: (e) ->
     for row, folds of @activeFolds
       for fold in new Array(folds...)
-        changeInsideFold = true if fold.handleBufferChange(e)
+        fold.handleBufferChange(e)
 
-    unless changeInsideFold
-      @handleHighlighterChange(@lastHighlighterChangeEvent)
+    @handleHighlighterChange(@lastHighlighterChangeEvent)
 
   handleHighlighterChange: (e) ->
     oldBufferRange = e.oldRange.copy()

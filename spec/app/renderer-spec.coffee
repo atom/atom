@@ -304,15 +304,22 @@ describe "Renderer", ->
 
       describe "when the old range is inside a fold", ->
         it "does not trigger a change event, but updates the fold and ensures the change is present when the fold is destroyed", ->
-          buffer.change([[2, 0], [2, 0]], 'abc')
+          buffer.insert([2, 0], '\n')
+          expect(fold1.startRow).toBe 2
+          expect(fold1.endRow).toBe 5
 
           expect(renderer.lineForRow(1).text).toBe "1"
+          expect(renderer.lineForRow(2).text).toBe ""
           expect(renderer.lineForRow(2).fold).toBe fold1
+          expect(renderer.lineForRow(2).bufferDelta).toEqual [4, 0]
           expect(renderer.lineForRow(3).text).toMatch "5"
           expect(renderer.lineForRow(4).fold).toBe fold2
           expect(renderer.lineForRow(5).text).toMatch /^9-+/
 
-          expect(changeHandler).not.toHaveBeenCalled()
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[2, 0], [2, 1]]
+          expect(event.newRange).toEqual [[2, 0], [2, 0]]
 
       describe "when the old range surrounds a fold", ->
         it "removes the fold and replaces the fold placeholder with the new text", ->
