@@ -49,7 +49,10 @@ class ScreenLineFragment
 
   translateColumn: (sourceDeltaType, targetDeltaType, sourceColumn, options={}) ->
     { skipAtomicTokens } = options
-    textLength = @text.length
+    if @fold
+      textLength = 0
+    else
+      textLength = @text.length
     sourceColumn = Math.min(sourceColumn, textLength)
 
     currentSourceColumn = 0
