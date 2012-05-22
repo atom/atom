@@ -927,8 +927,6 @@ describe "Editor", ->
             editor.visibleLines.trigger 'mouseup'
             expect(editor.getSelectedText()).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
-            editor.logLines()
-
             # Quad click
             point = [12, 3]
             editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 1})
@@ -2425,22 +2423,18 @@ describe "Editor", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.getCursorScreenPosition()).toEqual [5, 0]
 
-    # describe "when a fold placeholder is clicked", ->
-    #   it "removes the associated fold and places the cursor at its beginning", ->
-    #     editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
-    #     editor.trigger 'fold-selection'
+    describe "when a fold placeholder line is clicked", ->
+      it "removes the associated fold and places the cursor at its beginning", ->
+        editor.getSelection().setBufferRange(new Range([3, 0], [9, 0]))
+        editor.trigger 'fold-selection'
 
-    #     editor.find('.fold-placeholder .ellipsis').mousedown()
+        editor.find('.fold.line').mousedown()
 
-    #     expect(editor.find('.fold-placeholder')).not.toExist()
-    #     expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
+        expect(editor.find('.fold')).not.toExist()
+        expect(editor.visibleLines.find('.line:eq(4)').text()).toMatch /4-+/
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toMatch /5/
 
-    #     expect(editor.getCursorBufferPosition()).toEqual [4, 29]
-
-    # describe "when there is nothing on a line except a fold placeholder", ->
-    #   it "follows the placeholder with a non-breaking space to ensure the line has the proper height", ->
-    #     editor.createFold([[1, 0], [1, 30]])
-    #     expect(editor.visibleLines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
+        expect(editor.getCursorBufferPosition()).toEqual [3, 0]
 
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->

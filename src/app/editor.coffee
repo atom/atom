@@ -173,8 +173,8 @@ class Editor extends View
       @isFocused = false
       @removeClass 'focused'
 
-    @visibleLines.on 'mousedown', '.fold-placeholder', (e) =>
-      @destroyFold($(e.currentTarget).attr('foldId'))
+    @visibleLines.on 'mousedown', '.fold.line', (e) =>
+      @destroyFold($(e.currentTarget).attr('fold-id'))
       false
 
     @visibleLines.on 'mousedown', (e) =>
@@ -464,9 +464,11 @@ class Editor extends View
 
     $$ ->
       for line in lines
-        lineClass = 'line'
-        lineClass += ' fold' if line.fold?
-        @div class: lineClass, =>
+        if fold = line.fold
+          lineAttributes = { class: 'fold line', 'fold-id': fold.id }
+        else
+          lineAttributes = { class: 'line' }
+        @div lineAttributes, =>
           if line.text == ''
             @raw '&nbsp;' if line.text == ''
           else
@@ -690,7 +692,7 @@ class Editor extends View
   destroyFold: (foldId) ->
     fold = @renderer.foldsById[foldId]
     fold.destroy()
-    @setCursorBufferPosition(fold.start)
+    @setCursorBufferPosition([fold.startRow, 0])
 
   splitLeft: ->
     @pane()?.splitLeft(@copy()).wrappedView

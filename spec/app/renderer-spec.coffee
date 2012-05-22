@@ -43,98 +43,6 @@ describe "Renderer", ->
           expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
           expect(renderer.lineForRow(4).text).toBe 'right = [];'
 
-      describe "when a fold is created on the last screen line of a wrapped buffer line", ->
-        it "inserts the placeholder in the correct location and fires a change event", ->
-          fold = renderer.createFold([[3, 52], [3, 56]])
-          expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
-          expect(renderer.lineForRow(4).text).toBe 'r... = [];'
-          expect(renderer.lineForRow(5).text).toBe '    while(items.length > 0) {'
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]]= changeHandler.argsForCall
-          expect(event.oldRange).toEqual([[3, 0], [4, 11]])
-          expect(event.newRange).toEqual([[3, 0], [4, 10]])
-
-          changeHandler.reset()
-          fold.destroy()
-
-          expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = [], '
-          expect(renderer.lineForRow(4).text).toBe 'right = [];'
-          expect(renderer.lineForRow(5).text).toBe '    while(items.length > 0) {'
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]]= changeHandler.argsForCall
-          expect(event.oldRange).toEqual([[3, 0], [4, 10]])
-          expect(event.newRange).toEqual([[3, 0], [4, 11]])
-
-      describe "when a fold is created on the penultimate screen line of a wrapped buffer line", ->
-        beforeEach ->
-          renderer.setMaxLineLength(36)
-          changeHandler.reset()
-
-        it "inserts the placeholder in the correct location and fires a change event", ->
-          fold = renderer.createFold([[6, 29], [6, 33]])
-          expect(renderer.lineForRow(8).text).toBe "      current < pivot ? "
-          expect(renderer.lineForRow(9).text).toBe "left....(current) : "
-          expect(renderer.lineForRow(10).text).toBe "right.push(current);"
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]]= changeHandler.argsForCall
-          expect(event.oldRange).toEqual([[8, 0], [10, 20]])
-          expect(event.newRange).toEqual([[8, 0], [10, 20]])
-
-          changeHandler.reset()
-          fold.destroy()
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]]= changeHandler.argsForCall
-          expect(event.oldRange).toEqual([[8, 0], [10, 20]])
-          expect(event.newRange).toEqual([[8, 0], [10, 20]])
-
-      describe "when a fold ends on the penultimate screen line of a wrapped buffer line", ->
-        beforeEach ->
-          renderer.setMaxLineLength(36)
-          changeHandler.reset()
-
-        it "inserts the placeholder in the correct location and fires a change event", ->
-          fold = renderer.createFold([[5, 0], [6, 29]])
-          expect(renderer.lineForRow(6).text).toBe "    while(items.length > 0) {"
-          expect(renderer.lineForRow(7).text).toBe "...push(current) : "
-          expect(renderer.lineForRow(8).text).toBe "right.push(current);"
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]]= changeHandler.argsForCall
-          expect(event.oldRange).toEqual([[7, 0], [10, 20]])
-          expect(event.newRange).toEqual([[7, 0], [8, 20]])
-
-          changeHandler.reset()
-          fold.destroy()
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]]= changeHandler.argsForCall
-          expect(event.oldRange).toEqual([[7, 0], [8, 20]])
-          expect(event.newRange).toEqual([[7, 0], [10, 20]])
-
-      describe "when there is a fold placeholder straddling the max length boundary", ->
-        it "wraps the line before the fold placeholder", ->
-          renderer.createFold([[3, 49], [6, 1]])
-
-          expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = []'
-          expect(renderer.lineForRow(4).text).toBe '...     current < pivot ? left.push(current) : '
-          expect(renderer.lineForRow(5).text).toBe 'right.push(current);'
-          expect(renderer.lineForRow(6).text).toBe '    }'
-
-          renderer.createFold([[6, 56], [8, 15]])
-          expect(renderer.lineForRow(5).text).toBe 'right.push(...(left).concat(pivot).concat(sort(rig'
-          expect(renderer.lineForRow(6).text).toBe 'ht));'
-          expect(renderer.lineForRow(7).text).toBe '  };'
-
-      describe "when there is a fold placeholder ending at the max length boundary", ->
-        it "wraps the line after the fold placeholder", ->
-          renderer.createFold([[3, 47], [3, 51]])
-          expect(renderer.lineForRow(3).text).toBe '    var pivot = items.shift(), current, left = ...'
-          expect(renderer.lineForRow(4).text).toBe 'right = [];'
-
     describe "when the buffer changes", ->
       describe "when buffer lines are updated", ->
         describe "when the update makes a soft-wrapped line shorter than the max line length", ->
@@ -437,53 +345,26 @@ describe "Renderer", ->
           expect(event.newRange).toEqual [[1, 0], [1, 9]]
 
     describe "position translation", ->
-      describe "when there is single fold spanning multiple lines", ->
-        it "translates positions to account for folded lines and characters and the placeholder", ->
-          renderer.createFold([[4, 29], [7, 4]])
+      it "translates positions to account for folded lines and characters and the placeholder", ->
+        renderer.createFold(4, 7)
 
-          # preceding fold: identity
-          expect(renderer.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
-          expect(renderer.screenPositionForBufferPosition([4, 0])).toEqual [4, 0]
-          expect(renderer.screenPositionForBufferPosition([4, 29])).toEqual [4, 29]
+        # preceding fold: identity
+        expect(renderer.screenPositionForBufferPosition([3, 0])).toEqual [3, 0]
+        expect(renderer.screenPositionForBufferPosition([4, 0])).toEqual [4, 0]
 
-          expect(renderer.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
-          expect(renderer.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
-          expect(renderer.bufferPositionForScreenPosition([4, 29])).toEqual [4, 29]
+        expect(renderer.bufferPositionForScreenPosition([3, 0])).toEqual [3, 0]
+        expect(renderer.bufferPositionForScreenPosition([4, 0])).toEqual [4, 0]
 
-          # inside of fold: translate to the start of the fold
-          expect(renderer.screenPositionForBufferPosition([4, 35])).toEqual [4, 29]
-          expect(renderer.screenPositionForBufferPosition([5, 5])).toEqual [4, 29]
+        # inside of fold: translate to the start of the fold
+        expect(renderer.screenPositionForBufferPosition([4, 35])).toEqual [4, 0]
+        expect(renderer.screenPositionForBufferPosition([5, 5])).toEqual [4, 0]
 
-          # following fold, on last line of fold
-          expect(renderer.screenPositionForBufferPosition([7, 4])).toEqual [4, 32]
-          expect(renderer.bufferPositionForScreenPosition([4, 32])).toEqual [7, 4]
+        # following fold
+        expect(renderer.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
+        expect(renderer.screenPositionForBufferPosition([11, 2])).toEqual [8, 2]
 
-          # # following fold, subsequent line
-          expect(renderer.screenPositionForBufferPosition([8, 0])).toEqual [5, 0]
-          expect(renderer.screenPositionForBufferPosition([11, 13])).toEqual [8, 13]
-
-          expect(renderer.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
-          expect(renderer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
-
-      describe "when there is a single fold spanning a single line", ->
-        it "translates positions to account for folded characters and the placeholder", ->
-          renderer.createFold([[4, 10], [4, 15]])
-
-          expect(renderer.screenPositionForBufferPosition([4, 5])).toEqual [4, 5]
-          expect(renderer.bufferPositionForScreenPosition([4, 5])).toEqual [4, 5]
-
-          expect(renderer.screenPositionForBufferPosition([4, 15])).toEqual [4, 13]
-          expect(renderer.bufferPositionForScreenPosition([4, 13])).toEqual [4, 15]
-
-          expect(renderer.screenPositionForBufferPosition([4, 20])).toEqual [4, 18]
-          expect(renderer.bufferPositionForScreenPosition([4, 18])).toEqual [4, 20]
-
-      describe "when there is a fold on a wrapped line", ->
-        it "translates positions accounting for both the fold and the wrapped line", ->
-          renderer.setMaxLineLength(50)
-          renderer.createFold([[3, 51], [3, 58]])
-          expect(renderer.screenPositionForBufferPosition([3, 58])).toEqual [4, 3]
-          expect(renderer.bufferPositionForScreenPosition([4, 3])).toEqual [3, 58]
+        expect(renderer.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
+        expect(renderer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
 
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
@@ -514,17 +395,16 @@ describe "Renderer", ->
         expect(renderer.clipScreenPosition([0, 30], wrapBeyondNewlines: true)).toEqual [1, 0]
         expect(renderer.clipScreenPosition([0, 1000], wrapBeyondNewlines: true)).toEqual [1, 0]
 
+      it "wraps positions in the middle of fold lines to the next screen line", ->
+        renderer.createFold(3, 5)
+        expect(renderer.clipScreenPosition([3, 5], wrapBeyondNewlines: true)).toEqual [4, 0]
+
     describe "when wrapAtSoftNewlines is false (the default)", ->
       it "clips positions at the end of soft-wrapped lines to the character preceding the end of the line", ->
         expect(renderer.clipScreenPosition([3, 50])).toEqual [3, 50]
         expect(renderer.clipScreenPosition([3, 51])).toEqual [3, 50]
         expect(renderer.clipScreenPosition([3, 58])).toEqual [3, 50]
         expect(renderer.clipScreenPosition([3, 1000])).toEqual [3, 50]
-
-      describe "if there is a fold placeholder at the very end of the screen line", ->
-        it "clips positions at the end of the screen line to the position preceding the placeholder", ->
-          renderer.createFold([[3, 47], [3, 51]])
-          expect(renderer.clipScreenPosition([3, 50])).toEqual [3, 47]
 
     describe "when wrapAtSoftNewlines is true", ->
       it "wraps positions at the end of soft-wrapped lines to the next screen line", ->
@@ -534,12 +414,6 @@ describe "Renderer", ->
         expect(renderer.clipScreenPosition([3, 1000], wrapAtSoftNewlines: true)).toEqual [4, 0]
 
     describe "when skipAtomicTokens is false (the default)", ->
-      it "clips screen positions in the middle of fold placeholders to the to the beginning of fold placeholders", ->
-        renderer.createFold([[3, 55], [3, 59]])
-        expect(renderer.clipScreenPosition([4, 5])).toEqual [4, 4]
-        expect(renderer.clipScreenPosition([4, 6])).toEqual [4, 4]
-        expect(renderer.clipScreenPosition([4, 7])).toEqual [4, 7]
-
       it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
         buffer.insert([0, 0], '\t')
         expect(renderer.clipScreenPosition([0, 0])).toEqual [0, 0]
@@ -547,13 +421,7 @@ describe "Renderer", ->
         expect(renderer.clipScreenPosition([0, tabText.length])).toEqual [0, tabText.length]
 
     describe "when skipAtomicTokens is true", ->
-      it "wraps the screen positions in the middle of fold placeholders to the end of the placeholder", ->
-        renderer.createFold([[3, 55], [3, 59]])
-        expect(renderer.clipScreenPosition([4, 4], skipAtomicTokens: true)).toEqual [4, 4]
-        expect(renderer.clipScreenPosition([4, 5], skipAtomicTokens: true)).toEqual [4, 7]
-        expect(renderer.clipScreenPosition([4, 6], skipAtomicTokens: true)).toEqual [4, 7]
-
-      it "clips screen positions in the middle of atomic tab characters to the beginning of the character", ->
+      it "clips screen positions in the middle of atomic tab characters to the end of the character", ->
         buffer.insert([0, 0], '\t')
         expect(renderer.clipScreenPosition([0, 0], skipAtomicTokens: true)).toEqual [0, 0]
         expect(renderer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabText.length]
