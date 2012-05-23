@@ -242,6 +242,36 @@ describe "Renderer", ->
         fold2 = renderer.createFold(6, 8)
         changeHandler.reset()
 
+      describe "when the old range surrounds a fold", ->
+        it "removes the fold and replaces the selection with the new text", ->
+          buffer.change([[1, 0], [5, 1]], 'party!')
+
+          expect(renderer.lineForRow(0).text).toBe "0"
+          expect(renderer.lineForRow(1).text).toBe "party!"
+          expect(renderer.lineForRow(2).fold).toBe fold2
+          expect(renderer.lineForRow(3).text).toMatch /^9-+/
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[1, 0], [3, 1]]
+          expect(event.newRange).toEqual [[1, 0], [1, 6]]
+
+      describe "when the old range surrounds two nested folds", ->
+        it "removes both folds and replaces the selection with the new text", ->
+          renderer.createFold(2, 9)
+          changeHandler.reset()
+
+          buffer.change([[1, 0], [10, 0]], 'goodbye')
+
+          expect(renderer.lineForRow(0).text).toBe "0"
+          expect(renderer.lineForRow(1).text).toBe "goodbye10"
+          expect(renderer.lineForRow(2).text).toBe "11"
+
+          expect(changeHandler).toHaveBeenCalled()
+          [[event]] = changeHandler.argsForCall
+          expect(event.oldRange).toEqual [[1, 0], [3, 2]]
+          expect(event.newRange).toEqual [[1, 0], [1, 9]]
+
       describe "when the old range precedes lines with a fold", ->
         it "updates the buffer and re-positions subsequent folds", ->
           buffer.change([[0, 0], [1, 1]], 'abc')
@@ -271,7 +301,18 @@ describe "Renderer", ->
           expect(event.oldRange).toEqual [[1, 0], [1, 1]]
           expect(event.newRange).toEqual [[1, 0], [3, 101]]
 
-      describe "when the old range follows lines with a fold", ->
+      describe "when the old range straddles the beginning of a fold", ->
+        it "replaces lines in the portion of the range that precedes the fold and adjusts the end of the fold to encompass additional lines", ->
+          buffer.change([[1, 1], [3, 0]], "a\nb\nc\nd\n")
+
+          expect(fold1.startRow).toBe 2
+          expect(fold1.endRow).toBe 6
+
+          expect(renderer.lineForRow(1).text).toBe '1a'
+          expect(renderer.lineForRow(2).text).toBe 'b'
+          expect(renderer.lineForRow(2).fold).toBe fold1
+
+      describe "when the old range follows a fold", ->
         it "re-positions the screen ranges for the change event based on the preceding fold", ->
           buffer.change([[10, 0], [11, 0]], 'abc')
 
@@ -285,22 +326,6 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[6, 0], [7, 2]] # Expands ranges to encompes entire line
           expect(event.newRange).toEqual [[6, 0], [6, 5]]
-
-      describe "when the old range is contained to a single line in-between two folds", ->
-        it "re-renders the line with the placeholder and re-positions the second fold", ->
-          buffer.insert([5, 0], 'abc\n')
-
-          expect(renderer.lineForRow(1).text).toBe "1"
-          expect(renderer.lineForRow(2).fold).toBe fold1
-          expect(renderer.lineForRow(3).text).toMatch "abc"
-          expect(renderer.lineForRow(4).text).toBe "5"
-          expect(renderer.lineForRow(5).fold).toBe fold2
-          expect(renderer.lineForRow(6).text).toMatch /^9-+/
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[3, 0], [3, 1]]
-          expect(event.newRange).toEqual [[3, 0], [4, 1]]
 
       describe "when the old range is inside a fold", ->
         describe "when the end of the new range precedes the end of the fold", ->
@@ -345,57 +370,26 @@ describe "Renderer", ->
         describe "when the end of the new range precedes the end of the fold", ->
           it "shortens the fold so its end matches the end of the new range", ->
             fold2.destroy()
-            buffer.change([[3, 0], [6, 1]], 'a')
+            buffer.change([[3, 0], [6, 0]], 'a\n')
 
             expect(fold1.startRow).toBe 2
-            expect(fold1.endRow).toBe 3
+            expect(fold1.endRow).toBe 4
 
-      describe "when the old range surrounds a fold", ->
-        it "removes the fold and replaces the fold placeholder with the new text", ->
-          buffer.change([[1, 0], [5, 1]], 'party!')
+      describe "when the old range is contained to a single line in-between two folds", ->
+        it "re-renders the line with the placeholder and re-positions the second fold", ->
+          buffer.insert([5, 0], 'abc\n')
 
-          expect(renderer.lineForRow(0).text).toBe "0"
-          expect(renderer.lineForRow(1).text).toBe "party!"
-          expect(renderer.lineForRow(2).fold).toBe fold2
-          expect(renderer.lineForRow(3).text).toMatch /^9-+/
+          expect(renderer.lineForRow(1).text).toBe "1"
+          expect(renderer.lineForRow(2).fold).toBe fold1
+          expect(renderer.lineForRow(3).text).toMatch "abc"
+          expect(renderer.lineForRow(4).text).toBe "5"
+          expect(renderer.lineForRow(5).fold).toBe fold2
+          expect(renderer.lineForRow(6).text).toMatch /^9-+/
 
           expect(changeHandler).toHaveBeenCalled()
           [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[1, 0], [3, 1]]
-          expect(event.newRange).toEqual [[1, 0], [1, 6]]
-
-      describe "when the old range surrounds two nested folds", ->
-        it "removes both folds and replaces the fold placeholder with the new text", ->
-          renderer.createFold(2, 9)
-          changeHandler.reset()
-
-          buffer.change([[1, 0], [10, 0]], 'goodbye')
-
-          expect(renderer.lineForRow(0).text).toBe "0"
-          expect(renderer.lineForRow(1).text).toBe "goodbye10"
-          expect(renderer.lineForRow(2).text).toBe "11"
-
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[1, 0], [3, 2]]
-          expect(event.newRange).toEqual [[1, 0], [1, 9]]
-
-      describe "when the old range straddles the beginning of a fold", ->
-        describe "when lines are added to the buffer", ->
-          it "replaces lines in the portion of the range that precedes the fold and adjusts the end of the fold to encompass additional lines", ->
-            buffer.change([[1, 1], [3, 0]], "a\nb\nc\nd\n")
-
-            expect(fold1.startRow).toBe 2
-            expect(fold1.endRow).toBe 6
-
-            expect(renderer.lineForRow(1).text).toBe '1a'
-            expect(renderer.lineForRow(2).text).toBe 'b'
-            expect(renderer.lineForRow(2).fold).toBe fold1
-
-
-        describe "when lines are removed from the buffer", ->
-
-
+          expect(event.oldRange).toEqual [[3, 0], [3, 1]]
+          expect(event.newRange).toEqual [[3, 0], [4, 1]]
 
     describe "position translation", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
