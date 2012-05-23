@@ -111,12 +111,15 @@ class Renderer
     @handleHighlighterChange(@lastHighlighterChangeEvent)
 
   handleHighlighterChange: (e) ->
-    { oldRange, newRange } = e
+    oldRange = @bufferRangeForScreenRange(@screenRangeForBufferRange(e.oldRange.copy()))
+    newRange = @bufferRangeForScreenRange(@screenRangeForBufferRange(e.newRange.copy()))
 
     oldScreenRange = @screenLineRangeForBufferRange(oldRange)
+
     newScreenLines = @buildLinesForBufferRows(newRange.start.row, newRange.end.row)
     @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
     newScreenRange = @screenLineRangeForBufferRange(newRange)
+    console.log "New Screen Range", newScreenRange.inspect()
 
     @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange, bufferChanged: true }
 
@@ -176,6 +179,7 @@ class Renderer
     @foldsById[fold.id] = fold
 
   unregisterFold: (bufferRow, fold) ->
+    console.log "unregistering fold", fold.id
     folds = @activeFolds[bufferRow]
     _.remove(folds, fold)
     delete @foldsById[fold.id]

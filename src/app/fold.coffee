@@ -15,18 +15,19 @@ class Fold
   destroy: ->
     @renderer.destroyFold(this)
 
+  inspect: ->
+    "Fold(#{@startRow}, #{@endRow})"
+
   getBufferDelta: ->
     new Point(@endRow - @startRow + 1, 0)
 
   handleBufferChange: (event) ->
     oldStartRow = @startRow
 
-    { oldRange } = event
-    if oldRange.start.row <= @startRow and oldRange.end.row >= @endRow
-      @renderer.unregisterFold(oldStartRow, this)
+    if @isContainedByRange(event.oldRange)
+      @renderer.unregisterFold(@startRow, this)
       return
 
-    changeInsideFold = @startRow <= oldRange.start.row and @endRow >= oldRange.end.row
     @updateStartRow(event)
     @updateEndRow(event)
 
@@ -34,18 +35,34 @@ class Fold
       @renderer.unregisterFold(oldStartRow, this)
       @renderer.registerFold(@startRow, this)
 
-    changeInsideFold
+  isContainedByRange: (range) ->
+    range.start.row <= @startRow and @endRow <= range.end.row
 
   updateStartRow: (event) ->
     { newRange, oldRange } = event
-    return if oldRange.start.row >= @startRow
 
-    deltaFromOldRangeEndRow = @startRow - oldRange.end.row
-    @startRow = newRange.end.row + deltaFromOldRangeEndRow
+    if oldRange.end.row < @startRow
+      delta = newRange.end.row - oldRange.end.row
+    else if newRange.end.row < @startRow
+      delta = newRange.end.row - @startRow
+    else
+      delta = 0
+
+    console.log "start row delta", delta
+
+    @startRow += delta
 
   updateEndRow: (event) ->
     { newRange, oldRange } = event
-    return if oldRange.start.row > @endRow
 
-    deltaFromOldRangeEndRow = @endRow - oldRange.end.row
-    @endRow = newRange.end.row + deltaFromOldRangeEndRow
+    if oldRange.end.row <= @endRow
+      delta = newRange.end.row - oldRange.end.row
+    else if newRange.end.row <= @endRow
+      console.log "newRange.end.row", newRange.end.row, " - @endRow", @endRow
+      delta = newRange.end.row - @endRow
+    else
+      delta = 0
+
+    console.log "end row delta", delta
+
+    @endRow += delta
