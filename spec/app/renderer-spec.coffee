@@ -1,7 +1,7 @@
 Renderer = require 'renderer'
 Buffer = require 'buffer'
 
-fdescribe "Renderer", ->
+describe "Renderer", ->
   [renderer, buffer, changeHandler, tabText] = []
   beforeEach ->
     tabText = '  '
@@ -309,9 +309,6 @@ fdescribe "Renderer", ->
             expect(fold1.startRow).toBe 2
             expect(fold1.endRow).toBe 5
 
-            buffer.logLines(0, 10)
-            renderer.logLines(0, 10)
-
             expect(renderer.lineForRow(1).text).toBe "1"
             expect(renderer.lineForRow(2).text).toBe "2"
             expect(renderer.lineForRow(2).fold).toBe fold1
@@ -326,29 +323,32 @@ fdescribe "Renderer", ->
             expect(event.newRange).toEqual [[2, 0], [2, 1]]
 
         describe "when the end of the new range exceeds the end of the fold", ->
-          ffit "expands the fold to contain all the inserted lines", ->
+          it "expands the fold to contain all the inserted lines", ->
             buffer.change([[3, 0], [4, 0]], 'a\nb\nc\nd\n')
             expect(fold1.startRow).toBe 2
             expect(fold1.endRow).toBe 7
 
-            # buffer.logLines(0, 10)
-            # renderer.logLines(0, 10)
+            expect(renderer.lineForRow(1).text).toBe "1"
+            expect(renderer.lineForRow(2).text).toBe "2"
+            expect(renderer.lineForRow(2).fold).toBe fold1
+            expect(renderer.lineForRow(2).bufferDelta).toEqual [6, 0]
+            expect(renderer.lineForRow(3).text).toMatch "5"
+            expect(renderer.lineForRow(4).fold).toBe fold2
+            expect(renderer.lineForRow(5).text).toMatch /^9-+/
 
-            # expect(renderer.lineForRow(1).text).toBe "1"
-            # expect(renderer.lineForRow(2).text).toBe "2"
-            # expect(renderer.lineForRow(2).fold).toBe fold1
-            # expect(renderer.lineForRow(2).bufferDelta).toEqual [4, 0]
-            # expect(renderer.lineForRow(3).text).toMatch "5"
-            # expect(renderer.lineForRow(4).fold).toBe fold2
-            # expect(renderer.lineForRow(5).text).toMatch /^9-+/
+            expect(changeHandler).toHaveBeenCalled()
+            [[event]] = changeHandler.argsForCall
+            expect(event.oldRange).toEqual [[2, 0], [2, 1]]
+            expect(event.newRange).toEqual [[2, 0], [2, 1]]
 
-            # expect(changeHandler).toHaveBeenCalled()
-            # [[event]] = changeHandler.argsForCall
-            # expect(event.oldRange).toEqual [[2, 0], [2, 1]]
-            # expect(event.newRange).toEqual [[2, 0], [2, 1]]
+      describe "when the old range straddles the end of the fold", ->
+        describe "when the end of the new range precedes the end of the fold", ->
+          it "shortens the fold so its end matches the end of the new range", ->
+            fold2.destroy()
+            buffer.change([[3, 0], [6, 1]], 'a')
 
-
-
+            expect(fold1.startRow).toBe 2
+            expect(fold1.endRow).toBe 3
 
       describe "when the old range surrounds a fold", ->
         it "removes the fold and replaces the fold placeholder with the new text", ->
@@ -387,9 +387,6 @@ fdescribe "Renderer", ->
 
             expect(fold1.startRow).toBe 2
             expect(fold1.endRow).toBe 6
-            buffer.logLines(0, 10)
-            console.log "================================================"
-            renderer.logLines(0, 10)
 
             expect(renderer.lineForRow(1).text).toBe '1a'
             expect(renderer.lineForRow(2).text).toBe 'b'

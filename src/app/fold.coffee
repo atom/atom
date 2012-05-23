@@ -48,8 +48,6 @@ class Fold
     else
       delta = 0
 
-    console.log "start row delta", delta
-
     @startRow += delta
 
   updateEndRow: (event) ->
@@ -58,11 +56,8 @@ class Fold
     if oldRange.end.row <= @endRow
       delta = newRange.end.row - oldRange.end.row
     else if newRange.end.row <= @endRow
-      console.log "newRange.end.row", newRange.end.row, " - @endRow", @endRow
       delta = newRange.end.row - @endRow
     else
       delta = 0
-
-    console.log "end row delta", delta
 
     @endRow += delta
