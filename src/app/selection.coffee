@@ -45,6 +45,8 @@ class Selection extends View
     @clearRegions()
 
     range = @getScreenRange()
+
+    @editor.highlightSelectedFolds()
     return if range.isEmpty()
 
     rowSpan = range.end.row - range.start.row
@@ -56,6 +58,7 @@ class Selection extends View
       if rowSpan > 1
         @appendRegion(rowSpan - 1, { row: range.start.row + 1, column: 0}, null)
       @appendRegion(1, { row: range.end.row, column: 0 }, range.end)
+
 
   appendRegion: (rows, start, end) ->
     { lineHeight, charWidth } = @editor
@@ -80,8 +83,7 @@ class Selection extends View
     else
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
-  setScreenRange: (range, options={}) ->
-    { reverse } = options
+  setScreenRange: (range, {reverse}={}) ->
     { start, end } = range
     [start, end] = [end, start] if reverse
 
@@ -96,6 +98,9 @@ class Selection extends View
 
   getText: ->
     @editor.buffer.getTextInRange @getBufferRange()
+
+  intersectsBufferRange: (bufferRange) ->
+    @getBufferRange().intersectsWith(bufferRange)
 
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)

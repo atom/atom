@@ -2460,6 +2460,39 @@ describe "Editor", ->
 
         expect(editor.getCursorBufferPosition()).toEqual [3, 0]
 
+    describe "when a selection starts/stops intersecting a fold", ->
+      it "adds/removes the 'selected' class to the fold's line element", ->
+        editor.createFold(2, 4)
+
+        editor.setSelectionBufferRange([[1, 0], [2, 0]], reverse: true)
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+
+        editor.setSelectionBufferRange([[1, 0], [1, 1]])
+        expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.selected')
+
+        editor.setSelectionBufferRange([[1, 0], [5, 0]])
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+
+        editor.setCursorScreenPosition([3,0])
+        expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.selected')
+
+        editor.setCursorScreenPosition([2,0])
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+
+    describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
+      it "renders the fold's line element with the 'selected' class", ->
+        setEditorHeightInLines(editor, 5)
+
+        editor.createFold(2, 4)
+        editor.setSelectionBufferRange([[1, 0], [5, 0]])
+        expect(editor.visibleLines.find('.fold.selected')).toExist()
+
+        editor.scrollToBottom()
+        expect(editor.visibleLines.find('.fold.selected')).not.toExist()
+
+        editor.scrollTop(0)
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->
       editor = new Editor

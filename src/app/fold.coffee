@@ -18,6 +18,9 @@ class Fold
   inspect: ->
     "Fold(#{@startRow}, #{@endRow})"
 
+  getBufferRange: ->
+    new Range([@startRow, 0], [@endRow, Infinity])
+
   getBufferDelta: ->
     new Point(@endRow - @startRow + 1, 0)
 

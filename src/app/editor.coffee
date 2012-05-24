@@ -62,6 +62,7 @@ class Editor extends View
     requireStylesheet 'theme/twilight.css'
 
     @id = Editor.idCounter++
+    @lineCache = []
     @bindKeys()
     @autoIndent = true
     @buildCursorAndSelection()
@@ -335,13 +336,25 @@ class Editor extends View
   getLastVisibleScreenRow: ->
     Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
+  highlightSelectedFolds: ->
+    screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
+    for screenLine, i in screenLines
+      if fold = screenLine.fold
+        screenRow = @firstRenderedScreenRow + i
+        element = @lineElementForScreenRow(screenRow)
+        if @compositeSelection.intersectsBufferRange(fold.getBufferRange())
+          
+          element.addClass('selected')
+        else
+          element.removeClass('selected')
+
   getScreenLines: ->
     @renderer.getLines()
 
   screenLineForRow: (start) ->
     @renderer.lineForRow(start)
 
-  linesForRows: (start, end) ->
+  screenLinesForRows: (start, end) ->
     @renderer.linesForRows(start, end)
 
   screenLineCount: ->
@@ -468,11 +481,14 @@ class Editor extends View
     charWidth = @charWidth
     charHeight = @charHeight
     lines = @renderer.linesForRows(startRow, endRow)
+    compositeSelection = @compositeSelection
 
     $$ ->
       for line in lines
         if fold = line.fold
           lineAttributes = { class: 'fold line', 'fold-id': fold.id }
+          if compositeSelection.intersectsBufferRange(fold.getBufferRange())
+            lineAttributes.class += ' selected'
         else
           lineAttributes = { class: 'line' }
         @div lineAttributes, =>
@@ -514,8 +530,9 @@ class Editor extends View
     elementsToReplace.forEach (element) =>
       lines.removeChild(element)
 
-  getLineElement: (row) ->
-    @lineCache[row]
+  lineElementForScreenRow: (screenRow) ->
+    element = @lineCache[screenRow - @firstRenderedScreenRow]
+    $(element)
 
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
@@ -746,6 +763,9 @@ class Editor extends View
     return unless @attached
     @scrollVertically(pixelPosition)
     @scrollHorizontally(pixelPosition)
+
+  scrollToBottom: ->
+    @scrollBottom(@scrollView.prop('scrollHeight'))
 
   scrollVertically: (pixelPosition) ->
     linesInView = @scrollView.height() / @lineHeight
