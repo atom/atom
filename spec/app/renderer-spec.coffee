@@ -440,6 +440,16 @@ describe "Renderer", ->
         expect(renderer.bufferPositionForScreenPosition([5, 0])).toEqual [8, 0]
         expect(renderer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
 
+    describe ".destroyFoldsContainingBufferRow(row)", ->
+      describe "when two folds start on the given buffer row", ->
+        it "destroys both folds", ->
+          renderer.createFold(2, 4)
+          renderer.createFold(2, 6)
+
+          expect(renderer.lineForRow(3).text).toBe '7'
+          renderer.destroyFoldsContainingBufferRow(2)
+          expect(renderer.lineForRow(3).text).toBe '3'
+
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
       renderer.setMaxLineLength(50)

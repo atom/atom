@@ -338,6 +338,9 @@ class Editor extends View
   getScreenLines: ->
     @renderer.getLines()
 
+  screenLineForRow: (start) ->
+    @renderer.lineForRow(start)
+
   linesForRows: (start, end) ->
     @renderer.linesForRows(start, end)
 
@@ -346,6 +349,9 @@ class Editor extends View
 
   getLastScreenRow: ->
     @screenLineCount() - 1
+
+  destroyFoldsContainingBufferRow: (bufferRow) ->
+    @renderer.destroyFoldsContainingBufferRow(bufferRow)
 
   setBuffer: (buffer) ->
     if @buffer

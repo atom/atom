@@ -79,6 +79,29 @@ class Renderer
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
     @trigger 'unfold', bufferRange
 
+  destroyFoldsContainingBufferRow: (bufferRow) ->
+    folds = @activeFolds[bufferRow] ? []
+    fold.destroy() for fold in new Array(folds...)
+
+  registerFold: (bufferRow, fold) ->
+    @activeFolds[bufferRow] ?= []
+    @activeFolds[bufferRow].push(fold)
+    @foldsById[fold.id] = fold
+
+  unregisterFold: (bufferRow, fold) ->
+    folds = @activeFolds[bufferRow]
+    _.remove(folds, fold)
+    delete @foldsById[fold.id]
+
+  largestFoldForBufferRow: (bufferRow) ->
+    return unless folds = @activeFolds[bufferRow]
+    (folds.sort (a, b) -> b.endRow - a.endRow)[0]
+
+  screenLineRangeForBufferRange: (bufferRange) ->
+    @expandScreenRangeToLineEnds(
+      @lineMap.screenRangeForBufferRange(
+        @expandBufferRangeToLineEnds(bufferRange)))
+
   screenRowForBufferRow: (bufferRow) ->
     @lineMap.screenPositionForBufferPosition([bufferRow, 0]).row
 
@@ -175,30 +198,6 @@ class Renderer
       for column in [maxLineLength..0]
         return column + 1 if /\s/.test(line[column])
       return maxLineLength
-
-  registerFold: (bufferRow, fold) ->
-    @activeFolds[bufferRow] ?= []
-    @activeFolds[bufferRow].push(fold)
-    @foldsById[fold.id] = fold
-
-  unregisterFold: (bufferRow, fold) ->
-    folds = @activeFolds[bufferRow]
-    _.remove(folds, fold)
-    delete @foldsById[fold.id]
-
-  largestFoldForBufferRow: (bufferRow) ->
-    return unless folds = @activeFolds[bufferRow]
-    (folds.sort (a, b) -> b.endRow - a.endRow)[0]
-
-  buildFoldPlaceholder: (fold) ->
-    # token = new Token(value: '...', type: 'fold-placeholder', fold: fold, isAtomic: true)
-    # delta = new Point(fold.endRow - fold.startRow + 1, 0)
-    # new ScreenLineFragment([token], token.value, [0, token.value.length], delta)
-
-  screenLineRangeForBufferRange: (bufferRange) ->
-    @expandScreenRangeToLineEnds(
-      @lineMap.screenRangeForBufferRange(
-        @expandBufferRangeToLineEnds(bufferRange)))
 
   expandScreenRangeToLineEnds: (screenRange) ->
     screenRange = Range.fromObject(screenRange)

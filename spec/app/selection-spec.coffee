@@ -273,3 +273,25 @@ describe "Selection", ->
         expect(editor.buffer.lineForRow(1)).toBe "var sort = function(items) {"
         expect(editor.buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
         expect(selection.getBufferRange()).toEqual [[0, 1], [3, 15 - tabLength]]
+
+  describe "when the selection ends on the begining of a fold line", ->
+    beforeEach ->
+      editor.createFold(2,4)
+      editor.createFold(2,6)
+
+    describe "inserting text", ->
+      it "destroys the fold", ->
+        selection.setBufferRange([[1,0], [2,0]])
+        selection.insertText('holy cow')
+        expect(editor.screenLineForRow(3).text).toBe buffer.lineForRow(3)
+
+    describe "when the selection is empty", ->
+      describe "delete, when the selection is empty", ->
+        it "removes the lines contained by the fold", ->
+          oldLine7 = buffer.lineForRow(7)
+          oldLine8 = buffer.lineForRow(8)
+
+          selection.setBufferRange([[2, 0], [2, 0]])
+          selection.delete()
+          expect(editor.screenLineForRow(2).text).toBe oldLine7
+          expect(editor.screenLineForRow(3).text).toBe oldLine8
