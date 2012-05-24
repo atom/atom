@@ -10,6 +10,13 @@ describe "Renderer", ->
     changeHandler = jasmine.createSpy 'changeHandler'
     renderer.on 'change', changeHandler
 
+  describe "when the buffer changes", ->
+    it "renders line numbers correctly", ->
+      originalLineCount = renderer.lineCount()
+      oneHundredLines = [0..100].join("\n")
+      buffer.insert([0,0], oneHundredLines)
+      expect(renderer.lineCount()).toBe 100 + originalLineCount
+
   describe "soft wrapping", ->
     beforeEach ->
       renderer.setMaxLineLength(50)
@@ -55,6 +62,7 @@ describe "Renderer", ->
             [[event]]= changeHandler.argsForCall
             expect(event.oldRange).toEqual([[7, 0], [8, 20]])
             expect(event.newRange).toEqual([[7, 0], [7, 47]])
+            expect(event.lineNumbersChanged).toBeTruthy()
 
         describe "when the update causes a line to softwrap an additional time", ->
           it "rewraps the line and emits a change event", ->
@@ -68,6 +76,7 @@ describe "Renderer", ->
             [[event]] = changeHandler.argsForCall
             expect(event.oldRange).toEqual([[7, 0], [8, 20]])
             expect(event.newRange).toEqual([[7, 0], [9, 20]])
+            expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when buffer lines are inserted", ->
         it "inserts / updates wrapped lines and emits a change event", ->
@@ -81,6 +90,7 @@ describe "Renderer", ->
           [event] = changeHandler.argsForCall[0]
           expect(event.oldRange).toEqual([[7, 0], [8, 20]])
           expect(event.newRange).toEqual([[7, 0], [10, 20]])
+          expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when buffer lines are removed", ->
         it "removes lines and emits a change event", ->
@@ -94,6 +104,7 @@ describe "Renderer", ->
           [event] = changeHandler.argsForCall[0]
           expect(event.oldRange).toEqual([[3, 0], [11, 45]])
           expect(event.newRange).toEqual([[3, 0], [5, 45]])
+          expect(event.lineNumbersChanged).toBeTruthy()
 
     describe "position translation", ->
       it "translates positions accounting for wrapped lines", ->
@@ -128,6 +139,7 @@ describe "Renderer", ->
         [event] = changeHandler.argsForCall[0]
         expect(event.oldRange).toEqual([[0, 0], [15, 2]])
         expect(event.newRange).toEqual([[0, 0], [18, 2]])
+        expect(event.lineNumbersChanged).toBeTruthy()
 
   describe "folding", ->
     beforeEach ->
@@ -151,6 +163,7 @@ describe "Renderer", ->
           [event] = changeHandler.argsForCall[0]
           expect(event.oldRange).toEqual [[4, 0], [7, 1]]
           expect(event.newRange).toEqual [[4, 0], [4, 101]]
+          expect(event.lineNumbersChanged).toBeTruthy()
           changeHandler.reset()
 
           fold.destroy()
@@ -165,6 +178,7 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[4, 0], [4, 101]]
           expect(event.newRange).toEqual [[4, 0], [7, 1]]
+          expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when a fold spans a single line", ->
         it "renders a fold placeholder for the folded line but does not skip any lines", ->
@@ -181,6 +195,10 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[4, 0], [4, 101]]
           expect(event.newRange).toEqual [[4, 0], [4, 101]]
+
+          # Line numbers don't actually change, but it's not worth the complexity to have this
+          # be false for single line folds since they are so rare
+          expect(event.lineNumbersChanged).toBeTruthy()
           changeHandler.reset()
 
           fold.destroy()
@@ -196,6 +214,7 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[4, 0], [4, 101]]
           expect(event.newRange).toEqual [[4, 0], [4, 101]]
+          expect(event.lineNumbersChanged).toBeTruthy()
           changeHandler.reset()
 
       describe "when a fold is nested within another fold", ->
@@ -255,6 +274,7 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[1, 0], [3, 1]]
           expect(event.newRange).toEqual [[1, 0], [1, 6]]
+          expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when the old range surrounds two nested folds", ->
         it "removes both folds and replaces the selection with the new text", ->
@@ -271,6 +291,7 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[1, 0], [3, 2]]
           expect(event.newRange).toEqual [[1, 0], [1, 9]]
+          expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when the old range precedes lines with a fold", ->
         it "updates the buffer and re-positions subsequent folds", ->
@@ -286,6 +307,7 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[0, 0], [1, 1]]
           expect(event.newRange).toEqual [[0, 0], [0, 3]]
+          expect(event.lineNumbersChanged).toBeTruthy()
           changeHandler.reset()
 
           fold1.destroy()
@@ -300,6 +322,7 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[1, 0], [1, 1]]
           expect(event.newRange).toEqual [[1, 0], [3, 101]]
+          expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when the old range straddles the beginning of a fold", ->
         it "replaces lines in the portion of the range that precedes the fold and adjusts the end of the fold to encompass additional lines", ->
@@ -326,6 +349,7 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[6, 0], [7, 2]] # Expands ranges to encompes entire line
           expect(event.newRange).toEqual [[6, 0], [6, 5]]
+          expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when the old range is inside a fold", ->
         describe "when the end of the new range precedes the end of the fold", ->
@@ -346,6 +370,7 @@ describe "Renderer", ->
             [[event]] = changeHandler.argsForCall
             expect(event.oldRange).toEqual [[2, 0], [2, 1]]
             expect(event.newRange).toEqual [[2, 0], [2, 1]]
+            expect(event.lineNumbersChanged).toBeTruthy()
 
         describe "when the end of the new range exceeds the end of the fold", ->
           it "expands the fold to contain all the inserted lines", ->
@@ -365,6 +390,7 @@ describe "Renderer", ->
             [[event]] = changeHandler.argsForCall
             expect(event.oldRange).toEqual [[2, 0], [2, 1]]
             expect(event.newRange).toEqual [[2, 0], [2, 1]]
+            expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when the old range straddles the end of the fold", ->
         describe "when the end of the new range precedes the end of the fold", ->
@@ -390,6 +416,7 @@ describe "Renderer", ->
           [[event]] = changeHandler.argsForCall
           expect(event.oldRange).toEqual [[3, 0], [3, 1]]
           expect(event.newRange).toEqual [[3, 0], [4, 1]]
+          expect(event.lineNumbersChanged).toBeTruthy()
 
     describe "position translation", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->

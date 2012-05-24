@@ -37,7 +37,7 @@ class Renderer
     oldRange = @rangeForAllLines()
     @buildLineMap()
     newRange = @rangeForAllLines()
-    @trigger 'change', { oldRange, newRange }
+    @trigger 'change', { oldRange, newRange, lineNumbersChanged: true }
 
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
@@ -62,7 +62,7 @@ class Renderer
     @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
     @trigger 'fold', bufferRange
     fold
 
@@ -76,7 +76,7 @@ class Renderer
     @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
     @trigger 'unfold', bufferRange
 
   screenRowForBufferRow: (bufferRow) ->
@@ -111,16 +111,20 @@ class Renderer
     @handleHighlighterChange(@lastHighlighterChangeEvent)
 
   handleHighlighterChange: (e) ->
-    oldRange = @bufferRangeForScreenRange(@screenRangeForBufferRange(e.oldRange.copy()))
-    newRange = @bufferRangeForScreenRange(@screenRangeForBufferRange(e.newRange.copy()))
+    newRange = e.newRange.copy()
+    newRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(newRange.start.row))
 
-    oldScreenRange = @screenLineRangeForBufferRange(oldRange)
+    oldScreenRange = @screenLineRangeForBufferRange(e.oldRange)
 
     newScreenLines = @buildLinesForBufferRows(newRange.start.row, newRange.end.row)
     @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
     newScreenRange = @screenLineRangeForBufferRange(newRange)
 
-    @trigger 'change', { oldRange: oldScreenRange, newRange: newScreenRange, bufferChanged: true }
+    @trigger 'change',
+      oldRange: oldScreenRange
+      newRange: newScreenRange
+      bufferChanged: true
+      lineNumbersChanged: !e.oldRange.coversSameRows(newRange) or !oldScreenRange.coversSameRows(newScreenRange)
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)

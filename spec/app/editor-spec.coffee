@@ -583,10 +583,18 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:eq(5)').text()).toBe '5'
 
     describe "when there are folds", ->
-      it "skips line numbers", ->
+      it "skips line numbers covered by the fold and updates them when the fold changes", ->
         editor.createFold(3, 5)
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
+
+        buffer.insert([4,0], "\n\n")
+        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
+        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '9'
+
+        buffer.delete([[3,0], [6,0]])
+        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
+        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '6'
 
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->

@@ -424,7 +424,7 @@ class Editor extends View
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
-      unless newScreenRange.isSingleLine() and newScreenRange.coversSameRows(oldScreenRange)
+      if e.lineNumbersChanged
         @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
 
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
@@ -454,7 +454,7 @@ class Editor extends View
 
       if rowDelta > 0
         @removeLineElements(@lastRenderedScreenRow + 1, @lastRenderedScreenRow + rowDelta)
-      else
+      else if rowDelta < 0
         @lastRenderedScreenRow += rowDelta
         @updateVisibleLines()
 
