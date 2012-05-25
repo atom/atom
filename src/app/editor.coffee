@@ -343,7 +343,6 @@ class Editor extends View
         screenRow = @firstRenderedScreenRow + i
         element = @lineElementForScreenRow(screenRow)
         if @compositeSelection.intersectsBufferRange(fold.getBufferRange())
-          
           element.addClass('selected')
         else
           element.removeClass('selected')
@@ -362,6 +361,9 @@ class Editor extends View
 
   getLastScreenRow: ->
     @screenLineCount() - 1
+
+  isFoldedAtScreenRow: (screenRow) ->
+    @screenLineForRow(screenRow).fold?
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @renderer.destroyFoldsContainingBufferRow(bufferRow)

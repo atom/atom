@@ -2446,7 +2446,7 @@ describe "Editor", ->
 
         expect(editor.getCursorBufferPosition()).toEqual [3, 0]
 
-    describe "when a cursor is on a fold placeholder line", ->
+    describe "when the unfold event is triggered when the cursor is on a fold placeholder line", ->
       it "removes the associated fold and places the cursor at its beginning", ->
         editor.getSelection().setBufferRange(new Range([3, 0], [9, 0]))
         editor.trigger 'fold-selection'
@@ -2461,7 +2461,7 @@ describe "Editor", ->
         expect(editor.getCursorBufferPosition()).toEqual [3, 0]
 
     describe "when a selection starts/stops intersecting a fold", ->
-      it "adds/removes the 'selected' class to the fold's line element", ->
+      it "adds/removes the 'selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
         editor.createFold(2, 4)
 
         editor.setSelectionBufferRange([[1, 0], [2, 0]], reverse: true)
@@ -2478,6 +2478,10 @@ describe "Editor", ->
 
         editor.setCursorScreenPosition([2,0])
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+        expect(editor.find('.cursor').css('display')).toBe 'none'
+
+        editor.setCursorScreenPosition([3,0])
+        expect(editor.find('.cursor').css('display')).toBe 'block'
 
     describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
       it "renders the fold's line element with the 'selected' class", ->
