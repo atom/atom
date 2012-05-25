@@ -109,27 +109,3 @@
   background: white;
   opacity: .25;
 }
-
-.fold-placeholder {
-  -webkit-box-sizing: border-box;
-  position: relative;
-  display: inline-block;
-  vertical-align: text-bottom;
-  -webkit-border-radius: 3px;
-  background: rgba(255, 255, 255, .07);
-  border: 1px solid rgba(255, 255, 255, .25);
-  color: rgba(255, 255, 255, .95);
-}
-
-.fold-placeholder:hover {
-  background: rgba(255, 255, 255, .2);
-  border: 1px solid rgba(255, 255, 255, .3);
-  color: white;
-}
-
-.fold-placeholder .ellipsis {
-  position: relative;
-  width: 100%;
-  bottom: 40%;
-  text-align: center;
-}

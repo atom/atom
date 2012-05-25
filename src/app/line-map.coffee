@@ -121,8 +121,8 @@ class LineMap
     targetDelta = traversalResult[targetDeltaType]
 
     return targetDelta unless lastLineFragment
-    maxSourceColumn = sourceDelta.column + lastLineFragment.text.length
-    maxTargetColumn = targetDelta.column + lastLineFragment.text.length
+    maxSourceColumn = sourceDelta.column + lastLineFragment.textLength()
+    maxTargetColumn = targetDelta.column + lastLineFragment.textLength()
 
     if lastLineFragment.isSoftWrapped() and sourcePosition.column >= maxSourceColumn
       if wrapAtSoftNewlines

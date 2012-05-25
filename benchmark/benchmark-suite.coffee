@@ -27,7 +27,7 @@ describe "editor.", ->
       editor.setBuffer new Buffer(require.resolve('fixtures/medium.coffee'))
 
     describe "at-begining.", ->
-      benchmark "insert-delete", ->
+      fbenchmark "insert-delete", ->
         editor.insertText('x')
         editor.backspace()
 

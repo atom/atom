@@ -544,6 +544,90 @@ describe "Editor", ->
         expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(1)
         expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(6)
 
+    describe "when lines are added", ->
+      beforeEach ->
+        editor.attachToDom()
+        setEditorHeightInLines(editor, 5)
+        spyOn(editor, "scrollTo")
+
+      describe "when the change the precedes the first rendered row", ->
+        it "inserts and removes rendered lines to account for upstream change", ->
+          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[1,0], [3,0]], "1\n2\n3\n")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+      describe "when the change straddles the first rendered row", ->
+        it "doesn't render rows that were not previously rendered", ->
+          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+      describe "when the change the straddles the last rendered row", ->
+        it "doesn't render rows that were not previously rendered", ->
+          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+
+      describe "when the change the follows the last rendered row", ->
+        it "does not change the rendered lines", ->
+          buffer.change([[12,0], [12,0]], "12\n13\n14\n")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+
+    describe "when lines are removed", ->
+      beforeEach ->
+        editor.attachToDom()
+        setEditorHeightInLines(editor, 5)
+        spyOn(editor, "scrollTo")
+
+      describe "when the change the precedes the first rendered row", ->
+        it "removes rendered lines to account for upstream change", ->
+          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[1,0], [2,0]], "")
+          expect(editor.visibleLines.find(".line").length).toBe 4
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(11)
+
+      describe "when the change straddles the first rendered row", ->
+        it "renders the correct rows", ->
+          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+
+          buffer.change([[7,0], [11,0]], "1\n2\n")
+          expect(editor.visibleLines.find(".line").length).toBe 3
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(10)
+
+      describe "when the change the straddles the last rendered row", ->
+        it "renders the correct rows", ->
+          buffer.change([[2,0], [7,0]], "")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+
+      describe "when the change the follows the last rendered row", ->
+        it "does not change the rendered lines", ->
+          buffer.change([[12,0], [12,0]], "")
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
@@ -583,18 +667,18 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:eq(5)').text()).toBe '5'
 
     describe "when there are folds", ->
-      it "skips line numbers", ->
-        editor.createFold([[3, 10], [5, 1]])
+      it "skips line numbers covered by the fold and updates them when the fold changes", ->
+        editor.createFold(3, 5)
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '7'
 
-    describe "when there is a fold on the last screen line of a wrapped line", ->
-      it "renders line numbers correctly when the fold is destroyed (regression)", ->
-        setEditorHeightInLines(editor, 20)
-        editor.setMaxLineLength(50)
-        fold = editor.createFold([[3, 52], [3, 56]])
-        fold.destroy()
-        expect(editor.gutter.find('.line-number:last').text()).toBe '13'
+        buffer.insert([4,0], "\n\n")
+        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
+        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '9'
+
+        buffer.delete([[3,0], [6,0]])
+        expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
+        expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '6'
 
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->
@@ -905,46 +989,48 @@ describe "Editor", ->
         beforeEach ->
           setEditorWidthInChars(editor, 50)
           editor.setSoftWrap(true)
-          editor.createFold(new Range([3, 3], [3, 7]))
+          editor.createFold(2, 3)
 
         describe "when it is a single click", ->
           it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 7])
-            expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 58)
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [9, 0])
+            expect(editor.getCursorBufferPosition()).toEqual(row: 8, column: 11)
 
         describe "when it is a double click", ->
           it "selects the word under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [9, 0], originalEvent: {detail: 1})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
-            expect(editor.getSelectedText()).toBe "right"
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [9, 0], originalEvent: {detail: 2})
+            expect(editor.getSelectedText()).toBe "sort"
 
         describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
           it "selects the line under the cursor", ->
             expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
             # Triple click
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 1})
+            point = [9, 3]
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 1})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 2})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 2})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [4, 3], originalEvent: {detail: 3})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 3})
             editor.visibleLines.trigger 'mouseup'
-            expect(editor.getSelectedText()).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editor.getSelectedText()).toBe "    return sort(left).concat(pivot).concat(sort(right));"
 
             # Quad click
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 1})
+            point = [12, 3]
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 1})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 2})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 2})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 3})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 3})
             editor.visibleLines.trigger 'mouseup'
-            editor.visibleLines.trigger mousedownEvent(editor: editor, point: [8, 3], originalEvent: {detail: 4})
+            editor.visibleLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 4})
             editor.visibleLines.trigger 'mouseup'
 
-            expect(editor.getSelectedText()).toBe "      current < pivot ? left.push(current) : right.push(current);"
+            expect(editor.getSelectedText()).toBe "  return sort(Array.apply(this, arguments));"
 
       describe "when soft-wrap is disabled", ->
         describe "when it is a single click", ->
@@ -1180,13 +1266,6 @@ describe "Editor", ->
     describe "when editing a line that spans a single screen line", ->
       describe "when a newline is inserted", ->
         it "indents cursor based on the indentation of previous buffer line", ->
-          editor.setCursorBufferPosition([1, 30])
-          editor.insertText("\n")
-          expect(editor.buffer.lineForRow(2)).toEqual("    ")
-
-      describe "when a newline is inserted following a fold placeholder", ->
-        it "indents cursor based on the indentation of previous buffer line", ->
-          editor.createFold([[1, 10], [1, 30]])
           editor.setCursorBufferPosition([1, 30])
           editor.insertText("\n")
           expect(editor.buffer.lineForRow(2)).toEqual("    ")
@@ -2236,88 +2315,6 @@ describe "Editor", ->
         expect(selections[0].getBufferRange()).toEqual [[1, 12], [1, 12]]
         expect(selections[1].getBufferRange()).toEqual [[1, 30], [1, 30]]
 
-    describe "when lines are added", ->
-      beforeEach ->
-        setEditorHeightInLines(editor, 5)
-        spyOn(editor, "scrollTo")
-
-      describe "when the change the precedes the first rendered row", ->
-        it "inserts and removes rendered lines to account for upstream change", ->
-          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
-
-          buffer.change([[1,0], [3,0]], "1\n2\n3\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
-
-      describe "when the change straddles the first rendered row", ->
-        it "doesn't render rows that were not previously rendered", ->
-          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
-
-          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
-
-      describe "when the change the straddles the last rendered row", ->
-        it "doesn't render rows that were not previously rendered", ->
-          buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
-
-      describe "when the change the follows the last rendered row", ->
-        it "does not change the rendered lines", ->
-          buffer.change([[12,0], [12,0]], "12\n13\n14\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
-
-    describe "when lines are removed", ->
-      beforeEach ->
-        setEditorHeightInLines(editor, 5)
-        spyOn(editor, "scrollTo")
-
-      describe "when the change the precedes the first rendered row", ->
-        it "removes rendered lines to account for upstream change", ->
-          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
-
-          buffer.change([[1,0], [2,0]], "")
-          expect(editor.visibleLines.find(".line").length).toBe 4
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(11)
-
-      describe "when the change straddles the first rendered row", ->
-        it "renders the correct rows", ->
-          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
-
-          buffer.change([[7,0], [11,0]], "1\n2\n")
-          expect(editor.visibleLines.find(".line").length).toBe 3
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(10)
-
-      describe "when the change the straddles the last rendered row", ->
-        it "renders the correct rows", ->
-          buffer.change([[2,0], [7,0]], "")
-          expect(editor.visibleLines.find(".line").length).toBe 5
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
-
-      describe "when the change the follows the last rendered row", ->
-        it "does not change the rendered lines", ->
-          buffer.change([[12,0], [12,0]], "")
-          expect(editor.visibleLines.find(".line").length).toBe 5
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
-
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
       expect(editor.lineHeight).toBeNull()
@@ -2422,47 +2419,83 @@ describe "Editor", ->
 
   describe "folding", ->
     beforeEach ->
+      editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))
       editor.attachToDom()
 
     describe "when a fold-selection event is triggered", ->
-      it "folds the selected text and moves the cursor to just after the placeholder, then treats the placeholder as a single character", ->
+      it "folds the lines covered by the selection into a single line with a fold class", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
         editor.trigger 'fold-selection'
 
-        expect(editor.visibleLines.find('.line:eq(4)').find('.fold-placeholder')).toExist()
-        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '    return sort(left).concat(pivot).concat(sort(right));'
+        expect(editor.visibleLines.find('.line:eq(4)')).toHaveClass('fold')
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '8'
 
         expect(editor.getSelection().isEmpty()).toBeTruthy()
-        expect(editor.getCursorScreenPosition()).toEqual [4, 32]
+        expect(editor.getCursorScreenPosition()).toEqual [5, 0]
 
-        editor.setCursorBufferPosition([9, 4])
-        expect(editor.getCursorScreenPosition()).toEqual [6, 4]
-
-        editor.insertText('x')
-        expect(editor.getCursorScreenPosition()).toEqual [6, 5]
-        expect(editor.getCursorBufferPosition()).toEqual [9, 5]
-
-        editor.setCursorScreenPosition([4, 30])
-        expect(editor.getCursorScreenPosition()).toEqual [4, 29]
-        editor.moveCursorRight()
-        expect(editor.getCursorScreenPosition()).toEqual [4, 32]
-
-    describe "when a fold placeholder is clicked", ->
+    describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
-        editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
+        editor.getSelection().setBufferRange(new Range([3, 0], [9, 0]))
         editor.trigger 'fold-selection'
 
-        editor.find('.fold-placeholder .ellipsis').mousedown()
+        editor.find('.fold.line').mousedown()
 
-        expect(editor.find('.fold-placeholder')).not.toExist()
-        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe '      current = items.shift();'
+        expect(editor.find('.fold')).not.toExist()
+        expect(editor.visibleLines.find('.line:eq(4)').text()).toMatch /4-+/
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toMatch /5/
 
-        expect(editor.getCursorBufferPosition()).toEqual [4, 29]
+        expect(editor.getCursorBufferPosition()).toEqual [3, 0]
 
-    describe "when there is nothing on a line except a fold placeholder", ->
-      it "follows the placeholder with a non-breaking space to ensure the line has the proper height", ->
-        editor.createFold([[1, 0], [1, 30]])
-        expect(editor.visibleLines.find('.line:eq(1)').html()).toMatch /&nbsp;$/
+    describe "when the unfold event is triggered when the cursor is on a fold placeholder line", ->
+      it "removes the associated fold and places the cursor at its beginning", ->
+        editor.getSelection().setBufferRange(new Range([3, 0], [9, 0]))
+        editor.trigger 'fold-selection'
+
+        editor.setCursorBufferPosition([3,0])
+        editor.trigger 'unfold'
+
+        expect(editor.find('.fold')).not.toExist()
+        expect(editor.visibleLines.find('.line:eq(4)').text()).toMatch /4-+/
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toMatch /5/
+
+        expect(editor.getCursorBufferPosition()).toEqual [3, 0]
+
+    describe "when a selection starts/stops intersecting a fold", ->
+      it "adds/removes the 'selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
+        editor.createFold(2, 4)
+
+        editor.setSelectionBufferRange([[1, 0], [2, 0]], reverse: true)
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+
+        editor.setSelectionBufferRange([[1, 0], [1, 1]])
+        expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.selected')
+
+        editor.setSelectionBufferRange([[1, 0], [5, 0]])
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+
+        editor.setCursorScreenPosition([3,0])
+        expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.selected')
+
+        editor.setCursorScreenPosition([2,0])
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+        expect(editor.find('.cursor').css('display')).toBe 'none'
+
+        editor.setCursorScreenPosition([3,0])
+        expect(editor.find('.cursor').css('display')).toBe 'block'
+
+    describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
+      it "renders the fold's line element with the 'selected' class", ->
+        setEditorHeightInLines(editor, 5)
+
+        editor.createFold(2, 4)
+        editor.setSelectionBufferRange([[1, 0], [5, 0]])
+        expect(editor.visibleLines.find('.fold.selected')).toExist()
+
+        editor.scrollToBottom()
+        expect(editor.visibleLines.find('.fold.selected')).not.toExist()
+
+        editor.scrollTop(0)
+        expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
 
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->

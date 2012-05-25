@@ -74,6 +74,10 @@ class CompositeSeleciton
   getText: ->
     @getLastSelection().getText()
 
+  intersectsBufferRange: (bufferRange) ->
+    _.any @getSelections(), (selection) ->
+      selection.intersectsBufferRange(bufferRange)
+
   expandSelectionsForward: (fn) ->
     fn(selection) for selection in @getSelections()
     @mergeIntersectingSelections()
