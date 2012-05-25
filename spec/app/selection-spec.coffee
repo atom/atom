@@ -285,6 +285,12 @@ describe "Selection", ->
         selection.insertText('holy cow')
         expect(editor.screenLineForRow(3).text).toBe buffer.lineForRow(3)
 
+    describe "backspace", ->
+      it "destroys the fold", ->
+        selection.setBufferRange([[1,0], [2,0]])
+        selection.backspace()
+        expect(editor.screenLineForRow(3).text).toBe buffer.lineForRow(3)
+
     describe "when the selection is empty", ->
       describe "delete, when the selection is empty", ->
         it "removes the lines contained by the fold", ->

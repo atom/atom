@@ -145,6 +145,7 @@ class Selection extends View
     @editor.getCurrentMode().autoOutdent(state, new AceOutdentAdaptor(@editor.buffer, @editor), bufferRow)
 
   backspace: ->
+    @editor.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
     @selectLeft() if @isEmpty()
     @deleteSelectedText()
 

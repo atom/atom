@@ -293,36 +293,45 @@ describe "Renderer", ->
           expect(event.newRange).toEqual [[1, 0], [1, 9]]
           expect(event.lineNumbersChanged).toBeTruthy()
 
+      describe "when multiple changes happen above the fold", ->
+        it "repositions folds correctly", ->
+          buffer.delete([[1, 1], [2, 0]])
+          buffer.insert([0, 1], "\nnew")
+
+          expect(fold1.startRow).toBe 2
+          expect(fold1.endRow).toBe 4
+
       describe "when the old range precedes lines with a fold", ->
-        it "updates the buffer and re-positions subsequent folds", ->
-          buffer.change([[0, 0], [1, 1]], 'abc')
+        describe "when the new range precedes lines with a fold", ->
+          it "updates the buffer and re-positions subsequent folds", ->
+            buffer.change([[0, 0], [1, 1]], 'abc')
 
-          expect(renderer.lineForRow(0).text).toBe "abc"
-          expect(renderer.lineForRow(1).fold).toBe fold1
-          expect(renderer.lineForRow(2).text).toBe "5"
-          expect(renderer.lineForRow(3).fold).toBe fold2
-          expect(renderer.lineForRow(4).text).toMatch /^9-+/
+            expect(renderer.lineForRow(0).text).toBe "abc"
+            expect(renderer.lineForRow(1).fold).toBe fold1
+            expect(renderer.lineForRow(2).text).toBe "5"
+            expect(renderer.lineForRow(3).fold).toBe fold2
+            expect(renderer.lineForRow(4).text).toMatch /^9-+/
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[0, 0], [1, 1]]
-          expect(event.newRange).toEqual [[0, 0], [0, 3]]
-          expect(event.lineNumbersChanged).toBeTruthy()
-          changeHandler.reset()
+            expect(changeHandler).toHaveBeenCalled()
+            [[event]] = changeHandler.argsForCall
+            expect(event.oldRange).toEqual [[0, 0], [1, 1]]
+            expect(event.newRange).toEqual [[0, 0], [0, 3]]
+            expect(event.lineNumbersChanged).toBeTruthy()
+            changeHandler.reset()
 
-          fold1.destroy()
-          expect(renderer.lineForRow(0).text).toBe "abc"
-          expect(renderer.lineForRow(1).text).toBe "2"
-          expect(renderer.lineForRow(3).text).toMatch /^4-+/
-          expect(renderer.lineForRow(4).text).toBe "5"
-          expect(renderer.lineForRow(5).fold).toBe fold2
-          expect(renderer.lineForRow(6).text).toMatch /^9-+/
+            fold1.destroy()
+            expect(renderer.lineForRow(0).text).toBe "abc"
+            expect(renderer.lineForRow(1).text).toBe "2"
+            expect(renderer.lineForRow(3).text).toMatch /^4-+/
+            expect(renderer.lineForRow(4).text).toBe "5"
+            expect(renderer.lineForRow(5).fold).toBe fold2
+            expect(renderer.lineForRow(6).text).toMatch /^9-+/
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[1, 0], [1, 1]]
-          expect(event.newRange).toEqual [[1, 0], [3, 101]]
-          expect(event.lineNumbersChanged).toBeTruthy()
+            expect(changeHandler).toHaveBeenCalled()
+            [[event]] = changeHandler.argsForCall
+            expect(event.oldRange).toEqual [[1, 0], [1, 1]]
+            expect(event.newRange).toEqual [[1, 0], [3, 101]]
+            expect(event.lineNumbersChanged).toBeTruthy()
 
       describe "when the old range straddles the beginning of a fold", ->
         it "replaces lines in the portion of the range that precedes the fold and adjusts the end of the fold to encompass additional lines", ->
