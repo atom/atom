@@ -127,9 +127,9 @@ class Renderer
     @lineMap.clipScreenPosition(position, options)
 
   handleBufferChange: (e) ->
-    for row, folds of @activeFolds
-      for fold in new Array(folds...)
-        fold.handleBufferChange(e)
+    allFolds = [] # Folds can modify @activeFolds, so first make sure we have a stable array of folds
+    allFolds.push(folds...) for row, folds of @activeFolds
+    fold.handleBufferChange(e) for fold in allFolds
 
     @handleHighlighterChange(@lastHighlighterChangeEvent)
 
