@@ -53,7 +53,7 @@ class Renderer
 
   createFold: (startRow, endRow) ->
     fold = new Fold(this, startRow, endRow)
-    @registerFold(startRow, fold)
+    @registerFold(fold)
 
     bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
     oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
@@ -83,9 +83,9 @@ class Renderer
     folds = @activeFolds[bufferRow] ? []
     fold.destroy() for fold in new Array(folds...)
 
-  registerFold: (bufferRow, fold) ->
-    @activeFolds[bufferRow] ?= []
-    @activeFolds[bufferRow].push(fold)
+  registerFold: (fold) ->
+    @activeFolds[fold.startRow] ?= []
+    @activeFolds[fold.startRow].push(fold)
     @foldsById[fold.id] = fold
 
   unregisterFold: (bufferRow, fold) ->

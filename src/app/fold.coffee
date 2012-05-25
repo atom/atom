@@ -36,7 +36,7 @@ class Fold
 
     if @startRow != oldStartRow
       @renderer.unregisterFold(oldStartRow, this)
-      @renderer.registerFold(@startRow, this)
+      @renderer.registerFold(this)
 
   isContainedByRange: (range) ->
     range.start.row <= @startRow and @endRow <= range.end.row
