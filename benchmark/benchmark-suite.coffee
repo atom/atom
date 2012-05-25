@@ -27,7 +27,7 @@ describe "editor.", ->
       editor.setBuffer new Buffer(require.resolve('fixtures/medium.coffee'))
 
     describe "at-begining.", ->
-      benchmark "insert-delete", ->
+      fbenchmark "insert-delete", ->
         editor.insertText('x')
         editor.backspace()
 
@@ -53,8 +53,6 @@ describe "editor.", ->
 
       benchmark "moving-to-eof.", 1, ->
         editor.moveCursorToBottom()
-        waitsFor (scrollComplete) ->
-          editor.scrollView.on 'scroll', scrollComplete
 
       describe "on-first-line.", ->
         benchmark "inserting-newline", 5, ->

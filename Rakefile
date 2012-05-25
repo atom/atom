@@ -7,7 +7,7 @@ BUILD_DIR = '/tmp/atom-build'
 
 desc "Build Atom via `xcodebuild`"
 task :build => :"verify-prerequisites" do
-  output = `xcodebuild -configuration Release SYMROOT=#{BUILD_DIR}`
+  output = `xcodebuild -scheme atom-release SYMROOT=#{BUILD_DIR}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
     exit($?.exitstatus)
@@ -48,8 +48,8 @@ task :benchmark do
   Rake::Task["run"].invoke
 end
 
-desc "Compile CoffeeScripts"
-task :"compile-coffeescripts" => :"verify-prerequisites" do
+desc "Copy files to bundle and compile CoffeeScripts"
+task :"copy-files-to-bundle" => :"verify-prerequisites" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
   contents_dir = ENV['CONTENTS_FOLDER_PATH'].to_s
@@ -61,8 +61,11 @@ task :"compile-coffeescripts" => :"verify-prerequisites" do
     cp_r dir, File.join(dest, dir)
   end
 
-  puts contents_dir
-  sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec"
+  if ENV['LOAD_RESOURCES_FROM_DIR']
+    sh "coffee -c #{dest}/src/stdlib/require.coffee"
+  else
+    sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec"
+  end
 end
 
 desc "Change webkit frameworks to use @rpath as install name"
@@ -83,7 +86,7 @@ end
 
 desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
 task :nof do
-  system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f(it|describe) +(['\\"])/\\1 \\2/g"}
+  system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
 end
 
 task :"verify-prerequisites" do

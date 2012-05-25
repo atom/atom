@@ -177,4 +177,9 @@ class Cursor extends View
     if this == _.last(@editor.getCursors())
       @editor.scrollTo(pixelPosition)
 
+    if @editor.isFoldedAtScreenRow(screenPosition.row)
+      @hide()
+    else
+      @show()
+
     @selection.updateAppearance()

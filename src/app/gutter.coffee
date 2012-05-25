@@ -18,3 +18,5 @@ class Gutter extends View
       for row in rows
         @div {class: 'line-number'}, if row == lastScreenRow then '•' else row + 1
         lastScreenRow = row
+
+    @lineNumbers.width(editor.getLastScreenRow().toString().length * editor.charWidth)

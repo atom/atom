@@ -242,4 +242,9 @@ class Buffer
   backwardsScanInRange: (regex, range, iterator) ->
     @scanInRange regex, range, iterator, true
 
+  logLines: (start=0, end=@getLastRow())->
+    for row in [start..end]
+      line = @lineForRow(row)
+      console.log row, line, line.length
+
 _.extend(Buffer.prototype, EventEmitter)

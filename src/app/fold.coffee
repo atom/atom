@@ -1,51 +1,66 @@
 Range = require 'range'
+Point = require 'point'
 
 module.exports =
 class Fold
   @idCounter: 1
-  start: null
-  end: null
 
-  constructor: (@lineFolder, {@start, @end}) ->
+  renderer: null
+  startRow: null
+  endRow: null
+
+  constructor: (@renderer, @startRow, @endRow) ->
     @id = @constructor.idCounter++
 
   destroy: ->
-    @lineFolder.destroyFold(this)
+    @renderer.destroyFold(this)
 
-  getRange: ->
-    new Range(@start, @end)
+  inspect: ->
+    "Fold(#{@startRow}, #{@endRow})"
+
+  getBufferRange: ->
+    new Range([@startRow, 0], [@endRow, Infinity])
+
+  getBufferDelta: ->
+    new Point(@endRow - @startRow + 1, 0)
 
   handleBufferChange: (event) ->
-    oldStartRow = @start.row
+    oldStartRow = @startRow
 
-    { oldRange } = event
-    if oldRange.start.isLessThanOrEqual(@start) and oldRange.end.isGreaterThanOrEqual(@end)
-      @lineFolder.unregisterFold(oldStartRow, this)
+    if @isContainedByRange(event.oldRange)
+      @renderer.unregisterFold(@startRow, this)
       return
 
-    changeInsideFold = @start.isLessThanOrEqual(oldRange.start) and @end.isGreaterThan(oldRange.end)
+    @updateStartRow(event)
+    @updateEndRow(event)
 
-    @start = @updateAnchorPoint(@start, event)
-    @end = @updateAnchorPoint(@end, event, false)
+    if @startRow != oldStartRow
+      @renderer.unregisterFold(oldStartRow, this)
+      @renderer.registerFold(this)
 
-    if @start.row != oldStartRow
-      @lineFolder.unregisterFold(oldStartRow, this)
-      @lineFolder.registerFold(@start.row, this)
+  isContainedByRange: (range) ->
+    range.start.row <= @startRow and @endRow <= range.end.row
 
-    changeInsideFold
-
-  updateAnchorPoint: (point, event, inclusive=true) ->
+  updateStartRow: (event) ->
     { newRange, oldRange } = event
-    if inclusive
-      return point if oldRange.end.isGreaterThan(point)
-    else
-      return point if oldRange.end.isGreaterThanOrEqual(point)
 
-    newRange.end.add(point.subtract(oldRange.end))
-
-  compare: (other) ->
-    startComparison = @start.compare(other.start)
-    if startComparison == 0
-      other.end.compare(@end)
+    if oldRange.end.row < @startRow
+      delta = newRange.end.row - oldRange.end.row
+    else if newRange.end.row < @startRow
+      delta = newRange.end.row - @startRow
     else
-      startComparison
+      delta = 0
+
+    @startRow += delta
+
+  updateEndRow: (event) ->
+    { newRange, oldRange } = event
+
+    if oldRange.end.row <= @endRow
+      delta = newRange.end.row - oldRange.end.row
+    else if newRange.end.row <= @endRow
+      delta = newRange.end.row - @endRow
+    else
+      delta = 0
+
+    @endRow += delta

@@ -63,6 +63,7 @@ class Editor extends View
     requireStylesheet 'theme/twilight.css'
 
     @id = Editor.idCounter++
+    @lineCache = []
     @bindKeys()
     @autoIndent = true
     @buildCursorAndSelection()
@@ -120,6 +121,7 @@ class Editor extends View
       'redo': @redo
       'toggle-soft-wrap': @toggleSoftWrap
       'fold-selection': @foldSelection
+      'unfold': => @unfoldRow(@getCursorBufferPosition().row)
       'split-left': @splitLeft
       'split-right': @splitRight
       'split-up': @splitUp
@@ -174,8 +176,8 @@ class Editor extends View
       @isFocused = false
       @removeClass 'focused'
 
-    @visibleLines.on 'mousedown', '.fold-placeholder', (e) =>
-      @destroyFold($(e.currentTarget).attr('foldId'))
+    @visibleLines.on 'mousedown', '.fold.line', (e) =>
+      @destroyFold($(e.currentTarget).attr('fold-id'))
       false
 
     @visibleLines.on 'mousedown', (e) =>
@@ -276,8 +278,11 @@ class Editor extends View
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
 
-  scrollBottom: ->
-    @scrollTop() + @scrollView.height()
+  scrollBottom: (scrollBottom) ->
+    if scrollBottom?
+      @scrollTop(scrollBottom - @scrollView.height())
+    else
+      @scrollTop() + @scrollView.height()
 
   renderVisibleLines: ->
     @clearLines()
@@ -293,8 +298,6 @@ class Editor extends View
   updateVisibleLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
-
-    return if @firstRenderedScreenRow <= firstVisibleScreenRow and @lastRenderedScreenRow >= lastVisibleScreenRow
 
     @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow)
 
@@ -349,10 +352,24 @@ class Editor extends View
   getLastVisibleScreenRow: ->
     Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
+  highlightSelectedFolds: ->
+    screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
+    for screenLine, i in screenLines
+      if fold = screenLine.fold
+        screenRow = @firstRenderedScreenRow + i
+        element = @lineElementForScreenRow(screenRow)
+        if @compositeSelection.intersectsBufferRange(fold.getBufferRange())
+          element.addClass('selected')
+        else
+          element.removeClass('selected')
+
   getScreenLines: ->
     @renderer.getLines()
 
-  linesForRows: (start, end) ->
+  screenLineForRow: (start) ->
+    @renderer.lineForRow(start)
+
+  screenLinesForRows: (start, end) ->
     @renderer.linesForRows(start, end)
 
   screenLineCount: ->
@@ -360,6 +377,12 @@ class Editor extends View
 
   getLastScreenRow: ->
     @screenLineCount() - 1
+
+  isFoldedAtScreenRow: (screenRow) ->
+    @screenLineForRow(screenRow).fold?
+
+  destroyFoldsContainingBufferRow: (bufferRow) ->
+    @renderer.destroyFoldsContainingBufferRow(bufferRow)
 
   setBuffer: (buffer) ->
     if @buffer
@@ -438,33 +461,60 @@ class Editor extends View
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
-      unless newScreenRange.isSingleLine() and newScreenRange.coversSameRows(oldScreenRange)
+      if e.lineNumbersChanged
         @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
+
+      @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
+
+      return if oldScreenRange.start.row > @lastRenderedScreenRow
+
+      newScreenRange = newScreenRange.copy()
+      oldScreenRange = oldScreenRange.copy()
+      endOfShortestRange = Math.min(oldScreenRange.end.row, newScreenRange.end.row)
+
+      delta = @firstRenderedScreenRow - endOfShortestRange
+      if delta > 0
+        newScreenRange.start.row += delta
+        newScreenRange.end.row += delta
+        oldScreenRange.start.row += delta
+        oldScreenRange.end.row += delta
+
+      newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
+      oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
+      newScreenRange.end.row = Math.min(newScreenRange.end.row, @lastRenderedScreenRow)
+      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
 
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
       @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
-      @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
-      @lastRenderedScreenRow += rowDelta
-      @updateVisibleLines() if rowDelta < 0
+
+      if rowDelta > 0
+        @removeLineElements(@lastRenderedScreenRow + 1, @lastRenderedScreenRow + rowDelta)
+      else if rowDelta < 0
+        @lastRenderedScreenRow += rowDelta
+        @updateVisibleLines()
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
     charHeight = @charHeight
     lines = @renderer.linesForRows(startRow, endRow)
+    compositeSelection = @compositeSelection
+
     $$ ->
       for line in lines
-        @div class: 'line', =>
-          appendNbsp = true
-          for token in line.tokens
-            if token.type is 'fold-placeholder'
-              @span '   ', class: 'fold-placeholder', style: "width: #{3 * charWidth}px; height: #{charHeight}px;", 'foldId': token.fold.id, =>
-                @div class: "ellipsis", => @raw "&hellip;"
-            else
-              appendNbsp = false
+        if fold = line.fold
+          lineAttributes = { class: 'fold line', 'fold-id': fold.id }
+          if compositeSelection.intersectsBufferRange(fold.getBufferRange())
+            lineAttributes.class += ' selected'
+        else
+          lineAttributes = { class: 'line' }
+        @div lineAttributes, =>
+          if line.text == ''
+            @raw '&nbsp;' if line.text == ''
+          else
+            for token in line.tokens
               @span { class: token.type.replace('.', ' ') }, token.value
-          @raw '&nbsp;' if appendNbsp
 
   insertLineElements: (row, lineElements) ->
     @spliceLineElements(row, 0, lineElements)
@@ -499,8 +549,9 @@ class Editor extends View
     elementsToReplace.forEach (element) =>
       lines.removeChild(element)
 
-  getLineElement: (row) ->
-    @lineCache[row]
+  lineElementForScreenRow: (screenRow) ->
+    element = @lineCache[screenRow - @firstRenderedScreenRow]
+    $(element)
 
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
@@ -515,8 +566,8 @@ class Editor extends View
     maxLineLength ?= @calcMaxLineLength()
     @renderer.setMaxLineLength(maxLineLength) if maxLineLength
 
-  createFold: (range) ->
-    @renderer.createFold(range)
+  createFold: (startRow, endRow) ->
+    @renderer.createFold(startRow, endRow)
 
   setSoftWrap: (@softWrap, maxLineLength=undefined) ->
     @setMaxLineLength(maxLineLength) if @attached
@@ -673,6 +724,9 @@ class Editor extends View
 
   foldSelection: -> @getSelection().fold()
 
+  unfoldRow: (row) ->
+    @renderer.largestFoldForBufferRow(row)?.destroy()
+
   undo: ->
     if ranges = @buffer.undo()
       @setSelectedBufferRanges(ranges)
@@ -684,7 +738,7 @@ class Editor extends View
   destroyFold: (foldId) ->
     fold = @renderer.foldsById[foldId]
     fold.destroy()
-    @setCursorBufferPosition(fold.start)
+    @setCursorBufferPosition([fold.startRow, 0])
 
   splitLeft: ->
     @pane()?.splitLeft(@copy()).wrappedView
@@ -729,6 +783,9 @@ class Editor extends View
     @scrollVertically(pixelPosition)
     @scrollHorizontally(pixelPosition)
 
+  scrollToBottom: ->
+    @scrollBottom(@scrollView.prop('scrollHeight'))
+
   scrollVertically: (pixelPosition) ->
     linesInView = @scrollView.height() / @lineHeight
     maxScrollMargin = Math.floor((linesInView - 1) / 2)
@@ -762,5 +819,5 @@ class Editor extends View
     for cursor in @getCursors()
       do (cursor) -> cursor.resetCursorAnimation()
 
-  logLines: ->
-    @renderer.logLines()
+  logLines: (start, end) ->
+    @renderer.logLines(start, end)

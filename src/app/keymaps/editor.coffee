@@ -28,6 +28,7 @@ window.keymap.bindKeys '.editor',
   'meta-Z': 'redo'
   'alt-meta-w': 'toggle-soft-wrap'
   'alt-meta-f': 'fold-selection'
+  'alt-meta-u': 'unfold'
   'alt-meta-left': 'split-left'
   'alt-meta-right': 'split-right'
   'alt-meta-up': 'split-up'

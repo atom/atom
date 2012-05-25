@@ -396,6 +396,7 @@
 		048A2FC5154870DC0051715C /* PathWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PathWatcher.h; sourceTree = "<group>"; };
 		048A2FC6154870DC0051715C /* PathWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PathWatcher.m; sourceTree = "<group>"; };
 		04E1DDDC152A0941001A9D07 /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = frameworks/Sparkle.framework; sourceTree = "<group>"; };
+		04F21A2615644AC10083F6D4 /* ResourceConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ResourceConfig.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -791,9 +792,10 @@
 			children = (
 				0487D15E14FEE7880045E5E3 /* Resources */,
 				0487C93414FED5FB0045E5E3 /* ClientWindow.xib */,
-				0487C93514FED5FB0045E5E3 /* Info.plist */,
 				0487C93614FED5FB0045E5E3 /* MainMenu.xib */,
+				0487C93514FED5FB0045E5E3 /* Info.plist */,
 				0415A1FD1524EC8A0075C91C /* atom.icns */,
+				04F21A2615644AC10083F6D4 /* ResourceConfig.xcconfig */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -946,7 +948,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "rake compile-coffeescripts\n";
+			shellScript = "rake copy-files-to-bundle\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -1054,7 +1056,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					"LOAD_RESOURCES_FROM_DIR=\"\\\"$PROJECT_DIR\\\"\"",
+					"LOAD_RESOURCES_FROM_DIR=\"\\\"$LOAD_RESOURCES_FROM_DIR\\\"\"",
 					"\"ENABLE_REMOTING=1\"",
 					"\"ENABLE_P2P_APIS=1\"",
 					"\"ENABLE_CONFIGURATION_POLICY\"",
@@ -1117,6 +1119,7 @@
 		};
 		0487C93114FED5370045E5E3 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 04F21A2615644AC10083F6D4 /* ResourceConfig.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
