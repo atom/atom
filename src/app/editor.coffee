@@ -225,7 +225,7 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    $(window).on "resize", =>
+    $(window).on "resize.editor#{@id}", =>
       @updateVisibleLines()
 
   afterAttach: (onDom) ->
@@ -236,11 +236,16 @@ class Editor extends View
     @calculateDimensions()
     @setMaxLineLength() if @softWrap
     @prepareForVerticalScrolling()
+
+    # this also renders the visible lines
     @setScrollPositionFromActiveEditSession()
-    @renderVisibleLines()
-    # TODO: The redundant assignment of scrollLeft below is needed because the lines weren't render
-    # rendered when we called setScrollPositionFromActiveEditSession above. Remove this when we fix
-    # that problem by setting the width of the lines container based on the max line width
+
+    # TODO: The redundant assignment of scrollLeft below is needed because the
+    # lines weren't rendered when we called
+    # setScrollPositionFromActiveEditSession above. Remove this when we fix that
+    # problem by setting the width of the lines container based on the max line
+    # length
+
     @scrollView.scrollLeft(@getActiveEditSession().scrollLeft ? 0)
     @hiddenInput.width(@charWidth)
     @focus() if @isFocused
@@ -303,54 +308,80 @@ class Editor extends View
 
     renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
     renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
-
+    console.log "Rendering lines %d-%d", renderFrom, renderTo
 
     if firstVisibleScreenRow < @firstRenderedScreenRow
-      newLinesEndRow = Math.min(@firstRenderedScreenRow - 1, lastVisibleScreenRow)
-      lineElements = @buildLineElements(renderFrom, newLinesEndRow)
-      console.log "inserting", renderFrom, "to", newLinesEndRow
-      @insertLineElements(renderFrom, lineElements)
-      @firstRenderedScreenRow = renderFrom
-      adjustPaddingTop = true
-
-      if renderTo < @lastRenderedScreenRow
-        console.log "removing", renderTo + 1, "to", @lastRenderedScreenRow
-        @removeLineElements(renderTo + 1, @lastRenderedScreenRow)
-        adjustPaddingBottom = true
-
+      @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo), @lastRenderedScreenRow)
       @lastRenderedScreenRow = renderTo
+      @firstRenderedScreenRow = renderFrom
+      newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow, renderTo))
+      @insertLineElements(renderFrom, newLines)
+      adjustPadding = true
 
     if lastVisibleScreenRow > @lastRenderedScreenRow
-      newLinesStartRow = Math.max(@lastRenderedScreenRow + 1, firstVisibleScreenRow)
-      lineElements = @buildLineElements(newLinesStartRow, renderTo)
-      console.log "inserting", newLinesStartRow, "to", renderTo
-      @insertLineElements(newLinesStartRow, lineElements)
-      @lastRenderedScreenRow = renderTo
-      adjustPaddingBottom = true
-
-      if 0 <= @firstRenderedScreenRow < renderFrom
-        console.log "removing", @firstRenderedScreenRow, "to", renderFrom - 1
-        @removeLineElements(@firstRenderedScreenRow, renderFrom - 1)
-        adjustPaddingTop = true
-
+      @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom))
       @firstRenderedScreenRow = renderFrom
+      @lastRenderedScreenRow = renderTo
+      startRowOfNewLines = Math.max(@lastRenderedScreenRow, renderFrom)
+      newLines = @buildLineElements(startRowOfNewLines, renderTo)
+      @insertLineElements(startRowOfNewLines, newLines)
+      adjustPadding = true
 
-    if adjustPaddingTop
+    if adjustPadding
       paddingTop = @firstRenderedScreenRow * @lineHeight
       @visibleLines.css('padding-top', paddingTop)
       @gutter.lineNumbers.css('padding-top', paddingTop)
-      # @firstRenderedScreenRow = firstVisibleScreenRow
 
-    if adjustPaddingBottom
       paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
       @visibleLines.css('padding-bottom', paddingBottom)
       @gutter.lineNumbers.css('padding-bottom', paddingBottom)
+
+    # if firstVisibleScreenRow < @firstRenderedScreenRow
+    #   newLinesEndRow = Math.min(@firstRenderedScreenRow - 1, lastVisibleScreenRow)
+    #   lineElements = @buildLineElements(renderFrom, newLinesEndRow)
+    #   console.log "inserting", renderFrom, "to", newLinesEndRow
+    #   @insertLineElements(renderFrom, lineElements)
+    #   @firstRenderedScreenRow = renderFrom
+    #   adjustPaddingTop = true
+
+    #   if renderTo < @lastRenderedScreenRow
+    #     console.log "removing", renderTo + 1, "to", @lastRenderedScreenRow
+    #     @removeLineElements(renderTo + 1, @lastRenderedScreenRow)
+    #     adjustPaddingBottom = true
+
+    #   @lastRenderedScreenRow = renderTo
+
+    # if lastVisibleScreenRow > @lastRenderedScreenRow
+    #   newLinesStartRow = Math.max(@lastRenderedScreenRow + 1, renderFrom)
+    #   lineElements = @buildLineElements(newLinesStartRow, renderTo)
+    #   console.log "inserting", newLinesStartRow, "to", renderTo
+    #   @insertLineElements(newLinesStartRow, lineElements)
+    #   @lastRenderedScreenRow = renderTo
+    #   adjustPaddingBottom = true
+
+    #   if 0 <= @firstRenderedScreenRow < renderFrom
+    #     console.log "removing", @firstRenderedScreenRow, "to", renderFrom - 1
+    #     @removeLineElements(@firstRenderedScreenRow, renderFrom - 1)
+    #     adjustPaddingTop = true
+
+    #   @firstRenderedScreenRow = renderFrom
+
+    # if adjustPaddingTop
+    #   paddingTop = @firstRenderedScreenRow * @lineHeight
+    #   @visibleLines.css('padding-top', paddingTop)
+    #   @gutter.lineNumbers.css('padding-top', paddingTop)
+
+    # if adjustPaddingBottom
+    #   paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
+    #   @visibleLines.css('padding-bottom', paddingBottom)
+    #   @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    maxVisibleScreenRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    Math.min(maxVisibleScreenRow, @getLastScreenRow())
 
   highlightSelectedFolds: ->
     screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
@@ -441,7 +472,6 @@ class Editor extends View
     editSession = @getActiveEditSession()
     @scrollTop(editSession.scrollTop ? 0)
     @scrollView.scrollLeft(editSession.scrollLeft ? 0)
-    @verticalScrollbar.trigger 'scroll'
 
   saveCurrentEditSession: ->
     @editSessions[@activeEditSessionIndex] =
@@ -481,19 +511,14 @@ class Editor extends View
 
       newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
-      newScreenRange.end.row = Math.min(newScreenRange.end.row, @lastRenderedScreenRow)
-      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
 
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
       @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
 
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
 
-      if rowDelta > 0
-        @removeLineElements(@lastRenderedScreenRow + 1, @lastRenderedScreenRow + rowDelta)
-      else if rowDelta < 0
-        @lastRenderedScreenRow += rowDelta
-        @updateVisibleLines()
+      @lastRenderedScreenRow += rowDelta
+      @updateVisibleLines() if rowDelta < 0
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
@@ -763,6 +788,7 @@ class Editor extends View
 
     @trigger 'before-remove'
     @unsubscribeFromBuffer()
+    $(window).off ".editor#{@id}"
     rootView = @rootView()
     rootView?.off ".editor#{@id}"
     if @pane() then @pane().remove() else super
