@@ -311,20 +311,20 @@ class Editor extends View
     console.log "Rendering lines %d-%d", renderFrom, renderTo
 
     if firstVisibleScreenRow < @firstRenderedScreenRow
-      @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo), @lastRenderedScreenRow)
+      @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
       @lastRenderedScreenRow = renderTo
-      @firstRenderedScreenRow = renderFrom
-      newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow, renderTo))
+      newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow - 1, renderTo))
       @insertLineElements(renderFrom, newLines)
+      @firstRenderedScreenRow = renderFrom
       adjustPadding = true
 
     if lastVisibleScreenRow > @lastRenderedScreenRow
-      @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom))
+      @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1)) if @firstRenderedScreenRow >= 0
       @firstRenderedScreenRow = renderFrom
-      @lastRenderedScreenRow = renderTo
-      startRowOfNewLines = Math.max(@lastRenderedScreenRow, renderFrom)
+      startRowOfNewLines = Math.max(@lastRenderedScreenRow + 1, renderFrom)
       newLines = @buildLineElements(startRowOfNewLines, renderTo)
       @insertLineElements(startRowOfNewLines, newLines)
+      @lastRenderedScreenRow = renderTo
       adjustPadding = true
 
     if adjustPadding
@@ -548,9 +548,12 @@ class Editor extends View
     @spliceLineElements(startRow, endRow - startRow + 1, lineElements)
 
   removeLineElements: (startRow, endRow) ->
+    console.log "removeLineElements", startRow, endRow
     @spliceLineElements(startRow, endRow - startRow + 1)
 
   spliceLineElements: (startScreenRow, rowCount, lineElements) ->
+    throw new Error("Splicing at a negative start row: #{startScreenRow}") if startScreenRow < 0
+
     if startScreenRow < @firstRenderedScreenRow
       startRow = 0
     else

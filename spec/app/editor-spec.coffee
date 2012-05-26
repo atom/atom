@@ -478,6 +478,8 @@ fdescribe "Editor", ->
       describe "when scrolling vertically", ->
         describe "whes scrolling less than the editor's height", ->
           it "draws new lines and removes old lines when the last visible line will exceed the last rendered line", ->
+            expect(editor.visibleLines.find('.line').length).toBe 8
+
             editor.scrollTop(editor.lineHeight * 1.5)
             expect(editor.visibleLines.find('.line').length).toBe 8
             expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
@@ -566,7 +568,7 @@ fdescribe "Editor", ->
         spyOn(editor, "scrollTo")
 
       describe "when the change the precedes the first rendered row", ->
-        fffit "inserts and removes rendered lines to account for upstream change", ->
+        it "inserts and removes rendered lines to account for upstream change", ->
           console.log "-------------------"
           editor.scrollToBottom()
           expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
