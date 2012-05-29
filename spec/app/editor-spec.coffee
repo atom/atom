@@ -8,7 +8,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-fdescribe "Editor", ->
+describe "Editor", ->
   [rootView, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -650,16 +650,22 @@ fdescribe "Editor", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
 
-    it "creates a line number element for visible lines", ->
-      expect(editor.gutter.find('.line-number').length).toEqual(6)
+    it "creates a line number element for each visible line, plus overdraw", ->
+      expect(editor.gutter.find('.line-number').length).toEqual(8)
       expect(editor.gutter.find('.line-number:first').text()).toBe "1"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "6"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "8"
 
       editor.verticalScrollbar.scrollTop(editor.lineHeight * 1.5)
       editor.verticalScrollbar.trigger 'scroll'
-      expect(editor.visibleLines.find('.line').length).toBe 6
+      expect(editor.visibleLines.find('.line').length).toBe 8
+      expect(editor.gutter.find('.line-number:first').text()).toBe "1"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "9"
+
+      editor.verticalScrollbar.scrollTop(editor.lineHeight * 3.5)
+      editor.verticalScrollbar.trigger 'scroll'
+      expect(editor.visibleLines.find('.line').length).toBe 10
       expect(editor.gutter.find('.line-number:first').text()).toBe "2"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "7"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "11"
 
     describe "width", ->
       it "sets the width based on last line number", ->
@@ -674,7 +680,7 @@ fdescribe "Editor", ->
       it "renders line numbers correctly", ->
         oneHundredLines = [0..100].join("\n")
         editor.insertText(oneHundredLines)
-        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 6
+        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 6 + editor.lineOverdraw * 2
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
@@ -1108,57 +1114,32 @@ fdescribe "Editor", ->
 
         it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
           setEditorHeightInLines(editor, 10)
-          editor.renderVisibleLines() # Ensures the editor only has 10 lines visible
 
           _.times 6, -> editor.moveCursorDown()
-          window.advanceClock()
           expect(editor.scrollTop()).toBe(0)
 
           editor.moveCursorDown()
-          advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
-
           expect(editor.scrollTop()).toBe(editor.lineHeight)
-          expect(editor.visibleLines.find('.line').length).toBe 10
-          expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(1)
-          expect(editor.visibleLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank, but a nbsp holds its height
 
           editor.moveCursorDown()
-          window.advanceClock()
-
           expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
-          expect(editor.visibleLines.find('.line').length).toBe 10
-          expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(2)
-          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
           _.times 3, -> editor.moveCursorUp()
-          window.advanceClock()
 
           editor.moveCursorUp()
-          window.advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
-
           expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
-          window.advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
-
           expect(editor.scrollTop()).toBe(0)
 
         it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
           setEditorHeightInLines(editor, 5)
 
-          _.times 3, ->
-            editor.moveCursorDown()
-            window.advanceClock()
-            editor.verticalScrollbar.trigger 'scroll'
+          _.times 3, -> editor.moveCursorDown()
 
           expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
-          window.advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
           expect(editor.scrollView.scrollTop()).toBe(0)
 
       describe "horizontal scrolling", ->
@@ -2504,6 +2485,7 @@ fdescribe "Editor", ->
     describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
       it "renders the fold's line element with the 'selected' class", ->
         setEditorHeightInLines(editor, 5)
+        editor.renderVisibleLines() # re-render lines so certain lines are not rendered
 
         editor.createFold(2, 4)
         editor.setSelectionBufferRange([[1, 0], [5, 0]])
