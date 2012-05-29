@@ -603,9 +603,9 @@ fdescribe "Editor", ->
       describe "when the change the follows the last rendered row", ->
         it "does not change the rendered lines", ->
           buffer.change([[12,0], [12,0]], "12\n13\n14\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line").length).toBe 7
           expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
     describe "when lines are removed", ->
       beforeEach ->
