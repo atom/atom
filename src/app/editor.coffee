@@ -306,15 +306,13 @@ class Editor extends View
     renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
     renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
-    @gutter.renderLineNumbers(renderFrom, renderTo)
-
     if firstVisibleScreenRow < @firstRenderedScreenRow
       @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
       @lastRenderedScreenRow = renderTo
       newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow - 1, renderTo))
       @insertLineElements(renderFrom, newLines)
       @firstRenderedScreenRow = renderFrom
-      adjustPadding = true
+      renderedLines = true
 
     if lastVisibleScreenRow > @lastRenderedScreenRow
       if 0 <= @firstRenderedScreenRow < renderFrom
@@ -324,9 +322,10 @@ class Editor extends View
       newLines = @buildLineElements(startRowOfNewLines, renderTo)
       @insertLineElements(startRowOfNewLines, newLines)
       @lastRenderedScreenRow = renderTo
-      adjustPadding = true
+      renderedLines = true
 
-    if adjustPadding
+    if renderedLines
+      @gutter.renderLineNumbers(renderFrom, renderTo)
       paddingTop = @firstRenderedScreenRow * @lineHeight
       @visibleLines.css('padding-top', paddingTop)
       @gutter.lineNumbers.css('padding-top', paddingTop)

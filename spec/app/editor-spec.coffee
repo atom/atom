@@ -488,6 +488,16 @@ describe "Editor", ->
             expect(editor.visibleLines.find('.line').length).toBe 10
             expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(1)
             expect(editor.visibleLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editor.gutter.find('.line-number:first').text()).toBe '2'
+            expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+
+            # here we don't scroll far enough to trigger additional rendering
+            editor.scrollTop(editor.lineHeight * 5.5) # first visible row will be 5, last will be 10
+            expect(editor.visibleLines.find('.line').length).toBe 10
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(1)
+            expect(editor.visibleLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editor.gutter.find('.line-number:first').text()).toBe '2'
+            expect(editor.gutter.find('.line-number:last').text()).toBe '11'
 
             editor.scrollTop(editor.lineHeight * 7.5) # first visible row is 7, last will be 12
             expect(editor.visibleLines.find('.line').length).toBe 8
@@ -651,18 +661,17 @@ describe "Editor", ->
       editor.attachToDom(heightInLines: 5.5)
 
     it "creates a line number element for each visible line, plus overdraw", ->
-      expect(editor.gutter.find('.line-number').length).toEqual(8)
+      expect(editor.gutter.find('.line-number').length).toBe 8
       expect(editor.gutter.find('.line-number:first').text()).toBe "1"
       expect(editor.gutter.find('.line-number:last').text()).toBe "8"
 
-      editor.verticalScrollbar.scrollTop(editor.lineHeight * 1.5)
-      editor.verticalScrollbar.trigger 'scroll'
+      # here we don't scroll far enough to trigger additional rendering
+      editor.scrollTop(editor.lineHeight * 1.5)
       expect(editor.visibleLines.find('.line').length).toBe 8
       expect(editor.gutter.find('.line-number:first').text()).toBe "1"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "9"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "8"
 
-      editor.verticalScrollbar.scrollTop(editor.lineHeight * 3.5)
-      editor.verticalScrollbar.trigger 'scroll'
+      editor.scrollTop(editor.lineHeight * 3.5)
       expect(editor.visibleLines.find('.line').length).toBe 10
       expect(editor.gutter.find('.line-number:first').text()).toBe "2"
       expect(editor.gutter.find('.line-number:last').text()).toBe "11"
