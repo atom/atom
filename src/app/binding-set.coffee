@@ -8,6 +8,7 @@ PEG = require 'pegjs'
 module.exports =
 class BindingSet
   selector: null
+  keystrokeMap: null
   commandForEvent: null
   keystrokePatternParser: null
 
@@ -15,6 +16,7 @@ class BindingSet
     @parser = PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(@selector)
     @commandForEvent = @buildEventHandler(mapOrFunction)
+    @keystrokeMap = if not _.isFunction(mapOrFunction) then mapOrFunction else {}
 
   buildEventHandler: (mapOrFunction) ->
     if _.isFunction(mapOrFunction)
