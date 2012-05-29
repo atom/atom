@@ -308,7 +308,9 @@ class Editor extends View
 
     renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
     renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
-    console.log "Rendering lines %d-%d", renderFrom, renderTo
+
+    console.log "Lines we have: %d-%d", @firstRenderedScreenRow, @lastRenderedScreenRow
+    console.log "Lines we want: %d-%d", renderFrom, renderTo
 
     if firstVisibleScreenRow < @firstRenderedScreenRow
       @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
@@ -319,7 +321,8 @@ class Editor extends View
       adjustPadding = true
 
     if lastVisibleScreenRow > @lastRenderedScreenRow
-      @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1)) if @firstRenderedScreenRow >= 0
+      if 0 <= @firstRenderedScreenRow < renderFrom
+        @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1))
       @firstRenderedScreenRow = renderFrom
       startRowOfNewLines = Math.max(@lastRenderedScreenRow + 1, renderFrom)
       newLines = @buildLineElements(startRowOfNewLines, renderTo)
@@ -335,46 +338,6 @@ class Editor extends View
       paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
       @visibleLines.css('padding-bottom', paddingBottom)
       @gutter.lineNumbers.css('padding-bottom', paddingBottom)
-
-    # if firstVisibleScreenRow < @firstRenderedScreenRow
-    #   newLinesEndRow = Math.min(@firstRenderedScreenRow - 1, lastVisibleScreenRow)
-    #   lineElements = @buildLineElements(renderFrom, newLinesEndRow)
-    #   console.log "inserting", renderFrom, "to", newLinesEndRow
-    #   @insertLineElements(renderFrom, lineElements)
-    #   @firstRenderedScreenRow = renderFrom
-    #   adjustPaddingTop = true
-
-    #   if renderTo < @lastRenderedScreenRow
-    #     console.log "removing", renderTo + 1, "to", @lastRenderedScreenRow
-    #     @removeLineElements(renderTo + 1, @lastRenderedScreenRow)
-    #     adjustPaddingBottom = true
-
-    #   @lastRenderedScreenRow = renderTo
-
-    # if lastVisibleScreenRow > @lastRenderedScreenRow
-    #   newLinesStartRow = Math.max(@lastRenderedScreenRow + 1, renderFrom)
-    #   lineElements = @buildLineElements(newLinesStartRow, renderTo)
-    #   console.log "inserting", newLinesStartRow, "to", renderTo
-    #   @insertLineElements(newLinesStartRow, lineElements)
-    #   @lastRenderedScreenRow = renderTo
-    #   adjustPaddingBottom = true
-
-    #   if 0 <= @firstRenderedScreenRow < renderFrom
-    #     console.log "removing", @firstRenderedScreenRow, "to", renderFrom - 1
-    #     @removeLineElements(@firstRenderedScreenRow, renderFrom - 1)
-    #     adjustPaddingTop = true
-
-    #   @firstRenderedScreenRow = renderFrom
-
-    # if adjustPaddingTop
-    #   paddingTop = @firstRenderedScreenRow * @lineHeight
-    #   @visibleLines.css('padding-top', paddingTop)
-    #   @gutter.lineNumbers.css('padding-top', paddingTop)
-
-    # if adjustPaddingBottom
-    #   paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
-    #   @visibleLines.css('padding-bottom', paddingBottom)
-    #   @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
@@ -488,6 +451,8 @@ class Editor extends View
     oldScreenRange = e.oldRange
     newScreenRange = e.newRange
 
+    @renderer.logLines()
+
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
@@ -510,13 +475,14 @@ class Editor extends View
         oldScreenRange.end.row += delta
 
       newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
+      newScreenRange.end.row = Math.min(newScreenRange.end.row, @lastRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
+      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
 
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
       @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
 
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
-
       @lastRenderedScreenRow += rowDelta
       @updateVisibleLines() if rowDelta < 0
 
@@ -548,7 +514,6 @@ class Editor extends View
     @spliceLineElements(startRow, endRow - startRow + 1, lineElements)
 
   removeLineElements: (startRow, endRow) ->
-    console.log "removeLineElements", startRow, endRow
     @spliceLineElements(startRow, endRow - startRow + 1)
 
   spliceLineElements: (startScreenRow, rowCount, lineElements) ->
