@@ -309,9 +309,6 @@ class Editor extends View
     renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
     renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
-    console.log "Lines we have: %d-%d", @firstRenderedScreenRow, @lastRenderedScreenRow
-    console.log "Lines we want: %d-%d", renderFrom, renderTo
-
     if firstVisibleScreenRow < @firstRenderedScreenRow
       @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
       @lastRenderedScreenRow = renderTo
@@ -451,14 +448,13 @@ class Editor extends View
     oldScreenRange = e.oldRange
     newScreenRange = e.newRange
 
-    @renderer.logLines()
-
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
-      if e.lineNumbersChanged
-        @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
+      firstVisibleScreenRow = @getFirstVisibleScreenRow()
+      lastVisibleScreenRow = @getLastVisibleScreenRow()
 
+      @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow) if e.lineNumbersChanged
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
@@ -475,9 +471,10 @@ class Editor extends View
         oldScreenRange.end.row += delta
 
       newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
-      newScreenRange.end.row = Math.min(newScreenRange.end.row, @lastRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
-      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
+      maxEndRow = Math.max(lastVisibleScreenRow, @lastRenderedScreenRow)
+      newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
+      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, maxEndRow)
 
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
       @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)

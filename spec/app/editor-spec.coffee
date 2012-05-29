@@ -339,7 +339,7 @@ fdescribe "Editor", ->
       editor.simulateDomAttachment()
       expect(openHandler).not.toHaveBeenCalled()
 
-  ffdescribe "text rendering", ->
+  describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->
         editor.attachToDom()
