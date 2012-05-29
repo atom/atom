@@ -676,6 +676,18 @@ describe "Editor", ->
         editor.insertText(oneHundredLines)
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 3
 
+    describe "when lines are inserted", ->
+      it "re-renders the correct line number range in the gutter", ->
+        spyOn(editor, 'scrollTo')
+        editor.scrollTop(3 * editor.lineHeight)
+        expect(editor.gutter.find('.line-number:first').text()).toBe '2'
+        expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+
+        buffer.insert([6, 0], '\n')
+
+        expect(editor.gutter.find('.line-number:first').text()).toBe '2'
+        expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+
     describe "when the insertion of lines causes the editor to scroll", ->
       it "renders line numbers correctly", ->
         oneHundredLines = [0..100].join("\n")
@@ -685,7 +697,7 @@ describe "Editor", ->
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editor.setMaxLineLength(50)
-        expect(editor.gutter.find('.line-number').length).toEqual(6)
+        expect(editor.gutter.find('.line-number').length).toEqual(8)
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '•'
         expect(editor.gutter.find('.line-number:eq(5)').text()).toBe '5'

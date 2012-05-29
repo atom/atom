@@ -453,7 +453,7 @@ class Editor extends View
       firstVisibleScreenRow = @getFirstVisibleScreenRow()
       lastVisibleScreenRow = @getLastVisibleScreenRow()
 
-      @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow) if e.lineNumbersChanged
+      @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow) if e.lineNumbersChanged
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
