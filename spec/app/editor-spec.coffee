@@ -30,6 +30,7 @@ describe "Editor", ->
       this.height(getLineHeight() * heightInLines)
       $('#jasmine-content').append(this)
 
+    editor.lineOverdraw = 2
     editor.autoIndent = false
     editor.enableKeymap()
     editor.isFocused = true
@@ -72,7 +73,6 @@ describe "Editor", ->
       rootView.remove()
       newEditor.attachToDom()
       expect(newEditor.scrollTop()).toBe 1.5 * editor.lineHeight
-      expect(newEditor.visibleLines.css('padding-top')).toBe "#{editor.lineHeight}px"
       expect(newEditor.scrollView.scrollLeft()).toBe 44
 
   describe ".setBuffer(buffer)", ->
@@ -467,181 +467,214 @@ describe "Editor", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
 
-      it "only renders the visible lines, setting the padding-bottom of the lines element to account for the missing lines", ->
-        expect(editor.visibleLines.find('.line').length).toBe 6
-        expectedPaddingBottom = (buffer.numLines() - 6) * editor.lineHeight
+      it "only renders the visible lines plus the overdrawn lines, setting the padding-bottom of the lines element to account for the missing lines", ->
+        expect(editor.visibleLines.find('.line').length).toBe 8
+        expectedPaddingBottom = (buffer.numLines() - 8) * editor.lineHeight
         expect(editor.visibleLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
+        expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+        expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
       describe "when scrolling vertically", ->
         describe "whes scrolling less than the editor's height", ->
-          it "removes lines that become invisible and builds lines that become visisble", ->
-            editor.scrollTop(editor.lineHeight * 2.5)
-            expect(editor.visibleLines.find('.line').length).toBe 6
-            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(2)
+          it "draws new lines and removes old lines when the last visible line will exceed the last rendered line", ->
+            expect(editor.visibleLines.find('.line').length).toBe 8
+
+            editor.scrollTop(editor.lineHeight * 1.5)
+            expect(editor.visibleLines.find('.line').length).toBe 8
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
             expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
-            editor.scrollTop(editor.lineHeight * 3.5)
-            expect(editor.visibleLines.find('.line').length).toBe 6
-            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(3)
-            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(8)
+            editor.scrollTop(editor.lineHeight * 3.5) # first visible row will be 3, last will be 8
+            expect(editor.visibleLines.find('.line').length).toBe 10
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(1)
+            expect(editor.visibleLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editor.gutter.find('.line-number:first').text()).toBe '2'
+            expect(editor.gutter.find('.line-number:last').text()).toBe '11'
 
-            editor.scrollTop(editor.lineHeight * 2.5)
-            expect(editor.visibleLines.find('.line').length).toBe 6
-            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(2)
-            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
+            # here we don't scroll far enough to trigger additional rendering
+            editor.scrollTop(editor.lineHeight * 5.5) # first visible row will be 5, last will be 10
+            expect(editor.visibleLines.find('.line').length).toBe 10
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(1)
+            expect(editor.visibleLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editor.gutter.find('.line-number:first').text()).toBe '2'
+            expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+
+            editor.scrollTop(editor.lineHeight * 7.5) # first visible row is 7, last will be 12
+            expect(editor.visibleLines.find('.line').length).toBe 8
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(5)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(12)
+
+            editor.scrollTop(editor.lineHeight * 3.5) # first visible row will be 3, last will be 8
+            expect(editor.visibleLines.find('.line').length).toBe 10
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(1)
+            expect(editor.visibleLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
 
             editor.scrollTop(0)
-            editor.verticalScrollbar.trigger 'scroll'
-            expect(editor.visibleLines.find('.line').length).toBe 6
+            expect(editor.visibleLines.find('.line').length).toBe 8
             expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
-            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(5)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
         describe "when scrolling more than the editors height", ->
-          it "removes lines that become invisible and builds lines that become visible", ->
+          it "removes lines that are offscreen and not in range of the overdraw and builds lines that become visible", ->
             editor.scrollTop(editor.scrollView.prop('scrollHeight') - editor.scrollView.height())
-            expect(editor.visibleLines.find('.line').length).toBe 6
-            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(7)
+            expect(editor.visibleLines.find('.line').length).toBe 8
+            expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(5)
             expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(12)
 
             editor.verticalScrollbar.scrollBottom(0)
             editor.verticalScrollbar.trigger 'scroll'
-            expect(editor.visibleLines.find('.line').length).toBe 6
+            expect(editor.visibleLines.find('.line').length).toBe 8
             expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
-            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(5)
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
         it "adjusts the vertical padding of the lines element to account for non-rendered lines", ->
-          editor.scrollTop(editor.lineHeight * 2.5)
-          expect(editor.visibleLines.css('padding-top')).toBe "#{2 * editor.lineHeight}px"
-          expectedPaddingBottom = (buffer.numLines() - 8) * editor.lineHeight
+          editor.scrollTop(editor.lineHeight * 3)
+          firstVisibleBufferRow = 3
+          expectedPaddingTop = (firstVisibleBufferRow - editor.lineOverdraw) * editor.lineHeight
+          expect(editor.visibleLines.css('padding-top')).toBe "#{expectedPaddingTop}px"
+
+          lastVisibleBufferRow = Math.ceil(3 + 5.5) # scroll top in lines + height in lines
+          lastOverdrawnRow = lastVisibleBufferRow + editor.lineOverdraw
+          expectedPaddingBottom = ((buffer.numLines() - lastOverdrawnRow) * editor.lineHeight)
           expect(editor.visibleLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
-          editor.verticalScrollbar.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          editor.verticalScrollbar.trigger 'scroll'
-          expect(editor.visibleLines.css('padding-top')).toBe "#{7 * editor.lineHeight}px"
+          editor.scrollToBottom()
+          # scrolled to bottom, first visible row is 5 and first rendered row is 3
+          firstVisibleBufferRow = Math.floor(buffer.numLines() - 5.5)
+          firstOverdrawnBufferRow = firstVisibleBufferRow - editor.lineOverdraw
+          expectedPaddingTop = firstOverdrawnBufferRow * editor.lineHeight
+          expect(editor.visibleLines.css('padding-top')).toBe "#{expectedPaddingTop}px"
           expect(editor.visibleLines.css('padding-bottom')).toBe "0px"
 
       it "renders additional lines when the editor is resized", ->
         setEditorHeightInLines(editor, 10)
         $(window).trigger 'resize'
 
-        expect(editor.visibleLines.find('.line').length).toBe 10
+        expect(editor.visibleLines.find('.line').length).toBe 12
         expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
-        expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(9)
+        expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
-      it "renders correctly when scrolling after text added to buffer", ->
-        editor.attachToDom(heightInLines: 5.5)
+      it "renders correctly when scrolling after text is added to the buffer", ->
         editor.insertText("1\n")
         _.times 4, -> editor.moveCursorDown()
-        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(2)
-        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(7)
+        expect(editor.visibleLines.find('.line:eq(2)').text()).toBe editor.buffer.lineForRow(2)
+        expect(editor.visibleLines.find('.line:eq(7)').text()).toBe editor.buffer.lineForRow(7)
 
       it "renders correctly when scrolling after text is removed from buffer", ->
-        editor.attachToDom(heightInLines: 5.5)
         editor.buffer.delete([[0,0],[1,0]])
         expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
         expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
-        _.times 4, -> editor.moveCursorDown()
-        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(1)
-        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(6)
+
+        editor.scrollTop(3 * editor.lineHeight)
+        expect(editor.visibleLines.find('.line:first').text()).toBe editor.buffer.lineForRow(1)
+        expect(editor.visibleLines.find('.line:last').text()).toBe editor.buffer.lineForRow(10)
 
     describe "when lines are added", ->
       beforeEach ->
-        editor.attachToDom()
-        setEditorHeightInLines(editor, 5)
+        editor.attachToDom(heightInLines: 5)
         spyOn(editor, "scrollTo")
 
       describe "when the change the precedes the first rendered row", ->
         it "inserts and removes rendered lines to account for upstream change", ->
-          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          editor.scrollToBottom()
+          expect(editor.visibleLines.find(".line").length).toBe 7
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[1,0], [3,0]], "1\n2\n3\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+          expect(editor.visibleLines.find(".line").length).toBe 8
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(13)
 
       describe "when the change straddles the first rendered row", ->
         it "doesn't render rows that were not previously rendered", ->
-          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          editor.scrollToBottom()
+
+          expect(editor.visibleLines.find(".line").length).toBe 7
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
+          expect(editor.visibleLines.find(".line").length).toBe 10
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(15)
 
-      describe "when the change the straddles the last rendered row", ->
+      describe "when the change straddles the last rendered row", ->
         it "doesn't render rows that were not previously rendered", ->
           buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line").length).toBe 7
           expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
       describe "when the change the follows the last rendered row", ->
         it "does not change the rendered lines", ->
           buffer.change([[12,0], [12,0]], "12\n13\n14\n")
-          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line").length).toBe 7
           expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
     describe "when lines are removed", ->
       beforeEach ->
-        editor.attachToDom()
-        setEditorHeightInLines(editor, 5)
+        editor.attachToDom(heightInLines: 5)
         spyOn(editor, "scrollTo")
 
       describe "when the change the precedes the first rendered row", ->
         it "removes rendered lines to account for upstream change", ->
-          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          editor.scrollToBottom()
+          expect(editor.visibleLines.find(".line").length).toBe 7
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[1,0], [2,0]], "")
-          expect(editor.visibleLines.find(".line").length).toBe 4
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line").length).toBe 6
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(11)
 
       describe "when the change straddles the first rendered row", ->
         it "renders the correct rows", ->
-          editor.scrollBottom(editor.scrollView.prop('scrollHeight'))
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          editor.scrollToBottom()
+          expect(editor.visibleLines.find(".line").length).toBe 7
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[7,0], [11,0]], "1\n2\n")
-          expect(editor.visibleLines.find(".line").length).toBe 3
-          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(8)
+          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
           expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(10)
 
-      describe "when the change the straddles the last rendered row", ->
+      describe "when the change straddles the last rendered row", ->
         it "renders the correct rows", ->
           buffer.change([[2,0], [7,0]], "")
-          expect(editor.visibleLines.find(".line").length).toBe 5
+          expect(editor.visibleLines.find(".line").length).toBe 7
           expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
       describe "when the change the follows the last rendered row", ->
         it "does not change the rendered lines", ->
-          buffer.change([[12,0], [12,0]], "")
-          expect(editor.visibleLines.find(".line").length).toBe 5
+          buffer.change([[10,0], [12,0]], "")
+          expect(editor.visibleLines.find(".line").length).toBe 7
           expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(0)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(4)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
 
-    it "creates a line number element for visible lines", ->
-      expect(editor.gutter.find('.line-number').length).toEqual(6)
+    it "creates a line number element for each visible line, plus overdraw", ->
+      expect(editor.gutter.find('.line-number').length).toBe 8
       expect(editor.gutter.find('.line-number:first').text()).toBe "1"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "6"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "8"
 
-      editor.verticalScrollbar.scrollTop(editor.lineHeight * 1.5)
-      editor.verticalScrollbar.trigger 'scroll'
-      expect(editor.visibleLines.find('.line').length).toBe 6
+      # here we don't scroll far enough to trigger additional rendering
+      editor.scrollTop(editor.lineHeight * 1.5)
+      expect(editor.visibleLines.find('.line').length).toBe 8
+      expect(editor.gutter.find('.line-number:first').text()).toBe "1"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "8"
+
+      editor.scrollTop(editor.lineHeight * 3.5)
+      expect(editor.visibleLines.find('.line').length).toBe 10
       expect(editor.gutter.find('.line-number:first').text()).toBe "2"
-      expect(editor.gutter.find('.line-number:last').text()).toBe "7"
+      expect(editor.gutter.find('.line-number:last').text()).toBe "11"
 
     describe "width", ->
       it "sets the width based on last line number", ->
@@ -652,16 +685,28 @@ describe "Editor", ->
         editor.insertText(oneHundredLines)
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 3
 
+    describe "when lines are inserted", ->
+      it "re-renders the correct line number range in the gutter", ->
+        spyOn(editor, 'scrollTo')
+        editor.scrollTop(3 * editor.lineHeight)
+        expect(editor.gutter.find('.line-number:first').text()).toBe '2'
+        expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+
+        buffer.insert([6, 0], '\n')
+
+        expect(editor.gutter.find('.line-number:first').text()).toBe '2'
+        expect(editor.gutter.find('.line-number:last').text()).toBe '11'
+
     describe "when the insertion of lines causes the editor to scroll", ->
       it "renders line numbers correctly", ->
         oneHundredLines = [0..100].join("\n")
         editor.insertText(oneHundredLines)
-        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 6
+        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 6 + editor.lineOverdraw * 2
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
         editor.setMaxLineLength(50)
-        expect(editor.gutter.find('.line-number').length).toEqual(6)
+        expect(editor.gutter.find('.line-number').length).toEqual(8)
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '•'
         expect(editor.gutter.find('.line-number:eq(5)').text()).toBe '5'
@@ -700,11 +745,11 @@ describe "Editor", ->
     describe "when the editor is scrolled vertically", ->
       it "adjusts the padding-top to account for non-rendered line numbers", ->
         editor.scrollTop(editor.lineHeight * 3.5)
-        expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 3}px"
-        expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 4}px"
-        expect(editor.visibleLines.find('.line').length).toBe 6
-        expect(editor.gutter.find('.line-number:first').text()).toBe "4"
-        expect(editor.gutter.find('.line-number:last').text()).toBe "9"
+        expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 1}px"
+        expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 2}px"
+        expect(editor.visibleLines.find('.line').length).toBe 10
+        expect(editor.gutter.find('.line-number:first').text()).toBe "2"
+        expect(editor.gutter.find('.line-number:last').text()).toBe "11"
 
   describe "font size", ->
     it "sets the initial font size based on the value assigned to the root view", ->
@@ -1090,57 +1135,32 @@ describe "Editor", ->
 
         it "scrolls the buffer with the specified scroll margin when cursor approaches the end of the screen", ->
           setEditorHeightInLines(editor, 10)
-          editor.renderVisibleLines() # Ensures the editor only has 10 lines visible
 
           _.times 6, -> editor.moveCursorDown()
-          window.advanceClock()
           expect(editor.scrollTop()).toBe(0)
 
           editor.moveCursorDown()
-          advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
-
           expect(editor.scrollTop()).toBe(editor.lineHeight)
-          expect(editor.visibleLines.find('.line').length).toBe 10
-          expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(1)
-          expect(editor.visibleLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank, but a nbsp holds its height
 
           editor.moveCursorDown()
-          window.advanceClock()
-
           expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
-          expect(editor.visibleLines.find('.line').length).toBe 10
-          expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(2)
-          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
           _.times 3, -> editor.moveCursorUp()
-          window.advanceClock()
 
           editor.moveCursorUp()
-          window.advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
-
           expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
-          window.advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
-
           expect(editor.scrollTop()).toBe(0)
 
         it "reduces scroll margins when there isn't enough height to maintain them and scroll smoothly", ->
           setEditorHeightInLines(editor, 5)
 
-          _.times 3, ->
-            editor.moveCursorDown()
-            window.advanceClock()
-            editor.verticalScrollbar.trigger 'scroll'
+          _.times 3, -> editor.moveCursorDown()
 
           expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
-          window.advanceClock()
-          editor.verticalScrollbar.trigger 'scroll'
           expect(editor.scrollView.scrollTop()).toBe(0)
 
       describe "horizontal scrolling", ->
@@ -2486,6 +2506,7 @@ describe "Editor", ->
     describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
       it "renders the fold's line element with the 'selected' class", ->
         setEditorHeightInLines(editor, 5)
+        editor.renderVisibleLines() # re-render lines so certain lines are not rendered
 
         editor.createFold(2, 4)
         editor.setSelectionBufferRange([[1, 0], [5, 0]])
