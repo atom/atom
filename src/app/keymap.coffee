@@ -32,7 +32,6 @@ class Keymap
 
     while currentNode.length
       bindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
-      console.log @bindingSets, currentNode
 
       bindingSets.sort (a, b) -> b.specificity - a.specificity
       for bindingSet in bindingSets

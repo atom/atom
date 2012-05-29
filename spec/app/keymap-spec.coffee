@@ -225,7 +225,7 @@ describe "Keymap", ->
       expect(bindings['g']).toEqual "g"
 
     describe "when multiple bindings match a keystroke", ->
-      fit "only returns bindings that match the most specific selector", ->
+      it "only returns bindings that match the most specific selector", ->
         keymap.bindKeys '.command-mode', 'g': 'command-mode'
         keymap.bindKeys '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
         keymap.bindKeys '.grandchild-node', 'g': 'grandchild-node'
