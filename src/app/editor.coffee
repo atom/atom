@@ -303,11 +303,10 @@ class Editor extends View
   updateVisibleLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
-
-    @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow)
-
     renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
     renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
+
+    @gutter.renderLineNumbers(renderFrom, renderTo)
 
     if firstVisibleScreenRow < @firstRenderedScreenRow
       @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)

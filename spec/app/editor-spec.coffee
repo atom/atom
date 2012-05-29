@@ -718,11 +718,11 @@ fdescribe "Editor", ->
     describe "when the editor is scrolled vertically", ->
       it "adjusts the padding-top to account for non-rendered line numbers", ->
         editor.scrollTop(editor.lineHeight * 3.5)
-        expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 3}px"
-        expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 4}px"
-        expect(editor.visibleLines.find('.line').length).toBe 6
-        expect(editor.gutter.find('.line-number:first').text()).toBe "4"
-        expect(editor.gutter.find('.line-number:last').text()).toBe "9"
+        expect(editor.gutter.lineNumbers.css('padding-top')).toBe "#{editor.lineHeight * 1}px"
+        expect(editor.gutter.lineNumbers.css('padding-bottom')).toBe "#{editor.lineHeight * 2}px"
+        expect(editor.visibleLines.find('.line').length).toBe 10
+        expect(editor.gutter.find('.line-number:first').text()).toBe "2"
+        expect(editor.gutter.find('.line-number:last').text()).toBe "11"
 
   describe "font size", ->
     it "sets the initial font size based on the value assigned to the root view", ->
