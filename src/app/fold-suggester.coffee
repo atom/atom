@@ -7,4 +7,4 @@ class FoldSuggester
     @aceFoldAdaptor = new AceFoldAdaptor(@buffer)
 
   isBufferRowFoldable: (bufferRow) ->
-    @aceFoldMode.getFoldWidget(@aceFoldAdaptor, null, bufferRow) == "start"
+    @aceFoldMode?.getFoldWidget(@aceFoldAdaptor, null, bufferRow) == "start"
