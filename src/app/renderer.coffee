@@ -57,11 +57,18 @@ class Renderer
     if fold = @largestFoldForBufferRow(bufferRow)
       fold.destroy()
     else
-      @createFoldAtBufferRow(bufferRow)
+      rowToFold = bufferRow
+      while rowToFold >= 0
+        rowRange = @foldSuggester.rowRangeForFoldAtBufferRow(rowToFold)
+        if rowRange and (rowRange[0] - 1) <= bufferRow <= rowRange[1]
+          if fold = @largestFoldForBufferRow(rowRange[0])
+            fold.destroy()
+          else
+            @createFold(rowRange...)
 
-  createFoldAtBufferRow: (bufferRow) ->
-    [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(bufferRow)
-    @createFold(startRow, endRow)
+          return
+        else
+          rowToFold--
 
   createFold: (startRow, endRow) ->
     fold = new Fold(this, startRow, endRow)

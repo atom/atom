@@ -2445,7 +2445,6 @@ describe "Editor", ->
         editor.trigger "toggle-fold"
         expect(editor.screenLineForRow(2).fold).toBeDefined()
 
-        editor.moveCursorDown()
         editor.trigger "toggle-fold"
         expect(editor.screenLineForRow(2).fold).toBeUndefined()
 
