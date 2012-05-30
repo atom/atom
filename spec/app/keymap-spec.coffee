@@ -190,18 +190,6 @@ describe "Keymap", ->
 
           expect(fooHandler).toHaveBeenCalled()
 
-  describe ".bindKey(selector, pattern, eventName)", ->
-    it "binds a single key", ->
-      keymap.bindKey '.child-node', 'z', 'foo'
-
-      fooHandler = jasmine.createSpy('fooHandler')
-      fragment.on 'foo', fooHandler
-
-      target = fragment.find('.child-node')[0]
-      keymap.handleKeyEvent(keydownEvent('z', target: target))
-
-      expect(fooHandler).toHaveBeenCalled()
-
   describe ".keystrokeStringForEvent(event)", ->
     describe "when no modifiers are pressed", ->
       it "returns a string that identifies the key pressed", ->
@@ -224,3 +212,24 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('{', shiftKey: true))).toBe '{'
         expect(keymap.keystrokeStringForEvent(keydownEvent('left', shiftKey: true))).toBe 'shift-left'
         expect(keymap.keystrokeStringForEvent(keydownEvent('Left', shiftKey: true))).toBe 'shift-left'
+
+
+  describe ".bindingsForElement(element)", ->
+    it "returns the matching bindings for the element", ->
+      keymap.bindKeys '.command-mode', 'c': 'c'
+      keymap.bindKeys '.grandchild-node', 'g': 'g'
+
+      bindings = keymap.bindingsForElement(fragment.find('.grandchild-node'))
+      expect(Object.keys(bindings).length).toBe 2
+      expect(bindings['c']).toEqual "c"
+      expect(bindings['g']).toEqual "g"
+
+    describe "when multiple bindings match a keystroke", ->
+      it "only returns bindings that match the most specific selector", ->
+        keymap.bindKeys '.command-mode', 'g': 'command-mode'
+        keymap.bindKeys '.command-mode .grandchild-node', 'g': 'command-and-grandchild-node'
+        keymap.bindKeys '.grandchild-node', 'g': 'grandchild-node'
+
+        bindings = keymap.bindingsForElement(fragment.find('.grandchild-node'))
+        expect(Object.keys(bindings).length).toBe 1
+        expect(bindings['g']).toEqual "command-and-grandchild-node"

@@ -29,6 +29,7 @@ class RootView extends View
   extensions: null
   extensionStates: null
   fontSize: 18
+  keybindingsView: null
 
   initialize: (pathToOpen) ->
     @extensions = {}
@@ -59,6 +60,7 @@ class RootView extends View
 
     @on 'increase-font-size', => @setFontSize(@getFontSize() + 1)
     @on 'decrease-font-size', => @setFontSize(@getFontSize() - 1)
+    @on 'toggle-keybindings-view', => @toggleKeybindingsView()
 
   afterAttach: (onDom) ->
     @focus() if onDom
@@ -113,6 +115,25 @@ class RootView extends View
 
     if not previousActiveEditor or editor.buffer.path != previousActiveEditor.buffer.path
       @trigger 'active-editor-path-change', editor.buffer.path
+
+  toggleKeybindingsView: ->
+    if @keybindingsView?
+      @keybindingsView.remove()
+      @keybindingsView = null
+    else
+      keybindings = @activeKeybindings()
+      @keybindingsView = $$ ->
+        @div class: 'keybindings-view', =>
+          @ul =>
+            for keystroke, command of keybindings
+              @li =>
+                @span class: 'keystroke', "#{keystroke}"
+                @span "#{command}"
+
+      @append(@keybindingsView)
+
+  activeKeybindings: ->
+    keymap.bindingsForElement(document.activeElement)
 
   setTitle: (title='untitled') ->
     document.title = title
