@@ -12,6 +12,7 @@ class Cursor extends View
   anchor: null
   editor: null
   wordRegex: /(\w+)|([^\w\s]+)/g
+  hidden: false
 
   initialize: ({editor, screenPosition} = {}) ->
     @editor = editor
@@ -178,8 +179,10 @@ class Cursor extends View
       @editor.scrollTo(pixelPosition)
 
     if @editor.isFoldedAtScreenRow(screenPosition.row)
-      @hide()
+      @hide() unless @hidden
+      @hidden = true
     else
-      @show()
+      @show() if @hidden
+      @hidden = false
 
     @selection.updateAppearance()
