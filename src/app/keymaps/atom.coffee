@@ -1,0 +1,7 @@
+window.keymap.bindKeys '*'
+  'alt-meta-i': 'show-console'
+  right: 'move-right'
+  left: 'move-left'
+  down: 'move-down'
+  up: 'move-up'
+  'ctrl-?': 'toggle-keybindings-view'

@@ -1,17 +1,6 @@
-window.keymap.bindKeys '*'
-  'meta-s': 'save'
-  'meta-w': 'close'
-  'alt-meta-i': 'show-console'
-  'meta-+': 'increase-font-size'
-  'meta--': 'decrease-font-size'
-
-  right: 'move-right'
-  left: 'move-left'
-  down: 'move-down'
-  up: 'move-up'
-
 window.keymap.bindKeys '.editor',
   'meta-s': 'save'
+  'meta-w': 'close'
   'shift-right': 'select-right'
   'shift-left': 'select-left'
   'shift-up': 'select-up'
@@ -38,3 +27,5 @@ window.keymap.bindKeys '.editor',
   'meta-]': 'indent-selected-rows'
   'meta-{': 'show-previous-buffer'
   'meta-}': 'show-next-buffer'
+  'meta-+': 'increase-font-size'
+  'meta--': 'decrease-font-size'
