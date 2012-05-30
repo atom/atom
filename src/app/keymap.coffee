@@ -1,8 +1,9 @@
+$ = require 'jquery'
+_ = require 'underscore'
 fs = require 'fs'
+
 BindingSet = require 'binding-set'
 Specificity = require 'specificity'
-
-$ = require 'jquery'
 
 module.exports =
 class Keymap
@@ -27,17 +28,13 @@ class Keymap
     @bindingSets.unshift(new BindingSet(selector, bindings))
 
   bindingsForElement: (element) ->
-    currentNode = $(element)
     keystrokeMap = {}
+    currentNode = $(element)
 
     while currentNode.length
       bindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
-
       bindingSets.sort (a, b) -> b.specificity - a.specificity
-      for bindingSet in bindingSets
-        for keystroke, command of bindingSet.keystrokeMap
-          keystrokeMap[keystroke] ?= command
-
+      _.defaults(keystrokeMap, set.keystrokeMap) for set in bindingSets
       currentNode = currentNode.parent()
 
     keystrokeMap
@@ -57,9 +54,6 @@ class Keymap
           return false
       currentNode = currentNode.parent()
     true
-
-  reset: ->
-    @bindingSets = []
 
   triggerCommandEvent: (keyEvent, commandName) ->
     commandEvent = $.Event(commandName)

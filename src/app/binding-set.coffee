@@ -1,8 +1,8 @@
 $ = require 'jquery'
 _ = require 'underscore'
-Specificity = require 'specificity'
 fs = require 'fs'
 
+Specificity = require 'specificity'
 PEG = require 'pegjs'
 
 module.exports =
@@ -10,33 +10,31 @@ class BindingSet
   selector: null
   keystrokeMap: null
   commandForEvent: null
-  keystrokePatternParser: null
+  parser: null
 
   constructor: (@selector, mapOrFunction) ->
     @parser = PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(@selector)
-    @commandForEvent = @buildEventHandler(mapOrFunction)
-    @keystrokeMap = if not _.isFunction(mapOrFunction) then mapOrFunction else {}
+    @keystrokeMap = {}
 
-  buildEventHandler: (mapOrFunction) ->
     if _.isFunction(mapOrFunction)
-      mapOrFunction
+      @commandForEvent = mapOrFunction
     else
-      mapOrFunction = @normalizeKeystrokePatterns(mapOrFunction)
-      (event) =>
-        for pattern, command of mapOrFunction
-          return command if event.keystroke == pattern
+      @keystrokeMap = @normalizeKeystrokeMap(mapOrFunction)
+      @commandForEvent = (event) =>
+        for keystroke, command of @keystrokeMap
+          return command if event.keystroke == keystroke
         null
 
-  normalizeKeystrokePatterns: (map) ->
-    normalizedMap = {}
-    for pattern, event of map
-      normalizedMap[@normalizeKeystrokePattern(pattern)] = event
-    normalizedMap
+  normalizeKeystrokeMap: (keystrokeMap) ->
+    normalizeKeystrokeMap = {}
+    for keystroke, command of keystrokeMap
+      normalizeKeystrokeMap[@normalizeKeystroke(keystroke)] = command
 
-  normalizeKeystrokePattern: (pattern) ->
-    keys = @parser.parse(pattern)
+    normalizeKeystrokeMap
+
+  normalizeKeystroke: (keystroke) ->
+    keys = @parser.parse(keystroke)
     modifiers = keys[0...-1]
     modifiers.sort()
     [modifiers..., _.last(keys)].join('-')
-
