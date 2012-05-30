@@ -141,6 +141,21 @@ describe "Renderer", ->
         expect(event.newRange).toEqual([[0, 0], [18, 2]])
         expect(event.lineNumbersChanged).toBeTruthy()
 
+  describe "fold markers", ->
+    it "sets 'foldable' to true for screen lines that start a foldable region", ->
+      expect(renderer.lineForRow(0).foldable).toBeTruthy()
+      expect(renderer.lineForRow(1).foldable).toBeTruthy()
+      expect(renderer.lineForRow(2).foldable).toBeFalsy()
+      expect(renderer.lineForRow(3).foldable).toBeFalsy()
+
+    describe "when a foldable line is wrapped", ->
+      it "only marks the first screen line as foldable", ->
+        renderer.setMaxLineLength(20)
+        expect(renderer.lineForRow(0).foldable).toBeTruthy()
+        expect(renderer.lineForRow(1).foldable).toBeFalsy()
+        expect(renderer.lineForRow(2).foldable).toBeTruthy()
+        expect(renderer.lineForRow(3).foldable).toBeFalsy()
+
   describe "folding", ->
     beforeEach ->
       buffer = new Buffer(require.resolve 'fixtures/two-hundred.txt')

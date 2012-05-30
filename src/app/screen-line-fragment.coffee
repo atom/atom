@@ -8,6 +8,7 @@ class ScreenLineFragment
   tokens: null
   screenDelta: null
   bufferDelta: null
+  foldable: null
 
   constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
     @screenDelta = Point.fromObject(screenDelta)
@@ -15,7 +16,7 @@ class ScreenLineFragment
     _.extend(this, extraFields)
 
   copy: ->
-    new ScreenLineFragment(@tokens, @text, @screenDelta, @bufferDelta, { @state })
+    new ScreenLineFragment(@tokens, @text, @screenDelta, @bufferDelta, { @state, @foldable })
 
   splitAt: (column) ->
     return [new ScreenLineFragment([], '', [0, 0], [0, 0]), this] if column == 0
@@ -36,7 +37,7 @@ class ScreenLineFragment
     [leftScreenDelta, rightScreenDelta] = @screenDelta.splitAt(column)
     [leftBufferDelta, rightBufferDelta] = @bufferDelta.splitAt(column)
 
-    leftFragment = new ScreenLineFragment(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@state})
+    leftFragment = new ScreenLineFragment(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@state, @foldable})
     rightFragment = new ScreenLineFragment(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@state})
     [leftFragment, rightFragment]
 

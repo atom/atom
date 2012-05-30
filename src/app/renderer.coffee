@@ -1,5 +1,6 @@
 _ = require 'underscore'
 Highlighter = require 'highlighter'
+FoldSuggester = require 'fold-suggester'
 LineMap = require 'line-map'
 Point = require 'point'
 EventEmitter = require 'event-emitter'
@@ -22,6 +23,7 @@ class Renderer
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
     @highlighter = new Highlighter(@buffer, options.tabText ? '  ')
+    @foldSuggester = new FoldSuggester(@buffer)
     @maxLineLength = options.maxLineLength ? Infinity
     @activeFolds = {}
     @foldsById = {}
@@ -161,6 +163,7 @@ class Renderer
     startBufferColumn = 0
     while currentBufferRow <= endBufferRow
       screenLine = @highlighter.lineForRow(currentBufferRow)
+      screenLine.foldable = @foldSuggester.isBufferRowFoldable(currentBufferRow)
 
       if fold = @largestFoldForBufferRow(currentBufferRow)
         screenLine = screenLine.copy()
