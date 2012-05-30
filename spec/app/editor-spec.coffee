@@ -2443,10 +2443,10 @@ describe "Editor", ->
         editor.setCursorBufferPosition([1,0])
 
         editor.trigger "toggle-fold"
-        expect(editor.screenLineForRow(2).fold).toBeDefined()
+        expect(editor.screenLineForRow(1).fold).toBeDefined()
 
         editor.trigger "toggle-fold"
-        expect(editor.screenLineForRow(2).fold).toBeUndefined()
+        expect(editor.screenLineForRow(1).fold).toBeUndefined()
 
   describe "primitive folding", ->
     beforeEach ->

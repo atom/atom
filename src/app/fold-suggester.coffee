@@ -12,6 +12,6 @@ class FoldSuggester
 
   rowRangeForFoldAtBufferRow: (bufferRow) ->
     if aceRange = @aceFoldMode?.getFoldWidgetRange(@aceFoldAdaptor, null, bufferRow)
-      [aceRange.start.row + 1, aceRange.end.row]
+      [aceRange.start.row, aceRange.end.row]
     else
       null

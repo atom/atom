@@ -54,21 +54,16 @@ class Renderer
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
   toggleFoldAtBufferRow: (bufferRow) ->
-    if fold = @largestFoldForBufferRow(bufferRow)
-      fold.destroy()
-    else
-      rowToFold = bufferRow
-      while rowToFold >= 0
-        rowRange = @foldSuggester.rowRangeForFoldAtBufferRow(rowToFold)
-        if rowRange and (rowRange[0] - 1) <= bufferRow <= rowRange[1]
-          if fold = @largestFoldForBufferRow(rowRange[0])
-            fold.destroy()
-          else
-            @createFold(rowRange...)
+    for currentRow in [bufferRow..0]
+      [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
+      continue unless startRow and startRow <= bufferRow <= endRow
 
-          return
-        else
-          rowToFold--
+      if fold = @largestFoldForBufferRow(startRow)
+        fold.destroy()
+      else
+        @createFold(startRow, endRow)
+
+      break
 
   createFold: (startRow, endRow) ->
     fold = new Fold(this, startRow, endRow)

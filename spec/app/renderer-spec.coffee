@@ -161,25 +161,19 @@ describe "Renderer", ->
       describe "when bufferRow can be folded", ->
         it "creates/destroys a fold based on the syntactic region starting at the given row", ->
           renderer.toggleFoldAtBufferRow(1)
-          fold = renderer.lineForRow(2).fold
-          expect(fold.startRow).toBe 2
+          fold = renderer.lineForRow(1).fold
+          expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
 
           renderer.toggleFoldAtBufferRow(1)
-          expect(renderer.lineForRow(2).fold).toBeUndefined()
+          expect(renderer.lineForRow(1).fold).toBeUndefined()
 
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
           renderer.toggleFoldAtBufferRow(8)
-          fold = renderer.lineForRow(2).fold
-          expect(fold.startRow).toBe 2
+          fold = renderer.lineForRow(1).fold
+          expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
-
-      describe "when the cursor is on a folded line", ->
-        it "destroys the fold", ->
-          renderer.toggleFoldAtBufferRow(1)
-          renderer.toggleFoldAtBufferRow(2)
-          expect(renderer.lineForRow(2).fold).toBeUndefined()
 
   describe "primitive folding", ->
     beforeEach ->

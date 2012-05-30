@@ -19,8 +19,8 @@ describe "FoldSuggester", ->
 
   describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
     it "returns the start/end rows of the foldable region starting at the given row", ->
-      expect(foldSuggester.rowRangeForFoldAtBufferRow(0)).toEqual [1, 12]
-      expect(foldSuggester.rowRangeForFoldAtBufferRow(1)).toEqual [2, 9]
+      expect(foldSuggester.rowRangeForFoldAtBufferRow(0)).toEqual [0, 12]
+      expect(foldSuggester.rowRangeForFoldAtBufferRow(1)).toEqual [1, 9]
       expect(foldSuggester.rowRangeForFoldAtBufferRow(2)).toBeNull()
-      expect(foldSuggester.rowRangeForFoldAtBufferRow(4)).toEqual [5, 7]
+      expect(foldSuggester.rowRangeForFoldAtBufferRow(4)).toEqual [4, 7]
 
