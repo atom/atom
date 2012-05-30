@@ -53,6 +53,12 @@ class Renderer
   bufferRowsForScreenRows: (startRow, endRow) ->
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
+  toggleFoldAtBufferRow: (bufferRow) ->
+    if fold = @largestFoldForBufferRow(bufferRow)
+      fold.destroy()
+    else
+      @createFoldAtBufferRow(bufferRow)
+
   createFoldAtBufferRow: (bufferRow) ->
     [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(bufferRow)
     @createFold(startRow, endRow)

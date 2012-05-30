@@ -120,6 +120,7 @@ class Editor extends View
       'undo': @undo
       'redo': @redo
       'toggle-soft-wrap': @toggleSoftWrap
+      'toggle-fold': @toggleFold
       'fold-selection': @foldSelection
       'unfold': => @unfoldRow(@getCursorBufferPosition().row)
       'split-left': @splitLeft
@@ -710,11 +711,6 @@ class Editor extends View
   copySelection: -> @compositeSelection.copy()
   paste: -> @insertText($native.readFromPasteboard())
 
-  foldSelection: -> @getSelection().fold()
-
-  unfoldRow: (row) ->
-    @renderer.largestFoldForBufferRow(row)?.destroy()
-
   undo: ->
     if ranges = @buffer.undo()
       @setSelectedBufferRanges(ranges)
@@ -807,6 +803,14 @@ class Editor extends View
   syncCursorAnimations: ->
     for cursor in @getCursors()
       do (cursor) -> cursor.resetCursorAnimation()
+
+  toggleFold: ->
+    @renderer.toggleFoldAtBufferRow(@getCursorBufferPosition().row)
+
+  foldSelection: -> @getSelection().fold()
+
+  unfoldRow: (row) ->
+    @renderer.largestFoldForBufferRow(row)?.destroy()
 
   logLines: (start, end) ->
     @renderer.logLines(start, end)

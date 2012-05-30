@@ -2437,7 +2437,19 @@ describe "Editor", ->
           expect(editor.buffer.lineForRow(0)).toBe "var first = function () {"
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
-  describe "folding", ->
+  describe "structural folding", ->
+    describe "when a toggle-fold event is triggered", ->
+      it "creates/destroys a structual fold based on cursor position", ->
+        editor.setCursorBufferPosition([1,0])
+
+        editor.trigger "toggle-fold"
+        expect(editor.screenLineForRow(2).fold).toBeDefined()
+
+        editor.moveCursorDown()
+        editor.trigger "toggle-fold"
+        expect(editor.screenLineForRow(2).fold).toBeUndefined()
+
+  describe "primitive folding", ->
     beforeEach ->
       editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))
       editor.attachToDom()

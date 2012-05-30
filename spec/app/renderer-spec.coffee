@@ -141,7 +141,7 @@ describe "Renderer", ->
         expect(event.newRange).toEqual([[0, 0], [18, 2]])
         expect(event.lineNumbersChanged).toBeTruthy()
 
-  describe "fold suggestion", ->
+  describe "structural folding", ->
     describe "the foldable flag on screen lines", ->
       it "sets 'foldable' to true for screen lines that start a foldable region", ->
         expect(renderer.lineForRow(0).foldable).toBeTruthy()
@@ -157,6 +157,17 @@ describe "Renderer", ->
           expect(renderer.lineForRow(2).foldable).toBeTruthy()
           expect(renderer.lineForRow(3).foldable).toBeFalsy()
 
+    describe ".toggleFoldAtBufferRow(bufferRow)", ->
+      describe "when bufferRow can be folded", ->
+        it "creates/destroys a fold based on the syntactic region starting at the given row", ->
+          renderer.toggleFoldAtBufferRow(1)
+          fold = renderer.lineForRow(2).fold
+          expect(fold.startRow).toBe 2
+          expect(fold.endRow).toBe 9
+
+          renderer.toggleFoldAtBufferRow(2)
+          expect(renderer.lineForRow(2).fold).toBeUndefined()
+
     describe ".createFoldAtBufferRow(bufferRow)", ->
       it "creates a fold based on the syntactic region starting at the given row", ->
         renderer.createFoldAtBufferRow(1)
@@ -164,7 +175,7 @@ describe "Renderer", ->
         expect(fold.startRow).toBe 2
         expect(fold.endRow).toBe 9
 
-  describe "folding", ->
+  describe "primitive folding", ->
     beforeEach ->
       buffer = new Buffer(require.resolve 'fixtures/two-hundred.txt')
       renderer = new Renderer(buffer, {tabText})
