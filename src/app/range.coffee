@@ -45,6 +45,10 @@ class Range
     else
       otherRange.intersectsWith(this)
 
+  containsPoint: (point) ->
+    point = Point.fromObject(point)
+    point.isGreaterThanOrEqual(@start) and point.isLessThanOrEqual(@end)
+
   union: (otherRange) ->
     start = if @start.isLessThan(otherRange.start) then @start else otherRange.start
     end = if @end.isGreaterThan(otherRange.end) then @end else otherRange.end

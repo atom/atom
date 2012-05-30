@@ -157,3 +157,9 @@ describe "Highlighter", ->
       expect(tokens[1].isAtomic).toBeTruthy()
 
       expect(highlighter.lineForScreenRow(2).text).toBe "#{tabText} buy()#{tabText}while supply > demand"
+
+  describe ".findClosingBracket(startBracketPosition)", ->
+    describe "when called with a bracket type of '{'", ->
+      it "returns the position of the matching bracket, skipping any nested brackets", ->
+        expect(highlighter.findClosingBracket([1, 29])).toEqual [9, 2]
+

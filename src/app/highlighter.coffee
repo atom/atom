@@ -2,6 +2,8 @@ _ = require 'underscore'
 ScreenLineFragment = require 'screen-line-fragment'
 EventEmitter = require 'event-emitter'
 Token = require 'token'
+Range = require 'range'
+Point = require 'point'
 
 module.exports =
 class Highlighter
@@ -74,5 +76,35 @@ class Highlighter
 
   destroy: ->
     @buffer.off ".highlighter#{@id}"
+
+  iterateTokensInBufferRange: (bufferRange, iterator) ->
+    bufferRange = Range.fromObject(bufferRange)
+    { start, end } = bufferRange
+
+    keepLooping = true
+    stop = -> keepLooping = false
+
+    for bufferRow in [start.row..end.row]
+      bufferColumn = 0
+      for token in @screenLines[bufferRow].tokens
+        startOfToken = new Point(bufferRow, bufferColumn)
+        iterator(token, startOfToken, { stop }) if bufferRange.containsPoint(startOfToken)
+        return unless keepLooping
+        bufferColumn += token.bufferDelta
+
+  findClosingBracket: (startBufferPosition) ->
+    range = [startBufferPosition, @buffer.getEofPosition()]
+    position = null
+    depth = 0
+    @iterateTokensInBufferRange range, (token, startPosition, { stop }) ->
+      if token.type.match /lparen|rparen/
+        if token.value == '{'
+          depth++
+        else if token.value == '}'
+          depth--
+          if depth == 0
+            position = startPosition
+            stop()
+    position
 
 _.extend(Highlighter.prototype, EventEmitter)
