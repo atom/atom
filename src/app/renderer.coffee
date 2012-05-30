@@ -23,7 +23,7 @@ class Renderer
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
     @highlighter = new Highlighter(@buffer, options.tabText ? '  ')
-    @foldSuggester = new FoldSuggester(@buffer)
+    @foldSuggester = new FoldSuggester(@highlighter)
     @maxLineLength = options.maxLineLength ? Infinity
     @activeFolds = {}
     @foldsById = {}
@@ -52,6 +52,10 @@ class Renderer
 
   bufferRowsForScreenRows: (startRow, endRow) ->
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
+
+  createFoldAtBufferRow: (bufferRow) ->
+    [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(bufferRow)
+    @createFold(startRow, endRow)
 
   createFold: (startRow, endRow) ->
     fold = new Fold(this, startRow, endRow)
