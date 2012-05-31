@@ -1,0 +1,18 @@
+.keybindings-view {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  background-color: white;
+  overflow: scroll;
+  opacity: 0.9;
+}
+
+.keybindings-view li .keystroke {
+  font-weight: bold;
+  float: left;
+  text-align: right;
+  padding-right: 10px;
+  width: 200px;
+}
