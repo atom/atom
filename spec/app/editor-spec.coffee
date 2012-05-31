@@ -8,7 +8,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-fdescribe "Editor", ->
+describe "Editor", ->
   [rootView, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -462,6 +462,13 @@ fdescribe "Editor", ->
 
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
+
+      describe "when lines are folded and then unfolded", ->
+        it "renders the lines and line numbers correctly after unfolding", ->
+          editor.createFold(2, 9).destroy()
+
+          expect(editor.gutter.find('.line-number:last').text()).toBe '13'
+          expect(editor.gutter.find('.line-number').length).toBe 13
 
     describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
