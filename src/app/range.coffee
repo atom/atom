@@ -64,4 +64,3 @@ class Range
     else
       columns = @end.column
     new Point(rows, columns)
-
