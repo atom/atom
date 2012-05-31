@@ -452,7 +452,8 @@ class Editor extends View
       firstVisibleScreenRow = @getFirstVisibleScreenRow()
       lastVisibleScreenRow = @getLastVisibleScreenRow()
 
-      @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow) if e.lineNumbersChanged
+      maxEndRow = Math.max(lastVisibleScreenRow, @lastRenderedScreenRow)
+      @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
@@ -470,7 +471,6 @@ class Editor extends View
 
       newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
-      maxEndRow = Math.max(lastVisibleScreenRow, @lastRenderedScreenRow)
       newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
       oldScreenRange.end.row = Math.min(oldScreenRange.end.row, maxEndRow)
 
