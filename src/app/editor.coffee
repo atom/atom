@@ -450,7 +450,7 @@ class Editor extends View
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
 
-      maxEndRow = Math.max(@getFirstVisibleScreenRow() + @lineOverdraw, @lastRenderedScreenRow)
+      maxEndRow = Math.max(@getLastVisibleScreenRow() + @lineOverdraw, @lastRenderedScreenRow)
       @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
 
       newScreenRange = newScreenRange.copy()
