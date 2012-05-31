@@ -8,7 +8,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-describe "Editor", ->
+fdescribe "Editor", ->
   [rootView, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -463,7 +463,7 @@ describe "Editor", ->
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
 
-    describe "when the editor is attached and some lines at the end of the buffer are not visible on screen", ->
+    describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
 
@@ -474,8 +474,31 @@ describe "Editor", ->
         expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
+      it "renders additional lines when the editor is resized", ->
+        setEditorHeightInLines(editor, 10)
+        $(window).trigger 'resize'
+
+        expect(editor.visibleLines.find('.line').length).toBe 12
+        expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+        expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
+
+      it "renders correctly when scrolling after text is added to the buffer", ->
+        editor.insertText("1\n")
+        _.times 4, -> editor.moveCursorDown()
+        expect(editor.visibleLines.find('.line:eq(2)').text()).toBe editor.buffer.lineForRow(2)
+        expect(editor.visibleLines.find('.line:eq(7)').text()).toBe editor.buffer.lineForRow(7)
+
+      it "renders correctly when scrolling after text is removed from buffer", ->
+        editor.buffer.delete([[0,0],[1,0]])
+        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
+
+        editor.scrollTop(3 * editor.lineHeight)
+        expect(editor.visibleLines.find('.line:first').text()).toBe editor.buffer.lineForRow(1)
+        expect(editor.visibleLines.find('.line:last').text()).toBe editor.buffer.lineForRow(10)
+
       describe "when scrolling vertically", ->
-        describe "whes scrolling less than the editor's height", ->
+        describe "when scrolling less than the editor's height", ->
           it "draws new lines and removes old lines when the last visible line will exceed the last rendered line", ->
             expect(editor.visibleLines.find('.line').length).toBe 8
 
@@ -545,29 +568,6 @@ describe "Editor", ->
           expectedPaddingTop = firstOverdrawnBufferRow * editor.lineHeight
           expect(editor.visibleLines.css('padding-top')).toBe "#{expectedPaddingTop}px"
           expect(editor.visibleLines.css('padding-bottom')).toBe "0px"
-
-      it "renders additional lines when the editor is resized", ->
-        setEditorHeightInLines(editor, 10)
-        $(window).trigger 'resize'
-
-        expect(editor.visibleLines.find('.line').length).toBe 12
-        expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
-        expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
-
-      it "renders correctly when scrolling after text is added to the buffer", ->
-        editor.insertText("1\n")
-        _.times 4, -> editor.moveCursorDown()
-        expect(editor.visibleLines.find('.line:eq(2)').text()).toBe editor.buffer.lineForRow(2)
-        expect(editor.visibleLines.find('.line:eq(7)').text()).toBe editor.buffer.lineForRow(7)
-
-      it "renders correctly when scrolling after text is removed from buffer", ->
-        editor.buffer.delete([[0,0],[1,0]])
-        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
-        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
-
-        editor.scrollTop(3 * editor.lineHeight)
-        expect(editor.visibleLines.find('.line:first').text()).toBe editor.buffer.lineForRow(1)
-        expect(editor.visibleLines.find('.line:last').text()).toBe editor.buffer.lineForRow(10)
 
     describe "when lines are added", ->
       beforeEach ->
