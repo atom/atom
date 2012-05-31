@@ -449,14 +449,12 @@ class Editor extends View
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
-      firstVisibleScreenRow = @getFirstVisibleScreenRow()
-      lastVisibleScreenRow = @getLastVisibleScreenRow()
-
-      maxEndRow = Math.max(lastVisibleScreenRow + @lineOverdraw, @lastRenderedScreenRow)
-      @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
+
+      maxEndRow = Math.max(@getLastVisibleScreenRow() + @lineOverdraw, @lastRenderedScreenRow)
+      @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
 
       newScreenRange = newScreenRange.copy()
       oldScreenRange = oldScreenRange.copy()
