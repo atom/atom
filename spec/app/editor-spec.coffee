@@ -732,6 +732,14 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '6'
 
+      it "redraws gutter numbers when lines are unfolded", ->
+        setEditorHeightInLines(editor, 20)
+        fold = editor.createFold(2, 12)
+        expect(editor.gutter.find('.line-number').length).toBe 3
+
+        fold.destroy()
+        expect(editor.gutter.find('.line-number').length).toBe 13
+
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->
         editor.attachToDom()
