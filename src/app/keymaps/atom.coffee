@@ -1,4 +1,5 @@
 window.keymap.bindKeys '*'
+  'meta-w': 'close'
   'alt-meta-i': 'show-console'
   right: 'move-right'
   left: 'move-left'

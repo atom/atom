@@ -1,6 +1,5 @@
 window.keymap.bindKeys '.editor',
   'meta-s': 'save'
-  'meta-w': 'close'
   'shift-right': 'select-right'
   'shift-left': 'select-left'
   'shift-up': 'select-up'
