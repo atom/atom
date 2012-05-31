@@ -463,7 +463,25 @@ describe "Editor", ->
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
 
-    describe "when the editor is attached and some lines at the end of the buffer are not visible on screen", ->
+      describe "when lines are folded, then the editor becomes shorter before the lines are unfolded", ->
+        it "renders the lines and line numbers correctly after unfolding", ->
+          fold = editor.createFold(1, 9)
+          setEditorHeightInLines(editor, 4.5)
+
+          fold.destroy()
+
+          expect(editor.visibleLines.find('.line').length).toBe 7
+          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(6)
+
+          expect(editor.gutter.find('.line-number').length).toBe 7
+          expect(editor.gutter.find('.line-number:last').text()).toBe '7'
+
+          editor.scrollTop(3 * editor.lineHeight)
+
+          expect(editor.visibleLines.find('.line').length).toBe 9
+          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(9)
+
+    describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
 
@@ -474,8 +492,31 @@ describe "Editor", ->
         expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
+      it "renders additional lines when the editor is resized", ->
+        setEditorHeightInLines(editor, 10)
+        $(window).trigger 'resize'
+
+        expect(editor.visibleLines.find('.line').length).toBe 12
+        expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
+        expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
+
+      it "renders correctly when scrolling after text is added to the buffer", ->
+        editor.insertText("1\n")
+        _.times 4, -> editor.moveCursorDown()
+        expect(editor.visibleLines.find('.line:eq(2)').text()).toBe editor.buffer.lineForRow(2)
+        expect(editor.visibleLines.find('.line:eq(7)').text()).toBe editor.buffer.lineForRow(7)
+
+      it "renders correctly when scrolling after text is removed from buffer", ->
+        editor.buffer.delete([[0,0],[1,0]])
+        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
+        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
+
+        editor.scrollTop(3 * editor.lineHeight)
+        expect(editor.visibleLines.find('.line:first').text()).toBe editor.buffer.lineForRow(1)
+        expect(editor.visibleLines.find('.line:last').text()).toBe editor.buffer.lineForRow(10)
+
       describe "when scrolling vertically", ->
-        describe "whes scrolling less than the editor's height", ->
+        describe "when scrolling less than the editor's height", ->
           it "draws new lines and removes old lines when the last visible line will exceed the last rendered line", ->
             expect(editor.visibleLines.find('.line').length).toBe 8
 
@@ -546,29 +587,6 @@ describe "Editor", ->
           expect(editor.visibleLines.css('padding-top')).toBe "#{expectedPaddingTop}px"
           expect(editor.visibleLines.css('padding-bottom')).toBe "0px"
 
-      it "renders additional lines when the editor is resized", ->
-        setEditorHeightInLines(editor, 10)
-        $(window).trigger 'resize'
-
-        expect(editor.visibleLines.find('.line').length).toBe 12
-        expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
-        expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
-
-      it "renders correctly when scrolling after text is added to the buffer", ->
-        editor.insertText("1\n")
-        _.times 4, -> editor.moveCursorDown()
-        expect(editor.visibleLines.find('.line:eq(2)').text()).toBe editor.buffer.lineForRow(2)
-        expect(editor.visibleLines.find('.line:eq(7)').text()).toBe editor.buffer.lineForRow(7)
-
-      it "renders correctly when scrolling after text is removed from buffer", ->
-        editor.buffer.delete([[0,0],[1,0]])
-        expect(editor.visibleLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
-        expect(editor.visibleLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
-
-        editor.scrollTop(3 * editor.lineHeight)
-        expect(editor.visibleLines.find('.line:first').text()).toBe editor.buffer.lineForRow(1)
-        expect(editor.visibleLines.find('.line:last').text()).toBe editor.buffer.lineForRow(10)
-
     describe "when lines are added", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5)
@@ -595,9 +613,9 @@ describe "Editor", ->
           expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
-          expect(editor.visibleLines.find(".line").length).toBe 10
+          expect(editor.visibleLines.find(".line").length).toBe 9
           expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(15)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(14)
 
       describe "when the change straddles the last rendered row", ->
         it "doesn't render rows that were not previously rendered", ->
@@ -724,6 +742,14 @@ describe "Editor", ->
         buffer.delete([[3,0], [6,0]])
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '6'
+
+      it "redraws gutter numbers when lines are unfolded", ->
+        setEditorHeightInLines(editor, 20)
+        fold = editor.createFold(2, 12)
+        expect(editor.gutter.find('.line-number').length).toBe 3
+
+        fold.destroy()
+        expect(editor.gutter.find('.line-number').length).toBe 13
 
     describe "when the scrollView is scrolled to the right", ->
       it "adds a drop shadow to the gutter", ->

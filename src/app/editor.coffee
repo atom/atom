@@ -450,13 +450,12 @@ class Editor extends View
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
-      firstVisibleScreenRow = @getFirstVisibleScreenRow()
-      lastVisibleScreenRow = @getLastVisibleScreenRow()
-
-      @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow) if e.lineNumbersChanged
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
+
+      maxEndRow = Math.max(@getLastVisibleScreenRow() + @lineOverdraw, @lastRenderedScreenRow)
+      @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
 
       newScreenRange = newScreenRange.copy()
       oldScreenRange = oldScreenRange.copy()
@@ -471,7 +470,6 @@ class Editor extends View
 
       newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
-      maxEndRow = Math.max(lastVisibleScreenRow, @lastRenderedScreenRow)
       newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
       oldScreenRange.end.row = Math.min(oldScreenRange.end.row, maxEndRow)
 
@@ -481,6 +479,9 @@ class Editor extends View
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
       @lastRenderedScreenRow += rowDelta
       @updateVisibleLines() if rowDelta < 0
+      if @lastRenderedScreenRow > maxEndRow
+        @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
+        @lastRenderedScreenRow = maxEndRow
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
@@ -814,3 +815,7 @@ class Editor extends View
 
   logLines: (start, end) ->
     @renderer.logLines(start, end)
+
+  logRenderedLines: ->
+    @visibleLines.find('.line').each (n) ->
+      console.log n, $(this).text()
