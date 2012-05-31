@@ -463,24 +463,6 @@ describe "Editor", ->
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
 
-      describe "when lines are folded, then the editor becomes shorter before the lines are unfolded", ->
-        it "renders the lines and line numbers correctly after unfolding", ->
-          fold = editor.createFold(1, 9)
-          setEditorHeightInLines(editor, 4.5)
-
-          fold.destroy()
-
-          expect(editor.visibleLines.find('.line').length).toBe 7
-          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(6)
-
-          expect(editor.gutter.find('.line-number').length).toBe 7
-          expect(editor.gutter.find('.line-number:last').text()).toBe '7'
-
-          editor.scrollTop(3 * editor.lineHeight)
-
-          expect(editor.visibleLines.find('.line').length).toBe 9
-          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(9)
-
     describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
@@ -514,6 +496,40 @@ describe "Editor", ->
         editor.scrollTop(3 * editor.lineHeight)
         expect(editor.visibleLines.find('.line:first').text()).toBe editor.buffer.lineForRow(1)
         expect(editor.visibleLines.find('.line:last').text()).toBe editor.buffer.lineForRow(10)
+
+      describe "when creating and destroying folds that are longer than the visible lines", ->
+        describe "when the cursor precedes the fold when it is destroyed", ->
+          it "renders lines and line numbers correctly", ->
+            fold = editor.createFold(1, 9)
+            fold.destroy()
+
+            expect(editor.visibleLines.find('.line').length).toBe 8
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
+
+            expect(editor.gutter.find('.line-number').length).toBe 8
+            expect(editor.gutter.find('.line-number:last').text()).toBe '8'
+
+            editor.scrollTop(4 * editor.lineHeight)
+
+            expect(editor.visibleLines.find('.line').length).toBe 10
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
+
+        describe "when the cursor follows the fold when it is destroyed", ->
+          it "renders lines and line numbers correctly", ->
+            fold = editor.createFold(1, 9)
+            editor.setCursorBufferPosition([10, 0])
+            fold.destroy()
+
+            expect(editor.visibleLines.find('.line').length).toBe 8
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(12)
+
+            expect(editor.gutter.find('.line-number').length).toBe 8
+            expect(editor.gutter.find('.line-number:last').text()).toBe '13'
+
+            editor.scrollTop(4 * editor.lineHeight)
+
+            expect(editor.visibleLines.find('.line').length).toBe 10
+            expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
       describe "when scrolling vertically", ->
         describe "when scrolling less than the editor's height", ->

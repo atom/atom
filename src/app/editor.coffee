@@ -338,8 +338,7 @@ class Editor extends View
     Math.floor(@scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    maxVisibleScreenRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
-    Math.min(maxVisibleScreenRow, @getLastScreenRow())
+    Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
   highlightSelectedFolds: ->
     screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
@@ -446,8 +445,6 @@ class Editor extends View
     oldScreenRange = e.oldRange
     newScreenRange = e.newRange
 
-    @compositeCursor.updateBufferPosition() unless e.bufferChanged
-
     if @attached
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
@@ -478,9 +475,13 @@ class Editor extends View
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
       @lastRenderedScreenRow += rowDelta
       @updateVisibleLines() if rowDelta < 0
+
+
       if @lastRenderedScreenRow > maxEndRow
         @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
         @lastRenderedScreenRow = maxEndRow
+
+    @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
