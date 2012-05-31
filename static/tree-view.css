@@ -6,7 +6,6 @@
   overflow: auto;
   padding: 0 1em;
   cursor: default;
-  font: 16px Inconsolata, Monaco, Courier !important;
   -webkit-user-select: none;
 }
 

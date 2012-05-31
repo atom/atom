@@ -630,7 +630,7 @@ class Editor extends View
 
   setFontSize: (fontSize) ->
     if fontSize
-      @css('font-size', fontSize + 'px')
+      @css('font-size', fontSize + 'pt')
       @calculateDimensions()
       @compositeCursor.updateAppearance()
       @updateVisibleLines()
