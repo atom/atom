@@ -356,6 +356,32 @@ describe "RootView", ->
         rootView.trigger(event)
         expect(commandHandler).toHaveBeenCalled()
 
+    describe ".activeKeybindings()", ->
+      originalKeymap = null
+      keymap = null
+      editor = null
+
+      beforeEach ->
+        rootView.attachToDom()
+        editor = rootView.activeEditor()
+        keymap = new (require 'keymap')
+        originalKeymap = window.keymap
+        window.keymap = keymap
+
+      afterEach ->
+        window.keymap = originalKeymap
+
+      it "returns all keybindings available for focused element", ->
+        editor.on 'test-event-a', => # nothing
+
+        keymap.bindKeys ".editor",
+          "meta-a": "test-event-a"
+          "meta-b": "test-event-b"
+
+        keybindings = rootView.activeKeybindings()
+        expect(Object.keys(keybindings).length).toBe 2
+        expect(keybindings["meta-a"]).toEqual "test-event-a"
+
   describe "when the path of the focused editor's buffer changes", ->
     it "changes the document.title and emits an active-editor-path-change event", ->
       pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
