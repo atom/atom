@@ -47,6 +47,7 @@ class Editor extends View
   tabText: '  '
   editSessions: null
   attached: false
+  lineOverdraw: 100
 
   @deserialize: (viewState, rootView) ->
     viewState = _.clone(viewState)
@@ -224,7 +225,7 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    $(window).on "resize", =>
+    $(window).on "resize.editor#{@id}", =>
       @updateVisibleLines()
 
   afterAttach: (onDom) ->
@@ -235,11 +236,16 @@ class Editor extends View
     @calculateDimensions()
     @setMaxLineLength() if @softWrap
     @prepareForVerticalScrolling()
+
+    # this also renders the visible lines
     @setScrollPositionFromActiveEditSession()
-    @renderVisibleLines()
-    # TODO: The redundant assignment of scrollLeft below is needed because the lines weren't render
-    # rendered when we called setScrollPositionFromActiveEditSession above. Remove this when we fix
-    # that problem by setting the width of the lines container based on the max line width
+
+    # TODO: The redundant assignment of scrollLeft below is needed because the
+    # lines weren't rendered when we called
+    # setScrollPositionFromActiveEditSession above. Remove this when we fix that
+    # problem by setting the width of the lines container based on the max line
+    # length
+
     @scrollView.scrollLeft(@getActiveEditSession().scrollLeft ? 0)
     @hiddenInput.width(@charWidth)
     @focus() if @isFocused
@@ -297,44 +303,43 @@ class Editor extends View
   updateVisibleLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
-
-    @gutter.renderLineNumbers(firstVisibleScreenRow, lastVisibleScreenRow)
-
-    if firstVisibleScreenRow > @firstRenderedScreenRow
-      @removeLineElements(@firstRenderedScreenRow, firstVisibleScreenRow - 1)
-
-    if lastVisibleScreenRow < @lastRenderedScreenRow
-      @removeLineElements(lastVisibleScreenRow + 1, @lastRenderedScreenRow)
+    renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
+    renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
     if firstVisibleScreenRow < @firstRenderedScreenRow
-      newLinesStartRow = firstVisibleScreenRow
-      newLinesEndRow = Math.min(@firstRenderedScreenRow - 1, lastVisibleScreenRow)
-      lineElements = @buildLineElements(newLinesStartRow, newLinesEndRow)
-      @insertLineElements(newLinesStartRow, lineElements)
+      @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
+      @lastRenderedScreenRow = renderTo
+      newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow - 1, renderTo))
+      @insertLineElements(renderFrom, newLines)
+      @firstRenderedScreenRow = renderFrom
+      renderedLines = true
 
     if lastVisibleScreenRow > @lastRenderedScreenRow
-      newLinesStartRow = Math.max(@lastRenderedScreenRow + 1, firstVisibleScreenRow)
-      newLinesEndRow = lastVisibleScreenRow
-      lineElements = @buildLineElements(newLinesStartRow, newLinesEndRow)
-      @insertLineElements(newLinesStartRow, lineElements)
+      if 0 <= @firstRenderedScreenRow < renderFrom
+        @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1))
+      @firstRenderedScreenRow = renderFrom
+      startRowOfNewLines = Math.max(@lastRenderedScreenRow + 1, renderFrom)
+      newLines = @buildLineElements(startRowOfNewLines, renderTo)
+      @insertLineElements(startRowOfNewLines, newLines)
+      @lastRenderedScreenRow = renderTo
+      renderedLines = true
 
-    if firstVisibleScreenRow != @firstRenderedScreenRow
-      paddingTop = firstVisibleScreenRow * @lineHeight
+    if renderedLines
+      @gutter.renderLineNumbers(renderFrom, renderTo)
+      paddingTop = @firstRenderedScreenRow * @lineHeight
       @visibleLines.css('padding-top', paddingTop)
       @gutter.lineNumbers.css('padding-top', paddingTop)
-      @firstRenderedScreenRow = firstVisibleScreenRow
 
-    if lastVisibleScreenRow != @lastRenderedScreenRow
-      paddingBottom = (@getLastScreenRow() - lastVisibleScreenRow) * @lineHeight
+      paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
       @visibleLines.css('padding-bottom', paddingBottom)
       @gutter.lineNumbers.css('padding-bottom', paddingBottom)
-      @lastRenderedScreenRow = lastVisibleScreenRow
 
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    maxVisibleScreenRow = Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    Math.min(maxVisibleScreenRow, @getLastScreenRow())
 
   highlightSelectedFolds: ->
     screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
@@ -425,7 +430,6 @@ class Editor extends View
     editSession = @getActiveEditSession()
     @scrollTop(editSession.scrollTop ? 0)
     @scrollView.scrollLeft(editSession.scrollLeft ? 0)
-    @verticalScrollbar.trigger 'scroll'
 
   saveCurrentEditSession: ->
     @editSessions[@activeEditSessionIndex] =
@@ -445,12 +449,12 @@ class Editor extends View
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
     if @attached
-      if e.lineNumbersChanged
-        @gutter.renderLineNumbers(@getFirstVisibleScreenRow(), @getLastVisibleScreenRow())
-
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
+
+      maxEndRow = Math.max(@getLastVisibleScreenRow() + @lineOverdraw, @lastRenderedScreenRow)
+      @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
 
       newScreenRange = newScreenRange.copy()
       oldScreenRange = oldScreenRange.copy()
@@ -465,19 +469,18 @@ class Editor extends View
 
       newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
-      newScreenRange.end.row = Math.min(newScreenRange.end.row, @lastRenderedScreenRow)
-      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
+      newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
+      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, maxEndRow)
 
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
       @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
 
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
-
-      if rowDelta > 0
-        @removeLineElements(@lastRenderedScreenRow + 1, @lastRenderedScreenRow + rowDelta)
-      else if rowDelta < 0
-        @lastRenderedScreenRow += rowDelta
-        @updateVisibleLines()
+      @lastRenderedScreenRow += rowDelta
+      @updateVisibleLines() if rowDelta < 0
+      if @lastRenderedScreenRow > maxEndRow
+        @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
+        @lastRenderedScreenRow = maxEndRow
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
@@ -510,10 +513,13 @@ class Editor extends View
     @spliceLineElements(startRow, endRow - startRow + 1)
 
   spliceLineElements: (startScreenRow, rowCount, lineElements) ->
+    throw new Error("Splicing at a negative start row: #{startScreenRow}") if startScreenRow < 0
+
     if startScreenRow < @firstRenderedScreenRow
       startRow = 0
     else
       startRow = startScreenRow - @firstRenderedScreenRow
+
     endRow = startRow + rowCount
 
     elementToInsertBefore = @lineCache[startRow]
@@ -746,6 +752,7 @@ class Editor extends View
 
     @trigger 'before-remove'
     @unsubscribeFromBuffer()
+    $(window).off ".editor#{@id}"
     rootView = @rootView()
     rootView?.off ".editor#{@id}"
     if @pane() then @pane().remove() else super
@@ -804,3 +811,7 @@ class Editor extends View
 
   logLines: (start, end) ->
     @renderer.logLines(start, end)
+
+  logRenderedLines: ->
+    @visibleLines.find('.line').each (n) ->
+      console.log n, $(this).text()
