@@ -1305,40 +1305,6 @@ describe "Editor", ->
           position = editor.pixelPositionForScreenPosition([6,1])
           expect(scrollHandler).toHaveBeenCalledWith(position)
 
-  describe "auto indent/outdent", ->
-    beforeEach ->
-      editor.autoIndent = true
-
-    describe "when editing a line that spans a single screen line", ->
-      describe "when a newline is inserted", ->
-        it "indents cursor based on the indentation of previous buffer line", ->
-          editor.setCursorBufferPosition([1, 30])
-          editor.insertText("\n")
-          expect(editor.buffer.lineForRow(2)).toEqual("    ")
-
-      describe "when text beginning with a newline is inserted", ->
-        it "indents cursor based on the indentation of previous buffer line", ->
-          editor.setCursorBufferPosition([4, 29])
-          editor.insertText("\nvar thisIsCool")
-          expect(editor.buffer.lineForRow(5)).toEqual("      var thisIsCool")
-
-      describe "when text that closes a scope entered", ->
-        it "outdents the text", ->
-          editor.setCursorBufferPosition([1, 30])
-          editor.insertText("\n")
-          expect(editor.buffer.lineForRow(2)).toEqual("    ")
-          editor.insertText("}")
-          expect(editor.buffer.lineForRow(2)).toEqual("  }")
-          expect(editor.getCursorBufferPosition().column).toBe 3
-
-      describe "when newlines are inserted for multiple cursors", ->
-        it "auto-indents the newline for each cursor", ->
-          editor.setCursorScreenPosition([1, 30])
-          editor.addCursorAtScreenPosition([4, 29])
-          editor.insertText("\n")
-          expect(editor.buffer.lineForRow(2)).toEqual("    ")
-          expect(editor.buffer.lineForRow(6)).toEqual("      ")
-
     describe "when editing a line that spans multiple screen lines", ->
       beforeEach ->
         editor.setSoftWrap(true, 50)
