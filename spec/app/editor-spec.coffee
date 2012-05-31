@@ -470,6 +470,24 @@ describe "Editor", ->
           expect(editor.gutter.find('.line-number:last').text()).toBe '13'
           expect(editor.gutter.find('.line-number').length).toBe 13
 
+      describe "when lines are folded, then the editor becomes shorter before the lines are unfolded", ->
+        it "renders the lines and line numbers correctly after unfolding", ->
+          fold = editor.createFold(1, 9)
+          setEditorHeightInLines(editor, 4.5)
+
+          fold.destroy()
+
+          expect(editor.visibleLines.find('.line').length).toBe 7
+          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(6)
+
+          expect(editor.gutter.find('.line-number').length).toBe 7
+          expect(editor.gutter.find('.line-number:last').text()).toBe '7'
+
+          editor.scrollTop(3 * editor.lineHeight)
+
+          expect(editor.visibleLines.find('.line').length).toBe 9
+          expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(9)
+
     describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5.5)
@@ -602,9 +620,9 @@ describe "Editor", ->
           expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
-          expect(editor.visibleLines.find(".line").length).toBe 10
+          expect(editor.visibleLines.find(".line").length).toBe 9
           expect(editor.visibleLines.find(".line:first").text()).toBe buffer.lineForRow(6)
-          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(15)
+          expect(editor.visibleLines.find(".line:last").text()).toBe buffer.lineForRow(14)
 
       describe "when the change straddles the last rendered row", ->
         it "doesn't render rows that were not previously rendered", ->

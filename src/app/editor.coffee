@@ -452,7 +452,7 @@ class Editor extends View
       firstVisibleScreenRow = @getFirstVisibleScreenRow()
       lastVisibleScreenRow = @getLastVisibleScreenRow()
 
-      maxEndRow = Math.max(lastVisibleScreenRow, @lastRenderedScreenRow)
+      maxEndRow = Math.max(lastVisibleScreenRow + @lineOverdraw, @lastRenderedScreenRow)
       @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
 
@@ -480,6 +480,9 @@ class Editor extends View
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
       @lastRenderedScreenRow += rowDelta
       @updateVisibleLines() if rowDelta < 0
+      if @lastRenderedScreenRow > maxEndRow
+        @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
+        @lastRenderedScreenRow = maxEndRow
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
