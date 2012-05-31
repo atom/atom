@@ -813,3 +813,7 @@ class Editor extends View
 
   logLines: (start, end) ->
     @renderer.logLines(start, end)
+
+  logRenderedLines: ->
+    @visibleLines.find('.line').each (n) ->
+      console.log n, $(this).text()
