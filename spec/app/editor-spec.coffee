@@ -463,13 +463,6 @@ describe "Editor", ->
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
 
-      describe "when lines are folded and then unfolded", ->
-        it "renders the lines and line numbers correctly after unfolding", ->
-          editor.createFold(2, 9).destroy()
-
-          expect(editor.gutter.find('.line-number:last').text()).toBe '13'
-          expect(editor.gutter.find('.line-number').length).toBe 13
-
       describe "when lines are folded, then the editor becomes shorter before the lines are unfolded", ->
         it "renders the lines and line numbers correctly after unfolding", ->
           fold = editor.createFold(1, 9)
