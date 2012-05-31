@@ -28,7 +28,7 @@ class RootView extends View
 
   extensions: null
   extensionStates: null
-  fontSize: 18
+  fontSize: 20
 
   initialize: (pathToOpen) ->
     @extensions = {}
