@@ -804,7 +804,7 @@ describe "Editor", ->
     describe "when the font size changes on the view", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
         rootView.attachToDom()
-        expect(editor.css('font-size')).not.toBe '30px'
+        rootView.setFontSize(10)
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
         editor.setCursorScreenPosition [5, 5]
