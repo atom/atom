@@ -31,7 +31,7 @@ jasmine.ConsoleReporter.prototype.reportSpecResults = function(spec) {
   for (var i = 0; i < resultItems.length; i++) {
     var result = resultItems[i];
     if (this.logErrors && result.type == 'expect' && result.passed && !result.passed()) {
-      console.log("ERROR: %s", spec.getFullName())
+      console.log("ERROR: " + spec.getFullName())
       if (result.trace.stack) {
         console.log(result.trace.stack)
       }
