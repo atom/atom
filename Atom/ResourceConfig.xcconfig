@@ -1,1 +1,4 @@
 LOAD_RESOURCES_FROM_DIR=$PROJECT_DIR
+
+# Used in Rakefile to determine what to copy to bundle
+# Used in Build Settings Preprocessor Macros
