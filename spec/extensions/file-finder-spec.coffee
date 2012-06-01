@@ -34,9 +34,10 @@ describe 'FileFinder', ->
         expect(finder.miniEditor.getText()).toBe ''
 
       it "shows all relative file paths for the current project and selects the first", ->
+        finder.maxResults = 1000
         rootView.trigger 'file-finder:toggle'
         rootView.project.getFilePaths().done (paths) ->
-          expect(finder.pathList.children('li').length).toBe paths.length
+          expect(finder.pathList.children('li').length).toBe paths.length, finder.maxResults
           for path in paths
             expect(finder.pathList.find("li:contains(#{path})")).toExist()
           expect(finder.pathList.children().first()).toHaveClass 'selected'
@@ -161,17 +162,14 @@ describe 'FileFinder', ->
         finder.trigger 'file-finder:select-file'
         expect(finder.hasParent()).toBeTruthy()
 
-  describe "findMatches(queryString)", ->
+  describe ".findMatches(queryString)", ->
     beforeEach ->
       rootView.trigger 'file-finder:toggle'
 
     it "returns up to finder.maxResults paths if queryString is empty", ->
-      expect(finder.paths.length).toBeLessThan finder.maxResults
-      expect(finder.findMatches('').length).toBe finder.paths.length
-
-      finder.maxResults = finder.paths.length - 1
-
-      expect(finder.findMatches('').length).toBe finder.maxResults
+      expect(finder.findMatches('').length).toBeLessThan finder.maxResults + 1
+      finder.maxResults = 5
+      expect(finder.findMatches('').length).toBeLessThan finder.maxResults + 1
 
     it "returns paths sorted by score of match against the given query", ->
       finder.paths = ["app.coffee", "atom/app.coffee"]
