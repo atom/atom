@@ -27,7 +27,7 @@ describe "FoldSuggester", ->
 
   describe "coffeescript", ->
     beforeEach ->
-      buffer = new Buffer(require.resolve 'fixtures/sample.coffee')
+      buffer = new Buffer(require.resolve 'fixtures/coffee.coffee')
       highlighter = new Highlighter(buffer)
       foldSuggester = new FoldSuggester(highlighter)
 
