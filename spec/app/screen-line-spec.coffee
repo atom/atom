@@ -2,7 +2,7 @@ _ = require 'underscore'
 Buffer = require 'buffer'
 Highlighter = require 'highlighter'
 
-describe "screenLineFragment", ->
+describe "ScreenLine", ->
   [buffer, tabText, screenLine, highlighter] = []
 
   beforeEach ->

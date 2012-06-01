@@ -6,7 +6,7 @@ Point = require 'point'
 EventEmitter = require 'event-emitter'
 Range = require 'range'
 Fold = require 'fold'
-ScreenLineFragment = require 'screen-line-fragment'
+ScreenLine = require 'screen-line'
 Token = require 'token'
 foldPlaceholderLength = 3
 

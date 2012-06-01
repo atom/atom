@@ -1,5 +1,5 @@
 LineMap = require 'line-map'
-ScreenLineFragment = require 'screen-line-fragment'
+ScreenLine = require 'screen-line'
 Buffer = require 'buffer'
 Highlighter = require 'highlighter'
 Point = require 'point'

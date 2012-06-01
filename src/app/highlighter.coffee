@@ -1,5 +1,5 @@
 _ = require 'underscore'
-ScreenLineFragment = require 'screen-line-fragment'
+ScreenLine = require 'screen-line'
 EventEmitter = require 'event-emitter'
 Token = require 'token'
 Range = require 'range'
@@ -63,7 +63,7 @@ class Highlighter
       token = new Token(tokenProperties)
       tokenObjects.push(token.breakOutTabCharacters(@tabText)...)
     text = _.pluck(tokenObjects, 'value').join('')
-    new ScreenLineFragment(tokenObjects, text, [1, 0], [1, 0], { state })
+    new ScreenLine(tokenObjects, text, [1, 0], [1, 0], { state })
 
   screenLineForRow: (row) ->
     @screenLines[row]

@@ -2,7 +2,7 @@ _ = require 'underscore'
 Point = require 'point'
 
 module.exports =
-class ScreenLineFragment
+class ScreenLine
   state: null
   text: null
   tokens: null
@@ -16,10 +16,10 @@ class ScreenLineFragment
     _.extend(this, extraFields)
 
   copy: ->
-    new ScreenLineFragment(@tokens, @text, @screenDelta, @bufferDelta, { @state, @foldable })
+    new ScreenLine(@tokens, @text, @screenDelta, @bufferDelta, { @state, @foldable })
 
   splitAt: (column) ->
-    return [new ScreenLineFragment([], '', [0, 0], [0, 0]), this] if column == 0
+    return [new ScreenLine([], '', [0, 0], [0, 0]), this] if column == 0
 
     rightTokens = new Array(@tokens...)
     leftTokens = []
@@ -37,8 +37,8 @@ class ScreenLineFragment
     [leftScreenDelta, rightScreenDelta] = @screenDelta.splitAt(column)
     [leftBufferDelta, rightBufferDelta] = @bufferDelta.splitAt(column)
 
-    leftFragment = new ScreenLineFragment(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@state, @foldable})
-    rightFragment = new ScreenLineFragment(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@state})
+    leftFragment = new ScreenLine(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@state, @foldable})
+    rightFragment = new ScreenLine(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@state})
     [leftFragment, rightFragment]
 
   concat: (other) ->
@@ -46,7 +46,7 @@ class ScreenLineFragment
     text = @text + other.text
     screenDelta = @screenDelta.add(other.screenDelta)
     bufferDelta = @bufferDelta.add(other.bufferDelta)
-    new ScreenLineFragment(tokens, text, screenDelta, bufferDelta, {state: other.state})
+    new ScreenLine(tokens, text, screenDelta, bufferDelta, {state: other.state})
 
   translateColumn: (sourceDeltaType, targetDeltaType, sourceColumn, options={}) ->
     { skipAtomicTokens } = options
