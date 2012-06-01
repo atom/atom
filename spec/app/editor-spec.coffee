@@ -1327,6 +1327,7 @@ describe "Editor", ->
 
       describe "when newline is inserted", ->
         it "indents cursor based on the indentation of previous buffer line", ->
+          editor.autoIndent = true
           editor.setCursorBufferPosition([4, 29])
           editor.insertText("\n")
           expect(editor.buffer.lineForRow(5)).toEqual("      ")
