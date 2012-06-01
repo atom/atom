@@ -2457,6 +2457,14 @@ describe "Editor", ->
         editor.trigger "toggle-fold"
         expect(editor.screenLineForRow(1).fold).toBeUndefined()
 
+    describe "when a fold-all event is triggered", ->
+      it "creates folds on every line that can be folded", ->
+        editor.setCursorBufferPosition([5,13])
+
+        editor.trigger "fold-all"
+        expect(editor.screenLineForRow(0).fold).toBeDefined()
+        expect(editor.screenLineForRow(1)).toBeUndefined()
+
   describe "primitive folding", ->
     beforeEach ->
       editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))

@@ -120,6 +120,7 @@ class Editor extends View
       'undo': @undo
       'redo': @redo
       'toggle-soft-wrap': @toggleSoftWrap
+      'fold-all': @foldAll
       'toggle-fold': @toggleFold
       'fold-selection': @foldSelection
       'unfold': => @unfoldRow(@getCursorBufferPosition().row)
@@ -804,6 +805,9 @@ class Editor extends View
   syncCursorAnimations: ->
     for cursor in @getCursors()
       do (cursor) -> cursor.resetCursorAnimation()
+
+  foldAll: ->
+    @renderer.foldAll()
 
   toggleFold: ->
     @renderer.toggleFoldAtBufferRow(@getCursorBufferPosition().row)

@@ -157,6 +157,25 @@ describe "Renderer", ->
           expect(renderer.lineForRow(2).foldable).toBeTruthy()
           expect(renderer.lineForRow(3).foldable).toBeFalsy()
 
+    describe ".foldAll()", ->
+      it "folds every foldable line", ->
+        renderer.foldAll()
+        fold = renderer.lineForRow(0).fold
+        expect(fold).toBeDefined()
+        expect([fold.startRow, fold.endRow]).toEqual [0,12]
+
+        expect(Object.keys(renderer.activeFolds).length).toBe(3)
+        expect(renderer.activeFolds[1].length).toBe(1)
+        expect(renderer.activeFolds[4].length).toBe(1)
+
+      it "doesn't fold lines that are already folded", ->
+        renderer.toggleFoldAtBufferRow(4)
+        renderer.foldAll()
+        expect(Object.keys(renderer.activeFolds).length).toBe(3)
+        expect(renderer.activeFolds[0].length).toBe(1)
+        expect(renderer.activeFolds[1].length).toBe(1)
+        expect(renderer.activeFolds[4].length).toBe(1)
+
     describe ".toggleFoldAtBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
         it "creates/destroys a fold based on the syntactic region starting at the given row", ->
