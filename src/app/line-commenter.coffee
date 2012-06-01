@@ -1,4 +1,5 @@
 Range = require 'range'
+AceLineCommentAdaptor = require 'ace-line-comment-adaptor'
 
 module.exports =
 class LineCommenter
@@ -9,9 +10,8 @@ class LineCommenter
   constructor: (@highlighter) ->
     @buffer = @highlighter.buffer
     @aceMode = @buffer.getMode()
+    @adaptor = new AceLineCommentAdaptor(@buffer)
 
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)
-
-    @aceMode.tog
-
+    @aceMode.toggleCommentLines(@highlighter.stateForRow(range.start.row), @adaptor, range.start.row, range.end.row)
