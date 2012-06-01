@@ -286,16 +286,16 @@ describe "Editor", ->
       expect(editor.gutter.lineNumbers.css('-webkit-tranform')).toBeNull()
 
     describe "when called with a scroll top argument", ->
-      it "sets the scrollTop of the vertical scrollbar and sets a transform on the line numbers and lines", ->
+      it "sets the scrollTop of the vertical scrollbar and sets scrollTop on the line numbers and lines", ->
         editor.scrollTop(100)
         expect(editor.verticalScrollbar.scrollTop()).toBe 100
-        expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
-        expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+        expect(editor.scrollView.scrollTop()).toBe 100
+        expect(editor.gutter.scrollTop()).toBe 100
 
-        editor.scrollTop(150)
-        expect(editor.verticalScrollbar.scrollTop()).toBe 150
-        expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
-        expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -150)'
+        editor.scrollTop(120)
+        expect(editor.verticalScrollbar.scrollTop()).toBe 120
+        expect(editor.scrollView.scrollTop()).toBe 120
+        expect(editor.gutter.scrollTop()).toBe 120
 
       it "does not allow negative scrollTops to be assigned", ->
         editor.scrollTop(-100)
@@ -316,8 +316,8 @@ describe "Editor", ->
         it "doesn't adjust the scrollTop of the vertical scrollbar", ->
           editor.scrollTop(100, adjustVerticalScrollbar: false)
           expect(editor.verticalScrollbar.scrollTop()).toBe 0
-          expect(editor.visibleLines.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
-          expect(editor.gutter.lineNumbers.css('-webkit-transform')).toBe 'matrix(1, 0, 0, 1, 0, -100)'
+          expect(editor.scrollView.scrollTop()).toBe 100
+          expect(editor.gutter.scrollTop()).toBe 100
 
     describe "when called with no argument", ->
       it "returns the last assigned value or 0 if none has been assigned", ->
@@ -804,7 +804,7 @@ describe "Editor", ->
     describe "when the font size changes on the view", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
         rootView.attachToDom()
-        expect(editor.css('font-size')).not.toBe '30px'
+        rootView.setFontSize(10)
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
         editor.setCursorScreenPosition [5, 5]
@@ -2456,6 +2456,14 @@ describe "Editor", ->
 
         editor.trigger "toggle-fold"
         expect(editor.screenLineForRow(1).fold).toBeUndefined()
+
+    describe "when a fold-all event is triggered", ->
+      it "creates folds on every line that can be folded", ->
+        editor.setCursorBufferPosition([5,13])
+
+        editor.trigger "fold-all"
+        expect(editor.screenLineForRow(0).fold).toBeDefined()
+        expect(editor.screenLineForRow(1)).toBeUndefined()
 
   describe "primitive folding", ->
     beforeEach ->

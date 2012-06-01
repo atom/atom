@@ -53,10 +53,17 @@ class Renderer
   bufferRowsForScreenRows: (startRow, endRow) ->
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
+  foldAll: ->
+    for currentRow in [@buffer.getLastRow()..0]
+      [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
+      continue unless startRow?
+
+      @createFold(startRow, endRow)
+
   toggleFoldAtBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
-      continue unless startRow and startRow <= bufferRow <= endRow
+      continue unless startRow? and startRow <= bufferRow <= endRow
 
       if fold = @largestFoldForBufferRow(startRow)
         fold.destroy()
@@ -65,7 +72,12 @@ class Renderer
 
       break
 
+  foldFor: (startRow, endRow) ->
+    _.find @activeFolds[startRow] ? [], (fold) ->
+      fold.startRow == startRow and fold.endRow == endRow
+
   createFold: (startRow, endRow) ->
+    return fold if fold = @foldFor(startRow, endRow)
     fold = new Fold(this, startRow, endRow)
     @registerFold(fold)
 

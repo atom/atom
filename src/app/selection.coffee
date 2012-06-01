@@ -130,10 +130,12 @@ class Selection extends View
       mode = @editor.getCurrentMode()
       row = @cursor.getScreenPosition().row
       state = @editor.stateForScreenRow(row)
+      lineBeforeCursor = @cursor.getCurrentBufferLine()[0..@cursor.getBufferPosition().column]
       if text[0] == "\n"
-        indent = mode.getNextLineIndent(state, @cursor.getCurrentBufferLine(), @editor.tabText)
+        indent = mode.getNextLineIndent(state, lineBeforeCursor, @editor.tabText)
+        console.log indent.length
         text = text[0] + indent + text[1..]
-      else if mode.checkOutdent(state, @cursor.getCurrentBufferLine(), text)
+      else if mode.checkOutdent(state, lineBeforeCursor, text)
         shouldOutdent = true
 
     {text, shouldOutdent}

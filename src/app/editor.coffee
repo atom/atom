@@ -120,6 +120,7 @@ class Editor extends View
       'undo': @undo
       'redo': @redo
       'toggle-soft-wrap': @toggleSoftWrap
+      'fold-all': @foldAll
       'toggle-fold': @toggleFold
       'fold-selection': @foldSelection
       'unfold': => @unfoldRow(@getCursorBufferPosition().row)
@@ -278,9 +279,8 @@ class Editor extends View
 
     @updateVisibleLines() if @attached
 
-    transform = "translate3d(0px, #{-scrollTop}px, 0px)"
-    @visibleLines.css('-webkit-transform', transform)
-    @gutter.lineNumbers.css('-webkit-transform', transform)
+    @scrollView.scrollTop(scrollTop)
+    @gutter.scrollTop(scrollTop)
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
 
@@ -805,6 +805,9 @@ class Editor extends View
   syncCursorAnimations: ->
     for cursor in @getCursors()
       do (cursor) -> cursor.resetCursorAnimation()
+
+  foldAll: ->
+    @renderer.foldAll()
 
   toggleFold: ->
     @renderer.toggleFoldAtBufferRow(@getCursorBufferPosition().row)

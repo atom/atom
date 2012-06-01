@@ -4,8 +4,7 @@
 }
 
 body {
-  font-family: Lucida Grande;
-  font-size: 12px;
+  font: 16px Inconsolata, Monaco, Courier !important;
 }
 
 #root-view {
