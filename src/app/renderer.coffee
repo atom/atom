@@ -56,7 +56,7 @@ class Renderer
   toggleFoldAtBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
-      continue unless startRow and startRow <= bufferRow <= endRow
+      continue unless startRow? and startRow <= bufferRow <= endRow
 
       if fold = @largestFoldForBufferRow(startRow)
         fold.destroy()
