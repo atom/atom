@@ -11,8 +11,8 @@ describe "Highlighter", ->
 
   describe "constructor", ->
     it "tokenizes all the lines in the buffer", ->
-      expect(highlighter.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
-      expect(highlighter.lineForScreenRow(11).tokens[1]).toEqual(type: 'keyword', value: 'return')
+      expect(highlighter.screenLineForRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
+      expect(highlighter.screenLineForRow(11).tokens[1]).toEqual(type: 'keyword', value: 'return')
 
   describe "when the buffer changes", ->
     changeHandler = null
@@ -26,11 +26,11 @@ describe "Highlighter", ->
         range = new Range([0, 0], [2, 0])
         buffer.change(range, "foo()\nbar()\n")
 
-        expect(highlighter.lineForScreenRow(0).tokens[0]).toEqual(type: 'identifier', value: 'foo')
-        expect(highlighter.lineForScreenRow(1).tokens[0]).toEqual(type: 'identifier', value: 'bar')
+        expect(highlighter.screenLineForRow(0).tokens[0]).toEqual(type: 'identifier', value: 'foo')
+        expect(highlighter.screenLineForRow(1).tokens[0]).toEqual(type: 'identifier', value: 'bar')
 
         # line 2 is unchanged
-        expect(highlighter.lineForScreenRow(2).tokens[1]).toEqual(type: 'keyword', value: 'if')
+        expect(highlighter.screenLineForRow(2).tokens[1]).toEqual(type: 'keyword', value: 'if')
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -43,9 +43,9 @@ describe "Highlighter", ->
         changeHandler.reset()
 
         buffer.insert([2, 0], '/*')
-        expect(highlighter.lineForScreenRow(3).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(4).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(5).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(3).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(4).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(5).tokens[0].type).toBe 'comment'
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -57,7 +57,7 @@ describe "Highlighter", ->
         buffer.insert([5, 0], '*/')
 
         buffer.insert([1, 0], 'var ')
-        expect(highlighter.lineForScreenRow(1).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(1).tokens[0].type).toBe 'comment'
 
     describe "when lines are both updated and removed", ->
       it "updates tokens to reflect the removed lines", ->
@@ -65,16 +65,16 @@ describe "Highlighter", ->
         buffer.change(range, "foo()")
 
         # previous line 0 remains
-        expect(highlighter.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
+        expect(highlighter.screenLineForRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
 
         # previous line 3 should be combined with input to form line 1
-        expect(highlighter.lineForScreenRow(1).tokens[0]).toEqual(type: 'identifier', value: 'foo')
-        expect(highlighter.lineForScreenRow(1).tokens[6]).toEqual(type: 'identifier', value: 'pivot')
+        expect(highlighter.screenLineForRow(1).tokens[0]).toEqual(type: 'identifier', value: 'foo')
+        expect(highlighter.screenLineForRow(1).tokens[6]).toEqual(type: 'identifier', value: 'pivot')
 
         # lines below deleted regions should be shifted upward
-        expect(highlighter.lineForScreenRow(2).tokens[1]).toEqual(type: 'keyword', value: 'while')
-        expect(highlighter.lineForScreenRow(3).tokens[1]).toEqual(type: 'identifier', value: 'current')
-        expect(highlighter.lineForScreenRow(4).tokens[3]).toEqual(type: 'keyword.operator', value: '<')
+        expect(highlighter.screenLineForRow(2).tokens[1]).toEqual(type: 'keyword', value: 'while')
+        expect(highlighter.screenLineForRow(3).tokens[1]).toEqual(type: 'identifier', value: 'current')
+        expect(highlighter.screenLineForRow(4).tokens[3]).toEqual(type: 'keyword.operator', value: '<')
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -86,9 +86,9 @@ describe "Highlighter", ->
         changeHandler.reset()
 
         buffer.change(new Range([2, 0], [3, 0]), '/*')
-        expect(highlighter.lineForScreenRow(2).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(3).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(4).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(2).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(3).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(4).tokens[0].type).toBe 'comment'
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -101,19 +101,19 @@ describe "Highlighter", ->
         buffer.change(range, "foo()\nbar()\nbaz()\nquux()")
 
         # previous line 0 remains
-        expect(highlighter.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
+        expect(highlighter.screenLineForRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
 
         # 3 new lines inserted
-        expect(highlighter.lineForScreenRow(1).tokens[0]).toEqual(type: 'identifier', value: 'foo')
-        expect(highlighter.lineForScreenRow(2).tokens[0]).toEqual(type: 'identifier', value: 'bar')
-        expect(highlighter.lineForScreenRow(3).tokens[0]).toEqual(type: 'identifier', value: 'baz')
+        expect(highlighter.screenLineForRow(1).tokens[0]).toEqual(type: 'identifier', value: 'foo')
+        expect(highlighter.screenLineForRow(2).tokens[0]).toEqual(type: 'identifier', value: 'bar')
+        expect(highlighter.screenLineForRow(3).tokens[0]).toEqual(type: 'identifier', value: 'baz')
 
         # previous line 2 is joined with quux() on line 4
-        expect(highlighter.lineForScreenRow(4).tokens[0]).toEqual(type: 'identifier', value: 'quux')
-        expect(highlighter.lineForScreenRow(4).tokens[4]).toEqual(type: 'keyword', value: 'if')
+        expect(highlighter.screenLineForRow(4).tokens[0]).toEqual(type: 'identifier', value: 'quux')
+        expect(highlighter.screenLineForRow(4).tokens[4]).toEqual(type: 'keyword', value: 'if')
 
         # previous line 3 is pushed down to become line 5
-        expect(highlighter.lineForScreenRow(5).tokens[3]).toEqual(type: 'identifier', value: 'pivot')
+        expect(highlighter.screenLineForRow(5).tokens[3]).toEqual(type: 'identifier', value: 'pivot')
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -125,13 +125,13 @@ describe "Highlighter", ->
         changeHandler.reset()
 
         buffer.insert([2, 0], '/*\nabcde\nabcder')
-        expect(highlighter.lineForScreenRow(2).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(3).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(4).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(5).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(6).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(7).tokens[0].type).toBe 'comment'
-        expect(highlighter.lineForScreenRow(8).tokens[0].type).not.toBe 'comment'
+        expect(highlighter.screenLineForRow(2).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(3).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(4).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(5).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(6).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(7).tokens[0].type).toBe 'comment'
+        expect(highlighter.screenLineForRow(8).tokens[0].type).not.toBe 'comment'
 
         expect(changeHandler).toHaveBeenCalled()
         [event] = changeHandler.argsForCall[0]
@@ -147,7 +147,7 @@ describe "Highlighter", ->
       highlighter = new Highlighter(buffer, tabText)
 
     it "always renders each tab as its own atomic token containing tabText", ->
-      screenLine0 = highlighter.lineForScreenRow(0)
+      screenLine0 = highlighter.screenLineForRow(0)
       expect(screenLine0.text).toBe "# Econ 101#{tabText}"
       { tokens } = screenLine0
       expect(tokens.length).toBe 2
@@ -156,7 +156,7 @@ describe "Highlighter", ->
       expect(tokens[1].type).toBe tokens[0].type
       expect(tokens[1].isAtomic).toBeTruthy()
 
-      expect(highlighter.lineForScreenRow(2).text).toBe "#{tabText} buy()#{tabText}while supply > demand"
+      expect(highlighter.screenLineForRow(2).text).toBe "#{tabText} buy()#{tabText}while supply > demand"
 
   describe ".findClosingBracket(startBracketPosition)", ->
     describe "when called with a bracket type of '{'", ->

@@ -167,7 +167,7 @@ describe "Autocomplete", ->
       expect(editor.getSelection().getBufferRange()).toEqual originalSelectionBufferRange
       expect(editor.find('.autocomplete')).not.toExist()
 
-    fit "does not clear out a previously confirmed selection when canceling with an empty list", ->
+    it "does not clear out a previously confirmed selection when canceling with an empty list", ->
       editor.buffer.insert([10, 0], "sort\n")
       editor.setCursorBufferPosition([10, 0])
 

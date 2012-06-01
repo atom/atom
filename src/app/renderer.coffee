@@ -186,7 +186,7 @@ class Renderer
 
     startBufferColumn = 0
     while currentBufferRow <= endBufferRow
-      screenLine = @highlighter.lineForRow(currentBufferRow)
+      screenLine = @highlighter.screenLineForRow(currentBufferRow)
       screenLine.foldable = @foldSuggester.isBufferRowFoldable(currentBufferRow)
 
       if fold = @largestFoldForBufferRow(currentBufferRow)

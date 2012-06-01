@@ -13,7 +13,7 @@ class Highlighter
 
   constructor: (@buffer, @tabText) ->
     @id = @constructor.idCounter++
-    @screenLines = @buildLinesForScreenRows('start', 0, @buffer.getLastRow())
+    @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
     @buffer.on "change.highlighter#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
@@ -23,7 +23,7 @@ class Highlighter
 
     startState = @screenLines[newRange.start.row - 1]?.state or 'start'
     @screenLines[oldRange.start.row..oldRange.end.row] =
-      @buildLinesForScreenRows(startState, newRange.start.row, newRange.end.row)
+      @buildScreenLinesForRows(startState, newRange.start.row, newRange.end.row)
 
     # spill detection
     # compare scanner state of last re-highlighted line with its previous state.
@@ -34,7 +34,7 @@ class Highlighter
       break if @screenLines[row].state == previousState
       nextRow = row + 1
       previousState = @screenLines[nextRow].state
-      @screenLines[nextRow] = @buildLineForScreenRow(@screenLines[row].state, nextRow)
+      @screenLines[nextRow] = @buildScreenLineForRow(@screenLines[row].state, nextRow)
 
     # if highlighting spilled beyond the bounds of the textual change, update
     # the pre and post range to reflect area of highlight changes
@@ -47,14 +47,14 @@ class Highlighter
 
     @trigger("change", {oldRange, newRange})
 
-  buildLinesForScreenRows: (startState, startRow, endRow) ->
+  buildScreenLinesForRows: (startState, startRow, endRow) ->
     state = startState
     for row in [startRow..endRow]
-      screenLine = @buildLineForScreenRow(state, row)
+      screenLine = @buildScreenLineForRow(state, row)
       state = screenLine.state
       screenLine
 
-  buildLineForScreenRow: (state, row) ->
+  buildScreenLineForRow: (state, row) ->
     tokenizer = @buffer.getMode().getTokenizer()
     line = @buffer.lineForRow(row)
     {tokens, state} = tokenizer.getLineTokens(line, state)
@@ -65,14 +65,8 @@ class Highlighter
     text = _.pluck(tokenObjects, 'value').join('')
     new ScreenLineFragment(tokenObjects, text, [1, 0], [1, 0], { state })
 
-  lineForScreenRow: (row) ->
+  screenLineForRow: (row) ->
     @screenLines[row]
-
-  lineForRow: (row) ->
-    @lineForScreenRow(row)
-
-  linesForScreenRows: (startRow, endRow) ->
-    @screenLines[startRow..endRow]
 
   destroy: ->
     @buffer.off ".highlighter#{@id}"
