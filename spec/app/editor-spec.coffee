@@ -26,7 +26,7 @@ describe "Editor", ->
     buffer = editor.buffer
 
     editor.attachToDom = ({ heightInLines } = {}) ->
-      heightInLines ?= this.buffer.numLines()
+      heightInLines ?= this.buffer.getLineCount()
       this.height(getLineHeight() * heightInLines)
       $('#jasmine-content').append(this)
 
@@ -343,10 +343,10 @@ describe "Editor", ->
     describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->
         editor.attachToDom()
-        expect(editor.height()).toBe buffer.numLines() * editor.lineHeight
+        expect(editor.height()).toBe buffer.getLineCount() * editor.lineHeight
 
       it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
-        expect(editor.visibleLines.find('.line').length).toEqual(buffer.numLines())
+        expect(editor.visibleLines.find('.line').length).toEqual(buffer.getLineCount())
         expect(buffer.lineForRow(2)).toContain('<')
         expect(editor.visibleLines.find('.line:eq(2)').html()).toContain '&lt;'
 
@@ -469,7 +469,7 @@ describe "Editor", ->
 
       it "only renders the visible lines plus the overdrawn lines, setting the padding-bottom of the lines element to account for the missing lines", ->
         expect(editor.visibleLines.find('.line').length).toBe 8
-        expectedPaddingBottom = (buffer.numLines() - 8) * editor.lineHeight
+        expectedPaddingBottom = (buffer.getLineCount() - 8) * editor.lineHeight
         expect(editor.visibleLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
         expect(editor.visibleLines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editor.visibleLines.find('.line:last').text()).toBe buffer.lineForRow(7)
@@ -592,12 +592,12 @@ describe "Editor", ->
 
           lastVisibleBufferRow = Math.ceil(3 + 5.5) # scroll top in lines + height in lines
           lastOverdrawnRow = lastVisibleBufferRow + editor.lineOverdraw
-          expectedPaddingBottom = ((buffer.numLines() - lastOverdrawnRow) * editor.lineHeight)
+          expectedPaddingBottom = ((buffer.getLineCount() - lastOverdrawnRow) * editor.lineHeight)
           expect(editor.visibleLines.css('padding-bottom')).toBe "#{expectedPaddingBottom}px"
 
           editor.scrollToBottom()
           # scrolled to bottom, first visible row is 5 and first rendered row is 3
-          firstVisibleBufferRow = Math.floor(buffer.numLines() - 5.5)
+          firstVisibleBufferRow = Math.floor(buffer.getLineCount() - 5.5)
           firstOverdrawnBufferRow = firstVisibleBufferRow - editor.lineOverdraw
           expectedPaddingTop = firstOverdrawnBufferRow * editor.lineHeight
           expect(editor.visibleLines.css('padding-top')).toBe "#{expectedPaddingTop}px"

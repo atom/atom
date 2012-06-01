@@ -28,7 +28,7 @@ class MoveUp extends Motion
 class MoveDown extends Motion
   execute: ->
     {column, row} = @editor.getCursorScreenPosition()
-    @editor.moveCursorDown() if row < (@editor.buffer.numLines() - 1)
+    @editor.moveCursorDown() if row < (@editor.buffer.getLineCount() - 1)
 
 class MoveToPreviousWord extends Motion
   execute: ->
@@ -55,7 +55,7 @@ class MoveToNextWord extends Motion
 
     if match
       column += match.index
-    else if row + 1 == @editor.buffer.numLines()
+    else if row + 1 == @editor.buffer.getLineCount()
       column = @editor.buffer.lineForRow(row).length
     else
       nextLineMatch = regex.exec(@editor.buffer.lineForRow(++row))

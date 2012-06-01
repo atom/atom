@@ -76,7 +76,7 @@ class Buffer
   rangeForRow: (row) ->
     new Range([row, 0], [row, @lineLengthForRow(row)])
 
-  numLines: ->
+  getLineCount: ->
     @getLines().length
 
   getLastRow: ->

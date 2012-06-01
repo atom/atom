@@ -9,7 +9,7 @@ class AceFoldAdaptor
     @buffer.lineForRow(bufferRow)
 
   getLength: ->
-    @buffer.numLines()
+    @buffer.getLineCount()
 
   $findClosingBracket: (bracketType, bufferPosition) ->
     @highlighter.findClosingBracket([bufferPosition.row, bufferPosition.column - 1])
