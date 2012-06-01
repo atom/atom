@@ -133,7 +133,6 @@ class Selection extends View
       lineBeforeCursor = @cursor.getCurrentBufferLine()[0..@cursor.getBufferPosition().column]
       if text[0] == "\n"
         indent = mode.getNextLineIndent(state, lineBeforeCursor, @editor.tabText)
-        console.log indent.length
         text = text[0] + indent + text[1..]
       else if mode.checkOutdent(state, lineBeforeCursor, text)
         shouldOutdent = true
