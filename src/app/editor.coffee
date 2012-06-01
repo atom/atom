@@ -278,9 +278,8 @@ class Editor extends View
 
     @updateVisibleLines() if @attached
 
-    transform = "translate3d(0px, #{-scrollTop}px, 0px)"
-    @visibleLines.css('-webkit-transform', transform)
-    @gutter.lineNumbers.css('-webkit-transform', transform)
+    @scrollView.scrollTop(scrollTop)
+    @gutter.scrollTop(scrollTop)
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
 
