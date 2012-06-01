@@ -104,6 +104,7 @@ class Autocomplete extends View
 
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
+    @currentMatchBufferRange = null
     @allMatches = @findMatchesForCurrentSelection()
 
 

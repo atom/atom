@@ -167,6 +167,19 @@ describe "Autocomplete", ->
       expect(editor.getSelection().getBufferRange()).toEqual originalSelectionBufferRange
       expect(editor.find('.autocomplete')).not.toExist()
 
+    fit "does not clear out a previously confirmed selection when canceling with an empty list", ->
+      editor.buffer.insert([10, 0], "sort\n")
+      editor.setCursorBufferPosition([10, 0])
+
+      autocomplete.attach()
+      miniEditor.trigger 'autocomplete:confirm'
+      expect(editor.lineForBufferRow(10)).toBe 'quicksort'
+
+      editor.setCursorBufferPosition([11, 0])
+      autocomplete.attach()
+      miniEditor.trigger 'autocomplete:cancel'
+      expect(editor.lineForBufferRow(10)).toBe 'quicksort'
+
   describe 'move-up event', ->
     it "highlights the previous match and replaces the selection with it", ->
       editor.buffer.insert([10,0] ,"extra:t:extra")
