@@ -12,7 +12,7 @@ describe "LineMap", ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
     highlighter = new Highlighter(buffer)
     map = new LineMap
-    [line0, line1, line2, line3, line4] = highlighter.linesForScreenRows(0, 4)
+    [line0, line1, line2, line3, line4] = highlighter.screenLinesForRows(0, 4)
 
   describe ".insertAtBufferRow(row, lineFragments)", ->
     it "inserts the given line fragments before the specified buffer row", ->

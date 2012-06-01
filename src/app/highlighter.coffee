@@ -68,6 +68,9 @@ class Highlighter
   screenLineForRow: (row) ->
     @screenLines[row]
 
+  screenLinesForRows: (startRow, endRow) ->
+    @screenLines[startRow..endRow]
+
   destroy: ->
     @buffer.off ".highlighter#{@id}"
 
