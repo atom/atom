@@ -89,7 +89,6 @@ class Renderer
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
-    @trigger 'fold', bufferRange
     fold
 
   destroyFold: (fold) ->
@@ -103,7 +102,6 @@ class Renderer
     newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
     @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
-    @trigger 'unfold', bufferRange
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     folds = @activeFolds[bufferRow] ? []
