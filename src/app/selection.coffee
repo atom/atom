@@ -84,6 +84,7 @@ class Selection extends View
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
   setScreenRange: (range, {reverse}={}) ->
+    range = Range.fromObject(range)
     { start, end } = range
     [start, end] = [end, start] if reverse
 
@@ -124,6 +125,10 @@ class Selection extends View
     for row in [range.start.row..range.end.row]
       if leadingTabRegex.test buffer.lineForRow(row)
         buffer.delete [[row, 0], [row, @editor.tabText.length]]
+
+  toggleLineComments: ->
+    @modifySelection =>
+      @editor.toggleLineCommentsInRange(@getBufferRange())
 
   autoIndentText: (text) ->
     if @editor.autoIndent

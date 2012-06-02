@@ -38,7 +38,6 @@ class Editor extends View
   cursor: null
   selection: null
   buffer: null
-  highlighter: null
   renderer: null
   autoIndent: null
   lineCache: null
@@ -146,6 +145,7 @@ class Editor extends View
       'select-to-end-of-word': @selectToEndOfWord
       'select-to-beginning-of-word': @selectToBeginningOfWord
       'select-all': @selectAll
+      'toggle-line-comments': @toggleLineCommentsInSelection
 
     for name, method of editorBindings
       do (name, method) =>
@@ -819,6 +819,12 @@ class Editor extends View
 
   logLines: (start, end) ->
     @renderer.logLines(start, end)
+
+  toggleLineCommentsInSelection: ->
+    @compositeSelection.toggleLineComments()
+
+  toggleLineCommentsInRange: (range) ->
+    @renderer.toggleLineCommentsInRange(range)
 
   logRenderedLines: ->
     @visibleLines.find('.line').each (n) ->

@@ -8,7 +8,7 @@ Range = require 'range'
 Fold = require 'fold'
 ScreenLine = require 'screen-line'
 Token = require 'token'
-foldPlaceholderLength = 3
+LineCommenter = require 'line-commenter'
 
 module.exports =
 class Renderer
@@ -16,13 +16,14 @@ class Renderer
   lineMap: null
   highlighter: null
   activeFolds: null
+  lineCommenter: null
   foldsById: null
   lastHighlighterChangeEvent: null
-  foldPlaceholderLength: 3
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
     @highlighter = new Highlighter(@buffer, options.tabText ? '  ')
+    @lineCommenter = new LineCommenter(@highlighter)
     @foldSuggester = new FoldSuggester(@highlighter)
     @maxLineLength = options.maxLineLength ? Infinity
     @activeFolds = {}
@@ -245,5 +246,9 @@ class Renderer
 
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
+
+  toggleLineCommentsInRange: (range) ->
+    console.log range.inspect()
+    @lineCommenter.toggleLineCommentsInRange(range)
 
 _.extend Renderer.prototype, EventEmitter
