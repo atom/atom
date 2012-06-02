@@ -41,6 +41,9 @@ class Fold
   isContainedByRange: (range) ->
     range.start.row <= @startRow and @endRow <= range.end.row
 
+  isContainedByFold: (fold) ->
+    @isContainedByRange(fold.getBufferRange())
+
   updateStartRow: (event) ->
     { newRange, oldRange } = event
 
