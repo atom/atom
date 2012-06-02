@@ -54,7 +54,7 @@ class Renderer
     @lineMap.bufferRowsForScreenRows(startRow, endRow)
 
   foldAll: ->
-    for currentRow in [@buffer.getLastRow()..0]
+    for currentRow in [0..@buffer.getLastRow()]
       [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
 
@@ -72,6 +72,11 @@ class Renderer
 
       break
 
+  isFoldContainedByActiveFold: (fold) ->
+    for row, folds of @activeFolds
+      for otherFold in folds
+        return otherFold if fold != otherFold and fold.isContainedByFold(otherFold)
+
   foldFor: (startRow, endRow) ->
     _.find @activeFolds[startRow] ? [], (fold) ->
       fold.startRow == startRow and fold.endRow == endRow
@@ -81,27 +86,30 @@ class Renderer
     fold = new Fold(this, startRow, endRow)
     @registerFold(fold)
 
-    bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
-    oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
+    unless @isFoldContainedByActiveFold(fold)
+      bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
+      oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-    lines = @buildLineForBufferRow(startRow)
-    @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
-    newScreenRange = @screenLineRangeForBufferRange(bufferRange)
+      lines = @buildLineForBufferRow(startRow)
+      @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
+      newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
+      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
+
     fold
 
   destroyFold: (fold) ->
     @unregisterFold(fold.startRow, fold)
 
-    { startRow, endRow } = fold
-    bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
-    oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
-    lines = @buildLinesForBufferRows(startRow, endRow)
-    @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
-    newScreenRange = @screenLineRangeForBufferRange(bufferRange)
+    unless @isFoldContainedByActiveFold(fold)
+      { startRow, endRow } = fold
+      bufferRange = new Range([startRow, 0], [endRow, @buffer.lineLengthForRow(endRow)])
+      oldScreenRange = @screenLineRangeForBufferRange(bufferRange)
+      lines = @buildLinesForBufferRows(startRow, endRow)
+      @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
+      newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-    @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
+      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     folds = @activeFolds[bufferRow] ? []
