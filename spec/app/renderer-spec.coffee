@@ -307,6 +307,14 @@ describe "Renderer", ->
           expect(line4.screenDelta).toEqual [1, 0]
           expect(line5.text).toMatch /9-+/
 
+      describe "when creating a fold where one already exists", ->
+        it "returns existing fold and does't create new fold", ->
+          fold = renderer.createFold(0,10)
+          expect(renderer.activeFolds[0].length).toBe 1
+
+          newFold = renderer.createFold(0,10)
+          expect(newFold).toBe fold
+          expect(renderer.activeFolds[0].length).toBe 1
     describe "when the buffer changes", ->
       [fold1, fold2] = []
       beforeEach ->
