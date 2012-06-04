@@ -17,8 +17,7 @@ class TreeView extends View
       @instance = TreeView.deserialize(state, rootView)
     else
       @instance = new TreeView(rootView)
-
-    @instance.attach()
+      @instance.attach()
 
   @serialize: ->
     @instance.serialize()
@@ -33,6 +32,7 @@ class TreeView extends View
     treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
     treeView.selectEntryForPath(state.selectedPath)
     treeView.focusAfterAttach = state.hasFocus
+    treeView.attach() if state.attached
     treeView
 
   root: null
@@ -65,6 +65,7 @@ class TreeView extends View
     directoryExpansionStates: @root.serializeEntryExpansionStates()
     selectedPath: @selectedEntry()?.getPath()
     hasFocus: @is(':focus')
+    attached: @hasParent()
 
   deactivate: ->
     @root?.unwatchEntries()
