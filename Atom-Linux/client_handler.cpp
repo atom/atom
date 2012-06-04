@@ -102,7 +102,7 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
     
-    CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString("/home/kevin/repositories/atom");
+    CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(AppGetWorkingDirectory() + "/..");
     atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);   
     
     CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString("window-bootstrap");
