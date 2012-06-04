@@ -123,9 +123,11 @@ void NativeHandler::OpenDialog(const CefString& name,
 	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
 		char *filename;
 		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-		cout << filename << endl;
+		retval = CefV8Value::CreateString(filename);
 		g_free(filename);
-	}
+	} else
+		retval = CefV8Value::CreateNull();
+
 	gtk_widget_destroy(dialog);
 }
 
