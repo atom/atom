@@ -83,6 +83,7 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     global->SetValue("$windowNumber", windowNumber, V8_PROPERTY_ATTRIBUTE_NONE);
 
     CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
+    nativeHandler->window = window;
     global->SetValue("$native", nativeHandler->object, V8_PROPERTY_ATTRIBUTE_NONE);
 
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
@@ -293,6 +294,10 @@ bool ClientHandler::OnBeforeScriptExtensionLoad(
     CefRefPtr<CefFrame> frame,
     const CefString& extensionName) {
   return false;
+}
+
+void ClientHandler::SetWindow(GtkWidget* widget){
+	window = widget;
 }
 
 void ClientHandler::SetMainHwnd(CefWindowHandle hwnd) {

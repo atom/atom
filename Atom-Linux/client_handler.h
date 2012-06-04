@@ -144,6 +144,7 @@ class ClientHandler : public CefClient,
                                        CefRefPtr<CefFrame> frame,
                                        const CefString& extensionName) OVERRIDE;
 
+  void SetWindow(GtkWidget* window);
   void SetMainHwnd(CefWindowHandle hwnd);
   CefWindowHandle GetMainHwnd() { return m_MainHwnd; }
   void SetEditHwnd(CefWindowHandle hwnd);
@@ -170,6 +171,8 @@ class ClientHandler : public CefClient,
  protected:
   void SetLoading(bool isLoading);
   void SetNavState(bool canGoBack, bool canGoForward);
+  
+  GtkWidget* window;
 
   // The child browser window
   CefRefPtr<CefBrowser> m_Browser;

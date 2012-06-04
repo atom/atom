@@ -31,7 +31,7 @@ NativeHandler::NativeHandler() :
 	}
 }
 
-void Exists(const CefString& name, CefRefPtr<CefV8Value> object,
+void NativeHandler::Exists(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
@@ -40,7 +40,7 @@ void Exists(const CefString& name, CefRefPtr<CefV8Value> object,
 	retval = CefV8Value::CreateBool(result == 0);
 }
 
-void Read(const CefString& name, CefRefPtr<CefV8Value> object,
+void NativeHandler::Read(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
@@ -57,9 +57,9 @@ void Read(const CefString& name, CefRefPtr<CefV8Value> object,
 	retval = CefV8Value::CreateString(value);
 }
 
-void Absolute(const CefString& name, CefRefPtr<CefV8Value> object,
-		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
-		CefString& exception) {
+void NativeHandler::Absolute(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
 	if (path[0] == '~') {
 		string resolved = getenv("HOME");
@@ -69,7 +69,7 @@ void Absolute(const CefString& name, CefRefPtr<CefV8Value> object,
 		retval = CefV8Value::CreateString(path);
 }
 
-void List(const CefString& name, CefRefPtr<CefV8Value> object,
+void NativeHandler::List(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
@@ -95,7 +95,7 @@ void List(const CefString& name, CefRefPtr<CefV8Value> object,
 		retval->SetValue(i, CefV8Value::CreateString(path + "/" + paths[i]));
 }
 
-void IsFile(const CefString& name, CefRefPtr<CefV8Value> object,
+void NativeHandler::IsFile(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
@@ -104,13 +104,29 @@ void IsFile(const CefString& name, CefRefPtr<CefV8Value> object,
 	retval = CefV8Value::CreateBool(result == 0 && S_ISREG(sbuf.st_mode));
 }
 
-void IsDirectory(const CefString& name, CefRefPtr<CefV8Value> object,
-		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
-		CefString& exception) {
+void NativeHandler::IsDirectory(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
 	struct stat sbuf;
 	int result = stat(path.c_str(), &sbuf);
 	retval = CefV8Value::CreateBool(result == 0 && S_ISDIR(sbuf.st_mode));
+}
+
+void NativeHandler::OpenDialog(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+	GtkWidget *dialog;
+	dialog = gtk_file_chooser_dialog_new("Open File", GTK_WINDOW(window),
+			GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+	if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+		char *filename;
+		filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+		cout << filename << endl;
+		g_free(filename);
+	}
+	gtk_widget_destroy(dialog);
 }
 
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
@@ -131,6 +147,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		IsDirectory(name, object, arguments, retval, exception);
 	else if (name == "showDevTools")
 		CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
+	else if (name == "openDialog")
+		OpenDialog(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
