@@ -17,3 +17,6 @@ profile
 tags
 atom-build
 pkg
+
+# Eclipse
+.project
