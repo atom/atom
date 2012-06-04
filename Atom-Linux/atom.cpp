@@ -102,10 +102,15 @@ int main(int argc, char *argv[]) {
   CefBrowserSettings browserSettings;
 
   window_info.SetAsChild(vbox);
+  
+  std::string path;
+  path.append("file://");
+  path.append(szWorkingDir);
+  path.append("/../index.html");
 
   CefBrowser::CreateBrowserSync(window_info,
                                 static_cast<CefRefPtr<CefClient> >(g_handler),
-                                "", browserSettings);
+                                path, browserSettings);
 
   gtk_container_add(GTK_CONTAINER(window), vbox);
   gtk_widget_show_all(GTK_WIDGET(window));
