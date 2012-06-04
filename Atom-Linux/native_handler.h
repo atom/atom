@@ -10,9 +10,9 @@ public:
 	NativeHandler();
 
 	CefRefPtr<CefV8Value> object;
-	
+
 	GtkWidget* window;
-	
+
 	std::string path;
 
 	virtual bool Execute(const CefString& name, CefRefPtr<CefV8Value> object,
