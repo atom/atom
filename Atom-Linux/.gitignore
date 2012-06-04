@@ -1,0 +1,4 @@
+*.o
+atom
+chrome.pak
+locales/
