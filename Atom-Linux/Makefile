@@ -1,4 +1,4 @@
-CFLAGS_Release := -Werror \
+CXXFLAGS := -Werror \
 	-pthread \
 	-fno-exceptions \
 	-fno-strict-aliasing \
@@ -27,13 +27,12 @@ CFLAGS_Release := -Werror \
 	-fno-ident \
 	-fdata-sections \
 	-ffunction-sections
-
-CFLAGS_CC_Release := -fno-rtti \
+	-fno-rtti \
 	-fno-threadsafe-statics \
 	-fvisibility-inlines-hidden \
 	-Wsign-compare
 
-LDFLAGS_Release := -pthread \
+LDFLAGS := -pthread \
 	-Wl,-z,noexecstack \
 	-fPIC \
 	-Llib \
@@ -68,8 +67,8 @@ SOURCES=atom.cpp cefclient.cpp string_util.cpp native_handler.cpp cefclient_swit
 OBJECTS=$(SOURCES:.cpp=.o)
 
 all:
-	g++ $(CFLAGS_Release) $(CFLAGS_CC_Release) -c $(SOURCES)
-	g++ -o atom $(OBJECTS) $(LDFLAGS_Release) $(LIBS)
+	g++ $(CXXFLAGS) -c $(SOURCES)
+	g++ -o atom $(OBJECTS) $(LDFLAGS) $(LIBS)
 	
 clean:
 	rm -rf *.o atom
