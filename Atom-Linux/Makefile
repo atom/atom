@@ -22,7 +22,6 @@ CFLAGS_Release := -Werror \
 	-I/usr/include/freetype2 \
 	-I/usr/include/directfb \
 	-I/usr/include/libpng12 \
-	-Icefclient \
 	-I../cef \
 	-O2 \
 	-fno-ident \
