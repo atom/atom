@@ -7,6 +7,8 @@ Directory = require 'directory'
 require 'window'
 window.showConsole()
 
+requireStylesheet "jasmine.css"
+
 defaultTitle = document.title
 directoriesWithSubscriptions = null
 

@@ -307,6 +307,33 @@ describe "Renderer", ->
           expect(line4.screenDelta).toEqual [1, 0]
           expect(line5.text).toMatch /9-+/
 
+      describe "when creating a fold where one already exists", ->
+        it "returns existing fold and does't create new fold", ->
+          fold = renderer.createFold(0,10)
+          expect(renderer.activeFolds[0].length).toBe 1
+
+          newFold = renderer.createFold(0,10)
+          expect(newFold).toBe fold
+          expect(renderer.activeFolds[0].length).toBe 1
+
+      describe "when a fold is created inside an existing folded region", ->
+        it "creates/destroys the fold, but does not trigger change event", ->
+          outerFold = renderer.createFold(0, 10)
+          changeHandler.reset()
+
+          innerFold = renderer.createFold(2, 5)
+          expect(changeHandler).not.toHaveBeenCalled()
+          [line0, line1] = renderer.linesForRows(0, 1)
+          expect(line0.fold).toBe outerFold
+          expect(line1.fold).toBeUndefined()
+
+          changeHandler.reset()
+          innerFold.destroy()
+          expect(changeHandler).not.toHaveBeenCalled()
+          [line0, line1] = renderer.linesForRows(0, 1)
+          expect(line0.fold).toBe outerFold
+          expect(line1.fold).toBeUndefined()
+
     describe "when the buffer changes", ->
       [fold1, fold2] = []
       beforeEach ->
@@ -575,6 +602,3 @@ describe "Renderer", ->
 
   describe ".bufferRowsForScreenRows()", ->
     it "returns the buffer rows corresponding to each screen row in the given range", ->
-      renderer.setMaxLineLength(50)
-      renderer.createFold(4, 7)
-      expect(renderer.bufferRowsForScreenRows()).toEqual [0, 1, 2, 3, 3, 4, 8, 8, 9, 10, 11, 12]

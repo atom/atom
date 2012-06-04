@@ -56,15 +56,17 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
-  %w(index.html src static vendor spec benchmark).each do |dir|
-    rm_rf File.join(dest, dir)
-    cp_r dir, File.join(dest, dir)
-  end
+  rm_rf File.join(dest, "index.html")
+  cp "index.html", File.join(dest, "index.html")
 
-  if ENV['LOAD_RESOURCES_FROM_DIR']
-    sh "coffee -c #{dest}/src/stdlib/require.coffee"
-  else
-    sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec"
+  sh "coffee -c -o #{dest}/src/stdlib src/stdlib/require.coffee"
+  unless ENV['LOAD_RESOURCES_FROM_DIR']
+    %w(src static vendor spec benchmark).each do |dir|
+      rm_rf File.join(dest, dir)
+      cp_r dir, File.join(dest, dir)
+    end
+
+    sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec #{dest}/benchmark"
   end
 end
 

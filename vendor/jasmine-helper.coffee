@@ -7,9 +7,6 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
 
   $ = require 'jquery'
 
-  $('head').append $$ ->
-    @link rel: "stylesheet", type: "text/css", href: "static/jasmine.css"
-
   $('body').append $$ ->
     @div id: 'jasmine-content'
 
