@@ -19,19 +19,20 @@ describe "Window", ->
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads the stylesheet at the given path and installs a style tag for it in the head", ->
-      $('head style').remove()
-      expect($('head style').length).toBe 0
+      $('head style[path*="atom.css"]').remove()
+      lengthBefore = $('head style').length
       requireStylesheet('atom.css')
-      expect($('head style').length).toBe 1
+      expect($('head style').length).toBe lengthBefore + 1
 
-      styleElt = $('head style')
+      styleElt = $('head style[path*="atom.css"]')
 
       fullPath = require.resolve('atom.css')
       expect(styleElt.attr('path')).toBe fullPath
       expect(styleElt.text()).toBe fs.read(fullPath)
 
+      # doesn't append twice
       requireStylesheet('atom.css')
-      expect($('head style').length).toBe 1
+      expect($('head style').length).toBe lengthBefore + 1
 
   describe "before the window is unloaded", ->
     it "saves the serialized state of the root view to the atom object so it can be rehydrated after reload", ->
