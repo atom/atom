@@ -35,24 +35,6 @@ void URLEntryActivate(GtkEntry* entry) {
   g_handler->GetBrowser()->GetMainFrame()->LoadURL(std::string(url).c_str());
 }
 
-// GTK utility functions ----------------------------------------------
-
-GtkWidget* AddMenuEntry(GtkWidget* menu_widget, const char* text,
-                        GCallback callback) {
-  GtkWidget* entry = gtk_menu_item_new_with_label(text);
-  g_signal_connect(entry, "activate", callback, NULL);
-  gtk_menu_shell_append(GTK_MENU_SHELL(menu_widget), entry);
-  return entry;
-}
-
-GtkWidget* CreateMenu(GtkWidget* menu_bar, const char* text) {
-  GtkWidget* menu_widget = gtk_menu_new();
-  GtkWidget* menu_header = gtk_menu_item_new_with_label(text);
-  gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu_header), menu_widget);
-  gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), menu_header);
-  return menu_widget;
-}
-
 // WebViewDelegate::TakeFocus in the test webview delegate.
 static gboolean HandleFocus(GtkWidget* widget,
                             GdkEventFocus* focus) {
