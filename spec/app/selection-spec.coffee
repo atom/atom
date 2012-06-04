@@ -292,6 +292,13 @@ describe "Selection", ->
       expect(buffer.lineForRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
       expect(buffer.lineForRow(7)).toBe "    }"
 
+    it "preserves selection emptiness", ->
+      editor.attachToDom()
+      selection.setBufferRange([[4, 0], [4, 0]])
+      selection.toggleLineComments()
+      expect(selection.isEmpty()).toBeTruthy()
+      expect(selection.find('.selection')).not.toExist()
+
   describe "when the selection ends on the begining of a fold line", ->
     beforeEach ->
       editor.createFold(2,4)

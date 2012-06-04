@@ -20,6 +20,7 @@ class Selection extends View
   handleBufferChange: (e) ->
     return unless @anchor
     @anchor.handleBufferChange(e)
+    @updateAppearance()
 
   placeAnchor: ->
     return if @anchor

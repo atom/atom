@@ -248,7 +248,6 @@ class Renderer
     @lineMap.logLines(start, end)
 
   toggleLineCommentsInRange: (range) ->
-    console.log range.inspect()
     @lineCommenter.toggleLineCommentsInRange(range)
 
 _.extend Renderer.prototype, EventEmitter
