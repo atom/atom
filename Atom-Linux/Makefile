@@ -26,7 +26,7 @@ CXXFLAGS := -Werror \
 	-O2 \
 	-fno-ident \
 	-fdata-sections \
-	-ffunction-sections
+	-ffunction-sections \
 	-fno-rtti \
 	-fno-threadsafe-statics \
 	-fvisibility-inlines-hidden \
