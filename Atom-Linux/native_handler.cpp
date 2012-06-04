@@ -131,6 +131,13 @@ void NativeHandler::OpenDialog(const CefString& name,
 	gtk_widget_destroy(dialog);
 }
 
+void NativeHandler::Open(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+	path = arguments[0]->GetStringValue().ToString();
+	CefV8Context::GetCurrentContext()->GetBrowser()->Reload();
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -151,6 +158,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
 	else if (name == "openDialog")
 		OpenDialog(name, object, arguments, retval, exception);
+	else if(name =="open")
+		Open(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;

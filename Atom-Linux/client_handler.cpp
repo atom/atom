@@ -82,9 +82,22 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefV8Value> windowNumber = CefV8Value::CreateInt(0);
     global->SetValue("$windowNumber", windowNumber, V8_PROPERTY_ATTRIBUTE_NONE);
 
+    std::string path;
+    if (m_nativeHandler)
+    	path = m_nativeHandler->path;
+    else {
+    	path.append(AppGetWorkingDirectory());
+    	path.append("/../src/app/atom.coffee");
+    }
+
+    CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString(path);
+    global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
+
     CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
     nativeHandler->window = window;
+    nativeHandler->path = path;
     global->SetValue("$native", nativeHandler->object, V8_PROPERTY_ATTRIBUTE_NONE);
+    m_nativeHandler = nativeHandler;
 
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
@@ -94,13 +107,7 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     
     CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString("window-bootstrap");
     global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
-      
-    std::string path;
-    path.append(AppGetWorkingDirectory());
-    path.append("/../src/app/atom.coffee");
-    CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString(path);
-    global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
-    
+
     context->Exit();
   }
 }

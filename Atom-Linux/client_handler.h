@@ -10,6 +10,7 @@
 #include <string>
 #include "include/cef_client.h"
 #include "util.h"
+#include "native_handler.h"
 
 
 // Define this value to redirect all popup URLs to the main application browser
@@ -173,6 +174,8 @@ class ClientHandler : public CefClient,
   void SetNavState(bool canGoBack, bool canGoForward);
   
   GtkWidget* window;
+  
+  CefRefPtr<NativeHandler> m_nativeHandler;
 
   // The child browser window
   CefRefPtr<CefBrowser> m_Browser;

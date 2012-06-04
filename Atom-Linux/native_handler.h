@@ -3,14 +3,17 @@
 
 #include "include/cef_base.h"
 #include "include/cef_v8.h"
+#include <string>
 
 class NativeHandler: public CefV8Handler {
 public:
 	NativeHandler();
 
 	CefRefPtr<CefV8Value> object;
-
+	
 	GtkWidget* window;
+	
+	std::string path;
 
 	virtual bool Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
@@ -45,6 +48,10 @@ private:
 			CefString& exception);
 
 	void OpenDialog(const CefString& name, CefRefPtr<CefV8Value> object,
+			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+			CefString& exception);
+
+	void Open(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 			CefString& exception);
 };
