@@ -36,12 +36,12 @@ CFLAGS_CC_Release := -fno-rtti \
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
 	-fPIC \
-	-Lobj/cef \
+	-Llib \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections \
-	-Wl,-rpath=obj/cef \
-	-Wl,-rpath-link=obj/cef
+	-Wl,-rpath=lib/ \
+	-Wl,-rpath-link=lib/
 
 LIBS := -lX11 \
 	-lgtk-x11-2.0 \
