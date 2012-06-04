@@ -810,7 +810,8 @@ class Editor extends View
     @renderer.foldAll()
 
   toggleFold: ->
-    @renderer.toggleFoldAtBufferRow(@getCursorBufferPosition().row)
+    row = @renderer.bufferPositionForScreenPosition(@getCursorScreenPosition()).row
+    @renderer.toggleFoldAtBufferRow(row)
 
   foldSelection: -> @getSelection().fold()
 
