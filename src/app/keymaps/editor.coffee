@@ -30,3 +30,4 @@ window.keymap.bindKeys '.editor',
   'meta-}': 'show-next-buffer'
   'meta-+': 'increase-font-size'
   'meta--': 'decrease-font-size'
+  'meta-/': 'toggle-line-comments'

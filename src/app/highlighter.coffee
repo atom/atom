@@ -19,9 +19,9 @@ class Highlighter
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
     newRange = e.newRange.copy()
-    previousState = @screenLines[oldRange.end.row].state # used in spill detection below
+    previousState = @stateForRow(oldRange.end.row) # used in spill detection below
 
-    startState = @screenLines[newRange.start.row - 1]?.state or 'start'
+    startState = @stateForRow(newRange.start.row - 1)
     @screenLines[oldRange.start.row..oldRange.end.row] =
       @buildScreenLinesForRows(startState, newRange.start.row, newRange.end.row)
 
@@ -31,10 +31,10 @@ class Highlighter
     # each line until the line's new state matches the previous state. this covers
     # cases like inserting a /* needing to comment out lines below until we see a */
     for row in [newRange.end.row...@buffer.getLastRow()]
-      break if @screenLines[row].state == previousState
+      break if @stateForRow(row) == previousState
       nextRow = row + 1
-      previousState = @screenLines[nextRow].state
-      @screenLines[nextRow] = @buildScreenLineForRow(@screenLines[row].state, nextRow)
+      previousState = @stateForRow(nextRow)
+      @screenLines[nextRow] = @buildScreenLineForRow(@stateForRow(row), nextRow)
 
     # if highlighting spilled beyond the bounds of the textual change, update
     # the pre and post range to reflect area of highlight changes
@@ -70,6 +70,9 @@ class Highlighter
 
   screenLinesForRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
+
+  stateForRow: (row) ->
+    @screenLines[row]?.state ? 'start'
 
   destroy: ->
     @buffer.off ".highlighter#{@id}"

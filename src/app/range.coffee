@@ -6,9 +6,10 @@ class Range
   @fromObject: (object) ->
     if _.isArray(object)
       new Range(object...)
-    else
+    else if object instanceof Range
       object
-
+    else
+      new Range(object.start, object.end)
 
   constructor: (pointA = new Point(0, 0), pointB = new Point(0, 0)) ->
     pointA = Point.fromObject(pointA)

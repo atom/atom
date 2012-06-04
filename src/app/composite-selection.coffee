@@ -113,6 +113,9 @@ class CompositeSeleciton
   deleteToEndOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
 
+  toggleLineComments: ->
+    @mutateSelectedText (selection) -> selection.toggleLineComments()
+
   selectToScreenPosition: (position) ->
     @getLastSelection().selectToScreenPosition(position)
 

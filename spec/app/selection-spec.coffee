@@ -274,6 +274,31 @@ describe "Selection", ->
         expect(editor.buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
         expect(selection.getBufferRange()).toEqual [[0, 1], [3, 15 - tabLength]]
 
+  describe ".toggleLineComments()", ->
+    it "toggles comments on the selected lines", ->
+      selection.setBufferRange([[4, 5], [7, 5]])
+      selection.toggleLineComments()
+
+      expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
+      expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
+      expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
+      expect(buffer.lineForRow(7)).toBe "//    }"
+
+      expect(selection.getBufferRange()).toEqual [[4, 7], [7, 7]]
+
+      selection.toggleLineComments()
+      expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
+      expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
+      expect(buffer.lineForRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
+      expect(buffer.lineForRow(7)).toBe "    }"
+
+    it "preserves selection emptiness", ->
+      editor.attachToDom()
+      selection.setBufferRange([[4, 0], [4, 0]])
+      selection.toggleLineComments()
+      expect(selection.isEmpty()).toBeTruthy()
+      expect(selection.find('.selection')).not.toExist()
+
   describe "when the selection ends on the begining of a fold line", ->
     beforeEach ->
       editor.createFold(2,4)
