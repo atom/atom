@@ -70,9 +70,6 @@ OBJECTS=$(SOURCES:.cpp=.o)
 all:
 	g++ $(CFLAGS_Release) $(CFLAGS_CC_Release) -c $(SOURCES)
 	g++ -o atom $(OBJECTS) $(LDFLAGS_Release) $(LIBS)
-	cp ../Atom/Resources/chrome.pak .
-	mkdir -p locales/
-	cp ../Atom/Resources/en.lproj/locale.pak locales/en-US.pak
 	
 clean:
-	rm -rf *.o atom chrome.pak locales
+	rm -rf *.o atom
