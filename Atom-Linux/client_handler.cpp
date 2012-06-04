@@ -95,7 +95,10 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString("window-bootstrap");
     global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
       
-    CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString("/home/kevin/repositories/atom/index.html");
+    std::string path;
+    path.append(AppGetWorkingDirectory());
+    path.append("/../src/app/atom.coffee");
+    CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString(path);
     global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
     
     context->Exit();
