@@ -2127,6 +2127,14 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(2)')).toHaveHtml '&nbsp;'
           expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
+    describe "insert-newline-below", ->
+      it "inserts a newline below the cursor, autoindents it, and moves the cursor to the end of the line", ->
+        editor.autoIndent = true
+        editor.trigger "newline-below"
+        expect(editor.buffer.lineForRow(0)).toBe "var quicksort = function () {"
+        expect(editor.buffer.lineForRow(1)).toBe "  "
+        expect(editor.getCursorBufferPosition()).toEqual [1,2]
+
     describe "backspace", ->
       describe "when the cursor is on the middle of the line", ->
         it "removes the character before the cursor", ->

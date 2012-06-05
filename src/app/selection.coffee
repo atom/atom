@@ -108,10 +108,10 @@ class Selection extends View
     { text, shouldOutdent } = @autoIndentText(text)
     oldBufferRange = @getBufferRange()
     @editor.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
-    isReversed = @isReversed()
+    wasReversed = @isReversed()
     @clearSelection()
     newBufferRange = @editor.buffer.change(oldBufferRange, text)
-    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if isReversed
+    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
     @autoOutdentText() if shouldOutdent
 
   indentSelectedRows: ->
