@@ -105,6 +105,7 @@ class Editor extends View
       'select-up': @selectUp
       'select-down': @selectDown
       'newline': @insertNewline
+      'newline-below': @insertNewlineBelow
       'tab': @insertTab
       'indent-selected-rows': @indentSelectedRows
       'outdent-selected-rows': @outdentSelectedRows
@@ -701,6 +702,10 @@ class Editor extends View
 
   insertNewline: ->
     @insertText('\n')
+
+  insertNewlineBelow: ->
+    @moveCursorToEndOfLine()
+    @insertNewline()
 
   insertTab: ->
     if @getSelection().isEmpty()
