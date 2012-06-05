@@ -228,7 +228,7 @@ class Editor extends View
         @gutter.addClass('drop-shadow')
 
     $(window).on "resize.editor#{@id}", =>
-      @updateVisibleLines()
+      @updateRenderedLines()
 
   afterAttach: (onDom) ->
     return if @attached or not onDom
@@ -279,7 +279,7 @@ class Editor extends View
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
-    @updateVisibleLines() if @attached
+    @updateRenderedLines() if @attached
 
     @scrollView.scrollTop(scrollTop)
     @gutter.scrollTop(scrollTop)
@@ -291,60 +291,6 @@ class Editor extends View
       @scrollTop(scrollBottom - @scrollView.height())
     else
       @scrollTop() + @scrollView.height()
-
-  renderVisibleLines: ->
-    @clearRenderedLines()
-    @updateVisibleLines()
-
-  clearRenderedLines: ->
-    @lineCache = []
-    @renderedLines.find('.line').remove()
-
-    @firstRenderedScreenRow = -1
-    @lastRenderedScreenRow = -1
-
-  updateVisibleLines: ->
-    firstVisibleScreenRow = @getFirstVisibleScreenRow()
-    lastVisibleScreenRow = @getLastVisibleScreenRow()
-    renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
-    renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
-
-    if firstVisibleScreenRow < @firstRenderedScreenRow
-      @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
-      @lastRenderedScreenRow = renderTo
-      newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow - 1, renderTo))
-      @insertLineElements(renderFrom, newLines)
-      @firstRenderedScreenRow = renderFrom
-      renderedLines = true
-
-    if lastVisibleScreenRow > @lastRenderedScreenRow
-      if 0 <= @firstRenderedScreenRow < renderFrom
-        @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1))
-      @firstRenderedScreenRow = renderFrom
-      startRowOfNewLines = Math.max(@lastRenderedScreenRow + 1, renderFrom)
-      newLines = @buildLineElements(startRowOfNewLines, renderTo)
-      @insertLineElements(startRowOfNewLines, newLines)
-      @lastRenderedScreenRow = renderTo
-      renderedLines = true
-
-    if renderedLines
-      @gutter.renderLineNumbers(renderFrom, renderTo)
-      @updatePaddingOfRenderedLines()
-
-  updatePaddingOfRenderedLines: ->
-    paddingTop = @firstRenderedScreenRow * @lineHeight
-    @renderedLines.css('padding-top', paddingTop)
-    @gutter.lineNumbers.css('padding-top', paddingTop)
-
-    paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
-    @renderedLines.css('padding-bottom', paddingBottom)
-    @gutter.lineNumbers.css('padding-bottom', paddingBottom)
-
-  getFirstVisibleScreenRow: ->
-    Math.floor(@scrollTop() / @lineHeight)
-
-  getLastVisibleScreenRow: ->
-    Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
   highlightSelectedFolds: ->
     screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
@@ -390,7 +336,7 @@ class Editor extends View
     @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
     if @attached
       @prepareForVerticalScrolling()
-      @renderVisibleLines()
+      @renderLines()
 
     @loadEditSessionForBuffer(@buffer)
 
@@ -443,6 +389,60 @@ class Editor extends View
       scrollTop: @scrollTop()
       scrollLeft: @scrollView.scrollLeft()
 
+  renderLines: ->
+    @clearRenderedLines()
+    @updateRenderedLines()
+
+  clearRenderedLines: ->
+    @lineCache = []
+    @renderedLines.find('.line').remove()
+
+    @firstRenderedScreenRow = -1
+    @lastRenderedScreenRow = -1
+
+  updateRenderedLines: ->
+    firstVisibleScreenRow = @getFirstVisibleScreenRow()
+    lastVisibleScreenRow = @getLastVisibleScreenRow()
+    renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
+    renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
+
+    if firstVisibleScreenRow < @firstRenderedScreenRow
+      @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
+      @lastRenderedScreenRow = renderTo
+      newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow - 1, renderTo))
+      @insertLineElements(renderFrom, newLines)
+      @firstRenderedScreenRow = renderFrom
+      renderedLines = true
+
+    if lastVisibleScreenRow > @lastRenderedScreenRow
+      if 0 <= @firstRenderedScreenRow < renderFrom
+        @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1))
+      @firstRenderedScreenRow = renderFrom
+      startRowOfNewLines = Math.max(@lastRenderedScreenRow + 1, renderFrom)
+      newLines = @buildLineElements(startRowOfNewLines, renderTo)
+      @insertLineElements(startRowOfNewLines, newLines)
+      @lastRenderedScreenRow = renderTo
+      renderedLines = true
+
+    if renderedLines
+      @gutter.renderLineNumbers(renderFrom, renderTo)
+      @updatePaddingOfRenderedLines()
+
+  updatePaddingOfRenderedLines: ->
+    paddingTop = @firstRenderedScreenRow * @lineHeight
+    @renderedLines.css('padding-top', paddingTop)
+    @gutter.lineNumbers.css('padding-top', paddingTop)
+
+    paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
+    @renderedLines.css('padding-bottom', paddingBottom)
+    @gutter.lineNumbers.css('padding-bottom', paddingBottom)
+
+  getFirstVisibleScreenRow: ->
+    Math.floor(@scrollTop() / @lineHeight)
+
+  getLastVisibleScreenRow: ->
+    Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+
   handleBufferChange: (e) ->
     @compositeCursor.handleBufferChange(e)
     @compositeSelection.handleBufferChange(e)
@@ -480,7 +480,7 @@ class Editor extends View
 
       rowDelta = newScreenRange.end.row - oldScreenRange.end.row
       @lastRenderedScreenRow += rowDelta
-      @updateVisibleLines() if rowDelta < 0
+      @updateRenderedLines() if rowDelta < 0
 
       if @lastRenderedScreenRow > maxEndRow
         @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
@@ -638,7 +638,7 @@ class Editor extends View
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
       @compositeCursor.updateAppearance()
-      @updateVisibleLines()
+      @updateRenderedLines()
 
   getCursors: -> @compositeCursor.getCursors()
   moveCursorUp: -> @compositeCursor.moveUp()
