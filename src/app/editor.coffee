@@ -236,7 +236,7 @@ class Editor extends View
     @clearRenderedLines()
     @subscribeToFontSize()
     @calculateDimensions()
-    @setMaxLineLength() if @softWrap
+    @setSoftWrapColumn() if @softWrap
     @prepareForVerticalScrolling()
 
     # this also renders the visible lines
@@ -333,7 +333,7 @@ class Editor extends View
     @trigger 'editor-path-change'
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
 
-    @renderer = new Renderer(@buffer, { maxLineLength: @calcMaxLineLength(), tabText: @tabText })
+    @renderer = new Renderer(@buffer, { softWrapColumn: @calcSoftWrapColumn(), tabText: @tabText })
     if @attached
       @prepareForVerticalScrolling()
       @renderLines()
@@ -552,28 +552,28 @@ class Editor extends View
   toggleSoftWrap: ->
     @setSoftWrap(not @softWrap)
 
-  calcMaxLineLength: ->
+  calcSoftWrapColumn: ->
     if @softWrap
       Math.floor(@scrollView.width() / @charWidth)
     else
       Infinity
 
-  setMaxLineLength: (maxLineLength) ->
-    maxLineLength ?= @calcMaxLineLength()
-    @renderer.setMaxLineLength(maxLineLength) if maxLineLength
+  setSoftWrapColumn: (softWrapColumn) ->
+    softWrapColumn ?= @calcSoftWrapColumn()
+    @renderer.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
   createFold: (startRow, endRow) ->
     @renderer.createFold(startRow, endRow)
 
-  setSoftWrap: (@softWrap, maxLineLength=undefined) ->
-    @setMaxLineLength(maxLineLength) if @attached
+  setSoftWrap: (@softWrap, softWrapColumn=undefined) ->
+    @setSoftWrapColumn(softWrapColumn) if @attached
     if @softWrap
       @addClass 'soft-wrap'
-      @_setMaxLineLength = => @setMaxLineLength()
-      $(window).on 'resize', @_setMaxLineLength
+      @_setSoftWrapColumn = => @setSoftWrapColumn()
+      $(window).on 'resize', @_setSoftWrapColumn
     else
       @removeClass 'soft-wrap'
-      $(window).off 'resize', @_setMaxLineLength
+      $(window).off 'resize', @_setSoftWrapColumn
 
   save: ->
     if not @buffer.getPath()

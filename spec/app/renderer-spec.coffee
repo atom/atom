@@ -19,7 +19,7 @@ describe "Renderer", ->
 
   describe "soft wrapping", ->
     beforeEach ->
-      renderer.setMaxLineLength(50)
+      renderer.setSoftWrapColumn(50)
       changeHandler.reset()
 
     describe "rendering of soft-wrapped lines", ->
@@ -40,7 +40,7 @@ describe "Renderer", ->
         describe "when there is no whitespace before the boundary", ->
           it "wraps the line exactly at the boundary since there's no more graceful place to wrap it", ->
             buffer.change([[0, 0], [1, 0]], 'abcdefghijklmnopqrstuvwxyz\n')
-            renderer.setMaxLineLength(10)
+            renderer.setSoftWrapColumn(10)
             expect(renderer.lineForRow(0).text).toBe 'abcdefghij'
             expect(renderer.lineForRow(1).text).toBe 'klmnopqrst'
             expect(renderer.lineForRow(2).text).toBe 'uvwxyz'
@@ -128,9 +128,9 @@ describe "Renderer", ->
         expect(renderer.screenPositionForBufferPosition([4, 5])).toEqual([5, 5])
         expect(renderer.bufferPositionForScreenPosition([5, 5])).toEqual([4, 5])
 
-    describe ".setMaxLineLength(length)", ->
+    describe ".setSoftWrapColumn(length)", ->
       it "changes the length at which lines are wrapped and emits a change event for all screen lines", ->
-        renderer.setMaxLineLength(40)
+        renderer.setSoftWrapColumn(40)
         expect(tokensText renderer.lineForRow(4).tokens).toBe 'left = [], right = [];'
         expect(tokensText renderer.lineForRow(5).tokens).toBe '    while(items.length > 0) {'
         expect(tokensText renderer.lineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
@@ -151,7 +151,7 @@ describe "Renderer", ->
 
       describe "when a foldable line is wrapped", ->
         it "only marks the first screen line as foldable", ->
-          renderer.setMaxLineLength(20)
+          renderer.setSoftWrapColumn(20)
           expect(renderer.lineForRow(0).foldable).toBeTruthy()
           expect(renderer.lineForRow(1).foldable).toBeFalsy()
           expect(renderer.lineForRow(2).foldable).toBeTruthy()
@@ -541,7 +541,7 @@ describe "Renderer", ->
 
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
-      renderer.setMaxLineLength(50)
+      renderer.setSoftWrapColumn(50)
 
     it "allows valid positions", ->
       expect(renderer.clipScreenPosition([4, 5])).toEqual [4, 5]

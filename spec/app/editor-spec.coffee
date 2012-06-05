@@ -384,7 +384,7 @@ describe "Editor", ->
           setEditorHeightInLines(editor, 20)
           setEditorWidthInChars(editor, 50)
           editor.setSoftWrap(true)
-          expect(editor.renderer.maxLineLength).toBe 50
+          expect(editor.renderer.softWrapColumn).toBe 50
 
         it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
           expect(editor.renderedLines.find('.line').length).toBe 16
@@ -427,9 +427,9 @@ describe "Editor", ->
           editor.toggleSoftWrap()
           expect(editor.renderedLines.find('.line:eq(3)').text()).toBe '    var pivot = items.shift(), current, left = [], right = [];'
 
-          spyOn(editor, 'setMaxLineLength')
+          spyOn(editor, 'setSoftWrapColumn')
           $(window).trigger 'resize'
-          expect(editor.setMaxLineLength).not.toHaveBeenCalled()
+          expect(editor.setSoftWrapColumn).not.toHaveBeenCalled()
 
         it "allows the cursor to move down to the last line", ->
           _.times editor.getLastScreenRow(), -> editor.moveCursorDown()
@@ -453,15 +453,15 @@ describe "Editor", ->
           editor.moveCursorRight()
           expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
-        it "calls .setMaxLineLength() when the editor is attached because now its dimensions are available to calculate it", ->
+        it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
           otherEditor = new Editor()
-          spyOn(otherEditor, 'setMaxLineLength')
+          spyOn(otherEditor, 'setSoftWrapColumn')
 
           otherEditor.setSoftWrap(true)
-          expect(otherEditor.setMaxLineLength).not.toHaveBeenCalled()
+          expect(otherEditor.setSoftWrapColumn).not.toHaveBeenCalled()
 
           otherEditor.simulateDomAttachment()
-          expect(otherEditor.setMaxLineLength).toHaveBeenCalled()
+          expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
 
     describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
@@ -760,7 +760,7 @@ describe "Editor", ->
 
     describe "when wrapping is on", ->
       it "renders a • instead of line number for wrapped portions of lines", ->
-        editor.setMaxLineLength(50)
+        editor.setSoftWrapColumn(50)
         expect(editor.gutter.find('.line-number').length).toEqual(8)
         expect(editor.gutter.find('.line-number:eq(3)').text()).toBe '4'
         expect(editor.gutter.find('.line-number:eq(4)').text()).toBe '•'

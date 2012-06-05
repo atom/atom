@@ -25,7 +25,7 @@ class Renderer
     @highlighter = new Highlighter(@buffer, options.tabText ? '  ')
     @lineCommenter = new LineCommenter(@highlighter)
     @foldSuggester = new FoldSuggester(@highlighter)
-    @maxLineLength = options.maxLineLength ? Infinity
+    @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
     @foldsById = {}
     @buildLineMap()
@@ -36,7 +36,7 @@ class Renderer
     @lineMap = new LineMap
     @lineMap.insertAtBufferRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
-  setMaxLineLength: (@maxLineLength) ->
+  setSoftWrapColumn: (@softWrapColumn) ->
     oldRange = @rangeForAllLines()
     @buildLineMap()
     newRange = @rangeForAllLines()
@@ -206,7 +206,7 @@ class Renderer
 
       startBufferColumn ?= 0
       screenLine = screenLine.splitAt(startBufferColumn)[1] if startBufferColumn > 0
-      wrapScreenColumn = @findWrapColumn(screenLine.text, @maxLineLength)
+      wrapScreenColumn = @findWrapColumn(screenLine.text, @softWrapColumn)
       if wrapScreenColumn?
         screenLine = screenLine.splitAt(wrapScreenColumn)[0]
         screenLine.screenDelta = new Point(1, 0)
@@ -219,19 +219,19 @@ class Renderer
 
     lineFragments
 
-  findWrapColumn: (line, maxLineLength) ->
-    return unless line.length > maxLineLength
+  findWrapColumn: (line, softWrapColumn) ->
+    return unless line.length > softWrapColumn
 
-    if /\s/.test(line[maxLineLength])
+    if /\s/.test(line[softWrapColumn])
       # search forward for the start of a word past the boundary
-      for column in [maxLineLength..line.length]
+      for column in [softWrapColumn..line.length]
         return column if /\S/.test(line[column])
       return line.length
     else
       # search backward for the start of the word on the boundary
-      for column in [maxLineLength..0]
+      for column in [softWrapColumn..0]
         return column + 1 if /\s/.test(line[column])
-      return maxLineLength
+      return softWrapColumn
 
   expandScreenRangeToLineEnds: (screenRange) ->
     screenRange = Range.fromObject(screenRange)
