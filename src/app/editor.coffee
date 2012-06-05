@@ -233,7 +233,7 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
-    @clearLines()
+    @clearRenderedLines()
     @subscribeToFontSize()
     @calculateDimensions()
     @setMaxLineLength() if @softWrap
@@ -291,10 +291,10 @@ class Editor extends View
       @scrollTop() + @scrollView.height()
 
   renderVisibleLines: ->
-    @clearLines()
+    @clearRenderedLines()
     @updateVisibleLines()
 
-  clearLines: ->
+  clearRenderedLines: ->
     @lineCache = []
     @renderedLines.find('.line').remove()
 
