@@ -171,6 +171,15 @@ void NativeHandler::WriteToPasteboard(const CefString& name,
 	gtk_clipboard_set_text(clipboard, content.c_str(), content.length());
 }
 
+void NativeHandler::ReadFromPasteboard(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+	GtkClipboard* clipboard = gtk_clipboard_get_for_display(
+			gdk_display_get_default(), GDK_NONE);
+	char* content = gtk_clipboard_wait_for_text(clipboard);
+	retval = CefV8Value::CreateString(content);
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -197,6 +206,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		Write(name, object, arguments, retval, exception);
 	else if (name == "writeToPasteboard")
 		WriteToPasteboard(name, object, arguments, retval, exception);
+	else if (name == "readFromPasteboard")
+		ReadFromPasteboard(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
