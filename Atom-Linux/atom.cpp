@@ -26,15 +26,6 @@ void TerminationSignalHandler(int signatl) {
   destroy();
 }
 
-// Callback for when you press enter in the URL box.
-void URLEntryActivate(GtkEntry* entry) {
-  if (!g_handler.get() || !g_handler->GetBrowserHwnd())
-    return;
-
-  const gchar* url = gtk_entry_get_text(entry);
-  g_handler->GetBrowser()->GetMainFrame()->LoadURL(std::string(url).c_str());
-}
-
 // WebViewDelegate::TakeFocus in the test webview delegate.
 static gboolean HandleFocus(GtkWidget* widget,
                             GdkEventFocus* focus) {
