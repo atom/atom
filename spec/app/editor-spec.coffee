@@ -690,6 +690,16 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
+    describe "when folding leaves less then a screen worth of text (regression)", ->
+      it "renders lines properly", ->
+        editor.lineOverdraw = 1
+        editor.attachToDom(heightInLines: 5)
+        editor.renderer.toggleFoldAtBufferRow(4)
+        editor.renderer.toggleFoldAtBufferRow(0)
+
+        expect(editor.renderedLines.find('.line').length).toBe 1
+        expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
