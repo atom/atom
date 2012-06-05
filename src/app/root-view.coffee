@@ -106,13 +106,13 @@ class RootView extends View
   makeEditorActive: (editor) ->
     previousActiveEditor = @panes.find('.editor.active').view()
     previousActiveEditor?.removeClass('active').off('.root-view')
-    editor
-      .addClass('active')
-      .on 'editor-path-change.root-view', =>
-        @trigger 'active-editor-path-change', editor.buffer.path
+    editor.addClass('active')
 
-    if not previousActiveEditor or editor.buffer.path != previousActiveEditor.buffer.path
-      @trigger 'active-editor-path-change', editor.buffer.path
+    if not editor.mini
+      editor.on 'editor-path-change.root-view', =>
+        @trigger 'active-editor-path-change', editor.buffer.path
+      if not previousActiveEditor or editor.buffer.path != previousActiveEditor.buffer.path
+        @trigger 'active-editor-path-change', editor.buffer.path
 
   activeKeybindings: ->
     keymap.bindingsForElement(document.activeElement)
