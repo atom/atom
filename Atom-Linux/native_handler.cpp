@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <vector>
+#include <gtk/gtk.h>
 
 using namespace std;
 
@@ -161,6 +162,15 @@ void NativeHandler::Write(const CefString& name, CefRefPtr<CefV8Value> object,
 	myfile.close();
 }
 
+void NativeHandler::WriteToPasteboard(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+	string content = arguments[0]->GetStringValue().ToString();
+	GtkClipboard* clipboard = gtk_clipboard_get_for_display(
+			gdk_display_get_default(), GDK_NONE);
+	gtk_clipboard_set_text(clipboard, content.c_str(), content.length());
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -185,6 +195,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		Open(name, object, arguments, retval, exception);
 	else if (name == "write")
 		Write(name, object, arguments, retval, exception);
+	else if (name == "writeToPasteboard")
+		WriteToPasteboard(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
