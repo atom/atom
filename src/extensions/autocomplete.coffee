@@ -54,7 +54,7 @@ class Autocomplete extends View
         @cancel()
 
     @miniEditor.buffer.on 'change', (e) =>
-      @filterMatches() if @parent()[0]
+      @filterMatches() if @hasParent()
 
     @miniEditor.preempt 'move-up', =>
       @selectPreviousMatch()
