@@ -20,7 +20,7 @@ class CompositeCursor
   addCursor: (screenPosition=null) ->
     cursor = new Cursor({@editor, screenPosition})
     @cursors.push(cursor)
-    @editor.visibleLines.append(cursor)
+    @editor.renderedLines.append(cursor)
     cursor
 
   addCursorAtScreenPosition: (screenPosition) ->

@@ -40,7 +40,7 @@ class CompositeSeleciton
   addSelectionForCursor: (cursor) ->
     selection = new Selection({@editor, cursor})
     @selections.push(selection)
-    @editor.visibleLines.append(selection)
+    @editor.renderedLines.append(selection)
     selection
 
   addSelectionForBufferRange: (bufferRange, options) ->
