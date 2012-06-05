@@ -466,9 +466,9 @@ class Editor extends View
         oldScreenRange.end.row += delta
 
       newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
+      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
       newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
-      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, maxEndRow)
 
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
       @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
