@@ -273,7 +273,9 @@ class Editor extends View
   scrollTop: (scrollTop, options) ->
     return @cachedScrollTop or 0 unless scrollTop?
 
-    scrollTop = Math.max(0, scrollTop)
+    maxScrollTop = @scrollView.prop('scrollHeight') - @scrollView.height()
+    scrollTop = Math.floor(Math.min(maxScrollTop, Math.max(0, scrollTop)))
+
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 

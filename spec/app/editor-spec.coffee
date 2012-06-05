@@ -8,7 +8,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-describe "Editor", ->
+fdescribe "Editor", ->
   [rootView, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -72,7 +72,7 @@ describe "Editor", ->
       newEditor.width(editor.width())
       rootView.remove()
       newEditor.attachToDom()
-      expect(newEditor.scrollTop()).toBe 1.5 * editor.lineHeight
+      expect(newEditor.scrollTop()).toBe editor.scrollTop()
       expect(newEditor.scrollView.scrollLeft()).toBe 44
 
   describe ".setBuffer(buffer)", ->
@@ -701,7 +701,8 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
 
     describe "when autoscrolling at the end of the document", ->
-      xit "renders lines properly", ->
+      it "renders lines properly", ->
+        console.log editor.lineOverdraw
         editor.setBuffer(new Buffer(require.resolve 'fixtures/two-hundred.txt'))
         editor.attachToDom(heightInLines: 5.5)
         expect(editor.renderedLines.find('.line').length).toBe 8
