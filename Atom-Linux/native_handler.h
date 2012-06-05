@@ -54,6 +54,10 @@ private:
 	void Open(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 			CefString& exception);
+
+	void Write(const CefString& name, CefRefPtr<CefV8Value> object,
+			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+			CefString& exception);
 };
 
 #endif

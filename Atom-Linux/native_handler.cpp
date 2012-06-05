@@ -2,6 +2,7 @@
 #include "include/cef_base.h"
 #include "client_handler.h"
 #include <iostream>
+#include <fstream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -148,6 +149,18 @@ void NativeHandler::Open(const CefString& name, CefRefPtr<CefV8Value> object,
 	CefV8Context::GetCurrentContext()->GetBrowser()->Reload();
 }
 
+void NativeHandler::Write(const CefString& name, CefRefPtr<CefV8Value> object,
+		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+		CefString& exception) {
+	string path = arguments[0]->GetStringValue().ToString();
+	string content = arguments[1]->GetStringValue().ToString();
+
+	ofstream myfile;
+	myfile.open(path.c_str());
+	myfile << content;
+	myfile.close();
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -170,6 +183,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		OpenDialog(name, object, arguments, retval, exception);
 	else if (name == "open")
 		Open(name, object, arguments, retval, exception);
+	else if (name == "write")
+		Write(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
