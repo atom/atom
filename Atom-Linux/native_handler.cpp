@@ -169,6 +169,7 @@ void NativeHandler::WriteToPasteboard(const CefString& name,
 	GtkClipboard* clipboard = gtk_clipboard_get_for_display(
 			gdk_display_get_default(), GDK_NONE);
 	gtk_clipboard_set_text(clipboard, content.c_str(), content.length());
+	gtk_clipboard_store(clipboard);
 }
 
 void NativeHandler::ReadFromPasteboard(const CefString& name,
