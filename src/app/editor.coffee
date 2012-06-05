@@ -228,8 +228,6 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    $(window).on "resize.editor#{@id}", =>
-      @updateRenderedLines()
 
   afterAttach: (onDom) ->
     return if @attached or not onDom

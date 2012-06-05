@@ -35,6 +35,9 @@ describe "Editor", ->
     editor.enableKeymap()
     editor.isFocused = true
 
+  afterEach ->
+    editor.remove()
+
   describe "construction", ->
     it "assigns an empty buffer and correctly handles text input (regression coverage)", ->
       editor = new Editor
@@ -74,6 +77,7 @@ describe "Editor", ->
       newEditor.attachToDom()
       expect(newEditor.scrollTop()).toBe editor.scrollTop()
       expect(newEditor.scrollView.scrollLeft()).toBe 44
+      newEditor.remove()
 
   describe ".setBuffer(buffer)", ->
     it "sets the cursor to the beginning of the file", ->
@@ -462,6 +466,7 @@ describe "Editor", ->
 
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
+          otherEditor.remove()
 
     describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->
@@ -2627,7 +2632,7 @@ describe "Editor", ->
     describe "when inside a pane", ->
       fakePane = null
       beforeEach ->
-        fakePane = { splitUp: jasmine.createSpy('splitUp').andReturn {} }
+        fakePane = { splitUp: jasmine.createSpy('splitUp').andReturn({}), remove: -> }
         spyOn(editor, 'pane').andReturn(fakePane)
 
       it "calls the corresponding split method on the containing pane with a copy of the editor", ->
@@ -2636,6 +2641,7 @@ describe "Editor", ->
         [editorCopy] = fakePane.splitUp.argsForCall[0]
         expect(editorCopy.serialize()).toEqual editor.serialize()
         expect(editorCopy).not.toBe editor
+        editorCopy.remove()
 
     describe "when not inside a pane", ->
       it "does not split the editor, but doesn't throw an exception", ->
@@ -2651,6 +2657,7 @@ describe "Editor", ->
       editor.trigger 'close'
       expect(editor.remove).toHaveBeenCalled()
 
+      editor.remove()
       editor = new Editor(mini: true)
       spyOn(editor, 'remove')
       editor.trigger 'close'
