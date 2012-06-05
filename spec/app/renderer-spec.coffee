@@ -600,5 +600,7 @@ describe "Renderer", ->
         expect(renderer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabText.length]
         expect(renderer.clipScreenPosition([0, tabText.length], skipAtomicTokens: true)).toEqual [0, tabText.length]
 
-  describe ".bufferRowsForScreenRows()", ->
-    it "returns the buffer rows corresponding to each screen row in the given range", ->
+  describe ".maxLineLength()", ->
+    it "returns the length of the longest screen line", ->
+      expect(renderer.maxLineLength()).toBe 65
+

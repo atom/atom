@@ -235,20 +235,11 @@ class Editor extends View
     @clearRenderedLines()
     @subscribeToFontSize()
     @calculateDimensions()
-    @setSoftWrapColumn() if @softWrap
-    @prepareForVerticalScrolling()
-
-    # this also renders the visible lines
-    @setScrollPositionFromActiveEditSession()
-
-    # TODO: The redundant assignment of scrollLeft below is needed because the
-    # lines weren't rendered when we called
-    # setScrollPositionFromActiveEditSession above. Remove this when we fix that
-    # problem by setting the width of the lines container based on the max line
-    # length
-
-    @scrollView.scrollLeft(@getActiveEditSession().scrollLeft ? 0)
     @hiddenInput.width(@charWidth)
+    @setSoftWrapColumn() if @softWrap
+    @prepareForScrolling()
+    @setScrollPositionFromActiveEditSession() # this also renders the visible lines
+    $(window).on "resize.editor#{@id}", => @updateRenderedLines()
     @focus() if @isFocused
     @trigger 'editor-open', [this]
 
@@ -264,10 +255,17 @@ class Editor extends View
       @compositeSelection.mergeIntersectingSelections({reverse})
       @syncCursorAnimations()
 
-  prepareForVerticalScrolling: ->
-    linesHeight = @lineHeight * @screenLineCount()
-    @verticalScrollbarContent.height(linesHeight)
-    @renderedLines.css('padding-bottom', linesHeight)
+  prepareForScrolling: ->
+    @adjustHeightOfRenderedLines()
+    @adjustWidthOfRenderedLines()
+
+  adjustHeightOfRenderedLines: ->
+    heightOfRenderedLines = @lineHeight * @screenLineCount()
+    @verticalScrollbarContent.height(heightOfRenderedLines)
+    @renderedLines.css('padding-bottom', heightOfRenderedLines)
+
+  adjustWidthOfRenderedLines: ->
+    @renderedLines.width(@charWidth * @maxScreenLineLength())
 
   scrollTop: (scrollTop, options) ->
     return @cachedScrollTop or 0 unless scrollTop?
@@ -314,6 +312,9 @@ class Editor extends View
   screenLineCount: ->
     @renderer.lineCount()
 
+  maxScreenLineLength: ->
+    @renderer.maxLineLength()
+
   getLastScreenRow: ->
     @screenLineCount() - 1
 
@@ -333,11 +334,9 @@ class Editor extends View
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
 
     @renderer = new Renderer(@buffer, { softWrapColumn: @calcSoftWrapColumn(), tabText: @tabText })
-    if @attached
-      @prepareForVerticalScrolling()
-      @renderLines()
-
+    @prepareForScrolling() if @attached
     @loadEditSessionForBuffer(@buffer)
+    @renderLines() if @attached
 
     @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
@@ -452,6 +451,7 @@ class Editor extends View
 
     if @attached
       @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
+      @adjustWidthOfRenderedLines()
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
 

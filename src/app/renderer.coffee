@@ -150,6 +150,9 @@ class Renderer
   lineCount: ->
     @lineMap.screenLineCount()
 
+  maxLineLength: ->
+    @lineMap.maxScreenLineLength()
+
   screenPositionForBufferPosition: (position, options) ->
     @lineMap.screenPositionForBufferPosition(position, options)
 

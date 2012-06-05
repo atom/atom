@@ -653,6 +653,11 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
+      it "increases the width of the rendered lines element if the max line length changes", ->
+        widthBefore = editor.renderedLines.width()
+        buffer.change([[12,0], [12,0]], [1..50].join(''))
+        expect(editor.renderedLines.width()).toBeGreaterThan widthBefore
+
     describe "when lines are removed", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5)
@@ -695,6 +700,11 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line").length).toBe 7
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
+
+      it "decreases the width of the rendered screen lines if the max line length changes", ->
+        widthBefore = editor.renderedLines.width()
+        buffer.delete([[6, 0], [6, Infinity]])
+        expect(editor.renderedLines.width()).toBeLessThan widthBefore
 
     describe "when folding leaves less then a screen worth of text (regression)", ->
       it "renders lines properly", ->

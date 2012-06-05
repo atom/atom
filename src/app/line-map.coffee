@@ -54,6 +54,13 @@ class LineMap
   lastScreenRow: ->
     @screenLineCount() - 1
 
+  maxScreenLineLength: ->
+    maxLength = 0
+    @traverseByDelta 'screenDelta', [0, 0], [@lastScreenRow(), 0], ({lineFragment}) ->
+      length = lineFragment.text.length
+      maxLength = length if length > maxLength
+    maxLength
+
   screenPositionForBufferPosition: (bufferPosition, options) ->
     @translatePosition('bufferDelta', 'screenDelta', bufferPosition, options)
 
