@@ -97,6 +97,12 @@ int main(int argc, char *argv[]) {
   gtk_container_add(GTK_CONTAINER(window), vbox);
   gtk_widget_show_all(GTK_WIDGET(window));
 
+  GdkPixbuf *pixbuf;
+  GError *error = NULL;
+  pixbuf = gdk_pixbuf_new_from_file("atom.ico", &error);
+  if (pixbuf)
+    gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
+
   // Install an signal handler so we clean up after ourselves.
   signal(SIGINT, TerminationSignalHandler);
   signal(SIGTERM, TerminationSignalHandler);
