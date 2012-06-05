@@ -2600,8 +2600,6 @@ describe "Editor", ->
 
   describe "editor-path-change event", ->
     it "emits event when buffer's path is changed", ->
-      editor = new Editor
-
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor-path-change', eventHandler
       editor.buffer.setPath("moo.text")
