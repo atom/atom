@@ -233,7 +233,7 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
-    @clearLines()
+    @clearVisibleLines()
     @subscribeToFontSize()
     @calculateDimensions()
     @setMaxLineLength() if @softWrap
@@ -291,10 +291,10 @@ class Editor extends View
       @scrollTop() + @scrollView.height()
 
   renderVisibleLines: ->
-    @clearLines()
+    @clearVisibleLines()
     @updateVisibleLines()
 
-  clearLines: ->
+  clearVisibleLines: ->
     @lineCache = []
     @visibleLines.find('.line').remove()
 
@@ -307,7 +307,7 @@ class Editor extends View
     renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
     renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
-    if firstVisibleScreenRow < @firstRenderedScreenRow
+    if renderFrom < @firstRenderedScreenRow
       @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
       @lastRenderedScreenRow = renderTo
       newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow - 1, renderTo))
@@ -315,7 +315,7 @@ class Editor extends View
       @firstRenderedScreenRow = renderFrom
       renderedLines = true
 
-    if lastVisibleScreenRow > @lastRenderedScreenRow
+    if renderTo > @lastRenderedScreenRow
       if 0 <= @firstRenderedScreenRow < renderFrom
         @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1))
       @firstRenderedScreenRow = renderFrom
