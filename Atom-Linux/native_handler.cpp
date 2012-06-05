@@ -69,15 +69,11 @@ void NativeHandler::Absolute(const CefString& name,
 		retval = CefV8Value::CreateString(path);
 }
 
-void NativeHandler::List(const CefString& name, CefRefPtr<CefV8Value> object,
-		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
-		CefString& exception) {
-	string path = arguments[0]->GetStringValue().ToString();
+void ListDirectory(string path, vector<string>* paths, bool recursive) {
 	DIR *dir;
 	if ((dir = opendir(path.c_str())) == NULL)
 		return;
 
-	vector < string > paths;
 	dirent *entry;
 
 	while ((entry = readdir(dir)) != NULL) {
@@ -85,14 +81,28 @@ void NativeHandler::List(const CefString& name, CefRefPtr<CefV8Value> object,
 			continue;
 		if (strcmp(entry->d_name, "..") == 0)
 			continue;
-		paths.push_back(entry->d_name);
+		string entryPath;
+		entryPath = path + "/" + entry->d_name;
+		paths->push_back(entryPath);
+		if (recursive)
+			ListDirectory(entryPath, paths, recursive);
 	}
 
 	closedir(dir);
+}
+
+void NativeHandler::List(const CefString& name, CefRefPtr<CefV8Value> object,
+		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+		CefString& exception) {
+	string path = arguments[0]->GetStringValue().ToString();
+	bool recursive = arguments[1]->GetBoolValue();
+	vector < string > *paths = new vector<string>;
+	ListDirectory(path, paths, recursive);
 
 	retval = CefV8Value::CreateArray();
-	for (uint i = 0; i < paths.size(); i++)
-		retval->SetValue(i, CefV8Value::CreateString(path + "/" + paths[i]));
+	for (uint i = 0; i < paths->size(); i++)
+		retval->SetValue(i, CefV8Value::CreateString(paths->at(i)));
+	free (paths);
 }
 
 void NativeHandler::IsFile(const CefString& name, CefRefPtr<CefV8Value> object,
@@ -131,9 +141,9 @@ void NativeHandler::OpenDialog(const CefString& name,
 	gtk_widget_destroy(dialog);
 }
 
-void NativeHandler::Open(const CefString& name,
-		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
-		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+void NativeHandler::Open(const CefString& name, CefRefPtr<CefV8Value> object,
+		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+		CefString& exception) {
 	path = arguments[0]->GetStringValue().ToString();
 	CefV8Context::GetCurrentContext()->GetBrowser()->Reload();
 }
@@ -158,7 +168,7 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
 	else if (name == "openDialog")
 		OpenDialog(name, object, arguments, retval, exception);
-	else if(name =="open")
+	else if (name == "open")
 		Open(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
