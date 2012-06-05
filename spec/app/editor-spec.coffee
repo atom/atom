@@ -700,6 +700,16 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line').length).toBe 1
         expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
 
+    describe "when autoscrolling at the end of the document", ->
+      xit "renders lines properly", ->
+        editor.setBuffer(new Buffer(require.resolve 'fixtures/two-hundred.txt'))
+        editor.attachToDom(heightInLines: 5.5)
+        expect(editor.renderedLines.find('.line').length).toBe 8
+
+        editor.moveCursorToBottom()
+
+        expect(editor.renderedLines.find('.line').length).toBe 8
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
