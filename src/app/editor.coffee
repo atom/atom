@@ -329,13 +329,16 @@ class Editor extends View
 
     if renderedLines
       @gutter.renderLineNumbers(renderFrom, renderTo)
-      paddingTop = @firstRenderedScreenRow * @lineHeight
-      @renderedLines.css('padding-top', paddingTop)
-      @gutter.lineNumbers.css('padding-top', paddingTop)
+      @updatePaddingOfRenderedLines()
 
-      paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
-      @renderedLines.css('padding-bottom', paddingBottom)
-      @gutter.lineNumbers.css('padding-bottom', paddingBottom)
+  updatePaddingOfRenderedLines: ->
+    paddingTop = @firstRenderedScreenRow * @lineHeight
+    @renderedLines.css('padding-top', paddingTop)
+    @gutter.lineNumbers.css('padding-top', paddingTop)
+
+    paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
+    @renderedLines.css('padding-bottom', paddingBottom)
+    @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
@@ -479,10 +482,10 @@ class Editor extends View
       @lastRenderedScreenRow += rowDelta
       @updateVisibleLines() if rowDelta < 0
 
-
       if @lastRenderedScreenRow > maxEndRow
         @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
         @lastRenderedScreenRow = maxEndRow
+        @updatePaddingOfRenderedLines()
 
     @compositeCursor.updateBufferPosition() unless e.bufferChanged
 

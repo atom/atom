@@ -8,7 +8,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-fdescribe "Editor", ->
+describe "Editor", ->
   [rootView, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -500,8 +500,10 @@ fdescribe "Editor", ->
       describe "when creating and destroying folds that are longer than the visible lines", ->
         describe "when the cursor precedes the fold when it is destroyed", ->
           it "renders lines and line numbers correctly", ->
+            scrollHeightBeforeFold = editor.scrollView.prop('scrollHeight')
             fold = editor.createFold(1, 9)
             fold.destroy()
+            expect(editor.scrollView.prop('scrollHeight')).toBe scrollHeightBeforeFold
 
             expect(editor.renderedLines.find('.line').length).toBe 8
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
@@ -510,7 +512,6 @@ fdescribe "Editor", ->
             expect(editor.gutter.find('.line-number:last').text()).toBe '8'
 
             editor.scrollTop(4 * editor.lineHeight)
-
             expect(editor.renderedLines.find('.line').length).toBe 10
             expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
@@ -702,7 +703,6 @@ fdescribe "Editor", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        console.log editor.lineOverdraw
         editor.setBuffer(new Buffer(require.resolve 'fixtures/two-hundred.txt'))
         editor.attachToDom(heightInLines: 5.5)
         expect(editor.renderedLines.find('.line').length).toBe 8
