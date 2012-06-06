@@ -79,3 +79,6 @@ class Point
 
   toArray: ->
     [@row, @column]
+
+  serialize: ->
+    @toArray()

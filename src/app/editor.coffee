@@ -6,6 +6,7 @@ Gutter = require 'gutter'
 Renderer = require 'renderer'
 Point = require 'point'
 Range = require 'range'
+EditSession = require 'edit-session'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -50,11 +51,7 @@ class Editor extends View
 
   @deserialize: (viewState, rootView) ->
     viewState = _.clone(viewState)
-    viewState.editSessions = viewState.editSessions.map (editSession) ->
-      editSession = _.clone(editSession)
-      editSession.buffer = Buffer.deserialize(editSession.buffer, rootView.project)
-      editSession
-
+    viewState.editSessions = viewState.editSessions.map (state) -> EditSession.deserialize(state, rootView)
     new Editor(viewState)
 
   initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused, @mini} = {}) ->
@@ -83,10 +80,7 @@ class Editor extends View
     { viewClass: "Editor", editSessions: @serializeEditSessions(), @activeEditSessionIndex, @isFocused }
 
   serializeEditSessions: ->
-    @editSessions.map (session) ->
-      session = _.clone(session)
-      session.buffer = session.buffer.serialize()
-      session
+    @editSessions.map (session) -> session.serialize()
 
   copy: ->
     Editor.deserialize(@serialize(), @rootView())
@@ -351,7 +345,7 @@ class Editor extends View
     if editSession
       @activeEditSessionIndex = index
     else
-      @editSessions.push({ buffer })
+      @editSessions.push(new EditSession(buffer))
       @activeEditSessionIndex = @editSessions.length - 1
     @loadEditSession()
 
@@ -381,11 +375,10 @@ class Editor extends View
     @scrollView.scrollLeft(editSession.scrollLeft ? 0)
 
   saveCurrentEditSession: ->
-    @editSessions[@activeEditSessionIndex] =
-      buffer: @buffer
-      cursorScreenPosition: @getCursorScreenPosition()
-      scrollTop: @scrollTop()
-      scrollLeft: @scrollView.scrollLeft()
+    session = @getActiveEditSession()
+    session.setCursorScreenPosition(@getCursorScreenPosition())
+    session.setScrollTop(@scrollTop())
+    session.setScrollLeft(@scrollView.scrollLeft())
 
   renderLines: ->
     @clearRenderedLines()
