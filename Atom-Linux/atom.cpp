@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 			pathToOpen.append("/");
 			pathToOpen.append(argv[1]);
 		} else
-			szPathToOpen = argv[1];
+			pathToOpen.append(argv[1]);
 	} else
 		pathToOpen.append(szWorkingDir);
 	szPathToOpen = pathToOpen.c_str();
