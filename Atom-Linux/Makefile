@@ -39,8 +39,6 @@ LDFLAGS := -pthread \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections \
-	-Wl,-rpath=lib/ \
-	-Wl,-rpath-link=lib/
 
 LIBS := -lX11 \
 	-lgtk-x11-2.0 \
@@ -68,7 +66,10 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 all:
 	g++ $(CXXFLAGS) -c $(SOURCES)
-	g++ -o atom $(OBJECTS) $(LDFLAGS) $(LIBS)
+	mkdir -p out
+	cp chrome.pak out/
+	cp -R locales out/
+	g++ -o out/atom $(OBJECTS) $(LDFLAGS) $(LIBS)
 	
 clean:
-	rm -rf *.o atom
+	rm -rf out
