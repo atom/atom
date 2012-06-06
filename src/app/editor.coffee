@@ -74,7 +74,7 @@ class Editor extends View
       @setBuffer(new Buffer)
 
   serialize: ->
-    @saveCurrentEditSession()
+    @saveActiveEditSession()
     { viewClass: "Editor", editSessions: @serializeEditSessions(), @activeEditSessionIndex, @isFocused }
 
   serializeEditSessions: ->
@@ -355,7 +355,7 @@ class Editor extends View
   setActiveEditSessionIndex: (index) ->
     throw new Error("Edit session not found") unless @editSessions[index]
 
-    @saveCurrentEditSession() if @activeEditSession
+    @saveActiveEditSession() if @activeEditSession
 
     @activeEditSession = @editSessions[index]
     @activeEditSessionIndex = index
@@ -371,7 +371,7 @@ class Editor extends View
     @scrollTop(@activeEditSession.scrollTop ? 0)
     @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
 
-  saveCurrentEditSession: ->
+  saveActiveEditSession: ->
     @activeEditSession.setCursorScreenPosition(@getCursorScreenPosition())
     @activeEditSession.setScrollTop(@scrollTop())
     @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
