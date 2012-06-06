@@ -79,6 +79,18 @@ describe "Editor", ->
       expect(newEditor.scrollView.scrollLeft()).toBe 44
       newEditor.remove()
 
+  describe ".remove()", ->
+    it "removes subscriptions from all edit session buffers", ->
+      otherBuffer = new Buffer(require.resolve('fixtures/sample.txt'))
+      expect(buffer.subscriptionCount()).toBeGreaterThan 1
+
+      editor.setBuffer(otherBuffer)
+      expect(otherBuffer.subscriptionCount()).toBeGreaterThan 1
+
+      editor.remove()
+      expect(buffer.subscriptionCount()).toBe 1
+      expect(otherBuffer.subscriptionCount()).toBe 1
+
   describe ".setBuffer(buffer)", ->
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
