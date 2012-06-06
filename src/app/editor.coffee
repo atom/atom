@@ -52,7 +52,7 @@ class Editor extends View
   @deserialize: (state, rootView) ->
     editor = new Editor(suppressBufferCreation: true, mini: state.mini)
     editor.editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
-    editor.loadEditSession(state.activeEditSessionIndex)
+    editor.setActiveEditSessionIndex(state.activeEditSessionIndex)
     editor.isFocused = state.isFocused
     editor
 
@@ -317,7 +317,7 @@ class Editor extends View
     @renderer.destroyFoldsContainingBufferRow(bufferRow)
 
   setBuffer: (buffer) ->
-    @loadEditSessionForBuffer(buffer)
+    @activateEditSessionForBuffer(buffer)
 
   setRenderer: (renderer) ->
     @renderer?.off()
@@ -330,54 +330,51 @@ class Editor extends View
     @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @trigger 'editor-path-change'
 
-  editSessionIndexForBuffer: (buffer) ->
-    for editSession, index in @editSessions
-      return index if editSession.buffer == buffer
-    null
-
-  loadEditSessionForBuffer: (buffer) ->
+  activateEditSessionForBuffer: (buffer) ->
     index = @editSessionIndexForBuffer(buffer)
     unless index?
       index = @editSessions.length
       @editSessions.push(new EditSession(this, buffer))
 
-    @loadEditSession(index)
+    @setActiveEditSessionIndex(index)
+
+  editSessionIndexForBuffer: (buffer) ->
+    for editSession, index in @editSessions
+      return index if editSession.buffer == buffer
+    null
 
   loadNextEditSession: ->
     nextIndex = (@activeEditSessionIndex + 1) % @editSessions.length
-    @loadEditSession(nextIndex)
+    @setActiveEditSessionIndex(nextIndex)
 
   loadPreviousEditSession: ->
     previousIndex = @activeEditSessionIndex - 1
     previousIndex = @editSessions.length - 1 if previousIndex < 0
-    @loadEditSession(previousIndex)
+    @setActiveEditSessionIndex(previousIndex)
 
-  loadEditSession: (index=@activeEditSessionIndex) ->
-    editSession = @editSessions[index]
-    throw new Error("Edit session not found") unless editSession
-    @saveCurrentEditSession() if @activeEditSessionIndex?
+  setActiveEditSessionIndex: (index) ->
+    throw new Error("Edit session not found") unless @editSessions[index]
 
+    @saveCurrentEditSession() if @activeEditSession
+
+    @activeEditSession = @editSessions[index]
     @activeEditSessionIndex = index
-    @setRenderer(editSession.getRenderer())
+
+    @setRenderer(@activeEditSession.getRenderer())
     if @attached
       @prepareForScrolling()
       @setScrollPositionFromActiveEditSession()
       @renderLines()
-    @setCursorScreenPosition(editSession.cursorScreenPosition ? [0, 0])
-
-  getActiveEditSession: ->
-    @editSessions[@activeEditSessionIndex]
+    @setCursorScreenPosition(@activeEditSession.cursorScreenPosition ? [0, 0])
 
   setScrollPositionFromActiveEditSession: ->
-    editSession = @getActiveEditSession()
-    @scrollTop(editSession.scrollTop ? 0)
-    @scrollView.scrollLeft(editSession.scrollLeft ? 0)
+    @scrollTop(@activeEditSession.scrollTop ? 0)
+    @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
 
   saveCurrentEditSession: ->
-    session = @getActiveEditSession()
-    session.setCursorScreenPosition(@getCursorScreenPosition())
-    session.setScrollTop(@scrollTop())
-    session.setScrollLeft(@scrollView.scrollLeft())
+    @activeEditSession.setCursorScreenPosition(@getCursorScreenPosition())
+    @activeEditSession.setScrollTop(@scrollTop())
+    @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
 
   renderLines: ->
     @clearRenderedLines()
