@@ -2,7 +2,6 @@
 
 #import "include/cef_base.h"
 #import "client_handler.h"
-#import "native_handler.h"
 #import "PathWatcher.h"
 
 @implementation AtomController
@@ -75,9 +74,6 @@
   
   CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString([_bootstrapScript UTF8String]);
   global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
-  
-  CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
-  global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
   
   CefRefPtr<CefV8Value> pathToOpen = _pathToOpen ? CefV8Value::CreateString([_pathToOpen UTF8String]) : CefV8Value::CreateNull();
   global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);

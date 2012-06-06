@@ -14,17 +14,20 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 }
 
 NativeHandler::NativeHandler() : CefV8Handler() {  
-  m_object = CefV8Value::CreateObject(NULL, NULL);
+  std::string extensionCode =  "var $native = {}; (function() {";
   
-  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash"};
+  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash"};  
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
-    const char *functionName = functionNames[i];
-    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName, this);
-    m_object->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
+    std::string functionName = std::string(functionNames[i]);
+    extensionCode += "native function " + functionName + "(); $native." + functionName + " = " + functionName + ";";
   }
+  
+  extensionCode += "})();";
+  
+  // Register the extension.
+  CefRegisterExtension("v8/test", extensionCode, this);
 }
-
 
 bool NativeHandler::Execute(const CefString& name,
                      CefRefPtr<CefV8Value> object,

@@ -93,6 +93,7 @@
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
+  CefRefPtr<CefV8Handler> nativeHandler = new NativeHandler();
   [self createAtomContext];
 }
 
@@ -106,9 +107,6 @@
   [self modifyJavaScript:^(CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> global) {
     CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString("atom-bootstrap");
     global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
-
-    CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
-    global->SetValue("$native", nativeHandler->m_object, V8_PROPERTY_ATTRIBUTE_NONE);
 
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
