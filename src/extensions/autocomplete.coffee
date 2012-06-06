@@ -54,7 +54,7 @@ class Autocomplete extends View
         @cancel()
 
     @miniEditor.buffer.on 'change', (e) =>
-      @filterMatches() if @parent()[0]
+      @filterMatches() if @hasParent()
 
     @miniEditor.preempt 'move-up', =>
       @selectPreviousMatch()
@@ -100,7 +100,8 @@ class Autocomplete extends View
 
   attach: ->
     @confirmed = false
-    @miniEditor.on 'focusout', => @cancel() unless @confirmed
+    @miniEditor.on 'focusout', =>
+      @cancel() unless @confirmed
 
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
@@ -116,9 +117,10 @@ class Autocomplete extends View
     @miniEditor.focus()
 
   detach: ->
+    @miniEditor.off("focusout")
+    super
     @editor.off(".autocomplete")
     @editor.focus()
-    super
     @miniEditor.buffer.setText('')
 
   setPosition: (originalCursorPosition) ->
