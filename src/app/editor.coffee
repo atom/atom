@@ -317,36 +317,31 @@ class Editor extends View
     @renderer.destroyFoldsContainingBufferRow(bufferRow)
 
   setBuffer: (buffer) ->
-    if @buffer
-      @saveCurrentEditSession()
-      @unsubscribeFromBuffer()
-
-    @buffer = buffer
-    @trigger 'editor-path-change'
-    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
-
-    @loadEditSessionForBuffer(@buffer)
-
-    @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
-    @renderer.on 'change', (e) => @handleRendererChange(e)
+    @loadEditSessionForBuffer(buffer)
 
   setRenderer: (renderer) ->
     @renderer?.off()
     @renderer = renderer
+    @renderer.on 'change', (e) => @handleRendererChange(e)
 
-  editSessionForBuffer: (buffer) ->
+    @unsubscribeFromBuffer() if @buffer
+    @buffer = renderer.buffer
+    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
+    @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
+    @trigger 'editor-path-change'
+
+  editSessionIndexForBuffer: (buffer) ->
     for editSession, index in @editSessions
-      return [editSession, index] if editSession.buffer == buffer
-    [undefined, -1]
+      return index if editSession.buffer == buffer
+    null
 
   loadEditSessionForBuffer: (buffer) ->
-    [editSession, index] = @editSessionForBuffer(buffer)
-    if editSession
-      @activeEditSessionIndex = index
-    else
+    index = @editSessionIndexForBuffer(buffer)
+    unless index?
+      index = @editSessions.length
       @editSessions.push(new EditSession(this, buffer))
-      @activeEditSessionIndex = @editSessions.length - 1
-    @loadEditSession()
+
+    @loadEditSession(index)
 
   loadNextEditSession: ->
     nextIndex = (@activeEditSessionIndex + 1) % @editSessions.length
@@ -360,7 +355,8 @@ class Editor extends View
   loadEditSession: (index=@activeEditSessionIndex) ->
     editSession = @editSessions[index]
     throw new Error("Edit session not found") unless editSession
-    @setBuffer(editSession.buffer) unless @buffer == editSession.buffer
+    @saveCurrentEditSession() if @activeEditSessionIndex?
+
     @activeEditSessionIndex = index
     @setRenderer(editSession.getRenderer())
     if @attached
@@ -752,7 +748,10 @@ class Editor extends View
     return super if keepData
 
     @trigger 'before-remove'
+
+    @destroyEditSessions()
     @unsubscribeFromBuffer()
+
     $(window).off ".editor#{@id}"
     rootView = @rootView()
     rootView?.off ".editor#{@id}"
@@ -761,7 +760,9 @@ class Editor extends View
 
   unsubscribeFromBuffer: ->
     @buffer.off ".editor#{@id}"
-    @renderer.destroy()
+
+  destroyEditSessions: ->
+    session.destroy() for session in @editSessions
 
   stateForScreenRow: (row) ->
     @renderer.lineForRow(row).state

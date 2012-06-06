@@ -20,6 +20,9 @@ class EditSession
   constructor: (@editor, @buffer) ->
     @setCursorScreenPosition([0, 0])
 
+  destroy: ->
+    @renderer.destroy()
+
   serialize: ->
     buffer: @buffer.serialize()
     scrollTop: @getScrollTop()

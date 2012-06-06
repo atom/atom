@@ -92,20 +92,24 @@ describe "Editor", ->
       expect(otherBuffer.subscriptionCount()).toBe 1
 
   describe ".setBuffer(buffer)", ->
+    otherBuffer = null
+
+    beforeEach ->
+      otherBuffer = new Buffer
+
     it "sets the cursor to the beginning of the file", ->
       expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
 
     it "recalls the cursor position and scroll position when the same buffer is re-assigned", ->
       editor.attachToDom()
+
       editor.height(editor.lineHeight * 5)
       editor.width(editor.charWidth * 30)
       editor.setCursorScreenPosition([8, 28])
-      advanceClock()
-
       previousScrollTop = editor.verticalScrollbar.scrollTop()
       previousScrollLeft = editor.scrollView.scrollLeft()
 
-      editor.setBuffer(new Buffer)
+      editor.setBuffer(otherBuffer)
       expect(editor.getCursorScreenPosition()).toEqual [0, 0]
       expect(editor.verticalScrollbar.scrollTop()).toBe 0
       expect(editor.scrollView.scrollLeft()).toBe 0
@@ -118,7 +122,6 @@ describe "Editor", ->
     it "recalls the undo history of the buffer when it is re-assigned", ->
       editor.insertText('xyz')
 
-      otherBuffer = new Buffer
       editor.setBuffer(otherBuffer)
       editor.insertText('abc')
       expect(otherBuffer.lineForRow(0)).toBe 'abc'
@@ -135,15 +138,15 @@ describe "Editor", ->
       editor.redo()
       expect(otherBuffer.lineForRow(0)).toBe 'abc'
 
-    it "fully unsubscribes from the previously assigned buffer", ->
-      otherBuffer = new Buffer
-      previousSubscriptionCount = otherBuffer.subscriptionCount()
-
+    it "unsubscribes from the previously assigned buffer", ->
       editor.setBuffer(otherBuffer)
-      expect(otherBuffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
+
+      previousSubscriptionCount = buffer.subscriptionCount()
 
       editor.setBuffer(buffer)
-      expect(otherBuffer.subscriptionCount()).toBe previousSubscriptionCount
+      editor.setBuffer(otherBuffer)
+
+      expect(buffer.subscriptionCount()).toBe previousSubscriptionCount
 
     it "resizes the vertical scrollbar based on the new buffer's height", ->
       editor.attachToDom(heightInLines: 5)
@@ -152,6 +155,17 @@ describe "Editor", ->
 
       editor.setBuffer(new Buffer(require.resolve('fixtures/sample.txt')))
       expect(editor.verticalScrollbar.prop('scrollHeight')).toBeLessThan originalHeight
+
+    it "handles buffer manipulation correctly after switching to a new buffer", ->
+      editor.attachToDom()
+      editor.insertText("abc\n")
+      expect(editor.lineElementForScreenRow(0).text()).toBe 'abc'
+
+      editor.setBuffer(otherBuffer)
+      expect(editor.lineElementForScreenRow(0).html()).toBe '&nbsp;'
+
+      editor.insertText("def\n")
+      expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
 
   describe ".clipScreenPosition(point)", ->
     it "selects the nearest valid position to the given point", ->
