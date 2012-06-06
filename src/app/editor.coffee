@@ -49,12 +49,14 @@ class Editor extends View
   attached: false
   lineOverdraw: 100
 
-  @deserialize: (viewState, rootView) ->
-    viewState = _.clone(viewState)
-    viewState.editSessions = viewState.editSessions.map (state) -> EditSession.deserialize(state, rootView)
-    new Editor(viewState)
+  @deserialize: (state, rootView) ->
+    editor = new Editor(suppressBufferCreation: true, mini: state.mini)
+    editor.editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
+    editor.loadEditSession(state.activeEditSessionIndex)
+    editor.isFocused = state.isFocused
+    editor
 
-  initialize: ({editSessions, activeEditSessionIndex, buffer, isFocused, @mini} = {}) ->
+  initialize: ({buffer, suppressBufferCreation, @mini} = {}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -64,16 +66,12 @@ class Editor extends View
     @autoIndent = true
     @buildCursorAndSelection()
     @handleEvents()
+    @editSessions = []
 
-    @editSessions = editSessions ? []
-    if activeEditSessionIndex?
-      @loadEditSession(activeEditSessionIndex)
-    else if buffer?
+    if buffer?
       @setBuffer(buffer)
-    else
+    else if !suppressBufferCreation
       @setBuffer(new Buffer)
-
-    @isFocused = isFocused if isFocused?
 
   serialize: ->
     @saveCurrentEditSession()
@@ -327,13 +325,14 @@ class Editor extends View
     @trigger 'editor-path-change'
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
 
-    @renderer = new Renderer(@buffer, { softWrapColumn: @calcSoftWrapColumn(), tabText: @tabText })
-    @prepareForScrolling() if @attached
     @loadEditSessionForBuffer(@buffer)
-    @renderLines() if @attached
 
     @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @renderer.on 'change', (e) => @handleRendererChange(e)
+
+  setRenderer: (renderer) ->
+    @renderer?.off()
+    @renderer = renderer
 
   editSessionForBuffer: (buffer) ->
     for editSession, index in @editSessions
@@ -345,7 +344,7 @@ class Editor extends View
     if editSession
       @activeEditSessionIndex = index
     else
-      @editSessions.push(new EditSession(buffer))
+      @editSessions.push(new EditSession(this, buffer))
       @activeEditSessionIndex = @editSessions.length - 1
     @loadEditSession()
 
@@ -363,7 +362,11 @@ class Editor extends View
     throw new Error("Edit session not found") unless editSession
     @setBuffer(editSession.buffer) unless @buffer == editSession.buffer
     @activeEditSessionIndex = index
-    @setScrollPositionFromActiveEditSession() if @attached
+    @setRenderer(editSession.getRenderer())
+    if @attached
+      @prepareForScrolling()
+      @setScrollPositionFromActiveEditSession()
+      @renderLines()
     @setCursorScreenPosition(editSession.cursorScreenPosition ? [0, 0])
 
   getActiveEditSession: ->
