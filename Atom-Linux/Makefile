@@ -73,4 +73,4 @@ all:
 	g++ -o out/atom $(OBJECTS) $(LDFLAGS) $(LIBS)
 	
 clean:
-	rm -rf out
+	rm -rf out *.o
