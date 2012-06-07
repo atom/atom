@@ -128,24 +128,6 @@ class CursorView extends View
   getCurrentLineBufferRange: ->
     @editor.rangeForBufferRow(@getBufferPosition().row)
 
-  moveToEndOfLine: ->
-    { row } = @getBufferPosition()
-    @setBufferPosition({ row, column: @editor.buffer.lineForRow(row).length })
-
-  moveToBeginningOfLine: ->
-    { row } = @getScreenPosition()
-    @setScreenPosition({ row, column: 0 })
-
-  moveToFirstCharacterOfLine: ->
-    position = @getBufferPosition()
-    range = @editor.rangeForBufferRow(position.row)
-    newPosition = null
-    @editor.scanInRange /^\s*/, range, (match, matchRange) =>
-      newPosition = matchRange.end
-    return unless newPosition
-    newPosition = [position.row, 0] if newPosition.isEqual(position)
-    @setBufferPosition(newPosition)
-
   updateAppearance: ->
     screenPosition = @getScreenPosition()
     pixelPosition = @editor.pixelPositionForScreenPosition(screenPosition)

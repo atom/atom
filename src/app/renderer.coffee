@@ -159,8 +159,11 @@ class Renderer
   bufferPositionForScreenPosition: (position, options) ->
     @lineMap.bufferPositionForScreenPosition(position, options)
 
-  clipScreenPosition: (position, options={}) ->
+  clipScreenPosition: (position, options) ->
     @lineMap.clipScreenPosition(position, options)
+
+  clipBufferPosition: (position, options) ->
+    @lineMap.clipBufferPosition(position, options)
 
   handleBufferChange: (e) ->
     allFolds = [] # Folds can modify @activeFolds, so first make sure we have a stable array of folds

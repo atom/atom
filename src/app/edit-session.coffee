@@ -51,8 +51,17 @@ class EditSession
   clipScreenPosition: (screenPosition, options) ->
     @renderer.clipScreenPosition(screenPosition, options)
 
+  clipBufferPosition: (bufferPosition, options) ->
+    @renderer.clipBufferPosition(bufferPosition, options)
+
   getEofBufferPosition: ->
     @buffer.getEofPosition()
+
+  bufferRangeForBufferRow: (row) ->
+    @buffer.rangeForRow(row)
+
+  scanInRange: (args...) ->
+    @buffer.scanInRange(args...)
 
   getCursors: -> @cursors
 
@@ -102,6 +111,15 @@ class EditSession
 
   moveCursorToBottom: ->
     @moveCursors (cursor) -> cursor.moveToBottom()
+
+  moveCursorToBeginningOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfLine()
+
+  moveCursorToFirstCharacterOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToFirstCharacterOfLine()
+
+  moveCursorToEndOfLine: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfLine()
 
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()

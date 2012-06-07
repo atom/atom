@@ -14,6 +14,10 @@ class Cursor
     @setScreenPosition(screenPosition) if screenPosition
     @setBufferPosition(bufferPosition) if bufferPosition
 
+  destroy: ->
+    @editSession.removeCursor(this)
+    @trigger 'destroy'
+
   setScreenPosition: (screenPosition, options) ->
     @anchor.setScreenPosition(screenPosition, options)
     @goalColumn = null
@@ -29,6 +33,9 @@ class Cursor
 
   getBufferPosition: ->
     @anchor.getBufferPosition()
+
+  getBufferRow: ->
+    @getBufferPosition().row
 
   handleBufferChange: (e) ->
     @anchor.handleBufferChange(e)
@@ -61,8 +68,20 @@ class Cursor
   moveToBottom: ->
     @setBufferPosition(@editSession.getEofBufferPosition())
 
-  destroy: ->
-    @editSession.removeCursor(this)
-    @trigger 'destroy'
+  moveToBeginningOfLine: ->
+    @setBufferPosition([@getBufferRow(), 0])
+
+  moveToFirstCharacterOfLine: ->
+    position = @getBufferPosition()
+    range = @editSession.bufferRangeForBufferRow(position.row)
+    newPosition = null
+    @editSession.scanInRange /^\s*/, range, (match, matchRange) =>
+      newPosition = matchRange.end
+    return unless newPosition
+    newPosition = [position.row, 0] if newPosition.isEqual(position)
+    @setBufferPosition(newPosition)
+
+  moveToEndOfLine: ->
+    @setBufferPosition([@getBufferRow(), Infinity], clip: true)
 
 _.extend Cursor.prototype, EventEmitter

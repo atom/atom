@@ -223,10 +223,10 @@ class Selection extends View
     @setBufferRange(@editor.buffer.getRange())
 
   selectToBeginningOfLine: ->
-    @modifySelection => @cursor.moveToBeginningOfLine()
+    @modifySelection => @cursor.cursor.moveToBeginningOfLine()
 
   selectToEndOfLine: ->
-    @modifySelection => @cursor.moveToEndOfLine()
+    @modifySelection => @cursor.cursor.moveToEndOfLine()
 
   selectToBeginningOfWord: ->
     @modifySelection => @cursor.moveToBeginningOfWord()
