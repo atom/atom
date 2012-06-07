@@ -5,7 +5,7 @@ Range = require 'range'
 {View, $$} = require 'space-pen'
 
 module.exports =
-class Selection extends View
+class SelectionView extends View
   @content: ->
     @div()
 

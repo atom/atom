@@ -1,4 +1,4 @@
-Selection = require 'selection'
+SelectionView = require 'selection-view'
 _ = require 'underscore'
 
 module.exports =
@@ -38,7 +38,7 @@ class CompositeSeleciton
     @getLastSelection().clearSelection()
 
   addSelectionForCursor: (cursor) ->
-    selection = new Selection({@editor, cursor})
+    selection = new SelectionView({@editor, cursor})
     @selections.push(selection)
     @editor.renderedLines.append(selection)
     selection
