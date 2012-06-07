@@ -14,9 +14,8 @@ class CursorView extends View
   wordRegex: /(\w+)|([^\w\s]+)/g
   hidden: false
 
-  initialize: ({editor, screenPosition} = {}) ->
-    @editor = editor
-    @anchor = new Anchor(@editor, screenPosition)
+  initialize: (@cursor, @editor) ->
+    @anchor = new Anchor(@editor, cursor.getScreenPosition())
     @selection = @editor.compositeSelection.addSelectionForCursor(this)
 
   afterAttach: (onDom) ->

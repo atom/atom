@@ -44,8 +44,9 @@ class CompositeSeleciton
     selection
 
   addSelectionForBufferRange: (bufferRange, options) ->
-    cursor = @editor.compositeCursor.addCursor()
-    @selectionForCursor(cursor).setBufferRange(bufferRange, options)
+    cursor = @editor.addCursor()
+    cursorView = @editor.compositeCursor.viewForCursor(cursor)
+    @selectionForCursor(cursorView).setBufferRange(bufferRange, options)
 
   removeSelectionForCursor: (cursor) ->
     selection = @selectionForCursor(cursor)

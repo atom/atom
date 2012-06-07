@@ -123,6 +123,7 @@ describe "Editor", ->
       editor.insertText('xyz')
 
       editor.setBuffer(otherBuffer)
+
       editor.insertText('abc')
       expect(otherBuffer.lineForRow(0)).toBe 'abc'
       editor.undo()

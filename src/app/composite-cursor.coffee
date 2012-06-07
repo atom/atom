@@ -1,11 +1,10 @@
-Cursor = require 'cursor-view'
+CursorView = require 'cursor-view'
 _ = require 'underscore'
 
 module.exports =
 class CompositeCursor
   constructor: (@editor) ->
     @cursors = []
-    @addCursor()
 
   handleBufferChange: (e) ->
     @moveCursors (cursor) -> cursor.handleBufferChange(e)
@@ -17,18 +16,18 @@ class CompositeCursor
   getCursors: ->
     @cursors
 
-  addCursor: (screenPosition=null) ->
-    cursor = new Cursor({@editor, screenPosition})
+  addCursorView: (cursor) ->
+    cursor = new CursorView(cursor, @editor)
     @cursors.push(cursor)
     @editor.renderedLines.append(cursor)
     cursor
 
-  addCursorAtScreenPosition: (screenPosition) ->
-    cursor = @addCursor(screenPosition)
+  viewForCursor: (cursor) ->
+    for view in @getCursors()
+      return view if view.cursor == cursor
 
-  addCursorAtBufferPosition: (bufferPosition) ->
-    screenPosition = @editor.screenPositionForBufferPosition(bufferPosition)
-    cursor = @addCursor(screenPosition)
+  removeAllCursors: ->
+    cursor.remove() for cursor in @getCursors()
 
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)

@@ -148,11 +148,14 @@ class Editor extends View
     @compositeSelection = new CompositeSelection(this)
     @compositeCursor = new CompositeCursor(this)
 
+  addCursor: ->
+    @activeEditSession.addCursorAtScreenPosition([0, 0])
+
   addCursorAtScreenPosition: (screenPosition) ->
-    @compositeCursor.addCursorAtScreenPosition(screenPosition)
+    @activeEditSession.addCursorAtScreenPosition(screenPosition)
 
   addCursorAtBufferPosition: (bufferPosition) ->
-    @compositeCursor.addCursorAtBufferPosition(bufferPosition)
+    @activeEditSession.addCursorAtBufferPosition(bufferPosition)
 
   addSelectionForCursor: (cursor) ->
     @compositeSelection.addSelectionForCursor(cursor)
@@ -355,7 +358,10 @@ class Editor extends View
   setActiveEditSessionIndex: (index) ->
     throw new Error("Edit session not found") unless @editSessions[index]
 
-    @saveActiveEditSession() if @activeEditSession
+    if @activeEditSession
+      @saveActiveEditSession()
+      @compositeCursor.removeAllCursors()
+      @activeEditSession.off()
 
     @activeEditSession = @editSessions[index]
     @activeEditSessionIndex = index
@@ -365,7 +371,12 @@ class Editor extends View
       @prepareForScrolling()
       @setScrollPositionFromActiveEditSession()
       @renderLines()
-    @setCursorScreenPosition(@activeEditSession.cursorScreenPosition ? [0, 0])
+
+    for cursor in @activeEditSession.getCursors()
+      @compositeCursor.addCursorView(cursor)
+
+    @activeEditSession.on 'add-cursor', (cursor) =>
+      @compositeCursor.addCursorView(cursor)
 
   setScrollPositionFromActiveEditSession: ->
     @scrollTop(@activeEditSession.scrollTop ? 0)

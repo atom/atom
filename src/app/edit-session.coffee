@@ -1,6 +1,9 @@
 Point = require 'point'
 Buffer = require 'buffer'
 Renderer = require 'renderer'
+Cursor = require 'cursor'
+EventEmitter = require 'event-emitter'
+_ = require 'underscore'
 
 module.exports =
 class EditSession
@@ -14,11 +17,13 @@ class EditSession
 
   scrollTop: 0
   scrollLeft: 0
-  cursorScreenPosition: null
   renderer: null
+  cursors: null
 
   constructor: (@editor, @buffer) ->
-    @setCursorScreenPosition([0, 0])
+    @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @editor.tabText })
+    @cursors = []
+    @addCursorAtScreenPosition([0, 0])
 
   destroy: ->
     @renderer.destroy()
@@ -29,8 +34,7 @@ class EditSession
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
 
-  getRenderer: ->
-    @renderer ?= new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @editor.tabText })
+  getRenderer: -> @renderer
 
   setScrollTop: (@scrollTop) ->
   getScrollTop: -> @scrollTop
@@ -38,15 +42,42 @@ class EditSession
   setScrollLeft: (@scrollLeft) ->
   getScrollLeft: -> @scrollLeft
 
+  screenPositionForBufferPosition: (bufferPosition, options) ->
+    @renderer.screenPositionForBufferPosition(bufferPosition, options)
+
+  bufferPositionForScreenPosition: (screenPosition, options) ->
+    @renderer.bufferPositionForScreenPosition(screenPosition, options)
+
+  clipScreenPosition: (screenPosition, options) ->
+    @renderer.clipScreenPosition(screenPosition, options)
+
+  getCursors: -> @cursors
+
+  addCursorAtScreenPosition: (screenPosition) ->
+    @addCursor(new Cursor(editSession: this, screenPosition: screenPosition))
+
+  addCursorAtBufferPosition: (bufferPosition) ->
+    @addCursor(new Cursor(editSession: this, bufferPosition: bufferPosition))
+
+  addCursor: (cursor) ->
+    @cursors.push(cursor)
+    @trigger 'add-cursor', cursor
+    cursor
+
   setCursorScreenPosition: (position) ->
-    @cursorScreenPosition = Point.fromObject(position)
+    @getLastCursor().setScreenPosition(position)
 
   getCursorScreenPosition: ->
-    @cursorScreenPosition
+    @getLastCursor().getScreenPosition()
+
+  getLastCursor: ->
+    _.last(@cursors)
 
   isEqual: (other) ->
     return false unless other instanceof EditSession
     @buffer == other.buffer and
       @scrollTop == other.getScrollTop() and
       @scrollLeft == other.getScrollLeft() and
-      @cursorScreenPosition.isEqual(other.getCursorScreenPosition())
+      @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
+
+_.extend(EditSession.prototype, EventEmitter)
