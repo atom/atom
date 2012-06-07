@@ -175,6 +175,7 @@ class Buffer
       when 'html', 'htm' then 'html'
       when 'css' then 'css'
       when 'java' then 'java'
+      when 'xml' then 'xml'
       else 'text'
 
     @mode = new (require("ace/mode/#{modeName}").Mode)
