@@ -21,51 +21,6 @@
 
 namespace {
 
-void UIT_InvokeScript(CefRefPtr<CefBrowser> browser) {
-	REQUIRE_UI_THREAD();
-
-	CefRefPtr<CefFrame> frame = browser->GetMainFrame();
-	CefRefPtr<CefV8Context> v8Context = frame->GetV8Context();
-	CefString url = frame->GetURL();
-
-	if (!v8Context.get()) {
-		frame->ExecuteJavaScript("alert('Failed to get V8 context!');", url, 0);
-	} else if (v8Context->Enter()) {
-		CefRefPtr<CefV8Value> globalObj = v8Context->GetGlobal();
-		CefRefPtr<CefV8Value> evalFunc = globalObj->GetValue("eval");
-
-		CefRefPtr<CefV8Value> arg0 = CefV8Value::CreateString("1+2");
-
-		CefV8ValueList args;
-		args.push_back(arg0);
-
-		CefRefPtr<CefV8Value> retVal;
-		CefRefPtr<CefV8Exception> exception;
-		if (evalFunc->ExecuteFunctionWithContext(v8Context, globalObj, args,
-				retVal, exception, false)) {
-			if (retVal.get()) {
-				frame->ExecuteJavaScript(
-						std::string("alert('InvokeScript returns ")
-								+ retVal->GetStringValue().ToString() + "!');",
-						url, 0);
-			} else {
-				frame->ExecuteJavaScript(
-						std::string("alert('InvokeScript returns exception: ")
-								+ exception->GetMessage().ToString() + "!');",
-						url, 0);
-			}
-		} else {
-			frame->ExecuteJavaScript("alert('Failed to execute function!');",
-					url, 0);
-		}
-
-		v8Context->Exit();
-	} else {
-		frame->ExecuteJavaScript("alert('Failed to enter into V8 context!');",
-				url, 0);
-	}
-}
-
 // Return the int representation of the specified string.
 int GetIntValue(const CefString& str) {
 	if (str.empty())
