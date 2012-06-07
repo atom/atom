@@ -77,13 +77,13 @@ clean:
 	rm -rf bin *.o
 
 install:
-	sudo mkdir -p $(INSTALLDIR)
-	sudo cp -R bin $(INSTALLDIR)
-	sudo cp -R lib $(INSTALLDIR)
-	sudo cp atom $(INSTALLDIR)
-	sudo cp -R ../src $(INSTALLDIR)
-	sudo cp -R ../static $(INSTALLDIR)
-	sudo cp -R ../vendor $(INSTALLDIR)
-	sudo cp ../index.html $(INSTALLDIR)
-	sudo ln -sf $(INSTALLDIR)/atom /usr/local/bin/atom
+	mkdir -p $(INSTALLDIR)
+	cp -R bin $(INSTALLDIR)
+	cp -R lib $(INSTALLDIR)
+	cp atom $(INSTALLDIR)
+	cp -R ../src $(INSTALLDIR)
+	cp -R ../static $(INSTALLDIR)
+	cp -R ../vendor $(INSTALLDIR)
+	cp ../index.html $(INSTALLDIR)
+	ln -sf $(INSTALLDIR)/atom /usr/local/bin/atom
 
