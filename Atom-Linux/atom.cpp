@@ -109,7 +109,10 @@ int main(int argc, char *argv[]) {
 
 	GdkPixbuf *pixbuf;
 	GError *error = NULL;
-	pixbuf = gdk_pixbuf_new_from_file("atom.ico", &error);
+	std::string iconPath;
+	iconPath.append(szPath);
+	iconPath.append("/atom.ico");
+	pixbuf = gdk_pixbuf_new_from_file(iconPath.c_str(), &error);
 	if (pixbuf)
 		gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
 

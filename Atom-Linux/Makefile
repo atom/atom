@@ -69,6 +69,7 @@ all:
 	mkdir -p out
 	cp chrome.pak out/
 	cp -R locales out/
+	cp atom.ico out/
 	g++ -o out/atom $(OBJECTS) $(LDFLAGS) $(LIBS)
 	
 clean:
