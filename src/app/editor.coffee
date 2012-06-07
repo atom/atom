@@ -220,7 +220,6 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
@@ -343,6 +342,14 @@ class Editor extends View
       return index if editSession.buffer == buffer
     null
 
+  removeActiveEditSession: ->
+    if @editSessions.length == 1
+      @remove()
+    else
+      editSession = @activeEditSession
+      @loadPreviousEditSession()
+      _.remove(@editSessions, editSession)
+
   loadNextEditSession: ->
     nextIndex = (@activeEditSessionIndex + 1) % @editSessions.length
     @setActiveEditSessionIndex(nextIndex)
@@ -366,6 +373,9 @@ class Editor extends View
       @setScrollPositionFromActiveEditSession()
       @renderLines()
     @setCursorScreenPosition(@activeEditSession.cursorScreenPosition ? [0, 0])
+
+  destroyEditSessions: ->
+    session.destroy() for session in @editSessions
 
   setScrollPositionFromActiveEditSession: ->
     @scrollTop(@activeEditSession.scrollTop ? 0)
@@ -739,8 +749,11 @@ class Editor extends View
     @parent('.pane').view()
 
   close: ->
-    @remove() unless @mini
+    return if @mini
+    @removeActiveEditSession()
 
+  unsubscribeFromBuffer: ->
+    @buffer.off ".editor#{@id}"
   remove: (selector, keepData) ->
     return super if keepData
 
@@ -755,11 +768,7 @@ class Editor extends View
     if @pane() then @pane().remove() else super
     rootView?.focus()
 
-  unsubscribeFromBuffer: ->
-    @buffer.off ".editor#{@id}"
 
-  destroyEditSessions: ->
-    session.destroy() for session in @editSessions
 
   stateForScreenRow: (row) ->
     @renderer.lineForRow(row).state
