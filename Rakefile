@@ -56,8 +56,10 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
-  rm_rf File.join(dest, "index.html")
-  cp "index.html", File.join(dest, "index.html")
+  %w(static index.html).each do |dir|
+    rm_rf File.join(dest, dir)
+    cp_r dir, File.join(dest, dir)
+  end
 
   sh "coffee -c -o #{dest}/src/stdlib src/stdlib/require.coffee"
   unless ENV['LOAD_RESOURCES_FROM_DIR']
