@@ -452,7 +452,6 @@ class Editor extends View
     Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
   handleBufferChange: (e) ->
-    @compositeCursor.handleBufferChange(e)
     @compositeSelection.handleBufferChange(e)
 
   handleRendererChange: (e) ->

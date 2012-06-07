@@ -26,10 +26,6 @@ class CursorView extends View
     @updateAppearance()
     @editor.syncCursorAnimations()
 
-  handleBufferChange: (e) ->
-    @cursor.handleBufferChange(e)
-    @trigger 'cursor-move', bufferChange: true
-
   remove: ->
     @editor.compositeCursor.removeCursor(this)
     @editor.compositeSelection.removeSelectionForCursor(this)

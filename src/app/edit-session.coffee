@@ -7,6 +7,8 @@ _ = require 'underscore'
 
 module.exports =
 class EditSession
+  @idCounter: 1
+
   @deserialize: (state, editor, rootView) ->
     buffer = Buffer.deserialize(state.buffer, rootView.project)
     session = new EditSession(editor, buffer)
@@ -21,12 +23,17 @@ class EditSession
   cursors: null
 
   constructor: (@editor, @buffer) ->
+    @id = @constructor.idCounter++
     @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @editor.tabText })
     @cursors = []
     @addCursorAtScreenPosition([0, 0])
 
+    @buffer.on "change.edit-session-#{@id}", (e) =>
+      @moveCursors (cursor) -> cursor.handleBufferChange(e)
+
   destroy: ->
     @renderer.destroy()
+    @buffer.off ".edit-session-#{@id}"
 
   serialize: ->
     buffer: @buffer.serialize()
