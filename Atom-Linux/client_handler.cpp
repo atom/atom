@@ -160,11 +160,7 @@ bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 		if (first_message) {
 			std::stringstream ss;
 			ss << AppGetWorkingDirectory();
-#if defined(OS_WIN)
-			ss << "\\";
-#else
 			ss << "/";
-#endif
 			ss << "console.log";
 			m_LogFile = ss.str();
 		}
