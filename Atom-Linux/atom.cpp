@@ -79,8 +79,6 @@ int main(int argc, char *argv[]) {
 
 	GtkWidget* vbox = gtk_vbox_new(FALSE, 0);
 
-	gtk_box_pack_start(GTK_BOX(vbox), NULL, FALSE, FALSE, 0);
-
 	g_signal_connect(G_OBJECT(window), "destroy",
 			G_CALLBACK(gtk_widget_destroyed), &window);
 	g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(destroy), NULL);
