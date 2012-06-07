@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 	CefInitialize(settings, app);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_title(GTK_WINDOW(window), "Atom");
+	gtk_window_set_title(GTK_WINDOW(window), "atom");
 	gtk_window_maximize(GTK_WINDOW(window));
 
 	g_signal_connect(window, "focus", G_CALLBACK(&HandleFocus), NULL);
