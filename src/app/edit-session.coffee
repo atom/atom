@@ -41,6 +41,13 @@ class EditSession
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
 
+  isEqual: (other) ->
+    return false unless other instanceof EditSession
+    @buffer == other.buffer and
+      @scrollTop == other.getScrollTop() and
+      @scrollLeft == other.getScrollLeft() and
+      @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
+
   getRenderer: -> @renderer
 
   setScrollTop: (@scrollTop) ->
@@ -152,12 +159,5 @@ class EditSession
         cursor.destroy()
       else
         positions.push(position)
-
-  isEqual: (other) ->
-    return false unless other instanceof EditSession
-    @buffer == other.buffer and
-      @scrollTop == other.getScrollTop() and
-      @scrollLeft == other.getScrollLeft() and
-      @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
 
 _.extend(EditSession.prototype, EventEmitter)
