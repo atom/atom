@@ -1,4 +1,4 @@
-Cursor = require 'cursor'
+Cursor = require 'cursor-view'
 _ = require 'underscore'
 
 module.exports =

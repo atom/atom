@@ -1,5 +1,4 @@
 Anchor = require 'anchor'
-Cursor = require 'cursor'
 AceOutdentAdaptor = require 'ace-outdent-adaptor'
 Point = require 'point'
 Range = require 'range'

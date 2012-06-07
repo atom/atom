@@ -5,7 +5,7 @@ Range = require 'range'
 _ = require 'underscore'
 
 module.exports =
-class Cursor extends View
+class CursorView extends View
   @content: ->
     @pre class: 'cursor idle', => @raw '&nbsp;'
 
