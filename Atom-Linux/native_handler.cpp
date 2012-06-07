@@ -72,25 +72,20 @@ void NativeHandler::Absolute(const CefString& name,
 }
 
 void ListDirectory(string path, vector<string>* paths, bool recursive) {
-	DIR *dir;
-	if ((dir = opendir(path.c_str())) == NULL)
-		return;
-
-	dirent *entry;
-
-	while ((entry = readdir(dir)) != NULL) {
-		if (strcmp(entry->d_name, ".") == 0)
+	dirent **children;
+	int childrenCount = scandir(path.c_str(), &children, 0, alphasort);
+	for (int i = 0; i < childrenCount; i++) {
+		if (strcmp(children[i]->d_name, ".") == 0)
 			continue;
-		if (strcmp(entry->d_name, "..") == 0)
+		if (strcmp(children[i]->d_name, "..") == 0)
 			continue;
-		string entryPath;
-		entryPath = path + "/" + entry->d_name;
+		string entryPath(path + "/" + children[i]->d_name);
 		paths->push_back(entryPath);
 		if (recursive)
 			ListDirectory(entryPath, paths, recursive);
+		free(children[i]);
 	}
-
-	closedir(dir);
+	free(children);
 }
 
 void NativeHandler::List(const CefString& name, CefRefPtr<CefV8Value> object,
