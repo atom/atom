@@ -14,7 +14,6 @@ class CursorView extends View
   hidden: false
 
   initialize: (@cursor, @editor) ->
-    @anchor = new Anchor(@editor, cursor.getScreenPosition())
     @selection = @editor.compositeSelection.addSelectionForCursor(this)
 
     @cursor.on 'change-screen-position', (position, options) =>
@@ -37,42 +36,6 @@ class CursorView extends View
     @cursor.off()
     super
 
-  getBufferPosition: ->
-    @cursor.getBufferPosition()
-
-  setBufferPosition: (bufferPosition, options={}) ->
-    @cursor.setBufferPosition(bufferPosition, options)
-
-  getScreenPosition: ->
-    @cursor.getScreenPosition()
-
-  setScreenPosition: (position, options={}) ->
-    if options.fromModel
-      @anchor.setScreenPosition(position, options)
-      @refreshScreenPosition()
-      @clearSelection() unless options.bufferChange
-    else
-      @cursor.setScreenPosition(position, options)
-
-  removeIdleClassTemporarily: ->
-    @removeClass 'idle'
-    window.clearTimeout(@idleTimeout) if @idleTimeout
-    @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
-
-  resetCursorAnimation: ->
-    window.clearTimeout(@idleTimeout) if @idleTimeout
-    @removeClass 'idle'
-    _.defer => @addClass 'idle'
-
-  clearSelection: ->
-    @selection.clearSelection() unless @selection.retainSelection
-
-  getCurrentBufferLine: ->
-    @editor.lineForBufferRow(@getBufferPosition().row)
-
-  isOnEOL: ->
-    @getScreenPosition().column == @getCurrentBufferLine().length
-
   updateAppearance: ->
     screenPosition = @getScreenPosition()
     pixelPosition = @editor.pixelPositionForScreenPosition(screenPosition)
@@ -89,3 +52,28 @@ class CursorView extends View
       @hidden = false
 
     @selection.updateAppearance()
+
+  getBufferPosition: ->
+    @cursor.getBufferPosition()
+
+  setBufferPosition: (bufferPosition, options={}) ->
+    @cursor.setBufferPosition(bufferPosition, options)
+
+  getScreenPosition: ->
+    @cursor.getScreenPosition()
+
+  setScreenPosition: (position, options={}) ->
+    @cursor.setScreenPosition(position, options)
+
+  removeIdleClassTemporarily: ->
+    @removeClass 'idle'
+    window.clearTimeout(@idleTimeout) if @idleTimeout
+    @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200
+
+  resetCursorAnimation: ->
+    window.clearTimeout(@idleTimeout) if @idleTimeout
+    @removeClass 'idle'
+    _.defer => @addClass 'idle'
+
+  clearSelection: ->
+    @selection.clearSelection() unless @selection.retainSelection

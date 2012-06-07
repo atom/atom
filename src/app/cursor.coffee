@@ -36,8 +36,11 @@ class Cursor
   getBufferPosition: ->
     @anchor.getBufferPosition()
 
-  getBufferRow: ->
+  getCurrentBufferRow: ->
     @getBufferPosition().row
+
+  getCurrentBufferLine: ->
+    @editSession.lineForBufferRow(@getCurrentBufferRow())
 
   refreshScreenPosition: ->
     @anchor.refreshScreenPosition()
@@ -75,7 +78,7 @@ class Cursor
     @setBufferPosition(@editSession.getEofBufferPosition())
 
   moveToBeginningOfLine: ->
-    @setBufferPosition([@getBufferRow(), 0])
+    @setBufferPosition([@getCurrentBufferRow(), 0])
 
   moveToFirstCharacterOfLine: ->
     position = @getBufferPosition()
@@ -88,7 +91,7 @@ class Cursor
     @setBufferPosition(newPosition)
 
   moveToEndOfLine: ->
-    @setBufferPosition([@getBufferRow(), Infinity], clip: true)
+    @setBufferPosition([@getCurrentBufferRow(), Infinity], clip: true)
 
   moveToBeginningOfWord: ->
     @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())
@@ -141,6 +144,6 @@ class Cursor
     new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))
 
   getCurrentLineBufferRange: ->
-    @editSession.bufferRangeForBufferRow(@getBufferRow())
+    @editSession.bufferRangeForBufferRow(@getCurrentBufferRow())
 
 _.extend Cursor.prototype, EventEmitter

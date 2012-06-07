@@ -135,7 +135,7 @@ class Selection extends View
       mode = @editor.getCurrentMode()
       row = @cursor.getScreenPosition().row
       state = @editor.stateForScreenRow(row)
-      lineBeforeCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
+      lineBeforeCursor = @cursor.cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
       if text[0] == "\n"
         indent = mode.getNextLineIndent(state, lineBeforeCursor, @editor.tabText)
         text = text[0] + indent + text[1..]

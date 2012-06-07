@@ -34,11 +34,3 @@ describe "Cursor", ->
 
       advanceClock(100)
       expect(cursor).toHaveClass 'idle'
-
-  describe ".isOnEOL()", ->
-    it "only returns true when cursor is on the end of a line", ->
-      cursor.setScreenPosition([1,29])
-      expect(cursor.isOnEOL()).toBeFalsy()
-
-      cursor.setScreenPosition([1,30])
-      expect(cursor.isOnEOL()).toBeTruthy()

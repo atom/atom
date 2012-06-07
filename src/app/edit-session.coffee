@@ -79,6 +79,9 @@ class EditSession
   bufferRangeForBufferRow: (row) ->
     @buffer.rangeForRow(row)
 
+  lineForBufferRow: (row) ->
+    @buffer.lineForRow(row)
+
   scanInRange: (args...) ->
     @buffer.scanInRange(args...)
 
