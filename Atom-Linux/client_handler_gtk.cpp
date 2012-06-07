@@ -21,13 +21,7 @@ bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
 
 void ClientHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame, const CefString& url) {
-	REQUIRE_UI_THREAD();
-
-	if (m_BrowserHwnd == browser->GetWindowHandle() && frame->IsMain()) {
-		// Set the edit window text
-		std::string urlStr(url);
-		gtk_entry_set_text(GTK_ENTRY(m_EditHwnd), urlStr.c_str());
-	}
+	//Intentionally left blank
 }
 
 void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
