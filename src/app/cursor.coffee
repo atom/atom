@@ -1,4 +1,5 @@
 Point = require 'point'
+Range = require 'range'
 Anchor = require 'new-anchor'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
@@ -8,6 +9,7 @@ class Cursor
   screenPosition: null
   bufferPosition: null
   goalColumn: null
+  wordRegex: /(\w+)|([^\w\s]+)/g
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
     @anchor = new Anchor(@editSession)
@@ -83,5 +85,58 @@ class Cursor
 
   moveToEndOfLine: ->
     @setBufferPosition([@getBufferRow(), Infinity], clip: true)
+
+  moveToBeginningOfWord: ->
+    @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())
+
+  moveToEndOfWord: ->
+    @setBufferPosition(@getEndOfCurrentWordBufferPosition())
+
+  moveToNextWord: ->
+    @setBufferPosition(@getBeginningOfNextWordBufferPosition())
+
+  getBeginningOfCurrentWordBufferPosition: (options = {}) ->
+    allowPrevious = options.allowPrevious ? true
+    currentBufferPosition = @getBufferPosition()
+    previousRow = Math.max(0, currentBufferPosition.row - 1)
+    previousLinesRange = [[previousRow, 0], currentBufferPosition]
+
+    beginningOfWordPosition = currentBufferPosition
+    @editSession.backwardsScanInRange @wordRegex, previousLinesRange, (match, matchRange, { stop }) =>
+      if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
+        beginningOfWordPosition = matchRange.start
+      stop()
+    beginningOfWordPosition
+
+  getEndOfCurrentWordBufferPosition: (options = {}) ->
+    allowNext = options.allowNext ? true
+    currentBufferPosition = @getBufferPosition()
+    range = [currentBufferPosition, @editSession.getEofBufferPosition()]
+
+    endOfWordPosition = null
+    @editSession.scanInRange @wordRegex, range, (match, matchRange, { stop }) =>
+      endOfWordPosition = matchRange.end
+      if not allowNext and matchRange.start.isGreaterThan(currentBufferPosition)
+        endOfWordPosition = currentBufferPosition
+      stop()
+    endOfWordPosition
+
+  getBeginningOfNextWordBufferPosition: ->
+    currentBufferPosition = @getBufferPosition()
+    eofBufferPosition = @editSession.getEofBufferPosition()
+    range = [currentBufferPosition, eofBufferPosition]
+
+    nextWordPosition = eofBufferPosition
+    @editSession.scanInRange @wordRegex, range, (match, matchRange, { stop }) =>
+      if matchRange.start.isGreaterThan(currentBufferPosition)
+        nextWordPosition = matchRange.start
+        stop()
+    nextWordPosition
+
+  getCurrentWordBufferRange: ->
+    new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))
+
+  getCurrentLineBufferRange: ->
+    @editSession.bufferRangeForBufferRow(@getBufferRow())
 
 _.extend Cursor.prototype, EventEmitter

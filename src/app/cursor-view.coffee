@@ -11,7 +11,6 @@ class CursorView extends View
 
   anchor: null
   editor: null
-  wordRegex: /(\w+)|([^\w\s]+)/g
   hidden: false
 
   initialize: (@cursor, @editor) ->
@@ -76,57 +75,6 @@ class CursorView extends View
 
   isOnEOL: ->
     @getScreenPosition().column == @getCurrentBufferLine().length
-
-  moveToNextWord: ->
-    bufferPosition = @getBufferPosition()
-    range = [bufferPosition, @editor.getEofPosition()]
-
-    nextPosition = null
-    @editor.scanInRange @wordRegex, range, (match, matchRange, { stop }) =>
-      if matchRange.start.isGreaterThan(bufferPosition)
-        nextPosition = matchRange.start
-        stop()
-
-    @setBufferPosition(nextPosition or @editor.getEofPosition())
-
-  moveToBeginningOfWord: ->
-    @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())
-
-  moveToEndOfWord: ->
-    @setBufferPosition(@getEndOfCurrentWordBufferPosition())
-
-  getBeginningOfCurrentWordBufferPosition: (options = {}) ->
-    allowPrevious = options.allowPrevious ? true
-    currentBufferPosition = @getBufferPosition()
-
-    previousRow = Math.max(0, currentBufferPosition.row - 1)
-    previousLinesRange = [[previousRow, 0], currentBufferPosition]
-    beginningOfWordPosition = currentBufferPosition
-
-    @editor.backwardsScanInRange @wordRegex, previousLinesRange, (match, matchRange, { stop }) =>
-      if matchRange.end.isGreaterThanOrEqual(currentBufferPosition) or allowPrevious
-        beginningOfWordPosition = matchRange.start
-      stop()
-
-    beginningOfWordPosition
-
-  getEndOfCurrentWordBufferPosition: (options = {}) ->
-    allowNext = options.allowNext ? true
-    position = null
-    bufferPosition = @getBufferPosition()
-    range = [bufferPosition, @editor.getEofPosition()]
-    @editor.scanInRange @wordRegex, range, (match, matchRange, { stop }) =>
-      position = matchRange.end
-      if not allowNext and matchRange.start.isGreaterThan(bufferPosition)
-        position = bufferPosition
-      stop()
-    position
-
-  getCurrentWordBufferRange: ->
-    new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))
-
-  getCurrentLineBufferRange: ->
-    @editor.rangeForBufferRow(@getBufferPosition().row)
 
   updateAppearance: ->
     screenPosition = @getScreenPosition()

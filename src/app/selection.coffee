@@ -187,16 +187,16 @@ class Selection extends View
     @retainSelection = false
 
   selectWord: ->
-    @setBufferRange(@cursor.getCurrentWordBufferRange())
+    @setBufferRange(@cursor.cursor.getCurrentWordBufferRange())
 
   expandOverWord: ->
-    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
+    @setBufferRange(@getBufferRange().union(@cursor.cursor.getCurrentWordBufferRange()))
 
   selectLine: (row=@cursor.getBufferPosition().row) ->
     @setBufferRange(@editor.rangeForBufferRow(row))
 
   expandOverLine: ->
-    @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))
+    @setBufferRange(@getBufferRange().union(@cursor.cursor.getCurrentLineBufferRange()))
 
   selectToScreenPosition: (position) ->
     @modifySelection => @cursor.setScreenPosition(position)
@@ -229,10 +229,10 @@ class Selection extends View
     @modifySelection => @cursor.cursor.moveToEndOfLine()
 
   selectToBeginningOfWord: ->
-    @modifySelection => @cursor.moveToBeginningOfWord()
+    @modifySelection => @cursor.cursor.moveToBeginningOfWord()
 
   selectToEndOfWord: ->
-    @modifySelection => @cursor.moveToEndOfWord()
+    @modifySelection => @cursor.cursor.moveToEndOfWord()
 
   cutToEndOfLine: (maintainPasteboard) ->
     @selectToEndOfLine() if @isEmpty()

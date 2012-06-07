@@ -63,6 +63,9 @@ class EditSession
   scanInRange: (args...) ->
     @buffer.scanInRange(args...)
 
+  backwardsScanInRange: (args...) ->
+    @buffer.backwardsScanInRange(args...)
+
   getCursors: -> @cursors
 
   addCursorAtScreenPosition: (screenPosition) ->
@@ -120,6 +123,15 @@ class EditSession
 
   moveCursorToEndOfLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfLine()
+
+  moveCursorToNextWord: ->
+    @moveCursors (cursor) -> cursor.moveToNextWord()
+
+  moveCursorToBeginningOfWord: ->
+    @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
+
+  moveCursorToEndOfWord: ->
+    @moveCursors (cursor) -> cursor.moveToEndOfWord()
 
   moveCursors: (fn) ->
     fn(cursor) for cursor in @getCursors()
