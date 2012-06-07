@@ -2686,8 +2686,16 @@ describe "Editor", ->
         editor.splitRight()
 
   describe "when 'close' is triggered", ->
-    it "calls remove on the editor if mini is false", ->
+    it "closes active edit session and loads next edit session", ->
+      editor.setBuffer(new Buffer())
+      spyOn(editor, "remove")
+      editor.trigger "close"
+      expect(editor.remove).not.toHaveBeenCalled()
+      expect(editor.buffer).toBe buffer
+
+    it "calls remove on the editor if there is one edit session and mini is false", ->
       expect(editor.mini).toBeFalsy()
+      expect(editor.editSessions.length).toBe 1
       spyOn(editor, 'remove')
       editor.trigger 'close'
       expect(editor.remove).toHaveBeenCalled()
