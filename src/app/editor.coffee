@@ -765,6 +765,7 @@ class Editor extends View
 
   unsubscribeFromBuffer: ->
     @buffer.off ".editor#{@id}"
+
   remove: (selector, keepData) ->
     return super if keepData
 
@@ -778,8 +779,6 @@ class Editor extends View
     rootView?.off ".editor#{@id}"
     if @pane() then @pane().remove() else super
     rootView?.focus()
-
-
 
   stateForScreenRow: (row) ->
     @renderer.lineForRow(row).state
