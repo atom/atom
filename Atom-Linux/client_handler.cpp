@@ -90,7 +90,7 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
 		global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
 
 		CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(
-				AppPath() + "/../..");
+				AppPath() + "/..");
 		atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
 
 		CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString(

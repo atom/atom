@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 	std::string path;
 	path.append("file://");
 	path.append(szPath);
-	path.append("/../../index.html");
+	path.append("/../index.html");
 
 	CefBrowser::CreateBrowserSync(window_info,
 			static_cast<CefRefPtr<CefClient> >(g_handler), path,

@@ -63,14 +63,27 @@ LIBS := -lX11 \
 
 SOURCES=atom.cpp cefclient.cpp native_handler.cpp cefclient_switches.cpp client_handler.cpp client_handler_gtk.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
+INSTALLDIR=/usr/local/atom
 
 all:
 	g++ $(CXXFLAGS) -c $(SOURCES)
-	mkdir -p out
-	cp chrome.pak out/
-	cp -R locales out/
-	cp atom.png out/
-	g++ -o out/atom $(OBJECTS) $(LDFLAGS) $(LIBS)
-	
+	mkdir -p bin
+	cp chrome.pak bin/
+	cp -R locales bin/
+	cp atom.png bin/
+	g++ -o bin/atom $(OBJECTS) $(LDFLAGS) $(LIBS)
+
 clean:
-	rm -rf out *.o
+	rm -rf bin *.o
+
+install:
+	sudo mkdir -p $(INSTALLDIR)
+	sudo cp -R bin $(INSTALLDIR)
+	sudo cp -R lib $(INSTALLDIR)
+	sudo cp atom $(INSTALLDIR)
+	sudo cp -R ../src $(INSTALLDIR)
+	sudo cp -R ../static $(INSTALLDIR)
+	sudo cp -R ../vendor $(INSTALLDIR)
+	sudo cp ../index.html $(INSTALLDIR)
+	sudo ln -sf $(INSTALLDIR)/atom /usr/local/bin/atom
+

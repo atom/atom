@@ -7,5 +7,5 @@ case $0 in
 		root=`pwd`/${0%atom}
 		;;
 esac
-export LD_LIBRARY_PATH=$root'lib':$LD_LIBRARY_PATH
-$root'out/atom' $@
+export LD_LIBRARY_PATH=$root'../atom/lib':$LD_LIBRARY_PATH
+$root'../atom/bin/atom' $@
