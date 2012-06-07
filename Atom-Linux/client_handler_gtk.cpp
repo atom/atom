@@ -7,7 +7,6 @@
 #include "client_handler.h"
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
-#include "string_util.h"
 
 // ClientHandler::ClientLifeSpanHandler implementation
 bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,

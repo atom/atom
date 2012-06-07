@@ -9,7 +9,6 @@
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
 #include "cefclient.h"
-#include "string_util.h"
 #include "native_handler.h"
 
 ClientHandler::ClientHandler() :

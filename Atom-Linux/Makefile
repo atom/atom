@@ -61,7 +61,7 @@ LIBS := -lX11 \
 	-lcef \
 	-lcef_dll_wrapper
 
-SOURCES=atom.cpp cefclient.cpp string_util.cpp native_handler.cpp cefclient_switches.cpp client_handler.cpp client_handler_gtk.cpp
+SOURCES=atom.cpp cefclient.cpp native_handler.cpp cefclient_switches.cpp client_handler.cpp client_handler_gtk.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 
 all:
