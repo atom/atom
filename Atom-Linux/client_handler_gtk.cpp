@@ -38,25 +38,6 @@ void ClientHandler::SendNotification(NotificationType type) {
 	// TODO(port): Implement this method.
 }
 
-void ClientHandler::SetLoading(bool isLoading) {
-	if (isLoading)
-		gtk_widget_set_sensitive(GTK_WIDGET(m_StopHwnd), true);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(m_StopHwnd), false);
-}
-
-void ClientHandler::SetNavState(bool canGoBack, bool canGoForward) {
-	if (canGoBack)
-		gtk_widget_set_sensitive(GTK_WIDGET(m_BackHwnd), true);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(m_BackHwnd), false);
-
-	if (canGoForward)
-		gtk_widget_set_sensitive(GTK_WIDGET(m_ForwardHwnd), true);
-	else
-		gtk_widget_set_sensitive(GTK_WIDGET(m_ForwardHwnd), false);
-}
-
 void ClientHandler::CloseMainWindow() {
 	// TODO(port): Close main window.
 }

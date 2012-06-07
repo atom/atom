@@ -127,8 +127,6 @@ public:
 		return m_MainHwnd;
 	}
 	void SetEditHwnd(CefWindowHandle hwnd);
-	void SetButtonHwnds(CefWindowHandle backHwnd, CefWindowHandle forwardHwnd,
-			CefWindowHandle reloadHwnd, CefWindowHandle stopHwnd);
 
 	CefRefPtr<CefBrowser> GetBrowser() {
 		return m_Browser;
@@ -151,8 +149,6 @@ public:
 	void CloseMainWindow();
 
 protected:
-	void SetLoading(bool isLoading);
-	void SetNavState(bool canGoBack, bool canGoForward);
 
 	GtkWidget* window;
 
@@ -169,12 +165,6 @@ protected:
 
 	// The edit window handle
 	CefWindowHandle m_EditHwnd;
-
-	// The button window handles
-	CefWindowHandle m_BackHwnd;
-	CefWindowHandle m_ForwardHwnd;
-	CefWindowHandle m_StopHwnd;
-	CefWindowHandle m_ReloadHwnd;
 
 	// Support for logging.
 	std::string m_LogFile;

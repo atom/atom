@@ -13,9 +13,7 @@
 #include "native_handler.h"
 
 ClientHandler::ClientHandler() :
-		m_MainHwnd(NULL), m_BrowserHwnd(NULL), m_EditHwnd(NULL), m_BackHwnd(
-				NULL), m_ForwardHwnd(NULL), m_StopHwnd(NULL), m_ReloadHwnd(
-				NULL), m_bFormElementHasFocus(false) {
+		m_MainHwnd(NULL), m_BrowserHwnd(NULL), m_bFormElementHasFocus(false) {
 }
 
 ClientHandler::~ClientHandler() {
@@ -65,9 +63,6 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
 	REQUIRE_UI_THREAD();
 
 	if (m_BrowserHwnd == browser->GetWindowHandle() && frame->IsMain()) {
-		// We've just started loading a page
-		SetLoading(true);
-
 		CefRefPtr<CefV8Context> context = frame->GetV8Context();
 		CefRefPtr<CefV8Value> global = context->GetGlobal();
 		context->Enter();
@@ -113,9 +108,6 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 	REQUIRE_UI_THREAD();
 
 	if (m_BrowserHwnd == browser->GetWindowHandle() && frame->IsMain()) {
-		// We've just finished loading a page
-		SetLoading(false);
-
 		CefRefPtr<CefDOMVisitor> visitor = GetDOMVisitor(frame->GetURL());
 		if (visitor.get())
 			frame->VisitDOM(visitor);
@@ -152,9 +144,7 @@ bool ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
 
 void ClientHandler::OnNavStateChange(CefRefPtr<CefBrowser> browser,
 		bool canGoBack, bool canGoForward) {
-	REQUIRE_UI_THREAD();
-
-	SetNavState(canGoBack, canGoForward);
+	//Intentionally left blank
 }
 
 bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
@@ -286,21 +276,6 @@ void ClientHandler::SetWindow(GtkWidget* widget) {
 void ClientHandler::SetMainHwnd(CefWindowHandle hwnd) {
 	AutoLock lock_scope(this);
 	m_MainHwnd = hwnd;
-}
-
-void ClientHandler::SetEditHwnd(CefWindowHandle hwnd) {
-	AutoLock lock_scope(this);
-	m_EditHwnd = hwnd;
-}
-
-void ClientHandler::SetButtonHwnds(CefWindowHandle backHwnd,
-		CefWindowHandle forwardHwnd, CefWindowHandle reloadHwnd,
-		CefWindowHandle stopHwnd) {
-	AutoLock lock_scope(this);
-	m_BackHwnd = backHwnd;
-	m_ForwardHwnd = forwardHwnd;
-	m_ReloadHwnd = reloadHwnd;
-	m_StopHwnd = stopHwnd;
 }
 
 std::string ClientHandler::GetLogFile() {
