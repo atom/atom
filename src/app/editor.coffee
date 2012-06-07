@@ -233,6 +233,7 @@ class Editor extends View
     @setSoftWrapColumn() if @softWrap
     @prepareForScrolling()
     @setScrollPositionFromActiveEditSession() # this also renders the visible lines
+    @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
     $(window).on "resize.editor#{@id}", => @updateRenderedLines()
     @focus() if @isFocused
     @trigger 'editor-open', [this]
@@ -321,17 +322,6 @@ class Editor extends View
   setBuffer: (buffer) ->
     @activateEditSessionForBuffer(buffer)
 
-  setRenderer: (renderer) ->
-    @renderer?.off()
-    @renderer = renderer
-    @renderer.on 'change', (e) => @handleRendererChange(e)
-
-    @unsubscribeFromBuffer() if @buffer
-    @buffer = renderer.buffer
-    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
-    @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
-    @trigger 'editor-path-change'
-
   activateEditSessionForBuffer: (buffer) ->
     index = @editSessionIndexForBuffer(buffer)
     unless index?
@@ -373,11 +363,19 @@ class Editor extends View
     @activeEditSession = @editSessions[index]
     @activeEditSessionIndex = index
 
-    @setRenderer(@activeEditSession.getRenderer())
+    @unsubscribeFromBuffer() if @buffer
+    @buffer = @activeEditSession.buffer
+    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
+    @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
+    @trigger 'editor-path-change'
+
+    @renderer = @activeEditSession.renderer
+
     if @attached
       @prepareForScrolling()
       @setScrollPositionFromActiveEditSession()
       @renderLines()
+      @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
 
     for cursor in @activeEditSession.getCursors()
       @compositeCursor.addCursorView(cursor)
@@ -494,8 +492,6 @@ class Editor extends View
         @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
         @lastRenderedScreenRow = maxEndRow
         @updatePaddingOfRenderedLines()
-
-    @compositeCursor.updateBufferPosition() unless e.bufferChanged
 
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth

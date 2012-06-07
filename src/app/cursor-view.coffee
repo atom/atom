@@ -16,9 +16,14 @@ class CursorView extends View
   initialize: (@cursor, @editor) ->
     @anchor = new Anchor(@editor, cursor.getScreenPosition())
     @selection = @editor.compositeSelection.addSelectionForCursor(this)
+
     @cursor.on 'change-screen-position', (position, options) =>
-      options.fromModel = true
-      @setScreenPosition(position, options)
+      @updateAppearance()
+      unless options.bufferChange
+        @clearSelection()
+        @removeIdleClassTemporarily()
+      @trigger 'cursor-move', bufferChange: options.bufferChange
+
     @cursor.on 'destroy', => @remove()
 
   afterAttach: (onDom) ->
@@ -39,21 +44,17 @@ class CursorView extends View
     @cursor.setBufferPosition(bufferPosition, options)
 
   getScreenPosition: ->
-    @anchor.getScreenPosition()
+    @cursor.getScreenPosition()
 
   setScreenPosition: (position, options={}) ->
     if options.fromModel
       @anchor.setScreenPosition(position, options)
       @refreshScreenPosition()
-      @trigger 'cursor-move', bufferChange: options.bufferChange
       @clearSelection() unless options.bufferChange
     else
       @cursor.setScreenPosition(position, options)
 
-  refreshScreenPosition: ->
-    @goalColumn = null
-    @updateAppearance()
-
+  removeIdleClassTemporarily: ->
     @removeClass 'idle'
     window.clearTimeout(@idleTimeout) if @idleTimeout
     @idleTimeout = window.setTimeout (=> @addClass 'idle'), 200

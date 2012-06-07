@@ -39,6 +39,10 @@ class Cursor
   getBufferRow: ->
     @getBufferPosition().row
 
+  refreshScreenPosition: ->
+    @anchor.refreshScreenPosition()
+    @trigger 'change-screen-position', @getScreenPosition(), bufferChange: false
+
   handleBufferChange: (e) ->
     @anchor.handleBufferChange(e)
     @trigger 'change-screen-position', @getScreenPosition(), bufferChange: true

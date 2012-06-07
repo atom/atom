@@ -32,8 +32,7 @@ class Anchor
     else
       @bufferPosition = Point.fromObject(position)
 
-    screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
-    @setScreenPosition(screenPosition, clip: false, assignBufferPosition: false)
+    @refreshScreenPosition(options)
 
   getScreenPosition: ->
     @screenPosition
@@ -48,3 +47,8 @@ class Anchor
 
     Object.freeze @screenPosition
     Object.freeze @bufferPosition
+
+  refreshScreenPosition: (options) ->
+    screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
+    @setScreenPosition(screenPosition, clip: false, assignBufferPosition: false)
+

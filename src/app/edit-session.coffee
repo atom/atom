@@ -31,9 +31,14 @@ class EditSession
     @buffer.on "change.edit-session-#{@id}", (e) =>
       @moveCursors (cursor) -> cursor.handleBufferChange(e)
 
+    @renderer.on "change.edit-session-#{@id}", (e) =>
+      @trigger 'screen-lines-change', e
+      @moveCursors (cursor) -> cursor.refreshScreenPosition() unless e.bufferChanged
+
   destroy: ->
-    @renderer.destroy()
     @buffer.off ".edit-session-#{@id}"
+    @renderer.off ".edit-session-#{@id}"
+    @renderer.destroy()
 
   serialize: ->
     buffer: @buffer.serialize()
