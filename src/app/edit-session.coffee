@@ -64,14 +64,42 @@ class EditSession
     @trigger 'add-cursor', cursor
     cursor
 
+  removeCursor: (cursor) ->
+    _.remove(@cursors, cursor)
+
+  getLastCursor: ->
+    _.last(@cursors)
+
   setCursorScreenPosition: (position) ->
-    @getLastCursor().setScreenPosition(position)
+    @moveCursors (cursor) -> cursor.setScreenPosition(position)
 
   getCursorScreenPosition: ->
     @getLastCursor().getScreenPosition()
 
-  getLastCursor: ->
-    _.last(@cursors)
+  setCursorBufferPosition: (position) ->
+    @moveCursors (cursor) -> cursor.setBufferPosition(position)
+
+  getCursorBufferPosition: ->
+    @getLastCursor().getBufferPosition()
+
+  moveCursorUp: ->
+    @moveCursors (cursor) -> cursor.moveUp()
+
+  moveCursorDown: ->
+    @moveCursors (cursor) -> cursor.moveDown()
+
+  moveCursors: (fn) ->
+    fn(cursor) for cursor in @getCursors()
+    @mergeCursors()
+
+  mergeCursors: ->
+    positions = []
+    for cursor in new Array(@getCursors()...)
+      position = cursor.getBufferPosition().toString()
+      if position in positions
+        cursor.destroy()
+      else
+        positions.push(position)
 
   isEqual: (other) ->
     return false unless other instanceof EditSession

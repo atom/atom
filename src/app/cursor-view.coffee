@@ -17,6 +17,10 @@ class CursorView extends View
   initialize: (@cursor, @editor) ->
     @anchor = new Anchor(@editor, cursor.getScreenPosition())
     @selection = @editor.compositeSelection.addSelectionForCursor(this)
+    @cursor.on 'change-screen-position', (position, options) =>
+      options.fromModel = true
+      @setScreenPosition(position, options)
+    @cursor.on 'destroy', => @remove()
 
   afterAttach: (onDom) ->
     return unless onDom
@@ -24,32 +28,38 @@ class CursorView extends View
     @editor.syncCursorAnimations()
 
   handleBufferChange: (e) ->
-    @anchor.handleBufferChange(e)
-    @refreshScreenPosition()
+    @cursor.handleBufferChange(e)
+    # @anchor.handleBufferChange(e)
+    # @refreshScreenPosition()
     @trigger 'cursor-move', bufferChange: true
 
   remove: ->
     @editor.compositeCursor.removeCursor(this)
     @editor.compositeSelection.removeSelectionForCursor(this)
+    @cursor.off()
     super
 
   getBufferPosition: ->
-    @anchor.getBufferPosition()
+    @cursor.getBufferPosition()
 
   setBufferPosition: (bufferPosition, options={}) ->
-    @anchor.setBufferPosition(bufferPosition, options)
-    @refreshScreenPosition()
-    @trigger 'cursor-move', bufferChange: false
-    @clearSelection()
+    @cursor.setBufferPosition(bufferPosition, options)
+    # @anchor.setBufferPosition(bufferPosition, options)
+    # @refreshScreenPosition()
+    # @trigger 'cursor-move', bufferChange: false
+    # @clearSelection()
 
   getScreenPosition: ->
     @anchor.getScreenPosition()
 
   setScreenPosition: (position, options={}) ->
-    @anchor.setScreenPosition(position, options)
-    @refreshScreenPosition(position, options)
-    @trigger 'cursor-move', bufferChange: false
-    @clearSelection()
+    if options.fromModel
+      @anchor.setScreenPosition(position, options)
+      @refreshScreenPosition()
+      @trigger 'cursor-move', bufferChange: options.bufferChange
+      @clearSelection() unless options.bufferChange
+    else
+      @cursor.setScreenPosition(position, options)
 
   refreshScreenPosition: ->
     @goalColumn = null
@@ -72,18 +82,6 @@ class CursorView extends View
 
   isOnEOL: ->
     @getScreenPosition().column == @getCurrentBufferLine().length
-
-  moveUp: ->
-    { row, column } = @getScreenPosition()
-    column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row - 1, column: column})
-    @goalColumn = column
-
-  moveDown: ->
-    { row, column } = @getScreenPosition()
-    column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row + 1, column: column})
-    @goalColumn = column
 
   moveToNextWord: ->
     bufferPosition = @getBufferPosition()

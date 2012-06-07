@@ -208,10 +208,10 @@ class Selection extends View
     @modifySelection => @cursor.moveLeft()
 
   selectUp: ->
-    @modifySelection => @cursor.moveUp()
+    @modifySelection => @cursor.cursor.moveUp()
 
   selectDown: ->
-    @modifySelection => @cursor.moveDown()
+    @modifySelection => @cursor.cursor.moveDown()
 
   selectToTop: ->
     @modifySelection => @cursor.moveToTop()
