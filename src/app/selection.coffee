@@ -202,10 +202,10 @@ class Selection extends View
     @modifySelection => @cursor.setScreenPosition(position)
 
   selectRight: ->
-    @modifySelection => @cursor.moveRight()
+    @modifySelection => @cursor.cursor.moveRight()
 
   selectLeft: ->
-    @modifySelection => @cursor.moveLeft()
+    @modifySelection => @cursor.cursor.moveLeft()
 
   selectUp: ->
     @modifySelection => @cursor.cursor.moveUp()
@@ -214,10 +214,10 @@ class Selection extends View
     @modifySelection => @cursor.cursor.moveDown()
 
   selectToTop: ->
-    @modifySelection => @cursor.moveToTop()
+    @modifySelection => @cursor.cursor.moveToTop()
 
   selectToBottom: ->
-    @modifySelection => @cursor.moveToBottom()
+    @modifySelection => @cursor.cursor.moveToBottom()
 
   selectAll: ->
     @setBufferRange(@editor.buffer.getRange())

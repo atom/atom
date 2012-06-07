@@ -29,8 +29,6 @@ class CursorView extends View
 
   handleBufferChange: (e) ->
     @cursor.handleBufferChange(e)
-    # @anchor.handleBufferChange(e)
-    # @refreshScreenPosition()
     @trigger 'cursor-move', bufferChange: true
 
   remove: ->
@@ -44,10 +42,6 @@ class CursorView extends View
 
   setBufferPosition: (bufferPosition, options={}) ->
     @cursor.setBufferPosition(bufferPosition, options)
-    # @anchor.setBufferPosition(bufferPosition, options)
-    # @refreshScreenPosition()
-    # @trigger 'cursor-move', bufferChange: false
-    # @clearSelection()
 
   getScreenPosition: ->
     @anchor.getScreenPosition()
@@ -151,21 +145,6 @@ class CursorView extends View
     return unless newPosition
     newPosition = [position.row, 0] if newPosition.isEqual(position)
     @setBufferPosition(newPosition)
-
-  moveRight: ->
-    { row, column } = @getScreenPosition()
-    @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
-
-  moveLeft: ->
-    { row, column } = @getScreenPosition()
-    [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
-    @setScreenPosition({row, column})
-
-  moveToTop: ->
-    @setBufferPosition [0,0]
-
-  moveToBottom: ->
-    @setBufferPosition @editor.getEofPosition()
 
   updateAppearance: ->
     screenPosition = @getScreenPosition()

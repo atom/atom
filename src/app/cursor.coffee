@@ -46,6 +46,21 @@ class Cursor
     @setScreenPosition({row: row + 1, column: column})
     @goalColumn = column
 
+  moveLeft: ->
+    { row, column } = @getScreenPosition()
+    [row, column] = if column > 0 then [row, column - 1] else [row - 1, Infinity]
+    @setScreenPosition({row, column})
+
+  moveRight: ->
+    { row, column } = @getScreenPosition()
+    @setScreenPosition([row, column + 1], skipAtomicTokens: true, wrapBeyondNewlines: true, wrapAtSoftNewlines: true)
+
+  moveToTop: ->
+    @setBufferPosition([0,0])
+
+  moveToBottom: ->
+    @setBufferPosition(@editSession.getEofBufferPosition())
+
   destroy: ->
     @editSession.removeCursor(this)
     @trigger 'destroy'
