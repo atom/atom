@@ -95,7 +95,7 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
 		atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
 
 		CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString(
-				"window-bootstrap");
+				"single-window-bootstrap");
 		global->SetValue("$bootstrapScript", bootstrapScript,
 				V8_PROPERTY_ATTRIBUTE_NONE);
 
