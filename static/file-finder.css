@@ -14,6 +14,10 @@
   margin-bottom: 5px;
 }
 
+.file-finder li:hover {
+  background-color: #555;
+}
+
 .file-finder ol:empty {
   margin-bottom: 0;
 }
