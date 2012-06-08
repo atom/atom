@@ -51,11 +51,8 @@ class CompositeSeleciton
     cursor = @editor.activeEditSession.addCursor()
     @selectionForCursor(cursor).setBufferRange(bufferRange, options)
 
-  removeSelectionViewForCursor: (cursor) ->
-    if view = @selectionViewForCursor(cursor)
-      view.cursor = null
-      view.remove()
-      _.remove(@selections, view)
+  removeSelectionView: (selectionView) ->
+    _.remove(@selections, selectionView)
 
   selectionForCursor: (cursor) ->
     _.find @selections, (selection) -> selection.cursor == cursor
@@ -175,11 +172,4 @@ class CompositeSeleciton
       maintainPasteboard = true
 
   mergeIntersectingSelections: (options) ->
-    for selection in @getSelections()
-      otherSelections = @getSelections()
-      _.remove(otherSelections, selection)
-      for otherSelection in otherSelections
-        if selection.intersectsWith(otherSelection)
-          selection.merge(otherSelection, options)
-          @mergeIntersectingSelections(options)
-          return
+    @editor.activeEditSession.mergeIntersectingSelections(options)

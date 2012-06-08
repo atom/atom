@@ -208,4 +208,14 @@ class EditSession
       else
         positions.push(position)
 
+  mergeIntersectingSelections: (options) ->
+    for selection in @getSelections()
+      otherSelections = @getSelections()
+      _.remove(otherSelections, selection)
+      for otherSelection in otherSelections
+        if selection.intersectsWith(otherSelection)
+          selection.merge(otherSelection, options)
+          @mergeIntersectingSelections(options)
+          return
+
 _.extend(EditSession.prototype, EventEmitter)

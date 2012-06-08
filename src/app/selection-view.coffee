@@ -20,6 +20,10 @@ class SelectionView extends View
     @selection.on 'change-screen-range', =>
       @updateAppearance()
 
+    @selection.on 'destroy', =>
+      @selection = null
+      @remove()
+
   handleBufferChange: (e) ->
     return unless @anchor
     @anchor.handleBufferChange(e)
@@ -36,11 +40,8 @@ class SelectionView extends View
   isReversed: ->
     @selection.isReversed()
 
-  intersectsWith: (otherSelection) ->
-    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
-
   clearSelection: ->
-    @selection.clear()
+    @selection?.clear()
 
   updateAppearance: ->
     return unless @cursor
@@ -136,12 +137,9 @@ class SelectionView extends View
     @editor.buffer.delete(range) unless range.isEmpty()
     @clearSelection()
 
-  merge: (otherSelection, options) ->
-    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
-    otherSelection.remove()
-
   remove: ->
-    @cursor?.destroy()
+    @editor.compositeSelection.removeSelectionView(this)
+    @selection?.destroy()
     super
 
   modifySelection: (fn) ->

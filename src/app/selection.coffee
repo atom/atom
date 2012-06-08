@@ -9,14 +9,19 @@ class Selection
   anchor: null
 
   constructor: ({@cursor, @editSession}) ->
-    @cursor.on 'change-screen-position', (e) =>
+    @cursor.on 'change-screen-position.selection', (e) =>
       @trigger 'change-screen-range', @getScreenRange() unless e.bufferChanged
 
-    @cursor.on 'destroy', => @destroy()
+    @cursor.on 'destroy.selection', =>
+      @cursor = null
+      @destroy()
 
   destroy: ->
-    @cursor.off()
+    if @cursor
+      @cursor.off('.selection')
+      @cursor.destroy()
     @editSession.removeSelection(this)
+    @trigger 'destroy'
 
   getScreenRange: ->
     if @anchor
@@ -102,5 +107,12 @@ class Selection
   placeAnchor: ->
     @anchor = new Anchor(@editSession)
     @anchor.setScreenPosition(@cursor.getScreenPosition())
+
+  intersectsWith: (otherSelection) ->
+    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
+
+  merge: (otherSelection, options) ->
+    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
+    otherSelection.destroy()
 
 _.extend Selection.prototype, EventEmitter

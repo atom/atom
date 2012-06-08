@@ -30,7 +30,6 @@ class CursorView extends View
 
   remove: ->
     @editor.compositeCursor.removeCursor(this)
-    @editor.compositeSelection.removeSelectionViewForCursor(@cursor)
     @cursor.off()
     super
 
