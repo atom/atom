@@ -148,7 +148,7 @@ void ClientHandler::OnNavStateChange(CefRefPtr<CefBrowser> browser,
 
 bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 		const CefString& message, const CefString& source, int line) {
-	//Intentionally left blank
+	return false;
 }
 
 void ClientHandler::OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
