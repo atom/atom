@@ -126,7 +126,7 @@ class TreeView extends View
     else
       @selectEntry(@root)
 
-    @scollToEntry(@selectedEntry())
+    @scrollToEntry(@selectedEntry())
 
   moveUp: ->
     selectedEntry = @selectedEntry()
@@ -139,7 +139,7 @@ class TreeView extends View
     else
       @selectEntry(@find('.entry').last())
 
-    @scollToEntry(@selectedEntry())
+    @scrollToEntry(@selectedEntry())
 
   expandDirectory: ->
     selectedEntry = @selectedEntry()
@@ -231,7 +231,7 @@ class TreeView extends View
     @find('.selected').removeClass('selected')
     entry.addClass('selected')
 
-  scollToEntry: (entry) ->
+  scrollToEntry: (entry) ->
     displayElement = if (entry instanceof DirectoryView) then entry.header else entry
 
     top = @scrollTop() + displayElement.position().top
