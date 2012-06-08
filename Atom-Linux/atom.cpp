@@ -14,7 +14,7 @@
 #include "include/cef_runnable.h"
 #include "client_handler.h"
 
-char szWorkingDir[512]; // The current working directory
+char* szWorkingDir; // The current working directory
 
 const char* szPath; // The folder the application is in
 
@@ -42,7 +42,8 @@ static gboolean HandleFocus(GtkWidget* widget, GdkEventFocus* focus) {
 }
 
 int main(int argc, char *argv[]) {
-	if (!getcwd(szWorkingDir, sizeof(szWorkingDir)))
+	szWorkingDir = get_current_dir_name();
+	if (szWorkingDir == NULL)
 		return -1;
 
 	std::string fullPath = argv[0];
