@@ -18,10 +18,6 @@ CXXFLAGS := -Werror \
 	-I/usr/include/gio-unix-2.0/ \
 	-I/usr/include/glib-2.0 \
 	-I/usr/lib/glib-2.0/include \
-	-I/usr/include/pixman-1 \
-	-I/usr/include/freetype2 \
-	-I/usr/include/directfb \
-	-I/usr/include/libpng12 \
 	-I../cef \
 	-O2 \
 	-fno-ident \
@@ -51,8 +47,6 @@ LIBS := -lX11 \
 	-lpangocairo-1.0 \
 	-lcairo \
 	-lpango-1.0 \
-	-lfreetype \
-	-lfontconfig \
 	-lgobject-2.0 \
 	-lgmodule-2.0 \
 	-lgthread-2.0 \
