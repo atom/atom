@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	CefSettings settings;
 	CefRefPtr<CefApp> app;
 
-	// Initialize CEF.
+	AppGetSettings(settings, app);
 	CefInitialize(settings, app);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
