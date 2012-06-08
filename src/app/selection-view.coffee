@@ -16,6 +16,9 @@ class SelectionView extends View
   initialize: ({@editor, @selection} = {}) ->
     @cursor = @selection.cursor
     @regions = []
+    @selection.view = this
+    @selection.on 'change-screen-range', =>
+      @updateAppearance()
 
   handleBufferChange: (e) ->
     return unless @anchor
@@ -28,17 +31,16 @@ class SelectionView extends View
     @anchor.setScreenPosition @cursor.getScreenPosition()
 
   isEmpty: ->
-    @getBufferRange().isEmpty()
+    @selection.isEmpty()
 
   isReversed: ->
-    not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchor.getBufferPosition())
+    @selection.isReversed()
 
   intersectsWith: (otherSelection) ->
     @getScreenRange().intersectsWith(otherSelection.getScreenRange())
 
   clearSelection: ->
-    @anchor = null
-    @updateAppearance()
+    @selection.clear()
 
   updateAppearance: ->
     return unless @cursor
@@ -60,7 +62,6 @@ class SelectionView extends View
         @appendRegion(rowSpan - 1, { row: range.start.row + 1, column: 0}, null)
       @appendRegion(1, { row: range.end.row, column: 0 }, range.end)
 
-
   appendRegion: (rows, start, end) ->
     { lineHeight, charWidth } = @editor
     css = @editor.pixelPositionForScreenPosition(start)
@@ -79,21 +80,13 @@ class SelectionView extends View
     @regions = []
 
   getScreenRange: ->
-    if @anchor
-      new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())
-    else
-      new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
+    @selection.getScreenRange()
 
-  setScreenRange: (range, {reverse}={}) ->
-    range = Range.fromObject(range)
-    { start, end } = range
-    [start, end] = [end, start] if reverse
-
-    @cursor.setScreenPosition(start)
-    @modifySelection => @cursor.setScreenPosition(end)
+  setScreenRange: (range, options)->
+    @selection.setScreenRange(range, options)
 
   getBufferRange: ->
-    @editor.bufferRangeForScreenRange(@getScreenRange())
+    @selection.getBufferRange()
 
   setBufferRange: (bufferRange, options) ->
     @setScreenRange(@editor.screenRangeForBufferRange(bufferRange), options)
@@ -182,10 +175,7 @@ class SelectionView extends View
     super
 
   modifySelection: (fn) ->
-    @placeAnchor()
-    @retainSelection = true
-    fn()
-    @retainSelection = false
+    @selection.modifySelection(fn)
 
   selectWord: ->
     @setBufferRange(@cursor.getCurrentWordBufferRange())

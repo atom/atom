@@ -14,7 +14,6 @@ class CursorView extends View
   hidden: false
 
   initialize: (@cursor, @editor) ->
-
     @cursor.on 'change-screen-position', (position, options) =>
       @updateAppearance()
       unless options.bufferChange

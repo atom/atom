@@ -32,7 +32,8 @@ class EditSession
     @addCursorAtScreenPosition([0, 0])
 
     @buffer.on "change.edit-session-#{@id}", (e) =>
-      @moveCursors (cursor) -> cursor.handleBufferChange(e)
+      for selection in @getSelections()
+        selection.handleBufferChange(e)
 
     @renderer.on "change.edit-session-#{@id}", (e) =>
       @trigger 'screen-lines-change', e
@@ -107,7 +108,7 @@ class EditSession
     cursor
 
   addSelectionForCursor: (cursor) ->
-    selection = new Selection(cursor)
+    selection = new Selection(editSession: this, cursor: cursor)
     @selections.push(selection)
     @trigger 'add-selection', selection
     selection
