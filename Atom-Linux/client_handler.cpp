@@ -4,6 +4,7 @@
 
 #include "client_handler.h"
 #include <stdio.h>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include "include/cef_browser.h"
@@ -148,6 +149,8 @@ void ClientHandler::OnNavStateChange(CefRefPtr<CefBrowser> browser,
 
 bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 		const CefString& message, const CefString& source, int line) {
+	REQUIRE_UI_THREAD();
+	std::cout << std::string(message) << std::endl;
 	return false;
 }
 
