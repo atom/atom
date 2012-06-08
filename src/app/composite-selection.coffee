@@ -102,74 +102,10 @@ class CompositeSeleciton
   indentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.indentSelectedRows()
 
-  backspace: ->
-    @mutateSelectedText (selection) -> selection.backspace()
-
-  backspaceToBeginningOfWord: ->
-    @mutateSelectedText (selection) -> selection.backspaceToBeginningOfWord()
-
-  delete: ->
-    @mutateSelectedText (selection) -> selection.delete()
-
-  deleteToEndOfWord: ->
-    @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
-
   toggleLineComments: ->
     @mutateSelectedText (selection) -> selection.toggleLineComments()
 
-  selectToScreenPosition: (position) ->
-    @getLastSelection().selectToScreenPosition(position)
 
-  selectRight: ->
-    @expandSelectionsForward (selection) => selection.selectRight()
-
-  selectLeft: ->
-    @expandSelectionsBackward (selection) => selection.selectLeft()
-
-  selectUp: ->
-    @expandSelectionsBackward (selection) => selection.selectUp()
-
-  selectDown: ->
-    @expandSelectionsForward (selection) => selection.selectDown()
-
-  selectToTop: ->
-    @expandSelectionsBackward (selection) => selection.selectToTop()
-
-  selectAll: ->
-    @expandSelectionsForward (selection) => selection.selectAll()
-
-  selectToBottom: ->
-    @expandSelectionsForward (selection) => selection.selectToBottom()
-
-  selectToBeginningOfLine: ->
-    @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
-
-  selectToEndOfLine: ->
-    @expandSelectionsForward (selection) => selection.selectToEndOfLine()
-
-  selectToBeginningOfWord: ->
-    @expandSelectionsBackward (selection) => selection.selectToBeginningOfWord()
-
-  selectToEndOfWord: ->
-    @expandSelectionsForward (selection) => selection.selectToEndOfWord()
-
-  cutToEndOfLine: ->
-    maintainPasteboard = false
-    @mutateSelectedText (selection) ->
-      selection.cutToEndOfLine(maintainPasteboard)
-      maintainPasteboard = true
-
-  cut: ->
-    maintainPasteboard = false
-    @mutateSelectedText (selection) ->
-      selection.cut(maintainPasteboard)
-      maintainPasteboard = true
-
-  copy: ->
-    maintainPasteboard = false
-    for selection in @getSelections()
-      selection.copy(maintainPasteboard)
-      maintainPasteboard = true
 
   mergeIntersectingSelections: (options) ->
     @editor.activeEditSession.mergeIntersectingSelections(options)

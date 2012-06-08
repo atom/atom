@@ -102,8 +102,47 @@ class EditSession
   insertText: (text) ->
     @mutateSelectedText (selection) -> selection.insertText(text)
 
+  backspace: ->
+    @mutateSelectedText (selection) -> selection.backspace()
+
+  backspaceToBeginningOfWord: ->
+    @mutateSelectedText (selection) -> selection.backspaceToBeginningOfWord()
+
+  delete: ->
+    @mutateSelectedText (selection) -> selection.delete()
+
+  deleteToEndOfWord: ->
+    @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
+
+  cutToEndOfLine: ->
+    maintainPasteboard = false
+    @mutateSelectedText (selection) ->
+      selection.cutToEndOfLine(maintainPasteboard)
+      maintainPasteboard = true
+
+  cut: ->
+    maintainPasteboard = false
+    @mutateSelectedText (selection) ->
+      selection.cut(maintainPasteboard)
+      maintainPasteboard = true
+
+  copy: ->
+    maintainPasteboard = false
+    for selection in @getSelections()
+      selection.copy(maintainPasteboard)
+      maintainPasteboard = true
+
+  foldSelection: ->
+    selection.fold() for selection in @getSelections()
+
+  createFold: (startRow, endRow) ->
+    @renderer.createFold(startRow, endRow)
+
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @renderer.destroyFoldsContainingBufferRow(bufferRow)
+
+  toggleLineCommentsInRange: (range) ->
+    @renderer.toggleLineCommentsInRange(range)
 
   mutateSelectedText: (fn) ->
     selections = @getSelections()
@@ -143,6 +182,9 @@ class EditSession
 
   getLastCursor: ->
     _.last(@cursors)
+
+  getLastSelection: ->
+    _.last(@selections)
 
   setCursorScreenPosition: (position) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position)
@@ -199,6 +241,42 @@ class EditSession
     fn(cursor) for cursor in @getCursors()
     @mergeCursors()
 
+  selectToScreenPosition: (position) ->
+    @getLastSelection().selectToScreenPosition(position)
+
+  selectRight: ->
+    @expandSelectionsForward (selection) => selection.selectRight()
+
+  selectLeft: ->
+    @expandSelectionsBackward (selection) => selection.selectLeft()
+
+  selectUp: ->
+    @expandSelectionsBackward (selection) => selection.selectUp()
+
+  selectDown: ->
+    @expandSelectionsForward (selection) => selection.selectDown()
+
+  selectToTop: ->
+    @expandSelectionsBackward (selection) => selection.selectToTop()
+
+  selectAll: ->
+    @expandSelectionsForward (selection) => selection.selectAll()
+
+  selectToBottom: ->
+    @expandSelectionsForward (selection) => selection.selectToBottom()
+
+  selectToBeginningOfLine: ->
+    @expandSelectionsBackward (selection) => selection.selectToBeginningOfLine()
+
+  selectToEndOfLine: ->
+    @expandSelectionsForward (selection) => selection.selectToEndOfLine()
+
+  selectToBeginningOfWord: ->
+    @expandSelectionsBackward (selection) => selection.selectToBeginningOfWord()
+
+  selectToEndOfWord: ->
+    @expandSelectionsForward (selection) => selection.selectToEndOfWord()
+
   mergeCursors: ->
     positions = []
     for cursor in new Array(@getCursors()...)
@@ -207,6 +285,14 @@ class EditSession
         cursor.destroy()
       else
         positions.push(position)
+
+  expandSelectionsForward: (fn) ->
+    fn(selection) for selection in @getSelections()
+    @mergeIntersectingSelections()
+
+  expandSelectionsBackward: (fn) ->
+    fn(selection) for selection in @getSelections()
+    @mergeIntersectingSelections(reverse: true)
 
   mergeIntersectingSelections: (options) ->
     for selection in @getSelections()

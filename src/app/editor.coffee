@@ -191,14 +191,14 @@ class Editor extends View
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
         if e.shiftKey
-          @compositeSelection.getLastSelection().expandOverWord()
+          @activeEditSession.getLastSelection().expandOverWord()
         else
-          @compositeSelection.getLastSelection().selectWord()
+          @activeEditSession.getLastSelection().selectWord()
       else if clickCount >= 3
         if e.shiftKey
-          @compositeSelection.getLastSelection().expandOverLine()
+          @activeEditSession.getLastSelection().expandOverLine()
         else
-          @compositeSelection.getLastSelection().selectLine()
+          @activeEditSession.getLastSelection().selectLine()
 
       @selectOnMousemoveUntilMouseup()
 
@@ -246,8 +246,8 @@ class Editor extends View
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', =>
       @off 'mousemove', moveHandler
-      reverse = @compositeSelection.getLastSelection().isReversed()
-      @compositeSelection.mergeIntersectingSelections({reverse})
+      reverse = @activeEditSession.getLastSelection().isReversed()
+      @activeEditSession.mergeIntersectingSelections({reverse})
       @syncCursorAnimations()
 
   prepareForScrolling: ->
@@ -456,7 +456,7 @@ class Editor extends View
     Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
   handleBufferChange: (e) ->
-    @compositeSelection.handleBufferChange(e)
+    # @compositeSelection.handleBufferChange(e)
 
   handleRendererChange: (e) ->
     oldScreenRange = e.oldRange
@@ -676,24 +676,24 @@ class Editor extends View
   setSelectionBufferRange: (bufferRange, options) -> @compositeSelection.setBufferRange(bufferRange, options)
   setSelectedBufferRanges: (bufferRanges) -> @compositeSelection.setBufferRanges(bufferRanges)
   addSelectionForBufferRange: (bufferRange, options) -> @compositeSelection.addSelectionForBufferRange(bufferRange, options)
-  selectRight: -> @compositeSelection.selectRight()
-  selectLeft: -> @compositeSelection.selectLeft()
-  selectUp: -> @compositeSelection.selectUp()
-  selectDown: -> @compositeSelection.selectDown()
-  selectToTop: -> @compositeSelection.selectToTop()
-  selectToBottom: -> @compositeSelection.selectToBottom()
-  selectAll: -> @compositeSelection.selectAll()
-  selectToBeginningOfLine: -> @compositeSelection.selectToBeginningOfLine()
-  selectToEndOfLine: -> @compositeSelection.selectToEndOfLine()
-  selectToBeginningOfWord: -> @compositeSelection.selectToBeginningOfWord()
-  selectToEndOfWord: -> @compositeSelection.selectToEndOfWord()
-  selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
+  selectRight: -> @activeEditSession.selectRight()
+  selectLeft: -> @activeEditSession.selectLeft()
+  selectUp: -> @activeEditSession.selectUp()
+  selectDown: -> @activeEditSession.selectDown()
+  selectToTop: -> @activeEditSession.selectToTop()
+  selectToBottom: -> @activeEditSession.selectToBottom()
+  selectAll: -> @activeEditSession.selectAll()
+  selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
+  selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+  selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
+  selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
+  selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   clearSelections: -> @compositeSelection.clearSelections()
-  backspace: -> @compositeSelection.backspace()
-  backspaceToBeginningOfWord: -> @compositeSelection.backspaceToBeginningOfWord()
-  delete: -> @compositeSelection.delete()
-  deleteToEndOfWord: -> @compositeSelection.deleteToEndOfWord()
-  cutToEndOfLine: -> @compositeSelection.cutToEndOfLine()
+  backspace: -> @activeEditSession.backspace()
+  backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
+  delete: -> @activeEditSession.delete()
+  deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
+  cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
@@ -728,8 +728,8 @@ class Editor extends View
   indentSelectedRows: -> @compositeSelection.indentSelectedRows()
   outdentSelectedRows: -> @compositeSelection.outdentSelectedRows()
 
-  cutSelection: -> @compositeSelection.cut()
-  copySelection: -> @compositeSelection.copy()
+  cutSelection: -> @activeEditSession.cut()
+  copySelection: -> @activeEditSession.copy()
   paste: -> @insertText($native.readFromPasteboard())
 
   undo: ->
@@ -835,7 +835,7 @@ class Editor extends View
     row = @renderer.bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @renderer.toggleFoldAtBufferRow(row)
 
-  foldSelection: -> @getSelection().fold()
+  foldSelection: -> @activeEditSession.foldSelection()
 
   unfoldRow: (row) ->
     @renderer.largestFoldForBufferRow(row)?.destroy()
@@ -845,9 +845,6 @@ class Editor extends View
 
   toggleLineCommentsInSelection: ->
     @compositeSelection.toggleLineComments()
-
-  toggleLineCommentsInRange: (range) ->
-    @renderer.toggleLineCommentsInRange(range)
 
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->

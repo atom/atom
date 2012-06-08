@@ -23,13 +23,19 @@ class Selection
     @editSession.removeSelection(this)
     @trigger 'destroy'
 
+  isEmpty: ->
+    @getBufferRange().isEmpty()
+
+  isReversed: ->
+    not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchor.getBufferPosition())
+
   getScreenRange: ->
     if @anchor
       new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())
     else
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
-  setScreenRange: (screenRange, options={})->
+  setScreenRange: (screenRange, options={}) ->
     screenRange = Range.fromObject(screenRange)
     { start, end } = screenRange
     [start, end] = [end, start] if options.reverse
@@ -40,20 +46,76 @@ class Selection
         @anchor.setScreenPosition(start)
         @cursor.setScreenPosition(end)
 
+  setBufferRange: (bufferRange, options={}) ->
+    bufferRange = Range.fromObject(bufferRange)
+    { start, end } = bufferRange
+    [start, end] = [end, start] if options.reverse
+
+    @modifyScreenRange =>
+      @placeAnchor() unless @anchor
+      @modifySelection =>
+        @anchor.setBufferPosition(start)
+        @cursor.setBufferPosition(end)
+
   getBufferRange: ->
     if @anchor
       new Range(@anchor.getBufferPosition(), @cursor.getBufferPosition())
     else
       new Range(@cursor.getBufferPosition(), @cursor.getBufferPosition())
 
+  getText: ->
+    @editSession.buffer.getTextInRange(@getBufferRange())
+
   clear: ->
     @modifyScreenRange => @anchor = null
 
-  isEmpty: ->
-    @getBufferRange().isEmpty()
+  selectWord: ->
+    @setBufferRange(@cursor.getCurrentWordBufferRange())
 
-  isReversed: ->
-    not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchor.getBufferPosition())
+  expandOverWord: ->
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
+
+  selectLine: (row=@cursor.getBufferPosition().row) ->
+    @setBufferRange(@editSession.bufferRangeForBufferRow(row))
+
+  expandOverLine: ->
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))
+
+  selectToScreenPosition: (position) ->
+    @modifySelection => @cursor.setScreenPosition(position)
+
+  selectRight: ->
+    @modifySelection => @cursor.moveRight()
+
+  selectLeft: ->
+    @modifySelection => @cursor.moveLeft()
+
+  selectUp: ->
+    @modifySelection => @cursor.moveUp()
+
+  selectDown: ->
+    @modifySelection => @cursor.moveDown()
+
+  selectToTop: ->
+    @modifySelection => @cursor.moveToTop()
+
+  selectToBottom: ->
+    @modifySelection => @cursor.moveToBottom()
+
+  selectAll: ->
+    @setBufferRange(@editSession.buffer.getRange())
+
+  selectToBeginningOfLine: ->
+    @modifySelection => @cursor.moveToBeginningOfLine()
+
+  selectToEndOfLine: ->
+    @modifySelection => @cursor.moveToEndOfLine()
+
+  selectToBeginningOfWord: ->
+    @modifySelection => @cursor.moveToBeginningOfWord()
+
+  selectToEndOfWord: ->
+    @modifySelection => @cursor.moveToEndOfWord()
 
   insertText: (text) ->
     { text, shouldOutdent } = @autoIndentText(text)
@@ -64,6 +126,64 @@ class Selection
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
     @autoOutdentText() if shouldOutdent
+
+  backspace: ->
+    @editSession.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
+    @selectLeft() if @isEmpty()
+    @deleteSelectedText()
+
+  backspaceToBeginningOfWord: ->
+    @selectToBeginningOfWord() if @isEmpty()
+    @deleteSelectedText()
+
+  delete: ->
+    @selectRight() if @isEmpty()
+    @deleteSelectedText()
+
+  deleteToEndOfWord: ->
+    @selectToEndOfWord() if @isEmpty()
+    @deleteSelectedText()
+
+  deleteSelectedText: ->
+    bufferRange = @getBufferRange()
+    @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
+    @clear() if @cursor
+
+  indentSelectedRows: ->
+    range = @getBufferRange()
+    for row in [range.start.row..range.end.row]
+      @editSession.buffer.insert([row, 0], @editSession.tabText) unless @editSession.buffer.lineLengthForRow(row) == 0
+
+  outdentSelectedRows: ->
+    range = @getBufferRange()
+    buffer = @editSession.buffer
+    leadingTabRegex = new RegExp("^#{@editSession.tabText}")
+    for row in [range.start.row..range.end.row]
+      if leadingTabRegex.test buffer.lineForRow(row)
+        buffer.delete [[row, 0], [row, @editSession.tabText.length]]
+
+  toggleLineComments: ->
+    @modifySelection =>
+      @editSession.toggleLineCommentsInRange(@getBufferRange())
+
+  cutToEndOfLine: (maintainPasteboard) ->
+    @selectToEndOfLine() if @isEmpty()
+    @cut(maintainPasteboard)
+
+  cut: (maintainPasteboard=false) ->
+    @copy(maintainPasteboard)
+    @delete()
+
+  copy: (maintainPasteboard=false) ->
+    return if @isEmpty()
+    text = @editSession.buffer.getTextInRange(@getBufferRange())
+    text = $native.readFromPasteboard() + "\n" + text if maintainPasteboard
+    $native.writeToPasteboard text
+
+  fold: ->
+    range = @getBufferRange()
+    @editSession.createFold(range.start.row, range.end.row)
+    @cursor.setBufferPosition([range.end.row + 1, 0])
 
   autoIndentText: (text) ->
     if @editSession.autoIndentEnabled()
