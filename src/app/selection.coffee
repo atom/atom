@@ -9,6 +9,8 @@ class Selection
   anchor: null
 
   constructor: ({@cursor, @editSession}) ->
+    @cursor.selection = this
+
     @cursor.on 'change-screen-position.selection', (e) =>
       @trigger 'change-screen-range', @getScreenRange() unless e.bufferChanged
 
@@ -54,8 +56,8 @@ class Selection
     @modifyScreenRange =>
       @placeAnchor() unless @anchor
       @modifySelection =>
-        @anchor.setBufferPosition(start)
-        @cursor.setBufferPosition(end)
+        @anchor.setBufferPosition(start, options)
+        @cursor.setBufferPosition(end, options)
 
   getBufferRange: ->
     if @anchor
@@ -227,6 +229,9 @@ class Selection
   placeAnchor: ->
     @anchor = new Anchor(@editSession)
     @anchor.setScreenPosition(@cursor.getScreenPosition())
+
+  intersectsBufferRange: (bufferRange) ->
+    @getBufferRange().intersectsWith(bufferRange)
 
   intersectsWith: (otherSelection) ->
     @getScreenRange().intersectsWith(otherSelection.getScreenRange())

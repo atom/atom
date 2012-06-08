@@ -11,8 +11,9 @@ describe "Selection", ->
     editor.enableKeymap()
     editor.setBuffer(buffer)
     editor.isFocused = true
-    selectionView = editor.getSelection()
-    selection = selectionView.selection
+
+    selectionView = editor.getSelectionView()
+    selection = editor.getSelection()
 
   describe ".setBufferRange(range)", ->
     it "places the anchor at the start of the range and the cursor at the end", ->

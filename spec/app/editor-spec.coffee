@@ -429,7 +429,7 @@ describe "Editor", ->
           expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(5)').offset())
 
           editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
-          [region1, region2] = editor.getSelection().regions
+          [region1, region2] = editor.getSelectionView().regions
           expect(region1.offset().top).toBe(editor.renderedLines.find('.line:eq(7)').offset().top)
           expect(region2.offset().top).toBe(editor.renderedLines.find('.line:eq(8)').offset().top)
 
@@ -1744,7 +1744,7 @@ describe "Editor", ->
             editor.insertText("x")
 
             [cursor1, cursor2] = editor.compositeCursor.getCursors()
-            [selection1, selection2] = editor.compositeSelection.getSelections()
+            [selection1, selection2] = editor.getSelections()
 
             expect(cursor1.getScreenPosition()).toEqual [0, 5]
             expect(cursor2.getScreenPosition()).toEqual [0, 15]
@@ -1758,7 +1758,7 @@ describe "Editor", ->
             editor.insertText("\n")
 
             [cursor1, cursor2] = editor.compositeCursor.getCursors()
-            [selection1, selection2] = editor.compositeSelection.getSelections()
+            [selection1, selection2] = editor.getSelections()
 
             expect(cursor1.getScreenPosition()).toEqual [1, 0]
             expect(cursor2.getScreenPosition()).toEqual [2, 0]
@@ -1783,7 +1783,7 @@ describe "Editor", ->
           expect(cursor1.getBufferPosition()).toEqual [3, 12]
           expect(cursor2.getBufferPosition()).toEqual [3, 36]
 
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+          [selection1, selection2] = editor.getSelections()
           expect(selection1.isEmpty()).toBeTruthy()
           expect(selection2.isEmpty()).toBeTruthy()
 
@@ -1801,7 +1801,7 @@ describe "Editor", ->
           expect(cursor1.getBufferPosition()).toEqual [3, 12]
           expect(cursor2.getBufferPosition()).toEqual [4, 9]
 
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+          [selection1, selection2] = editor.getSelections()
           expect(selection1.isEmpty()).toBeTruthy()
           expect(selection2.isEmpty()).toBeTruthy()
 
@@ -1843,7 +1843,7 @@ describe "Editor", ->
           expect(cursor1.getBufferPosition()).toEqual [3, 13]
           expect(cursor2.getBufferPosition()).toEqual [3, 37]
 
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+          [selection1, selection2] = editor.getSelections()
           expect(selection1.isEmpty()).toBeTruthy()
           expect(selection2.isEmpty()).toBeTruthy()
 
@@ -1861,7 +1861,7 @@ describe "Editor", ->
           expect(cursor1.getBufferPosition()).toEqual [3, 13]
           expect(cursor2.getBufferPosition()).toEqual [4, 10]
 
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+          [selection1, selection2] = editor.getSelections()
           expect(selection1.isEmpty()).toBeTruthy()
           expect(selection2.isEmpty()).toBeTruthy()
 
@@ -1931,7 +1931,7 @@ describe "Editor", ->
           editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
           editor.renderedLines.trigger 'mouseup'
 
-          selections = editor.compositeSelection.getSelections()
+          selections = editor.getSelections()
           expect(selections.length).toBe 2
           [selection1, selection2] = selections
           expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
@@ -1947,7 +1947,7 @@ describe "Editor", ->
           editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [6, 27], metaKey: true)
           editor.renderedLines.trigger 'mouseup'
 
-          selections = editor.compositeSelection.getSelections()
+          selections = editor.getSelections()
           expect(selections.length).toBe 1
           [selection1] = selections
           expect(selection1.getScreenRange()).toEqual [[3, 10], [6, 27]]
@@ -1957,7 +1957,7 @@ describe "Editor", ->
           editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [4, 11], metaKey: true)
           editor.renderedLines.trigger 'mouseup'
 
-          selections = editor.compositeSelection.getSelections()
+          selections = editor.getSelections()
           expect(selections.length).toBe 1
           [selection1] = selections
           expect(selection1.getScreenRange()).toEqual [[3, 10], [7, 4]]
@@ -1967,7 +1967,7 @@ describe "Editor", ->
         it "resizes all selections", ->
           editor.setSelectionBufferRange [[0,9], [0,13]]
           editor.addSelectionForBufferRange [[3,16], [3,21]]
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+          [selection1, selection2] = editor.getSelections()
 
           editor.selectRight()
           expect(selection1.getBufferRange()).toEqual [[0,9], [0,14]]
@@ -1990,47 +1990,42 @@ describe "Editor", ->
           editor.setSelectionBufferRange [[0,9], [0,13]]
           editor.addSelectionForBufferRange [[1,10], [1,20]]
           editor.addSelectionForBufferRange [[2,15], [3,25]]
-          [selection1, selection2, selection3] = editor.compositeSelection.getSelections()
+          [selection1, selection2, selection3] = editor.getSelections()
 
           editor.selectDown()
-          expect(editor.compositeSelection.getSelections()).toEqual [selection1]
+          expect(editor.getSelections()).toEqual [selection1]
           expect(selection1.getScreenRange()).toEqual([[0, 9], [4, 25]])
           expect(selection1.isReversed()).toBeFalsy()
-          expect(selection2.parent()).not.toExist()
-          expect(selection3.parent()).not.toExist()
 
         it "merges selections when they intersect when moving up", ->
           editor.setSelectionBufferRange [[0,9], [0,13]], reverse: true
           editor.addSelectionForBufferRange [[1,10], [1,20]], reverse: true
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+          [selection1, selection2] = editor.getSelections()
 
           editor.selectUp()
-          expect(editor.compositeSelection.getSelections()).toEqual [selection1]
+          expect(editor.getSelections()).toEqual [selection1]
           expect(selection1.getScreenRange()).toEqual([[0, 0], [1, 20]])
           expect(selection1.isReversed()).toBeTruthy()
-          expect(selection2.parent()).not.toExist()
 
         it "merges selections when they intersect when moving left", ->
           editor.setSelectionBufferRange [[0,9], [0,13]], reverse: true
           editor.addSelectionForBufferRange [[0,14], [1,20]], reverse: true
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+          [selection1, selection2] = editor.getSelections()
 
           editor.selectLeft()
-          expect(editor.compositeSelection.getSelections()).toEqual [selection1]
+          expect(editor.getSelections()).toEqual [selection1]
           expect(selection1.getScreenRange()).toEqual([[0, 8], [1, 20]])
           expect(selection1.isReversed()).toBeTruthy()
-          expect(selection2.parent()).not.toExist()
 
         it "merges selections when they intersect when moving right", ->
           editor.setSelectionBufferRange [[0,9], [0,13]]
           editor.addSelectionForBufferRange [[0,14], [1,20]]
-          [selection1, selection2] = editor.compositeSelection.getSelections()
+          [selection1, selection2] = editor.getSelections()
 
           editor.selectRight()
-          expect(editor.compositeSelection.getSelections()).toEqual [selection1]
+          expect(editor.getSelections()).toEqual [selection1]
           expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]])
           expect(selection1.isReversed()).toBeFalsy()
-          expect(selection2.parent()).not.toExist()
 
     describe "cursor merging", ->
       it "merges cursors when they overlap due to a buffer change", ->
@@ -2099,7 +2094,7 @@ describe "Editor", ->
 
         editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
 
-        selections = editor.compositeSelection.getSelections()
+        selections = editor.getSelections()
         expect(selections.length).toBe 1
         expect(selections[0].getBufferRange()).toEqual [[4,7], [5,27]]
 

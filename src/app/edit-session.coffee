@@ -154,7 +154,9 @@ class EditSession
     @renderer.stateForScreenRow(screenRow)
 
   getCursors: -> new Array(@cursors...)
-  getSelections: -> new Array(@selections...)
+
+  getLastCursor: ->
+    _.last(@cursors)
 
   addCursorAtScreenPosition: (screenPosition) ->
     @addCursor(new Cursor(editSession: this, screenPosition: screenPosition))
@@ -177,14 +179,52 @@ class EditSession
     @trigger 'add-selection', selection
     selection
 
+  addSelectionForBufferRange: (bufferRange, options) ->
+    @addCursor().selection.setBufferRange(bufferRange, options)
+
+  setSelectedBufferRange: (bufferRange, options) ->
+    @clearSelections()
+    @getLastSelection().setBufferRange(bufferRange, options)
+
+  setSelectedBufferRanges: (bufferRanges, options) ->
+    selections = @getSelections()
+    for bufferRange, i in bufferRanges
+      if selections[i]
+        selections[i].setBufferRange(bufferRange, options)
+      else
+        @addSelectionForBufferRange(bufferRange, options)
+    @mergeIntersectingSelections()
+
   removeSelection: (selection) ->
     _.remove(@selections, selection)
 
-  getLastCursor: ->
-    _.last(@cursors)
+  clearSelections: ->
+    lastSelection = @getLastSelection()
+    for selection in @getSelections() when selection != lastSelection
+      selection.destroy()
+    lastSelection.clear()
+
+  getSelections: -> new Array(@selections...)
+
+  getSelection: (index) ->
+    index ?= @selections.length - 1
+    @selections[index]
 
   getLastSelection: ->
     _.last(@selections)
+
+  getSelectionsOrderedByBufferPosition: ->
+    @getSelections().sort (a, b) ->
+      aRange = a.getBufferRange()
+      bRange = b.getBufferRange()
+      aRange.end.compare(bRange.end)
+
+  getLastSelectionInBuffer: ->
+    _.last(@getSelectionsOrderedByBufferPosition())
+
+  selectionIntersectsBufferRange: (bufferRange) ->
+    _.any @getSelections(), (selection) ->
+      selection.intersectsBufferRange(bufferRange)
 
   setCursorScreenPosition: (position) ->
     @moveCursors (cursor) -> cursor.setScreenPosition(position)

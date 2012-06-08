@@ -9,12 +9,9 @@ class SelectionView extends View
   @content: ->
     @div()
 
-  anchor: null
-  retainSelection: null
   regions: null
 
   initialize: ({@editor, @selection} = {}) ->
-    @cursor = @selection.cursor
     @regions = []
     @selection.view = this
     @selection.on 'change-screen-range', =>
@@ -23,16 +20,6 @@ class SelectionView extends View
     @selection.on 'destroy', =>
       @selection = null
       @remove()
-
-  handleBufferChange: (e) ->
-    return unless @anchor
-    @anchor.handleBufferChange(e)
-    @updateAppearance()
-
-  placeAnchor: ->
-    return if @anchor
-    @anchor = new Anchor(@editor)
-    @anchor.setScreenPosition @cursor.getScreenPosition()
 
   isEmpty: ->
     @selection.isEmpty()
@@ -44,8 +31,6 @@ class SelectionView extends View
     @selection?.clear()
 
   updateAppearance: ->
-    return unless @cursor
-
     @clearRegions()
 
     range = @getScreenRange()
@@ -94,9 +79,6 @@ class SelectionView extends View
 
   getText: ->
     @editor.buffer.getTextInRange @getBufferRange()
-
-  intersectsBufferRange: (bufferRange) ->
-    @getBufferRange().intersectsWith(bufferRange)
 
   remove: ->
     @editor.compositeSelection.removeSelectionView(this)

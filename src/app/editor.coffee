@@ -290,7 +290,7 @@ class Editor extends View
       if fold = screenLine.fold
         screenRow = @firstRenderedScreenRow + i
         element = @lineElementForScreenRow(screenRow)
-        if @compositeSelection.intersectsBufferRange(fold.getBufferRange())
+        if @activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
           element.addClass('selected')
         else
           element.removeClass('selected')
@@ -503,13 +503,13 @@ class Editor extends View
     charWidth = @charWidth
     charHeight = @charHeight
     lines = @renderer.linesForRows(startRow, endRow)
-    compositeSelection = @compositeSelection
+    activeEditSession = @activeEditSession
 
     $$ ->
       for line in lines
         if fold = line.fold
           lineAttributes = { class: 'fold line', 'fold-id': fold.id }
-          if compositeSelection.intersectsBufferRange(fold.getBufferRange())
+          if activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
             lineAttributes.class += ' selected'
         else
           lineAttributes = { class: 'line' }
@@ -668,14 +668,15 @@ class Editor extends View
   setCursorBufferPosition: (position) -> @activeEditSession.setCursorBufferPosition(position)
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
 
-  getSelection: (index) -> @compositeSelection.getSelection(index)
-  getSelections: -> @compositeSelection.getSelections()
-  getSelectionsOrderedByBufferPosition: -> @compositeSelection.getSelectionsOrderedByBufferPosition()
-  getLastSelectionInBuffer: -> @compositeSelection.getLastSelectionInBuffer()
-  getSelectedText: -> @compositeSelection.getSelection().getText()
-  setSelectionBufferRange: (bufferRange, options) -> @compositeSelection.setBufferRange(bufferRange, options)
-  setSelectedBufferRanges: (bufferRanges) -> @compositeSelection.setBufferRanges(bufferRanges)
-  addSelectionForBufferRange: (bufferRange, options) -> @compositeSelection.addSelectionForBufferRange(bufferRange, options)
+  getSelectionView: (index) -> @compositeSelection.getSelectionView(index)
+  getSelection: (index) -> @activeEditSession.getSelection(index)
+  getSelections: -> @activeEditSession.getSelections()
+  getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
+  getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
+  getSelectedText: -> @activeEditSession.getLastSelection().getText()
+  setSelectionBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
+  setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
+  addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
   selectRight: -> @activeEditSession.selectRight()
   selectLeft: -> @activeEditSession.selectLeft()
   selectUp: -> @activeEditSession.selectUp()
@@ -688,7 +689,7 @@ class Editor extends View
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
-  clearSelections: -> @compositeSelection.clearSelections()
+  clearSelections: -> @activeEditSession.clearSelections()
   backspace: -> @activeEditSession.backspace()
   backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
   delete: -> @activeEditSession.delete()
