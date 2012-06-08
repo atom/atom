@@ -307,7 +307,7 @@ describe "Selection", ->
     describe "inserting text", ->
       it "destroys the fold", ->
         selection.setBufferRange([[1,0], [2,0]])
-        selection.insertText('holy cow')
+        editor.insertText('holy cow')
         expect(editor.screenLineForRow(3).text).toBe buffer.lineForRow(3)
 
     describe "backspace", ->

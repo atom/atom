@@ -707,7 +707,7 @@ class Editor extends View
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
   insertText: (text) ->
-    @compositeSelection.insertText(text)
+    @activeEditSession.insertText(text)
 
   insertNewline: ->
     @insertText('\n')
@@ -719,9 +719,9 @@ class Editor extends View
   insertTab: ->
     if @getSelection().isEmpty()
       if @softTabs
-        @compositeSelection.insertText(@tabText)
+        @insertText(@tabText)
       else
-        @compositeSelection.insertText('\t')
+        @insertText('\t')
     else
       @compositeSelection.indentSelectedRows()
 

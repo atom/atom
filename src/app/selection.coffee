@@ -1,6 +1,7 @@
 Range = require 'range'
 Anchor = require 'new-anchor'
 EventEmitter = require 'event-emitter'
+AceOutdentAdaptor = require 'ace-outdent-adaptor'
 _ = require 'underscore'
 
 module.exports =
@@ -10,6 +11,12 @@ class Selection
   constructor: ({@cursor, @editSession}) ->
     @cursor.on 'change-screen-position', (e) =>
       @trigger 'change-screen-range', @getScreenRange() unless e.bufferChanged
+
+    @cursor.on 'destroy', => @destroy()
+
+  destroy: ->
+    @cursor.off()
+    @editSession.removeSelection(this)
 
   getScreenRange: ->
     if @anchor
@@ -42,6 +49,36 @@ class Selection
 
   isReversed: ->
     not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchor.getBufferPosition())
+
+  insertText: (text) ->
+    { text, shouldOutdent } = @autoIndentText(text)
+    oldBufferRange = @getBufferRange()
+    @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
+    wasReversed = @isReversed()
+    @clear()
+    newBufferRange = @editSession.buffer.change(oldBufferRange, text)
+    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
+    @autoOutdentText() if shouldOutdent
+
+  autoIndentText: (text) ->
+    if @editSession.autoIndentEnabled()
+      mode = @editSession.getCurrentMode()
+      row = @cursor.getCurrentScreenRow()
+      state = @editSession.stateForScreenRow(row)
+      lineBeforeCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
+      if text[0] == "\n"
+        indent = mode.getNextLineIndent(state, lineBeforeCursor, @editSession.tabText)
+        text = text[0] + indent + text[1..]
+      else if mode.checkOutdent(state, lineBeforeCursor, text)
+        shouldOutdent = true
+
+    {text, shouldOutdent}
+
+  autoOutdentText: ->
+    screenRow = @cursor.getCurrentScreenRow()
+    bufferRow = @cursor.getCurrentBufferRow()
+    state = @editSession.stateForScreenRow(screenRow)
+    @editSession.getCurrentMode().autoOutdent(state, new AceOutdentAdaptor(@editSession), bufferRow)
 
   handleBufferChange: (e) ->
     @modifyScreenRange =>

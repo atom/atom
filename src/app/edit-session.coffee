@@ -26,6 +26,7 @@ class EditSession
 
   constructor: (@editor, @buffer) ->
     @id = @constructor.idCounter++
+    @tabText = @editor.tabText
     @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @editor.tabText })
     @cursors = []
     @selections = []
@@ -65,6 +66,9 @@ class EditSession
   setScrollLeft: (@scrollLeft) ->
   getScrollLeft: -> @scrollLeft
 
+  autoIndentEnabled: ->
+    @editor.autoIndent
+
   screenPositionForBufferPosition: (bufferPosition, options) ->
     @renderer.screenPositionForBufferPosition(bufferPosition, options)
 
@@ -92,8 +96,26 @@ class EditSession
   backwardsScanInRange: (args...) ->
     @buffer.backwardsScanInRange(args...)
 
-  getCursors: -> @cursors
-  getSelections: -> @selections
+  getCurrentMode: ->
+    @buffer.getMode()
+
+  insertText: (text) ->
+    @mutateSelectedText (selection) -> selection.insertText(text)
+
+  destroyFoldsContainingBufferRow: (bufferRow) ->
+    @renderer.destroyFoldsContainingBufferRow(bufferRow)
+
+  mutateSelectedText: (fn) ->
+    selections = @getSelections()
+    @buffer.startUndoBatch(@getSelectedBufferRanges())
+    fn(selection) for selection in selections
+    @buffer.endUndoBatch(@getSelectedBufferRanges())
+
+  stateForScreenRow: (screenRow) ->
+    @renderer.stateForScreenRow(screenRow)
+
+  getCursors: -> new Array(@cursors...)
+  getSelections: -> new Array(@selections...)
 
   addCursorAtScreenPosition: (screenPosition) ->
     @addCursor(new Cursor(editSession: this, screenPosition: screenPosition))
@@ -107,14 +129,17 @@ class EditSession
     @addSelectionForCursor(cursor)
     cursor
 
+  removeCursor: (cursor) ->
+    _.remove(@cursors, cursor)
+
   addSelectionForCursor: (cursor) ->
     selection = new Selection(editSession: this, cursor: cursor)
     @selections.push(selection)
     @trigger 'add-selection', selection
     selection
 
-  removeCursor: (cursor) ->
-    _.remove(@cursors, cursor)
+  removeSelection: (selection) ->
+    _.remove(@selections, selection)
 
   getLastCursor: ->
     _.last(@cursors)
@@ -130,6 +155,9 @@ class EditSession
 
   getCursorBufferPosition: ->
     @getLastCursor().getBufferPosition()
+
+  getSelectedBufferRanges: ->
+    selection.getBufferRange() for selection in @selections
 
   moveCursorUp: ->
     @moveCursors (cursor) -> cursor.moveUp()

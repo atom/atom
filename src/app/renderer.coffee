@@ -159,6 +159,9 @@ class Renderer
   bufferPositionForScreenPosition: (position, options) ->
     @lineMap.bufferPositionForScreenPosition(position, options)
 
+  stateForScreenRow: (screenRow) ->
+    @highlighter.stateForRow(screenRow)
+
   clipScreenPosition: (position, options) ->
     @lineMap.clipScreenPosition(position, options)
 

@@ -36,6 +36,9 @@ class Cursor
   getBufferPosition: ->
     @anchor.getBufferPosition()
 
+  getCurrentScreenRow: ->
+    @getScreenPosition().row
+
   getCurrentBufferRow: ->
     @getBufferPosition().row
 

@@ -97,16 +97,6 @@ class SelectionView extends View
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)
 
-  insertText: (text) ->
-    { text, shouldOutdent } = @autoIndentText(text)
-    oldBufferRange = @getBufferRange()
-    @editor.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
-    wasReversed = @isReversed()
-    @clearSelection()
-    newBufferRange = @editor.buffer.change(oldBufferRange, text)
-    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
-    @autoOutdentText() if shouldOutdent
-
   indentSelectedRows: ->
     range = @getBufferRange()
     for row in [range.start.row..range.end.row]
@@ -123,26 +113,6 @@ class SelectionView extends View
   toggleLineComments: ->
     @modifySelection =>
       @editor.toggleLineCommentsInRange(@getBufferRange())
-
-  autoIndentText: (text) ->
-    if @editor.autoIndent
-      mode = @editor.getCurrentMode()
-      row = @cursor.getScreenPosition().row
-      state = @editor.stateForScreenRow(row)
-      lineBeforeCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
-      if text[0] == "\n"
-        indent = mode.getNextLineIndent(state, lineBeforeCursor, @editor.tabText)
-        text = text[0] + indent + text[1..]
-      else if mode.checkOutdent(state, lineBeforeCursor, text)
-        shouldOutdent = true
-
-    {text, shouldOutdent}
-
-  autoOutdentText: ->
-    screenRow = @cursor.getScreenPosition().row
-    bufferRow = @cursor.getBufferPosition().row
-    state = @editor.renderer.lineForRow(screenRow).state
-    @editor.getCurrentMode().autoOutdent(state, new AceOutdentAdaptor(@editor.buffer, @editor), bufferRow)
 
   backspace: ->
     @editor.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
