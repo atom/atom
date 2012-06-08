@@ -13,7 +13,8 @@ class SelectionView extends View
   retainSelection: null
   regions: null
 
-  initialize: ({@editor, @cursor} = {}) ->
+  initialize: ({@editor, @selection} = {}) ->
+    @cursor = @selection.cursor
     @regions = []
 
   handleBufferChange: (e) ->
@@ -135,7 +136,7 @@ class SelectionView extends View
       mode = @editor.getCurrentMode()
       row = @cursor.getScreenPosition().row
       state = @editor.stateForScreenRow(row)
-      lineBeforeCursor = @cursor.cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
+      lineBeforeCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
       if text[0] == "\n"
         indent = mode.getNextLineIndent(state, lineBeforeCursor, @editor.tabText)
         text = text[0] + indent + text[1..]
@@ -177,7 +178,7 @@ class SelectionView extends View
     otherSelection.remove()
 
   remove: ->
-    @cursor?.remove()
+    @cursor?.destroy()
     super
 
   modifySelection: (fn) ->
@@ -187,52 +188,52 @@ class SelectionView extends View
     @retainSelection = false
 
   selectWord: ->
-    @setBufferRange(@cursor.cursor.getCurrentWordBufferRange())
+    @setBufferRange(@cursor.getCurrentWordBufferRange())
 
   expandOverWord: ->
-    @setBufferRange(@getBufferRange().union(@cursor.cursor.getCurrentWordBufferRange()))
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
   selectLine: (row=@cursor.getBufferPosition().row) ->
     @setBufferRange(@editor.rangeForBufferRow(row))
 
   expandOverLine: ->
-    @setBufferRange(@getBufferRange().union(@cursor.cursor.getCurrentLineBufferRange()))
+    @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))
 
   selectToScreenPosition: (position) ->
     @modifySelection => @cursor.setScreenPosition(position)
 
   selectRight: ->
-    @modifySelection => @cursor.cursor.moveRight()
+    @modifySelection => @cursor.moveRight()
 
   selectLeft: ->
-    @modifySelection => @cursor.cursor.moveLeft()
+    @modifySelection => @cursor.moveLeft()
 
   selectUp: ->
-    @modifySelection => @cursor.cursor.moveUp()
+    @modifySelection => @cursor.moveUp()
 
   selectDown: ->
-    @modifySelection => @cursor.cursor.moveDown()
+    @modifySelection => @cursor.moveDown()
 
   selectToTop: ->
-    @modifySelection => @cursor.cursor.moveToTop()
+    @modifySelection => @cursor.moveToTop()
 
   selectToBottom: ->
-    @modifySelection => @cursor.cursor.moveToBottom()
+    @modifySelection => @cursor.moveToBottom()
 
   selectAll: ->
     @setBufferRange(@editor.buffer.getRange())
 
   selectToBeginningOfLine: ->
-    @modifySelection => @cursor.cursor.moveToBeginningOfLine()
+    @modifySelection => @cursor.moveToBeginningOfLine()
 
   selectToEndOfLine: ->
-    @modifySelection => @cursor.cursor.moveToEndOfLine()
+    @modifySelection => @cursor.moveToEndOfLine()
 
   selectToBeginningOfWord: ->
-    @modifySelection => @cursor.cursor.moveToBeginningOfWord()
+    @modifySelection => @cursor.moveToBeginningOfWord()
 
   selectToEndOfWord: ->
-    @modifySelection => @cursor.cursor.moveToEndOfWord()
+    @modifySelection => @cursor.moveToEndOfWord()
 
   cutToEndOfLine: (maintainPasteboard) ->
     @selectToEndOfLine() if @isEmpty()

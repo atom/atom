@@ -2,6 +2,7 @@ Point = require 'point'
 Buffer = require 'buffer'
 Renderer = require 'renderer'
 Cursor = require 'cursor'
+Selection = require 'selection'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
@@ -21,11 +22,13 @@ class EditSession
   scrollLeft: 0
   renderer: null
   cursors: null
+  selections: null
 
   constructor: (@editor, @buffer) ->
     @id = @constructor.idCounter++
     @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @editor.tabText })
     @cursors = []
+    @selections = []
     @addCursorAtScreenPosition([0, 0])
 
     @buffer.on "change.edit-session-#{@id}", (e) =>
@@ -89,6 +92,7 @@ class EditSession
     @buffer.backwardsScanInRange(args...)
 
   getCursors: -> @cursors
+  getSelections: -> @selections
 
   addCursorAtScreenPosition: (screenPosition) ->
     @addCursor(new Cursor(editSession: this, screenPosition: screenPosition))
@@ -96,10 +100,17 @@ class EditSession
   addCursorAtBufferPosition: (bufferPosition) ->
     @addCursor(new Cursor(editSession: this, bufferPosition: bufferPosition))
 
-  addCursor: (cursor) ->
+  addCursor: (cursor=new Cursor(editSession: this, screenPosition: [0,0])) ->
     @cursors.push(cursor)
     @trigger 'add-cursor', cursor
+    @addSelectionForCursor(cursor)
     cursor
+
+  addSelectionForCursor: (cursor) ->
+    selection = new Selection(cursor)
+    @selections.push(selection)
+    @trigger 'add-selection', selection
+    selection
 
   removeCursor: (cursor) ->
     _.remove(@cursors, cursor)

@@ -14,7 +14,6 @@ class CursorView extends View
   hidden: false
 
   initialize: (@cursor, @editor) ->
-    @selection = @editor.compositeSelection.addSelectionForCursor(this)
 
     @cursor.on 'change-screen-position', (position, options) =>
       @updateAppearance()
@@ -32,7 +31,7 @@ class CursorView extends View
 
   remove: ->
     @editor.compositeCursor.removeCursor(this)
-    @editor.compositeSelection.removeSelectionForCursor(this)
+    @editor.compositeSelection.removeSelectionViewForCursor(@cursor)
     @cursor.off()
     super
 
@@ -51,7 +50,10 @@ class CursorView extends View
       @show() if @hidden
       @hidden = false
 
-    @selection.updateAppearance()
+    @getSelectionView()?.updateAppearance()
+
+  getSelectionView: ->
+    @editor.compositeSelection.selectionViewForCursor(@cursor)
 
   getBufferPosition: ->
     @cursor.getBufferPosition()
@@ -76,4 +78,5 @@ class CursorView extends View
     _.defer => @addClass 'idle'
 
   clearSelection: ->
-    @selection.clearSelection() unless @selection.retainSelection
+    if selectionView = @getSelectionView()
+      selectionView.clearSelection() unless selectionView.retainSelection

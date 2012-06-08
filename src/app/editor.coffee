@@ -380,8 +380,14 @@ class Editor extends View
     for cursor in @activeEditSession.getCursors()
       @compositeCursor.addCursorView(cursor)
 
+    for selection in @activeEditSession.getSelections()
+      @compositeSelection.addSelectionView(selection)
+
     @activeEditSession.on 'add-cursor', (cursor) =>
       @compositeCursor.addCursorView(cursor)
+
+    @activeEditSession.on 'add-selection', (selection) =>
+      @compositeSelection.addSelectionView(selection)
 
   destroyEditSessions: ->
     session.destroy() for session in @editSessions

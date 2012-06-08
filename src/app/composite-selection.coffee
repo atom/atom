@@ -33,26 +33,29 @@ class CompositeSeleciton
 
   clearSelections: ->
     for selection in @getSelections()[1..]
-      selection.cursor.remove()
+      selection.cursor.destroy()
 
     @getLastSelection().clearSelection()
 
-  addSelectionForCursor: (cursor) ->
-    selection = new SelectionView({@editor, cursor})
+  addSelectionView: (selection) ->
+    selection = new SelectionView({@editor, selection})
     @selections.push(selection)
     @editor.renderedLines.append(selection)
     selection
 
-  addSelectionForBufferRange: (bufferRange, options) ->
-    cursor = @editor.addCursor()
-    cursorView = @editor.compositeCursor.viewForCursor(cursor)
-    @selectionForCursor(cursorView).setBufferRange(bufferRange, options)
+  selectionViewForCursor: (cursor) ->
+    for view in @selections
+      return view if view.selection.cursor == cursor
 
-  removeSelectionForCursor: (cursor) ->
-    selection = @selectionForCursor(cursor)
-    selection.cursor = null
-    selection.remove()
-    _.remove(@selections, selection)
+  addSelectionForBufferRange: (bufferRange, options) ->
+    cursor = @editor.activeEditSession.addCursor()
+    @selectionForCursor(cursor).setBufferRange(bufferRange, options)
+
+  removeSelectionViewForCursor: (cursor) ->
+    if view = @selectionViewForCursor(cursor)
+      view.cursor = null
+      view.remove()
+      _.remove(@selections, view)
 
   selectionForCursor: (cursor) ->
     _.find @selections, (selection) -> selection.cursor == cursor
