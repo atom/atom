@@ -73,17 +73,6 @@ CefWindowHandle AppGetMainHwnd() {
 	return g_handler->GetMainHwnd();
 }
 
-void AppInitCommandLine(int argc, const char* const * argv) {
-	g_command_line = CefCommandLine::CreateCommandLine();
-	g_command_line->InitFromArgv(argc, argv);
-}
-
-// Returns the application command line object.
-CefRefPtr<CefCommandLine> AppGetCommandLine() {
-	return g_command_line;
-}
-
-// Returns the application settings based on command line arguments.
 void AppGetSettings(CefSettings& settings, CefRefPtr<CefApp>& app) {
 	CefString(&settings.cache_path) = "";
 	CefString(&settings.user_agent) = "";

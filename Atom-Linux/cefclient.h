@@ -28,16 +28,7 @@ std::string AppPath();
 // Returns the initial path to open.
 std::string PathToOpen();
 
-// Initialize the application command line.
-void AppInitCommandLine(int argc, const char* const * argv);
-
-// Returns the application command line object.
-CefRefPtr<CefCommandLine> AppGetCommandLine();
-
-// Returns the application settings based on command line arguments.
+// Returns the application settings
 void AppGetSettings(CefSettings& settings, CefRefPtr<CefApp>& app);
-
-// Returns the application browser settings based on command line arguments.
-void AppGetBrowserSettings(CefBrowserSettings& settings);
 
 #endif  // CEF_TESTS_CEFCLIENT_CEFCLIENT_H_
