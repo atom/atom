@@ -877,7 +877,7 @@ describe "Editor", ->
         expect(editor.css('font-size')).toBe '30px'
         expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
         expect(editor.charWidth).toBeGreaterThan charWidthBefore
-        expect(editor.getCursors()[0].position()).toEqual { top: 5 * editor.lineHeight, left: 5 * editor.charWidth }
+        expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 5 * editor.charWidth }
 
         # ensure we clean up font size subscription
         editor.trigger('close')
@@ -1698,7 +1698,7 @@ describe "Editor", ->
             expect(editor.lineForBufferRow(5)).toBe ", left = [], right = [];"
             expect(editor.lineForBufferRow(6)).toBe "    while(items.length > 0) {"
 
-            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [4, 0]
             expect(cursor2.getBufferPosition()).toEqual [5, 0]
 
@@ -1712,7 +1712,7 @@ describe "Editor", ->
             expect(editor.lineForBufferRow(3)).toBe "abc    var pivot = items.shift(), current, left = [], right = [];"
             expect(editor.lineForBufferRow(6)).toBe "abc      current < pivot ? left.push(current) : right.push(current);"
 
-            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [3,3]
             expect(cursor2.getBufferPosition()).toEqual [6,3]
 
@@ -1730,7 +1730,7 @@ describe "Editor", ->
             expect(editor.lineForBufferRow(8)).toBe "      current < pivot ? left.push(current) : right.push(current);"
             expect(editor.lineForBufferRow(9)).toBe "    }"
 
-            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [4,0]
             expect(cursor2.getBufferPosition()).toEqual [8,0]
 
@@ -1743,7 +1743,7 @@ describe "Editor", ->
           it "replaces each selection range with the inserted characters", ->
             editor.insertText("x")
 
-            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [cursor1, cursor2] = editor.getCursors()
             [selection1, selection2] = editor.getSelections()
 
             expect(cursor1.getScreenPosition()).toEqual [0, 5]
@@ -1757,7 +1757,7 @@ describe "Editor", ->
           it "replaces all selected ranges with newlines", ->
             editor.insertText("\n")
 
-            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [cursor1, cursor2] = editor.getCursors()
             [selection1, selection2] = editor.getSelections()
 
             expect(cursor1.getScreenPosition()).toEqual [1, 0]
@@ -1779,7 +1779,7 @@ describe "Editor", ->
 
           expect(editor.lineForBufferRow(3)).toBe "    var pivo = items.shift(), curren, left = [], right = [];"
 
-          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getBufferPosition()).toEqual [3, 12]
           expect(cursor2.getBufferPosition()).toEqual [3, 36]
 
@@ -1797,7 +1797,7 @@ describe "Editor", ->
           expect(editor.lineForBufferRow(3)).toBe "    var pivo = items.shift(), current, left = [], right = [];"
           expect(editor.lineForBufferRow(4)).toBe "    whileitems.length > 0) {"
 
-          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getBufferPosition()).toEqual [3, 12]
           expect(cursor2.getBufferPosition()).toEqual [4, 9]
 
@@ -1816,7 +1816,7 @@ describe "Editor", ->
             expect(editor.lineForBufferRow(4)).toBe "      current = items.shift();      current < pivot ? left.push(current) : right.push(current);"
             expect(editor.lineForBufferRow(5)).toBe "    }"
 
-            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [2,40]
             expect(cursor2.getBufferPosition()).toEqual [4,30]
 
@@ -1839,7 +1839,7 @@ describe "Editor", ->
 
           expect(editor.lineForBufferRow(3)).toBe "    var pivot= items.shift(), current left = [], right = [];"
 
-          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getBufferPosition()).toEqual [3, 13]
           expect(cursor2.getBufferPosition()).toEqual [3, 37]
 
@@ -1857,7 +1857,7 @@ describe "Editor", ->
           expect(editor.lineForBufferRow(3)).toBe "    var pivot= items.shift(), current, left = [], right = [];"
           expect(editor.lineForBufferRow(4)).toBe "    while(tems.length > 0) {"
 
-          [cursor1, cursor2] = editor.compositeCursor.getCursors()
+          [cursor1, cursor2] = editor.getCursors()
           expect(cursor1.getBufferPosition()).toEqual [3, 13]
           expect(cursor2.getBufferPosition()).toEqual [4, 10]
 
@@ -1874,7 +1874,7 @@ describe "Editor", ->
 
             expect(editor.lineForBufferRow(0)).toBe "var quicksort = function () {  var sort = function(items) {    if (items.length <= 1) return items;"
 
-            [cursor1, cursor2] = editor.compositeCursor.getCursors()
+            [cursor1, cursor2] = editor.getCursors()
             expect(cursor1.getBufferPosition()).toEqual [0,29]
             expect(cursor2.getBufferPosition()).toEqual [0,59]
 
@@ -1892,7 +1892,7 @@ describe "Editor", ->
         editor.setCursorScreenPosition([3, 13])
         editor.addCursorAtScreenPosition([3, 38])
         editor.addCursorAtScreenPosition([4, 1])
-        [cursor1, cursor2, cursor3] = editor.compositeCursor.getCursors()
+        [cursor1, cursor2, cursor3] = editor.getCursors()
 
         editor.moveCursorLeft()
         expect(cursor1.getBufferPosition()).toEqual [3, 12]
@@ -2033,14 +2033,13 @@ describe "Editor", ->
         editor.addCursorAtScreenPosition([0, 1])
         editor.addCursorAtScreenPosition([1, 1])
 
-        [cursor1, cursor2, cursor3] = editor.compositeCursor.getCursors()
-        expect(editor.compositeCursor.getCursors().length).toBe 3
+        [cursor1, cursor2, cursor3] = editor.getCursors()
+        expect(editor.getCursors().length).toBe 3
 
         editor.backspace()
-        expect(editor.compositeCursor.getCursors().length).toBe 2
+        expect(editor.getCursors()).toEqual [cursor1, cursor3]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
         expect(cursor3.getBufferPosition()).toEqual [1,0]
-        expect(cursor2.parent().length).toBe 0
 
         editor.insertText "x"
         expect(editor.lineForBufferRow(0)).toBe "xar quicksort = function () {"
@@ -2050,35 +2049,31 @@ describe "Editor", ->
         editor.setCursorScreenPosition([0, 0])
         editor.addCursorAtScreenPosition([0, 1])
 
-        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+        [cursor1, cursor2] = editor.getCursors()
         editor.moveCursorLeft()
-        expect(editor.compositeCursor.getCursors().length).toBe 1
-        expect(cursor2.parent()).not.toExist()
+        expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
 
         editor.addCursorAtScreenPosition([1, 0])
-        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+        [cursor1, cursor2] = editor.getCursors()
 
         editor.moveCursorUp()
-        expect(editor.compositeCursor.getCursors().length).toBe 1
-        expect(cursor2.parent()).not.toExist()
+        expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
 
         editor.setCursorScreenPosition([12, 2])
         editor.addCursorAtScreenPosition([12, 1])
-        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+        [cursor1, cursor2] = editor.getCursors()
 
         editor.moveCursorRight()
-        expect(editor.compositeCursor.getCursors().length).toBe 1
-        expect(cursor2.parent()).not.toExist()
+        expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [12,2]
 
         editor.addCursorAtScreenPosition([11, 2])
-        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+        [cursor1, cursor2] = editor.getCursors()
 
         editor.moveCursorDown()
-        expect(editor.compositeCursor.getCursors().length).toBe 1
-        expect(cursor2.parent()).not.toExist()
+        expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [12,2]
 
       it "merges cursors when the mouse is clicked without the meta-key", ->
@@ -2086,10 +2081,10 @@ describe "Editor", ->
         editor.setCursorScreenPosition([0, 0])
         editor.addCursorAtScreenPosition([0, 1])
 
-        [cursor1, cursor2] = editor.compositeCursor.getCursors()
+        [cursor1, cursor2] = editor.getCursors()
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7])
-        expect(editor.compositeCursor.getCursors().length).toBe 1
-        expect(cursor2.parent()).not.toExist()
+        expect(editor.getCursors().length).toBe 1
+        expect(editor.getCursors()).toEqual [cursor1]
         expect(cursor1.getBufferPosition()).toEqual [4, 7]
 
         editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])

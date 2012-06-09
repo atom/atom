@@ -357,7 +357,7 @@ class Editor extends View
 
     if @activeEditSession
       @saveActiveEditSession()
-      @compositeCursor.removeAllCursors()
+      @removeAllCursorViews()
       @activeEditSession.off()
 
     @activeEditSession = @editSessions[index]
@@ -650,7 +650,11 @@ class Editor extends View
       @compositeCursor.updateAppearance()
       @updateRenderedLines()
 
-  getCursors: -> @compositeCursor.getCursors()
+  getCursorView: (index) -> @compositeCursor.getCursorView(index)
+  getCursorViews: -> @compositeCursor.getCursorViews()
+  removeAllCursorViews: -> @compositeCursor.removeAllCursorViews()
+  getCursors: -> @activeEditSession.getCursors()
+  getLastCursor: -> @activeEditSession.getLastCursor()
   moveCursorUp: -> @activeEditSession.moveCursorUp()
   moveCursorDown: -> @activeEditSession.moveCursorDown()
   moveCursorLeft: -> @activeEditSession.moveCursorLeft()
@@ -826,8 +830,8 @@ class Editor extends View
       @scrollView.scrollLeft(desiredLeft)
 
   syncCursorAnimations: ->
-    for cursor in @getCursors()
-      do (cursor) -> cursor.resetCursorAnimation()
+    for cursorView in @getCursorViews()
+      do (cursorView) -> cursorView.resetCursorAnimation()
 
   foldAll: ->
     @renderer.foldAll()

@@ -37,7 +37,7 @@ class CursorView extends View
     pixelPosition = @editor.pixelPositionForScreenPosition(screenPosition)
     @css(pixelPosition)
 
-    if this == _.last(@editor.getCursors())
+    if @cursor == @editor.getLastCursor()
       @editor.scrollTo(pixelPosition)
 
     if @editor.isFoldedAtScreenRow(screenPosition.row)
