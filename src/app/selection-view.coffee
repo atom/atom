@@ -13,22 +13,8 @@ class SelectionView extends View
 
   initialize: ({@editor, @selection} = {}) ->
     @regions = []
-    @selection.view = this
-    @selection.on 'change-screen-range', =>
-      @updateAppearance()
-
-    @selection.on 'destroy', =>
-      @selection = null
-      @remove()
-
-  isEmpty: ->
-    @selection.isEmpty()
-
-  isReversed: ->
-    @selection.isReversed()
-
-  clearSelection: ->
-    @selection?.clear()
+    @selection.on 'change-screen-range', => @updateAppearance()
+    @selection.on 'destroy', => @remove('ignore')
 
   updateAppearance: ->
     @clearRegions()
@@ -68,23 +54,6 @@ class SelectionView extends View
   getScreenRange: ->
     @selection.getScreenRange()
 
-  setScreenRange: (range, options)->
-    @selection.setScreenRange(range, options)
-
-  getBufferRange: ->
-    @selection.getBufferRange()
-
-  setBufferRange: (bufferRange, options) ->
-    @setScreenRange(@editor.screenRangeForBufferRange(bufferRange), options)
-
-  getText: ->
-    @editor.buffer.getTextInRange @getBufferRange()
-
-  remove: ->
+  remove: (ignore) ->
     @editor.compositeSelection.removeSelectionView(this)
-    @selection?.destroy()
     super
-
-  modifySelection: (fn) ->
-    @selection.modifySelection(fn)
-
