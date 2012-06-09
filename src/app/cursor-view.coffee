@@ -17,7 +17,6 @@ class CursorView extends View
     @cursor.on 'change-screen-position', (position, options) =>
       @updateAppearance()
       unless options.bufferChange
-        @clearSelection()
         @removeIdleClassTemporarily()
       @trigger 'cursor-move', bufferChange: options.bufferChange
 
@@ -74,7 +73,3 @@ class CursorView extends View
     window.clearTimeout(@idleTimeout) if @idleTimeout
     @removeClass 'idle'
     _.defer => @addClass 'idle'
-
-  clearSelection: ->
-    if selectionView = @getSelectionView()
-      selectionView.clearSelection() unless selectionView.retainSelection

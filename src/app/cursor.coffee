@@ -23,6 +23,7 @@ class Cursor
   setScreenPosition: (screenPosition, options) ->
     @anchor.setScreenPosition(screenPosition, options)
     @goalColumn = null
+    @clearSelection()
     @trigger 'change-screen-position', @getScreenPosition(), bufferChange: false
 
   getScreenPosition: ->
@@ -31,10 +32,15 @@ class Cursor
   setBufferPosition: (bufferPosition, options) ->
     @anchor.setBufferPosition(bufferPosition, options)
     @goalColumn = null
+    @clearSelection()
     @trigger 'change-screen-position', @getScreenPosition(), bufferChange: false
 
   getBufferPosition: ->
     @anchor.getBufferPosition()
+
+  clearSelection: ->
+    if @selection
+      @selection.clear() unless @selection.retainSelection
 
   getCurrentScreenRow: ->
     @getScreenPosition().row
