@@ -1165,7 +1165,6 @@
 		};
 		0487C93214FED5370045E5E3 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 04F21A2615644AC10083F6D4 /* ResourceConfig.xcconfig */;
 			buildSettings = {
 				DEAD_CODE_STRIPPING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
