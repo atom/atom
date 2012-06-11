@@ -26,6 +26,7 @@ class EditSession
 
   constructor: (@editor, @buffer) ->
     @id = @constructor.idCounter++
+    @tabText = @editor.tabText
     @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @editor.tabText })
     @cursors = []
     @selections = []
