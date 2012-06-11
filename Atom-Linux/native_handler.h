@@ -74,6 +74,10 @@ private:
 	void MakeDirectory(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 			CefString& exception);
+
+	void Move(const CefString& name, CefRefPtr<CefV8Value> object,
+			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+			CefString& exception);
 };
 
 #endif
