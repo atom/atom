@@ -750,9 +750,9 @@ class Editor extends View
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
 
-  cutSelection: -> @activeEditSession.cut()
-  copySelection: -> @activeEditSession.copy()
-  paste: -> @insertText($native.readFromPasteboard())
+  cutSelection: -> @activeEditSession.cutSelectedText()
+  copySelection: -> @activeEditSession.copySelectedText()
+  paste: -> @activeEditSession.pasteText()
 
   undo: ->
     if ranges = @buffer.undo()

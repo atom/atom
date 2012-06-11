@@ -475,6 +475,126 @@ describe "EditSession", ->
         expect(buffer.lineForRow(1)).toBe "  "
         expect(editSession.getCursorBufferPosition()).toEqual [1, 2]
 
+    describe ".backspace()", ->
+      describe "when the cursor is on the middle of the line", ->
+        it "removes the character before the cursor", ->
+          editSession.setCursorScreenPosition(row: 1, column: 7)
+          expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+
+          editSession.backspace()
+
+          line = buffer.lineForRow(1)
+          expect(line).toBe "  var ort = function(items) {"
+          expect(editSession.getCursorScreenPosition()).toEqual {row: 1, column: 6}
+
+      describe "when the cursor is at the beginning of a line", ->
+        it "joins it with the line above", ->
+          originalLine0 = buffer.lineForRow(0)
+          expect(originalLine0).toBe "var quicksort = function () {"
+          expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+
+          editSession.setCursorScreenPosition(row: 1, column: 0)
+          editSession.backspace()
+
+          line0 = buffer.lineForRow(0)
+          line1 = buffer.lineForRow(1)
+          expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
+          expect(line1).toBe "    if (items.length <= 1) return items;"
+
+          expect(editSession.getCursorScreenPosition()).toEqual [0, originalLine0.length]
+
+      describe "when the cursor is at the first column of the first line", ->
+        it "does nothing, but doesn't raise an error", ->
+          editSession.setCursorScreenPosition(row: 0, column: 0)
+          editSession.backspace()
+
+      describe "when there is a selection", ->
+        it "deletes the selection, but not the character before it", ->
+          editSession.setSelectedBufferRange([[0,5], [0,9]])
+          editSession.backspace()
+          expect(editSession.buffer.lineForRow(0)).toBe 'var qsort = function () {'
+
+    describe ".backspaceToBeginningOfWord()", ->
+      describe "when no text is selected", ->
+        it "deletes all text between the cursor and the beginning of the word", ->
+          editSession.setCursorBufferPosition([1, 24])
+          editSession.addCursorAtBufferPosition([2, 5])
+          [cursor1, cursor2] = editSession.getCursors()
+
+          editSession.backspaceToBeginningOfWord()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(ems) {'
+          expect(buffer.lineForRow(2)).toBe '    f (items.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 22]
+          expect(cursor2.getBufferPosition()).toEqual [2, 4]
+
+          editSession.backspaceToBeginningOfWord()
+          expect(buffer.lineForRow(1)).toBe '  var sort = functionems) f (items.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 21]
+          expect(cursor2.getBufferPosition()).toEqual [1, 26]
+
+      describe "when text is selected", ->
+        it "deletes only selected text", ->
+          editSession.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
+          editSession.backspaceToBeginningOfWord()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+          expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
+
+    describe ".delete()", ->
+      describe "when no text is selected", ->
+        describe "when the cursor is on the middle of a line", ->
+          it "deletes the character following the cursor", ->
+            editSession.setCursorScreenPosition([1, 6])
+            editSession.delete()
+            expect(buffer.lineForRow(1)).toBe '  var ort = function(items) {'
+
+        describe "when the cursor is on the end of a line", ->
+          it "joins the line with the following line", ->
+            editSession.setCursorScreenPosition([1, buffer.lineForRow(1).length])
+            editSession.delete()
+            expect(buffer.lineForRow(1)).toBe '  var sort = function(items) {    if (items.length <= 1) return items;'
+
+        describe "when the cursor is on the last column of the last line", ->
+          it "does nothing, but doesn't raise an error", ->
+            editSession.setCursorScreenPosition([12, buffer.lineForRow(12).length])
+            editSession.delete()
+            expect(buffer.lineForRow(12)).toBe '};'
+
+      describe "when text is selected", ->
+        it "deletes the selection, but not the character following it", ->
+          editSession.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
+          editSession.delete()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+          expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
+
+    describe "pasteboard operations", ->
+      pasteboard = null
+      beforeEach ->
+        pasteboard = 'first'
+        spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboard = text
+        spyOn($native, 'readFromPasteboard').andCallFake -> pasteboard
+        editSession.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
+
+      describe ".cutSelectedText()", ->
+        it "removes the selected text from the buffer and places it on the pasteboard", ->
+          editSession.cutSelectedText()
+          expect(buffer.lineForRow(0)).toBe "var  = function () {"
+          expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"
+
+          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+
+      describe ".copySelectedText()", ->
+        it "copies selected text onto the clipboard", ->
+          editSession.copySelectedText()
+          expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+          expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+
+      describe ".pasteText()", ->
+        it "pastes text into the buffer", ->
+          editSession.pasteText()
+          expect(editSession.buffer.lineForRow(0)).toBe "var first = function () {"
+          expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
+
     describe "when the buffer is changed (via its direct api, rather than via than edit session)", ->
       it "moves the cursor so it is in the same relative position of the buffer", ->
         expect(editSession.getCursorScreenPosition()).toEqual [0, 0]

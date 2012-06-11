@@ -152,17 +152,20 @@ class EditSession
       selection.cutToEndOfLine(maintainPasteboard)
       maintainPasteboard = true
 
-  cut: ->
+  cutSelectedText: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
       selection.cut(maintainPasteboard)
       maintainPasteboard = true
 
-  copy: ->
+  copySelectedText: ->
     maintainPasteboard = false
     for selection in @getSelections()
       selection.copy(maintainPasteboard)
       maintainPasteboard = true
+
+  pasteText: ->
+    @insertText($native.readFromPasteboard())
 
   foldSelection: ->
     selection.fold() for selection in @getSelections()
