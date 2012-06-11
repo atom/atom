@@ -203,6 +203,13 @@ void NativeHandler::AsyncList(const CefString& name,
 	free (paths);
 }
 
+void NativeHandler::MakeDirectory(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+	string content = arguments[0]->GetStringValue().ToString();
+	mkdir(content.c_str(), S_IRWXU);
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -232,6 +239,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		ReadFromPasteboard(name, object, arguments, retval, exception);
 	else if (name == "asyncList")
 		AsyncList(name, object, arguments, retval, exception);
+	else if (name == "makeDirectory")
+		MakeDirectory(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
