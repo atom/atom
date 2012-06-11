@@ -1804,28 +1804,6 @@ describe "Editor", ->
 
           expect(pasteboard).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
-    describe "tab", ->
-      describe "if editor.softTabs is true (the default)", ->
-        it "inserts editor.tabText into the buffer", ->
-          tabRegex = new RegExp("^#{editor.tabText}")
-          expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
-          editor.trigger 'tab'
-          expect(buffer.lineForRow(0)).toMatch(tabRegex)
-
-      describe "if editor.softTabs is false", ->
-        it "inserts a tab character into the buffer", ->
-          editor.setSoftTabs(false)
-          expect(buffer.lineForRow(0)).not.toMatch(/^\t/)
-          editor.trigger 'tab'
-          expect(buffer.lineForRow(0)).toMatch(/^\t/)
-          expect(editor.getCursorBufferPosition()).toEqual [0, 1]
-          expect(editor.getCursorScreenPosition()).toEqual [0, editor.tabText.length]
-
-          editor.trigger 'tab'
-          expect(buffer.lineForRow(0)).toMatch(/^\t\t/)
-          expect(editor.getCursorBufferPosition()).toEqual [0, 2]
-          expect(editor.getCursorScreenPosition()).toEqual [0, editor.tabText.length * 2]
-
     describe "undo/redo", ->
       it "undoes/redoes the last change", ->
         buffer.insert [0, 0], "foo"

@@ -1,7 +1,7 @@
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-describe "EditSession", ->
+fdescribe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
   beforeEach ->
@@ -565,6 +565,28 @@ describe "EditSession", ->
           editSession.delete()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
+
+    describe ".insertTab()", ->
+      describe "if 'softTabs' is true (the default)", ->
+        it "inserts the value of 'tabText' into the buffer", ->
+          tabRegex = new RegExp("^#{editSession.tabText}")
+          expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
+          editSession.insertTab()
+          expect(buffer.lineForRow(0)).toMatch(tabRegex)
+
+      describe "if editSession.softTabs is false", ->
+        it "inserts a tab character into the buffer", ->
+          editSession.setSoftTabs(false)
+          expect(buffer.lineForRow(0)).not.toMatch(/^\t/)
+          editSession.insertTab()
+          expect(buffer.lineForRow(0)).toMatch(/^\t/)
+          expect(editSession.getCursorBufferPosition()).toEqual [0, 1]
+          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabText.length]
+
+          editSession.insertTab()
+          expect(buffer.lineForRow(0)).toMatch(/^\t\t/)
+          expect(editSession.getCursorBufferPosition()).toEqual [0, 2]
+          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabText.length * 2]
 
     describe "pasteboard operations", ->
       pasteboard = null
