@@ -155,6 +155,9 @@ class EditSession
 
   getCursors: -> new Array(@cursors...)
 
+  getCursor: (index=0) ->
+    @cursors[index]
+
   getLastCursor: ->
     _.last(@cursors)
 

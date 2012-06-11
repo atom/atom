@@ -9,7 +9,6 @@ class CursorView extends View
   @content: ->
     @pre class: 'cursor idle', => @raw '&nbsp;'
 
-  anchor: null
   editor: null
   hidden: false
 
@@ -47,22 +46,11 @@ class CursorView extends View
       @show() if @hidden
       @hidden = false
 
-    @getSelectionView()?.updateAppearance()
-
-  getSelectionView: ->
-    @editor.compositeSelection.selectionViewForCursor(@cursor)
-
   getBufferPosition: ->
     @cursor.getBufferPosition()
 
-  setBufferPosition: (bufferPosition, options={}) ->
-    @cursor.setBufferPosition(bufferPosition, options)
-
   getScreenPosition: ->
     @cursor.getScreenPosition()
-
-  setScreenPosition: (position, options={}) ->
-    @cursor.setScreenPosition(position, options)
 
   removeIdleClassTemporarily: ->
     @removeClass 'idle'

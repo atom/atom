@@ -653,6 +653,7 @@ class Editor extends View
   getCursorView: (index) -> @compositeCursor.getCursorView(index)
   getCursorViews: -> @compositeCursor.getCursorViews()
   removeAllCursorViews: -> @compositeCursor.removeAllCursorViews()
+  getCursor: (index) -> @activeEditSession.getCursor(index)
   getCursors: -> @activeEditSession.getCursors()
   getLastCursor: -> @activeEditSession.getLastCursor()
   moveCursorUp: -> @activeEditSession.moveCursorUp()
