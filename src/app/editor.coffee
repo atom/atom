@@ -731,8 +731,8 @@ class Editor extends View
     else
       @compositeSelection.indentSelectedRows()
 
-  indentSelectedRows: -> @compositeSelection.indentSelectedRows()
-  outdentSelectedRows: -> @compositeSelection.outdentSelectedRows()
+  indentSelectedRows: -> @activeEditSession.indentSelectedRows()
+  outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
 
   cutSelection: -> @activeEditSession.cut()
   copySelection: -> @activeEditSession.copy()

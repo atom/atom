@@ -114,6 +114,12 @@ class EditSession
   deleteToEndOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
 
+  indentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.indentSelectedRows()
+
+  outdentSelectedRows: ->
+    @mutateSelectedText (selection) -> selection.outdentSelectedRows()
+
   cutToEndOfLine: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
