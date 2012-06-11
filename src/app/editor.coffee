@@ -157,9 +157,6 @@ class Editor extends View
   addCursorAtBufferPosition: (bufferPosition) ->
     @activeEditSession.addCursorAtBufferPosition(bufferPosition)
 
-  addSelectionForCursor: (cursor) ->
-    @compositeSelection.addSelectionForCursor(cursor)
-
   handleEvents: ->
     @on 'focus', =>
       @hiddenInput.focus()
@@ -366,7 +363,6 @@ class Editor extends View
     @unsubscribeFromBuffer() if @buffer
     @buffer = @activeEditSession.buffer
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
-    @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
     @trigger 'editor-path-change'
 
     @renderer = @activeEditSession.renderer
@@ -454,9 +450,6 @@ class Editor extends View
 
   getLastVisibleScreenRow: ->
     Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
-
-  handleBufferChange: (e) ->
-    # @compositeSelection.handleBufferChange(e)
 
   handleRendererChange: (e) ->
     oldScreenRange = e.oldRange
@@ -729,7 +722,7 @@ class Editor extends View
       else
         @insertText('\t')
     else
-      @compositeSelection.indentSelectedRows()
+      @activeEditSession.indentSelectedRows()
 
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
@@ -850,7 +843,7 @@ class Editor extends View
     @renderer.logLines(start, end)
 
   toggleLineCommentsInSelection: ->
-    @compositeSelection.toggleLineComments()
+    @activeEditSession.toggleLineCommentsInSelection()
 
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->

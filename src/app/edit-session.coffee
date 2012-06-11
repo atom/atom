@@ -120,6 +120,9 @@ class EditSession
   outdentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.outdentSelectedRows()
 
+  toggleCommentsInSelection: ->
+    @mutateSelectedText (selection) -> selection.toggleLineComments()
+
   cutToEndOfLine: ->
     maintainPasteboard = false
     @mutateSelectedText (selection) ->
