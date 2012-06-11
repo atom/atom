@@ -183,6 +183,26 @@ void NativeHandler::ReadFromPasteboard(const CefString& name,
 	retval = CefV8Value::CreateString(content);
 }
 
+void NativeHandler::AsyncList(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+	string path = arguments[0]->GetStringValue().ToString();
+	bool recursive = arguments[1]->GetBoolValue();
+	vector < string > *paths = new vector<string>;
+	ListDirectory(path, paths, recursive);
+
+	CefRefPtr<CefV8Value> callbackPaths = CefV8Value::CreateArray();
+	for (uint i = 0; i < paths->size(); i++)
+		callbackPaths->SetValue(i, CefV8Value::CreateString(paths->at(i)));
+	CefV8ValueList args;
+	args.push_back(callbackPaths);
+	CefRefPtr<CefV8Exception> e;
+	arguments[2]->ExecuteFunction(arguments[2], args, retval, e, true);
+	if (e)
+		exception = e->GetMessage();
+	free (paths);
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -210,6 +230,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		WriteToPasteboard(name, object, arguments, retval, exception);
 	else if (name == "readFromPasteboard")
 		ReadFromPasteboard(name, object, arguments, retval, exception);
+	else if (name == "asyncList")
+		AsyncList(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
