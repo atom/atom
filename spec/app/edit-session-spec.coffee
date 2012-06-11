@@ -1,7 +1,7 @@
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-fdescribe "EditSession", ->
+describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
   beforeEach ->
