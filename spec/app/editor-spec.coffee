@@ -292,6 +292,25 @@ describe "Editor", ->
       editor.loadNextEditSession()
       expect(editor.buffer.path).toBe "2"
 
+    it "restores scroll postion of edit session", ->
+      editor.attachToDom(heightInLines: 12)
+      buffer1 = editor.buffer
+      firstScrollTop = editor.scrollView.scrollTop()
+
+      buffer2 = new Buffer(require.resolve('fixtures/two-hundred.txt'))
+      editor.setBuffer(buffer2)
+      editor.moveCursorToBottom()
+      secondScrollTop = editor.scrollView.scrollTop()
+
+      expect(firstScrollTop).not.toEqual secondScrollTop
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe buffer1.path
+      expect(editor.scrollView.scrollTop()).toBe firstScrollTop
+
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe buffer2.path
+      expect(editor.scrollView.scrollTop()).toBe secondScrollTop
+
   describe ".loadPreviousEditSession()", ->
     it "loads the next editor state and wraps to beginning when end is reached", ->
       buffer0 = new Buffer("0")

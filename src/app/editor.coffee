@@ -285,7 +285,7 @@ class Editor extends View
   scrollTop: (scrollTop, options) ->
     return @cachedScrollTop or 0 unless scrollTop?
 
-    maxScrollTop = @scrollView.prop('scrollHeight') - @scrollView.height()
+    maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
     scrollTop = Math.floor(Math.min(maxScrollTop, Math.max(0, scrollTop)))
 
     return if scrollTop == @cachedScrollTop
@@ -293,7 +293,7 @@ class Editor extends View
 
     @updateRenderedLines() if @attached
 
-    @scrollView.scrollTop(scrollTop)
+    @renderedLines.css('top', -scrollTop)
     @gutter.scrollTop(scrollTop)
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
