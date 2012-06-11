@@ -74,15 +74,22 @@ void NativeHandler::Absolute(const CefString& name,
 void ListDirectory(string path, vector<string>* paths, bool recursive) {
 	dirent **children;
 	int childrenCount = scandir(path.c_str(), &children, 0, alphasort);
+	struct stat statResult;
+	int result;
+
 	for (int i = 0; i < childrenCount; i++) {
-		if (strcmp(children[i]->d_name, ".") == 0)
+		if (strcmp(children[i]->d_name, ".") == 0
+				|| strcmp(children[i]->d_name, "..") == 0) {
+			free(children[i]);
 			continue;
-		if (strcmp(children[i]->d_name, "..") == 0)
-			continue;
+		}
 		string entryPath(path + "/" + children[i]->d_name);
 		paths->push_back(entryPath);
-		if (recursive)
-			ListDirectory(entryPath, paths, recursive);
+		if (recursive) {
+			result = stat(entryPath.c_str(), &statResult);
+			if (result == 0 && S_ISDIR(statResult.st_mode))
+				ListDirectory(entryPath, paths, recursive);
+		}
 		free(children[i]);
 	}
 	free(children);
@@ -179,7 +186,6 @@ void NativeHandler::ReadFromPasteboard(const CefString& name,
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
-
 	if (name == "exists")
 		Exists(name, object, arguments, retval, exception);
 	else if (name == "read")
