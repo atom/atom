@@ -19,15 +19,11 @@ class CompositeCursor
     @editor.renderedLines.append(cursor)
     cursor
 
-  viewForCursor: (cursor) ->
-    for view in @getCursors()
-      return view if view.cursor == cursor
+  removeCursorView: (cursorView) ->
+    _.remove(@cursors, cursorView)
 
   removeAllCursorViews: ->
     cursor.remove() for cursor in @getCursorViews()
-
-  removeCursor: (cursor) ->
-    _.remove(@cursors, cursor)
 
   updateAppearance: ->
     cursor.updateAppearance() for cursor in @cursors

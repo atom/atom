@@ -28,7 +28,7 @@ class CursorView extends View
     @editor.syncCursorAnimations()
 
   remove: ->
-    @editor.compositeCursor.removeCursor(this)
+    @editor.compositeCursor.removeCursorView(this)
     @cursor.off()
     super
 
