@@ -16,13 +16,13 @@ module.exports =
 
     @afterSubscribe?()
 
-  trigger: (eventName, event) ->
+  trigger: (eventName, args...) ->
     [eventName, namespace] = eventName.split('.')
 
     if namespace
-      @eventHandlersByNamespace?[namespace]?[eventName]?.forEach (handler) -> handler(event)
+      @eventHandlersByNamespace?[namespace]?[eventName]?.forEach (handler) -> handler(args...)
     else
-      @eventHandlersByEventName?[eventName]?.forEach (handler) -> handler(event)
+      @eventHandlersByEventName?[eventName]?.forEach (handler) -> handler(args...)
 
   off: (eventName='', handler) ->
     [eventName, namespace] = eventName.split('.')

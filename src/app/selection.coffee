@@ -1,30 +1,29 @@
-Anchor = require 'anchor'
-AceOutdentAdaptor = require 'ace-outdent-adaptor'
-Point = require 'point'
 Range = require 'range'
-{View, $$} = require 'space-pen'
+Anchor = require 'new-anchor'
+EventEmitter = require 'event-emitter'
+AceOutdentAdaptor = require 'ace-outdent-adaptor'
+_ = require 'underscore'
 
 module.exports =
-class Selection extends View
-  @content: ->
-    @div()
-
+class Selection
   anchor: null
-  retainSelection: null
-  regions: null
 
-  initialize: ({@editor, @cursor} = {}) ->
-    @regions = []
+  constructor: ({@cursor, @editSession}) ->
+    @cursor.selection = this
 
-  handleBufferChange: (e) ->
-    return unless @anchor
-    @anchor.handleBufferChange(e)
-    @updateAppearance()
+    @cursor.on 'change-screen-position.selection', (e) =>
+      @trigger 'change-screen-range', @getScreenRange() unless e.bufferChanged
 
-  placeAnchor: ->
-    return if @anchor
-    @anchor = new Anchor(@editor)
-    @anchor.setScreenPosition @cursor.getScreenPosition()
+    @cursor.on 'destroy.selection', =>
+      @cursor = null
+      @destroy()
+
+  destroy: ->
+    if @cursor
+      @cursor.off('.selection')
+      @cursor.destroy()
+    @editSession.removeSelection(this)
+    @trigger 'destroy'
 
   isEmpty: ->
     @getBufferRange().isEmpty()
@@ -32,159 +31,45 @@ class Selection extends View
   isReversed: ->
     not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchor.getBufferPosition())
 
-  intersectsWith: (otherSelection) ->
-    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
-
-  clearSelection: ->
-    @anchor = null
-    @updateAppearance()
-
-  updateAppearance: ->
-    return unless @cursor
-
-    @clearRegions()
-
-    range = @getScreenRange()
-
-    @editor.highlightSelectedFolds()
-    return if range.isEmpty()
-
-    rowSpan = range.end.row - range.start.row
-
-    if rowSpan == 0
-      @appendRegion(1, range.start, range.end)
-    else
-      @appendRegion(1, range.start, null)
-      if rowSpan > 1
-        @appendRegion(rowSpan - 1, { row: range.start.row + 1, column: 0}, null)
-      @appendRegion(1, { row: range.end.row, column: 0 }, range.end)
-
-
-  appendRegion: (rows, start, end) ->
-    { lineHeight, charWidth } = @editor
-    css = @editor.pixelPositionForScreenPosition(start)
-    css.height = lineHeight * rows
-    if end
-      css.width = @editor.pixelPositionForScreenPosition(end).left - css.left
-    else
-      css.right = 0
-
-    region = ($$ -> @div class: 'selection').css(css)
-    @append(region)
-    @regions.push(region)
-
-  clearRegions: ->
-    region.remove() for region in @regions
-    @regions = []
-
   getScreenRange: ->
     if @anchor
       new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())
     else
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
-  setScreenRange: (range, {reverse}={}) ->
-    range = Range.fromObject(range)
-    { start, end } = range
-    [start, end] = [end, start] if reverse
+  setScreenRange: (screenRange, options={}) ->
+    screenRange = Range.fromObject(screenRange)
+    { start, end } = screenRange
+    [start, end] = [end, start] if options.reverse
 
-    @cursor.setScreenPosition(start)
-    @modifySelection => @cursor.setScreenPosition(end)
+    @modifyScreenRange =>
+      @placeAnchor() unless @anchor
+      @modifySelection =>
+        @anchor.setScreenPosition(start)
+        @cursor.setScreenPosition(end)
+
+  setBufferRange: (bufferRange, options={}) ->
+    bufferRange = Range.fromObject(bufferRange)
+    { start, end } = bufferRange
+    [start, end] = [end, start] if options.reverse
+
+    @modifyScreenRange =>
+      @placeAnchor() unless @anchor
+      @modifySelection =>
+        @anchor.setBufferPosition(start, options)
+        @cursor.setBufferPosition(end, options)
 
   getBufferRange: ->
-    @editor.bufferRangeForScreenRange(@getScreenRange())
-
-  setBufferRange: (bufferRange, options) ->
-    @setScreenRange(@editor.screenRangeForBufferRange(bufferRange), options)
+    if @anchor
+      new Range(@anchor.getBufferPosition(), @cursor.getBufferPosition())
+    else
+      new Range(@cursor.getBufferPosition(), @cursor.getBufferPosition())
 
   getText: ->
-    @editor.buffer.getTextInRange @getBufferRange()
+    @editSession.buffer.getTextInRange(@getBufferRange())
 
-  intersectsBufferRange: (bufferRange) ->
-    @getBufferRange().intersectsWith(bufferRange)
-
-  insertText: (text) ->
-    { text, shouldOutdent } = @autoIndentText(text)
-    oldBufferRange = @getBufferRange()
-    @editor.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
-    wasReversed = @isReversed()
-    @clearSelection()
-    newBufferRange = @editor.buffer.change(oldBufferRange, text)
-    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
-    @autoOutdentText() if shouldOutdent
-
-  indentSelectedRows: ->
-    range = @getBufferRange()
-    for row in [range.start.row..range.end.row]
-      @editor.buffer.insert([row, 0], @editor.tabText) unless @editor.buffer.lineLengthForRow(row) == 0
-
-  outdentSelectedRows: ->
-    range = @getBufferRange()
-    buffer = @editor.buffer
-    leadingTabRegex = new RegExp("^#{@editor.tabText}")
-    for row in [range.start.row..range.end.row]
-      if leadingTabRegex.test buffer.lineForRow(row)
-        buffer.delete [[row, 0], [row, @editor.tabText.length]]
-
-  toggleLineComments: ->
-    @modifySelection =>
-      @editor.toggleLineCommentsInRange(@getBufferRange())
-
-  autoIndentText: (text) ->
-    if @editor.autoIndent
-      mode = @editor.getCurrentMode()
-      row = @cursor.getScreenPosition().row
-      state = @editor.stateForScreenRow(row)
-      lineBeforeCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
-      if text[0] == "\n"
-        indent = mode.getNextLineIndent(state, lineBeforeCursor, @editor.tabText)
-        text = text[0] + indent + text[1..]
-      else if mode.checkOutdent(state, lineBeforeCursor, text)
-        shouldOutdent = true
-
-    {text, shouldOutdent}
-
-  autoOutdentText: ->
-    screenRow = @cursor.getScreenPosition().row
-    bufferRow = @cursor.getBufferPosition().row
-    state = @editor.renderer.lineForRow(screenRow).state
-    @editor.getCurrentMode().autoOutdent(state, new AceOutdentAdaptor(@editor.buffer, @editor), bufferRow)
-
-  backspace: ->
-    @editor.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
-    @selectLeft() if @isEmpty()
-    @deleteSelectedText()
-
-  backspaceToBeginningOfWord: ->
-    @selectToBeginningOfWord() if @isEmpty()
-    @deleteSelectedText()
-
-  delete: ->
-    @selectRight() if @isEmpty()
-    @deleteSelectedText()
-
-  deleteToEndOfWord: ->
-    @selectToEndOfWord() if @isEmpty()
-    @deleteSelectedText()
-
-  deleteSelectedText: ->
-    range = @getBufferRange()
-    @editor.buffer.delete(range) unless range.isEmpty()
-    @clearSelection()
-
-  merge: (otherSelection, options) ->
-    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
-    otherSelection.remove()
-
-  remove: ->
-    @cursor?.remove()
-    super
-
-  modifySelection: (fn) ->
-    @placeAnchor()
-    @retainSelection = true
-    fn()
-    @retainSelection = false
+  clear: ->
+    @modifyScreenRange => @anchor = null
 
   selectWord: ->
     @setBufferRange(@cursor.getCurrentWordBufferRange())
@@ -193,7 +78,7 @@ class Selection extends View
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
   selectLine: (row=@cursor.getBufferPosition().row) ->
-    @setBufferRange(@editor.rangeForBufferRow(row))
+    @setBufferRange(@editSession.bufferRangeForBufferRow(row))
 
   expandOverLine: ->
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))
@@ -220,7 +105,7 @@ class Selection extends View
     @modifySelection => @cursor.moveToBottom()
 
   selectAll: ->
-    @setBufferRange(@editor.buffer.getRange())
+    @setBufferRange(@editSession.buffer.getRange())
 
   selectToBeginningOfLine: ->
     @modifySelection => @cursor.moveToBeginningOfLine()
@@ -234,6 +119,55 @@ class Selection extends View
   selectToEndOfWord: ->
     @modifySelection => @cursor.moveToEndOfWord()
 
+  insertText: (text) ->
+    { text, shouldOutdent } = @autoIndentText(text)
+    oldBufferRange = @getBufferRange()
+    @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
+    wasReversed = @isReversed()
+    @clear()
+    newBufferRange = @editSession.buffer.change(oldBufferRange, text)
+    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
+    @autoOutdentText() if shouldOutdent
+
+  backspace: ->
+    @editSession.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
+    @selectLeft() if @isEmpty()
+    @deleteSelectedText()
+
+  backspaceToBeginningOfWord: ->
+    @selectToBeginningOfWord() if @isEmpty()
+    @deleteSelectedText()
+
+  delete: ->
+    @selectRight() if @isEmpty()
+    @deleteSelectedText()
+
+  deleteToEndOfWord: ->
+    @selectToEndOfWord() if @isEmpty()
+    @deleteSelectedText()
+
+  deleteSelectedText: ->
+    bufferRange = @getBufferRange()
+    @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
+    @clear() if @cursor
+
+  indentSelectedRows: ->
+    range = @getBufferRange()
+    for row in [range.start.row..range.end.row]
+      @editSession.buffer.insert([row, 0], @editSession.tabText) unless @editSession.buffer.lineLengthForRow(row) == 0
+
+  outdentSelectedRows: ->
+    range = @getBufferRange()
+    buffer = @editSession.buffer
+    leadingTabRegex = new RegExp("^#{@editSession.tabText}")
+    for row in [range.start.row..range.end.row]
+      if leadingTabRegex.test buffer.lineForRow(row)
+        buffer.delete [[row, 0], [row, @editSession.tabText.length]]
+
+  toggleLineComments: ->
+    @modifySelection =>
+      @editSession.toggleLineCommentsInRange(@getBufferRange())
+
   cutToEndOfLine: (maintainPasteboard) ->
     @selectToEndOfLine() if @isEmpty()
     @cut(maintainPasteboard)
@@ -244,11 +178,66 @@ class Selection extends View
 
   copy: (maintainPasteboard=false) ->
     return if @isEmpty()
-    text = @editor.buffer.getTextInRange(@getBufferRange())
+    text = @editSession.buffer.getTextInRange(@getBufferRange())
     text = $native.readFromPasteboard() + "\n" + text if maintainPasteboard
     $native.writeToPasteboard text
 
   fold: ->
     range = @getBufferRange()
-    @editor.createFold(range.start.row, range.end.row)
+    @editSession.createFold(range.start.row, range.end.row)
     @cursor.setBufferPosition([range.end.row + 1, 0])
+
+  autoIndentText: (text) ->
+    if @editSession.autoIndentEnabled()
+      mode = @editSession.getCurrentMode()
+      row = @cursor.getCurrentScreenRow()
+      state = @editSession.stateForScreenRow(row)
+      lineBeforeCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
+      if text[0] == "\n"
+        indent = mode.getNextLineIndent(state, lineBeforeCursor, @editSession.tabText)
+        text = text[0] + indent + text[1..]
+      else if mode.checkOutdent(state, lineBeforeCursor, text)
+        shouldOutdent = true
+
+    {text, shouldOutdent}
+
+  autoOutdentText: ->
+    screenRow = @cursor.getCurrentScreenRow()
+    bufferRow = @cursor.getCurrentBufferRow()
+    state = @editSession.stateForScreenRow(screenRow)
+    @editSession.getCurrentMode().autoOutdent(state, new AceOutdentAdaptor(@editSession), bufferRow)
+
+  handleBufferChange: (e) ->
+    @modifyScreenRange =>
+      @anchor?.handleBufferChange(e)
+      @cursor.handleBufferChange(e)
+
+  modifySelection: (fn) ->
+    @retainSelection = true
+    @view?.retainSelection = true
+    @placeAnchor() unless @anchor
+    fn()
+    @retainSelection = false
+    @view?.retainSelection = false
+
+  modifyScreenRange: (fn) ->
+    oldScreenRange = @getScreenRange()
+    fn()
+    newScreenRange = @getScreenRange()
+    @trigger 'change-screen-range', newScreenRange unless oldScreenRange.isEqual(newScreenRange)
+
+  placeAnchor: ->
+    @anchor = new Anchor(@editSession)
+    @anchor.setScreenPosition(@cursor.getScreenPosition())
+
+  intersectsBufferRange: (bufferRange) ->
+    @getBufferRange().intersectsWith(bufferRange)
+
+  intersectsWith: (otherSelection) ->
+    @getScreenRange().intersectsWith(otherSelection.getScreenRange())
+
+  merge: (otherSelection, options) ->
+    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
+    otherSelection.destroy()
+
+_.extend Selection.prototype, EventEmitter

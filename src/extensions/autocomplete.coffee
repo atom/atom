@@ -87,7 +87,7 @@ class Autocomplete extends View
 
   confirm: ->
     @confirmed = true
-    @editor.getSelection().clearSelection()
+    @editor.getSelection().clear()
     @detach()
     return unless match = @selectedMatch()
     position = @editor.getCursorBufferPosition()

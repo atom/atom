@@ -3,7 +3,7 @@ Editor = require 'editor'
 Range = require 'range'
 
 describe "Selection", ->
-  [editor, buffer, selection] = []
+  [editor, buffer, selectionView, selection] = []
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
@@ -11,6 +11,8 @@ describe "Selection", ->
     editor.enableKeymap()
     editor.setBuffer(buffer)
     editor.isFocused = true
+
+    selectionView = editor.getSelectionView()
     selection = editor.getSelection()
 
   describe ".setBufferRange(range)", ->
@@ -57,7 +59,7 @@ describe "Selection", ->
         expect(editor.buffer.lineForRow(0)).toBe "var  = function () {"
         expect(selection.isEmpty()).toBeTruthy()
 
-        expect(selection.find('.selection')).not.toExist()
+        expect(selectionView.find('.selection')).not.toExist()
 
   describe ".updateAppearence()", ->
     [charWidth, lineHeight] = []
@@ -71,8 +73,8 @@ describe "Selection", ->
       it "covers the selection's range with a single region", ->
         selection.setBufferRange(new Range({row: 2, column: 7}, {row: 2, column: 25}))
 
-        expect(selection.regions.length).toBe 1
-        region = selection.regions[0]
+        expect(selectionView.regions.length).toBe 1
+        region = selectionView.regions[0]
         expect(region.position().top).toBe(2 * lineHeight)
         expect(region.position().left).toBe(7 * charWidth)
         expect(region.height()).toBe lineHeight
@@ -82,15 +84,15 @@ describe "Selection", ->
       it "covers the selection's range with 2 regions", ->
         selection.setBufferRange(new Range({row: 2, column: 7}, {row: 3, column: 25}))
 
-        expect(selection.regions.length).toBe 2
+        expect(selectionView.regions.length).toBe 2
 
-        region1 = selection.regions[0]
+        region1 = selectionView.regions[0]
         expect(region1.position().top).toBe(2 * lineHeight)
         expect(region1.position().left).toBe(7 * charWidth)
         expect(region1.height()).toBe lineHeight
         expect(region1.width()).toBe(editor.renderedLines.width() - region1.position().left)
 
-        region2 = selection.regions[1]
+        region2 = selectionView.regions[1]
         expect(region2.position().top).toBe(3 * lineHeight)
         expect(region2.position().left).toBe(0)
         expect(region2.height()).toBe lineHeight
@@ -100,15 +102,15 @@ describe "Selection", ->
       it "covers the selection's range with 3 regions", ->
         selection.setBufferRange(new Range({row: 2, column: 7}, {row: 6, column: 25}))
 
-        expect(selection.regions.length).toBe 3
+        expect(selectionView.regions.length).toBe 3
 
-        region1 = selection.regions[0]
+        region1 = selectionView.regions[0]
         expect(region1.position().top).toBe(2 * lineHeight)
         expect(region1.position().left).toBe(7 * charWidth)
         expect(region1.height()).toBe lineHeight
         expect(region1.width()).toBe(editor.renderedLines.width() - region1.position().left)
 
-        region2 = selection.regions[1]
+        region2 = selectionView.regions[1]
         expect(region2.position().top).toBe(3 * lineHeight)
         expect(region2.position().left).toBe(0)
         expect(region2.height()).toBe(3 * lineHeight)
@@ -119,7 +121,7 @@ describe "Selection", ->
         editor.width(800)
         expect(region2.width()).toBe(editor.renderedLines.width())
 
-        region3 = selection.regions[2]
+        region3 = selectionView.regions[2]
         expect(region3.position().top).toBe(6 * lineHeight)
         expect(region3.position().left).toBe(0)
         expect(region3.height()).toBe lineHeight
@@ -127,12 +129,12 @@ describe "Selection", ->
 
     it "clears previously drawn regions before creating new ones", ->
       selection.setBufferRange(new Range({row: 2, column: 7}, {row: 4, column: 25}))
-      expect(selection.regions.length).toBe 3
-      expect(selection.find('.selection').length).toBe 3
+      expect(selectionView.regions.length).toBe 3
+      expect(selectionView.find('.selection').length).toBe 3
 
-      selection.updateAppearance()
-      expect(selection.regions.length).toBe 3
-      expect(selection.find('.selection').length).toBe 3
+      selectionView.updateAppearance()
+      expect(selectionView.regions.length).toBe 3
+      expect(selectionView.find('.selection').length).toBe 3
 
   describe ".cut()", ->
     beforeEach ->
@@ -297,7 +299,7 @@ describe "Selection", ->
       selection.setBufferRange([[4, 0], [4, 0]])
       selection.toggleLineComments()
       expect(selection.isEmpty()).toBeTruthy()
-      expect(selection.find('.selection')).not.toExist()
+      expect(selectionView.find('.selection')).not.toExist()
 
   describe "when the selection ends on the begining of a fold line", ->
     beforeEach ->
@@ -307,7 +309,7 @@ describe "Selection", ->
     describe "inserting text", ->
       it "destroys the fold", ->
         selection.setBufferRange([[1,0], [2,0]])
-        selection.insertText('holy cow')
+        editor.insertText('holy cow')
         expect(editor.screenLineForRow(3).text).toBe buffer.lineForRow(3)
 
     describe "backspace", ->

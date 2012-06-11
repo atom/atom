@@ -1,12 +1,12 @@
 {View, $$} = require 'space-pen'
 Buffer = require 'buffer'
-CompositeCursor = require 'composite-cursor'
-CompositeSelection = require 'composite-selection'
 Gutter = require 'gutter'
 Renderer = require 'renderer'
 Point = require 'point'
 Range = require 'range'
 EditSession = require 'edit-session'
+CursorView = require 'cursor-view'
+SelectionView = require 'selection-view'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -36,8 +36,8 @@ class Editor extends View
   lineHeight: null
   charWidth: null
   charHeight: null
-  cursor: null
-  selection: null
+  cursorViews: null
+  selectionViews: null
   buffer: null
   renderer: null
   autoIndent: null
@@ -64,8 +64,9 @@ class Editor extends View
     @lineCache = []
     @bindKeys()
     @autoIndent = true
-    @buildCursorAndSelection()
     @handleEvents()
+    @cursorViews = []
+    @selectionViews = []
     @editSessions = []
 
     if buffer?
@@ -144,18 +145,14 @@ class Editor extends View
       do (name, method) =>
         @on name, => method.call(this); false
 
-  buildCursorAndSelection: ->
-    @compositeSelection = new CompositeSelection(this)
-    @compositeCursor = new CompositeCursor(this)
+  addCursor: ->
+    @activeEditSession.addCursorAtScreenPosition([0, 0])
 
   addCursorAtScreenPosition: (screenPosition) ->
-    @compositeCursor.addCursorAtScreenPosition(screenPosition)
+    @activeEditSession.addCursorAtScreenPosition(screenPosition)
 
   addCursorAtBufferPosition: (bufferPosition) ->
-    @compositeCursor.addCursorAtBufferPosition(bufferPosition)
-
-  addSelectionForCursor: (cursor) ->
-    @compositeSelection.addSelectionForCursor(cursor)
+    @activeEditSession.addCursorAtBufferPosition(bufferPosition)
 
   handleEvents: ->
     @on 'focus', =>
@@ -188,14 +185,14 @@ class Editor extends View
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
         if e.shiftKey
-          @compositeSelection.getLastSelection().expandOverWord()
+          @activeEditSession.getLastSelection().expandOverWord()
         else
-          @compositeSelection.getLastSelection().selectWord()
+          @activeEditSession.getLastSelection().selectWord()
       else if clickCount >= 3
         if e.shiftKey
-          @compositeSelection.getLastSelection().expandOverLine()
+          @activeEditSession.getLastSelection().expandOverLine()
         else
-          @compositeSelection.getLastSelection().selectLine()
+          @activeEditSession.getLastSelection().selectLine()
 
       @selectOnMousemoveUntilMouseup()
 
@@ -230,9 +227,36 @@ class Editor extends View
     @setSoftWrapColumn() if @softWrap
     @prepareForScrolling()
     @setScrollPositionFromActiveEditSession() # this also renders the visible lines
+    @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
     $(window).on "resize.editor#{@id}", => @updateRenderedLines()
     @focus() if @isFocused
     @trigger 'editor-open', [this]
+
+  addCursorView: (cursor) ->
+    cursorView = new CursorView(cursor, this)
+    @cursorViews.push(cursorView)
+    @renderedLines.append(cursorView)
+    cursorView
+
+  removeCursorView: (cursorView) ->
+    _.remove(@cursorViews, cursorView)
+
+  updateCursorViews: ->
+    for cursorView in @getCursorViews()
+      cursorView.updateAppearance()
+
+  addSelectionView: (selection) ->
+    selectionView = new SelectionView({editor: this, selection})
+    @selectionViews.push(selectionView)
+    @renderedLines.append(selectionView)
+    selectionView
+
+  selectionViewForCursor: (cursor) ->
+    for selectionView in @selectionViews
+      return selectionView if selectionView.selection.cursor == cursor
+
+  removeSelectionView: (selectionView) ->
+    _.remove(@selectionViews, selectionView)
 
   rootView: ->
     @parents('#root-view').view()
@@ -242,8 +266,8 @@ class Editor extends View
     @on 'mousemove', moveHandler
     $(document).one 'mouseup', =>
       @off 'mousemove', moveHandler
-      reverse = @compositeSelection.getLastSelection().isReversed()
-      @compositeSelection.mergeIntersectingSelections({reverse})
+      reverse = @activeEditSession.getLastSelection().isReversed()
+      @activeEditSession.mergeIntersectingSelections({reverse})
       @syncCursorAnimations()
 
   prepareForScrolling: ->
@@ -286,7 +310,7 @@ class Editor extends View
       if fold = screenLine.fold
         screenRow = @firstRenderedScreenRow + i
         element = @lineElementForScreenRow(screenRow)
-        if @compositeSelection.intersectsBufferRange(fold.getBufferRange())
+        if @activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
           element.addClass('selected')
         else
           element.removeClass('selected')
@@ -317,17 +341,6 @@ class Editor extends View
 
   setBuffer: (buffer) ->
     @activateEditSessionForBuffer(buffer)
-
-  setRenderer: (renderer) ->
-    @renderer?.off()
-    @renderer = renderer
-    @renderer.on 'change', (e) => @handleRendererChange(e)
-
-    @unsubscribeFromBuffer() if @buffer
-    @buffer = renderer.buffer
-    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
-    @buffer.on "change.editor#{@id}", (e) => @handleBufferChange(e)
-    @trigger 'editor-path-change'
 
   activateEditSessionForBuffer: (buffer) ->
     index = @editSessionIndexForBuffer(buffer)
@@ -362,17 +375,38 @@ class Editor extends View
   setActiveEditSessionIndex: (index) ->
     throw new Error("Edit session not found") unless @editSessions[index]
 
-    @saveActiveEditSession() if @activeEditSession
+    if @activeEditSession
+      @saveActiveEditSession()
+      @removeAllCursorViews()
+      @activeEditSession.off()
 
     @activeEditSession = @editSessions[index]
     @activeEditSessionIndex = index
 
-    @setRenderer(@activeEditSession.getRenderer())
+    @unsubscribeFromBuffer() if @buffer
+    @buffer = @activeEditSession.buffer
+    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
+    @trigger 'editor-path-change'
+
+    @renderer = @activeEditSession.renderer
+
     if @attached
       @prepareForScrolling()
       @setScrollPositionFromActiveEditSession()
       @renderLines()
-    @setCursorScreenPosition(@activeEditSession.cursorScreenPosition ? [0, 0])
+      @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
+
+    for cursor in @activeEditSession.getCursors()
+      @addCursorView(cursor)
+
+    for selection in @activeEditSession.getSelections()
+      @addSelectionView(selection)
+
+    @activeEditSession.on 'add-cursor', (cursor) =>
+      @addCursorView(cursor)
+
+    @activeEditSession.on 'add-selection', (selection) =>
+      @addSelectionView(selection)
 
   destroyEditSessions: ->
     session.destroy() for session in @editSessions
@@ -440,10 +474,6 @@ class Editor extends View
   getLastVisibleScreenRow: ->
     Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
-  handleBufferChange: (e) ->
-    @compositeCursor.handleBufferChange(e)
-    @compositeSelection.handleBufferChange(e)
-
   handleRendererChange: (e) ->
     oldScreenRange = e.oldRange
     newScreenRange = e.newRange
@@ -485,19 +515,17 @@ class Editor extends View
         @lastRenderedScreenRow = maxEndRow
         @updatePaddingOfRenderedLines()
 
-    @compositeCursor.updateBufferPosition() unless e.bufferChanged
-
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
     charHeight = @charHeight
     lines = @renderer.linesForRows(startRow, endRow)
-    compositeSelection = @compositeSelection
+    activeEditSession = @activeEditSession
 
     $$ ->
       for line in lines
         if fold = line.fold
           lineAttributes = { class: 'fold line', 'fold-id': fold.id }
-          if compositeSelection.intersectsBufferRange(fold.getBufferRange())
+          if activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
             lineAttributes.class += ' selected'
         else
           lineAttributes = { class: 'line' }
@@ -635,53 +663,69 @@ class Editor extends View
     if fontSize
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
-      @compositeCursor.updateAppearance()
+      @updateCursorViews()
       @updateRenderedLines()
 
-  getCursors: -> @compositeCursor.getCursors()
-  moveCursorUp: -> @compositeCursor.moveUp()
-  moveCursorDown: -> @compositeCursor.moveDown()
-  moveCursorRight: -> @compositeCursor.moveRight()
-  moveCursorLeft: -> @compositeCursor.moveLeft()
-  moveCursorToNextWord: -> @compositeCursor.moveToNextWord()
-  moveCursorToBeginningOfWord: -> @compositeCursor.moveToBeginningOfWord()
-  moveCursorToEndOfWord: -> @compositeCursor.moveToEndOfWord()
-  moveCursorToTop: -> @compositeCursor.moveToTop()
-  moveCursorToBottom: -> @compositeCursor.moveToBottom()
-  moveCursorToBeginningOfLine: -> @compositeCursor.moveToBeginningOfLine()
-  moveCursorToFirstCharacterOfLine: -> @compositeCursor.moveToFirstCharacterOfLine()
-  moveCursorToEndOfLine: -> @compositeCursor.moveToEndOfLine()
-  setCursorScreenPosition: (position) -> @compositeCursor.setScreenPosition(position)
-  getCursorScreenPosition: -> @compositeCursor.getCursor().getScreenPosition()
-  setCursorBufferPosition: (position) -> @compositeCursor.setBufferPosition(position)
-  getCursorBufferPosition: -> @compositeCursor.getCursor().getBufferPosition()
+  getCursorView: (index) ->
+    index ?= @cursorViews.length - 1
+    @cursorViews[index]
 
-  getSelection: (index) -> @compositeSelection.getSelection(index)
-  getSelections: -> @compositeSelection.getSelections()
-  getSelectionsOrderedByBufferPosition: -> @compositeSelection.getSelectionsOrderedByBufferPosition()
-  getLastSelectionInBuffer: -> @compositeSelection.getLastSelectionInBuffer()
-  getSelectedText: -> @compositeSelection.getSelection().getText()
-  setSelectionBufferRange: (bufferRange, options) -> @compositeSelection.setBufferRange(bufferRange, options)
-  setSelectedBufferRanges: (bufferRanges) -> @compositeSelection.setBufferRanges(bufferRanges)
-  addSelectionForBufferRange: (bufferRange, options) -> @compositeSelection.addSelectionForBufferRange(bufferRange, options)
-  selectRight: -> @compositeSelection.selectRight()
-  selectLeft: -> @compositeSelection.selectLeft()
-  selectUp: -> @compositeSelection.selectUp()
-  selectDown: -> @compositeSelection.selectDown()
-  selectToTop: -> @compositeSelection.selectToTop()
-  selectToBottom: -> @compositeSelection.selectToBottom()
-  selectAll: -> @compositeSelection.selectAll()
-  selectToBeginningOfLine: -> @compositeSelection.selectToBeginningOfLine()
-  selectToEndOfLine: -> @compositeSelection.selectToEndOfLine()
-  selectToBeginningOfWord: -> @compositeSelection.selectToBeginningOfWord()
-  selectToEndOfWord: -> @compositeSelection.selectToEndOfWord()
-  selectToScreenPosition: (position) -> @compositeSelection.selectToScreenPosition(position)
-  clearSelections: -> @compositeSelection.clearSelections()
-  backspace: -> @compositeSelection.backspace()
-  backspaceToBeginningOfWord: -> @compositeSelection.backspaceToBeginningOfWord()
-  delete: -> @compositeSelection.delete()
-  deleteToEndOfWord: -> @compositeSelection.deleteToEndOfWord()
-  cutToEndOfLine: -> @compositeSelection.cutToEndOfLine()
+  getCursorViews: ->
+    new Array(@cursorViews...)
+
+  removeAllCursorViews: ->
+    cursorView.remove() for cursorView in @getCursorViews()
+
+  getCursor: (index) -> @activeEditSession.getCursor(index)
+  getCursors: -> @activeEditSession.getCursors()
+  getLastCursor: -> @activeEditSession.getLastCursor()
+  moveCursorUp: -> @activeEditSession.moveCursorUp()
+  moveCursorDown: -> @activeEditSession.moveCursorDown()
+  moveCursorLeft: -> @activeEditSession.moveCursorLeft()
+  moveCursorRight: -> @activeEditSession.moveCursorRight()
+  moveCursorToNextWord: -> @activeEditSession.moveCursorToNextWord()
+  moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
+  moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
+  moveCursorToTop: -> @activeEditSession.moveCursorToTop()
+  moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
+  moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
+  moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
+  moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
+  setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
+  getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
+  setCursorBufferPosition: (position) -> @activeEditSession.setCursorBufferPosition(position)
+  getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
+
+  getSelectionView: (index) ->
+    index ?= @selectionViews.length - 1
+    @selectionViews[index]
+
+  getSelection: (index) -> @activeEditSession.getSelection(index)
+  getSelections: -> @activeEditSession.getSelections()
+  getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
+  getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
+  getSelectedText: -> @activeEditSession.getLastSelection().getText()
+  setSelectionBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
+  setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
+  addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
+  selectRight: -> @activeEditSession.selectRight()
+  selectLeft: -> @activeEditSession.selectLeft()
+  selectUp: -> @activeEditSession.selectUp()
+  selectDown: -> @activeEditSession.selectDown()
+  selectToTop: -> @activeEditSession.selectToTop()
+  selectToBottom: -> @activeEditSession.selectToBottom()
+  selectAll: -> @activeEditSession.selectAll()
+  selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
+  selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+  selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
+  selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
+  selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
+  clearSelections: -> @activeEditSession.clearSelections()
+  backspace: -> @activeEditSession.backspace()
+  backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
+  delete: -> @activeEditSession.delete()
+  deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
+  cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
@@ -695,7 +739,7 @@ class Editor extends View
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
   insertText: (text) ->
-    @compositeSelection.insertText(text)
+    @activeEditSession.insertText(text)
 
   insertNewline: ->
     @insertText('\n')
@@ -707,17 +751,17 @@ class Editor extends View
   insertTab: ->
     if @getSelection().isEmpty()
       if @softTabs
-        @compositeSelection.insertText(@tabText)
+        @insertText(@tabText)
       else
-        @compositeSelection.insertText('\t')
+        @insertText('\t')
     else
-      @compositeSelection.indentSelectedRows()
+      @activeEditSession.indentSelectedRows()
 
-  indentSelectedRows: -> @compositeSelection.indentSelectedRows()
-  outdentSelectedRows: -> @compositeSelection.outdentSelectedRows()
+  indentSelectedRows: -> @activeEditSession.indentSelectedRows()
+  outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
 
-  cutSelection: -> @compositeSelection.cut()
-  copySelection: -> @compositeSelection.copy()
+  cutSelection: -> @activeEditSession.cut()
+  copySelection: -> @activeEditSession.copy()
   paste: -> @insertText($native.readFromPasteboard())
 
   undo: ->
@@ -813,8 +857,8 @@ class Editor extends View
       @scrollView.scrollLeft(desiredLeft)
 
   syncCursorAnimations: ->
-    for cursor in @getCursors()
-      do (cursor) -> cursor.resetCursorAnimation()
+    for cursorView in @getCursorViews()
+      do (cursorView) -> cursorView.resetCursorAnimation()
 
   foldAll: ->
     @renderer.foldAll()
@@ -823,7 +867,7 @@ class Editor extends View
     row = @renderer.bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @renderer.toggleFoldAtBufferRow(row)
 
-  foldSelection: -> @getSelection().fold()
+  foldSelection: -> @activeEditSession.foldSelection()
 
   unfoldRow: (row) ->
     @renderer.largestFoldForBufferRow(row)?.destroy()
@@ -832,10 +876,7 @@ class Editor extends View
     @renderer.logLines(start, end)
 
   toggleLineCommentsInSelection: ->
-    @compositeSelection.toggleLineComments()
-
-  toggleLineCommentsInRange: (range) ->
-    @renderer.toggleLineCommentsInRange(range)
+    @activeEditSession.toggleLineCommentsInSelection()
 
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->

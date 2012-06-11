@@ -10,7 +10,7 @@ class CompositeCommand
       currentRanges = editor.getSelectionsOrderedByBufferPosition().map (selection) -> selection.getBufferRange()
       for currentRange in currentRanges
         newRanges.push(command.execute(editor, currentRange)...)
-      editor.setSelectedBufferRanges(newRanges)
+      editor.setSelectedBufferRanges(newRanges, clip: true)
 
   isRelativeAddress: ->
     _.all(@subcommands, (command) -> command.isAddress() and command.isRelative())
