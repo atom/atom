@@ -14,6 +14,12 @@ task :build => :"verify-prerequisites" do
   end
 end
 
+desc "Clean build Atom via `xcodebuild`"
+task :clean do
+  output = `xcodebuild clean SYMROOT=#{BUILD_DIR}`
+  rm_rf BUILD_DIR
+end
+
 desc "Create the Atom.app for distribution"
 task :package => :build do
   if path = application_path()
@@ -37,7 +43,7 @@ task :run => :build do
 end
 
 desc "Run the specs"
-task :test do
+task :test => :clean do
   $ATOM_ARGS.push "--test", "--headless"
   Rake::Task["run"].invoke
 end
@@ -69,22 +75,6 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
     end
 
     sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec #{dest}/benchmark"
-  end
-end
-
-desc "Change webkit frameworks to use @rpath as install name"
-task :"webkit-fix" do
-  for framework in FileList["frameworks/*.framework"]
-    name = framework[/\/([^.]+)/, 1]
-    executable = framework + "/" + name
-
-    `install_name_tool -id @rpath/#{name}.framework/Versions/A/#{name} #{executable}`
-
-    libs = `otool -L #{executable}`
-    for name in ["JavaScriptCore", "WebKit", "WebCore"]
-      _, path, suffix = *libs.match(/\t(\S+(#{name}.framework\S+))/i)
-      `install_name_tool -change #{path} @rpath/../Frameworks/#{suffix} #{executable}` if path
-    end
   end
 end
 
