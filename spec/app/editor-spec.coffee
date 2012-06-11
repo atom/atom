@@ -1917,7 +1917,7 @@ describe "Editor", ->
         expect(editor.screenLineForRow(0).fold).toBeDefined()
         expect(editor.screenLineForRow(1)).toBeUndefined()
 
-      it "maintains cursor buffer position when buffer is created/destroyed", ->
+      it "maintains cursor buffer position when a fold is created/destroyed", ->
         editor.setCursorBufferPosition([5,5])
         editor.trigger "fold-all"
         expect(editor.getCursorBufferPosition()).toEqual([5,5])
