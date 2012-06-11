@@ -14,6 +14,12 @@ task :build => :"verify-prerequisites" do
   end
 end
 
+desc "Clean build Atom via `xcodebuild`"
+task :clean do
+  output = `xcodebuild clean SYMROOT=#{BUILD_DIR}`
+  rm_rf BUILD_DIR
+end
+
 desc "Create the Atom.app for distribution"
 task :package => :build do
   if path = application_path()
@@ -37,7 +43,7 @@ task :run => :build do
 end
 
 desc "Run the specs"
-task :test do
+task :test => :clean do
   $ATOM_ARGS.push "--test", "--headless"
   Rake::Task["run"].invoke
 end
