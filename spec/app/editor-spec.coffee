@@ -292,6 +292,25 @@ describe "Editor", ->
       editor.loadNextEditSession()
       expect(editor.buffer.path).toBe "2"
 
+    it "restores scroll postion of edit session", ->
+      editor.attachToDom(heightInLines: 12)
+      buffer1 = editor.buffer
+      firstScrollTop = editor.scrollTop()
+
+      buffer2 = new Buffer(require.resolve('fixtures/two-hundred.txt'))
+      editor.setBuffer(buffer2)
+      editor.moveCursorToBottom()
+      secondScrollTop = editor.scrollTop()
+
+      expect(firstScrollTop).not.toEqual secondScrollTop
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe buffer1.path
+      expect(editor.scrollTop()).toBe firstScrollTop
+
+      editor.loadNextEditSession()
+      expect(editor.buffer.path).toBe buffer2.path
+      expect(editor.scrollTop()).toBe secondScrollTop
+
   describe ".loadPreviousEditSession()", ->
     it "loads the next editor state and wraps to beginning when end is reached", ->
       buffer0 = new Buffer("0")
@@ -313,19 +332,19 @@ describe "Editor", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5)
       expect(editor.verticalScrollbar.scrollTop()).toBe 0
-      expect(editor.renderedLines.css('-webkit-tranform')).toBeNull()
-      expect(editor.gutter.lineNumbers.css('-webkit-tranform')).toBeNull()
 
     describe "when called with a scroll top argument", ->
       it "sets the scrollTop of the vertical scrollbar and sets scrollTop on the line numbers and lines", ->
         editor.scrollTop(100)
         expect(editor.verticalScrollbar.scrollTop()).toBe 100
-        expect(editor.scrollView.scrollTop()).toBe 100
+        expect(editor.scrollView.scrollTop()).toBe 0
+        expect(editor.renderedLines.css('top')).toBe "-100px"
         expect(editor.gutter.scrollTop()).toBe 100
 
         editor.scrollTop(120)
         expect(editor.verticalScrollbar.scrollTop()).toBe 120
-        expect(editor.scrollView.scrollTop()).toBe 120
+        expect(editor.scrollView.scrollTop()).toBe 0
+        expect(editor.renderedLines.css('top')).toBe "-120px"
         expect(editor.gutter.scrollTop()).toBe 120
 
       it "does not allow negative scrollTops to be assigned", ->
@@ -347,7 +366,7 @@ describe "Editor", ->
         it "doesn't adjust the scrollTop of the vertical scrollbar", ->
           editor.scrollTop(100, adjustVerticalScrollbar: false)
           expect(editor.verticalScrollbar.scrollTop()).toBe 0
-          expect(editor.scrollView.scrollTop()).toBe 100
+          expect(editor.renderedLines.css('top')).toBe "-100px"
           expect(editor.gutter.scrollTop()).toBe 100
 
     describe "when called with no argument", ->
@@ -1035,7 +1054,7 @@ describe "Editor", ->
           expect(editor.scrollTop()).toBe(editor.lineHeight)
 
           editor.moveCursorUp()
-          expect(editor.scrollView.scrollTop()).toBe(0)
+          expect(editor.renderedLines.css('top')).toBe "0px"
 
       describe "horizontal scrolling", ->
         charWidth = null
