@@ -55,5 +55,5 @@ class SelectionView extends View
     @selection.getScreenRange()
 
   remove: (ignore) ->
-    @editor.compositeSelection.removeSelectionView(this)
+    @editor.removeSelectionView(this)
     super

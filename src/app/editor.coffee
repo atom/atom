@@ -1,12 +1,12 @@
 {View, $$} = require 'space-pen'
 Buffer = require 'buffer'
-CompositeCursor = require 'composite-cursor'
-CompositeSelection = require 'composite-selection'
 Gutter = require 'gutter'
 Renderer = require 'renderer'
 Point = require 'point'
 Range = require 'range'
 EditSession = require 'edit-session'
+CursorView = require 'cursor-view'
+SelectionView = require 'selection-view'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -36,8 +36,8 @@ class Editor extends View
   lineHeight: null
   charWidth: null
   charHeight: null
-  cursor: null
-  selection: null
+  cursorViews: null
+  selectionViews: null
   buffer: null
   renderer: null
   autoIndent: null
@@ -64,8 +64,9 @@ class Editor extends View
     @lineCache = []
     @bindKeys()
     @autoIndent = true
-    @buildCursorAndSelection()
     @handleEvents()
+    @cursorViews = []
+    @selectionViews = []
     @editSessions = []
 
     if buffer?
@@ -143,10 +144,6 @@ class Editor extends View
     for name, method of editorBindings
       do (name, method) =>
         @on name, => method.call(this); false
-
-  buildCursorAndSelection: ->
-    @compositeSelection = new CompositeSelection(this)
-    @compositeCursor = new CompositeCursor(this)
 
   addCursor: ->
     @activeEditSession.addCursorAtScreenPosition([0, 0])
@@ -234,6 +231,32 @@ class Editor extends View
     $(window).on "resize.editor#{@id}", => @updateRenderedLines()
     @focus() if @isFocused
     @trigger 'editor-open', [this]
+
+  addCursorView: (cursor) ->
+    cursorView = new CursorView(cursor, this)
+    @cursorViews.push(cursorView)
+    @renderedLines.append(cursorView)
+    cursorView
+
+  removeCursorView: (cursorView) ->
+    _.remove(@cursorViews, cursorView)
+
+  updateCursorViews: ->
+    for cursorView in @getCursorViews()
+      cursorView.updateAppearance()
+
+  addSelectionView: (selection) ->
+    selectionView = new SelectionView({editor: this, selection})
+    @selectionViews.push(selectionView)
+    @renderedLines.append(selectionView)
+    selectionView
+
+  selectionViewForCursor: (cursor) ->
+    for selectionView in @selectionViews
+      return selectionView if selectionView.selection.cursor == cursor
+
+  removeSelectionView: (selectionView) ->
+    _.remove(@selectionViews, selectionView)
 
   rootView: ->
     @parents('#root-view').view()
@@ -374,16 +397,16 @@ class Editor extends View
       @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
 
     for cursor in @activeEditSession.getCursors()
-      @compositeCursor.addCursorView(cursor)
+      @addCursorView(cursor)
 
     for selection in @activeEditSession.getSelections()
-      @compositeSelection.addSelectionView(selection)
+      @addSelectionView(selection)
 
     @activeEditSession.on 'add-cursor', (cursor) =>
-      @compositeCursor.addCursorView(cursor)
+      @addCursorView(cursor)
 
     @activeEditSession.on 'add-selection', (selection) =>
-      @compositeSelection.addSelectionView(selection)
+      @addSelectionView(selection)
 
   destroyEditSessions: ->
     session.destroy() for session in @editSessions
@@ -640,12 +663,19 @@ class Editor extends View
     if fontSize
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
-      @compositeCursor.updateAppearance()
+      @updateCursorViews()
       @updateRenderedLines()
 
-  getCursorView: (index) -> @compositeCursor.getCursorView(index)
-  getCursorViews: -> @compositeCursor.getCursorViews()
-  removeAllCursorViews: -> @compositeCursor.removeAllCursorViews()
+  getCursorView: (index) ->
+    index ?= @cursorViews.length - 1
+    @cursorViews[index]
+
+  getCursorViews: ->
+    new Array(@cursorViews...)
+
+  removeAllCursorViews: ->
+    cursorView.remove() for cursorView in @getCursorViews()
+
   getCursor: (index) -> @activeEditSession.getCursor(index)
   getCursors: -> @activeEditSession.getCursors()
   getLastCursor: -> @activeEditSession.getLastCursor()
@@ -666,7 +696,10 @@ class Editor extends View
   setCursorBufferPosition: (position) -> @activeEditSession.setCursorBufferPosition(position)
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
 
-  getSelectionView: (index) -> @compositeSelection.getSelectionView(index)
+  getSelectionView: (index) ->
+    index ?= @selectionViews.length - 1
+    @selectionViews[index]
+
   getSelection: (index) -> @activeEditSession.getSelection(index)
   getSelections: -> @activeEditSession.getSelections()
   getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()

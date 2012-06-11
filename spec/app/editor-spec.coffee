@@ -873,7 +873,6 @@ describe "Editor", ->
         editor.setCursorScreenPosition [5, 5]
 
         rootView.setFontSize(30)
-
         expect(editor.css('font-size')).toBe '30px'
         expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
         expect(editor.charWidth).toBeGreaterThan charWidthBefore
