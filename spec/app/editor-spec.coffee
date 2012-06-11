@@ -31,7 +31,7 @@ describe "Editor", ->
       $('#jasmine-content').append(this)
 
     editor.lineOverdraw = 2
-    editor.autoIndent = false
+    editor.setAutoIndent(false)
     editor.enableKeymap()
     editor.isFocused = true
 
@@ -899,11 +899,6 @@ describe "Editor", ->
       it "moves the cursor to the character at the given row and column", ->
         expect(editor.find('.cursor').position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
-      describe "if soft-wrap is enabled", ->
-        beforeEach ->
-          setEditorWidthInChars(editor, 20)
-          editor.setSoftWrap(true)
-
     describe "when a mousedown event occurs in the editor", ->
       beforeEach ->
         editor.attachToDom()
@@ -1161,7 +1156,7 @@ describe "Editor", ->
     describe "when editing a line that spans multiple screen lines", ->
       beforeEach ->
         editor.setSoftWrap(true, 50)
-        editor.autoIndent = true
+        editor.setAutoIndent(true)
 
       describe "when newline is inserted", ->
         it "indents cursor based on the indentation of previous buffer line", ->
@@ -1736,63 +1731,6 @@ describe "Editor", ->
           expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
           expect(editor.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
 
-        it "does not update the cursor position if the editor is not focused", ->
-          editor.isFocused = false
-          editor.buffer.insert([5, 0], 'blah')
-          expect(editor.getCursorScreenPosition()).toEqual [0, 0]
-
-      describe "when there is a selection", ->
-        it "replaces the selected text with the typed text", ->
-          editor.setSelectionBufferRange(new Range([1, 6], [2, 4]))
-          editor.hiddenInput.textInput 'q'
-          expect(buffer.lineForRow(1)).toBe '  var qif (items.length <= 1) return items;'
-
-        it "always places the cursor after the selection", ->
-          editor.setSelectionBufferRange(new Range([1, 6], [2, 4]), reverse: true)
-          editor.hiddenInput.textInput 'q'
-          expect(buffer.lineForRow(1)).toBe '  var qif (items.length <= 1) return items;'
-          expect(editor.getCursorScreenPosition()).toEqual [1, 7]
-
-    describe "return", ->
-      describe "when the cursor is at the beginning of a line", ->
-        it "inserts an empty line before it", ->
-          editor.setCursorScreenPosition(row: 1, column: 0)
-
-          editor.trigger keydownEvent('enter')
-
-          expect(editor.renderedLines.find('.line:eq(1)')).toHaveHtml '&nbsp;'
-          expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
-
-      describe "when the cursor is in the middle of a line", ->
-        it "splits the current line to form a new line", ->
-          editor.setCursorScreenPosition(row: 1, column: 6)
-
-          originalLine = editor.renderedLines.find('.line:eq(1)').text()
-          lineBelowOriginalLine = editor.renderedLines.find('.line:eq(2)').text()
-          editor.trigger keydownEvent('enter')
-
-          expect(editor.renderedLines.find('.line:eq(1)')).toHaveText originalLine[0...6]
-          expect(editor.renderedLines.find('.line:eq(2)')).toHaveText originalLine[6..]
-          expect(editor.renderedLines.find('.line:eq(3)')).toHaveText lineBelowOriginalLine
-          expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
-
-      describe "when the cursor is on the end of a line", ->
-        it "inserts an empty line after it", ->
-          editor.setCursorScreenPosition(row: 1, column: buffer.lineForRow(1).length)
-
-          editor.trigger keydownEvent('enter')
-
-          expect(editor.renderedLines.find('.line:eq(2)')).toHaveHtml '&nbsp;'
-          expect(editor.getCursorScreenPosition()).toEqual(row: 2, column: 0)
-
-    describe "insert-newline-below", ->
-      it "inserts a newline below the cursor, autoindents it, and moves the cursor to the end of the line", ->
-        editor.autoIndent = true
-        editor.trigger "newline-below"
-        expect(editor.buffer.lineForRow(0)).toBe "var quicksort = function () {"
-        expect(editor.buffer.lineForRow(1)).toBe "  "
-        expect(editor.getCursorBufferPosition()).toEqual [1,2]
-
     describe "backspace", ->
       describe "when the cursor is on the middle of the line", ->
         it "removes the character before the cursor", ->
@@ -1954,7 +1892,7 @@ describe "Editor", ->
 
       describe "if editor.softTabs is false", ->
         it "inserts a tab character into the buffer", ->
-          editor.softTabs = false
+          editor.setSoftTabs(false)
           expect(buffer.lineForRow(0)).not.toMatch(/^\t/)
           editor.trigger 'tab'
           expect(buffer.lineForRow(0)).toMatch(/^\t/)

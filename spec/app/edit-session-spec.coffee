@@ -10,7 +10,7 @@ describe "EditSession", ->
       tabText: '  '
 
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editSession = new EditSession(fakeEditor, buffer)
+    editSession = new EditSession(editor: fakeEditor, buffer: buffer, autoIndent: false)
     lineLengths = buffer.getLines().map (line) -> line.length
 
   describe "cursor movement", ->
@@ -404,4 +404,87 @@ describe "EditSession", ->
         editSession.setCursorScreenPosition([3, 3])
         expect(selection.isEmpty()).toBeTruthy()
 
+  describe "buffer manipulation", ->
+    describe ".insertText(text)", ->
+      describe "when there are multiple empty selections", ->
+        it "inserts the given text at the location of each cursor and moves the cursors to the end of each cursor's inserted text", ->
+          editSession.setCursorScreenPosition([1, 2])
+          editSession.addCursorAtScreenPosition([2, 4])
+
+          editSession.insertText('xxx')
+
+          expect(buffer.lineForRow(1)).toBe '  xxxvar sort = function(items) {'
+          expect(buffer.lineForRow(2)).toBe '    xxxif (items.length <= 1) return items;'
+          [cursor1, cursor2] = editSession.getCursors()
+
+          expect(cursor1.getBufferPosition()).toEqual [1, 5]
+          expect(cursor2.getBufferPosition()).toEqual [2, 7]
+
+      describe "when there are multiple non-empty selections", ->
+        it "replaces each selection with the given text, clears the selections, and places the cursor at the end of each selection's inserted text", ->
+          editSession.setSelectedBufferRanges([[[1, 0], [1, 2]], [[2, 0], [2, 4]]])
+
+          editSession.insertText('xxx')
+
+          expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+          expect(buffer.lineForRow(2)).toBe 'xxxif (items.length <= 1) return items;'
+          [selection1, selection2] = editSession.getSelections()
+
+          expect(selection1.isEmpty()).toBeTruthy()
+          expect(selection1.cursor.getBufferPosition()).toEqual [1, 3]
+          expect(selection2.isEmpty()).toBeTruthy()
+          expect(selection2.cursor.getBufferPosition()).toEqual [2, 3]
+
+    describe ".insertNewline()", ->
+      describe "when the cursor is at the beginning of a line", ->
+        it "inserts an empty line before it", ->
+          editSession.setCursorScreenPosition(row: 1, column: 0)
+
+          editSession.insertNewline()
+
+          expect(buffer.lineForRow(1)).toBe ''
+          expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
+
+      describe "when the cursor is in the middle of a line", ->
+        it "splits the current line to form a new line", ->
+          editSession.setCursorScreenPosition(row: 1, column: 6)
+          originalLine = buffer.lineForRow(1)
+          lineBelowOriginalLine = buffer.lineForRow(2)
+
+          editSession.insertNewline()
+
+          expect(buffer.lineForRow(1)).toBe originalLine[0...6]
+          expect(buffer.lineForRow(2)).toBe originalLine[6..]
+          expect(buffer.lineForRow(3)).toBe lineBelowOriginalLine
+          expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
+
+      describe "when the cursor is on the end of a line", ->
+        it "inserts an empty line after it", ->
+          editSession.setCursorScreenPosition(row: 1, column: buffer.lineForRow(1).length)
+
+          editSession.insertNewline()
+
+          expect(buffer.lineForRow(2)).toBe ''
+          expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
+
+    describe ".insertNewlineBelow()", ->
+      it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
+        editSession.setAutoIndent(true)
+        editSession.insertNewlineBelow()
+        expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+        expect(buffer.lineForRow(1)).toBe "  "
+        expect(editSession.getCursorBufferPosition()).toEqual [1, 2]
+
+    describe "when the buffer is changed (via its direct api, rather than via than edit session)", ->
+      it "moves the cursor so it is in the same relative position of the buffer", ->
+        expect(editSession.getCursorScreenPosition()).toEqual [0, 0]
+        editSession.addCursorAtScreenPosition([0, 5])
+        editSession.addCursorAtScreenPosition([1, 0])
+        [cursor1, cursor2, cursor3] = editSession.getCursors()
+
+        buffer.insert([0, 1], 'abc')
+
+        expect(cursor1.getScreenPosition()).toEqual [0, 0]
+        expect(cursor2.getScreenPosition()).toEqual [0, 8]
+        expect(cursor3.getScreenPosition()).toEqual [1, 0]
 

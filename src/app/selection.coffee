@@ -188,7 +188,7 @@ class Selection
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
   autoIndentText: (text) ->
-    if @editSession.autoIndentEnabled()
+    if @editSession.autoIndent
       mode = @editSession.getCurrentMode()
       row = @cursor.getCurrentScreenRow()
       state = @editSession.stateForScreenRow(row)

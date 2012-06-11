@@ -332,7 +332,7 @@ describe "Selection", ->
 
   describe "auto indent/outdent", ->
     beforeEach ->
-      editor.autoIndent = true
+      editor.setAutoIndent(true)
 
     describe "when editing a line that spans a single screen line", ->
       describe "when a newline is inserted", ->

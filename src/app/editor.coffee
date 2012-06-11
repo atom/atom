@@ -40,7 +40,7 @@ class Editor extends View
   selectionViews: null
   buffer: null
   renderer: null
-  autoIndent: null
+  autoIndent: true
   lineCache: null
   isFocused: false
   softTabs: true
@@ -63,7 +63,6 @@ class Editor extends View
     @id = Editor.idCounter++
     @lineCache = []
     @bindKeys()
-    @autoIndent = true
     @handleEvents()
     @cursorViews = []
     @selectionViews = []
@@ -315,6 +314,12 @@ class Editor extends View
         else
           element.removeClass('selected')
 
+  setAutoIndent: (@autoIndent) ->
+    @activeEditSession.setAutoIndent(@autoIndent)
+
+  setSoftTabs: (@softTabs) ->
+    @activeEditSession.setSoftTabs(@softTabs)
+
   getScreenLines: ->
     @renderer.getLines()
 
@@ -346,7 +351,7 @@ class Editor extends View
     index = @editSessionIndexForBuffer(buffer)
     unless index?
       index = @editSessions.length
-      @editSessions.push(new EditSession(this, buffer))
+      @editSessions.push(new EditSession(editor: this, buffer: buffer, autoIndent: @autoIndent, softTabs: @softTabs))
 
     @setActiveEditSessionIndex(index)
 
@@ -726,6 +731,12 @@ class Editor extends View
   delete: -> @activeEditSession.delete()
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
+  insertText: (text) -> @activeEditSession.insertText(text)
+  insertNewline: -> @activeEditSession.insertNewline()
+  insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
+  insertTab: -> @activeEditSession.insertTab()
+  indentSelectedRows: -> @activeEditSession.indentSelectedRows()
+  outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
@@ -738,27 +749,6 @@ class Editor extends View
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
-  insertText: (text) ->
-    @activeEditSession.insertText(text)
-
-  insertNewline: ->
-    @insertText('\n')
-
-  insertNewlineBelow: ->
-    @moveCursorToEndOfLine()
-    @insertNewline()
-
-  insertTab: ->
-    if @getSelection().isEmpty()
-      if @softTabs
-        @insertText(@tabText)
-      else
-        @insertText('\t')
-    else
-      @activeEditSession.indentSelectedRows()
-
-  indentSelectedRows: -> @activeEditSession.indentSelectedRows()
-  outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
 
   cutSelection: -> @activeEditSession.cut()
   copySelection: -> @activeEditSession.copy()

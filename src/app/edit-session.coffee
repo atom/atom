@@ -12,7 +12,12 @@ class EditSession
 
   @deserialize: (state, editor, rootView) ->
     buffer = Buffer.deserialize(state.buffer, rootView.project)
-    session = new EditSession(editor, buffer)
+    session = new EditSession(
+      editor: editor
+      buffer: buffer
+      autoIndent: editor.autoIndent
+      softTabs: editor.softTabs
+    )
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
@@ -23,8 +28,10 @@ class EditSession
   renderer: null
   cursors: null
   selections: null
+  autoIndent: true
+  softTabs: true
 
-  constructor: (@editor, @buffer) ->
+  constructor: ({@editor, @buffer, @autoIndent}) ->
     @id = @constructor.idCounter++
     @tabText = @editor.tabText
     @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @editor.tabText })
@@ -66,8 +73,8 @@ class EditSession
   setScrollLeft: (@scrollLeft) ->
   getScrollLeft: -> @scrollLeft
 
-  autoIndentEnabled: ->
-    @editor.autoIndent
+  setAutoIndent: (@autoIndent) ->
+  setSoftTabs: (@softTabs) ->
 
   screenPositionForBufferPosition: (bufferPosition, options) ->
     @renderer.screenPositionForBufferPosition(bufferPosition, options)
@@ -101,6 +108,22 @@ class EditSession
 
   insertText: (text) ->
     @mutateSelectedText (selection) -> selection.insertText(text)
+
+  insertNewline: ->
+    @insertText('\n')
+
+  insertNewlineBelow: ->
+    @moveCursorToEndOfLine()
+    @insertNewline()
+
+  insertTab: ->
+    if @getSelection().isEmpty()
+      if @softTabs
+        @insertText(@tabText)
+      else
+        @insertText('\t')
+    else
+      @activeEditSession.indentSelectedRows()
 
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
