@@ -12,6 +12,7 @@ describe "Cursor", ->
     editor = new Editor
     editor.enableKeymap()
     editor.setBuffer(buffer)
+    editor.attachToDom()
     cursor = editor.getCursor()
     cursorView = editor.getCursorView()
 

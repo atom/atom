@@ -15,6 +15,7 @@ class SelectionView extends View
     @regions = []
     @selection.on 'change-screen-range', => @updateAppearance()
     @selection.on 'destroy', => @remove('ignore')
+    @updateAppearance()
 
   updateAppearance: ->
     @clearRegions()
@@ -54,6 +55,6 @@ class SelectionView extends View
   getScreenRange: ->
     @selection.getScreenRange()
 
-  remove: (ignore) ->
+  remove: ->
     @editor.removeSelectionView(this)
     super

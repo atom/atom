@@ -275,58 +275,65 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line:eq(14)').text()).toBe 'B'
         expect(editor.renderedLines.find('.line:eq(15)')).not.toExist()
 
-  describe ".loadNextEditSession()", ->
-    it "loads the next editor state and wraps to beginning when end is reached", ->
-      buffer0 = new Buffer("0")
-      buffer1 = new Buffer("1")
-      buffer2 = new Buffer("2")
-      editor = new Editor(buffer: buffer0)
+  describe "switching edit sessions", ->
+    [buffer0, buffer1, buffer2] = []
+    [session0, session1, session2] = []
+
+    beforeEach ->
+      buffer0 = buffer
+      session0 = editor.activeEditSession
+
+      buffer1 = new Buffer(require.resolve('fixtures/sample.txt'))
+      console.log "set buffer 1"
       editor.setBuffer(buffer1)
-      editor.setBuffer(buffer2)
-
-      expect(editor.buffer.path).toBe "2"
-      editor.loadNextEditSession()
-      expect(editor.buffer.path).toBe "0"
-      editor.loadNextEditSession()
-      expect(editor.buffer.path).toBe "1"
-      editor.loadNextEditSession()
-      expect(editor.buffer.path).toBe "2"
-
-    it "restores scroll postion of edit session", ->
-      editor.attachToDom(heightInLines: 12)
-      buffer1 = editor.buffer
-      firstScrollTop = editor.scrollTop()
+      session1 = editor.activeEditSession
 
       buffer2 = new Buffer(require.resolve('fixtures/two-hundred.txt'))
+      console.log "set buffer 2"
       editor.setBuffer(buffer2)
-      editor.moveCursorToBottom()
-      secondScrollTop = editor.scrollTop()
+      session2 = editor.activeEditSession
 
-      expect(firstScrollTop).not.toEqual secondScrollTop
-      editor.loadNextEditSession()
-      expect(editor.buffer.path).toBe buffer1.path
-      expect(editor.scrollTop()).toBe firstScrollTop
+    describe ".setActiveEditSessionIndex(index)", ->
+      it "restores the buffer, cursors, selections, and scroll position of the edit session associated with the index", ->
+        editor.attachToDom(heightInLines: 10)
+        editor.setSelectionBufferRange([[40, 0], [43, 1]])
+        expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
+        editor.scrollTop(750)
+        expect(editor.scrollTop()).toBe 750
 
-      editor.loadNextEditSession()
-      expect(editor.buffer.path).toBe buffer2.path
-      expect(editor.scrollTop()).toBe secondScrollTop
+        editor.setActiveEditSessionIndex(0)
+        expect(editor.buffer).toBe buffer0
 
-  describe ".loadPreviousEditSession()", ->
-    it "loads the next editor state and wraps to beginning when end is reached", ->
-      buffer0 = new Buffer("0")
-      buffer1 = new Buffer("1")
-      buffer2 = new Buffer("2")
-      editor = new Editor {buffer: buffer0}
-      editor.setBuffer(buffer1)
-      editor.setBuffer(buffer2)
+        editor.setActiveEditSessionIndex(2)
+        expect(editor.buffer).toBe buffer2
+        expect(editor.getCursorScreenPosition()).toEqual [43, 1]
+        expect(editor.scrollTop()).toBe 750
+        expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
+        expect(editor.getSelectionView().find('.selection')).toExist()
 
-      expect(editor.buffer.path).toBe "2"
-      editor.loadPreviousEditSession()
-      expect(editor.buffer.path).toBe "1"
-      editor.loadPreviousEditSession()
-      expect(editor.buffer.path).toBe "0"
-      editor.loadPreviousEditSession()
-      expect(editor.buffer.path).toBe "2"
+        editor.setActiveEditSessionIndex(0)
+        editor.activeEditSession.selectToEndOfLine()
+        expect(editor.getSelectionView().find('.selection')).toExist()
+
+    describe ".loadNextEditSession()", ->
+      it "loads the next editor state and wraps to beginning when end is reached", ->
+        expect(editor.activeEditSession).toBe session2
+        editor.loadNextEditSession()
+        expect(editor.activeEditSession).toBe session0
+        editor.loadNextEditSession()
+        expect(editor.activeEditSession).toBe session1
+        editor.loadNextEditSession()
+        expect(editor.activeEditSession).toBe session2
+
+    describe ".loadPreviousEditSession()", ->
+      it "loads the next editor state and wraps to beginning when end is reached", ->
+        expect(editor.activeEditSession).toBe session2
+        editor.loadPreviousEditSession()
+        expect(editor.activeEditSession).toBe session1
+        editor.loadPreviousEditSession()
+        expect(editor.activeEditSession).toBe session0
+        editor.loadPreviousEditSession()
+        expect(editor.activeEditSession).toBe session2
 
   describe ".scrollTop(n)", ->
     beforeEach ->

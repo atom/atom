@@ -224,11 +224,11 @@ class Editor extends View
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @softWrap
-    @prepareForScrolling()
-    @setScrollPositionFromActiveEditSession() # this also renders the visible lines
-    @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
     $(window).on "resize.editor#{@id}", => @updateRenderedLines()
     @focus() if @isFocused
+
+    @renderWhenAttached()
+
     @trigger 'editor-open', [this]
 
   addCursorView: (cursor) ->
@@ -382,7 +382,6 @@ class Editor extends View
 
     if @activeEditSession
       @saveActiveEditSession()
-      @removeAllCursorViews()
       @activeEditSession.off()
 
     @activeEditSession = @editSessions[index]
@@ -394,24 +393,22 @@ class Editor extends View
     @trigger 'editor-path-change'
 
     @renderer = @activeEditSession.renderer
+    @renderWhenAttached()
 
-    if @attached
-      @prepareForScrolling()
-      @setScrollPositionFromActiveEditSession()
-      @renderLines()
-      @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
+  renderWhenAttached: ->
+    return unless @attached
 
-    for cursor in @activeEditSession.getCursors()
-      @addCursorView(cursor)
+    @removeAllCursorAndSelectionViews()
+    @addCursorView(cursor) for cursor in @activeEditSession.getCursors()
+    @addSelectionView(selection) for selection in @activeEditSession.getSelections()
+    @activeEditSession.on 'add-cursor', (cursor) => @addCursorView(cursor)
+    @activeEditSession.on 'add-selection', (selection) => @addSelectionView(selection)
 
-    for selection in @activeEditSession.getSelections()
-      @addSelectionView(selection)
+    @prepareForScrolling()
+    @setScrollPositionFromActiveEditSession()
 
-    @activeEditSession.on 'add-cursor', (cursor) =>
-      @addCursorView(cursor)
-
-    @activeEditSession.on 'add-selection', (selection) =>
-      @addSelectionView(selection)
+    @renderLines()
+    @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
 
   destroyEditSessions: ->
     session.destroy() for session in @editSessions
@@ -421,7 +418,6 @@ class Editor extends View
     @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
 
   saveActiveEditSession: ->
-    @activeEditSession.setCursorScreenPosition(@getCursorScreenPosition())
     @activeEditSession.setScrollTop(@scrollTop())
     @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
 
@@ -678,8 +674,9 @@ class Editor extends View
   getCursorViews: ->
     new Array(@cursorViews...)
 
-  removeAllCursorViews: ->
+  removeAllCursorAndSelectionViews: ->
     cursorView.remove() for cursorView in @getCursorViews()
+    selectionView.remove() for selectionView in @getSelectionViews()
 
   getCursor: (index) -> @activeEditSession.getCursor(index)
   getCursors: -> @activeEditSession.getCursors()
@@ -704,6 +701,9 @@ class Editor extends View
   getSelectionView: (index) ->
     index ?= @selectionViews.length - 1
     @selectionViews[index]
+
+  getSelectionViews: ->
+    new Array(@selectionViews...)
 
   getSelection: (index) -> @activeEditSession.getSelection(index)
   getSelections: -> @activeEditSession.getSelections()

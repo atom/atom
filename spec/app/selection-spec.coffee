@@ -11,6 +11,7 @@ describe "Selection", ->
     editor.enableKeymap()
     editor.setBuffer(buffer)
     editor.isFocused = true
+    editor.attachToDom()
 
     selectionView = editor.getSelectionView()
     selection = editor.getSelection()
