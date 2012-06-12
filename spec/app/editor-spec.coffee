@@ -1210,22 +1210,18 @@ describe "Editor", ->
             editor.setCursorScreenPosition([2, 5])
             expect(editor.scrollView.scrollLeft()).toBe 0
 
-  describe "buffer manipulation", ->
-    beforeEach ->
+  describe "when text input events are triggered on the hidden input element", ->
+    it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
       editor.attachToDom()
+      editor.setCursorScreenPosition(row: 1, column: 6)
 
-    describe "when text input events are triggered on the hidden input element", ->
-      describe "when there is no selection", ->
-        it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
-          editor.setCursorScreenPosition(row: 1, column: 6)
+      expect(buffer.lineForRow(1).charAt(6)).not.toBe 'q'
 
-          expect(buffer.lineForRow(1).charAt(6)).not.toBe 'q'
+      editor.hiddenInput.textInput 'q'
 
-          editor.hiddenInput.textInput 'q'
-
-          expect(buffer.lineForRow(1).charAt(6)).toBe 'q'
-          expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
-          expect(editor.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
+      expect(buffer.lineForRow(1).charAt(6)).toBe 'q'
+      expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
+      expect(editor.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
 
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
