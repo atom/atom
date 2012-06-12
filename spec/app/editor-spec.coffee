@@ -1549,6 +1549,7 @@ describe "Editor", ->
       expect(editor.buffer).toBe buffer
 
     it "calls remove on the editor if there is one edit session and mini is false", ->
+      originalBuffer = editor.buffer
       expect(editor.mini).toBeFalsy()
       expect(editor.editSessions.length).toBe 1
       spyOn(editor, 'remove')
@@ -1560,3 +1561,12 @@ describe "Editor", ->
       spyOn(editor, 'remove')
       editor.trigger 'close'
       expect(editor.remove).not.toHaveBeenCalled()
+
+    describe "when buffer is modified", ->
+      it "triggers alert and does not close session", ->
+        spyOn(editor, 'remove')
+        spyOn($native, 'alert')
+        editor.insertText("I AM CHANGED!")
+        editor.trigger "close"
+        expect(editor.remove).not.toHaveBeenCalled()
+        expect($native.alert).toHaveBeenCalled()

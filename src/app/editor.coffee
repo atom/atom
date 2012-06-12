@@ -7,6 +7,8 @@ Range = require 'range'
 EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
+Native = require 'native'
+fs = require 'fs'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -604,11 +606,13 @@ class Editor extends View
 
   save: ->
     if not @buffer.getPath()
-      path = $native.saveDialog()
-      return if not path
+      path = Native.saveDialog()
+      return false if not path
       @buffer.saveAs(path)
     else
       @buffer.save()
+
+    true
 
   clipScreenPosition: (screenPosition, options={}) ->
     @renderer.clipScreenPosition(screenPosition, options)
@@ -778,7 +782,19 @@ class Editor extends View
 
   close: ->
     return if @mini
-    @removeActiveEditSession()
+    if @buffer.isModified()
+      filename = if @buffer.getPath() then fs.base(@buffer.getPath()) else "untitled buffer"
+      message = "'#{filename}' has changes, do you want to save them?"
+      detailedMessage = "Your changes will be lost if you don't save them"
+      buttons = [
+        ["Save", => @save() and @removeActiveEditSession()]
+        ["Cancel", =>]
+        ["Don't save", => @removeActiveEditSession()]
+      ]
+
+      Native.alert message, detailedMessage, buttons
+    else
+      @removeActiveEditSession()
 
   unsubscribeFromBuffer: ->
     @buffer.off ".editor#{@id}"

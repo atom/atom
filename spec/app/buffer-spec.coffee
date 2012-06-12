@@ -31,6 +31,43 @@ describe 'Buffer', ->
         buffer = new Buffer
         expect(buffer.getText()).toBe ""
 
+  describe "path-change event", ->
+    it "emits path-change event when path is changed", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      buffer.on 'path-change', eventHandler
+      buffer.setPath("moo.text")
+      expect(eventHandler).toHaveBeenCalledWith(buffer)
+
+  describe ".isModified()", ->
+    describe "when deserialized", ->
+      it "returns false", ->
+        buffer = Buffer.deserialize(buffer.serialize(), new Project)
+        expect(buffer.isModified()).toBe false
+
+        buffer = Buffer.deserialize((new Buffer).serialize(), new Project)
+        expect(buffer.isModified()).toBe false
+
+      it "returns is true if buffer no path and had changes", ->
+        buffer = new Buffer
+        buffer.insert([0,0], "oh hi")
+        expect(buffer.isModified()).toBe true
+
+    it "returns true when user changes buffer", ->
+      expect(buffer.isModified()).toBeFalsy()
+      buffer.insert([0,0], "hi")
+      expect(buffer.isModified()).toBe true
+
+    it "returns false after modified buffer is saved", ->
+      filePath = "/tmp/atom-tmp-file"
+      buffer = new Buffer(filePath)
+      expect(buffer.isModified()).toBe false
+
+      buffer.insert([0,0], "hi")
+      expect(buffer.isModified()).toBe true
+
+      buffer.save()
+      expect(buffer.isModified()).toBe false
+
   describe '.deserialize(state, project)', ->
     project = null
 
@@ -365,7 +402,7 @@ describe 'Buffer', ->
 
         expect(ranges.length).toBe 2
 
-  describe "backwardsScanInRange(range, regex, fn)", ->
+  describe ".backwardsScanInRange(range, regex, fn)", ->
     describe "when given a regex with no global flag", ->
       it "calls the iterator with the last match for the given regex in the given range", ->
         matches = []
@@ -446,11 +483,3 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
-
-  describe "path-change event", ->
-    it "emits path-change event when path is changed", ->
-      eventHandler = jasmine.createSpy('eventHandler')
-      buffer.on 'path-change', eventHandler
-      buffer.setPath("moo.text")
-      expect(eventHandler).toHaveBeenCalledWith(buffer)
-
