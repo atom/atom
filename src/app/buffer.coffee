@@ -8,16 +8,19 @@ UndoManager = require 'undo-manager'
 module.exports =
 class Buffer
   @idCounter = 1
+  modified: null
   lines: null
   path: null
 
   @deserialize: (state, project) ->
     if state.path
-      project.open(state.path)
+      buffer = project.open(state.path)
     else
       buffer = project.bufferWithId(state.id) ? project.open()
       buffer.setText(state.text)
-      buffer
+      buffer.modified = state.modified
+
+    buffer
 
   constructor: (path) ->
     @id = @constructor.idCounter++
@@ -28,12 +31,13 @@ class Buffer
     else
       @setText('')
     @undoManager = new UndoManager(this)
+    @modified = false
 
   serialize: ->
     if @getPath()
       { path: @path }
     else
-      { text: @getText(), id: @id }
+      { text: @getText(), id: @id , modified: @modified}
 
   getPath: ->
     @path
@@ -139,6 +143,8 @@ class Buffer
       newTextLines[lastLineIndex] += suffix
 
     @lines[oldRange.start.row..oldRange.end.row] = newTextLines
+    @modified = true
+
     @trigger 'change', { oldRange, newRange, oldText, newText }
     newRange
 
@@ -155,14 +161,18 @@ class Buffer
     @undoManager.redo()
 
   save: ->
-    if not @getPath() then throw new Error("Tried to save buffer with no file path")
+    if not @getPath() then throw new Error("Can't save buffer with no file path")
     @trigger 'before-save'
     fs.write @getPath(), @getText()
+    @modified = false
     @trigger 'after-save'
 
   saveAs: (path) ->
     @setPath(path)
     @save()
+
+  isModified: ->
+    @modified
 
   getMode: ->
     return @mode if @mode

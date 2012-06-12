@@ -1,6 +1,7 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
+Native = require 'native'
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
@@ -59,6 +60,19 @@ windowAdditions =
     content = fs.read(fullPath)
     return if $("head style[path='#{fullPath}']").length
     $('head').append "<style path='#{fullPath}'>#{content}</style>"
+
+  reload: ->
+    if rootView.modifiedBuffers().length > 0
+      message = "There are unsaved buffers, reload anyway?"
+      detailedMessage = "You will lose all unsaved changes if you reload"
+      buttons = [
+        ["Reload", -> Native.reload()]
+        ["Cancel", ->]
+      ]
+
+      Native.alert(message, detailedMessage, buttons)
+    else
+      Native.reload()
 
   showConsole: ->
     $native.showDevTools()

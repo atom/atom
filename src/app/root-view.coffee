@@ -123,6 +123,14 @@ class RootView extends View
   editors: ->
     @panes.find('.editor').map -> $(this).view()
 
+  modifiedBuffers: ->
+    modifiedBuffers = []
+    for editor in @editors()
+      for session in editor.editSessions
+        modifiedBuffers.push session.buffer if session.buffer.isModified()
+
+    modifiedBuffers
+
   activeEditor: ->
     if (editor = @panes.find('.editor.active')).length
       editor.view()
