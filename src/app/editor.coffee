@@ -784,6 +784,7 @@ class Editor extends View
 
   close: ->
     return if @mini
+    return if @buffer.isModified()
     @removeActiveEditSession()
 
   unsubscribeFromBuffer: ->
