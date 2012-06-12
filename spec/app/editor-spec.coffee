@@ -97,47 +97,20 @@ describe "Editor", ->
     beforeEach ->
       otherBuffer = new Buffer
 
-    it "sets the cursor to the beginning of the file", ->
-      expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+    describe "when the buffer wasn't previously assigned to this editor", ->
+      it "creates a new EditSession for it", ->
+        editor.setBuffer(otherBuffer)
+        expect(editor.activeEditSession.buffer).toBe otherBuffer
 
-    it "recalls the cursor position and scroll position when the same buffer is re-assigned", ->
-      editor.attachToDom()
+    describe "when the buffer was previously assigned to this editor", ->
+      it "restores the previous edit session associated with the buffer", ->
+        previousEditSession = editor.activeEditSession
 
-      editor.height(editor.lineHeight * 5)
-      editor.width(editor.charWidth * 30)
-      editor.setCursorScreenPosition([8, 28])
-      previousScrollTop = editor.verticalScrollbar.scrollTop()
-      previousScrollLeft = editor.scrollView.scrollLeft()
+        editor.setBuffer(otherBuffer)
+        expect(editor.activeEditSession).not.toBe previousEditSession
 
-      editor.setBuffer(otherBuffer)
-      expect(editor.getCursorScreenPosition()).toEqual [0, 0]
-      expect(editor.verticalScrollbar.scrollTop()).toBe 0
-      expect(editor.scrollView.scrollLeft()).toBe 0
-
-      editor.setBuffer(buffer)
-      expect(editor.getCursorScreenPosition()).toEqual [8, 28]
-      expect(editor.verticalScrollbar.scrollTop()).toBe previousScrollTop
-      expect(editor.scrollView.scrollLeft()).toBe previousScrollLeft
-
-    it "recalls the undo history of the buffer when it is re-assigned", ->
-      editor.insertText('xyz')
-
-      editor.setBuffer(otherBuffer)
-
-      editor.insertText('abc')
-      expect(otherBuffer.lineForRow(0)).toBe 'abc'
-      editor.undo()
-      expect(otherBuffer.lineForRow(0)).toBe ''
-
-      editor.setBuffer(buffer)
-      editor.undo()
-      expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
-      editor.redo()
-      expect(buffer.lineForRow(0)).toBe 'xyzvar quicksort = function () {'
-
-      editor.setBuffer(otherBuffer)
-      editor.redo()
-      expect(otherBuffer.lineForRow(0)).toBe 'abc'
+        editor.setBuffer(buffer)
+        expect(editor.activeEditSession).toBe previousEditSession
 
     it "unsubscribes from the previously assigned buffer", ->
       editor.setBuffer(otherBuffer)
@@ -148,14 +121,6 @@ describe "Editor", ->
       editor.setBuffer(otherBuffer)
 
       expect(buffer.subscriptionCount()).toBe previousSubscriptionCount
-
-    it "resizes the vertical scrollbar based on the new buffer's height", ->
-      editor.attachToDom(heightInLines: 5)
-      originalHeight = editor.verticalScrollbar.prop('scrollHeight')
-      expect(originalHeight).toBeGreaterThan 0
-
-      editor.setBuffer(new Buffer(require.resolve('fixtures/sample.txt')))
-      expect(editor.verticalScrollbar.prop('scrollHeight')).toBeLessThan originalHeight
 
     it "handles buffer manipulation correctly after switching to a new buffer", ->
       editor.attachToDom()
@@ -289,6 +254,7 @@ describe "Editor", ->
         editor.attachToDom(heightInLines: 10)
         editor.setSelectionBufferRange([[40, 0], [43, 1]])
         expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
+        previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
         editor.scrollTop(750)
         expect(editor.scrollTop()).toBe 750
 
@@ -298,6 +264,7 @@ describe "Editor", ->
         editor.setActiveEditSessionIndex(2)
         expect(editor.buffer).toBe buffer2
         expect(editor.getCursorScreenPosition()).toEqual [43, 1]
+        expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
         expect(editor.scrollTop()).toBe 750
         expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
         expect(editor.getSelectionView().find('.selection')).toExist()
@@ -1340,32 +1307,6 @@ describe "Editor", ->
           expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
           expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
 
-        it "merges selections when they intersect, maintaining the directionality of the newest selection", ->
-          editor.attachToDom()
-          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
-          editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-          editor.renderedLines.trigger 'mouseup'
-
-          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10], metaKey: true)
-          editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [6, 27], metaKey: true)
-          editor.renderedLines.trigger 'mouseup'
-
-          selections = editor.getSelections()
-          expect(selections.length).toBe 1
-          [selection1] = selections
-          expect(selection1.getScreenRange()).toEqual [[3, 10], [6, 27]]
-          expect(selection1.isReversed()).toBeFalsy()
-
-          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [7, 4], metaKey: true)
-          editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [4, 11], metaKey: true)
-          editor.renderedLines.trigger 'mouseup'
-
-          selections = editor.getSelections()
-          expect(selections.length).toBe 1
-          [selection1] = selections
-          expect(selection1.getScreenRange()).toEqual [[3, 10], [7, 4]]
-          expect(selection1.isReversed()).toBeTruthy()
-
   describe "buffer manipulation", ->
     beforeEach ->
       editor.attachToDom()
@@ -1382,71 +1323,6 @@ describe "Editor", ->
           expect(buffer.lineForRow(1).charAt(6)).toBe 'q'
           expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
           expect(editor.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
-
-    describe "undo/redo", ->
-      it "undoes/redoes the last change", ->
-        buffer.insert [0, 0], "foo"
-        editor.trigger 'undo'
-        expect(buffer.lineForRow(0)).not.toContain "foo"
-
-        editor.trigger 'redo'
-        expect(buffer.lineForRow(0)).toContain "foo"
-
-      it "batches the undo / redo of changes caused by multiple cursors", ->
-        editor.setCursorScreenPosition([0, 0])
-        editor.addCursorAtScreenPosition([1, 0])
-
-        editor.insertText("foo")
-        editor.backspace()
-
-        expect(buffer.lineForRow(0)).toContain "fovar"
-        expect(buffer.lineForRow(1)).toContain "fo "
-
-        editor.trigger 'undo'
-
-        expect(buffer.lineForRow(0)).toContain "foo"
-        expect(buffer.lineForRow(1)).toContain "foo"
-
-        editor.trigger 'undo'
-
-        expect(buffer.lineForRow(0)).not.toContain "foo"
-        expect(buffer.lineForRow(1)).not.toContain "foo"
-
-      it "restores the selected ranges after undo", ->
-        editor.setSelectedBufferRanges([[[1, 6], [1, 10]], [[1, 22], [1, 27]]])
-        editor.delete()
-        editor.delete()
-
-        selections = editor.getSelections()
-        expect(buffer.lineForRow(1)).toBe '  var = function( {'
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 17], [1, 17]]
-
-        editor.trigger 'undo'
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
-
-        editor.trigger 'undo'
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 10]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 22], [1, 27]]
-
-        editor.trigger 'redo'
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
-
-      it "restores the selected ranges after redo", ->
-        editor.setSelectedBufferRanges([[[1, 6], [1, 10]], [[1, 22], [1, 27]]])
-        selections = editor.getSelections()
-
-        editor.insertText("booboo")
-        expect(selections[0].getBufferRange()).toEqual [[1, 12], [1, 12]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 30], [1, 30]]
-
-        editor.undo()
-        editor.redo()
-
-        expect(selections[0].getBufferRange()).toEqual [[1, 12], [1, 12]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 30], [1, 30]]
 
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
