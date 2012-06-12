@@ -773,6 +773,31 @@ describe "EditSession", ->
             editSession.delete()
             expect(editSession.lineForBufferRow(0)).toBe 'var  =  () {'
 
+    describe ".deleteToEndOfWord()", ->
+      describe "when no text is selected", ->
+        it "deletes to the end of the word", ->
+          editSession.setCursorBufferPosition([1, 24])
+          editSession.addCursorAtBufferPosition([2, 5])
+          [cursor1, cursor2] = editSession.getCursors()
+
+          editSession.deleteToEndOfWord()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+          expect(buffer.lineForRow(2)).toBe '    i (items.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 24]
+          expect(cursor2.getBufferPosition()).toEqual [2, 5]
+
+          editSession.deleteToEndOfWord()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it {'
+          expect(buffer.lineForRow(2)).toBe '    iitems.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 24]
+          expect(cursor2.getBufferPosition()).toEqual [2, 5]
+
+      describe "when text is selected", ->
+        it "deletes only selected text", ->
+          editSession.setSelectedBufferRange([[1, 24], [1, 27]])
+          editSession.deleteToEndOfWord()
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
+
     describe ".insertTab()", ->
       describe "if 'softTabs' is true (the default)", ->
         it "inserts the value of 'tabText' into the buffer", ->
