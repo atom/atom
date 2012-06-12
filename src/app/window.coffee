@@ -62,7 +62,6 @@ windowAdditions =
     $('head').append "<style path='#{fullPath}'>#{content}</style>"
 
   reload: ->
-    console.log rootView.modifiedBuffers()
     if rootView.modifiedBuffers().length > 0
       message = "There are unsaved buffers, reload anyway?"
       detailedMessage = "You will lose all unsaved changes if you reload"
