@@ -880,6 +880,7 @@ describe "EditSession", ->
           editSession.delete()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
+          expect(editSession.getSelection().isEmpty()).toBeTruthy()
 
       describe "when there are multiple selections", ->
         describe "when selections are on the same line", ->
@@ -1042,6 +1043,28 @@ describe "EditSession", ->
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
           expect(buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
           expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 15 - tabLength]]
+
+    describe ".toggleLineCommentsInSelection()", ->
+      it "toggles comments on the selected lines", ->
+        editSession.setSelectedBufferRange([[4, 5], [7, 5]])
+        editSession.toggleLineCommentsInSelection()
+
+        expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "//    }"
+        expect(editSession.getSelectedBufferRange()).toEqual [[4, 7], [7, 7]]
+
+        editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "    }"
+
+      it "preserves selection emptiness", ->
+        editSession.setSelectedBufferRange([[4, 0], [4, 0]])
+        editSession.toggleLineCommentsInSelection()
+        expect(editSession.getSelection().isEmpty()).toBeTruthy()
 
     describe ".undo() and .redo()", ->
       it "undoes/redoes the last change", ->

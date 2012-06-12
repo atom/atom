@@ -144,7 +144,7 @@ class EditSession
   outdentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.outdentSelectedRows()
 
-  toggleCommentsInSelection: ->
+  toggleLineCommentsInSelection: ->
     @mutateSelectedText (selection) -> selection.toggleLineComments()
 
   cutToEndOfLine: ->
