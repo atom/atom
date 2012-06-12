@@ -137,47 +137,6 @@ describe "Selection", ->
       expect(selectionView.regions.length).toBe 3
       expect(selectionView.find('.selection').length).toBe 3
 
-  describe ".cut()", ->
-    beforeEach ->
-      $native.writeToPasteboard('first')
-      expect($native.readFromPasteboard()).toBe 'first'
-
-    it "removes selected text from the buffer and places it on the clipboard", ->
-      selection.setBufferRange new Range([0,4], [0,13])
-      selection.cut()
-      expect($native.readFromPasteboard()).toBe 'quicksort'
-      expect(editor.buffer.lineForRow(0)).toBe "var  = function () {"
-      expect(selection.isEmpty()).toBeTruthy()
-
-      selection.setBufferRange new Range([1,6], [3,8])
-      selection.cut()
-      expect($native.readFromPasteboard()).toBe "sort = function(items) {\n    if (items.length <= 1) return items;\n    var "
-      expect(editor.buffer.lineForRow(1)).toBe "  var pivot = items.shift(), current, left = [], right = [];"
-
-    it "places nothing on the clipboard when there is no selection", ->
-      selection.setBufferRange new Range([0,4], [0,4])
-      selection.copy()
-      expect($native.readFromPasteboard()).toBe 'first'
-
-  describe ".copy()", ->
-    beforeEach ->
-      $native.writeToPasteboard('first')
-      expect($native.readFromPasteboard()).toBe 'first'
-
-    it "places selected text on the clipboard", ->
-      selection.setBufferRange new Range([0,4], [0,13])
-      selection.copy()
-      expect($native.readFromPasteboard()).toBe 'quicksort'
-
-      selection.setBufferRange new Range([0,4], [3,13])
-      selection.copy()
-      expect($native.readFromPasteboard()).toBe "quicksort = function () {\n  var sort = function(items) {\n    if (items.length <= 1) return items;\n    var pivot"
-
-    it "places nothing on the clipboard when there is no selection", ->
-      selection.setBufferRange new Range([0,4], [0,4])
-      selection.copy()
-      expect($native.readFromPasteboard()).toBe 'first'
-
   describe ".selectWord()", ->
      describe "when the cursor is inside a word", ->
        it "selects the entire word", ->
