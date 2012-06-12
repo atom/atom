@@ -161,9 +161,10 @@ class Buffer
     @undoManager.redo()
 
   save: ->
-    if not @getPath() then throw new Error("Tried to save buffer with no file path")
+    if not @getPath() then throw new Error("Can't save buffer with no file path")
     @trigger 'before-save'
     fs.write @getPath(), @getText()
+    @modified = false
     @trigger 'after-save'
 
   saveAs: (path) ->

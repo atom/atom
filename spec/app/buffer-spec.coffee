@@ -57,6 +57,17 @@ describe 'Buffer', ->
       buffer.insert([0,0], "hi")
       expect(buffer.isModified()).toBe true
 
+    it "returns false after modified buffer is saved", ->
+      filePath = "/tmp/atom-tmp-file"
+      buffer = new Buffer(filePath)
+      expect(buffer.isModified()).toBe false
+
+      buffer.insert([0,0], "hi")
+      expect(buffer.isModified()).toBe true
+
+      buffer.save()
+      expect(buffer.isModified()).toBe false
+
   describe '.deserialize(state, project)', ->
     project = null
 
