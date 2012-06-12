@@ -407,65 +407,131 @@ describe "EditSession", ->
   describe "buffer manipulation", ->
     describe ".insertText(text)", ->
       describe "when there are multiple empty selections", ->
-        it "inserts the given text at the location of each cursor and moves the cursors to the end of each cursor's inserted text", ->
-          editSession.setCursorScreenPosition([1, 2])
-          editSession.addCursorAtScreenPosition([2, 4])
+        describe "when the cursors are on the same line", ->
+          it "inserts the given text at the location of each cursor and moves the cursors to the end of each cursor's inserted text", ->
+            editSession.setCursorScreenPosition([1, 2])
+            editSession.addCursorAtScreenPosition([1, 5])
 
-          editSession.insertText('xxx')
+            editSession.insertText('xxx')
 
-          expect(buffer.lineForRow(1)).toBe '  xxxvar sort = function(items) {'
-          expect(buffer.lineForRow(2)).toBe '    xxxif (items.length <= 1) return items;'
-          [cursor1, cursor2] = editSession.getCursors()
+            expect(buffer.lineForRow(1)).toBe '  xxxvarxxx sort = function(items) {'
+            [cursor1, cursor2] = editSession.getCursors()
 
-          expect(cursor1.getBufferPosition()).toEqual [1, 5]
-          expect(cursor2.getBufferPosition()).toEqual [2, 7]
+            expect(cursor1.getBufferPosition()).toEqual [1, 5]
+            expect(cursor2.getBufferPosition()).toEqual [1, 11]
+
+        describe "when the cursors are on different lines", ->
+          it "inserts the given text at the location of each cursor and moves the cursors to the end of each cursor's inserted text", ->
+            editSession.setCursorScreenPosition([1, 2])
+            editSession.addCursorAtScreenPosition([2, 4])
+
+            editSession.insertText('xxx')
+
+            expect(buffer.lineForRow(1)).toBe '  xxxvar sort = function(items) {'
+            expect(buffer.lineForRow(2)).toBe '    xxxif (items.length <= 1) return items;'
+            [cursor1, cursor2] = editSession.getCursors()
+
+            expect(cursor1.getBufferPosition()).toEqual [1, 5]
+            expect(cursor2.getBufferPosition()).toEqual [2, 7]
 
       describe "when there are multiple non-empty selections", ->
-        it "replaces each selection with the given text, clears the selections, and places the cursor at the end of each selection's inserted text", ->
-          editSession.setSelectedBufferRanges([[[1, 0], [1, 2]], [[2, 0], [2, 4]]])
+        describe "when the selections are on the same line", ->
+          it "replaces each selection range with the inserted characters", ->
+            editSession.setSelectedBufferRanges([[[0,4], [0,13]], [[0,22], [0,24]]])
+            editSession.insertText("x")
 
-          editSession.insertText('xxx')
+            [cursor1, cursor2] = editSession.getCursors()
+            [selection1, selection2] = editSession.getSelections()
 
-          expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
-          expect(buffer.lineForRow(2)).toBe 'xxxif (items.length <= 1) return items;'
-          [selection1, selection2] = editSession.getSelections()
+            expect(cursor1.getScreenPosition()).toEqual [0, 5]
+            expect(cursor2.getScreenPosition()).toEqual [0, 15]
+            expect(selection1.isEmpty()).toBeTruthy()
+            expect(selection2.isEmpty()).toBeTruthy()
 
-          expect(selection1.isEmpty()).toBeTruthy()
-          expect(selection1.cursor.getBufferPosition()).toEqual [1, 3]
-          expect(selection2.isEmpty()).toBeTruthy()
-          expect(selection2.cursor.getBufferPosition()).toEqual [2, 3]
+            expect(editSession.lineForBufferRow(0)).toBe "var x = functix () {"
+
+        describe "when the selections are on different lines", ->
+          it "replaces each selection with the given text, clears the selections, and places the cursor at the end of each selection's inserted text", ->
+            editSession.setSelectedBufferRanges([[[1, 0], [1, 2]], [[2, 0], [2, 4]]])
+
+            editSession.insertText('xxx')
+
+            expect(buffer.lineForRow(1)).toBe 'xxxvar sort = function(items) {'
+            expect(buffer.lineForRow(2)).toBe 'xxxif (items.length <= 1) return items;'
+            [selection1, selection2] = editSession.getSelections()
+
+            expect(selection1.isEmpty()).toBeTruthy()
+            expect(selection1.cursor.getBufferPosition()).toEqual [1, 3]
+            expect(selection2.isEmpty()).toBeTruthy()
+            expect(selection2.cursor.getBufferPosition()).toEqual [2, 3]
 
     describe ".insertNewline()", ->
-      describe "when the cursor is at the beginning of a line", ->
-        it "inserts an empty line before it", ->
-          editSession.setCursorScreenPosition(row: 1, column: 0)
+      describe "when there is a single cursor", ->
+        describe "when the cursor is at the beginning of a line", ->
+          it "inserts an empty line before it", ->
+            editSession.setCursorScreenPosition(row: 1, column: 0)
 
-          editSession.insertNewline()
+            editSession.insertNewline()
 
-          expect(buffer.lineForRow(1)).toBe ''
-          expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
+            expect(buffer.lineForRow(1)).toBe ''
+            expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
-      describe "when the cursor is in the middle of a line", ->
-        it "splits the current line to form a new line", ->
-          editSession.setCursorScreenPosition(row: 1, column: 6)
-          originalLine = buffer.lineForRow(1)
-          lineBelowOriginalLine = buffer.lineForRow(2)
+        describe "when the cursor is in the middle of a line", ->
+          it "splits the current line to form a new line", ->
+            editSession.setCursorScreenPosition(row: 1, column: 6)
+            originalLine = buffer.lineForRow(1)
+            lineBelowOriginalLine = buffer.lineForRow(2)
 
-          editSession.insertNewline()
+            editSession.insertNewline()
 
-          expect(buffer.lineForRow(1)).toBe originalLine[0...6]
-          expect(buffer.lineForRow(2)).toBe originalLine[6..]
-          expect(buffer.lineForRow(3)).toBe lineBelowOriginalLine
-          expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
+            expect(buffer.lineForRow(1)).toBe originalLine[0...6]
+            expect(buffer.lineForRow(2)).toBe originalLine[6..]
+            expect(buffer.lineForRow(3)).toBe lineBelowOriginalLine
+            expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
 
-      describe "when the cursor is on the end of a line", ->
-        it "inserts an empty line after it", ->
-          editSession.setCursorScreenPosition(row: 1, column: buffer.lineForRow(1).length)
+        describe "when the cursor is on the end of a line", ->
+          it "inserts an empty line after it", ->
+            editSession.setCursorScreenPosition(row: 1, column: buffer.lineForRow(1).length)
 
-          editSession.insertNewline()
+            editSession.insertNewline()
 
-          expect(buffer.lineForRow(2)).toBe ''
-          expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
+            expect(buffer.lineForRow(2)).toBe ''
+            expect(editSession.getCursorScreenPosition()).toEqual(row: 2, column: 0)
+
+      describe "when there are multiple cursors", ->
+        describe "when the cursors are on the same line", ->
+          it "breaks the line at the cursor locations", ->
+            editSession.setCursorScreenPosition([3, 13])
+            editSession.addCursorAtScreenPosition([3, 38])
+
+            editSession.insertNewline()
+
+            expect(editSession.lineForBufferRow(3)).toBe "    var pivot"
+            expect(editSession.lineForBufferRow(4)).toBe " = items.shift(), current"
+            expect(editSession.lineForBufferRow(5)).toBe ", left = [], right = [];"
+            expect(editSession.lineForBufferRow(6)).toBe "    while(items.length > 0) {"
+
+            [cursor1, cursor2] = editSession.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [4, 0]
+            expect(cursor2.getBufferPosition()).toEqual [5, 0]
+
+        describe "when the cursors are on different lines", ->
+          it "inserts newlines at each cursor location", ->
+            editSession.setCursorScreenPosition([3, 0])
+            editSession.addCursorAtScreenPosition([6, 0])
+
+            editSession.insertText("\n")
+            expect(editSession.lineForBufferRow(3)).toBe ""
+            expect(editSession.lineForBufferRow(4)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(editSession.lineForBufferRow(5)).toBe "    while(items.length > 0) {"
+            expect(editSession.lineForBufferRow(6)).toBe "      current = items.shift();"
+            expect(editSession.lineForBufferRow(7)).toBe ""
+            expect(editSession.lineForBufferRow(8)).toBe "      current < pivot ? left.push(current) : right.push(current);"
+            expect(editSession.lineForBufferRow(9)).toBe "    }"
+
+            [cursor1, cursor2] = editSession.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [4,0]
+            expect(cursor2.getBufferPosition()).toEqual [8,0]
 
     describe ".insertNewlineBelow()", ->
       it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
@@ -476,43 +542,102 @@ describe "EditSession", ->
         expect(editSession.getCursorBufferPosition()).toEqual [1, 2]
 
     describe ".backspace()", ->
-      describe "when the cursor is on the middle of the line", ->
-        it "removes the character before the cursor", ->
-          editSession.setCursorScreenPosition(row: 1, column: 7)
-          expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+      describe "when there is a single cursor", ->
+        describe "when the cursor is on the middle of the line", ->
+          it "removes the character before the cursor", ->
+            editSession.setCursorScreenPosition(row: 1, column: 7)
+            expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
 
-          editSession.backspace()
+            editSession.backspace()
 
-          line = buffer.lineForRow(1)
-          expect(line).toBe "  var ort = function(items) {"
-          expect(editSession.getCursorScreenPosition()).toEqual {row: 1, column: 6}
+            line = buffer.lineForRow(1)
+            expect(line).toBe "  var ort = function(items) {"
+            expect(editSession.getCursorScreenPosition()).toEqual {row: 1, column: 6}
 
-      describe "when the cursor is at the beginning of a line", ->
-        it "joins it with the line above", ->
-          originalLine0 = buffer.lineForRow(0)
-          expect(originalLine0).toBe "var quicksort = function () {"
-          expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
+        describe "when the cursor is at the beginning of a line", ->
+          it "joins it with the line above", ->
+            originalLine0 = buffer.lineForRow(0)
+            expect(originalLine0).toBe "var quicksort = function () {"
+            expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
 
-          editSession.setCursorScreenPosition(row: 1, column: 0)
-          editSession.backspace()
+            editSession.setCursorScreenPosition(row: 1, column: 0)
+            editSession.backspace()
 
-          line0 = buffer.lineForRow(0)
-          line1 = buffer.lineForRow(1)
-          expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
-          expect(line1).toBe "    if (items.length <= 1) return items;"
+            line0 = buffer.lineForRow(0)
+            line1 = buffer.lineForRow(1)
+            expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
+            expect(line1).toBe "    if (items.length <= 1) return items;"
 
-          expect(editSession.getCursorScreenPosition()).toEqual [0, originalLine0.length]
+            expect(editSession.getCursorScreenPosition()).toEqual [0, originalLine0.length]
 
-      describe "when the cursor is at the first column of the first line", ->
-        it "does nothing, but doesn't raise an error", ->
-          editSession.setCursorScreenPosition(row: 0, column: 0)
-          editSession.backspace()
+        describe "when the cursor is at the first column of the first line", ->
+          it "does nothing, but doesn't raise an error", ->
+            editSession.setCursorScreenPosition(row: 0, column: 0)
+            editSession.backspace()
 
-      describe "when there is a selection", ->
+      describe "when there are multiple cursors", ->
+        describe "when cursors are on the same line", ->
+          it "removes the characters preceding each cursor", ->
+            editSession.setCursorScreenPosition([3, 13])
+            editSession.addCursorAtScreenPosition([3, 38])
+
+            editSession.backspace()
+
+            expect(editSession.lineForBufferRow(3)).toBe "    var pivo = items.shift(), curren, left = [], right = [];"
+
+            [cursor1, cursor2] = editSession.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [3, 12]
+            expect(cursor2.getBufferPosition()).toEqual [3, 36]
+
+            [selection1, selection2] = editSession.getSelections()
+            expect(selection1.isEmpty()).toBeTruthy()
+            expect(selection2.isEmpty()).toBeTruthy()
+
+        describe "when cursors are on different lines", ->
+          describe "when the cursors are in the middle of their lines", ->
+            it "removes the characters preceding each cursor", ->
+              editSession.setCursorScreenPosition([3, 13])
+              editSession.addCursorAtScreenPosition([4, 10])
+
+              editSession.backspace()
+
+              expect(editSession.lineForBufferRow(3)).toBe "    var pivo = items.shift(), current, left = [], right = [];"
+              expect(editSession.lineForBufferRow(4)).toBe "    whileitems.length > 0) {"
+
+              [cursor1, cursor2] = editSession.getCursors()
+              expect(cursor1.getBufferPosition()).toEqual [3, 12]
+              expect(cursor2.getBufferPosition()).toEqual [4, 9]
+
+              [selection1, selection2] = editSession.getSelections()
+              expect(selection1.isEmpty()).toBeTruthy()
+              expect(selection2.isEmpty()).toBeTruthy()
+
+          describe "when the cursors are on the first column of their lines", ->
+            it "removes the newlines preceding each cursor", ->
+              editSession.setCursorScreenPosition([3, 0])
+              editSession.addCursorAtScreenPosition([6, 0])
+
+              editSession.backspace()
+              expect(editSession.lineForBufferRow(2)).toBe "    if (items.length <= 1) return items;    var pivot = items.shift(), current, left = [], right = [];"
+              expect(editSession.lineForBufferRow(3)).toBe "    while(items.length > 0) {"
+              expect(editSession.lineForBufferRow(4)).toBe "      current = items.shift();      current < pivot ? left.push(current) : right.push(current);"
+              expect(editSession.lineForBufferRow(5)).toBe "    }"
+
+              [cursor1, cursor2] = editSession.getCursors()
+              expect(cursor1.getBufferPosition()).toEqual [2,40]
+              expect(cursor2.getBufferPosition()).toEqual [4,30]
+
+      describe "when there is a single selection", ->
         it "deletes the selection, but not the character before it", ->
           editSession.setSelectedBufferRange([[0,5], [0,9]])
           editSession.backspace()
           expect(editSession.buffer.lineForRow(0)).toBe 'var qsort = function () {'
+
+      describe "when there are multiple selections", ->
+        it "removes all selected text", ->
+          editSession.setSelectedBufferRanges([[[0,4], [0,13]], [[0,16], [0,24]]])
+          editSession.backspace()
+          expect(editSession.lineForBufferRow(0)).toBe 'var  =  () {'
 
     describe ".backspaceToBeginningOfWord()", ->
       describe "when no text is selected", ->
@@ -540,7 +665,7 @@ describe "EditSession", ->
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
 
     describe ".delete()", ->
-      describe "when no text is selected", ->
+      describe "when there is a single cursor", ->
         describe "when the cursor is on the middle of a line", ->
           it "deletes the character following the cursor", ->
             editSession.setCursorScreenPosition([1, 6])
@@ -559,12 +684,69 @@ describe "EditSession", ->
             editSession.delete()
             expect(buffer.lineForRow(12)).toBe '};'
 
-      describe "when text is selected", ->
+      describe "when there are multiple cursors", ->
+        describe "when cursors are on the same line", ->
+          it "removes the characters following each cursor", ->
+            editSession.setCursorScreenPosition([3, 13])
+            editSession.addCursorAtScreenPosition([3, 38])
+
+            editSession.delete()
+
+            expect(editSession.lineForBufferRow(3)).toBe "    var pivot= items.shift(), current left = [], right = [];"
+
+            [cursor1, cursor2] = editSession.getCursors()
+            expect(cursor1.getBufferPosition()).toEqual [3, 13]
+            expect(cursor2.getBufferPosition()).toEqual [3, 37]
+
+            [selection1, selection2] = editSession.getSelections()
+            expect(selection1.isEmpty()).toBeTruthy()
+            expect(selection2.isEmpty()).toBeTruthy()
+
+        describe "when cursors are on different lines", ->
+          describe "when the cursors are in the middle of the lines", ->
+            it "removes the characters following each cursor", ->
+              editSession.setCursorScreenPosition([3, 13])
+              editSession.addCursorAtScreenPosition([4, 10])
+
+              editSession.delete()
+
+              expect(editSession.lineForBufferRow(3)).toBe "    var pivot= items.shift(), current, left = [], right = [];"
+              expect(editSession.lineForBufferRow(4)).toBe "    while(tems.length > 0) {"
+
+              [cursor1, cursor2] = editSession.getCursors()
+              expect(cursor1.getBufferPosition()).toEqual [3, 13]
+              expect(cursor2.getBufferPosition()).toEqual [4, 10]
+
+              [selection1, selection2] = editSession.getSelections()
+              expect(selection1.isEmpty()).toBeTruthy()
+              expect(selection2.isEmpty()).toBeTruthy()
+
+          describe "when the cursors are at the end of their lines", ->
+            it "removes the newlines following each cursor", ->
+              editSession.setCursorScreenPosition([0, 29])
+              editSession.addCursorAtScreenPosition([1, 30])
+
+              editSession.delete()
+
+              expect(editSession.lineForBufferRow(0)).toBe "var quicksort = function () {  var sort = function(items) {    if (items.length <= 1) return items;"
+
+              [cursor1, cursor2] = editSession.getCursors()
+              expect(cursor1.getBufferPosition()).toEqual [0,29]
+              expect(cursor2.getBufferPosition()).toEqual [0,59]
+
+      describe "when there is a single selection", ->
         it "deletes the selection, but not the character following it", ->
           editSession.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
           editSession.delete()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
+
+      describe "when there are multiple selections", ->
+        describe "when selections are on the same line", ->
+          it "removes all selected text", ->
+            editSession.setSelectedBufferRanges([[[0,4], [0,13]], [[0,16], [0,24]]])
+            editSession.delete()
+            expect(editSession.lineForBufferRow(0)).toBe 'var  =  () {'
 
     describe ".insertTab()", ->
       describe "if 'softTabs' is true (the default)", ->
