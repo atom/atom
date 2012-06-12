@@ -320,7 +320,9 @@ class EditSession
     @mergeCursors()
 
   selectToScreenPosition: (position) ->
-    @getLastSelection().selectToScreenPosition(position)
+    lastSelection = @getLastSelection()
+    lastSelection.selectToScreenPosition(position)
+    @mergeIntersectingSelections(reverse: lastSelection.isReversed())
 
   selectRight: ->
     @expandSelectionsForward (selection) => selection.selectRight()
