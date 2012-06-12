@@ -63,12 +63,41 @@ void NativeHandler::Absolute(const CefString& name,
 		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
 		CefRefPtr<CefV8Value>& retval, CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
-	if (path[0] == '~') {
-		string resolved = getenv("HOME");
-		resolved.append(path.substr(1));
-		retval = CefV8Value::CreateString(resolved);
-	} else
-		retval = CefV8Value::CreateString(path);
+	string relativePath;
+	if (path[0] != '~')
+		relativePath.append(path);
+	else {
+		relativePath.append(getenv("HOME"));
+		relativePath.append(path, 1, path.length() - 1);
+	}
+
+	vector < string > segments;
+	char allSegments[path.length() + 1];
+	strcpy(allSegments, path.c_str());
+	const char* segment;
+	for (segment = strtok(allSegments, "/"); segment;
+			segment = strtok(NULL, "/")) {
+		if (strcmp(segment, ".") == 0)
+			continue;
+		if (strcmp(segment, "..") == 0) {
+			if (segments.empty()) {
+				retval = CefV8Value::CreateString("/");
+				return;
+			} else {
+				segments.pop_back();
+				continue;
+			}
+		}
+		segments.push_back(segment);
+	}
+
+	string absolutePath;
+	unsigned int i;
+	for (i = 0; i < segments.size(); i++) {
+		absolutePath.append("/");
+		absolutePath.append(segments.at(i));
+	}
+	retval = CefV8Value::CreateString(absolutePath);
 }
 
 void ListDirectory(string path, vector<string>* paths, bool recursive) {
