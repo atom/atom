@@ -984,6 +984,65 @@ describe "EditSession", ->
           expect(editSession.buffer.lineForRow(0)).toBe "var first = function () {"
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
+    describe ".indentSelectedRows()", ->
+      tabLength = null
+
+      beforeEach ->
+        tabLength = editSession.tabText.length
+
+      describe "when nothing is selected", ->
+        it "indents line and retains selection", ->
+          editSession.setSelectedBufferRange([[0,3], [0,3]])
+          editSession.indentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "#{editSession.tabText}var quicksort = function () {"
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + tabLength], [0, 3 + tabLength]]
+
+      describe "when one line is selected", ->
+        it "indents line and retains selection", ->
+          editSession.setSelectedBufferRange([[0,4], [0,14]])
+          editSession.indentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "#{editSession.tabText}var quicksort = function () {"
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + tabLength], [0, 14 + tabLength]]
+
+      describe "when multiple lines are selected", ->
+        it "indents selected lines (that are not empty) and retains selection", ->
+          editSession.setSelectedBufferRange([[9,1], [11,15]])
+          editSession.indentSelectedRows()
+          expect(buffer.lineForRow(9)).toBe "    };"
+          expect(buffer.lineForRow(10)).toBe ""
+          expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
+          expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + tabLength], [11, 15 + tabLength]]
+
+    describe ".outdentSelectedRows()", ->
+      tabLength = null
+
+      beforeEach ->
+        editSession.tabText = "  "
+        tabLength = editSession.tabText.length
+
+      describe "when nothing is selected", ->
+        it "outdents line and retains selection", ->
+          editSession.setSelectedBufferRange([[1,3], [1,3]])
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
+          expect(editSession.getSelectedBufferRange()).toEqual [[1, 3 - tabLength], [1, 3 - tabLength]]
+
+      describe "when one line is selected", ->
+        it "outdents line and retains editSession", ->
+          editSession.setSelectedBufferRange([[1,4], [1,14]])
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
+          expect(editSession.getSelectedBufferRange()).toEqual [[1, 4 - tabLength], [1, 14 - tabLength]]
+
+      describe "when multiple lines are selected", ->
+        it "outdents selected lines and retains editSession", ->
+          editSession.setSelectedBufferRange([[0,1], [3,15]])
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+          expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
+          expect(buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 15 - tabLength]]
+
     describe ".undo() and .redo()", ->
       it "undoes/redoes the last change", ->
         editSession.insertText("foo")
