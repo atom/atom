@@ -1690,8 +1690,9 @@ describe "Editor", ->
 
     describe "when buffer is modified", ->
       it "triggers alert and does not close session", ->
-        originalBuffer = editor.buffer
+        spyOn(editor, 'remove')
+        spyOn($native, 'alert')
         editor.insertText("I AM CHANGED!")
         editor.trigger "close"
-        expect(editor.buffer).toBe originalBuffer
-
+        expect(editor.remove).not.toHaveBeenCalled()
+        expect($native.alert).toHaveBeenCalled()
