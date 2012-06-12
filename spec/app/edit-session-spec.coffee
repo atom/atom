@@ -786,6 +786,26 @@ describe "EditSession", ->
 
           expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
 
+      describe ".cutToEndOfLine()", ->
+        describe "when nothing is selected", ->
+          it "cuts up to the end of the line", ->
+            editSession.setCursorBufferPosition([2, 20])
+            editSession.addCursorAtBufferPosition([3, 20])
+            editSession.cutToEndOfLine()
+            expect(buffer.lineForRow(2)).toBe '    if (items.length'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+            expect(pasteboard).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+
+        describe "when text is selected", ->
+          it "only cuts the selected text, not to the end of the line", ->
+            editSession.setSelectedBufferRanges([[[2,20], [2, 30]], [[3, 20], [3, 20]]])
+
+            editSession.cutToEndOfLine()
+
+            expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
+            expect(buffer.lineForRow(3)).toBe '    var pivot = item'
+            expect(pasteboard).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
           editSession.copySelectedText()
