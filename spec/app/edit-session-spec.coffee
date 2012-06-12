@@ -611,6 +611,30 @@ describe "EditSession", ->
         beforeEach ->
           editSession.setAutoIndent(true)
 
+        describe "when editing a non-wrapped line", ->
+          describe "when a newline is inserted", ->
+            it "auto-indents the newline for each cursor", ->
+              editSession.setCursorScreenPosition([1, 30])
+              editSession.addCursorAtScreenPosition([4, 29])
+              editSession.insertText("\n")
+              expect(editSession.buffer.lineForRow(2)).toEqual("    ")
+              expect(editSession.buffer.lineForRow(6)).toEqual("      ")
+
+          describe "when text beginning with a newline is inserted", ->
+            it "indents cursor based on the indentation of previous buffer line", ->
+              editSession.setCursorBufferPosition([4, 29])
+              editSession.insertText("\nvar thisIsCool")
+              expect(buffer.lineForRow(5)).toEqual("      var thisIsCool")
+
+          describe "when text that closes a scope entered", ->
+            it "outdents the text", ->
+              editSession.setCursorBufferPosition([1, 30])
+              editSession.insertText("\n")
+              expect(editSession.buffer.lineForRow(2)).toEqual("    ")
+              editSession.insertText("}")
+              expect(buffer.lineForRow(2)).toEqual("  }")
+              expect(editSession.getCursorBufferPosition().column).toBe 3
+
         describe "when editing a wrapped line", ->
           beforeEach ->
             editSession.setSoftWrapColumn(50)
