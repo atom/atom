@@ -606,7 +606,7 @@ class Editor extends View
 
   save: ->
     if not @buffer.getPath()
-      path = $native.saveDialog()
+      path = Native.saveDialog()
       return false if not path
       @buffer.saveAs(path)
     else
