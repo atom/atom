@@ -87,7 +87,13 @@ class EditSession
     @renderer.clipScreenPosition(screenPosition, options)
 
   clipBufferPosition: (bufferPosition, options) ->
-    @renderer.clipBufferPosition(bufferPosition, options)
+    { row, column } = Point.fromObject(bufferPosition)
+    row = 0 if row < 0
+    column = 0 if column < 0
+    row = Math.min(@buffer.getLastRow(), row)
+    column = Math.min(@buffer.lineLengthForRow(row), column)
+
+    new Point(row, column)
 
   getEofBufferPosition: ->
     @buffer.getEofPosition()

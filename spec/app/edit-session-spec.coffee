@@ -1234,3 +1234,9 @@ describe "EditSession", ->
           editSession.foldAll()
           expect(editSession.getCursorBufferPosition()).toEqual([5,5])
 
+
+  describe ".clipBufferPosition(bufferPosition)", ->
+    it "clips the given position to a valid position", ->
+      expect(editSession.clipBufferPosition([-1, -1])).toEqual [0,0]
+      expect(editSession.clipBufferPosition([Infinity, Infinity])).toEqual [12,2]
+      expect(editSession.clipBufferPosition([8, 57])).toEqual [8, 56]

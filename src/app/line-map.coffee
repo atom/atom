@@ -81,9 +81,6 @@ class LineMap
   clipScreenPosition: (screenPosition, options) ->
     @clipPosition('screenDelta', screenPosition, options)
 
-  clipBufferPosition: (bufferPosition, options) ->
-    @clipPosition('bufferDelta', bufferPosition, options)
-
   clipPosition: (deltaType, position, options={}) ->
     options.clipToBounds = true
     @translatePosition(deltaType, deltaType, position, options)
