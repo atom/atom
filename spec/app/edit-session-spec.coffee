@@ -28,6 +28,15 @@ describe "EditSession", ->
         editSession.moveCursorDown()
         expect(editSession.getCursorScreenPosition().column).toBe 6
 
+      it "merges multiple cursors", ->
+        editSession.setCursorScreenPosition([0, 0])
+        editSession.addCursorAtScreenPosition([0, 1])
+        [cursor1, cursor2] = editSession.getCursors()
+        editSession.setCursorScreenPosition([4, 7])
+        expect(editSession.getCursors().length).toBe 1
+        expect(editSession.getCursors()).toEqual [cursor1]
+        expect(editSession.getCursorScreenPosition()).toEqual [4, 7]
+
     describe ".moveCursorUp()", ->
       it "moves the cursor up", ->
         editSession.setCursorScreenPosition([2, 2])
@@ -55,6 +64,14 @@ describe "EditSession", ->
 
           editSession.moveCursorDown()
           expect(editSession.getCursorScreenPosition()).toEqual(row: 1, column: 4)
+
+      it "merges cursors when they overlap", ->
+        editSession.addCursorAtScreenPosition([1, 0])
+        [cursor1, cursor2] = editSession.getCursors()
+
+        editSession.moveCursorUp()
+        expect(editSession.getCursors()).toEqual [cursor1]
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
 
     describe ".moveCursorDown()", ->
       it "moves the cursor down", ->
@@ -97,6 +114,15 @@ describe "EditSession", ->
           editSession.moveCursorUp()
           expect(editSession.getCursorScreenPosition().column).toBe 0
 
+      it "merges cursors when they overlap", ->
+        editSession.setCursorScreenPosition([12, 2])
+        editSession.addCursorAtScreenPosition([11, 2])
+        [cursor1, cursor2] = editSession.getCursors()
+
+        editSession.moveCursorDown()
+        expect(editSession.getCursors()).toEqual [cursor1]
+        expect(cursor1.getBufferPosition()).toEqual [12,2]
+
     describe ".moveCursorLeft()", ->
       it "moves the cursor by one column to the left", ->
         editSession.setCursorScreenPosition([3, 3])
@@ -115,6 +141,15 @@ describe "EditSession", ->
             editSession.setCursorScreenPosition(row: 0, column: 0)
             editSession.moveCursorLeft()
             expect(editSession.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+      it "merges cursors when they overlap", ->
+        editSession.setCursorScreenPosition([0, 0])
+        editSession.addCursorAtScreenPosition([0, 1])
+
+        [cursor1, cursor2] = editSession.getCursors()
+        editSession.moveCursorLeft()
+        expect(editSession.getCursors()).toEqual [cursor1]
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
 
     describe ".moveCursorRight()", ->
       it "moves the cursor by one column to the right", ->
@@ -140,6 +175,15 @@ describe "EditSession", ->
             editSession.moveCursorRight()
 
             expect(editSession.getCursorScreenPosition()).toEqual(lastPosition)
+
+      it "merges cursors when they overlap", ->
+        editSession.setCursorScreenPosition([12, 2])
+        editSession.addCursorAtScreenPosition([12, 1])
+        [cursor1, cursor2] = editSession.getCursors()
+
+        editSession.moveCursorRight()
+        expect(editSession.getCursors()).toEqual [cursor1]
+        expect(cursor1.getBufferPosition()).toEqual [12,2]
 
     describe ".moveCursorToTop()", ->
       it "moves the cursor to the top of the buffer", ->
@@ -881,4 +925,21 @@ describe "EditSession", ->
         expect(cursor1.getScreenPosition()).toEqual [0, 0]
         expect(cursor2.getScreenPosition()).toEqual [0, 8]
         expect(cursor3.getScreenPosition()).toEqual [1, 0]
+
+      it "merges cursors when the change causes them to overlap", ->
+        editSession.setCursorScreenPosition([0, 0])
+        editSession.addCursorAtScreenPosition([0, 1])
+        editSession.addCursorAtScreenPosition([1, 1])
+
+        [cursor1, cursor2, cursor3] = editSession.getCursors()
+        expect(editSession.getCursors().length).toBe 3
+
+        editSession.backspace()
+        expect(editSession.getCursors()).toEqual [cursor1, cursor3]
+        expect(cursor1.getBufferPosition()).toEqual [0,0]
+        expect(cursor3.getBufferPosition()).toEqual [1,0]
+
+        editSession.insertText "x"
+        expect(editSession.lineForBufferRow(0)).toBe "xar quicksort = function () {"
+        expect(editSession.lineForBufferRow(1)).toBe "x var sort = function(items) {"
 
