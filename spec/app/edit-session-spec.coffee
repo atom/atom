@@ -453,6 +453,12 @@ describe "EditSession", ->
         expect(selection2.getBufferRange()).toEqual [[11,3], [11,44]]
         expect(selection2.isReversed()).toBeFalsy()
 
+    describe ".selectLine()", ->
+      it "selects the entire line at given row", ->
+         editSession.setCursorScreenPosition([1, 2])
+         editSession.selectLine()
+         expect(editSession.getSelectedText()).toBe "  var sort = function(items) {"
+
     describe ".selectToBeginningOfWord()", ->
       it "selects text from cusor position to beginning of word", ->
         editSession.setCursorScreenPosition [0,13]

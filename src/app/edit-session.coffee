@@ -295,8 +295,17 @@ class EditSession
   getCursorBufferPosition: ->
     @getLastCursor().getBufferPosition()
 
+  getSelectedScreenRange: ->
+    @getLastSelection().getScreenRange()
+
+  getSelectedBufferRange: ->
+    @getLastSelection().getBufferRange()
+
   getSelectedBufferRanges: ->
     selection.getBufferRange() for selection in @selections
+
+  getSelectedText: ->
+    @getLastSelection().getText()
 
   moveCursorUp: ->
     @moveCursors (cursor) -> cursor.moveUp()

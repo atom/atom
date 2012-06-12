@@ -203,12 +203,6 @@ describe "Selection", ->
          selection.selectWord()
          expect(selection.getText()).toBe ''
 
-  describe ".selectLine(row)", ->
-    it "selects the entire line at given row", ->
-       editor.setCursorScreenPosition [0,2]
-       selection.selectLine(1)
-       expect(selection.getText()).toBe "  var sort = function(items) {"
-
   describe ".isReversed()", ->
     it "returns true if the cursor precedes the anchor", ->
       selection.cursor.setScreenPosition([0, 20])
