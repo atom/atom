@@ -497,6 +497,31 @@ describe "EditSession", ->
         expect(selection2.getBufferRange()).toEqual [[3,48], [3,50]]
         expect(selection2.isReversed()).toBeFalsy()
 
+    describe ".selectWord()", ->
+       describe "when the cursor is inside a word", ->
+         it "selects the entire word", ->
+           editSession.setCursorScreenPosition([0, 8])
+           editSession.selectWord()
+           expect(editSession.getSelectedText()).toBe 'quicksort'
+
+       describe "when the cursor is on beginning of a word", ->
+         it "selects the entire word", ->
+           editSession.setCursorScreenPosition([0, 4])
+           editSession.selectWord()
+           expect(editSession.getSelectedText()).toBe 'quicksort'
+
+       describe "when the cursor is at the end of a word", ->
+         it "selects the entire word", ->
+           editSession.setCursorScreenPosition([0, 13])
+           editSession.selectWord()
+           expect(editSession.getSelectedText()).toBe 'quicksort'
+
+       describe "when the cursor is not on a word", ->
+         it "selects nothing", ->
+           editSession.setCursorScreenPosition([5, 2])
+           editSession.selectWord()
+           expect(editSession.getSelectedText()).toBe ''
+
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
 

@@ -137,31 +137,6 @@ describe "Selection", ->
       expect(selectionView.regions.length).toBe 3
       expect(selectionView.find('.selection').length).toBe 3
 
-  describe ".selectWord()", ->
-     describe "when the cursor is inside a word", ->
-       it "selects the entire word", ->
-         editor.setCursorScreenPosition [0,8]
-         selection.selectWord()
-         expect(selection.getText()).toBe 'quicksort'
-
-     describe "when the cursor is on beginning of a word", ->
-       it "selects the entire word", ->
-         editor.setCursorScreenPosition [0,4]
-         selection.selectWord()
-         expect(selection.getText()).toBe 'quicksort'
-
-     describe "when the cursor is at the end of a word", ->
-       it "selects the entire word", ->
-         editor.setCursorScreenPosition [0,13]
-         selection.selectWord()
-         expect(selection.getText()).toBe 'quicksort'
-
-     describe "when the cursor is not on a word", ->
-       it "selects nothing", ->
-         editor.setCursorScreenPosition [5,2]
-         selection.selectWord()
-         expect(selection.getText()).toBe ''
-
   describe ".isReversed()", ->
     it "returns true if the cursor precedes the anchor", ->
       selection.cursor.setScreenPosition([0, 20])
