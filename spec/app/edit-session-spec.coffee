@@ -247,37 +247,62 @@ describe "EditSession", ->
       selection = editSession.getSelection()
 
     describe ".selectUp/Down/Left/Right()", ->
-      it "expands the selection to the cursor's new location", ->
-        editSession.setCursorScreenPosition(row: 1, column: 6)
-
-        expect(selection.isEmpty()).toBeTruthy()
-
-        editSession.selectRight()
-
-        expect(selection.isEmpty()).toBeFalsy()
-        range = selection.getScreenRange()
-        expect(range.start).toEqual(row: 1, column: 6)
-        expect(range.end).toEqual(row: 1, column: 7)
+      it "expands each selection to its cursor's new location", ->
+        editSession.setSelectedBufferRanges([[[0,9], [0,13]], [[3,16], [3,21]]])
+        [selection1, selection2] = editSession.getSelections()
 
         editSession.selectRight()
-        range = selection.getScreenRange()
-        expect(range.start).toEqual(row: 1, column: 6)
-        expect(range.end).toEqual(row: 1, column: 8)
-
-        editSession.selectDown()
-        range = selection.getScreenRange()
-        expect(range.start).toEqual(row: 1, column: 6)
-        expect(range.end).toEqual(row: 2, column: 8)
+        expect(selection1.getBufferRange()).toEqual [[0,9], [0,14]]
+        expect(selection2.getBufferRange()).toEqual [[3,16], [3,22]]
 
         editSession.selectLeft()
-        range = selection.getScreenRange()
-        expect(range.start).toEqual(row: 1, column: 6)
-        expect(range.end).toEqual(row: 2, column: 7)
+        editSession.selectLeft()
+        expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
+        expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
+
+        editSession.selectDown()
+        expect(selection1.getBufferRange()).toEqual [[0,9], [1,12]]
+        expect(selection2.getBufferRange()).toEqual [[3,16], [4,20]]
 
         editSession.selectUp()
-        range = selection.getScreenRange()
-        expect(range.start).toEqual(row: 1, column: 6)
-        expect(range.end).toEqual(row: 1, column: 7)
+        expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
+        expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
+
+      it "merges selections when they intersect when moving down", ->
+        editSession.setSelectedBufferRanges([[[0,9], [0,13]], [[1,10], [1,20]], [[2,15], [3,25]]])
+        [selection1, selection2, selection3] = editSession.getSelections()
+
+        editSession.selectDown()
+        expect(editSession.getSelections()).toEqual [selection1]
+        expect(selection1.getScreenRange()).toEqual([[0, 9], [4, 25]])
+        expect(selection1.isReversed()).toBeFalsy()
+
+      it "merges selections when they intersect when moving up", ->
+        editSession.setSelectedBufferRanges([[[0,9], [0,13]], [[1,10], [1,20]]], reverse: true)
+        [selection1, selection2] = editSession.getSelections()
+
+        editSession.selectUp()
+        expect(editSession.getSelections()).toEqual [selection1]
+        expect(selection1.getScreenRange()).toEqual([[0, 0], [1, 20]])
+        expect(selection1.isReversed()).toBeTruthy()
+
+      it "merges selections when they intersect when moving left", ->
+        editSession.setSelectedBufferRanges([[[0,9], [0,13]], [[0,14], [1,20]]], reverse: true)
+        [selection1, selection2] = editSession.getSelections()
+
+        editSession.selectLeft()
+        expect(editSession.getSelections()).toEqual [selection1]
+        expect(selection1.getScreenRange()).toEqual([[0, 8], [1, 20]])
+        expect(selection1.isReversed()).toBeTruthy()
+
+      it "merges selections when they intersect when moving right", ->
+        editSession.setSelectedBufferRanges([[[0,9], [0,13]], [[0,14], [1,20]]])
+        [selection1, selection2] = editSession.getSelections()
+
+        editSession.selectRight()
+        expect(editSession.getSelections()).toEqual [selection1]
+        expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]])
+        expect(selection1.isReversed()).toBeFalsy()
 
     describe ".selectToTop()", ->
       it "selects text from cusor position to the top of the buffer", ->

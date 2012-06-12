@@ -168,13 +168,6 @@ describe "Editor", ->
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
 
-  describe ".clipScreenPosition(point)", ->
-    it "selects the nearest valid position to the given point", ->
-      expect(editor.clipScreenPosition(row: 1000, column: 0)).toEqual(row: buffer.getLastRow(), column: buffer.lineForRow(buffer.getLastRow()).length)
-      expect(editor.clipScreenPosition(row: -5, column: 0)).toEqual(row: 0, column: 0)
-      expect(editor.clipScreenPosition(row: 1, column: 10000)).toEqual(row: 1, column: buffer.lineForRow(1).length)
-      expect(editor.clipScreenPosition(row: 1, column: -5)).toEqual(row: 1, column: 0)
-
   describe ".save()", ->
     describe "when the current buffer has a path", ->
       tempFilePath = null
@@ -1374,70 +1367,6 @@ describe "Editor", ->
           [selection1] = selections
           expect(selection1.getScreenRange()).toEqual [[3, 10], [7, 4]]
           expect(selection1.isReversed()).toBeTruthy()
-
-      describe "upon moving the cursor with the arrow keys with the shift key held down", ->
-        it "resizes all selections", ->
-          editor.setSelectionBufferRange [[0,9], [0,13]]
-          editor.addSelectionForBufferRange [[3,16], [3,21]]
-          [selection1, selection2] = editor.getSelections()
-
-          editor.selectRight()
-          expect(selection1.getBufferRange()).toEqual [[0,9], [0,14]]
-          expect(selection2.getBufferRange()).toEqual [[3,16], [3,22]]
-
-          editor.selectLeft()
-          editor.selectLeft()
-          expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
-          expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
-
-          editor.selectDown()
-          expect(selection1.getBufferRange()).toEqual [[0,9], [1,12]]
-          expect(selection2.getBufferRange()).toEqual [[3,16], [4,20]]
-
-          editor.selectUp()
-          expect(selection1.getBufferRange()).toEqual [[0,9], [0,12]]
-          expect(selection2.getBufferRange()).toEqual [[3,16], [3,20]]
-
-        it "merges selections when they intersect when moving down", ->
-          editor.setSelectionBufferRange [[0,9], [0,13]]
-          editor.addSelectionForBufferRange [[1,10], [1,20]]
-          editor.addSelectionForBufferRange [[2,15], [3,25]]
-          [selection1, selection2, selection3] = editor.getSelections()
-
-          editor.selectDown()
-          expect(editor.getSelections()).toEqual [selection1]
-          expect(selection1.getScreenRange()).toEqual([[0, 9], [4, 25]])
-          expect(selection1.isReversed()).toBeFalsy()
-
-        it "merges selections when they intersect when moving up", ->
-          editor.setSelectionBufferRange [[0,9], [0,13]], reverse: true
-          editor.addSelectionForBufferRange [[1,10], [1,20]], reverse: true
-          [selection1, selection2] = editor.getSelections()
-
-          editor.selectUp()
-          expect(editor.getSelections()).toEqual [selection1]
-          expect(selection1.getScreenRange()).toEqual([[0, 0], [1, 20]])
-          expect(selection1.isReversed()).toBeTruthy()
-
-        it "merges selections when they intersect when moving left", ->
-          editor.setSelectionBufferRange [[0,9], [0,13]], reverse: true
-          editor.addSelectionForBufferRange [[0,14], [1,20]], reverse: true
-          [selection1, selection2] = editor.getSelections()
-
-          editor.selectLeft()
-          expect(editor.getSelections()).toEqual [selection1]
-          expect(selection1.getScreenRange()).toEqual([[0, 8], [1, 20]])
-          expect(selection1.isReversed()).toBeTruthy()
-
-        it "merges selections when they intersect when moving right", ->
-          editor.setSelectionBufferRange [[0,9], [0,13]]
-          editor.addSelectionForBufferRange [[0,14], [1,20]]
-          [selection1, selection2] = editor.getSelections()
-
-          editor.selectRight()
-          expect(editor.getSelections()).toEqual [selection1]
-          expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]])
-          expect(selection1.isReversed()).toBeFalsy()
 
     describe "cursor merging", ->
       it "merges cursors when they overlap due to a buffer change", ->
