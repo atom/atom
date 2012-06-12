@@ -85,7 +85,19 @@
 
 - (bool)keyEventOfType:(cef_handler_keyevent_type_t)type code:(int)code modifiers:(int)modifiers isSystemKey:(bool)isSystemKey isAfterJavaScript:(bool)isAfterJavaScript {  
   if (isAfterJavaScript && type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
-    _clientHandler->GetBrowser()->ReloadIgnoreCache();
+    
+    CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+    CefRefPtr<CefV8Value> global = context->GetGlobal();
+    
+    context->Enter();
+    CefRefPtr<CefV8Value> retval;
+    CefRefPtr<CefV8Exception> exception;
+    CefV8ValueList arguments;
+    global->GetValue("reload")->ExecuteFunction(global, arguments, retval, exception, true);
+    if (exception) _clientHandler->GetBrowser()->ReloadIgnoreCache();
+    context->Exit();
+    
+
     return YES;
   }
   
