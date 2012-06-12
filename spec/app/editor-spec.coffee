@@ -79,6 +79,54 @@ describe "Editor", ->
       expect(newEditor.scrollView.scrollLeft()).toBe 44
       newEditor.remove()
 
+  describe "when the editor is attached to the dom", ->
+    it "calculates line height and char width and updates the pixel position of the cursor", ->
+      expect(editor.lineHeight).toBeNull()
+      expect(editor.charWidth).toBeNull()
+      editor.setCursorScreenPosition(row: 2, column: 2)
+
+      editor.attachToDom()
+
+      expect(editor.lineHeight).not.toBeNull()
+      expect(editor.charWidth).not.toBeNull()
+      expect(editor.find('.cursor').offset()).toEqual pagePixelPositionForPoint(editor, [2, 2])
+
+    it "is focused", ->
+      editor.attachToDom()
+      expect(editor).toMatchSelector ":has(:focus)"
+
+    it "unsubscribes from the buffer when it is removed from the dom", ->
+      buffer = new Buffer
+      previousSubscriptionCount = buffer.subscriptionCount()
+
+      editor.attachToDom()
+      editor.setBuffer(buffer)
+
+      expect(buffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
+      expect($('.editor')).toExist()
+      editor.remove()
+      expect(buffer.subscriptionCount()).toBe previousSubscriptionCount
+      expect($('.editor')).not.toExist()
+
+  describe "when the editor recieves focus", ->
+    it "focuses the hidden input", ->
+      editor.attachToDom()
+      editor.focus()
+      expect(editor).not.toMatchSelector ':focus'
+      expect(editor.hiddenInput).toMatchSelector ':focus'
+
+  describe "when the hidden input is focused / unfocused", ->
+    it "assigns the isFocused flag on the editor and also adds/removes the .focused css class", ->
+      editor.attachToDom()
+      editor.isFocused = false
+      editor.hiddenInput.focus()
+      expect(editor.isFocused).toBeTruthy()
+      expect(editor).toHaveClass('focused')
+
+      editor.hiddenInput.focusout()
+      expect(editor.isFocused).toBeFalsy()
+      expect(editor).not.toHaveClass('focused')
+
   describe ".remove()", ->
     it "removes subscriptions from all edit session buffers", ->
       otherBuffer = new Buffer(require.resolve('fixtures/sample.txt'))
@@ -90,6 +138,37 @@ describe "Editor", ->
       editor.remove()
       expect(buffer.subscriptionCount()).toBe 1
       expect(otherBuffer.subscriptionCount()).toBe 1
+
+  describe "when 'close' is triggered", ->
+    it "closes active edit session and loads next edit session", ->
+      editor.setBuffer(new Buffer())
+      spyOn(editor, "remove")
+      editor.trigger "close"
+      expect(editor.remove).not.toHaveBeenCalled()
+      expect(editor.buffer).toBe buffer
+
+    it "calls remove on the editor if there is one edit session and mini is false", ->
+      originalBuffer = editor.buffer
+      expect(editor.mini).toBeFalsy()
+      expect(editor.editSessions.length).toBe 1
+      spyOn(editor, 'remove')
+      editor.trigger 'close'
+      expect(editor.remove).toHaveBeenCalled()
+
+      editor.remove()
+      editor = new Editor(mini: true)
+      spyOn(editor, 'remove')
+      editor.trigger 'close'
+      expect(editor.remove).not.toHaveBeenCalled()
+
+    describe "when buffer is modified", ->
+      it "triggers alert and does not close session", ->
+        spyOn(editor, 'remove')
+        spyOn($native, 'alert')
+        editor.insertText("I AM CHANGED!")
+        editor.trigger "close"
+        expect(editor.remove).not.toHaveBeenCalled()
+        expect($native.alert).toHaveBeenCalled()
 
   describe ".setBuffer(buffer)", ->
     otherBuffer = null
@@ -132,106 +211,6 @@ describe "Editor", ->
 
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
-
-  describe ".save()", ->
-    describe "when the current buffer has a path", ->
-      tempFilePath = null
-
-      beforeEach ->
-        tempFilePath = '/tmp/atom-temp.txt'
-        editor.setBuffer new Buffer(tempFilePath)
-        expect(editor.buffer.getPath()).toBe tempFilePath
-
-      afterEach ->
-        expect(fs.remove(tempFilePath))
-
-      it "saves the current buffer to disk", ->
-        editor.buffer.setText 'Edited!'
-        expect(fs.exists(tempFilePath)).toBeFalsy()
-
-        editor.save()
-
-        expect(fs.exists(tempFilePath)).toBeTruthy()
-        expect(fs.read(tempFilePath)).toBe 'Edited!'
-
-    describe "when the current buffer has no path", ->
-      selectedFilePath = null
-      beforeEach ->
-        editor.setBuffer new Buffer()
-        expect(editor.buffer.getPath()).toBeUndefined()
-        editor.buffer.setText 'Save me to a new path'
-        spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
-
-      it "presents a 'save as' dialog", ->
-        editor.save()
-        expect($native.saveDialog).toHaveBeenCalled()
-
-      describe "when a path is chosen", ->
-        it "saves the buffer to the chosen path", ->
-          selectedFilePath = '/tmp/temp.txt'
-
-          editor.save()
-
-          expect(fs.exists(selectedFilePath)).toBeTruthy()
-          expect(fs.read(selectedFilePath)).toBe 'Save me to a new path'
-
-      describe "when dialog is cancelled", ->
-        it "does not save the buffer", ->
-          selectedFilePath = null
-          editor.save()
-          expect(fs.exists(selectedFilePath)).toBeFalsy()
-
-  describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
-    elements = null
-
-    beforeEach ->
-      editor.attachToDom()
-      elements = $$ ->
-        @div "A", class: 'line'
-        @div "B", class: 'line'
-
-    describe "when the start row is 0", ->
-      describe "when the row count is 0", ->
-        it "inserts the given elements before the first row", ->
-          editor.spliceLineElements 0, 0, elements
-
-          expect(editor.renderedLines.find('.line:eq(0)').text()).toBe 'A'
-          expect(editor.renderedLines.find('.line:eq(1)').text()).toBe 'B'
-          expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
-
-      describe "when the row count is > 0", ->
-        it "replaces the initial rows with the given elements", ->
-          editor.spliceLineElements 0, 2, elements
-
-          expect(editor.renderedLines.find('.line:eq(0)').text()).toBe 'A'
-          expect(editor.renderedLines.find('.line:eq(1)').text()).toBe 'B'
-          expect(editor.renderedLines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
-
-    describe "when the start row is less than the last row", ->
-      describe "when the row count is 0", ->
-        it "inserts the elements at the specified location", ->
-          editor.spliceLineElements 2, 0, elements
-
-          expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'A'
-          expect(editor.renderedLines.find('.line:eq(3)').text()).toBe 'B'
-          expect(editor.renderedLines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
-
-      describe "when the row count is > 0", ->
-        it "replaces the elements at the specified location", ->
-          editor.spliceLineElements 2, 2, elements
-
-          expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'A'
-          expect(editor.renderedLines.find('.line:eq(3)').text()).toBe 'B'
-          expect(editor.renderedLines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
-
-    describe "when the start row is the last row", ->
-      it "appends the elements to the end of the lines", ->
-        editor.spliceLineElements 13, 0, elements
-
-        expect(editor.renderedLines.find('.line:eq(12)').text()).toBe '};'
-        expect(editor.renderedLines.find('.line:eq(13)').text()).toBe 'A'
-        expect(editor.renderedLines.find('.line:eq(14)').text()).toBe 'B'
-        expect(editor.renderedLines.find('.line:eq(15)')).not.toExist()
 
   describe "switching edit sessions", ->
     [buffer0, buffer1, buffer2] = []
@@ -293,6 +272,54 @@ describe "Editor", ->
         editor.loadPreviousEditSession()
         expect(editor.activeEditSession).toBe session2
 
+  describe ".save()", ->
+    describe "when the current buffer has a path", ->
+      tempFilePath = null
+
+      beforeEach ->
+        tempFilePath = '/tmp/atom-temp.txt'
+        editor.setBuffer new Buffer(tempFilePath)
+        expect(editor.buffer.getPath()).toBe tempFilePath
+
+      afterEach ->
+        expect(fs.remove(tempFilePath))
+
+      it "saves the current buffer to disk", ->
+        editor.buffer.setText 'Edited!'
+        expect(fs.exists(tempFilePath)).toBeFalsy()
+
+        editor.save()
+
+        expect(fs.exists(tempFilePath)).toBeTruthy()
+        expect(fs.read(tempFilePath)).toBe 'Edited!'
+
+    describe "when the current buffer has no path", ->
+      selectedFilePath = null
+      beforeEach ->
+        editor.setBuffer new Buffer()
+        expect(editor.buffer.getPath()).toBeUndefined()
+        editor.buffer.setText 'Save me to a new path'
+        spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
+
+      it "presents a 'save as' dialog", ->
+        editor.save()
+        expect($native.saveDialog).toHaveBeenCalled()
+
+      describe "when a path is chosen", ->
+        it "saves the buffer to the chosen path", ->
+          selectedFilePath = '/tmp/temp.txt'
+
+          editor.save()
+
+          expect(fs.exists(selectedFilePath)).toBeTruthy()
+          expect(fs.read(selectedFilePath)).toBe 'Save me to a new path'
+
+      describe "when dialog is cancelled", ->
+        it "does not save the buffer", ->
+          selectedFilePath = null
+          editor.save()
+          expect(fs.exists(selectedFilePath)).toBeFalsy()
+
   describe ".scrollTop(n)", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5)
@@ -340,6 +367,28 @@ describe "Editor", ->
         editor.scrollTop(50)
         expect(editor.scrollTop()).toBe 50
 
+  describe "split methods", ->
+    describe "when inside a pane", ->
+      fakePane = null
+      beforeEach ->
+        fakePane = { splitUp: jasmine.createSpy('splitUp').andReturn({}), remove: -> }
+        spyOn(editor, 'pane').andReturn(fakePane)
+
+      it "calls the corresponding split method on the containing pane with a copy of the editor", ->
+        editor.splitUp()
+        expect(fakePane.splitUp).toHaveBeenCalled()
+        [editorCopy] = fakePane.splitUp.argsForCall[0]
+        expect(editorCopy.serialize()).toEqual editor.serialize()
+        expect(editorCopy).not.toBe editor
+        editorCopy.remove()
+
+    describe "when not inside a pane", ->
+      it "does not split the editor, but doesn't throw an exception", ->
+        editor.splitUp()
+        editor.splitDown()
+        editor.splitLeft()
+        editor.splitRight()
+
   describe "editor-open event", ->
     it 'only triggers an editor-open event when it is first added to the DOM', ->
       openHandler = jasmine.createSpy('openHandler')
@@ -353,6 +402,417 @@ describe "Editor", ->
       openHandler.reset()
       editor.simulateDomAttachment()
       expect(openHandler).not.toHaveBeenCalled()
+
+  describe "editor-path-change event", ->
+    it "emits event when buffer's path is changed", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      editor.on 'editor-path-change', eventHandler
+      editor.buffer.setPath("moo.text")
+
+    it "emits event when editor receives a new buffer", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      editor.on 'editor-path-change', eventHandler
+      editor.setBuffer(new Buffer("something.txt"))
+      expect(eventHandler).toHaveBeenCalled()
+
+    it "stops listening to events on previously set buffers", ->
+      eventHandler = jasmine.createSpy('eventHandler')
+      oldBuffer = editor.buffer
+      editor.on 'editor-path-change', eventHandler
+
+      editor.setBuffer(new Buffer("something.txt"))
+      expect(eventHandler).toHaveBeenCalled()
+
+      eventHandler.reset()
+      oldBuffer.setPath("bad.txt")
+      expect(eventHandler).not.toHaveBeenCalled()
+
+      eventHandler.reset()
+      editor.buffer.setPath("new.txt")
+      expect(eventHandler).toHaveBeenCalled()
+
+  describe "font size", ->
+    it "sets the initial font size based on the value assigned to the root view", ->
+      rootView.setFontSize(20)
+      rootView.simulateDomAttachment()
+      newEditor = editor.splitRight()
+      expect(editor.css('font-size')).toBe '20px'
+      expect(newEditor.css('font-size')).toBe '20px'
+
+    describe "when the font size changes on the view", ->
+      it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
+        rootView.attachToDom()
+        rootView.setFontSize(10)
+        lineHeightBefore = editor.lineHeight
+        charWidthBefore = editor.charWidth
+        editor.setCursorScreenPosition [5, 5]
+
+        rootView.setFontSize(30)
+        expect(editor.css('font-size')).toBe '30px'
+        expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
+        expect(editor.charWidth).toBeGreaterThan charWidthBefore
+        expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 5 * editor.charWidth }
+
+        # ensure we clean up font size subscription
+        editor.trigger('close')
+        rootView.setFontSize(22)
+        expect(editor.css('font-size')).toBe '30px'
+
+      it "updates lines if there are unrendered lines", ->
+        editor.attachToDom(heightInLines: 5)
+        originalLineCount = editor.renderedLines.find(".line").length
+        expect(originalLineCount).toBeGreaterThan 0
+        editor.setFontSize(10)
+        expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
+
+  describe "mouse events", ->
+    beforeEach ->
+      editor.attachToDom()
+      editor.css(position: 'absolute', top: 10, left: 10)
+
+    describe "single-click", ->
+      it "re-positions the cursor to the clicked row / column", ->
+        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10])
+        expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
+
+      describe "when the lines are scrolled to the right", ->
+        it "re-positions the cursor on the clicked location", ->
+          setEditorWidthInChars(editor, 30)
+          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 50])
+          expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
+
+    describe "double-click", ->
+      it "selects the word under the cursor", ->
+        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelectedText()).toBe "quicksort"
+
+    describe "triple/quardruple/etc-click", ->
+      it "selects the line under the cursor", ->
+        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+        # Triple click
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
+
+        # Quad click
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
+
+    describe "shift-click", ->
+      it "selects from the cursor's current location to the clicked location", ->
+        editor.setCursorScreenPosition([4, 7])
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true)
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
+
+    describe "shift-double-click", ->
+      it "expands the selection to include the double-clicked word", ->
+        editor.setCursorScreenPosition([4, 7])
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 27]]
+
+    describe "shift-triple-click", ->
+      it "expands the selection to include the triple-clicked line", ->
+        editor.setCursorScreenPosition([4, 7])
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 30]]
+
+    describe "meta-click", ->
+      it "places an additional cursor", ->
+        editor.attachToDom()
+        setEditorHeightInLines(editor, 5)
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 0])
+        editor.scrollTop(editor.lineHeight * 6)
+
+        spyOn(editor, "scrollTo").andCallThrough()
+
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
+        expect(editor.scrollTo.callCount).toBe 1
+
+        [cursor1, cursor2] = editor.getCursorViews()
+        expect(cursor1.position()).toEqual(top: 3 * editor.lineHeight, left: 0)
+        expect(cursor1.getBufferPosition()).toEqual [3, 0]
+        expect(cursor2.position()).toEqual(top: 6 * editor.lineHeight, left: 0)
+        expect(cursor2.getBufferPosition()).toEqual [6, 0]
+
+    describe "click and drag", ->
+      it "creates a selection from the initial click to mouse cursor's location ", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        # start
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
+
+        # moving changes selection
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+        # mouse up may occur outside of editor, but still need to halt selection
+        $(document).trigger 'mouseup'
+
+        # moving after mouse up should not change selection
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 10})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+    describe "double-click and drag", ->
+      it "creates a selection from the word underneath an initial double click to mouse's new location ", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        # double click
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
+        $(document).trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
+
+        # moving changes selection
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 4})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+        # mouse up may occur outside of editor, but still need to halt selection
+        $(document).trigger 'mouseup'
+
+        # moving after mouse up should not change selection
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 4})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+    describe "trip-click and drag", ->
+      it "creates a selection from the line underneath an initial triple click to mouse's new location ", ->
+        editor.attachToDom()
+        editor.css(position: 'absolute', top: 10, left: 10)
+
+        # double click
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
+        $(document).trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
+        $(document).trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 3})
+
+        # moving changes selection
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 0})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+        # mouse up may occur outside of editor, but still need to halt selection
+        $(document).trigger 'mouseup'
+
+        # moving after mouse up should not change selection
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
+
+        range = editor.getSelection().getScreenRange()
+        expect(range.start).toEqual({row: 4, column: 0})
+        expect(range.end).toEqual({row: 5, column: 27})
+        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+    describe "meta-click and drag", ->
+      it "adds an additional selection", ->
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        editor.renderedLines.trigger 'mouseup'
+
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
+        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
+        editor.renderedLines.trigger 'mouseup'
+
+        selections = editor.getSelections()
+        expect(selections.length).toBe 2
+        [selection1, selection2] = selections
+        expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
+        expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
+
+  describe "when text input events are triggered on the hidden input element", ->
+    it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
+      editor.attachToDom()
+      editor.setCursorScreenPosition(row: 1, column: 6)
+
+      expect(buffer.lineForRow(1).charAt(6)).not.toBe 'q'
+
+      editor.hiddenInput.textInput 'q'
+
+      expect(buffer.lineForRow(1).charAt(6)).toBe 'q'
+      expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
+      expect(editor.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
+
+  describe "when the cursor moves", ->
+    charWidth = null
+
+    beforeEach ->
+      editor.attachToDom()
+      editor.vScrollMargin = 3
+      editor.hScrollMargin = 5
+      {charWidth} = editor
+
+    it "repositions the cursor's view on screen", ->
+      editor.attachToDom()
+      editor.setCursorScreenPosition(row: 2, column: 2)
+      expect(editor.getCursorView().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
+
+    describe "auto-scrolling", ->
+      it "only auto-scrolls when the last cursor is moved", ->
+        editor.setCursorBufferPosition([11,0])
+        editor.addCursorAtBufferPosition([6,50])
+        [cursor1, cursor2] = editor.getCursors()
+
+        spyOn(editor, 'scrollTo')
+        cursor1.setScreenPosition([10, 10])
+        expect(editor.scrollTo).not.toHaveBeenCalled()
+
+        cursor2.setScreenPosition([11, 11])
+        expect(editor.scrollTo).toHaveBeenCalled()
+
+      describe "when the last cursor exceeds the upper or lower scroll margins", ->
+        describe "when the editor is taller than twice the vertical scroll margin", ->
+          it "sets the scrollTop so the cursor remains within the scroll margin", ->
+            setEditorHeightInLines(editor, 10)
+
+            _.times 6, -> editor.moveCursorDown()
+            expect(editor.scrollTop()).toBe(0)
+
+            editor.moveCursorDown()
+            expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+            editor.moveCursorDown()
+            expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
+
+            _.times 3, -> editor.moveCursorUp()
+
+            editor.moveCursorUp()
+            expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+            editor.moveCursorUp()
+            expect(editor.scrollTop()).toBe(0)
+
+        describe "when the editor is shorter than twice the vertical scroll margin", ->
+          it "sets the scrollTop based on a reduced scroll margin, which prevents a jerky tug-of-war between upper and lower scroll margins", ->
+            setEditorHeightInLines(editor, 5)
+
+            _.times 3, -> editor.moveCursorDown()
+
+            expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+            editor.moveCursorUp()
+            expect(editor.renderedLines.css('top')).toBe "0px"
+
+      describe "when the last cursor exceeds the right or left scroll margins", ->
+        describe "when soft-wrap is disabled", ->
+          describe "when the editor is wider than twice the horizontal scroll margin", ->
+            it "sets the scrollView's scrollLeft so the cursor remains within the scroll margin", ->
+              setEditorWidthInChars(editor, 30)
+
+              # moving right
+              editor.setCursorScreenPosition([2, 24])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe 0
+
+              editor.setCursorScreenPosition([2, 25])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe charWidth
+
+              editor.setCursorScreenPosition([2, 28])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
+
+              # moving left
+              editor.setCursorScreenPosition([2, 9])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
+
+              editor.setCursorScreenPosition([2, 8])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe charWidth * 3
+
+              editor.setCursorScreenPosition([2, 5])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe 0
+
+          describe "when the editor is narrower than twice the horizontal scroll margin", ->
+            it "sets the scrollView's scrollLeft based on a reduced horizontal scroll margin, to prevent a jerky tug-of-war between right and left scroll margins", ->
+              editor.hScrollMargin = 6
+              setEditorWidthInChars(editor, 7)
+
+              editor.setCursorScreenPosition([2, 3])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe(0)
+
+              editor.setCursorScreenPosition([2, 4])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe(charWidth)
+
+              editor.setCursorScreenPosition([2, 3])
+              window.advanceClock()
+              expect(editor.scrollView.scrollLeft()).toBe(0)
+
+        describe "when soft-wrap is enabled", ->
+          beforeEach ->
+            editor.setSoftWrap(true)
+
+          it "does not scroll the buffer horizontally", ->
+            editor.width(charWidth * 30)
+
+            # moving right
+            editor.setCursorScreenPosition([2, 24])
+            expect(editor.scrollView.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 25])
+            expect(editor.scrollView.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 28])
+            expect(editor.scrollView.scrollLeft()).toBe 0
+
+            # moving left
+            editor.setCursorScreenPosition([2, 9])
+            expect(editor.scrollView.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 8])
+            expect(editor.scrollView.scrollLeft()).toBe 0
+
+            editor.setCursorScreenPosition([2, 5])
+            expect(editor.scrollView.scrollLeft()).toBe 0
 
   describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
@@ -737,6 +1197,58 @@ describe "Editor", ->
 
         expect(editor.renderedLines.find('.line').length).toBe 8
 
+    describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
+      elements = null
+
+      beforeEach ->
+        editor.attachToDom()
+        elements = $$ ->
+          @div "A", class: 'line'
+          @div "B", class: 'line'
+
+      describe "when the start row is 0", ->
+        describe "when the row count is 0", ->
+          it "inserts the given elements before the first row", ->
+            editor.spliceLineElements 0, 0, elements
+
+            expect(editor.renderedLines.find('.line:eq(0)').text()).toBe 'A'
+            expect(editor.renderedLines.find('.line:eq(1)').text()).toBe 'B'
+            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
+
+        describe "when the row count is > 0", ->
+          it "replaces the initial rows with the given elements", ->
+            editor.spliceLineElements 0, 2, elements
+
+            expect(editor.renderedLines.find('.line:eq(0)').text()).toBe 'A'
+            expect(editor.renderedLines.find('.line:eq(1)').text()).toBe 'B'
+            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
+
+      describe "when the start row is less than the last row", ->
+        describe "when the row count is 0", ->
+          it "inserts the elements at the specified location", ->
+            editor.spliceLineElements 2, 0, elements
+
+            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'A'
+            expect(editor.renderedLines.find('.line:eq(3)').text()).toBe 'B'
+            expect(editor.renderedLines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
+
+        describe "when the row count is > 0", ->
+          it "replaces the elements at the specified location", ->
+            editor.spliceLineElements 2, 2, elements
+
+            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'A'
+            expect(editor.renderedLines.find('.line:eq(3)').text()).toBe 'B'
+            expect(editor.renderedLines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
+
+      describe "when the start row is the last row", ->
+        it "appends the elements to the end of the lines", ->
+          editor.spliceLineElements 13, 0, elements
+
+          expect(editor.renderedLines.find('.line:eq(12)').text()).toBe '};'
+          expect(editor.renderedLines.find('.line:eq(13)').text()).toBe 'A'
+          expect(editor.renderedLines.find('.line:eq(14)').text()).toBe 'B'
+          expect(editor.renderedLines.find('.line:eq(15)')).not.toExist()
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
@@ -840,438 +1352,7 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:first').text()).toBe "2"
         expect(editor.gutter.find('.line-number:last').text()).toBe "11"
 
-  describe "font size", ->
-    it "sets the initial font size based on the value assigned to the root view", ->
-      rootView.setFontSize(20)
-      rootView.simulateDomAttachment()
-      newEditor = editor.splitRight()
-      expect(editor.css('font-size')).toBe '20px'
-      expect(newEditor.css('font-size')).toBe '20px'
-
-    describe "when the font size changes on the view", ->
-      it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
-        rootView.attachToDom()
-        rootView.setFontSize(10)
-        lineHeightBefore = editor.lineHeight
-        charWidthBefore = editor.charWidth
-        editor.setCursorScreenPosition [5, 5]
-
-        rootView.setFontSize(30)
-        expect(editor.css('font-size')).toBe '30px'
-        expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
-        expect(editor.charWidth).toBeGreaterThan charWidthBefore
-        expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 5 * editor.charWidth }
-
-        # ensure we clean up font size subscription
-        editor.trigger('close')
-        rootView.setFontSize(22)
-        expect(editor.css('font-size')).toBe '30px'
-
-      it "updates lines if there are unrendered lines", ->
-        editor.attachToDom(heightInLines: 5)
-        originalLineCount = editor.renderedLines.find(".line").length
-        expect(originalLineCount).toBeGreaterThan 0
-        editor.setFontSize(10)
-        expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
-
-  describe "mouse events", ->
-    beforeEach ->
-      editor.attachToDom()
-      editor.css(position: 'absolute', top: 10, left: 10)
-
-    describe "single-click", ->
-      it "re-positions the cursor to the clicked row / column", ->
-        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10])
-        expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
-
-      describe "when the lines are scrolled to the right", ->
-        it "re-positions the cursor on the clicked location", ->
-          setEditorWidthInChars(editor, 30)
-          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
-          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 50])
-          expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
-
-    describe "double-click", ->
-      it "selects the word under the cursor", ->
-        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
-        editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelectedText()).toBe "quicksort"
-
-    describe "triple/quardruple/etc-click", ->
-      it "selects the line under the cursor", ->
-        expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
-        # Triple click
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
-        editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
-
-        # Quad click
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
-        editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
-
-    describe "shift-click", ->
-      it "selects from the cursor's current location to the clicked location", ->
-        editor.setCursorScreenPosition([4, 7])
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true)
-        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
-
-    describe "shift-double-click", ->
-      it "expands the selection to include the double-clicked word", ->
-        editor.setCursorScreenPosition([4, 7])
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
-        editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 27]]
-
-    describe "shift-triple-click", ->
-      it "expands the selection to include the triple-clicked line", ->
-        editor.setCursorScreenPosition([4, 7])
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
-        editor.renderedLines.trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
-        editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 30]]
-
-    describe "meta-click", ->
-      it "places an additional cursor", ->
-        editor.attachToDom()
-        setEditorHeightInLines(editor, 5)
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 0])
-        editor.scrollTop(editor.lineHeight * 6)
-
-        spyOn(editor, "scrollTo").andCallThrough()
-
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
-        expect(editor.scrollTo.callCount).toBe 1
-
-        [cursor1, cursor2] = editor.getCursorViews()
-        expect(cursor1.position()).toEqual(top: 3 * editor.lineHeight, left: 0)
-        expect(cursor1.getBufferPosition()).toEqual [3, 0]
-        expect(cursor2.position()).toEqual(top: 6 * editor.lineHeight, left: 0)
-        expect(cursor2.getBufferPosition()).toEqual [6, 0]
-
-    describe "click and drag", ->
-      it "creates a selection from the initial click to mouse cursor's location ", ->
-        editor.attachToDom()
-        editor.css(position: 'absolute', top: 10, left: 10)
-
-        # start
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
-
-        # moving changes selection
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-
-        range = editor.getSelection().getScreenRange()
-        expect(range.start).toEqual({row: 4, column: 10})
-        expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
-
-        # mouse up may occur outside of editor, but still need to halt selection
-        $(document).trigger 'mouseup'
-
-        # moving after mouse up should not change selection
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
-
-        range = editor.getSelection().getScreenRange()
-        expect(range.start).toEqual({row: 4, column: 10})
-        expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
-
-    describe "double-click and drag", ->
-      it "creates a selection from the word underneath an initial double click to mouse's new location ", ->
-        editor.attachToDom()
-        editor.css(position: 'absolute', top: 10, left: 10)
-
-        # double click
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
-        $(document).trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
-
-        # moving changes selection
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-
-        range = editor.getSelection().getScreenRange()
-        expect(range.start).toEqual({row: 4, column: 4})
-        expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
-
-        # mouse up may occur outside of editor, but still need to halt selection
-        $(document).trigger 'mouseup'
-
-        # moving after mouse up should not change selection
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
-
-        range = editor.getSelection().getScreenRange()
-        expect(range.start).toEqual({row: 4, column: 4})
-        expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
-
-    describe "trip-click and drag", ->
-      it "creates a selection from the line underneath an initial triple click to mouse's new location ", ->
-        editor.attachToDom()
-        editor.css(position: 'absolute', top: 10, left: 10)
-
-        # double click
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 1})
-        $(document).trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 2})
-        $(document).trigger 'mouseup'
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 7], originalEvent: {detail: 3})
-
-        # moving changes selection
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-
-        range = editor.getSelection().getScreenRange()
-        expect(range.start).toEqual({row: 4, column: 0})
-        expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
-
-        # mouse up may occur outside of editor, but still need to halt selection
-        $(document).trigger 'mouseup'
-
-        # moving after mouse up should not change selection
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 8])
-
-        range = editor.getSelection().getScreenRange()
-        expect(range.start).toEqual({row: 4, column: 0})
-        expect(range.end).toEqual({row: 5, column: 27})
-        expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
-
-    describe "meta-click and drag", ->
-      it "adds an additional selection", ->
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-        editor.renderedLines.trigger 'mouseup'
-
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [6, 10], metaKey: true)
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [8, 27], metaKey: true)
-        editor.renderedLines.trigger 'mouseup'
-
-        selections = editor.getSelections()
-        expect(selections.length).toBe 2
-        [selection1, selection2] = selections
-        expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
-        expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
-
-  describe "when the cursor moves", ->
-    charWidth = null
-
-    beforeEach ->
-      editor.attachToDom()
-      editor.vScrollMargin = 3
-      editor.hScrollMargin = 5
-      {charWidth} = editor
-
-    it "repositions the cursor's view on screen", ->
-      editor.attachToDom()
-      editor.setCursorScreenPosition(row: 2, column: 2)
-      expect(editor.getCursorView().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
-
-    describe "auto-scrolling", ->
-      it "only auto-scrolls when the last cursor is moved", ->
-        editor.setCursorBufferPosition([11,0])
-        editor.addCursorAtBufferPosition([6,50])
-        [cursor1, cursor2] = editor.getCursors()
-
-        spyOn(editor, 'scrollTo')
-        cursor1.setScreenPosition([10, 10])
-        expect(editor.scrollTo).not.toHaveBeenCalled()
-
-        cursor2.setScreenPosition([11, 11])
-        expect(editor.scrollTo).toHaveBeenCalled()
-
-      describe "when the last cursor exceeds the upper or lower scroll margins", ->
-        describe "when the editor is taller than twice the vertical scroll margin", ->
-          it "sets the scrollTop so the cursor remains within the scroll margin", ->
-            setEditorHeightInLines(editor, 10)
-
-            _.times 6, -> editor.moveCursorDown()
-            expect(editor.scrollTop()).toBe(0)
-
-            editor.moveCursorDown()
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
-
-            editor.moveCursorDown()
-            expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
-
-            _.times 3, -> editor.moveCursorUp()
-
-            editor.moveCursorUp()
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
-
-            editor.moveCursorUp()
-            expect(editor.scrollTop()).toBe(0)
-
-        describe "when the editor is shorter than twice the vertical scroll margin", ->
-          it "sets the scrollTop based on a reduced scroll margin, which prevents a jerky tug-of-war between upper and lower scroll margins", ->
-            setEditorHeightInLines(editor, 5)
-
-            _.times 3, -> editor.moveCursorDown()
-
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
-
-            editor.moveCursorUp()
-            expect(editor.renderedLines.css('top')).toBe "0px"
-
-      describe "when the last cursor exceeds the right or left scroll margins", ->
-        describe "when soft-wrap is disabled", ->
-          describe "when the editor is wider than twice the horizontal scroll margin", ->
-            it "sets the scrollView's scrollLeft so the cursor remains within the scroll margin", ->
-              setEditorWidthInChars(editor, 30)
-
-              # moving right
-              editor.setCursorScreenPosition([2, 24])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe 0
-
-              editor.setCursorScreenPosition([2, 25])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe charWidth
-
-              editor.setCursorScreenPosition([2, 28])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
-
-              # moving left
-              editor.setCursorScreenPosition([2, 9])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
-
-              editor.setCursorScreenPosition([2, 8])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe charWidth * 3
-
-              editor.setCursorScreenPosition([2, 5])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe 0
-
-          describe "when the editor is narrower than twice the horizontal scroll margin", ->
-            it "sets the scrollView's scrollLeft based on a reduced horizontal scroll margin, to prevent a jerky tug-of-war between right and left scroll margins", ->
-              editor.hScrollMargin = 6
-              setEditorWidthInChars(editor, 7)
-
-              editor.setCursorScreenPosition([2, 3])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe(0)
-
-              editor.setCursorScreenPosition([2, 4])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe(charWidth)
-
-              editor.setCursorScreenPosition([2, 3])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe(0)
-
-        describe "when soft-wrap is enabled", ->
-          beforeEach ->
-            editor.setSoftWrap(true)
-
-          it "does not scroll the buffer horizontally", ->
-            editor.width(charWidth * 30)
-
-            # moving right
-            editor.setCursorScreenPosition([2, 24])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 25])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 28])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            # moving left
-            editor.setCursorScreenPosition([2, 9])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 8])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 5])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-  describe "when text input events are triggered on the hidden input element", ->
-    it "inserts the typed character at the cursor position, both in the buffer and the pre element", ->
-      editor.attachToDom()
-      editor.setCursorScreenPosition(row: 1, column: 6)
-
-      expect(buffer.lineForRow(1).charAt(6)).not.toBe 'q'
-
-      editor.hiddenInput.textInput 'q'
-
-      expect(buffer.lineForRow(1).charAt(6)).toBe 'q'
-      expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
-      expect(editor.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
-
-  describe "when the editor is attached to the dom", ->
-    it "calculates line height and char width and updates the pixel position of the cursor", ->
-      expect(editor.lineHeight).toBeNull()
-      expect(editor.charWidth).toBeNull()
-      editor.setCursorScreenPosition(row: 2, column: 2)
-
-      editor.attachToDom()
-
-      expect(editor.lineHeight).not.toBeNull()
-      expect(editor.charWidth).not.toBeNull()
-      expect(editor.find('.cursor').offset()).toEqual pagePixelPositionForPoint(editor, [2, 2])
-
-    it "is focused", ->
-      editor.attachToDom()
-      expect(editor).toMatchSelector ":has(:focus)"
-
-    it "unsubscribes from the buffer when it is removed from the dom", ->
-      buffer = new Buffer
-      previousSubscriptionCount = buffer.subscriptionCount()
-
-      editor.attachToDom()
-      editor.setBuffer(buffer)
-
-      expect(buffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
-      expect($('.editor')).toExist()
-      editor.remove()
-      expect(buffer.subscriptionCount()).toBe previousSubscriptionCount
-      expect($('.editor')).not.toExist()
-
-  describe "when the editor recieves focused", ->
-    it "focuses the hidden input", ->
-      editor.attachToDom()
-      editor.focus()
-      expect(editor).not.toMatchSelector ':focus'
-      expect(editor.hiddenInput).toMatchSelector ':focus'
-
-  describe "when the hidden input is focused / unfocused", ->
-    it "assigns the isFocused flag on the editor and also adds/removes the .focused css class", ->
-      editor.attachToDom()
-      editor.isFocused = false
-      editor.hiddenInput.focus()
-      expect(editor.isFocused).toBeTruthy()
-      expect(editor).toHaveClass('focused')
-
-      editor.hiddenInput.focusout()
-      expect(editor.isFocused).toBeFalsy()
-      expect(editor).not.toHaveClass('focused')
-
-  describe "primitive folding", ->
+  describe "folding", ->
     beforeEach ->
       editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))
       editor.attachToDom()
@@ -1351,84 +1432,3 @@ describe "Editor", ->
 
         editor.scrollTop(0)
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
-
-  describe "editor-path-change event", ->
-    it "emits event when buffer's path is changed", ->
-      eventHandler = jasmine.createSpy('eventHandler')
-      editor.on 'editor-path-change', eventHandler
-      editor.buffer.setPath("moo.text")
-
-    it "emits event when editor receives a new buffer", ->
-      eventHandler = jasmine.createSpy('eventHandler')
-      editor.on 'editor-path-change', eventHandler
-      editor.setBuffer(new Buffer("something.txt"))
-      expect(eventHandler).toHaveBeenCalled()
-
-    it "stops listening to events on previously set buffers", ->
-      eventHandler = jasmine.createSpy('eventHandler')
-      oldBuffer = editor.buffer
-      editor.on 'editor-path-change', eventHandler
-
-      editor.setBuffer(new Buffer("something.txt"))
-      expect(eventHandler).toHaveBeenCalled()
-
-      eventHandler.reset()
-      oldBuffer.setPath("bad.txt")
-      expect(eventHandler).not.toHaveBeenCalled()
-
-      eventHandler.reset()
-      editor.buffer.setPath("new.txt")
-      expect(eventHandler).toHaveBeenCalled()
-
-  describe "split methods", ->
-    describe "when inside a pane", ->
-      fakePane = null
-      beforeEach ->
-        fakePane = { splitUp: jasmine.createSpy('splitUp').andReturn({}), remove: -> }
-        spyOn(editor, 'pane').andReturn(fakePane)
-
-      it "calls the corresponding split method on the containing pane with a copy of the editor", ->
-        editor.splitUp()
-        expect(fakePane.splitUp).toHaveBeenCalled()
-        [editorCopy] = fakePane.splitUp.argsForCall[0]
-        expect(editorCopy.serialize()).toEqual editor.serialize()
-        expect(editorCopy).not.toBe editor
-        editorCopy.remove()
-
-    describe "when not inside a pane", ->
-      it "does not split the editor, but doesn't throw an exception", ->
-        editor.splitUp()
-        editor.splitDown()
-        editor.splitLeft()
-        editor.splitRight()
-
-  describe "when 'close' is triggered", ->
-    it "closes active edit session and loads next edit session", ->
-      editor.setBuffer(new Buffer())
-      spyOn(editor, "remove")
-      editor.trigger "close"
-      expect(editor.remove).not.toHaveBeenCalled()
-      expect(editor.buffer).toBe buffer
-
-    it "calls remove on the editor if there is one edit session and mini is false", ->
-      originalBuffer = editor.buffer
-      expect(editor.mini).toBeFalsy()
-      expect(editor.editSessions.length).toBe 1
-      spyOn(editor, 'remove')
-      editor.trigger 'close'
-      expect(editor.remove).toHaveBeenCalled()
-
-      editor.remove()
-      editor = new Editor(mini: true)
-      spyOn(editor, 'remove')
-      editor.trigger 'close'
-      expect(editor.remove).not.toHaveBeenCalled()
-
-    describe "when buffer is modified", ->
-      it "triggers alert and does not close session", ->
-        spyOn(editor, 'remove')
-        spyOn($native, 'alert')
-        editor.insertText("I AM CHANGED!")
-        editor.trigger "close"
-        expect(editor.remove).not.toHaveBeenCalled()
-        expect($native.alert).toHaveBeenCalled()
