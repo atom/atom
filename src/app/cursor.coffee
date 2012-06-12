@@ -100,7 +100,7 @@ class Cursor
     @setBufferPosition(newPosition)
 
   moveToEndOfLine: ->
-    @setBufferPosition([@getCurrentBufferRow(), Infinity], clip: true)
+    @setBufferPosition([@getCurrentBufferRow(), Infinity])
 
   moveToBeginningOfWord: ->
     @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())

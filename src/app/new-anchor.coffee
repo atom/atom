@@ -27,11 +27,9 @@ class Anchor
     @bufferPosition
 
   setBufferPosition: (position, options={}) ->
-    if options.clip
-      @bufferPosition = @editSession.clipBufferPosition(position)
-    else
-      @bufferPosition = Point.fromObject(position)
-
+    @bufferPosition = Point.fromObject(position)
+    clip = options.clip ? true
+    @bufferPosition = @editSession.clipBufferPosition(@bufferPosition) if clip
     @refreshScreenPosition(options)
 
   getScreenPosition: ->
