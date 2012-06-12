@@ -749,18 +749,12 @@ class Editor extends View
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
-
   cutSelection: -> @activeEditSession.cutSelectedText()
   copySelection: -> @activeEditSession.copySelectedText()
   paste: -> @activeEditSession.pasteText()
 
-  undo: ->
-    if ranges = @buffer.undo()
-      @setSelectedBufferRanges(ranges)
-
-  redo: ->
-    if ranges = @buffer.redo()
-      @setSelectedBufferRanges(ranges)
+  undo: -> @activeEditSession.undo()
+  redo: -> @activeEditSession.redo()
 
   destroyFold: (foldId) ->
     fold = @renderer.foldsById[foldId]

@@ -167,6 +167,14 @@ class EditSession
   pasteText: ->
     @insertText($native.readFromPasteboard())
 
+  undo: ->
+    if ranges = @buffer.undo()
+      @setSelectedBufferRanges(ranges)
+
+  redo: ->
+    if ranges = @buffer.redo()
+      @setSelectedBufferRanges(ranges)
+
   foldSelection: ->
     selection.fold() for selection in @getSelections()
 
