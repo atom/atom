@@ -81,11 +81,11 @@ describe 'Buffer', ->
         expect(buffer).toBe savedBuffer
 
     describe 'when the state has text (and no path)', ->
-      it 'creates a new buffer with the given text', ->
+      it 'creates a new empty buffer (does not serialze unsaved text)', ->
         unsavedBuffer = project.open()
         unsavedBuffer.setText("OMGWTFBBQ")
         buffer = Buffer.deserialize(unsavedBuffer.serialize(), project)
-        expect(buffer).toBe unsavedBuffer
+        expect(buffer.getText()).toBe ""
 
   describe ".getLines()", ->
     it "returns an array of lines in the text contents", ->

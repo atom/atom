@@ -13,20 +13,13 @@ class Buffer
   path: null
 
   @deserialize: (state, project) ->
-    if state.path
-      buffer = project.open(state.path)
-    else
-      buffer = project.bufferWithId(state.id) ? project.open()
-      buffer.setText(state.text)
-      buffer.modified = state.modified
-
-    buffer
+    project.open(state.path)
 
   constructor: (path) ->
     @id = @constructor.idCounter++
     @setPath(path)
     @lines = ['']
-    if @getPath() and fs.exists(@getPath())
+    if fs.exists(@getPath())
       @setText(fs.read(@getPath()))
     else
       @setText('')
@@ -34,10 +27,7 @@ class Buffer
     @modified = false
 
   serialize: ->
-    if @getPath()
-      { path: @path }
-    else
-      { text: @getText(), id: @id , modified: @modified}
+    path: @getPath()
 
   getPath: ->
     @path
