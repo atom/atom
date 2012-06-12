@@ -341,7 +341,7 @@ class Editor extends View
     @screenLineCount() - 1
 
   isFoldedAtScreenRow: (screenRow) ->
-    @screenLineForRow(screenRow).fold?
+    @activeEditSession.isFoldedAtScreenRow(screenRow)
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @renderer.destroyFoldsContainingBufferRow(bufferRow)

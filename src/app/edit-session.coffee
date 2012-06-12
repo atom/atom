@@ -198,6 +198,9 @@ class EditSession
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @renderer.destroyFoldsContainingBufferRow(bufferRow)
 
+  isFoldedAtScreenRow: (screenRow) ->
+    @screenLineForRow(screenRow).fold?
+
   toggleLineCommentsInRange: (range) ->
     @renderer.toggleLineCommentsInRange(range)
 

@@ -86,6 +86,9 @@ class Selection
   selectToScreenPosition: (position) ->
     @modifySelection => @cursor.setScreenPosition(position)
 
+  selectToBufferPosition: (position) ->
+    @modifySelection => @cursor.setBufferPosition(position)
+
   selectRight: ->
     @modifySelection => @cursor.moveRight()
 
@@ -131,7 +134,13 @@ class Selection
 
   backspace: ->
     @editSession.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
-    @selectLeft() if @isEmpty()
+
+    if @isEmpty()
+      if @editSession.isFoldedAtScreenRow(@cursor.getCurrentScreenRow() - 1)
+        @selectToBufferPosition([@cursor.getCurrentBufferRow() - 1, Infinity])
+      else
+        @selectLeft()
+
     @deleteSelectedText()
 
   backspaceToBeginningOfWord: ->

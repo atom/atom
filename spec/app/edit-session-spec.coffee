@@ -764,6 +764,17 @@ describe "EditSession", ->
             editSession.setCursorScreenPosition(row: 0, column: 0)
             editSession.backspace()
 
+        describe "when the cursor is on the first column of a line below a fold", ->
+          it "absorbs the current line into the fold", ->
+            editSession.setCursorScreenPosition([4,0])
+            editSession.toggleFold()
+            editSession.setCursorScreenPosition([5,0])
+            editSession.backspace()
+
+
+            expect(buffer.lineForRow(7)).toBe "    }    return sort(left).concat(pivot).concat(sort(right));"
+            expect(buffer.lineForRow(8)).toBe "  };"
+
       describe "when there are multiple cursors", ->
         describe "when cursors are on the same line", ->
           it "removes the characters preceding each cursor", ->
