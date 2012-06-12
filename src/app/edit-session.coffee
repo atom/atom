@@ -179,6 +179,13 @@ class EditSession
   foldSelection: ->
     selection.fold() for selection in @getSelections()
 
+  foldAll: ->
+    @renderer.foldAll()
+
+  toggleFold: ->
+    row = @renderer.bufferPositionForScreenPosition(@getCursorScreenPosition()).row
+    @renderer.toggleFoldAtBufferRow(row)
+
   createFold: (startRow, endRow) ->
     @renderer.createFold(startRow, endRow)
 
@@ -193,6 +200,9 @@ class EditSession
     @buffer.startUndoBatch(@getSelectedBufferRanges())
     fn(selection) for selection in selections
     @buffer.endUndoBatch(@getSelectedBufferRanges())
+
+  screenLineForRow: (row) ->
+    @renderer.lineForRow(row)
 
   stateForScreenRow: (screenRow) ->
     @renderer.stateForScreenRow(screenRow)

@@ -1275,43 +1275,6 @@ describe "Editor", ->
       expect(editor.isFocused).toBeFalsy()
       expect(editor).not.toHaveClass('focused')
 
-  describe "structural folding", ->
-    describe "when a toggle-fold event is triggered", ->
-      it "creates/destroys a structual fold based on cursor position", ->
-        editor.setCursorBufferPosition([1,0])
-
-        editor.trigger "toggle-fold"
-        expect(editor.screenLineForRow(1).fold).toBeDefined()
-
-        editor.trigger "toggle-fold"
-        expect(editor.screenLineForRow(1).fold).toBeUndefined()
-
-      it "creates/destroys the largest fold containing the cursor position", ->
-        editor.trigger "fold-all"
-        editor.setCursorBufferPosition([5,1])
-
-        editor.trigger "toggle-fold"
-        expect(editor.screenLineForRow(0).fold).toBeUndefined()
-        expect(editor.screenLineForRow(1).fold).toBeDefined()
-
-        editor.trigger "toggle-fold"
-        expect(editor.screenLineForRow(0).fold).toBeUndefined()
-        expect(editor.screenLineForRow(1).fold).toBeUndefined()
-        expect(editor.screenLineForRow(4).fold).toBeDefined()
-
-    describe "when a fold-all event is triggered", ->
-      it "creates folds on every line that can be folded", ->
-        editor.setCursorBufferPosition([5,13])
-
-        editor.trigger "fold-all"
-        expect(editor.screenLineForRow(0).fold).toBeDefined()
-        expect(editor.screenLineForRow(1)).toBeUndefined()
-
-      it "maintains cursor buffer position when a fold is created/destroyed", ->
-        editor.setCursorBufferPosition([5,5])
-        editor.trigger "fold-all"
-        expect(editor.getCursorBufferPosition()).toEqual([5,5])
-
   describe "primitive folding", ->
     beforeEach ->
       editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))

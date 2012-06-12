@@ -860,12 +860,10 @@ class Editor extends View
     for cursorView in @getCursorViews()
       do (cursorView) -> cursorView.resetCursorAnimation()
 
-  foldAll: ->
-    @renderer.foldAll()
+  foldAll: -> @activeEditSession.foldAll()
 
   toggleFold: ->
-    row = @renderer.bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @renderer.toggleFoldAtBufferRow(row)
+    @activeEditSession.toggleFold()
 
   foldSelection: -> @activeEditSession.foldSelection()
 
