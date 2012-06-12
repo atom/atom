@@ -17,6 +17,20 @@ describe "Window", ->
       $(window).trigger 'close'
       expect(window.close).toHaveBeenCalled()
 
+  describe ".reload()", ->
+    it "returns false when no buffers are modified", ->
+      spyOn($native, "reload")
+      window.reload()
+      expect($native.reload).toHaveBeenCalled()
+
+    it "shows alert when a modifed buffer exists", ->
+      rootView.activeEditor().insertText("hi")
+      spyOn($native, "alert")
+      spyOn($native, "reload")
+      window.reload()
+      expect($native.reload).not.toHaveBeenCalled()
+      expect($native.alert).toHaveBeenCalled()
+
   describe "requireStylesheet(path)", ->
     it "synchronously loads the stylesheet at the given path and installs a style tag for it in the head", ->
       $('head style[path*="atom.css"]').remove()
