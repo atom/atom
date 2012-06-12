@@ -97,47 +97,20 @@ describe "Editor", ->
     beforeEach ->
       otherBuffer = new Buffer
 
-    it "sets the cursor to the beginning of the file", ->
-      expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+    describe "when the buffer wasn't previously assigned to this editor", ->
+      it "creates a new EditSession for it", ->
+        editor.setBuffer(otherBuffer)
+        expect(editor.activeEditSession.buffer).toBe otherBuffer
 
-    it "recalls the cursor position and scroll position when the same buffer is re-assigned", ->
-      editor.attachToDom()
+    describe "when the buffer was previously assigned to this editor", ->
+      it "restores the previous edit session associated with the buffer", ->
+        previousEditSession = editor.activeEditSession
 
-      editor.height(editor.lineHeight * 5)
-      editor.width(editor.charWidth * 30)
-      editor.setCursorScreenPosition([8, 28])
-      previousScrollTop = editor.verticalScrollbar.scrollTop()
-      previousScrollLeft = editor.scrollView.scrollLeft()
+        editor.setBuffer(otherBuffer)
+        expect(editor.activeEditSession).not.toBe previousEditSession
 
-      editor.setBuffer(otherBuffer)
-      expect(editor.getCursorScreenPosition()).toEqual [0, 0]
-      expect(editor.verticalScrollbar.scrollTop()).toBe 0
-      expect(editor.scrollView.scrollLeft()).toBe 0
-
-      editor.setBuffer(buffer)
-      expect(editor.getCursorScreenPosition()).toEqual [8, 28]
-      expect(editor.verticalScrollbar.scrollTop()).toBe previousScrollTop
-      expect(editor.scrollView.scrollLeft()).toBe previousScrollLeft
-
-    it "recalls the undo history of the buffer when it is re-assigned", ->
-      editor.insertText('xyz')
-
-      editor.setBuffer(otherBuffer)
-
-      editor.insertText('abc')
-      expect(otherBuffer.lineForRow(0)).toBe 'abc'
-      editor.undo()
-      expect(otherBuffer.lineForRow(0)).toBe ''
-
-      editor.setBuffer(buffer)
-      editor.undo()
-      expect(buffer.lineForRow(0)).toBe 'var quicksort = function () {'
-      editor.redo()
-      expect(buffer.lineForRow(0)).toBe 'xyzvar quicksort = function () {'
-
-      editor.setBuffer(otherBuffer)
-      editor.redo()
-      expect(otherBuffer.lineForRow(0)).toBe 'abc'
+        editor.setBuffer(buffer)
+        expect(editor.activeEditSession).toBe previousEditSession
 
     it "unsubscribes from the previously assigned buffer", ->
       editor.setBuffer(otherBuffer)
@@ -148,14 +121,6 @@ describe "Editor", ->
       editor.setBuffer(otherBuffer)
 
       expect(buffer.subscriptionCount()).toBe previousSubscriptionCount
-
-    it "resizes the vertical scrollbar based on the new buffer's height", ->
-      editor.attachToDom(heightInLines: 5)
-      originalHeight = editor.verticalScrollbar.prop('scrollHeight')
-      expect(originalHeight).toBeGreaterThan 0
-
-      editor.setBuffer(new Buffer(require.resolve('fixtures/sample.txt')))
-      expect(editor.verticalScrollbar.prop('scrollHeight')).toBeLessThan originalHeight
 
     it "handles buffer manipulation correctly after switching to a new buffer", ->
       editor.attachToDom()
@@ -289,6 +254,7 @@ describe "Editor", ->
         editor.attachToDom(heightInLines: 10)
         editor.setSelectionBufferRange([[40, 0], [43, 1]])
         expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
+        previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
         editor.scrollTop(750)
         expect(editor.scrollTop()).toBe 750
 
@@ -298,6 +264,7 @@ describe "Editor", ->
         editor.setActiveEditSessionIndex(2)
         expect(editor.buffer).toBe buffer2
         expect(editor.getCursorScreenPosition()).toEqual [43, 1]
+        expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
         expect(editor.scrollTop()).toBe 750
         expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
         expect(editor.getSelectionView().find('.selection')).toExist()
