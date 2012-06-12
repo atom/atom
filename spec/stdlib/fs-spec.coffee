@@ -25,6 +25,16 @@ describe "fs", ->
         expect(fs.directory(require.resolve('fixtures/dir'))).toBe require.resolve('fixtures')
         expect(fs.directory(require.resolve('fixtures/dir/'))).toBe require.resolve('fixtures')
 
+  describe ".exists(path)", ->
+    it "returns true when path exsits", ->
+      expect(fs.exists(require.resolve('fixtures'))).toBe true
+
+    it "returns false when path doesn't exsit", ->
+      expect(fs.exists(require.resolve("fixtures") + "/-nope-does-not-exist")).toBe false
+      expect(fs.exists("")).toBe false
+      expect(fs.exists(null)).toBe false
+      expect(fs.exists(undefined)).toBe false
+
   describe ".join(paths...)", ->
     it "concatenates the given paths with the directory seperator", ->
       expect(fs.join('a')).toBe 'a'
