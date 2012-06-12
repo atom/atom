@@ -587,7 +587,7 @@ class Editor extends View
 
   setSoftWrapColumn: (softWrapColumn) ->
     softWrapColumn ?= @calcSoftWrapColumn()
-    @renderer.setSoftWrapColumn(softWrapColumn) if softWrapColumn
+    @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
   createFold: (startRow, endRow) ->
     @renderer.createFold(startRow, endRow)

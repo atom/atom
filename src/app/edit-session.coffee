@@ -73,6 +73,7 @@ class EditSession
   setScrollLeft: (@scrollLeft) ->
   getScrollLeft: -> @scrollLeft
 
+  setSoftWrapColumn: (softWrapColumn) -> @renderer.setSoftWrapColumn(softWrapColumn)
   setAutoIndent: (@autoIndent) ->
   setSoftTabs: (@softTabs) ->
 

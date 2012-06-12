@@ -37,6 +37,15 @@ describe "EditSession", ->
         expect(editSession.getCursors()).toEqual [cursor1]
         expect(editSession.getCursorScreenPosition()).toEqual [4, 7]
 
+      describe "when soft-wrap is enabled and code is folded", ->
+        beforeEach ->
+          editSession.setSoftWrapColumn(50)
+          editSession.createFold(2, 3)
+
+        it "positions the cursor at the buffer position that corresponds to the given screen position", ->
+          editSession.setCursorScreenPosition([9, 0])
+          expect(editSession.getCursorBufferPosition()).toEqual [8, 11]
+
     describe ".moveCursorUp()", ->
       it "moves the cursor up", ->
         editSession.setCursorScreenPosition([2, 2])

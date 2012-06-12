@@ -874,6 +874,59 @@ describe "Editor", ->
         editor.setFontSize(10)
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
 
+  describe "when a mousedown event occurs in the editor", ->
+    beforeEach ->
+      editor.attachToDom()
+      editor.css(position: 'absolute', top: 10, left: 10)
+
+      describe "when it is a single click", ->
+        it "re-positions the cursor to the clicked row / column", ->
+          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10])
+          expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
+
+        describe "when the lines are scrolled to the right", ->
+          it "re-positions the cursor on the clicked location", ->
+            setEditorWidthInChars(editor, 30)
+            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
+            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 50])
+            expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
+
+      describe "when it is a double click", ->
+        it "selects the word under the cursor", ->
+          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "quicksort"
+
+      describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
+        it "selects the line under the cursor", ->
+          expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+          # Triple click
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
+
+          # Quad click
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
+          editor.renderedLines.trigger 'mouseup'
+          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
+          editor.renderedLines.trigger 'mouseup'
+          expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
+
   describe "cursor movement", ->
     describe ".setCursorScreenPosition({row, column})", ->
       beforeEach ->
@@ -882,107 +935,6 @@ describe "Editor", ->
 
       it "moves the cursor to the character at the given row and column", ->
         expect(editor.getCursorView().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
-
-    describe "when a mousedown event occurs in the editor", ->
-      beforeEach ->
-        editor.attachToDom()
-        editor.css(position: 'absolute', top: 10, left: 10)
-
-      describe "when soft-wrap and is enabled and code is folded", ->
-        beforeEach ->
-          setEditorWidthInChars(editor, 50)
-          editor.setSoftWrap(true)
-          editor.createFold(2, 3)
-
-        describe "when it is a single click", ->
-          it "re-positions the cursor from the clicked screen position to the corresponding buffer position", ->
-            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [9, 0])
-            expect(editor.getCursorBufferPosition()).toEqual(row: 8, column: 11)
-
-        describe "when it is a double click", ->
-          it "selects the word under the cursor", ->
-            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [9, 0], originalEvent: {detail: 1})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [9, 0], originalEvent: {detail: 2})
-            expect(editor.getSelectedText()).toBe "sort"
-
-        describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
-          it "selects the line under the cursor", ->
-            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
-            # Triple click
-            point = [9, 3]
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 1})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 2})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 3})
-            editor.renderedLines.trigger 'mouseup'
-            expect(editor.getSelectedText()).toBe "    return sort(left).concat(pivot).concat(sort(right));"
-
-            # Quad click
-            point = [12, 3]
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 1})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 2})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 3})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: point, originalEvent: {detail: 4})
-            editor.renderedLines.trigger 'mouseup'
-
-            expect(editor.getSelectedText()).toBe "  return sort(Array.apply(this, arguments));"
-
-      describe "when soft-wrap is disabled", ->
-        describe "when it is a single click", ->
-          it "re-positions the cursor to the clicked row / column", ->
-            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10])
-            expect(editor.getCursorScreenPosition()).toEqual(row: 3, column: 10)
-
-          describe "when the lines are scrolled to the right", ->
-            it "re-positions the cursor on the clicked location", ->
-              setEditorWidthInChars(editor, 30)
-              expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-              editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 30]) # scrolls lines to the right
-              editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 50])
-              expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
-
-        describe "when it is a double click", ->
-          it "selects the word under the cursor", ->
-            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 1})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [0, 8], originalEvent: {detail: 2})
-            editor.renderedLines.trigger 'mouseup'
-            expect(editor.getSelectedText()).toBe "quicksort"
-
-        describe "when it is clicked more then twice (triple, quadruple, etc...)", ->
-          it "selects the line under the cursor", ->
-            expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
-
-            # Triple click
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 2})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
-            editor.renderedLines.trigger 'mouseup'
-            expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
-
-            # Quad click
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 2})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 3})
-            editor.renderedLines.trigger 'mouseup'
-            editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
-            editor.renderedLines.trigger 'mouseup'
-            expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
 
     describe "scrolling", ->
       describe "vertical scrolling", ->
