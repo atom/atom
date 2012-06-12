@@ -96,12 +96,19 @@ int main(int argc, char *argv[]) {
 	window_info.SetAsChild(vbox);
 
 	std::string path;
-	path.append("file://");
 	path.append(szPath);
 	path.append("/../index.html");
+	char* realPath;
+	realPath = realpath(path.c_str(), NULL);
+	if (realPath == NULL)
+		return -1;
+
+	std::string resolved("file://");
+	resolved.append(realPath);
+	free(realPath);
 
 	CefBrowser::CreateBrowserSync(window_info,
-			static_cast<CefRefPtr<CefClient> >(g_handler), path,
+			static_cast<CefRefPtr<CefClient> >(g_handler), resolved,
 			browserSettings);
 
 	gtk_container_add(GTK_CONTAINER(window), vbox);
