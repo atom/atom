@@ -174,24 +174,24 @@ class Editor extends View
     @renderedLines.on 'mousedown', (e) =>
       clickCount = e.originalEvent.detail
 
+      screenPosition = @screenPositionFromMouseEvent(e)
       if clickCount == 1
-        screenPosition = @screenPositionFromMouseEvent(e)
         if e.metaKey
           @addCursorAtScreenPosition(screenPosition)
         else if e.shiftKey
-          @selectToScreenPosition(@screenPositionFromMouseEvent(e))
+          @selectToScreenPosition(screenPosition)
         else
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
         if e.shiftKey
-          @activeEditSession.getLastSelection().expandOverWord()
+          @activeEditSession.expandLastSelectionOverWord()
         else
-          @activeEditSession.getLastSelection().selectWord()
+          @activeEditSession.selectWord()
       else if clickCount >= 3
         if e.shiftKey
-          @activeEditSession.getLastSelection().expandOverLine()
+          @activeEditSession.expandLastSelectionOverLine()
         else
-          @activeEditSession.getLastSelection().selectLine()
+          @activeEditSession.selectLine()
 
       @selectOnMousemoveUntilMouseup()
 

@@ -351,11 +351,23 @@ class EditSession
   selectToEndOfLine: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfLine()
 
+  selectLine: ->
+    @expandSelectionsForward (selection) => selection.selectLine()
+
+  expandLastSelectionOverLine: ->
+    @getLastSelection().expandOverLine()
+
   selectToBeginningOfWord: ->
     @expandSelectionsBackward (selection) => selection.selectToBeginningOfWord()
 
   selectToEndOfWord: ->
     @expandSelectionsForward (selection) => selection.selectToEndOfWord()
+
+  selectWord: ->
+    @expandSelectionsForward (selection) => selection.selectWord()
+
+  expandLastSelectionOverWord: ->
+    @getLastSelection().expandOverWord()
 
   mergeCursors: ->
     positions = []
