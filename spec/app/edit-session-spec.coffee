@@ -348,6 +348,39 @@ describe "EditSession", ->
         expect(selection1.getScreenRange()).toEqual([[0, 9], [1, 21]])
         expect(selection1.isReversed()).toBeFalsy()
 
+    describe ".selectToScreenPosition(screenPosition)", ->
+      it "expands the last selection to the given position", ->
+        editSession.setSelectedBufferRange([[3, 0], [4, 5]])
+        editSession.addCursorAtScreenPosition([5, 5])
+        editSession.selectToScreenPosition([6, 1])
+
+        selections = editSession.getSelections()
+        expect(selections.length).toBe 2
+        [selection1, selection2] = selections
+        expect(selection1.getScreenRange()).toEqual [[3, 0], [4, 5]]
+        expect(selection2.getScreenRange()).toEqual [[5, 5], [6, 1]]
+
+      it "merges selections if they intersect, maintaining the directionality of the last selection", ->
+        editSession.setCursorScreenPosition([4, 10])
+        editSession.selectToScreenPosition([5, 27])
+        editSession.addCursorAtScreenPosition([3, 10])
+        editSession.selectToScreenPosition([6, 27])
+
+        selections = editSession.getSelections()
+        expect(selections.length).toBe 1
+        [selection1] = selections
+        expect(selection1.getScreenRange()).toEqual [[3, 10], [6, 27]]
+        expect(selection1.isReversed()).toBeFalsy()
+
+        editSession.addCursorAtScreenPosition([7, 4])
+        editSession.selectToScreenPosition([4, 11])
+
+        selections = editSession.getSelections()
+        expect(selections.length).toBe 1
+        [selection1] = selections
+        expect(selection1.getScreenRange()).toEqual [[3, 10], [7, 4]]
+        expect(selection1.isReversed()).toBeTruthy()
+
     describe ".selectToTop()", ->
       it "selects text from cusor position to the top of the buffer", ->
         editSession.setCursorScreenPosition [11,2]

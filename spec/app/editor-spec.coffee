@@ -1342,32 +1342,6 @@ describe "Editor", ->
           expect(selection1.getScreenRange()).toEqual [[4, 10], [5, 27]]
           expect(selection2.getScreenRange()).toEqual [[6, 10], [8, 27]]
 
-        it "merges selections when they intersect, maintaining the directionality of the newest selection", ->
-          editor.attachToDom()
-          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
-          editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
-          editor.renderedLines.trigger 'mouseup'
-
-          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 10], metaKey: true)
-          editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [6, 27], metaKey: true)
-          editor.renderedLines.trigger 'mouseup'
-
-          selections = editor.getSelections()
-          expect(selections.length).toBe 1
-          [selection1] = selections
-          expect(selection1.getScreenRange()).toEqual [[3, 10], [6, 27]]
-          expect(selection1.isReversed()).toBeFalsy()
-
-          editor.renderedLines.trigger mousedownEvent(editor: editor, point: [7, 4], metaKey: true)
-          editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [4, 11], metaKey: true)
-          editor.renderedLines.trigger 'mouseup'
-
-          selections = editor.getSelections()
-          expect(selections.length).toBe 1
-          [selection1] = selections
-          expect(selection1.getScreenRange()).toEqual [[3, 10], [7, 4]]
-          expect(selection1.isReversed()).toBeTruthy()
-
   describe "buffer manipulation", ->
     beforeEach ->
       editor.attachToDom()
