@@ -277,12 +277,10 @@ describe "Editor", ->
       session0 = editor.activeEditSession
 
       buffer1 = new Buffer(require.resolve('fixtures/sample.txt'))
-      console.log "set buffer 1"
       editor.setBuffer(buffer1)
       session1 = editor.activeEditSession
 
       buffer2 = new Buffer(require.resolve('fixtures/two-hundred.txt'))
-      console.log "set buffer 2"
       editor.setBuffer(buffer2)
       session2 = editor.activeEditSession
 
