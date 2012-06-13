@@ -124,6 +124,34 @@ void ListDirectory(string path, vector<string>* paths, bool recursive) {
 	free(children);
 }
 
+void DeleteContents(string path) {
+	dirent **children;
+	const char* dirPath = path.c_str();
+	int childrenCount = scandir(dirPath, &children, 0, alphasort);
+	struct stat statResult;
+
+	for (int i = 0; i < childrenCount; i++) {
+		if (strcmp(children[i]->d_name, ".") == 0
+				|| strcmp(children[i]->d_name, "..") == 0) {
+			free(children[i]);
+			continue;
+		}
+
+		string entryPath(path + "/" + children[i]->d_name);
+		if (stat(entryPath.c_str(), &statResult) != 0) {
+			free(children[i]);
+			continue;
+		}
+
+		if (S_ISDIR(statResult.st_mode))
+			DeleteContents(entryPath);
+		else if (S_ISREG(statResult.st_mode))
+			remove(path.c_str());
+	}
+	free(children);
+	rmdir(dirPath);
+}
+
 void NativeHandler::List(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -247,6 +275,22 @@ void NativeHandler::Move(const CefString& name, CefRefPtr<CefV8Value> object,
 	rename(from.c_str(), to.c_str());
 }
 
+void NativeHandler::Remove(const CefString& name, CefRefPtr<CefV8Value> object,
+		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+		CefString& exception) {
+	string pathArgument = arguments[0]->GetStringValue().ToString();
+	const char* path = pathArgument.c_str();
+
+	struct stat statInfo;
+	if (stat(path, &statInfo) != 0)
+		return;
+
+	if (S_ISREG(statInfo.st_mode))
+		remove(path);
+	else if (S_ISDIR(statInfo.st_mode))
+		DeleteContents(pathArgument);
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -280,6 +324,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		MakeDirectory(name, object, arguments, retval, exception);
 	else if (name == "move")
 		Move(name, object, arguments, retval, exception);
+	else if (name == "remove")
+		Remove(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
