@@ -81,3 +81,5 @@ install:
 	cp ../index.html $(INSTALLDIR)
 	ln -sf $(INSTALLDIR)/atom /usr/local/bin/atom
 
+spec-install: install
+	cp -R ../spec $(INSTALLDIR)
