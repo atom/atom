@@ -28,6 +28,46 @@ describe "LanguageMode", ->
       expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
       expect(buffer.lineForRow(7)).toBe "//    }"
 
+  describe "fold suggestion", ->
+    describe "javascript", ->
+      beforeEach ->
+        buffer = new Buffer(require.resolve 'fixtures/sample.js')
+        languageMode = new LanguageMode(buffer)
+
+      describe ".isBufferRowFoldable(bufferRow)", ->
+        it "returns true only when the buffer row starts a foldable region", ->
+          expect(languageMode.isBufferRowFoldable(0)).toBeTruthy()
+          expect(languageMode.isBufferRowFoldable(1)).toBeTruthy()
+          expect(languageMode.isBufferRowFoldable(2)).toBeFalsy()
+          expect(languageMode.isBufferRowFoldable(3)).toBeFalsy()
+
+      describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
+        it "returns the start/end rows of the foldable region starting at the given row", ->
+          expect(languageMode.rowRangeForFoldAtBufferRow(0)).toEqual [0, 12]
+          expect(languageMode.rowRangeForFoldAtBufferRow(1)).toEqual [1, 9]
+          expect(languageMode.rowRangeForFoldAtBufferRow(2)).toBeNull()
+          expect(languageMode.rowRangeForFoldAtBufferRow(4)).toEqual [4, 7]
+
+    describe "coffeescript", ->
+      beforeEach ->
+        buffer = new Buffer(require.resolve 'fixtures/coffee.coffee')
+        languageMode = new LanguageMode(buffer)
+
+      describe ".isBufferRowFoldable(bufferRow)", ->
+        it "returns true only when the buffer row starts a foldable region", ->
+          expect(languageMode.isBufferRowFoldable(0)).toBeTruthy()
+          expect(languageMode.isBufferRowFoldable(1)).toBeTruthy()
+          expect(languageMode.isBufferRowFoldable(2)).toBeFalsy()
+          expect(languageMode.isBufferRowFoldable(3)).toBeFalsy()
+          expect(languageMode.isBufferRowFoldable(19)).toBeTruthy()
+
+      describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
+        it "returns the start/end rows of the foldable region starting at the given row", ->
+          expect(languageMode.rowRangeForFoldAtBufferRow(0)).toEqual [0, 20]
+          expect(languageMode.rowRangeForFoldAtBufferRow(1)).toEqual [1, 17]
+          expect(languageMode.rowRangeForFoldAtBufferRow(2)).toBeNull()
+          expect(languageMode.rowRangeForFoldAtBufferRow(19)).toEqual [19, 20]
+
   describe "tokenization", ->
     it "tokenizes all the lines in the buffer on construction", ->
       expect(languageMode.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')

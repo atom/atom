@@ -1,6 +1,5 @@
 _ = require 'underscore'
 LanguageMode = require 'language-mode'
-FoldSuggester = require 'fold-suggester'
 LineMap = require 'line-map'
 Point = require 'point'
 EventEmitter = require 'event-emitter'
@@ -21,7 +20,6 @@ class Renderer
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
     @languageMode = new LanguageMode(@buffer, options.tabText ? '  ')
-    @foldSuggester = new FoldSuggester(@languageMode)
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
     @foldsById = {}
@@ -53,14 +51,14 @@ class Renderer
 
   foldAll: ->
     for currentRow in [0..@buffer.getLastRow()]
-      [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
+      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
 
       @createFold(startRow, endRow)
 
   toggleFoldAtBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
-      [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
+      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
 
       if fold = @largestFoldForBufferRow(startRow)
@@ -200,7 +198,7 @@ class Renderer
     startBufferColumn = 0
     while currentBufferRow <= endBufferRow
       screenLine = @languageMode.lineForScreenRow(currentBufferRow)
-      screenLine.foldable = @foldSuggester.isBufferRowFoldable(currentBufferRow)
+      screenLine.foldable = @languageMode.isBufferRowFoldable(currentBufferRow)
 
       if fold = @largestFoldForBufferRow(currentBufferRow)
         screenLine = screenLine.copy()

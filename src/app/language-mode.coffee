@@ -5,6 +5,7 @@ Token = require 'token'
 Range = require 'range'
 Point = require 'point'
 AceLineCommentAdaptor = require 'ace-line-comment-adaptor'
+AceFoldAdaptor = require 'ace-fold-adaptor'
 
 module.exports =
 class LanguageMode
@@ -17,11 +18,21 @@ class LanguageMode
     @aceMode = @buffer.getMode()
     @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
     @buffer.on "change.languageMode#{@id}", (e) => @handleBufferChange(e)
-    @lineCommentAdaptor = new AceLineCommentAdaptor(@buffer)
+    @aceLineCommentAdaptor = new AceLineCommentAdaptor(@buffer)
+    @aceFoldAdaptor = new AceFoldAdaptor(this)
 
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)
-    @aceMode.toggleCommentLines(@stateForRow(range.start.row), @lineCommentAdaptor, range.start.row, range.end.row)
+    @aceMode.toggleCommentLines(@stateForRow(range.start.row), @aceLineCommentAdaptor, range.start.row, range.end.row)
+
+  isBufferRowFoldable: (bufferRow) ->
+    @aceMode.foldingRules?.getFoldWidget(@aceFoldAdaptor, null, bufferRow) == "start"
+
+  rowRangeForFoldAtBufferRow: (bufferRow) ->
+    if aceRange = @aceMode.foldingRules?.getFoldWidgetRange(@aceFoldAdaptor, null, bufferRow)
+      [aceRange.start.row, aceRange.end.row]
+    else
+      null
 
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
