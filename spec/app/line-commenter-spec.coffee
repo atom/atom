@@ -1,5 +1,5 @@
 Buffer = require 'buffer'
-Highlighter = require 'highlighter'
+LanguageMode = require 'language-mode'
 LineCommenter = require 'line-commenter'
 
 describe "LineCommenter", ->
@@ -7,8 +7,8 @@ describe "LineCommenter", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    highlighter = new Highlighter(buffer)
-    lineCommenter = new LineCommenter(highlighter)
+    languageMode = new LanguageMode(buffer)
+    lineCommenter = new LineCommenter(languageMode)
 
   describe "toggleLineCommentsInRange", ->
     it "comments/uncomments lines in the given range", ->

@@ -2,8 +2,8 @@ module.exports =
 class AceFoldAdaptor
   foldWidgets: {}
 
-  constructor: (@highlighter) ->
-    @buffer = @highlighter.buffer
+  constructor: (@languageMode) ->
+    @buffer = @languageMode.buffer
 
   getLine: (bufferRow) ->
     @buffer.lineForRow(bufferRow)
@@ -12,5 +12,5 @@ class AceFoldAdaptor
     @buffer.getLineCount()
 
   $findClosingBracket: (bracketType, bufferPosition) ->
-    @highlighter.findClosingBracket([bufferPosition.row, bufferPosition.column - 1])
+    @languageMode.findClosingBracket([bufferPosition.row, bufferPosition.column - 1])
 

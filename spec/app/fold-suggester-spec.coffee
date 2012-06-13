@@ -1,6 +1,6 @@
 FoldSuggester = require 'fold-suggester'
 Buffer = require 'buffer'
-Highlighter = require 'highlighter'
+LanguageMode = require 'language-mode'
 
 describe "FoldSuggester", ->
   foldSuggester = null
@@ -8,8 +8,8 @@ describe "FoldSuggester", ->
   describe "javascript", ->
     beforeEach ->
       buffer = new Buffer(require.resolve 'fixtures/sample.js')
-      highlighter = new Highlighter(buffer)
-      foldSuggester = new FoldSuggester(highlighter)
+      languageMode = new LanguageMode(buffer)
+      foldSuggester = new FoldSuggester(languageMode)
 
     describe ".isBufferRowFoldable(bufferRow)", ->
       it "returns true only when the buffer row starts a foldable region", ->
@@ -28,8 +28,8 @@ describe "FoldSuggester", ->
   describe "coffeescript", ->
     beforeEach ->
       buffer = new Buffer(require.resolve 'fixtures/coffee.coffee')
-      highlighter = new Highlighter(buffer)
-      foldSuggester = new FoldSuggester(highlighter)
+      languageMode = new LanguageMode(buffer)
+      foldSuggester = new FoldSuggester(languageMode)
 
     describe ".isBufferRowFoldable(bufferRow)", ->
       it "returns true only when the buffer row starts a foldable region", ->

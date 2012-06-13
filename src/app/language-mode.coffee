@@ -6,7 +6,7 @@ Range = require 'range'
 Point = require 'point'
 
 module.exports =
-class Highlighter
+class LanguageMode
   @idCounter: 1
   buffer: null
   screenLines: []
@@ -14,7 +14,7 @@ class Highlighter
   constructor: (@buffer, @tabText) ->
     @id = @constructor.idCounter++
     @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
-    @buffer.on "change.highlighter#{@id}", (e) => @handleBufferChange(e)
+    @buffer.on "change.languageMode#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
@@ -75,7 +75,7 @@ class Highlighter
     @screenLines[row]?.state ? 'start'
 
   destroy: ->
-    @buffer.off ".highlighter#{@id}"
+    @buffer.off ".languageMode#{@id}"
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)
@@ -107,4 +107,4 @@ class Highlighter
             stop()
     position
 
-_.extend(Highlighter.prototype, EventEmitter)
+_.extend(LanguageMode.prototype, EventEmitter)

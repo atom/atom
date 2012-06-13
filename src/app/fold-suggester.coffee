@@ -2,10 +2,10 @@ AceFoldAdaptor = require 'ace-fold-adaptor'
 
 module.exports =
 class FoldSuggester
-  constructor: (@highlighter) ->
-    @buffer = @highlighter.buffer
+  constructor: (@languageMode) ->
+    @buffer = @languageMode.buffer
     @aceFoldMode = @buffer.getMode().foldingRules
-    @aceFoldAdaptor = new AceFoldAdaptor(@highlighter)
+    @aceFoldAdaptor = new AceFoldAdaptor(@languageMode)
 
   isBufferRowFoldable: (bufferRow) ->
     @aceFoldMode?.getFoldWidget(@aceFoldAdaptor, null, bufferRow) == "start"
