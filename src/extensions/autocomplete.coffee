@@ -96,7 +96,7 @@ class Autocomplete extends View
   cancel: ->
     @detach()
     @editor.buffer.change(@currentMatchBufferRange, @originalSelectedText) if @currentMatchBufferRange
-    @editor.setSelectionBufferRange(@originalSelectionBufferRange)
+    @editor.setSelectedBufferRange(@originalSelectionBufferRange)
 
   attach: ->
     @confirmed = false
@@ -195,7 +195,7 @@ class Autocomplete extends View
     @editor.insertText(match.infix)
 
     @currentMatchBufferRange = [startPosition, [startPosition.row, startPosition.column + match.infix.length]]
-    @editor.setSelectionBufferRange(@currentMatchBufferRange)
+    @editor.setSelectedBufferRange(@currentMatchBufferRange)
     @isAutocompleting = false
 
   prefixAndSuffixOfSelection: (selection) ->

@@ -45,15 +45,15 @@ describe "CommandInterpreter", ->
       describe "when a single selection", ->
         it 'maintains the current selection', ->
           editor.clearSelections()
-          editor.setSelectionBufferRange([[1,1], [2,2]])
+          editor.setSelectedBufferRange([[1,1], [2,2]])
           interpreter.eval(editor, '.')
           expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [2,2]]
 
-          editor.setSelectionBufferRange([[1,1], [2,2]])
+          editor.setSelectedBufferRange([[1,1], [2,2]])
           interpreter.eval(editor, '.,')
           expect(editor.getSelection().getBufferRange()).toEqual [[1,1], [12,2]]
 
-          editor.setSelectionBufferRange([[1,1], [2,2]])
+          editor.setSelectedBufferRange([[1,1], [2,2]])
           interpreter.eval(editor, ',.')
           expect(editor.getSelection().getBufferRange()).toEqual [[0,0], [2,2]]
 
@@ -77,18 +77,18 @@ describe "CommandInterpreter", ->
         editor.clearSelections()
 
       it 'selects text matching regex after current selection', ->
-        editor.setSelectionBufferRange([[4,16], [4,20]])
+        editor.setSelectedBufferRange([[4,16], [4,20]])
         interpreter.eval(editor, '/pivot/')
         expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
       it 'does not require the trailing slash', ->
-        editor.setSelectionBufferRange([[4,16], [4,20]])
+        editor.setSelectedBufferRange([[4,16], [4,20]])
         interpreter.eval(editor, '/pivot')
         expect(editor.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
 
       it "searches from the end of each selection in the buffer", ->
         editor.clearSelections()
-        editor.setSelectionBufferRange([[4,16], [4,20]])
+        editor.setSelectedBufferRange([[4,16], [4,20]])
         editor.addSelectionForBufferRange([[1,16], [2,20]])
         expect(editor.getSelections().length).toBe 2
         interpreter.eval(editor, '/pivot')
@@ -98,7 +98,7 @@ describe "CommandInterpreter", ->
         expect(selections[1].getBufferRange()).toEqual [[6,16], [6,21]]
 
       it "wraps around to the beginning of the buffer, but doesn't infinitely loop if no matches are found", ->
-        editor.setSelectionBufferRange([[10, 0], [10,3]])
+        editor.setSelectedBufferRange([[10, 0], [10,3]])
         interpreter.eval(editor, '/pivot')
         expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
 
@@ -154,7 +154,7 @@ describe "CommandInterpreter", ->
         expect(cursors[2].getBufferPosition()).toEqual [7, 5]
 
     it "loops through current selections and selects text matching the regex", ->
-      editor.setSelectionBufferRange [[3,0], [3,62]]
+      editor.setSelectedBufferRange [[3,0], [3,62]]
       editor.addSelectionForBufferRange [[6,0], [6,65]]
 
       interpreter.eval(editor, 'x/current')
@@ -169,20 +169,20 @@ describe "CommandInterpreter", ->
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->
-      editor.setSelectionBufferRange([[6, 0], [6, 44]])
+      editor.setSelectedBufferRange([[6, 0], [6, 44]])
       interpreter.eval(editor, 's/not-in-text/foo/')
       expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
 
     describe "when not global", ->
       describe "when there is a single selection", ->
         it "performs a single substitution within the current selection", ->
-          editor.setSelectionBufferRange([[6, 0], [6, 44]])
+          editor.setSelectedBufferRange([[6, 0], [6, 44]])
           interpreter.eval(editor, 's/current/foo/')
           expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
 
       describe "when there are multiple selections", ->
         it "performs a single substitutions within each of the selections", ->
-          editor.setSelectionBufferRange([[5, 0], [5, 20]])
+          editor.setSelectedBufferRange([[5, 0], [5, 20]])
           editor.addSelectionForBufferRange([[6, 0], [6, 44]])
 
           interpreter.eval(editor, 's/current/foo/')
@@ -191,7 +191,7 @@ describe "CommandInterpreter", ->
 
     describe "when global", ->
       it "performs a multiple substitutions within the current selection", ->
-        editor.setSelectionBufferRange([[6, 0], [6, 44]])
+        editor.setSelectedBufferRange([[6, 0], [6, 44]])
         interpreter.eval(editor, 's/current/foo/g')
         expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
 
@@ -222,7 +222,7 @@ describe "CommandInterpreter", ->
 
       describe "when there are multiple selections", ->
         it "performs a multiple substitutions within each of the selections", ->
-          editor.setSelectionBufferRange([[5, 0], [5, 20]])
+          editor.setSelectedBufferRange([[5, 0], [5, 20]])
           editor.addSelectionForBufferRange([[6, 0], [6, 44]])
 
           interpreter.eval(editor, 's/current/foo/g')

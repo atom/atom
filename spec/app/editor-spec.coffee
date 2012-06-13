@@ -231,7 +231,7 @@ describe "Editor", ->
     describe ".setActiveEditSessionIndex(index)", ->
       it "restores the buffer, cursors, selections, and scroll position of the edit session associated with the index", ->
         editor.attachToDom(heightInLines: 10)
-        editor.setSelectionBufferRange([[40, 0], [43, 1]])
+        editor.setSelectedBufferRange([[40, 0], [43, 1]])
         expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
         previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
         editor.scrollTop(750)
@@ -1512,13 +1512,13 @@ describe "Editor", ->
       it "adds/removes the 'selected' class to the fold's line element and hides the cursor if it is on the fold line", ->
         editor.createFold(2, 4)
 
-        editor.setSelectionBufferRange([[1, 0], [2, 0]], reverse: true)
+        editor.setSelectedBufferRange([[1, 0], [2, 0]], reverse: true)
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
 
-        editor.setSelectionBufferRange([[1, 0], [1, 1]])
+        editor.setSelectedBufferRange([[1, 0], [1, 1]])
         expect(editor.lineElementForScreenRow(2)).not.toMatchSelector('.fold.selected')
 
-        editor.setSelectionBufferRange([[1, 0], [5, 0]])
+        editor.setSelectedBufferRange([[1, 0], [5, 0]])
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
 
         editor.setCursorScreenPosition([3,0])
@@ -1537,7 +1537,7 @@ describe "Editor", ->
         editor.renderLines() # re-render lines so certain lines are not rendered
 
         editor.createFold(2, 4)
-        editor.setSelectionBufferRange([[1, 0], [5, 0]])
+        editor.setSelectedBufferRange([[1, 0], [5, 0]])
         expect(editor.renderedLines.find('.fold.selected')).toExist()
 
         editor.scrollToBottom()

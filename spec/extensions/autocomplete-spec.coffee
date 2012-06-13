@@ -93,7 +93,7 @@ describe "Autocomplete", ->
     describe "when text is selected", ->
       it 'autocompletes word when there is only a prefix', ->
         editor.buffer.insert([10,0] ,"extra:sort:extra")
-        editor.setSelectionBufferRange [[10,7], [10,10]]
+        editor.setSelectedBufferRange [[10,7], [10,10]]
         autocomplete.attach()
 
         expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
@@ -105,7 +105,7 @@ describe "Autocomplete", ->
 
       it 'autocompletes word when there is only a suffix', ->
         editor.buffer.insert([10,0] ,"extra:current:extra")
-        editor.setSelectionBufferRange [[10,6],[10,12]]
+        editor.setSelectedBufferRange [[10,6],[10,12]]
         autocomplete.attach()
 
         expect(editor.lineForBufferRow(10)).toBe "extra:quicksort:extra"
@@ -116,7 +116,7 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li:contains(current)')).not.toExist()
 
       it 'autocompletes word when there is a prefix and suffix', ->
-        editor.setSelectionBufferRange [[5,7],[5,12]]
+        editor.setSelectedBufferRange [[5,7],[5,12]]
         autocomplete.attach()
 
         expect(editor.lineForBufferRow(5)).toBe "      concat = items.shift();"
@@ -129,7 +129,7 @@ describe "Autocomplete", ->
   describe 'autocomplete:confirm event', ->
     it 'replaces selection with selected match, moves the cursor to the end of the match, and removes the autocomplete menu', ->
       editor.buffer.insert([10,0] ,"extra:sort:extra")
-      editor.setSelectionBufferRange [[10,7], [10,9]]
+      editor.setSelectedBufferRange [[10,7], [10,9]]
       autocomplete.attach()
       miniEditor.trigger "autocomplete:confirm"
 
@@ -156,7 +156,7 @@ describe "Autocomplete", ->
   describe 'autocomplete:cancel event', ->
     it 'does not replace selection, removes autocomplete view and returns focus to editor', ->
       editor.buffer.insert([10,0] ,"extra:so:extra")
-      editor.setSelectionBufferRange [[10,7], [10,8]]
+      editor.setSelectedBufferRange [[10,7], [10,8]]
       originalSelectionBufferRange = editor.getSelection().getBufferRange()
 
       autocomplete.attach()

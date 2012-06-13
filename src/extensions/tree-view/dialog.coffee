@@ -22,7 +22,7 @@ class Dialog extends View
       extension = fs.extension(path)
       baseName = fs.base(path)
       range = [[0, path.length - baseName.length], [0, path.length - extension.length]]
-      @miniEditor.setSelectionBufferRange(range)
+      @miniEditor.setSelectedBufferRange(range)
 
   confirm: ->
     return if @onConfirm(@miniEditor.getText()) is false
