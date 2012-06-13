@@ -82,6 +82,10 @@ private:
 	void Remove(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 			CefString& exception);
+
+	void Alert(const CefString& name, CefRefPtr<CefV8Value> object,
+			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+			CefString& exception);
 };
 
 #endif

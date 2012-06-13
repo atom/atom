@@ -88,6 +88,7 @@ int main(int argc, char *argv[]) {
 	// Create the handler.
 	g_handler = new ClientHandler();
 	g_handler->SetMainHwnd(vbox);
+	g_handler->SetWindow(window);
 
 	// Create the browser view.
 	CefWindowInfo window_info;

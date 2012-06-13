@@ -291,6 +291,50 @@ void NativeHandler::Remove(const CefString& name, CefRefPtr<CefV8Value> object,
 		DeleteContents(pathArgument);
 }
 
+void NativeHandler::Alert(const CefString& name, CefRefPtr<CefV8Value> object,
+		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+		CefString& exception) {
+	CefRefPtr<CefV8Value> buttonNamesAndCallbacks;
+	if (arguments.size() < 3)
+		buttonNamesAndCallbacks = CefV8Value::CreateArray();
+	else
+		buttonNamesAndCallbacks = arguments[2];
+
+	GtkWidget *dialog;
+	dialog = gtk_dialog_new_with_buttons("atom", GTK_WINDOW(window),
+			GTK_DIALOG_DESTROY_WITH_PARENT, NULL);
+	for (int i = 0; i < buttonNamesAndCallbacks->GetArrayLength(); i++) {
+		string title =
+				buttonNamesAndCallbacks->GetValue(i)->GetValue(0)->GetStringValue().ToString();
+		gtk_dialog_add_button(GTK_DIALOG(dialog), title.c_str(), i);
+	}
+	gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
+
+	string dialogMessage(arguments[0]->GetStringValue().ToString());
+	dialogMessage.append("\n");
+	dialogMessage.append("\n");
+	dialogMessage.append(arguments[1]->GetStringValue().ToString());
+	GtkWidget *label;
+	label = gtk_label_new(dialogMessage.c_str());
+
+	GtkWidget *contentArea;
+	contentArea = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+	gtk_container_add(GTK_CONTAINER(contentArea), label);
+
+	gtk_widget_show_all(dialog);
+	int result = gtk_dialog_run(GTK_DIALOG(dialog));
+	if (result >= 0) {
+		CefRefPtr<CefV8Value> callback = buttonNamesAndCallbacks->GetValue(
+				result)->GetValue(1);
+		CefV8ValueList args;
+		CefRefPtr<CefV8Exception> e;
+		callback->ExecuteFunction(callback, args, retval, e, true);
+		if (e)
+			exception = e->GetMessage();
+	}
+	gtk_widget_destroy(dialog);
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -326,6 +370,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		Move(name, object, arguments, retval, exception);
 	else if (name == "remove")
 		Remove(name, object, arguments, retval, exception);
+	else if (name == "alert")
+		Alert(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
