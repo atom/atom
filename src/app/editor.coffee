@@ -77,10 +77,8 @@ class Editor extends View
 
   serialize: ->
     @saveActiveEditSession()
-    { viewClass: "Editor", editSessions: @serializeEditSessions(), @activeEditSessionIndex, @isFocused }
-
-  serializeEditSessions: ->
-    @editSessions.map (session) -> session.serialize()
+    editSessions = @editSessions.map (session) -> session.serialize()
+    { viewClass: "Editor", editSessions, @activeEditSessionIndex, @isFocused }
 
   copy: ->
     Editor.deserialize(@serialize(), @rootView())
@@ -117,7 +115,7 @@ class Editor extends View
       'fold-all': @foldAll
       'toggle-fold': @toggleFold
       'fold-selection': @foldSelection
-      'unfold': => @unfoldRow(@getCursorBufferPosition().row)
+      'unfold': => @unfoldCurrentRow()
       'split-left': @splitLeft
       'split-right': @splitRight
       'split-up': @splitUp
@@ -146,14 +144,8 @@ class Editor extends View
       do (name, method) =>
         @on name, => method.call(this); false
 
-  addCursor: ->
-    @activeEditSession.addCursorAtScreenPosition([0, 0])
-
-  addCursorAtScreenPosition: (screenPosition) ->
-    @activeEditSession.addCursorAtScreenPosition(screenPosition)
-
-  addCursorAtBufferPosition: (bufferPosition) ->
-    @activeEditSession.addCursorAtBufferPosition(bufferPosition)
+  addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)
+  addCursorAtBufferPosition: (bufferPosition) -> @activeEditSession.addCursorAtBufferPosition(bufferPosition)
 
   handleEvents: ->
     @on 'focus', =>
@@ -340,12 +332,6 @@ class Editor extends View
 
   getLastScreenRow: ->
     @screenLineCount() - 1
-
-  isFoldedAtScreenRow: (screenRow) ->
-    @activeEditSession.isFoldedAtScreenRow(screenRow)
-
-  destroyFoldsContainingBufferRow: (bufferRow) ->
-    @renderer.destroyFoldsContainingBufferRow(bufferRow)
 
   setBuffer: (buffer) ->
     @activateEditSessionForBuffer(buffer)
@@ -598,9 +584,6 @@ class Editor extends View
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
-  createFold: (startRow, endRow) ->
-    @renderer.createFold(startRow, endRow)
-
   setSoftWrap: (@softWrap, softWrapColumn=undefined) ->
     @setSoftWrapColumn(softWrapColumn) if @attached
     if @softWrap
@@ -678,17 +661,6 @@ class Editor extends View
       @updateCursorViews()
       @updateRenderedLines()
 
-  getCursorView: (index) ->
-    index ?= @cursorViews.length - 1
-    @cursorViews[index]
-
-  getCursorViews: ->
-    new Array(@cursorViews...)
-
-  removeAllCursorAndSelectionViews: ->
-    cursorView.remove() for cursorView in @getCursorViews()
-    selectionView.remove() for selectionView in @getSelectionViews()
-
   getCursor: (index) -> @activeEditSession.getCursor(index)
   getCursors: -> @activeEditSession.getCursors()
   getLastCursor: -> @activeEditSession.getLastCursor()
@@ -708,13 +680,6 @@ class Editor extends View
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
   setCursorBufferPosition: (position) -> @activeEditSession.setCursorBufferPosition(position)
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
-
-  getSelectionView: (index) ->
-    index ?= @selectionViews.length - 1
-    @selectionViews[index]
-
-  getSelectionViews: ->
-    new Array(@selectionViews...)
 
   getSelection: (index) -> @activeEditSession.getSelection(index)
   getSelections: -> @activeEditSession.getSelections()
@@ -737,6 +702,7 @@ class Editor extends View
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   clearSelections: -> @activeEditSession.clearSelections()
+
   backspace: -> @activeEditSession.backspace()
   backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
   delete: -> @activeEditSession.delete()
@@ -748,6 +714,19 @@ class Editor extends View
   insertTab: -> @activeEditSession.insertTab()
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
+  cutSelection: -> @activeEditSession.cutSelectedText()
+  copySelection: -> @activeEditSession.copySelectedText()
+  paste: -> @activeEditSession.pasteText()
+  undo: -> @activeEditSession.undo()
+  redo: -> @activeEditSession.redo()
+  createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
+  foldAll: -> @activeEditSession.foldAll()
+  foldSelection: -> @activeEditSession.foldSelection()
+  destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
+  destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
+  toggleFold: -> @activeEditSession.toggleFold()
+  isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
+  unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
@@ -760,17 +739,23 @@ class Editor extends View
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
-  cutSelection: -> @activeEditSession.cutSelectedText()
-  copySelection: -> @activeEditSession.copySelectedText()
-  paste: -> @activeEditSession.pasteText()
+  getCursorView: (index) ->
+    index ?= @cursorViews.length - 1
+    @cursorViews[index]
 
-  undo: -> @activeEditSession.undo()
-  redo: -> @activeEditSession.redo()
+  getCursorViews: ->
+    new Array(@cursorViews...)
 
-  destroyFold: (foldId) ->
-    fold = @renderer.foldsById[foldId]
-    fold.destroy()
-    @setCursorBufferPosition([fold.startRow, 0])
+  removeAllCursorAndSelectionViews: ->
+    cursorView.remove() for cursorView in @getCursorViews()
+    selectionView.remove() for selectionView in @getSelectionViews()
+
+  getSelectionView: (index) ->
+    index ?= @selectionViews.length - 1
+    @selectionViews[index]
+
+  getSelectionViews: ->
+    new Array(@selectionViews...)
 
   splitLeft: ->
     @pane()?.splitLeft(@copy()).wrappedView
@@ -866,16 +851,6 @@ class Editor extends View
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()
       do (cursorView) -> cursorView.resetCursorAnimation()
-
-  foldAll: -> @activeEditSession.foldAll()
-
-  toggleFold: ->
-    @activeEditSession.toggleFold()
-
-  foldSelection: -> @activeEditSession.foldSelection()
-
-  unfoldRow: (row) ->
-    @renderer.largestFoldForBufferRow(row)?.destroy()
 
   logLines: (start, end) ->
     @renderer.logLines(start, end)

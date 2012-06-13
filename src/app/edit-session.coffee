@@ -198,6 +198,14 @@ class EditSession
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @renderer.destroyFoldsContainingBufferRow(bufferRow)
 
+  unfoldCurrentRow: (row) ->
+    @renderer.largestFoldForBufferRow(@getLastCursor().getCurrentBufferRow())?.destroy()
+
+  destroyFold: (foldId) ->
+    fold = @renderer.foldsById[foldId]
+    fold.destroy()
+    @setCursorBufferPosition([fold.startRow, 0])
+
   isFoldedAtScreenRow: (screenRow) ->
     @screenLineForRow(screenRow).fold?
 
