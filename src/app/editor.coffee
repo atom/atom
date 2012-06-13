@@ -355,7 +355,7 @@ class Editor extends View
     unless index?
       index = @editSessions.length
       @editSessions.push(new EditSession(
-        editor: this
+        softWrapColumn: @calcSoftWrapColumn()
         buffer: buffer
         tabText: @tabText
         autoIndent: @autoIndent

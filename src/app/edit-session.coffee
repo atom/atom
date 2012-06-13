@@ -13,7 +13,6 @@ class EditSession
   @deserialize: (state, editor, rootView) ->
     buffer = Buffer.deserialize(state.buffer, rootView.project)
     session = new EditSession(
-      editor: editor
       buffer: buffer
       tabText: editor.tabText
       autoIndent: editor.autoIndent
@@ -32,9 +31,9 @@ class EditSession
   autoIndent: true
   softTabs: true
 
-  constructor: ({@editor, @buffer, @tabText, @autoIndent}) ->
+  constructor: ({@buffer, @tabText, @autoIndent, softWrapColumn}) ->
     @id = @constructor.idCounter++
-    @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @tabText })
+    @renderer = new Renderer(@buffer, { softWrapColumn, @tabText })
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])

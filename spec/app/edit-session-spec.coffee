@@ -5,15 +5,12 @@ describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
   beforeEach ->
-    fakeEditor =
-      calcSoftWrapColumn: ->
-
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     editSession = new EditSession(
-      editor: fakeEditor
       buffer: buffer
       tabText: '  '
       autoIndent: false
+      softWrapColumn: Infinity
     )
     lineLengths = buffer.getLines().map (line) -> line.length
 

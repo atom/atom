@@ -7,9 +7,7 @@ describe "Selection", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    fakeEditor =
-      calcSoftWrapColumn: ->
-    editSession = new EditSession(editor: fakeEditor, buffer: buffer, tabText: '  ')
+    editSession = new EditSession(buffer: buffer, tabText: '  ')
     selection = editSession.getSelection()
 
   describe ".deleteSelectedText()", ->
