@@ -7,7 +7,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <string>
-#include "cefclient.h"
+#include "atom.h"
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
@@ -20,8 +20,20 @@ const char* szPath; // The folder the application is in
 
 const char* szPathToOpen; // The file to open
 
-// The global ClientHandler reference.
-extern CefRefPtr<ClientHandler> g_handler;
+CefRefPtr<ClientHandler> g_handler;
+
+void AppGetSettings(CefSettings& settings, CefRefPtr<CefApp>& app) {
+	CefString(&settings.cache_path) = "";
+	CefString(&settings.user_agent) = "";
+	CefString(&settings.product_version) = "";
+	CefString(&settings.locale) = "";
+	CefString(&settings.log_file) = "";
+	CefString(&settings.javascript_flags) = "";
+
+	settings.log_severity = LOGSEVERITY_ERROR;
+	settings.local_storage_quota = 0;
+	settings.session_storage_quota = 0;
+}
 
 void destroy(void) {
 	CefQuitMessageLoop();

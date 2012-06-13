@@ -9,7 +9,7 @@
 #include <string>
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
-#include "cefclient.h"
+#include "atom.h"
 #include "native_handler.h"
 #include <stdlib.h>
 
