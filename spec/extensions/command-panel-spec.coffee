@@ -41,6 +41,16 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:repeat-relative-address'
       expect(commandPanel.commandInterpreter.repeatRelativeAddress).toHaveBeenCalledWith(rootView.activeEditor())
 
+  describe "when command-panel:set-selection-as-regex-address is triggered on the root view", ->
+    it "sets the @lastRelativeAddress to a RegexAddress of the current selection", ->
+      rootView.open(require.resolve('fixtures/sample.js'))
+      rootView.activeEditor().setSelectedBufferRange([[1,21],[1,28]])
+
+      commandInterpreter = commandPanel.commandInterpreter
+      expect(commandInterpreter.lastRelativeAddress).toBeUndefined()
+      rootView.trigger 'command-panel:set-selection-as-regex-address'
+      expect(commandInterpreter.lastRelativeAddress.regex.toString()).toEqual "/\\(items\\)/"
+
   describe "when command-panel:find-in-file is triggered on an editor", ->
     it "pre-populates command panel's editor with /", ->
       rootView.activeEditor().trigger "command-panel:find-in-file"
