@@ -197,18 +197,7 @@ class Selection
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
   autoIndentText: (text) ->
-    if @editSession.autoIndent
-      mode = @editSession.getCurrentMode()
-      row = @cursor.getCurrentScreenRow()
-      state = @editSession.stateForScreenRow(row)
-      lineBeforeCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
-      if text[0] == "\n"
-        indent = mode.getNextLineIndent(state, lineBeforeCursor, @editSession.tabText)
-        text = text[0] + indent + text[1..]
-      else if mode.checkOutdent(state, lineBeforeCursor, text)
-        shouldOutdent = true
-
-    {text, shouldOutdent}
+    @editSession.autoIndentTextAfterBufferPosition(text, @cursor.getBufferPosition())
 
   autoOutdentText: ->
     screenRow = @cursor.getCurrentScreenRow()

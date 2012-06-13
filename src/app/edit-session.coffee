@@ -210,6 +210,13 @@ class EditSession
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow).fold?
 
+  autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
+    return { text } unless @autoIndent
+    @languageMode.autoIndentTextAfterBufferPosition(text, bufferPosition)
+
+  autoOutdent: ->
+    @languageMode.autoOutdentText()
+
   toggleLineCommentsInRange: (range) ->
     @languageMode.toggleLineCommentsInRange(range)
 

@@ -48,6 +48,18 @@ class LanguageMode
     else
       null
 
+  autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
+    { row, column} = bufferPosition
+    state = @stateForRow(row)
+    lineBeforeCursor = @buffer.lineForRow(row)[0...column]
+    if text[0] == "\n"
+      indent = @aceMode.getNextLineIndent(state, lineBeforeCursor, @tabText)
+      text = text[0] + indent + text[1..]
+    else if @aceMode.checkOutdent(state, lineBeforeCursor, text)
+      shouldOutdent = true
+
+    {text, shouldOutdent}
+
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
     newRange = e.newRange.copy()
