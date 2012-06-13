@@ -64,31 +64,3 @@ describe "Selection", ->
       selection.selectToScreenPosition([0, 25])
       expect(selection.isReversed()).toBeFalsy()
 
-  describe "when the selection ends on the begining of a fold line", ->
-    beforeEach ->
-      editor.createFold(2,4)
-      editor.createFold(2,6)
-
-    describe "inserting text", ->
-      it "destroys the fold", ->
-        selection.setBufferRange([[1,0], [2,0]])
-        editor.insertText('holy cow')
-        expect(editor.screenLineForRow(3).text).toBe buffer.lineForRow(3)
-
-    describe "backspace", ->
-      it "destroys the fold", ->
-        selection.setBufferRange([[1,0], [2,0]])
-        selection.backspace()
-        expect(editor.screenLineForRow(3).text).toBe buffer.lineForRow(3)
-
-    describe "when the selection is empty", ->
-      describe "delete, when the selection is empty", ->
-        it "removes the lines contained by the fold", ->
-          oldLine7 = buffer.lineForRow(7)
-          oldLine8 = buffer.lineForRow(8)
-
-          selection.setBufferRange([[2, 0], [2, 0]])
-          selection.delete()
-          expect(editor.screenLineForRow(2).text).toBe oldLine7
-          expect(editor.screenLineForRow(3).text).toBe oldLine8
-

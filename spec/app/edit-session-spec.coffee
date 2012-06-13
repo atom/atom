@@ -607,6 +607,13 @@ describe "EditSession", ->
             expect(selection2.isEmpty()).toBeTruthy()
             expect(selection2.cursor.getBufferPosition()).toEqual [2, 3]
 
+      describe "when there is a selection that ends on a folded line", ->
+        it "destroys the selection", ->
+          editSession.createFold(2,4)
+          editSession.setSelectedBufferRange([[1,0], [2,0]])
+          editSession.insertText('holy cow')
+          expect(editSession.screenLineForRow(2).fold).toBeUndefined()
+
       describe "when auto-indent is enabled", ->
         beforeEach ->
           editSession.setAutoIndent(true)
@@ -833,6 +840,13 @@ describe "EditSession", ->
           editSession.backspace()
           expect(editSession.buffer.lineForRow(0)).toBe 'var qsort = function () {'
 
+        describe "when the selection ends on a folded line", ->
+          it "destroys the fold", ->
+            editSession.createFold(2,4)
+            editSession.setSelectedBufferRange([[1,0], [2,0]])
+            editSession.backspace()
+            expect(editSession.screenLineForRow(2).fold).toBeUndefined()
+
       describe "when there are multiple selections", ->
         it "removes all selected text", ->
           editSession.setSelectedBufferRanges([[[0,4], [0,13]], [[0,16], [0,24]]])
@@ -883,6 +897,18 @@ describe "EditSession", ->
             editSession.setCursorScreenPosition([12, buffer.lineForRow(12).length])
             editSession.delete()
             expect(buffer.lineForRow(12)).toBe '};'
+
+        describe "when the cursor is on a folded line", ->
+          it "removes the lines contained by the fold", ->
+            editSession.createFold(2,4)
+            editSession.createFold(2,6)
+            oldLine7 = buffer.lineForRow(7)
+            oldLine8 = buffer.lineForRow(8)
+
+            editSession.setSelectedBufferRange([[2, 0], [2, 0]])
+            editSession.delete()
+            expect(editSession.screenLineForRow(2).text).toBe oldLine7
+            expect(editSession.screenLineForRow(3).text).toBe oldLine8
 
       describe "when there are multiple cursors", ->
         describe "when cursors are on the same line", ->
