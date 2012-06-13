@@ -146,7 +146,7 @@ void DeleteContents(string path) {
 		if (S_ISDIR(statResult.st_mode))
 			DeleteContents(entryPath);
 		else if (S_ISREG(statResult.st_mode))
-			remove(path.c_str());
+			remove(entryPath.c_str());
 	}
 	free(children);
 	rmdir(dirPath);
