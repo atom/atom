@@ -305,13 +305,14 @@ class Editor extends View
     else
       @scrollTop() + @scrollView.height()
 
-  highlightSelectedFolds: ->
+  highlightFoldsContainingBufferRange: (bufferRange) ->
     screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
     for screenLine, i in screenLines
       if fold = screenLine.fold
         screenRow = @firstRenderedScreenRow + i
         element = @lineElementForScreenRow(screenRow)
-        if @activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
+
+        if bufferRange.intersectsWith(fold.getBufferRange())
           element.addClass('selected')
         else
           element.removeClass('selected')

@@ -19,10 +19,9 @@ class SelectionView extends View
 
   updateAppearance: ->
     @clearRegions()
-
     range = @getScreenRange()
 
-    @editor.highlightSelectedFolds()
+    @editor.highlightFoldsContainingBufferRange(@getBufferRange())
     return if range.isEmpty()
 
     rowSpan = range.end.row - range.start.row
@@ -54,6 +53,9 @@ class SelectionView extends View
 
   getScreenRange: ->
     @selection.getScreenRange()
+
+  getBufferRange: ->
+    @selection.getBufferRange()
 
   remove: ->
     @editor.removeSelectionView(this)
