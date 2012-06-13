@@ -72,8 +72,8 @@ void NativeHandler::Absolute(const CefString& name,
 	}
 
 	vector < string > segments;
-	char allSegments[path.length() + 1];
-	strcpy(allSegments, path.c_str());
+	char allSegments[relativePath.length() + 1];
+	strcpy(allSegments, relativePath.c_str());
 	const char* segment;
 	for (segment = strtok(allSegments, "/"); segment;
 			segment = strtok(NULL, "/")) {
