@@ -150,6 +150,9 @@ class Renderer
   lineCount: ->
     @lineMap.screenLineCount()
 
+  getLastRow: ->
+    @lineCount() - 1
+
   maxLineLength: ->
     @lineMap.maxScreenLineLength()
 

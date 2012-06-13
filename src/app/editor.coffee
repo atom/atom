@@ -144,8 +144,105 @@ class Editor extends View
       do (name, method) =>
         @on name, => method.call(this); false
 
+  getCursor: (index) -> @activeEditSession.getCursor(index)
+  getCursors: -> @activeEditSession.getCursors()
+  getLastCursor: -> @activeEditSession.getLastCursor()
   addCursorAtScreenPosition: (screenPosition) -> @activeEditSession.addCursorAtScreenPosition(screenPosition)
   addCursorAtBufferPosition: (bufferPosition) -> @activeEditSession.addCursorAtBufferPosition(bufferPosition)
+  moveCursorUp: -> @activeEditSession.moveCursorUp()
+  moveCursorDown: -> @activeEditSession.moveCursorDown()
+  moveCursorLeft: -> @activeEditSession.moveCursorLeft()
+  moveCursorRight: -> @activeEditSession.moveCursorRight()
+  moveCursorToNextWord: -> @activeEditSession.moveCursorToNextWord()
+  moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
+  moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
+  moveCursorToTop: -> @activeEditSession.moveCursorToTop()
+  moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
+  moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
+  moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
+  moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
+  setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
+  getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
+  setCursorBufferPosition: (position) -> @activeEditSession.setCursorBufferPosition(position)
+  getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
+
+  getSelection: (index) -> @activeEditSession.getSelection(index)
+  getSelections: -> @activeEditSession.getSelections()
+  getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
+  getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
+  getSelectedText: -> @activeEditSession.getSelectedText()
+  setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
+  setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
+  addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
+  selectRight: -> @activeEditSession.selectRight()
+  selectLeft: -> @activeEditSession.selectLeft()
+  selectUp: -> @activeEditSession.selectUp()
+  selectDown: -> @activeEditSession.selectDown()
+  selectToTop: -> @activeEditSession.selectToTop()
+  selectToBottom: -> @activeEditSession.selectToBottom()
+  selectAll: -> @activeEditSession.selectAll()
+  selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
+  selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
+  selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
+  selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
+  selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
+  clearSelections: -> @activeEditSession.clearSelections()
+
+  backspace: -> @activeEditSession.backspace()
+  backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
+  delete: -> @activeEditSession.delete()
+  deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
+  cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
+  insertText: (text) -> @activeEditSession.insertText(text)
+  insertNewline: -> @activeEditSession.insertNewline()
+  insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
+  insertTab: -> @activeEditSession.insertTab()
+  indentSelectedRows: -> @activeEditSession.indentSelectedRows()
+  outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
+  cutSelection: -> @activeEditSession.cutSelectedText()
+  copySelection: -> @activeEditSession.copySelectedText()
+  paste: -> @activeEditSession.pasteText()
+  undo: -> @activeEditSession.undo()
+  redo: -> @activeEditSession.redo()
+  createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
+  foldAll: -> @activeEditSession.foldAll()
+  foldSelection: -> @activeEditSession.foldSelection()
+  destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
+  destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
+  toggleFold: -> @activeEditSession.toggleFold()
+  isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
+  unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
+
+  setAutoIndent: (@autoIndent) -> @activeEditSession.setAutoIndent(@autoIndent)
+  setSoftTabs: (@softTabs) -> @activeEditSession.setSoftTabs(@softTabs)
+  setSoftWrapColumn: (softWrapColumn) ->
+    softWrapColumn ?= @calcSoftWrapColumn()
+    @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
+
+  getScreenLines: -> @renderer.getLines()
+  screenLineForRow: (start) -> @renderer.lineForRow(start)
+  screenLinesForRows: (start, end) -> @renderer.linesForRows(start, end)
+  screenLineCount: -> @renderer.lineCount()
+  maxScreenLineLength: -> @renderer.maxLineLength()
+  getLastScreenRow: -> @renderer.getLastRow()
+  clipScreenPosition: (screenPosition, options={}) -> @renderer.clipScreenPosition(screenPosition, options)
+  screenPositionForBufferPosition: (position, options) -> @renderer.screenPositionForBufferPosition(position, options)
+  bufferPositionForScreenPosition: (position, options) -> @renderer.bufferPositionForScreenPosition(position, options)
+  screenRangeForBufferRange: (range) -> @renderer.screenRangeForBufferRange(range)
+  bufferRangeForScreenRange: (range) -> @renderer.bufferRangeForScreenRange(range)
+  bufferRowsForScreenRows: (startRow, endRow) -> @renderer.bufferRowsForScreenRows(startRow, endRow)
+  stateForScreenRow: (row) -> @renderer.stateForScreenRow(row)
+
+  setText: (text) -> @buffer.setText(text)
+  getText: -> @buffer.getText()
+  getLastBufferRow: -> @buffer.getLastRow()
+  getTextInRange: (range) -> @buffer.getTextInRange(range)
+  getEofPosition: -> @buffer.getEofPosition()
+  lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
+  rangeForBufferRow: (row) -> @buffer.rangeForRow(row)
+  scanInRange: (args...) -> @buffer.scanInRange(args...)
+  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
   handleEvents: ->
     @on 'focus', =>
@@ -210,6 +307,15 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
+  selectOnMousemoveUntilMouseup: ->
+    moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
+    @on 'mousemove', moveHandler
+    $(document).one 'mouseup', =>
+      @off 'mousemove', moveHandler
+      reverse = @activeEditSession.getLastSelection().isReversed()
+      @activeEditSession.mergeIntersectingSelections({reverse})
+      @syncCursorAnimations()
+
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
@@ -224,114 +330,6 @@ class Editor extends View
     @renderWhenAttached()
 
     @trigger 'editor-open', [this]
-
-  addCursorView: (cursor) ->
-    cursorView = new CursorView(cursor, this)
-    @cursorViews.push(cursorView)
-    @renderedLines.append(cursorView)
-    cursorView
-
-  removeCursorView: (cursorView) ->
-    _.remove(@cursorViews, cursorView)
-
-  updateCursorViews: ->
-    for cursorView in @getCursorViews()
-      cursorView.updateAppearance()
-
-  addSelectionView: (selection) ->
-    selectionView = new SelectionView({editor: this, selection})
-    @selectionViews.push(selectionView)
-    @renderedLines.append(selectionView)
-    selectionView
-
-  selectionViewForCursor: (cursor) ->
-    for selectionView in @selectionViews
-      return selectionView if selectionView.selection.cursor == cursor
-
-  removeSelectionView: (selectionView) ->
-    _.remove(@selectionViews, selectionView)
-
-  rootView: ->
-    @parents('#root-view').view()
-
-  selectOnMousemoveUntilMouseup: ->
-    moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
-    @on 'mousemove', moveHandler
-    $(document).one 'mouseup', =>
-      @off 'mousemove', moveHandler
-      reverse = @activeEditSession.getLastSelection().isReversed()
-      @activeEditSession.mergeIntersectingSelections({reverse})
-      @syncCursorAnimations()
-
-  prepareForScrolling: ->
-    @adjustHeightOfRenderedLines()
-    @adjustWidthOfRenderedLines()
-
-  adjustHeightOfRenderedLines: ->
-    heightOfRenderedLines = @lineHeight * @screenLineCount()
-    @verticalScrollbarContent.height(heightOfRenderedLines)
-    @renderedLines.css('padding-bottom', heightOfRenderedLines)
-
-  adjustWidthOfRenderedLines: ->
-    @renderedLines.width(@charWidth * @maxScreenLineLength())
-
-  scrollTop: (scrollTop, options) ->
-    return @cachedScrollTop or 0 unless scrollTop?
-
-    maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
-    scrollTop = Math.floor(Math.min(maxScrollTop, Math.max(0, scrollTop)))
-
-    return if scrollTop == @cachedScrollTop
-    @cachedScrollTop = scrollTop
-
-    @updateRenderedLines() if @attached
-
-    @renderedLines.css('top', -scrollTop)
-    @gutter.scrollTop(scrollTop)
-    if options?.adjustVerticalScrollbar ? true
-      @verticalScrollbar.scrollTop(scrollTop)
-
-  scrollBottom: (scrollBottom) ->
-    if scrollBottom?
-      @scrollTop(scrollBottom - @scrollView.height())
-    else
-      @scrollTop() + @scrollView.height()
-
-  highlightFoldsContainingBufferRange: (bufferRange) ->
-    screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
-    for screenLine, i in screenLines
-      if fold = screenLine.fold
-        screenRow = @firstRenderedScreenRow + i
-        element = @lineElementForScreenRow(screenRow)
-
-        if bufferRange.intersectsWith(fold.getBufferRange())
-          element.addClass('selected')
-        else
-          element.removeClass('selected')
-
-  setAutoIndent: (@autoIndent) ->
-    @activeEditSession.setAutoIndent(@autoIndent)
-
-  setSoftTabs: (@softTabs) ->
-    @activeEditSession.setSoftTabs(@softTabs)
-
-  getScreenLines: ->
-    @renderer.getLines()
-
-  screenLineForRow: (start) ->
-    @renderer.lineForRow(start)
-
-  screenLinesForRows: (start, end) ->
-    @renderer.linesForRows(start, end)
-
-  screenLineCount: ->
-    @renderer.lineCount()
-
-  maxScreenLineLength: ->
-    @renderer.maxLineLength()
-
-  getLastScreenRow: ->
-    @screenLineCount() - 1
 
   setBuffer: (buffer) ->
     @activateEditSessionForBuffer(buffer)
@@ -390,6 +388,179 @@ class Editor extends View
     @renderer = @activeEditSession.renderer
     @renderWhenAttached()
 
+  scrollTop: (scrollTop, options) ->
+    return @cachedScrollTop or 0 unless scrollTop?
+
+    maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
+    scrollTop = Math.floor(Math.min(maxScrollTop, Math.max(0, scrollTop)))
+
+    return if scrollTop == @cachedScrollTop
+    @cachedScrollTop = scrollTop
+
+    @updateRenderedLines() if @attached
+
+    @renderedLines.css('top', -scrollTop)
+    @gutter.scrollTop(scrollTop)
+    if options?.adjustVerticalScrollbar ? true
+      @verticalScrollbar.scrollTop(scrollTop)
+
+  scrollBottom: (scrollBottom) ->
+    if scrollBottom?
+      @scrollTop(scrollBottom - @scrollView.height())
+    else
+      @scrollTop() + @scrollView.height()
+
+  scrollToBottom: ->
+    @scrollBottom(@scrollView.prop('scrollHeight'))
+
+  scrollTo: (pixelPosition) ->
+    return unless @attached
+    @scrollVertically(pixelPosition)
+    @scrollHorizontally(pixelPosition)
+
+  scrollVertically: (pixelPosition) ->
+    linesInView = @scrollView.height() / @lineHeight
+    maxScrollMargin = Math.floor((linesInView - 1) / 2)
+    scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
+    margin = scrollMargin * @lineHeight
+    desiredTop = pixelPosition.top - margin
+    desiredBottom = pixelPosition.top + @lineHeight + margin
+
+    scrollViewHeight = @scrollView.height()
+    if desiredBottom > @scrollTop() + scrollViewHeight
+      @scrollTop(desiredBottom - scrollViewHeight)
+    else if desiredTop < @scrollTop()
+      @scrollTop(desiredTop)
+
+  scrollHorizontally: (pixelPosition) ->
+    return if @softWrap
+
+    charsInView = @scrollView.width() / @charWidth
+    maxScrollMargin = Math.floor((charsInView - 1) / 2)
+    scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
+    margin = scrollMargin * @charWidth
+    desiredRight = pixelPosition.left + @charWidth + margin
+    desiredLeft = pixelPosition.left - margin
+
+    if desiredRight > @scrollView.scrollRight()
+      @scrollView.scrollRight(desiredRight)
+    else if desiredLeft < @scrollView.scrollLeft()
+      @scrollView.scrollLeft(desiredLeft)
+
+  highlightFoldsContainingBufferRange: (bufferRange) ->
+    screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
+    for screenLine, i in screenLines
+      if fold = screenLine.fold
+        screenRow = @firstRenderedScreenRow + i
+        element = @lineElementForScreenRow(screenRow)
+
+        if bufferRange.intersectsWith(fold.getBufferRange())
+          element.addClass('selected')
+        else
+          element.removeClass('selected')
+
+  setScrollPositionFromActiveEditSession: ->
+    @scrollTop(@activeEditSession.scrollTop ? 0)
+    @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
+
+  saveActiveEditSession: ->
+    @activeEditSession.setScrollTop(@scrollTop())
+    @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
+
+  toggleSoftWrap: ->
+    @setSoftWrap(not @softWrap)
+
+  calcSoftWrapColumn: ->
+    if @softWrap
+      Math.floor(@scrollView.width() / @charWidth)
+    else
+      Infinity
+
+  setSoftWrap: (@softWrap, softWrapColumn=undefined) ->
+    @setSoftWrapColumn(softWrapColumn) if @attached
+    if @softWrap
+      @addClass 'soft-wrap'
+      @_setSoftWrapColumn = => @setSoftWrapColumn()
+      $(window).on 'resize', @_setSoftWrapColumn
+    else
+      @removeClass 'soft-wrap'
+      $(window).off 'resize', @_setSoftWrapColumn
+
+  save: ->
+    if not @buffer.getPath()
+      path = Native.saveDialog()
+      return false if not path
+      @buffer.saveAs(path)
+    else
+      @buffer.save()
+    true
+
+  subscribeToFontSize: ->
+    return unless rootView = @rootView()
+    @setFontSize(rootView.getFontSize())
+    rootView.on "font-size-change.editor#{@id}", => @setFontSize(rootView.getFontSize())
+
+  setFontSize: (fontSize) ->
+    if fontSize
+      @css('font-size', fontSize + 'px')
+      @calculateDimensions()
+      @updateCursorViews()
+      @updateRenderedLines()
+
+  splitLeft: ->
+    @pane()?.splitLeft(@copy()).wrappedView
+
+  splitRight: ->
+    @pane()?.splitRight(@copy()).wrappedView
+
+  splitUp: ->
+    @pane()?.splitUp(@copy()).wrappedView
+
+  splitDown: ->
+    @pane()?.splitDown(@copy()).wrappedView
+
+  pane: ->
+    @parent('.pane').view()
+
+  rootView: ->
+    @parents('#root-view').view()
+
+  close: ->
+    return if @mini
+    if @buffer.isModified()
+      filename = if @buffer.getPath() then fs.base(@buffer.getPath()) else "untitled buffer"
+      message = "'#{filename}' has changes, do you want to save them?"
+      detailedMessage = "Your changes will be lost if you don't save them"
+      buttons = [
+        ["Save", => @save() and @removeActiveEditSession()]
+        ["Cancel", =>]
+        ["Don't save", => @removeActiveEditSession()]
+      ]
+
+      Native.alert message, detailedMessage, buttons
+    else
+      @removeActiveEditSession()
+
+  remove: (selector, keepData) ->
+    return super if keepData
+
+    @trigger 'before-remove'
+
+    @destroyEditSessions()
+    @unsubscribeFromBuffer()
+
+    $(window).off ".editor#{@id}"
+    rootView = @rootView()
+    rootView?.off ".editor#{@id}"
+    if @pane() then @pane().remove() else super
+    rootView?.focus()
+
+  unsubscribeFromBuffer: ->
+    @buffer.off ".editor#{@id}"
+
+  destroyEditSessions: ->
+    session.destroy() for session in @editSessions
+
   renderWhenAttached: ->
     return unless @attached
 
@@ -405,16 +576,70 @@ class Editor extends View
     @renderLines()
     @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
 
-  destroyEditSessions: ->
-    session.destroy() for session in @editSessions
+  getCursorView: (index) ->
+    index ?= @cursorViews.length - 1
+    @cursorViews[index]
 
-  setScrollPositionFromActiveEditSession: ->
-    @scrollTop(@activeEditSession.scrollTop ? 0)
-    @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
+  getCursorViews: ->
+    new Array(@cursorViews...)
 
-  saveActiveEditSession: ->
-    @activeEditSession.setScrollTop(@scrollTop())
-    @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
+  addCursorView: (cursor) ->
+    cursorView = new CursorView(cursor, this)
+    @cursorViews.push(cursorView)
+    @renderedLines.append(cursorView)
+    cursorView
+
+  removeCursorView: (cursorView) ->
+    _.remove(@cursorViews, cursorView)
+
+  updateCursorViews: ->
+    for cursorView in @getCursorViews()
+      cursorView.updateAppearance()
+
+  syncCursorAnimations: ->
+    for cursorView in @getCursorViews()
+      do (cursorView) -> cursorView.resetCursorAnimation()
+
+  getSelectionView: (index) ->
+    index ?= @selectionViews.length - 1
+    @selectionViews[index]
+
+  getSelectionViews: ->
+    new Array(@selectionViews...)
+
+  addSelectionView: (selection) ->
+    selectionView = new SelectionView({editor: this, selection})
+    @selectionViews.push(selectionView)
+    @renderedLines.append(selectionView)
+    selectionView
+
+  removeSelectionView: (selectionView) ->
+    _.remove(@selectionViews, selectionView)
+
+  removeAllCursorAndSelectionViews: ->
+    cursorView.remove() for cursorView in @getCursorViews()
+    selectionView.remove() for selectionView in @getSelectionViews()
+
+  calculateDimensions: ->
+    fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
+    @renderedLines.append(fragment)
+    @charWidth = fragment.width()
+    @charHeight = fragment.find('span').height()
+    @lineHeight = fragment.outerHeight()
+    @height(@lineHeight) if @mini
+    fragment.remove()
+
+  prepareForScrolling: ->
+    @adjustHeightOfRenderedLines()
+    @adjustWidthOfRenderedLines()
+
+  adjustHeightOfRenderedLines: ->
+    heightOfRenderedLines = @lineHeight * @screenLineCount()
+    @verticalScrollbarContent.height(heightOfRenderedLines)
+    @renderedLines.css('padding-bottom', heightOfRenderedLines)
+
+  adjustWidthOfRenderedLines: ->
+    @renderedLines.width(@charWidth * @maxScreenLineLength())
 
   renderLines: ->
     @clearRenderedLines()
@@ -571,41 +796,16 @@ class Editor extends View
     element = @lineCache[screenRow - @firstRenderedScreenRow]
     $(element)
 
-  toggleSoftWrap: ->
-    @setSoftWrap(not @softWrap)
 
-  calcSoftWrapColumn: ->
-    if @softWrap
-      Math.floor(@scrollView.width() / @charWidth)
-    else
-      Infinity
+  logLines: (start, end) ->
+    @renderer.logLines(start, end)
 
-  setSoftWrapColumn: (softWrapColumn) ->
-    softWrapColumn ?= @calcSoftWrapColumn()
-    @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
+  toggleLineCommentsInSelection: ->
+    @activeEditSession.toggleLineCommentsInSelection()
 
-  setSoftWrap: (@softWrap, softWrapColumn=undefined) ->
-    @setSoftWrapColumn(softWrapColumn) if @attached
-    if @softWrap
-      @addClass 'soft-wrap'
-      @_setSoftWrapColumn = => @setSoftWrapColumn()
-      $(window).on 'resize', @_setSoftWrapColumn
-    else
-      @removeClass 'soft-wrap'
-      $(window).off 'resize', @_setSoftWrapColumn
-
-  save: ->
-    if not @buffer.getPath()
-      path = Native.saveDialog()
-      return false if not path
-      @buffer.saveAs(path)
-    else
-      @buffer.save()
-
-    true
-
-  clipScreenPosition: (screenPosition, options={}) ->
-    @renderer.clipScreenPosition(screenPosition, options)
+  logRenderedLines: ->
+    @renderedLines.find('.line').each (n) ->
+      console.log n, $(this).text()
 
   pixelPositionForScreenPosition: (position) ->
     position = Point.fromObject(position)
@@ -619,245 +819,9 @@ class Editor extends View
   screenPositionFromPixelPosition: ({top, left}) ->
     screenPosition = new Point(Math.floor(top / @lineHeight), Math.floor(left / @charWidth))
 
-  screenPositionForBufferPosition: (position, options) ->
-    @renderer.screenPositionForBufferPosition(position, options)
-
-  bufferPositionForScreenPosition: (position, options) ->
-    @renderer.bufferPositionForScreenPosition(position, options)
-
-  screenRangeForBufferRange: (range) ->
-    @renderer.screenRangeForBufferRange(range)
-
-  bufferRangeForScreenRange: (range) ->
-    @renderer.bufferRangeForScreenRange(range)
-
-  bufferRowsForScreenRows: (startRow, endRow) ->
-    @renderer.bufferRowsForScreenRows(startRow, endRow)
-
   screenPositionFromMouseEvent: (e) ->
     { pageX, pageY } = e
     @screenPositionFromPixelPosition
       top: pageY - @scrollView.offset().top + @scrollTop()
       left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
 
-  calculateDimensions: ->
-    fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
-    @renderedLines.append(fragment)
-    @charWidth = fragment.width()
-    @charHeight = fragment.find('span').height()
-    @lineHeight = fragment.outerHeight()
-    @height(@lineHeight) if @mini
-    fragment.remove()
-
-  subscribeToFontSize: ->
-    return unless rootView = @rootView()
-    @setFontSize(rootView.getFontSize())
-    rootView.on "font-size-change.editor#{@id}", => @setFontSize(rootView.getFontSize())
-
-  setFontSize: (fontSize) ->
-    if fontSize
-      @css('font-size', fontSize + 'px')
-      @calculateDimensions()
-      @updateCursorViews()
-      @updateRenderedLines()
-
-  getCursor: (index) -> @activeEditSession.getCursor(index)
-  getCursors: -> @activeEditSession.getCursors()
-  getLastCursor: -> @activeEditSession.getLastCursor()
-  moveCursorUp: -> @activeEditSession.moveCursorUp()
-  moveCursorDown: -> @activeEditSession.moveCursorDown()
-  moveCursorLeft: -> @activeEditSession.moveCursorLeft()
-  moveCursorRight: -> @activeEditSession.moveCursorRight()
-  moveCursorToNextWord: -> @activeEditSession.moveCursorToNextWord()
-  moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
-  moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
-  moveCursorToTop: -> @activeEditSession.moveCursorToTop()
-  moveCursorToBottom: -> @activeEditSession.moveCursorToBottom()
-  moveCursorToBeginningOfLine: -> @activeEditSession.moveCursorToBeginningOfLine()
-  moveCursorToFirstCharacterOfLine: -> @activeEditSession.moveCursorToFirstCharacterOfLine()
-  moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
-  setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
-  getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
-  setCursorBufferPosition: (position) -> @activeEditSession.setCursorBufferPosition(position)
-  getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
-
-  getSelection: (index) -> @activeEditSession.getSelection(index)
-  getSelections: -> @activeEditSession.getSelections()
-  getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
-  getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
-  getSelectedText: -> @activeEditSession.getSelectedText()
-  setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
-  setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
-  addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)
-  selectRight: -> @activeEditSession.selectRight()
-  selectLeft: -> @activeEditSession.selectLeft()
-  selectUp: -> @activeEditSession.selectUp()
-  selectDown: -> @activeEditSession.selectDown()
-  selectToTop: -> @activeEditSession.selectToTop()
-  selectToBottom: -> @activeEditSession.selectToBottom()
-  selectAll: -> @activeEditSession.selectAll()
-  selectToBeginningOfLine: -> @activeEditSession.selectToBeginningOfLine()
-  selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
-  selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
-  selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
-  selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
-  clearSelections: -> @activeEditSession.clearSelections()
-
-  backspace: -> @activeEditSession.backspace()
-  backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
-  delete: -> @activeEditSession.delete()
-  deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
-  cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
-  insertText: (text) -> @activeEditSession.insertText(text)
-  insertNewline: -> @activeEditSession.insertNewline()
-  insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
-  insertTab: -> @activeEditSession.insertTab()
-  indentSelectedRows: -> @activeEditSession.indentSelectedRows()
-  outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
-  cutSelection: -> @activeEditSession.cutSelectedText()
-  copySelection: -> @activeEditSession.copySelectedText()
-  paste: -> @activeEditSession.pasteText()
-  undo: -> @activeEditSession.undo()
-  redo: -> @activeEditSession.redo()
-  createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
-  foldAll: -> @activeEditSession.foldAll()
-  foldSelection: -> @activeEditSession.foldSelection()
-  destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
-  destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
-  toggleFold: -> @activeEditSession.toggleFold()
-  isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
-  unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
-
-  setText: (text) -> @buffer.setText(text)
-  getText: -> @buffer.getText()
-  getLastBufferRow: -> @buffer.getLastRow()
-  getTextInRange: (range) -> @buffer.getTextInRange(range)
-  getEofPosition: -> @buffer.getEofPosition()
-  lineForBufferRow: (row) -> @buffer.lineForRow(row)
-  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
-  rangeForBufferRow: (row) -> @buffer.rangeForRow(row)
-  scanInRange: (args...) -> @buffer.scanInRange(args...)
-  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
-
-  getCursorView: (index) ->
-    index ?= @cursorViews.length - 1
-    @cursorViews[index]
-
-  getCursorViews: ->
-    new Array(@cursorViews...)
-
-  removeAllCursorAndSelectionViews: ->
-    cursorView.remove() for cursorView in @getCursorViews()
-    selectionView.remove() for selectionView in @getSelectionViews()
-
-  getSelectionView: (index) ->
-    index ?= @selectionViews.length - 1
-    @selectionViews[index]
-
-  getSelectionViews: ->
-    new Array(@selectionViews...)
-
-  splitLeft: ->
-    @pane()?.splitLeft(@copy()).wrappedView
-
-  splitRight: ->
-    @pane()?.splitRight(@copy()).wrappedView
-
-  splitUp: ->
-    @pane()?.splitUp(@copy()).wrappedView
-
-  splitDown: ->
-    @pane()?.splitDown(@copy()).wrappedView
-
-  pane: ->
-    @parent('.pane').view()
-
-  close: ->
-    return if @mini
-    if @buffer.isModified()
-      filename = if @buffer.getPath() then fs.base(@buffer.getPath()) else "untitled buffer"
-      message = "'#{filename}' has changes, do you want to save them?"
-      detailedMessage = "Your changes will be lost if you don't save them"
-      buttons = [
-        ["Save", => @save() and @removeActiveEditSession()]
-        ["Cancel", =>]
-        ["Don't save", => @removeActiveEditSession()]
-      ]
-
-      Native.alert message, detailedMessage, buttons
-    else
-      @removeActiveEditSession()
-
-  unsubscribeFromBuffer: ->
-    @buffer.off ".editor#{@id}"
-
-  remove: (selector, keepData) ->
-    return super if keepData
-
-    @trigger 'before-remove'
-
-    @destroyEditSessions()
-    @unsubscribeFromBuffer()
-
-    $(window).off ".editor#{@id}"
-    rootView = @rootView()
-    rootView?.off ".editor#{@id}"
-    if @pane() then @pane().remove() else super
-    rootView?.focus()
-
-  stateForScreenRow: (row) ->
-    @renderer.lineForRow(row).state
-
-  getCurrentMode: ->
-    @buffer.getMode()
-
-  scrollTo: (pixelPosition) ->
-    return unless @attached
-    @scrollVertically(pixelPosition)
-    @scrollHorizontally(pixelPosition)
-
-  scrollToBottom: ->
-    @scrollBottom(@scrollView.prop('scrollHeight'))
-
-  scrollVertically: (pixelPosition) ->
-    linesInView = @scrollView.height() / @lineHeight
-    maxScrollMargin = Math.floor((linesInView - 1) / 2)
-    scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
-    margin = scrollMargin * @lineHeight
-    desiredTop = pixelPosition.top - margin
-    desiredBottom = pixelPosition.top + @lineHeight + margin
-
-    scrollViewHeight = @scrollView.height()
-    if desiredBottom > @scrollTop() + scrollViewHeight
-      @scrollTop(desiredBottom - scrollViewHeight)
-    else if desiredTop < @scrollTop()
-      @scrollTop(desiredTop)
-
-  scrollHorizontally: (pixelPosition) ->
-    return if @softWrap
-
-    charsInView = @scrollView.width() / @charWidth
-    maxScrollMargin = Math.floor((charsInView - 1) / 2)
-    scrollMargin = Math.min(@hScrollMargin, maxScrollMargin)
-    margin = scrollMargin * @charWidth
-    desiredRight = pixelPosition.left + @charWidth + margin
-    desiredLeft = pixelPosition.left - margin
-
-    if desiredRight > @scrollView.scrollRight()
-      @scrollView.scrollRight(desiredRight)
-    else if desiredLeft < @scrollView.scrollLeft()
-      @scrollView.scrollLeft(desiredLeft)
-
-  syncCursorAnimations: ->
-    for cursorView in @getCursorViews()
-      do (cursorView) -> cursorView.resetCursorAnimation()
-
-  logLines: (start, end) ->
-    @renderer.logLines(start, end)
-
-  toggleLineCommentsInSelection: ->
-    @activeEditSession.toggleLineCommentsInSelection()
-
-  logRenderedLines: ->
-    @renderedLines.find('.line').each (n) ->
-      console.log n, $(this).text()
