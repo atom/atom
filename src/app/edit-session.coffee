@@ -31,8 +31,9 @@ class EditSession
   autoIndent: true
   softTabs: true
 
-  constructor: ({@buffer, @tabText, @autoIndent, softWrapColumn}) ->
+  constructor: ({@buffer, @tabText, @autoIndent, @softTabs, softWrapColumn}) ->
     @id = @constructor.idCounter++
+    @softTabs ?= true
     @renderer = new Renderer(@buffer, { softWrapColumn, @tabText })
     @cursors = []
     @selections = []
