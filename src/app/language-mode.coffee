@@ -15,11 +15,25 @@ class LanguageMode
 
   constructor: (@buffer, @tabText) ->
     @id = @constructor.idCounter++
-    @aceMode = @buffer.getMode()
+    @aceMode = @requireAceMode()
     @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
     @buffer.on "change.languageMode#{@id}", (e) => @handleBufferChange(e)
     @aceLineCommentAdaptor = new AceLineCommentAdaptor(@buffer)
     @aceFoldAdaptor = new AceFoldAdaptor(this)
+
+  requireAceMode: ->
+    extension = if @buffer.getPath() then @buffer.getPath().split('/').pop().split('.').pop() else null
+    modeName = switch extension
+      when 'js' then 'javascript'
+      when 'coffee' then 'coffee'
+      when 'rb', 'ru' then 'ruby'
+      when 'c', 'h', 'cpp' then 'c_cpp'
+      when 'html', 'htm' then 'html'
+      when 'css' then 'css'
+      when 'java' then 'java'
+      when 'xml' then 'xml'
+      else 'text'
+    new (require("ace/mode/#{modeName}").Mode)
 
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)
