@@ -678,6 +678,96 @@ describe "Editor", ->
       expect(editor.getCursorScreenPosition()).toEqual(row: 1, column: 7)
       expect(editor.renderedLines.find('.line:eq(1)')).toHaveText buffer.lineForRow(1)
 
+  describe "selection rendering", ->
+    [charWidth, lineHeight, selection, selectionView] = []
+
+    beforeEach ->
+      editor.attachToDom()
+      editor.width(500)
+      { charWidth, lineHeight } = editor
+      selection = editor.getSelection()
+      selectionView = editor.getSelectionView()
+
+    describe "when a selection is added", ->
+      it "adds a selection view for it with the proper regions", ->
+        editor.activeEditSession.addSelectionForBufferRange([[2, 7], [2, 25]])
+        selectionViews = editor.getSelectionViews()
+        expect(selectionViews.length).toBe 2
+        expect(selectionViews[1].regions.length).toBe 1
+        region = selectionViews[1].regions[0]
+        expect(region.position().top).toBe(2 * lineHeight)
+        expect(region.position().left).toBe(7 * charWidth)
+        expect(region.height()).toBe lineHeight
+        expect(region.width()).toBe((25 - 7) * charWidth)
+
+    describe "when a selection changes", ->
+      describe "when the selection is within a single line", ->
+        it "covers the selection's range with a single region", ->
+          selection.setBufferRange(new Range({row: 2, column: 7}, {row: 2, column: 25}))
+
+          expect(selectionView.regions.length).toBe 1
+          region = selectionView.regions[0]
+          expect(region.position().top).toBe(2 * lineHeight)
+          expect(region.position().left).toBe(7 * charWidth)
+          expect(region.height()).toBe lineHeight
+          expect(region.width()).toBe((25 - 7) * charWidth)
+
+      describe "when the selection spans 2 lines", ->
+        it "covers the selection's range with 2 regions", ->
+          selection.setBufferRange(new Range({row: 2, column: 7}, {row: 3, column: 25}))
+
+          expect(selectionView.regions.length).toBe 2
+
+          region1 = selectionView.regions[0]
+          expect(region1.position().top).toBe(2 * lineHeight)
+          expect(region1.position().left).toBe(7 * charWidth)
+          expect(region1.height()).toBe lineHeight
+          expect(region1.width()).toBe(editor.renderedLines.width() - region1.position().left)
+
+          region2 = selectionView.regions[1]
+          expect(region2.position().top).toBe(3 * lineHeight)
+          expect(region2.position().left).toBe(0)
+          expect(region2.height()).toBe lineHeight
+          expect(region2.width()).toBe(25 * charWidth)
+
+      describe "when the selection spans more than 2 lines", ->
+        it "covers the selection's range with 3 regions", ->
+          selection.setBufferRange(new Range({row: 2, column: 7}, {row: 6, column: 25}))
+
+          expect(selectionView.regions.length).toBe 3
+
+          region1 = selectionView.regions[0]
+          expect(region1.position().top).toBe(2 * lineHeight)
+          expect(region1.position().left).toBe(7 * charWidth)
+          expect(region1.height()).toBe lineHeight
+          expect(region1.width()).toBe(editor.renderedLines.width() - region1.position().left)
+
+          region2 = selectionView.regions[1]
+          expect(region2.position().top).toBe(3 * lineHeight)
+          expect(region2.position().left).toBe(0)
+          expect(region2.height()).toBe(3 * lineHeight)
+          expect(region2.width()).toBe(editor.renderedLines.width())
+
+          # resizes with the editor
+          expect(editor.width()).toBeLessThan(800)
+          editor.width(800)
+          expect(region2.width()).toBe(editor.renderedLines.width())
+
+          region3 = selectionView.regions[2]
+          expect(region3.position().top).toBe(6 * lineHeight)
+          expect(region3.position().left).toBe(0)
+          expect(region3.height()).toBe lineHeight
+          expect(region3.width()).toBe(25 * charWidth)
+
+      it "clears previously drawn regions before creating new ones", ->
+        selection.setBufferRange(new Range({row: 2, column: 7}, {row: 4, column: 25}))
+        expect(selectionView.regions.length).toBe 3
+        expect(selectionView.find('.selection').length).toBe 3
+
+        selectionView.updateAppearance()
+        expect(selectionView.regions.length).toBe 3
+        expect(selectionView.find('.selection').length).toBe 3
+
   describe "when the cursor moves", ->
     charWidth = null
 
