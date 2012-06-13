@@ -14,6 +14,20 @@ describe "LanguageMode", ->
       it "returns the position of the matching bracket, skipping any nested brackets", ->
         expect(languageMode.findClosingBracket([1, 29])).toEqual [9, 2]
 
+  describe ".toggleLineCommentsInRange(range)", ->
+    it "comments/uncomments lines in the given range", ->
+      languageMode.toggleLineCommentsInRange([[4, 5], [7, 8]])
+      expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
+      expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
+      expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
+      expect(buffer.lineForRow(7)).toBe "//    }"
+
+      languageMode.toggleLineCommentsInRange([[4, 5], [5, 8]])
+      expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
+      expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
+      expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
+      expect(buffer.lineForRow(7)).toBe "//    }"
+
   describe "tokenization", ->
     it "tokenizes all the lines in the buffer on construction", ->
       expect(languageMode.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')

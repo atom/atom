@@ -4,6 +4,7 @@ EventEmitter = require 'event-emitter'
 Token = require 'token'
 Range = require 'range'
 Point = require 'point'
+AceLineCommentAdaptor = require 'ace-line-comment-adaptor'
 
 module.exports =
 class LanguageMode
@@ -13,8 +14,14 @@ class LanguageMode
 
   constructor: (@buffer, @tabText) ->
     @id = @constructor.idCounter++
+    @aceMode = @buffer.getMode()
     @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
     @buffer.on "change.languageMode#{@id}", (e) => @handleBufferChange(e)
+    @lineCommentAdaptor = new AceLineCommentAdaptor(@buffer)
+
+  toggleLineCommentsInRange: (range) ->
+    range = Range.fromObject(range)
+    @aceMode.toggleCommentLines(@stateForRow(range.start.row), @lineCommentAdaptor, range.start.row, range.end.row)
 
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
@@ -55,7 +62,7 @@ class LanguageMode
       screenLine
 
   buildScreenLineForRow: (state, row) ->
-    tokenizer = @buffer.getMode().getTokenizer()
+    tokenizer = @aceMode.getTokenizer()
     line = @buffer.lineForRow(row)
     {tokens, state} = tokenizer.getLineTokens(line, state)
     tokenObjects = []

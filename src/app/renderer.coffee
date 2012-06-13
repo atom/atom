@@ -8,7 +8,6 @@ Range = require 'range'
 Fold = require 'fold'
 ScreenLine = require 'screen-line'
 Token = require 'token'
-LineCommenter = require 'line-commenter'
 
 module.exports =
 class Renderer
@@ -16,14 +15,12 @@ class Renderer
   lineMap: null
   languageMode: null
   activeFolds: null
-  lineCommenter: null
   foldsById: null
   lastLanguageModeChangeEvent: null
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
     @languageMode = new LanguageMode(@buffer, options.tabText ? '  ')
-    @lineCommenter = new LineCommenter(@languageMode)
     @foldSuggester = new FoldSuggester(@languageMode)
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
@@ -261,8 +258,5 @@ class Renderer
 
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
-
-  toggleLineCommentsInRange: (range) ->
-    @lineCommenter.toggleLineCommentsInRange(range)
 
 _.extend Renderer.prototype, EventEmitter
