@@ -768,141 +768,164 @@ describe "Editor", ->
         expect(selectionView.regions.length).toBe 3
         expect(selectionView.find('.selection').length).toBe 3
 
-  describe "when the cursor moves", ->
-    charWidth = null
+  describe "cursor rendering", ->
+    
 
-    beforeEach ->
-      editor.attachToDom()
-      editor.vScrollMargin = 3
-      editor.hScrollMargin = 5
-      {charWidth} = editor
+    describe "when the cursor moves", ->
+      charWidth = null
 
-    it "repositions the cursor's view on screen", ->
-      editor.attachToDom()
-      editor.setCursorScreenPosition(row: 2, column: 2)
-      expect(editor.getCursorView().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
+      beforeEach ->
+        editor.attachToDom()
+        editor.vScrollMargin = 3
+        editor.hScrollMargin = 5
+        {charWidth} = editor
 
-    describe "auto-scrolling", ->
-      it "only auto-scrolls when the last cursor is moved", ->
-        editor.setCursorBufferPosition([11,0])
-        editor.addCursorAtBufferPosition([6,50])
-        [cursor1, cursor2] = editor.getCursors()
+      it "repositions the cursor's view on screen", ->
+        editor.setCursorScreenPosition(row: 2, column: 2)
+        expect(editor.getCursorView().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
-        spyOn(editor, 'scrollTo')
-        cursor1.setScreenPosition([10, 10])
-        expect(editor.scrollTo).not.toHaveBeenCalled()
+      it "removes the idle class while moving, then adds it back when it stops", ->
+        cursorView = editor.getCursorView()
+        advanceClock(200)
 
-        cursor2.setScreenPosition([11, 11])
-        expect(editor.scrollTo).toHaveBeenCalled()
+        expect(cursorView).toHaveClass 'idle'
+        editor.setCursorScreenPosition([1, 2])
+        expect(cursorView).not.toHaveClass 'idle'
 
-      describe "when the last cursor exceeds the upper or lower scroll margins", ->
-        describe "when the editor is taller than twice the vertical scroll margin", ->
-          it "sets the scrollTop so the cursor remains within the scroll margin", ->
-            setEditorHeightInLines(editor, 10)
+        window.advanceClock(200)
+        expect(cursorView).toHaveClass 'idle'
 
-            _.times 6, -> editor.moveCursorDown()
-            expect(editor.scrollTop()).toBe(0)
+        editor.setCursorScreenPosition([1, 3])
+        advanceClock(100)
 
-            editor.moveCursorDown()
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
+        editor.setCursorScreenPosition([1, 4])
+        advanceClock(100)
+        expect(cursorView).not.toHaveClass 'idle'
 
-            editor.moveCursorDown()
-            expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
+        advanceClock(100)
+        expect(cursorView).toHaveClass 'idle'
 
-            _.times 3, -> editor.moveCursorUp()
+      describe "auto-scrolling", ->
+        it "only auto-scrolls when the last cursor is moved", ->
+          editor.setCursorBufferPosition([11,0])
+          editor.addCursorAtBufferPosition([6,50])
+          [cursor1, cursor2] = editor.getCursors()
 
-            editor.moveCursorUp()
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
+          spyOn(editor, 'scrollTo')
+          cursor1.setScreenPosition([10, 10])
+          expect(editor.scrollTo).not.toHaveBeenCalled()
 
-            editor.moveCursorUp()
-            expect(editor.scrollTop()).toBe(0)
+          cursor2.setScreenPosition([11, 11])
+          expect(editor.scrollTo).toHaveBeenCalled()
 
-        describe "when the editor is shorter than twice the vertical scroll margin", ->
-          it "sets the scrollTop based on a reduced scroll margin, which prevents a jerky tug-of-war between upper and lower scroll margins", ->
-            setEditorHeightInLines(editor, 5)
+        describe "when the last cursor exceeds the upper or lower scroll margins", ->
+          describe "when the editor is taller than twice the vertical scroll margin", ->
+            it "sets the scrollTop so the cursor remains within the scroll margin", ->
+              setEditorHeightInLines(editor, 10)
 
-            _.times 3, -> editor.moveCursorDown()
+              _.times 6, -> editor.moveCursorDown()
+              expect(editor.scrollTop()).toBe(0)
 
-            expect(editor.scrollTop()).toBe(editor.lineHeight)
+              editor.moveCursorDown()
+              expect(editor.scrollTop()).toBe(editor.lineHeight)
 
-            editor.moveCursorUp()
-            expect(editor.renderedLines.css('top')).toBe "0px"
+              editor.moveCursorDown()
+              expect(editor.scrollTop()).toBe(editor.lineHeight * 2)
 
-      describe "when the last cursor exceeds the right or left scroll margins", ->
-        describe "when soft-wrap is disabled", ->
-          describe "when the editor is wider than twice the horizontal scroll margin", ->
-            it "sets the scrollView's scrollLeft so the cursor remains within the scroll margin", ->
-              setEditorWidthInChars(editor, 30)
+              _.times 3, -> editor.moveCursorUp()
+
+              editor.moveCursorUp()
+              expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+              editor.moveCursorUp()
+              expect(editor.scrollTop()).toBe(0)
+
+          describe "when the editor is shorter than twice the vertical scroll margin", ->
+            it "sets the scrollTop based on a reduced scroll margin, which prevents a jerky tug-of-war between upper and lower scroll margins", ->
+              setEditorHeightInLines(editor, 5)
+
+              _.times 3, -> editor.moveCursorDown()
+
+              expect(editor.scrollTop()).toBe(editor.lineHeight)
+
+              editor.moveCursorUp()
+              expect(editor.renderedLines.css('top')).toBe "0px"
+
+        describe "when the last cursor exceeds the right or left scroll margins", ->
+          describe "when soft-wrap is disabled", ->
+            describe "when the editor is wider than twice the horizontal scroll margin", ->
+              it "sets the scrollView's scrollLeft so the cursor remains within the scroll margin", ->
+                setEditorWidthInChars(editor, 30)
+
+                # moving right
+                editor.setCursorScreenPosition([2, 24])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe 0
+
+                editor.setCursorScreenPosition([2, 25])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe charWidth
+
+                editor.setCursorScreenPosition([2, 28])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
+
+                # moving left
+                editor.setCursorScreenPosition([2, 9])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
+
+                editor.setCursorScreenPosition([2, 8])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe charWidth * 3
+
+                editor.setCursorScreenPosition([2, 5])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe 0
+
+            describe "when the editor is narrower than twice the horizontal scroll margin", ->
+              it "sets the scrollView's scrollLeft based on a reduced horizontal scroll margin, to prevent a jerky tug-of-war between right and left scroll margins", ->
+                editor.hScrollMargin = 6
+                setEditorWidthInChars(editor, 7)
+
+                editor.setCursorScreenPosition([2, 3])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe(0)
+
+                editor.setCursorScreenPosition([2, 4])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe(charWidth)
+
+                editor.setCursorScreenPosition([2, 3])
+                window.advanceClock()
+                expect(editor.scrollView.scrollLeft()).toBe(0)
+
+          describe "when soft-wrap is enabled", ->
+            beforeEach ->
+              editor.setSoftWrap(true)
+
+            it "does not scroll the buffer horizontally", ->
+              editor.width(charWidth * 30)
 
               # moving right
               editor.setCursorScreenPosition([2, 24])
-              window.advanceClock()
               expect(editor.scrollView.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 25])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe charWidth
+              expect(editor.scrollView.scrollLeft()).toBe 0
 
               editor.setCursorScreenPosition([2, 28])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
+              expect(editor.scrollView.scrollLeft()).toBe 0
 
               # moving left
               editor.setCursorScreenPosition([2, 9])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
-
-              editor.setCursorScreenPosition([2, 8])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe charWidth * 3
-
-              editor.setCursorScreenPosition([2, 5])
-              window.advanceClock()
               expect(editor.scrollView.scrollLeft()).toBe 0
 
-          describe "when the editor is narrower than twice the horizontal scroll margin", ->
-            it "sets the scrollView's scrollLeft based on a reduced horizontal scroll margin, to prevent a jerky tug-of-war between right and left scroll margins", ->
-              editor.hScrollMargin = 6
-              setEditorWidthInChars(editor, 7)
+              editor.setCursorScreenPosition([2, 8])
+              expect(editor.scrollView.scrollLeft()).toBe 0
 
-              editor.setCursorScreenPosition([2, 3])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe(0)
-
-              editor.setCursorScreenPosition([2, 4])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe(charWidth)
-
-              editor.setCursorScreenPosition([2, 3])
-              window.advanceClock()
-              expect(editor.scrollView.scrollLeft()).toBe(0)
-
-        describe "when soft-wrap is enabled", ->
-          beforeEach ->
-            editor.setSoftWrap(true)
-
-          it "does not scroll the buffer horizontally", ->
-            editor.width(charWidth * 30)
-
-            # moving right
-            editor.setCursorScreenPosition([2, 24])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 25])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 28])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            # moving left
-            editor.setCursorScreenPosition([2, 9])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 8])
-            expect(editor.scrollView.scrollLeft()).toBe 0
-
-            editor.setCursorScreenPosition([2, 5])
-            expect(editor.scrollView.scrollLeft()).toBe 0
+              editor.setCursorScreenPosition([2, 5])
+              expect(editor.scrollView.scrollLeft()).toBe 0
 
   describe "text rendering", ->
     describe "when all lines in the buffer are visible on screen", ->
