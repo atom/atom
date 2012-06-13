@@ -207,7 +207,7 @@ class EditSession
     @setCursorBufferPosition([fold.startRow, 0])
 
   isFoldedAtScreenRow: (screenRow) ->
-    @screenLineForRow(screenRow).fold?
+    @lineForScreenRow(screenRow).fold?
 
   toggleLineCommentsInRange: (range) ->
     @renderer.toggleLineCommentsInRange(range)
@@ -218,7 +218,7 @@ class EditSession
     fn(selection) for selection in selections
     @buffer.endUndoBatch(@getSelectedBufferRanges())
 
-  screenLineForRow: (row) ->
+  lineForScreenRow: (row) ->
     @renderer.lineForRow(row)
 
   stateForScreenRow: (screenRow) ->

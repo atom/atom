@@ -65,7 +65,7 @@ class Highlighter
     text = _.pluck(tokenObjects, 'value').join('')
     new ScreenLine(tokenObjects, text, [1, 0], [1, 0], { state })
 
-  screenLineForRow: (row) ->
+  lineForScreenRow: (row) ->
     @screenLines[row]
 
   screenLinesForRows: (startRow, endRow) ->
