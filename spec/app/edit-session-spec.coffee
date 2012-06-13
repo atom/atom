@@ -7,10 +7,14 @@ describe "EditSession", ->
   beforeEach ->
     fakeEditor =
       calcSoftWrapColumn: ->
-      tabText: '  '
 
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editSession = new EditSession(editor: fakeEditor, buffer: buffer, autoIndent: false)
+    editSession = new EditSession(
+      editor: fakeEditor
+      buffer: buffer
+      tabText: '  '
+      autoIndent: false
+    )
     lineLengths = buffer.getLines().map (line) -> line.length
 
   describe "cursor movement", ->

@@ -354,7 +354,13 @@ class Editor extends View
     index = @editSessionIndexForBuffer(buffer)
     unless index?
       index = @editSessions.length
-      @editSessions.push(new EditSession(editor: this, buffer: buffer, autoIndent: @autoIndent, softTabs: @softTabs))
+      @editSessions.push(new EditSession(
+        editor: this
+        buffer: buffer
+        tabText: @tabText
+        autoIndent: @autoIndent
+        softTabs: @softTabs
+      ))
 
     @setActiveEditSessionIndex(index)
 

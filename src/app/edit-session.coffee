@@ -15,6 +15,7 @@ class EditSession
     session = new EditSession(
       editor: editor
       buffer: buffer
+      tabText: editor.tabText
       autoIndent: editor.autoIndent
       softTabs: editor.softTabs
     )
@@ -31,10 +32,9 @@ class EditSession
   autoIndent: true
   softTabs: true
 
-  constructor: ({@editor, @buffer, @autoIndent}) ->
+  constructor: ({@editor, @buffer, @tabText, @autoIndent}) ->
     @id = @constructor.idCounter++
-    @tabText = @editor.tabText
-    @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @editor.tabText })
+    @renderer = new Renderer(@buffer, { softWrapColumn: @editor.calcSoftWrapColumn(), tabText: @tabText })
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])
