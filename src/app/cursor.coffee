@@ -1,6 +1,6 @@
 Point = require 'point'
 Range = require 'range'
-Anchor = require 'new-anchor'
+Anchor = require 'anchor'
 EventEmitter = require 'event-emitter'
 _ = require 'underscore'
 
