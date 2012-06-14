@@ -217,6 +217,7 @@ class Editor extends View
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
+  lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
   screenLineCount: -> @activeEditSession.screenLineCount()
   maxScreenLineLength: -> @activeEditSession.maxScreenLineLength()

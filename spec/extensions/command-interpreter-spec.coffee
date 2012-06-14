@@ -233,3 +233,15 @@ describe "CommandInterpreter", ->
           interpreter.eval(editor, 's/current/foo/g')
           expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'
           expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
+
+  describe "when command selects folded text", ->
+    it "unfolds lines that command selects", ->
+      editor.createFold(1, 9)
+      editor.createFold(5, 8)
+      editor.setSelectedBufferRange([[0,0], [0,0]])
+
+      interpreter.eval(editor, '/push/')
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,29], [6,33]]
+      expect(editor.lineForScreenRow(1).fold).toBeUndefined()
+      expect(editor.lineForScreenRow(5).fold).toBeUndefined()
+      expect(editor.lineForScreenRow(6).text).toBe buffer.lineForRow(6)
