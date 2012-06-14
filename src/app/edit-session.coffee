@@ -35,6 +35,7 @@ class EditSession
     @id = @constructor.idCounter++
     @softTabs ?= true
     @renderer = new Renderer(@buffer, { softWrapColumn, @tabText })
+    @languageMode = @renderer.languageMode
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])
@@ -209,8 +210,15 @@ class EditSession
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow).fold?
 
+  autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
+    return { text } unless @autoIndent
+    @languageMode.autoIndentTextAfterBufferPosition(text, bufferPosition)
+
+  autoOutdentBufferRow: (bufferRow) ->
+    @languageMode.autoOutdentBufferRow(bufferRow)
+
   toggleLineCommentsInRange: (range) ->
-    @renderer.toggleLineCommentsInRange(range)
+    @languageMode.toggleLineCommentsInRange(range)
 
   mutateSelectedText: (fn) ->
     selections = @getSelections()

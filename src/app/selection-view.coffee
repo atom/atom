@@ -1,5 +1,4 @@
 Anchor = require 'anchor'
-AceOutdentAdaptor = require 'ace-outdent-adaptor'
 Point = require 'point'
 Range = require 'range'
 {View, $$} = require 'space-pen'

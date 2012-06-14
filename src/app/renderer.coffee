@@ -1,6 +1,5 @@
 _ = require 'underscore'
-Highlighter = require 'highlighter'
-FoldSuggester = require 'fold-suggester'
+LanguageMode = require 'language-mode'
 LineMap = require 'line-map'
 Point = require 'point'
 EventEmitter = require 'event-emitter'
@@ -8,28 +7,24 @@ Range = require 'range'
 Fold = require 'fold'
 ScreenLine = require 'screen-line'
 Token = require 'token'
-LineCommenter = require 'line-commenter'
 
 module.exports =
 class Renderer
   @idCounter: 1
   lineMap: null
-  highlighter: null
+  languageMode: null
   activeFolds: null
-  lineCommenter: null
   foldsById: null
-  lastHighlighterChangeEvent: null
+  lastLanguageModeChangeEvent: null
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
-    @highlighter = new Highlighter(@buffer, options.tabText ? '  ')
-    @lineCommenter = new LineCommenter(@highlighter)
-    @foldSuggester = new FoldSuggester(@highlighter)
+    @languageMode = new LanguageMode(@buffer, options.tabText ? '  ')
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
     @foldsById = {}
     @buildLineMap()
-    @highlighter.on 'change', (e) => @lastHighlighterChangeEvent = e
+    @languageMode.on 'change', (e) => @lastLanguageModeChangeEvent = e
     @buffer.on "change.renderer#{@id}", (e) => @handleBufferChange(e)
 
   buildLineMap: ->
@@ -56,14 +51,14 @@ class Renderer
 
   foldAll: ->
     for currentRow in [0..@buffer.getLastRow()]
-      [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
+      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
 
       @createFold(startRow, endRow)
 
   toggleFoldAtBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
-      [startRow, endRow] = @foldSuggester.rowRangeForFoldAtBufferRow(currentRow) ? []
+      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
 
       if fold = @largestFoldForBufferRow(startRow)
@@ -163,7 +158,7 @@ class Renderer
     @lineMap.bufferPositionForScreenPosition(position, options)
 
   stateForScreenRow: (screenRow) ->
-    @highlighter.stateForRow(screenRow)
+    @languageMode.stateForRow(screenRow)
 
   clipScreenPosition: (position, options) ->
     @lineMap.clipScreenPosition(position, options)
@@ -173,9 +168,9 @@ class Renderer
     allFolds.push(folds...) for row, folds of @activeFolds
     fold.handleBufferChange(e) for fold in allFolds
 
-    @handleHighlighterChange(@lastHighlighterChangeEvent)
+    @handleLanguageModeChange(@lastLanguageModeChangeEvent)
 
-  handleHighlighterChange: (e) ->
+  handleLanguageModeChange: (e) ->
     newRange = e.newRange.copy()
     newRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(newRange.start.row))
 
@@ -202,8 +197,8 @@ class Renderer
 
     startBufferColumn = 0
     while currentBufferRow <= endBufferRow
-      screenLine = @highlighter.lineForScreenRow(currentBufferRow)
-      screenLine.foldable = @foldSuggester.isBufferRowFoldable(currentBufferRow)
+      screenLine = @languageMode.lineForScreenRow(currentBufferRow)
+      screenLine.foldable = @languageMode.isBufferRowFoldable(currentBufferRow)
 
       if fold = @largestFoldForBufferRow(currentBufferRow)
         screenLine = screenLine.copy()
@@ -256,13 +251,10 @@ class Renderer
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
 
   destroy: ->
-    @highlighter.destroy()
+    @languageMode.destroy()
     @buffer.off ".renderer#{@id}"
 
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
-
-  toggleLineCommentsInRange: (range) ->
-    @lineCommenter.toggleLineCommentsInRange(range)
 
 _.extend Renderer.prototype, EventEmitter

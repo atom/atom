@@ -1,7 +1,6 @@
 Range = require 'range'
 Anchor = require 'anchor'
 EventEmitter = require 'event-emitter'
-AceOutdentAdaptor = require 'ace-outdent-adaptor'
 _ = require 'underscore'
 
 module.exports =
@@ -130,7 +129,7 @@ class Selection
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
-    @autoOutdentText() if shouldOutdent
+    @autoOutdent() if shouldOutdent
 
   backspace: ->
     @editSession.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
@@ -197,24 +196,10 @@ class Selection
     @cursor.setBufferPosition([range.end.row + 1, 0])
 
   autoIndentText: (text) ->
-    if @editSession.autoIndent
-      mode = @editSession.getCurrentMode()
-      row = @cursor.getCurrentScreenRow()
-      state = @editSession.stateForScreenRow(row)
-      lineBeforeCursor = @cursor.getCurrentBufferLine()[0...@cursor.getBufferPosition().column]
-      if text[0] == "\n"
-        indent = mode.getNextLineIndent(state, lineBeforeCursor, @editSession.tabText)
-        text = text[0] + indent + text[1..]
-      else if mode.checkOutdent(state, lineBeforeCursor, text)
-        shouldOutdent = true
+    @editSession.autoIndentTextAfterBufferPosition(text, @cursor.getBufferPosition())
 
-    {text, shouldOutdent}
-
-  autoOutdentText: ->
-    screenRow = @cursor.getCurrentScreenRow()
-    bufferRow = @cursor.getCurrentBufferRow()
-    state = @editSession.stateForScreenRow(screenRow)
-    @editSession.getCurrentMode().autoOutdent(state, new AceOutdentAdaptor(@editSession), bufferRow)
+  autoOutdent: ->
+    @editSession.autoOutdentBufferRow(@cursor.getCurrentBufferRow())
 
   handleBufferChange: (e) ->
     @modifyScreenRange =>
