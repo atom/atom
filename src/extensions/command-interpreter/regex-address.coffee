@@ -6,25 +6,25 @@ class RegexAddress extends Address
   regex: null
   reverse: null
 
-  constructor: (pattern, reverse) ->
-    @reverse = reverse
+  constructor: (pattern, isReversed) ->
+    @isReversed = isReversed
     @regex = new RegExp(pattern)
 
   getRange: (editor, currentRange) ->
     rangeBefore = new Range([0, 0], currentRange.start)
     rangeAfter = new Range(currentRange.end, editor.getEofPosition())
 
-    rangeToSearch = if @reverse then rangeBefore else rangeAfter
+    rangeToSearch = if @isReversed then rangeBefore else rangeAfter
 
     rangeToReturn = null
-    scanMethodName = if @reverse then "backwardsScanInRange" else "scanInRange"
+    scanMethodName = if @isReversed then "backwardsScanInRange" else "scanInRange"
     editor[scanMethodName] @regex, rangeToSearch, (match, range) ->
       rangeToReturn = range
 
     if rangeToReturn
       rangeToReturn
     else
-      rangeToSearch = if @reverse then rangeAfter else rangeBefore
+      rangeToSearch = if @isReversed then rangeAfter else rangeBefore
       editor[scanMethodName] @regex, rangeToSearch, (match, range) ->
         rangeToReturn = range
 
