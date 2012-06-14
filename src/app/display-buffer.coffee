@@ -108,8 +108,9 @@ class DisplayBuffer
       @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
-    folds = @activeFolds[bufferRow] ? []
-    fold.destroy() for fold in new Array(folds...)
+    for row, folds of @activeFolds
+      for fold in new Array(folds...)
+        fold.destroy() if fold.getBufferRange().containsRow(bufferRow)
 
   registerFold: (fold) ->
     @activeFolds[fold.startRow] ?= []

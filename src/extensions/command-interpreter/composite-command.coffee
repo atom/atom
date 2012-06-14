@@ -10,6 +10,11 @@ class CompositeCommand
       currentRanges = editor.getSelectionsOrderedByBufferPosition().map (selection) -> selection.getBufferRange()
       for currentRange in currentRanges
         newRanges.push(command.execute(editor, currentRange)...)
+
+      for range in newRanges
+        for row in [range.start.row..range.end.row]
+          editor.destroyFoldsContainingBufferRow(row)
+
       editor.setSelectedBufferRanges(newRanges)
 
   reverse: ->
