@@ -14,3 +14,5 @@ class CommandInterpreter
   repeatRelativeAddress: (editor) ->
     @lastRelativeAddress?.execute(editor)
 
+  repeatRelativeAddressInReverse: (editor) ->
+    @lastRelativeAddress?.reverse().execute(editor)

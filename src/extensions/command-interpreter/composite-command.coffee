@@ -12,6 +12,9 @@ class CompositeCommand
         newRanges.push(command.execute(editor, currentRange)...)
       editor.setSelectedBufferRanges(newRanges)
 
+  reverse: ->
+    new CompositeCommand(@subcommands.map (command) -> command.reverse())
+
   isRelativeAddress: ->
     _.all(@subcommands, (command) -> command.isAddress() and command.isRelative())
 

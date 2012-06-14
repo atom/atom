@@ -31,3 +31,6 @@ class RegexAddress extends Address
       rangeToReturn or currentRange
 
   isRelative: -> true
+
+  reverse: ->
+    new RegexAddress(@regex, !@isReversed)
