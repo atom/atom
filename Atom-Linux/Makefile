@@ -55,7 +55,7 @@ LIBS := -lX11 \
 	-lcef \
 	-lcef_dll_wrapper
 
-SOURCES=atom.cpp native_handler.cpp client_handler.cpp client_handler_gtk.cpp
+SOURCES=atom.cpp native_handler.cpp client_handler.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 INSTALLDIR=/usr/local/atom
 
