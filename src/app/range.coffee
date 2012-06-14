@@ -50,6 +50,9 @@ class Range
     point = Point.fromObject(point)
     point.isGreaterThanOrEqual(@start) and point.isLessThanOrEqual(@end)
 
+  containsRow: (row) ->
+    @start.row <= row <= @end.row
+
   union: (otherRange) ->
     start = if @start.isLessThan(otherRange.start) then @start else otherRange.start
     end = if @end.isGreaterThan(otherRange.end) then @end else otherRange.end
