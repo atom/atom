@@ -569,7 +569,7 @@ class Editor extends View
     @setScrollPositionFromActiveEditSession()
 
     @renderLines()
-    @activeEditSession.on 'screen-lines-change', (e) => @handleRendererChange(e)
+    @activeEditSession.on 'screen-lines-change', (e) => @handleDisplayBufferChange(e)
 
   getCursorView: (index) ->
     index ?= @cursorViews.length - 1
@@ -690,7 +690,7 @@ class Editor extends View
   getLastVisibleScreenRow: ->
     Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
-  handleRendererChange: (e) ->
+  handleDisplayBufferChange: (e) ->
     oldScreenRange = e.oldRange
     newScreenRange = e.newRange
 

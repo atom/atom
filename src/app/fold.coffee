@@ -5,15 +5,15 @@ module.exports =
 class Fold
   @idCounter: 1
 
-  renderer: null
+  displayBuffer: null
   startRow: null
   endRow: null
 
-  constructor: (@renderer, @startRow, @endRow) ->
+  constructor: (@displayBuffer, @startRow, @endRow) ->
     @id = @constructor.idCounter++
 
   destroy: ->
-    @renderer.destroyFold(this)
+    @displayBuffer.destroyFold(this)
 
   inspect: ->
     "Fold(#{@startRow}, #{@endRow})"
@@ -28,15 +28,15 @@ class Fold
     oldStartRow = @startRow
 
     if @isContainedByRange(event.oldRange)
-      @renderer.unregisterFold(@startRow, this)
+      @displayBuffer.unregisterFold(@startRow, this)
       return
 
     @updateStartRow(event)
     @updateEndRow(event)
 
     if @startRow != oldStartRow
-      @renderer.unregisterFold(oldStartRow, this)
-      @renderer.registerFold(this)
+      @displayBuffer.unregisterFold(oldStartRow, this)
+      @displayBuffer.registerFold(this)
 
   isContainedByRange: (range) ->
     range.start.row <= @startRow and @endRow <= range.end.row

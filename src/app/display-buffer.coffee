@@ -9,7 +9,7 @@ ScreenLine = require 'screen-line'
 Token = require 'token'
 
 module.exports =
-class Renderer
+class DisplayBuffer
   @idCounter: 1
   lineMap: null
   languageMode: null
@@ -25,7 +25,7 @@ class Renderer
     @foldsById = {}
     @buildLineMap()
     @languageMode.on 'change', (e) => @lastLanguageModeChangeEvent = e
-    @buffer.on "change.renderer#{@id}", (e) => @handleBufferChange(e)
+    @buffer.on "change.displayBuffer#{@id}", (e) => @handleBufferChange(e)
 
   buildLineMap: ->
     @lineMap = new LineMap
@@ -252,9 +252,9 @@ class Renderer
 
   destroy: ->
     @languageMode.destroy()
-    @buffer.off ".renderer#{@id}"
+    @buffer.off ".displayBuffer#{@id}"
 
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
 
-_.extend Renderer.prototype, EventEmitter
+_.extend DisplayBuffer.prototype, EventEmitter

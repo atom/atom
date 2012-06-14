@@ -1,6 +1,6 @@
 Point = require 'point'
 Buffer = require 'buffer'
-Renderer = require 'renderer'
+DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
 Selection = require 'selection'
 EventEmitter = require 'event-emitter'
@@ -25,7 +25,7 @@ class EditSession
 
   scrollTop: 0
   scrollLeft: 0
-  renderer: null
+  displayBuffer: null
   cursors: null
   selections: null
   autoIndent: true
@@ -34,8 +34,8 @@ class EditSession
   constructor: ({@buffer, @tabText, @autoIndent, @softTabs, @softWrapColumn}) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
-    @renderer = new Renderer(@buffer, { @softWrapColumn, @tabText })
-    @languageMode = @renderer.languageMode
+    @displayBuffer = new DisplayBuffer(@buffer, { @softWrapColumn, @tabText })
+    @languageMode = @displayBuffer.languageMode
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])
@@ -44,14 +44,14 @@ class EditSession
       for selection in @getSelections()
         selection.handleBufferChange(e)
 
-    @renderer.on "change.edit-session-#{@id}", (e) =>
+    @displayBuffer.on "change.edit-session-#{@id}", (e) =>
       @trigger 'screen-lines-change', e
       @moveCursors (cursor) -> cursor.refreshScreenPosition() unless e.bufferChanged
 
   destroy: ->
     @buffer.off ".edit-session-#{@id}"
-    @renderer.off ".edit-session-#{@id}"
-    @renderer.destroy()
+    @displayBuffer.off ".edit-session-#{@id}"
+    @displayBuffer.destroy()
 
   serialize: ->
     buffer: @buffer.serialize()
@@ -72,7 +72,7 @@ class EditSession
   setScrollLeft: (@scrollLeft) ->
   getScrollLeft: -> @scrollLeft
 
-  setSoftWrapColumn: (@softWrapColumn) -> @renderer.setSoftWrapColumn(@softWrapColumn)
+  setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
   setAutoIndent: (@autoIndent) ->
   setSoftTabs: (@softTabs) ->
 
@@ -91,19 +91,19 @@ class EditSession
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
-  screenPositionForBufferPosition: (bufferPosition, options) -> @renderer.screenPositionForBufferPosition(bufferPosition, options)
-  bufferPositionForScreenPosition: (screenPosition, options) -> @renderer.bufferPositionForScreenPosition(screenPosition, options)
-  screenRangeForBufferRange: (range) -> @renderer.screenRangeForBufferRange(range)
-  bufferRangeForScreenRange: (range) -> @renderer.bufferRangeForScreenRange(range)
-  clipScreenPosition: (screenPosition, options) -> @renderer.clipScreenPosition(screenPosition, options)
-  lineForScreenRow: (row) -> @renderer.lineForRow(row)
-  linesForScreenRows: (start, end) -> @renderer.linesForRows(start, end)
-  stateForScreenRow: (screenRow) -> @renderer.stateForScreenRow(screenRow)
-  screenLineCount: -> @renderer.lineCount()
-  maxScreenLineLength: -> @renderer.maxLineLength()
-  getLastScreenRow: -> @renderer.getLastRow()
-  bufferRowsForScreenRows: (startRow, endRow) -> @renderer.bufferRowsForScreenRows(startRow, endRow)
-  logScreenLines: (start, end) -> @renderer.logLines(start, end)
+  screenPositionForBufferPosition: (bufferPosition, options) -> @displayBuffer.screenPositionForBufferPosition(bufferPosition, options)
+  bufferPositionForScreenPosition: (screenPosition, options) -> @displayBuffer.bufferPositionForScreenPosition(screenPosition, options)
+  screenRangeForBufferRange: (range) -> @displayBuffer.screenRangeForBufferRange(range)
+  bufferRangeForScreenRange: (range) -> @displayBuffer.bufferRangeForScreenRange(range)
+  clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
+  lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
+  linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
+  stateForScreenRow: (screenRow) -> @displayBuffer.stateForScreenRow(screenRow)
+  screenLineCount: -> @displayBuffer.lineCount()
+  maxScreenLineLength: -> @displayBuffer.maxLineLength()
+  getLastScreenRow: -> @displayBuffer.getLastRow()
+  bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
+  logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   insertText: (text) ->
     @mutateSelectedText (selection) -> selection.insertText(text)
@@ -178,26 +178,26 @@ class EditSession
     selection.fold() for selection in @getSelections()
 
   foldAll: ->
-    @renderer.foldAll()
+    @displayBuffer.foldAll()
 
   toggleFold: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @toggleFoldAtBufferRow(bufferRow)
 
   toggleFoldAtBufferRow: (bufferRow) ->
-    @renderer.toggleFoldAtBufferRow(bufferRow)
+    @displayBuffer.toggleFoldAtBufferRow(bufferRow)
 
   createFold: (startRow, endRow) ->
-    @renderer.createFold(startRow, endRow)
+    @displayBuffer.createFold(startRow, endRow)
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
-    @renderer.destroyFoldsContainingBufferRow(bufferRow)
+    @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
 
   unfoldCurrentRow: (row) ->
-    @renderer.largestFoldForBufferRow(@getLastCursor().getCurrentBufferRow())?.destroy()
+    @displayBuffer.largestFoldForBufferRow(@getLastCursor().getCurrentBufferRow())?.destroy()
 
   destroyFold: (foldId) ->
-    fold = @renderer.foldsById[foldId]
+    fold = @displayBuffer.foldsById[foldId]
     fold.destroy()
     @setCursorBufferPosition([fold.startRow, 0])
 
