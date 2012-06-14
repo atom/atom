@@ -4,22 +4,28 @@ Range = require 'range'
 module.exports =
 class RegexAddress extends Address
   regex: null
+  reverse: null
 
-  constructor: (pattern) ->
+  constructor: (pattern, reverse) ->
+    @reverse = reverse
     @regex = new RegExp(pattern)
 
   getRange: (editor, currentRange) ->
-    rangeToSearch = new Range(currentRange.end, editor.getEofPosition())
+    rangeBefore = new Range([0, 0], currentRange.end)
+    rangeAfter = new Range(currentRange.end, editor.getEofPosition())
+
+    rangeToSearch = if @reverse then rangeBefore else rangeAfter
 
     rangeToReturn = null
-    editor.buffer.scanInRange @regex, rangeToSearch, (match, range) ->
+    scanMethodName = if @reverse then "backwardsScanInRange" else "scanInRange"
+    editor[scanMethodName] @regex, rangeToSearch, (match, range) ->
       rangeToReturn = range
 
     if rangeToReturn
       rangeToReturn
     else
-      rangeToSearch = new Range([0, 0], rangeToSearch.start)
-      editor.buffer.scanInRange @regex, rangeToSearch, (match, range) ->
+      rangeToSearch = if @reverse then rangeAfter else rangeBefore
+      editor[scanMethodName] @regex, rangeToSearch, (match, range) ->
         rangeToReturn = range
 
       rangeToReturn or currentRange

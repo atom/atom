@@ -105,6 +105,11 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '/mike tyson')
         expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
 
+      it "searches in reverse when prefixed with a -", ->
+        editor.setSelectedBufferRange([[5, 0], [5,1]])
+        interpreter.eval(editor, '-/pivot')
+        expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
+
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->
