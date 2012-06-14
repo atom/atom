@@ -2,8 +2,8 @@ module.exports =
 class AceAdaptor
   foldWidgets: {}
 
-  constructor: (@languageMode) ->
-    @buffer = @languageMode.buffer
+  constructor: (@tokenizedBuffer) ->
+    @buffer = @tokenizedBuffer.buffer
 
   getLine: (bufferRow) ->
     @buffer.lineForRow(bufferRow)
@@ -12,7 +12,7 @@ class AceAdaptor
     @buffer.getLineCount()
 
   $findClosingBracket: (bracketType, bufferPosition) ->
-    @languageMode.findClosingBracket([bufferPosition.row, bufferPosition.column - 1])
+    @tokenizedBuffer.findClosingBracket([bufferPosition.row, bufferPosition.column - 1])
 
   indentRows: (startRow, endRow, indentString) ->
     for row in [startRow..endRow]
@@ -29,5 +29,5 @@ class AceAdaptor
   # Does not actually replace text; always outdents one level
   replace: (range, text) ->
     start = range.start
-    end = {row: range.start.row, column: range.start.column + @languageMode.tabText.length}
+    end = {row: range.start.row, column: range.start.column + @tokenizedBuffer.tabText.length}
     @buffer.change([start, end], "")

@@ -7,7 +7,7 @@ Point = require 'point'
 AceAdaptor = require 'ace-adaptor'
 
 module.exports =
-class LanguageMode
+class TokenizedBuffer
   @idCounter: 1
 
   buffer: null
@@ -19,7 +19,7 @@ class LanguageMode
     @id = @constructor.idCounter++
     @aceMode = @requireAceMode()
     @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
-    @buffer.on "change.languageMode#{@id}", (e) => @handleBufferChange(e)
+    @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
     @aceAdaptor = new AceAdaptor(this)
 
   requireAceMode: ->
@@ -124,7 +124,7 @@ class LanguageMode
     @screenLines[row]?.state ? 'start'
 
   destroy: ->
-    @buffer.off ".languageMode#{@id}"
+    @buffer.off ".tokenized-buffer#{@id}"
 
   iterateTokensInBufferRange: (bufferRange, iterator) ->
     bufferRange = Range.fromObject(bufferRange)
@@ -156,4 +156,4 @@ class LanguageMode
             stop()
     position
 
-_.extend(LanguageMode.prototype, EventEmitter)
+_.extend(TokenizedBuffer.prototype, EventEmitter)

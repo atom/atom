@@ -1,18 +1,18 @@
 LineMap = require 'line-map'
 ScreenLine = require 'screen-line'
 Buffer = require 'buffer'
-LanguageMode = require 'language-mode'
+TokenizedBuffer = require 'tokenized-buffer'
 Point = require 'point'
 
 describe "LineMap", ->
-  [languageMode, map] = []
+  [tokenizedBuffer, map] = []
   [line0, line1, line2, line3, line4] = []
 
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    languageMode = new LanguageMode(buffer)
+    tokenizedBuffer = new TokenizedBuffer(buffer)
     map = new LineMap
-    [line0, line1, line2, line3, line4] = languageMode.linesForScreenRows(0, 4)
+    [line0, line1, line2, line3, line4] = tokenizedBuffer.linesForScreenRows(0, 4)
 
   describe ".insertAtBufferRow(row, lineFragments)", ->
     it "inserts the given line fragments before the specified buffer row", ->

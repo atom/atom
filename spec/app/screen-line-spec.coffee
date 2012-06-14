@@ -1,15 +1,15 @@
 _ = require 'underscore'
 Buffer = require 'buffer'
-LanguageMode = require 'language-mode'
+TokenizedBuffer = require 'tokenized-buffer'
 
 describe "ScreenLine", ->
-  [buffer, tabText, screenLine, languageMode] = []
+  [buffer, tabText, screenLine, tokenizedBuffer] = []
 
   beforeEach ->
     tabText = '  '
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    languageMode = new LanguageMode(buffer, tabText)
-    screenLine = languageMode.lineForScreenRow(3)
+    tokenizedBuffer = new TokenizedBuffer(buffer, tabText)
+    screenLine = tokenizedBuffer.lineForScreenRow(3)
 
   describe ".splitAt(column)", ->
     it "breaks the line fragment into two fragments", ->
@@ -70,7 +70,7 @@ describe "ScreenLine", ->
       [left, right] = screenLine.splitAt(14)
       expect(left.concat(right)).toEqual screenLine
 
-      concatenated = screenLine.concat(languageMode.lineForScreenRow(4))
+      concatenated = screenLine.concat(tokenizedBuffer.lineForScreenRow(4))
       expect(concatenated.text).toBe '    var pivot = items.shift(), current, left = [], right = [];    while(items.length > 0) {'
       expect(tokensText concatenated.tokens).toBe concatenated.text
       expect(concatenated.screenDelta).toEqual [2, 0]
@@ -80,7 +80,7 @@ describe "ScreenLine", ->
     beforeEach ->
       buffer.insert([0, 13], '\t')
       buffer.insert([0, 0], '\t\t')
-      screenLine = languageMode.lineForScreenRow(0)
+      screenLine = tokenizedBuffer.lineForScreenRow(0)
 
     describe "when translating from buffer to screen coordinates", ->
       it "accounts for tab characters being wider on screen", ->

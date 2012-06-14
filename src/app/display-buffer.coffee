@@ -1,5 +1,5 @@
 _ = require 'underscore'
-LanguageMode = require 'language-mode'
+TokenizedBuffer = require 'tokenized-buffer'
 LineMap = require 'line-map'
 Point = require 'point'
 EventEmitter = require 'event-emitter'
@@ -12,19 +12,19 @@ module.exports =
 class DisplayBuffer
   @idCounter: 1
   lineMap: null
-  languageMode: null
+  tokenizedBuffer: null
   activeFolds: null
   foldsById: null
-  lastLanguageModeChangeEvent: null
+  lastTokenizedBufferChangeEvent: null
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
-    @languageMode = new LanguageMode(@buffer, options.tabText ? '  ')
+    @tokenizedBuffer = new TokenizedBuffer(@buffer, options.tabText ? '  ')
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
     @foldsById = {}
     @buildLineMap()
-    @languageMode.on 'change', (e) => @lastLanguageModeChangeEvent = e
+    @tokenizedBuffer.on 'change', (e) => @lastTokenizedBufferChangeEvent = e
     @buffer.on "change.displayBuffer#{@id}", (e) => @handleBufferChange(e)
 
   buildLineMap: ->
@@ -51,14 +51,14 @@ class DisplayBuffer
 
   foldAll: ->
     for currentRow in [0..@buffer.getLastRow()]
-      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
+      [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
 
       @createFold(startRow, endRow)
 
   toggleFoldAtBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
-      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
+      [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
 
       if fold = @largestFoldForBufferRow(startRow)
@@ -158,7 +158,7 @@ class DisplayBuffer
     @lineMap.bufferPositionForScreenPosition(position, options)
 
   stateForScreenRow: (screenRow) ->
-    @languageMode.stateForRow(screenRow)
+    @tokenizedBuffer.stateForRow(screenRow)
 
   clipScreenPosition: (position, options) ->
     @lineMap.clipScreenPosition(position, options)
@@ -168,9 +168,9 @@ class DisplayBuffer
     allFolds.push(folds...) for row, folds of @activeFolds
     fold.handleBufferChange(e) for fold in allFolds
 
-    @handleLanguageModeChange(@lastLanguageModeChangeEvent)
+    @handleTokenizedBufferChange(@lastTokenizedBufferChangeEvent)
 
-  handleLanguageModeChange: (e) ->
+  handleTokenizedBufferChange: (e) ->
     newRange = e.newRange.copy()
     newRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(newRange.start.row))
 
@@ -197,8 +197,8 @@ class DisplayBuffer
 
     startBufferColumn = 0
     while currentBufferRow <= endBufferRow
-      screenLine = @languageMode.lineForScreenRow(currentBufferRow)
-      screenLine.foldable = @languageMode.isBufferRowFoldable(currentBufferRow)
+      screenLine = @tokenizedBuffer.lineForScreenRow(currentBufferRow)
+      screenLine.foldable = @tokenizedBuffer.isBufferRowFoldable(currentBufferRow)
 
       if fold = @largestFoldForBufferRow(currentBufferRow)
         screenLine = screenLine.copy()
@@ -251,7 +251,7 @@ class DisplayBuffer
     new Range([0, 0], @clipScreenPosition([Infinity, Infinity]))
 
   destroy: ->
-    @languageMode.destroy()
+    @tokenizedBuffer.destroy()
     @buffer.off ".displayBuffer#{@id}"
 
   logLines: (start, end) ->

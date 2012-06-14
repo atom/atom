@@ -35,7 +35,7 @@ class EditSession
     @id = @constructor.idCounter++
     @softTabs ?= true
     @displayBuffer = new DisplayBuffer(@buffer, { @softWrapColumn, @tabText })
-    @languageMode = @displayBuffer.languageMode
+    @tokenizedBuffer = @displayBuffer.tokenizedBuffer
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])
@@ -206,13 +206,13 @@ class EditSession
 
   autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
     return { text } unless @autoIndent
-    @languageMode.autoIndentTextAfterBufferPosition(text, bufferPosition)
+    @tokenizedBuffer.autoIndentTextAfterBufferPosition(text, bufferPosition)
 
   autoOutdentBufferRow: (bufferRow) ->
-    @languageMode.autoOutdentBufferRow(bufferRow)
+    @tokenizedBuffer.autoOutdentBufferRow(bufferRow)
 
   toggleLineCommentsInRange: (range) ->
-    @languageMode.toggleLineCommentsInRange(range)
+    @tokenizedBuffer.toggleLineCommentsInRange(range)
 
   mutateSelectedText: (fn) ->
     selections = @getSelections()
