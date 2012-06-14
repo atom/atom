@@ -355,6 +355,9 @@ describe "RootView", ->
         newRootView.activateExtension(extension)
         expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked")
 
+      it "throws an exception if the extension has no 'name' property", ->
+        expect(-> rootView.activateExtension({ activate: -> })).toThrow()
+
     describe "deactivation", ->
       it "is deactivated when the rootView is deactivated", ->
         rootView.activateExtension(extension)
