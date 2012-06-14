@@ -1,7 +1,11 @@
 {View} = require 'space-pen'
 CommandInterpreter = require 'command-interpreter'
+RegexAddress = require 'command-interpreter/regex-address'
+CompositeCommand = require 'command-interpreter/composite-command'
 Editor = require 'editor'
 {SyntaxError} = require('pegjs').parser
+
+_ = require 'underscore'
 
 module.exports =
 class CommandPanel extends View
@@ -24,7 +28,7 @@ class CommandPanel extends View
   @content: ->
     @div class: 'command-panel', =>
       @div ':', class: 'prompt', outlet: 'prompt'
-      @subview 'editor', new Editor(mini: true)
+      @subview 'miniEditor', new Editor(mini: true)
 
   commandInterpreter: null
   history: null
@@ -38,25 +42,26 @@ class CommandPanel extends View
     @rootView.on 'command-panel:execute', => @execute()
     @rootView.on 'command-panel:find-in-file', => @show("/")
     @rootView.on 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
+    @rootView.on 'command-panel:set-selection-as-regex-address', => @useSelectionAsLastRelativeAddress()
 
-    @editor.off 'move-up move-down'
-    @editor.on 'move-up', => @navigateBackwardInHistory()
-    @editor.on 'move-down', => @navigateForwardInHistory()
+    @miniEditor.off 'move-up move-down'
+    @miniEditor.on 'move-up', => @navigateBackwardInHistory()
+    @miniEditor.on 'move-down', => @navigateForwardInHistory()
 
   toggle: ->
     if @parent().length then @hide() else @show()
 
   show: (text='') ->
     @rootView.append(this)
-    @prompt.css 'font', @editor.css('font')
-    @editor.focus()
-    @editor.buffer.setText(text)
+    @prompt.css 'font', @miniEditor.css('font')
+    @miniEditor.focus()
+    @miniEditor.buffer.setText(text)
 
   hide: ->
     @detach()
     @rootView.activeEditor().focus()
 
-  execute: (command = @editor.getText()) ->
+  execute: (command = @miniEditor.getText()) ->
     try
       @commandInterpreter.eval(@rootView.activeEditor(), command)
     catch error
@@ -73,12 +78,17 @@ class CommandPanel extends View
   navigateBackwardInHistory: ->
     return if @historyIndex == 0
     @historyIndex--
-    @editor.setText(@history[@historyIndex])
+    @miniEditor.setText(@history[@historyIndex])
 
   navigateForwardInHistory: ->
     return if @historyIndex == @history.length
     @historyIndex++
-    @editor.setText(@history[@historyIndex] or '')
+    @miniEditor.setText(@history[@historyIndex] or '')
 
   repeatRelativeAddress: ->
     @commandInterpreter.repeatRelativeAddress(@rootView.activeEditor())
+
+  useSelectionAsLastRelativeAddress: ->
+    selection = @rootView.activeEditor().getSelectedText()
+    regex = _.escapeRegExp(selection)
+    @commandInterpreter.lastRelativeAddress = new CompositeCommand([new RegexAddress(regex)])

@@ -185,7 +185,7 @@ class TreeView extends View
 
     entryType = if entry instanceof DirectoryView then "directory" else "file"
     message = "Are you sure you would like to delete the selected #{entryType}?"
-    detailedMessage = "You are delteing #{entry.getPath()}"
+    detailedMessage = "You are deleting #{entry.getPath()}"
     buttons = [
       ["Move to Trash", => Native.moveToTrash(entry.getPath())]
       ["Cancel", => ] # Do Nothing
