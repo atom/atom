@@ -780,8 +780,6 @@ describe "Editor", ->
         expect(editor.find('.selection').length).toBe 3
 
   describe "cursor rendering", ->
-
-
     describe "when the cursor moves", ->
       charWidth = null
 
