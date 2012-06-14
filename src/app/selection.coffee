@@ -133,7 +133,7 @@ class Selection
 
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getCurrentScreenRow())
-      if @editSession.isFoldedAtScreenRow(@cursor.getCurrentScreenRow() - 1)
+      if @cursor.isAtBeginningOfLine() and @editSession.isFoldedAtScreenRow(@cursor.getCurrentScreenRow() - 1)
         @selectToBufferPosition([@cursor.getCurrentBufferRow() - 1, Infinity])
       else
         @selectLeft()

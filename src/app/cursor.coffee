@@ -155,6 +155,9 @@ class Cursor
   getCurrentLineBufferRange: ->
     @editSession.bufferRangeForBufferRow(@getCurrentBufferRow())
 
+  isAtBeginningOfLine: ->
+    @getBufferPosition().column == 0
+
   isAtEndOfLine: ->
     @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
 

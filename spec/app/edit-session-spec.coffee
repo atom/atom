@@ -779,9 +779,18 @@ describe "EditSession", ->
             editSession.setCursorScreenPosition([5,0])
             editSession.backspace()
 
-
             expect(buffer.lineForRow(7)).toBe "    }    return sort(left).concat(pivot).concat(sort(right));"
             expect(buffer.lineForRow(8)).toBe "  };"
+
+        describe "when the cursor is in the middle of a line below a fold", ->
+          it "backspaces as normal", ->
+            editSession.setCursorScreenPosition([4,0])
+            editSession.toggleFold()
+            editSession.setCursorScreenPosition([5,5])
+            editSession.backspace()
+
+            expect(buffer.lineForRow(7)).toBe "    }"
+            expect(buffer.lineForRow(8)).toBe "    eturn sort(left).concat(pivot).concat(sort(right));"
 
         describe "when the cursor is on a folded screen line", ->
           it "deletes all of the folded lines along with the fold", ->
