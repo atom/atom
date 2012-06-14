@@ -530,14 +530,22 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.bufferPositionForScreenPosition([9, 2])).toEqual [12, 2]
 
     describe ".destroyFoldsContainingBufferRow(row)", ->
-      describe "when two folds start on the given buffer row", ->
-        it "destroys both folds", ->
+      it "destroys all folds containing the given row", ->
           displayBuffer.createFold(2, 4)
           displayBuffer.createFold(2, 6)
+          displayBuffer.createFold(7, 8)
+          displayBuffer.createFold(1, 9)
+          displayBuffer.createFold(11, 12)
 
-          expect(displayBuffer.lineForRow(3).text).toBe '7'
+          expect(displayBuffer.lineForRow(1).text).toBe '1'
+          expect(displayBuffer.lineForRow(2).text).toBe '10'
+
           displayBuffer.destroyFoldsContainingBufferRow(2)
-          expect(displayBuffer.lineForRow(3).text).toBe '3'
+          expect(displayBuffer.lineForRow(1).text).toBe '1'
+          expect(displayBuffer.lineForRow(2).text).toBe '2'
+          expect(displayBuffer.lineForRow(7).fold).toBeDefined()
+          expect(displayBuffer.lineForRow(8).text).toMatch /^9-+/
+          expect(displayBuffer.lineForRow(10).fold).toBeDefined()
 
   describe ".clipScreenPosition(screenPosition, wrapBeyondNewlines: false, wrapAtSoftNewlines: false, skipAtomicTokens: false)", ->
     beforeEach ->
