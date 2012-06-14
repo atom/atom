@@ -106,7 +106,7 @@ describe "CommandInterpreter", ->
         expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
 
       it "searches in reverse when prefixed with a -", ->
-        editor.setSelectedBufferRange([[5, 0], [5,1]])
+        editor.setSelectedBufferRange([[6, 16], [6, 22]])
         interpreter.eval(editor, '-/pivot')
         expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
 

@@ -11,7 +11,7 @@ class RegexAddress extends Address
     @regex = new RegExp(pattern)
 
   getRange: (editor, currentRange) ->
-    rangeBefore = new Range([0, 0], currentRange.end)
+    rangeBefore = new Range([0, 0], currentRange.start)
     rangeAfter = new Range(currentRange.end, editor.getEofPosition())
 
     rangeToSearch = if @reverse then rangeBefore else rangeAfter
