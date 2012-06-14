@@ -105,6 +105,11 @@ describe "CommandInterpreter", ->
         interpreter.eval(editor, '/mike tyson')
         expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
 
+      it "searches in reverse when prefixed with a -", ->
+        editor.setSelectedBufferRange([[6, 16], [6, 22]])
+        interpreter.eval(editor, '-/pivot')
+        expect(editor.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
+
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->
@@ -229,26 +234,14 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'
           expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
 
-  describe ".repeatRelativeAddress()", ->
-    it "repeats the last search command if there is one", ->
-      interpreter.repeatRelativeAddress(editor) # don't raise an exception
+  describe "when command selects folded text", ->
+    it "unfolds lines that command selects", ->
+      editor.createFold(1, 9)
+      editor.createFold(5, 8)
+      editor.setSelectedBufferRange([[0,0], [0,0]])
 
-      editor.setCursorScreenPosition([4, 0])
-
-      interpreter.eval(editor, '/current')
-      expect(editor.getSelection().getBufferRange()).toEqual [[5,6], [5,13]]
-
-      interpreter.repeatRelativeAddress(editor)
-      expect(editor.getSelection().getBufferRange()).toEqual [[6,6], [6,13]]
-
-      interpreter.eval(editor, 's/r/R/g')
-
-      interpreter.repeatRelativeAddress(editor)
-      expect(editor.getSelection().getBufferRange()).toEqual [[6,34], [6,41]]
-
-      interpreter.eval(editor, '0')
-      interpreter.eval(editor, '/sort/ s/r/R/') # this contains a substitution... won't be repeated
-
-      interpreter.repeatRelativeAddress(editor)
-      expect(editor.getSelection().getBufferRange()).toEqual [[3,31], [3,38]]
-
+      interpreter.eval(editor, '/push/')
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,29], [6,33]]
+      expect(editor.lineForScreenRow(1).fold).toBeUndefined()
+      expect(editor.lineForScreenRow(5).fold).toBeUndefined()
+      expect(editor.lineForScreenRow(6).text).toBe buffer.lineForRow(6)

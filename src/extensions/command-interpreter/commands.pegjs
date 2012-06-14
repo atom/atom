@@ -28,7 +28,10 @@ primitiveAddress
   = lineNumber:integer { return new LineAddress(lineNumber) }
   / '$' { return new EofAddress() }
   / '.' { return new CurrentSelectionAddress() }
-  / '/' pattern:pattern '/'? { return new RegexAddress(pattern)}
+  / regexAddress
+
+regexAddress
+  = reverse:'-'? '/' pattern:pattern '/'? { return new RegexAddress(pattern, reverse.length > 0)}
 
 command = substitution / selectAllMatches
 

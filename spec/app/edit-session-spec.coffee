@@ -856,8 +856,6 @@ describe "EditSession", ->
             editSession.setSelectedBufferRange([[3,0], [4,0]])
             editSession.backspace()
 
-            buffer.logLines()
-
             expect(buffer.lineForRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
             expect(buffer.lineForRow(4)).toBe "  };"
             expect(editSession.getCursorScreenPosition()).toEqual [3, 0]

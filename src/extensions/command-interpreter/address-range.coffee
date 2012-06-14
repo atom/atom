@@ -9,4 +9,4 @@ class AddressRange extends Address
     new Range(@startAddress.getRange(editor, currentRange).start, @endAddress.getRange(editor, currentRange).end)
 
   isRelative: ->
-    @startAddress.isRelative() or @endAddress.isRelative()
+    @startAddress.isRelative() and @endAddress.isRelative()

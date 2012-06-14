@@ -2,12 +2,13 @@ RootView = require 'root-view'
 CommandPanel = require 'command-panel'
 
 describe "CommandPanel", ->
-  [rootView, commandPanel] = []
+  [rootView, editor, commandPanel] = []
 
   beforeEach ->
     rootView = new RootView
-    rootView.open()
+    rootView.open(require.resolve 'fixtures/sample.js')
     rootView.enableKeymap()
+    editor = rootView.activeEditor()
     commandPanel = rootView.activateExtension(CommandPanel)
 
   describe "serialization", ->
@@ -46,10 +47,39 @@ describe "CommandPanel", ->
       expect(commandPanel.miniEditor.getCursorScreenPosition()).toEqual [0, 0]
 
   describe "when command-panel:repeat-relative-address is triggered on the root view", ->
-    it "calls .repeatRelativeAddress on the command interpreter with the active editor", ->
-      spyOn(commandPanel.commandInterpreter, 'repeatRelativeAddress')
+    it "repeats the last search command if there is one", ->
       rootView.trigger 'command-panel:repeat-relative-address'
-      expect(commandPanel.commandInterpreter.repeatRelativeAddress).toHaveBeenCalledWith(rootView.activeEditor())
+
+      editor.setCursorScreenPosition([4, 0])
+
+      commandPanel.execute("/current")
+      expect(editor.getSelection().getBufferRange()).toEqual [[5,6], [5,13]]
+
+      rootView.trigger 'command-panel:repeat-relative-address'
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,6], [6,13]]
+
+      commandPanel.execute('s/r/R/g')
+
+      rootView.trigger 'command-panel:repeat-relative-address'
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,34], [6,41]]
+
+      commandPanel.execute('0')
+      commandPanel.execute('/sort/ s/r/R/') # this contains a substitution... won't be repeated
+
+      rootView.trigger 'command-panel:repeat-relative-address'
+      expect(editor.getSelection().getBufferRange()).toEqual [[3,31], [3,38]]
+
+  describe "when command-pane:repeat-relative-address-in-reverse is triggered on the root view", ->
+    it "it repeats the last relative address in the reverse direction", ->
+      rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
+
+      editor.setCursorScreenPosition([6, 0])
+
+      commandPanel.execute("/current")
+      expect(editor.getSelection().getBufferRange()).toEqual [[6,6], [6,13]]
+
+      rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
+      expect(editor.getSelection().getBufferRange()).toEqual [[5,6], [5,13]]
 
   describe "when command-panel:set-selection-as-regex-address is triggered on the root view", ->
     it "sets the @lastRelativeAddress to a RegexAddress of the current selection", ->
