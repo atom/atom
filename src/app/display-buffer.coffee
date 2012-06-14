@@ -61,7 +61,7 @@ class DisplayBuffer
       [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
 
-      if fold = @largestFoldForBufferRow(startRow)
+      if fold = @largestFoldStartingAtBufferRow(startRow)
         fold.destroy()
       else
         @createFold(startRow, endRow)
@@ -121,7 +121,7 @@ class DisplayBuffer
     _.remove(folds, fold)
     delete @foldsById[fold.id]
 
-  largestFoldForBufferRow: (bufferRow) ->
+  largestFoldStartingAtBufferRow: (bufferRow) ->
     return unless folds = @activeFolds[bufferRow]
     (folds.sort (a, b) -> b.endRow - a.endRow)[0]
 
@@ -200,7 +200,7 @@ class DisplayBuffer
       screenLine = @tokenizedBuffer.lineForScreenRow(currentBufferRow)
       screenLine.foldable = @tokenizedBuffer.isBufferRowFoldable(currentBufferRow)
 
-      if fold = @largestFoldForBufferRow(currentBufferRow)
+      if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
         screenLine = screenLine.copy()
         screenLine.fold = fold
         screenLine.bufferDelta = fold.getBufferDelta()

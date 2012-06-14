@@ -194,7 +194,7 @@ class EditSession
     @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
 
   unfoldCurrentRow: (row) ->
-    @displayBuffer.largestFoldForBufferRow(@getLastCursor().getCurrentBufferRow())?.destroy()
+    @displayBuffer.largestFoldStartingAtBufferRow(@getLastCursor().getCurrentBufferRow())?.destroy()
 
   destroyFold: (foldId) ->
     fold = @displayBuffer.foldsById[foldId]
@@ -203,6 +203,9 @@ class EditSession
 
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow).fold?
+
+  largestFoldStartingAtBufferRow: (bufferRow) ->
+    @displayBuffer.largestFoldStartingAtBufferRow(bufferRow)
 
   autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
     return { text } unless @autoIndent

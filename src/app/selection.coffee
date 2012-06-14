@@ -132,9 +132,7 @@ class Selection
     @autoOutdent() if shouldOutdent
 
   backspace: ->
-    @editSession.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
-
-    if @isEmpty()
+    if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getCurrentScreenRow())
       if @editSession.isFoldedAtScreenRow(@cursor.getCurrentScreenRow() - 1)
         @selectToBufferPosition([@cursor.getCurrentBufferRow() - 1, Infinity])
       else
@@ -156,8 +154,13 @@ class Selection
 
   deleteSelectedText: ->
     bufferRange = @getBufferRange()
+    if fold = @editSession.largestFoldStartingAtBufferRow(bufferRange.end.row)
+      bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: true))
+
     @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
-    @clear() if @cursor
+    if @cursor
+      @cursor.setBufferPosition(bufferRange.start)
+      @clear()
 
   indentSelectedRows: ->
     range = @getBufferRange()

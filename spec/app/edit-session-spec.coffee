@@ -783,6 +783,15 @@ describe "EditSession", ->
             expect(buffer.lineForRow(7)).toBe "    }    return sort(left).concat(pivot).concat(sort(right));"
             expect(buffer.lineForRow(8)).toBe "  };"
 
+        describe "when the cursor is on a folded screen line", ->
+          it "deletes all of the folded lines along with the fold", ->
+            editSession.toggleFoldAtBufferRow(1)
+            editSession.setCursorScreenPosition([1, 0])
+            editSession.backspace()
+            expect(buffer.lineForRow(1)).toBe ""
+            expect(buffer.lineForRow(2)).toBe "  return sort(Array.apply(this, arguments));"
+            expect(editSession.getCursorScreenPosition()).toEqual [1, 0]
+
       describe "when there are multiple cursors", ->
         describe "when cursors are on the same line", ->
           it "removes the characters preceding each cursor", ->
@@ -843,10 +852,15 @@ describe "EditSession", ->
 
         describe "when the selection ends on a folded line", ->
           it "destroys the fold", ->
-            editSession.createFold(2,4)
-            editSession.setSelectedBufferRange([[1,0], [2,0]])
+            editSession.toggleFoldAtBufferRow(4)
+            editSession.setSelectedBufferRange([[3,0], [4,0]])
             editSession.backspace()
-            expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
+
+            buffer.logLines()
+
+            expect(buffer.lineForRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(buffer.lineForRow(4)).toBe "  };"
+            expect(editSession.getCursorScreenPosition()).toEqual [3, 0]
 
       describe "when there are multiple selections", ->
         it "removes all selected text", ->
