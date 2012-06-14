@@ -233,27 +233,3 @@ describe "CommandInterpreter", ->
           interpreter.eval(editor, 's/current/foo/g')
           expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'
           expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
-
-  describe ".repeatRelativeAddress()", ->
-    it "repeats the last search command if there is one", ->
-      interpreter.repeatRelativeAddress(editor) # don't raise an exception
-
-      editor.setCursorScreenPosition([4, 0])
-
-      interpreter.eval(editor, '/current')
-      expect(editor.getSelection().getBufferRange()).toEqual [[5,6], [5,13]]
-
-      interpreter.repeatRelativeAddress(editor)
-      expect(editor.getSelection().getBufferRange()).toEqual [[6,6], [6,13]]
-
-      interpreter.eval(editor, 's/r/R/g')
-
-      interpreter.repeatRelativeAddress(editor)
-      expect(editor.getSelection().getBufferRange()).toEqual [[6,34], [6,41]]
-
-      interpreter.eval(editor, '0')
-      interpreter.eval(editor, '/sort/ s/r/R/') # this contains a substitution... won't be repeated
-
-      interpreter.repeatRelativeAddress(editor)
-      expect(editor.getSelection().getBufferRange()).toEqual [[3,31], [3,38]]
-
