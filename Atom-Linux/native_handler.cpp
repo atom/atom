@@ -311,8 +311,7 @@ void NativeHandler::Alert(const CefString& name, CefRefPtr<CefV8Value> object,
 	gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
 
 	string dialogMessage(arguments[0]->GetStringValue().ToString());
-	dialogMessage.append("\n");
-	dialogMessage.append("\n");
+	dialogMessage.append("\n\n");
 	dialogMessage.append(arguments[1]->GetStringValue().ToString());
 	GtkWidget *label;
 	label = gtk_label_new(dialogMessage.c_str());
