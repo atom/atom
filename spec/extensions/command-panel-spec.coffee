@@ -10,6 +10,16 @@ describe "CommandPanel", ->
     rootView.enableKeymap()
     commandPanel = rootView.activateExtension(CommandPanel)
 
+  describe "serialization", ->
+    it "preserves the command panel's mini editor text and visibility across reloads", ->
+      rootView.trigger 'command-panel:toggle'
+      commandPanel.miniEditor.insertText 'abc'
+      newRootView = RootView.deserialize(rootView.serialize())
+
+      commandPanel = newRootView.activateExtension(CommandPanel)
+      expect(newRootView.find('.command-panel')).toExist()
+      expect(commandPanel.miniEditor.getText()).toBe 'abc'
+
   describe "when toggle-command-panel is triggered on the root view", ->
     it "toggles the command panel", ->
       rootView.attachToDom()

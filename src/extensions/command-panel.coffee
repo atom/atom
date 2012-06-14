@@ -17,7 +17,7 @@ class CommandPanel extends View
       @instance = new CommandPanel(rootView)
 
   @serialize: ->
-    text: @instance.editor.getText()
+    text: @instance.miniEditor.getText()
     visible: @instance.hasParent()
 
   @deserialize: (state, rootView) ->
