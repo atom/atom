@@ -83,12 +83,10 @@ void NativeHandler::Absolute(const CefString& name,
 			if (segments.empty()) {
 				retval = CefV8Value::CreateString("/");
 				return;
-			} else {
-				segments.pop_back();
-				continue;
 			}
-		}
-		segments.push_back(segment);
+			segments.pop_back();
+		} else
+			segments.push_back(segment);
 	}
 
 	string absolutePath;
