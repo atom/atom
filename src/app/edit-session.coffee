@@ -66,8 +66,6 @@ class EditSession
       @scrollLeft == other.getScrollLeft() and
       @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
 
-  getRenderer: -> @renderer
-
   setScrollTop: (@scrollTop) ->
   getScrollTop: -> @scrollTop
 
@@ -111,8 +109,6 @@ class EditSession
   backwardsScanInRange: (args...) ->
     @buffer.backwardsScanInRange(args...)
 
-  getCurrentMode: ->
-    @buffer.getMode()
 
   insertText: (text) ->
     @mutateSelectedText (selection) -> selection.insertText(text)
