@@ -768,8 +768,19 @@ describe "Editor", ->
         expect(selectionView.regions.length).toBe 3
         expect(selectionView.find('.selection').length).toBe 3
 
+    describe "when a selection merges with another selection", ->
+      it "removes the merged selection view", ->
+        editSession = editor.activeEditSession
+        editSession.setCursorScreenPosition([4, 10])
+        editSession.selectToScreenPosition([5, 27])
+        editSession.addCursorAtScreenPosition([3, 10])
+        editSession.selectToScreenPosition([6, 27])
+
+        expect(editor.getSelectionViews().length).toBe 1
+        expect(editor.find('.selection').length).toBe 3
+
   describe "cursor rendering", ->
-    
+
 
     describe "when the cursor moves", ->
       charWidth = null
