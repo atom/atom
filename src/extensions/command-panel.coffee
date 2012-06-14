@@ -42,7 +42,7 @@ class CommandPanel extends View
     @rootView.on 'command-panel:execute', => @execute()
     @rootView.on 'command-panel:find-in-file', => @show("/")
     @rootView.on 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
-    @rootView.on 'command-panel:set-selection-as-regex-address', => @useSelectionAsLastRelativeAddress()
+    @rootView.on 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
     @miniEditor.off 'move-up move-down'
     @miniEditor.on 'move-up', => @navigateBackwardInHistory()
@@ -88,7 +88,7 @@ class CommandPanel extends View
   repeatRelativeAddress: ->
     @commandInterpreter.repeatRelativeAddress(@rootView.activeEditor())
 
-  useSelectionAsLastRelativeAddress: ->
+  setSelectionAsLastRelativeAddress: ->
     selection = @rootView.activeEditor().getSelectedText()
     regex = _.escapeRegExp(selection)
     @commandInterpreter.lastRelativeAddress = new CompositeCommand([new RegexAddress(regex)])
