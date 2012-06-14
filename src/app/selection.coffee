@@ -130,7 +130,7 @@ class Selection
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
-    @autoOutdentText() if shouldOutdent
+    @autoOutdent() if shouldOutdent
 
   backspace: ->
     @editSession.destroyFoldsContainingBufferRow(@getBufferRange().end.row)
@@ -199,11 +199,8 @@ class Selection
   autoIndentText: (text) ->
     @editSession.autoIndentTextAfterBufferPosition(text, @cursor.getBufferPosition())
 
-  autoOutdentText: ->
-    screenRow = @cursor.getCurrentScreenRow()
-    bufferRow = @cursor.getCurrentBufferRow()
-    state = @editSession.stateForScreenRow(screenRow)
-    @editSession.getCurrentMode().autoOutdent(state, new AceOutdentAdaptor(@editSession), bufferRow)
+  autoOutdent: ->
+    @editSession.autoOutdentBufferRow(@cursor.getCurrentBufferRow())
 
   handleBufferChange: (e) ->
     @modifyScreenRange =>

@@ -214,8 +214,8 @@ class EditSession
     return { text } unless @autoIndent
     @languageMode.autoIndentTextAfterBufferPosition(text, bufferPosition)
 
-  autoOutdent: ->
-    @languageMode.autoOutdentText()
+  autoOutdentBufferRow: (bufferRow) ->
+    @languageMode.autoOutdentBufferRow(bufferRow)
 
   toggleLineCommentsInRange: (range) ->
     @languageMode.toggleLineCommentsInRange(range)

@@ -1,5 +1,3 @@
-Range = require 'range'
-
 module.exports =
 class AceOutdentAdaptor
   constructor: (@editSession) ->
@@ -12,11 +10,8 @@ class AceOutdentAdaptor
   findMatchingBracket: ({row, column}) ->
     {row: 0, column: 0}
 
-  # Does not actually replace text, just line at range.start outdents one level
+  # Does not actually replace text; always outdents one level
   replace: (range, text) ->
-    {row, column} = @editSession.getCursorBufferPosition()
     start = range.start
     end = {row: range.start.row, column: range.start.column + @editSession.tabText.length}
-    @buffer.change(new Range(start, end), "")
-    @editSession.setCursorBufferPosition({row, column: column - @editSession.tabText.length})
-
+    @buffer.change([start, end], "")

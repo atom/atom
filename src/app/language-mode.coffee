@@ -6,6 +6,7 @@ Range = require 'range'
 Point = require 'point'
 AceLineCommentAdaptor = require 'ace-line-comment-adaptor'
 AceFoldAdaptor = require 'ace-fold-adaptor'
+AceOutdentAdaptor = require 'ace-outdent-adaptor'
 
 module.exports =
 class LanguageMode
@@ -20,6 +21,7 @@ class LanguageMode
     @buffer.on "change.languageMode#{@id}", (e) => @handleBufferChange(e)
     @aceLineCommentAdaptor = new AceLineCommentAdaptor(@buffer)
     @aceFoldAdaptor = new AceFoldAdaptor(this)
+    @aceOutdentAdaptor = new AceOutdentAdaptor(this)
 
   requireAceMode: ->
     extension = if @buffer.getPath() then @buffer.getPath().split('/').pop().split('.').pop() else null
@@ -59,6 +61,10 @@ class LanguageMode
       shouldOutdent = true
 
     {text, shouldOutdent}
+
+  autoOutdentBufferRow: (bufferRow) ->
+    state = @stateForRow(bufferRow)
+    @aceMode.autoOutdent(state, @aceOutdentAdaptor, bufferRow)
 
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
