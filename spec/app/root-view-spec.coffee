@@ -111,6 +111,27 @@ describe "RootView", ->
         expect(rootView.editors().length).toBe 0
         expect(document.title).toBe 'untitled'
 
+  describe ".serialize()", ->
+    it "absorbs exceptions that are thrown by extension serialize methods", ->
+      spyOn(console, 'error')
+
+      rootView.activateExtension(
+        name: "bad-egg"
+        activate: ->
+        serialize: -> throw new Error("I'm broken")
+      )
+
+      rootView.activateExtension(
+        name: "good-egg"
+        activate: ->
+        serialize: -> "I still get called"
+      )
+
+      data = rootView.serialize()
+      expect(data.extensionStates['good-egg']).toBe "I still get called"
+      expect(data.extensionStates['bad-egg']).toBeUndefined()
+      expect(console.error).toHaveBeenCalled()
+
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
       rootView = new RootView(require.resolve 'fixtures')

@@ -66,8 +66,10 @@ class RootView extends View
   serializeExtensions:  ->
     extensionStates = {}
     for name, extension of @extensions
-      extensionStates[name] = extension.serialize?()
-
+      try
+        extensionStates[name] = extension.serialize?()
+      catch e
+        console?.error("Exception serializing '#{name}' extension", e)
     extensionStates
 
   deserializeView: (viewState) ->
