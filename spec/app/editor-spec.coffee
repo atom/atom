@@ -972,7 +972,7 @@ describe "Editor", ->
           setEditorHeightInLines(editor, 20)
           setEditorWidthInChars(editor, 50)
           editor.setSoftWrap(true)
-          expect(editor.renderer.softWrapColumn).toBe 50
+          expect(editor.activeEditSession.softWrapColumn).toBe 50
 
         it "wraps lines that are too long to fit within the editor's width, adjusting cursor positioning accordingly", ->
           expect(editor.renderedLines.find('.line').length).toBe 16
@@ -1294,8 +1294,8 @@ describe "Editor", ->
       it "renders lines properly", ->
         editor.lineOverdraw = 1
         editor.attachToDom(heightInLines: 5)
-        editor.renderer.toggleFoldAtBufferRow(4)
-        editor.renderer.toggleFoldAtBufferRow(0)
+        editor.activeEditSession.toggleFoldAtBufferRow(4)
+        editor.activeEditSession.toggleFoldAtBufferRow(0)
 
         expect(editor.renderedLines.find('.line').length).toBe 1
         expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)

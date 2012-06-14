@@ -31,10 +31,10 @@ class EditSession
   autoIndent: true
   softTabs: true
 
-  constructor: ({@buffer, @tabText, @autoIndent, @softTabs, softWrapColumn}) ->
+  constructor: ({@buffer, @tabText, @autoIndent, @softTabs, @softWrapColumn}) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
-    @renderer = new Renderer(@buffer, { softWrapColumn, @tabText })
+    @renderer = new Renderer(@buffer, { @softWrapColumn, @tabText })
     @languageMode = @renderer.languageMode
     @cursors = []
     @selections = []
@@ -72,18 +72,9 @@ class EditSession
   setScrollLeft: (@scrollLeft) ->
   getScrollLeft: -> @scrollLeft
 
-  setSoftWrapColumn: (softWrapColumn) -> @renderer.setSoftWrapColumn(softWrapColumn)
+  setSoftWrapColumn: (@softWrapColumn) -> @renderer.setSoftWrapColumn(@softWrapColumn)
   setAutoIndent: (@autoIndent) ->
   setSoftTabs: (@softTabs) ->
-
-  screenPositionForBufferPosition: (bufferPosition, options) ->
-    @renderer.screenPositionForBufferPosition(bufferPosition, options)
-
-  bufferPositionForScreenPosition: (screenPosition, options) ->
-    @renderer.bufferPositionForScreenPosition(screenPosition, options)
-
-  clipScreenPosition: (screenPosition, options) ->
-    @renderer.clipScreenPosition(screenPosition, options)
 
   clipBufferPosition: (bufferPosition, options) ->
     { row, column } = Point.fromObject(bufferPosition)
@@ -94,21 +85,25 @@ class EditSession
 
     new Point(row, column)
 
-  getEofBufferPosition: ->
-    @buffer.getEofPosition()
+  getEofBufferPosition: -> @buffer.getEofPosition()
+  bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)
+  lineForBufferRow: (row) -> @buffer.lineForRow(row)
+  scanInRange: (args...) -> @buffer.scanInRange(args...)
+  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
 
-  bufferRangeForBufferRow: (row) ->
-    @buffer.rangeForRow(row)
-
-  lineForBufferRow: (row) ->
-    @buffer.lineForRow(row)
-
-  scanInRange: (args...) ->
-    @buffer.scanInRange(args...)
-
-  backwardsScanInRange: (args...) ->
-    @buffer.backwardsScanInRange(args...)
-
+  screenPositionForBufferPosition: (bufferPosition, options) -> @renderer.screenPositionForBufferPosition(bufferPosition, options)
+  bufferPositionForScreenPosition: (screenPosition, options) -> @renderer.bufferPositionForScreenPosition(screenPosition, options)
+  screenRangeForBufferRange: (range) -> @renderer.screenRangeForBufferRange(range)
+  bufferRangeForScreenRange: (range) -> @renderer.bufferRangeForScreenRange(range)
+  clipScreenPosition: (screenPosition, options) -> @renderer.clipScreenPosition(screenPosition, options)
+  lineForScreenRow: (row) -> @renderer.lineForRow(row)
+  linesForScreenRows: (start, end) -> @renderer.linesForRows(start, end)
+  stateForScreenRow: (screenRow) -> @renderer.stateForScreenRow(screenRow)
+  screenLineCount: -> @renderer.lineCount()
+  maxScreenLineLength: -> @renderer.maxLineLength()
+  getLastScreenRow: -> @renderer.getLastRow()
+  bufferRowsForScreenRows: (startRow, endRow) -> @renderer.bufferRowsForScreenRows(startRow, endRow)
+  logScreenLines: (start, end) -> @renderer.logLines(start, end)
 
   insertText: (text) ->
     @mutateSelectedText (selection) -> selection.insertText(text)
@@ -186,8 +181,11 @@ class EditSession
     @renderer.foldAll()
 
   toggleFold: ->
-    row = @renderer.bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @renderer.toggleFoldAtBufferRow(row)
+    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
+    @toggleFoldAtBufferRow(bufferRow)
+
+  toggleFoldAtBufferRow: (bufferRow) ->
+    @renderer.toggleFoldAtBufferRow(bufferRow)
 
   createFold: (startRow, endRow) ->
     @renderer.createFold(startRow, endRow)
@@ -221,12 +219,6 @@ class EditSession
     @buffer.startUndoBatch(@getSelectedBufferRanges())
     fn(selection) for selection in selections
     @buffer.endUndoBatch(@getSelectedBufferRanges())
-
-  lineForScreenRow: (row) ->
-    @renderer.lineForRow(row)
-
-  stateForScreenRow: (screenRow) ->
-    @renderer.stateForScreenRow(screenRow)
 
   getCursors: -> new Array(@cursors...)
 

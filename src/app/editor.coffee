@@ -1,7 +1,6 @@
 {View, $$} = require 'space-pen'
 Buffer = require 'buffer'
 Gutter = require 'gutter'
-Renderer = require 'renderer'
 Point = require 'point'
 Range = require 'range'
 EditSession = require 'edit-session'
@@ -41,7 +40,6 @@ class Editor extends View
   cursorViews: null
   selectionViews: null
   buffer: null
-  renderer: null
   autoIndent: true
   lineCache: null
   isFocused: false
@@ -219,17 +217,17 @@ class Editor extends View
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
-  linesForScreenRows: (start, end) -> @renderer.linesForRows(start, end)
-  screenLineCount: -> @renderer.lineCount()
-  maxScreenLineLength: -> @renderer.maxLineLength()
-  getLastScreenRow: -> @renderer.getLastRow()
-  clipScreenPosition: (screenPosition, options={}) -> @renderer.clipScreenPosition(screenPosition, options)
-  screenPositionForBufferPosition: (position, options) -> @renderer.screenPositionForBufferPosition(position, options)
-  bufferPositionForScreenPosition: (position, options) -> @renderer.bufferPositionForScreenPosition(position, options)
-  screenRangeForBufferRange: (range) -> @renderer.screenRangeForBufferRange(range)
-  bufferRangeForScreenRange: (range) -> @renderer.bufferRangeForScreenRange(range)
-  bufferRowsForScreenRows: (startRow, endRow) -> @renderer.bufferRowsForScreenRows(startRow, endRow)
-  stateForScreenRow: (row) -> @renderer.stateForScreenRow(row)
+  linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
+  screenLineCount: -> @activeEditSession.screenLineCount()
+  maxScreenLineLength: -> @activeEditSession.maxScreenLineLength()
+  getLastScreenRow: -> @activeEditSession.getLastScreenRow()
+  clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)
+  screenPositionForBufferPosition: (position, options) -> @activeEditSession.screenPositionForBufferPosition(position, options)
+  bufferPositionForScreenPosition: (position, options) -> @activeEditSession.bufferPositionForScreenPosition(position, options)
+  screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
+  bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
+  bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
+  stateForScreenRow: (row) -> @activeEditSession.stateForScreenRow(row)
 
   setText: (text) -> @buffer.setText(text)
   getText: -> @buffer.getText()
@@ -383,7 +381,6 @@ class Editor extends View
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
     @trigger 'editor-path-change'
 
-    @renderer = @activeEditSession.renderer
     @renderWhenAttached()
 
   scrollTop: (scrollTop, options) ->
@@ -737,7 +734,7 @@ class Editor extends View
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
     charHeight = @charHeight
-    lines = @renderer.linesForRows(startRow, endRow)
+    lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     activeEditSession = @activeEditSession
 
     $$ ->
@@ -794,9 +791,8 @@ class Editor extends View
     element = @lineCache[screenRow - @firstRenderedScreenRow]
     $(element)
 
-
-  logLines: (start, end) ->
-    @renderer.logLines(start, end)
+  logScreenLines: (start, end) ->
+    @activeEditSession.logScreenLines(start, end)
 
   toggleLineCommentsInSelection: ->
     @activeEditSession.toggleLineCommentsInSelection()
