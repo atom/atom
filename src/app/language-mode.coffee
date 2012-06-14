@@ -4,24 +4,23 @@ EventEmitter = require 'event-emitter'
 Token = require 'token'
 Range = require 'range'
 Point = require 'point'
-AceLineCommentAdaptor = require 'ace-line-comment-adaptor'
-AceFoldAdaptor = require 'ace-fold-adaptor'
-AceOutdentAdaptor = require 'ace-outdent-adaptor'
+AceAdaptor = require 'ace-adaptor'
 
 module.exports =
 class LanguageMode
   @idCounter: 1
+
   buffer: null
-  screenLines: []
+  aceMode: null
+  aceAdaptor: null
+  screenLines: null
 
   constructor: (@buffer, @tabText) ->
     @id = @constructor.idCounter++
     @aceMode = @requireAceMode()
     @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
     @buffer.on "change.languageMode#{@id}", (e) => @handleBufferChange(e)
-    @aceLineCommentAdaptor = new AceLineCommentAdaptor(@buffer)
-    @aceFoldAdaptor = new AceFoldAdaptor(this)
-    @aceOutdentAdaptor = new AceOutdentAdaptor(this)
+    @aceAdaptor = new AceAdaptor(this)
 
   requireAceMode: ->
     extension = if @buffer.getPath() then @buffer.getPath().split('/').pop().split('.').pop() else null
@@ -39,13 +38,13 @@ class LanguageMode
 
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)
-    @aceMode.toggleCommentLines(@stateForRow(range.start.row), @aceLineCommentAdaptor, range.start.row, range.end.row)
+    @aceMode.toggleCommentLines(@stateForRow(range.start.row), @aceAdaptor, range.start.row, range.end.row)
 
   isBufferRowFoldable: (bufferRow) ->
-    @aceMode.foldingRules?.getFoldWidget(@aceFoldAdaptor, null, bufferRow) == "start"
+    @aceMode.foldingRules?.getFoldWidget(@aceAdaptor, null, bufferRow) == "start"
 
   rowRangeForFoldAtBufferRow: (bufferRow) ->
-    if aceRange = @aceMode.foldingRules?.getFoldWidgetRange(@aceFoldAdaptor, null, bufferRow)
+    if aceRange = @aceMode.foldingRules?.getFoldWidgetRange(@aceAdaptor, null, bufferRow)
       [aceRange.start.row, aceRange.end.row]
     else
       null
@@ -64,7 +63,7 @@ class LanguageMode
 
   autoOutdentBufferRow: (bufferRow) ->
     state = @stateForRow(bufferRow)
-    @aceMode.autoOutdent(state, @aceOutdentAdaptor, bufferRow)
+    @aceMode.autoOutdent(state, @aceAdaptor, bufferRow)
 
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()

@@ -7,7 +7,7 @@ describe "LanguageMode", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    languageMode = new LanguageMode(buffer)
+    languageMode = new LanguageMode(buffer, '  ')
 
   describe ".findClosingBracket(startBracketPosition)", ->
     describe "when called with a bracket type of '{'", ->

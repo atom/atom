@@ -1,7 +1,6 @@
 Range = require 'range'
 Anchor = require 'anchor'
 EventEmitter = require 'event-emitter'
-AceOutdentAdaptor = require 'ace-outdent-adaptor'
 _ = require 'underscore'
 
 module.exports =
