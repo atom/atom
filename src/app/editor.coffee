@@ -220,7 +220,7 @@ class Editor extends View
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
   getScreenLines: -> @renderer.getLines()
-  screenLinesForRows: (start, end) -> @renderer.linesForRows(start, end)
+  linesForScreenRows: (start, end) -> @renderer.linesForRows(start, end)
   screenLineCount: -> @renderer.lineCount()
   maxScreenLineLength: -> @renderer.maxLineLength()
   getLastScreenRow: -> @renderer.getLastRow()
@@ -447,7 +447,7 @@ class Editor extends View
       @scrollView.scrollLeft(desiredLeft)
 
   highlightFoldsContainingBufferRange: (bufferRange) ->
-    screenLines = @screenLinesForRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
+    screenLines = @linesForScreenRows(@firstRenderedScreenRow, @lastRenderedScreenRow)
     for screenLine, i in screenLines
       if fold = screenLine.fold
         screenRow = @firstRenderedScreenRow + i

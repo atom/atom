@@ -117,7 +117,7 @@ class LanguageMode
   lineForScreenRow: (row) ->
     @screenLines[row]
 
-  screenLinesForRows: (startRow, endRow) ->
+  linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
 
   stateForRow: (row) ->
