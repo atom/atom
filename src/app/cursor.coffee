@@ -155,4 +155,7 @@ class Cursor
   getCurrentLineBufferRange: ->
     @editSession.bufferRangeForBufferRow(@getCurrentBufferRow())
 
+  isAtEndOfLine: ->
+    @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
+
 _.extend Cursor.prototype, EventEmitter

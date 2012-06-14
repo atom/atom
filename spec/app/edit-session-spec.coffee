@@ -911,6 +911,30 @@ describe "EditSession", ->
             editSession.delete()
             expect(buffer.lineForRow(12)).toBe '};'
 
+        describe "when the cursor is on the end of a line above a fold", ->
+          it "only deletes the lines inside the fold", ->
+            editSession.toggleFoldAtBufferRow(4)
+            editSession.setCursorScreenPosition([3, Infinity])
+            cursorPositionBefore = editSession.getCursorScreenPosition()
+
+            editSession.delete()
+
+            expect(buffer.lineForRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+            expect(buffer.lineForRow(4)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
+            expect(editSession.getCursorScreenPosition()).toEqual cursorPositionBefore
+
+        describe "when the cursor is in the middle a line above a fold", ->
+          it "deletes as normal", ->
+            editSession.toggleFoldAtBufferRow(4)
+            editSession.setCursorScreenPosition([3, 4])
+            cursorPositionBefore = editSession.getCursorScreenPosition()
+
+            editSession.delete()
+
+            expect(buffer.lineForRow(3)).toBe "    ar pivot = items.shift(), current, left = [], right = [];"
+            expect(editSession.lineForScreenRow(4).fold).toBeDefined()
+            expect(editSession.getCursorScreenPosition()).toEqual [3, 4]
+
         describe "when the cursor is on a folded line", ->
           it "removes the lines contained by the fold", ->
             editSession.createFold(2,4)

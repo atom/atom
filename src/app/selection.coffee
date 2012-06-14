@@ -145,7 +145,11 @@ class Selection
     @deleteSelectedText()
 
   delete: ->
-    @selectRight() if @isEmpty()
+    if @isEmpty()
+      if @cursor.isAtEndOfLine() and fold = @editSession.largestFoldStartingAtScreenRow(@cursor.getCurrentScreenRow() + 1)
+        @selectToBufferPosition(fold.getBufferRange().end)
+      else
+        @selectRight()
     @deleteSelectedText()
 
   deleteToEndOfWord: ->

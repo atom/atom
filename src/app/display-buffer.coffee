@@ -126,6 +126,9 @@ class DisplayBuffer
     return unless folds = @activeFolds[bufferRow]
     (folds.sort (a, b) -> b.endRow - a.endRow)[0]
 
+  largestFoldStartingAtScreenRow: (screenRow) ->
+    @largestFoldStartingAtBufferRow(@bufferRowForScreenRow(screenRow))
+
   screenLineRangeForBufferRange: (bufferRange) ->
     @expandScreenRangeToLineEnds(
       @lineMap.screenRangeForBufferRange(
