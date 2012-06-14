@@ -37,8 +37,8 @@ void NativeHandler::Exists(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
-	struct stat sbuf;
-	int result = stat(path.c_str(), &sbuf);
+	struct stat statInfo;
+	int result = stat(path.c_str(), &statInfo);
 	retval = CefV8Value::CreateBool(result == 0);
 }
 
@@ -103,7 +103,7 @@ void NativeHandler::Absolute(const CefString& name,
 void ListDirectory(string path, vector<string>* paths, bool recursive) {
 	dirent **children;
 	int childrenCount = scandir(path.c_str(), &children, 0, alphasort);
-	struct stat statResult;
+	struct stat statInfo;
 	int result;
 
 	for (int i = 0; i < childrenCount; i++) {
@@ -115,8 +115,8 @@ void ListDirectory(string path, vector<string>* paths, bool recursive) {
 		string entryPath(path + "/" + children[i]->d_name);
 		paths->push_back(entryPath);
 		if (recursive) {
-			result = stat(entryPath.c_str(), &statResult);
-			if (result == 0 && S_ISDIR(statResult.st_mode))
+			result = stat(entryPath.c_str(), &statInfo);
+			if (result == 0 && S_ISDIR(statInfo.st_mode))
 				ListDirectory(entryPath, paths, recursive);
 		}
 		free(children[i]);
@@ -128,7 +128,7 @@ void DeleteContents(string path) {
 	dirent **children;
 	const char* dirPath = path.c_str();
 	int childrenCount = scandir(dirPath, &children, 0, alphasort);
-	struct stat statResult;
+	struct stat statInfo;
 
 	for (int i = 0; i < childrenCount; i++) {
 		if (strcmp(children[i]->d_name, ".") == 0
@@ -138,14 +138,14 @@ void DeleteContents(string path) {
 		}
 
 		string entryPath(path + "/" + children[i]->d_name);
-		if (stat(entryPath.c_str(), &statResult) != 0) {
+		if (stat(entryPath.c_str(), &statInfo) != 0) {
 			free(children[i]);
 			continue;
 		}
 
-		if (S_ISDIR(statResult.st_mode))
+		if (S_ISDIR(statInfo.st_mode))
 			DeleteContents(entryPath);
-		else if (S_ISREG(statResult.st_mode))
+		else if (S_ISREG(statInfo.st_mode))
 			remove(entryPath.c_str());
 	}
 	free(children);
@@ -170,18 +170,18 @@ void NativeHandler::IsFile(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
-	struct stat sbuf;
-	int result = stat(path.c_str(), &sbuf);
-	retval = CefV8Value::CreateBool(result == 0 && S_ISREG(sbuf.st_mode));
+	struct stat statInfo;
+	int result = stat(path.c_str(), &statInfo);
+	retval = CefV8Value::CreateBool(result == 0 && S_ISREG(statInfo.st_mode));
 }
 
 void NativeHandler::IsDirectory(const CefString& name,
 		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
 		CefRefPtr<CefV8Value>& retval, CefString& exception) {
 	string path = arguments[0]->GetStringValue().ToString();
-	struct stat sbuf;
-	int result = stat(path.c_str(), &sbuf);
-	retval = CefV8Value::CreateBool(result == 0 && S_ISDIR(sbuf.st_mode));
+	struct stat statInfo;
+	int result = stat(path.c_str(), &statInfo);
+	retval = CefV8Value::CreateBool(result == 0 && S_ISDIR(statInfo.st_mode));
 }
 
 void NativeHandler::OpenDialog(const CefString& name,
