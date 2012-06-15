@@ -9,24 +9,45 @@ describe "TokenizedBuffer", ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     tokenizedBuffer = new TokenizedBuffer(buffer, '  ')
 
-  describe ".findClosingBracket(startBracketPosition)", ->
-    describe "when called with a bracket type of '{'", ->
-      it "returns the position of the matching bracket, skipping any nested brackets", ->
-        expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
+  describe ".findClosingBracket(startBufferPosition)", ->
+    it "returns the position of the matching bracket, skipping any nested brackets", ->
+      expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
+
+  describe ".findOpeningBracket(closingBufferPosition)", ->
+    it "returns the position of the matching bracket, skipping any nested brackets", ->
+      expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
 
   describe ".toggleLineCommentsInRange(range)", ->
-    it "comments/uncomments lines in the given range", ->
-      tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [7, 8]])
-      expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
-      expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
-      expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-      expect(buffer.lineForRow(7)).toBe "//    }"
+    describe "javascript", ->
+      it "comments/uncomments lines in the given range", ->
+        tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [7, 8]])
+        expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "//    }"
 
-      tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [5, 8]])
-      expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
-      expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
-      expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-      expect(buffer.lineForRow(7)).toBe "//    }"
+        tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [5, 8]])
+        expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "//    }"
+
+    describe "coffeescript", ->
+      it "comments/uncomments lines in the given range", ->
+        buffer = new Buffer(require.resolve('fixtures/coffee.coffee'))
+        tokenizedBuffer = new TokenizedBuffer(buffer, '  ')
+
+        tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [7, 8]])
+        expect(buffer.lineForRow(4)).toBe "    #pivot = items.shift()"
+        expect(buffer.lineForRow(5)).toBe "    #left = []"
+        expect(buffer.lineForRow(6)).toBe "    #right = []"
+        expect(buffer.lineForRow(7)).toBe "#"
+
+        tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [5, 8]])
+        expect(buffer.lineForRow(4)).toBe "    pivot = items.shift()"
+        expect(buffer.lineForRow(5)).toBe "    left = []"
+        expect(buffer.lineForRow(6)).toBe "    #right = []"
+        expect(buffer.lineForRow(7)).toBe "#"
 
   describe "fold suggestion", ->
     describe "javascript", ->
@@ -216,4 +237,3 @@ describe "TokenizedBuffer", ->
         expect(tokens[1].isAtomic).toBeTruthy()
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabText} buy()#{tabText}while supply > demand"
-

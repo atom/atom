@@ -141,6 +141,36 @@ class TokenizedBuffer
         return unless keepLooping
         bufferColumn += token.bufferDelta
 
+  backwardsIterateTokensInBufferRange: (bufferRange, iterator) ->
+    bufferRange = Range.fromObject(bufferRange)
+    { start, end } = bufferRange
+
+    keepLooping = true
+    stop = -> keepLooping = false
+
+    for bufferRow in [end.row..start.row]
+      bufferColumn = @buffer.lineLengthForRow(bufferRow)
+      for token in new Array(@screenLines[bufferRow].tokens...).reverse()
+        bufferColumn -= token.bufferDelta
+        startOfToken = new Point(bufferRow, bufferColumn)
+        iterator(token, startOfToken, { stop }) if bufferRange.containsPoint(startOfToken)
+        return unless keepLooping
+
+  findOpeningBracket: (startBufferPosition) ->
+    range = [[0,0], startBufferPosition]
+    position = null
+    depth = 0
+    @backwardsIterateTokensInBufferRange range, (token, startPosition, { stop }) ->
+      if token.type.match /lparen|rparen/
+        if token.value == '}'
+          depth++
+        else if token.value == '{'
+          depth--
+          if depth == 0
+            position = startPosition
+            stop()
+    position
+
   findClosingBracket: (startBufferPosition) ->
     range = [startBufferPosition, @buffer.getEofPosition()]
     position = null
