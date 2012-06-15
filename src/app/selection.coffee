@@ -132,9 +132,9 @@ class Selection
     @autoOutdent() if shouldOutdent
 
   backspace: ->
-    if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getCurrentScreenRow())
-      if @cursor.isAtBeginningOfLine() and @editSession.isFoldedAtScreenRow(@cursor.getCurrentScreenRow() - 1)
-        @selectToBufferPosition([@cursor.getCurrentBufferRow() - 1, Infinity])
+    if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
+      if @cursor.isAtBeginningOfLine() and @editSession.isFoldedAtScreenRow(@cursor.getScreenRow() - 1)
+        @selectToBufferPosition([@cursor.getBufferRow() - 1, Infinity])
       else
         @selectLeft()
 
@@ -146,7 +146,7 @@ class Selection
 
   delete: ->
     if @isEmpty()
-      if @cursor.isAtEndOfLine() and fold = @editSession.largestFoldStartingAtScreenRow(@cursor.getCurrentScreenRow() + 1)
+      if @cursor.isAtEndOfLine() and fold = @editSession.largestFoldStartingAtScreenRow(@cursor.getScreenRow() + 1)
         @selectToBufferPosition(fold.getBufferRange().end)
       else
         @selectRight()
@@ -207,7 +207,7 @@ class Selection
     @editSession.autoIndentTextAfterBufferPosition(text, @cursor.getBufferPosition())
 
   autoOutdent: ->
-    @editSession.autoOutdentBufferRow(@cursor.getCurrentBufferRow())
+    @editSession.autoOutdentBufferRow(@cursor.getBufferRow())
 
   handleBufferChange: (e) ->
     @modifyScreenRange =>

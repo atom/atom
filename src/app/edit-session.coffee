@@ -194,7 +194,7 @@ class EditSession
     @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
 
   unfoldCurrentRow: ->
-    @largestFoldStartingAtBufferRow(@getLastCursor().getCurrentBufferRow())?.destroy()
+    @largestFoldStartingAtBufferRow(@getLastCursor().getBufferRow())?.destroy()
 
   destroyFold: (foldId) ->
     fold = @displayBuffer.foldsById[foldId]

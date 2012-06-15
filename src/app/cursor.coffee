@@ -42,14 +42,14 @@ class Cursor
     if @selection
       @selection.clear() unless @selection.retainSelection
 
-  getCurrentScreenRow: ->
+  getScreenRow: ->
     @getScreenPosition().row
 
-  getCurrentBufferRow: ->
+  getBufferRow: ->
     @getBufferPosition().row
 
   getCurrentBufferLine: ->
-    @editSession.lineForBufferRow(@getCurrentBufferRow())
+    @editSession.lineForBufferRow(@getBufferRow())
 
   refreshScreenPosition: ->
     @anchor.refreshScreenPosition()
@@ -87,7 +87,7 @@ class Cursor
     @setBufferPosition(@editSession.getEofBufferPosition())
 
   moveToBeginningOfLine: ->
-    @setBufferPosition([@getCurrentBufferRow(), 0])
+    @setBufferPosition([@getBufferRow(), 0])
 
   moveToFirstCharacterOfLine: ->
     position = @getBufferPosition()
@@ -100,7 +100,7 @@ class Cursor
     @setBufferPosition(newPosition)
 
   moveToEndOfLine: ->
-    @setBufferPosition([@getCurrentBufferRow(), Infinity])
+    @setBufferPosition([@getBufferRow(), Infinity])
 
   moveToBeginningOfWord: ->
     @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())
@@ -153,7 +153,7 @@ class Cursor
     new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))
 
   getCurrentLineBufferRange: ->
-    @editSession.bufferRangeForBufferRow(@getCurrentBufferRow())
+    @editSession.bufferRangeForBufferRow(@getBufferRow())
 
   isAtBeginningOfLine: ->
     @getBufferPosition().column == 0
