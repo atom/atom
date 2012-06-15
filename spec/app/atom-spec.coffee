@@ -1,37 +1,32 @@
 Atom = require 'atom'
 fs = require 'fs'
+_ = require 'underscore'
 
 describe "Atom", ->
-  closeAllWindows = ->
-    window.close() for window in atom.windows
-    waitsFor "there to be no windows", ->
-      atom.windows.length == 0
-
   beforeEach ->
     spyOn(Atom.prototype, "setUpKeymap")
 
   describe ".open(path)", ->
-    beforeEach ->
-      closeAllWindows()
+    newWindow = null
 
     afterEach ->
-      closeAllWindows()
+      newWindow?.close()
 
     describe "when opening a file", ->
       it "displays it in a new window with the contents of the file loaded", ->
         filePath = null
 
         filePath = require.resolve 'fixtures/sample.txt'
-        expect(atom.windows.length).toBe 0
+        previousWindowCount = atom.windows.length
 
         atom.open filePath
 
         waitsFor "window to open", ->
-          atom.windows.length > 0
+          atom.windows.length > previousWindowCount
 
         runs ->
-          expect(atom.windows.length).toBe 1
-          newWindow = atom.windows[0]
+          expect(atom.windows.length).toBe previousWindowCount + 1
+          newWindow = _.last(atom.windows)
           expect(newWindow.rootView.activeEditor().buffer.getPath()).toEqual filePath
           expect(newWindow.rootView.activeEditor().buffer.getText()).toEqual fs.read(filePath)
 
