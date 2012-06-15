@@ -41,7 +41,7 @@ windowAdditions =
   attachRootView: (pathToOpen) ->
     rootViewState = atom.rootViewStates[$windowNumber]
     if rootViewState
-      @rootView = RootView.deserialize(rootViewState)
+      @rootView = RootView.deserialize(JSON.parse(rootViewState))
     else
       @rootView = new RootView(pathToOpen)
       @rootView.open() unless pathToOpen

@@ -53,7 +53,7 @@ describe "Window", ->
       expect(atom.rootViewStates[$windowNumber]).toBeUndefined()
       expectedState = window.rootView.serialize()
       $(window).trigger 'beforeunload'
-      expect(atom.rootViewStates[$windowNumber]).toEqual expectedState
+      expect(atom.rootViewStates[$windowNumber]).toEqual JSON.stringify(expectedState)
 
     it "unsubscribes from all buffers", ->
       editor1 = rootView.activeEditor()
