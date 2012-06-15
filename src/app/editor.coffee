@@ -499,7 +499,7 @@ class Editor extends View
     rootView.on "font-size-change.editor#{@id}", => @setFontSize(rootView.getFontSize())
 
   setFontSize: (fontSize) ->
-    if fontSize
+    if fontSize?
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
       @updateCursorViews()
@@ -626,6 +626,8 @@ class Editor extends View
     @lineHeight = fragment.outerHeight()
     @height(@lineHeight) if @mini
     fragment.remove()
+
+    @gutter.calculateDimensions()
 
   prepareForScrolling: ->
     @adjustHeightOfRenderedLines()
