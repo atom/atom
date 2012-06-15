@@ -4,6 +4,18 @@
 #include "include/cef_base.h"
 #include "include/cef_v8.h"
 #include <string>
+#include <map>
+
+struct CallbackContext {
+	CefRefPtr<CefV8Context> context;
+	CefRefPtr<CefV8Value> function;
+	CefRefPtr<CefV8Value> eventTypes;
+};
+
+struct NotifyContext {
+	int descriptor;
+	std::map<int, std::map<std::string, CallbackContext> > callbacks;
+};
 
 class NativeHandler: public CefV8Handler {
 public:
@@ -15,9 +27,19 @@ public:
 
 	std::string path;
 
+	int notifyFd;
+
+	unsigned long int idCounter;
+
+	std::map<int, std::map<std::string, CallbackContext> > pathCallbacks;
+
+	std::map<std::string, int> pathDescriptors;
+
 	virtual bool Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 			CefString& exception);
+
+	void NotifyWatchers();
 
 IMPLEMENT_REFCOUNTING(NativeHandler)
 	;
@@ -84,6 +106,14 @@ private:
 			CefString& exception);
 
 	void Alert(const CefString& name, CefRefPtr<CefV8Value> object,
+			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+			CefString& exception);
+
+	void WatchPath(const CefString& name, CefRefPtr<CefV8Value> object,
+			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+			CefString& exception);
+
+	void UnwatchPath(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 			CefString& exception);
 };

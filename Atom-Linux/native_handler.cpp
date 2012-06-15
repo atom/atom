@@ -1,8 +1,10 @@
 #include "native_handler.h"
 #include "include/cef_base.h"
+#include "include/cef_runnable.h"
 #include "client_handler.h"
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -11,8 +13,40 @@
 #include <stdlib.h>
 #include <vector>
 #include <gtk/gtk.h>
+#include <sys/inotify.h>
+#include <pthread.h>
+
+#define BUFFER_SIZE 8192
 
 using namespace std;
+
+void *NotifyWatchersCallback(void* pointer) {
+	NativeHandler* handler = (NativeHandler*) pointer;
+	handler->NotifyWatchers();
+	return NULL;
+}
+
+void ExecuteWatchCallback(NotifyContext notifyContext) {
+	map<string, CallbackContext> callbacks =
+			notifyContext.callbacks[notifyContext.descriptor];
+	map<string, CallbackContext>::iterator callback;
+	for (callback = callbacks.begin(); callback != callbacks.end();
+			callback++) {
+		CallbackContext callbackContext = callback->second;
+		CefRefPtr<CefV8Context> context = callbackContext.context;
+		CefRefPtr<CefV8Value> function = callbackContext.function;
+
+		context->Enter();
+
+		CefV8ValueList args;
+		CefRefPtr<CefV8Value> retval;
+		CefRefPtr<CefV8Exception> e;
+		args.push_back(callbackContext.eventTypes);
+		function->ExecuteFunction(function, args, retval, e, true);
+
+		context->Exit();
+	}
+}
 
 NativeHandler::NativeHandler() :
 		CefV8Handler() {
@@ -30,6 +64,37 @@ NativeHandler::NativeHandler() :
 		CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(
 				functionName, this);
 		object->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
+	}
+
+	notifyFd = inotify_init();
+	if (notifyFd != -1) {
+		pthread_t thread;
+		pthread_create(&thread, NULL, NotifyWatchersCallback, this);
+	}
+}
+
+void NativeHandler::NotifyWatchers() {
+	char buffer[BUFFER_SIZE];
+	ssize_t bufferRead;
+	size_t eventSize;
+	ssize_t bufferIndex;
+	struct inotify_event *event;
+	bufferRead = read(notifyFd, buffer, BUFFER_SIZE);
+	while (bufferRead > 0) {
+		bufferIndex = 0;
+		while (bufferIndex < bufferRead) {
+			event = (struct inotify_event *) &buffer[bufferIndex];
+			eventSize = offsetof (struct inotify_event, name) + event->len;
+
+			NotifyContext context;
+			context.descriptor = event->wd;
+			context.callbacks = pathCallbacks;
+			CefPostTask(TID_UI,
+					NewCefRunnableFunction(&ExecuteWatchCallback, context));
+
+			bufferIndex += eventSize;
+		}
+		bufferRead = read(notifyFd, buffer, BUFFER_SIZE);
 	}
 }
 
@@ -332,6 +397,49 @@ void NativeHandler::Alert(const CefString& name, CefRefPtr<CefV8Value> object,
 	gtk_widget_destroy(dialog);
 }
 
+void NativeHandler::WatchPath(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+	string path = arguments[0]->GetStringValue().ToString();
+	int descriptor = inotify_add_watch(notifyFd, path.c_str(),
+			IN_ALL_EVENTS & ~(IN_CLOSE | IN_OPEN | IN_ACCESS));
+	if (descriptor == -1)
+		return;
+
+	CallbackContext callbackContext;
+	callbackContext.context = CefV8Context::GetCurrentContext();
+	callbackContext.function = arguments[1];
+	CefRefPtr<CefV8Value> eventTypes = CefV8Value::CreateObject(NULL, NULL);
+	eventTypes->SetValue("modified", CefV8Value::CreateBool(true),
+			V8_PROPERTY_ATTRIBUTE_NONE);
+	callbackContext.eventTypes = eventTypes;
+
+	stringstream idStream;
+	idStream << "counter";
+	idStream << idCounter;
+	string id = idStream.str();
+	idCounter++;
+	pathDescriptors[path] = descriptor;
+	pathCallbacks[descriptor][id] = callbackContext;
+	retval = CefV8Value::CreateString(id);
+}
+
+void NativeHandler::UnwatchPath(const CefString& name,
+		CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+		CefRefPtr<CefV8Value>& retval, CefString& exception) {
+	string path = arguments[0]->GetStringValue().ToString();
+
+	int descriptor = pathDescriptors[path];
+	if (descriptor == -1)
+		return;
+
+	map<string, CallbackContext> callbacks = pathCallbacks[descriptor];
+	string id = arguments[1]->GetStringValue().ToString();
+	callbacks.erase(id);
+	if (callbacks.empty())
+		inotify_rm_watch(notifyFd, descriptor);
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 		CefString& exception) {
@@ -369,6 +477,10 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 		Remove(name, object, arguments, retval, exception);
 	else if (name == "alert")
 		Alert(name, object, arguments, retval, exception);
+	else if (name == "watchPath")
+		WatchPath(name, object, arguments, retval, exception);
+	else if (name == "unwatchPath")
+		UnwatchPath(name, object, arguments, retval, exception);
 	else
 		cout << "Unhandled -> " + name.ToString() << " : "
 				<< arguments[0]->GetStringValue().ToString() << endl;
