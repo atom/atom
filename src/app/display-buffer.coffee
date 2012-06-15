@@ -129,6 +129,13 @@ class DisplayBuffer
   largestFoldStartingAtScreenRow: (screenRow) ->
     @largestFoldStartingAtBufferRow(@bufferRowForScreenRow(screenRow))
 
+  largestFoldContainingBufferRow: (bufferRow) ->
+    largestFold = null
+    for currentBufferRow in [bufferRow..0]
+      if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
+        largestFold = fold if fold.endRow >= bufferRow
+    largestFold
+
   screenLineRangeForBufferRange: (bufferRange) ->
     @expandScreenRangeToLineEnds(
       @lineMap.screenRangeForBufferRange(

@@ -794,8 +794,8 @@ describe "EditSession", ->
 
         describe "when the cursor is on a folded screen line", ->
           it "deletes all of the folded lines along with the fold", ->
-            editSession.toggleFoldAtBufferRow(1)
-            editSession.setCursorScreenPosition([1, 0])
+            editSession.setCursorBufferPosition([3, 0])
+            editSession.toggleFold()
             editSession.backspace()
             expect(buffer.lineForRow(1)).toBe ""
             expect(buffer.lineForRow(2)).toBe "  return sort(Array.apply(this, arguments));"

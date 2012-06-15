@@ -207,6 +207,9 @@ class EditSession
   largestFoldStartingAtBufferRow: (bufferRow) ->
     @displayBuffer.largestFoldStartingAtBufferRow(bufferRow)
 
+  largestFoldContainingBufferRow: (bufferRow) ->
+    @displayBuffer.largestFoldContainingBufferRow(bufferRow)
+
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 

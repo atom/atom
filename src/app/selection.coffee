@@ -145,21 +145,23 @@ class Selection
     @deleteSelectedText()
 
   delete: ->
+    deleteNewlinesAfterFolds = true
     if @isEmpty()
       if @cursor.isAtEndOfLine() and fold = @editSession.largestFoldStartingAtScreenRow(@cursor.getCurrentScreenRow() + 1)
         @selectToBufferPosition(fold.getBufferRange().end)
+        deleteNewlinesAfterFolds = false
       else
         @selectRight()
-    @deleteSelectedText()
+    @deleteSelectedText({ deleteNewlinesAfterFolds })
 
   deleteToEndOfWord: ->
     @selectToEndOfWord() if @isEmpty()
     @deleteSelectedText()
 
-  deleteSelectedText: ->
+  deleteSelectedText: (options = {}) ->
     bufferRange = @getBufferRange()
-    if fold = @editSession.largestFoldStartingAtBufferRow(bufferRange.end.row)
-      bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: true))
+    if fold = @editSession.largestFoldContainingBufferRow(bufferRange.end.row)
+      bufferRange = bufferRange.union(fold.getBufferRange(includeNewline: options.deleteNewlinesAfterFolds ? true))
 
     @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
     if @cursor
