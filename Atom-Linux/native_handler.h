@@ -27,14 +27,6 @@ public:
 
 	std::string path;
 
-	int notifyFd;
-
-	unsigned long int idCounter;
-
-	std::map<int, std::map<std::string, CallbackContext> > pathCallbacks;
-
-	std::map<std::string, int> pathDescriptors;
-
 	virtual bool Execute(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 			CefString& exception);
@@ -45,6 +37,15 @@ IMPLEMENT_REFCOUNTING(NativeHandler)
 	;
 
 private:
+
+	int notifyFd;
+
+	unsigned long int idCounter;
+
+	std::map<int, std::map<std::string, CallbackContext> > pathCallbacks;
+
+	std::map<std::string, int> pathDescriptors;
+
 	void Exists(const CefString& name, CefRefPtr<CefV8Value> object,
 			const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
 			CefString& exception);
