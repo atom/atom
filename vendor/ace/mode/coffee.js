@@ -73,7 +73,6 @@ oop.inherits(Mode, TextMode);
     };
     
     this.toggleCommentLines = function(state, doc, startRow, endRow){
-        console.log("toggle");
         var range = new Range(0, 0, 0, 0);
         for (var i = startRow; i <= endRow; ++i) {
             var line = doc.getLine(i);
