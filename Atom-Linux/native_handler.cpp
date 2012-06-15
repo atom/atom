@@ -67,10 +67,9 @@ NativeHandler::NativeHandler() :
 	}
 
 	notifyFd = inotify_init();
-	if (notifyFd != -1) {
-		pthread_t thread;
-		pthread_create(&thread, NULL, NotifyWatchersCallback, this);
-	}
+	if (notifyFd != -1)
+		g_thread_create_full(NotifyWatchersCallback, this, 0, true, false,
+				G_THREAD_PRIORITY_NORMAL, NULL);
 }
 
 void NativeHandler::NotifyWatchers() {
