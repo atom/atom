@@ -94,6 +94,7 @@ class Editor extends View
       'select-left': @selectLeft
       'select-up': @selectUp
       'select-down': @selectDown
+      'select-word': @selectWord
       'newline': @insertNewline
       'newline-below': @insertNewlineBelow
       'tab': @insertTab
@@ -183,6 +184,7 @@ class Editor extends View
   selectToEndOfLine: -> @activeEditSession.selectToEndOfLine()
   selectToBeginningOfWord: -> @activeEditSession.selectToBeginningOfWord()
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
+  selectWord: -> @activeEditSession.selectWord()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
   clearSelections: -> @activeEditSession.clearSelections()
 

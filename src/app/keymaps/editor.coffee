@@ -5,6 +5,7 @@ window.keymap.bindKeys '.editor',
   'shift-up': 'select-up'
   'shift-down': 'select-down'
   'meta-a': 'select-all'
+  'ctrl-w': 'select-word'
   'enter': 'newline'
   'meta-enter': 'newline-below'
   'tab': 'tab'
