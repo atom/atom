@@ -155,6 +155,7 @@ class RootView extends View
     super
 
   setFontSize: (newFontSize) ->
+    newFontSize = Math.max(1, newFontSize)
     [oldFontSize, @fontSize] = [@fontSize, newFontSize]
     @trigger 'font-size-change' if oldFontSize != newFontSize
 

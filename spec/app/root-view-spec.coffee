@@ -470,3 +470,10 @@ describe "RootView", ->
       expect(rootView.getFontSize()).toBe fontSizeBefore + 1
       rootView.trigger 'decrease-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore
+
+  it "does not allow the font size to be less than 1", ->
+    rootView.setFontSize(1)
+    expect(rootView.getFontSize()).toBe 1
+
+    rootView.setFontSize(0)
+    expect(rootView.getFontSize()).toBe 1
