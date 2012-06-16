@@ -1,6 +1,7 @@
 {View, $$} = require 'space-pen'
 stringScore = require 'stringscore'
 fuzzyFilter = require 'fuzzy-filter'
+$ = require 'jquery'
 Editor = require 'editor'
 
 module.exports =
@@ -26,6 +27,7 @@ class FileFinder extends View
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
     @on 'file-finder:select-file', => @select()
+    @on 'mousedown', 'li', (e) => @entryClicked(e)
 
     @miniEditor.buffer.on 'change', => @populatePathList() if @hasParent()
     @miniEditor.off 'move-up move-down'
@@ -58,11 +60,13 @@ class FileFinder extends View
   findSelectedLi: ->
     @pathList.children('li.selected')
 
-  select: ->
-    selectedLi = @findSelectedLi()
-    return unless selectedLi.length
-    @rootView.open(selectedLi.text())
+  open : (text) ->
+    return unless text.length
+    @rootView.open(text)
     @detach()
+
+  select: ->
+    @open(@findSelectedLi().text())
 
   moveUp: ->
     @findSelectedLi()
@@ -80,3 +84,6 @@ class FileFinder extends View
 
   findMatches: (query) ->
     fuzzyFilter(@paths, query, maxResults: @maxResults)
+
+  entryClicked: (e) ->
+    @open($(e.currentTarget).text())
