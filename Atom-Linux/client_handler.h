@@ -25,8 +25,7 @@ class ClientHandler: public CefClient,
 		public CefKeyboardHandler,
 		public CefPrintHandler,
 		public CefV8ContextHandler,
-		public CefDragHandler,
-		public CefPermissionHandler {
+		public CefDragHandler {
 public:
 	ClientHandler();
 	virtual ~ClientHandler();
@@ -54,9 +53,6 @@ public:
 		return this;
 	}
 	virtual CefRefPtr<CefDragHandler> GetDragHandler() OVERRIDE {
-		return this;
-	}
-	virtual CefRefPtr<CefPermissionHandler> GetPermissionHandler() OVERRIDE {
 		return this;
 	}
 
@@ -116,10 +112,6 @@ public:
 			CefRefPtr<CefDragData> dragData, DragOperationsMask mask) OVERRIDE;
 	virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
 			CefRefPtr<CefDragData> dragData, DragOperationsMask mask) OVERRIDE;
-
-	// CefPermissionHandler methods.
-	virtual bool OnBeforeScriptExtensionLoad(CefRefPtr<CefBrowser> browser,
-			CefRefPtr<CefFrame> frame, const CefString& extensionName) OVERRIDE;
 
 	void SetWindow(GtkWidget* window);
 	void SetMainHwnd(CefWindowHandle hwnd);

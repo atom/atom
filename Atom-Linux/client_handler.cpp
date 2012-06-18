@@ -241,11 +241,6 @@ bool ClientHandler::OnDragEnter(CefRefPtr<CefBrowser> browser,
 	return false;
 }
 
-bool ClientHandler::OnBeforeScriptExtensionLoad(CefRefPtr<CefBrowser> browser,
-		CefRefPtr<CefFrame> frame, const CefString& extensionName) {
-	return false;
-}
-
 void ClientHandler::SetWindow(GtkWidget* widget) {
 	window = widget;
 }
