@@ -35,13 +35,14 @@ class Keymap
     while currentNode.length
       bindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
       bindingSets.sort (a, b) -> b.specificity - a.specificity
-      _.defaults(keystrokeMap, set.keystrokeMap) for set in bindingSets
+      _.defaults(keystrokeMap, set.commandsByKeystrokes) for set in bindingSets
       currentNode = currentNode.parent()
 
     keystrokeMap
 
   handleKeyEvent: (event) ->
     event.keystrokes = @multiKeystrokeStringForEvent(event)
+    isMultiKeystroke = @queuedKeystrokes?
     @queuedKeystrokes = null
     currentNode = $(event.target)
     while currentNode.length
@@ -59,7 +60,8 @@ class Keymap
           @queuedKeystrokes = event.keystrokes
           return false
       currentNode = currentNode.parent()
-    true
+
+    !isMultiKeystroke
 
   triggerCommandEvent: (keyEvent, commandName) ->
     commandEvent = $.Event(commandName)

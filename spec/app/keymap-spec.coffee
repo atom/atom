@@ -28,10 +28,10 @@ describe "Keymap", ->
       fragment.on 'deleteChar', deleteCharHandler
       fragment.on 'insertChar', insertCharHandler
 
-    it "adds a 'keystroke' string to the event object", ->
+    it "adds a 'keystrokes' string to the event object", ->
       event = keydownEvent('x', altKey: true, metaKey: true)
       keymap.handleKeyEvent(event)
-      expect(event.keystroke).toBe 'alt-meta-x'
+      expect(event.keystrokes).toBe 'alt-meta-x'
 
     describe "when no binding matches the event's keystroke", ->
       it "returns true, so the event continues to propagate", ->
@@ -54,7 +54,7 @@ describe "Keymap", ->
           expect(insertCharHandler).toHaveBeenCalled()
           commandEvent = insertCharHandler.argsForCall[0][0]
           expect(commandEvent.keyEvent).toBe event
-          expect(event.keystroke).toBe 'x'
+          expect(event.keystrokes).toBe 'x'
 
       describe "when the event's target node *descends* from a selector with a matching binding", ->
         it "triggers the command event associated with that binding on the target node and returns false", ->
@@ -158,7 +158,7 @@ describe "Keymap", ->
             expect(closeOtherWindowsHandler).toHaveBeenCalled()
 
         describe "when a second keystroke added to the first doesn't match any bindings", ->
-          fit "clears the queued keystrokes without triggering any events", ->
+          it "clears the queued keystrokes without triggering any events", ->
             expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
             expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBeFalsy()
             expect(quitHandler).not.toHaveBeenCalled()
@@ -167,7 +167,7 @@ describe "Keymap", ->
             expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBeTruthy()
 
       describe "when the event's target node descends from multiple nodes that match selectors with a partial binding match", ->
-        fit "allows any of the bindings to be triggered upon a second keystroke, favoring the most specific selector", ->
+        it "allows any of the bindings to be triggered upon a second keystroke, favoring the most specific selector", ->
            keymap.bindKeys ".grandchild-node", 'ctrl-x ctrl-c': 'more-specific-quit'
            grandchildNode = fragment.find('.grandchild-node')[0]
            moreSpecificQuitHandler = jasmine.createSpy('moreSpecificQuitHandler')
@@ -280,7 +280,6 @@ describe "Keymap", ->
         expect(keymap.keystrokeStringForEvent(keydownEvent('{', shiftKey: true))).toBe '{'
         expect(keymap.keystrokeStringForEvent(keydownEvent('left', shiftKey: true))).toBe 'shift-left'
         expect(keymap.keystrokeStringForEvent(keydownEvent('Left', shiftKey: true))).toBe 'shift-left'
-
 
   describe ".bindingsForElement(element)", ->
     it "returns the matching bindings for the element", ->
