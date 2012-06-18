@@ -446,4 +446,7 @@ class EditSession
           @mergeIntersectingSelections(options)
           return
 
+  inspect: ->
+    JSON.stringify @serialize()
+
 _.extend(EditSession.prototype, EventEmitter)
