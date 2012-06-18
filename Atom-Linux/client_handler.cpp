@@ -15,7 +15,7 @@
 #include <gtk/gtk.h>
 
 ClientHandler::ClientHandler() :
-		m_MainHwnd(NULL), m_BrowserHwnd(NULL), m_bFormElementHasFocus(false) {
+		m_MainHwnd(NULL), m_BrowserHwnd(NULL) {
 }
 
 ClientHandler::~ClientHandler() {
@@ -118,11 +118,6 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame, int httpStatusCode) {
 	REQUIRE_UI_THREAD();
 
-	if (m_BrowserHwnd == browser->GetWindowHandle() && frame->IsMain()) {
-		CefRefPtr<CefDOMVisitor> visitor = GetDOMVisitor(frame->GetURL());
-		if (visitor.get())
-			frame->VisitDOM(visitor);
-	}
 }
 
 bool ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
@@ -168,24 +163,11 @@ bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 void ClientHandler::OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame, CefRefPtr<CefDOMNode> node) {
 	REQUIRE_UI_THREAD();
-
-	// Set to true if a form element has focus.
-	m_bFormElementHasFocus = (node.get() && node->IsFormControlElement());
 }
 
 bool ClientHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, KeyEventType type,
 		int code, int modifiers, bool isSystemKey, bool isAfterJavaScript) {
 	REQUIRE_UI_THREAD();
-
-	if (isAfterJavaScript && !m_bFormElementHasFocus && code == 0x20) {
-		// Special handling for the space character if a form element does not have
-		// focus.
-		if (type == KEYEVENT_RAWKEYDOWN) {
-			browser->GetMainFrame()->ExecuteJavaScript(
-					"alert('You pressed the space bar!');", "", 0);
-		}
-		return true;
-	}
 
 	return false;
 }
@@ -248,29 +230,6 @@ void ClientHandler::SetWindow(GtkWidget* widget) {
 void ClientHandler::SetMainHwnd(CefWindowHandle hwnd) {
 	AutoLock lock_scope(this);
 	m_MainHwnd = hwnd;
-}
-
-std::string ClientHandler::GetLogFile() {
-	AutoLock lock_scope(this);
-	return m_LogFile;
-}
-
-void ClientHandler::AddDOMVisitor(const std::string& path,
-		CefRefPtr<CefDOMVisitor> visitor) {
-	AutoLock lock_scope(this);
-	DOMVisitorMap::iterator it = m_DOMVisitors.find(path);
-	if (it == m_DOMVisitors.end())
-		m_DOMVisitors.insert(std::make_pair(path, visitor));
-	else
-		it->second = visitor;
-}
-
-CefRefPtr<CefDOMVisitor> ClientHandler::GetDOMVisitor(const std::string& path) {
-	AutoLock lock_scope(this);
-	DOMVisitorMap::iterator it = m_DOMVisitors.find(path);
-	if (it != m_DOMVisitors.end())
-		return it->second;
-	return NULL;
 }
 
 // ClientHandler::ClientLifeSpanHandler implementation

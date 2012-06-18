@@ -129,11 +129,6 @@ public:
 
 	std::string GetLogFile();
 
-	// DOM visitors will be called after the associated path is loaded.
-	void AddDOMVisitor(const std::string& path,
-			CefRefPtr<CefDOMVisitor> visitor);
-	CefRefPtr<CefDOMVisitor> GetDOMVisitor(const std::string& path);
-
 	enum NotificationType {
 		NOTIFY_CONSOLE_MESSAGE
 	};
@@ -160,13 +155,6 @@ protected:
 
 	// Support for logging.
 	std::string m_LogFile;
-
-	// Support for DOM visitors.
-	typedef std::map<std::string, CefRefPtr<CefDOMVisitor> > DOMVisitorMap;
-	DOMVisitorMap m_DOMVisitors;
-
-	// True if a form element currently has focus
-	bool m_bFormElementHasFocus;
 
 	// Include the default reference counting implementation.
 IMPLEMENT_REFCOUNTING(ClientHandler)
