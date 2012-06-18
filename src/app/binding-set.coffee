@@ -27,8 +27,11 @@ class BindingSet
         null
 
   matchesKeystrokePrefix: (event) ->
+    eventKeystrokes = event.keystrokes.split(' ')
     for keystrokes, command of @commandsByKeystrokes
-      return true if keystrokes.indexOf(event.keystrokes) == 0
+      bindingKeystrokes = keystrokes.split(' ')
+      continue unless eventKeystrokes.length < bindingKeystrokes.length
+      return true if _.isEqual(eventKeystrokes, bindingKeystrokes[0...eventKeystrokes.length])
     false
 
   normalizeCommandsByKeystrokes: (commandsByKeystrokes) ->

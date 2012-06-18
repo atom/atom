@@ -138,9 +138,12 @@ describe "Keymap", ->
         fragment.on 'quit', quitHandler
         fragment.on 'close-other-windows', closeOtherWindowsHandler
 
+      it "only matches entire keystroke patters", ->
+        expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBeTruthy()
+
       describe "when the event's target node matches a selector with a partially matching multi-stroke binding", ->
         describe "when a second keystroke added to the first to match a multi-stroke binding completely", ->
-          fit "triggers the event associated with the matched multi-stroke binding", ->
+          it "triggers the event associated with the matched multi-stroke binding", ->
             expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
             expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0], ctrlKey: true))).toBeFalsy()
 
