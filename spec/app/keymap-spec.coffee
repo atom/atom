@@ -33,96 +33,137 @@ describe "Keymap", ->
       keymap.handleKeyEvent(event)
       expect(event.keystroke).toBe 'alt-meta-x'
 
-    describe "when no binding matches the event", ->
+    describe "when no binding matches the event's keystroke", ->
       it "returns true, so the event continues to propagate", ->
         expect(keymap.handleKeyEvent(keydownEvent('0', target: fragment[0]))).toBeTruthy()
 
-    describe "when the event's target node matches a selector with a matching binding", ->
-      it "triggers the command event associated with that binding on the target node and returns false", ->
-        result = keymap.handleKeyEvent(keydownEvent('x', target: fragment[0]))
-        expect(result).toBe(false)
-        expect(deleteCharHandler).toHaveBeenCalled()
-        expect(insertCharHandler).not.toHaveBeenCalled()
+    describe "when at least one binding fully matches the event's keystroke", ->
+      describe "when the event's target node matches a selector with a matching binding", ->
+        it "triggers the command event associated with that binding on the target node and returns false", ->
+          result = keymap.handleKeyEvent(keydownEvent('x', target: fragment[0]))
+          expect(result).toBe(false)
+          expect(deleteCharHandler).toHaveBeenCalled()
+          expect(insertCharHandler).not.toHaveBeenCalled()
 
-        deleteCharHandler.reset()
-        fragment.removeClass('command-mode').addClass('insert-mode')
+          deleteCharHandler.reset()
+          fragment.removeClass('command-mode').addClass('insert-mode')
 
-        event = keydownEvent('x', target: fragment[0])
-        keymap.handleKeyEvent(event)
-        expect(deleteCharHandler).not.toHaveBeenCalled()
-        expect(insertCharHandler).toHaveBeenCalled()
-        commandEvent = insertCharHandler.argsForCall[0][0]
-        expect(commandEvent.keyEvent).toBe event
-        expect(event.keystroke).toBe 'x'
+          event = keydownEvent('x', target: fragment[0])
+          keymap.handleKeyEvent(event)
+          expect(deleteCharHandler).not.toHaveBeenCalled()
+          expect(insertCharHandler).toHaveBeenCalled()
+          commandEvent = insertCharHandler.argsForCall[0][0]
+          expect(commandEvent.keyEvent).toBe event
+          expect(event.keystroke).toBe 'x'
 
-    describe "when the event's target node *descends* from a selector with a matching binding", ->
-      it "triggers the command event associated with that binding on the target node and returns false", ->
-        target = fragment.find('.child-node')[0]
-        result = keymap.handleKeyEvent(keydownEvent('x', target: target))
-        expect(result).toBe(false)
-        expect(deleteCharHandler).toHaveBeenCalled()
-        expect(insertCharHandler).not.toHaveBeenCalled()
+      describe "when the event's target node *descends* from a selector with a matching binding", ->
+        it "triggers the command event associated with that binding on the target node and returns false", ->
+          target = fragment.find('.child-node')[0]
+          result = keymap.handleKeyEvent(keydownEvent('x', target: target))
+          expect(result).toBe(false)
+          expect(deleteCharHandler).toHaveBeenCalled()
+          expect(insertCharHandler).not.toHaveBeenCalled()
 
-        deleteCharHandler.reset()
-        fragment.removeClass('command-mode').addClass('insert-mode')
+          deleteCharHandler.reset()
+          fragment.removeClass('command-mode').addClass('insert-mode')
 
-        keymap.handleKeyEvent(keydownEvent('x', target: target))
-        expect(deleteCharHandler).not.toHaveBeenCalled()
-        expect(insertCharHandler).toHaveBeenCalled()
+          keymap.handleKeyEvent(keydownEvent('x', target: target))
+          expect(deleteCharHandler).not.toHaveBeenCalled()
+          expect(insertCharHandler).toHaveBeenCalled()
 
-    describe "when the event's target node descends from multiple nodes that match selectors with a binding", ->
-      it "only triggers bindings on selectors associated with the closest ancestor node", ->
-        keymap.bindKeys '.child-node', 'x': 'foo'
-        fooHandler = jasmine.createSpy 'fooHandler'
-        fragment.on 'foo', fooHandler
-
-        target = fragment.find('.grandchild-node')[0]
-        keymap.handleKeyEvent(keydownEvent('x', target: target))
-        expect(fooHandler).toHaveBeenCalled()
-        expect(deleteCharHandler).not.toHaveBeenCalled()
-        expect(insertCharHandler).not.toHaveBeenCalled()
-
-    describe "when the event bubbles to a node that matches multiple selectors", ->
-      describe "when the matching selectors differ in specificity", ->
-        it "triggers the binding for the most specific selector", ->
-          keymap.bindKeys 'div .child-node', 'x': 'foo'
-          keymap.bindKeys '.command-mode .child-node', 'x': 'baz'
-          keymap.bindKeys '.child-node', 'x': 'bar'
-
+      describe "when the event's target node descends from multiple nodes that match selectors with a binding", ->
+        it "only triggers bindings on selectors associated with the closest ancestor node", ->
+          keymap.bindKeys '.child-node', 'x': 'foo'
           fooHandler = jasmine.createSpy 'fooHandler'
-          barHandler = jasmine.createSpy 'barHandler'
-          bazHandler = jasmine.createSpy 'bazHandler'
           fragment.on 'foo', fooHandler
-          fragment.on 'bar', barHandler
-          fragment.on 'baz', bazHandler
 
           target = fragment.find('.grandchild-node')[0]
           keymap.handleKeyEvent(keydownEvent('x', target: target))
+          expect(fooHandler).toHaveBeenCalled()
+          expect(deleteCharHandler).not.toHaveBeenCalled()
+          expect(insertCharHandler).not.toHaveBeenCalled()
 
-          expect(fooHandler).not.toHaveBeenCalled()
-          expect(barHandler).not.toHaveBeenCalled()
-          expect(bazHandler).toHaveBeenCalled()
+      describe "when the event bubbles to a node that matches multiple selectors", ->
+        describe "when the matching selectors differ in specificity", ->
+          it "triggers the binding for the most specific selector", ->
+            keymap.bindKeys 'div .child-node', 'x': 'foo'
+            keymap.bindKeys '.command-mode .child-node', 'x': 'baz'
+            keymap.bindKeys '.child-node', 'x': 'bar'
 
-      describe "when the matching selectors have the same specificity", ->
-        it "triggers the bindings for the most recently declared selector", ->
-          keymap.bindKeys '.child-node', 'x': 'foo', 'y': 'baz'
-          keymap.bindKeys '.child-node', 'x': 'bar'
+            fooHandler = jasmine.createSpy 'fooHandler'
+            barHandler = jasmine.createSpy 'barHandler'
+            bazHandler = jasmine.createSpy 'bazHandler'
+            fragment.on 'foo', fooHandler
+            fragment.on 'bar', barHandler
+            fragment.on 'baz', bazHandler
 
-          fooHandler = jasmine.createSpy 'fooHandler'
-          barHandler = jasmine.createSpy 'barHandler'
-          bazHandler = jasmine.createSpy 'bazHandler'
-          fragment.on 'foo', fooHandler
-          fragment.on 'bar', barHandler
-          fragment.on 'baz', bazHandler
+            target = fragment.find('.grandchild-node')[0]
+            keymap.handleKeyEvent(keydownEvent('x', target: target))
 
-          target = fragment.find('.grandchild-node')[0]
-          keymap.handleKeyEvent(keydownEvent('x', target: target))
+            expect(fooHandler).not.toHaveBeenCalled()
+            expect(barHandler).not.toHaveBeenCalled()
+            expect(bazHandler).toHaveBeenCalled()
 
-          expect(barHandler).toHaveBeenCalled()
-          expect(fooHandler).not.toHaveBeenCalled()
+        describe "when the matching selectors have the same specificity", ->
+          it "triggers the bindings for the most recently declared selector", ->
+            keymap.bindKeys '.child-node', 'x': 'foo', 'y': 'baz'
+            keymap.bindKeys '.child-node', 'x': 'bar'
 
-          keymap.handleKeyEvent(keydownEvent('y', target: target))
-          expect(bazHandler).toHaveBeenCalled()
+            fooHandler = jasmine.createSpy 'fooHandler'
+            barHandler = jasmine.createSpy 'barHandler'
+            bazHandler = jasmine.createSpy 'bazHandler'
+            fragment.on 'foo', fooHandler
+            fragment.on 'bar', barHandler
+            fragment.on 'baz', bazHandler
+
+            target = fragment.find('.grandchild-node')[0]
+            keymap.handleKeyEvent(keydownEvent('x', target: target))
+
+            expect(barHandler).toHaveBeenCalled()
+            expect(fooHandler).not.toHaveBeenCalled()
+
+            keymap.handleKeyEvent(keydownEvent('y', target: target))
+            expect(bazHandler).toHaveBeenCalled()
+
+    describe "when at least one binding partially matches the event's keystroke", ->
+      beforeEach ->
+        keymap.bindKeys "*",
+          'ctrl-x ctrl-c': 'quit'
+          'ctrl-x 1': 'close-other-windows'
+
+      describe "when the event's target node matches a selector with a partially matching multi-stroke binding", ->
+        describe "when a second keystroke added to the first to match a multi-stroke binding completely", ->
+          fit "triggers the event associated with the matched multi-stroke binding", ->
+
+            quitHandler = jasmine.createSpy('quitHandler')
+            fragment.on 'quit', quitHandler
+            closeOtherWindowsHandler = jasmine.createSpy('closeOtherWindowsHandler')
+            fragment.on 'close-other-windows', closeOtherWindowsHandler
+
+            expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
+            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0], ctrlKey: true))).toBeFalsy()
+
+            expect(quitHandler).toHaveBeenCalled()
+            expect(closeOtherWindowsHandler).not.toHaveBeenCalled()
+            quitHandler.reset()
+
+            expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
+            expect(keymap.handleKeyEvent(keydownEvent('1', target: fragment[0]))).toBeFalsy()
+
+            expect(quitHandler).not.toHaveBeenCalled()
+            expect(closeOtherWindowsHandler).toHaveBeenCalled()
+
+        describe "when a second keystroke added to the first doesn't match any bindings", ->
+          it "clears the queued keystrokes without triggering any events", ->
+
+      describe "when the event's target node descends from multiple nodes that match selectors with a partial binding match", ->
+        it "allows any of the bindings to be triggered upon a second keystroke"
+
+      describe "when there is a complete binding with a less specific selector", ->
+        it "favors the more specific partial match", ->
+
+      describe "when there is a complete binding with a more specific selector", ->
+        it "favors the more specific complete match", ->
 
   describe ".bindKeys(selector, fnOrMap)", ->
     describe "when called with a selector and a hash", ->
