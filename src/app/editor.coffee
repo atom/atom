@@ -50,13 +50,13 @@ class Editor extends View
   lineOverdraw: 100
 
   @deserialize: (state, rootView) ->
-    editor = new Editor(suppressBufferCreation: true, mini: state.mini)
-    editor.editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
-    editor.setActiveEditSessionIndex(state.activeEditSessionIndex)
+    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
+
+    editor = new Editor(activeEditSessionIndex: state.activeEditSessionIndex, editSessions: editSessions, suppressBufferCreation: true, mini: state.mini)
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({buffer, suppressBufferCreation, @mini} = {}) ->
+  initialize: ({activeEditSessionIndex, editSessions, suppressBufferCreation, @mini} = {}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -66,12 +66,21 @@ class Editor extends View
     @handleEvents()
     @cursorViews = []
     @selectionViews = []
-    @editSessions = []
+    @editSessions = editSessions ? []
 
-    if buffer?
-      @setBuffer(buffer)
+    if activeEditSessionIndex?
+      @setActiveEditSessionIndex(activeEditSessionIndex)
+    else if @editSessions.length > 0
+      @setActiveEditSessionIndex(0)
     else if !suppressBufferCreation
-      @setBuffer(new Buffer)
+      editSession = new EditSession
+        softWrapColumn: @calcSoftWrapColumn()
+        buffer: new Buffer()
+        tabText: @tabText
+        autoIndent: @autoIndent
+        softTabs: @softTabs
+
+      @setActiveEditSession(editSession)
 
   serialize: ->
     @saveActiveEditSession()
@@ -335,6 +344,15 @@ class Editor extends View
 
   setBuffer: (buffer) ->
     @activateEditSessionForBuffer(buffer)
+
+  setActiveEditSession: (editSession) ->
+    index = @editSessionIndexForBuffer(editSession.buffer)
+
+    unless index?
+      index = @editSessions.length
+      @editSessions.push(editSession)
+
+    @setActiveEditSessionIndex(index)
 
   activateEditSessionForBuffer: (buffer) ->
     index = @editSessionIndexForBuffer(buffer)

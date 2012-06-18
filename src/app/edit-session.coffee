@@ -11,13 +11,7 @@ class EditSession
   @idCounter: 1
 
   @deserialize: (state, editor, rootView) ->
-    buffer = Buffer.deserialize(state.buffer, rootView.project)
-    session = new EditSession(
-      buffer: buffer
-      tabText: editor.tabText
-      autoIndent: editor.autoIndent
-      softTabs: editor.softTabs
-    )
+    session = rootView.project.open(state.buffer)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
@@ -54,7 +48,7 @@ class EditSession
     @displayBuffer.destroy()
 
   serialize: ->
-    buffer: @buffer.serialize()
+    buffer: @buffer.getPath()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()

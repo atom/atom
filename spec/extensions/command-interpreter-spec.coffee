@@ -1,5 +1,6 @@
 CommandInterpreter = require 'command-interpreter'
 Buffer = require 'buffer'
+EditSession = require 'edit-session'
 Editor = require 'editor'
 
 describe "CommandInterpreter", ->
@@ -7,7 +8,8 @@ describe "CommandInterpreter", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    editor = new Editor({buffer})
+    editSession = new EditSession({buffer})
+    editor = new Editor({editSessions:[editSession]})
     interpreter = new CommandInterpreter()
 
   describe "addresses", ->

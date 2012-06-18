@@ -3,17 +3,18 @@ _ = require 'underscore'
 $ = require 'jquery'
 
 Buffer = require 'buffer'
+EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 
 module.exports =
 class Project
   rootDirectory: null
-  buffers: null
+  editSessions: null
 
   constructor: (path) ->
     @setPath(path)
-    @buffers = []
+    @editSessions = []
 
   getPath: ->
     @rootDirectory?.path
@@ -48,19 +49,6 @@ class Project
   ignorePath: (path) ->
     fs.base(path).match(/\.DS_Store/) or path.match(/(^|\/)\.git(\/|$)/)
 
-  open: (filePath) ->
-    if filePath?
-      filePath = @resolve(filePath)
-      @bufferWithPath(filePath) ? @buildBuffer(filePath)
-    else
-      @buildBuffer()
-
-  buildBuffer: (filePath) ->
-    buffer = new Buffer(filePath)
-    @buffers.push(buffer)
-    @trigger 'new-buffer', buffer
-    buffer
-
   resolve: (filePath) ->
     filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
     fs.absolute filePath
@@ -68,10 +56,30 @@ class Project
   relativize: (fullPath) ->
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
-  bufferWithId: (id) ->
-    return buffer for buffer in @buffers when buffer.id == id
+  open: (filePath) ->
+    if filePath?
+      filePath = @resolve(filePath)
+      buffer = @bufferWithPath(filePath) ? @buildBuffer(filePath)
+    else
+      buffer = @buildBuffer()
+
+    editSession = new EditSession({buffer, tabText: "  ", autoIndent: true, softTabs: true, softWrapColumn: null})
+    @editSessions.push editSession
+    editSession
+
+  buildBuffer: (filePath) ->
+    buffer = new Buffer(filePath)
+    @trigger 'new-buffer', buffer
+    buffer
+
+  getBuffers: ->
+    buffers = []
+    for editSession in @editSessions when not _.include(buffers, editSession.buffer)
+      buffers.push editSession.buffer
+
+    buffers
 
   bufferWithPath: (path) ->
-    return buffer for buffer in @buffers when buffer.path == path
+    return editSession.buffer for editSession in @editSessions when editSession.buffer.getPath() == path
 
 _.extend Project.prototype, EventEmitter

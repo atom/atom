@@ -12,9 +12,6 @@ class Buffer
   lines: null
   path: null
 
-  @deserialize: (state, project) ->
-    project.open(state.path)
-
   constructor: (path) ->
     @id = @constructor.idCounter++
     @setPath(path)
@@ -25,9 +22,6 @@ class Buffer
       @setText('')
     @undoManager = new UndoManager(this)
     @modified = false
-
-  serialize: ->
-    path: @getPath()
 
   getPath: ->
     @path

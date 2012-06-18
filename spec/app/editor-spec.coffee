@@ -66,6 +66,7 @@ describe "Editor", ->
       expect(editor.serialize).toHaveBeenCalled()
       expect(Editor.deserialize).toHaveBeenCalled()
 
+
       expect(newEditor.buffer).toBe editor.buffer
       expect(newEditor.getCursorScreenPosition()).toEqual editor.getCursorScreenPosition()
       expect(newEditor.editSessions[0]).toEqual(editor.editSessions[0])
