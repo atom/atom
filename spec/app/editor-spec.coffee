@@ -458,6 +458,15 @@ describe "Editor", ->
         rootView.setFontSize(22)
         expect(editor.css('font-size')).toBe '30px'
 
+      it "updates the gutter width and font size", ->
+        rootView.attachToDom()
+        originalFontSize = rootView.getFontSize()
+        originalGutterWidth = editor.gutter.width()
+
+        rootView.setFontSize(originalFontSize * 4)
+        expect(editor.gutter.css('font-size')).toBe "#{originalFontSize * 4}px"
+        expect(editor.gutter.width()).toBe(originalGutterWidth * 4)
+
       it "updates lines if there are unrendered lines", ->
         editor.attachToDom(heightInLines: 5)
         originalLineCount = editor.renderedLines.find(".line").length

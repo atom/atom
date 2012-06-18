@@ -83,7 +83,6 @@ class Editor extends View
 
   bindKeys: ->
     editorBindings =
-      'save': @save
       'move-right': @moveCursorRight
       'move-left': @moveCursorLeft
       'move-down': @moveCursorDown
@@ -96,7 +95,6 @@ class Editor extends View
       'select-down': @selectDown
       'select-word': @selectWord
       'newline': @insertNewline
-      'newline-below': @insertNewlineBelow
       'tab': @insertTab
       'indent-selected-rows': @indentSelectedRows
       'outdent-selected-rows': @outdentSelectedRows
@@ -110,19 +108,6 @@ class Editor extends View
       'paste': @paste
       'undo': @undo
       'redo': @redo
-      'toggle-soft-wrap': @toggleSoftWrap
-      'fold-all': @foldAll
-      'toggle-fold': @toggleFold
-      'fold-selection': @foldSelection
-      'unfold': => @unfoldCurrentRow()
-      'split-left': @splitLeft
-      'split-right': @splitRight
-      'split-up': @splitUp
-      'split-down': @splitDown
-      'close': @close
-      'show-next-buffer': @loadNextEditSession
-      'show-previous-buffer': @loadPreviousEditSession
-
       'move-to-top': @moveCursorToTop
       'move-to-bottom': @moveCursorToBottom
       'move-to-beginning-of-line': @moveCursorToBeginningOfLine
@@ -137,7 +122,25 @@ class Editor extends View
       'select-to-end-of-word': @selectToEndOfWord
       'select-to-beginning-of-word': @selectToBeginningOfWord
       'select-all': @selectAll
-      'toggle-line-comments': @toggleLineCommentsInSelection
+
+    if not @mini
+      _.extend editorBindings,
+        'save': @save
+        'newline-below': @insertNewlineBelow
+        'toggle-soft-wrap': @toggleSoftWrap
+        'fold-all': @foldAll
+        'toggle-fold': @toggleFold
+        'fold-selection': @foldSelection
+        'unfold': => @unfoldCurrentRow()
+        'split-left': @splitLeft
+        'split-right': @splitRight
+        'split-up': @splitUp
+        'split-down': @splitDown
+        'close': @close
+        'show-next-buffer': @loadNextEditSession
+        'show-previous-buffer': @loadPreviousEditSession
+        'toggle-line-comments': @toggleLineCommentsInSelection
+
 
     for name, method of editorBindings
       do (name, method) =>
@@ -499,7 +502,7 @@ class Editor extends View
     rootView.on "font-size-change.editor#{@id}", => @setFontSize(rootView.getFontSize())
 
   setFontSize: (fontSize) ->
-    if fontSize
+    if fontSize?
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
       @updateCursorViews()
@@ -626,6 +629,8 @@ class Editor extends View
     @lineHeight = fragment.outerHeight()
     @height(@lineHeight) if @mini
     fragment.remove()
+
+    @gutter.calculateDimensions()
 
   prepareForScrolling: ->
     @adjustHeightOfRenderedLines()
