@@ -12,10 +12,6 @@
 #include "util.h"
 #include "native_handler.h"
 
-// Define this value to redirect all popup URLs to the main application browser
-// window.
-// #define TEST_REDIRECT_POPUP_URLS
-
 // ClientHandler implementation.
 class ClientHandler: public CefClient,
 		public CefLifeSpanHandler,
