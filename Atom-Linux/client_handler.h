@@ -127,8 +127,6 @@ public:
 		return m_BrowserHwnd;
 	}
 
-	std::string GetLogFile();
-
 	enum NotificationType {
 		NOTIFY_CONSOLE_MESSAGE
 	};
