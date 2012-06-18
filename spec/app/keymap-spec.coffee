@@ -126,20 +126,21 @@ describe "Keymap", ->
             expect(bazHandler).toHaveBeenCalled()
 
     describe "when at least one binding partially matches the event's keystroke", ->
+      [quitHandler, closeOtherWindowsHandler] = []
+
       beforeEach ->
         keymap.bindKeys "*",
           'ctrl-x ctrl-c': 'quit'
           'ctrl-x 1': 'close-other-windows'
 
+        quitHandler = jasmine.createSpy('quitHandler')
+        closeOtherWindowsHandler = jasmine.createSpy('closeOtherWindowsHandler')
+        fragment.on 'quit', quitHandler
+        fragment.on 'close-other-windows', closeOtherWindowsHandler
+
       describe "when the event's target node matches a selector with a partially matching multi-stroke binding", ->
         describe "when a second keystroke added to the first to match a multi-stroke binding completely", ->
           fit "triggers the event associated with the matched multi-stroke binding", ->
-
-            quitHandler = jasmine.createSpy('quitHandler')
-            fragment.on 'quit', quitHandler
-            closeOtherWindowsHandler = jasmine.createSpy('closeOtherWindowsHandler')
-            fragment.on 'close-other-windows', closeOtherWindowsHandler
-
             expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
             expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0], ctrlKey: true))).toBeFalsy()
 
@@ -154,7 +155,13 @@ describe "Keymap", ->
             expect(closeOtherWindowsHandler).toHaveBeenCalled()
 
         describe "when a second keystroke added to the first doesn't match any bindings", ->
-          it "clears the queued keystrokes without triggering any events", ->
+          fit "clears the queued keystrokes without triggering any events", ->
+            expect(keymap.handleKeyEvent(keydownEvent('x', target: fragment[0], ctrlKey: true))).toBeFalsy()
+            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBeFalsy()
+            expect(quitHandler).not.toHaveBeenCalled()
+            expect(closeOtherWindowsHandler).not.toHaveBeenCalled()
+
+            expect(keymap.handleKeyEvent(keydownEvent('c', target: fragment[0]))).toBeTruthy()
 
       describe "when the event's target node descends from multiple nodes that match selectors with a partial binding match", ->
         it "allows any of the bindings to be triggered upon a second keystroke"
