@@ -1,4 +1,5 @@
 Snippets = require 'snippets'
+RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 _ = require 'underscore'
@@ -6,8 +7,11 @@ _ = require 'underscore'
 fdescribe "Snippets extension", ->
   [buffer, editor] = []
   beforeEach ->
-    buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editor = new Editor({buffer})
+    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    editor = rootView.activeEditor()
+    buffer = editor.buffer
+    rootView.activateExtension(Snippets)
+    rootView.simulateDomAttachment()
 
   describe "when 'tab' is triggered on the editor", ->
     describe "when the letters preceding the cursor are registered as a global extension", ->
@@ -16,19 +20,15 @@ fdescribe "Snippets extension", ->
           snippet te "Test snippet description"
           this is a test
           endsnippet
-
-          snippet moo "Moo snippet"
-          Mooooooo!
-          endsnippet
         """
-
         editor.insertText("te")
-        editor.trigger 'tab'
-
         expect(editor.getCursorScreenPosition()).toEqual [0, 2]
-        expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
 
-  ffdescribe "Snippets parser", ->
+        editor.trigger 'tab'
+        expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
+        expect(editor.getCursorScreenPosition()).toEqual [0, 14]
+
+  describe "Snippets parser", ->
     it "can parse a snippet", ->
       snippets = Snippets.snippetsParser.parse """
         snippet te "Test snippet description"

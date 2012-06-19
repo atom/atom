@@ -329,6 +329,9 @@ class EditSession
   getSelectedText: ->
     @getLastSelection().getText()
 
+  getTextInBufferRange: (range) ->
+    @buffer.getTextInRange(range)
+
   moveCursorUp: ->
     @moveCursors (cursor) -> cursor.moveUp()
 

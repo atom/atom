@@ -32,6 +32,12 @@ class Buffer
   getPath: ->
     @path
 
+  getExtension: ->
+    if @getPath()
+      @getPath().split('/').pop().split('.').pop()
+    else
+      null
+
   setPath: (path) ->
     @path = path
     @trigger "path-change", this
