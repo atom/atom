@@ -59,6 +59,7 @@ class RootView extends View
 
     @on 'increase-font-size', => @setFontSize(@getFontSize() + 1)
     @on 'decrease-font-size', => @setFontSize(@getFontSize() - 1)
+    @on 'focus-next-pane', => @focusNextPane()
 
   afterAttach: (onDom) ->
     @focus() if onDom
@@ -139,6 +140,15 @@ class RootView extends View
       editor.view()
     else
       @panes.find('.editor:first').view()
+
+  focusNextPane: ->
+    panes = @panes.find('.pane')
+    currentIndex = panes.toArray().indexOf(@getFocusedPane()[0])
+    nextIndex = (currentIndex + 1) % panes.length
+    panes.eq(nextIndex).view().wrappedView.focus()
+
+  getFocusedPane: ->
+    @panes.find('.pane:has(:focus)')
 
   setRootPane: (pane) ->
     @panes.empty()

@@ -8,30 +8,42 @@ PEG = require 'pegjs'
 module.exports =
 class BindingSet
   selector: null
-  keystrokeMap: null
+  commandsByKeystrokes: null
   commandForEvent: null
   parser: null
 
   constructor: (@selector, mapOrFunction) ->
     @parser = PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(@selector)
-    @keystrokeMap = {}
+    @commandsByKeystrokes = {}
 
     if _.isFunction(mapOrFunction)
       @commandForEvent = mapOrFunction
     else
-      @keystrokeMap = @normalizeKeystrokeMap(mapOrFunction)
+      @commandsByKeystrokes = @normalizeCommandsByKeystrokes(mapOrFunction)
       @commandForEvent = (event) =>
-        for keystroke, command of @keystrokeMap
-          return command if event.keystroke == keystroke
+        for keystrokes, command of @commandsByKeystrokes
+          return command if event.keystrokes == keystrokes
         null
 
-  normalizeKeystrokeMap: (keystrokeMap) ->
-    normalizeKeystrokeMap = {}
-    for keystroke, command of keystrokeMap
-      normalizeKeystrokeMap[@normalizeKeystroke(keystroke)] = command
+  matchesKeystrokePrefix: (event) ->
+    eventKeystrokes = event.keystrokes.split(' ')
+    for keystrokes, command of @commandsByKeystrokes
+      bindingKeystrokes = keystrokes.split(' ')
+      continue unless eventKeystrokes.length < bindingKeystrokes.length
+      return true if _.isEqual(eventKeystrokes, bindingKeystrokes[0...eventKeystrokes.length])
+    false
 
-    normalizeKeystrokeMap
+  normalizeCommandsByKeystrokes: (commandsByKeystrokes) ->
+    normalizedCommandsByKeystrokes = {}
+    for keystrokes, command of commandsByKeystrokes
+      normalizedCommandsByKeystrokes[@normalizeKeystrokes(keystrokes)] = command
+    normalizedCommandsByKeystrokes
+
+  normalizeKeystrokes: (keystrokes) ->
+    normalizedKeystrokes = keystrokes.split(/\s+/).map (keystroke) =>
+      @normalizeKeystroke(keystroke)
+    normalizedKeystrokes.join(' ')
 
   normalizeKeystroke: (keystroke) ->
     keys = @parser.parse(keystroke)

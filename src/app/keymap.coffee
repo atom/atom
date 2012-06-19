@@ -8,6 +8,7 @@ Specificity = require 'specificity'
 module.exports =
 class Keymap
   bindingSets: null
+  queuedKeystrokes: null
 
   constructor: ->
     @bindingSets = []
@@ -34,13 +35,15 @@ class Keymap
     while currentNode.length
       bindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
       bindingSets.sort (a, b) -> b.specificity - a.specificity
-      _.defaults(keystrokeMap, set.keystrokeMap) for set in bindingSets
+      _.defaults(keystrokeMap, set.commandsByKeystrokes) for set in bindingSets
       currentNode = currentNode.parent()
 
     keystrokeMap
 
   handleKeyEvent: (event) ->
-    event.keystroke = @keystrokeStringForEvent(event)
+    event.keystrokes = @multiKeystrokeStringForEvent(event)
+    isMultiKeystroke = @queuedKeystrokes?
+    @queuedKeystrokes = null
     currentNode = $(event.target)
     while currentNode.length
       candidateBindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
@@ -52,13 +55,25 @@ class Keymap
           return false
         else if command == false
           return false
+
+        if bindingSet.matchesKeystrokePrefix(event)
+          @queuedKeystrokes = event.keystrokes
+          return false
       currentNode = currentNode.parent()
-    true
+
+    !isMultiKeystroke
 
   triggerCommandEvent: (keyEvent, commandName) ->
     commandEvent = $.Event(commandName)
     commandEvent.keyEvent = keyEvent
     $(keyEvent.target).trigger(commandEvent)
+
+  multiKeystrokeStringForEvent: (event) ->
+    currentKeystroke = @keystrokeStringForEvent(event)
+    if @queuedKeystrokes
+      @queuedKeystrokes + ' ' + currentKeystroke
+    else
+      currentKeystroke
 
   keystrokeStringForEvent: (event) ->
     if /^U\+/i.test event.originalEvent.keyIdentifier
