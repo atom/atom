@@ -3,6 +3,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
 Point = require 'point'
+Project = require 'project'
 Directory = require 'directory'
 require 'window'
 window.showConsole()
@@ -13,6 +14,7 @@ defaultTitle = document.title
 directoriesWithSubscriptions = null
 
 beforeEach ->
+  window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
   directoriesWithSubscriptions = []
 

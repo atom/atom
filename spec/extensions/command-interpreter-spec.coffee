@@ -7,9 +7,9 @@ describe "CommandInterpreter", ->
   [interpreter, editor, buffer] = []
 
   beforeEach ->
-    buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    editSession = new EditSession({buffer})
-    editor = new Editor({editSessions:[editSession]})
+    editSession = fixturesProject.open('sample.js')
+    buffer = editSession.buffer
+    editor = new Editor(editSession: editSession)
     interpreter = new CommandInterpreter()
 
   describe "addresses", ->

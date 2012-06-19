@@ -10,8 +10,7 @@ describe "Autocomplete", ->
   miniEditor = null
 
   beforeEach ->
-    editor = new Editor()
-    editor.setBuffer new Buffer(require.resolve('fixtures/sample.js'))
+    editor = new Editor(editSession: fixturesProject.open('sample.js'))
     autocomplete = new Autocomplete(editor)
     miniEditor = autocomplete.miniEditor
 

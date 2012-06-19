@@ -9,11 +9,11 @@ _ = require 'underscore'
 fs = require 'fs'
 
 describe "Editor", ->
-  [rootView, buffer, editor, cachedLineHeight] = []
+  [rootView, project, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
-    editorForMeasurement = new Editor()
+    editorForMeasurement = new Editor(editSession: project.open('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     editorForMeasurement.remove()
@@ -39,13 +39,8 @@ describe "Editor", ->
     editor.remove()
 
   describe "construction", ->
-    it "assigns an empty buffer and correctly handles text input (regression coverage)", ->
-      editor = new Editor
-      editor.attachToDom()
-      expect(editor.buffer.getPath()).toBeUndefined()
-      expect(editor.renderedLines.find('.line').length).toBe 1
-      editor.insertText('x')
-      expect(editor.renderedLines.find('.line').length).toBe 1
+    it "throws an error if no editor session is given", ->
+      expect(-> new Editor).toThrow()
 
   describe ".copy()", ->
     it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
@@ -1061,7 +1056,7 @@ describe "Editor", ->
           expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
         it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
-          otherEditor = new Editor()
+          otherEditor = new Editor(editSession: project.open('sample.js'))
           spyOn(otherEditor, 'setSoftWrapColumn')
 
           otherEditor.setSoftWrap(true)

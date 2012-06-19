@@ -96,7 +96,7 @@ class RootView extends View
     if @activeEditor()
       @activeEditor().setActiveEditSession(editSession)
     else
-      editor = new Editor(editSessions: [editSession])
+      editor = new Editor(editSession: editSession)
       pane = new Pane(editor)
       @panes.append(pane)
       if changeFocus
