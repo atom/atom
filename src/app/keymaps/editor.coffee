@@ -5,7 +5,6 @@ window.keymap.bindKeys '.editor',
   'shift-up': 'select-up'
   'shift-down': 'select-down'
   'meta-a': 'select-all'
-  'ctrl-w': 'select-word'
   'enter': 'newline'
   'meta-enter': 'newline-below'
   'tab': 'tab'
@@ -33,3 +32,5 @@ window.keymap.bindKeys '.editor',
   'meta-+': 'increase-font-size'
   'meta--': 'decrease-font-size'
   'meta-/': 'toggle-line-comments'
+  'ctrl-w w': 'focus-next-pane'
+  'ctrl-W': 'select-word'

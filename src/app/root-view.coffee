@@ -59,6 +59,7 @@ class RootView extends View
 
     @on 'increase-font-size', => @setFontSize(@getFontSize() + 1)
     @on 'decrease-font-size', => @setFontSize(@getFontSize() - 1)
+    @on 'focus-next-pane', => @focusNextPane()
 
   afterAttach: (onDom) ->
     @focus() if onDom
