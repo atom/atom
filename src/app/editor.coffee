@@ -45,6 +45,7 @@ class Editor extends View
   isFocused: false
   softTabs: true
   tabText: '  '
+  activeEditSession: null
   editSessions: null
   attached: false
   lineOverdraw: 100
@@ -84,8 +85,11 @@ class Editor extends View
 
   serialize: ->
     @saveActiveEditSession()
-    editSessions = @editSessions.map (session) -> session.serialize()
-    { viewClass: "Editor", editSessions, @activeEditSessionIndex, @isFocused }
+
+    viewClass: "Editor"
+    editSessions: @editSessions.map (session) -> session.serialize()
+    activeEditSessionIndex: @getActiveEditSessionIndex()
+    isFocused: @isFocused
 
   copy: ->
     Editor.deserialize(@serialize(), @rootView())
@@ -382,13 +386,16 @@ class Editor extends View
       _.remove(@editSessions, editSession)
 
   loadNextEditSession: ->
-    nextIndex = (@activeEditSessionIndex + 1) % @editSessions.length
+    nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
     @setActiveEditSessionIndex(nextIndex)
 
   loadPreviousEditSession: ->
-    previousIndex = @activeEditSessionIndex - 1
+    previousIndex = @getActiveEditSessionIndex() - 1
     previousIndex = @editSessions.length - 1 if previousIndex < 0
     @setActiveEditSessionIndex(previousIndex)
+
+  getActiveEditSessionIndex: ->
+    return index for session, index in @editSessions when session == @activeEditSession
 
   setActiveEditSessionIndex: (index) ->
     throw new Error("Edit session not found") unless @editSessions[index]
@@ -398,7 +405,6 @@ class Editor extends View
       @activeEditSession.off()
 
     @activeEditSession = @editSessions[index]
-    @activeEditSessionIndex = index
 
     @unsubscribeFromBuffer() if @buffer
     @buffer = @activeEditSession.buffer
