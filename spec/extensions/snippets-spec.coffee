@@ -29,15 +29,23 @@ fdescribe "Snippets extension", ->
         expect(editor.getCursorScreenPosition()).toEqual [0, 14]
 
   describe "Snippets parser", ->
-    it "can parse a snippet", ->
+    it "can parse multiple snippets", ->
       snippets = Snippets.snippetsParser.parse """
-        snippet te "Test snippet description"
-        this is a test
+        snippet t1 "Test snippet 1"
+        this is a test 1
+        endsnippet
+
+        snippet t2 "Test snippet 2"
+        this is a test 2
         endsnippet
       """
+      expect(_.keys(snippets).length).toBe 2
+      snippet = snippets['t1']
+      expect(snippet.prefix).toBe 't1'
+      expect(snippet.description).toBe "Test snippet 1"
+      expect(snippet.body).toBe "this is a test 1"
 
-      expect(_.keys(snippets).length).toBe 1
-      snippet = snippets['te']
-      expect(snippet.prefix).toBe 'te'
-      expect(snippet.description).toBe "Test snippet description"
-      expect(snippet.body).toBe "this is a test"
+      snippet = snippets['t2']
+      expect(snippet.prefix).toBe 't2'
+      expect(snippet.description).toBe "Test snippet 2"
+      expect(snippet.body).toBe "this is a test 2"

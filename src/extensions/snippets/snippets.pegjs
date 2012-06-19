@@ -6,7 +6,7 @@ snippets = snippets:snippet+ {
   return snippetsByPrefix;
 }
 
-snippet = start ws prefix:prefix ws description:string separator body:body end {
+snippet = ws? start ws prefix:prefix ws description:string separator body:body end {
   return { prefix: prefix, description: description, body: body };
 }
 
@@ -14,7 +14,7 @@ separator = [ ]* '\n'
 start = 'snippet'
 prefix = prefix:[A-Za-z0-9_]+ { return prefix.join(''); }
 body = body:bodyCharacter* { return body.join(''); }
-bodyCharacter = !end char:[a-z ] { return char; }
+bodyCharacter = !end char:. { return char; }
 end = '\nendsnippet'
 string
   = ['] body:[^']* ['] { return body.join(''); }
