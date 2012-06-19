@@ -3,6 +3,7 @@ fs = require 'fs'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
+{View} = require 'space-pen'
 
 describe "RootView", ->
   rootView = null
@@ -331,6 +332,30 @@ describe "RootView", ->
         expect(rootView.panes.children().length).toBe 1
         expect(rootView.panes.children('.pane').length).toBe 1
         expect(pane1.outerWidth()).toBe rootView.panes.width()
+
+    describe ".focusNextPane()", ->
+      it "focuses the wrapped view of the pane after the currently focused pane", ->
+        class DummyView extends View
+          @content: (number) -> @div(number, tabindex: -1)
+
+        view1 = pane1.wrappedView
+        view2 = new DummyView(2)
+        view3 = new DummyView(3)
+        pane2 = pane1.splitDown(view2)
+        pane3 = pane2.splitRight(view3)
+        rootView.attachToDom()
+        view1.focus()
+
+        spyOn(view1, 'focus').andCallThrough()
+        spyOn(view2, 'focus').andCallThrough()
+        spyOn(view3, 'focus').andCallThrough()
+
+        rootView.focusNextPane()
+        expect(view2.focus).toHaveBeenCalled()
+        rootView.focusNextPane()
+        expect(view3.focus).toHaveBeenCalled()
+        rootView.focusNextPane()
+        expect(view1.focus).toHaveBeenCalled()
 
   describe "extensions", ->
     extension = null

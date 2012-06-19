@@ -140,6 +140,15 @@ class RootView extends View
     else
       @panes.find('.editor:first').view()
 
+  focusNextPane: ->
+    panes = @panes.find('.pane')
+    currentIndex = panes.toArray().indexOf(@getFocusedPane()[0])
+    nextIndex = (currentIndex + 1) % panes.length
+    panes.eq(nextIndex).view().wrappedView.focus()
+
+  getFocusedPane: ->
+    @panes.find('.pane:has(:focus)')
+
   setRootPane: (pane) ->
     @panes.empty()
     @panes.append(pane)
