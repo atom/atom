@@ -52,11 +52,11 @@ class Editor extends View
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
 
-    editor = new Editor(activeEditSessionIndex: state.activeEditSessionIndex, editSessions: editSessions, suppressBufferCreation: true, mini: state.mini)
+    editor = new Editor(activeEditSessionIndex: state.activeEditSessionIndex, editSessions: editSessions, mini: state.mini)
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({activeEditSessionIndex, editSessions, suppressBufferCreation, @mini} = {}) ->
+  initialize: ({activeEditSessionIndex, editSessions,  @mini} = {}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -72,7 +72,7 @@ class Editor extends View
       @setActiveEditSessionIndex(activeEditSessionIndex)
     else if @editSessions.length > 0
       @setActiveEditSessionIndex(0)
-    else if !suppressBufferCreation
+    else
       editSession = new EditSession
         softWrapColumn: @calcSoftWrapColumn()
         buffer: new Buffer()
