@@ -3,8 +3,11 @@ $ = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
 Point = require 'point'
+RootView = require 'root-view'
 
 require 'window'
+
+RootView.prototype.loadUserConfiguration = ->
 
 keymap = new Keymap
 keymap.bindDefaultKeys()

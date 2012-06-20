@@ -5,7 +5,7 @@ Editor = require 'editor'
 _ = require 'underscore'
 fs = require 'fs'
 
-fdescribe "Snippets extension", ->
+describe "Snippets extension", ->
   [buffer, editor] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))

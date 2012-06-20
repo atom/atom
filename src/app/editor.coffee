@@ -33,30 +33,29 @@ class Editor extends View
 
   vScrollMargin: 2
   hScrollMargin: 10
-  softWrap: false
   lineHeight: null
   charWidth: null
   charHeight: null
   cursorViews: null
   selectionViews: null
   buffer: null
-  autoIndent: true
   lineCache: null
   isFocused: false
-  softTabs: true
-  tabText: '  '
+  activeEditSession: null
   editSessions: null
   attached: false
   lineOverdraw: 100
 
   @deserialize: (state, rootView) ->
-    editor = new Editor(suppressBufferCreation: true, mini: state.mini)
-    editor.editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
-    editor.setActiveEditSessionIndex(state.activeEditSessionIndex)
+    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
+
+    editSession = editSessions[state.activeEditSessionIndex]
+    editor = new Editor(editSession: editSession, mini: state.mini)
+    editor.editSession = editSessions
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({buffer, suppressBufferCreation, @mini} = {}) ->
+  initialize: ({editSession, @mini} = {}) ->
     requireStylesheet 'editor.css'
     requireStylesheet 'theme/twilight.css'
 
@@ -68,15 +67,29 @@ class Editor extends View
     @selectionViews = []
     @editSessions = []
 
-    if buffer?
-      @setBuffer(buffer)
-    else if !suppressBufferCreation
-      @setBuffer(new Buffer)
+    if editSession?
+      @editSessions.push editSession
+      @setActiveEditSessionIndex(0)
+    else if @mini
+      editSession = new EditSession
+        buffer: new Buffer()
+        softWrap: false
+        tabText: "  "
+        autoIndent: false
+        softTabs: true
+
+      @editSessions.push editSession
+      @setActiveEditSessionIndex(0)
+    else
+      throw new Error("Editor initialization requires an editSession")
 
   serialize: ->
     @saveActiveEditSession()
-    editSessions = @editSessions.map (session) -> session.serialize()
-    { viewClass: "Editor", editSessions, @activeEditSessionIndex, @isFocused }
+
+    viewClass: "Editor"
+    editSessions: @editSessions.map (session) -> session.serialize()
+    activeEditSessionIndex: @getActiveEditSessionIndex()
+    isFocused: @isFocused
 
   copy: ->
     Editor.deserialize(@serialize(), @rootView())
@@ -216,15 +229,13 @@ class Editor extends View
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
   unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
 
-  setAutoIndent: (@autoIndent) -> @activeEditSession.setAutoIndent(@autoIndent)
-  setSoftTabs: (@softTabs) -> @activeEditSession.setSoftTabs(@softTabs)
+  lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
+  linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
+  screenLineCount: -> @activeEditSession.screenLineCount()
   setSoftWrapColumn: (softWrapColumn) ->
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
-  lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
-  linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
-  screenLineCount: -> @activeEditSession.screenLineCount()
   maxScreenLineLength: -> @activeEditSession.maxScreenLineLength()
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
   clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)
@@ -325,7 +336,7 @@ class Editor extends View
     @subscribeToFontSize()
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
-    @setSoftWrapColumn() if @softWrap
+    @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
     $(window).on "resize.editor#{@id}", => @updateRenderedLines()
     @focus() if @isFocused
 
@@ -333,27 +344,14 @@ class Editor extends View
 
     @trigger 'editor-open', [this]
 
-  setBuffer: (buffer) ->
-    @activateEditSessionForBuffer(buffer)
+  edit: (editSession) ->
+    index = @editSessions.indexOf(editSession)
 
-  activateEditSessionForBuffer: (buffer) ->
-    index = @editSessionIndexForBuffer(buffer)
-    unless index?
+    if index == -1
       index = @editSessions.length
-      @editSessions.push(new EditSession(
-        softWrapColumn: @calcSoftWrapColumn()
-        buffer: buffer
-        tabText: @tabText
-        autoIndent: @autoIndent
-        softTabs: @softTabs
-      ))
+      @editSessions.push(editSession)
 
     @setActiveEditSessionIndex(index)
-
-  editSessionIndexForBuffer: (buffer) ->
-    for editSession, index in @editSessions
-      return index if editSession.buffer == buffer
-    null
 
   removeActiveEditSession: ->
     if @editSessions.length == 1
@@ -364,13 +362,16 @@ class Editor extends View
       _.remove(@editSessions, editSession)
 
   loadNextEditSession: ->
-    nextIndex = (@activeEditSessionIndex + 1) % @editSessions.length
+    nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
     @setActiveEditSessionIndex(nextIndex)
 
   loadPreviousEditSession: ->
-    previousIndex = @activeEditSessionIndex - 1
+    previousIndex = @getActiveEditSessionIndex() - 1
     previousIndex = @editSessions.length - 1 if previousIndex < 0
     @setActiveEditSessionIndex(previousIndex)
+
+  getActiveEditSessionIndex: ->
+    return index for session, index in @editSessions when session == @activeEditSession
 
   setActiveEditSessionIndex: (index) ->
     throw new Error("Edit session not found") unless @editSessions[index]
@@ -380,11 +381,11 @@ class Editor extends View
       @activeEditSession.off()
 
     @activeEditSession = @editSessions[index]
-    @activeEditSessionIndex = index
 
     @unsubscribeFromBuffer() if @buffer
     @buffer = @activeEditSession.buffer
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
+
     @trigger 'editor-path-change'
 
     @renderWhenAttached()
@@ -434,7 +435,7 @@ class Editor extends View
       @scrollTop(desiredTop)
 
   scrollHorizontally: (pixelPosition) ->
-    return if @softWrap
+    return if @activeEditSession.getSoftWrap()
 
     charsInView = @scrollView.width() / @charWidth
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
@@ -469,17 +470,18 @@ class Editor extends View
     @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
 
   toggleSoftWrap: ->
-    @setSoftWrap(not @softWrap)
+    @setSoftWrap(not @activeEditSession.getSoftWrap())
 
   calcSoftWrapColumn: ->
-    if @softWrap
+    if @activeEditSession.getSoftWrap()
       Math.floor(@scrollView.width() / @charWidth)
     else
       Infinity
 
-  setSoftWrap: (@softWrap, softWrapColumn=undefined) ->
+  setSoftWrap: (softWrap, softWrapColumn=undefined) ->
+    @activeEditSession.setSoftWrap(softWrap)
     @setSoftWrapColumn(softWrapColumn) if @attached
-    if @softWrap
+    if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
       @_setSoftWrapColumn = => @setSoftWrapColumn()
       $(window).on 'resize', @_setSoftWrapColumn
