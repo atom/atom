@@ -3,6 +3,7 @@ RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
 _ = require 'underscore'
+fs = require 'fs'
 
 fdescribe "Snippets extension", ->
   [buffer, editor] = []
@@ -27,6 +28,21 @@ fdescribe "Snippets extension", ->
         editor.trigger 'tab'
         expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
         expect(editor.getCursorScreenPosition()).toEqual [0, 14]
+
+  describe ".loadSnippetsFile(path)", ->
+    it "loads the snippets in the given file", ->
+      spyOn(fs, 'read').andReturn """
+        snippet t1 "Test snippet 1"
+        this is a test 1
+        endsnippet
+      """
+
+      Snippets.loadSnippetsFile('/tmp/foo/js.snippets')
+      expect(fs.read).toHaveBeenCalledWith('/tmp/foo/js.snippets')
+
+      editor.insertText("t1")
+      editor.trigger 'tab'
+      expect(buffer.lineForRow(0)).toBe "this is a test 1var quicksort = function () {"
 
   describe "Snippets parser", ->
     it "can parse multiple snippets", ->
