@@ -15,19 +15,33 @@ fdescribe "Snippets extension", ->
     rootView.simulateDomAttachment()
 
   describe "when 'tab' is triggered on the editor", ->
-    describe "when the letters preceding the cursor are registered as a global extension", ->
-      it "replaces the prefix with the snippet text", ->
-        Snippets.evalSnippets 'js', """
-          snippet te "Test snippet description"
-          this is a test
-          endsnippet
-        """
-        editor.insertText("te")
-        expect(editor.getCursorScreenPosition()).toEqual [0, 2]
+    beforeEach ->
+      Snippets.evalSnippets 'js', """
+        snippet te "Test snippet description"
+        this is a test
+        endsnippet
+      """
+    describe "when the letters preceding the cursor trigger a snippet", ->
+      describe "when the snippet contains no tab stops", ->
+        it "replaces the prefix with the snippet text and places the cursor at its end", ->
+          editor.insertText("te")
+          expect(editor.getCursorScreenPosition()).toEqual [0, 2]
+
+          editor.trigger 'tab'
+          expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
+          expect(editor.getCursorScreenPosition()).toEqual [0, 14]
+
+      describe "when the snippet contains tab stops", ->
+        
+
+    describe "when the letters preceding the cursor don't match a snippet", ->
+      it "inserts a tab as normal", ->
+        editor.insertText("xte")
+        expect(editor.getCursorScreenPosition()).toEqual [0, 3]
 
         editor.trigger 'tab'
-        expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
-        expect(editor.getCursorScreenPosition()).toEqual [0, 14]
+        expect(buffer.lineForRow(0)).toBe "xte  var quicksort = function () {"
+        expect(editor.getCursorScreenPosition()).toEqual [0, 5]
 
   describe ".loadSnippetsFile(path)", ->
     it "loads the snippets in the given file", ->
