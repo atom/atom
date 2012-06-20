@@ -28,10 +28,8 @@ module.exports =
 
   evalSnippets: (extension, text) ->
     @snippetsByExtension[extension] = @snippetsParser.parse(text)
-    console.log @snippetsByExtension
 
   expandSnippet: ->
-    console.log "EXPAND SNIPPET"
     editSession = @rootView.activeEditor().activeEditSession
     return unless snippets = @snippetsByExtension[editSession.buffer.getExtension()]
     prefix = editSession.getLastCursor().getCurrentWordPrefix()
