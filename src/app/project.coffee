@@ -11,10 +11,18 @@ module.exports =
 class Project
   rootDirectory: null
   editSessions: null
+  tabText: null
+  autoIndent: null
+  softTabs: null
+  softWrapColumn: null
 
   constructor: (path) ->
     @setPath(path)
     @editSessions = []
+
+    @setTabText('  ')
+    @setAutoIndent(true)
+    @setSoftTabs(true)
 
   getPath: ->
     @rootDirectory?.path
@@ -56,6 +64,18 @@ class Project
   relativize: (fullPath) ->
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
+  getTabText: -> @tabText
+  setTabText: (@tabText) ->
+
+  getAutoIndent: -> @autoIndent
+  setAutoIndent: (@autoIndent) ->
+
+  getSoftTabs: -> @softTabs
+  setSoftTabs: (@softTabs) ->
+
+  getSoftWrapColumn: -> @softWrapColumn
+  setSoftWrapColumn: (@softWrapColumn) ->
+
   open: (filePath) ->
     if filePath?
       filePath = @resolve(filePath)
@@ -63,7 +83,13 @@ class Project
     else
       buffer = @buildBuffer()
 
-    editSession = new EditSession({buffer, tabText: "  ", autoIndent: true, softTabs: true, softWrapColumn: null})
+    editSession = new EditSession
+      buffer: buffer
+      tabText: @getTabText()
+      autoIndent: @getAutoIndent()
+      softTabs: @getSoftTabs()
+      softWrapColumn: @getSoftWrapColumn()
+
     @editSessions.push editSession
     editSession
 

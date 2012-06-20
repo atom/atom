@@ -6,12 +6,12 @@ describe "EditSession", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editSession = new EditSession(
+    editSession = new EditSession
       buffer: buffer
       tabText: '  '
       autoIndent: false
       softWrapColumn: Infinity
-    )
+
     lineLengths = buffer.getLines().map (line) -> line.length
 
   describe "cursor movement", ->

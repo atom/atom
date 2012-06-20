@@ -40,11 +40,8 @@ class Editor extends View
   cursorViews: null
   selectionViews: null
   buffer: null
-  autoIndent: true
   lineCache: null
   isFocused: false
-  softTabs: true
-  tabText: '  '
   activeEditSession: null
   editSessions: null
   attached: false
@@ -76,11 +73,11 @@ class Editor extends View
       @setActiveEditSessionIndex(0)
     else if @mini
       editSession = new EditSession
-        softWrapColumn: @calcSoftWrapColumn()
         buffer: new Buffer()
-        tabText: @tabText
-        autoIndent: @autoIndent
-        softTabs: @softTabs
+        softWrapColumn: null
+        tabText: "  "
+        autoIndent: false
+        softTabs: true
 
       @editSessions.push editSession
       @setActiveEditSessionIndex(0)
@@ -233,15 +230,13 @@ class Editor extends View
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
   unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
 
-  setAutoIndent: (@autoIndent) -> @activeEditSession.setAutoIndent(@autoIndent)
-  setSoftTabs: (@softTabs) -> @activeEditSession.setSoftTabs(@softTabs)
+  lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
+  linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
+  screenLineCount: -> @activeEditSession.screenLineCount()
   setSoftWrapColumn: (softWrapColumn) ->
     softWrapColumn ?= @calcSoftWrapColumn()
     @activeEditSession.setSoftWrapColumn(softWrapColumn) if softWrapColumn
 
-  lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
-  linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)
-  screenLineCount: -> @activeEditSession.screenLineCount()
   maxScreenLineLength: -> @activeEditSession.maxScreenLineLength()
   getLastScreenRow: -> @activeEditSession.getLastScreenRow()
   clipScreenPosition: (screenPosition, options={}) -> @activeEditSession.clipScreenPosition(screenPosition, options)

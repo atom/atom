@@ -14,7 +14,7 @@ describe "Editor", ->
 
   getLineHeight = ->
     return cachedLineHeight if cachedLineHeight?
-    editorForMeasurement = new Editor(editSession: project.open('sample.js'))
+    editorForMeasurement = new Editor(editSession: rootView.project.open('sample.js'))
     editorForMeasurement.attachToDom()
     cachedLineHeight = editorForMeasurement.lineHeight
     editorForMeasurement.remove()
@@ -22,7 +22,6 @@ describe "Editor", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    project = rootView.project
     editor = rootView.activeEditor()
     buffer = editor.buffer
 
@@ -32,7 +31,7 @@ describe "Editor", ->
       $('#jasmine-content').append(this)
 
     editor.lineOverdraw = 2
-    editor.setAutoIndent(false)
+    rootView.project.setAutoIndent(false)
     editor.enableKeymap()
     editor.isFocused = true
 
@@ -93,7 +92,7 @@ describe "Editor", ->
       expect(editor).toMatchSelector ":has(:focus)"
 
     it "unsubscribes from the buffer when it is removed from the dom", ->
-      editSession = project.open('sample.txt')
+      editSession = rootView.project.open('sample.txt')
       previousSubscriptionCount = editSession.buffer.subscriptionCount()
       editor.attachToDom()
       editor.edit(editSession)
@@ -126,7 +125,7 @@ describe "Editor", ->
   describe ".remove()", ->
     it "removes subscriptions from all edit session buffers", ->
       previousEditSession = editor.activeEditSession
-      otherEditSession = project.open('sample.txt')
+      otherEditSession = rootView.project.open('sample.txt')
       expect(previousEditSession.buffer.subscriptionCount()).toBeGreaterThan 1
 
       editor.edit(otherEditSession)
@@ -138,7 +137,7 @@ describe "Editor", ->
 
   describe "when 'close' is triggered", ->
     it "closes active edit session and loads next edit session", ->
-      editor.edit(project.open())
+      editor.edit(rootView.project.open())
       spyOn(editor, "remove")
       editor.trigger "close"
       expect(editor.remove).not.toHaveBeenCalled()
@@ -171,7 +170,7 @@ describe "Editor", ->
     otherEditSession = null
 
     beforeEach ->
-      otherEditSession = project.open()
+      otherEditSession = rootView.project.open()
 
     describe "when the edit session wasn't previously assigned to this editor", ->
       it "adds edit session to editor", ->
@@ -219,10 +218,10 @@ describe "Editor", ->
     beforeEach ->
       session0 = editor.activeEditSession
 
-      editor.edit(project.open('sample.txt'))
+      editor.edit(rootView.project.open('sample.txt'))
       session1 = editor.activeEditSession
 
-      editor.edit(project.open('two-hundred.txt'))
+      editor.edit(rootView.project.open('two-hundred.txt'))
       session2 = editor.activeEditSession
 
     describe ".setActiveEditSessionIndex(index)", ->
@@ -278,7 +277,7 @@ describe "Editor", ->
         rootView = new RootView(tempFilePath)
         project = rootView.project
 
-        editor.edit(project.open(tempFilePath))
+        editor.edit(rootView.project.open(tempFilePath))
         expect(editor.buffer.getPath()).toBe tempFilePath
 
       afterEach ->
@@ -296,7 +295,7 @@ describe "Editor", ->
     describe "when the current buffer has no path", ->
       selectedFilePath = null
       beforeEach ->
-        editor.edit(project.open())
+        editor.edit(rootView.project.open())
 
         expect(editor.buffer.getPath()).toBeUndefined()
         editor.buffer.setText 'Save me to a new path'
@@ -413,7 +412,7 @@ describe "Editor", ->
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor-path-change', eventHandler
-      editor.edit(project.open("something.txt"))
+      editor.edit(rootView.project.open("something.txt"))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -421,7 +420,7 @@ describe "Editor", ->
       oldBuffer = editor.buffer
       editor.on 'editor-path-change', eventHandler
 
-      editor.edit(project.open("something.txt"))
+      editor.edit(rootView.project.open("something.txt"))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
@@ -1024,11 +1023,11 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(5)').text()).toBe "    while(items.length > 0) {"
           expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
-        it "wraps the lines of any newly assigned buffers", ->
-          otherEditSession = project.open()
+        it "does not wrap the lines of any newly assigned buffers", ->
+          otherEditSession = rootView.project.open()
           otherEditSession.buffer.setText([1..100].join(''))
           editor.edit(otherEditSession)
-          expect(editor.renderedLines.find('.line').length).toBeGreaterThan(1)
+          expect(editor.renderedLines.find('.line').length).toBe(1)
 
         it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
           editor.toggleSoftWrap()
@@ -1061,7 +1060,7 @@ describe "Editor", ->
           expect(editor.getCursorScreenPosition()).toEqual [11, 0]
 
         it "calls .setSoftWrapColumn() when the editor is attached because now its dimensions are available to calculate it", ->
-          otherEditor = new Editor(editSession: project.open('sample.js'))
+          otherEditor = new Editor(editSession: rootView.project.open('sample.js'))
           spyOn(otherEditor, 'setSoftWrapColumn')
 
           otherEditor.setSoftWrap(true)
@@ -1321,8 +1320,9 @@ describe "Editor", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editor.edit(project.open('fixtures/two-hundred.txt'))
+        editor.edit(rootView.project.open('two-hundred.txt'))
         editor.attachToDom(heightInLines: 5.5)
+
         expect(editor.renderedLines.find('.line').length).toBe 8
 
         editor.moveCursorToBottom()
@@ -1486,7 +1486,7 @@ describe "Editor", ->
 
   describe "folding", ->
     beforeEach ->
-      editSession = project.open('two-hundred.txt')
+      editSession = rootView.project.open('two-hundred.txt')
       buffer = editSession.buffer
       editor.edit(editSession)
       editor.attachToDom()
