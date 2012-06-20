@@ -9,9 +9,9 @@ describe "Snippets extension", ->
   [buffer, editor] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
+    rootView.activateExtension(Snippets)
     editor = rootView.activeEditor()
     buffer = editor.buffer
-    rootView.activateExtension(Snippets)
     rootView.simulateDomAttachment()
 
   describe "when 'tab' is triggered on the editor", ->

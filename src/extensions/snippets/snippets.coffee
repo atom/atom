@@ -1,5 +1,6 @@
 fs = require 'fs'
 PEG = require 'pegjs'
+_ = require 'underscore'
 
 module.exports =
   class Snippets
@@ -8,7 +9,12 @@ module.exports =
 
     @activate: (@rootView) ->
       @loadSnippets()
-      rootView.on 'editor-open', (e, editor) => new Snippets(editor)
+
+      project = rootView.project
+
+      new Snippets(editSession) for editSession in project.editSessions
+      project.on 'new-edit-session', (editSession) => new Snippets(editSession)
+
 
     @loadSnippets: ->
       snippetsDir = fs.join(atom.configDirPath, 'snippets')
@@ -22,14 +28,13 @@ module.exports =
     @evalSnippets: (extension, text) ->
       @snippetsByExtension[extension] = @snippetsParser.parse(text)
 
-    constructor: (@editor) ->
-      @editor.preempt 'tab', => return false if @expandSnippet()
+    constructor: (@editSession) ->
+      _.adviseBefore @editSession, 'insertTab', => @expandSnippet()
 
     expandSnippet: ->
-      editSession = @editor.activeEditSession
-      return unless snippets = @constructor.snippetsByExtension[editSession.buffer.getExtension()]
-      prefix = editSession.getLastCursor().getCurrentWordPrefix()
+      return unless snippets = @constructor.snippetsByExtension[@editSession.buffer.getExtension()]
+      prefix = @editSession.getLastCursor().getCurrentWordPrefix()
       if body = snippets[prefix]?.body
-        editSession.selectToBeginningOfWord()
-        editSession.insertText(body)
-        true
+        @editSession.selectToBeginningOfWord()
+        @editSession.insertText(body)
+        false
