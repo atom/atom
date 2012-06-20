@@ -345,13 +345,13 @@ describe "Autocomplete", ->
         autocomplete.attach()
         expect(autocomplete.buildWordList).not.toHaveBeenCalled()
 
-  describe "when a new buffer is assigned on editor", ->
+  describe "when a new edit session is assigned on editor", ->
     it 'creates and uses a new word list based on new buffer', ->
       wordList = autocomplete.wordList
       expect(wordList).toContain "quicksort"
       expect(wordList).not.toContain "Some"
 
-      editor.setBuffer new Buffer(require.resolve('fixtures/sample.txt'))
+      editor.edit(fixturesProject.open('sample.txt'))
 
       wordList = autocomplete.wordList
       expect(wordList).not.toContain "quicksort"
@@ -359,7 +359,7 @@ describe "Autocomplete", ->
 
     it 'stops listening to previous buffers change events', ->
       previousBuffer = editor.buffer
-      editor.setBuffer new Buffer(require.resolve('fixtures/sample.txt'))
+      editor.edit(fixturesProject.open('sample.txt'))
       spyOn(autocomplete, "buildWordList")
 
       previousBuffer.change([[0,0],[0,1]], "sauron")

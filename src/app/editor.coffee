@@ -72,7 +72,8 @@ class Editor extends View
     @editSessions = []
 
     if editSession?
-      @setActiveEditSession(editSession)
+      @editSessions.push editSession
+      @setActiveEditSessionIndex(0)
     else if @mini
       editSession = new EditSession
         softWrapColumn: @calcSoftWrapColumn()
@@ -81,7 +82,8 @@ class Editor extends View
         autoIndent: @autoIndent
         softTabs: @softTabs
 
-      @setActiveEditSession(editSession)
+      @editSessions.push editSession
+      @setActiveEditSessionIndex(0)
     else
       throw new Error("Editor initialization requires an editSession")
 
@@ -348,36 +350,14 @@ class Editor extends View
 
     @trigger 'editor-open', [this]
 
-  setBuffer: (buffer) ->
-    @activateEditSessionForBuffer(buffer)
+  edit: (editSession) ->
+    index = @editSessions.indexOf(editSession)
 
-  setActiveEditSession: (editSession) ->
-    index = @editSessionIndexForBuffer(editSession.buffer)
-
-    unless index?
+    if index == -1
       index = @editSessions.length
       @editSessions.push(editSession)
 
     @setActiveEditSessionIndex(index)
-
-  activateEditSessionForBuffer: (buffer) ->
-    index = @editSessionIndexForBuffer(buffer)
-    unless index?
-      index = @editSessions.length
-      @editSessions.push(new EditSession(
-        softWrapColumn: @calcSoftWrapColumn()
-        buffer: buffer
-        tabText: @tabText
-        autoIndent: @autoIndent
-        softTabs: @softTabs
-      ))
-
-    @setActiveEditSessionIndex(index)
-
-  editSessionIndexForBuffer: (buffer) ->
-    for editSession, index in @editSessions
-      return index if editSession.buffer == buffer
-    null
 
   removeActiveEditSession: ->
     if @editSessions.length == 1
@@ -411,6 +391,7 @@ class Editor extends View
     @unsubscribeFromBuffer() if @buffer
     @buffer = @activeEditSession.buffer
     @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
+
     @trigger 'editor-path-change'
 
     @renderWhenAttached()

@@ -94,7 +94,7 @@ class RootView extends View
     editSession = @project.open(path)
 
     if @activeEditor()
-      @activeEditor().setActiveEditSession(editSession)
+      @activeEditor().edit(editSession)
     else
       editor = new Editor(editSession: editSession)
       pane = new Pane(editor)

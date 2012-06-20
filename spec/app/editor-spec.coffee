@@ -1,4 +1,5 @@
 RootView = require 'root-view'
+EditSession = require 'edit-session'
 Buffer = require 'buffer'
 Editor = require 'editor'
 Range = require 'range'
@@ -92,16 +93,15 @@ describe "Editor", ->
       expect(editor).toMatchSelector ":has(:focus)"
 
     it "unsubscribes from the buffer when it is removed from the dom", ->
-      buffer = new Buffer
-      previousSubscriptionCount = buffer.subscriptionCount()
-
+      editSession = project.open('sample.txt')
+      previousSubscriptionCount = editSession.buffer.subscriptionCount()
       editor.attachToDom()
-      editor.setBuffer(buffer)
+      editor.edit(editSession)
 
-      expect(buffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
+      expect(editSession.buffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
       expect($('.editor')).toExist()
       editor.remove()
-      expect(buffer.subscriptionCount()).toBe previousSubscriptionCount
+      expect(editSession.buffer.subscriptionCount()).toBeLessThan previousSubscriptionCount
       expect($('.editor')).not.toExist()
 
   describe "when the editor recieves focus", ->
@@ -125,19 +125,20 @@ describe "Editor", ->
 
   describe ".remove()", ->
     it "removes subscriptions from all edit session buffers", ->
-      otherBuffer = new Buffer(require.resolve('fixtures/sample.txt'))
-      expect(buffer.subscriptionCount()).toBeGreaterThan 1
+      previousEditSession = editor.activeEditSession
+      otherEditSession = project.open('sample.txt')
+      expect(previousEditSession.buffer.subscriptionCount()).toBeGreaterThan 1
 
-      editor.setBuffer(otherBuffer)
-      expect(otherBuffer.subscriptionCount()).toBeGreaterThan 1
+      editor.edit(otherEditSession)
+      expect(otherEditSession.buffer.subscriptionCount()).toBeGreaterThan 1
 
       editor.remove()
-      expect(buffer.subscriptionCount()).toBe 1
-      expect(otherBuffer.subscriptionCount()).toBe 1
+      expect(previousEditSession.buffer.subscriptionCount()).toBe 1
+      expect(otherEditSession.buffer.subscriptionCount()).toBe 1
 
   describe "when 'close' is triggered", ->
     it "closes active edit session and loads next edit session", ->
-      editor.setBuffer(new Buffer())
+      editor.edit(project.open())
       spyOn(editor, "remove")
       editor.trigger "close"
       expect(editor.remove).not.toHaveBeenCalled()
@@ -166,62 +167,62 @@ describe "Editor", ->
         expect(editor.remove).not.toHaveBeenCalled()
         expect($native.alert).toHaveBeenCalled()
 
-  describe ".setBuffer(buffer)", ->
-    otherBuffer = null
+  describe ".edit(editSession)", ->
+    otherEditSession = null
 
     beforeEach ->
-      otherBuffer = new Buffer
+      otherEditSession = project.open()
 
-    describe "when the buffer wasn't previously assigned to this editor", ->
-      it "creates a new EditSession for it", ->
-        editor.setBuffer(otherBuffer)
-        expect(editor.activeEditSession.buffer).toBe otherBuffer
+    describe "when the edit session wasn't previously assigned to this editor", ->
+      it "adds edit session to editor", ->
+        originalEditSessionCount = editor.editSessions.length
+        editor.edit(otherEditSession)
+        expect(editor.activeEditSession).toBe otherEditSession
+        expect(editor.editSessions.length).toBe originalEditSessionCount + 1
 
-    describe "when the buffer was previously assigned to this editor", ->
-      it "restores the previous edit session associated with the buffer", ->
+    describe "when the edit session was previously assigned to this editor", ->
+      it "restores the previous edit session associated with the editor", ->
         previousEditSession = editor.activeEditSession
 
-        editor.setBuffer(otherBuffer)
+        editor.edit(otherEditSession)
         expect(editor.activeEditSession).not.toBe previousEditSession
 
-        editor.setBuffer(buffer)
+        editor.edit(previousEditSession)
         expect(editor.activeEditSession).toBe previousEditSession
 
     it "unsubscribes from the previously assigned buffer", ->
-      editor.setBuffer(otherBuffer)
+      previousEditSession = editor.activeEditSession
+      previousSubscriptionCount = previousEditSession.buffer.subscriptionCount()
+      editor.edit(otherEditSession)
+      expect(previousEditSession.buffer.subscriptionCount()).toBe previousSubscriptionCount - 1
 
-      previousSubscriptionCount = buffer.subscriptionCount()
+      editor.edit(previousEditSession)
+      expect(previousEditSession.buffer.subscriptionCount()).toBe previousSubscriptionCount
 
-      editor.setBuffer(buffer)
-      editor.setBuffer(otherBuffer)
+      editor.edit(otherEditSession)
+      expect(previousEditSession.buffer.subscriptionCount()).toBe previousSubscriptionCount - 1
 
-      expect(buffer.subscriptionCount()).toBe previousSubscriptionCount
-
-    it "handles buffer manipulation correctly after switching to a new buffer", ->
+    it "handles buffer manipulation correctly after switching to a new edit session", ->
       editor.attachToDom()
       editor.insertText("abc\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'abc'
 
-      editor.setBuffer(otherBuffer)
+      editor.edit(otherEditSession)
       expect(editor.lineElementForScreenRow(0).html()).toBe '&nbsp;'
 
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
 
   describe "switching edit sessions", ->
-    [buffer0, buffer1, buffer2] = []
     [session0, session1, session2] = []
 
     beforeEach ->
-      buffer0 = buffer
       session0 = editor.activeEditSession
 
-      buffer1 = new Buffer(require.resolve('fixtures/sample.txt'))
-      editor.setBuffer(buffer1)
+      editor.edit(project.open('sample.txt'))
       session1 = editor.activeEditSession
 
-      buffer2 = new Buffer(require.resolve('fixtures/two-hundred.txt'))
-      editor.setBuffer(buffer2)
+      editor.edit(project.open('two-hundred.txt'))
       session2 = editor.activeEditSession
 
     describe ".setActiveEditSessionIndex(index)", ->
@@ -234,10 +235,10 @@ describe "Editor", ->
         expect(editor.scrollTop()).toBe 750
 
         editor.setActiveEditSessionIndex(0)
-        expect(editor.buffer).toBe buffer0
+        expect(editor.buffer).toBe session0.buffer
 
         editor.setActiveEditSessionIndex(2)
-        expect(editor.buffer).toBe buffer2
+        expect(editor.buffer).toBe session2.buffer
         expect(editor.getCursorScreenPosition()).toEqual [43, 1]
         expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
         expect(editor.scrollTop()).toBe 750
@@ -274,7 +275,10 @@ describe "Editor", ->
 
       beforeEach ->
         tempFilePath = '/tmp/atom-temp.txt'
-        editor.setBuffer new Buffer(tempFilePath)
+        rootView = new RootView(tempFilePath)
+        project = rootView.project
+
+        editor.edit(project.open(tempFilePath))
         expect(editor.buffer.getPath()).toBe tempFilePath
 
       afterEach ->
@@ -292,7 +296,8 @@ describe "Editor", ->
     describe "when the current buffer has no path", ->
       selectedFilePath = null
       beforeEach ->
-        editor.setBuffer new Buffer()
+        editor.edit(project.open())
+
         expect(editor.buffer.getPath()).toBeUndefined()
         editor.buffer.setText 'Save me to a new path'
         spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
@@ -408,7 +413,7 @@ describe "Editor", ->
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor-path-change', eventHandler
-      editor.setBuffer(new Buffer("something.txt"))
+      editor.edit(project.open("something.txt"))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -416,7 +421,7 @@ describe "Editor", ->
       oldBuffer = editor.buffer
       editor.on 'editor-path-change', eventHandler
 
-      editor.setBuffer(new Buffer("something.txt"))
+      editor.edit(project.open("something.txt"))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
@@ -1020,9 +1025,9 @@ describe "Editor", ->
           expect(editor.bufferPositionForScreenPosition(editor.getCursorScreenPosition())).toEqual [3, 60]
 
         it "wraps the lines of any newly assigned buffers", ->
-          otherBuffer = new Buffer
-          otherBuffer.setText([1..100].join(''))
-          editor.setBuffer(otherBuffer)
+          otherEditSession = project.open()
+          otherEditSession.buffer.setText([1..100].join(''))
+          editor.edit(otherEditSession)
           expect(editor.renderedLines.find('.line').length).toBeGreaterThan(1)
 
         it "unwraps lines and cancels window resize listener when softwrap is disabled", ->
@@ -1316,7 +1321,7 @@ describe "Editor", ->
 
     describe "when autoscrolling at the end of the document", ->
       it "renders lines properly", ->
-        editor.setBuffer(new Buffer(require.resolve 'fixtures/two-hundred.txt'))
+        editor.edit(project.open('fixtures/two-hundred.txt'))
         editor.attachToDom(heightInLines: 5.5)
         expect(editor.renderedLines.find('.line').length).toBe 8
 
@@ -1481,7 +1486,9 @@ describe "Editor", ->
 
   describe "folding", ->
     beforeEach ->
-      editor.setBuffer(new Buffer(require.resolve('fixtures/two-hundred.txt')))
+      editSession = project.open('two-hundred.txt')
+      buffer = editSession.buffer
+      editor.edit(editSession)
       editor.attachToDom()
 
     describe "when a fold-selection event is triggered", ->

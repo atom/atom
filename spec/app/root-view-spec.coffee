@@ -7,7 +7,6 @@ Editor = require 'editor'
 
 describe "RootView", ->
   rootView = null
-  project = null
   path = null
 
   beforeEach ->
@@ -15,7 +14,6 @@ describe "RootView", ->
     rootView = new RootView(path)
     rootView.enableKeymap()
     rootView.focus()
-    project = rootView.project
 
   describe "initialize(pathToOpen)", ->
     describe "when called with a pathToOpen", ->
@@ -61,14 +59,18 @@ describe "RootView", ->
 
       describe "when the serialized RootView has a project", ->
         beforeEach ->
+          path = require.resolve 'fixtures'
+          rootView = new RootView(path)
+          rootView.open('dir/a')
+
           editor1 = rootView.activeEditor()
           editor2 = editor1.splitRight()
           editor3 = editor2.splitRight()
           editor4 = editor2.splitDown()
-          editor2.setBuffer(new Buffer(require.resolve 'fixtures/dir/b'))
-          editor3.setBuffer(new Buffer(require.resolve 'fixtures/sample.js'))
+          editor2.edit(rootView.project.open('dir/b'))
+          editor3.edit(rootView.project.open('sample.js'))
           editor3.setCursorScreenPosition([2, 3])
-          editor4.setBuffer(new Buffer(require.resolve 'fixtures/sample.txt'))
+          editor4.edit(rootView.project.open('sample.txt'))
           editor4.setCursorScreenPosition([0, 2])
           rootView.attachToDom()
           editor2.focus()
@@ -440,14 +442,14 @@ describe "RootView", ->
       expect(document.title).toBe path
 
       editor2 = rootView.activeEditor().splitLeft()
-      editor2.setBuffer(new Buffer("second.txt"))
+      editor2.edit(rootView.project.open("second.txt"))
       expect(pathChangeHandler).toHaveBeenCalled()
-      expect(document.title).toBe "second.txt"
+      expect(document.title).toBe rootView.project.resolve("second.txt")
 
       pathChangeHandler.reset()
       editor1.buffer.setPath("should-not-be-title.txt")
       expect(pathChangeHandler).not.toHaveBeenCalled()
-      expect(document.title).toBe "second.txt"
+      expect(document.title).toBe rootView.project.resolve("second.txt")
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
       rootView = new RootView
@@ -475,7 +477,7 @@ describe "RootView", ->
       rootView.focus()
       expect(pathChangeHandler).not.toHaveBeenCalled()
 
-      editor2.setBuffer editor1.buffer
+      editor2.edit(editor1.activeEditSession)
       editor2.focus()
       expect(pathChangeHandler).not.toHaveBeenCalled()
 
