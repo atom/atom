@@ -50,9 +50,9 @@ windowAdditions =
 
   loadUserConfiguration: ->
     try
-      require atom.userConfigurationPath if fs.exists(atom.userConfigurationPath)
+      require atom.configFilePath if fs.exists(atom.configFilePath)
     catch error
-      console.error "Failed to load `#{atom.userConfigurationPath}`", error.message, error
+      console.error "Failed to load `#{atom.configFilePath}`", error.message, error
       @showConsole()
 
   requireStylesheet: (path) ->

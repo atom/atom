@@ -9,13 +9,15 @@ module.exports =
 class Atom
   keymap: null
   windows: null
-  userConfigurationPath: null
+  configFilePath: null
+  configDirPath: null
   rootViewStates: null
 
   constructor: (@loadPath, nativeMethods) ->
     @windows = []
     @setUpKeymap()
-    @userConfigurationPath = fs.absolute "~/.atom/atom.coffee"
+    @configDirPath = fs.absolute("~/.atom")
+    @configFilePath = fs.join(@configDirPath, "atom.coffee")
     @rootViewStates = {}
 
   setUpKeymap: ->

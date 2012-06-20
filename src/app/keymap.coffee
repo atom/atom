@@ -20,7 +20,7 @@ class Keymap
       'meta-o': 'open'
 
     $(document).on 'new-window', => $native.newWindow()
-    $(document).on 'open-user-configuration', => atom.open(atom.userConfigurationPath)
+    $(document).on 'open-user-configuration', => atom.open(atom.configFilePath)
     $(document).on 'open', =>
       path = $native.openDialog()
       atom.open(path) if path
