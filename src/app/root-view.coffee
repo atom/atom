@@ -21,23 +21,24 @@ class RootView extends View
         @div id: 'panes', outlet: 'panes'
 
   @deserialize: ({ projectPath, panesViewState, extensionStates }) ->
-    rootView = new RootView(projectPath)
+    rootView = new RootView(projectPath, extensionStates: extensionStates, suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
-    rootView.extensionStates = extensionStates if extensionStates
     rootView
 
   extensions: null
   extensionStates: null
   fontSize: 20
 
-  initialize: (pathToOpen) ->
-    @extensions = {}
-    @extensionStates = {}
-    @project = new Project(pathToOpen)
+  initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
+    window.rootView = this
 
+    @extensionStates ?= {}
+    @extensions = {}
+    @project = new Project(pathToOpen)
     @handleEvents()
     @setTitle()
-    @open(pathToOpen) if fs.isFile(pathToOpen)
+    @loadUserConfiguration()
+    @open(pathToOpen) if fs.isFile(pathToOpen) unless suppressOpen
 
   serialize: ->
     projectPath: @project?.getPath()
@@ -170,3 +171,11 @@ class RootView extends View
     @trigger 'font-size-change' if oldFontSize != newFontSize
 
   getFontSize: -> @fontSize
+
+  loadUserConfiguration: ->
+    try
+      require atom.userConfigurationPath if fs.exists(atom.userConfigurationPath)
+    catch error
+      console.error "Failed to load `#{atom.userConfigurationPath}`", error.message, error
+      window.showConsole()
+

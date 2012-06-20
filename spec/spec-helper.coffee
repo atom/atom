@@ -4,6 +4,7 @@ _ = require 'underscore'
 Keymap = require 'keymap'
 Point = require 'point'
 Directory = require 'directory'
+RootView = require 'root-view'
 require 'window'
 window.showConsole()
 
@@ -17,12 +18,16 @@ beforeEach ->
   directoriesWithSubscriptions = []
 
 afterEach ->
+  delete window.rootView if window.rootView
   $('#jasmine-content').empty()
   document.title = defaultTitle
   ensureNoDirectorySubscriptions()
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
+
+# Don't load user configuration in specs, because it's variable
+RootView.prototype.loadUserConfiguration = ->
 
 Directory.prototype.originalOn = Directory.prototype.on
 Directory.prototype.on = (args...) ->

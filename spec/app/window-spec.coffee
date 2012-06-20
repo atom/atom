@@ -3,7 +3,6 @@ fs = require 'fs'
 
 describe "Window", ->
   beforeEach ->
-    spyOn(window, 'loadUserConfiguration')
     window.startup()
 
   afterEach ->

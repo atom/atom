@@ -5,6 +5,7 @@ Native = require 'native'
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
+{CoffeeScript} = require 'coffee-script'
 
 windowAdditions =
   rootViewParentSelector: 'body'
@@ -23,7 +24,6 @@ windowAdditions =
 
   startup: (path) ->
     @attachRootView(path)
-    @loadUserConfiguration()
     $(window).on 'close', => @close()
     $(window).on 'beforeunload', =>
       @shutdown()
@@ -38,22 +38,16 @@ windowAdditions =
     $(window).off('before')
     atom.windowClosed this
 
+  # Note: RootView assigns itself on window on initialization so that
+  # window.rootView is available when loading user configuration
   attachRootView: (pathToOpen) ->
-    rootViewState = atom.rootViewStates[$windowNumber]
-    if rootViewState
-      @rootView = RootView.deserialize(JSON.parse(rootViewState))
+    if rootViewState = atom.rootViewStates[$windowNumber]
+      RootView.deserialize(JSON.parse(rootViewState))
     else
-      @rootView = new RootView(pathToOpen)
+      new RootView(pathToOpen)
       @rootView.open() unless pathToOpen
 
     $(@rootViewParentSelector).append @rootView
-
-  loadUserConfiguration: ->
-    try
-      require atom.userConfigurationPath if fs.exists(atom.userConfigurationPath)
-    catch error
-      console.error "Failed to load `#{atom.userConfigurationPath}`", error.message, error
-      @showConsole()
 
   requireStylesheet: (path) ->
     fullPath = require.resolve(path)
