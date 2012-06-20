@@ -90,6 +90,7 @@ class Project
       softWrap: @getSoftWrap()
 
     @editSessions.push editSession
+    @trigger 'new-edit-session', editSession
     editSession
 
   buildBuffer: (filePath) ->
