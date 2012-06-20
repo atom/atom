@@ -14,30 +14,30 @@ describe "Project", ->
       project.on 'new-buffer', newBufferHandler
 
     describe "when given an absolute path that hasn't been opened previously", ->
-      it "returns a new buffer for the given path and emits a 'new-buffer' event", ->
-        buffer = project.open(absolutePath)
-        expect(buffer.path).toBe absolutePath
-        expect(newBufferHandler).toHaveBeenCalledWith buffer
+      it "returns a new edit session for the given path and emits a 'new-buffer' event", ->
+        editSession = project.open(absolutePath)
+        expect(editSession.buffer.path).toBe absolutePath
+        expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
 
     describe "when given a relative path that hasn't been opened previously", ->
-      it "returns a buffer for the given path (relative to the project root) and emits a 'new-buffer' event", ->
-        buffer = project.open('a')
-        expect(buffer.path).toBe absolutePath
-        expect(newBufferHandler).toHaveBeenCalledWith buffer
+      it "returns a new edit session for the given path (relative to the project root) and emits a 'new-buffer' event", ->
+        editSession = project.open('a')
+        expect(editSession.buffer.path).toBe absolutePath
+        expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
 
     describe "when passed the path to a buffer that has already been opened", ->
-      it "returns the previously opened buffer", ->
-        buffer = project.open(absolutePath)
+      it "returns a new edit session containing previously opened buffer", ->
+        editSession = project.open(absolutePath)
         newBufferHandler.reset()
-        expect(project.open(absolutePath)).toBe buffer
-        expect(project.open('a')).toBe buffer
+        expect(project.open(absolutePath).buffer).toBe editSession.buffer
+        expect(project.open('a').buffer).toBe editSession.buffer
         expect(newBufferHandler).not.toHaveBeenCalled()
 
     describe "when not passed a path", ->
-      it "returns a new buffer and emits a new-buffer event", ->
-        buffer = project.open()
-        expect(buffer.path).toBeUndefined()
-        expect(newBufferHandler).toHaveBeenCalledWith(buffer)
+      it "returns a new edit session and emits a new-buffer event", ->
+        editSession = project.open()
+        expect(editSession.buffer.getPath()).toBeUndefined()
+        expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
 
   describe ".resolve(path)", ->
     it "returns an absolute path based on the project's root", ->

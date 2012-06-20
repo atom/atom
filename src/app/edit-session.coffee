@@ -11,13 +11,7 @@ class EditSession
   @idCounter: 1
 
   @deserialize: (state, editor, rootView) ->
-    buffer = Buffer.deserialize(state.buffer, rootView.project)
-    session = new EditSession(
-      buffer: buffer
-      tabText: editor.tabText
-      autoIndent: editor.autoIndent
-      softTabs: editor.softTabs
-    )
+    session = rootView.project.open(state.buffer)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
@@ -30,11 +24,12 @@ class EditSession
   selections: null
   autoIndent: true
   softTabs: true
+  softWrap: false
 
-  constructor: ({@buffer, @tabText, @autoIndent, @softTabs, @softWrapColumn}) ->
+  constructor: ({@buffer, @tabText, @autoIndent, @softTabs, @softWrap}) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
-    @displayBuffer = new DisplayBuffer(@buffer, { @softWrapColumn, @tabText })
+    @displayBuffer = new DisplayBuffer(@buffer, { @tabText })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
     @cursors = []
     @selections = []
@@ -54,7 +49,7 @@ class EditSession
     @displayBuffer.destroy()
 
   serialize: ->
-    buffer: @buffer.serialize()
+    buffer: @buffer.getPath()
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
@@ -75,6 +70,9 @@ class EditSession
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
   setAutoIndent: (@autoIndent) ->
   setSoftTabs: (@softTabs) ->
+
+  getSoftWrap: -> @softWrap
+  setSoftWrap: (@softWrap) ->
 
   clipBufferPosition: (bufferPosition, options) ->
     { row, column } = Point.fromObject(bufferPosition)
@@ -445,5 +443,8 @@ class EditSession
           selection.merge(otherSelection, options)
           @mergeIntersectingSelections(options)
           return
+
+  inspect: ->
+    JSON.stringify @serialize()
 
 _.extend(EditSession.prototype, EventEmitter)

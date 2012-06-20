@@ -1,6 +1,6 @@
 module.exports =
   activate: (rootView) ->
-    for buffer in rootView.project.buffers
+    for buffer in rootView.project.getBuffers()
       @stripTrailingWhitespaceBeforeSave(buffer)
 
     rootView.project.on 'new-buffer', (buffer) =>
