@@ -39,19 +39,6 @@ describe 'Buffer', ->
       expect(eventHandler).toHaveBeenCalledWith(buffer)
 
   describe ".isModified()", ->
-    describe "when deserialized", ->
-      it "returns false", ->
-        buffer = Buffer.deserialize(buffer.serialize(), new Project)
-        expect(buffer.isModified()).toBe false
-
-        buffer = Buffer.deserialize((new Buffer).serialize(), new Project)
-        expect(buffer.isModified()).toBe false
-
-      it "returns is true if buffer no path and had changes", ->
-        buffer = new Buffer
-        buffer.insert([0,0], "oh hi")
-        expect(buffer.isModified()).toBe true
-
     it "returns true when user changes buffer", ->
       expect(buffer.isModified()).toBeFalsy()
       buffer.insert([0,0], "hi")
@@ -67,25 +54,6 @@ describe 'Buffer', ->
 
       buffer.save()
       expect(buffer.isModified()).toBe false
-
-  describe '.deserialize(state, project)', ->
-    project = null
-
-    beforeEach ->
-      project = new Project(fs.directory(filePath))
-
-    describe 'when the state has a path', ->
-      it 'use the project to open the path', ->
-        savedBuffer = project.open(filePath)
-        buffer = Buffer.deserialize(savedBuffer.serialize(), project)
-        expect(buffer).toBe savedBuffer
-
-    describe 'when the state has text (and no path)', ->
-      it 'creates a new empty buffer (does not serialze unsaved text)', ->
-        unsavedBuffer = project.open()
-        unsavedBuffer.setText("OMGWTFBBQ")
-        buffer = Buffer.deserialize(unsavedBuffer.serialize(), project)
-        expect(buffer.getText()).toBe ""
 
   describe ".getLines()", ->
     it "returns an array of lines in the text contents", ->

@@ -92,12 +92,12 @@ class RootView extends View
     @remove()
 
   open: (path, changeFocus=true) ->
-    buffer = @project.open(path)
+    editSession = @project.open(path)
 
     if @activeEditor()
-      @activeEditor().setBuffer(buffer)
+      @activeEditor().edit(editSession)
     else
-      editor = new Editor({ buffer })
+      editor = new Editor(editSession: editSession)
       pane = new Pane(editor)
       @panes.append(pane)
       if changeFocus
