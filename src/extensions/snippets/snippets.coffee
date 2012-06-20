@@ -2,38 +2,34 @@ fs = require 'fs'
 PEG = require 'pegjs'
 
 module.exports =
-  name: 'Snippets'
-  snippetsByExtension: {}
-  snippetsParser: PEG.buildParser(fs.read(require.resolve 'extensions/snippets/snippets.pegjs'))
+  class Snippets
+    @snippetsByExtension: {}
+    @snippetsParser: PEG.buildParser(fs.read(require.resolve 'extensions/snippets/snippets.pegjs'))
 
-  activate: (@rootView) ->
-    @loadSnippets()
+    @activate: (@rootView) ->
+      @loadSnippets()
+      rootView.on 'editor-open', (e, editor) => new Snippets(editor)
 
-    for editor in rootView.editors()
-      @enableSnippetsForEditor(editor)
+    @loadSnippets: ->
+      snippetsDir = fs.join(atom.configDirPath, 'snippets')
+      return unless fs.exists(snippetsDir)
 
-    rootView.on 'editor-open', (e, editor) =>
-      @enableSnippetsForEditor(editor)
+      @loadSnippetsFile(path) for path in fs.list(snippetsDir) when fs.extension(path) == '.snippets'
 
-  enableSnippetsForEditor: (editor) ->
-    editor.preempt 'tab', => return false if @expandSnippet()
+    @loadSnippetsFile: (path) ->
+      @evalSnippets(fs.base(path, '.snippets'), fs.read(path))
 
-  loadSnippets: ->
-    snippetsDir = fs.join(atom.configDirPath, 'snippets')
-    return unless fs.exists(snippetsDir)
-    @loadSnippetsFile(path) for path in fs.list(snippetsDir) when fs.extension(path) == '.snippets'
+    @evalSnippets: (extension, text) ->
+      @snippetsByExtension[extension] = @snippetsParser.parse(text)
 
-  loadSnippetsFile: (path) ->
-    @evalSnippets(fs.base(path, '.snippets'), fs.read(path))
+    constructor: (@editor) ->
+      @editor.preempt 'tab', => return false if @expandSnippet()
 
-  evalSnippets: (extension, text) ->
-    @snippetsByExtension[extension] = @snippetsParser.parse(text)
-
-  expandSnippet: ->
-    editSession = @rootView.activeEditor().activeEditSession
-    return unless snippets = @snippetsByExtension[editSession.buffer.getExtension()]
-    prefix = editSession.getLastCursor().getCurrentWordPrefix()
-    if body = snippets[prefix]?.body
-      editSession.selectToBeginningOfWord()
-      editSession.insertText(body)
-      true
+    expandSnippet: ->
+      editSession = @editor.activeEditSession
+      return unless snippets = @constructor.snippetsByExtension[editSession.buffer.getExtension()]
+      prefix = editSession.getLastCursor().getCurrentWordPrefix()
+      if body = snippets[prefix]?.body
+        editSession.selectToBeginningOfWord()
+        editSession.insertText(body)
+        true

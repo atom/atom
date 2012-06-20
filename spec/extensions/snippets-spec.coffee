@@ -32,7 +32,7 @@ describe "Snippets extension", ->
           expect(editor.getCursorScreenPosition()).toEqual [0, 14]
 
       describe "when the snippet contains tab stops", ->
-        
+
 
     describe "when the letters preceding the cursor don't match a snippet", ->
       it "inserts a tab as normal", ->
