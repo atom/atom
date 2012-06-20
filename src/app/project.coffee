@@ -14,12 +14,11 @@ class Project
   tabText: null
   autoIndent: null
   softTabs: null
-  softWrapColumn: null
+  softWrap: null
 
   constructor: (path) ->
     @setPath(path)
     @editSessions = []
-
     @setTabText('  ')
     @setAutoIndent(true)
     @setSoftTabs(true)
@@ -73,8 +72,8 @@ class Project
   getSoftTabs: -> @softTabs
   setSoftTabs: (@softTabs) ->
 
-  getSoftWrapColumn: -> @softWrapColumn
-  setSoftWrapColumn: (@softWrapColumn) ->
+  getSoftWrap: -> @softWrap
+  setSoftWrap: (@softWrap) ->
 
   open: (filePath) ->
     if filePath?
@@ -88,7 +87,7 @@ class Project
       tabText: @getTabText()
       autoIndent: @getAutoIndent()
       softTabs: @getSoftTabs()
-      softWrapColumn: @getSoftWrapColumn()
+      softWrap: @getSoftWrap()
 
     @editSessions.push editSession
     editSession

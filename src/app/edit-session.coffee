@@ -24,11 +24,12 @@ class EditSession
   selections: null
   autoIndent: true
   softTabs: true
+  softWrap: false
 
-  constructor: ({@buffer, @tabText, @autoIndent, @softTabs, @softWrapColumn}) ->
+  constructor: ({@buffer, @tabText, @autoIndent, @softTabs, @softWrap}) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
-    @displayBuffer = new DisplayBuffer(@buffer, { @softWrapColumn, @tabText })
+    @displayBuffer = new DisplayBuffer(@buffer, { @tabText })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
     @cursors = []
     @selections = []
@@ -69,6 +70,9 @@ class EditSession
   setSoftWrapColumn: (@softWrapColumn) -> @displayBuffer.setSoftWrapColumn(@softWrapColumn)
   setAutoIndent: (@autoIndent) ->
   setSoftTabs: (@softTabs) ->
+
+  getSoftWrap: -> @softWrap
+  setSoftWrap: (@softWrap) ->
 
   clipBufferPosition: (bufferPosition, options) ->
     { row, column } = Point.fromObject(bufferPosition)

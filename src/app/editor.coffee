@@ -33,7 +33,6 @@ class Editor extends View
 
   vScrollMargin: 2
   hScrollMargin: 10
-  softWrap: false
   lineHeight: null
   charWidth: null
   charHeight: null
@@ -74,7 +73,7 @@ class Editor extends View
     else if @mini
       editSession = new EditSession
         buffer: new Buffer()
-        softWrapColumn: null
+        softWrap: false
         tabText: "  "
         autoIndent: false
         softTabs: true
@@ -337,7 +336,7 @@ class Editor extends View
     @subscribeToFontSize()
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
-    @setSoftWrapColumn() if @softWrap
+    @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
     $(window).on "resize.editor#{@id}", => @updateRenderedLines()
     @focus() if @isFocused
 
@@ -436,7 +435,7 @@ class Editor extends View
       @scrollTop(desiredTop)
 
   scrollHorizontally: (pixelPosition) ->
-    return if @softWrap
+    return if @activeEditSession.getSoftWrap()
 
     charsInView = @scrollView.width() / @charWidth
     maxScrollMargin = Math.floor((charsInView - 1) / 2)
@@ -471,17 +470,18 @@ class Editor extends View
     @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
 
   toggleSoftWrap: ->
-    @setSoftWrap(not @softWrap)
+    @setSoftWrap(not @activeEditSession.getSoftWrap())
 
   calcSoftWrapColumn: ->
-    if @softWrap
+    if @activeEditSession.getSoftWrap()
       Math.floor(@scrollView.width() / @charWidth)
     else
       Infinity
 
-  setSoftWrap: (@softWrap, softWrapColumn=undefined) ->
+  setSoftWrap: (softWrap, softWrapColumn=undefined) ->
+    @activeEditSession.setSoftWrap(softWrap)
     @setSoftWrapColumn(softWrapColumn) if @attached
-    if @softWrap
+    if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
       @_setSoftWrapColumn = => @setSoftWrapColumn()
       $(window).on 'resize', @_setSoftWrapColumn

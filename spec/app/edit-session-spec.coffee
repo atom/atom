@@ -10,7 +10,7 @@ describe "EditSession", ->
       buffer: buffer
       tabText: '  '
       autoIndent: false
-      softWrapColumn: Infinity
+      softWrap: false
 
     lineLengths = buffer.getLines().map (line) -> line.length
 
