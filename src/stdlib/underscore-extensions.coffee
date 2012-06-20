@@ -13,8 +13,8 @@ _.mixin
   adviseBefore: (object, methodName, advice) ->
     original = object[methodName]
     object[methodName] = (args...) ->
-      unless advice(args...) == false
-        original(args...)
+      unless advice.apply(this, args) == false
+        original.apply(this, args)
 
   escapeRegExp: (string) ->
     # Referring to the table here:
