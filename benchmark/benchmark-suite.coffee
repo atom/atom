@@ -10,6 +10,7 @@ describe "editor.", ->
     window.rootViewParentSelector = '#jasmine-content'
     spyOn(window, 'loadUserConfiguration')
     window.startup()
+    rootView.project.setPath(require.resolve('fixtures'))
     editor = rootView.activeEditor()
 
   afterEach ->
@@ -24,7 +25,7 @@ describe "editor.", ->
 
   describe "300-line-file.", ->
     beforeEach ->
-      editor.setBuffer new Buffer(require.resolve('fixtures/medium.coffee'))
+      editor.edit rootView.project.open('fixtures/medium.coffee')
 
     describe "at-begining.", ->
       benchmark "insert-delete", ->
@@ -45,11 +46,11 @@ describe "editor.", ->
 
   describe "9000-line-file.", ->
     benchmark "opening.", 5, ->
-      editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
+      editor.edit rootView.project.open('fixtures/huge.js')
 
     describe "after-opening.", ->
       beforeEach ->
-        editor.setBuffer new Buffer(require.resolve('fixtures/huge.js'))
+        editor.edit rootView.project.open('fixtures/huge.js')
 
       benchmark "moving-to-eof.", 1, ->
         editor.moveCursorToBottom()
