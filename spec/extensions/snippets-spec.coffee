@@ -13,6 +13,7 @@ describe "Snippets extension", ->
     editor = rootView.activeEditor()
     buffer = editor.buffer
     rootView.simulateDomAttachment()
+    rootView.enableKeymap()
 
   describe "when 'tab' is triggered on the editor", ->
     beforeEach ->
@@ -25,13 +26,14 @@ describe "Snippets extension", ->
         first go here:$1 then here:$2
         endsnippet
       """
+
     describe "when the letters preceding the cursor trigger a snippet", ->
       describe "when the snippet contains no tab stops", ->
         it "replaces the prefix with the snippet text and places the cursor at its end", ->
           editor.insertText("t1")
           expect(editor.getCursorScreenPosition()).toEqual [0, 2]
 
-          editor.trigger 'tab'
+          editor.trigger keydownEvent('tab', target: editor[0])
           expect(buffer.lineForRow(0)).toBe "this is a testvar quicksort = function () {"
           expect(editor.getCursorScreenPosition()).toEqual [0, 14]
 
@@ -59,7 +61,7 @@ describe "Snippets extension", ->
       expect(fs.read).toHaveBeenCalledWith('/tmp/foo/js.snippets')
 
       editor.insertText("t1")
-      editor.trigger 'tab'
+      editor.trigger 'snippets:expand'
       expect(buffer.lineForRow(0)).toBe "this is a test 1var quicksort = function () {"
 
   describe "Snippets parser", ->

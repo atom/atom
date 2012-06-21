@@ -9,12 +9,7 @@ module.exports =
 
   activate: (@rootView) ->
     @loadSnippets()
-
-    for editor in @rootView.editors()
-      @enableSnippetsInEditor(editor)
-
-    @rootView.on 'editor-open', (e, editor) =>
-      @enableSnippetsInEditor(editor)
+    @rootView.on 'editor-open', (e, editor) => @enableSnippetsInEditor(editor)
 
   loadSnippets: ->
     snippetsDir = fs.join(atom.configDirPath, 'snippets')
@@ -28,10 +23,13 @@ module.exports =
     @snippetsByExtension[extension] = @snippetsParser.parse(text)
 
   enableSnippetsInEditor: (editor) ->
-    editor.preempt 'tab', =>
+    editor.on 'snippets:expand', (e) =>
       editSession = editor.activeEditSession
       editSession.snippetsSession ?= new SnippetsSession(editSession, @snippetsByExtension)
-      editSession.snippetsSession.expandSnippet()
+      e.abortKeyBinding() unless editSession.snippetsSession.expandSnippet()
+
+    # this is currently disabled. soon we will jump tab stops if a snippet is active
+    editor.on 'snippets:next-tab-stop', (e) -> e.abortKeyBinding()
 
 class SnippetsSession
   constructor: (@editSession, @snippetsByExtension) ->
@@ -42,4 +40,6 @@ class SnippetsSession
     if body = snippets[prefix]?.body
       @editSession.selectToBeginningOfWord()
       @editSession.insertText(body)
+      true
+    else
       false
