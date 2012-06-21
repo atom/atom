@@ -23,7 +23,9 @@ describe "Snippets extension", ->
         endsnippet
 
         snippet t2 "Snippet with tab stops"
-        first go here:$1 then here:$2
+        go here next:($2) and finally go here:($3)
+        go here first:($1)
+
         endsnippet
       """
 
@@ -38,7 +40,15 @@ describe "Snippets extension", ->
           expect(editor.getCursorScreenPosition()).toEqual [0, 14]
 
       describe "when the snippet contains tab stops", ->
-
+        it "places the cursor at the first tab-stop, and moves the cursor in response to 'next-tab-stop' events", ->
+          editor.insertText('t2')
+          editor.trigger keydownEvent('tab', target: editor[0])
+          expect(buffer.lineForRow(0)).toBe "go here next:() and finally go here:()"
+          expect(buffer.lineForRow(1)).toBe "go here first:()"
+          expect(buffer.lineForRow(2)).toBe "var quicksort = function () {"
+          expect(editor.getCursorScreenPosition()).toEqual [1, 15]
+          editor.trigger keydownEvent('tab', target: editor[0])
+          expect(editor.getCursorScreenPosition()).toEqual [0, 14]
 
     describe "when the letters preceding the cursor don't match a snippet", ->
       it "inserts a tab as normal", ->

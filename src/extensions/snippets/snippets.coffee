@@ -28,8 +28,10 @@ module.exports =
       editSession.snippetsSession ?= new SnippetsSession(editSession, @snippetsByExtension)
       e.abortKeyBinding() unless editSession.snippetsSession.expandSnippet()
 
-    # this is currently disabled. soon we will jump tab stops if a snippet is active
-    editor.on 'snippets:next-tab-stop', (e) -> e.abortKeyBinding()
+    editor.on 'snippets:next-tab-stop', (e) ->
+      editSession = editor.activeEditSession
+      e.abortKeyBinding() unless editSession.snippetsSession?.goToNextTabStop()
+
 
 class SnippetsSession
   constructor: (@editSession, @snippetsByExtension) ->
@@ -37,9 +39,19 @@ class SnippetsSession
   expandSnippet: ->
     return unless snippets = @snippetsByExtension[@editSession.buffer.getExtension()]
     prefix = @editSession.getLastCursor().getCurrentWordPrefix()
-    if body = snippets[prefix]?.body
+    if @activeSnippet = snippets[prefix]
       @editSession.selectToBeginningOfWord()
-      @editSession.insertText(body)
+      @activeSnippetStartPosition = @editSession.getCursorBufferPosition()
+      @editSession.insertText(@activeSnippet.body)
+      @setTabStopIndex(0) if @activeSnippet.tabStops.length
       true
     else
       false
+
+  goToNextTabStop: ->
+    return false unless @activeSnippet
+    @setTabStopIndex(@tabStopIndex + 1)
+
+  setTabStopIndex: (@tabStopIndex) ->
+    tabStopPosition = @activeSnippet.tabStops[@tabStopIndex].subtract(@activeSnippetStartPosition)
+    @editSession.setCursorBufferPosition(tabStopPosition)
