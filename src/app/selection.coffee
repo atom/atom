@@ -68,7 +68,9 @@ class Selection
     @editSession.buffer.getTextInRange(@getBufferRange())
 
   clear: ->
-    @modifyScreenRange => @anchor = null
+    @modifyScreenRange =>
+      @editSession.removeAnchor(@anchor)
+      @anchor = null
 
   selectWord: ->
     @setBufferRange(@cursor.getCurrentWordBufferRange())
@@ -229,7 +231,7 @@ class Selection
     @trigger 'change-screen-range', newScreenRange unless oldScreenRange.isEqual(newScreenRange)
 
   placeAnchor: ->
-    @anchor = new Anchor(@editSession)
+    @anchor = @editSession.addAnchor()
     @anchor.setScreenPosition(@cursor.getScreenPosition())
 
   intersectsBufferRange: (bufferRange) ->

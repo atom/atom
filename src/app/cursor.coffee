@@ -12,11 +12,12 @@ class Cursor
   wordRegex: /(\w+)|([^\w\s]+)/g
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
-    @anchor = new Anchor(@editSession)
+    @anchor = @editSession.addAnchor()
     @setScreenPosition(screenPosition) if screenPosition
     @setBufferPosition(bufferPosition) if bufferPosition
 
   destroy: ->
+    @editSession.removeAnchor(@anchor)
     @editSession.removeCursor(this)
     @trigger 'destroy'
 

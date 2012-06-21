@@ -1,5 +1,6 @@
 Point = require 'point'
 Buffer = require 'buffer'
+Anchor = require 'anchor'
 DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
 Selection = require 'selection'
@@ -20,6 +21,7 @@ class EditSession
   scrollTop: 0
   scrollLeft: 0
   displayBuffer: null
+  anchors: null
   cursors: null
   selections: null
   autoIndent: true
@@ -31,6 +33,7 @@ class EditSession
     @softTabs ?= true
     @displayBuffer = new DisplayBuffer(@buffer, { @tabText })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
+    @anchors = []
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])
@@ -226,6 +229,14 @@ class EditSession
     @buffer.startUndoBatch(@getSelectedBufferRanges())
     fn(selection) for selection in selections
     @buffer.endUndoBatch(@getSelectedBufferRanges())
+
+  addAnchor: ->
+    anchor = new Anchor(this)
+    @anchors.push(anchor)
+    anchor
+
+  removeAnchor: (anchor) ->
+    _.remove(@anchors, anchor)
 
   getCursors: -> new Array(@cursors...)
 
