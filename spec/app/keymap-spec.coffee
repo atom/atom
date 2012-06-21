@@ -72,8 +72,10 @@ describe "Keymap", ->
           expect(insertCharHandler).toHaveBeenCalled()
 
       describe "when the event's target node descends from multiple nodes that match selectors with a binding", ->
-        it "only triggers bindings on selectors associated with the closest ancestor node", ->
+        beforeEach ->
           keymap.bindKeys '.child-node', 'x': 'foo'
+
+        it "only triggers bindings on selectors associated with the closest ancestor node", ->
           fooHandler = jasmine.createSpy 'fooHandler'
           fragment.on 'foo', fooHandler
 
@@ -82,6 +84,22 @@ describe "Keymap", ->
           expect(fooHandler).toHaveBeenCalled()
           expect(deleteCharHandler).not.toHaveBeenCalled()
           expect(insertCharHandler).not.toHaveBeenCalled()
+
+        describe "when 'abortKeyBinding' is called on the triggered event", ->
+          it "aborts the current event and tries again with the next-most-specific key binding",  ->
+            fooHandler1 = jasmine.createSpy('fooHandler1').andCallFake (e) ->
+              expect(deleteCharHandler).not.toHaveBeenCalled()
+              e.abortKeyBinding()
+            fooHandler2 = jasmine.createSpy('fooHandler2')
+
+            fragment.find('.child-node').on 'foo', fooHandler1
+            fragment.on 'foo', fooHandler2
+
+            target = fragment.find('.grandchild-node')[0]
+            keymap.handleKeyEvent(keydownEvent('x', target: target))
+            expect(fooHandler1).toHaveBeenCalled()
+            expect(fooHandler2).not.toHaveBeenCalled()
+            expect(deleteCharHandler).toHaveBeenCalled()
 
       describe "when the event bubbles to a node that matches multiple selectors", ->
         describe "when the matching selectors differ in specificity", ->

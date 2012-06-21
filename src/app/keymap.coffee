@@ -51,7 +51,7 @@ class Keymap
       for bindingSet in candidateBindingSets
         command = bindingSet.commandForEvent(event)
         if command
-          @triggerCommandEvent(event, command)
+          continue if @triggerCommandEvent(event, command)
           return false
         else if command == false
           return false
@@ -66,7 +66,12 @@ class Keymap
   triggerCommandEvent: (keyEvent, commandName) ->
     commandEvent = $.Event(commandName)
     commandEvent.keyEvent = keyEvent
+    aborted = false
+    commandEvent.abortKeyBinding = ->
+      @stopImmediatePropagation()
+      aborted = true
     $(keyEvent.target).trigger(commandEvent)
+    aborted
 
   multiKeystrokeStringForEvent: (event) ->
     currentKeystroke = @keystrokeStringForEvent(event)
