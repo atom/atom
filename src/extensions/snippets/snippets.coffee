@@ -5,7 +5,7 @@ _ = require 'underscore'
 module.exports =
   name: 'Snippets'
   snippetsByExtension: {}
-  snippetsParser: PEG.buildParser(fs.read(require.resolve 'extensions/snippets/snippets.pegjs'))
+  snippetsParser: PEG.buildParser(fs.read(require.resolve 'extensions/snippets/snippets.pegjs'), trackLineAndColumn: true)
 
   activate: (@rootView) ->
     @loadSnippets()

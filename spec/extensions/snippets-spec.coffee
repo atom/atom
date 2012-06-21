@@ -85,3 +85,19 @@ describe "Snippets extension", ->
       expect(snippet.prefix).toBe 't2'
       expect(snippet.description).toBe "Test snippet 2"
       expect(snippet.body).toBe "this is a test 2"
+
+    it "can parse snippets with tabstops", ->
+      snippets = Snippets.snippetsParser.parse """
+        # this line intentially left blank.
+        snippet t1 "Test snippet 1"
+        then go back to here: ($2)
+        first go here: ($1)
+        endsnippet
+      """
+
+      snippet = snippets['t1']
+      expect(snippet.body).toBe """
+        then go back to here: ()
+        first go here: ()
+      """
+      expect(snippet.tabStops).toEqual [[1, 16], [0, 23]]
