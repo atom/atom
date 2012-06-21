@@ -1,4 +1,4 @@
-snippets = snippets:snippet+ {
+snippets = snippets:snippet+ ws? {
   var snippetsByPrefix = {};
   snippets.forEach(function(snippet) {
     snippetsByPrefix[snippet.prefix] = snippet
