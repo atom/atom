@@ -211,11 +211,6 @@ class Selection
   autoOutdent: ->
     @editSession.autoOutdentBufferRow(@cursor.getBufferRow())
 
-  handleBufferChange: (e) ->
-    @modifyScreenRange =>
-      @anchor?.handleBufferChange(e)
-      @cursor.handleBufferChange(e)
-
   modifySelection: (fn) ->
     @retainSelection = true
     @view?.retainSelection = true

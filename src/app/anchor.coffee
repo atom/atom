@@ -1,4 +1,6 @@
 Point = require 'point'
+EventEmitter = require 'event-emitter'
+_ = require 'underscore'
 
 module.exports =
 class Anchor
@@ -21,7 +23,7 @@ class Anchor
       newColumn = position.column
       newRow += position.row - oldRange.end.row
 
-    @setBufferPosition [newRow, newColumn]
+    @setBufferPosition([newRow, newColumn], bufferChange: true)
 
   getBufferPosition: ->
     @bufferPosition
@@ -36,6 +38,7 @@ class Anchor
     @screenPosition
 
   setScreenPosition: (position, options={}) ->
+    previousScreenPosition = @screenPosition
     @screenPosition = Point.fromObject(position)
     clip = options.clip ? true
     assignBufferPosition = options.assignBufferPosition ? true
@@ -46,7 +49,11 @@ class Anchor
     Object.freeze @screenPosition
     Object.freeze @bufferPosition
 
-  refreshScreenPosition: (options) ->
-    screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
-    @setScreenPosition(screenPosition, clip: false, assignBufferPosition: false)
+    unless @screenPosition.isEqual(previousScreenPosition)
+      @trigger 'change-screen-position', @screenPosition, bufferChange: options.bufferChange
 
+  refreshScreenPosition: (options={}) ->
+    screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
+    @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
+
+_.extend(Anchor.prototype, EventEmitter)

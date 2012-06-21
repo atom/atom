@@ -39,12 +39,13 @@ class EditSession
     @addCursorAtScreenPosition([0, 0])
 
     @buffer.on "change.edit-session-#{@id}", (e) =>
-      for selection in @getSelections()
-        selection.handleBufferChange(e)
+      anchor.handleBufferChange(e) for anchor in @getAnchors()
+      @mergeCursors()
 
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
       @trigger 'screen-lines-change', e
-      @moveCursors (cursor) -> cursor.refreshScreenPosition() unless e.bufferChanged
+      unless e.bufferChanged
+        anchor.refreshScreenPosition() for anchor in @getAnchors()
 
   destroy: ->
     @buffer.off ".edit-session-#{@id}"
@@ -229,6 +230,9 @@ class EditSession
     @buffer.startUndoBatch(@getSelectedBufferRanges())
     fn(selection) for selection in selections
     @buffer.endUndoBatch(@getSelectedBufferRanges())
+
+  getAnchors: ->
+    new Array(@anchors...)
 
   addAnchor: ->
     anchor = new Anchor(this)

@@ -56,6 +56,7 @@ class Point
         0
 
   isEqual: (other) ->
+    return false unless other
     other = Point.fromObject(other)
     @row == other.row and @column == other.column
 

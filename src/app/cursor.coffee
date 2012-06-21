@@ -13,6 +13,7 @@ class Cursor
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
     @anchor = @editSession.addAnchor()
+    @anchor.on 'change-screen-position', (args...) => @trigger 'change-screen-position', args...
     @setScreenPosition(screenPosition) if screenPosition
     @setBufferPosition(bufferPosition) if bufferPosition
 
@@ -22,19 +23,17 @@ class Cursor
     @trigger 'destroy'
 
   setScreenPosition: (screenPosition, options) ->
-    @anchor.setScreenPosition(screenPosition, options)
     @goalColumn = null
     @clearSelection()
-    @trigger 'change-screen-position', @getScreenPosition(), bufferChange: false
+    @anchor.setScreenPosition(screenPosition, options)
 
   getScreenPosition: ->
     @anchor.getScreenPosition()
 
   setBufferPosition: (bufferPosition, options) ->
-    @anchor.setBufferPosition(bufferPosition, options)
     @goalColumn = null
     @clearSelection()
-    @trigger 'change-screen-position', @getScreenPosition(), bufferChange: false
+    @anchor.setBufferPosition(bufferPosition, options)
 
   getBufferPosition: ->
     @anchor.getBufferPosition()
@@ -54,11 +53,6 @@ class Cursor
 
   refreshScreenPosition: ->
     @anchor.refreshScreenPosition()
-    @trigger 'change-screen-position', @getScreenPosition(), bufferChange: false
-
-  handleBufferChange: (e) ->
-    @anchor.handleBufferChange(e)
-    @trigger 'change-screen-position', @getScreenPosition(), bufferChange: true
 
   moveUp: ->
     { row, column } = @getScreenPosition()
