@@ -17,14 +17,18 @@ describe "Snippets extension", ->
   describe "when 'tab' is triggered on the editor", ->
     beforeEach ->
       Snippets.evalSnippets 'js', """
-        snippet te "Test snippet description"
+        snippet t1 "Snippet without tab stops"
         this is a test
+        endsnippet
+
+        snippet t2 "Snippet with tab stops"
+        first go here:$1 then here:$2
         endsnippet
       """
     describe "when the letters preceding the cursor trigger a snippet", ->
       describe "when the snippet contains no tab stops", ->
         it "replaces the prefix with the snippet text and places the cursor at its end", ->
-          editor.insertText("te")
+          editor.insertText("t1")
           expect(editor.getCursorScreenPosition()).toEqual [0, 2]
 
           editor.trigger 'tab'
