@@ -12,7 +12,7 @@ class BindingSet
   commandForEvent: null
   parser: null
 
-  constructor: (@selector, mapOrFunction) ->
+  constructor: (@selector, mapOrFunction, @index) ->
     @parser = PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(@selector)
     @commandsByKeystrokes = {}

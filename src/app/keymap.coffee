@@ -26,15 +26,15 @@ class Keymap
       atom.open(path) if path
 
   bindKeys: (selector, bindings) ->
-    @bindingSets.unshift(new BindingSet(selector, bindings))
+    index = @bindingSets.length
+    @bindingSets.unshift(new BindingSet(selector, bindings, index))
 
   bindingsForElement: (element) ->
     keystrokeMap = {}
     currentNode = $(element)
 
     while currentNode.length
-      bindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
-      bindingSets.sort (a, b) -> b.specificity - a.specificity
+      bindingSets = @bindingSetsForNode(currentNode)
       _.defaults(keystrokeMap, set.commandsByKeystrokes) for set in bindingSets
       currentNode = currentNode.parent()
 
@@ -46,8 +46,7 @@ class Keymap
     @queuedKeystrokes = null
     currentNode = $(event.target)
     while currentNode.length
-      candidateBindingSets = @bindingSets.filter (set) -> currentNode.is(set.selector)
-      candidateBindingSets.sort (a, b) -> b.specificity - a.specificity
+      candidateBindingSets = @bindingSetsForNode(currentNode)
       for bindingSet in candidateBindingSets
         command = bindingSet.commandForEvent(event)
         if command
@@ -62,6 +61,14 @@ class Keymap
       currentNode = currentNode.parent()
 
     !isMultiKeystroke
+
+  bindingSetsForNode: (node) ->
+    bindingSets = @bindingSets.filter (set) -> node.is(set.selector)
+    bindingSets.sort (a, b) ->
+      if b.specificity == a.specificity
+        b.index - a.index
+      else
+        b.specificity - a.specificity
 
   triggerCommandEvent: (keyEvent, commandName) ->
     commandEvent = $.Event(commandName)
