@@ -40,23 +40,34 @@ class SnippetsSession
   expandSnippet: ->
     return unless snippets = @snippetsByExtension[@editSession.buffer.getExtension()]
     prefix = @editSession.getLastCursor().getCurrentWordPrefix()
-    if @activeSnippet = snippets[prefix]
+    if snippet = snippets[prefix]
       @editSession.selectToBeginningOfWord()
-      @activeSnippetStartPosition = @editSession.getCursorBufferPosition()
-      @editSession.insertText(@activeSnippet.body)
-      @placeTabStopAnchors()
-      @setTabStopIndex(0) if @activeSnippet.tabStops.length
+      snippetStartPosition = @editSession.getCursorBufferPosition()
+      @editSession.insertText(snippet.body)
+      if snippet.tabStops.length
+        @placeTabStopAnchors(snippetStartPosition, snippet.tabStops)
+        @setTabStopIndex(0)
       true
     else
       false
 
-  placeTabStopAnchors: ->
-    @tabStopAnchors = @activeSnippet.tabStops.map (position) =>
-      @editSession.addAnchorAtBufferPosition(position)
+  placeTabStopAnchors: (snippetStartPosition, tabStopPositions) ->
+    @tabStopAnchors = tabStopPositions.map (tabStopPosition) =>
+      @editSession.addAnchorAtBufferPosition(snippetStartPosition.add(tabStopPosition))
 
   goToNextTabStop: ->
-    return false unless @activeSnippet
-    @setTabStopIndex(@tabStopIndex + 1)
+    return false unless @tabStopAnchors
+    nextIndex = @tabStopIndex + 1
+    if nextIndex < @tabStopAnchors.length
+      @setTabStopIndex(nextIndex)
+      true
+    else
+      @terminateActiveSnippet()
+      false
 
   setTabStopIndex: (@tabStopIndex) ->
     @editSession.setCursorBufferPosition(@tabStopAnchors[@tabStopIndex].getBufferPosition())
+
+  terminateActiveSnippet: ->
+    anchor.destroy() for anchor in @tabStopAnchors
+

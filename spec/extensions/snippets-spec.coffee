@@ -41,19 +41,26 @@ describe "Snippets extension", ->
 
       describe "when the snippet contains tab stops", ->
         it "places the cursor at the first tab-stop, and moves the cursor in response to 'next-tab-stop' events", ->
+          anchorCountBefore = editor.activeEditSession.getAnchors().length
+          editor.setCursorScreenPosition([2, 0])
           editor.insertText('t2')
           editor.trigger keydownEvent('tab', target: editor[0])
-          expect(buffer.lineForRow(0)).toBe "go here next:() and finally go here:()"
-          expect(buffer.lineForRow(1)).toBe "go here first:()"
-          expect(buffer.lineForRow(2)).toBe "var quicksort = function () {"
-          expect(editor.getCursorScreenPosition()).toEqual [1, 15]
+          expect(buffer.lineForRow(2)).toBe "go here next:() and finally go here:()"
+          expect(buffer.lineForRow(3)).toBe "go here first:()"
+          expect(buffer.lineForRow(4)).toBe "    if (items.length <= 1) return items;"
+          expect(editor.getCursorScreenPosition()).toEqual [3, 15]
 
           editor.trigger keydownEvent('tab', target: editor[0])
-          expect(editor.getCursorScreenPosition()).toEqual [0, 14]
+          expect(editor.getCursorScreenPosition()).toEqual [2, 14]
           editor.insertText 'abc'
 
           editor.trigger keydownEvent('tab', target: editor[0])
-          expect(editor.getCursorScreenPosition()).toEqual [0, 40]
+          expect(editor.getCursorScreenPosition()).toEqual [2, 40]
+
+          # terminate snippet
+          editor.trigger keydownEvent('tab', target: editor[0])
+          expect(buffer.lineForRow(2)).toBe "go here next:(abc) and finally go here:(  )"
+          expect(editor.activeEditSession.getAnchors().length).toBe anchorCountBefore
 
     describe "when the letters preceding the cursor don't match a snippet", ->
       it "inserts a tab as normal", ->
