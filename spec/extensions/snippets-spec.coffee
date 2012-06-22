@@ -47,8 +47,13 @@ describe "Snippets extension", ->
           expect(buffer.lineForRow(1)).toBe "go here first:()"
           expect(buffer.lineForRow(2)).toBe "var quicksort = function () {"
           expect(editor.getCursorScreenPosition()).toEqual [1, 15]
+
           editor.trigger keydownEvent('tab', target: editor[0])
           expect(editor.getCursorScreenPosition()).toEqual [0, 14]
+          editor.insertText 'abc'
+
+          editor.trigger keydownEvent('tab', target: editor[0])
+          expect(editor.getCursorScreenPosition()).toEqual [0, 40]
 
     describe "when the letters preceding the cursor don't match a snippet", ->
       it "inserts a tab as normal", ->
@@ -108,7 +113,7 @@ describe "Snippets extension", ->
       snippet = snippets['t1']
       expect(snippet.body).toBe """
         go here next:() and finally go here:()
-        go here first:()\n
+        go here first:()
       """
 
       expect(snippet.tabStops).toEqual [[1, 15], [0, 14], [0, 37]]

@@ -11,18 +11,19 @@ class Snippet
     bodyText = []
 
     [row, column] = [0, 0]
-    for bodyLine in bodyLines
+    for bodyLine, i in bodyLines
+      lineText = []
       for segment in bodyLine
         if _.isNumber(segment)
           tabStopsByIndex[segment] = new Point(row, column)
         else
-          bodyText.push(segment)
+          lineText.push(segment)
           column += segment.length
-      bodyText.push('\n')
+      bodyText.push(lineText.join(''))
       row++; column = 0
 
     @tabStops = []
     for index in _.keys(tabStopsByIndex).sort()
       @tabStops.push tabStopsByIndex[index]
 
-    bodyText.join('')
+    bodyText.join('\n')

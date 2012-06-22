@@ -34,6 +34,7 @@ module.exports =
 
 
 class SnippetsSession
+  tabStopAnchors: null
   constructor: (@editSession, @snippetsByExtension) ->
 
   expandSnippet: ->
@@ -43,15 +44,19 @@ class SnippetsSession
       @editSession.selectToBeginningOfWord()
       @activeSnippetStartPosition = @editSession.getCursorBufferPosition()
       @editSession.insertText(@activeSnippet.body)
+      @placeTabStopAnchors()
       @setTabStopIndex(0) if @activeSnippet.tabStops.length
       true
     else
       false
+
+  placeTabStopAnchors: ->
+    @tabStopAnchors = @activeSnippet.tabStops.map (position) =>
+      @editSession.addAnchorAtBufferPosition(position)
 
   goToNextTabStop: ->
     return false unless @activeSnippet
     @setTabStopIndex(@tabStopIndex + 1)
 
   setTabStopIndex: (@tabStopIndex) ->
-    tabStopPosition = @activeSnippet.tabStops[@tabStopIndex].subtract(@activeSnippetStartPosition)
-    @editSession.setCursorBufferPosition(tabStopPosition)
+    @editSession.setCursorBufferPosition(@tabStopAnchors[@tabStopIndex].getBufferPosition())

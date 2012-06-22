@@ -239,6 +239,11 @@ class EditSession
     @anchors.push(anchor)
     anchor
 
+  addAnchorAtBufferPosition: (bufferPosition) ->
+    anchor = @addAnchor()
+    anchor.setBufferPosition(bufferPosition)
+    anchor
+
   removeAnchor: (anchor) ->
     _.remove(@anchors, anchor)
 
