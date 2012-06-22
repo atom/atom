@@ -19,13 +19,15 @@ start = 'snippet'
 prefix = prefix:[A-Za-z0-9_]+ { return prefix.join(''); }
 string = ['] body:[^']* ['] { return body.join(''); }
        / ["] body:[^"]* ["] { return body.join(''); }
+
 beforeBody = [ ]* '\n' { return new Point(line, 0); } // return start position of body: body begins on next line, so don't subtract 1 from line
 
-body = (tabStop / bodyText)*
-bodyText = body:bodyCharacter+ { return body.join(''); }
-bodyCharacter = !(end / tabStop) char:. { return char; }
-tabStop = '$' index:[0-9]+ { return { index: index, position: new Point(line - 1, column - 1) }; }
+body = bodyLine+
+bodyLine = content:(tabStop / bodyText)* '\n' { return content; }
+bodyText = text:bodyChar+ { return text.join(''); }
+bodyChar = !(end / tabStop) char:[^\n] { return char; }
+tabStop = '$' index:[0-9]+ { return parseInt(index); }
 
-end = '\nendsnippet'
+end = 'endsnippet'
 ws = ([ \n] / comment)+
 comment = '#' [^\n]*

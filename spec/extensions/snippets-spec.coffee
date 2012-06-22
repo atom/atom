@@ -99,15 +99,16 @@ describe "Snippets extension", ->
     it "can parse snippets with tabstops", ->
       snippets = Snippets.snippetsParser.parse """
         # this line intentially left blank.
-        snippet t1 "Test snippet 1"
-        then go back to here: ($2)
-        first go here: ($1)
+        snippet t1 "Snippet with tab stops"
+        go here next:($2) and finally go here:($3)
+        go here first:($1)
         endsnippet
       """
 
       snippet = snippets['t1']
       expect(snippet.body).toBe """
-        then go back to here: ()
-        first go here: ()
+        go here next:() and finally go here:()
+        go here first:()\n
       """
-      expect(snippet.tabStops).toEqual [[1, 16], [0, 23]]
+
+      expect(snippet.tabStops).toEqual [[1, 15], [0, 14], [0, 37]]
