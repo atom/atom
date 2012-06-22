@@ -164,10 +164,9 @@ class Selection
       includeNewline = bufferRange.start.column == 0 or bufferRange.start.row >= fold.startRow
       bufferRange = bufferRange.union(fold.getBufferRange({ includeNewline }))
 
-    @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
-    if @cursor
-      @cursor.setBufferPosition(bufferRange.start)
-      @clear()
+    @modifyScreenRange =>
+      @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
+      @cursor?.setBufferPosition(bufferRange.start)
 
   indentSelectedRows: ->
     range = @getBufferRange()
@@ -222,8 +221,9 @@ class Selection
   modifyScreenRange: (fn) ->
     oldScreenRange = @getScreenRange()
     fn()
-    newScreenRange = @getScreenRange()
-    @trigger 'change-screen-range', newScreenRange unless oldScreenRange.isEqual(newScreenRange)
+    if @cursor
+      newScreenRange = @getScreenRange()
+      @trigger 'change-screen-range', newScreenRange unless oldScreenRange.isEqual(newScreenRange)
 
   placeAnchor: ->
     @anchor = @editSession.addAnchor()
