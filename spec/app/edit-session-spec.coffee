@@ -740,6 +740,13 @@ describe "EditSession", ->
 
     describe ".backspace()", ->
       describe "when there is a single cursor", ->
+        changeScreenRangeHandler = null
+
+        beforeEach ->
+          selection = editSession.getLastSelection()
+          changeScreenRangeHandler = jasmine.createSpy('changeScreenRangeHandler')
+          selection.on 'change-screen-range', changeScreenRangeHandler
+
         describe "when the cursor is on the middle of the line", ->
           it "removes the character before the cursor", ->
             editSession.setCursorScreenPosition(row: 1, column: 7)
@@ -750,6 +757,7 @@ describe "EditSession", ->
             line = buffer.lineForRow(1)
             expect(line).toBe "  var ort = function(items) {"
             expect(editSession.getCursorScreenPosition()).toEqual {row: 1, column: 6}
+            expect(changeScreenRangeHandler).toHaveBeenCalled()
 
         describe "when the cursor is at the beginning of a line", ->
           it "joins it with the line above", ->
@@ -764,8 +772,9 @@ describe "EditSession", ->
             line1 = buffer.lineForRow(1)
             expect(line0).toBe "var quicksort = function () {  var sort = function(items) {"
             expect(line1).toBe "    if (items.length <= 1) return items;"
-
             expect(editSession.getCursorScreenPosition()).toEqual [0, originalLine0.length]
+
+            expect(changeScreenRangeHandler).toHaveBeenCalled()
 
         describe "when the cursor is at the first column of the first line", ->
           it "does nothing, but doesn't raise an error", ->
