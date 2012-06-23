@@ -30,7 +30,7 @@ describe "Snippets extension", ->
 
         snippet t3 "With indented second line"
         line 1
-          line 2
+          line 2$1
 
         endsnippet
       """
@@ -88,6 +88,7 @@ describe "Snippets extension", ->
           editor.trigger 'snippets:expand'
           expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items; line 1"
           expect(buffer.lineForRow(3)).toBe "      line 2"
+          expect(editor.getCursorBufferPosition()).toEqual [3, 12]
 
     describe "when the letters preceding the cursor don't match a snippet", ->
       it "inserts a tab as normal", ->
