@@ -22,9 +22,15 @@ describe "Snippets extension", ->
         this is a test
         endsnippet
 
-        snippet t2 "Snippet with tab stops"
+        snippet t2 "With tab stops"
         go here next:($2) and finally go here:($3)
         go here first:($1)
+
+        endsnippet
+
+        snippet t3 "With indented second line"
+        line 1
+          line 2
 
         endsnippet
       """
@@ -74,6 +80,14 @@ describe "Snippets extension", ->
           editor.trigger keydownEvent('tab', target: editor[0])
           expect(buffer.lineForRow(2)).toBe "go here next:(abc) and finally go here:(  )"
           expect(editor.activeEditSession.getAnchors().length).toBe anchorCountBefore
+
+      describe "when a the start of the snippet is indented", ->
+        it "indents the subsequent lines of the snippet to be even with the start of the first line", ->
+          editor.setCursorScreenPosition([2, Infinity])
+          editor.insertText ' t3'
+          editor.trigger 'snippets:expand'
+          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items; line 1"
+          expect(buffer.lineForRow(3)).toBe "      line 2"
 
     describe "when the letters preceding the cursor don't match a snippet", ->
       it "inserts a tab as normal", ->

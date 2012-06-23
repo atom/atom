@@ -45,18 +45,25 @@ class SnippetsSession
     prefix = @editSession.getLastCursor().getCurrentWordPrefix()
     if snippet = snippets[prefix]
       @editSession.selectToBeginningOfWord()
-      snippetStartPosition = @editSession.getCursorBufferPosition()
+      startPosition = @editSession.getCursorBufferPosition()
       @editSession.insertText(snippet.body)
-      if snippet.tabStops.length
-        @placeTabStopAnchors(snippetStartPosition, snippet.tabStops)
-        @setTabStopIndex(0)
+      @placeTabStopAnchors(startPosition, snippet.tabStops)
+      @indentSnippet(startPosition.row, snippet)
       true
     else
       false
 
-  placeTabStopAnchors: (snippetStartPosition, tabStopPositions) ->
+  placeTabStopAnchors: (startPosition, tabStopPositions) ->
+    return unless tabStopPositions.length
     @tabStopAnchors = tabStopPositions.map (tabStopPosition) =>
-      @editSession.addAnchorAtBufferPosition(snippetStartPosition.add(tabStopPosition))
+      @editSession.addAnchorAtBufferPosition(startPosition.add(tabStopPosition))
+    @setTabStopIndex(0)
+
+  indentSnippet: (startRow, snippet) ->
+    if snippet.lineCount > 1
+      initialIndent = @editSession.lineForBufferRow(startRow).match(/^\s*/)[0]
+      for row in [startRow + 1...startRow + snippet.lineCount]
+        @editSession.buffer.insert([row, 0], initialIndent)
 
   goToNextTabStop: ->
     return false unless @tabStopAnchors
