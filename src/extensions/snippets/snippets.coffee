@@ -32,6 +32,9 @@ module.exports =
       editSession = editor.activeEditSession
       e.abortKeyBinding() unless editSession.snippetsSession?.goToNextTabStop()
 
+    editor.on 'snippets:previous-tab-stop', (e) ->
+      editSession = editor.activeEditSession
+      e.abortKeyBinding() unless editSession.snippetsSession?.goToPreviousTabStop()
 
 class SnippetsSession
   tabStopAnchors: null
@@ -65,9 +68,13 @@ class SnippetsSession
       @terminateActiveSnippet()
       false
 
+  goToPreviousTabStop: ->
+    return false unless @tabStopAnchors
+    @setTabStopIndex(@tabStopIndex - 1) if @tabStopIndex > 0
+    true
+
   setTabStopIndex: (@tabStopIndex) ->
     @editSession.setCursorBufferPosition(@tabStopAnchors[@tabStopIndex].getBufferPosition())
 
   terminateActiveSnippet: ->
     anchor.destroy() for anchor in @tabStopAnchors
-

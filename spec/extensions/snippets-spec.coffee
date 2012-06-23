@@ -57,7 +57,20 @@ describe "Snippets extension", ->
           editor.trigger keydownEvent('tab', target: editor[0])
           expect(editor.getCursorScreenPosition()).toEqual [2, 40]
 
-          # terminate snippet
+          # tab backwards
+          editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])
+          expect(editor.getCursorScreenPosition()).toEqual [2, 17]
+
+          editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])
+          expect(editor.getCursorScreenPosition()).toEqual [3, 15]
+
+          # shift-tab on first tab-stop does nothing
+          editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])
+          expect(editor.getCursorScreenPosition()).toEqual [3, 15]
+
+          # tab through all tab stops, then tab on last stop to terminate snippet
+          editor.trigger keydownEvent('tab', target: editor[0])
+          editor.trigger keydownEvent('tab', target: editor[0])
           editor.trigger keydownEvent('tab', target: editor[0])
           expect(buffer.lineForRow(2)).toBe "go here next:(abc) and finally go here:(  )"
           expect(editor.activeEditSession.getAnchors().length).toBe anchorCountBefore
