@@ -22,7 +22,7 @@ class CommandPanel extends View
 
   @deserialize: (state, rootView) ->
     commandPanel = new CommandPanel(rootView)
-    commandPanel.show(state.text) if state.visible
+    commandPanel.attach(state.text) if state.visible
     commandPanel
 
   @content: ->
@@ -40,7 +40,7 @@ class CommandPanel extends View
 
     @rootView.on 'command-panel:toggle', => @toggle()
     @rootView.on 'command-panel:execute', => @execute()
-    @rootView.on 'command-panel:find-in-file', => @show("/")
+    @rootView.on 'command-panel:find-in-file', => @attach("/")
     @rootView.on 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
     @rootView.on 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
     @rootView.on 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
@@ -50,17 +50,17 @@ class CommandPanel extends View
     @miniEditor.on 'move-down', => @navigateForwardInHistory()
 
   toggle: ->
-    if @parent().length then @hide() else @show()
+    if @parent().length then @detach() else @attach()
 
-  show: (text='') ->
+  attach: (text='') ->
     @rootView.append(this)
-    @prompt.css 'font', @miniEditor.css('font')
     @miniEditor.focus()
     @miniEditor.buffer.setText(text)
+    @prompt.css 'font', @miniEditor.css('font')
 
-  hide: ->
-    @detach()
-    @rootView.activeEditor().focus()
+  detach: ->
+    @rootView.focus()
+    super
 
   execute: (command = @miniEditor.getText()) ->
     try
@@ -74,7 +74,7 @@ class CommandPanel extends View
 
     @history.push(command)
     @historyIndex = @history.length
-    @hide()
+    @detach()
 
   navigateBackwardInHistory: ->
     return if @historyIndex == 0
