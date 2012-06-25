@@ -49,7 +49,6 @@ describe "Editor", ->
       rootView.width(50 * editor.charWidth)
 
       editor.setCursorScreenPosition([5, 20])
-      advanceClock()
       editor.scrollTop(1.5 * editor.lineHeight)
       editor.scrollView.scrollLeft(44)
 
@@ -877,28 +876,22 @@ describe "Editor", ->
 
                 # moving right
                 editor.setCursorScreenPosition([2, 24])
-                window.advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe 0
 
                 editor.setCursorScreenPosition([2, 25])
-                window.advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe charWidth
 
                 editor.setCursorScreenPosition([2, 28])
-                window.advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
 
                 # moving left
                 editor.setCursorScreenPosition([2, 9])
-                window.advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe charWidth * 4
 
                 editor.setCursorScreenPosition([2, 8])
-                window.advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe charWidth * 3
 
                 editor.setCursorScreenPosition([2, 5])
-                window.advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe 0
 
             describe "when the editor is narrower than twice the horizontal scroll margin", ->
