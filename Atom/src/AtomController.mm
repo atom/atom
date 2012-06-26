@@ -6,11 +6,15 @@
 
 @implementation AtomController
 
+@synthesize splitView=_splitView;
 @synthesize webView=_webView;
+@synthesize devToolsView=_devToolsView;
 
 - (void)dealloc {
   [_bootstrapScript release];
+  [_splitView release];
   [_webView release];
+  [_devToolsView release];
   [_pathToOpen release];
 
   [super dealloc];
@@ -58,6 +62,28 @@
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
   CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);  
+}
+
+- (void)showDevTools {
+  if (!_devToolsView) {
+    [self toggleDevTools];
+  }
+}
+
+- (void)toggleDevTools {
+  if (_devToolsView) {
+    [_devToolsView removeFromSuperview];
+    [_devToolsView release];
+    _devToolsView = nil;
+  }
+  else {
+    NSRect frame = NSMakeRect(0, 0, _splitView.frame.size.height, _splitView.frame.size.height);
+    _devToolsView = [[NSView alloc] initWithFrame:frame];
+    [_splitView addSubview:_devToolsView];
+    CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
+  }
+  
+  [_splitView adjustSubviews];
 }
 
 #pragma mark BrowserDelegate

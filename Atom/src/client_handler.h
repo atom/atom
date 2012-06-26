@@ -52,6 +52,12 @@ public:
   virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
 
   // CefLoadHandler methods
+  virtual bool OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
+                             const CefPopupFeatures& popupFeatures,
+                             CefWindowInfo& windowInfo,
+                             const CefString& url,
+                             CefRefPtr<CefClient>& client,
+                             CefBrowserSettings& settings) OVERRIDE;
   virtual void OnLoadStart(CefRefPtr<CefBrowser> browser,
                            CefRefPtr<CefFrame> frame) OVERRIDE;
   virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser,

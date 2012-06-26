@@ -46,7 +46,7 @@ class RootView extends View
     extensionStates: @serializeExtensions()
 
   handleEvents: ->
-    @on 'show-console', => window.showConsole()
+    @on 'toggle-dev-tools', => window.toggleDevTools()
     @on 'focus', (e) =>
       if @activeEditor()
         @activeEditor().focus()

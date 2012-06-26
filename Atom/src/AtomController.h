@@ -7,7 +7,9 @@
 class ClientHandler;
 
 @interface AtomController : NSWindowController <NSWindowDelegate, BrowserDelegate> {
+  NSSplitView *_splitView;
   NSView *_webView;
+  NSView *_devToolsView;
   NSString *_bootstrapScript;
   NSString *_pathToOpen;
   
@@ -21,8 +23,12 @@ class ClientHandler;
 - (id)initBenchmarksWithAtomContext:(CefRefPtr<CefV8Context>)atomContext;
 
 - (void)createBrowser;
+- (void)showDevTools;
+- (void)toggleDevTools;
 
+@property (nonatomic, retain) IBOutlet NSSplitView *splitView;
 @property (nonatomic, retain) IBOutlet NSView *webView;
+@property (nonatomic, retain) IBOutlet NSView *devToolsView;
 
 @end
 

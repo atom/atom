@@ -65,6 +65,20 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
   }
 }
 
+bool ClientHandler::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
+                                  const CefPopupFeatures& popupFeatures,
+                                  CefWindowInfo& windowInfo,
+                                  const CefString& url,
+                                  CefRefPtr<CefClient>& client,
+                                  CefBrowserSettings& settings) {
+
+  AtomController *atomController = [[NSApp keyWindow] windowController];
+  [atomController showDevTools];
+  windowInfo.SetAsChild(atomController.devToolsView, 0, 0, atomController.devToolsView.frame.size.width, atomController.devToolsView.frame.size.height);
+
+  return false;
+}
+
 void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame)
 {

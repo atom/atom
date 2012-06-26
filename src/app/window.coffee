@@ -68,8 +68,8 @@ windowAdditions =
     else
       Native.reload()
 
-  showConsole: ->
-    $native.showDevTools()
+  toggleDevTools: ->
+    $native.toggleDevTools()
 
   onerror: ->
     @showConsole()
