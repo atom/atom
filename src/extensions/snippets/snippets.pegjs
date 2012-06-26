@@ -26,7 +26,13 @@ body = bodyLine+
 bodyLine = content:(tabStop / bodyText)* '\n' { return content; }
 bodyText = text:bodyChar+ { return text.join(''); }
 bodyChar = !(end / tabStop) char:[^\n] { return char; }
-tabStop = '$' index:[0-9]+ { return parseInt(index); }
+tabStop = simpleTabStop / tabStopWithPlaceholder
+simpleTabStop = '$' index:[0-9]+ {
+  return { index: parseInt(index), placeholderText: '' };
+}
+tabStopWithPlaceholder = '${' index:[0-9]+ ':' placeholderText:[^}]* '}' {
+  return { index: parseInt(index), placeholderText: placeholderText.join('') };
+}
 
 end = 'endsnippet'
 ws = ([ \n] / comment)+

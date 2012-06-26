@@ -33,6 +33,11 @@ describe "Snippets extension", ->
           line 2$1
 
         endsnippet
+
+        snippet t4 "With tab stop placeholders"
+        go here ${1:first} and then here ${2:second}
+
+        endsnippet
       """
 
     describe "when the letters preceding the cursor trigger a snippet", ->
@@ -80,6 +85,13 @@ describe "Snippets extension", ->
           editor.trigger keydownEvent('tab', target: editor[0])
           expect(buffer.lineForRow(2)).toBe "go here next:(abc) and finally go here:(  )"
           expect(editor.activeEditSession.getAnchors().length).toBe anchorCountBefore
+
+        describe "when the tab stops have placeholder text", ->
+          it "auto-fills the placeholder text and highlights it when navigating to that tab stop", ->
+            editor.insertText 't4'
+            editor.trigger 'snippets:expand'
+            expect(buffer.lineForRow(0)).toBe 'go here first and then here second'
+            expect(editor.getSelectedBufferRange()).toEqual [[0, 8], [0, 13]]
 
       describe "when a the start of the snippet is indented", ->
         it "indents the subsequent lines of the snippet to be even with the start of the first line", ->
@@ -151,4 +163,4 @@ describe "Snippets extension", ->
         go here first:()
       """
 
-      expect(snippet.tabStops).toEqual [[1, 15], [0, 14], [0, 37]]
+      expect(snippet.tabStops).toEqual [[[1, 15], [1, 15]], [[0, 14], [0, 14]], [[0, 37], [0, 37]]]

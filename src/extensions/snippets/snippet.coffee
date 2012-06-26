@@ -1,5 +1,5 @@
 _ = require 'underscore'
-Point = require 'point'
+Range = require 'range'
 
 module.exports =
 class Snippet
@@ -18,8 +18,10 @@ class Snippet
     for bodyLine, i in bodyLines
       lineText = []
       for segment in bodyLine
-        if _.isNumber(segment)
-          tabStopsByIndex[segment] = new Point(row, column)
+        if segment.index
+          { index, placeholderText } = segment
+          tabStopsByIndex[index] = new Range([row, column], [row, column + placeholderText.length])
+          lineText.push(placeholderText)
         else
           lineText.push(segment)
           column += segment.length

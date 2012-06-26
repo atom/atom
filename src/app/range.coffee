@@ -40,6 +40,9 @@ class Range
   inspect: ->
     "[#{@start.inspect()} - #{@end.inspect()}]"
 
+  add: (point) ->
+    new Range(@start.add(point), @end.add(point))
+
   intersectsWith: (otherRange) ->
     if @start.isLessThanOrEqual(otherRange.start)
       @end.isGreaterThanOrEqual(otherRange.start)

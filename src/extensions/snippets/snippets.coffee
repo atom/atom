@@ -37,7 +37,7 @@ module.exports =
       e.abortKeyBinding() unless editSession.snippetsSession?.goToPreviousTabStop()
 
 class SnippetsSession
-  tabStopAnchors: null
+  tabStopAnchorRanges: null
   constructor: (@editSession, @snippetsByExtension) ->
 
   expandSnippet: ->
@@ -47,16 +47,17 @@ class SnippetsSession
       @editSession.selectToBeginningOfWord()
       startPosition = @editSession.getCursorBufferPosition()
       @editSession.insertText(snippet.body)
-      @placeTabStopAnchors(startPosition, snippet.tabStops)
+      @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
       @indentSnippet(startPosition.row, snippet)
       true
     else
       false
 
-  placeTabStopAnchors: (startPosition, tabStopPositions) ->
-    return unless tabStopPositions.length
-    @tabStopAnchors = tabStopPositions.map (tabStopPosition) =>
-      @editSession.addAnchorAtBufferPosition(startPosition.add(tabStopPosition))
+  placeTabStopAnchorRanges: (startPosition, tabStopRanges) ->
+    return unless tabStopRanges.length
+    @tabStopAnchorRanges = tabStopRanges.map (tabStopRange) =>
+      { start, end } = tabStopRange
+      @editSession.addAnchorRange([startPosition.add(start), startPosition.add(end)])
     @setTabStopIndex(0)
 
   indentSnippet: (startRow, snippet) ->
@@ -66,9 +67,9 @@ class SnippetsSession
         @editSession.buffer.insert([row, 0], initialIndent)
 
   goToNextTabStop: ->
-    return false unless @tabStopAnchors
+    return false unless @tabStopAnchorRanges
     nextIndex = @tabStopIndex + 1
-    if nextIndex < @tabStopAnchors.length
+    if nextIndex < @tabStopAnchorRanges.length
       @setTabStopIndex(nextIndex)
       true
     else
@@ -76,12 +77,12 @@ class SnippetsSession
       false
 
   goToPreviousTabStop: ->
-    return false unless @tabStopAnchors
+    return false unless @tabStopAnchorRanges
     @setTabStopIndex(@tabStopIndex - 1) if @tabStopIndex > 0
     true
 
   setTabStopIndex: (@tabStopIndex) ->
-    @editSession.setCursorBufferPosition(@tabStopAnchors[@tabStopIndex].getBufferPosition())
+    @editSession.setSelectedBufferRange(@tabStopAnchorRanges[@tabStopIndex].getBufferRange())
 
   terminateActiveSnippet: ->
-    anchor.destroy() for anchor in @tabStopAnchors
+    anchor.destroy() for anchor in @tabStopAnchorRanges
