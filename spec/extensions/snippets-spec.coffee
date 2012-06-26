@@ -59,21 +59,21 @@ describe "Snippets extension", ->
           expect(buffer.lineForRow(2)).toBe "go here next:() and finally go here:()"
           expect(buffer.lineForRow(3)).toBe "go here first:()"
           expect(buffer.lineForRow(4)).toBe "    if (items.length <= 1) return items;"
-          expect(editor.getCursorScreenPosition()).toEqual [3, 15]
+          expect(editor.getSelectedBufferRange()).toEqual [[3, 15], [3, 15]]
 
           editor.trigger keydownEvent('tab', target: editor[0])
-          expect(editor.getCursorScreenPosition()).toEqual [2, 14]
+          expect(editor.getSelectedBufferRange()).toEqual [[2, 14], [2, 14]]
           editor.insertText 'abc'
 
           editor.trigger keydownEvent('tab', target: editor[0])
-          expect(editor.getCursorScreenPosition()).toEqual [2, 40]
+          expect(editor.getSelectedBufferRange()).toEqual [[2, 40], [2, 40]]
 
           # tab backwards
           editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])
-          expect(editor.getCursorScreenPosition()).toEqual [2, 17]
+          expect(editor.getSelectedBufferRange()).toEqual [[2, 14], [2, 17]] # should highlight text typed at tab stop
 
           editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])
-          expect(editor.getCursorScreenPosition()).toEqual [3, 15]
+          expect(editor.getSelectedBufferRange()).toEqual [[3, 15], [3, 15]]
 
           # shift-tab on first tab-stop does nothing
           editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])

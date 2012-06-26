@@ -237,13 +237,13 @@ class EditSession
   getAnchors: ->
     new Array(@anchors...)
 
-  addAnchor: ->
-    anchor = new Anchor(this)
+  addAnchor: (options) ->
+    anchor = new Anchor(this, options)
     @anchors.push(anchor)
     anchor
 
-  addAnchorAtBufferPosition: (bufferPosition) ->
-    anchor = @addAnchor()
+  addAnchorAtBufferPosition: (bufferPosition, options) ->
+    anchor = @addAnchor(options)
     anchor.setBufferPosition(bufferPosition)
     anchor
 
