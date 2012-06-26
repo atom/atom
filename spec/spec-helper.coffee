@@ -7,7 +7,7 @@ Project = require 'project'
 Directory = require 'directory'
 RootView = require 'root-view'
 require 'window'
-window.showConsole()
+$native.showDevTools()
 
 requireStylesheet "jasmine.css"
 

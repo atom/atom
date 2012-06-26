@@ -76,11 +76,11 @@
     [_devToolsView release];
     _devToolsView = nil;
   }
-  else {
+  else if (_clientHandler && _clientHandler->GetBrowser()) {
     NSRect frame = NSMakeRect(0, 0, _splitView.frame.size.height, _splitView.frame.size.height);
     _devToolsView = [[NSView alloc] initWithFrame:frame];
     [_splitView addSubview:_devToolsView];
-    CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
+    _clientHandler->GetBrowser()->ShowDevTools();
   }
   
   [_splitView adjustSubviews];

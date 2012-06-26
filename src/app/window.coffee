@@ -72,7 +72,7 @@ windowAdditions =
     $native.toggleDevTools()
 
   onerror: ->
-    @showConsole()
+    $native.showDevTools()
 
 window[key] = value for key, value of windowAdditions
 window.setUpKeymap()
