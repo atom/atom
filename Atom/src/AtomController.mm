@@ -129,6 +129,17 @@
 }
 
 #pragma mark NSWindowDelegate
+- (void)windowDidResignMain:(NSNotification *)notification {
+  if (_clientHandler && _clientHandler->GetBrowser()) {
+    _clientHandler->GetBrowser()->SendFocusEvent(false);
+  }
+}
+
+- (void)windowDidBecomeMain:(NSNotification *)notification {
+  if (_clientHandler && _clientHandler->GetBrowser()) {
+    _clientHandler->GetBrowser()->SendFocusEvent(true);
+  }
+}
 
 - (BOOL)windowShouldClose:(id)window {
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
