@@ -48,7 +48,8 @@ describe "Editor", ->
       rootView.height(8 * editor.lineHeight)
       rootView.width(50 * editor.charWidth)
 
-      editor.setCursorScreenPosition([5, 20])
+      editor.edit(rootView.project.open('two-hundred.txt'))
+      editor.setCursorScreenPosition([5, 1])
       editor.scrollTop(1.5 * editor.lineHeight)
       editor.scrollView.scrollLeft(44)
 
@@ -60,11 +61,11 @@ describe "Editor", ->
       expect(editor.serialize).toHaveBeenCalled()
       expect(Editor.deserialize).toHaveBeenCalled()
 
-
       expect(newEditor.buffer).toBe editor.buffer
       expect(newEditor.getCursorScreenPosition()).toEqual editor.getCursorScreenPosition()
-      expect(newEditor.editSessions[0]).toEqual(editor.editSessions[0])
-      expect(newEditor.editSessions[0]).not.toBe(editor.editSessions[0])
+      expect(newEditor.editSessions).toEqual(editor.editSessions)
+      expect(newEditor.activeEditSession).toEqual(editor.activeEditSession)
+      expect(newEditor.getActiveEditSessionIndex()).toEqual(editor.getActiveEditSessionIndex())
 
       newEditor.height(editor.height())
       newEditor.width(editor.width())

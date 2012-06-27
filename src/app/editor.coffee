@@ -48,10 +48,8 @@ class Editor extends View
 
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
-
-    editSession = editSessions[state.activeEditSessionIndex]
-    editor = new Editor(editSession: editSession, mini: state.mini)
-    editor.editSession = editSessions
+    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini)
+    editor.editSessions = editSessions
     editor.isFocused = state.isFocused
     editor
 
