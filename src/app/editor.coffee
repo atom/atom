@@ -186,6 +186,7 @@ class Editor extends View
   getSelectionsOrderedByBufferPosition: -> @activeEditSession.getSelectionsOrderedByBufferPosition()
   getLastSelectionInBuffer: -> @activeEditSession.getLastSelectionInBuffer()
   getSelectedText: -> @activeEditSession.getSelectedText()
+  getSelectedBufferRange: -> @activeEditSession.getSelectedBufferRange()
   setSelectedBufferRange: (bufferRange, options) -> @activeEditSession.setSelectedBufferRange(bufferRange, options)
   setSelectedBufferRanges: (bufferRanges, options) -> @activeEditSession.setSelectedBufferRanges(bufferRanges, options)
   addSelectionForBufferRange: (bufferRange, options) -> @activeEditSession.addSelectionForBufferRange(bufferRange, options)

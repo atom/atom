@@ -8,12 +8,17 @@ class Anchor
   bufferPosition: null
   screenPosition: null
 
-  constructor: (@editSession) ->
+  constructor: (@editSession, options = {}) ->
+    { @ignoreEqual } = options
 
   handleBufferChange: (e) ->
     { oldRange, newRange } = e
     position = @getBufferPosition()
-    return if position.isLessThan(oldRange.end)
+
+    if @ignoreEqual
+      return if position.isLessThanOrEqual(oldRange.end)
+    else
+      return if position.isLessThan(oldRange.end)
 
     newRow = newRange.end.row
     newColumn = newRange.end.column
@@ -55,5 +60,8 @@ class Anchor
   refreshScreenPosition: (options={}) ->
     screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
     @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
+
+  destroy: ->
+    @editSession.removeAnchor(this)
 
 _.extend(Anchor.prototype, EventEmitter)

@@ -5,6 +5,7 @@ DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
 Selection = require 'selection'
 EventEmitter = require 'event-emitter'
+AnchorRange = require 'anchor-range'
 _ = require 'underscore'
 
 module.exports =
@@ -22,6 +23,7 @@ class EditSession
   scrollLeft: 0
   displayBuffer: null
   anchors: null
+  anchorRanges: null
   cursors: null
   selections: null
   autoIndent: true
@@ -34,6 +36,7 @@ class EditSession
     @displayBuffer = new DisplayBuffer(@buffer, { @tabText })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
     @anchors = []
+    @anchorRanges = []
     @cursors = []
     @selections = []
     @addCursorAtScreenPosition([0, 0])
@@ -234,10 +237,20 @@ class EditSession
   getAnchors: ->
     new Array(@anchors...)
 
-  addAnchor: ->
-    anchor = new Anchor(this)
+  addAnchor: (options) ->
+    anchor = new Anchor(this, options)
     @anchors.push(anchor)
     anchor
+
+  addAnchorAtBufferPosition: (bufferPosition, options) ->
+    anchor = @addAnchor(options)
+    anchor.setBufferPosition(bufferPosition)
+    anchor
+
+  addAnchorRange: (range) ->
+    anchorRange = new AnchorRange(this, range)
+    @anchorRanges.push(anchorRange)
+    anchorRange
 
   removeAnchor: (anchor) ->
     _.remove(@anchors, anchor)
@@ -341,6 +354,9 @@ class EditSession
 
   getSelectedText: ->
     @getLastSelection().getText()
+
+  getTextInBufferRange: (range) ->
+    @buffer.getTextInRange(range)
 
   moveCursorUp: ->
     @moveCursors (cursor) -> cursor.moveUp()

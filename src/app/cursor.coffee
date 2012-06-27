@@ -150,6 +150,9 @@ class Cursor
   getCurrentLineBufferRange: ->
     @editSession.bufferRangeForBufferRow(@getBufferRow())
 
+  getCurrentWordPrefix: ->
+    @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])
+
   isAtBeginningOfLine: ->
     @getBufferPosition().column == 0
 

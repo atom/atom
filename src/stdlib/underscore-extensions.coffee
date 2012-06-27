@@ -10,6 +10,12 @@ _.mixin
     sum += elt for elt in array
     sum
 
+  adviseBefore: (object, methodName, advice) ->
+    original = object[methodName]
+    object[methodName] = (args...) ->
+      unless advice.apply(this, args) == false
+        original.apply(this, args)
+
   escapeRegExp: (string) ->
     # Referring to the table here:
     # https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/regexp

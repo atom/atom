@@ -23,8 +23,7 @@ class TokenizedBuffer
     @aceAdaptor = new AceAdaptor(this)
 
   requireAceMode: ->
-    extension = if @buffer.getPath() then @buffer.getPath().split('/').pop().split('.').pop() else null
-    modeName = switch extension
+    modeName = switch @buffer.getExtension()
       when 'js' then 'javascript'
       when 'coffee' then 'coffee'
       when 'rb', 'ru' then 'ruby'
