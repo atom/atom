@@ -52,7 +52,8 @@ module.exports =
   # Returns true if the file specified by path exists and is a
   # regular file.
   isFile: (path) ->
-    $native.isFile path
+    return false unless path?
+    $native.isFile(path)
 
   # Returns an array with all the names of files contained
   # in the directory path.
