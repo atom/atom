@@ -16,6 +16,9 @@ class AnchorRange
   getScreenRange: ->
     new Range(@startAnchor.getScreenPosition(), @endAnchor.getScreenPosition())
 
+  containsBufferPosition: (bufferPosition) ->
+    @getBufferRange().containsPoint(bufferPosition)
+
   destroy: ->
     @startAnchor.destroy()
     @endAnchor.destroy()

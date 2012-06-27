@@ -93,6 +93,28 @@ describe "Snippets extension", ->
             expect(buffer.lineForRow(0)).toBe 'go here first and then here second'
             expect(editor.getSelectedBufferRange()).toEqual [[0, 8], [0, 13]]
 
+        describe "when the cursor is moved beyond the bounds of a tab stop", ->
+          fit "terminates the snippet on the next tab", ->
+            editor.setCursorScreenPosition([2, 0])
+            editor.insertText('t2')
+            editor.trigger keydownEvent('tab', target: editor[0])
+
+            editor.moveCursorRight()
+            editor.trigger keydownEvent('tab', target: editor[0])
+            expect(buffer.lineForRow(3)).toBe "go here first:()  "
+            expect(editor.getCursorBufferPosition()).toEqual [3, 18]
+
+            # test we can terminate with shift-tab
+            editor.setCursorScreenPosition([4, 0])
+            editor.insertText('t2')
+            editor.trigger keydownEvent('tab', target: editor[0])
+            editor.trigger keydownEvent('tab', target: editor[0])
+
+            editor.moveCursorRight()
+            editor.trigger keydownEvent('tab', shiftKey: true, target: editor[0])
+            expect(editor.getCursorBufferPosition()).toEqual [4, 15]
+
+
       describe "when a the start of the snippet is indented", ->
         it "indents the subsequent lines of the snippet to be even with the start of the first line", ->
           editor.setCursorScreenPosition([2, Infinity])

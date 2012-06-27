@@ -39,6 +39,7 @@ module.exports =
 class SnippetsSession
   tabStopAnchorRanges: null
   constructor: (@editSession, @snippetsByExtension) ->
+    @editSession.on 'move-cursor', => @terminateIfCursorIsOutsideTabStops()
 
   expandSnippet: ->
     return unless snippets = @snippetsByExtension[@editSession.buffer.getExtension()]
@@ -67,7 +68,7 @@ class SnippetsSession
         @editSession.buffer.insert([row, 0], initialIndent)
 
   goToNextTabStop: ->
-    return false unless @tabStopAnchorRanges
+    return false unless @ensureValidTabStops()
     nextIndex = @tabStopIndex + 1
     if nextIndex < @tabStopAnchorRanges.length
       @setTabStopIndex(nextIndex)
@@ -77,12 +78,24 @@ class SnippetsSession
       false
 
   goToPreviousTabStop: ->
-    return false unless @tabStopAnchorRanges
+    return false unless @ensureValidTabStops()
     @setTabStopIndex(@tabStopIndex - 1) if @tabStopIndex > 0
     true
+
+  ensureValidTabStops: ->
+    @tabStopAnchorRanges? and @terminateIfCursorIsOutsideTabStops()
 
   setTabStopIndex: (@tabStopIndex) ->
     @editSession.setSelectedBufferRange(@tabStopAnchorRanges[@tabStopIndex].getBufferRange())
 
+  terminateIfCursorIsOutsideTabStops: ->
+    return unless @tabStopAnchorRanges
+    position = @editSession.getCursorBufferPosition()
+    for anchorRange in @tabStopAnchorRanges
+      return true if anchorRange.containsBufferPosition(position)
+    @terminateActiveSnippet()
+    false
+
   terminateActiveSnippet: ->
-    anchor.destroy() for anchor in @tabStopAnchorRanges
+    anchorRange.destroy() for anchorRange in @tabStopAnchorRanges
+    @tabStopAnchorRanges = null
