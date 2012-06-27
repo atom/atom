@@ -25,7 +25,8 @@ module.exports =
 
   # Returns true if the file specified by path exists
   exists: (path) ->
-    $native.exists path
+    return false unless path?
+    $native.exists(path)
 
   # Returns the extension of a file. The extension of a file is the
   # last dot (excluding any number of initial dots) followed by one or
