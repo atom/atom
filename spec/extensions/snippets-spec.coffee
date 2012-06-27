@@ -116,13 +116,21 @@ describe "Snippets extension", ->
 
 
       describe "when a the start of the snippet is indented", ->
-        it "indents the subsequent lines of the snippet to be even with the start of the first line", ->
-          editor.setCursorScreenPosition([2, Infinity])
-          editor.insertText ' t3'
-          editor.trigger 'snippets:expand'
-          expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items; line 1"
-          expect(buffer.lineForRow(3)).toBe "      line 2"
-          expect(editor.getCursorBufferPosition()).toEqual [3, 12]
+        describe "when the snippet spans a single line", ->
+          it "does not indent the next line", ->
+            editor.setCursorScreenPosition([2, Infinity])
+            editor.insertText ' t1'
+            editor.trigger 'snippets:expand'
+            expect(buffer.lineForRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+        describe "when the snippet spans multiple lines", ->
+          it "indents the subsequent lines of the snippet to be even with the start of the first line", ->
+            editor.setCursorScreenPosition([2, Infinity])
+            editor.insertText ' t3'
+            editor.trigger 'snippets:expand'
+            expect(buffer.lineForRow(2)).toBe "    if (items.length <= 1) return items; line 1"
+            expect(buffer.lineForRow(3)).toBe "      line 2"
+            expect(editor.getCursorBufferPosition()).toEqual [3, 12]
 
     describe "when the letters preceding the cursor don't match a snippet", ->
       it "inserts a tab as normal", ->

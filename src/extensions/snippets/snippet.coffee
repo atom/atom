@@ -27,7 +27,7 @@ class Snippet
           column += segment.length
       bodyText.push(lineText.join(''))
       row++; column = 0
-    @lineCount = row + 1
+    @lineCount = row
 
     @tabStops = []
     for index in _.keys(tabStopsByIndex).sort()
