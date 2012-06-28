@@ -9,6 +9,7 @@ static NSMutableArray *gPathWatchers;
 @interface PathWatcher ()
 - (bool)usesContext:(CefRefPtr<CefV8Context>)context;
 - (void)watchFileDescriptor:(int)fd;
+- (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback callbackId:(NSString *)callbackId;
 - (void)stopWatching;
 @end
 
@@ -86,8 +87,12 @@ static NSMutableArray *gPathWatchers;
 }
 
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback {
+  NSString *callbackId = [[NSProcessInfo processInfo] globallyUniqueString];
+  return [self watchPath:path callback:callback callbackId:callbackId];
+}
+
+- (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback callbackId:(NSString *)callbackId {
   path = [path stringByStandardizingPath];
-  NSString *callbackId;
   
   @synchronized(self) {
     NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];    
@@ -95,7 +100,7 @@ static NSMutableArray *gPathWatchers;
       int fd = open([path fileSystemRepresentation], O_EVTONLY, 0);      
       if (fd < 0) return nil; // TODO: Decide what to do here
       [self watchFileDescriptor:fd];
-
+      
       fdNumber = [NSNumber numberWithInt:fd];
       [_fileDescriptorsByPath setObject:fdNumber forKey:path];
     }
@@ -106,7 +111,6 @@ static NSMutableArray *gPathWatchers;
       [_callbacksByFileDescriptor setObject:callbacks forKey:fdNumber];      
     }
     
-    callbackId = [[NSProcessInfo processInfo] globallyUniqueString];
     [callbacks setObject:callback forKey:callbackId];
   }
   
@@ -163,6 +167,16 @@ static NSMutableArray *gPathWatchers;
   kevent(_kq, &event, 1, NULL, 0, &timeout);
 }
 
+- (NSString *)pathForFileDescriptor:(NSNumber *)fdNumber {
+  for (NSString *path in _fileDescriptorsByPath) {
+    if ([[_fileDescriptorsByPath objectForKey:path] isEqual:fdNumber]) {
+      return path;
+    }
+  }
+  
+  return nil;
+}
+
 - (void)watch {  
   @autoreleasepool {
     struct kevent event;    
@@ -178,15 +192,29 @@ static NSMutableArray *gPathWatchers;
         continue;
       }
 
+      NSNumber *fdNumber = [NSNumber numberWithInt:event.ident];
       NSMutableArray *eventFlags = [NSMutableArray array];
       
-      if (event.fflags & NOTE_WRITE || [self isAtomicWrite:event]) {
+      if (event.fflags & NOTE_WRITE) {
         [eventFlags addObject:@"modified"];
+      }
+      else if ([self isAtomicWrite:event]) {        
+        // The fd for the path has changed. Remove references to old fd and
+        // make sure the path and callbacks are linked with new fd.
+        @synchronized(self) {
+          NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];
+          NSString *path = [self pathForFileDescriptor:fdNumber];
+          
+          [self unwatchPath:path callbackId:nil error:nil];
+          for (NSString *callbackId in [callbacks allKeys]) {
+            [self watchPath:path callback:[callbacks objectForKey:callbackId] callbackId:callbackId];
+          }
+          
+          [eventFlags addObject:@"modified"];
+        }
       }
       
       @synchronized(self) {
-        NSNumber *fdNumber = [NSNumber numberWithInt:event.ident];
-        
         NSDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
         for (NSString *key in callbacks) {
           WatchCallback callback = [callbacks objectForKey:key];
