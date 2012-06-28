@@ -389,6 +389,9 @@ class Editor extends View
 
     @renderWhenAttached()
 
+  getOpenBufferPaths: ->
+    editSession.buffer.path for editSession in @editSessions when editSession.buffer.path?
+
   scrollTop: (scrollTop, options) ->
     return @cachedScrollTop or 0 unless scrollTop?
 
@@ -827,4 +830,3 @@ class Editor extends View
     @screenPositionFromPixelPosition
       top: pageY - @scrollView.offset().top + @scrollTop()
       left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
-
