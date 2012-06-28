@@ -4,33 +4,49 @@
 #import <sys/time.h> 
 #import <fcntl.h>
 
-
+static NSMutableArray *gPathWatchers;
 
 @interface PathWatcher ()
-- (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
+- (bool)usesContext:(CefRefPtr<CefV8Context>)context;
 - (void)watchFileDescriptor:(int)fd;
-- (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error;
-- (void)unwatchAll;
+- (void)stopWatching;
 @end
 
 @implementation PathWatcher
 
-+ (id)instance {
-  static PathWatcher *pathWatcher;  
-  if (!pathWatcher) pathWatcher = [[PathWatcher alloc] init];
++ (PathWatcher *)pathWatcherForContext:(CefRefPtr<CefV8Context>)context {
+  if (!gPathWatchers) gPathWatchers = [[NSMutableArray alloc] init];
+
+  PathWatcher *pathWatcher = nil;
+  for (PathWatcher *p in gPathWatchers) {
+    if ([p usesContext:context]) {
+      pathWatcher = p;
+      break;
+    }
+  }
+  
+  if (!pathWatcher) {
+    pathWatcher = [[[PathWatcher alloc] initWithContext:context] autorelease];
+    [gPathWatchers addObject:pathWatcher];
+  }
+  
   return pathWatcher;
 }
 
-+ (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback {
-  return [[self instance] watchPath:path callback:callback];
-}
++ (void)removePathWatcherForContext:(CefRefPtr<CefV8Context>)context {
+  PathWatcher *pathWatcher = nil;
+  for (PathWatcher *p in gPathWatchers) {
+    if ([p usesContext:context]) {
+      pathWatcher = p;
+      break;
+    }
+  }
+  
+  if (pathWatcher) {
+    [pathWatcher stopWatching];
+    [gPathWatchers removeObject:pathWatcher];
+  }
 
-+ (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error {
-  return [[self instance] unwatchPath:path callbackId:callbackId error:error];
-}
-
-+ (void)unwatchAll {
-  return [[self instance] unwatchAll];
 }
 
 - (void)dealloc {
@@ -39,16 +55,18 @@
     close([fdNumber intValue]);
   }
   [_callbacksByFileDescriptor release];
-
+  _context = nil;
   [super dealloc];
 }
 
-- (id)init {
+- (id)initWithContext:(CefRefPtr<CefV8Context>)context {
   self = [super init];
   
+  _keepWatching = YES;
   _callbacksByFileDescriptor = [[NSMutableDictionary alloc] init];
   _fileDescriptorsByPath = [[NSMutableDictionary alloc] init];
   _kq = kqueue();
+  _context = context;
   
   if (_kq == -1) {
     [NSException raise:@"PathWatcher" format:@"Could not create kqueue"];
@@ -56,6 +74,15 @@
   
   [self performSelectorInBackground:@selector(watch) withObject:NULL];
   return self;
+}
+
+- (bool)usesContext:(CefRefPtr<CefV8Context>)context {
+  return _context->IsSame(context);
+}
+
+- (void)stopWatching {
+  [self unwatchAll];
+  _keepWatching = false;
 }
 
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback {
@@ -131,7 +158,7 @@
   struct kevent event;
   int filter = EVFILT_VNODE;
   int flags = EV_ADD | EV_ENABLE | EV_CLEAR;
-  int filterFlags = NOTE_WRITE;
+  int filterFlags = NOTE_WRITE | NOTE_DELETE | NOTE_ATTRIB | NOTE_EXTEND | NOTE_RENAME | NOTE_REVOKE;
   EV_SET(&event, fd, filter, flags, filterFlags, 0, 0);
   kevent(_kq, &event, 1, NULL, 0, &timeout);
 }
@@ -141,7 +168,7 @@
     struct kevent event;    
     struct timespec timeout = { 5, 0 }; // 5 seconds timeout.
     
-    while (true) {
+    while (_keepWatching) {
       int numberOfEvents = kevent(_kq, NULL, 0, &event, 1, &timeout);
       
       if (numberOfEvents < 0) {
@@ -152,8 +179,8 @@
       }
 
       NSMutableArray *eventFlags = [NSMutableArray array];
-
-      if (event.fflags & NOTE_WRITE) {
+      
+      if (event.fflags & NOTE_WRITE || [self isAtomicWrite:event]) {
         [eventFlags addObject:@"modified"];
       }
       
@@ -169,9 +196,21 @@
         }
       }
     }
-    
-    [self release];
   }
+}
+
+- (bool)isAtomicWrite:(struct kevent)event {
+  if (!event.fflags & NOTE_DELETE) return NO;
+
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSString *path = nil;
+  for (path in [_fileDescriptorsByPath allKeys]) {
+    if ([[_fileDescriptorsByPath objectForKey:path] unsignedLongValue] == event.ident) {
+      return [fm fileExistsAtPath:path];
+    }
+  }
+
+  return NO;
 }
 
 @end

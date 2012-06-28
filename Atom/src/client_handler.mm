@@ -1,6 +1,7 @@
 #import "include/cef_base.h"
 #import "client_handler.h"
 #import "AtomController.h"
+#import "PathWatcher.h"
 
 #import <Cocoa/Cocoa.h>
 #import <iostream>
@@ -172,6 +173,13 @@ void ClientHandler::OnContextCreated(CefRefPtr<CefBrowser> browser,
                                      CefRefPtr<CefV8Context> context)
 {
   REQUIRE_UI_THREAD();
+}
+
+void ClientHandler::OnContextReleased(CefRefPtr<CefBrowser> browser,
+                               CefRefPtr<CefFrame> frame,
+                               CefRefPtr<CefV8Context> context) {
+    REQUIRE_UI_THREAD();
+    [PathWatcher removePathWatcherForContext:context];
 }
 
 bool ClientHandler::OnDragStart(CefRefPtr<CefBrowser> browser,

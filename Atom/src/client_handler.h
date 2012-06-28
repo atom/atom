@@ -107,7 +107,9 @@ public:
   virtual void OnContextCreated(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 CefRefPtr<CefV8Context> context) OVERRIDE;
-
+  virtual void OnContextReleased(CefRefPtr<CefBrowser> browser,
+                                 CefRefPtr<CefFrame> frame,
+                                 CefRefPtr<CefV8Context> context) OVERRIDE;
   // CefDragHandler methods.
   virtual bool OnDragStart(CefRefPtr<CefBrowser> browser,
                            CefRefPtr<CefDragData> dragData,

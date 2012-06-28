@@ -88,8 +88,6 @@
 
 #pragma mark BrowserDelegate
 - (void)loadStart {
-  [PathWatcher unwatchAll];
-
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
   

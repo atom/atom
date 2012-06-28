@@ -319,8 +319,9 @@ bool NativeHandler::Execute(const CefString& name,
       
       context->Exit();
     };
-
-    NSString *watchId = [PathWatcher watchPath:path callback:[[callback copy] autorelease]];
+    
+    PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
+    NSString *watchId = [pathWatcher watchPath:path callback:[[callback copy] autorelease]];
     retval = CefV8Value::CreateString([watchId UTF8String]);
     
     return true;
@@ -329,7 +330,8 @@ bool NativeHandler::Execute(const CefString& name,
     NSString *path = stringFromCefV8Value(arguments[0]);
     NSString *callbackId = stringFromCefV8Value(arguments[1]);
     NSError *error = nil;
-    [PathWatcher unwatchPath:path callbackId:callbackId error:&error];
+    PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
+    [pathWatcher unwatchPath:path callbackId:callbackId error:&error];
     
     if (error) {
       exception = [[error localizedDescription] UTF8String];
