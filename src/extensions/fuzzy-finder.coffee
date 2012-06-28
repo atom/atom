@@ -4,12 +4,12 @@ fuzzyFilter = require 'fuzzy-filter'
 Editor = require 'editor'
 
 module.exports =
-class FileFinder extends View
+class FuzzyFinder extends View
   @activate: (rootView) ->
-    @instance = new FileFinder(rootView)
+    @instance = new FuzzyFinder(rootView)
 
   @content: ->
-    @div class: 'file-finder', =>
+    @div class: 'fuzzy-finder', =>
       @ol outlet: 'pathList'
       @subview 'miniEditor', new Editor(mini: true)
 
@@ -17,15 +17,15 @@ class FileFinder extends View
   maxResults: null
 
   initialize: (@rootView) ->
-    requireStylesheet 'file-finder.css'
+    requireStylesheet 'fuzzy-finder.css'
     @maxResults = 10
 
-    @rootView.on 'file-finder:toggle', => @toggle()
+    @rootView.on 'fuzzy-finder:toggle', => @toggle()
 
-    @on 'file-finder:cancel', => @detach()
+    @on 'fuzzy-finder:cancel', => @detach()
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
-    @on 'file-finder:select-file', => @select()
+    @on 'fuzzy-finder:select-file', => @select()
 
     @miniEditor.buffer.on 'change', => @populatePathList() if @hasParent()
     @miniEditor.off 'move-up move-down'

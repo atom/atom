@@ -1,41 +1,41 @@
 RootView = require 'root-view'
-FileFinder = require 'file-finder'
+FuzzyFinder = require 'fuzzy-finder'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 
-describe 'FileFinder', ->
+describe 'FuzzyFinder', ->
   [rootView, finder] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.enableKeymap()
-    rootView.activateExtension(FileFinder)
-    finder = FileFinder.instance
+    rootView.activateExtension(FuzzyFinder)
+    finder = FuzzyFinder.instance
 
-  describe "when the file-finder:toggle event is triggered on the root view", ->
+  describe "when the fuzzy-finder:toggle event is triggered on the root view", ->
     describe "when there is a project", ->
-      it "shows or hides the FileFinder, returning focus to the active editor when hiding it", ->
+      it "shows or hides the FuzzyFinder, returning focus to the active editor when hiding it", ->
         rootView.attachToDom()
-        expect(rootView.find('.file-finder')).not.toExist()
+        expect(rootView.find('.fuzzy-finder')).not.toExist()
         rootView.find('.editor').trigger 'split-right'
         [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
 
-        rootView.trigger 'file-finder:toggle'
-        expect(rootView.find('.file-finder')).toExist()
-        expect(rootView.find('.file-finder input:focus')).toExist()
+        rootView.trigger 'fuzzy-finder:toggle'
+        expect(rootView.find('.fuzzy-finder')).toExist()
+        expect(rootView.find('.fuzzy-finder input:focus')).toExist()
         finder.miniEditor.insertText('this should not show up next time we toggle')
 
-        rootView.trigger 'file-finder:toggle'
+        rootView.trigger 'fuzzy-finder:toggle'
         expect(editor1.isFocused).toBeFalsy()
         expect(editor2.isFocused).toBeTruthy()
-        expect(rootView.find('.file-finder')).not.toExist()
+        expect(rootView.find('.fuzzy-finder')).not.toExist()
 
-        rootView.trigger 'file-finder:toggle'
+        rootView.trigger 'fuzzy-finder:toggle'
         expect(finder.miniEditor.getText()).toBe ''
 
       it "shows all relative file paths for the current project and selects the first", ->
         finder.maxResults = 1000
-        rootView.trigger 'file-finder:toggle'
+        rootView.trigger 'fuzzy-finder:toggle'
         rootView.project.getFilePaths().done (paths) ->
           expect(finder.pathList.children('li').length).toBe paths.length, finder.maxResults
           for path in paths
@@ -46,17 +46,17 @@ describe 'FileFinder', ->
       beforeEach ->
         rootView.project.setPath(null)
 
-      it "does not open the FileFinder", ->
-        expect(rootView.find('.file-finder')).not.toExist()
-        rootView.trigger 'file-finder:toggle'
-        expect(rootView.find('.file-finder')).not.toExist()
+      it "does not open the FuzzyFinder", ->
+        expect(rootView.find('.fuzzy-finder')).not.toExist()
+        rootView.trigger 'fuzzy-finder:toggle'
+        expect(rootView.find('.fuzzy-finder')).not.toExist()
 
-  describe "file-finder:cancel event", ->
+  describe "fuzzy-finder:cancel event", ->
     it "hides the finder", ->
-      rootView.trigger 'file-finder:toggle'
+      rootView.trigger 'fuzzy-finder:toggle'
       expect(finder.hasParent()).toBeTruthy()
 
-      finder.trigger 'file-finder:cancel'
+      finder.trigger 'fuzzy-finder:cancel'
       expect(finder.hasParent()).toBeFalsy()
 
     it "focuses previously focused element", ->
@@ -64,18 +64,18 @@ describe 'FileFinder', ->
       activeEditor = rootView.activeEditor()
       activeEditor.focus()
 
-      rootView.trigger 'file-finder:toggle'
+      rootView.trigger 'fuzzy-finder:toggle'
       expect(activeEditor.isFocused).toBeFalsy()
       expect(finder.miniEditor.isFocused).toBeTruthy()
 
-      finder.trigger 'file-finder:cancel'
+      finder.trigger 'fuzzy-finder:cancel'
       expect(activeEditor.isFocused).toBeTruthy()
       expect(finder.miniEditor.isFocused).toBeFalsy()
 
   describe "when the file finder loses focus", ->
     it "detaches itself", ->
       rootView.attachToDom()
-      rootView.trigger 'file-finder:toggle'
+      rootView.trigger 'fuzzy-finder:toggle'
 
       expect(finder.hasParent()).toBeTruthy()
       rootView.focus()
@@ -83,7 +83,7 @@ describe 'FileFinder', ->
 
   describe "when characters are typed into the input element", ->
     it "displays matching paths in the ol element and selects the first", ->
-      rootView.trigger 'file-finder:toggle'
+      rootView.trigger 'fuzzy-finder:toggle'
 
       listLengthBefore = finder.pathList.children().length
 
@@ -102,7 +102,7 @@ describe 'FileFinder', ->
 
   describe "move-down / move-up events", ->
     beforeEach ->
-      rootView.trigger 'file-finder:toggle'
+      rootView.trigger 'fuzzy-finder:toggle'
 
     it "selects the next / previous path in the list", ->
       expect(finder.find('li:eq(0)')).toHaveClass "selected"
@@ -138,7 +138,7 @@ describe 'FileFinder', ->
       editor1 = rootView.activeEditor()
       editor2 = editor1.splitRight()
       expect(rootView.activeEditor()).toBe editor2
-      rootView.trigger 'file-finder:toggle'
+      rootView.trigger 'fuzzy-finder:toggle'
 
     describe "when there is a path selected", ->
       it "opens the file associated with that path in the editor", ->
@@ -149,7 +149,7 @@ describe 'FileFinder', ->
         expect(editor1.buffer.path).not.toBe expectedPath
         expect(editor2.buffer.path).not.toBe expectedPath
 
-        finder.trigger 'file-finder:select-file'
+        finder.trigger 'fuzzy-finder:select-file'
 
         expect(finder.hasParent()).toBeFalsy()
         expect(editor1.buffer.path).not.toBe expectedPath
@@ -159,12 +159,12 @@ describe 'FileFinder', ->
     describe "when there is no path selected", ->
       it "does nothing", ->
         finder.miniEditor.insertText('this should match nothing, because no one wants to drink battery acid')
-        finder.trigger 'file-finder:select-file'
+        finder.trigger 'fuzzy-finder:select-file'
         expect(finder.hasParent()).toBeTruthy()
 
   describe ".findMatches(queryString)", ->
     beforeEach ->
-      rootView.trigger 'file-finder:toggle'
+      rootView.trigger 'fuzzy-finder:toggle'
 
     it "returns up to finder.maxResults paths if queryString is empty", ->
       expect(finder.findMatches('').length).toBeLessThan finder.maxResults + 1
