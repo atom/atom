@@ -1,5 +1,6 @@
 _ = require 'underscore'
 fs = require 'fs'
+File = require 'file'
 Point = require 'point'
 Range = require 'range'
 EventEmitter = require 'event-emitter'
@@ -10,7 +11,8 @@ class Buffer
   @idCounter = 1
   modified: null
   lines: null
-  path: null
+  file: null
+
 
   constructor: (path) ->
     @id = @constructor.idCounter++
@@ -24,7 +26,7 @@ class Buffer
     @modified = false
 
   getPath: ->
-    @path
+    @file.getPath()
 
   getExtension: ->
     if @getPath()
@@ -33,7 +35,9 @@ class Buffer
       null
 
   setPath: (path) ->
-    @path = path
+    @file = new File(path)
+    @file.on "contents-change", =>
+      @setText(fs.read(@file.getPath())) unless @isModified()
     @trigger "path-change", this
 
   getText: ->

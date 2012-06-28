@@ -38,6 +38,33 @@ describe 'Buffer', ->
       buffer.setPath("moo.text")
       expect(eventHandler).toHaveBeenCalledWith(buffer)
 
+  describe "when the buffer's file is modified (via another process)", ->
+    path = null
+    beforeEach ->
+      path = fs.join(require.resolve('fixtures'), "tmp.txt")
+      fs.write(path, "first")
+
+    afterEach ->
+      fs.remove(path)
+
+    describe "when the buffer is in an unmodified", ->
+      it "triggers 'change' event", ->
+        buffer = new Buffer(path)
+        changeHandler = jasmine.createSpy('changeHandler')
+        buffer.on 'change', changeHandler
+        fs.write(path, "second")
+
+        expect(changeHandler.callCount).toBe 0
+        waitsFor "file to trigger change event", ->
+          changeHandler.callCount > 0
+
+        runs ->
+          [event] = changeHandler.argsForCall[0]
+          expect(event.oldRange).toEqual [[0, 0], [0, 5]]
+          expect(event.newRange).toEqual [[0, 0], [0, 6]]
+          expect(event.oldText).toBe "first"
+          expect(event.newText).toBe "second"
+
   describe ".isModified()", ->
     it "returns true when user changes buffer", ->
       expect(buffer.isModified()).toBeFalsy()
