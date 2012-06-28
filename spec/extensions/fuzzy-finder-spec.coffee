@@ -92,6 +92,13 @@ describe 'FuzzyFinder', ->
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
         expect(rootView.find('.fuzzy-finder')).not.toExist()
 
+    describe "when there is no active editor", ->
+      it "does not open", ->
+        rootView.activeEditor().removeActiveEditSession()
+        expect(rootView.activeEditor()).toBeUndefined()
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+        expect(rootView.find('.fuzzy-finder')).not.toExist()
+
   describe "fuzzy-finder:cancel event", ->
     it "hides the finder", ->
       rootView.trigger 'fuzzy-finder:toggle-file-finder'

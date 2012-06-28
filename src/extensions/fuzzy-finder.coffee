@@ -52,7 +52,7 @@ class FuzzyFinder extends View
   populateOpenBufferPaths: ->
     @paths = @rootView.activeEditor()?.getOpenBufferPaths().map (path) =>
       @rootView.project.relativize(path)
-    @populatePathList()
+    @populatePathList() if @paths?.length
 
   attach: ->
     @rootView.append(this)
