@@ -139,17 +139,21 @@ describe "Editor", ->
   describe "when 'close' is triggered", ->
     it "closes active edit session and loads next edit session", ->
       editor.edit(rootView.project.open())
+      editSession = editor.activeEditSession
+      spyOn(editSession, 'destroy').andCallThrough()
       spyOn(editor, "remove")
       editor.trigger "close"
+      expect(editSession.destroy).toHaveBeenCalled()
       expect(editor.remove).not.toHaveBeenCalled()
       expect(editor.buffer).toBe buffer
 
     it "calls remove on the editor if there is one edit session and mini is false", ->
-      originalBuffer = editor.buffer
+      editSession = editor.activeEditSession
       expect(editor.mini).toBeFalsy()
       expect(editor.editSessions.length).toBe 1
       spyOn(editor, 'remove')
       editor.trigger 'close'
+      spyOn(editSession, 'destroy').andCallThrough()
       expect(editor.remove).toHaveBeenCalled()
 
       editor.remove()
