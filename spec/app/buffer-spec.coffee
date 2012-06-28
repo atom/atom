@@ -478,3 +478,23 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
+
+  describe ".setPath(path)", ->
+    [path, newPath] = []
+    beforeEach ->
+      path = fs.join(require.resolve('fixtures'), "tmp.txt")
+      fs.write(path, "first")
+
+    afterEach ->
+      fs.remove(path)
+
+    it "stops listening to events on previous path and begins listening to events on new path", ->
+      buffer = new Buffer(path)
+      changeHandler = jasmine.createSpy('changeHandler')
+      buffer.on 'change', changeHandler
+      buffer.setPath(filePath)
+      expect(changeHandler).not.toHaveBeenCalled()
+
+      fs.write(path, "should not trigger buffer event")
+      waits 20
+      runs -> expect(changeHandler).not.toHaveBeenCalled()

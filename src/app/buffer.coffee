@@ -35,6 +35,7 @@ class Buffer
       null
 
   setPath: (path) ->
+    @file?.off()
     @file = new File(path)
     @file.on "contents-change", =>
       @setText(fs.read(@file.getPath())) unless @isModified()
