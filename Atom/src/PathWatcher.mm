@@ -98,7 +98,7 @@ static NSMutableArray *gPathWatchers;
     NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];    
     if (!fdNumber) {
       int fd = open([path fileSystemRepresentation], O_EVTONLY, 0);      
-      if (fd < 0) return nil; // TODO: Decide what to do here
+      if (fd < 0) return nil;
       [self watchFileDescriptor:fd];
       
       fdNumber = [NSNumber numberWithInt:fd];

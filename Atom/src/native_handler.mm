@@ -322,7 +322,12 @@ bool NativeHandler::Execute(const CefString& name,
     
     PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
     NSString *watchId = [pathWatcher watchPath:path callback:[[callback copy] autorelease]];
-    retval = CefV8Value::CreateString([watchId UTF8String]);
+    if (watchId) {
+      retval = CefV8Value::CreateString([watchId UTF8String]);
+    }
+    else {
+      exception = std::string("Failed to watch path '") + std::string([path UTF8String]) +  std::string("' (it may not exist)");
+    }
     
     return true;
   }
