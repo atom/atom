@@ -74,7 +74,6 @@ describe "Editor", ->
       newEditor.attachToDom()
       expect(newEditor.scrollTop()).toBe editor.scrollTop()
       expect(newEditor.scrollView.scrollLeft()).toBe 44
-      newEditor.remove()
 
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
@@ -126,7 +125,7 @@ describe "Editor", ->
   describe ".remove()", ->
     it "removes subscriptions from all edit session buffers", ->
       previousEditSession = editor.activeEditSession
-      otherEditSession = rootView.project.open('sample.txt')
+      otherEditSession = rootView.project.open(rootView.project.resolve('sample.txt'))
       expect(previousEditSession.buffer.subscriptionCount()).toBeGreaterThan 1
 
       editor.edit(otherEditSession)
@@ -141,7 +140,7 @@ describe "Editor", ->
       editor.edit(rootView.project.open())
       editSession = editor.activeEditSession
       spyOn(editSession, 'destroy').andCallThrough()
-      spyOn(editor, "remove")
+      spyOn(editor, "remove").andCallThrough()
       editor.trigger "close"
       expect(editSession.destroy).toHaveBeenCalled()
       expect(editor.remove).not.toHaveBeenCalled()
@@ -151,20 +150,19 @@ describe "Editor", ->
       editSession = editor.activeEditSession
       expect(editor.mini).toBeFalsy()
       expect(editor.editSessions.length).toBe 1
-      spyOn(editor, 'remove')
+      spyOn(editor, 'remove').andCallThrough()
       editor.trigger 'close'
       spyOn(editSession, 'destroy').andCallThrough()
       expect(editor.remove).toHaveBeenCalled()
 
-      editor.remove()
-      editor = new Editor(mini: true)
-      spyOn(editor, 'remove')
-      editor.trigger 'close'
-      expect(editor.remove).not.toHaveBeenCalled()
+      miniEditor = new Editor(mini: true)
+      spyOn(miniEditor, 'remove').andCallThrough()
+      miniEditor.trigger 'close'
+      expect(miniEditor.remove).not.toHaveBeenCalled()
 
     describe "when buffer is modified", ->
       it "triggers alert and does not close session", ->
-        spyOn(editor, 'remove')
+        spyOn(editor, 'remove').andCallThrough()
         spyOn($native, 'alert')
         editor.insertText("I AM CHANGED!")
         editor.trigger "close"
@@ -279,12 +277,13 @@ describe "Editor", ->
 
       beforeEach ->
         rootView.remove()
+
         tempFilePath = '/tmp/atom-temp.txt'
         fs.write(tempFilePath, "")
         rootView = new RootView(tempFilePath)
+        editor = rootView.activeEditor()
         project = rootView.project
 
-        editor.edit(rootView.project.open(tempFilePath))
         expect(editor.buffer.getPath()).toBe tempFilePath
 
       afterEach ->
@@ -316,7 +315,6 @@ describe "Editor", ->
         it "saves the buffer to the chosen path", ->
           selectedFilePath = '/tmp/temp.txt'
 
-          console.log 'about to save'
           editor.save()
 
           expect(fs.exists(selectedFilePath)).toBeTruthy()
@@ -392,10 +390,10 @@ describe "Editor", ->
 
     describe "when not inside a pane", ->
       it "does not split the editor, but doesn't throw an exception", ->
-        editor.splitUp()
-        editor.splitDown()
-        editor.splitLeft()
-        editor.splitRight()
+        editor.splitUp().remove()
+        editor.splitDown().remove()
+        editor.splitLeft().remove()
+        editor.splitRight().remove()
 
   describe "editor-open event", ->
     it 'only triggers an editor-open event when it is first added to the DOM', ->
@@ -1079,7 +1077,6 @@ describe "Editor", ->
 
           otherEditor.simulateDomAttachment()
           expect(otherEditor.setSoftWrapColumn).toHaveBeenCalled()
-          otherEditor.remove()
 
     describe "when some lines at the end of the buffer are not visible on screen", ->
       beforeEach ->

@@ -23,6 +23,7 @@ describe "TreeView", ->
 
   afterEach ->
     treeView.deactivate()
+    rootView.remove()
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
@@ -85,9 +86,10 @@ describe "TreeView", ->
       expect(newTreeView).toExist()
       expect(newTreeView.selectedEntry()).toMatchSelector(".file:contains(sample.js)")
       expect(newTreeView.find(".directory:contains(zed)")).toHaveClass("expanded")
+      newRootView.remove()
 
     it "restores the focus state of the tree view", ->
-      treeView.attachToDom()
+      rootView.attachToDom()
       treeView.focus()
       expect(treeView).toMatchSelector ':focus'
 
@@ -98,6 +100,7 @@ describe "TreeView", ->
 
       newTreeView = newRootView.find(".tree-view").view()
       expect(newTreeView).toMatchSelector ':focus'
+      newRootView.remove()
 
   describe "when tree-view:toggle is triggered on the root view", ->
     it "shows/hides the tree view", ->

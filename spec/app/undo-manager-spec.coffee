@@ -9,6 +9,9 @@ describe "UndoManager", ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     undoManager = new UndoManager(buffer)
 
+  afterEach ->
+    buffer.destroy()
+
   describe ".undo()", ->
     it "undoes the last change", ->
       buffer.change(new Range([0, 5], [0, 9]), '')

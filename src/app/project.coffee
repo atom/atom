@@ -90,9 +90,14 @@ class Project
       softTabs: @getSoftTabs()
       softWrap: @getSoftWrap()
 
+
     @editSessions.push editSession
     @trigger 'new-edit-session', editSession
     editSession
+
+  destroy: ->
+    for editSession in _.clone(@editSessions)
+      @removeEditSession(editSession)
 
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)

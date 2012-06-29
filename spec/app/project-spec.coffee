@@ -6,6 +6,9 @@ describe "Project", ->
   beforeEach ->
     project = new Project(require.resolve('fixtures/dir'))
 
+  afterEach ->
+    project.destroy()
+
   describe "when editSession is destroyed", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
       editSession = project.open("a")

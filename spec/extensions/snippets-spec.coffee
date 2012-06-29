@@ -15,6 +15,9 @@ describe "Snippets extension", ->
     rootView.simulateDomAttachment()
     rootView.enableKeymap()
 
+  afterEach ->
+    rootView.remove()
+
   describe "when 'tab' is triggered on the editor", ->
     beforeEach ->
       Snippets.evalSnippets 'js', """

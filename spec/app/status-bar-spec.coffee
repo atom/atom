@@ -12,6 +12,9 @@ describe "StatusBar", ->
     editor = rootView.activeEditor()
     statusBar = rootView.find('.status-bar').view()
 
+  afterEach ->
+    rootView.remove()
+
   describe "@initialize", ->
     it "appends a status bar to all existing and new editors", ->
       expect(rootView.panes.find('.pane').length).toBe 1
@@ -27,6 +30,7 @@ describe "StatusBar", ->
 
     describe "when associated with an unsaved buffer", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
+        rootView.remove()
         rootView = new RootView
         rootView.open()
         rootView.simulateDomAttachment()

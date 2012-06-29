@@ -398,7 +398,7 @@ class Editor extends View
     false
 
   getOpenBufferPaths: ->
-    editSession.buffer.path for editSession in @editSessions when editSession.buffer.path?
+    editSession.buffer.getPath() for editSession in @editSessions when editSession.buffer.getPath()?
 
   scrollTop: (scrollTop, options) ->
     return @cachedScrollTop or 0 unless scrollTop?

@@ -12,6 +12,9 @@ describe 'FuzzyFinder', ->
     rootView.activateExtension(FuzzyFinder)
     finder = FuzzyFinder.instance
 
+  afterEach ->
+    rootView.remove()
+
   describe "file-finder behavior", ->
     describe "toggling", ->
       describe "when the root view's project has a path", ->
@@ -68,14 +71,14 @@ describe 'FuzzyFinder', ->
           selectedLi = finder.find('li:eq(1)')
 
           expectedPath = rootView.project.resolve(selectedLi.text())
-          expect(editor1.buffer.path).not.toBe expectedPath
-          expect(editor2.buffer.path).not.toBe expectedPath
+          expect(editor1.buffer.getPath()).not.toBe expectedPath
+          expect(editor2.buffer.getPath()).not.toBe expectedPath
 
           finder.trigger 'fuzzy-finder:select-path'
 
           expect(finder.hasParent()).toBeFalsy()
-          expect(editor1.buffer.path).not.toBe expectedPath
-          expect(editor2.buffer.path).toBe expectedPath
+          expect(editor1.buffer.getPath()).not.toBe expectedPath
+          expect(editor2.buffer.getPath()).toBe expectedPath
           expect(editor2.isFocused).toBeTruthy()
 
       describe "when no paths are highlighted", ->
@@ -156,8 +159,8 @@ describe 'FuzzyFinder', ->
             finder.trigger 'fuzzy-finder:select-path'
 
             expect(finder.hasParent()).toBeFalsy()
-            expect(editor1.buffer.path).not.toBe expectedPath
-            expect(editor2.buffer.path).toBe expectedPath
+            expect(editor1.buffer.getPath()).not.toBe expectedPath
+            expect(editor2.buffer.getPath()).toBe expectedPath
             expect(editor2.isFocused).toBeTruthy()
 
         describe "when the highlighted path is not open in the active editor, but instead is open on another editor", ->
@@ -176,8 +179,8 @@ describe 'FuzzyFinder', ->
             finder.trigger 'fuzzy-finder:select-path'
 
             expect(finder.hasParent()).toBeFalsy()
-            expect(editor1.buffer.path).not.toBe expectedPath
-            expect(editor2.buffer.path).toBe expectedPath
+            expect(editor1.buffer.getPath()).not.toBe expectedPath
+            expect(editor2.buffer.getPath()).toBe expectedPath
             expect(editor2.isFocused).toBeTruthy()
 
   describe "common behavior between file and buffer finder", ->
@@ -268,12 +271,12 @@ describe 'FuzzyFinder', ->
         selectedLi = finder.find('li:eq(1)')
 
         expectedPath = rootView.project.resolve(selectedLi.text())
-        expect(rootView.activeEditor().buffer.path).not.toBe expectedPath
+        expect(rootView.activeEditor().buffer.getPath()).not.toBe expectedPath
         expect(rootView.activeEditor().isFocused).toBeFalsy()
 
         selectedLi.mousedown()
 
-        expect(rootView.activeEditor().buffer.path).toBe expectedPath
+        expect(rootView.activeEditor().buffer.getPath()).toBe expectedPath
         expect(rootView.activeEditor().isFocused).toBeTruthy()
 
     describe ".findMatches(queryString)", ->

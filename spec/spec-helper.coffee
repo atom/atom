@@ -5,25 +5,27 @@ Keymap = require 'keymap'
 Point = require 'point'
 Project = require 'project'
 Directory = require 'directory'
+File = require 'file'
 RootView = require 'root-view'
+fs = require 'fs'
 require 'window'
 $native.showDevTools()
 
 requireStylesheet "jasmine.css"
 
 defaultTitle = document.title
-directoriesWithSubscriptions = null
+pathsWithSubscriptions = null
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
-  directoriesWithSubscriptions = []
+  pathsWithSubscriptions = []
 
 afterEach ->
   delete window.rootView if window.rootView
   $('#jasmine-content').empty()
   document.title = defaultTitle
-  ensureNoDirectorySubscriptions()
+  ensureNoPathSubscriptions()
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
@@ -31,19 +33,20 @@ $(document).on 'close', -> window.close()
 # Don't load user configuration in specs, because it's variable
 RootView.prototype.loadUserConfiguration = ->
 
-Directory.prototype.originalOn = Directory.prototype.on
-Directory.prototype.on = (args...) ->
-  directoriesWithSubscriptions.push(this) if @subscriptionCount() == 0
-  @originalOn(args...)
+for klass in [Directory, File]
+  klass.prototype.originalOn = klass.prototype.on
+  klass.prototype.on = (args...) ->
+    pathsWithSubscriptions.push(this) if @subscriptionCount() == 0
+    @originalOn(args...)
 
-ensureNoDirectorySubscriptions = ->
+ensureNoPathSubscriptions = ->
   totalSubscriptionCount = 0
-  for directory in directoriesWithSubscriptions
-    totalSubscriptionCount += directory.subscriptionCount()
-    console.log "Non-zero subscription count on", directory if directory.subscriptionCount() > 0
+  for path in pathsWithSubscriptions
+    totalSubscriptionCount += path.subscriptionCount()
+    console.log "Non-zero subscription count on", path if path.subscriptionCount() > 0
 
   if totalSubscriptionCount > 0
-    throw new Error("Total directory subscription count was #{totalSubscriptionCount}, when it should have been 0.\nSee console for details.")
+    throw new Error("Total path subscription count was #{totalSubscriptionCount}, when it should have been 0.\nSee console for details.")
 
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual

@@ -3,12 +3,15 @@ EditSession = require 'edit-session'
 Range = require 'range'
 
 describe "Selection", ->
-  [buffer, selection] = []
+  [buffer, editSession, selection] = []
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     editSession = new EditSession(buffer: buffer, tabText: '  ')
     selection = editSession.getSelection()
+
+  afterEach ->
+    buffer.destroy()
 
   describe ".deleteSelectedText()", ->
     describe "when nothing is selected", ->

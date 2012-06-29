@@ -9,6 +9,9 @@ describe "TokenizedBuffer", ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
     tokenizedBuffer = new TokenizedBuffer(buffer, '  ')
 
+  afterEach ->
+    buffer.destroy()
+
   describe ".findClosingBracket(startBufferPosition)", ->
     it "returns the position of the matching bracket, skipping any nested brackets", ->
       expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
@@ -34,6 +37,7 @@ describe "TokenizedBuffer", ->
 
     describe "coffeescript", ->
       it "comments/uncomments lines in the given range", ->
+        buffer.destroy()
         buffer = new Buffer(require.resolve('fixtures/coffee.coffee'))
         tokenizedBuffer = new TokenizedBuffer(buffer, '  ')
 
@@ -52,6 +56,7 @@ describe "TokenizedBuffer", ->
   describe "fold suggestion", ->
     describe "javascript", ->
       beforeEach ->
+        buffer.destroy()
         buffer = new Buffer(require.resolve 'fixtures/sample.js')
         tokenizedBuffer = new TokenizedBuffer(buffer)
 
@@ -71,6 +76,7 @@ describe "TokenizedBuffer", ->
 
     describe "coffeescript", ->
       beforeEach ->
+        buffer.destroy()
         buffer = new Buffer(require.resolve 'fixtures/coffee.coffee')
         tokenizedBuffer = new TokenizedBuffer(buffer)
 
@@ -223,6 +229,7 @@ describe "TokenizedBuffer", ->
 
       beforeEach ->
         tabText = '  '
+        buffer.destroy()
         buffer = new Buffer(require.resolve('fixtures/sample-with-tabs.coffee'))
         tokenizedBuffer = new TokenizedBuffer(buffer, tabText)
 

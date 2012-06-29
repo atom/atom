@@ -11,6 +11,9 @@ describe "CommandPanel", ->
     editor = rootView.activeEditor()
     commandPanel = rootView.activateExtension(CommandPanel)
 
+  afterEach ->
+    rootView.remove()
+
   describe "serialization", ->
     it "preserves the command panel's mini editor text and visibility across reloads", ->
       rootView.trigger 'command-panel:toggle'
@@ -20,6 +23,8 @@ describe "CommandPanel", ->
       commandPanel = newRootView.activateExtension(CommandPanel)
       expect(newRootView.find('.command-panel')).toExist()
       expect(commandPanel.miniEditor.getText()).toBe 'abc'
+
+      newRootView.remove()
 
   describe "when toggle-command-panel is triggered on the root view", ->
     it "toggles the command panel", ->

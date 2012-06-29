@@ -11,6 +11,9 @@ describe "ScreenLine", ->
     tokenizedBuffer = new TokenizedBuffer(buffer, tabText)
     screenLine = tokenizedBuffer.lineForScreenRow(3)
 
+  afterEach ->
+    buffer.destroy()
+
   describe ".splitAt(column)", ->
     it "breaks the line fragment into two fragments", ->
       [left, right] = screenLine.splitAt(31)

@@ -14,6 +14,9 @@ describe "LineMap", ->
     map = new LineMap
     [line0, line1, line2, line3, line4] = tokenizedBuffer.linesForScreenRows(0, 4)
 
+  afterEach ->
+    tokenizedBuffer.buffer.destroy()
+
   describe ".insertAtBufferRow(row, lineFragments)", ->
     it "inserts the given line fragments before the specified buffer row", ->
       map.insertAtBufferRow(0, [line2, line3])

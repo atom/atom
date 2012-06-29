@@ -12,6 +12,9 @@ describe "CommandInterpreter", ->
     editor = new Editor(editSession: editSession)
     interpreter = new CommandInterpreter()
 
+  afterEach ->
+    editor.remove()
+
   describe "addresses", ->
     beforeEach ->
       editor.addSelectionForBufferRange([[7,0], [7,11]])

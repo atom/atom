@@ -183,6 +183,7 @@ class RootView extends View
 
   remove: ->
     editor.remove() for editor in @editors()
+    @project.destroy()
     super
 
   setFontSize: (newFontSize) ->
