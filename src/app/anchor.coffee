@@ -62,6 +62,7 @@ class Anchor
     @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
 
   destroy: ->
+    @off()
     @editSession.removeAnchor(this)
 
 _.extend(Anchor.prototype, EventEmitter)
