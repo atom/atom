@@ -49,7 +49,7 @@ describe "editor.", ->
 
     describe "after-opening.", ->
       beforeEach ->
-        editor.edit rootView.project.open('fixtures/huge.js')
+        editor.edit rootView.project.open('huge.js')
 
       benchmark "moving-to-eof.", 1, ->
         editor.moveCursorToBottom()
