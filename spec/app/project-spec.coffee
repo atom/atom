@@ -6,6 +6,24 @@ describe "Project", ->
   beforeEach ->
     project = new Project(require.resolve('fixtures/dir'))
 
+  describe "when editSession is destroyed", ->
+    it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
+      editSession = project.open("a")
+      anotherEditSession = project.open("a")
+      buffer = editSession.buffer
+      spyOn(buffer, 'destroy').andCallThrough()
+
+      expect(project.editSessions.length).toBe 2
+      expect(editSession.buffer).toBe anotherEditSession.buffer
+
+      editSession.destroy()
+      expect(buffer.destroy).not.toHaveBeenCalled()
+      expect(project.editSessions.length).toBe 1
+
+      anotherEditSession.destroy()
+      expect(buffer.destroy).toHaveBeenCalled()
+      expect(project.editSessions.length).toBe 0
+
   describe ".open(path)", ->
     [absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
@@ -18,14 +36,14 @@ describe "Project", ->
     describe "when given an absolute path that hasn't been opened previously", ->
       it "returns a new edit session for the given path and emits 'new-buffer' and 'new-edit-session' events", ->
         editSession = project.open(absolutePath)
-        expect(editSession.buffer.path).toBe absolutePath
+        expect(editSession.buffer.getPath()).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
     describe "when given a relative path that hasn't been opened previously", ->
       it "returns a new edit session for the given path (relative to the project root) and emits 'new-buffer' and 'new-edit-session' events", ->
         editSession = project.open('a')
-        expect(editSession.buffer.path).toBe absolutePath
+        expect(editSession.buffer.getPath()).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
@@ -77,7 +95,6 @@ describe "Project", ->
         project.setPath(null)
         expect(project.getPath()?).toBeFalsy()
         expect(project.getRootDirectory()?).toBeFalsy()
-
 
   describe ".getFilePaths()", ->
     it "ignores files that return true from atom.ignorePath(path)", ->

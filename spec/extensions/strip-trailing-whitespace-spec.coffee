@@ -3,22 +3,27 @@ RootView = require 'root-view'
 fs = require 'fs'
 
 describe "StripTrailingWhitespace", ->
-  [rootView, editor] = []
+  [rootView, editor, path] = []
 
   beforeEach ->
-    rootView = new RootView
-    rootView.open()
+    path = "/tmp/atom-whitespace.txt"
+    fs.write(path, "")
+    rootView = new RootView(path)
 
     StripTrailingWhitespace.activate(rootView)
     rootView.focus()
     editor = rootView.activeEditor()
+
+  afterEach ->
+    fs.remove(path) if fs.exists(path)
+    rootView.remove()
 
   it "strips trailing whitespace before an editor saves a buffer", ->
     spyOn(fs, 'write')
 
     # works for buffers that are already open when extension is initialized
     editor.insertText("foo   \nbar\t   \n\nbaz")
-    editor.buffer.saveAs("/tmp/test")
+    editor.save()
     expect(editor.buffer.getText()).toBe "foo\nbar\n\nbaz"
 
     # works for buffers that are opened after extension is initialized

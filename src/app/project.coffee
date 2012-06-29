@@ -89,6 +89,11 @@ class Project
       softTabs: @getSoftTabs()
       softWrap: @getSoftWrap()
 
+    editSession.on 'destroy', =>
+      @editSessions = _.without(@editSessions, editSession)
+      bufferIsOrphaned = not _.find @editSessions, (e) -> e.buffer == editSession.buffer
+      editSession.buffer.destroy() if bufferIsOrphaned
+
     @editSessions.push editSession
     @trigger 'new-edit-session', editSession
     editSession

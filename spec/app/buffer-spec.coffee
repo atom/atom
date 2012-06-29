@@ -10,7 +10,13 @@ describe 'Buffer', ->
     fileContents = fs.read(filePath)
     buffer = new Buffer(filePath)
 
+  afterEach ->
+    buffer.destroy()
+
   describe 'constructor', ->
+    beforeEach ->
+      buffer.destroy()
+
     describe "when given a path", ->
       describe "when a file exists for the path", ->
         it "loads the contents of that file", ->
@@ -19,12 +25,11 @@ describe 'Buffer', ->
           expect(buffer.getText()).toBe fs.read(filePath)
 
       describe "when no file exists for the path", ->
-        it "creates an empty buffer", ->
+        it "throws an exception", ->
           filePath = "does-not-exist.txt"
           expect(fs.exists(filePath)).toBeFalsy()
 
-          buffer = new Buffer(filePath)
-          expect(buffer.getText()).toBe ""
+          expect(-> new Buffer(filePath)).toThrow()
 
     describe "when no path is given", ->
       it "creates an empty buffer", ->
@@ -32,22 +37,26 @@ describe 'Buffer', ->
         expect(buffer.getText()).toBe ""
 
   describe "path-change event", ->
+    afterEach ->
+      fs.remove("/tmp/moo.text") if fs.exists("/tmp/moo.text")
+
     it "emits path-change event when path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
       buffer.on 'path-change', eventHandler
-      buffer.setPath("moo.text")
+      buffer.saveAs("/tmp/moo.text")
       expect(eventHandler).toHaveBeenCalledWith(buffer)
 
   describe "when the buffer's file is modified (via another process)", ->
     path = null
     beforeEach ->
-      path = fs.join(require.resolve('fixtures'), "tmp.txt")
+      path = "/tmp/tmp.txt"
       fs.write(path, "first")
+      buffer.destroy()
 
     afterEach ->
       fs.remove(path)
 
-    describe "when the buffer is in an unmodified", ->
+    describe "when the buffer is unmodified", ->
       it "triggers 'change' event", ->
         buffer = new Buffer(path)
         changeHandler = jasmine.createSpy('changeHandler')
@@ -66,6 +75,9 @@ describe 'Buffer', ->
           expect(event.newText).toBe "second"
 
   describe ".isModified()", ->
+    beforeEach ->
+      buffer.destroy()
+
     it "returns true when user changes buffer", ->
       expect(buffer.isModified()).toBeFalsy()
       buffer.insert([0,0], "hi")
@@ -210,12 +222,15 @@ describe 'Buffer', ->
       expect(event.newRange).toEqual [[0, 0], [1, 14]]
 
   describe ".save()", ->
+    beforeEach ->
+      buffer.destroy()
+
     describe "when the buffer has a path", ->
-      [filePath, buffer] = []
+      filePath = null
 
       beforeEach ->
         filePath = '/tmp/temp.txt'
-        fs.remove filePath if fs.exists(filePath)
+        fs.write(filePath, "")
         buffer = new Buffer filePath
 
       afterEach ->
@@ -242,7 +257,7 @@ describe 'Buffer', ->
         buffer.save()
         expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fs.write', 'afterSave1', 'afterSave2']
 
-    describe "when the buffer no path", ->
+    describe "when the buffer has no path", ->
       it "throws an exception", ->
         buffer = new Buffer
         expect(-> buffer.save()).toThrow()
@@ -251,13 +266,12 @@ describe 'Buffer', ->
     filePath = null
 
     beforeEach ->
-      filePath = require.resolve('fixtures') + '/temp.txt'
-      expect(fs.exists(filePath)).toBeFalsy()
-
-    afterEach ->
-      fs.remove filePath
+      buffer.destroy()
 
     it "saves the contents of the buffer to the path", ->
+      filePath = '/tmp/temp.txt'
+      fs.remove filePath if fs.exists(filePath)
+
       buffer = new Buffer()
       eventHandler = jasmine.createSpy('eventHandler')
       buffer.on 'path-change', eventHandler
@@ -267,6 +281,25 @@ describe 'Buffer', ->
       expect(fs.read(filePath)).toEqual 'Buffer contents!'
 
       expect(eventHandler).toHaveBeenCalledWith(buffer)
+
+    it "stops listening to events on previous path and begins listening to events on new path", ->
+      originalPath = "/tmp/original.txt"
+      newPath = "/tmp/new.txt"
+      fs.write(originalPath, "")
+      buffer = new Buffer(originalPath)
+      changeHandler = jasmine.createSpy('changeHandler')
+      buffer.on 'change', changeHandler
+      buffer.saveAs(newPath)
+      expect(changeHandler).not.toHaveBeenCalled()
+
+      fs.write(originalPath, "should not trigger buffer event")
+      waits 20
+      runs ->
+        expect(changeHandler).not.toHaveBeenCalled()
+        fs.write(newPath, "should trigger buffer event")
+
+      waitsFor ->
+        changeHandler.callCount > 0
 
   describe ".getTextInRange(range)", ->
     describe "when range is empty", ->
@@ -478,23 +511,3 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
-
-  describe ".setPath(path)", ->
-    [path, newPath] = []
-    beforeEach ->
-      path = fs.join(require.resolve('fixtures'), "tmp.txt")
-      fs.write(path, "first")
-
-    afterEach ->
-      fs.remove(path)
-
-    it "stops listening to events on previous path and begins listening to events on new path", ->
-      buffer = new Buffer(path)
-      changeHandler = jasmine.createSpy('changeHandler')
-      buffer.on 'change', changeHandler
-      buffer.setPath(filePath)
-      expect(changeHandler).not.toHaveBeenCalled()
-
-      fs.write(path, "should not trigger buffer event")
-      waits 20
-      runs -> expect(changeHandler).not.toHaveBeenCalled()

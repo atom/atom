@@ -13,33 +13,40 @@ class Buffer
   lines: null
   file: null
 
-
   constructor: (path) ->
     @id = @constructor.idCounter++
-    @setPath(path)
     @lines = ['']
-    if fs.exists(@getPath())
+    @undoManager = new UndoManager(this)
+
+    if path
+      throw "Path '#{path}' does not exist" unless fs.exists(path)
+      @setPath(path)
       @setText(fs.read(@getPath()))
     else
       @setText('')
-    @undoManager = new UndoManager(this)
+
     @modified = false
 
+  destroy: ->
+    @file?.off()
+
   getPath: ->
-    @file.getPath()
+    @file?.getPath()
+
+  setPath: (path) ->
+    return if path == @getPath()
+
+    @file?.off()
+    @file = new File(path)
+    @file.on "contents-change", =>
+      @setText(fs.read(@file.getPath())) unless @isModified()
+    @trigger "path-change", this
 
   getExtension: ->
     if @getPath()
       @getPath().split('/').pop().split('.').pop()
     else
       null
-
-  setPath: (path) ->
-    @file?.off()
-    @file = new File(path)
-    @file.on "contents-change", =>
-      @setText(fs.read(@file.getPath())) unless @isModified()
-    @trigger "path-change", this
 
   getText: ->
     @lines.join('\n')
@@ -156,15 +163,16 @@ class Buffer
     @undoManager.redo()
 
   save: ->
-    if not @getPath() then throw new Error("Can't save buffer with no file path")
-    @trigger 'before-save'
-    fs.write @getPath(), @getText()
-    @modified = false
-    @trigger 'after-save'
+    @saveAs(@getPath())
 
   saveAs: (path) ->
+    if not path then throw new Error("Can't save buffer with no file path")
+
+    @trigger 'before-save'
+    fs.write path, @getText()
+    @modified = false
     @setPath(path)
-    @save()
+    @trigger 'after-save'
 
   isModified: ->
     @modified

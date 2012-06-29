@@ -14,6 +14,9 @@ describe "EditSession", ->
 
     lineLengths = buffer.getLines().map (line) -> line.length
 
+  afterEach ->
+    buffer.destroy()
+
   describe "cursor movement", ->
     describe ".setCursorScreenPosition(screenPosition)", ->
       it "clears a goal column established by vertical movement", ->
@@ -1325,6 +1328,12 @@ describe "EditSession", ->
           editSession.setCursorBufferPosition([5,5])
           editSession.foldAll()
           expect(editSession.getCursorBufferPosition()).toEqual([5,5])
+
+  describe ".destroy()", ->
+    it "triggers `destroy` event", ->
+      spyOn(editSession, 'trigger')
+      editSession.destroy()
+      expect(editSession.trigger).toHaveBeenCalledWith('destroy')
 
   describe ".clipBufferPosition(bufferPosition)", ->
     it "clips the given position to a valid position", ->

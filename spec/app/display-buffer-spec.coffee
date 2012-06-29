@@ -10,6 +10,9 @@ describe "DisplayBuffer", ->
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'change', changeHandler
 
+  afterEach ->
+    buffer.destroy()
+
   describe "when the buffer changes", ->
     it "renders line numbers correctly", ->
       originalLineCount = displayBuffer.lineCount()
@@ -196,6 +199,7 @@ describe "DisplayBuffer", ->
 
   describe "primitive folding", ->
     beforeEach ->
+      buffer.destroy()
       buffer = new Buffer(require.resolve 'fixtures/two-hundred.txt')
       displayBuffer = new DisplayBuffer(buffer, {tabText})
       displayBuffer.on 'change', changeHandler

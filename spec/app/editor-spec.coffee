@@ -37,7 +37,7 @@ describe "Editor", ->
     editor.isFocused = true
 
   afterEach ->
-    editor.remove()
+    rootView.remove()
 
   describe "construction", ->
     it "throws an error if no editor session is given", ->
@@ -54,7 +54,7 @@ describe "Editor", ->
       editor.scrollTop(1.5 * editor.lineHeight)
       editor.scrollView.scrollLeft(44)
 
-      # prove this test covers serialization and deserialization
+      # proves this test covers serialization and deserialization
       spyOn(editor, 'serialize').andCallThrough()
       spyOn(Editor, 'deserialize').andCallThrough()
 
@@ -278,7 +278,9 @@ describe "Editor", ->
       tempFilePath = null
 
       beforeEach ->
+        rootView.remove()
         tempFilePath = '/tmp/atom-temp.txt'
+        fs.write(tempFilePath, "")
         rootView = new RootView(tempFilePath)
         project = rootView.project
 
@@ -290,7 +292,7 @@ describe "Editor", ->
 
       it "saves the current buffer to disk", ->
         editor.buffer.setText 'Edited!'
-        expect(fs.exists(tempFilePath)).toBeFalsy()
+        expect(fs.read(tempFilePath)).not.toBe "Edited!"
 
         editor.save()
 
@@ -314,6 +316,7 @@ describe "Editor", ->
         it "saves the buffer to the chosen path", ->
           selectedFilePath = '/tmp/temp.txt'
 
+          console.log 'about to save'
           editor.save()
 
           expect(fs.exists(selectedFilePath)).toBeTruthy()
@@ -409,15 +412,24 @@ describe "Editor", ->
       expect(openHandler).not.toHaveBeenCalled()
 
   describe "editor-path-change event", ->
+    path = null
+    beforeEach ->
+      path = "/tmp/something.txt"
+      fs.write(path, path)
+
+    afterEach ->
+      fs.remove(path) if fs.exists(path)
+
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor-path-change', eventHandler
-      editor.buffer.setPath("moo.text")
+      editor.buffer.saveAs(path)
+      expect(eventHandler).toHaveBeenCalled()
 
     it "emits event when editor receives a new buffer", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor-path-change', eventHandler
-      editor.edit(rootView.project.open("something.txt"))
+      editor.edit(rootView.project.open(path))
       expect(eventHandler).toHaveBeenCalled()
 
     it "stops listening to events on previously set buffers", ->
@@ -425,15 +437,15 @@ describe "Editor", ->
       oldBuffer = editor.buffer
       editor.on 'editor-path-change', eventHandler
 
-      editor.edit(rootView.project.open("something.txt"))
+      editor.edit(rootView.project.open(path))
       expect(eventHandler).toHaveBeenCalled()
 
       eventHandler.reset()
-      oldBuffer.setPath("bad.txt")
+      oldBuffer.saveAs("/tmp/atom-bad.txt")
       expect(eventHandler).not.toHaveBeenCalled()
 
       eventHandler.reset()
-      editor.buffer.setPath("new.txt")
+      editor.buffer.saveAs("/tmp/atom-new.txt")
       expect(eventHandler).toHaveBeenCalled()
 
   describe "font size", ->

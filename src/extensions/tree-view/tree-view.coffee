@@ -101,7 +101,7 @@ class TreeView extends View
     @append(@root)
 
   selectActiveFile: ->
-    activeFilePath = @rootView.activeEditor()?.buffer.path
+    activeFilePath = @rootView.activeEditor()?.buffer.getPath()
     @selectEntryForPath(activeFilePath)
 
   selectEntryForPath: (path) ->

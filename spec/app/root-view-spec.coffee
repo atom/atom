@@ -15,6 +15,9 @@ describe "RootView", ->
     rootView.enableKeymap()
     rootView.focus()
 
+  afterEach ->
+    rootView.remove()
+
   describe "initialize(pathToOpen)", ->
     describe "when called with a pathToOpen", ->
       describe "when pathToOpen references a file", ->
@@ -27,6 +30,9 @@ describe "RootView", ->
           expect(document.title).toBe path
 
       describe "when pathToOpen references a directory", ->
+        beforeEach ->
+          rootView.remove()
+
         it "creates a project for the directory and sets the document.title, but does not open an editor", ->
           path = require.resolve 'fixtures/dir'
           rootView = new RootView(path)
@@ -43,6 +49,7 @@ describe "RootView", ->
         buffer = null
 
         beforeEach ->
+          rootView.remove()
           rootView = new RootView
           rootView.open()
           editor1 = rootView.activeEditor()
@@ -60,6 +67,7 @@ describe "RootView", ->
       describe "when the serialized RootView has a project", ->
         beforeEach ->
           path = require.resolve 'fixtures'
+          rootView.remove()
           rootView = new RootView(path)
           rootView.open('dir/a')
 
@@ -87,11 +95,11 @@ describe "RootView", ->
           editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
           editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
 
-          expect(editor1.buffer.path).toBe require.resolve('fixtures/dir/a')
-          expect(editor2.buffer.path).toBe require.resolve('fixtures/dir/b')
-          expect(editor3.buffer.path).toBe require.resolve('fixtures/sample.js')
+          expect(editor1.buffer.getPath()).toBe require.resolve('fixtures/dir/a')
+          expect(editor2.buffer.getPath()).toBe require.resolve('fixtures/dir/b')
+          expect(editor3.buffer.getPath()).toBe require.resolve('fixtures/sample.js')
           expect(editor3.getCursorScreenPosition()).toEqual [2, 3]
-          expect(editor4.buffer.path).toBe require.resolve('fixtures/sample.txt')
+          expect(editor4.buffer.getPath()).toBe require.resolve('fixtures/sample.txt')
           expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
 
           # ensure adjust pane dimensions is called
@@ -106,10 +114,11 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
-          expect(document.title).toBe editor2.buffer.path
+          expect(document.title).toBe editor2.buffer.getPath()
 
     describe "when called with no pathToOpen", ->
       it "opens no buffer", ->
+        rootView.remove()
         rootView = new RootView
         expect(rootView.editors().length).toBe 0
         expect(document.title).toBe 'untitled'
@@ -137,6 +146,7 @@ describe "RootView", ->
 
   describe "focus", ->
     it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
+      rootView.remove()
       rootView = new RootView(require.resolve 'fixtures')
       rootView.attachToDom()
       expect(rootView).toMatchSelector(':focus')
@@ -433,7 +443,7 @@ describe "RootView", ->
         expect(Object.keys(keybindings).length).toBe 2
         expect(keybindings["meta-a"]).toEqual "test-event-a"
 
-  describe "when the path of the focused editor's buffer changes", ->
+  describe "when the focused editor changes", ->
     it "changes the document.title and emits an active-editor-path-change event", ->
       pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
       rootView.on 'active-editor-path-change', pathChangeHandler
@@ -442,16 +452,19 @@ describe "RootView", ->
       expect(document.title).toBe path
 
       editor2 = rootView.activeEditor().splitLeft()
-      editor2.edit(rootView.project.open("second.txt"))
+
+      path = rootView.project.resolve('b')
+      editor2.edit(rootView.project.open(path))
       expect(pathChangeHandler).toHaveBeenCalled()
-      expect(document.title).toBe rootView.project.resolve("second.txt")
+      expect(document.title).toBe rootView.project.resolve(path)
 
       pathChangeHandler.reset()
-      editor1.buffer.setPath("should-not-be-title.txt")
+      editor1.buffer.saveAs("/tmp/should-not-be-title.txt")
       expect(pathChangeHandler).not.toHaveBeenCalled()
-      expect(document.title).toBe rootView.project.resolve("second.txt")
+      expect(document.title).toBe rootView.project.resolve(path)
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
+      rootView.remove()
       rootView = new RootView
       rootView.open()
       expect(rootView.project.getPath()?).toBeFalsy()

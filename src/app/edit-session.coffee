@@ -54,6 +54,7 @@ class EditSession
     @buffer.off ".edit-session-#{@id}"
     @displayBuffer.off ".edit-session-#{@id}"
     @displayBuffer.destroy()
+    @trigger "destroy"
 
   serialize: ->
     buffer: @buffer.getPath()

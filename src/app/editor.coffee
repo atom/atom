@@ -572,7 +572,8 @@ class Editor extends View
     @buffer.off ".editor#{@id}"
 
   destroyEditSessions: ->
-    session.destroy() for session in @editSessions
+    for session in @editSessions
+      session.destroy()
 
   renderWhenAttached: ->
     return unless @attached
