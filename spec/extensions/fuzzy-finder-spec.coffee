@@ -23,7 +23,7 @@ describe 'FuzzyFinder', ->
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           expect(rootView.find('.fuzzy-finder')).toExist()
-          expect(rootView.find('.fuzzy-finder input:focus')).toExist()
+          expect(finder.miniEditor.isFocused).toBeTruthy()
           finder.miniEditor.insertText('this should not show up next time we toggle')
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'

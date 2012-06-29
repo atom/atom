@@ -1,6 +1,7 @@
 {View, $$} = require 'space-pen'
 stringScore = require 'stringscore'
 fuzzyFilter = require 'fuzzy-filter'
+$ = require 'jquery'
 Editor = require 'editor'
 
 module.exports =
@@ -28,6 +29,7 @@ class FuzzyFinder extends View
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
     @on 'fuzzy-finder:select-path', => @select()
+    @on 'mousedown', 'li', (e) => @entryClicked(e)
 
     @miniEditor.buffer.on 'change', => @populatePathList() if @hasParent()
     @miniEditor.off 'move-up move-down'
@@ -81,9 +83,15 @@ class FuzzyFinder extends View
   select: ->
     selectedLi = @findSelectedLi()
     return unless selectedLi.length
-    path = selectedLi.text()
-    @rootView.open(selectedLi.text(), {@allowActiveEditorChange})
+    @open(selectedLi.text())
+
+  open : (path) ->
+    return unless path.length
+    @rootView.open(path, {@allowActiveEditorChange})
     @detach()
+
+  select: ->
+    @open(@findSelectedLi().text())
 
   moveUp: ->
     @findSelectedLi()
@@ -101,3 +109,6 @@ class FuzzyFinder extends View
 
   findMatches: (query) ->
     fuzzyFilter(@paths, query, maxResults: @maxResults)
+
+  entryClicked: (e) ->
+    @open($(e.currentTarget).text())
