@@ -80,11 +80,6 @@ class FuzzyFinder extends View
   findSelectedLi: ->
     @pathList.children('li.selected')
 
-  select: ->
-    selectedLi = @findSelectedLi()
-    return unless selectedLi.length
-    @open(selectedLi.text())
-
   open : (path) ->
     return unless path.length
     @rootView.open(path, {@allowActiveEditorChange})
