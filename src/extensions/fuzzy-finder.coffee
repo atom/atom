@@ -88,6 +88,10 @@ class FuzzyFinder extends View
   select: ->
     @open(@findSelectedLi().text())
 
+  entryClicked: (e) ->
+    @open($(e.currentTarget).text())
+    false
+
   moveUp: ->
     @findSelectedLi()
       .filter(':not(:first-child)')
@@ -104,6 +108,3 @@ class FuzzyFinder extends View
 
   findMatches: (query) ->
     fuzzyFilter(@paths, query, maxResults: @maxResults)
-
-  entryClicked: (e) ->
-    @open($(e.currentTarget).text())
