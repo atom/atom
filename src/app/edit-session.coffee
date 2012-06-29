@@ -30,7 +30,7 @@ class EditSession
   softTabs: true
   softWrap: false
 
-  constructor: ({@buffer, @tabText, @autoIndent, @softTabs, @softWrap}) ->
+  constructor: ({@project, @buffer, @tabText, @autoIndent, @softTabs, @softWrap}) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
     @displayBuffer = new DisplayBuffer(@buffer, { @tabText })
@@ -54,7 +54,7 @@ class EditSession
     @buffer.off ".edit-session-#{@id}"
     @displayBuffer.off ".edit-session-#{@id}"
     @displayBuffer.destroy()
-    @trigger "destroy"
+    @project.removeEditSession(this)
 
   serialize: ->
     buffer: @buffer.getPath()

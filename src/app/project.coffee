@@ -83,20 +83,24 @@ class Project
       buffer = @buildBuffer()
 
     editSession = new EditSession
+      project: this
       buffer: buffer
       tabText: @getTabText()
       autoIndent: @getAutoIndent()
       softTabs: @getSoftTabs()
       softWrap: @getSoftWrap()
 
-    editSession.on 'destroy', =>
-      @editSessions = _.without(@editSessions, editSession)
-      bufferIsOrphaned = not _.find @editSessions, (e) -> e.buffer == editSession.buffer
-      editSession.buffer.destroy() if bufferIsOrphaned
-
     @editSessions.push editSession
     @trigger 'new-edit-session', editSession
     editSession
+
+  removeEditSession: (editSession) ->
+    _.remove(@editSessions, editSession)
+    @destroyBufferIfOrphaned(editSession.buffer)
+
+  destroyBufferIfOrphaned: (buffer) ->
+    unless _.find(@editSessions, (editSession) -> editSession.buffer == buffer)
+      buffer.destroy()
 
   buildBuffer: (filePath) ->
     buffer = new Buffer(filePath)
