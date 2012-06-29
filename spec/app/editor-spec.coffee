@@ -22,6 +22,7 @@ describe "Editor", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
+    project = rootView.project
     editor = rootView.activeEditor()
     buffer = editor.buffer
 
@@ -1560,3 +1561,11 @@ describe "Editor", ->
 
         editor.scrollTop(0)
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
+
+  describe ".getOpenBufferPaths()", ->
+    it "returns the paths of all non-anonymous buffers with edit sessions on this editor", ->
+      editor.edit(project.open('sample.txt'))
+      editor.edit(project.open('two-hundred.txt'))
+      editor.edit(project.open())
+      paths = editor.getOpenBufferPaths().map (path) -> project.relativize(path)
+      expect(paths).toEqual = ['sample.js', 'sample.txt', 'two-hundred.txt']
