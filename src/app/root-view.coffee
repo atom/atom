@@ -91,19 +91,36 @@ class RootView extends View
     extension.deactivate?() for name, extension of @extensions
     @remove()
 
-  open: (path, changeFocus=true) ->
-    editSession = @project.open(path)
+  open: (path, options = {}) ->
+    changeFocus = options.changeFocus ? true
+    allowActiveEditorChange = options.allowActiveEditorChange ? false
 
-    if @activeEditor()
-      @activeEditor().edit(editSession)
-    else
-      editor = new Editor(editSession: editSession)
+    unless @openInExistingEditor(path, allowActiveEditorChange)
+      editor = new Editor(editSession: @project.open(path))
       pane = new Pane(editor)
       @panes.append(pane)
       if changeFocus
         editor.focus()
       else
         @makeEditorActive(editor)
+
+  openInExistingEditor: (path, allowActiveEditorChange) ->
+    if activeEditor = @activeEditor()
+      path = @project.resolve(path) if path
+
+      if activeEditor.activateEditSessionForPath(path)
+        return true
+
+      if allowActiveEditorChange
+        for editor in @editors()
+          if editor.activateEditSessionForPath(path)
+            editor.focus()
+            return true
+
+      activeEditor.edit(@project.open(path))
+      true
+    else
+      false
 
   editorFocused: (editor) ->
     @makeEditorActive(editor) if @panes.containsElement(editor)
@@ -126,7 +143,7 @@ class RootView extends View
     document.title = title
 
   editors: ->
-    @panes.find('.editor').map -> $(this).view()
+    @panes.find('.editor').map(-> $(this).view()).toArray()
 
   modifiedBuffers: ->
     modifiedBuffers = []
@@ -135,6 +152,9 @@ class RootView extends View
         modifiedBuffers.push session.buffer if session.buffer.isModified()
 
     modifiedBuffers
+
+  getOpenBufferPaths: ->
+    _.uniq(_.flatten(@editors().map (editor) -> editor.getOpenBufferPaths()))
 
   activeEditor: ->
     if (editor = @panes.find('.editor.active')).length

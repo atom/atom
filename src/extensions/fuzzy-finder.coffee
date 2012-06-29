@@ -4,40 +4,60 @@ fuzzyFilter = require 'fuzzy-filter'
 Editor = require 'editor'
 
 module.exports =
-class FileFinder extends View
+class FuzzyFinder extends View
   @activate: (rootView) ->
-    @instance = new FileFinder(rootView)
+    @instance = new FuzzyFinder(rootView)
 
   @content: ->
-    @div class: 'file-finder', =>
+    @div class: 'fuzzy-finder', =>
       @ol outlet: 'pathList'
       @subview 'miniEditor', new Editor(mini: true)
 
   paths: null
+  allowActiveEditorChange: null
   maxResults: null
 
   initialize: (@rootView) ->
-    requireStylesheet 'file-finder.css'
+    requireStylesheet 'fuzzy-finder.css'
     @maxResults = 10
 
-    @rootView.on 'file-finder:toggle', => @toggle()
+    @rootView.on 'fuzzy-finder:toggle-file-finder', => @toggleFileFinder()
+    @rootView.on 'fuzzy-finder:toggle-buffer-finder', => @toggleBufferFinder()
 
-    @on 'file-finder:cancel', => @detach()
+    @on 'fuzzy-finder:cancel', => @detach()
     @on 'move-up', => @moveUp()
     @on 'move-down', => @moveDown()
-    @on 'file-finder:select-file', => @select()
+    @on 'fuzzy-finder:select-path', => @select()
 
     @miniEditor.buffer.on 'change', => @populatePathList() if @hasParent()
     @miniEditor.off 'move-up move-down'
 
-  toggle: ->
+  toggleFileFinder: ->
     if @hasParent()
       @detach()
     else
-      @attach() if @rootView.project.getPath()?
+      return unless @rootView.project.getPath()?
+      @allowActiveEditorChange = false
+      @populateProjectPaths()
+      @attach()
+
+  toggleBufferFinder: ->
+    if @hasParent()
+      @detach()
+    else
+      @allowActiveEditorChange = true
+      @populateOpenBufferPaths()
+      @attach() if @paths?.length
+
+  populateProjectPaths: ->
+    @rootView.project.getFilePaths().done (@paths) => @populatePathList()
+
+  populateOpenBufferPaths: ->
+    @paths = @rootView.getOpenBufferPaths().map (path) =>
+      @rootView.project.relativize(path)
+    @populatePathList() if @paths?.length
 
   attach: ->
-    @rootView.project.getFilePaths().done (@paths) => @populatePathList()
     @rootView.append(this)
     @miniEditor.focus()
     @miniEditor.on 'focusout', => @detach()
@@ -61,7 +81,8 @@ class FileFinder extends View
   select: ->
     selectedLi = @findSelectedLi()
     return unless selectedLi.length
-    @rootView.open(selectedLi.text())
+    path = selectedLi.text()
+    @rootView.open(selectedLi.text(), {@allowActiveEditorChange})
     @detach()
 
   moveUp: ->
