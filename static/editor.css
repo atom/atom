@@ -107,4 +107,5 @@
   position: absolute;
   background: white;
   opacity: .25;
+  pointer-events: none;
 }
