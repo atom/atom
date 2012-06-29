@@ -590,9 +590,3 @@ describe "RootView", ->
                 rootView.open(path, allowActiveEditorChange: true)
                 expect(rootView.activeEditor()).toBe editor1
                 expect(editor1.buffer.path).toBe path
-
-
-
-
-
-

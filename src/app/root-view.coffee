@@ -143,7 +143,7 @@ class RootView extends View
     document.title = title
 
   editors: ->
-    @panes.find('.editor').map -> $(this).view()
+    @panes.find('.editor').map(-> $(this).view()).toArray()
 
   modifiedBuffers: ->
     modifiedBuffers = []
@@ -152,6 +152,9 @@ class RootView extends View
         modifiedBuffers.push session.buffer if session.buffer.isModified()
 
     modifiedBuffers
+
+  getOpenBufferPaths: ->
+    _.uniq(_.flatten(@editors().map (editor) -> editor.getOpenBufferPaths()))
 
   activeEditor: ->
     if (editor = @panes.find('.editor.active')).length

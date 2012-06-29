@@ -3,7 +3,7 @@ FuzzyFinder = require 'fuzzy-finder'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 
-fdescribe 'FuzzyFinder', ->
+describe 'FuzzyFinder', ->
   [rootView, finder] = []
 
   beforeEach ->
@@ -62,7 +62,7 @@ fdescribe 'FuzzyFinder', ->
         expect(rootView.activeEditor()).toBe editor2
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
-      describe "when there is a path selected", ->
+      describe "when a path is highlighted", ->
         it "opens the file associated with that path in the editor", ->
           finder.trigger 'move-down'
           selectedLi = finder.find('li:eq(1)')
@@ -78,7 +78,7 @@ fdescribe 'FuzzyFinder', ->
           expect(editor2.buffer.path).toBe expectedPath
           expect(editor2.isFocused).toBeTruthy()
 
-      describe "when there is no path selected", ->
+      describe "when no paths are highlighted", ->
           it "does nothing", ->
             finder.miniEditor.insertText('this should match nothing, because no one wants to drink battery acid')
             finder.trigger 'fuzzy-finder:select-path'
@@ -132,6 +132,53 @@ fdescribe 'FuzzyFinder', ->
           expect(rootView.activeEditor()).toBeUndefined()
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(rootView.find('.fuzzy-finder')).not.toExist()
+
+    describe "selecting a path", ->
+      [editor1, editor2] = []
+
+      beforeEach ->
+        rootView.attachToDom()
+        editor1 = rootView.activeEditor()
+        editor2 = editor1.splitRight()
+        expect(rootView.activeEditor()).toBe editor2
+        rootView.open('sample.txt')
+        editor2.loadPreviousEditSession()
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+
+      describe "when a path is highlighted", ->
+        describe "when the highlighted path is open in the active editor", ->
+          it "switches the active editor to the edit session for the selected path", ->
+            finder.moveDown()
+            selectedLi = finder.findSelectedLi()
+            expect(selectedLi.text()).toBe 'sample.txt'
+            expectedPath = rootView.project.resolve('sample.txt')
+
+            finder.trigger 'fuzzy-finder:select-path'
+
+            expect(finder.hasParent()).toBeFalsy()
+            expect(editor1.buffer.path).not.toBe expectedPath
+            expect(editor2.buffer.path).toBe expectedPath
+            expect(editor2.isFocused).toBeTruthy()
+
+        describe "when the highlighted path is not open in the active editor, but instead is open on another editor", ->
+          it "focuses the editor that contains an edit session for the selected path", ->
+            rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+            editor1.focus()
+            rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+
+            expect(rootView.activeEditor()).toBe editor1
+
+            finder.moveDown()
+            selectedLi = finder.findSelectedLi()
+            expect(selectedLi.text()).toBe 'sample.txt'
+            expectedPath = rootView.project.resolve('sample.txt')
+
+            finder.trigger 'fuzzy-finder:select-path'
+
+            expect(finder.hasParent()).toBeFalsy()
+            expect(editor1.buffer.path).not.toBe expectedPath
+            expect(editor2.buffer.path).toBe expectedPath
+            expect(editor2.isFocused).toBeTruthy()
 
   describe "common behavior between file and buffer finder", ->
     describe "when characters are typed into the input element", ->

@@ -14,6 +14,7 @@ class FuzzyFinder extends View
       @subview 'miniEditor', new Editor(mini: true)
 
   paths: null
+  allowActiveEditorChange: null
   maxResults: null
 
   initialize: (@rootView) ->
@@ -36,6 +37,7 @@ class FuzzyFinder extends View
       @detach()
     else
       return unless @rootView.project.getPath()?
+      @allowActiveEditorChange = false
       @populateProjectPaths()
       @attach()
 
@@ -43,6 +45,7 @@ class FuzzyFinder extends View
     if @hasParent()
       @detach()
     else
+      @allowActiveEditorChange = true
       @populateOpenBufferPaths()
       @attach() if @paths?.length
 
@@ -50,7 +53,7 @@ class FuzzyFinder extends View
     @rootView.project.getFilePaths().done (@paths) => @populatePathList()
 
   populateOpenBufferPaths: ->
-    @paths = @rootView.activeEditor()?.getOpenBufferPaths().map (path) =>
+    @paths = @rootView.getOpenBufferPaths().map (path) =>
       @rootView.project.relativize(path)
     @populatePathList() if @paths?.length
 
@@ -78,7 +81,8 @@ class FuzzyFinder extends View
   select: ->
     selectedLi = @findSelectedLi()
     return unless selectedLi.length
-    @rootView.open(selectedLi.text())
+    path = selectedLi.text()
+    @rootView.open(selectedLi.text(), {@allowActiveEditorChange})
     @detach()
 
   moveUp: ->
