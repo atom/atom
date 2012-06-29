@@ -7,6 +7,7 @@ paths = [
   "#{atom.loadPath}/src"
   "#{atom.loadPath}/vendor"
   "#{atom.loadPath}/static"
+  "#{atom.loadPath}"
 ]
 
 window.__filename = null

@@ -9,7 +9,7 @@ describe "editor.", ->
   beforeEach ->
     window.rootViewParentSelector = '#jasmine-content'
     window.startup()
-    rootView.project.setPath(require.resolve('fixtures'))
+    rootView.project.setPath(require.resolve('benchmark/fixtures'))
     editor = rootView.activeEditor()
 
   afterEach ->
@@ -24,7 +24,7 @@ describe "editor.", ->
 
   describe "300-line-file.", ->
     beforeEach ->
-      editor.edit rootView.project.open('fixtures/medium.coffee')
+      editor.edit rootView.project.open('medium.coffee')
 
     describe "at-begining.", ->
       benchmark "insert-delete", ->
@@ -45,7 +45,7 @@ describe "editor.", ->
 
   describe "9000-line-file.", ->
     benchmark "opening.", 5, ->
-      editor.edit rootView.project.open('fixtures/huge.js')
+      editor.edit rootView.project.open('huge.js')
 
     describe "after-opening.", ->
       beforeEach ->
