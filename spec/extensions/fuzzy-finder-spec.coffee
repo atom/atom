@@ -260,6 +260,22 @@ describe 'FuzzyFinder', ->
         expect(activeEditor.isFocused).toBeTruthy()
         expect(finder.miniEditor.isFocused).toBeFalsy()
 
+    describe "selecting a path with the mouse", ->
+      it "opens the clicked path in the active editor and focuses it", ->
+        rootView.attachToDom()
+        rootView.trigger 'fuzzy-finder:toggle-file-finder'
+
+        selectedLi = finder.find('li:eq(1)')
+
+        expectedPath = rootView.project.resolve(selectedLi.text())
+        expect(rootView.activeEditor().buffer.path).not.toBe expectedPath
+        expect(rootView.activeEditor().isFocused).toBeFalsy()
+
+        selectedLi.mousedown()
+
+        expect(rootView.activeEditor().buffer.path).toBe expectedPath
+        expect(rootView.activeEditor().isFocused).toBeTruthy()
+
     describe ".findMatches(queryString)", ->
       beforeEach ->
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
