@@ -389,6 +389,13 @@ class Editor extends View
 
     @renderWhenAttached()
 
+  activateEditSessionForPath: (path) ->
+    for editSession, index in @editSessions
+      if editSession.buffer.getPath() == path
+        @setActiveEditSessionIndex(index)
+        return true
+    false
+
   getOpenBufferPaths: ->
     editSession.buffer.path for editSession in @editSessions when editSession.buffer.path?
 

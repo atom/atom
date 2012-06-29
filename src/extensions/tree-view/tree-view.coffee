@@ -156,7 +156,7 @@ class TreeView extends View
     if (selectedEntry instanceof DirectoryView)
       selectedEntry.view().toggleExpansion()
     else if (selectedEntry instanceof FileView)
-      @rootView.open(selectedEntry.getPath(), false)
+      @rootView.open(selectedEntry.getPath(), changeFocus: false)
 
   moveSelectedEntry: ->
     entry = @selectedEntry()
