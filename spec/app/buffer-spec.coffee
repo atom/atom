@@ -85,6 +85,7 @@ describe 'Buffer', ->
 
     it "returns false after modified buffer is saved", ->
       filePath = "/tmp/atom-tmp-file"
+      fs.write(filePath, '')
       buffer = new Buffer(filePath)
       expect(buffer.isModified()).toBe false
 
