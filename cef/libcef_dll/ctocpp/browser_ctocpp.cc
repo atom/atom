@@ -491,8 +491,8 @@ bool CefBrowserCToCpp::GetImage(PaintElementType type, int width, int height,
   return _retval?true:false;
 }
 
-void CefBrowserCToCpp::SendKeyEvent(KeyType type, int key, int modifiers,
-    bool sysChar, bool imeChar) {
+void CefBrowserCToCpp::SendKeyEvent(KeyType type, const CefKeyInfo& keyInfo,
+    int modifiers) {
   if (CEF_MEMBER_MISSING(struct_, send_key_event))
     return;
 
@@ -501,10 +501,8 @@ void CefBrowserCToCpp::SendKeyEvent(KeyType type, int key, int modifiers,
   // Execute
   struct_->send_key_event(struct_,
       type,
-      key,
-      modifiers,
-      sysChar,
-      imeChar);
+      &keyInfo,
+      modifiers);
 }
 
 void CefBrowserCToCpp::SendMouseClickEvent(int x, int y, MouseButtonType type,
@@ -536,7 +534,8 @@ void CefBrowserCToCpp::SendMouseMoveEvent(int x, int y, bool mouseLeave) {
       mouseLeave);
 }
 
-void CefBrowserCToCpp::SendMouseWheelEvent(int x, int y, int delta) {
+void CefBrowserCToCpp::SendMouseWheelEvent(int x, int y, int deltaX,
+    int deltaY) {
   if (CEF_MEMBER_MISSING(struct_, send_mouse_wheel_event))
     return;
 
@@ -546,7 +545,8 @@ void CefBrowserCToCpp::SendMouseWheelEvent(int x, int y, int delta) {
   struct_->send_mouse_wheel_event(struct_,
       x,
       y,
-      delta);
+      deltaX,
+      deltaY);
 }
 
 void CefBrowserCToCpp::SendFocusEvent(bool setFocus) {

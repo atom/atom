@@ -40,15 +40,18 @@
 // Window handle.
 #ifdef __cplusplus
 #ifdef __OBJC__
+@class NSCursor;
 @class NSView;
 #else
+class NSCursor;
 class NSView;
 #endif
 #define cef_window_handle_t NSView*
+#define cef_cursor_handle_t NSCursor*
 #else
 #define cef_window_handle_t void*
-#endif
 #define cef_cursor_handle_t void*
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,6 +79,14 @@ typedef struct _cef_window_info_t {
   // NSView pointer for the parent view.
   cef_window_handle_t m_ParentView;
 
+  // If window rendering is disabled no browser window will be created. Set
+  // |m_ParentView| to the window that will act as the parent for popup menus,
+  // dialog boxes, etc.
+  int m_bWindowRenderingDisabled;
+
+  // Set to true to enable transparent painting.
+  int m_bTransparentPainting;
+
   // NSView pointer for the new browser view.
   cef_window_handle_t m_View;
 } cef_window_info_t;
@@ -86,6 +97,15 @@ typedef struct _cef_window_info_t {
 typedef struct _cef_print_info_t {
   double m_Scale;
 } cef_print_info_t;
+
+///
+// Class representing key information.
+///
+typedef struct _cef_key_info_t {
+  int keyCode;
+  int character;
+  int characterNoModifiers;
+} cef_key_info_t;
 
 #ifdef __cplusplus
 }

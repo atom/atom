@@ -33,10 +33,7 @@ int CEF_CALLBACK jsdialog_handler_on_jsalert(
   DCHECK(frame);
   if (!frame)
     return 0;
-  // Verify param: message; type: string_byref_const
-  DCHECK(message);
-  if (!message)
-    return 0;
+  // Unverified params: message
 
   // Execute
   bool _retval = CefJSDialogHandlerCppToC::Get(self)->OnJSAlert(
@@ -64,14 +61,11 @@ int CEF_CALLBACK jsdialog_handler_on_jsconfirm(
   DCHECK(frame);
   if (!frame)
     return 0;
-  // Verify param: message; type: string_byref_const
-  DCHECK(message);
-  if (!message)
-    return 0;
   // Verify param: retval; type: bool_byref
   DCHECK(retval);
   if (!retval)
     return 0;
+  // Unverified params: message
 
   // Translate param: retval; type: bool_byref
   bool retvalBool = (retval && *retval)?true:false;
@@ -108,14 +102,6 @@ int CEF_CALLBACK jsdialog_handler_on_jsprompt(
   DCHECK(frame);
   if (!frame)
     return 0;
-  // Verify param: message; type: string_byref_const
-  DCHECK(message);
-  if (!message)
-    return 0;
-  // Verify param: defaultValue; type: string_byref_const
-  DCHECK(defaultValue);
-  if (!defaultValue)
-    return 0;
   // Verify param: retval; type: bool_byref
   DCHECK(retval);
   if (!retval)
@@ -124,6 +110,7 @@ int CEF_CALLBACK jsdialog_handler_on_jsprompt(
   DCHECK(result);
   if (!result)
     return 0;
+  // Unverified params: message, defaultValue
 
   // Translate param: retval; type: bool_byref
   bool retvalBool = (retval && *retval)?true:false;

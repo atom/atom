@@ -70,12 +70,13 @@ class CefBrowserCToCpp
   virtual void Invalidate(const CefRect& dirtyRect) OVERRIDE;
   virtual bool GetImage(PaintElementType type, int width, int height,
       void* buffer) OVERRIDE;
-  virtual void SendKeyEvent(KeyType type, int key, int modifiers, bool sysChar,
-      bool imeChar) OVERRIDE;
+  virtual void SendKeyEvent(KeyType type, const CefKeyInfo& keyInfo,
+      int modifiers) OVERRIDE;
   virtual void SendMouseClickEvent(int x, int y, MouseButtonType type,
       bool mouseUp, int clickCount) OVERRIDE;
   virtual void SendMouseMoveEvent(int x, int y, bool mouseLeave) OVERRIDE;
-  virtual void SendMouseWheelEvent(int x, int y, int delta) OVERRIDE;
+  virtual void SendMouseWheelEvent(int x, int y, int deltaX,
+      int deltaY) OVERRIDE;
   virtual void SendFocusEvent(bool setFocus) OVERRIDE;
   virtual void SendCaptureLostEvent() OVERRIDE;
 };

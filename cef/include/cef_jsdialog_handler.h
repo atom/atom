@@ -53,7 +53,7 @@ class CefJSDialogHandler : public virtual CefBase {
   // Called  to run a JavaScript alert message. Return false to display the
   // default alert or true if you displayed a custom alert.
   ///
-  /*--cef()--*/
+  /*--cef(optional_param=message)--*/
   virtual bool OnJSAlert(CefRefPtr<CefBrowser> browser,
                          CefRefPtr<CefFrame> frame,
                          const CefString& message) { return false; }
@@ -63,7 +63,7 @@ class CefJSDialogHandler : public virtual CefBase {
   // default alert or true if you displayed a custom alert. If you handled the
   // alert set |retval| to true if the user accepted the confirmation.
   ///
-  /*--cef()--*/
+  /*--cef(optional_param=message)--*/
   virtual bool OnJSConfirm(CefRefPtr<CefBrowser> browser,
                            CefRefPtr<CefFrame> frame,
                            const CefString& message,
@@ -75,7 +75,7 @@ class CefJSDialogHandler : public virtual CefBase {
   // the prompt set |retval| to true if the user accepted the prompt and request
   // and |result| to the resulting value.
   ///
-  /*--cef()--*/
+  /*--cef(optional_param=message,optional_param=defaultValue)--*/
   virtual bool OnJSPrompt(CefRefPtr<CefBrowser> browser,
                           CefRefPtr<CefFrame> frame,
                           const CefString& message,
