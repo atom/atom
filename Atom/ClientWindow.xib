@@ -40,8 +40,8 @@
 			<object class="NSWindowTemplate" id="1005">
 				<int key="NSWindowStyleMask">15</int>
 				<int key="NSWindowBacking">2</int>
-				<string key="NSWindowRect">{{127, 445}, {699, 805}}</string>
-				<int key="NSWTFlags">539493376</int>
+				<string key="NSWindowRect">{{1706, 426}, {699, 805}}</string>
+				<int key="NSWTFlags">540017664</int>
 				<string key="NSWindowTitle"/>
 				<string key="NSWindowClass">NSWindow</string>
 				<nil key="NSViewClass"/>

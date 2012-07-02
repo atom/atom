@@ -16,7 +16,6 @@ class Buffer
   constructor: (path) ->
     @id = @constructor.idCounter++
     @lines = ['']
-    @undoManager = new UndoManager(this)
 
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
@@ -25,6 +24,7 @@ class Buffer
     else
       @setText('')
 
+    @undoManager = new UndoManager(this)
     @modified = false
 
   destroy: ->
@@ -39,7 +39,9 @@ class Buffer
     @file?.off()
     @file = new File(path)
     @file.on "contents-change", =>
-      @setText(fs.read(@file.getPath())) unless @isModified()
+      unless @isModified()
+        @setText(fs.read(@file.getPath()))
+        @modified = false
     @trigger "path-change", this
 
   getExtension: ->
