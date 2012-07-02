@@ -3,7 +3,6 @@ fs = require 'fs'
 describe "fs", ->
   describe ".isFile(path)", ->
     fixturesDir = require.resolve('fixtures')
-    beforeEach ->
 
     it "returns true with a file path", ->
       expect(fs.isFile(fs.join(fixturesDir,  'sample.js'))).toBe true
@@ -73,6 +72,13 @@ describe "fs", ->
       for path in paths
         expect(path).not.toMatch /dir/
 
+  describe ".lastModified(path)", ->
+    it "returns a Date object representing the time the file was last modified", ->
+      beforeWrite = new Date
+      fs.write('/tmp/foo', '')
+      lastModified = fs.lastModified('/tmp/foo')
+      expect(lastModified instanceof Date).toBeTruthy()
+      expect(lastModified.getTime()).toBeGreaterThan(beforeWrite.getTime() - 1000)
 
   describe ".async", ->
     directoryPath = null

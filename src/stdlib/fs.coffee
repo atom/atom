@@ -91,6 +91,9 @@ module.exports =
       fn(path, prune)
       @traverseTree(path, fn) if @isDirectory(path) and recurse
 
+  lastModified: (path) ->
+    $native.lastModified(path)
+
   async:
     list: (path) ->
       deferred = $.Deferred()

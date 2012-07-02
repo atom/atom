@@ -16,7 +16,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   std::string extensionCode =  "var $native = {}; (function() {";
   
-  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload"};
+  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload", "lastModified"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     std::string functionName = std::string(functionNames[i]);
@@ -388,6 +388,21 @@ bool NativeHandler::Execute(const CefString& name,
   }
   else if (name == "reload") {
     CefV8Context::GetCurrentContext()->GetBrowser()->ReloadIgnoreCache();
+  }
+  else if (name == "lastModified") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    NSFileManager *fm = [NSFileManager defaultManager];
+
+    NSError *error = nil;
+    NSDictionary *attributes = [fm attributesOfItemAtPath:path error:&error];
+    
+    if (error) {
+      exception = [[error localizedDescription] UTF8String];
+    }
+    
+    NSDate *lastModified = [attributes objectForKey:NSFileModificationDate];
+    retval = CefV8Value::CreateDate(CefTime([lastModified timeIntervalSince1970]));
+    return true;
   }
   return false;
 };
