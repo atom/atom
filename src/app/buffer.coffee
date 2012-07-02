@@ -16,7 +16,6 @@ class Buffer
   constructor: (path) ->
     @id = @constructor.idCounter++
     @lines = ['']
-    @undoManager = new UndoManager(this)
 
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
@@ -25,6 +24,7 @@ class Buffer
     else
       @setText('')
 
+    @undoManager = new UndoManager(this)
     @modified = false
 
   destroy: ->

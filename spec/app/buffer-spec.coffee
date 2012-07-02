@@ -24,6 +24,11 @@ describe 'Buffer', ->
           buffer = new Buffer(filePath)
           expect(buffer.getText()).toBe fs.read(filePath)
 
+        it "is not modified and has no undo history", ->
+          buffer = new Buffer(filePath)
+          expect(buffer.isModified()).toBeFalsy()
+          expect(buffer.undoManager.undoHistory.length).toBe 0
+
       describe "when no file exists for the path", ->
         it "throws an exception", ->
           filePath = "does-not-exist.txt"
