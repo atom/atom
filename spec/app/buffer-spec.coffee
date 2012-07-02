@@ -57,7 +57,7 @@ describe 'Buffer', ->
       fs.remove(path)
 
     describe "when the buffer is unmodified", ->
-      it "triggers 'change' event", ->
+      it "triggers 'change' event and buffer remains unmodified", ->
         buffer = new Buffer(path)
         changeHandler = jasmine.createSpy('changeHandler')
         buffer.on 'change', changeHandler
@@ -73,6 +73,7 @@ describe 'Buffer', ->
           expect(event.newRange).toEqual [[0, 0], [0, 6]]
           expect(event.oldText).toBe "first"
           expect(event.newText).toBe "second"
+          expect(buffer.isModified()).toBeFalsy()
 
   describe ".isModified()", ->
     beforeEach ->

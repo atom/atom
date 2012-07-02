@@ -39,7 +39,9 @@ class Buffer
     @file?.off()
     @file = new File(path)
     @file.on "contents-change", =>
-      @setText(fs.read(@file.getPath())) unless @isModified()
+      unless @isModified()
+        @setText(fs.read(@file.getPath()))
+        @modified = false
     @trigger "path-change", this
 
   getExtension: ->
