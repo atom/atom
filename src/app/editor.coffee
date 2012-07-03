@@ -658,6 +658,11 @@ class Editor extends View
   adjustWidthOfRenderedLines: ->
     @renderedLines.width(@charWidth * @maxScreenLineLength())
 
+  handleScrollHeightChange: ->
+    scrollHeight = @lineHeight * @screenLineCount()
+    @verticalScrollbarContent.height(scrollHeight)
+    @scrollBottom(scrollHeight) if @scrollBottom() > scrollHeight
+
   renderLines: ->
     @clearRenderedLines()
     @updateRenderedLines()
@@ -717,7 +722,7 @@ class Editor extends View
     newScreenRange = e.newRange
 
     if @attached
-      @verticalScrollbarContent.height(@lineHeight * @screenLineCount())
+      @handleScrollHeightChange() unless newScreenRange.coversSameRows(oldScreenRange)
       @adjustWidthOfRenderedLines()
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow

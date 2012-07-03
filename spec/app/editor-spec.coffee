@@ -1311,6 +1311,38 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
+      describe "when the last line is removed when the editor is scrolled to the bottom", ->
+        it "reduces the editor's scrollTop (due to the reduced total scroll height) and renders the correct screen lines", ->
+          editor.setCursorScreenPosition([Infinity, Infinity])
+          editor.insertText('\n\n\n')
+          editor.scrollToBottom()
+
+          expect(buffer.getLineCount()).toBe 16
+
+          initialScrollTop = editor.scrollTop()
+          expect(editor.firstRenderedScreenRow).toBe 9
+          expect(editor.lastRenderedScreenRow).toBe 15
+
+          editor.backspace()
+
+          expect(editor.scrollTop()).toBeLessThan initialScrollTop
+          expect(editor.firstRenderedScreenRow).toBe 9
+          expect(editor.lastRenderedScreenRow).toBe 14
+
+          expect(editor.find('.line').length).toBe 6
+
+          editor.backspace()
+          expect(editor.firstRenderedScreenRow).toBe 9
+          expect(editor.lastRenderedScreenRow).toBe 13
+
+          expect(editor.find('.line').length).toBe 5
+
+          editor.backspace()
+          expect(editor.firstRenderedScreenRow).toBe 6
+          expect(editor.lastRenderedScreenRow).toBe 12
+
+          expect(editor.find('.line').length).toBe 7
+
       it "decreases the width of the rendered screen lines if the max line length changes", ->
         widthBefore = editor.renderedLines.width()
         buffer.delete([[6, 0], [6, Infinity]])
