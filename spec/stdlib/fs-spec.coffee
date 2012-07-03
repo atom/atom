@@ -41,6 +41,11 @@ describe "fs", ->
       expect(fs.join('/a/b/', 'c', 'd')).toBe '/a/b/c/d'
       expect(fs.join('a', 'b/c/', 'd/')).toBe 'a/b/c/d/'
 
+  describe ".split(path)", ->
+    it "returns path components", ->
+      expect(fs.split("/a/b/c.txt")).toEqual ["", "a", "b", "c.txt"]
+      expect(fs.split("a/b/c.txt")).toEqual ["a", "b", "c.txt"]
+
   describe ".extension(path)", ->
     it "returns the extension of a file", ->
       expect(fs.extension("a/b/corey.txt")).toBe '.txt'
