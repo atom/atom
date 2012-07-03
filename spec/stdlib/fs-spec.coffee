@@ -21,8 +21,9 @@ describe "fs", ->
 
     describe "when called with a directory path", ->
       it "return the path it was given", ->
-        expect(fs.directory(require.resolve('fixtures/dir'))).toBe require.resolve('fixtures')
-        expect(fs.directory(require.resolve('fixtures/dir/'))).toBe require.resolve('fixtures')
+        expect(fs.directory("/a/b/c")).toBe "/a/b"
+        expect(fs.directory("/a")).toBe ""
+        expect(fs.directory("a")).toBe ""
 
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
