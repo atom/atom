@@ -522,7 +522,7 @@ describe "RootView", ->
   describe ".open(path, options)", ->
     describe "when there is no active editor", ->
       beforeEach ->
-        rootView.activeEditor().removeActiveEditSession()
+        rootView.activeEditor().destroyActiveEditSession()
         expect(rootView.activeEditor()).toBeUndefined()
 
       describe "when called with no path", ->

@@ -124,14 +124,14 @@ describe 'FuzzyFinder', ->
           editor = rootView.activeEditor()
           editor.edit(rootView.project.open())
           editor.loadPreviousEditSession()
-          editor.removeActiveEditSession()
+          editor.destroyActiveEditSession()
           expect(editor.getOpenBufferPaths().length).toBe 0
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(rootView.find('.fuzzy-finder')).not.toExist()
 
       describe "when there is no active editor", ->
         it "does not open", ->
-          rootView.activeEditor().removeActiveEditSession()
+          rootView.activeEditor().destroyActiveEditSession()
           expect(rootView.activeEditor()).toBeUndefined()
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(rootView.find('.fuzzy-finder')).not.toExist()

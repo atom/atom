@@ -353,7 +353,7 @@ class Editor extends View
 
     @setActiveEditSessionIndex(index)
 
-  removeActiveEditSession: ->
+  destroyActiveEditSession: ->
     if @editSessions.length == 1
       @remove()
     else
@@ -546,14 +546,14 @@ class Editor extends View
       message = "'#{filename}' has changes, do you want to save them?"
       detailedMessage = "Your changes will be lost if you don't save them"
       buttons = [
-        ["Save", => @save() and @removeActiveEditSession()]
+        ["Save", => @save() and @destroyActiveEditSession()]
         ["Cancel", =>]
-        ["Don't save", => @removeActiveEditSession()]
+        ["Don't save", => @destroyActiveEditSession()]
       ]
 
       Native.alert message, detailedMessage, buttons
     else
-      @removeActiveEditSession()
+      @destroyActiveEditSession()
 
   remove: (selector, keepData) ->
     return super if keepData
