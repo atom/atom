@@ -5,13 +5,20 @@ _ = require 'underscore'
 
 module.exports =
 class File
+  path: null
+  md5: null
+
   constructor: (@path) ->
+    @updateMd5()
 
   getPath: ->
     @path
 
   getName: ->
     fs.base(@path)
+
+  updateMd5: ->
+    @md5 = fs.md5ForPath(@path)
 
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @subscriptionCount() == 1
@@ -21,7 +28,10 @@ class File
 
   subscribeToNativeChangeEvents: ->
     @watchId = $native.watchPath @path, (eventTypes) =>
-      @trigger 'contents-change' if eventTypes.modified?
+      newMd5 = fs.md5ForPath(@getPath())
+      if eventTypes.modified? and newMd5 != @md5
+        @md5 = newMd5
+        @trigger 'contents-change'
 
   unsubscribeFromNativeChangeEvents: ->
     $native.unwatchPath(@path, @watchId)

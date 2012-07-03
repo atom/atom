@@ -172,6 +172,7 @@ class Buffer
 
     @trigger 'before-save'
     fs.write path, @getText()
+    @file?.updateMd5()
     @modified = false
     @setPath(path)
     @trigger 'after-save'

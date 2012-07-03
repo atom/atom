@@ -57,13 +57,23 @@ describe 'Buffer', ->
       path = "/tmp/tmp.txt"
       fs.write(path, "first")
       buffer.destroy()
+      buffer = new Buffer(path)
 
     afterEach ->
       fs.remove(path)
 
+    it "does not trigger a contents-change event when Atom modifies the file", ->
+      buffer.insert([0,0], "HELLO!")
+      changeHandler = jasmine.createSpy("buffer changed")
+      buffer.on "change", changeHandler
+      buffer.save()
+
+      waits 30
+      runs ->
+        expect(changeHandler).not.toHaveBeenCalled()
+
     describe "when the buffer is unmodified", ->
       it "triggers 'change' event and buffer remains unmodified", ->
-        buffer = new Buffer(path)
         changeHandler = jasmine.createSpy('changeHandler')
         buffer.on 'change', changeHandler
         fs.write(path, "second")
