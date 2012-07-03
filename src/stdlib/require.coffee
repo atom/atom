@@ -106,12 +106,15 @@ __exists = (path) ->
 
 __coffeeCache = (filePath) ->
   {CoffeeScript} = require 'coffee-script'
-  cacheKey = 'coffee.' + $native.md5ForPath(filePath)
-  if compiled = localStorage.getItem(cacheKey)
-    compiled
+  tmpPath = "/tmp/atom-compiled-scripts"
+  cacheFilePath = [tmpPath, $native.md5ForPath(filePath)].join("/")
+
+  console.log cacheFilePath
+  if __exists(cacheFilePath)
+    __read(cacheFilePath)
   else
     compiled = CoffeeScript.compile(__read(filePath), filename: filePath)
-    localStorage.setItem(cacheKey, compiled)
+    $native.write(cacheFilePath, compiled)
     compiled
 
 __read = (path) ->
