@@ -9,7 +9,7 @@ describe "Snippets extension", ->
   [buffer, editor] = []
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    rootView.activateExtension(Snippets)
+    requireExtension("snippets")
     editor = rootView.getActiveEditor()
     buffer = editor.buffer
     rootView.simulateDomAttachment()
