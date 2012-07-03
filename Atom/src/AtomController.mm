@@ -37,6 +37,7 @@
 }
 
 - (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
+  _runningSpecs = true;
   return [self initWithBootstrapScript:@"spec-bootstrap" atomContext:atomContext];
 }
 
@@ -130,7 +131,7 @@
 
 #pragma mark NSWindowDelegate
 - (void)windowDidResignMain:(NSNotification *)notification {
-  if (_clientHandler && _clientHandler->GetBrowser()) {
+  if (_clientHandler && _clientHandler->GetBrowser() && !_runningSpecs) {
     _clientHandler->GetBrowser()->SendFocusEvent(false);
   }
 }

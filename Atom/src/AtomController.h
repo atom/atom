@@ -12,6 +12,7 @@ class ClientHandler;
   NSView *_devToolsView;
   NSString *_bootstrapScript;
   NSString *_pathToOpen;
+  bool _runningSpecs;
   
   CefRefPtr<CefV8Context> _atomContext;
   CefRefPtr<ClientHandler> _clientHandler;
