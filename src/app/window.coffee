@@ -55,13 +55,14 @@ windowAdditions =
     return if $("head style[path='#{fullPath}']").length
     $('head').append "<style path='#{fullPath}'>#{content}</style>"
 
-  extension: (name) ->
+  requireExtension: (name) ->
     extensionPath = require.resolve name
-    extension = require extensionPath
-    rootView.activateExtension(extension)
+    extension = rootView.activateExtension require(extensionPath)
 
     extensionKeymapPath = fs.join(fs.directory(extensionPath), "keymap.coffee")
     require extensionKeymapPath if fs.exists(extensionKeymapPath)
+
+    extension
 
   reload: ->
     if rootView.getModifiedBuffers().length > 0
