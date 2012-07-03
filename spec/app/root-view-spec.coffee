@@ -23,8 +23,8 @@ describe "RootView", ->
       describe "when pathToOpen references a file", ->
         it "creates a project for the file's parent directory, then sets the document.title and opens the file in an editor", ->
           expect(rootView.project.getPath()).toBe fs.directory(path)
-          expect(rootView.editors().length).toBe 1
-          expect(rootView.editors()[0]).toHaveClass 'active'
+          expect(rootView.getEditors().length).toBe 1
+          expect(rootView.getEditors()[0]).toHaveClass 'active'
           expect(rootView.getActiveEditor().buffer.getPath()).toBe path
           expect(rootView.getActiveEditor().editSessions.length).toBe 1
           expect(document.title).toBe path
@@ -39,7 +39,7 @@ describe "RootView", ->
           rootView.focus()
 
           expect(rootView.project.getPath()).toBe path
-          expect(rootView.editors().length).toBe 0
+          expect(rootView.getEditors().length).toBe 0
           expect(document.title).toBe path
 
     describe "when called with view state data returned from a previous call to RootView.prototype.serialize", ->
@@ -60,7 +60,7 @@ describe "RootView", ->
         it "constructs the view with the same panes", ->
           rootView = RootView.deserialize(viewState)
           expect(rootView.project.getPath()?).toBeFalsy()
-          expect(rootView.editors().length).toBe 2
+          expect(rootView.getEditors().length).toBe 2
           expect(rootView.getActiveEditor().buffer.getText()).toBe buffer.getText()
           expect(document.title).toBe 'untitled'
 
@@ -89,7 +89,7 @@ describe "RootView", ->
           rootView = RootView.deserialize(viewState)
           rootView.attachToDom()
 
-          expect(rootView.editors().length).toBe 4
+          expect(rootView.getEditors().length).toBe 4
           editor1 = rootView.panes.find('.row > .pane .editor:eq(0)').view()
           editor3 = rootView.panes.find('.row > .pane .editor:eq(1)').view()
           editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
@@ -120,7 +120,7 @@ describe "RootView", ->
       it "opens no buffer", ->
         rootView.remove()
         rootView = new RootView
-        expect(rootView.editors().length).toBe 0
+        expect(rootView.getEditors().length).toBe 0
         expect(document.title).toBe 'untitled'
 
   describe ".serialize()", ->
@@ -497,7 +497,7 @@ describe "RootView", ->
 
   describe "when the last editor is removed", ->
     it   "updates the title to the project path", ->
-      rootView.editors()[0].remove()
+      rootView.getEditors()[0].remove()
       expect(document.title).toBe rootView.project.getPath()
 
   describe "font size adjustment", ->

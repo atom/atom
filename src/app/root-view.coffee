@@ -112,7 +112,7 @@ class RootView extends View
         return true
 
       if allowActiveEditorChange
-        for editor in @editors()
+        for editor in @getEditors()
           if editor.activateEditSessionForPath(path)
             editor.focus()
             return true
@@ -142,19 +142,19 @@ class RootView extends View
   setTitle: (title='untitled') ->
     document.title = title
 
-  editors: ->
+  getEditors: ->
     @panes.find('.editor').map(-> $(this).view()).toArray()
 
   modifiedBuffers: ->
     modifiedBuffers = []
-    for editor in @editors()
+    for editor in @getEditors()
       for session in editor.editSessions
         modifiedBuffers.push session.buffer if session.buffer.isModified()
 
     modifiedBuffers
 
   getOpenBufferPaths: ->
-    _.uniq(_.flatten(@editors().map (editor) -> editor.getOpenBufferPaths()))
+    _.uniq(_.flatten(@getEditors().map (editor) -> editor.getOpenBufferPaths()))
 
   getActiveEditor: ->
     if (editor = @panes.find('.editor.active')).length
@@ -182,7 +182,7 @@ class RootView extends View
     rootPane?.adjustDimensions()
 
   remove: ->
-    editor.remove() for editor in @editors()
+    editor.remove() for editor in @getEditors()
     @project.destroy()
     super
 

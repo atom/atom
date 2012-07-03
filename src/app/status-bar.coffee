@@ -5,7 +5,7 @@ class StatusBar extends View
   @activate: (rootView) ->
     requireStylesheet 'status-bar.css'
 
-    for editor in rootView.editors()
+    for editor in rootView.getEditors()
       @appendToEditorPane(rootView, editor) if rootView.parents('html').length
 
     rootView.on 'editor-open', (e, editor) =>

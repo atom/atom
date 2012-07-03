@@ -57,7 +57,7 @@ describe "Window", ->
     it "unsubscribes from all buffers", ->
       editor1 = rootView.getActiveEditor()
       editor2 = editor1.splitRight()
-      expect(window.rootView.editors().length).toBe 2
+      expect(window.rootView.getEditors().length).toBe 2
 
       $(window).trigger 'beforeunload'
 

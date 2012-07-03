@@ -25,7 +25,7 @@ class Autocomplete extends View
   originalSelectedText: null
 
   @activate: (rootView) ->
-    new Autocomplete(editor) for editor in rootView.editors()
+    new Autocomplete(editor) for editor in rootView.getEditors()
     rootView.on 'editor-open', (e, editor) ->
       new Autocomplete(editor) unless editor.is('.autocomplete .mini')
 
