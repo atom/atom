@@ -1,12 +1,12 @@
 {
-  var CompositeCommand = require('command-interpreter/composite-command')
-  var Substitution = require('command-interpreter/substitution');
-  var LineAddress = require('command-interpreter/line-address');
-  var AddressRange = require('command-interpreter/address-range');
-  var EofAddress = require('command-interpreter/eof-address');
-  var CurrentSelectionAddress = require('command-interpreter/current-selection-address')
-  var RegexAddress = require('command-interpreter/regex-address')
-  var SelectAllMatches = require('command-interpreter/select-all-matches')
+  var CompositeCommand = require('command-panel/commands/composite-command')
+  var Substitution = require('command-panel/commands/substitution');
+  var LineAddress = require('command-panel/commands/line-address');
+  var AddressRange = require('command-panel/commands/address-range');
+  var EofAddress = require('command-panel/commands/eof-address');
+  var CurrentSelectionAddress = require('command-panel/commands/current-selection-address')
+  var RegexAddress = require('command-panel/commands/regex-address')
+  var SelectAllMatches = require('command-panel/commands/select-all-matches')
 }
 
 start = expressions:(expression+) {

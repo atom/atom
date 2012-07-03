@@ -1,7 +1,7 @@
 {View} = require 'space-pen'
-CommandInterpreter = require 'command-interpreter'
-RegexAddress = require 'command-interpreter/regex-address'
-CompositeCommand = require 'command-interpreter/composite-command'
+CommandInterpreter = require 'command-panel/command-interpreter'
+RegexAddress = require 'command-panel/commands/regex-address'
+CompositeCommand = require 'command-panel/commands/composite-command'
 Editor = require 'editor'
 {SyntaxError} = require('pegjs').parser
 
