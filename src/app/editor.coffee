@@ -413,7 +413,7 @@ class Editor extends View
     @updateRenderedLines() if @attached
 
     @renderedLines.css('top', -scrollTop)
-    @gutter.scrollTop(scrollTop)
+    @gutter.lineNumbers.css('top', -scrollTop)
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
 

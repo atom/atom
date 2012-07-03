@@ -337,13 +337,13 @@ describe "Editor", ->
         expect(editor.verticalScrollbar.scrollTop()).toBe 100
         expect(editor.scrollView.scrollTop()).toBe 0
         expect(editor.renderedLines.css('top')).toBe "-100px"
-        expect(editor.gutter.scrollTop()).toBe 100
+        expect(editor.gutter.lineNumbers.css('top')).toBe "-100px"
 
         editor.scrollTop(120)
         expect(editor.verticalScrollbar.scrollTop()).toBe 120
         expect(editor.scrollView.scrollTop()).toBe 0
         expect(editor.renderedLines.css('top')).toBe "-120px"
-        expect(editor.gutter.scrollTop()).toBe 120
+        expect(editor.gutter.lineNumbers.css('top')).toBe "-120px"
 
       it "does not allow negative scrollTops to be assigned", ->
         editor.scrollTop(-100)
@@ -365,7 +365,7 @@ describe "Editor", ->
           editor.scrollTop(100, adjustVerticalScrollbar: false)
           expect(editor.verticalScrollbar.scrollTop()).toBe 0
           expect(editor.renderedLines.css('top')).toBe "-100px"
-          expect(editor.gutter.scrollTop()).toBe 100
+          expect(editor.gutter.lineNumbers.css('top')).toBe "-100px"
 
     describe "when called with no argument", ->
       it "returns the last assigned value or 0 if none has been assigned", ->

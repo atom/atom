@@ -7,7 +7,7 @@ module.exports =
 class Gutter extends View
   @content: ->
     @div class: 'gutter', =>
-      @div outlet: 'lineNumbers', class: 'wtf'
+      @div outlet: 'lineNumbers', class: 'line-numbers'
 
   editor: ->
     editor = @parentView

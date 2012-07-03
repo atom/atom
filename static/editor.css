@@ -27,6 +27,10 @@
   text-align: right;
 }
 
+.editor .gutter .line-numbers {
+  position: relative;
+}
+
 .editor.mini .gutter {
   display: none;
 }
