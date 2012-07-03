@@ -351,7 +351,7 @@ class EditSession
     @getLastSelection().getBufferRange()
 
   getSelectedBufferRanges: ->
-    selection.getBufferRange() for selection in @selections
+    selection.getBufferRange() for selection in @getSelectionsOrderedByBufferPosition()
 
   getSelectedText: ->
     @getLastSelection().getText()

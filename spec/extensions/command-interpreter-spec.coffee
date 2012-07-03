@@ -239,6 +239,12 @@ describe "CommandInterpreter", ->
           expect(buffer.lineForRow(5)).toBe '      foo = items.shift();'
           expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
 
+      describe "when prefixed with an address", ->
+        it "restores the original selections upon completion if it is the last command", ->
+          editor.setSelectedBufferRanges([[[5, 0], [5, 20]], [[6, 0], [6, 44]]])
+          interpreter.eval(editor, ',s/current/foo/g')
+          expect(editor.getSelectedBufferRanges()).toEqual [[[5, 0], [5, 20]], [[6, 0], [6, 44]]]
+
   describe "when command selects folded text", ->
     it "unfolds lines that command selects", ->
       editor.createFold(1, 9)
