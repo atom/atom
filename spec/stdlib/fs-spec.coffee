@@ -54,6 +54,14 @@ describe "fs", ->
     it "returns an empty string for paths without an extension", ->
       expect(fs.extension("a/b.not-extension/a-dir")).toBe ''
 
+  describe "makeTree(path)", ->
+    beforeEach ->
+      fs.remove("/tmp/a") if fs.exists("/tmp/a")
+
+    it "creates all directories in path including any missing parent directories", ->
+      fs.makeTree("/tmp/a/b/c")
+      expect(fs.exists("/tmp/a/b/c")).toBeTruthy()
+
   describe ".traverseTree(path, fn)", ->
     fixturesDir = null
 

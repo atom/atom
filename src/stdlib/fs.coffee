@@ -93,6 +93,14 @@ module.exports =
   makeDirectory: (path) ->
     $native.makeDirectory(path)
 
+  # Creates the directory specified by "path" including any missing parent
+  # directories.
+  makeTree: (path) ->
+    return unless path
+    if not @exists(path)
+      @makeTree(@directory(path))
+      @makeDirectory(path)
+
   traverseTree: (rootPath, fn) ->
     recurse = null
     prune = -> recurse = false
