@@ -145,7 +145,7 @@ class RootView extends View
   getEditors: ->
     @panes.find('.editor').map(-> $(this).view()).toArray()
 
-  modifiedBuffers: ->
+  getModifiedBuffers: ->
     modifiedBuffers = []
     for editor in @getEditors()
       for session in editor.editSessions
