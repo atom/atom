@@ -53,7 +53,7 @@ class TreeView extends View
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
     @rootView.project.on 'path-change', => @updateRoot()
 
-    @on 'tree-view:unfocus', => @rootView.activeEditor()?.focus()
+    @on 'tree-view:unfocus', => @rootView.getActiveEditor()?.focus()
     @rootView.on 'tree-view:focus', => this.focus()
 
     @selectEntry(@root) if @root
@@ -89,7 +89,7 @@ class TreeView extends View
         @openSelectedEntry() if (entry instanceof FileView)
       when 2
         if entry.is('.selected.file')
-          @rootView.activeEditor().focus()
+          @rootView.getActiveEditor().focus()
         else if entry.is('.selected.directory')
           entry.toggleExpansion()
 
@@ -101,7 +101,7 @@ class TreeView extends View
     @append(@root)
 
   selectActiveFile: ->
-    activeFilePath = @rootView.activeEditor()?.buffer.getPath()
+    activeFilePath = @rootView.getActiveEditor()?.buffer.getPath()
     @selectEntryForPath(activeFilePath)
 
   selectEntryForPath: (path) ->

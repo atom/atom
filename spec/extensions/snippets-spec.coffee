@@ -10,7 +10,7 @@ describe "Snippets extension", ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.activateExtension(Snippets)
-    editor = rootView.activeEditor()
+    editor = rootView.getActiveEditor()
     buffer = editor.buffer
     rootView.simulateDomAttachment()
     rootView.enableKeymap()

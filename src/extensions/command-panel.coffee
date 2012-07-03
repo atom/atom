@@ -64,7 +64,7 @@ class CommandPanel extends View
 
   execute: (command = @miniEditor.getText()) ->
     try
-      @commandInterpreter.eval(@rootView.activeEditor(), command)
+      @commandInterpreter.eval(@rootView.getActiveEditor(), command)
     catch error
       if error instanceof SyntaxError
         @flashError()
@@ -87,12 +87,12 @@ class CommandPanel extends View
     @miniEditor.setText(@history[@historyIndex] or '')
 
   repeatRelativeAddress: ->
-    @commandInterpreter.repeatRelativeAddress(@rootView.activeEditor())
+    @commandInterpreter.repeatRelativeAddress(@rootView.getActiveEditor())
 
   repeatRelativeAddressInReverse: ->
-    @commandInterpreter.repeatRelativeAddressInReverse(@rootView.activeEditor())
+    @commandInterpreter.repeatRelativeAddressInReverse(@rootView.getActiveEditor())
 
   setSelectionAsLastRelativeAddress: ->
-    selection = @rootView.activeEditor().getSelectedText()
+    selection = @rootView.getActiveEditor().getSelectedText()
     regex = _.escapeRegExp(selection)
     @commandInterpreter.lastRelativeAddress = new CompositeCommand([new RegexAddress(regex)])

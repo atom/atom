@@ -60,9 +60,9 @@ describe 'FuzzyFinder', ->
 
       beforeEach ->
         rootView.attachToDom()
-        editor1 = rootView.activeEditor()
+        editor1 = rootView.getActiveEditor()
         editor2 = editor1.splitRight()
-        expect(rootView.activeEditor()).toBe editor2
+        expect(rootView.getActiveEditor()).toBe editor2
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
 
       describe "when a path is highlighted", ->
@@ -121,7 +121,7 @@ describe 'FuzzyFinder', ->
 
       describe "when the active editor only contains edit sessions for anonymous buffers", ->
         it "does not open", ->
-          editor = rootView.activeEditor()
+          editor = rootView.getActiveEditor()
           editor.edit(rootView.project.open())
           editor.loadPreviousEditSession()
           editor.destroyActiveEditSession()
@@ -131,8 +131,8 @@ describe 'FuzzyFinder', ->
 
       describe "when there is no active editor", ->
         it "does not open", ->
-          rootView.activeEditor().destroyActiveEditSession()
-          expect(rootView.activeEditor()).toBeUndefined()
+          rootView.getActiveEditor().destroyActiveEditSession()
+          expect(rootView.getActiveEditor()).toBeUndefined()
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(rootView.find('.fuzzy-finder')).not.toExist()
 
@@ -141,9 +141,9 @@ describe 'FuzzyFinder', ->
 
       beforeEach ->
         rootView.attachToDom()
-        editor1 = rootView.activeEditor()
+        editor1 = rootView.getActiveEditor()
         editor2 = editor1.splitRight()
-        expect(rootView.activeEditor()).toBe editor2
+        expect(rootView.getActiveEditor()).toBe editor2
         rootView.open('sample.txt')
         editor2.loadPreviousEditSession()
         rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
@@ -169,7 +169,7 @@ describe 'FuzzyFinder', ->
             editor1.focus()
             rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
 
-            expect(rootView.activeEditor()).toBe editor1
+            expect(rootView.getActiveEditor()).toBe editor1
 
             finder.moveDown()
             selectedLi = finder.findSelectedLi()
@@ -252,7 +252,7 @@ describe 'FuzzyFinder', ->
 
       it "focuses previously focused element", ->
         rootView.attachToDom()
-        activeEditor = rootView.activeEditor()
+        activeEditor = rootView.getActiveEditor()
         activeEditor.focus()
 
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
@@ -271,13 +271,13 @@ describe 'FuzzyFinder', ->
         selectedLi = finder.find('li:eq(1)')
 
         expectedPath = rootView.project.resolve(selectedLi.text())
-        expect(rootView.activeEditor().buffer.getPath()).not.toBe expectedPath
-        expect(rootView.activeEditor().isFocused).toBeFalsy()
+        expect(rootView.getActiveEditor().buffer.getPath()).not.toBe expectedPath
+        expect(rootView.getActiveEditor().isFocused).toBeFalsy()
 
         selectedLi.mousedown()
 
-        expect(rootView.activeEditor().buffer.getPath()).toBe expectedPath
-        expect(rootView.activeEditor().isFocused).toBeTruthy()
+        expect(rootView.getActiveEditor().buffer.getPath()).toBe expectedPath
+        expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
     describe ".findMatches(queryString)", ->
       beforeEach ->

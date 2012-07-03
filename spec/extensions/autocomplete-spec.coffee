@@ -22,8 +22,8 @@ describe "Autocomplete", ->
       rootView = new RootView(require.resolve('fixtures/sample.js'))
       rootView.simulateDomAttachment()
       Autocomplete.activate(rootView)
-      leftEditor = rootView.activeEditor()
-      rightEditor = rootView.activeEditor().splitRight()
+      leftEditor = rootView.getActiveEditor()
+      rightEditor = rootView.getActiveEditor().splitRight()
 
       spyOn(Autocomplete.prototype, 'initialize')
 

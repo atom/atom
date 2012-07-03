@@ -10,7 +10,7 @@ describe "editor.", ->
     window.rootViewParentSelector = '#jasmine-content'
     window.startup()
     rootView.project.setPath(require.resolve('benchmark/fixtures'))
-    editor = rootView.activeEditor()
+    editor = rootView.getActiveEditor()
 
   afterEach ->
     $(window).off 'beforeunload'

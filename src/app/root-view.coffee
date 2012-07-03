@@ -48,8 +48,8 @@ class RootView extends View
   handleEvents: ->
     @on 'toggle-dev-tools', => window.toggleDevTools()
     @on 'focus', (e) =>
-      if @activeEditor()
-        @activeEditor().focus()
+      if @getActiveEditor()
+        @getActiveEditor().focus()
         false
       else
         @setTitle(@project?.getPath())
@@ -105,7 +105,7 @@ class RootView extends View
         @makeEditorActive(editor)
 
   openInExistingEditor: (path, allowActiveEditorChange) ->
-    if activeEditor = @activeEditor()
+    if activeEditor = @getActiveEditor()
       path = @project.resolve(path) if path
 
       if activeEditor.activateEditSessionForPath(path)
@@ -156,7 +156,7 @@ class RootView extends View
   getOpenBufferPaths: ->
     _.uniq(_.flatten(@editors().map (editor) -> editor.getOpenBufferPaths()))
 
-  activeEditor: ->
+  getActiveEditor: ->
     if (editor = @panes.find('.editor.active')).length
       editor.view()
     else

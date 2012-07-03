@@ -23,7 +23,7 @@ describe "Editor", ->
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     project = rootView.project
-    editor = rootView.activeEditor()
+    editor = rootView.getActiveEditor()
     buffer = editor.buffer
 
     editor.attachToDom = ({ heightInLines } = {}) ->
@@ -281,7 +281,7 @@ describe "Editor", ->
         tempFilePath = '/tmp/atom-temp.txt'
         fs.write(tempFilePath, "")
         rootView = new RootView(tempFilePath)
-        editor = rootView.activeEditor()
+        editor = rootView.getActiveEditor()
         project = rootView.project
 
         expect(editor.buffer.getPath()).toBe tempFilePath

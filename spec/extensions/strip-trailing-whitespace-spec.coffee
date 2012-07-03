@@ -12,7 +12,7 @@ describe "StripTrailingWhitespace", ->
 
     StripTrailingWhitespace.activate(rootView)
     rootView.focus()
-    editor = rootView.activeEditor()
+    editor = rootView.getActiveEditor()
 
   afterEach ->
     fs.remove(path) if fs.exists(path)

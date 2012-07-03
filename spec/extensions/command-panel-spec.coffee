@@ -8,7 +8,7 @@ describe "CommandPanel", ->
     rootView = new RootView
     rootView.open(require.resolve 'fixtures/sample.js')
     rootView.enableKeymap()
-    editor = rootView.activeEditor()
+    editor = rootView.getActiveEditor()
     commandPanel = rootView.activateExtension(CommandPanel)
 
   afterEach ->
@@ -30,7 +30,7 @@ describe "CommandPanel", ->
     it "toggles the command panel", ->
       rootView.attachToDom()
       expect(rootView.find('.command-panel')).not.toExist()
-      expect(rootView.activeEditor().isFocused).toBeTruthy()
+      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
       expect(commandPanel.miniEditor.isFocused).toBeFalsy()
 
       rootView.trigger 'command-panel:toggle'
@@ -43,7 +43,7 @@ describe "CommandPanel", ->
 
       rootView.trigger 'command-panel:toggle'
       expect(rootView.find('.command-panel')).not.toExist()
-      expect(rootView.activeEditor().isFocused).toBeTruthy()
+      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
       expect(commandPanel.miniEditor.isFocused).toBeFalsy()
 
       rootView.trigger 'command-panel:toggle'
@@ -90,7 +90,7 @@ describe "CommandPanel", ->
   describe "when command-panel:set-selection-as-regex-address is triggered on the root view", ->
     it "sets the @lastRelativeAddress to a RegexAddress of the current selection", ->
       rootView.open(require.resolve('fixtures/sample.js'))
-      rootView.activeEditor().setSelectedBufferRange([[1,21],[1,28]])
+      rootView.getActiveEditor().setSelectedBufferRange([[1,21],[1,28]])
 
       commandInterpreter = commandPanel.commandInterpreter
       expect(commandInterpreter.lastRelativeAddress).toBeUndefined()
@@ -100,7 +100,7 @@ describe "CommandPanel", ->
 
   describe "when command-panel:find-in-file is triggered on an editor", ->
     it "pre-populates command panel's editor with /", ->
-      rootView.activeEditor().trigger "command-panel:find-in-file"
+      rootView.getActiveEditor().trigger "command-panel:find-in-file"
       expect(commandPanel.parent).not.toBeEmpty()
       expect(commandPanel.miniEditor.getText()).toBe "/"
 
@@ -153,10 +153,10 @@ describe "CommandPanel", ->
 
   describe ".execute()", ->
     it "executes the command and closes the command panel", ->
-      rootView.activeEditor().setText("i hate love")
-      rootView.activeEditor().getSelection().setBufferRange [[0,0], [0,Infinity]]
+      rootView.getActiveEditor().setText("i hate love")
+      rootView.getActiveEditor().getSelection().setBufferRange [[0,0], [0,Infinity]]
       rootView.trigger 'command-panel:toggle'
       commandPanel.miniEditor.insertText 's/hate/love/'
       commandPanel.execute()
-      expect(rootView.activeEditor().getText()).toBe "i love love"
+      expect(rootView.getActiveEditor().getText()).toBe "i love love"
       expect(rootView.find('.command-panel')).not.toExist()

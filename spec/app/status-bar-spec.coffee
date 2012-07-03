@@ -9,7 +9,7 @@ describe "StatusBar", ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.simulateDomAttachment()
     StatusBar.activate(rootView)
-    editor = rootView.activeEditor()
+    editor = rootView.getActiveEditor()
     statusBar = rootView.find('.status-bar').view()
 
   afterEach ->
