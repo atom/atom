@@ -488,15 +488,15 @@ describe "TreeView", ->
         describe "when the path with a trailing '/' is changed and confirmed", ->
           describe "when no file or directory exists at the given path", ->
             it "adds a directory and closes the dialog", ->
-              newPath = fs.join(dirPath, "new-dir")
-              addDialog.miniEditor.insertText("new-dir/")
+              newPath = fs.join(dirPath, "new/dir")
+              addDialog.miniEditor.insertText("new/dir/")
               addDialog.trigger 'tree-view:confirm'
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveEditor().buffer.getPath()).not.toBe newPath
 
-          describe "when a or directory already exists at the given path", ->
+          describe "when a file or directory already exists at the given path", ->
             it "shows an error message and does not close the dialog", ->
               newPath = fs.join(dirPath, "new-dir")
               fs.makeDirectory(newPath)
@@ -587,7 +587,7 @@ describe "TreeView", ->
           describe "when the directories along the new path don't exist", ->
             it "creates the target directory before moving the file", ->
               runs ->
-                newPath = fs.join(rootDirPath, 'new-directory', 'renamed-test-file.txt')
+                newPath = fs.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
                 moveDialog.miniEditor.setText(newPath)
 
                 moveDialog.trigger 'tree-view:confirm'
