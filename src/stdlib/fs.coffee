@@ -94,6 +94,9 @@ module.exports =
   lastModified: (path) ->
     $native.lastModified(path)
 
+  md5ForPath: (path) ->
+    $native.md5ForPath(path)
+
   async:
     list: (path) ->
       deferred = $.Deferred()

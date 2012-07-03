@@ -4,6 +4,8 @@
 #import "AtomController.h"
 #import "client_handler.h"
 #import "PathWatcher.h"
+#import <Cocoa/Cocoa.h>
+#import <CommonCrypto/CommonDigest.h>
 
 #define MY_EXCEPTION_TRY @try {
 #define MY_EXCEPTION_HANDLE } @catch (NSException *localException) {}
@@ -16,7 +18,7 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
 NativeHandler::NativeHandler() : CefV8Handler() {  
   std::string extensionCode =  "var $native = {}; (function() {";
   
-  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload", "lastModified"};
+  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload", "lastModified", "md5ForPath"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     std::string functionName = std::string(functionNames[i]);
@@ -402,6 +404,23 @@ bool NativeHandler::Execute(const CefString& name,
     
     NSDate *lastModified = [attributes objectForKey:NSFileModificationDate];
     retval = CefV8Value::CreateDate(CefTime([lastModified timeIntervalSince1970]));
+    return true;
+  } 
+  else if (name == "md5ForPath") {
+    NSString *path = stringFromCefV8Value(arguments[0]);
+    unsigned char outputData[CC_MD5_DIGEST_LENGTH];
+    
+    NSData *inputData = [[NSData alloc] initWithContentsOfFile:path];
+    CC_MD5([inputData bytes], [inputData length], outputData);
+    [inputData release];
+    
+    NSMutableString *hash = [[NSMutableString alloc] init];
+    
+    for (NSUInteger i = 0; i < CC_MD5_DIGEST_LENGTH; i++) {
+      [hash appendFormat:@"%02x", outputData[i]];
+    }
+    
+    retval = CefV8Value::CreateString([hash UTF8String]);
     return true;
   }
   return false;
