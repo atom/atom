@@ -11,6 +11,6 @@ class Substitution extends Command
     @regex = new RegExp(pattern, options.join(''))
 
   execute: (editor, currentRange) ->
-    editor.getBuffer().scanInRange @regex, currentRange, (match, matchRange, { replace }) =>
+    editor.scanInRange @regex, currentRange, (match, matchRange, { replace }) =>
       replace(@replacementText)
     [currentRange]

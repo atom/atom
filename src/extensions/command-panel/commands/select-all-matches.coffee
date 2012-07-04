@@ -10,6 +10,6 @@ class SelectAllMatches extends Command
 
   execute: (editor, currentRange) ->
     rangesToSelect = []
-    editor.getBuffer().scanInRange @regex, currentRange, (match, range) ->
+    editor.scanInRange @regex, currentRange, (match, range) ->
       rangesToSelect.push(range)
     rangesToSelect

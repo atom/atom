@@ -1076,17 +1076,17 @@ describe "Editor", ->
       it "renders correctly when scrolling after text is added to the buffer", ->
         editor.insertText("1\n")
         _.times 4, -> editor.moveCursorDown()
-        expect(editor.renderedLines.find('.line:eq(2)').text()).toBe editor.getBuffer().lineForRow(2)
-        expect(editor.renderedLines.find('.line:eq(7)').text()).toBe editor.getBuffer().lineForRow(7)
+        expect(editor.renderedLines.find('.line:eq(2)').text()).toBe editor.lineForBufferRow(2)
+        expect(editor.renderedLines.find('.line:eq(7)').text()).toBe editor.lineForBufferRow(7)
 
       it "renders correctly when scrolling after text is removed from buffer", ->
         editor.getBuffer().delete([[0,0],[1,0]])
-        expect(editor.renderedLines.find('.line:eq(0)').text()).toBe editor.getBuffer().lineForRow(0)
-        expect(editor.renderedLines.find('.line:eq(5)').text()).toBe editor.getBuffer().lineForRow(5)
+        expect(editor.renderedLines.find('.line:eq(0)').text()).toBe editor.lineForBufferRow(0)
+        expect(editor.renderedLines.find('.line:eq(5)').text()).toBe editor.lineForBufferRow(5)
 
         editor.scrollTop(3 * editor.lineHeight)
-        expect(editor.renderedLines.find('.line:first').text()).toBe editor.getBuffer().lineForRow(1)
-        expect(editor.renderedLines.find('.line:last').text()).toBe editor.getBuffer().lineForRow(10)
+        expect(editor.renderedLines.find('.line:first').text()).toBe editor.lineForBufferRow(1)
+        expect(editor.renderedLines.find('.line:last').text()).toBe editor.lineForBufferRow(10)
 
       describe "when creating and destroying folds that are longer than the visible lines", ->
         describe "when the cursor precedes the fold when it is destroyed", ->

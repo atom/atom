@@ -47,7 +47,7 @@ class MoveToNextWord extends Motion
   nextWordPosition: ->
     regex = getWordRegex()
     { row, column } = @editor.getCursorScreenPosition()
-    rightOfCursor = @editor.getBuffer().lineForRow(row).substring(column)
+    rightOfCursor = @editor.lineForBufferRow(row).substring(column)
 
     match = regex.exec(rightOfCursor)
     # If we're on top of part of a word, match the next one.
@@ -56,9 +56,9 @@ class MoveToNextWord extends Motion
     if match
       column += match.index
     else if row + 1 == @editor.getBuffer().getLineCount()
-      column = @editor.getBuffer().lineForRow(row).length
+      column = @editor.lineForBufferRow(row).length
     else
-      nextLineMatch = regex.exec(@editor.getBuffer().lineForRow(++row))
+      nextLineMatch = regex.exec(@editor.lineForBufferRow(++row))
       column = nextLineMatch?.index or 0
     { row, column }
 
@@ -75,13 +75,13 @@ class MoveToNextParagraph extends Motion
     column = 0
 
     startRow = @editor.getCursorBufferRow() + 1
-    for r in [startRow..@editor.getBuffer().getLastRow()]
-      if @editor.getBuffer().lineForRow(r).length == 0
+    for r in [startRow..@editor.getLastBufferRow()]
+      if @editor.lineForBufferRow(r).length == 0
         row = r
         break
 
     if not row
-      row = @editor.getBuffer().getLastRow()
+      row = @editor.getLastBufferRow()
       column = @editor.getBuffer().lastLine().length - 1
 
     new Point(row, column)
