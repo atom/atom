@@ -71,15 +71,15 @@ xdescribe "VimMode", ->
         editor.setCursorScreenPosition([0, 4])
 
         editor.trigger keydownEvent('x')
-        expect(editor.getBuffer().getText()).toBe '01235'
+        expect(editor.getText()).toBe '01235'
         expect(editor.getCursorScreenPosition()).toEqual([0, 4])
 
         editor.trigger keydownEvent('x')
-        expect(editor.getBuffer().getText()).toBe '0123'
+        expect(editor.getText()).toBe '0123'
         expect(editor.getCursorScreenPosition()).toEqual([0, 3])
 
         editor.trigger keydownEvent('x')
-        expect(editor.getBuffer().getText()).toBe '012'
+        expect(editor.getText()).toBe '012'
         expect(editor.getCursorScreenPosition()).toEqual([0, 2])
 
       it "deletes nothing when cursor is on empty line", ->
@@ -87,7 +87,7 @@ xdescribe "VimMode", ->
         editor.setCursorScreenPosition [1, 0]
 
         editor.trigger keydownEvent 'x'
-        expect(editor.getBuffer().getText()).toBe "012345\n\nabcdef"
+        expect(editor.getText()).toBe "012345\n\nabcdef"
 
     describe "the d keybinding", ->
       describe "when followed by a d", ->
@@ -97,7 +97,7 @@ xdescribe "VimMode", ->
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('d')
-          expect(editor.getBuffer().getText()).toBe "12345\nABCDE"
+          expect(editor.getText()).toBe "12345\nABCDE"
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
         it "deletes the last line", ->
@@ -105,7 +105,7 @@ xdescribe "VimMode", ->
           editor.setCursorScreenPosition([2,1])
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('d')
-          expect(editor.getBuffer().getText()).toBe "12345\nabcde"
+          expect(editor.getText()).toBe "12345\nabcde"
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
         xdescribe "when the second d is prefixed by a count", ->
@@ -117,7 +117,7 @@ xdescribe "VimMode", ->
             editor.trigger keydownEvent('2')
             editor.trigger keydownEvent('d')
 
-            expect(editor.getBuffer().getText()).toBe "12345\nQWERT"
+            expect(editor.getText()).toBe "12345\nQWERT"
             expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
       describe "when followed by an h", ->
@@ -128,13 +128,13 @@ xdescribe "VimMode", ->
           editor.trigger keydownEvent 'd'
           editor.trigger keydownEvent 'h'
 
-          expect(editor.getBuffer().getText()).toBe "abcd\n1234"
+          expect(editor.getText()).toBe "abcd\n1234"
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
           editor.trigger keydownEvent 'd'
           editor.trigger keydownEvent 'h'
 
-          expect(editor.getBuffer().getText()).toBe "abcd\n1234"
+          expect(editor.getText()).toBe "abcd\n1234"
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
       describe "when followed by a w", ->
@@ -145,7 +145,7 @@ xdescribe "VimMode", ->
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('w')
 
-          expect(editor.getBuffer().getText()).toBe "abefg"
+          expect(editor.getText()).toBe "abefg"
           expect(editor.getCursorScreenPosition()).toEqual([0,2])
 
           editor.getBuffer().setText("one two three four")
@@ -155,7 +155,7 @@ xdescribe "VimMode", ->
           editor.trigger keydownEvent('3')
           editor.trigger keydownEvent('w')
 
-          expect(editor.getBuffer().getText()).toBe "four"
+          expect(editor.getText()).toBe "four"
           expect(editor.getCursorScreenPosition()).toEqual([0,0])
 
       describe "when followed by a b", ->
@@ -166,7 +166,7 @@ xdescribe "VimMode", ->
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('b')
 
-          expect(editor.getBuffer().getText()).toBe "cd efg"
+          expect(editor.getText()).toBe "cd efg"
           expect(editor.getCursorScreenPosition()).toEqual([0,0])
 
           editor.getBuffer().setText("one two three four")
@@ -176,7 +176,7 @@ xdescribe "VimMode", ->
           editor.trigger keydownEvent('3')
           editor.trigger keydownEvent('b')
 
-          expect(editor.getBuffer().getText()).toBe "ee four"
+          expect(editor.getText()).toBe "ee four"
           expect(editor.getCursorScreenPosition()).toEqual([0,0])
 
     describe "basic motion bindings", ->
@@ -293,7 +293,7 @@ xdescribe "VimMode", ->
         editor.trigger keydownEvent('3')
         editor.trigger keydownEvent('x')
 
-        expect(editor.getBuffer().getText()).toBe '15'
+        expect(editor.getText()).toBe '15'
 
         editor.getBuffer().setText("123456789abc")
         editor.setCursorScreenPosition([0,0])
@@ -301,7 +301,7 @@ xdescribe "VimMode", ->
         editor.trigger keydownEvent('0')
         editor.trigger keydownEvent('x')
 
-        expect(editor.getBuffer().getText()).toBe 'bc'
+        expect(editor.getText()).toBe 'bc'
 
   describe "insert-mode", ->
     beforeEach ->

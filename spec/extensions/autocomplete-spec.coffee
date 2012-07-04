@@ -419,7 +419,7 @@ describe "Autocomplete", ->
       miniEditor.getBuffer().setText('foo')
 
       autocomplete.detach()
-      expect(miniEditor.getBuffer().getText()).toBe ''
+      expect(miniEditor.getText()).toBe ''
 
       editor.trigger 'move-down'
       expect(editor.getCursorBufferPosition().row).toBe 1

@@ -72,7 +72,7 @@ class FuzzyFinder extends View
 
   populatePathList: ->
     @pathList.empty()
-    for path in @findMatches(@miniEditor.getBuffer().getText())
+    for path in @findMatches(@miniEditor.getText())
       @pathList.append $$ -> @li path
 
     @pathList.children('li:first').addClass 'selected'

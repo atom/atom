@@ -24,7 +24,7 @@ describe "StripTrailingWhitespace", ->
     # works for buffers that are already open when extension is initialized
     editor.insertText("foo   \nbar\t   \n\nbaz")
     editor.save()
-    expect(editor.getBuffer().getText()).toBe "foo\nbar\n\nbaz"
+    expect(editor.getText()).toBe "foo\nbar\n\nbaz"
 
     # works for buffers that are opened after extension is initialized
     rootView.open(require.resolve('fixtures/sample.txt'))
@@ -32,4 +32,4 @@ describe "StripTrailingWhitespace", ->
     editor.insertText("           ")
 
     editor.getBuffer().save()
-    expect(editor.getBuffer().getText()).toBe 'Some text.\n'
+    expect(editor.getText()).toBe 'Some text.\n'

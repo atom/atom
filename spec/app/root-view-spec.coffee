@@ -61,7 +61,7 @@ describe "RootView", ->
           rootView = RootView.deserialize(viewState)
           expect(rootView.project.getPath()?).toBeFalsy()
           expect(rootView.getEditors().length).toBe 2
-          expect(rootView.getActiveEditor().getBuffer().getText()).toBe buffer.getText()
+          expect(rootView.getActiveEditor().getText()).toBe buffer.getText()
           expect(document.title).toBe 'untitled'
 
       describe "when the serialized RootView has a project", ->
