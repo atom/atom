@@ -247,6 +247,7 @@ class Editor extends View
 
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
+  getPath: -> @getBuffer().getPath()
   getLastBufferRow: -> @getBuffer().getLastRow()
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
   getEofPosition: -> @getBuffer().getEofPosition()
@@ -498,7 +499,7 @@ class Editor extends View
       $(window).off 'resize', @_setSoftWrapColumn
 
   save: ->
-    if not @getBuffer().getPath()
+    if not @getPath()
       path = Native.saveDialog()
       return false if not path
       @getBuffer().saveAs(path)
@@ -539,7 +540,7 @@ class Editor extends View
   close: ->
     return if @mini
     if @getBuffer().isModified()
-      filename = if @getBuffer().getPath() then fs.base(@getBuffer().getPath()) else "untitled buffer"
+      filename = if @getPath() then fs.base(@getPath()) else "untitled buffer"
       message = "'#{filename}' has changes, do you want to save them?"
       detailedMessage = "Your changes will be lost if you don't save them"
       buttons = [

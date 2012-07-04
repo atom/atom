@@ -28,7 +28,7 @@ class StatusBar extends View
     @editor.on 'cursor-move', => @updateCursorPositionText()
 
   updatePathText: ->
-    path = @editor.getBuffer().getPath()
+    path = @editor.getPath()
     if path
       @currentPath.text(@rootView.project.relativize(path))
     else

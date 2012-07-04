@@ -260,7 +260,7 @@ describe "Editor", ->
         editor = rootView.getActiveEditor()
         project = rootView.project
 
-        expect(editor.getBuffer().getPath()).toBe tempFilePath
+        expect(editor.getPath()).toBe tempFilePath
 
       afterEach ->
         expect(fs.remove(tempFilePath))
@@ -279,7 +279,7 @@ describe "Editor", ->
       beforeEach ->
         editor.edit(rootView.project.open())
 
-        expect(editor.getBuffer().getPath()).toBeUndefined()
+        expect(editor.getPath()).toBeUndefined()
         editor.getBuffer().setText 'Save me to a new path'
         spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
 

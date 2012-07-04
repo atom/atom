@@ -132,9 +132,9 @@ class RootView extends View
 
     if not editor.mini
       editor.on 'editor-path-change.root-view', =>
-        @trigger 'active-editor-path-change', editor.getBuffer().getPath()
-      if not previousActiveEditor or editor.getBuffer().getPath() != previousActiveEditor.getBuffer().getPath()
-        @trigger 'active-editor-path-change', editor.getBuffer().getPath()
+        @trigger 'active-editor-path-change', editor.getPath()
+      if not previousActiveEditor or editor.getPath() != previousActiveEditor.getPath()
+        @trigger 'active-editor-path-change', editor.getPath()
 
   activeKeybindings: ->
     keymap.bindingsForElement(document.activeElement)
