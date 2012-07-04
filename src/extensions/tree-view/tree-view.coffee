@@ -171,7 +171,7 @@ class TreeView extends View
         newPath = @rootView.project.resolve(newPath)
         directoryPath = fs.directory(newPath)
         try
-          fs.makeDirectory(directoryPath) unless fs.exists(directoryPath)
+          fs.makeTree(directoryPath) unless fs.exists(directoryPath)
           fs.move(oldPath, newPath)
         catch e
           dialog.showError("Error: " + e.message + " Try a different path:")
@@ -208,15 +208,15 @@ class TreeView extends View
         endsWithDirectorySeperator = /\/$/.test(relativePath)
         path = @rootView.project.resolve(relativePath)
         try
-          if endsWithDirectorySeperator
-            fs.makeDirectory(path)
+          if fs.exists(path)
+            pathType = if fs.isFile(path) then "file" else "directory"
+            dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path:")
+            false
+          else if endsWithDirectorySeperator
+            fs.makeTree(path)
           else
-            if fs.exists(path)
-              dialog.showError("Error: A file already exists at path '#{path}'. Try a different path:")
-              false
-            else
-              fs.write(path, "")
-              @rootView.open(path)
+            fs.write(path, "")
+            @rootView.open(path)
         catch e
           dialog.showError("Error: " + e.message + " Try a different path:")
           return false

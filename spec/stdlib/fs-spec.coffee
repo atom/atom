@@ -21,8 +21,9 @@ describe "fs", ->
 
     describe "when called with a directory path", ->
       it "return the path it was given", ->
-        expect(fs.directory(require.resolve('fixtures/dir'))).toBe require.resolve('fixtures')
-        expect(fs.directory(require.resolve('fixtures/dir/'))).toBe require.resolve('fixtures')
+        expect(fs.directory("/a/b/c")).toBe "/a/b"
+        expect(fs.directory("/a")).toBe ""
+        expect(fs.directory("a")).toBe ""
 
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
@@ -32,7 +33,6 @@ describe "fs", ->
       expect(fs.exists(require.resolve("fixtures") + "/-nope-does-not-exist")).toBe false
       expect(fs.exists("")).toBe false
       expect(fs.exists(null)).toBe false
-      #expect(fs.exists(undefined)).toBe false
 
   describe ".join(paths...)", ->
     it "concatenates the given paths with the directory seperator", ->
@@ -41,6 +41,11 @@ describe "fs", ->
       expect(fs.join('/a/b/', 'c', 'd')).toBe '/a/b/c/d'
       expect(fs.join('a', 'b/c/', 'd/')).toBe 'a/b/c/d/'
 
+  describe ".split(path)", ->
+    it "returns path components", ->
+      expect(fs.split("/a/b/c.txt")).toEqual ["", "a", "b", "c.txt"]
+      expect(fs.split("a/b/c.txt")).toEqual ["a", "b", "c.txt"]
+
   describe ".extension(path)", ->
     it "returns the extension of a file", ->
       expect(fs.extension("a/b/corey.txt")).toBe '.txt'
@@ -48,6 +53,14 @@ describe "fs", ->
 
     it "returns an empty string for paths without an extension", ->
       expect(fs.extension("a/b.not-extension/a-dir")).toBe ''
+
+  describe "makeTree(path)", ->
+    beforeEach ->
+      fs.remove("/tmp/a") if fs.exists("/tmp/a")
+
+    it "creates all directories in path including any missing parent directories", ->
+      fs.makeTree("/tmp/a/b/c")
+      expect(fs.exists("/tmp/a/b/c")).toBeTruthy()
 
   describe ".traverseTree(path, fn)", ->
     fixturesDir = null

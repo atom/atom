@@ -55,6 +55,15 @@ windowAdditions =
     return if $("head style[path='#{fullPath}']").length
     $('head').append "<style path='#{fullPath}'>#{content}</style>"
 
+  requireExtension: (name) ->
+    extensionPath = require.resolve name
+    extension = rootView.activateExtension require(extensionPath)
+
+    extensionKeymapPath = fs.join(fs.directory(extensionPath), "keymap.coffee")
+    require extensionKeymapPath if fs.exists(extensionKeymapPath)
+
+    extension
+
   reload: ->
     if rootView.getModifiedBuffers().length > 0
       message = "There are unsaved buffers, reload anyway?"

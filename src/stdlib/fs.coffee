@@ -21,7 +21,9 @@ module.exports =
   # parent directory if the file is a directory. A terminal directory
   # separator is ignored.
   directory: (path) ->
-    path.replace(new RegExp("/#{@base(path)}\/?$"), '')
+    parentPath = path.replace(new RegExp("/#{@base(path)}\/?$"), '')
+    return "" if path == parentPath
+    parentPath
 
   # Returns true if the file specified by path exists
   exists: (path) ->
@@ -75,12 +77,29 @@ module.exports =
   read: (path) ->
     $native.read(path)
 
+  # Returns an array of path components. If the path is absolute, the first
+  # component will be an indicator of the root of the file system; for file
+  # systems with drives (such as Windows), this is the drive identifier with a
+  # colon, like "c:"; on Unix, this is an empty string "". The intent is that
+  # calling "join.apply" with the result of "split" as arguments will
+  # reconstruct the path.
+  split: (path) ->
+    path.split("/")
+
   # Open, write, flush, and close a file, writing the given content.
   write: (path, content) ->
     $native.write(path, content)
 
   makeDirectory: (path) ->
     $native.makeDirectory(path)
+
+  # Creates the directory specified by "path" including any missing parent
+  # directories.
+  makeTree: (path) ->
+    return unless path
+    if not @exists(path)
+      @makeTree(@directory(path))
+      @makeDirectory(path)
 
   traverseTree: (rootPath, fn) ->
     recurse = null

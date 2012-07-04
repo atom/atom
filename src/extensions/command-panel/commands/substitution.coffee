@@ -1,4 +1,4 @@
-Command = require 'command-interpreter/command'
+Command = require 'command-panel/commands/command'
 
 module.exports =
 class Substitution extends Command

@@ -9,7 +9,7 @@ describe "CommandPanel", ->
     rootView.open(require.resolve 'fixtures/sample.js')
     rootView.enableKeymap()
     editor = rootView.getActiveEditor()
-    commandPanel = rootView.activateExtension(CommandPanel)
+    commandPanel = requireExtension('command-panel')
 
   afterEach ->
     rootView.remove()

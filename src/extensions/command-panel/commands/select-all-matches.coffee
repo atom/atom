@@ -1,4 +1,4 @@
-Command = require 'command-interpreter/command'
+Command = require 'command-panel/commands/command'
 Range = require 'range'
 
 module.exports =

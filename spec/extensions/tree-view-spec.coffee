@@ -215,15 +215,10 @@ describe "TreeView", ->
       expect(treeView.find('.selected').length).toBe 1
 
     it "selected a file's parent dir if the file's entry is not visible", ->
-      # treeView.attachToDom()
       rootView.open(require.resolve('fixtures/dir/a-dir/oh-git'))
 
       dirView = treeView.root.find('.directory:contains(dir)').view()
       expect(dirView).toHaveClass 'selected'
-
-      # dirView.expand()
-      # aDirView = dirView.find('.directory:contains(a-dir)').view()
-      # expect(aDirView).toHaveClass 'selected'
 
   describe "when a different editor becomes active", ->
     it "selects the file in that is open in that editor", ->
@@ -493,15 +488,15 @@ describe "TreeView", ->
         describe "when the path with a trailing '/' is changed and confirmed", ->
           describe "when no file or directory exists at the given path", ->
             it "adds a directory and closes the dialog", ->
-              newPath = fs.join(dirPath, "new-dir")
-              addDialog.miniEditor.insertText("new-dir/")
+              newPath = fs.join(dirPath, "new/dir")
+              addDialog.miniEditor.insertText("new/dir/")
               addDialog.trigger 'tree-view:confirm'
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveEditor().getBuffer().getPath()).not.toBe newPath
 
-          describe "when a or directory already exists at the given path", ->
+          describe "when a file or directory already exists at the given path", ->
             it "shows an error message and does not close the dialog", ->
               newPath = fs.join(dirPath, "new-dir")
               fs.makeDirectory(newPath)
@@ -592,7 +587,7 @@ describe "TreeView", ->
           describe "when the directories along the new path don't exist", ->
             it "creates the target directory before moving the file", ->
               runs ->
-                newPath = fs.join(rootDirPath, 'new-directory', 'renamed-test-file.txt')
+                newPath = fs.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
                 moveDialog.miniEditor.setText(newPath)
 
                 moveDialog.trigger 'tree-view:confirm'
