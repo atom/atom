@@ -385,10 +385,9 @@ class Editor extends View
 
     @unsubscribeFromBuffer() if @buffer
     @buffer = @activeEditSession.buffer
-    @buffer.on "path-change.editor#{@id}", => @trigger 'editor-path-change'
 
     @trigger 'editor-path-change'
-
+    @activeEditSession.on "buffer-path-change", => @trigger 'editor-path-change'
     @renderWhenAttached()
 
   activateEditSessionForPath: (path) ->

@@ -41,6 +41,9 @@ class EditSession
     @selections = []
     @addCursorAtScreenPosition([0, 0])
 
+    @buffer.on "path-change.edit-session-#{@id}", =>
+      @trigger 'buffer-path-change'
+
     @buffer.on "change.edit-session-#{@id}", (e) =>
       anchor.handleBufferChange(e) for anchor in @getAnchors()
       @mergeCursors()

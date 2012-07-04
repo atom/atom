@@ -91,18 +91,6 @@ describe "Editor", ->
       editor.attachToDom()
       expect(editor).toMatchSelector ":has(:focus)"
 
-    it "unsubscribes from the buffer when it is removed from the dom", ->
-      editSession = rootView.project.open('sample.txt')
-      previousSubscriptionCount = editSession.buffer.subscriptionCount()
-      editor.attachToDom()
-      editor.edit(editSession)
-
-      expect(editSession.buffer.subscriptionCount()).toBeGreaterThan previousSubscriptionCount
-      expect($('.editor')).toExist()
-      editor.remove()
-      expect(editSession.buffer.subscriptionCount()).toBeLessThan previousSubscriptionCount
-      expect($('.editor')).not.toExist()
-
   describe "when the editor recieves focus", ->
     it "focuses the hidden input", ->
       editor.attachToDom()
@@ -191,18 +179,6 @@ describe "Editor", ->
 
         editor.edit(previousEditSession)
         expect(editor.activeEditSession).toBe previousEditSession
-
-    it "unsubscribes from the previously assigned buffer", ->
-      previousEditSession = editor.activeEditSession
-      previousSubscriptionCount = previousEditSession.buffer.subscriptionCount()
-      editor.edit(otherEditSession)
-      expect(previousEditSession.buffer.subscriptionCount()).toBe previousSubscriptionCount - 1
-
-      editor.edit(previousEditSession)
-      expect(previousEditSession.buffer.subscriptionCount()).toBe previousSubscriptionCount
-
-      editor.edit(otherEditSession)
-      expect(previousEditSession.buffer.subscriptionCount()).toBe previousSubscriptionCount - 1
 
     it "handles buffer manipulation correctly after switching to a new edit session", ->
       editor.attachToDom()
