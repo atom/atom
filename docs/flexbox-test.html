@@ -13,7 +13,7 @@
         left: 100px;
         height: 200px;
         width: 200px;
-        display: -webkit-flexbox;
+        display: -webkit-flex;
         -webkit-flex-direction: column;
         overflow: hidden;
         border: 1px solid navy;
@@ -27,7 +27,9 @@
       }
 
       #flexbox-item-1-content {
-        height: 100%;
+        width: -webkit-fill-available;
+        min-height: -webkit-fill-available;
+        height: -webkit-fill-available;
         background: purple;
       }
 
