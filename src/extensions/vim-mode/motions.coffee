@@ -82,7 +82,7 @@ class MoveToNextParagraph extends Motion
 
     if not row
       row = @editor.getLastBufferRow()
-      column = @editor.getBuffer().lastLine().length - 1
+      column = @editor.getBuffer().getLastLine().length - 1
 
     new Point(row, column)
 

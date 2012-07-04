@@ -57,7 +57,7 @@ class Buffer
     @change(@getRange(), text)
 
   getRange: ->
-    new Range([0, 0], [@getLastRow(), @lastLine().length])
+    new Range([0, 0], [@getLastRow(), @getLastLine().length])
 
   getTextInRange: (range) ->
     range = Range.fromObject(range)
@@ -90,7 +90,7 @@ class Buffer
   getLastRow: ->
     @getLines().length - 1
 
-  lastLine: ->
+  getLastLine: ->
     @lineForRow(@getLastRow())
 
   getEofPosition: ->
