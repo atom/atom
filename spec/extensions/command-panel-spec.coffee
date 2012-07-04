@@ -49,7 +49,7 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:toggle'
       expect(rootView.find('.command-panel').view()).toBe commandPanel
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
-      expect(commandPanel.miniEditor.buffer.getText()).toBe ''
+      expect(commandPanel.miniEditor.getBuffer().getText()).toBe ''
       expect(commandPanel.miniEditor.getCursorScreenPosition()).toEqual [0, 0]
 
   describe "when command-panel:repeat-relative-address is triggered on the root view", ->

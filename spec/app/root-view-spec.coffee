@@ -25,7 +25,7 @@ describe "RootView", ->
           expect(rootView.project.getPath()).toBe fs.directory(path)
           expect(rootView.getEditors().length).toBe 1
           expect(rootView.getEditors()[0]).toHaveClass 'active'
-          expect(rootView.getActiveEditor().buffer.getPath()).toBe path
+          expect(rootView.getActiveEditor().getBuffer().getPath()).toBe path
           expect(rootView.getActiveEditor().editSessions.length).toBe 1
           expect(document.title).toBe path
 
@@ -53,7 +53,7 @@ describe "RootView", ->
           rootView = new RootView
           rootView.open()
           editor1 = rootView.getActiveEditor()
-          buffer = editor1.buffer
+          buffer = editor1.getBuffer()
           editor1.splitRight()
           viewState = rootView.serialize()
 
@@ -61,7 +61,7 @@ describe "RootView", ->
           rootView = RootView.deserialize(viewState)
           expect(rootView.project.getPath()?).toBeFalsy()
           expect(rootView.getEditors().length).toBe 2
-          expect(rootView.getActiveEditor().buffer.getText()).toBe buffer.getText()
+          expect(rootView.getActiveEditor().getBuffer().getText()).toBe buffer.getText()
           expect(document.title).toBe 'untitled'
 
       describe "when the serialized RootView has a project", ->
@@ -95,11 +95,11 @@ describe "RootView", ->
           editor2 = rootView.panes.find('.row > .column > .pane .editor:eq(0)').view()
           editor4 = rootView.panes.find('.row > .column > .pane .editor:eq(1)').view()
 
-          expect(editor1.buffer.getPath()).toBe require.resolve('fixtures/dir/a')
-          expect(editor2.buffer.getPath()).toBe require.resolve('fixtures/dir/b')
-          expect(editor3.buffer.getPath()).toBe require.resolve('fixtures/sample.js')
+          expect(editor1.getBuffer().getPath()).toBe require.resolve('fixtures/dir/a')
+          expect(editor2.getBuffer().getPath()).toBe require.resolve('fixtures/dir/b')
+          expect(editor3.getBuffer().getPath()).toBe require.resolve('fixtures/sample.js')
           expect(editor3.getCursorScreenPosition()).toEqual [2, 3]
-          expect(editor4.buffer.getPath()).toBe require.resolve('fixtures/sample.txt')
+          expect(editor4.getBuffer().getPath()).toBe require.resolve('fixtures/sample.txt')
           expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
 
           # ensure adjust pane dimensions is called
@@ -114,7 +114,7 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
-          expect(document.title).toBe editor2.buffer.getPath()
+          expect(document.title).toBe editor2.getBuffer().getPath()
 
     describe "when called with no pathToOpen", ->
       it "opens no buffer", ->
@@ -460,7 +460,7 @@ describe "RootView", ->
       expect(document.title).toBe rootView.project.resolve(path)
 
       pathChangeHandler.reset()
-      editor1.buffer.saveAs("/tmp/should-not-be-title.txt")
+      editor1.getBuffer().saveAs("/tmp/should-not-be-title.txt")
       expect(pathChangeHandler).not.toHaveBeenCalled()
       expect(document.title).toBe rootView.project.resolve(path)
 
@@ -469,7 +469,7 @@ describe "RootView", ->
       rootView = new RootView
       rootView.open()
       expect(rootView.project.getPath()?).toBeFalsy()
-      rootView.getActiveEditor().buffer.saveAs('/tmp/ignore-me')
+      rootView.getActiveEditor().getBuffer().saveAs('/tmp/ignore-me')
       expect(rootView.project.getPath()).toBe '/tmp'
 
   describe "when editors are focused", ->
@@ -529,13 +529,13 @@ describe "RootView", ->
         it "opens an empty buffer in a new editor", ->
           rootView.open()
           expect(rootView.getActiveEditor()).toBeDefined()
-          expect(rootView.getActiveEditor().buffer.getPath()).toBeUndefined()
+          expect(rootView.getActiveEditor().getBuffer().getPath()).toBeUndefined()
 
       describe "when called with a path", ->
         it "opens a buffer with the given path in a new editor", ->
           rootView.open('b')
           expect(rootView.getActiveEditor()).toBeDefined()
-          expect(rootView.getActiveEditor().buffer.getPath()).toBe require.resolve('fixtures/dir/b')
+          expect(rootView.getActiveEditor().getBuffer().getPath()).toBe require.resolve('fixtures/dir/b')
 
     describe "when there is an active editor", ->
       beforeEach ->
@@ -544,7 +544,7 @@ describe "RootView", ->
       describe "when called with no path", ->
         it "opens an empty buffer in the active editor", ->
           rootView.open()
-          expect(rootView.getActiveEditor().buffer.getPath()).toBeUndefined()
+          expect(rootView.getActiveEditor().getBuffer().getPath()).toBeUndefined()
 
       describe "when called with a path", ->
         [editor1, editor2] = []
@@ -563,7 +563,7 @@ describe "RootView", ->
 
           describe "when the active editor has an edit session for the given path", ->
             it "re-activates the existing edit session", ->
-              expect(activeEditor.buffer.getPath()).toBe require.resolve('fixtures/dir/a')
+              expect(activeEditor.getBuffer().getPath()).toBe require.resolve('fixtures/dir/a')
               previousEditSession = activeEditor.activeEditSession
 
               rootView.open('b')
@@ -581,7 +581,7 @@ describe "RootView", ->
           describe "when the active editor has an edit session for the given path", ->
             it "re-activates the existing edit session regardless of whether any other editor also has an edit session for the path", ->
               activeEditor = rootView.getActiveEditor()
-              expect(activeEditor.buffer.getPath()).toBe require.resolve('fixtures/dir/a')
+              expect(activeEditor.getBuffer().getPath()).toBe require.resolve('fixtures/dir/a')
               previousEditSession = activeEditor.activeEditSession
 
               rootView.open('b')
@@ -596,11 +596,11 @@ describe "RootView", ->
                 expect(rootView.getActiveEditor()).toBe editor1
                 rootView.open('b', allowActiveEditorChange: true)
                 expect(rootView.getActiveEditor()).toBe editor2
-                expect(editor2.buffer.getPath()).toBe require.resolve('fixtures/dir/b')
+                expect(editor2.getBuffer().getPath()).toBe require.resolve('fixtures/dir/b')
 
             describe "when no other editor has an edit session for the path either", ->
               it "creates a new edit session for the path on the current active editor", ->
                 path = require.resolve('fixtures/sample.js')
                 rootView.open(path, allowActiveEditorChange: true)
                 expect(rootView.getActiveEditor()).toBe editor1
-                expect(editor1.buffer.getPath()).toBe path
+                expect(editor1.getBuffer().getPath()).toBe path

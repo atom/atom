@@ -27,8 +27,8 @@ describe "Atom", ->
         runs ->
           expect(atom.windows.length).toBe previousWindowCount + 1
           newWindow = _.last(atom.windows)
-          expect(newWindow.rootView.getActiveEditor().buffer.getPath()).toEqual filePath
-          expect(newWindow.rootView.getActiveEditor().buffer.getText()).toEqual fs.read(filePath)
+          expect(newWindow.rootView.getActiveEditor().getBuffer().getPath()).toEqual filePath
+          expect(newWindow.rootView.getActiveEditor().getBuffer().getText()).toEqual fs.read(filePath)
 
   describe ".windowOpened(window)", ->
     atom = null

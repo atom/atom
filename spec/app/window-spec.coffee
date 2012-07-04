@@ -61,4 +61,4 @@ describe "Window", ->
 
       $(window).trigger 'beforeunload'
 
-      expect(editor1.buffer.subscriptionCount()).toBe 1 # buffer has a self-subscription for the undo manager
+      expect(editor1.getBuffer().subscriptionCount()).toBe 1 # buffer has a self-subscription for the undo manager

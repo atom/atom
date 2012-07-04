@@ -38,7 +38,6 @@ class Editor extends View
   charHeight: null
   cursorViews: null
   selectionViews: null
-  buffer: null
   lineCache: null
   isFocused: false
   activeEditSession: null
@@ -246,16 +245,16 @@ class Editor extends View
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
   stateForScreenRow: (row) -> @activeEditSession.stateForScreenRow(row)
 
-  setText: (text) -> @buffer.setText(text)
-  getText: -> @buffer.getText()
-  getLastBufferRow: -> @buffer.getLastRow()
-  getTextInRange: (range) -> @buffer.getTextInRange(range)
-  getEofPosition: -> @buffer.getEofPosition()
-  lineForBufferRow: (row) -> @buffer.lineForRow(row)
-  lineLengthForBufferRow: (row) -> @buffer.lineLengthForRow(row)
-  rangeForBufferRow: (row) -> @buffer.rangeForRow(row)
-  scanInRange: (args...) -> @buffer.scanInRange(args...)
-  backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)
+  setText: (text) -> @getBuffer().setText(text)
+  getText: -> @getBuffer().getText()
+  getLastBufferRow: -> @getBuffer().getLastRow()
+  getTextInRange: (range) -> @getBuffer().getTextInRange(range)
+  getEofPosition: -> @getBuffer().getEofPosition()
+  lineForBufferRow: (row) -> @getBuffer().lineForRow(row)
+  lineLengthForBufferRow: (row) -> @getBuffer().lineLengthForRow(row)
+  rangeForBufferRow: (row) -> @getBuffer().rangeForRow(row)
+  scanInRange: (args...) -> @getBuffer().scanInRange(args...)
+  backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   handleEvents: ->
     @on 'focus', =>
@@ -353,6 +352,8 @@ class Editor extends View
 
     @setActiveEditSessionIndex(index)
 
+  getBuffer: -> @activeEditSession.buffer
+
   destroyActiveEditSession: ->
     if @editSessions.length == 1
       @remove()
@@ -383,11 +384,8 @@ class Editor extends View
 
     @activeEditSession = @editSessions[index]
 
-    @unsubscribeFromBuffer() if @buffer
-    @buffer = @activeEditSession.buffer
-
-    @trigger 'editor-path-change'
     @activeEditSession.on "buffer-path-change", => @trigger 'editor-path-change'
+    @trigger 'editor-path-change'
     @renderWhenAttached()
 
   activateEditSessionForPath: (path) ->
@@ -500,12 +498,12 @@ class Editor extends View
       $(window).off 'resize', @_setSoftWrapColumn
 
   save: ->
-    if not @buffer.getPath()
+    if not @getBuffer().getPath()
       path = Native.saveDialog()
       return false if not path
-      @buffer.saveAs(path)
+      @getBuffer().saveAs(path)
     else
-      @buffer.save()
+      @getBuffer().save()
     true
 
   subscribeToFontSize: ->
@@ -540,8 +538,8 @@ class Editor extends View
 
   close: ->
     return if @mini
-    if @buffer.isModified()
-      filename = if @buffer.getPath() then fs.base(@buffer.getPath()) else "untitled buffer"
+    if @getBuffer().isModified()
+      filename = if @getBuffer().getPath() then fs.base(@getBuffer().getPath()) else "untitled buffer"
       message = "'#{filename}' has changes, do you want to save them?"
       detailedMessage = "Your changes will be lost if you don't save them"
       buttons = [
@@ -560,16 +558,12 @@ class Editor extends View
     @trigger 'before-remove'
 
     @destroyEditSessions()
-    @unsubscribeFromBuffer()
 
     $(window).off ".editor#{@id}"
     rootView = @rootView()
     rootView?.off ".editor#{@id}"
     if @pane() then @pane().remove() else super
     rootView?.focus()
-
-  unsubscribeFromBuffer: ->
-    @buffer.off ".editor#{@id}"
 
   destroyEditSessions: ->
     for session in @editSessions

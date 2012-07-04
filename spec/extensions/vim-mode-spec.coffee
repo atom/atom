@@ -27,7 +27,7 @@ xdescribe "VimMode", ->
       expect(event.stopPropagation).not.toHaveBeenCalled()
 
     it "does not allow the cursor to be placed on the \n character, unless the line is empty", ->
-      editor.buffer.setText("012345\n\nabcdef")
+      editor.getBuffer().setText("012345\n\nabcdef")
       editor.setCursorScreenPosition([0, 5])
       expect(editor.getCursorScreenPosition()).toEqual [0,5]
 
@@ -67,121 +67,121 @@ xdescribe "VimMode", ->
 
     describe "the x keybinding", ->
       it "deletes a charachter", ->
-        editor.buffer.setText("012345")
+        editor.getBuffer().setText("012345")
         editor.setCursorScreenPosition([0, 4])
 
         editor.trigger keydownEvent('x')
-        expect(editor.buffer.getText()).toBe '01235'
+        expect(editor.getBuffer().getText()).toBe '01235'
         expect(editor.getCursorScreenPosition()).toEqual([0, 4])
 
         editor.trigger keydownEvent('x')
-        expect(editor.buffer.getText()).toBe '0123'
+        expect(editor.getBuffer().getText()).toBe '0123'
         expect(editor.getCursorScreenPosition()).toEqual([0, 3])
 
         editor.trigger keydownEvent('x')
-        expect(editor.buffer.getText()).toBe '012'
+        expect(editor.getBuffer().getText()).toBe '012'
         expect(editor.getCursorScreenPosition()).toEqual([0, 2])
 
       it "deletes nothing when cursor is on empty line", ->
-        editor.buffer.setText "012345\n\nabcdef"
+        editor.getBuffer().setText "012345\n\nabcdef"
         editor.setCursorScreenPosition [1, 0]
 
         editor.trigger keydownEvent 'x'
-        expect(editor.buffer.getText()).toBe "012345\n\nabcdef"
+        expect(editor.getBuffer().getText()).toBe "012345\n\nabcdef"
 
     describe "the d keybinding", ->
       describe "when followed by a d", ->
         it "deletes the current line", ->
-          editor.buffer.setText("12345\nabcde\nABCDE")
+          editor.getBuffer().setText("12345\nabcde\nABCDE")
           editor.setCursorScreenPosition([1,1])
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('d')
-          expect(editor.buffer.getText()).toBe "12345\nABCDE"
+          expect(editor.getBuffer().getText()).toBe "12345\nABCDE"
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
         it "deletes the last line", ->
-          editor.buffer.setText("12345\nabcde\nABCDE")
+          editor.getBuffer().setText("12345\nabcde\nABCDE")
           editor.setCursorScreenPosition([2,1])
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('d')
-          expect(editor.buffer.getText()).toBe "12345\nabcde"
+          expect(editor.getBuffer().getText()).toBe "12345\nabcde"
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
         xdescribe "when the second d is prefixed by a count", ->
           it "deletes n lines, starting from the current", ->
-            editor.buffer.setText("12345\nabcde\nABCDE\nQWERT")
+            editor.getBuffer().setText("12345\nabcde\nABCDE\nQWERT")
             editor.setCursorScreenPosition([1,1])
 
             editor.trigger keydownEvent('d')
             editor.trigger keydownEvent('2')
             editor.trigger keydownEvent('d')
 
-            expect(editor.buffer.getText()).toBe "12345\nQWERT"
+            expect(editor.getBuffer().getText()).toBe "12345\nQWERT"
             expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
       describe "when followed by an h", ->
         it "deletes the previous letter on the current line", ->
-          editor.buffer.setText("abcd\n01234")
+          editor.getBuffer().setText("abcd\n01234")
           editor.setCursorScreenPosition([1,1])
 
           editor.trigger keydownEvent 'd'
           editor.trigger keydownEvent 'h'
 
-          expect(editor.buffer.getText()).toBe "abcd\n1234"
+          expect(editor.getBuffer().getText()).toBe "abcd\n1234"
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
           editor.trigger keydownEvent 'd'
           editor.trigger keydownEvent 'h'
 
-          expect(editor.buffer.getText()).toBe "abcd\n1234"
+          expect(editor.getBuffer().getText()).toBe "abcd\n1234"
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
       describe "when followed by a w", ->
         it "deletes to the beginning of the next word", ->
-          editor.buffer.setText("abcd efg")
+          editor.getBuffer().setText("abcd efg")
           editor.setCursorScreenPosition([0,2])
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('w')
 
-          expect(editor.buffer.getText()).toBe "abefg"
+          expect(editor.getBuffer().getText()).toBe "abefg"
           expect(editor.getCursorScreenPosition()).toEqual([0,2])
 
-          editor.buffer.setText("one two three four")
+          editor.getBuffer().setText("one two three four")
           editor.setCursorScreenPosition([0,0])
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('3')
           editor.trigger keydownEvent('w')
 
-          expect(editor.buffer.getText()).toBe "four"
+          expect(editor.getBuffer().getText()).toBe "four"
           expect(editor.getCursorScreenPosition()).toEqual([0,0])
 
       describe "when followed by a b", ->
         it "deletes to the beginning of the previous word", ->
-          editor.buffer.setText("abcd efg")
+          editor.getBuffer().setText("abcd efg")
           editor.setCursorScreenPosition([0,2])
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('b')
 
-          expect(editor.buffer.getText()).toBe "cd efg"
+          expect(editor.getBuffer().getText()).toBe "cd efg"
           expect(editor.getCursorScreenPosition()).toEqual([0,0])
 
-          editor.buffer.setText("one two three four")
+          editor.getBuffer().setText("one two three four")
           editor.setCursorScreenPosition([0,11])
 
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('3')
           editor.trigger keydownEvent('b')
 
-          expect(editor.buffer.getText()).toBe "ee four"
+          expect(editor.getBuffer().getText()).toBe "ee four"
           expect(editor.getCursorScreenPosition()).toEqual([0,0])
 
     describe "basic motion bindings", ->
       beforeEach ->
-        editor.buffer.setText("12345\nabcde\nABCDE")
+        editor.getBuffer().setText("12345\nabcde\nABCDE")
         editor.setCursorScreenPosition([1,1])
 
       describe "the h keybinding", ->
@@ -215,7 +215,7 @@ xdescribe "VimMode", ->
 
       describe "the w keybinding", ->
         it "moves the cursor to the beginning of the next word", ->
-          editor.buffer.setText("ab cde1+- \n xyz\n\nzip")
+          editor.getBuffer().setText("ab cde1+- \n xyz\n\nzip")
           editor.setCursorScreenPosition([0,0])
 
           editor.trigger keydownEvent('w')
@@ -238,7 +238,7 @@ xdescribe "VimMode", ->
 
       describe "the { keybinding", ->
         it "moves the cursor to the beginning of the paragraph", ->
-          editor.buffer.setText("abcde\n\nfghij\nhijk\n  xyz  \n\nzip\n\n  \nthe end")
+          editor.getBuffer().setText("abcde\n\nfghij\nhijk\n  xyz  \n\nzip\n\n  \nthe end")
           editor.setCursorScreenPosition([0,0])
 
           editor.trigger keydownEvent('}')
@@ -255,7 +255,7 @@ xdescribe "VimMode", ->
 
       describe "the b keybinding", ->
         it "moves the cursor to the beginning of the previous word", ->
-          editor.buffer.setText(" ab cde1+- \n xyz\n\nzip }\n last")
+          editor.getBuffer().setText(" ab cde1+- \n xyz\n\nzip }\n last")
           editor.setCursorScreenPosition [4,1]
 
           editor.trigger keydownEvent('b')
@@ -287,28 +287,28 @@ xdescribe "VimMode", ->
 
     describe "numeric prefix bindings", ->
       it "repeats the following operation N times", ->
-        editor.buffer.setText("12345")
+        editor.getBuffer().setText("12345")
         editor.setCursorScreenPosition([0,1])
 
         editor.trigger keydownEvent('3')
         editor.trigger keydownEvent('x')
 
-        expect(editor.buffer.getText()).toBe '15'
+        expect(editor.getBuffer().getText()).toBe '15'
 
-        editor.buffer.setText("123456789abc")
+        editor.getBuffer().setText("123456789abc")
         editor.setCursorScreenPosition([0,0])
         editor.trigger keydownEvent('1')
         editor.trigger keydownEvent('0')
         editor.trigger keydownEvent('x')
 
-        expect(editor.buffer.getText()).toBe 'bc'
+        expect(editor.getBuffer().getText()).toBe 'bc'
 
   describe "insert-mode", ->
     beforeEach ->
       editor.trigger keydownEvent('i')
 
     it "allows the cursor to reach the end of the line", ->
-      editor.buffer.setText("012345\n\nabcdef")
+      editor.getBuffer().setText("012345\n\nabcdef")
       editor.setCursorScreenPosition([0, 5])
       expect(editor.getCursorScreenPosition()).toEqual [0,5]
 

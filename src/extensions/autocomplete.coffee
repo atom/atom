@@ -32,10 +32,10 @@ class Autocomplete extends View
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
     @handleEvents()
-    @setCurrentBuffer(@editor.buffer)
+    @setCurrentBuffer(@editor.getBuffer())
 
   handleEvents: ->
-    @editor.on 'editor-path-change', => @setCurrentBuffer(@editor.buffer)
+    @editor.on 'editor-path-change', => @setCurrentBuffer(@editor.getBuffer())
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
     @editor.on 'autocomplete:attach', => @attach()
@@ -53,7 +53,7 @@ class Autocomplete extends View
       else
         @cancel()
 
-    @miniEditor.buffer.on 'change', (e) =>
+    @miniEditor.getBuffer().on 'change', (e) =>
       @filterMatches() if @hasParent()
 
     @miniEditor.preempt 'move-up', =>
@@ -95,7 +95,7 @@ class Autocomplete extends View
 
   cancel: ->
     @detach()
-    @editor.buffer.change(@currentMatchBufferRange, @originalSelectedText) if @currentMatchBufferRange
+    @editor.getBuffer().change(@currentMatchBufferRange, @originalSelectedText) if @currentMatchBufferRange
     @editor.setSelectedBufferRange(@originalSelectionBufferRange)
 
   attach: ->
@@ -120,7 +120,7 @@ class Autocomplete extends View
     super
     @editor.off(".autocomplete")
     @editor.focus()
-    @miniEditor.buffer.setText('')
+    @miniEditor.getBuffer().setText('')
 
   setPosition: (originalCursorPosition) ->
     { left, top } = @editor.pixelPositionForScreenPosition(originalCursorPosition)

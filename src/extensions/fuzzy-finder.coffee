@@ -31,7 +31,7 @@ class FuzzyFinder extends View
     @on 'fuzzy-finder:select-path', => @select()
     @on 'mousedown', 'li', (e) => @entryClicked(e)
 
-    @miniEditor.buffer.on 'change', => @populatePathList() if @hasParent()
+    @miniEditor.getBuffer().on 'change', => @populatePathList() if @hasParent()
     @miniEditor.off 'move-up move-down'
 
   toggleFileFinder: ->
@@ -72,7 +72,7 @@ class FuzzyFinder extends View
 
   populatePathList: ->
     @pathList.empty()
-    for path in @findMatches(@miniEditor.buffer.getText())
+    for path in @findMatches(@miniEditor.getBuffer().getText())
       @pathList.append $$ -> @li path
 
     @pathList.children('li:first').addClass 'selected'

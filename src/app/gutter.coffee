@@ -24,4 +24,4 @@ class Gutter extends View
     @calculateDimensions()
 
   calculateDimensions: ->
-    @lineNumbers.width(@editor().buffer.getLastRow().toString().length * @editor().charWidth)
+    @lineNumbers.width(@editor().getBuffer().getLastRow().toString().length * @editor().charWidth)

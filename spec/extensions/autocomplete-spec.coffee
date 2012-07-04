@@ -52,7 +52,7 @@ describe "Autocomplete", ->
 
     describe "when no text is selected", ->
       it 'autocompletes word when there is only a prefix', ->
-        editor.buffer.insert([10,0] ,"extra:s:extra")
+        editor.getBuffer().insert([10,0] ,"extra:s:extra")
         editor.setCursorBufferPosition([10,7])
         autocomplete.attach()
 
@@ -65,7 +65,7 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('shift')
 
       it 'autocompletes word when there is only a suffix', ->
-        editor.buffer.insert([10,0] ,"extra:e:extra")
+        editor.getBuffer().insert([10,0] ,"extra:e:extra")
         editor.setCursorBufferPosition([10,6])
         autocomplete.attach()
 
@@ -77,7 +77,7 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('while')
 
       it 'autocompletes word when there is a prefix and suffix', ->
-        editor.buffer.insert([8,43] ,"q")
+        editor.getBuffer().insert([8,43] ,"q")
         editor.setCursorBufferPosition([8,44])
         autocomplete.attach()
 
@@ -97,7 +97,7 @@ describe "Autocomplete", ->
 
     describe "when text is selected", ->
       it 'autocompletes word when there is only a prefix', ->
-        editor.buffer.insert([10,0] ,"extra:sort:extra")
+        editor.getBuffer().insert([10,0] ,"extra:sort:extra")
         editor.setSelectedBufferRange [[10,7], [10,10]]
         autocomplete.attach()
 
@@ -109,7 +109,7 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('shift')
 
       it 'autocompletes word when there is only a suffix', ->
-        editor.buffer.insert([10,0] ,"extra:current:extra")
+        editor.getBuffer().insert([10,0] ,"extra:current:extra")
         editor.setSelectedBufferRange [[10,6],[10,12]]
         autocomplete.attach()
 
@@ -133,7 +133,7 @@ describe "Autocomplete", ->
 
   describe 'autocomplete:confirm event', ->
     it 'replaces selection with selected match, moves the cursor to the end of the match, and removes the autocomplete menu', ->
-      editor.buffer.insert([10,0] ,"extra:sort:extra")
+      editor.getBuffer().insert([10,0] ,"extra:sort:extra")
       editor.setSelectedBufferRange [[10,7], [10,9]]
       autocomplete.attach()
       miniEditor.trigger "autocomplete:confirm"
@@ -145,7 +145,7 @@ describe "Autocomplete", ->
 
     describe "when there are no matches", ->
       it "closes the menu without changing the buffer", ->
-        editor.buffer.insert([10,0] ,"xxx")
+        editor.getBuffer().insert([10,0] ,"xxx")
         editor.setCursorBufferPosition [10, 3]
         autocomplete.attach()
         expect(autocomplete.matchesList.find('li').length).toBe 1
@@ -160,7 +160,7 @@ describe "Autocomplete", ->
 
   describe 'autocomplete:cancel event', ->
     it 'does not replace selection, removes autocomplete view and returns focus to editor', ->
-      editor.buffer.insert([10,0] ,"extra:so:extra")
+      editor.getBuffer().insert([10,0] ,"extra:so:extra")
       editor.setSelectedBufferRange [[10,7], [10,8]]
       originalSelectionBufferRange = editor.getSelection().getBufferRange()
 
@@ -173,7 +173,7 @@ describe "Autocomplete", ->
       expect(editor.find('.autocomplete')).not.toExist()
 
     it "does not clear out a previously confirmed selection when canceling with an empty list", ->
-      editor.buffer.insert([10, 0], "sort\n")
+      editor.getBuffer().insert([10, 0], "sort\n")
       editor.setCursorBufferPosition([10, 0])
 
       autocomplete.attach()
@@ -187,7 +187,7 @@ describe "Autocomplete", ->
 
   describe 'move-up event', ->
     it "highlights the previous match and replaces the selection with it", ->
-      editor.buffer.insert([10,0] ,"extra:t:extra")
+      editor.getBuffer().insert([10,0] ,"extra:t:extra")
       editor.setCursorBufferPosition([10,6])
       autocomplete.attach()
 
@@ -204,7 +204,7 @@ describe "Autocomplete", ->
       expect(autocomplete.find('li:eq(6)')).toHaveClass('selected')
 
     it "scrolls to the selected match if it is out of view", ->
-      editor.buffer.insert([10,0] ,"t")
+      editor.getBuffer().insert([10,0] ,"t")
       editor.setCursorBufferPosition([10, 0])
       editor.attachToDom()
       autocomplete.attach()
@@ -222,7 +222,7 @@ describe "Autocomplete", ->
 
   describe 'move-down event', ->
     it "highlights the next match and replaces the selection with it", ->
-      editor.buffer.insert([10,0] ,"extra:s:extra")
+      editor.getBuffer().insert([10,0] ,"extra:s:extra")
       editor.setCursorBufferPosition([10,7])
       autocomplete.attach()
 
@@ -237,7 +237,7 @@ describe "Autocomplete", ->
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
 
     it "scrolls to the selected match if it is out of view", ->
-      editor.buffer.insert([10,0] ,"t")
+      editor.getBuffer().insert([10,0] ,"t")
       editor.setCursorBufferPosition([10, 0])
       editor.attachToDom()
       autocomplete.attach()
@@ -255,7 +255,7 @@ describe "Autocomplete", ->
 
   describe "when a match is clicked in the match list", ->
     it "selects and confirms the match", ->
-      editor.buffer.insert([10,0] ,"t")
+      editor.getBuffer().insert([10,0] ,"t")
       editor.setCursorBufferPosition([10, 0])
       autocomplete.attach()
 
@@ -268,7 +268,7 @@ describe "Autocomplete", ->
       expect(editor.lineForBufferRow(10)).toBe matchToSelect.text()
 
     it "cancels the autocomplete when clicking on the 'No matches found' li", ->
-      editor.buffer.insert([10,0] ,"t")
+      editor.getBuffer().insert([10,0] ,"t")
       editor.setCursorBufferPosition([10, 0])
       autocomplete.attach()
 
@@ -281,7 +281,7 @@ describe "Autocomplete", ->
   describe "when the mini-editor receives keyboard input", ->
     describe "when text is removed from the mini-editor", ->
       it "reloads the match list based on the mini-editor's text", ->
-        editor.buffer.insert([10,0] ,"t")
+        editor.getBuffer().insert([10,0] ,"t")
         editor.setCursorBufferPosition([10,0])
         autocomplete.attach()
 
@@ -293,7 +293,7 @@ describe "Autocomplete", ->
 
     describe "when the text contains only word characters", ->
       it "narrows the list of completions with the fuzzy match algorithm", ->
-        editor.buffer.insert([10,0] ,"t")
+        editor.getBuffer().insert([10,0] ,"t")
         editor.setCursorBufferPosition([10,0])
         autocomplete.attach()
 
@@ -314,7 +314,7 @@ describe "Autocomplete", ->
 
     describe "when a non-word character is typed in the mini-editor", ->
       it "immediately confirms the current completion choice and inserts that character into the buffer", ->
-        editor.buffer.insert([10,0] ,"t")
+        editor.getBuffer().insert([10,0] ,"t")
         editor.setCursorBufferPosition([10,0])
         autocomplete.attach()
 
@@ -339,12 +339,12 @@ describe "Autocomplete", ->
     describe "when the autocomplete menu is detached", ->
       it 'updates word list', ->
         spyOn(autocomplete, 'buildWordList')
-        editor.buffer.change([[0,4],[0,13]], "sauron")
+        editor.getBuffer().change([[0,4],[0,13]], "sauron")
         expect(autocomplete.buildWordList).toHaveBeenCalled()
 
     describe "when the autocomplete menu is attached and the change was caused by autocomplete itself", ->
       it 'does not rebuild the word list', ->
-        editor.buffer.insert([10,0] ,"extra:s:extra")
+        editor.getBuffer().insert([10,0] ,"extra:s:extra")
 
         spyOn(autocomplete, 'buildWordList')
         editor.setCursorBufferPosition([10,7])
@@ -364,7 +364,7 @@ describe "Autocomplete", ->
       expect(wordList).toContain "Some"
 
     it 'stops listening to previous buffers change events', ->
-      previousBuffer = editor.buffer
+      previousBuffer = editor.getBuffer()
       editor.edit(fixturesProject.open('sample.txt'))
       spyOn(autocomplete, "buildWordList")
 
@@ -375,12 +375,12 @@ describe "Autocomplete", ->
   describe 'when the editor is removed', ->
     it 'removes event listeners from its buffer', ->
       spyOn(autocomplete, 'buildWordList').andCallThrough()
-      editor.buffer.insert([0,0], "s")
+      editor.getBuffer().insert([0,0], "s")
       expect(autocomplete.buildWordList).toHaveBeenCalled()
 
       autocomplete.buildWordList.reset()
       editor.remove()
-      editor.buffer.insert([0,0], "s")
+      editor.getBuffer().insert([0,0], "s")
       expect(autocomplete.buildWordList).not.toHaveBeenCalled()
 
   describe ".attach()", ->
@@ -416,10 +416,10 @@ describe "Autocomplete", ->
   describe ".detach()", ->
     it "clears the mini-editor and unbinds autocomplete event handlers for move-up and move-down", ->
       autocomplete.attach()
-      miniEditor.buffer.setText('foo')
+      miniEditor.getBuffer().setText('foo')
 
       autocomplete.detach()
-      expect(miniEditor.buffer.getText()).toBe ''
+      expect(miniEditor.getBuffer().getText()).toBe ''
 
       editor.trigger 'move-down'
       expect(editor.getCursorBufferPosition().row).toBe 1

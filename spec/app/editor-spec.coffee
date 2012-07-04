@@ -24,10 +24,10 @@ describe "Editor", ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     project = rootView.project
     editor = rootView.getActiveEditor()
-    buffer = editor.buffer
+    buffer = editor.getBuffer()
 
     editor.attachToDom = ({ heightInLines } = {}) ->
-      heightInLines ?= this.buffer.getLineCount()
+      heightInLines ?= this.getBuffer().getLineCount()
       this.height(getLineHeight() * heightInLines)
       $('#jasmine-content').append(this)
 
@@ -62,7 +62,7 @@ describe "Editor", ->
       expect(editor.serialize).toHaveBeenCalled()
       expect(Editor.deserialize).toHaveBeenCalled()
 
-      expect(newEditor.buffer).toBe editor.buffer
+      expect(newEditor.getBuffer()).toBe editor.getBuffer()
       expect(newEditor.getCursorScreenPosition()).toEqual editor.getCursorScreenPosition()
       expect(newEditor.editSessions).toEqual(editor.editSessions)
       expect(newEditor.activeEditSession).toEqual(editor.activeEditSession)
@@ -132,7 +132,7 @@ describe "Editor", ->
       editor.trigger "close"
       expect(editSession.destroy).toHaveBeenCalled()
       expect(editor.remove).not.toHaveBeenCalled()
-      expect(editor.buffer).toBe buffer
+      expect(editor.getBuffer()).toBe buffer
 
     it "calls remove on the editor if there is one edit session and mini is false", ->
       editSession = editor.activeEditSession
@@ -213,10 +213,10 @@ describe "Editor", ->
         expect(editor.scrollTop()).toBe 750
 
         editor.setActiveEditSessionIndex(0)
-        expect(editor.buffer).toBe session0.buffer
+        expect(editor.getBuffer()).toBe session0.buffer
 
         editor.setActiveEditSessionIndex(2)
-        expect(editor.buffer).toBe session2.buffer
+        expect(editor.getBuffer()).toBe session2.buffer
         expect(editor.getCursorScreenPosition()).toEqual [43, 1]
         expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
         expect(editor.scrollTop()).toBe 750
@@ -260,13 +260,13 @@ describe "Editor", ->
         editor = rootView.getActiveEditor()
         project = rootView.project
 
-        expect(editor.buffer.getPath()).toBe tempFilePath
+        expect(editor.getBuffer().getPath()).toBe tempFilePath
 
       afterEach ->
         expect(fs.remove(tempFilePath))
 
       it "saves the current buffer to disk", ->
-        editor.buffer.setText 'Edited!'
+        editor.getBuffer().setText 'Edited!'
         expect(fs.read(tempFilePath)).not.toBe "Edited!"
 
         editor.save()
@@ -279,8 +279,8 @@ describe "Editor", ->
       beforeEach ->
         editor.edit(rootView.project.open())
 
-        expect(editor.buffer.getPath()).toBeUndefined()
-        editor.buffer.setText 'Save me to a new path'
+        expect(editor.getBuffer().getPath()).toBeUndefined()
+        editor.getBuffer().setText 'Save me to a new path'
         spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
 
       it "presents a 'save as' dialog", ->
@@ -397,7 +397,7 @@ describe "Editor", ->
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
       editor.on 'editor-path-change', eventHandler
-      editor.buffer.saveAs(path)
+      editor.getBuffer().saveAs(path)
       expect(eventHandler).toHaveBeenCalled()
 
     it "emits event when editor receives a new buffer", ->
@@ -408,7 +408,7 @@ describe "Editor", ->
 
     it "stops listening to events on previously set buffers", ->
       eventHandler = jasmine.createSpy('eventHandler')
-      oldBuffer = editor.buffer
+      oldBuffer = editor.getBuffer()
       editor.on 'editor-path-change', eventHandler
 
       editor.edit(rootView.project.open(path))
@@ -419,7 +419,7 @@ describe "Editor", ->
       expect(eventHandler).not.toHaveBeenCalled()
 
       eventHandler.reset()
-      editor.buffer.saveAs("/tmp/atom-new.txt")
+      editor.getBuffer().saveAs("/tmp/atom-new.txt")
       expect(eventHandler).toHaveBeenCalled()
 
   describe "font size", ->
@@ -1076,17 +1076,17 @@ describe "Editor", ->
       it "renders correctly when scrolling after text is added to the buffer", ->
         editor.insertText("1\n")
         _.times 4, -> editor.moveCursorDown()
-        expect(editor.renderedLines.find('.line:eq(2)').text()).toBe editor.buffer.lineForRow(2)
-        expect(editor.renderedLines.find('.line:eq(7)').text()).toBe editor.buffer.lineForRow(7)
+        expect(editor.renderedLines.find('.line:eq(2)').text()).toBe editor.getBuffer().lineForRow(2)
+        expect(editor.renderedLines.find('.line:eq(7)').text()).toBe editor.getBuffer().lineForRow(7)
 
       it "renders correctly when scrolling after text is removed from buffer", ->
-        editor.buffer.delete([[0,0],[1,0]])
-        expect(editor.renderedLines.find('.line:eq(0)').text()).toBe editor.buffer.lineForRow(0)
-        expect(editor.renderedLines.find('.line:eq(5)').text()).toBe editor.buffer.lineForRow(5)
+        editor.getBuffer().delete([[0,0],[1,0]])
+        expect(editor.renderedLines.find('.line:eq(0)').text()).toBe editor.getBuffer().lineForRow(0)
+        expect(editor.renderedLines.find('.line:eq(5)').text()).toBe editor.getBuffer().lineForRow(5)
 
         editor.scrollTop(3 * editor.lineHeight)
-        expect(editor.renderedLines.find('.line:first').text()).toBe editor.buffer.lineForRow(1)
-        expect(editor.renderedLines.find('.line:last').text()).toBe editor.buffer.lineForRow(10)
+        expect(editor.renderedLines.find('.line:first').text()).toBe editor.getBuffer().lineForRow(1)
+        expect(editor.renderedLines.find('.line:last').text()).toBe editor.getBuffer().lineForRow(10)
 
       describe "when creating and destroying folds that are longer than the visible lines", ->
         describe "when the cursor precedes the fold when it is destroyed", ->
