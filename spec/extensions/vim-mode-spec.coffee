@@ -27,7 +27,7 @@ xdescribe "VimMode", ->
       expect(event.stopPropagation).not.toHaveBeenCalled()
 
     it "does not allow the cursor to be placed on the \n character, unless the line is empty", ->
-      editor.getBuffer().setText("012345\n\nabcdef")
+      editor.setText("012345\n\nabcdef")
       editor.setCursorScreenPosition([0, 5])
       expect(editor.getCursorScreenPosition()).toEqual [0,5]
 
@@ -67,7 +67,7 @@ xdescribe "VimMode", ->
 
     describe "the x keybinding", ->
       it "deletes a charachter", ->
-        editor.getBuffer().setText("012345")
+        editor.setText("012345")
         editor.setCursorScreenPosition([0, 4])
 
         editor.trigger keydownEvent('x')
@@ -92,7 +92,7 @@ xdescribe "VimMode", ->
     describe "the d keybinding", ->
       describe "when followed by a d", ->
         it "deletes the current line", ->
-          editor.getBuffer().setText("12345\nabcde\nABCDE")
+          editor.setText("12345\nabcde\nABCDE")
           editor.setCursorScreenPosition([1,1])
 
           editor.trigger keydownEvent('d')
@@ -101,7 +101,7 @@ xdescribe "VimMode", ->
           expect(editor.getCursorScreenPosition()).toEqual([1,0])
 
         it "deletes the last line", ->
-          editor.getBuffer().setText("12345\nabcde\nABCDE")
+          editor.setText("12345\nabcde\nABCDE")
           editor.setCursorScreenPosition([2,1])
           editor.trigger keydownEvent('d')
           editor.trigger keydownEvent('d')
@@ -110,7 +110,7 @@ xdescribe "VimMode", ->
 
         xdescribe "when the second d is prefixed by a count", ->
           it "deletes n lines, starting from the current", ->
-            editor.getBuffer().setText("12345\nabcde\nABCDE\nQWERT")
+            editor.setText("12345\nabcde\nABCDE\nQWERT")
             editor.setCursorScreenPosition([1,1])
 
             editor.trigger keydownEvent('d')
@@ -122,7 +122,7 @@ xdescribe "VimMode", ->
 
       describe "when followed by an h", ->
         it "deletes the previous letter on the current line", ->
-          editor.getBuffer().setText("abcd\n01234")
+          editor.setText("abcd\n01234")
           editor.setCursorScreenPosition([1,1])
 
           editor.trigger keydownEvent 'd'
@@ -139,7 +139,7 @@ xdescribe "VimMode", ->
 
       describe "when followed by a w", ->
         it "deletes to the beginning of the next word", ->
-          editor.getBuffer().setText("abcd efg")
+          editor.setText("abcd efg")
           editor.setCursorScreenPosition([0,2])
 
           editor.trigger keydownEvent('d')
@@ -148,7 +148,7 @@ xdescribe "VimMode", ->
           expect(editor.getText()).toBe "abefg"
           expect(editor.getCursorScreenPosition()).toEqual([0,2])
 
-          editor.getBuffer().setText("one two three four")
+          editor.setText("one two three four")
           editor.setCursorScreenPosition([0,0])
 
           editor.trigger keydownEvent('d')
@@ -160,7 +160,7 @@ xdescribe "VimMode", ->
 
       describe "when followed by a b", ->
         it "deletes to the beginning of the previous word", ->
-          editor.getBuffer().setText("abcd efg")
+          editor.setText("abcd efg")
           editor.setCursorScreenPosition([0,2])
 
           editor.trigger keydownEvent('d')
@@ -169,7 +169,7 @@ xdescribe "VimMode", ->
           expect(editor.getText()).toBe "cd efg"
           expect(editor.getCursorScreenPosition()).toEqual([0,0])
 
-          editor.getBuffer().setText("one two three four")
+          editor.setText("one two three four")
           editor.setCursorScreenPosition([0,11])
 
           editor.trigger keydownEvent('d')
@@ -181,7 +181,7 @@ xdescribe "VimMode", ->
 
     describe "basic motion bindings", ->
       beforeEach ->
-        editor.getBuffer().setText("12345\nabcde\nABCDE")
+        editor.setText("12345\nabcde\nABCDE")
         editor.setCursorScreenPosition([1,1])
 
       describe "the h keybinding", ->
@@ -215,7 +215,7 @@ xdescribe "VimMode", ->
 
       describe "the w keybinding", ->
         it "moves the cursor to the beginning of the next word", ->
-          editor.getBuffer().setText("ab cde1+- \n xyz\n\nzip")
+          editor.setText("ab cde1+- \n xyz\n\nzip")
           editor.setCursorScreenPosition([0,0])
 
           editor.trigger keydownEvent('w')
@@ -238,7 +238,7 @@ xdescribe "VimMode", ->
 
       describe "the { keybinding", ->
         it "moves the cursor to the beginning of the paragraph", ->
-          editor.getBuffer().setText("abcde\n\nfghij\nhijk\n  xyz  \n\nzip\n\n  \nthe end")
+          editor.setText("abcde\n\nfghij\nhijk\n  xyz  \n\nzip\n\n  \nthe end")
           editor.setCursorScreenPosition([0,0])
 
           editor.trigger keydownEvent('}')
@@ -255,7 +255,7 @@ xdescribe "VimMode", ->
 
       describe "the b keybinding", ->
         it "moves the cursor to the beginning of the previous word", ->
-          editor.getBuffer().setText(" ab cde1+- \n xyz\n\nzip }\n last")
+          editor.setText(" ab cde1+- \n xyz\n\nzip }\n last")
           editor.setCursorScreenPosition [4,1]
 
           editor.trigger keydownEvent('b')
@@ -287,7 +287,7 @@ xdescribe "VimMode", ->
 
     describe "numeric prefix bindings", ->
       it "repeats the following operation N times", ->
-        editor.getBuffer().setText("12345")
+        editor.setText("12345")
         editor.setCursorScreenPosition([0,1])
 
         editor.trigger keydownEvent('3')
@@ -295,7 +295,7 @@ xdescribe "VimMode", ->
 
         expect(editor.getText()).toBe '15'
 
-        editor.getBuffer().setText("123456789abc")
+        editor.setText("123456789abc")
         editor.setCursorScreenPosition([0,0])
         editor.trigger keydownEvent('1')
         editor.trigger keydownEvent('0')
@@ -308,7 +308,7 @@ xdescribe "VimMode", ->
       editor.trigger keydownEvent('i')
 
     it "allows the cursor to reach the end of the line", ->
-      editor.getBuffer().setText("012345\n\nabcdef")
+      editor.setText("012345\n\nabcdef")
       editor.setCursorScreenPosition([0, 5])
       expect(editor.getCursorScreenPosition()).toEqual [0,5]
 

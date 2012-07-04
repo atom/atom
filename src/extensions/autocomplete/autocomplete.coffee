@@ -120,7 +120,7 @@ class Autocomplete extends View
     super
     @editor.off(".autocomplete")
     @editor.focus()
-    @miniEditor.getBuffer().setText('')
+    @miniEditor.setText('')
 
   setPosition: (originalCursorPosition) ->
     { left, top } = @editor.pixelPositionForScreenPosition(originalCursorPosition)

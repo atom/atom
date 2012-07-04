@@ -416,7 +416,7 @@ describe "Autocomplete", ->
   describe ".detach()", ->
     it "clears the mini-editor and unbinds autocomplete event handlers for move-up and move-down", ->
       autocomplete.attach()
-      miniEditor.getBuffer().setText('foo')
+      miniEditor.setText('foo')
 
       autocomplete.detach()
       expect(miniEditor.getText()).toBe ''
