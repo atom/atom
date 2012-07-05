@@ -1,4 +1,7 @@
+_ = require 'underscore'
+
 module.exports =
+
 class UndoManager
   undoHistory: null
   redoHistory: null
@@ -10,8 +13,9 @@ class UndoManager
     @startBatchCallCount = 0
     @undoHistory = []
     @redoHistory = []
-    @buffer.on 'change', (op) =>
+    @buffer.on 'change', (event) =>
       unless @preserveHistory
+        op = new BufferChangeOperation(_.extend({ @buffer }, event))
         if @currentBatch
           @currentBatch.push(op)
         else
@@ -23,17 +27,15 @@ class UndoManager
       @preservingHistory =>
         opsInReverse = new Array(batch...)
         opsInReverse.reverse()
-        for op in opsInReverse
-          @buffer.change op.newRange, op.oldText
+        op.undo() for op in opsInReverse
         @redoHistory.push batch
       batch.oldSelectionRanges
 
   redo: ->
     if batch = @redoHistory.pop()
       @preservingHistory =>
-        for op in batch
-          @buffer.change op.oldRange, op.newText
-        @undoHistory.push batch
+        op.do() for op in batch
+        @undoHistory.push(batch)
       batch.newSelectionRanges
 
   startUndoBatch: (ranges) ->
@@ -54,3 +56,11 @@ class UndoManager
     fn()
     @preserveHistory = false
 
+class BufferChangeOperation
+  constructor: ({@buffer, @oldRange, @newRange, @oldText, @newText}) ->
+
+  do: ->
+    @buffer.change @oldRange, @newText
+
+  undo: ->
+    @buffer.change @newRange, @oldText
