@@ -226,7 +226,7 @@ class Selection
       @trigger 'change-screen-range', newScreenRange unless oldScreenRange.isEqual(newScreenRange)
 
   placeAnchor: ->
-    @anchor = @editSession.addAnchor()
+    @anchor = @editSession.addAnchor(strong: true)
     @anchor.setScreenPosition(@cursor.getScreenPosition())
     @anchor.on 'change-screen-position.selection', => @trigger 'change-screen-range'
 

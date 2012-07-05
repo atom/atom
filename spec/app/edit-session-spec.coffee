@@ -1276,6 +1276,19 @@ describe "EditSession", ->
         expect(cursor2.getScreenPosition()).toEqual [0, 8]
         expect(cursor3.getScreenPosition()).toEqual [1, 0]
 
+      it "does not destroy cursor or selection anchors when a change encompasses them", ->
+        cursor = editSession.getLastCursor()
+        cursor.setBufferPosition [3, 3]
+        editSession.buffer.delete([[3, 1], [3, 5]])
+        expect(cursor.getBufferPosition()).toEqual [3, 1]
+        expect(editSession.getAnchors().indexOf(cursor.anchor)).not.toBe -1
+
+        selection = editSession.getLastSelection()
+        selection.setBufferRange [[3, 5], [3, 10]]
+        editSession.buffer.delete [[3, 3], [3, 8]]
+        expect(selection.getBufferRange()).toEqual [[3, 3], [3, 5]]
+        expect(editSession.getAnchors().indexOf(selection.anchor)).not.toBe -1
+
       it "merges cursors when the change causes them to overlap", ->
         editSession.setCursorScreenPosition([0, 0])
         editSession.addCursorAtScreenPosition([0, 1])

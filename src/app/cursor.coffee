@@ -12,7 +12,7 @@ class Cursor
   wordRegex: /(\w+)|([^\w\s]+)/g
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
-    @anchor = @editSession.addAnchor()
+    @anchor = @editSession.addAnchor(strong: true)
     @anchor.on 'change-screen-position', (args...) => @trigger 'change-screen-position', args...
     @setScreenPosition(screenPosition) if screenPosition
     @setBufferPosition(bufferPosition) if bufferPosition

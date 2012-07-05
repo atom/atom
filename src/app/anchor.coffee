@@ -9,14 +9,17 @@ class Anchor
   screenPosition: null
 
   constructor: (@editSession, options = {}) ->
-    { @ignoreEqual } = options
+    { @ignoreEqual, @strong } = options
 
   handleBufferChange: (e) ->
     { oldRange, newRange } = e
     position = @getBufferPosition()
 
     if oldRange.containsPoint(position, exclusive: true)
-      @destroy()
+      if @strong
+        @setBufferPosition(oldRange.start)
+      else
+        @destroy()
       return
 
     if @ignoreEqual
