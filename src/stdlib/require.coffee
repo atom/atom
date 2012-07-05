@@ -109,7 +109,6 @@ __coffeeCache = (filePath) ->
   tmpPath = "/tmp/atom-compiled-scripts"
   cacheFilePath = [tmpPath, $native.md5ForPath(filePath)].join("/")
 
-  console.log cacheFilePath
   if __exists(cacheFilePath)
     __read(cacheFilePath)
   else
