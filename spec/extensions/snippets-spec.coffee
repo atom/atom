@@ -150,7 +150,7 @@ describe "Snippets extension", ->
         expect(editor.getCursorScreenPosition()).toEqual [0, 5]
 
     describe "when a previous snippet expansion has just been undone", ->
-      fit "expands the snippet based on the current prefix rather than jumping to the old snippet's tab stop", ->
+      xit "expands the snippet based on the current prefix rather than jumping to the old snippet's tab stop", ->
         editor.insertText 't5\n'
         editor.setCursorBufferPosition [0, 2]
         editor.trigger keydownEvent('tab', target: editor[0])
