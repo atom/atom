@@ -15,6 +15,10 @@ class Anchor
     { oldRange, newRange } = e
     position = @getBufferPosition()
 
+    if oldRange.containsPoint(position, exclusive: true)
+      @destroy()
+      return
+
     if @ignoreEqual
       return if position.isLessThanOrEqual(oldRange.end)
     else
@@ -62,7 +66,8 @@ class Anchor
     @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
 
   destroy: ->
-    @off()
     @editSession.removeAnchor(this)
+    @trigger 'destroy'
+    @off()
 
 _.extend(Anchor.prototype, EventEmitter)

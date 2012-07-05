@@ -1331,6 +1331,28 @@ describe "EditSession", ->
           editSession.foldAll()
           expect(editSession.getCursorBufferPosition()).toEqual([5,5])
 
+  describe "anchors", ->
+    [anchor, destroyHandler] = []
+
+    beforeEach ->
+      destroyHandler = jasmine.createSpy("destroyHandler")
+      anchor = editSession.addAnchorAtBufferPosition([4, 25])
+      anchor.on 'destroy', destroyHandler
+
+    describe "when a buffer change precedes an anchor", ->
+      it "moves the anchor in accordance with the change", ->
+        editSession.setSelectedBufferRange([[3, 0], [4, 10]])
+        editSession.delete()
+        expect(anchor.getBufferPosition()).toEqual [3, 15]
+        expect(destroyHandler).not.toHaveBeenCalled()
+
+    describe "when a buffer change surrounds an anchor", ->
+      it "destroys the anchor", ->
+        editSession.setSelectedBufferRange([[3, 0], [5, 0]])
+        editSession.delete()
+        expect(destroyHandler).toHaveBeenCalled()
+        expect(editSession.getAnchors().indexOf(anchor)).toBe -1
+
   describe ".clipBufferPosition(bufferPosition)", ->
     it "clips the given position to a valid position", ->
       expect(editSession.clipBufferPosition([-1, -1])).toEqual [0,0]
