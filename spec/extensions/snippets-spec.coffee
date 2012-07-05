@@ -41,6 +41,11 @@ describe "Snippets extension", ->
         go here ${1:first} and then here ${2:second}
 
         endsnippet
+
+        snippet t5 "Caused problems with undo"
+        first line $1
+          ${2:placeholder ending second line}
+        endsnippet
       """
 
     describe "when the letters preceding the cursor trigger a snippet", ->
@@ -143,6 +148,18 @@ describe "Snippets extension", ->
         editor.trigger 'tab'
         expect(buffer.lineForRow(0)).toBe "xte  var quicksort = function () {"
         expect(editor.getCursorScreenPosition()).toEqual [0, 5]
+
+    describe "when a previous snippet expansion has just been undone", ->
+      fit "expands the snippet based on the current prefix rather than jumping to the old snippet's tab stop", ->
+        editor.insertText 't5\n'
+        editor.setCursorBufferPosition [0, 2]
+        editor.trigger keydownEvent('tab', target: editor[0])
+        expect(buffer.lineForRow(0)).toBe "first line"
+        editor.undo()
+        editor.undo()
+        expect(buffer.lineForRow(0)).toBe "t5"
+        editor.trigger keydownEvent('tab', target: editor[0])
+        expect(buffer.lineForRow(0)).toBe "first line"
 
   describe ".loadSnippetsFile(path)", ->
     it "loads the snippets in the given file", ->
