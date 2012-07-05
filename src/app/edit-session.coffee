@@ -94,6 +94,7 @@ class EditSession
 
     new Point(row, column)
 
+  getFileExtension: -> @buffer.getExtension()
   getEofBufferPosition: -> @buffer.getEofPosition()
   bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
