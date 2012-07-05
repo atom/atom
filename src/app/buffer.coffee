@@ -9,6 +9,7 @@ UndoManager = require 'undo-manager'
 module.exports =
 class Buffer
   @idCounter = 1
+  undoManager: null
   modified: null
   lines: null
   file: null
