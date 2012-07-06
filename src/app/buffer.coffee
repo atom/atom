@@ -151,11 +151,11 @@ class Buffer
   transact: (fn) ->
     @undoManager.transact(fn)
 
-  undo: ->
-    @undoManager.undo()
+  undo: (editSession) ->
+    @undoManager.undo(editSession)
 
-  redo: ->
-    @undoManager.redo()
+  redo: (editSession) ->
+    @undoManager.redo(editSession)
 
   save: ->
     @saveAs(@getPath())

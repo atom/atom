@@ -7,7 +7,7 @@ class UndoManager
   redoHistory: null
   currentTransaction: null
 
-  constructor: (@buffer) ->
+  constructor: ->
     @startBatchCallCount = 0
     @undoHistory = []
     @redoHistory = []
@@ -29,18 +29,18 @@ class UndoManager
       @undoHistory.push(@currentTransaction) if @currentTransaction.length
       @currentTransaction = null
 
-  undo: ->
+  undo: (editSession) ->
     if batch = @undoHistory.pop()
       opsInReverse = new Array(batch...)
       opsInReverse.reverse()
-      op.undo?() for op in opsInReverse
+      op.undo?(editSession) for op in opsInReverse
       @redoHistory.push batch
       batch.oldSelectionRanges
 
-  redo: ->
+  redo: (editSession) ->
     if batch = @redoHistory.pop()
       for op in batch
-        op.do?()
-        op.redo?()
+        op.do?(editSession)
+        op.redo?(editSession)
       @undoHistory.push(batch)
       batch.newSelectionRanges

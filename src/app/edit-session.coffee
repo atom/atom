@@ -95,6 +95,7 @@ class EditSession
     new Point(row, column)
 
   getFileExtension: -> @buffer.getExtension()
+  getPath: -> @buffer.getPath()
   getEofBufferPosition: -> @buffer.getEofPosition()
   bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
@@ -177,10 +178,10 @@ class EditSession
     @insertText($native.readFromPasteboard())
 
   undo: ->
-    @buffer.undo()
+    @buffer.undo(this)
 
   redo: ->
-    @buffer.redo()
+    @buffer.redo(this)
 
   foldSelection: ->
     selection.fold() for selection in @getSelections()
@@ -237,10 +238,15 @@ class EditSession
   transact: (fn) ->
     @buffer.transact =>
       oldSelectedRanges = @getSelectedBufferRanges()
-      @buffer.pushOperation(undo: => @setSelectedBufferRanges(oldSelectedRanges))
+      @buffer.pushOperation
+        undo: (editSession) ->
+          editSession?.setSelectedBufferRanges(oldSelectedRanges)
+
       fn()
       newSelectedRanges = @getSelectedBufferRanges()
-      @buffer.pushOperation(redo: => @setSelectedBufferRanges(newSelectedRanges))
+      @buffer.pushOperation
+        redo: (editSession) ->
+          editSession?.setSelectedBufferRanges(newSelectedRanges)
 
   getAnchors: ->
     new Array(@anchors...)
