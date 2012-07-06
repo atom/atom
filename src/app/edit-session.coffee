@@ -133,7 +133,7 @@ class EditSession
       else
         @insertText('\t')
     else
-      @activeEditSession.indentSelectedRows()
+      @indentSelectedRows()
 
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
