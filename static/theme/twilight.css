@@ -70,13 +70,11 @@ color:#D2A8A1;
 }
 
 .fold {
-  background-color: #524228;
-  color: #969696;
+  background-color: #1D2620;
 }
 
 .fold.selected {
-  background-color: #2A3B2A;
-  color: #969696;
+  background-color: #2b382f;
 }
 
 .support.function {
