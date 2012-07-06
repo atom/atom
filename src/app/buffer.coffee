@@ -132,10 +132,7 @@ class Buffer
   change: (oldRange, newText) ->
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText})
-    if @undoManager
-      @undoManager.pushOperation(operation)
-    else
-      operation.do()
+    @pushOperation(operation)
 
   prefixAndSuffixForRange: (range) ->
     prefix: @lines[range.start.row][0...range.start.column]
@@ -145,11 +142,14 @@ class Buffer
     @lines[startRow..endRow] = newLines
     @modified = true
 
-  startUndoBatch: (selectedBufferRanges) ->
-    @undoManager.startUndoBatch(selectedBufferRanges)
+  pushOperation: (operation) ->
+    if @undoManager
+      @undoManager.pushOperation(operation)
+    else
+      operation.do()
 
-  endUndoBatch: (selectedBufferRanges) ->
-    @undoManager.endUndoBatch(selectedBufferRanges)
+  transact: (fn) ->
+    @undoManager.transact(fn)
 
   undo: ->
     @undoManager.undo()

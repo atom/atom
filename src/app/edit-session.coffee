@@ -177,12 +177,10 @@ class EditSession
     @insertText($native.readFromPasteboard())
 
   undo: ->
-    if ranges = @buffer.undo()
-      @setSelectedBufferRanges(ranges)
+    @buffer.undo()
 
   redo: ->
-    if ranges = @buffer.redo()
-      @setSelectedBufferRanges(ranges)
+    @buffer.redo()
 
   foldSelection: ->
     selection.fold() for selection in @getSelections()
@@ -234,10 +232,15 @@ class EditSession
     @tokenizedBuffer.toggleLineCommentsInRange(range)
 
   mutateSelectedText: (fn) ->
-    selections = @getSelections()
-    @buffer.startUndoBatch(@getSelectedBufferRanges())
-    fn(selection) for selection in selections
-    @buffer.endUndoBatch(@getSelectedBufferRanges())
+    @transact => fn(selection) for selection in @getSelections()
+
+  transact: (fn) ->
+    @buffer.transact =>
+      oldSelectedRanges = @getSelectedBufferRanges()
+      @buffer.pushOperation(undo: => @setSelectedBufferRanges(oldSelectedRanges))
+      fn()
+      newSelectedRanges = @getSelectedBufferRanges()
+      @buffer.pushOperation(redo: => @setSelectedBufferRanges(newSelectedRanges))
 
   getAnchors: ->
     new Array(@anchors...)

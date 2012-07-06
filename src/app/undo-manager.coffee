@@ -5,8 +5,7 @@ module.exports =
 class UndoManager
   undoHistory: null
   redoHistory: null
-  currentBatch: null
-  startBatchCallCount: null
+  currentTransaction: null
 
   constructor: (@buffer) ->
     @startBatchCallCount = 0
@@ -14,36 +13,34 @@ class UndoManager
     @redoHistory = []
 
   pushOperation: (operation) ->
-    if @currentBatch
-      @currentBatch.push(operation)
+    if @currentTransaction
+      @currentTransaction.push(operation)
     else
       @undoHistory.push([operation])
     @redoHistory = []
-    operation.do()
+    operation.do?()
+
+  transact: (fn) ->
+    if @currentTransaction
+      fn()
+    else
+      @currentTransaction = []
+      fn()
+      @undoHistory.push(@currentTransaction) if @currentTransaction.length
+      @currentTransaction = null
 
   undo: ->
     if batch = @undoHistory.pop()
       opsInReverse = new Array(batch...)
       opsInReverse.reverse()
-      op.undo() for op in opsInReverse
+      op.undo?() for op in opsInReverse
       @redoHistory.push batch
       batch.oldSelectionRanges
 
   redo: ->
     if batch = @redoHistory.pop()
-      op.do() for op in batch
+      for op in batch
+        op.do?()
+        op.redo?()
       @undoHistory.push(batch)
       batch.newSelectionRanges
-
-  startUndoBatch: (ranges) ->
-    @startBatchCallCount++
-    return if @startBatchCallCount > 1
-    @currentBatch = []
-    @currentBatch.oldSelectionRanges = ranges
-
-  endUndoBatch: (ranges) ->
-    @startBatchCallCount--
-    return if @startBatchCallCount > 0
-    @currentBatch.newSelectionRanges = ranges
-    @undoHistory.push(@currentBatch) if @currentBatch.length > 0
-    @currentBatch = null
