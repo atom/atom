@@ -5,6 +5,7 @@ Point = require 'point'
 Range = require 'range'
 EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
+BufferChangeOperation = require 'buffer-change-operation'
 
 module.exports =
 class Buffer
@@ -130,28 +131,19 @@ class Buffer
 
   change: (oldRange, newText) ->
     oldRange = Range.fromObject(oldRange)
-    newRange = new Range(oldRange.start.copy(), oldRange.start.copy())
-    prefix = @lines[oldRange.start.row][0...oldRange.start.column]
-    suffix = @lines[oldRange.end.row][oldRange.end.column..]
-    oldText = @getTextInRange(oldRange)
-
-    newTextLines = newText.split('\n')
-
-    if newTextLines.length == 1
-      newRange.end.column += newText.length
-      newTextLines = [prefix + newText + suffix]
+    operation = new BufferChangeOperation({buffer: this, oldRange, newText})
+    if @undoManager
+      @undoManager.perform(operation)
     else
-      lastLineIndex = newTextLines.length - 1
-      newTextLines[0] = prefix + newTextLines[0]
-      newRange.end.row += lastLineIndex
-      newRange.end.column = newTextLines[lastLineIndex].length
-      newTextLines[lastLineIndex] += suffix
+      operation.do()
 
-    @lines[oldRange.start.row..oldRange.end.row] = newTextLines
+  prefixAndSuffixForRange: (range) ->
+    prefix: @lines[range.start.row][0...range.start.column]
+    suffix: @lines[range.end.row][range.end.column..]
+
+  replaceLines: (startRow, endRow, newLines) ->
+    @lines[startRow..endRow] = newLines
     @modified = true
-
-    @trigger 'change', { oldRange, newRange, oldText, newText }
-    newRange
 
   startUndoBatch: (selectedBufferRanges) ->
     @undoManager.startUndoBatch(selectedBufferRanges)

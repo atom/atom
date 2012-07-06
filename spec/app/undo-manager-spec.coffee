@@ -7,7 +7,7 @@ describe "UndoManager", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    undoManager = new UndoManager(buffer)
+    undoManager = buffer.undoManager
 
   afterEach ->
     buffer.destroy()
