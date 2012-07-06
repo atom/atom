@@ -95,6 +95,7 @@ class EditSession
     new Point(row, column)
 
   getFileExtension: -> @buffer.getExtension()
+  getPath: -> @buffer.getPath()
   getEofBufferPosition: -> @buffer.getEofPosition()
   bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
@@ -177,12 +178,10 @@ class EditSession
     @insertText($native.readFromPasteboard())
 
   undo: ->
-    if ranges = @buffer.undo()
-      @setSelectedBufferRanges(ranges)
+    @buffer.undo(this)
 
   redo: ->
-    if ranges = @buffer.redo()
-      @setSelectedBufferRanges(ranges)
+    @buffer.redo(this)
 
   foldSelection: ->
     selection.fold() for selection in @getSelections()
@@ -234,10 +233,23 @@ class EditSession
     @tokenizedBuffer.toggleLineCommentsInRange(range)
 
   mutateSelectedText: (fn) ->
-    selections = @getSelections()
-    @buffer.startUndoBatch(@getSelectedBufferRanges())
-    fn(selection) for selection in selections
-    @buffer.endUndoBatch(@getSelectedBufferRanges())
+    @transact => fn(selection) for selection in @getSelections()
+
+  transact: (fn) ->
+    @buffer.transact =>
+      oldSelectedRanges = @getSelectedBufferRanges()
+      @pushOperation
+        undo: (editSession) ->
+          editSession?.setSelectedBufferRanges(oldSelectedRanges)
+
+      fn()
+      newSelectedRanges = @getSelectedBufferRanges()
+      @pushOperation
+        redo: (editSession) ->
+          editSession?.setSelectedBufferRanges(newSelectedRanges)
+
+  pushOperation: (operation) ->
+    @buffer.pushOperation(operation, this)
 
   getAnchors: ->
     new Array(@anchors...)
