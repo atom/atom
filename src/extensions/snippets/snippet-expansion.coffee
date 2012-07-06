@@ -5,11 +5,12 @@ class SnippetExpansion
   constructor: (snippet, @editSession) ->
     @editSession.selectToBeginningOfWord()
     startPosition = @editSession.getCursorBufferPosition()
-    @editSession.insertText(snippet.body)
-    if snippet.tabStops.length
-      @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
-    if snippet.lineCount > 1
-      @indentSubsequentLines(startPosition.row, snippet)
+    @editSession.transact =>
+      @editSession.insertText(snippet.body)
+      if snippet.tabStops.length
+        @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
+      if snippet.lineCount > 1
+        @indentSubsequentLines(startPosition.row, snippet)
 
   placeTabStopAnchorRanges: (startPosition, tabStopRanges) ->
     @tabStopAnchorRanges = tabStopRanges.map ({start, end}) =>

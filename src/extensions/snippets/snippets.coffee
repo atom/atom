@@ -28,7 +28,10 @@ module.exports =
       editSession = editor.activeEditSession
       prefix = editSession.getLastCursor().getCurrentWordPrefix()
       if snippet = @snippetsByExtension[editSession.getFileExtension()][prefix]
-        editSession.snippetExpansion = new SnippetExpansion(snippet, editSession)
+        editSession.transact ->
+          editSession.snippetExpansion = new SnippetExpansion(snippet, editSession)
+          editSession.pushOperation
+            undo: -> editSession.snippetExpansion.destroy()
       else
         e.abortKeyBinding()
 

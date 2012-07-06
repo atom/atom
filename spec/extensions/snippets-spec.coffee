@@ -43,7 +43,7 @@ describe "Snippets extension", ->
         endsnippet
 
         snippet t5 "Caused problems with undo"
-        first line $1
+        first line$1
           ${2:placeholder ending second line}
         endsnippet
       """
@@ -150,12 +150,11 @@ describe "Snippets extension", ->
         expect(editor.getCursorScreenPosition()).toEqual [0, 5]
 
     describe "when a previous snippet expansion has just been undone", ->
-      xit "expands the snippet based on the current prefix rather than jumping to the old snippet's tab stop", ->
+      it "expands the snippet based on the current prefix rather than jumping to the old snippet's tab stop", ->
         editor.insertText 't5\n'
         editor.setCursorBufferPosition [0, 2]
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "first line"
-        editor.undo()
         editor.undo()
         expect(buffer.lineForRow(0)).toBe "t5"
         editor.trigger keydownEvent('tab', target: editor[0])

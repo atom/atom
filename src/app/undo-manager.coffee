@@ -12,13 +12,13 @@ class UndoManager
     @undoHistory = []
     @redoHistory = []
 
-  pushOperation: (operation) ->
+  pushOperation: (operation, editSession) ->
     if @currentTransaction
       @currentTransaction.push(operation)
     else
       @undoHistory.push([operation])
     @redoHistory = []
-    operation.do?()
+    operation.do?(editSession)
 
   transact: (fn) ->
     if @currentTransaction

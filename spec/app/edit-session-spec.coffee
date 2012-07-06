@@ -8,9 +8,6 @@ describe "EditSession", ->
   beforeEach ->
     buffer = new Buffer()
     editSession = fixturesProject.open('sample.js', autoIndent: false)
-
-    console.log editSession.tabText
-
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
 

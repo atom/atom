@@ -238,15 +238,18 @@ class EditSession
   transact: (fn) ->
     @buffer.transact =>
       oldSelectedRanges = @getSelectedBufferRanges()
-      @buffer.pushOperation
+      @pushOperation
         undo: (editSession) ->
           editSession?.setSelectedBufferRanges(oldSelectedRanges)
 
       fn()
       newSelectedRanges = @getSelectedBufferRanges()
-      @buffer.pushOperation
+      @pushOperation
         redo: (editSession) ->
           editSession?.setSelectedBufferRanges(newSelectedRanges)
+
+  pushOperation: (operation) ->
+    @buffer.pushOperation(operation, this)
 
   getAnchors: ->
     new Array(@anchors...)

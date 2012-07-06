@@ -142,9 +142,9 @@ class Buffer
     @lines[startRow..endRow] = newLines
     @modified = true
 
-  pushOperation: (operation) ->
+  pushOperation: (operation, editSession) ->
     if @undoManager
-      @undoManager.pushOperation(operation)
+      @undoManager.pushOperation(operation, editSession)
     else
       operation.do()
 
