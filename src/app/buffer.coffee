@@ -5,10 +5,12 @@ Point = require 'point'
 Range = require 'range'
 EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
+BufferChangeOperation = require 'buffer-change-operation'
 
 module.exports =
 class Buffer
   @idCounter = 1
+  undoManager: null
   modified: null
   lines: null
   file: null
@@ -129,40 +131,31 @@ class Buffer
 
   change: (oldRange, newText) ->
     oldRange = Range.fromObject(oldRange)
-    newRange = new Range(oldRange.start.copy(), oldRange.start.copy())
-    prefix = @lines[oldRange.start.row][0...oldRange.start.column]
-    suffix = @lines[oldRange.end.row][oldRange.end.column..]
-    oldText = @getTextInRange(oldRange)
+    operation = new BufferChangeOperation({buffer: this, oldRange, newText})
+    @pushOperation(operation)
 
-    newTextLines = newText.split('\n')
+  prefixAndSuffixForRange: (range) ->
+    prefix: @lines[range.start.row][0...range.start.column]
+    suffix: @lines[range.end.row][range.end.column..]
 
-    if newTextLines.length == 1
-      newRange.end.column += newText.length
-      newTextLines = [prefix + newText + suffix]
-    else
-      lastLineIndex = newTextLines.length - 1
-      newTextLines[0] = prefix + newTextLines[0]
-      newRange.end.row += lastLineIndex
-      newRange.end.column = newTextLines[lastLineIndex].length
-      newTextLines[lastLineIndex] += suffix
-
-    @lines[oldRange.start.row..oldRange.end.row] = newTextLines
+  replaceLines: (startRow, endRow, newLines) ->
+    @lines[startRow..endRow] = newLines
     @modified = true
 
-    @trigger 'change', { oldRange, newRange, oldText, newText }
-    newRange
+  pushOperation: (operation, editSession) ->
+    if @undoManager
+      @undoManager.pushOperation(operation, editSession)
+    else
+      operation.do()
 
-  startUndoBatch: (selectedBufferRanges) ->
-    @undoManager.startUndoBatch(selectedBufferRanges)
+  transact: (fn) ->
+    @undoManager.transact(fn)
 
-  endUndoBatch: (selectedBufferRanges) ->
-    @undoManager.endUndoBatch(selectedBufferRanges)
+  undo: (editSession) ->
+    @undoManager.undo(editSession)
 
-  undo: ->
-    @undoManager.undo()
-
-  redo: ->
-    @undoManager.redo()
+  redo: (editSession) ->
+    @undoManager.redo(editSession)
 
   save: ->
     @saveAs(@getPath())

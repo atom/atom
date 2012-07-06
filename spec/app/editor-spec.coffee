@@ -120,8 +120,8 @@ describe "Editor", ->
       expect(otherEditSession.buffer.subscriptionCount()).toBeGreaterThan 1
 
       editor.remove()
-      expect(previousEditSession.buffer.subscriptionCount()).toBe 1
-      expect(otherEditSession.buffer.subscriptionCount()).toBe 1
+      expect(previousEditSession.buffer.subscriptionCount()).toBe 0
+      expect(otherEditSession.buffer.subscriptionCount()).toBe 0
 
   describe "when 'close' is triggered", ->
     it "closes active edit session and loads next edit session", ->

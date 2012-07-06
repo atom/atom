@@ -22,7 +22,7 @@ class Range
       @start = pointB
       @end = pointA
 
-  copy: (range) ->
+  copy: ->
     new Range(@start.copy(), @end.copy())
 
   isEqual: (other) ->

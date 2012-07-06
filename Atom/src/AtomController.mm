@@ -118,11 +118,13 @@
     CefRefPtr<CefV8Value> retval;
     CefRefPtr<CefV8Exception> exception;
     CefV8ValueList arguments;
+
     global->GetValue("reload")->ExecuteFunction(global, arguments, retval, exception, true);
-    if (exception) _clientHandler->GetBrowser()->ReloadIgnoreCache();
+    if (exception.get()) {
+      _clientHandler->GetBrowser()->ReloadIgnoreCache();
+    }
     context->Exit();
     
-
     return YES;
   }
   
