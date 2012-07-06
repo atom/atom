@@ -1,11 +1,27 @@
 # Atom — Futuristic Text Editing
 ## Be forwarned: Atom is pre-alpha software!
 
-## Download
 
-1. Download from [speakeasy](https://speakeasy.githubapp.com/apps/com.github.atom-osx)
+## Building from source
 
-2. Unzip and open the app
+1. Get [xcode 4.2 or above](http://itunes.apple.com/us/app/xcode/id448457090?mt=12)
+
+2. Install CoffeeScript http://coffeescript.org/
+```
+brew install nodejs
+curl http://npmjs.org/install.sh | sh
+npm i -g coffee-script
+```
+
+3. `git clone git@github.com:github/atom.git`
+
+4. `cd atom`
+
+5. `rake run`
+
+
+## Setup Your ~/.atom Directory
+An example .atom directory can be found at the root of the source tree
 
 ## Basic Keyboard shortcuts
 Atom doesn't have much in the way of menus yet. Use these keyboard shortcuts to
@@ -82,14 +98,3 @@ named event, which will bubble up the DOM from the site of the keypress. Extensi
 the named event and react to it.
 
 
-## Build from source
-
-1. Get [xcode 4.2](http://itunes.apple.com/us/app/xcode/id448457090?mt=12)
-
-2. Install CoffeeScript http://coffeescript.org/ (try `npm i -g coffee-script`)
-
-3. `git clone git@github.com:github/atom.git`
-
-4. `cd atom`
-
-5. `rake run`
