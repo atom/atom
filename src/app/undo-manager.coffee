@@ -13,7 +13,7 @@ class UndoManager
     @undoHistory = []
     @redoHistory = []
 
-  perform: (operation) ->
+  pushOperation: (operation) ->
     if @currentBatch
       @currentBatch.push(operation)
     else

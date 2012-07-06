@@ -133,7 +133,7 @@ class Buffer
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText})
     if @undoManager
-      @undoManager.perform(operation)
+      @undoManager.pushOperation(operation)
     else
       operation.do()
 
