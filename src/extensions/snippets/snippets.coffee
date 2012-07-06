@@ -32,10 +32,8 @@ module.exports =
           snippetExpansion = new SnippetExpansion(snippet, editSession)
           editSession.snippetExpansion = snippetExpansion
           editSession.pushOperation
-            undo: -> editSession.snippetExpansion.destroy()
-            redo: ->
-              editSession.snippetExpansion = snippetExpansion
-              snippetExpansion.restoreTabStops()
+            undo: -> snippetExpansion.destroy()
+            redo: (editSession) -> snippetExpansion.restore(editSession)
       else
         e.abortKeyBinding()
 

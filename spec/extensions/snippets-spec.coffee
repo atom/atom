@@ -173,6 +173,20 @@ describe "Snippets extension", ->
         editor.trigger keydownEvent('tab', target: editor[0])
         expect(editor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
 
+      it "restores tabs stops in active edit session even when the initial expansion was in a different edit session", ->
+        anotherEditor = editor.splitRight()
+
+        editor.insertText '    t5\n'
+        editor.setCursorBufferPosition [0, 6]
+        editor.trigger keydownEvent('tab', target: editor[0])
+        expect(buffer.lineForRow(0)).toBe "    first line"
+        editor.undo()
+
+        anotherEditor.redo()
+        expect(anotherEditor.getCursorBufferPosition()).toEqual [0, 14]
+        anotherEditor.trigger keydownEvent('tab', target: anotherEditor[0])
+        expect(anotherEditor.getSelectedBufferRange()).toEqual [[1, 6], [1, 36]]
+
   describe ".loadSnippetsFile(path)", ->
     it "loads the snippets in the given file", ->
       spyOn(fs, 'read').andReturn """
