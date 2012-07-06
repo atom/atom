@@ -29,9 +29,13 @@ module.exports =
       prefix = editSession.getLastCursor().getCurrentWordPrefix()
       if snippet = @snippetsByExtension[editSession.getFileExtension()][prefix]
         editSession.transact ->
-          editSession.snippetExpansion = new SnippetExpansion(snippet, editSession)
+          snippetExpansion = new SnippetExpansion(snippet, editSession)
+          editSession.snippetExpansion = snippetExpansion
           editSession.pushOperation
             undo: -> editSession.snippetExpansion.destroy()
+            redo: ->
+              editSession.snippetExpansion = snippetExpansion
+              snippetExpansion.restoreTabStops()
       else
         e.abortKeyBinding()
 

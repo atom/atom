@@ -54,3 +54,7 @@ class SnippetExpansion
   destroy: ->
     anchorRange.destroy() for anchorRange in @tabStopAnchorRanges
     @editSession.snippetExpansion = null
+
+  restoreTabStops: ->
+    @tabStopAnchorRanges = @tabStopAnchorRanges.map (anchorRange) =>
+      @editSession.addAnchorRange(anchorRange.getBufferRange())
