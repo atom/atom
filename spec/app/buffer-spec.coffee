@@ -220,6 +220,11 @@ describe 'Buffer', ->
         expect(event.oldText).toBe oldText
         expect(event.newText).toBe "foo\nbar"
 
+    it "allows a 'change' event handler to safely undo the change", ->
+      buffer.on 'change', -> buffer.undo()
+      buffer.change([0, 0], "hello")
+      expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+
   describe ".setText(text)", ->
     it "changes the entire contents of the buffer and emits a change event", ->
       lastRow = buffer.getLastRow()

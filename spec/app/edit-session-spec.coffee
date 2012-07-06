@@ -6,18 +6,13 @@ describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
   beforeEach ->
-    buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editSession = new EditSession
-      buffer: buffer
-      tabText: '  '
-      autoIndent: false
-      softWrap: false
-      project: new Project()
-
+    buffer = new Buffer()
+    editSession = fixturesProject.open('sample.js', autoIndent: false)
+    buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
 
   afterEach ->
-    buffer.destroy()
+    fixturesProject.destroy()
 
   describe "cursor movement", ->
     describe ".setCursorScreenPosition(screenPosition)", ->
@@ -1262,6 +1257,16 @@ describe "EditSession", ->
         editSession.redo()
         expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
         expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
+
+      it "restores selected ranges even when the change occurred in another edit session", ->
+        otherEditSession = fixturesProject.open(editSession.getPath())
+        otherEditSession.setSelectedBufferRange([[2, 2], [3, 3]])
+        otherEditSession.delete()
+
+        editSession.undo()
+
+        expect(editSession.getSelectedBufferRange()).toEqual [[2, 2], [3, 3]]
+        expect(otherEditSession.getSelectedBufferRange()).toEqual [[3, 3], [3, 3]]
 
     describe "when the buffer is changed (via its direct api, rather than via than edit session)", ->
       it "moves the cursor so it is in the same relative position of the buffer", ->

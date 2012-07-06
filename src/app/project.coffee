@@ -75,25 +75,29 @@ class Project
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
-  open: (filePath) ->
+  open: (filePath, editSessionOptions={}) ->
     if filePath?
       filePath = @resolve(filePath)
       buffer = @bufferWithPath(filePath) ? @buildBuffer(filePath)
     else
       buffer = @buildBuffer()
 
-    editSession = new EditSession
-      project: this
-      buffer: buffer
-      tabText: @getTabText()
-      autoIndent: @getAutoIndent()
-      softTabs: @getSoftTabs()
-      softWrap: @getSoftWrap()
+    @buildEditSession(buffer, editSessionOptions)
 
-
+  buildEditSession: (buffer, editSessionOptions) ->
+    options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
+    options.project = this
+    options.buffer = buffer
+    editSession = new EditSession(options)
     @editSessions.push editSession
     @trigger 'new-edit-session', editSession
     editSession
+
+  defaultEditSessionOptions: ->
+    tabText: @getTabText()
+    autoIndent: @getAutoIndent()
+    softTabs: @getSoftTabs()
+    softWrap: @getSoftWrap()
 
   destroy: ->
     for editSession in _.clone(@editSessions)
