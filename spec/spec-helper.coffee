@@ -90,7 +90,8 @@ window.mousemoveEvent = (properties={}) ->
 
 window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->
-    fn().done(moveOn)
+    promise = fn()
+    promise.then promise.done(moveOn), promise.fail(moveOn)
 
 window.resetTimeouts = ->
   window.now = 0
