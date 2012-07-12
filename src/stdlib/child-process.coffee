@@ -14,7 +14,6 @@ class ChildProccess
       options.stderr = @bufferLines(options.stderr) if options.stderr
 
     $native.exec command, options, (exitStatus, stdout, stderr) ->
-      console.log exitStatus
       if exitStatus != 0
         error = new Error("Exec failed (#{exitStatus}) command '#{command}'")
         error.exitStatus = exitStatus
