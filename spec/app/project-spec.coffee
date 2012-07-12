@@ -109,7 +109,7 @@ describe "Project", ->
 
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
-      fit "calls the callback with all regex matches in all files in the project", ->
+      it "calls the callback with all regex matches in all files in the project", ->
         matches = []
         waitsForPromise ->
           project.scan /(a)+/, ({path, match, range}) ->
