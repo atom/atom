@@ -112,6 +112,7 @@ window.resetTimeouts = ->
   window.timeoutCount = 0
   window.timeouts = []
 
+window.originalSetTimeout = window.setTimeout
 window.setTimeout = (callback, ms) ->
   id = ++window.timeoutCount
   window.timeouts.push([id, window.now + ms, callback])
