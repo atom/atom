@@ -109,23 +109,21 @@ describe "Project", ->
 
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
-      it "calls the callback with all regex matches in all files in the project", ->
+      fit "calls the callback with all regex matches in all files in the project", ->
         matches = []
-
         waitsForPromise ->
-          project.scan /a+/, ({path, match, range}) ->
-            console.log "ITERATOR", path, match, range
+          project.scan /(a)+/, ({path, match, range}) ->
             matches.push({path, match, range})
 
         runs ->
           expect(matches[0]).toEqual
             path: project.resolve('a')
-            match: ['aaa']
+            match: ['aaa', 'a']
             range: [[0, 0], [0, 3]]
 
           expect(matches[1]).toEqual
             path: project.resolve('a')
-            match: ['aa']
+            match: ['aa', 'a']
             range: [[1, 3], [1, 5]]
 
 
