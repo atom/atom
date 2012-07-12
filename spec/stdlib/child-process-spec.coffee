@@ -15,8 +15,8 @@ describe 'Child Processes', ->
           expect(stdout).toBe 'good\n'
           expect(stderr).toBe 'bad\n'
 
-    describe "when `options` contains stdout/stderror callbacks", ->
-      it "calls the stdout callback when new data is received on stdout", ->
+    describe "when options are given", ->
+      it "calls the options.stdout callback when new data is received on stdout", ->
         cmd = "echo 'first' && sleep .1 && echo 'second' && sleep .1 && echo 'third'"
         ChildProcess.exec(cmd, stdout: stdoutHandler)
 
@@ -28,7 +28,7 @@ describe 'Child Processes', ->
           expect(stdoutHandler.argsForCall[1][0]).toBe "second\n"
           expect(stdoutHandler.argsForCall[2][0]).toBe "third\n"
 
-      it "calls the stderr callback when new data is received on stderr", ->
+      it "calls the options.stderr callback when new data is received on stderr", ->
         cmd = "echo '1111' >&2 && sleep .1 && echo '2222' >&2"
         ChildProcess.exec(cmd, stderr: stderrHandler)
 
