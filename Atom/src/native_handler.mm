@@ -452,7 +452,7 @@ bool NativeHandler::Execute(const CefString& name,
       CefV8ValueList args;
       CefRefPtr<CefV8Value> retval = CefV8Value::CreateBool(YES);
       CefRefPtr<CefV8Exception> e;
-      args.push_back(CefV8Value::CreateString([contents UTF8String]));
+      args.push_back(CefV8Value::CreateString(std::string([contents UTF8String], [contents length])));
 
       function->ExecuteFunction(function, args, retval, e, true);
       [contents release];
