@@ -13,13 +13,13 @@ class ChildProccess
       options.stdout = @bufferLines(options.stdout) if options.stdout
       options.stderr = @bufferLines(options.stderr) if options.stderr
 
-    $native.exec command, options, (exitStatus, stdout, stdin) ->
-      if error != 0
+    $native.exec command, options, (exitStatus, stdout, stderr) ->
+      if exitStatus != 0
         error = new Error("Exec failed (#{exitStatus}) command '#{command}'")
         error.exitStatus = exitStatus
         deferred.reject(error)
       else
-        deferred.resolve(stdout, stdin)
+        deferred.resolve(stdout, stderr)
 
     deferred
 
