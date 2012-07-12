@@ -4,7 +4,7 @@ module.exports =
 class Substitution extends Command
   regex: null
   replacementText: null
-  restoreSelections: true
+  preserveSelections: true
 
   constructor: (pattern, replacementText, options) ->
     @replacementText = replacementText

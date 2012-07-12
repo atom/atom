@@ -243,7 +243,7 @@ describe "CommandInterpreter", ->
         it "restores the original selections upon completion if it is the last command", ->
           editor.setSelectedBufferRanges([[[5, 0], [5, 20]], [[6, 0], [6, 44]]])
           interpreter.eval(editor, ',s/current/foo/g')
-          expect(editor.getSelectedBufferRanges()).toEqual [[[5, 0], [5, 20]], [[6, 0], [6, 44]]]
+          expect(editor.getSelectedBufferRanges()).toEqual [[[5, 0], [5, 16]], [[6, 0], [6, 36]]]
 
   describe "when command selects folded text", ->
     it "unfolds lines that command selects", ->

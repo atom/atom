@@ -5,19 +5,18 @@ class CompositeCommand
   constructor: (@subcommands) ->
 
   execute: (editor) ->
-    initialRanges = editor.getSelectedBufferRanges()
+    currentRanges = editor.getSelectedBufferRanges()
     for command in @subcommands
       newRanges = []
-      currentRanges = editor.getSelectedBufferRanges()
-      for currentRange in currentRanges
-        newRanges.push(command.execute(editor, currentRange)...)
+      for range in currentRanges
+        newRanges.push(command.execute(editor, range)...)
+      currentRanges = newRanges
 
-      for range in newRanges
+    unless command.preserveSelections
+      for range in currentRanges
         for row in [range.start.row..range.end.row]
           editor.destroyFoldsContainingBufferRow(row)
-
-      editor.setSelectedBufferRanges(newRanges)
-    editor.setSelectedBufferRanges(initialRanges) if command.restoreSelections
+      editor.setSelectedBufferRanges(currentRanges)
 
   reverse: ->
     new CompositeCommand(@subcommands.map (command) -> command.reverse())
