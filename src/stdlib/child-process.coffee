@@ -15,9 +15,7 @@ class ChildProccess
 
     $native.exec command, options, (exitStatus, stdout, stderr) ->
       if exitStatus != 0
-        error = new Error("Exec failed (#{exitStatus}) command '#{command}'")
-        error.exitStatus = exitStatus
-        deferred.reject(error)
+        deferred.reject("Command '#{command}' failed with exit status #{exitStatus} and stderr '#{stderr}'")
       else
         deferred.resolve(stdout, stderr)
 
