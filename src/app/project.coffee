@@ -129,7 +129,7 @@ class Project
 
   scan: (regex, iterator) ->
     regex = new RegExp(regex.source, 'g')
-    command = "grep --null --perl-regexp --with-filename --line-number --recursive --regexp=#{regex.source} #{@getPath()}"
+    command = "grep --null --perl-regexp --with-filename --line-number --recursive --regexp=\"#{regex.source}\" #{@getPath()}"
     ChildProcess.exec command, bufferLines: true, stdout: (data) ->
       for grepLine in data.split('\n') when grepLine.length
         nullCharIndex = grepLine.indexOf('\0')
