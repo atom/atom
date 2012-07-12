@@ -6,6 +6,7 @@ Buffer = require 'buffer'
 EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
+ChildProcess = require 'child-process'
 
 module.exports =
 class Project
@@ -125,5 +126,17 @@ class Project
 
   bufferWithPath: (path) ->
     return editSession.buffer for editSession in @editSessions when editSession.buffer.getPath() == path
+
+  scan: ({regex}, callback) ->
+    command = "grep --null --perl-regexp --with-filename --line-number --recursive --regexp=#{regex.source} #{@getPath()}"
+    ChildProcess.exec command, bufferLines: false, stdout: (data) ->
+       for grepLine in data.split('\n') when grepLine.length
+         nullCharIndex = grepLine.indexOf('\0')
+         colonIndex = grepLine.indexOf(':')
+         path = grepLine.substring(0, nullCharIndex)
+         row = parseInt(grepLine.substring(nullCharIndex + 1, colonIndex)) - 1
+         line = grepLine.substring(colonIndex + 1)
+
+         console.log path, row, line
 
 _.extend Project.prototype, EventEmitter

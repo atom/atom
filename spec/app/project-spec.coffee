@@ -106,3 +106,15 @@ describe "Project", ->
       project.getFilePaths().done (paths) ->
         expect(paths).not.toContain('a')
         expect(paths).toContain('b')
+
+  describe ".scan(options, callback)", ->
+    describe "when called with a regex", ->
+      fit "calls the callback with all regex matches in all files in the project", ->
+        matches = []
+        project.scan regex: /a+/, ({path, match, range}) ->
+          matches.push({path, match, range})
+
+        expect(matches[0]).toEqual
+          path: project.resolve('a')
+          match: 'aaa'
+          range: [[0, 0], [0, 3]]
