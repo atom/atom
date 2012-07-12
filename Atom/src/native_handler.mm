@@ -454,7 +454,7 @@ bool NativeHandler::Execute(const CefString& name,
       CefRefPtr<CefV8Exception> e;
       args.push_back(CefV8Value::CreateString(std::string([contents UTF8String], [contents length])));
 
-      function->ExecuteFunction(function, args, retval, e, true);
+      function->ExecuteFunction(function, args, retval, e, false);
       [contents release];
       context->Exit();
     };
@@ -472,7 +472,7 @@ bool NativeHandler::Execute(const CefString& name,
       args.push_back(CefV8Value::CreateString([output UTF8String]));
       args.push_back(CefV8Value::CreateString([errorOutput UTF8String]));
       
-      callback->ExecuteFunction(callback, args, retval, e, true);
+      callback->ExecuteFunction(callback, args, retval, e, false);
       context->Exit();
       
       stdout.fileHandleForReading.writeabilityHandler = nil;
