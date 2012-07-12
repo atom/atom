@@ -88,10 +88,24 @@ window.mousedownEvent = (properties={}) ->
 window.mousemoveEvent = (properties={}) ->
   window.mouseEvent('mousemove', properties)
 
-window.waitsForPromise = (fn) ->
+window.waitsForPromise = (args...) ->
+  if args.length > 1
+    { shouldReject } = args[0]
+  else
+    shouldReject = false
+  fn = _.last(args)
+
   window.waitsFor (moveOn) ->
     promise = fn()
-    promise.then promise.done(moveOn), promise.fail(moveOn)
+    if shouldReject
+      promise.fail(moveOn)
+      promise.done -> throw new Error("Expected promise to be rejected, but it was resolved")
+    else
+      promise.done(moveOn)
+      promise.fail ->
+        debugger
+        throw new Error("Expected promise to be resolved, but it was rejected")
+
 
 window.resetTimeouts = ->
   window.now = 0

@@ -87,7 +87,7 @@ describe 'Child Processes', ->
 
     describe "when the command fails", ->
       it "executes the callback with error set to the exit status", ->
-        waitsForPromise ->
+        waitsForPromise shouldReject: true, ->
           cmd = "exit 2"
           ChildProcess.exec(cmd).fail (error) ->
             expect(error.exitStatus).toBe 2
