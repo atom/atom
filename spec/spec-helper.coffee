@@ -99,13 +99,14 @@ window.waitsForPromise = (args...) ->
     promise = fn()
     if shouldReject
       promise.fail(moveOn)
-      promise.done -> throw new Error("Expected promise to be rejected, but it was resolved")
+      promise.done ->
+        jasmine.getEnv().currentSpec.fail("Expected promise to be rejected, but it was resolved")
+        moveOn()
     else
       promise.done(moveOn)
       promise.fail ->
-        debugger
-        throw new Error("Expected promise to be resolved, but it was rejected")
-
+        jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected")
+        moveOn()
 
 window.resetTimeouts = ->
   window.now = 0
