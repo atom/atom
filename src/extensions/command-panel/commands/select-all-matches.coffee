@@ -8,8 +8,8 @@ class SelectAllMatches extends Command
   constructor: (pattern) ->
     @regex = new RegExp(pattern, 'g')
 
-  execute: (editor, currentRange) ->
+  execute: (project, buffer, range) ->
     rangesToSelect = []
-    editor.scanInRange @regex, currentRange, (match, range) ->
-      rangesToSelect.push(range)
+    buffer.scanInRange @regex, range, (match, matchRange) ->
+      rangesToSelect.push(matchRange)
     rangesToSelect

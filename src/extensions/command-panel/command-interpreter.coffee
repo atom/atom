@@ -3,16 +3,16 @@ PEG = require 'pegjs'
 
 module.exports =
 class CommandInterpreter
-  constructor: ->
+  constructor: (@project) ->
     @parser = PEG.buildParser(fs.read(require.resolve 'command-panel/commands.pegjs'))
 
-  eval: (editor, string) ->
+  eval: (string, activeEditSession) ->
     compositeCommand = @parser.parse(string)
     @lastRelativeAddress = compositeCommand if compositeCommand.isRelativeAddress()
-    compositeCommand.execute(editor)
+    compositeCommand.execute(@project, activeEditSession)
 
-  repeatRelativeAddress: (editor) ->
-    @lastRelativeAddress?.execute(editor)
+  repeatRelativeAddress: (activeEditSession) ->
+    @lastRelativeAddress?.execute(@project, activeEditSession)
 
-  repeatRelativeAddressInReverse: (editor) ->
-    @lastRelativeAddress?.reverse().execute(editor)
+  repeatRelativeAddressInReverse: (activeEditSession) ->
+    @lastRelativeAddress?.reverse().execute(@project, activeEditSession)

@@ -162,6 +162,9 @@ class RootView extends View
     else
       @panes.find('.editor:first').view()
 
+  getActiveEditSession: ->
+    @getActiveEditor()?.activeEditSession
+
   focusNextPane: ->
     panes = @panes.find('.pane')
     currentIndex = panes.toArray().indexOf(@getFocusedPane()[0])

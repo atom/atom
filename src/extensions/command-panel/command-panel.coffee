@@ -35,7 +35,7 @@ class CommandPanel extends View
   historyIndex: 0
 
   initialize: (@rootView)->
-    @commandInterpreter = new CommandInterpreter()
+    @commandInterpreter = new CommandInterpreter(@rootView.project)
     @history = []
 
     @rootView.on 'command-panel:toggle', => @toggle()
@@ -64,7 +64,7 @@ class CommandPanel extends View
 
   execute: (command = @miniEditor.getText()) ->
     try
-      @commandInterpreter.eval(@rootView.getActiveEditor(), command)
+      @commandInterpreter.eval(command, @rootView.getActiveEditSession())
     catch error
       if error instanceof SyntaxError
         @flashError()
@@ -87,10 +87,10 @@ class CommandPanel extends View
     @miniEditor.setText(@history[@historyIndex] or '')
 
   repeatRelativeAddress: ->
-    @commandInterpreter.repeatRelativeAddress(@rootView.getActiveEditor())
+    @commandInterpreter.repeatRelativeAddress(@rootView.getActiveEditSession())
 
   repeatRelativeAddressInReverse: ->
-    @commandInterpreter.repeatRelativeAddressInReverse(@rootView.getActiveEditor())
+    @commandInterpreter.repeatRelativeAddressInReverse(@rootView.getActiveEditSession())
 
   setSelectionAsLastRelativeAddress: ->
     selection = @rootView.getActiveEditor().getSelectedText()

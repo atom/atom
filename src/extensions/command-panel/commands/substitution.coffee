@@ -10,7 +10,7 @@ class Substitution extends Command
     @replacementText = replacementText
     @regex = new RegExp(pattern, options.join(''))
 
-  execute: (editor, currentRange) ->
-    editor.scanInRange @regex, currentRange, (match, matchRange, { replace }) =>
+  execute: (project, buffer, range) ->
+    buffer.scanInRange @regex, range, (match, matchRange, { replace }) =>
       replace(@replacementText)
-    [currentRange]
+    [range]
