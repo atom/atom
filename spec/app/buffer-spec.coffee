@@ -533,3 +533,23 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
+
+  describe "anchors", ->
+    [anchor, destroyHandler] = []
+
+    beforeEach ->
+      destroyHandler = jasmine.createSpy("destroyHandler")
+      anchor = buffer.addAnchorAtPosition([4, 25])
+      anchor.on 'destroy', destroyHandler
+
+    describe "when a buffer change precedes an anchor", ->
+      it "moves the anchor in accordance with the change", ->
+        buffer.delete([[3, 0], [4, 10]])
+        expect(anchor.getBufferPosition()).toEqual [3, 15]
+        expect(destroyHandler).not.toHaveBeenCalled()
+
+    describe "when a buffer change surrounds an anchor", ->
+      it "destroys the anchor", ->
+        buffer.delete([[3, 0], [5, 0]])
+        expect(destroyHandler).toHaveBeenCalled()
+        expect(buffer.getAnchors().indexOf(anchor)).toBe -1

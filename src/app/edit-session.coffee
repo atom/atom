@@ -45,9 +45,7 @@ class EditSession
     @buffer.on "path-change.edit-session-#{@id}", =>
       @trigger 'buffer-path-change'
 
-    @buffer.on "change.edit-session-#{@id}", (e) =>
-      anchor.handleBufferChange(e) for anchor in @getAnchors()
-      @mergeCursors()
+    @buffer.on "change.edit-session-#{@id}", (e) => @mergeCursors()
 
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
       @trigger 'screen-lines-change', e
@@ -89,14 +87,8 @@ class EditSession
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
-  clipBufferPosition: (bufferPosition, options) ->
-    { row, column } = Point.fromObject(bufferPosition)
-    row = 0 if row < 0
-    column = 0 if column < 0
-    row = Math.min(@buffer.getLastRow(), row)
-    column = Math.min(@buffer.lineLengthForRow(row), column)
-
-    new Point(row, column)
+  clipBufferPosition: (bufferPosition) ->
+    @buffer.clipPosition(bufferPosition)
 
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()

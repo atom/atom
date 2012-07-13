@@ -140,6 +140,15 @@ class Buffer
     operation = new BufferChangeOperation({buffer: this, oldRange, newText})
     @pushOperation(operation)
 
+  clipPosition: (position) ->
+    { row, column } = Point.fromObject(position)
+    row = 0 if row < 0
+    column = 0 if column < 0
+    row = Math.min(@getLastRow(), row)
+    column = Math.min(@lineLengthForRow(row), column)
+
+    new Point(row, column)
+
   prefixAndSuffixForRange: (range) ->
     prefix: @lines[range.start.row][0...range.start.column]
     suffix: @lines[range.end.row][range.end.column..]
@@ -178,6 +187,8 @@ class Buffer
 
   isModified: ->
     @modified
+
+  getAnchors: -> new Array(@anchors...)
 
   addAnchor: (options) ->
     anchor = new Anchor(this, options)

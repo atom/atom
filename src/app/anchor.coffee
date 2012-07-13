@@ -12,8 +12,6 @@ class Anchor
   strong: false
 
   constructor: (@buffer, options = {}) ->
-
-    throw new Error("no edit session!") unless options.editSession
     { @editSession, @ignoreEqual, @strong } = options
 
   handleBufferChange: (e) ->
@@ -48,7 +46,7 @@ class Anchor
   setBufferPosition: (position, options={}) ->
     @bufferPosition = Point.fromObject(position)
     clip = options.clip ? true
-    @bufferPosition = @editSession.clipBufferPosition(@bufferPosition) if clip
+    @bufferPosition = @buffer.clipPosition(@bufferPosition) if clip
     @refreshScreenPosition(options)
 
   getScreenPosition: ->
@@ -70,6 +68,7 @@ class Anchor
       @trigger 'change-screen-position', @screenPosition, bufferChange: options.bufferChange
 
   refreshScreenPosition: (options={}) ->
+    return unless @editSession
     screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
     @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
 

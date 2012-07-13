@@ -38,7 +38,10 @@ class BufferChangeOperation
       newTextLines[lastLineIndex] += suffix
 
     @buffer.replaceLines(oldRange.start.row, oldRange.end.row, newTextLines)
-    @buffer.trigger 'change', { oldRange, newRange, oldText, newText }
+
+    event = { oldRange, newRange, oldText, newText }
+    @buffer.trigger 'change', event
+    anchor.handleBufferChange(event) for anchor in @buffer.getAnchors()
     newRange
 
   calculateNewRange: (oldRange, newText) ->
