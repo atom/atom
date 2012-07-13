@@ -6,6 +6,8 @@ Range = require 'range'
 EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
+Anchor = require 'anchor'
+AnchorRange = require 'anchor-range'
 
 module.exports =
 class Buffer
@@ -14,9 +16,13 @@ class Buffer
   modified: null
   lines: null
   file: null
+  anchors: null
+  anchorRanges: null
 
   constructor: (path) ->
     @id = @constructor.idCounter++
+    @anchors = []
+    @anchorRanges = []
     @lines = ['']
 
     if path
@@ -172,6 +178,27 @@ class Buffer
 
   isModified: ->
     @modified
+
+  addAnchor: (options) ->
+    anchor = new Anchor(this, options)
+    @anchors.push(anchor)
+    anchor
+
+  addAnchorAtPosition: (position, options) ->
+    anchor = @addAnchor(options)
+    anchor.setBufferPosition(position)
+    anchor
+
+  addAnchorRange: (range, editSession) ->
+    anchorRange = new AnchorRange(range, this, editSession)
+    @anchorRanges.push(anchorRange)
+    anchorRange
+
+  removeAnchor: (anchor) ->
+    _.remove(@anchors, anchor)
+
+  removeAnchorRange: (anchorRange) ->
+    _.remove(@anchorRanges, anchorRange)
 
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()

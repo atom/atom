@@ -258,8 +258,8 @@ class EditSession
   getAnchors: ->
     new Array(@anchors...)
 
-  addAnchor: (options) ->
-    anchor = new Anchor(this, options)
+  addAnchor: (options={}) ->
+    anchor = @buffer.addAnchor(_.extend({editSession: this}, options))
     @anchors.push(anchor)
     anchor
 
@@ -269,12 +269,15 @@ class EditSession
     anchor
 
   addAnchorRange: (range) ->
-    anchorRange = new AnchorRange(this, range)
+    anchorRange = @buffer.addAnchorRange(range, this)
     @anchorRanges.push(anchorRange)
     anchorRange
 
   removeAnchor: (anchor) ->
     _.remove(@anchors, anchor)
+
+  removeAnchorRange: (anchorRange) ->
+    _.remove(@anchorRanges, anchorRange)
 
   getCursors: -> new Array(@cursors...)
 

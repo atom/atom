@@ -4,12 +4,17 @@ _ = require 'underscore'
 
 module.exports =
 class Anchor
-  editor: null
+  buffer: null
+  editSession: null # optional
   bufferPosition: null
   screenPosition: null
+  ignoreEqual: false
+  strong: false
 
-  constructor: (@editSession, options = {}) ->
-    { @ignoreEqual, @strong } = options
+  constructor: (@buffer, options = {}) ->
+
+    throw new Error("no edit session!") unless options.editSession
+    { @editSession, @ignoreEqual, @strong } = options
 
   handleBufferChange: (e) ->
     { oldRange, newRange } = e
@@ -69,7 +74,8 @@ class Anchor
     @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
 
   destroy: ->
-    @editSession.removeAnchor(this)
+    @buffer.removeAnchor(this)
+    @editSession?.removeAnchor(this)
     @trigger 'destroy'
     @off()
 
