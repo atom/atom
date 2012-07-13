@@ -535,18 +535,26 @@ describe "EditSession", ->
         editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
         expect(editSession.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
 
-      it "removes folds that contain the selections", ->
-        editSession.setSelectedBufferRange([[0,0], [0,0]])
-        editSession.createFold(1, 4)
-        editSession.createFold(2, 3)
-        editSession.createFold(6, 8)
-        editSession.createFold(10, 11)
+      describe "when the preserveFolds option is false (the default)", ->
+        it "removes folds that contain the selections", ->
+          editSession.setSelectedBufferRange([[0,0], [0,0]])
+          editSession.createFold(1, 4)
+          editSession.createFold(2, 3)
+          editSession.createFold(6, 8)
+          editSession.createFold(10, 11)
 
-        editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 6], [7, 7]]])
-        expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
-        expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
-        expect(editSession.lineForScreenRow(6).fold).toBeUndefined()
-        expect(editSession.lineForScreenRow(10).fold).toBeDefined()
+          editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 6], [7, 7]]])
+          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+          expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
+          expect(editSession.lineForScreenRow(6).fold).toBeUndefined()
+          expect(editSession.lineForScreenRow(10).fold).toBeDefined()
+
+      describe "when the preserve folds option is true", ->
+        it "does not remove folds that contain the selections", ->
+          editSession.setSelectedBufferRange([[0,0], [0,0]])
+          editSession.createFold(1, 4)
+          editSession.setSelectedBufferRanges([[[2, 2], [3, 3]]], preserveFolds: true)
+          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
 
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
@@ -895,8 +903,8 @@ describe "EditSession", ->
 
         describe "when the selection ends on a folded line", ->
           it "destroys the fold", ->
-            editSession.toggleFoldAtBufferRow(4)
             editSession.setSelectedBufferRange([[3,0], [4,0]])
+            editSession.toggleFoldAtBufferRow(4)
             editSession.backspace()
 
             expect(buffer.lineForRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
@@ -980,12 +988,12 @@ describe "EditSession", ->
 
         describe "when the cursor is on a folded line", ->
           it "removes the lines contained by the fold", ->
+            editSession.setSelectedBufferRange([[2, 0], [2, 0]])
             editSession.createFold(2,4)
             editSession.createFold(2,6)
             oldLine7 = buffer.lineForRow(7)
             oldLine8 = buffer.lineForRow(8)
 
-            editSession.setSelectedBufferRange([[2, 0], [2, 0]])
             editSession.delete()
             expect(editSession.lineForScreenRow(2).text).toBe oldLine7
             expect(editSession.lineForScreenRow(3).text).toBe oldLine8

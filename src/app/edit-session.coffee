@@ -306,17 +306,17 @@ class EditSession
     @addCursor().selection.setBufferRange(bufferRange, options)
 
   setSelectedBufferRange: (bufferRange, options) ->
-    @clearSelections()
-    @getLastSelection().setBufferRange(bufferRange, options)
+    @setSelectedBufferRanges([bufferRange], options)
 
-  setSelectedBufferRanges: (bufferRanges, options) ->
+  setSelectedBufferRanges: (bufferRanges, options={}) ->
     throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
     selection.destroy() for selection in @getSelections()
     for bufferRange, i in bufferRanges
       bufferRange = Range.fromObject(bufferRange)
-      for row in [bufferRange.start.row..bufferRange.end.row]
-        @destroyFoldsContainingBufferRow(row)
-        @addSelectionForBufferRange(bufferRange, options)
+      unless options.preserveFolds
+        for row in [bufferRange.start.row..bufferRange.end.row]
+          @destroyFoldsContainingBufferRow(row)
+      @addSelectionForBufferRange(bufferRange, options)
     @mergeIntersectingSelections(options)
 
   removeSelection: (selection) ->
