@@ -27,7 +27,7 @@ module.exports =
     editor.on 'snippets:expand', (e) =>
       editSession = editor.activeEditSession
       prefix = editSession.getLastCursor().getCurrentWordPrefix()
-      if snippet = @snippetsByExtension[editSession.getFileExtension()][prefix]
+      if snippet = @snippetsByExtension[editSession.getFileExtension()]?[prefix]
         editSession.transact ->
           snippetExpansion = new SnippetExpansion(snippet, editSession)
           editSession.snippetExpansion = snippetExpansion
