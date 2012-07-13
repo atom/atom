@@ -46,7 +46,7 @@ class Editor extends View
   lineOverdraw: 100
 
   @deserialize: (state, rootView) ->
-    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
+    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
     editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini)
     editor.editSessions = editSessions
     editor.isFocused = state.isFocused
@@ -520,8 +520,7 @@ class Editor extends View
       @updateRenderedLines()
 
   newSplitEditor: ->
-    editSession = EditSession.deserialize(@activeEditSession.serialize(), this, @rootView())
-    new Editor { editSession }
+    new Editor { editSession: @activeEditSession.copy() }
 
   splitLeft: ->
     @pane()?.splitLeft(@newSplitEditor()).wrappedView

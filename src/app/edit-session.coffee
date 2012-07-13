@@ -12,8 +12,8 @@ module.exports =
 class EditSession
   @idCounter: 1
 
-  @deserialize: (state, editor, rootView) ->
-    session = rootView.project.open(state.buffer)
+  @deserialize: (state, project) ->
+    session = project.open(state.buffer)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
@@ -64,6 +64,9 @@ class EditSession
     scrollTop: @getScrollTop()
     scrollLeft: @getScrollLeft()
     cursorScreenPosition: @getCursorScreenPosition().serialize()
+
+  copy: ->
+    EditSession.deserialize(@serialize(), @project)
 
   isEqual: (other) ->
     return false unless other instanceof EditSession
