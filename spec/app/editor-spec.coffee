@@ -356,13 +356,14 @@ describe "Editor", ->
         fakePane = { splitUp: jasmine.createSpy('splitUp').andReturn({}), remove: -> }
         spyOn(editor, 'pane').andReturn(fakePane)
 
-      it "calls the corresponding split method on the containing pane with a copy of the editor", ->
+      it "calls the corresponding split method on the containing pane with a new editor containing a copy of the active edit session", ->
+        editor.edit project.open("sample.txt")
         editor.splitUp()
         expect(fakePane.splitUp).toHaveBeenCalled()
-        [editorCopy] = fakePane.splitUp.argsForCall[0]
-        expect(editorCopy.serialize()).toEqual editor.serialize()
-        expect(editorCopy).not.toBe editor
-        editorCopy.remove()
+        [newEditor] = fakePane.splitUp.argsForCall[0]
+        expect(newEditor.editSessions.length).toEqual 1
+        expect(newEditor.activeEditSession.buffer).toBe editor.activeEditSession.buffer
+        newEditor.remove()
 
     describe "when not inside a pane", ->
       it "does not split the editor, but doesn't throw an exception", ->
@@ -1239,8 +1240,9 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
-      it "increases the width of the rendered lines element if the max line length changes", ->
+      it "increases the width of the rendered lines element to be either the width of the longest line or the width of the scrollView (whichever is longer)", ->
         widthBefore = editor.renderedLines.width()
+        expect(widthBefore).toBe editor.scrollView.width()
         buffer.change([[12,0], [12,0]], [1..50].join(''))
         expect(editor.renderedLines.width()).toBeGreaterThan widthBefore
 
@@ -1319,10 +1321,12 @@ describe "Editor", ->
 
           expect(editor.find('.line').length).toBe 7
 
-      it "decreases the width of the rendered screen lines if the max line length changes", ->
+      it "sets the rendered screen line's width to either the max line length or the scollView's width (whichever is greater)", ->
+        buffer.change([[12,0], [12,0]], [1..100].join(''))
+        expect(editor.renderedLines.width()).toBeGreaterThan editor.scrollView.width()
         widthBefore = editor.renderedLines.width()
-        buffer.delete([[6, 0], [6, Infinity]])
-        expect(editor.renderedLines.width()).toBeLessThan widthBefore
+        buffer.delete([[12, 0], [12, Infinity]])
+        expect(editor.renderedLines.width()).toBe editor.scrollView.width()
 
     describe "when folding leaves less then a screen worth of text (regression)", ->
       it "renders lines properly", ->

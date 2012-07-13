@@ -46,7 +46,7 @@ class Editor extends View
   lineOverdraw: 100
 
   @deserialize: (state, rootView) ->
-    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, editor, rootView)
+    editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
     editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini)
     editor.editSessions = editSessions
     editor.isFocused = state.isFocused
@@ -519,17 +519,20 @@ class Editor extends View
       @updateCursorViews()
       @updateRenderedLines()
 
+  newSplitEditor: ->
+    new Editor { editSession: @activeEditSession.copy() }
+
   splitLeft: ->
-    @pane()?.splitLeft(@copy()).wrappedView
+    @pane()?.splitLeft(@newSplitEditor()).wrappedView
 
   splitRight: ->
-    @pane()?.splitRight(@copy()).wrappedView
+    @pane()?.splitRight(@newSplitEditor()).wrappedView
 
   splitUp: ->
-    @pane()?.splitUp(@copy()).wrappedView
+    @pane()?.splitUp(@newSplitEditor()).wrappedView
 
   splitDown: ->
-    @pane()?.splitDown(@copy()).wrappedView
+    @pane()?.splitDown(@newSplitEditor()).wrappedView
 
   pane: ->
     @parent('.pane').view()
@@ -650,7 +653,11 @@ class Editor extends View
     @renderedLines.css('padding-bottom', heightOfRenderedLines)
 
   adjustWidthOfRenderedLines: ->
-    @renderedLines.width(@charWidth * @maxScreenLineLength())
+    width = @charWidth * @maxScreenLineLength()
+    if width > @scrollView.width()
+      @renderedLines.width(width)
+    else
+      @renderedLines.width(@scrollView.width())
 
   handleScrollHeightChange: ->
     scrollHeight = @lineHeight * @screenLineCount()
