@@ -519,17 +519,21 @@ class Editor extends View
       @updateCursorViews()
       @updateRenderedLines()
 
+  newSplitEditor: ->
+    editSession = EditSession.deserialize(@activeEditSession.serialize(), this, @rootView())
+    new Editor { editSession }
+
   splitLeft: ->
-    @pane()?.splitLeft(@copy()).wrappedView
+    @pane()?.splitLeft(@newSplitEditor()).wrappedView
 
   splitRight: ->
-    @pane()?.splitRight(@copy()).wrappedView
+    @pane()?.splitRight(@newSplitEditor()).wrappedView
 
   splitUp: ->
-    @pane()?.splitUp(@copy()).wrappedView
+    @pane()?.splitUp(@newSplitEditor()).wrappedView
 
   splitDown: ->
-    @pane()?.splitDown(@copy()).wrappedView
+    @pane()?.splitDown(@newSplitEditor()).wrappedView
 
   pane: ->
     @parent('.pane').view()

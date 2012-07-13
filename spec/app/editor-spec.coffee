@@ -356,13 +356,14 @@ describe "Editor", ->
         fakePane = { splitUp: jasmine.createSpy('splitUp').andReturn({}), remove: -> }
         spyOn(editor, 'pane').andReturn(fakePane)
 
-      it "calls the corresponding split method on the containing pane with a copy of the editor", ->
+      it "calls the corresponding split method on the containing pane with a new editor containing a copy of the active edit session", ->
+        editor.edit project.open("sample.txt")
         editor.splitUp()
         expect(fakePane.splitUp).toHaveBeenCalled()
-        [editorCopy] = fakePane.splitUp.argsForCall[0]
-        expect(editorCopy.serialize()).toEqual editor.serialize()
-        expect(editorCopy).not.toBe editor
-        editorCopy.remove()
+        [newEditor] = fakePane.splitUp.argsForCall[0]
+        expect(newEditor.editSessions.length).toEqual 1
+        expect(newEditor.activeEditSession.buffer).toBe editor.activeEditSession.buffer
+        newEditor.remove()
 
     describe "when not inside a pane", ->
       it "does not split the editor, but doesn't throw an exception", ->
