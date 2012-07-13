@@ -5,6 +5,7 @@ DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
 Selection = require 'selection'
 EventEmitter = require 'event-emitter'
+Range = require 'range'
 AnchorRange = require 'anchor-range'
 _ = require 'underscore'
 
@@ -309,13 +310,14 @@ class EditSession
     @getLastSelection().setBufferRange(bufferRange, options)
 
   setSelectedBufferRanges: (bufferRanges, options) ->
-    selections = @getSelections()
+    throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
+    selection.destroy() for selection in @getSelections()
     for bufferRange, i in bufferRanges
-      if selections[i]
-        selections[i].setBufferRange(bufferRange, options)
-      else
+      bufferRange = Range.fromObject(bufferRange)
+      for row in [bufferRange.start.row..bufferRange.end.row]
+        @destroyFoldsContainingBufferRow(row)
         @addSelectionForBufferRange(bufferRange, options)
-    @mergeIntersectingSelections()
+    @mergeIntersectingSelections(options)
 
   removeSelection: (selection) ->
     _.remove(@selections, selection)

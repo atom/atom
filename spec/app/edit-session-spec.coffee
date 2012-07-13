@@ -523,6 +523,31 @@ describe "EditSession", ->
            editSession.selectWord()
            expect(editSession.getSelectedText()).toBe ''
 
+    describe ".setSelectedBufferRanges(ranges)", ->
+      it "clears existing selections and creates selections for each of the given ranges", ->
+        editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[2, 2], [3, 3]], [[4, 4], [5, 5]]]
+
+        editSession.setSelectedBufferRanges([[[5, 5], [6, 6]]])
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[5, 5], [6, 6]]]
+
+      it "merges intersecting selections", ->
+        editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
+
+      it "removes folds that contain the selections", ->
+        editSession.setSelectedBufferRange([[0,0], [0,0]])
+        editSession.createFold(1, 4)
+        editSession.createFold(2, 3)
+        editSession.createFold(6, 8)
+        editSession.createFold(10, 11)
+
+        editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 6], [7, 7]]])
+        expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+        expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
+        expect(editSession.lineForScreenRow(6).fold).toBeUndefined()
+        expect(editSession.lineForScreenRow(10).fold).toBeDefined()
+
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
 
@@ -1243,20 +1268,17 @@ describe "EditSession", ->
 
         selections = editSession.getSelections()
         expect(buffer.lineForRow(1)).toBe '  var = function( {'
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 17], [1, 17]]
+
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 17], [1, 17]]]
 
         editSession.undo()
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
         editSession.undo()
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 10]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 22], [1, 27]]
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 10]], [[1, 22], [1, 27]]]
 
         editSession.redo()
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
       it "restores selected ranges even when the change occurred in another edit session", ->
         otherEditSession = fixturesProject.open(editSession.getPath())
