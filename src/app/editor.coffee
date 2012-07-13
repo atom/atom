@@ -337,7 +337,9 @@ class Editor extends View
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
-    $(window).on "resize.editor#{@id}", => @updateRenderedLines()
+    $(window).on "resize.editor#{@id}", =>
+      @updateRenderedLines()
+      @adjustWidthOfRenderedLines() # TODO: This should happen automatically with CSS
     @focus() if @isFocused
 
     @renderWhenAttached()

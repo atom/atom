@@ -1241,6 +1241,7 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
       it "increases the width of the rendered lines element to be either the width of the longest line or the width of the scrollView (whichever is longer)", ->
+        setEditorWidthInChars(editor, editor.maxScreenLineLength())
         widthBefore = editor.renderedLines.width()
         expect(widthBefore).toBe editor.scrollView.width()
         buffer.change([[12,0], [12,0]], [1..50].join(''))
