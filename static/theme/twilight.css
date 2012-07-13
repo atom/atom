@@ -61,8 +61,8 @@ background-color:rgba(86, 45, 86, 0.75);
 
 .invalid.deprecated {
   text-decoration:underline;
-font-style:italic;
-color:#D2A8A1;
+  font-style:italic;
+  color:#D2A8A1;
 }
 
 .support {
@@ -70,12 +70,11 @@ color:#D2A8A1;
 }
 
 .fold {
-  background-color: #524228;
-  color: #969696;
+  background-color: #333;
 }
 
 .fold.selected {
-  background-color: #2A3B2A;
+  background-color: #1C2917;
   color: #969696;
 }
 
@@ -122,5 +121,5 @@ color:#5F5A60;
 
 .markup.list {
   color:#F9EE98;
-}";
+}
 
