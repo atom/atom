@@ -1239,8 +1239,9 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(0)
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(6)
 
-      it "increases the width of the rendered lines element if the max line length changes", ->
+      it "increases the width of the rendered lines element to be either the width of the longest line or the width of the scrollView (whichever is longer)", ->
         widthBefore = editor.renderedLines.width()
+        expect(widthBefore).toBe editor.scrollView.width()
         buffer.change([[12,0], [12,0]], [1..50].join(''))
         expect(editor.renderedLines.width()).toBeGreaterThan widthBefore
 
@@ -1319,10 +1320,12 @@ describe "Editor", ->
 
           expect(editor.find('.line').length).toBe 7
 
-      it "decreases the width of the rendered screen lines if the max line length changes", ->
+      it "sets the rendered screen line's width to either the max line length or the scollView's width (whichever is greater)", ->
+        buffer.change([[12,0], [12,0]], [1..100].join(''))
+        expect(editor.renderedLines.width()).toBeGreaterThan editor.scrollView.width()
         widthBefore = editor.renderedLines.width()
-        buffer.delete([[6, 0], [6, Infinity]])
-        expect(editor.renderedLines.width()).toBeLessThan widthBefore
+        buffer.delete([[12, 0], [12, Infinity]])
+        expect(editor.renderedLines.width()).toBe editor.scrollView.width()
 
     describe "when folding leaves less then a screen worth of text (regression)", ->
       it "renders lines properly", ->

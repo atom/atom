@@ -650,7 +650,11 @@ class Editor extends View
     @renderedLines.css('padding-bottom', heightOfRenderedLines)
 
   adjustWidthOfRenderedLines: ->
-    @renderedLines.width(@charWidth * @maxScreenLineLength())
+    width = @charWidth * @maxScreenLineLength()
+    if width > @scrollView.width()
+      @renderedLines.width(width)
+    else
+      @renderedLines.width(@scrollView.width())
 
   handleScrollHeightChange: ->
     scrollHeight = @lineHeight * @screenLineCount()
