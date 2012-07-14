@@ -9,8 +9,8 @@ class AnchorRange
 
   constructor: (bufferRange, @buffer, @editSession) ->
     bufferRange = Range.fromObject(bufferRange)
-    @startAnchor = @editSession.addAnchorAtBufferPosition(bufferRange.start, ignoreEqual: true)
-    @endAnchor = @editSession.addAnchorAtBufferPosition(bufferRange.end)
+    @startAnchor = @buffer.addAnchorAtPosition(bufferRange.start, ignoreEqual: true)
+    @endAnchor = @buffer.addAnchorAtPosition(bufferRange.end)
 
   getBufferRange: ->
     new Range(@startAnchor.getBufferPosition(), @endAnchor.getBufferPosition())

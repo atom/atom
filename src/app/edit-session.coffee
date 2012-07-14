@@ -57,6 +57,8 @@ class EditSession
     @displayBuffer.off ".edit-session-#{@id}"
     @displayBuffer.destroy()
     @project.removeEditSession(this)
+    anchor.destroy() for anchor in @getAnchors()
+    anchorRange.destroy() for anchorRange in @getAnchorRanges()
 
   serialize: ->
     buffer: @buffer.getPath()
@@ -249,6 +251,9 @@ class EditSession
 
   getAnchors: ->
     new Array(@anchors...)
+
+  getAnchorRanges: ->
+    new Array(@anchorRanges...)
 
   addAnchor: (options={}) ->
     anchor = @buffer.addAnchor(_.extend({editSession: this}, options))

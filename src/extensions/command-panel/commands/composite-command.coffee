@@ -7,13 +7,16 @@ class CompositeCommand
   execute: (project, editSession) ->
     currentRanges = editSession.getSelectedBufferRanges()
     for command in @subcommands
+      operations?.forEach (o) -> o.destroy()
       operations = []
       for range in currentRanges
         operations.push(command.compile(project, editSession.buffer, range)...)
       currentRanges = operations.map (o) -> o.getBufferRange()
 
     editSession.clearAllSelections() unless command.preserveSelections
-    operation.execute(editSession) for operation in operations
+    for operation in operations
+      operation.execute(editSession)
+      operation.destroy()
 
   reverse: ->
     new CompositeCommand(@subcommands.map (command) -> command.reverse())

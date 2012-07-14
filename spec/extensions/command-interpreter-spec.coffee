@@ -2,8 +2,8 @@ CommandInterpreter = require 'command-panel/command-interpreter'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-fdescribe "CommandInterpreter", ->
-  [interpreter, editSession, buffer] = []
+describe "CommandInterpreter", ->
+  [interpreter, editSession, buffer, anchorCountBefore] = []
 
   beforeEach ->
     interpreter = new CommandInterpreter(fixturesProject)
@@ -12,6 +12,7 @@ fdescribe "CommandInterpreter", ->
 
   afterEach ->
     editSession.destroy()
+    expect(buffer.getAnchors().length).toBe 0
 
   describe "addresses", ->
     beforeEach ->
