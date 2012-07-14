@@ -4,17 +4,16 @@ module.exports =
 class CompositeCommand
   constructor: (@subcommands) ->
 
-  execute: (project, activeEditSession) ->
-    currentRanges = activeEditSession.getSelectedBufferRanges()
-
+  execute: (project, editSession) ->
+    currentRanges = editSession.getSelectedBufferRanges()
     for command in @subcommands
-      newRanges = []
+      operations = []
       for range in currentRanges
-        newRanges.push(command.execute(project, activeEditSession.buffer, range)...)
-      currentRanges = newRanges
+        operations.push(command.compile(project, editSession.buffer, range)...)
+      currentRanges = operations.map (o) -> o.getBufferRange()
 
-    unless command.preserveSelections
-      activeEditSession.setSelectedBufferRanges(currentRanges)
+    editSession.clearAllSelections() unless command.preserveSelections
+    operation.execute(editSession) for operation in operations
 
   reverse: ->
     new CompositeCommand(@subcommands.map (command) -> command.reverse())

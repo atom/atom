@@ -1,8 +1,9 @@
 Command = require 'command-panel/commands/command'
+Operation = require 'command-panel/operation'
 
 module.exports =
 class Address extends Command
-  execute: (project, buffer, range) ->
-    [@getRange(buffer, range)]
+  compile: (project, buffer, range) ->
+    [new Operation(buffer: buffer, bufferRange: @getRange(buffer, range))]
 
   isAddress: -> true

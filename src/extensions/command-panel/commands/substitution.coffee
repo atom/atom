@@ -1,4 +1,5 @@
 Command = require 'command-panel/commands/command'
+Operation = require 'command-panel/operation'
 
 module.exports =
 class Substitution extends Command
@@ -10,7 +11,13 @@ class Substitution extends Command
     @replacementText = replacementText
     @regex = new RegExp(pattern, options.join(''))
 
-  execute: (project, buffer, range) ->
+  compile: (project, buffer, range) ->
+    operations = []
     buffer.scanInRange @regex, range, (match, matchRange, { replace }) =>
-      replace(@replacementText)
-    [range]
+      operations.push(new Operation(
+        buffer: buffer,
+        bufferRange: matchRange,
+        newText: @replacementText
+        preserveSelection: true
+      ))
+    operations

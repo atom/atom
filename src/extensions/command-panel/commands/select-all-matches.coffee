@@ -1,5 +1,5 @@
 Command = require 'command-panel/commands/command'
-Range = require 'range'
+Operation = require 'command-panel/operation'
 
 module.exports =
 class SelectAllMatches extends Command
@@ -8,8 +8,8 @@ class SelectAllMatches extends Command
   constructor: (pattern) ->
     @regex = new RegExp(pattern, 'g')
 
-  execute: (project, buffer, range) ->
-    rangesToSelect = []
+  compile: (project, buffer, range) ->
+    operations = []
     buffer.scanInRange @regex, range, (match, matchRange) ->
-      rangesToSelect.push(matchRange)
-    rangesToSelect
+      operations.push(new Operation(buffer: buffer, bufferRange: matchRange))
+    operations

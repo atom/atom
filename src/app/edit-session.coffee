@@ -302,13 +302,14 @@ class EditSession
 
   addSelectionForBufferRange: (bufferRange, options) ->
     @addCursor().selection.setBufferRange(bufferRange, options)
+    @mergeIntersectingSelections()
 
   setSelectedBufferRange: (bufferRange, options) ->
     @setSelectedBufferRanges([bufferRange], options)
 
   setSelectedBufferRanges: (bufferRanges, options={}) ->
     throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
-    selection.destroy() for selection in @getSelections()
+    @clearAllSelections()
     for bufferRange, i in bufferRanges
       bufferRange = Range.fromObject(bufferRange)
       unless options.preserveFolds
@@ -325,6 +326,9 @@ class EditSession
     for selection in @getSelections() when selection != lastSelection
       selection.destroy()
     lastSelection.clear()
+
+  clearAllSelections: ->
+    selection.destroy() for selection in @getSelections()
 
   getSelections: -> new Array(@selections...)
 

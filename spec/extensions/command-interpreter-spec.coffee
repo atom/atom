@@ -2,7 +2,7 @@ CommandInterpreter = require 'command-panel/command-interpreter'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-describe "CommandInterpreter", ->
+fdescribe "CommandInterpreter", ->
   [interpreter, editSession, buffer] = []
 
   beforeEach ->
@@ -242,15 +242,3 @@ describe "CommandInterpreter", ->
           editSession.setSelectedBufferRanges([[[5, 0], [5, 20]], [[6, 0], [6, 44]]])
           interpreter.eval(',s/current/foo/g', editSession)
           expect(editSession.getSelectedBufferRanges()).toEqual [[[5, 0], [5, 16]], [[6, 0], [6, 36]]]
-
-  describe "when command selects folded text", ->
-    it "unfolds lines that command selects", ->
-      editSession.createFold(1, 9)
-      editSession.createFold(5, 8)
-      editSession.setSelectedBufferRange([[0,0], [0,0]])
-
-      interpreter.eval('/push/', editSession)
-      expect(editSession.getSelection().getBufferRange()).toEqual [[6,29], [6,33]]
-      expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
-      expect(editSession.lineForScreenRow(5).fold).toBeUndefined()
-      expect(editSession.lineForScreenRow(6).text).toBe buffer.lineForRow(6)
