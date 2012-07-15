@@ -535,6 +535,14 @@ describe "EditSession", ->
         editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
         expect(editSession.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
 
+      it "recyles existing selection instances", ->
+        selection = editSession.getSelection()
+        editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
+
+        [selection1, selection2] = editSession.getSelections()
+        expect(selection1).toBe selection
+        expect(selection1.getBufferRange()).toEqual [[2, 2], [3, 3]]
+
       describe "when the preserveFolds option is false (the default)", ->
         it "removes folds that contain the selections", ->
           editSession.setSelectedBufferRange([[0,0], [0,0]])
