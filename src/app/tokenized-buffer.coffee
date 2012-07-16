@@ -48,6 +48,11 @@ class TokenizedBuffer
     else
       null
 
+  indentationForRow: (row) ->
+    state = @stateForRow(row)
+    previousRowText = @buffer.lineForRow(row - 1)
+    @aceMode.getNextLineIndent(state, previousRowText, @tabText)
+
   autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
     { row, column} = bufferPosition
     state = @stateForRow(row)
