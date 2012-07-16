@@ -1071,7 +1071,6 @@ describe "EditSession", ->
             editSession.setCursorBufferPosition [7, 2]
             editSession.setAutoIndent(true)
             editSession.insertTab()
-            buffer.logLines()
             expect(buffer.lineForRow(7)).toMatch /^\s+$/
             expect(buffer.lineForRow(7).length).toBe 6
             expect(editSession.getCursorBufferPosition()).toEqual [7, 6]
