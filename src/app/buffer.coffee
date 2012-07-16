@@ -12,6 +12,7 @@ class Buffer
   @idCounter = 1
   undoManager: null
   modified: null
+  modifiedOnDisk: null
   lines: null
   file: null
 
@@ -41,7 +42,9 @@ class Buffer
     @file?.off()
     @file = new File(path)
     @file.on "contents-change", =>
-      unless @isModified()
+      if @isModified()
+        @modifiedOnDisk = true
+      else
         @setText(fs.read(@file.getPath()))
         @modified = false
     @trigger "path-change", this
@@ -167,8 +170,12 @@ class Buffer
     fs.write path, @getText()
     @file?.updateMd5()
     @modified = false
+    @modifiedOnDisk = false
     @setPath(path)
     @trigger 'after-save'
+
+  isModifiedOnDisk: ->
+    @modifiedOnDisk
 
   isModified: ->
     @modified
