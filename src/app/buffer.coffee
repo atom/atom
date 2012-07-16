@@ -33,6 +33,11 @@ class Buffer
   destroy: ->
     @file?.off()
 
+  reload: ->
+    @setText(fs.read(@file.getPath()))
+    @modified = false
+    @modifiedOnDisk = false
+
   getPath: ->
     @file?.getPath()
 

@@ -299,6 +299,17 @@ describe 'Buffer', ->
         buffer = new Buffer
         expect(-> buffer.save()).toThrow()
 
+  describe "reload()", ->
+    it "loads text from disk are sets @modified and @modifiedOnDisk to false", ->
+      buffer.modified = true
+      buffer.modifiedOnDisk = true
+      buffer.setText("abc")
+
+      buffer.reload()
+      expect(buffer.modifed).toBeFalsy()
+      expect(buffer.modifiedOnDisk).toBeFalsy()
+      expect(buffer.getText()).toBe(fileContents)
+
   describe ".saveAs(path)", ->
     filePath = null
 
