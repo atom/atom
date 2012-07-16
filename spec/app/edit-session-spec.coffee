@@ -1075,6 +1075,16 @@ describe "EditSession", ->
             expect(buffer.lineForRow(7).length).toBe 6
             expect(editSession.getCursorBufferPosition()).toEqual [7, 6]
 
+          it "allows for additional indentation if the cursor is beyond the proper indentation point", ->
+            buffer.insert([7, 0], "      \n")
+            editSession.tabText = "  "
+            editSession.setCursorBufferPosition [7, 6]
+            editSession.setAutoIndent(true)
+            editSession.indent()
+            expect(buffer.lineForRow(7)).toMatch /^\s+$/
+            expect(buffer.lineForRow(7).length).toBe 8
+            expect(editSession.getCursorBufferPosition()).toEqual [7, 8]
+
       describe "if editSession.softTabs is false", ->
         it "inserts a tab character into the buffer", ->
           editSession.setSoftTabs(false)

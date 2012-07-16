@@ -134,8 +134,11 @@ class EditSession
       whitespaceMatch = @lineForBufferRow(@getCursorBufferPosition().row).match /^\s*$/
       if @autoIndent and whitespaceMatch
         indentation = @indentationForRow(@getCursorBufferPosition().row)
-        @getSelection().selectLine()
-        @insertText(indentation)
+        if indentation.length > whitespaceMatch[0].length
+          @getSelection().selectLine()
+          @insertText(indentation)
+        else
+          @insertText(@tabText)
       else if @softTabs
         @insertText(@tabText)
       else
