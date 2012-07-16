@@ -131,7 +131,12 @@ class EditSession
 
   insertTab: ->
     if @getSelection().isEmpty()
-      if @softTabs
+      whitespaceMatch = @lineForBufferRow(@getCursorBufferPosition().row).match /^\s*$/
+      if @autoIndent and whitespaceMatch
+        indentation = @indentationForRow(@getCursorBufferPosition().row)
+        @getSelection().selectLine()
+        @insertText(indentation)
+      else if @softTabs
         @insertText(@tabText)
       else
         @insertText('\t')
@@ -224,6 +229,9 @@ class EditSession
 
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
+
+  indentationForRow: (row) ->
+    @tokenizedBuffer.indentationForRow(row)
 
   autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
     return { text } unless @autoIndent

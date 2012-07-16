@@ -1056,12 +1056,25 @@ describe "EditSession", ->
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
     describe ".insertTab()", ->
-      describe "if 'softTabs' is true (the default)", ->
-        it "inserts the value of 'tabText' into the buffer", ->
-          tabRegex = new RegExp("^#{editSession.tabText}")
-          expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
-          editSession.insertTab()
-          expect(buffer.lineForRow(0)).toMatch(tabRegex)
+      describe "when nothing is selected", ->
+        describe "if 'softTabs' is true (the default)", ->
+          it "inserts the value of 'tabText' into the buffer", ->
+            tabRegex = new RegExp("^#{editSession.tabText}")
+            expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
+            editSession.insertTab()
+            expect(buffer.lineForRow(0)).toMatch(tabRegex)
+
+        describe "when auto-indent is on and there is no text after the cursor", ->
+          it "properly indents the line", ->
+            buffer.insert([7, 0], "  \n")
+            editSession.tabText = "  "
+            editSession.setCursorBufferPosition [7, 2]
+            editSession.setAutoIndent(true)
+            editSession.insertTab()
+            buffer.logLines()
+            expect(buffer.lineForRow(7)).toMatch /^\s+$/
+            expect(buffer.lineForRow(7).length).toBe 6
+            expect(editSession.getCursorBufferPosition()).toEqual [7, 6]
 
       describe "if editSession.softTabs is false", ->
         it "inserts a tab character into the buffer", ->
