@@ -105,7 +105,7 @@ class Editor extends View
       'select-down': @selectDown
       'select-word': @selectWord
       'newline': @insertNewline
-      'tab': @insertTab
+      'indent': @indent
       'indent-selected-rows': @indentSelectedRows
       'outdent-selected-rows': @outdentSelectedRows
       'backspace': @backspace
@@ -211,7 +211,7 @@ class Editor extends View
   insertText: (text) -> @activeEditSession.insertText(text)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
-  insertTab: -> @activeEditSession.insertTab()
+  indent: -> @activeEditSession.indent()
   indentSelectedRows: -> @activeEditSession.indentSelectedRows()
   outdentSelectedRows: -> @activeEditSession.outdentSelectedRows()
   cutSelection: -> @activeEditSession.cutSelectedText()

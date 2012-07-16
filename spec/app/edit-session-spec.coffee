@@ -1055,13 +1055,13 @@ describe "EditSession", ->
           editSession.deleteToEndOfWord()
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
-    describe ".insertTab()", ->
+    describe ".indent()", ->
       describe "when nothing is selected", ->
         describe "if 'softTabs' is true (the default)", ->
           it "inserts the value of 'tabText' into the buffer", ->
             tabRegex = new RegExp("^#{editSession.tabText}")
             expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
-            editSession.insertTab()
+            editSession.indent()
             expect(buffer.lineForRow(0)).toMatch(tabRegex)
 
         describe "when auto-indent is on and there is no text after the cursor", ->
@@ -1070,7 +1070,7 @@ describe "EditSession", ->
             editSession.tabText = "  "
             editSession.setCursorBufferPosition [7, 2]
             editSession.setAutoIndent(true)
-            editSession.insertTab()
+            editSession.indent()
             expect(buffer.lineForRow(7)).toMatch /^\s+$/
             expect(buffer.lineForRow(7).length).toBe 6
             expect(editSession.getCursorBufferPosition()).toEqual [7, 6]
@@ -1079,12 +1079,12 @@ describe "EditSession", ->
         it "inserts a tab character into the buffer", ->
           editSession.setSoftTabs(false)
           expect(buffer.lineForRow(0)).not.toMatch(/^\t/)
-          editSession.insertTab()
+          editSession.indent()
           expect(buffer.lineForRow(0)).toMatch(/^\t/)
           expect(editSession.getCursorBufferPosition()).toEqual [0, 1]
           expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabText.length]
 
-          editSession.insertTab()
+          editSession.indent()
           expect(buffer.lineForRow(0)).toMatch(/^\t\t/)
           expect(editSession.getCursorBufferPosition()).toEqual [0, 2]
           expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabText.length * 2]

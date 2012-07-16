@@ -145,7 +145,7 @@ describe "Snippets extension", ->
         editor.insertText("xte")
         expect(editor.getCursorScreenPosition()).toEqual [0, 3]
 
-        editor.trigger 'tab'
+        editor.trigger keydownEvent('tab', target: editor[0])
         expect(buffer.lineForRow(0)).toBe "xte  var quicksort = function () {"
         expect(editor.getCursorScreenPosition()).toEqual [0, 5]
 

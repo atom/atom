@@ -129,7 +129,7 @@ class EditSession
     @moveCursorToEndOfLine()
     @insertNewline()
 
-  insertTab: ->
+  indent: ->
     if @getSelection().isEmpty()
       whitespaceMatch = @lineForBufferRow(@getCursorBufferPosition().row).match /^\s*$/
       if @autoIndent and whitespaceMatch

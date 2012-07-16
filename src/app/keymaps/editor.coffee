@@ -7,7 +7,7 @@ window.keymap.bindKeys '.editor',
   'meta-a': 'select-all'
   'enter': 'newline'
   'meta-enter': 'newline-below'
-  'tab': 'tab'
+  'tab': 'indent'
   'backspace': 'backspace'
   'delete': 'delete'
   'meta-x': 'cut'
