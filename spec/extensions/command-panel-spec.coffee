@@ -34,11 +34,8 @@ describe "CommandPanel", ->
       expect(commandPanel.miniEditor.isFocused).toBeFalsy()
 
       rootView.trigger 'command-panel:toggle'
-      window.advanceClock() # Setting the font is in a defer statement
       expect(rootView.find('.command-panel').view()).toBe commandPanel
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
-      # this is currently assigned dynamically since our css scheme lacks variables
-      expect(commandPanel.prompt.css('font')).toBe commandPanel.miniEditor.css('font')
       commandPanel.miniEditor.insertText 's/war/peace/g'
 
       rootView.trigger 'command-panel:toggle'

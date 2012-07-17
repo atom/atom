@@ -56,7 +56,6 @@ class CommandPanel extends View
     @rootView.append(this)
     @miniEditor.focus()
     @miniEditor.setText(text)
-    @prompt.css 'font', @miniEditor.css('font')
 
   detach: ->
     @rootView.focus()
