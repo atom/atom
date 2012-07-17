@@ -1,5 +1,6 @@
 Command = require 'command-panel/commands/command'
 Operation = require 'command-panel/operation'
+$ = require 'jquery'
 
 module.exports =
 class SelectAllMatches extends Command
@@ -9,8 +10,10 @@ class SelectAllMatches extends Command
     @regex = new RegExp(pattern, 'g')
 
   compile: (project, buffer, ranges) ->
+    deferred = $.Deferred()
     operations = []
     for range in ranges
       buffer.scanInRange @regex, range, (match, matchRange) ->
         operations.push(new Operation(buffer: buffer, bufferRange: matchRange))
-    operations
+    deferred.resolve(operations)
+    deferred.promise()

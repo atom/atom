@@ -1,5 +1,6 @@
 Command = require 'command-panel/commands/command'
 Operation = require 'command-panel/operation'
+$ = require 'jquery'
 
 module.exports =
 class Substitution extends Command
@@ -12,6 +13,7 @@ class Substitution extends Command
     @regex = new RegExp(pattern, options.join(''))
 
   compile: (project, buffer, ranges) ->
+    deferred = $.Deferred()
     operations = []
     for range in ranges
       buffer.scanInRange @regex, range, (match, matchRange, { replace }) =>
@@ -21,4 +23,5 @@ class Substitution extends Command
           newText: @replacementText
           preserveSelection: true
         ))
-    operations
+    deferred.resolve(operations)
+    deferred.promise()

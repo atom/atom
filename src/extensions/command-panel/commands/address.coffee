@@ -1,10 +1,13 @@
 Command = require 'command-panel/commands/command'
 Operation = require 'command-panel/operation'
+$ = require 'jquery'
 
 module.exports =
 class Address extends Command
   compile: (project, buffer, ranges) ->
-    ranges.map (range) =>
+    deferred = $.Deferred()
+    deferred.resolve ranges.map (range) =>
       new Operation(buffer: buffer, bufferRange: @getRange(buffer, range))
+    deferred.promise()
 
   isAddress: -> true

@@ -1,4 +1,5 @@
 _ = require 'underscore'
+$ = require 'jquery'
 
 module.exports =
 class CompositeCommand
@@ -6,15 +7,27 @@ class CompositeCommand
 
   execute: (project, editSession) ->
     currentRanges = editSession.getSelectedBufferRanges()
-    for command in @subcommands
-      operations?.forEach (o) -> o.destroy()
-      operations = command.compile(project, editSession.buffer, currentRanges)
-      currentRanges = operations.map (o) -> o.getBufferRange()
+    @executeCommands(@subcommands, project, editSession, currentRanges)
 
-    editSession.clearAllSelections() unless command.preserveSelections
-    for operation in operations
-      operation.execute(editSession)
-      operation.destroy()
+  executeCommands: (commands, project, editSession, ranges) ->
+    deferred = $.Deferred()
+    [currentCommand, remainingCommands...] = commands
+
+    currentCommand.compile(project, editSession.buffer, ranges).done (operations) =>
+      if remainingCommands.length
+        nextRanges = operations.map (operation) ->
+          operation.destroy()
+          operation.getBufferRange()
+        @executeCommands(remainingCommands, project, editSession, nextRanges).done ->
+          deferred.resolve()
+      else
+        editSession.clearAllSelections() unless currentCommand.preserveSelections
+        for operation in operations
+          operation.execute(editSession)
+          operation.destroy()
+        deferred.resolve()
+
+    deferred.promise()
 
   reverse: ->
     new CompositeCommand(@subcommands.map (command) -> command.reverse())
