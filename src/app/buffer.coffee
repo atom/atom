@@ -18,6 +18,7 @@ class Buffer
   file: null
   anchors: null
   anchorRanges: null
+  refcount: 0
 
   constructor: (path) ->
     @id = @constructor.idCounter++
@@ -36,7 +37,16 @@ class Buffer
     @modified = false
 
   destroy: ->
+    throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
+    @destroyed = true
     @file?.off()
+
+  retain: ->
+    @refcount++
+
+  release: ->
+    @refcount--
+    @destroy() if @refcount <= 0
 
   getPath: ->
     @file?.getPath()

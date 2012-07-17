@@ -100,22 +100,14 @@ class Project
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()
 
+  getEditSessions: ->
+    new Array(@editSessions...)
+
   destroy: ->
-    for editSession in _.clone(@editSessions)
-      @removeEditSession(editSession)
+    editSession.destroy() for editSession in @getEditSessions()
 
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
-    @destroyBufferIfOrphaned(editSession.buffer)
-
-  destroyBufferIfOrphaned: (buffer) ->
-    unless _.find(@editSessions, (editSession) -> editSession.buffer == buffer)
-      buffer.destroy()
-
-  buildBuffer: (filePath) ->
-    buffer = new Buffer(filePath)
-    @trigger 'new-buffer', buffer
-    buffer
 
   getBuffers: ->
     buffers = []
@@ -126,6 +118,11 @@ class Project
 
   bufferWithPath: (path) ->
     return editSession.buffer for editSession in @editSessions when editSession.buffer.getPath() == path
+
+  buildBuffer: (filePath) ->
+    buffer = new Buffer(filePath)
+    @trigger 'new-buffer', buffer
+    buffer
 
   scan: (regex, iterator) ->
     regex = new RegExp(regex.source, 'g')

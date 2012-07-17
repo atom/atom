@@ -42,6 +42,7 @@ class EditSession
     @selections = []
     @addCursorAtScreenPosition([0, 0])
 
+    @buffer.retain()
     @buffer.on "path-change.edit-session-#{@id}", =>
       @trigger 'buffer-path-change'
 
@@ -54,7 +55,11 @@ class EditSession
         anchor.refreshScreenPosition() for anchor in @getAnchors()
 
   destroy: ->
+    throw new Error("Edit session already destroyed") if @destroyed
+    @destroyed = true
+
     @buffer.off ".edit-session-#{@id}"
+    @buffer.release()
     @displayBuffer.off ".edit-session-#{@id}"
     @displayBuffer.destroy()
     @project.removeEditSession(this)

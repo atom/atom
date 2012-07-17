@@ -491,7 +491,7 @@ describe "RootView", ->
       rootView.focus()
       expect(pathChangeHandler).not.toHaveBeenCalled()
 
-      editor2.edit(editor1.activeEditSession)
+      editor2.edit(editor1.activeEditSession.copy())
       editor2.focus()
       expect(pathChangeHandler).not.toHaveBeenCalled()
 

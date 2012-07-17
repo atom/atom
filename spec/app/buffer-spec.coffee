@@ -11,7 +11,7 @@ describe 'Buffer', ->
     buffer = new Buffer(filePath)
 
   afterEach ->
-    buffer.destroy()
+    buffer?.destroy()
 
   describe 'constructor', ->
     beforeEach ->
@@ -31,9 +31,9 @@ describe 'Buffer', ->
 
       describe "when no file exists for the path", ->
         it "throws an exception", ->
+          buffer = null
           filePath = "does-not-exist.txt"
           expect(fs.exists(filePath)).toBeFalsy()
-
           expect(-> new Buffer(filePath)).toThrow()
 
     describe "when no path is given", ->
@@ -91,9 +91,6 @@ describe 'Buffer', ->
           expect(buffer.isModified()).toBeFalsy()
 
   describe ".isModified()", ->
-    beforeEach ->
-      buffer.destroy()
-
     it "returns true when user changes buffer", ->
       expect(buffer.isModified()).toBeFalsy()
       buffer.insert([0,0], "hi")
@@ -102,6 +99,7 @@ describe 'Buffer', ->
     it "returns false after modified buffer is saved", ->
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, '')
+      buffer.destroy()
       buffer = new Buffer(filePath)
       expect(buffer.isModified()).toBe false
 

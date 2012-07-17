@@ -15,7 +15,7 @@ describe "Autocomplete", ->
     miniEditor = autocomplete.miniEditor
 
   afterEach ->
-    editor.remove()
+    editor?.remove()
 
   describe "@activate(rootView)", ->
     it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
@@ -382,6 +382,7 @@ describe "Autocomplete", ->
       editor.remove()
       editor.getBuffer().insert([0,0], "s")
       expect(autocomplete.buildWordList).not.toHaveBeenCalled()
+      editor = null
 
   describe ".attach()", ->
     beforeEach ->

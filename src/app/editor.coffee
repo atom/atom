@@ -570,8 +570,11 @@ class Editor extends View
     if @pane() then @pane().remove() else super
     rootView?.focus()
 
+  getEditSessions: ->
+    new Array(@editSessions...)
+
   destroyEditSessions: ->
-    for session in @editSessions
+    for session in @getEditSessions()
       session.destroy()
 
   renderWhenAttached: ->
