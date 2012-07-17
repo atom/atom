@@ -1362,14 +1362,12 @@ describe "EditSession", ->
         [cursor1, cursor2, cursor3] = editSession.getCursors()
         expect(editSession.getCursors().length).toBe 3
 
-        editSession.backspace()
+        buffer.delete([[0, 0], [0, 1]])
+
+        expect(editSession.getCursors().length).toBe 2
         expect(editSession.getCursors()).toEqual [cursor1, cursor3]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor3.getBufferPosition()).toEqual [1,0]
-
-        editSession.insertText "x"
-        expect(editSession.lineForBufferRow(0)).toBe "xar quicksort = function () {"
-        expect(editSession.lineForBufferRow(1)).toBe "x var sort = function(items) {"
+        expect(cursor3.getBufferPosition()).toEqual [1,1]
 
   describe "folding", ->
     describe "structural folding", ->

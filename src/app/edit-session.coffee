@@ -45,7 +45,8 @@ class EditSession
     @buffer.on "path-change.edit-session-#{@id}", =>
       @trigger 'buffer-path-change'
 
-    @buffer.on "change.edit-session-#{@id}", (e) => @mergeCursors()
+    @buffer.on "update-anchors-after-change.edit-session-#{@id}", =>
+      @mergeCursors()
 
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
       @trigger 'screen-lines-change', e
