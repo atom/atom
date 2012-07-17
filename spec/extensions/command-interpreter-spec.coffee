@@ -13,7 +13,7 @@ describe "CommandInterpreter", ->
     buffer = editSession.buffer
 
   afterEach ->
-    editSession.destroy()
+    editSession?.destroy()
     expect(buffer.getAnchors().length).toBe 0
 
   describe "addresses", ->
@@ -310,16 +310,19 @@ describe "CommandInterpreter", ->
     it "returns selection operations for all regex matches in all the project's files", ->
       editSession.destroy()
       project = new Project(fixturesProject.resolve('dir/'))
-      interpreter = new CommandInterpreter(fixturesProject)
-      editSession = project.open('a')
+      interpreter = new CommandInterpreter(project)
 
       operations = null
       waitsForPromise ->
-        interpreter.eval("X x/a+/", editSession).done (ops) ->
-          operations = ops
+        interpreter.eval("X x/a+/").done (ops) -> operations = ops
 
       runs ->
-        console.log operations
+        expect(operations.length).toBeGreaterThan 3
+        for operation in operations
+          editSession = project.open(operation.getPath())
+          operation.execute(editSession)
+          expect(editSession.getSelectedText()).toMatch /a+/
+          editSession.destroy()
+          operation.destroy()
 
-
-        operation.destroy() for operation in operations
+        editSession = null

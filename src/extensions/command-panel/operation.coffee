@@ -4,6 +4,9 @@ class Operation
     @buffer.retain()
     @anchorRange = @buffer.addAnchorRange(bufferRange)
 
+  getPath: ->
+    @buffer.getPath()
+
   getBufferRange: ->
     @anchorRange.getBufferRange()
 

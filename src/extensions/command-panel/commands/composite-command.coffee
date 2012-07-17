@@ -6,14 +6,14 @@ class CompositeCommand
   constructor: (@subcommands) ->
 
   execute: (project, editSession) ->
-    currentRanges = editSession.getSelectedBufferRanges()
+    currentRanges = editSession?.getSelectedBufferRanges()
     @executeCommands(@subcommands, project, editSession, currentRanges)
 
   executeCommands: (commands, project, editSession, ranges) ->
     deferred = $.Deferred()
     [currentCommand, remainingCommands...] = commands
 
-    currentCommand.compile(project, editSession.buffer, ranges).done (operations) =>
+    currentCommand.compile(project, editSession?.buffer, ranges).done (operations) =>
       if remainingCommands.length
         nextRanges = operations.map (operation) ->
           operation.destroy()
@@ -21,7 +21,7 @@ class CompositeCommand
         @executeCommands(remainingCommands, project, editSession, nextRanges).done ->
           deferred.resolve()
       else
-        editSession.clearAllSelections() unless currentCommand.preserveSelections
+        editSession?.clearAllSelections() unless currentCommand.preserveSelections
         if currentCommand.previewOperations
           deferred.resolve(operations)
         else
