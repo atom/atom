@@ -8,9 +8,7 @@ class CompositeCommand
     currentRanges = editSession.getSelectedBufferRanges()
     for command in @subcommands
       operations?.forEach (o) -> o.destroy()
-      operations = []
-      for range in currentRanges
-        operations.push(command.compile(project, editSession.buffer, range)...)
+      operations = command.compile(project, editSession.buffer, currentRanges)
       currentRanges = operations.map (o) -> o.getBufferRange()
 
     editSession.clearAllSelections() unless command.preserveSelections

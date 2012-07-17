@@ -11,13 +11,14 @@ class Substitution extends Command
     @replacementText = replacementText
     @regex = new RegExp(pattern, options.join(''))
 
-  compile: (project, buffer, range) ->
+  compile: (project, buffer, ranges) ->
     operations = []
-    buffer.scanInRange @regex, range, (match, matchRange, { replace }) =>
-      operations.push(new Operation(
-        buffer: buffer,
-        bufferRange: matchRange,
-        newText: @replacementText
-        preserveSelection: true
-      ))
+    for range in ranges
+      buffer.scanInRange @regex, range, (match, matchRange, { replace }) =>
+        operations.push(new Operation(
+          buffer: buffer,
+          bufferRange: matchRange,
+          newText: @replacementText
+          preserveSelection: true
+        ))
     operations
