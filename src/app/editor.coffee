@@ -394,7 +394,7 @@ class Editor extends View
     for editSession, index in @editSessions
       if editSession.buffer.getPath() == path
         @setActiveEditSessionIndex(index)
-        return true
+        return @activeEditSession
     false
 
   getOpenBufferPaths: ->
