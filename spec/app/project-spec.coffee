@@ -125,5 +125,3 @@ describe "Project", ->
             path: project.resolve('a')
             match: ['aa', 'a']
             range: [[1, 3], [1, 5]]
-
-
