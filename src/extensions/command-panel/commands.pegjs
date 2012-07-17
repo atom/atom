@@ -8,6 +8,7 @@
   var CurrentSelectionAddress = require('command-panel/commands/current-selection-address')
   var RegexAddress = require('command-panel/commands/regex-address')
   var SelectAllMatches = require('command-panel/commands/select-all-matches')
+  var SelectAllMatchesInProject = require('command-panel/commands/select-all-matches-in-project')
 }
 
 start = expressions:(expression+) {
@@ -35,7 +36,7 @@ primitiveAddress
 regexAddress
   = reverse:'-'? '/' pattern:pattern '/'? { return new RegexAddress(pattern, reverse.length > 0)}
 
-command = substitution / selectAllMatches
+command = substitution / selectAllMatches / selectAllMatchesInProject
 
 substitution
   = "s" _ "/" find:pattern "/" replace:pattern "/" _ options:[g]* {
@@ -44,6 +45,9 @@ substitution
 
 selectAllMatches
   = 'x' _ '/' pattern:pattern '/'? { return new SelectAllMatches(pattern) }
+
+selectAllMatchesInProject
+  = 'X' _ 'x' _ '/' pattern:pattern '/'? { return new SelectAllMatchesInProject(pattern) }
 
 pattern
   = pattern:[^/]* { return pattern.join('') }

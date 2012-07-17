@@ -1,6 +1,7 @@
 module.exports =
 class Operation
   constructor: ({@buffer, bufferRange, @newText, @preserveSelection}) ->
+    @buffer.retain()
     @anchorRange = @buffer.addAnchorRange(bufferRange)
 
   getBufferRange: ->
@@ -11,4 +12,5 @@ class Operation
     editSession.addSelectionForBufferRange(@getBufferRange()) unless @preserveSelection
 
   destroy: ->
+    @buffer.release()
     @anchorRange.destroy()

@@ -22,10 +22,13 @@ class CompositeCommand
           deferred.resolve()
       else
         editSession.clearAllSelections() unless currentCommand.preserveSelections
-        for operation in operations
-          operation.execute(editSession)
-          operation.destroy()
-        deferred.resolve()
+        if currentCommand.previewOperations
+          deferred.resolve(operations)
+        else
+          for operation in operations
+            operation.execute(editSession)
+            operation.destroy()
+          deferred.resolve()
 
     deferred.promise()
 

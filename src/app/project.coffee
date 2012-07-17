@@ -77,13 +77,7 @@ class Project
   setSoftWrap: (@softWrap) ->
 
   open: (filePath, editSessionOptions={}) ->
-    if filePath?
-      filePath = @resolve(filePath)
-      buffer = @bufferWithPath(filePath) ? @buildBuffer(filePath)
-    else
-      buffer = @buildBuffer()
-
-    @buildEditSession(buffer, editSessionOptions)
+    @buildEditSession(@bufferForPath(filePath), editSessionOptions)
 
   buildEditSession: (buffer, editSessionOptions) ->
     options = _.extend(@defaultEditSessionOptions(), editSessionOptions)
@@ -116,8 +110,13 @@ class Project
 
     buffers
 
-  bufferWithPath: (path) ->
-    return editSession.buffer for editSession in @editSessions when editSession.buffer.getPath() == path
+  bufferForPath: (filePath) ->
+    if filePath?
+      filePath = @resolve(filePath)
+      return editSession.buffer for editSession in @editSessions when editSession.buffer.getPath() == filePath
+      @buildBuffer(filePath)
+    else
+      @buildBuffer()
 
   buildBuffer: (filePath) ->
     buffer = new Buffer(filePath)

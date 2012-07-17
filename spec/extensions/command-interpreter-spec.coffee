@@ -1,11 +1,13 @@
 CommandInterpreter = require 'command-panel/command-interpreter'
+Project = require 'project'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
 describe "CommandInterpreter", ->
-  [interpreter, editSession, buffer, anchorCountBefore] = []
+  [project, interpreter, editSession, buffer, anchorCountBefore] = []
 
   beforeEach ->
+    project = new Project(fixturesProject.resolve('dir/'))
     interpreter = new CommandInterpreter(fixturesProject)
     editSession = fixturesProject.open('sample.js')
     buffer = editSession.buffer
@@ -303,3 +305,21 @@ describe "CommandInterpreter", ->
 
           runs ->
             expect(editSession.getSelectedBufferRanges()).toEqual [[[5, 0], [5, 16]], [[6, 0], [6, 36]]]
+
+  describe "X x/regex/", ->
+    it "returns selection operations for all regex matches in all the project's files", ->
+      editSession.destroy()
+      project = new Project(fixturesProject.resolve('dir/'))
+      interpreter = new CommandInterpreter(fixturesProject)
+      editSession = project.open('a')
+
+      operations = null
+      waitsForPromise ->
+        interpreter.eval("X x/a+/", editSession).done (ops) ->
+          operations = ops
+
+      runs ->
+        console.log operations
+
+
+        operation.destroy() for operation in operations
