@@ -2,13 +2,14 @@ RootView = require 'root-view'
 CommandPanel = require 'command-panel'
 
 describe "CommandPanel", ->
-  [rootView, editor, commandPanel] = []
+  [rootView, editor, buffer, commandPanel] = []
 
   beforeEach ->
     rootView = new RootView
     rootView.open(require.resolve 'fixtures/sample.js')
     rootView.enableKeymap()
     editor = rootView.getActiveEditor()
+    buffer = editor.activeEditSession.buffer
     commandPanel = requireExtension('command-panel')
 
   afterEach ->
@@ -109,13 +110,14 @@ describe "CommandPanel", ->
       expect(rootView.find('.command-panel')).not.toExist()
 
   describe "when return is pressed on the panel's editor", ->
-    it "calls execute", ->
-      spyOn(commandPanel, 'execute')
-      rootView.trigger 'command-panel:toggle'
-      commandPanel.miniEditor.insertText 's/hate/love/g'
-      commandPanel.miniEditor.trigger keydownEvent('enter')
+    describe "if the command has an immediate effect", ->
+      it "executes it immediately on the current buffer", ->
+        rootView.trigger 'command-panel:toggle'
+        commandPanel.miniEditor.insertText ',s/sort/torta/g'
+        commandPanel.miniEditor.trigger keydownEvent('enter')
 
-      expect(commandPanel.execute).toHaveBeenCalled()
+        expect(buffer.lineForRow(0)).toMatch /quicktorta/
+        expect(buffer.lineForRow(1)).toMatch /var torta/
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->
