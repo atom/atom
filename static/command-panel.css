@@ -9,20 +9,22 @@
 .command-panel .preview-list {
   max-height: 300px;
   overflow: auto;
+  padding-bottom: 3px;
 }
 
 .command-panel .preview-list .path{
-  padding-left: 1em;
-  color: red;
+  padding-left: 3px;
+  color: #00ffff;
 }
 
 .command-panel .preview-list .preview {
   padding-left: 1em;
-  color: green;
+  color: #f6f3e8;
 }
 
 .command-panel .preview-list .preview .match{
-  font-weight: bold;
+  background-color: #8E8A8A;
+  padding: 1px;
 }
 
 .command-panel .prompt-and-editor {

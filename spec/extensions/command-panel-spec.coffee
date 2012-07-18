@@ -120,7 +120,7 @@ describe "CommandPanel", ->
         expect(buffer.lineForRow(1)).toMatch /var torta/
 
     describe "when the command returns operations to be previewed", ->
-      fit "displays a preview of the operations above the mini-editor", ->
+      it "displays a preview of the operations above the mini-editor", ->
         rootView.attachToDom()
         editor.remove()
 
@@ -135,7 +135,8 @@ describe "CommandPanel", ->
           expect(commandPanel.previewList).toBeVisible()
           previewItem = commandPanel.previewList.find("li:contains(dir/a)").view()
           expect(previewItem.path.text()).toBe "dir/a"
-          expect(previewItem.preview.text()).toMatch /a+/
+          expect(previewItem.preview.text()).toBe "aaa bbb"
+          expect(previewItem.preview.find(".match").text()).toBe "aaa"
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->

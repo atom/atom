@@ -18,7 +18,12 @@ class Operation
 
   preview: ->
     range = @anchorRange.getBufferRange()
-    @buffer.getTextInRange(range)
+    line = @buffer.lineForRow(range.start.row)
+    prefix = line[0...range.start.column]
+    match = line[range.start.column...range.end.column]
+    suffix = line[range.end.column..]
+
+    {prefix, suffix, match}
 
   destroy: ->
     @buffer.release()
