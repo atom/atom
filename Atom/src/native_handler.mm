@@ -473,6 +473,11 @@ bool NativeHandler::Execute(const CefString& name,
       args.push_back(CefV8Value::CreateString([errorOutput UTF8String]));
       
       callback->ExecuteFunction(callback, args, retval, e, false);
+      
+      if (e.get()) {
+        NSLog(@"Error thrown in TaskTerminatedHandle %s", e->GetMessage().ToString().c_str());
+      }
+      
       context->Exit();
       
       stdout.fileHandleForReading.writeabilityHandler = nil;
