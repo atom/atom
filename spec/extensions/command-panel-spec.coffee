@@ -133,6 +133,9 @@ describe "CommandPanel", ->
         runs ->
           expect(commandPanel).toBeVisible()
           expect(commandPanel.previewList).toBeVisible()
+          previewItem = commandPanel.previewList.find("li:contains(dir/a)").view()
+          expect(previewItem.path.text()).toBe "dir/a"
+          expect(previewItem.preview.text()).toMatch /a+/
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->
