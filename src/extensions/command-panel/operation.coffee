@@ -18,7 +18,7 @@ class Operation
 
   preview: ->
     range = @anchorRange.getBufferRange()
-    @buffer.textInRange(range)
+    @buffer.getTextInRange(range)
 
   destroy: ->
     @buffer.release()
