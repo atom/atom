@@ -13,7 +13,7 @@ describe "CommandPanel", ->
     commandPanel = requireExtension('command-panel')
 
   afterEach ->
-    rootView.remove()
+    rootView.deactivate()
 
   describe "serialization", ->
     it "preserves the command panel's mini editor text and visibility across reloads", ->
@@ -118,6 +118,21 @@ describe "CommandPanel", ->
 
         expect(buffer.lineForRow(0)).toMatch /quicktorta/
         expect(buffer.lineForRow(1)).toMatch /var torta/
+
+    describe "when the command returns operations to be previewed", ->
+      fit "displays a preview of the operations above the mini-editor", ->
+        rootView.attachToDom()
+        editor.remove()
+
+        rootView.trigger 'command-panel:toggle'
+
+        commandPanel.miniEditor.insertText
+
+        waitsForPromise -> commandPanel.execute('X x/a+/')
+
+        runs ->
+          expect(commandPanel).toBeVisible()
+          expect(commandPanel.previewList).toBeVisible()
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->

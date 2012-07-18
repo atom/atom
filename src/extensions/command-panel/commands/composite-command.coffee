@@ -21,10 +21,10 @@ class CompositeCommand
         @executeCommands(remainingCommands, project, editSession, nextRanges).done ->
           deferred.resolve()
       else
-        editSession?.clearAllSelections() unless currentCommand.preserveSelections
         if currentCommand.previewOperations
           deferred.resolve(operations)
         else
+          editSession?.clearAllSelections() unless currentCommand.preserveSelections
           for operation in operations
             operation.execute(editSession)
             operation.destroy()

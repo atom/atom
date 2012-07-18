@@ -14,6 +14,9 @@ class Operation
     @buffer.change(@getBufferRange(), @newText) if @newText
     editSession.addSelectionForBufferRange(@getBufferRange()) unless @preserveSelection
 
+  preview: ->
+    "sad :-("
+
   destroy: ->
     @buffer.release()
     @anchorRange.destroy()

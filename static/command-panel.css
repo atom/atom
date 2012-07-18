@@ -4,6 +4,14 @@
   width: 100%;
   background: #515151;
   padding: 3px;
+}
+
+.command-panel .preview-list {
+  max-height: 300px;
+  overflow: auto;
+}
+
+.command-panel .prompt-and-editor {
   display: -webkit-box;
 }
 

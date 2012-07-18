@@ -2,6 +2,7 @@
 CommandInterpreter = require 'command-panel/command-interpreter'
 RegexAddress = require 'command-panel/commands/regex-address'
 CompositeCommand = require 'command-panel/commands/composite-command'
+PreviewItem = require 'command-panel/preview-item'
 Editor = require 'editor'
 {SyntaxError} = require('pegjs').parser
 
@@ -16,6 +17,9 @@ class CommandPanel extends View
     else
       @instance = new CommandPanel(rootView)
 
+  @deactivate: ->
+    @instance.detach()
+
   @serialize: ->
     text: @instance.miniEditor.getText()
     visible: @instance.hasParent()
@@ -27,8 +31,10 @@ class CommandPanel extends View
 
   @content: ->
     @div class: 'command-panel', =>
-      @div ':', class: 'prompt', outlet: 'prompt'
-      @subview 'miniEditor', new Editor(mini: true)
+      @ol class: 'preview-list', outlet: 'previewList'
+      @div class: 'prompt-and-editor', =>
+        @div ':', class: 'prompt', outlet: 'prompt'
+        @subview 'miniEditor', new Editor(mini: true)
 
   commandInterpreter: null
   history: null
@@ -54,16 +60,25 @@ class CommandPanel extends View
 
   attach: (text='') ->
     @rootView.append(this)
+    @previewList.hide()
     @miniEditor.focus()
     @miniEditor.setText(text)
 
   detach: ->
     @rootView.focus()
+    if @previewedOperations
+      operation.destroy() for operation in @previewedOperations
     super
 
   execute: (command = @miniEditor.getText()) ->
     try
-      @commandInterpreter.eval(command, @rootView.getActiveEditSession())
+      @commandInterpreter.eval(command, @rootView.getActiveEditSession()).done (operations) =>
+        @history.push(command)
+        @historyIndex = @history.length
+        if operations?.length
+          @populatePreviewList(operations)
+        else
+          @detach()
     catch error
       if error instanceof SyntaxError
         @flashError()
@@ -71,9 +86,12 @@ class CommandPanel extends View
       else
         throw error
 
-    @history.push(command)
-    @historyIndex = @history.length
-    @detach()
+  populatePreviewList: (operations) ->
+    @previewedOperations = operations
+    @previewList.empty()
+    for operation in operations
+      @previewList.append(new PreviewItem(operation))
+    @previewList.show()
 
   navigateBackwardInHistory: ->
     return if @historyIndex == 0

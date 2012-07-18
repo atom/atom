@@ -204,20 +204,21 @@ describe "CommandInterpreter", ->
           expect(cursors[1].getBufferPosition()).toEqual [6, 65]
           expect(cursors[2].getBufferPosition()).toEqual [7, 5]
 
-    it "loops through current selections and selects text matching the regex", ->
-      waitsForPromise ->
-        editSession.setSelectedBufferRange [[3,0], [3,62]]
-        editSession.addSelectionForBufferRange [[6,0], [6,65]]
-        interpreter.eval('x/current', editSession)
+    describe "when text is initially selected", ->
+      it "loops through current selections and selects text matching the regex", ->
+        waitsForPromise ->
+          editSession.setSelectedBufferRange [[3,0], [3,62]]
+          editSession.addSelectionForBufferRange [[6,0], [6,65]]
+          interpreter.eval('x/current', editSession)
 
-      runs ->
-        selections = editSession.getSelections()
-        expect(selections.length).toBe 4
+        runs ->
+          selections = editSession.getSelections()
+          expect(selections.length).toBe 4
 
-        expect(selections[0].getBufferRange()).toEqual [[3,31], [3,38]]
-        expect(selections[1].getBufferRange()).toEqual [[6,6], [6,13]]
-        expect(selections[2].getBufferRange()).toEqual [[6,34], [6,41]]
-        expect(selections[3].getBufferRange()).toEqual [[6,56], [6,63]]
+          expect(selections[0].getBufferRange()).toEqual [[3,31], [3,38]]
+          expect(selections[1].getBufferRange()).toEqual [[6,6], [6,13]]
+          expect(selections[2].getBufferRange()).toEqual [[6,34], [6,41]]
+          expect(selections[3].getBufferRange()).toEqual [[6,56], [6,63]]
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->
