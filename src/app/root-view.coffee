@@ -145,7 +145,7 @@ class RootView extends View
     document.title = title
 
   getEditors: ->
-    @panes.find('.editor').map(-> $(this).view()).toArray()
+    @panes.find('.pane > .editor').map(-> $(this).view()).toArray()
 
   getModifiedBuffers: ->
     modifiedBuffers = []
