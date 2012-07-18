@@ -38,8 +38,7 @@ describe "Autocomplete", ->
 
       expect(Autocomplete.prototype.initialize).not.toHaveBeenCalled()
 
-      leftEditor.remove()
-      rightEditor.remove()
+      rootView.deactivate()
 
   describe 'autocomplete:attach event', ->
     it "shows autocomplete view and focuses its mini-editor", ->
