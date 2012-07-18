@@ -21,6 +21,7 @@ class Project
   constructor: (path) ->
     @setPath(path)
     @editSessions = []
+    @buffer = []
     @setTabText('  ')
     @setAutoIndent(true)
     @setSoftTabs(true)
@@ -84,7 +85,7 @@ class Project
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
-  open: (filePath, editSessionOptions={}) ->
+  buildEditSessionForPath: (filePath, editSessionOptions={}) ->
     @buildEditSession(@bufferForPath(filePath), editSessionOptions)
 
   buildEditSession: (buffer, editSessionOptions) ->

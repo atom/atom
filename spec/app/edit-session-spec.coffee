@@ -7,7 +7,7 @@ describe "EditSession", ->
 
   beforeEach ->
     buffer = new Buffer()
-    editSession = fixturesProject.open('sample.js', autoIndent: false)
+    editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
 
@@ -1319,7 +1319,7 @@ describe "EditSession", ->
         expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
       it "restores selected ranges even when the change occurred in another edit session", ->
-        otherEditSession = fixturesProject.open(editSession.getPath())
+        otherEditSession = fixturesProject.buildEditSessionForPath(editSession.getPath())
         otherEditSession.setSelectedBufferRange([[2, 2], [3, 3]])
         otherEditSession.delete()
 

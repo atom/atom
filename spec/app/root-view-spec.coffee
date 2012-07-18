@@ -75,10 +75,10 @@ describe "RootView", ->
           editor2 = editor1.splitRight()
           editor3 = editor2.splitRight()
           editor4 = editor2.splitDown()
-          editor2.edit(rootView.project.open('dir/b'))
-          editor3.edit(rootView.project.open('sample.js'))
+          editor2.edit(rootView.project.buildEditSessionForPath('dir/b'))
+          editor3.edit(rootView.project.buildEditSessionForPath('sample.js'))
           editor3.setCursorScreenPosition([2, 3])
-          editor4.edit(rootView.project.open('sample.txt'))
+          editor4.edit(rootView.project.buildEditSessionForPath('sample.txt'))
           editor4.setCursorScreenPosition([0, 2])
           rootView.attachToDom()
           editor2.focus()
@@ -455,7 +455,7 @@ describe "RootView", ->
       editor2 = rootView.getActiveEditor().splitLeft()
 
       path = rootView.project.resolve('b')
-      editor2.edit(rootView.project.open(path))
+      editor2.edit(rootView.project.buildEditSessionForPath(path))
       expect(pathChangeHandler).toHaveBeenCalled()
       expect(document.title).toBe rootView.project.resolve(path)
 

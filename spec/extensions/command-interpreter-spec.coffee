@@ -9,7 +9,7 @@ describe "CommandInterpreter", ->
   beforeEach ->
     project = new Project(fixturesProject.resolve('dir/'))
     interpreter = new CommandInterpreter(fixturesProject)
-    editSession = fixturesProject.open('sample.js')
+    editSession = fixturesProject.buildEditSessionForPath('sample.js')
     buffer = editSession.buffer
 
   afterEach ->
@@ -320,7 +320,7 @@ describe "CommandInterpreter", ->
       runs ->
         expect(operations.length).toBeGreaterThan 3
         for operation in operations
-          editSession = project.open(operation.getPath())
+          editSession = project.buildEditSessionForPath(operation.getPath())
           operation.execute(editSession)
           expect(editSession.getSelectedText()).toMatch /a+/
           editSession.destroy()

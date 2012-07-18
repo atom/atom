@@ -17,6 +17,10 @@ describe "editor.", ->
     window.shutdown()
     delete atom.rootViewStates[$windowNumber]
 
+  describe "opening-buffers.", ->
+    benchmark "300-line-file.", ->
+      buffer = rootView.project.bufferForPath('medium.coffee')
+
   describe "empty-file.", ->
     benchmark "insert-delete", ->
       editor.insertText('x')
@@ -24,7 +28,7 @@ describe "editor.", ->
 
   describe "300-line-file.", ->
     beforeEach ->
-      editor.edit rootView.project.open('medium.coffee')
+      editor.edit rootView.project.buildEditSessionForPath('medium.coffee')
 
     describe "at-begining.", ->
       benchmark "insert-delete", ->
@@ -45,11 +49,11 @@ describe "editor.", ->
 
   describe "9000-line-file.", ->
     benchmark "opening.", 5, ->
-      editor.edit rootView.project.open('huge.js')
+      editor.edit rootView.project.buildEditSessionForPath('huge.js')
 
     describe "after-opening.", ->
       beforeEach ->
-        editor.edit rootView.project.open('huge.js')
+        editor.edit rootView.project.buildEditSessionForPath('huge.js')
 
       benchmark "moving-to-eof.", 1, ->
         editor.moveCursorToBottom()

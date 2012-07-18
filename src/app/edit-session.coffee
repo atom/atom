@@ -14,7 +14,7 @@ class EditSession
   @idCounter: 1
 
   @deserialize: (state, project) ->
-    session = project.open(state.buffer)
+    session = project.buildEditSessionForPath(state.buffer)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)

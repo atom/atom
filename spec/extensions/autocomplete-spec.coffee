@@ -10,7 +10,7 @@ describe "Autocomplete", ->
   miniEditor = null
 
   beforeEach ->
-    editor = new Editor(editSession: fixturesProject.open('sample.js'))
+    editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
     autocomplete = new Autocomplete(editor)
     miniEditor = autocomplete.miniEditor
 
@@ -357,7 +357,7 @@ describe "Autocomplete", ->
       expect(wordList).toContain "quicksort"
       expect(wordList).not.toContain "Some"
 
-      editor.edit(fixturesProject.open('sample.txt'))
+      editor.edit(fixturesProject.buildEditSessionForPath('sample.txt'))
 
       wordList = autocomplete.wordList
       expect(wordList).not.toContain "quicksort"
@@ -365,7 +365,7 @@ describe "Autocomplete", ->
 
     it 'stops listening to previous buffers change events', ->
       previousBuffer = editor.getBuffer()
-      editor.edit(fixturesProject.open('sample.txt'))
+      editor.edit(fixturesProject.buildEditSessionForPath('sample.txt'))
       spyOn(autocomplete, "buildWordList")
 
       previousBuffer.change([[0,0],[0,1]], "sauron")
