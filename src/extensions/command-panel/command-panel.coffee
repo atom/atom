@@ -68,6 +68,7 @@ class CommandPanel extends View
     @rootView.focus()
     if @previewedOperations
       operation.destroy() for operation in @previewedOperations
+      @previewedOperations = undefined
     super
 
   execute: (command = @miniEditor.getText()) ->
