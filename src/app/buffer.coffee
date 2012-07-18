@@ -20,7 +20,7 @@ class Buffer
   anchorRanges: null
   refcount: 0
 
-  constructor: (path) ->
+  constructor: (path, @project) ->
     @id = @constructor.idCounter++
     @anchors = []
     @anchorRanges = []
@@ -38,8 +38,9 @@ class Buffer
 
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
-    @destroyed = true
     @file?.off()
+    @destroyed = true
+    @project?.removeBuffer(this)
 
   retain: ->
     @refcount++
@@ -50,6 +51,12 @@ class Buffer
     @destroy() if @refcount <= 0
     this
 
+  subscribeToFile: ->
+    @file?.on "contents-change", =>
+      unless @isModified()
+        @setText(fs.read(@file.getPath()))
+        @modified = false
+
   getPath: ->
     @file?.getPath()
 
@@ -58,10 +65,7 @@ class Buffer
 
     @file?.off()
     @file = new File(path)
-    @file.on "contents-change", =>
-      unless @isModified()
-        @setText(fs.read(@file.getPath()))
-        @modified = false
+    @subscribeToFile()
     @trigger "path-change", this
 
   getExtension: ->

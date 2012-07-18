@@ -21,7 +21,7 @@ class Project
   constructor: (path) ->
     @setPath(path)
     @editSessions = []
-    @buffer = []
+    @buffers = []
     @setTabText('  ')
     @setAutoIndent(true)
     @setSoftTabs(true)
@@ -29,6 +29,9 @@ class Project
       /\.DS_Store$/
       /(^|\/)\.git(\/|$)/
     ]
+
+  destroy: ->
+    editSession.destroy() for editSession in @getEditSessions()
 
   getPath: ->
     @rootDirectory?.path
@@ -106,9 +109,6 @@ class Project
   getEditSessions: ->
     new Array(@editSessions...)
 
-  destroy: ->
-    editSession.destroy() for editSession in @getEditSessions()
-
   removeEditSession: (editSession) ->
     _.remove(@editSessions, editSession)
 
@@ -122,15 +122,19 @@ class Project
   bufferForPath: (filePath) ->
     if filePath?
       filePath = @resolve(filePath)
-      return editSession.buffer for editSession in @editSessions when editSession.buffer.getPath() == filePath
-      @buildBuffer(filePath)
+      buffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
+      buffer or @buildBuffer(filePath)
     else
       @buildBuffer()
 
   buildBuffer: (filePath) ->
-    buffer = new Buffer(filePath)
+    buffer = new Buffer(filePath, this)
+    @buffers.push buffer
     @trigger 'new-buffer', buffer
     buffer
+
+  removeBuffer: (buffer) ->
+    _.remove(@buffers, buffer)
 
   scan: (regex, iterator) ->
     regex = new RegExp(regex.source, 'g')

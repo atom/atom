@@ -26,6 +26,7 @@ afterEach ->
   $('#jasmine-content').empty()
   document.title = defaultTitle
   ensureNoPathSubscriptions()
+  window.fixturesProject.destroy()
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()

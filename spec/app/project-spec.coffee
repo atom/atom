@@ -13,18 +13,14 @@ describe "Project", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
       editSession = project.buildEditSessionForPath("a")
       anotherEditSession = project.buildEditSessionForPath("a")
-      buffer = editSession.buffer
-      spyOn(buffer, 'destroy').andCallThrough()
 
       expect(project.editSessions.length).toBe 2
       expect(editSession.buffer).toBe anotherEditSession.buffer
 
       editSession.destroy()
-      expect(buffer.destroy).not.toHaveBeenCalled()
       expect(project.editSessions.length).toBe 1
 
       anotherEditSession.destroy()
-      expect(buffer.destroy).toHaveBeenCalled()
       expect(project.editSessions.length).toBe 0
 
   describe ".buildEditSessionForPath(path)", ->
@@ -65,6 +61,20 @@ describe "Project", ->
         expect(editSession.buffer.getPath()).toBeUndefined()
         expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+  describe ".bufferForPath(path)", ->
+    describe "when opening a previously opened path", ->
+      it "does not create a new buffer", ->
+        buffer = project.bufferForPath("a").retain()
+        expect(project.bufferForPath("a")).toBe buffer
+
+        alternativeBuffer = project.bufferForPath("b").retain().release()
+        expect(alternativeBuffer).not.toBe buffer
+        buffer.release()
+
+      it "creates a new buffer if the previous buffer was destroyed", ->
+        buffer = project.bufferForPath("a").retain().release()
+        expect(project.bufferForPath("a").retain().release()).not.toBe buffer
 
   describe ".resolve(path)", ->
     it "returns an absolute path based on the project's root", ->
