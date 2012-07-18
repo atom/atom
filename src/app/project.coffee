@@ -16,6 +16,7 @@ class Project
   autoIndent: null
   softTabs: null
   softWrap: null
+  ignoredPathRegexes: null
 
   constructor: (path) ->
     @setPath(path)
@@ -23,6 +24,10 @@ class Project
     @setTabText('  ')
     @setAutoIndent(true)
     @setSoftTabs(true)
+    @ignoredPathRegexes = [
+      /\.DS_Store$/
+      /(^|\/)\.git(\/|$)/
+    ]
 
   getPath: ->
     @rootDirectory?.path
@@ -55,7 +60,10 @@ class Project
     deferred
 
   ignorePath: (path) ->
-    fs.base(path).match(/\.DS_Store/) or path.match(/(^|\/)\.git(\/|$)/)
+    _.find @ignoredPathRegexes, (regex) -> path.match(regex)
+
+  ignorePathRegex: ->
+    @ignoredPathRegexes.map((regex) -> "(#{regex.source})").join("|")
 
   resolve: (filePath) ->
     filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
@@ -125,7 +133,13 @@ class Project
 
   scan: (regex, iterator) ->
     regex = new RegExp(regex.source, 'g')
-    command = "grep --null --perl-regexp --with-filename --line-number --recursive --regexp=\"#{regex.source}\" #{@getPath()}"
+    commands = [
+      "find \"#{@getPath()}\" -type f"
+      "grep --perl-regexp --invert-match --regexp=\"#{@ignorePathRegex()}\""
+      "xargs grep --null --perl-regexp --with-filename --line-number --recursive --regexp=\"#{regex.source}\""
+    ]
+
+    command = commands.join(" | ")
     ChildProcess.exec command, bufferLines: true, stdout: (data) ->
       for grepLine in data.split('\n') when grepLine.length
         nullCharIndex = grepLine.indexOf('\0')
