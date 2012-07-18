@@ -17,7 +17,8 @@ class Operation
     editSession.addSelectionForBufferRange(@getBufferRange()) unless @preserveSelection
 
   preview: ->
-    "sad :-("
+    range = @anchorRange.getBufferRange()
+    @buffer.textInRange(range)
 
   destroy: ->
     @buffer.release()

@@ -11,6 +11,20 @@
   overflow: auto;
 }
 
+.command-panel .preview-list .path{
+  padding-left: 1em;
+  color: red;
+}
+
+.command-panel .preview-list .preview {
+  padding-left: 1em;
+  color: green;
+}
+
+.command-panel .preview-list .preview .match{
+  font-weight: bold;
+}
+
 .command-panel .prompt-and-editor {
   display: -webkit-box;
 }

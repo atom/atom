@@ -4,5 +4,6 @@ module.exports =
 class PreviewItem extends View
   @content: (operation) ->
     @li =>
-      @span operation.getPath()
-      @span operation.preview()
+      @span operation.getPath(), outlet: "path", class: "path"
+      @span outlet: "preview", class: "preview", ->
+        operation.preview()
