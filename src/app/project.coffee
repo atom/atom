@@ -138,13 +138,13 @@ class Project
 
   scan: (regex, iterator) ->
     regex = new RegExp(regex.source, 'g')
-    commands = [
-      "find \"#{@getPath()}\" -type f"
-      "grep --perl-regexp --invert-match --regexp=\"#{@ignorePathRegex()}\""
-      "xargs grep --null --perl-regexp --with-filename --line-number --recursive --regexp=\"#{regex.source}\""
-    ]
+    command = [
+      "find \"#{@getPath()}\" -type f -print0" # find all paths in the project's working directory
+      "grep --text --perl-regexp --invert-match --regexp=\"#{@ignorePathRegex()}\"" # accept only non-ignored paths, separated by \0 (find doesn't support pcre)
+      "perl -0pi -e 's/\n$//'" # delete grep's trailing newline because it screws up xargs
+      "xargs -0 grep --null --perl-regexp --with-filename --line-number --recursive --regexp=\"#{regex.source}\"" # run grep on each filtered file
+    ].join(" | ")
 
-    command = commands.join(" | ")
     ChildProcess.exec command, bufferLines: true, stdout: (data) ->
       for grepLine in data.split('\n') when grepLine.length
         nullCharIndex = grepLine.indexOf('\0')

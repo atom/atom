@@ -31,12 +31,12 @@ describe "TreeView", ->
       expect(treeView.root.find('> .header .name')).toHaveText('fixtures/')
 
       rootEntries = treeView.root.find('.entries')
-      subdir1 = rootEntries.find('> li:eq(0)')
-      expect(subdir1.find('.disclosure-arrow')).toHaveText('▸')
-      expect(subdir1.find('.name')).toHaveText('dir/')
-      expect(subdir1.find('.entries')).not.toExist()
+      subdir0 = rootEntries.find('> li:eq(0)')
+      expect(subdir0.find('.disclosure-arrow')).toHaveText('▸')
+      expect(subdir0.find('.name')).toHaveText('dir/')
+      expect(subdir0.find('.entries')).not.toExist()
 
-      subdir2 = rootEntries.find('> li:eq(1)')
+      subdir2 = rootEntries.find('> li:eq(2)')
       expect(subdir2.find('.disclosure-arrow')).toHaveText('▸')
       expect(subdir2.find('.name')).toHaveText('zed/')
       expect(subdir2.find('.entries')).not.toExist()

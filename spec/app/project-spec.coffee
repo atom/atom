@@ -135,3 +135,10 @@ describe "Project", ->
             path: project.resolve('a')
             match: ['aa', 'a']
             range: [[1, 3], [1, 5]]
+
+      it "works on evil filenames", ->
+        project.setPath(require.resolve('fixtures/evil-files'))
+        waitsForPromise ->
+          project.scan /(a)+/, ({path, match, range}) ->
+            matches.push({path, match, range})
+
