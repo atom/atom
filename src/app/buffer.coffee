@@ -43,10 +43,12 @@ class Buffer
 
   retain: ->
     @refcount++
+    this
 
   release: ->
     @refcount--
     @destroy() if @refcount <= 0
+    this
 
   getPath: ->
     @file?.getPath()
