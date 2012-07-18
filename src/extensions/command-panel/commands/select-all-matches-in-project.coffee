@@ -14,7 +14,11 @@ class SelectAllMatchesInProject extends Command
     deferred = $.Deferred()
     operations = []
     promise = project.scan @regex, ({path, range}) ->
-      operations.push(new Operation(buffer: project.bufferForPath(path), bufferRange: range))
+      operations.push(new Operation(
+        project: project
+        buffer: project.bufferForPath(path)
+        bufferRange: range
+      ))
 
     promise.done -> deferred.resolve(operations)
     deferred.promise()

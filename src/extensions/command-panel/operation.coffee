@@ -1,11 +1,13 @@
+{$$$} = require 'space-pen'
+
 module.exports =
 class Operation
-  constructor: ({@buffer, bufferRange, @newText, @preserveSelection}) ->
+  constructor: ({@project, @buffer, bufferRange, @newText, @preserveSelection}) ->
     @buffer.retain()
     @anchorRange = @buffer.addAnchorRange(bufferRange)
 
   getPath: ->
-    @buffer.getPath()
+    @project.relativize(@buffer.getPath())
 
   getBufferRange: ->
     @anchorRange.getBufferRange()

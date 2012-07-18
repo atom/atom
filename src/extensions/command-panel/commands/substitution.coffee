@@ -18,8 +18,9 @@ class Substitution extends Command
     for range in ranges
       buffer.scanInRange @regex, range, (match, matchRange, { replace }) =>
         operations.push(new Operation(
-          buffer: buffer,
-          bufferRange: matchRange,
+          project: project
+          buffer: buffer
+          bufferRange: matchRange
           newText: @replacementText
           preserveSelection: true
         ))

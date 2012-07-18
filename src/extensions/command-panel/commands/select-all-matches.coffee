@@ -14,6 +14,10 @@ class SelectAllMatches extends Command
     operations = []
     for range in ranges
       buffer.scanInRange @regex, range, (match, matchRange) ->
-        operations.push(new Operation(buffer: buffer, bufferRange: matchRange))
+        operations.push(new Operation(
+          project: project
+          buffer: buffer
+          bufferRange: matchRange
+        ))
     deferred.resolve(operations)
     deferred.promise()
