@@ -138,32 +138,58 @@ class Project
 
   scan: (regex, iterator) ->
     regex = new RegExp(regex.source, 'g')
-    command = "#{require.resolve('ack')} --all --match \"#{regex.source}\" \"#{@getPath()}\""
+    command = "#{require.resolve('ag')} --ackmate \"#{regex.source}\" \"#{@getPath()}\""
     bufferedData = ""
 
-    console.log command
-    promise = ChildProcess.exec command , bufferLines: true, stdout: (data) ->
-      bufferedData += data
-      currentIndex = 0
-      while currentIndex < bufferedData.length
-        pathEndIndex = bufferedData.indexOf('\0', currentIndex)
-        break unless pathEndIndex >= 0
-        lineNumberEndIndex = bufferedData.indexOf('\0', pathEndIndex + 1)
-        lineEndIndex = bufferedData.indexOf('\n', lineNumberEndIndex + 1)
+    state = 'readingPath'
+    path = null
 
-        path = bufferedData.substring(currentIndex, pathEndIndex)
-        row = parseInt(bufferedData.substring(pathEndIndex + 1, lineNumberEndIndex)) - 1
-        line = bufferedData.substring(lineNumberEndIndex + 1, lineEndIndex)
+    readPath = (line) ->
+      if /^[0-9,; ]+:/.test(line)
+        state = 'readingLines'
+      else if /^:/.test line
+        path = line.substr(1)
+      else
+        path += ('\n' + line)
 
-        while match = regex.exec(line)
-          range = new Range([row, match.index], [row, match.index + match[0].length])
-          iterator({path, match, range})
+    readLine = (line) ->
+      if line.length == 0
+        state = 'readingPath'
+        path = null
+      else
+        colonIndex = line.indexOf(':')
+        matchInfo = line.substring(0, colonIndex)
+        lineText = line.substring(colonIndex + 1)
+        readMatches(matchInfo, lineText)
 
-        currentIndex = lineEndIndex + 1
+    readMatches = (matchInfo, lineText) ->
+      [lineNumber, matchPositionsText] = matchInfo.match(/(\d+);(.+)/)[1..]
+      row = parseInt(lineNumber) - 1
 
-      bufferedData = bufferedData.substring(currentIndex)
 
-    promise.done -> console.log "DONE"
+
+      matchPositions = matchPositionsText.split(',').map (positionText) -> positionText.split(' ').map (pos) -> parseInt(pos)
+
+      for [column, length] in matchPositions
+        range = new Range([row, column], [row, column + length])
+        match = lineText.substr(column, length)
+        iterator({path, range, match})
+
+    ChildProcess.exec command , bufferLines: true, stdout: (data) ->
+      lines = data.split('\n')
+      try
+        for line in lines
+          readPath(line) if state is 'readingPath'
+          readLine(line) if state is 'readingLines'
+      catch e
+        console.log e.stack
+
+
+
+
+
+
+
 
 
 _.extend Project.prototype, EventEmitter

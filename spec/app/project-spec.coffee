@@ -128,12 +128,12 @@ describe "Project", ->
         runs ->
           expect(matches[0]).toEqual
             path: project.resolve('a')
-            match: ['aaa', 'a']
+            match: 'aaa'
             range: [[0, 0], [0, 3]]
 
           expect(matches[1]).toEqual
             path: project.resolve('a')
-            match: ['aa', 'a']
+            match: 'aa'
             range: [[1, 3], [1, 5]]
 
       it "works on evil filenames", ->
@@ -147,11 +147,9 @@ describe "Project", ->
 
         runs ->
           expect(paths.length).toBe 5
-          matches.forEach (match) -> expect(match).toEqual ['evil']
+          matches.forEach (match) -> expect(match).toEqual 'evil'
           expect(paths[0]).toMatch /a_file_with_utf8.txt$/
           expect(paths[1]).toMatch /file with spaces.txt$/
           expect(paths[2]).toMatch /goddam\nnewlines$/m
           expect(paths[3]).toMatch /quote".txt$/m
           expect(fs.base(paths[4])).toBe "utfa\u0306.md"
-
-
