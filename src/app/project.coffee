@@ -141,7 +141,7 @@ class Project
     command = [
       "find \"#{@getPath()}\" -type f -print0" # find all paths in the project's working directory
       "grep --text --perl-regexp --invert-match --regexp=\"#{@ignorePathRegex()}\"" # accept only non-ignored paths, separated by \0 (find doesn't support pcre)
-      "perl -0pi -e 's/\n$//'" # delete grep's trailing newline because it screws up xargs
+      "perl -0pi -e 's/\\n\\z\//'" # delete grep's trailing newline because it screws up xargs
       "xargs -0 grep --null --perl-regexp --with-filename --line-number --recursive --regexp=\"#{regex.source}\"" # run grep on each filtered file
     ].join(" | ")
 
