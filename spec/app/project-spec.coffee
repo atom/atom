@@ -139,6 +139,5 @@ describe "Project", ->
       it "works on evil filenames", ->
         project.setPath(require.resolve('fixtures/evil-files'))
         waitsForPromise ->
-          project.scan /(a)+/, ({path, match, range}) ->
-            matches.push({path, match, range})
-
+          project.scan /evil/, ({path, match, range}) ->
+            #console.log path
