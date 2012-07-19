@@ -140,7 +140,7 @@ class Project
     regex = new RegExp(regex.source, 'g')
     command = "#{require.resolve('ack')} --all --match \"#{regex.source}\" \"#{@getPath()}\""
     bufferedData = ""
-    promise = ChildProcess.exec command , bufferLines: true, stdout: (data) ->
+    ChildProcess.exec command , bufferLines: true, stdout: (data) ->
       bufferedData += data
       currentIndex = 0
       while currentIndex < bufferedData.length
