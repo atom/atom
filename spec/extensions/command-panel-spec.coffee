@@ -126,8 +126,6 @@ describe "CommandPanel", ->
 
         rootView.trigger 'command-panel:toggle'
 
-        commandPanel.miniEditor.insertText
-
         waitsForPromise -> commandPanel.execute('X x/a+/')
 
         runs ->
@@ -138,7 +136,7 @@ describe "CommandPanel", ->
           expect(previewItem.preview.text()).toBe "aaa bbb"
           expect(previewItem.preview.find(".match").text()).toBe "aaa"
 
-          rootView.trigger 'command-panel:toggle'
+          rootView.trigger 'command-panel:toggle' # ensure we can close panel without problems
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->
