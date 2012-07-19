@@ -9,6 +9,7 @@ class File
   md5: null
 
   constructor: (@path) ->
+    throw "Creating file with path that is not a file: #{@path}" unless fs.isFile(@path)
     @updateMd5()
 
   getPath: ->
