@@ -140,7 +140,9 @@ class Project
     regex = new RegExp(regex.source, 'g')
     command = "#{require.resolve('ack')} --all --match \"#{regex.source}\" \"#{@getPath()}\""
     bufferedData = ""
-    ChildProcess.exec command , bufferLines: true, stdout: (data) ->
+
+    console.log command
+    promise = ChildProcess.exec command , bufferLines: true, stdout: (data) ->
       bufferedData += data
       currentIndex = 0
       while currentIndex < bufferedData.length
@@ -160,5 +162,8 @@ class Project
         currentIndex = lineEndIndex + 1
 
       bufferedData = bufferedData.substring(currentIndex)
+
+    promise.done -> console.log "DONE"
+
 
 _.extend Project.prototype, EventEmitter

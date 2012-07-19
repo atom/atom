@@ -83,6 +83,12 @@ windowAdditions =
   onerror: ->
     $native.showDevTools()
 
+  measure: (description, fn) ->
+    start = new Date().getTime()
+    fn()
+    result = new Date().getTime() - start
+    console.log description, result
+
 window[key] = value for key, value of windowAdditions
 window.setUpKeymap()
 

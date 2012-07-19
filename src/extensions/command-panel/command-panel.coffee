@@ -1,4 +1,4 @@
-{View} = require 'space-pen'
+{View, $$$} = require 'space-pen'
 CommandInterpreter = require 'command-panel/command-interpreter'
 RegexAddress = require 'command-panel/commands/regex-address'
 CompositeCommand = require 'command-panel/commands/composite-command'
@@ -90,8 +90,16 @@ class CommandPanel extends View
   populatePreviewList: (operations) ->
     @previewedOperations = operations
     @previewList.empty()
-    for operation in operations
-      @previewList.append(new PreviewItem(operation))
+    @previewList.html $$$ ->
+      for operation in operations
+        {prefix, suffix, match} = operation.preview()
+        @li =>
+          @span operation.getPath(), outlet: "path", class: "path"
+          @span outlet: "preview", class: "preview", =>
+            @span prefix
+            @span match, class: 'match'
+            @span suffix
+
     @previewList.show()
 
   navigateBackwardInHistory: ->
