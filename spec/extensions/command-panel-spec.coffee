@@ -131,10 +131,10 @@ describe "CommandPanel", ->
         runs ->
           expect(commandPanel).toBeVisible()
           expect(commandPanel.previewList).toBeVisible()
-          previewItem = commandPanel.previewList.find("li:contains(dir/a)").view()
-          expect(previewItem.path.text()).toBe "dir/a"
-          expect(previewItem.preview.text()).toBe "aaa bbb"
-          expect(previewItem.preview.find(".match").text()).toBe "aaa"
+          previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
+          expect(previewItem.find('.path').text()).toBe "dir/a"
+          expect(previewItem.find('.preview').text()).toBe "aaa bbb"
+          expect(previewItem.find('.preview > .match').text()).toBe "aaa"
 
           rootView.trigger 'command-panel:toggle' # ensure we can close panel without problems
 
