@@ -138,16 +138,27 @@ class Project
 
   scan: (regex, iterator) ->
     regex = new RegExp(regex.source, 'g')
-    command = "#{require.resolve('ack')} --all-types --match \"#{regex.source}\" \"#{@getPath()}\""
-    ChildProcess.exec command , bufferLines: true, stdout: (data) ->
-      for grepLine in data.split('\n') when grepLine.length
-        pathEndIndex = grepLine.indexOf('\0')
-        lineNumberEndIndex = grepLine.indexOf('\0', pathEndIndex + 1)
-        path = grepLine.substring(0, pathEndIndex)
-        row = parseInt(grepLine.substring(pathEndIndex + 1, lineNumberEndIndex)) - 1
-        line = grepLine.substring(lineNumberEndIndex + 1)
+    command = "#{require.resolve('ack')} --all --match \"#{regex.source}\" \"#{@getPath()}\""
+    bufferedData = ""
+    promise = ChildProcess.exec command , bufferLines: true, stdout: (data) ->
+      bufferedData += data
+      currentIndex = 0
+      while currentIndex < bufferedData.length
+        pathEndIndex = bufferedData.indexOf('\0', currentIndex)
+        break unless pathEndIndex >= 0
+        lineNumberEndIndex = bufferedData.indexOf('\0', pathEndIndex + 1)
+        lineEndIndex = bufferedData.indexOf('\n', lineNumberEndIndex + 1)
+
+        path = bufferedData.substring(currentIndex, pathEndIndex)
+        row = parseInt(bufferedData.substring(pathEndIndex + 1, lineNumberEndIndex)) - 1
+        line = bufferedData.substring(lineNumberEndIndex + 1, lineEndIndex)
+
         while match = regex.exec(line)
           range = new Range([row, match.index], [row, match.index + match[0].length])
           iterator({path, match, range})
+
+        currentIndex = lineEndIndex + 1
+
+      bufferedData = bufferedData.substring(currentIndex)
 
 _.extend Project.prototype, EventEmitter

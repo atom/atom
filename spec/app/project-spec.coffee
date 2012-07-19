@@ -138,6 +138,11 @@ describe "Project", ->
 
       it "works on evil filenames", ->
         project.setPath(require.resolve('fixtures/evil-files'))
+        paths = []
         waitsForPromise ->
           project.scan /evil/, ({path, match, range}) ->
-            #console.log path
+            paths.push(path)
+
+        runs ->
+          expect(paths[0]).toMatch /file with spaces.txt$/
+          expect(paths[1]).toMatch /goddam\nnewlines$/m
