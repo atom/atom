@@ -8,6 +8,8 @@
 #import <Cocoa/Cocoa.h>
 #import <CommonCrypto/CommonDigest.h>
 
+#import <iostream>
+
 #define MY_EXCEPTION_TRY @try {
 #define MY_EXCEPTION_HANDLE } @catch (NSException *localException) {}
 
@@ -448,12 +450,12 @@ bool NativeHandler::Execute(const CefString& name,
       
       NSData *data = [fileHandle availableData];
       NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-
+      
       CefV8ValueList args;
       CefRefPtr<CefV8Value> retval = CefV8Value::CreateBool(YES);
       CefRefPtr<CefV8Exception> e;
-      args.push_back(CefV8Value::CreateString(std::string([contents UTF8String], [contents length])));
-
+      
+      args.push_back(CefV8Value::CreateString(std::string([contents UTF8String], [contents lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
       function->ExecuteFunction(function, args, retval, e, false);
       [contents release];
       context->Exit();
