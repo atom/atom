@@ -51,6 +51,7 @@ class CommandPanel extends View
 
   toggle: ->
     if @parent().length then @detach() else @attach()
+    false
 
   attach: (text='') ->
     @rootView.append(this)

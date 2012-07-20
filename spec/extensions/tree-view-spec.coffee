@@ -103,17 +103,41 @@ describe "TreeView", ->
       newRootView.remove()
 
   describe "when tree-view:toggle is triggered on the root view", ->
-    it "shows/hides the tree view", ->
+    beforeEach ->
+      rootView.attachToDom()
+
+    describe "when the tree view is visible", ->
+      beforeEach ->
+        expect(treeView).toBeVisible()
+
+      describe "when the tree view is focused", ->
+        it "hides the tree view", ->
+          treeView.focus()
+          rootView.trigger 'tree-view:toggle'
+          expect(treeView).toBeHidden()
+
+      describe "when the tree view is not focused", ->
+        it "shifts focus to the tree view", ->
+          rootView.focus()
+          rootView.trigger 'tree-view:toggle'
+          expect(treeView).toBeVisible()
+          expect(treeView).toMatchSelector(':focus')
+
+    describe "when the tree view is hidden", ->
+      it "shows and focuses the tree view", ->
+        treeView.detach()
+        rootView.trigger 'tree-view:toggle'
+        expect(treeView.hasParent()).toBeTruthy()
+        expect(treeView).toMatchSelector(':focus')
+
+  describe "when tree-view:unfocus is triggered on the tree view", ->
+    fit "surrenders focus to the root view but remains open", ->
       rootView.attachToDom()
       treeView.focus()
-      expect(treeView.hasParent()).toBeTruthy()
-      rootView.trigger 'tree-view:toggle'
-      expect(treeView.hasParent()).toBeFalsy()
+      treeView.trigger 'tree-view:unfocus'
+      expect(treeView).toBeVisible()
+      expect(treeView).not.toMatchSelector(':focus')
       expect(rootView).toMatchSelector(':focus')
-
-      rootView.trigger 'tree-view:toggle'
-      expect(treeView.hasParent()).toBeTruthy()
-      expect(treeView).toMatchSelector(':focus')
 
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->

@@ -1,8 +1,11 @@
 window.keymap.bindKeys '#root-view'
-  'alt-tab': 'tree-view:focus'
+  'ctrl-1': 'tree-view:toggle'
   'ctrl-T': 'tree-view:toggle'
+  'alt-tab': 'tree-view:focus'
 
 window.keymap.bindKeys '.tree-view'
+  'escape': 'tree-view:unfocus'
+  'meta-w': 'tree-view:toggle'
   'right': 'tree-view:expand-directory'
   'left': 'tree-view:collapse-directory'
   'enter': 'tree-view:open-selected-entry'

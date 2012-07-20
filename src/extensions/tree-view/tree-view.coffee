@@ -49,6 +49,7 @@ class TreeView extends View
     @on 'tree-view:add', => @add()
     @on 'tree-view:remove', => @removeSelectedEntry()
     @on 'tree-view:directory-modified', => @selectActiveFile()
+    @on 'tree-view:unfocus', => @rootView.focus()
     @rootView.on 'tree-view:toggle', => @toggle()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
     @rootView.project.on 'path-change', => @updateRoot()
@@ -71,11 +72,11 @@ class TreeView extends View
     @root?.unwatchEntries()
 
   toggle: ->
-    if @hasParent()
+    if @is(':focus')
       @detach()
       @rootView.focus()
     else
-      @attach()
+      @attach() unless @hasParent()
       @focus()
 
   attach: ->
