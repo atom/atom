@@ -81,7 +81,7 @@ class CommandPanel extends View
         else
           @detach()
     catch error
-      if error instanceof SyntaxError
+      if error.name is "SyntaxError"
         @flashError()
         return
       else
