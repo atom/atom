@@ -9,6 +9,7 @@ window.keymap.bindKeys '.editor',
   'meta-enter': 'newline-below'
   'tab': 'indent'
   'backspace': 'backspace'
+  'shift-backspace': 'backspace'
   'delete': 'delete'
   'meta-x': 'cut'
   'meta-c': 'copy'
