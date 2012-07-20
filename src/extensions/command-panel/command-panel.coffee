@@ -63,6 +63,7 @@ class CommandPanel extends View
     @previewList.hide()
     @miniEditor.focus()
     @miniEditor.setText(text)
+    @miniEditor.setCursorBufferPosition([0, Infinity])
 
   detach: ->
     @rootView.focus()
