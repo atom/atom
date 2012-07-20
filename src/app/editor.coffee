@@ -386,11 +386,11 @@ class Editor extends View
 
     @activeEditSession = @editSessions[index]
 
-    if @activeEditSession.buffer.isModifiedOnDisk() and @activeEditSession.buffer.isModified()
-      @alertEditSessionChangedOnDisk(@activeEditSession)
+    if @activeEditSession.buffer.isInConflict()
+      @showBufferConflictAlert(@activeEditSession)
 
     @activeEditSession.on "buffer-contents-change-on-disk", =>
-      @alertEditSessionChangedOnDisk(@activeEditSession)
+      @showBufferConflictAlert(@activeEditSession)
 
     @activeEditSession.on "buffer-path-change", =>
       @trigger 'editor-path-change'
@@ -398,7 +398,7 @@ class Editor extends View
     @trigger 'editor-path-change'
     @renderWhenAttached()
 
-  alertEditSessionChangedOnDisk: (editSession) ->
+  showBufferConflictAlert: (editSession) ->
     message = editSession.getPath()
     detailedMessage = "Has changed on disk. Do you want to reload it?"
     Native.alert message, detailedMessage, [

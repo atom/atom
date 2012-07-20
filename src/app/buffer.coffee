@@ -224,6 +224,9 @@ class Buffer
     @setPath(path)
     @trigger 'after-save'
 
+  isInConflict: ->
+    @isModified() and @isModifiedOnDisk()
+
   isModifiedOnDisk: ->
     @modifiedOnDisk
 
