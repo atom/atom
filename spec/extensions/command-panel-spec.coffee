@@ -97,11 +97,13 @@ describe "CommandPanel", ->
       expect(commandInterpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/\\(items\\)/"
 
   describe "when command-panel:find-in-file is triggered on an editor", ->
-    it "pre-populates command panel's editor with / and moves the cursor to column 1", ->
+    it "pre-populates the command panel's editor with / and moves the cursor to the last column", ->
+      spyOn(commandPanel, 'attach').andCallThrough()
       commandPanel.miniEditor.setText("foo")
       commandPanel.miniEditor.setCursorBufferPosition([0, 0])
 
       rootView.getActiveEditor().trigger "command-panel:find-in-file"
+      expect(commandPanel.attach).toHaveBeenCalled()
       expect(commandPanel.parent).not.toBeEmpty()
       expect(commandPanel.miniEditor.getText()).toBe "/"
       expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 1]
