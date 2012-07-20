@@ -108,6 +108,18 @@ describe "CommandPanel", ->
       expect(commandPanel.miniEditor.getText()).toBe "/"
       expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 1]
 
+  describe "when command-panel:find-in-project is triggered on the root view", ->
+    it "pre-populates the command panel's editor with Xx/ and moves the cursor to the last column", ->
+      spyOn(commandPanel, 'attach').andCallThrough()
+      commandPanel.miniEditor.setText("foo")
+      commandPanel.miniEditor.setCursorBufferPosition([0, 0])
+
+      rootView.trigger "command-panel:find-in-project"
+      expect(commandPanel.attach).toHaveBeenCalled()
+      expect(commandPanel.parent).not.toBeEmpty()
+      expect(commandPanel.miniEditor.getText()).toBe "Xx/"
+      expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 3]
+
   describe "when esc is pressed in the command panel", ->
     it "closes the command panel", ->
       rootView.trigger 'command-panel:toggle'

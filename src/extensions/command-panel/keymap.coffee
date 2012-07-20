@@ -10,3 +10,4 @@ window.keymap.bindKeys '.editor',
   'meta-G': 'command-panel:repeat-relative-address-in-reverse'
   'meta-e': 'command-panel:set-selection-as-regex-address'
   'meta-f': 'command-panel:find-in-file'
+  'meta-F': 'command-panel:find-in-project'
