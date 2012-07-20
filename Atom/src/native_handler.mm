@@ -18,6 +18,18 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   return [NSString stringWithUTF8String:cc_value.c_str()];
 }
 
+void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception>& exception, NSString *message) {
+  CefV8ValueList arguments;
+  CefRefPtr<CefV8Value> retval;
+  CefRefPtr<CefV8Exception> e;
+  
+  message = [message stringByAppendingFormat:@"\n%s", exception->GetMessage().ToString().c_str()];
+  arguments.push_back(CefV8Value::CreateString(std::string([message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+  
+  CefRefPtr<CefV8Value> console = global->GetValue("console");
+  console->GetValue("error")->ExecuteFunction(console, arguments, retval, e, false);
+}
+
 NativeHandler::NativeHandler() : CefV8Handler() {  
   std::string extensionCode =  "var $native = {}; (function() {";
   
@@ -459,7 +471,7 @@ bool NativeHandler::Execute(const CefString& name,
       function->ExecuteFunction(function, args, retval, e, false);
             
       if (e.get()) {
-        NSLog(@"Error thrown in OutputHandle %s", e->GetMessage().ToString().c_str());
+        throwException(context->GetGlobal(), e, @"Error thrown in OutputHandle");
       }
       
       [contents release];
@@ -472,7 +484,7 @@ bool NativeHandler::Execute(const CefString& name,
       NSString *errorOutput  = [[NSString alloc] initWithData:[[task.standardError fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
       
       CefV8ValueList args;
-      CefRefPtr<CefV8Value> retval = CefV8Value::CreateBool(YES);
+      CefRefPtr<CefV8Value> retval;
       CefRefPtr<CefV8Exception> e;
       
       args.push_back(CefV8Value::CreateInt([task terminationStatus]));      
@@ -482,7 +494,7 @@ bool NativeHandler::Execute(const CefString& name,
       callback->ExecuteFunction(callback, args, retval, e, false);
       
       if (e.get()) {
-        NSLog(@"Error thrown in TaskTerminatedHandle %s", e->GetMessage().ToString().c_str());
+        throwException(context->GetGlobal(), e, @"Error thrown in TaskTerminatedHandle");
       }
       
       context->Exit();

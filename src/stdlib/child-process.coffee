@@ -14,10 +14,14 @@ class ChildProccess
       options.stderr = @bufferLines(options.stderr) if options.stderr
 
     $native.exec command, options, (exitStatus, stdout, stderr) ->
-      if exitStatus != 0
-        deferred.reject({command, exitStatus, stderr})
-      else
-        deferred.resolve(stdout, stderr)
+      try
+        if exitStatus != 0
+          deferred.reject({command, exitStatus, stderr})
+        else
+          deferred.resolve(stdout, stderr)
+      catch e
+        console.error "In ChildProccess termination callback: ", e.message
+        console.error e.stack
 
     deferred
 
