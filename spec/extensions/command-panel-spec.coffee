@@ -137,25 +137,6 @@ describe "CommandPanel", ->
         expect(buffer.lineForRow(0)).toMatch /quicktorta/
         expect(buffer.lineForRow(1)).toMatch /var torta/
 
-    describe "when the command returns operations to be previewed", ->
-      it "displays a preview of the operations above the mini-editor", ->
-        rootView.attachToDom()
-        editor.remove()
-
-        rootView.trigger 'command-panel:toggle'
-
-        waitsForPromise -> commandPanel.execute('X x/a+/')
-
-        runs ->
-          expect(commandPanel).toBeVisible()
-          expect(commandPanel.previewList).toBeVisible()
-          previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
-          expect(previewItem.find('.path').text()).toBe "dir/a"
-          expect(previewItem.find('.preview').text()).toBe "aaa bbb"
-          expect(previewItem.find('.preview > .match').text()).toBe "aaa"
-
-          rootView.trigger 'command-panel:toggle' # ensure we can close panel without problems
-
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->
         rootView.trigger 'command-panel:toggle'
@@ -186,6 +167,27 @@ describe "CommandPanel", ->
       expect(commandPanel.miniEditor.getText()).toBe 's/twinkies/wheatgrass/g'
       commandPanel.miniEditor.trigger 'move-down'
       expect(commandPanel.miniEditor.getText()).toBe ''
+
+  describe "when the command returns operations to be previewed", ->
+    it "displays a preview of the operations above the mini-editor", ->
+      rootView.attachToDom()
+      editor.remove()
+
+      rootView.trigger 'command-panel:toggle'
+
+      waitsForPromise -> commandPanel.execute('X x/a+/')
+
+      runs ->
+        expect(commandPanel).toBeVisible()
+        expect(commandPanel.previewList).toBeVisible()
+        previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
+        expect(previewItem.find('.path').text()).toBe "dir/a"
+        expect(previewItem.find('.preview').text()).toBe "aaa bbb"
+        expect(previewItem.find('.preview > .match').text()).toBe "aaa"
+
+        expect(commandPanel.previewList.find("li:first")).toHaveClass('selected')
+
+        rootView.trigger 'command-panel:toggle' # ensure we can close panel without problems
 
   describe ".execute()", ->
     it "executes the command and closes the command panel", ->

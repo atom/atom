@@ -2,7 +2,7 @@
 CommandInterpreter = require 'command-panel/command-interpreter'
 RegexAddress = require 'command-panel/commands/regex-address'
 CompositeCommand = require 'command-panel/commands/composite-command'
-PreviewItem = require 'command-panel/preview-item'
+PreviewList = require 'command-panel/preview-list'
 Editor = require 'editor'
 {SyntaxError} = require('pegjs').parser
 
@@ -31,7 +31,7 @@ class CommandPanel extends View
 
   @content: ->
     @div class: 'command-panel', =>
-      @ol class: 'preview-list', outlet: 'previewList'
+      @subview 'previewList', new PreviewList()
       @div class: 'prompt-and-editor', =>
         @div ':', class: 'prompt', outlet: 'prompt'
         @subview 'miniEditor', new Editor(mini: true)
@@ -75,11 +75,11 @@ class CommandPanel extends View
 
   execute: (command = @miniEditor.getText()) ->
     try
-      @commandInterpreter.eval(command, @rootView.getActiveEditSession()).done (operations) =>
+      @commandInterpreter.eval(command, @rootView.getActiveEditSession()).done (operationsToPreview) =>
         @history.push(command)
         @historyIndex = @history.length
-        if operations?.length
-          @populatePreviewList(operations)
+        if operationsToPreview?.length
+          @populatePreviewList(operationsToPreview)
         else
           @detach()
     catch error
@@ -91,18 +91,7 @@ class CommandPanel extends View
 
   populatePreviewList: (operations) ->
     @previewedOperations = operations
-    @previewList.empty()
-    @previewList.html $$$ ->
-      for operation in operations
-        {prefix, suffix, match} = operation.preview()
-        @li =>
-          @span operation.getPath(), outlet: "path", class: "path"
-          @span outlet: "preview", class: "preview", =>
-            @span prefix
-            @span match, class: 'match'
-            @span suffix
-
-    @previewList.show()
+    @previewList.populate(operations)
 
   navigateBackwardInHistory: ->
     return if @historyIndex == 0
