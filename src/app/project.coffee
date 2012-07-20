@@ -165,9 +165,6 @@ class Project
     readMatches = (matchInfo, lineText) ->
       [lineNumber, matchPositionsText] = matchInfo.match(/(\d+);(.+)/)[1..]
       row = parseInt(lineNumber) - 1
-
-
-
       matchPositions = matchPositionsText.split(',').map (positionText) -> positionText.split(' ').map (pos) -> parseInt(pos)
 
       for [column, length] in matchPositions
@@ -177,19 +174,9 @@ class Project
 
     ChildProcess.exec command , bufferLines: true, stdout: (data) ->
       lines = data.split('\n')
-      try
-        for line in lines
-          readPath(line) if state is 'readingPath'
-          readLine(line) if state is 'readingLines'
-      catch e
-        console.log e.stack
-
-
-
-
-
-
-
-
+      lines.pop() # the last segment is a spurios '' because data always ends in \n due to bufferLines: true
+      for line in lines
+        readPath(line) if state is 'readingPath'
+        readLine(line) if state is 'readingLines'
 
 _.extend Project.prototype, EventEmitter
