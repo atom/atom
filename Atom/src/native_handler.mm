@@ -457,6 +457,11 @@ bool NativeHandler::Execute(const CefString& name,
       
       args.push_back(CefV8Value::CreateString(std::string([contents UTF8String], [contents lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
       function->ExecuteFunction(function, args, retval, e, false);
+            
+      if (e.get()) {
+        NSLog(@"Error thrown in OutputHandle %s", e->GetMessage().ToString().c_str());
+      }
+      
       [contents release];
       context->Exit();
     };
