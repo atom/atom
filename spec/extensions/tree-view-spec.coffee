@@ -131,7 +131,7 @@ describe "TreeView", ->
         expect(treeView).toMatchSelector(':focus')
 
   describe "when tree-view:unfocus is triggered on the tree view", ->
-    fit "surrenders focus to the root view but remains open", ->
+    it "surrenders focus to the root view but remains open", ->
       rootView.attachToDom()
       treeView.focus()
       treeView.trigger 'tree-view:unfocus'
