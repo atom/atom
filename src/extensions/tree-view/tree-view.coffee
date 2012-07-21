@@ -54,9 +54,6 @@ class TreeView extends View
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
     @rootView.project.on 'path-change', => @updateRoot()
 
-    @on 'tree-view:unfocus', => @rootView.getActiveEditor()?.focus()
-    @rootView.on 'tree-view:focus', => this.focus()
-
     @selectEntry(@root) if @root
 
   afterAttach: (onDom) ->

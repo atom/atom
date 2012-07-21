@@ -1,7 +1,5 @@
 window.keymap.bindKeys '#root-view'
   'ctrl-1': 'tree-view:toggle'
-  'ctrl-T': 'tree-view:toggle'
-  'alt-tab': 'tree-view:focus'
 
 window.keymap.bindKeys '.tree-view'
   'escape': 'tree-view:unfocus'
@@ -13,7 +11,6 @@ window.keymap.bindKeys '.tree-view'
   'a': 'tree-view:add'
   'delete': 'tree-view:remove'
   'backspace': 'tree-view:remove'
-  'alt-tab': 'tree-view:unfocus'
 
 window.keymap.bindKeys '.tree-view-dialog .mini.editor'
   'enter': 'tree-view:confirm'
