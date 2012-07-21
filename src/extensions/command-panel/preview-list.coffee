@@ -28,7 +28,6 @@ class PreviewList extends View
 
   setSelectedOperationIndex: (index) ->
     @children(".selected").removeClass('selected')
-    console.log @children("li:eq(#{index})")
     @children("li:eq(#{index})").addClass('selected')
 
   #getSelectedOperation: ->
