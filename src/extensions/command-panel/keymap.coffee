@@ -1,7 +1,11 @@
 window.keymap.bindKeys '*'
+  'ctrl-0': 'command-panel:toggle'
+  'ctrl-meta-0': 'command-panel:toggle-preview'
   'meta-:': 'command-panel:toggle'
+  'meta-F': 'command-panel:find-in-project'
 
-window.keymap.bindKeys '.command-panel .editor',
+window.keymap.bindKeys '.command-panel .editor input',
+  'meta-w': 'command-panel:toggle'
   escape: 'command-panel:toggle'
   enter: 'command-panel:execute'
 

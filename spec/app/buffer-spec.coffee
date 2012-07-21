@@ -90,6 +90,21 @@ describe 'Buffer', ->
           expect(event.newText).toBe "second"
           expect(buffer.isModified()).toBeFalsy()
 
+    describe "when the buffer is modified", ->
+      it "sets modifiedOnDisk to be true", ->
+        fileChangeHandler = jasmine.createSpy('fileChange')
+        buffer.file.on 'contents-change', fileChangeHandler
+
+        buffer.insert([0, 0], "a change")
+        fs.write(path, "second")
+
+        expect(fileChangeHandler.callCount).toBe 0
+        waitsFor "file to trigger contents-change event", ->
+          fileChangeHandler.callCount > 0
+
+        runs ->
+          expect(buffer.isModifiedOnDisk()).toBeTruthy()
+
   describe ".isModified()", ->
     it "returns true when user changes buffer", ->
       expect(buffer.isModified()).toBeFalsy()
@@ -281,6 +296,17 @@ describe 'Buffer', ->
       it "throws an exception", ->
         buffer = new Buffer
         expect(-> buffer.save()).toThrow()
+
+  describe "reload()", ->
+    it "loads text from disk are sets @modified and @modifiedOnDisk to false", ->
+      buffer.modified = true
+      buffer.modifiedOnDisk = true
+      buffer.setText("abc")
+
+      buffer.reload()
+      expect(buffer.modifed).toBeFalsy()
+      expect(buffer.modifiedOnDisk).toBeFalsy()
+      expect(buffer.getText()).toBe(fileContents)
 
   describe ".saveAs(path)", ->
     [filePath, saveAsBuffer] = []

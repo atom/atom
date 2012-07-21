@@ -14,6 +14,7 @@ class Buffer
   @idCounter = 1
   undoManager: null
   modified: null
+  modifiedOnDisk: null
   lines: null
   file: null
   anchors: null
@@ -52,10 +53,17 @@ class Buffer
     this
 
   subscribeToFile: ->
-    @file?.on "contents-change", =>
-      unless @isModified()
+    @file.on "contents-change", =>
+      if @isModified()
+        @modifiedOnDisk = true
+      else
         @setText(fs.read(@file.getPath()))
         @modified = false
+
+  reload: ->
+    @setText(fs.read(@file.getPath()))
+    @modified = false
+    @modifiedOnDisk = false
 
   getPath: ->
     @file?.getPath()
@@ -198,8 +206,12 @@ class Buffer
     fs.write path, @getText()
     @file?.updateMd5()
     @modified = false
+    @modifiedOnDisk = false
     @setPath(path)
     @trigger 'after-save'
+
+  isModifiedOnDisk: ->
+    @modifiedOnDisk
 
   isModified: ->
     @modified
