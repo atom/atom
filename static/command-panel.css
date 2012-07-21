@@ -36,3 +36,7 @@
   font-weight: bold;
   padding: .2em;
 }
+
+.command-panel .preview-list li.selected {
+  background-color: green;
+}
