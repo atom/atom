@@ -124,7 +124,7 @@ describe "CommandPanel", ->
     it "closes the command panel", ->
       rootView.trigger 'command-panel:toggle'
       expect(rootView.find('.command-panel').view()).toBe commandPanel
-      commandPanel.miniEditor.trigger keydownEvent('escape')
+      commandPanel.miniEditor.hiddenInput.trigger keydownEvent('escape')
       expect(rootView.find('.command-panel')).not.toExist()
 
   describe "when return is pressed on the panel's editor", ->
@@ -132,17 +132,36 @@ describe "CommandPanel", ->
       it "executes it immediately on the current buffer", ->
         rootView.trigger 'command-panel:toggle'
         commandPanel.miniEditor.insertText ',s/sort/torta/g'
-        commandPanel.miniEditor.trigger keydownEvent('enter')
+        commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
 
         expect(buffer.lineForRow(0)).toMatch /quicktorta/
         expect(buffer.lineForRow(1)).toMatch /var torta/
+
+    describe "when the command returns operations to be previewed", ->
+      it "displays a preview of the operations above the mini-editor", ->
+        rootView.attachToDom()
+        editor.remove()
+
+        rootView.trigger 'command-panel:toggle'
+
+        waitsForPromise -> commandPanel.execute('X x/a+/')
+
+        runs ->
+          expect(commandPanel).toBeVisible()
+          expect(commandPanel.previewList).toBeVisible()
+          previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
+          expect(previewItem.find('.path').text()).toBe "dir/a"
+          expect(previewItem.find('.preview').text()).toBe "aaa bbb"
+          expect(previewItem.find('.preview > .match').text()).toBe "aaa"
+
+          rootView.trigger 'command-panel:toggle' # ensure we can close panel without problems
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->
         rootView.trigger 'command-panel:toggle'
         commandPanel.miniEditor.insertText 'garbage-command!!'
 
-        commandPanel.miniEditor.trigger keydownEvent('enter')
+        commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
         expect(commandPanel.parent()).toExist()
         expect(commandPanel).toHaveClass 'error'
 
@@ -167,27 +186,6 @@ describe "CommandPanel", ->
       expect(commandPanel.miniEditor.getText()).toBe 's/twinkies/wheatgrass/g'
       commandPanel.miniEditor.trigger 'move-down'
       expect(commandPanel.miniEditor.getText()).toBe ''
-
-  describe "when the command returns operations to be previewed", ->
-    it "displays a preview of the operations above the mini-editor", ->
-      rootView.attachToDom()
-      editor.remove()
-
-      rootView.trigger 'command-panel:toggle'
-
-      waitsForPromise -> commandPanel.execute('X x/a+/')
-
-      runs ->
-        expect(commandPanel).toBeVisible()
-        expect(commandPanel.previewList).toBeVisible()
-        previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
-        expect(previewItem.find('.path').text()).toBe "dir/a"
-        expect(previewItem.find('.preview').text()).toBe "aaa bbb"
-        expect(previewItem.find('.preview > .match').text()).toBe "aaa"
-
-        expect(commandPanel.previewList.find("li:first")).toHaveClass('selected')
-
-        rootView.trigger 'command-panel:toggle' # ensure we can close panel without problems
 
   describe ".execute()", ->
     it "executes the command and closes the command panel", ->
