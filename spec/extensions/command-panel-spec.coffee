@@ -108,7 +108,7 @@ describe "CommandPanel", ->
     it "closes the command panel", ->
       rootView.trigger 'command-panel:toggle'
       expect(rootView.find('.command-panel').view()).toBe commandPanel
-      commandPanel.miniEditor.trigger keydownEvent('escape')
+      commandPanel.miniEditor.hiddenInput.trigger keydownEvent('escape')
       expect(rootView.find('.command-panel')).not.toExist()
 
   describe "when return is pressed on the panel's editor", ->
@@ -116,7 +116,7 @@ describe "CommandPanel", ->
       spyOn(commandPanel, 'execute')
       rootView.trigger 'command-panel:toggle'
       commandPanel.miniEditor.insertText 's/hate/love/g'
-      commandPanel.miniEditor.trigger keydownEvent('enter')
+      commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
 
       expect(commandPanel.execute).toHaveBeenCalled()
 
@@ -125,7 +125,7 @@ describe "CommandPanel", ->
         rootView.trigger 'command-panel:toggle'
         commandPanel.miniEditor.insertText 'garbage-command!!'
 
-        commandPanel.miniEditor.trigger keydownEvent('enter')
+        commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
         expect(commandPanel.parent()).toExist()
         expect(commandPanel).toHaveClass 'error'
 
