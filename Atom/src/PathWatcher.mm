@@ -165,7 +165,7 @@ static NSMutableArray *gPathWatchers;
   struct kevent event;
   int filter = EVFILT_VNODE;
   int flags = EV_ADD | EV_ENABLE | EV_CLEAR;
-  int filterFlags = NOTE_WRITE | NOTE_DELETE | NOTE_ATTRIB | NOTE_EXTEND | NOTE_RENAME | NOTE_REVOKE;
+  int filterFlags = NOTE_WRITE | NOTE_DELETE | NOTE_RENAME;
   EV_SET(&event, fd, filter, flags, filterFlags, 0, 0);
   kevent(_kq, &event, 1, NULL, 0, &timeout);
 }
