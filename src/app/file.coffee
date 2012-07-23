@@ -32,6 +32,7 @@ class File
     @watchId = $native.watchPath @path, (eventTypes, path) =>
       if eventTypes.removed?
         @trigger 'remove'
+        @off()
       else if eventTypes.moved?
         @setPath(path)
         @trigger 'move'
@@ -41,7 +42,6 @@ class File
 
         @md5 = newMd5
         @trigger 'contents-change'
-
 
   unsubscribeFromNativeChangeEvents: ->
     $native.unwatchPath(@path, @watchId)

@@ -105,6 +105,18 @@ describe 'Buffer', ->
         runs ->
           expect(buffer.isModifiedOnDisk()).toBeTruthy()
 
+  describe "when the buffer's file is deleted (via another process)", ->
+    it "no longer has a path", ->
+      path = "/tmp/atom-file-to-delete.txt"
+      fs.write(path, '')
+      bufferToDelete = new Buffer(path)
+      expect(bufferToDelete.getPath()).toBe path
+
+      fs.remove(path)
+
+      waitsFor "file to be removed", ->
+        not bufferToDelete.getPath()
+
   describe ".isModified()", ->
     beforeEach ->
       buffer.destroy()
