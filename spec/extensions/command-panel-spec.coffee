@@ -279,3 +279,11 @@ describe "CommandPanel", ->
       commandPanel.execute()
       expect(rootView.getActiveEditor().getText()).toBe "i love love"
       expect(rootView.find('.command-panel')).not.toExist()
+
+  describe "when the preview list is focused", ->
+    beforeEach ->
+      rootView.trigger 'command-panel:toggle'
+      waitsForPromise -> commandPanel.execute('X x/a+/')
+
+    describe "when move-down and move-up are triggered on the preview list", ->
+      it "selects the next/previous operation", ->
