@@ -3,7 +3,8 @@ require 'fileutils'
 $ATOM_ARGS = []
 
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
-BUILD_DIR = '/tmp/atom-build'
+BUILD_DIR = 'atom-build'
+mkdir_p BUILD_DIR
 
 desc "Build Atom via `xcodebuild`"
 task :build => :"verify-prerequisites" do
