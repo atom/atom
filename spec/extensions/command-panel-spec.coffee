@@ -26,31 +26,43 @@ describe "CommandPanel", ->
 
       newRootView.remove()
 
-  describe "when toggle-command-panel is triggered on the root view", ->
-    it "toggles the command panel", ->
+  describe "when command-panel:toggle is triggered on the root view", ->
+    beforeEach ->
       rootView.attachToDom()
-      expect(rootView.find('.command-panel')).not.toExist()
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
-      expect(commandPanel.miniEditor.isFocused).toBeFalsy()
 
-      rootView.trigger 'command-panel:toggle'
-      window.advanceClock() # Setting the font is in a defer statement
-      expect(rootView.find('.command-panel').view()).toBe commandPanel
-      expect(commandPanel.miniEditor.isFocused).toBeTruthy()
-      # this is currently assigned dynamically since our css scheme lacks variables
-      expect(commandPanel.prompt.css('font')).toBe commandPanel.miniEditor.css('font')
-      commandPanel.miniEditor.insertText 's/war/peace/g'
+    describe "when the command panel is visible", ->
+      beforeEach ->
+        commandPanel.attach()
 
-      rootView.trigger 'command-panel:toggle'
-      expect(rootView.find('.command-panel')).not.toExist()
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
-      expect(commandPanel.miniEditor.isFocused).toBeFalsy()
+      describe "when the command panel is focused", ->
+        it "closes the command panel", ->
+          expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
+          rootView.trigger 'command-panel:toggle'
+          expect(commandPanel.hasParent()).toBeFalsy()
 
-      rootView.trigger 'command-panel:toggle'
-      expect(rootView.find('.command-panel').view()).toBe commandPanel
-      expect(commandPanel.miniEditor.isFocused).toBeTruthy()
-      expect(commandPanel.miniEditor.getText()).toBe ''
-      expect(commandPanel.miniEditor.getCursorScreenPosition()).toEqual [0, 0]
+      describe "when the command panel is not focused", ->
+        it "focuses the command panel", ->
+          rootView.focus()
+          expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
+          rootView.trigger 'command-panel:toggle'
+          expect(commandPanel.hasParent()).toBeTruthy()
+          expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
+
+    describe "when the command panel is not visible", ->
+      it "shows and focuses the command panel", ->
+        expect(commandPanel.hasParent()).toBeFalsy()
+        rootView.trigger 'command-panel:toggle'
+        expect(commandPanel.hasParent()).toBeTruthy()
+
+  describe "when command-panel:unfocus is triggered on the command panel", ->
+    it "returns focus to the root view but does not hide the command panel", ->
+      rootView.attachToDom()
+      commandPanel.attach()
+      expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
+      commandPanel.trigger 'command-panel:unfocus'
+      expect(commandPanel.hasParent()).toBeTruthy()
+      expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
+
 
   describe "when command-panel:repeat-relative-address is triggered on the root view", ->
     it "repeats the last search command if there is one", ->
@@ -75,7 +87,7 @@ describe "CommandPanel", ->
       rootView.trigger 'command-panel:repeat-relative-address'
       expect(editor.getSelection().getBufferRange()).toEqual [[3,31], [3,38]]
 
-  describe "when command-pane:repeat-relative-address-in-reverse is triggered on the root view", ->
+  describe "when command-panel:repeat-relative-address-in-reverse is triggered on the root view", ->
     it "it repeats the last relative address in the reverse direction", ->
       rootView.trigger 'command-panel:repeat-relative-address-in-reverse'
 
@@ -103,13 +115,6 @@ describe "CommandPanel", ->
       rootView.getActiveEditor().trigger "command-panel:find-in-file"
       expect(commandPanel.parent).not.toBeEmpty()
       expect(commandPanel.miniEditor.getText()).toBe "/"
-
-  describe "when esc is pressed in the command panel", ->
-    it "closes the command panel", ->
-      rootView.trigger 'command-panel:toggle'
-      expect(rootView.find('.command-panel').view()).toBe commandPanel
-      commandPanel.miniEditor.hiddenInput.trigger keydownEvent('escape')
-      expect(rootView.find('.command-panel')).not.toExist()
 
   describe "when return is pressed on the panel's editor", ->
     it "calls execute", ->
