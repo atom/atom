@@ -8,6 +8,10 @@ class PreviewList extends View
   selectedOperationIndex: 0
   operations: null
 
+  initialize: ->
+    @on 'move-down', => @selectNextOperation()
+    @on 'move-up', => @selectPreviousOperation()
+
   hasOperations: -> @operations?
 
   populate: (@operations) ->
@@ -26,9 +30,32 @@ class PreviewList extends View
 
     @show()
 
-  setSelectedOperationIndex: (index) ->
-    @children(".selected").removeClass('selected')
-    @children("li:eq(#{index})").addClass('selected')
+  selectNextOperation: ->
+    @setSelectedOperationIndex(@selectedOperationIndex + 1)
 
-  #getSelectedOperation: ->
-    #@operations[@selectedOperationIndex]
+  selectPreviousOperation: ->
+    @setSelectedOperationIndex(@selectedOperationIndex - 1)
+
+  setSelectedOperationIndex: (index) ->
+    index = Math.max(0, index)
+    index = Math.min(@operations.length - 1, index)
+    @children(".selected").removeClass('selected')
+    element = @children("li:eq(#{index})")
+    element.addClass('selected')
+    @scrollToElement(element)
+    @selectedOperationIndex = index
+
+  getOperations: ->
+    new Array(@operations...)
+
+  getSelectedOperation: ->
+    @operations[@selectedOperationIndex]
+
+  scrollToElement: (element) ->
+    top = @scrollTop() + element.position().top
+    bottom = top + element.outerHeight()
+
+    if bottom > @scrollBottom()
+      @scrollBottom(bottom)
+    if top < @scrollTop()
+      @scrollTop(top)

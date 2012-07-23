@@ -1,5 +1,6 @@
 RootView = require 'root-view'
 CommandPanel = require 'command-panel'
+_ = require 'underscore'
 
 describe "CommandPanel", ->
   [rootView, editor, buffer, commandPanel] = []
@@ -270,20 +271,43 @@ describe "CommandPanel", ->
       commandPanel.miniEditor.trigger 'move-down'
       expect(commandPanel.miniEditor.getText()).toBe ''
 
-  describe ".execute()", ->
-    it "executes the command and closes the command panel", ->
-      rootView.getActiveEditor().setText("i hate love")
-      rootView.getActiveEditor().getSelection().setBufferRange [[0,0], [0,Infinity]]
-      rootView.trigger 'command-panel:toggle'
-      commandPanel.miniEditor.insertText 's/hate/love/'
-      commandPanel.execute()
-      expect(rootView.getActiveEditor().getText()).toBe "i love love"
-      expect(rootView.find('.command-panel')).not.toExist()
-
   describe "when the preview list is focused", ->
+    previewList = null
+
     beforeEach ->
+      previewList = commandPanel.previewList
       rootView.trigger 'command-panel:toggle'
       waitsForPromise -> commandPanel.execute('X x/a+/')
 
     describe "when move-down and move-up are triggered on the preview list", ->
-      it "selects the next/previous operation", ->
+      it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->
+        rootView.attachToDom()
+        expect(previewList.find('li:eq(0)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
+
+        previewList.trigger 'move-up'
+        expect(previewList.find('li:eq(0)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
+
+        previewList.trigger 'move-down'
+        expect(previewList.find('li:eq(1)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[1]
+
+        previewList.trigger 'move-down'
+        expect(previewList.find('li:eq(2)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[2]
+
+        previewList.trigger 'move-up'
+        expect(previewList.find('li:eq(1)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[1]
+
+        _.times previewList.getOperations().length, -> previewList.trigger 'move-down'
+
+        expect(previewList.find('li:last')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
+
+        expect(previewList.scrollBottom()).toBe previewList.prop('scrollHeight')
+
+        _.times previewList.getOperations().length, -> previewList.trigger 'move-up'
+
+        console.log previewList.find('li:first').position().top
