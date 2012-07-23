@@ -2,6 +2,7 @@
 
 #import <sys/event.h>
 #import <sys/time.h> 
+#import <sys/param.h> 
 #import <fcntl.h>
 
 static NSMutableArray *gPathWatchers;
@@ -11,6 +12,8 @@ static NSMutableArray *gPathWatchers;
 - (void)watchFileDescriptor:(int)fd;
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback callbackId:(NSString *)callbackId;
 - (void)stopWatching;
+- (void)reassignFileDescriptorFor:(NSString *)path to:(NSString *)newPath;
+- (bool)isAtomicWrite:(struct kevent)event;
 @end
 
 @implementation PathWatcher
@@ -194,24 +197,33 @@ static NSMutableArray *gPathWatchers;
 
       NSNumber *fdNumber = [NSNumber numberWithInt:event.ident];
       NSMutableArray *eventFlags = [NSMutableArray array];
+      NSString *path = [self pathForFileDescriptor:fdNumber];
       
       if (event.fflags & NOTE_WRITE) {
         [eventFlags addObject:@"modified"];
       }
       else if ([self isAtomicWrite:event]) {        
+        [eventFlags addObject:@"modified"];        
+
         // The fd for the path has changed. Remove references to old fd and
         // make sure the path and callbacks are linked with new fd.
         @synchronized(self) {
-          NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];
-          NSString *path = [self pathForFileDescriptor:fdNumber];
-          
+          NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];          
           [self unwatchPath:path callbackId:nil error:nil];
           for (NSString *callbackId in [callbacks allKeys]) {
             [self watchPath:path callback:[callbacks objectForKey:callbackId] callbackId:callbackId];
-          }
-          
-          [eventFlags addObject:@"modified"];
+          }  
         }
+
+      }
+      else if (event.fflags & NOTE_RENAME) {
+        [eventFlags addObject:@"moved"];
+
+        char pathBuffer[MAXPATHLEN];
+        fcntl((int)event.ident, F_GETPATH, &pathBuffer);
+        NSString *newPath = [NSString stringWithUTF8String:pathBuffer];
+        [self reassignFileDescriptorFor:path to:newPath];
+        path = newPath;
       }
       
       @synchronized(self) {
@@ -219,7 +231,7 @@ static NSMutableArray *gPathWatchers;
         for (NSString *key in callbacks) {
           WatchCallback callback = [callbacks objectForKey:key];
           dispatch_async(dispatch_get_main_queue(), ^{
-            callback(eventFlags);
+            callback(eventFlags, path);
           });
         }
       }
@@ -239,6 +251,14 @@ static NSMutableArray *gPathWatchers;
   }
 
   return NO;
+}
+
+- (void)reassignFileDescriptorFor:(NSString *)path to:(NSString *)newPath {
+  @synchronized(self) {
+    NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
+    [_fileDescriptorsByPath removeObjectForKey:path];
+    [_fileDescriptorsByPath setObject:fdNumber forKey:newPath];
+  }
 }
 
 @end

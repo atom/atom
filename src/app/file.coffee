@@ -11,6 +11,8 @@ class File
   constructor: (@path) ->
     @updateMd5()
 
+  setPath: (@path) ->
+
   getPath: ->
     @path
 
@@ -27,7 +29,11 @@ class File
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   subscribeToNativeChangeEvents: ->
-    @watchId = $native.watchPath @path, (eventTypes) =>
+    @watchId = $native.watchPath @path, (eventTypes, path) =>
+      if eventTypes.moved?
+        @setPath(path)
+        @trigger 'move'
+
       newMd5 = fs.md5ForPath(@getPath())
       if eventTypes.modified? and newMd5 != @md5
         @md5 = newMd5
