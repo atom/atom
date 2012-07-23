@@ -64,7 +64,6 @@ describe "CommandPanel", ->
       expect(commandPanel.hasParent()).toBeTruthy()
       expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
 
-
   describe "when command-panel:repeat-relative-address is triggered on the root view", ->
     it "repeats the last search command if there is one", ->
       rootView.trigger 'command-panel:repeat-relative-address'
@@ -146,23 +145,53 @@ describe "CommandPanel", ->
         expect(buffer.lineForRow(1)).toMatch /var torta/
 
     describe "when the command returns operations to be previewed", ->
-      it "displays a preview of the operations above the mini-editor", ->
+      beforeEach ->
         rootView.attachToDom()
         editor.remove()
-
         rootView.trigger 'command-panel:toggle'
-
         waitsForPromise -> commandPanel.execute('X x/a+/')
 
-        runs ->
-          expect(commandPanel).toBeVisible()
-          expect(commandPanel.previewList).toBeVisible()
-          previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
-          expect(previewItem.find('.path').text()).toBe "dir/a"
-          expect(previewItem.find('.preview').text()).toBe "aaa bbb"
-          expect(previewItem.find('.preview > .match').text()).toBe "aaa"
+      it "displays and focuses the operation preview list", ->
+        expect(commandPanel).toBeVisible()
+        expect(commandPanel.previewList).toBeVisible()
+        expect(commandPanel.previewList).toMatchSelector ':focus'
+        previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
+        expect(previewItem.find('.path').text()).toBe "dir/a"
+        expect(previewItem.find('.preview').text()).toBe "aaa bbb"
+        expect(previewItem.find('.preview > .match').text()).toBe "aaa"
 
-          rootView.trigger 'command-panel:toggle' # ensure we can close panel without problems
+        rootView.trigger 'command-panel:toggle-preview' # ensure we can close panel without problems
+        expect(commandPanel).toBeHidden()
+
+      it "shifts focus between the preview and the mini editor on 'toggle' and 'toggle-preview' events", ->
+        rootView.trigger 'command-panel:toggle'
+        expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
+        rootView.trigger 'command-panel:toggle-preview'
+        expect(commandPanel.previewList).toMatchSelector ':focus'
+
+        rootView.trigger 'command-panel:toggle-preview'
+        expect(commandPanel.hasParent()).toBeFalsy()
+
+        rootView.trigger 'command-panel:toggle'
+        rootView.trigger 'command-panel:toggle'
+        expect(commandPanel.hasParent()).toBeFalsy()
+        expect(commandPanel.previewList).toBeHidden()
+
+        # preview should be hidden if we toggle command panel on normally
+        rootView.trigger 'command-panel:toggle'
+        expect(commandPanel.hasParent()).toBeTruthy()
+        expect(commandPanel.previewList).toBeHidden()
+
+        rootView.trigger 'command-panel:toggle-preview'
+        expect(commandPanel.previewList).toBeVisible()
+
+        rootView.trigger 'command-panel:toggle-preview'
+        expect(commandPanel.hasParent()).toBeFalsy()
+
+        # preview should be visible if we toggle-preview the command panel
+        rootView.trigger 'command-panel:toggle-preview'
+        expect(commandPanel.hasParent()).toBeTruthy()
+        expect(commandPanel.previewList).toBeVisible()
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->

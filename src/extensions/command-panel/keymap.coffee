@@ -1,6 +1,6 @@
 window.keymap.bindKeys '*'
   'ctrl-0': 'command-panel:toggle'
-  'ctrl-meta-0': 'command-panel:toggle-preview'
+  'ctrl-2': 'command-panel:toggle-preview'
   'meta-:': 'command-panel:toggle'
   'meta-F': 'command-panel:find-in-project'
 

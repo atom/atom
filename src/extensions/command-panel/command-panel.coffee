@@ -46,6 +46,7 @@ class CommandPanel extends View
 
     @on 'command-panel:unfocus', => @rootView.focus()
     @rootView.on 'command-panel:toggle', => @toggle()
+    @rootView.on 'command-panel:toggle-preview', => @togglePreview()
     @rootView.on 'command-panel:execute', => @execute()
     @rootView.on 'command-panel:find-in-file', => @attach("/")
     @rootView.on 'command-panel:find-in-project', => @attach("Xx/")
@@ -65,15 +66,24 @@ class CommandPanel extends View
       @attach() unless @hasParent()
       @miniEditor.focus()
 
+  togglePreview: ->
+    if @previewList.is(':focus')
+      @previewList.hide()
+      @detach()
+      @rootView.focus()
+    else
+      @attach() unless @hasParent()
+      @previewList.show().focus()
+
   attach: (text='') ->
     @rootView.append(this)
-    @previewList.hide()
     @miniEditor.focus()
     @miniEditor.setText(text)
     @miniEditor.setCursorBufferPosition([0, Infinity])
 
   detach: ->
     @rootView.focus()
+    @previewList.hide()
     if @previewedOperations
       operation.destroy() for operation in @previewedOperations
       @previewedOperations = undefined
@@ -98,6 +108,7 @@ class CommandPanel extends View
   populatePreviewList: (operations) ->
     @previewedOperations = operations
     @previewList.populate(operations)
+    @previewList.focus()
 
   navigateBackwardInHistory: ->
     return if @historyIndex == 0

@@ -3,7 +3,7 @@
 module.exports =
 class PreviewList extends View
   @content: ->
-    @ol class: 'preview-list', ->
+    @ol class: 'preview-list', tabindex: -1, ->
 
   selectedOperationIndex: 0
   operations: null
