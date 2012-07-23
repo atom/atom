@@ -44,6 +44,7 @@ class CommandPanel extends View
     @commandInterpreter = new CommandInterpreter(@rootView.project)
     @history = []
 
+    @on 'command-panel:unfocus', => @rootView.focus()
     @rootView.on 'command-panel:toggle', => @toggle()
     @rootView.on 'command-panel:execute', => @execute()
     @rootView.on 'command-panel:find-in-file', => @attach("/")
@@ -57,8 +58,12 @@ class CommandPanel extends View
     @miniEditor.on 'move-down', => @navigateForwardInHistory()
 
   toggle: ->
-    if @parent().length then @detach() else @attach()
-    false
+    if @miniEditor.isFocused
+      @detach()
+      @rootView.focus()
+    else
+      @attach() unless @hasParent()
+      @miniEditor.focus()
 
   attach: (text='') ->
     @rootView.append(this)

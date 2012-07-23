@@ -6,7 +6,7 @@ window.keymap.bindKeys '*'
 
 window.keymap.bindKeys '.command-panel .editor input',
   'meta-w': 'command-panel:toggle'
-  escape: 'command-panel:toggle'
+  escape: 'command-panel:unfocus'
   enter: 'command-panel:execute'
 
 window.keymap.bindKeys '.editor',
