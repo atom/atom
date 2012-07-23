@@ -58,6 +58,8 @@ class CommandPanel extends View
     @miniEditor.on 'move-up', => @navigateBackwardInHistory()
     @miniEditor.on 'move-down', => @navigateForwardInHistory()
 
+    @previewList.hide()
+
   toggle: ->
     if @miniEditor.isFocused
       @detach()
@@ -73,7 +75,10 @@ class CommandPanel extends View
       @rootView.focus()
     else
       @attach() unless @hasParent()
-      @previewList.show().focus()
+      if @previewList.hasOperations()
+        @previewList.show().focus()
+      else
+        @miniEditor.focus()
 
   attach: (text='') ->
     @rootView.append(this)

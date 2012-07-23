@@ -8,7 +8,7 @@ class PreviewList extends View
   selectedOperationIndex: 0
   operations: null
 
-  initialize: ->
+  hasOperations: -> @operations?
 
   populate: (@operations) ->
     @empty()

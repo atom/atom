@@ -35,14 +35,14 @@ describe "CommandPanel", ->
       beforeEach ->
         commandPanel.attach()
 
-      describe "when the command panel is focused", ->
+      describe "when the mini editor is focused", ->
         it "closes the command panel", ->
           expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
           rootView.trigger 'command-panel:toggle'
           expect(commandPanel.hasParent()).toBeFalsy()
 
-      describe "when the command panel is not focused", ->
-        it "focuses the command panel", ->
+      describe "when the mini editor is not focused", ->
+        it "focuses the mini editor", ->
           rootView.focus()
           expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
           rootView.trigger 'command-panel:toggle'
@@ -54,6 +54,82 @@ describe "CommandPanel", ->
         expect(commandPanel.hasParent()).toBeFalsy()
         rootView.trigger 'command-panel:toggle'
         expect(commandPanel.hasParent()).toBeTruthy()
+
+  describe "when command-panel:toggle-preview is triggered on the root view", ->
+    beforeEach ->
+      rootView.attachToDom()
+
+    describe "when the preview list is/was previously visible", ->
+      beforeEach ->
+        rootView.trigger 'command-panel:toggle'
+        waitsForPromise -> commandPanel.execute('X x/a+/')
+
+      describe "when the command panel is visible", ->
+        beforeEach ->
+          expect(commandPanel.hasParent()).toBeTruthy()
+
+        describe "when the preview list is visible", ->
+          beforeEach ->
+            expect(commandPanel.previewList).toBeVisible()
+
+          describe "when the preview list is focused", ->
+            it "hides the command panel", ->
+              expect(commandPanel.previewList).toMatchSelector(':focus')
+              rootView.trigger 'command-panel:toggle-preview'
+              expect(commandPanel.hasParent()).toBeFalsy()
+
+          describe "when the preview list is not focused", ->
+            it "focuses the preview list", ->
+              commandPanel.miniEditor.focus()
+              rootView.trigger 'command-panel:toggle-preview'
+              expect(commandPanel.previewList).toMatchSelector(':focus')
+
+        describe "when the preview list is not visible", ->
+          beforeEach ->
+            commandPanel.miniEditor.focus()
+            rootView.trigger 'command-panel:toggle'
+            rootView.trigger 'command-panel:toggle'
+            expect(commandPanel.hasParent()).toBeTruthy()
+            expect(commandPanel.previewList).toBeHidden()
+
+          it "shows and focuses the preview list", ->
+            rootView.trigger 'command-panel:toggle-preview'
+            expect(commandPanel.previewList).toBeVisible()
+            expect(commandPanel.previewList).toMatchSelector(':focus')
+
+      describe "when the command panel is not visible", ->
+        it "shows the command panel and the preview list, and focuses the preview list", ->
+          commandPanel.miniEditor.focus()
+          rootView.trigger 'command-panel:toggle'
+          expect(commandPanel.hasParent()).toBeFalsy()
+
+          rootView.trigger 'command-panel:toggle-preview'
+          expect(commandPanel.hasParent()).toBeTruthy()
+          expect(commandPanel.previewList).toBeVisible()
+          expect(commandPanel.previewList).toMatchSelector(':focus')
+
+    describe "when the preview list has never been opened", ->
+      describe "when the command panel is visible", ->
+        beforeEach ->
+          rootView.trigger 'command-panel:toggle'
+          expect(commandPanel.hasParent()).toBeTruthy()
+
+        describe "when the mini editor is focused", ->
+          it "retains focus on the mini editor and does not show the preview list", ->
+            expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+            rootView.trigger 'command-panel:toggle-preview'
+            expect(commandPanel.previewList).toBeHidden()
+            expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+
+        describe "when the mini editor is not focused", ->
+          it "focuses the mini editor and does not show the preview list", ->
+            rootView.focus()
+            rootView.trigger 'command-panel:toggle-preview'
+            expect(commandPanel.previewList).toBeHidden()
+            expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+
+      describe "when the command panel is not visible", ->
+        it "shows the command panel and focuses the mini editor, but does not show the preview list", ->
 
   describe "when command-panel:unfocus is triggered on the command panel", ->
     it "returns focus to the root view but does not hide the command panel", ->
@@ -162,36 +238,6 @@ describe "CommandPanel", ->
 
         rootView.trigger 'command-panel:toggle-preview' # ensure we can close panel without problems
         expect(commandPanel).toBeHidden()
-
-      it "shifts focus between the preview and the mini editor on 'toggle' and 'toggle-preview' events", ->
-        rootView.trigger 'command-panel:toggle'
-        expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
-        rootView.trigger 'command-panel:toggle-preview'
-        expect(commandPanel.previewList).toMatchSelector ':focus'
-
-        rootView.trigger 'command-panel:toggle-preview'
-        expect(commandPanel.hasParent()).toBeFalsy()
-
-        rootView.trigger 'command-panel:toggle'
-        rootView.trigger 'command-panel:toggle'
-        expect(commandPanel.hasParent()).toBeFalsy()
-        expect(commandPanel.previewList).toBeHidden()
-
-        # preview should be hidden if we toggle command panel on normally
-        rootView.trigger 'command-panel:toggle'
-        expect(commandPanel.hasParent()).toBeTruthy()
-        expect(commandPanel.previewList).toBeHidden()
-
-        rootView.trigger 'command-panel:toggle-preview'
-        expect(commandPanel.previewList).toBeVisible()
-
-        rootView.trigger 'command-panel:toggle-preview'
-        expect(commandPanel.hasParent()).toBeFalsy()
-
-        # preview should be visible if we toggle-preview the command panel
-        rootView.trigger 'command-panel:toggle-preview'
-        expect(commandPanel.hasParent()).toBeTruthy()
-        expect(commandPanel.previewList).toBeVisible()
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->
