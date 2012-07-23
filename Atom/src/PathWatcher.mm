@@ -214,7 +214,9 @@ static NSMutableArray *gPathWatchers;
             [self watchPath:path callback:[callbacks objectForKey:callbackId] callbackId:callbackId];
           }  
         }
-
+      }
+      else if (event.fflags & NOTE_DELETE) {
+        [eventFlags addObject:@"removed"];
       }
       else if (event.fflags & NOTE_RENAME) {
         [eventFlags addObject:@"moved"];

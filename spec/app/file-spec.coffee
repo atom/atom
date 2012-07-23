@@ -31,6 +31,16 @@ describe 'File', ->
       waitsFor "second change event", ->
         changeHandler.callCount > 0
 
+  describe "when the file is removed", ->
+    it "triggers 'remove' event handlers", ->
+      removeHandler = null
+      removeHandler = jasmine.createSpy('removeHandler')
+      file.on 'remove', removeHandler
+      fs.remove(file.getPath())
+
+      waitsFor "remove event", ->
+        removeHandler.callCount > 0
+
   describe "when a file is moved (via the filesystem)", ->
     newPath = null
 
