@@ -29,14 +29,14 @@ class File
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   subscribeToNativeChangeEvents: ->
-    @watchId = $native.watchPath @path, (eventTypes, path) =>
-      if eventTypes.removed?
-        @trigger 'remove'
+    @watchId = $native.watchPath @path, (eventType, path) =>
+      if eventType is "remove"
+        @trigger "remove"
         @off()
-      else if eventTypes.moved?
+      else if eventType is "move"
         @setPath(path)
-        @trigger 'move'
-      else if eventTypes.modified?
+        @trigger "move"
+      else if eventType is "contents-change"
         newMd5 = fs.md5ForPath(@getPath())
         return if newMd5 == @md5
 

@@ -2,7 +2,7 @@
 #import "include/cef_v8.h"
 #import <Foundation/Foundation.h>
 
-typedef void (^WatchCallback)(NSArray *, NSString *);
+typedef void (^WatchCallback)(NSString *, NSString *);
 
 @interface PathWatcher : NSObject {
   int _kq;

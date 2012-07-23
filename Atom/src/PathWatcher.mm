@@ -196,14 +196,14 @@ static NSMutableArray *gPathWatchers;
       }
 
       NSNumber *fdNumber = [NSNumber numberWithInt:event.ident];
-      NSMutableArray *eventFlags = [NSMutableArray array];
+      NSString *eventFlag = nil;
       NSString *path = [self pathForFileDescriptor:fdNumber];
       
       if (event.fflags & NOTE_WRITE) {
-        [eventFlags addObject:@"modified"];
+        eventFlag = @"contents-change";
       }
       else if ([self isAtomicWrite:event]) {        
-        [eventFlags addObject:@"modified"];        
+        eventFlag = @"contents-change";
 
         // The fd for the path has changed. Remove references to old fd and
         // make sure the path and callbacks are linked with new fd.
@@ -216,10 +216,10 @@ static NSMutableArray *gPathWatchers;
         }
       }
       else if (event.fflags & NOTE_DELETE) {
-        [eventFlags addObject:@"removed"];
+        eventFlag = @"remove";
       }
       else if (event.fflags & NOTE_RENAME) {
-        [eventFlags addObject:@"moved"];
+        eventFlag = @"move";
 
         char pathBuffer[MAXPATHLEN];
         fcntl((int)event.ident, F_GETPATH, &pathBuffer);
@@ -233,7 +233,7 @@ static NSMutableArray *gPathWatchers;
         for (NSString *key in callbacks) {
           WatchCallback callback = [callbacks objectForKey:key];
           dispatch_async(dispatch_get_main_queue(), ^{
-            callback(eventFlags, path);
+            callback(eventFlag, path);
           });
         }
       }

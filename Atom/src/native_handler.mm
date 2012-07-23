@@ -304,19 +304,14 @@ bool NativeHandler::Execute(const CefString& name,
 
     CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
     
-    WatchCallback callback = ^(NSArray *eventList, NSString *path) {
+    WatchCallback callback = ^(NSString *eventType, NSString *path) {
       context->Enter();
       
       CefV8ValueList args;
       CefRefPtr<CefV8Value> retval;
       CefRefPtr<CefV8Exception> e;
-      
-      CefRefPtr<CefV8Value> eventObject = CefV8Value::CreateObject(NULL, NULL);
-      for (NSString *event in eventList) {
-        eventObject->SetValue([event UTF8String], CefV8Value::CreateBool(true), V8_PROPERTY_ATTRIBUTE_NONE);
-      }
-      
-      args.push_back(eventObject);
+            
+      args.push_back(CefV8Value::CreateString(std::string([eventType UTF8String], [eventType lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
       args.push_back(CefV8Value::CreateString(std::string([path UTF8String], [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
       function->ExecuteFunction(function, args, retval, e, true);
       
