@@ -610,14 +610,17 @@ describe "TreeView", ->
 
           describe "when the directories along the new path don't exist", ->
             it "creates the target directory before moving the file", ->
-              runs ->
-                newPath = fs.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
-                moveDialog.miniEditor.setText(newPath)
+              #rootView.project.destroy() # Ensure there are no open buffers (renaming a file asynchronously updates the buffer's path, this causes the afterEach block to unwatch the previous path, which no longer exists.)
 
-                moveDialog.trigger 'tree-view:confirm'
+              newPath = fs.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
+              moveDialog.miniEditor.setText(newPath)
 
-                expect(fs.exists(newPath)).toBeTruthy()
-                expect(fs.exists(filePath)).toBeFalsy()
+              moveDialog.trigger 'tree-view:confirm'
+
+              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.exists(filePath)).toBeFalsy()
+
+              waits 50 # temporary hack (maybe).
 
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->

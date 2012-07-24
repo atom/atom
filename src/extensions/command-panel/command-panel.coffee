@@ -85,7 +85,7 @@ class CommandPanel extends View
         @miniEditor.focus()
 
   attach: (text='') ->
-    @rootView.append(this)
+    @rootView.vertical.append(this)
     @miniEditor.focus()
     @miniEditor.setText(text)
     @miniEditor.setCursorBufferPosition([0, Infinity])

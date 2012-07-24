@@ -29,7 +29,6 @@ describe "CommandPanel", ->
 
       newRootView.remove()
 
-
   describe "when command-panel:close is triggered on the command panel", ->
     it "detaches the command panel", ->
       commandPanel.attach()

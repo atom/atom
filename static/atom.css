@@ -9,33 +9,42 @@ body {
 
 #root-view {
   height: 100%;
-  height: 100%;
   overflow-y: auto;
   position: relative;
   background-image: url(static/images/linen.png);
 }
 
 #root-view #horizontal {
-  display: -webkit-flexbox;
+  display: -webkit-box;
+  height: 100%;
+}
+
+#root-view #vertical {
+  -webkit-box-flex: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
 }
 
 #root-view #panes {
-  height: 100%;
-  width: -webkit-flex(1 0);
+  -webkit-box-flex: 1;
   position: relative;
 }
 
 #root-view #panes .column {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   overflow-y: hidden;
 }
 
 #root-view #panes .row {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   overflow-x: hidden;
 }
 
@@ -43,8 +52,10 @@ body {
   position: absolute;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   box-sizing: border-box;
 }
 

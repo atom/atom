@@ -9,13 +9,17 @@
   position: relative;
 }
 
-
 .editor.mini {
   height: auto;
 }
 
 .editor .flexbox {
-  display: -webkit-flexbox;
+  display: -webkit-box;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .editor .gutter {
@@ -51,8 +55,7 @@
 .editor .scroll-view {
   overflow-x: auto;
   overflow-y: hidden;
-  width: -webkit-flex(1);
-  height: 100%;
+  -webkit-box-flex: 1;
 }
 
 .editor.mini .scroll-view {

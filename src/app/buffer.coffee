@@ -60,6 +60,13 @@ class Buffer
         @setText(fs.read(@file.getPath()))
         @modified = false
 
+    @file.on "remove", =>
+      @file = null
+      @trigger "path-change", this
+
+    @file.on "move", =>
+      @trigger "path-change", this
+
   reload: ->
     @setText(fs.read(@file.getPath()))
     @modified = false

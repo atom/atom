@@ -12,6 +12,8 @@ class File
     throw "Creating file with path that is not a file: #{@path}" unless fs.isFile(@path)
     @updateMd5()
 
+  setPath: (@path) ->
+
   getPath: ->
     @path
 
@@ -28,9 +30,17 @@ class File
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   subscribeToNativeChangeEvents: ->
-    @watchId = $native.watchPath @path, (eventTypes) =>
-      newMd5 = fs.md5ForPath(@getPath())
-      if eventTypes.modified? and newMd5 != @md5
+    @watchId = $native.watchPath @path, (eventType, path) =>
+      if eventType is "remove"
+        @trigger "remove"
+        @off()
+      else if eventType is "move"
+        @setPath(path)
+        @trigger "move"
+      else if eventType is "contents-change"
+        newMd5 = fs.md5ForPath(@getPath())
+        return if newMd5 == @md5
+
         @md5 = newMd5
         @trigger 'contents-change'
 
