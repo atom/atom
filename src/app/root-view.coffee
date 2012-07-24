@@ -18,7 +18,8 @@ class RootView extends View
   @content: ->
     @div id: 'root-view', tabindex: -1, =>
       @div id: 'horizontal', outlet: 'horizontal', =>
-        @div id: 'panes', outlet: 'panes'
+        @div id: 'vertical', outlet: 'vertical', =>
+          @div id: 'panes', outlet: 'panes'
 
   @deserialize: ({ projectPath, panesViewState, extensionStates }) ->
     rootView = new RootView(projectPath, extensionStates: extensionStates, suppressOpen: true)
