@@ -332,3 +332,13 @@ describe "CommandPanel", ->
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
 
         expect(executeHandler).not.toHaveBeenCalled()
+
+    describe "when an operation in the preview list is clicked", ->
+      it "opens a new editor with the operation's buffer and selects the search result", ->
+        operation = previewList.getOperations()[4]
+
+        previewList.find('li:eq(4)').mousedown()
+
+        editSession = rootView.getActiveEditSession()
+        expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
+        expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()

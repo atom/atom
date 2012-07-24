@@ -1,3 +1,4 @@
+$ = require 'jquery'
 {$$$, View} = require 'space-pen'
 
 module.exports =
@@ -11,7 +12,11 @@ class PreviewList extends View
   initialize: (@rootView) ->
     @on 'move-down', => @selectNextOperation()
     @on 'move-up', => @selectPreviousOperation()
-    @on 'command-panel:execute', => @executeSelectedOperation()
+    @on 'command-panel:execute', => @execute()
+
+    @on 'mousedown', 'li', (e) =>
+      index = $(e.target).data('index')
+      @execute(@getOperations()[index])
 
   destroy: ->
     @destroyOperations() if @operations
@@ -23,9 +28,9 @@ class PreviewList extends View
     @operations = operations
     @empty()
     @html $$$ ->
-      for operation in operations
+      for operation, index in operations
         {prefix, suffix, match} = operation.preview()
-        @li =>
+        @li 'data-index': index, =>
           @span operation.getPath(), outlet: "path", class: "path"
           @span outlet: "preview", class: "preview", =>
             @span prefix
@@ -50,8 +55,7 @@ class PreviewList extends View
     @scrollToElement(element)
     @selectedOperationIndex = index
 
-  executeSelectedOperation: ->
-    operation = @getSelectedOperation()
+  execute: (operation = @getSelectedOperation()) ->
     editSession = @rootView.open(operation.getPath())
     operation.execute(editSession)
     false
