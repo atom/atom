@@ -13,6 +13,9 @@ class PreviewList extends View
     @on 'move-up', => @selectPreviousOperation()
     @on 'command-panel:execute', => @executeSelectedOperation()
 
+  destroy: ->
+    @destroyOperations() if @operations
+
   hasOperations: -> @operations?
 
   populate: (operations) ->

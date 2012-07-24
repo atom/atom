@@ -18,7 +18,7 @@ class CommandPanel extends View
       @instance = new CommandPanel(rootView)
 
   @deactivate: ->
-    @instance.detach()
+    @instance.destroy()
 
   @serialize: ->
     text: @instance.miniEditor.getText()
@@ -60,6 +60,9 @@ class CommandPanel extends View
 
     @previewList.hide()
 
+  destroy: ->
+    @previewList.destroy()
+
   toggle: ->
     if @miniEditor.isFocused
       @detach()
@@ -89,9 +92,6 @@ class CommandPanel extends View
   detach: ->
     @rootView.focus()
     @previewList.hide()
-    if @previewedOperations
-      operation.destroy() for operation in @previewedOperations
-      @previewedOperations = undefined
     super
 
   execute: (command = @miniEditor.getText()) ->
@@ -100,7 +100,8 @@ class CommandPanel extends View
         @history.push(command)
         @historyIndex = @history.length
         if operationsToPreview?.length
-          @populatePreviewList(operationsToPreview)
+          @previewList.populate(operationsToPreview)
+          @previewList.focus()
         else
           @detach()
     catch error
@@ -109,11 +110,6 @@ class CommandPanel extends View
         return
       else
         throw error
-
-  populatePreviewList: (operations) ->
-    @previewedOperations = operations
-    @previewList.populate(operations)
-    @previewList.focus()
 
   navigateBackwardInHistory: ->
     return if @historyIndex == 0
