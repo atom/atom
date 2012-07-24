@@ -153,3 +153,23 @@ describe "Project", ->
           expect(paths[2]).toMatch /goddam\nnewlines$/m
           expect(paths[3]).toMatch /quote".txt$/m
           expect(fs.base(paths[4])).toBe "utfa\u0306.md"
+
+      it "handles breaks in the search subprocess's output following the filename", ->
+        spyOn $native, 'exec'
+
+        iterator = jasmine.createSpy('iterator')
+        project.scan /a+/, iterator
+
+        stdout = $native.exec.argsForCall[0][1].stdout
+        stdout ":#{require.resolve('fixtures/dir/a')}\n"
+        stdout "1;0 3:aaa bbb\n2;3 2:cc aa cc\n"
+
+        expect(iterator.argsForCall[0][0]).toEqual
+          path: project.resolve('a')
+          match: 'aaa'
+          range: [[0, 0], [0, 3]]
+
+        expect(iterator.argsForCall[1][0]).toEqual
+          path: project.resolve('a')
+          match: 'aa'
+          range: [[1, 3], [1, 5]]
