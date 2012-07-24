@@ -3,12 +3,13 @@ CommandPanel = require 'command-panel'
 _ = require 'underscore'
 
 describe "CommandPanel", ->
-  [rootView, editor, buffer, commandPanel] = []
+  [rootView, editor, buffer, commandPanel, project] = []
 
   beforeEach ->
     rootView = new RootView
     rootView.open(require.resolve 'fixtures/sample.js')
     rootView.enableKeymap()
+    project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
     commandPanel = requireExtension('command-panel')
@@ -271,7 +272,7 @@ describe "CommandPanel", ->
       commandPanel.miniEditor.trigger 'move-down'
       expect(commandPanel.miniEditor.getText()).toBe ''
 
-  describe "when the preview list is focused", ->
+  describe "when the preview list is focused with search operations", ->
     previewList = null
 
     beforeEach ->
@@ -311,3 +312,19 @@ describe "CommandPanel", ->
         _.times previewList.getOperations().length, -> previewList.trigger 'move-up'
 
         console.log previewList.find('li:first').position().top
+
+    describe "when command-panel:execute is triggered on the preview list", ->
+      it "opens a new editor with the operation's buffer and selects the search result", ->
+        executeHandler = jasmine.createSpy('executeHandler')
+        commandPanel.on 'command-panel:execute', executeHandler
+
+        _.times 4, -> previewList.trigger 'move-down'
+        operation = previewList.getSelectedOperation()
+
+        previewList.trigger 'command-panel:execute'
+
+        editSession = rootView.getActiveEditSession()
+        expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
+        expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+
+        expect(executeHandler).not.toHaveBeenCalled()

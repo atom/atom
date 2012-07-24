@@ -8,9 +8,10 @@ class PreviewList extends View
   selectedOperationIndex: 0
   operations: null
 
-  initialize: ->
+  initialize: (@rootView) ->
     @on 'move-down', => @selectNextOperation()
     @on 'move-up', => @selectPreviousOperation()
+    @on 'command-panel:execute', => @executeSelectedOperation()
 
   hasOperations: -> @operations?
 
@@ -44,6 +45,12 @@ class PreviewList extends View
     element.addClass('selected')
     @scrollToElement(element)
     @selectedOperationIndex = index
+
+  executeSelectedOperation: ->
+    operation = @getSelectedOperation()
+    editSession = @rootView.open(operation.getPath())
+    operation.execute(editSession)
+    false
 
   getOperations: ->
     new Array(@operations...)

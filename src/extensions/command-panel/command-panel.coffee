@@ -29,9 +29,9 @@ class CommandPanel extends View
     commandPanel.attach(state.text) if state.visible
     commandPanel
 
-  @content: ->
+  @content: (rootView) ->
     @div class: 'command-panel', =>
-      @subview 'previewList', new PreviewList()
+      @subview 'previewList', new PreviewList(rootView)
       @div class: 'prompt-and-editor', =>
         @div ':', class: 'prompt', outlet: 'prompt'
         @subview 'miniEditor', new Editor(mini: true)
