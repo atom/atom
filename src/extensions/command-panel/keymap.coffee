@@ -4,8 +4,8 @@ window.keymap.bindKeys '*'
   'meta-:': 'command-panel:toggle'
   'meta-F': 'command-panel:find-in-project'
 
-window.keymap.bindKeys '.command-panel, .command-panel .editor input',
-  'meta-w': 'command-panel:toggle'
+window.keymap.bindKeys '.command-panel .preview-list, .command-panel .editor input',
+  'meta-w': 'command-panel:close'
   escape: 'command-panel:unfocus'
   enter: 'command-panel:execute'
 

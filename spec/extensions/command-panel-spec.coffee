@@ -29,6 +29,13 @@ describe "CommandPanel", ->
 
       newRootView.remove()
 
+
+  describe "when command-panel:close is triggered on the command panel", ->
+    it "detaches the command panel", ->
+      commandPanel.attach()
+      commandPanel.trigger('command-panel:close')
+      expect(commandPanel.hasParent()).toBeFalsy()
+
   describe "when command-panel:toggle is triggered on the root view", ->
     beforeEach ->
       rootView.attachToDom()

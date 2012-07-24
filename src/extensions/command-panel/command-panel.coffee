@@ -45,6 +45,7 @@ class CommandPanel extends View
     @history = []
 
     @on 'command-panel:unfocus', => @rootView.focus()
+    @on 'command-panel:close', => @detach()
     @rootView.on 'command-panel:toggle', => @toggle()
     @rootView.on 'command-panel:toggle-preview', => @togglePreview()
     @rootView.on 'command-panel:execute', => @execute()
