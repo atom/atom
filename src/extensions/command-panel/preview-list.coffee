@@ -12,11 +12,11 @@ class PreviewList extends View
   initialize: (@rootView) ->
     @on 'move-down', => @selectNextOperation()
     @on 'move-up', => @selectPreviousOperation()
-    @on 'command-panel:execute', => @execute()
+    @on 'command-panel:execute', => @executeSelectedOperation()
 
     @on 'mousedown', 'li', (e) =>
-      index = $(e.target).data('index')
-      @execute(@getOperations()[index])
+      @setSelectedOperationIndex(parseInt($(e.target).closest('li').data('index')))
+      @executeSelectedOperation()
 
   destroy: ->
     @destroyOperations() if @operations
@@ -55,7 +55,8 @@ class PreviewList extends View
     @scrollToElement(element)
     @selectedOperationIndex = index
 
-  execute: (operation = @getSelectedOperation()) ->
+  executeSelectedOperation: ->
+    operation = @getSelectedOperation()
     editSession = @rootView.open(operation.getPath())
     operation.execute(editSession)
     false
