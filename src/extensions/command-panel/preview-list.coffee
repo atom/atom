@@ -15,7 +15,9 @@ class PreviewList extends View
 
   hasOperations: -> @operations?
 
-  populate: (@operations) ->
+  populate: (operations) ->
+    @destroyOperations() if @operations
+    @operations = operations
     @empty()
     @html $$$ ->
       for operation in operations
@@ -28,7 +30,6 @@ class PreviewList extends View
             @span suffix
 
     @setSelectedOperationIndex(0)
-
     @show()
 
   selectNextOperation: ->
@@ -54,6 +55,10 @@ class PreviewList extends View
 
   getOperations: ->
     new Array(@operations...)
+
+  destroyOperations: ->
+    operation.destroy() for operation in @getOperations()
+    @operations = null
 
   getSelectedOperation: ->
     @operations[@selectedOperationIndex]

@@ -241,6 +241,10 @@ describe "CommandPanel", ->
         rootView.trigger 'command-panel:toggle-preview' # ensure we can close panel without problems
         expect(commandPanel).toBeHidden()
 
+      it "destroys previously previewed operations if there are any", ->
+        waitsForPromise -> commandPanel.execute('X x/b+/')
+        # there shouldn't be any dangling operations after this
+
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->
         rootView.trigger 'command-panel:toggle'
