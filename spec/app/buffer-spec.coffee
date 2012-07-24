@@ -45,7 +45,7 @@ describe 'Buffer', ->
     [path, newPath, bufferToChange, eventHandler] = []
 
     beforeEach ->
-      path = fs.join(require.resolve("fixtures/"), "tmp/atom-manipulate-me")
+      path = fs.join(require.resolve("fixtures/"), "atom-manipulate-me")
       newPath = "#{path}-i-moved"
       fs.write(path, "")
       bufferToChange = new Buffer(path)
