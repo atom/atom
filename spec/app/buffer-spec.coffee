@@ -42,14 +42,40 @@ describe 'Buffer', ->
         expect(buffer.getText()).toBe ""
 
   describe "path-change event", ->
-    afterEach ->
-      fs.remove("/tmp/moo.text") if fs.exists("/tmp/moo.text")
+    [path, newPath, bufferToChange, eventHandler] = []
 
-    it "emits path-change event when path is changed", ->
+    beforeEach ->
+      path = fs.join(require.resolve("fixtures/"), "tmp/atom-manipulate-me")
+      newPath = "#{path}-i-moved"
+      fs.write(path, "")
+      bufferToChange = new Buffer(path)
       eventHandler = jasmine.createSpy('eventHandler')
-      buffer.on 'path-change', eventHandler
-      buffer.saveAs("/tmp/moo.text")
-      expect(eventHandler).toHaveBeenCalledWith(buffer)
+      bufferToChange.on 'path-change', eventHandler
+
+    afterEach ->
+      bufferToChange.destroy()
+      fs.remove(path) if fs.exists(path)
+      fs.remove(newPath) if fs.exists(newPath)
+
+    it "triggers a `path-change` event when path is changed", ->
+      bufferToChange.saveAs(newPath)
+      expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
+
+    it "triggers a `path-change` event when the file is moved", ->
+      fs.remove(newPath) if fs.exists(newPath)
+      fs.move(path, newPath)
+
+      waitsFor "buffer path change", ->
+        eventHandler.callCount > 0
+
+      runs ->
+        expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
+
+    it "triggers a `path-change` event when the file is removed", ->
+      fs.remove(path)
+
+      waitsFor "buffer path change", ->
+        eventHandler.callCount > 0
 
   describe "when the buffer's file is modified (via another process)", ->
     path = null

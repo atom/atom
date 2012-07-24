@@ -56,6 +56,10 @@ class Buffer
 
     @file.on "remove", =>
       @file = null
+      @trigger "path-change", this
+
+    @file.on "move", =>
+      @trigger "path-change", this
 
     @trigger "path-change", this
 
