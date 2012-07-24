@@ -11,25 +11,30 @@
   overflow: auto;
   margin-bottom: 3px;
   position: relative;
+  background: #161616;
 }
 
 .command-panel .preview-list .path {
   padding-left: 3px;
-  color: #00ffff;
+  color: #f9ee98;
+  margin-right: 1ex;
 }
 
 .command-panel .preview-list .preview {
-  padding-left: 1em;
   color: #f6f3e8;
 }
 
 .command-panel .preview-list .preview .match {
-  background-color: #8E8A8A;
+  background-color: rgba(255,255,255,.25);
   padding: 1px;
 }
 
 .command-panel .preview-list li.selected {
-  background-color: green;
+  background: #444;
+}
+
+.command-panel .preview-list:focus li.selected {
+  background: #223555;
 }
 
 .command-panel .prompt-and-editor {
