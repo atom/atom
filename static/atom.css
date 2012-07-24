@@ -16,12 +16,12 @@ body {
 }
 
 #root-view #horizontal {
-  display: -webkit-flexbox;
+  display: -webkit-box;
 }
 
 #root-view #panes {
   height: 100%;
-  width: -webkit-flex(1 0);
+  -webkit-box-flex: 1;
   position: relative;
 }
 
