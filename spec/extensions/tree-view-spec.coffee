@@ -80,7 +80,7 @@ describe "TreeView", ->
   describe "when the prototypes deactivate method is called", ->
     it "calls the deactivate on tree view instance", ->
       spyOn(treeView, "deactivate").andCallThrough()
-      TreeView.deactivate()
+      rootView.deactivateExtension(TreeView)
       expect(treeView.deactivate).toHaveBeenCalled()
 
     it "restores expanded directories and selected file when deserialized", ->
