@@ -19,6 +19,9 @@ class TreeView extends View
       @instance = new TreeView(rootView)
       @instance.attach()
 
+  @deactivate: () ->
+    @instance.deactivate()
+
   @serialize: ->
     @instance.serialize()
 

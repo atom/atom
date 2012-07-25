@@ -77,6 +77,11 @@ describe "TreeView", ->
 
     afterEach ->
       newTreeView.deactivate()
+  describe "when the prototypes deactivate method is called", ->
+    it "calls the deactivate on tree view instance", ->
+      spyOn(treeView, "deactivate").andCallThrough()
+      TreeView.deactivate()
+      expect(treeView.deactivate).toHaveBeenCalled()
 
     it "restores expanded directories and selected file when deserialized", ->
       treeView.find('.directory:contains(zed)').click()
