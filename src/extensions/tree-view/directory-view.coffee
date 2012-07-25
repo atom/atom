@@ -70,7 +70,7 @@ class DirectoryView extends View
 
   serializeEntryExpansionStates: ->
     entryStates = {}
-    @entries.find('> .directory.expanded').each ->
+    @entries?.find('> .directory.expanded').each ->
       view = $(this).view()
       entryStates[view.directory.getName()] = view.serializeEntryExpansionStates()
     entryStates
