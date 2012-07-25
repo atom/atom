@@ -71,17 +71,17 @@ describe "TreeView", ->
         expect(treeView.root).not.toEqual oldRoot
         expect(oldRoot.hasParent()).toBeFalsy()
 
-  describe "serialization", ->
-    [newRootView, newTreeView] = []
-
-    afterEach ->
-      newRootView.deactivate()
-
   describe "when the prototypes deactivate method is called", ->
     it "calls the deactivate on tree view instance", ->
       spyOn(treeView, "deactivate").andCallThrough()
       rootView.deactivateExtension(TreeView)
       expect(treeView.deactivate).toHaveBeenCalled()
+
+  describe "serialization", ->
+    [newRootView, newTreeView] = []
+
+    afterEach ->
+      newRootView.deactivate()
 
     it "restores expanded directories and selected file when deserialized", ->
       treeView.find('.directory:contains(zed)').click()
