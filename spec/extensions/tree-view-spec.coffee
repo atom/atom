@@ -610,8 +610,6 @@ describe "TreeView", ->
 
           describe "when the directories along the new path don't exist", ->
             it "creates the target directory before moving the file", ->
-              #rootView.project.destroy() # Ensure there are no open buffers (renaming a file asynchronously updates the buffer's path, this causes the afterEach block to unwatch the previous path, which no longer exists.)
-
               newPath = fs.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
               moveDialog.miniEditor.setText(newPath)
 
@@ -620,7 +618,7 @@ describe "TreeView", ->
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.exists(filePath)).toBeFalsy()
 
-              waits 50 # temporary hack (maybe).
+              waits 50 # TODO: remove this workaround once we fix the race condition in fs events
 
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->

@@ -144,6 +144,12 @@ describe 'Buffer', ->
         not bufferToDelete.getPath()
 
   describe ".isModified()", ->
+    beforeEach ->
+      buffer.destroy()
+      waitsFor "file to be removed", ->
+        not bufferToDelete.getPath()
+
+  describe ".isModified()", ->
     it "returns true when user changes buffer", ->
       expect(buffer.isModified()).toBeFalsy()
       buffer.insert([0,0], "hi")
