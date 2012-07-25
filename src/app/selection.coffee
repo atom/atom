@@ -21,6 +21,7 @@ class Selection
     if @cursor
       @cursor.off('.selection')
       @cursor.destroy()
+    @anchor?.destroy()
     @editSession.removeSelection(this)
     @trigger 'destroy'
 

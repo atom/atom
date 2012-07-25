@@ -5,6 +5,7 @@ DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
 Selection = require 'selection'
 EventEmitter = require 'event-emitter'
+Range = require 'range'
 AnchorRange = require 'anchor-range'
 _ = require 'underscore'
 
@@ -13,7 +14,7 @@ class EditSession
   @idCounter: 1
 
   @deserialize: (state, project) ->
-    session = project.open(state.buffer)
+    session = project.buildEditSessionForPath(state.buffer)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)
@@ -41,11 +42,11 @@ class EditSession
     @selections = []
     @addCursorAtScreenPosition([0, 0])
 
+    @buffer.retain()
     @buffer.on "path-change.edit-session-#{@id}", =>
       @trigger 'buffer-path-change'
 
-    @buffer.on "change.edit-session-#{@id}", (e) =>
-      anchor.handleBufferChange(e) for anchor in @getAnchors()
+    @buffer.on "update-anchors-after-change.edit-session-#{@id}", =>
       @mergeCursors()
 
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
@@ -54,10 +55,16 @@ class EditSession
         anchor.refreshScreenPosition() for anchor in @getAnchors()
 
   destroy: ->
+    throw new Error("Edit session already destroyed") if @destroyed
+    @destroyed = true
+
     @buffer.off ".edit-session-#{@id}"
+    @buffer.release()
     @displayBuffer.off ".edit-session-#{@id}"
     @displayBuffer.destroy()
     @project.removeEditSession(this)
+    anchor.destroy() for anchor in @getAnchors()
+    anchorRange.destroy() for anchorRange in @getAnchorRanges()
 
   serialize: ->
     buffer: @buffer.getPath()
@@ -88,14 +95,8 @@ class EditSession
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
-  clipBufferPosition: (bufferPosition, options) ->
-    { row, column } = Point.fromObject(bufferPosition)
-    row = 0 if row < 0
-    column = 0 if column < 0
-    row = Math.min(@buffer.getLastRow(), row)
-    column = Math.min(@buffer.lineLengthForRow(row), column)
-
-    new Point(row, column)
+  clipBufferPosition: (bufferPosition) ->
+    @buffer.clipPosition(bufferPosition)
 
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
@@ -268,8 +269,11 @@ class EditSession
   getAnchors: ->
     new Array(@anchors...)
 
-  addAnchor: (options) ->
-    anchor = new Anchor(this, options)
+  getAnchorRanges: ->
+    new Array(@anchorRanges...)
+
+  addAnchor: (options={}) ->
+    anchor = @buffer.addAnchor(_.extend({editSession: this}, options))
     @anchors.push(anchor)
     anchor
 
@@ -279,12 +283,15 @@ class EditSession
     anchor
 
   addAnchorRange: (range) ->
-    anchorRange = new AnchorRange(this, range)
+    anchorRange = @buffer.addAnchorRange(range, this)
     @anchorRanges.push(anchorRange)
     anchorRange
 
   removeAnchor: (anchor) ->
     _.remove(@anchors, anchor)
+
+  removeAnchorRange: (anchorRange) ->
+    _.remove(@anchorRanges, anchorRange)
 
   getCursors: -> new Array(@cursors...)
 
@@ -317,19 +324,27 @@ class EditSession
 
   addSelectionForBufferRange: (bufferRange, options) ->
     @addCursor().selection.setBufferRange(bufferRange, options)
+    @mergeIntersectingSelections()
 
   setSelectedBufferRange: (bufferRange, options) ->
-    @clearSelections()
-    @getLastSelection().setBufferRange(bufferRange, options)
+    @setSelectedBufferRanges([bufferRange], options)
 
-  setSelectedBufferRanges: (bufferRanges, options) ->
+  setSelectedBufferRanges: (bufferRanges, options={}) ->
+    throw new Error("Passed an empty array to setSelectedBufferRanges") unless bufferRanges.length
+
     selections = @getSelections()
+    selection.destroy() for selection in selections[bufferRanges.length...]
+
     for bufferRange, i in bufferRanges
+      bufferRange = Range.fromObject(bufferRange)
+      unless options.preserveFolds
+        for row in [bufferRange.start.row..bufferRange.end.row]
+          @destroyFoldsContainingBufferRow(row)
       if selections[i]
         selections[i].setBufferRange(bufferRange, options)
       else
         @addSelectionForBufferRange(bufferRange, options)
-    @mergeIntersectingSelections()
+    @mergeIntersectingSelections(options)
 
   removeSelection: (selection) ->
     _.remove(@selections, selection)
@@ -339,6 +354,9 @@ class EditSession
     for selection in @getSelections() when selection != lastSelection
       selection.destroy()
     lastSelection.clear()
+
+  clearAllSelections: ->
+    selection.destroy() for selection in @getSelections()
 
   getSelections: -> new Array(@selections...)
 

@@ -4,8 +4,11 @@
 #import "AtomController.h"
 #import "client_handler.h"
 #import "PathWatcher.h"
+#import <dispatch/dispatch.h>
 #import <Cocoa/Cocoa.h>
 #import <CommonCrypto/CommonDigest.h>
+
+#import <iostream>
 
 #define MY_EXCEPTION_TRY @try {
 #define MY_EXCEPTION_HANDLE } @catch (NSException *localException) {}
@@ -15,10 +18,22 @@ NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   return [NSString stringWithUTF8String:cc_value.c_str()];
 }
 
+void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exception>& exception, NSString *message) {
+  CefV8ValueList arguments;
+  CefRefPtr<CefV8Value> retval;
+  CefRefPtr<CefV8Exception> e;
+  
+  message = [message stringByAppendingFormat:@"\n%s", exception->GetMessage().ToString().c_str()];
+  arguments.push_back(CefV8Value::CreateString(std::string([message UTF8String], [message lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+  
+  CefRefPtr<CefV8Value> console = global->GetValue("console");
+  console->GetValue("error")->ExecuteFunction(console, arguments, retval, e, false);
+}
+
 NativeHandler::NativeHandler() : CefV8Handler() {  
   std::string extensionCode =  "var $native = {}; (function() {";
   
-  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload", "lastModified", "md5ForPath"};
+  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload", "lastModified", "md5ForPath", "exec"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     std::string functionName = std::string(functionNames[i]);
@@ -417,6 +432,97 @@ bool NativeHandler::Execute(const CefString& name,
     }
     
     retval = CefV8Value::CreateString([hash UTF8String]);
+    return true;
+  }
+  else if (name == "exec") {
+    NSString *command = stringFromCefV8Value(arguments[0]);
+    CefRefPtr<CefV8Value> options = arguments[1];
+    CefRefPtr<CefV8Value> callback = arguments[2]; 
+    
+    NSTask *task = [[NSTask alloc] init];    
+    [task setLaunchPath:@"/bin/sh"];
+    [task setStandardInput:[NSFileHandle fileHandleWithNullDevice]];
+    [task setArguments:[NSArray arrayWithObjects:@"-l", @"-c", command, nil]];
+
+    NSPipe *stdout = [NSPipe pipe];
+    NSPipe *stderr = [NSPipe pipe];
+    [task setStandardOutput:stdout];
+    [task setStandardError:stderr];
+    
+    CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
+    void (^outputHandle)(NSFileHandle *fileHandle, CefRefPtr<CefV8Value> function) = nil;
+    void (^taskTerminatedHandle)() = nil;
+    
+    outputHandle = ^(NSFileHandle *fileHandle, CefRefPtr<CefV8Value> function) {
+      context->Enter();
+      
+      NSData *data = [fileHandle availableData];
+      NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+      
+      CefV8ValueList args;
+      CefRefPtr<CefV8Value> retval = CefV8Value::CreateBool(YES);
+      CefRefPtr<CefV8Exception> e;
+      
+      args.push_back(CefV8Value::CreateString(std::string([contents UTF8String], [contents lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
+      function->ExecuteFunction(function, args, retval, e, false);
+            
+      if (e.get()) {
+        throwException(context->GetGlobal(), e, @"Error thrown in OutputHandle");
+      }
+      
+      [contents release];
+      context->Exit();
+    };
+    
+    taskTerminatedHandle = ^() {
+      context->Enter();
+      NSString *output = [[NSString alloc] initWithData:[[stdout fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+      NSString *errorOutput  = [[NSString alloc] initWithData:[[task.standardError fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+      
+      CefV8ValueList args;
+      CefRefPtr<CefV8Value> retval;
+      CefRefPtr<CefV8Exception> e;
+      
+      args.push_back(CefV8Value::CreateInt([task terminationStatus]));      
+      args.push_back(CefV8Value::CreateString([output UTF8String]));
+      args.push_back(CefV8Value::CreateString([errorOutput UTF8String]));
+      
+      callback->ExecuteFunction(callback, args, retval, e, false);
+      
+      if (e.get()) {
+        throwException(context->GetGlobal(), e, @"Error thrown in TaskTerminatedHandle");
+      }
+      
+      context->Exit();
+      
+      stdout.fileHandleForReading.writeabilityHandler = nil;
+      stderr.fileHandleForReading.writeabilityHandler = nil;
+    };
+    
+    task.terminationHandler = ^(NSTask *) {
+      dispatch_sync(dispatch_get_main_queue(), taskTerminatedHandle);
+    };
+        
+    CefRefPtr<CefV8Value> stdoutFunction = options->GetValue("stdout");
+    if (stdoutFunction->IsFunction()) {
+      stdout.fileHandleForReading.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+        dispatch_sync(dispatch_get_main_queue(), ^() { 
+          outputHandle(fileHandle, stdoutFunction); 
+        });
+      };
+    }
+    
+    CefRefPtr<CefV8Value> stderrFunction = options->GetValue("stderr");
+    if (stderrFunction->IsFunction()) {
+      stderr.fileHandleForReading.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+        dispatch_sync(dispatch_get_main_queue(), ^() { 
+          outputHandle(fileHandle, stderrFunction); 
+        });
+      };
+    }
+    
+    [task launch];
+    
     return true;
   }
   return false;

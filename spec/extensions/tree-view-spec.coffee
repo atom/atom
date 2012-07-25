@@ -31,12 +31,12 @@ describe "TreeView", ->
       expect(treeView.root.find('> .header .name')).toHaveText('fixtures/')
 
       rootEntries = treeView.root.find('.entries')
-      subdir1 = rootEntries.find('> li:eq(0)')
-      expect(subdir1.find('.disclosure-arrow')).toHaveText('▸')
-      expect(subdir1.find('.name')).toHaveText('dir/')
-      expect(subdir1.find('.entries')).not.toExist()
+      subdir0 = rootEntries.find('> li:eq(0)')
+      expect(subdir0.find('.disclosure-arrow')).toHaveText('▸')
+      expect(subdir0.find('.name')).toHaveText('dir/')
+      expect(subdir0.find('.entries')).not.toExist()
 
-      subdir2 = rootEntries.find('> li:eq(1)')
+      subdir2 = rootEntries.find('> li:eq(2)')
       expect(subdir2.find('.disclosure-arrow')).toHaveText('▸')
       expect(subdir2.find('.name')).toHaveText('zed/')
       expect(subdir2.find('.entries')).not.toExist()
@@ -610,8 +610,6 @@ describe "TreeView", ->
 
           describe "when the directories along the new path don't exist", ->
             it "creates the target directory before moving the file", ->
-              rootView.project.destroy() # Ensure there are no open buffers (renaming a file asynchronously updates the buffer's path, this causes the afterEach block to unwatch the previous path, which no longer exists.)
-
               newPath = fs.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
               moveDialog.miniEditor.setText(newPath)
 
@@ -619,6 +617,8 @@ describe "TreeView", ->
 
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.exists(filePath)).toBeFalsy()
+
+              waits 50 # TODO: remove this workaround once we fix the race condition in fs events
 
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->

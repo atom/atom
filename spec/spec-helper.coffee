@@ -26,6 +26,7 @@ afterEach ->
   $('#jasmine-content').empty()
   document.title = defaultTitle
   ensureNoPathSubscriptions()
+  window.fixturesProject.destroy()
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
@@ -88,15 +89,32 @@ window.mousedownEvent = (properties={}) ->
 window.mousemoveEvent = (properties={}) ->
   window.mouseEvent('mousemove', properties)
 
-window.waitsForPromise = (fn) ->
+window.waitsForPromise = (args...) ->
+  if args.length > 1
+    { shouldReject } = args[0]
+  else
+    shouldReject = false
+  fn = _.last(args)
+
   window.waitsFor (moveOn) ->
-    fn().done(moveOn)
+    promise = fn()
+    if shouldReject
+      promise.fail(moveOn)
+      promise.done ->
+        jasmine.getEnv().currentSpec.fail("Expected promise to be rejected, but it was resolved")
+        moveOn()
+    else
+      promise.done(moveOn)
+      promise.fail (error) ->
+        jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
+        moveOn()
 
 window.resetTimeouts = ->
   window.now = 0
   window.timeoutCount = 0
   window.timeouts = []
 
+window.originalSetTimeout = window.setTimeout
 window.setTimeout = (callback, ms) ->
   id = ++window.timeoutCount
   window.timeouts.push([id, window.now + ms, callback])

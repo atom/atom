@@ -1,50 +1,35 @@
 # node.js child-process
 # http://nodejs.org/docs/v0.6.3/api/child_processes.html
 
+$ = require 'jquery'
 _ = require 'underscore'
 
 module.exports =
-  exec: (command, options, callback) ->
-    callback = options if _.isFunction options
+class ChildProccess
+  @exec: (command, options={}) ->
+    deferred = $.Deferred()
 
-    # make a task
-    task = OSX.NSTask.alloc.init
+    if options.bufferLines
+      options.stdout = @bufferLines(options.stdout) if options.stdout
+      options.stderr = @bufferLines(options.stderr) if options.stderr
 
-    # try to use their login shell
-    task.setLaunchPath "/bin/bash"
+    $native.exec command, options, (exitStatus, stdout, stderr) ->
+      try
+        if exitStatus != 0
+          deferred.reject({command, exitStatus, stderr})
+        else
+          deferred.resolve(stdout, stderr)
+      catch e
+        console.error "In ChildProccess termination callback: ", e.message
+        console.error e.stack
 
-    # set stdin to /dev/null
-    task.setStandardInput OSX.NSFileHandle.fileHandleWithNullDevice
+    deferred
 
-    # -l = login shell, -c = command
-    args = ["-l", "-c", command]
-    task.setArguments args
-
-    # setup stdout and stderr
-    task.setStandardOutput stdout = OSX.NSPipe.pipe
-    task.setStandardError stderr = OSX.NSPipe.pipe
-    stdoutHandle = stdout.fileHandleForReading
-    stderrHandle = stderr.fileHandleForReading
-
-    # begin
-    task.launch
-
-    # read pipes
-    err = @readHandle stderrHandle
-    out = @readHandle stdoutHandle
-
-    # check for a dirty exit
-    if not task.isRunning
-      code = task.terminationStatus
-      if code > 0
-        error = new Error
-        error.code = code
-
-    # call callback
-    callback error, out, err
-
-  readHandle: (handle) ->
-    OSX.NSString.
-    alloc.
-    initWithData_encoding(handle.readDataToEndOfFile, OSX.NSUTF8StringEncoding).
-    toString()
+  @bufferLines: (callback) ->
+    buffered = ""
+    (data) ->
+      buffered += data
+      lastNewlineIndex = buffered.lastIndexOf('\n')
+      if lastNewlineIndex >= 0
+        callback(buffered.substring(0, lastNewlineIndex + 1))
+        buffered = buffered.substring(lastNewlineIndex + 1)

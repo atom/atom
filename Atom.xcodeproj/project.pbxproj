@@ -1142,6 +1142,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/System/Library/Frameworks",
 					"\"$(SRCROOT)/frameworks\"",
+					"\"$(SDKROOT)/usr/lib/system\"",
 				);
 				OTHER_CFLAGS = (
 					"-fno-strict-aliasing",
@@ -1188,6 +1189,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(SDKROOT)/System/Library/Frameworks",
 					"\"$(SRCROOT)/frameworks\"",
+					"\"$(SDKROOT)/usr/lib/system\"",
 				);
 				OTHER_CFLAGS = "-fno-strict-aliasing";
 				OTHER_LDFLAGS = (

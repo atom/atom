@@ -7,7 +7,7 @@ describe "EditSession", ->
 
   beforeEach ->
     buffer = new Buffer()
-    editSession = fixturesProject.open('sample.js', autoIndent: false)
+    editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
 
@@ -523,6 +523,47 @@ describe "EditSession", ->
            editSession.selectWord()
            expect(editSession.getSelectedText()).toBe ''
 
+    describe ".setSelectedBufferRanges(ranges)", ->
+      it "clears existing selections and creates selections for each of the given ranges", ->
+        editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[2, 2], [3, 3]], [[4, 4], [5, 5]]]
+
+        editSession.setSelectedBufferRanges([[[5, 5], [6, 6]]])
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[5, 5], [6, 6]]]
+
+      it "merges intersecting selections", ->
+        editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[3, 0], [5, 5]]])
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[2, 2], [5, 5]]]
+
+      it "recyles existing selection instances", ->
+        selection = editSession.getSelection()
+        editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[4, 4], [5, 5]]])
+
+        [selection1, selection2] = editSession.getSelections()
+        expect(selection1).toBe selection
+        expect(selection1.getBufferRange()).toEqual [[2, 2], [3, 3]]
+
+      describe "when the preserveFolds option is false (the default)", ->
+        it "removes folds that contain the selections", ->
+          editSession.setSelectedBufferRange([[0,0], [0,0]])
+          editSession.createFold(1, 4)
+          editSession.createFold(2, 3)
+          editSession.createFold(6, 8)
+          editSession.createFold(10, 11)
+
+          editSession.setSelectedBufferRanges([[[2, 2], [3, 3]], [[6, 6], [7, 7]]])
+          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
+          expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
+          expect(editSession.lineForScreenRow(6).fold).toBeUndefined()
+          expect(editSession.lineForScreenRow(10).fold).toBeDefined()
+
+      describe "when the preserve folds option is true", ->
+        it "does not remove folds that contain the selections", ->
+          editSession.setSelectedBufferRange([[0,0], [0,0]])
+          editSession.createFold(1, 4)
+          editSession.setSelectedBufferRanges([[[2, 2], [3, 3]]], preserveFolds: true)
+          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
+
     describe "when the cursor is moved while there is a selection", ->
       makeSelection = -> selection.setBufferRange [[1, 2], [1, 5]]
 
@@ -870,8 +911,8 @@ describe "EditSession", ->
 
         describe "when the selection ends on a folded line", ->
           it "destroys the fold", ->
-            editSession.toggleFoldAtBufferRow(4)
             editSession.setSelectedBufferRange([[3,0], [4,0]])
+            editSession.toggleFoldAtBufferRow(4)
             editSession.backspace()
 
             expect(buffer.lineForRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
@@ -955,12 +996,12 @@ describe "EditSession", ->
 
         describe "when the cursor is on a folded line", ->
           it "removes the lines contained by the fold", ->
+            editSession.setSelectedBufferRange([[2, 0], [2, 0]])
             editSession.createFold(2,4)
             editSession.createFold(2,6)
             oldLine7 = buffer.lineForRow(7)
             oldLine8 = buffer.lineForRow(8)
 
-            editSession.setSelectedBufferRange([[2, 0], [2, 0]])
             editSession.delete()
             expect(editSession.lineForScreenRow(2).text).toBe oldLine7
             expect(editSession.lineForScreenRow(3).text).toBe oldLine8
@@ -1265,23 +1306,20 @@ describe "EditSession", ->
 
         selections = editSession.getSelections()
         expect(buffer.lineForRow(1)).toBe '  var = function( {'
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 17], [1, 17]]
+
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 17], [1, 17]]]
 
         editSession.undo()
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
         editSession.undo()
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 10]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 22], [1, 27]]
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 10]], [[1, 22], [1, 27]]]
 
         editSession.redo()
-        expect(selections[0].getBufferRange()).toEqual [[1, 6], [1, 6]]
-        expect(selections[1].getBufferRange()).toEqual [[1, 18], [1, 18]]
+        expect(editSession.getSelectedBufferRanges()).toEqual [[[1, 6], [1, 6]], [[1, 18], [1, 18]]]
 
       it "restores selected ranges even when the change occurred in another edit session", ->
-        otherEditSession = fixturesProject.open(editSession.getPath())
+        otherEditSession = fixturesProject.buildEditSessionForPath(editSession.getPath())
         otherEditSession.setSelectedBufferRange([[2, 2], [3, 3]])
         otherEditSession.delete()
 
@@ -1324,14 +1362,12 @@ describe "EditSession", ->
         [cursor1, cursor2, cursor3] = editSession.getCursors()
         expect(editSession.getCursors().length).toBe 3
 
-        editSession.backspace()
+        buffer.delete([[0, 0], [0, 1]])
+
+        expect(editSession.getCursors().length).toBe 2
         expect(editSession.getCursors()).toEqual [cursor1, cursor3]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor3.getBufferPosition()).toEqual [1,0]
-
-        editSession.insertText "x"
-        expect(editSession.lineForBufferRow(0)).toBe "xar quicksort = function () {"
-        expect(editSession.lineForBufferRow(1)).toBe "x var sort = function(items) {"
+        expect(cursor3.getBufferPosition()).toEqual [1,1]
 
   describe "folding", ->
     describe "structural folding", ->

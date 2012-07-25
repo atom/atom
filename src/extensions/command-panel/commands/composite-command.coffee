@@ -1,23 +1,36 @@
 _ = require 'underscore'
+$ = require 'jquery'
 
 module.exports =
 class CompositeCommand
   constructor: (@subcommands) ->
 
-  execute: (editor) ->
-    initialRanges = editor.getSelectedBufferRanges()
-    for command in @subcommands
-      newRanges = []
-      currentRanges = editor.getSelectedBufferRanges()
-      for currentRange in currentRanges
-        newRanges.push(command.execute(editor, currentRange)...)
+  execute: (project, editSession) ->
+    currentRanges = editSession?.getSelectedBufferRanges()
+    @executeCommands(@subcommands, project, editSession, currentRanges)
 
-      for range in newRanges
-        for row in [range.start.row..range.end.row]
-          editor.destroyFoldsContainingBufferRow(row)
+  executeCommands: (commands, project, editSession, ranges) ->
+    deferred = $.Deferred()
+    [currentCommand, remainingCommands...] = commands
 
-      editor.setSelectedBufferRanges(newRanges)
-    editor.setSelectedBufferRanges(initialRanges) if command.restoreSelections
+    currentCommand.compile(project, editSession?.buffer, ranges).done (operations) =>
+      if remainingCommands.length
+        nextRanges = operations.map (operation) ->
+          operation.destroy()
+          operation.getBufferRange()
+        @executeCommands(remainingCommands, project, editSession, nextRanges).done ->
+          deferred.resolve()
+      else
+        if currentCommand.previewOperations
+          deferred.resolve(operations)
+        else
+          editSession?.clearAllSelections() unless currentCommand.preserveSelections
+          for operation in operations
+            operation.execute(editSession)
+            operation.destroy()
+          deferred.resolve()
+
+    deferred.promise()
 
   reverse: ->
     new CompositeCommand(@subcommands.map (command) -> command.reverse())

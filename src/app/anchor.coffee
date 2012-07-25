@@ -4,12 +4,15 @@ _ = require 'underscore'
 
 module.exports =
 class Anchor
-  editor: null
+  buffer: null
+  editSession: null # optional
   bufferPosition: null
   screenPosition: null
+  ignoreEqual: false
+  strong: false
 
-  constructor: (@editSession, options = {}) ->
-    { @ignoreEqual, @strong } = options
+  constructor: (@buffer, options = {}) ->
+    { @editSession, @ignoreEqual, @strong } = options
 
   handleBufferChange: (e) ->
     { oldRange, newRange } = e
@@ -43,7 +46,7 @@ class Anchor
   setBufferPosition: (position, options={}) ->
     @bufferPosition = Point.fromObject(position)
     clip = options.clip ? true
-    @bufferPosition = @editSession.clipBufferPosition(@bufferPosition) if clip
+    @bufferPosition = @buffer.clipPosition(@bufferPosition) if clip
     @refreshScreenPosition(options)
 
   getScreenPosition: ->
@@ -65,11 +68,13 @@ class Anchor
       @trigger 'change-screen-position', @screenPosition, bufferChange: options.bufferChange
 
   refreshScreenPosition: (options={}) ->
+    return unless @editSession
     screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
     @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
 
   destroy: ->
-    @editSession.removeAnchor(this)
+    @buffer.removeAnchor(this)
+    @editSession?.removeAnchor(this)
     @trigger 'destroy'
     @off()
 

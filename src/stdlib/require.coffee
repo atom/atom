@@ -92,6 +92,7 @@ resolve = (file) ->
   return file
 
 __expand = (path) ->
+  return path if __isFile path
   for ext, handler of exts
     if __exists "#{path}.#{ext}"
       return "#{path}.#{ext}"
@@ -103,6 +104,9 @@ __expand = (path) ->
 
 __exists = (path) ->
   $native.exists path
+
+__isFile = (path) ->
+  $native.isFile path
 
 __coffeeCache = (filePath) ->
   {CoffeeScript} = require 'coffee-script'

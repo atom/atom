@@ -11,23 +11,19 @@ describe "Project", ->
 
   describe "when editSession is destroyed", ->
     it "removes edit session and calls destroy on buffer (if buffer is not referenced by other edit sessions)", ->
-      editSession = project.open("a")
-      anotherEditSession = project.open("a")
-      buffer = editSession.buffer
-      spyOn(buffer, 'destroy').andCallThrough()
+      editSession = project.buildEditSessionForPath("a")
+      anotherEditSession = project.buildEditSessionForPath("a")
 
       expect(project.editSessions.length).toBe 2
       expect(editSession.buffer).toBe anotherEditSession.buffer
 
       editSession.destroy()
-      expect(buffer.destroy).not.toHaveBeenCalled()
       expect(project.editSessions.length).toBe 1
 
       anotherEditSession.destroy()
-      expect(buffer.destroy).toHaveBeenCalled()
       expect(project.editSessions.length).toBe 0
 
-  describe ".open(path)", ->
+  describe ".buildEditSessionForPath(path)", ->
     [absolutePath, newBufferHandler, newEditSessionHandler] = []
     beforeEach ->
       absolutePath = require.resolve('fixtures/dir/a')
@@ -38,33 +34,47 @@ describe "Project", ->
 
     describe "when given an absolute path that hasn't been opened previously", ->
       it "returns a new edit session for the given path and emits 'new-buffer' and 'new-edit-session' events", ->
-        editSession = project.open(absolutePath)
+        editSession = project.buildEditSessionForPath(absolutePath)
         expect(editSession.buffer.getPath()).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
     describe "when given a relative path that hasn't been opened previously", ->
       it "returns a new edit session for the given path (relative to the project root) and emits 'new-buffer' and 'new-edit-session' events", ->
-        editSession = project.open('a')
+        editSession = project.buildEditSessionForPath('a')
         expect(editSession.buffer.getPath()).toBe absolutePath
         expect(newBufferHandler).toHaveBeenCalledWith editSession.buffer
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
     describe "when passed the path to a buffer that has already been opened", ->
       it "returns a new edit session containing previously opened buffer and emits a 'new-edit-session' event", ->
-        editSession = project.open(absolutePath)
+        editSession = project.buildEditSessionForPath(absolutePath)
         newBufferHandler.reset()
-        expect(project.open(absolutePath).buffer).toBe editSession.buffer
-        expect(project.open('a').buffer).toBe editSession.buffer
+        expect(project.buildEditSessionForPath(absolutePath).buffer).toBe editSession.buffer
+        expect(project.buildEditSessionForPath('a').buffer).toBe editSession.buffer
         expect(newBufferHandler).not.toHaveBeenCalled()
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
 
     describe "when not passed a path", ->
       it "returns a new edit session and emits 'new-buffer' and 'new-edit-session' events", ->
-        editSession = project.open()
+        editSession = project.buildEditSessionForPath()
         expect(editSession.buffer.getPath()).toBeUndefined()
         expect(newBufferHandler).toHaveBeenCalledWith(editSession.buffer)
         expect(newEditSessionHandler).toHaveBeenCalledWith editSession
+
+  describe ".bufferForPath(path)", ->
+    describe "when opening a previously opened path", ->
+      it "does not create a new buffer", ->
+        buffer = project.bufferForPath("a").retain()
+        expect(project.bufferForPath("a")).toBe buffer
+
+        alternativeBuffer = project.bufferForPath("b").retain().release()
+        expect(alternativeBuffer).not.toBe buffer
+        buffer.release()
+
+      it "creates a new buffer if the previous buffer was destroyed", ->
+        buffer = project.bufferForPath("a").retain().release()
+        expect(project.bufferForPath("a").retain().release()).not.toBe buffer
 
   describe ".resolve(path)", ->
     it "returns an absolute path based on the project's root", ->
@@ -106,3 +116,60 @@ describe "Project", ->
       project.getFilePaths().done (paths) ->
         expect(paths).not.toContain('a')
         expect(paths).toContain('b')
+
+  describe ".scan(options, callback)", ->
+    describe "when called with a regex", ->
+      it "calls the callback with all regex matches in all files in the project", ->
+        matches = []
+        waitsForPromise ->
+          project.scan /(a)+/, ({path, match, range}) ->
+            matches.push({path, match, range})
+
+        runs ->
+          expect(matches[0]).toEqual
+            path: project.resolve('a')
+            match: 'aaa'
+            range: [[0, 0], [0, 3]]
+
+          expect(matches[1]).toEqual
+            path: project.resolve('a')
+            match: 'aa'
+            range: [[1, 3], [1, 5]]
+
+      it "works on evil filenames", ->
+        project.setPath(require.resolve('fixtures/evil-files'))
+        paths = []
+        matches = []
+        waitsForPromise ->
+          project.scan /evil/, ({path, match, range}) ->
+            paths.push(path)
+            matches.push(match)
+
+        runs ->
+          expect(paths.length).toBe 5
+          matches.forEach (match) -> expect(match).toEqual 'evil'
+          expect(paths[0]).toMatch /a_file_with_utf8.txt$/
+          expect(paths[1]).toMatch /file with spaces.txt$/
+          expect(paths[2]).toMatch /goddam\nnewlines$/m
+          expect(paths[3]).toMatch /quote".txt$/m
+          expect(fs.base(paths[4])).toBe "utfa\u0306.md"
+
+      it "handles breaks in the search subprocess's output following the filename", ->
+        spyOn $native, 'exec'
+
+        iterator = jasmine.createSpy('iterator')
+        project.scan /a+/, iterator
+
+        stdout = $native.exec.argsForCall[0][1].stdout
+        stdout ":#{require.resolve('fixtures/dir/a')}\n"
+        stdout "1;0 3:aaa bbb\n2;3 2:cc aa cc\n"
+
+        expect(iterator.argsForCall[0][0]).toEqual
+          path: project.resolve('a')
+          match: 'aaa'
+          range: [[0, 0], [0, 3]]
+
+        expect(iterator.argsForCall[1][0]).toEqual
+          path: project.resolve('a')
+          match: 'aa'
+          range: [[1, 3], [1, 5]]

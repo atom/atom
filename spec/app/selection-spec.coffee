@@ -66,3 +66,12 @@ describe "Selection", ->
 
       buffer.insert([2, 5], 'abc')
       expect(changeScreenRangeHandler).toHaveBeenCalled()
+
+  describe "when the selection is destroyed", ->
+    it "destroys its cursor and its anchor's cursor", ->
+      selection.setBufferRange([[2, 0], [2, 10]])
+
+      selection.destroy()
+
+      expect(editSession.getAnchors().indexOf(selection.anchor)).toBe -1
+      expect(editSession.getAnchors().indexOf(selection.cursor.anchor)).toBe -1

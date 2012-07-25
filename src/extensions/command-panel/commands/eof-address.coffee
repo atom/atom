@@ -3,9 +3,8 @@ Range = require 'range'
 
 module.exports =
 class EofAddress extends Address
-  getRange: (editor) ->
-    lastRow = editor.getLastBufferRow()
-    column = editor.lineLengthForBufferRow(lastRow)
-    new Range([lastRow, column], [lastRow, column])
+  getRange: (buffer, range) ->
+    eof = buffer.getEofPosition()
+    new Range(eof, eof)
 
   isRelative: -> false

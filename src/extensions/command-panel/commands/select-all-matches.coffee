@@ -1,5 +1,6 @@
 Command = require 'command-panel/commands/command'
-Range = require 'range'
+Operation = require 'command-panel/operation'
+$ = require 'jquery'
 
 module.exports =
 class SelectAllMatches extends Command
@@ -8,8 +9,15 @@ class SelectAllMatches extends Command
   constructor: (pattern) ->
     @regex = new RegExp(pattern, 'g')
 
-  execute: (editor, currentRange) ->
-    rangesToSelect = []
-    editor.scanInRange @regex, currentRange, (match, range) ->
-      rangesToSelect.push(range)
-    rangesToSelect
+  compile: (project, buffer, ranges) ->
+    deferred = $.Deferred()
+    operations = []
+    for range in ranges
+      buffer.scanInRange @regex, range, (match, matchRange) ->
+        operations.push(new Operation(
+          project: project
+          buffer: buffer
+          bufferRange: matchRange
+        ))
+    deferred.resolve(operations)
+    deferred.promise()
