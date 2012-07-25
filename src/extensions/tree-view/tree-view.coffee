@@ -60,7 +60,7 @@ class TreeView extends View
     @focus() if @focusAfterAttach
 
   serialize: ->
-    directoryExpansionStates: @root.serializeEntryExpansionStates()
+    directoryExpansionStates: @root?.serializeEntryExpansionStates()
     selectedPath: @selectedEntry()?.getPath()
     hasFocus: @is(':focus')
     attached: @hasParent()

@@ -58,6 +58,9 @@ describe "TreeView", ->
       it "does not create a root node", ->
         expect(treeView.root).not.toExist()
 
+      it "serializes without throwing an exception", ->
+        expect(-> treeView.serialize()).not.toThrow()
+
       it "creates a root view when the project path is created", ->
         rootView.open(require.resolve('fixtures/sample.js'))
         expect(treeView.root.getPath()).toBe require.resolve('fixtures')
