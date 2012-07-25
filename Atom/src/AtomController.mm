@@ -208,8 +208,8 @@ void AppGetBrowserSettings(CefBrowserSettings& settings) {
   settings.databases_disabled = false;
   settings.application_cache_disabled = false;
   settings.webgl_disabled = false;
-  settings.accelerated_compositing_enabled = false;
-  settings.threaded_compositing_enabled = false;
+  settings.accelerated_compositing_enabled = true;
+  settings.threaded_compositing_enabled = true;
   settings.accelerated_layers_disabled = false;
   settings.accelerated_video_disabled = false;
   settings.accelerated_2d_canvas_disabled = false;

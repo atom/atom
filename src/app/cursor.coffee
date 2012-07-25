@@ -18,7 +18,7 @@ class Cursor
     @setBufferPosition(bufferPosition) if bufferPosition
 
   destroy: ->
-    @editSession.removeAnchor(@anchor)
+    @anchor.destroy()
     @editSession.removeCursor(this)
     @trigger 'destroy'
 

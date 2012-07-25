@@ -11,11 +11,11 @@ describe 'Buffer', ->
     buffer = new Buffer(filePath)
 
   afterEach ->
-    buffer.destroy()
+    buffer?.release()
 
   describe 'constructor', ->
     beforeEach ->
-      buffer.destroy()
+      buffer.release()
 
     describe "when given a path", ->
       describe "when a file exists for the path", ->
@@ -31,9 +31,9 @@ describe 'Buffer', ->
 
       describe "when no file exists for the path", ->
         it "throws an exception", ->
+          buffer = null
           filePath = "does-not-exist.txt"
           expect(fs.exists(filePath)).toBeFalsy()
-
           expect(-> new Buffer(filePath)).toThrow()
 
     describe "when no path is given", ->
@@ -82,8 +82,8 @@ describe 'Buffer', ->
     beforeEach ->
       path = "/tmp/tmp.txt"
       fs.write(path, "first")
-      buffer.destroy()
-      buffer = new Buffer(path)
+      buffer.release()
+      buffer = new Buffer(path).retain()
 
     afterEach ->
       fs.remove(path)
@@ -146,7 +146,10 @@ describe 'Buffer', ->
   describe ".isModified()", ->
     beforeEach ->
       buffer.destroy()
+      waitsFor "file to be removed", ->
+        not bufferToDelete.getPath()
 
+  describe ".isModified()", ->
     it "returns true when user changes buffer", ->
       expect(buffer.isModified()).toBeFalsy()
       buffer.insert([0,0], "hi")
@@ -155,6 +158,7 @@ describe 'Buffer', ->
     it "returns false after modified buffer is saved", ->
       filePath = "/tmp/atom-tmp-file"
       fs.write(filePath, '')
+      buffer.release()
       buffer = new Buffer(filePath)
       expect(buffer.isModified()).toBe false
 
@@ -298,7 +302,7 @@ describe 'Buffer', ->
 
   describe ".save()", ->
     beforeEach ->
-      buffer.destroy()
+      buffer.release()
 
     describe "when the buffer has a path", ->
       filePath = null
@@ -349,33 +353,34 @@ describe 'Buffer', ->
       expect(buffer.getText()).toBe(fileContents)
 
   describe ".saveAs(path)", ->
-    filePath = null
+    [filePath, saveAsBuffer] = []
 
-    beforeEach ->
-      buffer.destroy()
+    afterEach ->
+      saveAsBuffer.release()
 
     it "saves the contents of the buffer to the path", ->
       filePath = '/tmp/temp.txt'
       fs.remove filePath if fs.exists(filePath)
 
-      buffer = new Buffer()
+      saveAsBuffer = new Buffer().retain()
       eventHandler = jasmine.createSpy('eventHandler')
-      buffer.on 'path-change', eventHandler
+      saveAsBuffer.on 'path-change', eventHandler
 
-      buffer.setText 'Buffer contents!'
-      buffer.saveAs(filePath)
+      saveAsBuffer.setText 'Buffer contents!'
+      saveAsBuffer.saveAs(filePath)
       expect(fs.read(filePath)).toEqual 'Buffer contents!'
 
-      expect(eventHandler).toHaveBeenCalledWith(buffer)
+      expect(eventHandler).toHaveBeenCalledWith(saveAsBuffer)
 
     it "stops listening to events on previous path and begins listening to events on new path", ->
       originalPath = "/tmp/original.txt"
       newPath = "/tmp/new.txt"
       fs.write(originalPath, "")
-      buffer = new Buffer(originalPath)
+
+      saveAsBuffer = new Buffer(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
-      buffer.on 'change', changeHandler
-      buffer.saveAs(newPath)
+      saveAsBuffer.on 'change', changeHandler
+      saveAsBuffer.saveAs(newPath)
       expect(changeHandler).not.toHaveBeenCalled()
 
       fs.write(originalPath, "should not trigger buffer event")
@@ -597,3 +602,23 @@ describe 'Buffer', ->
       expect(buffer.positionForCharacterIndex(30)).toEqual [1, 0]
       expect(buffer.positionForCharacterIndex(61)).toEqual [2, 0]
       expect(buffer.positionForCharacterIndex(408)).toEqual [12, 2]
+
+  describe "anchors", ->
+    [anchor, destroyHandler] = []
+
+    beforeEach ->
+      destroyHandler = jasmine.createSpy("destroyHandler")
+      anchor = buffer.addAnchorAtPosition([4, 25])
+      anchor.on 'destroy', destroyHandler
+
+    describe "when a buffer change precedes an anchor", ->
+      it "moves the anchor in accordance with the change", ->
+        buffer.delete([[3, 0], [4, 10]])
+        expect(anchor.getBufferPosition()).toEqual [3, 15]
+        expect(destroyHandler).not.toHaveBeenCalled()
+
+    describe "when a buffer change surrounds an anchor", ->
+      it "destroys the anchor", ->
+        buffer.delete([[3, 0], [5, 0]])
+        expect(destroyHandler).toHaveBeenCalled()
+        expect(buffer.getAnchors().indexOf(anchor)).toBe -1

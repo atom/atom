@@ -6,6 +6,8 @@ Range = require 'range'
 EventEmitter = require 'event-emitter'
 UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
+Anchor = require 'anchor'
+AnchorRange = require 'anchor-range'
 
 module.exports =
 class Buffer
@@ -15,9 +17,14 @@ class Buffer
   modifiedOnDisk: null
   lines: null
   file: null
+  anchors: null
+  anchorRanges: null
+  refcount: 0
 
-  constructor: (path) ->
+  constructor: (path, @project) ->
     @id = @constructor.idCounter++
+    @anchors = []
+    @anchorRanges = []
     @lines = ['']
 
     if path
@@ -31,22 +38,21 @@ class Buffer
     @modified = false
 
   destroy: ->
+    throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
     @file?.off()
+    @destroyed = true
+    @project?.removeBuffer(this)
 
-  reload: ->
-    @setText(fs.read(@file.getPath()))
-    @modified = false
-    @modifiedOnDisk = false
+  retain: ->
+    @refcount++
+    this
 
-  getPath: ->
-    @file?.getPath()
+  release: ->
+    @refcount--
+    @destroy() if @refcount <= 0
+    this
 
-  setPath: (path) ->
-    return if path == @getPath()
-
-    @file?.off()
-    @file = new File(path)
-
+  subscribeToFile: ->
     @file.on "contents-change", =>
       if @isModified()
         @modifiedOnDisk = true
@@ -61,6 +67,20 @@ class Buffer
     @file.on "move", =>
       @trigger "path-change", this
 
+  reload: ->
+    @setText(fs.read(@file.getPath()))
+    @modified = false
+    @modifiedOnDisk = false
+
+  getPath: ->
+    @file?.getPath()
+
+  setPath: (path) ->
+    return if path == @getPath()
+
+    @file?.off()
+    @file = new File(path)
+    @subscribeToFile()
     @trigger "path-change", this
 
   getExtension: ->
@@ -151,6 +171,15 @@ class Buffer
     operation = new BufferChangeOperation({buffer: this, oldRange, newText})
     @pushOperation(operation)
 
+  clipPosition: (position) ->
+    { row, column } = Point.fromObject(position)
+    row = 0 if row < 0
+    column = 0 if column < 0
+    row = Math.min(@getLastRow(), row)
+    column = Math.min(@lineLengthForRow(row), column)
+
+    new Point(row, column)
+
   prefixAndSuffixForRange: (range) ->
     prefix: @lines[range.start.row][0...range.start.column]
     suffix: @lines[range.end.row][range.end.column..]
@@ -193,6 +222,29 @@ class Buffer
 
   isModified: ->
     @modified
+
+  getAnchors: -> new Array(@anchors...)
+
+  addAnchor: (options) ->
+    anchor = new Anchor(this, options)
+    @anchors.push(anchor)
+    anchor
+
+  addAnchorAtPosition: (position, options) ->
+    anchor = @addAnchor(options)
+    anchor.setBufferPosition(position)
+    anchor
+
+  addAnchorRange: (range, editSession) ->
+    anchorRange = new AnchorRange(range, this, editSession)
+    @anchorRanges.push(anchorRange)
+    anchorRange
+
+  removeAnchor: (anchor) ->
+    _.remove(@anchors, anchor)
+
+  removeAnchorRange: (anchorRange) ->
+    _.remove(@anchorRanges, anchorRange)
 
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()

@@ -337,7 +337,8 @@ class Editor extends View
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
-    $(window).on "resize.editor#{@id}", => @updateRenderedLines()
+    $(window).on "resize.editor#{@id}", =>
+      @updateRenderedLines()
     @focus() if @isFocused
 
     @renderWhenAttached()
@@ -393,7 +394,7 @@ class Editor extends View
     for editSession, index in @editSessions
       if editSession.buffer.getPath() == path
         @setActiveEditSessionIndex(index)
-        return true
+        return @activeEditSession
     false
 
   getOpenBufferPaths: ->
@@ -569,8 +570,11 @@ class Editor extends View
     if @pane() then @pane().remove() else super
     rootView?.focus()
 
+  getEditSessions: ->
+    new Array(@editSessions...)
+
   destroyEditSessions: ->
-    for session in @editSessions
+    for session in @getEditSessions()
       session.destroy()
 
   renderWhenAttached: ->

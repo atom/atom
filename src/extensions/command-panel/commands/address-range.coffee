@@ -5,8 +5,8 @@ module.exports =
 class AddressRange extends Address
   constructor: (@startAddress, @endAddress) ->
 
-  getRange: (editor, currentRange) ->
-    new Range(@startAddress.getRange(editor, currentRange).start, @endAddress.getRange(editor, currentRange).end)
+  getRange: (buffer, range) ->
+    new Range(@startAddress.getRange(buffer, range).start, @endAddress.getRange(buffer, range).end)
 
   isRelative: ->
     @startAddress.isRelative() and @endAddress.isRelative()

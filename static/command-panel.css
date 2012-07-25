@@ -2,6 +2,44 @@
   width: 100%;
   background: #515151;
   padding: 3px;
+}
+
+.command-panel .preview-list {
+  max-height: 300px;
+  overflow: auto;
+  margin-bottom: 3px;
+  position: relative;
+  background: #161616;
+}
+
+.command-panel .preview-list {
+  cursor: default;
+}
+
+.command-panel .preview-list li.selected {
+  background: #444;
+}
+
+.command-panel .preview-list:focus li.selected {
+  background: #223555;
+}
+
+.command-panel .preview-list .path {
+  padding-left: 3px;
+  color: #f9ee98;
+  margin-right: 1ex;
+}
+
+.command-panel .preview-list .preview {
+  color: #f6f3e8;
+}
+
+.command-panel .preview-list .preview .match {
+  background-color: rgba(255,255,255,.25);
+  padding: 1px;
+}
+
+.command-panel .prompt-and-editor {
   display: -webkit-box;
 }
 

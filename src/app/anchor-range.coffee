@@ -4,11 +4,13 @@ module.exports =
 class AnchorRange
   start: null
   end: null
+  buffer: null
+  editSession: null # optional
 
-  constructor: (@editSession, bufferRange) ->
+  constructor: (bufferRange, @buffer, @editSession) ->
     bufferRange = Range.fromObject(bufferRange)
-    @startAnchor = @editSession.addAnchorAtBufferPosition(bufferRange.start, ignoreEqual: true)
-    @endAnchor = @editSession.addAnchorAtBufferPosition(bufferRange.end)
+    @startAnchor = @buffer.addAnchorAtPosition(bufferRange.start, ignoreEqual: true)
+    @endAnchor = @buffer.addAnchorAtPosition(bufferRange.end)
 
   getBufferRange: ->
     new Range(@startAnchor.getBufferPosition(), @endAnchor.getBufferPosition())
@@ -22,3 +24,5 @@ class AnchorRange
   destroy: ->
     @startAnchor.destroy()
     @endAnchor.destroy()
+    @buffer.removeAnchorRange(this)
+    @editSession?.removeAnchorRange(this)

@@ -1,18 +1,21 @@
 RootView = require 'root-view'
 CommandPanel = require 'command-panel'
+_ = require 'underscore'
 
 describe "CommandPanel", ->
-  [rootView, editor, commandPanel] = []
+  [rootView, editor, buffer, commandPanel, project] = []
 
   beforeEach ->
     rootView = new RootView
     rootView.open(require.resolve 'fixtures/sample.js')
     rootView.enableKeymap()
+    project = rootView.project
     editor = rootView.getActiveEditor()
+    buffer = editor.activeEditSession.buffer
     commandPanel = requireExtension('command-panel')
 
   afterEach ->
-    rootView.remove()
+    rootView.deactivate()
 
   describe "serialization", ->
     it "preserves the command panel's mini editor text and visibility across reloads", ->
@@ -26,6 +29,12 @@ describe "CommandPanel", ->
 
       newRootView.remove()
 
+  describe "when command-panel:close is triggered on the command panel", ->
+    it "detaches the command panel", ->
+      commandPanel.attach()
+      commandPanel.trigger('command-panel:close')
+      expect(commandPanel.hasParent()).toBeFalsy()
+
   describe "when command-panel:toggle is triggered on the root view", ->
     beforeEach ->
       rootView.attachToDom()
@@ -34,14 +43,14 @@ describe "CommandPanel", ->
       beforeEach ->
         commandPanel.attach()
 
-      describe "when the command panel is focused", ->
+      describe "when the mini editor is focused", ->
         it "closes the command panel", ->
           expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
           rootView.trigger 'command-panel:toggle'
           expect(commandPanel.hasParent()).toBeFalsy()
 
-      describe "when the command panel is not focused", ->
-        it "focuses the command panel", ->
+      describe "when the mini editor is not focused", ->
+        it "focuses the mini editor", ->
           rootView.focus()
           expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
           rootView.trigger 'command-panel:toggle'
@@ -54,6 +63,82 @@ describe "CommandPanel", ->
         rootView.trigger 'command-panel:toggle'
         expect(commandPanel.hasParent()).toBeTruthy()
 
+  describe "when command-panel:toggle-preview is triggered on the root view", ->
+    beforeEach ->
+      rootView.attachToDom()
+
+    describe "when the preview list is/was previously visible", ->
+      beforeEach ->
+        rootView.trigger 'command-panel:toggle'
+        waitsForPromise -> commandPanel.execute('X x/a+/')
+
+      describe "when the command panel is visible", ->
+        beforeEach ->
+          expect(commandPanel.hasParent()).toBeTruthy()
+
+        describe "when the preview list is visible", ->
+          beforeEach ->
+            expect(commandPanel.previewList).toBeVisible()
+
+          describe "when the preview list is focused", ->
+            it "hides the command panel", ->
+              expect(commandPanel.previewList).toMatchSelector(':focus')
+              rootView.trigger 'command-panel:toggle-preview'
+              expect(commandPanel.hasParent()).toBeFalsy()
+
+          describe "when the preview list is not focused", ->
+            it "focuses the preview list", ->
+              commandPanel.miniEditor.focus()
+              rootView.trigger 'command-panel:toggle-preview'
+              expect(commandPanel.previewList).toMatchSelector(':focus')
+
+        describe "when the preview list is not visible", ->
+          beforeEach ->
+            commandPanel.miniEditor.focus()
+            rootView.trigger 'command-panel:toggle'
+            rootView.trigger 'command-panel:toggle'
+            expect(commandPanel.hasParent()).toBeTruthy()
+            expect(commandPanel.previewList).toBeHidden()
+
+          it "shows and focuses the preview list", ->
+            rootView.trigger 'command-panel:toggle-preview'
+            expect(commandPanel.previewList).toBeVisible()
+            expect(commandPanel.previewList).toMatchSelector(':focus')
+
+      describe "when the command panel is not visible", ->
+        it "shows the command panel and the preview list, and focuses the preview list", ->
+          commandPanel.miniEditor.focus()
+          rootView.trigger 'command-panel:toggle'
+          expect(commandPanel.hasParent()).toBeFalsy()
+
+          rootView.trigger 'command-panel:toggle-preview'
+          expect(commandPanel.hasParent()).toBeTruthy()
+          expect(commandPanel.previewList).toBeVisible()
+          expect(commandPanel.previewList).toMatchSelector(':focus')
+
+    describe "when the preview list has never been opened", ->
+      describe "when the command panel is visible", ->
+        beforeEach ->
+          rootView.trigger 'command-panel:toggle'
+          expect(commandPanel.hasParent()).toBeTruthy()
+
+        describe "when the mini editor is focused", ->
+          it "retains focus on the mini editor and does not show the preview list", ->
+            expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+            rootView.trigger 'command-panel:toggle-preview'
+            expect(commandPanel.previewList).toBeHidden()
+            expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+
+        describe "when the mini editor is not focused", ->
+          it "focuses the mini editor and does not show the preview list", ->
+            rootView.focus()
+            rootView.trigger 'command-panel:toggle-preview'
+            expect(commandPanel.previewList).toBeHidden()
+            expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+
+      describe "when the command panel is not visible", ->
+        it "shows the command panel and focuses the mini editor, but does not show the preview list", ->
+
   describe "when command-panel:unfocus is triggered on the command panel", ->
     it "returns focus to the root view but does not hide the command panel", ->
       rootView.attachToDom()
@@ -62,7 +147,6 @@ describe "CommandPanel", ->
       commandPanel.trigger 'command-panel:unfocus'
       expect(commandPanel.hasParent()).toBeTruthy()
       expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
-
 
   describe "when command-panel:repeat-relative-address is triggered on the root view", ->
     it "repeats the last search command if there is one", ->
@@ -111,19 +195,61 @@ describe "CommandPanel", ->
       expect(commandInterpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/\\(items\\)/"
 
   describe "when command-panel:find-in-file is triggered on an editor", ->
-    it "pre-populates command panel's editor with /", ->
+    it "pre-populates the command panel's editor with / and moves the cursor to the last column", ->
+      spyOn(commandPanel, 'attach').andCallThrough()
+      commandPanel.miniEditor.setText("foo")
+      commandPanel.miniEditor.setCursorBufferPosition([0, 0])
+
       rootView.getActiveEditor().trigger "command-panel:find-in-file"
+      expect(commandPanel.attach).toHaveBeenCalled()
       expect(commandPanel.parent).not.toBeEmpty()
       expect(commandPanel.miniEditor.getText()).toBe "/"
+      expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 1]
+
+  describe "when command-panel:find-in-project is triggered on the root view", ->
+    it "pre-populates the command panel's editor with Xx/ and moves the cursor to the last column", ->
+      spyOn(commandPanel, 'attach').andCallThrough()
+      commandPanel.miniEditor.setText("foo")
+      commandPanel.miniEditor.setCursorBufferPosition([0, 0])
+
+      rootView.trigger "command-panel:find-in-project"
+      expect(commandPanel.attach).toHaveBeenCalled()
+      expect(commandPanel.parent).not.toBeEmpty()
+      expect(commandPanel.miniEditor.getText()).toBe "Xx/"
+      expect(commandPanel.miniEditor.getCursorBufferPosition()).toEqual [0, 3]
 
   describe "when return is pressed on the panel's editor", ->
-    it "calls execute", ->
-      spyOn(commandPanel, 'execute')
-      rootView.trigger 'command-panel:toggle'
-      commandPanel.miniEditor.insertText 's/hate/love/g'
-      commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
+    describe "if the command has an immediate effect", ->
+      it "executes it immediately on the current buffer", ->
+        rootView.trigger 'command-panel:toggle'
+        commandPanel.miniEditor.insertText ',s/sort/torta/g'
+        commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
 
-      expect(commandPanel.execute).toHaveBeenCalled()
+        expect(buffer.lineForRow(0)).toMatch /quicktorta/
+        expect(buffer.lineForRow(1)).toMatch /var torta/
+
+    describe "when the command returns operations to be previewed", ->
+      beforeEach ->
+        rootView.attachToDom()
+        editor.remove()
+        rootView.trigger 'command-panel:toggle'
+        waitsForPromise -> commandPanel.execute('X x/a+/')
+
+      it "displays and focuses the operation preview list", ->
+        expect(commandPanel).toBeVisible()
+        expect(commandPanel.previewList).toBeVisible()
+        expect(commandPanel.previewList).toMatchSelector ':focus'
+        previewItem = commandPanel.previewList.find("li:contains(dir/a):first")
+        expect(previewItem.find('.path').text()).toBe "dir/a"
+        expect(previewItem.find('.preview').text()).toBe "aaa bbb"
+        expect(previewItem.find('.preview > .match').text()).toBe "aaa"
+
+        rootView.trigger 'command-panel:toggle-preview' # ensure we can close panel without problems
+        expect(commandPanel).toBeHidden()
+
+      it "destroys previously previewed operations if there are any", ->
+        waitsForPromise -> commandPanel.execute('X x/b+/')
+        # there shouldn't be any dangling operations after this
 
     describe "if the command is malformed", ->
       it "adds and removes an error class to the command panel and does not close it", ->
@@ -156,12 +282,74 @@ describe "CommandPanel", ->
       commandPanel.miniEditor.trigger 'move-down'
       expect(commandPanel.miniEditor.getText()).toBe ''
 
-  describe ".execute()", ->
-    it "executes the command and closes the command panel", ->
-      rootView.getActiveEditor().setText("i hate love")
-      rootView.getActiveEditor().getSelection().setBufferRange [[0,0], [0,Infinity]]
+  describe "when the preview list is focused with search operations", ->
+    previewList = null
+
+    beforeEach ->
+      previewList = commandPanel.previewList
       rootView.trigger 'command-panel:toggle'
-      commandPanel.miniEditor.insertText 's/hate/love/'
-      commandPanel.execute()
-      expect(rootView.getActiveEditor().getText()).toBe "i love love"
-      expect(rootView.find('.command-panel')).not.toExist()
+      waitsForPromise -> commandPanel.execute('X x/a+/')
+
+    describe "when move-down and move-up are triggered on the preview list", ->
+      it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->
+        rootView.attachToDom()
+        expect(previewList.find('li:eq(0)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
+
+        previewList.trigger 'move-up'
+        expect(previewList.find('li:eq(0)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
+
+        previewList.trigger 'move-down'
+        expect(previewList.find('li:eq(1)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[1]
+
+        previewList.trigger 'move-down'
+        expect(previewList.find('li:eq(2)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[2]
+
+        previewList.trigger 'move-up'
+        expect(previewList.find('li:eq(1)')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[1]
+
+        _.times previewList.getOperations().length, -> previewList.trigger 'move-down'
+
+        expect(previewList.find('li:last')).toHaveClass 'selected'
+        expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
+
+        expect(previewList.scrollBottom()).toBe previewList.prop('scrollHeight')
+
+        _.times previewList.getOperations().length, -> previewList.trigger 'move-up'
+
+        console.log previewList.find('li:first').position().top
+
+    describe "when command-panel:execute is triggered on the preview list", ->
+      it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
+        spyOn(rootView, 'focus')
+        executeHandler = jasmine.createSpy('executeHandler')
+        commandPanel.on 'command-panel:execute', executeHandler
+
+        _.times 4, -> previewList.trigger 'move-down'
+        operation = previewList.getSelectedOperation()
+
+        previewList.trigger 'command-panel:execute'
+
+        editSession = rootView.getActiveEditSession()
+        expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
+        expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+        expect(rootView.focus).toHaveBeenCalled()
+
+        expect(executeHandler).not.toHaveBeenCalled()
+
+    describe "when an operation in the preview list is clicked", ->
+      it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
+        spyOn(rootView, 'focus')
+        operation = previewList.getOperations()[4]
+
+        previewList.find('li:eq(4) span').mousedown()
+
+        expect(previewList.getSelectedOperation()).toBe operation
+        editSession = rootView.getActiveEditSession()
+        expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
+        expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+        expect(rootView.focus).toHaveBeenCalled()

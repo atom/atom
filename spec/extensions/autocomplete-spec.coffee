@@ -10,12 +10,12 @@ describe "Autocomplete", ->
   miniEditor = null
 
   beforeEach ->
-    editor = new Editor(editSession: fixturesProject.open('sample.js'))
+    editor = new Editor(editSession: fixturesProject.buildEditSessionForPath('sample.js'))
     autocomplete = new Autocomplete(editor)
     miniEditor = autocomplete.miniEditor
 
   afterEach ->
-    editor.remove()
+    editor?.remove()
 
   describe "@activate(rootView)", ->
     it "activates autocomplete on all existing and future editors (but not on autocomplete's own mini editor)", ->
@@ -38,8 +38,7 @@ describe "Autocomplete", ->
 
       expect(Autocomplete.prototype.initialize).not.toHaveBeenCalled()
 
-      leftEditor.remove()
-      rightEditor.remove()
+      rootView.deactivate()
 
   describe 'autocomplete:attach event', ->
     it "shows autocomplete view and focuses its mini-editor", ->
@@ -357,7 +356,7 @@ describe "Autocomplete", ->
       expect(wordList).toContain "quicksort"
       expect(wordList).not.toContain "Some"
 
-      editor.edit(fixturesProject.open('sample.txt'))
+      editor.edit(fixturesProject.buildEditSessionForPath('sample.txt'))
 
       wordList = autocomplete.wordList
       expect(wordList).not.toContain "quicksort"
@@ -365,7 +364,7 @@ describe "Autocomplete", ->
 
     it 'stops listening to previous buffers change events', ->
       previousBuffer = editor.getBuffer()
-      editor.edit(fixturesProject.open('sample.txt'))
+      editor.edit(fixturesProject.buildEditSessionForPath('sample.txt'))
       spyOn(autocomplete, "buildWordList")
 
       previousBuffer.change([[0,0],[0,1]], "sauron")
@@ -382,6 +381,7 @@ describe "Autocomplete", ->
       editor.remove()
       editor.getBuffer().insert([0,0], "s")
       expect(autocomplete.buildWordList).not.toHaveBeenCalled()
+      editor = null
 
   describe ".attach()", ->
     beforeEach ->

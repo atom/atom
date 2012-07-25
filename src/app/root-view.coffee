@@ -96,8 +96,9 @@ class RootView extends View
     changeFocus = options.changeFocus ? true
     allowActiveEditorChange = options.allowActiveEditorChange ? false
 
-    unless @openInExistingEditor(path, allowActiveEditorChange)
-      editor = new Editor(editSession: @project.open(path))
+    unless editSession = @openInExistingEditor(path, allowActiveEditorChange)
+      editSession = @project.buildEditSessionForPath(path)
+      editor = new Editor({editSession})
       pane = new Pane(editor)
       @panes.append(pane)
       if changeFocus
@@ -105,23 +106,24 @@ class RootView extends View
       else
         @makeEditorActive(editor)
 
+    editSession
+
   openInExistingEditor: (path, allowActiveEditorChange) ->
     if activeEditor = @getActiveEditor()
       path = @project.resolve(path) if path
 
-      if activeEditor.activateEditSessionForPath(path)
-        return true
+      if editSession = activeEditor.activateEditSessionForPath(path)
+        return editSession
 
       if allowActiveEditorChange
         for editor in @getEditors()
-          if editor.activateEditSessionForPath(path)
+          if editSession = editor.activateEditSessionForPath(path)
             editor.focus()
-            return true
+            return editSession
 
-      activeEditor.edit(@project.open(path))
-      true
-    else
-      false
+      editSession = @project.buildEditSessionForPath(path)
+      activeEditor.edit(editSession)
+      editSession
 
   editorFocused: (editor) ->
     @makeEditorActive(editor) if @panes.containsElement(editor)
@@ -144,7 +146,7 @@ class RootView extends View
     document.title = title
 
   getEditors: ->
-    @panes.find('.editor').map(-> $(this).view()).toArray()
+    @panes.find('.pane > .editor').map(-> $(this).view()).toArray()
 
   getModifiedBuffers: ->
     modifiedBuffers = []
@@ -162,6 +164,9 @@ class RootView extends View
       editor.view()
     else
       @panes.find('.editor:first').view()
+
+  getActiveEditSession: ->
+    @getActiveEditor()?.activeEditSession
 
   focusNextPane: ->
     panes = @panes.find('.pane')
