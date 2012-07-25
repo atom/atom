@@ -661,7 +661,7 @@ class Editor extends View
     if width > @scrollView.width()
       @renderedLines.width(width)
     else
-      @renderedLines.width("inherit")
+      @renderedLines.css('width', '')
 
   handleScrollHeightChange: ->
     scrollHeight = @lineHeight * @screenLineCount()
