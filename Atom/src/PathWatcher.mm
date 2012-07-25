@@ -12,7 +12,7 @@ static NSMutableArray *gPathWatchers;
 - (void)watchFileDescriptor:(int)fd;
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback callbackId:(NSString *)callbackId;
 - (void)stopWatching;
-- (void)reassignFileDescriptorFor:(NSString *)path to:(NSString *)newPath;
+- (void)reassignFileDescriptor:(NSNumber *)fdNumber from:(NSString *)path to:(NSString *)newPath;
 - (bool)isAtomicWrite:(struct kevent)event;
 @end
 
@@ -122,7 +122,7 @@ static NSMutableArray *gPathWatchers;
 
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error {
   path = [path stringByStandardizingPath];
-  
+
   @synchronized(self) {
     NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
     if (!fdNumber) {
@@ -147,8 +147,8 @@ static NSMutableArray *gPathWatchers;
     
     if (callbacks.count == 0) {
       close([fdNumber intValue]);
+      [_callbacksByFileDescriptor removeObjectForKey:fdNumber];      
       [_fileDescriptorsByPath removeObjectForKey:path];
-      [_callbacksByFileDescriptor removeObjectForKey:fdNumber];
     }
   }
 }
@@ -173,21 +173,61 @@ static NSMutableArray *gPathWatchers;
 }
 
 - (NSString *)pathForFileDescriptor:(NSNumber *)fdNumber {
-  for (NSString *path in _fileDescriptorsByPath) {
-    if ([[_fileDescriptorsByPath objectForKey:path] isEqual:fdNumber]) {
-      return path;
+  @synchronized(self) {
+    for (NSString *path in _fileDescriptorsByPath) {
+      if ([[_fileDescriptorsByPath objectForKey:path] isEqual:fdNumber]) {
+        return path;
+      }
     }
   }
   
   return nil;
 }
 
+- (bool)isAtomicWrite:(struct kevent)event {
+  if (!event.fflags & NOTE_DELETE) return NO;
+  
+  NSFileManager *fm = [NSFileManager defaultManager];
+  NSString *path = nil;
+  @synchronized(self) {
+    for (path in [_fileDescriptorsByPath allKeys]) {
+      if ([[_fileDescriptorsByPath objectForKey:path] unsignedLongValue] == event.ident) {
+        return [fm fileExistsAtPath:path];
+      }
+    }
+  }
+  
+  return NO;
+}
+
+- (void)reassignFileDescriptor:(NSNumber *)fdNumber from:(NSString *)path to:(NSString *)newPath {
+  @synchronized(self) {
+    bool notWatchingFd = [_fileDescriptorsByPath valueForKey:path] == nil;
+    if (notWatchingFd) return;
+
+    [_fileDescriptorsByPath removeObjectForKey:path];
+    [_fileDescriptorsByPath setObject:fdNumber forKey:newPath];
+  }
+}
+
+- (void)updatePath:(NSString *)path forFileDescriptor:(NSNumber *)fdNumber {
+  // The path associated with the fd been updated. Remove references to old fd 
+  // and make sure the path and callbacks are linked with new fd.
+  @synchronized(self) {
+    NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];          
+    [self unwatchPath:path callbackId:nil error:nil];
+    for (NSString *callbackId in [callbacks allKeys]) {
+      [self watchPath:path callback:[callbacks objectForKey:callbackId] callbackId:callbackId];
+    }  
+  }
+}
+
 - (void)watch {  
-  @autoreleasepool {
-    struct kevent event;    
-    struct timespec timeout = { 5, 0 }; // 5 seconds timeout.
-    
-    while (_keepWatching) {
+  struct kevent event;    
+  struct timespec timeout = { 5, 0 }; // 5 seconds timeout.
+  
+  while (_keepWatching) {
+    @autoreleasepool {
       int numberOfEvents = kevent(_kq, NULL, 0, &event, 1, &timeout);
       
       if (numberOfEvents < 0) {
@@ -199,69 +239,42 @@ static NSMutableArray *gPathWatchers;
 
       NSNumber *fdNumber = [NSNumber numberWithInt:event.ident];
       NSString *eventFlag = nil;
-      NSString *path = [self pathForFileDescriptor:fdNumber];
+      NSString *path = [[[self pathForFileDescriptor:fdNumber] retain] autorelease];
+      NSString *newPath = nil;      
       
       if (event.fflags & NOTE_WRITE) {
         eventFlag = @"contents-change";
       }
       else if ([self isAtomicWrite:event]) {        
         eventFlag = @"contents-change";
-
-        // The fd for the path has changed. Remove references to old fd and
-        // make sure the path and callbacks are linked with new fd.
-        @synchronized(self) {
-          NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];          
-          [self unwatchPath:path callbackId:nil error:nil];
-          for (NSString *callbackId in [callbacks allKeys]) {
-            [self watchPath:path callback:[callbacks objectForKey:callbackId] callbackId:callbackId];
-          }  
-        }
+        [self updatePath:path forFileDescriptor:fdNumber];
       }
       else if (event.fflags & NOTE_DELETE) {
         eventFlag = @"remove";
       }
       else if (event.fflags & NOTE_RENAME) {
         eventFlag = @"move";
-
         char pathBuffer[MAXPATHLEN];
         fcntl((int)event.ident, F_GETPATH, &pathBuffer);
-        NSString *newPath = [NSString stringWithUTF8String:pathBuffer];
-        [self reassignFileDescriptorFor:path to:newPath];
-        path = newPath;
+        newPath = [NSString stringWithUTF8String:pathBuffer];
       }
       
+      NSDictionary *callbacks;
       @synchronized(self) {
-        NSDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
+        callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];
+      }
+
+      dispatch_sync(dispatch_get_main_queue(), ^{
         for (NSString *key in callbacks) {
-          WatchCallback callback = [callbacks objectForKey:key];
-          dispatch_async(dispatch_get_main_queue(), ^{
-            callback(eventFlag, path);
-          });
+          WatchCallback callback = [callbacks objectForKey:key];                        
+          callback(eventFlag, newPath ? newPath : path);
         }
+      });
+
+      if (event.fflags & NOTE_RENAME) {
+        [self reassignFileDescriptor:fdNumber from:path to:newPath];
       }
     }
-  }
-}
-
-- (bool)isAtomicWrite:(struct kevent)event {
-  if (!event.fflags & NOTE_DELETE) return NO;
-
-  NSFileManager *fm = [NSFileManager defaultManager];
-  NSString *path = nil;
-  for (path in [_fileDescriptorsByPath allKeys]) {
-    if ([[_fileDescriptorsByPath objectForKey:path] unsignedLongValue] == event.ident) {
-      return [fm fileExistsAtPath:path];
-    }
-  }
-
-  return NO;
-}
-
-- (void)reassignFileDescriptorFor:(NSString *)path to:(NSString *)newPath {
-  @synchronized(self) {
-    NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
-    [_fileDescriptorsByPath removeObjectForKey:path];
-    [_fileDescriptorsByPath setObject:fdNumber forKey:newPath];
   }
 }
 
