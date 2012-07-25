@@ -59,6 +59,7 @@ class PreviewList extends View
     operation = @getSelectedOperation()
     editSession = @rootView.open(operation.getPath())
     operation.execute(editSession)
+    @rootView.focus()
     false
 
   getOperations: ->

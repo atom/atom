@@ -324,7 +324,8 @@ describe "CommandPanel", ->
         console.log previewList.find('li:first').position().top
 
     describe "when command-panel:execute is triggered on the preview list", ->
-      it "opens a new editor with the operation's buffer and selects the search result", ->
+      it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
+        spyOn(rootView, 'focus')
         executeHandler = jasmine.createSpy('executeHandler')
         commandPanel.on 'command-panel:execute', executeHandler
 
@@ -336,11 +337,13 @@ describe "CommandPanel", ->
         editSession = rootView.getActiveEditSession()
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+        expect(rootView.focus).toHaveBeenCalled()
 
         expect(executeHandler).not.toHaveBeenCalled()
 
     describe "when an operation in the preview list is clicked", ->
-      it "opens a new editor with the operation's buffer and selects the search result", ->
+      it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
+        spyOn(rootView, 'focus')
         operation = previewList.getOperations()[4]
 
         previewList.find('li:eq(4) span').mousedown()
@@ -349,3 +352,4 @@ describe "CommandPanel", ->
         editSession = rootView.getActiveEditSession()
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+        expect(rootView.focus).toHaveBeenCalled()
