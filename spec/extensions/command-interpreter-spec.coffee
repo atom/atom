@@ -149,6 +149,18 @@ describe "CommandInterpreter", ->
         runs ->
           expect(editSession.getSelection().getBufferRange()).toEqual [[3,8], [3,13]]
 
+      it "removes folds that contain the selections", ->
+        waitsForPromise ->
+          editSession.createFold(5, 6)
+          editSession.createFold(10, 11)
+          editSession.setSelectedBufferRange([[4,16], [4,20]])
+          interpreter.eval('/pivot/', editSession)
+
+        runs ->
+          expect(editSession.getSelection().getBufferRange()).toEqual [[6,16], [6,21]]
+          expect(editSession.lineForScreenRow(5).fold).toBeUndefined()
+          expect(editSession.lineForScreenRow(10).fold).toBeDefined()
+
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->

@@ -214,6 +214,10 @@ class EditSession
   destroyFoldsContainingBufferRow: (bufferRow) ->
     @displayBuffer.destroyFoldsContainingBufferRow(bufferRow)
 
+  destroyFoldsIntersectingBufferRange: (bufferRange) ->
+    for row in [bufferRange.start.row..bufferRange.end.row]
+      @destroyFoldsContainingBufferRow(row)
+
   unfoldCurrentRow: ->
     @largestFoldStartingAtBufferRow(@getLastCursor().getBufferRow())?.destroy()
 
@@ -322,7 +326,9 @@ class EditSession
     @trigger 'add-selection', selection
     selection
 
-  addSelectionForBufferRange: (bufferRange, options) ->
+  addSelectionForBufferRange: (bufferRange, options={}) ->
+    bufferRange = Range.fromObject(bufferRange)
+    @destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @addCursor().selection.setBufferRange(bufferRange, options)
     @mergeIntersectingSelections()
 
@@ -337,9 +343,6 @@ class EditSession
 
     for bufferRange, i in bufferRanges
       bufferRange = Range.fromObject(bufferRange)
-      unless options.preserveFolds
-        for row in [bufferRange.start.row..bufferRange.end.row]
-          @destroyFoldsContainingBufferRow(row)
       if selections[i]
         selections[i].setBufferRange(bufferRange, options)
       else

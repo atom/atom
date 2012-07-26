@@ -54,6 +54,7 @@ class Selection
     [start, end] = [end, start] if options.reverse
 
     @modifyScreenRange =>
+      @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
       @placeAnchor() unless @anchor
       @modifySelection =>
         @anchor.setBufferPosition(start, options)
