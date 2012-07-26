@@ -22,8 +22,7 @@ describe "TreeView", ->
     expect(treeView.root.directory.subscriptionCount()).toBeGreaterThan 0
 
   afterEach ->
-    treeView.deactivate()
-    rootView.remove()
+    rootView.deactivate()
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
@@ -49,7 +48,7 @@ describe "TreeView", ->
 
     describe "when the project has no path", ->
       beforeEach ->
-        treeView.deactivate()
+        rootView.deactivate()
 
         rootView = new RootView
         rootView.activateExtension(TreeView)
@@ -57,6 +56,9 @@ describe "TreeView", ->
 
       it "does not create a root node", ->
         expect(treeView.root).not.toExist()
+
+      it "serializes without throwing an exception", ->
+        expect(-> treeView.serialize()).not.toThrow()
 
       it "creates a root view when the project path is created", ->
         rootView.open(require.resolve('fixtures/sample.js'))
@@ -69,16 +71,24 @@ describe "TreeView", ->
         expect(treeView.root).not.toEqual oldRoot
         expect(oldRoot.hasParent()).toBeFalsy()
 
+  describe "when the prototypes deactivate method is called", ->
+    it "calls the deactivate on tree view instance", ->
+      spyOn(treeView, "deactivate").andCallThrough()
+      rootView.deactivateExtension(TreeView)
+      expect(treeView.deactivate).toHaveBeenCalled()
+
   describe "serialization", ->
-    newTreeView = null
+    [newRootView, newTreeView] = []
 
     afterEach ->
-      newTreeView.deactivate()
+      newRootView.deactivate()
 
     it "restores expanded directories and selected file when deserialized", ->
       treeView.find('.directory:contains(zed)').click()
       sampleJs.click()
       newRootView = RootView.deserialize(rootView.serialize())
+      rootView.deactivate() # Deactivates previous TreeView
+
       newRootView.activateExtension(TreeView)
 
       newTreeView = newRootView.find(".tree-view").view()
@@ -86,7 +96,6 @@ describe "TreeView", ->
       expect(newTreeView).toExist()
       expect(newTreeView.selectedEntry()).toMatchSelector(".file:contains(sample.js)")
       expect(newTreeView.find(".directory:contains(zed)")).toHaveClass("expanded")
-      newRootView.remove()
 
     it "restores the focus state of the tree view", ->
       rootView.attachToDom()
@@ -94,13 +103,13 @@ describe "TreeView", ->
       expect(treeView).toMatchSelector ':focus'
 
       newRootView = RootView.deserialize(rootView.serialize())
-      rootView.remove()
+      rootView.deactivate() # Deactivates previous TreeView
+
       newRootView.attachToDom()
       newRootView.activateExtension(TreeView)
 
       newTreeView = newRootView.find(".tree-view").view()
       expect(newTreeView).toMatchSelector ':focus'
-      newRootView.remove()
 
   describe "when tree-view:toggle is triggered on the root view", ->
     beforeEach ->
@@ -432,7 +441,7 @@ describe "TreeView", ->
     [dirView, fileView, rootDirPath, dirPath, filePath] = []
 
     beforeEach ->
-      treeView.deactivate()
+      rootView.deactivate()
 
       rootDirPath = "/tmp/atom-tests"
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
@@ -445,8 +454,8 @@ describe "TreeView", ->
 
       rootView = new RootView(rootDirPath)
       project = rootView.project
-      treeView = new TreeView(rootView)
-      treeView.root = treeView.root
+      rootView.activateExtension(TreeView)
+      treeView = rootView.find(".tree-view").view()
       dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
       dirView.expand()
       fileView = treeView.find('.file:contains(test-file.txt)').view()
@@ -590,15 +599,14 @@ describe "TreeView", ->
         describe "when the path is changed and confirmed", ->
           describe "when all the directories along the new path exist", ->
             it "moves the file, updates the tree view, and closes the dialog", ->
-              runs ->
-                newPath = fs.join(rootDirPath, 'renamed-test-file.txt')
-                moveDialog.miniEditor.setText(newPath)
+              newPath = fs.join(rootDirPath, 'renamed-test-file.txt')
+              moveDialog.miniEditor.setText(newPath)
 
-                moveDialog.trigger 'tree-view:confirm'
+              moveDialog.trigger 'tree-view:confirm'
 
-                expect(fs.exists(newPath)).toBeTruthy()
-                expect(fs.exists(filePath)).toBeFalsy()
-                expect(moveDialog.parent()).not.toExist()
+              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.exists(filePath)).toBeFalsy()
+              expect(moveDialog.parent()).not.toExist()
 
               waitsFor "tree view to update", ->
                 treeView.root.find('> .entries > .file:contains(renamed-test-file.txt)').length > 0

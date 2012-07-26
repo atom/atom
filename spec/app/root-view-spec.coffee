@@ -397,6 +397,14 @@ describe "RootView", ->
         expect(-> rootView.activateExtension({ activate: -> })).toThrow()
 
     describe "deactivation", ->
+      it "is deactivated and removed from the extension list", ->
+        rootView.activateExtension(extension)
+        expect(rootView.extensions[extension.name]).toBeTruthy()
+        spyOn(extension, "deactivate").andCallThrough()
+        rootView.deactivateExtension(extension)
+        expect(extension.deactivate).toHaveBeenCalled()
+        expect(rootView.extensions[extension.name]).toBeFalsy()
+
       it "is deactivated when the rootView is deactivated", ->
         rootView.activateExtension(extension)
         spyOn(extension, "deactivate").andCallThrough()

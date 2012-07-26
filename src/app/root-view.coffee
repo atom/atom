@@ -72,7 +72,7 @@ class RootView extends View
       try
         extensionStates[name] = extension.serialize?()
       catch e
-        console?.error("Exception serializing '#{name}' extension", e)
+        console?.error("Exception serializing '#{name}' extension\n", e.stack)
     extensionStates
 
   deserializeView: (viewState) ->
@@ -86,6 +86,10 @@ class RootView extends View
     throw new Error("Trying to activate an extension with no name") unless extension.name?
     @extensions[extension.name] = extension
     extension.activate(this, @extensionStates[extension.name])
+
+  deactivateExtension: (extension) ->
+    extension.deactivate?()
+    delete @extensions[extension.name]
 
   deactivate: ->
     atom.rootViewStates[$windowNumber] = JSON.stringify(@serialize())
