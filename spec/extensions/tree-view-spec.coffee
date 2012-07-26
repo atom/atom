@@ -139,6 +139,34 @@ describe "TreeView", ->
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView).toMatchSelector(':focus')
 
+  describe "when tree-view:reveal-current-file is triggered on the root view", ->
+    beforeEach ->
+      treeView.detach()
+      spyOn(treeView, 'focus')
+
+    describe "if the current file has a path", ->
+      it "shows and focuses the tree view and selects the file", ->
+        rootView.open('dir/a')
+        rootView.trigger 'tree-view:reveal-active-file'
+        expect(treeView.hasParent()).toBeTruthy()
+        expect(treeView.focus).toHaveBeenCalled()
+        expect(treeView.selectedEntry().getPath()).toMatch /dir\/a$/
+
+    describe "if the current file has no path", ->
+      it "shows and focuses the tree view, but does not attempt to select a specific file", ->
+        rootView.open()
+        expect(rootView.getActiveEditSession().getPath()).toBeUndefined()
+        rootView.trigger 'tree-view:reveal-active-file'
+        expect(treeView.hasParent()).toBeTruthy()
+        expect(treeView.focus).toHaveBeenCalled()
+
+    describe "if there is no editor open", ->
+      it "shows and focuses the tree view, but does not attempt to select a specific file", ->
+        expect(rootView.getActiveEditSession()).toBeUndefined()
+        rootView.trigger 'tree-view:reveal-active-file'
+        expect(treeView.hasParent()).toBeTruthy()
+        expect(treeView.focus).toHaveBeenCalled()
+
   describe "when tree-view:unfocus is triggered on the tree view", ->
     it "surrenders focus to the root view but remains open", ->
       rootView.attachToDom()

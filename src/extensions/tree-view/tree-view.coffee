@@ -54,6 +54,7 @@ class TreeView extends View
     @on 'tree-view:directory-modified', => @selectActiveFile()
     @on 'tree-view:unfocus', => @rootView.focus()
     @rootView.on 'tree-view:toggle', => @toggle()
+    @rootView.on 'tree-view:reveal-active-file', => @revealActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
     @rootView.project.on 'path-change', => @updateRoot()
 
@@ -105,7 +106,24 @@ class TreeView extends View
     activeFilePath = @rootView.getActiveEditor()?.getPath()
     @selectEntryForPath(activeFilePath)
 
-  selectEntryForPath: (path) ->
+  revealActiveFile: ->
+    @attach()
+    @focus()
+
+    return unless activeFilePath = @rootView.getActiveEditor()?.getPath()
+
+    project = @rootView.project
+    activePathComponents = project.relativize(activeFilePath).split('/')
+    currentPath = project.getPath().replace(/\/$/, '')
+    for pathComponent in activePathComponents
+      currentPath += '/' + pathComponent
+      entry = @entryForPath(currentPath)
+      if entry.hasClass('directory')
+        entry.expand()
+      else
+        @selectEntry(entry)
+
+  entryForPath: (path) ->
     fn = (bestMatchEntry, element) ->
       entry = $(element).view()
       regex = new RegExp("^" + _.escapeRegExp(entry.getPath()))
@@ -114,7 +132,10 @@ class TreeView extends View
       else
         bestMatchEntry
 
-    @selectEntry(@find(".entry").toArray().reduce(fn, @root))
+    @find(".entry").toArray().reduce(fn, @root)
+
+  selectEntryForPath: (path) ->
+    @selectEntry(@entryForPath(path))
 
   moveDown: ->
     selectedEntry = @selectedEntry()
