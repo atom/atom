@@ -379,7 +379,7 @@ describe "RootView", ->
         activate: jasmine.createSpy("activate")
         serialize: -> "it worked"
 
-    describe "activation", ->
+    describe ".activateExtension(extension)", ->
       it "calls activate on the extension", ->
         rootView.activateExtension(extension)
         expect(extension.activate).toHaveBeenCalledWith(rootView, undefined)
@@ -396,8 +396,8 @@ describe "RootView", ->
       it "throws an exception if the extension has no 'name' property", ->
         expect(-> rootView.activateExtension({ activate: -> })).toThrow()
 
-    describe "deactivation", ->
-      it "is deactivated and removed from the extension list", ->
+    describe ".deactivateExtension(extension)", ->
+      it "deactivates and removes the extension from the extension list", ->
         rootView.activateExtension(extension)
         expect(rootView.extensions[extension.name]).toBeTruthy()
         spyOn(extension, "deactivate").andCallThrough()
@@ -405,10 +405,12 @@ describe "RootView", ->
         expect(extension.deactivate).toHaveBeenCalled()
         expect(rootView.extensions[extension.name]).toBeFalsy()
 
-      it "is deactivated when the rootView is deactivated", ->
+      it "is called when the rootView is deactivated to deactivate all extensions", ->
         rootView.activateExtension(extension)
+        spyOn(rootView, "deactivateExtension").andCallThrough()
         spyOn(extension, "deactivate").andCallThrough()
         rootView.deactivate()
+        expect(rootView.deactivateExtension).toHaveBeenCalled()
         expect(extension.deactivate).toHaveBeenCalled()
 
   describe "keymap wiring", ->
