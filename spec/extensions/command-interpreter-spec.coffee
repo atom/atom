@@ -232,6 +232,16 @@ describe "CommandInterpreter", ->
           expect(selections[2].getBufferRange()).toEqual [[6,34], [6,41]]
           expect(selections[3].getBufferRange()).toEqual [[6,56], [6,63]]
 
+    describe "when nothing is matched", ->
+      it "preserves the existing selection", ->
+        previousSelections = null
+        waitsForPromise ->
+          previousSelections = editSession.getSelectedBufferRanges()
+          interpreter.eval(',x/this will match nothing', editSession)
+
+        runs ->
+          expect(editSession.getSelectedBufferRanges()).toEqual previousSelections
+
   describe "substitution", ->
     it "does nothing if there are no matches", ->
       waitsForPromise ->
@@ -333,7 +343,7 @@ describe "CommandInterpreter", ->
         expect(operations.length).toBeGreaterThan 3
         for operation in operations
           editSession = project.buildEditSessionForPath(operation.getPath())
-          operation.execute(editSession)
+          editSession.setSelectedBufferRange(operation.execute(editSession))
           expect(editSession.getSelectedText()).toMatch /a+/
           editSession.destroy()
           operation.destroy()

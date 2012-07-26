@@ -24,10 +24,13 @@ class CompositeCommand
         if currentCommand.previewOperations
           deferred.resolve(operations)
         else
-          editSession?.clearAllSelections() unless currentCommand.preserveSelections
+          bufferRanges = []
           for operation in operations
-            operation.execute(editSession)
+            bufferRange = operation.execute(editSession)
+            bufferRanges.push(bufferRange) if bufferRange
             operation.destroy()
+          if bufferRanges.length and not currentCommand.preserveSelections
+            editSession.setSelectedBufferRanges(bufferRanges)
           deferred.resolve()
 
     deferred.promise()

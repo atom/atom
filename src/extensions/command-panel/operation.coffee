@@ -14,7 +14,7 @@ class Operation
 
   execute: (editSession) ->
     @buffer.change(@getBufferRange(), @newText) if @newText
-    editSession.addSelectionForBufferRange(@getBufferRange()) unless @preserveSelection
+    @getBufferRange() unless @preserveSelection
 
   preview: ->
     range = @anchorRange.getBufferRange()

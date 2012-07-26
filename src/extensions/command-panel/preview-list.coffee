@@ -58,7 +58,8 @@ class PreviewList extends View
   executeSelectedOperation: ->
     operation = @getSelectedOperation()
     editSession = @rootView.open(operation.getPath())
-    operation.execute(editSession)
+    bufferRange = operation.execute(editSession)
+    editSession.setSelectedBufferRange(bufferRange) if bufferRange
     @rootView.focus()
     false
 
