@@ -18,16 +18,29 @@ describe "CommandPanel", ->
     rootView.deactivate()
 
   describe "serialization", ->
-    it "preserves the command panel's mini editor text and visibility across reloads", ->
+    it "preserves the command panel's mini-editor text, visibility, and focus across reloads", ->
+      rootView.attachToDom()
       rootView.trigger 'command-panel:toggle'
+      expect(commandPanel.miniEditor.isFocused).toBeTruthy()
       commandPanel.miniEditor.insertText 'abc'
-      newRootView = RootView.deserialize(rootView.serialize())
+      rootView2 = RootView.deserialize(rootView.serialize())
+      rootView.deactivate()
+      rootView2.attachToDom()
 
-      commandPanel = newRootView.activateExtension(CommandPanel)
-      expect(newRootView.find('.command-panel')).toExist()
+      commandPanel = rootView2.activateExtension(CommandPanel)
+      expect(rootView2.find('.command-panel')).toExist()
       expect(commandPanel.miniEditor.getText()).toBe 'abc'
+      expect(commandPanel.miniEditor.isFocused).toBeTruthy()
 
-      newRootView.remove()
+      rootView2.focus()
+      expect(commandPanel.miniEditor.isFocused).toBeFalsy()
+      rootView3 = RootView.deserialize(rootView2.serialize())
+      rootView2.deactivate()
+      rootView3.attachToDom()
+      commandPanel = rootView3.activateExtension(CommandPanel)
+
+      expect(commandPanel.miniEditor.isFocused).toBeFalsy()
+      rootView3.deactivate()
 
   describe "when command-panel:close is triggered on the command panel", ->
     it "detaches the command panel", ->

@@ -23,10 +23,12 @@ class CommandPanel extends View
   @serialize: ->
     text: @instance.miniEditor.getText()
     visible: @instance.hasParent()
+    miniEditorFocused: @instance.miniEditor.isFocused
 
   @deserialize: (state, rootView) ->
     commandPanel = new CommandPanel(rootView)
-    commandPanel.attach(state.text) if state.visible
+    commandPanel.attach(state.text, focus: false) if state.visible
+    commandPanel.miniEditor.focus() if state.miniEditorFocused
     commandPanel
 
   @content: (rootView) ->
@@ -85,9 +87,10 @@ class CommandPanel extends View
       else
         @miniEditor.focus()
 
-  attach: (text='') ->
+  attach: (text='', options={}) ->
+    focus = options.focus ? true
     @rootView.vertical.append(this)
-    @miniEditor.focus()
+    @miniEditor.focus() if focus
     @miniEditor.setText(text)
     @miniEditor.setCursorBufferPosition([0, Infinity])
 
