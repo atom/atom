@@ -321,8 +321,6 @@ describe "CommandPanel", ->
 
         _.times previewList.getOperations().length, -> previewList.trigger 'move-up'
 
-        console.log previewList.find('li:first').position().top
-
     describe "when command-panel:execute is triggered on the preview list", ->
       it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
         spyOn(rootView, 'focus')
