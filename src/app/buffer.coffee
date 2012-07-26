@@ -81,6 +81,13 @@ class Buffer
     @file?.off()
     @file = new File(path)
     @subscribeToFile()
+    @file.on "contents-change", =>
+      if @isModified()
+        @modifiedOnDisk = true
+        @trigger "contents-change-on-disk"
+      else
+        @setText(fs.read(@file.getPath()))
+        @modified = false
     @trigger "path-change", this
 
   getExtension: ->
@@ -216,6 +223,9 @@ class Buffer
     @modifiedOnDisk = false
     @setPath(path)
     @trigger 'after-save'
+
+  isInConflict: ->
+    @isModified() and @isModifiedOnDisk()
 
   isModifiedOnDisk: ->
     @modifiedOnDisk

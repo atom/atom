@@ -386,9 +386,25 @@ class Editor extends View
 
     @activeEditSession = @editSessions[index]
 
-    @activeEditSession.on "buffer-path-change", => @trigger 'editor-path-change'
+    if @activeEditSession.buffer.isInConflict()
+      @showBufferConflictAlert(@activeEditSession)
+
+    @activeEditSession.on "buffer-contents-change-on-disk", =>
+      @showBufferConflictAlert(@activeEditSession)
+
+    @activeEditSession.on "buffer-path-change", =>
+      @trigger 'editor-path-change'
+
     @trigger 'editor-path-change'
     @renderWhenAttached()
+
+  showBufferConflictAlert: (editSession) ->
+    message = editSession.getPath()
+    detailedMessage = "Has changed on disk. Do you want to reload it?"
+    Native.alert message, detailedMessage, [
+      ["Reload", => editSession.buffer.reload()]
+      ["Cancel", => ],
+    ]
 
   activateEditSessionForPath: (path) ->
     for editSession, index in @editSessions

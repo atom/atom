@@ -110,6 +110,27 @@ describe "Editor", ->
       expect(editor.isFocused).toBeFalsy()
       expect(editor).not.toHaveClass('focused')
 
+  describe "when the activeEditSession's file is modified on disk", ->
+    it "triggers an alert", ->
+      path = "/tmp/atom-changed-file.txt"
+      fs.write(path, "")
+      editSession = project.buildEditSessionForPath(path)
+      editor.edit(editSession)
+      editor.insertText("now the buffer is modified")
+
+      fileChangeHandler = jasmine.createSpy('fileChange')
+      editSession.buffer.file.on 'contents-change', fileChangeHandler
+
+      spyOn($native, "alert")
+
+      fs.write(path, "a file change")
+
+      waitsFor "file to trigger contents-change event", ->
+        fileChangeHandler.callCount > 0
+
+      runs ->
+        expect($native.alert).toHaveBeenCalled()
+
   describe ".remove()", ->
     it "removes subscriptions from all edit session buffers", ->
       previousEditSession = editor.activeEditSession
@@ -226,6 +247,26 @@ describe "Editor", ->
         editor.setActiveEditSessionIndex(0)
         editor.activeEditSession.selectToEndOfLine()
         expect(editor.getSelectionView().find('.selection')).toExist()
+
+      it "triggers alert if edit session's file changed on disk", ->
+        path = "/tmp/atom-changed-file.txt"
+        fs.write(path, "")
+        editSession = project.buildEditSessionForPath(path)
+        editSession.insertText("a buffer change")
+
+        fileChangeHandler = jasmine.createSpy('fileChange')
+        editSession.buffer.file.on 'contents-change', fileChangeHandler
+
+        spyOn($native, "alert")
+
+        fs.write(path, "a file change")
+
+        waitsFor "file to trigger contents-change event", ->
+          fileChangeHandler.callCount > 0
+
+        runs ->
+          editor.edit(editSession)
+          expect($native.alert).toHaveBeenCalled()
 
     describe ".loadNextEditSession()", ->
       it "loads the next editor state and wraps to beginning when end is reached", ->
