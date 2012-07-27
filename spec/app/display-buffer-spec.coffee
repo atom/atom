@@ -194,6 +194,21 @@ describe "DisplayBuffer", ->
           expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
 
+   describe ".unfoldScopeContainingBufferRow(bufferRow)", ->
+      describe "when bufferRow can be unfolded", ->
+        it "destroys a fold based on the syntactic region starting at the given row", ->
+          displayBuffer.foldScopeContainingBufferRow(1)
+          expect(displayBuffer.lineForRow(1).fold).toBeDefined()
+
+          displayBuffer.unfoldScopeContainingBufferRow(1)
+          expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
+
+      describe "when bufferRow can't be unfolded", ->
+        it "does not throw an error", ->
+          expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
+          displayBuffer.unfoldScopeContainingBufferRow(1)
+          expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
+
   describe "primitive folding", ->
     beforeEach ->
       buffer.destroy()
