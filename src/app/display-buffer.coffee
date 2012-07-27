@@ -56,17 +56,15 @@ class DisplayBuffer
 
       @createFold(startRow, endRow)
 
-  toggleFoldAtBufferRow: (bufferRow) ->
+  foldScopeContainingBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
+      fold = @largestFoldStartingAtBufferRow(startRow)
+      @createFold(startRow, endRow) unless fold
 
-      if fold = @largestFoldStartingAtBufferRow(startRow)
-        fold.destroy()
-      else
-        @createFold(startRow, endRow)
+      return
 
-      break
 
   isFoldContainedByActiveFold: (fold) ->
     for row, folds of @activeFolds

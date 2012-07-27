@@ -139,7 +139,7 @@ class Editor extends View
         'newline-below': @insertNewlineBelow
         'toggle-soft-wrap': @toggleSoftWrap
         'fold-all': @foldAll
-        'toggle-fold': @toggleFold
+        'fold': @fold
         'fold-selection': @foldSelection
         'unfold': => @unfoldCurrentRow()
         'split-left': @splitLeft
@@ -220,11 +220,11 @@ class Editor extends View
   undo: -> @activeEditSession.undo()
   redo: -> @activeEditSession.redo()
   createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
+  fold: -> @activeEditSession.fold()
   foldAll: -> @activeEditSession.foldAll()
   foldSelection: -> @activeEditSession.foldSelection()
   destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
-  toggleFold: -> @activeEditSession.toggleFold()
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
   unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
 

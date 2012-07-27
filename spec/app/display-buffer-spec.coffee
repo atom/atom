@@ -172,27 +172,24 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.activeFolds[4].length).toBe(1)
 
       it "doesn't fold lines that are already folded", ->
-        displayBuffer.toggleFoldAtBufferRow(4)
+        displayBuffer.foldScopeContainingBufferRow(4)
         displayBuffer.foldAll()
         expect(Object.keys(displayBuffer.activeFolds).length).toBe(3)
         expect(displayBuffer.activeFolds[0].length).toBe(1)
         expect(displayBuffer.activeFolds[1].length).toBe(1)
         expect(displayBuffer.activeFolds[4].length).toBe(1)
 
-    describe ".toggleFoldAtBufferRow(bufferRow)", ->
+    describe ".foldScopeContainingBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
-        it "creates/destroys a fold based on the syntactic region starting at the given row", ->
-          displayBuffer.toggleFoldAtBufferRow(1)
+        it "creates a fold based on the syntactic region starting at the given row", ->
+          displayBuffer.foldScopeContainingBufferRow(1)
           fold = displayBuffer.lineForRow(1).fold
           expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
 
-          displayBuffer.toggleFoldAtBufferRow(1)
-          expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
-
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
-          displayBuffer.toggleFoldAtBufferRow(8)
+          displayBuffer.foldScopeContainingBufferRow(8)
           fold = displayBuffer.lineForRow(1).fold
           expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9

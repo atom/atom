@@ -198,18 +198,15 @@ class EditSession
   redo: ->
     @buffer.redo(this)
 
+  fold: ->
+    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
+    @foldAtBufferRow(bufferRow)
+
   foldSelection: ->
     selection.fold() for selection in @getSelections()
 
   foldAll: ->
     @displayBuffer.foldAll()
-
-  toggleFold: ->
-    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @toggleFoldAtBufferRow(bufferRow)
-
-  toggleFoldAtBufferRow: (bufferRow) ->
-    @displayBuffer.toggleFoldAtBufferRow(bufferRow)
 
   createFold: (startRow, endRow) ->
     @displayBuffer.createFold(startRow, endRow)
