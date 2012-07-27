@@ -1,6 +1,7 @@
 Point = require 'point'
 Buffer = require 'buffer'
 Anchor = require 'anchor'
+LanguageMode = require 'language-mode'
 DisplayBuffer = require 'display-buffer'
 Cursor = require 'cursor'
 Selection = require 'selection'
@@ -22,6 +23,7 @@ class EditSession
 
   scrollTop: 0
   scrollLeft: 0
+  languageMode: null
   displayBuffer: null
   anchors: null
   anchorRanges: null
@@ -34,7 +36,8 @@ class EditSession
   constructor: ({@project, @buffer, @tabText, @autoIndent, @softTabs, @softWrap}) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
-    @displayBuffer = new DisplayBuffer(@buffer, { @tabText })
+    @languageMode = new LanguageMode(this, @buffer.getExtension())
+    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabText })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
     @anchors = []
     @anchorRanges = []
@@ -242,17 +245,17 @@ class EditSession
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
   indentationForRow: (row) ->
-    @tokenizedBuffer.indentationForRow(row)
+    @languageMode.indentationForRow(row)
 
   autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
     return { text } unless @autoIndent
-    @tokenizedBuffer.autoIndentTextAfterBufferPosition(text, bufferPosition)
+    @languageMode.autoIndentTextAfterBufferPosition(text, bufferPosition)
 
   autoOutdentBufferRow: (bufferRow) ->
-    @tokenizedBuffer.autoOutdentBufferRow(bufferRow)
+    @languageMode.autoOutdentBufferRow(bufferRow)
 
   toggleLineCommentsInRange: (range) ->
-    @tokenizedBuffer.toggleLineCommentsInRange(range)
+    @languageMode.toggleLineCommentsInRange(range)
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()

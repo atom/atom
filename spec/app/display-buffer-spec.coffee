@@ -2,16 +2,16 @@ DisplayBuffer = require 'display-buffer'
 Buffer = require 'buffer'
 
 describe "DisplayBuffer", ->
-  [displayBuffer, buffer, changeHandler, tabText] = []
+  [editSession, displayBuffer, buffer, changeHandler, tabText] = []
   beforeEach ->
     tabText = '  '
-    buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    displayBuffer = new DisplayBuffer(buffer, {tabText})
+    editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabText })
+    { buffer, displayBuffer } = editSession
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'change', changeHandler
 
   afterEach ->
-    buffer.destroy()
+    editSession.destroy()
 
   describe "when the buffer changes", ->
     it "renders line numbers correctly", ->
@@ -198,11 +198,15 @@ describe "DisplayBuffer", ->
           expect(fold.endRow).toBe 9
 
   describe "primitive folding", ->
+    editSession2 = null
+
     beforeEach ->
-      buffer.destroy()
-      buffer = new Buffer(require.resolve 'fixtures/two-hundred.txt')
-      displayBuffer = new DisplayBuffer(buffer, {tabText})
+      editSession2 = fixturesProject.buildEditSessionForPath('two-hundred.txt')
+      { buffer, displayBuffer } = editSession2
       displayBuffer.on 'change', changeHandler
+
+    afterEach ->
+      editSession2.destroy()
 
     describe "when folds are created and destroyed", ->
       describe "when a fold spans multiple lines", ->

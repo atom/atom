@@ -4,8 +4,8 @@ module.exports =
 class AceAdaptor
   foldWidgets: {}
 
-  constructor: (@tokenizedBuffer) ->
-    @buffer = @tokenizedBuffer.buffer
+  constructor: (@editSession) ->
+    @buffer = @editSession.buffer
 
   getLine: (bufferRow) ->
     @buffer.lineForRow(bufferRow)
@@ -14,7 +14,7 @@ class AceAdaptor
     @buffer.getLineCount()
 
   $findClosingBracket: (bracketType, bufferPosition) ->
-    @tokenizedBuffer.findClosingBracket([bufferPosition.row, bufferPosition.column - 1])
+    @editSession.tokenizedBuffer.findClosingBracket([bufferPosition.row, bufferPosition.column - 1])
 
   indentRows: (startRow, endRow, indentString) ->
     for row in [startRow..endRow]
@@ -25,4 +25,4 @@ class AceAdaptor
     @buffer.change(range, text)
 
   findMatchingBracket: ({row, column}) ->
-    @tokenizedBuffer.findOpeningBracket([row, column])
+    @editSession.tokenizedBuffer.findOpeningBracket([row, column])

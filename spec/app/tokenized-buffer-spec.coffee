@@ -1,16 +1,17 @@
 TokenizedBuffer = require 'tokenized-buffer'
+LanguageMode = require 'language-mode'
 Buffer = require 'buffer'
 Range = require 'range'
 
 describe "TokenizedBuffer", ->
-  [tokenizedBuffer, buffer] = []
+  [editSession, tokenizedBuffer, buffer] = []
 
   beforeEach ->
-    buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    tokenizedBuffer = new TokenizedBuffer(buffer, '  ')
+    editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
+    { tokenizedBuffer, buffer } = editSession
 
   afterEach ->
-    buffer.destroy()
+    editSession.destroy()
 
   describe ".findClosingBracket(startBufferPosition)", ->
     it "returns the position of the matching bracket, skipping any nested brackets", ->
@@ -19,81 +20,6 @@ describe "TokenizedBuffer", ->
   describe ".findOpeningBracket(closingBufferPosition)", ->
     it "returns the position of the matching bracket, skipping any nested brackets", ->
       expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
-
-  describe ".toggleLineCommentsInRange(range)", ->
-    describe "javascript", ->
-      it "comments/uncomments lines in the given range", ->
-        tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [7, 8]])
-        expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//    }"
-
-        tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [5, 8]])
-        expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//    }"
-
-    describe "coffeescript", ->
-      it "comments/uncomments lines in the given range", ->
-        buffer.destroy()
-        buffer = new Buffer(require.resolve('fixtures/coffee.coffee'))
-        tokenizedBuffer = new TokenizedBuffer(buffer, '  ')
-
-        tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [7, 8]])
-        expect(buffer.lineForRow(4)).toBe "    #pivot = items.shift()"
-        expect(buffer.lineForRow(5)).toBe "    #left = []"
-        expect(buffer.lineForRow(6)).toBe "    #right = []"
-        expect(buffer.lineForRow(7)).toBe "#"
-
-        tokenizedBuffer.toggleLineCommentsInRange([[4, 5], [5, 8]])
-        expect(buffer.lineForRow(4)).toBe "    pivot = items.shift()"
-        expect(buffer.lineForRow(5)).toBe "    left = []"
-        expect(buffer.lineForRow(6)).toBe "    #right = []"
-        expect(buffer.lineForRow(7)).toBe "#"
-
-  describe "fold suggestion", ->
-    describe "javascript", ->
-      beforeEach ->
-        buffer.destroy()
-        buffer = new Buffer(require.resolve 'fixtures/sample.js')
-        tokenizedBuffer = new TokenizedBuffer(buffer)
-
-      describe ".isBufferRowFoldable(bufferRow)", ->
-        it "returns true only when the buffer row starts a foldable region", ->
-          expect(tokenizedBuffer.isBufferRowFoldable(0)).toBeTruthy()
-          expect(tokenizedBuffer.isBufferRowFoldable(1)).toBeTruthy()
-          expect(tokenizedBuffer.isBufferRowFoldable(2)).toBeFalsy()
-          expect(tokenizedBuffer.isBufferRowFoldable(3)).toBeFalsy()
-
-      describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
-        it "returns the start/end rows of the foldable region starting at the given row", ->
-          expect(tokenizedBuffer.rowRangeForFoldAtBufferRow(0)).toEqual [0, 12]
-          expect(tokenizedBuffer.rowRangeForFoldAtBufferRow(1)).toEqual [1, 9]
-          expect(tokenizedBuffer.rowRangeForFoldAtBufferRow(2)).toBeNull()
-          expect(tokenizedBuffer.rowRangeForFoldAtBufferRow(4)).toEqual [4, 7]
-
-    describe "coffeescript", ->
-      beforeEach ->
-        buffer.destroy()
-        buffer = new Buffer(require.resolve 'fixtures/coffee.coffee')
-        tokenizedBuffer = new TokenizedBuffer(buffer)
-
-      describe ".isBufferRowFoldable(bufferRow)", ->
-        it "returns true only when the buffer row starts a foldable region", ->
-          expect(tokenizedBuffer.isBufferRowFoldable(0)).toBeTruthy()
-          expect(tokenizedBuffer.isBufferRowFoldable(1)).toBeTruthy()
-          expect(tokenizedBuffer.isBufferRowFoldable(2)).toBeFalsy()
-          expect(tokenizedBuffer.isBufferRowFoldable(3)).toBeFalsy()
-          expect(tokenizedBuffer.isBufferRowFoldable(19)).toBeTruthy()
-
-      describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
-        it "returns the start/end rows of the foldable region starting at the given row", ->
-          expect(tokenizedBuffer.rowRangeForFoldAtBufferRow(0)).toEqual [0, 20]
-          expect(tokenizedBuffer.rowRangeForFoldAtBufferRow(1)).toEqual [1, 17]
-          expect(tokenizedBuffer.rowRangeForFoldAtBufferRow(2)).toBeNull()
-          expect(tokenizedBuffer.rowRangeForFoldAtBufferRow(19)).toEqual [19, 20]
 
   describe "tokenization", ->
     it "tokenizes all the lines in the buffer on construction", ->
@@ -225,13 +151,15 @@ describe "TokenizedBuffer", ->
           expect(event.newRange).toEqual new Range([2, 0], [7, buffer.lineForRow(7).length])
 
     describe "when the buffer contains tab characters", ->
-      tabText = null
+      tabText = '  '
+      editSession2 = null
 
       beforeEach ->
-        tabText = '  '
-        buffer.destroy()
-        buffer = new Buffer(require.resolve('fixtures/sample-with-tabs.coffee'))
-        tokenizedBuffer = new TokenizedBuffer(buffer, tabText)
+        editSession2 = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', { tabText })
+        { buffer, tokenizedBuffer } = editSession2
+
+      afterEach ->
+        editSession2.destroy()
 
       it "always renders each tab as its own atomic token containing tabText", ->
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)

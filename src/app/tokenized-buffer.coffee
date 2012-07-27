@@ -4,70 +4,21 @@ EventEmitter = require 'event-emitter'
 Token = require 'token'
 Range = require 'range'
 Point = require 'point'
-AceAdaptor = require 'ace-adaptor'
 
 module.exports =
 class TokenizedBuffer
   @idCounter: 1
 
+  languageMode: null
   buffer: null
-  aceMode: null
   aceAdaptor: null
   screenLines: null
 
-  constructor: (@buffer, @tabText) ->
+  constructor: (@buffer, { @languageMode, @tabText }) ->
+    @languageMode.tokenizedBuffer = this
     @id = @constructor.idCounter++
-    @aceMode = @requireAceMode()
     @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
-    @aceAdaptor = new AceAdaptor(this)
-
-  requireAceMode: ->
-    modeName = switch @buffer.getExtension()
-      when 'js' then 'javascript'
-      when 'coffee' then 'coffee'
-      when 'rb', 'ru' then 'ruby'
-      when 'c', 'h', 'cpp' then 'c_cpp'
-      when 'html', 'htm' then 'html'
-      when 'css' then 'css'
-      when 'java' then 'java'
-      when 'xml' then 'xml'
-      else 'text'
-    new (require("ace/mode/#{modeName}").Mode)
-
-  toggleLineCommentsInRange: (range) ->
-    range = Range.fromObject(range)
-    @aceMode.toggleCommentLines(@stateForRow(range.start.row), @aceAdaptor, range.start.row, range.end.row)
-
-  isBufferRowFoldable: (bufferRow) ->
-    @aceMode.foldingRules?.getFoldWidget(@aceAdaptor, null, bufferRow) == "start"
-
-  rowRangeForFoldAtBufferRow: (bufferRow) ->
-    if aceRange = @aceMode.foldingRules?.getFoldWidgetRange(@aceAdaptor, null, bufferRow)
-      [aceRange.start.row, aceRange.end.row]
-    else
-      null
-
-  indentationForRow: (row) ->
-    state = @stateForRow(row)
-    previousRowText = @buffer.lineForRow(row - 1)
-    @aceMode.getNextLineIndent(state, previousRowText, @tabText)
-
-  autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
-    { row, column} = bufferPosition
-    state = @stateForRow(row)
-    lineBeforeCursor = @buffer.lineForRow(row)[0...column]
-    if text[0] == "\n"
-      indent = @aceMode.getNextLineIndent(state, lineBeforeCursor, @tabText)
-      text = text[0] + indent + text[1..]
-    else if @aceMode.checkOutdent(state, lineBeforeCursor, text)
-      shouldOutdent = true
-
-    {text, shouldOutdent}
-
-  autoOutdentBufferRow: (bufferRow) ->
-    state = @stateForRow(bufferRow)
-    @aceMode.autoOutdent(state, @aceAdaptor, bufferRow)
 
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
@@ -108,9 +59,8 @@ class TokenizedBuffer
       screenLine
 
   buildScreenLineForRow: (state, row) ->
-    tokenizer = @aceMode.getTokenizer()
     line = @buffer.lineForRow(row)
-    {tokens, state} = tokenizer.getLineTokens(line, state)
+    {tokens, state} = @languageMode.getLineTokens(line, state)
     tokenObjects = []
     for tokenProperties in tokens
       token = new Token(tokenProperties)

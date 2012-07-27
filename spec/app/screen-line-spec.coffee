@@ -3,16 +3,16 @@ Buffer = require 'buffer'
 TokenizedBuffer = require 'tokenized-buffer'
 
 describe "ScreenLine", ->
-  [buffer, tabText, screenLine, tokenizedBuffer] = []
+  [editSession, buffer, tabText, screenLine, tokenizedBuffer] = []
 
   beforeEach ->
     tabText = '  '
-    buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    tokenizedBuffer = new TokenizedBuffer(buffer, tabText)
+    editSession = fixturesProject.buildEditSessionForPath('sample.js')
+    { buffer, tokenizedBuffer } = editSession
     screenLine = tokenizedBuffer.lineForScreenRow(3)
 
   afterEach ->
-    buffer.destroy()
+    editSession.destroy()
 
   describe ".splitAt(column)", ->
     it "breaks the line fragment into two fragments", ->

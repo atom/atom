@@ -5,17 +5,17 @@ TokenizedBuffer = require 'tokenized-buffer'
 Point = require 'point'
 
 describe "LineMap", ->
-  [tokenizedBuffer, map] = []
+  [editSession, tokenizedBuffer, map] = []
   [line0, line1, line2, line3, line4] = []
 
   beforeEach ->
-    buffer = new Buffer(require.resolve 'fixtures/sample.js')
-    tokenizedBuffer = new TokenizedBuffer(buffer)
+    editSession = fixturesProject.buildEditSessionForPath('sample.js')
+    { buffer, tokenizedBuffer } = editSession
     map = new LineMap
     [line0, line1, line2, line3, line4] = tokenizedBuffer.linesForScreenRows(0, 4)
 
   afterEach ->
-    tokenizedBuffer.buffer.destroy()
+    editSession.destroy()
 
   describe ".insertAtBufferRow(row, lineFragments)", ->
     it "inserts the given line fragments before the specified buffer row", ->

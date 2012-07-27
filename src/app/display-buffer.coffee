@@ -12,6 +12,7 @@ module.exports =
 class DisplayBuffer
   @idCounter: 1
   lineMap: null
+  languageMode: null
   tokenizedBuffer: null
   activeFolds: null
   foldsById: null
@@ -19,7 +20,9 @@ class DisplayBuffer
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
-    @tokenizedBuffer = new TokenizedBuffer(@buffer, options.tabText ? '  ')
+    options.tabText ?= '  '
+    @languageMode = options.languageMode
+    @tokenizedBuffer = new TokenizedBuffer(@buffer, options)
     @softWrapColumn = options.softWrapColumn ? Infinity
     @activeFolds = {}
     @foldsById = {}
@@ -51,14 +54,14 @@ class DisplayBuffer
 
   foldAll: ->
     for currentRow in [0..@buffer.getLastRow()]
-      [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
+      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow?
 
       @createFold(startRow, endRow)
 
   toggleFoldAtBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
-      [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
+      [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
 
       if fold = @largestFoldStartingAtBufferRow(startRow)
@@ -209,7 +212,7 @@ class DisplayBuffer
     startBufferColumn = 0
     while currentBufferRow <= endBufferRow
       screenLine = @tokenizedBuffer.lineForScreenRow(currentBufferRow)
-      screenLine.foldable = @tokenizedBuffer.isBufferRowFoldable(currentBufferRow)
+      screenLine.foldable = @languageMode.isBufferRowFoldable(currentBufferRow)
 
       if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
         screenLine = screenLine.copy()
