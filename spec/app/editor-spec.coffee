@@ -252,20 +252,20 @@ describe "Editor", ->
         path = "/tmp/atom-changed-file.txt"
         fs.write(path, "")
         editSession = project.buildEditSessionForPath(path)
+        editor.edit editSession
         editSession.insertText("a buffer change")
 
-        fileChangeHandler = jasmine.createSpy('fileChange')
-        editSession.buffer.file.on 'contents-change', fileChangeHandler
+        bufferContentsChangeHandler = jasmine.createSpy('fileChange')
+        editSession.on 'buffer-contents-change-on-disk', bufferContentsChangeHandler
 
         spyOn($native, "alert")
 
         fs.write(path, "a file change")
 
         waitsFor "file to trigger contents-change event", ->
-          fileChangeHandler.callCount > 0
+          bufferContentsChangeHandler.callCount > 0
 
         runs ->
-          editor.edit(editSession)
           expect($native.alert).toHaveBeenCalled()
 
     describe ".loadNextEditSession()", ->
