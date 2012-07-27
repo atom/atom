@@ -65,15 +65,14 @@ class DisplayBuffer
 
       return
 
+  unfoldScopeContainingBufferRow: (bufferRow) ->
+    for currentRow in [bufferRow..0]
+      [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
+      continue unless startRow? and startRow <= bufferRow <= endRow
+      fold = @largestFoldStartingAtBufferRow(startRow)
+      fold.destroy() if fold
 
-  isFoldContainedByActiveFold: (fold) ->
-    for row, folds of @activeFolds
-      for otherFold in folds
-        return otherFold if fold != otherFold and fold.isContainedByFold(otherFold)
-
-  foldFor: (startRow, endRow) ->
-    _.find @activeFolds[startRow] ? [], (fold) ->
-      fold.startRow == startRow and fold.endRow == endRow
+      return
 
   createFold: (startRow, endRow) ->
     return fold if fold = @foldFor(startRow, endRow)
@@ -91,6 +90,15 @@ class DisplayBuffer
       @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
 
     fold
+
+  isFoldContainedByActiveFold: (fold) ->
+    for row, folds of @activeFolds
+      for otherFold in folds
+        return otherFold if fold != otherFold and fold.isContainedByFold(otherFold)
+
+  foldFor: (startRow, endRow) ->
+    _.find @activeFolds[startRow] ? [], (fold) ->
+      fold.startRow == startRow and fold.endRow == endRow
 
   destroyFold: (fold) ->
     @unregisterFold(fold.startRow, fold)

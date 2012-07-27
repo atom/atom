@@ -825,7 +825,7 @@ describe "EditSession", ->
         describe "when the cursor is on the first column of a line below a fold", ->
           it "absorbs the current line into the fold", ->
             editSession.setCursorScreenPosition([4,0])
-            editSession.toggleFold()
+            editSession.fold()
             editSession.setCursorScreenPosition([5,0])
             editSession.backspace()
 
@@ -835,7 +835,7 @@ describe "EditSession", ->
         describe "when the cursor is in the middle of a line below a fold", ->
           it "backspaces as normal", ->
             editSession.setCursorScreenPosition([4,0])
-            editSession.toggleFold()
+            editSession.fold()
             editSession.setCursorScreenPosition([5,5])
             editSession.backspace()
 
@@ -845,7 +845,7 @@ describe "EditSession", ->
         describe "when the cursor is on a folded screen line", ->
           it "deletes all of the folded lines along with the fold", ->
             editSession.setCursorBufferPosition([3, 0])
-            editSession.toggleFold()
+            editSession.fold()
             editSession.backspace()
             expect(buffer.lineForRow(1)).toBe ""
             expect(buffer.lineForRow(2)).toBe "  return sort(Array.apply(this, arguments));"
@@ -912,7 +912,7 @@ describe "EditSession", ->
         describe "when the selection ends on a folded line", ->
           it "destroys the fold", ->
             editSession.setSelectedBufferRange([[3,0], [4,0]])
-            editSession.toggleFoldAtBufferRow(4)
+            editSession.foldScopeContainingBufferRow(4)
             editSession.backspace()
 
             expect(buffer.lineForRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
@@ -972,7 +972,7 @@ describe "EditSession", ->
 
         describe "when the cursor is on the end of a line above a fold", ->
           it "only deletes the lines inside the fold", ->
-            editSession.toggleFoldAtBufferRow(4)
+            editSession.foldScopeContainingBufferRow(4)
             editSession.setCursorScreenPosition([3, Infinity])
             cursorPositionBefore = editSession.getCursorScreenPosition()
 
@@ -984,7 +984,7 @@ describe "EditSession", ->
 
         describe "when the cursor is in the middle a line above a fold", ->
           it "deletes as normal", ->
-            editSession.toggleFoldAtBufferRow(4)
+            editSession.foldScopeContainingBufferRow(4)
             editSession.setCursorScreenPosition([3, 4])
             cursorPositionBefore = editSession.getCursorScreenPosition()
 
@@ -1371,41 +1371,10 @@ describe "EditSession", ->
 
   describe "folding", ->
     describe "structural folding", ->
-      describe "when a toggle-fold event is triggered", ->
-        it "creates/destroys a structual fold based on cursor position", ->
-          editSession.setCursorBufferPosition([1,0])
-
-          editSession.toggleFold()
-          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
-
-          editSession.toggleFold()
-          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
-
-        it "creates/destroys the largest fold containing the cursor position", ->
-          editSession.foldAll()
-          editSession.setCursorBufferPosition([5,1])
-
-          editSession.toggleFold()
-          expect(editSession.lineForScreenRow(0).fold).toBeUndefined()
-          expect(editSession.lineForScreenRow(1).fold).toBeDefined()
-
-          editSession.toggleFold()
-          expect(editSession.lineForScreenRow(0).fold).toBeUndefined()
-          expect(editSession.lineForScreenRow(1).fold).toBeUndefined()
-          expect(editSession.lineForScreenRow(4).fold).toBeDefined()
-
-      describe "when a fold-all event is triggered", ->
-        it "creates folds on every line that can be folded", ->
-          editSession.setCursorBufferPosition([5,13])
-
-          editSession.foldAll()
-          expect(editSession.lineForScreenRow(0).fold).toBeDefined()
-          expect(editSession.lineForScreenRow(1)).toBeUndefined()
-
-        it "maintains cursor buffer position when a fold is created/destroyed", ->
-          editSession.setCursorBufferPosition([5,5])
-          editSession.foldAll()
-          expect(editSession.getCursorBufferPosition()).toEqual([5,5])
+      it "maintains cursor buffer position when a fold is created/destroyed", ->
+        editSession.setCursorBufferPosition([5,5])
+        editSession.foldAll()
+        expect(editSession.getCursorBufferPosition()).toEqual([5,5])
 
   describe "anchors", ->
     [anchor, destroyHandler] = []

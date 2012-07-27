@@ -1377,8 +1377,8 @@ describe "Editor", ->
       it "renders lines properly", ->
         editor.lineOverdraw = 1
         editor.attachToDom(heightInLines: 5)
-        editor.activeEditSession.toggleFoldAtBufferRow(4)
-        editor.activeEditSession.toggleFoldAtBufferRow(0)
+        editor.activeEditSession.foldScopeContainingBufferRow(4)
+        editor.activeEditSession.foldScopeContainingBufferRow(0)
 
         expect(editor.renderedLines.find('.line').length).toBe 1
         expect(editor.renderedLines.find('.line').text()).toBe buffer.lineForRow(0)
