@@ -386,9 +386,6 @@ class Editor extends View
 
     @activeEditSession = @editSessions[index]
 
-    if @activeEditSession.buffer.isInConflict()
-      @showBufferConflictAlert(@activeEditSession)
-
     @activeEditSession.on "buffer-contents-change-on-disk", =>
       @showBufferConflictAlert(@activeEditSession)
 
@@ -397,6 +394,9 @@ class Editor extends View
 
     @trigger 'editor-path-change'
     @renderWhenAttached()
+
+    if @attached and @activeEditSession.buffer.isInConflict()
+      @showBufferConflictAlert(@activeEditSession)
 
   showBufferConflictAlert: (editSession) ->
     message = editSession.getPath()
