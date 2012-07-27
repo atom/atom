@@ -4,15 +4,22 @@ _ = require 'underscore'
 
 module.exports =
 class LanguageMode
+  matchingCharacters:
+    '(': ')'
+    '[': ']'
+    '{': '}'
+    '"': '"'
+    "'": "'"
+
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @aceMode = @requireAceMode()
     @aceAdaptor = new AceAdaptor(@editSession)
 
-    _.adviseBefore @editSession, 'insertText', (text) ->
-      if text == '('
-        @insertText '()'
-        @moveCursorLeft()
+    _.adviseBefore @editSession, 'insertText', (text) =>
+      if matchingCharacter = @matchingCharacters[text]
+        @editSession.insertText text + matchingCharacter
+        @editSession.moveCursorLeft()
         false
 
   requireAceMode: (fileExtension) ->

@@ -19,6 +19,26 @@ describe "LanguageMode", ->
           editSession.insertText '('
           expect(buffer.lineForRow(0)).toMatch /^\(\)/
 
+      describe "when [ is inserted", ->
+        it "inserts a matching ] following the cursor", ->
+          editSession.insertText '['
+          expect(buffer.lineForRow(0)).toMatch /^\[\]/
+
+      describe "when { is inserted", ->
+        it "inserts a matching ) following the cursor", ->
+          editSession.insertText '{'
+          expect(buffer.lineForRow(0)).toMatch /^\{\}/
+
+      describe "when \" is inserted", ->
+        it "inserts a matching \" following the cursor", ->
+          editSession.insertText '"'
+          expect(buffer.lineForRow(0)).toMatch /^""/
+
+      describe "when ' is inserted", ->
+        it "inserts a matching ' following the cursor", ->
+          editSession.insertText "'"
+          expect(buffer.lineForRow(0)).toMatch /^''/
+
   describe "javascript", ->
     beforeEach ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
