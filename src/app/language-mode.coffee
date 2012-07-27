@@ -1,5 +1,6 @@
 AceAdaptor = require 'ace-adaptor'
 Range = require 'range'
+_ = require 'underscore'
 
 module.exports =
 class LanguageMode
@@ -7,6 +8,12 @@ class LanguageMode
     @buffer = @editSession.buffer
     @aceMode = @requireAceMode()
     @aceAdaptor = new AceAdaptor(@editSession)
+
+    _.adviseBefore @editSession, 'insertText', (text) ->
+      if text == '('
+        @insertText '()'
+        @moveCursorLeft()
+        false
 
   requireAceMode: (fileExtension) ->
     modeName = switch @editSession.buffer.getExtension()

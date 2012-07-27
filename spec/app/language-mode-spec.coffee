@@ -8,6 +8,17 @@ describe "LanguageMode", ->
   afterEach ->
     editSession.destroy()
 
+  describe "common behavior", ->
+    beforeEach ->
+      editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
+      { buffer, languageMode } = editSession
+
+    describe "matching character insertion", ->
+      describe "when ( is inserted", ->
+        it "inserts a matching ) following the cursor", ->
+          editSession.insertText '('
+          expect(buffer.lineForRow(0)).toMatch /^\(\)/
+
   describe "javascript", ->
     beforeEach ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
