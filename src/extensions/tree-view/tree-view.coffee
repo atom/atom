@@ -141,10 +141,10 @@ class TreeView extends View
     selectedEntry = @selectedEntry()
     if selectedEntry
       if selectedEntry.is('.expanded.directory')
-        @selectEntry(selectedEntry.find('.entry:first'))
-      else
-        if not @selectEntry(selectedEntry.next())
-          @selectEntry(selectedEntry.closest('.directory').next())
+        return if @selectEntry(selectedEntry.find('.entry:first'))
+      until @selectEntry(selectedEntry.next())
+        selectedEntry = selectedEntry.parents('.entry:first')
+        break unless selectedEntry.length
     else
       @selectEntry(@root)
 

@@ -35,7 +35,7 @@ describe "TreeView", ->
       expect(subdir0.find('.name')).toHaveText('dir/')
       expect(subdir0.find('.entries')).not.toExist()
 
-      subdir2 = rootEntries.find('> li:eq(2)')
+      subdir2 = rootEntries.find('> li:eq(3)')
       expect(subdir2.find('.disclosure-arrow')).toHaveText('▸')
       expect(subdir2.find('.name')).toHaveText('zed/')
       expect(subdir2.find('.entries')).not.toExist()
@@ -323,6 +323,28 @@ describe "TreeView", ->
 
           expect(treeView.root.find('.entries > .entry:eq(2)')).toHaveClass 'selected'
 
+      describe "when the last directory of another last directory is selected", ->
+        [nested, nested2] = []
+
+        beforeEach ->
+          nested = treeView.root.find('.directory:eq(2)').view()
+          expect(nested.find('.header').text()).toContain 'nested'
+          nested.expand()
+          nested2 = nested.entries.find('.entry:last').view()
+          nested2.click()
+
+        describe "when the directory is collapsed", ->
+          it "selects the entry after its grandparent directory", ->
+            treeView.trigger 'move-down'
+            expect(nested.next()).toHaveClass 'selected'
+
+        describe "when the directory is expanded", ->
+          it "selects the entry after its grandparent directory", ->
+            nested2.expand()
+            nested2.find('.file').remove() # kill the .gitkeep file, which has to be there but screws the test
+            treeView.trigger 'move-down'
+            expect(nested.next()).toHaveClass 'selected'
+
       describe "when the last entry of the last directory is selected", ->
         it "does not change the selection", ->
           lastEntry = treeView.root.find('> .entries .entry:last')
@@ -379,6 +401,7 @@ describe "TreeView", ->
         expect(treeView.scrollTop()).toBe 0
 
         entryCount = treeView.find(".entry").length
+        console.log entryCount
         _.times entryCount, -> treeView.moveDown()
         expect(treeView.scrollBottom()).toBe treeView.prop('scrollHeight')
 
