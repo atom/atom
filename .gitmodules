@@ -1,0 +1,3 @@
+[submodule "bundles/CoffeeScriptBundle.tmbundle"]
+	path = bundles/CoffeeScriptBundle.tmbundle
+	url = git://github.com/jashkenas/coffee-script-tmbundle
