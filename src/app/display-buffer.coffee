@@ -56,7 +56,7 @@ class DisplayBuffer
 
       @createFold(startRow, endRow)
 
-  foldScopeContainingBufferRow: (bufferRow) ->
+  foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
@@ -65,7 +65,7 @@ class DisplayBuffer
 
       return
 
-  unfoldScopeContainingBufferRow: (bufferRow) ->
+  unfoldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow

@@ -172,41 +172,41 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.activeFolds[4].length).toBe(1)
 
       it "doesn't fold lines that are already folded", ->
-        displayBuffer.foldScopeContainingBufferRow(4)
+        displayBuffer.foldBufferRow(4)
         displayBuffer.foldAll()
         expect(Object.keys(displayBuffer.activeFolds).length).toBe(3)
         expect(displayBuffer.activeFolds[0].length).toBe(1)
         expect(displayBuffer.activeFolds[1].length).toBe(1)
         expect(displayBuffer.activeFolds[4].length).toBe(1)
 
-    describe ".foldScopeContainingBufferRow(bufferRow)", ->
+    describe ".foldBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
         it "creates a fold based on the syntactic region starting at the given row", ->
-          displayBuffer.foldScopeContainingBufferRow(1)
+          displayBuffer.foldBufferRow(1)
           fold = displayBuffer.lineForRow(1).fold
           expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
 
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
-          displayBuffer.foldScopeContainingBufferRow(8)
+          displayBuffer.foldBufferRow(8)
           fold = displayBuffer.lineForRow(1).fold
           expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
 
-   describe ".unfoldScopeContainingBufferRow(bufferRow)", ->
+   describe ".unfoldBufferRow(bufferRow)", ->
       describe "when bufferRow can be unfolded", ->
         it "destroys a fold based on the syntactic region starting at the given row", ->
-          displayBuffer.foldScopeContainingBufferRow(1)
+          displayBuffer.foldBufferRow(1)
           expect(displayBuffer.lineForRow(1).fold).toBeDefined()
 
-          displayBuffer.unfoldScopeContainingBufferRow(1)
+          displayBuffer.unfoldBufferRow(1)
           expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
 
       describe "when bufferRow can't be unfolded", ->
         it "does not throw an error", ->
           expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
-          displayBuffer.unfoldScopeContainingBufferRow(1)
+          displayBuffer.unfoldBufferRow(1)
           expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
 
   describe "primitive folding", ->

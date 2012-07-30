@@ -912,7 +912,7 @@ describe "EditSession", ->
         describe "when the selection ends on a folded line", ->
           it "destroys the fold", ->
             editSession.setSelectedBufferRange([[3,0], [4,0]])
-            editSession.foldScopeContainingBufferRow(4)
+            editSession.foldBufferRow(4)
             editSession.backspace()
 
             expect(buffer.lineForRow(3)).toBe "    return sort(left).concat(pivot).concat(sort(right));"
@@ -972,7 +972,7 @@ describe "EditSession", ->
 
         describe "when the cursor is on the end of a line above a fold", ->
           it "only deletes the lines inside the fold", ->
-            editSession.foldScopeContainingBufferRow(4)
+            editSession.foldBufferRow(4)
             editSession.setCursorScreenPosition([3, Infinity])
             cursorPositionBefore = editSession.getCursorScreenPosition()
 
@@ -984,7 +984,7 @@ describe "EditSession", ->
 
         describe "when the cursor is in the middle a line above a fold", ->
           it "deletes as normal", ->
-            editSession.foldScopeContainingBufferRow(4)
+            editSession.foldBufferRow(4)
             editSession.setCursorScreenPosition([3, 4])
             cursorPositionBefore = editSession.getCursorScreenPosition()
 

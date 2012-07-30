@@ -200,17 +200,17 @@ class EditSession
 
   foldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @foldScopeContainingBufferRow(bufferRow)
+    @foldBufferRow(bufferRow)
 
-  foldScopeContainingBufferRow: (bufferRow) ->
-    @displayBuffer.foldScopeContainingBufferRow(bufferRow)
+  foldBufferRow: (bufferRow) ->
+    @displayBuffer.foldBufferRow(bufferRow)
 
   unfoldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
-    @unfoldScopeContainingBufferRow(bufferRow)
+    @unfoldBufferRow(bufferRow)
 
-  unfoldScopeContainingBufferRow: (bufferRow) ->
-    @displayBuffer.unfoldScopeContainingBufferRow(bufferRow)
+  unfoldBufferRow: (bufferRow) ->
+    @displayBuffer.unfoldBufferRow(bufferRow)
 
   foldSelection: ->
     selection.fold() for selection in @getSelections()
