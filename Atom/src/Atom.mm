@@ -3,6 +3,7 @@
 #import "AtomController.h"
 
 #import "native_handler.h"
+#import "OnigRegexpExtension.h"
 #import "client_handler.h"
 #import "include/cef_app.h"
 
@@ -94,6 +95,9 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   CefRefPtr<CefV8Handler> nativeHandler = new NativeHandler();
+  
+  new OnigRegexpExtension();
+  
   [self createAtomContext];
 }
 
