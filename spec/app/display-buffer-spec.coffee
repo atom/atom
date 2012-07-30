@@ -194,6 +194,15 @@ describe "DisplayBuffer", ->
           expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
 
+      describe "when the bufferRow is already folded", ->
+        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
+          displayBuffer.foldBufferRow(2)
+          expect(displayBuffer.lineForRow(1).fold).toBeDefined()
+          expect(displayBuffer.lineForRow(0).fold).not.toBeDefined()
+
+          displayBuffer.foldBufferRow(1)
+          expect(displayBuffer.lineForRow(0).fold).toBeDefined()
+
    describe ".unfoldBufferRow(bufferRow)", ->
       describe "when bufferRow can be unfolded", ->
         it "destroys a fold based on the syntactic region starting at the given row", ->
