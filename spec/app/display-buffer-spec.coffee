@@ -160,6 +160,14 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(2).foldable).toBeTruthy()
           expect(displayBuffer.lineForRow(3).foldable).toBeFalsy()
 
+    describe ".unfoldAll()", ->
+      it "unfolds every folded line", ->
+        displayBuffer.foldBufferRow(0)
+        displayBuffer.foldBufferRow(1)
+
+        displayBuffer.unfoldAll()
+        expect(Object.keys(displayBuffer.activeFolds).length).toBe 0
+
     describe ".foldAll()", ->
       it "folds every foldable line", ->
         displayBuffer.foldAll()

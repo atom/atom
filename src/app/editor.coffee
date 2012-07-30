@@ -139,6 +139,7 @@ class Editor extends View
         'newline-below': @insertNewlineBelow
         'toggle-soft-wrap': @toggleSoftWrap
         'fold-all': @foldAll
+        'unfold-all': @unfoldAll
         'fold-current-row': @foldCurrentRow
         'unfold-current-row': @unfoldCurrentRow
         'fold-selection': @foldSelection
@@ -223,6 +224,7 @@ class Editor extends View
   foldCurrentRow: -> @activeEditSession.foldCurrentRow()
   unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
   foldAll: -> @activeEditSession.foldAll()
+  unfoldAll: -> @activeEditSession.unfoldAll()
   foldSelection: -> @activeEditSession.foldSelection()
   destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)

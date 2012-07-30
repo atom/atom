@@ -56,6 +56,10 @@ class DisplayBuffer
 
       @createFold(startRow, endRow)
 
+  unfoldAll: ->
+    for row in [@buffer.getLastRow()..0]
+      @activeFolds[row]?.forEach (fold) => @destroyFold(fold)
+
   foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       [startRow, endRow] = @tokenizedBuffer.rowRangeForFoldAtBufferRow(currentRow) ? []
@@ -123,6 +127,7 @@ class DisplayBuffer
     folds = @activeFolds[bufferRow]
     _.remove(folds, fold)
     delete @foldsById[fold.id]
+    delete @activeFolds[bufferRow] if folds.length == 0
 
   largestFoldStartingAtBufferRow: (bufferRow) ->
     return unless folds = @activeFolds[bufferRow]
