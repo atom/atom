@@ -139,9 +139,10 @@ class Editor extends View
         'newline-below': @insertNewlineBelow
         'toggle-soft-wrap': @toggleSoftWrap
         'fold-all': @foldAll
-        'toggle-fold': @toggleFold
+        'unfold-all': @unfoldAll
+        'fold-current-row': @foldCurrentRow
+        'unfold-current-row': @unfoldCurrentRow
         'fold-selection': @foldSelection
-        'unfold': => @unfoldCurrentRow()
         'split-left': @splitLeft
         'split-right': @splitRight
         'split-up': @splitUp
@@ -220,13 +221,14 @@ class Editor extends View
   undo: -> @activeEditSession.undo()
   redo: -> @activeEditSession.redo()
   createFold: (startRow, endRow) -> @activeEditSession.createFold(startRow, endRow)
+  foldCurrentRow: -> @activeEditSession.foldCurrentRow()
+  unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
   foldAll: -> @activeEditSession.foldAll()
+  unfoldAll: -> @activeEditSession.unfoldAll()
   foldSelection: -> @activeEditSession.foldSelection()
   destroyFold: (foldId) -> @activeEditSession.destroyFold(foldId)
   destroyFoldsContainingBufferRow: (bufferRow) -> @activeEditSession.destroyFoldsContainingBufferRow(bufferRow)
-  toggleFold: -> @activeEditSession.toggleFold()
   isFoldedAtScreenRow: (screenRow) -> @activeEditSession.isFoldedAtScreenRow(screenRow)
-  unfoldCurrentRow: -> @activeEditSession.unfoldCurrentRow()
 
   lineForScreenRow: (screenRow) -> @activeEditSession.lineForScreenRow(screenRow)
   linesForScreenRows: (start, end) -> @activeEditSession.linesForScreenRows(start, end)

@@ -59,26 +59,23 @@ class DisplayBuffer
 
       @createFold(startRow, endRow)
 
-  toggleFoldAtBufferRow: (bufferRow) ->
+  unfoldAll: ->
+    for row in [@buffer.getLastRow()..0]
+      @activeFolds[row]?.forEach (fold) => @destroyFold(fold)
+
+  foldBufferRow: (bufferRow) ->
     for currentRow in [bufferRow..0]
       [startRow, endRow] = @languageMode.rowRangeForFoldAtBufferRow(currentRow) ? []
       continue unless startRow? and startRow <= bufferRow <= endRow
+      fold = @largestFoldStartingAtBufferRow(startRow)
+      continue if fold
 
-      if fold = @largestFoldStartingAtBufferRow(startRow)
-        fold.destroy()
-      else
-        @createFold(startRow, endRow)
+      @createFold(startRow, endRow)
 
-      break
+      return
 
-  isFoldContainedByActiveFold: (fold) ->
-    for row, folds of @activeFolds
-      for otherFold in folds
-        return otherFold if fold != otherFold and fold.isContainedByFold(otherFold)
-
-  foldFor: (startRow, endRow) ->
-    _.find @activeFolds[startRow] ? [], (fold) ->
-      fold.startRow == startRow and fold.endRow == endRow
+  unfoldBufferRow: (bufferRow) ->
+    @largestFoldContainingBufferRow(bufferRow)?.destroy()
 
   createFold: (startRow, endRow) ->
     return fold if fold = @foldFor(startRow, endRow)
@@ -96,6 +93,15 @@ class DisplayBuffer
       @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
 
     fold
+
+  isFoldContainedByActiveFold: (fold) ->
+    for row, folds of @activeFolds
+      for otherFold in folds
+        return otherFold if fold != otherFold and fold.isContainedByFold(otherFold)
+
+  foldFor: (startRow, endRow) ->
+    _.find @activeFolds[startRow] ? [], (fold) ->
+      fold.startRow == startRow and fold.endRow == endRow
 
   destroyFold: (fold) ->
     @unregisterFold(fold.startRow, fold)
@@ -124,6 +130,7 @@ class DisplayBuffer
     folds = @activeFolds[bufferRow]
     _.remove(folds, fold)
     delete @foldsById[fold.id]
+    delete @activeFolds[bufferRow] if folds.length == 0
 
   largestFoldStartingAtBufferRow: (bufferRow) ->
     return unless folds = @activeFolds[bufferRow]

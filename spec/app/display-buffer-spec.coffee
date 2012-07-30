@@ -160,6 +160,14 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(2).foldable).toBeTruthy()
           expect(displayBuffer.lineForRow(3).foldable).toBeFalsy()
 
+    describe ".unfoldAll()", ->
+      it "unfolds every folded line", ->
+        displayBuffer.foldBufferRow(0)
+        displayBuffer.foldBufferRow(1)
+
+        displayBuffer.unfoldAll()
+        expect(Object.keys(displayBuffer.activeFolds).length).toBe 0
+
     describe ".foldAll()", ->
       it "folds every foldable line", ->
         displayBuffer.foldAll()
@@ -172,30 +180,51 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.activeFolds[4].length).toBe(1)
 
       it "doesn't fold lines that are already folded", ->
-        displayBuffer.toggleFoldAtBufferRow(4)
+        displayBuffer.foldBufferRow(4)
         displayBuffer.foldAll()
         expect(Object.keys(displayBuffer.activeFolds).length).toBe(3)
         expect(displayBuffer.activeFolds[0].length).toBe(1)
         expect(displayBuffer.activeFolds[1].length).toBe(1)
         expect(displayBuffer.activeFolds[4].length).toBe(1)
 
-    describe ".toggleFoldAtBufferRow(bufferRow)", ->
+    describe ".foldBufferRow(bufferRow)", ->
       describe "when bufferRow can be folded", ->
-        it "creates/destroys a fold based on the syntactic region starting at the given row", ->
-          displayBuffer.toggleFoldAtBufferRow(1)
+        it "creates a fold based on the syntactic region starting at the given row", ->
+          displayBuffer.foldBufferRow(1)
           fold = displayBuffer.lineForRow(1).fold
           expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
-
-          displayBuffer.toggleFoldAtBufferRow(1)
-          expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
 
       describe "when bufferRow can't be folded", ->
         it "searches upward for the first row that begins a syntatic region containing the given buffer row (and folds it)", ->
-          displayBuffer.toggleFoldAtBufferRow(8)
+          displayBuffer.foldBufferRow(8)
           fold = displayBuffer.lineForRow(1).fold
           expect(fold.startRow).toBe 1
           expect(fold.endRow).toBe 9
+
+      describe "when the bufferRow is already folded", ->
+        it "searches upward for the first row that begins a syntatic region containing the folded row (and folds it)", ->
+          displayBuffer.foldBufferRow(2)
+          expect(displayBuffer.lineForRow(1).fold).toBeDefined()
+          expect(displayBuffer.lineForRow(0).fold).not.toBeDefined()
+
+          displayBuffer.foldBufferRow(1)
+          expect(displayBuffer.lineForRow(0).fold).toBeDefined()
+
+   describe ".unfoldBufferRow(bufferRow)", ->
+      describe "when bufferRow can be unfolded", ->
+        it "destroys a fold based on the syntactic region starting at the given row", ->
+          displayBuffer.foldBufferRow(1)
+          expect(displayBuffer.lineForRow(1).fold).toBeDefined()
+
+          displayBuffer.unfoldBufferRow(1)
+          expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
+
+      describe "when bufferRow can't be unfolded", ->
+        it "does not throw an error", ->
+          expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
+          displayBuffer.unfoldBufferRow(1)
+          expect(displayBuffer.lineForRow(1).fold).toBeUndefined()
 
   describe "primitive folding", ->
     editSession2 = null
