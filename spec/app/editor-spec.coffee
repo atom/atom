@@ -1569,8 +1569,8 @@ describe "Editor", ->
 
     describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
-        editor.getSelection().setBufferRange(new Range([3, 0], [9, 0]))
-        editor.trigger 'fold-selection'
+        editor.setCursorBufferPosition([3,0])
+        editor.trigger 'fold-current-row'
 
         editor.find('.fold.line').mousedown()
 
@@ -1580,13 +1580,13 @@ describe "Editor", ->
 
         expect(editor.getCursorBufferPosition()).toEqual [3, 0]
 
-    describe "when the unfold event is triggered when the cursor is on a fold placeholder line", ->
+    describe "when the unfold-current-row event is triggered when the cursor is on a fold placeholder line", ->
       it "removes the associated fold and places the cursor at its beginning", ->
-        editor.getSelection().setBufferRange(new Range([3, 0], [9, 0]))
-        editor.trigger 'fold-selection'
+        editor.setCursorBufferPosition([3,0])
+        editor.trigger 'fold-current-row'
 
         editor.setCursorBufferPosition([3,0])
-        editor.trigger 'unfold'
+        editor.trigger 'unfold-current-row'
 
         expect(editor.find('.fold')).not.toExist()
         expect(editor.renderedLines.find('.line:eq(4)').text()).toMatch /4-+/

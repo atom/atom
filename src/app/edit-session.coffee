@@ -198,12 +198,19 @@ class EditSession
   redo: ->
     @buffer.redo(this)
 
-  fold: ->
+  foldCurrentRow: ->
     bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
     @foldScopeContainingBufferRow(bufferRow)
 
   foldScopeContainingBufferRow: (bufferRow) ->
     @displayBuffer.foldScopeContainingBufferRow(bufferRow)
+
+  unfoldCurrentRow: ->
+    bufferRow = @bufferPositionForScreenPosition(@getCursorScreenPosition()).row
+    @unfoldScopeContainingBufferRow(bufferRow)
+
+  unfoldScopeContainingBufferRow: (bufferRow) ->
+    @displayBuffer.unfoldScopeContainingBufferRow(bufferRow)
 
   foldSelection: ->
     selection.fold() for selection in @getSelections()
@@ -221,9 +228,6 @@ class EditSession
     for row in [bufferRange.start.row..bufferRange.end.row]
       @destroyFoldsContainingBufferRow(row)
 
-  unfoldCurrentRow: ->
-    @largestFoldStartingAtBufferRow(@getLastCursor().getBufferRow())?.destroy()
-
   destroyFold: (foldId) ->
     fold = @displayBuffer.foldsById[foldId]
     fold.destroy()
@@ -231,9 +235,6 @@ class EditSession
 
   isFoldedAtScreenRow: (screenRow) ->
     @lineForScreenRow(screenRow).fold?
-
-  largestFoldStartingAtBufferRow: (bufferRow) ->
-    @displayBuffer.largestFoldStartingAtBufferRow(bufferRow)
 
   largestFoldContainingBufferRow: (bufferRow) ->
     @displayBuffer.largestFoldContainingBufferRow(bufferRow)
