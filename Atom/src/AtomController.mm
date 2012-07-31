@@ -76,6 +76,7 @@
     [_devToolsView removeFromSuperview];
     [_devToolsView release];
     _devToolsView = nil;
+    [self focusWindow];
   }
   else if (_clientHandler && _clientHandler->GetBrowser()) {
     NSRect frame = NSMakeRect(0, 0, _splitView.frame.size.height, _splitView.frame.size.height);
@@ -88,6 +89,18 @@
 }
 
 #pragma mark BrowserDelegate
+- (void)focusWindow {
+  CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+  CefRefPtr<CefV8Value> global = context->GetGlobal();
+  
+  context->Enter();
+  CefRefPtr<CefV8Value> retval;
+  CefRefPtr<CefV8Exception> exception;
+  CefV8ValueList arguments;      
+  global->GetValue("focus")->ExecuteFunction(global, arguments, retval, exception, true);
+  context->Exit();
+}
+
 - (void)loadStart {
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
