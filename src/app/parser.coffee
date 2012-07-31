@@ -2,99 +2,133 @@ _ = require 'underscore'
 
 module.exports =
 class Parser
-  constructor: (@grammar) ->
+  grammar: null
 
-  getLineTokens: (line, stateStack=@initialStateStack()) ->
-    lineTokens = []
+  constructor: (data) ->
+    @grammar = new Grammar(data)
 
-    startPosition = 0
+  getLineTokens: (line, currentRule=@grammar.initialRule) ->
+    tokens = []
+    position = 0
+
     loop
-      { match, pattern } = @findNextMatch(line, _.last(stateStack).patterns, startPosition)
-      currentScopes = _.pluck(stateStack, 'scopeName')
+      break if position == line.length
 
-      if not match or match.index > startPosition
-        nextPosition = match?.index ? line.length
-        if nextPosition > startPosition
-          lineTokens.push
-            value: line[startPosition...nextPosition]
-            scopes: new Array(currentScopes...)
-          startPosition = nextPosition
+      { nextTokens, tokensStartPosition, tokensEndPosition, nextRule } = currentRule.getNextTokens(line, position)
 
-      break unless match
+      if nextTokens
+        if position < tokensStartPosition # unmatched text preceding next tokens
+          tokens.push
+            value: line[position...tokensStartPosition]
+            scopes: currentRule.getScopes()
 
-      { tokens, stateStack } = @tokensForMatch(match, pattern, startPosition, currentScopes, stateStack)
-
-      lineTokens.push(tokens...)
-      startPosition += match[0].length
-
-    { state: stateStack, tokens: lineTokens }
-
-  findNextMatch: (line, patterns, startPosition) ->
-    firstMatch = null
-    matchedPattern = null
-    for pattern in patterns
-      continue unless regex = pattern.begin or pattern.match
-      if match = regex.search(line, startPosition)
-        if !firstMatch or match.index < firstMatch.index
-          firstMatch = match
-          matchedPattern = pattern
-
-    { match: firstMatch, pattern: matchedPattern }
-
-  tokensForMatch: (match, pattern, matchStartPosition, scopes, stateStack) ->
-    tokens = []
-    scopes = scopes.concat(pattern.name) if pattern.name
-
-    captures = pattern.captures
-    if pattern.begin
-      captures ?= pattern.beginCaptures
-      stateStack = stateStack.concat(ParserState.forPattern(pattern))
-    else if pattern.popStateStack
-      stateStack = stateStack[0...-1]
-
-    if captures
-      tokens.push(@tokensForMatchWithCaptures(match, captures, matchStartPosition, scopes)...)
-    else
-      tokens.push(value: match[0], scopes: scopes)
-
-    { tokens, stateStack }
-
-  tokensForMatchWithCaptures: (match, captures, matchStartPosition, scopes) ->
-    tokens = []
-    endOfLastCapture = 0
-    for captureIndex in _.keys(captures)
-      captureStartPosition = match.indices[captureIndex] - matchStartPosition
-      captureText = match[captureIndex]
-      captureScopeName = captures[captureIndex].name
-
-      if endOfLastCapture < captureStartPosition
+        tokens.push(nextTokens...)
+        position = tokensEndPosition
+        currentRule = nextRule
+      else
         tokens.push
-          value: match[0][endOfLastCapture...captureStartPosition]
-          scopes: scopes
+          value: line[position...line.length]
+          scopes: currentRule.getScopes()
+        break
 
-      tokens.push
-        value: captureText
-        scopes: scopes.concat(captureScopeName)
+    { tokens, currentRule }
 
-      endOfLastCapture = captureStartPosition + captureText.length
-    tokens
+class Grammar
+  initialRule: null
 
-  initialStateStack: ->
-    [new ParserState(@grammar)]
+  constructor: ({ scopeName, patterns }) ->
+    @initialRule = new Rule({scopeName, patterns})
 
-class ParserState
+class Rule
+  parentRule: null
   scopeName: null
   patterns: null
+  endPattern: null
 
-  @forPattern: (pattern) ->
-    endPattern =
-      popStateStack: true
-      match: pattern.end
-      captures: pattern.endCaptures
-    new ParserState(scopeName: pattern.name, patterns: [endPattern])
+  constructor: ({@parentRule, @scopeName, patterns, @endPattern}) ->
+    patterns ?= []
+    @patterns = patterns.map (pattern) => new Pattern(this, pattern)
+    @patterns.push(@endPattern) if @endPattern
 
-  constructor: ({@scopeName, @patterns}) ->
+  getNextTokens: (line, position) ->
+    { match, pattern } = @getNextMatch(line, position)
+    return {} unless match
+
+    { tokens, nextRule } = pattern.getTokensForMatch(match)
+
+    nextTokens = tokens
+    tokensStartPosition = match.index
+    tokensEndPosition = tokensStartPosition + match[0].length
+    { nextTokens, tokensStartPosition, tokensEndPosition, nextRule }
+
+  getNextMatch: (line, position) ->
+    nextMatch = null
+    matchedPattern = null
     for pattern in @patterns
-      pattern.match = new OnigRegExp(pattern.match) if typeof pattern.match is 'string'
-      pattern.begin = new OnigRegExp(pattern.begin) if typeof pattern.begin is 'string'
-      pattern.end = new OnigRegExp(pattern.end) if typeof pattern.end is 'string'
+      continue unless pattern.regex # TODO: we should eventually not need this
+      if match = pattern.regex.search(line, position)
+        if !nextMatch or match.index < nextMatch.index
+          nextMatch = match
+          matchedPattern = pattern
+    { match: nextMatch, pattern: matchedPattern }
+
+  getScopes: ->
+    (@parentRule?.getScopes() ? []).concat(@scopeName)
+
+class Pattern
+  parentRule: null
+  nextRule: null
+  scopeName: null
+  regex: null
+  captures: null
+
+  constructor: (@parentRule, { name, match, begin, end, captures, beginCaptures, endCaptures, patterns }) ->
+    @scopeName = name
+    if match
+      @regex = new OnigRegExp(match)
+      @captures = captures
+      @nextRule = @parentRule
+    else if begin
+      @regex = new OnigRegExp(begin)
+      @captures = beginCaptures ? captures
+      endPattern = new Pattern(@parentRule, { name: @scopeName, match: end, captures: endCaptures ? captures })
+      @nextRule = new Rule({@parentRule, @scopeName, patterns, endPattern})
+
+  getTokensForMatch: (match) ->
+    tokens = []
+    if @captures
+      tokens = @getTokensForMatchWithCaptures(match)
+    else
+      tokens = [{ value: match[0], scopes: @getScopes() }]
+
+    { tokens, @nextRule }
+
+  getTokensForMatchWithCaptures: (match) ->
+    tokens = []
+    previousCaptureEndPosition = 0
+
+    for captureIndex in _.keys(@captures)
+      currentCaptureStartPosition = match.indices[captureIndex] - match.index
+      currentCaptureText = match[captureIndex]
+      currentCaptureScopeName = @captures[captureIndex].name
+
+      if previousCaptureEndPosition < currentCaptureStartPosition
+        tokens.push
+          value: match[0][previousCaptureEndPosition...currentCaptureStartPosition]
+          scopes: @getScopes()
+
+      tokens.push
+        value: currentCaptureText
+        scopes: @getScopes().concat(currentCaptureScopeName)
+
+      previousCaptureEndPosition = currentCaptureStartPosition + currentCaptureText.length
+
+    if previousCaptureEndPosition < match[0].length
+      tokens.push
+        value: match[0][previousCaptureEndPosition...match[0].length]
+        scopens: @getScopes()
+
+    tokens
+
+  getScopes: ->
+    @parentRule.getScopes().concat(@scopeName)
