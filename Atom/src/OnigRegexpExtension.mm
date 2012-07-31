@@ -14,6 +14,10 @@ public:
     m_regex = [[OnigRegexp compile:sourceString] retain];
   }
   
+  ~OnigRegexpUserData() {
+    [m_regex release];
+  }
+
   CefRefPtr<CefV8Value> Search(CefRefPtr<CefV8Value> string, CefRefPtr<CefV8Value> index) {
     OnigResult *result = [m_regex search:stringFromCefV8Value(string) start:index->GetIntValue()];
 
@@ -36,9 +40,7 @@ public:
   OnigRegexp *m_regex;
   
   IMPLEMENT_REFCOUNTING(OnigRegexpUserData);
-
 };
-
 
 OnigRegexpExtension::OnigRegexpExtension() : CefV8Handler() {  
   NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"src/stdlib/onig-reg-exp-extension.js"];
@@ -51,7 +53,6 @@ bool OnigRegexpExtension::Execute(const CefString& name,
                             const CefV8ValueList& arguments,
                             CefRefPtr<CefV8Value>& retval,
                             CefString& exception) {
-
   if (name == "buildOnigRegExp") {    
     CefRefPtr<CefBase> userData = new OnigRegexpUserData(arguments[0]);
     retval = CefV8Value::CreateObject(userData, NULL);
