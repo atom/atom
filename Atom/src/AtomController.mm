@@ -108,26 +108,31 @@
   context->Exit();
 }
 
-- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type code:(int)code modifiers:(int)modifiers isSystemKey:(bool)isSystemKey isAfterJavaScript:(bool)isAfterJavaScript {  
-  if (isAfterJavaScript && type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
-    
-    CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
-    CefRefPtr<CefV8Value> global = context->GetGlobal();
-    
-    context->Enter();
-    CefRefPtr<CefV8Value> retval;
-    CefRefPtr<CefV8Exception> exception;
-    CefV8ValueList arguments;
+- (bool)keyEventOfType:(cef_handler_keyevent_type_t)type code:(int)code modifiers:(int)modifiers isSystemKey:(bool)isSystemKey isAfterJavaScript:(bool)isAfterJavaScript {
+  if (isAfterJavaScript) {    
+    if (type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
+      CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+      CefRefPtr<CefV8Value> global = context->GetGlobal();
 
-    global->GetValue("reload")->ExecuteFunction(global, arguments, retval, exception, true);
-    if (exception.get()) {
-      _clientHandler->GetBrowser()->ReloadIgnoreCache();
+      context->Enter();
+      CefRefPtr<CefV8Value> retval;
+      CefRefPtr<CefV8Exception> exception;
+      CefV8ValueList arguments;
+
+      global->GetValue("reload")->ExecuteFunction(global, arguments, retval, exception, true);
+      if (exception.get()) {
+        _clientHandler->GetBrowser()->ReloadIgnoreCache();
+      }
+      context->Exit();
+
+      return YES;
     }
-    context->Exit();
-    
-    return YES;
+    if (type == KEYEVENT_RAWKEYDOWN && modifiers == (KEY_META | KEY_ALT) && code == 'I') {
+      [self toggleDevTools];
+      return YES;
+    }
   }
-  
+
   return NO;
 }
 
