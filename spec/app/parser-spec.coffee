@@ -3,7 +3,7 @@ plist = require 'plist'
 fs = require 'fs'
 _ = require 'underscore'
 
-describe "Parser", ->
+fdescribe "Parser", ->
   parser = null
 
   beforeEach ->
@@ -44,3 +44,13 @@ describe "Parser", ->
           expect(tokens[4]).toEqual value: ' ', scopes: ['source.coffee', 'meta.class.instance.constructor']
           expect(tokens[5]).toEqual value: 'foo.bar.Baz', scopes: ['source.coffee', 'meta.class.instance.constructor', 'entity.name.type.instance.coffee']
           expect(tokens[6]).toEqual value: ' ', scopes: ['source.coffee']
+
+      describe "when the line matches a begin and end pattern", ->
+        it "returns tokens based on the beginCaptures, endCaptures and the child scope", ->
+          {tokens, state} = parser.getLineTokens("'''single-quoted heredoc'''")
+
+          expect(tokens.length).toBe 3
+
+          expect(tokens[0]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
+          expect(tokens[1]).toEqual value: "single-quoted heredoc", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
+          expect(tokens[2]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.end.coffee']
