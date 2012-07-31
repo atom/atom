@@ -27,7 +27,7 @@
 
   [self.window makeKeyAndOrderFront:nil];
   [self createBrowser];
-    
+
   return self;
 }
 
@@ -46,23 +46,23 @@
 }
 
 - (void)windowDidLoad {
-  [self.window setDelegate:self];  
+  [self.window setDelegate:self];
   [self.window setReleasedWhenClosed:NO];
 }
 
-- (void)createBrowser {  
+- (void)createBrowser {
   _clientHandler = new ClientHandler(self);
-  
+
   CefWindowInfo window_info;
   CefBrowserSettings settings;
-  
+
   AppGetBrowserSettings(settings);
-  
+
   window_info.SetAsChild(self.webView, 0, 0, self.webView.bounds.size.width, self.webView.bounds.size.height);
-  
+
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-  CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);  
+  CefBrowser::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
 }
 
 - (void)showDevTools {
@@ -84,11 +84,10 @@
     [_splitView addSubview:_devToolsView];
     _clientHandler->GetBrowser()->ShowDevTools();
   }
-  
+
   [_splitView adjustSubviews];
 }
 
-#pragma mark BrowserDelegate
 - (void)focusWindow {
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
@@ -101,23 +100,24 @@
   context->Exit();
 }
 
+#pragma mark BrowserDelegate
 - (void)loadStart {
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
-  
+
   context->Enter();
 
   CefRefPtr<CefV8Value> windowNumber = CefV8Value::CreateInt(self.window.windowNumber);
   global->SetValue("$windowNumber", windowNumber, V8_PROPERTY_ATTRIBUTE_NONE);
-  
+
   CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString([_bootstrapScript UTF8String]);
   global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
-  
+
   CefRefPtr<CefV8Value> pathToOpen = _pathToOpen ? CefV8Value::CreateString([_pathToOpen UTF8String]) : CefV8Value::CreateNull();
   global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
-    
+
   global->SetValue("atom", _atomContext->GetGlobal()->GetValue("atom"), V8_PROPERTY_ATTRIBUTE_NONE);
-  
+
   context->Exit();
 }
 
@@ -165,27 +165,27 @@
 - (BOOL)windowShouldClose:(id)window {
   CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
-  
+
   context->Enter();
-  
+
   CefRefPtr<CefV8Value> atom = context->GetGlobal()->GetValue("atom");
 
   CefRefPtr<CefV8Value> retval;
   CefRefPtr<CefV8Exception> exception;
   CefV8ValueList arguments;
   arguments.push_back(global);
-  
+
   atom->GetValue("windowClosed")->ExecuteFunction(atom, arguments, retval, exception, true);
-  
+
   context->Exit();
-  
+
   _clientHandler->GetBrowser()->CloseDevTools();
-  
+
   _atomContext = NULL;
-  _clientHandler = NULL;  
-    
+  _clientHandler = NULL;
+
   [self autorelease];
-  
+
   return YES;
 }
 
@@ -195,7 +195,7 @@
 void AppGetBrowserSettings(CefBrowserSettings& settings) {
   CefString(&settings.default_encoding) = "";
   CefString(&settings.user_style_sheet_location) = "";
-  
+
   settings.drag_drop_disabled = false;
   settings.load_drops_disabled = false;
   settings.history_disabled = false;
