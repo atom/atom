@@ -20,11 +20,16 @@ public:
     if ([result count] == 0) return CefV8Value::CreateNull();
     
     CefRefPtr<CefV8Value> resultArray = CefV8Value::CreateArray();
+    CefRefPtr<CefV8Value> indicesArray = CefV8Value::CreateArray();
+    
     for (int i = 0; i < [result count]; i++) {
       resultArray->SetValue(i, CefV8Value::CreateString([[result stringAt:i] UTF8String]));
+      indicesArray->SetValue(i, CefV8Value::CreateInt([result locationAt:i]));
     }
     
     resultArray->SetValue("index", CefV8Value::CreateInt([result locationAt:0]), V8_PROPERTY_ATTRIBUTE_NONE);
+    resultArray->SetValue("indices", indicesArray, V8_PROPERTY_ATTRIBUTE_NONE);
+
     return resultArray;
   }
   
