@@ -89,17 +89,12 @@ class ParserState
   @forPattern: (pattern) ->
     endPattern =
       popStateStack: true
-      match: pattern.endSource
+      match: pattern.end
       captures: pattern.endCaptures
     new ParserState(scopeName: pattern.name, patterns: [endPattern])
 
   constructor: ({@scopeName, @patterns}) ->
     for pattern in @patterns
-      if pattern.match
-        pattern.matchSource = pattern.match
-        pattern.match = new OnigRegExp(pattern.match)
-      else if pattern.begin
-        pattern.beginSource = pattern.begin
-        pattern.begin = new OnigRegExp(pattern.begin)
-        pattern.endSource = pattern.end
-        pattern.end = new OnigRegExp(pattern.end)
+      pattern.match = new OnigRegExp(pattern.match) if typeof pattern.match is 'string'
+      pattern.begin = new OnigRegExp(pattern.begin) if typeof pattern.begin is 'string'
+      pattern.end = new OnigRegExp(pattern.end) if typeof pattern.end is 'string'
