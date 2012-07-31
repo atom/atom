@@ -9,40 +9,64 @@ class Parser
     currentScopes = _.pluck(stateStack, 'scopeName')
     state = _.last(stateStack)
 
-    bestMatch = { index: Infinity }
-    bestPattern = null
-    for pattern in state.patterns
-      if match = pattern.match.search(line)
-        if match.index < bestMatch.index
-          bestMatch = match
-          bestPattern = pattern
+    startPosition = 0
+    loop
+      { match, pattern } = @findNextMatch(line, state.patterns, startPosition)
 
-    if bestPattern
-      currentScopes = currentScopes.concat(bestPattern.name)
-
-      if captures = bestPattern.captures
-        endOfLastCapture = 0
-        for captureIndex in _.keys(captures)
-          captureStartPosition = bestMatch.indices[captureIndex]
-          captureText = bestMatch[captureIndex]
-          captureScopeName = captures[captureIndex].name
-
-          if endOfLastCapture < captureStartPosition
-            tokens.push
-              value: bestMatch[0][endOfLastCapture...captureStartPosition]
-              scopes: currentScopes
-
+      if not match or match.index > startPosition
+        nextPosition = match?.index ? line.length
+        if nextPosition > startPosition
           tokens.push
-            value: captureText
-            scopes: currentScopes.concat(captureScopeName)
+            value: line[startPosition...nextPosition]
+            scopes: new Array(currentScopes...)
+          startPosition = nextPosition
 
-          endOfLastCapture = captureStartPosition + captureText.length
-      else
-        tokens.push
-          value: bestMatch[0]
-          scopes: currentScopes
+      break unless match
+
+      tokens.push(@tokensForMatch(match, pattern, startPosition, currentScopes)...)
+      startPosition += match[0].length
 
     { state, tokens }
+
+  findNextMatch: (line, patterns, startPosition) ->
+    firstMatch = null
+    matchedPattern = null
+    for pattern in patterns
+      if match = pattern.match.search(line, startPosition)
+        if !firstMatch or match.index < firstMatch.index
+          firstMatch = match
+          matchedPattern = pattern
+
+    { match: firstMatch, pattern: matchedPattern }
+
+  tokensForMatch: (match, pattern, matchStartPosition, scopes) ->
+    tokens = []
+    scopes = scopes.concat(pattern.name)
+    if captures = pattern.captures
+      tokens.push(@tokensForMatchWithCaptures(match, captures, matchStartPosition, scopes)...)
+    else
+      tokens.push(value: match[0], scopes: scopes)
+    tokens
+
+  tokensForMatchWithCaptures: (match, captures, matchStartPosition, scopes) ->
+    tokens = []
+    endOfLastCapture = 0
+    for captureIndex in _.keys(captures)
+      captureStartPosition = match.indices[captureIndex] - matchStartPosition
+      captureText = match[captureIndex]
+      captureScopeName = captures[captureIndex].name
+
+      if endOfLastCapture < captureStartPosition
+        tokens.push
+          value: match[0][endOfLastCapture...captureStartPosition]
+          scopes: scopes
+
+      tokens.push
+        value: captureText
+        scopes: scopes.concat(captureScopeName)
+
+      endOfLastCapture = captureStartPosition + captureText.length
+    tokens
 
   initialStateStack: ->
     [new ParserState(@grammar)]
