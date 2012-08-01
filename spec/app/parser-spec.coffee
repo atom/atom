@@ -78,13 +78,3 @@ fdescribe "Parser", ->
        expect(tokens[1]).toEqual value: "heredoc with character escape ", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee']
        expect(tokens[2]).toEqual value: "\\t", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'constant.character.escape.coffee']
        expect(tokens[3]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.end.coffee']
-
-   describe "when the line matches a pattern that includes a rule", ->
-     it "returns tokens based on the included rule", ->
-       {tokens} = parser.getLineTokens("7777777")
-
-       expect(tokens.length).toBe 1
-
-       expect(tokens[0]).toEqual value: '7777777', scopes: ['source.coffee', 'constant.numeric.coffee']
-
-
