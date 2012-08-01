@@ -37,7 +37,9 @@
 #include "include/internal/cef_types_linux.h"
 #include "include/internal/cef_types_wrappers.h"
 
+///
 // Atomic increment and decrement.
+///
 inline long CefAtomicIncrement(long volatile *pDest) {  // NOLINT(runtime/int)
   return __sync_add_and_fetch(pDest, 1);
 }
@@ -45,7 +47,9 @@ inline long CefAtomicDecrement(long volatile *pDest) {  // NOLINT(runtime/int)
   return __sync_sub_and_fetch(pDest, 1);
 }
 
+///
 // Critical section wrapper.
+///
 class CefCriticalSection {
  public:
   CefCriticalSection() {
@@ -68,9 +72,12 @@ class CefCriticalSection {
   pthread_mutexattr_t attr_;
 };
 
+///
 // Handle types.
+///
 #define CefWindowHandle cef_window_handle_t
 #define CefCursorHandle cef_cursor_handle_t
+
 
 struct CefWindowInfoTraits {
   typedef cef_window_info_t struct_type;
@@ -85,7 +92,9 @@ struct CefWindowInfoTraits {
   }
 };
 
+///
 // Class representing window information.
+///
 class CefWindowInfo : public CefStructBase<CefWindowInfoTraits> {
  public:
   typedef CefStructBase<CefWindowInfoTraits> parent;
@@ -99,6 +108,7 @@ class CefWindowInfo : public CefStructBase<CefWindowInfoTraits> {
   }
 };
 
+
 struct CefPrintInfoTraits {
   typedef cef_print_info_t struct_type;
 
@@ -111,8 +121,28 @@ struct CefPrintInfoTraits {
   }
 };
 
+///
 // Class representing print context information.
+///
 typedef CefStructBase<CefPrintInfoTraits> CefPrintInfo;
+
+
+struct CefKeyInfoTraits {
+  typedef cef_key_info_t struct_type;
+
+  static inline void init(struct_type* s) {}
+  static inline void clear(struct_type* s) {}
+
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
+    target->key = src->key;
+  }
+};
+
+///
+// Class representing key information.
+///
+typedef CefStructBase<CefKeyInfoTraits> CefKeyInfo;
 
 #endif  // OS_LINUX
 
