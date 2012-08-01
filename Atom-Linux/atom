@@ -1,0 +1,11 @@
+#!/bin/sh
+case $0 in
+	/* )
+		root=${0%atom}
+		;;
+	* )
+		root=`pwd`/${0%atom}
+		;;
+esac
+export LD_LIBRARY_PATH=$root'../atom/lib':$LD_LIBRARY_PATH
+$root'../atom/bin/atom' $@
