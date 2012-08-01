@@ -33,7 +33,7 @@ void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exceptio
 NativeHandler::NativeHandler() : CefV8Handler() {  
   std::string extensionCode =  "var $native = {}; (function() {";
   
-  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload", "lastModified", "md5ForPath", "exec"};
+  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload", "lastModified", "md5ForPath", "exec", "getPlatform"};
   NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (NSUInteger i = 0; i < arrayLength; i++) {
     std::string functionName = std::string(functionNames[i]);
@@ -523,6 +523,12 @@ bool NativeHandler::Execute(const CefString& name,
     
     [task launch];
     
+    return true;
+  }
+  else if (name == "getPlatform") {
+    NSString *platform = @"mac";
+    retval = CefV8Value::CreateString([platform UTF8String]);
+
     return true;
   }
   return false;

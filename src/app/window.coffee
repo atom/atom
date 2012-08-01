@@ -51,6 +51,7 @@ windowAdditions =
 
   requireStylesheet: (path) ->
     fullPath = require.resolve(path)
+    return unless fs.isFile(fullPath)
     content = fs.read(fullPath)
     return if $("head style[path='#{fullPath}']").length
     $('head').append "<style path='#{fullPath}'>#{content}</style>"
@@ -99,3 +100,4 @@ require 'underscore-extensions'
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
+requireStylesheet "#{$native.getPlatform()}.css"
