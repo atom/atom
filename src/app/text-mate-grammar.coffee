@@ -1,13 +1,45 @@
 _ = require 'underscore'
+fs = require 'fs'
+plist = require 'plist'
 
 module.exports =
-class TextMateTokenizer
-  grammar: null
+class TextMateGrammar
+  @grammarsByExtension: {}
 
-  constructor: (data) ->
-    @grammar = new Grammar(data)
+  @loadFromBundles: ->
+    for bundlePath in fs.list(require.resolve("bundles"))
+      syntaxesPath = fs.join(bundlePath, "Syntaxes")
+      continue unless fs.exists(syntaxesPath)
+      for path in fs.list(syntaxesPath)
+        grammar = @loadGrammarFromPath(path)
+        @registerGrammar(grammar)
 
-  getLineTokens: (line, stack=[@grammar.initialRule]) ->
+  @loadGrammarFromPath: (path) ->
+    grammar = null
+    plist.parseString fs.read(path), (e, data) ->
+      throw new Error(e) if e
+      grammar = new TextMateGrammar(data[0])
+    grammar
+
+  @registerGrammar: (grammar) ->
+    for extension in grammar.extensions
+      @grammarsByExtension[extension] = grammar
+
+  @grammarForExtension: (extension) ->
+    @grammarsByExtension[extension]
+
+  name: null
+  repository: null
+  initialRule: null
+
+  constructor: ({ @name, fileTypes, scopeName, patterns, repository }) ->
+    @extensions = fileTypes
+    @initialRule = new Rule(this, {scopeName, patterns})
+    @repository = {}
+    for name, data of repository
+      @repository[name] = new Rule(this, data)
+
+  getLineTokens: (line, stack=[@initialRule]) ->
     stack = new Array(stack...)
     tokens = []
     position = 0
@@ -33,16 +65,6 @@ class TextMateTokenizer
         break
 
     { tokens, stack }
-
-class Grammar
-  repository: null
-  initialRule: null
-
-  constructor: ({ scopeName, patterns, repository }) ->
-    @initialRule = new Rule(this, {scopeName, patterns})
-    @repository = {}
-    for name, data of repository
-      @repository[name] = new Rule(this, data)
 
   ruleForInclude: (name) ->
     if name[0] == "#"

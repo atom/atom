@@ -1,20 +1,29 @@
-TextMateTokenizer = require 'text-mate-tokenizer'
+TextMateGrammar = require 'text-mate-grammar'
 plist = require 'plist'
 fs = require 'fs'
 _ = require 'underscore'
 
-describe "TextMateTokenizer", ->
-  tokenizer = null
+describe "TextMateGrammar", ->
+  grammar = null
 
   beforeEach ->
     coffeePlist = fs.read(require.resolve 'CoffeeScriptBundle.tmbundle/Syntaxes/CoffeeScript.tmLanguage')
-    plist.parseString coffeePlist, (err, grammar) ->
-      tokenizer = new TextMateTokenizer(grammar[0])
+    plist.parseString coffeePlist, (err, data) ->
+      grammar = new TextMateGrammar(data[0])
+
+  describe ".loadFromBundles()", ->
+    it "creates grammars for all plist files in all bundles' Syntaxes directories", ->
+      TextMateGrammar.loadFromBundles()
+      coffeeGrammar = TextMateGrammar.grammarForExtension("coffee")
+      rubyGrammar = TextMateGrammar.grammarForExtension("rb")
+
+      expect(coffeeGrammar.name).toBe "CoffeeScript"
+      expect(rubyGrammar.name).toBe "Ruby"
 
   describe ".getLineTokens(line, currentRule)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
       it "returns a single token with the correct scope", ->
-        {tokens} = tokenizer.getLineTokens("return")
+        {tokens} = grammar.getLineTokens("return")
 
         expect(tokens.length).toBe 1
         [token] = tokens
@@ -22,7 +31,7 @@ describe "TextMateTokenizer", ->
 
     describe "when the entire line matches a single pattern with capture groups", ->
       it "returns a single token with the correct scope", ->
-        {tokens} = tokenizer.getLineTokens("new foo.bar.Baz")
+        {tokens} = grammar.getLineTokens("new foo.bar.Baz")
 
         expect(tokens.length).toBe 3
         [newOperator, whitespace, className] = tokens
@@ -32,7 +41,7 @@ describe "TextMateTokenizer", ->
 
     describe "when the line matches multiple patterns", ->
       it "returns multiple tokens, filling in regions that don't match patterns with tokens in the grammar's global scope", ->
-        {tokens} = tokenizer.getLineTokens(" return new foo.bar.Baz ")
+        {tokens} = grammar.getLineTokens(" return new foo.bar.Baz ")
 
         expect(tokens.length).toBe 7
 
@@ -46,7 +55,7 @@ describe "TextMateTokenizer", ->
 
     describe "when the line matches a begin/end pattern", ->
       it "returns tokens based on the beginCaptures, endCaptures and the child scope", ->
-        {tokens} = tokenizer.getLineTokens("'''single-quoted heredoc'''")
+        {tokens} = grammar.getLineTokens("'''single-quoted heredoc'''")
 
         expect(tokens.length).toBe 3
 
@@ -56,8 +65,8 @@ describe "TextMateTokenizer", ->
 
     describe "when begin/end pattern spans multiple lines", ->
       it "uses the currentRule returned by the first line to parse the second line", ->
-        {tokens: firstTokens, stack} = tokenizer.getLineTokens("'''single-quoted")
-        {tokens: secondTokens, stack} = tokenizer.getLineTokens("heredoc'''", stack)
+        {tokens: firstTokens, stack} = grammar.getLineTokens("'''single-quoted")
+        {tokens: secondTokens, stack} = grammar.getLineTokens("heredoc'''", stack)
 
         expect(firstTokens.length).toBe 2
         expect(secondTokens.length).toBe 2
@@ -70,7 +79,7 @@ describe "TextMateTokenizer", ->
 
    describe "when the line matches a begin/end pattern that contains sub-patterns", ->
      it "returns tokens within the begin/end scope based on the sub-patterns", ->
-       {tokens} = tokenizer.getLineTokens('"""heredoc with character escape \\t"""')
+       {tokens} = grammar.getLineTokens('"""heredoc with character escape \\t"""')
 
        expect(tokens.length).toBe 4
 
@@ -81,13 +90,13 @@ describe "TextMateTokenizer", ->
 
    describe "when the line matches a pattern that includes a rule", ->
      it "returns tokens based on the included rule", ->
-       {tokens} = tokenizer.getLineTokens("7777777")
+       {tokens} = grammar.getLineTokens("7777777")
        expect(tokens.length).toBe 1
        expect(tokens[0]).toEqual value: '7777777', scopes: ['source.coffee', 'constant.numeric.coffee']
 
     describe "when the line is an interpolated string", ->
       it "returns the correct tokens", ->
-        {tokens} = tokenizer.getLineTokens('"the value is #{@x} my friend"')
+        {tokens} = grammar.getLineTokens('"the value is #{@x} my friend"')
 
         expect(tokens[0]).toEqual value: '"', scopes: ["source.coffee","string.quoted.double.coffee","punctuation.definition.string.begin.coffee"]
         expect(tokens[1]).toEqual value: "the value is ", scopes: ["source.coffee","string.quoted.double.coffee"]
@@ -99,7 +108,7 @@ describe "TextMateTokenizer", ->
 
     describe "when the line has an interpolated string inside an interpolated string", ->
       it "returns the correct tokens", ->
-        {tokens} = tokenizer.getLineTokens('"#{"#{@x}"}"')
+        {tokens} = grammar.getLineTokens('"#{"#{@x}"}"')
 
         expect(tokens[0]).toEqual value: '"',  scopes: ["source.coffee","string.quoted.double.coffee","punctuation.definition.string.begin.coffee"]
         expect(tokens[1]).toEqual value: '#{', scopes: ["source.coffee","string.quoted.double.coffee","source.coffee.embedded.source","punctuation.section.embedded.coffee"]
