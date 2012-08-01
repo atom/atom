@@ -8,6 +8,7 @@ paths = [
   "#{atom.loadPath}/vendor"
   "#{atom.loadPath}/static"
   "#{atom.loadPath}/bundles"
+  "#{atom.loadPath}/themes"
   "#{atom.loadPath}"
 ]
 
