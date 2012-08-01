@@ -56,6 +56,7 @@ windowAdditions =
 
   requireStylesheet: (path) ->
     fullPath = require.resolve(path)
+    return unless fs.isFile(fullPath)
     window.applyStylesheet(fullPath, fs.read(fullPath))
 
   applyStylesheet: (id, text) ->
@@ -106,3 +107,4 @@ require 'underscore-extensions'
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
+requireStylesheet "#{$native.getPlatform()}.css"

@@ -57,7 +57,8 @@ NativeHandler::NativeHandler() :
       "absolute", "list", "isFile", "isDirectory", "remove", "asyncList",
       "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard",
       "showDevTools", "newWindow", "saveDialog", "exit", "watchPath",
-      "unwatchPath", "makeDirectory", "move", "moveToTrash", "md5ForPath" };
+      "unwatchPath", "makeDirectory", "move", "moveToTrash", "md5ForPath",
+      "getPlatform" };
   int arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (int i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -513,6 +514,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     UnwatchPath(name, object, arguments, retval, exception);
   else if (name == "md5ForPath")
     Digest(name, object, arguments, retval, exception);
+  else if (name == "getPlatform")
+    retval = CefV8Value::CreateString("linux");
   else
     cout << "Unhandled -> " + name.ToString() << " : "
         << arguments[0]->GetStringValue().ToString() << endl;
