@@ -9,7 +9,6 @@
 #include "include/cef_task.h"
 
 #include <assert.h>  // NOLINT(build/include_order)
-
 #ifndef NDEBUG
 #define ASSERT(condition) if (!(condition)) { assert(false); }
 #else
