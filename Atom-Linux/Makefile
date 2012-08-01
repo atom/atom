@@ -17,6 +17,7 @@ CXXFLAGS := -Werror \
 	-I/usr/include/pango-1.0 \
 	-I/usr/include/gio-unix-2.0/ \
 	-I/usr/include/glib-2.0 \
+	-I/usr/include/openssl \
 	-I/usr/lib/glib-2.0/include \
 	-I../cef \
 	-O2 \
@@ -52,6 +53,8 @@ LIBS := -lX11 \
 	-lgthread-2.0 \
 	-lrt \
 	-lglib-2.0 \
+	-lssl \
+	-lcrypto \
 	-lcef \
 	-lcef_dll_wrapper
 

@@ -15,6 +15,7 @@
 #include <gtk/gtk.h>
 #include <sys/inotify.h>
 #include <pthread.h>
+#include <openssl/evp.h>
 
 #define BUFFER_SIZE 8192
 
@@ -55,7 +56,7 @@ NativeHandler::NativeHandler() :
       "absolute", "list", "isFile", "isDirectory", "remove", "asyncList",
       "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard",
       "showDevTools", "newWindow", "saveDialog", "exit", "watchPath",
-      "unwatchPath", "makeDirectory", "move", "moveToTrash" };
+      "unwatchPath", "makeDirectory", "move", "moveToTrash", "md5ForPath" };
   int arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (int i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -437,6 +438,45 @@ void NativeHandler::UnwatchPath(const CefString& name,
     inotify_rm_watch(notifyFd, descriptor);
 }
 
+void NativeHandler::Digest(const CefString& name, CefRefPtr<CefV8Value> object,
+    const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+    CefString& exception) {
+  string path = arguments[0]->GetStringValue().ToString();
+
+  int fd = open(path.c_str(), O_RDONLY);
+  if (fd < 0)
+    return;
+
+  const EVP_MD *md;
+  OpenSSL_add_all_digests();
+  md = EVP_get_digestbyname("md5");
+  if (!md)
+    return;
+
+  EVP_MD_CTX context;
+  EVP_MD_CTX_init(&context);
+  EVP_DigestInit_ex(&context, md, NULL);
+
+  char buffer[8192];
+  int r;
+  while ((r = read(fd, buffer, sizeof buffer)) > 0)
+    EVP_DigestUpdate(&context, buffer, r);
+  close(fd);
+
+  unsigned char value[EVP_MAX_MD_SIZE];
+  unsigned int length;
+  EVP_DigestFinal_ex(&context, value, &length);
+  EVP_MD_CTX_cleanup(&context);
+
+  stringstream md5;
+  char hex[3];
+  for (uint i = 0; i < length; i++) {
+    sprintf(hex, "%02x", value[i]);
+    md5 << hex;
+  }
+  retval = CefV8Value::CreateString(md5.str());
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
     CefString& exception) {
@@ -478,6 +518,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     WatchPath(name, object, arguments, retval, exception);
   else if (name == "unwatchPath")
     UnwatchPath(name, object, arguments, retval, exception);
+  else if (name == "md5ForPath")
+    Digest(name, object, arguments, retval, exception);
   else
     cout << "Unhandled -> " + name.ToString() << " : "
         << arguments[0]->GetStringValue().ToString() << endl;
