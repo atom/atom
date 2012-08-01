@@ -14,6 +14,17 @@ describe "LanguageMode", ->
       { buffer, languageMode } = editSession
 
     describe "matching character insertion", ->
+      describe "when there are multiple cursors", ->
+        it "inserts ) at each cursor", ->
+          editSession.buffer.setText("()\nab\n[]\n12")
+          editSession.setCursorBufferPosition([3, 1])
+          editSession.addCursorAtBufferPosition([2, 1])
+          editSession.addCursorAtBufferPosition([1, 1])
+          editSession.addCursorAtBufferPosition([0, 1])
+          editSession.insertText ')'
+
+          expect(editSession.buffer.getText()).toBe "())\na)b\n[)]\n1)2"
+
       describe "when ( is inserted", ->
         it "inserts a matching ) following the cursor", ->
           editSession.insertText '('

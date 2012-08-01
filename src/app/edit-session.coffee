@@ -307,6 +307,9 @@ class EditSession
   removeAnchorRange: (anchorRange) ->
     _.remove(@anchorRanges, anchorRange)
 
+  hasMultipleCursors: ->
+    @getCursors().length > 1
+
   getCursors: -> new Array(@cursors...)
 
   getCursor: (index=0) ->

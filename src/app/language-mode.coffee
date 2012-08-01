@@ -17,6 +17,8 @@ class LanguageMode
     @aceAdaptor = new AceAdaptor(@editSession)
 
     _.adviseBefore @editSession, 'insertText', (text) =>
+      return true if @editSession.hasMultipleCursors()
+
       cursorBufferPosition = @editSession.getCursorBufferPosition()
       nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0, 1])])
 
