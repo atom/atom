@@ -36,16 +36,17 @@ class Parser
 class Grammar
   initialRule: null
 
-  constructor: ({ scopeName, patterns }) ->
-    @initialRule = new Rule({scopeName, patterns})
+  constructor: ({ scopeName, patterns, @repository }) ->
+    @initialRule = new Rule(this, {scopeName, patterns})
 
 class Rule
+  grammar: null
   parentRule: null
   scopeName: null
   patterns: null
   endPattern: null
 
-  constructor: ({@parentRule, @scopeName, patterns, @endPattern}) ->
+  constructor: (@grammar, {@parentRule, @scopeName, patterns, @endPattern}) ->
     patterns ?= []
     @patterns = patterns.map (pattern) => new Pattern(this, pattern)
     @patterns.push(@endPattern) if @endPattern
@@ -65,15 +66,17 @@ class Rule
     nextMatch = null
     matchedPattern = null
     for pattern in @patterns
-      continue unless pattern.regex # TODO: we should eventually not need this
-      if match = pattern.regex.search(line, position)
+      { match, pattern } = pattern.getNextMatch(line, position)
+      if match
         if !nextMatch or match.index < nextMatch.index
           nextMatch = match
           matchedPattern = pattern
     { match: nextMatch, pattern: matchedPattern }
 
   getScopes: ->
-    (@parentRule?.getScopes() ? []).concat(@scopeName)
+    scopes = @parentRule?.getScopes() ? []
+    scopes = scopes.concat(@scopeName) if @scopeName
+    scopes
 
 class Pattern
   parentRule: null
@@ -82,17 +85,27 @@ class Pattern
   regex: null
   captures: null
 
-  constructor: (@parentRule, { name, match, begin, end, captures, beginCaptures, endCaptures, patterns }) ->
-    @scopeName = name
-    if match
-      @regex = new OnigRegExp(match)
-      @captures = captures
-      @nextRule = @parentRule
-    else if begin
-      @regex = new OnigRegExp(begin)
-      @captures = beginCaptures ? captures
-      endPattern = new Pattern(@parentRule, { name: @scopeName, match: end, captures: endCaptures ? captures })
-      @nextRule = new Rule({@parentRule, @scopeName, patterns, endPattern})
+  constructor: (@parentRule, { name, match, begin, end, captures, beginCaptures, endCaptures, patterns, include}) ->
+    if include
+      patterns = @parentRule.grammar.repository[include.replace(/^#/, '')]?.patterns
+      @includeRule = new Rule @parentRule.grammar, {@parentRule, patterns}
+    else
+      @scopeName = name
+      if match
+        @regex = new OnigRegExp(match)
+        @captures = captures
+        @nextRule = @parentRule
+      else if begin
+        @regex = new OnigRegExp(begin)
+        @captures = beginCaptures ? captures
+        endPattern = new Pattern(@parentRule, { name: @scopeName, match: end, captures: endCaptures ? captures })
+        @nextRule = new Rule(@parentRule.grammar, {@parentRule, @scopeName, patterns, endPattern})
+
+  getNextMatch: (line, position) ->
+    if @includeRule
+      @includeRule.getNextMatch(line, position)
+    else
+      {pattern: this, match: @regex?.search(line, position)}
 
   getTokensForMatch: (match) ->
     tokens = []
