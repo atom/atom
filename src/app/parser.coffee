@@ -35,19 +35,28 @@ class Parser
     { tokens, stack }
 
 class Grammar
+  repository: null
   initialRule: null
 
-  constructor: ({ scopeName, patterns }) ->
-    @initialRule = new Rule({scopeName, patterns})
+  constructor: ({ scopeName, patterns, repository }) ->
+    @initialRule = new Rule(this, {scopeName, patterns})
+    @repository = {}
+    for name, data of repository
+      @repository[name] = new Rule(this, data)
+
+  ruleForInclude: (name) ->
+    if name[0] == "#"
+      @repository[name[1..]]
 
 class Rule
+  grammar: null
   scopeName: null
   patterns: null
   endPattern: null
 
-  constructor: ({@scopeName, patterns, @endPattern}) ->
+  constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
     patterns ?= []
-    @patterns = patterns.map (pattern) => new Pattern(pattern)
+    @patterns = patterns.map (pattern) => new Pattern(grammar, pattern)
     @patterns.push(@endPattern) if @endPattern
 
   getNextTokens: (stack, line, position) ->
@@ -65,8 +74,8 @@ class Rule
     nextMatch = null
     matchedPattern = null
     for pattern in @patterns
-      continue unless pattern.regex # TODO: we should eventually not need this
-      if match = pattern.regex.search(line, position)
+      { pattern, match } = pattern.getNextMatch(line, position)
+      if match
         if !nextMatch or match.index < nextMatch.index
           nextMatch = match
           matchedPattern = pattern
@@ -74,13 +83,14 @@ class Rule
     { match: nextMatch, pattern: matchedPattern }
 
 class Pattern
+  grammar: null
   pushRule: null
   popRule: false
   scopeName: null
   regex: null
   captures: null
 
-  constructor: ({ name, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule}) ->
+  constructor: (@grammar, { name, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule}) ->
     @scopeName = name
     if match
       @regex = new OnigRegExp(match)
@@ -88,8 +98,14 @@ class Pattern
     else if begin
       @regex = new OnigRegExp(begin)
       @captures = beginCaptures ? captures
-      endPattern = new Pattern({ match: end, captures: endCaptures ? captures, popRule: true})
-      @pushRule = new Rule({ @scopeName, patterns, endPattern })
+      endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
+      @pushRule = new Rule(@grammar, { @scopeName, patterns, endPattern })
+
+  getNextMatch: (line, position) ->
+    if @include
+      @grammar.ruleForInclude(@include).getNextMatch(line, position)
+    else
+      { match: @regex.search(line, position), pattern: this }
 
   handleMatch: (stack, match) ->
     scopes = _.pluck(stack, "scopeName")
