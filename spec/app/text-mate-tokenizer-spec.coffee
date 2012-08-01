@@ -7,8 +7,8 @@ describe "TextMateTokenizer", ->
   tokenizer = null
 
   beforeEach ->
-    coffee_plist = fs.read(require.resolve 'CoffeeScriptBundle.tmbundle/Syntaxes/CoffeeScript.tmLanguage')
-    plist.parseString coffee_plist, (err, grammar) ->
+    coffeePlist = fs.read(require.resolve 'CoffeeScriptBundle.tmbundle/Syntaxes/CoffeeScript.tmLanguage')
+    plist.parseString coffeePlist, (err, grammar) ->
       tokenizer = new TextMateTokenizer(grammar[0])
 
   describe ".getLineTokens(line, currentRule)", ->
