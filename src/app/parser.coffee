@@ -71,7 +71,6 @@ class Rule
           nextMatch = match
           matchedPattern = pattern
 
-    console.log "Matched pattern", matchedPattern, nextMatch
     { match: nextMatch, pattern: matchedPattern }
 
 class Pattern
