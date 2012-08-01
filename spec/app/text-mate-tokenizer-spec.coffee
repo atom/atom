@@ -1,20 +1,20 @@
-Parser = require 'parser'
+TextMateTokenizer = require 'text-mate-tokenizer'
 plist = require 'plist'
 fs = require 'fs'
 _ = require 'underscore'
 
-fdescribe "Parser", ->
-  parser = null
+describe "TextMateTokenizer", ->
+  tokenizer = null
 
   beforeEach ->
     coffee_plist = fs.read(require.resolve 'CoffeeScriptBundle.tmbundle/Syntaxes/CoffeeScript.tmLanguage')
     plist.parseString coffee_plist, (err, grammar) ->
-      parser = new Parser(grammar[0])
+      tokenizer = new TextMateTokenizer(grammar[0])
 
   describe ".getLineTokens(line, currentRule)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
       it "returns a single token with the correct scope", ->
-        {tokens} = parser.getLineTokens("return")
+        {tokens} = tokenizer.getLineTokens("return")
 
         expect(tokens.length).toBe 1
         [token] = tokens
@@ -22,7 +22,7 @@ fdescribe "Parser", ->
 
     describe "when the entire line matches a single pattern with capture groups", ->
       it "returns a single token with the correct scope", ->
-        {tokens} = parser.getLineTokens("new foo.bar.Baz")
+        {tokens} = tokenizer.getLineTokens("new foo.bar.Baz")
 
         expect(tokens.length).toBe 3
         [newOperator, whitespace, className] = tokens
@@ -32,7 +32,7 @@ fdescribe "Parser", ->
 
     describe "when the line matches multiple patterns", ->
       it "returns multiple tokens, filling in regions that don't match patterns with tokens in the grammar's global scope", ->
-        {tokens} = parser.getLineTokens(" return new foo.bar.Baz ")
+        {tokens} = tokenizer.getLineTokens(" return new foo.bar.Baz ")
 
         expect(tokens.length).toBe 7
 
@@ -46,7 +46,7 @@ fdescribe "Parser", ->
 
     describe "when the line matches a begin/end pattern", ->
       it "returns tokens based on the beginCaptures, endCaptures and the child scope", ->
-        {tokens} = parser.getLineTokens("'''single-quoted heredoc'''")
+        {tokens} = tokenizer.getLineTokens("'''single-quoted heredoc'''")
 
         expect(tokens.length).toBe 3
 
@@ -56,8 +56,8 @@ fdescribe "Parser", ->
 
     describe "when begin/end pattern spans multiple lines", ->
       it "uses the currentRule returned by the first line to parse the second line", ->
-        {tokens: firstTokens, stack} = parser.getLineTokens("'''single-quoted")
-        {tokens: secondTokens, stack} = parser.getLineTokens("heredoc'''", stack)
+        {tokens: firstTokens, stack} = tokenizer.getLineTokens("'''single-quoted")
+        {tokens: secondTokens, stack} = tokenizer.getLineTokens("heredoc'''", stack)
 
         expect(firstTokens.length).toBe 2
         expect(secondTokens.length).toBe 2
@@ -70,7 +70,7 @@ fdescribe "Parser", ->
 
    describe "when the line matches a begin/end pattern that contains sub-patterns", ->
      it "returns tokens within the begin/end scope based on the sub-patterns", ->
-       {tokens} = parser.getLineTokens('"""heredoc with character escape \\t"""')
+       {tokens} = tokenizer.getLineTokens('"""heredoc with character escape \\t"""')
 
        expect(tokens.length).toBe 4
 
@@ -81,13 +81,13 @@ fdescribe "Parser", ->
 
    describe "when the line matches a pattern that includes a rule", ->
      it "returns tokens based on the included rule", ->
-       {tokens} = parser.getLineTokens("7777777")
+       {tokens} = tokenizer.getLineTokens("7777777")
        expect(tokens.length).toBe 1
        expect(tokens[0]).toEqual value: '7777777', scopes: ['source.coffee', 'constant.numeric.coffee']
 
     describe "when the line is an interpolated string", ->
       it "returns the correct tokens", ->
-        {tokens} = parser.getLineTokens('"the value is #{@x} my friend"')
+        {tokens} = tokenizer.getLineTokens('"the value is #{@x} my friend"')
 
         expect(tokens[0]).toEqual value: '"', scopes: ["source.coffee","string.quoted.double.coffee","punctuation.definition.string.begin.coffee"]
         expect(tokens[1]).toEqual value: "the value is ", scopes: ["source.coffee","string.quoted.double.coffee"]
@@ -99,7 +99,7 @@ fdescribe "Parser", ->
 
     describe "when the line has an interpolated string inside an interpolated string", ->
       it "returns the correct tokens", ->
-        {tokens} = parser.getLineTokens('"#{"#{@x}"}"')
+        {tokens} = tokenizer.getLineTokens('"#{"#{@x}"}"')
 
         expect(tokens[0]).toEqual value: '"',  scopes: ["source.coffee","string.quoted.double.coffee","punctuation.definition.string.begin.coffee"]
         expect(tokens[1]).toEqual value: '#{', scopes: ["source.coffee","string.quoted.double.coffee","source.coffee.embedded.source","punctuation.section.embedded.coffee"]

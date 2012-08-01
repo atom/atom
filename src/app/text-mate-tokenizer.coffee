@@ -1,7 +1,7 @@
 _ = require 'underscore'
 
 module.exports =
-class Parser
+class TextMateTokenizer
   grammar: null
 
   constructor: (data) ->
