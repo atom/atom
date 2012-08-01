@@ -20,12 +20,12 @@ class LanguageMode
       return true if @editSession.hasMultipleCursors()
 
       cursorBufferPosition = @editSession.getCursorBufferPosition()
-      nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0, 1])])
+      nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0, 1])])
 
-      if @isCloseBracket(text) and text == nextCharachter
+      if @isCloseBracket(text) and text == nextCharacter
         @editSession.moveCursorRight()
         false
-      else if matchingCharacter = @matchingCharacters[text]
+      else if /^\s*$/.test(nextCharacter) and matchingCharacter = @matchingCharacters[text]
         @editSession.insertText text + matchingCharacter
         @editSession.moveCursorLeft()
         false

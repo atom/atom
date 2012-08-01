@@ -14,6 +14,17 @@ describe "LanguageMode", ->
       { buffer, languageMode } = editSession
 
     describe "matching character insertion", ->
+      beforeEach ->
+        editSession.buffer.setText("")
+
+      describe "when there is non-whitespace after the cursor", ->
+        it "does not insert a matching bracket", ->
+          editSession.buffer.setText("ab")
+          editSession.setCursorBufferPosition([0, 1])
+          editSession.insertText("(")
+
+          expect(editSession.buffer.getText()).toBe "a(b"
+
       describe "when there are multiple cursors", ->
         it "inserts ) at each cursor", ->
           editSession.buffer.setText("()\nab\n[]\n12")
@@ -51,14 +62,12 @@ describe "LanguageMode", ->
           expect(buffer.lineForRow(0)).toMatch /^''/
 
       describe "when ) is inserted before a )", ->
-        describe "when there is whitespace after the )", ->
-          it "moves the cursor one column to the right instead of inserting a new )", ->
-            editSession.buffer.setText("")
-            editSession.insertText '() '
-            editSession.setCursorBufferPosition([0, 1])
-            editSession.insertText ')'
-            expect(buffer.lineForRow(0)).toBe "() "
-            expect(editSession.getCursorBufferPosition().column).toBe 2
+        it "moves the cursor one column to the right instead of inserting a new )", ->
+          editSession.insertText '() '
+          editSession.setCursorBufferPosition([0, 1])
+          editSession.insertText ')'
+          expect(buffer.lineForRow(0)).toBe "() "
+          expect(editSession.getCursorBufferPosition().column).toBe 2
 
   describe "javascript", ->
     beforeEach ->
