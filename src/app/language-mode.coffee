@@ -17,7 +17,13 @@ class LanguageMode
     @aceAdaptor = new AceAdaptor(@editSession)
 
     _.adviseBefore @editSession, 'insertText', (text) =>
-      if matchingCharacter = @matchingCharacters[text]
+      cursorBufferPosition = @editSession.getCursorBufferPosition()
+      nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0, 1])])
+
+      if @isCloseBracket(text) and text == nextCharachter
+        @editSession.moveCursorRight()
+        false
+      else if matchingCharacter = @matchingCharacters[text]
         @editSession.insertText text + matchingCharacter
         @editSession.moveCursorLeft()
         false
@@ -34,6 +40,19 @@ class LanguageMode
       when 'xml' then 'xml'
       else 'text'
     new (require("ace/mode/#{modeName}").Mode)
+
+  isOpenBracket: (string) ->
+    @pairedCharacters[string]?
+
+  isCloseBracket: (string) ->
+    @getInvertedPairedCharacters()[string]?
+
+  getInvertedPairedCharacters: ->
+    return @invertedPairedCharacters if @invertedPairedCharacters
+    @invertedPairedCharacters = {}
+    for open, close of @matchingCharacters
+      @invertedPairedCharacters[close] = open
+    @invertedPairedCharacters
 
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)

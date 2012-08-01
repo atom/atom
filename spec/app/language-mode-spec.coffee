@@ -39,6 +39,16 @@ describe "LanguageMode", ->
           editSession.insertText "'"
           expect(buffer.lineForRow(0)).toMatch /^''/
 
+      describe "when ) is inserted before a )", ->
+        describe "when there is whitespace after the )", ->
+          it "moves the cursor one column to the right instead of inserting a new )", ->
+            editSession.buffer.setText("")
+            editSession.insertText '() '
+            editSession.setCursorBufferPosition([0, 1])
+            editSession.insertText ')'
+            expect(buffer.lineForRow(0)).toBe "() "
+            expect(editSession.getCursorBufferPosition().column).toBe 2
+
   describe "javascript", ->
     beforeEach ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
