@@ -73,10 +73,11 @@
   width: 100%;
 }
 
-.editor .line {
+.editor .line, .gutter .line-number {
   white-space: pre;
   margin: 0;
   padding: 0;
+  padding-bottom: .05em;
   z-index: 1;
 }
 
