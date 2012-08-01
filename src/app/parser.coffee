@@ -47,6 +47,8 @@ class Grammar
   ruleForInclude: (name) ->
     if name[0] == "#"
       @repository[name[1..]]
+    else if name == "$self"
+      @initialRule
 
 class Rule
   grammar: null
@@ -56,8 +58,9 @@ class Rule
 
   constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
     patterns ?= []
-    @patterns = patterns.map (pattern) => new Pattern(grammar, pattern)
+    @patterns = []
     @patterns.push(@endPattern) if @endPattern
+    @patterns.push((patterns.map (pattern) => new Pattern(grammar, pattern))...)
 
   getNextTokens: (stack, line, position) ->
     { match, pattern } = @getNextMatch(line, position)
@@ -73,6 +76,7 @@ class Rule
   getNextMatch: (line, position) ->
     nextMatch = null
     matchedPattern = null
+
     for pattern in @patterns
       { pattern, match } = pattern.getNextMatch(line, position)
       if match
@@ -103,7 +107,8 @@ class Pattern
 
   getNextMatch: (line, position) ->
     if @include
-      @grammar.ruleForInclude(@include).getNextMatch(line, position)
+      rule = @grammar.ruleForInclude(@include)
+      rule.getNextMatch(line, position)
     else
       { match: @regex.search(line, position), pattern: this }
 
