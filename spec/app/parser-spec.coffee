@@ -14,7 +14,7 @@ fdescribe "Parser", ->
   describe ".getLineTokens(line, currentRule)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
       it "returns a single token with the correct scope", ->
-        {tokens, currentRule} = parser.getLineTokens("return")
+        {tokens} = parser.getLineTokens("return")
 
         expect(tokens.length).toBe 1
         [token] = tokens
@@ -22,7 +22,7 @@ fdescribe "Parser", ->
 
     describe "when the entire line matches a single pattern with capture groups", ->
       it "returns a single token with the correct scope", ->
-        {tokens, currentRule} = parser.getLineTokens("new foo.bar.Baz")
+        {tokens} = parser.getLineTokens("new foo.bar.Baz")
 
         expect(tokens.length).toBe 3
         [newOperator, whitespace, className] = tokens
@@ -32,7 +32,7 @@ fdescribe "Parser", ->
 
     describe "when the line matches multiple patterns", ->
       it "returns multiple tokens, filling in regions that don't match patterns with tokens in the grammar's global scope", ->
-        {tokens, currentRule} = parser.getLineTokens(" return new foo.bar.Baz ")
+        {tokens} = parser.getLineTokens(" return new foo.bar.Baz ")
 
         expect(tokens.length).toBe 7
 
@@ -46,7 +46,7 @@ fdescribe "Parser", ->
 
     describe "when the line matches a begin/end pattern", ->
       it "returns tokens based on the beginCaptures, endCaptures and the child scope", ->
-        {tokens, currentRule} = parser.getLineTokens("'''single-quoted heredoc'''")
+        {tokens} = parser.getLineTokens("'''single-quoted heredoc'''")
 
         expect(tokens.length).toBe 3
 
@@ -56,8 +56,8 @@ fdescribe "Parser", ->
 
     describe "when begin/end pattern spans multiple lines", ->
       it "uses the currentRule returned by the first line to parse the second line", ->
-        {tokens: firstTokens, currentRule} = parser.getLineTokens("'''single-quoted")
-        {tokens: secondTokens, currentRule} = parser.getLineTokens("heredoc'''", currentRule)
+        {tokens: firstTokens, stack} = parser.getLineTokens("'''single-quoted")
+        {tokens: secondTokens, stack} = parser.getLineTokens("heredoc'''", stack)
 
         expect(firstTokens.length).toBe 2
         expect(secondTokens.length).toBe 2
@@ -70,7 +70,7 @@ fdescribe "Parser", ->
 
    describe "when the line matches a begin/end pattern that contains sub-patterns", ->
      it "returns tokens within the begin/end scope based on the sub-patterns", ->
-       {tokens, currentRule} = parser.getLineTokens('"""heredoc with character escape \\t"""')
+       {tokens} = parser.getLineTokens('"""heredoc with character escape \\t"""')
 
        expect(tokens.length).toBe 4
 

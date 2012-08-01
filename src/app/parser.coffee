@@ -7,31 +7,32 @@ class Parser
   constructor: (data) ->
     @grammar = new Grammar(data)
 
-  getLineTokens: (line, currentRule=@grammar.initialRule) ->
+  getLineTokens: (line, stack=[@grammar.initialRule]) ->
+    stack = new Array(stack...)
     tokens = []
     position = 0
 
     loop
       break if position == line.length
 
-      { nextTokens, tokensStartPosition, tokensEndPosition, nextRule } = currentRule.getNextTokens(line, position)
+      scopes = _.pluck(stack, "scopeName")
+      { nextTokens, tokensStartPosition, tokensEndPosition} = _.last(stack).getNextTokens(stack, line, position)
 
       if nextTokens
         if position < tokensStartPosition # unmatched text preceding next tokens
           tokens.push
             value: line[position...tokensStartPosition]
-            scopes: currentRule.getScopes()
+            scopes: scopes
 
         tokens.push(nextTokens...)
         position = tokensEndPosition
-        currentRule = nextRule
       else
         tokens.push
           value: line[position...line.length]
-          scopes: currentRule.getScopes()
+          scopes: scopes
         break
 
-    { tokens, currentRule }
+    { tokens, stack }
 
 class Grammar
   initialRule: null
@@ -40,26 +41,25 @@ class Grammar
     @initialRule = new Rule({scopeName, patterns})
 
 class Rule
-  parentRule: null
   scopeName: null
   patterns: null
   endPattern: null
 
-  constructor: ({@parentRule, @scopeName, patterns, @endPattern}) ->
+  constructor: ({@scopeName, patterns, @endPattern}) ->
     patterns ?= []
-    @patterns = patterns.map (pattern) => new Pattern(this, pattern)
+    @patterns = patterns.map (pattern) => new Pattern(pattern)
     @patterns.push(@endPattern) if @endPattern
 
-  getNextTokens: (line, position) ->
+  getNextTokens: (stack, line, position) ->
     { match, pattern } = @getNextMatch(line, position)
     return {} unless match
 
-    { tokens, nextRule } = pattern.getTokensForMatch(match)
+    tokens = pattern.handleMatch(stack, match)
 
     nextTokens = tokens
     tokensStartPosition = match.index
     tokensEndPosition = tokensStartPosition + match[0].length
-    { nextTokens, tokensStartPosition, tokensEndPosition, nextRule }
+    { nextTokens, tokensStartPosition, tokensEndPosition }
 
   getNextMatch: (line, position) ->
     nextMatch = null
@@ -70,40 +70,45 @@ class Rule
         if !nextMatch or match.index < nextMatch.index
           nextMatch = match
           matchedPattern = pattern
+
+    console.log "Matched pattern", matchedPattern, nextMatch
     { match: nextMatch, pattern: matchedPattern }
 
-  getScopes: ->
-    (@parentRule?.getScopes() ? []).concat(@scopeName)
-
 class Pattern
-  parentRule: null
-  nextRule: null
+  pushRule: null
+  popRule: false
   scopeName: null
   regex: null
   captures: null
 
-  constructor: (@parentRule, { name, match, begin, end, captures, beginCaptures, endCaptures, patterns }) ->
+  constructor: ({ name, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule}) ->
     @scopeName = name
     if match
       @regex = new OnigRegExp(match)
       @captures = captures
-      @nextRule = @parentRule
     else if begin
       @regex = new OnigRegExp(begin)
       @captures = beginCaptures ? captures
-      endPattern = new Pattern(@parentRule, { name: @scopeName, match: end, captures: endCaptures ? captures })
-      @nextRule = new Rule({@parentRule, @scopeName, patterns, endPattern})
+      endPattern = new Pattern({ match: end, captures: endCaptures ? captures, popRule: true})
+      @pushRule = new Rule({ @scopeName, patterns, endPattern })
 
-  getTokensForMatch: (match) ->
-    tokens = []
+  handleMatch: (stack, match) ->
+    scopes = _.pluck(stack, "scopeName")
+    scopes.push(@scopeName) unless @popRule
+
     if @captures
-      tokens = @getTokensForMatchWithCaptures(match)
+      tokens = @getTokensForMatchWithCaptures(match, scopes)
     else
-      tokens = [{ value: match[0], scopes: @getScopes() }]
+      tokens = [{ value: match[0], scopes: scopes }]
 
-    { tokens, @nextRule }
+    if @pushRule
+      stack.push(@pushRule)
+    else if @popRule
+      stack.pop()
 
-  getTokensForMatchWithCaptures: (match) ->
+    tokens
+
+  getTokensForMatchWithCaptures: (match, scopes) ->
     tokens = []
     previousCaptureEndPosition = 0
 
@@ -115,20 +120,17 @@ class Pattern
       if previousCaptureEndPosition < currentCaptureStartPosition
         tokens.push
           value: match[0][previousCaptureEndPosition...currentCaptureStartPosition]
-          scopes: @getScopes()
+          scopes: scopes
 
       tokens.push
         value: currentCaptureText
-        scopes: @getScopes().concat(currentCaptureScopeName)
+        scopes: scopes.concat(currentCaptureScopeName)
 
       previousCaptureEndPosition = currentCaptureStartPosition + currentCaptureText.length
 
     if previousCaptureEndPosition < match[0].length
       tokens.push
         value: match[0][previousCaptureEndPosition...match[0].length]
-        scopens: @getScopes()
+        scopes: scopes
 
     tokens
-
-  getScopes: ->
-    @parentRule.getScopes().concat(@scopeName)
