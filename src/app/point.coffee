@@ -17,6 +17,7 @@ class Point
     new Point(@row, @column)
 
   add: (other) ->
+    other = Point.fromObject(other)
     row = @row + other.row
     if other.row == 0
       column = @column + other.column
@@ -26,6 +27,7 @@ class Point
     new Point(row, column)
 
   subtract: (other) ->
+    other = Point.fromObject(other)
     row = @row - other.row
     if @row == other.row
       column = @column - other.column
