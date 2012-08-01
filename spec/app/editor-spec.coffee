@@ -1394,6 +1394,12 @@ describe "Editor", ->
 
         expect(editor.renderedLines.find('.line').length).toBe 8
 
+    describe "when line has a character that could push it to be too tall (regression)", ->
+      it "does renders the line at a consistent height", ->
+        rootView.attachToDom()
+        buffer.insert([0, 0], "–")
+        expect(editor.find('.line:eq(0)').outerHeight()).toBe editor.find('.line:eq(1)').outerHeight()
+
     describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
       elements = null
 

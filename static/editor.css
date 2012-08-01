@@ -80,6 +80,10 @@
   z-index: 1;
 }
 
+.editor .line > span {
+  vertical-align: top;
+}
+
 @-webkit-keyframes blink {
   0% { opacity: .7; }
   60% { opacity: .7; }
