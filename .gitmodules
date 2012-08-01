@@ -1,3 +1,6 @@
 [submodule "bundles/CoffeeScriptBundle.tmbundle"]
 	path = bundles/CoffeeScriptBundle.tmbundle
 	url = git://github.com/jashkenas/coffee-script-tmbundle
+[submodule "bundles/ruby.tmbundle"]
+	path = bundles/ruby.tmbundle
+	url = git://github.com/textmate/ruby.tmbundle.git
