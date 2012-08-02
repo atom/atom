@@ -13,6 +13,9 @@ class Token
   isEqual: (other) ->
     @value == other.value and _.isEqual(@scopes, other.scopes) and !!@isAtomic == !!other.isAtomic
 
+  isBracket: ->
+    /^meta\.brace\b/.test(_.last(@scopes))
+
   splitAt: (splitIndex) ->
     value1 = @value.substring(0, splitIndex)
     value2 = @value.substring(splitIndex)

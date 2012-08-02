@@ -60,7 +60,7 @@ class LanguageMode
 
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)
-    @aceMode.toggleCommentLines(@tokenizedBuffer.stateForRow(range.start.row), @aceAdaptor, range.start.row, range.end.row)
+    @aceMode.toggleCommentLines(@tokenizedBuffer.stackForRow(range.start.row), @aceAdaptor, range.start.row, range.end.row)
 
   isBufferRowFoldable: (bufferRow) ->
     @aceMode.foldingRules?.getFoldWidget(@aceAdaptor, null, bufferRow) == "start"
@@ -72,13 +72,13 @@ class LanguageMode
       null
 
   indentationForRow: (row) ->
-    state = @tokenizedBuffer.stateForRow(row)
+    state = @tokenizedBuffer.stackForRow(row)
     previousRowText = @buffer.lineForRow(row - 1)
     @aceMode.getNextLineIndent(state, previousRowText, @editSession.tabText)
 
   autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
     { row, column} = bufferPosition
-    state = @tokenizedBuffer.stateForRow(row)
+    state = @tokenizedBuffer.stackForRow(row)
     lineBeforeCursor = @buffer.lineForRow(row)[0...column]
     if text[0] == "\n"
       indent = @aceMode.getNextLineIndent(state, lineBeforeCursor, @editSession.tabText)
@@ -89,7 +89,7 @@ class LanguageMode
     {text, shouldOutdent}
 
   autoOutdentBufferRow: (bufferRow) ->
-    state = @tokenizedBuffer.stateForRow(bufferRow)
+    state = @tokenizedBuffer.stackForRow(bufferRow)
     @aceMode.autoOutdent(state, @aceAdaptor, bufferRow)
 
   getLineTokens: (line, stack) ->

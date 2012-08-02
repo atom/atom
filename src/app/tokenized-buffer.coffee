@@ -23,9 +23,9 @@ class TokenizedBuffer
   handleBufferChange: (e) ->
     oldRange = e.oldRange.copy()
     newRange = e.newRange.copy()
-    previousState = @stateForRow(oldRange.end.row) # used in spill detection below
+    previousStack = @stackForRow(oldRange.end.row) # used in spill detection below
 
-    stack = @stateForRow(newRange.start.row - 1)
+    stack = @stackForRow(newRange.start.row - 1)
     @screenLines[oldRange.start.row..oldRange.end.row] =
       @buildScreenLinesForRows(newRange.start.row, newRange.end.row, stack)
 
@@ -35,10 +35,10 @@ class TokenizedBuffer
     # each line until the line's new state matches the previous state. this covers
     # cases like inserting a /* needing to comment out lines below until we see a */
     for row in [newRange.end.row...@buffer.getLastRow()]
-      break if @stateForRow(row) == previousState
+      break if _.isEqual(@stackForRow(row), previousStack)
       nextRow = row + 1
-      previousState = @stateForRow(nextRow)
-      @screenLines[nextRow] = @buildScreenLineForRow(nextRow, @stateForRow(row))
+      previousStack = @stackForRow(nextRow)
+      @screenLines[nextRow] = @buildScreenLineForRow(nextRow, @stackForRow(row))
 
     # if highlighting spilled beyond the bounds of the textual change, update
     # the pre and post range to reflect area of highlight changes
@@ -74,7 +74,7 @@ class TokenizedBuffer
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
 
-  stateForRow: (row) ->
+  stackForRow: (row) ->
     @screenLines[row]?.stack
 
   destroy: ->
@@ -115,7 +115,7 @@ class TokenizedBuffer
     position = null
     depth = 0
     @backwardsIterateTokensInBufferRange range, (token, startPosition, { stop }) ->
-      if token.type.match /lparen|rparen/
+      if token.isBracket()
         if token.value == '}'
           depth++
         else if token.value == '{'
@@ -130,7 +130,7 @@ class TokenizedBuffer
     position = null
     depth = 0
     @iterateTokensInBufferRange range, (token, startPosition, { stop }) ->
-      if token.type.match /lparen|rparen/
+      if token.isBracket()
         if token.value == '{'
           depth++
         else if token.value == '}'
