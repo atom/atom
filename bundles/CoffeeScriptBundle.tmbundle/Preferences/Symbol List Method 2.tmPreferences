@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Symbol List: Method</string>
+	<key>scope</key>
+	<string>source.coffee meta.function.coffee</string>
+	<key>settings</key>
+	<dict>
+		<key>showInSymbolList</key>
+		<integer>1</integer>
+		<key>symbolTransformation</key>
+		<string>s/^\s*([a-zA-Z\$_]+)\s*=/$2/</string>
+	</dict>
+	<key>uuid</key>
+	<string>419D24D8-0DD6-4D9A-8CA0-6D9CD740BEEC</string>
+</dict>
+</plist>

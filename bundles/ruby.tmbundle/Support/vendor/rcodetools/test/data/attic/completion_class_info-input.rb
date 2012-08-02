@@ -1,0 +1,1 @@
+Array.new(3).s

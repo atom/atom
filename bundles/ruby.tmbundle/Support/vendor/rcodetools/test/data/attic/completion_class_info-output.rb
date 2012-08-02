@@ -1,0 +1,10 @@
+select	Array#select
+send	Object#send
+shift	Array#shift
+singleton_methods	Object#singleton_methods
+size	Array#size
+slice	Array#slice
+slice!	Array#slice!
+sort	Array#sort
+sort!	Array#sort!
+sort_by	Enumerable#sort_by

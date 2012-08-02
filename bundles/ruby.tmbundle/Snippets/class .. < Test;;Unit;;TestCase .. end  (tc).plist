@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>require "test/unit"
+
+require "${1:library_file_name}"
+
+class Test${2:${1/([\w&amp;&amp;[^_]]+)|./\u$1/g}} &lt; Test::Unit::TestCase
+	def test_${3:case_name}
+		$0
+	end
+end</string>
+	<key>name</key>
+	<string>class .. &lt; Test::Unit::TestCase .. end</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>tc</string>
+	<key>uuid</key>
+	<string>31D1F145-33AB-4441-BA11-4D1C46928C4C</string>
+</dict>
+</plist>

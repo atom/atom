@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+require ENV['TM_SUPPORT_PATH'] + '/lib/textmate'
+puts "using ruby-" + RUBY_VERSION.to_s + ' / erb'
+result = `"${TM_ERB:=erb}" -T - -x | "${TM_RUBY:=ruby}" -c 2&gt;&amp;1`
+puts result
+TextMate.go_to :line =&gt; $1 if result =~ /-:(\d+):/</string>
+	<key>input</key>
+	<string>document</string>
+	<key>keyEquivalent</key>
+	<string>^V</string>
+	<key>name</key>
+	<string>Validate Syntax (ERB)</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>text.html.ruby, text.html source.ruby</string>
+	<key>uuid</key>
+	<string>76FCF165-54CB-4213-BC55-BD60B9C6A3EC</string>
+</dict>
+</plist>

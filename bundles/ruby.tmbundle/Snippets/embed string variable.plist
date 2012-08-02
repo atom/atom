@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>#{${1:$TM_SELECTED_TEXT}}</string>
+	<key>keyEquivalent</key>
+	<string>#</string>
+	<key>name</key>
+	<string>Embedded Code — #{…}</string>
+	<key>scope</key>
+	<string>(string.quoted.double.ruby|string.interpolated.ruby) - string source</string>
+	<key>uuid</key>
+	<string>EEE6D060-C5A0-400D-A2E0-0835013C5365</string>
+</dict>
+</plist>

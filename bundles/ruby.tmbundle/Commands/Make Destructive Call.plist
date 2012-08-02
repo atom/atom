@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>res=$(ruby "$TM_BUNDLE_SUPPORT/bin/make_destructive.rb")
+
+if [ "$res" = "" ]
+  then exit_show_tool_tip "Retry this command without a selection."
+  else echo -n "$res"
+fi</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^!</string>
+	<key>name</key>
+	<string>Add ! to Method in Line / Selection</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>uuid</key>
+	<string>7F79BC8D-8A4F-4570-973B-05DFEC25747F</string>
+</dict>
+</plist>

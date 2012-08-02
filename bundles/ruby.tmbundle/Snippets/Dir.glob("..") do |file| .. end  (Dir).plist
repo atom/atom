@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>Dir.glob(${1:"${2:dir/glob/*}"}) { |${3:file}| $0 }</string>
+	<key>name</key>
+	<string>Dir.glob("..") { |file| .. }</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>Dir</string>
+	<key>uuid</key>
+	<string>332AA973-AA71-48CB-AEE9-1D71E11019AC</string>
+</dict>
+</plist>

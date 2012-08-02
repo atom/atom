@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>saveActiveFile</string>
+	<key>command</key>
+	<string>if (( ${#TM_PROJECT_DIRECTORY} != 0 )); then
+    cd "$TM_PROJECT_DIRECTORY"
+    output="`basename "$TM_PROJECT_DIRECTORY"`"
+    input="."
+else
+    cd "$TM_DIRECTORY"
+    output="$TM_FILENAME"
+    input="$TM_FILENAME"
+fi
+
+output_dir="/tmp/rdoc_${output}"
+
+rm -rf "${output_dir}"
+
+rdoc -S -N -q -f html --op "${output_dir}" "$input" &amp;&gt;/dev/null
+
+echo "&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=\"refresh\" content=\"0;URL=tm-file://${output_dir}/index.html\"&gt;&lt;/head&gt;&lt;/html&gt;"
+</string>
+	<key>input</key>
+	<string>none</string>
+	<key>name</key>
+	<string>Show for Current File / Project</string>
+	<key>output</key>
+	<string>showAsHTML</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>uuid</key>
+	<string>1AD6A138-2E89-4D6A-AB3F-416BF9CE968D</string>
+</dict>
+</plist>

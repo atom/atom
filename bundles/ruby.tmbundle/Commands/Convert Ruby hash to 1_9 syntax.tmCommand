@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+
+print case str = STDIN.read
+  when /=&gt;/;                 str.gsub(/:(\w+)[\s]+=&gt;[\s]+/, '\1: ')
+  when /(\w+):/;             str.gsub(/(\w+):(\s*(?:"(?:\\"|[^"])*"|'(?:\\'|[^'])*'|\w+\([^)]*\)|[^,]+))/, ":\\1 =&gt;\\2")
+  else;                      str
+end
+</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^=</string>
+	<key>name</key>
+	<string>Toggle Ruby Hash 1.8/1.9 Syntax</string>
+	<key>output</key>
+	<string>replaceSelectedText</string>
+	<key>uuid</key>
+	<string>F4EEB2B6-07D8-402F-8FC3-79B7308D2576</string>
+</dict>
+</plist>

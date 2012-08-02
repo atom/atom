@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Indent</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>settings</key>
+	<dict>
+		<key>decreaseIndentPattern</key>
+		<string>^\s*([}\]]\s*$|(end|rescue|ensure|else|elsif|when)\b)</string>
+		<key>increaseIndentPattern</key>
+		<string>(?x)^
+    (\s*
+        (module|class|def
+        |unless|if|else|elsif
+        |case|when
+        |begin|rescue|ensure
+        |for|while|until
+        |(?= .*? \b(do|begin|case|if|unless)\b )
+         # the look-ahead above is to quickly discard non-candidates
+         (  "(\\.|[^\\"])*+"        # eat a double quoted string
+         | '(\\.|[^\\'])*+'      # eat a single quoted string
+         |   [^#"']                # eat all but comments and strings
+         )*
+         (                         \s   (do|begin|case)
+         | [-+=&amp;|*/~%^&lt;&gt;~](?&lt;!\$.) \s*+ (if|unless)
+         )
+        )\b
+        (?! [^;]*+ ; .*? \bend\b )
+    |(  "(\\.|[^\\"])*+"            # eat a double quoted string
+     | '(\\.|[^\\'])*+'          # eat a single quoted string
+     |   [^#"']                    # eat all but comments and strings
+     )*
+     ( \{ (?!  [^}]*+ \} )
+     | \[ (?! [^\]]*+ \] )
+     )
+    ).*$</string>
+	</dict>
+	<key>uuid</key>
+	<string>6FEAF60F-F0F3-4618-9259-DE93285F50D1</string>
+</dict>
+</plist>

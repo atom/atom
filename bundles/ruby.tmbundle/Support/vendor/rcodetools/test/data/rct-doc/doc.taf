@@ -1,0 +1,8 @@
+==========
+doc
+==========
+rct-doc -D --line=1
+==========
+[].length
+==========
+Array#length

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>elements.each(${1:"${2://XPath}"}) do |${3:node}|
+	$0
+end</string>
+	<key>name</key>
+	<string>xpath(..) { .. }</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>xpa</string>
+	<key>uuid</key>
+	<string>CC300D44-6C3F-4F6C-A8AB-86F5A2DC57CF</string>
+</dict>
+</plist>

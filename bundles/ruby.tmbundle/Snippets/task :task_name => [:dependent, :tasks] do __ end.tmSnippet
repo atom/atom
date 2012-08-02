@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>desc "${1:Task description}"
+task :${2:${3:task_name} =&gt; ${4:[:${5:dependent, :tasks}]}} do
+	$0
+end</string>
+	<key>name</key>
+	<string>task :task_name =&gt; [:dependent, :tasks] do .. end</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>tas</string>
+	<key>uuid</key>
+	<string>A7BF14E6-59B1-42E5-8755-8A72BF13685E</string>
+</dict>
+</plist>

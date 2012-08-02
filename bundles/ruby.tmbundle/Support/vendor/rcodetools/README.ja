@@ -1,0 +1,84 @@
+
+ rcodetools  http://eigenclass.org/hiki.rb?rcodetools
+ Copyright (c) 2005-2007 Mauricio Fernandez <mfp@acm.org> http://eigenclass.org
+ Copyright (c) 2006-2008 rubikitch <rubikitch@ruby-lang.org> http://www.rubyist.net/~rubikitch/
+Use and distribution subject to the terms of the Ruby license.
+
+= 概要
+rcodetools は Ruby のコードを扱うツール群です。
+rcodetools には xmpfilter とエディタに依存しない開発支援ツールが含まれています。
+Emacs と Vim のインターフェースも用意しています。
+
+* xmpfilter: Test::Unit assert* / RSpec should* 自動生成、コード注釈
+* rct-complete: 高精度メソッド名・クラス名・定数名等補完
+* rct-doc: ドキュメント参照・コードナビゲーター
+* rct-meth-args: 高精度メソッド情報リスト、TAGS ファイル作成
+* rct-fork: Rails 等重いライブラリを予めロードし、補完を高速化する（サーバ）
+* rct-fork-client: rct-fork サーバが保持する状態から Ruby スクリプトを実行する
+* ruby-toggle-file: テストスクリプトと実装スクリプトを切り換える
+* rbtest: 小規模スクリプトのための埋め込み Test::Unit
+
+
+= 使い方
+
+== コード注釈
+式の値を表示したい行に # => を加えます。
+
+ a, b = "foo", "baz"
+ a + b                                             # =>
+ a.size                                            # =>
+
+xmpfilter に通すと下のように式の値を表示してくれます。
+
+ a, b = "foo", "baz"
+ a + b                                             # => "foobaz"
+ a.size                                            # => 3
+
+
+== Test::Unit assert 文生成
+
+すでにできあがっているプログラムのテストスクリプトを書くのは面倒ですね。
+
+  def test_insertion
+    @o.insert "bar"
+    @o.insert "baz"
+    @o.size                                        # =>
+    @o.last                                        # =>
+    @o.first                                       # =>
+    @o.complex_computation                         # =>
+    @o.last(2)                                     # =>
+  end
+
+xmpfilter（-u オプション）が手間を軽減してくれます。
+
+  def test_insertion
+    @o.insert "bar"
+    @o.insert "baz"
+    assert_equal(2, @o.size)
+    assert_equal("baz", @o.last)
+    assert_equal("bar", @o.first)
+    assert_in_delta(3.14159265358979, @o.complex_computation, 0.0001)
+    assert_equal(["baz", "bar"], @o.last(2))
+  end
+
+RSpec についても同様のことができます。（-s オプション）
+
+== 補完・ドキュメント参照
+
+動画によるスクリーンショットを見てください。
+
+http://eigenclass.org/hiki.rb?rcodetools-screenshots
+
+== 詳しい使い方
+-h オプションをつけると使用可能なオプションが表示されます。
+
+ xmpfilter -h 
+ rct-complete -h 
+ rct-doc -h 
+ rct-meth-args -h
+ rct-fork -h
+ rct-fork-client -h
+ ruby-toggle-file -h
+ rbtest -h
+
+README.emacs と README.vim にエディタ上での使い方が詳しく書いてあります。

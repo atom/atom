@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+
+column_number = ENV['TM_COLUMN_NUMBER']
+whitespace    = " " * (column_number.to_i - 1)
+
+print &lt;&lt;-EOS
+"""
+#{whitespace}$0
+#{whitespace}"""
+EOS
+</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>@"</string>
+	<key>name</key>
+	<string>Insert Heredoc """ quotes</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.coffee</string>
+	<key>uuid</key>
+	<string>F08537AF-4F02-4040-999D-F0785CF64C02</string>
+</dict>
+</plist>

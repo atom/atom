@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>def method_missing(meth, *args, &amp;blk)
+	$0
+end</string>
+	<key>name</key>
+	<string>def method_missing .. end</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>defmm</string>
+	<key>uuid</key>
+	<string>87D5F8AD-8DA6-4AED-A0D8-B51CAC980445</string>
+</dict>
+</plist>

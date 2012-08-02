@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Completion: require strings</string>
+	<key>scope</key>
+	<string>meta.require.ruby string.quoted</string>
+	<key>settings</key>
+	<dict>
+		<key>completionCommand</key>
+		<string>#!/usr/bin/env ruby
+		ptrn = /^#{Regexp.escape ENV["TM_CURRENT_WORD"].to_s}[^.]+\..+/
+		puts( $LOAD_PATH.inject([]) do |res, path|
+		res &lt;&lt; Dir.new(path).grep(ptrn) { |file| file[/^[^.]+/] } if File.exists?(path)
+		res
+		end.sort.uniq )</string>
+	</dict>
+	<key>uuid</key>
+	<string>AEDD6A5F-417F-4177-8589-B07518ACA9DE</string>
+</dict>
+</plist>

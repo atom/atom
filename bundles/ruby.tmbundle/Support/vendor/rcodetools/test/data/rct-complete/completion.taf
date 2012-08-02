@@ -1,0 +1,9 @@
+==========
+completion
+==========
+rct-complete -C --line=1
+==========
+Array.new(3).uni
+==========
+uniq
+uniq!

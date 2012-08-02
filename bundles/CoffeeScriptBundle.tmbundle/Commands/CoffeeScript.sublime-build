@@ -1,0 +1,6 @@
+{
+	"path": "$HOME/bin:/usr/local/bin:$PATH",
+	"cmd": ["coffee","-c","$file"],
+	"file_regex": "^(...*?):([0-9]*):?([0-9]*)",
+	"selector": "source.coffee"
+}

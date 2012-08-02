@@ -1,0 +1,8 @@
+==========
+ri_vim
+==========
+rct-doc --ri-vim --line=1
+==========
+[].length
+==========
+call RCT_find_tag_or_ri("Array#length")

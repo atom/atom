@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Indent</string>
+	<key>scope</key>
+	<string>source.coffee</string>
+	<key>settings</key>
+	<dict>
+		<key>decreaseIndentPattern</key>
+		<string>^\s*(\}|\]|else|catch|finally)$</string>
+		<key>increaseIndentPattern</key>
+		<string>(?x)
+		^\s*
+		(.*class
+		|[a-zA-Z\$_](\w|\$|:|\.)*\s*(?=\:(\s*\(.*\))?\s*((=|-)&gt;\s*$)) # function that is not one line
+		|[a-zA-Z\$_](\w|\$|\.)*\s*(:|=)\s*((if|while)(?!.*?then)|for|$) # assignment using multiline if/while/for
+		|(if|while)\b(?!.*?then)|for\b
+		|(try|finally|catch\s+\S.*)\s*$
+		|.*[-=]&gt;$
+		|.*[\{\[]$)</string>
+	</dict>
+	<key>uuid</key>
+	<string>C5D6C716-12FE-4CE8-A916-6CABEDE8AFE7</string>
+</dict>
+</plist>

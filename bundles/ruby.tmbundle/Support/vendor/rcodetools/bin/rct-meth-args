@@ -1,0 +1,442 @@
+#! /usr/local/bin/ruby18
+# Copyright (c) 
+#  2006-2007 Mauricio Fernandez <mfp@acm.org>    http://eigenclass.org
+#  2006-2007 rubikitch <rubikitch@ruby-lang.org> http://www.rubyist.net/~rubikitch/
+#                    
+# Use and distribution subject to the same conditions as Ruby.
+
+require 'rcodetools/options'
+include Rcodetools
+$VERBOSE = nil
+$__method_args_off = true
+
+if ARGV.empty? or ARGV.include? '-h' or ARGV.include? '--help'
+  puts <<EOF
+rct-meth-args [-Idirectory] [-i] [-m] [-c] [-n] <file> [<file> ...]
+
+-Idirectory   specify $LOAD_PATH directory (same as ruby)
+--dev         Add this project's bin/ and lib/ to $LOAD_PATH.
+              A directory that has Rakefile is considered as project base direcotry.
+-i            omit instance methods defined in classes
+-m            omit instance methods defined in modules
+-c            omit class methods
+
+-n            print the filename and line number with output lines
+-t            generate TAGS output
+--summarize   summary output sorted by method name
+
+The given files will be #require()d in order.
+Examples:
+   rct-meth-args complex
+   rct-meth-args thread
+   rct-meth-args -c rubygems
+EOF
+  exit                          # '
+end
+
+def debugprint(*args)
+  $stderr.puts(*args) if $DEBUG
+end
+
+module MethodArgs
+  MAX_ARGS = 20
+
+  private
+  def needed_args(arity)
+    arity >= 0 ? arity : arity.abs - 1
+  end
+
+  def with_tracer
+    begin
+      set_trace_func @__trace_func
+      yield
+    ensure
+      set_trace_func nil
+    end
+  end
+
+  module LineContents
+    # usage: Contents[filename][lineno]
+    Contents = Hash.new{ |h,k|
+      sum = 0
+      # Unshift is needed because lineno starts with 1.
+      h[k] = File.readlines(k).map{ |line| [line.chomp, sum+=line.length] }.unshift nil
+    }
+    def content
+      Contents[filename][lineno.to_i][0] rescue ""
+    end
+
+    def byte
+      Contents[filename][lineno.to_i-1][1] rescue 0
+    end
+
+    def arg_desc
+      # TODO
+      desc = content[ /\((.+)\)/]
+      desc.gsub!(/(\S),(\S)/, '\1, \2')
+      desc.gsub!(/(\S)=(\S)/, '\1 = \2')
+      desc
+    end
+
+    FileNameCache = Hash.new{ |h,k| h[k] = File.expand_path(k) }
+    def full_filename
+      FileNameCache[filename]
+    end
+  end
+
+  class Location < Struct.new(:filename, :lineno)
+    include LineContents
+  end
+  
+  class Printer
+    def method_info(io, x)
+      prefix = x[:location] ? "#{x[:location].filename}:#{x[:location].lineno}:" : ""
+      io.puts "#{prefix}#{x[:fullname]}#{x[:arg_desc]}" unless x[:klass].to_s == "<Struct>"
+    end
+
+    def included_location(io, x)
+      x[:callsite] and io.print "#{x[:callsite].filename}:#{x[:callsite].lineno}:"
+      io.puts([ x[:comment], x[:mod], x[:flag], x[:self] ].join(" "))
+    end
+  end
+
+  class SummarizePrinter
+    def initialize
+      @hash = Hash.new
+      at_exit { print_result }
+    end
+
+    def method_info(io, x)
+      @io = io
+      prefix = x[:location] ? "#{x[:location].filename}:#{x[:location].lineno}:" : ""
+      (@hash[x[:meth]]||=[]) << "#{prefix}#{x[:fullname]}#{x[:arg_desc]}" unless x[:klass].to_s == "<Struct>"
+    end
+
+    def included_location(io, x)
+      # not implemented
+    end
+
+    def print_result
+      @hash.keys.sort.each do |meth|
+        @io.puts meth
+        @hash[meth].each do |line|
+          @io.puts line
+        end
+        @io.puts
+      end
+    end
+  end
+
+  class TagsPrinter
+    def initialize
+      @previous_filename = ""
+    end
+
+    def output_filename(filename)
+      if @previous_filename != filename
+        @previous_filename = filename
+        puts "\cl"
+        puts "#{filename},0"
+      end
+    end
+
+    def method_info(io, x)
+      return unless x[:location]
+      output_filename x[:location].full_filename
+      io.puts "#{x[:location].content}::#{x[:fullname]}#{x[:location].lineno},#{x[:location].byte}"
+    end
+
+    def included_location(io, x)
+      return unless x[:callsite]
+      output_filename x[:callsite].full_filename
+      io.puts "#{x[:callsite].content}::#{x[:mod]}#{x[:callsite].lineno},#{x[:callsite].byte}"
+    end
+  end
+
+  def _print_method_info(klass, is_singleton, meth, arg_desc=nil, location=nil, with_location=$__with_location, printer=$__printer)
+    arg_desc ||= "(...)"
+    arg_desc = " " + arg_desc unless arg_desc.empty?
+    flag = is_singleton ? "." : "#"
+    x = { :arg_desc => arg_desc, :klass => klass,
+      :meth => meth.to_s,
+      :fullname => [klass, flag, meth].join,
+      :location => with_location && location,
+    }
+    printer.method_info $>, x 
+  end
+
+  def output_attr_info(klass, object, meth, is_singleton, location)
+    arg_desc = meth.to_s =~ /=$/ ? "(value)" : ""
+    _print_method_info klass, is_singleton, meth, arg_desc, location
+  end
+
+  def output_method_info(klass, object, meth, is_singleton = false, by_attr = nil, by_define_method = nil)
+    return if $__method_args_off
+    file = line = params = values = nil
+    location = nil
+    begin
+      unless %w[initialize].include?(meth.to_s)
+        if is_singleton
+          return if class << klass; private_instance_methods(true) end.include?(meth.to_s)
+        else
+          return if class << object; private_instance_methods(true) end.include?(meth.to_s)
+        end
+      end
+    rescue TypeError          # no virtual class
+    end
+    
+    arity = is_singleton ? object.method(meth).arity : klass.instance_method(meth).arity
+    @__trace_func = lambda{|event, file, line, id, binding, classname|
+      begin
+        debugprint "!EVENT: #{event} #{classname}##{id}, #{file} #{line}"
+        debugprint "(#{self} #{meth})"
+        if event[/call/] && classname == self && id == meth
+          location = Location.new(file, line) if event == 'call'
+          debugprint "EVENT: #{event} #{classname}##{id}"
+          throw :done
+        end
+      rescue Exception
+        nil                     # rcov workaround
+      end
+    }
+    if by_define_method
+      _print_method_info klass, is_singleton, meth, nil, by_define_method
+      return
+    end
+    
+    if by_attr
+      output_attr_info klass, object, meth, is_singleton, by_attr
+      return
+    end
+    
+    catch(:done) do 
+      begin
+        with_tracer { object.send(meth, *(0...needed_args(arity))) }
+      rescue Exception
+        nil                 # rcov workaround
+      end
+    end
+    
+    arg_desc = location.arg_desc
+    
+    _print_method_info klass, is_singleton, meth, arg_desc, location
+  rescue Exception
+    debugprint "GOT EXCEPTION while processing #{klass} #{meth}"
+    debugprint $!.class
+    debugprint $!.message
+    debugprint $!.backtrace
+    _print_method_info klass, is_singleton, meth, nil, location
+  ensure
+    set_trace_func(nil)
+  end
+end
+
+class Object
+  include MethodArgs
+end
+
+class Module
+  class CallSite                # compatible with Location
+    include MethodArgs::LineContents
+    def initialize(caller_string)
+      @filename, @lineno, @in = caller_string.split(/:/)
+    end
+    attr_reader :filename, :lineno
+  end
+
+  def _method_defined_with(ivar, caller, &block)
+    begin
+      instance_variable_set(ivar, caller)
+      yield
+    ensure
+      instance_variable_set(ivar, false)
+    end
+  end
+
+  def with_attr(caller, &block)
+    _method_defined_with :@by_attr, caller, &block
+  end
+
+  def with_define_method(caller, &block)
+    _method_defined_with :@by_define_method, caller, &block
+  end
+
+  [ :attr, :attr_reader, :attr_writer, :attr_accessor ].each do |meth|
+    attr = instance_method(meth)
+    define_method(meth) do |*args|
+      with_attr(CallSite.new(caller(1)[0])){ attr.bind(self).call(*args) }
+    end
+  end
+
+  alias :__define_method_orig :define_method
+  def define_method(*args, &body)
+    with_define_method(CallSite.new(caller(1)[0])){ __define_method_orig(*args, &body) }
+  end
+
+end
+
+new_args = []
+omissions = {}
+$__with_location = false
+$__printer = Printer.new
+i_opt_p = false
+
+ARGV.each do |arg|
+  case arg
+  when "-n"; $__with_location = true
+  when "-t"; $__printer = TagsPrinter.new; $__with_location = true
+  when "--summarize"; $__printer = SummarizePrinter.new
+  when /-I(.+)$/; $:.unshift $1
+  when "-I"; i_opt_p = true
+  when "--dev"; OptionHandler.auto_include_paths($:, Dir.pwd)
+  when /^-.$/; omissions[$&] = true
+  else
+    if i_opt_p
+      $:.unshift arg
+      i_opt_p = false
+    else
+      new_args << arg
+    end
+  end
+end
+
+ARGV.replace new_args
+
+class Object
+  ALLOCATOR = Hash.new{|h,k| h[k] = k.allocate }.merge(Fixnum=>1,
+                                                       Bignum=>10000000000000000,
+                                                       Float=>1.1,
+                                                       Symbol=>:method_args_tmp,
+                                                       Binding=>binding,
+                                                       UnboundMethod=>instance_method(:object_id),
+                                                       Method=>method(:object_id),
+                                                       Proc=>lambda{},
+                                                       Continuation=>callcc{|c|c},
+                                                       Thread=>Thread.new{},
+                                                       FalseClass=>false,
+                                                       TrueClass=>true,
+                                                       NilClass=>nil,
+                                                       Struct=>Struct.new(:a).new(1))
+
+#  ABSTRACT_CLASSES = %w[Digest::Base ]
+  def self.method_added(meth)
+#     if ABSTRACT_CLASSES.include? self.to_s
+#       _print_method_info self, false, meth
+#       return
+#     end
+    begin
+      o = ALLOCATOR[self]
+    rescue Exception            # for abstract classes
+      nil
+    end
+    output_method_info(self, o, meth, false, @by_attr, @by_define_method)
+  end
+end unless omissions["-i"]
+
+class Module
+  method_added = instance_method(:method_added)
+  define_method(:method_added) do |meth|
+    begin
+      if instance_of? Module
+        o = Object.new
+        o.extend(self)
+        output_method_info(self, o, meth, false, @by_attr, @by_define_method)
+      end
+      method_added.bind(self).call(meth)
+    rescue Exception
+      _print_method_info self, false, meth
+    end
+  end
+end unless omissions["-m"]
+
+
+class Class
+  def singleton_method_added(meth)
+    by_attr = class << self; @by_attr; end
+    by_define_method = class << self; @by_define_method; end
+    output_method_info(self, self, meth, true, by_attr, by_define_method)
+  rescue Exception
+    _print_method_info self, true, meth
+  end
+end unless omissions["-c"]
+
+#### include / extend
+class Module
+  def _print_included_location(mod, caller_string, comment, flag, with_location=$__with_location, printer=$__printer)
+    if caller_string            # nil when the class is defined by C
+      x = { :comment => comment, :mod => mod, :flag => flag, :self => self,
+        :callsite => with_location && CallSite.new(caller_string)
+      }
+      printer.included_location $>, x
+    end
+  end
+
+  undef_method :included
+  def included(mod)
+    _print_included_location mod, caller(0)[1], "include", "<="
+  end
+
+  undef_method :extended
+  def extended(mod)
+    _print_included_location mod, caller(0)[1], "extend", "<-" if Module === mod
+  end
+end
+
+#### inheritance
+class Class
+  undef :inherited
+  def inherited(klass, caller_level=0)
+    _print_included_location klass, caller(caller_level)[1], "class", "<" unless self == Object
+  end
+end
+
+#### Struct inspection
+class << Struct
+  def to_s
+    orig = super
+    if orig =~ /<Class/
+      mems = instance_methods(false).select{ |m| m.to_s !~ /=$/}.sort.join(",")
+      mems.empty? ? "<Struct>" : "<Struct: #{mems}>"
+    else
+      orig
+    end
+  end
+
+  def inherited(klass)
+    if self == Struct
+      @inherited_delay = lambda{ super(klass, 3) }
+    else
+      super(klass, 1)
+    end
+  end
+
+  @@struct_initializing = false
+  def method_added(meth)
+    super unless @@struct_initializing
+  end
+
+  orig_new = instance_method(:new)
+  define_method(:new) do |*args|
+    begin
+      @@struct_initializing = true
+      orig_new.bind(self).call(*args)
+    ensure
+      @@struct_initializing = false
+      @inherited_delay[]
+    end
+  end
+
+end
+
+$__method_args_off = false
+
+ARGV.each{|x|
+  begin
+    require x
+  rescue LoadError
+    load x
+  end
+}
+
+$__method_args_off = true
+# END { puts "zzzz OK" }

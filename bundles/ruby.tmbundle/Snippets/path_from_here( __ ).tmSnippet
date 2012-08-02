@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>File.join(File.dirname(__FILE__), *%w[${1:rel path here}])</string>
+	<key>name</key>
+	<string>path_from_here( .. )</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>patfh</string>
+	<key>uuid</key>
+	<string>A4E89D97-D5ED-48BB-B5FF-1BFB79211FCD</string>
+</dict>
+</plist>
