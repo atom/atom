@@ -29,8 +29,8 @@ class TextMateBundle
     extension = fs.extension(fileName)[1...]
     @grammarsByFileType[extension] or @grammarsByFileType["txt"]
 
-  @getPreferenceForScopeSelector: (name, scopeSelector) ->
-    @preferencesByScopeSelector[scopeSelector][name]
+  @getPreferenceInScope: (scopeSelector, preferenceName) ->
+    @preferencesByScopeSelector[scopeSelector][preferenceName]
 
   grammars: null
 
@@ -49,7 +49,6 @@ class TextMateBundle
         { scope, settings } = data[0]
 
         preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
-        console.log preferencesByScopeSelector
 
     preferencesByScopeSelector
 
