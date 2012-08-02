@@ -23,8 +23,8 @@ describe "TokenizedBuffer", ->
 
   describe "tokenization", ->
     it "tokenizes all the lines in the buffer on construction", ->
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
-      expect(tokenizedBuffer.lineForScreenRow(11).tokens[1]).toEqual(type: 'keyword', value: 'return')
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.js'])
+      expect(tokenizedBuffer.lineForScreenRow(11).tokens[1]).toEqual(value: 'return', scopes: ['source.js', 'keyword.control.js'])
 
     describe "when the buffer changes", ->
       changeHandler = null
@@ -34,15 +34,15 @@ describe "TokenizedBuffer", ->
         tokenizedBuffer.on "change", changeHandler
 
       describe "when lines are updated, but none are added or removed", ->
-        it "updates tokens for each of the changed lines", ->
+        fit "updates tokens for each of the changed lines", ->
           range = new Range([0, 0], [2, 0])
-          buffer.change(range, "foo()\nbar()\n")
+          buffer.change(range, "foo()\n7\n")
 
-          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(type: 'identifier', value: 'foo')
-          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(type: 'identifier', value: 'bar')
+          expect(tokenizedBuffer.lineForScreenRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.brace.round.js'])
+          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.js'])
 
           # line 2 is unchanged
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(type: 'keyword', value: 'if')
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(value: 'if', scopes: ['source.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]

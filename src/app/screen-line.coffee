@@ -3,7 +3,7 @@ Point = require 'point'
 
 module.exports =
 class ScreenLine
-  state: null
+  stack: null
   text: null
   tokens: null
   screenDelta: null
@@ -16,7 +16,7 @@ class ScreenLine
     _.extend(this, extraFields)
 
   copy: ->
-    new ScreenLine(@tokens, @text, @screenDelta, @bufferDelta, { @state, @foldable })
+    new ScreenLine(@tokens, @text, @screenDelta, @bufferDelta, { @stack, @foldable })
 
   splitAt: (column) ->
     return [new ScreenLine([], '', [0, 0], [0, 0]), this] if column == 0
@@ -37,8 +37,8 @@ class ScreenLine
     [leftScreenDelta, rightScreenDelta] = @screenDelta.splitAt(column)
     [leftBufferDelta, rightBufferDelta] = @bufferDelta.splitAt(column)
 
-    leftFragment = new ScreenLine(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@state, @foldable})
-    rightFragment = new ScreenLine(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@state})
+    leftFragment = new ScreenLine(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@stack, @foldable})
+    rightFragment = new ScreenLine(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@stack})
     [leftFragment, rightFragment]
 
   concat: (other) ->
@@ -46,7 +46,7 @@ class ScreenLine
     text = @text + other.text
     screenDelta = @screenDelta.add(other.screenDelta)
     bufferDelta = @bufferDelta.add(other.bufferDelta)
-    new ScreenLine(tokens, text, screenDelta, bufferDelta, {state: other.state})
+    new ScreenLine(tokens, text, screenDelta, bufferDelta, {stack: other.stack})
 
   translateColumn: (sourceDeltaType, targetDeltaType, sourceColumn, options={}) ->
     { skipAtomicTokens } = options

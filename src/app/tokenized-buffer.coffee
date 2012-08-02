@@ -17,7 +17,7 @@ class TokenizedBuffer
   constructor: (@buffer, { @languageMode, @tabText }) ->
     @languageMode.tokenizedBuffer = this
     @id = @constructor.idCounter++
-    @screenLines = @buildScreenLinesForRows('start', 0, @buffer.getLastRow())
+    @screenLines = @buildScreenLinesForRows(0, @buffer.getLastRow())
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
@@ -25,9 +25,9 @@ class TokenizedBuffer
     newRange = e.newRange.copy()
     previousState = @stateForRow(oldRange.end.row) # used in spill detection below
 
-    startState = @stateForRow(newRange.start.row - 1)
+    stack = @stateForRow(newRange.start.row - 1)
     @screenLines[oldRange.start.row..oldRange.end.row] =
-      @buildScreenLinesForRows(startState, newRange.start.row, newRange.end.row)
+      @buildScreenLinesForRows(newRange.start.row, newRange.end.row, stack)
 
     # spill detection
     # compare scanner state of last re-highlighted line with its previous state.
@@ -38,7 +38,7 @@ class TokenizedBuffer
       break if @stateForRow(row) == previousState
       nextRow = row + 1
       previousState = @stateForRow(nextRow)
-      @screenLines[nextRow] = @buildScreenLineForRow(@stateForRow(row), nextRow)
+      @screenLines[nextRow] = @buildScreenLineForRow(nextRow, @stateForRow(row))
 
     # if highlighting spilled beyond the bounds of the textual change, update
     # the pre and post range to reflect area of highlight changes
@@ -51,22 +51,22 @@ class TokenizedBuffer
 
     @trigger("change", {oldRange, newRange})
 
-  buildScreenLinesForRows: (startState, startRow, endRow) ->
-    state = startState
+  buildScreenLinesForRows: (startRow, endRow, startingStack) ->
+    stack = startingStack
     for row in [startRow..endRow]
-      screenLine = @buildScreenLineForRow(state, row)
-      state = screenLine.state
+      screenLine = @buildScreenLineForRow(row, stack)
+      stack = screenLine.stack
       screenLine
 
-  buildScreenLineForRow: (state, row) ->
+  buildScreenLineForRow: (row, stack) ->
     line = @buffer.lineForRow(row)
-    {tokens, state} = @languageMode.getLineTokens(line, state)
+    {tokens, stack} = @languageMode.getLineTokens(line, stack)
     tokenObjects = []
     for tokenProperties in tokens
       token = new Token(tokenProperties)
       tokenObjects.push(token.breakOutTabCharacters(@tabText)...)
     text = _.pluck(tokenObjects, 'value').join('')
-    new ScreenLine(tokenObjects, text, [1, 0], [1, 0], { state })
+    new ScreenLine(tokenObjects, text, [1, 0], [1, 0], { stack })
 
   lineForScreenRow: (row) ->
     @screenLines[row]
@@ -75,7 +75,7 @@ class TokenizedBuffer
     @screenLines[startRow..endRow]
 
   stateForRow: (row) ->
-    @screenLines[row]?.state ? 'start'
+    @screenLines[row]?.stack
 
   destroy: ->
     @buffer.off ".tokenized-buffer#{@id}"

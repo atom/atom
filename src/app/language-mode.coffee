@@ -1,5 +1,6 @@
 AceAdaptor = require 'ace-adaptor'
 Range = require 'range'
+TextMateGrammar = require 'text-mate-grammar'
 _ = require 'underscore'
 
 module.exports =
@@ -14,6 +15,7 @@ class LanguageMode
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @aceMode = @requireAceMode()
+    @grammar = TextMateGrammar.grammarForExtension(@editSession.buffer.getExtension())
     @aceAdaptor = new AceAdaptor(@editSession)
 
     _.adviseBefore @editSession, 'insertText', (text) =>
@@ -90,6 +92,6 @@ class LanguageMode
     state = @tokenizedBuffer.stateForRow(bufferRow)
     @aceMode.autoOutdent(state, @aceAdaptor, bufferRow)
 
-  getLineTokens: (line, state) ->
-    {tokens, state} = @aceMode.getTokenizer().getLineTokens(line, state)
+  getLineTokens: (line, stack) ->
+    {tokens, stack} = @grammar.getLineTokens(line, stack)
 
