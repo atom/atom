@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string># index created using: curl -s 'http://devguru.com/technologies/javascript/index.asp'|grep -o '&lt;a href="[0-9]*.asp"&gt;[a-z][a-zA-Z]*&lt;/a&gt;'|perl -pe 's/&lt;a href="([^"]*)"&gt;([^&lt;]*)&lt;\/a&gt;/$2\t$1/'|sort|uniq|gzip &gt;dev_guru_index.gz
+
+ref=$(zgrep -w "^${TM_SELECTED_TEXT:-$TM_CURRENT_WORD}" "$TM_BUNDLE_SUPPORT/dev_guru_index.gz"|cut -f2)
+
+[[ -n "$ref" ]] &amp;&amp; exit_show_html "&lt;meta http-equiv='Refresh' content='0;URL=http://devguru.com/technologies/javascript/$ref'&gt;"
+
+echo "No documentation found."</string>
+	<key>fallbackInput</key>
+	<string>word</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^h</string>
+	<key>name</key>
+	<string>Documentation for Word / Selection</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>source.js</string>
+	<key>uuid</key>
+	<string>B4874A14-2491-465A-A349-61E4EBCF4700</string>
+</dict>
+</plist>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env perl
+#
+# Written by John Gruber, taken with permission from:
+# http://daringfireball.net/2007/03/javascript_bookmarklet_builder
+
+use strict;
+use warnings;
+use URI::Escape qw(uri_escape_utf8);
+use open  IO  =&gt; ":utf8",       # UTF8 by default
+          ":std";               # Apply to STDIN/STDOUT/STDERR
+
+my $src = do { local $/; &lt;&gt; };
+
+# Zap the first line if there's already a bookmarklet comment:
+$src =~ s{^// ?javascript:.+\n}{};
+my $bookmarklet = $src;
+
+$bookmarklet =~ s{^\s*//.+\n}{}gm;  # Kill comments.
+$bookmarklet =~ s{\t}{ }gm;         # Tabs to spaces
+$bookmarklet =~ s{ +}{ }gm;         # Space runs to one space
+$bookmarklet =~ s{^\s+}{}gm;        # Kill line-leading whitespace
+$bookmarklet =~ s{\s+$}{}gm;        # Kill line-ending whitespace
+$bookmarklet =~ s{\n}{}gm;          # Kill newlines
+
+# Escape single- and double-quotes, spaces, control chars, unicode:
+$bookmarklet = "javascript:" .
+    uri_escape_utf8($bookmarklet, qq('" \x00-\x1f\x7f-\xff));
+
+print "// $bookmarklet\n" . $src;
+
+# Put bookmarklet on clipboard:
+`/bin/echo -n '$bookmarklet' | /usr/bin/pbcopy`;
+</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^H</string>
+	<key>name</key>
+	<string>Copy as Bookmarklet to Clipboard</string>
+	<key>output</key>
+	<string>replaceSelectedText</string>
+	<key>scope</key>
+	<string>source.js</string>
+	<key>uuid</key>
+	<string>20E61C43-B81F-4FB9-9362-BFFE668EB9C9</string>
+</dict>
+</plist>
