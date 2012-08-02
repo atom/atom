@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>ruby -pe'$_ = (rand * 100000000).round.to_s + "\t" + $_'|sort|cut -f2-</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>name</key>
+	<string>Randomize Lines in Document / Selection</string>
+	<key>output</key>
+	<string>replaceSelectedText</string>
+	<key>uuid</key>
+	<string>90291A6E-34F6-4FD5-BA82-6BB6FB4DD492</string>
+</dict>
+</plist>

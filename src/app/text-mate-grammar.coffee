@@ -26,7 +26,7 @@ class TextMateGrammar
       @grammarsByExtension[extension] = grammar
 
   @grammarForExtension: (extension) ->
-    @grammarsByExtension[extension]
+    @grammarsByExtension[extension] or @grammarsByExtension["txt"]
 
   name: null
   repository: null
