@@ -8,6 +8,7 @@ TextMateGrammar = require 'text-mate-grammar'
 module.exports =
 class TextMateBundle
   @grammarsByFileType: {}
+  @preferencesByScopeSelector: {}
   @bundles: []
 
   @loadAll: ->
@@ -17,6 +18,9 @@ class TextMateBundle
   @registerBundle: (bundle)->
     @bundles.push(bundle)
 
+    for scopeSelector, preferences of bundle.getPreferencesByScopeSelector()
+      @preferencesByScopeSelector[scopeSelector] = preferences
+
     for grammar in bundle.grammars
       for fileType in grammar.fileTypes
         @grammarsByFileType[fileType] = grammar
@@ -25,13 +29,33 @@ class TextMateBundle
     extension = fs.extension(fileName)[1...]
     @grammarsByFileType[extension] or @grammarsByFileType["txt"]
 
+  @getPreferenceForScopeSelector: (name, scopeSelector) ->
+    @preferencesByScopeSelector[scopeSelector][name]
+
   grammars: null
 
-  constructor: (bundlePath) ->
+  constructor: (@path) ->
     @grammars = []
-    syntaxesPath = fs.join(bundlePath, "Syntaxes")
-    if fs.exists(syntaxesPath)
-      for syntaxPath in fs.list(syntaxesPath)
+    if fs.exists(@getSyntaxesPath())
+      for syntaxPath in fs.list(@getSyntaxesPath())
         @grammars.push TextMateGrammar.loadFromPath(syntaxPath)
 
+  getPreferencesByScopeSelector: ->
+    return {} unless fs.exists(@getPreferencesPath())
+    preferencesByScopeSelector = {}
+    for preferencePath in fs.list(@getPreferencesPath())
+      plist.parseString fs.read(preferencePath), (e, data) ->
+        throw new Error(e) if e
+        { scope, settings } = data[0]
+
+        preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
+        console.log preferencesByScopeSelector
+
+    preferencesByScopeSelector
+
+  getSyntaxesPath: ->
+    fs.join(@path, "Syntaxes")
+
+  getPreferencesPath: ->
+    fs.join(@path, "Preferences")
 
