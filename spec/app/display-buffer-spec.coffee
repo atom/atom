@@ -105,8 +105,8 @@ describe "DisplayBuffer", ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual([[3, 0], [11, 45]])
-          expect(event.newRange).toEqual([[3, 0], [5, 45]])
+          expect(event.oldRange).toEqual([[3, 0], [9, 5]])
+          expect(event.newRange).toEqual([[3, 0], [3, 22]])
           expect(event.lineNumbersChanged).toBeTruthy()
 
     describe "position translation", ->
