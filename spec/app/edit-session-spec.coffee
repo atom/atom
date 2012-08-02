@@ -2,7 +2,7 @@ Project = require 'project'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-describe "EditSession", ->
+fdescribe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
   beforeEach ->
@@ -1106,6 +1106,28 @@ describe "EditSession", ->
             expect(buffer.lineForRow(0)).toMatch(tabRegex)
 
         describe "when auto-indent is on and there is no text after the cursor", ->
+          describe "when the preceding line opens a new level of indentation", ->
+            it "increases the level of indentation by one", ->
+              buffer.insert([5, 0], "  \n")
+              editSession.tabText = "  "
+              editSession.setCursorBufferPosition [5, 2]
+              editSession.setAutoIndent(true)
+              editSession.indent()
+              expect(buffer.lineForRow(5)).toMatch /^\s+$/
+              expect(buffer.lineForRow(5).length).toBe 6
+              expect(editSession.getCursorBufferPosition()).toEqual [5, 6]
+
+          describe "when there are empty lines preceding the current line", ->
+            it "bases indentation on the first non-blank preceding line", ->
+              buffer.insert([5, 0], "\n\n\n  \n")
+              editSession.tabText = "  "
+              editSession.setCursorBufferPosition [8, 2]
+              editSession.setAutoIndent(true)
+              editSession.indent()
+              expect(buffer.lineForRow(8)).toMatch /^\s+$/
+              expect(buffer.lineForRow(8).length).toBe 6
+              expect(editSession.getCursorBufferPosition()).toEqual [8, 6]
+
           it "properly indents the line", ->
             buffer.insert([7, 0], "  \n")
             editSession.tabText = "  "

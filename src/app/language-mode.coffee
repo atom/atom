@@ -73,21 +73,36 @@ class LanguageMode
       null
 
   indentationForRow: (row) ->
-    state = @tokenizedBuffer.stackForRow(row)
-    previousRowText = @buffer.lineForRow(row - 1)
-    @aceMode.getNextLineIndent(state, previousRowText, @editSession.tabText)
+    for precedingRow in [row - 1..-1]
+      return if precedingRow < 0
+      precedingLine = @editSession.buffer.lineForRow(precedingRow)
+      break if /\S/.test(precedingLine)
+
+    scopes = @tokenizedBuffer.scopesForPosition([precedingRow, Infinity])
+    indentation = precedingLine.match(/^\s*/)[0]
+    increaseIndentPattern = TextMateBundle.getPreferenceInScope(scopes[0], 'increaseIndentPattern')
+    decreaseIndentPattern = TextMateBundle.getPreferenceInScope(scopes[0], 'decreaseIndentPattern')
+
+    if new OnigRegExp(increaseIndentPattern).search(precedingLine)
+      indentation += @editSession.tabText
+
+    line = @editSession.buffer.lineForRow(row)
+    if new OnigRegExp(decreaseIndentPattern).search(line)
+      indentation = indentation.replace(@editSession.tabText, "")
+
+    indentation
 
   autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
     { row, column} = bufferPosition
-    state = @tokenizedBuffer.stackForRow(row)
+    stack = @tokenizedBuffer.stackForRow(row)
     lineBeforeCursor = @buffer.lineForRow(row)[0...column]
     if text[0] == "\n"
-      indent = @aceMode.getNextLineIndent(state, lineBeforeCursor, @editSession.tabText)
+      indent = @aceMode.getNextLineIndent(stack, lineBeforeCursor, @editSession.tabText)
       text = text[0] + indent + text[1..]
-    else if @aceMode.checkOutdent(state, lineBeforeCursor, text)
+    else if @aceMode.checkOutdent(stack, lineBeforeCursor, text)
       shouldOutdent = true
 
-    {text, shouldOutdent}
+    {text, shouldOutdent: false}
 
   autoOutdentBufferRow: (bufferRow) ->
     state = @tokenizedBuffer.stackForRow(bufferRow)

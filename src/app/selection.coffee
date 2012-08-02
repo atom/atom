@@ -126,14 +126,15 @@ class Selection
     @modifySelection => @cursor.moveToEndOfWord()
 
   insertText: (text) ->
-    { text, shouldOutdent } = @autoIndentText(text)
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
-    @autoOutdent() if shouldOutdent
+
+    if @editSession.autoIndent
+      @editSession.autoIndentRows(newBufferRange.start.row, newBufferRange.end.row)
 
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())

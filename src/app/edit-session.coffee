@@ -137,15 +137,11 @@ class EditSession
     @insertNewline()
 
   indent: ->
+    currentRow = @getCursorBufferPosition().row
     if @getSelection().isEmpty()
-      whitespaceMatch = @lineForBufferRow(@getCursorBufferPosition().row).match /^\s*$/
+      whitespaceMatch = @lineForBufferRow(currentRow).match /^\s*$/
       if @autoIndent and whitespaceMatch
-        indentation = @indentationForRow(@getCursorBufferPosition().row)
-        if indentation.length > whitespaceMatch[0].length
-          @getSelection().selectLine()
-          @insertText(indentation)
-        else
-          @insertText(@tabText)
+        @autoIndentRow(currentRow)
       else if @softTabs
         @insertText(@tabText)
       else
@@ -251,12 +247,14 @@ class EditSession
   indentationForRow: (row) ->
     @languageMode.indentationForRow(row)
 
-  autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
-    return { text } unless @autoIndent
-    @languageMode.autoIndentTextAfterBufferPosition(text, bufferPosition)
+  autoIndentRows: (startRow, endRow) ->
+    @autoIndentRow(row) for row in [startRow..endRow]
 
-  autoOutdentBufferRow: (bufferRow) ->
-    @languageMode.autoOutdentBufferRow(bufferRow)
+  autoIndentRow: (row) ->
+    actualIndentation = @lineForBufferRow(row).match(/^\s*/)[0]
+    desiredIndentation = @indentationForRow(row)
+    if actualIndentation != desiredIndentation
+      @buffer.change([[row, 0], [row, actualIndentation.length]], desiredIndentation)
 
   toggleLineCommentsInRange: (range) ->
     @languageMode.toggleLineCommentsInRange(range)

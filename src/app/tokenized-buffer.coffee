@@ -77,6 +77,11 @@ class TokenizedBuffer
   stackForRow: (row) ->
     @screenLines[row]?.stack
 
+  scopesForPosition: (position) ->
+    position = Point.fromObject(position)
+    token = @screenLines[position.row].tokenAtBufferColumn(position.column)
+    token.scopes
+
   destroy: ->
     @buffer.off ".tokenized-buffer#{@id}"
 

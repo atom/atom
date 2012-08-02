@@ -41,6 +41,13 @@ class ScreenLine
     rightFragment = new ScreenLine(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@stack})
     [leftFragment, rightFragment]
 
+  tokenAtBufferColumn: (bufferColumn) ->
+    delta = 0
+    for token in @tokens
+      delta += token.bufferDelta
+      return token if delta >= bufferColumn
+    token
+
   concat: (other) ->
     tokens = @tokens.concat(other.tokens)
     text = @text + other.text
