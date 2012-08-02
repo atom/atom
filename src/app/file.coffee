@@ -17,7 +17,7 @@ class File
   getPath: ->
     @path
 
-  getName: ->
+  getBaseName: ->
     fs.base(@path)
 
   updateMd5: ->

@@ -72,6 +72,9 @@ class Buffer
     @modified = false
     @modifiedOnDisk = false
 
+  getBaseName: ->
+    @file?.getBaseName()
+
   getPath: ->
     @file?.getPath()
 

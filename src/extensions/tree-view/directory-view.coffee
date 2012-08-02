@@ -9,7 +9,7 @@ class DirectoryView extends View
     @li class: 'directory entry', =>
       @div outlet: 'header', class: 'header', =>
         @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow'
-        @span directory.getName(), class: 'name'
+        @span directory.getBaseName(), class: 'name'
 
   directory: null
   entries: null
@@ -72,7 +72,7 @@ class DirectoryView extends View
     entryStates = {}
     @entries?.find('> .directory.expanded').each ->
       view = $(this).view()
-      entryStates[view.directory.getName()] = view.serializeEntryExpansionStates()
+      entryStates[view.directory.getBaseName()] = view.serializeEntryExpansionStates()
     entryStates
 
   deserializeEntryExpansionStates: (entryStates) ->

@@ -4,7 +4,7 @@ $ = require 'jquery'
 module.exports =
 class FileView extends View
   @content: (file) ->
-    @li file.getName(), class: 'file entry'
+    @li file.getBaseName(), class: 'file entry'
 
   file: null
 
