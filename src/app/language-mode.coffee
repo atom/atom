@@ -1,6 +1,6 @@
 AceAdaptor = require 'ace-adaptor'
 Range = require 'range'
-TextMateGrammar = require 'text-mate-grammar'
+TextMateBundle = require 'text-mate-bundle'
 _ = require 'underscore'
 
 module.exports =
@@ -15,7 +15,8 @@ class LanguageMode
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @aceMode = @requireAceMode()
-    @grammar = TextMateGrammar.grammarForExtension(@editSession.buffer.getExtension())
+
+    @grammar = TextMateBundle.grammarForFileName(@editSession.buffer.getBaseName())
     @aceAdaptor = new AceAdaptor(@editSession)
 
     _.adviseBefore @editSession, 'insertText', (text) =>

@@ -2,7 +2,7 @@
 # the DOM window.
 
 Native = require 'native'
-TextMateGrammar = require 'text-mate-grammar'
+TextMateBundle = require 'text-mate-bundle'
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
@@ -31,7 +31,7 @@ windowAdditions =
       false
     $(window).focus()
     atom.windowOpened this
-    TextMateGrammar.loadFromBundles()
+    TextMateBundle.loadAll()
 
   shutdown: ->
     @rootView.deactivate()

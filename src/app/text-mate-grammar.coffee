@@ -4,36 +4,18 @@ plist = require 'plist'
 
 module.exports =
 class TextMateGrammar
-  @grammarsByExtension: {}
-
-  @loadFromBundles: ->
-    for bundlePath in fs.list(require.resolve("bundles"))
-      syntaxesPath = fs.join(bundlePath, "Syntaxes")
-      continue unless fs.exists(syntaxesPath)
-      for path in fs.list(syntaxesPath)
-        grammar = @loadGrammarFromPath(path)
-        @registerGrammar(grammar)
-
-  @loadGrammarFromPath: (path) ->
+  @loadFromPath: (path) ->
     grammar = null
     plist.parseString fs.read(path), (e, data) ->
       throw new Error(e) if e
       grammar = new TextMateGrammar(data[0])
     grammar
 
-  @registerGrammar: (grammar) ->
-    for extension in grammar.extensions
-      @grammarsByExtension[extension] = grammar
-
-  @grammarForExtension: (extension) ->
-    @grammarsByExtension[extension] or @grammarsByExtension["txt"]
-
   name: null
   repository: null
   initialRule: null
 
-  constructor: ({ @name, fileTypes, scopeName, patterns, repository }) ->
-    @extensions = fileTypes
+  constructor: ({ @name, @fileTypes, scopeName, patterns, repository }) ->
     @initialRule = new Rule(this, {scopeName, patterns})
     @repository = {}
     for name, data of repository

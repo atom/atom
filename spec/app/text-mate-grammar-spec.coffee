@@ -1,4 +1,5 @@
 TextMateGrammar = require 'text-mate-grammar'
+TextMateBundle = require 'text-mate-bundle'
 plist = require 'plist'
 fs = require 'fs'
 _ = require 'underscore'
@@ -8,17 +9,7 @@ describe "TextMateGrammar", ->
 
   beforeEach ->
     coffeePlist = fs.read(require.resolve 'CoffeeScriptBundle.tmbundle/Syntaxes/CoffeeScript.tmLanguage')
-    plist.parseString coffeePlist, (err, data) ->
-      grammar = new TextMateGrammar(data[0])
-
-  describe ".loadFromBundles()", ->
-    it "creates grammars for all plist files in all bundles' Syntaxes directories", ->
-      TextMateGrammar.loadFromBundles()
-      coffeeGrammar = TextMateGrammar.grammarForExtension("coffee")
-      rubyGrammar = TextMateGrammar.grammarForExtension("rb")
-
-      expect(coffeeGrammar.name).toBe "CoffeeScript"
-      expect(rubyGrammar.name).toBe "Ruby"
+    grammar = TextMateBundle.grammarForFileName("hello.coffee")
 
   describe ".getLineTokens(line, currentRule)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
