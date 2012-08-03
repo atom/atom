@@ -68,6 +68,20 @@ describe "TextMateGrammar", ->
         expect(secondTokens[0]).toEqual value: "heredoc", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
         expect(secondTokens[1]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.end.coffee']
 
+    describe "when the line matches a pattern with optional capture groups", ->
+      it "only returns tokens for capture groups that matched", ->
+        {tokens} = grammar.getLineTokens("class Quicksort")
+        expect(tokens.length).toBe 3
+        expect(token[0].value).toBe "class"
+        expect(token[1].value).toBe " "
+        expect(token[2].value).toBe "Quicksort"
+
+    describe "something", ->
+      fit "works", ->
+        {tokens} = grammar.getLineTokens("  destroy: ->")
+        expect(tokens.length).toBe 5
+
+
    describe "when the line matches a begin/end pattern that contains sub-patterns", ->
      it "returns tokens within the begin/end scope based on the sub-patterns", ->
        {tokens} = grammar.getLineTokens('"""heredoc with character escape \\t"""')

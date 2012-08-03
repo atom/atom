@@ -137,8 +137,10 @@ class Pattern
     previousCaptureEndPosition = 0
 
     for captureIndex in _.keys(@captures)
-      currentCaptureStartPosition = match.indices[captureIndex] - match.index
       currentCaptureText = match[captureIndex]
+      continue unless currentCaptureText.length
+
+      currentCaptureStartPosition = match.indices[captureIndex] - match.index
       currentCaptureScopeName = @captures[captureIndex].name
 
       if previousCaptureEndPosition < currentCaptureStartPosition

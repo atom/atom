@@ -145,4 +145,9 @@ class TokenizedBuffer
             stop()
     position
 
+  logLines: (start=0, end=@buffer.getLastRow()) ->
+    for row in [start..end]
+      line = @lineForScreenRow(row).text
+      console.log row, line, line.length
+
 _.extend(TokenizedBuffer.prototype, EventEmitter)
