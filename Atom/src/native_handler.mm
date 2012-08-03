@@ -526,9 +526,7 @@ bool NativeHandler::Execute(const CefString& name,
     return true;
   }
   else if (name == "getPlatform") {
-    NSString *platform = @"mac";
-    retval = CefV8Value::CreateString([platform UTF8String]);
-
+    retval = CefV8Value::CreateString("mac");
     return true;
   }
   return false;
