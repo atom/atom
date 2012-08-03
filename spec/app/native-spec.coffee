@@ -1,5 +1,4 @@
 describe 'Native', ->
-
   describe '$native.getPlatform()', ->
     it 'returns a non-empty value', ->
       platform = $native.getPlatform()
