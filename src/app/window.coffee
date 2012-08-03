@@ -11,6 +11,7 @@ windowAdditions =
   rootViewParentSelector: 'body'
   rootView: null
   keymap: null
+  platform: $native.getPlatform()
 
   setUpKeymap: ->
     Keymap = require 'keymap'
