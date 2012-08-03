@@ -55,8 +55,8 @@ windowAdditions =
     $(@rootViewParentSelector).append @rootView
 
   requireStylesheet: (path) ->
-    fullPath = require.resolve(path)
-    return unless fs.isFile(fullPath)
+    unless fullPath = require.resolve(path)
+      throw new Error("requireStylesheet could not find a file at path '#{path}'")
     window.applyStylesheet(fullPath, fs.read(fullPath))
 
   applyStylesheet: (id, text) ->
@@ -107,4 +107,6 @@ require 'underscore-extensions'
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
-requireStylesheet "#{$native.getPlatform()}.css"
+
+if nativeStylesheetPath = require.resolve("#{platform}.css")
+  requireStylesheet(nativeStylesheetPath)
