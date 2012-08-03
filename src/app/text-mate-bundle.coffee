@@ -26,7 +26,7 @@ class TextMateBundle
         @grammarsByFileType[fileType] = grammar
 
   @grammarForFileName: (fileName) ->
-    extension = fs.extension(fileName)[1...]
+    extension = fs.extension(fileName)?[1...]
     @grammarsByFileType[extension] or @grammarsByFileType["txt"]
 
   @getPreferenceInScope: (scopeSelector, preferenceName) ->

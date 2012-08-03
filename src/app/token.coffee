@@ -32,3 +32,15 @@ class Token
 
   buildTabToken: (tabText) ->
     new Token(value: tabText, scopes: @scopes, bufferDelta: 1, isAtomic: true)
+
+  getCssClassString: ->
+    @cssClassString ?= @getCssClasses().join(' ')
+
+  getCssClasses: ->
+    classes = []
+    for scope in @scopes
+      scopeComponents = scope.split('.')
+      for i in [0...scopeComponents.length]
+        classes.push scopeComponents[0..i].join('-')
+    classes
+

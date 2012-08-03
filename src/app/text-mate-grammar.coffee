@@ -98,8 +98,8 @@ class Pattern
   regex: null
   captures: null
 
-  constructor: (@grammar, { name, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule}) ->
-    @scopeName = name
+  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule}) ->
+    @scopeName = name ? contentName # TODO: We need special treatment of contentName
     if match
       @regex = new OnigRegExp(match)
       @captures = captures

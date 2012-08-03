@@ -29,7 +29,7 @@ class EditSession
   anchorRanges: null
   cursors: null
   selections: null
-  autoIndent: true
+  autoIndent: false # TODO: re-enabled auto-indent after fixing the rest of tokenization
   softTabs: true
   softWrap: false
 
@@ -139,10 +139,7 @@ class EditSession
   indent: ->
     currentRow = @getCursorBufferPosition().row
     if @getSelection().isEmpty()
-      whitespaceMatch = @lineForBufferRow(currentRow).match /^\s*$/
-      if @autoIndent and whitespaceMatch
-        @autoIndentRow(currentRow)
-      else if @softTabs
+      if @softTabs
         @insertText(@tabText)
       else
         @insertText('\t')

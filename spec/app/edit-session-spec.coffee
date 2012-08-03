@@ -2,7 +2,7 @@ Project = require 'project'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'
 
-fdescribe "EditSession", ->
+describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
   beforeEach ->
@@ -656,13 +656,13 @@ fdescribe "EditSession", ->
           editSession.insertText('holy cow')
           expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
 
-      describe "when auto-indent is enabled", ->
+      xdescribe "when auto-indent is enabled", ->
         beforeEach ->
           editSession.setAutoIndent(true)
 
         describe "when editing a non-wrapped line", ->
           describe "when a newline is inserted", ->
-            it "auto-indents the newline for each cursor", ->
+            it "auto-indents the new line for each cursor", ->
               editSession.setCursorScreenPosition([1, 30])
               editSession.addCursorAtScreenPosition([4, 29])
               editSession.insertText("\n")
@@ -683,6 +683,14 @@ fdescribe "EditSession", ->
               editSession.insertText("}")
               expect(buffer.lineForRow(2)).toEqual("  }")
               expect(editSession.getCursorBufferPosition().column).toBe 3
+
+          describe "when the line is already indented beyond the suggested depth", ->
+            describe "when text without a newline is inserted", ->
+              it "does not modify the line's indentation level", ->
+
+            describe "when text with a newline is inserted", ->
+              it "only modifies the indentation level of subsequent lines, but not the current line", ->
+
 
         describe "when editing a wrapped line", ->
           beforeEach ->
@@ -772,7 +780,7 @@ fdescribe "EditSession", ->
             expect(cursor2.getBufferPosition()).toEqual [8,0]
 
     describe ".insertNewlineBelow()", ->
-      it "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
+      xit "inserts a newline below the cursor's current line, autoindents it, and moves the cursor to the end of the line", ->
         editSession.setAutoIndent(true)
         editSession.insertNewlineBelow()
         expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
@@ -1105,7 +1113,7 @@ fdescribe "EditSession", ->
             editSession.indent()
             expect(buffer.lineForRow(0)).toMatch(tabRegex)
 
-        describe "when auto-indent is on and there is no text after the cursor", ->
+        xdescribe "when auto-indent is on and the line only contains whitespace", ->
           describe "when the preceding line opens a new level of indentation", ->
             it "increases the level of indentation by one", ->
               buffer.insert([5, 0], "  \n")

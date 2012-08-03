@@ -24,6 +24,7 @@ windowAdditions =
     $(document).on 'keydown', @_handleKeyEvent
 
   startup: (path) ->
+    TextMateBundle.loadAll()
     @attachRootView(path)
     $(window).on 'close', => @close()
     $(window).on 'beforeunload', =>
@@ -31,7 +32,6 @@ windowAdditions =
       false
     $(window).focus()
     atom.windowOpened this
-    TextMateBundle.loadAll()
 
   shutdown: ->
     @rootView.deactivate()

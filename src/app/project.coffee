@@ -10,21 +10,18 @@ ChildProcess = require 'child-process'
 
 module.exports =
 class Project
+  tabText: '  '
+  autoIndent: false
+  softTabs: true
+  softWrap: false
   rootDirectory: null
   editSessions: null
-  tabText: null
-  autoIndent: null
-  softTabs: null
-  softWrap: null
   ignoredPathRegexes: null
 
   constructor: (path) ->
     @setPath(path)
     @editSessions = []
     @buffers = []
-    @setTabText('  ')
-    @setAutoIndent(true)
-    @setSoftTabs(true)
     @ignoredPathRegexes = [
       /\.DS_Store$/
       /(^|\/)\.git(\/|$)/
