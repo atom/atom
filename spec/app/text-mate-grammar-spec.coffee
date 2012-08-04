@@ -127,3 +127,35 @@ describe "TextMateGrammar", ->
         expect(tokens[6]).toEqual value: '"',  scopes: ["source.coffee","string.quoted.double.coffee","source.coffee.embedded.source","string.quoted.double.coffee","punctuation.definition.string.end.coffee"]
         expect(tokens[7]).toEqual value: '}',  scopes: ["source.coffee","string.quoted.double.coffee","source.coffee.embedded.source","punctuation.section.embedded.coffee"]
         expect(tokens[8]).toEqual value: '"',  scopes: ["source.coffee","string.quoted.double.coffee","punctuation.definition.string.end.coffee"]
+
+  describe "@buildCaptureTree(captures, startPositions)", ->
+    it "converts a match array into a tree based on the nesting of its capture groups", ->
+      # The example has multiple nested capture groups, w/ one lookahead group on the end -- [ij] -- that
+      # is not included as part of the overall match and therefore excluded from the tree
+      # (a((bc)d)e(f(g)(h))[ij]
+      match = ["abcdefgh", "bcd", "bc", "fgh", "g", "h", "ij"]
+      startPositions = [0, 1, 1, 5, 6, 7, 8]
+
+      tree = TextMateGrammar.buildCaptureTree(match, startPositions)
+      expect(tree).toEqual
+        text: "abcdefgh"
+        index: 0
+        position: 0
+        captures: [
+          {
+            text: "bcd"
+            index: 1
+            position: 1
+            captures: [{ text: "bc", index: 2, position: 1 }]
+          },
+          {
+            text: "fgh"
+            index: 3
+            position: 5
+            captures: [
+              { text: "g", index: 4, position: 6 }
+              { text: "h", index: 5, position: 7 }
+            ]
+          }
+        ]
+
