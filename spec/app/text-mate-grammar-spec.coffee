@@ -76,11 +76,14 @@ describe "TextMateGrammar", ->
         expect(token[1].value).toBe " "
         expect(token[2].value).toBe "Quicksort"
 
-    describe "something", ->
-      fit "works", ->
+    describe "when the line matches a rule with nested capture groups and lookahead capture groups beyond the scope of the overall match", ->
+      fit "creates distinct tokens for nested captures and does not return tokens beyond the scope of the overall capture", ->
         {tokens} = grammar.getLineTokens("  destroy: ->")
-        expect(tokens.length).toBe 5
 
+        for token in tokens
+          console.log token.value, token.scopes.join(' ')
+
+        expect(tokens.length).toBe 5
 
    describe "when the line matches a begin/end pattern that contains sub-patterns", ->
      it "returns tokens within the begin/end scope based on the sub-patterns", ->
