@@ -17,10 +17,12 @@ nakedLoad = (file) ->
   code = __read file
   window.eval(code + "\n//@ sourceURL=" + file)
 
-require = (file, cb) ->
-  return cb require file if cb?
+require = (path, cb) ->
+  return cb require path if cb?
 
-  file  = resolve file
+  unless file = resolve(path)
+    throw new Error("Require can't find file at path '#{path}'")
+
   parts = file.split '.'
   ext   = parts[parts.length-1]
 
@@ -86,10 +88,10 @@ resolve = (file) ->
   else
     file = __expand(file) or file
 
-  if file[0] isnt '/'
-    throw "require: Can't find '#{file}'"
-
-  return file
+  if file[0] == '/'
+    file
+  else
+    null
 
 __expand = (path) ->
   return path if __isFile path
