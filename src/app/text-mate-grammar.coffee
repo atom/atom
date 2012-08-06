@@ -70,11 +70,10 @@ class Rule
     { match, pattern } = @getNextMatch(line, position)
     return {} unless match
 
-    tokens = pattern.handleMatch(stack, match)
+    nextTokens = pattern.handleMatch(stack, match)
+    tokensStartPosition = match.position
+    tokensEndPosition = tokensStartPosition + match.text.length
 
-    nextTokens = tokens
-    tokensStartPosition = match.index
-    tokensEndPosition = tokensStartPosition + match[0].length
     { nextTokens, tokensStartPosition, tokensEndPosition }
 
   getNextMatch: (line, position) ->
@@ -84,7 +83,7 @@ class Rule
     for pattern in @patterns
       { pattern, match } = pattern.getNextMatch(line, position)
       if match
-        if !nextMatch or match.index < nextMatch.index
+        if !nextMatch or match.position < nextMatch.position
           nextMatch = match
           matchedPattern = pattern
 
@@ -114,16 +113,16 @@ class Pattern
       rule = @grammar.ruleForInclude(@include)
       rule.getNextMatch(line, position)
     else
-      { match: @regex.search(line, position), pattern: this }
+      { match: @regex.getCaptureTree(line, position), pattern: this }
 
   handleMatch: (stack, match) ->
     scopes = _.pluck(stack, "scopeName")
     scopes.push(@scopeName) unless @popRule
 
     if @captures
-      tokens = @getTokensForMatchWithCaptures(match, scopes)
+      tokens = @getTokensForCaptureTree(match, scopes)
     else
-      tokens = [{ value: match[0], scopes: scopes }]
+      tokens = [{ value: match.text, scopes: scopes }]
 
     if @pushRule
       stack.push(@pushRule)
@@ -132,35 +131,29 @@ class Pattern
 
     tokens
 
-  getTokensForMatchWithCaptures: (match, scopes) ->
+  getTokensForCaptureTree: (tree, scopes) ->
     tokens = []
+    if scope = @captures[tree.index]?.name
+      scopes = scopes.concat(scope)
+
     previousCaptureEndPosition = 0
+    if tree.captures
+      for capture in tree.captures
+        continue unless capture.text.length
 
-    console.log match
-    console.log match.indices
-    console.log @captures
+        currentCaptureStartPosition = capture.position - tree.position
+        if previousCaptureEndPosition < currentCaptureStartPosition
+          tokens.push
+            value: tree.text[previousCaptureEndPosition...currentCaptureStartPosition]
+            scopes: scopes
 
-    for captureIndex in _.keys(@captures)
-      currentCaptureText = match[captureIndex]
-      continue unless currentCaptureText.length
+        captureTokens = @getTokensForCaptureTree(capture, scopes)
+        tokens.push(captureTokens...)
+        previousCaptureEndPosition = currentCaptureStartPosition + capture.text.length
 
-      currentCaptureStartPosition = match.indices[captureIndex] - match.index
-      currentCaptureScopeName = @captures[captureIndex].name
-
-      if previousCaptureEndPosition < currentCaptureStartPosition
-        tokens.push
-          value: match[0][previousCaptureEndPosition...currentCaptureStartPosition]
-          scopes: scopes
-
+    if previousCaptureEndPosition < tree.text.length
       tokens.push
-        value: currentCaptureText
-        scopes: scopes.concat(currentCaptureScopeName)
-
-      previousCaptureEndPosition = currentCaptureStartPosition + currentCaptureText.length
-
-    if previousCaptureEndPosition < match[0].length
-      tokens.push
-        value: match[0][previousCaptureEndPosition...match[0].length]
+        value: tree.text[previousCaptureEndPosition...tree.text.length]
         scopes: scopes
 
     tokens

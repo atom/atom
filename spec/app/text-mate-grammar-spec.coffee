@@ -72,18 +72,21 @@ describe "TextMateGrammar", ->
       it "only returns tokens for capture groups that matched", ->
         {tokens} = grammar.getLineTokens("class Quicksort")
         expect(tokens.length).toBe 3
-        expect(token[0].value).toBe "class"
-        expect(token[1].value).toBe " "
-        expect(token[2].value).toBe "Quicksort"
+        expect(tokens[0].value).toBe "class"
+        expect(tokens[1].value).toBe " "
+        expect(tokens[2].value).toBe "Quicksort"
 
     describe "when the line matches a rule with nested capture groups and lookahead capture groups beyond the scope of the overall match", ->
-      fit "creates distinct tokens for nested captures and does not return tokens beyond the scope of the overall capture", ->
+      it "creates distinct tokens for nested captures and does not return tokens beyond the scope of the overall capture", ->
         {tokens} = grammar.getLineTokens("  destroy: ->")
-
-        for token in tokens
-          console.log token.value, token.scopes.join(' ')
-
-        expect(tokens.length).toBe 5
+        expect(tokens.length).toBe 6
+        expect(tokens[0]).toEqual(value: '  ', scopes: ["source.coffee", "meta.function.coffee"])
+        expect(tokens[1]).toEqual(value: 'destro', scopes: ["source.coffee", "meta.function.coffee", "entity.name.function.coffee"])
+        # this dangling 'y' with a duplicated scope looks wrong, but textmate yields the same behavior. probably a quirk in the coffee grammar.
+        expect(tokens[2]).toEqual(value: 'y', scopes: ["source.coffee", "meta.function.coffee", "entity.name.function.coffee", "entity.name.function.coffee"])
+        expect(tokens[3]).toEqual(value: ':', scopes: ["source.coffee", "keyword.operator.coffee"])
+        expect(tokens[4]).toEqual(value: ' ', scopes: ["source.coffee"])
+        expect(tokens[5]).toEqual(value: '->', scopes: ["source.coffee", "storage.type.function.coffee"])
 
    describe "when the line matches a begin/end pattern that contains sub-patterns", ->
      it "returns tokens within the begin/end scope based on the sub-patterns", ->
