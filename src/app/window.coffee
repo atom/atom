@@ -7,6 +7,7 @@ fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
+require 'onig-reg-exp'
 
 windowAdditions =
   rootViewParentSelector: 'body'

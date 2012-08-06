@@ -54,22 +54,6 @@ class TextMateGrammar
     else if name == "$self"
       @initialRule
 
-  @buildCaptureTree: (captures, startPositions, totalCaptures=captures.length) ->
-    index = totalCaptures - captures.length
-    text = captures.shift()
-    startPosition = startPositions.shift()
-    endPosition = startPosition + text.length
-
-    tree = { index, text, position: startPosition }
-
-    childCaptures = []
-    while startPositions[0] < endPosition
-      childCaptures.push(@buildCaptureTree(captures, startPositions, totalCaptures))
-
-    tree.captures = childCaptures if childCaptures.length
-    tree
-
-
 class Rule
   grammar: null
   scopeName: null
