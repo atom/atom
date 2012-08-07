@@ -37,6 +37,39 @@ public:
     return resultArray;
   }
   
+  CefRefPtr<CefV8Value> GetCaptureTree(CefRefPtr<CefV8Value> string, CefRefPtr<CefV8Value> index) {    
+    OnigResult *result = [m_regex search:stringFromCefV8Value(string) start:index->GetIntValue()];
+    if ([result count] == 0) return CefV8Value::CreateNull();    
+    return BuildCaptureTree(result);
+  }
+
+  CefRefPtr<CefV8Value> BuildCaptureTree(OnigResult *result) {
+    int currentIndex = 0;
+    return BuildCaptureTree(result, currentIndex);
+  }
+  
+  CefRefPtr<CefV8Value> BuildCaptureTree(OnigResult *result, int &currentIndex) {
+    int index = currentIndex++;
+    NSString *text = [result stringAt:index];
+    int startPosition = [result locationAt:index];
+    int endPosition = startPosition + [text length];
+    
+    CefRefPtr<CefV8Value> childCaptures;
+    
+    while (currentIndex < [result count] && [result locationAt:currentIndex] < endPosition) {
+      if ([result lengthAt:currentIndex] == 0) continue;        
+      if (!childCaptures.get()) childCaptures = CefV8Value::CreateArray();
+      childCaptures->SetValue(childCaptures->GetArrayLength(), BuildCaptureTree(result));
+    }
+    
+    CefRefPtr<CefV8Value> tree = CefV8Value::CreateObject(NULL, NULL);
+    tree->SetValue("index", CefV8Value::CreateInt(index), V8_PROPERTY_ATTRIBUTE_NONE);
+    tree->SetValue("text", CefV8Value::CreateString([text UTF8String]), V8_PROPERTY_ATTRIBUTE_NONE);
+    tree->SetValue("position", CefV8Value::CreateInt(startPosition), V8_PROPERTY_ATTRIBUTE_NONE);
+    if (childCaptures.get()) tree->SetValue("captures", childCaptures, V8_PROPERTY_ATTRIBUTE_NONE);
+    return tree;
+  }
+  
   CefRefPtr<CefV8Value> CaptureCount() {
     return CefV8Value::CreateInt([m_regex captureCount]);
   }
