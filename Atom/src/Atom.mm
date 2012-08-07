@@ -94,8 +94,7 @@
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  CefRefPtr<CefV8Handler> nativeHandler = new NativeHandler();
-  
+  new NativeHandler();
   new OnigRegexpExtension();
   
   [self createAtomContext];
