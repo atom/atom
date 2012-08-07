@@ -1,7 +1,7 @@
-Buffer = require 'buffer'
-fs = require 'fs'
 require 'benchmark-helper'
+fs = require 'fs'
 $ = require 'jquery'
+TokenizedBuffer = require 'tokenized-buffer'
 
 describe "editor.", ->
   editor = null
@@ -79,3 +79,15 @@ describe "editor.", ->
         benchmark "move-to-beginning-of-word", ->
           editor.moveCursorToBeginningOfWord()
           editor.setCursorScreenPosition(endPosition)
+
+describe "TokenizedBuffer.", ->
+  describe "coffee-script-grammar.", ->
+    [languageMode, buffer] = []
+
+    beforeEach ->
+      editSession = benchmarkFixturesProject.buildEditSessionForPath('medium.coffee')
+      { languageMode, buffer } = editSession
+
+    pfbenchmark "construction", 5, ->
+      new TokenizedBuffer(buffer, { languageMode, tabText: '  '})
+
