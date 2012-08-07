@@ -13,7 +13,7 @@ describe "TextMateGrammar", ->
 
   describe ".getLineTokens(line, currentRule)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
-      it "returns a single token with the correct scope", ->
+      fit "returns a single token with the correct scope", ->
         {tokens} = grammar.getLineTokens("return")
 
         expect(tokens.length).toBe 1
@@ -21,7 +21,7 @@ describe "TextMateGrammar", ->
         expect(token.scopes).toEqual ['source.coffee', 'keyword.control.coffee']
 
     describe "when the entire line matches a single pattern with capture groups", ->
-      it "returns a single token with the correct scope", ->
+      fit "returns a single token with the correct scope", ->
         {tokens} = grammar.getLineTokens("new foo.bar.Baz")
 
         expect(tokens.length).toBe 3
@@ -31,7 +31,7 @@ describe "TextMateGrammar", ->
         expect(className).toEqual value: 'foo.bar.Baz', scopes: ['source.coffee', 'meta.class.instance.constructor', 'entity.name.type.instance.coffee']
 
     describe "when the line matches multiple patterns", ->
-      it "returns multiple tokens, filling in regions that don't match patterns with tokens in the grammar's global scope", ->
+      fit "returns multiple tokens, filling in regions that don't match patterns with tokens in the grammar's global scope", ->
         {tokens} = grammar.getLineTokens(" return new foo.bar.Baz ")
 
         expect(tokens.length).toBe 7

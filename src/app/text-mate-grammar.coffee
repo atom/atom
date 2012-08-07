@@ -21,6 +21,9 @@ class TextMateGrammar
     for name, data of repository
       @repository[name] = new Rule(this, data)
 
+    for rule in [@initialRule, _.values(@repository)...]
+      rule.compileRegex()
+
   getLineTokens: (line, stack=[@initialRule]) ->
     stack = new Array(stack...)
     tokens = []
@@ -66,15 +69,39 @@ class Rule
     @patterns.push(@endPattern) if @endPattern
     @patterns.push((patterns.map (pattern) => new Pattern(grammar, pattern))...)
 
-  getNextTokens: (stack, line, position) ->
-    { match, pattern } = @getNextMatch(line, position)
-    return {} unless match
+  compileRegex: ->
+    regexComponents = []
+    @patternsByCaptureIndex = {}
+    currentCaptureIndex = 1
+    for [regex, pattern] in @getRegexPatternPairs()
+      regexComponents.push(regex.source)
+      @patternsByCaptureIndex[currentCaptureIndex] = pattern
+      currentCaptureIndex += 1 + regex.getCaptureCount()
+    @regex = new OnigRegExp('(' + regexComponents.join(')|(') + ')')
 
+  getRegexPatternPairs: (included=[]) ->
+    return [] if _.include(included, this)
+    included.push(this)
+    regexPatternPairs = []
+    for pattern in @patterns
+      regexPatternPairs.push(pattern.getRegexPatternPairs(included)...)
+    regexPatternPairs
+
+  getNextTokens: (stack, line, position) ->
+    return {} unless tree = @regex.getCaptureTree(line, position)
+    match = tree.captures[0]
+    pattern = @patternsByCaptureIndex[match.index]
+    @adjustCaptureTreeIndices(match, match.index)
     nextTokens = pattern.handleMatch(stack, match)
     tokensStartPosition = match.position
     tokensEndPosition = tokensStartPosition + match.text.length
 
     { nextTokens, tokensStartPosition, tokensEndPosition }
+
+  adjustCaptureTreeIndices: (tree, startIndex) ->
+    tree.index -= startIndex
+    for capture in tree.captures ? []
+      @adjustCaptureTreeIndices(capture, startIndex)
 
   getNextMatch: (line, position) ->
     nextMatch = null
@@ -107,6 +134,12 @@ class Pattern
       @captures = beginCaptures ? captures
       endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
       @pushRule = new Rule(@grammar, { @scopeName, patterns, endPattern })
+
+  getRegexPatternPairs: (included) ->
+    if @include
+      @grammar.ruleForInclude(@include).getRegexPatternPairs(included)
+    else
+      [[@regex, this]]
 
   getNextMatch: (line, position) ->
     if @include
