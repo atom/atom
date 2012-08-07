@@ -40,5 +40,5 @@ describe "OnigRegExp", ->
 
     it "returns undefined if there was no match", ->
       regex = new OnigRegExp('x')
-      expect(regex.getCaptureTree('y')).toBeUndefined()
+      expect(regex.getCaptureTree('y')).toBeNull()
 
