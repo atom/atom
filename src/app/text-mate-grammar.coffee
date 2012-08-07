@@ -79,10 +79,14 @@ class Rule
       currentCaptureIndex += 1 + regex.getCaptureCount()
     @regex = new OnigRegExp('(' + regexComponents.join(')|(') + ')')
 
+    pattern.compileRegex() for pattern in @patterns
+
   getRegexPatternPairs: (included=[]) ->
     return [] if _.include(included, this)
     included.push(this)
     regexPatternPairs = []
+
+    regexPatternPairs.push(@endPattern.getRegexPatternPairs()...) if @endPattern
     for pattern in @patterns
       regexPatternPairs.push(pattern.getRegexPatternPairs(included)...)
     regexPatternPairs
@@ -137,9 +141,14 @@ class Pattern
 
   getRegexPatternPairs: (included) ->
     if @include
-      @grammar.ruleForInclude(@include).getRegexPatternPairs(included)
+      rule = @grammar.ruleForInclude(@include)
+      console.log "Could not find rule for include #{@include} in #{@grammar.name} grammar" unless rule
+      rule?.getRegexPatternPairs(included) ? []
     else
       [[@regex, this]]
+
+  compileRegex: ->
+    @pushRule?.compileRegex()
 
   getNextMatch: (line, position) ->
     if @include
@@ -172,7 +181,7 @@ class Pattern
     previousCaptureEndPosition = 0
     if tree.captures
       for capture in tree.captures
-        continue unless capture.text.length
+        continue unless capture.text.length # TODO: This can be removed since the tree will have no empty captures
 
         currentCaptureStartPosition = capture.position - tree.position
         if previousCaptureEndPosition < currentCaptureStartPosition
