@@ -9,7 +9,8 @@ OnigRegExp.prototype.getCaptureTree = (string, startPosition) ->
 
     childCaptures = []
     while startPositions[0] < endPosition
-      childCaptures.push(buildCaptureTree(captures, startPositions, totalCaptures))
+      subtree = buildCaptureTree(captures, startPositions, totalCaptures)
+      childCaptures.push(subtree) if subtree.text.length
 
     tree.captures = childCaptures if childCaptures.length
     tree
