@@ -77,6 +77,7 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
     end
 
     sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec #{dest}/benchmark"
+    cp_r "bundles", "#{dest}/bundles"
   end
 end
 
