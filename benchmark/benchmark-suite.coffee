@@ -2,6 +2,7 @@ require 'benchmark-helper'
 fs = require 'fs'
 $ = require 'jquery'
 TokenizedBuffer = require 'tokenized-buffer'
+TextMateBundle = require 'text-mate-bundle'
 
 describe "editor.", ->
   editor = null
@@ -88,6 +89,16 @@ describe "TokenizedBuffer.", ->
       editSession = benchmarkFixturesProject.buildEditSessionForPath('medium.coffee')
       { languageMode, buffer } = editSession
 
-    pfbenchmark "construction", 5, ->
+    benchmark "construction", 5, ->
       new TokenizedBuffer(buffer, { languageMode, tabText: '  '})
+
+describe "OnigRegExp.", ->
+  [regex, line] = []
+
+  beforeEach ->
+    line = "  l.comment_matcher = new RegExp('^\\s*' + l.symbol + '\\s?')"
+    regex = TextMateBundle.grammarForFileName('medium.coffee').initialRule.regex
+
+  pfbenchmark ".getCaptureTree", 1000, ->
+    regex.getCaptureTree(line, 22)
 
