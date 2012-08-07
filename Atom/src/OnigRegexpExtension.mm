@@ -37,6 +37,10 @@ public:
     return resultArray;
   }
   
+  CefRefPtr<CefV8Value> CaptureCount() {
+    return CefV8Value::CreateInt([m_regex captureCount]);
+  }
+  
   OnigRegexp *m_regex;
   
   IMPLEMENT_REFCOUNTING(OnigRegexpUserData);
@@ -62,6 +66,10 @@ bool OnigRegexpExtension::Execute(const CefString& name,
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
     OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
     retval = userData->Search(string, index);
+  }
+  else if (name == "getCaptureCount") {
+    OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
+    retval = userData->CaptureCount();
   }
   return true;
 }
