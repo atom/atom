@@ -240,7 +240,7 @@ static NSMutableArray *gPathWatchers;
       NSNumber *fdNumber = [NSNumber numberWithInt:event.ident];
       NSString *eventFlag = nil;
       NSString *path = [[[self pathForFileDescriptor:fdNumber] retain] autorelease];
-      NSString *newPath = nil;
+      NSString *newPath = nil;      
       
       if (event.fflags & NOTE_WRITE) {
         eventFlag = @"contents-change";
@@ -250,11 +250,6 @@ static NSMutableArray *gPathWatchers;
         [self updatePath:path forFileDescriptor:fdNumber];
       }
       else if (event.fflags & NOTE_DELETE) {
-        close((int)event.ident);
-        int checkFd = open([path fileSystemRepresentation], O_EVTONLY, 0 );
-        
-        printf("remove %X %d %s\n", event.fflags, checkFd, [path UTF8String]);
-        
         eventFlag = @"remove";
       }
       else if (event.fflags & NOTE_RENAME) {
@@ -263,7 +258,7 @@ static NSMutableArray *gPathWatchers;
         fcntl((int)event.ident, F_GETPATH, &pathBuffer);
         newPath = [NSString stringWithUTF8String:pathBuffer];
       }
-            
+      
       NSDictionary *callbacks;
       @synchronized(self) {
         callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];
