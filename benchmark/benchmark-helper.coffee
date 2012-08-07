@@ -4,8 +4,13 @@ _ = require 'underscore'
 Keymap = require 'keymap'
 Point = require 'point'
 RootView = require 'root-view'
+Project = require 'project'
+TextMateBundle = require 'text-mate-bundle'
 
 require 'window'
+
+requireStylesheet "jasmine.css"
+TextMateBundle.loadAll()
 
 RootView.prototype.loadUserConfiguration = ->
 
@@ -23,6 +28,8 @@ window.pbenchmark = (args...) -> window.benchmark(args..., profile: true)
 window.fbenchmark = (args...) -> window.benchmark(args..., focused: true)
 window.fpbenchmark = (args...) -> window.benchmark(args..., profile: true, focused: true)
 window.pfbenchmark = window.fpbenchmark
+
+window.benchmarkFixturesProject = new Project(require.resolve 'benchmark/fixtures')
 
 window.benchmark = (args...) ->
   description = args.shift()
