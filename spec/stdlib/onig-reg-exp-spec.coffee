@@ -15,12 +15,15 @@ describe "OnigRegExp", ->
   describe ".getCaptureTree(string, index)", ->
     it "returns match with nested capture groups organized into a tree", ->
       regex = new OnigRegExp("a((bc)d)e(f(g)(h))(?=ij)")
-      tree = regex.getCaptureTree("abcdefghij")
+      tree = regex.getCaptureIndices("abcdefghij")
 
       expect(tree).toEqual [
         0, 0, 8
-        [1, 1, 4, [2, 1, 3]],
-        [3, 5, 8, [4, 6, 7], [5, 7, 8]]
+        1, 1, 4,
+          2, 1, 3,
+        3, 5, 8,
+          4, 6, 7,
+        5, 7, 8
       ]
 
     it "returns undefined if there was no match", ->
