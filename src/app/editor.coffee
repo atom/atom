@@ -7,6 +7,7 @@ EditSession = require 'edit-session'
 CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
 Native = require 'native'
+TextMateTheme = require 'text-mate-theme'
 fs = require 'fs'
 
 $ = require 'jquery'
@@ -54,7 +55,7 @@ class Editor extends View
 
   initialize: ({editSession, @mini} = {}) ->
     requireStylesheet 'editor.css'
-    requireStylesheet 'theme/twilight.css'
+    TextMateTheme.activate('Twilight')
 
     @id = Editor.idCounter++
     @lineCache = []

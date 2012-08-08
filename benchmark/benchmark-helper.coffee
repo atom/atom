@@ -6,11 +6,13 @@ Point = require 'point'
 RootView = require 'root-view'
 Project = require 'project'
 TextMateBundle = require 'text-mate-bundle'
+TextMateTheme = require 'text-mate-theme'
 
 require 'window'
 
 requireStylesheet "jasmine.css"
 TextMateBundle.loadAll()
+TextMateTheme.loadAll()
 
 RootView.prototype.loadUserConfiguration = ->
 

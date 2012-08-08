@@ -5,9 +5,25 @@ TextMateTheme = require 'text-mate-theme'
 describe "TextMateTheme", ->
   theme = null
   beforeEach ->
-    twilightPlist = fs.read(require.resolve('Twilight.tmTheme'))
-    plist.parseString twilightPlist, (err, data) ->
-      theme = new TextMateTheme(data[0])
+    theme = TextMateTheme.getTheme('Twilight')
+
+  describe "@getNames()", ->
+    it "returns an array of available theme names", ->
+      names = TextMateTheme.getNames()
+      expect(names).toContain("Twilight")
+      expect(names).toContain("Blackboard")
+
+  describe "@activate(name)", ->
+    it "activates a theme by name", ->
+      spyOn theme, 'activate'
+      TextMateTheme.activate('Twilight')
+      expect(theme.activate).toHaveBeenCalled()
+
+  describe ".activate()", ->
+    it "applies the theme's stylesheet to the current window", ->
+      spyOn window, 'applyStylesheet'
+      theme.activate()
+      expect(window.applyStylesheet).toHaveBeenCalledWith(theme.name, theme.getStylesheet())
 
   describe ".getRulesets()", ->
     rulesets = null
@@ -35,7 +51,7 @@ describe "TextMateTheme", ->
     it "returns an array of objects representing the theme's scope selectors", ->
       expect(rulesets[11]).toEqual
         comment: "Invalid – Deprecated"
-        selector: "invalid--deprecated"
+        selector: ".invalid-deprecated"
         properties:
           'color': "#D2A8A1"
           'font-style': 'italic'
@@ -43,7 +59,7 @@ describe "TextMateTheme", ->
 
       expect(rulesets[12]).toEqual
         comment: "Invalid – Illegal"
-        selector: "invalid--illegal"
+        selector: ".invalid-illegal"
         properties:
           'color': "#F8F8F8"
           'background-color': 'rgba(86, 45, 86, 191)'

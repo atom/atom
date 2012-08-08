@@ -3,6 +3,7 @@
 
 Native = require 'native'
 TextMateBundle = require 'text-mate-bundle'
+TextMateTheme = require 'text-mate-theme'
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
@@ -25,6 +26,8 @@ windowAdditions =
 
   startup: (path) ->
     TextMateBundle.loadAll()
+    TextMateTheme.loadAll()
+
     @attachRootView(path)
     $(window).on 'close', => @close()
     $(window).on 'beforeunload', =>
