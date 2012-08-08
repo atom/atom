@@ -92,21 +92,20 @@ class Rule
     regexPatternPairs
 
   getNextTokens: (stack, line, position) ->
-    tree = @regex.getCaptureTree(line, position)
-    return {} unless tree?.captures
+    captureTree = @regex.getCaptureTree(line, position)
+    return {} unless captureTree?[2] > 0 # ignore zero-length matches
 
-    match = tree.captures[0]
-    pattern = @patternsByCaptureIndex[match.index]
-    @adjustCaptureTreeIndices(match, match.index)
-    nextTokens = pattern.handleMatch(stack, match)
-    tokensStartPosition = match.position
-    tokensEndPosition = tokensStartPosition + match.text.length
+    firstCapture = captureTree[3]
+    [firstCaptureIndex, firstCaptureStart, firstCaptureEnd]  = firstCapture
+    pattern = @patternsByCaptureIndex[firstCaptureIndex]
 
-    { nextTokens, tokensStartPosition, tokensEndPosition }
+    @adjustCaptureTreeIndices(firstCapture, firstCaptureIndex)
+    nextTokens = pattern.handleMatch(stack, line, firstCapture)
+    { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
 
   adjustCaptureTreeIndices: (tree, startIndex) ->
-    tree.index -= startIndex
-    for capture in tree.captures ? []
+    tree[0] -= startIndex
+    for capture in tree[3..]
       @adjustCaptureTreeIndices(capture, startIndex)
 
   getNextMatch: (line, position) ->
@@ -144,7 +143,7 @@ class Pattern
   getRegexPatternPairs: (included) ->
     if @include
       rule = @grammar.ruleForInclude(@include)
-      console.log "Could not find rule for include #{@include} in #{@grammar.name} grammar" unless rule
+      # console.log "Could not find rule for include #{@include} in #{@grammar.name} grammar" unless rule
       rule?.getRegexPatternPairs(included) ? []
     else
       [[@regex, this]]
@@ -159,14 +158,15 @@ class Pattern
     else
       { match: @regex.getCaptureTree(line, position), pattern: this }
 
-  handleMatch: (stack, match) ->
+  handleMatch: (stack, line, captureTree) ->
     scopes = _.pluck(stack, "scopeName")
     scopes.push(@scopeName) unless @popRule
 
     if @captures
-      tokens = @getTokensForCaptureTree(match, scopes)
+      tokens = @getTokensForCaptureTree(line, captureTree, scopes)
     else
-      tokens = [{ value: match.text, scopes: scopes }]
+      [start, end] = captureTree[1..2]
+      tokens = [{ value: line[start...end], scopes: scopes }]
 
     if @pushRule
       stack.push(@pushRule)
@@ -175,29 +175,28 @@ class Pattern
 
     tokens
 
-  getTokensForCaptureTree: (tree, scopes) ->
+  getTokensForCaptureTree: (line, parentCapture, scopes) ->
+    [parentCaptureIndex, parentCaptureStart, parentCaptureEnd, childCaptures...] = parentCapture
+
     tokens = []
-    if scope = @captures[tree.index]?.name
+    if scope = @captures[parentCaptureIndex]?.name
       scopes = scopes.concat(scope)
 
-    previousCaptureEndPosition = 0
-    if tree.captures
-      for capture in tree.captures
-        continue unless capture.text.length # TODO: This can be removed since the tree will have no empty captures
+    previousChildCaptureEnd = parentCaptureStart
+    for childCapture in childCaptures
+      [childCaptureIndex, childCaptureStart, childCaptureEnd] = childCapture
+      if childCaptureStart > previousChildCaptureEnd
+        tokens.push
+          value: line[previousChildCaptureEnd...childCaptureStart]
+          scopes: scopes
 
-        currentCaptureStartPosition = capture.position - tree.position
-        if previousCaptureEndPosition < currentCaptureStartPosition
-          tokens.push
-            value: tree.text[previousCaptureEndPosition...currentCaptureStartPosition]
-            scopes: scopes
+      captureTokens = @getTokensForCaptureTree(line, childCapture, scopes)
+      tokens.push(captureTokens...)
+      previousChildCaptureEnd = childCaptureEnd
 
-        captureTokens = @getTokensForCaptureTree(capture, scopes)
-        tokens.push(captureTokens...)
-        previousCaptureEndPosition = currentCaptureStartPosition + capture.text.length
-
-    if previousCaptureEndPosition < tree.text.length
+    if parentCaptureEnd > previousChildCaptureEnd
       tokens.push
-        value: tree.text[previousCaptureEndPosition...tree.text.length]
+        value: line[previousChildCaptureEnd...parentCaptureEnd]
         scopes: scopes
 
     tokens
