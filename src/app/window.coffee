@@ -53,9 +53,11 @@ windowAdditions =
 
   requireStylesheet: (path) ->
     fullPath = require.resolve(path)
-    content = fs.read(fullPath)
-    return if $("head style[path='#{fullPath}']").length
-    $('head').append "<style path='#{fullPath}'>#{content}</style>"
+    window.applyStylesheet(fullPath, fs.read(fullPath))
+
+  applyStylesheet: (id, text) ->
+    unless $("head style[id='#{id}']").length
+      $('head').append "<style id='#{id}'>#{text}</style>"
 
   requireExtension: (name) ->
     extensionPath = require.resolve name

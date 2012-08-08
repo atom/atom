@@ -32,15 +32,15 @@ describe "Window", ->
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads the stylesheet at the given path and installs a style tag for it in the head", ->
-      $('head style[path*="atom.css"]').remove()
+      $('head style[id*="atom.css"]').remove()
       lengthBefore = $('head style').length
       requireStylesheet('atom.css')
       expect($('head style').length).toBe lengthBefore + 1
 
-      styleElt = $('head style[path*="atom.css"]')
+      styleElt = $('head style[id*="atom.css"]')
 
       fullPath = require.resolve('atom.css')
-      expect(styleElt.attr('path')).toBe fullPath
+      expect(styleElt.attr('id')).toBe fullPath
       expect(styleElt.text()).toBe fs.read(fullPath)
 
       # doesn't append twice
