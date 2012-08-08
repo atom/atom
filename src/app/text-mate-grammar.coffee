@@ -92,7 +92,9 @@ class Rule
     regexPatternPairs
 
   getNextTokens: (stack, line, position) ->
-    return {} unless tree = @regex.getCaptureTree(line, position)
+    tree = @regex.getCaptureTree(line, position)
+    return {} unless tree?.captures
+
     match = tree.captures[0]
     pattern = @patternsByCaptureIndex[match.index]
     @adjustCaptureTreeIndices(match, match.index)
