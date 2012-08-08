@@ -97,7 +97,15 @@ bool OnigRegexpExtension::Execute(const CefString& name,
                             const CefV8ValueList& arguments,
                             CefRefPtr<CefV8Value>& retval,
                             CefString& exception) {
-  if (name == "buildOnigRegExp") {
+
+  if (name == "getCaptureTree") {
+    CefRefPtr<CefV8Value> string = arguments[0];
+    CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
+    OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
+    retval = userData->GetCaptureTree(string, index);
+    return true;
+  }
+  else if (name == "buildOnigRegExp") {
     CefRefPtr<CefBase> userData = new OnigRegexpUserData(arguments[0]);
     retval = CefV8Value::CreateObject(userData, NULL);
     return true;
@@ -107,13 +115,6 @@ bool OnigRegexpExtension::Execute(const CefString& name,
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
     OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
     retval = userData->Search(string, index);
-    return true;
-  }
-  else if (name == "getCaptureTree") {
-    CefRefPtr<CefV8Value> string = arguments[0];
-    CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
-    OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
-    retval = userData->GetCaptureTree(string, index);
     return true;
   }
   else if (name == "getCaptureCount") {
