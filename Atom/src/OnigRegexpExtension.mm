@@ -67,14 +67,7 @@ public:
       }
     }
     
-    if (currentIndex == 0) {
-      CefRefPtr<CefV8Value> tuple = CefV8Value::CreateArray();
-      tuple->SetValue(0, CefV8Value::CreateString([[result stringAt:0] UTF8String]));
-      tuple->SetValue(1, tree);
-      return tuple;
-    } else {
-      return tree;
-    }
+    return tree;
   }
 
   CefRefPtr<CefV8Value> CaptureCount() {

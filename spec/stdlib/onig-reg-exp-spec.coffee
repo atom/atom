@@ -13,11 +13,10 @@ describe "OnigRegExp", ->
       expect(result).toBeNull()
 
   describe ".getCaptureTree(string, index)", ->
-    fit "returns match with nested capture groups organized into a tree", ->
+    it "returns match with nested capture groups organized into a tree", ->
       regex = new OnigRegExp("a((bc)d)e(f(g)(h))(?=ij)")
-      [text, tree] = regex.getCaptureTree("abcdefghij")
+      tree = regex.getCaptureTree("abcdefghij")
 
-      expect(text).toBe "abcdefgh"
       expect(tree).toEqual [
         0, 0, 8
         [1, 1, 4, [2, 1, 3]],
