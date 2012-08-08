@@ -1,8 +1,6 @@
 .editor {
   height: 100%;
   overflow: hidden;
-  background: #333;
-  color: white;
   cursor: default;
   -webkit-user-select: none;
   -webkit-box-flex: 1;
@@ -96,10 +94,6 @@
   position: absolute;
   border-left: 3px solid rgba(255, 255, 255, .4);
   opacity: 0.7;
-}
-
-.editor.focused .cursor {
-  border-color: #9dff9d;
 }
 
 .editor.focused .cursor.idle {
