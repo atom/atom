@@ -92,21 +92,16 @@ class Rule
     regexPatternPairs
 
   getNextTokens: (stack, line, position) ->
-    captureTree = @regex.getCaptureTree(line, position)
-    return {} unless captureTree?[2] > 0 # ignore zero-length matches
+    captureIndices = @regex.getCaptureIndices(line, position)
 
-    firstCapture = captureTree[3]
-    [firstCaptureIndex, firstCaptureStart, firstCaptureEnd]  = firstCapture
+    return {} unless captureIndices?[2] > 0 # ignore zero-length matches
+
+    shiftCapture(captureIndices)
+
+    [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
     pattern = @patternsByCaptureIndex[firstCaptureIndex]
-
-    @adjustCaptureTreeIndices(firstCapture, firstCaptureIndex)
-    nextTokens = pattern.handleMatch(stack, line, firstCapture)
+    nextTokens = pattern.handleMatch(stack, line, captureIndices)
     { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
-
-  adjustCaptureTreeIndices: (tree, startIndex) ->
-    tree[0] -= startIndex
-    for capture in tree[3..]
-      @adjustCaptureTreeIndices(capture, startIndex)
 
   getNextMatch: (line, position) ->
     nextMatch = null
@@ -156,16 +151,16 @@ class Pattern
       rule = @grammar.ruleForInclude(@include)
       rule.getNextMatch(line, position)
     else
-      { match: @regex.getCaptureTree(line, position), pattern: this }
+      { match: @regex.getCaptureIndices(line, position), pattern: this }
 
-  handleMatch: (stack, line, captureTree) ->
+  handleMatch: (stack, line, captureIndices) ->
     scopes = _.pluck(stack, "scopeName")
     scopes.push(@scopeName) unless @popRule
 
     if @captures
-      tokens = @getTokensForCaptureTree(line, captureTree, scopes)
+      tokens = @getTokensForCaptureIndices(line, captureIndices, scopes)
     else
-      [start, end] = captureTree[1..2]
+      [start, end] = captureIndices[1..2]
       tokens = [{ value: line[start...end], scopes: scopes }]
 
     if @pushRule
@@ -175,22 +170,24 @@ class Pattern
 
     tokens
 
-  getTokensForCaptureTree: (line, parentCapture, scopes) ->
-    [parentCaptureIndex, parentCaptureStart, parentCaptureEnd, childCaptures...] = parentCapture
+  getTokensForCaptureIndices: (line, captureIndices, scopes, indexOffset=captureIndices[0]) ->
+    [parentCaptureIndex, parentCaptureStart, parentCaptureEnd] = shiftCapture(captureIndices)
+    relativeParentCaptureIndex = parentCaptureIndex - indexOffset
 
     tokens = []
-    if scope = @captures[parentCaptureIndex]?.name
+    if scope = @captures[relativeParentCaptureIndex]?.name
       scopes = scopes.concat(scope)
 
     previousChildCaptureEnd = parentCaptureStart
-    for childCapture in childCaptures
-      [childCaptureIndex, childCaptureStart, childCaptureEnd] = childCapture
+    while captureIndices.length and captureIndices[1] < parentCaptureEnd
+      [childCaptureIndex, childCaptureStart, childCaptureEnd] = captureIndices
+
       if childCaptureStart > previousChildCaptureEnd
         tokens.push
           value: line[previousChildCaptureEnd...childCaptureStart]
           scopes: scopes
 
-      captureTokens = @getTokensForCaptureTree(line, childCapture, scopes)
+      captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes, indexOffset)
       tokens.push(captureTokens...)
       previousChildCaptureEnd = childCaptureEnd
 
@@ -200,3 +197,7 @@ class Pattern
         scopes: scopes
 
     tokens
+
+shiftCapture = (captureIndices) ->
+  [captureIndices.shift(), captureIndices.shift(), captureIndices.shift()]
+

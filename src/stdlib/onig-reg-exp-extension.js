@@ -1,7 +1,7 @@
 (function() {
   native function buildOnigRegExp(source);
   native function search(string, index);
-  native function getCaptureTree(source, index);
+  native function getCaptureIndices(source, index);
   native function getCaptureCount();
 
   function OnigRegExp(source) {
@@ -13,7 +13,7 @@
   }
 
   OnigRegExp.prototype.search = search;
-  OnigRegExp.prototype.getCaptureTree = getCaptureTree;
+  OnigRegExp.prototype.getCaptureIndices = getCaptureIndices;
   OnigRegExp.prototype.getCaptureCount = getCaptureCount;
 
   this.OnigRegExp = OnigRegExp;
