@@ -12,7 +12,7 @@ describe "OnigRegExp", ->
       result = regex.search("--------")
       expect(result).toBeNull()
 
-  describe ".getCaptureTree(string, index)", ->
+  describe ".getCaptureIndices(string, index)", ->
     it "returns match with nested capture groups organized into a tree", ->
       regex = new OnigRegExp("a((bc)d)e(f(g)(h))(?=ij)")
       tree = regex.getCaptureIndices("abcdefghij")
@@ -28,5 +28,5 @@ describe "OnigRegExp", ->
 
     it "returns undefined if there was no match", ->
       regex = new OnigRegExp('x')
-      expect(regex.getCaptureTree('y')).toBeNull()
+      expect(regex.getCaptureIndices('y')).toBeNull()
 
