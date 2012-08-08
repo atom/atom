@@ -99,6 +99,6 @@ describe "OnigRegExp.", ->
     line = "  l.comment_matcher = new RegExp('^\\s*' + l.symbol + '\\s?')"
     regex = TextMateBundle.grammarForFileName('medium.coffee').initialRule.regex
 
-  benchmark ".getCaptureTree", 10000, ->
-    regex.getCaptureTree(line, 22)
+  fbenchmark ".getCaptureTree", 10000, ->
+    regex.getCaptureIndices(line, 22)
 
