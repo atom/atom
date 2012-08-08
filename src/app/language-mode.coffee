@@ -5,7 +5,7 @@ _ = require 'underscore'
 
 module.exports =
 class LanguageMode
-  matchingCharacters:
+  pairedCharacters:
     '(': ')'
     '[': ']'
     '{': '}'
@@ -28,8 +28,8 @@ class LanguageMode
       if @isCloseBracket(text) and text == nextCharachter
         @editSession.moveCursorRight()
         false
-      else if matchingCharacter = @matchingCharacters[text]
-        @editSession.insertText text + matchingCharacter
+      else if pairedCharacter = @pairedCharacters[text]
+        @editSession.insertText text + pairedCharacter
         @editSession.moveCursorLeft()
         false
 
@@ -54,8 +54,9 @@ class LanguageMode
 
   getInvertedPairedCharacters: ->
     return @invertedPairedCharacters if @invertedPairedCharacters
+
     @invertedPairedCharacters = {}
-    for open, close of @matchingCharacters
+    for open, close of @pairedCharacters
       @invertedPairedCharacters[close] = open
     @invertedPairedCharacters
 
