@@ -93,22 +93,6 @@ class LanguageMode
 
     indentation
 
-  autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
-    { row, column} = bufferPosition
-    stack = @tokenizedBuffer.stackForRow(row)
-    lineBeforeCursor = @buffer.lineForRow(row)[0...column]
-    if text[0] == "\n"
-      indent = @aceMode.getNextLineIndent(stack, lineBeforeCursor, @editSession.tabText)
-      text = text[0] + indent + text[1..]
-    else if @aceMode.checkOutdent(stack, lineBeforeCursor, text)
-      shouldOutdent = true
-
-    {text, shouldOutdent: false}
-
-  autoOutdentBufferRow: (bufferRow) ->
-    state = @tokenizedBuffer.stackForRow(bufferRow)
-    @aceMode.autoOutdent(state, @aceAdaptor, bufferRow)
-
   getLineTokens: (line, stack) ->
     {tokens, stack} = @grammar.getLineTokens(line, stack)
 
