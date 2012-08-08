@@ -89,7 +89,7 @@ describe "TokenizedBuffer.", ->
       editSession = benchmarkFixturesProject.buildEditSessionForPath('medium.coffee')
       { languageMode, buffer } = editSession
 
-    benchmark "construction", 5, ->
+    benchmark "construction", ->
       new TokenizedBuffer(buffer, { languageMode, tabText: '  '})
 
 describe "OnigRegExp.", ->
@@ -99,6 +99,6 @@ describe "OnigRegExp.", ->
     line = "  l.comment_matcher = new RegExp('^\\s*' + l.symbol + '\\s?')"
     regex = TextMateBundle.grammarForFileName('medium.coffee').initialRule.regex
 
-  pfbenchmark ".getCaptureTree", 1000, ->
+  benchmark ".getCaptureTree", 10000, ->
     regex.getCaptureTree(line, 22)
 
