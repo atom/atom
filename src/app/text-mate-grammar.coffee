@@ -34,9 +34,14 @@ class TextMateGrammar
     position = 0
 
     loop
+      scopes = _.pluck(stack, "scopeName")
+
+      if line.length == 0
+        tokens = [{value: "", scopes: scopes}]
+        return { tokens, scopes }
+
       break if position == line.length
 
-      scopes = _.pluck(stack, "scopeName")
       { nextTokens, tokensStartPosition, tokensEndPosition} = _.last(stack).getNextTokens(stack, line, position)
 
       if nextTokens
