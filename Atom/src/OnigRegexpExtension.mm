@@ -36,7 +36,12 @@ public:
 
     return resultArray;
   }
-
+  
+  CefRefPtr<CefV8Value> Test(CefRefPtr<CefV8Value> string, CefRefPtr<CefV8Value> index) {
+    OnigResult *result = [m_regex search:stringFromCefV8Value(string) start:index->GetIntValue()];
+    return CefV8Value::CreateBool(result);
+  }
+  
   CefRefPtr<CefV8Value> GetCaptureIndices(CefRefPtr<CefV8Value> string, CefRefPtr<CefV8Value> index) {
     OnigResult *result = [m_regex search:stringFromCefV8Value(string) start:index->GetIntValue()];
     if ([result count] == 0) return CefV8Value::CreateNull();
@@ -88,16 +93,23 @@ bool OnigRegexpExtension::Execute(const CefString& name,
     retval = userData->GetCaptureIndices(string, index);
     return true;
   }
-  else if (name == "buildOnigRegExp") {
-    CefRefPtr<CefBase> userData = new OnigRegexpUserData(arguments[0]);
-    retval = CefV8Value::CreateObject(userData, NULL);
-    return true;
-  }
   else if (name == "search") {
     CefRefPtr<CefV8Value> string = arguments[0];
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
     OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
     retval = userData->Search(string, index);
+    return true;
+  }
+  else if (name == "test") {
+    CefRefPtr<CefV8Value> string = arguments[0];
+    CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
+    OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
+    retval = userData->Test(string, index);
+    return true;    
+  }
+  else if (name == "buildOnigRegExp") {
+    CefRefPtr<CefBase> userData = new OnigRegexpUserData(arguments[0]);
+    retval = CefV8Value::CreateObject(userData, NULL);
     return true;
   }
   else if (name == "getCaptureCount") {
