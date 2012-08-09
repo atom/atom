@@ -74,3 +74,6 @@ class Range
     else
       columns = @end.column
     new Point(rows, columns)
+
+  getRowCount: ->
+    @end.row - @start.row + 1

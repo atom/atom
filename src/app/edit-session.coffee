@@ -247,17 +247,17 @@ class EditSession
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
-  indentationForRow: (row) ->
-    @languageMode.indentationForRow(row)
+  autoIndentBufferRows: (startRow, endRow) ->
+    @languageMode.autoIndentBufferRows(startRow, endRow)
 
-  autoIndentRows: (startRow, endRow) ->
-    @autoIndentRow(row) for row in [startRow..endRow]
+  autoIndentBufferRow: (bufferRow) ->
+    @languageMode.autoIndentBufferRow(bufferRow)
 
-  autoIndentRow: (row) ->
-    actualIndentation = @lineForBufferRow(row).match(/^\s*/)[0]
-    desiredIndentation = @indentationForRow(row)
-    if actualIndentation != desiredIndentation
-      @buffer.change([[row, 0], [row, actualIndentation.length]], desiredIndentation)
+  autoIncreaseIndentForBufferRow: (bufferRow) ->
+    @languageMode.autoIncreaseIndentForBufferRow(bufferRow)
+
+  autoDecreaseIndentForRow: (bufferRow) ->
+    @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
   toggleLineCommentsInRange: (range) ->
     @languageMode.toggleLineCommentsInRange(range)

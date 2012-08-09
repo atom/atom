@@ -329,16 +329,26 @@ class Buffer
   isRowBlank: (row) ->
     not /\S/.test @lineForRow(row)
 
-  nextNonBlankRow: (row) ->
-    lastRow = @getLastRow()
-    if row < lastRow
-      for row in [(row + 1)..lastRow]
-        return row unless @isRowBlank(row)
+  previousNonBlankRow: (startRow) ->
+    startRow = Math.min(startRow, @getLastRow())
+    for row in [(startRow - 1)..0]
+      return row unless @isRowBlank(row)
+    null
 
+  nextNonBlankRow: (startRow) ->
+    lastRow = @getLastRow()
+    if startRow < lastRow
+      for row in [(startRow + 1)..lastRow]
+        return row unless @isRowBlank(row)
     null
 
   indentationForRow: (row) ->
     @lineForRow(row).match(/^\s*/)?[0].length
+
+  setIndentationForRow: (bufferRow, newLevel) ->
+    currentLevel = @indentationForRow(bufferRow)
+    indentString = [0...newLevel].map(-> ' ').join('')
+    @change([[bufferRow, 0], [bufferRow, currentLevel]], indentString)
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]

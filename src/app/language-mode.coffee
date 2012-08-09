@@ -13,7 +13,8 @@ class LanguageMode
     "'": "'"
 
   constructor: (@editSession) ->
-    @grammar = TextMateBundle.grammarForFileName(@editSession.buffer.getBaseName())
+    @buffer = @editSession.buffer
+    @grammar = TextMateBundle.grammarForFileName(@buffer.getBaseName())
 
     _.adviseBefore @editSession, 'insertText', (text) =>
       return true if @editSession.hasMultipleCursors()
@@ -84,25 +85,43 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
-  indentationForRow: (row) ->
-    for precedingRow in [row - 1..-1]
-      return if precedingRow < 0
-      precedingLine = @editSession.buffer.lineForRow(precedingRow)
-      break if /\S/.test(precedingLine)
 
+  autoIndentBufferRows: (startRow, endRow) ->
+    @autoIndentBufferRow(row) for row in [startRow..endRow]
+
+  autoIndentBufferRow: (bufferRow) ->
+    @autoIncreaseIndentForBufferRow(bufferRow)
+    @autoDecreaseIndentForBufferRow(bufferRow)
+
+  autoIncreaseIndentForBufferRow: (bufferRow) ->
+    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    return unless precedingRow?
+
+    precedingLine = @editSession.lineForBufferRow(precedingRow)
     scopes = @tokenizedBuffer.scopesForPosition([precedingRow, Infinity])
-    indentation = precedingLine.match(/^\s*/)[0]
-    increaseIndentPattern = TextMateBundle.getPreferenceInScope(scopes[0], 'increaseIndentPattern')
-    decreaseIndentPattern = TextMateBundle.getPreferenceInScope(scopes[0], 'decreaseIndentPattern')
+    increaseIndentPattern = new OnigRegExp(TextMateBundle.getPreferenceInScope(scopes[0], 'increaseIndentPattern'))
 
-    if new OnigRegExp(increaseIndentPattern).search(precedingLine)
-      indentation += @editSession.tabText
+    currentIndentation = @buffer.indentationForRow(bufferRow)
+    desiredIndentation = @buffer.indentationForRow(precedingRow)
+    desiredIndentation += @editSession.tabText.length if increaseIndentPattern.test(precedingLine)
+    if desiredIndentation > currentIndentation
+      @buffer.setIndentationForRow(bufferRow, desiredIndentation)
 
-    line = @editSession.buffer.lineForRow(row)
-    if new OnigRegExp(decreaseIndentPattern).search(line)
-      indentation = indentation.replace(@editSession.tabText, "")
+  autoDecreaseIndentForBufferRow: (bufferRow) ->
+    scopes = @tokenizedBuffer.scopesForPosition([bufferRow, 0])
+    increaseIndentPattern = new OnigRegExp(TextMateBundle.getPreferenceInScope(scopes[0], 'increaseIndentPattern'))
+    decreaseIndentPattern = new OnigRegExp(TextMateBundle.getPreferenceInScope(scopes[0], 'decreaseIndentPattern'))
+    line = @buffer.lineForRow(bufferRow)
+    return unless decreaseIndentPattern.test(line)
 
-    indentation
+    currentIndentation = @buffer.indentationForRow(bufferRow)
+    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    precedingLine = @buffer.lineForRow(precedingRow)
+
+    desiredIndentation = @buffer.indentationForRow(precedingRow)
+    desiredIndentation -= @editSession.tabText.length unless increaseIndentPattern.test(precedingLine)
+    if desiredIndentation < currentIndentation
+      @buffer.setIndentationForRow(bufferRow, desiredIndentation)
 
   getLineTokens: (line, stack) ->
     {tokens, stack} = @grammar.getLineTokens(line, stack)

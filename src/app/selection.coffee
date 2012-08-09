@@ -134,7 +134,18 @@ class Selection
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
     if @editSession.autoIndent
-      @editSession.autoIndentRows(newBufferRange.start.row, newBufferRange.end.row)
+      if /\n/.test(text)
+        firstLinePrefix = @editSession.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
+        if /^\s*$/.test(firstLinePrefix)
+          @editSession.autoIncreaseIndentForBufferRow(newBufferRange.start.row)
+          if newBufferRange.getRowCount() > 1
+            @editSession.autoIndentBufferRows(newBufferRange.start.row + 1, newBufferRange.end.row)
+        else
+          @editSession.autoIncreaseIndentForBufferRow(newBufferRange.start.row + 1)
+          if newBufferRange.getRowCount() > 2
+            @editSession.autoIndentBufferRows(newBufferRange.start.row + 2, newBufferRange.end.row)
+      else
+        @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
