@@ -35,7 +35,6 @@ describe "TextMateGrammar", ->
         textGrammar = TextMateBundle.grammarForFileName('foo.txt')
         {tokens} = textGrammar.getLineTokens("abc def")
         expect(tokens.length).toBe 1
-        
 
     describe "when the line matches multiple patterns", ->
       it "returns multiple tokens, filling in regions that don't match patterns with tokens in the grammar's global scope", ->
@@ -95,22 +94,22 @@ describe "TextMateGrammar", ->
         expect(tokens[4]).toEqual(value: ' ', scopes: ["source.coffee"])
         expect(tokens[5]).toEqual(value: '->', scopes: ["source.coffee", "storage.type.function.coffee"])
 
-   describe "when the line matches a begin/end pattern that contains sub-patterns", ->
-     it "returns tokens within the begin/end scope based on the sub-patterns", ->
-       {tokens} = grammar.getLineTokens('"""heredoc with character escape \\t"""')
+    describe "when the line matches a begin/end pattern that contains sub-patterns", ->
+      it "returns tokens within the begin/end scope based on the sub-patterns", ->
+        {tokens} = grammar.getLineTokens('"""heredoc with character escape \\t"""')
 
-       expect(tokens.length).toBe 4
+        expect(tokens.length).toBe 4
 
-       expect(tokens[0]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
-       expect(tokens[1]).toEqual value: "heredoc with character escape ", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee']
-       expect(tokens[2]).toEqual value: "\\t", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'constant.character.escape.coffee']
-       expect(tokens[3]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.end.coffee']
+        expect(tokens[0]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
+        expect(tokens[1]).toEqual value: "heredoc with character escape ", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee']
+        expect(tokens[2]).toEqual value: "\\t", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'constant.character.escape.coffee']
+        expect(tokens[3]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.end.coffee']
 
-   describe "when the line matches a pattern that includes a rule", ->
-     it "returns tokens based on the included rule", ->
-       {tokens} = grammar.getLineTokens("7777777")
-       expect(tokens.length).toBe 1
-       expect(tokens[0]).toEqual value: '7777777', scopes: ['source.coffee', 'constant.numeric.coffee']
+    describe "when the line matches a pattern that includes a rule", ->
+      it "returns tokens based on the included rule", ->
+        {tokens} = grammar.getLineTokens("7777777")
+        expect(tokens.length).toBe 1
+        expect(tokens[0]).toEqual value: '7777777', scopes: ['source.coffee', 'constant.numeric.coffee']
 
     describe "when the line is an interpolated string", ->
       it "returns the correct tokens", ->
@@ -137,3 +136,8 @@ describe "TextMateGrammar", ->
         expect(tokens[6]).toEqual value: '"',  scopes: ["source.coffee","string.quoted.double.coffee","source.coffee.embedded.source","string.quoted.double.coffee","punctuation.definition.string.end.coffee"]
         expect(tokens[7]).toEqual value: '}',  scopes: ["source.coffee","string.quoted.double.coffee","source.coffee.embedded.source","punctuation.section.embedded.coffee"]
         expect(tokens[8]).toEqual value: '"',  scopes: ["source.coffee","string.quoted.double.coffee","punctuation.definition.string.end.coffee"]
+
+    describe "when the line is empty", ->
+      it "returns a single token which has the global scope", ->
+       {tokens} = grammar.getLineTokens('')
+       expect(tokens[0]).toEqual value: '',  scopes: ["source.coffee"]
