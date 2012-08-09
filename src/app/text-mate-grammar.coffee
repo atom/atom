@@ -12,12 +12,16 @@ class TextMateGrammar
     grammar
 
   name: null
+  fileTypes: null
+  foldEndRegex: null
   repository: null
   initialRule: null
 
-  constructor: ({ @name, @fileTypes, scopeName, patterns, repository }) ->
+  constructor: ({ @name, @fileTypes, scopeName, patterns, repository, foldingStopMarker}) ->
     @initialRule = new Rule(this, {scopeName, patterns})
     @repository = {}
+    @foldEndRegex = new OnigRegExp(foldingStopMarker) if foldingStopMarker
+
     for name, data of repository
       @repository[name] = new Rule(this, data)
 

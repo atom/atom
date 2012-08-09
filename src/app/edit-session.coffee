@@ -106,7 +106,11 @@ class EditSession
 
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
+  isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
+  nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
+  indentationForBufferRow: (bufferRow) -> @buffer.indentationForRow(bufferRow)
   getEofBufferPosition: -> @buffer.getEofPosition()
+  getLastBufferRow: -> @buffer.getLastRow()
   bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   scanInRange: (args...) -> @buffer.scanInRange(args...)

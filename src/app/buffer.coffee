@@ -323,6 +323,20 @@ class Buffer
   backwardsScanInRange: (regex, range, iterator) ->
     @scanInRange regex, range, iterator, true
 
+  isRowBlank: (row) ->
+    not /\S/.test @lineForRow(row)
+
+  nextNonBlankRow: (row) ->
+    lastRow = @getLastRow()
+    if row < lastRow
+      for row in [(row + 1)..lastRow]
+        return row unless @isRowBlank(row)
+
+    null
+
+  indentationForRow: (row) ->
+    @lineForRow(row).match(/^\s*/)?[0].length
+
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
       line = @lineForRow(row)

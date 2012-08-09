@@ -64,14 +64,27 @@ class LanguageMode
     range = Range.fromObject(range)
     @aceMode.toggleCommentLines(@tokenizedBuffer.stackForRow(range.start.row), @aceAdaptor, range.start.row, range.end.row)
 
-  isBufferRowFoldable: (bufferRow) ->
-    @aceMode.foldingRules?.getFoldWidget(@aceAdaptor, null, bufferRow) == "start"
+  doesBufferRowStartFold: (bufferRow) ->
+    return false if @editSession.isBufferRowBlank(bufferRow)
+    nextNonEmptyRow = @editSession.nextNonBlankBufferRow(bufferRow)
+    return false unless nextNonEmptyRow?
+    @editSession.indentationForBufferRow(nextNonEmptyRow) > @editSession.indentationForBufferRow(bufferRow)
 
   rowRangeForFoldAtBufferRow: (bufferRow) ->
-    if aceRange = @aceMode.foldingRules?.getFoldWidgetRange(@aceAdaptor, null, bufferRow)
-      [aceRange.start.row, aceRange.end.row]
-    else
-      null
+    return null unless @doesBufferRowStartFold(bufferRow)
+
+    startIndentation = @editSession.indentationForBufferRow(bufferRow)
+    for row in [(bufferRow + 1)..@editSession.getLastBufferRow()]
+      continue if @editSession.isBufferRowBlank(row)
+      indentation = @editSession.indentationForBufferRow(row)
+      if indentation <= startIndentation
+        includeRowInFold = indentation == startIndentation and @grammar.foldEndRegex.search(@editSession.lineForBufferRow(row))
+        foldEndRow = row if includeRowInFold
+        break
+
+      foldEndRow = row
+
+    [bufferRow, foldEndRow]
 
   indentationForRow: (row) ->
     for precedingRow in [row - 1..-1]

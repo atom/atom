@@ -219,7 +219,7 @@ class DisplayBuffer
     startBufferColumn = 0
     while currentBufferRow <= endBufferRow
       screenLine = @tokenizedBuffer.lineForScreenRow(currentBufferRow)
-      screenLine.foldable = @languageMode.isBufferRowFoldable(currentBufferRow)
+      screenLine.foldable = @languageMode.doesBufferRowStartFold(currentBufferRow)
 
       if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
         screenLine = screenLine.copy()
