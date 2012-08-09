@@ -138,12 +138,9 @@ class Selection
         firstLinePrefix = @editSession.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
         if /^\s*$/.test(firstLinePrefix)
           @editSession.autoIncreaseIndentForBufferRow(newBufferRange.start.row)
-          if newBufferRange.getRowCount() > 1
-            @editSession.autoIndentBufferRows(newBufferRange.start.row + 1, newBufferRange.end.row)
-        else
-          @editSession.autoIncreaseIndentForBufferRow(newBufferRange.start.row + 1)
-          if newBufferRange.getRowCount() > 2
-            @editSession.autoIndentBufferRows(newBufferRange.start.row + 2, newBufferRange.end.row)
+
+        if newBufferRange.getRowCount() > 1
+          @editSession.autoIndentBufferRows(newBufferRange.start.row + 1, newBufferRange.end.row)
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 

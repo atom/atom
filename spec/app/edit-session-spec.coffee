@@ -656,7 +656,7 @@ describe "EditSession", ->
           editSession.insertText('holy cow')
           expect(editSession.lineForScreenRow(2).fold).toBeUndefined()
 
-      fdescribe "when auto-indent is enabled", ->
+      describe "when auto-indent is enabled", ->
         beforeEach ->
           editSession.setAutoIndent(true)
 
@@ -674,6 +674,19 @@ describe "EditSession", ->
               expect(buffer.indentationForRow(6)).toBe buffer.indentationForRow(5)
 
         describe "when text with newlines is inserted", ->
+          describe "when the new line matches an outdent pattern", ->
+            describe "when the preceding line matches an auto-indent pattern", ->
+              it "auto-decreases the indentation of the line to match that of the preceding line", ->
+                editSession.setCursorBufferPosition([1, 30])
+                editSession.insertText '\n}'
+                expect(buffer.indentationForRow(2)).toBe 2
+
+            describe "when the preceding does not match an outo-indent pattern", ->
+              it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
+                editSession.setCursorBufferPosition([3, Infinity])
+                editSession.insertText '\n}'
+                expect(buffer.indentationForRow(4)).toBe 2
+
           describe "when the portion of the line preceding the inserted text is blank", ->
             it "auto-increases the indentation of the first line, then fully auto-indents the subsequent lines", ->
               editSession.setCursorBufferPosition([5, 2])
@@ -682,7 +695,6 @@ describe "EditSession", ->
                   console.log("It's true!")
                 }\n
               """
-
               expect(buffer.indentationForRow(5)).toBe buffer.indentationForRow(4) + 2
               expect(buffer.indentationForRow(6)).toBe buffer.indentationForRow(5) + 2
               expect(buffer.indentationForRow(7)).toBe buffer.indentationForRow(4) + 2
@@ -710,16 +722,14 @@ describe "EditSession", ->
                 editSession.setCursorBufferPosition([2, 4])
                 expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
                 editSession.insertText '   }'
-                buffer.logLines()
                 expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1)
 
             describe "when the preceding does not match an outo-indent pattern", ->
-              ffit "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
+              it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
                 editSession.setCursorBufferPosition([3, Infinity])
                 editSession.insertText '\n'
                 expect(buffer.indentationForRow(4)).toBe buffer.indentationForRow(3)
                 editSession.insertText '   }'
-                buffer.logLines()
                 expect(buffer.indentationForRow(4)).toBe buffer.indentationForRow(3) - 2
 
           describe "when the current line does not match an auto-outdent pattern", ->
