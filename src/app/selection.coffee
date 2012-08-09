@@ -125,7 +125,7 @@ class Selection
   selectToEndOfWord: ->
     @modifySelection => @cursor.moveToEndOfWord()
 
-  insertText: (text) ->
+  insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
@@ -133,7 +133,9 @@ class Selection
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
-    if @editSession.autoIndent
+    autoIndent = options.autoIndent ? true
+
+    if @editSession.autoIndent and autoIndent
       if /\n/.test(text)
         firstLinePrefix = @editSession.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
         if /^\s*$/.test(firstLinePrefix)

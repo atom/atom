@@ -130,8 +130,8 @@ class EditSession
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
-  insertText: (text) ->
-    @mutateSelectedText (selection) -> selection.insertText(text)
+  insertText: (text, options) ->
+    @mutateSelectedText (selection) -> selection.insertText(text, options)
 
   insertNewline: ->
     @insertText('\n')
