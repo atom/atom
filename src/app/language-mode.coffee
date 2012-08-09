@@ -62,6 +62,7 @@ class LanguageMode
     @invertedPairedCharacters
 
   toggleLineCommentsInRange: (range) ->
+    selectedBufferRanges = @editSession.getSelectedBufferRanges()
     range = Range.fromObject(range)
     range = new Range([range.start.row, 0], [range.end.row, Infinity])
     scopes = @tokenizedBuffer.scopesForPosition(range.start)
@@ -77,6 +78,7 @@ class LanguageMode
       text = text.replace(/^/gm, commentString)
 
     @editSession.setTextInBufferRange(range, text)
+    @editSession.setSelectedBufferRanges(selectedBufferRanges)
 
   doesBufferRowStartFold: (bufferRow) ->
     return false if @editSession.isBufferRowBlank(bufferRow)

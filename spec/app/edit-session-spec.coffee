@@ -1283,11 +1283,11 @@ describe "EditSession", ->
         editSession.setSelectedBufferRange([[4, 5], [7, 5]])
         editSession.toggleLineCommentsInSelection()
 
-        expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//    }"
-        expect(editSession.getSelectedBufferRange()).toEqual [[4, 7], [7, 7]]
+        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "//       current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "//     }"
+        expect(editSession.getSelectedBufferRange()).toEqual [[4, 5], [7, 5]]
 
         editSession.toggleLineCommentsInSelection()
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
