@@ -327,6 +327,8 @@ class Buffer
     not /\S/.test @lineForRow(row)
 
   previousNonBlankRow: (startRow) ->
+    return null if startRow == 0
+
     startRow = Math.min(startRow, @getLastRow())
     for row in [(startRow - 1)..0]
       return row unless @isRowBlank(row)
