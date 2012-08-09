@@ -6,7 +6,7 @@ class SnippetExpansion
     @editSession.selectToBeginningOfWord()
     startPosition = @editSession.getCursorBufferPosition()
     @editSession.transact =>
-      @editSession.insertText(snippet.body)
+      @editSession.insertText(snippet.body, autoIndent: false)
       if snippet.tabStops.length
         @placeTabStopAnchorRanges(startPosition, snippet.tabStops)
       if snippet.lineCount > 1
