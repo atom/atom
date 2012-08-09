@@ -2,6 +2,7 @@ AceAdaptor = require 'ace-adaptor'
 Range = require 'range'
 TextMateBundle = require 'text-mate-bundle'
 _ = require 'underscore'
+require 'underscore-extensions'
 
 module.exports =
 class LanguageMode
@@ -62,7 +63,20 @@ class LanguageMode
 
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)
-    @aceMode.toggleCommentLines(@tokenizedBuffer.stackForRow(range.start.row), @aceAdaptor, range.start.row, range.end.row)
+    range = new Range([range.start.row, 0], [range.end.row, Infinity])
+    scopes = @tokenizedBuffer.scopesForPosition(range.start)
+    commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
+    commentSource = "^(\s*)" + _.escapeRegExp(commentString)
+
+    text = @editSession.getTextInBufferRange(range)
+    isCommented = new RegExp(commentSource).test text
+
+    if isCommented
+      text = text.replace(new RegExp(commentSource, "gm"), "$1")
+    else
+      text = text.replace(/^/gm, commentString)
+
+    @editSession.setTextInBufferRange(range, text)
 
   doesBufferRowStartFold: (bufferRow) ->
     return false if @editSession.isBufferRowBlank(bufferRow)

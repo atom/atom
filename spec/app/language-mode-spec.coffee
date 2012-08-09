@@ -68,16 +68,16 @@ describe "LanguageMode", ->
     describe ".toggleLineCommentsInRange(range)", ->
       it "comments/uncomments lines in the given range", ->
         languageMode.toggleLineCommentsInRange([[4, 5], [7, 8]])
-        expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//    }"
+        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "//       current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "//     }"
 
         languageMode.toggleLineCommentsInRange([[4, 5], [5, 8]])
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
         expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//    }"
+        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "//     }"
 
     describe "fold suggestion", ->
       describe ".doesBufferRowStartFold(bufferRow)", ->
@@ -102,16 +102,16 @@ describe "LanguageMode", ->
     describe ".toggleLineCommentsInRange(range)", ->
       it "comments/uncomments lines in the given range", ->
         languageMode.toggleLineCommentsInRange([[4, 5], [7, 8]])
-        expect(buffer.lineForRow(4)).toBe "    #pivot = items.shift()"
-        expect(buffer.lineForRow(5)).toBe "    #left = []"
-        expect(buffer.lineForRow(6)).toBe "    #right = []"
-        expect(buffer.lineForRow(7)).toBe "#"
+        expect(buffer.lineForRow(4)).toBe "#     pivot = items.shift()"
+        expect(buffer.lineForRow(5)).toBe "#     left = []"
+        expect(buffer.lineForRow(6)).toBe "#     right = []"
+        expect(buffer.lineForRow(7)).toBe "# "
 
         languageMode.toggleLineCommentsInRange([[4, 5], [5, 8]])
         expect(buffer.lineForRow(4)).toBe "    pivot = items.shift()"
         expect(buffer.lineForRow(5)).toBe "    left = []"
-        expect(buffer.lineForRow(6)).toBe "    #right = []"
-        expect(buffer.lineForRow(7)).toBe "#"
+        expect(buffer.lineForRow(6)).toBe "#     right = []"
+        expect(buffer.lineForRow(7)).toBe "# "
 
     describe "fold suggestion", ->
       describe ".doesBufferRowStartFold(bufferRow)", ->
