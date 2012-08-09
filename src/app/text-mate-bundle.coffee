@@ -32,6 +32,10 @@ class TextMateBundle
   @getPreferenceInScope: (scopeSelector, preferenceName) ->
     @preferencesByScopeSelector[scopeSelector][preferenceName]
 
+  @lineCommentStringForScope: (scope) ->
+    shellVariables = @getPreferenceInScope(scope, 'shellVariables')
+    lineComment = (_.find shellVariables, ({name}) -> name == "TM_COMMENT_START")['value']
+
   grammars: null
 
   constructor: (@path) ->
