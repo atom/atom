@@ -84,16 +84,15 @@
 }
 
 @-webkit-keyframes blink {
-  0% { opacity: .7; }
-  60% { opacity: .7; }
+  0% { opacity: 1; }
+  60% { opacity: 1; }
   61% { opacity: 0; }
   100% { opacity: 0; }
 }
 
 .editor .cursor {
   position: absolute;
-  border-left: 3px solid rgba(255, 255, 255, .4);
-  opacity: 0.7;
+  border-left: 2px solid;
 }
 
 .editor.focused .cursor.idle {
@@ -111,7 +110,6 @@
 
 .editor .selection {
   position: absolute;
-  background: white;
-  opacity: .25;
+  background: rgba(255, 255, 255, .15);
   pointer-events: none;
 }
