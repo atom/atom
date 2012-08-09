@@ -11,7 +11,7 @@ ChildProcess = require 'child-process'
 module.exports =
 class Project
   tabText: '  '
-  autoIndent: false
+  autoIndent: true
   softTabs: true
   softWrap: false
   rootDirectory: null

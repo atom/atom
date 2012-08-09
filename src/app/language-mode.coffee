@@ -95,7 +95,8 @@ class LanguageMode
 
     precedingLine = @editSession.lineForBufferRow(precedingRow)
     scopes = @tokenizedBuffer.scopesForPosition([precedingRow, Infinity])
-    increaseIndentPattern = new OnigRegExp(TextMateBundle.getPreferenceInScope(scopes[0], 'increaseIndentPattern'))
+    increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
+    return unless increaseIndentPattern
 
     currentIndentation = @buffer.indentationForRow(bufferRow)
     desiredIndentation = @buffer.indentationForRow(precedingRow)
@@ -105,8 +106,10 @@ class LanguageMode
 
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     scopes = @tokenizedBuffer.scopesForPosition([bufferRow, 0])
-    increaseIndentPattern = new OnigRegExp(TextMateBundle.getPreferenceInScope(scopes[0], 'increaseIndentPattern'))
-    decreaseIndentPattern = new OnigRegExp(TextMateBundle.getPreferenceInScope(scopes[0], 'decreaseIndentPattern'))
+    increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
+    decreaseIndentPattern = TextMateBundle.outdentRegexForScope(scopes[0])
+    return unless increaseIndentPattern and decreaseIndentPattern
+
     line = @buffer.lineForRow(bufferRow)
     return unless decreaseIndentPattern.test(line)
 

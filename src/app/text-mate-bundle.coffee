@@ -4,7 +4,6 @@ plist = require 'plist'
 
 TextMateGrammar = require 'text-mate-grammar'
 
-
 module.exports =
 class TextMateBundle
   @grammarsByFileType: {}
@@ -30,11 +29,19 @@ class TextMateBundle
     @grammarsByFileType[extension] or @grammarsByFileType["txt"]
 
   @getPreferenceInScope: (scopeSelector, preferenceName) ->
-    @preferencesByScopeSelector[scopeSelector][preferenceName]
+    @preferencesByScopeSelector[scopeSelector]?[preferenceName]
 
   @lineCommentStringForScope: (scope) ->
     shellVariables = @getPreferenceInScope(scope, 'shellVariables')
     lineComment = (_.find shellVariables, ({name}) -> name == "TM_COMMENT_START")['value']
+
+  @indentRegexForScope: (scope) ->
+    if source = @getPreferenceInScope(scope, 'increaseIndentPattern')
+      new OnigRegExp(source)
+
+  @outdentRegexForScope: (scope) ->
+    if source = @getPreferenceInScope(scope, 'decreaseIndentPattern')
+      new OnigRegExp(source)
 
   grammars: null
 
