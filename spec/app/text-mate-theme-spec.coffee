@@ -54,7 +54,7 @@ describe "TextMateTheme", ->
         selector: ".invalid-deprecated"
         properties:
           'color': "#D2A8A1"
-          'font-style': 'italic'
+          # 'font-style': 'italic'
           'text-decoration': 'underline'
 
       expect(rulesets[12]).toEqual
