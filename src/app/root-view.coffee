@@ -33,7 +33,7 @@ class RootView extends View
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
-    TextMateTheme.activate('Twilight')
+    TextMateTheme.activate('IR_Black')
 
     @extensionStates ?= {}
     @extensions = {}
