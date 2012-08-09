@@ -5,6 +5,7 @@
   -webkit-user-select: none;
   -webkit-box-flex: 1;
   position: relative;
+  z-index: 0;
 }
 
 .editor.mini {
@@ -69,6 +70,7 @@
   display: table;
   height: 100%;
   width: 100%;
+  z-index: 1;
 }
 
 .editor .line, .gutter .line-number {
@@ -112,4 +114,5 @@
   position: absolute;
   background: rgba(255, 255, 255, .15);
   pointer-events: none;
+  z-index: -1;
 }
