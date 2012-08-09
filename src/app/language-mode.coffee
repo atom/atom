@@ -45,23 +45,20 @@ class LanguageMode
     @invertedPairedCharacters
 
   toggleLineCommentsInRange: (range) ->
-    selectedBufferRanges = @editSession.getSelectedBufferRanges()
     range = Range.fromObject(range)
-    range = new Range([range.start.row, 0], [range.end.row, Infinity])
     scopes = @tokenizedBuffer.scopesForPosition(range.start)
     commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
-    commentSource = "^(\s*)" + _.escapeRegExp(commentString)
+    commentRegex = new OnigRegExp("^\s*" + _.escapeRegExp(commentString))
 
-    text = @editSession.getTextInBufferRange(range)
-    isCommented = new RegExp(commentSource).test text
+    shouldUncomment = commentRegex.test(@editSession.lineForBufferRow(range.start.row))
 
-    if isCommented
-      text = text.replace(new RegExp(commentSource, "gm"), "$1")
-    else
-      text = text.replace(/^/gm, commentString)
-
-    @editSession.setTextInBufferRange(range, text)
-    @editSession.setSelectedBufferRanges(selectedBufferRanges)
+    for row in [range.start.row..range.end.row]
+      line = @editSession.lineForBufferRow(row)
+      if shouldUncomment
+        match = commentRegex.search(line)
+        @editSession.buffer.change([[row, 0], [row, match[0].length]], "")
+      else
+        @editSession.buffer.insert([row, 0], commentString)
 
   doesBufferRowStartFold: (bufferRow) ->
     return false if @editSession.isBufferRowBlank(bufferRow)
@@ -84,7 +81,6 @@ class LanguageMode
       foldEndRow = row
 
     [bufferRow, foldEndRow]
-
 
   autoIndentBufferRows: (startRow, endRow) ->
     @autoIndentBufferRow(row) for row in [startRow..endRow]
