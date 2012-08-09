@@ -121,6 +121,9 @@ class Buffer
 
     return multipleLines.join '\n'
 
+  setTextInRange: (range, text) ->
+    @change(range, text)
+
   getLines: ->
     @lines
 

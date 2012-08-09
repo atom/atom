@@ -111,6 +111,8 @@ class EditSession
   indentationForBufferRow: (bufferRow) -> @buffer.indentationForRow(bufferRow)
   getEofBufferPosition: -> @buffer.getEofPosition()
   getLastBufferRow: -> @buffer.getLastRow()
+  getTextInBufferRange: (range) -> @buffer.getTextInRange(range)
+  setTextInBufferRange: (range, text) -> @buffer.setTextInRange(range, text)
   bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   scanInRange: (args...) -> @buffer.scanInRange(args...)
@@ -418,9 +420,6 @@ class EditSession
 
   getSelectedText: ->
     @getLastSelection().getText()
-
-  getTextInBufferRange: (range) ->
-    @buffer.getTextInRange(range)
 
   moveCursorUp: ->
     @moveCursors (cursor) -> cursor.moveUp()
