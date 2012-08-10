@@ -11,11 +11,8 @@
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
 #include "include/cef_runnable.h"
-#include "cefclient/binding_test.h"
 #include "cefclient/client_handler.h"
-#include "cefclient/dom_test.h"
 #include "cefclient/resource_util.h"
-#include "cefclient/scheme_test.h"
 #include "cefclient/string_util.h"
 
 // The global ClientHandler reference.
@@ -187,25 +184,6 @@ NSButton* MakeButton(NSRect* rect, NSString* title, NSView* parent) {
 // Receives notifications from the application. Will delete itself when done.
 @interface ClientAppDelegate : NSObject
 - (void)createApp:(id)object;
-- (IBAction)testGetSource:(id)sender;
-- (IBAction)testGetText:(id)sender;
-- (IBAction)testRequest:(id)sender;
-- (IBAction)testLocalStorage:(id)sender;
-- (IBAction)testXMLHttpRequest:(id)sender;
-- (IBAction)testSchemeHandler:(id)sender;
-- (IBAction)testBinding:(id)sender;
-- (IBAction)testDialogs:(id)sender;
-- (IBAction)testPluginInfo:(id)sender;
-- (IBAction)testDOMAccess:(id)sender;
-- (IBAction)testPopupWindow:(id)sender;
-- (IBAction)testAccelerated2DCanvas:(id)sender;
-- (IBAction)testAcceleratedLayers:(id)sender;
-- (IBAction)testWebGL:(id)sender;
-- (IBAction)testHTML5Video:(id)sender;
-- (IBAction)testDragDrop:(id)sender;
-- (IBAction)testZoomIn:(id)sender;
-- (IBAction)testZoomOut:(id)sender;
-- (IBAction)testZoomReset:(id)sender;
 @end
 
 @implementation ClientAppDelegate
@@ -217,73 +195,7 @@ NSButton* MakeButton(NSRect* rect, NSString* title, NSView* parent) {
   
   // Set the delegate for application events.
   [NSApp setDelegate:self];
-  
-  // Add the Tests menu.
-  NSMenu* menubar = [NSApp mainMenu];
-  NSMenuItem *testItem = [[[NSMenuItem alloc] initWithTitle:@"Tests"
-                                                     action:nil
-                                              keyEquivalent:@""] autorelease];
-  NSMenu *testMenu = [[[NSMenu alloc] initWithTitle:@"Tests"] autorelease];
-  [testMenu addItemWithTitle:@"Get Source"
-                      action:@selector(testGetSource:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Get Text"
-                      action:@selector(testGetText:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Popup Window"
-                      action:@selector(testPopupWindow:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Request"
-                      action:@selector(testRequest:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Scheme Handler"
-                      action:@selector(testSchemeHandler:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"JavaScript Binding"
-                      action:@selector(testBinding:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"JavaScript Dialogs"
-                      action:@selector(testDialogs:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Plugin Info"
-                      action:@selector(testPluginInfo:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"DOM Access"
-                      action:@selector(testDOMAccess:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Local Storage"
-                      action:@selector(testLocalStorage:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"XMLHttpRequest"
-                      action:@selector(testXMLHttpRequest:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Accelerated 2D Canvas"
-                      action:@selector(testAccelerated2DCanvas:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Accelerated Layers"
-                      action:@selector(testAcceleratedLayers:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"WebGL"
-                      action:@selector(testWebGL:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"HTML5 Video"
-                      action:@selector(testHTML5Video:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Drag & Drop"
-                      action:@selector(testDragDrop:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Zoom In"
-                      action:@selector(testZoomIn:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Zoom Out"
-                      action:@selector(testZoomOut:)
-               keyEquivalent:@""];
-  [testMenu addItemWithTitle:@"Zoom Reset"
-                      action:@selector(testZoomReset:)
-               keyEquivalent:@""];
-  [testItem setSubmenu:testMenu];
-  [menubar addItem:testItem];
-  
+     
   // Create the delegate for control and browser window events.
   ClientWindowDelegate* delegate = [[ClientWindowDelegate alloc] init];
   
@@ -372,108 +284,6 @@ NSButton* MakeButton(NSRect* rect, NSString* title, NSView* parent) {
   [mainWnd setFrame:[mainWnd frameRectForContentRect:r] display:YES];
 }
 
-- (IBAction)testGetSource:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunGetSourceTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testGetText:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunGetTextTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testRequest:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunRequestTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testLocalStorage:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunLocalStorageTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testXMLHttpRequest:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunXMLHTTPRequestTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testSchemeHandler:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    scheme_test::RunTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testBinding:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    binding_test::RunTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testDialogs:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunDialogTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testPluginInfo:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunPluginInfoTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testDOMAccess:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    dom_test::RunTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testPopupWindow:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunPopupTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testAccelerated2DCanvas:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunAccelerated2DCanvasTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testAcceleratedLayers:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunAcceleratedLayersTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testWebGL:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunWebGLTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testHTML5Video:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunHTML5VideoTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testDragDrop:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    RunDragDropTest(g_handler->GetBrowser());
-}
-
-- (IBAction)testZoomIn:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId()) {
-    CefRefPtr<CefBrowser> browser = g_handler->GetBrowser();
-    browser->GetHost()->SetZoomLevel(browser->GetHost()->GetZoomLevel() + 0.5);
-  }
-}
-
-- (IBAction)testZoomOut:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId()) {
-    CefRefPtr<CefBrowser> browser = g_handler->GetBrowser();
-    browser->GetHost()->SetZoomLevel(browser->GetHost()->GetZoomLevel() - 0.5);
-  }
-}
-
-- (IBAction)testZoomReset:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId()) {
-    CefRefPtr<CefBrowser> browser = g_handler->GetBrowser();
-    browser->GetHost()->SetZoomLevel(0.0);
-  }
-}
-
-
 // Sent by the default notification center immediately before the application
 // terminates.
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
@@ -518,9 +328,6 @@ int main(int argc, char* argv[]) {
 
   // Initialize CEF.
   CefInitialize(main_args, settings, app.get());
-
-  // Register the scheme handler.
-  scheme_test::InitTest();
 
   // Create the application delegate and window.
   NSObject* delegate = [[ClientAppDelegate alloc] init];

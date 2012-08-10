@@ -13,11 +13,9 @@
 #include "include/cef_process_util.h"
 #include "include/cef_runnable.h"
 #include "include/wrapper/cef_stream_resource_handler.h"
-#include "cefclient/binding_test.h"
 #include "cefclient/cefclient.h"
 #include "cefclient/client_renderer.h"
 #include "cefclient/client_switches.h"
-#include "cefclient/dom_test.h"
 #include "cefclient/resource_util.h"
 #include "cefclient/string_util.h"
 
@@ -293,10 +291,6 @@ void ClientHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser,
   if (m_BrowserId == browser->GetIdentifier() && frame->IsMain()) {
     // We've just finished loading a page
     SetLoading(false);
-
-    // Continue the DOM test.
-    if (frame->GetURL() == dom_test::kTestUrl)
-      dom_test::OnLoadEnd(browser);
   }
 }
 
@@ -358,12 +352,6 @@ CefRefPtr<CefResourceHandler> ClientHandler::GetResourceHandler(
     // Show the dialogs contents
     CefRefPtr<CefStreamReader> stream =
         GetBinaryResourceReader("dialogs.html");
-    ASSERT(stream.get());
-    return new CefStreamResourceHandler("text/html", stream);
-  } else if (url == dom_test::kTestUrl) {
-    // Show the domaccess contents
-    CefRefPtr<CefStreamReader> stream =
-       GetBinaryResourceReader("domaccess.html");
     ASSERT(stream.get());
     return new CefStreamResourceHandler("text/html", stream);
   } else if (url == "http://tests/localstorage") {
@@ -478,14 +466,10 @@ void ClientHandler::LaunchExternalBrowser(const std::string& url) {
 // static
 void ClientHandler::CreateProcessMessageDelegates(
       ProcessMessageDelegateSet& delegates) {
-  // Create the binding test delegates.
-  binding_test::CreateProcessMessageDelegates(delegates);
 }
 
 // static
 void ClientHandler::CreateRequestDelegates(RequestDelegateSet& delegates) {
-  // Create the binding test delegates.
-  binding_test::CreateRequestDelegates(delegates);
 }
 
 void ClientHandler::BuildTestMenu(CefRefPtr<CefMenuModel> model) {
