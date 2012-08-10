@@ -1,0 +1,172 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Binary
+//
+
+IDS_BINDING BINARY "res\\binding.html"
+IDS_DIALOGS BINARY "res\\dialogs.html"
+IDS_LOGO BINARY "res\\logo.png"
+IDS_LOGOBALL BINARY "res\\logoball.png"
+IDS_LOCALSTORAGE BINARY "res\\localstorage.html"
+IDS_XMLHTTPREQUEST BINARY "res\\xmlhttprequest.html"
+IDS_DOMACCESS BINARY "res\\domaccess.html"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CEFCLIENT           ICON                    "res\cefclient.ico"
+IDI_SMALL               ICON                    "res\small.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDC_CEFCLIENT MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "E&xit",                       IDM_EXIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About ...",                  IDM_ABOUT
+    END
+    POPUP "Tests"
+    BEGIN
+        MENUITEM "Get Source",                  ID_TESTS_GETSOURCE
+        MENUITEM "Get Text",                    ID_TESTS_GETTEXT
+        MENUITEM "Popup Window",                ID_TESTS_POPUP
+        MENUITEM "Request",                     ID_TESTS_REQUEST
+        MENUITEM "Scheme Handler",              ID_TESTS_SCHEME_HANDLER
+        MENUITEM "JavaScript Binding",          ID_TESTS_BINDING
+        MENUITEM "JavaScript Dialogs",          ID_TESTS_DIALOGS
+        MENUITEM "Plugin Info",                 ID_TESTS_PLUGIN_INFO
+        MENUITEM "DOM Access",                  ID_TESTS_DOM_ACCESS
+        MENUITEM "Local Storage",               ID_TESTS_LOCALSTORAGE
+        MENUITEM "XMLHttpRequest",              ID_TESTS_XMLHTTPREQUEST
+        MENUITEM "Accelerated 2D Canvas",       ID_TESTS_ACCELERATED2DCANVAS
+        MENUITEM "Accelerated Layers",          ID_TESTS_ACCELERATEDLAYERS
+        MENUITEM "WebGL",                       ID_TESTS_WEBGL
+        MENUITEM "HTML5 Video",                 ID_TESTS_HTML5VIDEO
+        MENUITEM "Drag && Drop",                ID_TESTS_DRAGDROP
+        MENUITEM "Geolocation",                 ID_TESTS_GEOLOCATION
+        MENUITEM "Zoom In",                     ID_TESTS_ZOOM_IN
+        MENUITEM "Zoom Out",                    ID_TESTS_ZOOM_OUT
+        MENUITEM "Zoom Reset",                  ID_TESTS_ZOOM_RESET
+   END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDC_CEFCLIENT ACCELERATORS 
+BEGIN
+    "?",            IDM_ABOUT,              ASCII,  ALT
+    "/",            IDM_ABOUT,              ASCII,  ALT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG  22, 17, 230, 75
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+CAPTION "About"
+FONT 8, "System"
+BEGIN
+    ICON            IDI_CEFCLIENT,IDC_MYICON,14,9,16,16
+    LTEXT           "cefclient Version 1.0",IDC_STATIC,49,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2008",IDC_STATIC,49,20,119,8
+    DEFPUSHBUTTON   "OK",IDOK,195,6,30,11,WS_GROUP
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_APP_TITLE           "cefclient"
+    IDC_CEFCLIENT           "CEFCLIENT"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

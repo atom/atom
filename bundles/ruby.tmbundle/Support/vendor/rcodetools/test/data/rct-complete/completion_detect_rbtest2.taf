@@ -1,9 +1,0 @@
-==========
-completion_detect_rbtest2
-==========
-rct-complete --detect-rbtest --line=1
-==========
-Array.new(3).uni
-==========
-uniq
-uniq!

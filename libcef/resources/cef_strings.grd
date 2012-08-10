@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This file contains definitions of resources that will be translated for
+each locale. Specifically, these are UI strings that are used by CEF that
+need to be translated for each locale.-->
+<grit base_dir="." latest_public_release="0" current_release="1"
+      source_lang_id="en" enc_check="möl">
+  <outputs>
+    <!-- Note that all output references are relative to the output directory
+    which is specified at build time. -->
+    <output filename="grit/cef_strings.h" type="rc_header">
+      <emit emit_type='prepend'></emit>
+    </output>
+    
+    <!-- TODO keep the list of output files synchronized with other grd files, e.g.
+    webkit/glue/webkit_strings.grd -->
+    <output filename="cef_strings_am.pak" type="data_package" lang="am" />
+    <output filename="cef_strings_ar.pak" type="data_package" lang="ar" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_ast.pak" type="data_package" lang="ast" />
+    </if>
+    <output filename="cef_strings_bg.pak" type="data_package" lang="bg" />
+    <output filename="cef_strings_bn.pak" type="data_package" lang="bn" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_bs.pak" type="data_package" lang="bs" />
+    </if>
+    <output filename="cef_strings_ca.pak" type="data_package" lang="ca" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_ca@valencia.pak" type="data_package" lang="ca@valencia" />
+    </if>
+    <output filename="cef_strings_cs.pak" type="data_package" lang="cs" />
+    <output filename="cef_strings_da.pak" type="data_package" lang="da" />
+    <output filename="cef_strings_de.pak" type="data_package" lang="de" />
+    <output filename="cef_strings_el.pak" type="data_package" lang="el" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_en-AU.pak" type="data_package" lang="en-AU" />
+    </if>
+    <output filename="cef_strings_en-GB.pak" type="data_package" lang="en-GB" />
+    <output filename="cef_strings_en-US.pak" type="data_package" lang="en" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_eo.pak" type="data_package" lang="eo" />
+    </if>
+    <output filename="cef_strings_es.pak" type="data_package" lang="es" />
+    <output filename="cef_strings_es-419.pak" type="data_package" lang="es-419" />
+    <output filename="cef_strings_et.pak" type="data_package" lang="et" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_eu.pak" type="data_package" lang="eu" />
+    </if>
+    <output filename="cef_strings_fa.pak" type="data_package" lang="fa" />
+    <output filename="cef_strings_fake-bidi.pak" type="data_package" lang="fake-bidi" />
+    <output filename="cef_strings_fi.pak" type="data_package" lang="fi" />
+    <output filename="cef_strings_fil.pak" type="data_package" lang="fil" />
+    <output filename="cef_strings_fr.pak" type="data_package" lang="fr" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_gl.pak" type="data_package" lang="gl" />
+    </if>
+    <output filename="cef_strings_gu.pak" type="data_package" lang="gu" />
+    <output filename="cef_strings_he.pak" type="data_package" lang="he" />
+    <output filename="cef_strings_hi.pak" type="data_package" lang="hi" />
+    <output filename="cef_strings_hr.pak" type="data_package" lang="hr" />
+    <output filename="cef_strings_hu.pak" type="data_package" lang="hu" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_hy.pak" type="data_package" lang="hy" />
+      <output filename="cef_strings_ia.pak" type="data_package" lang="ia" />
+    </if>
+    <output filename="cef_strings_id.pak" type="data_package" lang="id" />
+    <output filename="cef_strings_it.pak" type="data_package" lang="it" />
+    <output filename="cef_strings_ja.pak" type="data_package" lang="ja" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_ka.pak" type="data_package" lang="ka" />
+    </if>
+    <output filename="cef_strings_kn.pak" type="data_package" lang="kn" />
+    <output filename="cef_strings_ko.pak" type="data_package" lang="ko" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_ku.pak" type="data_package" lang="ku" />
+      <output filename="cef_strings_kw.pak" type="data_package" lang="kw" />
+    </if>
+    <output filename="cef_strings_lt.pak" type="data_package" lang="lt" />
+    <output filename="cef_strings_lv.pak" type="data_package" lang="lv" />
+    <output filename="cef_strings_ml.pak" type="data_package" lang="ml" />
+    <output filename="cef_strings_mr.pak" type="data_package" lang="mr" />
+    <output filename="cef_strings_ms.pak" type="data_package" lang="ms" />
+    <output filename="cef_strings_nl.pak" type="data_package" lang="nl" />
+    <!-- The translation console uses 'no' for Norwegian Bokmål. It should
+         be 'nb'. -->
+    <output filename="cef_strings_nb.pak" type="data_package" lang="no" />
+    <output filename="cef_strings_pl.pak" type="data_package" lang="pl" />
+    <output filename="cef_strings_pt-BR.pak" type="data_package" lang="pt-BR" />
+    <output filename="cef_strings_pt-PT.pak" type="data_package" lang="pt-PT" />
+    <output filename="cef_strings_ro.pak" type="data_package" lang="ro" />
+    <output filename="cef_strings_ru.pak" type="data_package" lang="ru" />
+    <output filename="cef_strings_sk.pak" type="data_package" lang="sk" />
+    <output filename="cef_strings_sl.pak" type="data_package" lang="sl" />
+    <output filename="cef_strings_sr.pak" type="data_package" lang="sr" />
+    <output filename="cef_strings_sv.pak" type="data_package" lang="sv" />
+    <output filename="cef_strings_sw.pak" type="data_package" lang="sw" />
+    <output filename="cef_strings_ta.pak" type="data_package" lang="ta" />
+    <output filename="cef_strings_te.pak" type="data_package" lang="te" />
+    <output filename="cef_strings_th.pak" type="data_package" lang="th" />
+    <output filename="cef_strings_tr.pak" type="data_package" lang="tr" />
+    <if expr="pp_ifdef('use_third_party_translations')">
+      <output filename="cef_strings_ug.pak" type="data_package" lang="ug" />
+    </if>
+    <output filename="cef_strings_uk.pak" type="data_package" lang="uk" />
+    <output filename="cef_strings_vi.pak" type="data_package" lang="vi" />
+    <output filename="cef_strings_zh-CN.pak" type="data_package" lang="zh-CN" />
+    <output filename="cef_strings_zh-TW.pak" type="data_package" lang="zh-TW" />
+  </outputs>
+  <translations>
+    <!-- TODO figure out a reliable way to generate XMB/XTB files. For more information see:
+    https://groups.google.com/a/chromium.org/group/chromium-dev/browse_thread/thread/ce501a6ee4958c61 -->
+  </translations>
+  <release seq="1" allow_pseudo="false">
+    <messages fallback_to_english="true">
+      <!-- TODO add all of your "string table" messages here.  Remember to
+      change nontranslateable parts of the messages into placeholders (using the
+      <ph> element).  You can also use the 'grit add' tool to help you identify
+      nontranslateable parts and create placeholders for them. -->
+
+      <message name="IDS_MENU_BACK" desc="The text label of the Back menu item">
+        &amp;Back
+      </message>
+      <message name="IDS_MENU_FORWARD" desc="The text label of the Forward menu item">
+        &amp;Forward
+      </message>
+      <message name="IDS_MENU_RELOAD" desc="The text label of the Reload menu item">
+        &amp;Reload
+      </message>
+      <message name="IDS_MENU_RELOAD_NOCACHE" desc="The text label of the Reload no cache menu item">
+        Reload no cache
+      </message>
+      <message name="IDS_MENU_STOPLOAD" desc="The text label of the Stop menu item">
+        &amp;Stop
+      </message>
+      <message name="IDS_MENU_UNDO" desc="The text label of the Undo menu item">
+        &amp;Undo
+      </message>
+      <message name="IDS_MENU_REDO" desc="The text label of the Redo menu item">
+        &amp;Redo
+      </message>
+      <message name="IDS_MENU_CUT" desc="The text label of the Cut menu item">
+        Cu&amp;t
+      </message>
+      <message name="IDS_MENU_COPY" desc="The text label of the Copy menu item">
+        &amp;Copy
+      </message>
+      <message name="IDS_MENU_PASTE" desc="The text label of the Paste menu item">
+        &amp;Paste
+      </message>
+      <message name="IDS_MENU_DELETE" desc="The text label of the Delete menu item (which deletes selected text without copying to clipboard)">
+        &amp;Delete
+      </message>
+      <message name="IDS_MENU_SELECT_ALL" desc="The text label of the Select All menu item">
+        Select &amp;all
+      </message>
+      <message name="IDS_MENU_FIND" desc="The text label of the Find... menu item">
+        &amp;Find...
+      </message>
+      <message name="IDS_MENU_PRINT" desc="The text label of the Print... menu item. Opens a dialog box to select print settings">
+        &amp;Print...
+      </message>
+      <message name="IDS_MENU_VIEW_SOURCE" desc="The text label for the View Source... menu item.">
+        View Source...
+      </message>
+    </messages>
+  </release>
+</grit>

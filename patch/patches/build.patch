@@ -1,0 +1,27 @@
+Index: common.gypi
+===================================================================
+--- common.gypi	(revision 102269)
++++ common.gypi	(working copy)
+@@ -9,6 +9,9 @@
+   # Variables expected to be overriden on the GYP command line (-D) or by
+   # ~/.gyp/include.gypi.
+   'variables': {
++    # Directory for CEF source files. This will be set by cef.gypi.
++    'cef_directory%' : '',
++
+     # Putting a variables dict inside another variables dict looks kind of
+     # weird.  This is done so that 'host_arch', 'chromeos', etc are defined as
+     # variables within the outer variables dict here.  This is necessary
+Index: mac/strip_save_dsym
+===================================================================
+--- mac/strip_save_dsym	(revision 102269)
++++ mac/strip_save_dsym	(working copy)
+@@ -48,7 +48,7 @@
+                  "bundle"]
+   macho_types_re = "Mach-O (?:64-bit )?(?:" + "|".join(macho_types) + ")"
+ 
+-  file_cmd = subprocess.Popen(["/usr/bin/file", "-b", "--", macho],
++  file_cmd = subprocess.Popen(["/usr/bin/file", "-b", "-L", "--", macho],
+                               stdout=subprocess.PIPE)
+ 
+   archs = []

@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>Dialog Test</title>
+<script>
+function show_alert() {
+  alert("I am an alert box!");
+}
+
+function show_confirm() {
+  var r = confirm("Press a button");
+  var msg = r ? "You pressed OK!" : "You pressed Cancel!";
+  document.getElementById('cm').innerText = msg;
+}
+
+function show_prompt() {
+  var name = prompt("Please enter your name" ,"Harry Potter");
+  if (name != null && name != "")
+    document.getElementById('pm').innerText = "Hello " + name + "!";
+}
+
+window.onbeforeunload = function() {
+  return 'This is an onbeforeunload message.';
+}
+
+function update_time() {
+  document.getElementById('time').innerText = new Date().toLocaleString();
+}
+
+function setup() {
+  setInterval(update_time, 1000);
+}
+
+window.addEventListener('load', setup, false);
+</script>
+</head>
+<body>
+<form>
+Click a button to show the associated dialog type.
+<br/><input type="button" onclick="show_alert();" value="Show Alert">
+<br/><input type="button" onclick="show_confirm();" value="Show Confirm"> <span id="cm"></span>
+<br/><input type="button" onclick="show_prompt();" value="Show Prompt"> <span id="pm"></span>
+<p id="time"></p>
+</form>
+</body>
+</html>

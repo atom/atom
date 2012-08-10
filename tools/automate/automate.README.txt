@@ -1,0 +1,99 @@
+Chromium Embedded Framework (CEF) Automation Tool
+-------------------------------------------------------------------------------
+
+Document Last Updated: October 10, 2011
+
+
+OVERVIEW
+--------
+
+The CEF Automation Tool can perform the following actions in an automated manner:
+
+1. Download/update the Chromium and CEF source code.
+2. Build the CEF Debug and Release targets.
+3. Create the CEF binary distribution package.
+
+
+SETUP
+-----
+
+1. Install Subversion [1] and Python [2]. Make sure the bin directories for both
+   programs are discoverable via your system PATH configuration. On Windows
+   install CppDoc [3] in the default location (assumes a 64bit version of
+   Windows 7).
+
+2. Install build tools. On Windows install Visual Studio 2008 or newer and all
+   required prerequisite software [4]. On Mac install Xcode 3.2 or newer.
+
+3. Configure the GYP environment. On Windows set the GYP_MSVS_VERSION
+   environment variable to "2008" or "2010" depending on which version of Visual
+   Studio you're building with. On Mac Lion set the GYP_DEFINES environment
+   variable to 'mac_sdk=10.6'.
+
+4. Checkout the "automate" folder to a location on your hard drive. For the
+   trunk version of CEF you can use the following command:
+
+   svn checkout http://chromiumembedded.googlecode.com/svn/trunk/cef3/tools/automate /path/to/automate
+
+5. Run the automate.py script at whatever interval is appropriate (for each
+   CEF commit, once per day, once per week, etc):
+
+   python /path/to/automate/automate.py --download-dir=/path/to/download
+
+
+HOW IT WORKS
+------------
+
+The automate.py script performs the following actions in the download directory
+specified by the "--download-dir" flag. This path value must contain no spaces.
+
+1. Retrieve the Chromium URL and revision associated with a CEF URL and
+   revision. A specific CEF URL and revision can be specified using the "--url"
+   and "--revision" flags. Otherwise, the current CEF trunk URL [7] and HEAD
+   revision will be used. The Chromium URL and revision are retrieved by
+   querying the SVN repository for a CHROMIUM_BUILD_COMPATIBILITY.txt file.
+
+2. If a "depot_tools" folder does not already exist download depot_tools [5].
+   The depot_tools folder will be added to the beginning of the PATH to support
+   execution of the below steps.
+
+3. If a "chromium" folder does not already exist create it and configure
+   gclient [6] using the Chromium URL retrieved in step 1. To force execution of
+   this step use the "--force-config" flag.
+
+4. If the "--force-clean" flag is specified all Chromium changes will be
+   reverted, all unversioned files including the CEF folder will be deleted and
+   steps 6-10 will be triggered automatically.
+
+5. If both Chromium and CEF are already at the correct URL and revision the
+   script will exit at this point. To force execution of steps 6-8 use the
+   "--force-update" flag. To force execution of step 9 use the "--force-build"
+   flag. To force execution of step 10 use the "--force-distrib" flag.
+
+6. Use gclient [6] to update the Chromium source code to the correct revision.
+
+7. If a "chromium/src/cef" folder does not already exist download the CEF source
+   code at the correct revision. Otherwise, update CEF source code to the
+   correct revision.
+
+8. Run the "chromium/src/cef/cef_create_projects.[sh|bat]" script to apply CEF
+   patches and generate CEF project files.
+
+9. Run the "chromium/src/cef/tools/build_projects.[sh|bat]" script twice; once
+   to build the Debug target and once to build the Release target.
+
+10.Run the "chromium/src/cef/tools/make_distrib.[sh|bat]" script to build the
+   binary distribution package. The resulting package will be output in a
+   "chromium/src/cef/binary_distrib/cef_binary_rXXX_[windows|macosx]" folder.
+
+
+REFERENCES
+----------
+
+[1] http://subversion.apache.org/
+[2] http://www.python.org/
+[3] http://www.cppdoc.com/
+[4] http://dev.chromium.org/developers/how-tos/build-instructions-windows
+[5] http://dev.chromium.org/developers/how-tos/depottools
+[6] http://dev.chromium.org/developers/how-tos/get-the-code
+[7] http://chromiumembedded.googlecode.com/svn/trunk/cef3

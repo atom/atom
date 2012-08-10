@@ -1,2 +1,0 @@
-upcase
-upcase!

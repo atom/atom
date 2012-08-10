@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>All.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>Atom.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>AtomHelperApp.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>libcef_dll_wrapper.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>3049F5DBF2E857E3D2CA729A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>440934281E3BAF0A1212AEAE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>5FE7B7DEE9B72A21F35CC0E6</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>6528CFCB61FA1061980980AE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>

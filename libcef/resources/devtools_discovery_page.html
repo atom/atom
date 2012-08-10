@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>CEF remote debugging</title>
+<style>
+</style>
+
+<script>
+function onLoad() {
+  var tabs_list_request = new XMLHttpRequest();
+  tabs_list_request.open("GET", "/json" + new Date().getTime(), true);
+  tabs_list_request.onreadystatechange = onReady;
+  tabs_list_request.send();
+}
+
+function onReady() {
+  if(this.readyState == 4 && this.status == 200) {
+    if(this.response != null)
+      var responseJSON = JSON.parse(this.response);
+      for (var i = 0; i < responseJSON.length; ++i)
+        appendItem(responseJSON[i]);
+  }
+}
+
+function appendItem(item_object) {
+  var frontend_ref;
+  if (item_object.devtoolsFrontendUrl) {
+    frontend_ref = document.createElement("a");
+    frontend_ref.href = item_object.devtoolsFrontendUrl;
+    frontend_ref.title = item_object.title;
+  } else {
+    frontend_ref = document.createElement("div");
+    frontend_ref.title = "The tab already has active debugging session";
+  }
+
+  var text = document.createElement("div");
+  if (item_object.title)
+    text.innerText = item_object.title;
+  else
+    text.innerText = "(untitled tab)";
+  text.style.cssText = "background-image:url(" + item_object.faviconUrl + ")";
+  frontend_ref.appendChild(text);
+
+  var item = document.createElement("p");
+  item.appendChild(frontend_ref);
+
+  document.getElementById("items").appendChild(item);
+}
+</script>
+</head>
+<body onload='onLoad()'>
+  <div id='caption'>Inspectable WebContents</div>
+  <div id='items'></div>
+</body>
+</html>

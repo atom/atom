@@ -1,0 +1,27 @@
+<html>
+<head>
+<title>Binding Test</title>
+<script language="JavaScript">
+
+// Register the callback for messages from the browser process.
+app.setMessageCallback('binding_test', function(name, args) {
+  document.getElementById('result').value = "Response: "+args[0];
+});
+
+// Send a message to the browser process.
+function sendMessage() {
+  var msg = document.getElementById("message").value;
+  app.sendMessage('binding_test', [msg]);
+}
+</script>
+
+</head>
+<body>
+<form>
+Message: <input type="text" id="message" value="My Message">
+<br/><input type="button" onclick="sendMessage();" value="Send Message">
+<br/>You should see the reverse of your message below:
+<br/><textarea rows="10" cols="40" id="result"></textarea>
+</form>
+</body>
+</html>

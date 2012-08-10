@@ -1,0 +1,32 @@
+Chromium Embedded Framework (CEF) Patch Application Tool -- patcher.py
+-------------------------------------------------------------------------------
+
+Document Last Updated: July 23, 2009
+
+
+OVERVIEW
+--------
+
+The CEF patch application tool is used by the patch project to apply patches
+to the Chromium and WebKit code bases. Currently only unified diff format is
+supported. See the README.txt file in the patch directory for information on
+how the patch project uses this tool.
+
+The 'patcher.bat' file can be used to run the patch application tool with
+command-line arguments that match the default CEF directory structure and
+output options. Run 'patcher.py -h' for a complete list of available command-
+line arguments.
+
+
+CREDITS
+-------
+
+Thanks go to techtonik for developing the python-patch script. The
+patch_util.py file is a slightly modified version of the original script which
+can be found here: http://code.google.com/p/python-patch/
+
+
+WORK REMAINING
+--------------
+
+o  Add support for the GIT patch format.

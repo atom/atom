@@ -1,0 +1,15 @@
+Index: window_impl.cc
+===================================================================
+--- window_impl.cc	(revision 144645)
++++ window_impl.cc	(working copy)
+@@ -52,8 +52,8 @@
+     for (RegisteredClasses::iterator i = registered_classes_.begin();
+          i != registered_classes_.end(); ++i) {
+       if (!UnregisterClass(MAKEINTATOM(i->atom), i->instance)) {
+-        LOG(ERROR) << "Failed to unregister class " << i->name.c_str()
+-                   << ". Error = " << GetLastError();
++        //LOG(ERROR) << "Failed to unregister class " << i->name.c_str()
++        //           << ". Error = " << GetLastError();
+       }
+     }
+   }

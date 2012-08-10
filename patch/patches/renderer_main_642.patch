@@ -1,0 +1,13 @@
+Index: renderer_main.cc
+===================================================================
+--- renderer_main.cc	(revision 144645)
++++ renderer_main.cc	(working copy)
+@@ -246,7 +246,7 @@
+     if (!no_sandbox) {
+       run_loop = platform.EnableSandbox();
+     } else {
+-      LOG(ERROR) << "Running without renderer sandbox";
++      //LOG(ERROR) << "Running without renderer sandbox";
+     }
+ #if defined(OS_POSIX) && !defined(OS_MACOSX)
+     RenderProcessImpl render_process;

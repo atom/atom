@@ -1,0 +1,24 @@
+<html>
+<body>
+<script language="JavaScript">
+var val = window.localStorage.getItem('val');
+function addLine() {
+  if(val == null)
+    val = '<br/>One Line.';
+  else
+    val += '<br/>Another Line.';
+  window.localStorage.setItem('val', val);
+  document.getElementById('out').innerHTML = val;
+}
+</script>
+Click the "Add Line" button to add a line or the "Clear" button to clear.<br/>
+This data will persist across sessions if a cache path was specified.<br/>
+<input type="button" value="Add Line" onClick="addLine();"/>
+<input type="button" value="Clear" onClick="window.localStorage.removeItem('val'); window.location.reload();"/>
+<div id="out"></div>
+<script language="JavaScript">
+if(val != null)
+  document.getElementById('out').innerHTML = val;
+</script>
+</body>
+</html>
