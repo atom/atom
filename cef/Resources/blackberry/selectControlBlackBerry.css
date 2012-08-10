@@ -1,0 +1,63 @@
+/*
+ * Copyright (C) Research In Motion Limited 2012. All rights reserved.
+ */
+
+.select-area {
+    overflow-x: hidden;
+    overflow-y: auto;
+    white-space: nowrap;
+
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAtUAAAANCAYAAABmQZIAAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDowODgwMTE3NDA3MjA2ODExOERCQkU3QjZERTFCNzVGNyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDoxQzIwQ0ZFQTM0ODYxMUUxQkI0RkE0ODBENzFGMEVDRSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDoxQzIwQ0ZFOTM0ODYxMUUxQkI0RkE0ODBENzFGMEVDRSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjA4ODAxMTc0MDcyMDY4MTE4REJCRTdCNkRFMUI3NUY3IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjA4ODAxMTc0MDcyMDY4MTE4REJCRTdCNkRFMUI3NUY3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+YZtOWQAAA25JREFUeNrsnetuwyAMhYPH3v+FUzNV2qSpSsAXTCA550eltingC/BBaZpKKRsEQRAEQRAEQXbl90NKCZ6AtCK4AIIgCLqxGC6ApHpvUueJweyOybwaiGJAQV5AEITxGlp3zOYH+H0aGzOSFkC0aH5ggIYgCAJUw9f++QW5Mxk00UWJACCCbfAzBEEQBD13MUOBZQ+Daqo854PXSGgECZ3EHSClhxMJUDQNGEpjwQ/xBxYHEDR4UoWtqnGAJ/I7B9m4Sj5wcB708C93iG0LzF1+yA4ja89J6CRyJGsO7OhXl7tih50FqiW/uo2+5U0yTCx3AOo7QzW+Hr33wml/WGw4cBzU3PmgLArVd2snT9Zu7Y60Bdg5wo6s6KQaAKZGA+hgImbl4NBjcI88M+xpX+qQTLVvBvJA+1jp9zvvIj+tXsAkFhfQ9b7jG9dHwoUSDbBFstt7BnSa+b0sEqNdMO+zsn0S3uGDa3PD5hZ/iv2VlclKjQT5hHDa6kdBtFBNjo6WOnRW6tTZo8obWdaXsKMnZ/0c4AO6sIxRcLYKBCbjhOG9D2hxtvOpKoN8Zq1n9j9e4MH1WHflWAiDI2y1zgGszIujfH1dHF8O+gx3KLNVhoQRekH11oBq+rfoOdpc3H9fJ2GfYi1UHwExVaA6VyCUGkCejFBLgUCsKSM5wKYHeFvgiTpMftT5urPrI6C6ByDNBtW9y70KIkf9HgLHtuJBjwf5cvRObFkgBjNAdQnwjfWcLg+ISxG0m531eICZHTHjDj7dFfFr1cdKYOcKcH9Ct8vO3BjAqALVR5CdK1CdKu9twvdIcM1XI9k8MGg9ApMcIG2dqNNJh/k878sVX7LCxl5wNgJMrtypThPbZC0vdZxUpf7xTtgR596fANWaRU9xxicK3rz5OvuZ1lmOB8x0TrcYy2RhH2jB2CdUF4e9WrCO2iHWxvdbEZddEJfWcY4z7uKTz1MFumscyTUIriUENwDsDFrZCGzWFdneaONrIOhsFbD1DBTWHe6/WLwOfGKJUTK2IxLwJNdqvtJLg9o9G2Svenwkuu/2gvTZoLpc7NtIQJxlQTIKNCPqLpO0cfSOswSqJWW/OvGNNC4WP0o+w4780NSpOZ++V8p8bed3puPKAuqPlf7vrpMgHzi9/1YRgiAIgiAIgiC7fgQYALk6BVm+VKUFAAAAAElFTkSuQmCC") bottom no-repeat rgba(255, 255, 255, 0.5);
+    background-size: 100% auto;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAcCAYAAACdz7SqAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wGBw8oKjYFm6wAAAMkSURBVEjHxZbBThtXFIa/MzaejAs2aZKqbnHsSunG6kOwiJF4A4RhA1ElVGXLgteIKhQasUoRD5CmEs6CR/Ciu7YuBksjFZTa4Ho8tmdOF7kzOIi2CZjkSEdjX8093/3/e2bmiqoSReOg4QD3gE8YX/wNHBeKBS8akAh6eHB41wCpVqv2k++f3G0cNKZb7dYkIO8B0ensdKdQLLQef/f4pFwu+2b8+H7x/kkMPWoc5YBpgEffPvqsWq0WVDUC6RXUCYCIaLlcbjzbevanGW/lC3lXDhuHGeDLs7MzeVh++MB13dtACPiABwxGwPp/IHOdABzABqxcLvfXq+qr36amphRoWoLcFoTKUuUL13WzBtICXgMdA+6Z9P8jo3s8M++1qTNwXTdbWarkBEGQTy0RSb/46YVdq9U+BwLgGGibBoiyA5y9Q3YuzGsDJ0BQq9VyL39+mRKRtCUibP2wdccAT83NXbPid1V5mVrP1OmYusHTrad3RISkiFCv1zNA39jRM78Ds7fhFRrJMjk089uAXa/XsyLiJkWEbrebMCvtmmvfNE14je6NoGr+9z3Pm4iVDgaDoWmgCBjB9IovhGjBYuoBDHzfT8RQY+XwmpZeBo5UxvXfQC1hBDi8hqX/FsHIdSiWYBmlo3aOE8iFumFsr4joiKXjhkYRAipyrlRvGBjXH20kvUF736o/qvSDxUeEWh8YGj0yqVTq4jdx3GEBTE5OSmxvPp9H35xbrEuaahwpqqrFYvG8kebn5yOFzg0pdQDK5fK50tXVVQBVVQdIjhmYVNU0oMvLy7HSbqlU6q2vr6cMOauqto4nbFXNArqxsWGXSqWeiHTF87yMiHwVhuHMysrK6e7urmf2oWe+r4MrqJsA0sAtQBYWFpzt7e2MZVlNVf1DVBW/5+cSicQDEck8//F5d21t7dTzvOtvpOOwubmZWaospVW1HQTB7/Yt240P277v30skEt+ISLrZbA53dna8vb09f39/f/i+sNnZ2eTc3Jy9uLjozMzMJFW1GwTBL7ZtH791wgfo9/uOZVlfi0h+bC9d1aMwDH9NpVKxdf8AVVvibOaCYy8AAAAASUVORK5CYII=");
+    border-width: 12px 12px 0 12px;
+    border-image-slice: 12 12 12 12 fill;
+}
+
+.select-area:last-child {
+    /* Nothing comes after us? Put the bottom border back and adjust the bottom shadow */
+    border-bottom-width: 12px;
+    background-origin: border-box;
+}
+
+    .option {
+        overflow: hidden;
+        text-overflow: -blackberry-fade;
+        color: #262626;
+        text-shadow: rgba(0, 0, 0, 0.2) 0 -1px;
+
+        box-sizing: border-box;
+        height: 99px;
+
+        border: 2px solid rgba(0, 0, 0, 0.2);
+        border-bottom-width: 0;
+
+        padding-left: 24px;
+        padding-top: 28px;
+    }
+
+    .option:last-child,
+    .optgroup:last-child {
+        border-bottom-width: 2px;
+    }
+
+        .selected {
+            background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAfCAYAAACPvW/2AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDowOTgwMTE3NDA3MjA2ODExOERCQkU3QjZERTFCNzVGNyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo4QjlDOEZERjRFOEUxMUUxQTVCNEE5NzUyM0FFRjA5OSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo4QjlDOEZERTRFOEUxMUUxQTVCNEE5NzUyM0FFRjA5OSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkUzQUZFRkQwNDMyMDY4MTE5NDU3RDYyQTNCRTFFRDU2IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjA5ODAxMTc0MDcyMDY4MTE4REJCRTdCNkRFMUI3NUY3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Ei1rtAAAAxlJREFUeNrEl89rGkEUx1dXTWISPajxRzQhGkECIedCDvbQg9BbaQ6BQK8p9A9IDi2l2D8hJ9Eo/khMcmjVHJJLoYcWofaSXpJDyalJhIIUkYI/+n1DVyLurDHRdeHhzDgz++H73rx5q/H7/cIon/Pz846+ZoRANtgj2G/YF4A1aFDbarWEEdi6RqO5MBgMH/R6/Wf0v0MYBwHpRqDMi/Hx8YjZbBYBxQbq9fpypVKJoPlUR8RqwkxMTDAY6kjvFkVRmJqaCqmtEFPGZDKJciIYjcYaA1JJIaYMD4aelZWVExbUasLwJiwsLJTC4fB7NRTaIDchPsRms8mFiUQiW4D+NmwggolNT09z3UQw0WiUYE4pxocZ1BtjY2M9YWKxWAfMsBRiMEpu8nq9pd3d3S6YYWTqDWRfBsObQ8rE43EGMz8/36WGdhhu4k0gZRKJBBdGzmVLsGVYEfazX5jJyUlFN0kwc3Nz3DiRXEYSp7Ra7Q9IvoffC/Tf9uMmglFyUzKZZDAej6d1+z9ZhQDwCql7HRtL42KtVnsNoxLhZS9lsJarjM/nK6VSKQbjdrt7niAGZLFYnuHG7SBGDhFwG29Wq1WBA7UuwfBOKsGk02kGMzs7e6fjzILaZrPV5f7ECwW4YhPNHRmYBLmJtzHBZDKZvmDaMRQMBj+S5HKGAkrAppuYtyMVVxhLYEzkraGYkWBcLldLKQZlFdre3t4LhUJZ3iKKLYLC1BOCkdwkZ3Sa9vf32zD95g4WQ06n8xeed9Q+Pj5ek5tIUAj+JzqdTlCKmWw2y2Cw572ugHYecjgcZ1dXVwyqUCjIQgFI4J2mxcXFNgz2uvd91JEY7Xb72fX1tSIUD+bg4GALrjzFHg+6HLtuewmK2neBIpjDw8OBwHDLj9tQ+Xx+TS0YxfJjZmbm7ObmhrlPDopgjo6OGAzmDqyGUSzQJCicrHoul3veaDT0NB4IBIooId4MGoZ9Slut1p6TyuXy0uXl5eNisejCca6urq5+xfAnZPjmQwGwd/9A/xfSzWuC/QXIn0Ep0gWk8pdrz+efAAMAmYa9FmAD9lUAAAAASUVORK5CYII="),
+                                -webkit-linear-gradient(top, #fafafa 0%, #dddddd 100%);
+            background-position: right 20px, 0% 0%; /* TODO: RTL */
+            /* FIXME: the above should put the checkmark 20px from the right of the box, but webkit isn't supporting that part of CSS3 yet. So fake it */
+            background-position: 97% 50%, 0% 0%;
+            background-repeat: no-repeat;
+            padding-right: 56px; /* this gets the overflow and fade to work. 36px for the image, about 20px for the right padding */
+        }
+
+    .optgroup {
+        /* need to do something with this */
+        padding-left: 22px;
+    }
+
+        .optgroup .option {
+            border-left-width: 0; /* TODO: RTL */
+        }

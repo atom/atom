@@ -1,0 +1,112 @@
+/*
+ * Copyright (C) Research In Motion Limited, 2012. All rights reserved.
+ */
+
+html {
+    overflow: hidden;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+    font-family: "Myriad Pro", "Arial", "Helvetica", sans-serif;
+    font-size: 40px;
+
+    -webkit-user-select: none;
+    user-select: none;
+
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-box-align: center;
+    -webkit-box-pack: center;
+
+    display: box;
+    box-orient: vertical;
+    box-align: center;
+    box-pack: center;
+}
+
+.popup-area {
+    width: 100%;
+    height: 100%;
+
+    display: -webkit-box;
+    display: box;
+    -webkit-box-orient: vertical;
+    box-orient: vertical;
+}
+
+    .popup-area>:first-child {
+        -webkit-box-flex: 1;
+        box-flex: 1;
+    }
+
+    .popup-buttons {
+        display: -webkit-box;
+        -webkit-box-orient: horizontal;
+        -webkit-box-pack: center;
+        -webkit-box-align: stretch;
+
+        border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAB6CAMAAABwSXjiAAAAvVBMVEXc3Nzd3d3e3t7d3d3c3Nzd3d3f39/e3t7e3t7c3Nzc3Nzd3d3c3Nzc3Nzc3Nze3t7d3d3e3t7e3t7d3d3c3Nzd3d3c3Nzc3Nzd3d3c3Nzd3d3c3Nzd3d3c3Nzd3d3e3t7c3Nzf39/e3t7d3d3l5eXg4ODq6urj4+Pn5+fp6enk5OTm5ubo6Oji4uLh4eH09PT29vb6+vrx8fHw8PDv7+/u7u7t7e3r6+v19fX5+fn4+Pjz8/Py8vL39/fs7OxBzuRYAAAAIHRSTlMAAOqH6qj5xksJP1HJzIcG5JYDEuF+VFd4cud1CeSEk7PB98YAAADeSURBVHhezMlHEYBAAARBHF1OJP+ycDCfra2jv30kZv/Ffv8n2/4P2/6R2X8y+wdm/4vJfzP7ZyZ/YfavTP7G5O9M/pfJP5j6X3fzkYNAEANR1O7JkZxzztz/eDQaIRhB18byhr99KhXtcep+won9ihP7ESf2C07sW5y6n3FiP+DU/YYT+x33977DqfsKp+4h5JDMGmUogh7RAnqLYugxtQ26bxD3Nu6GTNwZO7k5tc6Z0zN+Os8d7HHlHPzkgF/OnmNtvarfXdabDahWMvI/1J8k9FVa5oW1Ii/TNzwAJkil621gpK4AAAAASUVORK5CYII=");
+        border-image-slice: 14 14 14 14 fill;
+        border-width: 14px;
+
+        text-align: center;
+    }
+
+        .popup-button-divider {
+            width: 2px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-width: 14px 0;
+            /* border image takes an image, so use a solid-colour gradient */
+            border-image-source: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 0%);
+            border-image-slice: 1 0 1 0;
+            border-image-outset: 1 0 1 0;
+        }
+
+        .popup-button {
+            color: inherit;
+            font: inherit;
+            text-shadow: rgba(255, 255, 255, 0.5) 0 -2px;
+            padding: 0;
+            margin: 0;
+            background: none;
+            line-height: 200%;
+            display: block;
+
+            width: 0;
+            -webkit-box-flex: 1;
+
+            border: 14px solid transparent;
+        }
+
+        .popup-button:active { /* all current popups have at most two buttons, so this is unused atm */
+            border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAB4AQMAAAAJ9grDAAAAA1BMVEUAAACnej3aAAAAAXRSTlMz/za5cAAAABVJREFUeF7lwIEAAAAAgKD9qQepMAMA8AABd9vWlQAAAABJRU5ErkJggg==");
+            border-image-slice: 1 0 1 0 fill;
+            padding: 14px;
+            margin: -14px;
+        }
+
+        .popup-button:first-child:active { /* TODO: RTL */
+            border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAB4CAMAAADMioJkAAAAPFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQLyYwAAAAFHRSTlMzAC8BGygeDzIuEBoiGBEtAhcNKSH3iKYAAABFSURBVHhe7cy5AYAwEMTA27PN/9N/r0QQqAVW4QSKX+Wcc84NhCQ0QkfoCYUTrYQyAjQRNBO0EFQJ2naAjjNf+LpquyMeT+sA9bsu6t8AAAAASUVORK5CYII=");
+            border-image-slice: 14 0 14 14 fill;
+            border-image-width: 1 0 1 1;
+            padding: 14px;
+            margin: -14px;
+        }
+
+        .popup-button:last-child:active { /* TODO: RTL */
+            border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAB3CAMAAAA93DCxAAAAM1BMVEUAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACin91XAAAAEXRSTlMzAAAvLhsCKBgyARAeDyIRFxtQtTsAAAA/SURBVHhe7ci3AYAAEAJA8YM57D+thY2wglx5w5+ZmZktGqExaewah0SsEvPIkS2xgaPAcYKjQJEXvhF3440HSAQAwP9T2mwAAAAASUVORK5CYII=");
+            border-image-slice: 14 14 14 0 fill;
+            border-image-width: 1 1 1 0;
+            padding: 14px;
+            margin: -14px;
+        }
+
+        .popup-button:only-child:active {
+            border-image-source: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAB4CAMAAACkeQBcAAAAPFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQLyYwAAAAFHRSTlMzAC8bKAEuAjIeDxAXGCIRDSktGtImyaoAAABzSURBVHhe7c5LDsIwEATR6rGdkH+A+9+VRUQUCWx2rPptp0Zq/szMzMzMzMxuv85BU5Bpygw0DYw0jZSgIQpaaFiESkdV1wtpomqSkPSkIukItPLVqnegVPk/A22Pj32broH6ObiIudcBnfaU7wD3nHadXi1ZAc/vLQEmAAAAAElFTkSuQmCC");
+            border-image-slice: 14 14 14 14 fill;
+            border-image-width: 1 1 1 1;
+            padding: 14px;
+            margin: -14px;
+        }

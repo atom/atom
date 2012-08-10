@@ -1,0 +1,177 @@
+/*
+ * Copyright (C) 2012 Google Inc. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following disclaimer
+ * in the documentation and/or other materials provided with the
+ * distribution.
+ *     * Neither the name of Google Inc. nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+body {
+    -webkit-user-select: none;
+    background-color: white;
+    font: -webkit-small-control;
+    margin: 0;
+    overflow: hidden;
+}
+
+.no-focus-ring :focus {
+    outline: none;
+}
+
+#main {
+    background-color: white;
+    border: solid 1px #8899aa;
+    box-shadow: inset 2px 2px 2px white,
+        inset -2px -2px 1px rgba(0,0,0,0.1);
+    padding: 6px;
+    whitespace: nowrap;
+    /* width and opacity are reset in the JS code. */
+    width: 500px;
+    opacity: 0;
+}
+
+.year-month-area {
+}
+
+.year-month-upper {
+    /* display:-webkit-box; is added in the JS code. */
+}
+
+.year-selector {
+    text-align: right;
+    width: 6em;
+}
+
+.month-selector-box {
+    display: inline-block;
+    text-align: center;
+    -webkit-box-flex: 2;
+}
+
+.month-selector {
+    background-color: white;
+    cursor: pointer;
+    display: inline-block;
+    padding: 3px 6px 3px 6px;
+}
+.month-selector:after {
+    content: " ▼";
+    font-size: smaller;
+}
+
+.month-selector-popup {
+    display: none;
+    outline: none;
+    z-index: 2;
+}
+
+.month-selector-wall {
+    display: none;
+    height: 100%;
+    left: 0px;
+    position: absolute;
+    top: 0px;
+    width: 100%;
+}
+
+.year-month-button-left {
+    display: inline-block;
+}
+
+.year-month-button-right {
+    display: inline-block;
+}
+
+.days-area-container {
+    background-color: white;
+    border: solid 1px black;
+    margin-bottom: 4px;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.days-area { /* <table> */
+    background-color: white;
+    border-collapse: separate;
+    border-spacing: 0px;
+    font: -webkit-small-control;
+    /* table-layout:fixed and width:100% are added in the JS code. */
+}
+
+.day-label { /* <th> */
+    -webkit-box-sizing: border-box;
+    background-color: #e3e9ff;
+    border-left-color: #f0f4ff;
+    border-top-color: #f0f4ff;
+    border: solid 1px #d0d4f0;
+    color: #20c;
+    font-weight: normal;
+    text-align: center;
+}
+
+.day { /* <td> */
+    padding: 1px;
+    text-align: center;
+    background-color: white;
+    border: 1px solid white;
+    -webkit-box-sizing: border-box;
+}
+
+.available {
+    cursor: default;
+    font-weight: 700;
+    background-color: white;
+    border: 1px solid white;
+    border-radius: 5px;
+    -webkit-transition: all 0.2s ease;
+}
+
+.not-this-month {
+    color: graytext;
+    font-weight: 400;
+    text-shadow: none;
+}
+
+.available.day-selected {
+    background-color: highlight;
+    color: highlighttext;
+    text-shadow: none;
+}
+
+.unavailable {
+    cursor: default;
+    color: graytext;
+    background-color: #eee;
+    border: 1px solid #eee;
+    -webkit-transition: border-color 0.2s ease;
+}
+
+.unavailable.day-selected {
+    border: 1px solid highlight;
+}
+
+.cancel-button {
+    float: right;
+}

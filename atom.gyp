@@ -6,9 +6,22 @@
   'variables': {
     'pkg-config': 'pkg-config',
     'chromium_code': 1,
+    'use_aura%': 0,
+    'conditions': [
+      ['OS=="win"', {
+        'os_posix': 0,
+      }, {
+        'os_posix': 1,
+      }],
+      # Set toolkit_uses_gtk for the Chromium browser on Linux.
+      ['(OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris") and use_aura==0', {
+        'toolkit_uses_gtk%': 1,
+      }, {
+        'toolkit_uses_gtk%': 0,
+      }],
+    ],
   },
   'includes': [
-    # Bring in the source file lists.
     'cef_paths2.gypi',
   ],
   'targets': [
@@ -25,59 +38,62 @@
       ],
       'include_dirs': [
         '.',
+        # cefclient includes are relative to the tests directory to make
+        # creation of binary releases easier.
+        'tests',
         'atom',
       ],
       'sources': [
         '<@(includes_common)',
         '<@(includes_wrapper)',
-        'atom/cefclient/cefclient.cpp',
-        'atom/cefclient/cefclient.h',
-        'atom/cefclient/binding_test.cpp',
-        'atom/cefclient/binding_test.h',
-        'atom/cefclient/client_app.cpp',
-        'atom/cefclient/client_app.h',
-        'atom/cefclient/client_app_delegates.cpp',
-        'atom/cefclient/client_handler.cpp',
-        'atom/cefclient/client_handler.h',
-        'atom/cefclient/client_renderer.cpp',
-        'atom/cefclient/client_renderer.h',
-        'atom/cefclient/client_switches.cpp',
-        'atom/cefclient/client_switches.h',
-        'atom/cefclient/dom_test.cpp',
-        'atom/cefclient/dom_test.h',
-        'atom/cefclient/res/binding.html',
-        'atom/cefclient/res/dialogs.html',
-        'atom/cefclient/res/domaccess.html',
-        'atom/cefclient/res/localstorage.html',
-        'atom/cefclient/res/logo.png',
-        'atom/cefclient/res/xmlhttprequest.html',
-        'atom/cefclient/resource_util.h',
-        'atom/cefclient/scheme_test.cpp',
-        'atom/cefclient/scheme_test.h',
-        'atom/cefclient/string_util.cpp',
-        'atom/cefclient/string_util.h',
-        'atom/cefclient/util.h',
+        'tests/cefclient/cefclient.cpp',
+        'tests/cefclient/cefclient.h',
+        'tests/cefclient/binding_test.cpp',
+        'tests/cefclient/binding_test.h',
+        'tests/cefclient/client_app.cpp',
+        'tests/cefclient/client_app.h',
+        'tests/cefclient/client_app_delegates.cpp',
+        'tests/cefclient/client_handler.cpp',
+        'tests/cefclient/client_handler.h',
+        'tests/cefclient/client_renderer.cpp',
+        'tests/cefclient/client_renderer.h',
+        'tests/cefclient/client_switches.cpp',
+        'tests/cefclient/client_switches.h',
+        'tests/cefclient/dom_test.cpp',
+        'tests/cefclient/dom_test.h',
+        'tests/cefclient/res/binding.html',
+        'tests/cefclient/res/dialogs.html',
+        'tests/cefclient/res/domaccess.html',
+        'tests/cefclient/res/localstorage.html',
+        'tests/cefclient/res/logo.png',
+        'tests/cefclient/res/xmlhttprequest.html',
+        'tests/cefclient/resource_util.h',
+        'tests/cefclient/scheme_test.cpp',
+        'tests/cefclient/scheme_test.h',
+        'tests/cefclient/string_util.cpp',
+        'tests/cefclient/string_util.h',
+        'tests/cefclient/util.h',
       ],
       'mac_bundle_resources': [
-        'atom/cefclient/mac/Atom.icns',
-        'atom/cefclient/mac/English.lproj/InfoPlist.strings',
-        'atom/cefclient/mac/English.lproj/MainMenu.xib',
-        'atom/cefclient/mac/Info.plist',
-        'atom/cefclient/res/binding.html',
-        'atom/cefclient/res/dialogs.html',
-        'atom/cefclient/res/domaccess.html',
-        'atom/cefclient/res/localstorage.html',
-        'atom/cefclient/res/logo.png',
-        'atom/cefclient/res/xmlhttprequest.html',
+        'tests/cefclient/mac/cefclient.icns',
+        'tests/cefclient/mac/English.lproj/InfoPlist.strings',
+        'tests/cefclient/mac/English.lproj/MainMenu.xib',
+        'tests/cefclient/mac/Info.plist',
+        'tests/cefclient/res/binding.html',
+        'tests/cefclient/res/dialogs.html',
+        'tests/cefclient/res/domaccess.html',
+        'tests/cefclient/res/localstorage.html',
+        'tests/cefclient/res/logo.png',
+        'tests/cefclient/res/xmlhttprequest.html',
       ],
       'mac_bundle_resources!': [
         # TODO(mark): Come up with a fancier way to do this (mac_info_plist?)
         # that automatically sets the correct INFOPLIST_FILE setting and adds
         # the file to a source group.
-        'atom/cefclient/mac/Info.plist',
+        'tests/cefclient/mac/Info.plist',
       ],
       'xcode_settings': {
-        'INFOPLIST_FILE': 'atom/cefclient/mac/Info.plist',
+        'INFOPLIST_FILE': 'tests/cefclient/mac/Info.plist',
         # Necessary to avoid an "install_name_tool: changing install names or
         # rpaths can't be redone" error.
         'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'],
@@ -161,36 +177,13 @@
               ],
             },
             {
-              'postbuild_name': 'Create Resources Directory In Bundle',
-              'action': [
-                'mkdir',
-                '-p',
-                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/Resources'
-              ],
-            },
-            {
-              'postbuild_name': 'Copy Pack File',
+              'postbuild_name': 'Copy Framework Resources Directory',
               'action': [
                 'cp',
-                '-f',
-                'cef/cef.pak',
-                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/Resources/cef.pak'
+                '-r',
+                'cef/Resources',
+                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/'
               ],
-            },
-            {
-              'postbuild_name': 'Copy WebCore Resources',
-              'action': [
-                'cp',
-                '-Rf',
-                '${BUILT_PRODUCTS_DIR}/../../third_party/WebKit/Source/WebCore/Resources/',
-                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/Resources/'
-              ],
-            },
-            {
-              # Modify the Info.plist as needed.
-              'postbuild_name': 'Tweak Info.plist',
-              'action': ['../build/mac/tweak_info_plist.py',
-                         '--svn=1'],
             },
             {
               # This postbuid step is responsible for creating the following
@@ -203,7 +196,7 @@
               # is marked for no PIE (ASLR).
               'postbuild_name': 'Make More Helpers',
               'action': [
-                '../build/mac/make_more_helpers.sh',
+                'cef/mac/make_more_helpers.sh',
                 'Frameworks',
                 'Atom',
               ],
@@ -218,9 +211,9 @@
             'include/cef_application_mac.h',
             'include/internal/cef_mac.h',
             'include/internal/cef_types_mac.h',
-            'atom/cefclient/cefclient_mac.mm',
-            'atom/cefclient/client_handler_mac.mm',
-            'atom/cefclient/resource_util_mac.mm',
+            'tests/cefclient/cefclient_mac.mm',
+            'tests/cefclient/client_handler_mac.mm',
+            'tests/cefclient/resource_util_mac.mm',
           ],
         }],
         [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
@@ -243,7 +236,8 @@
       'target_name': 'libcef_dll_wrapper',
       'type': 'static_library',
       'msvs_guid': 'A9D6DC71-C0DC-4549-AEA0-3B15B44E86A9',
-      'dependencies': [ ],
+      'dependencies': [
+      ],
       'defines': [
         'USING_CEF_SHARED',
       ],
@@ -260,7 +254,7 @@
         'libraries': [
           'cef/libcef.dylib',
         ],
-      },
+      }
     },
   ],
   'conditions': [
@@ -287,7 +281,9 @@
           ],
           'include_dirs': [
             '.',
-            'atom'
+            # cefclient includes are relative to the tests directory to make
+            # creation of binary releases easier.
+            'tests'
           ],
           'link_settings': {
             'libraries': [
@@ -295,34 +291,34 @@
             ],
           },
           'sources': [
-            'atom/cefclient/binding_test.cpp',
-            'atom/cefclient/binding_test.h',
-            'atom/cefclient/client_app.cpp',
-            'atom/cefclient/client_app.h',
-            'atom/cefclient/client_app_delegates.cpp',
-            'atom/cefclient/client_handler.cpp',
-            'atom/cefclient/client_handler.h',
-            'atom/cefclient/client_handler_mac.mm',
-            'atom/cefclient/client_renderer.cpp',
-            'atom/cefclient/client_renderer.h',
-            'atom/cefclient/client_switches.cpp',
-            'atom/cefclient/client_switches.h',
-            'atom/cefclient/dom_test.cpp',
-            'atom/cefclient/dom_test.h',
-            'atom/cefclient/process_helper_mac.cpp',
-            'atom/cefclient/resource_util.h',
-            'atom/cefclient/resource_util_mac.mm',
-            'atom/cefclient/scheme_test.cpp',
-            'atom/cefclient/scheme_test.h',
-            'atom/cefclient/string_util.cpp',
-            'atom/cefclient/string_util.h',
-            'atom/cefclient/util.h',
+            'tests/cefclient/binding_test.cpp',
+            'tests/cefclient/binding_test.h',
+            'tests/cefclient/client_app.cpp',
+            'tests/cefclient/client_app.h',
+            'tests/cefclient/client_app_delegates.cpp',
+            'tests/cefclient/client_handler.cpp',
+            'tests/cefclient/client_handler.h',
+            'tests/cefclient/client_handler_mac.mm',
+            'tests/cefclient/client_renderer.cpp',
+            'tests/cefclient/client_renderer.h',
+            'tests/cefclient/client_switches.cpp',
+            'tests/cefclient/client_switches.h',
+            'tests/cefclient/dom_test.cpp',
+            'tests/cefclient/dom_test.h',
+            'tests/cefclient/process_helper_mac.cpp',
+            'tests/cefclient/resource_util.h',
+            'tests/cefclient/resource_util_mac.mm',
+            'tests/cefclient/scheme_test.cpp',
+            'tests/cefclient/scheme_test.h',
+            'tests/cefclient/string_util.cpp',
+            'tests/cefclient/string_util.h',
+            'tests/cefclient/util.h',
           ],
           # TODO(mark): Come up with a fancier way to do this.  It should only
           # be necessary to list helper-Info.plist once, not the three times it
           # is listed here.
           'mac_bundle_resources!': [
-            'atom/cefclient/mac/helper-Info.plist',
+            'tests/cefclient/mac/helper-Info.plist',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
@@ -331,7 +327,7 @@
             ['exclude', '.*'],
           ],
           'xcode_settings': {
-            'INFOPLIST_FILE': 'atom/cefclient/mac/helper-Info.plist',
+            'INFOPLIST_FILE': 'tests/cefclient/mac/helper-Info.plist',
             # Necessary to avoid an "install_name_tool: changing install names or
             # rpaths can't be redone" error.
             'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'],
@@ -350,18 +346,6 @@
                 '@executable_path/../../../../Frameworks/Chromium Embedded Framework.framework/Libraries/libcef.dylib',
                 '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
               ],
-            },
-            {
-              # Modify the Info.plist as needed.  The script explains why this
-              # is needed.  This is also done in the chrome and chrome_dll
-              # targets.  In this case, --breakpad=0, --keystone=0, and --svn=0
-              # are used because Breakpad, Keystone, and Subversion keys are
-              # never placed into the helper.
-              'postbuild_name': 'Tweak Info.plist',
-              'action': ['./chromium/build/mac/tweak_info_plist.py',
-                         '--breakpad=0',
-                         '--keystone=0',
-                         '--svn=0'],
             },
           ],
         },  # target cefclient_helper_app

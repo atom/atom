@@ -19,15 +19,60 @@
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+		<key>cef_locales.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>69</integer>
+		</dict>
+		<key>cef_pak.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>205</integer>
+		</dict>
+		<key>cef_resources.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>169</integer>
+		</dict>
+		<key>cef_strings.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>385</integer>
+		</dict>
+		<key>libcef.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>315</integer>
+		</dict>
 		<key>libcef_dll_wrapper.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>libcef_static.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>198</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>25F476607D9077B40DBE5F3E</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>3049F5DBF2E857E3D2CA729A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>3CC3640C42727188246F6C25</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>42BFDBA927D226AA7A34C15C</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -43,6 +88,21 @@
 			<true/>
 		</dict>
 		<key>6528CFCB61FA1061980980AE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8FBD8DFB47D41B1B0E71281A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>A671A7000975F90FDFE4BA1D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FD25F65598E25BB48DC2FA7F</key>
 		<dict>
 			<key>primary</key>
 			<true/>
