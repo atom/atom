@@ -1,8 +1,8 @@
 #import "PathWatcher.h"
 
 #import <sys/event.h>
-#import <sys/time.h> 
-#import <sys/param.h> 
+#import <sys/time.h>
+#import <sys/param.h>
 #import <fcntl.h>
 
 static NSMutableArray *gPathWatchers;
@@ -13,7 +13,7 @@ static NSMutableArray *gPathWatchers;
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback callbackId:(NSString *)callbackId;
 - (void)stopWatching;
 - (void)reassignFileDescriptor:(NSNumber *)fdNumber from:(NSString *)path to:(NSString *)newPath;
-- (bool)isAtomicWrite:(struct kevent)event;
+- (bool)isAtomicWrite:(struct kevent)event path:(NSString *)path;
 @end
 
 @implementation PathWatcher
@@ -28,12 +28,12 @@ static NSMutableArray *gPathWatchers;
       break;
     }
   }
-  
+
   if (!pathWatcher) {
     pathWatcher = [[[PathWatcher alloc] initWithContext:context] autorelease];
     [gPathWatchers addObject:pathWatcher];
   }
-  
+
   return pathWatcher;
 }
 
@@ -45,7 +45,7 @@ static NSMutableArray *gPathWatchers;
       break;
     }
   }
-  
+
   if (pathWatcher) {
     [pathWatcher stopWatching];
     [gPathWatchers removeObject:pathWatcher];
@@ -65,17 +65,17 @@ static NSMutableArray *gPathWatchers;
 
 - (id)initWithContext:(CefRefPtr<CefV8Context>)context {
   self = [super init];
-  
+
   _keepWatching = YES;
   _callbacksByFileDescriptor = [[NSMutableDictionary alloc] init];
   _fileDescriptorsByPath = [[NSMutableDictionary alloc] init];
   _kq = kqueue();
   _context = context;
-  
+
   if (_kq == -1) {
     [NSException raise:@"PathWatcher" format:@"Could not create kqueue"];
   }
-  
+
   [self performSelectorInBackground:@selector(watch) withObject:NULL];
   return self;
 }
@@ -96,27 +96,27 @@ static NSMutableArray *gPathWatchers;
 
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback callbackId:(NSString *)callbackId {
   path = [path stringByStandardizingPath];
-  
+
   @synchronized(self) {
-    NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];    
+    NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
     if (!fdNumber) {
-      int fd = open([path fileSystemRepresentation], O_EVTONLY, 0);      
+      int fd = open([path fileSystemRepresentation], O_EVTONLY, 0);
       if (fd < 0) return nil;
       [self watchFileDescriptor:fd];
-      
+
       fdNumber = [NSNumber numberWithInt:fd];
       [_fileDescriptorsByPath setObject:fdNumber forKey:path];
     }
-    
+
     NSMutableDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
-    if (!callbacks) {      
+    if (!callbacks) {
       callbacks = [NSMutableDictionary dictionary];
-      [_callbacksByFileDescriptor setObject:callbacks forKey:fdNumber];      
+      [_callbacksByFileDescriptor setObject:callbacks forKey:fdNumber];
     }
-    
+
     [callbacks setObject:callback forKey:callbackId];
   }
-  
+
   return callbackId;
 }
 
@@ -132,22 +132,22 @@ static NSMutableArray *gPathWatchers;
         NSError *e = [NSError errorWithDomain:@"PathWatcher" code:0 userInfo:userInfo];
         *error = e;
       }
-      return;    
+      return;
     }
 
     NSMutableDictionary *callbacks = [_callbacksByFileDescriptor objectForKey:fdNumber];
-    if (!callbacks) return; 
-    
+    if (!callbacks) return;
+
     if (callbackId) {
       [callbacks removeObjectForKey:callbackId];
     }
     else {
       [callbacks removeAllObjects];
     }
-    
+
     if (callbacks.count == 0) {
       close([fdNumber intValue]);
-      [_callbacksByFileDescriptor removeObjectForKey:fdNumber];      
+      [_callbacksByFileDescriptor removeObjectForKey:fdNumber];
       [_fileDescriptorsByPath removeObjectForKey:path];
     }
   }
@@ -159,7 +159,7 @@ static NSMutableArray *gPathWatchers;
     for (NSString *path in paths) {
       [self unwatchPath:path callbackId:nil error:nil];
     }
-  }  
+  }
 }
 
 - (void)watchFileDescriptor:(int)fd {
@@ -180,24 +180,15 @@ static NSMutableArray *gPathWatchers;
       }
     }
   }
-  
+
   return nil;
 }
 
-- (bool)isAtomicWrite:(struct kevent)event {
+- (bool)isAtomicWrite:(struct kevent)event path:(NSString *)path {
   if (!event.fflags & NOTE_DELETE) return NO;
-  
+  [NSThread sleepForTimeInterval:0.01]; // HACK: Git deletes files only to create them again later. This is the cheap way of dealing with that
   NSFileManager *fm = [NSFileManager defaultManager];
-  NSString *path = nil;
-  @synchronized(self) {
-    for (path in [_fileDescriptorsByPath allKeys]) {
-      if ([[_fileDescriptorsByPath objectForKey:path] unsignedLongValue] == event.ident) {
-        return [fm fileExistsAtPath:path];
-      }
-    }
-  }
-  
-  return NO;
+  return [fm fileExistsAtPath:path];
 }
 
 - (void)reassignFileDescriptor:(NSNumber *)fdNumber from:(NSString *)path to:(NSString *)newPath {
@@ -211,25 +202,25 @@ static NSMutableArray *gPathWatchers;
 }
 
 - (void)updatePath:(NSString *)path forFileDescriptor:(NSNumber *)fdNumber {
-  // The path associated with the fd been updated. Remove references to old fd 
+  // The path associated with the fd been updated. Remove references to old fd
   // and make sure the path and callbacks are linked with new fd.
   @synchronized(self) {
-    NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];          
+    NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];
     [self unwatchPath:path callbackId:nil error:nil];
     for (NSString *callbackId in [callbacks allKeys]) {
       [self watchPath:path callback:[callbacks objectForKey:callbackId] callbackId:callbackId];
-    }  
+    }
   }
 }
 
-- (void)watch {  
-  struct kevent event;    
+- (void)watch {
+  struct kevent event;
   struct timespec timeout = { 5, 0 }; // 5 seconds timeout.
-  
+
   while (_keepWatching) {
     @autoreleasepool {
       int numberOfEvents = kevent(_kq, NULL, 0, &event, 1, &timeout);
-      
+
       if (numberOfEvents < 0) {
         NSLog(@"PathWatcher: error %d", numberOfEvents);
       }
@@ -240,12 +231,12 @@ static NSMutableArray *gPathWatchers;
       NSNumber *fdNumber = [NSNumber numberWithInt:event.ident];
       NSString *eventFlag = nil;
       NSString *path = [[[self pathForFileDescriptor:fdNumber] retain] autorelease];
-      NSString *newPath = nil;      
-      
+      NSString *newPath = nil;
+
       if (event.fflags & NOTE_WRITE) {
         eventFlag = @"contents-change";
       }
-      else if ([self isAtomicWrite:event]) {        
+      else if ([self isAtomicWrite:event path:path]) {
         eventFlag = @"contents-change";
         [self updatePath:path forFileDescriptor:fdNumber];
       }
@@ -258,7 +249,7 @@ static NSMutableArray *gPathWatchers;
         fcntl((int)event.ident, F_GETPATH, &pathBuffer);
         newPath = [NSString stringWithUTF8String:pathBuffer];
       }
-      
+
       NSDictionary *callbacks;
       @synchronized(self) {
         callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByFileDescriptor objectForKey:fdNumber]];
@@ -266,7 +257,7 @@ static NSMutableArray *gPathWatchers;
 
       dispatch_sync(dispatch_get_main_queue(), ^{
         for (NSString *key in callbacks) {
-          WatchCallback callback = [callbacks objectForKey:key];                        
+          WatchCallback callback = [callbacks objectForKey:key];
           callback(eventFlag, newPath ? newPath : path);
         }
       });
