@@ -29,7 +29,7 @@ class EditSession
   anchorRanges: null
   cursors: null
   selections: null
-  autoIndent: true
+  autoIndent: false # TODO: re-enabled auto-indent after fixing the rest of tokenization
   softTabs: true
   softWrap: false
 
@@ -106,7 +106,11 @@ class EditSession
 
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
+  isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
+  nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
+  indentationForBufferRow: (bufferRow) -> @buffer.indentationForRow(bufferRow)
   getEofBufferPosition: -> @buffer.getEofPosition()
+  getLastBufferRow: -> @buffer.getLastRow()
   bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   scanInRange: (args...) -> @buffer.scanInRange(args...)
@@ -126,8 +130,8 @@ class EditSession
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
-  insertText: (text) ->
-    @mutateSelectedText (selection) -> selection.insertText(text)
+  insertText: (text, options) ->
+    @mutateSelectedText (selection) -> selection.insertText(text, options)
 
   insertNewline: ->
     @insertText('\n')
@@ -137,16 +141,9 @@ class EditSession
     @insertNewline()
 
   indent: ->
+    currentRow = @getCursorBufferPosition().row
     if @getSelection().isEmpty()
-      whitespaceMatch = @lineForBufferRow(@getCursorBufferPosition().row).match /^\s*$/
-      if @autoIndent and whitespaceMatch
-        indentation = @indentationForRow(@getCursorBufferPosition().row)
-        if indentation.length > whitespaceMatch[0].length
-          @getSelection().selectLine()
-          @insertText(indentation)
-        else
-          @insertText(@tabText)
-      else if @softTabs
+      if @softTabs
         @insertText(@tabText)
       else
         @insertText('\t')
@@ -248,15 +245,17 @@ class EditSession
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
-  indentationForRow: (row) ->
-    @languageMode.indentationForRow(row)
+  autoIndentBufferRows: (startRow, endRow) ->
+    @languageMode.autoIndentBufferRows(startRow, endRow)
 
-  autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
-    return { text } unless @autoIndent
-    @languageMode.autoIndentTextAfterBufferPosition(text, bufferPosition)
+  autoIndentBufferRow: (bufferRow) ->
+    @languageMode.autoIndentBufferRow(bufferRow)
 
-  autoOutdentBufferRow: (bufferRow) ->
-    @languageMode.autoOutdentBufferRow(bufferRow)
+  autoIncreaseIndentForBufferRow: (bufferRow) ->
+    @languageMode.autoIncreaseIndentForBufferRow(bufferRow)
+
+  autoDecreaseIndentForRow: (bufferRow) ->
+    @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
   toggleLineCommentsInRange: (range) ->
     @languageMode.toggleLineCommentsInRange(range)

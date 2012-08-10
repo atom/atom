@@ -1,0 +1,8 @@
+==========
+refe
+==========
+rct-doc --refe --line=1
+==========
+[].length
+==========
+refe 'Array#length'

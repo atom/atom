@@ -32,7 +32,6 @@ describe "Editor", ->
       $('#jasmine-content').append(this)
 
     editor.lineOverdraw = 2
-    rootView.project.setAutoIndent(false)
     editor.enableKeymap()
     editor.isFocused = true
 
@@ -170,7 +169,7 @@ describe "Editor", ->
       expect(miniEditor.remove).not.toHaveBeenCalled()
 
     describe "when buffer is modified", ->
-      it "triggers alert and does not close session", ->
+      it "triggers an alert and does not close the session", ->
         spyOn(editor, 'remove').andCallThrough()
         spyOn($native, 'alert')
         editor.insertText("I AM CHANGED!")
@@ -989,13 +988,13 @@ describe "Editor", ->
 
       it "syntax highlights code based on the file type", ->
         line1 = editor.renderedLines.find('.line:first')
-        expect(line1.find('span:eq(0)')).toMatchSelector '.keyword.definition'
+        expect(line1.find('span:eq(0)')).toMatchSelector '.storage-type-js'
         expect(line1.find('span:eq(0)').text()).toBe 'var'
-        expect(line1.find('span:eq(1)')).toMatchSelector '.text'
+        expect(line1.find('span:eq(1)')).toMatchSelector '.source-js'
         expect(line1.find('span:eq(1)').text()).toBe ' '
-        expect(line1.find('span:eq(2)')).toMatchSelector '.identifier'
+        expect(line1.find('span:eq(2)')).toMatchSelector '.entity-name-function-js'
         expect(line1.find('span:eq(2)').text()).toBe 'quicksort'
-        expect(line1.find('span:eq(4)')).toMatchSelector '.operator'
+        expect(line1.find('span:eq(4)')).toMatchSelector '.keyword-operator-js'
         expect(line1.find('span:eq(4)').text()).toBe '='
 
         line12 = editor.renderedLines.find('.line:eq(11)')
@@ -1003,9 +1002,9 @@ describe "Editor", ->
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
-          expect(editor.renderedLines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
-          buffer.insert([0, 4], "g")
-          expect(editor.renderedLines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.keyword.definition'
+          expect(editor.renderedLines.find('.line:eq(0) span:eq(0)')).toMatchSelector '.storage-type-js'
+          buffer.insert([0, 0], "q")
+          expect(editor.renderedLines.find('.line:eq(0) span:eq(0)')).not.toMatchSelector '.storage-type-js'
 
           # verify that re-highlighting can occur below the changed line
           buffer.insert([5,0], "/* */")
@@ -1393,6 +1392,12 @@ describe "Editor", ->
         editor.moveCursorToBottom()
 
         expect(editor.renderedLines.find('.line').length).toBe 8
+
+    describe "when line has a character that could push it to be too tall (regression)", ->
+      it "does renders the line at a consistent height", ->
+        rootView.attachToDom()
+        buffer.insert([0, 0], "–")
+        expect(editor.find('.line:eq(0)').outerHeight()).toBe editor.find('.line:eq(1)').outerHeight()
 
     describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
       elements = null

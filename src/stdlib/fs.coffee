@@ -35,6 +35,7 @@ module.exports =
   # more non-dot characters. Returns an empty string if no valid
   # extension exists.
   extension: (path) ->
+    return '' unless typeof path is 'string'
     match = @base(path).match(/\.[^\.]+$/)
     if match
       match[0]

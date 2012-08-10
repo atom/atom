@@ -54,7 +54,6 @@ class Editor extends View
 
   initialize: ({editSession, @mini} = {}) ->
     requireStylesheet 'editor.css'
-    requireStylesheet 'theme/twilight.css'
 
     @id = Editor.idCounter++
     @lineCache = []
@@ -800,7 +799,7 @@ class Editor extends View
             @raw '&nbsp;' if line.text == ''
           else
             for token in line.tokens
-              @span { class: token.type.replace('.', ' ') }, token.value
+              @span { class: token.getCssClassString() }, token.value
 
   insertLineElements: (row, lineElements) ->
     @spliceLineElements(row, 0, lineElements)

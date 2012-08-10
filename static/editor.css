@@ -1,12 +1,11 @@
 .editor {
   height: 100%;
   overflow: hidden;
-  background: #333;
-  color: white;
   cursor: default;
   -webkit-user-select: none;
   -webkit-box-flex: 1;
   position: relative;
+  z-index: 0;
 }
 
 .editor.mini {
@@ -73,28 +72,27 @@
   width: 100%;
 }
 
-.editor .line {
+.editor .line, .gutter .line-number {
   white-space: pre;
   margin: 0;
   padding: 0;
-  z-index: 1;
+  padding-bottom: .05em;
+}
+
+.editor .line > span {
+  vertical-align: top;
 }
 
 @-webkit-keyframes blink {
-  0% { opacity: .7; }
-  60% { opacity: .7; }
+  0% { opacity: 1; }
+  60% { opacity: 1; }
   61% { opacity: 0; }
   100% { opacity: 0; }
 }
 
 .editor .cursor {
   position: absolute;
-  border-left: 3px solid rgba(255, 255, 255, .4);
-  opacity: 0.7;
-}
-
-.editor.focused .cursor {
-  border-color: #9dff9d;
+  border-left: 2px solid;
 }
 
 .editor.focused .cursor.idle {
@@ -112,7 +110,11 @@
 
 .editor .selection {
   position: absolute;
-  background: white;
-  opacity: .25;
+  background: rgba(255, 255, 255, .15);
   pointer-events: none;
+  z-index: -1;
+}
+
+.editor .fold {
+  background-color: #444;
 }

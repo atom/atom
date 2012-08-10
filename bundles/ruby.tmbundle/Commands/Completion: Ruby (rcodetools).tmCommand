@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+
+require "#{ENV["TM_SUPPORT_PATH"]}/lib/exit_codes"
+require "#{ENV["TM_SUPPORT_PATH"]}/lib/ui"
+
+require "pathname"
+
+TM_RUBY    = ENV["TM_RUBY"] || "ruby"
+RCODETOOLS = "#{ENV['TM_BUNDLE_SUPPORT']}/vendor/rcodetools"
+
+RAILS_DIR = nil
+dir = File.dirname(ENV["TM_FILEPATH"]) rescue ENV["TM_PROJECT_DIRECTORY"]
+if dir
+  dir = Pathname.new(dir)
+  loop do
+    if (dir + "config/environment.rb").exist?
+      Object.send(:remove_const, :RAILS_DIR)
+      RAILS_DIR = dir.to_s
+      break
+    end
+    
+    break if dir.to_s == "/"
+    
+    dir += ".."
+  end
+end
+
+command     = &lt;&lt;END_COMMAND.tr("\n", " ").strip
+"#{TM_RUBY}"
+-I "#{RCODETOOLS}/lib"
+--
+"#{RCODETOOLS}/bin/rct-complete"
+#{"-r \"#{RAILS_DIR}/config/environment.rb\"" if RAILS_DIR}
+--line=#{ENV['TM_LINE_NUMBER']}
+--column=#{ENV['TM_LINE_INDEX']}
+2&gt; /dev/null
+END_COMMAND
+completions = `#{command}`.split("\n").map { |l| l.strip }.select { |l| l =~ /\S/ }
+
+if not $?.success?
+  TextMate.exit_show_tool_tip "Parse error."
+elsif completions.size == 1
+  selected = completions.first
+elsif completions.size &gt; 1
+  selected = completions[TextMate::UI.menu(completions)] rescue exit
+else
+  TextMate.exit_show_tool_tip "No matches were found."
+end
+
+print selected.sub(/\A#{Regexp.escape(ENV['TM_CURRENT_WORD'].to_s)}/, "")
+</string>
+	<key>input</key>
+	<string>document</string>
+	<key>keyEquivalent</key>
+	<string>~</string>
+	<key>name</key>
+	<string>Completion: Ruby (rcodetools)</string>
+	<key>output</key>
+	<string>afterSelectedText</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>uuid</key>
+	<string>47D203ED-EB9B-4653-A07B-A897800CEB76</string>
+</dict>
+</plist>

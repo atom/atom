@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby -wKU
+
+def pretty(number)
+  number.to_s.gsub(/\d{1,3}(?=\d{3}+(?!\d))/, '\0,')
+end
+
+counts = `wc -lwc`.scan(/\d+/)
+counts[0] = counts[0].to_i + 1 # increase one to the line count
+
+%w[ line word byte ].each do |unit|
+  cnt    = counts.shift
+  plural = cnt.to_i != 1 ? 's' : ''
+  printf("%11.11s %s%s\n", pretty(cnt), unit, plural)
+end
+</string>
+	<key>fallbackInput</key>
+	<string>document</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^N</string>
+	<key>name</key>
+	<string>Statistics for Document / Selection (Word Count)</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>uuid</key>
+	<string>AA202E76-8A0A-11D9-B85D-000D93589AF6</string>
+</dict>
+</plist>

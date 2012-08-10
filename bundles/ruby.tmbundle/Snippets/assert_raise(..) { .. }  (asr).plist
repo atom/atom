@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>assert_raise(${1:Exception}) { $0 }</string>
+	<key>name</key>
+	<string>assert_raise(..) { .. }</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>asr</string>
+	<key>uuid</key>
+	<string>68B21F6F-5D89-41FA-A19C-F29C2F912B4E</string>
+</dict>
+</plist>

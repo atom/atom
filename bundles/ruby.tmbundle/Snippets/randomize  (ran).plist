@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>sort_by { rand }</string>
+	<key>name</key>
+	<string>randomize()</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>ran</string>
+	<key>uuid</key>
+	<string>B0CE57EC-FB2E-4482-8CCE-448DC2588715</string>
+</dict>
+</plist>

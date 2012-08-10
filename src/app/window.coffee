@@ -2,6 +2,8 @@
 # the DOM window.
 
 Native = require 'native'
+TextMateBundle = require 'text-mate-bundle'
+TextMateTheme = require 'text-mate-theme'
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
@@ -23,6 +25,9 @@ windowAdditions =
     $(document).on 'keydown', @_handleKeyEvent
 
   startup: (path) ->
+    TextMateBundle.loadAll()
+    TextMateTheme.loadAll()
+
     @attachRootView(path)
     $(window).on 'close', => @close()
     $(window).on 'beforeunload', =>
@@ -51,9 +56,11 @@ windowAdditions =
 
   requireStylesheet: (path) ->
     fullPath = require.resolve(path)
-    content = fs.read(fullPath)
-    return if $("head style[path='#{fullPath}']").length
-    $('head').append "<style path='#{fullPath}'>#{content}</style>"
+    window.applyStylesheet(fullPath, fs.read(fullPath))
+
+  applyStylesheet: (id, text) ->
+    unless $("head style[id='#{id}']").length
+      $('head').append "<style id='#{id}'>#{text}</style>"
 
   requireExtension: (name) ->
     extensionPath = require.resolve name

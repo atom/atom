@@ -9,7 +9,7 @@ class Directory
 
   constructor: (@path) ->
 
-  getName: ->
+  getBaseName: ->
     fs.base(@path) + '/'
 
   getEntries: ->

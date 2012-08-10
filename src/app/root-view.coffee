@@ -12,6 +12,7 @@ Pane = require 'pane'
 PaneColumn = require 'pane-column'
 PaneRow = require 'pane-row'
 StatusBar = require 'status-bar'
+TextMateTheme = require 'text-mate-theme'
 
 module.exports =
 class RootView extends View
@@ -32,6 +33,7 @@ class RootView extends View
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
+    TextMateTheme.activate('IR_Black')
 
     @extensionStates ?= {}
     @extensions = {}

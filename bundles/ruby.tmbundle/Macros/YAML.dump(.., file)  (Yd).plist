@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>commands</key>
+	<array>
+		<dict>
+			<key>command</key>
+			<string>moveToBeginningOfDocumentAndModifySelection:</string>
+		</dict>
+		<dict>
+			<key>argument</key>
+			<dict>
+				<key>command</key>
+				<string>insert_requires.rb yaml</string>
+				<key>input</key>
+				<string>selection</string>
+				<key>output</key>
+				<string>insertAsSnippet</string>
+			</dict>
+			<key>command</key>
+			<string>executeCommandWithOptions:</string>
+		</dict>
+		<dict>
+			<key>argument</key>
+			<dict>
+				<key>bundlePath</key>
+				<string>/Users/james/Library/Application Support/TextMate/Bundles/Ruby Idioms.tmbundle</string>
+				<key>content</key>
+				<string>File.open(${1:"${2:path/to/file}.yaml"}, "w") { |${3:file}| YAML.dump(${4:obj}, ${3:file}) }</string>
+				<key>scope</key>
+				<string>source.ruby</string>
+				<key>supportPath</key>
+				<string>/Users/james/Library/Application Support/TextMate/Bundles/Ruby Idioms.tmbundle/Support</string>
+				<key>tabTrigger</key>
+				<string>Yd-</string>
+				<key>uuid</key>
+				<string>3BA6762A-BB6B-489E-8006-F30F386AEF48</string>
+			</dict>
+			<key>command</key>
+			<string>insertSnippetWithOptions:</string>
+		</dict>
+	</array>
+	<key>keyEquivalent</key>
+	<string></string>
+	<key>name</key>
+	<string>YAML.dump(.., file)</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>scopeType</key>
+	<string>local</string>
+	<key>tabTrigger</key>
+	<string>Yd</string>
+	<key>uuid</key>
+	<string>9460392B-C036-4A76-A5AE-1191F10E4B1B</string>
+</dict>
+</plist>

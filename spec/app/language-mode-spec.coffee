@@ -77,24 +77,24 @@ describe "LanguageMode", ->
     describe ".toggleLineCommentsInRange(range)", ->
       it "comments/uncomments lines in the given range", ->
         languageMode.toggleLineCommentsInRange([[4, 5], [7, 8]])
-        expect(buffer.lineForRow(4)).toBe "//    while(items.length > 0) {"
-        expect(buffer.lineForRow(5)).toBe "//      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//    }"
+        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "//       current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "//     }"
 
         languageMode.toggleLineCommentsInRange([[4, 5], [5, 8]])
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
         expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
-        expect(buffer.lineForRow(6)).toBe "//      current < pivot ? left.push(current) : right.push(current);"
-        expect(buffer.lineForRow(7)).toBe "//    }"
+        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "//     }"
 
     describe "fold suggestion", ->
-      describe ".isBufferRowFoldable(bufferRow)", ->
+      describe ".doesBufferRowStartFold(bufferRow)", ->
         it "returns true only when the buffer row starts a foldable region", ->
-          expect(languageMode.isBufferRowFoldable(0)).toBeTruthy()
-          expect(languageMode.isBufferRowFoldable(1)).toBeTruthy()
-          expect(languageMode.isBufferRowFoldable(2)).toBeFalsy()
-          expect(languageMode.isBufferRowFoldable(3)).toBeFalsy()
+          expect(languageMode.doesBufferRowStartFold(0)).toBeTruthy()
+          expect(languageMode.doesBufferRowStartFold(1)).toBeTruthy()
+          expect(languageMode.doesBufferRowStartFold(2)).toBeFalsy()
+          expect(languageMode.doesBufferRowStartFold(3)).toBeFalsy()
 
       describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
         it "returns the start/end rows of the foldable region starting at the given row", ->
@@ -111,25 +111,25 @@ describe "LanguageMode", ->
     describe ".toggleLineCommentsInRange(range)", ->
       it "comments/uncomments lines in the given range", ->
         languageMode.toggleLineCommentsInRange([[4, 5], [7, 8]])
-        expect(buffer.lineForRow(4)).toBe "    #pivot = items.shift()"
-        expect(buffer.lineForRow(5)).toBe "    #left = []"
-        expect(buffer.lineForRow(6)).toBe "    #right = []"
-        expect(buffer.lineForRow(7)).toBe "#"
+        expect(buffer.lineForRow(4)).toBe "#     pivot = items.shift()"
+        expect(buffer.lineForRow(5)).toBe "#     left = []"
+        expect(buffer.lineForRow(6)).toBe "#     right = []"
+        expect(buffer.lineForRow(7)).toBe "# "
 
         languageMode.toggleLineCommentsInRange([[4, 5], [5, 8]])
         expect(buffer.lineForRow(4)).toBe "    pivot = items.shift()"
         expect(buffer.lineForRow(5)).toBe "    left = []"
-        expect(buffer.lineForRow(6)).toBe "    #right = []"
-        expect(buffer.lineForRow(7)).toBe "#"
+        expect(buffer.lineForRow(6)).toBe "#     right = []"
+        expect(buffer.lineForRow(7)).toBe "# "
 
     describe "fold suggestion", ->
-      describe ".isBufferRowFoldable(bufferRow)", ->
+      describe ".doesBufferRowStartFold(bufferRow)", ->
         it "returns true only when the buffer row starts a foldable region", ->
-          expect(languageMode.isBufferRowFoldable(0)).toBeTruthy()
-          expect(languageMode.isBufferRowFoldable(1)).toBeTruthy()
-          expect(languageMode.isBufferRowFoldable(2)).toBeFalsy()
-          expect(languageMode.isBufferRowFoldable(3)).toBeFalsy()
-          expect(languageMode.isBufferRowFoldable(19)).toBeTruthy()
+          expect(languageMode.doesBufferRowStartFold(0)).toBeTruthy()
+          expect(languageMode.doesBufferRowStartFold(1)).toBeTruthy()
+          expect(languageMode.doesBufferRowStartFold(2)).toBeFalsy()
+          expect(languageMode.doesBufferRowStartFold(3)).toBeFalsy()
+          expect(languageMode.doesBufferRowStartFold(19)).toBeTruthy()
 
       describe ".rowRangeForFoldAtBufferRow(bufferRow)", ->
         it "returns the start/end rows of the foldable region starting at the given row", ->

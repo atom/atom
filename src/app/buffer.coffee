@@ -72,6 +72,9 @@ class Buffer
     @modified = false
     @modifiedOnDisk = false
 
+  getBaseName: ->
+    @file?.getBaseName()
+
   getPath: ->
     @file?.getPath()
 
@@ -319,6 +322,32 @@ class Buffer
 
   backwardsScanInRange: (regex, range, iterator) ->
     @scanInRange regex, range, iterator, true
+
+  isRowBlank: (row) ->
+    not /\S/.test @lineForRow(row)
+
+  previousNonBlankRow: (startRow) ->
+    return null if startRow == 0
+
+    startRow = Math.min(startRow, @getLastRow())
+    for row in [(startRow - 1)..0]
+      return row unless @isRowBlank(row)
+    null
+
+  nextNonBlankRow: (startRow) ->
+    lastRow = @getLastRow()
+    if startRow < lastRow
+      for row in [(startRow + 1)..lastRow]
+        return row unless @isRowBlank(row)
+    null
+
+  indentationForRow: (row) ->
+    @lineForRow(row).match(/^\s*/)?[0].length
+
+  setIndentationForRow: (bufferRow, newLevel) ->
+    currentLevel = @indentationForRow(bufferRow)
+    indentString = [0...newLevel].map(-> ' ').join('')
+    @change([[bufferRow, 0], [bufferRow, currentLevel]], indentString)
 
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]

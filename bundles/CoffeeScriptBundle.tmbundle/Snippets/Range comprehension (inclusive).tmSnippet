@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>for ${1:name} in [${2:start}..${3:finish}]${4: by ${5:step}}
+  ${0:# body...}</string>
+	<key>name</key>
+	<string>Range comprehension (inclusive)</string>
+	<key>scope</key>
+	<string>source.coffee</string>
+	<key>tabTrigger</key>
+	<string>forr</string>
+	<key>uuid</key>
+	<string>E0F8E45A-9262-4DD6-ADFF-B5B9D6CE99C2</string>
+</dict>
+</plist>

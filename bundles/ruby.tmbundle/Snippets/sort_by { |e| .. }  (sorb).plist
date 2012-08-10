@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>sort_by { |${1:e}| $0 }</string>
+	<key>name</key>
+	<string>sort_by { |e| .. }</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>sorb</string>
+	<key>uuid</key>
+	<string>BA9440C9-36C3-4031-BB61-67B581D5B179</string>
+</dict>
+</plist>

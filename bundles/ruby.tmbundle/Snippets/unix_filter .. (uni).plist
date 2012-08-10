@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>ARGF.each_line$1 do |${2:line}|
+	$0
+end</string>
+	<key>name</key>
+	<string>unix_filter { .. }</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>unif</string>
+	<key>uuid</key>
+	<string>8CEF9711-88D5-4202-AFB9-29EF4EFD25C1</string>
+</dict>
+</plist>

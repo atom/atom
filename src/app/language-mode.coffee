@@ -1,10 +1,11 @@
-AceAdaptor = require 'ace-adaptor'
 Range = require 'range'
+TextMateBundle = require 'text-mate-bundle'
 _ = require 'underscore'
+require 'underscore-extensions'
 
 module.exports =
 class LanguageMode
-  matchingCharacters:
+  pairedCharacters:
     '(': ')'
     '[': ']'
     '{': '}'
@@ -13,8 +14,7 @@ class LanguageMode
 
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
-    @aceMode = @requireAceMode()
-    @aceAdaptor = new AceAdaptor(@editSession)
+    @grammar = TextMateBundle.grammarForFileName(@buffer.getBaseName())
 
     _.adviseBefore @editSession, 'insertText', (text) =>
       return true if @editSession.hasMultipleCursors()
@@ -25,23 +25,10 @@ class LanguageMode
       if @isCloseBracket(text) and text == nextCharacter
         @editSession.moveCursorRight()
         false
-      else if /^\s*$/.test(nextCharacter) and matchingCharacter = @matchingCharacters[text]
-        @editSession.insertText text + matchingCharacter
+      else if /^\s*$/.test(nextCharacter) and pairedCharacter = @pairedCharacters[text]
+        @editSession.insertText text + pairedCharacter
         @editSession.moveCursorLeft()
         false
-
-  requireAceMode: (fileExtension) ->
-    modeName = switch @editSession.buffer.getExtension()
-      when 'js' then 'javascript'
-      when 'coffee' then 'coffee'
-      when 'rb', 'ru' then 'ruby'
-      when 'c', 'h', 'cpp' then 'c_cpp'
-      when 'html', 'htm' then 'html'
-      when 'css' then 'css'
-      when 'java' then 'java'
-      when 'xml' then 'xml'
-      else 'text'
-    new (require("ace/mode/#{modeName}").Mode)
 
   isOpenBracket: (string) ->
     @pairedCharacters[string]?
@@ -51,45 +38,90 @@ class LanguageMode
 
   getInvertedPairedCharacters: ->
     return @invertedPairedCharacters if @invertedPairedCharacters
+
     @invertedPairedCharacters = {}
-    for open, close of @matchingCharacters
+    for open, close of @pairedCharacters
       @invertedPairedCharacters[close] = open
     @invertedPairedCharacters
 
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)
-    @aceMode.toggleCommentLines(@tokenizedBuffer.stateForRow(range.start.row), @aceAdaptor, range.start.row, range.end.row)
+    scopes = @tokenizedBuffer.scopesForPosition(range.start)
+    commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
+    commentRegex = new OnigRegExp("^\s*" + _.escapeRegExp(commentString))
 
-  isBufferRowFoldable: (bufferRow) ->
-    @aceMode.foldingRules?.getFoldWidget(@aceAdaptor, null, bufferRow) == "start"
+    shouldUncomment = commentRegex.test(@editSession.lineForBufferRow(range.start.row))
+
+    for row in [range.start.row..range.end.row]
+      line = @editSession.lineForBufferRow(row)
+      if shouldUncomment
+        match = commentRegex.search(line)
+        @editSession.buffer.change([[row, 0], [row, match[0].length]], "")
+      else
+        @editSession.buffer.insert([row, 0], commentString)
+
+  doesBufferRowStartFold: (bufferRow) ->
+    return false if @editSession.isBufferRowBlank(bufferRow)
+    nextNonEmptyRow = @editSession.nextNonBlankBufferRow(bufferRow)
+    return false unless nextNonEmptyRow?
+    @editSession.indentationForBufferRow(nextNonEmptyRow) > @editSession.indentationForBufferRow(bufferRow)
 
   rowRangeForFoldAtBufferRow: (bufferRow) ->
-    if aceRange = @aceMode.foldingRules?.getFoldWidgetRange(@aceAdaptor, null, bufferRow)
-      [aceRange.start.row, aceRange.end.row]
-    else
-      null
+    return null unless @doesBufferRowStartFold(bufferRow)
 
-  indentationForRow: (row) ->
-    state = @tokenizedBuffer.stateForRow(row)
-    previousRowText = @buffer.lineForRow(row - 1)
-    @aceMode.getNextLineIndent(state, previousRowText, @editSession.tabText)
+    startIndentation = @editSession.indentationForBufferRow(bufferRow)
+    for row in [(bufferRow + 1)..@editSession.getLastBufferRow()]
+      continue if @editSession.isBufferRowBlank(row)
+      indentation = @editSession.indentationForBufferRow(row)
+      if indentation <= startIndentation
+        includeRowInFold = indentation == startIndentation and @grammar.foldEndRegex.search(@editSession.lineForBufferRow(row))
+        foldEndRow = row if includeRowInFold
+        break
 
-  autoIndentTextAfterBufferPosition: (text, bufferPosition) ->
-    { row, column} = bufferPosition
-    state = @tokenizedBuffer.stateForRow(row)
-    lineBeforeCursor = @buffer.lineForRow(row)[0...column]
-    if text[0] == "\n"
-      indent = @aceMode.getNextLineIndent(state, lineBeforeCursor, @editSession.tabText)
-      text = text[0] + indent + text[1..]
-    else if @aceMode.checkOutdent(state, lineBeforeCursor, text)
-      shouldOutdent = true
+      foldEndRow = row
 
-    {text, shouldOutdent}
+    [bufferRow, foldEndRow]
 
-  autoOutdentBufferRow: (bufferRow) ->
-    state = @tokenizedBuffer.stateForRow(bufferRow)
-    @aceMode.autoOutdent(state, @aceAdaptor, bufferRow)
+  autoIndentBufferRows: (startRow, endRow) ->
+    @autoIndentBufferRow(row) for row in [startRow..endRow]
 
-  getLineTokens: (line, state) ->
-    {tokens, state} = @aceMode.getTokenizer().getLineTokens(line, state)
+  autoIndentBufferRow: (bufferRow) ->
+    @autoIncreaseIndentForBufferRow(bufferRow)
+    @autoDecreaseIndentForBufferRow(bufferRow)
+
+  autoIncreaseIndentForBufferRow: (bufferRow) ->
+    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    return unless precedingRow?
+
+    precedingLine = @editSession.lineForBufferRow(precedingRow)
+    scopes = @tokenizedBuffer.scopesForPosition([precedingRow, Infinity])
+    increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
+    return unless increaseIndentPattern
+
+    currentIndentation = @buffer.indentationForRow(bufferRow)
+    desiredIndentation = @buffer.indentationForRow(precedingRow)
+    desiredIndentation += @editSession.tabText.length if increaseIndentPattern.test(precedingLine)
+    if desiredIndentation > currentIndentation
+      @buffer.setIndentationForRow(bufferRow, desiredIndentation)
+
+  autoDecreaseIndentForBufferRow: (bufferRow) ->
+    scopes = @tokenizedBuffer.scopesForPosition([bufferRow, 0])
+    increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
+    decreaseIndentPattern = TextMateBundle.outdentRegexForScope(scopes[0])
+    return unless increaseIndentPattern and decreaseIndentPattern
+
+    line = @buffer.lineForRow(bufferRow)
+    return unless decreaseIndentPattern.test(line)
+
+    currentIndentation = @buffer.indentationForRow(bufferRow)
+    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    precedingLine = @buffer.lineForRow(precedingRow)
+
+    desiredIndentation = @buffer.indentationForRow(precedingRow)
+    desiredIndentation -= @editSession.tabText.length unless increaseIndentPattern.test(precedingLine)
+    if desiredIndentation < currentIndentation
+      @buffer.setIndentationForRow(bufferRow, desiredIndentation)
+
+  getLineTokens: (line, stack) ->
+    {tokens, stack} = @grammar.getLineTokens(line, stack)
 

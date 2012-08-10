@@ -125,15 +125,26 @@ class Selection
   selectToEndOfWord: ->
     @modifySelection => @cursor.moveToEndOfWord()
 
-  insertText: (text) ->
-    { text, shouldOutdent } = @autoIndentText(text)
+  insertText: (text, options={}) ->
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
-    @autoOutdent() if shouldOutdent
+
+    autoIndent = options.autoIndent ? true
+
+    if @editSession.autoIndent and autoIndent
+      if /\n/.test(text)
+        firstLinePrefix = @editSession.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
+        if /^\s*$/.test(firstLinePrefix)
+          @editSession.autoIncreaseIndentForBufferRow(newBufferRange.start.row)
+
+        if newBufferRange.getRowCount() > 1
+          @editSession.autoIndentBufferRows(newBufferRange.start.row + 1, newBufferRange.end.row)
+      else
+        @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>Marshal.load(Marshal.dump(${0:obj_to_copy}))</string>
+	<key>name</key>
+	<string>deep_copy(..)</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>deec</string>
+	<key>uuid</key>
+	<string>0BA2B2F1-E767-4A03-9791-0AC0183251F1</string>
+</dict>
+</plist>

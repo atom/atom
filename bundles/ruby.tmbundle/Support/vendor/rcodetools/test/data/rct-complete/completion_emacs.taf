@@ -1,0 +1,13 @@
+==========
+completion_emacs
+==========
+rct-complete --completion-emacs --line=1
+==========
+Array.new(3).uni
+==========
+(progn
+(setq rct-method-completion-table '(("uniq") ("uniq!") ))
+(setq alist '(("uniq\t[Array#uniq]") ("uniq!\t[Array#uniq!]") ))
+(setq pattern "uni")
+(try-completion pattern rct-method-completion-table nil)
+)

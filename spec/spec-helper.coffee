@@ -7,11 +7,15 @@ Project = require 'project'
 Directory = require 'directory'
 File = require 'file'
 RootView = require 'root-view'
+TextMateBundle = require 'text-mate-bundle'
+TextMateTheme = require 'text-mate-theme'
 fs = require 'fs'
 require 'window'
 $native.showDevTools()
 
 requireStylesheet "jasmine.css"
+TextMateBundle.loadAll()
+TextMateTheme.loadAll()
 
 defaultTitle = document.title
 pathsWithSubscriptions = null

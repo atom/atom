@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>def_delegator :${1:@del_obj}, :${2:del_meth}, :${3:new_name}</string>
+	<key>name</key>
+	<string>def_delegator ..</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>defd</string>
+	<key>uuid</key>
+	<string>C44ED391-614F-4BA2-BB0F-87668EEA9954</string>
+</dict>
+</plist>

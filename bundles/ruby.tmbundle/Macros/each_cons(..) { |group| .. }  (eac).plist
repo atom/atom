@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>commands</key>
+	<array>
+		<dict>
+			<key>command</key>
+			<string>moveToBeginningOfDocumentAndModifySelection:</string>
+		</dict>
+		<dict>
+			<key>argument</key>
+			<dict>
+				<key>command</key>
+				<string>insert_requires.rb enumerator</string>
+				<key>input</key>
+				<string>selection</string>
+				<key>output</key>
+				<string>insertAsSnippet</string>
+			</dict>
+			<key>command</key>
+			<string>executeCommandWithOptions:</string>
+		</dict>
+		<dict>
+			<key>argument</key>
+			<dict>
+				<key>bundlePath</key>
+				<string>/Users/james/Library/Application Support/TextMate/Bundles/Ruby Idioms.tmbundle</string>
+				<key>content</key>
+				<string>each_cons(${1:2}) { |${2:group}| $0 }</string>
+				<key>scope</key>
+				<string>source.ruby</string>
+				<key>supportPath</key>
+				<string>/Users/james/Library/Application Support/TextMate/Bundles/Ruby Idioms.tmbundle/Support</string>
+				<key>tabTrigger</key>
+				<string>eac-</string>
+				<key>uuid</key>
+				<string>3C04589C-5127-478E-97B3-CA7DD2EA7ECD</string>
+			</dict>
+			<key>command</key>
+			<string>insertSnippetWithOptions:</string>
+		</dict>
+	</array>
+	<key>name</key>
+	<string>each_cons(..) { |group| .. }</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>scopeType</key>
+	<string>local</string>
+	<key>tabTrigger</key>
+	<string>eac</string>
+	<key>uuid</key>
+	<string>EC73D5CC-5F05-46B9-A6F4-82037E4A38C9</string>
+</dict>
+</plist>

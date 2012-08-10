@@ -13,18 +13,18 @@ describe "TokenizedBuffer", ->
   afterEach ->
     editSession.destroy()
 
-  describe ".findClosingBracket(startBufferPosition)", ->
-    it "returns the position of the matching bracket, skipping any nested brackets", ->
-      expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
-
   describe ".findOpeningBracket(closingBufferPosition)", ->
     it "returns the position of the matching bracket, skipping any nested brackets", ->
       expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
 
+  describe ".findClosingBracket(startBufferPosition)", ->
+    it "returns the position of the matching bracket, skipping any nested brackets", ->
+      expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
+
   describe "tokenization", ->
     it "tokenizes all the lines in the buffer on construction", ->
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
-      expect(tokenizedBuffer.lineForScreenRow(11).tokens[1]).toEqual(type: 'keyword', value: 'return')
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.js'])
+      expect(tokenizedBuffer.lineForScreenRow(11).tokens[1]).toEqual(value: 'return', scopes: ['source.js', 'keyword.control.js'])
 
     describe "when the buffer changes", ->
       changeHandler = null
@@ -36,13 +36,10 @@ describe "TokenizedBuffer", ->
       describe "when lines are updated, but none are added or removed", ->
         it "updates tokens for each of the changed lines", ->
           range = new Range([0, 0], [2, 0])
-          buffer.change(range, "foo()\nbar()\n")
+          buffer.change(range, "foo()\n7\n")
 
-          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(type: 'identifier', value: 'foo')
-          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(type: 'identifier', value: 'bar')
-
-          # line 2 is unchanged
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(type: 'keyword', value: 'if')
+          expect(tokenizedBuffer.lineForScreenRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.brace.round.js'])
+          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -50,14 +47,17 @@ describe "TokenizedBuffer", ->
           expect(event.oldRange).toEqual range
           expect(event.newRange).toEqual new Range([0, 0], [2,0])
 
+          # line 2 is unchanged
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
+
         it "updates tokens for lines beyond the changed lines if needed", ->
           buffer.insert([5, 30], '/* */')
           changeHandler.reset()
 
           buffer.insert([2, 0], '/*')
-          expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].type).toBe 'comment'
+          expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+          expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -69,7 +69,7 @@ describe "TokenizedBuffer", ->
           buffer.insert([5, 0], '*/')
 
           buffer.insert([1, 0], 'var ')
-          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].type).toBe 'comment'
+          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
 
       describe "when lines are both updated and removed", ->
         it "updates tokens to reflect the removed lines", ->
@@ -77,16 +77,16 @@ describe "TokenizedBuffer", ->
           buffer.change(range, "foo()")
 
           # previous line 0 remains
-          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
+          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.js'])
 
           # previous line 3 should be combined with input to form line 1
-          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(type: 'identifier', value: 'foo')
-          expect(tokenizedBuffer.lineForScreenRow(1).tokens[6]).toEqual(type: 'identifier', value: 'pivot')
+          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
+          expect(tokenizedBuffer.lineForScreenRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
 
           # lines below deleted regions should be shifted upward
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(type: 'keyword', value: 'while')
-          expect(tokenizedBuffer.lineForScreenRow(3).tokens[1]).toEqual(type: 'identifier', value: 'current')
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[3]).toEqual(type: 'keyword.operator', value: '<')
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
+          expect(tokenizedBuffer.lineForScreenRow(3).tokens[1]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[1]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -98,9 +98,9 @@ describe "TokenizedBuffer", ->
           changeHandler.reset()
 
           buffer.change(new Range([2, 0], [3, 0]), '/*')
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].type).toBe 'comment'
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
+          expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -113,19 +113,19 @@ describe "TokenizedBuffer", ->
           buffer.change(range, "foo()\nbar()\nbaz()\nquux()")
 
           # previous line 0 remains
-          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(type: 'keyword.definition', value: 'var')
+          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.type.js'])
 
           # 3 new lines inserted
-          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(type: 'identifier', value: 'foo')
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[0]).toEqual(type: 'identifier', value: 'bar')
-          expect(tokenizedBuffer.lineForScreenRow(3).tokens[0]).toEqual(type: 'identifier', value: 'baz')
+          expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[0]).toEqual(value: 'bar', scopes: ['source.js'])
+          expect(tokenizedBuffer.lineForScreenRow(3).tokens[0]).toEqual(value: 'baz', scopes: ['source.js'])
 
           # previous line 2 is joined with quux() on line 4
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[0]).toEqual(type: 'identifier', value: 'quux')
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[4]).toEqual(type: 'keyword', value: 'if')
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[0]).toEqual(value: 'quux', scopes: ['source.js'])
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
           # previous line 3 is pushed down to become line 5
-          expect(tokenizedBuffer.lineForScreenRow(5).tokens[3]).toEqual(type: 'identifier', value: 'pivot')
+          expect(tokenizedBuffer.lineForScreenRow(5).tokens[3]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -137,13 +137,13 @@ describe "TokenizedBuffer", ->
           changeHandler.reset()
 
           buffer.insert([2, 0], '/*\nabcde\nabcder')
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(6).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(7).tokens[0].type).toBe 'comment'
-          expect(tokenizedBuffer.lineForScreenRow(8).tokens[0].type).not.toBe 'comment'
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
+          expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+          expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+          expect(tokenizedBuffer.lineForScreenRow(6).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+          expect(tokenizedBuffer.lineForScreenRow(7).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+          expect(tokenizedBuffer.lineForScreenRow(8).tokens[0].scopes).not.toBe ['source.js', 'comment.block.js']
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -165,10 +165,11 @@ describe "TokenizedBuffer", ->
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabText}"
         { tokens } = screenLine0
-        expect(tokens.length).toBe 2
-        expect(tokens[0].value).toBe "# Econ 101"
-        expect(tokens[1].value).toBe tabText
-        expect(tokens[1].type).toBe tokens[0].type
-        expect(tokens[1].isAtomic).toBeTruthy()
+        expect(tokens.length).toBe 3
+        expect(tokens[0].value).toBe "#"
+        expect(tokens[1].value).toBe " Econ 101"
+        expect(tokens[2].value).toBe tabText
+        expect(tokens[2].scopes).toEqual tokens[1].scopes
+        expect(tokens[2].isAtomic).toBeTruthy()
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabText} buy()#{tabText}while supply > demand"

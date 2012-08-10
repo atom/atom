@@ -1,0 +1,1 @@
+ri 'Array#length'
