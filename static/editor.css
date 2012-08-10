@@ -70,7 +70,6 @@
   display: table;
   height: 100%;
   width: 100%;
-  z-index: 1;
 }
 
 .editor .line, .gutter .line-number {
@@ -78,7 +77,6 @@
   margin: 0;
   padding: 0;
   padding-bottom: .05em;
-  z-index: 1;
 }
 
 .editor .line > span {
