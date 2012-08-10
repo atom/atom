@@ -196,7 +196,7 @@
               # is marked for no PIE (ASLR).
               'postbuild_name': 'Make More Helpers',
               'action': [
-                'cef/mac/make_more_helpers.sh',
+                'tools/mac/make_more_helpers.sh',
                 'Frameworks',
                 'Atom',
               ],
