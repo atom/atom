@@ -14,9 +14,6 @@ class CefApp;
 class CefBrowser;
 class CefCommandLine;
 
-// Returns the main browser window instance.
-CefRefPtr<CefBrowser> AppGetBrowser();
-
 // Returns the main application window handle.
 CefWindowHandle AppGetMainHwnd();
 
