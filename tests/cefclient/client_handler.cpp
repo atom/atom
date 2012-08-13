@@ -337,45 +337,8 @@ CefRefPtr<CefResourceHandler> ClientHandler::GetResourceHandler(
       CefRefPtr<CefBrowser> browser,
       CefRefPtr<CefFrame> frame,
       CefRefPtr<CefRequest> request) {
-  std::string url = request->GetURL();
-  if (url == "http://tests/request") {
-    // Show the request contents
-    std::string dump;
-    DumpRequestContents(request, dump);
-    CefRefPtr<CefStreamReader> stream =
-        CefStreamReader::CreateForData(
-            static_cast<void*>(const_cast<char*>(dump.c_str())),
-            dump.size());
-    ASSERT(stream.get());
-    return new CefStreamResourceHandler("text/plain", stream);
-  } else if (url == "http://tests/dialogs") {
-    // Show the dialogs contents
-    CefRefPtr<CefStreamReader> stream =
-        GetBinaryResourceReader("dialogs.html");
-    ASSERT(stream.get());
-    return new CefStreamResourceHandler("text/html", stream);
-  } else if (url == "http://tests/localstorage") {
-    // Show the localstorage contents
-    CefRefPtr<CefStreamReader> stream =
-        GetBinaryResourceReader("localstorage.html");
-    ASSERT(stream.get());
-    return new CefStreamResourceHandler("text/html", stream);
-  } else if (url == "http://tests/xmlhttprequest") {
-    // Show the xmlhttprequest contents
-    CefRefPtr<CefStreamReader> stream =
-       GetBinaryResourceReader("xmlhttprequest.html");
-    ASSERT(stream.get());
-    return new CefStreamResourceHandler("text/html", stream);
-  }
 
-  CefRefPtr<CefResourceHandler> handler;
-
-  // Execute delegate callbacks.
-  RequestDelegateSet::iterator it = request_delegates_.begin();
-  for (; it != request_delegates_.end() && !handler.get(); ++it)
-    handler = (*it)->GetResourceHandler(this, browser, frame, request);
-
-  return handler;
+  return NULL;
 }
 
 void ClientHandler::OnProtocolExecution(CefRefPtr<CefBrowser> browser,

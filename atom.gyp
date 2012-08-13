@@ -58,8 +58,6 @@
         'tests/cefclient/client_switches.cpp',
         'tests/cefclient/client_switches.h',
         'tests/cefclient/resource_util.h',
-        'tests/cefclient/string_util.cpp',
-        'tests/cefclient/string_util.h',
         'tests/cefclient/util.h',
       ],
       'mac_bundle_resources': [
@@ -286,8 +284,6 @@
             'tests/cefclient/process_helper_mac.cpp',
             'tests/cefclient/resource_util.h',
             'tests/cefclient/resource_util_mac.mm',
-            'tests/cefclient/string_util.cpp',
-            'tests/cefclient/string_util.h',
             'tests/cefclient/util.h',
           ],
           # TODO(mark): Come up with a fancier way to do this.  It should only
