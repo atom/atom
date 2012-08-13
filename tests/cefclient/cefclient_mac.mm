@@ -12,8 +12,6 @@
 #include "include/cef_frame.h"
 #include "include/cef_runnable.h"
 #include "cefclient/client_handler.h"
-#include "cefclient/resource_util.h"
-#include "cefclient/string_util.h"
 
 // The global ClientHandler reference.
 extern CefRefPtr<ClientHandler> g_handler;

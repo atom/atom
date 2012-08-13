@@ -16,8 +16,6 @@
 #include "cefclient/cefclient.h"
 #include "cefclient/client_renderer.h"
 #include "cefclient/client_switches.h"
-#include "cefclient/resource_util.h"
-#include "cefclient/string_util.h"
 
 
 // Custom menu command Ids.

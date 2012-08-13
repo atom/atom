@@ -15,7 +15,6 @@
 #include "include/cef_web_plugin.h"
 #include "cefclient/client_handler.h"
 #include "cefclient/client_switches.h"
-#include "cefclient/string_util.h"
 #include "cefclient/util.h"
 
 CefRefPtr<ClientHandler> g_handler;

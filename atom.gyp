@@ -57,7 +57,6 @@
         'tests/cefclient/client_renderer.h',
         'tests/cefclient/client_switches.cpp',
         'tests/cefclient/client_switches.h',
-        'tests/cefclient/resource_util.h',
         'tests/cefclient/util.h',
       ],
       'mac_bundle_resources': [
@@ -193,7 +192,6 @@
             'include/internal/cef_types_mac.h',
             'tests/cefclient/cefclient_mac.mm',
             'tests/cefclient/client_handler_mac.mm',
-            'tests/cefclient/resource_util_mac.mm',
           ],
         }],
         [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
@@ -282,8 +280,6 @@
             'tests/cefclient/client_switches.cpp',
             'tests/cefclient/client_switches.h',
             'tests/cefclient/process_helper_mac.cpp',
-            'tests/cefclient/resource_util.h',
-            'tests/cefclient/resource_util_mac.mm',
             'tests/cefclient/util.h',
           ],
           # TODO(mark): Come up with a fancier way to do this.  It should only
