@@ -93,6 +93,11 @@
 .editor .cursor {
   position: absolute;
   border-left: 2px solid;
+  opacity: 0.65;
+}
+
+.editor.focused .cursor {
+  opacity: 1;
 }
 
 .editor.focused .cursor.idle {
