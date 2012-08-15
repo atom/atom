@@ -26,6 +26,7 @@
   _atomContext = atomContext;
 
   [self.window makeKeyAndOrderFront:nil];
+  [self.window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
   [self createBrowser];
 
   return self;
