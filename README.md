@@ -9,7 +9,7 @@
 2. Install CoffeeScript http://coffeescript.org/
 ```
 brew install nodejs
-curl http://npmjs.org/install.sh | sh
+curl https://npmjs.org/install.sh | sh
 npm i -g coffee-script
 ```
 
