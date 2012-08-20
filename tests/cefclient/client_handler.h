@@ -199,7 +199,7 @@ class ClientHandler : public CefClient,
     NOTIFY_DOWNLOAD_COMPLETE,
     NOTIFY_DOWNLOAD_ERROR,
   };
-  void SendNotification(NotificationType type);
+
   void CloseMainWindow();
 
   void ShowDevTools(CefRefPtr<CefBrowser> browser);
@@ -211,8 +211,6 @@ class ClientHandler : public CefClient,
   static void LaunchExternalBrowser(const std::string& url);
 
  protected:
-  void SetLoading(bool isLoading);
-  void SetNavState(bool canGoBack, bool canGoForward);
 
   // Create all of ProcessMessageDelegate objects.
   static void CreateProcessMessageDelegates(

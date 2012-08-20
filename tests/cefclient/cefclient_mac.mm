@@ -115,29 +115,6 @@ static NSAutoreleasePool* g_autopool = nil;
   [alert runModal];
 }
 
-- (void)notifyConsoleMessage:(id)object {
-  std::stringstream ss;
-  ss << "Console messages will be written to " << g_handler->GetLogFile();
-  NSString* str = [NSString stringWithUTF8String:(ss.str().c_str())];
-  [self alert:@"Console Messages" withMessage:str];
-}
-
-- (void)notifyDownloadComplete:(id)object {
-  std::stringstream ss;
-  ss << "File \"" << g_handler->GetLastDownloadFile() <<
-      "\" downloaded successfully.";
-  NSString* str = [NSString stringWithUTF8String:(ss.str().c_str())];
-  [self alert:@"File Download" withMessage:str];
-}
-
-- (void)notifyDownloadError:(id)object {
-  std::stringstream ss;
-  ss << "File \"" << g_handler->GetLastDownloadFile() <<
-      "\" failed to download.";
-  NSString* str = [NSString stringWithUTF8String:(ss.str().c_str())];
-  [self alert:@"File Download" withMessage:str];
-}
-
 - (void)windowDidBecomeKey:(NSNotification*)notification {
   if (g_handler.get() && g_handler->GetBrowserId()) {
     // Give focus to the browser window.

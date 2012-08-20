@@ -17,64 +17,20 @@ void ClientHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
                                     const CefString& url) {
   REQUIRE_UI_THREAD();
-
-  if (m_BrowserId == browser->GetIdentifier() && frame->IsMain()) {
-    // Set the edit window text
-    NSTextField* textField = (NSTextField*)m_EditHwnd;
-    std::string urlStr(url);
-    NSString* str = [NSString stringWithUTF8String:urlStr.c_str()];
-    [textField setStringValue:str];
-  }
 }
 
 void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
                                   const CefString& title) {
   REQUIRE_UI_THREAD();
-
-  // Set the frame window title bar
-  NSView* view = (NSView*)browser->GetHost()->GetWindowHandle();
-  NSWindow* window = [view window];
-  std::string titleStr(title);
-  NSString* str = [NSString stringWithUTF8String:titleStr.c_str()];
-  [window setTitle:str];
 }
 
-void ClientHandler::SendNotification(NotificationType type) {
-  SEL sel = nil;
-  switch(type) {
-    case NOTIFY_CONSOLE_MESSAGE:
-      sel = @selector(notifyConsoleMessage:);
-      break;
-    case NOTIFY_DOWNLOAD_COMPLETE:
-      sel = @selector(notifyDownloadComplete:);
-      break;
-    case NOTIFY_DOWNLOAD_ERROR:
-      sel = @selector(notifyDownloadError:);
-      break;
-  }
-
-  if (sel == nil)
-    return;
-
+void ClientHandler::CloseMainWindow() {
   NSWindow* window = nil;
 #ifndef PROCESS_HELPER_APP
   if (g_handler.get()) window = (NSWindow *)g_handler->GetMainHwnd();
 #endif
-
-  NSObject* delegate = [window delegate];
-  [delegate performSelectorOnMainThread:sel withObject:nil waitUntilDone:NO];
-}
-
-void ClientHandler::SetLoading(bool isLoading) {
-  // TODO(port): Change button status.
-}
-
-void ClientHandler::SetNavState(bool canGoBack, bool canGoForward) {
-  // TODO(port): Change button status.
-}
-
-void ClientHandler::CloseMainWindow() {
-  // TODO(port): Close window
+  
+  [window performSelectorOnMainThread:@selector(close) withObject:nil waitUntilDone:NO];
 }
 
 std::string ClientHandler::GetDownloadPath(const std::string& file_name) {
