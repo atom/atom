@@ -55,8 +55,6 @@
         'tests/cefclient/client_handler.h',
         'tests/cefclient/client_renderer.cpp',
         'tests/cefclient/client_renderer.h',
-        'tests/cefclient/client_switches.cpp',
-        'tests/cefclient/client_switches.h',
         'tests/cefclient/util.h',
       ],
       'mac_bundle_resources': [
@@ -277,8 +275,6 @@
             'tests/cefclient/client_handler_mac.mm',
             'tests/cefclient/client_renderer.cpp',
             'tests/cefclient/client_renderer.h',
-            'tests/cefclient/client_switches.cpp',
-            'tests/cefclient/client_switches.h',
             'tests/cefclient/process_helper_mac.cpp',
             'tests/cefclient/util.h',
           ],

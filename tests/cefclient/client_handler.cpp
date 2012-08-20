@@ -15,7 +15,6 @@
 #include "include/wrapper/cef_stream_resource_handler.h"
 #include "cefclient/cefclient.h"
 #include "cefclient/client_renderer.h"
-#include "cefclient/client_switches.h"
 
 
 // Custom menu command Ids.
@@ -44,12 +43,12 @@ ClientHandler::ClientHandler()
   CefRefPtr<CefCommandLine> command_line =
       CefCommandLine::GetGlobalCommandLine();
 
-  if (command_line->HasSwitch(cefclient::kUrl))
-    m_StartupURL = command_line->GetSwitchValue(cefclient::kUrl);
+  if (command_line->HasSwitch("url"))
+    m_StartupURL = command_line->GetSwitchValue("url");
   if (m_StartupURL.empty())
     m_StartupURL = "http://www.google.com/";
 
-  m_bExternalDevTools = command_line->HasSwitch(cefclient::kExternalDevTools);
+  m_bExternalDevTools = command_line->HasSwitch("external-devtools");
 }
 
 ClientHandler::~ClientHandler() {
@@ -413,7 +412,7 @@ void ClientHandler::LaunchExternalBrowser(const std::string& url) {
     CefRefPtr<CefCommandLine> command_line =
         CefCommandLine::CreateCommandLine();
     command_line->SetProgram(file_exe);
-    command_line->AppendSwitchWithValue(cefclient::kUrl, url);
+    command_line->AppendSwitchWithValue("url", url);
 
     // Launch the process.
     CefLaunchProcess(command_line);

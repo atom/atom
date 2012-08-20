@@ -14,7 +14,6 @@
 #include "include/cef_runnable.h"
 #include "include/cef_web_plugin.h"
 #include "cefclient/client_handler.h"
-#include "cefclient/client_switches.h"
 #include "cefclient/util.h"
 
 CefRefPtr<ClientHandler> g_handler;
@@ -51,28 +50,28 @@ void AppGetSettings(CefSettings& settings, CefRefPtr<ClientApp> app) {
 
 #if defined(OS_WIN)
   settings.multi_threaded_message_loop =
-      g_command_line->HasSwitch(cefclient::kMultiThreadedMessageLoop);
+      g_command_line->HasSwitch("multi-threaded-message-loop");
 #endif
 
   CefString(&settings.cache_path) =
-      g_command_line->GetSwitchValue(cefclient::kCachePath);
+      g_command_line->GetSwitchValue("cache-path");
 
   // Retrieve command-line proxy configuration, if any.
   bool has_proxy = false;
   cef_proxy_type_t proxy_type = PROXY_TYPE_DIRECT;
   CefString proxy_config;
 
-  if (g_command_line->HasSwitch(cefclient::kProxyType)) {
-    std::string str = g_command_line->GetSwitchValue(cefclient::kProxyType);
-    if (str == cefclient::kProxyType_Direct) {
+  if (g_command_line->HasSwitch("proxy-type")) {
+    std::string str = g_command_line->GetSwitchValue("proxy-type");
+    if (str == "direct") {
       has_proxy = true;
       proxy_type = PROXY_TYPE_DIRECT;
-    } else if (str == cefclient::kProxyType_Named ||
-               str == cefclient::kProxyType_Pac) {
-      proxy_config = g_command_line->GetSwitchValue(cefclient::kProxyConfig);
+    } else if (str == "named" ||
+               str == "pac") {
+      proxy_config = g_command_line->GetSwitchValue("proxy-config");
       if (!proxy_config.empty()) {
         has_proxy = true;
-        proxy_type = (str == cefclient::kProxyType_Named?
+        proxy_type = (str == "named"?
                       PROXY_TYPE_NAMED:PROXY_TYPE_PAC_STRING);
       }
     }
@@ -90,44 +89,44 @@ void AppGetBrowserSettings(CefBrowserSettings& settings) {
   if (!g_command_line.get())
     return;
 
-  settings.remote_fonts_disabled = g_command_line->HasSwitch(cefclient::kRemoteFontsDisabled);
+  settings.remote_fonts_disabled = g_command_line->HasSwitch("remote-fonts-disabled");
 
-  CefString(&settings.default_encoding) = g_command_line->GetSwitchValue(cefclient::kDefaultEncoding);
-  settings.encoding_detector_enabled = g_command_line->HasSwitch(cefclient::kEncodingDetectorEnabled);
-  settings.javascript_disabled = g_command_line->HasSwitch(cefclient::kJavascriptDisabled);
-  settings.javascript_open_windows_disallowed = g_command_line->HasSwitch(cefclient::kJavascriptOpenWindowsDisallowed);
-  settings.javascript_close_windows_disallowed = g_command_line->HasSwitch(cefclient::kJavascriptCloseWindowsDisallowed);
-  settings.javascript_access_clipboard_disallowed = g_command_line->HasSwitch(cefclient::kJavascriptAccessClipboardDisallowed);
-  settings.dom_paste_disabled = g_command_line->HasSwitch(cefclient::kDomPasteDisabled);
-  settings.caret_browsing_enabled = g_command_line->HasSwitch(cefclient::kCaretBrowsingDisabled);
-  settings.java_disabled = g_command_line->HasSwitch(cefclient::kJavaDisabled);
-  settings.plugins_disabled = g_command_line->HasSwitch(cefclient::kPluginsDisabled);
-  settings.universal_access_from_file_urls_allowed = g_command_line->HasSwitch(cefclient::kUniversalAccessFromFileUrlsAllowed);
-  settings.file_access_from_file_urls_allowed = g_command_line->HasSwitch(cefclient::kFileAccessFromFileUrlsAllowed);
-  settings.web_security_disabled = g_command_line->HasSwitch(cefclient::kWebSecurityDisabled);
-  settings.xss_auditor_enabled = g_command_line->HasSwitch(cefclient::kXssAuditorEnabled);
-  settings.image_load_disabled = g_command_line->HasSwitch(cefclient::kImageLoadingDisabled);
-  settings.shrink_standalone_images_to_fit = g_command_line->HasSwitch(cefclient::kShrinkStandaloneImagesToFit);
-  settings.site_specific_quirks_disabled = g_command_line->HasSwitch(cefclient::kSiteSpecificQuirksDisabled);
-  settings.text_area_resize_disabled = g_command_line->HasSwitch(cefclient::kTextAreaResizeDisabled);
-  settings.page_cache_disabled = g_command_line->HasSwitch(cefclient::kPageCacheDisabled);
-  settings.tab_to_links_disabled = g_command_line->HasSwitch(cefclient::kTabToLinksDisabled);
-  settings.hyperlink_auditing_disabled = g_command_line->HasSwitch(cefclient::kHyperlinkAuditingDisabled);
-  settings.user_style_sheet_enabled = g_command_line->HasSwitch(cefclient::kUserStyleSheetEnabled);
+  CefString(&settings.default_encoding) = g_command_line->GetSwitchValue("default-encoding");
+  settings.encoding_detector_enabled = g_command_line->HasSwitch("encoding-detector-enabled");
+  settings.javascript_disabled = g_command_line->HasSwitch("javascript-disabled");
+  settings.javascript_open_windows_disallowed = g_command_line->HasSwitch("javascript-open-windows-disallowed");
+  settings.javascript_close_windows_disallowed = g_command_line->HasSwitch("javascript-close-windows-disallowed");
+  settings.javascript_access_clipboard_disallowed = g_command_line->HasSwitch("javascript-access-clipboard-disallowed");
+  settings.dom_paste_disabled = g_command_line->HasSwitch("dom-paste-disabled");
+  settings.caret_browsing_enabled = g_command_line->HasSwitch("caret-browsing-enabled");
+  settings.java_disabled = g_command_line->HasSwitch("java-disabled");
+  settings.plugins_disabled = g_command_line->HasSwitch("plugins-disabled");
+  settings.universal_access_from_file_urls_allowed = g_command_line->HasSwitch("universal-access-from-file-urls-allowed");
+  settings.file_access_from_file_urls_allowed = g_command_line->HasSwitch("file-access-from-file-urls-allowed");
+  settings.web_security_disabled = g_command_line->HasSwitch("web-security-disabled");
+  settings.xss_auditor_enabled = g_command_line->HasSwitch("xss-auditor-enabled");
+  settings.image_load_disabled = g_command_line->HasSwitch("image-load-disabled");
+  settings.shrink_standalone_images_to_fit = g_command_line->HasSwitch("shrink-standalone-images-to-fit");
+  settings.site_specific_quirks_disabled = g_command_line->HasSwitch("site-specific-quirks-disabled");
+  settings.text_area_resize_disabled = g_command_line->HasSwitch("text-area-resize-disabled");
+  settings.page_cache_disabled = g_command_line->HasSwitch("page-cache-disabled");
+  settings.tab_to_links_disabled = g_command_line->HasSwitch("tab-to-links-disabled");
+  settings.hyperlink_auditing_disabled = g_command_line->HasSwitch("hyperlink-auditing-disabled");
+  settings.user_style_sheet_enabled = g_command_line->HasSwitch("user-style-sheet-enabled");
 
-  CefString(&settings.user_style_sheet_location) = g_command_line->GetSwitchValue(cefclient::kUserStyleSheetLocation);
-  settings.author_and_user_styles_disabled = g_command_line->HasSwitch(cefclient::kAuthorAndUserStylesDisabled);
-  settings.local_storage_disabled = g_command_line->HasSwitch(cefclient::kLocalStorageDisabled);
-  settings.databases_disabled = g_command_line->HasSwitch(cefclient::kDatabasesDisabled);
-  settings.application_cache_disabled = g_command_line->HasSwitch(cefclient::kApplicationCacheDisabled);
-  settings.webgl_disabled = g_command_line->HasSwitch(cefclient::kWebglDisabled);
-  settings.accelerated_compositing_disabled = g_command_line->HasSwitch(cefclient::kAcceleratedCompositingDisabled);
-  settings.accelerated_layers_disabled = g_command_line->HasSwitch(cefclient::kAcceleratedLayersDisabled);
-  settings.accelerated_video_disabled = g_command_line->HasSwitch(cefclient::kAcceleratedVideoDisabled);
-  settings.accelerated_2d_canvas_disabled = g_command_line->HasSwitch(cefclient::kAcceledated2dCanvasDisabled);
-  settings.accelerated_painting_enabled = g_command_line->HasSwitch(cefclient::kAcceleratedPaintingEnabled);
-  settings.accelerated_filters_enabled = g_command_line->HasSwitch(cefclient::kAcceleratedFiltersEnabled);
-  settings.accelerated_plugins_disabled = g_command_line->HasSwitch(cefclient::kAcceleratedPluginsDisabled);
-  settings.developer_tools_disabled = g_command_line->HasSwitch(cefclient::kDeveloperToolsDisabled);
-  settings.fullscreen_enabled = g_command_line->HasSwitch(cefclient::kFullscreenEnabled);
+  CefString(&settings.user_style_sheet_location) = g_command_line->GetSwitchValue("user-style-sheet-location");
+  settings.author_and_user_styles_disabled = g_command_line->HasSwitch("author-and-user-styles-disabled");
+  settings.local_storage_disabled = g_command_line->HasSwitch("local-storage-disabled");
+  settings.databases_disabled = g_command_line->HasSwitch("databases-disabled");
+  settings.application_cache_disabled = g_command_line->HasSwitch("application-cache-disabled");
+  settings.webgl_disabled = g_command_line->HasSwitch("webgl-disabled");
+  settings.accelerated_compositing_disabled = g_command_line->HasSwitch("accelerated-compositing-disabled");
+  settings.accelerated_layers_disabled = g_command_line->HasSwitch("accelerated-layers-disabled");
+  settings.accelerated_video_disabled = g_command_line->HasSwitch("accelerated-video-disabled");
+  settings.accelerated_2d_canvas_disabled = g_command_line->HasSwitch("accelerated-2d-canvas-disabled");
+  settings.accelerated_painting_enabled = g_command_line->HasSwitch("accelerated-painting-enabled");
+  settings.accelerated_filters_enabled = g_command_line->HasSwitch("accelerated-filters-enabled");
+  settings.accelerated_plugins_disabled = g_command_line->HasSwitch("accelerated-plugins-disabled");
+  settings.developer_tools_disabled = g_command_line->HasSwitch("developer-tools-disabled");
+  settings.fullscreen_enabled = g_command_line->HasSwitch("fullscreen-enabled");
 }
