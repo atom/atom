@@ -12,30 +12,13 @@
 // The global ClientHandler reference.
 extern CefRefPtr<ClientHandler> g_handler;
 
-char szWorkingDir[512] = {0};   // The current working directory
-
-// Global functions
-std::string AppGetWorkingDirectory() {
-  if (!szWorkingDir[0]) getcwd(szWorkingDir, sizeof(szWorkingDir));
-  return szWorkingDir;
-}
-
-// Sizes for URL bar layout
-#define BUTTON_HEIGHT 22
-#define BUTTON_WIDTH 72
-#define BUTTON_MARGIN 8
-#define URLBAR_HEIGHT  32
-
-// Content area size for newly created windows.
-const int kWindowWidth = 800;
-const int kWindowHeight = 600;
-
 @implementation ClientApplication
 
 + (id)sharedApplication {
   id atomApp = [super sharedApplication];
   
   CefSettings settings;
+  [self populateAppSettings:settings];
   
   CefMainArgs mainArgs(0, NULL);
   CefRefPtr<ClientApp> app(new ClientApp);
@@ -44,19 +27,24 @@ const int kWindowHeight = 600;
   
   return atomApp;
 }
+   
++ (void)populateAppSettings:(CefSettings &)settings {
+  CefString(&settings.cache_path) = "";
+  CefString(&settings.user_agent) = "";
+  CefString(&settings.log_file) = "";
+  CefString(&settings.javascript_flags) = "";
+ 
+  settings.log_severity = LOGSEVERITY_ERROR;
+}
+
 
 // Create the application on the UI thread.
 - (void)createWindow {
   // Create the main application window.
-  NSRect screen_rect = [[NSScreen mainScreen] visibleFrame];
-  NSRect window_rect = { {0, screen_rect.size.height - kWindowHeight},
-    {kWindowWidth, kWindowHeight} };
+  NSRect window_rect = { {0, 0}, {800, 800} };
   NSWindow* mainWnd = [[UnderlayOpenGLHostingWindow alloc]
                        initWithContentRect:window_rect
-                       styleMask:(NSTitledWindowMask |
-                                  NSClosableWindowMask |
-                                  NSMiniaturizableWindowMask |
-                                  NSResizableWindowMask )
+                       styleMask:(NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSResizableWindowMask )
                        backing:NSBackingStoreBuffered
                        defer:NO];
   [mainWnd setTitle:@"cefclient"];
@@ -80,104 +68,10 @@ const int kWindowHeight = 600;
   
   [self populateBrowserSettings:settings];
   
-  window_info.SetAsChild(contentView, 0, 0, kWindowWidth, kWindowHeight);
-  CefBrowserHost::CreateBrowser(window_info, g_handler.get(),
-                                g_handler->GetStartupURL(), settings);
+  window_info.SetAsChild(contentView, window_rect.origin.x, window_rect.origin.y, window_rect.size.width, window_rect.size.height);
+  CefBrowserHost::CreateBrowser(window_info, g_handler.get(), g_handler->GetStartupURL(), settings);
   
-  // Show the window.
-  [mainWnd makeKeyAndOrderFront: nil];
-  
-  // Size the window.
-  NSRect r = [mainWnd contentRectForFrameRect:[mainWnd frame]];
-  r.size.width = kWindowWidth;
-  r.size.height = kWindowHeight + URLBAR_HEIGHT;
-  [mainWnd setFrame:[mainWnd frameRectForContentRect:r] display:YES];
-}
-
-- (BOOL)isHandlingSendEvent {
-  return handlingSendEvent_;
-}
-
-- (void)setHandlingSendEvent:(BOOL)handlingSendEvent {
-  handlingSendEvent_ = handlingSendEvent;
-}
-
-- (void)sendEvent:(NSEvent*)event {
-  CefScopedSendingEvent sendingEventScoper;
-  [super sendEvent:event];
-}
-
-- (IBAction)goBack:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    g_handler->GetBrowser()->GoBack();
-}
-
-- (IBAction)goForward:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    g_handler->GetBrowser()->GoForward();
-}
-
-- (IBAction)reload:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    g_handler->GetBrowser()->Reload();
-}
-
-- (IBAction)stopLoading:(id)sender {
-  if (g_handler.get() && g_handler->GetBrowserId())
-    g_handler->GetBrowser()->StopLoad();
-}
-
-- (IBAction)takeURLStringValueFrom:(NSTextField *)sender {
-  if (!g_handler.get() || !g_handler->GetBrowserId())
-    return;
-  
-  NSString *url = [sender stringValue];
-  
-  // if it doesn't already have a prefix, add http. If we can't parse it,
-  // just don't bother rather than making things worse.
-  NSURL* tempUrl = [NSURL URLWithString:url];
-  if (tempUrl && ![tempUrl scheme])
-    url = [@"http://" stringByAppendingString:url];
-  
-  std::string urlStr = [url UTF8String];
-  g_handler->GetBrowser()->GetMainFrame()->LoadURL(urlStr);
-}
-
-- (void)alert:(NSString*)title withMessage:(NSString*)message {
-  NSAlert *alert = [NSAlert alertWithMessageText:title
-                                   defaultButton:@"OK"
-                                 alternateButton:nil
-                                     otherButton:nil
-                       informativeTextWithFormat:message];
-  [alert runModal];
-}
-
-- (void)windowDidBecomeKey:(NSNotification*)notification {
-  if (g_handler.get() && g_handler->GetBrowserId()) {
-    // Give focus to the browser window.
-    g_handler->GetBrowser()->GetHost()->SetFocus(true);
-  }
-}
-
-// Called when the window is about to close. Perform the self-destruction
-// sequence by getting rid of the window. By returning YES, we allow the window
-// to be removed from the screen.
-- (BOOL)windowShouldClose:(id)window {  
-  // Try to make the window go away.
-  [window autorelease];
-  
-  // Clean ourselves up after clearing the stack of anything that might have the
-  // window on it.
-  [self performSelectorOnMainThread:@selector(cleanup:)
-                         withObject:window
-                      waitUntilDone:NO];
-  
-  return YES;
-}
-
-// Deletes itself.
-- (void)cleanup:(id)window {  
-  [self release];
+  [mainWnd makeKeyAndOrderFront:nil];  
 }
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
@@ -220,14 +114,43 @@ const int kWindowHeight = 600;
   settings.fullscreen_enabled = true;
 }
 
-// Sent by the default notification center immediately before the application
-// terminates.
-- (void)applicationWillTerminate:(NSNotification *)aNotification {
-  // Shut down CEF.
-  g_handler = NULL;
+# pragma mark NSApplicationDelegate
+
+// Sent by the default notification center immediately before the application terminates.
+- (void)applicationWillTerminate:(NSNotification *)notification {  
+  g_handler = NULL; // Shut down CEF.
   CefShutdown();
-  
   [self release];
+}
+
+# pragma mark CefAppProtocol
+
+- (BOOL)isHandlingSendEvent {
+  return handlingSendEvent_;
+}
+
+- (void)setHandlingSendEvent:(BOOL)handlingSendEvent {
+  handlingSendEvent_ = handlingSendEvent;
+}
+
+- (void)sendEvent:(NSEvent*)event {
+  CefScopedSendingEvent sendingEventScoper;
+  [super sendEvent:event];
+}
+
+# pragma mark NSWindowDelegate
+
+- (void)windowDidBecomeKey:(NSNotification*)notification {
+  if (g_handler.get() && g_handler->GetBrowserId()) {
+    g_handler->GetBrowser()->GetHost()->SetFocus(true);
+  }
+}
+
+// Clean ourselves up after clearing the stack of anything that might have the window on it.
+- (BOOL)windowShouldClose:(id)window {
+  [window autorelease];
+  
+  return YES;
 }
 
 @end
