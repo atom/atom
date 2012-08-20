@@ -316,13 +316,8 @@ int main(int argc, char* argv[]) {
   // Initialize the ClientApplication instance.
   [ClientApplication sharedApplication];
   
-  // Parse command line arguments.
-  AppInitCommandLine(argc, argv);
 
   CefSettings settings;
-
-  // Populate the settings based on command line arguments.
-  AppGetSettings(settings, app);
 
   // Initialize CEF.
   CefInitialize(main_args, settings, app.get());

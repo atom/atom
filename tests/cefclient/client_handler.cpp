@@ -137,40 +137,6 @@ bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                      int line) {
   REQUIRE_UI_THREAD();
 
-  bool first_message;
-  std::string logFile;
-
-  {
-    AutoLock lock_scope(this);
-
-    first_message = m_LogFile.empty();
-    if (first_message) {
-      std::stringstream ss;
-      ss << AppGetWorkingDirectory();
-#if defined(OS_WIN)
-      ss << "\\";
-#else
-      ss << "/";
-#endif
-      ss << "console.log";
-      m_LogFile = ss.str();
-    }
-    logFile = m_LogFile;
-  }
-
-  FILE* file = fopen(logFile.c_str(), "a");
-  if (file) {
-    std::stringstream ss;
-    ss << "Message: " << std::string(message) << "\r\nSource: " <<
-        std::string(source) << "\r\nLine: " << line <<
-        "\r\n-----------------------\r\n";
-    fputs(ss.str().c_str(), file);
-    fclose(file);
-
-    if (first_message)
-      SendNotification(NOTIFY_CONSOLE_MESSAGE);
-  }
-
   return false;
 }
 
@@ -208,19 +174,6 @@ bool ClientHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
                                   const CefKeyEvent& event,
                                   CefEventHandle os_event,
                                   bool* is_keyboard_shortcut) {
-  ASSERT(m_bFocusOnEditableField == event.focus_on_editable_field);
-  if (!event.focus_on_editable_field && event.windows_key_code == 0x20) {
-    // Special handling for the space character when an input element does not
-    // have focus. Handling the event in OnPreKeyEvent() keeps the event from
-    // being processed in the renderer. If we instead handled the event in the
-    // OnKeyEvent() method the space key would cause the window to scroll in
-    // addition to showing the alert box.
-    if (event.type == KEYEVENT_RAWKEYDOWN) {
-      browser->GetMainFrame()->ExecuteJavaScript(
-          "alert('You pressed the space bar!');", "", 0);
-    }
-    return true;
-  }
 
   return false;
 }
