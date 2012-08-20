@@ -48,27 +48,8 @@ bool ClientHandler::OnProcessMessageReceived(
     CefRefPtr<CefBrowser> browser,
     CefProcessId source_process,
     CefRefPtr<CefProcessMessage> message) {
-  // Check for messages from the client renderer.
-  std::string message_name = message->GetName();
-  if (message_name == client_renderer::kFocusedNodeChangedMessage) {
-    // A message is sent from ClientRenderDelegate to tell us whether the
-    // currently focused DOM node is editable. Use of |m_bFocusOnEditableField|
-    // is redundant with CefKeyEvent.focus_on_editable_field in OnPreKeyEvent
-    // but is useful for demonstration purposes.
-    m_bFocusOnEditableField = message->GetArgumentList()->GetBool(0);
-    return true;
-  }
 
-  bool handled = false;
-
-  // Execute delegate callbacks.
-  ProcessMessageDelegateSet::iterator it = process_message_delegates_.begin();
-  for (; it != process_message_delegates_.end() && !handled; ++it) {
-    handled = (*it)->OnProcessMessageReceived(this, browser, source_process,
-                                              message);
-  }
-
-  return handled;
+  return false;
 }
 
 void ClientHandler::OnBeforeContextMenu(

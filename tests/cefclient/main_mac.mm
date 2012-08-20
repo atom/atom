@@ -12,7 +12,7 @@
 int main(int argc, char* argv[]) {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   CefMainArgs mainArgs(argc, argv);
-  CefRefPtr<ClientApp> app(new ClientApp);
+  CefRefPtr<CefApp> app;
   
   int exit_code = CefExecuteProcess(mainArgs, app.get());
   if (exit_code >= 0){

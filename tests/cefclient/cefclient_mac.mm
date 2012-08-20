@@ -21,7 +21,7 @@ extern CefRefPtr<ClientHandler> g_handler;
   [self populateAppSettings:settings];
   
   CefMainArgs mainArgs(0, NULL);
-  CefRefPtr<ClientApp> app(new ClientApp);
+  CefRefPtr<CefApp> app;
 
   CefInitialize(mainArgs, settings, app.get());
   

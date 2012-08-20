@@ -46,13 +46,8 @@
       'sources': [
         '<@(includes_common)',
         '<@(includes_wrapper)',
-        'tests/cefclient/client_app.cpp',
-        'tests/cefclient/client_app.h',
-        'tests/cefclient/client_app_delegates.cpp',
         'tests/cefclient/client_handler.cpp',
         'tests/cefclient/client_handler.h',
-        'tests/cefclient/client_renderer.cpp',
-        'tests/cefclient/client_renderer.h',
         'tests/cefclient/util.h',
       ],
       'mac_bundle_resources': [
@@ -270,13 +265,8 @@
           'sources': [
             'tests/cefclient/client_handler_mac.mm',
             'tests/cefclient/process_helper_mac.cpp',
-            'tests/cefclient/client_app.cpp',
-            'tests/cefclient/client_app.h',
-            'tests/cefclient/client_app_delegates.cpp',
             'tests/cefclient/client_handler.cpp',
             'tests/cefclient/client_handler.h',
-            'tests/cefclient/client_renderer.cpp',
-            'tests/cefclient/client_renderer.h',
             'tests/cefclient/util.h',
           ],
           # TODO(mark): Come up with a fancier way to do this.  It should only
