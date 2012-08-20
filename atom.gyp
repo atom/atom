@@ -183,11 +183,13 @@
             ],
           },
           'sources': [
+            'tests/cefclient/main_mac.mm',
+            'tests/cefclient/cefclient_mac.h',
+            'tests/cefclient/cefclient_mac.mm',
+            'tests/cefclient/client_handler_mac.mm',
             'include/cef_application_mac.h',
             'include/internal/cef_mac.h',
             'include/internal/cef_types_mac.h',
-            'tests/cefclient/cefclient_mac.mm',
-            'tests/cefclient/client_handler_mac.mm',
           ],
         }],
         [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
@@ -266,15 +268,15 @@
             ],
           },
           'sources': [
+            'tests/cefclient/client_handler_mac.mm',
+            'tests/cefclient/process_helper_mac.cpp',
             'tests/cefclient/client_app.cpp',
             'tests/cefclient/client_app.h',
             'tests/cefclient/client_app_delegates.cpp',
             'tests/cefclient/client_handler.cpp',
             'tests/cefclient/client_handler.h',
-            'tests/cefclient/client_handler_mac.mm',
             'tests/cefclient/client_renderer.cpp',
             'tests/cefclient/client_renderer.h',
-            'tests/cefclient/process_helper_mac.cpp',
             'tests/cefclient/util.h',
           ],
           # TODO(mark): Come up with a fancier way to do this.  It should only

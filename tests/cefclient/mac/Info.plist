@@ -23,6 +23,6 @@
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
+	<string>ClientApplicatoin</string>
 </dict>
 </plist>
