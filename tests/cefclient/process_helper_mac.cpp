@@ -12,9 +12,6 @@
 std::string AppGetWorkingDirectory() {
   return std::string();
 }
-CefWindowHandle AppGetMainHwnd() {
-  return NULL;
-}
 
 // Process entry point.
 int main(int argc, char* argv[]) {

@@ -9,6 +9,10 @@
 #include "include/cef_frame.h"
 #include "cefclient/cefclient.h"
 
+#ifndef PROCESS_HELPER_APP
+CefRefPtr<ClientHandler> g_handler;
+#endif
+
 void ClientHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
                                     const CefString& url) {
@@ -52,7 +56,11 @@ void ClientHandler::SendNotification(NotificationType type) {
   if (sel == nil)
     return;
 
-  NSWindow* window = [AppGetMainHwnd() window];
+  NSWindow* window = nil;
+#ifndef PROCESS_HELPER_APP
+  if (g_handler.get()) window = (NSWindow *)g_handler->GetMainHwnd();
+#endif
+
   NSObject* delegate = [window delegate];
   [delegate performSelectorOnMainThread:sel withObject:nil waitUntilDone:NO];
 }

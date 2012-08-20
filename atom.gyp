@@ -46,8 +46,6 @@
       'sources': [
         '<@(includes_common)',
         '<@(includes_wrapper)',
-        'tests/cefclient/cefclient.cpp',
-        'tests/cefclient/cefclient.h',
         'tests/cefclient/client_app.cpp',
         'tests/cefclient/client_app.h',
         'tests/cefclient/client_app_delegates.cpp',
@@ -254,6 +252,7 @@
           ],
           'defines': [
             'USING_CEF_SHARED',
+            'PROCESS_HELPER_APP',
           ],
           'include_dirs': [
             '.',
