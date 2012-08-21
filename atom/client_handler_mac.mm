@@ -4,7 +4,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#include "cefclient/client_handler.h"
+#include "atom/client_handler.h"
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
 

@@ -5,8 +5,8 @@
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
 #include "include/cef_runnable.h"
-#include "cefclient/client_handler.h"
-#include "cefclient/cefclient_mac.h"
+#include "atom/client_handler.h"
+#include "atom/cefclient_mac.h"
 
 // The global ClientHandler reference.
 extern CefRefPtr<ClientHandler> g_handler;

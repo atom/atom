@@ -10,7 +10,7 @@
 #include <set>
 #include <string>
 #include "include/cef_client.h"
-#include "cefclient/util.h"
+#include "atom/util.h"
 
 
 // Define this value to redirect all popup URLs to the main application browser

@@ -40,31 +40,28 @@
       'defines': [
         'USING_CEF_SHARED',
       ],
-      'include_dirs': [
-        '.',
-        'tests',
-      ],
+      'include_dirs': [ '.' ],
       'sources': [
         '<@(includes_common)',
         '<@(includes_wrapper)',
-        'tests/cefclient/client_handler.cpp',
-        'tests/cefclient/client_handler.h',
-        'tests/cefclient/util.h',
+        'atom/client_handler.cpp',
+        'atom/client_handler.h',
+        'atom/util.h',
       ],
       'mac_bundle_resources': [
-        'tests/cefclient/mac/cefclient.icns',
-        'tests/cefclient/mac/English.lproj/InfoPlist.strings',
-        'tests/cefclient/mac/English.lproj/MainMenu.xib',
-        'tests/cefclient/mac/Info.plist',
+        'atom/mac/cefclient.icns',
+        'atom/mac/English.lproj/InfoPlist.strings',
+        'atom/mac/English.lproj/MainMenu.xib',
+        'atom/mac/Info.plist',
       ],
       'mac_bundle_resources!': [
         # TODO(mark): Come up with a fancier way to do this (mac_info_plist?)
         # that automatically sets the correct INFOPLIST_FILE setting and adds
         # the file to a source group.
-        'tests/cefclient/mac/Info.plist',
+        'atom/mac/Info.plist',
       ],
       'xcode_settings': {
-        'INFOPLIST_FILE': 'tests/cefclient/mac/Info.plist',
+        'INFOPLIST_FILE': 'atom/mac/Info.plist',
         # Necessary to avoid an "install_name_tool: changing install names or
         # rpaths can't be redone" error.
         'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'],
@@ -179,10 +176,10 @@
             ],
           },
           'sources': [
-            'tests/cefclient/main_mac.mm',
-            'tests/cefclient/cefclient_mac.h',
-            'tests/cefclient/cefclient_mac.mm',
-            'tests/cefclient/client_handler_mac.mm',
+            'atom/main_mac.mm',
+            'atom/cefclient_mac.h',
+            'atom/cefclient_mac.mm',
+            'atom/client_handler_mac.mm',
             'include/cef_application_mac.h',
             'include/internal/cef_mac.h',
             'include/internal/cef_types_mac.h',
@@ -213,9 +210,7 @@
       'defines': [
         'USING_CEF_SHARED',
       ],
-      'include_dirs': [
-        '.',
-      ],
+      'include_dirs': [ '.' ],
       'sources': [
         '<@(includes_common)',
         '<@(includes_capi)',
@@ -252,29 +247,24 @@
             'USING_CEF_SHARED',
             'PROCESS_HELPER_APP',
           ],
-          'include_dirs': [
-            '.',
-            # cefclient includes are relative to the tests directory to make
-            # creation of binary releases easier.
-            'tests'
-          ],
+          'include_dirs': [ '.' ],
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
             ],
           },
           'sources': [
-            'tests/cefclient/client_handler_mac.mm',
-            'tests/cefclient/process_helper_mac.cpp',
-            'tests/cefclient/client_handler.cpp',
-            'tests/cefclient/client_handler.h',
-            'tests/cefclient/util.h',
+            'atom/client_handler_mac.mm',
+            'atom/process_helper_mac.cpp',
+            'atom/client_handler.cpp',
+            'atom/client_handler.h',
+            'atom/util.h',
           ],
           # TODO(mark): Come up with a fancier way to do this.  It should only
           # be necessary to list helper-Info.plist once, not the three times it
           # is listed here.
           'mac_bundle_resources!': [
-            'tests/cefclient/mac/helper-Info.plist',
+            'atom/mac/helper-Info.plist',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
@@ -283,7 +273,7 @@
             ['exclude', '.*'],
           ],
           'xcode_settings': {
-            'INFOPLIST_FILE': 'tests/cefclient/mac/helper-Info.plist',
+            'INFOPLIST_FILE': 'atom/mac/helper-Info.plist',
             # Necessary to avoid an "install_name_tool: changing install names or
             # rpaths can't be redone" error.
             'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'],
