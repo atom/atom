@@ -50,21 +50,12 @@
       ],
       'mac_bundle_resources': [
         'atom/mac/atom.icns',
-        'atom/mac/English.lproj/InfoPlist.strings',
         'atom/mac/English.lproj/MainMenu.xib',
-        'atom/mac/Info.plist',
-      ],
-      'mac_bundle_resources!': [
-        # TODO(mark): Come up with a fancier way to do this (mac_info_plist?)
-        # that automatically sets the correct INFOPLIST_FILE setting and adds
-        # the file to a source group.
-        'atom/mac/Info.plist',
+        'atom/mac/info.plist',
       ],
       'xcode_settings': {
-        'INFOPLIST_FILE': 'atom/mac/Info.plist',
-        # Necessary to avoid an "install_name_tool: changing install names or
-        # rpaths can't be redone" error.
-        'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'],
+        'INFOPLIST_FILE': 'atom/mac/info.plist',
+        'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'], # Necessary to avoid an "install_name_tool: changing install names or rpaths can't be redone" error.
       },
       'conditions': [
         ['OS=="win" and win_use_allocator_shim==1', {
@@ -258,12 +249,6 @@
             'atom/client_handler.h',
             'atom/util.h',
           ],
-          # TODO(mark): Come up with a fancier way to do this.  It should only
-          # be necessary to list helper-Info.plist once, not the three times it
-          # is listed here.
-          'mac_bundle_resources!': [
-            'atom/mac/helper-Info.plist',
-          ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
           # resources directory.
@@ -271,10 +256,8 @@
             ['exclude', '.*'],
           ],
           'xcode_settings': {
-            'INFOPLIST_FILE': 'atom/mac/helper-Info.plist',
-            # Necessary to avoid an "install_name_tool: changing install names or
-            # rpaths can't be redone" error.
-            'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'],
+            'INFOPLIST_FILE': 'atom/mac/helper-info.plist',
+            'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'], # Necessary to avoid an "install_name_tool: changing install names or rpaths can't be redone" error.
           },
           'postbuilds': [
             {
