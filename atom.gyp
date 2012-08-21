@@ -1,7 +1,3 @@
-# Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
-# reserved. Use of this source code is governed by a BSD-style license that
-# can be found in the LICENSE file.
-
 {
   'variables': {
     'pkg-config': 'pkg-config',
@@ -24,6 +20,14 @@
   'includes': [
     'cef_paths2.gypi',
   ],
+  'target_defaults': {
+    'xcode_settings': {
+      'CLANG_CXX_LANGUAGE_STANDARD' : 'c++0x',
+      'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
+      'COMBINE_HIDPI_IMAGES': 'YES', # Removes 'Validate Project Settings' warning
+      'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES' # Removes 'Reference to global weak symbol vtable' warning
+    },
+  },
   'targets': [
     {
       'target_name': 'Atom',
@@ -38,10 +42,7 @@
       ],
       'include_dirs': [
         '.',
-        # cefclient includes are relative to the tests directory to make
-        # creation of binary releases easier.
         'tests',
-        'atom',
       ],
       'sources': [
         '<@(includes_common)',
