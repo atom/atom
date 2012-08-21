@@ -44,6 +44,10 @@
       'sources': [
         '<@(includes_common)',
         '<@(includes_wrapper)',
+        'atom/main_mac.mm',
+        'atom/atom_mac.h',
+        'atom/atom_mac.mm',
+        'atom/client_handler_mac.mm',
         'atom/client_handler.cpp',
         'atom/client_handler.h',
         'atom/util.h',
@@ -168,10 +172,6 @@
             ],
           },
           'sources': [
-            'atom/main_mac.mm',
-            'atom/cefclient_mac.h',
-            'atom/cefclient_mac.mm',
-            'atom/client_handler_mac.mm',
             'cef/include/cef_application_mac.h',
             'cef/include/internal/cef_mac.h',
             'cef/include/internal/cef_types_mac.h',

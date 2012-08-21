@@ -1,5 +1,5 @@
 #import "include/cef_application_mac.h"
-#import "atom/cefclient_mac.h"
+#import "atom/atom_mac.h"
 
 int main(int argc, char* argv[]) {
   @autoreleasepool {
@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-		ClientApplication *application = (ClientApplication *)[ClientApplication sharedApplication];
+		Atom *application = (Atom *)[Atom sharedApplication];
 		
 		NSString *mainNibName = [infoDictionary objectForKey:@"NSMainNibFile"];
 		NSNib *mainNib = [[NSNib alloc] initWithNibNamed:mainNibName bundle:[NSBundle mainBundle]];

@@ -1,6 +1,6 @@
 #include "include/cef_app.h"
 
-@interface ClientApplication : NSApplication <CefAppProtocol, NSWindowDelegate, NSApplicationDelegate> {
+@interface Atom : NSApplication <CefAppProtocol, NSWindowDelegate, NSApplicationDelegate> {
 @private
   BOOL handlingSendEvent_;
 }

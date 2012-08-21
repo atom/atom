@@ -1,11 +1,11 @@
 #import "include/cef_application_mac.h"
 #import "atom/client_handler.h"
-#import "atom/cefclient_mac.h"
+#import "atom/atom_mac.h"
 
 // The global ClientHandler reference.
 extern CefRefPtr<ClientHandler> g_handler;
 
-@implementation ClientApplication
+@implementation Atom
 
 + (id)sharedApplication {
   id atomApp = [super sharedApplication];
