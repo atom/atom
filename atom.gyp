@@ -18,7 +18,7 @@
     ],
   },
   'includes': [
-    'cef_paths2.gypi',
+    'cef/cef_paths2.gypi',
   ],
   'target_defaults': {
     'xcode_settings': {
@@ -40,7 +40,7 @@
       'defines': [
         'USING_CEF_SHARED',
       ],
-      'include_dirs': [ '.' ],
+      'include_dirs': [ '.', 'cef' ],
       'sources': [
         '<@(includes_common)',
         '<@(includes_wrapper)',
@@ -111,19 +111,21 @@
               # Add library dependencies to the bundle.
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/Libraries/',
               'files': [
-                'cef/libcef.dylib',
-                'cef/ffmpegsumo.so',
-              ],
-            },
-            {
-              # Add the helper app.
-              'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks',
-              'files': [
-                '<(PRODUCT_DIR)/Atom Helper.app',
+                'cef/frameworks/libcef.dylib',
+                'cef/frameworks/ffmpegsumo.so',
               ],
             },
           ],
           'postbuilds': [
+            {
+              'postbuild_name': 'Copy Helper App',
+              'action': [
+                'cp',
+                '-r',
+                '${BUILT_PRODUCTS_DIR}/Atom Helper.app',
+                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks',
+              ],
+            },
             {
               'postbuild_name': 'Fix Framework Link',
               'action': [
@@ -139,7 +141,7 @@
               'action': [
                 'cp',
                 '-r',
-                'cef/Resources',
+                'cef/resources',
                 '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/'
               ],
             },
@@ -170,9 +172,9 @@
             'atom/cefclient_mac.h',
             'atom/cefclient_mac.mm',
             'atom/client_handler_mac.mm',
-            'include/cef_application_mac.h',
-            'include/internal/cef_mac.h',
-            'include/internal/cef_types_mac.h',
+            'cef/include/cef_application_mac.h',
+            'cef/include/internal/cef_mac.h',
+            'cef/include/internal/cef_types_mac.h',
           ],
         }],
         [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
@@ -199,7 +201,7 @@
       'defines': [
         'USING_CEF_SHARED',
       ],
-      'include_dirs': [ '.' ],
+      'include_dirs': [ '.', 'cef' ],
       'sources': [
         '<@(includes_common)',
         '<@(includes_capi)',
@@ -208,7 +210,7 @@
       ],
       'link_settings': {
         'libraries': [
-          'cef/libcef.dylib',
+          'cef/frameworks/libcef.dylib',
         ],
       }
     },
@@ -236,7 +238,7 @@
             'USING_CEF_SHARED',
             'PROCESS_HELPER_APP',
           ],
-          'include_dirs': [ '.' ],
+          'include_dirs': [ '.', 'cef' ],
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
