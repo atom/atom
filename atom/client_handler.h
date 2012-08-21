@@ -6,7 +6,6 @@
 #define CEF_TESTS_CEFCLIENT_CLIENT_HANDLER_H_
 #pragma once
 
-#include <map>
 #include <set>
 #include <string>
 #include "include/cef_client.h"

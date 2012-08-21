@@ -2,17 +2,11 @@
 // reserved. Use of this source code is governed by a BSD-style license that
 // can be found in the LICENSE file.
 
-#include "atom/client_handler.h"
-#include <algorithm>
-#include <stdio.h>
 #include <sstream>
-#include <string>
-#include "include/cef_browser.h"
-#include "include/cef_frame.h"
 #include "include/cef_path_util.h"
 #include "include/cef_process_util.h"
 #include "include/cef_runnable.h"
-#include "include/wrapper/cef_stream_resource_handler.h"
+#include "atom/client_handler.h"
 
 ClientHandler::ClientHandler()
   : m_MainHwnd(NULL),

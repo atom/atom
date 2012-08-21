@@ -1,12 +1,7 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
-// reserved. Use of this source code is governed by a BSD-style license that
-// can be found in the LICENSE file.
-
-#import <Cocoa/Cocoa.h>
-
-#include "atom/client_handler.h"
-#include "include/cef_browser.h"
-#include "include/cef_frame.h"
+#import <AppKit/AppKit.h>
+#import "include/cef_browser.h"
+#import "include/cef_frame.h"
+#import "atom/client_handler.h"
 
 #ifndef PROCESS_HELPER_APP
 CefRefPtr<ClientHandler> g_handler;
