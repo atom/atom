@@ -47,6 +47,8 @@
         'atom/main_mac.mm',
         'atom/atom_mac.h',
         'atom/atom_mac.mm',
+        'atom/atom_controller.h',
+        'atom/atom_controller.mm',
         'atom/client_handler_mac.mm',
         'atom/client_handler.cpp',
         'atom/client_handler.h',
@@ -55,7 +57,7 @@
       'mac_bundle_resources': [
         'atom/mac/atom.icns',
         'atom/mac/English.lproj/MainMenu.xib',
-        'atom/mac/info.plist',
+        'atom/mac/English.lproj/AtomWindow.xib',
       ],
       'xcode_settings': {
         'INFOPLIST_FILE': 'atom/mac/info.plist',
