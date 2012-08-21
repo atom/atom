@@ -7,7 +7,6 @@
 #include "cefclient/client_handler.h"
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
-#include "cefclient/cefclient.h"
 
 #ifndef PROCESS_HELPER_APP
 CefRefPtr<ClientHandler> g_handler;

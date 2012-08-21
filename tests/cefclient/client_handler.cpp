@@ -13,9 +13,6 @@
 #include "include/cef_process_util.h"
 #include "include/cef_runnable.h"
 #include "include/wrapper/cef_stream_resource_handler.h"
-#include "cefclient/cefclient.h"
-#include "cefclient/client_renderer.h"
-
 
 ClientHandler::ClientHandler()
   : m_MainHwnd(NULL),
