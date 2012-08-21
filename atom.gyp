@@ -49,7 +49,7 @@
         'atom/util.h',
       ],
       'mac_bundle_resources': [
-        'atom/mac/cefclient.icns',
+        'atom/mac/atom.icns',
         'atom/mac/English.lproj/InfoPlist.strings',
         'atom/mac/English.lproj/MainMenu.xib',
         'atom/mac/Info.plist',
@@ -98,7 +98,6 @@
           },
           'sources': [
             '<@(includes_win)',
-            '<@(cefclient_sources_win)',
           ],
         }],
         ['OS == "win" or (toolkit_uses_gtk == 1 and selinux == 0)', {
@@ -157,8 +156,8 @@
               # This postbuid step is responsible for creating the following
               # helpers:
               #
-              # cefclient Helper EH.app and cefclient Helper NP.app are created
-              # from cefclient Helper.app.
+              # Atom Helper EH.app and Atom Helper NP.app are created
+              # from Atom Helper.app.
               #
               # The EH helper is marked for an executable heap. The NP helper
               # is marked for no PIE (ASLR).
@@ -188,7 +187,6 @@
         [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
           'sources': [
             '<@(includes_linux)',
-            '<@(cefclient_sources_linux)',
           ],
           'copies': [
             {
@@ -283,7 +281,7 @@
               # The framework defines its load-time path
               # (DYLIB_INSTALL_NAME_BASE) relative to the main executable
               # (chrome).  A different relative path needs to be used in
-              # cefclient_helper_app.
+              # atom_helper_app.
               'postbuild_name': 'Fix Framework Link',
               'action': [
                 'install_name_tool',
