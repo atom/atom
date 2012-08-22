@@ -3,7 +3,6 @@
 // can be found in the LICENSE file.
 
 #include <gtk/gtk.h>
-#include <stdlib.h>
 #include <iostream>
 #include <unistd.h>
 #include <string>
@@ -14,6 +13,7 @@
 #include "include/cef_runnable.h"
 #include "client_handler.h"
 #include "onig_regexp_extension.h"
+#include "io_utils.h"
 
 char* szWorkingDir; // The current working directory
 
@@ -111,17 +111,12 @@ int main(int argc, char *argv[]) {
 
   window_info.SetAsChild(vbox);
 
-  std::string path;
-  path.append(szPath);
-  path.append("/../index.html");
-  char* realPath;
-  realPath = realpath(path.c_str(), NULL);
-  if (realPath == NULL)
+  std::string path = io_utils_real_app_path("/../index.html");
+  if (path.empty())
     return -1;
 
   std::string resolved("file://");
-  resolved.append(realPath);
-  free(realPath);
+  resolved.append(path);
 
   CefBrowser::CreateBrowserSync(window_info,
       static_cast<CefRefPtr<CefClient> >(g_handler), resolved, browserSettings);
