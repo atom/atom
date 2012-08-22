@@ -83,6 +83,7 @@ install:
 	cp -R ../vendor $(INSTALLDIR)
 	cp -R ../bundles $(INSTALLDIR)
 	cp ../index.html $(INSTALLDIR)
+	coffee -c -o $(INSTALLDIR)/src/stdlib ../src/stdlib/require.coffee
 	ln -sf $(INSTALLDIR)/atom /usr/local/bin/atom
 
 spec-install: install
