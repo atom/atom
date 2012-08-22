@@ -59,7 +59,7 @@ LIBS := -lX11 \
 	-lcef_dll_wrapper \
 	-lonig
 
-SOURCES=atom.cpp native_handler.cpp client_handler.cpp
+SOURCES=atom.cpp native_handler.cpp client_handler.cpp onig_regexp_extension.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 INSTALLDIR=/usr/local/atom
 
