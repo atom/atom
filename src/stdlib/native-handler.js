@@ -1,37 +1,37 @@
 var $native = {};
 (function() {
 
-  native function exists();
+  native function exists(path);
   $native.exists = exists;
 
-  native function alert();
+  native function alert(message, detailedMessage, buttonNamesAndCallbacks);
   $native.alert = alert;
 
-  native function read();
+  native function read(path);
   $native.read = read;
 
-  native function write();
+  native function write(path, content);
   $native.write = write;
 
-  native function absolute();
+  native function absolute(path);
   $native.absolute = absolute;
 
-  native function list();
+  native function list(path, recursive);
   $native.list = list;
 
-  native function isFile();
+  native function isFile(path);
   $native.isFile = isFile;
 
-  native function isDirectory();
+  native function isDirectory(path);
   $native.isDirectory = isDirectory;
 
-  native function remove();
+  native function remove(path);
   $native.remove = remove;
 
-  native function asyncList();
+  native function asyncList(path, recursive, callback);
   $native.asyncList = asyncList;
 
-  native function open();
+  native function open(path);
   $native.open = open;
 
   native function openDialog();
@@ -40,7 +40,7 @@ var $native = {};
   native function quit();
   $native.quit = quit;
 
-  native function writeToPasteboard();
+  native function writeToPasteboard(text);
   $native.writeToPasteboard = writeToPasteboard;
 
   native function readFromPasteboard();
@@ -58,34 +58,34 @@ var $native = {};
   native function saveDialog();
   $native.saveDialog = saveDialog;
 
-  native function exit();
+  native function exit(status);
   $native.exit = exit;
 
-  native function watchPath();
+  native function watchPath(path);
   $native.watchPath = watchPath;
 
-  native function unwatchPath();
+  native function unwatchPath(path, callbackId);
   $native.unwatchPath = unwatchPath;
 
-  native function makeDirectory();
+  native function makeDirectory(path);
   $native.makeDirectory = makeDirectory;
 
-  native function move();
+  native function move(sourcePath, targetPath);
   $native.move = move;
 
-  native function moveToTrash();
+  native function moveToTrash(path);
   $native.moveToTrash = moveToTrash;
 
   native function reload();
   $native.reload = reload;
 
-  native function lastModified();
+  native function lastModified(path);
   $native.lastModified = lastModified;
 
-  native function md5ForPath();
+  native function md5ForPath(path);
   $native.md5ForPath = md5ForPath;
 
-  native function exec();
+  native function exec(command, options, callback);
   $native.exec = exec;
 
   native function getPlatform();
