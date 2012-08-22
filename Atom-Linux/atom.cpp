@@ -13,6 +13,7 @@
 #include "include/cef_frame.h"
 #include "include/cef_runnable.h"
 #include "client_handler.h"
+#include "onig_regexp_extension.h"
 
 char* szWorkingDir; // The current working directory
 
@@ -101,6 +102,8 @@ int main(int argc, char *argv[]) {
   g_handler = new ClientHandler();
   g_handler->SetMainHwnd(vbox);
   g_handler->SetWindow(window);
+
+  new OnigRegexpExtension();
 
   // Create the browser view.
   CefWindowInfo window_info;
