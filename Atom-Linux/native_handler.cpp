@@ -270,10 +270,10 @@ void NativeHandler::Write(const CefString& name, CefRefPtr<CefV8Value> object,
   string path = arguments[0]->GetStringValue().ToString();
   string content = arguments[1]->GetStringValue().ToString();
 
-  ofstream myfile;
-  myfile.open(path.c_str());
-  myfile << content;
-  myfile.close();
+  ofstream file;
+  file.open(path.c_str());
+  file << content;
+  file.close();
 }
 
 void NativeHandler::WriteToPasteboard(const CefString& name,
