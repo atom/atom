@@ -56,7 +56,8 @@ LIBS := -lX11 \
 	-lssl \
 	-lcrypto \
 	-lcef \
-	-lcef_dll_wrapper
+	-lcef_dll_wrapper \
+	-lonig
 
 SOURCES=atom.cpp native_handler.cpp client_handler.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
