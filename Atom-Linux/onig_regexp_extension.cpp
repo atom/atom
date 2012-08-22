@@ -2,12 +2,9 @@
 #include "include/cef_base.h"
 #include "include/cef_runnable.h"
 #include <oniguruma.h>
-#include "atom.h"
 #include <iostream>
 #include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fcntl.h>
+#include "io_utils.h"
 
 using namespace std;
 
@@ -129,22 +126,12 @@ IMPLEMENT_REFCOUNTING(OnigRegexpUserData)
 
 OnigRegexpExtension::OnigRegexpExtension() :
     CefV8Handler() {
-  string filePath = AppPath() + "/../src/stdlib/onig-reg-exp-extension.js";
-  char* realFilePath;
-  realFilePath = realpath(filePath.c_str(), NULL);
-  if (realFilePath != NULL) {
-    int fd = open(realFilePath, O_RDONLY);
-    if (fd > 0) {
-      char buffer[8192];
-      int r;
-      string extensionCode;
-      while ((r = read(fd, buffer, sizeof buffer)) > 0)
-        extensionCode.append(buffer, 0, r);
+  string realFilePath = io_utils_real_app_path(
+      "/../src/stdlib/onig-reg-exp-extension.js");
+  if (!realFilePath.empty()) {
+    string extensionCode;
+    if (io_utils_read(realFilePath, &extensionCode) > 0)
       CefRegisterExtension("v8/oniguruma", extensionCode, this);
-
-      close(fd);
-      free(realFilePath);
-    }
   }
 }
 

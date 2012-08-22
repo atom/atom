@@ -11,6 +11,7 @@
 #include "include/cef_frame.h"
 #include "atom.h"
 #include "native_handler.h"
+#include "io_utils.h"
 #include <stdlib.h>
 #include <gtk/gtk.h>
 
@@ -91,16 +92,9 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
 
-    std::string relativePath(AppPath());
-    relativePath.append("/..");
-    char* realLoadPath;
-    realLoadPath = realpath(relativePath.c_str(), NULL);
-    if (realLoadPath != NULL) {
-      std::string resolvedLoadPath(realLoadPath);
-      free(realLoadPath);
-
-      CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(
-          resolvedLoadPath);
+    std::string realLoadPath = io_utils_real_app_path("/..");
+    if (!realLoadPath.empty()) {
+      CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(realLoadPath);
       atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
     }
 

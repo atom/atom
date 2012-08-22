@@ -2,6 +2,7 @@
 #include "include/cef_base.h"
 #include "include/cef_runnable.h"
 #include "client_handler.h"
+#include "io_utils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -109,16 +110,8 @@ void NativeHandler::Read(const CefString& name, CefRefPtr<CefV8Value> object,
     const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
     CefString& exception) {
   string path = arguments[0]->GetStringValue().ToString();
-  int fd = open(path.c_str(), O_RDONLY);
-  if (fd < 0)
-    return;
-
-  char buffer[BUFFER_SIZE];
-  int r;
   string value;
-  while ((r = read(fd, buffer, sizeof buffer)) > 0)
-    value.append(buffer, 0, r);
-  close(fd);
+  io_utils_read(path, &value);
   retval = CefV8Value::CreateString(value);
 }
 
