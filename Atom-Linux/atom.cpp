@@ -159,4 +159,3 @@ std::string AppPath() {
 std::string PathToOpen() {
   return szPathToOpen;
 }
-
