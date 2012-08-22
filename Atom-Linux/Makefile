@@ -81,6 +81,7 @@ install:
 	cp -R ../src $(INSTALLDIR)
 	cp -R ../static $(INSTALLDIR)
 	cp -R ../vendor $(INSTALLDIR)
+	cp -R ../bundles $(INSTALLDIR)
 	cp ../index.html $(INSTALLDIR)
 	ln -sf $(INSTALLDIR)/atom /usr/local/bin/atom
 
