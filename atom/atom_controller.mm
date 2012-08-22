@@ -86,7 +86,7 @@
   settings.remote_fonts_disabled = true;
   settings.encoding_detector_enabled = false;
   settings.javascript_disabled = false;
-  settings.javascript_open_windows_disallowed = true;
+  settings.javascript_open_windows_disallowed = false;
   settings.javascript_close_windows_disallowed = false;
   settings.javascript_access_clipboard_disallowed = false;
   settings.dom_paste_disabled = true;

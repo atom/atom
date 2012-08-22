@@ -9,8 +9,8 @@
 #include "include/cef_runnable.h"
 #include "atom/client_handler.h"
 
-ClientHandler::ClientHandler()
-  : m_MainHwnd(NULL) {
+ClientHandler::ClientHandler(){
+	
 }
 
 ClientHandler::~ClientHandler() {
@@ -24,11 +24,6 @@ void ClientHandler::OnBeforeContextMenu(
 
   model->AddItem(MENU_ID_USER_FIRST, "&Show DevTools");
   CefString devtools_url = browser->GetHost()->GetDevToolsURL(true);
-
-  // Disable the menu option if DevTools isn't enabled or if a window already open for the current URL.
-  if (devtools_url.empty() || m_OpenDevToolsURLs.find(devtools_url) != m_OpenDevToolsURLs.end()) {
-    model->SetEnabled(MENU_ID_USER_FIRST, false);
-  }
 }
 
 bool ClientHandler::OnContextMenuCommand(
@@ -39,7 +34,7 @@ bool ClientHandler::OnContextMenuCommand(
     EventFlags event_flags) {
 
   if (command_id == MENU_ID_USER_FIRST) {
-    printf("show dev tools stub\n");
+    ShowDevTools(browser);
     return true;
   }
   else {
@@ -60,13 +55,6 @@ bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 
 void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
-
-  if (browser->IsPopup()) {
-    // Remove the record for DevTools popup windows.
-    std::set<std::string>::iterator it = m_OpenDevToolsURLs.find(browser->GetMainFrame()->GetURL());
-    if (it != m_OpenDevToolsURLs.end())
-      m_OpenDevToolsURLs.erase(it);
-  }
 }
 
 void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
@@ -101,12 +89,8 @@ void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
 }
 
 void ClientHandler::ShowDevTools(CefRefPtr<CefBrowser> browser) {
-  std::string devtools_url = browser->GetHost()->GetDevToolsURL(true);
+  std::string devtools_url = "chrome-devtools://devtools/devtools.html?docked=true";//browser->GetHost()->GetDevToolsURL(true);
   if (!devtools_url.empty()) {
-    if (m_OpenDevToolsURLs.find(devtools_url) == m_OpenDevToolsURLs.end()) {
-      // Open DevTools in a popup window.
-      m_OpenDevToolsURLs.insert(devtools_url);
-      browser->GetMainFrame()->ExecuteJavaScript("window.open('" +  devtools_url + "');", "about:blank", 0);
-    }
+    browser->GetMainFrame()->ExecuteJavaScript("window.open('" +  devtools_url + "');", "about:blank", 0);
   }
 }

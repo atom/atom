@@ -5,17 +5,18 @@
   <script>
     window.onload = function() {
       try {
-        if ($bootstrapScript) require($bootstrapScript);
+        //if ($bootstrapScript) require($bootstrapScript);
       }
       catch (error) {
-        $native.showDevTools();
+        //c$native.showDevTools();
         console.error(error.stack || error);
       }
     }
   </script>
 </head>
 <body>
-  MOTHER FUCKER!  
+  MOTHER FUCKER!
+  <iframe src="chrome-devtools://devtools/devtools.html?docked=true"></iframe>
 </body>
 </html>
 

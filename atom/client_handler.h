@@ -27,6 +27,25 @@ class ClientHandler : public CefClient,
 
   CefRefPtr<CefBrowser> GetBrowser() { return m_Browser; }
 												
+	virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() OVERRIDE {
+		return this;
+	}
+	virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE {
+		return this;
+	}
+	virtual CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() OVERRIDE {
+		return this;
+	}
+	virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE {
+		return this;
+	}
+	virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE {
+		return this;
+	}
+	virtual CefRefPtr<CefRequestHandler> GetRequestHandler() OVERRIDE {
+		return this;
+	}
+												
   // CefContextMenuHandler methods
 	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
 																	 CefRefPtr<CefFrame> frame,
@@ -59,21 +78,11 @@ class ClientHandler : public CefClient,
                            const CefString& failedUrl) OVERRIDE;
 
  protected:
-	// The child browser window
 	CefRefPtr<CefBrowser> m_Browser;
-
-  // The main frame window handle
-  CefWindowHandle m_MainHwnd;
-
-  // List of open DevTools URLs if not using an external browser window.
-  std::set<std::string> m_OpenDevToolsURLs;
 
 	void ShowDevTools(CefRefPtr<CefBrowser> browser);
 												
-  // Include the default reference counting implementation.
   IMPLEMENT_REFCOUNTING(ClientHandler);
-
-												// Include the default locking implementation.
   IMPLEMENT_LOCKING(ClientHandler);
 };
 
