@@ -1,5 +1,5 @@
-#ifndef CEF_TESTS_CEFCLIENT_NATIVE_HANDLER_H_
-#define CEF_TESTS_CEFCLIENT_NATIVE_HANDLER_H_
+#ifndef NATIVE_HANDLER_H_
+#define NATIVE_HANDLER_H_
 
 #include "include/cef_base.h"
 #include "include/cef_v8.h"
