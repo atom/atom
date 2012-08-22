@@ -113,7 +113,7 @@ void NativeHandler::Read(const CefString& name, CefRefPtr<CefV8Value> object,
   if (fd < 0)
     return;
 
-  char buffer[8192];
+  char buffer[BUFFER_SIZE];
   int r;
   string value;
   while ((r = read(fd, buffer, sizeof buffer)) > 0)
@@ -457,7 +457,7 @@ void NativeHandler::Digest(const CefString& name, CefRefPtr<CefV8Value> object,
   EVP_MD_CTX_init(&context);
   EVP_DigestInit_ex(&context, md, NULL);
 
-  char buffer[8192];
+  char buffer[BUFFER_SIZE];
   int r;
   while ((r = read(fd, buffer, sizeof buffer)) > 0)
     EVP_DigestUpdate(&context, buffer, r);
