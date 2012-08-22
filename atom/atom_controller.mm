@@ -8,12 +8,37 @@
 
 - (void)dealloc {
 	[_webView release];
+	[_bootstrapScript release];
+  [_pathToOpen release];
+
 	[super dealloc];
 }
 
-- (id)init {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript atomContext:(CefRefPtr<CefV8Context>)atomContext {
 	self = [super initWithWindowNibName:@"AtomWindow"];
-	
+
+	_bootstrapScript = [bootstrapScript retain];
+  _atomContext = atomContext;
+  [self.window makeKeyAndOrderFront:nil];
+  [self createBrowser];
+
+}
+
+- (id)initWithPath:(NSString *)path atomContext:(CefRefPtr<CefV8Context>)atomContext {
+  _pathToOpen = [path retain];
+  return [self initWithBootstrapScript:@"window-bootstrap" atomContext:atomContext];
+}
+
+- (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
+  _runningSpecs = true;
+  return [self initWithBootstrapScript:@"spec-bootstrap" atomContext:atomContext];
+}
+
+- (id)initBenchmarksWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
+  return [self initWithBootstrapScript:@"benchmark-bootstrap" atomContext:atomContext];
+}
+
+- (void)createBrowser {
 	_clientHandler = new ClientHandler();
   
   CefWindowInfo window_info;
@@ -21,24 +46,36 @@
   
   [self populateBrowserSettings:settings];
   
-  window_info.SetAsChild(self.webView, self.webView.bounds.origin.x, self.webView.bounds.origin.y, self.webView.bounds.size.width, self.webView.bounds.size.height);
-  CefBrowserHost::CreateBrowser(window_info, _clientHandler.get(), "http://reddit.com", settings);
+  NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
+	NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
+  CefBrowserHost::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
 	
 	return self;
 }
 
+- (void)windowDidLoad {
+  [self.window setDelegate:self];
+  [self.window setReleasedWhenClosed:NO];
+}
+
 # pragma mark NSWindowDelegate
 
-- (void)windowDidBecomeKey:(NSNotification*)notification {
-  if (_clientHandler.get() && _clientHandler->GetBrowserId()) {
-    _clientHandler->GetBrowser()->GetHost()->SetFocus(true);
+- (void)windowDidResignMain:(NSNotification *)notification {
+  if (_clientHandler && _clientHandler->GetBrowser() && !_runningSpecs) {
+		_clientHandler->GetBrowser()->GetHost()->SetFocus(true);
+  }
+}
+
+- (void)windowDidBecomeMain:(NSNotification *)notification {
+  if (_clientHandler && _clientHandler->GetBrowser()) {
+		_clientHandler->GetBrowser()->GetHost()->SetFocus(true);
   }
 }
 
 // Clean ourselves up after clearing the stack of anything that might have the window on it.
 - (BOOL)windowShouldClose:(id)window {
 	_clientHandler = NULL;
-	
+	_atomContext = NULL;
   [window autorelease];
   
   return YES;

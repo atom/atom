@@ -31,7 +31,7 @@
 
 // Create the application on the UI thread.
 - (void)createWindow {
-  AtomController *controller = [[AtomController alloc] init];
+  AtomController *controller = [[AtomController alloc] initWithPath:@"" atomContext:NULL];
 }
 
 # pragma mark NSApplicationDelegate

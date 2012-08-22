@@ -1,0 +1,21 @@
+<html>
+<head>
+  <script src='src/stdlib/require.js'></script>
+
+  <script>
+    window.onload = function() {
+      try {
+        if ($bootstrapScript) require($bootstrapScript);
+      }
+      catch (error) {
+        $native.showDevTools();
+        console.error(error.stack || error);
+      }
+    }
+  </script>
+</head>
+<body>
+  MOTHER FUCKER!  
+</body>
+</html>
+

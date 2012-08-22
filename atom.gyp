@@ -124,6 +124,15 @@
           ],
           'postbuilds': [
             {
+              'postbuild_name': 'Copy static files',
+              'action': [
+                'cp',
+                '-r',
+                'static/',
+                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Resources/',
+              ],
+            },
+            {
               'postbuild_name': 'Copy Helper App',
               'action': [
                 'cp',
