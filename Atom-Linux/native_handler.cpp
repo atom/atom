@@ -58,7 +58,7 @@ NativeHandler::NativeHandler() :
       "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard",
       "showDevTools", "newWindow", "saveDialog", "exit", "watchPath",
       "unwatchPath", "makeDirectory", "move", "moveToTrash", "md5ForPath",
-      "getPlatform" };
+      "getPlatform", "lastModified" };
   int arrayLength = sizeof(functionNames) / sizeof(const char *);
   for (int i = 0; i < arrayLength; i++) {
     const char *functionName = functionNames[i];
@@ -471,6 +471,17 @@ void NativeHandler::Digest(const CefString& name, CefRefPtr<CefV8Value> object,
   retval = CefV8Value::CreateString(md5.str());
 }
 
+void NativeHandler::LastModified(const CefString& name,
+    CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+    CefRefPtr<CefV8Value>& retval, CefString& exception) {
+  string path = arguments[0]->GetStringValue().ToString();
+  struct stat statInfo;
+  if (stat(path.c_str(), &statInfo) == 0) {
+    CefTime time(statInfo.st_mtime);
+    retval = CefV8Value::CreateDate(time);
+  }
+}
+
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
     CefString& exception) {
@@ -516,6 +527,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     Digest(name, object, arguments, retval, exception);
   else if (name == "getPlatform")
     retval = CefV8Value::CreateString("linux");
+  else if (name == "lastModified")
+    LastModified(name, object, arguments, retval, exception);
   else
     cout << "Unhandled -> " + name.ToString() << " : "
         << arguments[0]->GetStringValue().ToString() << endl;

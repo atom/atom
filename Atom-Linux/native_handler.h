@@ -121,6 +121,10 @@ private:
   void Digest(const CefString& name, CefRefPtr<CefV8Value> object,
       const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
       CefString& exception);
+
+  void LastModified(const CefString& name, CefRefPtr<CefV8Value> object,
+      const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+      CefString& exception);
 };
 
 #endif
