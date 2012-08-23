@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 		NSNib *mainNib = [[NSNib alloc] initWithNibNamed:mainNibName bundle:[NSBundle mainBundle]];
 		[mainNib instantiateNibWithOwner:application topLevelObjects:nil];  // Execute the secondary process, if any.
 		
-		[application open:""];
+		[application open:@""];
 		
 		// Run the application message loop.
 		CefRunMessageLoop();

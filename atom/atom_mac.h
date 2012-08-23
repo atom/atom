@@ -1,5 +1,7 @@
 #include "include/cef_app.h"
 
+class ClientHandler;
+
 @interface Atom : NSApplication <CefAppProtocol, NSApplicationDelegate> {
 @private
   NSWindow *_hiddenWindow;

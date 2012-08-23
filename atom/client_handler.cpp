@@ -23,7 +23,6 @@ void ClientHandler::OnBeforeContextMenu(
     CefRefPtr<CefMenuModel> model) {
 
   model->AddItem(MENU_ID_USER_FIRST, "&Show DevTools");
-  CefString devtools_url = browser->GetHost()->GetDevToolsURL(true);
 }
 
 bool ClientHandler::OnContextMenuCommand(
@@ -89,7 +88,8 @@ void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
 }
 
 void ClientHandler::ShowDevTools(CefRefPtr<CefBrowser> browser) {
-  std::string devtools_url = "chrome-devtools://devtools/devtools.html?docked=true";//browser->GetHost()->GetDevToolsURL(true);
+  std::string devtools_url = browser->GetHost()->GetDevToolsURL(true);
+  std::cout << devtools_url;
   if (!devtools_url.empty()) {
     browser->GetMainFrame()->ExecuteJavaScript("window.open('" +  devtools_url + "');", "about:blank", 0);
   }

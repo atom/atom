@@ -24,7 +24,8 @@
   CefString(&settings.user_agent) = "";
   CefString(&settings.log_file) = "";
   CefString(&settings.javascript_flags) = "";
- 
+  
+  settings.remote_debugging_port = 9090;
   settings.log_severity = LOGSEVERITY_ERROR;
 }
 
@@ -48,7 +49,7 @@
 }
 
 - (void)open:(NSString *)path {
-  [[AtomController alloc] initWithPath:path atomContext:[self atomContext]];
+  [[AtomController alloc] initWithPath:path atomContext:NULL];
 }
 
 - (IBAction)runSpecs:(id)sender {
