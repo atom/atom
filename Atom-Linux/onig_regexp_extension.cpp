@@ -127,7 +127,7 @@ IMPLEMENT_REFCOUNTING(OnigRegexpUserData)
 OnigRegexpExtension::OnigRegexpExtension() :
     CefV8Handler() {
   string realFilePath = io_utils_real_app_path(
-      "/../src/stdlib/onig-reg-exp-extension.js");
+      "/src/stdlib/onig-reg-exp-extension.js");
   if (!realFilePath.empty()) {
     string extensionCode;
     if (io_utils_read(realFilePath, &extensionCode) > 0)

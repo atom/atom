@@ -3,7 +3,6 @@
 // can be found in the LICENSE file.
 
 #include <gtk/gtk.h>
-#include <iostream>
 #include <unistd.h>
 #include <string>
 #include "atom.h"
@@ -59,9 +58,11 @@ int main(int argc, char *argv[]) {
   if (szWorkingDir == NULL)
     return -1;
 
-  std::string fullPath = argv[0];
-  fullPath = fullPath.substr(0, fullPath.length() - 5);
-  szPath = fullPath.c_str();
+  std::string appDir = io_util_app_directory();
+  if (appDir.empty())
+    return -1;
+
+  szPath = appDir.c_str();
 
   std::string pathToOpen;
   if (argc >= 2) {
@@ -111,7 +112,7 @@ int main(int argc, char *argv[]) {
 
   window_info.SetAsChild(vbox);
 
-  std::string path = io_utils_real_app_path("/../index.html");
+  std::string path = io_utils_real_app_path("/index.html");
   if (path.empty())
     return -1;
 

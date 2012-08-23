@@ -34,3 +34,16 @@ string io_utils_real_app_path(string relativePath) {
   } else
     return "";
 }
+
+string io_util_app_directory() {
+  char path[BUFFER_SIZE];
+  if (readlink("/proc/self/exe", path, BUFFER_SIZE) < 2)
+    return "";
+
+  string appPath(path);
+  unsigned int lastSlash = appPath.rfind("/");
+  if (lastSlash != string::npos)
+    return appPath.substr(0, lastSlash);
+  else
+    return appPath;
+}

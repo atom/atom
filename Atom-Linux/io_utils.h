@@ -14,4 +14,9 @@ int io_utils_read(std::string path, std::string* output);
  */
 std::string io_utils_real_app_path(std::string relativePath);
 
+/**
+ * Get path to directory where atom app resides
+ */
+std::string io_util_app_directory();
+
 #endif

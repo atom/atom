@@ -11,7 +11,7 @@
 #include "include/cef_frame.h"
 #include "atom.h"
 #include "native_handler.h"
-#include "io_utils.h"
+#include "atom.h"
 #include <stdlib.h>
 #include <gtk/gtk.h>
 
@@ -92,11 +92,8 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
 
-    std::string realLoadPath = io_utils_real_app_path("/..");
-    if (!realLoadPath.empty()) {
-      CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(realLoadPath);
-      atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
-    }
+    CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(AppPath());
+    atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
 
     CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString(
         "single-window-bootstrap");
