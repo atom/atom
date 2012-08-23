@@ -67,6 +67,14 @@ NativeHandler::NativeHandler() :
     object->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
   }
 
+  string nativePath = io_utils_real_app_path(
+      "/../src/stdlib/native-handler.js");
+  if (!nativePath.empty()) {
+    string extensionCode;
+    if (io_utils_read(nativePath, &extensionCode) > 0)
+      CefRegisterExtension("v8/native-handler", extensionCode, this);
+  }
+
   notifyFd = inotify_init();
   if (notifyFd != -1)
     g_thread_create_full(NotifyWatchersCallback, this, 0, true, false,
