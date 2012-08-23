@@ -74,7 +74,7 @@ clean:
 
 install:
 	mkdir -p $(INSTALLDIR)
-	cp -R atom $(INSTALLDIR)
+	cp atom $(INSTALLDIR)
 	cp chrome.pak $(INSTALLDIR)
 	cp -R locales $(INSTALLDIR)
 	cp atom.png $(INSTALLDIR)
