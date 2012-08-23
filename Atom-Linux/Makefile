@@ -67,7 +67,6 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 all:
 	g++ $(CXXFLAGS) -c $(SOURCES)
-	mkdir -p bin
 	g++ -o atom $(OBJECTS) $(LDFLAGS) $(LIBS)
 
 clean:
