@@ -2,7 +2,7 @@
 
 class ClientHandler;
 
-@interface Atom : NSApplication <CefAppProtocol, NSApplicationDelegate> {
+@interface AtomApplication : NSApplication <CefAppProtocol, NSApplicationDelegate> {
 @private
   NSWindow *_hiddenWindow;
 	

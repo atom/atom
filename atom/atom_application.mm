@@ -1,9 +1,9 @@
 #import "include/cef_application_mac.h"
 #import "atom/client_handler.h"
-#import "atom/atom_mac.h"
+#import "atom/atom_application.h"
 #import "atom/atom_controller.h"
 
-@implementation Atom
+@implementation AtomApplication
 
 + (id)sharedApplication {
   id atomApp = [super sharedApplication];
@@ -28,7 +28,6 @@
   settings.remote_debugging_port = 9090;
   settings.log_severity = LOGSEVERITY_ERROR;
 }
-
 
 - (void)dealloc {
   [_hiddenWindow release];
