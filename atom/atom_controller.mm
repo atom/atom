@@ -14,28 +14,27 @@
 	[super dealloc];
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript atomContext:(CefRefPtr<CefV8Context>)atomContext {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript {
 	self = [super initWithWindowNibName:@"AtomWindow"];
 
 	_bootstrapScript = [bootstrapScript retain];
-  _atomContext = atomContext;
   [self.window makeKeyAndOrderFront:nil];
   [self createBrowser];
 
 }
 
-- (id)initWithPath:(NSString *)path atomContext:(CefRefPtr<CefV8Context>)atomContext {
+- (id)initWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  return [self initWithBootstrapScript:@"window-bootstrap" atomContext:atomContext];
+  return [self initWithBootstrapScript:@"window-bootstrap"];
 }
 
-- (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
+- (id)initSpecs {
   _runningSpecs = true;
-  return [self initWithBootstrapScript:@"spec-bootstrap" atomContext:atomContext];
+  return [self initWithBootstrapScript:@"spec-bootstrap"];
 }
 
-- (id)initBenchmarksWithAtomContext:(CefRefPtr<CefV8Context>)atomContext {
-  return [self initWithBootstrapScript:@"benchmark-bootstrap" atomContext:atomContext];
+- (id)initBenchmarks {
+  return [self initWithBootstrapScript:@"benchmark-bootstrap"];
 }
 
 - (void)createBrowser {
@@ -75,7 +74,6 @@
 // Clean ourselves up after clearing the stack of anything that might have the window on it.
 - (BOOL)windowShouldClose:(id)window {
 	_clientHandler = NULL;
-	_atomContext = NULL;
   [window autorelease];
   
   return YES;

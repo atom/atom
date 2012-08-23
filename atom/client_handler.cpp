@@ -89,7 +89,6 @@ void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
 
 void ClientHandler::ShowDevTools(CefRefPtr<CefBrowser> browser) {
   std::string devtools_url = browser->GetHost()->GetDevToolsURL(true);
-  std::cout << devtools_url;
   if (!devtools_url.empty()) {
     browser->GetMainFrame()->ExecuteJavaScript("window.open('" +  devtools_url + "');", "about:blank", 0);
   }

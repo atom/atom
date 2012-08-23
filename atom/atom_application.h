@@ -4,9 +4,9 @@ class ClientHandler;
 
 @interface AtomApplication : NSApplication <CefAppProtocol, NSApplicationDelegate> {
 @private
-  NSWindow *_hiddenWindow;
+  NSWindow *_backgroundWindow;
 	
- CefRefPtr<ClientHandler> _clientHandler;
+  CefRefPtr<ClientHandler> _clientHandler;
 	
   BOOL handlingSendEvent_;
 }

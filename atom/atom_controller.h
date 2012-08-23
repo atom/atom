@@ -15,8 +15,8 @@ class ClientHandler;
 
 @property (nonatomic, retain) IBOutlet NSView *webView;
 
-- (id)initWithPath:(NSString *)path atomContext:(CefRefPtr<CefV8Context>)atomContext;
-- (id)initSpecsWithAtomContext:(CefRefPtr<CefV8Context>)atomContext;
-- (id)initBenchmarksWithAtomContext:(CefRefPtr<CefV8Context>)atomContext;
+- (id)initWithPath:(NSString *)path;
+- (id)initSpecs;
+- (id)initBenchmarks;
 
 @end

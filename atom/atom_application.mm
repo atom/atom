@@ -2,6 +2,7 @@
 #import "atom/client_handler.h"
 #import "atom/atom_application.h"
 #import "atom/atom_controller.h"
+#import "atom/atom_cef_app.h"
 
 @implementation AtomApplication
 
@@ -12,7 +13,7 @@
   [self populateAppSettings:settings];
   
   CefMainArgs mainArgs(0, NULL);
-  CefRefPtr<CefApp> app;
+  CefRefPtr<CefApp> app(new AtomCefApp);
 
   CefInitialize(mainArgs, settings, app.get());
   
@@ -30,7 +31,7 @@
 }
 
 - (void)dealloc {
-  [_hiddenWindow release];
+  [_backgroundWindow release];
   [super dealloc];
 }
 
@@ -38,8 +39,8 @@
   _clientHandler = new ClientHandler();
   
   CefWindowInfo window_info;
-  _hiddenWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 0, 0) styleMask:nil backing:nil defer:YES];
-  window_info.SetAsChild([_hiddenWindow contentView], 0, 0, 0, 0);
+  _backgroundWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 0, 0) styleMask:nil backing:nil defer:YES];
+  window_info.SetAsChild([_backgroundWindow contentView], 0, 0, 0, 0);
   
   CefBrowserSettings settings;
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
@@ -48,15 +49,15 @@
 }
 
 - (void)open:(NSString *)path {
-  [[AtomController alloc] initWithPath:path atomContext:NULL];
+  [[AtomController alloc] initWithPath:path];
 }
 
 - (IBAction)runSpecs:(id)sender {
-  [[AtomController alloc] initSpecsWithAtomContext:[self atomContext]];
+  [[AtomController alloc] initSpecs];
 }
 
 - (IBAction)runBenchmarks:(id)sender {
-  [[AtomController alloc] initBenchmarksWithAtomContext:[self atomContext]];
+  [[AtomController alloc] initBenchmarks];
 }
 
 - (void)modifyJavaScript:(void(^)(CefRefPtr<CefV8Context>, CefRefPtr<CefV8Value>))callback {
@@ -142,8 +143,8 @@
   if ([[self mainMenu] performKeyEquivalent:event]) return;
   
   if (_clientHandler && ![self keyWindow] && [event type] == NSKeyDown) {
-    [_hiddenWindow makeKeyAndOrderFront:self];
-    [_hiddenWindow sendEvent:event];
+    [_backgroundWindow makeKeyAndOrderFront:self];
+    [_backgroundWindow sendEvent:event];
   }
   else {
     [super sendEvent:event];

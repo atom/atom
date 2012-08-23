@@ -49,6 +49,8 @@
         'atom/atom_application.mm',
         'atom/atom_controller.h',
         'atom/atom_controller.mm',
+        'atom/atom_cef_app.mm',
+        'atom/atom_cef_app.h',
         'atom/client_handler_mac.mm',
         'atom/client_handler.cpp',
         'atom/client_handler.h',
