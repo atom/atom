@@ -17,6 +17,7 @@
 
 ClientHandler::ClientHandler() :
     m_MainHwnd(NULL), m_BrowserHwnd(NULL) {
+  m_nativeHandler = new NativeHandler();
 }
 
 ClientHandler::~ClientHandler() {
@@ -74,7 +75,7 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     global->SetValue("$windowNumber", windowNumber, V8_PROPERTY_ATTRIBUTE_NONE);
 
     std::string path;
-    if (m_nativeHandler)
+    if (m_nativeHandler && !m_nativeHandler->path.empty())
       path = m_nativeHandler->path;
     else
       path.append(PathToOpen());
@@ -82,12 +83,8 @@ void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefV8Value> pathToOpen = CefV8Value::CreateString(path);
     global->SetValue("$pathToOpen", pathToOpen, V8_PROPERTY_ATTRIBUTE_NONE);
 
-    CefRefPtr<NativeHandler> nativeHandler = new NativeHandler();
-    nativeHandler->window = window;
-    nativeHandler->path = path;
-    global->SetValue("$native", nativeHandler->object,
-        V8_PROPERTY_ATTRIBUTE_NONE);
-    m_nativeHandler = nativeHandler;
+    m_nativeHandler->window = window;
+    m_nativeHandler->path = path;
 
     CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL, NULL);
     global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);

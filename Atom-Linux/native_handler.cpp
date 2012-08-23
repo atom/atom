@@ -51,24 +51,7 @@ void ExecuteWatchCallback(NotifyContext notifyContext) {
 
 NativeHandler::NativeHandler() :
     CefV8Handler() {
-  object = CefV8Value::CreateObject(NULL, NULL);
-
-  const char *functionNames[] = { "exists", "alert", "read", "write",
-      "absolute", "list", "isFile", "isDirectory", "remove", "asyncList",
-      "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard",
-      "showDevTools", "newWindow", "saveDialog", "exit", "watchPath",
-      "unwatchPath", "makeDirectory", "move", "moveToTrash", "md5ForPath",
-      "getPlatform", "lastModified" };
-  int arrayLength = sizeof(functionNames) / sizeof(const char *);
-  for (int i = 0; i < arrayLength; i++) {
-    const char *functionName = functionNames[i];
-    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName,
-        this);
-    object->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
-  }
-
-  string nativePath = io_utils_real_app_path(
-      "/../src/stdlib/native-handler.js");
+  string nativePath = io_utils_real_app_path("/src/stdlib/native-handler.js");
   if (!nativePath.empty()) {
     string extensionCode;
     if (io_utils_read(nativePath, &extensionCode) > 0)

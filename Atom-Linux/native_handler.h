@@ -21,8 +21,6 @@ class NativeHandler: public CefV8Handler {
 public:
   NativeHandler();
 
-  CefRefPtr<CefV8Value> object;
-
   GtkWidget* window;
 
   std::string path;
