@@ -35,7 +35,7 @@
   [super dealloc];
 }
 
-- (void)createAtomContext {
+- (void)createBackgroundWindow {
   _clientHandler = new ClientHandler();
   
   CefWindowInfo window_info;
@@ -120,7 +120,7 @@
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
 //  new NativeHandler();
 //  new OnigRegexpExtension();
-  [self createAtomContext];
+  [self createBackgroundWindow];
   [self open:@""];
 }
 
