@@ -18,9 +18,8 @@
 	self = [super initWithWindowNibName:@"AtomWindow"];
 
 	_bootstrapScript = [bootstrapScript retain];
-  [self.window makeKeyAndOrderFront:nil];
-  [self createBrowser];
 
+  [self createBrowser];
 }
 
 - (id)initWithPath:(NSString *)path {
@@ -54,7 +53,6 @@
 
 - (void)windowDidLoad {
   [self.window setDelegate:self];
-  [self.window setReleasedWhenClosed:NO];
 }
 
 # pragma mark NSWindowDelegate
