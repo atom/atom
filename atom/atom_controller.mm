@@ -72,8 +72,7 @@
 // Clean ourselves up after clearing the stack of anything that might have the window on it.
 - (BOOL)windowShouldClose:(id)window {
 	_clientHandler = NULL;
-  [window autorelease];
-  
+  [self autorelease];
   return YES;
 }
 
