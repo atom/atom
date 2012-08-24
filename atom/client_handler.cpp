@@ -54,6 +54,15 @@ bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 
 void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
+
+  
+  // this was in cefclient... was there a good reason?
+//  if(m_BrowserHwnd == browser->GetWindowHandle()) {
+//    // Free the browser pointer so that the browser can be destroyed
+//    m_Browser = NULL;
+//  }
+  
+  m_Browser = NULL;
 }
 
 void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
