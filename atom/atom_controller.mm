@@ -10,7 +10,6 @@
 	[_webView release];
 	[_bootstrapScript release];
   [_pathToOpen release];
-
 	[super dealloc];
 }
 
@@ -19,7 +18,7 @@
 
 	_bootstrapScript = [bootstrapScript retain];
 
-  [self createBrowser];
+  [self showWindow:self];
 }
 
 - (id)initWithPath:(NSString *)path {
@@ -37,22 +36,22 @@
 }
 
 - (void)createBrowser {
-	_clientHandler = new ClientHandler();
-  
-  CefWindowInfo window_info;
-  CefBrowserSettings settings;
-  
-  [self populateBrowserSettings:settings];
-  
-  NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
-	NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-  CefBrowserHost::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
-	
-	return self;
 }
 
 - (void)windowDidLoad {
   [self.window setDelegate:self];
+  
+  _clientHandler = new ClientHandler();
+  
+  CefBrowserSettings settings;
+  [self populateBrowserSettings:settings];
+  
+  CefWindowInfo window_info;  
+  window_info.SetAsChild(self.webView, 0, 0, self.webView.bounds.size.width, self.webView.bounds.size.height);
+  
+  NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
+	NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
+  CefBrowserHost::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
 }
 
 # pragma mark NSWindowDelegate
@@ -69,9 +68,9 @@
   }
 }
 
-// Clean ourselves up after clearing the stack of anything that might have the window on it.
+
 - (BOOL)windowShouldClose:(id)window {
-	_clientHandler = NULL;
+	_clientHandler = NULL; // Tear down the client handler while the window exists
   [self autorelease];
   return YES;
 }
