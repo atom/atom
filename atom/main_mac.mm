@@ -19,8 +19,6 @@ int main(int argc, char* argv[]) {
 		NSNib *mainNib = [[NSNib alloc] initWithNibNamed:mainNibName bundle:[NSBundle mainBundle]];
 		[mainNib instantiateNibWithOwner:application topLevelObjects:nil];
 		
-		[application open:@""];
-		
 		CefRunMessageLoop();
 	}
   

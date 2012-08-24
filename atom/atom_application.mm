@@ -120,8 +120,8 @@
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
 //  new NativeHandler();
 //  new OnigRegexpExtension();
-  
   [self createAtomContext];
+  [self open:@""];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
