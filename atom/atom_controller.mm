@@ -68,9 +68,7 @@
   }
 }
 
-
 - (BOOL)windowShouldClose:(id)window {
-	_clientHandler = NULL; // Tear down the client handler while the window exists
   [self autorelease];
   return YES;
 }
