@@ -7,28 +7,22 @@
 @implementation AtomApplication
 
 + (id)sharedApplication {
-  id atomApp = [super sharedApplication];
-  
-  CefSettings settings;
-  [self populateAppSettings:settings];
-  
-  CefMainArgs mainArgs(0, NULL);
-  CefRefPtr<CefApp> app(new AtomCefApp);
-
-  CefInitialize(mainArgs, settings, app.get());
-  
-  return atomApp;
+  NSApplication *application = [super sharedApplication];
+  CefInitialize(CefMainArgs(0, NULL), [self createCefSettings], new AtomCefApp);
+  return application;
 }
-   
-+ (void)populateAppSettings:(CefSettings &)settings {
+  
++ (CefSettings)createCefSettings {
+  CefSettings settings;
   CefString(&settings.cache_path) = "";
   CefString(&settings.user_agent) = "";
   CefString(&settings.log_file) = "";
-  CefString(&settings.javascript_flags) = "";
-  
+  CefString(&settings.javascript_flags) = "";  
   settings.remote_debugging_port = 9090;
   settings.log_severity = LOGSEVERITY_ERROR;
+  return settings;
 }
+
 
 - (void)dealloc {
   [_backgroundWindow release];

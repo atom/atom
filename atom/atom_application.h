@@ -11,7 +11,7 @@ class AtomCefClient;
   BOOL handlingSendEvent_;
 }
 
-+ (void)populateAppSettings:(CefSettings &)settings;
++ (CefSettings)createCefSettings;
 - (void)open:(NSString *)path;
 - (IBAction)runSpecs:(id)sender;
 - (IBAction)runBenchmarks:(id)sender;
