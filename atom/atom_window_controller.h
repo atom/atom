@@ -2,7 +2,7 @@
 
 class AtomCefClient;
 
-@interface AtomController : NSWindowController <NSWindowDelegate> {
+@interface AtomWindowController : NSWindowController <NSWindowDelegate> {
 	NSView *_webView;
 	NSString *_bootstrapScript;
 	NSString *_pathToOpen;

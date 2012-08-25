@@ -1,7 +1,7 @@
 #import "include/cef_application_mac.h"
 #import "atom/atom_cef_client.h"
 #import "atom/atom_application.h"
-#import "atom/atom_controller.h"
+#import "atom/atom_window_controller.h"
 #import "atom/atom_cef_app.h"
 
 @implementation AtomApplication
@@ -43,15 +43,15 @@
 }
 
 - (void)open:(NSString *)path {
-  [[AtomController alloc] initWithPath:path];
+  [[AtomWindowController alloc] initWithPath:path];
 }
 
 - (IBAction)runSpecs:(id)sender {
-  [[AtomController alloc] initSpecs];
+  [[AtomWindowController alloc] initSpecs];
 }
 
 - (IBAction)runBenchmarks:(id)sender {
-  [[AtomController alloc] initBenchmarks];
+  [[AtomWindowController alloc] initBenchmarks];
 }
 
 - (void)modifyJavaScript:(void(^)(CefRefPtr<CefV8Context>, CefRefPtr<CefV8Value>))callback {

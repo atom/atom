@@ -1,8 +1,8 @@
 #import "include/cef_application_mac.h"
 #import "atom/atom_cef_client.h"
-#import "atom/atom_controller.h"
+#import "atom/atom_window_controller.h"
 
-@implementation AtomController
+@implementation AtomWindowController
 
 @synthesize webView=_webView;
 
