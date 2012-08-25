@@ -51,9 +51,9 @@
         'atom/atom_cef_app.mm',
         'atom/atom_controller.h',
         'atom/atom_controller.mm',
-        'atom/client_handler_mac.mm',
-        'atom/client_handler.cpp',
-        'atom/client_handler.h',
+        'atom/atom_cef_client_mac.mm',
+        'atom/atom_cef_client.cpp',
+        'atom/atom_cef_client.h',
         'atom/util.h',
       ],
       'mac_bundle_resources': [
@@ -260,10 +260,10 @@
           'sources': [
             'atom/atom_cef_app.h',
             'atom/atom_cef_app.mm',
-            'atom/client_handler_mac.mm',
+            'atom/atom_cef_client_mac.mm',
             'atom/process_helper_mac.cpp',
-            'atom/client_handler.cpp',
-            'atom/client_handler.h',
+            'atom/atom_cef_client.cpp',
+            'atom/atom_cef_client.h',
             'atom/util.h',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its

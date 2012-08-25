@@ -1,5 +1,5 @@
 #import "include/cef_application_mac.h"
-#import "atom/client_handler.h"
+#import "atom/atom_cef_client.h"
 #import "atom/atom_controller.h"
 
 @implementation AtomController
@@ -41,7 +41,7 @@
 - (void)windowDidLoad {
   [self.window setDelegate:self];
   
-  _clientHandler = new ClientHandler();
+  _cefClient = new AtomCefClient();
   
   CefBrowserSettings settings;
   [self populateBrowserSettings:settings];
@@ -51,20 +51,20 @@
   
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
 	NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-  CefBrowserHost::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
+  CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [indexURLString UTF8String], settings);
 }
 
 # pragma mark NSWindowDelegate
 
 - (void)windowDidResignMain:(NSNotification *)notification {
-  if (_clientHandler && _clientHandler->GetBrowser() && !_runningSpecs) {
-		_clientHandler->GetBrowser()->GetHost()->SetFocus(true);
+  if (_cefClient && _cefClient->GetBrowser() && !_runningSpecs) {
+		_cefClient->GetBrowser()->GetHost()->SetFocus(true);
   }
 }
 
 - (void)windowDidBecomeMain:(NSNotification *)notification {
-  if (_clientHandler && _clientHandler->GetBrowser()) {
-		_clientHandler->GetBrowser()->GetHost()->SetFocus(true);
+  if (_cefClient && _cefClient->GetBrowser()) {
+		_cefClient->GetBrowser()->GetHost()->SetFocus(true);
   }
 }
 

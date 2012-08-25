@@ -1,13 +1,13 @@
 #include "include/cef_app.h"
 
-class ClientHandler;
+class AtomCefClient;
 
 @interface AtomController : NSWindowController <NSWindowDelegate> {
 	NSView *_webView;
 	NSString *_bootstrapScript;
 	NSString *_pathToOpen;
 
-	CefRefPtr<ClientHandler> _clientHandler;
+	CefRefPtr<AtomCefClient> _cefClient;
 	CefRefPtr<CefV8Context> _atomContext;
 
 	bool _runningSpecs;

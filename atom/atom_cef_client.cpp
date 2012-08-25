@@ -7,16 +7,16 @@
 #include "include/cef_path_util.h"
 #include "include/cef_process_util.h"
 #include "include/cef_runnable.h"
-#include "atom/client_handler.h"
+#include "atom/atom_cef_client.h"
 
-ClientHandler::ClientHandler(){
+AtomCefClient::AtomCefClient(){
 	
 }
 
-ClientHandler::~ClientHandler() {
+AtomCefClient::~AtomCefClient() {
 }
 
-void ClientHandler::OnBeforeContextMenu(
+void AtomCefClient::OnBeforeContextMenu(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,
     CefRefPtr<CefContextMenuParams> params,
@@ -25,7 +25,7 @@ void ClientHandler::OnBeforeContextMenu(
   model->AddItem(MENU_ID_USER_FIRST, "&Show DevTools");
 }
 
-bool ClientHandler::OnContextMenuCommand(
+bool AtomCefClient::OnContextMenuCommand(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,
     CefRefPtr<CefContextMenuParams> params,
@@ -41,7 +41,7 @@ bool ClientHandler::OnContextMenuCommand(
   }
 }
 
-bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
+bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                      const CefString& message,
                                      const CefString& source,
                                      int line) {
@@ -52,7 +52,7 @@ bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
   return true;
 }
 
-void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
+void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
 
   
@@ -65,7 +65,7 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   m_Browser = NULL;
 }
 
-void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
+void AtomCefClient::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
 	
   AutoLock lock_scope(this);
@@ -74,7 +74,7 @@ void ClientHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   }
 }
 
-void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
+void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 ErrorCode errorCode,
                                 const CefString& errorText,
@@ -96,7 +96,7 @@ void ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
   }
 }
 
-void ClientHandler::ShowDevTools(CefRefPtr<CefBrowser> browser) {
+void AtomCefClient::ShowDevTools(CefRefPtr<CefBrowser> browser) {
   std::string devtools_url = browser->GetHost()->GetDevToolsURL(true);
   if (!devtools_url.empty()) {
     browser->GetMainFrame()->ExecuteJavaScript("window.open('" +  devtools_url + "');", "about:blank", 0);

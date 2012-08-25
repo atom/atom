@@ -12,8 +12,8 @@
 #include "atom/util.h"
 
 
-// ClientHandler implementation.
-class ClientHandler : public CefClient,
+// AtomCefClient implementation.
+class AtomCefClient : public CefClient,
                       public CefContextMenuHandler,
                       public CefDisplayHandler,
                       public CefKeyboardHandler,
@@ -21,8 +21,8 @@ class ClientHandler : public CefClient,
                       public CefLoadHandler,
                       public CefRequestHandler {
  public:
-  ClientHandler();
-  virtual ~ClientHandler();
+  AtomCefClient();
+  virtual ~AtomCefClient();
 
 
   CefRefPtr<CefBrowser> GetBrowser() { return m_Browser; }
@@ -82,8 +82,8 @@ class ClientHandler : public CefClient,
 
 	void ShowDevTools(CefRefPtr<CefBrowser> browser);
 												
-  IMPLEMENT_REFCOUNTING(ClientHandler);
-  IMPLEMENT_LOCKING(ClientHandler);
+  IMPLEMENT_REFCOUNTING(AtomCefClient);
+  IMPLEMENT_LOCKING(AtomCefClient);
 };
 
 #endif  // CEF_TESTS_CEFCLIENT_CLIENT_HANDLER_H_

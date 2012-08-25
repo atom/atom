@@ -1,5 +1,5 @@
 #import "include/cef_application_mac.h"
-#import "atom/client_handler.h"
+#import "atom/atom_cef_client.h"
 #import "atom/atom_application.h"
 #import "atom/atom_controller.h"
 #import "atom/atom_cef_app.h"
@@ -36,7 +36,7 @@
 }
 
 - (void)createBackgroundWindow {
-  _clientHandler = new ClientHandler();
+  _cefClient = new AtomCefClient();
   
   CefWindowInfo window_info;
   _backgroundWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 0, 0) styleMask:nil backing:nil defer:YES];
@@ -45,7 +45,7 @@
   CefBrowserSettings settings;
   NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
   NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-	CefBrowserHost::CreateBrowser(window_info, _clientHandler.get(), [indexURLString UTF8String], settings);
+	CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [indexURLString UTF8String], settings);
 }
 
 - (void)open:(NSString *)path {
@@ -61,7 +61,7 @@
 }
 
 - (void)modifyJavaScript:(void(^)(CefRefPtr<CefV8Context>, CefRefPtr<CefV8Value>))callback {
-  CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+  CefRefPtr<CefV8Context> context = _cefClient->GetBrowser()->GetMainFrame()->GetV8Context();
   CefRefPtr<CefV8Value> global = context->GetGlobal();
   
   context->Enter();
@@ -72,7 +72,7 @@
 }
 
 - (CefRefPtr<CefV8Context>)atomContext {
-  return _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+  return _cefClient->GetBrowser()->GetMainFrame()->GetV8Context();
 }
 
 #pragma mark BrowserDelegate
@@ -142,7 +142,7 @@
   CefScopedSendingEvent sendingEventScoper;
   if ([[self mainMenu] performKeyEquivalent:event]) return;
   
-  if (_clientHandler && ![self keyWindow] && [event type] == NSKeyDown) {
+  if (_cefClient && ![self keyWindow] && [event type] == NSKeyDown) {
     [_backgroundWindow makeKeyAndOrderFront:self];
     [_backgroundWindow sendEvent:event];
   }

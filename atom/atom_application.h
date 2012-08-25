@@ -1,12 +1,12 @@
 #include "include/cef_app.h"
 
-class ClientHandler;
+class AtomCefClient;
 
 @interface AtomApplication : NSApplication <CefAppProtocol, NSApplicationDelegate> {
 @private
   NSWindow *_backgroundWindow;
 	
-  CefRefPtr<ClientHandler> _clientHandler;
+  CefRefPtr<AtomCefClient> _cefClient;
 	
   BOOL handlingSendEvent_;
 }
