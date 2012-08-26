@@ -1,15 +1,15 @@
 paths = [
-  "#{atom.loadPath}/spec"
-  "#{atom.loadPath}/benchmark"
-  "#{atom.loadPath}/src/stdlib"
-  "#{atom.loadPath}/src/app"
-  "#{atom.loadPath}/src/extensions"
-  "#{atom.loadPath}/src"
-  "#{atom.loadPath}/vendor"
-  "#{atom.loadPath}/static"
-  "#{atom.loadPath}/bundles"
-  "#{atom.loadPath}/themes"
-  "#{atom.loadPath}"
+  "#{atom.resourcePath}/spec"
+  "#{atom.resourcePath}/benchmark"
+  "#{atom.resourcePath}/src/stdlib"
+  "#{atom.resourcePath}/src/app"
+  "#{atom.resourcePath}/src/extensions"
+  "#{atom.resourcePath}/src"
+  "#{atom.resourcePath}/vendor"
+  "#{atom.resourcePath}/static"
+  "#{atom.resourcePath}/bundles"
+  "#{atom.resourcePath}/themes"
+  "#{atom.resourcePath}"
 ]
 
 window.__filename = null
