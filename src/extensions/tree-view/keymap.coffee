@@ -1,0 +1,18 @@
+window.keymap.bindKeys '#root-view'
+  'ctrl-1': 'tree-view:toggle'
+  'ctrl-meta-1': 'tree-view:reveal-active-file'
+
+window.keymap.bindKeys '.tree-view'
+  'escape': 'tree-view:unfocus'
+  'meta-w': 'tree-view:toggle'
+  'right': 'tree-view:expand-directory'
+  'left': 'tree-view:collapse-directory'
+  'enter': 'tree-view:open-selected-entry'
+  'm': 'tree-view:move'
+  'a': 'tree-view:add'
+  'delete': 'tree-view:remove'
+  'backspace': 'tree-view:remove'
+
+window.keymap.bindKeys '.tree-view-dialog .mini.editor'
+  'enter': 'tree-view:confirm'
+  'escape': 'tree-view:cancel'

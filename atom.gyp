@@ -126,12 +126,11 @@
           ],
           'postbuilds': [
             {
-              'postbuild_name': 'Copy static files',
+              'postbuild_name': 'Copy and Compile Static Files',
               'action': [
-                'cp',
-                '-r',
-                'static/',
-                '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Resources/',
+                'rake',
+                '--trace',
+                'copy-files-to-bundle',
               ],
             },
             {

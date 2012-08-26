@@ -47,7 +47,7 @@
   window_info.SetAsChild(self.webView, 0, 0, self.webView.bounds.size.width, self.webView.bounds.size.height);
   
   NSURL *url = [[NSBundle mainBundle] resourceURL];
-  NSString *urlString = [[url URLByAppendingPathComponent:@"index.html"] absoluteString];
+  NSString *urlString = [[url URLByAppendingPathComponent:@"static/index.html"] absoluteString];
   urlString = [urlString stringByAppendingFormat:@"?bootstrapScript=%@.js", _bootstrapScript];
   
   NSLog(@"%@", urlString);
