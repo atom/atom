@@ -5,10 +5,12 @@
   <script>
     window.onload = function() {
       try {
-        //if ($bootstrapScript) require($bootstrapScript);
+        var bootstrapScript = window.location.search.split('=')[1]
+        console.log(bootstrapScript);
+        if (bootstrapScript) require(bootstrapScript);
       }
       catch (error) {
-        //c$native.showDevTools();
+        //$native.showDevTools();
         console.error(error.stack || error);
       }
     }

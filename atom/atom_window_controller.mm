@@ -35,9 +35,6 @@
   return [self initWithBootstrapScript:@"benchmark-bootstrap"];
 }
 
-- (void)createBrowser {
-}
-
 - (void)windowDidLoad {
   [self.window setDelegate:self];
   
@@ -49,16 +46,20 @@
   CefWindowInfo window_info;  
   window_info.SetAsChild(self.webView, 0, 0, self.webView.bounds.size.width, self.webView.bounds.size.height);
   
-  NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
-	NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-  CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [indexURLString UTF8String], settings);
+  NSURL *url = [[NSBundle mainBundle] resourceURL];
+  NSString *urlString = [[url URLByAppendingPathComponent:@"index.html"] absoluteString];
+  urlString = [urlString stringByAppendingFormat:@"?bootstrapScript=%@.js", _bootstrapScript];
+  
+  NSLog(@"%@", urlString);
+  
+  CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [urlString UTF8String], settings);
 }
 
 # pragma mark NSWindowDelegate
 
 - (void)windowDidResignMain:(NSNotification *)notification {
   if (_cefClient && _cefClient->GetBrowser() && !_runningSpecs) {
-		_cefClient->GetBrowser()->GetHost()->SetFocus(true);
+		_cefClient->GetBrowser()->GetHost()->SetFocus(false);
   }
 }
 
