@@ -64,10 +64,10 @@
         'native/atom_cef_client.cpp',
         'native/atom_cef_client.h',
         'native/util.h',
-        'native/native_handler.mm',
-        'native/native_handler.h',
         'native/path_watcher.mm',
         'native/path_watcher.h',
+        'native/v8_extensions/native_handler.mm',
+        'native/v8_extensions/native_handler.h',
       ],
       'mac_bundle_resources': [
         'native/mac/atom.icns',
@@ -277,10 +277,10 @@
             'native/atom_cef_client.cpp',
             'native/atom_cef_client.h',
             'native/util.h',
-            'native/native_handler.mm',
-            'native/native_handler.h',
             'native/path_watcher.mm',
             'native/path_watcher.h',
+            'native/v8_extensions/native_handler.mm',
+            'native/v8_extensions/native_handler.h',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
