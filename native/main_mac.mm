@@ -1,5 +1,5 @@
 #import "include/cef_application_mac.h"
-#import "atom/atom_application.h"
+#import "native/atom_application.h"
 
 int main(int argc, char* argv[]) {
   @autoreleasepool {

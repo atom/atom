@@ -9,7 +9,7 @@
 #include <set>
 #include <string>
 #include "include/cef_client.h"
-#include "atom/util.h"
+#include "native/util.h"
 
 
 // AtomCefClient implementation.

@@ -1,6 +1,6 @@
 #import "include/cef_application_mac.h"
-#import "atom/atom_cef_client.h"
-#import "atom/atom_window_controller.h"
+#import "native/atom_cef_client.h"
+#import "native/atom_window_controller.h"
 
 @implementation AtomWindowController
 

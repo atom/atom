@@ -7,7 +7,7 @@
 #include "include/cef_path_util.h"
 #include "include/cef_process_util.h"
 #include "include/cef_runnable.h"
-#include "atom/atom_cef_client.h"
+#include "native/atom_cef_client.h"
 
 AtomCefClient::AtomCefClient(){
 	
