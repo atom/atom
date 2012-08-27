@@ -21,6 +21,15 @@
     'cef/cef_paths2.gypi',
   ],
   'target_defaults': {
+    'default_configuration': 'Debug',
+    'configurations': {
+      'Debug': {
+        'xcode_config_file': 'atom/mac/debug.xcconfig',
+        'defines': ['RESOURCE_PATH="$RESOURCE_PATH"'],
+      },
+      'Release': {
+      },
+    },
     'xcode_settings': {
       'CLANG_CXX_LANGUAGE_STANDARD' : 'c++0x',
       'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',

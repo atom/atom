@@ -63,19 +63,21 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
-  rm_rf File.join(dest, 'static')
-  cp_r 'static', File.join(dest, 'static')
-
-  sh "coffee -c -o #{dest}/src/stdlib src/stdlib/require.coffee"
-  cp "src/stdlib/onig-reg-exp-extension.js", "#{dest}/src/stdlib"
-  # unless ENV['LOAD_RESOURCES_FROM_DIR']
-  #   %w(src static vendor spec benchmark bundles themes).each do |dir|
-  #     rm_rf File.join(dest, dir)
-  #     cp_r dir, File.join(dest, dir)
-  #   end
-
-  #   sh "coffee -c #{dest}/src #{dest}/vendor #{dest}/spec #{dest}/benchmark"
-  # end
+  if resource_path = ENV['RESOURCE_PATH']
+    sh "coffee -c -o #{dest}/src/stdlib #{resource_path}/src/stdlib/require.coffee"
+    cp_r "#{resource_path}/static", dest
+    cp "#{resource_path}/src/stdlib/onig-reg-exp-extension.js", "#{dest}/src/stdlib"
+    cp "#{resource_path}/src/stdlib/native-handler.js", "#{dest}/src/stdlib"
+  else
+    # TODO: Restore this list when we add in all of atoms source
+    #%w(src static vendor spec benchmark bundles themes).each do |dir|
+    %w(src static vendor).each do |dir|
+      dest_path = File.join(dest, dir)
+      rm_rf dest_path
+      cp_r dir, dest_path
+      sh "coffee -c #{dest_path}"
+    end
+  end
 end
 
 desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
