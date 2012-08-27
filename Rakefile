@@ -6,8 +6,14 @@ ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
 BUILD_DIR = 'atom-build'
 mkdir_p BUILD_DIR
 
+desc "Create xcode project from gpy file"
+task "create-project" do
+  sh "rm -rf atom.xcodeproj"
+  sh "python tools/gyp/gyp --depth=. atom.gyp"
+end
+
 desc "Build Atom via `xcodebuild`"
-task :build => :"verify-prerequisites" do
+task :build => [:"create-project", :"verify-prerequisites"] do
   output = `xcodebuild -scheme atom-release SYMROOT=#{BUILD_DIR}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
