@@ -1,9 +1,5 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
-// reserved. Use of this source code is governed by a BSD-style license that
-// can be found in the LICENSE file.
-
-#ifndef CEF_TESTS_CEFCLIENT_CLIENT_HANDLER_H_
-#define CEF_TESTS_CEFCLIENT_CLIENT_HANDLER_H_
+#ifndef CLIENT_HANDLER_H_
+#define CLIENT_HANDLER_H_
 #pragma once
 
 #include <map>
@@ -156,4 +152,4 @@ IMPLEMENT_LOCKING(ClientHandler)
   ;
 };
 
-#endif  // CEF_TESTS_CEFCLIENT_CLIENT_HANDLER_H_
+#endif

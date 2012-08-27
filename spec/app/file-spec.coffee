@@ -48,7 +48,9 @@ describe 'File', ->
       newPath = fs.join(fs.directory(path), "atom-file-was-moved-test.txt")
 
     afterEach ->
-      fs.remove(newPath) if fs.exists(newPath)
+      if fs.exists(newPath)
+        fs.remove(newPath)
+        waitsFor "remove event", (done) -> file.on 'remove', done
 
     it "it updates its path", ->
       moveHandler = null

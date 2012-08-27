@@ -68,9 +68,11 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
     cp_r dir, File.join(dest, dir)
   end
 
-  sh "coffee -c -o #{dest}/src/stdlib src/stdlib/require.coffee"
-  cp "src/stdlib/onig-reg-exp-extension.js", "#{dest}/src/stdlib"
-  unless ENV['LOAD_RESOURCES_FROM_DIR']
+  if ENV['LOAD_RESOURCES_FROM_DIR']
+    sh "coffee -c -o #{dest}/src/stdlib src/stdlib/require.coffee"
+    cp "src/stdlib/onig-reg-exp-extension.js", "#{dest}/src/stdlib"
+    cp "src/stdlib/native-handler.js", "#{dest}/src/stdlib"
+  else
     %w(src static vendor spec benchmark bundles themes).each do |dir|
       rm_rf File.join(dest, dir)
       cp_r dir, File.join(dest, dir)

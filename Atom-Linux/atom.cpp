@@ -3,8 +3,6 @@
 // can be found in the LICENSE file.
 
 #include <gtk/gtk.h>
-#include <stdlib.h>
-#include <iostream>
 #include <unistd.h>
 #include <string>
 #include "atom.h"
@@ -13,6 +11,8 @@
 #include "include/cef_frame.h"
 #include "include/cef_runnable.h"
 #include "client_handler.h"
+#include "onig_regexp_extension.h"
+#include "io_utils.h"
 
 char* szWorkingDir; // The current working directory
 
@@ -58,9 +58,11 @@ int main(int argc, char *argv[]) {
   if (szWorkingDir == NULL)
     return -1;
 
-  std::string fullPath = argv[0];
-  fullPath = fullPath.substr(0, fullPath.length() - 5);
-  szPath = fullPath.c_str();
+  std::string appDir = io_util_app_directory();
+  if (appDir.empty())
+    return -1;
+
+  szPath = appDir.c_str();
 
   std::string pathToOpen;
   if (argc >= 2) {
@@ -102,23 +104,20 @@ int main(int argc, char *argv[]) {
   g_handler->SetMainHwnd(vbox);
   g_handler->SetWindow(window);
 
+  new OnigRegexpExtension();
+
   // Create the browser view.
   CefWindowInfo window_info;
   CefBrowserSettings browserSettings;
 
   window_info.SetAsChild(vbox);
 
-  std::string path;
-  path.append(szPath);
-  path.append("/../index.html");
-  char* realPath;
-  realPath = realpath(path.c_str(), NULL);
-  if (realPath == NULL)
+  std::string path = io_utils_real_app_path("/index.html");
+  if (path.empty())
     return -1;
 
   std::string resolved("file://");
-  resolved.append(realPath);
-  free(realPath);
+  resolved.append(path);
 
   CefBrowser::CreateBrowserSync(window_info,
       static_cast<CefRefPtr<CefClient> >(g_handler), resolved, browserSettings);
@@ -159,4 +158,3 @@ std::string AppPath() {
 std::string PathToOpen() {
   return szPathToOpen;
 }
-

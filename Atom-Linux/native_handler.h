@@ -1,5 +1,5 @@
-#ifndef CEF_TESTS_CEFCLIENT_NATIVE_HANDLER_H_
-#define CEF_TESTS_CEFCLIENT_NATIVE_HANDLER_H_
+#ifndef NATIVE_HANDLER_H_
+#define NATIVE_HANDLER_H_
 
 #include "include/cef_base.h"
 #include "include/cef_v8.h"
@@ -20,8 +20,6 @@ struct NotifyContext {
 class NativeHandler: public CefV8Handler {
 public:
   NativeHandler();
-
-  CefRefPtr<CefV8Value> object;
 
   GtkWidget* window;
 
@@ -119,6 +117,10 @@ private:
       CefString& exception);
 
   void Digest(const CefString& name, CefRefPtr<CefV8Value> object,
+      const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
+      CefString& exception);
+
+  void LastModified(const CefString& name, CefRefPtr<CefV8Value> object,
       const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
       CefString& exception);
 };

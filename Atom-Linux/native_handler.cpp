@@ -2,6 +2,7 @@
 #include "include/cef_base.h"
 #include "include/cef_runnable.h"
 #include "client_handler.h"
+#include "io_utils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -50,19 +51,11 @@ void ExecuteWatchCallback(NotifyContext notifyContext) {
 
 NativeHandler::NativeHandler() :
     CefV8Handler() {
-  object = CefV8Value::CreateObject(NULL, NULL);
-
-  const char *functionNames[] = { "exists", "alert", "read", "write",
-      "absolute", "list", "isFile", "isDirectory", "remove", "asyncList",
-      "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard",
-      "showDevTools", "newWindow", "saveDialog", "exit", "watchPath",
-      "unwatchPath", "makeDirectory", "move", "moveToTrash", "md5ForPath" };
-  int arrayLength = sizeof(functionNames) / sizeof(const char *);
-  for (int i = 0; i < arrayLength; i++) {
-    const char *functionName = functionNames[i];
-    CefRefPtr<CefV8Value> function = CefV8Value::CreateFunction(functionName,
-        this);
-    object->SetValue(functionName, function, V8_PROPERTY_ATTRIBUTE_NONE);
+  string nativePath = io_utils_real_app_path("/src/stdlib/native-handler.js");
+  if (!nativePath.empty()) {
+    string extensionCode;
+    if (io_utils_read(nativePath, &extensionCode) > 0)
+      CefRegisterExtension("v8/native-handler", extensionCode, this);
   }
 
   notifyFd = inotify_init();
@@ -109,16 +102,8 @@ void NativeHandler::Read(const CefString& name, CefRefPtr<CefV8Value> object,
     const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
     CefString& exception) {
   string path = arguments[0]->GetStringValue().ToString();
-  int fd = open(path.c_str(), O_RDONLY);
-  if (fd < 0)
-    return;
-
-  char buffer[8192];
-  int r;
   string value;
-  while ((r = read(fd, buffer, sizeof buffer)) > 0)
-    value.append(buffer, 0, r);
-  close(fd);
+  io_utils_read(path, &value);
   retval = CefV8Value::CreateString(value);
 }
 
@@ -276,10 +261,10 @@ void NativeHandler::Write(const CefString& name, CefRefPtr<CefV8Value> object,
   string path = arguments[0]->GetStringValue().ToString();
   string content = arguments[1]->GetStringValue().ToString();
 
-  ofstream myfile;
-  myfile.open(path.c_str());
-  myfile << content;
-  myfile.close();
+  ofstream file;
+  file.open(path.c_str());
+  file << content;
+  file.close();
 }
 
 void NativeHandler::WriteToPasteboard(const CefString& name,
@@ -457,7 +442,7 @@ void NativeHandler::Digest(const CefString& name, CefRefPtr<CefV8Value> object,
   EVP_MD_CTX_init(&context);
   EVP_DigestInit_ex(&context, md, NULL);
 
-  char buffer[8192];
+  char buffer[BUFFER_SIZE];
   int r;
   while ((r = read(fd, buffer, sizeof buffer)) > 0)
     EVP_DigestUpdate(&context, buffer, r);
@@ -475,6 +460,17 @@ void NativeHandler::Digest(const CefString& name, CefRefPtr<CefV8Value> object,
     md5 << hex;
   }
   retval = CefV8Value::CreateString(md5.str());
+}
+
+void NativeHandler::LastModified(const CefString& name,
+    CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
+    CefRefPtr<CefV8Value>& retval, CefString& exception) {
+  string path = arguments[0]->GetStringValue().ToString();
+  struct stat statInfo;
+  if (stat(path.c_str(), &statInfo) == 0) {
+    CefTime time(statInfo.st_mtime);
+    retval = CefV8Value::CreateDate(time);
+  }
 }
 
 bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
@@ -520,6 +516,10 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     UnwatchPath(name, object, arguments, retval, exception);
   else if (name == "md5ForPath")
     Digest(name, object, arguments, retval, exception);
+  else if (name == "getPlatform")
+    retval = CefV8Value::CreateString("linux");
+  else if (name == "lastModified")
+    LastModified(name, object, arguments, retval, exception);
   else
     cout << "Unhandled -> " + name.ToString() << " : "
         << arguments[0]->GetStringValue().ToString() << endl;

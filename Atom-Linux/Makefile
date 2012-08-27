@@ -1,3 +1,5 @@
+INSTALLDIR=/usr/share/atom
+
 CXXFLAGS := -Werror \
 	-pthread \
 	-fno-exceptions \
@@ -36,6 +38,7 @@ LDFLAGS := -pthread \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections \
+	-Wl,-rpath=$(INSTALLDIR)
 
 LIBS := -lX11 \
 	-lgtk-x11-2.0 \
@@ -56,32 +59,34 @@ LIBS := -lX11 \
 	-lssl \
 	-lcrypto \
 	-lcef \
-	-lcef_dll_wrapper
+	-lcef_dll_wrapper \
+	-lonig
 
-SOURCES=atom.cpp native_handler.cpp client_handler.cpp
+SOURCES=atom.cpp native_handler.cpp client_handler.cpp onig_regexp_extension.cpp io_utils.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-INSTALLDIR=/usr/local/atom
 
 all:
 	g++ $(CXXFLAGS) -c $(SOURCES)
-	mkdir -p bin
-	cp chrome.pak bin/
-	cp -R locales bin/
-	cp atom.png bin/
-	g++ -o bin/atom $(OBJECTS) $(LDFLAGS) $(LIBS)
+	g++ -o atom $(OBJECTS) $(LDFLAGS) $(LIBS)
 
 clean:
-	rm -rf bin *.o
+	rm -rf atom *.o
 
 install:
 	mkdir -p $(INSTALLDIR)
-	cp -R bin $(INSTALLDIR)
-	cp -R lib $(INSTALLDIR)
 	cp atom $(INSTALLDIR)
+	cp chrome.pak $(INSTALLDIR)
+	cp -R locales $(INSTALLDIR)
+	cp atom.png $(INSTALLDIR)
+	cp lib/libcef.so $(INSTALLDIR)
+	cp lib/libcef_dll_wrapper.a $(INSTALLDIR)
 	cp -R ../src $(INSTALLDIR)
 	cp -R ../static $(INSTALLDIR)
 	cp -R ../vendor $(INSTALLDIR)
+	cp -R ../bundles $(INSTALLDIR)
+	cp -R ../themes $(INSTALLDIR)
 	cp ../index.html $(INSTALLDIR)
+	coffee -c -o $(INSTALLDIR)/src/stdlib ../src/stdlib/require.coffee
 	ln -sf $(INSTALLDIR)/atom /usr/local/bin/atom
 
 spec-install: install
