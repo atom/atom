@@ -71,26 +71,6 @@
 
 #pragma mark BrowserDelegate
 
-- (void)loadStart {
-  [self modifyJavaScript:^(CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> global) {
-    CefRefPtr<CefV8Value> bootstrapScript = CefV8Value::CreateString("atom-bootstrap");
-    global->SetValue("$bootstrapScript", bootstrapScript, V8_PROPERTY_ATTRIBUTE_NONE);
-		
-    CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);
-    global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
-		
-    
-#ifdef LOAD_RESOURCES_FROM_DIR
-    char path[] = LOAD_RESOURCES_FROM_DIR;
-#else
-    const char *path = [[[NSBundle mainBundle] resourcePath] UTF8String];
-#endif
-    
-    CefRefPtr<CefV8Value> loadPath = CefV8Value::CreateString(path);
-    atom->SetValue("loadPath", loadPath, V8_PROPERTY_ATTRIBUTE_NONE);
-  }];
-}
-
 - (void)loadEnd {
   if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--headless"]) {
     [self modifyJavaScript:^(CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> global) {
@@ -112,7 +92,6 @@
 # pragma mark NSApplicationDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-//  new NativeHandler();
 //  new OnigRegexpExtension();
   [self createBackgroundWindow];
   [self open:@""];

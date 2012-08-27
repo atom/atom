@@ -64,6 +64,10 @@
         'atom/atom_cef_client.cpp',
         'atom/atom_cef_client.h',
         'atom/util.h',
+        'atom/native_handler.mm',
+        'atom/native_handler.h',
+        'atom/path_watcher.mm',
+        'atom/path_watcher.h',
       ],
       'mac_bundle_resources': [
         'atom/mac/atom.icns',
@@ -273,6 +277,10 @@
             'atom/atom_cef_client.cpp',
             'atom/atom_cef_client.h',
             'atom/util.h',
+            'atom/native_handler.mm',
+            'atom/native_handler.h',
+            'atom/path_watcher.mm',
+            'atom/path_watcher.h',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's

@@ -1,10 +1,11 @@
 #include "atom_cef_app.h"
+
 #import <Cocoa/Cocoa.h>
+#import "native_handler.h"
 
 
 void AtomCefApp::OnWebKitInitialized() {
-  NSLog(@"%s", "OnWebKitInitialized");
-
+  new NativeHandler();
 }
 
 void AtomCefApp::OnContextCreated(CefRefPtr<CefBrowser> browser,

@@ -1,4 +1,5 @@
 #include "include/cef_app.h"
+#include "include/cef_application_mac.h"
 
 class AtomCefClient;
 
