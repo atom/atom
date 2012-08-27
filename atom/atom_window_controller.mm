@@ -48,7 +48,7 @@
   
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSString *urlString = [[url URLByAppendingPathComponent:@"static/index.html"] absoluteString];
-  urlString = [urlString stringByAppendingFormat:@"?bootstrapScript=%@.js", _bootstrapScript];
+  urlString = [urlString stringByAppendingFormat:@"?bootstrapScript=%@&pathToOpen=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding], [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
   
   NSLog(@"%@", urlString);
   

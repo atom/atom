@@ -5,8 +5,14 @@
   <script>
     window.onload = function() {
       try {
-        var bootstrapScript = window.location.search.split('=')[1]
-        console.log(bootstrapScript);
+        window.location.params = {}
+        var params = window.location.search.substring(1).split('&')
+        params.forEach(function(param) {
+          var pair = param.split("=")
+          window.location.params[pair[0]] = pair[1];
+        });
+
+        var bootstrapScript = window.location.params.bootstrapScript;
         if (bootstrapScript) require(bootstrapScript);
       }
       catch (error) {
