@@ -63,15 +63,16 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
+  mkdir_p "#{dest}/v8_extensions"
+  cp Dir.glob("#{project_dir}/native/v8_extensions/*.js"), "#{dest}/v8_extensions/"
+
   if resource_path = ENV['RESOURCE_PATH']
-    sh "coffee -c -o #{dest}/src/stdlib #{resource_path}/src/stdlib/require.coffee"
+    sh "coffee -c -o '#{dest}/src/stdlib' '#{resource_path}/src/stdlib/require.coffee'"
     cp_r "#{resource_path}/static", dest
-    cp "#{resource_path}/src/stdlib/onig-reg-exp-extension.js", "#{dest}/src/stdlib"
-    cp "#{resource_path}/src/stdlib/native-handler.js", "#{dest}/src/stdlib"
   else
     # TODO: Restore this list when we add in all of atoms source
     #%w(src static vendor spec benchmark bundles themes).each do |dir|
-    %w(src static vendor).each do |dir|
+    %w(src static vendor bundles themes).each do |dir|
       dest_path = File.join(dest, dir)
       rm_rf dest_path
       cp_r dir, dest_path

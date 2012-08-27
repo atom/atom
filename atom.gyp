@@ -66,8 +66,8 @@
         'native/util.h',
         'native/path_watcher.mm',
         'native/path_watcher.h',
-        'native/v8_extensions/native_handler.mm',
-        'native/v8_extensions/native_handler.h',
+        'native/v8_extensions/native.mm',
+        'native/v8_extensions/native.h',
       ],
       'mac_bundle_resources': [
         'native/mac/atom.icns',
@@ -279,8 +279,8 @@
             'native/util.h',
             'native/path_watcher.mm',
             'native/path_watcher.h',
-            'native/v8_extensions/native_handler.mm',
-            'native/v8_extensions/native_handler.h',
+            'native/v8_extensions/native.mm',
+            'native/v8_extensions/native.h',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
@@ -305,6 +305,14 @@
                 '@executable_path/libcef.dylib',
                 '@executable_path/../../../../Frameworks/Chromium Embedded Framework.framework/Libraries/libcef.dylib',
                 '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
+              ],
+            },
+            {
+              'postbuild_name': 'Copy and Compile Static Files',
+              'action': [
+                'rake',
+                '--trace',
+                'copy-files-to-bundle',
               ],
             },
           ],

@@ -3,7 +3,7 @@
 #import <CommonCrypto/CommonDigest.h>
 
 #import "atom_application.h"
-#import "native_handler.h"
+#import "native.h"
 #import "include/cef_base.h"
 #import "path_watcher.h"
 
@@ -25,19 +25,9 @@ void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exceptio
 }
 
 NativeHandler::NativeHandler() : CefV8Handler() {  
-  std::string extensionCode =  "var $native = {}; (function() {";
-  
-  const char *functionNames[] = {"exists", "alert", "read", "write", "absolute", "list", "isFile", "isDirectory", "remove", "asyncList", "open", "openDialog", "quit", "writeToPasteboard", "readFromPasteboard", "showDevTools", "toggleDevTools", "newWindow", "saveDialog", "exit", "watchPath", "unwatchPath", "makeDirectory", "move", "moveToTrash", "reload", "lastModified", "md5ForPath", "exec", "getPlatform"};
-  NSUInteger arrayLength = sizeof(functionNames) / sizeof(const char *);
-  for (NSUInteger i = 0; i < arrayLength; i++) {
-    std::string functionName = std::string(functionNames[i]);
-    extensionCode += "native function " + functionName + "(); $native." + functionName + " = " + functionName + ";";
-  }
-  
-  extensionCode += "})();";
-  
-  // Register the extension.
-  CefRegisterExtension("v8/test", extensionCode, this);
+  NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/native.js"];
+  NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
+  CefRegisterExtension("v8/native", [extensionCode UTF8String], this);
 }
 
 bool NativeHandler::Execute(const CefString& name,

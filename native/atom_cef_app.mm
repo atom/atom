@@ -1,7 +1,7 @@
 #include "atom_cef_app.h"
 
 #import <Cocoa/Cocoa.h>
-#import "native/v8_extensions/native_handler.h"
+#import "native/v8_extensions/native.h"
 
 
 void AtomCefApp::OnWebKitInitialized() {
