@@ -1,0 +1,14 @@
+==========
+exception
+==========
+xmpfilter 
+==========
+def foo
+  raise NameError, "ERR!!" rescue $@ # => 
+end
+foo
+==========
+def foo
+  raise NameError, "ERR!!" rescue $@ # => ["-:2:in `foo'", "-:4"]
+end
+foo

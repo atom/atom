@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>`[[ $TM_LINE_INDEX != 0 ]] &amp;&amp; echo; echo`=begin rdoc
+	$0
+=end</string>
+	<key>name</key>
+	<string>New Block</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>=b</string>
+	<key>uuid</key>
+	<string>05984208-D559-4C04-A69C-2019361A985A</string>
+	<key>disableAutoIndent</key>
+	<true />
+</dict>
+</plist>

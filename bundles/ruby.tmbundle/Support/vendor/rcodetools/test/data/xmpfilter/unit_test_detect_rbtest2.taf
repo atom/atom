@@ -1,0 +1,18 @@
+==========
+unit_test_detect_rbtest2
+==========
+xmpfilter --detect-rbtest
+==========
+=begin test_bar
+bar("bar")    # =>
+=end
+def bar(s)
+  s.upcase
+end
+==========
+=begin test_bar
+assert_equal("BAR", bar("bar"))
+=end
+def bar(s)
+  s.upcase
+end

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Disable Indent Corrections</string>
+	<key>scope</key>
+	<string>source.coffee</string>
+	<key>settings</key>
+	<dict>
+		<key>disableIndentCorrections</key>
+		<true/>
+	</dict>
+	<key>uuid</key>
+	<string>5E57C0C3-77D5-4809-A131-F777EE264908</string>
+</dict>
+</plist>

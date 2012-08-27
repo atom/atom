@@ -1,0 +1,17 @@
+==========
+completion_in_method__testscript
+==========
+rct-complete --filename %s --line 2 -t %s
+==========
+def fooz
+  [].lengt
+end
+==========
+length
+==========
+require 'test/unit'
+class TestFooz < Test::Unit::TestCase
+  def test_fooz
+    assert_equal(0, fooz)
+  end
+end

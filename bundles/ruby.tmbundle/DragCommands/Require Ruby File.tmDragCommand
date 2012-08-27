@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby -wKU
+
+require 'pathname'
+
+require "#{ENV['TM_SUPPORT_PATH']}/lib/escape.rb"
+
+from_path = Pathname.new(ENV['TM_FILEPATH'] || '.').dirname.realpath
+to_path   = Pathname.new(ENV['TM_DROPPED_FILE']).realpath
+begin
+  path    = to_path.relative_path_from(from_path)
+rescue ArgumentError
+  path    = to_path
+end
+lib       = path.to_s.sub(/\.rb\z/i, '')
+puts %Q{require "#{e_sn(lib).gsub('"', '\"')}"}
+</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>rb</string>
+	</array>
+	<key>input</key>
+	<string>selection</string>
+	<key>name</key>
+	<string>Require Ruby File</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>uuid</key>
+	<string>C122CD92-DDBE-4869-9C7A-CC2B254C9411</string>
+</dict>
+</plist>

@@ -1,0 +1,16 @@
+==========
+width
+==========
+xmpfilter -w 15
+==========
+
+a = ["abcdefg", 12345, Object]
+a
+# => 
+==========
+
+a = ["abcdefg", 12345, Object]
+a
+# => ["abcdefg",
+#     12345,
+#     Object]

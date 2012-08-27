@@ -1,0 +1,30 @@
+
+# Rake tasks to generate TAGS and gather method analysis information.
+# See README.method_analysis for more information.
+
+## my standard Rakefile
+task :tags => "TAGS"
+
+desc "Generate method_analysis by ruby -rmethod_analyzer."
+task :analyze => [:_prepare_method_analyze, :tags] do
+  at_exit { sh "ls -l method_analysis" }
+end
+
+task :_prepare_method_analyze do
+  ENV['METHOD_ANALYZER_FORMAT']="marshal"
+  sh "rm -f method_analysis"
+  puts "generating method_analysis"
+end
+
+## application-specific Rakefile (RTtool)
+task :analyze do
+  sh "ruby -Ilib -rmethod_analyzer test/test.rb"
+  sh "ruby -Ilib -rmethod_analyzer test/test-rt2html-lib.rb"
+  sh "ruby -Ilib -rmethod_analyzer test/test-rtparser.rb"
+end
+
+file "TAGS" => FileList["lib/rt/*.rb"] do
+  sh "rct-meth-args -t lib/rt/*.rb > TAGS"
+end
+
+

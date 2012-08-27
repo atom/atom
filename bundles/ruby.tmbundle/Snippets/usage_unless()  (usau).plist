@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>unless ARGV.$1
+	abort "Usage:  #{\$PROGRAM_NAME} ${2:ARGS_GO_HERE}"
+end</string>
+	<key>name</key>
+	<string>usage_unless()</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>usau</string>
+	<key>uuid</key>
+	<string>49D69DEC-6991-49F4-8D9B-BA60BFDD3D17</string>
+</dict>
+</plist>

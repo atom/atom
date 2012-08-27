@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>commands</key>
+	<array>
+		<dict>
+			<key>command</key>
+			<string>moveToBeginningOfDocumentAndModifySelection:</string>
+		</dict>
+		<dict>
+			<key>argument</key>
+			<dict>
+				<key>command</key>
+				<string>insert_requires.rb benchmark</string>
+				<key>input</key>
+				<string>selection</string>
+				<key>output</key>
+				<string>insertAsSnippet</string>
+			</dict>
+			<key>command</key>
+			<string>executeCommandWithOptions:</string>
+		</dict>
+		<dict>
+			<key>argument</key>
+			<dict>
+				<key>content</key>
+				<string>TESTS = ${1:10_000}
+Benchmark.bmbm do |results|
+  $0
+end</string>
+				<key>name</key>
+				<string>Benchmark.bmbm do .. end</string>
+				<key>scope</key>
+				<string>source.ruby</string>
+				<key>tabTrigger</key>
+				<string>bm-</string>
+				<key>uuid</key>
+				<string>942F20E2-C40A-44B8-A3F2-99AAC68CB534</string>
+			</dict>
+			<key>command</key>
+			<string>insertSnippetWithOptions:</string>
+		</dict>
+	</array>
+	<key>name</key>
+	<string>Benchmark.bmbm do .. end</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>bm</string>
+	<key>uuid</key>
+	<string>C649F945-DAB8-4DA2-B73C-2EFF9D7D34F3</string>
+</dict>
+</plist>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Completion: ENV[…] variables</string>
+	<key>scope</key>
+	<string>meta.environment-variable.ruby string.quoted</string>
+	<key>settings</key>
+	<dict>
+		<key>completionCommand</key>
+		<string>env|grep "^$TM_CURRENT_WORD"|sort|cut -d= -f1</string>
+	</dict>
+	<key>uuid</key>
+	<string>1A7701FA-D866-498C-AD4C-7846538DB535</string>
+</dict>
+</plist>

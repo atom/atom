@@ -1,0 +1,11 @@
+Some names forgotten, tell me if you care :) -- mfp
+
+rubikitch
+* expanded xmp3.rb (a previous version of xmpfilter.rb) to support RSpec expectations
+* wrote the elisp magic to use xmpfilter.rb with emacs
+* made the 100% accurate, editor-independent completion system
+[rubikitch took xmpfilter and turned it into the much more powerful
+rcodetools, so there are way too many things to list them here :)]
+
+Adagios
+* found & fixed problem with rcodetools.vim plugin on win32

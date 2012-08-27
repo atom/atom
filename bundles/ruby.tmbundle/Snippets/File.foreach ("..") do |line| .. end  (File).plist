@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>File.foreach(${1:"${2:path/to/file}"}) { |${3:line}| $0 }</string>
+	<key>name</key>
+	<string>File.foreach ("..") { |line| .. }</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>File</string>
+	<key>uuid</key>
+	<string>8F594E5E-6F46-4E98-B5FB-1C8F3BA9828F</string>
+</dict>
+</plist>

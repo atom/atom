@@ -1,0 +1,45 @@
+#! /usr/local/bin/ruby18
+require 'rcodetools/xmpfilter'
+require 'rcodetools/completion'
+require 'rcodetools/options'
+
+include Rcodetools
+options = DEFAULT_OPTIONS
+klass = XMPCompletionFilter
+
+opts = OptionParser.new do |opts|
+  opts.extend OptionHandler
+  opts.set_banner
+
+  opts.separator ""
+  opts.separator "Modes:"
+  opts.on("-C", "--completion", "List completion candidates.(default)") do
+    klass = XMPCompletionFilter
+  end
+  opts.on("--completion-emacs", "Generate completion code for Emacs.") do
+    klass = XMPCompletionEmacsFilter
+  end
+  opts.on("--completion-emacs-icicles", "Generate completion code for Emacs/Icicles.") do
+    klass = XMPCompletionEmacsIciclesFilter
+  end
+  opts.on("--completion-emacs-anything", "Generate completion code for Emacs/Anything.") do
+    klass = XMPCompletionEmacsAnythingFilter
+  end
+  opts.on("--completion-class-info", "List completion candidates with class.") do
+    klass = XMPCompletionClassInfoFilter
+  end
+
+  opts.handle_position options
+  opts.handle_interpreter options
+  opts.handle_misc options
+end
+
+set_extra_opts options
+opts.parse!(ARGV)
+check_opts options
+
+targetcode = ARGF.read
+Dir.chdir options[:wd] if options[:wd]
+XMPFilter.detect_rbtest(targetcode, options)
+# Do the job. dispatched by klass.
+puts klass.run(targetcode, options)

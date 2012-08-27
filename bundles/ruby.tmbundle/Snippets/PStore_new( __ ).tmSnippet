@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>PStore.new(${1:"${2:file_name.pstore}"})</string>
+	<key>name</key>
+	<string>PStore.new( .. )</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>Pn-</string>
+	<key>uuid</key>
+	<string>5B46ECFD-23A4-4F0C-9951-F64C19C72C2B</string>
+</dict>
+</plist>

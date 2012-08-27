@@ -1,0 +1,27 @@
+.fuzzy-finder {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  background-color: #444;
+  box-sizing: border-box;
+  color: #eee;
+  -webkit-box-shadow: 0 0 5px 5px #222;
+  padding: 5px;
+}
+
+.fuzzy-finder ol {
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.fuzzy-finder li:hover {
+  background-color: #555;
+}
+
+.fuzzy-finder ol:empty {
+  margin-bottom: 0;
+}
+
+.fuzzy-finder li.selected {
+  background-color: green;
+}

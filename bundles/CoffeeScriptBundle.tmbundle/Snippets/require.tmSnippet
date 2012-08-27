@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${2/^.*?([\w_]+).*$/\L$1/} = require ${2:'${1:sys}'}$3</string>
+	<key>name</key>
+	<string>require</string>
+	<key>scope</key>
+	<string>source.coffee</string>
+	<key>tabTrigger</key>
+	<string>req</string>
+	<key>uuid</key>
+	<string>8A65E175-18F2-428F-A695-73E01139E41A</string>
+</dict>
+</plist>

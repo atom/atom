@@ -1,0 +1,70 @@
+rcodetools history
+==================
+User-visible changes since 0.8.5
+--------------------------------
+* Fix DATA and __END__ handling in xmpfilter --tempfile (windows)
+
+User-visible changes since 0.8.4
+--------------------------------
+* OOPS, added missing files.
+
+User-visible changes since 0.8.0
+--------------------------------
+* xmpfilter: fixed multi-line annotation bugs
+
+User-visible changes since 0.7.0
+--------------------------------
+* Support Ruby 1.9!
+* xmpfilter: multi-line annotation
+* xmpfilter --expectations generates expectations by Jay Fields
+* anything-rcodetools.el: new elisp
+* --tmpfile, --tempfile: use temporary file instead of open3 on un*x
+* rcodetools.el: smarter xmpfilter-command
+* rcodetools.el: rct-fork interface
+* rct-fork: require 'rubygems' initially
+* rct-fork: more stable
+
+User-visible changes since 0.5.0
+--------------------------------
+* "test-driven completion" (TDC) support for Emacs and vim (see README.TDC)
+* --test (-t), --filename options for rct-complete and rct-doc, allowing to
+  specify the test to be run for 100% accurate completion/documentation in the
+  corresponding implementation
+* ruby-toggle-file: finds the test file corresponding to a given
+  implementation and vice versa
+* rct-fork, rct-fork-client: allow to eliminate the overhead due to library
+  loading (esp. useful for Rails)
+* rbtest: executes unit tests in a single Ruby script
+* --fork, --rbtest, --detect-rbtest supported by several commands
+* xmpfilter's --spec now autodetects the RSpec version and generates
+  specifications with the appropriate syntax
+
+User-visible changes since 0.4.1
+--------------------------------
+* --dev: adds project directories to $:
+* --completion-class-info: list completion candidates and class info
+* display completion candidates with description, both in emacs
+  and vim (using the menu+preview window).
+
+User-visible changes since 0.4.0
+--------------------------------
+* rct-meth-args: implemented -I
+* many bug fixes
+
+xmpfilter was integrated into rcodetools as of 0.4.0.
+
+xmpfilter history
+=================
+User-visible changes since 0.3.1 (2006-10-17)
+* implemented --debug
+* --[no]-warnings
+* --cd working_dir
+* --rails
+* --no-poetry
+* more intelligent assertions: try to find which local variables hold the
+  values compared against in assertions/expectations
+* editor-independent completion (-C, --completion-emacs, --completion-vim)
+* quick method/class reference with -D (--refe, --ri*)
+
+User-visible changes since 0.3.0 (2006-10-16)
+* xmpfilter.rb --spec works on win32 too

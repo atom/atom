@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>switch ${1:object}
+  when ${2:value}
+    ${0:# body...}</string>
+	<key>name</key>
+	<string>Switch</string>
+	<key>scope</key>
+	<string>source.coffee</string>
+	<key>tabTrigger</key>
+	<string>swi</string>
+	<key>uuid</key>
+	<string>3931A7C6-F1FB-484F-82D1-26F5A8F779D0</string>
+</dict>
+</plist>

@@ -1,0 +1,8 @@
+==========
+ri
+==========
+rct-doc --ri --line=1
+==========
+[].length
+==========
+ri 'Array#length'

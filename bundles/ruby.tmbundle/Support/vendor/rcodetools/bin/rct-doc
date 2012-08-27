@@ -1,0 +1,52 @@
+#! /usr/local/bin/ruby18
+require 'rcodetools/xmpfilter'
+require 'rcodetools/doc'
+require 'rcodetools/options'
+
+include Rcodetools
+options = DEFAULT_OPTIONS
+klass = XMPDocFilter
+
+opts = OptionParser.new do |opts|
+  opts.extend OptionHandler
+  opts.set_banner
+
+  opts.separator ""
+  opts.separator "Modes:"
+  opts.on("-D", "--doc", "Print callee method with class.(default)") do
+    klass = XMPDocFilter
+  end
+  opts.on("--refe", "Refe callee method.") do
+    klass = XMPReFeFilter
+  end
+  opts.on("--ri", "Ri callee method.") do
+    klass = XMPRiFilter
+  end
+  opts.on("--ri-emacs", "Generate ri code for emacs.") do
+    klass = XMPRiEmacsFilter
+  end
+  opts.on("--ri-vim", "Generate ri code for vim.") do
+    klass = XMPRiVimFilter
+  end
+  opts.separator ""
+  opts.on("--use-method-analyzer", "") do |n|
+    options[:use_method_analyzer] = true
+  end
+  opts.on("--filename=FILENAME") do |n|
+    options[:filename] = File.expand_path n
+  end
+
+  opts.handle_position options
+  opts.handle_interpreter options
+  opts.handle_misc options
+end
+
+set_extra_opts options
+opts.parse!(ARGV)
+check_opts options
+
+targetcode = ARGF.read
+Dir.chdir options[:wd] if options[:wd]
+XMPFilter.detect_rbtest(targetcode, options)
+# Do the job. dispatched by klass.
+puts klass.run(targetcode, options)
