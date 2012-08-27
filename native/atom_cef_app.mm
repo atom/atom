@@ -1,11 +1,10 @@
 #include "atom_cef_app.h"
-
-#import <Cocoa/Cocoa.h>
 #import "native/v8_extensions/native.h"
-
+#import "native/v8_extensions/onig_reg_exp.h"
 
 void AtomCefApp::OnWebKitInitialized() {
   new NativeHandler();
+  new OnigRegexpExtension();
 }
 
 void AtomCefApp::OnContextCreated(CefRefPtr<CefBrowser> browser,

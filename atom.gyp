@@ -50,6 +50,8 @@
         'USING_CEF_SHARED',
       ],
       'include_dirs': [ '.', 'cef' ],
+      'mac_framework_dirs': [ 'native/frameworks' ],
+      'libraries': [ 'native/frameworks/CocoaOniguruma.framework' ],
       'sources': [
         '<@(includes_common)',
         '<@(includes_wrapper)',
@@ -68,6 +70,8 @@
         'native/path_watcher.h',
         'native/v8_extensions/native.mm',
         'native/v8_extensions/native.h',
+        'native/v8_extensions/onig_reg_exp.mm',
+        'native/v8_extensions/onig_reg_exp.h',
       ],
       'mac_bundle_resources': [
         'native/mac/atom.icns',
@@ -129,11 +133,16 @@
           ],
           'copies': [
             {
-              # Add library dependencies to the bundle.
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/Libraries/',
               'files': [
                 'cef/frameworks/libcef.dylib',
                 'cef/frameworks/ffmpegsumo.so',
+              ],
+            },
+            {
+              'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks',
+              'files': [
+                'native/frameworks/CocoaOniguruma.framework',
               ],
             },
           ],
@@ -264,11 +273,13 @@
             'PROCESS_HELPER_APP',
           ],
           'include_dirs': [ '.', 'cef' ],
+          'mac_framework_dirs': [ 'native/frameworks' ],
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
             ],
           },
+          'libraries': [ 'native/frameworks/CocoaOniguruma.framework' ],
           'sources': [
             'native/atom_cef_app.h',
             'native/atom_cef_app.mm',
@@ -281,6 +292,8 @@
             'native/path_watcher.h',
             'native/v8_extensions/native.mm',
             'native/v8_extensions/native.h',
+            'native/v8_extensions/onig_reg_exp.mm',
+            'native/v8_extensions/onig_reg_exp.h',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
@@ -292,6 +305,14 @@
             'INFOPLIST_FILE': 'native/mac/helper-info.plist',
             'OTHER_LDFLAGS': ['-Wl,-headerpad_max_install_names'], # Necessary to avoid an "install_name_tool: changing install names or rpaths can't be redone" error.
           },
+          'copies': [
+            {
+              'destination': '<(PRODUCT_DIR)/Atom Helper.app/Contents/Frameworks',
+              'files': [
+                'native/frameworks/CocoaOniguruma.framework',
+              ],
+            },
+          ],
           'postbuilds': [
             {
               # The framework defines its load-time path

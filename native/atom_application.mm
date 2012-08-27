@@ -92,7 +92,6 @@
 # pragma mark NSApplicationDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-//  new OnigRegexpExtension();
   [self createBackgroundWindow];
   [self open:@""];
 }
