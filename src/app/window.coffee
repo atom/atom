@@ -1,6 +1,8 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
+$windowNumber = window.location.params.windowNumber
+
 Native = require 'native'
 TextMateBundle = require 'text-mate-bundle'
 TextMateTheme = require 'text-mate-theme'
@@ -47,7 +49,7 @@ windowAdditions =
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
   attachRootView: (pathToOpen) ->
-    if rootViewState = atom.rootViewStates[$windowNumber]
+    if rootViewState = atom.rootViewStates?[$windowNumber]
       RootView.deserialize(JSON.parse(rootViewState))
     else
       new RootView(pathToOpen)

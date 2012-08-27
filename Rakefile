@@ -77,8 +77,7 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
     cp_r "#{resource_path}/static", dest
   else
     # TODO: Restore this list when we add in all of atoms source
-    #%w(src static vendor spec benchmark bundles themes).each do |dir|
-    %w(src static vendor bundles themes).each do |dir|
+    %w(src static vendor spec benchmark bundles themes).each do |dir|
       dest_path = File.join(dest, dir)
       rm_rf dest_path
       cp_r dir, dest_path

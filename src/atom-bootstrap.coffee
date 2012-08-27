@@ -1,2 +1,2 @@
 Atom = require 'atom'
-window.atom = new Atom(atom.loadPath, $native)
+window.atom = new Atom(atom.resourcePath, $native)

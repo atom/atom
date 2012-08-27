@@ -48,10 +48,11 @@
   
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSString *urlString = [[url URLByAppendingPathComponent:@"static/index.html"] absoluteString];
-  urlString = [urlString stringByAppendingFormat:@"?bootstrapScript=%@&pathToOpen=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding], [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-  
-  NSLog(@"%@", urlString);
-  
+  urlString = [urlString stringByAppendingFormat:@"?windowNumber=%d&bootstrapScript=%@&pathToOpen=%@",
+               [self.window windowNumber],
+               [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
+               [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    
   CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [urlString UTF8String], settings);
 }
 
