@@ -13,6 +13,7 @@ windowAdditions =
   rootViewParentSelector: 'body'
   rootView: null
   keymap: null
+  platform: $native.getPlatform()
 
   setUpKeymap: ->
     Keymap = require 'keymap'
@@ -55,7 +56,8 @@ windowAdditions =
     $(@rootViewParentSelector).append @rootView
 
   requireStylesheet: (path) ->
-    fullPath = require.resolve(path)
+    unless fullPath = require.resolve(path)
+      throw new Error("requireStylesheet could not find a file at path '#{path}'")
     window.applyStylesheet(fullPath, fs.read(fullPath))
 
   applyStylesheet: (id, text) ->
@@ -106,3 +108,6 @@ require 'underscore-extensions'
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'
+
+if nativeStylesheetPath = require.resolve("#{platform}.css")
+  requireStylesheet(nativeStylesheetPath)
