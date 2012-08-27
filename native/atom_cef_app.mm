@@ -1,6 +1,7 @@
 #include "atom_cef_app.h"
 #import "native/v8_extensions/native.h"
 #import "native/v8_extensions/onig_reg_exp.h"
+#include <iostream>
 
 void AtomCefApp::OnWebKitInitialized() {
   new NativeHandler();
@@ -21,4 +22,11 @@ void AtomCefApp::OnContextCreated(CefRefPtr<CefBrowser> browser,
   
   atom->SetValue("resourcePath", resourcePath, V8_PROPERTY_ATTRIBUTE_NONE);    
   global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
+}
+
+bool AtomCefApp::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+                                          CefProcessId source_process,
+                                          CefRefPtr<CefProcessMessage> message) {  
+  std::cout << "MESSAGE RECEIVED ON RENDERER PROCESS:" << message->GetName().ToString();
+  return true;
 }

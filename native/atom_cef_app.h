@@ -9,13 +9,15 @@ class AtomCefApp : public CefApp,
                                           
   // CefApp methods
   virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() OVERRIDE { return this; }
-
   // CefRenderProcessHandler methods
   virtual void OnWebKitInitialized() OVERRIDE;
   virtual void OnContextCreated(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 CefRefPtr<CefV8Context> context) OVERRIDE;
-  
+  virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+                                       CefProcessId source_process,
+                                       CefRefPtr<CefProcessMessage> message) OVERRIDE;
+                     
   IMPLEMENT_REFCOUNTING(AtomCefApp);
 };
 

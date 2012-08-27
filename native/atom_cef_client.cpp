@@ -8,6 +8,7 @@
 #include "include/cef_process_util.h"
 #include "include/cef_runnable.h"
 #include "native/atom_cef_client.h"
+#include "cef_v8.h"
 
 AtomCefClient::AtomCefClient(){
 	
@@ -50,6 +51,37 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 	std::cout << std::string(message) << "\n";
 	
   return true;
+}
+
+
+bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
+                               const CefKeyEvent& event,
+                               CefEventHandle os_event) {
+  if (event.modifiers == KEY_META && event.character == 'r') {  
+    browser->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
+  }
+  
+//    if (type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
+//      CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
+//      CefRefPtr<CefV8Value> global = context->GetGlobal();
+//      
+//      context->Enter();
+//      CefRefPtr<CefV8Value> retval;
+//      CefRefPtr<CefV8Exception> exception;
+//      CefV8ValueList arguments;
+//      
+//      global->GetValue("reload")->ExecuteFunction(global, arguments, retval, exception, true);
+//      if (exception.get()) {
+//        _clientHandler->GetBrowser()->ReloadIgnoreCache();
+//      }
+//      context->Exit();
+//      
+//      return YES;
+//    }
+//    if (type == KEYEVENT_RAWKEYDOWN && modifiers == (KEY_META | KEY_ALT) && code == 'I') {
+//      [self toggleDevTools];
+//      return YES;
+//    }  
 }
 
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {

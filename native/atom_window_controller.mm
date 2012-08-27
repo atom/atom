@@ -75,6 +75,7 @@
   return YES;
 }
 
+
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
   CefString(&settings.default_encoding) = "UTF-8";
   settings.remote_fonts_disabled = true;

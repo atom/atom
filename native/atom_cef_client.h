@@ -65,6 +65,12 @@ class AtomCefClient : public CefClient,
                                 int line) OVERRIDE;
 
 
+                        
+  // CefKeyboardHandler methods
+  virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser,
+                          const CefKeyEvent& event,
+                          CefEventHandle os_event) OVERRIDE;
+                        
   // CefLifeSpanHandler methods
   virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
 
