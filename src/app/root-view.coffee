@@ -209,5 +209,5 @@ class RootView extends View
     try
       require atom.configFilePath if fs.exists(atom.configFilePath)
     catch error
-      console.error "Failed to load `#{atom.configFilePath}`", error.message, error
+      console.error "Failed to load `#{atom.configFilePath}`", error.stack, error
 
