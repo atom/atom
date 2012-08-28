@@ -65,7 +65,7 @@ desc "Copy files to bundle and compile CoffeeScripts"
 task :"copy-files-to-bundle" => :"verify-prerequisites" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
-  contents_dir = ENV['CONTENTS_FOLDER_PATH'].to_s.gsub(' ', '\\ ') # Escape space in 'Atom Helper.app'
+  contents_dir = ENV['CONTENTS_FOLDER_PATH']
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
@@ -73,8 +73,9 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
   cp Dir.glob("#{project_dir}/native/v8_extensions/*.js"), "#{dest}/v8_extensions/"
 
   if resource_path = ENV['RESOURCE_PATH']
-    puts "coffee -c -o \"#{dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
-    sh "coffee -c -o \"#{dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
+    # CoffeeScript can't deal with unescaped whitespace in 'Atom Helper.app' path
+    escaped_dest = dest.gsub("Atom Helper.app", "Atom\\ Helper.app")
+    sh "coffee -c -o \"#{escaped_dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
     cp_r "#{resource_path}/static", dest
   else
     # TODO: Restore this list when we add in all of atoms source
