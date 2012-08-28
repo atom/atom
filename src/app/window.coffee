@@ -15,16 +15,6 @@ windowAdditions =
   keymap: null
   platform: $native.getPlatform()
 
-  setUpKeymap: ->
-    Keymap = require 'keymap'
-
-    @keymap = new Keymap()
-    @keymap.bindDefaultKeys()
-    require(keymapPath) for keymapPath in fs.list(require.resolve("keymaps"))
-
-    @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
-    $(document).on 'keydown', @_handleKeyEvent
-
   startup: (path) ->
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
@@ -43,6 +33,16 @@ windowAdditions =
     $(window).unbind('blur')
     $(window).off('before')
     # atom.windowClosed this # TODO: Reinstate this!
+
+  setUpKeymap: ->
+    Keymap = require 'keymap'
+
+    @keymap = new Keymap()
+    @keymap.bindDefaultKeys()
+    require(keymapPath) for keymapPath in fs.list(require.resolve("keymaps"))
+
+    @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
+    $(document).on 'keydown', @_handleKeyEvent
 
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
