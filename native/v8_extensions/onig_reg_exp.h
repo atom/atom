@@ -2,9 +2,11 @@
 #import "include/cef_base.h"
 #import "include/cef_v8.h"
 
-class OnigRegexpExtension : public CefV8Handler {
+namespace v8_extensions {
+
+class OnigRegExp : public CefV8Handler {
 public:
-  OnigRegexpExtension();
+  OnigRegExp();
     
   virtual bool Execute(const CefString& name,
                        CefRefPtr<CefV8Value> object,
@@ -13,5 +15,7 @@ public:
                        CefString& exception) OVERRIDE;
   
   // Provide the reference counting implementation for this class.
-  IMPLEMENT_REFCOUNTING(OnigRegexpExtension);
+  IMPLEMENT_REFCOUNTING(OnigRegExp);
 };
+
+}

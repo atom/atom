@@ -2,12 +2,13 @@
 #import "include/cef_base.h"
 #import "include/cef_v8.h"
 
-class NativeHandler : public CefV8Handler {
+
+namespace v8_extensions {
+
+class Native : public CefV8Handler {
 public:
-  NativeHandler();
-  
-  CefRefPtr<CefV8Value> m_object;
-  
+  Native();
+    
   virtual bool Execute(const CefString& name,
                                       CefRefPtr<CefV8Value> object,
                                       const CefV8ValueList& arguments,
@@ -15,5 +16,7 @@ public:
                                       CefString& exception) OVERRIDE;
     
   // Provide the reference counting implementation for this class.
-  IMPLEMENT_REFCOUNTING(NativeHandler);
+  IMPLEMENT_REFCOUNTING(Native);
 };
+
+}

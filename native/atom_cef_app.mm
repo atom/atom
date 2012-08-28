@@ -6,8 +6,8 @@
 
 void AtomCefApp::OnWebKitInitialized() {
   new v8_extensions::Atom();
-  new NativeHandler();
-  new OnigRegexpExtension();  
+  new v8_extensions::Native();
+  new v8_extensions::OnigRegExp();  
 }
 
 void AtomCefApp::OnContextCreated(CefRefPtr<CefBrowser> browser,

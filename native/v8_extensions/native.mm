@@ -9,6 +9,8 @@
 
 #import <iostream>
 
+namespace v8_extensions {
+
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
   std::string cc_value = value->GetStringValue().ToString();
   return [NSString stringWithUTF8String:cc_value.c_str()];
@@ -24,13 +26,13 @@ void throwException(const CefRefPtr<CefV8Value>& global, CefRefPtr<CefV8Exceptio
   console->GetValue("error")->ExecuteFunction(console, arguments);
 }
 
-NativeHandler::NativeHandler() : CefV8Handler() {  
+Native::Native() : CefV8Handler() {  
   NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/native.js"];
   NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
   CefRegisterExtension("v8/native", [extensionCode UTF8String], this);
 }
 
-bool NativeHandler::Execute(const CefString& name,
+bool Native::Execute(const CefString& name,
                      CefRefPtr<CefV8Value> object,
                      const CefV8ValueList& arguments,
                      CefRefPtr<CefV8Value>& retval,
@@ -475,3 +477,5 @@ bool NativeHandler::Execute(const CefString& name,
   }
   return false;
 };
+
+} // namespace v8_extensions

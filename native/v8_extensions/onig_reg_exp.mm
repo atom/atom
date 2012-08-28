@@ -5,16 +5,18 @@
 #import "include/cef_v8.h"
 #import "onig_reg_exp.h"
 
+namespace v8_extensions {
+
 extern NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value);
 
-class OnigRegexpUserData : public CefBase {
+class OnigRegExpUserData : public CefBase {
 public:
-  OnigRegexpUserData(CefRefPtr<CefV8Value> source) {
+  OnigRegExpUserData(CefRefPtr<CefV8Value> source) {
     NSString *sourceString = [NSString stringWithUTF8String:source->GetStringValue().ToString().c_str()];
     m_regex = [[OnigRegexp compile:sourceString] retain];
   }
 
-  ~OnigRegexpUserData() {
+  ~OnigRegExpUserData() {
     [m_regex release];
   }
 
@@ -74,13 +76,13 @@ public:
   IMPLEMENT_REFCOUNTING(OnigRegexpUserData);
 };
 
-OnigRegexpExtension::OnigRegexpExtension() : CefV8Handler() {
+OnigRegExp::OnigRegExp() : CefV8Handler() {
   NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/onig_reg_exp.js"];
   NSString *extensionCode = [NSString stringWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
   CefRegisterExtension("v8/onig-reg-exp", [extensionCode UTF8String], this);
 }
 
-bool OnigRegexpExtension::Execute(const CefString& name,
+bool OnigRegExp::Execute(const CefString& name,
                             CefRefPtr<CefV8Value> object,
                             const CefV8ValueList& arguments,
                             CefRefPtr<CefV8Value>& retval,
@@ -89,32 +91,32 @@ bool OnigRegexpExtension::Execute(const CefString& name,
   if (name == "getCaptureIndices") {
     CefRefPtr<CefV8Value> string = arguments[0];
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
-    OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
+    OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
     retval = userData->GetCaptureIndices(string, index);
     return true;
   }
   else if (name == "search") {
     CefRefPtr<CefV8Value> string = arguments[0];
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
-    OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
+    OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
     retval = userData->Search(string, index);
     return true;
   }
   else if (name == "test") {
     CefRefPtr<CefV8Value> string = arguments[0];
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
-    OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
+    OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
     retval = userData->Test(string, index);
     return true;    
   }
   else if (name == "buildOnigRegExp") {
-    CefRefPtr<CefBase> userData = new OnigRegexpUserData(arguments[0]);
+    CefRefPtr<CefBase> userData = new OnigRegExpUserData(arguments[0]);
     retval = CefV8Value::CreateObject(NULL);
 		retval->SetUserData(userData);
     return true;
   }
   else if (name == "getCaptureCount") {
-    OnigRegexpUserData *userData = (OnigRegexpUserData *)object->GetUserData().get();
+    OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
     retval = userData->CaptureCount();
     return true;
   }
@@ -122,3 +124,4 @@ bool OnigRegexpExtension::Execute(const CefString& name,
   return false;
 }
 
+} // namespace v8_extensions
