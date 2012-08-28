@@ -65,7 +65,7 @@ desc "Copy files to bundle and compile CoffeeScripts"
 task :"copy-files-to-bundle" => :"verify-prerequisites" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
-  contents_dir = ENV['CONTENTS_FOLDER_PATH'].to_s
+  contents_dir = ENV['CONTENTS_FOLDER_PATH'].to_s.gsub(' ', '\\ ') # Escape space in 'Atom Helper.app'
 
   dest = File.join(built_dir, contents_dir, "Resources")
 
@@ -73,7 +73,8 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
   cp Dir.glob("#{project_dir}/native/v8_extensions/*.js"), "#{dest}/v8_extensions/"
 
   if resource_path = ENV['RESOURCE_PATH']
-    sh "coffee -c -o '#{dest}/src/stdlib' '#{resource_path}/src/stdlib/require.coffee'"
+    puts "coffee -c -o \"#{dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
+    sh "coffee -c -o \"#{dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
     cp_r "#{resource_path}/static", dest
   else
     # TODO: Restore this list when we add in all of atoms source
@@ -81,7 +82,7 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
       dest_path = File.join(dest, dir)
       rm_rf dest_path
       cp_r dir, dest_path
-      sh "coffee -c #{dest_path}"
+      sh "coffee -c '#{dest_path}'"
     end
   end
 end
