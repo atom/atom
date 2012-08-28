@@ -99,12 +99,15 @@ class TreeView extends View
 
   updateRoot: ->
     @root?.remove()
-    @root = new DirectoryView(directory: @rootView.project.getRootDirectory(), isExpanded: true)
-    @append(@root)
+    if @rootView.project.getRootDirectory()
+      @root = new DirectoryView(directory: @rootView.project.getRootDirectory(), isExpanded: true)
+      @append(@root)
+    else
+      @root = null
 
   selectActiveFile: ->
     activeFilePath = @rootView.getActiveEditor()?.getPath()
-    @selectEntryForPath(activeFilePath)
+    @selectEntryForPath(activeFilePath) if activeFilePath
 
   revealActiveFile: ->
     @attach()
