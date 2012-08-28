@@ -102,6 +102,8 @@ void AtomCefClient::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   if (!m_Browser.get())   {
     m_Browser = browser;
   }
+
+  GetBrowser()->GetHost()->SetFocus(true);
 }
 
 void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,
