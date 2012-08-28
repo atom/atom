@@ -42,9 +42,9 @@ void AtomCefRenderProcessHandler::Reload(CefRefPtr<CefBrowser> browser) {
   CefV8ValueList arguments;
 
   CefRefPtr<CefV8Value> reloadFunction = global->GetValue("reload");
-//  reloadFunction->ExecuteFunction(global, arguments);
-//  if (reloadFunction->HasException()) {
+  reloadFunction->ExecuteFunction(global, arguments);
+  if (reloadFunction->HasException()) {
     browser->ReloadIgnoreCache();
-//  }
+  }
   context->Exit();
 }
