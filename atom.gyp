@@ -283,10 +283,7 @@
           'sources': [
             'native/atom_cef_app.h',
             'native/atom_cef_app.mm',
-            'native/atom_cef_client_mac.mm',
             'native/process_helper_mac.cpp',
-            'native/atom_cef_client.cpp',
-            'native/atom_cef_client.h',
             'native/util.h',
             'native/path_watcher.mm',
             'native/path_watcher.h',
