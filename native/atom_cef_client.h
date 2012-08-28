@@ -16,6 +16,7 @@
 class AtomCefClient : public CefClient,
                       public CefContextMenuHandler,
                       public CefDisplayHandler,
+                      public CefJSDialogHandler,
                       public CefKeyboardHandler,
                       public CefLifeSpanHandler,
                       public CefLoadHandler,
@@ -33,6 +34,9 @@ class AtomCefClient : public CefClient,
 	virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE {
 		return this;
 	}
+  virtual CefRefPtr<CefJSDialogHandler> GetJSDialogHandler() {
+    return this;
+  }
 	virtual CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() OVERRIDE {
 		return this;
 	}
@@ -65,6 +69,14 @@ class AtomCefClient : public CefClient,
                                 int line) OVERRIDE;
 
 
+  // CefJsDialogHandlerMethods
+  virtual bool OnBeforeUnloadDialog(CefRefPtr<CefBrowser> browser,
+                                    const CefString& message_text,
+                                    bool is_reload,
+                                    CefRefPtr<CefJSDialogCallback> callback) {
+    callback->Continue(true, "");
+    return true;
+  }
                         
   // CefKeyboardHandler methods
   virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser,
