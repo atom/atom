@@ -64,7 +64,7 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
-  [self open:@""];
+  [self open:nil];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
