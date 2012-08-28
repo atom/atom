@@ -11,6 +11,7 @@
           var pair = param.split("=")
           window.location.params[pair[0]] = pair[1];
         });
+        window.$windowNumber = window.location.params.windowNumber
         var bootstrapScript = window.location.params.bootstrapScript;
         if (bootstrapScript) require(bootstrapScript);
       }

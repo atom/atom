@@ -1,8 +1,6 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
-$windowNumber = window.location.params.windowNumber
-
 Native = require 'native'
 TextMateBundle = require 'text-mate-bundle'
 TextMateTheme = require 'text-mate-theme'
