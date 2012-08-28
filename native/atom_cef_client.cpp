@@ -11,7 +11,7 @@
 #include "cef_v8.h"
 
 AtomCefClient::AtomCefClient(){
-	
+
 }
 
 AtomCefClient::~AtomCefClient() {
@@ -20,7 +20,7 @@ AtomCefClient::~AtomCefClient() {
 
 bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                              CefProcessId source_process,
-                                             CefRefPtr<CefProcessMessage> message) {  
+                                             CefRefPtr<CefProcessMessage> message) {
   std::string name = message->GetName().ToString();
 
   if (name == "open") {
@@ -62,8 +62,8 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                      int line) {
   REQUIRE_UI_THREAD();
 
-	std::cout << std::string(message) << "\n";
-	
+  std::cout << std::string(message) << "\n";
+
   return true;
 }
 
@@ -71,7 +71,7 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                const CefKeyEvent& event,
                                CefEventHandle os_event) {
-  if (event.modifiers == KEY_META && event.character == 'r') {  
+  if (event.modifiers == KEY_META && event.character == 'r') {
     browser->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
   }
 }
@@ -79,7 +79,7 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
 
-  
+
   // this was in cefclient... was there a good reason?
 //  if(m_BrowserHwnd == browser->GetWindowHandle()) {
 //    // Free the browser pointer so that the browser can be destroyed
@@ -91,11 +91,11 @@ void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
 
 void AtomCefClient::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
-	
+
   AutoLock lock_scope(this);
   if (!m_Browser.get())   {
     m_Browser = browser;
-  }	
+  }
 }
 
 void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,
@@ -107,11 +107,11 @@ void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,
 
   if (errorCode == ERR_ABORTED) { // Don't display an error for downloaded files.
     return;
-	}
+  }
   else if (errorCode == ERR_UNKNOWN_URL_SCHEME) { // Don't display an error for external protocols that we allow the OS to handle. See OnProtocolExecution().
     return;
   }
-  else {    
+  else {
     std::stringstream ss;
     ss << "<html><body><h2>Failed to load URL " << std::string(failedUrl) <<
     " with error " << std::string(errorText) << " (" << errorCode <<

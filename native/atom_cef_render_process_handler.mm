@@ -28,7 +28,7 @@ bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser>
                                           CefProcessId source_process,
                                           CefRefPtr<CefProcessMessage> message) {
   if (message->GetName().ToString() == "reload") {
-  	Reload(browser);
+    Reload(browser);
   }
 
   return true;
@@ -44,7 +44,7 @@ void AtomCefRenderProcessHandler::Reload(CefRefPtr<CefBrowser> browser) {
   CefRefPtr<CefV8Value> reloadFunction = global->GetValue("reload");
 //  reloadFunction->ExecuteFunction(global, arguments);
 //  if (reloadFunction->HasException()) {
-  	browser->ReloadIgnoreCache();
+    browser->ReloadIgnoreCache();
 //  }
   context->Exit();
 }

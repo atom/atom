@@ -9,16 +9,16 @@
 #endif
 
 class AtomCefApp : public CefApp {
-                                          
+
   // CefApp methods
-  virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() OVERRIDE { 
+  virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() OVERRIDE {
 #ifdef PROCESS_HELPER_APP
-    return CefRefPtr<CefRenderProcessHandler>(new AtomCefRenderProcessHandler); 
+    return CefRefPtr<CefRenderProcessHandler>(new AtomCefRenderProcessHandler);
 #else
     return NULL;
 #endif
   }
-  
+
   IMPLEMENT_REFCOUNTING(AtomCefApp);
 };
 

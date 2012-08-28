@@ -3,14 +3,14 @@
 class AtomCefClient;
 
 @interface AtomWindowController : NSWindowController <NSWindowDelegate> {
-	NSView *_webView;
-	NSString *_bootstrapScript;
-	NSString *_pathToOpen;
+  NSView *_webView;
+  NSString *_bootstrapScript;
+  NSString *_pathToOpen;
 
-	CefRefPtr<AtomCefClient> _cefClient;
-	CefRefPtr<CefV8Context> _atomContext;
+  CefRefPtr<AtomCefClient> _cefClient;
+  CefRefPtr<CefV8Context> _atomContext;
 
-	bool _runningSpecs;
+  bool _runningSpecs;
 }
 
 @property (nonatomic, retain) IBOutlet NSView *webView;

@@ -9,7 +9,7 @@ typedef void (^WatchCallback)(NSString *, NSString *);
   CefRefPtr<CefV8Context> _context;
   NSMutableDictionary *_fileDescriptorsByPath;
   NSMutableDictionary *_callbacksByFileDescriptor;
-  
+
   bool _keepWatching;
 }
 

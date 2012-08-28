@@ -7,16 +7,16 @@
 @synthesize webView=_webView;
 
 - (void)dealloc {
-	[_webView release];
-	[_bootstrapScript release];
+  [_webView release];
+  [_bootstrapScript release];
   [_pathToOpen release];
-	[super dealloc];
+  [super dealloc];
 }
 
 - (id)initWithBootstrapScript:(NSString *)bootstrapScript {
-	self = [super initWithWindowNibName:@"AtomWindow"];
+  self = [super initWithWindowNibName:@"AtomWindow"];
 
-	_bootstrapScript = [bootstrapScript retain];
+  _bootstrapScript = [bootstrapScript retain];
 
   [self showWindow:self];
 }
@@ -37,22 +37,22 @@
 
 - (void)windowDidLoad {
   [self.window setDelegate:self];
-  
+
   _cefClient = new AtomCefClient();
-  
+
   CefBrowserSettings settings;
   [self populateBrowserSettings:settings];
-  
-  CefWindowInfo window_info;  
+
+  CefWindowInfo window_info;
   window_info.SetAsChild(self.webView, 0, 0, self.webView.bounds.size.width, self.webView.bounds.size.height);
-  
+
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSString *urlString = [[url URLByAppendingPathComponent:@"static/index.html"] absoluteString];
   urlString = [urlString stringByAppendingFormat:@"?windowNumber=%d&bootstrapScript=%@&pathToOpen=%@",
                [self.window windowNumber],
                [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
                [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-    
+
   CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [urlString UTF8String], settings);
 }
 
@@ -60,13 +60,13 @@
 
 - (void)windowDidResignMain:(NSNotification *)notification {
   if (_cefClient && _cefClient->GetBrowser() && !_runningSpecs) {
-		_cefClient->GetBrowser()->GetHost()->SetFocus(false);
+    _cefClient->GetBrowser()->GetHost()->SetFocus(false);
   }
 }
 
 - (void)windowDidBecomeMain:(NSNotification *)notification {
   if (_cefClient && _cefClient->GetBrowser()) {
-		_cefClient->GetBrowser()->GetHost()->SetFocus(true);
+    _cefClient->GetBrowser()->GetHost()->SetFocus(true);
   }
 }
 

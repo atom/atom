@@ -6,7 +6,7 @@
 
 #include <string>
 #include <windows.h>
-#include <shlobj.h> 
+#include <shlobj.h>
 
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"

@@ -27,40 +27,40 @@ class AtomCefClient : public CefClient,
 
 
   CefRefPtr<CefBrowser> GetBrowser() { return m_Browser; }
-												
-	virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() OVERRIDE {
-		return this;
-	}
-	virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE {
-		return this;
-	}
+
+  virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() OVERRIDE {
+    return this;
+  }
+  virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE {
+    return this;
+  }
   virtual CefRefPtr<CefJSDialogHandler> GetJSDialogHandler() {
     return this;
   }
-	virtual CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() OVERRIDE {
-		return this;
-	}
-	virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE {
-		return this;
-	}
-	virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE {
-		return this;
-	}
-	virtual CefRefPtr<CefRequestHandler> GetRequestHandler() OVERRIDE {
-		return this;
-	}
-                        
+  virtual CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() OVERRIDE {
+    return this;
+  }
+  virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE {
+    return this;
+  }
+  virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE {
+    return this;
+  }
+  virtual CefRefPtr<CefRequestHandler> GetRequestHandler() OVERRIDE {
+    return this;
+  }
+
   virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                         CefProcessId source_process,
                                         CefRefPtr<CefProcessMessage> message) OVERRIDE;
 
-  
+
   // CefContextMenuHandler methods
-	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
-																	 CefRefPtr<CefFrame> frame,
-																	 CefRefPtr<CefContextMenuParams> params,
-																	 CefRefPtr<CefMenuModel> model) OVERRIDE;
-												
+  virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
+                                   CefRefPtr<CefFrame> frame,
+                                   CefRefPtr<CefContextMenuParams> params,
+                                   CefRefPtr<CefMenuModel> model) OVERRIDE;
+
   virtual bool OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
                                     CefRefPtr<CefContextMenuParams> params,
@@ -82,18 +82,18 @@ class AtomCefClient : public CefClient,
     callback->Continue(true, "");
     return true;
   }
-                        
+
   // CefKeyboardHandler methods
   virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser,
                           const CefKeyEvent& event,
                           CefEventHandle os_event) OVERRIDE;
-                        
+
   // CefLifeSpanHandler methods
   virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
 
   // CefLoadHandler methods
-	virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
-												
+  virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
+
   virtual void OnLoadError(CefRefPtr<CefBrowser> browser,
                            CefRefPtr<CefFrame> frame,
                            ErrorCode errorCode,
@@ -101,12 +101,12 @@ class AtomCefClient : public CefClient,
                            const CefString& failedUrl) OVERRIDE;
 
  protected:
-	CefRefPtr<CefBrowser> m_Browser;
+  CefRefPtr<CefBrowser> m_Browser;
 
-	void ShowDevTools(CefRefPtr<CefBrowser> browser);
-                      
+  void ShowDevTools(CefRefPtr<CefBrowser> browser);
+
   void Open(std::string path);
-                        
+
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);
 };
