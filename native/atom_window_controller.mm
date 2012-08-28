@@ -19,7 +19,7 @@
   _bootstrapScript = [bootstrapScript retain];
 
   if (!background) {
-    [self.window makeKey:self];
+    [self showWindow:self];
   }
   
   return self;
