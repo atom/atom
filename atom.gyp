@@ -65,8 +65,6 @@
         'native/atom_cef_client.cpp',
         'native/atom_cef_client.h',
         'native/util.h',
-        'native/path_watcher.mm',
-        'native/path_watcher.h',
       ],
       'mac_bundle_resources': [
         'native/mac/atom.icns',
