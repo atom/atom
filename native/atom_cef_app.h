@@ -4,22 +4,21 @@
 
 #include "include/cef_app.h"
 
-class AtomCefApp : public CefApp, 
-                   public CefRenderProcessHandler {
+#ifdef PROCESS_HELPER_APP
+#include "atom_cef_render_process_handler.h"
+#endif
+
+class AtomCefApp : public CefApp {
                                           
   // CefApp methods
-  virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() OVERRIDE { return this; }
-  // CefRenderProcessHandler methods
-  virtual void OnWebKitInitialized() OVERRIDE;
-  virtual void OnContextCreated(CefRefPtr<CefBrowser> browser,
-                                CefRefPtr<CefFrame> frame,
-                                CefRefPtr<CefV8Context> context) OVERRIDE;
-  virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-                                       CefProcessId source_process,
-                                       CefRefPtr<CefProcessMessage> message) OVERRIDE;
-
-  void Reload(CefRefPtr<CefBrowser> browser);
-										 
+  virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() OVERRIDE { 
+#ifdef PROCESS_HELPER_APP
+    return CefRefPtr<CefRenderProcessHandler>(new AtomCefRenderProcessHandler); 
+#else
+    return NULL;
+#endif
+  }
+  
   IMPLEMENT_REFCOUNTING(AtomCefApp);
 };
 
