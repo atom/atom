@@ -34,9 +34,6 @@ var $native = {};
   native function open(path);
   $native.open = open;
 
-  native function openDialog();
-  $native.openDialog = openDialog;
-
   native function quit();
   $native.quit = quit;
 

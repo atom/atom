@@ -21,9 +21,7 @@ class Keymap
 
     $(document).on 'new-window', => $native.newWindow()
     $(document).on 'open-user-configuration', => atom.open(atom.configFilePath)
-    $(document).on 'open', =>
-      path = $native.openDialog()
-      atom.open(path) if path
+    $(document).on 'open', => atom.open()
 
   bindKeys: (selector, bindings) ->
     index = @bindingSets.length

@@ -211,25 +211,6 @@ bool Native::Execute(const CefString& name,
     
     return true;
   }
-  else if (name == "openDialog") {
-    NSOpenPanel *panel = [NSOpenPanel openPanel];
-    [panel setCanChooseDirectories:YES];
-    if ([panel runModal] == NSFileHandlingPanelOKButton) {
-      NSURL *url = [[panel URLs] lastObject];
-      retval = CefV8Value::CreateString([[url path] UTF8String]);
-    }
-    else {
-      retval = CefV8Value::CreateNull();
-    }
-      
-    return true;
-  }
-  else if (name == "open") {
-    NSString *path = stringFromCefV8Value(arguments[0]);
-    [NSApp open:path];
-    
-    return true;
-  }
   else if (name == "newWindow") {
     [(AtomApplication *)NSApp open:nil];
 

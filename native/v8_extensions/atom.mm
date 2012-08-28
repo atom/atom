@@ -24,8 +24,10 @@ namespace v8_extensions {
     if (name == "open") {
       CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create("open");
       CefRefPtr<CefListValue> messageArgs = message->GetArgumentList();      
-      messageArgs->SetSize(1);
-      messageArgs->SetString(0, arguments[0]->GetStringValue());
+      if (arguments.size() >= 1) {
+        messageArgs->SetSize(1);
+        messageArgs->SetString(0, arguments[0]->GetStringValue());
+      }
       browser->SendProcessMessage(PID_BROWSER, message);
     }
   };

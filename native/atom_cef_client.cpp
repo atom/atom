@@ -24,9 +24,15 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   std::string name = message->GetName().ToString();
 
   if (name == "open") {
-    Open(message->GetArgumentList()->GetString(0));
+    if (message->GetArgumentList()->GetSize() == 1) {
+      Open(message->GetArgumentList()->GetString(0));      
+    }
+    else {
+      Open();
+    }
     return true;
   }
+  
   return false;
 }
 
