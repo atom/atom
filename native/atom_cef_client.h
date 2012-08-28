@@ -49,7 +49,12 @@ class AtomCefClient : public CefClient,
 	virtual CefRefPtr<CefRequestHandler> GetRequestHandler() OVERRIDE {
 		return this;
 	}
-												
+                        
+  virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+                                        CefProcessId source_process,
+                                        CefRefPtr<CefProcessMessage> message) OVERRIDE;
+
+  
   // CefContextMenuHandler methods
 	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
 																	 CefRefPtr<CefFrame> frame,
@@ -99,7 +104,9 @@ class AtomCefClient : public CefClient,
 	CefRefPtr<CefBrowser> m_Browser;
 
 	void ShowDevTools(CefRefPtr<CefBrowser> browser);
-												
+                      
+  void Open(std::string path);
+                        
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);
 };

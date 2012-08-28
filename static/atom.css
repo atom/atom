@@ -11,7 +11,7 @@ body {
   height: 100%;
   overflow-y: auto;
   position: relative;
-  background-image: url(static/images/linen.png);
+  background-image: url(images/linen.png);
 }
 
 #root-view #horizontal {

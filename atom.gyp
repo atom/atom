@@ -72,6 +72,8 @@
         'native/v8_extensions/native.h',
         'native/v8_extensions/onig_reg_exp.mm',
         'native/v8_extensions/onig_reg_exp.h',
+        'native/v8_extensions/atom.mm',
+        'native/v8_extensions/atom.h',
       ],
       'mac_bundle_resources': [
         'native/mac/atom.icns',
@@ -291,6 +293,8 @@
             'native/v8_extensions/native.h',
             'native/v8_extensions/onig_reg_exp.mm',
             'native/v8_extensions/onig_reg_exp.h',
+            'native/v8_extensions/atom.mm',
+            'native/v8_extensions/atom.h',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's

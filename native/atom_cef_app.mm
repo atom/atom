@@ -1,33 +1,32 @@
 #include "atom_cef_app.h"
+#import "native/v8_extensions/atom.h"
 #import "native/v8_extensions/native.h"
 #import "native/v8_extensions/onig_reg_exp.h"
 #include <iostream>
 
 void AtomCefApp::OnWebKitInitialized() {
+  new v8_extensions::Atom();
   new NativeHandler();
-  new OnigRegexpExtension();
+  new OnigRegexpExtension();  
 }
 
 void AtomCefApp::OnContextCreated(CefRefPtr<CefBrowser> browser,
                                      CefRefPtr<CefFrame> frame,
-                                     CefRefPtr<CefV8Context> context) {  
-  CefRefPtr<CefV8Value> global = context->GetGlobal();  
-  CefRefPtr<CefV8Value> atom = CefV8Value::CreateObject(NULL);
-  
+                                     CefRefPtr<CefV8Context> context) {
 #ifdef RESOURCE_PATH
   CefRefPtr<CefV8Value> resourcePath = CefV8Value::CreateString(RESOURCE_PATH);
 #else
   CefRefPtr<CefV8Value> resourcePath = CefV8Value::CreateString([[[NSBundle mainBundle] resourcePath] UTF8String]);
 #endif
-  
-  atom->SetValue("resourcePath", resourcePath, V8_PROPERTY_ATTRIBUTE_NONE);    
-  global->SetValue("atom", atom, V8_PROPERTY_ATTRIBUTE_NONE);
+
+  CefRefPtr<CefV8Value> global = context->GetGlobal();  
+  CefRefPtr<CefV8Value> atom = global->GetValue("atom");
+  atom->SetValue("resourcePath", resourcePath, V8_PROPERTY_ATTRIBUTE_NONE);
 }
 
 bool AtomCefApp::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                           CefProcessId source_process,
                                           CefRefPtr<CefProcessMessage> message) {
-	
 	if (message->GetName().ToString() == "reload") {
 		Reload(browser);
 	}

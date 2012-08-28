@@ -17,6 +17,20 @@ AtomCefClient::AtomCefClient(){
 AtomCefClient::~AtomCefClient() {
 }
 
+
+bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+                                             CefProcessId source_process,
+                                             CefRefPtr<CefProcessMessage> message) {  
+  std::string name = message->GetName().ToString();
+
+  if (name == "open") {
+    Open(message->GetArgumentList()->GetString(0));
+    return true;
+  }
+  return false;
+}
+
+
 void AtomCefClient::OnBeforeContextMenu(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,
