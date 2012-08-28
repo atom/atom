@@ -25,14 +25,14 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 
   if (name == "open") {
     if (message->GetArgumentList()->GetSize() == 1) {
-      Open(message->GetArgumentList()->GetString(0));      
+      Open(message->GetArgumentList()->GetString(0));
     }
     else {
       Open();
     }
     return true;
   }
-  
+
   return false;
 }
 

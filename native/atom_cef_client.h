@@ -89,11 +89,11 @@ class AtomCefClient : public CefClient,
                           CefEventHandle os_event) OVERRIDE;
 
   // CefLifeSpanHandler methods
+  virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
   virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+  
 
   // CefLoadHandler methods
-  virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
-
   virtual void OnLoadError(CefRefPtr<CefBrowser> browser,
                            CefRefPtr<CefFrame> frame,
                            ErrorCode errorCode,
