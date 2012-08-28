@@ -13,26 +13,36 @@
   [super dealloc];
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background {
   self = [super initWithWindowNibName:@"AtomWindow"];
 
   _bootstrapScript = [bootstrapScript retain];
 
-  [self showWindow:self];
+  if (!background) {
+    [self.window makeKey:self];
+  }
+  
+  return self;
 }
 
 - (id)initWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  return [self initWithBootstrapScript:@"window-bootstrap"];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO];
+}
+
+- (id)initInBackground {
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES];
+  [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
+  return self;
 }
 
 - (id)initSpecs {
   _runningSpecs = true;
-  return [self initWithBootstrapScript:@"spec-bootstrap"];
+  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO];
 }
 
 - (id)initBenchmarks {
-  return [self initWithBootstrapScript:@"benchmark-bootstrap"];
+  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO];
 }
 
 - (void)windowDidLoad {

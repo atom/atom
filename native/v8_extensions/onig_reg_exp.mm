@@ -112,7 +112,7 @@ bool OnigRegExp::Execute(const CefString& name,
   else if (name == "buildOnigRegExp") {
     CefRefPtr<CefBase> userData = new OnigRegExpUserData(arguments[0]);
     retval = CefV8Value::CreateObject(NULL);
-		retval->SetUserData(userData);
+    retval->SetUserData(userData);
     return true;
   }
   else if (name == "getCaptureCount") {

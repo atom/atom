@@ -16,6 +16,7 @@ class AtomCefClient;
 @property (nonatomic, retain) IBOutlet NSView *webView;
 
 - (id)initWithPath:(NSString *)path;
+- (id)initInBackground;
 - (id)initSpecs;
 - (id)initBenchmarks;
 

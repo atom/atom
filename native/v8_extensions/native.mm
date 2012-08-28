@@ -188,7 +188,7 @@ bool Native::Execute(const CefString& name,
     
     CefRefPtr<CefV8Value> callback = buttonNamesAndCallbacks->GetValue(buttonTag)->GetValue(1);
     CefV8ValueList args;
-		callback->SetRethrowExceptions(true);
+    callback->SetRethrowExceptions(true);
     callback->ExecuteFunction(callback, args);
       
     return true;

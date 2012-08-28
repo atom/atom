@@ -23,23 +23,9 @@
   return settings;
 }
 
-
 - (void)dealloc {
-  [_backgroundWindow release];
+  [_backgroundWindowController release];
   [super dealloc];
-}
-
-- (void)createBackgroundWindow {
-  _cefClient = new AtomCefClient();
-
-  CefWindowInfo window_info;
-  _backgroundWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 0, 0) styleMask:nil backing:nil defer:YES];
-  window_info.SetAsChild([_backgroundWindow contentView], 0, 0, 0, 0);
-
-  CefBrowserSettings settings;
-  NSURL *resourceDirURL = [[NSBundle mainBundle] resourceURL];
-  NSString *indexURLString = [[resourceDirURL URLByAppendingPathComponent:@"index.html"] absoluteString];
-  CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [indexURLString UTF8String], settings);
 }
 
 - (void)open:(NSString *)path {
@@ -77,7 +63,7 @@
 # pragma mark NSApplicationDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  [self createBackgroundWindow];
+  _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
   [self open:@""];
 }
 
@@ -98,10 +84,10 @@
 - (void)sendEvent:(NSEvent*)event {
   CefScopedSendingEvent sendingEventScoper;
   if ([[self mainMenu] performKeyEquivalent:event]) return;
-
-  if (_cefClient && ![self keyWindow] && [event type] == NSKeyDown) {
-    [_backgroundWindow makeKeyAndOrderFront:self];
-    [_backgroundWindow sendEvent:event];
+  
+  if (_backgroundWindowController && ![self keyWindow] && [event type] == NSKeyDown) {
+    [_backgroundWindowController.window makeKeyWindow];
+    [_backgroundWindowController.window sendEvent:event];
   }
   else {
     [super sendEvent:event];

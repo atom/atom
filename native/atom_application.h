@@ -5,10 +5,8 @@ class AtomCefClient;
 
 @interface AtomApplication : NSApplication <CefAppProtocol, NSApplicationDelegate> {
 @private
-  NSWindow *_backgroundWindow;
-
-  CefRefPtr<AtomCefClient> _cefClient;
-
+  NSWindowController *_backgroundWindowController;
+  
   BOOL handlingSendEvent_;
 }
 
