@@ -94,7 +94,7 @@ class RootView extends View
     delete @extensions[extension.name]
 
   deactivate: ->
-    atom.rootViewStates[$windowNumber] = JSON.stringify(@serialize())
+    # atom.rootViewStates[$windowNumber] = JSON.stringify(@serialize()) # TODO: Reinstate
     @deactivateExtension(extension) for name, extension of @extensions
     @remove()
 

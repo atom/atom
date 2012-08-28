@@ -35,14 +35,14 @@ windowAdditions =
       @shutdown()
       false
     $(window).focus()
-    atom.windowOpened this
+    # atom.windowOpened this # TODO: Reinstate this!
 
   shutdown: ->
     @rootView.deactivate()
     $(window).unbind('focus')
     $(window).unbind('blur')
     $(window).off('before')
-    atom.windowClosed this
+    # atom.windowClosed this # TODO: Reinstate this!
 
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration

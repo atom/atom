@@ -17,7 +17,9 @@ class AtomCefApp : public CefApp,
   virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                        CefProcessId source_process,
                                        CefRefPtr<CefProcessMessage> message) OVERRIDE;
-                     
+
+  void Reload(CefRefPtr<CefBrowser> browser);
+										 
   IMPLEMENT_REFCOUNTING(AtomCefApp);
 };
 

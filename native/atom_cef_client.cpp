@@ -60,28 +60,6 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
   if (event.modifiers == KEY_META && event.character == 'r') {  
     browser->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
   }
-  
-//    if (type == KEYEVENT_RAWKEYDOWN && modifiers == KEY_META && code == 'R') {
-//      CefRefPtr<CefV8Context> context = _clientHandler->GetBrowser()->GetMainFrame()->GetV8Context();
-//      CefRefPtr<CefV8Value> global = context->GetGlobal();
-//      
-//      context->Enter();
-//      CefRefPtr<CefV8Value> retval;
-//      CefRefPtr<CefV8Exception> exception;
-//      CefV8ValueList arguments;
-//      
-//      global->GetValue("reload")->ExecuteFunction(global, arguments, retval, exception, true);
-//      if (exception.get()) {
-//        _clientHandler->GetBrowser()->ReloadIgnoreCache();
-//      }
-//      context->Exit();
-//      
-//      return YES;
-//    }
-//    if (type == KEYEVENT_RAWKEYDOWN && modifiers == (KEY_META | KEY_ALT) && code == 'I') {
-//      [self toggleDevTools];
-//      return YES;
-//    }  
 }
 
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
@@ -93,7 +71,7 @@ void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
 //    // Free the browser pointer so that the browser can be destroyed
 //    m_Browser = NULL;
 //  }
-  
+
   m_Browser = NULL;
 }
 
@@ -103,7 +81,7 @@ void AtomCefClient::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
   AutoLock lock_scope(this);
   if (!m_Browser.get())   {
     m_Browser = browser;
-  }
+  }	
 }
 
 void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,

@@ -26,7 +26,26 @@ void AtomCefApp::OnContextCreated(CefRefPtr<CefBrowser> browser,
 
 bool AtomCefApp::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                           CefProcessId source_process,
-                                          CefRefPtr<CefProcessMessage> message) {  
-  std::cout << "MESSAGE RECEIVED ON RENDERER PROCESS:" << message->GetName().ToString();
+                                          CefRefPtr<CefProcessMessage> message) {
+	
+	if (message->GetName().ToString() == "reload") {
+		Reload(browser);
+	}
+
   return true;
+}
+
+void AtomCefApp::Reload(CefRefPtr<CefBrowser> browser) {
+	CefRefPtr<CefV8Context> context = browser->GetMainFrame()->GetV8Context();
+	CefRefPtr<CefV8Value> global = context->GetGlobal();
+
+	context->Enter();
+	CefV8ValueList arguments;
+
+	CefRefPtr<CefV8Value> reloadFunction = global->GetValue("reload");
+//	reloadFunction->ExecuteFunction(global, arguments);
+//	if (reloadFunction->HasException()) {
+		browser->ReloadIgnoreCache();
+//	}
+	context->Exit();
 }
