@@ -26,7 +26,7 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   if (name == "open") {
     bool hasArguments = message->GetArgumentList()->GetSize() == 1;
     hasArguments ? Open(message->GetArgumentList()->GetString(0)) : Open();
-      return true;
+    return true;
   }
   if (name == "newWindow") {
     NewWindow();
@@ -68,9 +68,7 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                      const CefString& source,
                                      int line) {
   REQUIRE_UI_THREAD();
-
   std::cout << std::string(message) << "\n";
-
   return true;
 }
 
