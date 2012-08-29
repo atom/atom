@@ -82,7 +82,7 @@
   }
   else if (_cefClient && _cefClient->GetBrowser()) {
     NSRect frame = NSMakeRect(0, 0, _splitView.frame.size.width, _splitView.frame.size.height);
-    _devToolsView = [[NSView alloc] initWithFrame:NSMakeRect(0,0,0,0)];
+    _devToolsView = [[NSView alloc] initWithFrame:frame];
     [_splitView addSubview:_devToolsView];
     [_splitView adjustSubviews];
     std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
