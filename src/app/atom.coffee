@@ -23,6 +23,9 @@ atom.open = (args...) ->
 atom.newWindow = (args...) ->
   @sendMessageToBrowserProcess('newWindow', args)
 
+atom.toggleDevTools = (args...)->
+  @sendMessageToBrowserProcess('toggleDevTools', args)
+
 atom.getRootViewStateForPath = (path) ->
   if json = localStorage[path]
     JSON.parse(json)

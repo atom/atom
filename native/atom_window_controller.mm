@@ -1,12 +1,17 @@
 #import "include/cef_application_mac.h"
+#include "include/cef_client.h"
 #import "native/atom_cef_client.h"
 #import "native/atom_window_controller.h"
 
 @implementation AtomWindowController
 
+@synthesize splitView=_splitView;
 @synthesize webView=_webView;
+@synthesize devToolsView=_devToolsView;
 
 - (void)dealloc {
+  _cefClient = NULL;
+  _cefDevToolsClient = NULL;
   [_webView release];
   [_bootstrapScript release];
   [_pathToOpen release];
@@ -48,27 +53,43 @@
 - (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {
   CefBrowserSettings settings;
   [self populateBrowserSettings:settings];
-  
   CefWindowInfo window_info;
   window_info.SetAsChild(view, 0, 0, view.bounds.size.width, view.bounds.size.height);
-  
   CefBrowserHost::CreateBrowser(window_info, cefClient.get(), url, settings);  
 }
 
 - (void)windowDidLoad {
   [self.window setDelegate:self];
-  
+
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
-  [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString] ];
-  
+  [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
   if (_pathToOpen) [urlString appendFormat:@"&pathToOpen=%@", [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-  
+
   _cefClient = new AtomCefClient();
   [self addBrowserToView:self.webView url:[urlString UTF8String] cefHandler:_cefClient];
 }
 
+- (void)toggleDevTools {
+  if (_devToolsView) {
+    [_devToolsView removeFromSuperview];
+    [_devToolsView release];
+    _devToolsView = nil;
+    _cefDevToolsClient = NULL;
+    _cefClient->GetBrowser()->GetHost()->SetFocus(true);
+    [_splitView adjustSubviews];
+  }
+  else if (_cefClient && _cefClient->GetBrowser()) {
+    NSRect frame = NSMakeRect(0, 0, _splitView.frame.size.width, _splitView.frame.size.height);
+    _devToolsView = [[NSView alloc] initWithFrame:NSMakeRect(0,0,0,0)];
+    [_splitView addSubview:_devToolsView];
+    [_splitView adjustSubviews];
+    std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
+    _cefDevToolsClient = new AtomCefClient();
+    [self addBrowserToView:_devToolsView url:devtools_url.c_str() cefHandler:_cefDevToolsClient];
+  }  
+}
 
 # pragma mark NSWindowDelegate
 
@@ -88,7 +109,6 @@
   [self autorelease];
   return YES;
 }
-
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
   CefString(&settings.default_encoding) = "UTF-8";

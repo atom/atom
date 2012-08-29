@@ -103,11 +103,10 @@ class AtomCefClient : public CefClient,
  protected:
   CefRefPtr<CefBrowser> m_Browser;
 
-  void ShowDevTools(CefRefPtr<CefBrowser> browser);
-
   void Open(std::string path);
   void Open();
   void NewWindow();
+  void ToggleDevTools(CefRefPtr<CefBrowser> browser);
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);

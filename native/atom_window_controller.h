@@ -3,21 +3,28 @@
 class AtomCefClient;
 
 @interface AtomWindowController : NSWindowController <NSWindowDelegate> {
+  NSSplitView *_splitView;
+  NSView *_devToolsView;
   NSView *_webView;
   NSString *_bootstrapScript;
   NSString *_pathToOpen;
 
   CefRefPtr<AtomCefClient> _cefClient;
+  CefRefPtr<AtomCefClient> _cefDevToolsClient;
   CefRefPtr<CefV8Context> _atomContext;
 
   bool _runningSpecs;
 }
 
+@property (nonatomic, retain) IBOutlet NSSplitView *splitView;
 @property (nonatomic, retain) IBOutlet NSView *webView;
+@property (nonatomic, retain) IBOutlet NSView *devToolsView;
 
 - (id)initWithPath:(NSString *)path;
 - (id)initInBackground;
 - (id)initSpecs;
 - (id)initBenchmarks;
+
+- (void)toggleDevTools;
 
 @end
