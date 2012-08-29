@@ -12,9 +12,26 @@
   return application;
 }
 
++ (NSString *)supportDirectory {
+  NSString *cachePath = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+  NSString *executableName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleExecutable"];
+  NSString *supportDirectory = [cachePath stringByAppendingPathComponent:executableName];
+
+  NSFileManager *fs = [NSFileManager defaultManager];
+  NSError *error;
+  BOOL success = [fs createDirectoryAtPath:supportDirectory withIntermediateDirectories:YES attributes:nil error:&error];
+  if (!success) {
+    NSLog(@"Can't create support directory '%@' because %@", supportDirectory, [error localizedDescription]);
+    supportDirectory = @"";
+  }
+
+  return supportDirectory;
+}
+  
 + (CefSettings)createCefSettings {
   CefSettings settings;
-  CefString(&settings.cache_path) = "";
+
+  CefString(&settings.cache_path) = [[self supportDirectory] UTF8String];
   CefString(&settings.user_agent) = "";
   CefString(&settings.log_file) = "";
   CefString(&settings.javascript_flags) = "";
@@ -84,7 +101,7 @@
 - (void)sendEvent:(NSEvent*)event {
   CefScopedSendingEvent sendingEventScoper;
   if ([[self mainMenu] performKeyEquivalent:event]) return;
-  
+
   if (_backgroundWindowController && ![self keyWindow] && [event type] == NSKeyDown) {
     [_backgroundWindowController.window makeKeyWindow];
     [_backgroundWindowController.window sendEvent:event];
@@ -95,3 +112,4 @@
 }
 
 @end
+
