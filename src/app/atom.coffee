@@ -15,13 +15,23 @@ atom.sendMessageToBrowserProcess = (name, data, callback) ->
   originalSendMessageToBrowserProcess(name, data)
 
 atom.receiveMessageFromBrowserProcess = (name, data) ->
-  console.log "RECEIVE MESSAGE IN JS", name, data
+  if name is 'reply'
+    [messageId, callbackIndex] = data
+    @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?()
 
 atom.open = (args...) ->
   @sendMessageToBrowserProcess('open', args)
 
 atom.newWindow = (args...) ->
   @sendMessageToBrowserProcess('newWindow', args)
+
+atom.confirm = (message, detailedMessage, buttonLabelsAndCallbacks...) ->
+  args = [message, detailedMessage]
+  callbacks = []
+  while buttonLabelsAndCallbacks.length
+    args.push(buttonLabelsAndCallbacks.shift())
+    callbacks.push(buttonLabelsAndCallbacks.shift())
+  @sendMessageToBrowserProcess('confirm', args, callbacks)
 
 atom.getRootViewStateForPath = (path) ->
   if json = localStorage[path]

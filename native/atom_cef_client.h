@@ -91,7 +91,7 @@ class AtomCefClient : public CefClient,
   // CefLifeSpanHandler methods
   virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
   virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
-  
+
 
   // CefLoadHandler methods
   virtual void OnLoadError(CefRefPtr<CefBrowser> browser,
@@ -108,6 +108,11 @@ class AtomCefClient : public CefClient,
   void Open(std::string path);
   void Open();
   void NewWindow();
+  void Confirm(int replyId,
+               std::string message,
+               std::string detailedMessage,
+               std::vector<std::string> buttonLabels,
+               CefRefPtr<CefBrowser> browser);
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);

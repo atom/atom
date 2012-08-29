@@ -22,17 +22,27 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                              CefProcessId source_process,
                                              CefRefPtr<CefProcessMessage> message) {
   std::string name = message->GetName().ToString();
-  CefRefPtr<CefListValue> argumentList = message->GetArgumentList();  
+  CefRefPtr<CefListValue> argumentList = message->GetArgumentList();
   int messageId = argumentList->GetInt(0);
 
-  
   if (name == "open") {
-    bool hasArguments = message->GetArgumentList()->GetSize() > 1;
-    hasArguments ? Open(message->GetArgumentList()->GetString(1)) : Open();
+    bool hasArguments = argumentList->GetSize() > 1;
+    hasArguments ? Open(argumentList->GetString(1)) : Open();
     return true;
   }
   if (name == "newWindow") {
     NewWindow();
+    return true;
+  }
+  if (name == "confirm") {
+    std::string message = argumentList->GetString(1).ToString();
+    std::string detailedMessage = argumentList->GetString(2).ToString();
+    std::vector<std::string> buttonLabels(argumentList->GetSize() - 3);
+    for (int i = 3; i < argumentList->GetSize(); i++) {
+      buttonLabels[i - 3] = argumentList->GetString(i).ToString();
+    }
+
+    Confirm(messageId, message, detailedMessage, buttonLabels, browser);
     return true;
   }
 
