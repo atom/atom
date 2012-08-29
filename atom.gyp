@@ -283,7 +283,7 @@
             'native/message_translation.h',
             'native/path_watcher.mm',
             'native/path_watcher.h',
-            'native/process_helper_mac.cpp',
+            'native/main_helper_mac.mm',
             'native/util.h',
             'native/v8_extensions/native.mm',
             'native/v8_extensions/native.h',
