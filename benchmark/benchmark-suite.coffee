@@ -16,7 +16,7 @@ describe "editor.", ->
   afterEach ->
     $(window).off 'beforeunload'
     window.shutdown()
-    delete atom.rootViewStates[$windowNumber]
+    atom.setRootViewStateForPath(rootView.project.getPath(), null)
 
   describe "opening-buffers.", ->
     benchmark "300-line-file.", ->

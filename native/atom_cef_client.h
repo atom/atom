@@ -107,6 +107,7 @@ class AtomCefClient : public CefClient,
 
   void Open(std::string path);
   void Open();
+  void NewWindow();
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);

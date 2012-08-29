@@ -99,6 +99,11 @@ bool Native::Execute(const CefString& name,
     NSString *path = stringFromCefV8Value(arguments[0]);
     bool recursive = arguments[1]->GetBoolValue();
     
+    if (!path or [path length] == 0) {
+      exception = "$native.list requires a path argument";
+      return true;
+    }
+    
     NSFileManager *fm = [NSFileManager defaultManager];
     NSArray *relativePaths = nil;
     NSError *error = nil;
@@ -209,11 +214,6 @@ bool Native::Execute(const CefString& name,
       retval = CefV8Value::CreateString([[results objectAtIndex:0] UTF8String]);
     }
     
-    return true;
-  }
-  else if (name == "newWindow") {
-    [(AtomApplication *)NSApp open:nil];
-
     return true;
   }
   else if (name == "saveDialog") {
@@ -456,6 +456,7 @@ bool Native::Execute(const CefString& name,
     retval = CefV8Value::CreateString("mac");
     return true;
   }
+
   return false;
 };
 

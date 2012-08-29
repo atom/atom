@@ -94,7 +94,7 @@ class RootView extends View
     delete @extensions[extension.name]
 
   deactivate: ->
-    # atom.rootViewStates[$windowNumber] = JSON.stringify(@serialize()) # TODO: Reinstate
+    atom.setRootViewStateForPath(@project.getPath(), @serialize())
     @deactivateExtension(extension) for name, extension of @extensions
     @remove()
 
@@ -209,5 +209,5 @@ class RootView extends View
     try
       require atom.configFilePath if fs.exists(atom.configFilePath)
     catch error
-      console.error "Failed to load `#{atom.configFilePath}`", error.message, error
+      console.error "Failed to load `#{atom.configFilePath}`", error.stack, error
 

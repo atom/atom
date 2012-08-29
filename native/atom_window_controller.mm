@@ -21,7 +21,7 @@
   if (!background) {
     [self showWindow:self];
   }
-  
+
   return self;
 }
 
@@ -57,11 +57,11 @@
   window_info.SetAsChild(self.webView, 0, 0, self.webView.bounds.size.width, self.webView.bounds.size.height);
 
   NSURL *url = [[NSBundle mainBundle] resourceURL];
-  NSString *urlString = [[url URLByAppendingPathComponent:@"static/index.html"] absoluteString];
-  urlString = [urlString stringByAppendingFormat:@"?windowNumber=%d&bootstrapScript=%@&pathToOpen=%@",
-               [self.window windowNumber],
-               [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding],
-               [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+  NSMutableString *urlString = [NSMutableString string];
+  [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString] ];
+
+  [urlString appendFormat:@"?bootstrapScript=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+  if (_pathToOpen) [urlString appendFormat:@"&pathToOpen=%@", [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 
   CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [urlString UTF8String], settings);
 }
