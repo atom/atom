@@ -29,7 +29,7 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   if (name == "open") {
     bool hasArguments = message->GetArgumentList()->GetSize() > 1;
     hasArguments ? Open(message->GetArgumentList()->GetString(1)) : Open();
-      return true;
+    return true;
   }
   if (name == "newWindow") {
     NewWindow();
@@ -47,6 +47,7 @@ void AtomCefClient::OnBeforeContextMenu(
     CefRefPtr<CefContextMenuParams> params,
     CefRefPtr<CefMenuModel> model) {
 
+  model->Clear();
   model->AddItem(MENU_ID_USER_FIRST, "&Show DevTools");
 }
 
@@ -71,9 +72,7 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                      const CefString& source,
                                      int line) {
   REQUIRE_UI_THREAD();
-
   std::cout << std::string(message) << "\n";
-
   return true;
 }
 
