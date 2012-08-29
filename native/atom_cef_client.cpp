@@ -24,11 +24,11 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   std::string name = message->GetName().ToString();
   CefRefPtr<CefListValue> argumentList = message->GetArgumentList();  
   int messageId = argumentList->GetInt(0);
-  message->GetArgumentList()->Remove(0);
+
   
   if (name == "open") {
-    bool hasArguments = message->GetArgumentList()->GetSize() == 1;
-    hasArguments ? Open(message->GetArgumentList()->GetString(0)) : Open();
+    bool hasArguments = message->GetArgumentList()->GetSize() > 1;
+    hasArguments ? Open(message->GetArgumentList()->GetString(1)) : Open();
       return true;
   }
   if (name == "newWindow") {
