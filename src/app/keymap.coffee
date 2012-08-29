@@ -19,7 +19,7 @@ class Keymap
       'meta-,': 'open-user-configuration'
       'meta-o': 'open'
 
-    $(document).on 'new-window', => $native.newWindow()
+    $(document).on 'new-window', => atom.newWindow()
     $(document).on 'open-user-configuration', => atom.open(atom.configFilePath)
     $(document).on 'open', => atom.open()
 

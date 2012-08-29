@@ -26,8 +26,13 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   if (name == "open") {
     bool hasArguments = message->GetArgumentList()->GetSize() == 1;
     hasArguments ? Open(message->GetArgumentList()->GetString(0)) : Open();
+      return true;
+  }
+  if (name == "newWindow") {
+    NewWindow();
     return true;
   }
+
 
   return false;
 }

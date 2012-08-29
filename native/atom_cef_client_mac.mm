@@ -17,3 +17,7 @@ void AtomCefClient::Open() {
     Open([[url path] UTF8String]);
   }
 }
+
+void AtomCefClient::NewWindow() {
+  [(AtomApplication *)[AtomApplication sharedApplication] open:nil];
+}
