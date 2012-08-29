@@ -45,26 +45,30 @@
   return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO];
 }
 
-- (void)windowDidLoad {
-  [self.window setDelegate:self];
-
-  _cefClient = new AtomCefClient();
-
+- (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {
   CefBrowserSettings settings;
   [self populateBrowserSettings:settings];
-
+  
   CefWindowInfo window_info;
-  window_info.SetAsChild(self.webView, 0, 0, self.webView.bounds.size.width, self.webView.bounds.size.height);
+  window_info.SetAsChild(view, 0, 0, view.bounds.size.width, view.bounds.size.height);
+  
+  CefBrowserHost::CreateBrowser(window_info, cefClient.get(), url, settings);  
+}
 
+- (void)windowDidLoad {
+  [self.window setDelegate:self];
+  
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString] ];
-
+  
   [urlString appendFormat:@"?bootstrapScript=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
   if (_pathToOpen) [urlString appendFormat:@"&pathToOpen=%@", [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-
-  CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [urlString UTF8String], settings);
+  
+  _cefClient = new AtomCefClient();
+  [self addBrowserToView:self.webView url:[urlString UTF8String] cefHandler:_cefClient];
 }
+
 
 # pragma mark NSWindowDelegate
 
