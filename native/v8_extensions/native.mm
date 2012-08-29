@@ -216,11 +216,6 @@ bool Native::Execute(const CefString& name,
     
     return true;
   }
-  else if (name == "newWindow") {
-    [(AtomApplication *)NSApp open:nil];
-
-    return true;
-  }
   else if (name == "saveDialog") {
     NSSavePanel *panel = [NSSavePanel savePanel];
     if ([panel runModal] == NSFileHandlingPanelOKButton) {

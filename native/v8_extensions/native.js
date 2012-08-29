@@ -49,9 +49,6 @@ var $native = {};
   native function toggleDevTools();
   $native.toggleDevTools = toggleDevTools;
 
-  native function newWindow();
-  $native.newWindow = newWindow;
-
   native function saveDialog();
   $native.saveDialog = saveDialog;
 
