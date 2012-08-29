@@ -14,7 +14,10 @@ class AtomCefRenderProcessHandler : public CefRenderProcessHandler {
                                        CefProcessId source_process,
                                        CefRefPtr<CefProcessMessage> message) OVERRIDE;
 
+  
+  
   void Reload(CefRefPtr<CefBrowser> browser);
+  bool CallMessageReceivedHandler(CefRefPtr<CefV8Context> context, CefRefPtr<CefProcessMessage> message);
 
   IMPLEMENT_REFCOUNTING(AtomCefRenderProcessHandler);
 };
