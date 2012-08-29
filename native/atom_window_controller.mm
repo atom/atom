@@ -21,7 +21,7 @@
   if (!background) {
     [self showWindow:self];
   }
-  
+
   return self;
 }
 
@@ -59,9 +59,8 @@
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString] ];
-  
-  [urlString appendFormat:@"?windowNumber=%d", [self.window windowNumber]];
-  [urlString appendFormat:@"&bootstrapScript=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+
+  [urlString appendFormat:@"?bootstrapScript=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
   if (_pathToOpen) [urlString appendFormat:@"&pathToOpen=%@", [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 
   CefBrowserHost::CreateBrowser(window_info, _cefClient.get(), [urlString UTF8String], settings);

@@ -25,14 +25,12 @@ windowAdditions =
       @shutdown()
       false
     $(window).focus()
-    # atom.windowOpened this # TODO: Reinstate this!
 
   shutdown: ->
     @rootView.deactivate()
     $(window).unbind('focus')
     $(window).unbind('blur')
     $(window).off('before')
-    # atom.windowClosed this # TODO: Reinstate this!
 
   setUpKeymap: ->
     Keymap = require 'keymap'
@@ -47,8 +45,8 @@ windowAdditions =
   # Note: RootView assigns itself on window on initialization so that
   # window.rootView is available when loading user configuration
   attachRootView: (pathToOpen) ->
-    if rootViewState = atom.rootViewStates?[$windowNumber]
-      RootView.deserialize(JSON.parse(rootViewState))
+    if rootViewState = atom.getRootViewStateForPath(pathToOpen)
+      RootView.deserialize(rootViewState)
     else
       new RootView(pathToOpen)
       @rootView.open() unless pathToOpen

@@ -3,11 +3,11 @@ fs = require 'fs'
 
 describe "Window", ->
   beforeEach ->
-    window.startup()
+    window.startup(require.resolve('fixtures'))
 
   afterEach ->
     window.shutdown()
-    delete atom.rootViewStates[$windowNumber]
+    atom.setRootViewStateForPath(rootView.project.getPath(), null)
     $(window).off 'beforeunload'
 
   describe ".close()", ->
@@ -49,10 +49,10 @@ describe "Window", ->
 
   describe "before the window is unloaded", ->
     it "saves the serialized state of the root view to the atom object so it can be rehydrated after reload", ->
-      expect(atom.rootViewStates[$windowNumber]).toBeUndefined()
-      expectedState = window.rootView.serialize()
+      expect(atom.getRootViewStateForPath(window.rootView.project.getPath())).toBeUndefined()
+      expectedState = JSON.parse(JSON.stringify(window.rootView.serialize())) # JSON.stringify removes keys with undefined values
       $(window).trigger 'beforeunload'
-      expect(atom.rootViewStates[$windowNumber]).toEqual JSON.stringify(expectedState)
+      expect(atom.getRootViewStateForPath(window.rootView.project.getPath())).toEqual expectedState
 
     it "unsubscribes from all buffers", ->
       editor1 = rootView.getActiveEditor()
