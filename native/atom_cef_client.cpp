@@ -84,9 +84,17 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                const CefKeyEvent& event,
                                CefEventHandle os_event) {
-  if (event.modifiers == KEY_META && event.character == 'r') {
+  if (event.modifiers == KEY_META && event.unmodified_character == 'r') {
     browser->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
   }
+  else if (event.modifiers == (KEY_META | KEY_ALT) && event.unmodified_character == 'i') {
+    ToggleDevTools(browser);
+  }
+  else {
+    return false;
+  }
+  
+  return true;
 }
 
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
