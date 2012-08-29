@@ -44,6 +44,7 @@ void AtomCefClient::OnBeforeContextMenu(
     CefRefPtr<CefContextMenuParams> params,
     CefRefPtr<CefMenuModel> model) {
 
+  model->Clear();
   model->AddItem(MENU_ID_USER_FIRST, "&Show DevTools");
 }
 
