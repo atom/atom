@@ -3,6 +3,7 @@
 #import "include/cef_frame.h"
 #import "native/atom_cef_client.h"
 #import "atom_application.h"
+#import "atom_window_controller.h"
 
 void AtomCefClient::Open(std::string path) {
   NSString *pathString = [NSString stringWithCString:path.c_str() encoding:NSUTF8StringEncoding];
@@ -45,4 +46,9 @@ void AtomCefClient::Confirm(int replyId,
   replyArguments->SetInt(0, replyId);
   replyArguments->SetInt(1, clickedButtonTag);
   browser->SendProcessMessage(PID_RENDERER, replyMessage);
+}
+
+void AtomCefClient::ToggleDevTools(CefRefPtr<CefBrowser> browser) {
+  AtomWindowController *windowController = [[browser->GetHost()->GetWindowHandle() window] windowController];
+  [windowController toggleDevTools];
 }

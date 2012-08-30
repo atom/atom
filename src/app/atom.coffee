@@ -33,6 +33,9 @@ atom.confirm = (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     callbacks.push(buttonLabelsAndCallbacks.shift())
   @sendMessageToBrowserProcess('confirm', args, callbacks)
 
+atom.toggleDevTools = (args...)->
+  @sendMessageToBrowserProcess('toggleDevTools', args)
+
 atom.getRootViewStateForPath = (path) ->
   if json = localStorage[path]
     JSON.parse(json)

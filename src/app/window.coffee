@@ -82,11 +82,8 @@ windowAdditions =
     else
       Native.reload()
 
-  toggleDevTools: ->
-    $native.toggleDevTools()
-
   onerror: ->
-    $native.showDevTools()
+    atom.toggleDevTools()
 
   measure: (description, fn) ->
     start = new Date().getTime()

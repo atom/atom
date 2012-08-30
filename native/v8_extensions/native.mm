@@ -196,14 +196,6 @@ bool Native::Execute(const CefString& name,
     [NSApp terminate:nil];
     return true;
   }
-  else if (name == "showDevTools") {
-//    CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
-    return false;
-  }  
-  else if (name == "toggleDevTools") {
-//    [[[NSApp keyWindow] windowController] toggleDevTools];
-    return false;
-  }
   else if (name == "exit") {
     int exitStatus = 0;
     if (arguments.size() > 0) exitStatus = arguments[0]->GetIntValue();

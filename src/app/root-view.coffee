@@ -49,7 +49,7 @@ class RootView extends View
     extensionStates: @serializeExtensions()
 
   handleEvents: ->
-    @on 'toggle-dev-tools', => window.toggleDevTools()
+    @on 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) =>
       if @getActiveEditor()
         @getActiveEditor().focus()

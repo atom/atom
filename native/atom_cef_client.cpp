@@ -30,9 +30,14 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     hasArguments ? Open(argumentList->GetString(1)) : Open();
     return true;
   }
-  if (name == "newWindow") {
+  else if (name == "newWindow") {
     NewWindow();
-    return true;
+  }
+  else if (name == "toggleDevTools") {
+    ToggleDevTools(browser);
+  }
+  else {
+    return false;
   }
   if (name == "confirm") {
     std::string message = argumentList->GetString(1).ToString();
@@ -46,8 +51,7 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     return true;
   }
 
-
-  return false;
+  return true;
 }
 
 
@@ -58,7 +62,7 @@ void AtomCefClient::OnBeforeContextMenu(
     CefRefPtr<CefMenuModel> model) {
 
   model->Clear();
-  model->AddItem(MENU_ID_USER_FIRST, "&Show DevTools");
+  model->AddItem(MENU_ID_USER_FIRST, "&Toggle DevTools");
 }
 
 bool AtomCefClient::OnContextMenuCommand(
@@ -69,7 +73,7 @@ bool AtomCefClient::OnContextMenuCommand(
     EventFlags event_flags) {
 
   if (command_id == MENU_ID_USER_FIRST) {
-    ShowDevTools(browser);
+    ToggleDevTools(browser);
     return true;
   }
   else {
@@ -90,9 +94,17 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
 bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                const CefKeyEvent& event,
                                CefEventHandle os_event) {
-  if (event.modifiers == KEY_META && event.character == 'r') {
+  if (event.modifiers == KEY_META && event.unmodified_character == 'r') {
     browser->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("reload"));
   }
+  else if (event.modifiers == (KEY_META | KEY_ALT) && event.unmodified_character == 'i') {
+    ToggleDevTools(browser);
+  }
+  else {
+    return false;
+  }
+  
+  return true;
 }
 
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
@@ -138,12 +150,5 @@ void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,
     " with error " << std::string(errorText) << " (" << errorCode <<
     ").</h2></body></html>";
     frame->LoadString(ss.str(), failedUrl);
-  }
-}
-
-void AtomCefClient::ShowDevTools(CefRefPtr<CefBrowser> browser) {
-  std::string devtools_url = browser->GetHost()->GetDevToolsURL(true);
-  if (!devtools_url.empty()) {
-    browser->GetMainFrame()->ExecuteJavaScript("window.open('" +  devtools_url + "');", "about:blank", 0);
   }
 }

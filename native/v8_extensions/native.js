@@ -40,12 +40,6 @@ var $native = {};
   native function readFromPasteboard();
   $native.readFromPasteboard = readFromPasteboard;
 
-  native function showDevTools();
-  $native.showDevTools = showDevTools;
-
-  native function toggleDevTools();
-  $native.toggleDevTools = toggleDevTools;
-
   native function saveDialog();
   $native.saveDialog = saveDialog;
 
