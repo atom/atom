@@ -30,15 +30,17 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     hasArguments ? Open(argumentList->GetString(1)) : Open();
     return true;
   }
-  else if (name == "newWindow") {
+
+  if (name == "newWindow") {
     NewWindow();
+    return true;
   }
-  else if (name == "toggleDevTools") {
+
+  if (name == "toggleDevTools") {
     ToggleDevTools(browser);
+    return true;
   }
-  else {
-    return false;
-  }
+
   if (name == "confirm") {
     std::string message = argumentList->GetString(1).ToString();
     std::string detailedMessage = argumentList->GetString(2).ToString();
@@ -51,7 +53,7 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     return true;
   }
 
-  return true;
+  return false;
 }
 
 
@@ -103,7 +105,7 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
   else {
     return false;
   }
-  
+
   return true;
 }
 
