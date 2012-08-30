@@ -517,14 +517,14 @@ class Editor extends View
       $(window).off 'resize', @_setSoftWrapColumn
 
   save: (onSuccess) ->
-    if not @getPath()
+    if @getPath()
+      @getBuffer().save()
+      onSuccess?()
+    else
       atom.showSaveDialog (path) =>
         if path
           @getBuffer().saveAs(path)
-          onSuccess()
-    else
-      @getBuffer().save()
-      onSuccess()
+          onSuccess?()
 
   subscribeToFontSize: ->
     return unless rootView = @rootView()
