@@ -20,7 +20,6 @@
 
 - (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background {
   self = [super initWithWindowNibName:@"AtomWindow"];
-
   _bootstrapScript = [bootstrapScript retain];
 
   if (!background) {
@@ -73,22 +72,32 @@
 
 - (void)toggleDevTools {
   if (_devToolsView) {
-    [_devToolsView removeFromSuperview];
-    [_devToolsView release];
-    _devToolsView = nil;
-    _cefDevToolsClient = NULL;
-    _cefClient->GetBrowser()->GetHost()->SetFocus(true);
-    [_splitView adjustSubviews];
+    [self hideDevTools];
   }
-  else if (_cefClient && _cefClient->GetBrowser()) {
-    NSRect frame = NSMakeRect(0, 0, _splitView.frame.size.width, _splitView.frame.size.height);
-    _devToolsView = [[NSView alloc] initWithFrame:frame];
+  else {
+    [self showDevTools];
+  }  
+}
+
+- (void)showDevTools {
+  if (_cefClient && _cefClient->GetBrowser()) {
+    _devToolsView = [[NSView alloc] initWithFrame:_splitView.bounds];
     [_splitView addSubview:_devToolsView];
     [_splitView adjustSubviews];
-    std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
+   
     _cefDevToolsClient = new AtomCefClient();
+    std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
     [self addBrowserToView:_devToolsView url:devtools_url.c_str() cefHandler:_cefDevToolsClient];
-  }  
+  }
+}
+
+- (void)hideDevTools {
+  [_devToolsView removeFromSuperview];
+  [_splitView adjustSubviews];
+  [_devToolsView release];
+  _devToolsView = nil;
+  _cefDevToolsClient = NULL;
+  _cefClient->GetBrowser()->GetHost()->SetFocus(true);
 }
 
 # pragma mark NSWindowDelegate
