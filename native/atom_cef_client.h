@@ -66,6 +66,8 @@ class AtomCefClient : public CefClient,
                                 const CefString& source,
                                 int line) OVERRIDE;
 
+  virtual void OnTitleChange(CefRefPtr<CefBrowser> browser,
+                             const CefString& title) OVERRIDE;
 
   // CefJsDialogHandlerMethods
   virtual bool OnBeforeUnloadDialog(CefRefPtr<CefBrowser> browser,
