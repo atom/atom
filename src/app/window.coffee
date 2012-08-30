@@ -73,14 +73,12 @@ windowAdditions =
 
   reload: ->
     if rootView.getModifiedBuffers().length > 0
-      message = "There are unsaved buffers, reload anyway?"
-      detailedMessage = "You will lose all unsaved changes if you reload"
-      buttons = [
-        ["Reload", -> Native.reload()]
-        ["Cancel", ->]
-      ]
-
-      Native.alert(message, detailedMessage, buttons)
+      atom.confirm(
+        "There are unsaved buffers, reload anyway?",
+        "You will lose all unsaved changes if you reload",
+        "Reload", (-> Native.reload()),
+        "Cancel"
+      )
     else
       Native.reload()
 
