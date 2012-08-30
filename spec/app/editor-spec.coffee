@@ -736,10 +736,10 @@ describe "Editor", ->
         expect(selectionViews.length).toBe 2
         expect(selectionViews[1].regions.length).toBe 1
         region = selectionViews[1].regions[0]
-        expect(region.position().top).toBe(2 * lineHeight)
-        expect(region.position().left).toBe(7 * charWidth)
-        expect(region.height()).toBe lineHeight
-        expect(region.width()).toBe((25 - 7) * charWidth)
+        expect(region.position().top).toBeCloseTo(2 * lineHeight)
+        expect(region.position().left).toBeCloseTo(7 * charWidth)
+        expect(region.height()).toBeCloseTo lineHeight
+        expect(region.width()).toBeCloseTo((25 - 7) * charWidth)
 
     describe "when a selection changes", ->
       describe "when the selection is within a single line", ->
@@ -748,10 +748,10 @@ describe "Editor", ->
 
           expect(selectionView.regions.length).toBe 1
           region = selectionView.regions[0]
-          expect(region.position().top).toBe(2 * lineHeight)
-          expect(region.position().left).toBe(7 * charWidth)
-          expect(region.height()).toBe lineHeight
-          expect(region.width()).toBe((25 - 7) * charWidth)
+          expect(region.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region.position().left).toBeCloseTo(7 * charWidth)
+          expect(region.height()).toBeCloseTo lineHeight
+          expect(region.width()).toBeCloseTo((25 - 7) * charWidth)
 
       describe "when the selection spans 2 lines", ->
         it "covers the selection's range with 2 regions", ->
@@ -760,16 +760,16 @@ describe "Editor", ->
           expect(selectionView.regions.length).toBe 2
 
           region1 = selectionView.regions[0]
-          expect(region1.position().top).toBe(2 * lineHeight)
-          expect(region1.position().left).toBe(7 * charWidth)
-          expect(region1.height()).toBe lineHeight
-          expect(region1.width()).toBe(editor.renderedLines.width() - region1.position().left)
+          expect(region1.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region1.position().left).toBeCloseTo(7 * charWidth)
+          expect(region1.height()).toBeCloseTo lineHeight
+          expect(region1.width()).toBeCloseTo(editor.renderedLines.width() - region1.position().left)
 
           region2 = selectionView.regions[1]
-          expect(region2.position().top).toBe(3 * lineHeight)
-          expect(region2.position().left).toBe(0)
-          expect(region2.height()).toBe lineHeight
-          expect(region2.width()).toBe(25 * charWidth)
+          expect(region2.position().top).toBeCloseTo(3 * lineHeight)
+          expect(region2.position().left).toBeCloseTo(0)
+          expect(region2.height()).toBeCloseTo lineHeight
+          expect(region2.width()).toBeCloseTo(25 * charWidth)
 
       describe "when the selection spans more than 2 lines", ->
         it "covers the selection's range with 3 regions", ->
@@ -778,16 +778,16 @@ describe "Editor", ->
           expect(selectionView.regions.length).toBe 3
 
           region1 = selectionView.regions[0]
-          expect(region1.position().top).toBe(2 * lineHeight)
-          expect(region1.position().left).toBe(7 * charWidth)
-          expect(region1.height()).toBe lineHeight
-          expect(region1.width()).toBe(editor.renderedLines.width() - region1.position().left)
+          expect(region1.position().top).toBeCloseTo(2 * lineHeight)
+          expect(region1.position().left).toBeCloseTo(7 * charWidth)
+          expect(region1.height()).toBeCloseTo lineHeight
+          expect(region1.width()).toBeCloseTo(editor.renderedLines.width() - region1.position().left)
 
           region2 = selectionView.regions[1]
-          expect(region2.position().top).toBe(3 * lineHeight)
-          expect(region2.position().left).toBe(0)
-          expect(region2.height()).toBe(3 * lineHeight)
-          expect(region2.width()).toBe(editor.renderedLines.width())
+          expect(region2.position().top).toBeCloseTo(3 * lineHeight)
+          expect(region2.position().left).toBeCloseTo(0)
+          expect(region2.height()).toBeCloseTo(3 * lineHeight)
+          expect(region2.width()).toBeCloseTo(editor.renderedLines.width())
 
           # resizes with the editor
           expect(editor.width()).toBeLessThan(800)
@@ -795,10 +795,10 @@ describe "Editor", ->
           expect(region2.width()).toBe(editor.renderedLines.width())
 
           region3 = selectionView.regions[2]
-          expect(region3.position().top).toBe(6 * lineHeight)
-          expect(region3.position().left).toBe(0)
-          expect(region3.height()).toBe lineHeight
-          expect(region3.width()).toBe(25 * charWidth)
+          expect(region3.position().top).toBeCloseTo(6 * lineHeight)
+          expect(region3.position().left).toBeCloseTo(0)
+          expect(region3.height()).toBeCloseTo lineHeight
+          expect(region3.width()).toBeCloseTo(25 * charWidth)
 
       it "clears previously drawn regions before creating new ones", ->
         selection.setBufferRange(new Range({row: 2, column: 7}, {row: 4, column: 25}))
