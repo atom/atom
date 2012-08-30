@@ -14,7 +14,9 @@ end
 
 desc "Build Atom via `xcodebuild`"
 task :build => [:"create-project", :"verify-prerequisites"] do
-  output = `xcodebuild -scheme atom-release SYMROOT=#{BUILD_DIR}`
+  command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
+  puts command
+  output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
     exit($?.exitstatus)
