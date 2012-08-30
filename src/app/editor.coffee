@@ -562,15 +562,13 @@ class Editor extends View
     return if @mini
     if @getBuffer().isModified()
       filename = if @getPath() then fs.base(@getPath()) else "untitled buffer"
-      message = "'#{filename}' has changes, do you want to save them?"
-      detailedMessage = "Your changes will be lost if you don't save them"
-      buttons = [
-        ["Save", => @save() and @destroyActiveEditSession()]
-        ["Cancel", =>]
-        ["Don't save", => @destroyActiveEditSession()]
-      ]
-
-      Native.alert message, detailedMessage, buttons
+      atom.confirm(
+        "'#{filename}' has changes, do you want to save them?"
+        "Your changes will be lost if you don't save them"
+        "Save", (=> @save() and @destroyActiveEditSession())
+        "Cancel", null
+        "Don't save", (=> @destroyActiveEditSession())
+      )
     else
       @destroyActiveEditSession()
 
