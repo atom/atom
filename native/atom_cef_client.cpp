@@ -1,22 +1,22 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
-// reserved. Use of this source code is governed by a BSD-style license that
-// can be found in the LICENSE file.
-
 #include <sstream>
 #include <iostream>
+#include <assert.h>
 #include "include/cef_path_util.h"
 #include "include/cef_process_util.h"
+#include "include/cef_task.h"
 #include "include/cef_runnable.h"
 #include "native/atom_cef_client.h"
 #include "cef_v8.h"
 
-AtomCefClient::AtomCefClient(){
+#define REQUIRE_UI_THREAD()   assert(CefCurrentlyOn(TID_UI));
+#define REQUIRE_IO_THREAD()   assert(CefCurrentlyOn(TID_IO));
+#define REQUIRE_FILE_THREAD() assert(CefCurrentlyOn(TID_FILE));
 
+AtomCefClient::AtomCefClient(){
 }
 
 AtomCefClient::~AtomCefClient() {
 }
-
 
 bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                              CefProcessId source_process,
@@ -28,20 +28,14 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   if (name == "open") {
     bool hasArguments = argumentList->GetSize() > 1;
     hasArguments ? Open(argumentList->GetString(1)) : Open();
-    return true;
   }
-
-  if (name == "newWindow") {
+  else if (name == "newWindow") {
     NewWindow();
-    return true;
   }
-
-  if (name == "toggleDevTools") {
+  else if (name == "toggleDevTools") {
     ToggleDevTools(browser);
-    return true;
   }
-
-  if (name == "confirm") {
+  else if (name == "confirm") {
     std::string message = argumentList->GetString(1).ToString();
     std::string detailedMessage = argumentList->GetString(2).ToString();
     std::vector<std::string> buttonLabels(argumentList->GetSize() - 3);
@@ -50,17 +44,17 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     }
 
     Confirm(messageId, message, detailedMessage, buttonLabels, browser);
-    return true;
   }
-
-  if (name == "showSaveDialog") {
+  else if (name == "showSaveDialog") {
     ShowSaveDialog(messageId, browser);
     return true;
   }
+  else {
+    return false;
+  }
 
-  return false;
+  return true;
 }
-
 
 void AtomCefClient::OnBeforeContextMenu(
     CefRefPtr<CefBrowser> browser,
@@ -118,7 +112,7 @@ void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
 
 
-  // this was in cefclient... was there a good reason?
+// TODO: Ask Marshal. This was in cefclient... was there a good reason?
 //  if(m_BrowserHwnd == browser->GetWindowHandle()) {
 //    // Free the browser pointer so that the browser can be destroyed
 //    m_Browser = NULL;
@@ -144,18 +138,5 @@ void AtomCefClient::OnLoadError(CefRefPtr<CefBrowser> browser,
                                 const CefString& errorText,
                                 const CefString& failedUrl) {
   REQUIRE_UI_THREAD();
-
-  if (errorCode == ERR_ABORTED) { // Don't display an error for downloaded files.
-    return;
-  }
-  else if (errorCode == ERR_UNKNOWN_URL_SCHEME) { // Don't display an error for external protocols that we allow the OS to handle. See OnProtocolExecution().
-    return;
-  }
-  else {
-    std::stringstream ss;
-    ss << "<html><body><h2>Failed to load URL " << std::string(failedUrl) <<
-    " with error " << std::string(errorText) << " (" << errorCode <<
-    ").</h2></body></html>";
-    frame->LoadString(ss.str(), failedUrl);
-  }
+  frame->LoadString(std::string(errorText) + "<br />" + std::string(failedUrl), failedUrl);
 }

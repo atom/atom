@@ -3,7 +3,6 @@
 
 #import "atom.h"
 #import "atom_application.h"
-#import "util.h"
 #import "message_translation.h"
 
 namespace v8_extensions {

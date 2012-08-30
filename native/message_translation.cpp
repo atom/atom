@@ -1,5 +1,5 @@
+#include <assert.h>
 #include "message_translation.h"
-#include "util.h"
 
 // Transfer a V8 value to a List index.
 void TranslateListValue(CefRefPtr<CefListValue> list, int index, CefRefPtr<CefV8Value> value) {
@@ -20,7 +20,7 @@ void TranslateListValue(CefRefPtr<CefListValue> list, int index, CefRefPtr<CefV8
 
 // Transfer a V8 array to a List.
 void TranslateList(CefRefPtr<CefV8Value> source, CefRefPtr<CefListValue> target) {
-  ASSERT(source->IsArray());
+  assert(source->IsArray());
 
   int arg_length = source->GetArrayLength();
   if (arg_length == 0)
@@ -70,7 +70,7 @@ void TranslateListValue(CefRefPtr<CefV8Value> list, int index, CefRefPtr<CefList
 
 // Transfer a List to a V8 array.
 void TranslateList(CefRefPtr<CefListValue> source, CefRefPtr<CefV8Value> target) {
-  ASSERT(target->IsArray());
+  assert(target->IsArray());
 
   int arg_length = source->GetSize();
   if (arg_length == 0)
