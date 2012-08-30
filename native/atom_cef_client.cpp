@@ -4,19 +4,23 @@
 
 #include <sstream>
 #include <iostream>
+#include <assert.h>
 #include "include/cef_path_util.h"
 #include "include/cef_process_util.h"
+#include "include/cef_task.h"
 #include "include/cef_runnable.h"
 #include "native/atom_cef_client.h"
 #include "cef_v8.h"
 
-AtomCefClient::AtomCefClient(){
+#define REQUIRE_UI_THREAD()   assert(CefCurrentlyOn(TID_UI));
+#define REQUIRE_IO_THREAD()   assert(CefCurrentlyOn(TID_IO));
+#define REQUIRE_FILE_THREAD() assert(CefCurrentlyOn(TID_FILE));
 
+AtomCefClient::AtomCefClient(){
 }
 
 AtomCefClient::~AtomCefClient() {
 }
-
 
 bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                              CefProcessId source_process,

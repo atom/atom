@@ -66,7 +66,6 @@
         'native/atom_cef_client.h',
         'native/message_translation.cpp',
         'native/message_translation.h',
-        'native/util.h',
       ],
       'mac_bundle_resources': [
         'native/mac/atom.icns',
@@ -284,7 +283,6 @@
             'native/path_watcher.mm',
             'native/path_watcher.h',
             'native/main_helper_mac.mm',
-            'native/util.h',
             'native/v8_extensions/native.mm',
             'native/v8_extensions/native.h',
             'native/v8_extensions/onig_reg_exp.mm',

@@ -9,10 +9,7 @@
 #include <set>
 #include <string>
 #include "include/cef_client.h"
-#include "native/util.h"
 
-
-// AtomCefClient implementation.
 class AtomCefClient : public CefClient,
                       public CefContextMenuHandler,
                       public CefDisplayHandler,
