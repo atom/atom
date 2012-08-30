@@ -24,11 +24,11 @@ describe "Window", ->
 
     it "shows alert when a modifed buffer exists", ->
       rootView.getActiveEditor().insertText("hi")
-      spyOn($native, "alert")
+      spyOn(atom, "confirm")
       spyOn($native, "reload")
       window.reload()
       expect($native.reload).not.toHaveBeenCalled()
-      expect($native.alert).toHaveBeenCalled()
+      expect(atom.confirm).toHaveBeenCalled()
 
   describe "requireStylesheet(path)", ->
     it "synchronously loads the stylesheet at the given path and installs a style tag for it in the head", ->
