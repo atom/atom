@@ -50,7 +50,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   }
   else if (name == "showSaveDialog") {
     ShowSaveDialog(messageId, browser);
-    return true;
+  }
+  else if (name == "focus") {
+    GetBrowser()->GetHost()->SetFocus(true);
   }
   else {
     return false;

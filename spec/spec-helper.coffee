@@ -21,6 +21,7 @@ defaultTitle = document.title
 pathsWithSubscriptions = null
 
 beforeEach ->
+  atom.focus()
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
   pathsWithSubscriptions = []
