@@ -4,9 +4,6 @@ var $native = {};
   native function exists(path);
   $native.exists = exists;
 
-  native function alert(message, detailedMessage, buttonNamesAndCallbacks);
-  $native.alert = alert;
-
   native function read(path);
   $native.read = read;
 

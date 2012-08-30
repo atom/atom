@@ -162,42 +162,6 @@ bool Native::Execute(const CefString& name,
   else if (name == "asyncList") {    
     return false;
   }
-  else if (name == "alert") {
-    NSString *message = stringFromCefV8Value(arguments[0]);
-    NSString *detailedMessage = stringFromCefV8Value(arguments[1]);
-      
-    CefRefPtr<CefV8Value> buttonNamesAndCallbacks;
-    if (arguments.size() < 3) {
-      buttonNamesAndCallbacks = CefV8Value::CreateArray(0);
-    }
-    else {
-      buttonNamesAndCallbacks = arguments[2];
-    }
-    
-    NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-    [alert setMessageText:message];
-    [alert setInformativeText:detailedMessage];
-    
-    for (int i = 0; i < buttonNamesAndCallbacks->GetArrayLength(); i++) {
-      std::string title = buttonNamesAndCallbacks->GetValue(i)->GetValue(0)->GetStringValue().ToString();
-      NSString *buttonTitle = [NSString stringWithUTF8String:title.c_str()];
-      NSButton *button = [alert addButtonWithTitle:buttonTitle];
-      [button setTag:i];
-    }
-    
-    NSUInteger buttonTag = [alert runModal];    
-    
-    if (buttonNamesAndCallbacks->GetArrayLength() == 0) { // No button title if there were no buttons specified.
-      return true; 
-    }
-    
-    CefRefPtr<CefV8Value> callback = buttonNamesAndCallbacks->GetValue(buttonTag)->GetValue(1);
-    CefV8ValueList args;
-    callback->SetRethrowExceptions(true);
-    callback->ExecuteFunction(callback, args);
-      
-    return true;
-  }
   else if (name == "writeToPasteboard") {
     NSString *text = stringFromCefV8Value(arguments[0]);
     
