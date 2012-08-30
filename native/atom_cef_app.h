@@ -1,5 +1,5 @@
-#ifndef CEF_TESTS_CEFCLIENT_CLIENT_APP_H_
-#define CEF_TESTS_CEFCLIENT_CLIENT_APP_H_
+#ifndef ATOM_CEF_APP_H_
+#define ATOM_CEF_APP_H_
 #pragma once
 
 #include "include/cef_app.h"
@@ -11,7 +11,6 @@
 class AtomCefApp : public CefApp {
 
 #ifdef PROCESS_HELPER_APP
-  // CefApp methods
   virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() OVERRIDE {
     return CefRefPtr<CefRenderProcessHandler>(new AtomCefRenderProcessHandler);
   }
@@ -20,4 +19,4 @@ class AtomCefApp : public CefApp {
   IMPLEMENT_REFCOUNTING(AtomCefApp);
 };
 
-#endif  // CEF_TESTS_CEFCLIENT_CLIENT_APP_H_
+#endif

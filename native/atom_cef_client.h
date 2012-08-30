@@ -1,9 +1,5 @@
-// Copyright (c) 2011 The Chromium Embedded Framework Authors. All rights
-// reserved. Use of this source code is governed by a BSD-style license that
-// can be found in the LICENSE file.
-
-#ifndef CEF_TESTS_CEFCLIENT_CLIENT_HANDLER_H_
-#define CEF_TESTS_CEFCLIENT_CLIENT_HANDLER_H_
+#ifndef ATOM_CEF_CLIENT_H_
+#define ATOM_CEF_CLIENT_H_
 #pragma once
 
 #include <set>
@@ -114,4 +110,4 @@ class AtomCefClient : public CefClient,
   IMPLEMENT_LOCKING(AtomCefClient);
 };
 
-#endif  // CEF_TESTS_CEFCLIENT_CLIENT_HANDLER_H_
+#endif
