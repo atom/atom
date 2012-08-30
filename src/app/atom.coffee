@@ -18,7 +18,7 @@ atom.sendMessageToBrowserProcess = (name, data, callbacks) ->
 atom.receiveMessageFromBrowserProcess = (name, data) ->
   if name is 'reply'
     [messageId, callbackIndex] = data.shift()
-    @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data)
+    @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
 
 atom.open = (args...) ->
   @sendMessageToBrowserProcess('open', args)

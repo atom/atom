@@ -516,14 +516,15 @@ class Editor extends View
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
 
-  save: ->
+  save: (onSuccess) ->
     if not @getPath()
-      path = Native.saveDialog()
-      return false if not path
-      @getBuffer().saveAs(path)
+      atom.showSaveDialog (path) =>
+        if path
+          @getBuffer().saveAs(path)
+          onSuccess()
     else
       @getBuffer().save()
-    true
+      onSuccess()
 
   subscribeToFontSize: ->
     return unless rootView = @rootView()
@@ -565,7 +566,7 @@ class Editor extends View
       atom.confirm(
         "'#{filename}' has changes, do you want to save them?"
         "Your changes will be lost if you don't save them"
-        "Save", (=> @save() and @destroyActiveEditSession())
+        "Save", (=> @save(=> @destroyActiveEditSession())),
         "Cancel", null
         "Don't save", (=> @destroyActiveEditSession())
       )
