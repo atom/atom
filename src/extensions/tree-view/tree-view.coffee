@@ -209,15 +209,13 @@ class TreeView extends View
     return unless entry
 
     entryType = if entry instanceof DirectoryView then "directory" else "file"
-    message = "Are you sure you would like to delete the selected #{entryType}?"
-    detailedMessage = "You are deleting #{entry.getPath()}"
-    buttons = [
-      ["Move to Trash", => Native.moveToTrash(entry.getPath())]
-      ["Cancel", => ] # Do Nothing
-      ["Delete", => fs.remove(entry.getPath())]
-    ]
-
-    Native.alert message, detailedMessage, buttons
+    atom.confirm(
+      "Are you sure you would like to delete the selected #{entryType}?",
+      "You are deleting #{entry.getPath()}",
+      "Move to Trash", (=> Native.moveToTrash(entry.getPath())),
+      "Cancel", null
+      "Delete", (=> fs.remove(entry.getPath()))
+    )
 
   add: ->
     selectedPath = @selectedEntry().getPath()
