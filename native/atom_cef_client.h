@@ -99,12 +99,13 @@ class AtomCefClient : public CefClient,
   void Open(std::string path);
   void Open();
   void NewWindow();
+  void ToggleDevTools(CefRefPtr<CefBrowser> browser);
+  void ShowDevTools(CefRefPtr<CefBrowser> browser);
   void Confirm(int replyId,
                std::string message,
                std::string detailedMessage,
                std::vector<std::string> buttonLabels,
                CefRefPtr<CefBrowser> browser);
-  void ToggleDevTools(CefRefPtr<CefBrowser> browser);
   void ShowSaveDialog(int replyId, CefRefPtr<CefBrowser> browser);
   CefRefPtr<CefListValue> CreateReplyDescriptor(int replyId, int callbackIndex);
 

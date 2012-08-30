@@ -80,6 +80,8 @@
 }
 
 - (void)showDevTools {
+  if (_devToolsView) return;
+
   if (_cefClient && _cefClient->GetBrowser()) {
     _devToolsView = [[NSView alloc] initWithFrame:_splitView.bounds];
     [_splitView addSubview:_devToolsView];

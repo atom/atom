@@ -26,5 +26,6 @@ class AtomCefClient;
 - (id)initBenchmarks;
 
 - (void)toggleDevTools;
+- (void)showDevTools;
 
 @end

@@ -52,6 +52,11 @@ void AtomCefClient::ToggleDevTools(CefRefPtr<CefBrowser> browser) {
   [windowController toggleDevTools];
 }
 
+void AtomCefClient::ShowDevTools(CefRefPtr<CefBrowser> browser) {
+  AtomWindowController *windowController = [[browser->GetHost()->GetWindowHandle() window] windowController];
+  [windowController showDevTools];
+}
+
 void AtomCefClient::ShowSaveDialog(int replyId, CefRefPtr<CefBrowser> browser) {
   CefRefPtr<CefProcessMessage> replyMessage = CefProcessMessage::Create("reply");
   CefRefPtr<CefListValue> replyArguments = replyMessage->GetArgumentList();

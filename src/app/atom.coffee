@@ -8,7 +8,7 @@ originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
 atom.pendingBrowserProcessCallbacks = {}
 
-atom.sendMessageToBrowserProcess = (name, data, callbacks) ->
+atom.sendMessageToBrowserProcess = (name, data=[], callbacks) ->
   messageId = messageIdCounter++
   data.unshift(messageId)
   callbacks = [callbacks] if typeof callbacks is 'function'
@@ -37,8 +37,11 @@ atom.confirm = (message, detailedMessage, buttonLabelsAndCallbacks...) ->
 atom.showSaveDialog = (callback) ->
   @sendMessageToBrowserProcess('showSaveDialog', [], callback)
 
-atom.toggleDevTools = (args...)->
-  @sendMessageToBrowserProcess('toggleDevTools', args)
+atom.toggleDevTools = ->
+  @sendMessageToBrowserProcess('toggleDevTools')
+
+atom.showDevTools = ->
+  @sendMessageToBrowserProcess('showDevTools')
 
 atom.getRootViewStateForPath = (path) ->
   if json = localStorage[path]

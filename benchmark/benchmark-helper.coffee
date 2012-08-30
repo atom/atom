@@ -23,7 +23,7 @@ keymap.bindKeys '*',
   'meta-w': 'close'
   'alt-meta-i': 'show-console'
 $(document).on 'close', -> window.close()
-$(document).on 'show-console', -> $native.showDevTools()
+$(document).on 'show-console', -> atom.toggleDevTools()
 
 defaultCount = 100
 window.pbenchmark = (args...) -> window.benchmark(args..., profile: true)
@@ -42,7 +42,7 @@ window.benchmark = (args...) ->
   [fn, options] = args
   { profile, focused } = (options ? {})
 
-  $native.showDevTools() if profile
+  atom.showDevTools() if profile
   method = if focused then fit else it
   method description, ->
     total = measure ->

@@ -35,6 +35,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "toggleDevTools") {
     ToggleDevTools(browser);
   }
+  else if (name == "showDevTools") {
+    ShowDevTools(browser);
+  }
   else if (name == "confirm") {
     std::string message = argumentList->GetString(1).ToString();
     std::string detailedMessage = argumentList->GetString(2).ToString();

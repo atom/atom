@@ -15,7 +15,7 @@
         if (bootstrapScript) require(bootstrapScript);
       }
       catch (error) {
-        //$native.showDevTools();
+        atom.showDevTools();
         console.error(error.stack || error);
       }
     }
