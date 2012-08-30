@@ -709,9 +709,9 @@ describe "TreeView", ->
     describe "tree-view:remove", ->
       it "shows the native alert dialog", ->
         fileView.click()
-        spyOn(Native, 'alert')
+        spyOn(atom, 'confirm')
         treeView.trigger 'tree-view:remove'
-        expect(Native.alert).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
   describe "file system events", ->
     temporaryFilePath = null

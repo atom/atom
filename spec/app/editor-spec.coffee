@@ -120,7 +120,7 @@ describe "Editor", ->
       fileChangeHandler = jasmine.createSpy('fileChange')
       editSession.buffer.file.on 'contents-change', fileChangeHandler
 
-      spyOn($native, "alert")
+      spyOn(atom, "confirm")
 
       fs.write(path, "a file change")
 
@@ -128,7 +128,7 @@ describe "Editor", ->
         fileChangeHandler.callCount > 0
 
       runs ->
-        expect($native.alert).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
   describe ".remove()", ->
     it "removes subscriptions from all edit session buffers", ->
@@ -171,11 +171,11 @@ describe "Editor", ->
     describe "when buffer is modified", ->
       it "triggers an alert and does not close the session", ->
         spyOn(editor, 'remove').andCallThrough()
-        spyOn($native, 'alert')
+        spyOn(atom, 'confirm')
         editor.insertText("I AM CHANGED!")
         editor.trigger "close"
         expect(editor.remove).not.toHaveBeenCalled()
-        expect($native.alert).toHaveBeenCalled()
+        expect(atom.confirm).toHaveBeenCalled()
 
   describe ".edit(editSession)", ->
     otherEditSession = null
@@ -257,7 +257,7 @@ describe "Editor", ->
         bufferContentsChangeHandler = jasmine.createSpy('fileChange')
         editSession.on 'buffer-contents-change-on-disk', bufferContentsChangeHandler
 
-        spyOn($native, "alert")
+        spyOn(atom, "confirm")
 
         fs.write(path, "a file change")
 
@@ -265,7 +265,7 @@ describe "Editor", ->
           bufferContentsChangeHandler.callCount > 0
 
         runs ->
-          expect($native.alert).toHaveBeenCalled()
+          expect(atom.confirm).toHaveBeenCalled()
 
     describe ".loadNextEditSession()", ->
       it "loads the next editor state and wraps to beginning when end is reached", ->
