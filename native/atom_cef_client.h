@@ -112,6 +112,8 @@ class AtomCefClient : public CefClient,
                std::vector<std::string> buttonLabels,
                CefRefPtr<CefBrowser> browser);
   void ToggleDevTools(CefRefPtr<CefBrowser> browser);
+  void ShowSaveDialog(int replyId, CefRefPtr<CefBrowser> browser);
+  CefRefPtr<CefListValue> CreateReplyDescriptor(int replyId, int callbackIndex);
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);

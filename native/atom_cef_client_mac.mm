@@ -42,13 +42,38 @@ void AtomCefClient::Confirm(int replyId,
 
   CefRefPtr<CefProcessMessage> replyMessage = CefProcessMessage::Create("reply");
   CefRefPtr<CefListValue> replyArguments = replyMessage->GetArgumentList();
-  replyArguments->SetSize(2);
-  replyArguments->SetInt(0, replyId);
-  replyArguments->SetInt(1, clickedButtonTag);
+  replyArguments->SetSize(1);
+  replyArguments->SetList(0, CreateReplyDescriptor(replyId, clickedButtonTag));
   browser->SendProcessMessage(PID_RENDERER, replyMessage);
 }
 
 void AtomCefClient::ToggleDevTools(CefRefPtr<CefBrowser> browser) {
   AtomWindowController *windowController = [[browser->GetHost()->GetWindowHandle() window] windowController];
   [windowController toggleDevTools];
+}
+
+void AtomCefClient::ShowSaveDialog(int replyId, CefRefPtr<CefBrowser> browser) {
+  CefRefPtr<CefProcessMessage> replyMessage = CefProcessMessage::Create("reply");
+  CefRefPtr<CefListValue> replyArguments = replyMessage->GetArgumentList();
+
+  NSSavePanel *panel = [NSSavePanel savePanel];
+  if ([panel runModal] == NSFileHandlingPanelOKButton) {
+    CefString path = CefString([[[panel URL] path] UTF8String]);
+    replyArguments->SetSize(2);
+    replyArguments->SetString(1, path);
+  }
+  else {
+    replyArguments->SetSize(1);
+  }
+  replyArguments->SetList(0, CreateReplyDescriptor(replyId, 0));
+
+  browser->SendProcessMessage(PID_RENDERER, replyMessage);
+}
+
+CefRefPtr<CefListValue> AtomCefClient::CreateReplyDescriptor(int replyId, int callbackIndex) {
+  CefRefPtr<CefListValue> descriptor = CefListValue::Create();
+  descriptor->SetSize(2);
+  descriptor->SetInt(0, replyId);
+  descriptor->SetInt(1, callbackIndex);
+  return descriptor;
 }

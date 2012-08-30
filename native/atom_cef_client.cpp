@@ -53,6 +53,11 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     return true;
   }
 
+  if (name == "showSaveDialog") {
+    ShowSaveDialog(messageId, browser);
+    return true;
+  }
+
   return false;
 }
 

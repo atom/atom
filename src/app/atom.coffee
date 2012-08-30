@@ -8,16 +8,17 @@ originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
 atom.pendingBrowserProcessCallbacks = {}
 
-atom.sendMessageToBrowserProcess = (name, data, callback) ->
+atom.sendMessageToBrowserProcess = (name, data, callbacks) ->
   messageId = messageIdCounter++
   data.unshift(messageId)
-  @pendingBrowserProcessCallbacks[messageId] = callback
+  callbacks = [callbacks] if typeof callbacks is 'function'
+  @pendingBrowserProcessCallbacks[messageId] = callbacks
   originalSendMessageToBrowserProcess(name, data)
 
 atom.receiveMessageFromBrowserProcess = (name, data) ->
   if name is 'reply'
-    [messageId, callbackIndex] = data
-    @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?()
+    [messageId, callbackIndex] = data.shift()
+    @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data)
 
 atom.open = (args...) ->
   @sendMessageToBrowserProcess('open', args)
@@ -32,6 +33,9 @@ atom.confirm = (message, detailedMessage, buttonLabelsAndCallbacks...) ->
     args.push(buttonLabelsAndCallbacks.shift())
     callbacks.push(buttonLabelsAndCallbacks.shift())
   @sendMessageToBrowserProcess('confirm', args, callbacks)
+
+atom.showSaveDialog = (callback) ->
+  @sendMessageToBrowserProcess('showSaveDialog', [], callback)
 
 atom.toggleDevTools = (args...)->
   @sendMessageToBrowserProcess('toggleDevTools', args)
