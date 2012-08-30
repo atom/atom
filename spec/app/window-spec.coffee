@@ -23,6 +23,7 @@ describe "Window", ->
       expect($native.reload).toHaveBeenCalled()
 
     it "shows alert when a modifed buffer exists", ->
+      rootView.open('sample.js')
       rootView.getActiveEditor().insertText("hi")
       spyOn(atom, "confirm")
       spyOn($native, "reload")
@@ -55,6 +56,7 @@ describe "Window", ->
       expect(atom.getRootViewStateForPath(window.rootView.project.getPath())).toEqual expectedState
 
     it "unsubscribes from all buffers", ->
+      rootView.open('sample.js')
       editor1 = rootView.getActiveEditor()
       editor2 = editor1.splitRight()
       expect(window.rootView.getEditors().length).toBe 2
