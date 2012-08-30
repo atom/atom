@@ -116,16 +116,3 @@ module.exports =
 
   md5ForPath: (path) ->
     $native.md5ForPath(path)
-
-  async:
-    list: (path) ->
-      deferred = $.Deferred()
-      $native.asyncList path, false, (subpaths) ->
-        deferred.resolve subpaths
-      deferred
-
-    listTree: (path) ->
-      deferred = $.Deferred()
-      $native.asyncList path, true, (subpaths) ->
-        deferred.resolve subpaths
-      deferred

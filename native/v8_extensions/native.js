@@ -25,9 +25,6 @@ var $native = {};
   native function remove(path);
   $native.remove = remove;
 
-  native function asyncList(path, recursive, callback);
-  $native.asyncList = asyncList;
-
   native function open(path);
   $native.open = open;
 

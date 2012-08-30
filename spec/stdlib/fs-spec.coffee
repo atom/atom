@@ -96,20 +96,3 @@ describe "fs", ->
   describe ".md5ForPath(path)", ->
     it "returns the MD5 hash of the file at the given path", ->
       expect(fs.md5ForPath(require.resolve('fixtures/sample.js'))).toBe 'dd38087d0d7e3e4802a6d3f9b9745f2b'
-
-  describe ".async", ->
-    directoryPath = null
-    beforeEach ->
-      directoryPath = require.resolve 'fixtures/dir'
-
-    describe ".listTree(directoryPath)", ->
-      it "returns a promise that resolves to the recursive contents of that directory", ->
-        waitsForPromise ->
-          fs.async.listTree(directoryPath).done (result) ->
-            expect(result).toEqual fs.listTree(directoryPath)
-
-    describe ".list(directoryPath)", ->
-      it "returns a promise that resolves to the contents of that directory", ->
-        waitsForPromise ->
-          fs.async.list(directoryPath).done (result) ->
-            expect(result).toEqual fs.list(directoryPath)

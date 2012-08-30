@@ -159,9 +159,6 @@ bool Native::Execute(const CefString& name,
 
     return true;
   }
-  else if (name == "asyncList") {
-    return false;
-  }
   else if (name == "writeToPasteboard") {
     NSString *text = stringFromCefV8Value(arguments[0]);
 
