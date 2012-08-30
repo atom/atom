@@ -321,11 +321,11 @@ describe "Editor", ->
 
         expect(editor.getPath()).toBeUndefined()
         editor.getBuffer().setText 'Save me to a new path'
-        spyOn($native, 'saveDialog').andCallFake -> selectedFilePath
+        spyOn(atom, 'showSaveDialog').andCallFake (callback) -> callback(selectedFilePath)
 
       it "presents a 'save as' dialog", ->
         editor.save()
-        expect($native.saveDialog).toHaveBeenCalled()
+        expect(atom.showSaveDialog).toHaveBeenCalled()
 
       describe "when a path is chosen", ->
         it "saves the buffer to the chosen path", ->

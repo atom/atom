@@ -40,9 +40,6 @@ var $native = {};
   native function readFromPasteboard();
   $native.readFromPasteboard = readFromPasteboard;
 
-  native function saveDialog();
-  $native.saveDialog = saveDialog;
-
   native function exit(status);
   $native.exit = exit;
 
