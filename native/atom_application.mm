@@ -57,26 +57,6 @@
   [[AtomWindowController alloc] initBenchmarks];
 }
 
-//#pragma mark BrowserDelegate
-//
-//- (void)loadEnd {
-//  if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--headless"]) {
-//    [self modifyJavaScript:^(CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Value> global) {
-//      CefRefPtr<CefV8Value> atom = context->GetGlobal()->GetValue("atom");
-//      atom->SetValue("headless", CefV8Value::CreateBool(YES), V8_PROPERTY_ATTRIBUTE_NONE);
-//    }];
-//  }
-//
-//  if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--benchmark"]) {
-//    [self runBenchmarks:self];
-//  }
-//
-//  if ([[[NSProcessInfo processInfo] arguments] containsObject:@"--test"]) {
-//    [self runSpecs:self];
-//  }
-//}
-//
-
 # pragma mark NSApplicationDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
