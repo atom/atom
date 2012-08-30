@@ -400,12 +400,12 @@ class Editor extends View
       @showBufferConflictAlert(@activeEditSession)
 
   showBufferConflictAlert: (editSession) ->
-    message = editSession.getPath()
-    detailedMessage = "Has changed on disk. Do you want to reload it?"
-    Native.alert message, detailedMessage, [
-      ["Reload", => editSession.buffer.reload()]
-      ["Cancel", => ],
-    ]
+    atom.confirm(
+      editSession.getPath(),
+      "Has changed on disk. Do you want to reload it?",
+      "Reload", (=> editSession.buffer.reload()),
+      "Cancel"
+    )
 
   activateEditSessionForPath: (path) ->
     for editSession, index in @editSessions
