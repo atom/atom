@@ -975,7 +975,7 @@ describe "Editor", ->
     describe "when all lines in the buffer are visible on screen", ->
       beforeEach ->
         editor.attachToDom()
-        expect(editor.height()).toBe buffer.getLineCount() * editor.lineHeight
+        expect(editor.trueHeight()).toBeCloseTo buffer.getLineCount() * editor.lineHeight
 
       it "creates a line element for each line in the buffer with the html-escaped text of the line", ->
         expect(editor.renderedLines.find('.line').length).toEqual(buffer.getLineCount())
@@ -1031,8 +1031,8 @@ describe "Editor", ->
 
           editor.getSelection().setBufferRange(new Range([6, 30], [6, 55]))
           [region1, region2] = editor.getSelectionView().regions
-          expect(region1.offset().top).toBe(editor.renderedLines.find('.line:eq(7)').offset().top)
-          expect(region2.offset().top).toBe(editor.renderedLines.find('.line:eq(8)').offset().top)
+          expect(region1.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(7)').offset().top)
+          expect(region2.offset().top).toBeCloseTo(editor.renderedLines.find('.line:eq(8)').offset().top)
 
         it "handles changes to wrapped lines correctly", ->
           buffer.insert([6, 28], '1234567')

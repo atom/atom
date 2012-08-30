@@ -655,9 +655,12 @@ class Editor extends View
   calculateDimensions: ->
     fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)
-    @charWidth = fragment.width()
-    @charHeight = fragment.find('span').height()
-    @lineHeight = fragment.outerHeight()
+
+    lineRect = fragment[0].getBoundingClientRect()
+    charRect = fragment.find('span')[0].getBoundingClientRect()
+    @lineHeight = lineRect.height
+    @charWidth = charRect.width
+    @charHeight = charRect.height
     @height(@lineHeight) if @mini
     fragment.remove()
 

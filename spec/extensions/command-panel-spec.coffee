@@ -330,7 +330,7 @@ describe "CommandPanel", ->
         expect(previewList.find('li:last')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
 
-        expect(previewList.scrollBottom()).toBe previewList.prop('scrollHeight')
+        expect(previewList.scrollBottom()).toBeCloseTo previewList.prop('scrollHeight'), -1
 
         _.times previewList.getOperations().length, -> previewList.trigger 'move-up'
 

@@ -30,3 +30,9 @@ $.fn.flashError = ->
   @addClass 'error'
   removeErrorClass = => @removeClass 'error'
   window.setTimeout(removeErrorClass, 200)
+
+$.fn.trueHeight = ->
+  this[0].getBoundingClientRect().height
+
+$.fn.trueWidth = ->
+  this[0].getBoundingClientRect().width

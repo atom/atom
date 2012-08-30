@@ -289,38 +289,39 @@ describe "RootView", ->
         expect(row1.children().length).toBe 2
         column1 = row1.children(':eq(0)').view()
         pane1 = row1.children(':eq(1)').view()
-        expect(column1.outerWidth()).toBe Math.floor(2/3 * rootView.panes.width())
+        expect(column1.outerWidth()).toBe Math.round(2/3 * rootView.panes.width())
         expect(column1.outerHeight()).toBe rootView.height()
-        expect(pane1.outerWidth()).toBe Math.floor(1/3 * rootView.panes.width())
+        expect(pane1.outerWidth()).toBe Math.round(1/3 * rootView.panes.width())
         expect(pane1.outerHeight()).toBe rootView.height()
-        expect(pane1.position().left).toBe column1.outerWidth()
+        expect(Math.round(pane1.position().left)).toBe column1.outerWidth()
 
         expect(column1.children().length).toBe 2
         row2 = column1.children(':eq(0)').view()
         pane2 = column1.children(':eq(1)').view()
         expect(row2.outerWidth()).toBe column1.outerWidth()
-        expect(row2.height()).toBe Math.floor(2/3 * rootView.panes.height())
+        expect(row2.height()).toBe 2/3 * rootView.panes.height()
         expect(pane2.outerWidth()).toBe column1.outerWidth()
-        expect(pane2.outerHeight()).toBe Math.floor(1/3 * rootView.panes.height())
+        expect(pane2.outerHeight()).toBe 1/3 * rootView.panes.height()
         expect(pane2.position().top).toBe row2.height()
 
         expect(row2.children().length).toBe 2
         column3 = row2.children(':eq(0)').view()
         pane3 = row2.children(':eq(1)').view()
-        expect(column3.outerWidth()).toBe Math.floor(1/3 * rootView.panes.width())
+        expect(column3.outerWidth()).toBe Math.round(1/3 * rootView.panes.width())
         expect(column3.outerHeight()).toBe row2.outerHeight()
-        expect(pane3.outerWidth()).toBe Math.floor(1/3 * rootView.panes.width())
+        # the built in rounding seems to be rounding x.5 down, but we need to go up. this sucks.
+        expect(Math.round(pane3.trueWidth())).toBe Math.round(1/3 * rootView.panes.width())
         expect(pane3.height()).toBe row2.outerHeight()
-        expect(pane3.position().left).toBe column3.width()
+        expect(Math.round(pane3.position().left)).toBe column3.width()
 
         expect(column3.children().length).toBe 2
         pane4 = column3.children(':eq(0)').view()
         pane5 = column3.children(':eq(1)').view()
         expect(pane4.outerWidth()).toBe column3.width()
-        expect(pane4.outerHeight()).toBe Math.floor(1/3 * rootView.panes.height())
+        expect(pane4.outerHeight()).toBe 1/3 * rootView.panes.height()
         expect(pane5.outerWidth()).toBe column3.width()
         expect(pane5.position().top).toBe pane4.outerHeight()
-        expect(pane5.outerHeight()).toBe Math.floor(1/3 * rootView.panes.height())
+        expect(pane5.outerHeight()).toBe 1/3 * rootView.panes.height()
 
         pane5.remove()
 
