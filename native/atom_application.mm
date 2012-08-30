@@ -61,7 +61,11 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
+#ifdef RESOURCE_PATH
+  [self open:[NSString stringWithUTF8String:RESOURCE_PATH]];
+#else
   [self open:nil];
+#endif
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
