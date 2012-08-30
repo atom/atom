@@ -1,3 +1,4 @@
+require 'atom'
 {runSpecSuite} = require 'jasmine-helper'
 
 document.title = "Benchmark Suite"
