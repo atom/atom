@@ -55,7 +55,7 @@ window.benchmark = (args...) ->
     report = "#{fullname}: #{total} / #{count} = #{avg}ms"
     console.log(report)
 
-    if atom.headless
+    if atom.exitWhenDone
       url = "https://github.com/_stats"
       data = [type: 'timing', metric: "atom.#{fullname}", ms: avg]
       $.ajax url,

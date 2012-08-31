@@ -50,22 +50,40 @@
 }
 
 - (IBAction)runSpecs:(id)sender {
-  [[AtomWindowController alloc] initSpecs];
+  [self runSpecsThenExit:NO];
+}
+
+- (void)runSpecsThenExit:(BOOL)exitWhenDone {
+  [[AtomWindowController alloc] initSpecsThenExit:exitWhenDone];
 }
 
 - (IBAction)runBenchmarks:(id)sender {
-  [[AtomWindowController alloc] initBenchmarks];
+  [self runBenchmarksThenExit:NO];
+}
+
+- (void)runBenchmarksThenExit:(BOOL)exitWhenDone {
+  [[AtomWindowController alloc] initBenchmarksThenExit:exitWhenDone];
 }
 
 # pragma mark NSApplicationDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
-#ifdef RESOURCE_PATH
-  [self open:[NSString stringWithUTF8String:RESOURCE_PATH]];
-#else
-  [self open:nil];
-#endif
+  
+  NSArray *processArguments = [[NSProcessInfo processInfo] arguments];
+  if ([processArguments containsObject:@"--benchmark"]) {
+    [self runBenchmarksThenExit:true];
+  }
+  else if ([processArguments containsObject:@"--test"]) {
+    [self runSpecsThenExit:true];
+  }
+  else {
+    #ifdef RESOURCE_PATH
+      [self open:[NSString stringWithUTF8String:RESOURCE_PATH]];
+    #else
+      [self open:nil];
+    #endif
+  }
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {

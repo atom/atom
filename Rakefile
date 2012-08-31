@@ -53,13 +53,13 @@ end
 
 desc "Run the specs"
 task :test => :clean do
-  $ATOM_ARGS.push "--test", "--headless"
+  $ATOM_ARGS.push "--test"
   Rake::Task["run"].invoke
 end
 
 desc "Run the benchmarks"
 task :benchmark do
-  $ATOM_ARGS.push "--benchmark", "--headless"
+  $ATOM_ARGS.push "--benchmark"
   Rake::Task["run"].invoke
 end
 

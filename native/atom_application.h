@@ -14,5 +14,7 @@ class AtomCefClient;
 - (void)open:(NSString *)path;
 - (IBAction)runSpecs:(id)sender;
 - (IBAction)runBenchmarks:(id)sender;
+- (void)runSpecsThenExit:(BOOL)exitWhenDone;
+- (void)runBenchmarksThenExit:(BOOL)exitWhenDone;
 
 @end

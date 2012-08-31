@@ -40,12 +40,15 @@
   return self;
 }
 
-- (id)initSpecs {
+- (id)initSpecsThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
+  _exitWhenDone = exitWhenDone;
   return [self initWithBootstrapScript:@"spec-bootstrap" background:NO];
 }
 
-- (id)initBenchmarks {
+- (id)initBenchmarksThenExit:(BOOL)exitWhenDone {
+  _runningSpecs = true;
+  _exitWhenDone = exitWhenDone;
   return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO];
 }
 
@@ -64,7 +67,10 @@
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
   [urlString appendFormat:@"?bootstrapScript=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-  if (_pathToOpen) [urlString appendFormat:@"&pathToOpen=%@", [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+  if (_exitWhenDone)
+    [urlString appendString:@"&exitWhenDone=1"];
+  if (_pathToOpen)
+    [urlString appendFormat:@"&pathToOpen=%@", [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 
   _cefClient = new AtomCefClient();
   [self addBrowserToView:self.webView url:[urlString UTF8String] cefHandler:_cefClient];

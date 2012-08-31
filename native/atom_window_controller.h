@@ -13,7 +13,8 @@ class AtomCefClient;
   CefRefPtr<AtomCefClient> _cefDevToolsClient;
   CefRefPtr<CefV8Context> _atomContext;
 
-  bool _runningSpecs;
+  BOOL _runningSpecs;
+  BOOL _exitWhenDone;
 }
 
 @property (nonatomic, retain) IBOutlet NSSplitView *splitView;
@@ -22,8 +23,8 @@ class AtomCefClient;
 
 - (id)initWithPath:(NSString *)path;
 - (id)initInBackground;
-- (id)initSpecs;
-- (id)initBenchmarks;
+- (id)initSpecsThenExit:(BOOL)exitWhenDone;
+- (id)initBenchmarksThenExit:(BOOL)exitWhenDone;
 
 - (void)toggleDevTools;
 - (void)showDevTools;

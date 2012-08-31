@@ -10,7 +10,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   $('body').append $$ ->
     @div id: 'jasmine-content'
 
-  reporter = if atom.headless
+  reporter = if atom.exitWhenDone
     new jasmine.ConsoleReporter(document, logErrors)
   else
     new jasmine.AtomReporter(document)
