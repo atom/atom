@@ -37,9 +37,6 @@ var $native = {};
   native function readFromPasteboard();
   $native.readFromPasteboard = readFromPasteboard;
 
-  native function exit(status);
-  $native.exit = exit;
-
   native function watchPath(path);
   $native.watchPath = watchPath;
 

@@ -54,6 +54,9 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "focus") {
     GetBrowser()->GetHost()->SetFocus(true);
   }
+  else if (name == "exit") {
+    Exit(argumentList->GetInt(1));
+  }
   else {
     return false;
   }

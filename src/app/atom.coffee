@@ -48,6 +48,9 @@ atom.showDevTools = ->
 atom.focus = ->
   @sendMessageToBrowserProcess('focus')
 
+atom.exit = (status) ->
+  @sendMessageToBrowserProcess('exit', [status])
+
 atom.getRootViewStateForPath = (path) ->
   if json = localStorage[path]
     JSON.parse(json)

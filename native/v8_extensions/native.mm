@@ -181,13 +181,6 @@ bool Native::Execute(const CefString& name,
     [NSApp terminate:nil];
     return true;
   }
-  else if (name == "exit") {
-    int exitStatus = 0;
-    if (arguments.size() > 0) exitStatus = arguments[0]->GetIntValue();
-
-    exit(exitStatus);
-    return true;
-  }
   else if (name == "watchPath") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     CefRefPtr<CefV8Value> function = arguments[1];

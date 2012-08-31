@@ -15,7 +15,7 @@ jasmine.ConsoleReporter.prototype.reportRunnerResults = function(runner) {
   var message = "" + specCount + " spec" + (specCount == 1 ? "" : "s" ) + ", " + results.failedCount + " failure" + ((results.failedCount == 1) ? "" : "s");
   message += " in " + ((new Date().getTime() - this.startedAt.getTime()) / 1000) + "s";
 
-  $native.exit(results.failedCount > 0 ? 1 : 0)
+  atom.exit(results.failedCount > 0 ? 1 : 0)
 };
 
 jasmine.ConsoleReporter.prototype.reportSuiteResults = function(suite) {

@@ -89,3 +89,7 @@ CefRefPtr<CefListValue> AtomCefClient::CreateReplyDescriptor(int replyId, int ca
   descriptor->SetInt(1, callbackIndex);
   return descriptor;
 }
+
+void AtomCefClient::Exit(int status) {
+  exit(status);
+}
