@@ -1457,7 +1457,7 @@ describe "Editor", ->
 
     it "creates a line number element for each visible line, plus overdraw", ->
       expect(editor.gutter.find('.line-number').length).toBe 8
-      expect(editor.gutter.find('.line-number:first').text()).toBe "1"
+      expect(editor.find('.line-number:first').text()).toBe "1"
       expect(editor.gutter.find('.line-number:last').text()).toBe "8"
 
       # here we don't scroll far enough to trigger additional rendering
@@ -1472,13 +1472,15 @@ describe "Editor", ->
       expect(editor.gutter.find('.line-number:last').text()).toBe "11"
 
     describe "width", ->
-      it "sets the width based on last line number", ->
+      it "sets the width based on largest line number", ->
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 2
 
-      it "updates the width when total number of lines gains a digit", ->
-        oneHundredLines = [0..100].join("\n")
-        editor.insertText(oneHundredLines)
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 3
+      fit "updates the width when total number of lines gains a digit", ->
+        editor.setText("")
+        expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 1
+        for i in [1..9] # Ends on an empty line 10
+          editor.insertText "#{i}\n"
+        expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 2
 
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->

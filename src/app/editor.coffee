@@ -249,6 +249,7 @@ class Editor extends View
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
   getPath: -> @getBuffer().getPath()
+  getLineCount: -> @getBuffer().getLineCount()
   getLastBufferRow: -> @getBuffer().getLastRow()
   getTextInRange: (range) -> @getBuffer().getTextInRange(range)
   getEofPosition: -> @getBuffer().getEofPosition()
