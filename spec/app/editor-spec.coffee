@@ -1475,7 +1475,7 @@ describe "Editor", ->
       it "sets the width based on largest line number", ->
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 2
 
-      fit "updates the width when total number of lines gains a digit", ->
+      it "updates the width when total number of lines gains a digit", ->
         editor.setText("")
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 1
         for i in [1..9] # Ends on an empty line 10
