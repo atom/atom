@@ -13,6 +13,12 @@ describe "LanguageMode", ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
       { buffer, languageMode } = editSession
 
+    describe "language detection", ->
+      it "uses the file name as the file type if it has no extension", ->
+        jsEditSession = fixturesProject.buildEditSessionForPath('js', autoIndent: false)
+        expect(jsEditSession.languageMode.grammar.name).toBe "JavaScript"
+        jsEditSession.destroy()
+
     describe "matching character insertion", ->
       beforeEach ->
         editSession.buffer.setText("")
