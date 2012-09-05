@@ -4,18 +4,17 @@ $ATOM_ARGS = []
 
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
 BUILD_DIR = 'atom-build'
-mkdir_p BUILD_DIR
+mkdir_p BUILD_DIR, :verbose => false
 
 desc "Create xcode project from gpy file"
 task "create-project" do
-  sh "rm -rf atom.xcodeproj"
-  sh "python tools/gyp/gyp --depth=. atom.gyp"
+  `rm -rf atom.xcodeproj`
+  `python tools/gyp/gyp --depth=. atom.gyp`
 end
 
 desc "Build Atom via `xcodebuild`"
-task :build => [:"create-project", :"verify-prerequisites"] do
-  command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
-  puts command
+task :build => ["create-project", "verify-prerequisites"] do
+  command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -36,6 +35,23 @@ task :package => :build do
     FileUtils.mkdir_p "pkg"
     FileUtils.cp_r path, "pkg/"
     `cd pkg && zip -r atom.zip .`
+  else
+    exit(1)
+  end
+end
+
+desc "Installs symlink from `application_path() to /Applications directory"
+task :install => :build do
+  if path = application_path()
+    FileUtils.ln_sf File.expand_path(path), "/Applications/Desktop"
+    usr_bin = "/usr/local/bin"
+    usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
+    if usr_bin_exists
+      cli_path = "#{usr_bin}/atom"
+      `echo '#!/bin/sh\nopen #{path} $@' > #{cli_path} && chmod 755 #{cli_path}`
+    else
+      stderr.puts "ERROR: Did not add cli tool for `atom` because /usr/local/bin does not exist"
+    end
   else
     exit(1)
   end
@@ -77,7 +93,7 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
   if resource_path = ENV['RESOURCE_PATH']
     # CoffeeScript can't deal with unescaped whitespace in 'Atom Helper.app' path
     escaped_dest = dest.gsub("Atom Helper.app", "Atom\\ Helper.app")
-    sh "coffee -c -o \"#{escaped_dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
+    `coffee -c -o \"#{escaped_dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\"`
     cp_r "#{resource_path}/static", dest
   else
     # TODO: Restore this list when we add in all of atoms source
@@ -85,7 +101,7 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
       dest_path = File.join(dest, dir)
       rm_rf dest_path
       cp_r dir, dest_path
-      sh "coffee -c '#{dest_path}'"
+      `coffee -c '#{dest_path}'`
     end
   end
 end
@@ -106,11 +122,11 @@ end
 def application_path
   applications = FileList["#{BUILD_DIR}/**/Atom.app"]
   if applications.size == 0
-    $stderr.puts "No Atom application found in directory `#{BUILD_DIR}`"
+    $stderr.puts "Error: No Atom application found in directory `#{BUILD_DIR}`"
   elsif applications.size > 1
-    $stderr.puts "Multiple Atom applications found \n\t" + applications.join("\n\t")
+    $stderr.puts "Error: Multiple Atom applications found \n\t" + applications.join("\n\t")
   else
-    return applications.first
+    return File.expand_path(applications.first)
   end
 
   return nil
@@ -120,7 +136,7 @@ def binary_path
   if app_path = application_path()
     binary_path = "#{app_path}/Contents/MacOS/Atom"
     if File.exists?(binary_path)
-      return binary_path
+      return File.expand_path(binary_path)
     else
       $stderr.puts "Executable `#{app_path}` not found."
     end
