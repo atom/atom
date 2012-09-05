@@ -10,7 +10,6 @@ class AtomCefClient;
 
 + (id)applicationWithArguments:(char **)argv count:(int)argc;
 + (CefSettings)createCefSettings;
-- (const char *)resourcePath;
 - (void)open:(NSString *)path;
 - (IBAction)runSpecs:(id)sender;
 - (IBAction)runBenchmarks:(id)sender;

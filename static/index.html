@@ -1,26 +1,31 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <script src='../src/stdlib/require.js'></script>
+  <title></title>
 
   <script>
+    window.location.params = {}
+    var params = window.location.search.substring(1).split('&')
+    params.forEach(function(param) {
+      var pair = param.split("=")
+      window.location.params[pair[0]] = pair[1];
+    });
+
+    window.resourcePath = window.location.params.resourcePath
+    var bootstrapScript = window.location.params.bootstrapScript;
+
     window.onload = function() {
       try {
-        window.location.params = {}
-        var params = window.location.search.substring(1).split('&')
-        params.forEach(function(param) {
-          var pair = param.split("=")
-          window.location.params[pair[0]] = pair[1];
-        });
-
-        var bootstrapScript = window.location.params.bootstrapScript;
         if (bootstrapScript) require(bootstrapScript);
       }
       catch (error) {
-        atom.showDevTools();
+        if (atom && atom.showDevTools) { atom.showDevTools(); }
         console.error(error.stack || error);
       }
     }
   </script>
+
+  <script src='../src/stdlib/require.js'></script>
 </head>
 <body>
 </body>

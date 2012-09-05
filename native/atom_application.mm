@@ -70,20 +70,13 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
-  
+    
   NSArray *processArguments = [[NSProcessInfo processInfo] arguments];
   if ([processArguments containsObject:@"--benchmark"]) {
     [self runBenchmarksThenExit:true];
   }
   else if ([processArguments containsObject:@"--test"]) {
     [self runSpecsThenExit:true];
-  }
-  else {
-    #ifdef RESOURCE_PATH
-      [self open:[NSString stringWithUTF8String:RESOURCE_PATH]];
-    #else
-      [self open:nil];
-    #endif
   }
 }
 

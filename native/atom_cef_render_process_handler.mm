@@ -14,15 +14,6 @@ void AtomCefRenderProcessHandler::OnWebKitInitialized() {
 void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser,
                                      CefRefPtr<CefFrame> frame,
                                      CefRefPtr<CefV8Context> context) {
-#ifdef RESOURCE_PATH
-  CefRefPtr<CefV8Value> resourcePath = CefV8Value::CreateString(RESOURCE_PATH);
-#else
-  CefRefPtr<CefV8Value> resourcePath = CefV8Value::CreateString([[[NSBundle mainBundle] resourcePath] UTF8String]);
-#endif
-
-  CefRefPtr<CefV8Value> global = context->GetGlobal();
-  CefRefPtr<CefV8Value> atom = global->GetValue("atom");
-  atom->SetValue("resourcePath", resourcePath, V8_PROPERTY_ATTRIBUTE_NONE);
 }
 
 bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,

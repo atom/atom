@@ -7,6 +7,7 @@ class AtomCefClient;
   NSView *_devToolsView;
   NSView *_webView;
   NSString *_bootstrapScript;
+  NSString *_resourcePath;
   NSString *_pathToOpen;
 
   CefRefPtr<AtomCefClient> _cefClient;

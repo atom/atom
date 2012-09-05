@@ -14,6 +14,7 @@
   _cefDevToolsClient = NULL;
   [_webView release];
   [_bootstrapScript release];
+  [_resourcePath release];
   [_pathToOpen release];
   [super dealloc];
 }
@@ -22,6 +23,13 @@
   self = [super initWithWindowNibName:@"AtomWindow"];
   _bootstrapScript = [bootstrapScript retain];
 
+#ifdef RESOURCE_PATH
+  _resourcePath = [[NSString alloc] initWithUTF8String:RESOURCE_PATH];
+#else
+  _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
+#endif
+  
+  
   if (!background) {
     [self showWindow:self];
   }
@@ -60,17 +68,24 @@
   CefBrowserHost::CreateBrowser(window_info, cefClient.get(), url, settings);  
 }
 
+- (NSString *)encodeUrlParam:(NSString *)param {
+  param = [param stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
+  param = [param stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+  return param;
+}
+
 - (void)windowDidLoad {
   [self.window setDelegate:self];
 
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
-  [urlString appendFormat:@"?bootstrapScript=%@", [_bootstrapScript stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+  [urlString appendFormat:@"?bootstrapScript=%@", [self encodeUrlParam:_bootstrapScript]];
+  [urlString appendFormat:@"&resourcePath=%@", [self encodeUrlParam:_resourcePath]];
   if (_exitWhenDone)
     [urlString appendString:@"&exitWhenDone=1"];
   if (_pathToOpen)
-    [urlString appendFormat:@"&pathToOpen=%@", [_pathToOpen stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+    [urlString appendFormat:@"&pathToOpen=%@", [self encodeUrlParam:_pathToOpen]];
 
   _cefClient = new AtomCefClient();
   [self addBrowserToView:self.webView url:[urlString UTF8String] cefHandler:_cefClient];
