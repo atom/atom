@@ -6,9 +6,10 @@
 
 @implementation AtomApplication
 
-+ (id)sharedApplication {
++ (id)applicationWithArguments:(char **)argv count:(int)argc {
   NSApplication *application = [super sharedApplication];
-  CefInitialize(CefMainArgs(0, NULL), [self createCefSettings], new AtomCefApp);
+  CefInitialize(CefMainArgs(argc, argv), [self createCefSettings], new AtomCefApp);
+  
   return application;
 }
 

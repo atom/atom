@@ -4,7 +4,7 @@
 int main(int argc, char* argv[]) {
   @autoreleasepool {
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
-    AtomApplication *application = (AtomApplication *)[AtomApplication sharedApplication];
+    AtomApplication *application = [AtomApplication applicationWithArguments:argv count:argc];
 
     NSString *mainNibName = [infoDictionary objectForKey:@"NSMainNibFile"];
     NSNib *mainNib = [[NSNib alloc] initWithNibNamed:mainNibName bundle:[NSBundle mainBundle]];

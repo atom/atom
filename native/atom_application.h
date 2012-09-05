@@ -4,13 +4,13 @@
 class AtomCefClient;
 
 @interface AtomApplication : NSApplication <CefAppProtocol, NSApplicationDelegate> {
-@private
   NSWindowController *_backgroundWindowController;
-  
   BOOL handlingSendEvent_;
 }
 
++ (id)applicationWithArguments:(char **)argv count:(int)argc;
 + (CefSettings)createCefSettings;
+- (const char *)resourcePath;
 - (void)open:(NSString *)path;
 - (IBAction)runSpecs:(id)sender;
 - (IBAction)runBenchmarks:(id)sender;
