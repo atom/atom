@@ -82,22 +82,22 @@ class Rule
     regexComponents = []
     @patternsByCaptureIndex = {}
     currentCaptureIndex = 1
-    for [regex, pattern] in @getRegexPatternPairs()
-      regexComponents.push(regex.source)
+    for pattern in @getAllPatterns()
+      regexComponents.push(pattern.regex.source)
       @patternsByCaptureIndex[currentCaptureIndex] = pattern
-      currentCaptureIndex += 1 + regex.getCaptureCount()
+      currentCaptureIndex += 1 + pattern.regex.getCaptureCount()
     @regex = new OnigRegExp('(' + regexComponents.join(')|(') + ')')
 
     pattern.compileRegex() for pattern in @patterns
 
-  getRegexPatternPairs: (included=[]) ->
+  getAllPatterns: (included=[]) ->
     return [] if _.include(included, this)
     included.push(this)
     regexPatternPairs = []
 
-    regexPatternPairs.push(@endPattern.getRegexPatternPairs()...) if @endPattern
+    regexPatternPairs.push(@endPattern.getIncludedPatterns()...) if @endPattern
     for pattern in @patterns
-      regexPatternPairs.push(pattern.getRegexPatternPairs(included)...)
+      regexPatternPairs.push(pattern.getIncludedPatterns(included)...)
     regexPatternPairs
 
   getNextTokens: (stack, line, position) ->
@@ -144,13 +144,13 @@ class Pattern
       endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
       @pushRule = new Rule(@grammar, { @scopeName, patterns, endPattern })
 
-  getRegexPatternPairs: (included) ->
+  getIncludedPatterns: (included) ->
     if @include
       rule = @grammar.ruleForInclude(@include)
       # console.log "Could not find rule for include #{@include} in #{@grammar.name} grammar" unless rule
-      rule?.getRegexPatternPairs(included) ? []
+      rule?.getAllPatterns(included) ? []
     else
-      [[@regex, this]]
+      [this]
 
   compileRegex: ->
     @pushRule?.compileRegex()
