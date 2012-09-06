@@ -88,7 +88,27 @@ bool OnigRegExp::Execute(const CefString& name,
                             CefRefPtr<CefV8Value>& retval,
                             CefString& exception) {
 
-  if (name == "getCaptureIndices") {
+  if (name == "captureIndices") {
+    CefRefPtr<CefV8Value> string = arguments[0];
+    CefRefPtr<CefV8Value> index = arguments[1];
+    CefRefPtr<CefV8Value> regexes = arguments[2];
+    
+    CefRefPtr<CefV8Value> captureIndices;
+    retval = CefV8Value::CreateObject(NULL);
+    for (int i = 0; i < regexes->GetArrayLength(); i++) {
+      OnigRegExpUserData *userData = (OnigRegExpUserData *)regexes->GetValue(i)->GetUserData().get();
+      captureIndices = userData->GetCaptureIndices(string, index);
+      if (captureIndices->IsObject()) {
+        retval->SetValue("index", CefV8Value::CreateInt(i), V8_PROPERTY_ATTRIBUTE_NONE);
+        retval->SetValue("captureIndices", captureIndices, V8_PROPERTY_ATTRIBUTE_NONE);
+        return true;
+      }
+    }
+
+    return true;
+
+  }
+  else if (name == "getCaptureIndices") {
     CefRefPtr<CefV8Value> string = arguments[0];
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
     OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
