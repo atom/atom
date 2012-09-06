@@ -25,9 +25,6 @@ class TextMateGrammar
     for name, data of repository
       @repository[name] = new Rule(this, data)
 
-    for rule in [@initialRule, _.values(@repository)...]
-      rule.compileRegex()
-
   getLineTokens: (line, stack=[@initialRule]) ->
     stack = new Array(stack...)
     tokens = []
@@ -77,18 +74,6 @@ class Rule
     @patterns = []
     @patterns.push(@endPattern) if @endPattern
     @patterns.push((patterns.map (pattern) => new Pattern(grammar, pattern))...)
-
-  compileRegex: ->
-    regexComponents = []
-    @patternsByCaptureIndex = {}
-    currentCaptureIndex = 1
-    for pattern in @getAllPatterns()
-      regexComponents.push(pattern.regex.source)
-      @patternsByCaptureIndex[currentCaptureIndex] = pattern
-      currentCaptureIndex += 1 + pattern.regex.getCaptureCount()
-    @regex = new OnigRegExp('(' + regexComponents.join(')|(') + ')')
-
-    pattern.compileRegex() for pattern in @patterns
 
   getAllPatterns: (included=[]) ->
     return [] if _.include(included, this)
@@ -149,9 +134,6 @@ class Pattern
       rule?.getAllPatterns(included) ? []
     else
       [this]
-
-  compileRegex: ->
-    @pushRule?.compileRegex()
 
   getNextMatch: (line, position) ->
     if @include
