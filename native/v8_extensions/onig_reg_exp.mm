@@ -57,8 +57,8 @@ public:
     int resultCount = [result count];
     for (int index = 0; index < resultCount; index++) {
       int captureLength = [result lengthAt:index];
-      if (captureLength == 0) continue;
       int captureStart = [result locationAt:index];
+      if (captureLength == 0) continue;
       array->SetValue(i++, CefV8Value::CreateInt(index));
       array->SetValue(i++, CefV8Value::CreateInt(captureStart));
       array->SetValue(i++, CefV8Value::CreateInt(captureStart + captureLength));
@@ -93,18 +93,28 @@ bool OnigRegExp::Execute(const CefString& name,
     CefRefPtr<CefV8Value> index = arguments[1];
     CefRefPtr<CefV8Value> regexes = arguments[2];
     
+    int bestIndex = -1;
+    CefRefPtr<CefV8Value> captureIndicesForBestIndex;
     CefRefPtr<CefV8Value> captureIndices;
+    
     retval = CefV8Value::CreateObject(NULL);
     for (int i = 0; i < regexes->GetArrayLength(); i++) {
       OnigRegExpUserData *userData = (OnigRegExpUserData *)regexes->GetValue(i)->GetUserData().get();
       captureIndices = userData->GetCaptureIndices(string, index);
-      if (captureIndices->IsObject()) {
-        retval->SetValue("index", CefV8Value::CreateInt(i), V8_PROPERTY_ATTRIBUTE_NONE);
-        retval->SetValue("captureIndices", captureIndices, V8_PROPERTY_ATTRIBUTE_NONE);
-        return true;
+      if (captureIndices->IsNull()) continue;
+      
+      if (bestIndex == -1 || captureIndices->GetValue(1)->GetIntValue() < captureIndicesForBestIndex->GetValue(1)->GetIntValue()) {
+          bestIndex = i;
+        captureIndicesForBestIndex = captureIndices;
+        if (captureIndices->GetValue(1)->GetIntValue() == 0) break; // If the match starts at 0, just use it!
       }
     }
 
+    if (bestIndex != -1) {
+      retval->SetValue("index", CefV8Value::CreateInt(bestIndex), V8_PROPERTY_ATTRIBUTE_NONE);
+      retval->SetValue("captureIndices", captureIndicesForBestIndex, V8_PROPERTY_ATTRIBUTE_NONE);
+    }
+    
     return true;
 
   }

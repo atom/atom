@@ -93,23 +93,21 @@ class Rule
   getAllPatterns: (included=[]) ->
     return [] if _.include(included, this)
     included.push(this)
-    regexPatternPairs = []
+    allPatterns = []
 
-    regexPatternPairs.push(@endPattern.getIncludedPatterns()...) if @endPattern
+    allPatterns.push(@endPattern.getIncludedPatterns()...) if @endPattern
     for pattern in @patterns
-      regexPatternPairs.push(pattern.getIncludedPatterns(included)...)
-    regexPatternPairs
+      allPatterns.push(pattern.getIncludedPatterns(included)...)
+    allPatterns
 
   getNextTokens: (stack, line, position) ->
-    captureIndices = @regex.getCaptureIndices(line, position)
+    patterns = @getAllPatterns()
+    {index, captureIndices} = OnigRegExp.captureIndices(line, position, patterns.map (p) -> p.regex )
 
-    return {} unless captureIndices?[2] > 0 # ignore zero-length matches
-
-    shiftCapture(captureIndices)
+    return {} unless index?
 
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
-    pattern = @patternsByCaptureIndex[firstCaptureIndex]
-    nextTokens = pattern.handleMatch(stack, line, captureIndices)
+    nextTokens = patterns[index].handleMatch(stack, line, captureIndices)
     { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
 
   getNextMatch: (line, position) ->
@@ -167,10 +165,16 @@ class Pattern
     scopes.push(@scopeName) unless @popRule
 
     if @captures
+      parentCapture = captureIndices[0..2]
+      childCaptures = captureIndices[3..]
       tokens = @getTokensForCaptureIndices(line, captureIndices, scopes)
     else
       [start, end] = captureIndices[1..2]
-      tokens = [{ value: line[start...end], scopes: scopes }]
+      zeroLengthMatch = end == start
+      if zeroLengthMatch
+        tokens = []
+      else
+        tokens = [{ value: line[start...end], scopes: scopes }]
 
     if @pushRule
       stack.push(@pushRule)
@@ -179,12 +183,11 @@ class Pattern
 
     tokens
 
-  getTokensForCaptureIndices: (line, captureIndices, scopes, indexOffset=captureIndices[0]) ->
+  getTokensForCaptureIndices: (line, captureIndices, scopes) ->
     [parentCaptureIndex, parentCaptureStart, parentCaptureEnd] = shiftCapture(captureIndices)
-    relativeParentCaptureIndex = parentCaptureIndex - indexOffset
 
     tokens = []
-    if scope = @captures[relativeParentCaptureIndex]?.name
+    if scope = @captures[parentCaptureIndex]?.name
       scopes = scopes.concat(scope)
 
     previousChildCaptureEnd = parentCaptureStart
@@ -196,7 +199,7 @@ class Pattern
           value: line[previousChildCaptureEnd...childCaptureStart]
           scopes: scopes
 
-      captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes, indexOffset)
+      captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes)
       tokens.push(captureTokens...)
       previousChildCaptureEnd = childCaptureEnd
 

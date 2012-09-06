@@ -141,3 +141,10 @@ describe "TextMateGrammar", ->
       it "returns a single token which has the global scope", ->
        {tokens} = grammar.getLineTokens('')
        expect(tokens[0]).toEqual value: '',  scopes: ["source.coffee"]
+
+    describe "when the line matches a pattern with a 'contentName' key", ->
+      it "creates tokens using the content of contentName as the token name", ->
+        grammar = TextMateBundle.grammarForFileName("sample.txt")
+        {tokens} = grammar.getLineTokens('ok, cool')
+        expect(tokens[0]).toEqual value: 'ok, cool',  scopes: ["text.plain", "meta.paragraph.text"]
+
