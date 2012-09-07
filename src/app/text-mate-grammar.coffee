@@ -144,7 +144,7 @@ class Pattern
 
   handleMatch: (stack, line, captureIndices) ->
     scopes = _.pluck(stack, "scopeName")
-    scopes.push(@scopeName) unless @popRule
+    scopes.push(@scopeName) if @scopeName and not @popRule
 
     if @captures
       tokens = @getTokensForCaptureIndices(line, captureIndices, scopes)

@@ -142,9 +142,19 @@ describe "TextMateGrammar", ->
        {tokens} = grammar.getLineTokens('')
        expect(tokens[0]).toEqual value: '',  scopes: ["source.coffee"]
 
-    describe "when the line matches a pattern with a 'contentName' key", ->
+    describe "when the line matches a pattern with a 'contentName'", ->
       it "creates tokens using the content of contentName as the token name", ->
         grammar = TextMateBundle.grammarForFileName("sample.txt")
         {tokens} = grammar.getLineTokens('ok, cool')
         expect(tokens[0]).toEqual value: 'ok, cool',  scopes: ["text.plain", "meta.paragraph.text"]
+
+    describe "when the line matches a pattern with no `name` or `contentName`", ->
+      it "creates tokens without adding a new scope", ->
+        grammar = TextMateBundle.grammarsByFileType["rb"]
+        {tokens} = grammar.getLineTokens('%w|oh \\look|')
+        expect(tokens[0]).toEqual value: '%w',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
+        expect(tokens[1]).toEqual value: '|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
+        expect(tokens[2]).toEqual value: 'oh ',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
+        expect(tokens[3]).toEqual value: '\\l',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
+        expect(tokens[4]).toEqual value: 'ook|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
 
