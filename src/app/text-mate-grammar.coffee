@@ -67,26 +67,24 @@ class Rule
   grammar: null
   scopeName: null
   patterns: null
-  endPattern: null
+  createEndPattern: null
 
-  constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
+  constructor: (@grammar, {@scopeName, patterns, @createEndPattern}) ->
     patterns ?= []
     @patterns = []
-    @patterns.push(@endPattern) if @endPattern
     @patterns.push((patterns.map (pattern) => new Pattern(grammar, pattern))...)
 
-  getAllPatterns: (included=[]) ->
+  getIncludedPatterns: (included=[]) ->
     return [] if _.include(included, this)
     included.push(this)
     allPatterns = []
 
-    allPatterns.push(@endPattern.getIncludedPatterns()...) if @endPattern
     for pattern in @patterns
       allPatterns.push(pattern.getIncludedPatterns(included)...)
     allPatterns
 
   getNextTokens: (stack, line, position) ->
-    patterns = @getAllPatterns()
+    patterns = @getIncludedPatterns()
     {index, captureIndices} = OnigRegExp.captureIndices(line, position, patterns.map (p) -> p.regex )
 
     return {} unless index?
@@ -108,6 +106,13 @@ class Rule
 
     { match: nextMatch, pattern: matchedPattern }
 
+  addEndPattern: (backReferences) ->
+    endPattern = @createEndPattern(backReferences)
+    @patterns.unshift(endPattern)
+
+  removeEndPattern: ->
+    @patterns.shift()
+
 class Pattern
   grammar: null
   pushRule: null
@@ -115,6 +120,7 @@ class Pattern
   scopeName: null
   regex: null
   captures: null
+  backReferences: null
 
   constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule}) ->
     @scopeName = name ? contentName # TODO: We need special treatment of contentName
@@ -124,14 +130,18 @@ class Pattern
     else if begin
       @regex = new OnigRegExp(begin)
       @captures = beginCaptures ? captures
-      endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
-      @pushRule = new Rule(@grammar, { @scopeName, patterns, endPattern })
+      createEndPattern = (backReferences) ->
+        end = end.replace /(\\\d+)/g, (match) ->
+          index = parseInt(match[1..])
+          _.escapeRegExp(backReferences[index] ? "\\#{index}")
+        new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
+      @pushRule = new Rule(@grammar, { @scopeName, patterns, createEndPattern })
 
   getIncludedPatterns: (included) ->
     if @include
       rule = @grammar.ruleForInclude(@include)
       # console.log "Could not find rule for include #{@include} in #{@grammar.name} grammar" unless rule
-      rule?.getAllPatterns(included) ? []
+      rule?.getIncludedPatterns(included) ? []
     else
       [this]
 
@@ -147,7 +157,7 @@ class Pattern
     scopes.push(@scopeName) if @scopeName and not @popRule
 
     if @captures
-      tokens = @getTokensForCaptureIndices(line, captureIndices, scopes)
+      tokens = @getTokensForCaptureIndices(line, _.clone(captureIndices), scopes)
     else
       [start, end] = captureIndices[1..2]
       zeroLengthMatch = end == start
@@ -157,11 +167,22 @@ class Pattern
         tokens = [{ value: line[start...end], scopes: scopes }]
 
     if @pushRule
+      @pushRule.addEndPattern(@backreferencesForCaptureIndices(line, captureIndices))
       stack.push(@pushRule)
     else if @popRule
-      stack.pop()
+      rule = stack.pop()
+      rule.removeEndPattern()
 
     tokens
+
+  backreferencesForCaptureIndices: (line, captureIndices) ->
+    backReferences = []
+    for i in [0...captureIndices.length] by 3
+      start = captureIndices[i + 1]
+      end = captureIndices[i + 2]
+      backReferences.push line[start...end]
+
+    backReferences
 
   getTokensForCaptureIndices: (line, captureIndices, scopes) ->
     [parentCaptureIndex, parentCaptureStart, parentCaptureEnd] = shiftCapture(captureIndices)
@@ -174,7 +195,9 @@ class Pattern
     while captureIndices.length and captureIndices[1] < parentCaptureEnd
       [childCaptureIndex, childCaptureStart, childCaptureEnd] = captureIndices
 
-      if childCaptureEnd - childCaptureStart == 0 # An empty capture, so it can't contain any tokens
+      emptyCapture = childCaptureEnd - childCaptureStart == 0
+      captureHasNoScope = not @captures[childCaptureIndex]
+      if emptyCapture or captureHasNoScope
         shiftCapture(captureIndices)
         continue
 

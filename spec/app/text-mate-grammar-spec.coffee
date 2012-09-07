@@ -50,30 +50,6 @@ describe "TextMateGrammar", ->
         expect(tokens[5]).toEqual value: 'foo.bar.Baz', scopes: ['source.coffee', 'meta.class.instance.constructor', 'entity.name.type.instance.coffee']
         expect(tokens[6]).toEqual value: ' ', scopes: ['source.coffee']
 
-    describe "when the line matches a begin/end pattern", ->
-      it "returns tokens based on the beginCaptures, endCaptures and the child scope", ->
-        {tokens} = grammar.getLineTokens("'''single-quoted heredoc'''")
-
-        expect(tokens.length).toBe 3
-
-        expect(tokens[0]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
-        expect(tokens[1]).toEqual value: "single-quoted heredoc", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
-        expect(tokens[2]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.end.coffee']
-
-    describe "when begin/end pattern spans multiple lines", ->
-      it "uses the currentRule returned by the first line to parse the second line", ->
-        {tokens: firstTokens, stack} = grammar.getLineTokens("'''single-quoted")
-        {tokens: secondTokens, stack} = grammar.getLineTokens("heredoc'''", stack)
-
-        expect(firstTokens.length).toBe 2
-        expect(secondTokens.length).toBe 2
-
-        expect(firstTokens[0]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
-        expect(firstTokens[1]).toEqual value: "single-quoted", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
-
-        expect(secondTokens[0]).toEqual value: "heredoc", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
-        expect(secondTokens[1]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.end.coffee']
-
     describe "when the line matches a pattern with optional capture groups", ->
       it "only returns tokens for capture groups that matched", ->
         {tokens} = grammar.getLineTokens("class Quicksort")
@@ -93,17 +69,6 @@ describe "TextMateGrammar", ->
         expect(tokens[3]).toEqual(value: ':', scopes: ["source.coffee", "keyword.operator.coffee"])
         expect(tokens[4]).toEqual(value: ' ', scopes: ["source.coffee"])
         expect(tokens[5]).toEqual(value: '->', scopes: ["source.coffee", "storage.type.function.coffee"])
-
-    describe "when the line matches a begin/end pattern that contains sub-patterns", ->
-      it "returns tokens within the begin/end scope based on the sub-patterns", ->
-        {tokens} = grammar.getLineTokens('"""heredoc with character escape \\t"""')
-
-        expect(tokens.length).toBe 4
-
-        expect(tokens[0]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
-        expect(tokens[1]).toEqual value: "heredoc with character escape ", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee']
-        expect(tokens[2]).toEqual value: "\\t", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'constant.character.escape.coffee']
-        expect(tokens[3]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.end.coffee']
 
     describe "when the line matches a pattern that includes a rule", ->
       it "returns tokens based on the included rule", ->
@@ -152,9 +117,54 @@ describe "TextMateGrammar", ->
       it "creates tokens without adding a new scope", ->
         grammar = TextMateBundle.grammarsByFileType["rb"]
         {tokens} = grammar.getLineTokens('%w|oh \\look|')
-        expect(tokens[0]).toEqual value: '%w',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
-        expect(tokens[1]).toEqual value: '|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
-        expect(tokens[2]).toEqual value: 'oh ',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
-        expect(tokens[3]).toEqual value: '\\l',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
-        expect(tokens[4]).toEqual value: 'ook|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
+        expect(tokens.length).toBe 5
+        expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
+        expect(tokens[1]).toEqual value: 'oh ',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
+        expect(tokens[2]).toEqual value: '\\l',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
+        expect(tokens[3]).toEqual value: 'ook',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
+
+    describe "when the line matches a begin/end pattern", ->
+      it "returns tokens based on the beginCaptures, endCaptures and the child scope", ->
+        {tokens} = grammar.getLineTokens("'''single-quoted heredoc'''")
+
+        expect(tokens.length).toBe 3
+
+        expect(tokens[0]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
+        expect(tokens[1]).toEqual value: "single-quoted heredoc", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
+        expect(tokens[2]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.end.coffee']
+
+      describe "when the pattern spans multiple lines", ->
+        it "uses the currentRule returned by the first line to parse the second line", ->
+          {tokens: firstTokens, stack} = grammar.getLineTokens("'''single-quoted")
+          {tokens: secondTokens, stack} = grammar.getLineTokens("heredoc'''", stack)
+
+          expect(firstTokens.length).toBe 2
+          expect(secondTokens.length).toBe 2
+
+          expect(firstTokens[0]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
+          expect(firstTokens[1]).toEqual value: "single-quoted", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
+
+          expect(secondTokens[0]).toEqual value: "heredoc", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
+          expect(secondTokens[1]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.end.coffee']
+
+      describe "when pattern contains sub-patterns", ->
+        it "returns tokens within the begin/end scope based on the sub-patterns", ->
+          {tokens} = grammar.getLineTokens('"""heredoc with character escape \\t"""')
+
+          expect(tokens.length).toBe 4
+
+          expect(tokens[0]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.begin.coffee']
+          expect(tokens[1]).toEqual value: "heredoc with character escape ", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee']
+          expect(tokens[2]).toEqual value: "\\t", scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'constant.character.escape.coffee']
+          expect(tokens[3]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.end.coffee']
+
+      describe "when the end pattern contains a back reference", ->
+        it "creates tokens without adding a new scope", ->
+          grammar = TextMateBundle.grammarsByFileType["rb"]
+          {tokens} = grammar.getLineTokens('%w|oh|,')
+          expect(tokens.length).toBe 4
+          expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
+          expect(tokens[1]).toEqual value: 'oh',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby"]
+          expect(tokens[2]).toEqual value: '|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.end.ruby"]
+          expect(tokens[3]).toEqual value: ',',  scopes: ["source.ruby", "punctuation.separator.object.ruby"]
 
