@@ -58,7 +58,7 @@ public:
     for (int index = 0; index < resultCount; index++) {
       int captureLength = [result lengthAt:index];
       int captureStart = [result locationAt:index];
-      if (captureLength == 0) continue;
+
       array->SetValue(i++, CefV8Value::CreateInt(index));
       array->SetValue(i++, CefV8Value::CreateInt(captureStart));
       array->SetValue(i++, CefV8Value::CreateInt(captureStart + captureLength));
@@ -104,7 +104,7 @@ bool OnigRegExp::Execute(const CefString& name,
       if (captureIndices->IsNull()) continue;
       
       if (bestIndex == -1 || captureIndices->GetValue(1)->GetIntValue() < captureIndicesForBestIndex->GetValue(1)->GetIntValue()) {
-          bestIndex = i;
+        bestIndex = i;
         captureIndicesForBestIndex = captureIndices;
         if (captureIndices->GetValue(1)->GetIntValue() == 0) break; // If the match starts at 0, just use it!
       }

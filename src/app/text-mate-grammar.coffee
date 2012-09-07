@@ -49,7 +49,7 @@ class TextMateGrammar
 
         tokens.push(nextTokens...)
         position = tokensEndPosition
-      else
+      else if tokensEndPosition - tokensStartPosition != 0 # break unless it was a zero length match
         tokens.push
           value: line[position...line.length]
           scopes: scopes
@@ -147,14 +147,12 @@ class Pattern
     scopes.push(@scopeName) unless @popRule
 
     if @captures
-      parentCapture = captureIndices[0..2]
-      childCaptures = captureIndices[3..]
       tokens = @getTokensForCaptureIndices(line, captureIndices, scopes)
     else
       [start, end] = captureIndices[1..2]
       zeroLengthMatch = end == start
       if zeroLengthMatch
-        tokens = []
+        tokens = null
       else
         tokens = [{ value: line[start...end], scopes: scopes }]
 
@@ -175,6 +173,10 @@ class Pattern
     previousChildCaptureEnd = parentCaptureStart
     while captureIndices.length and captureIndices[1] < parentCaptureEnd
       [childCaptureIndex, childCaptureStart, childCaptureEnd] = captureIndices
+
+      if childCaptureEnd - childCaptureStart == 0 # An empty capture, so it can't contain any tokens
+        shiftCapture(captureIndices)
+        continue
 
       if childCaptureStart > previousChildCaptureEnd
         tokens.push
