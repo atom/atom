@@ -31,7 +31,7 @@ class TextMateGrammar
     position = 0
 
     loop
-      scopes = _.pluck(stack, "scopeName")
+      scopes = scopesFromStack(stack)
 
       if line.length == 0
         tokens = [{value: "", scopes: scopes}]
@@ -153,7 +153,7 @@ class Pattern
       { match: @regex.getCaptureIndices(line, position), pattern: this }
 
   handleMatch: (stack, line, captureIndices) ->
-    scopes = _.pluck(stack, "scopeName")
+    scopes = scopesFromStack(stack)
     scopes.push(@scopeName) if @scopeName and not @popRule
 
     if @captures
@@ -219,4 +219,7 @@ class Pattern
 
 shiftCapture = (captureIndices) ->
   [captureIndices.shift(), captureIndices.shift(), captureIndices.shift()]
+
+scopesFromStack = (stack) ->
+  _.compact(_.pluck(stack, "scopeName"))
 
