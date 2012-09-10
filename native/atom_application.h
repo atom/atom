@@ -8,6 +8,7 @@ class AtomCefClient;
   BOOL handlingSendEvent_;
 }
 
++ (NSMutableDictionary *)arguments;
 + (id)applicationWithArguments:(char **)argv count:(int)argc;
 + (CefSettings)createCefSettings;
 - (void)open:(NSString *)path;

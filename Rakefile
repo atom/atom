@@ -14,7 +14,7 @@ end
 
 desc "Build Atom via `xcodebuild`"
 task :build => ["create-project", "verify-prerequisites"] do
-  command = "xcodebuild -target Atom -configuration Release SYMROOT=#{BUILD_DIR}"
+  command = "xcodebuild -target Atom -configuration Debug SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -40,10 +40,10 @@ task :package => :build do
   end
 end
 
-desc "Installs symlink from `application_path() to /Applications directory"
+desc "Creates symlink from `application_path() to /Applications/Atom and creates a CLI at /usr/local/bin/atom"
 task :install => :build do
   if path = application_path()
-    FileUtils.ln_sf File.expand_path(path), "/Applications/Desktop"
+    FileUtils.ln_sf File.expand_path(path), "/Applications"
     usr_bin = "/usr/local/bin"
     usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
     if usr_bin_exists
@@ -90,19 +90,12 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
   mkdir_p "#{dest}/v8_extensions"
   cp Dir.glob("#{project_dir}/native/v8_extensions/*.js"), "#{dest}/v8_extensions/"
 
-  if resource_path = ENV['RESOURCE_PATH']
-    # CoffeeScript can't deal with unescaped whitespace in 'Atom Helper.app' path
-    escaped_dest = dest.gsub("Atom Helper.app", "Atom\\ Helper.app")
-    `coffee -c -o \"#{escaped_dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\"`
-    cp_r "#{resource_path}/static", dest
-  else
-    # TODO: Restore this list when we add in all of atoms source
-    %w(src static vendor spec benchmark bundles themes).each do |dir|
-      dest_path = File.join(dest, dir)
-      rm_rf dest_path
-      cp_r dir, dest_path
-      `coffee -c '#{dest_path}'`
-    end
+  %w(src static vendor spec benchmark bundles themes).each do |dir|
+    dest_path = File.join(dest, dir)
+    rm_rf dest_path
+    cp_r dir, dest_path
+
+    `coffee -c '#{dest_path}'`
   end
 end
 

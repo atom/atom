@@ -25,7 +25,7 @@
     'configurations': {
       'Debug': {
         'xcode_config_file': 'native/mac/debug.xcconfig',
-        'defines': ['RESOURCE_PATH="$RESOURCE_PATH"'],
+        'defines': ['DEBUG=1', 'RESOURCE_PATH=\"$RESOURCE_PATH\"'],
       },
       'Release': {
       },

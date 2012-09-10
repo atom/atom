@@ -2,6 +2,7 @@
 #include "include/cef_client.h"
 #import "native/atom_cef_client.h"
 #import "native/atom_window_controller.h"
+#import "native/atom_application.h"
 
 @implementation AtomWindowController
 
@@ -23,13 +24,10 @@
   self = [super initWithWindowNibName:@"AtomWindow"];
   _bootstrapScript = [bootstrapScript retain];
 
-#ifdef RESOURCE_PATH
-  _resourcePath = [[NSString alloc] initWithUTF8String:RESOURCE_PATH];
-#else
-  _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
-#endif
+  _resourcePath = [[[AtomApplication arguments] objectForKey:@"resource-path"] retain];
+  if (!_resourcePath) _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
   
-  
+    
   if (!background) {
     [self showWindow:self];
   }
