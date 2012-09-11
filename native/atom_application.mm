@@ -7,64 +7,12 @@
 
 @implementation AtomApplication
 
-static NSMutableDictionary *sArguments;
-
-+ (NSMutableDictionary *)arguments {
-  if (!sArguments) {
-    sArguments = [[NSMutableDictionary alloc] init];
-
-    // Defaults
-    #ifdef RESOURCE_PATH
-      [sArguments setObject:[NSString stringWithUTF8String:RESOURCE_PATH] forKey:@"resource-path"];
-    #endif
-  }
-  
-  return sArguments;
-}
-
-+ (void)parseArguments:(char **)argv count:(int)argc {
-  int opt;
-  int longindex;
-
-  if (argc > 2 && strcmp(argv[argc - 2], "-NSDocumentRevisionsDebugMode") == 0) { // Because Xcode inserts useless command-line args by default: http://trac.wxwidgets.org/ticket/13732
-    argc -= 2; // Ignore last two arguments
-  }
-  
-  static struct option longopts[] = {
-    { "resource-path",      optional_argument,      NULL,  'r' },
-    { "benchmark",          optional_argument,      NULL,  'b' },
-    { "test",               optional_argument,      NULL,  't' },    
-    { NULL,                 0,                      NULL,  0 }
-  };
-  
-  while ((opt = getopt_long(argc, argv, "r:bth?", longopts, &longindex)) != -1) {
-    switch (opt) {
-      case 'r':
-        [[self arguments] setObject:[NSString stringWithUTF8String:optarg] forKey:@"resource-path"];
-        break;
-      case 'b':
-        [[self arguments] setObject:[NSNumber numberWithBool:YES] forKey:@"benchmark"];        
-        break;
-      case 't':
-        [[self arguments] setObject:[NSNumber numberWithBool:YES] forKey:@"test"];
-        break;
-      default:
-        printf("usage: atom [--resource-path=<path>] [<path>]");
-    }
-  }
-  
-  argc -= optind;
-  argv += optind;
-  
-  if (argc > 0) {
-    [[self arguments] setObject:[NSString stringWithUTF8String:argv[0]] forKey:@"path"];
-  }
-}
+@synthesize arguments=_arguments;
 
 + (id)applicationWithArguments:(char **)argv count:(int)argc {
-  NSApplication *application = [super sharedApplication];
+  AtomApplication *application = (AtomApplication *)[super sharedApplication];
   CefInitialize(CefMainArgs(argc, argv), [self createCefSettings], new AtomCefApp);
-  [self parseArguments:argv count:argc];  
+  [application parseArguments:argv count:argc];  
   return application;
 }
 
@@ -98,6 +46,7 @@ static NSMutableDictionary *sArguments;
 
 - (void)dealloc {
   [_backgroundWindowController release];
+  [_arguments release];
   [super dealloc];
 }
 
@@ -122,19 +71,66 @@ static NSMutableDictionary *sArguments;
   [[AtomWindowController alloc] initBenchmarksThenExit:exitWhenDone];
 }
 
+- (void)parseArguments:(char **)argv count:(int)argc {
+  _arguments = [[NSMutableDictionary alloc] init];
+  
+  // Defaults
+  #ifdef RESOURCE_PATH
+    [_arguments setObject:[NSString stringWithUTF8String:RESOURCE_PATH] forKey:@"resource-path"];
+  #endif
+
+  
+  int opt;
+  int longindex;
+  
+  if (argc > 2 && strcmp(argv[argc - 2], "-NSDocumentRevisionsDebugMode") == 0) { // Because Xcode inserts useless command-line args by default: http://trac.wxwidgets.org/ticket/13732
+    argc -= 2; // Ignore last two arguments
+  }
+  
+  static struct option longopts[] = {
+    { "resource-path",      optional_argument,      NULL,  'r' },
+    { "benchmark",          optional_argument,      NULL,  'b' },
+    { "test",               optional_argument,      NULL,  't' },
+    { NULL,                 0,                      NULL,  0 }
+  };
+  
+  while ((opt = getopt_long(argc, argv, "r:bth?", longopts, &longindex)) != -1) {
+    switch (opt) {
+      case 'r':
+        [_arguments setObject:[NSString stringWithUTF8String:optarg] forKey:@"resource-path"];
+        break;
+      case 'b':
+        [_arguments setObject:[NSNumber numberWithBool:YES] forKey:@"benchmark"];
+        break;
+      case 't':
+        [_arguments setObject:[NSNumber numberWithBool:YES] forKey:@"test"];
+        break;
+      default:
+        printf("usage: atom [--resource-path=<path>] [<path>]");
+    }
+  }
+  
+  argc -= optind;
+  argv += optind;
+  
+  if (argc > 0) {
+    [_arguments setObject:[NSString stringWithUTF8String:argv[0]] forKey:@"path"];
+  }
+}
+
 # pragma mark NSApplicationDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
     
-  if ([[AtomApplication arguments] objectForKey:@"benchmark"]) {
+  if ([_arguments objectForKey:@"benchmark"]) {
     [self runBenchmarksThenExit:true];
   }
-  else if ([[AtomApplication arguments] objectForKey:@"test"]) {
+  else if ([_arguments objectForKey:@"test"]) {
     [self runSpecsThenExit:true];
   }
   else {
-    [self open:[[AtomApplication arguments] objectForKey:@"path"]];
+    [self open:[_arguments objectForKey:@"path"]];
   }
 }
 

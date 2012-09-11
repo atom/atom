@@ -24,7 +24,8 @@
   self = [super initWithWindowNibName:@"AtomWindow"];
   _bootstrapScript = [bootstrapScript retain];
 
-  _resourcePath = [[[AtomApplication arguments] objectForKey:@"resource-path"] retain];
+  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
+  _resourcePath = [[atomApplication.arguments objectForKey:@"resource-path"] retain];
   if (!_resourcePath) _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
   
     
