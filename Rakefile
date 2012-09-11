@@ -1,5 +1,3 @@
-require 'fileutils'
-
 $ATOM_ARGS = []
 
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
@@ -32,9 +30,9 @@ end
 desc "Create the Atom.app for distribution"
 task :package => :build do
   if path = application_path()
-    FileUtils.rm_rf "pkg"
-    FileUtils.mkdir_p "pkg"
-    FileUtils.cp_r path, "pkg/"
+    rm_rf "pkg"
+    mkdir_p "pkg"
+    cp_r path, "pkg/"
     `cd pkg && zip -r atom.zip .`
   else
     exit(1)
@@ -44,7 +42,7 @@ end
 desc "Creates symlink from `application_path() to /Applications/Atom and creates a CLI at /usr/local/bin/atom"
 task :install => :build do
   if path = application_path()
-    FileUtils.ln_sf File.expand_path(path), "/Applications"
+    ln_sf File.expand_path(path), "/Applications"
     usr_bin = "/usr/local/bin"
     usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
     if usr_bin_exists
