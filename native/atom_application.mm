@@ -51,7 +51,6 @@
 }
 
 - (void)open:(NSString *)path {
-  NSLog(@"%@", path);
   [[AtomWindowController alloc] initWithPath:path];
 }
 
