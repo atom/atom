@@ -4,17 +4,19 @@ $ATOM_ARGS = []
 
 ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
 BUILD_DIR = 'atom-build'
-mkdir_p BUILD_DIR, :verbose => false
 
 desc "Create xcode project from gpy file"
 task "create-project" do
   `rm -rf atom.xcodeproj`
   `python tools/gyp/gyp --depth=. atom.gyp`
+  `killall -c Xcode 2> /dev/null`
+  `open atom.xcodeproj` # In order for the xcodebuild to know about the schemes, the project needs to have been opened once. This is xcode bullshit and is a bug on Apple's end (No radar has been file because I have no faith in radar's)
+  sleep 0 while `xcodebuild -list` =~ /This project contains no schemes./ # Give xcode some time to open
 end
 
 desc "Build Atom via `xcodebuild`"
 task :build => ["create-project", "verify-prerequisites"] do
-  command = "xcodebuild -target Atom -configuration Debug SYMROOT=#{BUILD_DIR}"
+  command = "xcodebuild -target Atom -configuration Debug -scheme Atom" # -scheme is required, otherwise xcodebuild creates a binary that won't run on Corey's Air. He recieves the error "Check failed: !loaded_locale.empty(). Locale could not be found for en-US"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -24,8 +26,7 @@ end
 
 desc "Clean build Atom via `xcodebuild`"
 task :clean do
-  output = `xcodebuild clean SYMROOT=#{BUILD_DIR}`
-  rm_rf BUILD_DIR
+  output = `xcodebuild clean`
 end
 
 desc "Create the Atom.app for distribution"
@@ -48,7 +49,7 @@ task :install => :build do
     usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
     if usr_bin_exists
       cli_path = "#{usr_bin}/atom"
-      `echo '#!/bin/sh\nopen #{path} $@' > #{cli_path} && chmod 755 #{cli_path}`
+      `echo '#!/bin/sh\nopen #{path.strip} --args $@' > #{cli_path} && chmod 755 #{cli_path}`
     else
       stderr.puts "ERROR: Did not add cli tool for `atom` because /usr/local/bin does not exist"
     end
@@ -59,8 +60,8 @@ end
 
 desc "Run Atom"
 task :run => :build do
-  if path = binary_path()
-    exitstatus = system "#{path} #{$ATOM_ARGS.join(' ')} 2> /dev/null"
+  if path = application_path()
+    exitstatus = system "open #{path} #{$ATOM_ARGS.join(' ')} 2> /dev/null"
     exit(exitstatus)
   else
     exit(1)
@@ -79,8 +80,12 @@ task :benchmark do
   Rake::Task["run"].invoke
 end
 
-desc "Copy files to bundle and compile CoffeeScripts"
-task :"copy-files-to-bundle" => :"verify-prerequisites" do
+desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
+task :nof do
+  system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
+end
+
+task "copy-files-to-bundle" => ["verify-prerequisites", "create-xcodebuild-info"] do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
   contents_dir = ENV['CONTENTS_FOLDER_PATH']
@@ -95,13 +100,12 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
     rm_rf dest_path
     cp_r dir, dest_path
 
-    `coffee -c '#{dest_path}'`
+    `coffee -c '#{dest_path.gsub(" ", "\\ ")}'`
   end
 end
 
-desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
-task :nof do
-  system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
+task "create-xcodebuild-info" do
+  `echo $TARGET_BUILD_DIR/$FULL_PRODUCT_NAME > .xcodebuild-info`
 end
 
 task :"verify-prerequisites" do
@@ -113,29 +117,9 @@ task :"verify-prerequisites" do
 end
 
 def application_path
-  applications = FileList["#{BUILD_DIR}/**/Atom.app"]
-  if applications.size == 0
-    $stderr.puts "Error: No Atom application found in directory `#{BUILD_DIR}`"
-  elsif applications.size > 1
-    $stderr.puts "Error: Multiple Atom applications found \n\t" + applications.join("\n\t")
-  else
-    return File.expand_path(applications.first)
+  if not path = File.open('.xcodebuild-info').read()
+    $stderr.puts "Error: No .xcodebuild-info file found. This file is created when the `build` raketask is run"
   end
 
-  return nil
+  return path
 end
-
-def binary_path
-  if app_path = application_path()
-    binary_path = "#{app_path}/Contents/MacOS/Atom"
-    if File.exists?(binary_path)
-      return File.expand_path(binary_path)
-    else
-      $stderr.puts "Executable `#{app_path}` not found."
-    end
-  end
-
-  return nil
-end
-
-
