@@ -3,3 +3,4 @@
 atom.xcodeproj
 build
 atom-build
+.xcodebuild-info
