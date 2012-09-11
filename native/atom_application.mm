@@ -130,7 +130,8 @@
     [self runSpecsThenExit:true];
   }
   else {
-    [self open:[_arguments objectForKey:@"path"]];
+    NSLog(@"%@", [_arguments objectForKey:@"path"]);
+    [self open:@"/Users/corey/atom"];//[_arguments objectForKey:@"path"]];
   }
 }
 
