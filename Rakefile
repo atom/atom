@@ -9,7 +9,7 @@ desc "Create xcode project from gpy file"
 task "create-project" do
   `rm -rf atom.xcodeproj`
   `python tools/gyp/gyp --depth=. atom.gyp`
-  `killall -c Xcode 2> /dev/null`
+  `killall -c Xcode -9`
   `open atom.xcodeproj` # In order for the xcodebuild to know about the schemes, the project needs to have been opened once. This is xcode bullshit and is a bug on Apple's end (No radar has been file because I have no faith in radar's)
   sleep 0 while `xcodebuild -list` =~ /This project contains no schemes./ # Give xcode some time to open
 end
