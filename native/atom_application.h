@@ -5,12 +5,13 @@ class AtomCefClient;
 
 @interface AtomApplication : NSApplication <CefAppProtocol, NSApplicationDelegate> {
   NSWindowController *_backgroundWindowController;
-  NSMutableDictionary *_arguments;
+  NSDictionary *_arguments;
   BOOL handlingSendEvent_;
 }
 
 + (id)applicationWithArguments:(char **)argv count:(int)argc;
 + (CefSettings)createCefSettings;
++ (NSDictionary *)parseArguments:(char **)argv count:(int)argc;
 - (void)open:(NSString *)path;
 - (IBAction)runSpecs:(id)sender;
 - (IBAction)runBenchmarks:(id)sender;
@@ -18,6 +19,6 @@ class AtomCefClient;
 - (NSDictionary *)arguments;
 - (void)runBenchmarksThenExit:(BOOL)exitWhenDone;
 
-@property (nonatomic, readonly) NSDictionary *arguments;
+@property (nonatomic, retain) NSDictionary *arguments;
 
 @end
