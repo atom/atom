@@ -51,8 +51,7 @@ task :install => :build do
     usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
     if usr_bin_exists
       cli_path = "#{usr_bin}/atom"
-      `echo '#!/bin/sh\nopen #{path.strip} --args $@' > #{cli_path} && chmod 755 #{cli_path}`
-      # `echo '#!/bin/sh\n#{path}/Contents/MacOS/Atom $@' > #{cli_path} && chmod 755 #{cli_path}`
+      `echo '#!/bin/sh\nopen #{path} -n --args "--executed-from" "$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
     else
       stderr.puts "ERROR: Did not add cli tool for `atom` because /usr/local/bin does not exist"
     end
