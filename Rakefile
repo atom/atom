@@ -7,8 +7,8 @@ desc "Create xcode project from gpy file"
 task "create-project" do
   `rm -rf atom.xcodeproj`
   `python tools/gyp/gyp --depth=. atom.gyp`
-  `killall -c Xcode -9`
-  `open atom.xcodeproj` # In order for the xcodebuild to know about the schemes, the project needs to have been opened once. This is xcode bullshit and is a bug on Apple's end (No radar has been file because I have no faith in radar's)
+  # `killall -c Xcode -9`
+  # `open atom.xcodeproj` # In order for the xcodebuild to know about the schemes, the project needs to have been opened once. This is xcode bullshit and is a bug on Apple's end (No radar has been file because I have no faith in radar's)
   sleep 0 while `xcodebuild -list` =~ /This project contains no schemes./ # Give xcode some time to open
 end
 
@@ -47,7 +47,8 @@ task :install => :build do
     usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
     if usr_bin_exists
       cli_path = "#{usr_bin}/atom"
-      `echo '#!/bin/sh\nopen #{path.strip} --args $@' > #{cli_path} && chmod 755 #{cli_path}`
+      # `echo '#!/bin/sh\nopen #{path.strip} --args $@' > #{cli_path} && chmod 755 #{cli_path}`
+      `echo '#!/bin/sh\n#{path}/Contents/MacOS/Atom $@' > #{cli_path} && chmod 755 #{cli_path}`
     else
       stderr.puts "ERROR: Did not add cli tool for `atom` because /usr/local/bin does not exist"
     end
@@ -119,5 +120,5 @@ def application_path
     $stderr.puts "Error: No .xcodebuild-info file found. This file is created when the `build` raketask is run"
   end
 
-  return path
+  return path.strip()
 end

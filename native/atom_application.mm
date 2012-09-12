@@ -137,6 +137,11 @@
   CefShutdown();
 }
 
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)application hasVisibleWindows:(BOOL)flag {
+  NSLog(@"%@", @"OK OK OK");
+  return YES;
+}
+
 # pragma mark CefAppProtocol
 
 - (BOOL)isHandlingSendEvent {
