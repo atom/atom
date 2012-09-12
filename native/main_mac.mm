@@ -7,6 +7,7 @@
 void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSString *path);
 void handleBeingOpenedAgain(int argc, char* argv[]);
 void listenForPathToOpen(int fd, NSString *socketPath);
+BOOL isAppAlreadyOpen();
 
 int main(int argc, char* argv[]) {
   @autoreleasepool {
@@ -31,15 +32,12 @@ void handleBeingOpenedAgain(int argc, char* argv[]) {
   int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
   fcntl(fd, F_SETFD, FD_CLOEXEC);
   
-  for (NSRunningApplication *app in [[NSWorkspace sharedWorkspace] runningApplications]) {
-    BOOL hasSameBundleId = [app.bundleIdentifier isEqualToString:[[NSBundle mainBundle] bundleIdentifier]];
-    BOOL hasSameProcessesId = app.processIdentifier == [[NSProcessInfo processInfo] processIdentifier];
-    if (hasSameBundleId && !hasSameProcessesId) {
-      sendPathToMainProcessAndExit(fd, socketPath, [[AtomApplication parseArguments:argv count:argc] objectForKey:@"path"]);
-    }
+  if (isAppAlreadyOpen()) {
+    sendPathToMainProcessAndExit(fd, socketPath, [[AtomApplication parseArguments:argv count:argc] objectForKey:@"path"]);
   }
-  
-  listenForPathToOpen(fd, socketPath);
+  else {
+    listenForPathToOpen(fd, socketPath);
+  }
 }
 
 void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSString *path) {
@@ -85,4 +83,16 @@ void listenForPathToOpen(int fd, NSString *socketPath) {
       }
     });
   }
+}
+
+BOOL isAppAlreadyOpen() {
+  for (NSRunningApplication *app in [[NSWorkspace sharedWorkspace] runningApplications]) {
+    BOOL hasSameBundleId = [app.bundleIdentifier isEqualToString:[[NSBundle mainBundle] bundleIdentifier]];
+    BOOL hasSameProcessesId = app.processIdentifier == [[NSProcessInfo processInfo] processIdentifier];
+    if (hasSameBundleId && !hasSameProcessesId) {
+      return true;
+    }
+  }
+  
+  return false;
 }
