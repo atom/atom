@@ -9,7 +9,7 @@ desc "Create xcode project from gpy file"
 task "create-project" do
   `rm -rf atom.xcodeproj`
   `python tools/gyp/gyp --depth=. atom.gyp`
-  # `killall -c Xcode -9`
+  # `killall -c Xcode -9 2> /dev/null `
   # `open atom.xcodeproj` # In order for the xcodebuild to know about the schemes, the project needs to have been opened once. This is xcode bullshit and is a bug on Apple's end (No radar has been file because I have no faith in radar's)
   Timeout::timeout(10) do
     sleep 0 while `xcodebuild -list` =~ /This project contains no schemes./ # Give xcode some time to open
@@ -51,10 +51,12 @@ task :install => :build do
     usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
     if usr_bin_exists
       cli_path = "#{usr_bin}/atom"
-      `echo '#!/bin/sh\nopen #{path} -n --args "--executed-from" "$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
+      `echo '#!/bin/sh\nopen #{path} -n --args "--executed-from=$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
     else
       stderr.puts "ERROR: Did not add cli tool for `atom` because /usr/local/bin does not exist"
     end
+
+    sh 'say DONE!'
   else
     exit(1)
   end
