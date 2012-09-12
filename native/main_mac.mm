@@ -4,56 +4,13 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSString *path);
+void handleBeingOpenedAgain(int argc, char* argv[]);
+void listenForPathToOpen(int fd, NSString *socketPath);
+
 int main(int argc, char* argv[]) {
   @autoreleasepool {
-    NSString *socketPath = [NSString stringWithFormat:@"/tmp/atom-%d.sock", getuid()];
-
-    int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
-    fcntl(fd, F_SETFD, FD_CLOEXEC);
-    
-    for (NSRunningApplication *app in [[NSWorkspace sharedWorkspace] runningApplications]) {
-      BOOL hasSameBundleId = [app.bundleIdentifier isEqualToString:[[NSBundle mainBundle] bundleIdentifier]];
-      BOOL hasSameProcessesId = app.processIdentifier == [[NSProcessInfo processInfo] processIdentifier];
-      if (hasSameBundleId && !hasSameProcessesId) {
-        struct sockaddr_un send_addr;
-        send_addr.sun_family = AF_UNIX;
-        strcpy(send_addr.sun_path, [socketPath UTF8String]);
-
-        char buf[] = "WE JUMPED THE PROCESS";
-        if (sendto(fd, buf, sizeof(buf), 0, (sockaddr *)&send_addr, sizeof(send_addr)) < 0) {
-          NSLog(@"Send failure");
-          exit(1);
-        }
-        exit(0);
-      }
-    }
-    
-    struct sockaddr_un addr;
-    addr.sun_family = AF_UNIX;
-    strcpy(addr.sun_path, [socketPath UTF8String]);
-    
-    unlink([socketPath UTF8String]);
-    if (bind(fd, (sockaddr*)&addr, sizeof(addr)) < 0) {
-      perror("ERROR: Binding to socket");
-    }
-    else {
-      NSLog(@"I AM LISTENING");
-      
-      dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-      dispatch_async(queue, ^{
-        char buf[1000];
-        struct sockaddr_un listen_addr;
-        listen_addr.sun_family = AF_UNIX;
-        strcpy(listen_addr.sun_path, [socketPath UTF8String]);
-        socklen_t listen_addr_length;
-        if (recvfrom(fd, &buf, sizeof(buf), 0, (sockaddr *)&listen_addr, &listen_addr_length) < 0) {
-          perror("ERROR: Receiving from socket");
-        }
-        else {
-          NSLog(@"GOOD! Got %s from %s", buf, listen_addr.sun_path);
-        }
-      });
-    }
+    handleBeingOpenedAgain(argc, argv);
     
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
     AtomApplication *application = [AtomApplication applicationWithArguments:argv count:argc];
@@ -63,8 +20,69 @@ int main(int argc, char* argv[]) {
     [mainNib instantiateNibWithOwner:application topLevelObjects:nil];
     
     CefRunMessageLoop();
-    close(fd);
   }
 
   return 0;
+}
+
+void handleBeingOpenedAgain(int argc, char* argv[]) {
+  NSString *socketPath = [NSString stringWithFormat:@"/tmp/atom-%d.sock", getuid()];
+  
+  int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+  fcntl(fd, F_SETFD, FD_CLOEXEC);
+  
+  for (NSRunningApplication *app in [[NSWorkspace sharedWorkspace] runningApplications]) {
+    BOOL hasSameBundleId = [app.bundleIdentifier isEqualToString:[[NSBundle mainBundle] bundleIdentifier]];
+    BOOL hasSameProcessesId = app.processIdentifier == [[NSProcessInfo processInfo] processIdentifier];
+    if (hasSameBundleId && !hasSameProcessesId) {
+      sendPathToMainProcessAndExit(fd, socketPath, [[AtomApplication parseArguments:argv count:argc] objectForKey:@"path"]);
+    }
+  }
+  
+  listenForPathToOpen(fd, socketPath);
+}
+
+void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSString *path) {
+  struct sockaddr_un send_addr;
+  send_addr.sun_family = AF_UNIX;
+  strcpy(send_addr.sun_path, [socketPath UTF8String]);
+  
+  if (path) {
+    const char *buf = [path UTF8String];
+    if (sendto(fd, buf, [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding], 0, (sockaddr *)&send_addr, sizeof(send_addr)) < 0) {
+      perror("Error: Failed to sending path to main Atom process");
+      exit(1);
+    }
+  }
+  exit(0);
+}
+
+void listenForPathToOpen(int fd, NSString *socketPath) {
+  struct sockaddr_un addr;
+  addr.sun_family = AF_UNIX;
+  strcpy(addr.sun_path, [socketPath UTF8String]);
+  
+  unlink([socketPath UTF8String]);
+  if (bind(fd, (sockaddr*)&addr, sizeof(addr)) < 0) {
+    perror("ERROR: Binding to socket");
+  }
+  else {
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_async(queue, ^{
+      char buf[1000];
+      struct sockaddr_un listen_addr;
+      listen_addr.sun_family = AF_UNIX;
+      strcpy(listen_addr.sun_path, [socketPath UTF8String]);
+      socklen_t listen_addr_length;
+      
+      while(true) {
+        if (recvfrom(fd, &buf, sizeof(buf), 0, (sockaddr *)&listen_addr, &listen_addr_length) < 0) {
+          perror("ERROR: Receiving from socket");
+        }
+        else {
+          NSLog(@"You should open the path %s", buf);
+        }
+      }
+    });
+  }
 }
