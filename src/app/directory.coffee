@@ -18,8 +18,11 @@ class Directory
     for path in fs.list(@path)
       if fs.isDirectory(path)
         directories.push(new Directory(path))
-      else
+      else if fs.isFile(path)
         files.push(new File(path))
+      else
+        console.error "#{path} is neither a file nor a directory."
+
     directories.concat(files)
 
   afterSubscribe: ->

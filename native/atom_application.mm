@@ -51,7 +51,6 @@
 }
 
 - (void)open:(NSString *)path {
-  NSLog(@"%@", path);
   [[AtomWindowController alloc] initWithPath:path];
 }
 
@@ -137,6 +136,11 @@
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
   CefShutdown();
+}
+
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)application hasVisibleWindows:(BOOL)flag {
+  NSLog(@"%@", @"OK OK OK");
+  return YES;
 }
 
 # pragma mark CefAppProtocol

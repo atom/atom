@@ -1,4 +1,4 @@
-require 'fileutils'
+require 'timeout'
 
 $ATOM_ARGS = []
 
@@ -9,9 +9,11 @@ desc "Create xcode project from gpy file"
 task "create-project" do
   `rm -rf atom.xcodeproj`
   `python tools/gyp/gyp --depth=. atom.gyp`
-  `killall -c Xcode 2> /dev/null`
-  `open atom.xcodeproj` # In order for the xcodebuild to know about the schemes, the project needs to have been opened once. This is xcode bullshit and is a bug on Apple's end (No radar has been file because I have no faith in radar's)
-  sleep 0 while `xcodebuild -list` =~ /This project contains no schemes./ # Give xcode some time to open
+  # `killall -c Xcode -9`
+  # `open atom.xcodeproj` # In order for the xcodebuild to know about the schemes, the project needs to have been opened once. This is xcode bullshit and is a bug on Apple's end (No radar has been file because I have no faith in radar's)
+  Timeout::timeout(10) do
+    sleep 0 while `xcodebuild -list` =~ /This project contains no schemes./ # Give xcode some time to open
+  end
 end
 
 desc "Build Atom via `xcodebuild`"
@@ -32,9 +34,9 @@ end
 desc "Create the Atom.app for distribution"
 task :package => :build do
   if path = application_path()
-    FileUtils.rm_rf "pkg"
-    FileUtils.mkdir_p "pkg"
-    FileUtils.cp_r path, "pkg/"
+    rm_rf "pkg"
+    mkdir_p "pkg"
+    cp_r path, "pkg/"
     `cd pkg && zip -r atom.zip .`
   else
     exit(1)
@@ -44,12 +46,13 @@ end
 desc "Creates symlink from `application_path() to /Applications/Atom and creates a CLI at /usr/local/bin/atom"
 task :install => :build do
   if path = application_path()
-    FileUtils.ln_sf File.expand_path(path), "/Applications"
+    ln_sf File.expand_path(path), "/Applications"
     usr_bin = "/usr/local/bin"
     usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
     if usr_bin_exists
       cli_path = "#{usr_bin}/atom"
       `echo '#!/bin/sh\nopen #{path.strip} --args $@' > #{cli_path} && chmod 755 #{cli_path}`
+      # `echo '#!/bin/sh\n#{path}/Contents/MacOS/Atom $@' > #{cli_path} && chmod 755 #{cli_path}`
     else
       stderr.puts "ERROR: Did not add cli tool for `atom` because /usr/local/bin does not exist"
     end
@@ -121,5 +124,5 @@ def application_path
     $stderr.puts "Error: No .xcodebuild-info file found. This file is created when the `build` raketask is run"
   end
 
-  return path
+  return path.strip()
 end
