@@ -27,7 +27,6 @@
           'atom_cef_render_process_handler.cpp',
           'client_handler.cpp',
           'io_utils.cpp',
-          'onig_regexp_extension.cpp',
         ],
         'cflags': [
             '<!@(<(pkg-config) --cflags gtk+-2.0 gthread-2.0 openssl)',
