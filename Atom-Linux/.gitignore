@@ -2,3 +2,5 @@
 *.o
 *~
 out/
+*.Makefile
+*.target.mk
