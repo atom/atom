@@ -26,8 +26,14 @@ void AtomCefRenderProcessHandler::OnContextCreated(
 bool AtomCefRenderProcessHandler::OnProcessMessageReceived(
     CefRefPtr<CefBrowser> browser, CefProcessId source_process,
     CefRefPtr<CefProcessMessage> message) {
-  return CallMessageReceivedHandler(browser->GetMainFrame()->GetV8Context(),
-      message);
+  std::string name = message->GetName().ToString();
+  if (name == "reload") {
+    Reload(browser);
+    return true;
+  } else {
+    return CallMessageReceivedHandler(browser->GetMainFrame()->GetV8Context(),
+        message);
+  }
 }
 
 void AtomCefRenderProcessHandler::Reload(CefRefPtr<CefBrowser> browser) {
