@@ -125,7 +125,6 @@ int main(int argc, char *argv[]) {
       browserSettings);
 
   gtk_container_add(GTK_CONTAINER(window), vbox);
-  gtk_widget_show_all(GTK_WIDGET(window));
 
   GdkPixbuf *pixbuf;
   GError *error = NULL;
@@ -135,6 +134,8 @@ int main(int argc, char *argv[]) {
   pixbuf = gdk_pixbuf_new_from_file(iconPath.c_str(), &error);
   if (pixbuf)
     gtk_window_set_icon(GTK_WINDOW(window), pixbuf);
+
+  gtk_widget_show_all(GTK_WIDGET(window));
 
   // Install an signal handler so we clean up after ourselves.
   signal(SIGINT, TerminationSignalHandler);
