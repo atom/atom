@@ -23,10 +23,8 @@ ClientHandler::~ClientHandler() {
 bool ClientHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
   std::string name = message->GetName().ToString();
-  std::cout << "Message " << name << std::endl;
   if (name == "showDevTools") {
     std::string devtools_url = browser->GetHost()->GetDevToolsURL(true);
-    std::cout << "url" << devtools_url << std::endl;
     if (!devtools_url.empty()) {
       browser->GetMainFrame()->ExecuteJavaScript(
           "window.open('" + devtools_url + "');", "about:blank", 0);
