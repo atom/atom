@@ -13,11 +13,7 @@ class ClientHandler: public CefClient,
     public CefLifeSpanHandler,
     public CefLoadHandler,
     public CefDisplayHandler,
-    public CefFocusHandler,
-    public CefKeyboardHandler,
-    public CefPrintHandler,
-    public CefV8ContextHandler,
-    public CefDragHandler {
+    public CefFocusHandler {
 public:
   ClientHandler();
   virtual ~ClientHandler();
@@ -33,18 +29,6 @@ public:
     return this;
   }
   virtual CefRefPtr<CefFocusHandler> GetFocusHandler() OVERRIDE {
-    return this;
-  }
-  virtual CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() OVERRIDE {
-    return this;
-  }
-  virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE {
-    return this;
-  }
-  virtual CefRefPtr<CefV8ContextHandler> GetV8ContextHandler() OVERRIDE {
-    return this;
-  }
-  virtual CefRefPtr<CefDragHandler> GetDragHandler() OVERRIDE {
     return this;
   }
 
@@ -79,29 +63,6 @@ public:
   // CefFocusHandler methods.
   virtual void OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
       CefRefPtr<CefFrame> frame, CefRefPtr<CefDOMNode> node) OVERRIDE;
-
-  // CefKeyboardHandler methods.
-  virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser, KeyEventType type,
-      int code, int modifiers, bool isSystemKey, bool isAfterJavaScript)
-          OVERRIDE;
-
-  // CefPrintHandler methods.
-  virtual bool GetPrintHeaderFooter(CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame, const CefPrintInfo& printInfo,
-      const CefString& url, const CefString& title, int currentPage,
-      int maxPages, CefString& topLeft, CefString& topCenter,
-      CefString& topRight, CefString& bottomLeft, CefString& bottomCenter,
-      CefString& bottomRight) OVERRIDE;
-
-  // CefV8ContextHandler methods
-  virtual void OnContextCreated(CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) OVERRIDE;
-
-  // CefDragHandler methods.
-  virtual bool OnDragStart(CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefDragData> dragData, DragOperationsMask mask) OVERRIDE;
-  virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser,
-      CefRefPtr<CefDragData> dragData, DragOperationsMask mask) OVERRIDE;
 
   void SetWindow(GtkWidget* window);
   void SetMainHwnd(CefWindowHandle hwnd);
@@ -140,6 +101,9 @@ protected:
 
   // The edit window handle
   CefWindowHandle m_EditHwnd;
+
+  // The child browser id
+  int m_BrowserId;
 
   // Support for logging.
   std::string m_LogFile;

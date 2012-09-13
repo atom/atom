@@ -43,7 +43,7 @@ void ExecuteWatchCallback(NotifyContext notifyContext) {
     CefRefPtr<CefV8Value> retval;
     CefRefPtr<CefV8Exception> e;
     args.push_back(callbackContext.eventTypes);
-    function->ExecuteFunction(function, args, retval, e, true);
+    function->ExecuteFunction(retval, args);
 
     context->Exit();
   }
@@ -206,7 +206,7 @@ void NativeHandler::List(const CefString& name, CefRefPtr<CefV8Value> object,
   vector < string > *paths = new vector<string>;
   ListDirectory(path, paths, recursive);
 
-  retval = CefV8Value::CreateArray();
+  retval = CefV8Value::CreateArray(paths->size());
   for (uint i = 0; i < paths->size(); i++)
     retval->SetValue(i, CefV8Value::CreateString(paths->at(i)));
   free (paths);
@@ -294,13 +294,13 @@ void NativeHandler::AsyncList(const CefString& name,
   vector < string > *paths = new vector<string>;
   ListDirectory(path, paths, recursive);
 
-  CefRefPtr<CefV8Value> callbackPaths = CefV8Value::CreateArray();
+  CefRefPtr<CefV8Value> callbackPaths = CefV8Value::CreateArray(paths->size());
   for (uint i = 0; i < paths->size(); i++)
     callbackPaths->SetValue(i, CefV8Value::CreateString(paths->at(i)));
   CefV8ValueList args;
   args.push_back(callbackPaths);
   CefRefPtr<CefV8Exception> e;
-  arguments[2]->ExecuteFunction(arguments[2], args, retval, e, true);
+  arguments[2]->ExecuteFunction(retval, args);
   if (e)
     exception = e->GetMessage();
   free (paths);
@@ -342,7 +342,7 @@ void NativeHandler::Alert(const CefString& name, CefRefPtr<CefV8Value> object,
     CefString& exception) {
   CefRefPtr<CefV8Value> buttonNamesAndCallbacks;
   if (arguments.size() < 3)
-    buttonNamesAndCallbacks = CefV8Value::CreateArray();
+    buttonNamesAndCallbacks = CefV8Value::CreateArray(0);
   else
     buttonNamesAndCallbacks = arguments[2];
 
@@ -373,7 +373,7 @@ void NativeHandler::Alert(const CefString& name, CefRefPtr<CefV8Value> object,
         buttonNamesAndCallbacks->GetValue(result)->GetValue(1);
     CefV8ValueList args;
     CefRefPtr<CefV8Exception> e;
-    callback->ExecuteFunction(callback, args, retval, e, true);
+    callback->ExecuteFunction(retval, args);
     if (e)
       exception = e->GetMessage();
   }
@@ -392,7 +392,7 @@ void NativeHandler::WatchPath(const CefString& name,
   CallbackContext callbackContext;
   callbackContext.context = CefV8Context::GetCurrentContext();
   callbackContext.function = arguments[1];
-  CefRefPtr<CefV8Value> eventTypes = CefV8Value::CreateObject(NULL, NULL);
+  CefRefPtr<CefV8Value> eventTypes = CefV8Value::CreateObject(NULL);
   eventTypes->SetValue("modified", CefV8Value::CreateBool(true),
       V8_PROPERTY_ATTRIBUTE_NONE);
   callbackContext.eventTypes = eventTypes;
@@ -488,8 +488,8 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     IsFile(name, object, arguments, retval, exception);
   else if (name == "isDirectory")
     IsDirectory(name, object, arguments, retval, exception);
-  else if (name == "showDevTools")
-    CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
+//  else if (name == "showDevTools")
+//    CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
   else if (name == "openDialog")
     OpenDialog(name, object, arguments, retval, exception);
   else if (name == "open")
