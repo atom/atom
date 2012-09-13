@@ -69,6 +69,7 @@ public:
 
   void SetWindow(GtkWidget* window);
   void SetMainHwnd(CefWindowHandle hwnd);
+
   CefWindowHandle GetMainHwnd() {
     return m_MainHwnd;
   }
@@ -100,14 +101,8 @@ protected:
   // The child browser window handle
   CefWindowHandle m_BrowserHwnd;
 
-  // The edit window handle
-  CefWindowHandle m_EditHwnd;
-
   // The child browser id
   int m_BrowserId;
-
-  // Support for logging.
-  std::string m_LogFile;
 
   // Include the default reference counting implementation.
 IMPLEMENT_REFCOUNTING(ClientHandler)
