@@ -9,7 +9,7 @@ mkdir_p BUILD_DIR
 desc "Create xcode project from gpy file"
 task "create-project" do
   sh "rm -rf atom.xcodeproj"
-  sh "python tools/gyp/gyp --depth=. support/atom.gyp"
+  sh "python tools/gyp/gyp --depth=. atom.gyp"
 end
 
 desc "Build Atom via `xcodebuild`"
