@@ -12,7 +12,7 @@
         'defines': [
         ],
         'include_dirs': [
-          '../cef',
+          '../../cef',
         ],
         'sources': [
           'atom.cpp',
