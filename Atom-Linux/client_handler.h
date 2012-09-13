@@ -6,7 +6,6 @@
 #include <string>
 #include "include/cef_client.h"
 #include "util.h"
-#include "native_handler.h"
 
 // ClientHandler implementation.
 class ClientHandler: public CefClient,
@@ -64,6 +63,10 @@ public:
   virtual void OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
       CefRefPtr<CefFrame> frame, CefRefPtr<CefDOMNode> node) OVERRIDE;
 
+  virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+      CefProcessId source_process, CefRefPtr<CefProcessMessage> message)
+          OVERRIDE;
+
   void SetWindow(GtkWidget* window);
   void SetMainHwnd(CefWindowHandle hwnd);
   CefWindowHandle GetMainHwnd() {
@@ -87,8 +90,6 @@ public:
 protected:
 
   GtkWidget* window;
-
-  CefRefPtr<NativeHandler> m_nativeHandler;
 
   // The child browser window
   CefRefPtr<CefBrowser> m_Browser;

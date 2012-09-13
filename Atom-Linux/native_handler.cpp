@@ -51,11 +51,11 @@ void ExecuteWatchCallback(NotifyContext notifyContext) {
 
 NativeHandler::NativeHandler() :
     CefV8Handler() {
-  string nativePath = io_utils_real_app_path("/src/stdlib/native-handler.js");
+  string nativePath = io_utils_real_app_path("/native/v8_extensions/native.js");
   if (!nativePath.empty()) {
     string extensionCode;
     if (io_utils_read(nativePath, &extensionCode) > 0)
-      CefRegisterExtension("v8/native-handler", extensionCode, this);
+      CefRegisterExtension("v8/native", extensionCode, this);
   }
 
   notifyFd = inotify_init();
@@ -488,8 +488,6 @@ bool NativeHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     IsFile(name, object, arguments, retval, exception);
   else if (name == "isDirectory")
     IsDirectory(name, object, arguments, retval, exception);
-//  else if (name == "showDevTools")
-//    CefV8Context::GetCurrentContext()->GetBrowser()->ShowDevTools();
   else if (name == "openDialog")
     OpenDialog(name, object, arguments, retval, exception);
   else if (name == "open")
