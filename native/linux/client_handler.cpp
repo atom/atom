@@ -91,24 +91,14 @@ bool ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
     CefString& errorText) {
   REQUIRE_UI_THREAD();
 
-  if (errorCode == ERR_CACHE_MISS) {
-    // Usually caused by navigating to a page with POST data via back or
-    // forward buttons.
-    errorText = "<html><head><title>Expired Form Data</title></head>"
-        "<body><h1>Expired Form Data</h1>"
-        "<h2>Your form request has expired. "
-        "Click reload to re-submit the form data.</h2></body>"
-        "</html>";
-  } else {
-    // All other messages.
-    stringstream ss;
-    ss << "<html><head><title>Load Failed</title></head>"
-        "<body><h1>Load Failed</h1>"
-        "<h2>Load of URL " << string(failedUrl) << " failed with error code "
-        << static_cast<int>(errorCode) << ".</h2></body>"
-            "</html>";
-    errorText = ss.str();
-  }
+  // All other messages.
+  stringstream ss;
+  ss << "<html><head><title>Load Failed</title></head>"
+      "<body><h1>Load Failed</h1>"
+      "<h2>Load of URL " << string(failedUrl) << " failed with error code "
+      << static_cast<int>(errorCode) << ".</h2></body>"
+          "</html>";
+  errorText = ss.str();
 
   return false;
 }
