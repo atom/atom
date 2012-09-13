@@ -14,6 +14,8 @@
 #include "client_handler.h"
 #include "io_utils.h"
 
+using namespace std;
+
 char* szWorkingDir; // The current working directory
 
 const char* szPath; // The folder the application is in
@@ -58,13 +60,13 @@ int main(int argc, char *argv[]) {
   if (szWorkingDir == NULL)
     return -1;
 
-  std::string appDir = io_util_app_directory();
+  string appDir = io_util_app_directory();
   if (appDir.empty())
     return -1;
 
   szPath = appDir.c_str();
 
-  std::string pathToOpen;
+  string pathToOpen;
   if (argc >= 2) {
     if (argv[1][0] != '/') {
       pathToOpen.append(szWorkingDir);
@@ -110,11 +112,11 @@ int main(int argc, char *argv[]) {
 
   window_info.SetAsChild(vbox);
 
-  std::string path = io_utils_real_app_path("/static/index.html");
+  string path = io_utils_real_app_path("/static/index.html");
   if (path.empty())
     return -1;
 
-  std::string resolved("file://");
+  string resolved("file://");
   resolved.append(path);
   resolved.append("?bootstrapScript=window-bootstrap");
   resolved.append("&pathToOpen=");
@@ -127,7 +129,7 @@ int main(int argc, char *argv[]) {
 
   GdkPixbuf *pixbuf;
   GError *error = NULL;
-  std::string iconPath;
+  string iconPath;
   iconPath.append(szPath);
   iconPath.append("/atom.png");
   pixbuf = gdk_pixbuf_new_from_file(iconPath.c_str(), &error);
@@ -149,14 +151,14 @@ int main(int argc, char *argv[]) {
 
 // Global functions
 
-std::string AppGetWorkingDirectory() {
+string AppGetWorkingDirectory() {
   return szWorkingDir;
 }
 
-std::string AppPath() {
+string AppPath() {
   return szPath;
 }
 
-std::string PathToOpen() {
+string PathToOpen() {
   return szPathToOpen;
 }

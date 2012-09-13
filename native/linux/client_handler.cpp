@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 
+using namespace std;
+
 ClientHandler::ClientHandler() :
     m_MainHwnd(NULL), m_BrowserHwnd(NULL) {
 }
@@ -22,9 +24,9 @@ ClientHandler::~ClientHandler() {
 
 bool ClientHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     CefProcessId source_process, CefRefPtr<CefProcessMessage> message) {
-  std::string name = message->GetName().ToString();
+  string name = message->GetName().ToString();
   if (name == "showDevTools") {
-    std::string devtools_url = browser->GetHost()->GetDevToolsURL(true);
+    string devtools_url = browser->GetHost()->GetDevToolsURL(true);
     if (!devtools_url.empty())
       browser->GetMainFrame()->ExecuteJavaScript(
           "window.open('" + devtools_url + "');", "about:blank", 0);
@@ -72,7 +74,7 @@ void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
     m_Browser = NULL;
   } else if (browser->IsPopup()) {
     // Remove the record for DevTools popup windows.
-    //std::set<std::string>::iterator it =
+    //set<string>::iterator it =
     //    m_OpenDevToolsURLs.find(browser->GetMainFrame()->GetURL());
     //if (it != m_OpenDevToolsURLs.end())
     //  m_OpenDevToolsURLs.erase(it);
@@ -106,10 +108,10 @@ bool ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
         "</html>";
   } else {
     // All other messages.
-    std::stringstream ss;
+    stringstream ss;
     ss << "<html><head><title>Load Failed</title></head>"
         "<body><h1>Load Failed</h1>"
-        "<h2>Load of URL " << std::string(failedUrl)
+        "<h2>Load of URL " << string(failedUrl)
         << " failed with error code " << static_cast<int>(errorCode)
         << ".</h2></body>"
             "</html>";
@@ -127,7 +129,7 @@ void ClientHandler::OnNavStateChange(CefRefPtr<CefBrowser> browser,
 bool ClientHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
     const CefString& message, const CefString& source, int line) {
   REQUIRE_UI_THREAD();
-  std::cout << std::string(message) << std::endl;
+  cout << string(message) << endl;
   return false;
 }
 
@@ -164,10 +166,10 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
     const CefString& title) {
   REQUIRE_UI_THREAD();
 
-  std::string titleStr(title);
+  string titleStr(title);
 
   size_t inHomeDir;
-  std::string home = getenv("HOME");
+  string home = getenv("HOME");
   inHomeDir = titleStr.find(home);
   if (inHomeDir == 0) {
     titleStr = titleStr.substr(home.length());
@@ -177,8 +179,8 @@ void ClientHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
   size_t lastSlash;
   lastSlash = titleStr.rfind("/");
 
-  std::string formatted;
-  if (lastSlash != std::string::npos && lastSlash + 1 < titleStr.length()) {
+  string formatted;
+  if (lastSlash != string::npos && lastSlash + 1 < titleStr.length()) {
     formatted.append(titleStr, lastSlash + 1, titleStr.length() - lastSlash);
     formatted.append(" (");
     formatted.append(titleStr, 0, lastSlash);
