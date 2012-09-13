@@ -1,4 +1,4 @@
-#include "atom_handler.h"
+#include "atom_linux.h"
 #include "include/cef_base.h"
 #include "include/cef_runnable.h"
 #include <iostream>
@@ -7,6 +7,8 @@
 #include "message_translation.h"
 
 using namespace std;
+
+namespace v8_extensions {
 
 AtomHandler::AtomHandler() :
     CefV8Handler() {
@@ -41,4 +43,5 @@ bool AtomHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     return true;
   }
   return false;
+}
 }

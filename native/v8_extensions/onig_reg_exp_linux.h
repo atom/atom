@@ -1,21 +1,24 @@
-#ifndef ATOM_HANDLER_H_
-#define ATOM_HANDLER_H_
+#ifndef ONIG_REG_EXP_LINUX_H_
+#define ONIG_REG_EXP_LINUX_H_
 
 #include "include/cef_base.h"
 #include "include/cef_v8.h"
 
-class AtomHandler: public CefV8Handler {
+namespace v8_extensions {
+
+class OnigRegexpExtension: public CefV8Handler {
 
 public:
-  AtomHandler();
+  OnigRegexpExtension();
 
   virtual bool Execute(const CefString& name, CefRefPtr<CefV8Value> object,
       const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
       CefString& exception);
 
-IMPLEMENT_REFCOUNTING(AtomHandler)
+IMPLEMENT_REFCOUNTING(OnigRegexpExtension)
   ;
 
 };
 
+}
 #endif

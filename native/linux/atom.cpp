@@ -13,7 +13,6 @@
 #include "include/cef_runnable.h"
 #include "client_handler.h"
 #include "onig_regexp_extension.h"
-#include "atom_handler.h"
 #include "io_utils.h"
 
 char* szWorkingDir; // The current working directory

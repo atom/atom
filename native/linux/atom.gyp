@@ -15,11 +15,15 @@
         'include_dirs': [
           '../../cef',
           '..',
+          '../v8_extensions',
+          '.',
         ],
         'sources': [
+          '../v8_extensions/atom_linux.cpp',
+          '../v8_extensions/native_linux.cpp',
+          '../v8_extensions/onig_reg_exp_linux.cpp',
           'atom.cpp',
           'atom_cef_render_process_handler.cpp',
-          'atom_handler.cpp',
           'client_handler.cpp',
           'io_utils.cpp',
           'message_translation.cpp',
