@@ -6,12 +6,14 @@
 #include <unistd.h>
 #include <string>
 #include "atom.h"
+#include "atom_cef_app.h"
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
 #include "include/cef_runnable.h"
 #include "client_handler.h"
 #include "onig_regexp_extension.h"
+#include "atom_handler.h"
 #include "io_utils.h"
 
 char* szWorkingDir; // The current working directory
@@ -30,6 +32,7 @@ void AppGetSettings(CefSettings& settings, CefRefPtr<CefApp>& app) {
   CefString(&settings.log_file) = "";
   CefString(&settings.javascript_flags) = "";
 
+  settings.remote_debugging_port = 9090;
   settings.log_severity = LOGSEVERITY_ERROR;
 }
 
@@ -80,7 +83,7 @@ int main(int argc, char *argv[]) {
   gtk_init(&argc, &argv);
 
   CefSettings settings;
-  CefRefPtr<CefApp> app;
+  CefRefPtr<CefApp> app(new AtomCefApp);
 
   AppGetSettings(settings, app);
   CefInitialize(main_args, settings, app.get());
@@ -103,7 +106,8 @@ int main(int argc, char *argv[]) {
   g_handler->SetMainHwnd(vbox);
   g_handler->SetWindow(window);
 
-  new OnigRegexpExtension();
+  //new OnigRegexpExtension();
+  //new AtomHandler();
 
   // Create the browser view.
   CefWindowInfo window_info;
@@ -117,10 +121,12 @@ int main(int argc, char *argv[]) {
 
   std::string resolved("file://");
   resolved.append(path);
+  resolved.append("?bootstrapScript=window-bootstrap");
+  resolved.append("&pathToOpen=");
+  resolved.append(PathToOpen());
 
-  CefBrowserHost::CreateBrowserSync(
-      window_info, g_handler.get(),
-      resolved, browserSettings);
+  CefBrowserHost::CreateBrowserSync(window_info, g_handler.get(), resolved,
+      browserSettings);
 
   gtk_container_add(GTK_CONTAINER(window), vbox);
   gtk_widget_show_all(GTK_WIDGET(window));

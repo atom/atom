@@ -55,8 +55,10 @@ public:
       return CefV8Value::CreateNull();
 
     CefRefPtr<CefV8Value> indices;
-    CefRefPtr<CefV8Value> resultArray = CefV8Value::CreateArray(region->num_regs);
-    CefRefPtr<CefV8Value> indicesArray = CefV8Value::CreateArray(region->num_regs);
+    CefRefPtr<CefV8Value> resultArray = CefV8Value::CreateArray(
+        region->num_regs);
+    CefRefPtr<CefV8Value> indicesArray = CefV8Value::CreateArray(
+        region->num_regs);
     for (int i = 0; i < region->num_regs; i++) {
       int begin = region->beg[i];
       int end = region->end[i];
@@ -95,7 +97,7 @@ public:
   }
 
   CefRefPtr<CefV8Value> BuildCaptureIndices(OnigRegion *region) {
-    CefRefPtr<CefV8Value> array = CefV8Value::CreateArray(region->num_regs);
+    CefRefPtr<CefV8Value> array = CefV8Value::CreateArray(region->num_regs * 3);
     int i = 0;
     for (int index = 0; index < region->num_regs; index++) {
       int begin = region->beg[index];
@@ -127,17 +129,55 @@ IMPLEMENT_REFCOUNTING(OnigRegexpUserData)
 OnigRegexpExtension::OnigRegexpExtension() :
     CefV8Handler() {
   string realFilePath = io_utils_real_app_path(
-      "/src/stdlib/onig-reg-exp-extension.js");
+      "/native/v8_extensions/onig_reg_exp.js");
   if (!realFilePath.empty()) {
     string extensionCode;
     if (io_utils_read(realFilePath, &extensionCode) > 0)
-      CefRegisterExtension("v8/oniguruma", extensionCode, this);
+      CefRegisterExtension("v8/onig-reg-exp", extensionCode, this);
   }
 }
 
 bool OnigRegexpExtension::Execute(const CefString& name,
     CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
     CefRefPtr<CefV8Value>& retval, CefString& exception) {
+  if (name == "captureIndices") {
+    CefRefPtr<CefV8Value> string = arguments[0];
+    CefRefPtr<CefV8Value> index = arguments[1];
+    CefRefPtr<CefV8Value> regexes = arguments[2];
+
+    int bestIndex = -1;
+    CefRefPtr<CefV8Value> captureIndicesForBestIndex;
+    CefRefPtr<CefV8Value> captureIndices;
+
+    retval = CefV8Value::CreateObject(NULL);
+    for (int i = 0; i < regexes->GetArrayLength(); i++) {
+      OnigRegexpUserData *userData =
+          (OnigRegexpUserData *) regexes->GetValue(i)->GetUserData().get();
+      captureIndices = userData->GetCaptureIndices(string, index);
+      if (captureIndices->IsNull())
+        continue;
+
+      if (bestIndex == -1
+          || captureIndices->GetValue(1)->GetIntValue()
+              < captureIndicesForBestIndex->GetValue(1)->GetIntValue()) {
+        bestIndex = i;
+        captureIndicesForBestIndex = captureIndices;
+        if (captureIndices->GetValue(1)->GetIntValue() == 0)
+          break; // If the match starts at 0, just use it!
+      }
+    }
+
+    if (bestIndex != -1) {
+      retval->SetValue("index", CefV8Value::CreateInt(bestIndex),
+          V8_PROPERTY_ATTRIBUTE_NONE);
+      retval->SetValue("captureIndices", captureIndicesForBestIndex,
+          V8_PROPERTY_ATTRIBUTE_NONE);
+    }
+
+    return true;
+
+  }
+
   if (name == "getCaptureIndices") {
     CefRefPtr<CefV8Value> string = arguments[0];
     CefRefPtr<CefV8Value> index =
