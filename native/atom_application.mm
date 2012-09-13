@@ -9,8 +9,12 @@
 
 @synthesize arguments=_arguments;
 
++ (AtomApplication *)sharedApplication {
+  return (AtomApplication *)[super sharedApplication];
+}
+
 + (id)applicationWithArguments:(char **)argv count:(int)argc {
-  AtomApplication *application = (AtomApplication *)[super sharedApplication];
+  AtomApplication *application = [self sharedApplication];
   CefInitialize(CefMainArgs(argc, argv), [self createCefSettings], new AtomCefApp);
   application.arguments = [self parseArguments:argv count:argc];
   

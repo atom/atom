@@ -9,6 +9,7 @@ class AtomCefClient;
   BOOL handlingSendEvent_;
 }
 
++ (AtomApplication *)sharedApplication;
 + (id)applicationWithArguments:(char **)argv count:(int)argc;
 + (CefSettings)createCefSettings;
 + (NSDictionary *)parseArguments:(char **)argv count:(int)argc;

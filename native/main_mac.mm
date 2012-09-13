@@ -67,18 +67,23 @@ void listenForPathToOpen(int fd, NSString *socketPath) {
   else {
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async(queue, ^{
-      char buf[1000];
+      char buf[MAXPATHLEN];
       struct sockaddr_un listen_addr;
       listen_addr.sun_family = AF_UNIX;
       strcpy(listen_addr.sun_path, [socketPath UTF8String]);
       socklen_t listen_addr_length;
       
       while(true) {
+        memset(buf, 0, MAXPATHLEN);
         if (recvfrom(fd, &buf, sizeof(buf), 0, (sockaddr *)&listen_addr, &listen_addr_length) < 0) {
           perror("ERROR: Receiving from socket");
         }
         else {
-          NSLog(@"You should open the path %s", buf);
+          NSString *path = [NSString stringWithUTF8String:buf];
+          dispatch_queue_t mainQueue = dispatch_get_main_queue();
+          dispatch_async(mainQueue, ^{
+            [[AtomApplication sharedApplication] open:path];
+          });
         }
       }
     });
