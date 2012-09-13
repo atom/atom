@@ -27,7 +27,6 @@
           'atom_cef_render_process_handler.cpp',
           'client_handler.cpp',
           'io_utils.cpp',
-          'native_handler.cpp',
           'onig_regexp_extension.cpp',
         ],
         'cflags': [
