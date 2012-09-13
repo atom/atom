@@ -10,9 +10,11 @@
         'dependencies': [
         ],
         'defines': [
+           'PROCESS_HELPER_APP',
         ],
         'include_dirs': [
           '../../cef',
+          '..',
         ],
         'sources': [
           'atom.cpp',
