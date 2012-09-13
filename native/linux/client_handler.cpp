@@ -69,16 +69,9 @@ bool ClientHandler::DoClose(CefRefPtr<CefBrowser> browser) {
 void ClientHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
   REQUIRE_UI_THREAD();
 
-  if (m_BrowserId == browser->GetIdentifier()) {
-    // Free the browser pointer so that the browser can be destroyed
+  // Free the browser pointer so that the browser can be destroyed
+  if (m_BrowserId == browser->GetIdentifier())
     m_Browser = NULL;
-  } else if (browser->IsPopup()) {
-    // Remove the record for DevTools popup windows.
-    //set<string>::iterator it =
-    //    m_OpenDevToolsURLs.find(browser->GetMainFrame()->GetURL());
-    //if (it != m_OpenDevToolsURLs.end())
-    //  m_OpenDevToolsURLs.erase(it);
-  }
 }
 
 void ClientHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
@@ -111,9 +104,8 @@ bool ClientHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
     stringstream ss;
     ss << "<html><head><title>Load Failed</title></head>"
         "<body><h1>Load Failed</h1>"
-        "<h2>Load of URL " << string(failedUrl)
-        << " failed with error code " << static_cast<int>(errorCode)
-        << ".</h2></body>"
+        "<h2>Load of URL " << string(failedUrl) << " failed with error code "
+        << static_cast<int>(errorCode) << ".</h2></body>"
             "</html>";
     errorText = ss.str();
   }
