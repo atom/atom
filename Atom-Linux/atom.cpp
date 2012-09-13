@@ -31,8 +31,6 @@ void AppGetSettings(CefSettings& settings, CefRefPtr<CefApp>& app) {
   CefString(&settings.javascript_flags) = "";
 
   settings.log_severity = LOGSEVERITY_ERROR;
-  settings.local_storage_quota = 0;
-  settings.session_storage_quota = 0;
 }
 
 void destroy(void) {
@@ -47,13 +45,14 @@ void TerminationSignalHandler(int signatl) {
 static gboolean HandleFocus(GtkWidget* widget, GdkEventFocus* focus) {
   if (g_handler.get() && g_handler->GetBrowserHwnd()) {
     // Give focus to the browser window.
-    g_handler->GetBrowser()->SetFocus(true);
+    g_handler->GetBrowser()->GetHost()->SetFocus(true);
   }
 
   return TRUE;
 }
 
 int main(int argc, char *argv[]) {
+  CefMainArgs main_args(argc, argv);
   szWorkingDir = get_current_dir_name();
   if (szWorkingDir == NULL)
     return -1;
@@ -84,7 +83,7 @@ int main(int argc, char *argv[]) {
   CefRefPtr<CefApp> app;
 
   AppGetSettings(settings, app);
-  CefInitialize(settings, app);
+  CefInitialize(main_args, settings, app.get());
 
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(window), "atom");
@@ -112,15 +111,16 @@ int main(int argc, char *argv[]) {
 
   window_info.SetAsChild(vbox);
 
-  std::string path = io_utils_real_app_path("/index.html");
+  std::string path = io_utils_real_app_path("/static/index.html");
   if (path.empty())
     return -1;
 
   std::string resolved("file://");
   resolved.append(path);
 
-  CefBrowser::CreateBrowserSync(window_info,
-      static_cast<CefRefPtr<CefClient> >(g_handler), resolved, browserSettings);
+  CefBrowserHost::CreateBrowserSync(
+      window_info, g_handler.get(),
+      resolved, browserSettings);
 
   gtk_container_add(GTK_CONTAINER(window), vbox);
   gtk_widget_show_all(GTK_WIDGET(window));

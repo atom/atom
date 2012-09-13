@@ -55,8 +55,8 @@ public:
       return CefV8Value::CreateNull();
 
     CefRefPtr<CefV8Value> indices;
-    CefRefPtr<CefV8Value> resultArray = CefV8Value::CreateArray();
-    CefRefPtr<CefV8Value> indicesArray = CefV8Value::CreateArray();
+    CefRefPtr<CefV8Value> resultArray = CefV8Value::CreateArray(region->num_regs);
+    CefRefPtr<CefV8Value> indicesArray = CefV8Value::CreateArray(region->num_regs);
     for (int i = 0; i < region->num_regs; i++) {
       int begin = region->beg[i];
       int end = region->end[i];
@@ -95,7 +95,7 @@ public:
   }
 
   CefRefPtr<CefV8Value> BuildCaptureIndices(OnigRegion *region) {
-    CefRefPtr<CefV8Value> array = CefV8Value::CreateArray();
+    CefRefPtr<CefV8Value> array = CefV8Value::CreateArray(region->num_regs);
     int i = 0;
     for (int index = 0; index < region->num_regs; index++) {
       int begin = region->beg[index];
@@ -170,7 +170,8 @@ bool OnigRegexpExtension::Execute(const CefString& name,
 
   if (name == "buildOnigRegExp") {
     CefRefPtr<CefBase> userData = new OnigRegexpUserData(arguments[0]);
-    retval = CefV8Value::CreateObject(userData, NULL);
+    retval = CefV8Value::CreateObject(NULL);
+    retval->SetUserData(userData);
     return true;
   }
 
