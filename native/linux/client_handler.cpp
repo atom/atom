@@ -25,13 +25,11 @@ bool ClientHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   std::string name = message->GetName().ToString();
   if (name == "showDevTools") {
     std::string devtools_url = browser->GetHost()->GetDevToolsURL(true);
-    if (!devtools_url.empty()) {
+    if (!devtools_url.empty())
       browser->GetMainFrame()->ExecuteJavaScript(
           "window.open('" + devtools_url + "');", "about:blank", 0);
-    }
-  } else {
+  } else
     return false;
-  }
 
   return true;
 }
