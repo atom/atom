@@ -1,7 +1,6 @@
 #ifndef ATOM_LINUX_H_
 #define ATOM_LINUX_H_
 
-#include "include/cef_base.h"
 #include "include/cef_v8.h"
 
 namespace v8_extensions {
