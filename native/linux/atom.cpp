@@ -106,9 +106,6 @@ int main(int argc, char *argv[]) {
   g_handler->SetMainHwnd(vbox);
   g_handler->SetWindow(window);
 
-  //new OnigRegexpExtension();
-  //new AtomHandler();
-
   // Create the browser view.
   CefWindowInfo window_info;
   CefBrowserSettings browserSettings;
