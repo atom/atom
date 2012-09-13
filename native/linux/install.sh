@@ -3,11 +3,8 @@ INSTALLDIR=/usr/share/atom
 
 mkdir -p $INSTALLDIR
 cp out/Default/atom $INSTALLDIR
-cp -t $INSTALLDIR *.pak
-cp -R locales $INSTALLDIR
-cp atom.png $INSTALLDIR
-cp lib/libcef.so $INSTALLDIR
-cp lib/libcef_dll_wrapper.a $INSTALLDIR
+cp -R -t $INSTALLDIR static/*
+cp -t $INSTALLDIR lib/*
 cp -R ../../src $INSTALLDIR
 cp -R ../../static $INSTALLDIR
 cp -R ../../vendor $INSTALLDIR
