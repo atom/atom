@@ -77,7 +77,7 @@ task :"copy-files-to-bundle" do
   if resource_path = ENV['RESOURCE_PATH']
     # CoffeeScript can't deal with unescaped whitespace in 'Atom Helper.app' path
     escaped_dest = dest.gsub("Atom Helper.app", "Atom\\ Helper.app")
-    sh "coffee -c -o \"#{escaped_dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
+    sh "vendor/coffee -c -o \"#{escaped_dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
     cp_r "#{resource_path}/static", dest
   else
     # TODO: Restore this list when we add in all of atoms source
@@ -85,7 +85,7 @@ task :"copy-files-to-bundle" do
       dest_path = File.join(dest, dir)
       rm_rf dest_path
       cp_r dir, dest_path
-      sh "coffee -c '#{dest_path}'"
+      sh "vendor/coffee -c '#{dest_path}'"
     end
   end
 end
