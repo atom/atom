@@ -13,7 +13,7 @@ task "create-project" do
 end
 
 desc "Build Atom via `xcodebuild`"
-task :build => [:"create-project", :"verify-prerequisites"] do
+task :build => "create-project" do
   command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
   puts command
   output = `#{command}`
@@ -64,7 +64,7 @@ task :benchmark do
 end
 
 desc "Copy files to bundle and compile CoffeeScripts"
-task :"copy-files-to-bundle" => :"verify-prerequisites" do
+task :"copy-files-to-bundle" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
   contents_dir = ENV['CONTENTS_FOLDER_PATH']
@@ -93,14 +93,6 @@ end
 desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
 task :nof do
   system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
-end
-
-task :"verify-prerequisites" do
-  `hash coffee`
-  if not $?.success?
-    abort "error: coffee is required but it's not installed - " +
-          "http://coffeescript.org/ - (try `npm i -g coffee-script`)"
-  end
 end
 
 def application_path
