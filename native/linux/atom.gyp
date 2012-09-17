@@ -34,7 +34,8 @@
         'link_settings': {
           'ldflags': [
             '<!@(<(pkg-config) --libs-only-L --libs-only-other gtk+-2.0 gthread-2.0 openssl)',
-            '-Llib',
+            '-Llib/32',
+            '-Llib/64',
             '-Wl,-rpath=<(install-dir)',
           ],
           'libraries': [
