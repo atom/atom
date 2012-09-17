@@ -1,0 +1,4 @@
+#!/bin/sh
+# Make sure all dependencies are in place.
+
+npm install

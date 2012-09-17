@@ -1,8 +1,9 @@
 require 'fileutils'
 
 $ATOM_ARGS = []
+ENV['PATH'] = "#{ENV['PATH']}:/opt/github/bin/"
 
-ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin/"
+COFFEE_PATH = "node_modules/.bin/coffee"
 BUILD_DIR = 'atom-build'
 mkdir_p BUILD_DIR
 
@@ -13,7 +14,7 @@ task "create-project" do
 end
 
 desc "Build Atom via `xcodebuild`"
-task :build => [:"create-project", :"verify-prerequisites"] do
+task :build => "create-project" do
   command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
   puts command
   output = `#{command}`
@@ -64,7 +65,7 @@ task :benchmark do
 end
 
 desc "Copy files to bundle and compile CoffeeScripts"
-task :"copy-files-to-bundle" => :"verify-prerequisites" do
+task :"copy-files-to-bundle" do
   project_dir  = ENV['PROJECT_DIR'] || '.'
   built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
   contents_dir = ENV['CONTENTS_FOLDER_PATH']
@@ -77,7 +78,7 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
   if resource_path = ENV['RESOURCE_PATH']
     # CoffeeScript can't deal with unescaped whitespace in 'Atom Helper.app' path
     escaped_dest = dest.gsub("Atom Helper.app", "Atom\\ Helper.app")
-    sh "coffee -c -o \"#{escaped_dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
+    sh "#{COFFEE_PATH} -c -o \"#{escaped_dest}/src/stdlib\" \"#{resource_path}/src/stdlib/require.coffee\""
     cp_r "#{resource_path}/static", dest
   else
     # TODO: Restore this list when we add in all of atoms source
@@ -85,7 +86,7 @@ task :"copy-files-to-bundle" => :"verify-prerequisites" do
       dest_path = File.join(dest, dir)
       rm_rf dest_path
       cp_r dir, dest_path
-      sh "coffee -c '#{dest_path}'"
+      sh "#{COFFEE_PATH} -c '#{dest_path}'"
     end
   end
 end
@@ -93,14 +94,6 @@ end
 desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
 task :nof do
   system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
-end
-
-task :"verify-prerequisites" do
-  `hash coffee`
-  if not $?.success?
-    abort "error: coffee is required but it's not installed - " +
-          "http://coffeescript.org/ - (try `npm i -g coffee-script`)"
-  end
 end
 
 def application_path
@@ -128,5 +121,3 @@ def binary_path
 
   return nil
 end
-
-

@@ -1,0 +1,12 @@
+{
+  "name"    : "atom",
+  "version" : "0.0.0",
+
+  "dependencies": {
+    "coffee-script": "1.x"
+  },
+
+  "scripts": {
+    "preinstall": "true"
+  }
+}

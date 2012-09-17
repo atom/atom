@@ -144,9 +144,7 @@
             {
               'postbuild_name': 'Copy and Compile Static Files',
               'action': [
-                'rake',
-                '--trace',
-                'copy-files-to-bundle',
+                'script/copy-files-to-bundle'
               ],
             },
             {
@@ -326,9 +324,7 @@
             {
               'postbuild_name': 'Copy and Compile Static Files',
               'action': [
-                'rake',
-                '--trace',
-                'copy-files-to-bundle',
+                'script/copy-files-to-bundle'
               ],
             },
           ],
