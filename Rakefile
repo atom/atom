@@ -28,6 +28,29 @@ task :clean do
   output = `xcodebuild clean`
 end
 
+desc "Run Atom"
+task :run => :build do
+  if path = application_path()
+    puts path
+    exitstatus = system "#{path}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')} 2> /dev/null"
+    exit(exitstatus)
+  else
+    exit(1)
+  end
+end
+
+desc "Run the specs"
+task :test => :clean do
+  $ATOM_ARGS.push "--test"
+  Rake::Task["run"].invoke
+end
+
+desc "Run the benchmarks"
+task :benchmark do
+  $ATOM_ARGS.push "--benchmark"
+  Rake::Task["run"].invoke
+end
+
 desc "Create the Atom.app for distribution"
 task :package => :build do
   if path = application_path()
@@ -59,28 +82,6 @@ task :install => :build do
   end
 end
 
-desc "Run Atom"
-task :run => :build do
-  if path = application_path()
-    exitstatus = system "open #{path} #{$ATOM_ARGS.join(' ')} 2> /dev/null"
-    exit(exitstatus)
-  else
-    exit(1)
-  end
-end
-
-desc "Run the specs"
-task :test => :clean do
-  $ATOM_ARGS.push "--test"
-  Rake::Task["run"].invoke
-end
-
-desc "Run the benchmarks"
-task :benchmark do
-  $ATOM_ARGS.push "--benchmark"
-  Rake::Task["run"].invoke
-end
-
 desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
 task :nof do
   system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
@@ -107,9 +108,14 @@ task :"copy-files-to-bundle" do
 end
 
 def application_path
-  if not path = File.open('.xcodebuild-info').read()
-    $stderr.puts "Error: No .xcodebuild-info file found. This file is created when the `build` raketask is run"
+  applications = FileList["#{BUILD_DIR}/**/Atom.app"]
+  if applications.size == 0
+    $stderr.puts "No Atom application found in directory `#{BUILD_DIR}`"
+  elsif applications.size > 1
+    $stderr.puts "Multiple Atom applications found \n\t" + applications.join("\n\t")
+  else
+    return applications.first
   end
 
-  return path.strip()
+  return nil
 end
