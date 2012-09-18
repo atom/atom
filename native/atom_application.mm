@@ -31,7 +31,6 @@
   
   int opt;
   int longindex;
-  
   if (argc > 2 && strcmp(argv[argc - 2], "-NSDocumentRevisionsDebugMode") == 0) { // Because Xcode inserts useless command-line args by default: http://trac.wxwidgets.org/ticket/13732
     argc -= 2; // Ignore last two arguments
   }
@@ -43,10 +42,10 @@
     { "test",               optional_argument,      NULL,  't' },
     { NULL,                 0,                      NULL,  0 }
   };
-  
+
   while ((opt = getopt_long(argc, argv, "r:K:bth?", longopts, &longindex)) != -1) {
     NSString *key = [NSString stringWithUTF8String:longopts[longindex].name];
-    NSString *value = [NSString stringWithUTF8String:optarg];
+    NSString *value = optarg ? [NSString stringWithUTF8String:optarg] : @"YES";
 
     switch (opt) {
       case 'K':
@@ -56,7 +55,7 @@
         [arguments setObject:value forKey:key];
         break;
       default:
-        printf("usage: atom [--resource-path=<path>] [<path>]");
+        NSLog(@"usage: atom [--resource-path=<path>] [<path>]");
     }
   }
   
@@ -72,6 +71,7 @@
     path = [path stringByStandardizingPath];
     [arguments setObject:path forKey:@"path"];
   }
+  
   
   return arguments;
 }
@@ -134,7 +134,7 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
-    
+  
   if ([self.arguments objectForKey:@"benchmark"]) {
     [self runBenchmarksThenExit:true];
   }
