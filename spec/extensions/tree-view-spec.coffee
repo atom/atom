@@ -81,7 +81,7 @@ describe "TreeView", ->
     [newRootView, newTreeView] = []
 
     afterEach ->
-      newRootView.deactivate()
+      newRootView?.deactivate()
 
     it "restores expanded directories and selected file when deserialized", ->
       treeView.find('.directory:contains(zed)').click()
@@ -110,6 +110,21 @@ describe "TreeView", ->
 
       newTreeView = newRootView.find(".tree-view").view()
       expect(newTreeView).toMatchSelector ':focus'
+
+    it "restores the scroll top when toggled", ->
+      rootView.attachToDom()
+      expect(treeView).toBeVisible()
+      treeView.focus()
+
+      treeView.root.height(document.body.scrollHeight * 100)
+      treeView.scrollTop(10)
+      expect(treeView.scrollTop()).toBe(10)
+
+      rootView.trigger 'tree-view:toggle'
+      expect(treeView).toBeHidden()
+      rootView.trigger 'tree-view:toggle'
+      expect(treeView).toBeVisible()
+      expect(treeView.scrollTop()).toBe(10)
 
   describe "when tree-view:toggle is triggered on the root view", ->
     beforeEach ->
@@ -466,10 +481,11 @@ describe "TreeView", ->
 
     describe "tree-view:open-selected-entry", ->
       describe "when a file is selected", ->
-        it "opens the file in the editor", ->
+        it "opens the file in the editor and focuses it", ->
           treeView.root.find('.file:contains(sample.js)').click()
           treeView.root.trigger 'tree-view:open-selected-entry'
           expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/sample.js')
+          expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
       describe "when a directory is selected", ->
         it "expands or collapses the directory", ->

@@ -114,7 +114,9 @@ typedef struct _cef_browser_t {
   ///
   int (CEF_CALLBACK *is_popup)(struct _cef_browser_t* self);
 
+  ///
   // Returns true (1) if a document has been loaded in the browser.
+  ///
   int (CEF_CALLBACK *has_document)(struct _cef_browser_t* self);
 
   ///
@@ -238,12 +240,15 @@ typedef struct _cef_browser_host_t {
       struct _cef_browser_host_t* self, int http_scheme);
 
   ///
-  // Get the zoom level. This function can only be called on the UI thread.
+  // Get the current zoom level. The default zoom level is 0.0. This function
+  // can only be called on the UI thread.
   ///
   double (CEF_CALLBACK *get_zoom_level)(struct _cef_browser_host_t* self);
 
   ///
-  // Change the zoom level to the specified value.
+  // Change the zoom level to the specified value. Specify 0.0 to reset the zoom
+  // level. If called on the UI thread the change will be applied immediately.
+  // Otherwise, the change will be applied asynchronously on the UI thread.
   ///
   void (CEF_CALLBACK *set_zoom_level)(struct _cef_browser_host_t* self,
       double zoomLevel);

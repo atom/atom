@@ -143,9 +143,7 @@
             {
               'postbuild_name': 'Copy and Compile Static Files',
               'action': [
-                'rake',
-                '--trace',
-                'copy-files-to-bundle',
+                'script/copy-files-to-bundle'
               ],
             },
             {
@@ -172,7 +170,7 @@
               'action': [
                 'cp',
                 '-r',
-                'cef/resources',
+                'cef/Resources',
                 '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/'
               ],
             },
@@ -325,9 +323,7 @@
             {
               'postbuild_name': 'Copy and Compile Static Files',
               'action': [
-                'rake',
-                '--trace',
-                'copy-files-to-bundle',
+                'script/copy-files-to-bundle'
               ],
             },
           ],

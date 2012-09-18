@@ -35,11 +35,13 @@ class TreeView extends View
     treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
     treeView.selectEntryForPath(state.selectedPath)
     treeView.focusAfterAttach = state.hasFocus
+    treeView.scrollTopAfterAttach = state.scrollTop
     treeView.attach() if state.attached
     treeView
 
   root: null
   focusAfterAttach: false
+  scrollTopAfterAttach: -1
 
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) => @entryClicked(e)
@@ -47,7 +49,7 @@ class TreeView extends View
     @on 'move-down', => @moveDown()
     @on 'tree-view:expand-directory', => @expandDirectory()
     @on 'tree-view:collapse-directory', => @collapseDirectory()
-    @on 'tree-view:open-selected-entry', => @openSelectedEntry()
+    @on 'tree-view:open-selected-entry', => @openSelectedEntry(true)
     @on 'tree-view:move', => @moveSelectedEntry()
     @on 'tree-view:add', => @add()
     @on 'tree-view:remove', => @removeSelectedEntry()
@@ -62,12 +64,14 @@ class TreeView extends View
 
   afterAttach: (onDom) ->
     @focus() if @focusAfterAttach
+    @scrollTop(@scrollTopAfterAttach) if @scrollTopAfterAttach > 0
 
   serialize: ->
     directoryExpansionStates: @root?.serializeEntryExpansionStates()
     selectedPath: @selectedEntry()?.getPath()
     hasFocus: @is(':focus')
     attached: @hasParent()
+    scrollTop: @scrollTop()
 
   deactivate: ->
     @root?.unwatchEntries()
@@ -83,12 +87,16 @@ class TreeView extends View
   attach: ->
     @rootView.horizontal.prepend(this)
 
+  detach: ->
+    @scrollTopAfterAttach = @scrollTop()
+    super
+
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()
     switch e.originalEvent?.detail ? 1
       when 1
         @selectEntry(entry)
-        @openSelectedEntry() if (entry instanceof FileView)
+        @openSelectedEntry(false) if (entry instanceof FileView)
       when 2
         if entry.is('.selected.file')
           @rootView.getActiveEditor().focus()
@@ -176,12 +184,12 @@ class TreeView extends View
       directory.collapse()
       @selectEntry(directory)
 
-  openSelectedEntry: ->
+  openSelectedEntry: (changeFocus) ->
     selectedEntry = @selectedEntry()
     if (selectedEntry instanceof DirectoryView)
       selectedEntry.view().toggleExpansion()
     else if (selectedEntry instanceof FileView)
-      @rootView.open(selectedEntry.getPath(), changeFocus: false)
+      @rootView.open(selectedEntry.getPath(), { changeFocus })
 
   moveSelectedEntry: ->
     entry = @selectedEntry()

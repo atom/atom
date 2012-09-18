@@ -136,6 +136,30 @@ void CefCommandLineCToCpp::Reset() {
   struct_->reset(struct_);
 }
 
+void CefCommandLineCToCpp::GetArgv(std::vector<CefString>& argv) {
+  if (CEF_MEMBER_MISSING(struct_, get_argv))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Translate param: argv; type: string_vec_byref
+  cef_string_list_t argvList = cef_string_list_alloc();
+  DCHECK(argvList);
+  if (argvList)
+    transfer_string_list_contents(argv, argvList);
+
+  // Execute
+  struct_->get_argv(struct_,
+      argvList);
+
+  // Restore param:argv; type: string_vec_byref
+  if (argvList) {
+    argv.clear();
+    transfer_string_list_contents(argvList, argv);
+    cef_string_list_free(argvList);
+  }
+}
+
 CefString CefCommandLineCToCpp::GetCommandLineString() {
   if (CEF_MEMBER_MISSING(struct_, get_command_line_string))
     return CefString();
