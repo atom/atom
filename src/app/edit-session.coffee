@@ -9,13 +9,18 @@ EventEmitter = require 'event-emitter'
 Range = require 'range'
 AnchorRange = require 'anchor-range'
 _ = require 'underscore'
+fs = require 'fs'
 
 module.exports =
 class EditSession
   @idCounter: 1
 
   @deserialize: (state, project) ->
-    session = project.buildEditSessionForPath(state.buffer)
+    if fs.exists(state.buffer)
+      session = project.buildEditSessionForPath(state.buffer)
+    else
+      console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists"
+      session = project.buildEditSessionForPath(null)
     session.setScrollTop(state.scrollTop)
     session.setScrollLeft(state.scrollLeft)
     session.setCursorScreenPosition(state.cursorScreenPosition)

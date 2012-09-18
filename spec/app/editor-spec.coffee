@@ -74,6 +74,14 @@ describe "Editor", ->
       expect(newEditor.scrollTop()).toBe editor.scrollTop()
       expect(newEditor.scrollView.scrollLeft()).toBe 44
 
+    it "does not blow up if no file exists for a previous edit session, but prints a warning", ->
+      spyOn(console, 'warn')
+      fs.write('/tmp/delete-me')
+      editor.edit(rootView.project.buildEditSessionForPath('/tmp/delete-me'))
+      fs.remove('/tmp/delete-me')
+      newEditor = editor.copy()
+      expect(console.warn).toHaveBeenCalled()
+
   describe "when the editor is attached to the dom", ->
     it "calculates line height and char width and updates the pixel position of the cursor", ->
       expect(editor.lineHeight).toBeNull()

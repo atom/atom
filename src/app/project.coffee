@@ -119,8 +119,11 @@ class Project
   bufferForPath: (filePath) ->
     if filePath?
       filePath = @resolve(filePath)
-      buffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
-      buffer or @buildBuffer(filePath)
+      if filePath
+        buffer = _.find @buffers, (buffer) -> buffer.getPath() == filePath
+        buffer or @buildBuffer(filePath)
+      else
+
     else
       @buildBuffer()
 

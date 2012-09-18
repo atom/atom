@@ -102,7 +102,7 @@ class RootView extends View
     changeFocus = options.changeFocus ? true
     allowActiveEditorChange = options.allowActiveEditorChange ? false
 
-    unless editSession = @openInExistingEditor(path, allowActiveEditorChange)
+    unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
       editSession = @project.buildEditSessionForPath(path)
       editor = new Editor({editSession})
       pane = new Pane(editor)
@@ -110,12 +110,14 @@ class RootView extends View
       if changeFocus
         editor.focus()
       else
-        @makeEditorActive(editor)
+        @makeEditorActive(editor, changeFocus)
 
     editSession
 
-  openInExistingEditor: (path, allowActiveEditorChange) ->
+  openInExistingEditor: (path, allowActiveEditorChange, changeFocus) ->
     if activeEditor = @getActiveEditor()
+      activeEditor.focus() if changeFocus
+
       path = @project.resolve(path) if path
 
       if editSession = activeEditor.activateEditSessionForPath(path)
@@ -124,7 +126,7 @@ class RootView extends View
       if allowActiveEditorChange
         for editor in @getEditors()
           if editSession = editor.activateEditSessionForPath(path)
-            editor.focus()
+            @makeEditorActive(editor, changeFocus)
             return editSession
 
       editSession = @project.buildEditSessionForPath(path)
@@ -134,7 +136,11 @@ class RootView extends View
   editorFocused: (editor) ->
     @makeEditorActive(editor) if @panes.containsElement(editor)
 
-  makeEditorActive: (editor) ->
+  makeEditorActive: (editor, focus) ->
+    if focus
+      editor.focus()
+      return
+
     previousActiveEditor = @panes.find('.editor.active').view()
     previousActiveEditor?.removeClass('active').off('.root-view')
     editor.addClass('active')
