@@ -171,7 +171,7 @@
               'action': [
                 'cp',
                 '-r',
-                'cef/resources',
+                'cef/Resources',
                 '${BUILT_PRODUCTS_DIR}/Atom.app/Contents/Frameworks/Chromium Embedded Framework.framework/'
               ],
             },
