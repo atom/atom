@@ -47,7 +47,7 @@ class TreeView extends View
     @on 'move-down', => @moveDown()
     @on 'tree-view:expand-directory', => @expandDirectory()
     @on 'tree-view:collapse-directory', => @collapseDirectory()
-    @on 'tree-view:open-selected-entry', => @openSelectedEntry()
+    @on 'tree-view:open-selected-entry', => @openSelectedEntry(true)
     @on 'tree-view:move', => @moveSelectedEntry()
     @on 'tree-view:add', => @add()
     @on 'tree-view:remove', => @removeSelectedEntry()
@@ -88,7 +88,7 @@ class TreeView extends View
     switch e.originalEvent?.detail ? 1
       when 1
         @selectEntry(entry)
-        @openSelectedEntry() if (entry instanceof FileView)
+        @openSelectedEntry(false) if (entry instanceof FileView)
       when 2
         if entry.is('.selected.file')
           @rootView.getActiveEditor().focus()
@@ -176,12 +176,12 @@ class TreeView extends View
       directory.collapse()
       @selectEntry(directory)
 
-  openSelectedEntry: ->
+  openSelectedEntry: (changeFocus) ->
     selectedEntry = @selectedEntry()
     if (selectedEntry instanceof DirectoryView)
       selectedEntry.view().toggleExpansion()
     else if (selectedEntry instanceof FileView)
-      @rootView.open(selectedEntry.getPath(), changeFocus: false)
+      @rootView.open(selectedEntry.getPath(), { changeFocus })
 
   moveSelectedEntry: ->
     entry = @selectedEntry()

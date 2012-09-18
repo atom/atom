@@ -466,10 +466,11 @@ describe "TreeView", ->
 
     describe "tree-view:open-selected-entry", ->
       describe "when a file is selected", ->
-        it "opens the file in the editor", ->
+        it "opens the file in the editor and focuses it", ->
           treeView.root.find('.file:contains(sample.js)').click()
           treeView.root.trigger 'tree-view:open-selected-entry'
           expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/sample.js')
+          expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
       describe "when a directory is selected", ->
         it "expands or collapses the directory", ->
