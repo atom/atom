@@ -81,7 +81,7 @@ describe "TreeView", ->
     [newRootView, newTreeView] = []
 
     afterEach ->
-      newRootView.deactivate()
+      newRootView?.deactivate()
 
     it "restores expanded directories and selected file when deserialized", ->
       treeView.find('.directory:contains(zed)').click()
@@ -110,6 +110,21 @@ describe "TreeView", ->
 
       newTreeView = newRootView.find(".tree-view").view()
       expect(newTreeView).toMatchSelector ':focus'
+
+    it "restores the scroll top when toggled", ->
+      rootView.attachToDom()
+      expect(treeView).toBeVisible()
+      treeView.focus()
+
+      treeView.root.height(document.body.scrollHeight * 100)
+      treeView.scrollTop(10)
+      expect(treeView.scrollTop()).toBe(10)
+
+      rootView.trigger 'tree-view:toggle'
+      expect(treeView).toBeHidden()
+      rootView.trigger 'tree-view:toggle'
+      expect(treeView).toBeVisible()
+      expect(treeView.scrollTop()).toBe(10)
 
   describe "when tree-view:toggle is triggered on the root view", ->
     beforeEach ->

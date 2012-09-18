@@ -35,11 +35,13 @@ class TreeView extends View
     treeView.root.deserializeEntryExpansionStates(state.directoryExpansionStates)
     treeView.selectEntryForPath(state.selectedPath)
     treeView.focusAfterAttach = state.hasFocus
+    treeView.scrollTopAfterAttach = state.scrollTop
     treeView.attach() if state.attached
     treeView
 
   root: null
   focusAfterAttach: false
+  scrollTopAfterAttach: -1
 
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) => @entryClicked(e)
@@ -62,12 +64,14 @@ class TreeView extends View
 
   afterAttach: (onDom) ->
     @focus() if @focusAfterAttach
+    @scrollTop(@scrollTopAfterAttach) if @scrollTopAfterAttach > 0
 
   serialize: ->
     directoryExpansionStates: @root?.serializeEntryExpansionStates()
     selectedPath: @selectedEntry()?.getPath()
     hasFocus: @is(':focus')
     attached: @hasParent()
+    scrollTop: @scrollTop()
 
   deactivate: ->
     @root?.unwatchEntries()
@@ -82,6 +86,10 @@ class TreeView extends View
 
   attach: ->
     @rootView.horizontal.prepend(this)
+
+  detach: ->
+    @scrollTopAfterAttach = @scrollTop()
+    super
 
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()
