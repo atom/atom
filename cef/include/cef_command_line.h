@@ -114,6 +114,13 @@ class CefCommandLine : public virtual CefBase {
   virtual void Reset() =0;
 
   ///
+  // Retrieve the original command line string as a vector of strings.
+  // The argv array: { program, [(--|-|/)switch[=value]]*, [--], [argument]* }
+  ///
+  /*--cef()--*/
+  virtual void GetArgv(std::vector<CefString>& argv) =0;
+
+  ///
   // Constructs and returns the represented command line string. Use this method
   // cautiously because quoting behavior is unclear.
   ///

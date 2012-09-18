@@ -700,6 +700,92 @@ CEF_EXPORT cef_v8value_t* cef_v8value_create_function(const cef_string_t* name,
     cef_v8handler_t* handler);
 
 
+///
+// Structure representing a V8 stack trace. The functions of this structure may
+// only be called on the render process main thread.
+///
+typedef struct _cef_v8stack_trace_t {
+  ///
+  // Base structure.
+  ///
+  cef_base_t base;
+
+  ///
+  // Returns the number of stack frames.
+  ///
+  int (CEF_CALLBACK *get_frame_count)(struct _cef_v8stack_trace_t* self);
+
+  ///
+  // Returns the stack frame at the specified 0-based index.
+  ///
+  struct _cef_v8stack_frame_t* (CEF_CALLBACK *get_frame)(
+      struct _cef_v8stack_trace_t* self, int index);
+} cef_v8stack_trace_t;
+
+
+///
+// Returns the stack trace for the currently active context. |frame_limit| is
+// the maximum number of frames that will be captured.
+///
+CEF_EXPORT cef_v8stack_trace_t* cef_v8stack_trace_get_current(int frame_limit);
+
+
+///
+// Structure representing a V8 stack frame. The functions of this structure may
+// only be called on the render process main thread.
+///
+typedef struct _cef_v8stack_frame_t {
+  ///
+  // Base structure.
+  ///
+  cef_base_t base;
+
+  ///
+  // Returns the name of the resource script that contains the function.
+  ///
+  // The resulting string must be freed by calling cef_string_userfree_free().
+  cef_string_userfree_t (CEF_CALLBACK *get_script_name)(
+      struct _cef_v8stack_frame_t* self);
+
+  ///
+  // Returns the name of the resource script that contains the function or the
+  // sourceURL value if the script name is undefined and its source ends with a
+  // "//@ sourceURL=..." string.
+  ///
+  // The resulting string must be freed by calling cef_string_userfree_free().
+  cef_string_userfree_t (CEF_CALLBACK *get_script_name_or_source_url)(
+      struct _cef_v8stack_frame_t* self);
+
+  ///
+  // Returns the name of the function.
+  ///
+  // The resulting string must be freed by calling cef_string_userfree_free().
+  cef_string_userfree_t (CEF_CALLBACK *get_function_name)(
+      struct _cef_v8stack_frame_t* self);
+
+  ///
+  // Returns the 1-based line number for the function call or 0 if unknown.
+  ///
+  int (CEF_CALLBACK *get_line_number)(struct _cef_v8stack_frame_t* self);
+
+  ///
+  // Returns the 1-based column offset on the line for the function call or 0 if
+  // unknown.
+  ///
+  int (CEF_CALLBACK *get_column)(struct _cef_v8stack_frame_t* self);
+
+  ///
+  // Returns true (1) if the function was compiled using eval().
+  ///
+  int (CEF_CALLBACK *is_eval)(struct _cef_v8stack_frame_t* self);
+
+  ///
+  // Returns true (1) if the function was called as a constructor via "new".
+  ///
+  int (CEF_CALLBACK *is_constructor)(struct _cef_v8stack_frame_t* self);
+} cef_v8stack_frame_t;
+
+
 #ifdef __cplusplus
 }
 #endif

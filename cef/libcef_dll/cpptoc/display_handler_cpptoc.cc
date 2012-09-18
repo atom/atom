@@ -113,7 +113,7 @@ int CEF_CALLBACK display_handler_on_tooltip(struct _cef_display_handler_t* self,
 
 void CEF_CALLBACK display_handler_on_status_message(
     struct _cef_display_handler_t* self, cef_browser_t* browser,
-    const cef_string_t* value, enum cef_handler_statustype_t type) {
+    const cef_string_t* value) {
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   DCHECK(self);
@@ -128,8 +128,7 @@ void CEF_CALLBACK display_handler_on_status_message(
   // Execute
   CefDisplayHandlerCppToC::Get(self)->OnStatusMessage(
       CefBrowserCToCpp::Wrap(browser),
-      CefString(value),
-      type);
+      CefString(value));
 }
 
 int CEF_CALLBACK display_handler_on_console_message(

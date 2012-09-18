@@ -264,7 +264,7 @@ struct CefSettingsTraits {
     cef_string_clear(&s->locale);
     cef_string_clear(&s->log_file);
     cef_string_clear(&s->javascript_flags);
-    cef_string_clear(&s->pack_file_path);
+    cef_string_clear(&s->resources_dir_path);
     cef_string_clear(&s->locales_dir_path);
   }
 
@@ -294,8 +294,8 @@ struct CefSettingsTraits {
     target->auto_detect_proxy_settings_enabled =
         src->auto_detect_proxy_settings_enabled;
 
-    cef_string_set(src->pack_file_path.str, src->pack_file_path.length,
-        &target->pack_file_path, copy);
+    cef_string_set(src->resources_dir_path.str, src->resources_dir_path.length,
+        &target->resources_dir_path, copy);
     cef_string_set(src->locales_dir_path.str, src->locales_dir_path.length,
         &target->locales_dir_path, copy);
     target->pack_loading_disabled = src->pack_loading_disabled;
@@ -556,7 +556,7 @@ class CefProxyInfo : public CefStructBase<CefProxyInfoTraits> {
   // Use a direction connection instead of a proxy.
   ///
   void UseDirect() {
-    proxyType = PROXY_TYPE_DIRECT;
+    proxyType = CEF_PROXY_TYPE_DIRECT;
   }
 
   ///
@@ -569,7 +569,7 @@ class CefProxyInfo : public CefStructBase<CefProxyInfoTraits> {
   // "foo1:80;foo2:80".
   ///
   void UseNamedProxy(const CefString& proxy_uri_list) {
-    proxyType = PROXY_TYPE_NAMED;
+    proxyType = CEF_PROXY_TYPE_NAMED;
     (CefString(&proxyList)) = proxy_uri_list;
   }
 
@@ -578,13 +578,13 @@ class CefProxyInfo : public CefStructBase<CefProxyInfoTraits> {
   // example, "PROXY foobar:99; SOCKS fml:2; DIRECT".
   ///
   void UsePacString(const CefString& pac_string) {
-    proxyType = PROXY_TYPE_PAC_STRING;
+    proxyType = CEF_PROXY_TYPE_PAC_STRING;
     (CefString(&proxyList)) = pac_string;
   }
 
-  bool IsDirect() const { return proxyType == PROXY_TYPE_DIRECT; }
-  bool IsNamedProxy() const { return proxyType == PROXY_TYPE_NAMED; }
-  bool IsPacString() const { return proxyType == PROXY_TYPE_PAC_STRING; }
+  bool IsDirect() const { return proxyType == CEF_PROXY_TYPE_DIRECT; }
+  bool IsNamedProxy() const { return proxyType == CEF_PROXY_TYPE_NAMED; }
+  bool IsPacString() const { return proxyType == CEF_PROXY_TYPE_PAC_STRING; }
 
   CefString ProxyList() const { return CefString(&proxyList); }
 };

@@ -314,7 +314,8 @@ class CefStringBase {
   }
   CefStringBase(const char* src)  // NOLINT(runtime/explicit)
     : string_(NULL), owner_(false) {
-    FromString(std::string(src));
+    if (src)
+      FromString(std::string(src));
   }
 
   ///
@@ -328,7 +329,8 @@ class CefStringBase {
   }
   CefStringBase(const wchar_t* src)  // NOLINT(runtime/explicit)
     : string_(NULL), owner_(false) {
-    FromWString(std::wstring(src));
+    if (src)
+      FromWString(std::wstring(src));
   }
 
 #if (defined(BUILDING_CEF_SHARED) && defined(WCHAR_T_IS_UTF32))
@@ -343,7 +345,8 @@ class CefStringBase {
   }
   CefStringBase(const char16* src)  // NOLINT(runtime/explicit)
     : string_(NULL), owner_(false) {
-    FromString16(string16(src));
+    if (src)
+      FromString16(string16(src));
   }
 #endif  // BUILDING_CEF_SHARED && WCHAR_T_IS_UTF32
 
@@ -355,7 +358,8 @@ class CefStringBase {
   ///
   CefStringBase(const char_type* src, size_t src_len, bool copy)
     : string_(NULL), owner_(false) {
-    FromString(src, src_len, copy);
+    if (src && src_len > 0)
+      FromString(src, src_len, copy);
   }
 
   ///

@@ -84,6 +84,8 @@
 #include "libcef_dll/ctocpp/urlrequest_ctocpp.h"
 #include "libcef_dll/ctocpp/v8context_ctocpp.h"
 #include "libcef_dll/ctocpp/v8exception_ctocpp.h"
+#include "libcef_dll/ctocpp/v8stack_frame_ctocpp.h"
+#include "libcef_dll/ctocpp/v8stack_trace_ctocpp.h"
 #include "libcef_dll/ctocpp/v8value_ctocpp.h"
 #include "libcef_dll/ctocpp/web_plugin_info_ctocpp.h"
 #include "libcef_dll/ctocpp/xml_reader_ctocpp.h"
@@ -199,6 +201,8 @@ CEF_GLOBAL void CefShutdown() {
   DCHECK_EQ(CefV8ContextCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefV8ExceptionCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefV8HandlerCppToC::DebugObjCt, 0);
+  DCHECK_EQ(CefV8StackFrameCToCpp::DebugObjCt, 0);
+  DCHECK_EQ(CefV8StackTraceCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefV8ValueCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefWebPluginInfoCToCpp::DebugObjCt, 0);
   DCHECK_EQ(CefWebPluginInfoVisitorCppToC::DebugObjCt, 0);

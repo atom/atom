@@ -49,8 +49,6 @@
 /*--cef(source=client)--*/
 class CefDisplayHandler : public virtual CefBase {
  public:
-  typedef cef_handler_statustype_t StatusType;
-
   ///
   // Called when the loading state has changed.
   ///
@@ -92,8 +90,7 @@ class CefDisplayHandler : public virtual CefBase {
   ///
   /*--cef(optional_param=value)--*/
   virtual void OnStatusMessage(CefRefPtr<CefBrowser> browser,
-                               const CefString& value,
-                               StatusType type) {}
+                               const CefString& value) {}
 
   ///
   // Called to display a console message. Return true to stop the message from
