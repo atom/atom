@@ -101,6 +101,13 @@ typedef struct _cef_command_line_t {
   void (CEF_CALLBACK *reset)(struct _cef_command_line_t* self);
 
   ///
+  // Retrieve the original command line string as a vector of strings. The argv
+  // array: { program, [(--|-|/)switch[=value]]*, [--], [argument]* }
+  ///
+  void (CEF_CALLBACK *get_argv)(struct _cef_command_line_t* self,
+      cef_string_list_t argv);
+
+  ///
   // Constructs and returns the represented command line string. Use this
   // function cautiously because quoting behavior is unclear.
   ///

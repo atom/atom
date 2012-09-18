@@ -222,18 +222,18 @@ typedef struct _cef_settings_t {
   bool auto_detect_proxy_settings_enabled;
 
   ///
-  // The fully qualified path for the cef.pak file. If this value is empty
-  // the cef.pak file must be located in the module directory. This value is
-  // ignored on Mac OS X where pack files are always loaded from the app bundle
-  // resource directory.
+  // The fully qualified path for the resources directory. If this value is
+  // empty the cef.pak and/or devtools_resources.pak files must be located in
+  // the module directory on Windows/Linux or the app bundle Resources directory
+  // on Mac OS X.
   ///
-  cef_string_t pack_file_path;
+  cef_string_t resources_dir_path;
 
   ///
   // The fully qualified path for the locales directory. If this value is empty
   // the locales directory must be located in the module directory. This value
   // is ignored on Mac OS X where pack files are always loaded from the app
-  // bundle resource directory.
+  // bundle Resources directory.
   ///
   cef_string_t locales_dir_path;
 
@@ -1200,15 +1200,6 @@ enum cef_xml_node_type_t {
 };
 
 ///
-// Status message types.
-///
-enum cef_handler_statustype_t {
-  STATUSTYPE_TEXT = 0,
-  STATUSTYPE_MOUSEOVER_URL,
-  STATUSTYPE_KEYBOARD_FOCUS_URL,
-};
-
-///
 // Popup window features.
 ///
 typedef struct _cef_popup_features_t {
@@ -1237,9 +1228,9 @@ typedef struct _cef_popup_features_t {
 // Proxy types.
 ///
 enum cef_proxy_type_t {
-  PROXY_TYPE_DIRECT = 0,
-  PROXY_TYPE_NAMED,
-  PROXY_TYPE_PAC_STRING,
+  CEF_PROXY_TYPE_DIRECT = 0,
+  CEF_PROXY_TYPE_NAMED,
+  CEF_PROXY_TYPE_PAC_STRING,
 };
 
 ///

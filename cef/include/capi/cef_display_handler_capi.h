@@ -91,8 +91,7 @@ typedef struct _cef_display_handler_t {
   // status message type.
   ///
   void (CEF_CALLBACK *on_status_message)(struct _cef_display_handler_t* self,
-      struct _cef_browser_t* browser, const cef_string_t* value,
-      enum cef_handler_statustype_t type);
+      struct _cef_browser_t* browser, const cef_string_t* value);
 
   ///
   // Called to display a console message. Return true (1) to stop the message
