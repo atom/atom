@@ -1,0 +1,28 @@
+#!/bin/sh
+
+usage() {
+  echo usage: `basename $0` 'cef-dir' 1>&2
+  exit 1
+}
+
+CEF_DIR=$1
+CEF_BINARY_PATH=$(echo "$CEF_DIR"/binary_distrib/cef_binary_*_macosx/) # Expand the path
+
+if [ ! $CEF_DIR ]; then
+  usage
+fi
+
+# Copy the CEF gypi files and update their paths to match Atom's file layout
+for GYPI_PATH in "$CEF_DIR/cef_paths.gypi" "$CEF_DIR/cef_paths2.gypi"; do
+  sed "s/include\//cef\/include\//;s/libcef_dll\//cef\/libcef_dll\//" $GYPI_PATH  > cef/$(basename $GYPI_PATH)
+done
+
+# Copy the framework files
+for FRAMEWORK_PATH in ffmpegsumo.so libcef.dylib; do
+  cp "$CEF_BINARY_PATH/Release/$FRAMEWORK_PATH" cef/frameworks/
+done
+
+cp -R "$CEF_BINARY_PATH/include" cef/
+cp -R "$CEF_BINARY_PATH/libcef_dll" cef/
+cp -R "$CEF_BINARY_PATH/Resources/" cef/Resources
+
