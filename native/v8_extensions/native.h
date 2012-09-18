@@ -1,4 +1,3 @@
-#import <Cocoa/Cocoa.h>
 #import "include/cef_base.h"
 #import "include/cef_v8.h"
 
