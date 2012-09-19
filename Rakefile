@@ -12,8 +12,12 @@ task "create-project" do
   `python tools/gyp/gyp --depth=. atom.gyp`
 end
 
+task :bootstrap do
+  `script/bootstrap`
+end
+
 desc "Build Atom via `xcodebuild`"
-task :build => "create-project" do
+task :build => ["create-project", "bootstrap"] do
   command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
   puts command
   output = `#{command}`
