@@ -111,6 +111,7 @@ class Editor extends View
       'backspace-to-beginning-of-word': @backspaceToBeginningOfWord
       'delete': @delete
       'delete-to-end-of-word': @deleteToEndOfWord
+      'delete-line': @deleteLine
       'cut-to-end-of-line': @cutToEndOfLine
       'cut': @cutSelection
       'copy': @copySelection
@@ -131,6 +132,8 @@ class Editor extends View
       'select-to-end-of-word': @selectToEndOfWord
       'select-to-beginning-of-word': @selectToBeginningOfWord
       'select-all': @selectAll
+      'page-down': @pageDown
+      'page-up': @pageUp
 
     if not @mini
       _.extend editorBindings,
@@ -207,6 +210,7 @@ class Editor extends View
   backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
   delete: -> @activeEditSession.delete()
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
+  deleteLine: -> @activeEditSession.deleteLine()
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
   insertText: (text) -> @activeEditSession.insertText(text)
   insertNewline: -> @activeEditSession.insertNewline()
@@ -245,6 +249,17 @@ class Editor extends View
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
   stateForScreenRow: (row) -> @activeEditSession.stateForScreenRow(row)
+
+  pageDown: ->
+    newScrollTop = @scrollTop() + @scrollView[0].clientHeight
+    @activeEditSession.moveCursorDown(@getPageRows())
+    @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
+  pageUp: ->
+    newScrollTop = @scrollTop() - @scrollView[0].clientHeight
+    @activeEditSession.moveCursorUp(@getPageRows())
+    @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
+  getPageRows: ->
+    Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
 
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()

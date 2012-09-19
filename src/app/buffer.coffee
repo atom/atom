@@ -162,13 +162,19 @@ class Buffer
     new Point(row, index)
 
   deleteRow: (row) ->
-    range = null
-    if row == @getLastRow()
-      range = new Range([row - 1, @lineLengthForRow(row - 1)], [row, @lineLengthForRow(row)])
-    else
-      range = new Range([row, 0], [row + 1, 0])
+    @deleteRows(row, row)
 
-    @change(range, '')
+  deleteRows: (start, end) ->
+    startPoint = null
+    endPoint = null
+    if end == @getLastRow()
+      startPoint = [start - 1, @lineLengthForRow(start - 1)]
+      endPoint = [end, @lineLengthForRow(end)]
+    else
+      startPoint = [start, 0]
+      endPoint = [end + 1, 0]
+
+    @change(new Range(startPoint, endPoint), '')
 
   insert: (point, text) ->
     @change(new Range(point, point), text)

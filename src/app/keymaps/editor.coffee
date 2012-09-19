@@ -11,6 +11,7 @@ window.keymap.bindKeys '.editor',
   'backspace': 'backspace'
   'shift-backspace': 'backspace'
   'delete': 'delete'
+  'meta-d': 'delete-line'
   'meta-x': 'cut'
   'meta-c': 'copy'
   'meta-v': 'paste'

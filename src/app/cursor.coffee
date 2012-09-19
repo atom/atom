@@ -54,16 +54,16 @@ class Cursor
   refreshScreenPosition: ->
     @anchor.refreshScreenPosition()
 
-  moveUp: ->
+  moveUp: (rowCount = 1) ->
     { row, column } = @getScreenPosition()
     column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row - 1, column: column})
+    @setScreenPosition({row: row - rowCount, column: column})
     @goalColumn = column
 
-  moveDown: ->
+  moveDown: (rowCount = 1) ->
     { row, column } = @getScreenPosition()
     column = @goalColumn if @goalColumn?
-    @setScreenPosition({row: row + 1, column: column})
+    @setScreenPosition({row: row + rowCount, column: column})
     @goalColumn = column
 
   moveLeft: ->

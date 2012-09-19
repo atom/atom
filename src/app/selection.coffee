@@ -181,6 +181,17 @@ class Selection
       @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
       @cursor?.setBufferPosition(bufferRange.start)
 
+  deleteLine: ->
+    if @isEmpty()
+      @editSession.buffer.deleteRow(@cursor.getBufferPosition().row)
+    else
+      bufferRange = @getBufferRange()
+      start = bufferRange.start.row
+      end = bufferRange.end.row
+      if end isnt @editSession.buffer.getLastRow() and bufferRange.end.column is 0
+        end--
+      @editSession.buffer.deleteRows(start, end)
+
   indentSelectedRows: ->
     range = @getBufferRange()
     for row in [range.start.row..range.end.row]

@@ -1654,3 +1654,44 @@ describe "Editor", ->
       editor.edit(project.buildEditSessionForPath())
       paths = editor.getOpenBufferPaths().map (path) -> project.relativize(path)
       expect(paths).toEqual = ['sample.js', 'sample.txt', 'two-hundred.txt']
+
+  describe "paging up and down", ->
+    beforeEach ->
+      editor.attachToDom()
+
+    it "moves to the last line when page down is repeated from the first line", ->
+      rows = editor.getLineCount() - 1
+      expect(rows).toBeGreaterThan(0)
+      row = editor.getCursor(0).getScreenPosition().row
+      expect(row).toBe(0)
+      while row < rows
+        editor.pageDown()
+        newRow = editor.getCursor(0).getScreenPosition().row
+        expect(newRow).toBeGreaterThan(row)
+        if (newRow <= row)
+          break
+        row = newRow
+      expect(row).toBe(rows)
+      expect(editor.getLastVisibleScreenRow()).toBe(rows)
+
+    it "moves to the first line when page up is repeated from the last line", ->
+      editor.moveCursorToBottom()
+      row = editor.getCursor().getScreenPosition().row
+      expect(row).toBeGreaterThan(0)
+      while row > 0
+        editor.pageUp()
+        newRow = editor.getCursor().getScreenPosition().row
+        expect(newRow).toBeLessThan(row)
+        if (newRow >= row)
+          break
+        row = newRow
+      expect(row).toBe(0)
+      expect(editor.getFirstVisibleScreenRow()).toBe(0)
+
+    it "resets to original position when down is followed by up", ->
+      expect(editor.getCursor().getScreenPosition().row).toBe(0)
+      editor.pageDown()
+      expect(editor.getCursor().getScreenPosition().row).toBeGreaterThan(0)
+      editor.pageUp()
+      expect(editor.getCursor().getScreenPosition().row).toBe(0)
+      expect(editor.getFirstVisibleScreenRow()).toBe(0)
