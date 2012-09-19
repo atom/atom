@@ -1,0 +1,44 @@
+// Importing
+@import "_base.less"
+
+// Variables
+@nice-blue: #5B83AD;
+@light-blue: @nice-blue + #111;
+#header { color: @light-blue; }
+
+// Mixins
+.bordered(@color: #f04) {
+  border-top: dotted 1px @color;
+  border-bottom: solid 2px @color;
+}
+#menu a {
+  .bordered(#f00); color:#111;
+}
+
+// Nested
+#header {
+  h1 { font-size: 12px; }
+  .logo {
+    width: 300px;
+    :hover { text-decoration: none }
+  }
+}
+
+// Operations
+@base: 5%;
+@filler: @base * 2;
+@other: @base + @filler;
+td { 
+  background-color: @base-color + #111;
+  height: 100% / 2 + @filler;
+}
+
+/*
+ Accessors
+*/
+.comment {
+  width: #defaults[@width];
+  color: .article['color']; 
+}
+
+
