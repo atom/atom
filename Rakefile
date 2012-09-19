@@ -55,18 +55,6 @@ task :benchmark do
   Rake::Task["run"].invoke
 end
 
-desc "Create the Atom.app for distribution"
-task :package => :build do
-  if path = application_path()
-    rm_rf "pkg"
-    mkdir_p "pkg"
-    cp_r path, "pkg/"
-    `cd pkg && zip -r atom.zip .`
-  else
-    exit(1)
-  end
-end
-
 desc "Creates symlink from `application_path() to /Applications/Atom and creates a CLI at /usr/local/bin/atom"
 task :install => :build do
   if path = application_path()
@@ -89,26 +77,6 @@ end
 desc "Remove any 'fit' or 'fdescribe' focus directives from the specs"
 task :nof do
   system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
-end
-
-desc "Copy files to bundle and compile CoffeeScripts"
-task :"copy-files-to-bundle" do
-  project_dir  = ENV['PROJECT_DIR'] || '.'
-  built_dir    = ENV['BUILT_PRODUCTS_DIR'] || '.'
-  contents_dir = ENV['CONTENTS_FOLDER_PATH']
-
-  dest = File.join(built_dir, contents_dir, "Resources")
-
-  mkdir_p "#{dest}/v8_extensions"
-  cp Dir.glob("#{project_dir}/native/v8_extensions/*.js"), "#{dest}/v8_extensions/"
-
-  %w(src static vendor spec benchmark bundles themes).each do |dir|
-    dest_path = File.join(dest, dir)
-    rm_rf dest_path
-    cp_r dir, dest_path
-
-    `#{COFFEE_PATH} -c '#{dest_path.gsub(" ", "\\ ")}'`
-  end
 end
 
 def application_path

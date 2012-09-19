@@ -1,5 +1,5 @@
 #!/bin/sh
-# This can only be run by xcodebuild!
+# This can only be run by xcode or xcodebuild!
 
 # Because of the way xcodebuild invokes external scripts we need to load
 # The Setup's environment ourselves. If this isn't done, things like the
@@ -9,4 +9,18 @@ if [ -f /opt/github/env.sh ]; then
   source /opt/github/env.sh
 fi
 
-rake --trace copy-files-to-bundle
+RESOUCES_PATH="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
+mkdir -p "$RESOUCES_PATH/v8_extensions"
+cp "$PROJECT_DIR/native/v8_extensions/"*.js "$RESOUCES_PATH/v8_extensions/"
+
+for DIR in src static vendor spec benchmark bundles themes; do
+  for COFFEE_PATH in $(find "$DIR" -type f -name '*.coffee'); do
+    JAVASCRIPT_PATH=$(echo "$RESOUCES_PATH/$COFFEE_PATH" | sed 's/\.coffee$/.js/')
+
+    # Compiling coffeescript is slow, so only compile the .coffee files if
+    # they are newer than the .js files
+    if [ "$COFFEE_PATH" -nt "$JAVASCRIPT_PATH" ]; then
+      node_modules/.bin/coffee -c -o "$(dirname "$JAVASCRIPT_PATH")" "$COFFEE_PATH"
+    fi
+  done
+done;
