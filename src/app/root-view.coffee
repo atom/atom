@@ -64,6 +64,7 @@ class RootView extends View
     @on 'increase-font-size', => @setFontSize(@getFontSize() + 1)
     @on 'decrease-font-size', => @setFontSize(@getFontSize() - 1)
     @on 'focus-next-pane', => @focusNextPane()
+    @on 'save-all', => @saveAll()
 
   afterAttach: (onDom) ->
     @focus() if onDom
@@ -217,3 +218,5 @@ class RootView extends View
     catch error
       console.error "Failed to load `#{atom.configFilePath}`", error.stack, error
 
+  saveAll: ->
+    editor.save() for editor in @getEditors()
