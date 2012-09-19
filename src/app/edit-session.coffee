@@ -427,11 +427,11 @@ class EditSession
   getTextInBufferRange: (range) ->
     @buffer.getTextInRange(range)
 
-  moveCursorUp: ->
-    @moveCursors (cursor) -> cursor.moveUp()
+  moveCursorUp: (lineCount) ->
+    @moveCursors (cursor) -> cursor.moveUp(lineCount)
 
-  moveCursorDown: ->
-    @moveCursors (cursor) -> cursor.moveDown()
+  moveCursorDown: (lineCount) ->
+    @moveCursors (cursor) -> cursor.moveDown(lineCount)
 
   moveCursorLeft: ->
     @moveCursors (cursor) -> cursor.moveLeft()

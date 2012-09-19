@@ -131,6 +131,8 @@ class Editor extends View
       'select-to-end-of-word': @selectToEndOfWord
       'select-to-beginning-of-word': @selectToBeginningOfWord
       'select-all': @selectAll
+      'page-down': @pageDown
+      'page-up': @pageUp
 
     if not @mini
       _.extend editorBindings,
@@ -245,6 +247,20 @@ class Editor extends View
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
   stateForScreenRow: (row) -> @activeEditSession.stateForScreenRow(row)
+
+  pageDown: ->
+    [top, rows] = @getPageSize()
+    @activeEditSession.moveCursorDown(rows)
+    @scrollTop(top,  adjustVerticalScrollbar: true)
+  pageUp: ->
+    [top, rows] = @getPageSize()
+    @activeEditSession.moveCursorUp(rows)
+    @scrollTop(top,  adjustVerticalScrollbar: true)
+  getPageSize: ->
+    scrollViewHeight = @scrollView[0].clientHeight
+    newScrollTop = @scrollTop() + scrollViewHeight
+    rows = Math.max(1, Math.ceil(scrollViewHeight / @lineHeight))
+    [newScrollTop, rows]
 
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
