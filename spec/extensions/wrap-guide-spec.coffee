@@ -23,8 +23,8 @@ describe "WrapGuide", ->
       expect(rootView.panes.find('.lines > .wrap-guide').length).toBe 2
 
   describe "@updateGuide", ->
-    it "positions the guide at 80 characters", ->
-      width = editor.charWidth * 80
+    it "positions the guide at the configured column", ->
+      width = editor.charWidth * wrapGuide.column
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
 

@@ -18,11 +18,13 @@ class WrapGuide extends View
   @content: ->
     @div class: 'wrap-guide'
 
+  column: 80
+
   initialize: (@rootView, @editor) =>
     @updateGuide(@editor)
     @editor.on 'editor-path-change', => @updateGuide(@editor)
     @rootView.on 'font-size-change', => @updateGuide(@editor)
 
   updateGuide: (editor) ->
-    width = editor.charWidth * 80
+    width = editor.charWidth * @column
     @css("left", width + "px")
