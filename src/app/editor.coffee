@@ -249,18 +249,15 @@ class Editor extends View
   stateForScreenRow: (row) -> @activeEditSession.stateForScreenRow(row)
 
   pageDown: ->
-    [top, rows] = @getPageSize()
-    @activeEditSession.moveCursorDown(rows)
-    @scrollTop(top,  adjustVerticalScrollbar: true)
+    newScrollTop = @scrollTop() + @scrollView[0].clientHeight
+    @activeEditSession.moveCursorDown(@getPageRows())
+    @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
   pageUp: ->
-    [top, rows] = @getPageSize()
-    @activeEditSession.moveCursorUp(rows)
-    @scrollTop(top,  adjustVerticalScrollbar: true)
-  getPageSize: ->
-    scrollViewHeight = @scrollView[0].clientHeight
-    newScrollTop = @scrollTop() + scrollViewHeight
-    rows = Math.max(1, Math.ceil(scrollViewHeight / @lineHeight))
-    [newScrollTop, rows]
+    newScrollTop = @scrollTop() - @scrollView[0].clientHeight
+    @activeEditSession.moveCursorUp(@getPageRows())
+    @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
+  getPageRows: ->
+    Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
 
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
