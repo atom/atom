@@ -112,11 +112,11 @@ describe "TreeView", ->
       expect(newTreeView).toMatchSelector ':focus'
 
     it "restores the scroll top when toggled", ->
+      rootView.height(100)
       rootView.attachToDom()
       expect(treeView).toBeVisible()
       treeView.focus()
 
-      treeView.root.height(document.body.scrollHeight * 100)
       treeView.scrollTop(10)
       expect(treeView.scrollTop()).toBe(10)
 
