@@ -111,6 +111,7 @@ class Editor extends View
       'backspace-to-beginning-of-word': @backspaceToBeginningOfWord
       'delete': @delete
       'delete-to-end-of-word': @deleteToEndOfWord
+      'delete-line': @deleteLine
       'cut-to-end-of-line': @cutToEndOfLine
       'cut': @cutSelection
       'copy': @copySelection
@@ -209,6 +210,7 @@ class Editor extends View
   backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
   delete: -> @activeEditSession.delete()
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
+  deleteLine: -> @activeEditSession.deleteLine()
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
   insertText: (text) -> @activeEditSession.insertText(text)
   insertNewline: -> @activeEditSession.insertNewline()

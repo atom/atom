@@ -1461,3 +1461,42 @@ describe "EditSession", ->
       expect(editSession.clipBufferPosition([-1, -1])).toEqual [0,0]
       expect(editSession.clipBufferPosition([Infinity, Infinity])).toEqual [12,2]
       expect(editSession.clipBufferPosition([8, 57])).toEqual [8, 56]
+
+  describe ".deleteLine()", ->
+    it "deletes the first line when the cursor is there", ->
+      editSession.getLastCursor().moveToTop()
+      line1 = buffer.lineForRow(1)
+      count = buffer.getLineCount()
+      expect(buffer.lineForRow(0)).not.toBe(line1)
+      editSession.deleteLine()
+      expect(buffer.lineForRow(0)).toBe(line1)
+      expect(buffer.getLineCount()).toBe(count - 1)
+
+    it "deletes the last line when the cursor is there", ->
+      count = buffer.getLineCount()
+      secondToLastLine = buffer.lineForRow(count - 2)
+      expect(buffer.lineForRow(count - 1)).not.toBe(secondToLastLine)
+      editSession.getLastCursor().moveToBottom()
+      editSession.deleteLine()
+      newCount = buffer.getLineCount()
+      expect(buffer.lineForRow(newCount - 1)).toBe(secondToLastLine)
+      expect(newCount).toBe(count - 1)
+
+    it "deletes whole lines when partial lines are selected", ->
+      editSession.setSelectedBufferRange([[0, 2], [1, 2]])
+      line2 = buffer.lineForRow(2)
+      count = buffer.getLineCount()
+      expect(buffer.lineForRow(0)).not.toBe(line2)
+      expect(buffer.lineForRow(1)).not.toBe(line2)
+      editSession.deleteLine()
+      expect(buffer.lineForRow(0)).toBe(line2)
+      expect(buffer.getLineCount()).toBe(count - 2)
+
+    it "only deletes first line if only newline is selected on second line", ->
+      editSession.setSelectedBufferRange([[0, 2], [1, 0]])
+      line1 = buffer.lineForRow(1)
+      count = buffer.getLineCount()
+      expect(buffer.lineForRow(0)).not.toBe(line1)
+      editSession.deleteLine()
+      expect(buffer.lineForRow(0)).toBe(line1)
+      expect(buffer.getLineCount()).toBe(count - 1)

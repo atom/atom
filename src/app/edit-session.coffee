@@ -167,6 +167,9 @@ class EditSession
   deleteToEndOfWord: ->
     @mutateSelectedText (selection) -> selection.deleteToEndOfWord()
 
+  deleteLine: ->
+    @mutateSelectedText (selection) -> selection.deleteLine()
+
   indentSelectedRows: ->
     @mutateSelectedText (selection) -> selection.indentSelectedRows()
 
