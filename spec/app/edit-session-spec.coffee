@@ -1500,3 +1500,11 @@ describe "EditSession", ->
       editSession.deleteLine()
       expect(buffer.lineForRow(0)).toBe(line1)
       expect(buffer.getLineCount()).toBe(count - 1)
+
+    it "deletes the entire region when invoke on a folded region", ->
+      editSession.foldBufferRow(1)
+      editSession.getLastCursor().moveToTop()
+      editSession.getLastCursor().moveDown()
+      expect(buffer.getLineCount()).toBe(13)
+      editSession.deleteLine()
+      expect(buffer.getLineCount()).toBe(4)

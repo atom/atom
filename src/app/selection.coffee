@@ -183,12 +183,17 @@ class Selection
 
   deleteLine: ->
     if @isEmpty()
-      @editSession.buffer.deleteRow(@cursor.getBufferPosition().row)
+      start = @cursor.getScreenRow()
+      range = @editSession.bufferRowsForScreenRows(start, start + 1)
+      if range[1]
+        @editSession.buffer.deleteRows(range[0], range[1] - 1)
+      else
+        @editSession.buffer.deleteRow(range[0])
     else
-      bufferRange = @getBufferRange()
-      start = bufferRange.start.row
-      end = bufferRange.end.row
-      if end isnt @editSession.buffer.getLastRow() and bufferRange.end.column is 0
+      range = @getBufferRange()
+      start = range.start.row
+      end = range.end.row
+      if end isnt @editSession.buffer.getLastRow() and range.end.column is 0
         end--
       @editSession.buffer.deleteRows(start, end)
 
