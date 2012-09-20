@@ -4,7 +4,7 @@ INSTALLDIR=/usr/share/atom
 mkdir -p $INSTALLDIR
 cp out/Default/atom $INSTALLDIR
 cp -R -t $INSTALLDIR static/*
-cp -t $INSTALLDIR lib/*
+cp -t $INSTALLDIR lib/32/*
 cp -R ../../src $INSTALLDIR
 cp -R ../../static $INSTALLDIR
 cp -R ../../vendor $INSTALLDIR
