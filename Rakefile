@@ -68,6 +68,9 @@ task :install => :build do
     else
       stderr.puts "ERROR: `The Setup` is required to run the atom cli tool"
     end
+
+    rm_rf "#{ENV['HOME']}/.atom"
+    ln_sf "#{File.dirname(__FILE__)}/.atom", "#{ENV['HOME']}/.atom"
   else
     exit 1
   end
