@@ -626,7 +626,7 @@ describe "RootView", ->
                 expect(editor1.getPath()).toBe path
                 expect(editSession).toBe rootView.getActiveEditor().activeEditSession
 
-  describe "save-all", ->
+  describe ".saveAll()", ->
     it "saves all open editors", ->
       rootView.remove()
       file1 = '/tmp/atom-temp1.txt'
