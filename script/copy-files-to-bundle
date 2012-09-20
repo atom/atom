@@ -14,15 +14,7 @@ mkdir -p "$RESOUCES_PATH/v8_extensions"
 cp "$PROJECT_DIR/native/v8_extensions/"*.js "$RESOUCES_PATH/v8_extensions/"
 
 for DIR in src static vendor spec benchmark bundles themes; do
-  for COFFEE_PATH in $(find "$DIR" -type f -name '*.coffee'); do
-    JAVASCRIPT_PATH=$(echo "$RESOUCES_PATH/$COFFEE_PATH" | sed 's/\.coffee$/.js/')
-
-    # Compiling coffeescript is slow, so only compile the .coffee files if
-    # they are newer than the .js files
-    if [ "$COFFEE_PATH" -nt "$JAVASCRIPT_PATH" ]; then
-      # Remove spaces from DESTINATION_DIR beause `coffee` doesn't handle them
-      DESTINATION_DIR=$(dirname "$JAVASCRIPT_PATH" | sed 's/ /\\ /g')
-      node_modules/.bin/coffee -c -o "$DESTINATION_DIR" "$COFFEE_PATH"
-    fi
-  done
+  rm -rf "$RESOUCES_PATH/$DIR"
+  cp -R "$DIR" "$RESOUCES_PATH/"
+  node_modules/.bin/coffee -c "$RESOUCES_PATH/$DIR"
 done;
