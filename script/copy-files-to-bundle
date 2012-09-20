@@ -20,7 +20,9 @@ for DIR in src static vendor spec benchmark bundles themes; do
     # Compiling coffeescript is slow, so only compile the .coffee files if
     # they are newer than the .js files
     if [ "$COFFEE_PATH" -nt "$JAVASCRIPT_PATH" ]; then
-      node_modules/.bin/coffee -c -o "$(dirname "$JAVASCRIPT_PATH")" "$COFFEE_PATH"
+      # Remove spaces from DESTINATION_DIR beause `coffee` doesn't handle them
+      DESTINATION_DIR=$(dirname "$JAVASCRIPT_PATH" | sed 's/ /\\ /g')
+      node_modules/.bin/coffee -c -o "$DESTINATION_DIR" "$COFFEE_PATH"
     fi
   done
 done;
