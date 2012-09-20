@@ -1,9 +1,8 @@
 require 'timeout'
 
 $ATOM_ARGS = []
-ENV['PATH'] = "#{ENV['PATH']}:/opt/github/bin/"
 
-COFFEE_PATH = "node_modules/.bin/coffee"
+ATOM_SRC = File.dirname(__FILE__)
 BUILD_DIR = 'atom-build'
 
 desc "Create xcode project from gpy file"
@@ -58,19 +57,19 @@ end
 desc "Creates symlink from `application_path() to /Applications/Atom and creates a CLI at /usr/local/bin/atom"
 task :install => :build do
   if path = application_path()
-    ln_sf File.expand_path(path), "/Applications"
-    usr_bin = "/usr/local/bin"
-    usr_bin_exists = ENV["PATH"].split(":").include?(usr_bin)
-    if usr_bin_exists
-      cli_path = "#{usr_bin}/atom"
-      `echo '#!/bin/sh\nopen #{path} -n --args "--executed-from=$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
-    else
-      stderr.puts "ERROR: Did not add cli tool for `atom` because /usr/local/bin does not exist"
-    end
+    dest =  File.join("/Applications", File.basename(path))
+    rm_rf dest
+    cp_r path, File.expand_path(dest)
 
-    sh 'say DONE!'
+    usr_bin = "/opt/github/bin"
+    if Dir.exists?(usr_bin)
+      cli_path = "#{usr_bin}/atom"
+      `echo '#!/bin/sh\nopen #{path} -n --args --resource-path="#{ATOM_SRC}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
+    else
+      stderr.puts "ERROR: `The Setup` is required to run the atom cli tool"
+    end
   else
-    exit(1)
+    exit 1
   end
 end
 
