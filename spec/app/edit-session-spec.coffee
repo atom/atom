@@ -1508,3 +1508,21 @@ describe "EditSession", ->
       expect(buffer.getLineCount()).toBe(13)
       editSession.deleteLine()
       expect(buffer.getLineCount()).toBe(4)
+
+    it "deletes the entire file from the bottom up", ->
+      count = buffer.getLineCount()
+      expect(count).toBeGreaterThan(0)
+      for line in [0...count]
+        editSession.getLastCursor().moveToBottom()
+        editSession.deleteLine()
+      expect(buffer.getLineCount()).toBe(1)
+      expect(buffer.getText()).toBe('')
+
+    it "deletes the entire file from the top down", ->
+      count = buffer.getLineCount()
+      expect(count).toBeGreaterThan(0)
+      for line in [0...count]
+        editSession.getLastCursor().moveToTop()
+        editSession.deleteLine()
+      expect(buffer.getLineCount()).toBe(1)
+      expect(buffer.getText()).toBe('')

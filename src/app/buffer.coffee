@@ -168,7 +168,10 @@ class Buffer
     startPoint = null
     endPoint = null
     if end == @getLastRow()
-      startPoint = [start - 1, @lineLengthForRow(start - 1)]
+      if start > 0
+        startPoint = [start - 1, @lineLengthForRow(start - 1)]
+      else
+        startPoint = [start, 0]
       endPoint = [end, @lineLengthForRow(end)]
     else
       startPoint = [start, 0]
