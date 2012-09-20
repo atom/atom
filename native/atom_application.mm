@@ -29,30 +29,45 @@
     [arguments setObject:[NSString stringWithUTF8String:RESOURCE_PATH] forKey:@"resource-path"];
   #endif
   
+  // Remove non-posix (i.e. -long_argument_with_one_leading_hyphen) added by OS X from the command line
+  size_t argvSize = argc * sizeof(char *);
+  char **cleanArgv = (char **)alloca(argvSize);
+  memcpy(cleanArgv, argv, argvSize);
+  char noop[] = "--noop";
+  for (int i=0; i < argc; i++) {
+    if (strcmp(cleanArgv[i], "-NSDocumentRevisionsDebugMode") == 0) { // Xcode inserts useless command-line args by default: http://trac.wxwidgets.org/ticket/13732
+        cleanArgv[i] = noop;
+        cleanArgv[++i] = noop;
+    }
+    else if (strncmp(cleanArgv[i], "-psn_", 5) == 0) { // OS X inserts a -psn_[PID] argument.
+      cleanArgv[i] = noop;
+    }
+  }
+
   int opt;
   int longindex;
-  if (argc > 2 && strcmp(argv[argc - 2], "-NSDocumentRevisionsDebugMode") == 0) { // Because Xcode inserts useless command-line args by default: http://trac.wxwidgets.org/ticket/13732
-    argc -= 2; // Ignore last two arguments
-  }
-  
+
   static struct option longopts[] = {
-    { "executed-from",      optional_argument,      NULL,  'K' },
-    { "resource-path",      optional_argument,      NULL,  'r' },
-    { "benchmark",          optional_argument,      NULL,  'b' },
-    { "test",               optional_argument,      NULL,  't' },
+    { "executed-from",      optional_argument,      NULL,  'K'  },
+    { "resource-path",      optional_argument,      NULL,  'r'  },
+    { "benchmark",          optional_argument,      NULL,  'b'  },
+    { "test",               optional_argument,      NULL,  't'  },
+    { "noop",               optional_argument,      NULL,  NULL },
     { NULL,                 0,                      NULL,  0 }
   };
 
-  while ((opt = getopt_long(argc, argv, "r:K:bth?", longopts, &longindex)) != -1) {
-    NSString *key = [NSString stringWithUTF8String:longopts[longindex].name];
-    NSString *value = optarg ? [NSString stringWithUTF8String:optarg] : @"YES";
-
+  while ((opt = getopt_long(argc, cleanArgv, "r:K:bth?", longopts, &longindex)) != -1) {
+    NSString *key, *value;
     switch (opt) {
       case 'K':
       case 'r':
       case 'b':
       case 't':
+        key = [NSString stringWithUTF8String:longopts[longindex].name];
+        value = optarg ? [NSString stringWithUTF8String:optarg] : @"YES";
         [arguments setObject:value forKey:key];
+        break;
+      case 0:
         break;
       default:
         NSLog(@"usage: atom [--resource-path=<path>] [<path>]");
