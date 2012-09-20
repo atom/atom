@@ -111,6 +111,7 @@ class AtomCefClient : public CefClient,
   void ShowSaveDialog(int replyId, CefRefPtr<CefBrowser> browser);
   CefRefPtr<CefListValue> CreateReplyDescriptor(int replyId, int callbackIndex);
   void Exit(int status);
+  void Log(const char *message);
 
   IMPLEMENT_REFCOUNTING(AtomCefClient);
   IMPLEMENT_LOCKING(AtomCefClient);

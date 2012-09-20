@@ -92,3 +92,7 @@ CefRefPtr<CefListValue> AtomCefClient::CreateReplyDescriptor(int replyId, int ca
 void AtomCefClient::Exit(int status) {
   exit(status);
 }
+
+void AtomCefClient::Log(const char *message) {
+  NSLog(@"%s", message);
+}

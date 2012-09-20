@@ -95,10 +95,9 @@ bool AtomCefClient::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                      const CefString& source,
                                      int line) {
   REQUIRE_UI_THREAD();
-  std::cout << std::string(message) << "\n";
+  Log(message.ToString().c_str());
   return true;
 }
-
 
 bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                const CefKeyEvent& event,
