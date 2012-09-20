@@ -1,4 +1,22 @@
 #!/bin/sh
-# Make sure all dependencies are in place.
+
+exit_unless_xcode_exists() {
+  if [ ! -d /Applications/Xcode.app ]; then
+    echo "ERROR: Atom requires Xcode"
+    echo "You must to download Xcode from the App Store (http://itunes.apple.com/us/app/xcode/id497799835)"
+    exit 1
+  fi
+}
+
+exit_unless_npm_exists() {
+  if [ ! $(hash np 2> /dev/null ) ]; then
+    echo "ERROR: Atom requires npm"
+    exit 1
+  fi
+}
+
+exit_unless_xcode_exists
+exit_unless_npm_exists
 
 npm install
+
