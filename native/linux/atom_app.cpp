@@ -5,7 +5,7 @@
 #include <gtk/gtk.h>
 #include <unistd.h>
 #include <string>
-#include "atom.h"
+#include "atom_app.h"
 #include "atom_cef_app.h"
 #include "include/cef_app.h"
 #include "include/cef_browser.h"

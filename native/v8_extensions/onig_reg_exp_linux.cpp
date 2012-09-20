@@ -1,4 +1,4 @@
-#include "onig_reg_exp_linux.h"
+#include "onig_reg_exp.h"
 #include "include/cef_runnable.h"
 #include <oniguruma.h>
 #include <iostream>
@@ -127,7 +127,7 @@ IMPLEMENT_REFCOUNTING(OnigRegexpUserData)
 }
 ;
 
-OnigRegexpExtension::OnigRegexpExtension() :
+OnigRegExp::OnigRegExp() :
     CefV8Handler() {
   string realFilePath = io_utils_real_app_path(
       "/native/v8_extensions/onig_reg_exp.js");
@@ -138,7 +138,7 @@ OnigRegexpExtension::OnigRegexpExtension() :
   }
 }
 
-bool OnigRegexpExtension::Execute(const CefString& name,
+bool OnigRegExp::Execute(const CefString& name,
     CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments,
     CefRefPtr<CefV8Value>& retval, CefString& exception) {
   if (name == "captureIndices") {
