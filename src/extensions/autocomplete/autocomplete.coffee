@@ -135,11 +135,13 @@ class Autocomplete extends View
       @css(left: left, top: potentialTop, bottom: 'inherit')
 
   selectPreviousMatch: ->
+    return if @filteredMatches.length is 0
     previousIndex = @currentMatchIndex - 1
     previousIndex = @filteredMatches.length - 1 if previousIndex < 0
     @selectMatchAtIndex(previousIndex)
 
   selectNextMatch: ->
+    return if @filteredMatches.length is 0
     nextIndex = (@currentMatchIndex + 1) % @filteredMatches.length
     @selectMatchAtIndex(nextIndex)
 
