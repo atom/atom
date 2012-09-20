@@ -13,13 +13,21 @@ describe "CommandPanel", ->
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
     commandPanel = requireExtension('command-panel')
+    commandPanel.history = []
+    commandPanel.historyIndex = 0
 
   afterEach ->
     rootView.deactivate()
 
   describe "serialization", ->
-    it "preserves the command panel's mini-editor text, visibility, and focus across reloads", ->
+    it "preserves the command panel's mini-editor text, visibility, focus, and history across reloads", ->
       rootView.attachToDom()
+      rootView.trigger 'command-panel:toggle'
+      expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+      commandPanel.execute('/test')
+      expect(commandPanel.history.length).toBe(1)
+      expect(commandPanel.history[0]).toBe('/test')
+      expect(commandPanel.historyIndex).toBe(1)
       rootView.trigger 'command-panel:toggle'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
       commandPanel.miniEditor.insertText 'abc'
@@ -31,6 +39,9 @@ describe "CommandPanel", ->
       expect(rootView2.find('.command-panel')).toExist()
       expect(commandPanel.miniEditor.getText()).toBe 'abc'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
+      expect(commandPanel.history.length).toBe(1)
+      expect(commandPanel.history[0]).toBe('/test')
+      expect(commandPanel.historyIndex).toBe(1)
 
       rootView2.focus()
       expect(commandPanel.miniEditor.isFocused).toBeFalsy()
@@ -41,6 +52,31 @@ describe "CommandPanel", ->
 
       expect(commandPanel.miniEditor.isFocused).toBeFalsy()
       rootView3.deactivate()
+
+    it "only retains the configured max serialized history size", ->
+      rootView.attachToDom()
+
+      commandPanel.maxSerializedHistorySize = 2
+      commandPanel.execute('/test1')
+      commandPanel.execute('/test2')
+      commandPanel.execute('/test3')
+      expect(commandPanel.history.length).toBe(3)
+      expect(commandPanel.history[0]).toBe('/test1')
+      expect(commandPanel.history[1]).toBe('/test2')
+      expect(commandPanel.history[2]).toBe('/test3')
+      expect(commandPanel.historyIndex).toBe(3)
+
+      rootView2 = RootView.deserialize(rootView.serialize())
+      rootView.deactivate()
+      rootView2.attachToDom()
+
+      commandPanel = rootView2.activateExtension(CommandPanel)
+      expect(commandPanel.history.length).toBe(2)
+      expect(commandPanel.history[0]).toBe('/test2')
+      expect(commandPanel.history[1]).toBe('/test3')
+      expect(commandPanel.historyIndex).toBe(2)
+
+      rootView2.deactivate()
 
   describe "when command-panel:close is triggered on the command panel", ->
     it "detaches the command panel", ->
