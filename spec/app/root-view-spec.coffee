@@ -530,6 +530,12 @@ describe "RootView", ->
       rootView.setFontSize(0)
       expect(rootView.getFontSize()).toBe 1
 
+    it "is serialized and set when deserialized", ->
+      rootView.setFontSize(100)
+      rootView.remove()
+      newRootView = RootView.deserialize(rootView.serialize())
+      expect(newRootView.getFontSize()).toBe(100)
+
   describe ".open(path, options)", ->
     describe "when there is no active editor", ->
       beforeEach ->

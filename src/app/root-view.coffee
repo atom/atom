@@ -22,9 +22,10 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'
 
-  @deserialize: ({ projectPath, panesViewState, extensionStates }) ->
+  @deserialize: ({ projectPath, panesViewState, extensionStates, fontSize }) ->
     rootView = new RootView(projectPath, extensionStates: extensionStates, suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
+    rootView.setFontSize(fontSize) if fontSize > 0
     rootView
 
   extensions: null
@@ -47,6 +48,7 @@ class RootView extends View
     projectPath: @project?.getPath()
     panesViewState: @panes.children().view()?.serialize()
     extensionStates: @serializeExtensions()
+    fontSize: @getFontSize()
 
   handleEvents: ->
     @on 'toggle-dev-tools', => atom.toggleDevTools()
