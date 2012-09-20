@@ -25,6 +25,7 @@
     'configurations': {
       'Debug': {
         'defines': ['DEBUG=1', 'RESOURCE_PATH="$PROJECT_DIR"'],
+        'xcode_settings': { 'GCC_OPTIMIZATION_LEVEL' : '0' },
       },
       'Release': {
       },
