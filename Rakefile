@@ -64,7 +64,7 @@ task :install => :build do
     usr_bin = "/opt/github/bin"
     if Dir.exists?(usr_bin)
       cli_path = "#{usr_bin}/atom"
-      `echo '#!/bin/sh\nopen #{path} -n --args --resource-path="#{ATOM_SRC}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
+      `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
     else
       stderr.puts "ERROR: `The Setup` is required to run the atom cli tool"
     end
