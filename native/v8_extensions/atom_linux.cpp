@@ -1,4 +1,4 @@
-#include "atom_linux.h"
+#include "atom.h"
 #include "include/cef_base.h"
 #include "include/cef_runnable.h"
 #include <iostream>
@@ -10,7 +10,7 @@ using namespace std;
 
 namespace v8_extensions {
 
-AtomHandler::AtomHandler() :
+Atom::Atom() :
     CefV8Handler() {
   string realFilePath = io_utils_real_app_path("/native/v8_extensions/atom.js");
   if (!realFilePath.empty()) {
@@ -20,7 +20,7 @@ AtomHandler::AtomHandler() :
   }
 }
 
-bool AtomHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
+bool Atom::Execute(const CefString& name, CefRefPtr<CefV8Value> object,
     const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval,
     CefString& exception) {
   CefRefPtr<CefBrowser> browser =

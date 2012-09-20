@@ -1,15 +1,15 @@
 #include "atom_cef_render_process_handler.h"
-#include "atom_linux.h"
+#include "atom.h"
 #include "native_linux.h"
-#include "onig_reg_exp_linux.h"
+#include "onig_reg_exp.h"
 #include "io_utils.h"
 #include "message_translation.h"
 #include <iostream>
 
 void AtomCefRenderProcessHandler::OnWebKitInitialized() {
-  new v8_extensions::AtomHandler();
+  new v8_extensions::Atom();
   new v8_extensions::NativeHandler();
-  new v8_extensions::OnigRegexpExtension();
+  new v8_extensions::OnigRegExp();
 }
 
 void AtomCefRenderProcessHandler::OnContextCreated(

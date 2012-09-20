@@ -1,5 +1,5 @@
-#ifndef ATOM_H_
-#define ATOM_H_
+#ifndef ATOM_APP_H_
+#define ATOM_APP_H_
 #pragma once
 
 #include <string>

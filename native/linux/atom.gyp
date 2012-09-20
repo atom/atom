@@ -23,7 +23,7 @@
           '../v8_extensions/native_linux.cpp',
           '../v8_extensions/onig_reg_exp_linux.cpp',
           '../message_translation.cpp',
-          'atom.cpp',
+          'atom_app.cpp',
           'atom_cef_render_process_handler.cpp',
           'client_handler.cpp',
           'io_utils.cpp',

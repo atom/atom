@@ -1,5 +1,5 @@
 #include "io_utils.h"
-#include "atom.h"
+#include "atom_app.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
