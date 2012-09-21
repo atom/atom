@@ -1,6 +1,6 @@
 require 'timeout'
 
-ATOM_SRC = File.dirname(__FILE__)
+ATOM_SRC_PATH = File.dirname(__FILE__)
 BUILD_DIR = 'atom-build'
 
 desc "Create xcode project from gpy file"
@@ -22,44 +22,50 @@ task :build => "create-project" do
 end
 
 desc "Creates symlink from `application_path() to /Applications/Atom and creates `atom` cli app"
-task :install do #=> :build do
-  if path = application_path()
-    dest =  File.join("/Applications", File.basename(path))
-    `rm -rf #{dest}`
-    `cp -r #{path} #{File.expand_path(dest)}`
+task :install => :build do
+  path = application_path()
+  exit 1 if not path
 
-    default_usr_bin = "/opt/github/bin"
-    print "Where do you want the cli binary insalled (#{default_usr_bin}): "
-    usr_bin = $stdin.gets.strip
-    usr_bin = default_usr_bin if usr_bin.empty?
+  # Install Atom.app
+  dest =  "/Applications/#{File.basename(path)}"
+  `rm -rf #{dest}`
+  `cp -r #{path} #{File.expand_path(dest)}`
 
-    if Dir.exists?(usr_bin)
-      cli_path = "#{usr_bin}/atom"
-      `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
-    else
-      $stderr.puts "ERROR: Failed to install atom cli tool at '#{usr_bin}'"
-      exit 1
-    end
+  # Install cli atom
+  default_usr_bin = "/opt/github/bin"
+  print "Where do you want the cli binary insalled (#{default_usr_bin}): "
+  usr_bin = $stdin.gets.strip
+  usr_bin = default_usr_bin if usr_bin.empty?
 
-    dot_atom_path = "#{ENV['HOME']}/.atom"
-    atom_template_path = "#{File.dirname(__FILE__)}/.atom"
-    dot_atom_exists = File.exists?(dot_atom_path) && !(File.symlink?(dot_atom_path) and File.readlink(dot_atom_path) == atom_template_path)
-    replace_dot_atom = true
-    puts dot_atom_exists
-    if dot_atom_exists
-      print "Can I replace '#{dot_atom_path}' with the default .atom directory? "
-      replace_dot_atom = false if STDIN.gets.strip =~ /$y/i
-    end
-
-    if replace_dot_atom
-      `rm -rf "#{dot_atom_path}"`
-      `ln -sf "#{atom_template_path}" "#{dot_atom_path}"`
-    end
-
-    puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `.atom` directory\033[0m"
+  if Dir.exists?(usr_bin)
+    cli_path = "#{usr_bin}/atom"
+    `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
   else
+    $stderr.puts "ERROR: Failed to install atom cli tool at '#{usr_bin}'"
     exit 1
   end
+
+  # Create ~/.atom
+  dot_atom_path = ENV['HOME'] + "/.atom"
+  dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
+  replace_dot_atom = false
+  if File.exists?(dot_atom_path) && !File.symlink?("#{dot_atom_path}/default-config.coffee")
+    print "I am going to replace '#{dot_atom_path}' with the default .atom directory (y/n): "
+    replace_dot_atom = true if STDIN.gets.strip =~ /^y/i
+  end
+
+  if replace_dot_atom
+    `rm -rf "#{dot_atom_path}"`
+    `mkdir "#{dot_atom_path}"`
+    `cp "#{dot_atom_template_path}/atom.coffee" "#{dot_atom_path}"`
+
+    for path in Dir.entries(dot_atom_template_path)
+      next if ["..", ".", "atom.coffee"].include? path
+      `ln -s "#{dot_atom_template_path}/#{path}" "#{dot_atom_path}"`
+    end
+  end
+
+  puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `.atom` directory\033[0m"
 end
 
 desc "Clean build Atom via `xcodebuild`"
