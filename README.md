@@ -4,24 +4,20 @@
 
 ## Building from source
 
-1. Get [xcode 4.2 or above](http://itunes.apple.com/us/app/xcode/id448457090?mt=12)
+Requirements
 
-2. Install CoffeeScript http://coffeescript.org/
-```
-brew install nodejs
-curl https://npmjs.org/install.sh | sh
-npm i -g coffee-script
-```
+** Mountain Lion **
+** The Setup **
+** Xcode **
 
-3. `git clone git@github.com:github/atom.git`
+1. Get Xcode from the App Store (ugh, I know)
 
-4. `cd atom`
+2. `rake install`
 
-5. `rake run`
+Atom is installed! Type `atom [path]` from the commmand line or find it in `/Applications/Atom.app`
 
-
-## Setup Your ~/.atom Directory
-An example .atom directory can be found at the root of the source tree
+## Your ~/.atom Directory
+An basic .atom directory is installed when you run `rake install`. Take a look at ~/.atom/atom.coffee for more information. Take a look at ~/.atom/atom.coffee for more information.
 
 ## Basic Keyboard shortcuts
 Atom doesn't have much in the way of menus yet. Use these keyboard shortcuts to
