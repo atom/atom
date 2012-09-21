@@ -1500,3 +1500,29 @@ describe "EditSession", ->
       editSession.deleteLine()
       expect(buffer.lineForRow(0)).toBe(line1)
       expect(buffer.getLineCount()).toBe(count - 1)
+
+    it "deletes the entire region when invoke on a folded region", ->
+      editSession.foldBufferRow(1)
+      editSession.getLastCursor().moveToTop()
+      editSession.getLastCursor().moveDown()
+      expect(buffer.getLineCount()).toBe(13)
+      editSession.deleteLine()
+      expect(buffer.getLineCount()).toBe(4)
+
+    it "deletes the entire file from the bottom up", ->
+      count = buffer.getLineCount()
+      expect(count).toBeGreaterThan(0)
+      for line in [0...count]
+        editSession.getLastCursor().moveToBottom()
+        editSession.deleteLine()
+      expect(buffer.getLineCount()).toBe(1)
+      expect(buffer.getText()).toBe('')
+
+    it "deletes the entire file from the top down", ->
+      count = buffer.getLineCount()
+      expect(count).toBeGreaterThan(0)
+      for line in [0...count]
+        editSession.getLastCursor().moveToTop()
+        editSession.deleteLine()
+      expect(buffer.getLineCount()).toBe(1)
+      expect(buffer.getText()).toBe('')

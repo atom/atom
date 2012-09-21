@@ -24,9 +24,10 @@ class CommandPanel extends View
     text: @instance.miniEditor.getText()
     visible: @instance.hasParent()
     miniEditorFocused: @instance.miniEditor.isFocused
+    history: @instance.history[-@instance.maxSerializedHistorySize..]
 
   @deserialize: (state, rootView) ->
-    commandPanel = new CommandPanel(rootView)
+    commandPanel = new CommandPanel(rootView, state.history)
     commandPanel.attach(state.text, focus: false) if state.visible
     commandPanel.miniEditor.focus() if state.miniEditorFocused
     commandPanel
@@ -41,10 +42,13 @@ class CommandPanel extends View
   commandInterpreter: null
   history: null
   historyIndex: 0
+  maxSerializedHistorySize: 100
 
-  initialize: (@rootView)->
+  initialize: (@rootView, @history) ->
     @commandInterpreter = new CommandInterpreter(@rootView.project)
-    @history = []
+
+    @history ?= []
+    @historyIndex = @history.length
 
     @on 'command-panel:unfocus', => @rootView.focus()
     @on 'command-panel:close', => @detach()

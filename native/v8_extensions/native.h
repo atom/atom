@@ -1,6 +1,5 @@
-#import <Cocoa/Cocoa.h>
-#import "include/cef_base.h"
-#import "include/cef_v8.h"
+#include "include/cef_base.h"
+#include "include/cef_v8.h"
 
 
 namespace v8_extensions {

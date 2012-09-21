@@ -530,6 +530,12 @@ describe "RootView", ->
       rootView.setFontSize(0)
       expect(rootView.getFontSize()).toBe 1
 
+    it "is serialized and set when deserialized", ->
+      rootView.setFontSize(100)
+      rootView.remove()
+      newRootView = RootView.deserialize(rootView.serialize())
+      expect(newRootView.getFontSize()).toBe(100)
+
   describe ".open(path, options)", ->
     describe "when there is no active editor", ->
       beforeEach ->
@@ -625,3 +631,34 @@ describe "RootView", ->
                 expect(rootView.getActiveEditor()).toBe editor1
                 expect(editor1.getPath()).toBe path
                 expect(editSession).toBe rootView.getActiveEditor().activeEditSession
+
+  describe ".saveAll()", ->
+    it "saves all open editors", ->
+      rootView.remove()
+      file1 = '/tmp/atom-temp1.txt'
+      file2 = '/tmp/atom-temp2.txt'
+      fs.write(file1, "file1")
+      fs.write(file2, "file2")
+      rootView = new RootView(file1)
+
+      editor1 = rootView.getActiveEditor()
+      buffer1 = editor1.activeEditSession.buffer
+      expect(buffer1.getText()).toBe("file1")
+      expect(buffer1.isModified()).toBe(false)
+      buffer1.setText('edited1')
+      expect(buffer1.isModified()).toBe(true)
+
+      editor2 = editor1.splitRight()
+      editor2.edit(rootView.project.buildEditSessionForPath('atom-temp2.txt'))
+      buffer2 = editor2.activeEditSession.buffer
+      expect(buffer2.getText()).toBe("file2")
+      expect(buffer2.isModified()).toBe(false)
+      buffer2.setText('edited2')
+      expect(buffer2.isModified()).toBe(true)
+
+      rootView.saveAll()
+
+      expect(buffer1.isModified()).toBe(false)
+      expect(fs.read(buffer1.getPath())).toBe("edited1")
+      expect(buffer2.isModified()).toBe(false)
+      expect(fs.read(buffer2.getPath())).toBe("edited2")
