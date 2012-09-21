@@ -1,7 +1,5 @@
 require 'timeout'
 
-$ATOM_ARGS = []
-
 ATOM_SRC = File.dirname(__FILE__)
 BUILD_DIR = 'atom-build'
 
@@ -18,7 +16,6 @@ end
 desc "Build Atom via `xcodebuild`"
 task :build => ["create-project", "bootstrap"] do
   command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
-  puts command
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
@@ -32,10 +29,11 @@ task :clean do
 end
 
 desc "Run Atom"
-task :run => :build do
+task :run, [:atom_arg] => :build do |name, args|
   if path = application_path()
-    puts path
-    exitstatus = system "#{path}/Contents/MacOS/Atom #{$ATOM_ARGS.join(' ')} 2> /dev/null"
+    cmd = "#{path}/Contents/MacOS/Atom #{args[:atom_arg]} 2> /dev/null"
+    puts cmd
+    exitstatus = system(cmd)
     exit(exitstatus)
   else
     exit(1)
@@ -44,14 +42,12 @@ end
 
 desc "Run the specs"
 task :test => :clean do
-  $ATOM_ARGS.push "--test"
-  Rake::Task["run"].invoke
+  Rake::Task["run"].invoke("--test")
 end
 
 desc "Run the benchmarks"
 task :benchmark do
-  $ATOM_ARGS.push "--benchmark"
-  Rake::Task["run"].invoke
+  Rake::Task["run"].invoke("--benchmark")
 end
 
 desc "Creates symlink from `application_path() to /Applications/Atom and creates a CLI at /usr/local/bin/atom"
