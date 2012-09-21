@@ -9,7 +9,7 @@ exit_unless_xcode_exists() {
 }
 
 exit_unless_npm_exists() {
-  if [ ! $(hash np 2> /dev/null ) ]; then
+  if ! hash npm 2> /dev/null; then
     echo "ERROR: Atom requires npm"
     exit 1
   fi
