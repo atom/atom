@@ -24,7 +24,6 @@
 + (NSDictionary *)parseArguments:(char **)argv count:(int)argc {
   NSMutableDictionary *arguments = [[NSMutableDictionary alloc] init];
   
-  // Defaults
   #ifdef RESOURCE_PATH
     [arguments setObject:[NSString stringWithUTF8String:RESOURCE_PATH] forKey:@"resource-path"];
   #endif
