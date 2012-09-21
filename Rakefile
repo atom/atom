@@ -32,18 +32,20 @@ task :install => :build do
   `cp -r #{path} #{File.expand_path(dest)}`
 
   # Install cli atom
-  default_usr_bin = "/opt/github/bin"
-  print "Where do you want the cli binary insalled (#{default_usr_bin}): "
-  usr_bin = $stdin.gets.strip
-  usr_bin = default_usr_bin if usr_bin.empty?
+  usr_bin_path = default_usr_bin_path "/opt/github/bin"
+  cli_path = "#{usr_bin_path}/atom"
+  unless File.exists?(cli_path)
+    print "Where do you want the cli binary insalled (#{default_usr_bin_path}): "
+    usr_bin_path = $stdin.gets.strip
+    usr_bin_path = default_usr_bin_path if usr_bin_path.empty?
+  end
 
-  if Dir.exists?(usr_bin)
-    cli_path = "#{usr_bin}/atom"
-    `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
-  else
-    $stderr.puts "ERROR: Failed to install atom cli tool at '#{usr_bin}'"
+  if !Dir.exists?(usr_bin_path)
+    $stderr.puts "ERROR: Failed to install atom cli tool at '#{usr_bin_path}'"
     exit 1
   end
+
+  `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
 
   # Create ~/.atom
   dot_atom_path = ENV['HOME'] + "/.atom"
