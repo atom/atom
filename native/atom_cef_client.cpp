@@ -107,6 +107,8 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
   }
   else if (event.modifiers == (KEY_META | KEY_ALT) && event.unmodified_character == 'i') {
     ToggleDevTools(browser);
+  } else if (event.modifiers == KEY_META && event.unmodified_character == '`') {
+    FocusNextWindow();
   }
   else {
     return false;

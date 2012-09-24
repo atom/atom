@@ -44,6 +44,7 @@
 - (id)initInBackground {
   [self initWithBootstrapScript:@"window-bootstrap" background:YES];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
+  [self.window setExcludedFromWindowsMenu:YES];
   return self;
 }
 
