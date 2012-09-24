@@ -93,19 +93,6 @@ class Rule
     nextTokens = patterns[index].handleMatch(stack, line, captureIndices)
     { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
 
-  getNextMatch: (line, position) ->
-    nextMatch = null
-    matchedPattern = null
-
-    for pattern in @patterns
-      { pattern, match } = pattern.getNextMatch(line, position)
-      if match
-        if !nextMatch or match.position < nextMatch.position
-          nextMatch = match
-          matchedPattern = pattern
-
-    { match: nextMatch, pattern: matchedPattern }
-
   addEndPattern: (backReferences) ->
     endPattern = @createEndPattern(backReferences)
     @patterns.unshift(endPattern)
@@ -144,13 +131,6 @@ class Pattern
       rule?.getIncludedPatterns(included) ? []
     else
       [this]
-
-  getNextMatch: (line, position) ->
-    if @include
-      rule = @grammar.ruleForInclude(@include)
-      rule.getNextMatch(line, position)
-    else
-      { match: @regex.getCaptureIndices(line, position), pattern: this }
 
   handleMatch: (stack, line, captureIndices) ->
     scopes = scopesFromStack(stack)
