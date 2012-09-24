@@ -5,6 +5,25 @@
 #import "atom_application.h"
 #import "atom_window_controller.h"
 
+
+void AtomCefClient::FocusNextWindow() {
+  NSArray *windows = [NSApp windows];
+  int count = [windows count];
+  int start = [windows indexOfObject:[NSApp mainWindow]];
+  int i = start;
+  while (true) {
+    i = (i + 1) % count;
+
+    if (i == start) break;
+
+    NSWindow *window = [windows objectAtIndex:i];
+    if (![window isExcludedFromWindowsMenu]) {
+      [window makeKeyAndOrderFront:nil];
+      break;
+    }
+  }
+}
+
 void AtomCefClient::Open(std::string path) {
   NSString *pathString = [NSString stringWithCString:path.c_str() encoding:NSUTF8StringEncoding];
   [(AtomApplication *)[AtomApplication sharedApplication] open:pathString];
