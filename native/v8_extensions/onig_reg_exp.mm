@@ -106,7 +106,7 @@ bool OnigRegExp::Execute(const CefString& name,
       if (bestIndex == -1 || captureIndices->GetValue(1)->GetIntValue() < captureIndicesForBestIndex->GetValue(1)->GetIntValue()) {
         bestIndex = i;
         captureIndicesForBestIndex = captureIndices;
-        if (captureIndices->GetValue(1)->GetIntValue() == 0) break; // If the match starts at 0, just use it!
+        if (captureIndices->GetValue(1)->GetIntValue() == index->GetIntValue()) break; // If the match starts at 0, just use it!
       }
     }
 
