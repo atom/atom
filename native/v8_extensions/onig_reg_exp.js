@@ -1,10 +1,8 @@
 (function() {
   native function buildOnigRegExp(source);
   native function search(string, index);
-  native function getCaptureIndices(string, index);
-  native function captureIndices(string, index, regexes);
-  native function getCaptureCount();
   native function test(string);
+  native function captureIndices(string, index, regexes);
 
   function OnigRegExp(source) {
     var regexp = buildOnigRegExp(source);
@@ -16,8 +14,6 @@
 
   OnigRegExp.prototype.search = search;
   OnigRegExp.prototype.test = test;
-  OnigRegExp.prototype.getCaptureIndices = getCaptureIndices;
-  OnigRegExp.prototype.getCaptureCount = getCaptureCount;
   OnigRegExp.captureIndices = captureIndices;
 
   this.OnigRegExp = OnigRegExp;
