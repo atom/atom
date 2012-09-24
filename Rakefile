@@ -32,7 +32,7 @@ task :install => :build do
   `cp -r #{path} #{File.expand_path(dest)}`
 
   # Install cli atom
-  usr_bin_path = default_usr_bin_path "/opt/github/bin"
+  usr_bin_path = default_usr_bin_path = "/opt/github/bin"
   cli_path = "#{usr_bin_path}/atom"
   unless File.exists?(cli_path)
     print "Where do you want the cli binary insalled (#{default_usr_bin_path}): "
