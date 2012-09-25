@@ -1,8 +1,10 @@
-# Atom — Futuristic Text Editing
-## Be forwarned: Atom is pre-alpha software!
+# Atom — Futuristic Text Editing 
 
+![atomic](http://schlich.com/images/atomic-energy-lab.gif)
 
 ## Building from source
+
+*Be forwarned: Atom is pre-alpha software!*
 
 Requirements
 
