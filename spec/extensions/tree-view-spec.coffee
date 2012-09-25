@@ -142,6 +142,7 @@ describe "TreeView", ->
 
       describe "when the tree view is not focused", ->
         it "shifts focus to the tree view", ->
+          rootView.open() # When we call focus below, we want an editor to become focused
           rootView.focus()
           rootView.trigger 'tree-view:toggle'
           expect(treeView).toBeVisible()
@@ -184,12 +185,14 @@ describe "TreeView", ->
 
   describe "when tree-view:unfocus is triggered on the tree view", ->
     it "surrenders focus to the root view but remains open", ->
+      rootView.open() # When we trigger 'tree-view:unfocus' below, we want an editor to become focused
       rootView.attachToDom()
       treeView.focus()
+      expect(treeView).toMatchSelector(':focus')
       treeView.trigger 'tree-view:unfocus'
       expect(treeView).toBeVisible()
       expect(treeView).not.toMatchSelector(':focus')
-      expect(rootView).toMatchSelector(':focus')
+      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->

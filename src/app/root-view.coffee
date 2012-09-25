@@ -62,6 +62,11 @@ class RootView extends View
         false
       else
         @setTitle(@project?.getPath())
+        if focusableChild = this.find("[tabindex=-1]")
+          focusableChild.focus()
+          false
+        else
+          true
 
     @on 'active-editor-path-change', (e, path) =>
       @project.setPath(path) unless @project.getRootDirectory()

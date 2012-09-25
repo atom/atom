@@ -16,7 +16,7 @@ describe "RootView", ->
     rootView.focus()
 
   afterEach ->
-    rootView.remove()
+    rootView.deactivate()
 
   describe "initialize(pathToOpen)", ->
     describe "when called with a pathToOpen", ->
@@ -117,10 +117,11 @@ describe "RootView", ->
           expect(document.title).toBe editor2.getPath()
 
     describe "when called with no pathToOpen", ->
-      it "opens no buffer", ->
+      it "opens an empty buffer", ->
         rootView.remove()
         rootView = new RootView
-        expect(rootView.getEditors().length).toBe 0
+        expect(rootView.getEditors().length).toBe 1
+        expect(rootView.getEditors()[0].getText()).toEqual ""
         expect(document.title).toBe 'untitled'
 
   describe ".serialize()", ->
@@ -145,11 +146,10 @@ describe "RootView", ->
       expect(console.error).toHaveBeenCalled()
 
   describe "focus", ->
-    it "can receive focus if there is no active editor, but otherwise hands off focus to the active editor", ->
+    it "hands off focus to the active editor", ->
       rootView.remove()
       rootView = new RootView(require.resolve 'fixtures')
       rootView.attachToDom()
-      expect(rootView).toMatchSelector(':focus')
 
       rootView.open() # create an editor
       expect(rootView).not.toMatchSelector(':focus')
@@ -158,6 +158,15 @@ describe "RootView", ->
       rootView.focus()
       expect(rootView).not.toMatchSelector(':focus')
       expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+
+    it "passes focus to element with a tabIndex of -1 if there is no active editor", ->
+      rootView.remove()
+      rootView = new RootView(require.resolve 'fixtures')
+      rootView.activateExtension require('tree-view')
+      rootView.attachToDom()
+
+      expect(rootView).not.toMatchSelector(':focus')
+      expect(rootView.find('.tree-view')).toMatchSelector(':focus')
 
   describe "panes", ->
     [pane1, newPaneContent] = []
