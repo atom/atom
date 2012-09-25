@@ -6,13 +6,15 @@
 
 Requirements
 
-** Mountain Lion **
-** The Setup **
-** Xcode **
+**Mountain Lion**
 
-1. Get Xcode from the App Store (ugh, I know)
+**The Setup™** 
 
-2. `rake install`
+**Xcode** (Get Xcode from the App Store (ugh, I know))
+
+1. gh-setup atom
+
+2. cd ~/github/atom && `rake install`
 
 Atom is installed! Type `atom [path]` from the commmand line or find it in `/Applications/Atom.app`
 
