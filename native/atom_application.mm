@@ -156,7 +156,14 @@
     [self runSpecsThenExit:true];
   }
   else {
-    [self open:[self.arguments objectForKey:@"path"]];
+    NSString *path = [self.arguments objectForKey:@"path"];
+
+    // Just a hack to open the Atom src by default when we run from xcode
+    #ifdef RESOURCE_PATH
+    if (!path) path = [NSString stringWithUTF8String:RESOURCE_PATH];
+    #endif
+
+    [self open:path];
   }
 }
 
