@@ -42,7 +42,11 @@ class RootView extends View
     @handleEvents()
     @setTitle()
     @loadUserConfiguration()
-    @open(pathToOpen) if fs.isFile(pathToOpen) unless suppressOpen
+
+    if pathToOpen
+      @open(pathToOpen) if fs.isFile(pathToOpen) and not suppressOpen
+    else
+      @open()
 
   serialize: ->
     projectPath: @project?.getPath()
