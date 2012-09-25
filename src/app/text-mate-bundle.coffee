@@ -11,7 +11,12 @@ class TextMateBundle
   @bundles: []
 
   @loadAll: ->
-    for bundlePath in fs.list(require.resolve("bundles"))
+    globalBundles = fs.list(require.resolve("bundles"))
+
+    localBundlePath = fs.join(atom.configDirPath, "bundles")
+    localBundles = fs.list(localBundlePath) if fs.exists(localBundlePath)
+
+    for bundlePath in globalBundles.concat(localBundles ? [])
       @registerBundle(new TextMateBundle(bundlePath))
 
   @registerBundle: (bundle)->
