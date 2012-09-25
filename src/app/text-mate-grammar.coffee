@@ -76,12 +76,14 @@ class Rule
 
   getIncludedPatterns: (included=[]) ->
     return [] if _.include(included, this)
-    included.push(this)
-    allPatterns = []
 
+    return @allPatterns if @allPatterns
+
+    included = included.concat([this])
+    @allPatterns = []
     for pattern in @patterns
-      allPatterns.push(pattern.getIncludedPatterns(included)...)
-    allPatterns
+      @allPatterns.push(pattern.getIncludedPatterns(included)...)
+    @allPatterns
 
   getNextTokens: (stack, line, position) ->
     patterns = @getIncludedPatterns()
