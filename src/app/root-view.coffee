@@ -62,7 +62,8 @@ class RootView extends View
         false
       else
         @setTitle(@project?.getPath())
-        if focusableChild = this.find("[tabindex=-1]")
+        focusableChild = this.find("[tabindex=-1]:visible")
+        if focusableChild.length
           focusableChild.focus()
           false
         else

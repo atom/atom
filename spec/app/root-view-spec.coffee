@@ -146,27 +146,39 @@ describe "RootView", ->
       expect(console.error).toHaveBeenCalled()
 
   describe "focus", ->
-    it "hands off focus to the active editor", ->
-      rootView.remove()
-      rootView = new RootView(require.resolve 'fixtures')
-      rootView.attachToDom()
+    describe "when there is an active editor", ->
+      it "hands off focus to the active editor", ->
+        rootView.remove()
+        rootView = new RootView(require.resolve 'fixtures')
+        rootView.attachToDom()
 
-      rootView.open() # create an editor
-      expect(rootView).not.toMatchSelector(':focus')
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+        rootView.open() # create an editor
+        expect(rootView).not.toMatchSelector(':focus')
+        expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
-      rootView.focus()
-      expect(rootView).not.toMatchSelector(':focus')
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+        rootView.focus()
+        expect(rootView).not.toMatchSelector(':focus')
+        expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
-    it "passes focus to element with a tabIndex of -1 if there is no active editor", ->
-      rootView.remove()
-      rootView = new RootView(require.resolve 'fixtures')
-      rootView.activateExtension require('tree-view')
-      rootView.attachToDom()
+    describe "when there is no active editor", ->
+      describe "when there is a visible focusable element (with a -1 tabindex)", ->
+        it "passes focus to that element", ->
+          rootView.remove()
+          rootView = new RootView(require.resolve 'fixtures')
+          rootView.activateExtension require('tree-view')
+          rootView.attachToDom()
 
-      expect(rootView).not.toMatchSelector(':focus')
-      expect(rootView.find('.tree-view')).toMatchSelector(':focus')
+          expect(rootView).not.toMatchSelector(':focus')
+          expect(rootView.find('.tree-view')).toMatchSelector(':focus')
+
+      describe "when there are no visible focusable elements", ->
+        it "retains focus itself", ->
+          rootView.remove()
+          rootView = new RootView(require.resolve 'fixtures')
+          rootView.activateExtension require('tree-view')
+          rootView.find('.tree-view').hide()
+          rootView.attachToDom()
+          expect(rootView).toMatchSelector(':focus')
 
   describe "panes", ->
     [pane1, newPaneContent] = []
