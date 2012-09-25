@@ -297,7 +297,9 @@ class Buffer
   scanInRange: (regex, range, iterator, reverse=false) ->
     range = Range.fromObject(range)
     global = regex.global
-    regex = new RegExp(regex.source, 'gm')
+    flags = "gm"
+    flags += "i" if regex.ignoreCase
+    regex = new RegExp(regex.source, flags)
 
     startIndex = @characterIndexForPosition(range.start)
     endIndex = @characterIndexForPosition(range.end)

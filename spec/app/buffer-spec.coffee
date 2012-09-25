@@ -418,6 +418,13 @@ describe 'Buffer', ->
         expect(buffer.getTextInRange(range)).toBe "ems.length <= 1) return items;\n    var pivot = items.shift(), current, left = [], right = [];\n    while("
 
   describe ".scanInRange(range, regex, fn)", ->
+    describe "when given a regex with a ignore case flag", ->
+      it "does a case-insensitive search", ->
+        matches = []
+        buffer.scanInRange /cuRRent/i, [[0,0], [12,0]], (match, range) ->
+          matches.push(match)
+        expect(matches.length).toBe 1
+
     describe "when given a regex with no global flag", ->
       it "calls the iterator with the first match for the given regex in the given range", ->
         matches = []
