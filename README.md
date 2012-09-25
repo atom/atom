@@ -21,7 +21,7 @@ Requirements
 Atom is installed! Type `atom [path]` from the commmand line or find it in `/Applications/Atom.app`
 
 ## Your ~/.atom Directory
-An basic .atom directory is installed when you run `rake install`. Take a look at ~/.atom/atom.coffee for more information. Take a look at ~/.atom/atom.coffee for more information.
+A basic ~/.atom directory is installed when you run `rake install`. Take a look at ~/.atom/atom.coffee for more information.
 
 ## Basic Keyboard shortcuts
 Atom doesn't have much in the way of menus yet. Use these keyboard shortcuts to
