@@ -1323,6 +1323,25 @@ describe "EditSession", ->
         expect(buffer.lineForRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
         expect(buffer.lineForRow(7)).toBe "    }"
 
+      it "uncomments lines if the first line matches the comment regex", ->
+        editSession.setSelectedBufferRange([[4, 5], [4, 5]])
+        editSession.toggleLineCommentsInSelection()
+        editSession.setSelectedBufferRange([[6, 5], [6, 5]])
+        editSession.toggleLineCommentsInSelection()
+
+        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "    }"
+
+        editSession.setSelectedBufferRange([[4, 5], [7, 5]])
+        editSession.toggleLineCommentsInSelection()
+
+        expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "    }"
+
       it "preserves selection emptiness", ->
         editSession.setSelectedBufferRange([[4, 0], [4, 0]])
         editSession.toggleLineCommentsInSelection()
