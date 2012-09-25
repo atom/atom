@@ -72,12 +72,6 @@
   width: 100%;
 }
 
-.editor .line, .gutter .line-number {
-  white-space: pre;
-  margin: 0;
-  padding: 0;
-}
-
 .editor .line > span {
   vertical-align: top;
 }

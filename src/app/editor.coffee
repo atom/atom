@@ -669,7 +669,7 @@ class Editor extends View
     selectionView.remove() for selectionView in @getSelectionViews()
 
   calculateDimensions: ->
-    fragment = $('<div class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
+    fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
     @renderedLines.append(fragment)
 
     lineRect = fragment[0].getBoundingClientRect()
@@ -812,7 +812,7 @@ class Editor extends View
             lineAttributes.class += ' selected'
         else
           lineAttributes = { class: 'line' }
-        @div lineAttributes, =>
+        @pre lineAttributes, =>
           if line.text == ''
             @raw '&nbsp;' if line.text == ''
           else
