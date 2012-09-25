@@ -47,7 +47,8 @@ class LanguageMode
   toggleLineCommentsInRange: (range) ->
     range = Range.fromObject(range)
     scopes = @tokenizedBuffer.scopesForPosition(range.start)
-    commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
+    return unless commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
+
     commentRegex = new OnigRegExp("^\s*" + _.escapeRegExp(commentString))
 
     shouldUncomment = commentRegex.test(@editSession.lineForBufferRow(range.start.row))
@@ -55,8 +56,8 @@ class LanguageMode
     for row in [range.start.row..range.end.row]
       line = @editSession.lineForBufferRow(row)
       if shouldUncomment
-        match = commentRegex.search(line)
-        @editSession.buffer.change([[row, 0], [row, match[0].length]], "")
+        if match = commentRegex.search(line)
+          @editSession.buffer.change([[row, 0], [row, match[0].length]], "")
       else
         @editSession.buffer.insert([row, 0], commentString)
 
