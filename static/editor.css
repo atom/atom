@@ -12,16 +12,8 @@
   height: auto;
 }
 
-.editor .flexbox {
-  display: -webkit-box;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
 .editor .gutter {
+  position: absolute;
   height: 100%;
   overflow: hidden;
   padding-left: 0.4em;
@@ -52,6 +44,11 @@
 }
 
 .editor .scroll-view {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-box-flex: 1;

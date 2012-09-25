@@ -10,7 +10,7 @@ class Gutter extends View
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
   editor: ->
-    editor = @parentView
+    @parentView
 
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     lastScreenRow = -1
@@ -21,7 +21,11 @@ class Gutter extends View
         @div {class: 'line-number'}, if row == lastScreenRow then '•' else row + 1
         lastScreenRow = row
 
-    @calculateDimensions()
+    @calculateWidth()
 
-  calculateDimensions: ->
-    @lineNumbers.width(@editor().getLineCount().toString().length * @editor().charWidth)
+  calculateWidth: ->
+    width = @editor().getLineCount().toString().length * @editor().charWidth
+    if width != @cachedWidth
+      @cachedWidth = width
+      @lineNumbers.width(width)
+      @widthChanged?(@outerWidth())

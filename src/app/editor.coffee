@@ -19,10 +19,9 @@ class Editor extends View
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
       @input class: 'hidden-input', outlet: 'hiddenInput'
-      @div class: 'flexbox', =>
-        @subview 'gutter', new Gutter
-        @div class: 'scroll-view', outlet: 'scrollView', =>
-          @div class: 'lines', outlet: 'renderedLines', =>
+      @subview 'gutter', new Gutter
+      @div class: 'scroll-view', outlet: 'scrollView', =>
+        @div class: 'lines', outlet: 'renderedLines', =>
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
@@ -135,7 +134,7 @@ class Editor extends View
       'page-down': @pageDown
       'page-up': @pageUp
 
-    if not @mini
+    unless @mini
       _.extend editorBindings,
         'save': @save
         'newline-below': @insertNewlineBelow
@@ -153,7 +152,6 @@ class Editor extends View
         'show-next-buffer': @loadNextEditSession
         'show-previous-buffer': @loadPreviousEditSession
         'toggle-line-comments': @toggleLineCommentsInSelection
-
 
     for name, method of editorBindings
       do (name, method) =>
@@ -330,6 +328,10 @@ class Editor extends View
 
     @verticalScrollbar.on 'scroll', =>
       @scrollTop(@verticalScrollbar.scrollTop(), adjustVerticalScrollbar: false)
+
+    unless @mini
+      @gutter.widthChanged = (newWidth) =>
+        @scrollView.css('left', newWidth + 'px')
 
     @scrollView.on 'scroll', =>
       if @scrollView.scrollLeft() == 0
@@ -680,7 +682,7 @@ class Editor extends View
     @height(@lineHeight) if @mini
     fragment.remove()
 
-    @gutter.calculateDimensions()
+    @gutter.calculateWidth()
 
   prepareForScrolling: ->
     @adjustHeightOfRenderedLines()

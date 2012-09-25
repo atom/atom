@@ -517,7 +517,7 @@ describe "Editor", ->
   describe "mouse events", ->
     beforeEach ->
       editor.attachToDom()
-      editor.css(position: 'absolute', top: 10, left: 10)
+      editor.css(position: 'absolute', top: 10, left: 10, width: 400)
 
     describe "single-click", ->
       it "re-positions the cursor to the clicked row / column", ->
@@ -1483,12 +1483,17 @@ describe "Editor", ->
       it "sets the width based on largest line number", ->
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 2
 
-      it "updates the width when total number of lines gains a digit", ->
+      it "updates the width and the left position of the scroll view when total number of lines gains a digit", ->
         editor.setText("")
+
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 1
+        expect(parseInt(editor.scrollView.css('left'))).toBe editor.gutter.outerWidth()
+
         for i in [1..9] # Ends on an empty line 10
           editor.insertText "#{i}\n"
+
         expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 2
+        expect(parseInt(editor.scrollView.css('left'))).toBe editor.gutter.outerWidth()
 
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
@@ -1563,6 +1568,13 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line').length).toBe 10
         expect(editor.gutter.find('.line-number:first').text()).toBe "2"
         expect(editor.gutter.find('.line-number:last').text()).toBe "11"
+
+    describe "when the editor is mini", ->
+      it "hides the gutter and does not change the scroll view's left position", ->
+        miniEditor = new Editor(mini: true)
+        miniEditor.attachToDom()
+        expect(miniEditor.gutter).toBeHidden()
+        expect(miniEditor.scrollView.css('left')).toBe '0px'
 
   describe "folding", ->
     beforeEach ->

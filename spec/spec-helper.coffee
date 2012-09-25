@@ -147,7 +147,7 @@ window.tokensText = (tokens) ->
   _.pluck(tokens, 'value').join('')
 
 window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
-  editor.width(charWidth * widthInChars + editor.renderedLines.position().left)
+  editor.width(charWidth * widthInChars + editor.gutter.outerWidth())
   $(window).trigger 'resize' # update width of editor's on-screen lines
 
 window.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
