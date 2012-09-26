@@ -52,13 +52,7 @@ define = (cb) ->
 exts =
   js: (file, code) ->
     code or= __read file
-
-    if not /define\(/.test code
-      code = """
-        define(function(require, exports, module) { 'use strict'; #{code};
-        });
-      """
-    eval(code + "\n//@ sourceURL=" + file)
+    eval("define(function(require, exports, module) { 'use strict';" + code + "})\n//@ sourceURL=" + file)
     __defines.pop()?.call()
   coffee: (file) ->
     exts.js(file, __coffeeCache(file))
