@@ -152,6 +152,7 @@ class Editor extends View
         'show-next-buffer': @loadNextEditSession
         'show-previous-buffer': @loadPreviousEditSession
         'toggle-line-comments': @toggleLineCommentsInSelection
+        'log-cursor-scope': @logCurrsorScope
 
     for name, method of editorBindings
       do (name, method) =>
@@ -247,6 +248,9 @@ class Editor extends View
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
   stateForScreenRow: (row) -> @activeEditSession.stateForScreenRow(row)
+
+  logCurrsorScope: ->
+    console.log @activeEditSession.tokenizedBuffer.scopesForPosition(@getCursorBufferPosition)
 
   pageDown: ->
     newScrollTop = @scrollTop() + @scrollView[0].clientHeight

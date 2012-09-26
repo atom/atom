@@ -37,3 +37,4 @@ window.keymap.bindKeys '.editor',
   'meta-/': 'toggle-line-comments'
   'ctrl-w w': 'focus-next-pane'
   'ctrl-W': 'select-word'
+  'meta-alt-p': 'log-cursor-scope'
