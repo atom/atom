@@ -6,9 +6,15 @@ class RegexAddress extends Address
   regex: null
   reverse: null
 
-  constructor: (pattern, isReversed) ->
+  constructor: (pattern, isReversed, options) ->
+    flags = ""
+    pattern = pattern.source if pattern.source
+
+    patternContainsCapitalLetter = /[^\\][A-Z]/.test(pattern)
+    flags += "i" unless patternContainsCapitalLetter
     @isReversed = isReversed
-    @regex = new RegExp(pattern)
+
+    @regex = new RegExp(pattern, flags)
 
   getRange: (buffer, range) ->
     rangeBefore = new Range([0, 0], range.start)

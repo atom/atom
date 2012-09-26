@@ -161,6 +161,22 @@ describe "CommandInterpreter", ->
           expect(editSession.lineForScreenRow(5).fold).toBeUndefined()
           expect(editSession.lineForScreenRow(10).fold).toBeDefined()
 
+      it "is case-insentive when the pattern contains no non-escaped uppercase letters (behavior copied from vim)", ->
+        waitsForPromise ->
+          editSession.setSelectedBufferRange([[4,16], [4,20]])
+          interpreter.eval('/array', editSession)
+
+        runs ->
+          expect(editSession.getSelection().getBufferRange()).toEqual [[11,14], [11,19]]
+
+        waitsForPromise ->
+          editSession.setSelectedBufferRange([[4,16], [4,20]])
+          interpreter.eval('/a\\Sray', editSession) # You must escape the backslash, otherwise it is treated as an escaped 'S'
+
+        runs ->
+          expect(editSession.getSelection().getBufferRange()).toEqual [[11,14], [11,19]]
+
+
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->

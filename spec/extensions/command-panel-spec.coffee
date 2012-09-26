@@ -241,7 +241,7 @@ describe "CommandPanel", ->
       expect(commandInterpreter.lastRelativeAddress).toBeUndefined()
       rootView.trigger 'command-panel:set-selection-as-regex-address'
       expect(commandInterpreter.lastRelativeAddress.subcommands.length).toBe 1
-      expect(commandInterpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/\\(items\\)/"
+      expect(commandInterpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/\\(items\\)/i"
 
   describe "when command-panel:find-in-file is triggered on an editor", ->
     it "pre-populates the command panel's editor with / and moves the cursor to the last column", ->
