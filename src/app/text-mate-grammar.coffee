@@ -69,10 +69,10 @@ class Rule
   patterns: null
   createEndPattern: null
 
-  constructor: (@grammar, {@scopeName, patterns, @createEndPattern}) ->
+  constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
     patterns ?= []
-    @patterns = []
-    @patterns.push((patterns.map (pattern) => new Pattern(grammar, pattern))...)
+    @patterns = patterns.map (pattern) => new Pattern(grammar, pattern)
+    @patterns.unshift(@endPattern) if @endPattern and !@endPattern.hasBackReferences
 
   getIncludedPatterns: (included=[]) ->
     return [] if _.include(included, this)
@@ -95,12 +95,14 @@ class Rule
     nextTokens = patterns[index].handleMatch(stack, line, captureIndices)
     { nextTokens, tokensStartPosition: firstCaptureStart, tokensEndPosition: firstCaptureEnd }
 
-  addEndPattern: (backReferences) ->
-    endPattern = @createEndPattern(backReferences)
-    @patterns.unshift(endPattern)
-
-  removeEndPattern: ->
-    @patterns.shift()
+  getRuleToPush: (line, beginPatternCaptureIndices) ->
+    if @endPattern.hasBackReferences
+      rule = new Rule(@grammar, {@scopeName})
+      rule.endPattern = @endPattern.resolveBackReferences(line, beginPatternCaptureIndices)
+      rule.patterns = [rule.endPattern, @patterns...]
+      rule
+    else
+      this
 
 class Pattern
   grammar: null
@@ -111,20 +113,33 @@ class Pattern
   captures: null
   backReferences: null
 
-  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule}) ->
+  constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule, hasBackReferences}) ->
     @scopeName = name ? contentName # TODO: We need special treatment of contentName
     if match
-      @regex = new OnigRegExp(match)
+      if @hasBackReferences = hasBackReferences ? /\\\d+/.test(match)
+        @match = match
+      else
+        @regex = new OnigRegExp(match)
       @captures = captures
     else if begin
       @regex = new OnigRegExp(begin)
       @captures = beginCaptures ? captures
-      createEndPattern = (backReferences) ->
-        end = end.replace /(\\\d+)/g, (match) ->
-          index = parseInt(match[1..])
-          _.escapeRegExp(backReferences[index] ? "\\#{index}")
-        new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
-      @pushRule = new Rule(@grammar, { @scopeName, patterns, createEndPattern })
+      endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
+      @pushRule = new Rule(@grammar, { @scopeName, patterns, endPattern })
+
+  resolveBackReferences: (line, beginCaptureIndices) ->
+    beginCaptures = []
+
+    for i in [0...beginCaptureIndices.length] by 3
+      start = beginCaptureIndices[i + 1]
+      end = beginCaptureIndices[i + 2]
+      beginCaptures.push line[start...end]
+
+    resolvedMatch = @match.replace /\\\d+/g, (match) ->
+      index = parseInt(match[1..])
+      _.escapeRegExp(beginCaptures[index] ? "\\#{index}")
+
+    new Pattern(@grammar, { hasBackReferences: false, match: resolvedMatch, @captures, @popRule })
 
   getIncludedPatterns: (included) ->
     if @include
@@ -147,24 +162,12 @@ class Pattern
         tokens = null
       else
         tokens = [{ value: line[start...end], scopes: scopes }]
-
     if @pushRule
-      @pushRule.addEndPattern(@backreferencesForCaptureIndices(line, captureIndices))
-      stack.push(@pushRule)
+      stack.push(@pushRule.getRuleToPush(line, captureIndices))
     else if @popRule
-      rule = stack.pop()
-      rule.removeEndPattern()
+      stack.pop()
 
     tokens
-
-  backreferencesForCaptureIndices: (line, captureIndices) ->
-    backReferences = []
-    for i in [0...captureIndices.length] by 3
-      start = captureIndices[i + 1]
-      end = captureIndices[i + 2]
-      backReferences.push line[start...end]
-
-    backReferences
 
   getTokensForCaptureIndices: (line, captureIndices, scopes) ->
     [parentCaptureIndex, parentCaptureStart, parentCaptureEnd] = shiftCapture(captureIndices)
