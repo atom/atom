@@ -3,7 +3,7 @@ fs = require 'fs'
 RootView = require 'root-view'
 Buffer = require 'buffer'
 Editor = require 'editor'
-{View} = require 'space-pen'
+{View, $$} = require 'space-pen'
 
 describe "RootView", ->
   rootView = null
@@ -161,22 +161,24 @@ describe "RootView", ->
         expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
     describe "when there is no active editor", ->
-      describe "when there is a visible focusable element (with a -1 tabindex)", ->
-        it "passes focus to that element", ->
+      describe "when are visible focusable elements (with a -1 tabindex)", ->
+        it "passes focus to the first focusable element", ->
           rootView.remove()
           rootView = new RootView(require.resolve 'fixtures')
-          rootView.activateExtension require('tree-view')
-          rootView.attachToDom()
 
+          rootView.horizontal.append $$ ->
+            @div "One", id: 'one', tabindex: -1
+            @div "Two", id: 'two', tabindex: -1
+
+          rootView.attachToDom()
           expect(rootView).not.toMatchSelector(':focus')
-          expect(rootView.find('.tree-view')).toMatchSelector(':focus')
+          expect(rootView.find('#one')).toMatchSelector(':focus')
+          expect(rootView.find('#two')).not.toMatchSelector(':focus')
 
       describe "when there are no visible focusable elements", ->
         it "retains focus itself", ->
           rootView.remove()
           rootView = new RootView(require.resolve 'fixtures')
-          rootView.activateExtension require('tree-view')
-          rootView.find('.tree-view').hide()
           rootView.attachToDom()
           expect(rootView).toMatchSelector(':focus')
 

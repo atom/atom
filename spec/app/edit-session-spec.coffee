@@ -1349,7 +1349,8 @@ describe "EditSession", ->
         expect(editSession.getSelection().isEmpty()).toBeTruthy()
 
       it "does not explode if the current language mode has no comment regex", ->
-        spyOn(TextMateBundle, 'lineCommentStringForScope').andReturn(null)
+        editSession.destroy()
+        editSession = fixturesProject.buildEditSessionForPath(null, autoIndent: false)
         editSession.setSelectedBufferRange([[4, 5], [4, 5]])
         editSession.toggleLineCommentsInSelection()
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
