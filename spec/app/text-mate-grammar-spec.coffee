@@ -168,3 +168,7 @@ describe "TextMateGrammar", ->
           expect(tokens[2]).toEqual value: '|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.end.ruby"]
           expect(tokens[3]).toEqual value: ',',  scopes: ["source.ruby", "punctuation.separator.object.ruby"]
 
+        fit "allows the rule containing that end pattern to be pushed to the stack multiple times", ->
+          grammar = TextMateBundle.grammarsByFileType["rb"]
+          {tokens} = grammar.getLineTokens('%Q+matz had some #{%Q-crazy ideas-} for ruby syntax+ # damn.')
+          console.log tokens
