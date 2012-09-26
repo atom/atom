@@ -38,9 +38,9 @@ bool Native::Execute(const CefString& name,
                      CefRefPtr<CefV8Value>& retval,
                      CefString& exception) {
   if (name == "exists") {
-    NSString *path = stringFromCefV8Value(arguments[0]);
-    bool exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:nil];
-    retval = CefV8Value::CreateBool(exists);
+    std::string cc_value = arguments[0]->GetStringValue().ToString();
+    const char *path = cc_value.c_str();
+    retval = CefV8Value::CreateBool(access(path, F_OK) == 0);
 
     return true;
   }
