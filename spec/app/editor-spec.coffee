@@ -554,7 +554,7 @@ describe "Editor", ->
         editor.renderedLines.trigger 'mouseup'
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 3})
         editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelectedText()).toBe "  var sort = function(items) {"
+        expect(editor.getSelectedText()).toBe "  var sort = function(items) {\n"
 
         # Quad click
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 1})
@@ -565,7 +565,7 @@ describe "Editor", ->
         editor.renderedLines.trigger 'mouseup'
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 3], originalEvent: {detail: 4})
         editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;"
+        expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;\n"
 
     describe "shift-click", ->
       it "selects from the cursor's current location to the clicked location", ->

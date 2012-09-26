@@ -81,7 +81,12 @@ class Selection
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
   selectLine: (row=@cursor.getBufferPosition().row) ->
-    @setBufferRange(@editSession.bufferRangeForBufferRow(row))
+    startPosition = [row, 0]
+    if @editSession.getLastBufferRow() == row
+      endPosition = [row, Infinity]
+    else
+      endPosition = [row+1, 0]
+    @setBufferRange [startPosition, endPosition]
 
   expandOverLine: ->
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))

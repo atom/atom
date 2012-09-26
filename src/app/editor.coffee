@@ -310,7 +310,7 @@ class Editor extends View
           @activeEditSession.expandLastSelectionOverWord()
         else
           @activeEditSession.selectWord()
-      else if clickCount >= 3
+      else if clickCount == 3
         if e.shiftKey
           @activeEditSession.expandLastSelectionOverLine()
         else
