@@ -17,10 +17,10 @@ describe "WrapGuide", ->
   describe "@initialize", ->
     it "appends a wrap guide to all existing and new editors", ->
       expect(rootView.panes.find('.pane').length).toBe 1
-      expect(rootView.panes.find('.lines > .wrap-guide').length).toBe 1
+      expect(rootView.panes.find('.editor > .wrap-guide').length).toBe 1
       editor.splitRight()
       expect(rootView.find('.pane').length).toBe 2
-      expect(rootView.panes.find('.lines > .wrap-guide').length).toBe 2
+      expect(rootView.panes.find('.editor > .wrap-guide').length).toBe 2
 
   describe "@updateGuide", ->
     it "positions the guide at the configured column", ->
