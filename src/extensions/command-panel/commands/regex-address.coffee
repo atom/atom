@@ -10,7 +10,7 @@ class RegexAddress extends Address
     flags = ""
     pattern = pattern.source if pattern.source
 
-    patternContainsCapitalLetter = /[^\\][A-Z]/.test(pattern)
+    patternContainsCapitalLetter = /(^|[^\\])[A-Z]/.test(pattern)
     flags += "i" unless patternContainsCapitalLetter
     @isReversed = isReversed
 

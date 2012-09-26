@@ -163,19 +163,25 @@ describe "CommandInterpreter", ->
 
       it "is case-insentive when the pattern contains no non-escaped uppercase letters (behavior copied from vim)", ->
         waitsForPromise ->
-          editSession.setSelectedBufferRange([[4,16], [4,20]])
           interpreter.eval('/array', editSession)
-
         runs ->
-          expect(editSession.getSelection().getBufferRange()).toEqual [[11,14], [11,19]]
+          expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/array/i"
 
         waitsForPromise ->
-          editSession.setSelectedBufferRange([[4,16], [4,20]])
-          interpreter.eval('/a\\Sray', editSession) # You must escape the backslash, otherwise it is treated as an escaped 'S'
-
+          interpreter.eval('/a\\Sray', editSession)
         runs ->
-          expect(editSession.getSelection().getBufferRange()).toEqual [[11,14], [11,19]]
+          expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/a\\Sray/i"
 
+      it "is case-sentive when the pattern contains a non-escaped uppercase letters (behavior copied from vim)", ->
+        waitsForPromise ->
+          interpreter.eval('/arRay', editSession)
+        runs ->
+          expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/arRay/"
+
+        waitsForPromise ->
+          interpreter.eval('/Array', editSession)
+        runs ->
+          expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/Array/"
 
     describe "address range", ->
       describe "when two addresses are specified", ->
