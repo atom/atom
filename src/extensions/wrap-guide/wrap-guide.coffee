@@ -12,8 +12,8 @@ class WrapGuide extends View
       @appendToEditorPane(rootView, editor)
 
   @appendToEditorPane: (rootView, editor) ->
-    if parent = editor.pane()?.find('.editor')
-      parent.append(new WrapGuide(rootView, editor))
+    if lines = editor.pane()?.find('.lines')
+      lines.append(new WrapGuide(rootView, editor))
 
   @content: ->
     @div class: 'wrap-guide'
