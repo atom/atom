@@ -147,7 +147,7 @@ describe "TextMateGrammar", ->
           expect(secondTokens[0]).toEqual value: "heredoc", scopes: ['source.coffee', 'string.quoted.heredoc.coffee']
           expect(secondTokens[1]).toEqual value: "'''", scopes: ['source.coffee', 'string.quoted.heredoc.coffee', 'punctuation.definition.string.end.coffee']
 
-      describe "when pattern contains sub-patterns", ->
+      describe "when the pattern contains sub-patterns", ->
         it "returns tokens within the begin/end scope based on the sub-patterns", ->
           {tokens} = grammar.getLineTokens('"""heredoc with character escape \\t"""')
 
@@ -159,7 +159,7 @@ describe "TextMateGrammar", ->
           expect(tokens[3]).toEqual value: '"""', scopes: ['source.coffee', 'string.quoted.double.heredoc.coffee', 'punctuation.definition.string.end.coffee']
 
       describe "when the end pattern contains a back reference", ->
-        it "creates tokens without adding a new scope", ->
+        it "constructs the end rule based on its back-references to captures in the begin rule", ->
           grammar = TextMateBundle.grammarsByFileType["rb"]
           {tokens} = grammar.getLineTokens('%w|oh|,')
           expect(tokens.length).toBe 4
