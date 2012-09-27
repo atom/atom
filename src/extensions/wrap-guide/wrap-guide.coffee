@@ -26,5 +26,4 @@ class WrapGuide extends View
     @rootView.on 'font-size-change', => @updateGuide(@editor)
 
   updateGuide: (editor) ->
-    width = editor.charWidth * @column
-    @css("left", width + "px")
+    @css('left', "#{editor.charWidth * @column}px")
