@@ -15,7 +15,7 @@
   cursor: default;
 }
 
-.command-panel .preview-list li.selected {
+.command-panel .preview-list li.selected, .command-panel .preview-list li:hover {
   background: #444;
 }
 
