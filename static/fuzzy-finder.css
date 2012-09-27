@@ -12,6 +12,8 @@
 .fuzzy-finder ol {
   overflow: hidden;
   margin-bottom: 5px;
+  -webkit-user-select: none;
+  cursor: default;
 }
 
 .fuzzy-finder li:hover {
