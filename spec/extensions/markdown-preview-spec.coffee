@@ -41,3 +41,14 @@ describe "MarkdownPreview", ->
       editor.trigger('markdown-preview:attach')
       expect(rootView.find('.markdown-preview')).not.toExist()
       expect(markdownPreview.loadHtml).not.toHaveBeenCalled();
+
+   describe "@detach", ->
+     it "detaches from a .md file", ->
+       rootView.open('file.md')
+       editor = rootView.getActiveEditor()
+       expect(rootView.find('.markdown-preview')).not.toExist()
+       spyOn(markdownPreview, 'loadHtml')
+       editor.trigger('markdown-preview:attach')
+       expect(rootView.find('.markdown-preview')).toExist()
+       markdownPreview.trigger('markdown-preview:detach')
+       expect(rootView.find('.markdown-preview')).not.toExist()
