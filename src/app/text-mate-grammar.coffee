@@ -85,11 +85,14 @@ class Rule
       @allPatterns.push(pattern.getIncludedPatterns(included)...)
     @allPatterns
 
+  getScanner: ->
+    @scanner ?= new OnigScanner(_.pluck(@getIncludedPatterns(), 'regexSource'))
+
   getNextTokens: (stack, line, position) ->
     patterns = @getIncludedPatterns()
-    {index, captureIndices} = OnigRegExp.captureIndices(line, position, patterns.map (p) -> p.regex )
 
-    return {} unless index?
+    return {} unless result = @getScanner().findNextMatch(line, position)
+    { index, captureIndices } = result
 
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
     nextTokens = patterns[index].handleMatch(stack, line, captureIndices)
@@ -120,9 +123,11 @@ class Pattern
         @match = match
       else
         @regex = new OnigRegExp(match)
+        @regexSource = match
       @captures = captures
     else if begin
       @regex = new OnigRegExp(begin)
+      @regexSource = begin
       @captures = beginCaptures ? captures
       endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
       @pushRule = new Rule(@grammar, { @scopeName, patterns, endPattern })

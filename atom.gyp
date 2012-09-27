@@ -285,6 +285,8 @@
             'native/v8_extensions/native.h',
             'native/v8_extensions/onig_reg_exp.mm',
             'native/v8_extensions/onig_reg_exp.h',
+            'native/v8_extensions/onig_scanner.mm',
+            'native/v8_extensions/onig_scanner.h',
             'native/v8_extensions/atom.mm',
             'native/v8_extensions/atom.h',
           ],
