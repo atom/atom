@@ -5,11 +5,11 @@ key = File.expand_path('../atom.githubapp.com', __FILE__)
 system 'chmod', '600', key
 
 system 'ssh',
-  '-l', 'github',
+  '-l', 'atom',
   '-i', key,
   '-o', 'StrictHostKeyChecking=no',
   '-p', '6000',
   'atom.githubapp.com',
-  "cd /Users/github/code/atom && git fetch -q origin && git reset -q --hard #{sha} && rake test && rake benchmark"
+  "cd /Users/atom/code/atom && git fetch -q origin && git reset -q --hard #{sha} && rake test"
 
 exit $?.exitstatus
