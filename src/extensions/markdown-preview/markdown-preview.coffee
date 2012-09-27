@@ -59,6 +59,7 @@ class MarkdownPreview extends View
     $.ajax(request)
 
   setHtml: (html) ->
+    return unless @hasParent()
     @markdownBody.html(html)
     @markdownSpinner.hide()
     @markdownBody.show()
