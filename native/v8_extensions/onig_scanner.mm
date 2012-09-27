@@ -6,28 +6,103 @@
 #import "onig_scanner.h"
 
 namespace v8_extensions {
-  
-extern NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value);
+
 using namespace std;
-  
+extern NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value);
+
 class OnigScannerUserData : public CefBase {
-  public:  
-  OnigScannerUserData(CefRefPtr<CefV8Value> sources) {    
+  public:
+  OnigScannerUserData(CefRefPtr<CefV8Value> sources) {
     int length = sources->GetArrayLength();
-    
+
     regExps.resize(length);
-    for (int i = 0; i < length; i++) {      
+    cachedResults.resize(length);
+
+    for (int i = 0; i < length; i++) {
       NSString *sourceString = stringFromCefV8Value(sources->GetValue(i));
       regExps[i] = [[OnigRegexp compile:sourceString] retain];
     }
   }
-  
+
   ~OnigScannerUserData() {
     for (vector<OnigRegexp *>::iterator iter = regExps.begin(); iter < regExps.end(); iter++) {
       [*iter release];
     }
+    for (vector<OnigResult *>::iterator iter = cachedResults.begin(); iter < cachedResults.end(); iter++) {
+      [*iter release];
+    }
   }
-  
+
+  CefRefPtr<CefV8Value> FindNextMatch(CefRefPtr<CefV8Value> v8String, CefRefPtr<CefV8Value> v8StartLocation) {
+
+    std::string string = v8String->GetStringValue().ToString();
+    int startLocation = v8StartLocation->GetIntValue();
+    int bestIndex = -1;
+    int bestLocation = NULL;
+    OnigResult *bestResult = NULL;
+
+    bool useCachedResults = (string == lastMatchedString && startLocation >= lastStartLocation);
+    lastStartLocation = startLocation;
+
+    if (!useCachedResults) {
+      ClearCachedResults();
+      lastMatchedString = string;
+    }
+
+    vector<OnigRegexp *>::iterator iter = regExps.begin();
+    int index = 0;
+    while (iter < regExps.end()) {
+      OnigRegexp *regExp = *iter;
+
+      bool useCachedResult = false;
+      OnigResult *result = NULL;
+
+      if (useCachedResults && index <= maxCachedIndex) {
+        result = cachedResults[index];
+        useCachedResult = (result == NULL || [result locationAt:0] >= startLocation);
+      }
+
+      if (!useCachedResult) {
+        result = [regExp search:[NSString stringWithUTF8String:string.c_str()] start:startLocation];
+        cachedResults[index] = [result retain];
+        maxCachedIndex = index;
+      }
+
+      if ([result count] > 0) {
+        int location = [result locationAt:0];
+        if (bestIndex == -1 || location < bestLocation) {
+          bestLocation = location;
+          bestResult = result;
+          bestIndex = index;
+        }
+
+        if (location == startLocation) {
+          break;
+        }
+      }
+
+      iter++;
+      index++;
+    }
+
+    if (bestIndex >= 0) {
+      CefRefPtr<CefV8Value> result = CefV8Value::CreateObject(NULL);
+      result->SetValue("index", CefV8Value::CreateInt(bestIndex), V8_PROPERTY_ATTRIBUTE_NONE);
+      result->SetValue("captureIndices", CaptureIndicesForMatch(bestResult), V8_PROPERTY_ATTRIBUTE_NONE);
+      return result;
+    } else {
+      return CefV8Value::CreateNull();
+    }
+  }
+
+  void ClearCachedResults() {
+    maxCachedIndex = -1;
+    for (vector<OnigResult *>::iterator iter = cachedResults.begin(); iter < cachedResults.end(); iter++) {
+      [*iter release];
+      *iter = NULL;
+    }
+  }
+
   CefRefPtr<CefV8Value> CaptureIndicesForMatch(OnigResult *result) {
     CefRefPtr<CefV8Value> array = CefV8Value::CreateArray([result count] * 3);
     int i = 0;
@@ -35,58 +110,22 @@ class OnigScannerUserData : public CefBase {
     for (int index = 0; index < resultCount; index++) {
       int captureLength = [result lengthAt:index];
       int captureStart = [result locationAt:index];
-      
+
       array->SetValue(i++, CefV8Value::CreateInt(index));
       array->SetValue(i++, CefV8Value::CreateInt(captureStart));
       array->SetValue(i++, CefV8Value::CreateInt(captureStart + captureLength));
     }
-        
-    return array;  
+
+    return array;
   }
-  
-  CefRefPtr<CefV8Value> FindNextMatch(CefRefPtr<CefV8Value> v8String, CefRefPtr<CefV8Value> v8StartLocation) {
-    NSString *string = stringFromCefV8Value(v8String);
-    int startLocation = v8StartLocation->GetIntValue();
 
-    int bestIndex = -1;
-    int bestLocation = NULL;
-    OnigResult *bestResult = NULL;
-
-    vector<OnigRegexp *>::iterator iter = regExps.begin();
-    int index = 0;
-
-    while (iter < regExps.end()) {
-      OnigRegexp *regExp = *iter;
-      OnigResult *result = [regExp search:string start:startLocation];
-      
-      if ([result count] > 0) {        
-        int location = [result locationAt:0];
-        if (bestIndex == -1 || location < bestLocation) {
-          bestLocation = location;
-          bestResult = result;
-          bestIndex = index;
-        }
-        
-        if (location == startLocation) break;
-      }
-      
-      iter++;
-      index++;
-    }
-            
-    if (bestIndex >= 0) {
-      CefRefPtr<CefV8Value> result = CefV8Value::CreateObject(NULL);
-      result->SetValue("index", CefV8Value::CreateInt(bestIndex), V8_PROPERTY_ATTRIBUTE_NONE);
-      result->SetValue("captureIndices", CaptureIndicesForMatch(bestResult), V8_PROPERTY_ATTRIBUTE_NONE);
-      return result;
-    } else {
-      return CefV8Value::CreateNull();  
-    }
-  }
-  
   protected:
   std::vector<OnigRegexp *> regExps;
-  
+  std::string lastMatchedString;
+  std::vector<OnigResult *> cachedResults;
+  int maxCachedIndex;
+  int lastStartLocation;
+
   IMPLEMENT_REFCOUNTING(OnigRegexpUserData);
 };
 
@@ -96,7 +135,7 @@ OnigScanner::OnigScanner() : CefV8Handler() {
   CefRegisterExtension("v8/onig-scanner", [extensionCode UTF8String], this);
 }
 
-  
+
 bool OnigScanner::Execute(const CefString& name,
                          CefRefPtr<CefV8Value> object,
                          const CefV8ValueList& arguments,
@@ -112,8 +151,8 @@ bool OnigScanner::Execute(const CefString& name,
     retval->SetUserData(new OnigScannerUserData(arguments[0]));
     return true;
   }
-  
+
   return false;
-}  
+}
 
 } // namespace v8_extensions
