@@ -23,6 +23,9 @@ class OnigScannerUserData : public CefBase {
   }
   
   ~OnigScannerUserData() {
+    for (vector<OnigRegexp *>::iterator iter = regExps.begin(); iter < regExps.end(); iter++) {
+      [*iter release];
+    }
   }
   
   CefRefPtr<CefV8Value> CaptureIndicesForMatch(OnigResult *result) {
