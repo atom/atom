@@ -1,0 +1,97 @@
+
+.markdown-preview {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  background-color: white;
+  overflow: auto;
+  opacity: 0.9;
+}
+
+.markdown-body {
+  width: 914px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 30px;
+  border: 1px solid #CACACA;
+  font: 14px Helvetica, arial, freesans, clean, sans-serif;
+  line-height: 1.6;
+}
+
+.markdown-spinner {
+  position:absolute;
+  top: 50%;
+  left: 50%;
+  width: 128px;
+  height: 128px;
+  margin-left: -64px;
+  margin-top: -64px;
+  background-image: url(images/octocat-spinner-128.gif);
+}
+
+.markdown-body ol li {
+  list-style-type: decimal;
+}
+
+.markdown-body ul li {
+  list-style-type: disc;
+}
+
+.markdown-body ul, .markdown-body ol {
+  padding-left: 30px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.markdown-body li {
+  display: list-item;
+}
+
+.markdown-body h1 {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.markdown-body h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #CCC;
+}
+
+.markdown-body p {
+  margin-bottom: 15px;
+}
+
+.markdown-body em, .markdown-body i {
+  font-style: italic;
+}
+
+.markdown-body pre {
+  background-color: #F8F8F8;
+  border: 1px solid #CCC;
+  font-size: 13px;
+  line-height: 19px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px;
+  margin: 15px 0;
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+
+.markdown-body code, .markdown-body tt {
+  margin: 0 2px;
+  padding: 0px 5px;
+  white-space: nowrap;
+  border: 1px solid #EAEAEA;
+  background-color: #F8F8F8;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
+}

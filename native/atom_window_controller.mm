@@ -162,7 +162,7 @@
   settings.plugins_disabled = true;
   settings.universal_access_from_file_urls_allowed = false;
   settings.file_access_from_file_urls_allowed = false;
-  settings.web_security_disabled = false;
+  settings.web_security_disabled = true;
   settings.xss_auditor_enabled = true;
   settings.image_load_disabled = false;
   settings.shrink_standalone_images_to_fit = false;
