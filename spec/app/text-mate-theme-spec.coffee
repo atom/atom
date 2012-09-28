@@ -46,7 +46,7 @@ describe "TextMateTheme", ->
       expect(rulesets[2]).toEqual
         selector: '.editor.focused .selection'
         properties:
-          'background-color': "rgba(221, 240, 255, .2)"
+          'background-color': "rgba(221, 240, 255, 0.2)"
 
     it "returns an array of objects representing the theme's scope selectors", ->
       expect(rulesets[11]).toEqual
@@ -62,4 +62,4 @@ describe "TextMateTheme", ->
         selector: ".invalid-illegal"
         properties:
           'color': "#F8F8F8"
-          'background-color': 'rgba(86, 45, 86, parseInt(textmateColor[7..8], 16))'
+          'background-color': 'rgba(86, 45, 86, 0.75)'
