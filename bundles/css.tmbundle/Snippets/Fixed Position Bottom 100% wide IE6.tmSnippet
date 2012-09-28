@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${2:bottom: auto;}top: expression(eval(document.documentElement.scrollTop+document.documentElement.clientHeight-${1:THE HEIGHT OF THIS THING IN PIXELS}));
+${3:left: expression(eval(document.documentElement.scrollLeft));
+}${4:width: expression(eval(document.documentElement.clientWidth));}$0</string>
+	<key>name</key>
+	<string>Fixed Position Bottom 100% wide IE6</string>
+	<key>scope</key>
+	<string>source.css meta.property-list</string>
+	<key>tabTrigger</key>
+	<string>fixed</string>
+	<key>uuid</key>
+	<string>FCDDB549-681A-436F-894E-1A408C0E114C</string>
+</dict>
+</plist>

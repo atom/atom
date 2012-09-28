@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleUUID</key>
+	<string>4675F24E-6227-11D9-BFB1-000D93589AF6</string>
+	<key>command</key>
+	<string>if echo "$TM_SCOPE" | grep -q meta.property-list.css 
+   then
+	if echo "$TM_SCOPE" | grep -q meta.property-value.css 
+       then
+		if echo "$TM_CURRENT_WORD" | grep -q url\(\)
+			then echo -n "'$TM_DROPPED_FILE'"
+		elif echo "$TM_SCOPE" | grep -q string.quoted.single.css
+			then echo -n "$TM_DROPPED_FILE"
+		else 
+			echo -n "url('$TM_DROPPED_FILE')"
+		fi
+	else 
+		echo -ne "background:\${1: #\${2:DDD}} url('$TM_DROPPED_FILE')\${3: \${4:repeat/repeat-x/repeat-y/no-repeat} \${5:scroll/fixed} \${6:top/center/bottom/x-%/x-pos} \${7:left/center/right/y-%/y-pos}};\n\$0"
+	fi
+else
+	echo -ne "\${1:#selector} {\n	background: url('$TM_DROPPED_FILE')\${3: \${4:no-repeat} \${5:scroll} \${6:top} \${7:left}};\n"
+	sips -g pixelWidth -g pixelHeight "$TM_DROPPED_FILE"|awk '/pixelWidth/  { printf("	width: %dpx;\n",  $2) } /pixelHeight/ { printf("	height: %dpx;\n}\$0", $2) }'
+fi</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>png</string>
+		<string>jpeg</string>
+		<string>jpg</string>
+		<string>gif</string>
+	</array>
+	<key>name</key>
+	<string>Insert Image URL</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>source.css</string>
+	<key>uuid</key>
+	<string>6ED38063-8791-41BB-9F9F-F9EA378B1526</string>
+</dict>
+</plist>

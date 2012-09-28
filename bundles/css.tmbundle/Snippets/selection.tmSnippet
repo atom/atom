@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>$1::-moz-selection,
+$1::selection {
+	color: ${2:inherit};
+	background: ${3:inherit};
+}</string>
+	<key>name</key>
+	<string>selection</string>
+	<key>scope</key>
+	<string>source.css -meta.property-list</string>
+	<key>tabTrigger</key>
+	<string>selection</string>
+	<key>uuid</key>
+	<string>1B042CEF-7C82-472D-92A2-FF555BFD6927</string>
+</dict>
+</plist>

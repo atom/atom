@@ -1,0 +1,255 @@
+@charset 'UTF-8';
+@charset "utf-8";
+
+/* HTML+HTML5 elements */
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+b, i,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+}
+.color-defs {
+    color: #aaa;
+    color: #abcdef;
+    color: red;
+    color: rgb(123,255,201);
+    color: rgba(123,255,201,0.5);
+    color: rgba(123,255,201,.5);
+    color: hsl(85,55%,55%);
+    color: hsla(85,55%,55%,.5);
+}
+
+#foo { color: blue; }
+.foo { color: blue }
+foo { color: blue; }
+::selection { color: blue; }
+
+div
+{
+    color: blue;
+}
+
+garbagehere
+@import url('foo.css');
+@import 'foo.css';
+@import "foo.css";
+
+garbage
+/* Test */
+
+.sizes {
+    top: -50px;
+    width: 1px;
+    width: 1pt;
+    width: 1ch;
+    width: 1cm;
+    width: 1mm;
+    width: 1in;
+    width: 1em;
+    width: 1rem;
+    width: 1ex;
+    width: 1pc;
+    width: 1deg;
+    width: 1rad;
+    width: 1grad;
+}
+unknowntag {
+    color: blue;
+}
+div {
+    pointer-events: auto none visiblePainted visibleFill visibleStroke visible painted fill stroke all inherit;
+}
+
+body {
+  counter-reset: section;           /* Set the section counter to 0 */
+}
+h1:before {
+  counter-increment: section;      /* Increment the section counter */
+  content: "Section " counter(section) ": "; /* Display the counter */
+}
+
+span:nth-child(even),
+span:nth-child(odd),
+span:nth-child(2n+1),
+span:nth-child(-2n+1),
+span:nth-child(-n+1),
+span:nth-child(1) {
+}
+
+/* These are obviously not valid rules, but they easily show all of the possible values for each
+   rule, so that we're sure we're matching them all */
+.foo {
+    font-size: xx-small x-small small medium large x-large xx-large smaller larger;
+    image-rendering: auto inherit optimizeSpeed optimizeQuality;
+    text-rendering: auto optimizeSpeed optimizeLegibility geometricPrecision inherit;
+    resize: none both horizontal vertical inherit;
+    vertical-align: sub super middle;
+    white-space: pre pre-wrap pre-line;
+    page-break-after: avoid;
+    page-break-inside: avoid !important;
+    word-wrap: break-word normal;
+    zoom: 1;
+    clip: rect(1px 1px 1px 1px);
+    color: rgba(0,0,0,.1);
+    background-color: hsl(235,25%,55%);
+    background-color: #646464;
+    background-image: -moz-linear-gradient(top, #747474 30%, #545454);
+    background-image: -webkit-gradient(linear, left top, left bottom,
+            from(#747474),
+            color-stop(30%, #747474),
+            to(#545454)
+        );
+    border-radius: 4px;
+    box-shadow: 0 0 5px #000;
+    -moz-box-shadow: 0 0 5px #000;
+    -webkit-box-shadow: 0 0 5px #000;
+    -moz-transform: rotate(30deg);
+}
+
+div:after,
+div::after,
+div:before,
+div::before,
+div:first-letter,
+div::first-letter,
+div:first-line,
+div::first-line,
+div::selection,
+a:link,
+a:visited,
+a:active,
+a:hover,
+a:focus,
+a:not(a.blah:nth-child(2n+1)),
+a:first,
+a:left,
+a:right,
+a:root,
+a:nth-last-child(-n+1),
+a:nth-of-type(5n),
+a:nth-last-of-type(1),
+a:first-child,
+a:last-child,
+a:first-of-type,
+a:last-of-type,
+a:only-of-type,
+a:empty,
+a:target,
+input:checked,
+input:enabled,
+input:default,
+input:disabled,
+input:indeterminate,
+input:invalid,
+input:optional,
+input:required,
+input:valid,
+div { }
+
+
+/* Media queries */
+@media all {
+    div {
+        font-weight: normal;
+    }
+}
+/* Test */
+@media screen {
+    div {
+        font-weight: normal;
+    }
+}
+@media (width:300px) { div { font-weight: normal; } }
+@media (min-width:300px) { div { font-weight: normal; } }
+@media (max-width:300px) { div { font-weight: normal; } }
+@media (device-width:300px) { div { font-weight: normal; } }
+@media (min-device-width:300px) { div { font-weight: normal; } }
+@media (max-device-width:300px) { div { font-weight: normal; } }
+@media (height:300px) { div { font-weight: normal; } }
+@media (min-height:300px) { div { font-weight: normal; } }
+@media (max-height:300px) { div { font-weight: normal; } }
+@media (device-height:300px) { div { font-weight: normal; } }
+@media (min-device-height:300px) { div { font-weight: normal; } }
+@media (max-device-height:300px) { div { font-weight: normal; } }
+@media (aspect-ratio:20/40) { div { font-weight: normal; } }
+@media (min-aspect-ratio:20/40) { div { font-weight: normal; } }
+@media (max-aspect-ratio:20/40) { div { font-weight: normal; } }
+@media (device-aspect-ratio:20/40) { div { font-weight: normal; } }
+@media (min-device-aspect-ratio:20/40) { div { font-weight: normal; } }
+@media (max-device-aspect-ratio:10/40) { div { font-weight: normal; } }
+@media (color) { div { font-weight: normal; } }
+@media (min-color) { div { font-weight: normal; } }
+@media (max-color) { div { font-weight: normal; } }
+@media (color-index) { div { font-weight: normal; } }
+@media (min-color-index) { div { font-weight: normal; } }
+@media (max-color-index) { div { font-weight: normal; } }
+@media (color:50) { div { font-weight: normal; } }
+@media (resolution:50dpi) { div { font-weight: normal; } }
+@media (resolution:50dpcm) { div { font-weight: normal; } }
+@media (min-resolution:50dpi) { div { font-weight: normal; } }
+@media (max-resolution:50dpi) { div { font-weight: normal; } }
+@media (monochrome) { div { font-weight: normal; } }
+@media (min-monochrome:1) { div { font-weight: normal; } }
+@media (max-monochrome:1) { div { font-weight: normal; } }
+@media (scan:interlace) { div { font-weight: normal; } }
+@media (scan:progressive) { div { font-weight: normal; } }
+@media (grid) { div { font-weight: normal; } }
+@media (orientation:portrait) { div { font-weight: normal; } }
+@media (orientation:landscape) { div { font-weight: normal; } }
+@media { div { font-weight: bold; } }
+@media all and (min-width: 500px) and (color) { div { font-weight: bold; } }
+@media (min-width: 500px) { div { font-weight: bold; } }
+@media screen and (color), projection and (color) { div { font-weight: bold; } }
+@media only screen { div { font-weight: normal; } }
+@media screen { div { font-weight: normal; } }
+@media screen, print { div { font-weight: normal; } }
+
+garbage
+
+@media all and (orientation:portrait) {
+    div {
+        font-weight: normal;
+    }
+}
+@media all and (orientation:landscape) { 
+    div {
+        font-weight: normal;
+    }
+}
+@media screen and (max-device-width: 480px) {
+    div {
+        font-weight: normal;
+    }
+}
+@media print {
+    div {
+        font-weight: normal;
+    }
+}
+@font-face {
+	font-family: 'foo';
+	src: url('foo.eot');
+	src: local('☺'),
+	    url('foo.woff') format('woff'),
+	    url('foo.ttf') format('truetype'),
+	    url('foo.svg#webfontsocnK1fE') format('svg');
+	font-weight: normal;
+	font-style: italic;
+}
+@font-face {
+	font-family: 'foo2';
+	src: url('foo2.eot');
+	src: local('☺'),
+	    url('foo2.woff') format('woff'),
+	    url('foo2.ttf') format('truetype'),
+	    url('foo2.svg#webfontsocnK1fE') format('svg');
+	font-weight: normal;
+	font-style: italic;
+}

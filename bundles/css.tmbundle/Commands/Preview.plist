@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+
+LIPSUM = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+
+def tag_preview(selector_list)
+	html = 'TEXT_INSERT'
+	selectors = selector_list.split(/\s+/)
+	last_tag = ''
+	text_insert = "Generated preview for CSS selector #{selector_list}."
+
+	star_class = ''
+	star_id = ''
+	html_class = ''
+	html_id = ''
+	body_class = ''
+	body_id = ''
+
+	selectors.reverse.each do | selector |
+		singlet = false
+		tag = selector.clone
+		if (tag =~ /#(.+)/)
+			id = (tag.scan(/#(.+)/))[0][0]
+			id.gsub!(/\..+/, '')
+		else
+			id = nil
+		end
+		if (tag =~ /\.(.+)/)
+			cls = (tag.scan(/\.(.+)/))[0][0]
+			cls.gsub!(/\./, ' ')
+			cls.gsub!(/\#.+/, '')
+		else
+			cls = nil
+		end
+
+		tag.downcase!
+		tag.sub!(/#(.+)/, '');
+		tag.sub!(/\.(.+)/, '');
+		tag.sub!(/:.+/, '')
+
+		case tag
+		when '*'
+			star_class = " #{cls}" if cls
+			star_id = " id=\"#{id}\"" if id
+			cls = nil
+			id = nil
+			tag = 'div'
+		when 'body'
+			body_class = " #{cls}" if cls
+			body_id = " id=\"#{id}\"" if id
+			cls = nil
+			id = nil
+			tag = 'div'
+		when 'html'
+			html_class = " #{cls}" if cls
+			html_id = " id=\"#{id}\"" if id
+			cls = nil
+			id = nil
+			tag = 'div'
+		end
+
+		next if tag == '+'
+
+		if selector =~ /^[#.]/
+			case last_tag
+			when 'li'
+				tag = 'ul'
+			when 'td'
+				tag = 'tr'
+			when 'tr'
+				tag = 'table'
+			when /^h\d/
+				tag = 'div'
+			else
+				tag = 'span'
+			end
+		end
+
+		if (tag =~ /\[(.+?)\]/)
+			tag_attr = (tag.scan(/\[(.+?)\]/))[0][0]
+			tag.gsub!(/\[.+?\]/, '')
+		else
+			tag_attr = nil
+		end
+		part = "&lt;" + tag
+		part += " #{tag_attr}" if tag_attr
+		part += " id=\"#{id}\"" if id
+		part += " class=\"#{cls}\"" if cls
+
+		# defaults for img tag
+		case tag
+		when 'img'
+			part += " src=\"http://www.google.com/intl/en/images/logo.gif\""
+			part += " alt=\"Preview of #{selector_list}\""
+			singlet = true
+		when 'a'
+			part += " href=\"\#\""
+		when 'input'
+			open_tag = part.clone
+			part += " type=\"radio\" /&gt; Radio"
+			part += "#{open_tag} type=\"checkbox\" /&gt; Checkbox&lt;br /&gt;"
+			part += "#{open_tag} type=\"text\" value=\"Text Field\" /&gt;"
+			part += "#{open_tag} type=\"button\" value=\"Button\""
+			singlet = true
+		when 'select'
+			part += "&gt;&lt;option&gt;Option 1&lt;/option&gt;&lt;option&gt;Option 2&lt;/option"
+			html = ''
+		end
+
+		if (singlet)
+			part += " /&gt;"
+		else
+			part += "&gt;"
+			part += html
+			part += "&lt;/" + tag + "&gt;"
+		end
+
+		case tag
+		when /^h\d/
+			text_insert = tag.sub(/^h(\d+)/, "Heading \\1")
+		when 'p'
+			text_insert = LIPSUM
+		when 'object', 'img', 'input'
+			text_insert = ""
+		end
+
+		html = part
+		last_tag = tag
+	end
+
+	if (last_tag)
+		case last_tag
+		when 'em', 'strong', 'b', 'i'
+			html = "&lt;p&gt;#{html}&lt;/p&gt;"
+		when 'li'
+			html = "&lt;ul&gt;#{html}&lt;/ul&gt;"
+		when 'td'
+			html = "&lt;table&gt;&lt;tr&gt;#{html}&lt;/tr&gt;&lt;/table&gt;"
+		when 'tr'
+			html = "&lt;table&gt;#{html}&lt;/table&gt;"
+		when 'input', 'textarea', 'select'
+			html = "&lt;form method=\"get\"&gt;#{html}&lt;/form&gt;"
+		end
+	end
+
+	html = "&lt;div&gt;#{html}&lt;/div&gt;"
+	html.sub!(/TEXT_INSERT/, text_insert)
+
+	return &lt;&lt;EOT
+&lt;div class="__wrap_wrap"&gt;&lt;div class="__star_wrap#{star_class}"#{star_id}&gt;&lt;div class="__html_wrap#{html_class}"#{html_id}&gt;&lt;div class="__body_wrap#{body_class}"#{body_id}&gt;#{html}&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+EOT
+end
+
+def preview_css(str)
+	orig_css = str.clone
+	orig_css.gsub!(/&lt;entity\.name\.tag\.wildcard\.css&gt;\*&lt;\/entity\.name\.tag\.wildcard\.css&gt;/, '.__star_wrap')
+	orig_css.gsub!(/&lt;entity\.name\.tag\.css&gt;body&lt;\/entity\.name\.tag\.css&gt;/, '.__body_wrap')
+	orig_css.gsub!(/&lt;entity\.name\.tag\.css&gt;html&lt;\/entity\.name\.tag\.css&gt;/, '.__html_wrap')
+
+	orig_css.gsub!(/&lt;.+?&gt;/, '')
+	orig_css.gsub!(/&amp;lt;\/?style\b.*?&amp;gt;/m, '')
+	orig_css.strip!
+
+	#meta.selector.css -&gt; wraps the selector
+	#meta.property-list.css -&gt; wraps the properties
+	rules = str.scan(/&lt;meta\.selector\.css&gt;\s*(.+?)\s*&lt;\/meta\.selector\.css&gt;.*?&lt;meta\.property-list\.css&gt;(.+?)&lt;\/meta\.property-list\.css&gt;/m)
+
+	html = ''
+	css = ''
+	rule_num = 0
+
+	rules.each do | rule |
+		selector = rule[0].gsub(/&lt;.+?&gt;/, '')
+		styles = rule[1].gsub(/&lt;.+?&gt;/, '')
+		styles.gsub!(/^\s*\{\n*/m, '')
+		styles.gsub!(/\s*\}\s*$/m, '')
+		styles.gsub!(/\t/, ' ' * ENV['TM_TAB_SIZE'].to_i)
+		selectors = selector.split(/\s*,\s*/m)
+		selectors.each do | single_selector |
+			rule_num += 1
+			html += "&lt;div class=\"__rule_clear\"&gt;&lt;/div&gt;\n\n" if html != ''
+			html += "&lt;div class=\"__rule_selector\"&gt;#{single_selector} &lt;a class=\"__view_link\" href=\"javascript:viewCSS('__rule#{rule_num}')\" title=\"Click to toggle CSS view\"&gt;CSS&lt;/a&gt;&lt;div class=\"__rule\" id=\"__rule#{rule_num}\" style=\"display: none\"&gt;#{styles}&lt;/div&gt;&lt;/div&gt;\n\n"
+			html += tag_preview(single_selector) + "\n\n"
+		end
+	end
+
+	filename = ENV['TM_FILENAME'] || 'untitled'
+	base = ''
+	base = "&lt;base href=\"file://#{ENV['TM_FILEPATH']}\" /&gt;" if ENV['TM_FILEPATH']
+
+	return &lt;&lt;EOT
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"&gt;
+&lt;html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"&gt;
+	&lt;head&gt;
+		#{base}
+		&lt;meta http-equiv="Content-type" content="text/html; charset=utf-8" /&gt;
+		&lt;meta http-equiv="Content-Language" content="en-us" /&gt;
+		&lt;title&gt;CSS Preview for #{filename}&lt;/title&gt;
+		&lt;style type="text/css"&gt;
+#{orig_css}
+.__wrap_wrap {
+	position: relative;
+	margin-top: 5px;
+	margin-bottom: 20px;
+	border-top: 1px solid #ccc;
+}
+.__rule_selector {
+	font-family: Times;
+	font-size: 16px;
+	border-top: 1px solid #ccc;
+}
+.__rule {
+	white-space: pre;
+	word-wrap: break-word;
+	font-family: Monaco;
+	font-size: 11px;
+}
+.__view_link {
+	font-family: Monaco;
+	font-size: 11px;
+}
+.__rule_clear:after {
+	content: "."; 
+	display: block; 
+	height: 0; 
+	clear: both; 
+	visibility: hidden;
+}
+		&lt;/style&gt;
+		&lt;script type="text/javascript"&gt;
+		function viewCSS(rule_id) {
+			var el = document.getElementById(rule_id);
+			if (el) {
+				if (el.style.display == 'none')
+					el.style.display = 'block';
+				else
+					el.style.display = 'none';
+			}
+		}
+		&lt;/script&gt;
+	&lt;/head&gt;
+	
+	&lt;body&gt;
+#{html}
+	&lt;/body&gt;
+&lt;/html&gt;
+EOT
+end
+
+print preview_css(STDIN.read)
+</string>
+	<key>fallbackInput</key>
+	<string>scope</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>inputFormat</key>
+	<string>xml</string>
+	<key>keyEquivalent</key>
+	<string>^~@p</string>
+	<key>name</key>
+	<string>Preview</string>
+	<key>output</key>
+	<string>showAsHTML</string>
+	<key>scope</key>
+	<string>source.css - text.html</string>
+	<key>uuid</key>
+	<string>05554FE0-4A70-4F3E-81C5-72855D7EB428</string>
+</dict>
+</plist>
