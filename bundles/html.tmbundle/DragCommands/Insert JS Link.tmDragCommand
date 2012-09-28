@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleUUID</key>
+	<string>4676FC6D-6227-11D9-BFB1-000D93589AF6</string>
+	<key>command</key>
+	<string>echo "&lt;script src=\"$TM_DROPPED_FILE\" type=\"text/javascript\" charset=\"utf-8\"&gt;&lt;/script&gt;"</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>js</string>
+	</array>
+	<key>name</key>
+	<string>Insert JS Link</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>52124611-B363-40AD-B9F0-0A811941CD20</string>
+</dict>
+</plist>

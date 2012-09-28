@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;title&gt;${1:${TM_FILENAME/((.+)\..*)?/(?2:$2:Page Title)/}}&lt;/title&gt;</string>
+	<key>name</key>
+	<string>Title</string>
+	<key>scope</key>
+	<string>text.html - text.blog</string>
+	<key>tabTrigger</key>
+	<string>title</string>
+	<key>uuid</key>
+	<string>B62ECABE-A086-11D9-A5A2-000D93C8BE28</string>
+</dict>
+</plist>

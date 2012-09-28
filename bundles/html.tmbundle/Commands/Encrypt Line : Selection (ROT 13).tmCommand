@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+
+def e_js(str)
+  str.gsub(/(?=[\\"])/, '\\').gsub(/\n/, '\n').gsub(/[@.\/]/) { |ch| sprintf('\\%03o', ch[0]) }
+end
+
+def rot_13(str)
+  str.tr('A-Za-z', 'N-ZA-Mn-za-m')
+end
+
+print %{&lt;script type="text/javascript"&gt;document.write(
+"#{e_js(rot_13(STDIN.read))}".replace(/[a-zA-Z]/g, function(c){return String.fromCharCode((c&lt;="Z"?90:122)&gt;=(c=c.charCodeAt(0)+13)?c:c-26);}));
+&lt;/script&gt;}
+</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>@&amp;</string>
+	<key>name</key>
+	<string>Encrypt Line / Selection (ROT 13)</string>
+	<key>output</key>
+	<string>replaceSelectedText</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>9B13543F-8356-443C-B6E7-D9259B604927</string>
+</dict>
+</plist>

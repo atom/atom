@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;!--[if IE 5.5000]&gt;${1:${TM_SELECTED_TEXT:   IE Conditional Comment: Internet Explorer 5.5 only }}&lt;![endif]--&gt;$0</string>
+	<key>name</key>
+	<string>IE Conditional Comment: Internet Explorer 5.5 only</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>!</string>
+	<key>uuid</key>
+	<string>E3F8984E-7269-4981-9D30-967AB56A6ACE</string>
+</dict>
+</plist>

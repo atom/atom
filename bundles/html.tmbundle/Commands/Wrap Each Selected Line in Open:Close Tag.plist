@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>perl -pe 's/[\$`\\]/\\$&amp;/g; s/([ \t]*)(.+)/$1&lt;\${1:li}&gt;$2&lt;\/\${1\/\\s.*\/\/}&gt;/'</string>
+	<key>fallbackInput</key>
+	<string>line</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^@W</string>
+	<key>name</key>
+	<string>Wrap Each Selected Line in Open/Close Tag</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>991E7EBD-F3F5-469A-BA01-DC30E04AD472</string>
+</dict>
+</plist>

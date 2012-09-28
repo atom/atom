@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby -wKU
+#
+# This script will expand the current word into: &lt;word&gt;&lt;/word&gt;
+# It will recognize HTML 4.0 tags that need no close tag.
+#
+# With no current word, it will insert: &lt;p&gt;&lt;/p&gt; and allows you
+# to overwrite the tag name and add potential arguments.
+#
+# The result is inserted as a snippet, so it's
+# possible to tab through the place holders.
+
+# single tags
+single_no_arg = /^(?:br|hr)$/i
+single        = /^(?:img|meta|link|input|base|area|col|frame|param)$/i
+other_tag     = /^[\w\-:_]+$/i
+
+# we are not in HTML mode, so let’s scrap the above hardcoded tag lists
+unless ENV.has_key? 'TM_HTML_EMPTY_TAGS' then
+  single_no_arg = /(?=not)possible/
+  single        = /(?=not)possible/
+end
+
+# handle the case where caret is in the middle of a word, assume only the left part is the tag
+index = ENV['TM_LINE_INDEX'].to_i - ENV['TM_INPUT_START_LINE_INDEX'].to_i
+tag, suffix = STDIN.read, ''
+if index &lt; tag.length &amp;&amp; !ENV['TM_SELECTED_TEXT']
+  tag, suffix = tag[0...index], tag[index..-1]
+end
+
+xhtml = ENV['TM_XHTML'].to_s
+
+print case tag
+  when single_no_arg then "&lt;#{tag}#{xhtml}&gt;"
+  when single then        "&lt;#{tag} $1#{xhtml}&gt;"
+  when other_tag then     "&lt;#{tag}&gt;$1&lt;/#{tag.strip[/^\S+/]}&gt;"
+  else                    "#{tag}&lt;${1:#{ENV['TM_DEFAULT_TAG'] || 'p'}}&gt;$2&lt;/${1/\\s.*//}&gt;"
+end
+
+print suffix
+</string>
+	<key>fallbackInput</key>
+	<string>word</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^&lt;</string>
+	<key>name</key>
+	<string>Insert Open/Close Tag (With Current Word)</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>uuid</key>
+	<string>2ED44A32-C353-447F-BAE4-E3522DB6944D</string>
+</dict>
+</plist>

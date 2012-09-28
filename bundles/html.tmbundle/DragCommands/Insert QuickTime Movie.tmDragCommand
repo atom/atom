@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>DIM=$(osascript &lt;&lt;APPLESCRIPT
+	tell app "QuickTime Player"
+		open POSIX file "$TM_DROPPED_FILEPATH"
+		set w to item 1 of (get dimensions of movie 1)
+		set h to item 2 of (get dimensions of movie 1)
+		close movie 1
+		return "width=\"" &amp; w &amp; "\" height=\"" &amp; h &amp; "\""
+	end tell
+APPLESCRIPT
+)
+
+cat &lt;&lt;SNIPPET
+&lt;object $DIM classid="clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B" codebase="http://www.apple.com/qtactivex/qtplugin.cab"&gt;
+	&lt;param name="src" value="$TM_DROPPED_FILE"${TM_XHTML}&gt;
+	&lt;param name="controller" value="\$1"${TM_XHTML}&gt;
+	&lt;param name="autoplay" value="\$2"${TM_XHTML}&gt;
+	&lt;embed src="$TM_DROPPED_FILE"
+		$DIM
+		controller="\${1:true}" autoplay="\${2:true}"
+		scale="tofit" cache="true"
+		pluginspage="http://www.apple.com/quicktime/download/"
+	${TM_XHTML}&gt;
+&lt;/object&gt;
+SNIPPET
+</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>mov</string>
+	</array>
+	<key>input</key>
+	<string>selection</string>
+	<key>name</key>
+	<string>Insert QuickTime Movie</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>EBE53CE6-AEBB-4318-AE98-D07F3755E3F9</string>
+</dict>
+</plist>

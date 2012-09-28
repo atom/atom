@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>command</key>
+	<string>title=`echo $TM_DROPPED_FILE | perl -pe 's/^(.*\/)?(.*?)(\..*)?$/$2/g'`
+echo -n "&lt;a href=\"$TM_DROPPED_FILE\" id=\"\" title=\"\${1:$title}\"&gt;\${1:$title}&lt;/a&gt;"</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>html</string>
+		<string>htm</string>
+		<string>rhtml</string>
+		<string>shtml</string>
+		<string>phtml</string>
+		<string>php</string>
+		<string>php3</string>
+		<string>php4</string>
+		<string>php5</string>
+		<string>cfm</string>
+		<string>cfml</string>
+		<string>dbm</string>
+		<string>dbml</string>
+	</array>
+	<key>name</key>
+	<string>Insert Anchor</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>B23D6E15-6B33-11D9-86C1-000D93589AF6</string>
+</dict>
+</plist>

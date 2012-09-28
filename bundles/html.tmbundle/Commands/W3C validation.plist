@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby -wKU
+STDOUT.sync = true
+
+page = STDIN.read
+page.gsub!(/&lt;\?(php|=).*?\?&gt;|&lt;%.*?%&gt;/m, '')
+
+open('|curl -sF uploaded_file=@-\;type=text/html http://validator.w3.org/check', 'r+') do |io|
+  io &lt;&lt; page; io.close_write
+
+  result = io.read
+
+  result.gsub!(/&lt;\/title&gt;/, '\&amp;&lt;base href="http://validator.w3.org/"&gt;')
+  result.gsub!(/Line (\d+),?\s*Column (\d+)/mi) do
+    "&lt;a href=\"txmt://open?line=#$1&amp;amp;column=#{$2.to_i + 1}\"&gt;#$&amp;&lt;/a&gt;"
+  end
+  puts result
+end
+</string>
+	<key>dontFollowNewOutput</key>
+	<true/>
+	<key>input</key>
+	<string>document</string>
+	<key>keyEquivalent</key>
+	<string>^V</string>
+	<key>name</key>
+	<string>Validate Syntax (W3C)</string>
+	<key>output</key>
+	<string>showAsHTML</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>3F26240E-6E4A-11D9-B411-000D93589AF6</string>
+</dict>
+</plist>

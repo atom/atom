@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>saveActiveFile</string>
+	<key>command</key>
+	<string>###	Refresh All Active Browsers - OmniWeb, Safari, Firefox &amp; IE
+### v1.0. 2005-03-29
+###
+
+# Check if Internet Explorer is running, if so refresh
+ps -xc|grep -sq "Internet Explorer" &amp;&amp; osascript -e 'tell app "Internet Explorer"' -e 'activate' -e 'OpenURL "JavaScript:window.location.reload();" toWindow -1' -e 'end tell'
+
+# Check if OmniWeb is running, if so refresh
+ps -xc|grep -sq OmniWeb &amp;&amp; osascript -e 'tell app "OmniWeb"' -e 'activate' -e 'reload first browser' -e 'end tell'
+
+# Check if Firefox is running, if so refresh
+ps -xc|grep -sqi firefox &amp;&amp; osascript &lt;&lt;'APPLESCRIPT'
+   tell app "Firefox" to activate
+   tell app "System Events"
+      if UI elements enabled then
+         keystroke "r" using command down
+         -- Fails if System Preferences &gt; Universal access &gt; "Enable access for assistive devices" is not on 
+      else
+         -- Comment out until Firefox regains Applescript support
+         -- tell app "Firefox" to Get URL "JavaScript:window.location.reload();" inside window 1
+         -- Fails if Firefox is set to open URLs from external apps in new tabs.
+      end if
+   end tell
+APPLESCRIPT
+
+# Check if Safari is running, if so refresh
+ps -xc|grep -sq Safari &amp;&amp; osascript -e 'tell app "Safari"' -e 'activate' -e 'do JavaScript "window.location.reload();" in first document' -e 'end tell'
+
+# Check if Camino is running, if so refresh 
+ps -xc|grep -sq Camino &amp;&amp; osascript -e 'tell app "Camino"' -e 'activate' -e 'tell app "System Events" to keystroke "r" using {command down}' -e 'end tell'
+
+# Check if Chrome is running, if so refresh 
+ps -xc|grep -sq Chrome &amp;&amp; osascript -e 'tell app "Google Chrome"' -e 'activate' -e 'tell app "System Events" to keystroke "r" using {command down}' -e 'end tell'
+</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>@r</string>
+	<key>name</key>
+	<string>Refresh Running Browser(s)</string>
+	<key>output</key>
+	<string>discard</string>
+	<key>scope</key>
+	<string>text.html, source.css</string>
+	<key>uuid</key>
+	<string>B8651C6E-A05E-11D9-86AC-000D93C8BE28</string>
+</dict>
+</plist>

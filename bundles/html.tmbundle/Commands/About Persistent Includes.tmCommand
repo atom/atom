@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>. "$TM_SUPPORT_PATH/lib/webpreview.sh"
+html_header "About Persistent Includes" "HTML"
+Markdown.pl &lt;&lt;'EOF'|SmartyPants.pl
+The "Add Persistent Include" command allows you to embed an external file inside your HTML document. This inclusion is handled by TextMate itself. Once you've added the include statement, use the "Update Document" command to refresh any included files.
+
+Including Files
+---------------
+
+An inclusion is done using a special HTML comment:
+
+    &lt;!-- #tminclude "footer.html" --&gt;
+    &lt;!-- end tminclude --&gt;
+
+Once you've updated the document, the contents are pulled inside the inclusion markup:
+
+    &lt;!-- #tminclude "footer.html" --&gt;
+    &lt;div class="footer"&gt;Copyright (c) 2006, WebDesignCorp.&lt;/div&gt;
+    &lt;!-- end tminclude --&gt;
+
+Note: Included documents are also processed for additional inclusions and placeholders.
+
+Include Parameters
+------------------
+
+You can optionally specify parameters for the included file. Parameters are provided following the filename.
+
+    &lt;!-- #tminclude "header.html" #title#="Home Page" --&gt;
+    &lt;!-- end tminclude --&gt;
+
+With a header.html file that looks like this:
+
+	&lt;h1 class="header"&gt;#title#&lt;/h1&gt;
+
+Producing:
+
+    &lt;!-- #tminclude "header.html" #title#="Home Page" --&gt;
+	&lt;h1 class="header"&gt;Home Page&lt;/h1&gt;
+    &lt;!-- end tminclude --&gt;
+
+Placeholders
+------------
+
+The update command also processes document "placeholders". Placeholders are written in this format:
+
+	#variable#
+
+The following placeholders are available:
+
+&lt;table class="pro_table" border="0" width="100%" cellpadding="5" cellspacing="0"&gt;
+&lt;tr&gt;&lt;th&gt;Placeholder&lt;/th&gt;&lt;th&gt;Example Result&lt;/th&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#abbrevdate#    &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Abbreviated date: Sun, Aug 15, 2006&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#basename#      &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Filename without extension.&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#compdate#      &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Compact date: 15-Aug-06&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#creationdate#  &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Creation date: 15-Aug-06&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#creationtime#  &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Creation time:  1:20 PM&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#docsize#       &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Resulting document length in bytes&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#dont_update#   &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Special: presence will prevent document updating&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#filename#      &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Document filename&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#file_extension#&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Document file extension&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#generator#     &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;TextMate&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#gmtime#        &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;GMT time&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#localpath#     &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Full path to current file&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#localtime#     &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Local computer time&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#longdate#      &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Long Date: Tuesday, August 15, 2006&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#modifieddate#  &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Modified date: 15-Aug-06&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#modifiedtime#  &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Modified time:  1:20 PM&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#monthdaynum#   &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Day of Month: 15&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#monthnum#      &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Month Number: 08&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#shortdate#     &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Short Date: 08/15/06&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#shortusername# &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Login name of current user&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#username#      &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Name of current user&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;&lt;tt&gt;#yearnum#       &lt;/tt&gt;&lt;/td&gt;&lt;td&gt;Current Year: 2006&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+
+In addition to these, all of the TextMate environment variables (those starting with a "TM_" prefix) are available as placeholders. For example:
+
+    #organization_name#
+
+Will populate using the `TM_ORGANIZATION_NAME` environment variable.
+
+Formatting Time
+---------------
+
+The date-based placeholders may also specify a format that can be used to customize the date output. For example:
+
+    #gmtime %b %e, %Y# (Aug 15, 2006)
+
+Placeholder Example
+-------------------
+
+If you want to make that footer.html include more useful, you can use placeholders. For example:
+
+    &lt;div class="footer"&gt;Copyright (c) #yearnum#, #oragnization_name#.&lt;/div&gt;
+
+This would then produce the following, when included and processed:
+
+    &lt;!-- #tminclude "footer.html" --&gt;
+    &lt;div class="footer"&gt;Copyright (c) 2006, WebDesignCorp.&lt;/div&gt;
+    &lt;!-- end tminclude --&gt;
+
+Scripted Includes
+-----------------
+
+It is also possible to produce included content using scripts. If the included file is a script, it is run and the output is placed inside the include block.
+
+	&lt;!-- #tminclude "scripts/header.pl" #class#="huge" --&gt;
+	&lt;!-- end tminclude --&gt;
+
+.pl (Perl), .py (Python) and .rb (Ruby) scripts are currently recognized. For the above example, the "header.pl" script is run with the following parameters:
+
+	header.pl (source_filename) class huge
+
+The Perl script in this case can process the parameters like this.
+
+	#!/usr/bin/perl
+	my ($filename, %args) = @ARGV;
+	print "&lt;h1 class='$args{class}'&gt;Header for $filename&lt;/h1&gt;"
+
+That would end up producing this:
+
+	&lt;!-- #tminclude "scripts/header.pl" #class#="huge" --&gt;
+	&lt;h1 class='huge'&gt;Header for /path/to/example.html&lt;/h1&gt;
+	&lt;!-- end tminclude --&gt;
+
+EOF
+html_footer</string>
+	<key>input</key>
+	<string>none</string>
+	<key>name</key>
+	<string>Help: Persistent Includes</string>
+	<key>output</key>
+	<string>showAsHTML</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>9AFDEB2C-D9F0-423E-8211-EBB089F51F0C</string>
+</dict>
+</plist>

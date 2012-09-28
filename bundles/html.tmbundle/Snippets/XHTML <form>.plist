@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;form action="${1:${TM_FILENAME/(.*?)\..*/$1_submit/}}" method="${2:get}" accept-charset="utf-8"&gt;
+	$0
+
+	&lt;p&gt;&lt;input type="submit" value="Continue &amp;rarr;"${TM_XHTML}&gt;&lt;/p&gt;
+&lt;/form&gt;</string>
+	<key>name</key>
+	<string>Form</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>tabTrigger</key>
+	<string>form</string>
+	<key>uuid</key>
+	<string>232C2E8B-A08E-11D9-A5A2-000D93C8BE28</string>
+</dict>
+</plist>

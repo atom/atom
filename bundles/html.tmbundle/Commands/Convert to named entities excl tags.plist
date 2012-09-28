@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+$KCODE = 'U'
+
+$char_to_entity = { }
+File.open("#{ENV['TM_BUNDLE_SUPPORT']}/entities.txt").read.scan(/^(\d+)\t(.+)$/) do |key, value|
+  $char_to_entity[[key.to_i].pack('U')] = value
+end
+
+def encode (text)
+  text.gsub(/[^\x00-\x7F]|["'&lt;&gt;&amp;]/) do |ch|
+    ent = $char_to_entity[ch]
+    ent ? "&amp;#{ent};" : sprintf("&amp;#x%02X;", ch.unpack("U")[0])
+  end
+end
+
+STDIN.read.scan(/(?x)
+
+    ( &lt;\?(?:[^?]*|\?(?!&gt;))*\?&gt;
+    | &lt;!-- (?m:.*?) --&gt;
+    | &lt;\/? (?i:a|abbr|acronym|address|applet|area|b|base|basefont|bdo|big|blockquote|body|br|button|caption|center|cite|code|col|colgroup|dd|del|dfn|dir|div|dl|dt|em|fieldset|font|form|frame|frameset|h1|h2|h3|h4|h5|h6|head|hr|html|i|iframe|img|input|ins|isindex|kbd|label|legend|li|link|map|menu|meta|noframes|noscript|object|ol|optgroup|option|p|param|pre|q|s|samp|script|select|small|span|strike|strong|style|sub|sup|table|tbody|td|textarea|tfoot|th|thead|title|tr|tt|u|ul|var)\b
+        (?:[^&gt;"']|"[^"]*"|'[^']*')*
+      &gt;
+    | &amp;(?:[a-zA-Z0-9]+|\#[0-9]+|\#x[0-9a-fA-F]+);
+    )
+    |([^&lt;&amp;]+|[&lt;&amp;])
+
+  /x) do |tag, text|
+  print tag.to_s, encode(text.to_s)
+end
+</string>
+	<key>fallbackInput</key>
+	<string>character</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>@&amp;</string>
+	<key>name</key>
+	<string>Convert Character / Selection to Entities Excl. Tags</string>
+	<key>output</key>
+	<string>replaceSelectedText</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>43C9E8AE-3E53-4B82-A1AF-56697BB3EF09</string>
+</dict>
+</plist>

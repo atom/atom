@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>captureFormatString</key>
+	<string>$3</string>
+	<key>capturePattern</key>
+	<string>line (\d+) column (\d+) - (.*?)$</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby -wKU
+
+require ENV['TM_SUPPORT_PATH'] + '/lib/ui.rb'
+require ENV['TM_SUPPORT_PATH'] + '/lib/exit_codes.rb'
+
+result = `"${TM_TIDY:-tidy}" -f /tmp/tm_tidy_errors -iq -utf8 \
+          -wrap 0 --tab-size $TM_TAB_SIZE --indent-spaces $TM_TAB_SIZE \
+		--indent yes \
+          ${TM_XHTML:+-asxhtml --output-xhtml yes} \
+          ${TM_SELECTED_TEXT:+--show-body-only yes} \
+          --enclose-text yes \
+          --doctype strict \
+		--wrap-php no \
+          --tidy-mark no`
+status = $?.exitstatus
+
+at_exit { File.unlink('/tmp/tm_tidy_errors') } # Clean up error log
+
+if status == 2 # Errors
+
+  msg = "Errors: " + File.read('/tmp/tm_tidy_errors')
+  TextMate.exit_show_tool_tip msg
+
+elsif status == 1 # Warnings - use output but also display notification with warnings
+  
+  log = File.read('/tmp/tm_tidy_errors').to_a.select do |line|
+    ! (ENV['TM_SELECTED_TEXT'] and (line.include?('Warning: missing &lt;!DOCTYPE&gt; declaration') or line.include?("Warning: inserting missing 'title' element")))
+  end.join rescue nil
+  
+  unless log.empty?
+    options = {
+      :title   =&gt; "Tidy Warnings",
+      :summary =&gt; "Warnings for tidying your document (press escape to close):",
+      :log     =&gt; log
+    }
+    TextMate::UI.simple_notification(options)
+  end
+
+end
+
+if ENV['TM_SOFT_TABS'] == "YES"
+  print result
+else
+  in_pre = false
+  result.each_line do |line|
+    unless in_pre
+      tab_size = ENV["TM_TAB_SIZE"].to_i
+      space, text = /( *)(.*)/m.match(line)[1..2]
+      line = "\t" * (space.length / tab_size).floor + " "  * (space.length % tab_size) + text
+    end
+    
+    print line
+  
+    in_pre = true  if line.include?("&lt;pre&gt;")
+    in_pre = false if line.include?("&lt;/pre&gt;")
+  end
+end</string>
+	<key>input</key>
+	<string>selection</string>
+	<key>keyEquivalent</key>
+	<string>^H</string>
+	<key>lineCaptureRegister</key>
+	<string>1</string>
+	<key>name</key>
+	<string>Tidy</string>
+	<key>output</key>
+	<string>replaceSelectedText</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>45F92B81-6F0E-11D9-A1E4-000D9332809C</string>
+</dict>
+</plist>

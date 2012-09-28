@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>command</key>
+	<string>echo "&lt;link rel=\"stylesheet\" href=\"$TM_DROPPED_FILE\" type=\"text/css\" media=\"screen\" title=\"no title\" charset=\"utf-8\"$TM_XHTML&gt;"</string>
+	<key>draggedFileExtensions</key>
+	<array>
+		<string>css</string>
+	</array>
+	<key>name</key>
+	<string>Insert CSS Link</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>text.html</string>
+	<key>uuid</key>
+	<string>C8B717C2-6B33-11D9-BB47-000D93589AF6</string>
+</dict>
+</plist>
