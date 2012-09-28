@@ -38,16 +38,16 @@ class TextMateGrammar
 
       break if position == line.length
 
-      { nextTokens, tokensStartPosition, tokensEndPosition} = _.last(stack).getNextTokens(stack, line, position)
+      { nextTokens, tokensStartPosition, tokensEndPosition } = _.last(stack).getNextTokens(stack, line, position)
 
       if position < tokensStartPosition # unmatched text before next tokens
         tokens.push
           value: line[position...tokensStartPosition]
           scopes: scopes
 
-      tokens.push(nextTokens...) if nextTokens
-
-      if tokensEndPosition is undefined # unmatched text after last token
+      if nextTokens
+        tokens.push(nextTokens...)
+      else # unmatched text after last token
         tokens.push
           value: line[position...line.length]
           scopes: scopes
@@ -164,7 +164,7 @@ class Pattern
       [start, end] = captureIndices[1..2]
       zeroLengthMatch = end == start
       if zeroLengthMatch
-        tokens = null
+        tokens = []
       else
         tokens = [{ value: line[start...end], scopes: scopes }]
     if @pushRule
