@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>validates_uniqueness_of :${1:attribute}${2:, :on =&gt; :${3:create}, :message =&gt; "${4:must be unique}"}</string>
+	<key>name</key>
+	<string>validates_uniqueness_of</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>vu</string>
+	<key>uuid</key>
+	<string>F8316545-9AE4-4C7F-87ED-A2C00E6637FA</string>
+</dict>
+</plist>

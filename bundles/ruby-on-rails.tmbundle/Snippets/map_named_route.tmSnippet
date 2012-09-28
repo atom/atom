@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${1:map}.${2:connect} '${3::controller/:action/:id}'</string>
+	<key>name</key>
+	<string>map.named_route</string>
+	<key>scope</key>
+	<string>meta.rails.routes</string>
+	<key>tabTrigger</key>
+	<string>map</string>
+	<key>uuid</key>
+	<string>91C543BF-7BD8-4E3A-B493-AE572C5472A0</string>
+</dict>
+</plist>

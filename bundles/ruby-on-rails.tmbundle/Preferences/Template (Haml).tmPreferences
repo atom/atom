@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Template (Haml)</string>
+	<key>scope</key>
+	<string>text.haml</string>
+	<key>settings</key>
+	<dict>
+		<key>shellVariables</key>
+		<array>
+			<dict>
+				<key>name</key>
+				<string>TM_RAILS_TEMPLATE_START_RUBY_EXPR</string>
+				<key>value</key>
+				<string>= </string>
+			</dict>
+			<dict>
+				<key>name</key>
+				<string>TM_RAILS_TEMPLATE_END_RUBY_EXPR</string>
+				<key>value</key>
+				<string></string>
+			</dict>
+			<dict>
+				<key>name</key>
+				<string>TM_RAILS_TEMPLATE_START_RUBY_INLINE</string>
+				<key>value</key>
+				<string>- </string>
+			</dict>
+			<dict>
+				<key>name</key>
+				<string>TM_RAILS_TEMPLATE_END_RUBY_INLINE</string>
+				<key>value</key>
+				<string></string>
+			</dict>
+			<dict>
+				<key>name</key>
+				<string>TM_RAILS_TEMPLATE_END_RUBY_BLOCK</string>
+				<key>value</key>
+				<string></string>
+			</dict>
+		</array>
+	</dict>
+	<key>uuid</key>
+	<string>C0FD2646-E924-11DC-A399-00112475D960</string>
+</dict>
+</plist>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>logger.fatal { "${1:message}" }$0</string>
+	<key>name</key>
+	<string>logger.fatal</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>logf</string>
+	<key>uuid</key>
+	<string>35E95C81-22F7-4C40-8297-ED21086DDA81</string>
+</dict>
+</plist>

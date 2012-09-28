@@ -1,0 +1,21 @@
+<h1>
+  <%=h @exception.original_exception.class.to_s %> in
+  <%=h request.parameters["controller"].capitalize if request.parameters["controller"]%>#<%=h request.parameters["action"] %>
+</h1>
+
+<p>
+  Showing <i><%=h @exception.file_name %></i> where line <b>#<%= @exception.line_number_link rescue @exception.line_number %></b> raised:
+  <pre><code><%=h @exception.message %></code></pre>
+</p>
+
+<p>Extracted source (around line <b>#<%= @exception.line_number_link rescue @exception.line_number %></b>):
+<pre><code><%=h @exception.source_extract %></code></pre></p>
+
+<p><%=h @exception.sub_template_message %></p>
+
+<% @real_exception = @exception
+   @exception = @exception.original_exception || @exception %>
+<%= render_file(@rescues_path + "/_trace.erb", false) %>
+<% @exception = @real_exception %>
+
+<%= render_file(@rescues_path + "/_request_and_response.erb", false) %>

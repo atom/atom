@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${TM_RAILS_TEMPLATE_START_RUBY_EXPR}f.submit "${1:Submit}"${2:, :disable_with =&gt; '${3:$1ing...}'}${TM_RAILS_TEMPLATE_END_RUBY_EXPR}</string>
+	<key>name</key>
+	<string>form_for submit</string>
+	<key>scope</key>
+	<string>text.html.ruby, text.haml</string>
+	<key>tabTrigger</key>
+	<string>ffs</string>
+	<key>uuid</key>
+	<string>3000E569-4E19-4566-B08E-A3FFFAAC9075</string>
+</dict>
+</plist>

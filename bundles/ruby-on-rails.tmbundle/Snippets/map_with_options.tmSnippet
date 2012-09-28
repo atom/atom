@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${1:map}.with_options :${2:controller} =&gt; '${3:thing}' do |${4:$3}|
+	$0
+end
+</string>
+	<key>name</key>
+	<string>map.with_options</string>
+	<key>scope</key>
+	<string>meta.rails.routes</string>
+	<key>tabTrigger</key>
+	<string>mapwo</string>
+	<key>uuid</key>
+	<string>BD4B90F7-2187-4E75-BFFB-77BE67CB8DAE</string>
+</dict>
+</plist>

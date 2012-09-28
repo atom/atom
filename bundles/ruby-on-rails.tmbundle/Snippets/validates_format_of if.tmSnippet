@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>validates_format_of :${1:attribute}, :with =&gt; /${2:^[${3:\w\d}]+\$}/${4:, :on =&gt; :${5:create}, :message =&gt; "${6:is invalid}"}, :if =&gt; proc { |obj| ${7:obj.condition?} }}</string>
+	<key>name</key>
+	<string>validates_format_of if</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>vfif</string>
+	<key>uuid</key>
+	<string>14BF0586-F2E8-4AB3-BB4B-E49099384403</string>
+</dict>
+</plist>

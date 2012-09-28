@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>has_many :${1:object}s${2:, :class_name =&gt; "${1}", :foreign_key =&gt; "${4:reference}_id"}, :dependent =&gt; :destroy$0</string>
+	<key>name</key>
+	<string>has_many :dependent =&gt; :destroy</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>hmd</string>
+	<key>uuid</key>
+	<string>3E3AF538-171B-4108-AB92-827AD7E24C77</string>
+</dict>
+</plist>

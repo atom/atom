@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>&lt;% if !${1:list}.blank? %&gt;
+  &lt;% for ${2:item} in ${1} %&gt;
+    $3
+  &lt;% end %&gt;
+&lt;% else %&gt;
+  $4
+&lt;% end %&gt;
+</string>
+	<key>name</key>
+	<string>for loop in rhtml</string>
+	<key>scope</key>
+	<string>text.html.ruby</string>
+	<key>tabTrigger</key>
+	<string>for</string>
+	<key>uuid</key>
+	<string>F7744F07-306C-4951-AB5A-3D69BA5516B7</string>
+</dict>
+</plist>

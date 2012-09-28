@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>page.visual_effect :${1:toggle_slide}, ${2:"${3:DOM ID}"}</string>
+	<key>name</key>
+	<string>page.visual_effect (effect, id)</string>
+	<key>scope</key>
+	<string>source.ruby.rails.rjs</string>
+	<key>tabTrigger</key>
+	<string>vis</string>
+	<key>uuid</key>
+	<string>CFDC27A3-58CF-4198-8F93-36360978F0D0</string>
+</dict>
+</plist>

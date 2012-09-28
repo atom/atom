@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>drop_table :${1:table}${2: [press tab twice to generate create_table]}</string>
+	<key>name</key>
+	<string>Drop / Create Table</string>
+	<key>scope</key>
+	<string>meta.rails.migration - meta.rails.migration.create_table - meta.rails.migration.change_table</string>
+	<key>tabTrigger</key>
+	<string>mtab</string>
+	<key>uuid</key>
+	<string>20375601-B13F-4314-B8E4-362706566636</string>
+</dict>
+</plist>

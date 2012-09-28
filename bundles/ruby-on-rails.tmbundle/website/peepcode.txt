@@ -1,0 +1,327 @@
+h1. Peepcode Script
+
+h2. Introduction
+
+Many many people's first introduction to Ruby on Rails was the 15 minute video from DHH showing how you create a blog application with Rails. Nearly everyone finished that video asking one question: what was that editor? It is awesome.
+
+Let's take a stroll down memory lane. We pick up the action at the X minute mark:
+
+[transition into a portion of the video that shows off TMs features, plus DHH saying "Whooops!"]
+
+What is interesting, is that as fast as David is able to write his blog application, even with his detour demonstrating the now deleted scaffold command, he never uses any special TextMate extensions for Rails. He uses some HTML snippets and commands and some Ruby snippets and commands. The original Ruby on Rails extensions were in their infancy.
+
+[Open Bundle Editor] A collection of TextMate extensions is called a "bundle".
+
+When working with Rails with TextMate you'll use several "bundles":
+
+* HTML
+* Ruby
+* Ruby on Rails
+* JavaScript
+
+You might also use the ProtoType, jQuery or other JavaScript bundle if you use those libraries.
+
+Ruby on Rails 2.0 was recently released and includes many improvements to
+* the syntax that you type [<code>redirect_to :action => 'show', :id => @person</code> became <code>redirect_to @person</code>]
+* changes to some file extensions [rhtml -> html.erb] and
+* changes to some file name conventions [user_controller.rb -> users_controller.rb, more commonly].
+
+The Ruby on Rails bundle has also been given a major upgrade to match all the changes for developing Rails 2.0 applications.
+
+The snippets and commands we're going to look at are actually described across all three bundles. Often it is the Rails bundle that reuses the HTML and Ruby bundles. For example, in an HTML file you have a variety of ways to create new elements. [examples] Within an html.erb file you can reuse all the same snippets and commands.
+
+
+h2. Know thy Editor
+
+Overview key icons (see PeepCode TM video)
+
+Preferences > Advanced > Folder References > Folder Patterns: add 'vendor/rails' and it will ignore that folder in any project - both from the Dock and from Search.
+
+Access your bundles via Ctrl+Alt+Cmd+B.
+
+Quick menu: Ctrl+Esc
+
+Change language for a file, e.g. Ruby <--> Ruby on Rails. Either click the "L" section of the status bar and select the Language; or learn the Language shortcut. These always start with Shift+Alt+Cmd with a letter. Typically the letter is the first letter of the Language. So to choose either Ruby or Ruby on Rails, use Shift+Alt+Cmd+R and choose the language from the drop-down.
+ 
+
+h2. Models and Migrations
+
+* Create new app
+* Go to app/controllers/application.rb (need a Ruby on Rails file)
+* ^| + 1 - Call Generate Script - create new model "Post"  TODO - not working @ moment
+  OR CLI:script/generate model Post title:string
+* Go to migration file: Cmd+T + 001
+* t. - list of available sexy migration columns; when selecting one, another t. is automatically created for you. (create body:text + published:boolean)
+* Shft+^+K - remove a line
+* CLI:script/generate model Comment
+* Cmd+T + 002 - comment migration + add t.references :post, body:text, name:string
+* Ctrl+| + 3 - run migrations
+  * See error?
+  * In terminal, go to "/Applications/TextMate.app/Contents/SharedSupport/Support/lib" and rename/remove Builder.rb
+  * Run migrations again
+
+* Go to post.rb
+  * hm + comments; notice you can tab across to change fields if required
+  * Also, hmt -> for has_many :through*
+* Go to comments.rb
+  * bt + post; notice the autocompletions are correct here, but still optional for rails so can be deleted
+  * vp + name, body
+  * [Ctrl-Esc -> Models] All the validations are available as snippets based on the first letter of each word.
+* Place the cursor on 'Comment' class name, Sft+Ctrl+Cmd+S -> shows schema for this class. Alternately, place it on 'post' to get the schema for Post class.
+
+h2. Testing
+
+I'll talk more about navigating between files in a Rails application later, but for the moment, know that there is a special relationship between a model file and a unit test file. You can toggle between them with Alt+Cmd+DownArrow.
+
+The Rails generator for models created this unit test file and a fixtures file.
+
+First, let's set up some fixtures for posts and comments. Go to posts.yml and create a "published" and a "unpublished" fixture. Now go to comments.yml - using Ctrl+Cmd+R to show posts.yml in the dock.
+
+TODO - how to move focus from editor to dock?
+
+Within comments, create one comment:
+
+<pre>valid:
+  name: Dr Nic
+  body: Cool post
+  post:</pre>
+
+With Rails 2.0, your fixture ids are no longer required, and you can use Foxy Fixtures to select an associated fixture. Here we'd type 'published' to reference that posts.yml fixture. But, since the column name is 'post' we can get a drop-down list using Alt+Esc. We'll use this same fixture autocompletion feature again within the test files.
+
+Back to the comments unit test, and that dummy test needs removing.
+
+Create a new test method with <code>deft</code> + <code>should_require_title</code>.
+
+Type <code>posts(:)</code> and Alt+Esc to access the fixtures autocompletion. You can now select a posts.yml fixture. Note, the current implementation replaces the whole line, so if you need multiple or want a different instance variable you'll need to make some manual changes.
+
+Finished:
+
+<pre syntax="ruby">def test_should_require_title
+  @post = posts(:published)
+  @comment = @post.comments.create
+  @comment.valid?
+  assert(@comment.errors[:name], "Should be errors for name field")
+end</pre>
+
+To run your unit tests, Ctrl-\ + 'Test Units' or 'Test Recent'.
+
+In order to write some functional tests for our blog, let's generate a controller as it generates the functional test at the same time. [Ctrl-|] We won't specify any actions for the moment, and we'll clean away the open windows for the controller and the helper.
+
+For now, let's write some functional tests. [remove the test_truth method]
+
+h3. Diagram
+
+* deftg -> test GET action
+* deftp -> test POST action
+
+Since many functional tests start with the same setup, there are two functional test snippets to write tests faster. The last letter maps the the http method to be used for the test: g for GET and p for POST.
+
+To create a test for the index action, use <code>deftg + 'index'</code>. Then delete the two optional @model sections.
+
+Next, to load an instance variable into the test, type <code>asg + 'posts'</code>
+
+Now, let's assert the HTML format.
+
+Type <code>ass</code> and press TAB. Type <code>div#posts</code>, press TAB and DELETE, then TAB twice to place the cursor within the <code>assert_select</code> block:
+
+<pre syntax="ruby">assert_select 'div#posts' do
+
+end</pre>
+
+Now we'll check that the <code>@posts</code> objects are represented in the <code>div#posts</code> element.
+
+With the cursor inside the <code>assert_select</code>:
+
+Type <code>ass</code>, press TAB, type <code>div.post</code>, press TAB, press TAB again, and type <code>count</code> (to replace the <code>text</code>). Now press TAB again, and type <code>@posts.size</code>. Press TAB a final time (it will highlight the <code>do...end</code> block), and press DELETE.
+
+Our test method is now finished:
+
+<pre syntax="ruby">def test_should_get_index
+  get :index
+  assert_response :success
+  assert(posts = assigns(:posts), "Cannot find @posts")
+  assert_select 'div#posts' do
+    assert_select 'div.post', :count => posts.size
+  end
+end</pre>
+
+Now we create a test for the 'show' action. Type deftg and 'show', and then 'post'. Then tab into 'fixture_name' and delete it. Now we'll autocomplete on fixtures again. Alt+Esc and select 'published'.
+
+Now copy the 'div.post' assert_select line for this test, but change the :count to 1.
+
+To run our functional tests, use Ctrl+\.
+
+h2. Controllers and Routing
+
+Similarly to navigating between model and unit test files, you can toggle between functional tests and controllers via Alt+Cmd+DownArrow.
+
+In the controller, type <code>index</code> and use Shift+Enter to convert it to a method. Press BackSpace to delete the arguments.
+
+To load all Posts:
+
+<pre syntax="ruby">@posts = Post.fina</pre>
+
+Pressing TAB creates <code>find(:all, :conditions => [...])</code>. Tab and change 'field' to 'published'.
+
+h3. Diagram: fina - find(:all); finf - find(:first); fini - find(id); ^-| - params[:id]
+
+Now create a 'show' action, with @post = Post.fini + tab. Use ^-| to insert params[:id].
+
+We'll come back and look at views for our index action later. Instead, let's create a controller for creating + updating posts for the admin of the site.
+
+We could use the scaffold generator to create a posts controller, with functional tests and default views. Instead, we'll build this controller from the ground up.
+
+h3. Diagram: Navigation between file types
+
+Shift+Alt+Cmd+DownArrow:
+
+TODO - finish this
+
+* post.rb -> post_test.rb, posts_controller.rb, etc
+* post_test.rb -> post.rb, posts_controller.rb, etc
+
+h3. Diagram: views/users/show.rhtml -> user_controller.rb; views/users/show.html.erb -> users_controller.rb
+
+One thing to note for developers of Rails apps using older versions of Rails. If you are in a template file with the extension .rhtml, then it will navigate to the singular controller name 'post', rather than the plural default for controllers. This is for backwards compatibility with older naming conventions.
+
+So we can create a new <code>posts_controller.rb</code> by returning to the post.rb or post_test.rb files, and navigating to the matching controller. It doesn't exist so a blank file is created.
+
+We have a simple way to create new controller classes; the <code>cla</code> snippet has a 'Create controller class' option. Select that, and type 'Posts' and then 'post' to create our posts_controller.rb class.
+
+For simpler actions, use the standard techniques for new methods, def + 'new' to create the 'new' method.
+
+For some of the common, more complex controller actions there are also snippets. For the create action, type 'defcreate' and fill out the template with 'post'.
+
+What I want the 'create' action to do is redirect back to the main blog controller for a page. Originally, I could use 'recai' for <code>redirect_to :controller => "blog", :action => "show", :id => @post</code> but its uncool to use anonymous paths.
+
+So instead let's just enter a named route that sounds nice, replace <code>@post</code> with  <code>blog_post_path(@post)</code>.
+
+[Change to the 'routes.rb' file.] So finally let's setup our routes. I'm going to delete all the default comments and default routes, and reconstruct it with named routes.
+
+h3. Diagram: Routes: map - named routes; maprs - map.resources; mapr - map.resource; mapwo - map.with_options
+
+Within a routes file, you have the three 'map' snippets. As you'll see in moment, the resources snippets include a block for nested resources.
+
+So we'll use 'map' to create named routes. Leave the name as 'connect' for anonymous routes. It is handy to know a Ruby snippet here: tabbing on colon (:) creates a hash key/value pair.
+
+<pre>map.public_page 'blog/show/:id', :controller => "blog", :action => "show"</pre>
+
+We could place this route within a with_options block, using 'mapwo'. Then add <code>map.root</code> within it.
+
+For our posts controller, we'll use the resources snippets. We use 'maprs' and change 'resource' to 'posts' and then we can tab into the block. Say we wanted comments to be a nested resource of posts, then we'd use 'maprs' again, and change 'map' to 'post' and remove the block. [then delete the comment resource + post's block].
+
+There is also a shortcut for the respond_to block - 'rest', which gives a default html response. To add additional response formats, tab on 'wants'. [remove these examples from new method]
+
+Now let's have a final look at functional tests for our create actions, which will require a POST request. [try to change to functional test] We don't have a posts_controller_test.rb, so it creates a blank file for us.
+
+To create a functional test class, use 'cla' again and select 'Create functional test class', and type 'Posts' for the class name prefix. Save the file, close the window and reopen within the project, otherwise some commands might not work if the file is initially not saved.
+
+Remember that test methods are created with 'deft', and the GET + POST methods are created with deftg and deftp. Let's test our create action with 'deftp'.
+
+Enter 'post', but remove the two optional sections as we're creating a new object, not updating an existing object. Within the <code>:post => {  }</code>, type : and tab to create the hash key values.
+
+Fetch the resulting object with <code>asg</code> + 'post'.
+
+Add a redirection assertion with <code>artp</code>.
+
+<pre syntax="ruby">def test_should_post_create
+  post :create, :post => { :title => "hi there", :body => "oh yeah" }
+  assert_response :redirect
+  assert(post = assigns(:post), "Cannot find @post")
+
+  assert_redirected_to blog_post_path(post)
+end</pre>
+
+If you just want to run the tests in the current file, or in fact run any Ruby file, use Cmd+R. As we can see, this test passes.
+
+h2. Views
+
+[back to posts_controller.rb]
+
+In the posts controller, we have a new action but we haven't created a template yet. As before, we can use the Navigation cmd to change from the controller to a view. In this case, the view is based on the current method. So we place the cursor in the new method, and it will ask us to create a new.html.erb file. Here is your opportunity to rename the template with alternate format or template extensions, say .xml.builder. But we'll use .html.erb for now.
+
+h3. Diagram: form_for - ff, form_for with error output - ffe
+
+We'll use 'ffe' and enter 'post'. In Rails 2.0, the form_for helper is very powerful and knows from the object it is passed whether it is creating or updating an object.
+
+h3. Diagram: f. - list of available helpers; or use first initial of helpers' names (fftf - text_field)
+
+Inside the form_for block we have two ways to access the common helpers.
+
+By using 'f.' it reminds us what helpers are available and tells us what their tab completions are.
+
+So, let's use the tab completion versions. ffl for label, fftf for text field.
+
+<pre><%= error_messages_for :post %>
+
+<% form_for @post do |f| -%>
+  <%= f.label :title, "Title" %>
+  <%= f.text_field :title %>
+  <%= f.label :body, "Body" %>
+  <%= f.text_area :body, :rows => 10 %>
+  <%= f.submit "Post", :disable_with => 'Posting...' %>
+<% end -%></pre>
+
+Now let's put each label or form field in a separate paragraph. Select those lines and use 'Wrap Each Selected Line in Open/Close' - Shift+Ctrl+Cmd+W, and type 'p'.
+
+h3. Diagram: Partials - Shift-Ctrl-H
+
+Since the form_for helper works with saved and unsaved model objects its easily reusable within new and edit templates. So let's extract it as a partial. [do it] And now the render can be pasted into an edit.html.erb file as required.
+
+[go to browser http://localhost:3000/posts/new]
+Now we can fire up the server and have a look at our form and use it. [submit form]
+
+As requested, the browser is redirected to the public post page; which we haven't implemented yet. So let's do that.
+
+We head back to the blog_controller, and create the show.html.erb via navigating away from the show action.
+
+Create a div and set its class to post, then layout the title and body:
+
+<div class="post">
+  <h3><%= @post.title %></h3>
+  <%= @post.body %>
+</div>
+
+If we run our tests, the 'show' action test is now passing.
+
+[Shft+Ctrl+H] So we can reuse it in the index.html.erb file, let's move it to a partial called 'post' and remove the '@' signs to reference a local variable instead of an instance variable.
+
+The returned 'render' expression isn't quite right as we need to pass the @post object into the partial. Let's remove it and use the 'render partial' snippets.
+
+h3. Diagram: render :partial - rp; render :partial, :object - rpo; render :partial, :collection - rpc; render :partial, :locals - rpl
+
+Create <%= %> and inside use 'rpo' and set the :object => @post.
+
+Now we create index.html.erb and use <%=  %> with 'rpc' and 'post'. The tests require that its wrapped in a div with id="posts". So select all, and Shift+Ctrl+W + div id="posts".
+
+h3. Diagram: Link helpers; lip - link_to "label", model_path(@model), etc.
+
+* lip   - <code><%= link_to "link text...", model_path(@model) %></code>
+* lipp  - <code><%= link_to "link text...", models_path %></code>
+* linp  - <code><%= link_to "link text...", parent_child_path(@parent, @child) %></code>
+* linpp - <code><%= link_to "link text...", parent_child_path(@parent) %></code>
+* lim   - <code><%= link_to model.name, model %></code>
+
+h2. Alternate templates
+
+h3. Diagram: html.erb, js.erb, js.rjs, xml.builder, xml.erb, html.builder
+
+In addition to html.erb templates, Rails supports any combination of output format and template engine. As appropriate you can combine html or javascript or xml with erb or rjs or builder, or any other 3rd party templating system such as haml.
+
+The Rails TextMate bundle provides varying support for different combinations.
+
+h3. Diagram: wants.js -> .js.rjs; wants.xml -> .xml.builder; wants.different -> .different.erb
+
+Navigation (e.g. tasty tidbit)
+
+Go to posts_controller, add wants.js to create action. Navigate and create posts/create.js.rjs.
+
+h3. Diagram: RJS snippets - hide, insert_html (ins), replace (rep), replace_html (reph), show, toggle (tog), visual_effect (vis)
+
+All these snippets include the page prefix and are nice ways to start each RJS expression.
+
+[remove all lines; rename with .erb] Another way to generate JavaScript within Rails is with the .js.erb extension. Instead of RJS expressions, you write pure JavaScript, but you can embed ruby using erb.
+
+A new syntax supported in the bundle is JavaScript (Rails), which maps to .js.erb files. That is, JavaScript files that permit embedded Ruby. This means, within the <%= %> tags you have access to your Ruby snippets and syntax highlighting.
+
+h2. Extending

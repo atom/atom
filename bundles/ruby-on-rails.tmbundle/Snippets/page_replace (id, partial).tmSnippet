@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>page.replace ${1:"${2:id}"}, :${3:partial =&gt; "${4:template}"}</string>
+	<key>name</key>
+	<string>page.replace (id, partial)</string>
+	<key>scope</key>
+	<string>source.ruby.rails.rjs</string>
+	<key>tabTrigger</key>
+	<string>rep</string>
+	<key>uuid</key>
+	<string>273E5E76-8D13-4476-9C38-8AF87432CB96</string>
+</dict>
+</plist>

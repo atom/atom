@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>t.rename(:${1:old_column_name}, :${2:new_column_name})
+$0</string>
+	<key>name</key>
+	<string>Table column(s) rename</string>
+	<key>scope</key>
+	<string>meta.rails.migration.create_table, meta.rails.migration.change_table</string>
+	<key>tabTrigger</key>
+	<string>tre</string>
+	<key>uuid</key>
+	<string>DF30226E-1111-448A-B669-7CA34EE83909</string>
+</dict>
+</plist>

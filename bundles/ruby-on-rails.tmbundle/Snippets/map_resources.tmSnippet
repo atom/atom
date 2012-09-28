@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${1:map}.resources :${2:resource}${10: do |${11:$2}|
+  $0
+end}</string>
+	<key>name</key>
+	<string>map.resources</string>
+	<key>scope</key>
+	<string>meta.rails.routes</string>
+	<key>tabTrigger</key>
+	<string>maprs</string>
+	<key>uuid</key>
+	<string>0FF86C46-0E01-4D03-8232-72CA5BD55706</string>
+</dict>
+</plist>

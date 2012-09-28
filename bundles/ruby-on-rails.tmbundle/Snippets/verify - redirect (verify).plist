@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundlePath</key>
+	<string>/Users/tobi/Library/Application Support/TextMate/Bundles/Custom.tmbundle</string>
+	<key>content</key>
+	<string>verify :only =&gt; [:$1], :session =&gt; :user, :params =&gt; :id, :redirect_to =&gt; {:action =&gt; '${2:index}'}
+</string>
+	<key>name</key>
+	<string>verify — redirect</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>verify</string>
+	<key>uuid</key>
+	<string>7BBD3F57-57A5-4CD0-8E79-B931021FC110</string>
+</dict>
+</plist>

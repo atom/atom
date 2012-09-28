@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>redirect_to(${2:${10:parent}_${11:child}_path(${12:@}${13:${10}})})</string>
+	<key>name</key>
+	<string>redirect_to (nested path plural)</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>renpp</string>
+	<key>uuid</key>
+	<string>EF527A27-D1D4-4FD8-BD23-71397881C29A</string>
+</dict>
+</plist>

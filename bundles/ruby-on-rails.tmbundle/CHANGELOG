@@ -1,0 +1,109 @@
+[Edge] Trundle to Rails 2.0 Bundle
+Ruby on Rails bundle maintenance has been taken over by Dr Nic Williams from its initial legendary creator Duane Johnson.
+See git branch two_point_ooh for initial drive to upgrade bundle for Rails 2.0 conventions (http://github.com/drnic/ruby-on-rails-tmbundle/tree/two_point_ooh)
+
+Added so far:
+  * Snippets/Commands for:
+    * Tests
+      * assert_select (ass)
+      * assert_difference/assert_no_difference (asd/asnd)
+      * GET+POST test method stubs (deftg+deftp)
+      * posts(:) + Alt+Esc allows you to select a posts.yml fixture
+    * Controllers
+      * respond_to (rest) and respond_to(html) (Shift+Cmd+H)
+      * 'Go To View' within a respond_to will use the format/wants type as the default
+      * REMOVED: render_component snippets
+      * loggers - pass a block instead of raw string to save time if
+        logging not used (e.g. production) [Stephen Touset]
+      * redirect_to for resource paths (rep, repp, renp, renpp)
+      * render :update (ru) [Simon Jefford]
+    * Views
+      * form_for and form_for(with errors) (ff,ffe)
+      * Various form_for helpers in a drop-down list, e.g. f.text_field (f.)
+      * Various form_for helpers with own tab completion, e.g. f.text_field (fftf)
+      * link_to for resource paths (lip, lipp, linp, linpp)
+      * <% end -%> (end)
+      * for-loop (for)
+      * link_to(@model.name, @model) (ltm)
+    * Layouts
+      * javascript_include_tag - jit
+      * stylesheet_link_tag - slt
+    * Models
+      * has_many :through (hmt)
+      * association snippets give better defaults (e.g. bt + hm)
+      * validates_format_of (vf,vfif) [Dean Strelau]
+      * validates_numericality_of (vn,vnif) [Tom Morris]
+      * before/after callbacks (prefix bef/aft + 1st letter of words) [Sam Granieri]
+    * Migrations
+      * Sexy Migrations now available as "t." snippets and regular snippets [Lawrence Pit]
+      * Migration classes have own textmate scope
+      * Add/Remove Columns - the 'down' statements are in reverse
+        order [Lawrence Pit, Daniel Kristensen]
+      * Added 'Redo Last Migration' [Simon Jefford]
+    * Functional Tests
+      * assert_redirect_to for resource paths (artp, artpp, artnp, artnpp)
+      * assert(assigns(:model)) (asg)
+    * Routes
+      * named routes, resources snippets (map, mapr, maprs)
+      * catch_all (mapca) [Sam Granieri]
+    * Active Support
+      * cattr_accessor/mattr_accessor (crw/mrw) [Jacob Swanner]
+      * returning (returning) [Jacob Swanner]
+  * Language/Syntax
+    * New keywords: rescue_from, alias_method_chain, alias_attribute, delegate, respond_to [David Lowenfels, Jacob Swanner]
+    * Added rb as a valid Rails file type [James Deville]
+  * Commands
+    * Auto-completion for Foxy Fixtures
+    * html.erb is the default for new templates (backwards compatibility
+      is being worked on too)
+    * 'Go To XXX' - available for wide range of permutations.
+      Fixtures -> Models; Models -> Controllers, etc
+    * haml is a valid file extension [Steve Ross]
+    * specify alternate default file extensions for: [Steve Ross]
+      * javascript - ENV['RAILS_JS_EXT']
+      * stylesheet - ENV['RAILS_CSS_EXT']
+      * view - ENV['RAILS_VIEW_EXT']
+    * 'Call Generate Script' now accesses all a project's generators
+  * Plugins
+    * Footnote
+      * footnote-edge uses .erb for templates [Stephen Bannasch]
+  * Internals
+    * Rakefile - test runner [Steve Ross]
+    * Added generator_test
+    * Removed unnecessary misc_test
+    * script/clean_bundle_file_names - rename non-os-agnostic file names [Charles Roper]
+  * Haml support [Lawrence Pit]
+
+For thoughts and patches, email drnicwilliams@gmail.com
+
+* BLACKHOLE OF CHANGELOG *
+...
+
+* END OF BLACKHOLE *
+2006-09-28 Added "Rake Migrate to Version", changed "rake migrate" to "rake db:migrate" to remove warning message.
+2006-02-22 Changed key bindings to TextMate conventions (http://macromates.com/textmate/manual/key_bindings#conventions)
+2006-02-22 Footnotes can be turned off for specific pages:
+            e.g. render :action => 'whatever', :footnotes => false [Duane]
+2006-02-22 intelligent go to file now asks for a view file name if it doesn't exist before going there [Duane]
+2006-02-22 Fixed that intelligent go to file was not recognizing view files other than rhtml [Duane]
+2006-02-21 Generated files open automatically [Duane, Sami Samhuri]
+2006-02-21 Generate migrations works (has to be chdir to rails_root to work) [Duane]
+2006-02-21 Fixed that the footnotes plugin was doubling the /controllers/ segment [Duane, Cliff Matthews]
+2006-02-21 Fixed that the footnotes plugin was rendering for rxml and rjs pages [Duane]
+
+0.9.1 Released
+
+2006-02-21 Fixed that the footnotes plugin was breaking on redirects [Duane]
+
+0.9 Released
+
+2006-02-20 Added Migration Snippets [Sami Samhuri]
+2006-02-20 Added Rails Engines plugin [Duane]
+2006-02-20 Added double quotes around call to CocoaDialog [Kent Siblev]
+2006-02-20 Intelligent Go To File will now go to the file nearest the caret for stylesheet and javascript tags with multiple files [Cliff Matthews]
+2006-02-20 Added plugin install script bound to ctrl-option-command-\ [Duane]
+2006-02-20 Added 'plugins' directory to Support, and included textmate_footnotes plugin. [Duane]
+2006-02-20 More intelligent argument regexps for javascripts and stylesheets [Cliff Matthews]
+2006-02-20 Generate command is now a background process [Duane]
+
+0.8 Released

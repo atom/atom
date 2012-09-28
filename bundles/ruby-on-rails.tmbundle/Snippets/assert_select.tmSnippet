@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>assert_select '${1:path}'${2:, :${3:text} =&gt; ${4:'${5:inner_html}'}}${6: do
+	$0
+end}</string>
+	<key>name</key>
+	<string>assert_select</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>ass</string>
+	<key>uuid</key>
+	<string>DBE14FE8-B415-4DBC-A316-F8DA63FE9FD7</string>
+</dict>
+</plist>

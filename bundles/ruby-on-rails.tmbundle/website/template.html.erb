@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <link rel="stylesheet" href="stylesheets/screen.css" type="text/css" media="screen" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>
+      <%= title %>
+  </title>
+  <script src="javascripts/rounded_corners_lite.inc.js" type="text/javascript"></script>
+
+  <script type="text/javascript">
+    window.onload = function() {
+      settings = {
+          tl: { radius: 10 },
+          tr: { radius: 10 },
+          bl: { radius: 10 },
+          br: { radius: 10 },
+          antiAlias: true,
+          autoPad: true,
+          validTags: ["div"]
+      }
+      var versionBox = new curvyCorners(settings, document.getElementById("version"));
+      versionBox.applyCornersToAll();
+    }
+  </script>
+</head>
+<body>
+<div id="main">
+	
+    <h1><%= title %></h1>
+    <div id="version" class="clickable" onclick='document.location = "<%= download %>"; return false'>
+      <p>Get Version</p>
+      <a href="<%= download %>" class="numbers"><%= version %></a>
+      <a href="<%= download %>" class="numbers"><img src="images/logo_bundle.png" width="50" height="51" alt="Logo Bundle" border=0></a>
+    </div>
+    <%= body %>
+    <p class="coda">
+      <a href="http://drnicwilliams.com">Dr Nic Williams</a>, <%= modified.pretty %><br>
+      Theme extended from <a href="http://rb2js.rubyforge.org/">Paul Battley</a>
+    </p>    
+
+    <!--
+	  * Matt A: "I'm new to this country, but I must be breaking some laws with this"
+	  * Allan O: "This is getting out of hand; I may have to cease development of TextMate"
+	  * Steve J: "This puts a ding in the universe"
+	//-->
+</div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-567811-10");
+pageTracker._initData();
+pageTracker._trackPageview();
+</script>
+</body>
+</html>

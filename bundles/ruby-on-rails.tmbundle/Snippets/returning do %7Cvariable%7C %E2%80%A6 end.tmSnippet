@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>returning ${1:variable} do${2/(^(?&lt;var&gt;\s*[a-z_][a-zA-Z0-9_]*\s*)(,\g&lt;var&gt;)*,?\s*$)|.*/(?1: |)/}${2:v}${2/(^(?&lt;var&gt;\s*[a-z_][a-zA-Z0-9_]*\s*)(,\g&lt;var&gt;)*,?\s*$)|.*/(?1:|)/}
+	$0
+end</string>
+	<key>name</key>
+	<string>returning do |variable| … end</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>returning</string>
+	<key>uuid</key>
+	<string>D2783155-23F3-4B90-A317-5BD139471193</string>
+</dict>
+</plist>

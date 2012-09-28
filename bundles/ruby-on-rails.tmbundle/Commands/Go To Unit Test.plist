@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>RUBYLIB="$TM_BUNDLE_SUPPORT/lib:$RUBYLIB"
+"${TM_RUBY:=ruby}" -- "${TM_BUNDLE_SUPPORT}/bin/go_to_alternate_file.rb" unit_test</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>~$@</string>
+	<key>name</key>
+	<string>Go to Unit Test</string>
+	<key>output</key>
+	<string>showAsTooltip</string>
+	<key>scope</key>
+	<string>meta.rails.controller, meta.rails.helper, meta.rails.model, meta.rails.functional_test, source.yaml</string>
+	<key>uuid</key>
+	<string>BDBB15A4-2824-4BEC-93A5-7475F9C46A39</string>
+</dict>
+</plist>

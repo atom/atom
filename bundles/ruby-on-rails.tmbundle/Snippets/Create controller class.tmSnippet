@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>class ${1:Model}Controller &lt; ApplicationController
+	before_filter :find_${2:model}
+
+	$0
+
+	private
+	def find_${2}
+		@$2 = ${3:$1}.find(params[:id]) if params[:id]
+	end
+end</string>
+	<key>name</key>
+	<string>Create controller class</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>cla</string>
+	<key>uuid</key>
+	<string>4B3F798E-E3B6-48C8-8C2F-CB8631011638</string>
+</dict>
+</plist>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>RUBYLIB="$TM_BUNDLE_SUPPORT/lib:$RUBYLIB"
+"${TM_RUBY:=ruby}" -- "${TM_BUNDLE_SUPPORT}/bin/generate_quick_migration.rb"</string>
+	<key>fallbackInput</key>
+	<string>word</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^M</string>
+	<key>name</key>
+	<string>Quick Migration</string>
+	<key>output</key>
+	<string>discard</string>
+	<key>scope</key>
+	<string>source.ruby.rails, source.yaml, text.html.ruby</string>
+	<key>uuid</key>
+	<string>D696FA2C-785A-4B73-A2F6-F750904DD7C2</string>
+</dict>
+</plist>

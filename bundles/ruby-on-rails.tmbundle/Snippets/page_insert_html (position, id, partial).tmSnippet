@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>page.insert_html :${1:top}, ${2:"${3:id}"}, :${4:partial =&gt; "${5:template}"}</string>
+	<key>name</key>
+	<string>page.insert_html (position, id, partial)</string>
+	<key>scope</key>
+	<string>source.ruby.rails.rjs</string>
+	<key>tabTrigger</key>
+	<string>ins</string>
+	<key>uuid</key>
+	<string>62BEA590-F4EF-4001-B661-764EDFB92811</string>
+</dict>
+</plist>

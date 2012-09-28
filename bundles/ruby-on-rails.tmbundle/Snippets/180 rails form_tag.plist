@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${TM_RAILS_TEMPLATE_START_RUBY_INLINE}form_tag(${1::action =&gt; "${5:update}"}${6:, {:${8:class} =&gt; "${9:form}"\}}) do${TM_RAILS_TEMPLATE_END_RUBY_EXPR}
+  $0
+${TM_RAILS_TEMPLATE_END_RUBY_BLOCK}</string>
+	<key>name</key>
+	<string>form_tag</string>
+	<key>scope</key>
+	<string>text.html.ruby, text.haml</string>
+	<key>tabTrigger</key>
+	<string>ft</string>
+	<key>uuid</key>
+	<string>F0F6DACA-6A0B-11D9-BDC2-000D932CD5BA</string>
+</dict>
+</plist>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>assert_difference "${1:Model}.${2:count}", ${3:1} do
+  $0
+end</string>
+	<key>name</key>
+	<string>assert_difference</string>
+	<key>scope</key>
+	<string>source.ruby</string>
+	<key>tabTrigger</key>
+	<string>asd</string>
+	<key>uuid</key>
+	<string>30BEA6FB-301C-4460-93EC-FA3404688962</string>
+</dict>
+</plist>

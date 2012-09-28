@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>render :inline =&gt; "${1:&lt;%= 'hello' %&gt;}", :locals =&gt; { ${2::name} =&gt; "${3:value}"$4 }</string>
+	<key>name</key>
+	<string>render (inline, locals)</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>ril</string>
+	<key>uuid</key>
+	<string>1E5DE984-510C-4992-8AD5-C5FA6D7F2A88</string>
+</dict>
+</plist>

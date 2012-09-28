@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>${TM_RAILS_TEMPLATE_START_RUBY_EXPR}image_submit_tag("${1:agree.png}"${2:${3:, :id =&gt; "${4:${1/^(\w+)(\.\w*)?$/$1/}}"}${5:, :name =&gt; "${6:${1/^(\w+)(\.\w*)?$/$1/}}"}${7:, :class =&gt; "${8:${1/^(\w+)(\.\w*)?$/$1/}-button}"}${9:, :disabled =&gt; ${10:false}}})${TM_RAILS_TEMPLATE_END_RUBY_EXPR}</string>
+	<key>name</key>
+	<string>image_submit_tag</string>
+	<key>scope</key>
+	<string>text.html.ruby, text.haml</string>
+	<key>tabTrigger</key>
+	<string>ist</string>
+	<key>uuid</key>
+	<string>9FB9848E-EA5A-11DC-9DE5-00112475D960</string>
+</dict>
+</plist>

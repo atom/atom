@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>RUBYLIB="$TM_BUNDLE_SUPPORT/lib:$RUBYLIB"
+
+# Find the current version number from the schema.rb file
+export CURRENT=`grep 'Schema\.define' "$TM_PROJECT_DIRECTORY/db/schema.rb" | ruby -e 'print $stdin.read.scan(/\d+/).first'`
+
+"${TM_RUBY:=ruby}" -- "${TM_BUNDLE_SUPPORT}/bin/rake_helper.rb" db:migrate -q "Migrate to which version? (Current version: $CURRENT)" -v VERSION
+</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^|</string>
+	<key>name</key>
+	<string>Migrate to Version ...</string>
+	<key>output</key>
+	<string>showAsHTML</string>
+	<key>scope</key>
+	<string>source.ruby.rails, source.yaml</string>
+	<key>uuid</key>
+	<string>07C696F8-79F5-4E0B-9EE9-03B693A54ABB</string>
+</dict>
+</plist>

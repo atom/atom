@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>validates_acceptance_of :${1:terms}${2:${3:, :accept =&gt; "${4:1}"}${5:, :message =&gt; "${6:You must accept the terms of service}"}}</string>
+	<key>name</key>
+	<string>validates_acceptance_of</string>
+	<key>scope</key>
+	<string>source.ruby.rails</string>
+	<key>tabTrigger</key>
+	<string>vao</string>
+	<key>uuid</key>
+	<string>89198999-7E6D-4D97-A20E-45263E1CA993</string>
+</dict>
+</plist>

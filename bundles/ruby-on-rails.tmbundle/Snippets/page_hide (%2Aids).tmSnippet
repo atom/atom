@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>page.hide ${1:"${2:id(s)}"}</string>
+	<key>name</key>
+	<string>page.hide (*ids)</string>
+	<key>scope</key>
+	<string>source.ruby.rails.rjs</string>
+	<key>tabTrigger</key>
+	<string>hide</string>
+	<key>uuid</key>
+	<string>390A447F-0FA3-4F01-A10C-4F35675E0A43</string>
+</dict>
+</plist>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>commands</key>
+	<array>
+		<dict>
+			<key>command</key>
+			<string>deleteWordLeft:</string>
+		</dict>
+		<dict>
+			<key>command</key>
+			<string>moveToBeginningOfLine:</string>
+		</dict>
+		<dict>
+			<key>command</key>
+			<string>moveToEndOfDocumentAndModifySelection:</string>
+		</dict>
+		<dict>
+			<key>argument</key>
+			<dict>
+				<key>command</key>
+				<string>intelligent_migration_snippet.rb add_remove_index</string>
+				<key>input</key>
+				<string>selection</string>
+				<key>output</key>
+				<string>insertAsSnippet</string>
+			</dict>
+			<key>command</key>
+			<string>executeCommandWithOptions:</string>
+		</dict>
+	</array>
+	<key>name</key>
+	<string>Add / Remove Index</string>
+	<key>scope</key>
+	<string>meta.rails.migration - meta.rails.migration.create_table - meta.rails.migration.change_table</string>
+	<key>scopeType</key>
+	<string>local</string>
+	<key>tabTrigger</key>
+	<string>mind</string>
+	<key>uuid</key>
+	<string>95F83E1D-5B03-424F-8BEC-8AF66C8939BC</string>
+</dict>
+</plist>
