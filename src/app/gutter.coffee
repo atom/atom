@@ -9,7 +9,7 @@ class Gutter extends View
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
-  cursorRow: -1
+  cursorBufferRow: -1
   firstScreenRow: -1
 
   afterAttach: (onDom) ->
@@ -21,13 +21,13 @@ class Gutter extends View
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     @firstScreenRow = startScreenRow
     lastScreenRow = -1
-    currentCursorRow = @cursorRow
+    currentCursorBufferRow = @cursorBufferRow
     rows = @editor().bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
     @lineNumbers[0].innerHTML = $$$ ->
       for row in rows
         rowClass = null
-        if row isnt currentCursorRow
+        if row isnt currentCursorBufferRow
           rowClass = 'line-number'
         else
           rowClass = 'line-number cursor-line-number'
@@ -47,8 +47,9 @@ class Gutter extends View
   highlightCursorLine: ->
     return if @firstScreenRow < 0
 
-    newCursorRow = @editor().getCursorBufferPosition().row - @firstScreenRow
-    if newCursorRow isnt @cursorRow
-      @cursorRow = newCursorRow
+    newCursorBufferRow = @editor().getCursorBufferPosition().row
+    if newCursorBufferRow isnt @cursorBufferRow
+      @cursorBufferRow = newCursorBufferRow
+      screenRow = @cursorBufferRow - @firstScreenRow
       @find('.line-number.cursor-line-number').removeClass('cursor-line-number')
-      @find(".line-number:eq(#{newCursorRow})").addClass('cursor-line-number')
+      @find(".line-number:eq(#{screenRow})").addClass('cursor-line-number')
