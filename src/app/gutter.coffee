@@ -1,4 +1,4 @@
-{View, $$$} = require 'space-pen'
+{View, $$, $$$} = require 'space-pen'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -10,12 +10,21 @@ class Gutter extends View
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
   firstScreenRow: -1
+  highestNumberWidth: null
 
   afterAttach: (onDom) ->
     @editor()?.on 'cursor-move', => @highlightCursorLine()
+    @calculateWidth() if onDom
 
   editor: ->
     @parentView
+
+  lineNumberPadding: ->
+    widthTesterElement = $$ -> @div {class: 'line-number'}, ""
+    @append(widthTesterElement)
+    lineNumberPadding = widthTesterElement.outerWidth()
+    widthTesterElement.remove()
+    lineNumberPadding
 
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     @firstScreenRow = startScreenRow
@@ -41,14 +50,14 @@ class Gutter extends View
     @highlightCursorLine()
 
   calculateWidth: ->
-    width = @editor().getLineCount().toString().length * @editor().charWidth
-    if width != @cachedWidth
-      @cachedWidth = width
-      @lineNumbers.width(width)
+    highestNumberWidth = @editor().getLineCount().toString().length * @editor().charWidth
+    if highestNumberWidth != @highestNumberWidth
+      @highestNumberWidth = highestNumberWidth
+      @lineNumbers.width(highestNumberWidth + @lineNumberPadding())
       @widthChanged?(@outerWidth())
 
   highlightCursorLine: ->
     cursorScreenRow = @editor().getCursorScreenPosition().row
     screenRowIndex = cursorScreenRow - @firstScreenRow
-    @find('.line-number.cursor-line-number').removeClass('cursor-line-number')
+    @find(".line-number.cursor-line-number").removeClass('cursor-line-number')
     @find(".line-number:eq(#{screenRowIndex})").addClass('cursor-line-number')
