@@ -26,7 +26,6 @@ class TextMateGrammar
       @repository[name] = new Rule(this, data)
 
   getLineTokens: (line, stack=[@initialRule]) ->
-    stack = new Array(stack...)
     tokens = []
     position = 0
 
