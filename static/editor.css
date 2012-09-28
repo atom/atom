@@ -16,14 +16,17 @@
   position: absolute;
   height: 100%;
   overflow: hidden;
-  padding-left: 0.4em;
-  padding-right: 0.8em;
   color: rgba(255, 255, 255, .3);
   text-align: right;
 }
 
 .editor .gutter .line-numbers {
   position: relative;
+}
+
+.editor .gutter .line-number {
+  padding-left: 0.4em;
+  padding-right: 0.8em;
 }
 
 .line-number.cursor-line-number {
