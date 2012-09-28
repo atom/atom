@@ -42,7 +42,7 @@ class Gutter extends View
     return if @firstScreenRow < 0
 
     newCursorRow = @editor().getCursorBufferPosition().row - @firstScreenRow
-    if newCursorRow isnt cursorRow
-      cursorRow = newCursorRow
+    if newCursorRow isnt @cursorRow
+      @cursorRow = newCursorRow
       @find('.line-number.cursor-line-number').removeClass('cursor-line-number')
-      @find(".line-number:eq(#{cursorRow})").addClass('cursor-line-number')
+      @find(".line-number:eq(#{newCursorRow})").addClass('cursor-line-number')
