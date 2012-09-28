@@ -857,7 +857,14 @@ class Editor extends View
     else
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
-        line.push(token.value)
+        line.push(
+          token.value
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+        )
 
     line.push("</pre>")
     line.join('')
