@@ -810,32 +810,57 @@ class Editor extends View
     lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     activeEditSession = @activeEditSession
 
-    buildLineHtml = @buildLineHtml
+    buildLineHtml = (line) => @buildLineHtml(line)
     $$ -> @raw(buildLineHtml(line)) for line in lines
 
   buildLineHtml: (screenLine) ->
-    scopesStack = []
+    scopeStack = []
     line = []
 
-    if fold = line.fold
-      lineAttributes = { class: 'fold line', 'fold-id': fold.id }
+    updateScopeStack = (desiredScopes) ->
+      excessScopes = scopeStack.length - desiredScopes.length
+      _.times(excessScopes, popScope) if excessScopes > 0
 
-    if activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
-      lineAttributes.class += ' selected'
+      # pop until common prefix
+      for i in [scopeStack.length..0]
+        break if _.isEqual(scopeStack[0...i], desiredScopes[0...i])
+        popScope()
+
+      # push on top of common prefix until scopStacks == desiredScopes
+      for j in [i...desiredScopes.length]
+        pushScope(desiredScopes[j])
+
+    pushScope = (scope) ->
+      scopeStack.push(scope)
+      classes = []
+      scopeComponents = scope.split('.')
+      classes.push scopeComponents[0..i].join('-') for i in [0...scopeComponents.length]
+      line.push("<span class=\"#{classes.join(' ')}\">")
+
+    popScope = ->
+      scopeStack.pop()
+      line.push("</span>")
+
+    if fold = screenLine.fold
+      lineAttributes = { class: 'fold line', 'fold-id': fold.id }
+      if @activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
+        lineAttributes.class += ' selected'
     else
       lineAttributes = { class: 'line' }
 
-    attributePairs = "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
+    attributePairs = []
+    attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
     line.push("<pre #{attributePairs.join(' ')}>")
-    if line.text == ''
-      lines.push('&nbsp;')
-    else
-      for token in line.tokens
-        for scopesStack, i in token.scopes
-        line.push("<span class=#{classString}>")
-        line.push("</span>")
 
-    line.push("</pre>)
+    if screenLine.text == ''
+      line.push('&nbsp;')
+    else
+      for token in screenLine.tokens
+        updateScopeStack(token.scopes)
+        line.push(token.value)
+
+    line.push("</pre>")
+    line.join('')
 
   insertLineElements: (row, lineElements) ->
     @spliceLineElements(row, 0, lineElements)
