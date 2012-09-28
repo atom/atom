@@ -25,13 +25,13 @@ class TextMateGrammar
     for name, data of repository
       @repository[name] = new Rule(this, data)
 
-  getLineTokens: (line, stack=[@initialRule]) ->
-    stack = new Array(stack...) # clone stack
+  getLineTokens: (line, ruleStack=[@initialRule]) ->
+    ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
 
     loop
-      scopes = scopesFromStack(stack)
+      scopes = scopesFromStack(ruleStack)
 
       if line.length == 0
         tokens = [{value: "", scopes: scopes}]
@@ -39,7 +39,7 @@ class TextMateGrammar
 
       break if position == line.length
 
-      if match = _.last(stack).getNextTokens(stack, line, position)
+      if match = _.last(ruleStack).getNextTokens(ruleStack, line, position)
         { nextTokens, tokensStartPosition, tokensEndPosition } = match
         if position < tokensStartPosition # unmatched text before next tokens
           tokens.push
@@ -55,7 +55,7 @@ class TextMateGrammar
           scopes: scopes
         break
 
-    { tokens, stack }
+    { tokens, stack: ruleStack }
 
   ruleForInclude: (name) ->
     if name[0] == "#"
