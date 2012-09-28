@@ -810,20 +810,32 @@ class Editor extends View
     lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     activeEditSession = @activeEditSession
 
-    $$ ->
-      for line in lines
-        if fold = line.fold
-          lineAttributes = { class: 'fold line', 'fold-id': fold.id }
-          if activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
-            lineAttributes.class += ' selected'
-        else
-          lineAttributes = { class: 'line' }
-        @pre lineAttributes, =>
-          if line.text == ''
-            @raw '&nbsp;' if line.text == ''
-          else
-            for token in line.tokens
-              @span { class: token.getCssClassString() }, token.value
+    buildLineHtml = @buildLineHtml
+    $$ -> @raw(buildLineHtml(line)) for line in lines
+
+  buildLineHtml: (screenLine) ->
+    scopesStack = []
+    line = []
+
+    if fold = line.fold
+      lineAttributes = { class: 'fold line', 'fold-id': fold.id }
+
+    if activeEditSession.selectionIntersectsBufferRange(fold.getBufferRange())
+      lineAttributes.class += ' selected'
+    else
+      lineAttributes = { class: 'line' }
+
+    attributePairs = "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
+    line.push("<pre #{attributePairs.join(' ')}>")
+    if line.text == ''
+      lines.push('&nbsp;')
+    else
+      for token in line.tokens
+        for scopesStack, i in token.scopes
+        line.push("<span class=#{classString}>")
+        line.push("</span>")
+
+    line.push("</pre>)
 
   insertLineElements: (row, lineElements) ->
     @spliceLineElements(row, 0, lineElements)

@@ -994,19 +994,35 @@ describe "Editor", ->
         expect(buffer.lineForRow(10)).toBe ''
         expect(editor.renderedLines.find('.line:eq(10)').html()).toBe '&nbsp;'
 
-      it "syntax highlights code based on the file type", ->
-        line1 = editor.renderedLines.find('.line:first')
-        expect(line1.find('span:eq(0)')).toMatchSelector '.storage-type-js'
-        expect(line1.find('span:eq(0)').text()).toBe 'var'
-        expect(line1.find('span:eq(1)')).toMatchSelector '.source-js'
-        expect(line1.find('span:eq(1)').text()).toBe ' '
-        expect(line1.find('span:eq(2)')).toMatchSelector '.entity-name-function-js'
-        expect(line1.find('span:eq(2)').text()).toBe 'quicksort'
-        expect(line1.find('span:eq(4)')).toMatchSelector '.keyword-operator-js'
-        expect(line1.find('span:eq(4)').text()).toBe '='
+      fit "syntax highlights code based on the file type", ->
+        line0 = editor.renderedLines.find('.line:first')
+        editor.activeEditSession.linesForScreenRows(0, 0)[0].tokens.forEach (t) ->
+          console.log t.value, t.scopes.join('|')
 
-        line12 = editor.renderedLines.find('.line:eq(11)')
-        expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
+        span0 = line0.children('span:eq(0)')
+        expect(span0).toMatchSelector '.source-js'
+        expect(span0.children('span:eq(0)')).toMatchSelector 'storage-type-js'
+        expect(span0.children('span:eq(0)').text()).toBe 'var'
+
+        span0_1 = span0.children('span:eq(1)')
+        expect(span0_1).toMatchSelector 'meta.function.js'
+        expect(span0_1.text()).toBe 'quicksort = function ()'
+        expect(span0_1.children('span:eq(0)')).toMatchSelector 'entity-name-function-js'
+        expect(span0_1.children('span:eq(0)').text()).toBe "quicksort"
+        expect(span0_1.children('span:eq(1)')).toMatchSelector 'keyword-operator-js'
+        expect(span0_1.children('span:eq(1)').text()).toBe "="
+        expect(span0_1.children('span:eq(2)')).toMatchSelector 'storage-type-function-js'
+        expect(span0_1.children('span:eq(2)').text()).toBe "function"
+        expect(span0_1.children('span:eq(3)')).toMatchSelector 'punctuation-definition-parameters-begin-js'
+        expect(span0_1.children('span:eq(3)').text()).toBe "("
+        expect(span0_1.children('span:eq(4)')).toMatchSelector 'punctuation-definition-parameters-end-js'
+        expect(span0_1.children('span:eq(4)').text()).toBe ")"
+
+        expect(span0.children('span:eq(2)')).toMatchSelector 'meta-brace-curly-js'
+        expect(span0.children('span:eq(2)').text()).toBe "{"
+
+#         line12 = editor.renderedLines.find('.line:eq(11)')
+#         expect(line12.find('span:eq(1)')).toMatchSelector '.keyword'
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
