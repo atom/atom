@@ -107,6 +107,13 @@ describe "TextMateGrammar", ->
        {tokens} = grammar.getLineTokens('')
        expect(tokens[0]).toEqual value: '',  scopes: ["source.coffee"]
 
+    describe "when the line matches no patterns", ->
+      it "does not infinitely loop", ->
+        grammar = TextMateBundle.grammarForFileName("sample.txt")
+        {tokens} = grammar.getLineTokens('hoo')
+        expect(tokens.length).toBe 1
+        expect(tokens[0]).toEqual value: 'hoo',  scopes: ["text.plain", "meta.paragraph.text"]
+
     describe "when the line matches a pattern with a 'contentName'", ->
       it "creates tokens using the content of contentName as the token name", ->
         grammar = TextMateBundle.grammarForFileName("sample.txt")
