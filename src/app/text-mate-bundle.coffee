@@ -7,6 +7,7 @@ TextMateGrammar = require 'text-mate-grammar'
 module.exports =
 class TextMateBundle
   @grammarsByFileType: {}
+  @grammarsByScopeName: {}
   @preferencesByScopeSelector: {}
   @bundles: []
 
@@ -28,6 +29,7 @@ class TextMateBundle
     for grammar in bundle.grammars
       for fileType in grammar.fileTypes
         @grammarsByFileType[fileType] = grammar
+        @grammarsByScopeName[grammar.scopeName] = grammar
 
   @grammarForFileName: (fileName) ->
     extension = fs.extension(fileName)?[1...]
@@ -35,6 +37,9 @@ class TextMateBundle
       extension = fileName
 
     @grammarsByFileType[extension] or @grammarsByFileType["txt"]
+
+  @grammarForScopeName: (scopeName) ->
+    @grammarsByScopeName[scopeName]
 
   @getPreferenceInScope: (scopeSelector, preferenceName) ->
     @preferencesByScopeSelector[scopeSelector]?[preferenceName]

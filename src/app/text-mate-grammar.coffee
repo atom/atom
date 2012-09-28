@@ -13,12 +13,13 @@ class TextMateGrammar
 
   name: null
   fileTypes: null
+  scopeName: null
   foldEndRegex: null
   repository: null
   initialRule: null
 
-  constructor: ({ @name, @fileTypes, scopeName, patterns, repository, foldingStopMarker}) ->
-    @initialRule = new Rule(this, {scopeName, patterns})
+  constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, foldingStopMarker}) ->
+    @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
     @foldEndRegex = new OnigRegExp(foldingStopMarker) if foldingStopMarker
 
@@ -62,6 +63,9 @@ class TextMateGrammar
       @repository[name[1..]]
     else if name == "$self"
       @initialRule
+    else
+      TextMateBundle = require 'text-mate-bundle'
+      TextMateBundle.grammarForScopeName(name)?.initialRule
 
 class Rule
   grammar: null
