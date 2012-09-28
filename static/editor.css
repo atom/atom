@@ -26,6 +26,10 @@
   position: relative;
 }
 
+.line-number.cursor-line-number {
+  color: rgba(255, 255, 255, .6);
+}
+
 .editor.mini .gutter {
   display: none;
 }

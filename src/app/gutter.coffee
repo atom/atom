@@ -9,10 +9,16 @@ class Gutter extends View
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
+  cursorRow: -1
+
+  afterAttach: (onDom) ->
+    @editor()?.on 'cursor-move', => @highlightCursorLine()
+
   editor: ->
     @parentView
 
   renderLineNumbers: (startScreenRow, endScreenRow) ->
+    @firstScreenRow = startScreenRow
     lastScreenRow = -1
     rows = @editor().bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
@@ -22,6 +28,7 @@ class Gutter extends View
         lastScreenRow = row
 
     @calculateWidth()
+    @highlightCursorLine()
 
   calculateWidth: ->
     width = @editor().getLineCount().toString().length * @editor().charWidth
@@ -29,3 +36,12 @@ class Gutter extends View
       @cachedWidth = width
       @lineNumbers.width(width)
       @widthChanged?(@outerWidth())
+
+  highlightCursorLine: ->
+    return if @firstScreenRow < 0
+
+    newCursorRow = @editor().getCursorBufferPosition().row - @firstScreenRow
+    if newCursorRow isnt cursorRow
+      cursorRow = newCursorRow
+      @find('.line-number.cursor-line-number').removeClass('cursor-line-number')
+      @find(".line-number:eq(#{cursorRow})").addClass('cursor-line-number')

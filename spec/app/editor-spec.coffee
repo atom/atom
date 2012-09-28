@@ -1576,6 +1576,19 @@ describe "Editor", ->
         expect(miniEditor.gutter).toBeHidden()
         expect(miniEditor.scrollView.css('left')).toBe '0px'
 
+    it "highlights the line where the initial cursor position is", ->
+      { row, column } = editor.getCursorBufferPosition()
+      expect(row).toBe 0
+      expect(editor.find('.line-number.cursor-line-number').length).toBe 1
+      expect(editor.find('.line-number.cursor-line-number').text()).toBe "1"
+
+    it "updates the highlighted line when the cursor position changes", ->
+      editor.setCursorBufferPosition([1,0])
+      { row, column } = editor.getCursorBufferPosition()
+      expect(row).toBe 1
+      expect(editor.find('.line-number.cursor-line-number').length).toBe 1
+      expect(editor.find('.line-number.cursor-line-number').text()).toBe "2"
+
   describe "folding", ->
     beforeEach ->
       editSession = rootView.project.buildEditSessionForPath('two-hundred.txt')
