@@ -38,22 +38,21 @@ class TextMateGrammar
 
       break if position == line.length
 
-      { nextTokens, tokensStartPosition, tokensEndPosition } = _.last(stack).getNextTokens(stack, line, position)
+      if match = _.last(stack).getNextTokens(stack, line, position)
+        { nextTokens, tokensStartPosition, tokensEndPosition } = match
+        if position < tokensStartPosition # unmatched text before next tokens
+          tokens.push
+            value: line[position...tokensStartPosition]
+            scopes: scopes
 
-      if position < tokensStartPosition # unmatched text before next tokens
-        tokens.push
-          value: line[position...tokensStartPosition]
-          scopes: scopes
-
-      if nextTokens
         tokens.push(nextTokens...)
-      else # unmatched text after last token
+        position = tokensEndPosition
+
+      else # push filler token for unmatched text at end of line
         tokens.push
           value: line[position...line.length]
           scopes: scopes
         break
-
-      position = tokensEndPosition
 
     { tokens, stack }
 
@@ -91,7 +90,7 @@ class Rule
   getNextTokens: (stack, line, position) ->
     patterns = @getIncludedPatterns()
 
-    return {} unless result = @getScanner().findNextMatch(line, position)
+    return null unless result = @getScanner().findNextMatch(line, position)
     { index, captureIndices } = result
 
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
