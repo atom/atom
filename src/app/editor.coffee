@@ -832,10 +832,7 @@ class Editor extends View
 
     pushScope = (scope) ->
       scopeStack.push(scope)
-      classes = []
-      scopeComponents = scope.split('.')
-      classes.push scopeComponents[0..i].join('-') for i in [0...scopeComponents.length]
-      line.push("<span class=\"#{classes.join(' ')}\">")
+      line.push("<span class=\"#{scope.replace(/\./g, ' ')}\">")
 
     popScope = ->
       scopeStack.pop()

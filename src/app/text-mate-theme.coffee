@@ -81,7 +81,7 @@ class TextMateTheme
         properties: @translateScopeSelectorSettings(settings)
 
   translateScopeSelector: (textmateScopeSelector) ->
-    scopes = textmateScopeSelector.replace(/\./g, '-').split(/\s+/).map (scope) -> '.' + scope
+    scopes = textmateScopeSelector.split(/\s+/).map (scope) -> '.' + scope
     scopes.join(' ')
 
   translateScopeSelectorSettings: ({ foreground, background, fontStyle }) ->

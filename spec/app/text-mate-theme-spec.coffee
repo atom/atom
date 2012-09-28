@@ -51,7 +51,7 @@ describe "TextMateTheme", ->
     it "returns an array of objects representing the theme's scope selectors", ->
       expect(rulesets[11]).toEqual
         comment: "Invalid – Deprecated"
-        selector: ".invalid-deprecated"
+        selector: ".invalid.deprecated"
         properties:
           'color': "#D2A8A1"
           # 'font-style': 'italic'
@@ -59,7 +59,7 @@ describe "TextMateTheme", ->
 
       expect(rulesets[12]).toEqual
         comment: "Invalid – Illegal"
-        selector: ".invalid-illegal"
+        selector: ".invalid.illegal"
         properties:
           'color': "#F8F8F8"
           'background-color': 'rgba(86, 45, 86, 0.75)'
