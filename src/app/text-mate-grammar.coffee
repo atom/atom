@@ -41,19 +41,20 @@ class TextMateGrammar
 
       { nextTokens, tokensStartPosition, tokensEndPosition} = _.last(stack).getNextTokens(stack, line, position)
 
-      if nextTokens
-        if position < tokensStartPosition # unmatched text preceding next tokens
-          tokens.push
-            value: line[position...tokensStartPosition]
-            scopes: scopes
+      if position < tokensStartPosition # unmatched text before next tokens
+        tokens.push
+          value: line[position...tokensStartPosition]
+          scopes: scopes
 
-        tokens.push(nextTokens...)
-        position = tokensEndPosition
-      else if tokensEndPosition - tokensStartPosition != 0 # break unless it was a zero length match
+      tokens.push(nextTokens...) if nextTokens
+
+      if tokensEndPosition is undefined # unmatched text after last token
         tokens.push
           value: line[position...line.length]
           scopes: scopes
         break
+
+      position = tokensEndPosition
 
     { tokens, stack }
 
