@@ -105,4 +105,4 @@ class TextMateTheme
       g = parseInt(textmateColor[3..4], 16)
       b = parseInt(textmateColor[5..6], 16)
       a = parseInt(textmateColor[7..8], 16)
-      "rgba(#{r}, #{g}, #{b}, #{a})"
+      "rgba(#{r}, #{g}, #{b}, #{a / 255.0})"
