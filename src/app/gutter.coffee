@@ -10,6 +10,7 @@ class Gutter extends View
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
   cursorRow: -1
+  firstScreenRow: -1
 
   afterAttach: (onDom) ->
     @editor()?.on 'cursor-move', => @highlightCursorLine()
