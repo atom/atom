@@ -30,6 +30,10 @@
   color: rgba(255, 255, 255, .6);
 }
 
+.line.cursor-line, .line-number.cursor-line-number {
+  background-color: rgba(255, 255, 255, .12);
+}
+
 .editor.mini .gutter {
   display: none;
 }

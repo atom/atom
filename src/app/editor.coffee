@@ -36,6 +36,7 @@ class Editor extends View
   charWidth: null
   charHeight: null
   cursorViews: null
+  cursorRow: -1
   selectionViews: null
   lineCache: null
   isFocused: false
@@ -342,6 +343,8 @@ class Editor extends View
         @gutter.removeClass('drop-shadow')
       else
         @gutter.addClass('drop-shadow')
+
+    @on 'cursor-move', => @highlightCursorLine()
 
   selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
@@ -746,6 +749,7 @@ class Editor extends View
 
     if renderedLines
       @gutter.renderLineNumbers(renderFrom, renderTo)
+      @highlightCursorLine()
       @updatePaddingOfRenderedLines()
 
   updatePaddingOfRenderedLines: ->
@@ -809,6 +813,7 @@ class Editor extends View
     charHeight = @charHeight
     lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     activeEditSession = @activeEditSession
+    cursorRow = @cursorRow
 
     buildLineHtml = (line) => @buildLineHtml(line)
     $$ -> @raw(buildLineHtml(line)) for line in lines
@@ -932,3 +937,19 @@ class Editor extends View
     @screenPositionFromPixelPosition
       top: pageY - @scrollView.offset().top + @scrollTop()
       left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
+
+  highlightCursorLine: ->
+    return if @mini
+
+    newCursorRow = @getCursorBufferPosition().row
+    emptySelection = @getSelection().isEmpty()
+    if emptySelection
+      if @cursorRow isnt newCursorRow
+        @cursorRow = newCursorRow
+        screenRow = newCursorRow - @firstRenderedScreenRow
+        @find('.line.cursor-line').removeClass('cursor-line')
+        @find(".line:eq(#{screenRow})").addClass('cursor-line')
+    else if @cursorRow isnt -1
+      @find('.line.cursor-line').removeClass('cursor-line')
+
+    @cursorRow = -1 if !emptySelection
