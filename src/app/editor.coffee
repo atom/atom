@@ -943,4 +943,5 @@ class Editor extends View
     @cursorScreenRow = @getCursorScreenPosition().row
     screenRow = @cursorScreenRow - @firstRenderedScreenRow
     @find('.line.cursor-line').removeClass('cursor-line')
-    @find(".line:eq(#{screenRow})").addClass('cursor-line')
+    if !@getSelection().isMultiLine()
+      @find(".line:eq(#{screenRow})").addClass('cursor-line')

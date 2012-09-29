@@ -1619,10 +1619,10 @@ describe "Editor", ->
         expect(editor.find('.line-number.cursor-line-number').text()).toBe "2"
 
   describe "line highlighting", ->
-    describe "when there is no wrapping", ->
-      beforeEach ->
-         editor.attachToDom(30)
+    beforeEach ->
+      editor.attachToDom(30)
 
+    describe "when there is no wrapping", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
         expect(editor.find('.line.cursor-line').length).toBe 1
@@ -1636,7 +1636,6 @@ describe "Editor", ->
 
     describe "when there is wrapping", ->
       beforeEach ->
-        editor.attachToDom(30)
         editor.setSoftWrap(true)
         setEditorWidthInChars(editor, 20)
 
@@ -1650,6 +1649,18 @@ describe "Editor", ->
         expect(editor.getCursorBufferPosition().row).toBe 1
         expect(editor.find('.line.cursor-line').length).toBe 1
         expect(editor.find('.line.cursor-line').text()).toBe '  var sort = '
+
+    describe "when there is a selection", ->
+      it "highlights if the selection is contained to one line", ->
+        editor.getSelection().setBufferRange(new Range([0,0],[0,1]))
+        expect(editor.getSelection().isMultiLine()).toBe false
+        expect(editor.find('.line.cursor-line').length).toBe 1
+        expect(editor.find('.line.cursor-line').text()).toBe buffer.lineForRow(0)
+
+      it "doesn't highlight if the selection spans multiple lines", ->
+        editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
+        expect(editor.getSelection().isMultiLine()).toBe true
+        expect(editor.find('.line.cursor-line').length).toBe 0
 
   describe "folding", ->
     beforeEach ->
