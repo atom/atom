@@ -814,10 +814,15 @@ class Editor extends View
     activeEditSession = @activeEditSession
     cursorScreenRow = @getCursorScreenPosition().row
 
-    buildLineHtml = (line) => @buildLineHtml(line)
-    $$ -> @raw(buildLineHtml(line)) for line in lines
+    buildLineHtml = (line, lineClasses) => @buildLineHtml(line, lineClasses)
+    $$ ->
+      row = startRow
+      for line in lines
+        lineClasses = if row is cursorScreenRow then ' cursor-line' else null
+        @raw(buildLineHtml(line, lineClasses))
+        row++
 
-  buildLineHtml: (screenLine) ->
+  buildLineHtml: (screenLine, lineClasses) ->
     scopeStack = []
     line = []
 
@@ -848,6 +853,8 @@ class Editor extends View
         lineAttributes.class += ' selected'
     else
       lineAttributes = { class: 'line' }
+
+    lineAttributes.class += lineClasses if lineClasses
 
     attributePairs = []
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
@@ -942,6 +949,6 @@ class Editor extends View
 
     @cursorScreenRow = @getCursorScreenPosition().row
     screenRow = @cursorScreenRow - @firstRenderedScreenRow
-    @find('.line.cursor-line').removeClass('cursor-line')
+    @find('pre.line.cursor-line').removeClass('cursor-line')
     if !@getSelection().isMultiLine()
-      @find(".line:eq(#{screenRow})").addClass('cursor-line')
+      @find("pre.line:eq(#{screenRow})").addClass('cursor-line')
