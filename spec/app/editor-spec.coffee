@@ -1609,14 +1609,25 @@ describe "Editor", ->
 
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
-        expect(editor.find('.line-number.cursor-line-number').length).toBe 1
-        expect(editor.find('.line-number.cursor-line-number').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').length).toBe 1
+        expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').text()).toBe "1"
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
+        expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').length).toBe 1
+        expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').text()).toBe "2"
+
+    describe "when the selection spans multiple lines", ->
+      beforeEach ->
+        editor.attachToDom(30)
+
+      it "doesn't highlight the backround", ->
+        editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
+        expect(editor.getSelection().isMultiLine()).toBe true
         expect(editor.find('.line-number.cursor-line-number').length).toBe 1
-        expect(editor.find('.line-number.cursor-line-number').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').length).toBe 0
+        expect(editor.find('.line-number.cursor-line-number').text()).toBe "3"
 
   describe "line highlighting", ->
     beforeEach ->
