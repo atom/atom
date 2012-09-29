@@ -1494,18 +1494,18 @@ describe "Editor", ->
 
     describe "width", ->
       it "sets the width based on largest line number", ->
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 2
+        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
 
       it "updates the width and the left position of the scroll view when total number of lines gains a digit", ->
         editor.setText("")
 
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 1
+        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 1 + editor.gutter.calculateLineNumberPadding())
         expect(parseInt(editor.scrollView.css('left'))).toBe editor.gutter.outerWidth()
 
         for i in [1..9] # Ends on an empty line 10
           editor.insertText "#{i}\n"
 
-        expect(editor.gutter.lineNumbers.outerWidth()).toBe editor.charWidth * 2
+        expect(editor.gutter.lineNumbers.outerWidth()).toBe(editor.charWidth * 2 + editor.gutter.calculateLineNumberPadding())
         expect(parseInt(editor.scrollView.css('left'))).toBe editor.gutter.outerWidth()
 
     describe "when lines are inserted", ->
