@@ -1622,6 +1622,39 @@ describe "Editor", ->
         expect(editor.find('.line-number.cursor-line-number').length).toBe 1
         expect(editor.find('.line-number.cursor-line-number').text()).toBe "2"
 
+  describe "line highlighting", ->
+    describe "when there is no wrapping", ->
+      beforeEach ->
+         editor.attachToDom(30)
+
+      it "highlights the line where the initial cursor position is", ->
+        expect(editor.getCursorBufferPosition().row).toBe 0
+        expect(editor.find('.line.cursor-line').length).toBe 1
+        expect(editor.find('.line.cursor-line').text()).toBe buffer.lineForRow(0)
+
+      it "updates the highlighted line when the cursor position changes", ->
+        editor.setCursorBufferPosition([1,0])
+        expect(editor.getCursorBufferPosition().row).toBe 1
+        expect(editor.find('.line.cursor-line').length).toBe 1
+        expect(editor.find('.line.cursor-line').text()).toBe buffer.lineForRow(1)
+
+    describe "when there is wrapping", ->
+      beforeEach ->
+        editor.attachToDom(30)
+        editor.setSoftWrap(true)
+        setEditorWidthInChars(editor, 20)
+
+      it "highlights the line where the initial cursor position is", ->
+        expect(editor.getCursorBufferPosition().row).toBe 0
+        expect(editor.find('.line.cursor-line').length).toBe 1
+        expect(editor.find('.line.cursor-line').text()).toBe 'var quicksort = '
+
+      it "updates the highlighted line when the cursor position changes", ->
+        editor.setCursorBufferPosition([1,0])
+        expect(editor.getCursorBufferPosition().row).toBe 1
+        expect(editor.find('.line.cursor-line').length).toBe 1
+        expect(editor.find('.line.cursor-line').text()).toBe '  var sort = '
+
   describe "folding", ->
     beforeEach ->
       editSession = rootView.project.buildEditSessionForPath('two-hundred.txt')
