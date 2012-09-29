@@ -406,7 +406,7 @@ describe "RootView", ->
     describe ".activateExtension(extension)", ->
       it "calls activate on the extension", ->
         rootView.activateExtension(extension)
-        expect(extension.activate).toHaveBeenCalledWith(rootView, undefined)
+        expect(extension.activate).toHaveBeenCalledWith(rootView, undefined, undefined)
 
       it "calls activate on the extension with its previous state", ->
         rootView.activateExtension(extension)
@@ -414,8 +414,13 @@ describe "RootView", ->
 
         newRootView = RootView.deserialize(rootView.serialize())
         newRootView.activateExtension(extension)
-        expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked")
+        expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked", undefined)
         newRootView.remove()
+
+      it "calls activate on the extension with the config data", ->
+        config = {}
+        rootView.activateExtension(extension, config)
+        expect(extension.activate).toHaveBeenCalledWith(rootView, undefined, config)
 
       it "throws an exception if the extension has no 'name' property", ->
         expect(-> rootView.activateExtension({ activate: -> })).toThrow()

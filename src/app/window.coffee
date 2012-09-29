@@ -61,9 +61,9 @@ windowAdditions =
     unless $("head style[id='#{id}']").length
       $('head').append "<style id='#{id}'>#{text}</style>"
 
-  requireExtension: (name) ->
+  requireExtension: (name, config) ->
     extensionPath = require.resolve name
-    extension = rootView.activateExtension require(extensionPath)
+    extension = rootView.activateExtension(require(extensionPath), config)
 
     extensionKeymapPath = fs.join(fs.directory(extensionPath), "keymap.coffee")
     require extensionKeymapPath if fs.exists(extensionKeymapPath)

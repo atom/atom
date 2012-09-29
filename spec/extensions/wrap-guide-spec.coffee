@@ -24,7 +24,7 @@ describe "WrapGuide", ->
 
   describe "@updateGuide", ->
     it "positions the guide at the configured column", ->
-      width = editor.charWidth * wrapGuide.column
+      width = editor.charWidth * wrapGuide.getGuideColumn()
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
 
@@ -34,3 +34,27 @@ describe "WrapGuide", ->
       expect(initial).toBeGreaterThan(0)
       rootView.trigger('increase-font-size')
       expect(wrapGuide.position().left).toBeGreaterThan(initial)
+
+  describe "overriding getGuideColumn", ->
+    it "invokes the callback with the editor path", ->
+      editorPath = null
+      wrapGuide.getGuideColumn = (path) ->
+        editorPath = path
+        80
+      wrapGuide.updateGuide(editor)
+      expect(editorPath).toBe(require.resolve('fixtures/sample.js'))
+
+    it "uses the function from the config data", ->
+      rootView.find('.wrap-guide').remove()
+      config =
+        getGuideColumn: ->
+          1
+      requireExtension('wrap-guide', config)
+      wrapGuide = rootView.find('.wrap-guide').view()
+      expect(wrapGuide.getGuideColumn).toBe(config.getGuideColumn)
+
+    it "hides the guide when the column is less than 1", ->
+      wrapGuide.getGuideColumn = (path) ->
+        -1
+      wrapGuide.updateGuide(editor)
+      expect(wrapGuide).toBeHidden()

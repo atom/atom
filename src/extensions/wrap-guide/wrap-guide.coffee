@@ -2,28 +2,38 @@
 
 module.exports =
 class WrapGuide extends View
-  @activate: (rootView) ->
+  @activate: (rootView, state, config) ->
     requireStylesheet 'wrap-guide.css'
 
     for editor in rootView.getEditors()
-      @appendToEditorPane(rootView, editor) if rootView.parents('html').length
+      if rootView.parents('html').length
+        @appendToEditorPane(rootView, editor, config)
 
     rootView.on 'editor-open', (e, editor) =>
-      @appendToEditorPane(rootView, editor)
+      @appendToEditorPane(rootView, editor, config)
 
-  @appendToEditorPane: (rootView, editor) ->
+  @appendToEditorPane: (rootView, editor, config) ->
     if lines = editor.pane()?.find('.lines')
-      lines.append(new WrapGuide(rootView, editor))
+      lines.append(new WrapGuide(rootView, editor, config))
 
   @content: ->
     @div class: 'wrap-guide'
 
-  column: 80
+  getGuideColumn: null
 
-  initialize: (@rootView, @editor) =>
+  initialize: (@rootView, @editor, config = {}) =>
+    if typeof config.getGuideColumn is 'function'
+      @getGuideColumn = config.getGuideColumn
+    else
+      @getGuideColumn = -> 80
+
     @updateGuide(@editor)
     @editor.on 'editor-path-change', => @updateGuide(@editor)
     @rootView.on 'font-size-change', => @updateGuide(@editor)
 
   updateGuide: (editor) ->
-    @css('left', "#{editor.charWidth * @column}px")
+    column = @getGuideColumn(editor.getPath())
+    if column > 0
+      @css('left', "#{editor.charWidth * column}px").show()
+    else
+      @hide()
