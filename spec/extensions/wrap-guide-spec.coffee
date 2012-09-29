@@ -24,7 +24,7 @@ describe "WrapGuide", ->
 
   describe "@updateGuide", ->
     it "positions the guide at the configured column", ->
-      width = editor.charWidth * wrapGuide.getGuideColumn()
+      width = editor.charWidth * wrapGuide.defaultColumn
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
 
@@ -43,6 +43,16 @@ describe "WrapGuide", ->
         80
       wrapGuide.updateGuide(editor)
       expect(editorPath).toBe(require.resolve('fixtures/sample.js'))
+
+    it "invokes the callback with a default value", ->
+      column = null
+      wrapGuide.getGuideColumn = (path, defaultColumn) ->
+        editorPath = path
+        column = defaultColumn
+        defaultColumn
+
+      wrapGuide.updateGuide(editor)
+      expect(column).toBeGreaterThan(0)
 
     it "uses the function from the config data", ->
       rootView.find('.wrap-guide').remove()

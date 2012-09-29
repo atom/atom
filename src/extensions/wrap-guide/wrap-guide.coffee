@@ -20,19 +20,20 @@ class WrapGuide extends View
     @div class: 'wrap-guide'
 
   getGuideColumn: null
+  defaultColumn: 80
 
   initialize: (@rootView, @editor, config = {}) =>
     if typeof config.getGuideColumn is 'function'
       @getGuideColumn = config.getGuideColumn
     else
-      @getGuideColumn = -> 80
+      @getGuideColumn = (path, defaultColumn) -> defaultColumn
 
     @updateGuide(@editor)
     @editor.on 'editor-path-change', => @updateGuide(@editor)
     @rootView.on 'font-size-change', => @updateGuide(@editor)
 
   updateGuide: (editor) ->
-    column = @getGuideColumn(editor.getPath())
+    column = @getGuideColumn(editor.getPath(), @defaultColumn)
     if column > 0
       @css('left', "#{editor.charWidth * column}px").show()
     else
