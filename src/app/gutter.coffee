@@ -13,14 +13,15 @@ class Gutter extends View
   highestNumberWidth: null
 
   afterAttach: (onDom) ->
-    @editor()?.on 'cursor-move', => @highlightCursorLine()
+    @editor().on 'cursor-move', => @highlightCursorLine()
     @calculateWidth() if onDom
 
   editor: ->
     @parentView
 
-  lineNumberPadding: ->
+  calculateLineNumberPadding: ->
     widthTesterElement = $$ -> @div {class: 'line-number'}, ""
+    widthTesterElement.width(0)
     @append(widthTesterElement)
     lineNumberPadding = widthTesterElement.outerWidth()
     widthTesterElement.remove()
@@ -53,7 +54,7 @@ class Gutter extends View
     highestNumberWidth = @editor().getLineCount().toString().length * @editor().charWidth
     if highestNumberWidth != @highestNumberWidth
       @highestNumberWidth = highestNumberWidth
-      @lineNumbers.width(highestNumberWidth + @lineNumberPadding())
+      @lineNumbers.width(highestNumberWidth + @calculateLineNumberPadding())
       @widthChanged?(@outerWidth())
 
   highlightCursorLine: ->
