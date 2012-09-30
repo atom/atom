@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>content</key>
+	<string>package { "${1:name}":
+	ensure =&gt; ${2:installed},
+}$0</string>
+	<key>name</key>
+	<string>package</string>
+	<key>scope</key>
+	<string>source.puppet</string>
+	<key>tabTrigger</key>
+	<string>package</string>
+	<key>uuid</key>
+	<string>1A1C51EE-AC6D-4F7F-A342-4D6DE1F4FAD3</string>
+</dict>
+</plist>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>SymbolList (resource)</string>
+	<key>scope</key>
+	<string>source.puppet meta.definition.resource.puppet</string>
+	<key>settings</key>
+	<dict>
+		<key>showInSymbolList</key>
+		<integer>1</integer>
+		<key>symbolTransformation</key>
+		<string>s/^\s*(\w+)\s*{\s*['"](.*)['"]:/  \u$1["$2"]/</string>
+	</dict>
+	<key>uuid</key>
+	<string>13DD53A2-401B-4149-82B0-001374330B40</string>
+</dict>
+</plist>

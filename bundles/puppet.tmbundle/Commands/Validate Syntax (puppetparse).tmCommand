@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>saveActiveFile</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+require ENV['TM_SUPPORT_PATH'] + '/lib/textmate'
+puts "&lt;p&gt;Running syntax check &amp;hellip;&lt;/p&gt;\n"
+result = `puppet parser validate --color=false --confdir=/tmp/puppet --vardir=/tmp/puppet $TM_FILEPATH`
+puts "&lt;pre&gt;"
+puts result
+puts "&lt;/pre&gt;"
+puts "&lt;p&gt;Check complete.&lt;/p&gt;\n"
+TextMate.go_to :line =&gt; $1 if result =~ /:(\d+)$/</string>
+	<key>input</key>
+	<string>none</string>
+	<key>keyEquivalent</key>
+	<string>^V</string>
+	<key>name</key>
+	<string>Validate Syntax (puppetparse)</string>
+	<key>output</key>
+	<string>showAsHTML</string>
+	<key>scope</key>
+	<string>source.puppet</string>
+	<key>uuid</key>
+	<string>1DBD7B78-91F3-4528-9AC9-B71D9E5FE445</string>
+</dict>
+</plist>
