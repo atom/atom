@@ -24,8 +24,8 @@ wrapGuideConfig =
 requireExtension 'wrap-guide', wrapGuideConfig
 ```
 
-You can configure the color of the line by adding the following CSS to a custom
-stylesheet:
+You can configure the color and/or width of the line by adding the following
+CSS to a custom stylesheet:
 
 ```css
 .wrap-guide {
