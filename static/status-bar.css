@@ -5,6 +5,14 @@
   position: relative;
 }
 
+.status-bar .file-info {
+  float: left;
+}
+
+.status-bar .buffer-modified {
+  float: right;
+}
+
 .status-bar .cursor-position {
   position: absolute;
   right: 5px;

@@ -186,6 +186,7 @@ class Buffer
     @change(range, '')
 
   change: (oldRange, newText) ->
+    @trigger 'buffer-change'
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText})
     @pushOperation(operation)
@@ -223,6 +224,7 @@ class Buffer
     @undoManager.redo(editSession)
 
   save: ->
+    @trigger 'buffer-change'
     @saveAs(@getPath())
 
   saveAs: (path) ->
