@@ -17,10 +17,10 @@ configuration data options:
 ```coffeescript
 wrapGuideConfig =
   getGuideColumn: (path, defaultColumn) ->
-    if path.indexOf('.mm', path.length - 3) isnt -1
-      return -1 # Disable the guide for Objective-C files
-    else
+    if path.indexOf('.mm', path.length - 3) is -1
       return defaultColumn
+    else
+      return -1 # Disable the guide for Objective-C files
 requireExtension 'wrap-guide', wrapGuideConfig
 ```
 
