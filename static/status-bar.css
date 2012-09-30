@@ -15,7 +15,7 @@
   display: inline-block;
 }
 
-.status-bar .buffer-modified {
+.status-bar .file-info .buffer-modified {
   float: right;
   display: inline-block;
 }
