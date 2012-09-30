@@ -1,1 +1,1 @@
-# Welcome to the Atom guide
+## Welcome to the Atom guide
