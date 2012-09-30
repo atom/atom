@@ -1,4 +1,6 @@
-## Welcome to the Atom guide
+## The Definitive Guide to Atom
+
+Welcome!
 
 ## Extensions
 
