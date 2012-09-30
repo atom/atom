@@ -224,7 +224,6 @@ class Buffer
     @undoManager.redo(editSession)
 
   save: ->
-    @trigger 'buffer-change'
     @saveAs(@getPath())
 
   saveAs: (path) ->
@@ -237,6 +236,7 @@ class Buffer
     @modifiedOnDisk = false
     @setPath(path)
     @trigger 'after-save'
+    @trigger 'buffer-change'
 
   isInConflict: ->
     @isModified() and @isModifiedOnDisk()
