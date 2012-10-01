@@ -41,19 +41,39 @@ describe 'jQuery extensions', ->
         element.trigger 'foo'
         expect(events).toEqual [2,1,3]
 
-  describe "$.fn.events()", ->
-    fit "returns a list of all events being listened for on the target node or its ancestors", ->
+  describe "$.fn.events() and $.fn.document", ->
+    fit "returns a list of all events being listened for on the target node or its ancestors, along with their documentation string", ->
       view = $$ ->
         @div id: 'a', =>
           @div id: 'b', =>
             @div id: 'c'
           @div id: 'd'
 
+      view.document 'A1'
+
+      view.document
+        'a1': "This is event A2"
+        'b2': "This is event b2"
+
+      view.document 'a1': "A1: Waste perfectly-good steak"
       view.on 'a1', ->
       view.on 'a2', ->
-      view.find('#b').on 'b1', ->
-      view.find('#b').on 'b2', ->
+
+      divB = view.find('#b')
+
+      divB.document
+        'b1': "B1: Super-sonic bomber"
+        'b2': "B2: Looks evil. Kinda is."
+      divB.on 'b1', ->
+      divB.on 'b2', ->
+
       view.find('#c').on 'c', ->
       view.find('#d').on 'd', ->
 
-      expect(view.find('#c').events()).toEqual ['c', 'b1', 'b2', 'a1', 'a2']
+      expect(view.find('#c').events()).toEqual [
+        ['c'],
+        ['b1', "B1: Super-sonic bomber"],
+        ['b2', "B2: Looks evil. Kinda is."],
+        ['a1', "A1: Waste perfectly-good steak"],
+        ['a2']
+      ]

@@ -38,8 +38,15 @@ $.fn.trueHeight = ->
 $.fn.trueWidth = ->
   this[0].getBoundingClientRect().width
 
+$.fn.document = (eventDescriptions) ->
+  @data('documentation', {}) unless @data('documentation')
+  _.extend(@data('documentation'), eventDescriptions)
+
 $.fn.events = ->
-  events = _.keys(@data('events') ? {})
+  documentation = @data('documentation') ? {}
+  events = _.keys(@data('events') ? {}).map (eventName) ->
+    _.compact([eventName, documentation[eventName]])
+
   if @hasParent()
     events.concat(@parent().events())
   else
