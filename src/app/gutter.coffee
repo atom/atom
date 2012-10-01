@@ -69,5 +69,5 @@ class Gutter extends View
 
     newLineNumberRow = @find(".line-number:eq(#{screenRowIndex})")
     newLineNumberRow.addClass('cursor-line-number')
-    if !@editor().getSelection().isMultiLine()
+    if @editor().getSelection().isSingleScreenLine()
       newLineNumberRow.addClass('cursor-line-number-background')

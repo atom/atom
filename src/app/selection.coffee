@@ -31,9 +31,8 @@ class Selection
   isReversed: ->
     not @isEmpty() and @cursor.getBufferPosition().isLessThan(@anchor.getBufferPosition())
 
-  isMultiLine: ->
-    range = @getScreenRange()
-    range.start.row != range.end.row
+  isSingleScreenLine: ->
+    @getScreenRange().isSingleLine()
 
   getScreenRange: ->
     if @anchor

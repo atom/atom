@@ -1635,7 +1635,7 @@ describe "Editor", ->
 
       it "doesn't highlight the backround", ->
         editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
-        expect(editor.getSelection().isMultiLine()).toBe true
+        expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line-number.cursor-line-number').length).toBe 1
         expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').length).toBe 0
         expect(editor.find('.line-number.cursor-line-number').text()).toBe "3"
@@ -1683,13 +1683,13 @@ describe "Editor", ->
     describe "when there is a selection", ->
       it "highlights if the selection is contained to one line", ->
         editor.getSelection().setBufferRange(new Range([0,0],[0,1]))
-        expect(editor.getSelection().isMultiLine()).toBe false
+        expect(editor.getSelection().isSingleScreenLine()).toBe true
         expect(editor.find('.line.cursor-line').length).toBe 1
         expect(editor.find('.line.cursor-line').text()).toBe buffer.lineForRow(0)
 
       it "doesn't highlight if the selection spans multiple lines", ->
         editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
-        expect(editor.getSelection().isMultiLine()).toBe true
+        expect(editor.getSelection().isSingleScreenLine()).toBe false
         expect(editor.find('.line.cursor-line').length).toBe 0
 
   describe "folding", ->
