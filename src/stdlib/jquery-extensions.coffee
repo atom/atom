@@ -1,4 +1,5 @@
 $ = require 'jquery'
+_ = require 'underscore'
 
 $.fn.scrollBottom = (newValue) ->
   if newValue?
@@ -36,3 +37,10 @@ $.fn.trueHeight = ->
 
 $.fn.trueWidth = ->
   this[0].getBoundingClientRect().width
+
+$.fn.events = ->
+  events = _.keys(@data('events') ? {})
+  if @hasParent()
+    events.concat(@parent().events())
+  else
+    events
