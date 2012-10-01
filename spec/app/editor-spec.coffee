@@ -1640,6 +1640,14 @@ describe "Editor", ->
         expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').length).toBe 0
         expect(editor.find('.line-number.cursor-line-number').text()).toBe "3"
 
+    fit "when a newline is deleted with backspace, the line number of the new cursor position is highlighted (regression)", ->
+      editor.setCursorScreenPosition([1,0])
+      editor.backspace()
+      expect(editor.find('.line-number.cursor-line-number').length).toBe 1
+      expect(editor.find('.line-number.cursor-line-number').text()).toBe "1"
+      expect(editor.find('.line-number.cursor-line-number-background').length).toBe 1
+      expect(editor.find('.line-number.cursor-line-number-background').text()).toBe "1"
+
   describe "line highlighting", ->
     beforeEach ->
       editor.attachToDom(30)
