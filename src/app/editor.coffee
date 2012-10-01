@@ -813,12 +813,13 @@ class Editor extends View
     lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     activeEditSession = @activeEditSession
     cursorScreenRow = @getCursorScreenPosition().row
+    mini = @mini
 
     buildLineHtml = (line, lineClasses) => @buildLineHtml(line, lineClasses)
     $$ ->
       row = startRow
       for line in lines
-        if @mini or row isnt cursorScreenRow
+        if mini or row isnt cursorScreenRow
           lineClasses = null
         else
           lineClasses = ' cursor-line'
