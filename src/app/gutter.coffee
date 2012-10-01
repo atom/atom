@@ -41,16 +41,11 @@ class Gutter extends View
     cursorScreenRow = @editor().getCursorScreenPosition().row
     @lineNumbers[0].innerHTML = $$$ ->
       for row in rows
-        rowClass = 'line-number'
-        rowValue = null
-
         if row == lastScreenRow
           rowValue = '•'
         else
           rowValue = row + 1
-          rowClass += ' cursor-line-number' if row == cursorScreenRow
-
-        @div {class: rowClass}, rowValue
+        @div {class: 'line-number'}, rowValue
         lastScreenRow = row
 
     @calculateWidth()
