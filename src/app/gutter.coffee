@@ -19,7 +19,7 @@ class Gutter extends View
     editor = @editor()
     highlightCursorLine = => @highlightCursorLine()
     editor.on 'cursor-move', highlightCursorLine
-    editor.on 'editor-selection-change', highlightCursorLine
+    editor.on 'selection-change', highlightCursorLine
     @calculateWidth()
 
   editor: ->

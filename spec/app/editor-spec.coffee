@@ -1596,7 +1596,7 @@ describe "Editor", ->
         expect(miniEditor.find('.line.cursor-line').length).toBe 0
 
 
-  fdescribe "gutter line highlighting", ->
+  describe "gutter line highlighting", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
 

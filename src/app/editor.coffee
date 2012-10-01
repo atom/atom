@@ -344,7 +344,7 @@ class Editor extends View
         @gutter.addClass('drop-shadow')
 
     @on 'cursor-move', => @highlightCursorLine()
-    @on 'editor-selection-change', => @highlightCursorLine()
+    @on 'selection-change', => @highlightCursorLine()
 
   selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
@@ -419,7 +419,7 @@ class Editor extends View
       @trigger 'editor-path-change'
 
     @activeEditSession.getSelection().on 'change-screen-range', =>
-      @trigger 'editor-selection-change'
+      @trigger 'selection-change'
 
     @trigger 'editor-path-change'
     @renderWhenAttached()
