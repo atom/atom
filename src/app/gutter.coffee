@@ -15,7 +15,11 @@ class Gutter extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
-    @editor().on 'cursor-move', => @highlightCursorLine()
+
+    editor = @editor()
+    highlightCursorLine = => @highlightCursorLine()
+    editor.on 'cursor-move', highlightCursorLine
+    editor.on 'editor-selection-change', highlightCursorLine
     @calculateWidth()
 
   editor: ->
