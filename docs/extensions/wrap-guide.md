@@ -1,6 +1,6 @@
 ### Wrap Guide
 
-The wrap-guide extension places a vertical line in each editor at a certain
+The `wrap-guide` extension places a vertical line in each editor at a certain
 column to guide your formatting so lines do not exceed a certain width.
 
 By default the wrap-guide is placed at the 80th column.
