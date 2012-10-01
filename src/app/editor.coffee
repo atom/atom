@@ -344,6 +344,7 @@ class Editor extends View
         @gutter.addClass('drop-shadow')
 
     @on 'cursor-move', => @highlightCursorLine()
+    @on 'editor-selection-change', => @highlightCursorLine()
 
   selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))

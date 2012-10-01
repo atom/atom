@@ -1664,7 +1664,7 @@ describe "Editor", ->
         expect(editor.find('.line.cursor-line').length).toBe 1
         expect(editor.find('.line.cursor-line').text()).toBe buffer.lineForRow(1)
 
-      fit "when a newline is deleted with backspace, the line of the new cursor position is highlighted (regression)", ->
+      it "when a newline is deleted with backspace, the line of the new cursor position is highlighted", ->
         editor.setCursorScreenPosition([1,0])
         editor.backspace()
         expect(editor.find('.line.cursor-line').length).toBe 1
