@@ -1589,6 +1589,12 @@ describe "Editor", ->
         expect(miniEditor.gutter).toBeHidden()
         expect(miniEditor.scrollView.css('left')).toBe '0px'
 
+      it "doesn't highlight the only line", ->
+        miniEditor = new Editor(mini: true)
+        miniEditor.attachToDom()
+        expect(miniEditor.getCursorBufferPosition().row).toBe 0
+        expect(miniEditor.find('.line.cursor-line').length).toBe 0
+
     describe "when there is no wrapping", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0

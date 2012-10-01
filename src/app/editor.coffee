@@ -818,7 +818,10 @@ class Editor extends View
     $$ ->
       row = startRow
       for line in lines
-        lineClasses = if row is cursorScreenRow then ' cursor-line' else null
+        if @mini or row isnt cursorScreenRow
+          lineClasses = null
+        else
+          lineClasses = 'cursor-line'
         @raw(buildLineHtml(line, lineClasses))
         row++
 
