@@ -13,8 +13,10 @@ class Gutter extends View
   highestNumberWidth: null
 
   afterAttach: (onDom) ->
+    return if @attached or not onDom
+    @attached = true
     @editor().on 'cursor-move', => @highlightCursorLine()
-    @calculateWidth() if onDom
+    @calculateWidth()
 
   editor: ->
     @parentView
