@@ -14,7 +14,3 @@ describe "Token", ->
 
   afterEach ->
     editSession.destroy()
-
-  describe ".getCssClassString()", ->
-    it "returns a class for every scope prefix, replacing . characters in scope names with --", ->
-      expect(token.getCssClassString()).toBe 'source source-js punctuation punctuation-terminator punctuation-terminator-statement punctuation-terminator-statement-js'
