@@ -1595,6 +1595,11 @@ describe "Editor", ->
         expect(miniEditor.getCursorBufferPosition().row).toBe 0
         expect(miniEditor.find('.line.cursor-line').length).toBe 0
 
+
+  describe "gutter line highlighting", ->
+    beforeEach ->
+      editor.attachToDom(heightInLines: 5.5)
+
     describe "when there is no wrapping", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
