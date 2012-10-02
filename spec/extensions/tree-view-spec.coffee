@@ -10,14 +10,14 @@ describe "TreeView", ->
   [rootView, project, treeView, sampleJs, sampleTxt] = []
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/'))
+    rootView = new RootView(require.resolve('fixtures/tree-view'))
     project = rootView.project
 
     rootView.activateExtension(TreeView)
     treeView = rootView.find(".tree-view").view()
     treeView.root = treeView.find('> li:first').view()
-    sampleJs = treeView.find('.file:contains(sample.js)')
-    sampleTxt = treeView.find('.file:contains(sample.txt)')
+    sampleJs = treeView.find('.file:contains(tree-view.js)')
+    sampleTxt = treeView.find('.file:contains(tree-view.txt)')
 
     expect(treeView.root.directory.subscriptionCount()).toBeGreaterThan 0
 
@@ -27,21 +27,21 @@ describe "TreeView", ->
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
       expect(treeView.root.find('> .header .disclosure-arrow')).toHaveText('▾')
-      expect(treeView.root.find('> .header .name')).toHaveText('fixtures/')
+      expect(treeView.root.find('> .header .name')).toHaveText('tree-view/')
 
       rootEntries = treeView.root.find('.entries')
       subdir0 = rootEntries.find('> li:eq(0)')
       expect(subdir0.find('.disclosure-arrow')).toHaveText('▸')
-      expect(subdir0.find('.name')).toHaveText('dir/')
+      expect(subdir0.find('.name')).toHaveText('dir1/')
       expect(subdir0.find('.entries')).not.toExist()
 
-      subdir2 = rootEntries.find('> li:eq(3)')
+      subdir2 = rootEntries.find('> li:eq(1)')
       expect(subdir2.find('.disclosure-arrow')).toHaveText('▸')
-      expect(subdir2.find('.name')).toHaveText('zed/')
+      expect(subdir2.find('.name')).toHaveText('dir2/')
       expect(subdir2.find('.entries')).not.toExist()
 
-      expect(rootEntries.find('> .file:contains(sample.js)')).toExist()
-      expect(rootEntries.find('> .file:contains(sample.txt)')).toExist()
+      expect(rootEntries.find('> .file:contains(tree-view.js)')).toExist()
+      expect(rootEntries.find('> .file:contains(tree-view.txt)')).toExist()
 
     it "selects the rootview", ->
       expect(treeView.selectedEntry()).toEqual treeView.root
@@ -84,7 +84,7 @@ describe "TreeView", ->
       newRootView?.deactivate()
 
     it "restores expanded directories and selected file when deserialized", ->
-      treeView.find('.directory:contains(zed)').click()
+      treeView.find('.directory:contains(dir1)').click()
       sampleJs.click()
       newRootView = RootView.deserialize(rootView.serialize())
       rootView.deactivate() # Deactivates previous TreeView
@@ -94,8 +94,8 @@ describe "TreeView", ->
       newTreeView = newRootView.find(".tree-view").view()
 
       expect(newTreeView).toExist()
-      expect(newTreeView.selectedEntry()).toMatchSelector(".file:contains(sample.js)")
-      expect(newTreeView.find(".directory:contains(zed)")).toHaveClass("expanded")
+      expect(newTreeView.selectedEntry()).toMatchSelector(".file:contains(tree-view.js)")
+      expect(newTreeView.find(".directory:contains(dir1)")).toHaveClass("expanded")
 
     it "restores the focus state of the tree view", ->
       rootView.attachToDom()
@@ -112,7 +112,7 @@ describe "TreeView", ->
       expect(newTreeView).toMatchSelector ':focus'
 
     it "restores the scroll top when toggled", ->
-      rootView.height(100)
+      rootView.height(5)
       rootView.attachToDom()
       expect(treeView).toBeVisible()
       treeView.focus()
@@ -162,11 +162,11 @@ describe "TreeView", ->
 
     describe "if the current file has a path", ->
       it "shows and focuses the tree view and selects the file", ->
-        rootView.open('dir/a')
+        rootView.open('dir1/file1')
         rootView.trigger 'tree-view:reveal-active-file'
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.focus).toHaveBeenCalled()
-        expect(treeView.selectedEntry().getPath()).toMatch /dir\/a$/
+        expect(treeView.selectedEntry().getPath()).toMatch /dir1\/file1$/
 
     describe "if the current file has no path", ->
       it "shows and focuses the tree view, but does not attempt to select a specific file", ->
@@ -196,7 +196,7 @@ describe "TreeView", ->
 
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->
-      subdir = treeView.root.find('.entries > li:contains(dir/)').view()
+      subdir = treeView.root.find('.entries > li:contains(dir1/)').view()
 
       expect(subdir.disclosureArrow).toHaveText('▸')
       expect(subdir.find('.entries')).not.toExist()
@@ -211,10 +211,10 @@ describe "TreeView", ->
       expect(subdir.find('.entries')).not.toExist()
 
     it "restores the expansion state of descendant directories", ->
-      child = treeView.root.find('.entries > li:contains(dir/)').view()
+      child = treeView.root.find('.entries > li:contains(dir1/)').view()
       child.disclosureArrow.click()
 
-      grandchild = child.find('.entries > li:contains(a-dir/)').view()
+      grandchild = child.find('.entries > li:contains(sub-dir1/)').view()
       grandchild.disclosureArrow.click()
 
       treeView.root.disclosureArrow.click()
@@ -222,16 +222,16 @@ describe "TreeView", ->
       treeView.root.disclosureArrow.click()
 
       # previously expanded descendants remain expanded
-      expect(treeView.root.find('> .entries > li:contains(dir/) > .entries > li:contains(a-dir/) > .entries').length).toBe 1
+      expect(treeView.root.find('> .entries > li:contains(dir1/) > .entries > li:contains(sub-dir1/) > .entries').length).toBe 1
 
       # collapsed descendants remain collapsed
-      expect(treeView.root.find('> .entries > li.contains(zed/) > .entries')).not.toExist()
+      expect(treeView.root.find('> .entries > li.contains(dir2/) > .entries')).not.toExist()
 
     it "when collapsing a directory, removes change subscriptions from the collapsed directory and its descendants", ->
-      child = treeView.root.entries.find('li:contains(dir/)').view()
+      child = treeView.root.entries.find('li:contains(dir1/)').view()
       child.disclosureArrow.click()
 
-      grandchild = child.entries.find('li:contains(a-dir/)').view()
+      grandchild = child.entries.find('li:contains(sub-dir1/)').view()
       grandchild.disclosureArrow.click()
 
       expect(treeView.root.directory.subscriptionCount()).toBe 1
@@ -250,20 +250,20 @@ describe "TreeView", ->
 
       sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleJs).toHaveClass 'selected'
-      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/sample.js')
+      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
       expect(rootView.getActiveEditor().isFocused).toBeFalsy()
 
       sampleTxt.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleTxt).toHaveClass 'selected'
       expect(treeView.find('.selected').length).toBe 1
-      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/sample.txt')
+      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.txt')
       expect(rootView.getActiveEditor().isFocused).toBeFalsy()
 
   describe "when a file is double-clicked", ->
     it "selects the file and opens it in the active editor on the first click, then changes focus to the active editor on the second", ->
       sampleJs.trigger clickEvent(originalEvent: { detail: 1 })
       expect(sampleJs).toHaveClass 'selected'
-      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/sample.js')
+      expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
       expect(rootView.getActiveEditor().isFocused).toBeFalsy()
 
       sampleJs.trigger clickEvent(originalEvent: { detail: 2 })
@@ -288,15 +288,15 @@ describe "TreeView", ->
   describe "when a new file is opened in the active editor", ->
     it "is selected in the tree view if the file's entry visible", ->
       sampleJs.click()
-      rootView.open(require.resolve('fixtures/sample.txt'))
+      rootView.open(require.resolve('fixtures/tree-view/tree-view.txt'))
 
       expect(sampleTxt).toHaveClass 'selected'
       expect(treeView.find('.selected').length).toBe 1
 
     it "selected a file's parent dir if the file's entry is not visible", ->
-      rootView.open(require.resolve('fixtures/dir/a-dir/oh-git'))
+      rootView.open(require.resolve('fixtures/tree-view/dir1/sub-dir1/sub-file1'))
 
-      dirView = treeView.root.find('.directory:contains(dir)').view()
+      dirView = treeView.root.find('.directory:contains(dir1)').view()
       expect(dirView).toHaveClass 'selected'
 
   describe "when a different editor becomes active", ->
@@ -346,7 +346,7 @@ describe "TreeView", ->
 
         beforeEach ->
           nested = treeView.root.find('.directory:eq(2)').view()
-          expect(nested.find('.header').text()).toContain 'nested'
+          expect(nested.find('.header').text()).toContain 'nested/'
           nested.expand()
           nested2 = nested.entries.find('.entry:last').view()
           nested2.click()
@@ -485,9 +485,9 @@ describe "TreeView", ->
     describe "tree-view:open-selected-entry", ->
       describe "when a file is selected", ->
         it "opens the file in the editor and focuses it", ->
-          treeView.root.find('.file:contains(sample.js)').click()
+          treeView.root.find('.file:contains(tree-view.js)').click()
           treeView.root.trigger 'tree-view:open-selected-entry'
-          expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/sample.js')
+          expect(rootView.getActiveEditor().getPath()).toBe require.resolve('fixtures/tree-view/tree-view.js')
           expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
       describe "when a directory is selected", ->
@@ -736,7 +736,7 @@ describe "TreeView", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fs.join(require.resolve('fixtures'), 'temporary')
+      temporaryFilePath = fs.join(require.resolve('fixtures/tree-view'), 'temporary')
       if fs.exists(temporaryFilePath)
         fs.remove(temporaryFilePath)
         waits(20)

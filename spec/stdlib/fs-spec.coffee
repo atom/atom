@@ -83,7 +83,7 @@ describe "fs", ->
 
       expect(paths.length).toBeGreaterThan 0
       for path in paths
-        expect(path).not.toMatch /dir/
+        expect(path).not.toMatch /\/dir$/
 
   describe ".lastModified(path)", ->
     it "returns a Date object representing the time the file was last modified", ->
