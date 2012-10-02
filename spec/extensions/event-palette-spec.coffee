@@ -14,7 +14,7 @@ describe "EventPalette", ->
     rootView.remove()
 
   describe "when shown", ->
-    ffit "shows a list of all valid events for the previously focused element", ->
+    it "shows a list of all valid events for the previously focused element, then focuses the mini-editor", ->
       rootView.attachToDom().focus()
       rootView.trigger 'event-palette:show'
       for [event, description] in rootView.getActiveEditor().events()

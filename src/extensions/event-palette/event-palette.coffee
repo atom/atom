@@ -18,9 +18,8 @@ class EventPalette extends View
 
   attach: ->
     @previouslyFocusedElement = $(':focus')
-    console.log @pre
     @populateEventList()
-    @appendTo(@rootView.vertical)
+    @appendTo(@rootView)
     @miniEditor.focus()
 
   populateEventList: ->
