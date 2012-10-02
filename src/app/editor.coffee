@@ -646,7 +646,7 @@ class Editor extends View
   addCursorView: (cursor) ->
     cursorView = new CursorView(cursor, this)
     @cursorViews.push(cursorView)
-    @renderedLines.append(cursorView)
+    @appendToLinesView(cursorView)
     cursorView
 
   removeCursorView: (cursorView) ->
@@ -670,7 +670,7 @@ class Editor extends View
   addSelectionView: (selection) ->
     selectionView = new SelectionView({editor: this, selection})
     @selectionViews.push(selectionView)
-    @renderedLines.append(selectionView)
+    @appendToLinesView(selectionView)
     selectionView
 
   removeSelectionView: (selectionView) ->
@@ -680,9 +680,12 @@ class Editor extends View
     cursorView.remove() for cursorView in @getCursorViews()
     selectionView.remove() for selectionView in @getSelectionViews()
 
+  appendToLinesView: (view) ->
+    @renderedLines.append(view)
+
   calculateDimensions: ->
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
-    @renderedLines.append(fragment)
+    @appendToLinesView(fragment)
 
     lineRect = fragment[0].getBoundingClientRect()
     charRect = fragment.find('span')[0].getBoundingClientRect()

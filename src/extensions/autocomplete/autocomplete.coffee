@@ -110,7 +110,7 @@ class Autocomplete extends View
 
     originalCursorPosition = @editor.getCursorScreenPosition()
     @filterMatches()
-    @editor.append(this)
+    @editor.appendToLinesView(this)
     @setPosition(originalCursorPosition)
 
     @miniEditor.focus()
@@ -125,12 +125,12 @@ class Autocomplete extends View
   setPosition: (originalCursorPosition) ->
     { left, top } = @editor.pixelPositionForScreenPosition(originalCursorPosition)
 
-    top -= @editor.scrollTop()
+    height = @outerHeight()
     potentialTop = top + @editor.lineHeight
-    potentialBottom = potentialTop + @outerHeight()
+    potentialBottom = potentialTop - @editor.scrollTop()  + height
 
     if potentialBottom > @editor.outerHeight()
-      @css(left: left, bottom: @editor.outerHeight() - top, top: 'inherit')
+      @css(left: left, top: top - height, bottom: 'inherit')
     else
       @css(left: left, top: potentialTop, bottom: 'inherit')
 
