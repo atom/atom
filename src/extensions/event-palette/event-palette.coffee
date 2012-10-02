@@ -21,6 +21,7 @@ class EventPalette extends View
     console.log @pre
     @populateEventList()
     @appendTo(@rootView.vertical)
+    @miniEditor.focus()
 
   populateEventList: ->
     events = @previouslyFocusedElement.events()

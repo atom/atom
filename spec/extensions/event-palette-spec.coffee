@@ -19,3 +19,4 @@ describe "EventPalette", ->
       rootView.trigger 'event-palette:show'
       for [event, description] in rootView.getActiveEditor().events()
         expect(palette.eventList.find("td:contains(#{event})")).toExist()
+      expect(palette.miniEditor.isFocused).toBeTruthy()
