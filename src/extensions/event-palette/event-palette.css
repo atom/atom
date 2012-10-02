@@ -1,10 +1,21 @@
 .event-palette {
   position: absolute;
+  width: 100%;
   bottom: 0;
 }
 
-.event-palette .event-list {
+.select-list {
+  background-color: black;
+  position: relative;
   max-height: 300px;
   color: white;
   overflow-y: auto;
+}
+
+.select-list table {
+  width: 100%;
+}
+
+.select-list .selected {
+  background-color: green;
 }

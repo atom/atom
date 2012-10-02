@@ -93,8 +93,6 @@ class Editor extends View
     editorBindings =
       'move-right': @moveCursorRight
       'move-left': @moveCursorLeft
-      'move-down': @moveCursorDown
-      'move-up': @moveCursorUp
       'move-to-next-word': @moveCursorToNextWord
       'move-to-previous-word': @moveCursorToPreviousWord
       'select-right': @selectRight
@@ -136,6 +134,8 @@ class Editor extends View
 
     unless @mini
       _.extend editorBindings,
+        'move-down': @moveCursorDown
+        'move-up': @moveCursorUp
         'save': @save
         'newline-below': @insertNewlineBelow
         'toggle-soft-wrap': @toggleSoftWrap
