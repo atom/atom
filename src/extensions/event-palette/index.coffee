@@ -1,0 +1,1 @@
+module.exports = require 'event-palette/event-palette'

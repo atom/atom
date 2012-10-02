@@ -1,0 +1,5 @@
+.event-palette .event-list {
+  max-height: 300px;
+  color: white;
+  overflow-y: auto;
+}
