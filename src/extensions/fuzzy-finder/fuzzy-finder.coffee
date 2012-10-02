@@ -93,18 +93,22 @@ class FuzzyFinder extends View
     false
 
   moveUp: ->
-    @findSelectedLi()
-      .filter(':not(:first-child)')
-      .removeClass('selected')
-      .prev()
-      .addClass('selected')
+    selected = @findSelectedLi().removeClass('selected')
+
+    if selected.filter(':not(:first-child)').length is 0
+      selected = @pathList.children('li:last')
+    else
+      selected = selected.prev()
+    selected.addClass('selected')
 
   moveDown: ->
-    @findSelectedLi()
-      .filter(':not(:last-child)')
-      .removeClass('selected')
-      .next()
-      .addClass('selected')
+    selected = @findSelectedLi().removeClass('selected')
+
+    if selected.filter(':not(:last-child)').length is 0
+      selected = @pathList.children('li:first')
+    else
+      selected = selected.next()
+    selected.addClass('selected')
 
   findMatches: (query) ->
     fuzzyFilter(@paths, query, maxResults: @maxResults)

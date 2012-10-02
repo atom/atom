@@ -223,15 +223,14 @@ describe 'FuzzyFinder', ->
         expect(finder.find('li:eq(1)')).toHaveClass "selected"
         expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
 
-      it "does not fall off the end or begining of the list", ->
+      it "wraps around when at the end or begining of the list", ->
         expect(finder.find('li:first')).toHaveClass "selected"
+
         finder.miniEditor.trigger keydownEvent('up')
-        expect(finder.find('li:first')).toHaveClass "selected"
-
-        for i in [1..finder.pathList.children().length+2]
-          finder.miniEditor.trigger keydownEvent('down')
-
         expect(finder.find('li:last')).toHaveClass "selected"
+
+        finder.miniEditor.trigger keydownEvent('down')
+        expect(finder.find('li:first')).toHaveClass "selected"
 
     describe "when the fuzzy finder loses focus", ->
       it "detaches itself", ->
