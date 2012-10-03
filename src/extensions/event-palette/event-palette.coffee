@@ -18,35 +18,7 @@ class EventPalette extends View
     @on 'move-up', => @selectPrevious()
     @on 'move-down', => @selectNext()
     @on 'event-palette:cancel', => @detach()
-
-  selectPrevious: ->
-    current = @getSelectedItem()
-    previous = @getSelectedItem().prev()
-    if previous.length
-      current.removeClass('selected')
-      previous.addClass('selected')
-      @scrollToItem(previous)
-
-  selectNext: ->
-    current = @getSelectedItem()
-    next = @getSelectedItem().next()
-    if next.length
-      current.removeClass('selected')
-      next.addClass('selected')
-      @scrollToItem(next)
-
-  scrollToItem: (item) ->
-    scrollTop = @eventList.prop('scrollTop')
-    desiredTop = item.position().top + scrollTop
-    desiredBottom = desiredTop + item.height()
-
-    if desiredTop < scrollTop
-      @eventList.scrollTop(desiredTop)
-    else if desiredBottom > @eventList.scrollBottom()
-      @eventList.scrollBottom(desiredBottom)
-
-  getSelectedItem: ->
-    @eventList.find('.selected')
+    @on 'event-palette:select', => @triggerSelectedEvent()
 
   attach: ->
     @previouslyFocusedElement = $(':focus')
@@ -61,7 +33,44 @@ class EventPalette extends View
       @table =>
         for [event, description] in events
           @tr class: 'event', =>
-            @td event
+            @td event, class: 'event-name'
             @td description if description
 
     @eventList.html(table)
+
+  selectPrevious: ->
+    @selectItem(@getSelectedItem().prev())
+
+  selectNext: ->
+    @selectItem(@getSelectedItem().next())
+
+  selectItem: (item) ->
+    return unless item.length
+    @eventList.find('.selected').removeClass('selected')
+    item.addClass('selected')
+    @scrollToItem(item)
+
+  scrollToItem: (item) ->
+    scrollTop = @eventList.prop('scrollTop')
+    desiredTop = item.position().top + scrollTop
+    desiredBottom = desiredTop + item.height()
+
+    if desiredTop < scrollTop
+      @eventList.scrollTop(desiredTop)
+    else if desiredBottom > @eventList.scrollBottom()
+      @eventList.scrollBottom(desiredBottom)
+
+  getSelectedItem: ->
+    @eventList.find('.selected')
+
+  getSelectedEventName: ->
+    @getSelectedItem().find('.event-name').text()
+
+  triggerSelectedEvent: ->
+    @previouslyFocusedElement.focus()
+    @previouslyFocusedElement.trigger(@getSelectedEventName())
+    @detach()
+
+  detach: ->
+    @rootView.focus() if @is(':focus')
+    super

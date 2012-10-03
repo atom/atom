@@ -94,13 +94,11 @@ class Editor extends View
       'move-right': @moveCursorRight
       'move-left': @moveCursorLeft
       'move-to-next-word': @moveCursorToNextWord
-      'move-to-previous-word': @moveCursorToPreviousWord
       'select-right': @selectRight
       'select-left': @selectLeft
       'select-up': @selectUp
       'select-down': @selectDown
       'select-word': @selectWord
-      'newline': @insertNewline
       'indent': @indent
       'indent-selected-rows': @indentSelectedRows
       'outdent-selected-rows': @outdentSelectedRows
@@ -137,6 +135,7 @@ class Editor extends View
         'move-down': @moveCursorDown
         'move-up': @moveCursorUp
         'save': @save
+        'newline': @insertNewline
         'newline-below': @insertNewlineBelow
         'toggle-soft-wrap': @toggleSoftWrap
         'fold-all': @foldAll
