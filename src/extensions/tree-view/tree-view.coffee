@@ -199,7 +199,7 @@ class TreeView extends View
   moveSelectedEntry: ->
     entry = @selectedEntry()
     return unless entry
-    oldPath = @selectedEntry().getPath()
+    oldPath = entry.getPath()
 
     dialog = new Dialog
       prompt: "Enter the new path for the file:"
@@ -241,13 +241,13 @@ class TreeView extends View
       path: relativeDirectoryPath
       select: false
       onConfirm: (relativePath) =>
-        endsWithDirectorySeperator = /\/$/.test(relativePath)
+        endsWithDirectorySeparator = /\/$/.test(relativePath)
         path = @rootView.project.resolve(relativePath)
         try
           if fs.exists(path)
             pathType = if fs.isFile(path) then "file" else "directory"
             dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path:")
-          else if endsWithDirectorySeperator
+          else if endsWithDirectorySeparator
             fs.makeTree(path)
             dialog.cancel()
             @entryForPath(path).buildEntries()
