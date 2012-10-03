@@ -55,7 +55,7 @@ class TreeView extends View
     @on 'tree-view:add', => @add()
     @on 'tree-view:remove', => @removeSelectedEntry()
     @on 'tree-view:directory-modified', =>
-      if @is(':focus')
+      if @hasFocus()
         @selectEntryForPath(@selectedPath) if @selectedPath
       else
         @selectActiveFile()
@@ -74,7 +74,7 @@ class TreeView extends View
   serialize: ->
     directoryExpansionStates: @root?.serializeEntryExpansionStates()
     selectedPath: @selectedEntry()?.getPath()
-    hasFocus: @is(':focus')
+    hasFocus: @hasFocus()
     attached: @hasParent()
     scrollTop: @scrollTop()
 
@@ -82,7 +82,7 @@ class TreeView extends View
     @root?.unwatchEntries()
 
   toggle: ->
-    if @is(':focus')
+    if @hasFocus()
       @detach()
       @rootView.focus()
     else
@@ -95,6 +95,9 @@ class TreeView extends View
   detach: ->
     @scrollTopAfterAttach = @scrollTop()
     super
+
+  hasFocus: ->
+    @is(':focus')
 
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()
