@@ -49,8 +49,6 @@ describe 'jQuery extensions', ->
             @div id: 'c'
           @div id: 'd'
 
-      view.document 'A1'
-
       view.document
         'a1': "This is event A2"
         'b2': "This is event b2"
