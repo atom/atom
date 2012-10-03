@@ -12,7 +12,7 @@ class Dialog extends View
 
   initialize: ({path, @onConfirm, select} = {}) ->
     @miniEditor.focus()
-    @on 'tree-view:confirm', => @confirm()
+    @on 'tree-view:confirm', => @onConfirm(@miniEditor.getText())
     @on 'tree-view:cancel', => @cancel()
     @miniEditor.on 'focusout', => @remove()
 
@@ -24,8 +24,7 @@ class Dialog extends View
       range = [[0, path.length - baseName.length], [0, path.length - extension.length]]
       @miniEditor.setSelectedBufferRange(range)
 
-  confirm: ->
-    return if @onConfirm(@miniEditor.getText()) is false
+  close: ->
     @remove()
     $('#root-view').focus()
 

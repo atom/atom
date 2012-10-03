@@ -590,6 +590,7 @@ describe "TreeView", ->
         describe "when the path with a trailing '/' is changed and confirmed", ->
           describe "when no file or directory exists at the given path", ->
             it "adds a directory and closes the dialog", ->
+              treeView.attachToDom()
               newPath = fs.join(dirPath, "new/dir")
               addDialog.miniEditor.insertText("new/dir/")
               addDialog.trigger 'tree-view:confirm'
@@ -597,6 +598,8 @@ describe "TreeView", ->
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveEditor().getPath()).not.toBe newPath
+              expect(treeView).toMatchSelector(':focus')
+              expect(rootView.getActiveEditor().isFocused).toBeFalsy()
 
           describe "when a file or directory already exists at the given path", ->
             it "shows an error message and does not close the dialog", ->
