@@ -11,12 +11,15 @@ class SelectList extends View
       @ol outlet: 'list'
 
   maxItems: Infinity
+  filteredArray: null
 
   initialize: ->
     requireStylesheet 'select-list.css'
     @miniEditor.getBuffer().on 'change', => @populateList()
     @on 'move-up', => @selectPreviousItem()
     @on 'move-down', => @selectNextItem()
+    @on 'core:confirm', => @confirmSelection()
+    @on 'core:cancel', => @cancelled()
 
   setArray: (@array) ->
     @populateList()
@@ -25,13 +28,15 @@ class SelectList extends View
   populateList: ->
     filterQuery = @miniEditor.getText()
     if filterQuery.length
-      filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
+      @filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
     else
-      filteredArray = @array
+      @filteredArray = @array
 
     @list.empty()
-    for i in [0...Math.min(filteredArray.length, @maxItems)]
-      @list.append(@itemForElement(filteredArray[i]))
+    for i in [0...Math.min(@filteredArray.length, @maxItems)]
+      item = @itemForElement(@filteredArray[i])
+      item.data('select-list-index', i)
+      @list.append(item)
 
   selectPreviousItem: ->
     @selectItem(@getSelectedItem().prev())
@@ -57,3 +62,7 @@ class SelectList extends View
 
   getSelectedItem: ->
     @list.find('li.selected')
+
+  confirmSelection: ->
+    index = @getSelectedItem().data('select-list-index')
+    @selected(@filteredArray[index])

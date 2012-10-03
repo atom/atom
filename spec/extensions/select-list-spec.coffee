@@ -17,6 +17,9 @@ fdescribe "SelectList", ->
     selectList.itemForElement = (element) ->
       $$ -> @li element[1], class: element[0]
 
+    selectList.selected = jasmine.createSpy('selected hook')
+    selectList.cancelled = jasmine.createSpy('cancelled hook')
+
     selectList.setArray(array)
     {list, miniEditor} = selectList
 
@@ -72,14 +75,15 @@ fdescribe "SelectList", ->
       miniEditor.trigger 'move-up'
       expect(list.scrollBottom()).toBe itemHeight * 3
 
-  describe "the core:select event", ->
-    it "triggers the selected hook", ->
+  describe "the core:confirm event", ->
+    it "triggers the selected hook with the selected array element", ->
+      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'core:confirm'
+      expect(selectList.selected).toHaveBeenCalledWith(array[2])
 
   describe "the core:cancel event", ->
     it "triggers the cancelled hook", ->
-
-
-
-
-
+      miniEditor.trigger 'core:cancel'
+      expect(selectList.cancelled).toHaveBeenCalled()
 
