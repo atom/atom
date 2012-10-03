@@ -1,0 +1,8 @@
+.select-list ol {
+  position: relative;
+  overflow-y: auto;
+}
+
+.select-list ol .selected {
+  background: green;
+}

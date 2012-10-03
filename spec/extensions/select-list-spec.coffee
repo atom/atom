@@ -56,6 +56,22 @@ fdescribe "SelectList", ->
       expect(list.find('li:eq(2)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
 
+    it "scrolls to keep the selected item in view", ->
+      selectList.attachToDom()
+      itemHeight = list.find('li').outerHeight()
+      list.height(itemHeight * 2)
+
+      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'move-down'
+      expect(list.scrollBottom()).toBe itemHeight * 3
+
+      miniEditor.trigger 'move-down'
+      expect(list.scrollBottom()).toBe itemHeight * 4
+
+      miniEditor.trigger 'move-up'
+      miniEditor.trigger 'move-up'
+      expect(list.scrollBottom()).toBe itemHeight * 3
+
   describe "the core:select event", ->
     it "triggers the selected hook", ->
 

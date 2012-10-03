@@ -13,6 +13,7 @@ class SelectList extends View
   maxItems: Infinity
 
   initialize: ->
+    requireStylesheet 'select-list.css'
     @miniEditor.getBuffer().on 'change', => @populateList()
     @on 'move-up', => @selectPreviousItem()
     @on 'move-down', => @selectNextItem()
@@ -42,6 +43,17 @@ class SelectList extends View
     if item.length
       @list.find('.selected').removeClass('selected')
       item.addClass 'selected'
+      @scrollToItem(item)
+
+  scrollToItem: (item) ->
+    scrollTop = @list.scrollTop()
+    desiredTop = item.position().top + scrollTop
+    desiredBottom = desiredTop + item.height()
+
+    if desiredTop < scrollTop
+      @list.scrollTop(desiredTop)
+    else if desiredBottom > @list.scrollBottom()
+      @list.scrollBottom(desiredBottom)
 
   getSelectedItem: ->
     @list.find('li.selected')
