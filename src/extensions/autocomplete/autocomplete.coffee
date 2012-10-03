@@ -54,7 +54,9 @@ class Autocomplete extends View
         @cancel()
 
     @miniEditor.getBuffer().on 'change', (e) =>
-      @filterMatches() if @hasParent()
+      if @hasParent()
+        @filterMatches()
+        @renderMatchList()
 
     @miniEditor.preempt 'move-up', =>
       @selectPreviousMatch()
@@ -110,10 +112,16 @@ class Autocomplete extends View
 
     originalCursorPosition = @editor.getCursorScreenPosition()
     @filterMatches()
-    @editor.appendToLinesView(this)
-    @setPosition(originalCursorPosition)
 
-    @miniEditor.focus()
+    if @filteredMatches.length is 1
+      @currentMatchIndex = 0
+      @replaceSelectedTextWithMatch @selectedMatch()
+      @confirm()
+    else
+      @renderMatchList()
+      @editor.appendToLinesView(this)
+      @setPosition(originalCursorPosition)
+      @miniEditor.focus()
 
   detach: ->
     @miniEditor.off("focusout")
@@ -166,7 +174,6 @@ class Autocomplete extends View
 
   filterMatches: ->
     @filteredMatches = fuzzyFilter(@allMatches, @miniEditor.getText(), key: 'word')
-    @renderMatchList()
 
   renderMatchList: ->
     @matchesList.empty()

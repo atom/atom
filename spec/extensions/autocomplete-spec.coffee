@@ -64,28 +64,28 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('shift')
 
       it 'autocompletes word when there is only a suffix', ->
-        editor.getBuffer().insert([10,0] ,"extra:e:extra")
+        editor.getBuffer().insert([10,0] ,"extra:n:extra")
         editor.setCursorBufferPosition([10,6])
         autocomplete.attach()
 
-        expect(editor.lineForBufferRow(10)).toBe "extra:while:extra"
-        expect(editor.getCursorBufferPosition()).toEqual [10,10]
-        expect(editor.getSelection().getBufferRange()).toEqual [[10,6], [10,10]]
+        expect(editor.lineForBufferRow(10)).toBe "extra:function:extra"
+        expect(editor.getCursorBufferPosition()).toEqual [10,13]
+        expect(editor.getSelection().getBufferRange()).toEqual [[10,6], [10,13]]
 
-        expect(autocomplete.matchesList.find('li').length).toBe 1
-        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('while')
+        expect(autocomplete.matchesList.find('li').length).toBe 2
+        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('function')
+        expect(autocomplete.matchesList.find('li:eq(1)')).toHaveText('return')
 
-      it 'autocompletes word when there is a prefix and suffix', ->
+      it 'autocompletes word when there is a single prefix and suffix match', ->
         editor.getBuffer().insert([8,43] ,"q")
         editor.setCursorBufferPosition([8,44])
         autocomplete.attach()
 
         expect(editor.lineForBufferRow(8)).toBe "    return sort(left).concat(pivot).concat(quicksort(right));"
-        expect(editor.getCursorBufferPosition()).toEqual [8,48]
-        expect(editor.getSelection().getBufferRange()).toEqual [[8,44], [8,48]]
+        expect(editor.getCursorBufferPosition()).toEqual [8,52]
+        expect(editor.getSelection().getBufferRange().isEmpty()).toBeTruthy()
 
-        expect(autocomplete.matchesList.find('li').length).toBe 1
-        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('quicksort')
+        expect(autocomplete.matchesList.find('li').length).toBe 0
 
       it "show's that there are no matches found when there is no prefix or suffix", ->
         editor.setCursorBufferPosition([10, 0])
@@ -102,10 +102,9 @@ describe "Autocomplete", ->
 
         expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
         expect(editor.getCursorBufferPosition()).toEqual [10,11]
-        expect(editor.getSelection().getBufferRange()).toEqual [[10,7],[10,11]]
+        expect(editor.getSelection().getBufferRange().isEmpty()).toBeTruthy()
 
-        expect(autocomplete.matchesList.find('li').length).toBe 1
-        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('shift')
+        expect(autocomplete.matchesList.find('li').length).toBe 0
 
       it 'autocompletes word when there is only a suffix', ->
         editor.getBuffer().insert([10,0] ,"extra:current:extra")
@@ -124,23 +123,34 @@ describe "Autocomplete", ->
         autocomplete.attach()
 
         expect(editor.lineForBufferRow(5)).toBe "      concat = items.shift();"
-        expect(editor.getCursorBufferPosition()).toEqual [5,11]
-        expect(editor.getSelection().getBufferRange()).toEqual [[5,7], [5,11]]
+        expect(editor.getCursorBufferPosition()).toEqual [5,12]
+        expect(editor.getSelection().getBufferRange().isEmpty()).toBeTruthy()
 
-        expect(autocomplete.matchesList.find('li').length).toBe 1
-        expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText('concat')
+        expect(autocomplete.matchesList.find('li').length).toBe 0
+
+      it 'replaces selection with selected match, moves the cursor to the end of the match, and removes the autocomplete menu', ->
+        editor.getBuffer().insert([10,0] ,"extra:sort:extra")
+        editor.setSelectedBufferRange [[10,7], [10,9]]
+        autocomplete.attach()
+
+        expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
+        expect(editor.getCursorBufferPosition()).toEqual [10,11]
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
+        expect(editor.find('.autocomplete')).not.toExist()
 
   describe 'autocomplete:confirm event', ->
-    it 'replaces selection with selected match, moves the cursor to the end of the match, and removes the autocomplete menu', ->
-      editor.getBuffer().insert([10,0] ,"extra:sort:extra")
-      editor.setSelectedBufferRange [[10,7], [10,9]]
-      autocomplete.attach()
-      miniEditor.trigger "autocomplete:confirm"
+    describe "where there are matches", ->
+      describe "where there is no selection", ->
+        it "closes the menu and moves the cursor to the end", ->
+          editor.getBuffer().insert([10,0] ,"extra:sh:extra")
+          editor.setCursorBufferPosition([10,8])
+          autocomplete.attach()
+          miniEditor.trigger "autocomplete:confirm"
 
-      expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
-      expect(editor.getCursorBufferPosition()).toEqual [10,11]
-      expect(editor.getSelection().isEmpty()).toBeTruthy()
-      expect(editor.find('.autocomplete')).not.toExist()
+          expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
+          expect(editor.getCursorBufferPosition()).toEqual [10,11]
+          expect(editor.getSelection().isEmpty()).toBeTruthy()
+          expect(editor.find('.autocomplete')).not.toExist()
 
     describe "when there are no matches", ->
       it "closes the menu without changing the buffer", ->
