@@ -19,6 +19,8 @@ class EventPalette extends View
     @on 'move-down', => @selectNext()
     @on 'event-palette:cancel', => @detach()
     @on 'event-palette:select', => @triggerSelectedEvent()
+    @on 'mousedown', '.event', (e) => @selectItem($(e.target).closest('.event'))
+    @on 'mouseup', '.event', => @triggerSelectedEvent()
 
   attach: ->
     @previouslyFocusedElement = $(':focus')
@@ -72,5 +74,5 @@ class EventPalette extends View
     @detach()
 
   detach: ->
-    @rootView.focus() if @is(':focus')
+    @rootView.focus() if @miniEditor.isFocused
     super

@@ -53,14 +53,34 @@ describe "EventPalette", ->
 
       expect(palette.eventList.scrollTop() + palette.eventList.height()).toBe palette.eventList.prop('scrollHeight')
 
-  describe "when event-palette:select is triggered on the palette", ->
-    it "emits the selected event on the last focused element, then detaches the palette", ->
-      _.times 3, -> palette.miniEditor.trigger 'move-down'
+  describe "event triggering", ->
+    eventHandler = null
 
+    beforeEach ->
       eventHandler = jasmine.createSpy 'eventHandler'
-      rootView.getActiveEditor().preempt palette.getSelectedEventName(), eventHandler
-      palette.trigger 'event-palette:select'
-      expect(eventHandler).toHaveBeenCalled()
 
-      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
-      expect(palette.hasParent()).toBeFalsy()
+    describe "when event-palette:select is triggered on the palette", ->
+      it "emits the selected event on the last focused element, then detaches the palette", ->
+        _.times 3, -> palette.miniEditor.trigger 'move-down'
+
+        rootView.getActiveEditor().preempt palette.getSelectedEventName(), eventHandler
+        palette.trigger 'event-palette:select'
+        expect(eventHandler).toHaveBeenCalled()
+
+        expect(rootView.getActiveEditor().isFocused).toBeTruthy()
+        expect(palette.hasParent()).toBeFalsy()
+
+    describe "when an item is clicked", ->
+      it "selects item and triggers its event", ->
+        element = palette.eventList.find('.event:eq(3)')
+
+        element.mousedown()
+        expect(element).toHaveClass 'selected'
+
+        rootView.getActiveEditor().preempt palette.getSelectedEventName(), eventHandler
+
+        element.mouseup()
+        expect(eventHandler).toHaveBeenCalled()
+        rootView.getActiveEditor().preempt palette.getSelectedEventName(), eventHandler
+        element.click()
+
