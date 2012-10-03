@@ -600,6 +600,20 @@ describe "TreeView", ->
               expect(rootView.getActiveEditor().getPath()).not.toBe newPath
               expect(treeView).toMatchSelector(':focus')
               expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+              expect(dirView.find('.directory.selected:contains(new/)').length).toBe(1)
+
+            it "selects the created directory", ->
+              treeView.attachToDom()
+              newPath = fs.join(dirPath, "new2/")
+              addDialog.miniEditor.insertText("new2/")
+              addDialog.trigger 'tree-view:confirm'
+              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.isDirectory(newPath)).toBeTruthy()
+              expect(addDialog.parent()).not.toExist()
+              expect(rootView.getActiveEditor().getPath()).not.toBe newPath
+              expect(treeView).toMatchSelector(':focus')
+              expect(rootView.getActiveEditor().isFocused).toBeFalsy()
+              expect(dirView.find('.directory.selected:contains(new2/)').length).toBe(1)
 
           describe "when a file or directory already exists at the given path", ->
             it "shows an error message and does not close the dialog", ->

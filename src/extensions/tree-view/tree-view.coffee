@@ -42,6 +42,7 @@ class TreeView extends View
   root: null
   focusAfterAttach: false
   scrollTopAfterAttach: -1
+  selectedPath: null
 
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) => @entryClicked(e)
@@ -53,7 +54,11 @@ class TreeView extends View
     @on 'tree-view:move', => @moveSelectedEntry()
     @on 'tree-view:add', => @add()
     @on 'tree-view:remove', => @removeSelectedEntry()
-    @on 'tree-view:directory-modified', => @selectActiveFile()
+    @on 'tree-view:directory-modified', =>
+      if @is(':focus')
+        @selectEntryForPath(@selectedPath) if @selectedPath
+      else
+        @selectActiveFile()
     @on 'tree-view:unfocus', => @rootView.focus()
     @rootView.on 'tree-view:toggle', => @toggle()
     @rootView.on 'tree-view:reveal-active-file', => @revealActiveFile()
@@ -245,6 +250,8 @@ class TreeView extends View
           else if endsWithDirectorySeperator
             fs.makeTree(path)
             dialog.cancel()
+            @entryForPath(path).buildEntries()
+            @selectEntryForPath(path)
           else
             fs.write(path, "")
             @rootView.open(path)
@@ -259,6 +266,8 @@ class TreeView extends View
 
   selectEntry: (entry) ->
     return false unless entry.get(0)
+    entry = entry.view() unless entry instanceof View
+    @selectedPath = entry.getPath()
     @find('.selected').removeClass('selected')
     entry.addClass('selected')
 
