@@ -35,7 +35,7 @@ describe "fs", ->
       expect(fs.exists(null)).toBe false
 
   describe ".join(paths...)", ->
-    it "concatenates the given paths with the directory seperator", ->
+    it "concatenates the given paths with the directory separator", ->
       expect(fs.join('a')).toBe 'a'
       expect(fs.join('a', 'b', 'c')).toBe 'a/b/c'
       expect(fs.join('/a/b/', 'c', 'd')).toBe '/a/b/c/d'
