@@ -42,7 +42,7 @@ describe 'jQuery extensions', ->
         expect(events).toEqual [2,1,3]
 
   describe "$.fn.events() and $.fn.document", ->
-    fit "returns a list of all events being listened for on the target node or its ancestors, along with their documentation string", ->
+    it "returns a list of all events being listened for on the target node or its ancestors, along with their documentation string", ->
       view = $$ ->
         @div id: 'a', =>
           @div id: 'b', =>
