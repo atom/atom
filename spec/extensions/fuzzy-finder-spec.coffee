@@ -211,13 +211,13 @@ describe 'FuzzyFinder', ->
         expect(finder.find('li:eq(0)')).toHaveClass "selected"
         expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
 
-        finder.miniEditor.trigger keydownEvent('down')
-        finder.miniEditor.trigger keydownEvent('down')
+        finder.miniEditor.trigger 'core:move-down'
+        finder.miniEditor.trigger 'core:move-down'
 
         expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
         expect(finder.find('li:eq(2)')).toHaveClass "selected"
 
-        finder.miniEditor.trigger keydownEvent('up')
+        finder.miniEditor.trigger 'core:move-up'
 
         expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
         expect(finder.find('li:eq(1)')).toHaveClass "selected"
@@ -226,10 +226,10 @@ describe 'FuzzyFinder', ->
       it "wraps around when at the end or begining of the list", ->
         expect(finder.find('li:first')).toHaveClass "selected"
 
-        finder.miniEditor.trigger keydownEvent('up')
+        finder.miniEditor.trigger 'core:move-up'
         expect(finder.find('li:last')).toHaveClass "selected"
 
-        finder.miniEditor.trigger keydownEvent('down')
+        finder.miniEditor.trigger 'core:move-down'
         expect(finder.find('li:first')).toHaveClass "selected"
 
     describe "when the fuzzy finder loses focus", ->
