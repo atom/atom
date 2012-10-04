@@ -7,6 +7,8 @@ window.keymap.bindKeys 'body',
   'ctrl-N': 'core:select-down'
   'ctrl-F': 'core:select-right'
   'ctrl-B': 'core:select-left'
+  'ctrl-h': 'core:backspace'
+  'ctrl-d': 'core:delete'
 
 window.keymap.bindKeys '.editor',
   'alt-f': 'move-to-end-of-word'
@@ -15,8 +17,6 @@ window.keymap.bindKeys '.editor',
   'alt-B': 'select-to-beginning-of-word'
   'ctrl-a': 'move-to-first-character-of-line'
   'ctrl-e': 'move-to-end-of-line'
-  'ctrl-h': 'backspace'
-  'ctrl-d': 'delete'
   'alt-h': 'backspace-to-beginning-of-word'
   'alt-d': 'delete-to-end-of-word'
   'ctrl-k': 'cut-to-end-of-line'

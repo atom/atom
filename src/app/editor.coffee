@@ -106,8 +106,8 @@ class Editor extends View
       'core:select-to-top': @selectToTop
       'core:select-to-bottom': @selectToBottom
       'core:select-all': @selectAll
-      'backspace': @backspace
-      'delete': @delete
+      'core:backspace': @backspace
+      'core:delete': @delete
       'undo': @undo
       'redo': @redo
       'cut': @cutSelection
