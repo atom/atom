@@ -19,9 +19,7 @@ window.keymap.bindKeys '.editor',
   'meta-]': 'editor:indent-selected-rows'
   'meta-{': 'editor:show-previous-buffer'
   'meta-}': 'editor:show-next-buffer'
-  'meta-+': 'editor:increase-font-size'
-  'meta--': 'editor:decrease-font-size'
   'meta-/': 'editor:toggle-line-comments'
-  'ctrl-w w': 'editor:focus-next-pane'
   'ctrl-W': 'editor:select-word'
   'meta-alt-p': 'editor:log-cursor-scope'
+

@@ -73,10 +73,10 @@ class RootView extends View
       @project.setPath(path) unless @project.getRootDirectory()
       @setTitle(path)
 
-    @on 'increase-font-size', => @setFontSize(@getFontSize() + 1)
-    @on 'decrease-font-size', => @setFontSize(@getFontSize() - 1)
-    @on 'focus-next-pane', => @focusNextPane()
-    @on 'save-all', => @saveAll()
+    @on 'root-view:increase-font-size', => @setFontSize(@getFontSize() + 1)
+    @on 'root-view:decrease-font-size', => @setFontSize(@getFontSize() - 1)
+    @on 'root-view:focus-next-pane', => @focusNextPane()
+    @on 'root-view:save-all', => @saveAll()
 
   afterAttach: (onDom) ->
     @focus() if onDom
