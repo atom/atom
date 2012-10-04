@@ -114,12 +114,14 @@ describe "EditorCommand", ->
 
     it "registers all keymaps", ->
       callbackCount = 0
+      eventName = null
       class CustomCommand extends EditorCommand
         @getKeymaps: (editor) ->
           'meta-V': 'custom1'
           'meta-B': 'custom2'
 
         @execute: (editor, event) ->
+          eventName = event
           @replaceSelectedText editor, (text) ->
             callbackCount++
             text
@@ -129,7 +131,9 @@ describe "EditorCommand", ->
         editor.selectToEndOfLine()
         editor.trigger 'custom1'
         expect(callbackCount).toBe 1
+        expect(eventName).toBe 'custom1'
         editor.trigger 'custom2'
+        expect(eventName).toBe 'custom2'
         expect(callbackCount).toBe 2
 
   describe "LowerCaseCommand", ->

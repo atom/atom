@@ -18,7 +18,9 @@ class EditorCommand
     return unless keymaps
 
     for key, event of keymaps
-      editor.on event, => @execute(editor, event)
+      do (event) =>
+        editor.on event, =>
+          @execute(editor, event)
 
   @replaceSelectedText: (editor, replace) ->
      selection = editor.getSelection()
