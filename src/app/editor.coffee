@@ -110,9 +110,9 @@ class Editor extends View
       'core:delete': @delete
       'core:undo': @undo
       'core:redo': @redo
-      'cut': @cutSelection
-      'copy': @copySelection
-      'paste': @paste
+      'core:cut': @cutSelection
+      'core:copy': @copySelection
+      'core:paste': @paste
       'move-to-next-word': @moveCursorToNextWord
       'move-to-previous-word': @moveCursorToPreviousWord
       'select-word': @selectWord
