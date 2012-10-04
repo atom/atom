@@ -23,6 +23,7 @@ class EventPalette extends SelectList
     @previouslyFocusedElement = $(':focus')
     @setArray(@previouslyFocusedElement.events())
     @appendTo(@rootView)
+    @miniEditor.setText('')
     @miniEditor.focus()
 
   itemForElement: ([eventName, description]) ->

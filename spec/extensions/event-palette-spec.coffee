@@ -24,6 +24,12 @@ describe "EventPalette", ->
       expect(palette.miniEditor.isFocused).toBeTruthy()
       expect(palette.find('.event:first')).toHaveClass 'selected'
 
+    it "clears the previous mini editor text", ->
+      palette.miniEditor.setText('hello')
+      palette.trigger 'event-palette:toggle'
+      rootView.trigger 'event-palette:toggle'
+      expect(palette.miniEditor.getText()).toBe ''
+
   describe "when event-palette:toggle is triggered on the open event palette", ->
     it "focus the root view and detaches the event palette", ->
       expect(palette.hasParent()).toBeTruthy()
