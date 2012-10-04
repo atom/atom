@@ -65,7 +65,6 @@ fdescribe "SelectList", ->
       expect(list.find('li:eq(2)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
 
-
     it "scrolls to keep the selected item in view", ->
       selectList.attachToDom()
       itemHeight = list.find('li').outerHeight()
@@ -98,7 +97,16 @@ fdescribe "SelectList", ->
         expect(selectList.confirmed).not.toHaveBeenCalled()
 
   describe "the core:cancel event", ->
-    it "triggers the cancelled hook", ->
+    it "triggers the cancelled hook and detaches the select list", ->
+      spyOn(selectList, 'detach')
       miniEditor.trigger 'core:cancel'
       expect(selectList.cancelled).toHaveBeenCalled()
+      expect(selectList.detach).toHaveBeenCalled()
+
+  describe "when the fuzzy finder loses focus", ->
+    it "triggers the cancelled hook and detaches the select list", ->
+      spyOn(selectList, 'detach')
+      miniEditor.trigger 'focusout'
+      expect(selectList.cancelled).toHaveBeenCalled()
+      expect(selectList.detach).toHaveBeenCalled()
 

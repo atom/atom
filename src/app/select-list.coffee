@@ -14,14 +14,16 @@ class SelectList extends View
 
   maxItems: Infinity
   filteredArray: null
+  cancelling: false
 
   initialize: ->
     requireStylesheet 'select-list.css'
     @miniEditor.getBuffer().on 'change', => @populateList()
+    @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'move-up', => @selectPreviousItem()
     @on 'move-down', => @selectNextItem()
     @on 'core:confirm', => @confirmSelection()
-    @on 'core:cancel', => @cancelled()
+    @on 'core:cancel', => @cancel()
 
   setArray: (@array) ->
     @populateList()
@@ -72,4 +74,10 @@ class SelectList extends View
   confirmSelection: ->
     element = @getSelectedItem().data('select-list-element')
     @confirmed(element) if element?
+
+  cancel: ->
+    @cancelling = true
+    @cancelled()
+    @detach()
+    @cancelling = false
 
