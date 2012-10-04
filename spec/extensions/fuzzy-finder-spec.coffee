@@ -3,7 +3,7 @@ FuzzyFinder = require 'fuzzy-finder'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 
-describe 'FuzzyFinder', ->
+fdescribe 'FuzzyFinder', ->
   [rootView, finder] = []
 
   beforeEach ->
@@ -27,6 +27,8 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           expect(rootView.find('.fuzzy-finder')).toExist()
           expect(finder.miniEditor.isFocused).toBeTruthy()
+          expect(editor1.isFocused).toBeFalsy()
+          expect(editor2.isFocused).toBeFalsy()
           finder.miniEditor.insertText('this should not show up next time we toggle')
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
@@ -38,7 +40,7 @@ describe 'FuzzyFinder', ->
           expect(finder.miniEditor.getText()).toBe ''
 
         it "shows all relative file paths for the current project and selects the first", ->
-          finder.maxResults = 1000
+          finder.maxItems = Infinity
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
           rootView.project.getFilePaths().done (paths) ->
             expect(finder.list.children('li').length).toBe paths.length, finder.maxResults

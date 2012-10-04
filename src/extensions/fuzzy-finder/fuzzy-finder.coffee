@@ -9,25 +9,20 @@ Editor = require 'editor'
 module.exports =
 class FuzzyFinder extends SelectList
   @activate: (rootView) ->
+    requireStylesheet 'select-list.css'
+    requireStylesheet 'fuzzy-finder.css'
     @instance = new FuzzyFinder(rootView)
+    rootView.on 'fuzzy-finder:toggle-file-finder', => @instance.toggleFileFinder()
+    rootView.on 'fuzzy-finder:toggle-buffer-finder', => @instance.toggleBufferFinder()
 
   @viewClass: ->
-    _.compact([super, 'fuzzy-finder']).join(' ')
+    [super, 'fuzzy-finder'].join(' ')
 
-  paths: null
   allowActiveEditorChange: null
-  maxResults: null
+  maxItems: 10
 
   initialize: (@rootView) ->
-    requireStylesheet 'fuzzy-finder.css'
-    @maxResults = 10
-
-    @rootView.on 'fuzzy-finder:toggle-file-finder', => @toggleFileFinder()
-    @rootView.on 'fuzzy-finder:toggle-buffer-finder', => @toggleBufferFinder()
-
-    @on 'fuzzy-finder:cancel', => @detach()
-    @on 'fuzzy-finder:select-path', => @select()
-    @on 'mousedown', 'li', (e) => @entryClicked(e)
+    super
 
   itemForElement: (path) ->
     $$ -> @li path
@@ -38,11 +33,12 @@ class FuzzyFinder extends SelectList
     @detach()
 
   cancelled: ->
+    @miniEditor.setText('')
     @rootView.focus()
 
   toggleFileFinder: ->
     if @hasParent()
-      @detach()
+      @cancel()
     else
       return unless @rootView.project.getPath()?
       @allowActiveEditorChange = false
@@ -51,7 +47,7 @@ class FuzzyFinder extends SelectList
 
   toggleBufferFinder: ->
     if @hasParent()
-      @detach()
+      @cancel()
     else
       @allowActiveEditorChange = true
       @populateOpenBufferPaths()
@@ -68,39 +64,3 @@ class FuzzyFinder extends SelectList
   attach: ->
     @rootView.append(this)
     @miniEditor.focus()
-
-  populatePathList: ->
-    @pathList.empty()
-    for path in @findMatches(@miniEditor.getText())
-      @pathList.append $$ -> @li path
-
-    @pathList.children('li:first').addClass 'selected'
-
-  findSelectedLi: ->
-    @pathList.children('li.selected')
-
-
-  entryClicked: (e) ->
-    @open($(e.currentTarget).text())
-    false
-
-  moveUp: ->
-    selected = @findSelectedLi().removeClass('selected')
-
-    if selected.filter(':not(:first-child)').length is 0
-      selected = @pathList.children('li:last')
-    else
-      selected = selected.prev()
-    selected.addClass('selected')
-
-  moveDown: ->
-    selected = @findSelectedLi().removeClass('selected')
-
-    if selected.filter(':not(:last-child)').length is 0
-      selected = @pathList.children('li:first')
-    else
-      selected = selected.next()
-    selected.addClass('selected')
-
-  findMatches: (query) ->
-    fuzzyFilter(@paths, query, maxResults: @maxResults)
