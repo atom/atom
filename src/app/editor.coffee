@@ -99,10 +99,10 @@ class Editor extends View
       'core:move-to-bottom': @moveCursorToBottom
       'core:page-down': @pageDown
       'core:page-up': @pageUp
-      'select-up': @selectUp
-      'select-down': @selectDown
-      'select-left': @selectLeft
-      'select-right': @selectRight
+      'core:select-up': @selectUp
+      'core:select-down': @selectDown
+      'core:select-left': @selectLeft
+      'core:select-right': @selectRight
       'select-to-top': @selectToTop
       'select-to-bottom': @selectToBottom
       'select-all': @selectAll

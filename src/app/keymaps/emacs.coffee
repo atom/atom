@@ -1,12 +1,14 @@
 window.keymap.bindKeys 'body',
   'ctrl-p': 'core:move-up'
   'ctrl-n': 'core:move-down'
+  'ctrl-b': 'core:move-left'
+  'ctrl-f': 'core:move-right'
+  'ctrl-P': 'core:select-up'
+  'ctrl-N': 'core:select-down'
+  'ctrl-F': 'core:select-right'
+  'ctrl-B': 'core:select-left'
 
 window.keymap.bindKeys '.editor',
-  'ctrl-F': 'select-right'
-  'ctrl-B': 'select-left'
-  'ctrl-P': 'select-up'
-  'ctrl-N': 'select-down'
   'alt-f': 'move-to-end-of-word'
   'alt-F': 'select-to-end-of-word'
   'alt-b': 'move-to-beginning-of-word'

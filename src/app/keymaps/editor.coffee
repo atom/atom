@@ -1,9 +1,5 @@
 window.keymap.bindKeys '.editor',
   'meta-s': 'save'
-  'shift-right': 'select-right'
-  'shift-left': 'select-left'
-  'shift-up': 'select-up'
-  'shift-down': 'select-down'
   'meta-a': 'select-all'
   'enter': 'newline'
   'meta-enter': 'newline-below'
