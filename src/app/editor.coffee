@@ -113,46 +113,46 @@ class Editor extends View
       'core:cut': @cutSelection
       'core:copy': @copySelection
       'core:paste': @paste
-      'move-to-next-word': @moveCursorToNextWord
-      'move-to-previous-word': @moveCursorToPreviousWord
-      'select-word': @selectWord
-      'newline': @insertNewline
-      'indent': @indent
-      'indent-selected-rows': @indentSelectedRows
-      'outdent-selected-rows': @outdentSelectedRows
-      'backspace-to-beginning-of-word': @backspaceToBeginningOfWord
-      'delete-to-end-of-word': @deleteToEndOfWord
-      'delete-line': @deleteLine
-      'cut-to-end-of-line': @cutToEndOfLine
-      'move-to-beginning-of-line': @moveCursorToBeginningOfLine
-      'move-to-end-of-line': @moveCursorToEndOfLine
-      'move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
-      'move-to-beginning-of-word': @moveCursorToBeginningOfWord
-      'move-to-end-of-word': @moveCursorToEndOfWord
-      'select-to-end-of-line': @selectToEndOfLine
-      'select-to-beginning-of-line': @selectToBeginningOfLine
-      'select-to-end-of-word': @selectToEndOfWord
-      'select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:move-to-next-word': @moveCursorToNextWord
+      'editor:move-to-previous-word': @moveCursorToPreviousWord
+      'editor:select-word': @selectWord
+      'editor:newline': @insertNewline
+      'editor:indent': @indent
+      'editor:indent-selected-rows': @indentSelectedRows
+      'editor:outdent-selected-rows': @outdentSelectedRows
+      'editor:backspace-to-beginning-of-word': @backspaceToBeginningOfWord
+      'editor:delete-to-end-of-word': @deleteToEndOfWord
+      'editor:delete-line': @deleteLine
+      'editor:cut-to-end-of-line': @cutToEndOfLine
+      'editor:move-to-beginning-of-line': @moveCursorToBeginningOfLine
+      'editor:move-to-end-of-line': @moveCursorToEndOfLine
+      'editor:move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
+      'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord
+      'editor:move-to-end-of-word': @moveCursorToEndOfWord
+      'editor:select-to-end-of-line': @selectToEndOfLine
+      'editor:select-to-beginning-of-line': @selectToBeginningOfLine
+      'editor:select-to-end-of-word': @selectToEndOfWord
+      'editor:select-to-beginning-of-word': @selectToBeginningOfWord
 
     unless @mini
       _.extend editorBindings,
-        'save': @save
-        'newline-below': @insertNewlineBelow
-        'toggle-soft-wrap': @toggleSoftWrap
-        'fold-all': @foldAll
-        'unfold-all': @unfoldAll
-        'fold-current-row': @foldCurrentRow
-        'unfold-current-row': @unfoldCurrentRow
-        'fold-selection': @foldSelection
-        'split-left': @splitLeft
-        'split-right': @splitRight
-        'split-up': @splitUp
-        'split-down': @splitDown
-        'close': @close
-        'show-next-buffer': @loadNextEditSession
-        'show-previous-buffer': @loadPreviousEditSession
-        'toggle-line-comments': @toggleLineCommentsInSelection
-        'log-cursor-scope': @logCursorScope
+        'core:close': @close
+        'editor:save': @save
+        'editor:newline-below': @insertNewlineBelow
+        'editor:toggle-soft-wrap': @toggleSoftWrap
+        'editor:fold-all': @foldAll
+        'editor:unfold-all': @unfoldAll
+        'editor:fold-current-row': @foldCurrentRow
+        'editor:unfold-current-row': @unfoldCurrentRow
+        'editor:fold-selection': @foldSelection
+        'editor:split-left': @splitLeft
+        'editor:split-right': @splitRight
+        'editor:split-up': @splitUp
+        'editor:split-down': @splitDown
+        'editor:show-next-buffer': @loadNextEditSession
+        'editor:show-previous-buffer': @loadPreviousEditSession
+        'editor:toggle-line-comments': @toggleLineCommentsInSelection
+        'editor:log-cursor-scope': @logCursorScope
 
     for name, method of editorBindings
       do (name, method) =>

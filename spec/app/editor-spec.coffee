@@ -157,7 +157,7 @@ describe "Editor", ->
       editSession = editor.activeEditSession
       spyOn(editSession, 'destroy').andCallThrough()
       spyOn(editor, "remove").andCallThrough()
-      editor.trigger "close"
+      editor.trigger "core:close"
       expect(editSession.destroy).toHaveBeenCalled()
       expect(editor.remove).not.toHaveBeenCalled()
       expect(editor.getBuffer()).toBe buffer
@@ -167,13 +167,13 @@ describe "Editor", ->
       expect(editor.mini).toBeFalsy()
       expect(editor.editSessions.length).toBe 1
       spyOn(editor, 'remove').andCallThrough()
-      editor.trigger 'close'
+      editor.trigger 'core:close'
       spyOn(editSession, 'destroy').andCallThrough()
       expect(editor.remove).toHaveBeenCalled()
 
       miniEditor = new Editor(mini: true)
       spyOn(miniEditor, 'remove').andCallThrough()
-      miniEditor.trigger 'close'
+      miniEditor.trigger 'core:close'
       expect(miniEditor.remove).not.toHaveBeenCalled()
 
     describe "when buffer is modified", ->
@@ -181,7 +181,7 @@ describe "Editor", ->
         spyOn(editor, 'remove').andCallThrough()
         spyOn(atom, 'confirm')
         editor.insertText("I AM CHANGED!")
-        editor.trigger "close"
+        editor.trigger "core:close"
         expect(editor.remove).not.toHaveBeenCalled()
         expect(atom.confirm).toHaveBeenCalled()
 
@@ -494,7 +494,7 @@ describe "Editor", ->
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 5 * editor.charWidth }
 
         # ensure we clean up font size subscription
-        editor.trigger('close')
+        editor.trigger('core:close')
         rootView.setFontSize(22)
         expect(editor.css('font-size')).toBe '30px'
 
@@ -1707,7 +1707,7 @@ describe "Editor", ->
     describe "when a fold-selection event is triggered", ->
       it "folds the lines covered by the selection into a single line with a fold class", ->
         editor.getSelection().setBufferRange(new Range([4, 29], [7, 4]))
-        editor.trigger 'fold-selection'
+        editor.trigger 'editor:fold-selection'
 
         expect(editor.renderedLines.find('.line:eq(4)')).toHaveClass('fold')
         expect(editor.renderedLines.find('.line:eq(5)').text()).toBe '8'
@@ -1718,7 +1718,7 @@ describe "Editor", ->
     describe "when a fold placeholder line is clicked", ->
       it "removes the associated fold and places the cursor at its beginning", ->
         editor.setCursorBufferPosition([3,0])
-        editor.trigger 'fold-current-row'
+        editor.trigger 'editor:fold-current-row'
 
         editor.find('.fold.line').mousedown()
 
@@ -1731,10 +1731,10 @@ describe "Editor", ->
     describe "when the unfold-current-row event is triggered when the cursor is on a fold placeholder line", ->
       it "removes the associated fold and places the cursor at its beginning", ->
         editor.setCursorBufferPosition([3,0])
-        editor.trigger 'fold-current-row'
+        editor.trigger 'editor:fold-current-row'
 
         editor.setCursorBufferPosition([3,0])
-        editor.trigger 'unfold-current-row'
+        editor.trigger 'editor:unfold-current-row'
 
         expect(editor.find('.fold')).not.toExist()
         expect(editor.renderedLines.find('.line:eq(4)').text()).toMatch /4-+/
