@@ -89,7 +89,7 @@ class SelectList extends View
 
   cancel: ->
     @cancelling = true
-    @detach()
     @cancelled()
+    @detach()
     @cancelling = false
 

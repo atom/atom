@@ -47,5 +47,5 @@ class EventPalette extends SelectList
     @previouslyFocusedElement.trigger(eventName)
 
   cancelled: ->
-    @previouslyFocusedElement.focus()
+    @previouslyFocusedElement.focus() if @miniEditor.isFocused
 

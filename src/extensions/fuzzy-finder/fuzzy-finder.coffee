@@ -34,7 +34,7 @@ class FuzzyFinder extends SelectList
 
   cancelled: ->
     @miniEditor.setText('')
-    @rootView.focus()
+    @rootView.focus() if @miniEditor.isFocused
 
   toggleFileFinder: ->
     if @hasParent()
