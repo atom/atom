@@ -108,8 +108,8 @@ class Editor extends View
       'core:select-all': @selectAll
       'core:backspace': @backspace
       'core:delete': @delete
-      'undo': @undo
-      'redo': @redo
+      'core:undo': @undo
+      'core:redo': @redo
       'cut': @cutSelection
       'copy': @copySelection
       'paste': @paste

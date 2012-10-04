@@ -7,8 +7,6 @@ window.keymap.bindKeys '.editor',
   'meta-x': 'cut'
   'meta-c': 'copy'
   'meta-v': 'paste'
-  'meta-z': 'undo'
-  'meta-Z': 'redo'
   'alt-meta-w': 'toggle-soft-wrap'
   'ctrl-[': 'fold-current-row'
   'ctrl-]': 'unfold-current-row'
