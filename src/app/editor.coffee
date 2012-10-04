@@ -213,7 +213,7 @@ class Editor extends View
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
   deleteLine: -> @activeEditSession.deleteLine()
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
-  insertText: (text) -> @activeEditSession.insertText(text)
+  insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   indent: -> @activeEditSession.indent()

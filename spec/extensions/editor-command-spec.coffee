@@ -91,6 +91,25 @@ describe "EditorCommand", ->
       editor.trigger 'devowel'
       expect(editor.lineForBufferRow(0)).toBe 'vr qcksrt = fnctn () {'
       expect(editor.getTextInRange(editor.getSelection().getBufferRange())).toBe 'vr qcksrt = fnctn () {'
+      expect(editor.getCursorBufferPosition()).toBe(editor.getSelection().getBufferRange().end)
+
+    it "maintains reversed selections", ->
+      class VowelRemover extends EditorCommand
+        @getKeymaps: (editor) ->
+          'meta-V': 'devowel'
+
+        @execute: (editor, event) ->
+          @replaceSelectedText editor, (text) ->
+            text.replace(/[aeiouy]/gi, '')
+
+      VowelRemover.activate(rootView)
+      editor.moveCursorToTop()
+      editor.moveCursorToEndOfLine()
+      editor.selectToBeginningOfLine()
+      editor.trigger 'devowel'
+      expect(editor.lineForBufferRow(0)).toBe 'vr qcksrt = fnctn () {'
+      expect(editor.getTextInRange(editor.getSelection().getBufferRange())).toBe 'vr qcksrt = fnctn () {'
+      expect(editor.getCursorBufferPosition()).toBe(editor.getSelection().getBufferRange().start)
 
     it "doesn't transform empty selections", ->
        callbackCount = 0

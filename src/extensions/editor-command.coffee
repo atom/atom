@@ -26,10 +26,8 @@ class EditorCommand
      selection = editor.getSelection()
      return false if selection.isEmpty()
 
-     range = selection.getBufferRange()
-     reverse = selection.isReversed()
-     text = replace(editor.getTextInRange(range))
+     text = replace(editor.getTextInRange(selection.getBufferRange()))
      return false if text is null or text is undefined
-     editor.insertText(text)
-     selection.setBufferRange(range, {reverse})
+
+     editor.insertText(text, select: true)
      true
