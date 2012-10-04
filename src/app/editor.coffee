@@ -91,10 +91,10 @@ class Editor extends View
 
   bindKeys: ->
     editorBindings =
-      'move-right': @moveCursorRight
-      'move-left': @moveCursorLeft
-      'move-down': @moveCursorDown
-      'move-up': @moveCursorUp
+      'core:move-right': @moveCursorRight
+      'core:move-left': @moveCursorLeft
+      'core:move-down': @moveCursorDown
+      'core:move-up': @moveCursorUp
       'move-to-next-word': @moveCursorToNextWord
       'move-to-previous-word': @moveCursorToPreviousWord
       'select-right': @selectRight

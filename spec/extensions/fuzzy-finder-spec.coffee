@@ -67,7 +67,7 @@ describe 'FuzzyFinder', ->
 
       describe "when a path is highlighted", ->
         it "opens the file associated with that path in the editor", ->
-          finder.trigger 'move-down'
+          finder.trigger 'core:move-down'
           selectedLi = finder.find('li:eq(1)')
 
           expectedPath = rootView.project.resolve(selectedLi.text())
