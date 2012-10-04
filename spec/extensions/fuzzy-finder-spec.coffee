@@ -3,7 +3,7 @@ FuzzyFinder = require 'fuzzy-finder'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 
-fdescribe 'FuzzyFinder', ->
+describe 'FuzzyFinder', ->
   [rootView, finder] = []
 
   beforeEach ->

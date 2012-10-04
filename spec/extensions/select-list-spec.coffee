@@ -2,7 +2,7 @@ SelectList = require 'select-list'
 {$$} = require 'space-pen'
 $ = require 'jquery'
 
-fdescribe "SelectList", ->
+describe "SelectList", ->
   [selectList, array, list, miniEditor] = []
 
   beforeEach ->
