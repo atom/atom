@@ -52,6 +52,8 @@ class SelectList extends View
       item.data('select-list-element', element)
       @list.append(item)
 
+    @selectItem(@list.find('li:first'))
+
   selectPreviousItem: ->
     item = @getSelectedItem().prev()
     item = @list.find('li:last') unless item.length

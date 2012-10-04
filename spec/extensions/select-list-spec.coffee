@@ -30,11 +30,12 @@ fdescribe "SelectList", ->
       expect(list.find('li:eq(0)')).toHaveClass 'A'
 
   describe "when the text of the mini editor changes", ->
-    it "filters the elements in the list based on the scoreElement function", ->
+    it "filters the elements in the list based on the scoreElement function and selects the first item", ->
       miniEditor.insertText('la')
       expect(list.find('li').length).toBe 2
       expect(list.find('li:contains(Alpha)')).toExist()
       expect(list.find('li:contains(Delta)')).toExist()
+      expect(list.find('li:first')).toHaveClass 'selected'
 
   describe "when move-up / move-down are triggered on the miniEditor", ->
     it "selects the previous / next item in the list, or wraps around to the other side", ->
