@@ -4,7 +4,7 @@
   bottom: 0;
 }
 
-.select-list {
+.event-palette .select-list {
   background-color: black;
   position: relative;
   max-height: 300px;
@@ -12,10 +12,10 @@
   overflow-y: auto;
 }
 
-.select-list table {
+.event-palette .select-list table {
   width: 100%;
 }
 
-.select-list .selected {
+.event-palette .select-list .selected {
   background-color: green;
 }
