@@ -29,8 +29,8 @@ class FuzzyFinder extends SelectList
 
   confirmed : (path) ->
     return unless path.length
+    @cancel()
     @rootView.open(path, {@allowActiveEditorChange})
-    @detach()
 
   cancelled: ->
     @miniEditor.setText('')
