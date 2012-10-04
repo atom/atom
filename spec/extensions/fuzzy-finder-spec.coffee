@@ -15,7 +15,7 @@ describe 'FuzzyFinder', ->
   afterEach ->
     rootView.remove()
 
-  fdescribe "file-finder behavior", ->
+  describe "file-finder behavior", ->
     describe "toggling", ->
       describe "when the root view's project has a path", ->
         it "shows the FuzzyFinder or hides it and returns focus to the active editor if it already showing", ->
@@ -71,13 +71,13 @@ describe 'FuzzyFinder', ->
         expect(editor2.getPath()).toBe expectedPath
         expect(editor2.isFocused).toBeTruthy()
 
-  fdescribe "buffer-finder behavior", ->
+  describe "buffer-finder behavior", ->
     describe "toggling", ->
       describe "when the active editor contains edit sessions for buffers with paths", ->
         beforeEach ->
           rootView.open('sample.txt')
 
-        it "shows the FuzzyFinder or hides it and returns focus to the active editor if it already showing", ->
+        it "shows the FuzzyFinder or hides it, returning focus to the active editor if", ->
           rootView.attachToDom()
           expect(rootView.find('.fuzzy-finder')).not.toExist()
           rootView.find('.editor').trigger 'split-right'
@@ -96,7 +96,7 @@ describe 'FuzzyFinder', ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(finder.miniEditor.getText()).toBe ''
 
-        it "lists the paths of the current editor's open buffers", ->
+        it "lists the paths of the current open buffers", ->
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
           expect(finder.list.children('li').length).toBe 2
           expect(finder.list.find("li:contains(sample.js)")).toExist()
@@ -159,62 +159,20 @@ describe 'FuzzyFinder', ->
           expect(editor2.isFocused).toBeTruthy()
 
   describe "common behavior between file and buffer finder", ->
-    describe "move-down / move-up events", ->
-      beforeEach ->
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
-
-      it "selects the next / previous path in the list", ->
-        expect(finder.find('li:eq(0)')).toHaveClass "selected"
-        expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
-
-        finder.miniEditor.trigger keydownEvent('down')
-        finder.miniEditor.trigger keydownEvent('down')
-
-        expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
-        expect(finder.find('li:eq(2)')).toHaveClass "selected"
-
-        finder.miniEditor.trigger keydownEvent('up')
-
-        expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
-        expect(finder.find('li:eq(1)')).toHaveClass "selected"
-        expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
-
-      it "wraps around when at the end or begining of the list", ->
-        expect(finder.find('li:first')).toHaveClass "selected"
-
-        finder.miniEditor.trigger keydownEvent('up')
-        expect(finder.find('li:last')).toHaveClass "selected"
-
-        finder.miniEditor.trigger keydownEvent('down')
-        expect(finder.find('li:first')).toHaveClass "selected"
-
-    describe "when the fuzzy finder loses focus", ->
-      it "detaches itself", ->
-        rootView.attachToDom()
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
-
-        expect(finder.hasParent()).toBeTruthy()
-        rootView.focus()
-        expect(finder.hasParent()).toBeFalsy()
-
     describe "when the fuzzy finder is cancelled", ->
-      it "hides the finder", ->
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
-        expect(finder.hasParent()).toBeTruthy()
-
-        finder.trigger 'fuzzy-finder:cancel'
-        expect(finder.hasParent()).toBeFalsy()
-
-      it "focuses previously focused element", ->
+      it "detaches the finder and focuses the previously focused element", ->
         rootView.attachToDom()
         activeEditor = rootView.getActiveEditor()
         activeEditor.focus()
 
         rootView.trigger 'fuzzy-finder:toggle-file-finder'
+        expect(finder.hasParent()).toBeTruthy()
         expect(activeEditor.isFocused).toBeFalsy()
         expect(finder.miniEditor.isFocused).toBeTruthy()
 
-        finder.trigger 'fuzzy-finder:cancel'
+        finder.cancel()
+
+        expect(finder.hasParent()).toBeFalsy()
         expect(activeEditor.isFocused).toBeTruthy()
         expect(finder.miniEditor.isFocused).toBeFalsy()
 
@@ -234,16 +192,3 @@ describe 'FuzzyFinder', ->
         expect(rootView.getActiveEditor().getPath()).toBe expectedPath
         expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
-    describe ".findMatches(queryString)", ->
-      beforeEach ->
-        rootView.trigger 'fuzzy-finder:toggle-file-finder'
-
-      it "returns up to finder.maxResults paths if queryString is empty", ->
-        expect(finder.findMatches('').length).toBeLessThan finder.maxResults + 1
-        finder.maxResults = 5
-        expect(finder.findMatches('').length).toBeLessThan finder.maxResults + 1
-
-      it "returns paths sorted by score of match against the given query", ->
-        finder.paths = ["app.coffee", "atom/app.coffee"]
-        expect(finder.findMatches('app.co')).toEqual ["app.coffee", "atom/app.coffee"]
-        expect(finder.findMatches('atom/app.co')).toEqual ["atom/app.coffee"]

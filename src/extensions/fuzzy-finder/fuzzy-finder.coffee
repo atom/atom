@@ -32,7 +32,13 @@ class FuzzyFinder extends SelectList
   itemForElement: (path) ->
     $$ -> @li path
 
-  confirmed: (path) ->
+  confirmed : (path) ->
+    return unless path.length
+    @rootView.open(path, {@allowActiveEditorChange})
+    @detach()
+
+  cancelled: ->
+    @rootView.focus()
 
   toggleFileFinder: ->
     if @hasParent()
@@ -62,13 +68,6 @@ class FuzzyFinder extends SelectList
   attach: ->
     @rootView.append(this)
     @miniEditor.focus()
-    @miniEditor.on 'focusout', => @detach()
-
-  detach: ->
-    @miniEditor.off 'focusout'
-    @rootView.focus()
-    super
-    @miniEditor.setText('')
 
   populatePathList: ->
     @pathList.empty()
@@ -80,10 +79,6 @@ class FuzzyFinder extends SelectList
   findSelectedLi: ->
     @pathList.children('li.selected')
 
-  confirmed : (path) ->
-    return unless path.length
-    @rootView.open(path, {@allowActiveEditorChange})
-    @detach()
 
   entryClicked: (e) ->
     @open($(e.currentTarget).text())
