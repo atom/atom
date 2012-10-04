@@ -1,6 +1,6 @@
 window.keymap.bindKeys 'body'
-  'meta-w': 'close'
   'alt-meta-i': 'toggle-dev-tools'
+  'meta-w': 'core:close'
   up: 'core:move-up'
   down: 'core:move-down'
   left: 'core:move-left'
