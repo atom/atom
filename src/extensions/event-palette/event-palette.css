@@ -1,1 +1,8 @@
+.event-palette {
+  width: 50%;
+  margin-left: -25%;
+}
 
+.event-palette ol {
+  max-height: 300px;
+}
