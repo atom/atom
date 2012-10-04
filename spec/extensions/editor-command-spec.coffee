@@ -17,16 +17,16 @@ describe "EditorCommand", ->
   afterEach ->
     rootView.remove()
 
-  describe "@alterSelection()", ->
+  describe "@editSelectedText()", ->
     it "returns true when transformed text is non-empty", ->
       transformed = false
-      altered = false
+      edited = false
       class CustomCommand extends EditorCommand
         @getKeymaps: (editor) ->
           'meta-V': 'custom'
 
         @execute: (editor, event) ->
-          altered = @alterSelection editor, (text) ->
+          edited = @editSelectedText editor, (text) ->
             transformed = true
             'new'
 
@@ -35,17 +35,17 @@ describe "EditorCommand", ->
       editor.selectToEndOfLine()
       editor.trigger 'custom'
       expect(transformed).toBe true
-      expect(altered).toBe true
+      expect(edited).toBe true
 
     it "returns false when transformed text is null", ->
       transformed = false
-      altered = false
+      edited = false
       class CustomCommand extends EditorCommand
         @getKeymaps: (editor) ->
           'meta-V': 'custom'
 
         @execute: (editor, event) ->
-          altered = @alterSelection editor, (text) ->
+          edited = @editSelectedText editor, (text) ->
             transformed = true
             null
 
@@ -54,17 +54,17 @@ describe "EditorCommand", ->
       editor.selectToEndOfLine()
       editor.trigger 'custom'
       expect(transformed).toBe true
-      expect(altered).toBe false
+      expect(edited).toBe false
 
     it "returns false when transformed text is undefined", ->
       transformed = false
-      altered = false
+      edited = false
       class CustomCommand extends EditorCommand
         @getKeymaps: (editor) ->
           'meta-V': 'custom'
 
         @execute: (editor, event) ->
-          altered = @alterSelection editor, (text) ->
+          edited = @editSelectedText editor, (text) ->
             transformed = true
             undefined
 
@@ -73,7 +73,7 @@ describe "EditorCommand", ->
       editor.selectToEndOfLine()
       editor.trigger 'custom'
       expect(transformed).toBe true
-      expect(altered).toBe false
+      expect(edited).toBe false
 
   describe "custom sub-class", ->
     it "removes vowels from selected text", ->
@@ -82,7 +82,7 @@ describe "EditorCommand", ->
           'meta-V': 'devowel'
 
         @execute: (editor, event) ->
-          @alterSelection editor, (text) ->
+          @editSelectedText editor, (text) ->
             text.replace(/[aeiouy]/gi, '')
 
       VowelRemover.activate(rootView)
@@ -99,7 +99,7 @@ describe "EditorCommand", ->
            'meta-V': 'custom'
 
          @execute: (editor, event) ->
-           @alterSelection editor, (text) ->
+           @editSelectedText editor, (text) ->
              callbackCount++
              text
 
@@ -120,7 +120,7 @@ describe "EditorCommand", ->
           'meta-B': 'custom2'
 
         @execute: (editor, event) ->
-          @alterSelection editor, (text) ->
+          @editSelectedText editor, (text) ->
             callbackCount++
             text
 

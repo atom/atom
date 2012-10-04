@@ -20,7 +20,7 @@ class EditorCommand
     for key, event of keymaps
       editor.on event, => @execute(editor, event)
 
-  @alterSelection: (editor, transform) ->
+  @editSelectedText: (editor, transform) ->
      selection = editor.getSelection()
      return false if selection.isEmpty()
 

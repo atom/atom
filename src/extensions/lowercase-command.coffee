@@ -7,5 +7,5 @@ class LowerCaseCommand extends EditorCommand
     'meta-Y': 'lowercase'
 
   @execute: (editor, event) ->
-    @alterSelection editor, (text) ->
+    @editSelectedText editor, (text) ->
       text.toLowerCase()
