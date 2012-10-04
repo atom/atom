@@ -17,7 +17,7 @@ describe "EditorCommand", ->
   afterEach ->
     rootView.remove()
 
-  describe "@editSelectedText()", ->
+  describe "@replaceSelectedText()", ->
     it "returns true when transformed text is non-empty", ->
       transformed = false
       edited = false
@@ -26,7 +26,7 @@ describe "EditorCommand", ->
           'meta-V': 'custom'
 
         @execute: (editor, event) ->
-          edited = @editSelectedText editor, (text) ->
+          edited = @replaceSelectedText editor, (text) ->
             transformed = true
             'new'
 
@@ -45,7 +45,7 @@ describe "EditorCommand", ->
           'meta-V': 'custom'
 
         @execute: (editor, event) ->
-          edited = @editSelectedText editor, (text) ->
+          edited = @replaceSelectedText editor, (text) ->
             transformed = true
             null
 
@@ -64,7 +64,7 @@ describe "EditorCommand", ->
           'meta-V': 'custom'
 
         @execute: (editor, event) ->
-          edited = @editSelectedText editor, (text) ->
+          edited = @replaceSelectedText editor, (text) ->
             transformed = true
             undefined
 
@@ -82,7 +82,7 @@ describe "EditorCommand", ->
           'meta-V': 'devowel'
 
         @execute: (editor, event) ->
-          @editSelectedText editor, (text) ->
+          @replaceSelectedText editor, (text) ->
             text.replace(/[aeiouy]/gi, '')
 
       VowelRemover.activate(rootView)
@@ -99,7 +99,7 @@ describe "EditorCommand", ->
            'meta-V': 'custom'
 
          @execute: (editor, event) ->
-           @editSelectedText editor, (text) ->
+           @replaceSelectedText editor, (text) ->
              callbackCount++
              text
 
@@ -120,7 +120,7 @@ describe "EditorCommand", ->
           'meta-B': 'custom2'
 
         @execute: (editor, event) ->
-          @editSelectedText editor, (text) ->
+          @replaceSelectedText editor, (text) ->
             callbackCount++
             text
 

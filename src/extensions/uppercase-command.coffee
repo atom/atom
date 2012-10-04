@@ -7,5 +7,5 @@ class UpperCaseCommand extends EditorCommand
     'meta-X': 'uppercase'
 
   @execute: (editor, event) ->
-    @editSelectedText editor, (text) ->
+    @replaceSelectedText editor, (text) ->
       text.toUpperCase()
