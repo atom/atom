@@ -58,11 +58,11 @@ class Autocomplete extends View
         @filterMatches()
         @renderMatchList()
 
-    @miniEditor.preempt 'move-up', =>
+    @miniEditor.preempt 'core:move-up', =>
       @selectPreviousMatch()
       false
 
-    @miniEditor.preempt 'move-down', =>
+    @miniEditor.preempt 'core:move-down', =>
       @selectNextMatch()
       false
 

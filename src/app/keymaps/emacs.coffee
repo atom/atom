@@ -1,8 +1,8 @@
 window.keymap.bindKeys '*',
-  'ctrl-f': 'move-right'
-  'ctrl-b': 'move-left'
-  'ctrl-p': 'move-up'
-  'ctrl-n': 'move-down'
+  'ctrl-f': 'core:move-right'
+  'ctrl-b': 'core:move-left'
+  'ctrl-p': 'core:move-up'
+  'ctrl-n': 'core:move-down'
 
 window.keymap.bindKeys '.editor',
   'ctrl-F': 'select-right'
