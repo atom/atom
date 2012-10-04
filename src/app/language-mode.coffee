@@ -49,7 +49,9 @@ class LanguageMode
     scopes = @tokenizedBuffer.scopesForPosition(range.start)
     return unless commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
 
-    commentRegex = new OnigRegExp("^\s*" + _.escapeRegExp(commentString))
+    commentRegexString = _.escapeRegExp(commentString)
+    commentRegexString = commentRegexString.replace(/(\s+)$/, '($1)?')
+    commentRegex = new OnigRegExp("^\s*#{commentRegexString}")
 
     shouldUncomment = commentRegex.test(@editSession.lineForBufferRow(range.start.row))
 
