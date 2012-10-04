@@ -46,8 +46,8 @@ class TreeView extends View
 
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) => @entryClicked(e)
-    @on 'move-up', => @moveUp()
-    @on 'move-down', => @moveDown()
+    @on 'core:move-up', => @moveUp()
+    @on 'core:move-down', => @moveDown()
     @on 'tree-view:expand-directory', => @expandDirectory()
     @on 'tree-view:collapse-directory', => @collapseDirectory()
     @on 'tree-view:open-selected-entry', => @openSelectedEntry(true)

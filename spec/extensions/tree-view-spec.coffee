@@ -318,7 +318,7 @@ describe "TreeView", ->
       describe "when a collapsed directory is selected", ->
         it "skips to the next directory", ->
           treeView.root.find('.directory:eq(0)').click()
-          treeView.trigger 'move-down'
+          treeView.trigger 'core:move-down'
           expect(treeView.root.find('.directory:eq(1)')).toHaveClass 'selected'
 
       describe "when an expanded directory is selected", ->
@@ -327,7 +327,7 @@ describe "TreeView", ->
           subdir.expand()
           subdir.click()
 
-          treeView.trigger 'move-down'
+          treeView.trigger 'core:move-down'
 
           expect(subdir.entries.find('.entry:first')).toHaveClass 'selected'
 
@@ -337,7 +337,7 @@ describe "TreeView", ->
           subdir1.expand()
           subdir1.entries.find('.entry:last').click()
 
-          treeView.trigger 'move-down'
+          treeView.trigger 'core:move-down'
 
           expect(treeView.root.find('.entries > .entry:eq(2)')).toHaveClass 'selected'
 
@@ -353,14 +353,14 @@ describe "TreeView", ->
 
         describe "when the directory is collapsed", ->
           it "selects the entry after its grandparent directory", ->
-            treeView.trigger 'move-down'
+            treeView.trigger 'core:move-down'
             expect(nested.next()).toHaveClass 'selected'
 
         describe "when the directory is expanded", ->
           it "selects the entry after its grandparent directory", ->
             nested2.expand()
             nested2.find('.file').remove() # kill the .gitkeep file, which has to be there but screws the test
-            treeView.trigger 'move-down'
+            treeView.trigger 'core:move-down'
             expect(nested.next()).toHaveClass 'selected'
 
       describe "when the last entry of the last directory is selected", ->
@@ -368,11 +368,11 @@ describe "TreeView", ->
           lastEntry = treeView.root.find('> .entries .entry:last')
           lastEntry.click()
 
-          treeView.trigger 'move-down'
+          treeView.trigger 'core:move-down'
 
           expect(lastEntry).toHaveClass 'selected'
 
-    describe "move-up", ->
+    describe "core:move-up", ->
       describe "when there is an expanded directory before the currently selected entry", ->
         it "selects the last entry in the expanded directory", ->
           lastDir = treeView.root.find('.directory:last').view()
@@ -380,7 +380,7 @@ describe "TreeView", ->
           lastDir.expand()
           fileAfterDir.click()
 
-          treeView.trigger 'move-up'
+          treeView.trigger 'core:move-up'
           expect(lastDir.find('.entry:last')).toHaveClass 'selected'
 
       describe "when there is an entry before the currently selected entry", ->
@@ -388,7 +388,7 @@ describe "TreeView", ->
           lastEntry = treeView.root.find('.entry:last')
           lastEntry.click()
 
-          treeView.trigger 'move-up'
+          treeView.trigger 'core:move-up'
 
           expect(lastEntry.prev()).toHaveClass 'selected'
 
@@ -398,14 +398,14 @@ describe "TreeView", ->
           subdir.expand()
           subdir.find('> .entries > .entry:first').click()
 
-          treeView.trigger 'move-up'
+          treeView.trigger 'core:move-up'
 
           expect(subdir).toHaveClass 'selected'
 
       describe "when there is no parent directory or previous entry", ->
         it "does not change the selection", ->
           treeView.root.click()
-          treeView.trigger 'move-up'
+          treeView.trigger 'core:move-up'
           expect(treeView.root).toHaveClass 'selected'
 
     describe "movement outside of viewable region", ->
