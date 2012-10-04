@@ -1,33 +1,34 @@
 {View, $$} = require 'space-pen'
+SelectList = require 'select-list'
 Editor = require 'editor'
 $ = require 'jquery'
 
 module.exports =
-class EventPalette extends View
+class EventPalette extends SelectList
   @activate: (rootView) ->
     requireStylesheet 'event-palette/event-palette.css'
     @instance = new EventPalette(rootView)
     rootView.on 'event-palette:show', => @instance.attach()
 
-  @content: ->
-    @div class: 'event-palette', =>
-      @div class: 'select-list', outlet: 'eventList'
-      @subview 'miniEditor', new Editor(mini: true)
+  @viewClass: ->
+    "#{super} event-palette"
+
+  filterKey: 0 # filter on the event name for now
 
   initialize: (@rootView) ->
-    @on 'move-up', => @selectPrevious()
-    @on 'move-down', => @selectNext()
-    @on 'event-palette:cancel', => @detach()
-    @on 'event-palette:select', => @triggerSelectedEvent()
-    @on 'mousedown', '.event', (e) => @selectItem($(e.target).closest('.event'))
-    @on 'mouseup', '.event', => @triggerSelectedEvent()
+    super
 
   attach: ->
     @previouslyFocusedElement = $(':focus')
-    @populateEventList()
-    @eventList.find('.event:first').addClass('selected')
+    @setArray(@previouslyFocusedElement.events())
     @appendTo(@rootView)
     @miniEditor.focus()
+
+  itemForElement: ([eventName, description]) ->
+    $$ ->
+      @li class: 'event', =>
+        @div eventName, class: 'event-name'
+        @div description, class: 'event-description'
 
   populateEventList: ->
     events = @previouslyFocusedElement.events()
@@ -40,39 +41,10 @@ class EventPalette extends View
 
     @eventList.html(table)
 
-  selectPrevious: ->
-    @selectItem(@getSelectedItem().prev())
+  confirmed: ([eventName, description]) ->
+    @cancel()
+    @previouslyFocusedElement.trigger(eventName)
 
-  selectNext: ->
-    @selectItem(@getSelectedItem().next())
-
-  selectItem: (item) ->
-    return unless item.length
-    @eventList.find('.selected').removeClass('selected')
-    item.addClass('selected')
-    @scrollToItem(item)
-
-  scrollToItem: (item) ->
-    scrollTop = @eventList.prop('scrollTop')
-    desiredTop = item.position().top + scrollTop
-    desiredBottom = desiredTop + item.height()
-
-    if desiredTop < scrollTop
-      @eventList.scrollTop(desiredTop)
-    else if desiredBottom > @eventList.scrollBottom()
-      @eventList.scrollBottom(desiredBottom)
-
-  getSelectedItem: ->
-    @eventList.find('.selected')
-
-  getSelectedEventName: ->
-    @getSelectedItem().find('.event-name').text()
-
-  triggerSelectedEvent: ->
+  cancelled: ->
     @previouslyFocusedElement.focus()
-    @previouslyFocusedElement.trigger(@getSelectedEventName())
-    @detach()
 
-  detach: ->
-    @rootView.focus() if @miniEditor.isFocused
-    super

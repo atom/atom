@@ -19,68 +19,27 @@ describe "EventPalette", ->
   describe "when event-palette:show is triggered on the root view", ->
     it "shows a list of all valid events for the previously focused element, then focuses the mini-editor and selects the first event", ->
       for [event, description] in rootView.getActiveEditor().events()
-        expect(palette.eventList.find("td:contains(#{event})")).toExist()
+        expect(palette.list.find(".event:contains(#{event})")).toExist()
 
       expect(palette.miniEditor.isFocused).toBeTruthy()
       expect(palette.find('.event:first')).toHaveClass 'selected'
 
-  describe "when event-palette:cancel is triggered on the event palette", ->
+  describe "when the event palette is cancelled", ->
     it "focuses the root view and detaches the event palette", ->
       expect(palette.hasParent()).toBeTruthy()
-      palette.trigger('event-palette:cancel')
+      palette.cancel()
       expect(palette.hasParent()).toBeFalsy()
       expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
-  describe "when 'move-up' and 'move-down' events are triggered on the mini editor", ->
-    it "selects the next and previous event, if there is one, and scrolls the list to it", ->
-      palette.miniEditor.trigger 'move-up'
-      expect(palette.find('.event:eq(0)')).toHaveClass 'selected'
-
-      palette.miniEditor.trigger 'move-down'
-      expect(palette.find('.event:eq(0)')).not.toHaveClass 'selected'
-      expect(palette.find('.event:eq(1)')).toHaveClass 'selected'
-
-      palette.miniEditor.trigger 'move-down'
-      expect(palette.find('.event:eq(1)')).not.toHaveClass 'selected'
-      expect(palette.find('.event:eq(2)')).toHaveClass 'selected'
-
-      palette.miniEditor.trigger 'move-up'
-      expect(palette.find('.event:eq(2)')).not.toHaveClass 'selected'
-      expect(palette.find('.event:eq(1)')).toHaveClass 'selected'
-
-      _.times palette.find('.event').length, ->
-        palette.miniEditor.trigger 'move-down'
-
-      expect(palette.eventList.scrollTop() + palette.eventList.height()).toBe palette.eventList.prop('scrollHeight')
-
-  describe "event triggering", ->
-    eventHandler = null
-
-    beforeEach ->
+  describe "when an event selection is confirmed", ->
+    it "detaches the palette, then focuses the previously focused element and emits the selected event on it", ->
       eventHandler = jasmine.createSpy 'eventHandler'
+      activeEditor = rootView.getActiveEditor()
+      [eventName, description] = palette.array[4]
+      activeEditor.preempt eventName, eventHandler
 
-    describe "when event-palette:select is triggered on the palette", ->
-      it "emits the selected event on the last focused element, then detaches the palette", ->
-        _.times 3, -> palette.miniEditor.trigger 'move-down'
+      palette.confirmed(palette.array[4])
 
-        rootView.getActiveEditor().preempt palette.getSelectedEventName(), eventHandler
-        palette.trigger 'event-palette:select'
-        expect(eventHandler).toHaveBeenCalled()
-
-        expect(rootView.getActiveEditor().isFocused).toBeTruthy()
-        expect(palette.hasParent()).toBeFalsy()
-
-    describe "when an item is clicked", ->
-      it "selects item and triggers its event", ->
-        element = palette.eventList.find('.event:eq(3)')
-
-        element.mousedown()
-        expect(element).toHaveClass 'selected'
-
-        rootView.getActiveEditor().preempt palette.getSelectedEventName(), eventHandler
-
-        element.mouseup()
-        expect(eventHandler).toHaveBeenCalled()
-        rootView.getActiveEditor().preempt palette.getSelectedEventName(), eventHandler
-        element.click()
-
+      expect(activeEditor.isFocused).toBeTruthy()
+      expect(eventHandler).toHaveBeenCalled()
+      expect(palette.hasParent()).toBeFalsy()
