@@ -42,16 +42,19 @@ class SelectList extends View
       @list.append(item)
 
   selectPreviousItem: ->
-    @selectItem(@getSelectedItem().prev())
+    item = @getSelectedItem().prev()
+    item = @list.find('li:last') unless item.length
+    @selectItem(item)
 
   selectNextItem: ->
-    @selectItem(@getSelectedItem().next())
+    item = @getSelectedItem().next()
+    item = @list.find('li:first') unless item.length
+    @selectItem(item)
 
   selectItem: (item) ->
-    if item.length
-      @list.find('.selected').removeClass('selected')
-      item.addClass 'selected'
-      @scrollToItem(item)
+    @list.find('.selected').removeClass('selected')
+    item.addClass 'selected'
+    @scrollToItem(item)
 
   scrollToItem: (item) ->
     scrollTop = @list.scrollTop()

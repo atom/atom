@@ -2,7 +2,7 @@ SelectList = require 'select-list'
 {$$} = require 'space-pen'
 $ = require 'jquery'
 
-describe "SelectList", ->
+fdescribe "SelectList", ->
   [selectList, array, list, miniEditor] = []
 
   beforeEach ->
@@ -37,12 +37,18 @@ describe "SelectList", ->
       expect(list.find('li:contains(Delta)')).toExist()
 
   describe "when move-up / move-down are triggered on the miniEditor", ->
-    it "selects the previous / next item in the list, if there is one", ->
+    it "selects the previous / next item in the list, or wraps around to the other side", ->
       expect(list.find('li:first')).toHaveClass 'selected'
 
       miniEditor.trigger 'move-up'
 
+      expect(list.find('li:first')).not.toHaveClass 'selected'
+      expect(list.find('li:last')).toHaveClass 'selected'
+
+      miniEditor.trigger 'move-down'
+
       expect(list.find('li:first')).toHaveClass 'selected'
+      expect(list.find('li:last')).not.toHaveClass 'selected'
 
       miniEditor.trigger 'move-down'
 
@@ -58,6 +64,7 @@ describe "SelectList", ->
 
       expect(list.find('li:eq(2)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
+
 
     it "scrolls to keep the selected item in view", ->
       selectList.attachToDom()
