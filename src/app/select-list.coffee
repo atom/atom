@@ -6,9 +6,11 @@ fuzzyFilter = require 'fuzzy-filter'
 module.exports =
 class SelectList extends View
   @content: ->
-    @div class: 'select-list', =>
+    @div class: @viewClass(), =>
       @subview 'miniEditor', new Editor(mini: true)
       @ol outlet: 'list'
+
+  @viewClass: -> 'select-list'
 
   maxItems: Infinity
   filteredArray: null
@@ -28,14 +30,15 @@ class SelectList extends View
   populateList: ->
     filterQuery = @miniEditor.getText()
     if filterQuery.length
-      @filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
+      filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
     else
-      @filteredArray = @array
+      filteredArray = @array
 
     @list.empty()
-    for i in [0...Math.min(@filteredArray.length, @maxItems)]
-      item = @itemForElement(@filteredArray[i])
-      item.data('select-list-index', i)
+    for i in [0...Math.min(filteredArray.length, @maxItems)]
+      element = filteredArray[i]
+      item = @itemForElement(element)
+      item.data('select-list-element', element)
       @list.append(item)
 
   selectPreviousItem: ->
@@ -64,5 +67,6 @@ class SelectList extends View
     @list.find('li.selected')
 
   confirmSelection: ->
-    index = @getSelectedItem().data('select-list-index')
-    @selected(@filteredArray[index])
+    element = @getSelectedItem().data('select-list-element')
+    @confirmed(element) if element?
+

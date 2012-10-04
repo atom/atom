@@ -2,7 +2,7 @@ SelectList = require 'select-list'
 {$$} = require 'space-pen'
 $ = require 'jquery'
 
-fdescribe "SelectList", ->
+describe "SelectList", ->
   [selectList, array, list, miniEditor] = []
 
   beforeEach ->
@@ -17,7 +17,7 @@ fdescribe "SelectList", ->
     selectList.itemForElement = (element) ->
       $$ -> @li element[1], class: element[0]
 
-    selectList.selected = jasmine.createSpy('selected hook')
+    selectList.confirmed = jasmine.createSpy('confirmed hook')
     selectList.cancelled = jasmine.createSpy('cancelled hook')
 
     selectList.setArray(array)
@@ -76,11 +76,19 @@ fdescribe "SelectList", ->
       expect(list.scrollBottom()).toBe itemHeight * 3
 
   describe "the core:confirm event", ->
-    it "triggers the selected hook with the selected array element", ->
-      miniEditor.trigger 'move-down'
-      miniEditor.trigger 'move-down'
-      miniEditor.trigger 'core:confirm'
-      expect(selectList.selected).toHaveBeenCalledWith(array[2])
+    describe "when there is an item selected (because the list in not empty)", ->
+      it "triggers the selected hook with the selected array element", ->
+        miniEditor.trigger 'move-down'
+        miniEditor.trigger 'move-down'
+        miniEditor.trigger 'core:confirm'
+        expect(selectList.confirmed).toHaveBeenCalledWith(array[2])
+
+    describe "when there is no item selected (because the list is empty)", ->
+      it "does not trigger the confirmed hook", ->
+        miniEditor.insertText("i will never match anything")
+        expect(list.find('li')).not.toExist()
+        miniEditor.trigger 'core:confirm'
+        expect(selectList.confirmed).not.toHaveBeenCalled()
 
   describe "the core:cancel event", ->
     it "triggers the cancelled hook", ->

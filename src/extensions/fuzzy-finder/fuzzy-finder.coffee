@@ -1,18 +1,18 @@
 {View, $$} = require 'space-pen'
+SelectList = require 'select-list'
 stringScore = require 'stringscore'
 fuzzyFilter = require 'fuzzy-filter'
 $ = require 'jquery'
+_ = require 'underscore'
 Editor = require 'editor'
 
 module.exports =
-class FuzzyFinder extends View
+class FuzzyFinder extends SelectList
   @activate: (rootView) ->
     @instance = new FuzzyFinder(rootView)
 
-  @content: ->
-    @div class: 'fuzzy-finder', =>
-      @ol outlet: 'pathList'
-      @subview 'miniEditor', new Editor(mini: true)
+  @viewClass: ->
+    _.compact([super, 'fuzzy-finder']).join(' ')
 
   paths: null
   allowActiveEditorChange: null
@@ -26,13 +26,13 @@ class FuzzyFinder extends View
     @rootView.on 'fuzzy-finder:toggle-buffer-finder', => @toggleBufferFinder()
 
     @on 'fuzzy-finder:cancel', => @detach()
-    @on 'move-up', => @moveUp()
-    @on 'move-down', => @moveDown()
     @on 'fuzzy-finder:select-path', => @select()
     @on 'mousedown', 'li', (e) => @entryClicked(e)
 
-    @miniEditor.getBuffer().on 'change', => @populatePathList() if @hasParent()
-    @miniEditor.off 'move-up move-down'
+  itemForElement: (path) ->
+    $$ -> @li path
+
+  confirmed: (path) ->
 
   toggleFileFinder: ->
     if @hasParent()
@@ -52,12 +52,12 @@ class FuzzyFinder extends View
       @attach() if @paths?.length
 
   populateProjectPaths: ->
-    @rootView.project.getFilePaths().done (@paths) => @populatePathList()
+    @rootView.project.getFilePaths().done (@paths) => @setArray(@paths)
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>
       @rootView.project.relativize(path)
-    @populatePathList() if @paths?.length
+    @setArray(@paths)
 
   attach: ->
     @rootView.append(this)
@@ -80,13 +80,10 @@ class FuzzyFinder extends View
   findSelectedLi: ->
     @pathList.children('li.selected')
 
-  open : (path) ->
+  confirmed : (path) ->
     return unless path.length
     @rootView.open(path, {@allowActiveEditorChange})
     @detach()
-
-  select: ->
-    @open(@findSelectedLi().text())
 
   entryClicked: (e) ->
     @open($(e.currentTarget).text())
