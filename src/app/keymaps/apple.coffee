@@ -1,6 +1,8 @@
+window.keymap.bindKeys 'body'
+  'meta-up': 'core:move-to-top'
+  'meta-down': 'core:move-to-bottom'
+
 window.keymap.bindKeys '.editor'
-  'meta-up': 'move-to-top'
-  'meta-down': 'move-to-bottom'
   'meta-right': 'move-to-end-of-line'
   'meta-left': 'move-to-beginning-of-line'
   'alt-left': 'move-to-beginning-of-word'

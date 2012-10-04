@@ -91,48 +91,48 @@ class Editor extends View
 
   bindKeys: ->
     editorBindings =
-      'core:move-right': @moveCursorRight
-      'core:move-left': @moveCursorLeft
-      'core:move-down': @moveCursorDown
       'core:move-up': @moveCursorUp
-      'move-to-next-word': @moveCursorToNextWord
-      'move-to-previous-word': @moveCursorToPreviousWord
-      'select-right': @selectRight
-      'select-left': @selectLeft
+      'core:move-down': @moveCursorDown
+      'core:move-left': @moveCursorLeft
+      'core:move-right': @moveCursorRight
+      'core:move-to-top': @moveCursorToTop
+      'core:move-to-bottom': @moveCursorToBottom
+      'core:page-down': @pageDown
+      'core:page-up': @pageUp
       'select-up': @selectUp
       'select-down': @selectDown
+      'select-left': @selectLeft
+      'select-right': @selectRight
+      'select-to-top': @selectToTop
+      'select-to-bottom': @selectToBottom
+      'select-all': @selectAll
+      'backspace': @backspace
+      'delete': @delete
+      'undo': @undo
+      'redo': @redo
+      'cut': @cutSelection
+      'copy': @copySelection
+      'paste': @paste
+      'move-to-next-word': @moveCursorToNextWord
+      'move-to-previous-word': @moveCursorToPreviousWord
       'select-word': @selectWord
       'newline': @insertNewline
       'indent': @indent
       'indent-selected-rows': @indentSelectedRows
       'outdent-selected-rows': @outdentSelectedRows
-      'backspace': @backspace
       'backspace-to-beginning-of-word': @backspaceToBeginningOfWord
-      'delete': @delete
       'delete-to-end-of-word': @deleteToEndOfWord
       'delete-line': @deleteLine
       'cut-to-end-of-line': @cutToEndOfLine
-      'cut': @cutSelection
-      'copy': @copySelection
-      'paste': @paste
-      'undo': @undo
-      'redo': @redo
-      'move-to-top': @moveCursorToTop
-      'move-to-bottom': @moveCursorToBottom
       'move-to-beginning-of-line': @moveCursorToBeginningOfLine
       'move-to-end-of-line': @moveCursorToEndOfLine
       'move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
       'move-to-beginning-of-word': @moveCursorToBeginningOfWord
       'move-to-end-of-word': @moveCursorToEndOfWord
-      'select-to-top': @selectToTop
-      'select-to-bottom': @selectToBottom
       'select-to-end-of-line': @selectToEndOfLine
       'select-to-beginning-of-line': @selectToBeginningOfLine
       'select-to-end-of-word': @selectToEndOfWord
       'select-to-beginning-of-word': @selectToBeginningOfWord
-      'select-all': @selectAll
-      'page-down': @pageDown
-      'page-up': @pageUp
 
     unless @mini
       _.extend editorBindings,
