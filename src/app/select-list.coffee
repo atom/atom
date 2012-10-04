@@ -18,12 +18,21 @@ class SelectList extends View
 
   initialize: ->
     requireStylesheet 'select-list.css'
+
     @miniEditor.getBuffer().on 'change', => @populateList()
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'move-up', => @selectPreviousItem()
     @on 'move-down', => @selectNextItem()
     @on 'core:confirm', => @confirmSelection()
     @on 'core:cancel', => @cancel()
+
+    @list.on 'mousedown', 'li', (e) =>
+      @selectItem($(e.target).closest('li'))
+      e.preventDefault()
+
+    @list.on 'mouseup', 'li', (e) =>
+      @confirmSelection() if $(e.target).closest('li').hasClass('selected')
+      e.preventDefault()
 
   setArray: (@array) ->
     @populateList()
@@ -54,6 +63,7 @@ class SelectList extends View
     @selectItem(item)
 
   selectItem: (item) ->
+    return unless item.length
     @list.find('.selected').removeClass('selected')
     item.addClass 'selected'
     @scrollToItem(item)
@@ -77,7 +87,7 @@ class SelectList extends View
 
   cancel: ->
     @cancelling = true
-    @cancelled()
     @detach()
+    @cancelled()
     @cancelling = false
 

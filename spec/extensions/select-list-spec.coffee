@@ -96,6 +96,16 @@ fdescribe "SelectList", ->
         miniEditor.trigger 'core:confirm'
         expect(selectList.confirmed).not.toHaveBeenCalled()
 
+  describe "when a list item is clicked", ->
+    it "selects the item on mousedown and confirms it on mouseup", ->
+      item = list.find('li:eq(1)')
+
+      item.mousedown()
+      expect(item).toHaveClass 'selected'
+      item.mouseup()
+
+      expect(selectList.confirmed).toHaveBeenCalledWith(array[1])
+
   describe "the core:cancel event", ->
     it "triggers the cancelled hook and detaches the select list", ->
       spyOn(selectList, 'detach')
@@ -103,7 +113,7 @@ fdescribe "SelectList", ->
       expect(selectList.cancelled).toHaveBeenCalled()
       expect(selectList.detach).toHaveBeenCalled()
 
-  describe "when the fuzzy finder loses focus", ->
+  describe "when the mini editor loses focus", ->
     it "triggers the cancelled hook and detaches the select list", ->
       spyOn(selectList, 'detach')
       miniEditor.trigger 'focusout'
