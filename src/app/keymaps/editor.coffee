@@ -1,6 +1,5 @@
 window.keymap.bindKeys '.editor',
   'meta-s': 'save'
-  'meta-a': 'select-all'
   'enter': 'newline'
   'meta-enter': 'newline-below'
   'tab': 'indent'
