@@ -11,18 +11,25 @@ describe "EventPalette", ->
     rootView.activateExtension(EventPalette)
     palette = EventPalette.instance
     rootView.attachToDom().focus()
-    rootView.trigger 'event-palette:show'
+    rootView.trigger 'event-palette:toggle'
 
   afterEach ->
     rootView.remove()
 
-  describe "when event-palette:show is triggered on the root view", ->
+  describe "when event-palette:toggle is triggered on the root view", ->
     it "shows a list of all valid events for the previously focused element, then focuses the mini-editor and selects the first event", ->
       for [event, description] in rootView.getActiveEditor().events()
         expect(palette.list.find(".event:contains(#{event})")).toExist()
 
       expect(palette.miniEditor.isFocused).toBeTruthy()
       expect(palette.find('.event:first')).toHaveClass 'selected'
+
+  describe "when event-palette:toggle is triggered on the open event palette", ->
+    it "focus the root view and detaches the event palette", ->
+      expect(palette.hasParent()).toBeTruthy()
+      palette.trigger 'event-palette:toggle'
+      expect(palette.hasParent()).toBeFalsy()
+      expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
   describe "when the event palette is cancelled", ->
     it "focuses the root view and detaches the event palette", ->
