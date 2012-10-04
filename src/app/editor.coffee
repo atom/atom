@@ -103,9 +103,9 @@ class Editor extends View
       'core:select-down': @selectDown
       'core:select-left': @selectLeft
       'core:select-right': @selectRight
-      'select-to-top': @selectToTop
-      'select-to-bottom': @selectToBottom
-      'select-all': @selectAll
+      'core:select-to-top': @selectToTop
+      'core:select-to-bottom': @selectToBottom
+      'core:select-all': @selectAll
       'backspace': @backspace
       'delete': @delete
       'undo': @undo
