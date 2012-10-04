@@ -1,6 +1,4 @@
-window.keymap.bindKeys '*',
-  'ctrl-f': 'core:move-right'
-  'ctrl-b': 'core:move-left'
+window.keymap.bindKeys 'body',
   'ctrl-p': 'core:move-up'
   'ctrl-n': 'core:move-down'
 
