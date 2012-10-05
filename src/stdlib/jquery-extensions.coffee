@@ -18,6 +18,12 @@ $.fn.scrollRight = (newValue) ->
   else
     @scrollLeft() + @width()
 
+$.fn.pageUp = ->
+  @scrollTop(@scrollTop() - @height())
+
+$.fn.pageDown = ->
+  @scrollTop(@scrollTop() + @height())
+
 $.fn.containsElement = (element) ->
   (element[0].compareDocumentPosition(this[0]) & 8) == 8
 

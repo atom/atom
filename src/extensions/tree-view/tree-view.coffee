@@ -50,6 +50,8 @@ class TreeView extends View
     @on 'core:move-down', => @moveDown()
     @on 'core:move-to-top', => @scrollToTop()
     @on 'core:move-to-bottom', => @scrollToBottom()
+    @on 'core:page-up', => @pageUp()
+    @on 'core:page-down', => @pageDown()
     @on 'tree-view:expand-directory', => @expandDirectory()
     @on 'tree-view:collapse-directory', => @collapseDirectory()
     @on 'tree-view:open-selected-entry', => @openSelectedEntry(true)
