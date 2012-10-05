@@ -22,13 +22,12 @@ describe "EditorCommand", ->
       transformed = false
       edited = false
       class CustomCommand extends EditorCommand
-        @getKeymaps: (editor) ->
-          'meta-V': 'custom'
 
-        @execute: (editor, event) ->
-          edited = @replaceSelectedText editor, (text) ->
-            transformed = true
-            'new'
+        @onEditor: (editor) ->
+          @register editor, 'meta-V',  'custom', =>
+            edited = @replaceSelectedText editor, (text) ->
+              transformed = true
+              'new'
 
       CustomCommand.activate(rootView)
       editor.moveCursorToTop()
@@ -41,13 +40,12 @@ describe "EditorCommand", ->
       transformed = false
       edited = false
       class CustomCommand extends EditorCommand
-        @getKeymaps: (editor) ->
-          'meta-V': 'custom'
 
-        @execute: (editor, event) ->
-          edited = @replaceSelectedText editor, (text) ->
-            transformed = true
-            null
+        @onEditor: (editor) ->
+          @register editor, 'meta-V',  'custom', =>
+            edited = @replaceSelectedText editor, (text) ->
+              transformed = true
+              null
 
       CustomCommand.activate(rootView)
       editor.moveCursorToTop()
@@ -60,13 +58,12 @@ describe "EditorCommand", ->
       transformed = false
       edited = false
       class CustomCommand extends EditorCommand
-        @getKeymaps: (editor) ->
-          'meta-V': 'custom'
 
-        @execute: (editor, event) ->
-          edited = @replaceSelectedText editor, (text) ->
-            transformed = true
-            undefined
+        @onEditor: (editor) ->
+          @register editor, 'meta-V',  'custom', =>
+            edited = @replaceSelectedText editor, (text) ->
+              transformed = true
+              undefined
 
       CustomCommand.activate(rootView)
       editor.moveCursorToTop()
@@ -78,12 +75,11 @@ describe "EditorCommand", ->
   describe "custom sub-class", ->
     it "removes vowels from selected text", ->
       class VowelRemover extends EditorCommand
-        @getKeymaps: (editor) ->
-          'meta-V': 'devowel'
 
-        @execute: (editor, event) ->
-          @replaceSelectedText editor, (text) ->
-            text.replace(/[aeiouy]/gi, '')
+        @onEditor: (editor) ->
+          @register editor, 'meta-V',  'devowel', =>
+            @replaceSelectedText editor, (text) ->
+              text.replace(/[aeiouy]/gi, '')
 
       VowelRemover.activate(rootView)
       editor.moveCursorToTop()
@@ -95,12 +91,10 @@ describe "EditorCommand", ->
 
     it "maintains reversed selections", ->
       class VowelRemover extends EditorCommand
-        @getKeymaps: (editor) ->
-          'meta-V': 'devowel'
-
-        @execute: (editor, event) ->
-          @replaceSelectedText editor, (text) ->
-            text.replace(/[aeiouy]/gi, '')
+        @onEditor: (editor) ->
+          @register editor, 'meta-V',  'devowel', =>
+            @replaceSelectedText editor, (text) ->
+              text.replace(/[aeiouy]/gi, '')
 
       VowelRemover.activate(rootView)
       editor.moveCursorToTop()
@@ -114,13 +108,11 @@ describe "EditorCommand", ->
     it "doesn't transform empty selections", ->
        callbackCount = 0
        class CustomCommand extends EditorCommand
-         @getKeymaps: (editor) ->
-           'meta-V': 'custom'
-
-         @execute: (editor, event) ->
-           @replaceSelectedText editor, (text) ->
-             callbackCount++
-             text
+         @onEditor: (editor) ->
+            @register editor, 'meta-V',  'custom', =>
+              @replaceSelectedText editor, (text) ->
+                callbackCount++
+                text
 
        CustomCommand.activate(rootView)
        editor.moveCursorToTop()
@@ -131,30 +123,6 @@ describe "EditorCommand", ->
        editor.trigger 'custom'
        expect(callbackCount).toBe 1
 
-    it "registers all keymaps", ->
-      callbackCount = 0
-      eventName = null
-      class CustomCommand extends EditorCommand
-        @getKeymaps: (editor) ->
-          'meta-V': 'custom1'
-          'meta-B': 'custom2'
-
-        @execute: (editor, event) ->
-          eventName = event
-          @replaceSelectedText editor, (text) ->
-            callbackCount++
-            text
-
-        CustomCommand.activate(rootView)
-        editor.moveCursorToTop()
-        editor.selectToEndOfLine()
-        editor.trigger 'custom1'
-        expect(callbackCount).toBe 1
-        expect(eventName).toBe 'custom1'
-        editor.trigger 'custom2'
-        expect(eventName).toBe 'custom2'
-        expect(callbackCount).toBe 2
-
   describe "LowerCaseCommand", ->
     it "replaces the selected text with all lower case characters", ->
       LowerCaseCommand.activate(rootView)
@@ -162,7 +130,6 @@ describe "EditorCommand", ->
       expect(editor.getTextInRange(editor.getSelection().getBufferRange())).toBe 'Array'
       editor.trigger 'lowercase'
       expect(editor.getTextInRange(editor.getSelection().getBufferRange())).toBe 'array'
-
 
   describe "UpperCaseCommand", ->
     it "replaces the selected text with all upper case characters", ->

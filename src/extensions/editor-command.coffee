@@ -2,25 +2,18 @@ module.exports =
 class EditorCommand
 
   @activate: (rootView) ->
-    keymaps = @getKeymaps()
-    return unless keymaps
-
-    window.keymap.bindKeys '.editor', keymaps
-
     for editor in rootView.getEditors()
-      @subscribeToEditor(rootView, editor)
+      @onEditor(editor)
 
     rootView.on 'editor-open', (e, editor) =>
-      @subscribeToEditor(rootView, editor)
+      @onEditor(editor)
 
-  @subscribeToEditor: (rootView, editor) ->
-    keymaps = @getKeymaps(rootView, editor)
-    return unless keymaps
-
-    for key, event of keymaps
-      do (event) =>
-        editor.on event, =>
-          @execute(editor, event)
+  @register: (editor, key, event, callback) ->
+    binding = {}
+    binding[key] = event
+    window.keymap.bindKeys '.editor', binding
+    editor.on event, =>
+      callback(editor, event)
 
   @replaceSelectedText: (editor, replace) ->
      selection = editor.getSelection()
