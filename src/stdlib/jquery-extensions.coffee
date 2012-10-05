@@ -6,6 +6,12 @@ $.fn.scrollBottom = (newValue) ->
   else
     @scrollTop() + @height()
 
+$.fn.scrollToTop = ->
+  @scrollTop(0)
+
+$.fn.scrollToBottom = ->
+  @scrollTop(@prop('scrollHeight'))
+
 $.fn.scrollRight = (newValue) ->
   if newValue?
     @scrollLeft(newValue - @width())
