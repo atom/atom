@@ -91,8 +91,6 @@ class Editor extends View
 
   bindKeys: ->
     editorBindings =
-      'core:move-up': @moveCursorUp
-      'core:move-down': @moveCursorDown
       'core:move-left': @moveCursorLeft
       'core:move-right': @moveCursorRight
       'core:move-to-top': @moveCursorToTop
@@ -136,6 +134,8 @@ class Editor extends View
 
     unless @mini
       _.extend editorBindings,
+        'core:move-up': @moveCursorUp
+        'core:move-down': @moveCursorDown
         'core:close': @close
         'editor:save': @save
         'editor:newline-below': @insertNewlineBelow
