@@ -320,15 +320,15 @@ describe "CommandPanel", ->
 
       rootView.trigger 'command-panel:toggle'
 
-      commandPanel.miniEditor.trigger 'move-up'
+      commandPanel.miniEditor.trigger 'core:move-up'
       expect(commandPanel.miniEditor.getText()).toBe 's/twinkies/wheatgrass/g'
-      commandPanel.miniEditor.trigger 'move-up'
+      commandPanel.miniEditor.trigger 'core:move-up'
       expect(commandPanel.miniEditor.getText()).toBe 's/war/peace/g'
-      commandPanel.miniEditor.trigger 'move-up'
+      commandPanel.miniEditor.trigger 'core:move-up'
       expect(commandPanel.miniEditor.getText()).toBe 's/war/peace/g'
-      commandPanel.miniEditor.trigger 'move-down'
+      commandPanel.miniEditor.trigger 'core:move-down'
       expect(commandPanel.miniEditor.getText()).toBe 's/twinkies/wheatgrass/g'
-      commandPanel.miniEditor.trigger 'move-down'
+      commandPanel.miniEditor.trigger 'core:move-down'
       expect(commandPanel.miniEditor.getText()).toBe ''
 
   describe "when the preview list is focused with search operations", ->
@@ -345,30 +345,30 @@ describe "CommandPanel", ->
         expect(previewList.find('li:eq(0)')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
 
-        previewList.trigger 'move-up'
+        previewList.trigger 'core:move-up'
         expect(previewList.find('li:eq(0)')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[0]
 
-        previewList.trigger 'move-down'
+        previewList.trigger 'core:move-down'
         expect(previewList.find('li:eq(1)')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[1]
 
-        previewList.trigger 'move-down'
+        previewList.trigger 'core:move-down'
         expect(previewList.find('li:eq(2)')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[2]
 
-        previewList.trigger 'move-up'
+        previewList.trigger 'core:move-up'
         expect(previewList.find('li:eq(1)')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe previewList.getOperations()[1]
 
-        _.times previewList.getOperations().length, -> previewList.trigger 'move-down'
+        _.times previewList.getOperations().length, -> previewList.trigger 'core:move-down'
 
         expect(previewList.find('li:last')).toHaveClass 'selected'
         expect(previewList.getSelectedOperation()).toBe _.last(previewList.getOperations())
 
         expect(previewList.scrollBottom()).toBeCloseTo previewList.prop('scrollHeight'), -1
 
-        _.times previewList.getOperations().length, -> previewList.trigger 'move-up'
+        _.times previewList.getOperations().length, -> previewList.trigger 'core:move-up'
 
     describe "when command-panel:execute is triggered on the preview list", ->
       it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
@@ -376,7 +376,7 @@ describe "CommandPanel", ->
         executeHandler = jasmine.createSpy('executeHandler')
         commandPanel.on 'command-panel:execute', executeHandler
 
-        _.times 4, -> previewList.trigger 'move-down'
+        _.times 4, -> previewList.trigger 'core:move-down'
         operation = previewList.getSelectedOperation()
 
         previewList.trigger 'command-panel:execute'
