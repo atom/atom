@@ -1360,6 +1360,19 @@ describe "EditSession", ->
         editSession.toggleLineCommentsInSelection()
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
 
+      it "uncomments when the line lacks the trailing whitespace in the comment regex", ->
+        editSession.setSelectedBufferRange([[10, 0], [10, 0]])
+        editSession.toggleLineCommentsInSelection()
+
+        expect(buffer.lineForRow(10)).toBe "// "
+        expect(editSession.getSelectedBufferRange()).toEqual [[10, 3], [10, 3]]
+        editSession.backspace()
+        expect(buffer.lineForRow(10)).toBe "//"
+
+        editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(10)).toBe ""
+        expect(editSession.getSelectedBufferRange()).toEqual [[10, 0], [10, 0]]
+
     describe ".undo() and .redo()", ->
       it "undoes/redoes the last change", ->
         editSession.insertText("foo")

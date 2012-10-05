@@ -200,13 +200,13 @@ describe "Autocomplete", ->
       editor.setCursorBufferPosition([10,6])
       autocomplete.attach()
 
-      miniEditor.trigger "move-up"
+      miniEditor.trigger "core:move-up"
       expect(editor.lineForBufferRow(10)).toBe "extra:concat:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(7)')).toHaveClass('selected')
 
-      miniEditor.trigger "move-up"
+      miniEditor.trigger "core:move-up"
       expect(editor.lineForBufferRow(10)).toBe "extra:right:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(7)')).not.toHaveClass('selected')
@@ -223,10 +223,10 @@ describe "Autocomplete", ->
       expect(matchesList.height()).toBeLessThan matchesList[0].scrollHeight
 
       matchCount = matchesList.find('li').length
-      miniEditor.trigger 'move-up'
+      miniEditor.trigger 'core:move-up'
       expect(matchesList.scrollBottom()).toBe matchesList[0].scrollHeight
 
-      miniEditor.trigger 'move-up' for i in [1...matchCount]
+      miniEditor.trigger 'core:move-up' for i in [1...matchCount]
       expect(matchesList.scrollTop()).toBe 0
 
   describe 'move-down event', ->
@@ -235,12 +235,12 @@ describe "Autocomplete", ->
       editor.setCursorBufferPosition([10,7])
       autocomplete.attach()
 
-      miniEditor.trigger "move-down"
+      miniEditor.trigger "core:move-down"
       expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
       expect(autocomplete.find('li:eq(0)')).not.toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).toHaveClass('selected')
 
-      miniEditor.trigger "move-down"
+      miniEditor.trigger "core:move-down"
       expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
       expect(autocomplete.find('li:eq(0)')).toHaveClass('selected')
       expect(autocomplete.find('li:eq(1)')).not.toHaveClass('selected')
@@ -256,10 +256,10 @@ describe "Autocomplete", ->
       expect(matchesList.height()).toBeLessThan matchesList[0].scrollHeight
 
       matchCount = matchesList.find('li').length
-      miniEditor.trigger 'move-down' for i in [1...matchCount]
+      miniEditor.trigger 'core:move-down' for i in [1...matchCount]
       expect(matchesList.scrollBottom()).toBe matchesList[0].scrollHeight
 
-      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'core:move-down'
       expect(matchesList.scrollTop()).toBe 0
 
   describe "when a match is clicked in the match list", ->
@@ -431,10 +431,10 @@ describe "Autocomplete", ->
       autocomplete.detach()
       expect(miniEditor.getText()).toBe ''
 
-      editor.trigger 'move-down'
+      editor.trigger 'core:move-down'
       expect(editor.getCursorBufferPosition().row).toBe 1
 
-      editor.trigger 'move-up'
+      editor.trigger 'core:move-up'
       expect(editor.getCursorBufferPosition().row).toBe 0
 
 

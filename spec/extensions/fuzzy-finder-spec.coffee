@@ -21,7 +21,7 @@ describe 'FuzzyFinder', ->
         it "shows the FuzzyFinder or hides it and returns focus to the active editor if it already showing", ->
           rootView.attachToDom()
           expect(rootView.find('.fuzzy-finder')).not.toExist()
-          rootView.find('.editor').trigger 'split-right'
+          rootView.find('.editor').trigger 'editor:split-right'
           [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
@@ -82,7 +82,7 @@ describe 'FuzzyFinder', ->
         it "shows the FuzzyFinder or hides it, returning focus to the active editor if", ->
           rootView.attachToDom()
           expect(rootView.find('.fuzzy-finder')).not.toExist()
-          rootView.find('.editor').trigger 'split-right'
+          rootView.find('.editor').trigger 'editor:split-right'
           [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
 
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
