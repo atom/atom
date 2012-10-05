@@ -21,8 +21,8 @@ class SelectList extends View
 
     @miniEditor.getBuffer().on 'change', => @populateList()
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
-    @on 'move-up', => @selectPreviousItem()
-    @on 'move-down', => @selectNextItem()
+    @on 'core:move-up', => @selectPreviousItem()
+    @on 'core:move-down', => @selectNextItem()
     @on 'core:confirm', => @confirmSelection()
     @on 'core:cancel', => @cancel()
 

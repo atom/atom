@@ -37,31 +37,31 @@ describe "SelectList", ->
       expect(list.find('li:contains(Delta)')).toExist()
       expect(list.find('li:first')).toHaveClass 'selected'
 
-  describe "when move-up / move-down are triggered on the miniEditor", ->
+  describe "when core:move-up / core:move-down are triggered on the miniEditor", ->
     it "selects the previous / next item in the list, or wraps around to the other side", ->
       expect(list.find('li:first')).toHaveClass 'selected'
 
-      miniEditor.trigger 'move-up'
+      miniEditor.trigger 'core:move-up'
 
       expect(list.find('li:first')).not.toHaveClass 'selected'
       expect(list.find('li:last')).toHaveClass 'selected'
 
-      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'core:move-down'
 
       expect(list.find('li:first')).toHaveClass 'selected'
       expect(list.find('li:last')).not.toHaveClass 'selected'
 
-      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'core:move-down'
 
       expect(list.find('li:eq(0)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
 
-      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'core:move-down'
 
       expect(list.find('li:eq(1)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(2)')).toHaveClass 'selected'
 
-      miniEditor.trigger 'move-up'
+      miniEditor.trigger 'core:move-up'
 
       expect(list.find('li:eq(2)')).not.toHaveClass 'selected'
       expect(list.find('li:eq(1)')).toHaveClass 'selected'
@@ -71,22 +71,22 @@ describe "SelectList", ->
       itemHeight = list.find('li').outerHeight()
       list.height(itemHeight * 2)
 
-      miniEditor.trigger 'move-down'
-      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'core:move-down'
+      miniEditor.trigger 'core:move-down'
       expect(list.scrollBottom()).toBe itemHeight * 3
 
-      miniEditor.trigger 'move-down'
+      miniEditor.trigger 'core:move-down'
       expect(list.scrollBottom()).toBe itemHeight * 4
 
-      miniEditor.trigger 'move-up'
-      miniEditor.trigger 'move-up'
+      miniEditor.trigger 'core:move-up'
+      miniEditor.trigger 'core:move-up'
       expect(list.scrollBottom()).toBe itemHeight * 3
 
   describe "the core:confirm event", ->
     describe "when there is an item selected (because the list in not empty)", ->
       it "triggers the selected hook with the selected array element", ->
-        miniEditor.trigger 'move-down'
-        miniEditor.trigger 'move-down'
+        miniEditor.trigger 'core:move-down'
+        miniEditor.trigger 'core:move-down'
         miniEditor.trigger 'core:confirm'
         expect(selectList.confirmed).toHaveBeenCalledWith(array[2])
 
