@@ -3,7 +3,7 @@ RootView = require 'root-view'
 StatusBar = require 'status-bar'
 
 describe "StatusBar", ->
-  [rootView, editor, statusBar] = []
+  [rootView, editor, statusBar, buffer] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
@@ -11,6 +11,7 @@ describe "StatusBar", ->
     StatusBar.activate(rootView)
     editor = rootView.getActiveEditor()
     statusBar = rootView.find('.status-bar').view()
+    buffer = editor.getBuffer()
 
   afterEach ->
     rootView.remove()
@@ -24,8 +25,9 @@ describe "StatusBar", ->
       expect(rootView.panes.find('.pane > .status-bar').length).toBe 2
 
   describe ".initialize(editor)", ->
-    it "displays the editor's buffer path and cursor buffer position", ->
+    it "displays the editor's buffer path, cursor buffer position, and buffer modified indicator", ->
       expect(statusBar.currentPath.text()).toBe 'sample.js'
+      expect(statusBar.bufferModified.text()).toBe ''
       expect(statusBar.cursorPosition.text()).toBe '1,1'
 
     describe "when associated with an unsaved buffer", ->
@@ -43,6 +45,16 @@ describe "StatusBar", ->
     it "updates the path in the status bar", ->
       rootView.open(require.resolve 'fixtures/sample.txt')
       expect(statusBar.currentPath.text()).toBe 'sample.txt'
+
+  describe "when the associated editor's buffer's content changes", ->
+    it "updates the buffer modified indicator", ->
+      expect(statusBar.bufferModified.text()).toBe ''
+      oldText = buffer.getText()
+      editor.insertText("/")
+      expect(statusBar.bufferModified.text()).toBe '*'
+      editor.backspace()
+      buffer.save()
+      expect(statusBar.bufferModified.text()).toBe ''
 
   describe "when the associated editor's cursor position changes", ->
     it "updates the cursor position in the status bar", ->
