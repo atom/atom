@@ -65,6 +65,20 @@
   border-bottom: 1px solid #CCC;
 }
 
+.markdown-body h3 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.markdown-body h4 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
 .markdown-body p {
   margin-bottom: 15px;
 }

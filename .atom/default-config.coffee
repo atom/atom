@@ -6,4 +6,5 @@ requireExtension 'command-panel'
 requireExtension 'keybindings-view'
 requireExtension 'snippets'
 requireExtension 'status-bar'
-
+requireExtension 'wrap-guide'
+requireExtension 'markdown-preview'

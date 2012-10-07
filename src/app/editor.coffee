@@ -91,68 +91,68 @@ class Editor extends View
 
   bindKeys: ->
     editorBindings =
-      'move-right': @moveCursorRight
-      'move-left': @moveCursorLeft
-      'move-down': @moveCursorDown
-      'move-up': @moveCursorUp
-      'move-to-next-word': @moveCursorToNextWord
-      'move-to-previous-word': @moveCursorToPreviousWord
-      'select-right': @selectRight
-      'select-left': @selectLeft
-      'select-up': @selectUp
-      'select-down': @selectDown
-      'select-word': @selectWord
-      'newline': @insertNewline
-      'indent': @indent
-      'indent-selected-rows': @indentSelectedRows
-      'outdent-selected-rows': @outdentSelectedRows
-      'backspace': @backspace
-      'backspace-to-beginning-of-word': @backspaceToBeginningOfWord
-      'delete': @delete
-      'delete-to-end-of-word': @deleteToEndOfWord
-      'delete-line': @deleteLine
-      'cut-to-end-of-line': @cutToEndOfLine
-      'cut': @cutSelection
-      'copy': @copySelection
-      'paste': @paste
-      'undo': @undo
-      'redo': @redo
-      'move-to-top': @moveCursorToTop
-      'move-to-bottom': @moveCursorToBottom
-      'move-to-beginning-of-line': @moveCursorToBeginningOfLine
-      'move-to-end-of-line': @moveCursorToEndOfLine
-      'move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
-      'move-to-beginning-of-word': @moveCursorToBeginningOfWord
-      'move-to-end-of-word': @moveCursorToEndOfWord
-      'select-to-top': @selectToTop
-      'select-to-bottom': @selectToBottom
-      'select-to-end-of-line': @selectToEndOfLine
-      'select-to-beginning-of-line': @selectToBeginningOfLine
-      'select-to-end-of-word': @selectToEndOfWord
-      'select-to-beginning-of-word': @selectToBeginningOfWord
-      'select-all': @selectAll
-      'page-down': @pageDown
-      'page-up': @pageUp
+      'core:move-left': @moveCursorLeft
+      'core:move-right': @moveCursorRight
+      'core:move-to-top': @moveCursorToTop
+      'core:move-to-bottom': @moveCursorToBottom
+      'core:page-down': @pageDown
+      'core:page-up': @pageUp
+      'core:select-up': @selectUp
+      'core:select-down': @selectDown
+      'core:select-left': @selectLeft
+      'core:select-right': @selectRight
+      'core:select-to-top': @selectToTop
+      'core:select-to-bottom': @selectToBottom
+      'core:select-all': @selectAll
+      'core:backspace': @backspace
+      'core:delete': @delete
+      'core:undo': @undo
+      'core:redo': @redo
+      'core:cut': @cutSelection
+      'core:copy': @copySelection
+      'core:paste': @paste
+      'editor:move-to-next-word': @moveCursorToNextWord
+      'editor:move-to-previous-word': @moveCursorToPreviousWord
+      'editor:select-word': @selectWord
+      'editor:newline': @insertNewline
+      'editor:indent': @indent
+      'editor:indent-selected-rows': @indentSelectedRows
+      'editor:outdent-selected-rows': @outdentSelectedRows
+      'editor:backspace-to-beginning-of-word': @backspaceToBeginningOfWord
+      'editor:delete-to-end-of-word': @deleteToEndOfWord
+      'editor:delete-line': @deleteLine
+      'editor:cut-to-end-of-line': @cutToEndOfLine
+      'editor:move-to-beginning-of-line': @moveCursorToBeginningOfLine
+      'editor:move-to-end-of-line': @moveCursorToEndOfLine
+      'editor:move-to-first-character-of-line': @moveCursorToFirstCharacterOfLine
+      'editor:move-to-beginning-of-word': @moveCursorToBeginningOfWord
+      'editor:move-to-end-of-word': @moveCursorToEndOfWord
+      'editor:select-to-end-of-line': @selectToEndOfLine
+      'editor:select-to-beginning-of-line': @selectToBeginningOfLine
+      'editor:select-to-end-of-word': @selectToEndOfWord
+      'editor:select-to-beginning-of-word': @selectToBeginningOfWord
 
     unless @mini
       _.extend editorBindings,
-        'save': @save
-        'newline-below': @insertNewlineBelow
-        'toggle-soft-wrap': @toggleSoftWrap
-        'fold-all': @foldAll
-        'unfold-all': @unfoldAll
-        'fold-current-row': @foldCurrentRow
-        'unfold-current-row': @unfoldCurrentRow
-        'fold-selection': @foldSelection
-        'split-left': @splitLeft
-        'split-right': @splitRight
-        'split-up': @splitUp
-        'split-down': @splitDown
-        'close': @close
-        'show-next-buffer': @loadNextEditSession
-        'show-previous-buffer': @loadPreviousEditSession
-        'toggle-line-comments': @toggleLineCommentsInSelection
-        'log-cursor-scope': @logCursorScope
+        'core:move-up': @moveCursorUp
+        'core:move-down': @moveCursorDown
+        'core:close': @close
+        'editor:save': @save
+        'editor:newline-below': @insertNewlineBelow
+        'editor:toggle-soft-wrap': @toggleSoftWrap
+        'editor:fold-all': @foldAll
+        'editor:unfold-all': @unfoldAll
+        'editor:fold-current-row': @foldCurrentRow
+        'editor:unfold-current-row': @unfoldCurrentRow
+        'editor:fold-selection': @foldSelection
+        'editor:split-left': @splitLeft
+        'editor:split-right': @splitRight
+        'editor:split-up': @splitUp
+        'editor:split-down': @splitDown
+        'editor:show-next-buffer': @loadNextEditSession
+        'editor:show-previous-buffer': @loadPreviousEditSession
+        'editor:toggle-line-comments': @toggleLineCommentsInSelection
+        'editor:log-cursor-scope': @logCursorScope
 
     for name, method of editorBindings
       do (name, method) =>
@@ -343,6 +343,9 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
+    @on 'cursor-move', => @highlightCursorLine()
+    @on 'selection-change', => @highlightCursorLine()
+
   selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
     @on 'mousemove', moveHandler
@@ -414,6 +417,9 @@ class Editor extends View
 
     @activeEditSession.on "buffer-path-change", =>
       @trigger 'editor-path-change'
+
+    @activeEditSession.getSelection().on 'change-screen-range', =>
+      @trigger 'selection-change'
 
     @trigger 'editor-path-change'
     @renderWhenAttached()
@@ -640,7 +646,7 @@ class Editor extends View
   addCursorView: (cursor) ->
     cursorView = new CursorView(cursor, this)
     @cursorViews.push(cursorView)
-    @renderedLines.append(cursorView)
+    @appendToLinesView(cursorView)
     cursorView
 
   removeCursorView: (cursorView) ->
@@ -664,7 +670,7 @@ class Editor extends View
   addSelectionView: (selection) ->
     selectionView = new SelectionView({editor: this, selection})
     @selectionViews.push(selectionView)
-    @renderedLines.append(selectionView)
+    @appendToLinesView(selectionView)
     selectionView
 
   removeSelectionView: (selectionView) ->
@@ -674,9 +680,12 @@ class Editor extends View
     cursorView.remove() for cursorView in @getCursorViews()
     selectionView.remove() for selectionView in @getSelectionViews()
 
+  appendToLinesView: (view) ->
+    @renderedLines.append(view)
+
   calculateDimensions: ->
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
-    @renderedLines.append(fragment)
+    @appendToLinesView(fragment)
 
     lineRect = fragment[0].getBoundingClientRect()
     charRect = fragment.find('span')[0].getBoundingClientRect()
@@ -746,6 +755,7 @@ class Editor extends View
 
     if renderedLines
       @gutter.renderLineNumbers(renderFrom, renderTo)
+      @highlightCursorLine()
       @updatePaddingOfRenderedLines()
 
   updatePaddingOfRenderedLines: ->
@@ -809,11 +819,21 @@ class Editor extends View
     charHeight = @charHeight
     lines = @activeEditSession.linesForScreenRows(startRow, endRow)
     activeEditSession = @activeEditSession
+    cursorScreenRow = @getCursorScreenPosition().row
+    mini = @mini
 
-    buildLineHtml = (line) => @buildLineHtml(line)
-    $$ -> @raw(buildLineHtml(line)) for line in lines
+    buildLineHtml = (line, lineClasses) => @buildLineHtml(line, lineClasses)
+    $$ ->
+      row = startRow
+      for line in lines
+        if mini or row isnt cursorScreenRow
+          lineClasses = null
+        else
+          lineClasses = ' cursor-line'
+        @raw(buildLineHtml(line, lineClasses))
+        row++
 
-  buildLineHtml: (screenLine) ->
+  buildLineHtml: (screenLine, lineClasses) ->
     scopeStack = []
     line = []
 
@@ -844,6 +864,8 @@ class Editor extends View
         lineAttributes.class += ' selected'
     else
       lineAttributes = { class: 'line' }
+
+    lineAttributes.class += lineClasses if lineClasses
 
     attributePairs = []
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
@@ -932,3 +954,12 @@ class Editor extends View
     @screenPositionFromPixelPosition
       top: pageY - @scrollView.offset().top + @scrollTop()
       left: pageX - @scrollView.offset().left + @scrollView.scrollLeft()
+
+  highlightCursorLine: ->
+    return if @mini
+
+    @cursorScreenRow = @getCursorScreenPosition().row
+    screenRow = @cursorScreenRow - @firstRenderedScreenRow
+    @find('pre.line.cursor-line').removeClass('cursor-line')
+    if @getSelection().isSingleScreenLine()
+      @find("pre.line:eq(#{screenRow})").addClass('cursor-line')

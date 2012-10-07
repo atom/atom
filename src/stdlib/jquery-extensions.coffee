@@ -6,11 +6,23 @@ $.fn.scrollBottom = (newValue) ->
   else
     @scrollTop() + @height()
 
+$.fn.scrollToTop = ->
+  @scrollTop(0)
+
+$.fn.scrollToBottom = ->
+  @scrollTop(@prop('scrollHeight'))
+
 $.fn.scrollRight = (newValue) ->
   if newValue?
     @scrollLeft(newValue - @width())
   else
     @scrollLeft() + @width()
+
+$.fn.pageUp = ->
+  @scrollTop(@scrollTop() - @height())
+
+$.fn.pageDown = ->
+  @scrollTop(@scrollTop() + @height())
 
 $.fn.containsElement = (element) ->
   (element[0].compareDocumentPosition(this[0]) & 8) == 8

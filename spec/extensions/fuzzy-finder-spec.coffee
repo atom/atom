@@ -21,7 +21,7 @@ describe 'FuzzyFinder', ->
         it "shows the FuzzyFinder or hides it and returns focus to the active editor if it already showing", ->
           rootView.attachToDom()
           expect(rootView.find('.fuzzy-finder')).not.toExist()
-          rootView.find('.editor').trigger 'split-right'
+          rootView.find('.editor').trigger 'editor:split-right'
           [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
 
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
@@ -67,7 +67,7 @@ describe 'FuzzyFinder', ->
 
       describe "when a path is highlighted", ->
         it "opens the file associated with that path in the editor", ->
-          finder.trigger 'move-down'
+          finder.trigger 'core:move-down'
           selectedLi = finder.find('li:eq(1)')
 
           expectedPath = rootView.project.resolve(selectedLi.text())
@@ -96,7 +96,7 @@ describe 'FuzzyFinder', ->
         it "shows the FuzzyFinder or hides it and returns focus to the active editor if it already showing", ->
           rootView.attachToDom()
           expect(rootView.find('.fuzzy-finder')).not.toExist()
-          rootView.find('.editor').trigger 'split-right'
+          rootView.find('.editor').trigger 'editor:split-right'
           [editor1, editor2] = rootView.find('.editor').map -> $(this).view()
 
           rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
@@ -211,27 +211,26 @@ describe 'FuzzyFinder', ->
         expect(finder.find('li:eq(0)')).toHaveClass "selected"
         expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
 
-        finder.miniEditor.trigger keydownEvent('down')
-        finder.miniEditor.trigger keydownEvent('down')
+        finder.miniEditor.trigger 'core:move-down'
+        finder.miniEditor.trigger 'core:move-down'
 
         expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
         expect(finder.find('li:eq(2)')).toHaveClass "selected"
 
-        finder.miniEditor.trigger keydownEvent('up')
+        finder.miniEditor.trigger 'core:move-up'
 
         expect(finder.find('li:eq(0)')).not.toHaveClass "selected"
         expect(finder.find('li:eq(1)')).toHaveClass "selected"
         expect(finder.find('li:eq(2)')).not.toHaveClass "selected"
 
-      it "does not fall off the end or begining of the list", ->
-        expect(finder.find('li:first')).toHaveClass "selected"
-        finder.miniEditor.trigger keydownEvent('up')
+      it "wraps around when at the end or begining of the list", ->
         expect(finder.find('li:first')).toHaveClass "selected"
 
-        for i in [1..finder.pathList.children().length+2]
-          finder.miniEditor.trigger keydownEvent('down')
-
+        finder.miniEditor.trigger 'core:move-up'
         expect(finder.find('li:last')).toHaveClass "selected"
+
+        finder.miniEditor.trigger 'core:move-down'
+        expect(finder.find('li:first')).toHaveClass "selected"
 
     describe "when the fuzzy finder loses focus", ->
       it "detaches itself", ->

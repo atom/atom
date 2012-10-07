@@ -10,8 +10,8 @@ class PreviewList extends View
   operations: null
 
   initialize: (@rootView) ->
-    @on 'move-down', => @selectNextOperation()
-    @on 'move-up', => @selectPreviousOperation()
+    @on 'core:move-down', => @selectNextOperation()
+    @on 'core:move-up', => @selectPreviousOperation()
     @on 'command-panel:execute', => @executeSelectedOperation()
 
     @on 'mousedown', 'li', (e) =>

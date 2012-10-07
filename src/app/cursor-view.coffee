@@ -13,10 +13,10 @@ class CursorView extends View
   hidden: false
 
   initialize: (@cursor, @editor) ->
-    @cursor.on 'change-screen-position.cursor-view', (position, { bufferChange }) =>
+    @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange }) =>
       @updateAppearance()
       @removeIdleClassTemporarily() unless bufferChange
-      @trigger 'cursor-move', bufferChange: bufferChange
+      @trigger 'cursor-move', {bufferChange}
 
     @cursor.on 'destroy.cursor-view', => @remove()
 

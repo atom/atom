@@ -542,13 +542,13 @@ describe "RootView", ->
   describe "font size adjustment", ->
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
       fontSizeBefore = rootView.getFontSize()
-      rootView.trigger 'increase-font-size'
+      rootView.trigger 'root-view:increase-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore + 1
-      rootView.trigger 'increase-font-size'
+      rootView.trigger 'root-view:increase-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore + 2
-      rootView.trigger 'decrease-font-size'
+      rootView.trigger 'root-view:decrease-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore + 1
-      rootView.trigger 'decrease-font-size'
+      rootView.trigger 'root-view:decrease-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore
 
     it "does not allow the font size to be less than 1", ->

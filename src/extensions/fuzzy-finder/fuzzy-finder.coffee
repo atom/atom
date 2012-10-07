@@ -26,13 +26,13 @@ class FuzzyFinder extends View
     @rootView.on 'fuzzy-finder:toggle-buffer-finder', => @toggleBufferFinder()
 
     @on 'fuzzy-finder:cancel', => @detach()
-    @on 'move-up', => @moveUp()
-    @on 'move-down', => @moveDown()
+    @on 'core:move-up', => @moveUp()
+    @on 'core:move-down', => @moveDown()
     @on 'fuzzy-finder:select-path', => @select()
     @on 'mousedown', 'li', (e) => @entryClicked(e)
 
     @miniEditor.getBuffer().on 'change', => @populatePathList() if @hasParent()
-    @miniEditor.off 'move-up move-down'
+    @miniEditor.off 'core:move-up core:move-down'
 
   toggleFileFinder: ->
     if @hasParent()
@@ -93,18 +93,22 @@ class FuzzyFinder extends View
     false
 
   moveUp: ->
-    @findSelectedLi()
-      .filter(':not(:first-child)')
-      .removeClass('selected')
-      .prev()
-      .addClass('selected')
+    selected = @findSelectedLi().removeClass('selected')
+
+    if selected.filter(':not(:first-child)').length is 0
+      selected = @pathList.children('li:last')
+    else
+      selected = selected.prev()
+    selected.addClass('selected')
 
   moveDown: ->
-    @findSelectedLi()
-      .filter(':not(:last-child)')
-      .removeClass('selected')
-      .next()
-      .addClass('selected')
+    selected = @findSelectedLi().removeClass('selected')
+
+    if selected.filter(':not(:last-child)').length is 0
+      selected = @pathList.children('li:first')
+    else
+      selected = selected.next()
+    selected.addClass('selected')
 
   findMatches: (query) ->
     fuzzyFilter(@paths, query, maxResults: @maxResults)

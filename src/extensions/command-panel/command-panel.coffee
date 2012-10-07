@@ -62,9 +62,8 @@ class CommandPanel extends View
     @rootView.on 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
     @rootView.on 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
-    @miniEditor.off 'move-up move-down'
-    @miniEditor.on 'move-up', => @navigateBackwardInHistory()
-    @miniEditor.on 'move-down', => @navigateForwardInHistory()
+    @on 'core:move-up', => @navigateBackwardInHistory()
+    @on 'core:move-down', => @navigateForwardInHistory()
 
     @previewList.hide()
 

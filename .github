@@ -1,0 +1,3 @@
+[docs]
+	title = The Guide to Atom
+	manifest = intro.md, styling.md, extensions/intro.md, extensions/markdown-preview.md, extensions/wrap-guide.md

@@ -16,8 +16,6 @@
   position: absolute;
   height: 100%;
   overflow: hidden;
-  padding-left: 0.4em;
-  padding-right: 0.8em;
   color: rgba(255, 255, 255, .3);
   text-align: right;
 }
@@ -26,8 +24,17 @@
   position: relative;
 }
 
-.line-number.cursor-line-number {
+.editor .gutter .line-number {
+  padding-left: 0.4em;
+  padding-right: 0.8em;
+}
+
+.editor.focused .line-number.cursor-line-number {
   color: rgba(255, 255, 255, .6);
+}
+
+.editor.focused .line.cursor-line, .editor.focused .line-number.cursor-line-number-background {
+  background-color: rgba(255, 255, 255, .12);
 }
 
 .editor.mini .gutter {

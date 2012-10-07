@@ -32,10 +32,10 @@ class VimMode
       'i': 'insert'
       'd': 'delete'
       'x': 'delete-right'
-      'h': 'move-left'
-      'j': 'move-down'
-      'k': 'move-up'
-      'l': 'move-right'
+      'h': 'core:move-left'
+      'j': 'core:move-down'
+      'k': 'core:move-up'
+      'l': 'core:move-right'
       'w': 'move-to-next-word'
       'b': 'move-to-previous-word'
       '}': 'move-to-next-paragraph'
@@ -47,10 +47,10 @@ class VimMode
       'insert': => @activateInsertMode()
       'delete': => @delete()
       'delete-right': => new commands.DeleteRight(@editor)
-      'move-left': => new motions.MoveLeft(@editor)
-      'move-up': => new motions.MoveUp(@editor)
-      'move-down': => new motions.MoveDown @editor
-      'move-right': => new motions.MoveRight @editor
+      'core:move-left': => new motions.MoveLeft(@editor)
+      'core:move-up': => new motions.MoveUp(@editor)
+      'core:move-down': => new motions.MoveDown @editor
+      'core:move-right': => new motions.MoveRight @editor
       'move-to-next-word': => new motions.MoveToNextWord(@editor)
       'move-to-previous-word': => new motions.MoveToPreviousWord(@editor)
       'move-to-next-paragraph': => new motions.MoveToNextParagraph(@editor)

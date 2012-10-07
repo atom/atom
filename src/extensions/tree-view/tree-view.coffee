@@ -42,18 +42,27 @@ class TreeView extends View
   root: null
   focusAfterAttach: false
   scrollTopAfterAttach: -1
+  selectedPath: null
 
   initialize: (@rootView) ->
     @on 'click', '.entry', (e) => @entryClicked(e)
-    @on 'move-up', => @moveUp()
-    @on 'move-down', => @moveDown()
+    @on 'core:move-up', => @moveUp()
+    @on 'core:move-down', => @moveDown()
+    @on 'core:move-to-top', => @scrollToTop()
+    @on 'core:move-to-bottom', => @scrollToBottom()
+    @on 'core:page-up', => @pageUp()
+    @on 'core:page-down', => @pageDown()
     @on 'tree-view:expand-directory', => @expandDirectory()
     @on 'tree-view:collapse-directory', => @collapseDirectory()
     @on 'tree-view:open-selected-entry', => @openSelectedEntry(true)
     @on 'tree-view:move', => @moveSelectedEntry()
     @on 'tree-view:add', => @add()
     @on 'tree-view:remove', => @removeSelectedEntry()
-    @on 'tree-view:directory-modified', => @selectActiveFile()
+    @on 'tree-view:directory-modified', =>
+      if @hasFocus()
+        @selectEntryForPath(@selectedPath) if @selectedPath
+      else
+        @selectActiveFile()
     @on 'tree-view:unfocus', => @rootView.focus()
     @rootView.on 'tree-view:toggle', => @toggle()
     @rootView.on 'tree-view:reveal-active-file', => @revealActiveFile()
@@ -69,7 +78,7 @@ class TreeView extends View
   serialize: ->
     directoryExpansionStates: @root?.serializeEntryExpansionStates()
     selectedPath: @selectedEntry()?.getPath()
-    hasFocus: @is(':focus')
+    hasFocus: @hasFocus()
     attached: @hasParent()
     scrollTop: @scrollTop()
 
@@ -77,7 +86,7 @@ class TreeView extends View
     @root?.unwatchEntries()
 
   toggle: ->
-    if @is(':focus')
+    if @hasFocus()
       @detach()
       @rootView.focus()
     else
@@ -90,6 +99,9 @@ class TreeView extends View
   detach: ->
     @scrollTopAfterAttach = @scrollTop()
     super
+
+  hasFocus: ->
+    @is(':focus')
 
   entryClicked: (e) ->
     entry = $(e.currentTarget).view()
@@ -194,7 +206,7 @@ class TreeView extends View
   moveSelectedEntry: ->
     entry = @selectedEntry()
     return unless entry
-    oldPath = @selectedEntry().getPath()
+    oldPath = entry.getPath()
 
     dialog = new Dialog
       prompt: "Enter the new path for the file:"
@@ -206,9 +218,9 @@ class TreeView extends View
         try
           fs.makeTree(directoryPath) unless fs.exists(directoryPath)
           fs.move(oldPath, newPath)
+          dialog.close()
         catch e
           dialog.showError("Error: " + e.message + " Try a different path:")
-          return false
 
     @rootView.append(dialog)
 
@@ -236,21 +248,23 @@ class TreeView extends View
       path: relativeDirectoryPath
       select: false
       onConfirm: (relativePath) =>
-        endsWithDirectorySeperator = /\/$/.test(relativePath)
+        endsWithDirectorySeparator = /\/$/.test(relativePath)
         path = @rootView.project.resolve(relativePath)
         try
           if fs.exists(path)
             pathType = if fs.isFile(path) then "file" else "directory"
             dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path:")
-            false
-          else if endsWithDirectorySeperator
+          else if endsWithDirectorySeparator
             fs.makeTree(path)
+            dialog.cancel()
+            @entryForPath(path).buildEntries()
+            @selectEntryForPath(path)
           else
             fs.write(path, "")
             @rootView.open(path)
+            dialog.close()
         catch e
           dialog.showError("Error: " + e.message + " Try a different path:")
-          return false
 
     @rootView.append(dialog)
 
@@ -259,6 +273,8 @@ class TreeView extends View
 
   selectEntry: (entry) ->
     return false unless entry.get(0)
+    entry = entry.view() unless entry instanceof View
+    @selectedPath = entry.getPath()
     @find('.selected').removeClass('selected')
     entry.addClass('selected')
 

@@ -1,4 +1,4 @@
-{View, $$$} = require 'space-pen'
+{View, $$, $$$} = require 'space-pen'
 
 $ = require 'jquery'
 _ = require 'underscore'
@@ -9,47 +9,64 @@ class Gutter extends View
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
-  cursorBufferRow: -1
   firstScreenRow: -1
+  highestNumberWidth: null
 
   afterAttach: (onDom) ->
-    @editor()?.on 'cursor-move', => @highlightCursorLine()
+    return if @attached or not onDom
+    @attached = true
+
+    editor = @editor()
+    highlightCursorLine = => @highlightCursorLine()
+    editor.on 'cursor-move', highlightCursorLine
+    editor.on 'selection-change', highlightCursorLine
+    @calculateWidth()
 
   editor: ->
     @parentView
 
+  calculateLineNumberPadding: ->
+    widthTesterElement = $$ -> @div {class: 'line-number'}, ""
+    widthTesterElement.width(0)
+    @append(widthTesterElement)
+    lineNumberPadding = widthTesterElement.outerWidth()
+    widthTesterElement.remove()
+    lineNumberPadding
+
   renderLineNumbers: (startScreenRow, endScreenRow) ->
     @firstScreenRow = startScreenRow
     lastScreenRow = -1
-    currentCursorBufferRow = @cursorBufferRow
     rows = @editor().bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
+    cursorScreenRow = @editor().getCursorScreenPosition().row
     @lineNumbers[0].innerHTML = $$$ ->
       for row in rows
-        rowClass = null
-        if row isnt currentCursorBufferRow
-          rowClass = 'line-number'
+        if row == lastScreenRow
+          rowValue = '•'
         else
-          rowClass = 'line-number cursor-line-number'
-        @div {class: rowClass}, if row == lastScreenRow then '•' else row + 1
+          rowValue = row + 1
+        @div {class: 'line-number'}, rowValue
         lastScreenRow = row
 
     @calculateWidth()
     @highlightCursorLine()
 
   calculateWidth: ->
-    width = @editor().getLineCount().toString().length * @editor().charWidth
-    if width != @cachedWidth
-      @cachedWidth = width
-      @lineNumbers.width(width)
+    highestNumberWidth = @editor().getLineCount().toString().length * @editor().charWidth
+    if highestNumberWidth != @highestNumberWidth
+      @highestNumberWidth = highestNumberWidth
+      @lineNumbers.width(highestNumberWidth + @calculateLineNumberPadding())
       @widthChanged?(@outerWidth())
 
   highlightCursorLine: ->
-    return if @firstScreenRow < 0
+    cursorScreenRow = @editor().getCursorScreenPosition().row
+    screenRowIndex = cursorScreenRow - @firstScreenRow
 
-    newCursorBufferRow = @editor().getCursorBufferPosition().row
-    if newCursorBufferRow isnt @cursorBufferRow
-      @cursorBufferRow = newCursorBufferRow
-      screenRow = @cursorBufferRow - @firstScreenRow
-      @find('.line-number.cursor-line-number').removeClass('cursor-line-number')
-      @find(".line-number:eq(#{screenRow})").addClass('cursor-line-number')
+    currentLineNumberRow = @find(".line-number.cursor-line-number")
+    currentLineNumberRow.removeClass('cursor-line-number')
+    currentLineNumberRow.removeClass('cursor-line-number-background')
+
+    newLineNumberRow = @find(".line-number:eq(#{screenRowIndex})")
+    newLineNumberRow.addClass('cursor-line-number')
+    if @editor().getSelection().isSingleScreenLine()
+      newLineNumberRow.addClass('cursor-line-number-background')
