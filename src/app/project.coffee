@@ -55,6 +55,7 @@ class Project
       if @ignorePath(path)
         prune()
       else if fs.isFile(path)
+        prune()
         filePaths.push @relativize(path)
 
     deferred.resolve filePaths
