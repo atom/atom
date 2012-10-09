@@ -55,13 +55,18 @@ class Project
 
     filePaths = []
 
+    count = 0
+    start = new Date().getTime()
     onFile = (path) =>
+      count++
       filePaths.push(path) unless @ignoreFile(path)
 
     onDirectory = (path) =>
+      count++
       return not @ignoreDirectory(path)
 
     fs.traverseTree @getPath(), onFile, onDirectory
+    console.log "#{count} paths in #{new Date().getTime()-start}ms"
     deferred.resolve filePaths
     deferred
 
