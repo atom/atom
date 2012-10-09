@@ -14,6 +14,7 @@ class Buffer
   @idCounter = 1
   undoManager: null
   modified: null
+  contentOnDisk: null
   modifiedOnDisk: null
   lines: null
   file: null
@@ -30,7 +31,8 @@ class Buffer
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
       @setPath(path)
-      @setText(fs.read(@getPath()))
+      @contentOnDisk = fs.read(@getPath())
+      @setText(@contentOnDisk)
     else
       @setText('')
 
@@ -68,7 +70,8 @@ class Buffer
       @trigger "path-change", this
 
   reload: ->
-    @setText(fs.read(@file.getPath()))
+    @contentOnDisk = fs.read(@getPath())
+    @setText(@contentOnDisk)
     @modified = false
     @modifiedOnDisk = false
 
@@ -188,7 +191,9 @@ class Buffer
   change: (oldRange, newText) ->
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText})
-    @pushOperation(operation)
+    range = @pushOperation(operation)
+    @trigger 'buffer-change'
+    range
 
   clipPosition: (position) ->
     { row, column } = Point.fromObject(position)
@@ -234,7 +239,9 @@ class Buffer
     @modified = false
     @modifiedOnDisk = false
     @setPath(path)
+    @contentOnDisk = @getText()
     @trigger 'after-save'
+    @trigger 'buffer-change'
 
   isInConflict: ->
     @isModified() and @isModifiedOnDisk()
@@ -244,6 +251,9 @@ class Buffer
 
   isModified: ->
     @modified
+
+  contentDifferentOnDisk: ->
+    @contentOnDisk != @getText()
 
   getAnchors: -> new Array(@anchors...)
 
