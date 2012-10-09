@@ -5,7 +5,7 @@ require 'formula'
 class Gyp < Formula
   homepage 'http://code.google.com/p/gyp/'
   url 'http://gyp.googlecode.com/svn/trunk', :revision => 1518
-  version '1518'
+  version 'trunk-1518'
   head 'http://gyp.googlecode.com/svn/trunk'
 
   def install
