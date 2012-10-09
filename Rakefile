@@ -108,7 +108,7 @@ task :run, [:atom_arg] => :build do |name, args|
 end
 
 desc "Run the specs"
-task :test => ["clean", "create-dot-atom"] do
+task :test => ["clean", "clone-default-bundles"] do
   Rake::Task["run"].invoke("--test")
 end
 
