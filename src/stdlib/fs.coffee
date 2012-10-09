@@ -102,8 +102,8 @@ module.exports =
       @makeTree(@directory(path))
       @makeDirectory(path)
 
-  traverseTree: (rootPath, fn) ->
-    $native.traverseTree(rootPath, fn)
+  traverseTree: (rootPath, onFile, onDirectory) ->
+    $native.traverseTree(rootPath, onFile, onDirectory)
 
   lastModified: (path) ->
     $native.lastModified(path)

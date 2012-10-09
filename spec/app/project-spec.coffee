@@ -111,7 +111,8 @@ describe "Project", ->
 
   describe ".getFilePaths()", ->
     it "ignores files that return true from atom.ignorePath(path)", ->
-      spyOn(project, 'ignorePath').andCallFake (path) -> fs.base(path).match /a$/
+      spyOn(project, 'ignoreDirectory').andCallFake (path) -> fs.base(path).match /a$/
+      spyOn(project, 'ignoreFile').andCallFake (path) -> fs.base(path).match /a$/
 
       project.getFilePaths().done (paths) ->
         expect(paths).not.toContain('a')

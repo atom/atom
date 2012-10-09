@@ -16,7 +16,7 @@ var $native = {};
   native function list(path, recursive);
   $native.list = list;
 
-  native function traverseTree(path, callback);
+  native function traverseTree(path, onFile, onDirectory);
   $native.traverseTree = traverseTree;
 
   native function isFile(path);
