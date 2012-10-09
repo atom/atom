@@ -7,7 +7,7 @@ BUILD_DIR = 'atom-build'
 desc "Create xcode project from gyp file"
 task "create-project" do
   `rm -rf atom.xcodeproj`
-  `python tools/gyp/gyp --depth=. atom.gyp`
+  `gyp --depth=. atom.gyp`
 end
 
 desc "Build Atom via `xcodebuild`"

@@ -1,0 +1,19 @@
+# Adapted from https://github.com/mxcl/homebrew/pull/11776/files
+
+require 'formula'
+
+class Gyp < Formula
+  homepage 'http://code.google.com/p/gyp/'
+  head 'http://gyp.googlecode.com/svn/trunk'
+
+  def install
+    system "python", "setup.py", "install",
+      "--prefix=#{prefix}", "--install-purelib=#{libexec}",
+      "--install-platlib=#{libexec}", "--install-scripts=#{bin}"
+
+    mv bin + 'gyp', bin + 'gyp.py'
+    mv Dir[bin + '*'], libexec
+
+    bin.install_symlink "#{libexec}/gyp.py" => "gyp"
+  end
+end

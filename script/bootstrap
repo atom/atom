@@ -19,4 +19,4 @@ exit_unless_xcode_exists
 exit_unless_npm_exists
 
 npm install
-
+brew install --HEAD tools/formulas/gyp.rb
