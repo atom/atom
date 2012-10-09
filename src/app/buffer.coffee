@@ -186,10 +186,11 @@ class Buffer
     @change(range, '')
 
   change: (oldRange, newText) ->
-    @trigger 'buffer-change'
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText})
-    @pushOperation(operation)
+    range = @pushOperation(operation)
+    @trigger 'buffer-change'
+    range
 
   clipPosition: (position) ->
     { row, column } = Point.fromObject(position)
