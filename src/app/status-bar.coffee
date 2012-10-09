@@ -17,7 +17,9 @@ class StatusBar extends View
 
   @content: ->
     @div class: 'status-bar', =>
-      @div class: 'current-path', outlet: 'currentPath'
+      @div class: 'file-info', =>
+        @div class: 'current-path', outlet: 'currentPath'
+        @div class: 'buffer-modified', outlet: 'bufferModified'
       @div class: 'cursor-position', outlet: 'cursorPosition'
 
   initialize: (@rootView, @editor) ->
@@ -26,6 +28,16 @@ class StatusBar extends View
 
     @updateCursorPositionText()
     @editor.on 'cursor-move', => @updateCursorPositionText()
+
+    @updateBufferModifiedText()
+    @editor.getBuffer().on 'buffer-change', => @updateBufferModifiedText()
+
+  updateBufferModifiedText: ->
+    buffer = @editor.getBuffer()
+    if buffer.isModified() and buffer.contentDifferentOnDisk()
+      @bufferModified.text('*')
+    else
+      @bufferModified.text('')
 
   updatePathText: ->
     path = @editor.getPath()
@@ -37,4 +49,3 @@ class StatusBar extends View
   updateCursorPositionText: ->
     { row, column } = @editor.getCursorBufferPosition()
     @cursorPosition.text("#{row + 1},#{column + 1}")
-

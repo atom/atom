@@ -5,6 +5,21 @@
   position: relative;
 }
 
+.status-bar .file-info {
+  float: left;
+  display: inline-block;
+}
+
+.status-bar .file-info .current-path {
+  float: left;
+  display: inline-block;
+}
+
+.status-bar .file-info .buffer-modified {
+  float: right;
+  display: inline-block;
+}
+
 .status-bar .cursor-position {
   position: absolute;
   right: 5px;
