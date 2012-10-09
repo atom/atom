@@ -131,6 +131,7 @@ class Editor extends View
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:transpose': @transpose
 
     unless @mini
       _.extend editorBindings,
@@ -203,6 +204,7 @@ class Editor extends View
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectWord: -> @activeEditSession.selectWord()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
+  transpose: -> @activeEditSession.transpose()
   clearSelections: -> @activeEditSession.clearSelections()
 
   backspace: -> @activeEditSession.backspace()
