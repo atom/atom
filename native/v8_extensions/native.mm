@@ -157,7 +157,7 @@ bool Native::Execute(const CefString& name,
           continue;
         if (!recursive)
           fts_set(tree, entry, FTS_SKIP);
-        if ((entry->fts_info & FTS_D) != 0 || (entry->fts_info & FTS_F) != 0)
+        if (entry->fts_info == FTS_D || entry->fts_info == FTS_NSOK)
           retval->SetValue(index++, CefV8Value::CreateString(entry->fts_path));
       }
     }
