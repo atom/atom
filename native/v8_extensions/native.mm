@@ -137,36 +137,6 @@ bool Native::Execute(const CefString& name,
 
       return true;
   }
-  else if (name == "list") {
-    NSString *path = stringFromCefV8Value(arguments[0]);
-    bool recursive = arguments[1]->GetBoolValue();
-
-    if (!path or [path length] == 0) {
-      exception = "$native.list requires a path argument";
-      return true;
-    }
-
-    std::string argument = arguments[0]->GetStringValue().ToString();
-    char rootPath[argument.size() + 1];
-    strcpy(rootPath, argument.c_str());
-    char * const paths[] = {rootPath, NULL};
-    FTS *tree = fts_open(paths, FTS_PHYSICAL | FTS_NOCHDIR | FTS_NOSTAT, NULL);
-    retval = CefV8Value::CreateArray(0);
-    int index = 0;
-    if (tree != NULL) {
-      FTSENT *entry;
-      while ((entry = fts_read(tree)) != NULL) {
-        if (entry->fts_level == 0)
-          continue;
-        if (!recursive)
-          fts_set(tree, entry, FTS_SKIP);
-        if (entry->fts_info == FTS_D || entry->fts_info == FTS_NSOK)
-          retval->SetValue(index++, CefV8Value::CreateString(entry->fts_path));
-      }
-    }
-
-    return true;
-  }
   else if (name == "isDirectory") {
     NSString *path = stringFromCefV8Value(arguments[0]);
 
