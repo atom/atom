@@ -100,8 +100,8 @@ desc "Run Atom"
 task :run, [:atom_arg] => :build do |name, args|
   if path = application_path()
     cmd = "#{path}/Contents/MacOS/Atom #{args[:atom_arg]} 2> /dev/null"
-    exitstatus = system(cmd)
-    exit(exitstatus)
+    system(cmd)
+    exit($?.exitstatus)
   else
     exit(1)
   end
