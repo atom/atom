@@ -1571,3 +1571,23 @@ describe "EditSession", ->
         editSession.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
+
+  describe ".tranpose()", ->
+    it "swaps two characters", ->
+      editSession.setCursorScreenPosition([1, 0])
+      editSession.insertText('abc')
+      editSession.cutToEndOfLine()
+      expect(buffer.lineForRow(1)).toBe 'abc'
+      editSession.setCursorScreenPosition([1, 1])
+      editSession.transpose()
+      expect(buffer.lineForRow(1)).toBe 'bac'
+
+    it "reverses a selection", ->
+      editSession.setCursorScreenPosition([1, 0])
+      editSession.insertText('xabcz')
+      editSession.cutToEndOfLine()
+      expect(buffer.lineForRow(1)).toBe 'xabcz'
+      editSession.setCursorScreenPosition([1, 0])
+      editSession.setSelectedBufferRange([[1, 1], [1, 4]])
+      editSession.transpose()
+      expect(buffer.lineForRow(1)).toBe 'xcbaz'

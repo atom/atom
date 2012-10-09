@@ -505,6 +505,17 @@ class EditSession
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
 
+  transpose: ->
+    @mutateSelectedText (selection) =>
+      if selection.isEmpty()
+        @selectRight()
+        text = selection.getText()
+        selection.delete()
+        @moveCursorLeft()
+        @insertText text
+      else
+        @insertText selection.getText().split('').reverse().join('')
+
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()
 
