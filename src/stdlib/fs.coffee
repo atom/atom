@@ -109,7 +109,7 @@ module.exports =
     for path in @list(rootPath)
       recurse = true
       fn(path, prune)
-      @traverseTree(path, fn) if @isDirectory(path) and recurse
+      @traverseTree(path, fn) if recurse and @isDirectory(path)
 
   lastModified: (path) ->
     $native.lastModified(path)
