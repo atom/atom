@@ -58,7 +58,7 @@ desc "Creates .atom file if non exists"
 task "create-dot-atom" do
   dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
   replace_dot_atom = false
-  next if Dir.exists?(DOT_ATOM_PATH)
+  next if File.exists?(DOT_ATOM_PATH)
 
   `rm -rf "#{DOT_ATOM_PATH}"`
   `mkdir "#{DOT_ATOM_PATH}"`
@@ -86,7 +86,7 @@ task "clone-default-bundles" => "create-dot-atom" do
   for bundle_url in bundle_urls
     bundle_dir = bundle_url[/([^\/]+?)(\.git)?$/, 1]
     dest_path = File.join(DOT_ATOM_PATH, "bundles", bundle_dir)
-    next if Dir.exists? dest_path
+    next if File.exists? dest_path
     `git clone --quiet #{bundle_url} #{dest_path}`
   end
 end
