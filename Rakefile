@@ -4,7 +4,7 @@ ATOM_SRC_PATH = File.dirname(__FILE__)
 DOT_ATOM_PATH = ENV['HOME'] + "/.atom"
 BUILD_DIR = 'atom-build'
 
-desc "Create xcode project from gpy file"
+desc "Create xcode project from gyp file"
 task "create-project" do
   `rm -rf atom.xcodeproj`
   `python tools/gyp/gyp --depth=. atom.gyp`
