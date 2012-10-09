@@ -47,28 +47,26 @@ task :install => :build do
 
   `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
 
-  # Create ~/.atom
-  dot_atom_path = ENV['HOME'] + "/.atom"
-  dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
-  replace_dot_atom = false
-  if File.exists?(dot_atom_path) && !File.symlink?("#{dot_atom_path}/default-config.coffee")
-    print "I am going to replace '#{dot_atom_path}' with the default .atom directory (y/n): "
-    replace_dot_atom = true if STDIN.gets.strip =~ /^y/i
-  end
-
-  if replace_dot_atom
-    `rm -rf "#{dot_atom_path}"`
-    `mkdir "#{dot_atom_path}"`
-    `cp "#{dot_atom_template_path}/atom.coffee" "#{dot_atom_path}"`
-
-    for path in Dir.entries(dot_atom_template_path)
-      next if ["..", ".", "atom.coffee"].include? path
-      `ln -s "#{dot_atom_template_path}/#{path}" "#{dot_atom_path}"`
-    end
-  end
+  Rake::Task["create-dot-atom"].invoke()
 
   puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `.atom` directory\033[0m"
 end
+
+desc "Creates .atom file if non exists"
+task "create-dot-atom" do
+  dot_atom_path = ENV['HOME'] + "/.atom"
+  dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
+  replace_dot_atom = false
+  return if Dir.exists?(dot_atom_path)
+
+  `rm -rf "#{dot_atom_path}"`
+  `mkdir "#{dot_atom_path}"`
+  `cp "#{dot_atom_template_path}/atom.coffee" "#{dot_atom_path}"`
+
+  for path in Dir.entries(dot_atom_template_path)
+    next if ["..", ".", "atom.coffee"].include? path
+    `ln -s "#{dot_atom_template_path}/#{path}" "#{dot_atom_path}"`
+  end
 
 desc "Clean build Atom via `xcodebuild`"
 task :clean do
