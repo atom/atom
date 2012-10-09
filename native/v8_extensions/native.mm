@@ -123,7 +123,7 @@ bool Native::Execute(const CefString& name,
           args.push_back(CefV8Value::CreateString(relative));
           args.push_back(CefV8Value::CreateBool((entry->fts_info & FTS_F) != 0));
           if (!function->ExecuteFunction(function, args)->GetBoolValue())
-                    fts_set(tree, entry, FTS_SKIP);
+            fts_set(tree, entry, FTS_SKIP);
         }
       }
 
