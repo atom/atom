@@ -103,13 +103,7 @@ module.exports =
       @makeDirectory(path)
 
   traverseTree: (rootPath, fn) ->
-    recurse = null
-    prune = -> recurse = false
-
-    for path in @list(rootPath)
-      recurse = true
-      fn(path, prune)
-      @traverseTree(path, fn) if recurse and @isDirectory(path)
+    $native.traverseTree(rootPath, fn)
 
   lastModified: (path) ->
     $native.lastModified(path)
