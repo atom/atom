@@ -1,8 +1,0 @@
-==========
-ri_emacs
-==========
-rct-doc --ri-emacs --line=1
-==========
-[].length
-==========
-(rct-find-tag-or-ri "Array#length")

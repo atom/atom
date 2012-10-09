@@ -1,3 +1,0 @@
-def fooz
-  [].lengt
-end

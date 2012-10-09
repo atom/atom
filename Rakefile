@@ -1,6 +1,7 @@
 require 'timeout'
 
 ATOM_SRC_PATH = File.dirname(__FILE__)
+DOT_ATOM_PATH = ENV['HOME'] + "/.atom"
 BUILD_DIR = 'atom-build'
 
 desc "Create xcode project from gpy file"
@@ -48,25 +49,47 @@ task :install => :build do
   `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
 
   Rake::Task["create-dot-atom"].invoke()
+  Rake::Task["clone-default-bundles"].invoke()
 
   puts "\033[32mType `atom` to start Atom! In Atom press `cmd-,` to edit your `.atom` directory\033[0m"
 end
 
 desc "Creates .atom file if non exists"
 task "create-dot-atom" do
-  dot_atom_path = ENV['HOME'] + "/.atom"
   dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
   replace_dot_atom = false
-  return if Dir.exists?(dot_atom_path)
+  next if Dir.exists?(DOT_ATOM_PATH)
 
-  `rm -rf "#{dot_atom_path}"`
-  `mkdir "#{dot_atom_path}"`
-  `cp "#{dot_atom_template_path}/atom.coffee" "#{dot_atom_path}"`
+  `rm -rf "#{DOT_ATOM_PATH}"`
+  `mkdir "#{DOT_ATOM_PATH}"`
+  `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
 
   for path in Dir.entries(dot_atom_template_path)
     next if ["..", ".", "atom.coffee"].include? path
-    `ln -s "#{dot_atom_template_path}/#{path}" "#{dot_atom_path}"`
+    `ln -s "#{dot_atom_template_path}/#{path}" "#{DOT_ATOM_PATH}"`
   end
+end
+
+desc "Clone default bundles into .atom directory"
+task "clone-default-bundles" => "create-dot-atom" do
+  bundle_urls = [
+    "https://github.com/textmate/css.tmbundle.git",
+    "https://github.com/textmate/html.tmbundle.git",
+    "https://github.com/textmate/javascript.tmbundle.git",
+    "https://github.com/textmate/ruby-on-rails.tmbundle.git",
+    "https://github.com/textmate/ruby.tmbundle.git",
+    "https://github.com/textmate/text.tmbundle.git",
+    "https://github.com/jashkenas/coffee-script-tmbundle.git",
+    "https://github.com/cburyta/puppet-textmate.tmbundle.git",
+  ]
+
+  for bundle_url in bundle_urls
+    bundle_dir = bundle_url[/([^\/]+?)(\.git)?$/, 1]
+    dest_path = File.join(DOT_ATOM_PATH, "bundles", bundle_dir)
+    next if Dir.exists? dest_path
+    `git clone --quiet #{bundle_url} #{dest_path}`
+  end
+end
 
 desc "Clean build Atom via `xcodebuild`"
 task :clean do
@@ -85,7 +108,7 @@ task :run, [:atom_arg] => :build do |name, args|
 end
 
 desc "Run the specs"
-task :test => :clean do
+task :test => ["clean", "create-dot-atom"] do
   Rake::Task["run"].invoke("--test")
 end
 

@@ -1,8 +1,0 @@
-==========
-completion_class_info_no_candidates
-==========
-rct-complete --completion-class-info --line=1
-==========
-Array.new(3).nonexisten
-==========
-
