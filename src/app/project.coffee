@@ -22,10 +22,13 @@ class Project
     @setPath(path)
     @editSessions = []
     @buffers = []
-    @ignoredPathRegexes = [
-      /\.DS_Store$/
-      /(^|\/)\.git(\/|$)/
+    @ignoredFolderNames = [
+      '.git'
     ]
+    @ignoredFileNames = [
+      '.DS_Store'
+    ]
+    @ignoredPathRegexes = []
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
@@ -52,19 +55,26 @@ class Project
 
     filePaths = []
 
-    fs.traverseTree @getPath(), (path, isFile) =>
-      if @ignorePath(path)
-        false
-      else if isFile
-        filePaths.push path
-        false
-      else
-        true
+    fs.traverseTree @getPath(), (path, name, isFile) =>
+      return false if @ignorePath(path, name, isFile)
+      filePaths.push path if isFile
+      return not isFile
     deferred.resolve filePaths
     deferred
 
-  ignorePath: (path) ->
-    _.find @ignoredPathRegexes, (regex) -> path.match(regex)
+
+  ignorePath: (path, name, isFile) ->
+    if isFile
+      for ignored in @ignoredFileNames
+        return true if name is ignored
+    else
+      for ignored in @ignoredFolderNames
+        return true if name is ignored
+
+    for regex in @ignoredPathRegexes
+      return true if path.match(regex)
+
+    return false
 
   ignorePathRegex: ->
     @ignoredPathRegexes.map((regex) -> "(#{regex.source})").join("|")
