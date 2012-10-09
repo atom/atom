@@ -4,6 +4,7 @@
 #import "native/atom_cef_client.h"
 #import "atom_application.h"
 #import "atom_window_controller.h"
+#include <iostream>
 
 void AtomCefClient::FocusNextWindow() {
   NSArray *windows = [NSApp windows];
@@ -111,5 +112,5 @@ void AtomCefClient::Exit(int status) {
 }
 
 void AtomCefClient::Log(const char *message) {
-  NSLog(@"%s", message);
+  std::cout << message;
 }
