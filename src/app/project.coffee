@@ -17,6 +17,7 @@ class Project
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
+  ignoreFiles: null
 
   constructor: (path) ->
     @setPath(path)
@@ -26,6 +27,21 @@ class Project
       /\.DS_Store$/
       /(^|\/)\.git(\/|$)/
     ]
+    @ignoreFiles = [
+      '.gitignore'
+    ]
+
+    for ignoreFile in @ignoreFiles
+      absIgnoreFilePath = "#{path}/#{ignoreFile}"
+      if fs.isFile absIgnoreFilePath
+        for line in fs.read(absIgnoreFilePath).trim().split("\n")
+          # remove leading . and /
+          fileToIgnore = line.replace(/^\.?\/?/, '')
+          # sanitize string so it acts as a literal when regexified
+          fileToIgnore = fileToIgnore.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
+          # will ignore paths where fileToIgnore is the end of the string
+          #   or when path contains fileToIgnore as a path segment
+          @ignoredPathRegexes.push RegExp("(#{fileToIgnore}$|\\/#{fileToIgnore}\\/)")
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
