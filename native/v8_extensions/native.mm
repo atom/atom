@@ -128,8 +128,11 @@ bool Native::Execute(const CefString& name,
         args.push_back(CefV8Value::CreateString(relative));
         if (isFile)
           onFile->ExecuteFunction(onFile, args);
-        else if (!onDir->ExecuteFunction(onDir, args)->GetBoolValue())
+        else {
+          CefRefPtr<CefV8Value> enterDir = onDir->ExecuteFunction(onDir, args);
+          if(enterDir != NULL && !enterDir->GetBoolValue())
             fts_set(tree, entry, FTS_SKIP);
+        }
       }
 
       return true;
