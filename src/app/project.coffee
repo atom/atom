@@ -51,13 +51,15 @@ class Project
     deferred = $.Deferred()
 
     filePaths = []
-    fs.traverseTree @getPath(), (path, prune) =>
-      if @ignorePath(path)
-        prune()
-      else if fs.isFile(path)
-        prune()
-        filePaths.push @relativize(path)
 
+    fs.traverseTree @getPath(), (path, isFile) =>
+      if @ignorePath(path)
+        false
+      else if isFile
+        filePaths.push path
+        false
+      else
+        true
     deferred.resolve filePaths
     deferred
 

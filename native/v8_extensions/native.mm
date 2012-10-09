@@ -9,6 +9,8 @@
 
 #import <iostream>
 
+#include <fts.h>
+
 namespace v8_extensions {
 
 NSString *stringFromCefV8Value(const CefRefPtr<CefV8Value>& value) {
@@ -95,6 +97,37 @@ bool Native::Execute(const CefString& name,
 
     return true;
   }
+  else if (name == "traverseTree") {
+      std::string argument = arguments[0]->GetStringValue().ToString();
+      int rootPathLength = argument.size() + 1;
+      char rootPath[rootPathLength];
+      strcpy(rootPath, argument.c_str());
+      char * const paths[] = {rootPath, NULL};
+
+      CefRefPtr<CefV8Value> function = arguments[1];
+
+      FTS *tree = fts_open(paths, FTS_NOCHDIR | FTS_NOSTAT, NULL);
+      if (tree != NULL) {
+          FTSENT *entry;
+          while ((entry = fts_read(tree)) != NULL) {
+              if (entry->fts_level == 0)
+                  continue;
+              if ((entry->fts_info & FTS_D) != 0 || (entry->fts_info & FTS_F) != 0) {
+                  CefV8ValueList args;
+                  int pathLength = entry->fts_pathlen - rootPathLength;
+                  char relative[pathLength + 1];
+                  relative[pathLength] = '\0';
+                  strncpy(relative, entry->fts_path + rootPathLength, pathLength);
+                  args.push_back(CefV8Value::CreateString(relative));
+                  args.push_back(CefV8Value::CreateBool((entry->fts_info & FTS_F) != 0));
+                  if (!function->ExecuteFunction(function, args)->GetBoolValue())
+                    fts_set(tree, entry, FTS_SKIP);
+              }
+          }
+      }
+
+      return true;
+  }
   else if (name == "list") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     bool recursive = arguments[1]->GetBoolValue();
@@ -104,26 +137,22 @@ bool Native::Execute(const CefString& name,
       return true;
     }
 
-    NSFileManager *fm = [NSFileManager defaultManager];
-    NSArray *relativePaths = nil;
-    NSError *error = nil;
-
-    if (recursive) {
-      relativePaths = [fm subpathsOfDirectoryAtPath:path error:&error];
-    }
-    else {
-      relativePaths = [fm contentsOfDirectoryAtPath:path error:&error];
-    }
-
-    if (error) {
-      exception = [[error localizedDescription] UTF8String];
-    }
-    else {
-      retval = CefV8Value::CreateArray(relativePaths.count);
-      for (NSUInteger i = 0; i < relativePaths.count; i++) {
-        NSString *relativePath = [relativePaths objectAtIndex:i];
-        NSString *fullPath = [path stringByAppendingPathComponent:relativePath];
-        retval->SetValue(i, CefV8Value::CreateString([fullPath UTF8String]));
+    std::string argument = arguments[0]->GetStringValue().ToString();
+    char rootPath[argument.size() + 1];
+    strcpy(rootPath, argument.c_str());
+    char * const paths[] = {rootPath, NULL};
+    FTS *tree = fts_open(paths, FTS_NOCHDIR | FTS_NOSTAT, NULL);
+    retval = CefV8Value::CreateArray(0);
+    int index = 0;
+    if (tree != NULL) {
+      FTSENT *entry;
+      while ((entry = fts_read(tree)) != NULL) {
+        if (entry->fts_level == 0)
+          continue;
+        if (!recursive)
+          fts_set(tree, entry, FTS_SKIP);
+        if ((entry->fts_info & FTS_D) != 0 || (entry->fts_info & FTS_F) != 0)
+          retval->SetValue(index++, CefV8Value::CreateString(entry->fts_path));
       }
     }
 
