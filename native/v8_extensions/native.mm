@@ -104,7 +104,7 @@ bool Native::Execute(const CefString& name,
       strcpy(rootPath, argument.c_str());
       char * const paths[] = {rootPath, NULL};
 
-      FTS *tree = fts_open(paths, FTS_NOCHDIR | FTS_NOSTAT, NULL);
+      FTS *tree = fts_open(paths, FTS_PHYSICAL| FTS_NOCHDIR | FTS_NOSTAT, NULL);
       if (tree == NULL)
         return true;
 
@@ -150,7 +150,7 @@ bool Native::Execute(const CefString& name,
     char rootPath[argument.size() + 1];
     strcpy(rootPath, argument.c_str());
     char * const paths[] = {rootPath, NULL};
-    FTS *tree = fts_open(paths, FTS_NOCHDIR | FTS_NOSTAT, NULL);
+    FTS *tree = fts_open(paths, FTS_PHYSICAL | FTS_NOCHDIR | FTS_NOSTAT, NULL);
     retval = CefV8Value::CreateArray(0);
     int index = 0;
     if (tree != NULL) {
