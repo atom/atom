@@ -55,22 +55,40 @@ class Project
 
     filePaths = []
 
-    fs.traverseTree @getPath(), (path, name, isFile) =>
-      return false if @ignorePath(path, name, isFile)
-      filePaths.push path if isFile
-      return not isFile
+    onFile = (path) =>
+      filePaths.push(path) unless @ignoreFile(path)
+
+    onDirectory = (path) =>
+      return not @ignoreDirectory(path)
+
+    fs.traverseTree @getPath(), onFile, onDirectory
     deferred.resolve filePaths
     deferred
 
-
-  ignorePath: (path, name, isFile) ->
-    if isFile
-      for ignored in @ignoredFileNames
-        return true if name is ignored
+  ignoreDirectory: (path) ->
+    lastSlash = path.lastIndexOf('/')
+    if lastSlash isnt -1
+      name = path.substring(lastSlash + 1)
     else
-      for ignored in @ignoredFolderNames
-        return true if name is ignored
+      name = path
 
+    for ignored in @ignoredFolderNames
+      return true if name is ignored
+
+    for regex in @ignoredPathRegexes
+      return true if path.match(regex)
+
+    return false
+
+  ignoreFile: (path) ->
+    lastSlash = path.lastIndexOf('/')
+    if lastSlash isnt -1
+      name = path.substring(lastSlash + 1)
+    else
+      name = path
+
+    for ignored in @ignoredFileNames
+      return true if name is ignored
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
 
