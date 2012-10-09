@@ -248,6 +248,9 @@ class Buffer
   isModified: ->
     @modified
 
+  contentDifferentOnDisk: ->
+    fs.read(@file.getPath()) != @getText()
+
   getAnchors: -> new Array(@anchors...)
 
   addAnchor: (options) ->

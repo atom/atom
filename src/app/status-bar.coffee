@@ -33,7 +33,8 @@ class StatusBar extends View
     @editor.getBuffer().on 'buffer-change', => @updateBufferModifiedText()
 
   updateBufferModifiedText: ->
-    if @editor.getBuffer().isModified()
+    buffer = @editor.getBuffer()
+    if buffer.isModified() and buffer.contentDifferentOnDisk()
       @bufferModified.text('*')
     else
       @bufferModified.text('')
