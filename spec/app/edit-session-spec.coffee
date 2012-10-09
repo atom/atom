@@ -1574,20 +1574,13 @@ describe "EditSession", ->
 
   describe ".tranpose()", ->
     it "swaps two characters", ->
-      editSession.setCursorScreenPosition([1, 0])
-      editSession.insertText('abc')
-      editSession.cutToEndOfLine()
-      expect(buffer.lineForRow(1)).toBe 'abc'
-      editSession.setCursorScreenPosition([1, 1])
+      editSession.buffer.setText("abc")
+      editSession.setCursorScreenPosition([0, 1])
       editSession.transpose()
-      expect(buffer.lineForRow(1)).toBe 'bac'
+      expect(editSession.lineForBufferRow(0)).toBe 'bac'
 
     it "reverses a selection", ->
-      editSession.setCursorScreenPosition([1, 0])
-      editSession.insertText('xabcz')
-      editSession.cutToEndOfLine()
-      expect(buffer.lineForRow(1)).toBe 'xabcz'
-      editSession.setCursorScreenPosition([1, 0])
-      editSession.setSelectedBufferRange([[1, 1], [1, 4]])
+      editSession.buffer.setText("xabcz")
+      editSession.setSelectedBufferRange([[0, 1], [0, 4]])
       editSession.transpose()
-      expect(buffer.lineForRow(1)).toBe 'xcbaz'
+      expect(editSession.lineForBufferRow(0)).toBe 'xcbaz'
