@@ -121,6 +121,7 @@ bool Native::Execute(const CefString& name,
           strncpy(relative, entry->fts_path + rootPathLength, pathLength);
           args.clear();
           args.push_back(CefV8Value::CreateString(relative));
+          args.push_back(CefV8Value::CreateString(entry->fts_name));
           args.push_back(CefV8Value::CreateBool((entry->fts_info & FTS_F) != 0));
           if (!function->ExecuteFunction(function, args)->GetBoolValue())
             fts_set(tree, entry, FTS_SKIP);
