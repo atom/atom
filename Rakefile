@@ -41,7 +41,7 @@ task :install => :build do
     usr_bin_path = default_usr_bin_path if usr_bin_path.empty?
   end
 
-  if !Dir.exists?(usr_bin_path)
+  if !File.exists?(usr_bin_path)
     $stderr.puts "ERROR: Failed to install atom cli tool at '#{usr_bin_path}'"
     exit 1
   end
