@@ -8,7 +8,6 @@ describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
-    coffeePlist = fs.read(require.resolve 'CoffeeScriptBundle.tmbundle/Syntaxes/CoffeeScript.tmLanguage')
     grammar = TextMateBundle.grammarForFileName("hello.coffee")
 
   describe ".getLineTokens(line, currentRule)", ->
