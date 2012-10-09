@@ -109,31 +109,27 @@ bool Native::Execute(const CefString& name,
         return true;
 
       CefRefPtr<CefV8Value> onFile = arguments[1];
-      CefRefPtr<CefV8Value> onDirectory = arguments[2];
+      CefRefPtr<CefV8Value> onDir = arguments[2];
       CefV8ValueList args;
       FTSENT *entry;
       while ((entry = fts_read(tree)) != NULL) {
         if (entry->fts_level == 0)
           continue;
-        if((entry->fts_info & FTS_F) != 0) {
-          int pathLength = entry->fts_pathlen - rootPathLength;
-          char relative[pathLength + 1];
-          relative[pathLength] = '\0';
-          strncpy(relative, entry->fts_path + rootPathLength, pathLength);
-          args.clear();
-          args.push_back(CefV8Value::CreateString(relative));
+        bool isFile = entry->fts_info == FTS_NSOK;
+        bool isDir =  entry->fts_info == FTS_D;
+        if (!isFile && !isDir)
+          continue;
+
+        int pathLength = entry->fts_pathlen - rootPathLength;
+        char relative[pathLength + 1];
+        relative[pathLength] = '\0';
+        strncpy(relative, entry->fts_path + rootPathLength, pathLength);
+        args.clear();
+        args.push_back(CefV8Value::CreateString(relative));
+        if (isFile)
           onFile->ExecuteFunction(onFile, args);
-        }
-        else if ((entry->fts_info & FTS_D) != 0) {
-          int pathLength = entry->fts_pathlen - rootPathLength;
-          char relative[pathLength + 1];
-          relative[pathLength] = '\0';
-          strncpy(relative, entry->fts_path + rootPathLength, pathLength);
-          args.clear();
-          args.push_back(CefV8Value::CreateString(relative));
-          if (!onDirectory->ExecuteFunction(onDirectory, args)->GetBoolValue())
+        else if (!onDir->ExecuteFunction(onDir, args)->GetBoolValue())
             fts_set(tree, entry, FTS_SKIP);
-        }
       }
 
       return true;
