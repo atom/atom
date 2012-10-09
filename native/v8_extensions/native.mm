@@ -104,26 +104,27 @@ bool Native::Execute(const CefString& name,
       strcpy(rootPath, argument.c_str());
       char * const paths[] = {rootPath, NULL};
 
+      FTS *tree = fts_open(paths, FTS_NOCHDIR | FTS_NOSTAT, NULL);
+      if (tree == NULL)
+        return true;
+
       CefRefPtr<CefV8Value> function = arguments[1];
       CefV8ValueList args;
-      FTS *tree = fts_open(paths, FTS_NOCHDIR | FTS_NOSTAT, NULL);
-      if (tree != NULL) {
-          FTSENT *entry;
-          while ((entry = fts_read(tree)) != NULL) {
-              if (entry->fts_level == 0)
-                  continue;
-              if ((entry->fts_info & FTS_D) != 0 || (entry->fts_info & FTS_F) != 0) {
-                  int pathLength = entry->fts_pathlen - rootPathLength;
-                  char relative[pathLength + 1];
-                  relative[pathLength] = '\0';
-                  strncpy(relative, entry->fts_path + rootPathLength, pathLength);
-                  args.clear();
-                  args.push_back(CefV8Value::CreateString(relative));
-                  args.push_back(CefV8Value::CreateBool((entry->fts_info & FTS_F) != 0));
-                  if (!function->ExecuteFunction(function, args)->GetBoolValue())
+      FTSENT *entry;
+      while ((entry = fts_read(tree)) != NULL) {
+        if (entry->fts_level == 0)
+          continue;
+        if ((entry->fts_info & FTS_D) != 0 || (entry->fts_info & FTS_F) != 0) {
+          int pathLength = entry->fts_pathlen - rootPathLength;
+          char relative[pathLength + 1];
+          relative[pathLength] = '\0';
+          strncpy(relative, entry->fts_path + rootPathLength, pathLength);
+          args.clear();
+          args.push_back(CefV8Value::CreateString(relative));
+          args.push_back(CefV8Value::CreateBool((entry->fts_info & FTS_F) != 0));
+          if (!function->ExecuteFunction(function, args)->GetBoolValue())
                     fts_set(tree, entry, FTS_SKIP);
-              }
-          }
+        }
       }
 
       return true;
