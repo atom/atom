@@ -13,9 +13,6 @@ var $native = {};
   native function absolute(path);
   $native.absolute = absolute;
 
-  native function list(path, recursive);
-  $native.list = list;
-
   native function traverseTree(path, onFile, onDirectory);
   $native.traverseTree = traverseTree;
 

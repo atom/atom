@@ -60,11 +60,21 @@ module.exports =
 
   # Returns an array with all the names of files contained
   # in the directory path.
-  list: (path) ->
-    $native.list(path, false)
+  list: (rootPath) ->
+    paths = []
+    onPath = (path) =>
+      paths.push(@join(rootPath, path))
+      false
+    @traverseTree(rootPath, onPath, onPath)
+    paths
 
-  listTree: (path) ->
-    $native.list(path, true)
+  listTree: (rootPath) ->
+    paths = []
+    onPath = (path) =>
+      paths.push(@join(rootPath, path))
+      true
+    @traverseTree(rootPath, onPath, onPath)
+    paths
 
   move: (source, target) ->
     $native.move(source, target)
