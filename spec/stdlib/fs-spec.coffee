@@ -70,16 +70,19 @@ describe "fs", ->
 
     it "calls fn for every path in the tree at the given path", ->
       paths = []
-      fs.traverseTree fixturesDir, (path) -> paths.push(path)
+      fs.traverseTree fixturesDir, (path) ->
+        paths.push(fs.join(fixturesDir, path))
+        true
       expect(paths).toEqual fs.listTree(fixturesDir)
 
     it "does not recurse into a directory if it is pruned", ->
       paths = []
       fs.traverseTree fixturesDir, (path, prune) ->
         if path.match(/\/dir$/)
-          prune()
+          false
         else
           paths.push(path)
+          true
 
       expect(paths.length).toBeGreaterThan 0
       for path in paths
