@@ -73,11 +73,12 @@ class LanguageMode
     return null unless @doesBufferRowStartFold(bufferRow)
 
     startIndentation = @editSession.indentationForBufferRow(bufferRow)
+    scopes = @tokenizedBuffer.scopesForPosition([bufferRow, 0])
     for row in [(bufferRow + 1)..@editSession.getLastBufferRow()]
       continue if @editSession.isBufferRowBlank(row)
       indentation = @editSession.indentationForBufferRow(row)
       if indentation <= startIndentation
-        includeRowInFold = indentation == startIndentation and @grammar.foldEndRegex.search(@editSession.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentation and TextMateBundle.foldEndRegexForScope(@grammar, scopes[0]).search(@editSession.lineForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 

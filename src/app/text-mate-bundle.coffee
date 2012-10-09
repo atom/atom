@@ -56,6 +56,13 @@ class TextMateBundle
     if source = @getPreferenceInScope(scope, 'decreaseIndentPattern')
       new OnigRegExp(source)
 
+  @foldEndRegexForScope: (grammar, scope) ->
+    marker =  @getPreferenceInScope(scope, 'foldingStopMarker')
+    if marker
+      new OnigRegExp(marker)
+    else
+      new OnigRegExp(grammar.foldingStopMarker)
+
   grammars: null
 
   constructor: (@path) ->
