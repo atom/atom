@@ -72,22 +72,22 @@ end
 
 desc "Clone default bundles into .atom directory"
 task "clone-default-bundles" => "create-dot-atom" do
-  bundle_urls = [
-    "https://github.com/textmate/css.tmbundle.git",
-    "https://github.com/textmate/html.tmbundle.git",
-    "https://github.com/textmate/javascript.tmbundle.git",
-    "https://github.com/textmate/ruby-on-rails.tmbundle.git",
-    "https://github.com/textmate/ruby.tmbundle.git",
-    "https://github.com/textmate/text.tmbundle.git",
-    "https://github.com/jashkenas/coffee-script-tmbundle.git",
-    "https://github.com/cburyta/puppet-textmate.tmbundle.git",
-  ]
+  bundles = {
+    "https://github.com/textmate/css.tmbundle.git" => "HEAD",
+    "https://github.com/textmate/html.tmbundle.git" => "HEAD",
+    "https://github.com/textmate/javascript.tmbundle.git" => "HEAD",
+    "https://github.com/textmate/ruby-on-rails.tmbundle.git" => "HEAD",
+    "https://github.com/textmate/ruby.tmbundle.git" => "f855d76db13d74a8bf7489f4a7722654685756ea" ,
+    "https://github.com/textmate/text.tmbundle.git" => "HEAD",
+    "https://github.com/jashkenas/coffee-script-tmbundle.git" => "HEAD",
+    "https://github.com/cburyta/puppet-textmate.tmbundle.git" => "HEAD",
+  }
 
-  for bundle_url in bundle_urls
+  for bundle_url, sha in bundles
     bundle_dir = bundle_url[/([^\/]+?)(\.git)?$/, 1]
     dest_path = File.join(DOT_ATOM_PATH, "bundles", bundle_dir)
-    next if File.exists? dest_path
-    `git clone --quiet #{bundle_url} #{dest_path}`
+    `git clone --quiet #{bundle_url} #{dest_path}` unless File.exists? dest_path
+    `cd #{dest_path} && git reset --hard #{sha}`
   end
 end
 
