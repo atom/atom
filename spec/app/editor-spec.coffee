@@ -998,7 +998,7 @@ describe "Editor", ->
         line0 = editor.renderedLines.find('.line:first')
         span0 = line0.children('span:eq(0)')
         expect(span0).toMatchSelector '.source.js'
-        expect(span0.children('span:eq(0)')).toMatchSelector '.storage.type.js'
+        expect(span0.children('span:eq(0)')).toMatchSelector '.storage.modifier.js'
         expect(span0.children('span:eq(0)').text()).toBe 'var'
 
         span0_1 = span0.children('span:eq(1)')
