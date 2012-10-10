@@ -12,7 +12,7 @@ describe "TextMateGrammar", ->
 
   describe ".getLineTokens(line, currentRule)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
-       it "returns a single token with the correct scope", ->
+      it "returns a single token with the correct scope", ->
         {tokens} = grammar.getLineTokens("return")
 
         expect(tokens.length).toBe 1
@@ -179,11 +179,11 @@ describe "TextMateGrammar", ->
           {tokens} = grammar.getLineTokens('%Q+matz had some #{%Q-crazy ideas-} for ruby syntax+ # damn.')
           expect(tokens[0]).toEqual value: '%Q+', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
           expect(tokens[1]).toEqual value: 'matz had some ', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby"]
-          expect(tokens[2]).toEqual value: '#{', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","punctuation.section.embedded.begin.ruby"]
-          expect(tokens[3]).toEqual value: '%Q-', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
-          expect(tokens[4]).toEqual value: 'crazy ideas', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","string.quoted.other.literal.upper.ruby"]
-          expect(tokens[5]).toEqual value: '-', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.end.ruby"]
-          expect(tokens[6]).toEqual value: '}', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","meta.embedded.line.ruby","punctuation.section.embedded.end.ruby","source.ruby"] # I'm not sure why it ends with source.ruby, but that is how the the ruby syntax specifies it
+          expect(tokens[2]).toEqual value: '#{', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","punctuation.section.embedded.ruby"]
+          expect(tokens[3]).toEqual value: '%Q-', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
+          expect(tokens[4]).toEqual value: 'crazy ideas', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","string.quoted.other.literal.upper.ruby"]
+          expect(tokens[5]).toEqual value: '-', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","string.quoted.other.literal.upper.ruby","punctuation.definition.string.end.ruby"]
+          expect(tokens[6]).toEqual value: '}', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","source.ruby.embedded.source","punctuation.section.embedded.ruby"]
           expect(tokens[7]).toEqual value: ' for ruby syntax', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby"]
           expect(tokens[8]).toEqual value: '+', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.end.ruby"]
           expect(tokens[9]).toEqual value: ' ', scopes: ["source.ruby"]
