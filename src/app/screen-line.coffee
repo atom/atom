@@ -61,16 +61,19 @@ class ScreenLine
 
     currentSourceColumn = 0
     currentTargetColumn = 0
+    isSourceColumnBeforeLastToken = false
     for token in @tokens
       tokenStartTargetColumn = currentTargetColumn
       tokenStartSourceColumn = currentSourceColumn
       tokenEndSourceColumn = currentSourceColumn + token[sourceDeltaType]
       tokenEndTargetColumn = currentTargetColumn + token[targetDeltaType]
-      break if tokenEndSourceColumn > sourceColumn
+      if tokenEndSourceColumn > sourceColumn
+        isSourceColumnBeforeLastToken = true
+        break
       currentSourceColumn = tokenEndSourceColumn
       currentTargetColumn = tokenEndTargetColumn
 
-    if token?.isAtomic
+    if isSourceColumnBeforeLastToken and token?.isAtomic
       if skipAtomicTokens and sourceColumn > tokenStartSourceColumn
         tokenEndTargetColumn
       else

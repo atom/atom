@@ -6,8 +6,8 @@ describe "ScreenLine", ->
   [editSession, buffer, tabText, screenLine, tokenizedBuffer] = []
 
   beforeEach ->
-    tabText = '  '
-    editSession = fixturesProject.buildEditSessionForPath('sample.js')
+    tabText = '••'
+    editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabText } )
     { buffer, tokenizedBuffer } = editSession
     screenLine = tokenizedBuffer.lineForScreenRow(3)
 
@@ -81,8 +81,7 @@ describe "ScreenLine", ->
 
   describe ".translateColumn(sourceDeltaType, targetDeltaType, sourceColumn, skipAtomicTokens: false)", ->
     beforeEach ->
-      buffer.insert([0, 13], '\t')
-      buffer.insert([0, 0], '\t\t')
+      buffer.setText("\t\t-")
       screenLine = tokenizedBuffer.lineForScreenRow(0)
 
     describe "when translating from buffer to screen coordinates", ->
@@ -91,8 +90,11 @@ describe "ScreenLine", ->
         expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 1)).toBe 2
         expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 2)).toBe 4
         expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 3)).toBe 5
-        expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 15)).toBe 17
-        expect(screenLine.translateColumn('bufferDelta', 'screenDelta', 16)).toBe 19
+
+      describe "when an atomic token is at the end of the line (regression)", ->
+        it "translates a buffer position correctly", ->
+          buffer.setText("\t")
+          expect(tokenizedBuffer.lineForScreenRow(0).translateColumn('bufferDelta', 'screenDelta', 1)).toBe 2
 
     describe "when translating from screen coordinates to buffer coordinates", ->
       describe "when skipAtomicTokens is false (the default)", ->
