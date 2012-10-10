@@ -63,6 +63,7 @@ task "create-dot-atom" do
   `rm -rf "#{DOT_ATOM_PATH}"`
   `mkdir "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
+  `cp "#{dot_atom_template_path}/bundles" "#{DOT_ATOM_PATH}"`
 
   for path in Dir.entries(dot_atom_template_path)
     next if ["..", ".", "atom.coffee", "bundles"].include? path
