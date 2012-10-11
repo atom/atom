@@ -13,6 +13,10 @@ class KeybindingsView extends View
   initialize: (@rootView) ->
     @rootView.on 'keybindings-view:attach', => @attach()
     @on 'keybindings-view:detach', => @detach()
+    @on 'core:page-up', => @pageUp()
+    @on 'core:page-down', => @pageDown()
+    @on 'core:move-to-top', => @scrollToTop()
+    @on 'core:move-to-bottom', => @scrollToBottom()
 
   attach: ->
     @keybindingList.empty()
