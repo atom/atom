@@ -1,9 +1,10 @@
-EditorCommand = require 'editor-command'
-
 module.exports =
-class UpperCaseCommand extends EditorCommand
+class UpperCaseCommand
+
+  @activate: (rootView) ->
+    rootView.eachEditor(@onEditor)
 
   @onEditor: (editor) ->
-    @register editor, 'meta-X', 'uppercase', =>
-      @replaceSelectedText editor, (text) ->
+    editor.bindToKeyedEvent 'meta-X', 'uppercase', =>
+      editor.replaceSelectedText (text) ->
         text.toUpperCase()

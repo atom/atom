@@ -1,9 +1,10 @@
-EditorCommand = require 'editor-command'
-
 module.exports =
-class LowerCaseCommand extends EditorCommand
+class LowerCaseCommand
+
+  @activate: (rootView) ->
+    rootView.eachEditor(@onEditor)
 
   @onEditor: (editor) ->
-    @register editor, 'meta-Y', 'lowercase', =>
-      @replaceSelectedText editor, (text) ->
+    editor.bindToKeyedEvent 'meta-Y', 'lowercase', =>
+      editor.replaceSelectedText (text) ->
         text.toLowerCase()
