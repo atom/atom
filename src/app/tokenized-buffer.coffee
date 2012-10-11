@@ -11,11 +11,12 @@ class TokenizedBuffer
 
   languageMode: null
   tabLength: null
+  showInvisibles: null
   buffer: null
   aceAdaptor: null
   screenLines: null
 
-  constructor: (@buffer, { @languageMode, @tabLength }) ->
+  constructor: (@buffer, { @languageMode, @tabLength, @showInvisibles }) ->
     @tabLength ?= 2
     @languageMode.tokenizedBuffer = this
     @id = @constructor.idCounter++
@@ -66,7 +67,7 @@ class TokenizedBuffer
     tokenObjects = []
     for tokenProperties in tokens
       token = new Token(tokenProperties)
-      tokenObjects.push(token.breakOutTabCharacters(@tabLength)...)
+      tokenObjects.push(token.breakOutWhitespaceCharacters(@tabLength, @showInvisibles)...)
     text = _.pluck(tokenObjects, 'value').join('')
     new ScreenLine(tokenObjects, text, [1, 0], [1, 0], { stack })
 

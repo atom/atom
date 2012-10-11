@@ -1828,9 +1828,10 @@ describe "Editor", ->
       expect(editor.getCursor().getScreenPosition().row).toBe(0)
       expect(editor.getFirstVisibleScreenRow()).toBe(0)
 
-  describe "when showInvisibles is enabled on the editSession", ->
+  describe "when editSession.showInvisibles is true", ->
     beforeEach ->
-      editor.activeEditSession.showInvisibles = true
+      project.setShowInvisibles(true)
+      rootView.open()
       editor.attachToDom(5)
 
     it "displays spaces as •, tabs as ▸ and newlines as ¬", ->
