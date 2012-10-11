@@ -19,6 +19,10 @@ class MarkdownPreview extends View
       @attach() if @isMarkdownFile(path)
 
     @on 'markdown-preview:detach', => @detach()
+    @on 'core:page-up', => @pageUp()
+    @on 'core:page-down', => @pageDown()
+    @on 'core:move-to-top', => @scrollToTop()
+    @on 'core:move-to-bottom', => @scrollToBottom()
 
   attach: ->
     @rootView.append(this)
