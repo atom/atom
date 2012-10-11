@@ -143,8 +143,14 @@
   }
 }
 
-- (BOOL)windowShouldClose:(id)window {
+- (void)windowWillClose:(NSNotification *)notification {
+  if (_cefClient && _cefClient->GetBrowser()) {
+    _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("shutdown"));
+  }
   [self autorelease];
+}
+
+- (BOOL)windowShouldClose:(id)window {
   return YES;
 }
 
