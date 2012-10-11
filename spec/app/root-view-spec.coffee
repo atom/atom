@@ -691,7 +691,7 @@ describe "RootView", ->
       expect(buffer2.isModified()).toBe(false)
       expect(fs.read(buffer2.getPath())).toBe("edited2")
 
-  fdescribe ".eachEditor(callback)", ->
+  describe ".eachEditor(callback)", ->
     beforeEach ->
       rootView.attachToDom()
 
