@@ -5,6 +5,6 @@ class UpperCaseCommand
     rootView.eachEditor(@onEditor)
 
   @onEditor: (editor) ->
-    editor.bindToKeyedEvent 'meta-X', 'uppercase', =>
+    editor.bindToKeyedEvent 'meta-X', 'uppercase', ->
       editor.replaceSelectedText (text) ->
         text.toUpperCase()

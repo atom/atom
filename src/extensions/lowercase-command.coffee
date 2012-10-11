@@ -5,6 +5,6 @@ class LowerCaseCommand
     rootView.eachEditor(@onEditor)
 
   @onEditor: (editor) ->
-    editor.bindToKeyedEvent 'meta-Y', 'lowercase', =>
+    editor.bindToKeyedEvent 'meta-Y', 'lowercase', ->
       editor.replaceSelectedText (text) ->
         text.toLowerCase()
