@@ -878,7 +878,7 @@ class Editor extends View
       line.push(token.escapeValue(@activeEditSession.showInvisibles))
 
     if @activeEditSession.showInvisibles
-      line.push("<pre class='invisible'>¬</pre>")
+      line.push("<span class='invisible'>¬</span>")
 
     line.push('</pre>')
     line.join('')
