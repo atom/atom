@@ -873,12 +873,13 @@ class Editor extends View
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
     line.push("<pre #{attributePairs.join(' ')}>")
 
-    if screenLine.text == ''
-      line.push('&nbsp;')
-    else
-      for token in screenLine.tokens
-        updateScopeStack(token.scopes)
-        line.push(token.escapeValue())
+    for token in screenLine.tokens
+      updateScopeStack(token.scopes)
+      line.push(token.escapeValue(@activeEditSession.showInvisibles))
+
+    if @activeEditSession.showInvisibles
+      line.push("<pre class='invisible'>¬</pre>")
+
     line.push('</pre>')
     line.join('')
 

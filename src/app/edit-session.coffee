@@ -35,11 +35,12 @@ class EditSession
   cursors: null
   selections: null
   autoIndent: false # TODO: re-enabled auto-indent after fixing the rest of tokenization
+  tabLength: null
   softTabs: true
   softWrap: false
-  tabLength: null
+  showInvisibles: false
 
-  constructor: ({@project, @buffer, @tabLength, @autoIndent, @softTabs, @softWrap}) ->
+  constructor: ({@project, @buffer, @tabLength, @autoIndent, @softTabs, @softWrap, @showInvisibles}) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
     @languageMode = new LanguageMode(this, @buffer.getExtension())

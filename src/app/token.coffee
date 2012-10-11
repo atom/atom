@@ -5,8 +5,9 @@ class Token
   value: null
   scopes: null
   isAtomic: null
+  isTab: null
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @fold}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @fold, @isTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
 
@@ -24,20 +25,30 @@ class Token
   breakOutTabCharacters: (tabLength) ->
     return [this] unless /\t/.test(@value)
 
+    tabText = new Array(tabLength + 1).join(" ")
     for substring in @value.match(/([^\t]+|\t)/g)
       if substring == '\t'
-        @buildTabToken(tabLength)
+        new Token(value: tabText, scopes: @scopes, bufferDelta: 1, isAtomic: true, isTab: true)
       else
         new Token(value: substring, scopes: @scopes)
 
   buildTabToken: (tabLength) ->
     tabText = new Array(tabLength + 1).join(" ")
-    new Token(value: tabText, scopes: @scopes, bufferDelta: 1, isAtomic: true)
 
-  escapeValue: ->
-    @value
+  escapeValue: (showInvisibles)->
+    return "&nbsp;" if @value == ""
+
+    value = @value
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
+
+    if showInvisibles
+      if @isTab
+        value = "▸" + value[1..]
+      else
+        value = value.replace(/[ ]+/g, "•")
+
+    value
