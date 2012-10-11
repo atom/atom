@@ -77,10 +77,11 @@ task "clone-default-bundles" => "create-dot-atom" do
     "https://github.com/textmate/html.tmbundle.git" => "HEAD",
     "https://github.com/textmate/javascript.tmbundle.git" => "HEAD",
     "https://github.com/textmate/ruby-on-rails.tmbundle.git" => "HEAD",
-    "https://github.com/textmate/ruby.tmbundle.git" => "daad8ef03de9630e74578a046240fd9acc63b8b5" ,
+    "https://github.com/textmate/ruby.tmbundle.git" => "daad8ef03de9630e74578a046240fd9acc63b8b5",
     "https://github.com/textmate/text.tmbundle.git" => "HEAD",
     "https://github.com/jashkenas/coffee-script-tmbundle.git" => "HEAD",
     "https://github.com/cburyta/puppet-textmate.tmbundle.git" => "HEAD",
+    "https://github.com/textmate/c.tmbundle.git" => "c8a6516c1131055bfcd1bca5e2ee6567c2f50058",
   }
 
   for bundle_url, sha in bundles
