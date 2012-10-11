@@ -6,8 +6,7 @@ describe "Token", ->
   [editSession, token] = []
 
   beforeEach ->
-    tabText = '  '
-    editSession = fixturesProject.buildEditSessionForPath('sample.js')
+    editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabLength: 2 })
     { tokenizedBuffer } = editSession
     screenLine = tokenizedBuffer.lineForScreenRow(3)
     token = _.last(screenLine.tokens)

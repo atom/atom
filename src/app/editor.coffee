@@ -69,7 +69,7 @@ class Editor extends View
       editSession = new EditSession
         buffer: new Buffer()
         softWrap: false
-        tabText: "  "
+        tabLength: 2
         autoIndent: false
         softTabs: true
 
@@ -878,16 +878,8 @@ class Editor extends View
     else
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
-        line.push(
-          token.value
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-        )
-
-    line.push("</pre>")
+        line.push(token.escapeValue())
+    line.push('</pre>')
     line.join('')
 
   insertLineElements: (row, lineElements) ->

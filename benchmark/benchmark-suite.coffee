@@ -91,7 +91,7 @@ describe "TokenizedBuffer.", ->
       { languageMode, buffer } = editSession
 
     benchmark "construction", 20, ->
-      new TokenizedBuffer(buffer, { languageMode, tabText: '  '})
+      new TokenizedBuffer(buffer, { languageMode, tabLength: 2})
 
 describe "OnigRegExp.", ->
   [regexes, line] = []

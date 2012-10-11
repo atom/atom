@@ -3,11 +3,10 @@ Buffer = require 'buffer'
 TokenizedBuffer = require 'tokenized-buffer'
 
 describe "ScreenLine", ->
-  [editSession, buffer, tabText, screenLine, tokenizedBuffer] = []
+  [editSession, buffer, screenLine, tokenizedBuffer] = []
 
   beforeEach ->
-    tabText = '••'
-    editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabText } )
+    editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabLength: 2 } )
     { buffer, tokenizedBuffer } = editSession
     screenLine = tokenizedBuffer.lineForScreenRow(3)
 

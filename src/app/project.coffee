@@ -10,10 +10,11 @@ ChildProcess = require 'child-process'
 
 module.exports =
 class Project
-  tabText: '  '
+  tabLength: 2
   autoIndent: true
   softTabs: true
   softWrap: false
+  showInvisibles: false
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -101,9 +102,6 @@ class Project
   relativize: (fullPath) ->
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
-  getTabText: -> @tabText
-  setTabText: (@tabText) ->
-
   getAutoIndent: -> @autoIndent
   setAutoIndent: (@autoIndent) ->
 
@@ -112,6 +110,9 @@ class Project
 
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
+
+  getShowInvisibles: -> @showInvisibles
+  setShowInvisibles: (@showInvisibles) ->
 
   buildEditSessionForPath: (filePath, editSessionOptions={}) ->
     @buildEditSession(@bufferForPath(filePath), editSessionOptions)
@@ -126,10 +127,11 @@ class Project
     editSession
 
   defaultEditSessionOptions: ->
-    tabText: @getTabText()
+    tabLength: @tabLength
     autoIndent: @getAutoIndent()
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()
+    showInvisibles: @getShowInvisibles()
 
   getEditSessions: ->
     new Array(@editSessions...)

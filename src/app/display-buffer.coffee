@@ -20,7 +20,6 @@ class DisplayBuffer
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
-    options.tabText ?= '  '
     @languageMode = options.languageMode
     @tokenizedBuffer = new TokenizedBuffer(@buffer, options)
     @softWrapColumn = options.softWrapColumn ? Infinity
