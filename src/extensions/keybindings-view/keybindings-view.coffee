@@ -1,7 +1,8 @@
-{View, $$} = require 'space-pen'
+{$$} = require 'space-pen'
+ScrollView = require 'scroll-view'
 
 module.exports =
-class KeybindingsView extends View
+class KeybindingsView extends ScrollView
   @activate: (rootView, state) ->
     requireStylesheet 'keybinding-view.css'
     @instance = new this(rootView)
@@ -11,12 +12,9 @@ class KeybindingsView extends View
       @ul outlet: 'keybindingList'
 
   initialize: (@rootView) ->
+    super
     @rootView.on 'keybindings-view:attach', => @attach()
     @on 'keybindings-view:detach', => @detach()
-    @on 'core:page-up', => @pageUp()
-    @on 'core:page-down', => @pageDown()
-    @on 'core:move-to-top', => @scrollToTop()
-    @on 'core:move-to-bottom', => @scrollToBottom()
 
   attach: ->
     @keybindingList.empty()

@@ -1,8 +1,9 @@
 $ = require 'jquery'
-{$$$, View} = require 'space-pen'
+{$$$} = require 'space-pen'
+ScrollView = require 'scroll-view'
 
 module.exports =
-class PreviewList extends View
+class PreviewList extends ScrollView
   @content: ->
     @ol class: 'preview-list', tabindex: -1, ->
 
@@ -10,6 +11,7 @@ class PreviewList extends View
   operations: null
 
   initialize: (@rootView) ->
+    super
     @on 'core:move-down', => @selectNextOperation()
     @on 'core:move-up', => @selectPreviousOperation()
     @on 'command-panel:execute', => @executeSelectedOperation()

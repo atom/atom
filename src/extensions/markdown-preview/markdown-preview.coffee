@@ -1,9 +1,9 @@
-{View} = require 'space-pen'
+ScrollView = require 'scroll-view'
 fs = require 'fs'
 $ = require 'jquery'
 
 module.exports =
-class MarkdownPreview extends View
+class MarkdownPreview extends ScrollView
   @activate: (rootView, state) ->
     requireStylesheet 'markdown-preview.css'
     @instance = new this(rootView)
@@ -14,15 +14,12 @@ class MarkdownPreview extends View
       @div class: 'markdown-spinner', outlet: 'markdownSpinner'
 
   initialize: (@rootView) ->
+    super
     @rootView.on 'markdown-preview:attach', =>
       path = rootView.getActiveEditor()?.getPath()
       @attach() if @isMarkdownFile(path)
 
     @on 'markdown-preview:detach', => @detach()
-    @on 'core:page-up', => @pageUp()
-    @on 'core:page-down', => @pageDown()
-    @on 'core:move-to-top', => @scrollToTop()
-    @on 'core:move-to-bottom', => @scrollToBottom()
 
   attach: ->
     @rootView.append(this)

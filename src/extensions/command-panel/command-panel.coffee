@@ -65,11 +65,6 @@ class CommandPanel extends View
     @on 'core:move-up', => @navigateBackwardInHistory()
     @on 'core:move-down', => @navigateForwardInHistory()
 
-    @previewList.on 'core:page-up', => @previewList.pageUp()
-    @previewList.on 'core:page-down', => @previewList.pageDown()
-    @previewList.on 'core:move-to-top', => @previewList.scrollToTop()
-    @previewList.on 'core:move-to-bottom', => @previewList.scrollToBottom()
-
     @previewList.hide()
 
   destroy: ->
