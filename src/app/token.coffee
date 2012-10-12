@@ -41,13 +41,9 @@ class Token
     tabText = new Array(tabLength + 1).join(" ")
 
   escapeValue: (showInvisibles)->
-    return "&nbsp;" if @value == ""
-
-    value = @value
+    @value
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-
-    value
