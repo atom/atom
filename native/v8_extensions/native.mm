@@ -98,44 +98,50 @@ bool Native::Execute(const CefString& name,
     return true;
   }
   else if (name == "traverseTree") {
-      std::string argument = arguments[0]->GetStringValue().ToString();
-      int rootPathLength = argument.size() + 1;
-      char rootPath[rootPathLength];
-      strcpy(rootPath, argument.c_str());
-      char * const paths[] = {rootPath, NULL};
+    std::string argument = arguments[0]->GetStringValue().ToString();
+    int rootPathLength = argument.size() + 1;
+    char rootPath[rootPathLength];
+    strcpy(rootPath, argument.c_str());
+    char * const paths[] = {rootPath, NULL};
 
-      FTS *tree = fts_open(paths, FTS_PHYSICAL| FTS_NOCHDIR | FTS_NOSTAT, NULL);
-      if (tree == NULL)
-        return true;
+    FTS *tree = fts_open(paths, FTS_PHYSICAL| FTS_NOCHDIR | FTS_NOSTAT, NULL);
+    if (tree == NULL) {
+      return true;
+    }
 
-      CefRefPtr<CefV8Value> onFile = arguments[1];
-      CefRefPtr<CefV8Value> onDir = arguments[2];
-      CefV8ValueList args;
-      FTSENT *entry;
-      while ((entry = fts_read(tree)) != NULL) {
-        if (entry->fts_level == 0)
-          continue;
-        bool isFile = entry->fts_info == FTS_NSOK;
-        bool isDir =  entry->fts_info == FTS_D;
-        if (!isFile && !isDir)
-          continue;
-
-        int pathLength = entry->fts_pathlen - rootPathLength;
-        char relative[pathLength + 1];
-        relative[pathLength] = '\0';
-        strncpy(relative, entry->fts_path + rootPathLength, pathLength);
-        args.clear();
-        args.push_back(CefV8Value::CreateString(relative));
-        if (isFile)
-          onFile->ExecuteFunction(onFile, args);
-        else {
-          CefRefPtr<CefV8Value> enterDir = onDir->ExecuteFunction(onDir, args);
-          if(enterDir != NULL && !enterDir->GetBoolValue())
-            fts_set(tree, entry, FTS_SKIP);
-        }
+    CefRefPtr<CefV8Value> onFile = arguments[1];
+    CefRefPtr<CefV8Value> onDir = arguments[2];
+    CefV8ValueList args;
+    FTSENT *entry;
+    while ((entry = fts_read(tree)) != NULL) {
+      if (entry->fts_level == 0) {
+        continue;
+      }
+      
+      bool isFile = entry->fts_info == FTS_NSOK;
+      bool isDir =  entry->fts_info == FTS_D;
+      if (!isFile && !isDir) {
+        continue;
       }
 
-      return true;
+      int pathLength = entry->fts_pathlen - rootPathLength;
+      char relative[pathLength + 1];
+      relative[pathLength] = '\0';
+      strncpy(relative, entry->fts_path + rootPathLength, pathLength);
+      args.clear();
+      args.push_back(CefV8Value::CreateString(relative));
+      if (isFile) {
+        onFile->ExecuteFunction(onFile, args);
+      }
+      else {
+        CefRefPtr<CefV8Value> enterDir = onDir->ExecuteFunction(onDir, args);
+        if(enterDir != NULL && !enterDir->GetBoolValue()) {
+          fts_set(tree, entry, FTS_SKIP);
+        }
+      }
+    }
+
+    return true;
   }
   else if (name == "isDirectory") {
     NSString *path = stringFromCefV8Value(arguments[0]);
