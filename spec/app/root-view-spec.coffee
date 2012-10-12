@@ -718,3 +718,31 @@ describe "RootView", ->
       rootView.getActiveEditor().splitRight()
       expect(count).toBe 1
       expect(callbackEditor).toBe rootView.getActiveEditor()
+
+  describe ".eachBuffer(callback)", ->
+    beforeEach ->
+      rootView.attachToDom()
+
+    it "invokes the callback for existing buffer", ->
+      count = 0
+      callbackBuffer = null
+      callback = (buffer) ->
+        callbackBuffer = buffer
+        count++
+      rootView.eachBuffer(callback)
+      expect(count).toBe 1
+      expect(callbackBuffer).toBe rootView.getActiveEditor().getBuffer()
+
+    it "invokes the callback for new buffer", ->
+      count = 0
+      callbackBuffer = null
+      callback = (buffer) ->
+        callbackBuffer = buffer
+        count++
+
+      rootView.eachBuffer(callback)
+      count = 0
+      callbackBuffer = null
+      rootView.open(require.resolve('fixtures/sample.txt'))
+      expect(count).toBe 1
+      expect(callbackBuffer).toBe rootView.getActiveEditor().getBuffer()

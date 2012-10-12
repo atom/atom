@@ -239,3 +239,10 @@ class RootView extends View
 
     @on 'editor-open', (e, editor) ->
       callback(editor)
+
+  eachBuffer: (callback) ->
+    for buffer in @project.getBuffers()
+      callback(buffer)
+
+    @project.on 'new-buffer', (buffer) ->
+      callback(buffer)
