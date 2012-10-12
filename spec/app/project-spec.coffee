@@ -114,9 +114,9 @@ describe "Project", ->
       spyOn(project, 'ignoreDirectory').andCallFake (path) -> fs.base(path).match /a$/
       spyOn(project, 'ignoreFile').andCallFake (path) -> fs.base(path).match /a$/
 
-      project.getFilePaths().done (paths) ->
-        expect(paths).not.toContain('a')
-        expect(paths).toContain('b')
+      paths = project.getFilePaths()
+      expect(paths).not.toContain('a')
+      expect(paths).toContain('b')
 
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->

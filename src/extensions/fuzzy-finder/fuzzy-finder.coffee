@@ -52,7 +52,8 @@ class FuzzyFinder extends View
       @attach() if @paths?.length
 
   populateProjectPaths: ->
-    @rootView.project.getFilePaths().done (@paths) => @populatePathList()
+    @paths = @rootView.project.getFilePaths()
+    @populatePathList()
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>

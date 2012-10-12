@@ -51,8 +51,6 @@ class Project
     @rootDirectory
 
   getFilePaths: ->
-    deferred = $.Deferred()
-
     filePaths = []
 
     onFile = (path) =>
@@ -62,8 +60,7 @@ class Project
       return not @ignoreDirectory(path)
 
     fs.traverseTree @getPath(), onFile, onDirectory
-    deferred.resolve filePaths
-    deferred
+    filePaths
 
   ignoreDirectory: (path) ->
     lastSlash = path.lastIndexOf('/')
