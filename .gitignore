@@ -5,7 +5,6 @@
 atom-build
 atom.xcodeproj
 build
-atom-build
 .xcodebuild-info
 node_modules
 npm-debug.log
