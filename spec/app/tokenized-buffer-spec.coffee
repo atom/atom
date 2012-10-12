@@ -23,7 +23,7 @@ describe "TokenizedBuffer", ->
 
   describe "tokenization", ->
     it "tokenizes all the lines in the buffer on construction", ->
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.js'])
       expect(tokenizedBuffer.lineForScreenRow(11).tokens[1]).toEqual(value: 'return', scopes: ['source.js', 'keyword.control.js'])
 
     describe "when the buffer changes", ->
@@ -77,7 +77,7 @@ describe "TokenizedBuffer", ->
           buffer.change(range, "foo()")
 
           # previous line 0 remains
-          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.js'])
 
           # previous line 3 should be combined with input to form line 1
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
@@ -113,7 +113,7 @@ describe "TokenizedBuffer", ->
           buffer.change(range, "foo()\nbar()\nbaz()\nquux()")
 
           # previous line 0 remains
-          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.modifier.js'])
+          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.type.js'])
 
           # 3 new lines inserted
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
