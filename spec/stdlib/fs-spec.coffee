@@ -54,7 +54,7 @@ describe "fs", ->
     it "returns an empty string for paths without an extension", ->
       expect(fs.extension("a/b.not-extension/a-dir")).toBe ''
 
-  describe "makeTree(path)", ->
+  describe ".makeTree(path)", ->
     beforeEach ->
       fs.remove("/tmp/a") if fs.exists("/tmp/a")
 
