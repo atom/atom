@@ -104,7 +104,7 @@ bool Native::Execute(const CefString& name,
     strcpy(rootPath, argument.c_str());
     char * const paths[] = {rootPath, NULL};
 
-    FTS *tree = fts_open(paths, FTS_PHYSICAL| FTS_NOCHDIR | FTS_NOSTAT, NULL);
+    FTS *tree = fts_open(paths, FTS_COMFOLLOW | FTS_PHYSICAL| FTS_NOCHDIR | FTS_NOSTAT, NULL);
     if (tree == NULL) {
       return true;
     }

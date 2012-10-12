@@ -90,6 +90,18 @@ describe "fs", ->
       for path in paths
         expect(path).not.toMatch /\/dir\//
 
+    it "returns entries if path is a symlink", ->
+      symlinkPaths = []
+      onSymlinkPath = (path) -> symlinkPaths.push(path)
+
+      paths = []
+      onPath = (path) -> paths.push(path)
+
+      fs.traverseTree(fs.join(fixturesDir, 'symlink-to-dir'), onSymlinkPath, onSymlinkPath)
+      fs.traverseTree(fs.join(fixturesDir, 'dir'), onPath, onPath)
+
+      expect(symlinkPaths).toEqual(paths)
+
   describe ".lastModified(path)", ->
     it "returns a Date object representing the time the file was last modified", ->
       beforeWrite = new Date
