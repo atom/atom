@@ -30,7 +30,8 @@ class StatusBar extends View
     @editor.on 'cursor-move', => @updateCursorPositionText()
 
     @updateBufferModifiedText()
-    @editor.getBuffer().on 'buffer-change', => @updateBufferModifiedText()
+    @editor.getBuffer().on 'change', => @updateBufferModifiedText()
+    @editor.getBuffer().on 'after-save', => @updateBufferModifiedText()
 
   updateBufferModifiedText: ->
     buffer = @editor.getBuffer()

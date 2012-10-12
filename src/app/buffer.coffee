@@ -192,7 +192,6 @@ class Buffer
     oldRange = Range.fromObject(oldRange)
     operation = new BufferChangeOperation({buffer: this, oldRange, newText})
     range = @pushOperation(operation)
-    @trigger 'buffer-change'
     range
 
   clipPosition: (position) ->
@@ -241,7 +240,6 @@ class Buffer
     @setPath(path)
     @contentOnDisk = @getText()
     @trigger 'after-save'
-    @trigger 'buffer-change'
 
   isInConflict: ->
     @isModified() and @isModifiedOnDisk()

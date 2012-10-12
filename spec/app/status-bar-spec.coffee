@@ -55,16 +55,24 @@ describe "StatusBar", ->
 
   describe "when the buffer content has changed from the content on disk", ->
     it "disables the buffer modified indicator on save", ->
+      expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
+      expect(statusBar.bufferModified.text()).toBe '*'
       editor.save()
       expect(statusBar.bufferModified.text()).toBe ''
-      editor.backspace()
-      editor.save()
 
     it "disables the buffer modified indicator if the content matches again", ->
+      expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
       expect(statusBar.bufferModified.text()).toBe '*'
       editor.backspace()
+      expect(statusBar.bufferModified.text()).toBe ''
+
+    it "disables the buffer modified indicator when the change is undone", ->
+      expect(statusBar.bufferModified.text()).toBe ''
+      editor.insertText("\n")
+      expect(statusBar.bufferModified.text()).toBe '*'
+      editor.undo()
       expect(statusBar.bufferModified.text()).toBe ''
 
   describe "when the associated editor's cursor position changes", ->
