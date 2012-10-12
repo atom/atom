@@ -1,6 +1,7 @@
 $ = require 'jquery'
 RootView = require 'root-view'
 StatusBar = require 'status-bar'
+fs = require 'fs'
 
 describe "StatusBar", ->
   [rootView, editor, statusBar, buffer] = []
@@ -55,6 +56,9 @@ describe "StatusBar", ->
 
   describe "when the buffer content has changed from the content on disk", ->
     it "disables the buffer modified indicator on save", ->
+      path = "/tmp/atom-whitespace.txt"
+      fs.write(path, "")
+      rootView.open(path)
       expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
       expect(statusBar.bufferModified.text()).toBe '*'
@@ -74,6 +78,20 @@ describe "StatusBar", ->
       expect(statusBar.bufferModified.text()).toBe '*'
       editor.undo()
       expect(statusBar.bufferModified.text()).toBe ''
+
+  describe "when the buffer changes", ->
+    it "updates the buffer modified indicator for the new buffer", ->
+      expect(statusBar.bufferModified.text()).toBe ''
+      rootView.open(require.resolve('fixtures/sample.txt'))
+      editor.insertText("\n")
+      expect(statusBar.bufferModified.text()).toBe '*'
+
+    it "doesn't update the buffer modified indicator for the old buffer", ->
+     oldBuffer = editor.getBuffer()
+     expect(statusBar.bufferModified.text()).toBe ''
+     rootView.open(require.resolve('fixtures/sample.txt'))
+     oldBuffer.setText("new text")
+     expect(statusBar.bufferModified.text()).toBe ''
 
   describe "when the associated editor's cursor position changes", ->
     it "updates the cursor position in the status bar", ->

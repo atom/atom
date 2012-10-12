@@ -24,18 +24,24 @@ class StatusBar extends View
 
   initialize: (@rootView, @editor) ->
     @updatePathText()
-    @editor.on 'editor-path-change', => @updatePathText()
+    @editor.on 'editor-path-change', =>
+      @subscribeToBuffer()
+      @updatePathText()
 
     @updateCursorPositionText()
     @editor.on 'cursor-move', => @updateCursorPositionText()
 
+    @subscribeToBuffer()
+
+  subscribeToBuffer: ->
+    @buffer?.off '.status-bar'
+    @buffer = @editor.getBuffer()
+    @buffer.on 'change.status-bar', => @updateBufferModifiedText()
+    @buffer.on 'after-save.status-bar', => @updateBufferModifiedText()
     @updateBufferModifiedText()
-    @editor.getBuffer().on 'change', => @updateBufferModifiedText()
-    @editor.getBuffer().on 'after-save', => @updateBufferModifiedText()
 
   updateBufferModifiedText: ->
-    buffer = @editor.getBuffer()
-    if buffer.isModified() and buffer.contentDifferentOnDisk()
+    if @buffer.isModified() and @buffer.contentDifferentOnDisk()
       @bufferModified.text('*')
     else
       @bufferModified.text('')
