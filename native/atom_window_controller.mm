@@ -30,6 +30,8 @@
 
 
   if (!background) {
+    [self setShouldCascadeWindows:NO];
+    [self setWindowFrameAutosaveName:@"AtomWindow"];
     [self showWindow:self];
   }
 
@@ -76,7 +78,13 @@
 
 - (void)windowDidLoad {
   [self.window setDelegate:self];
+  [self performSelector:@selector(attachWebView) withObject:nil afterDelay:0];
+}
 
+// If this is run directly in windowDidLoad, the web view doesn't
+// have the correct initial size based on the frame's last stored size.
+// HACK: I hate this and want to place this code directly in windowDidLoad
+- (void)attachWebView {
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
