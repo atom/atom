@@ -83,7 +83,7 @@ describe "TokenizedBuffer", ->
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[8]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
 
-          # # lines below deleted regions should be shifted upward
+          # lines below deleted regions should be shifted upward
           expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
           expect(tokenizedBuffer.lineForScreenRow(3).tokens[3]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
           expect(tokenizedBuffer.lineForScreenRow(4).tokens[3]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.js'])
