@@ -27,8 +27,8 @@
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   _resourcePath = [[atomApplication.arguments objectForKey:@"resource-path"] retain];
   if (!_resourcePath) _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
-  
-    
+
+
   if (!background) {
     [self showWindow:self];
   }
@@ -65,7 +65,7 @@
   [self populateBrowserSettings:settings];
   CefWindowInfo window_info;
   window_info.SetAsChild(view, 0, 0, view.bounds.size.width, view.bounds.size.height);
-  CefBrowserHost::CreateBrowser(window_info, cefClient.get(), url, settings);  
+  CefBrowserHost::CreateBrowser(window_info, cefClient.get(), url, settings);
 }
 
 - (NSString *)encodeUrlParam:(NSString *)param {
@@ -97,7 +97,7 @@
   }
   else {
     [self showDevTools];
-  }  
+  }
 }
 
 - (void)showDevTools {
