@@ -2,7 +2,7 @@
 
 require 'formula'
 
-class Gyp < Formula
+class GypFormula < Formula
   homepage 'http://code.google.com/p/gyp/'
   url 'http://gyp.googlecode.com/svn/trunk', :revision => 1518
   version 'trunk-1518'
