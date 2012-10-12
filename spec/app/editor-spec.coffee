@@ -214,7 +214,7 @@ describe "Editor", ->
       expect(editor.lineElementForScreenRow(0).text()).toBe 'abc'
 
       editor.edit(otherEditSession)
-      expect(editor.lineElementForScreenRow(0).html()).toBe '<span class="text plain">&nbsp;</span>'
+      expect(editor.lineElementForScreenRow(0).html()).toBe '&nbsp;'
 
       editor.insertText("def\n")
       expect(editor.lineElementForScreenRow(0).text()).toBe 'def'
@@ -992,7 +992,7 @@ describe "Editor", ->
 
         # renders empty lines with a non breaking space
         expect(buffer.lineForRow(10)).toBe ''
-        expect(editor.renderedLines.find('.line:eq(10) span').html()).toBe '&nbsp;'
+        expect(editor.renderedLines.find('.line:eq(10)').html()).toBe '&nbsp;'
 
       it "syntax highlights code based on the file type", ->
         line0 = editor.renderedLines.find('.line:first')
@@ -1198,7 +1198,7 @@ describe "Editor", ->
             editor.scrollTop(editor.lineHeight * 3.5) # first visible row will be 3, last will be 8
             expect(editor.renderedLines.find('.line').length).toBe 10
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
-            expect(editor.renderedLines.find('.line:last span').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editor.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
             expect(editor.gutter.find('.line-number:first').text()).toBe '2'
             expect(editor.gutter.find('.line-number:last').text()).toBe '11'
 
@@ -1206,7 +1206,7 @@ describe "Editor", ->
             editor.scrollTop(editor.lineHeight * 5.5) # first visible row will be 5, last will be 10
             expect(editor.renderedLines.find('.line').length).toBe 10
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
-            expect(editor.renderedLines.find('.line:last span').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editor.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
             expect(editor.gutter.find('.line-number:first').text()).toBe '2'
             expect(editor.gutter.find('.line-number:last').text()).toBe '11'
 
@@ -1218,7 +1218,7 @@ describe "Editor", ->
             editor.scrollTop(editor.lineHeight * 3.5) # first visible row will be 3, last will be 8
             expect(editor.renderedLines.find('.line').length).toBe 10
             expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(1)
-            expect(editor.renderedLines.find('.line:last span').html()).toBe '&nbsp;' # line 10 is blank
+            expect(editor.renderedLines.find('.line:last').html()).toBe '&nbsp;' # line 10 is blank
 
             editor.scrollTop(0)
             expect(editor.renderedLines.find('.line').length).toBe 8
