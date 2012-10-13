@@ -139,7 +139,10 @@ class Selection
     wasReversed = @isReversed()
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
-    @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
+    if options.select
+      @setBufferRange(newBufferRange, reverse: wasReversed)
+    else
+      @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
     autoIndent = options.autoIndent ? true
 

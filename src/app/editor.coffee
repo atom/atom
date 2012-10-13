@@ -213,7 +213,7 @@ class Editor extends View
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
   deleteLine: -> @activeEditSession.deleteLine()
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
-  insertText: (text) -> @activeEditSession.insertText(text)
+  insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   indent: -> @activeEditSession.indent()
@@ -965,3 +965,20 @@ class Editor extends View
     @find('pre.line.cursor-line').removeClass('cursor-line')
     if @getSelection().isSingleScreenLine()
       @find("pre.line:eq(#{screenRow})").addClass('cursor-line')
+
+  bindToKeyedEvent: (key, event, callback) ->
+    binding = {}
+    binding[key] = event
+    window.keymap.bindKeys '.editor', binding
+    @on event, =>
+      callback(this, event)
+
+  replaceSelectedText: (replaceFn) ->
+    selection = @getSelection()
+    return false if selection.isEmpty()
+
+    text = replaceFn(@getTextInRange(selection.getBufferRange()))
+    return false if text is null or text is undefined
+
+    @insertText(text, select: true)
+    true
