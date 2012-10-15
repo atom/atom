@@ -16,5 +16,8 @@ cp "$PROJECT_DIR/native/v8_extensions/"*.js "$RESOUCES_PATH/v8_extensions/"
 for DIR in src static vendor spec benchmark bundles themes; do
   rm -rf "$RESOUCES_PATH/$DIR"
   cp -R "$DIR" "$RESOUCES_PATH/"
-  node_modules/.bin/coffee -c "$RESOUCES_PATH/$DIR"
+  if ! node_modules/.bin/coffee -c "$RESOUCES_PATH/$DIR"; then
+    echo "ERROR: Failed to comile scripts at '$RESOUCES_PATH/$DIR'"
+    exit 1
+ fi
 done;
