@@ -216,3 +216,26 @@ describe "TextMateGrammar", ->
           expect(tokens[18]).toEqual value: '</', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
           expect(tokens[19]).toEqual value: 'div', scopes: ["text.html.ruby","meta.tag.block.any.html","entity.name.tag.block.any.html"]
           expect(tokens[20]).toEqual value: '>', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.end.html"]
+
+    it "can parse a grammar with newline charachters in its regular expressions (regression)", ->
+      grammar = new TextMateGrammar
+        name: "test"
+        scopeName: "source.imaginaryLanguage"
+        repository: {}
+        patterns: [
+          {
+            name: "comment-body";
+            begin: "//";
+            end: "\\n";
+            beginCaptures:
+              "0": { name: "comment-start" }
+          }
+        ]
+
+      {tokens, stack} = grammar.getLineTokens("// a singleLineComment")
+      expect(stack.length).toBe 1
+      expect(stack[0].scopeName).toBe "source.imaginaryLanguage"
+
+      expect(tokens.length).toBe 2
+      expect(tokens[0].value).toBe "//"
+      expect(tokens[1].value).toBe " a singleLineComment"

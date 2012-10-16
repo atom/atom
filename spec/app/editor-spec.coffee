@@ -998,7 +998,7 @@ describe "Editor", ->
         line0 = editor.renderedLines.find('.line:first')
         span0 = line0.children('span:eq(0)')
         expect(span0).toMatchSelector '.source.js'
-        expect(span0.children('span:eq(0)')).toMatchSelector '.storage.type.js'
+        expect(span0.children('span:eq(0)')).toMatchSelector '.storage.modifier.js'
         expect(span0.children('span:eq(0)').text()).toBe 'var'
 
         span0_1 = span0.children('span:eq(1)')
@@ -1023,9 +1023,9 @@ describe "Editor", ->
 
       describe "when lines are updated in the buffer", ->
         it "syntax highlights the updated lines", ->
-          expect(editor.renderedLines.find('.line:eq(0) > span:first > span:first')).toMatchSelector '.storage.type.js'
+          expect(editor.renderedLines.find('.line:eq(0) > span:first > span:first')).toMatchSelector '.storage.modifier.js'
           buffer.insert([0, 0], "q")
-          expect(editor.renderedLines.find('.line:eq(0) > span:first > span:first')).not.toMatchSelector '.storage.type.js'
+          expect(editor.renderedLines.find('.line:eq(0) > span:first > span:first')).not.toMatchSelector '.storage.modifier.js'
 
           # verify that re-highlighting can occur below the changed line
           buffer.insert([5,0], "/* */")

@@ -93,8 +93,13 @@ class Rule
   getNextTokens: (stack, line, position) ->
     patterns = @getIncludedPatterns()
 
-    return null unless result = @getScanner().findNextMatch(line, position)
+    return null unless result = @getScanner().findNextMatch(line + "\n", position)
     { index, captureIndices } = result
+
+    lineLength = line.length
+    captureIndices = captureIndices.map (value, index) ->
+      value = lineLength if index % 3 != 0 and value > lineLength
+      value
 
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
     nextTokens = patterns[index].handleMatch(stack, line, captureIndices)
