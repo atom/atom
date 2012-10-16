@@ -93,9 +93,11 @@ class Rule
   getNextTokens: (stack, line, position) ->
     patterns = @getIncludedPatterns()
 
+    # Add a `\n` to appease patterns that contain '\n' explicitly
     return null unless result = @getScanner().findNextMatch(line + "\n", position)
     { index, captureIndices } = result
 
+    # Since the `\n' (added above) is not part of the line, truncate captures to the line's actual length
     lineLength = line.length
     captureIndices = captureIndices.map (value, index) ->
       value = lineLength if index % 3 != 0 and value > lineLength
