@@ -37,11 +37,7 @@ task :install => :build do
   # Install cli atom
   usr_bin_path = default_usr_bin_path = "/opt/github/bin"
   cli_path = "#{usr_bin_path}/atom"
-  unless File.exists?(cli_path)
-    print "Where do you want the cli binary insalled (#{default_usr_bin_path}): "
-    usr_bin_path = $stdin.gets.strip
-    usr_bin_path = default_usr_bin_path if usr_bin_path.empty?
-  end
+  stable_cli_path = "#{usr_bin_path}/atom-stable"
 
   if !File.exists?(usr_bin_path)
     $stderr.puts "ERROR: Failed to install atom cli tool at '#{usr_bin_path}'"
@@ -49,6 +45,7 @@ task :install => :build do
   end
 
   `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
+  `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" --stable $@' > #{stable_cli_path} && chmod 755 #{stable_cli_path}`
 
   Rake::Task["create-dot-atom"].invoke()
   Rake::Task["clone-default-bundles"].invoke()

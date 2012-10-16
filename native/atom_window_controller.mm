@@ -20,14 +20,16 @@
   [super dealloc];
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background alwaysUseBundleResourcePath:(BOOL)alwaysUseBundleResourcePath {
   self = [super initWithWindowNibName:@"AtomWindow"];
   _bootstrapScript = [bootstrapScript retain];
 
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  _resourcePath = [[atomApplication.arguments objectForKey:@"resource-path"] retain];
-  if (!_resourcePath) _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
+  _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
 
+  if (alwaysUseBundleResourcePath || !_resourcePath) {
+    _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
+  }
 
   if (!background) {
     [self setShouldCascadeWindows:NO];
@@ -40,11 +42,16 @@
 
 - (id)initWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO];
+  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
+  BOOL stable = [atomApplication.arguments objectForKey:@"stable"] != nil;
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:stable];
 }
 
 - (id)initInBackground {
-  [self initWithBootstrapScript:@"window-bootstrap" background:YES];
+  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
+  BOOL stable = [atomApplication.arguments objectForKey:@"stable"] != nil;
+
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES alwaysUseBundleResourcePath:stable];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
   return self;
@@ -53,13 +60,13 @@
 - (id)initSpecsThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
-  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO];
+  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO alwaysUseBundleResourcePath:NO];
 }
 
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
-  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO];
+  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO alwaysUseBundleResourcePath:NO];
 }
 
 - (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {

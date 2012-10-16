@@ -48,20 +48,22 @@
 
   static struct option longopts[] = {
     { "executed-from",      optional_argument,      NULL,  'K'  },
-    { "resource-path",      optional_argument,      NULL,  'r'  },
-    { "benchmark",          optional_argument,      NULL,  'b'  },
-    { "test",               optional_argument,      NULL,  't'  },
+    { "resource-path",      optional_argument,      NULL,  'R'  },
+    { "benchmark",          optional_argument,      NULL,  'B'  },
+    { "test",               optional_argument,      NULL,  'T'  },
+    { "stable",             no_argument,            NULL,  'S'  },
     { "noop",               optional_argument,      NULL,  NULL },
     { NULL,                 0,                      NULL,  0 }
   };
 
-  while ((opt = getopt_long(argc, cleanArgv, "r:K:bth?", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(argc, cleanArgv, "R:K:BTSh?", longopts, &longindex)) != -1) {
     NSString *key, *value;
     switch (opt) {
       case 'K':
-      case 'r':
-      case 'b':
-      case 't':
+      case 'R':
+      case 'B':
+      case 'T':
+      case 'S':
         key = [NSString stringWithUTF8String:longopts[longindex].name];
         value = optarg ? [NSString stringWithUTF8String:optarg] : @"YES";
         [arguments setObject:value forKey:key];
