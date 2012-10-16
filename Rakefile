@@ -4,22 +4,24 @@ ATOM_SRC_PATH = File.dirname(__FILE__)
 DOT_ATOM_PATH = ENV['HOME'] + "/.atom"
 BUILD_DIR = 'atom-build'
 
-desc "Create xcode project from gyp file"
-task "create-project" do
-  `rm -rf atom.xcodeproj`
-  `gyp --depth=. atom.gyp`
-end
-
 desc "Build Atom via `xcodebuild`"
 task :build => "create-project" do
-  `script/bootstrap`
-
   command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
   output = `#{command}`
   if $?.exitstatus != 0
     $stderr.puts "Error #{$?.exitstatus}:\n#{output}"
     exit($?.exitstatus)
   end
+end
+
+desc "Create xcode project from gyp file"
+task "create-project" => "bootstrap" do
+  `rm -rf atom.xcodeproj`
+  `gyp --depth=. atom.gyp`
+end
+
+task "bootstrap" do
+  `script/bootstrap`
 end
 
 desc "Creates symlink from `application_path() to /Applications/Atom and creates `atom` cli app"
