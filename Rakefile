@@ -87,8 +87,13 @@ task "clone-default-bundles" => "create-dot-atom" do
   for bundle_url, sha in bundles
     bundle_dir = bundle_url[/([^\/]+?)(\.git)?$/, 1]
     dest_path = File.join(DOT_ATOM_PATH, "bundles", bundle_dir)
-    `git clone --quiet #{bundle_url} #{dest_path}` unless File.exists? dest_path
-    `cd #{dest_path} && git reset --hard #{sha}`
+    if File.exists? dest_path
+      `cd #{dest_path} && git fetch --quiet`
+    else
+      `git clone --quiet #{bundle_url} #{dest_path}`
+    end
+
+    `cd #{dest_path} && git reset --quiet --hard #{sha}`
   end
 end
 
