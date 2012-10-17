@@ -73,14 +73,14 @@ end
 desc "Clone default bundles into .atom directory"
 task "clone-default-bundles" => "create-dot-atom" do
   bundles = {
-    "https://github.com/textmate/css.tmbundle.git" => "HEAD",
-    "https://github.com/textmate/html.tmbundle.git" => "HEAD",
+    "https://github.com/textmate/css.tmbundle.git" => "aa549903ff01e9ba7dc0bd83f2cfe7ab54feab2d",
+    "https://github.com/textmate/html.tmbundle.git" => "af4fef34e1df538eda9a166912047b610530ece0",
     "https://github.com/textmate/javascript.tmbundle.git" => "58e81b0eae498c9a4eb6e395368df3b7a01d9851",
-    "https://github.com/textmate/ruby-on-rails.tmbundle.git" => "HEAD",
+    "https://github.com/textmate/ruby-on-rails.tmbundle.git" => "7c410a098f0e343d52f70b4f9c08b8669d0a594c",
     "https://github.com/textmate/ruby.tmbundle.git" => "daad8ef03de9630e74578a046240fd9acc63b8b5",
-    "https://github.com/textmate/text.tmbundle.git" => "HEAD",
-    "https://github.com/jashkenas/coffee-script-tmbundle.git" => "HEAD",
-    "https://github.com/cburyta/puppet-textmate.tmbundle.git" => "HEAD",
+    "https://github.com/textmate/text.tmbundle.git" => "061224bd78fd98d02035466cdd959bf29995c2c5",
+    "https://github.com/jashkenas/coffee-script-tmbundle.git" => "20d9b95240bbbc27565c74c7227b8c6eb9049f78",
+    "https://github.com/cburyta/puppet-textmate.tmbundle.git" => "5ef4949b2c964bace86782573cb952751ca77f5e",
     "https://github.com/textmate/c.tmbundle.git" => "c8a6516c1131055bfcd1bca5e2ee6567c2f50058",
   }
 
