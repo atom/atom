@@ -451,7 +451,7 @@ class Editor extends View
     return @cachedScrollTop or 0 unless scrollTop?
 
     maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
-    scrollTop = Math.floor(Math.min(maxScrollTop, Math.max(0, scrollTop)))
+    scrollTop = Math.floor(Math.max(0, Math.min(maxScrollTop, scrollTop)))
 
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
@@ -799,9 +799,9 @@ class Editor extends View
         oldScreenRange.start.row += delta
         oldScreenRange.end.row += delta
 
-      newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
-      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
+      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
+      newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
       newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
 
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
