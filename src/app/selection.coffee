@@ -208,15 +208,15 @@ class Selection
   indentSelectedRows: ->
     range = @getBufferRange()
     for row in [range.start.row..range.end.row]
-      @editSession.buffer.insert([row, 0], @editSession.tabText) unless @editSession.buffer.lineLengthForRow(row) == 0
+      @editSession.buffer.insert([row, 0], @editSession.getTabText()) unless @editSession.buffer.lineLengthForRow(row) == 0
 
   outdentSelectedRows: ->
     range = @getBufferRange()
     buffer = @editSession.buffer
-    leadingTabRegex = new RegExp("^#{@editSession.tabText}")
+    leadingTabRegex = new RegExp("^#{@editSession.getTabText()}")
     for row in [range.start.row..range.end.row]
       if leadingTabRegex.test buffer.lineForRow(row)
-        buffer.delete [[row, 0], [row, @editSession.tabText.length]]
+        buffer.delete [[row, 0], [row, @editSession.tabLength]]
 
   toggleLineComments: ->
     @modifySelection =>

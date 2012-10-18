@@ -10,7 +10,7 @@ ChildProcess = require 'child-process'
 
 module.exports =
 class Project
-  tabText: '  '
+  tabLength: 2
   autoIndent: true
   softTabs: true
   softWrap: false
@@ -101,9 +101,6 @@ class Project
   relativize: (fullPath) ->
     fullPath.replace(@getPath(), "").replace(/^\//, '')
 
-  getTabText: -> @tabText
-  setTabText: (@tabText) ->
-
   getAutoIndent: -> @autoIndent
   setAutoIndent: (@autoIndent) ->
 
@@ -126,7 +123,7 @@ class Project
     editSession
 
   defaultEditSessionOptions: ->
-    tabText: @getTabText()
+    tabLength: @tabLength
     autoIndent: @getAutoIndent()
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()

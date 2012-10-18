@@ -104,7 +104,7 @@ class LanguageMode
 
     currentIndentation = @buffer.indentationForRow(bufferRow)
     desiredIndentation = @buffer.indentationForRow(precedingRow)
-    desiredIndentation += @editSession.tabText.length if increaseIndentPattern.test(precedingLine)
+    desiredIndentation += @editSession.tabLength if increaseIndentPattern.test(precedingLine)
     if desiredIndentation > currentIndentation
       @buffer.setIndentationForRow(bufferRow, desiredIndentation)
 
@@ -122,7 +122,7 @@ class LanguageMode
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentation = @buffer.indentationForRow(precedingRow)
-    desiredIndentation -= @editSession.tabText.length unless increaseIndentPattern.test(precedingLine)
+    desiredIndentation -= @editSession.tabLength unless increaseIndentPattern.test(precedingLine)
     if desiredIndentation < currentIndentation
       @buffer.setIndentationForRow(bufferRow, desiredIndentation)
 
