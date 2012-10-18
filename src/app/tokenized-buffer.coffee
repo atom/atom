@@ -67,7 +67,7 @@ class TokenizedBuffer
     tokenObjects = []
     for tokenProperties in tokens
       token = new Token(tokenProperties)
-      tokenObjects.push(token.breakOutWhitespaceCharacters(@tabLength, @showInvisibles)...)
+      tokenObjects.push(token.breakOutTabCharacters(@tabLength, @showInvisibles)...)
     text = _.pluck(tokenObjects, 'value').join('')
     new ScreenLine(tokenObjects, text, [1, 0], [1, 0], { stack })
 

@@ -876,9 +876,18 @@ class Editor extends View
     if screenLine.text == ''
       line.push("&nbsp;") unless @activeEditSession.showInvisibles
     else
+      firstNonWhitespacePosition = screenLine.text.search(/\S/)
+      firstTrailingWhitespacePosition = screenLine.text.search(/\s*$/)
+      position = 0
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
-        line.push(token.escapeValue(@activeEditSession.showInvisibles))
+        line.push(token.getValueAsHtml(
+          showInvisibles: @activeEditSession.showInvisibles
+          hasLeadingWhitespace: position < firstNonWhitespacePosition
+          hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
+        ))
+
+        position += token.value.length
 
     line.push("<span class='invisible'>¬</span>") if @activeEditSession.showInvisibles
     line.push('</pre>')

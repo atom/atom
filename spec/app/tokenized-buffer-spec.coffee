@@ -81,12 +81,12 @@ describe "TokenizedBuffer", ->
 
           # previous line 3 should be combined with input to form line 1
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
-          expect(tokenizedBuffer.lineForScreenRow(1).tokens[8]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
 
           # lines below deleted regions should be shifted upward
           expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
-          expect(tokenizedBuffer.lineForScreenRow(3).tokens[3]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[3]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(3).tokens[1]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[1]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -125,7 +125,7 @@ describe "TokenizedBuffer", ->
           expect(tokenizedBuffer.lineForScreenRow(4).tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
           # previous line 3 is pushed down to become line 5
-          expect(tokenizedBuffer.lineForScreenRow(5).tokens[5]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(5).tokens[3]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -165,12 +165,11 @@ describe "TokenizedBuffer", ->
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{editSession2.getTabText()}"
         { tokens } = screenLine0
-        expect(tokens.length).toBe 6
+        expect(tokens.length).toBe 3
         expect(tokens[0].value).toBe "#"
-        expect(tokens[2].value).toBe "Econ"
-        expect(tokens[4].value).toBe "101"
-        expect(tokens[5].value).toBe editSession2.getTabText()
-        expect(tokens[5].scopes).toEqual tokens[1].scopes
-        expect(tokens[5].isAtomic).toBeTruthy()
+        expect(tokens[1].value).toBe " Econ 101"
+        expect(tokens[2].value).toBe editSession2.getTabText()
+        expect(tokens[2].scopes).toEqual tokens[1].scopes
+        expect(tokens[2].isAtomic).toBeTruthy()
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{editSession2.getTabText()} buy()#{editSession2.getTabText()}while supply > demand"

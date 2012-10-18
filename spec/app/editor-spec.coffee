@@ -1472,6 +1472,16 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(14)').text()).toBe 'B'
           expect(editor.renderedLines.find('.line:eq(15)')).not.toExist()
 
+    describe "when editSession.showInvisibles is true", ->
+      beforeEach ->
+        project.setShowInvisibles(true)
+        rootView.open()
+        editor.attachToDom(5)
+
+      it "displays spaces as •, tabs as ▸ and newlines as ¬", ->
+        editor.setText " a line with tabs\tand spaces "
+        expect(editor.find('.line').text()).toBe "•a line with tabs▸ and spaces•¬"
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
@@ -1827,13 +1837,3 @@ describe "Editor", ->
       editor.pageUp()
       expect(editor.getCursor().getScreenPosition().row).toBe(0)
       expect(editor.getFirstVisibleScreenRow()).toBe(0)
-
-  describe "when editSession.showInvisibles is true", ->
-    beforeEach ->
-      project.setShowInvisibles(true)
-      rootView.open()
-      editor.attachToDom(5)
-
-    it "displays spaces as •, tabs as ▸ and newlines as ¬", ->
-      editor.setText " a line with tabs\tand spaces "
-      expect(editor.find('.line').text()).toBe "•a•line•with•tabs▸ and•spaces•¬"
