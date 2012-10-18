@@ -27,4 +27,3 @@ exit_unless_npm_exists
 exit_unless_brew_exists
 
 npm install
-brew install tools/gyp-formula.rb
