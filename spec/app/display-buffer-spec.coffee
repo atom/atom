@@ -2,10 +2,10 @@ DisplayBuffer = require 'display-buffer'
 Buffer = require 'buffer'
 
 describe "DisplayBuffer", ->
-  [editSession, displayBuffer, buffer, changeHandler, tabText] = []
+  [editSession, displayBuffer, buffer, changeHandler, tabLength] = []
   beforeEach ->
-    tabText = '  '
-    editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabText })
+    tabLength = 2
+    editSession = fixturesProject.buildEditSessionForPath('sample.js', { tabLength })
     { buffer, displayBuffer } = editSession
     changeHandler = jasmine.createSpy 'changeHandler'
     displayBuffer.on 'change', changeHandler
@@ -636,14 +636,14 @@ describe "DisplayBuffer", ->
         buffer.insert([0, 0], '\t')
         expect(displayBuffer.clipScreenPosition([0, 0])).toEqual [0, 0]
         expect(displayBuffer.clipScreenPosition([0, 1])).toEqual [0, 0]
-        expect(displayBuffer.clipScreenPosition([0, tabText.length])).toEqual [0, tabText.length]
+        expect(displayBuffer.clipScreenPosition([0, tabLength])).toEqual [0, tabLength]
 
     describe "when skipAtomicTokens is true", ->
       it "clips screen positions in the middle of atomic tab characters to the end of the character", ->
         buffer.insert([0, 0], '\t')
         expect(displayBuffer.clipScreenPosition([0, 0], skipAtomicTokens: true)).toEqual [0, 0]
-        expect(displayBuffer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabText.length]
-        expect(displayBuffer.clipScreenPosition([0, tabText.length], skipAtomicTokens: true)).toEqual [0, tabText.length]
+        expect(displayBuffer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabLength]
+        expect(displayBuffer.clipScreenPosition([0, tabLength], skipAtomicTokens: true)).toEqual [0, tabLength]
 
   describe ".maxLineLength()", ->
     it "returns the length of the longest screen line", ->

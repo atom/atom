@@ -123,3 +123,7 @@
 .editor .fold.selected {
   background-color: #244;
 }
+
+.editor .invisible {
+  opacity: 0.2;
+}

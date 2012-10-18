@@ -5,8 +5,9 @@ class Token
   value: null
   scopes: null
   isAtomic: null
+  isTab: null
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @fold}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @fold, @isTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
 
@@ -21,14 +22,41 @@ class Token
     value2 = @value.substring(splitIndex)
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
-  breakOutTabCharacters: (tabText) ->
+  breakOutTabCharacters: (tabLength, showInvisibles) ->
     return [this] unless /\t/.test(@value)
 
-    for substring in @value.match(/([^\t]+|\t)/g)
-      if substring == '\t'
-        @buildTabToken(tabText)
+    for substring in @value.match(/[^\t]+|\t/g)
+      if substring == "\t"
+        @buildTabToken(tabLength)
       else
         new Token(value: substring, scopes: @scopes)
 
-  buildTabToken: (tabText) ->
-    new Token(value: tabText, scopes: @scopes, bufferDelta: 1, isAtomic: true)
+  buildTabToken: (tabLength) ->
+    new Token(
+      value: new Array(tabLength + 1).join(" ")
+      scopes: @scopes
+      bufferDelta: 1
+      isAtomic: true
+      isTab: true
+    )
+
+  getValueAsHtml: ({showInvisibles, hasLeadingWhitespace, hasTrailingWhitespace})->
+    html = @value
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+
+    if showInvisibles
+      if @isTab
+        html = html.replace(/^./, "<span class='invisible'>▸</span>")
+      else
+        if hasLeadingWhitespace
+          html = html.replace /^[ ]+/, (match) ->
+            "<span class='invisible'>#{match.replace(/./g, '•')}</span>"
+        if hasTrailingWhitespace
+          html = html.replace /[ ]+$/, (match) ->
+            "<span class='invisible'>#{match.replace(/./g, '•')}</span>"
+
+    html
