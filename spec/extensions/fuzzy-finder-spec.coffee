@@ -42,11 +42,11 @@ describe 'FuzzyFinder', ->
         it "shows all relative file paths for the current project and selects the first", ->
           finder.maxItems = Infinity
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          rootView.project.getFilePaths().done (paths) ->
-            expect(finder.list.children('li').length).toBe paths.length, finder.maxResults
-            for path in paths
-              expect(finder.list.find("li:contains(#{path})")).toExist()
-            expect(finder.list.children().first()).toHaveClass 'selected'
+          paths = rootView.project.getFilePaths()
+          expect(finder.list.children('li').length).toBe paths.length, finder.maxResults
+          for path in paths
+            expect(finder.list.find("li:contains(#{path})")).toExist()
+          expect(finder.list.children().first()).toHaveClass 'selected'
 
       describe "when root view's project has no path", ->
         beforeEach ->

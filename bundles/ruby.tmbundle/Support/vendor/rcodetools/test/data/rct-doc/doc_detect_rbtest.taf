@@ -1,8 +1,0 @@
-==========
-doc_detect_rbtest
-==========
-rct-doc --detect-rbtest --line=1
-==========
-[].length
-==========
-Array#length

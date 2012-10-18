@@ -31,6 +31,7 @@ class RootView extends View
   extensions: null
   extensionStates: null
   fontSize: 20
+  showInvisibles: false
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
@@ -77,6 +78,7 @@ class RootView extends View
     @on 'root-view:decrease-font-size', => @setFontSize(@getFontSize() - 1)
     @on 'root-view:focus-next-pane', => @focusNextPane()
     @on 'root-view:save-all', => @saveAll()
+    @on 'root-view:toggle-invisibles', => @setShowInvisibles(not @showInvisibles)
 
   afterAttach: (onDom) ->
     @focus() if onDom
@@ -117,7 +119,7 @@ class RootView extends View
 
     unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
       editSession = @project.buildEditSessionForPath(path)
-      editor = new Editor({editSession})
+      editor = new Editor({editSession, @showInvisibles})
       pane = new Pane(editor)
       @panes.append(pane)
       if changeFocus
@@ -169,6 +171,11 @@ class RootView extends View
 
   setTitle: (title='untitled') ->
     document.title = title
+
+  setShowInvisibles: (showInvisibles) ->
+    return if @showInvisibles == showInvisibles
+    @showInvisibles = showInvisibles
+    editor.setShowInvisibles(@showInvisibles) for editor in @getEditors()
 
   getEditors: ->
     @panes.find('.pane > .editor').map(-> $(this).view()).toArray()

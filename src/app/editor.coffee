@@ -46,12 +46,12 @@ class Editor extends View
 
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
-    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini)
+    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini, showInvisibles: rootView.showInvisibles)
     editor.editSessions = editSessions
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({editSession, @mini} = {}) ->
+  initialize: ({editSession, @mini, @showInvisibles} = {}) ->
     requireStylesheet 'editor.css'
 
     @id = Editor.idCounter++
@@ -69,7 +69,7 @@ class Editor extends View
       editSession = new EditSession
         buffer: new Buffer()
         softWrap: false
-        tabText: "  "
+        tabLength: 2
         autoIndent: false
         softTabs: true
 
@@ -123,6 +123,7 @@ class Editor extends View
       'editor:select-to-beginning-of-line': @selectToBeginningOfLine
       'editor:select-to-end-of-word': @selectToEndOfWord
       'editor:select-to-beginning-of-word': @selectToBeginningOfWord
+      'editor:transpose': @transpose
 
     unless @mini
       _.extend editorBindings,
@@ -203,6 +204,7 @@ class Editor extends View
   selectToEndOfWord: -> @activeEditSession.selectToEndOfWord()
   selectWord: -> @activeEditSession.selectWord()
   selectToScreenPosition: (position) -> @activeEditSession.selectToScreenPosition(position)
+  transpose: -> @activeEditSession.transpose()
   clearSelections: -> @activeEditSession.clearSelections()
 
   backspace: -> @activeEditSession.backspace()
@@ -262,6 +264,11 @@ class Editor extends View
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
   getPageRows: ->
     Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
+
+  setShowInvisibles: (showInvisibles) ->
+    return if showInvisibles == @showInvisibles
+    @showInvisibles = showInvisibles
+    @renderLines()
 
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
@@ -449,7 +456,7 @@ class Editor extends View
     return @cachedScrollTop or 0 unless scrollTop?
 
     maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
-    scrollTop = Math.floor(Math.min(maxScrollTop, Math.max(0, scrollTop)))
+    scrollTop = Math.floor(Math.max(0, Math.min(maxScrollTop, scrollTop)))
 
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
@@ -567,7 +574,7 @@ class Editor extends View
       @updateRenderedLines()
 
   newSplitEditor: ->
-    new Editor { editSession: @activeEditSession.copy() }
+    new Editor { editSession: @activeEditSession.copy(), @showInvisibles }
 
   splitLeft: ->
     @pane()?.splitLeft(@newSplitEditor()).wrappedView
@@ -797,9 +804,9 @@ class Editor extends View
         oldScreenRange.start.row += delta
         oldScreenRange.end.row += delta
 
-      newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
-      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
       oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
+      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
+      newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
       newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
 
       lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
@@ -872,20 +879,23 @@ class Editor extends View
     line.push("<pre #{attributePairs.join(' ')}>")
 
     if screenLine.text == ''
-      line.push('&nbsp;')
+      line.push("&nbsp;") unless @showInvisibles
     else
+      firstNonWhitespacePosition = screenLine.text.search(/\S/)
+      firstTrailingWhitespacePosition = screenLine.text.search(/\s*$/)
+      position = 0
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
-        line.push(
-          token.value
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-        )
+        line.push(token.getValueAsHtml(
+          showInvisibles: @showInvisibles
+          hasLeadingWhitespace: position < firstNonWhitespacePosition
+          hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
+        ))
 
-    line.push("</pre>")
+        position += token.value.length
+
+    line.push("<span class='invisible'>¬</span>") if @showInvisibles
+    line.push('</pre>')
     line.join('')
 
   insertLineElements: (row, lineElements) ->

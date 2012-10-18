@@ -7,7 +7,7 @@ describe "Selection", ->
 
   beforeEach ->
     buffer = new Buffer(require.resolve('fixtures/sample.js'))
-    editSession = new EditSession(buffer: buffer, tabText: '  ')
+    editSession = new EditSession(buffer: buffer, tabLength: 2)
     selection = editSession.getSelection()
 
   afterEach ->

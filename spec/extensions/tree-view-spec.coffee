@@ -314,7 +314,7 @@ describe "TreeView", ->
     afterEach ->
       expect(treeView.find('.selected').length).toBeLessThan 2
 
-    describe "move-down", ->
+    describe "core:move-down", ->
       describe "when a collapsed directory is selected", ->
         it "skips to the next directory", ->
           treeView.root.find('.directory:eq(0)').click()
@@ -407,6 +407,59 @@ describe "TreeView", ->
           treeView.root.click()
           treeView.trigger 'core:move-up'
           expect(treeView.root).toHaveClass 'selected'
+
+    describe "core:move-to-top", ->
+      it "scrolls to the top", ->
+        treeView.height(100)
+        treeView.attachToDom()
+        $(element).view().expand() for element in treeView.find('.directory')
+        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+
+        expect(treeView.scrollTop()).toBe 0
+
+        entryCount = treeView.find(".entry").length
+        _.times entryCount, -> treeView.moveDown()
+        expect(treeView.scrollTop()).toBeGreaterThan 0
+
+        treeView.trigger 'core:move-to-top'
+        expect(treeView.scrollTop()).toBe 0
+
+    describe "core:move-to-bottom", ->
+      it "scrolls to the bottom", ->
+        treeView.height(100)
+        treeView.attachToDom()
+        $(element).view().expand() for element in treeView.find('.directory')
+        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+
+        expect(treeView.scrollTop()).toBe 0
+        treeView.trigger 'core:move-to-bottom'
+        expect(treeView.scrollBottom()).toBe treeView.prop('scrollHeight')
+
+   describe "core:page-up", ->
+      it "scrolls up a page", ->
+        treeView.height(5)
+        treeView.attachToDom()
+        $(element).view().expand() for element in treeView.find('.directory')
+        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+
+        expect(treeView.scrollTop()).toBe 0
+        treeView.scrollToBottom()
+        scrollTop = treeView.scrollTop()
+        expect(scrollTop).toBeGreaterThan 0
+
+        treeView.trigger 'core:page-up'
+        expect(treeView.scrollTop()).toBe scrollTop - treeView.height()
+
+    describe "core:page-down", ->
+      it "scrolls down a page", ->
+        treeView.height(5)
+        treeView.attachToDom()
+        $(element).view().expand() for element in treeView.find('.directory')
+        expect(treeView.prop('scrollHeight')).toBeGreaterThan treeView.outerHeight()
+
+        expect(treeView.scrollTop()).toBe 0
+        treeView.trigger 'core:page-down'
+        expect(treeView.scrollTop()).toBe treeView.height()
 
     describe "movement outside of viewable region", ->
       it "scrolls the tree view to the selected item", ->

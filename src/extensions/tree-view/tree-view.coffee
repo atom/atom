@@ -1,4 +1,5 @@
 {View, $$} = require 'space-pen'
+ScrollView = require 'scroll-view'
 Directory = require 'directory'
 DirectoryView = require 'tree-view/directory-view'
 FileView = require 'tree-view/file-view'
@@ -9,7 +10,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 
 module.exports =
-class TreeView extends View
+class TreeView extends ScrollView
   @activate: (rootView, state) ->
     requireStylesheet 'tree-view.css'
 
@@ -45,6 +46,7 @@ class TreeView extends View
   selectedPath: null
 
   initialize: (@rootView) ->
+    super
     @on 'click', '.entry', (e) => @entryClicked(e)
     @on 'core:move-up', => @moveUp()
     @on 'core:move-down', => @moveDown()

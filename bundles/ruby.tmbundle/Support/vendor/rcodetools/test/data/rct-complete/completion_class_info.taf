@@ -1,9 +1,0 @@
-==========
-completion_class_info
-==========
-rct-complete --completion-class-info --line=1
-==========
-Array.new(3).sl
-==========
-slice	Array#slice
-slice!	Array#slice!

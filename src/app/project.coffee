@@ -10,7 +10,7 @@ ChildProcess = require 'child-process'
 
 module.exports =
 class Project
-  tabText: '  '
+  tabLength: 2
   autoIndent: true
   softTabs: true
   softWrap: false
@@ -22,10 +22,13 @@ class Project
     @setPath(path)
     @editSessions = []
     @buffers = []
-    @ignoredPathRegexes = [
-      /\.DS_Store$/
-      /(^|\/)\.git(\/|$)/
+    @ignoredFolderNames = [
+      '.git'
     ]
+    @ignoredFileNames = [
+      '.DS_Store'
+    ]
+    @ignoredPathRegexes = []
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
@@ -48,20 +51,45 @@ class Project
     @rootDirectory
 
   getFilePaths: ->
-    deferred = $.Deferred()
-
     filePaths = []
-    fs.traverseTree @getPath(), (path, prune) =>
-      if @ignorePath(path)
-        prune()
-      else if fs.isFile(path)
-        filePaths.push @relativize(path)
 
-    deferred.resolve filePaths
-    deferred
+    onFile = (path) =>
+      filePaths.push(path) unless @ignoreFile(path)
 
-  ignorePath: (path) ->
-    _.find @ignoredPathRegexes, (regex) -> path.match(regex)
+    onDirectory = (path) =>
+      return not @ignoreDirectory(path)
+
+    fs.traverseTree @getPath(), onFile, onDirectory
+    filePaths
+
+  ignoreDirectory: (path) ->
+    lastSlash = path.lastIndexOf('/')
+    if lastSlash isnt -1
+      name = path.substring(lastSlash + 1)
+    else
+      name = path
+
+    for ignored in @ignoredFolderNames
+      return true if name is ignored
+
+    for regex in @ignoredPathRegexes
+      return true if path.match(regex)
+
+    return false
+
+  ignoreFile: (path) ->
+    lastSlash = path.lastIndexOf('/')
+    if lastSlash isnt -1
+      name = path.substring(lastSlash + 1)
+    else
+      name = path
+
+    for ignored in @ignoredFileNames
+      return true if name is ignored
+    for regex in @ignoredPathRegexes
+      return true if path.match(regex)
+
+    return false
 
   ignorePathRegex: ->
     @ignoredPathRegexes.map((regex) -> "(#{regex.source})").join("|")
@@ -72,9 +100,6 @@ class Project
 
   relativize: (fullPath) ->
     fullPath.replace(@getPath(), "").replace(/^\//, '')
-
-  getTabText: -> @tabText
-  setTabText: (@tabText) ->
 
   getAutoIndent: -> @autoIndent
   setAutoIndent: (@autoIndent) ->
@@ -98,7 +123,7 @@ class Project
     editSession
 
   defaultEditSessionOptions: ->
-    tabText: @getTabText()
+    tabLength: @tabLength
     autoIndent: @getAutoIndent()
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()

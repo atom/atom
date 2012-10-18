@@ -1,1 +1,0 @@
-ri 'Array#length'

@@ -14,14 +14,12 @@ class TextMateGrammar
   name: null
   fileTypes: null
   scopeName: null
-  foldEndRegex: null
   repository: null
   initialRule: null
 
-  constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, foldingStopMarker}) ->
+  constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker}) ->
     @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
-    @foldEndRegex = new OnigRegExp(foldingStopMarker) if foldingStopMarker
 
     for name, data of repository
       @repository[name] = new Rule(this, data)
@@ -95,8 +93,15 @@ class Rule
   getNextTokens: (stack, line, position) ->
     patterns = @getIncludedPatterns()
 
-    return null unless result = @getScanner().findNextMatch(line, position)
+    # Add a `\n` to appease patterns that contain '\n' explicitly
+    return null unless result = @getScanner().findNextMatch(line + "\n", position)
     { index, captureIndices } = result
+
+    # Since the `\n' (added above) is not part of the line, truncate captures to the line's actual length
+    lineLength = line.length
+    captureIndices = captureIndices.map (value, index) ->
+      value = lineLength if index % 3 != 0 and value > lineLength
+      value
 
     [firstCaptureIndex, firstCaptureStart, firstCaptureEnd] = captureIndices
     nextTokens = patterns[index].handleMatch(stack, line, captureIndices)

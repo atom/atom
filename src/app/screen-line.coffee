@@ -59,25 +59,27 @@ class ScreenLine
     { skipAtomicTokens } = options
     sourceColumn = Math.min(sourceColumn, @textLength())
 
-    currentSourceColumn = 0
-    currentTargetColumn = 0
-    for token in @tokens
-      tokenStartTargetColumn = currentTargetColumn
-      tokenStartSourceColumn = currentSourceColumn
-      tokenEndSourceColumn = currentSourceColumn + token[sourceDeltaType]
-      tokenEndTargetColumn = currentTargetColumn + token[targetDeltaType]
-      break if tokenEndSourceColumn > sourceColumn
-      currentSourceColumn = tokenEndSourceColumn
-      currentTargetColumn = tokenEndTargetColumn
+    isSourceColumnBeforeLastToken = false
+    tokenStartTargetColumn = 0
+    tokenStartSourceColumn = 0
 
-    if token?.isAtomic
-      if skipAtomicTokens and sourceColumn > tokenStartSourceColumn
+    for token in @tokens
+      tokenEndSourceColumn = tokenStartSourceColumn + token[sourceDeltaType]
+      tokenEndTargetColumn = tokenStartTargetColumn + token[targetDeltaType]
+      break if tokenEndSourceColumn > sourceColumn
+      tokenStartTargetColumn = tokenEndTargetColumn
+      tokenStartSourceColumn = tokenEndSourceColumn
+
+    sourceColumnIsInsideToken = tokenStartSourceColumn < sourceColumn < tokenEndSourceColumn
+
+    if token?.isAtomic and sourceColumnIsInsideToken
+      if skipAtomicTokens
         tokenEndTargetColumn
       else
         tokenStartTargetColumn
     else
-      remainingColumns = sourceColumn - currentSourceColumn
-      currentTargetColumn + remainingColumns
+      remainingColumns = sourceColumn - tokenStartSourceColumn
+      tokenStartTargetColumn + remainingColumns
 
   textLength: ->
     if @fold

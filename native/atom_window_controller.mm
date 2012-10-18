@@ -20,16 +20,20 @@
   [super dealloc];
 }
 
-- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background {
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background alwaysUseBundleResourcePath:(BOOL)alwaysUseBundleResourcePath {
   self = [super initWithWindowNibName:@"AtomWindow"];
   _bootstrapScript = [bootstrapScript retain];
 
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  _resourcePath = [[atomApplication.arguments objectForKey:@"resource-path"] retain];
-  if (!_resourcePath) _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
-  
-    
+  _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
+
+  if (alwaysUseBundleResourcePath || !_resourcePath) {
+    _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
+  }
+
   if (!background) {
+    [self setShouldCascadeWindows:NO];
+    [self setWindowFrameAutosaveName:@"AtomWindow"];
     [self showWindow:self];
   }
 
@@ -38,11 +42,16 @@
 
 - (id)initWithPath:(NSString *)path {
   _pathToOpen = [path retain];
-  return [self initWithBootstrapScript:@"window-bootstrap" background:NO];
+  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
+  BOOL stable = [atomApplication.arguments objectForKey:@"stable"] != nil;
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:stable];
 }
 
 - (id)initInBackground {
-  [self initWithBootstrapScript:@"window-bootstrap" background:YES];
+  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
+  BOOL stable = [atomApplication.arguments objectForKey:@"stable"] != nil;
+
+  [self initWithBootstrapScript:@"window-bootstrap" background:YES alwaysUseBundleResourcePath:stable];
   [self.window setFrame:NSMakeRect(0, 0, 0, 0) display:NO];
   [self.window setExcludedFromWindowsMenu:YES];
   return self;
@@ -51,13 +60,13 @@
 - (id)initSpecsThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
-  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO];
+  return [self initWithBootstrapScript:@"spec-bootstrap" background:NO alwaysUseBundleResourcePath:NO];
 }
 
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone {
   _runningSpecs = true;
   _exitWhenDone = exitWhenDone;
-  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO];
+  return [self initWithBootstrapScript:@"benchmark-bootstrap" background:NO alwaysUseBundleResourcePath:NO];
 }
 
 - (void)addBrowserToView:(NSView *)view url:(const char *)url cefHandler:(CefRefPtr<AtomCefClient>)cefClient {
@@ -65,7 +74,7 @@
   [self populateBrowserSettings:settings];
   CefWindowInfo window_info;
   window_info.SetAsChild(view, 0, 0, view.bounds.size.width, view.bounds.size.height);
-  CefBrowserHost::CreateBrowser(window_info, cefClient.get(), url, settings);  
+  CefBrowserHost::CreateBrowser(window_info, cefClient.get(), url, settings);
 }
 
 - (NSString *)encodeUrlParam:(NSString *)param {
@@ -76,7 +85,13 @@
 
 - (void)windowDidLoad {
   [self.window setDelegate:self];
+  [self performSelector:@selector(attachWebView) withObject:nil afterDelay:0];
+}
 
+// If this is run directly in windowDidLoad, the web view doesn't
+// have the correct initial size based on the frame's last stored size.
+// HACK: I hate this and want to place this code directly in windowDidLoad
+- (void)attachWebView {
   NSURL *url = [[NSBundle mainBundle] resourceURL];
   NSMutableString *urlString = [NSMutableString string];
   [urlString appendString:[[url URLByAppendingPathComponent:@"static/index.html"] absoluteString]];
@@ -97,7 +112,7 @@
   }
   else {
     [self showDevTools];
-  }  
+  }
 }
 
 - (void)showDevTools {
@@ -143,9 +158,11 @@
   }
 }
 
-- (BOOL)windowShouldClose:(id)window {
+- (void)windowWillClose:(NSNotification *)notification {
+  if (_cefClient && _cefClient->GetBrowser()) {
+    _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("shutdown"));
+  }
   [self autorelease];
-  return YES;
 }
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {

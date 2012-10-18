@@ -1,9 +1,10 @@
 $ = require 'jquery'
 RootView = require 'root-view'
 StatusBar = require 'status-bar'
+fs = require 'fs'
 
 describe "StatusBar", ->
-  [rootView, editor, statusBar] = []
+  [rootView, editor, statusBar, buffer] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
@@ -11,6 +12,7 @@ describe "StatusBar", ->
     StatusBar.activate(rootView)
     editor = rootView.getActiveEditor()
     statusBar = rootView.find('.status-bar').view()
+    buffer = editor.getBuffer()
 
   afterEach ->
     rootView.remove()
@@ -24,8 +26,9 @@ describe "StatusBar", ->
       expect(rootView.panes.find('.pane > .status-bar').length).toBe 2
 
   describe ".initialize(editor)", ->
-    it "displays the editor's buffer path and cursor buffer position", ->
+    it "displays the editor's buffer path, cursor buffer position, and buffer modified indicator", ->
       expect(statusBar.currentPath.text()).toBe 'sample.js'
+      expect(statusBar.bufferModified.text()).toBe ''
       expect(statusBar.cursorPosition.text()).toBe '1,1'
 
     describe "when associated with an unsaved buffer", ->
@@ -43,6 +46,52 @@ describe "StatusBar", ->
     it "updates the path in the status bar", ->
       rootView.open(require.resolve 'fixtures/sample.txt')
       expect(statusBar.currentPath.text()).toBe 'sample.txt'
+
+  describe "when the associated editor's buffer's content changes", ->
+    it "enables the buffer modified indicator", ->
+      expect(statusBar.bufferModified.text()).toBe ''
+      editor.insertText("\n")
+      expect(statusBar.bufferModified.text()).toBe '*'
+      editor.backspace()
+
+  describe "when the buffer content has changed from the content on disk", ->
+    it "disables the buffer modified indicator on save", ->
+      path = "/tmp/atom-whitespace.txt"
+      fs.write(path, "")
+      rootView.open(path)
+      expect(statusBar.bufferModified.text()).toBe ''
+      editor.insertText("\n")
+      expect(statusBar.bufferModified.text()).toBe '*'
+      editor.save()
+      expect(statusBar.bufferModified.text()).toBe ''
+
+    it "disables the buffer modified indicator if the content matches again", ->
+      expect(statusBar.bufferModified.text()).toBe ''
+      editor.insertText("\n")
+      expect(statusBar.bufferModified.text()).toBe '*'
+      editor.backspace()
+      expect(statusBar.bufferModified.text()).toBe ''
+
+    it "disables the buffer modified indicator when the change is undone", ->
+      expect(statusBar.bufferModified.text()).toBe ''
+      editor.insertText("\n")
+      expect(statusBar.bufferModified.text()).toBe '*'
+      editor.undo()
+      expect(statusBar.bufferModified.text()).toBe ''
+
+  describe "when the buffer changes", ->
+    it "updates the buffer modified indicator for the new buffer", ->
+      expect(statusBar.bufferModified.text()).toBe ''
+      rootView.open(require.resolve('fixtures/sample.txt'))
+      editor.insertText("\n")
+      expect(statusBar.bufferModified.text()).toBe '*'
+
+    it "doesn't update the buffer modified indicator for the old buffer", ->
+     oldBuffer = editor.getBuffer()
+     expect(statusBar.bufferModified.text()).toBe ''
+     rootView.open(require.resolve('fixtures/sample.txt'))
+     oldBuffer.setText("new text")
+     expect(statusBar.bufferModified.text()).toBe ''
 
   describe "when the associated editor's cursor position changes", ->
     it "updates the cursor position in the status bar", ->

@@ -193,8 +193,14 @@
         this.callback(null, value);
       },
     };
-    parser.write(xml);
-    parser.close();
+
+    try {
+      parser.write(xml);
+      parser.close();
+    }
+    catch (e) {
+      callback(e, {})
+    }
   }
 
   exports.Parser = Parser;

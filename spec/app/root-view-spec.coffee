@@ -690,3 +690,27 @@ describe "RootView", ->
       expect(fs.read(buffer1.getPath())).toBe("edited1")
       expect(buffer2.isModified()).toBe(false)
       expect(fs.read(buffer2.getPath())).toBe("edited2")
+
+  describe "window:toggle-invisibles event", ->
+    it "shows/hides invisibles in all open and future editors", ->
+      rootView.height(200)
+      rootView.attachToDom()
+      rightEditor = rootView.getActiveEditor()
+      rightEditor.setText(" \t ")
+      leftEditor = rightEditor.splitLeft()
+      expect(rightEditor.find(".line:first").text()).toBe "    "
+      expect(leftEditor.find(".line:first").text()).toBe "    "
+
+      rootView.trigger "root-view:toggle-invisibles"
+      expect(rightEditor.find(".line:first").text()).toBe "•▸ •¬"
+      expect(leftEditor.find(".line:first").text()).toBe "•▸ •¬"
+
+      lowerLeftEditor = leftEditor.splitDown()
+      expect(lowerLeftEditor.find(".line:first").text()).toBe "•▸ •¬"
+
+      rootView.trigger "root-view:toggle-invisibles"
+      expect(rightEditor.find(".line:first").text()).toBe "    "
+      expect(leftEditor.find(".line:first").text()).toBe "    "
+
+      lowerRightEditor = rightEditor.splitDown()
+      expect(lowerRightEditor.find(".line:first").text()).toBe "    "

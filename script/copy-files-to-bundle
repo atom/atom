@@ -13,8 +13,20 @@ RESOUCES_PATH="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
 mkdir -p "$RESOUCES_PATH/v8_extensions"
 cp "$PROJECT_DIR/native/v8_extensions/"*.js "$RESOUCES_PATH/v8_extensions/"
 
-for DIR in src static vendor spec benchmark bundles themes; do
-  rm -rf "$RESOUCES_PATH/$DIR"
-  cp -R "$DIR" "$RESOUCES_PATH/"
-  node_modules/.bin/coffee -c "$RESOUCES_PATH/$DIR"
+DIRS="src static vendor spec benchmark bundles themes"
+
+# Compile and .coffee files into bundle
+COFFEE_FILES=$(find $DIRS -type file -name '*.coffee')
+for COFFEE_FILE in $(find src -type file -name '*.coffee'); do
+  JS_FILE=$(echo "$RESOUCES_PATH/$COFFEE_FILE" | sed 's/.coffee/.js/' )
+  OUTPUT_PATH="$RESOUCES_PATH/$(dirname "$COFFEE_FILE")"
+
+  if [ $COFFEE_FILE -nt "$JS_FILE" ]; then
+    mkdir -p "$OUTPUT_PATH"
+    node_modules/.bin/coffee -c -o "$OUTPUT_PATH" "$COFFEE_FILE" || exit 1
+  fi
 done;
+
+
+# Copy non-coffee files into bundle
+rsync --archive --recursive --exclude src static vendor spec benchmark bundles themes "$RESOUCES_PATH"

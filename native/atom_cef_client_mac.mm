@@ -1,4 +1,5 @@
 #import <AppKit/AppKit.h>
+#import <iostream>
 #import "include/cef_browser.h"
 #import "include/cef_frame.h"
 #import "native/atom_cef_client.h"
@@ -111,5 +112,5 @@ void AtomCefClient::Exit(int status) {
 }
 
 void AtomCefClient::Log(const char *message) {
-  NSLog(@"%s", message);
+  std::cout << message << "\n";
 }

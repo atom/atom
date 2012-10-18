@@ -54,7 +54,7 @@ describe "fs", ->
     it "returns an empty string for paths without an extension", ->
       expect(fs.extension("a/b.not-extension/a-dir")).toBe ''
 
-  describe "makeTree(path)", ->
+  describe ".makeTree(path)", ->
     beforeEach ->
       fs.remove("/tmp/a") if fs.exists("/tmp/a")
 
@@ -62,7 +62,7 @@ describe "fs", ->
       fs.makeTree("/tmp/a/b/c")
       expect(fs.exists("/tmp/a/b/c")).toBeTruthy()
 
-  describe ".traverseTree(path, fn)", ->
+  describe ".traverseTree(path, onFile, onDirectory)", ->
     fixturesDir = null
 
     beforeEach ->
@@ -70,20 +70,37 @@ describe "fs", ->
 
     it "calls fn for every path in the tree at the given path", ->
       paths = []
-      fs.traverseTree fixturesDir, (path) -> paths.push(path)
+      onPath = (path) ->
+        paths.push(fs.join(fixturesDir, path))
+        true
+      fs.traverseTree fixturesDir, onPath, onPath
       expect(paths).toEqual fs.listTree(fixturesDir)
 
     it "does not recurse into a directory if it is pruned", ->
       paths = []
-      fs.traverseTree fixturesDir, (path, prune) ->
+      onPath = (path) ->
         if path.match(/\/dir$/)
-          prune()
+          false
         else
           paths.push(path)
+          true
+      fs.traverseTree fixturesDir, onPath, onPath
 
       expect(paths.length).toBeGreaterThan 0
       for path in paths
         expect(path).not.toMatch /\/dir\//
+
+    it "returns entries if path is a symlink", ->
+      symlinkPaths = []
+      onSymlinkPath = (path) -> symlinkPaths.push(path)
+
+      paths = []
+      onPath = (path) -> paths.push(path)
+
+      fs.traverseTree(fs.join(fixturesDir, 'symlink-to-dir'), onSymlinkPath, onSymlinkPath)
+      fs.traverseTree(fs.join(fixturesDir, 'dir'), onPath, onPath)
+
+      expect(symlinkPaths).toEqual(paths)
 
   describe ".lastModified(path)", ->
     it "returns a Date object representing the time the file was last modified", ->

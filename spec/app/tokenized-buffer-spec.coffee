@@ -23,7 +23,7 @@ describe "TokenizedBuffer", ->
 
   describe "tokenization", ->
     it "tokenizes all the lines in the buffer on construction", ->
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.js'])
+      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
       expect(tokenizedBuffer.lineForScreenRow(11).tokens[1]).toEqual(value: 'return', scopes: ['source.js', 'keyword.control.js'])
 
     describe "when the buffer changes", ->
@@ -77,7 +77,7 @@ describe "TokenizedBuffer", ->
           buffer.change(range, "foo()")
 
           # previous line 0 remains
-          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.type.js'])
+          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
 
           # previous line 3 should be combined with input to form line 1
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
@@ -113,7 +113,7 @@ describe "TokenizedBuffer", ->
           buffer.change(range, "foo()\nbar()\nbaz()\nquux()")
 
           # previous line 0 remains
-          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.type.js'])
+          expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.modifier.js'])
 
           # 3 new lines inserted
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
@@ -151,25 +151,25 @@ describe "TokenizedBuffer", ->
           expect(event.newRange).toEqual new Range([2, 0], [7, buffer.lineForRow(7).length])
 
     describe "when the buffer contains tab characters", ->
-      tabText = '  '
       editSession2 = null
 
       beforeEach ->
-        editSession2 = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', { tabText })
+        tabLength = 2
+        editSession2 = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', { tabLength })
         { buffer, tokenizedBuffer } = editSession2
 
       afterEach ->
         editSession2.destroy()
 
-      it "always renders each tab as its own atomic token containing tabText", ->
+      it "always renders each tab as its own atomic token with a value of size tabLength", ->
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
-        expect(screenLine0.text).toBe "# Econ 101#{tabText}"
+        expect(screenLine0.text).toBe "# Econ 101#{editSession2.getTabText()}"
         { tokens } = screenLine0
         expect(tokens.length).toBe 3
         expect(tokens[0].value).toBe "#"
         expect(tokens[1].value).toBe " Econ 101"
-        expect(tokens[2].value).toBe tabText
+        expect(tokens[2].value).toBe editSession2.getTabText()
         expect(tokens[2].scopes).toEqual tokens[1].scopes
         expect(tokens[2].isAtomic).toBeTruthy()
 
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabText} buy()#{tabText}while supply > demand"
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{editSession2.getTabText()} buy()#{editSession2.getTabText()}while supply > demand"

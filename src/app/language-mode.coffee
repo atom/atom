@@ -73,11 +73,12 @@ class LanguageMode
     return null unless @doesBufferRowStartFold(bufferRow)
 
     startIndentation = @editSession.indentationForBufferRow(bufferRow)
+    scopes = @tokenizedBuffer.scopesForPosition([bufferRow, 0])
     for row in [(bufferRow + 1)..@editSession.getLastBufferRow()]
       continue if @editSession.isBufferRowBlank(row)
       indentation = @editSession.indentationForBufferRow(row)
       if indentation <= startIndentation
-        includeRowInFold = indentation == startIndentation and @grammar.foldEndRegex.search(@editSession.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentation and TextMateBundle.foldEndRegexForScope(@grammar, scopes[0]).search(@editSession.lineForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -103,7 +104,7 @@ class LanguageMode
 
     currentIndentation = @buffer.indentationForRow(bufferRow)
     desiredIndentation = @buffer.indentationForRow(precedingRow)
-    desiredIndentation += @editSession.tabText.length if increaseIndentPattern.test(precedingLine)
+    desiredIndentation += @editSession.tabLength if increaseIndentPattern.test(precedingLine)
     if desiredIndentation > currentIndentation
       @buffer.setIndentationForRow(bufferRow, desiredIndentation)
 
@@ -121,7 +122,7 @@ class LanguageMode
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentation = @buffer.indentationForRow(precedingRow)
-    desiredIndentation -= @editSession.tabText.length unless increaseIndentPattern.test(precedingLine)
+    desiredIndentation -= @editSession.tabLength unless increaseIndentPattern.test(precedingLine)
     if desiredIndentation < currentIndentation
       @buffer.setIndentationForRow(bufferRow, desiredIndentation)
 

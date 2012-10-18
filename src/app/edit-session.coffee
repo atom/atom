@@ -35,14 +35,15 @@ class EditSession
   cursors: null
   selections: null
   autoIndent: false # TODO: re-enabled auto-indent after fixing the rest of tokenization
+  tabLength: null
   softTabs: true
   softWrap: false
 
-  constructor: ({@project, @buffer, @tabText, @autoIndent, @softTabs, @softWrap}) ->
+  constructor: ({@project, @buffer, @tabLength, @autoIndent, @softTabs, @softWrap }) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabText })
+    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabLength })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
     @anchors = []
     @anchorRanges = []
@@ -106,6 +107,8 @@ class EditSession
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
+  getTabText: -> new Array(@tabLength + 1).join(" ")
+
   clipBufferPosition: (bufferPosition) ->
     @buffer.clipPosition(bufferPosition)
 
@@ -149,7 +152,7 @@ class EditSession
     currentRow = @getCursorBufferPosition().row
     if @getSelection().isEmpty()
       if @softTabs
-        @insertText(@tabText)
+        @insertText(@getTabText())
       else
         @insertText('\t')
     else
@@ -504,6 +507,17 @@ class EditSession
 
   selectLine: ->
     @expandSelectionsForward (selection) => selection.selectLine()
+
+  transpose: ->
+    @mutateSelectedText (selection) =>
+      if selection.isEmpty()
+        selection.selectRight()
+        text = selection.getText()
+        selection.delete()
+        selection.cursor.moveLeft()
+        selection.insertText text
+      else
+        selection.insertText selection.getText().split('').reverse().join('')
 
   expandLastSelectionOverLine: ->
     @getLastSelection().expandOverLine()

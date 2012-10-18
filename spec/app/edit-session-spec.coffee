@@ -1141,8 +1141,8 @@ describe "EditSession", ->
     describe ".indent()", ->
       describe "when nothing is selected", ->
         describe "if 'softTabs' is true (the default)", ->
-          it "inserts the value of 'tabText' into the buffer", ->
-            tabRegex = new RegExp("^#{editSession.tabText}")
+          it "inserts 'tabLength' spaces into the buffer", ->
+            tabRegex = new RegExp("^[ ]{#{editSession.tabLength}}")
             expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
             editSession.indent()
             expect(buffer.lineForRow(0)).toMatch(tabRegex)
@@ -1151,7 +1151,7 @@ describe "EditSession", ->
           describe "when the preceding line opens a new level of indentation", ->
             it "increases the level of indentation by one", ->
               buffer.insert([5, 0], "  \n")
-              editSession.tabText = "  "
+              editSession.tabLength = 2
               editSession.setCursorBufferPosition [5, 2]
               editSession.setAutoIndent(true)
               editSession.indent()
@@ -1162,7 +1162,7 @@ describe "EditSession", ->
           describe "when there are empty lines preceding the current line", ->
             it "bases indentation on the first non-blank preceding line", ->
               buffer.insert([5, 0], "\n\n\n  \n")
-              editSession.tabText = "  "
+              editSession.tabLength = 2
               editSession.setCursorBufferPosition [8, 2]
               editSession.setAutoIndent(true)
               editSession.indent()
@@ -1172,7 +1172,7 @@ describe "EditSession", ->
 
           it "properly indents the line", ->
             buffer.insert([7, 0], "  \n")
-            editSession.tabText = "  "
+            editSession.tabLength = 2
             editSession.setCursorBufferPosition [7, 2]
             editSession.setAutoIndent(true)
             editSession.indent()
@@ -1182,7 +1182,7 @@ describe "EditSession", ->
 
           it "allows for additional indentation if the cursor is beyond the proper indentation point", ->
             buffer.insert([7, 0], "      \n")
-            editSession.tabText = "  "
+            editSession.tabLength = 2
             editSession.setCursorBufferPosition [7, 6]
             editSession.setAutoIndent(true)
             editSession.indent()
@@ -1197,12 +1197,12 @@ describe "EditSession", ->
           editSession.indent()
           expect(buffer.lineForRow(0)).toMatch(/^\t/)
           expect(editSession.getCursorBufferPosition()).toEqual [0, 1]
-          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabText.length]
+          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabLength]
 
           editSession.indent()
           expect(buffer.lineForRow(0)).toMatch(/^\t\t/)
           expect(editSession.getCursorBufferPosition()).toEqual [0, 2]
-          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabText.length * 2]
+          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabLength * 2]
 
     describe "pasteboard operations", ->
       pasteboard = null
@@ -1254,24 +1254,22 @@ describe "EditSession", ->
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
     describe ".indentSelectedRows()", ->
-      tabLength = null
-
       beforeEach ->
-        tabLength = editSession.tabText.length
+        editSession.tabLength = 2
 
       describe "when nothing is selected", ->
         it "indents line and retains selection", ->
           editSession.setSelectedBufferRange([[0,3], [0,3]])
           editSession.indentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe "#{editSession.tabText}var quicksort = function () {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + tabLength], [0, 3 + tabLength]]
+          expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + editSession.tabLength], [0, 3 + editSession.tabLength]]
 
       describe "when one line is selected", ->
         it "indents line and retains selection", ->
           editSession.setSelectedBufferRange([[0,4], [0,14]])
           editSession.indentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe "#{editSession.tabText}var quicksort = function () {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + tabLength], [0, 14 + tabLength]]
+          expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + editSession.tabLength], [0, 14 + editSession.tabLength]]
 
       describe "when multiple lines are selected", ->
         it "indents selected lines (that are not empty) and retains selection", ->
@@ -1280,28 +1278,25 @@ describe "EditSession", ->
           expect(buffer.lineForRow(9)).toBe "    };"
           expect(buffer.lineForRow(10)).toBe ""
           expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
-          expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + tabLength], [11, 15 + tabLength]]
+          expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 15 + editSession.tabLength]]
 
     describe ".outdentSelectedRows()", ->
-      tabLength = null
-
       beforeEach ->
-        editSession.tabText = "  "
-        tabLength = editSession.tabText.length
+        editSession.tabLength = 2
 
       describe "when nothing is selected", ->
         it "outdents line and retains selection", ->
           editSession.setSelectedBufferRange([[1,3], [1,3]])
           editSession.outdentSelectedRows()
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[1, 3 - tabLength], [1, 3 - tabLength]]
+          expect(editSession.getSelectedBufferRange()).toEqual [[1, 3 - editSession.tabLength], [1, 3 - editSession.tabLength]]
 
       describe "when one line is selected", ->
         it "outdents line and retains editSession", ->
           editSession.setSelectedBufferRange([[1,4], [1,14]])
           editSession.outdentSelectedRows()
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[1, 4 - tabLength], [1, 14 - tabLength]]
+          expect(editSession.getSelectedBufferRange()).toEqual [[1, 4 - editSession.tabLength], [1, 14 - editSession.tabLength]]
 
       describe "when multiple lines are selected", ->
         it "outdents selected lines and retains editSession", ->
@@ -1310,7 +1305,7 @@ describe "EditSession", ->
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
           expect(buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 15 - tabLength]]
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 15 - editSession.tabLength]]
 
     describe ".toggleLineCommentsInSelection()", ->
       it "toggles comments on the selected lines", ->
@@ -1571,3 +1566,16 @@ describe "EditSession", ->
         editSession.deleteLine()
       expect(buffer.getLineCount()).toBe(1)
       expect(buffer.getText()).toBe('')
+
+  describe ".tranpose()", ->
+    it "swaps two characters", ->
+      editSession.buffer.setText("abc")
+      editSession.setCursorScreenPosition([0, 1])
+      editSession.transpose()
+      expect(editSession.lineForBufferRow(0)).toBe 'bac'
+
+    it "reverses a selection", ->
+      editSession.buffer.setText("xabcz")
+      editSession.setSelectedBufferRange([[0, 1], [0, 4]])
+      editSession.transpose()
+      expect(editSession.lineForBufferRow(0)).toBe 'xcbaz'

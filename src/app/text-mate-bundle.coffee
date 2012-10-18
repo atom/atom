@@ -56,23 +56,34 @@ class TextMateBundle
     if source = @getPreferenceInScope(scope, 'decreaseIndentPattern')
       new OnigRegExp(source)
 
+  @foldEndRegexForScope: (grammar, scope) ->
+    marker =  @getPreferenceInScope(scope, 'foldingStopMarker')
+    if marker
+      new OnigRegExp(marker)
+    else
+      new OnigRegExp(grammar.foldingStopMarker)
+
   grammars: null
 
   constructor: (@path) ->
     @grammars = []
     if fs.exists(@getSyntaxesPath())
       for syntaxPath in fs.list(@getSyntaxesPath())
-        @grammars.push TextMateGrammar.loadFromPath(syntaxPath)
+        try
+          @grammars.push TextMateGrammar.loadFromPath(syntaxPath)
+        catch e
+          console.warn "Failed to load grammar at path '#{syntaxPath}'", e
 
   getPreferencesByScopeSelector: ->
     return {} unless fs.exists(@getPreferencesPath())
     preferencesByScopeSelector = {}
     for preferencePath in fs.list(@getPreferencesPath())
       plist.parseString fs.read(preferencePath), (e, data) ->
-        throw new Error(e) if e
-        { scope, settings } = data[0]
-
-        preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
+        if e
+          console.warn "Failed to parse preference at path '#{preferencePath}'", e
+        else
+          { scope, settings } = data[0]
+          preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
 
     preferencesByScopeSelector
 
