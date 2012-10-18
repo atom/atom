@@ -873,16 +873,14 @@ class Editor extends View
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
     line.push("<pre #{attributePairs.join(' ')}>")
 
-    unless screenLine.text == ''
+    if screenLine.text == ''
+      line.push("&nbsp;") unless @activeEditSession.showInvisibles
+    else
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
         line.push(token.escapeValue(@activeEditSession.showInvisibles))
 
-    if @activeEditSession.showInvisibles
-      line.push("<span class='invisible'>¬</span>")
-    else if screenLine.text == ''
-      line.push("&nbsp;")
-
+    line.push("<span class='invisible'>¬</span>") if @activeEditSession.showInvisibles
     line.push('</pre>')
     line.join('')
 
