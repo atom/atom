@@ -15,15 +15,7 @@ exit_unless_npm_exists() {
   fi
 }
 
-exit_unless_brew_exists() {
-  if ! hash brew 2> /dev/null; then
-    echo "ERROR: Atom requires brew"
-    exit 1
-  fi
-}
-
 exit_unless_xcode_exists
 exit_unless_npm_exists
-exit_unless_brew_exists
 
 npm install
