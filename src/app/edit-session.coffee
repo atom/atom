@@ -44,7 +44,7 @@ class EditSession
     @id = @constructor.idCounter++
     @softTabs ?= true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabLength, @showInvisibles })
+    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabLength })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
     @anchors = []
     @anchorRanges = []
