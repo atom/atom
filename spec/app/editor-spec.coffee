@@ -1472,15 +1472,16 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(14)').text()).toBe 'B'
           expect(editor.renderedLines.find('.line:eq(15)')).not.toExist()
 
-    describe "when editSession.showInvisibles is true", ->
-      beforeEach ->
-        project.setShowInvisibles(true)
-        rootView.open()
-        editor.attachToDom(5)
-
-      it "displays spaces as •, tabs as ▸ and newlines as ¬", ->
+    describe "when editor.setShowInvisibles is called", ->
+      it "displays spaces as •, tabs as ▸ and newlines as ¬ when true", ->
+        editor.attachToDom()
         editor.setText " a line with tabs\tand spaces "
+        expect(editor.showInvisibles).toBeFalsy()
+        expect(editor.find('.line').text()).toBe " a line with tabs  and spaces "
+        editor.setShowInvisibles(true)
         expect(editor.find('.line').text()).toBe "•a line with tabs▸ and spaces•¬"
+        editor.setShowInvisibles(false)
+        expect(editor.find('.line').text()).toBe " a line with tabs  and spaces "
 
   describe "gutter rendering", ->
     beforeEach ->

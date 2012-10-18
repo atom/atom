@@ -14,7 +14,6 @@ class Project
   autoIndent: true
   softTabs: true
   softWrap: false
-  showInvisibles: false
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -111,9 +110,6 @@ class Project
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
-  getShowInvisibles: -> @showInvisibles
-  setShowInvisibles: (@showInvisibles) ->
-
   buildEditSessionForPath: (filePath, editSessionOptions={}) ->
     @buildEditSession(@bufferForPath(filePath), editSessionOptions)
 
@@ -131,7 +127,6 @@ class Project
     autoIndent: @getAutoIndent()
     softTabs: @getSoftTabs()
     softWrap: @getSoftWrap()
-    showInvisibles: @getShowInvisibles()
 
   getEditSessions: ->
     new Array(@editSessions...)

@@ -46,12 +46,12 @@ class Editor extends View
 
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
-    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini)
+    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini, showInvisibles: rootView.showInvisibles)
     editor.editSessions = editSessions
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({editSession, @mini} = {}) ->
+  initialize: ({editSession, @mini, @showInvisibles} = {}) ->
     requireStylesheet 'editor.css'
 
     @id = Editor.idCounter++
@@ -264,6 +264,11 @@ class Editor extends View
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
   getPageRows: ->
     Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
+
+  setShowInvisibles: (showInvisibles) ->
+    return if showInvisibles == @showInvisibles
+    @showInvisibles = showInvisibles
+    @renderLines()
 
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
@@ -569,7 +574,7 @@ class Editor extends View
       @updateRenderedLines()
 
   newSplitEditor: ->
-    new Editor { editSession: @activeEditSession.copy() }
+    new Editor { editSession: @activeEditSession.copy(), @showInvisibles }
 
   splitLeft: ->
     @pane()?.splitLeft(@newSplitEditor()).wrappedView
@@ -874,7 +879,7 @@ class Editor extends View
     line.push("<pre #{attributePairs.join(' ')}>")
 
     if screenLine.text == ''
-      line.push("&nbsp;") unless @activeEditSession.showInvisibles
+      line.push("&nbsp;") unless @showInvisibles
     else
       firstNonWhitespacePosition = screenLine.text.search(/\S/)
       firstTrailingWhitespacePosition = screenLine.text.search(/\s*$/)
@@ -882,14 +887,14 @@ class Editor extends View
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
         line.push(token.getValueAsHtml(
-          showInvisibles: @activeEditSession.showInvisibles
+          showInvisibles: @showInvisibles
           hasLeadingWhitespace: position < firstNonWhitespacePosition
           hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
         ))
 
         position += token.value.length
 
-    line.push("<span class='invisible'>¬</span>") if @activeEditSession.showInvisibles
+    line.push("<span class='invisible'>¬</span>") if @showInvisibles
     line.push('</pre>')
     line.join('')
 

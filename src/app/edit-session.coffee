@@ -38,9 +38,8 @@ class EditSession
   tabLength: null
   softTabs: true
   softWrap: false
-  showInvisibles: false
 
-  constructor: ({@project, @buffer, @tabLength, @autoIndent, @softTabs, @softWrap, @showInvisibles}) ->
+  constructor: ({@project, @buffer, @tabLength, @autoIndent, @softTabs, @softWrap }) ->
     @id = @constructor.idCounter++
     @softTabs ?= true
     @languageMode = new LanguageMode(this, @buffer.getExtension())

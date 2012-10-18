@@ -31,6 +31,7 @@ class RootView extends View
   extensions: null
   extensionStates: null
   fontSize: 20
+  showInvisibles: false
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
@@ -117,7 +118,7 @@ class RootView extends View
 
     unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
       editSession = @project.buildEditSessionForPath(path)
-      editor = new Editor({editSession})
+      editor = new Editor({editSession, @showInvisibles})
       pane = new Pane(editor)
       @panes.append(pane)
       if changeFocus
