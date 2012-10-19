@@ -9,17 +9,26 @@
 
 .event-palette ol li {
   padding: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
 }
 
 .event-palette ol .event-description {
   float: left;
   display: inline-block;
+  margin-right: .5em;
+  margin: 4px 0;
+}
+
+
+.event-palette li .right {
+  float: right;
 }
 
 .event-palette ol .event-name, .event-palette ol .key-binding {
-  float: right;
   display: inline-block;
+  margin: 4px 0;
   margin-right: .5em;
+  font-size: 90%;
   color: #ddd;
   -webkit-border-radius: 3px;
   padding: 0 4px;
