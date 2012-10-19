@@ -12,8 +12,8 @@ class FuzzyFinder extends SelectList
     requireStylesheet 'select-list.css'
     requireStylesheet 'fuzzy-finder.css'
     @instance = new FuzzyFinder(rootView)
-    rootView.on 'fuzzy-finder:toggle-file-finder', => @instance.toggleFileFinder()
-    rootView.on 'fuzzy-finder:toggle-buffer-finder', => @instance.toggleBufferFinder()
+    rootView.command 'fuzzy-finder:toggle-file-finder', => @instance.toggleFileFinder()
+    rootView.command 'fuzzy-finder:toggle-buffer-finder', => @instance.toggleBufferFinder()
 
   @viewClass: ->
     [super, 'fuzzy-finder'].join(' ')
