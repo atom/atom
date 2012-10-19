@@ -157,11 +157,8 @@ class Editor extends View
 
     documentation = {}
     for name, method of editorBindings
-      documentation[name] = _.humanizeEventName(name)
       do (name, method) =>
-        @on name, => method.call(this); false
-
-    @document(documentation)
+        @command name, => method.call(this); false
 
   getCursor: (index) -> @activeEditSession.getCursor(index)
   getCursors: -> @activeEditSession.getCursors()
