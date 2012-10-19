@@ -124,7 +124,7 @@ task :benchmark do
 end
 
 task :nof do
-  system %{find . -name *spec.coffee | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
+  system %{find . -name *spec.coffee | grep -v atom-build | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
 end
 
 def application_path
