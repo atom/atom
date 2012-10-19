@@ -9,7 +9,7 @@ class EventPalette extends SelectList
   @activate: (rootView) ->
     requireStylesheet 'event-palette/event-palette.css'
     @instance = new EventPalette(rootView)
-    rootView.on 'event-palette:toggle', => @instance.attach()
+    rootView.command 'event-palette:toggle', => @instance.attach()
 
   @viewClass: ->
     "#{super} event-palette"
@@ -20,7 +20,7 @@ class EventPalette extends SelectList
   keyBindings: null
 
   initialize: (@rootView) ->
-    @on 'event-palette:toggle', => @cancel()
+    @command 'event-palette:toggle', => @cancel()
     super
 
   attach: ->
