@@ -72,3 +72,5 @@ $.fn.command = (args...) ->
   documentation[eventName] = _.humanizeEventName(eventName)
   @document(documentation)
   @on(args...)
+
+$.Event.prototype.abortKeyBinding = ->
