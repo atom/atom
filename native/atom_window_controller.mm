@@ -25,11 +25,12 @@
   _bootstrapScript = [bootstrapScript retain];
 
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
-  _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
 
+  _resourcePath = [atomApplication.arguments objectForKey:@"resource-path"];
   if (alwaysUseBundleResourcePath || !_resourcePath) {
-    _resourcePath = [[[NSBundle mainBundle] resourcePath] retain];
+    _resourcePath = [[NSBundle mainBundle] resourcePath];
   }
+  [_resourcePath retain];
 
   if (!background) {
     [self setShouldCascadeWindows:NO];
