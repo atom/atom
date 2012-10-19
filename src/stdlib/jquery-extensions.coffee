@@ -65,3 +65,10 @@ $.fn.events = ->
     _.extend(@parent().events(), events)
   else
     events
+
+$.fn.command = (args...) ->
+  eventName = args[0]
+  documentation = {}
+  documentation[eventName] = _.humanizeEventName(eventName)
+  @document(documentation)
+  @on(args...)
