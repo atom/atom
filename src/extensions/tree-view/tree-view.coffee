@@ -48,22 +48,22 @@ class TreeView extends ScrollView
   initialize: (@rootView) ->
     super
     @on 'click', '.entry', (e) => @entryClicked(e)
-    @on 'core:move-up', => @moveUp()
-    @on 'core:move-down', => @moveDown()
-    @on 'tree-view:expand-directory', => @expandDirectory()
-    @on 'tree-view:collapse-directory', => @collapseDirectory()
-    @on 'tree-view:open-selected-entry', => @openSelectedEntry(true)
-    @on 'tree-view:move', => @moveSelectedEntry()
-    @on 'tree-view:add', => @add()
-    @on 'tree-view:remove', => @removeSelectedEntry()
-    @on 'tree-view:directory-modified', =>
+    @command 'core:move-up', => @moveUp()
+    @command 'core:move-down', => @moveDown()
+    @command 'tree-view:expand-directory', => @expandDirectory()
+    @command 'tree-view:collapse-directory', => @collapseDirectory()
+    @command 'tree-view:open-selected-entry', => @openSelectedEntry(true)
+    @command 'tree-view:move', => @moveSelectedEntry()
+    @command 'tree-view:add', => @add()
+    @command 'tree-view:remove', => @removeSelectedEntry()
+    @command 'tree-view:directory-modified', =>
       if @hasFocus()
         @selectEntryForPath(@selectedPath) if @selectedPath
       else
         @selectActiveFile()
     @on 'tree-view:unfocus', => @rootView.focus()
-    @rootView.on 'tree-view:toggle', => @toggle()
-    @rootView.on 'tree-view:reveal-active-file', => @revealActiveFile()
+    @rootView.command 'tree-view:toggle', => @toggle()
+    @rootView.command 'tree-view:reveal-active-file', => @revealActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
     @rootView.project.on 'path-change', => @updateRoot()
 
