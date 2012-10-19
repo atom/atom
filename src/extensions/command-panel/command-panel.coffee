@@ -50,20 +50,20 @@ class CommandPanel extends View
     @history ?= []
     @historyIndex = @history.length
 
-    @on 'command-panel:unfocus', => @rootView.focus()
-    @on 'command-panel:close', => @detach()
+    @command 'command-panel:unfocus', => @rootView.focus()
+    @command 'command-panel:close', => @detach()
+    @command 'command-panel:execute', => @execute()
 
-    @rootView.on 'command-panel:toggle', => @toggle()
-    @rootView.on 'command-panel:toggle-preview', => @togglePreview()
-    @rootView.on 'command-panel:execute', => @execute()
-    @rootView.on 'command-panel:find-in-file', => @attach("/")
-    @rootView.on 'command-panel:find-in-project', => @attach("Xx/")
-    @rootView.on 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
-    @rootView.on 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
-    @rootView.on 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
+    @rootView.command 'command-panel:toggle', => @toggle()
+    @rootView.command 'command-panel:toggle-preview', => @togglePreview()
+    @rootView.command 'command-panel:find-in-file', => @attach("/")
+    @rootView.command 'command-panel:find-in-project', => @attach("Xx/")
+    @rootView.command 'command-panel:repeat-relative-address', => @repeatRelativeAddress()
+    @rootView.command 'command-panel:repeat-relative-address-in-reverse', => @repeatRelativeAddressInReverse()
+    @rootView.command 'command-panel:set-selection-as-regex-address', => @setSelectionAsLastRelativeAddress()
 
-    @on 'core:move-up', => @navigateBackwardInHistory()
-    @on 'core:move-down', => @navigateForwardInHistory()
+    @command 'core:move-up', => @navigateBackwardInHistory()
+    @command 'core:move-down', => @navigateForwardInHistory()
 
     @previewList.hide()
 
