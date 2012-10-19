@@ -1,3 +1,4 @@
+requireExtension 'event-palette'
 requireExtension 'autocomplete'
 requireExtension 'strip-trailing-whitespace'
 requireExtension 'fuzzy-finder'
