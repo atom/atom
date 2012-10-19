@@ -62,3 +62,10 @@ _.mixin
 
   capitalize: (word) ->
     word[0].toUpperCase() + word[1..]
+
+  losslessInvert: (hash) ->
+    inverted = {}
+    for key, value of hash
+      inverted[value] ?= []
+      inverted[value].push(key)
+    inverted

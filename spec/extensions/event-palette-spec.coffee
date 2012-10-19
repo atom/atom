@@ -17,15 +17,20 @@ describe "EventPalette", ->
     rootView.remove()
 
   describe "when event-palette:toggle is triggered on the root view", ->
-    it "shows a list of all valid events for the previously focused element, then focuses the mini-editor and selects the first event", ->
+    it "shows a list of all valid event descriptions, names, and keybindings for the previously focused element", ->
+      keyBindings = _.losslessInvert(keymap.bindingsForElement(rootView.getActiveEditor()))
       for eventName, description of rootView.getActiveEditor().events()
         eventLi = palette.list.children("[data-event-name='#{eventName}']")
         if description
           expect(eventLi).toExist()
           expect(eventLi.children('.event-name')).toHaveText(eventName)
           expect(eventLi.children('.event-description')).toHaveText(description)
+          for binding in keyBindings[eventName] ? []
+            expect(eventLi.children(".key-binding:contains(#{binding})")).toExist()
         else
           expect(eventLi).not.toExist()
+
+    it "focuses the mini-editor and selects the first event", ->
       expect(palette.miniEditor.isFocused).toBeTruthy()
       expect(palette.find('.event:first')).toHaveClass 'selected'
 

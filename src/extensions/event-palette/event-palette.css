@@ -7,12 +7,28 @@
   max-height: 300px;
 }
 
+.event-palette ol li {
+  padding: 2px;
+}
+
 .event-palette ol .event-description {
   float: left;
   display: inline-block;
 }
 
-.event-palette ol .event-name {
+.event-palette ol .event-name, .event-palette ol .key-binding {
   float: right;
   display: inline-block;
+  margin-right: .5em;
+  color: #ddd;
+  -webkit-border-radius: 3px;
+  padding: 0 4px;
+}
+
+.event-palette ol .event-name {
+  background: rgba(0, 0, 0, .2);
+}
+
+.event-palette ol .key-binding {
+  background: rgba(255, 255, 255, .1);
 }
