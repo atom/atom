@@ -104,7 +104,7 @@ describe "Keymap", ->
             expect(fooHandler2).not.toHaveBeenCalled()
             expect(deleteCharHandler).toHaveBeenCalled()
 
-          ffit "does not throw an exception if the event was not triggered by the keymap",  ->
+          it "does not throw an exception if the event was not triggered by the keymap",  ->
             fragment.find('.grandchild-node').trigger 'foo'
 
       describe "when the event bubbles to a node that matches multiple selectors", ->
