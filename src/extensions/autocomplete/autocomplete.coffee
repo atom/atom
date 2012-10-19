@@ -38,9 +38,9 @@ class Autocomplete extends View
     @editor.on 'editor-path-change', => @setCurrentBuffer(@editor.getBuffer())
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
-    @editor.on 'autocomplete:attach', => @attach()
-    @editor.on 'autocomplete:cancel', => @cancel()
-    @on 'autocomplete:confirm', => @confirm()
+    @editor.command 'autocomplete:attach', => @attach()
+    @editor.command 'autocomplete:cancel', => @cancel()
+    @command 'autocomplete:confirm', => @confirm()
 
     @matchesList.on 'mousedown', (e) =>
       index = $(e.target).attr('index')

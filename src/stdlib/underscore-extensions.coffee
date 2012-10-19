@@ -51,3 +51,21 @@ _.mixin
     # even though only some strictly require it when inside of []
     regex = RegExp('[' + specials.join('\\') + ']', 'g')
     string.replace(regex, "\\$&");
+
+  humanizeEventName: (eventName) ->
+    if /:/.test(eventName)
+      [namespace, name] = eventName.split(':')
+      return "#{@humanizeEventName(namespace)}: #{@humanizeEventName(name)}"
+
+    words = eventName.split('-')
+    words.map(_.capitalize).join(' ')
+
+  capitalize: (word) ->
+    word[0].toUpperCase() + word[1..]
+
+  losslessInvert: (hash) ->
+    inverted = {}
+    for key, value of hash
+      inverted[value] ?= []
+      inverted[value].push(key)
+    inverted

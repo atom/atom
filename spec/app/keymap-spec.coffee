@@ -86,7 +86,9 @@ describe "Keymap", ->
           expect(insertCharHandler).not.toHaveBeenCalled()
 
         describe "when 'abortKeyBinding' is called on the triggered event", ->
-          it "aborts the current event and tries again with the next-most-specific key binding",  ->
+          [fooHandler1, fooHandler2] = []
+
+          beforeEach ->
             fooHandler1 = jasmine.createSpy('fooHandler1').andCallFake (e) ->
               expect(deleteCharHandler).not.toHaveBeenCalled()
               e.abortKeyBinding()
@@ -95,11 +97,15 @@ describe "Keymap", ->
             fragment.find('.child-node').on 'foo', fooHandler1
             fragment.on 'foo', fooHandler2
 
+          it "aborts the current event and tries again with the next-most-specific key binding",  ->
             target = fragment.find('.grandchild-node')[0]
             keymap.handleKeyEvent(keydownEvent('x', target: target))
             expect(fooHandler1).toHaveBeenCalled()
             expect(fooHandler2).not.toHaveBeenCalled()
             expect(deleteCharHandler).toHaveBeenCalled()
+
+          it "does not throw an exception if the event was not triggered by the keymap",  ->
+            fragment.find('.grandchild-node').trigger 'foo'
 
       describe "when the event bubbles to a node that matches multiple selectors", ->
         describe "when the matching selectors differ in specificity", ->

@@ -1,42 +1,44 @@
 {View, $$} = require 'space-pen'
+SelectList = require 'select-list'
 stringScore = require 'stringscore'
 fuzzyFilter = require 'fuzzy-filter'
 $ = require 'jquery'
+_ = require 'underscore'
 Editor = require 'editor'
 
 module.exports =
-class FuzzyFinder extends View
+class FuzzyFinder extends SelectList
   @activate: (rootView) ->
+    requireStylesheet 'select-list.css'
+    requireStylesheet 'fuzzy-finder.css'
     @instance = new FuzzyFinder(rootView)
+    rootView.command 'fuzzy-finder:toggle-file-finder', => @instance.toggleFileFinder()
+    rootView.command 'fuzzy-finder:toggle-buffer-finder', => @instance.toggleBufferFinder()
 
-  @content: ->
-    @div class: 'fuzzy-finder', =>
-      @ol outlet: 'pathList'
-      @subview 'miniEditor', new Editor(mini: true)
+  @viewClass: ->
+    [super, 'fuzzy-finder'].join(' ')
 
-  paths: null
   allowActiveEditorChange: null
-  maxResults: null
+  maxItems: 10
 
   initialize: (@rootView) ->
-    requireStylesheet 'fuzzy-finder.css'
-    @maxResults = 10
+    super
 
-    @rootView.on 'fuzzy-finder:toggle-file-finder', => @toggleFileFinder()
-    @rootView.on 'fuzzy-finder:toggle-buffer-finder', => @toggleBufferFinder()
+  itemForElement: (path) ->
+    $$ -> @li path
 
-    @on 'fuzzy-finder:cancel', => @detach()
-    @on 'core:move-up', => @moveUp()
-    @on 'core:move-down', => @moveDown()
-    @on 'fuzzy-finder:select-path', => @select()
-    @on 'mousedown', 'li', (e) => @entryClicked(e)
+  confirmed : (path) ->
+    return unless path.length
+    @cancel()
+    @rootView.open(path, {@allowActiveEditorChange})
 
-    @miniEditor.getBuffer().on 'change', => @populatePathList() if @hasParent()
-    @miniEditor.off 'core:move-up core:move-down'
+  cancelled: ->
+    @miniEditor.setText('')
+    @rootView.focus() if @miniEditor.isFocused
 
   toggleFileFinder: ->
     if @hasParent()
-      @detach()
+      @cancel()
     else
       return unless @rootView.project.getPath()?
       @allowActiveEditorChange = false
@@ -45,71 +47,20 @@ class FuzzyFinder extends View
 
   toggleBufferFinder: ->
     if @hasParent()
-      @detach()
+      @cancel()
     else
       @allowActiveEditorChange = true
       @populateOpenBufferPaths()
       @attach() if @paths?.length
 
   populateProjectPaths: ->
-    @paths = @rootView.project.getFilePaths()
-    @populatePathList()
+    @setArray(@rootView.project.getFilePaths())
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>
       @rootView.project.relativize(path)
-    @populatePathList() if @paths?.length
+    @setArray(@paths)
 
   attach: ->
     @rootView.append(this)
     @miniEditor.focus()
-    @miniEditor.on 'focusout', => @detach()
-
-  detach: ->
-    @miniEditor.off 'focusout'
-    @rootView.focus()
-    super
-    @miniEditor.setText('')
-
-  populatePathList: ->
-    @pathList.empty()
-    for path in @findMatches(@miniEditor.getText())
-      @pathList.append $$ -> @li path
-
-    @pathList.children('li:first').addClass 'selected'
-
-  findSelectedLi: ->
-    @pathList.children('li.selected')
-
-  open : (path) ->
-    return unless path.length
-    @rootView.open(path, {@allowActiveEditorChange})
-    @detach()
-
-  select: ->
-    @open(@findSelectedLi().text())
-
-  entryClicked: (e) ->
-    @open($(e.currentTarget).text())
-    false
-
-  moveUp: ->
-    selected = @findSelectedLi().removeClass('selected')
-
-    if selected.filter(':not(:first-child)').length is 0
-      selected = @pathList.children('li:last')
-    else
-      selected = selected.prev()
-    selected.addClass('selected')
-
-  moveDown: ->
-    selected = @findSelectedLi().removeClass('selected')
-
-    if selected.filter(':not(:last-child)').length is 0
-      selected = @pathList.children('li:first')
-    else
-      selected = selected.next()
-    selected.addClass('selected')
-
-  findMatches: (query) ->
-    fuzzyFilter(@paths, query, maxResults: @maxResults)

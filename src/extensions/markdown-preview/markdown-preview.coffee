@@ -15,11 +15,11 @@ class MarkdownPreview extends ScrollView
 
   initialize: (@rootView) ->
     super
-    @rootView.on 'markdown-preview:attach', =>
+    @rootView.command 'markdown-preview:attach', =>
       path = rootView.getActiveEditor()?.getPath()
       @attach() if @isMarkdownFile(path)
 
-    @on 'markdown-preview:detach', => @detach()
+    @command 'markdown-preview:detach', => @detach()
 
   attach: ->
     @rootView.append(this)

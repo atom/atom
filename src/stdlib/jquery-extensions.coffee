@@ -1,4 +1,5 @@
 $ = require 'jquery'
+_ = require 'underscore'
 
 $.fn.scrollBottom = (newValue) ->
   if newValue?
@@ -48,3 +49,28 @@ $.fn.trueHeight = ->
 
 $.fn.trueWidth = ->
   this[0].getBoundingClientRect().width
+
+$.fn.document = (eventDescriptions) ->
+  @data('documentation', {}) unless @data('documentation')
+  _.extend(@data('documentation'), eventDescriptions)
+
+$.fn.events = ->
+  documentation = @data('documentation') ? {}
+  events = {}
+
+  for eventName of @data('events') ? {}
+    events[eventName] = documentation[eventName] ? null
+
+  if @hasParent()
+    _.extend(@parent().events(), events)
+  else
+    events
+
+$.fn.command = (args...) ->
+  eventName = args[0]
+  documentation = {}
+  documentation[eventName] = _.humanizeEventName(eventName)
+  @document(documentation)
+  @on(args...)
+
+$.Event.prototype.abortKeyBinding = ->

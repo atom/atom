@@ -93,16 +93,8 @@ class Editor extends View
     editorBindings =
       'core:move-left': @moveCursorLeft
       'core:move-right': @moveCursorRight
-      'core:move-to-top': @moveCursorToTop
-      'core:move-to-bottom': @moveCursorToBottom
-      'core:page-down': @pageDown
-      'core:page-up': @pageUp
-      'core:select-up': @selectUp
-      'core:select-down': @selectDown
       'core:select-left': @selectLeft
       'core:select-right': @selectRight
-      'core:select-to-top': @selectToTop
-      'core:select-to-bottom': @selectToBottom
       'core:select-all': @selectAll
       'core:backspace': @backspace
       'core:delete': @delete
@@ -137,6 +129,14 @@ class Editor extends View
       _.extend editorBindings,
         'core:move-up': @moveCursorUp
         'core:move-down': @moveCursorDown
+        'core:move-to-top': @moveCursorToTop
+        'core:move-to-bottom': @moveCursorToBottom
+        'core:page-down': @pageDown
+        'core:page-up': @pageUp
+        'core:select-up': @selectUp
+        'core:select-down': @selectDown
+        'core:select-to-top': @selectToTop
+        'core:select-to-bottom': @selectToBottom
         'core:close': @close
         'editor:save': @save
         'editor:newline-below': @insertNewlineBelow
@@ -155,9 +155,10 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
 
+    documentation = {}
     for name, method of editorBindings
       do (name, method) =>
-        @on name, => method.call(this); false
+        @command name, => method.call(this); false
 
   getCursor: (index) -> @activeEditSession.getCursor(index)
   getCursors: -> @activeEditSession.getCursors()

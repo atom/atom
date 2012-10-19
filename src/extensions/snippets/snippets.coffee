@@ -24,7 +24,7 @@ module.exports =
     @snippetsByExtension[extension] = @snippetsParser.parse(text)
 
   enableSnippetsInEditor: (editor) ->
-    editor.on 'snippets:expand', (e) =>
+    editor.command 'snippets:expand', (e) =>
       editSession = editor.activeEditSession
       prefix = editSession.getLastCursor().getCurrentWordPrefix()
       if snippet = @snippetsByExtension[editSession.getFileExtension()]?[prefix]
@@ -37,10 +37,10 @@ module.exports =
       else
         e.abortKeyBinding()
 
-    editor.on 'snippets:next-tab-stop', (e) ->
+    editor.command 'snippets:next-tab-stop', (e) ->
       unless editor.activeEditSession.snippetExpansion?.goToNextTabStop()
         e.abortKeyBinding()
 
-    editor.on 'snippets:previous-tab-stop', (e) ->
+    editor.command 'snippets:previous-tab-stop', (e) ->
       unless editor.activeEditSession.snippetExpansion?.goToPreviousTabStop()
         e.abortKeyBinding()
