@@ -56,6 +56,7 @@ describe 'jQuery extensions', ->
       view.document 'a1': "A1: Waste perfectly-good steak"
       view.on 'a1', ->
       view.on 'a2', ->
+      view.on 'b1', -> # should not appear as a duplicate
 
       divB = view.find('#b')
 
@@ -68,10 +69,9 @@ describe 'jQuery extensions', ->
       view.find('#c').on 'c', ->
       view.find('#d').on 'd', ->
 
-      expect(view.find('#c').events()).toEqual [
-        ['c'],
-        ['b1', "B1: Super-sonic bomber"],
-        ['b2', "B2: Looks evil. Kinda is."],
-        ['a1', "A1: Waste perfectly-good steak"],
-        ['a2']
-      ]
+      expect(view.find('#c').events()).toEqual
+        'c': null
+        'b1': "B1: Super-sonic bomber"
+        'b2': "B2: Looks evil. Kinda is."
+        'a1': "A1: Waste perfectly-good steak"
+        'a2': null

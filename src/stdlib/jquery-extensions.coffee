@@ -56,10 +56,12 @@ $.fn.document = (eventDescriptions) ->
 
 $.fn.events = ->
   documentation = @data('documentation') ? {}
-  events = _.keys(@data('events') ? {}).map (eventName) ->
-    _.compact([eventName, documentation[eventName]])
+  events = {}
+
+  for eventName of @data('events') ? {}
+    events[eventName] = documentation[eventName] ? null
 
   if @hasParent()
-    events.concat(@parent().events())
+    _.extend(@parent().events(), events)
   else
     events

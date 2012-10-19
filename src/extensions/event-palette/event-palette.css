@@ -6,3 +6,13 @@
 .event-palette ol {
   max-height: 300px;
 }
+
+.event-palette ol .event-description {
+  float: left;
+  display: inline-block;
+}
+
+.event-palette ol .event-name {
+  float: right;
+  display: inline-block;
+}

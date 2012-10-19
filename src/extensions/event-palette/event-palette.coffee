@@ -13,7 +13,7 @@ class EventPalette extends SelectList
   @viewClass: ->
     "#{super} event-palette"
 
-  filterKey: 0 # filter on the event name for now
+  filterKey: 'eventDescription'
 
   initialize: (@rootView) ->
     @on 'event-palette:toggle', => @cancel()
@@ -21,29 +21,22 @@ class EventPalette extends SelectList
 
   attach: ->
     @previouslyFocusedElement = $(':focus')
-    @setArray(@previouslyFocusedElement.events())
+    events = []
+    for eventName, eventDescription of @previouslyFocusedElement.events()
+      events.push({eventName, eventDescription}) if eventDescription
+    @setArray(events)
     @appendTo(@rootView)
     @miniEditor.setText('')
     @miniEditor.focus()
 
-  itemForElement: ([eventName, description]) ->
+  itemForElement: ({eventName, eventDescription}) ->
     $$ ->
-      @li class: 'event', =>
+      @li class: 'event', 'data-event-name': eventName, =>
+        @div eventDescription, class: 'event-description'
         @div eventName, class: 'event-name'
-        @div description, class: 'event-description'
+        @div class: 'clear-float'
 
-  populateEventList: ->
-    events = @previouslyFocusedElement.events()
-    table = $$ ->
-      @table =>
-        for [event, description] in events
-          @tr class: 'event', =>
-            @td event, class: 'event-name'
-            @td description if description
-
-    @eventList.html(table)
-
-  confirmed: ([eventName, description]) ->
+  confirmed: ({eventName}) ->
     @cancel()
     @previouslyFocusedElement.trigger(eventName)
 

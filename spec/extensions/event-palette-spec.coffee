@@ -18,9 +18,14 @@ describe "EventPalette", ->
 
   describe "when event-palette:toggle is triggered on the root view", ->
     it "shows a list of all valid events for the previously focused element, then focuses the mini-editor and selects the first event", ->
-      for [event, description] in rootView.getActiveEditor().events()
-        expect(palette.list.find(".event:contains(#{event})")).toExist()
-
+      for eventName, description of rootView.getActiveEditor().events()
+        eventLi = palette.list.children("[data-event-name='#{eventName}']")
+        if description
+          expect(eventLi).toExist()
+          expect(eventLi.children('.event-name')).toHaveText(eventName)
+          expect(eventLi.children('.event-description')).toHaveText(description)
+        else
+          expect(eventLi).not.toExist()
       expect(palette.miniEditor.isFocused).toBeTruthy()
       expect(palette.find('.event:first')).toHaveClass 'selected'
 
@@ -48,10 +53,10 @@ describe "EventPalette", ->
     it "detaches the palette, then focuses the previously focused element and emits the selected event on it", ->
       eventHandler = jasmine.createSpy 'eventHandler'
       activeEditor = rootView.getActiveEditor()
-      [eventName, description] = palette.array[4]
+      {eventName} = palette.array[5]
       activeEditor.preempt eventName, eventHandler
 
-      palette.confirmed(palette.array[4])
+      palette.confirmed(palette.array[5])
 
       expect(activeEditor.isFocused).toBeTruthy()
       expect(eventHandler).toHaveBeenCalled()

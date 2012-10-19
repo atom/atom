@@ -155,9 +155,13 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
 
+    documentation = {}
     for name, method of editorBindings
+      documentation[name] = _.humanizeEventName(name)
       do (name, method) =>
         @on name, => method.call(this); false
+
+    @document(documentation)
 
   getCursor: (index) -> @activeEditSession.getCursor(index)
   getCursors: -> @activeEditSession.getCursors()
