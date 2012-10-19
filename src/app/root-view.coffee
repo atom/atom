@@ -74,11 +74,11 @@ class RootView extends View
       @project.setPath(path) unless @project.getRootDirectory()
       @setTitle(path)
 
-    @command 'root-view:increase-font-size', => @setFontSize(@getFontSize() + 1)
-    @command 'root-view:decrease-font-size', => @setFontSize(@getFontSize() - 1)
-    @command 'root-view:focus-next-pane', => @focusNextPane()
-    @command 'root-view:save-all', => @saveAll()
-    @command 'root-view:toggle-invisibles', => @setShowInvisibles(not @showInvisibles)
+    @command 'window:increase-font-size', => @setFontSize(@getFontSize() + 1)
+    @command 'window:decrease-font-size', => @setFontSize(@getFontSize() - 1)
+    @command 'window:focus-next-pane', => @focusNextPane()
+    @command 'window:save-all', => @saveAll()
+    @command 'window:toggle-invisibles', => @setShowInvisibles(not @showInvisibles)
 
   afterAttach: (onDom) ->
     @focus() if onDom

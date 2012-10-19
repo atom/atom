@@ -32,7 +32,7 @@ describe "WrapGuide", ->
     it "updates the wrap guide position", ->
       initial = wrapGuide.position().left
       expect(initial).toBeGreaterThan(0)
-      rootView.trigger('root-view:increase-font-size')
+      rootView.trigger('window:increase-font-size')
       expect(wrapGuide.position().left).toBeGreaterThan(initial)
 
   describe "overriding getGuideColumn", ->

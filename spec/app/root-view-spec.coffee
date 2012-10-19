@@ -542,13 +542,13 @@ describe "RootView", ->
   describe "font size adjustment", ->
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
       fontSizeBefore = rootView.getFontSize()
-      rootView.trigger 'root-view:increase-font-size'
+      rootView.trigger 'window:increase-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore + 1
-      rootView.trigger 'root-view:increase-font-size'
+      rootView.trigger 'window:increase-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore + 2
-      rootView.trigger 'root-view:decrease-font-size'
+      rootView.trigger 'window:decrease-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore + 1
-      rootView.trigger 'root-view:decrease-font-size'
+      rootView.trigger 'window:decrease-font-size'
       expect(rootView.getFontSize()).toBe fontSizeBefore
 
     it "does not allow the font size to be less than 1", ->
@@ -701,14 +701,14 @@ describe "RootView", ->
       expect(rightEditor.find(".line:first").text()).toBe "    "
       expect(leftEditor.find(".line:first").text()).toBe "    "
 
-      rootView.trigger "root-view:toggle-invisibles"
+      rootView.trigger "window:toggle-invisibles"
       expect(rightEditor.find(".line:first").text()).toBe "•▸ •¬"
       expect(leftEditor.find(".line:first").text()).toBe "•▸ •¬"
 
       lowerLeftEditor = leftEditor.splitDown()
       expect(lowerLeftEditor.find(".line:first").text()).toBe "•▸ •¬"
 
-      rootView.trigger "root-view:toggle-invisibles"
+      rootView.trigger "window:toggle-invisibles"
       expect(rightEditor.find(".line:first").text()).toBe "    "
       expect(leftEditor.find(".line:first").text()).toBe "    "
 
