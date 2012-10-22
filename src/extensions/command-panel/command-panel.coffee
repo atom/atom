@@ -50,9 +50,9 @@ class CommandPanel extends View
     @history ?= []
     @historyIndex = @history.length
 
-    @command 'command-panel:unfocus', => @rootView.focus()
-    @command 'command-panel:close', => @detach()
-    @command 'command-panel:execute', => @execute()
+    @command 'core:cancel', => @rootView.focus()
+    @command 'core:close', => @detach()
+    @command 'core:confirm', => @execute()
 
     @rootView.command 'command-panel:toggle', => @toggle()
     @rootView.command 'command-panel:toggle-preview', => @togglePreview()

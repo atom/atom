@@ -78,10 +78,10 @@ describe "CommandPanel", ->
 
       rootView2.deactivate()
 
-  describe "when command-panel:close is triggered on the command panel", ->
+  describe "when core:close is triggered on the command panel", ->
     it "detaches the command panel", ->
       commandPanel.attach()
-      commandPanel.trigger('command-panel:close')
+      commandPanel.trigger('core:close')
       expect(commandPanel.hasParent()).toBeFalsy()
 
   describe "when command-panel:toggle is triggered on the root view", ->
@@ -188,12 +188,12 @@ describe "CommandPanel", ->
       describe "when the command panel is not visible", ->
         it "shows the command panel and focuses the mini editor, but does not show the preview list", ->
 
-  describe "when command-panel:unfocus is triggered on the command panel", ->
+  describe "when core:cancel is triggered on the command panel", ->
     it "returns focus to the root view but does not hide the command panel", ->
       rootView.attachToDom()
       commandPanel.attach()
       expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
-      commandPanel.trigger 'command-panel:unfocus'
+      commandPanel.trigger 'core:cancel'
       expect(commandPanel.hasParent()).toBeTruthy()
       expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
 
@@ -370,16 +370,16 @@ describe "CommandPanel", ->
 
         _.times previewList.getOperations().length, -> previewList.trigger 'core:move-up'
 
-    describe "when command-panel:execute is triggered on the preview list", ->
+    describe "when core:confirm is triggered on the preview list", ->
       it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
         spyOn(rootView, 'focus')
         executeHandler = jasmine.createSpy('executeHandler')
-        commandPanel.on 'command-panel:execute', executeHandler
+        commandPanel.on 'core:confirm', executeHandler
 
         _.times 4, -> previewList.trigger 'core:move-down'
         operation = previewList.getSelectedOperation()
 
-        previewList.trigger 'command-panel:execute'
+        previewList.trigger 'core:confirm'
 
         editSession = rootView.getActiveEditSession()
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())

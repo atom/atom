@@ -5,9 +5,7 @@ window.keymap.bindKeys '*'
   'meta-F': 'command-panel:find-in-project'
 
 window.keymap.bindKeys '.command-panel .preview-list, .command-panel .editor input',
-  'meta-w': 'command-panel:close'
-  escape: 'command-panel:unfocus'
-  enter: 'command-panel:execute'
+  'enter': 'core:confirm'
 
 window.keymap.bindKeys '.editor',
   'meta-g': 'command-panel:repeat-relative-address'
