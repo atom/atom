@@ -56,8 +56,11 @@ class OnigScannerUserData : public CefBase {
 
       bool useCachedResult = false;
       OnigResult *result = NULL;
-
-      if (useCachedResults && index <= maxCachedIndex) {
+      
+      // In Oniguruma, \G is based on the start position of the match, so the result
+      // changes based on the start position. So it can't be cached.
+      BOOL containsBackslashG = [regExp.expression rangeOfString:@"\\G"].location != NSNotFound;
+      if (useCachedResults && index <= maxCachedIndex && ! containsBackslashG) {
         result = cachedResults[index];
         useCachedResult = (result == NULL || [result locationAt:0] >= startLocation);
       }

@@ -239,3 +239,8 @@ describe "TextMateGrammar", ->
       expect(tokens.length).toBe 2
       expect(tokens[0].value).toBe "//"
       expect(tokens[1].value).toBe " a singleLineComment"
+
+    it "does not loop infinitley (regression)", ->
+      grammar = TextMateBundle.grammarForFileName("hello.js")
+      {tokens, stack} = grammar.getLineTokens("// line comment")
+      {tokens, stack} = grammar.getLineTokens(" // second line comment with a single leading space", stack)
