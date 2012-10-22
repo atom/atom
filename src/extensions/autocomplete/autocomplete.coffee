@@ -39,8 +39,8 @@ class Autocomplete extends View
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
     @editor.command 'autocomplete:attach', => @attach()
-    @editor.command 'autocomplete:cancel', => @cancel()
-    @command 'autocomplete:confirm', => @confirm()
+    @editor.command 'core:cancel', => @cancel()
+    @command 'core:confirm', => @confirm()
 
     @matchesList.on 'mousedown', (e) =>
       index = $(e.target).attr('index')
