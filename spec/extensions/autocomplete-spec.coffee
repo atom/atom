@@ -31,9 +31,11 @@ describe "Autocomplete", ->
       expect(leftEditor.find('.autocomplete')).toExist()
       expect(rightEditor.find('.autocomplete')).not.toExist()
 
-      leftEditor.trigger 'core:cancel'
-      rightEditor.trigger 'autocomplete:attach'
+      autoCompleteView = leftEditor.find('.autocomplete').view()
+      autoCompleteView.trigger 'core:cancel'
       expect(leftEditor.find('.autocomplete')).not.toExist()
+
+      rightEditor.trigger 'autocomplete:attach'
       expect(rightEditor.find('.autocomplete')).toExist()
 
       expect(Autocomplete.prototype.initialize).not.toHaveBeenCalled()
