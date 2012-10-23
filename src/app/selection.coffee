@@ -159,10 +159,12 @@ class Selection
     textPrecedingCursor = @editSession.buffer.getTextInRange([[currentBufferRow, 0], [currentBufferRow, currentBufferColumn]])
     insideExistingLine = textPrecedingCursor.match(/\S/)
 
-    if insideExistingLine or not @editSession.autoIndent
+    if insideExistingLine
       desiredBase = @editSession.indentationForBufferRow(currentBufferRow)
-    else
+    else if @editSession.autoIndent
       desiredBase = @editSession.suggestedIndentForBufferRow(currentBufferRow)
+    else
+      desiredBase = currentBufferColumn
 
     currentBase = lines[0].match(/\s*/)[0].length
     delta = desiredBase - currentBase
@@ -172,7 +174,8 @@ class Selection
         if insideExistingLine
           firstLineDelta = -line.length # remove all leading whitespace
         else
-          firstLineDelta = delta - @editSession.indentationForBufferRow(currentBufferRow)
+          firstLineDelta = delta - currentBufferColumn
+
         normalizedLines.push(@adjustIndentationForLine(line, firstLineDelta))
       else
         normalizedLines.push(@adjustIndentationForLine(line, delta))

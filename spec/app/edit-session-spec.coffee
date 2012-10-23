@@ -730,13 +730,14 @@ describe "EditSession", ->
 
               describe "when the cursor's current column is less than the suggested indent level", ->
                 it "indents all lines relative to the suggested indent", ->
-                  editSession.insertText('\n ')
+                  editSession.insertText('\n xx')
+                  editSession.setCursorBufferPosition([3, 1])
                   editSession.insertText(text, normalizeIndent: true)
 
                   expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
                   expect(editSession.lineForBufferRow(4)).toBe "      foo();"
                   expect(editSession.lineForBufferRow(5)).toBe "    }"
-                  expect(editSession.lineForBufferRow(6)).toBe "  bar();"
+                  expect(editSession.lineForBufferRow(6)).toBe "  bar();xx"
 
               describe "when the cursor's current column is greater than the suggested indent level", ->
                 it "preserves the current indent level, indenting all lines relative to it", ->
