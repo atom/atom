@@ -188,12 +188,12 @@ describe "CommandPanel", ->
       describe "when the command panel is not visible", ->
         it "shows the command panel and focuses the mini editor, but does not show the preview list", ->
 
-  describe "when core:cancel is triggered on the command panel", ->
+  describe "when tool-pane:unfocus is triggered on the command panel", ->
     it "returns focus to the root view but does not hide the command panel", ->
       rootView.attachToDom()
       commandPanel.attach()
       expect(commandPanel.miniEditor.hiddenInput).toMatchSelector ':focus'
-      commandPanel.trigger 'core:cancel'
+      commandPanel.trigger 'tool-pane:unfocus'
       expect(commandPanel.hasParent()).toBeTruthy()
       expect(commandPanel.miniEditor.hiddenInput).not.toMatchSelector ':focus'
 
