@@ -108,6 +108,7 @@ class EditSession
   setSoftWrap: (@softWrap) ->
 
   getTabText: -> new Array(@tabLength + 1).join(" ")
+  getTabLength: -> @tabLength
 
   clipBufferPosition: (bufferPosition) ->
     @buffer.clipPosition(bufferPosition)

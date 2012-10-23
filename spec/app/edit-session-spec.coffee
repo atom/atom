@@ -1291,6 +1291,27 @@ describe "EditSession", ->
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
           expect(editSession.getSelectedBufferRange()).toEqual [[1, 3 - editSession.tabLength], [1, 3 - editSession.tabLength]]
 
+        it "outdents when indent is less than a tab length", ->
+          editSession.insertText(' ')
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+
+        it "outdents a single hard tab when indent is multiple hard tabs and and the session is using soft tabs", ->
+          editSession.insertText('\t\t')
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "\tvar quicksort = function () {"
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+
+        it "outdents when a mix of hard tabs and soft tabs are used", ->
+          editSession.insertText('\t   ')
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "   var quicksort = function () {"
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe " var quicksort = function () {"
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+
       describe "when one line is selected", ->
         it "outdents line and retains editSession", ->
           editSession.setSelectedBufferRange([[1,4], [1,14]])
