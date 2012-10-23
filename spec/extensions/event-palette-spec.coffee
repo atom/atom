@@ -23,10 +23,10 @@ describe "EventPalette", ->
         eventLi = palette.list.children("[data-event-name='#{eventName}']")
         if description
           expect(eventLi).toExist()
-          expect(eventLi.children('.event-name')).toHaveText(eventName)
-          expect(eventLi.children('.event-description')).toHaveText(description)
+          expect(eventLi.find('.event-name')).toHaveText(eventName)
+          expect(eventLi.find('.event-description')).toHaveText(description)
           for binding in keyBindings[eventName] ? []
-            expect(eventLi.children(".key-binding:contains(#{binding})")).toExist()
+            expect(eventLi.find(".key-binding:contains(#{binding})")).toExist()
         else
           expect(eventLi).not.toExist()
 
