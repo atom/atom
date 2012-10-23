@@ -214,7 +214,7 @@ class Editor extends View
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
   deleteLine: -> @activeEditSession.deleteLine()
   cutToEndOfLine: -> @activeEditSession.cutToEndOfLine()
-  insertText: (text) -> @activeEditSession.insertText(text)
+  insertText: (text, options) -> @activeEditSession.insertText(text, options)
   insertNewline: -> @activeEditSession.insertNewline()
   insertNewlineBelow: -> @activeEditSession.insertNewlineBelow()
   indent: -> @activeEditSession.indent()
@@ -327,7 +327,7 @@ class Editor extends View
       @selectOnMousemoveUntilMouseup()
 
     @on "textInput", (e) =>
-      @insertText(e.originalEvent.data)
+      @insertText(e.originalEvent.data, autoIndent: true)
       false
 
     @scrollView.on 'mousewheel', (e) =>

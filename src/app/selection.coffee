@@ -141,16 +141,9 @@ class Selection
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
-    autoIndent = options.autoIndent ? true
-
-    if @editSession.autoIndent and autoIndent
-      if /\n/.test(text)
-        firstLinePrefix = @editSession.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
-        if /^\s*$/.test(firstLinePrefix)
-          @editSession.autoIncreaseIndentForBufferRow(newBufferRange.start.row)
-
-        if newBufferRange.getRowCount() > 1
-          @editSession.autoIndentBufferRows(newBufferRange.start.row + 1, newBufferRange.end.row)
+    if @editSession.autoIndent and options.autoIndent
+      if text == '\n'
+        @editSession.autoIndentBufferRow(newBufferRange.end.row)
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 

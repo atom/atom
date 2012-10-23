@@ -142,7 +142,7 @@ class EditSession
     @mutateSelectedText (selection) -> selection.insertText(text, options)
 
   insertNewline: ->
-    @insertText('\n')
+    @insertText('\n', autoIndent: true)
 
   insertNewlineBelow: ->
     @moveCursorToEndOfLine()
