@@ -39,7 +39,7 @@ class Autocomplete extends View
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
     @editor.command 'autocomplete:attach', => @attach()
-    @editor.command 'core:cancel', => @cancel()
+    @command 'core:cancel', => @cancel()
     @command 'core:confirm', => @confirm()
 
     @matchesList.on 'mousedown', (e) =>
