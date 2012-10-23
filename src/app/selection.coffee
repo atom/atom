@@ -168,11 +168,11 @@ class Selection
     normalizedLines.join('\n')
 
   adjustIndentationForLine: (line, delta) ->
-    indentText = new Array(Math.abs(delta + 1)).join(' ')
+    indentText = new Array(Math.abs(delta) + 1).join(' ')
     if delta > 0
       indentText + line
     else if delta < 0
-      line.replace(indentText, '')
+      line.replace(new RegExp("^#{indentText}"), '')
     else
       line
 
