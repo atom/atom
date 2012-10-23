@@ -28,3 +28,6 @@ window.keymap.bindKeys 'body'
   'ctrl-w w': 'window:focus-next-pane'
 
   'alt-meta-i': 'toggle-dev-tools'
+
+window.keymap.bindKeys '.tool-panel'
+  'escape': 'tool-panel:unfocus'

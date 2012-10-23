@@ -2,7 +2,7 @@ $ = require 'jquery'
 RootView = require 'root-view'
 MarkdownPreview = require 'markdown-preview'
 
-fdescribe "MarkdownPreview", ->
+describe "MarkdownPreview", ->
   [rootView, markdownPreview] = []
 
   beforeEach ->
