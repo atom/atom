@@ -52,7 +52,7 @@ class OutlineView extends SelectList
           column: matches[1].length
           name: matches[2]
     @setArray(functions)
-    true
+    return functions.length > 0
 
   confirmed : ({row, column, name}) ->
     @cancel()

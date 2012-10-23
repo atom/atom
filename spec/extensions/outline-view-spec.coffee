@@ -27,3 +27,9 @@ describe "OutlineView", ->
     expect(rootView.find('.outline-view')).not.toExist()
     rootView.trigger 'outline-view:toggle'
     expect(rootView.find('.outline-view')).not.toExist()
+
+  it "doesn't display when no functions exist", ->
+    rootView.open(require.resolve('fixtures/sample-with-tabs.coffee'))
+    expect(rootView.find('.outline-view')).not.toExist()
+    rootView.trigger 'outline-view:toggle'
+    expect(rootView.find('.outline-view')).not.toExist()
