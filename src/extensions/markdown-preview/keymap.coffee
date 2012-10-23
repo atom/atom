@@ -1,5 +1,5 @@
 window.keymap.bindKeys '.editor',
-  'meta-P': 'markdown-preview:attach'
+  'meta-P': 'markdown-preview:toggle'
 
 window.keymap.bindKeys '.markdown-preview',
-  'escape': 'markdown-preview:detach'
+  'meta-P': 'markdown-preview:toggle'
