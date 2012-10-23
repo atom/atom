@@ -1,8 +1,5 @@
 {View, $$} = require 'space-pen'
 SelectList = require 'select-list'
-stringScore = require 'stringscore'
-fuzzyFilter = require 'fuzzy-filter'
-$ = require 'jquery'
 _ = require 'underscore'
 Editor = require 'editor'
 
