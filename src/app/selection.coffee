@@ -137,6 +137,7 @@ class Selection
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
+    text = @normalizeIndent(text) if options.normalizeIndent
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
@@ -146,6 +147,34 @@ class Selection
         @editSession.autoIndentBufferRow(newBufferRange.end.row)
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
+
+  normalizeIndent: (text) ->
+    return text unless /\n/.test(text)
+
+    lines = text.split('\n')
+    normalizedLines = []
+
+    desiredBase = @editSession.suggestedIndentForBufferRow(@cursor.getBufferRow())
+    currentBase = lines[0].match(/\s*/)[0].length
+    delta = desiredBase - currentBase
+
+    for line, i in lines
+      if i == 0
+        firstLineDelta = delta - @editSession.indentationForBufferRow(@cursor.getBufferRow())
+        normalizedLines.push(@adjustIndentationForLine(line, firstLineDelta))
+      else
+        normalizedLines.push(@adjustIndentationForLine(line, delta))
+
+    normalizedLines.join('\n')
+
+  adjustIndentationForLine: (line, delta) ->
+    indentText = new Array(Math.abs(delta + 1)).join(' ')
+    if delta > 0
+      indentText + line
+    else if delta < 0
+      line.replace(indentText, '')
+    else
+      line
 
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())

@@ -705,6 +705,50 @@ describe "EditSession", ->
               editSession.insertText('foo', autoIndent: true)
               expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
 
+      fdescribe "when the `normalizeIndent` option is true", ->
+        describe "when the inserted text contains no newlines", ->
+          it "does not adjust the indentation level of the text", ->
+            editSession.setCursorBufferPosition([5, 2])
+            editSession.insertText("foo", normalizeIndent: true)
+            expect(editSession.lineForBufferRow(5)).toBe "  foo    current = items.shift();"
+
+        describe "when the inserted text contains newlines", ->
+          text = null
+          beforeEach ->
+            text = """
+              while (true) {
+                foo();
+              }
+            bar();
+            """
+
+          describe "when the cursor is preceded only by whitespace", ->
+            beforeEach ->
+              editSession.setCursorBufferPosition([2, Infinity])
+
+            describe "when auto-indent is enabled", ->
+              beforeEach ->
+                editSession.setAutoIndent(true)
+
+              describe "when the cursor's current column is less than the suggested indent level", ->
+                it "indents all lines relative to the suggested indent", ->
+                  editSession.insertText('\n ')
+                  editSession.insertText(text, normalizeIndent: true)
+
+                  expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
+                  expect(editSession.lineForBufferRow(4)).toBe "      foo();"
+                  expect(editSession.lineForBufferRow(5)).toBe "    }"
+                  expect(editSession.lineForBufferRow(6)).toBe "  bar();"
+
+              describe "when the cursor's current column is greater than the suggested indent level", ->
+                it "preserves the current indent level, indenting all lines relative to it", ->
+
+            describe "if auto-indent is disabled", ->
+              it "always normalizes indented lines to the cursor's current indentation level", ->
+
+          describe "when the cursor is preceded by non-whitespace characters", ->
+            it "normalizes the indentation level of all lines based on the level of the existing first line", ->
+
     describe ".insertNewline()", ->
       describe "when there is a single cursor", ->
         describe "when the cursor is at the beginning of a line", ->

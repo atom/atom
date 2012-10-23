@@ -256,6 +256,9 @@ class EditSession
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
 
+  suggestedIndentForBufferRow: (bufferRow) ->
+    @languageMode.suggestedIndentForBufferRow(bufferRow)
+
   autoIndentBufferRows: (startRow, endRow) ->
     @languageMode.autoIndentBufferRows(startRow, endRow)
 
