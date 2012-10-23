@@ -705,7 +705,7 @@ describe "EditSession", ->
               editSession.insertText('foo', autoIndent: true)
               expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
 
-      fdescribe "when the `normalizeIndent` option is true", ->
+      describe "when the `normalizeIndent` option is true", ->
         describe "when the inserted text contains no newlines", ->
           it "does not adjust the indentation level of the text", ->
             editSession.setCursorBufferPosition([5, 2])
