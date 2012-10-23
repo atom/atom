@@ -1,7 +1,5 @@
 {View, $$} = require 'space-pen'
 SelectList = require 'select-list'
-stringScore = require 'stringscore'
-fuzzyFilter = require 'fuzzy-filter'
 _ = require 'underscore'
 Editor = require 'editor'
 
@@ -33,41 +31,28 @@ class OutlineView extends SelectList
     if @hasParent()
       @cancel()
     else
-      @populate()
-      @attach()
+      @attach() if @populate()
 
   populate: ->
     editor = @rootView.getActiveEditor()
     session = editor.activeEditSession
-    buffer = session.buffer
-    language = session.tokenizedBuffer.languageMode
+    language = session.tokenizedBuffer.languageMode.grammar.name
+    return false unless language is "CoffeeScript"
 
     functions = []
-    functionTester = (scope) ->
-      scope.indexOf('entity.name.function.') is 0
-    registerFunction = (row, column, name) ->
-      return unless name.length > 0
-      functions.push
-        row: row
-        column: column
-        name: name
-
-    for row in [0...editor.getLineCount()]
-      line = buffer.lineForRow(row)
+    functionRegex = /(\s*)(@?[a-zA-Z$_]+)\s*(=|\:)\s*(\([^\)]*\))?\s*(-|=)>/
+    lineCount = editor.getLineCount()
+    for row in [0...lineCount]
+      line = session.buffer.lineForRow(row)
       continue unless line.length
-      {tokens} = language.getLineTokens(line)
-      name = ''
-      column = 0
-      for token in tokens
-        if _.find(token.scopes, functionTester)
-          name += token.value
-        else
-          registerFunction(row, column, name)
-          column += token.value.length
-          name = ''
-      registerFunction(row, column, name)
-
+      matches = line.match(functionRegex)
+      if matches
+        functions.push
+          row: row
+          column: matches[1].length
+          name: matches[2]
     @setArray(functions)
+    true
 
   confirmed : ({row, column, name}) ->
     return unless name.length
