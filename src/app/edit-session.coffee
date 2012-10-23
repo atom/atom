@@ -201,7 +201,7 @@ class EditSession
       maintainPasteboard = true
 
   pasteText: ->
-    @insertText($native.readFromPasteboard())
+    @insertText($native.readFromPasteboard(), normalizeIndent: true)
 
   undo: ->
     @buffer.undo(this)
