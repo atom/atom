@@ -37,7 +37,7 @@ class OutlineView extends SelectList
     editor = @rootView.getActiveEditor()
     session = editor.activeEditSession
     language = session.tokenizedBuffer.languageMode.grammar.name
-    return false unless language is "CoffeeScript"
+    return false unless language is 'CoffeeScript'
 
     functions = []
     functionRegex = /(\s*)(@?[a-zA-Z$_]+)\s*(=|\:)\s*(\([^\)]*\))?\s*(-|=)>/
