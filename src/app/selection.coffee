@@ -151,16 +151,20 @@ class Selection
   normalizeIndent: (text) ->
     return text unless /\n/.test(text)
 
+    currentBufferRow = @cursor.getBufferRow()
     lines = text.split('\n')
     normalizedLines = []
 
-    desiredBase = @editSession.suggestedIndentForBufferRow(@cursor.getBufferRow())
+    if @editSession.autoIndent
+      desiredBase = @editSession.suggestedIndentForBufferRow(currentBufferRow)
+    else
+      desiredBase = @editSession.indentationForBufferRow(currentBufferRow)
     currentBase = lines[0].match(/\s*/)[0].length
     delta = desiredBase - currentBase
 
     for line, i in lines
       if i == 0
-        firstLineDelta = delta - @editSession.indentationForBufferRow(@cursor.getBufferRow())
+        firstLineDelta = delta - @editSession.indentationForBufferRow(currentBufferRow)
         normalizedLines.push(@adjustIndentationForLine(line, firstLineDelta))
       else
         normalizedLines.push(@adjustIndentationForLine(line, delta))
@@ -169,10 +173,11 @@ class Selection
 
   adjustIndentationForLine: (line, delta) ->
     indentText = new Array(Math.abs(delta) + 1).join(' ')
+
     if delta > 0
-      indentText + line
+      new Array(delta + 1).join(' ') + line
     else if delta < 0
-      line.replace(new RegExp("^#{indentText}"), '')
+      line.replace(new RegExp("^ {0,#{Math.abs(delta)}}"), '')
     else
       line
 

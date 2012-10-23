@@ -715,12 +715,12 @@ describe "EditSession", ->
         describe "when the inserted text contains newlines", ->
           text = null
           beforeEach ->
-            text = """
-              while (true) {
-                foo();
-              }
-            bar();
-            """
+            text = [
+              "    while (true) {"
+              "      foo();"
+              "    }"
+              "  bar();"
+            ].join('\n')
 
           describe "when the cursor is preceded only by whitespace", ->
             beforeEach ->
@@ -751,7 +751,17 @@ describe "EditSession", ->
                   expect(editSession.lineForBufferRow(6)).toBe "    bar();"
 
             describe "if auto-indent is disabled", ->
+              beforeEach ->
+                expect(editSession.autoIndent).toBeFalsy()
+
               it "always normalizes indented lines to the cursor's current indentation level", ->
+                editSession.insertText('\n ')
+                editSession.insertText(text, normalizeIndent: true)
+
+                expect(editSession.lineForBufferRow(3)).toBe " while (true) {"
+                expect(editSession.lineForBufferRow(4)).toBe "   foo();"
+                expect(editSession.lineForBufferRow(5)).toBe " }"
+                expect(editSession.lineForBufferRow(6)).toBe "bar();"
 
           describe "when the cursor is preceded by non-whitespace characters", ->
             it "normalizes the indentation level of all lines based on the level of the existing first line", ->
