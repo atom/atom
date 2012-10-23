@@ -45,8 +45,14 @@ class Cursor
   getScreenRow: ->
     @getScreenPosition().row
 
+  getScreenColumn: ->
+    @getScreenPosition().column
+
   getBufferRow: ->
     @getBufferPosition().row
+
+  getBufferColumn: ->
+    @getBufferPosition().column
 
   getCurrentBufferLine: ->
     @editSession.lineForBufferRow(@getBufferRow())

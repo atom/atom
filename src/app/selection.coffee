@@ -152,19 +152,27 @@ class Selection
     return text unless /\n/.test(text)
 
     currentBufferRow = @cursor.getBufferRow()
+    currentBufferColumn = @cursor.getBufferColumn()
     lines = text.split('\n')
     normalizedLines = []
 
-    if @editSession.autoIndent
-      desiredBase = @editSession.suggestedIndentForBufferRow(currentBufferRow)
-    else
+    textPrecedingCursor = @editSession.buffer.getTextInRange([[currentBufferRow, 0], [currentBufferRow, currentBufferColumn]])
+    insideExistingLine = textPrecedingCursor.match(/\S/)
+
+    if insideExistingLine or not @editSession.autoIndent
       desiredBase = @editSession.indentationForBufferRow(currentBufferRow)
+    else
+      desiredBase = @editSession.suggestedIndentForBufferRow(currentBufferRow)
+
     currentBase = lines[0].match(/\s*/)[0].length
     delta = desiredBase - currentBase
 
     for line, i in lines
       if i == 0
-        firstLineDelta = delta - @editSession.indentationForBufferRow(currentBufferRow)
+        if insideExistingLine
+          firstLineDelta = -line.length # remove all leading whitespace
+        else
+          firstLineDelta = delta - @editSession.indentationForBufferRow(currentBufferRow)
         normalizedLines.push(@adjustIndentationForLine(line, firstLineDelta))
       else
         normalizedLines.push(@adjustIndentationForLine(line, delta))
@@ -172,8 +180,6 @@ class Selection
     normalizedLines.join('\n')
 
   adjustIndentationForLine: (line, delta) ->
-    indentText = new Array(Math.abs(delta) + 1).join(' ')
-
     if delta > 0
       new Array(delta + 1).join(' ') + line
     else if delta < 0
