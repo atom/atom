@@ -55,7 +55,6 @@ class OutlineView extends SelectList
     true
 
   confirmed : ({row, column, name}) ->
-    return unless name.length
     @cancel()
     @rootView.getActiveEditor().setCursorBufferPosition([row, column])
 
