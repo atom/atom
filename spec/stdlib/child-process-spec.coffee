@@ -11,9 +11,17 @@ describe 'Child Processes', ->
     it "returns a promise that resolves to stdout and stderr", ->
       waitsForPromise ->
         cmd = "echo 'good' && echo 'bad' >&2"
-        ChildProcess.exec(cmd).done (stdout, stderr) ->
-          expect(stdout).toBe 'good\n'
-          expect(stderr).toBe 'bad\n'
+        standardOutput = ''
+        errorOutput = ''
+        options =
+          stdout: (data) ->
+            standardOutput += data
+          stderr: (data) ->
+            errorOutput += data
+
+        ChildProcess.exec(cmd, options).done ->
+          expect(standardOutput).toBe 'good\n'
+          expect(errorOutput).toBe 'bad\n'
 
     describe "when options are given", ->
       it "calls the options.stdout callback when new data is received on stdout", ->
@@ -89,6 +97,10 @@ describe 'Child Processes', ->
       it "executes the callback with error set to the exit status", ->
         waitsForPromise shouldReject: true, ->
           cmd = "echo 'bad' >&2 && exit 2"
-          ChildProcess.exec(cmd).fail (error) ->
+          errorOutput = ''
+          options =
+            stderr: (data) ->
+              errorOutput += data
+          ChildProcess.exec(cmd, options).fail (error) ->
             expect(error.exitStatus).toBe 2
-            expect(error.stderr).toBe "bad\n"
+            expect(errorOutput).toBe "bad\n"
