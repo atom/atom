@@ -22,14 +22,16 @@ class LanguageMode
 
       cursorBufferPosition = @editSession.getCursorBufferPosition()
       nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
-      bracketAnchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
 
-      skipOverExistingClosingBracket = @isClosingBracket(text) and nextCharachter == text and bracketAnchorRange
       autoCompleteOpeningBracket = @isOpeningBracket(text) and /\W|^$/.test(nextCharachter)
+      skipOverExistingClosingBracket = false
+      if @isClosingBracket(text) and nextCharachter == text
+        if bracketAnchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
+          skipOverExistingClosingBracket = true
 
       if skipOverExistingClosingBracket
         bracketAnchorRange.destroy()
-        @bracketAnchorRanges = _.without(@bracketAnchorRanges, bracketAnchorRange)
+        _.remove(@bracketAnchorRanges, bracketAnchorRange)
         @editSession.moveCursorRight()
         false
       else if autoCompleteOpeningBracket
