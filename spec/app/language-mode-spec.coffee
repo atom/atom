@@ -136,6 +136,16 @@ describe "LanguageMode", ->
             expect(buffer.lineForRow(0)).toBe "(})"
             expect(editSession.getCursorBufferPosition()).toEqual [0, 3]
 
+          it "closes brackets with the same begin/end character correctly", ->
+            editSession.insertText '"'
+            editSession.insertText 'ok'
+            expect(buffer.lineForRow(0)).toBe '"ok"'
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 3]
+            editSession.insertText '"'
+            expect(buffer.lineForRow(0)).toBe '"ok"'
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
+
+
   describe "javascript", ->
     beforeEach ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)

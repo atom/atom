@@ -22,22 +22,22 @@ class LanguageMode
 
       cursorBufferPosition = @editSession.getCursorBufferPosition()
       nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
+      bracketAnchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
 
-      if @isOpeningBracket(text) and /\W|^$/.test(nextCharachter)
+      skipOverExistingClosingBracket = @isClosingBracket(text) and nextCharachter == text and bracketAnchorRange
+      autoCompleteOpeningBracket = @isOpeningBracket(text) and /\W|^$/.test(nextCharachter)
+
+      if skipOverExistingClosingBracket
+        bracketAnchorRange.destroy()
+        @bracketAnchorRanges = _.without(@bracketAnchorRanges, bracketAnchorRange)
+        @editSession.moveCursorRight()
+        false
+      else if autoCompleteOpeningBracket
         @editSession.insertText(text + @pairedCharacters[text])
         @editSession.moveCursorLeft()
         range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
         @bracketAnchorRanges.push @editSession.addAnchorRange(range)
         false
-      else if @isClosingBracket(text)
-        return true if nextCharachter != text
-        anchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
-
-        if anchorRange
-          anchorRange.destroy()
-          @bracketAnchorRanges = _.without(@bracketAnchorRanges, anchorRange)
-          @editSession.moveCursorRight()
-          false
 
   isOpeningBracket: (string) ->
     @pairedCharacters[string]?
