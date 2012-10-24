@@ -854,7 +854,7 @@ class Editor extends View
         break if _.isEqual(scopeStack[0...i], desiredScopes[0...i])
         popScope()
 
-      # push on top of common prefix until scopStacks == desiredScopes
+      # push on top of common prefix until scopeStack == desiredScopes
       for j in [i...desiredScopes.length]
         pushScope(desiredScopes[j])
 
