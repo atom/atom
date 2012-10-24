@@ -9,6 +9,7 @@ _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
 RootView = require 'root-view'
+Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
 require 'underscore-extensions'
 
@@ -24,6 +25,7 @@ windowAdditions =
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
+    @pasteboard = new Pasteboard
     $(window).on 'core:close', => @close()
 
   # This method is intended only to be run when starting a normal application
