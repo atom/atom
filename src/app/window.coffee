@@ -24,6 +24,7 @@ windowAdditions =
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
+    $(window).on 'core:close', => @close()
 
   # This method is intended only to be run when starting a normal application
   # Note: RootView assigns itself on window on initialization so that
@@ -34,7 +35,6 @@ windowAdditions =
     else
       new RootView(pathToOpen)
 
-    $(window).on 'close', => @close()
     $(@rootViewParentSelector).append(@rootView)
     $(window).focus()
     $(window).on 'beforeunload', =>

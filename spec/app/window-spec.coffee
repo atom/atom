@@ -13,7 +13,7 @@ describe "Window", ->
   describe ".close()", ->
     it "is triggered by the 'close' event", ->
       spyOn window, 'close'
-      $(window).trigger 'close'
+      $(window).trigger 'core:close'
       expect(window.close).toHaveBeenCalled()
 
   describe ".reload()", ->
