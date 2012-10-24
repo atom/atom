@@ -15,20 +15,29 @@ class LanguageMode
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
     @grammar = TextMateBundle.grammarForFileName(@buffer.getBaseName())
+    @bracketAnchorRanges = []
 
     _.adviseBefore @editSession, 'insertText', (text) =>
       return true if @editSession.hasMultipleCursors()
 
       cursorBufferPosition = @editSession.getCursorBufferPosition()
-      nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0, 1])])
+      nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
-      if @isClosingBracket(text) and text == nextCharacter
-        @editSession.moveCursorRight()
-        false
-      else if /^\s*$/.test(nextCharacter) and pairedCharacter = @pairedCharacters[text]
-        @editSession.insertText text + pairedCharacter
+      if @isOpeningBracket(text) and /\W|^$/.test(nextCharachter)
+        @editSession.insertText(text + @pairedCharacters[text])
         @editSession.moveCursorLeft()
+        range = [cursorBufferPosition, cursorBufferPosition.add([0, text.length])]
+        @bracketAnchorRanges.push @editSession.addAnchorRange(range)
         false
+      else if @isClosingBracket(text)
+        return true if nextCharachter != text
+        anchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
+
+        if anchorRange
+          anchorRange.destroy()
+          @bracketAnchorRanges = _.without(@bracketAnchorRanges, anchorRange)
+          @editSession.moveCursorRight()
+          false
 
   isOpeningBracket: (string) ->
     @pairedCharacters[string]?

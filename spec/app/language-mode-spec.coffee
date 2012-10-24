@@ -19,11 +19,16 @@ describe "LanguageMode", ->
         expect(jsEditSession.languageMode.grammar.name).toBe "JavaScript"
         jsEditSession.destroy()
 
-    describe "matching character insertion", ->
+    describe "bracket insertion", ->
       beforeEach ->
         editSession.buffer.setText("")
 
-      describe "when there is non-whitespace after the cursor", ->
+      describe "when more than one charachter is inserted", ->
+        it "does not insert a matching bracket", ->
+          editSession.insertText("woah(")
+          expect(editSession.buffer.getText()).toBe "woah("
+
+      describe "when there is a word charachter after the cursor", ->
         it "does not insert a matching bracket", ->
           editSession.buffer.setText("ab")
           editSession.setCursorBufferPosition([0, 1])
@@ -42,38 +47,94 @@ describe "LanguageMode", ->
 
           expect(editSession.buffer.getText()).toBe "())\na)b\n[)]\n1)2"
 
-      describe "when ( is inserted", ->
-        it "inserts a matching ) following the cursor", ->
-          editSession.insertText '('
-          expect(buffer.lineForRow(0)).toMatch /^\(\)/
-
-      describe "when [ is inserted", ->
-        it "inserts a matching ] following the cursor", ->
-          editSession.insertText '['
-          expect(buffer.lineForRow(0)).toMatch /^\[\]/
-
-      describe "when { is inserted", ->
-        it "inserts a matching ) following the cursor", ->
+      describe "when there is a non-word characher after the cursor", ->
+        it "inserts a closing bracket after an opening bracket is inserted", ->
+          editSession.buffer.setText("}")
+          editSession.setCursorBufferPosition([0, 0])
           editSession.insertText '{'
-          expect(buffer.lineForRow(0)).toMatch /^\{\}/
+          expect(buffer.lineForRow(0)).toBe "{}}"
+          expect(editSession.getCursorBufferPosition()).toEqual([0,1])
 
-      describe "when \" is inserted", ->
-        it "inserts a matching \" following the cursor", ->
+      describe "when the cursor is at the end of the line", ->
+        it "inserts a closing bracket after an opening bracket is inserted", ->
+          editSession.buffer.setText("")
+          editSession.insertText '{'
+          expect(buffer.lineForRow(0)).toBe "{}"
+          expect(editSession.getCursorBufferPosition()).toEqual([0,1])
+
+          editSession.buffer.setText("")
+          editSession.insertText '('
+          expect(buffer.lineForRow(0)).toBe "()"
+          expect(editSession.getCursorBufferPosition()).toEqual([0,1])
+
+          editSession.buffer.setText("")
+          editSession.insertText '['
+          expect(buffer.lineForRow(0)).toBe "[]"
+          expect(editSession.getCursorBufferPosition()).toEqual([0,1])
+
+          editSession.buffer.setText("")
           editSession.insertText '"'
-          expect(buffer.lineForRow(0)).toMatch /^""/
+          expect(buffer.lineForRow(0)).toBe '""'
+          expect(editSession.getCursorBufferPosition()).toEqual([0,1])
 
-      describe "when ' is inserted", ->
-        it "inserts a matching ' following the cursor", ->
+          editSession.buffer.setText("")
           editSession.insertText "'"
-          expect(buffer.lineForRow(0)).toMatch /^''/
+          expect(buffer.lineForRow(0)).toBe "''"
+          expect(editSession.getCursorBufferPosition()).toEqual([0,1])
 
-      describe "when ) is inserted before a )", ->
-        it "moves the cursor one column to the right instead of inserting a new )", ->
-          editSession.insertText '() '
-          editSession.setCursorBufferPosition([0, 1])
-          editSession.insertText ')'
-          expect(buffer.lineForRow(0)).toBe "() "
-          expect(editSession.getCursorBufferPosition().column).toBe 2
+      describe "when the cursor is on a closing bracket and a closing bracket is inserted", ->
+        describe "when the closing bracket was there previously", ->
+          it "inserts a closing bracket", ->
+            editSession.insertText '()x'
+            editSession.setCursorBufferPosition([0, 1])
+            editSession.insertText ')'
+            expect(buffer.lineForRow(0)).toBe "())x"
+            expect(editSession.getCursorBufferPosition().column).toBe 2
+
+        describe "when the closing bracket was automatically inserted from inserting an opening bracket", ->
+          it "only moves cursor over the closing bracket one time", ->
+            editSession.insertText '('
+            expect(buffer.lineForRow(0)).toBe "()"
+            editSession.setCursorBufferPosition([0, 1])
+            editSession.insertText ')'
+            expect(buffer.lineForRow(0)).toBe "()"
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 2]
+
+            editSession.setCursorBufferPosition([0, 1])
+            editSession.insertText ')'
+            expect(buffer.lineForRow(0)).toBe "())"
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 2]
+
+          it "moves cursor over the closing bracket after other text is inserted", ->
+            editSession.insertText '('
+            editSession.insertText 'ok cool'
+            expect(buffer.lineForRow(0)).toBe "(ok cool)"
+            editSession.setCursorBufferPosition([0, 8])
+            editSession.insertText ')'
+            expect(buffer.lineForRow(0)).toBe "(ok cool)"
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 9]
+
+          it "works with nested brackets", ->
+            editSession.insertText '('
+            editSession.insertText '1'
+            editSession.insertText '('
+            editSession.insertText '2'
+            expect(buffer.lineForRow(0)).toBe "(1(2))"
+            editSession.setCursorBufferPosition([0, 4])
+            editSession.insertText ')'
+            expect(buffer.lineForRow(0)).toBe "(1(2))"
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 5]
+            editSession.insertText ')'
+            expect(buffer.lineForRow(0)).toBe "(1(2))"
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 6]
+
+          it "works with mixed brackets", ->
+            editSession.insertText '('
+            editSession.insertText '}'
+            expect(buffer.lineForRow(0)).toBe "(})"
+            editSession.insertText ')'
+            expect(buffer.lineForRow(0)).toBe "(})"
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 3]
 
   describe "javascript", ->
     beforeEach ->
