@@ -1,35 +1,28 @@
-RootView = require 'root-view'
-OutlineView = require 'outline-view'
+TagGenerator = require 'outline-view/tag-generator'
 
 describe "OutlineView", ->
-  [rootView, outlineView] = []
 
-  beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/coffee.coffee'))
-    rootView.activateExtension(OutlineView)
-    outlineView = OutlineView.instance
-    rootView.attachToDom()
+  describe "TagGenerator", ->
+    it "generates tags for all JavaScript functions", ->
+      waitsForPromise ->
+        tags = []
+        path = require.resolve('fixtures/sample.js')
+        callback = (tag) ->
+          tags.push tag
+        generator = new TagGenerator(path, callback)
+        generator.generate().done ->
+          expect(tags.length).toBe 2
+          expect(tags[0].name).toBe "quicksort"
+          expect(tags[0].row).toBe 0
+          expect(tags[1].name).toBe "quicksort.sort"
+          expect(tags[1].row).toBe 1
 
-  afterEach ->
-    rootView.deactivate()
-
-  it "displays both functions", ->
-    expect(rootView.find('.outline-view')).not.toExist()
-    rootView.trigger 'outline-view:toggle'
-    expect(rootView.find('.outline-view')).toExist()
-    expect(outlineView.list.children('li').length).toBe 2
-    expect(outlineView.list.find("li:contains(sort)")).toExist()
-    expect(outlineView.list.find("li:contains(noop)")).toExist()
-    expect(outlineView.list.children().first()).toHaveClass 'selected'
-
-  it "doesn't display for unsupported languages", ->
-    rootView.open(require.resolve('fixtures/sample.txt'))
-    expect(rootView.find('.outline-view')).not.toExist()
-    rootView.trigger 'outline-view:toggle'
-    expect(rootView.find('.outline-view')).not.toExist()
-
-  it "doesn't display when no functions exist", ->
-    rootView.open(require.resolve('fixtures/sample-with-tabs.coffee'))
-    expect(rootView.find('.outline-view')).not.toExist()
-    rootView.trigger 'outline-view:toggle'
-    expect(rootView.find('.outline-view')).not.toExist()
+    it "generates no tags for text file", ->
+      waitsForPromise ->
+        tags = []
+        path = require.resolve('fixtures/sample.txt')
+        callback = (tag) ->
+          tags.push tag
+        generator = new TagGenerator(path, callback)
+        generator.generate().done ->
+          expect(tags.length).toBe 0
