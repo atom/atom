@@ -2,6 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 Editor = require 'editor'
+ChildProcess = require 'child-process'
 
 module.exports =
 class OutlineView extends SelectList
@@ -31,28 +32,54 @@ class OutlineView extends SelectList
     if @hasParent()
       @cancel()
     else
-      @attach() if @populate()
+      @populate()
+
+  parsePrefix: (section = "") ->
+    if section.indexOf('class:') is 0
+      section.substring(6)
+    else if section.indexOf('namespace:') is 0
+      section.substring(10)
+    else if section.indexOf('file:') is 0
+      section.substring(5)
+    else if section.indexOf('signature:') is 0
+      section.substring(10)
+    else
+      section
+
+  parseTagLine: (line) ->
+    sections = line.split('\t')
+    return null if sections.length < 4
+
+    label = sections[0]
+    line = parseInt(sections[2]) - 1
+    if prefix = @parsePrefix(sections[4])
+      label = "#{prefix}::#{label}"
+    if signature = @parsePrefix(sections[5])
+      label = "#{label}#{signature}"
+
+    tag =
+      row: line
+      column: 0
+      name: label
+
+    return tag
 
   populate: ->
-    editor = @rootView.getActiveEditor()
-    session = editor.activeEditSession
-    language = session.tokenizedBuffer.languageMode.grammar.name
-    return false unless language is 'CoffeeScript'
+    tags = []
+    options =
+      bufferLines: true
+      stdout: (data) =>
+        lines = data.split('\n')
+        for line in lines
+          tag = @parseTagLine(line)
+          tags.push(tag) if tag
+        if tags.length > 0
+          @setArray(tags)
+          @attach()
 
-    functions = []
-    functionRegex = /(\s*)(@?[a-zA-Z$_]+)\s*(=|\:)\s*(\([^\)]*\))?\s*(-|=)>/
-    lineCount = editor.getLineCount()
-    for row in [0...lineCount]
-      line = session.buffer.lineForRow(row)
-      continue unless line.length
-      matches = line.match(functionRegex)
-      if matches
-        functions.push
-          row: row
-          column: matches[1].length
-          name: matches[2]
-    @setArray(functions)
-    return functions.length > 0
+    path = @rootView.getActiveEditor().getPath()
+    command = "ctags --fields=+KS -nf - #{path}"
+    deferred = ChildProcess.exec command, options
 
   confirmed : ({row, column, name}) ->
     @cancel()
