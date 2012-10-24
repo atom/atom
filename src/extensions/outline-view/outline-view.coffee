@@ -1,6 +1,5 @@
 {View, $$} = require 'space-pen'
 SelectList = require 'select-list'
-_ = require 'underscore'
 Editor = require 'editor'
 TagGenerator = require 'outline-view/tag-generator'
 
