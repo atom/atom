@@ -14,8 +14,8 @@ class ChildProccess
       options.stderr = @bufferLines(options.stderr) if options.stderr
 
     $native.exec command, options, (exitStatus, stdout, stderr) ->
-      options.stdout(stdout) if options.stdout
-      options.stderr(stderr) if options.stderr
+      options.stdout?(stdout)
+      options.stderr?(stderr)
       try
         if exitStatus != 0
           deferred.reject({command, exitStatus})
