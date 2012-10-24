@@ -8,6 +8,9 @@ fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
+RootView = require 'root-view'
+require 'jquery-extensions'
+require 'underscore-extensions'
 
 windowAdditions =
   rootViewParentSelector: 'body'
@@ -15,16 +18,28 @@ windowAdditions =
   keymap: null
   platform: $native.getPlatform()
 
-  startup: (path) ->
+  # This method runs when the file is required. Any code here will run
+  # in all environments: spec, benchmark, and application
+  startup: ->
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
+    @setUpKeymap()
 
-    @attachRootView(path)
+  # This method is intended only to be run when starting a normal application
+  # Note: RootView assigns itself on window on initialization so that
+  # window.rootView is available when loading user configuration
+  attachRootView: (pathToOpen) ->
+    if rootViewState = atom.getRootViewStateForPath(pathToOpen)
+      RootView.deserialize(rootViewState)
+    else
+      new RootView(pathToOpen)
+
     $(window).on 'close', => @close()
+    $(@rootViewParentSelector).append(@rootView)
+    $(window).focus()
     $(window).on 'beforeunload', =>
       @shutdown()
       false
-    $(window).focus()
 
   shutdown: ->
     @rootView.deactivate()
@@ -41,16 +56,6 @@ windowAdditions =
 
     @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
     $(document).on 'keydown', @_handleKeyEvent
-
-  # Note: RootView assigns itself on window on initialization so that
-  # window.rootView is available when loading user configuration
-  attachRootView: (pathToOpen) ->
-    if rootViewState = atom.getRootViewStateForPath(pathToOpen)
-      RootView.deserialize(rootViewState)
-    else
-      new RootView(pathToOpen)
-
-    $(@rootViewParentSelector).append @rootView
 
   requireStylesheet: (path) ->
     unless fullPath = require.resolve(path)
@@ -91,12 +96,7 @@ windowAdditions =
     console.log description, result
 
 window[key] = value for key, value of windowAdditions
-window.setUpKeymap()
-
-RootView = require 'root-view'
-
-require 'jquery-extensions'
-require 'underscore-extensions'
+window.startup()
 
 requireStylesheet 'reset.css'
 requireStylesheet 'atom.css'

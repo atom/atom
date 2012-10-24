@@ -9,10 +9,7 @@ TextMateBundle = require 'text-mate-bundle'
 TextMateTheme = require 'text-mate-theme'
 
 require 'window'
-
 requireStylesheet "jasmine.css"
-TextMateBundle.loadAll()
-TextMateTheme.loadAll()
 
 RootView.prototype.loadUserConfiguration = ->
 

@@ -3,7 +3,7 @@ fs = require 'fs'
 
 describe "Window", ->
   beforeEach ->
-    window.startup(require.resolve('fixtures'))
+    window.attachRootView(require.resolve('fixtures'))
 
   afterEach ->
     window.shutdown()
