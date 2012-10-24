@@ -22,7 +22,7 @@ class LanguageMode
       cursorBufferPosition = @editSession.getCursorBufferPosition()
       nextCharacter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0, 1])])
 
-      if @isCloseBracket(text) and text == nextCharacter
+      if @isClosingBracket(text) and text == nextCharacter
         @editSession.moveCursorRight()
         false
       else if /^\s*$/.test(nextCharacter) and pairedCharacter = @pairedCharacters[text]
@@ -30,10 +30,10 @@ class LanguageMode
         @editSession.moveCursorLeft()
         false
 
-  isOpenBracket: (string) ->
+  isOpeningBracket: (string) ->
     @pairedCharacters[string]?
 
-  isCloseBracket: (string) ->
+  isClosingBracket: (string) ->
     @getInvertedPairedCharacters()[string]?
 
   getInvertedPairedCharacters: ->
