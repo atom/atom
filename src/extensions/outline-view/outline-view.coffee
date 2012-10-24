@@ -73,13 +73,15 @@ class OutlineView extends SelectList
         for line in lines
           tag = @parseTagLine(line)
           tags.push(tag) if tag
-        if tags.length > 0
-          @setArray(tags)
-          @attach()
 
     path = @rootView.getActiveEditor().getPath()
     command = "ctags --fields=+KS -nf - #{path}"
     deferred = ChildProcess.exec command, options
+    deferred.done (stdout, stderr) =>
+      options.stdout(stdout)
+      if tags.length > 0
+          @setArray(tags)
+          @attach()
 
   confirmed : ({row, column, name}) ->
     @cancel()
