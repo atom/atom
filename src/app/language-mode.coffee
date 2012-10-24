@@ -92,7 +92,8 @@ class LanguageMode
     return currentIndentation unless increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
 
     currentLine = @buffer.lineForRow(bufferRow)
-    return currentIndentation unless precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    return currentIndentation unless precedingRow?
 
     precedingLine = @buffer.lineForRow(precedingRow)
 
