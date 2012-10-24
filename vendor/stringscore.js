@@ -1,13 +1,14 @@
 // MODIFIED BY NS/CJ - Don't extend the prototype of String
+// MODIFIED BY CJ - Remove start_of_string_bonus
 
 /*!
- * string_score.js: String Scoring Algorithm 0.1.9
+ * string_score.js: String Scoring Algorithm 0.1.10
  *
  * http://joshaven.com/string_score
  * https://github.com/joshaven/string_score
  *
  * Copyright (C) 2009-2011 Joshaven Potter <yourtech@gmail.com>
- * Copyright (C) 2010-2011 Yesudeep Mangalapilly <yesudeep@gmail.com>
+ * Special thanks to all of the contributors listed here https://github.com/joshaven/string_score
  * MIT license: http://www.opensource.org/licenses/mit-license.php
  *
  * Date: Tue Mar 1 2011
@@ -18,8 +19,12 @@
  *  'Hello World'.score('he');     //=> 0.5931818181818181
  *  'Hello World'.score('Hello');  //=> 0.7318181818181818
  */
-
 module.exports = function(string, abbreviation, fuzziness) {
+  // If the string is equal to the abbreviation, perfect match.
+  if (string == abbreviation) {return 1;}
+  // If it's not a perfect match and is empty return 0
+  if (abbreviation == "") {return 0;}
+
   var total_character_score = 0,
       abbreviation_length = abbreviation.length,
       string_length = string.length,
@@ -27,9 +32,6 @@ module.exports = function(string, abbreviation, fuzziness) {
       abbreviation_score,
       fuzzies=1,
       final_score;
-
-  // If the string is equal to the abbreviation, perfect match.
-  if (string == abbreviation) {return 1.0;}
 
   // Walk through abbreviation and add up scores.
   for (var i = 0,
@@ -43,25 +45,17 @@ module.exports = function(string, abbreviation, fuzziness) {
      ++i) {
 
     // Find the first case-insensitive match of a character.
-    c = abbreviation[i];
+    c = abbreviation.charAt(i);
 
-    //index_in_string = __first_valid_index(
-    //    string.indexOf(c.toLowerCase()),
-    //    string.indexOf(c.toUpperCase())
-    //);
-    // Inlined the above call below.
     index_c_lowercase = string.indexOf(c.toLowerCase());
     index_c_uppercase = string.indexOf(c.toUpperCase());
     min_index = Math.min(index_c_lowercase, index_c_uppercase);
-    index_in_string = (min_index > -1) ?
-        min_index :
-        Math.max(index_c_lowercase, index_c_uppercase);
-    // End inlining.
+    index_in_string = (min_index > -1) ? min_index : Math.max(index_c_lowercase, index_c_uppercase);
 
     if (index_in_string === -1) {
       if (fuzziness) {
         fuzzies += 1-fuzziness;
-        break;
+        continue;
       } else {
         return 0;
       }
@@ -78,22 +72,22 @@ module.exports = function(string, abbreviation, fuzziness) {
 
     // Consecutive letter & start-of-string Bonus
     if (index_in_string === 0) {
-      // Increase the score when matching first character of the
-      // remainder of the string
+      // Increase the score when matching first character of the remainder of the string
       character_score += 0.6;
       if (i === 0) {
         // If match is the first character of the string
         // & the first character of abbreviation, add a
         // start-of-string match bonus.
-        start_of_string_bonus = 1 //true;
+        // start_of_string_bonus = 1 //true;
       }
     }
-
-    // Acronym Bonus
-    // Weighing Logic: Typing the first character of an acronym is as if you
-    // preceded it with two perfect character matches.
-    if (string.charAt(index_in_string - 1) === ' ') {
-      character_score += 0.8; // * Math.min(index_in_string, 5); // Cap bonus at 0.4 * 5
+    else {
+  // Acronym Bonus
+  // Weighing Logic: Typing the first character of an acronym is as if you
+  // preceded it with two perfect character matches.
+  if (string.charAt(index_in_string - 1) === ' ') {
+    character_score += 0.8; // * Math.min(index_in_string, 5); // Cap bonus at 0.4 * 5
+  }
     }
 
     // Left trim the already matched part of the string
