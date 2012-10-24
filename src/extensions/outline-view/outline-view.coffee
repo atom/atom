@@ -2,7 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 Editor = require 'editor'
-ChildProcess = require 'child-process'
+TagGenerator = require 'outline-view/tag-generator'
 
 module.exports =
 class OutlineView extends SelectList
@@ -34,50 +34,12 @@ class OutlineView extends SelectList
     else
       @populate()
 
-  parsePrefix: (section = "") ->
-    if section.indexOf('class:') is 0
-      section.substring(6)
-    else if section.indexOf('namespace:') is 0
-      section.substring(10)
-    else if section.indexOf('file:') is 0
-      section.substring(5)
-    else if section.indexOf('signature:') is 0
-      section.substring(10)
-    else
-      section
-
-  parseTagLine: (line) ->
-    sections = line.split('\t')
-    return null if sections.length < 4
-
-    label = sections[0]
-    line = parseInt(sections[2]) - 1
-    if prefix = @parsePrefix(sections[4])
-      label = "#{prefix}::#{label}"
-    if signature = @parsePrefix(sections[5])
-      label = "#{label}#{signature}"
-
-    tag =
-      row: line
-      column: 0
-      name: label
-
-    return tag
-
   populate: ->
     tags = []
-    options =
-      bufferLines: true
-      stdout: (data) =>
-        lines = data.split('\n')
-        for line in lines
-          tag = @parseTagLine(line)
-          tags.push(tag) if tag
-
+    callback = (tag) ->
+      tags.push tag
     path = @rootView.getActiveEditor().getPath()
-    command = "ctags --fields=+KS -nf - #{path}"
-    deferred = ChildProcess.exec command, options
-    deferred.done =>
+    new TagGenerator(path, callback).generate().done =>
       if tags.length > 0
           @setArray(tags)
           @attach()
