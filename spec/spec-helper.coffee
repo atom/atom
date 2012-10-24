@@ -14,8 +14,6 @@ require 'window'
 atom.showDevTools()
 
 requireStylesheet "jasmine.css"
-TextMateBundle.loadAll()
-TextMateTheme.loadAll()
 
 defaultTitle = document.title
 pathsWithSubscriptions = null

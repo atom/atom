@@ -3,7 +3,7 @@ fs = require 'fs'
 
 describe "Window", ->
   beforeEach ->
-    window.startup(require.resolve('fixtures'))
+    window.attachRootView(require.resolve('fixtures'))
 
   afterEach ->
     window.shutdown()
@@ -13,7 +13,7 @@ describe "Window", ->
   describe ".close()", ->
     it "is triggered by the 'close' event", ->
       spyOn window, 'close'
-      $(window).trigger 'close'
+      $(window).trigger 'core:close'
       expect(window.close).toHaveBeenCalled()
 
   describe ".reload()", ->

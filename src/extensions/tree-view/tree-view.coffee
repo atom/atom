@@ -27,7 +27,7 @@ class TreeView extends ScrollView
     @instance.serialize()
 
   @content: (rootView) ->
-    @div class: 'tree-view', tabindex: -1, =>
+    @div class: 'tree-view tool-panel', tabindex: -1, =>
       if rootView.project.getRootDirectory()
         @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true)
 
@@ -50,18 +50,19 @@ class TreeView extends ScrollView
     @on 'click', '.entry', (e) => @entryClicked(e)
     @command 'core:move-up', => @moveUp()
     @command 'core:move-down', => @moveDown()
+    @command 'core:close', => @detatch()
     @command 'tree-view:expand-directory', => @expandDirectory()
     @command 'tree-view:collapse-directory', => @collapseDirectory()
     @command 'tree-view:open-selected-entry', => @openSelectedEntry(true)
     @command 'tree-view:move', => @moveSelectedEntry()
     @command 'tree-view:add', => @add()
     @command 'tree-view:remove', => @removeSelectedEntry()
+    @command 'tool-panel:unfocus', => @rootView.focus()
     @command 'tree-view:directory-modified', =>
       if @hasFocus()
         @selectEntryForPath(@selectedPath) if @selectedPath
       else
         @selectActiveFile()
-    @on 'tree-view:unfocus', => @rootView.focus()
     @rootView.command 'tree-view:toggle', => @toggle()
     @rootView.command 'tree-view:reveal-active-file', => @revealActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
@@ -86,17 +87,20 @@ class TreeView extends ScrollView
   toggle: ->
     if @hasFocus()
       @detach()
-      @rootView.focus()
     else
-      @attach() unless @hasParent()
-      @focus()
+      if @hasParent()
+        @focus()
+      else
+        @attach()
 
   attach: ->
     @rootView.horizontal.prepend(this)
+    @focus()
 
   detach: ->
     @scrollTopAfterAttach = @scrollTop()
     super
+    @rootView.focus()
 
   hasFocus: ->
     @is(':focus')

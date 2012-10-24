@@ -12,8 +12,8 @@ class Dialog extends View
 
   initialize: ({path, @onConfirm, select} = {}) ->
     @miniEditor.focus()
-    @on 'tree-view:confirm', => @onConfirm(@miniEditor.getText())
-    @on 'tree-view:cancel', => @cancel()
+    @on 'core:confirm', => @onConfirm(@miniEditor.getText())
+    @on 'core:cancel', => @cancel()
     @miniEditor.on 'focusout', => @remove()
 
     @miniEditor.setText(path)

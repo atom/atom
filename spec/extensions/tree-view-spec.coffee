@@ -183,13 +183,13 @@ describe "TreeView", ->
         expect(treeView.hasParent()).toBeTruthy()
         expect(treeView.focus).toHaveBeenCalled()
 
-  describe "when tree-view:unfocus is triggered on the tree view", ->
+  describe "when tool-panel:unfocus is triggered on the tree view", ->
     it "surrenders focus to the root view but remains open", ->
-      rootView.open() # When we trigger 'tree-view:unfocus' below, we want an editor to become focused
+      rootView.open() # When we trigger 'tool-panel:unfocus' below, we want an editor to become focused
       rootView.attachToDom()
       treeView.focus()
       expect(treeView).toMatchSelector(':focus')
-      treeView.trigger 'tree-view:unfocus'
+      treeView.trigger 'tool-panel:unfocus'
       expect(treeView).toBeVisible()
       expect(treeView).not.toMatchSelector(':focus')
       expect(rootView.getActiveEditor().isFocused).toBeTruthy()
@@ -616,7 +616,7 @@ describe "TreeView", ->
             it "add a file, closes the dialog and selects the file in the tree-view", ->
               newPath = fs.join(dirPath, "new-test-file.txt")
               addDialog.miniEditor.insertText(fs.base(newPath))
-              addDialog.trigger 'tree-view:confirm'
+              addDialog.trigger 'core:confirm'
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.isFile(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
@@ -633,7 +633,7 @@ describe "TreeView", ->
               newPath = fs.join(dirPath, "new-test-file.txt")
               fs.write(newPath, '')
               addDialog.miniEditor.insertText(fs.base(newPath))
-              addDialog.trigger 'tree-view:confirm'
+              addDialog.trigger 'core:confirm'
 
               expect(addDialog.prompt.text()).toContain 'Error'
               expect(addDialog.prompt.text()).toContain 'already exists'
@@ -646,7 +646,7 @@ describe "TreeView", ->
               treeView.attachToDom()
               newPath = fs.join(dirPath, "new/dir")
               addDialog.miniEditor.insertText("new/dir/")
-              addDialog.trigger 'tree-view:confirm'
+              addDialog.trigger 'core:confirm'
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
@@ -659,7 +659,7 @@ describe "TreeView", ->
               treeView.attachToDom()
               newPath = fs.join(dirPath, "new2/")
               addDialog.miniEditor.insertText("new2/")
-              addDialog.trigger 'tree-view:confirm'
+              addDialog.trigger 'core:confirm'
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
@@ -673,17 +673,17 @@ describe "TreeView", ->
               newPath = fs.join(dirPath, "new-dir")
               fs.makeDirectory(newPath)
               addDialog.miniEditor.insertText("new-dir/")
-              addDialog.trigger 'tree-view:confirm'
+              addDialog.trigger 'core:confirm'
 
               expect(addDialog.prompt.text()).toContain 'Error'
               expect(addDialog.prompt.text()).toContain 'already exists'
               expect(addDialog.prompt).toHaveClass('error')
               expect(addDialog.hasParent()).toBeTruthy()
 
-        describe "when 'tree-view:cancel' is triggered on the add dialog", ->
+        describe "when 'core:cancel' is triggered on the add dialog", ->
           it "removes the dialog and focuses the tree view", ->
             treeView.attachToDom()
-            addDialog.trigger 'tree-view:cancel'
+            addDialog.trigger 'core:cancel'
             expect(addDialog.parent()).not.toExist()
             expect(treeView).toMatchSelector(':focus')
 
@@ -741,7 +741,7 @@ describe "TreeView", ->
               newPath = fs.join(rootDirPath, 'renamed-test-file.txt')
               moveDialog.miniEditor.setText(newPath)
 
-              moveDialog.trigger 'tree-view:confirm'
+              moveDialog.trigger 'core:confirm'
 
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.exists(filePath)).toBeFalsy()
@@ -760,7 +760,7 @@ describe "TreeView", ->
               newPath = fs.join(rootDirPath, 'new/directory', 'renamed-test-file.txt')
               moveDialog.miniEditor.setText(newPath)
 
-              moveDialog.trigger 'tree-view:confirm'
+              moveDialog.trigger 'core:confirm'
 
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.exists(filePath)).toBeFalsy()
@@ -774,17 +774,17 @@ describe "TreeView", ->
                 newPath = fs.join(rootDirPath, 'target.txt')
                 moveDialog.miniEditor.setText(newPath)
 
-                moveDialog.trigger 'tree-view:confirm'
+                moveDialog.trigger 'core:confirm'
 
                 expect(moveDialog.prompt.text()).toContain 'Error'
                 expect(moveDialog.prompt.text()).toContain 'already exists'
                 expect(moveDialog.prompt).toHaveClass('error')
                 expect(moveDialog.hasParent()).toBeTruthy()
 
-        describe "when 'tree-view:cancel' is triggered on the move dialog", ->
+        describe "when 'core:cancel' is triggered on the move dialog", ->
           it "removes the dialog and focuses the tree view", ->
             treeView.attachToDom()
-            moveDialog.trigger 'tree-view:cancel'
+            moveDialog.trigger 'core:cancel'
             expect(moveDialog.parent()).not.toExist()
             expect(treeView).toMatchSelector(':focus')
 

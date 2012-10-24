@@ -10,7 +10,7 @@ describe "editor.", ->
 
   beforeEach ->
     window.rootViewParentSelector = '#jasmine-content'
-    window.startup()
+    window.attachRootView()
     rootView.project.setPath(require.resolve('benchmark/fixtures'))
     editor = rootView.getActiveEditor()
 

@@ -31,9 +31,11 @@ describe "Autocomplete", ->
       expect(leftEditor.find('.autocomplete')).toExist()
       expect(rightEditor.find('.autocomplete')).not.toExist()
 
-      leftEditor.trigger 'autocomplete:cancel'
-      rightEditor.trigger 'autocomplete:attach'
+      autoCompleteView = leftEditor.find('.autocomplete').view()
+      autoCompleteView.trigger 'core:cancel'
       expect(leftEditor.find('.autocomplete')).not.toExist()
+
+      rightEditor.trigger 'autocomplete:attach'
       expect(rightEditor.find('.autocomplete')).toExist()
 
       expect(Autocomplete.prototype.initialize).not.toHaveBeenCalled()
@@ -138,14 +140,14 @@ describe "Autocomplete", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.find('.autocomplete')).not.toExist()
 
-  describe 'autocomplete:confirm event', ->
+  describe 'core:confirm event', ->
     describe "where there are matches", ->
       describe "where there is no selection", ->
         it "closes the menu and moves the cursor to the end", ->
           editor.getBuffer().insert([10,0] ,"extra:sh:extra")
           editor.setCursorBufferPosition([10,8])
           autocomplete.attach()
-          miniEditor.trigger "autocomplete:confirm"
+          miniEditor.trigger "core:confirm"
 
           expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
           expect(editor.getCursorBufferPosition()).toEqual [10,11]
@@ -160,14 +162,14 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li').length).toBe 1
         expect(autocomplete.matchesList.find('li')).toHaveText ('No matches found')
 
-        miniEditor.trigger "autocomplete:confirm"
+        miniEditor.trigger "core:confirm"
 
         expect(editor.lineForBufferRow(10)).toBe "xxx"
         expect(editor.getCursorBufferPosition()).toEqual [10,3]
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.find('.autocomplete')).not.toExist()
 
-  describe 'autocomplete:cancel event', ->
+  describe 'core:cancel event', ->
     it 'does not replace selection, removes autocomplete view and returns focus to editor', ->
       editor.getBuffer().insert([10,0] ,"extra:so:extra")
       editor.setSelectedBufferRange [[10,7], [10,8]]
@@ -175,7 +177,7 @@ describe "Autocomplete", ->
 
       autocomplete.attach()
       editor.setCursorBufferPosition [0, 0] # even if selection changes before cancel, it should work
-      miniEditor.trigger "autocomplete:cancel"
+      miniEditor.trigger "core:cancel"
 
       expect(editor.lineForBufferRow(10)).toBe "extra:so:extra"
       expect(editor.getSelection().getBufferRange()).toEqual originalSelectionBufferRange
@@ -186,12 +188,12 @@ describe "Autocomplete", ->
       editor.setCursorBufferPosition([10, 0])
 
       autocomplete.attach()
-      miniEditor.trigger 'autocomplete:confirm'
+      miniEditor.trigger 'core:confirm'
       expect(editor.lineForBufferRow(10)).toBe 'quicksort'
 
       editor.setCursorBufferPosition([11, 0])
       autocomplete.attach()
-      miniEditor.trigger 'autocomplete:cancel'
+      miniEditor.trigger 'core:cancel'
       expect(editor.lineForBufferRow(10)).toBe 'quicksort'
 
   describe 'move-up event', ->

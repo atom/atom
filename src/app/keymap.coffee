@@ -18,6 +18,7 @@ class Keymap
       'meta-n': 'new-window'
       'meta-,': 'open-user-configuration'
       'meta-o': 'open'
+      'meta-w': 'core:close'
 
     $(document).on 'new-window', => atom.newWindow()
     $(document).on 'open-user-configuration', => atom.open(atom.configFilePath)

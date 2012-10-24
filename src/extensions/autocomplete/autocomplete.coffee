@@ -26,8 +26,7 @@ class Autocomplete extends View
 
   @activate: (rootView) ->
     new Autocomplete(editor) for editor in rootView.getEditors()
-    rootView.on 'editor-open', (e, editor) ->
-      editor.autoComplete = new Autocomplete(editor) unless editor.is('.autocomplete .mini')
+    rootView.on 'editor-open', (e, editor) -> new Autocomplete(editor) unless editor.mini
 
   initialize: (@editor) ->
     requireStylesheet 'autocomplete.css'
@@ -39,8 +38,8 @@ class Autocomplete extends View
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
 
     @editor.command 'autocomplete:attach', => @attach()
-    @editor.command 'autocomplete:cancel', => @cancel()
-    @command 'autocomplete:confirm', => @confirm()
+    @command 'core:cancel', => @cancel()
+    @command 'core:confirm', => @confirm()
 
     @matchesList.on 'mousedown', (e) =>
       index = $(e.target).attr('index')

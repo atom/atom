@@ -249,10 +249,10 @@ class Selection
   outdentSelectedRows: ->
     range = @getBufferRange()
     buffer = @editSession.buffer
-    leadingTabRegex = new RegExp("^#{@editSession.getTabText()}")
+    leadingTabRegex = new RegExp("^ {1,#{@editSession.getTabLength()}}|\t")
     for row in [range.start.row..range.end.row]
-      if leadingTabRegex.test buffer.lineForRow(row)
-        buffer.delete [[row, 0], [row, @editSession.tabLength]]
+      if matchLength = buffer.lineForRow(row).match(leadingTabRegex)?[0].length
+        buffer.delete [[row, 0], [row, matchLength]]
 
   toggleLineComments: ->
     @modifySelection =>

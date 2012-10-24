@@ -14,7 +14,7 @@ class PreviewList extends ScrollView
     super
     @on 'core:move-down', => @selectNextOperation()
     @on 'core:move-up', => @selectPreviousOperation()
-    @on 'command-panel:execute', => @executeSelectedOperation()
+    @on 'core:confirm', => @executeSelectedOperation()
 
     @on 'mousedown', 'li', (e) =>
       @setSelectedOperationIndex(parseInt($(e.target).closest('li').data('index')))
