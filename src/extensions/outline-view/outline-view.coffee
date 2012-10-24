@@ -25,7 +25,7 @@ class OutlineView extends SelectList
       @li =>
         @div name, class: 'function-name'
         @div class: 'right', =>
-          @div "Line #{row}", class: 'function-line'
+          @div "Line #{row + 1}", class: 'function-line'
         @div class: 'clear-float'
 
   toggle: ->
