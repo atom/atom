@@ -13,9 +13,9 @@ describe "OutlineView", ->
         generator.generate().done ->
           expect(tags.length).toBe 2
           expect(tags[0].name).toBe "quicksort"
-          expect(tags[0].row).toBe 0
+          expect(tags[0].position.row).toBe 0
           expect(tags[1].name).toBe "quicksort.sort"
-          expect(tags[1].row).toBe 1
+          expect(tags[1].position.row).toBe 1
 
     it "generates no tags for text file", ->
       waitsForPromise ->

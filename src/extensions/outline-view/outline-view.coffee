@@ -20,12 +20,12 @@ class OutlineView extends SelectList
   initialize: (@rootView) ->
     super
 
-  itemForElement: ({row, name}) ->
+  itemForElement: ({position, name}) ->
     $$ ->
       @li =>
         @div name, class: 'function-name'
         @div class: 'right', =>
-          @div "Line #{row + 1}", class: 'function-line'
+          @div "Line #{position.row + 1}", class: 'function-line'
         @div class: 'clear-float'
 
   toggle: ->
@@ -44,9 +44,9 @@ class OutlineView extends SelectList
           @setArray(tags)
           @attach()
 
-  confirmed : ({row, column, name}) ->
+  confirmed : ({position, name}) ->
     @cancel()
-    @rootView.getActiveEditor().setCursorBufferPosition([row, column])
+    @rootView.getActiveEditor().setCursorBufferPosition(position)
 
   cancelled: ->
     @miniEditor.setText('')

@@ -1,3 +1,4 @@
+Point = require 'point'
 ChildProcess = require 'child-process'
 
 module.exports =
@@ -29,8 +30,7 @@ class TagGenerator
       label = "#{label}#{signature}"
 
     tag =
-      row: line
-      column: 0
+      position: new Point(line, 0)
       name: label
 
     return tag
