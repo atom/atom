@@ -77,8 +77,7 @@ class OutlineView extends SelectList
     path = @rootView.getActiveEditor().getPath()
     command = "ctags --fields=+KS -nf - #{path}"
     deferred = ChildProcess.exec command, options
-    deferred.done (stdout, stderr) =>
-      options.stdout(stdout)
+    deferred.done =>
       if tags.length > 0
           @setArray(tags)
           @attach()
