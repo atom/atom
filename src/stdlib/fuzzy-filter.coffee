@@ -1,10 +1,16 @@
 stringScore = require 'stringscore'
 
-module.exports = (candidates, query, options) ->
+module.exports = (candidates, query, options={}) ->
   if query
     scoredCandidates = candidates.map (candidate) ->
       string = if options.key? then candidate[options.key] else candidate
-      { candidate, score: stringScore(string, query) }
+      score = stringScore(string, query)
+
+      # Basename matches count for more.
+      unless /\//.test(query)
+        score += stringScore(candidate.replace(/^.*\//,''), query)
+
+      { candidate, score }
 
     scoredCandidates.sort (a, b) ->
       if a.score > b.score then -1
