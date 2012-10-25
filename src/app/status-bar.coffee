@@ -63,8 +63,8 @@ class StatusBar extends View
       @head = null
 
     if @head
-      @branchArea.show()
       @branchLabel.text(@head)
+      @branchArea.show()
     else
       @branchArea.hide()
 
