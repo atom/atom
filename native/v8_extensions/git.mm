@@ -20,6 +20,13 @@ class GitRepository : public CefBase {
         git_repository_free(repo);
     }
 
+    CefRefPtr<CefV8Value> GetPath() {
+      if (exists)
+        return CefV8Value::CreateString(git_repository_path(repo));
+      else
+        return CefV8Value::CreateNull();
+    }
+
     CefRefPtr<CefV8Value> GetHead() {
       if (!exists)
         return CefV8Value::CreateNull();
@@ -65,6 +72,13 @@ bool Git::Execute(const CefString& name,
     retval = userData->GetHead();
     return true;
   }
+
+  if (name == "getPath") {
+    GitRepository *userData = (GitRepository *)object->GetUserData().get();
+    retval = userData->GetPath();
+    return true;
+  }
+
   return false;
 }
 

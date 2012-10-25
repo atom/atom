@@ -1,11 +1,12 @@
 module.exports =
 class Git
 
-  constructor: (@repoPath) ->
-    @repo = new GitRepository(@repoPath)
+  constructor: (path) ->
+    @repo = new GitRepository(path)
 
-  getHead: ->
-    @repo.getHead() || ''
+  getPath: -> @repo.getPath()
+
+  getHead: -> @repo.getHead() || ''
 
   getShortHead: ->
     head = @getHead()
