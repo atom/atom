@@ -3,6 +3,7 @@
 #import "native/v8_extensions/native.h"
 #import "native/v8_extensions/onig_reg_exp.h"
 #import "native/v8_extensions/onig_scanner.h"
+#import "native/v8_extensions/git.h"
 #import "native/message_translation.h"
 #include <iostream>
 
@@ -11,6 +12,7 @@ void AtomCefRenderProcessHandler::OnWebKitInitialized() {
   new v8_extensions::Native();
   new v8_extensions::OnigRegExp();
   new v8_extensions::OnigScanner();
+  new v8_extensions::Git();
 }
 
 void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser,
