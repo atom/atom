@@ -143,7 +143,7 @@ class EditSession
     @mutateSelectedText (selection) -> selection.insertText(text, options)
 
   insertNewline: ->
-    @insertText('\n')
+    @insertText('\n', autoIndent: true)
 
   insertNewlineBelow: ->
     @moveCursorToEndOfLine()
@@ -202,7 +202,8 @@ class EditSession
       maintainPasteboard = true
 
   pasteText: ->
-    @insertText($native.readFromPasteboard())
+    [text, metadata] = pasteboard.read()
+    @insertText(text, _.extend(metadata ? {}, normalizeIndent: true))
 
   undo: ->
     @buffer.undo(this)
@@ -256,6 +257,9 @@ class EditSession
 
   largestFoldStartingAtScreenRow: (screenRow) ->
     @displayBuffer.largestFoldStartingAtScreenRow(screenRow)
+
+  suggestedIndentForBufferRow: (bufferRow) ->
+    @languageMode.suggestedIndentForBufferRow(bufferRow)
 
   autoIndentBufferRows: (startRow, endRow) ->
     @languageMode.autoIndentBufferRows(startRow, endRow)

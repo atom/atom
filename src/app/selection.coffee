@@ -137,22 +137,58 @@ class Selection
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
+    text = @normalizeIndent(text, options) if options.normalizeIndent
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
 
-    autoIndent = options.autoIndent ? true
-
-    if @editSession.autoIndent and autoIndent
-      if /\n/.test(text)
-        firstLinePrefix = @editSession.getTextInBufferRange([[newBufferRange.start.row, 0], newBufferRange.start])
-        if /^\s*$/.test(firstLinePrefix)
-          @editSession.autoIncreaseIndentForBufferRow(newBufferRange.start.row)
-
-        if newBufferRange.getRowCount() > 1
-          @editSession.autoIndentBufferRows(newBufferRange.start.row + 1, newBufferRange.end.row)
+    if @editSession.autoIndent and options.autoIndent
+      if text == '\n'
+        @editSession.autoIndentBufferRow(newBufferRange.end.row)
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
+
+  normalizeIndent: (text, options) ->
+    return text unless /\n/.test(text)
+
+    currentBufferRow = @cursor.getBufferRow()
+    currentBufferColumn = @cursor.getBufferColumn()
+    lines = text.split('\n')
+    currentBasis = options.indentBasis ? lines[0].match(/\s*/)[0].length
+    lines[0] = lines[0].replace(/^\s*/, '') # strip leading space from first line
+
+    normalizedLines = []
+
+    textPrecedingCursor = @editSession.buffer.getTextInRange([[currentBufferRow, 0], [currentBufferRow, currentBufferColumn]])
+    insideExistingLine = textPrecedingCursor.match(/\S/)
+
+    if insideExistingLine
+      desiredBasis = @editSession.indentationForBufferRow(currentBufferRow)
+    else if @editSession.autoIndent
+      desiredBasis = @editSession.suggestedIndentForBufferRow(currentBufferRow)
+    else
+      desiredBasis = currentBufferColumn
+
+    for line, i in lines
+      if i == 0
+        if insideExistingLine
+          delta = 0
+        else
+          delta = desiredBasis - currentBufferColumn
+      else
+        delta = desiredBasis - currentBasis
+
+      normalizedLines.push(@adjustIndentationForLine(line, delta))
+
+    normalizedLines.join('\n')
+
+  adjustIndentationForLine: (line, delta) ->
+    if delta > 0
+      new Array(delta + 1).join(' ') + line
+    else if delta < 0
+      line.replace(new RegExp("^ {0,#{Math.abs(delta)}}"), '')
+    else
+      line
 
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
@@ -233,8 +269,13 @@ class Selection
   copy: (maintainPasteboard=false) ->
     return if @isEmpty()
     text = @editSession.buffer.getTextInRange(@getBufferRange())
-    text = $native.readFromPasteboard() + "\n" + text if maintainPasteboard
-    $native.writeToPasteboard text
+    if maintainPasteboard
+      [currentText, metadata] = pasteboard.read()
+      text = currentText + '\n' + text
+    else
+      metadata = { indentBasis: @editSession.indentationForBufferRow(@getBufferRange().start.row) }
+
+    pasteboard.write(text, metadata)
 
   fold: ->
     range = @getBufferRange()

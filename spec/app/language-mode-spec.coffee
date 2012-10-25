@@ -180,6 +180,14 @@ describe "LanguageMode", ->
           expect(languageMode.rowRangeForFoldAtBufferRow(2)).toBeNull()
           expect(languageMode.rowRangeForFoldAtBufferRow(4)).toEqual [4, 7]
 
+    describe "suggestedIndentForBufferRow", ->
+      it "returns the suggested indentation based on auto-indent/outdent rules", ->
+        expect(languageMode.suggestedIndentForBufferRow(0)).toBe 0
+        expect(languageMode.suggestedIndentForBufferRow(1)).toBe 2
+        expect(languageMode.suggestedIndentForBufferRow(2)).toBe 4
+        expect(languageMode.suggestedIndentForBufferRow(9)).toBe 2
+
+
   describe "coffeescript", ->
     beforeEach ->
       editSession = fixturesProject.buildEditSessionForPath('coffee.coffee', autoIndent: false)
