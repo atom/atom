@@ -1214,56 +1214,47 @@ describe "EditSession", ->
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
     describe ".indent()", ->
-      describe "when nothing is selected", ->
-        describe "if 'softTabs' is true (the default)", ->
-          it "inserts 'tabLength' spaces into the buffer", ->
-            tabRegex = new RegExp("^[ ]{#{editSession.tabLength}}")
-            expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
-            editSession.indent()
-            expect(buffer.lineForRow(0)).toMatch(tabRegex)
-
-        describe "when auto-indent is on and the line only contains whitespace", ->
-          describe "when the preceding line opens a new level of indentation", ->
-            it "increases the level of indentation by one", ->
-              buffer.insert([5, 0], "  \n")
-              editSession.tabLength = 2
-              editSession.setCursorBufferPosition [5, 2]
-              editSession.setAutoIndent(true)
+      describe "when the selection is empty", ->
+        describe "when autoIndent is disabled", ->
+          describe "if 'softTabs' is true (the default)", ->
+            it "inserts 'tabLength' spaces into the buffer", ->
+              tabRegex = new RegExp("^[ ]{#{editSession.tabLength}}")
+              expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
               editSession.indent()
-              expect(buffer.lineForRow(5)).toMatch /^\s+$/
-              expect(buffer.lineForRow(5).length).toBe 6
-              expect(editSession.getCursorBufferPosition()).toEqual [5, 6]
+              expect(buffer.lineForRow(0)).toMatch(tabRegex)
 
-          describe "when there are empty lines preceding the current line", ->
-            it "bases indentation on the first non-blank preceding line", ->
-              buffer.insert([5, 0], "\n\n\n  \n")
-              editSession.tabLength = 2
-              editSession.setCursorBufferPosition [8, 2]
-              editSession.setAutoIndent(true)
-              editSession.indent()
-              expect(buffer.lineForRow(8)).toMatch /^\s+$/
-              expect(buffer.lineForRow(8).length).toBe 6
-              expect(editSession.getCursorBufferPosition()).toEqual [8, 6]
+        describe "when autoIndent is enabled", ->
+          describe "when the cursor's column is greater than the suggested level of indentation", ->
+            describe "when 'softTabs' is true (the default)", ->
+              it "inserts 'tabLength' spaces into the buffer", ->
+                buffer.insert([7, 0], "      \n")
+                editSession.tabLength = 2
+                editSession.setCursorBufferPosition [7, 6]
+                editSession.setAutoIndent(true)
+                editSession.indent()
+                expect(buffer.lineForRow(7)).toMatch /^\s+$/
+                expect(buffer.lineForRow(7).length).toBe 8
+                expect(editSession.getCursorBufferPosition()).toEqual [7, 8]
 
-          it "properly indents the line", ->
-            buffer.insert([7, 0], "  \n")
-            editSession.tabLength = 2
-            editSession.setCursorBufferPosition [7, 2]
-            editSession.setAutoIndent(true)
-            editSession.indent()
-            expect(buffer.lineForRow(7)).toMatch /^\s+$/
-            expect(buffer.lineForRow(7).length).toBe 6
-            expect(editSession.getCursorBufferPosition()).toEqual [7, 6]
+          describe "when the cursor's column is less than the suggested level of indentation", ->
+            describe "when 'softTabs' is true (the default)", ->
+              it "inserts enough whitespace to bring the line to the suggested level of indentaion", ->
+                buffer.insert([5, 0], "  \n")
+                editSession.tabLength = 2
+                editSession.setCursorBufferPosition [5, 2]
+                editSession.setAutoIndent(true)
+                editSession.indent()
+                expect(buffer.lineForRow(5)).toMatch /^\s+$/
+                expect(buffer.lineForRow(5).length).toBe 6
+                expect(editSession.getCursorBufferPosition()).toEqual [5, 6]
 
-          it "allows for additional indentation if the cursor is beyond the proper indentation point", ->
-            buffer.insert([7, 0], "      \n")
-            editSession.tabLength = 2
-            editSession.setCursorBufferPosition [7, 6]
-            editSession.setAutoIndent(true)
-            editSession.indent()
-            expect(buffer.lineForRow(7)).toMatch /^\s+$/
-            expect(buffer.lineForRow(7).length).toBe 8
-            expect(editSession.getCursorBufferPosition()).toEqual [7, 8]
+      describe "when the selection is not empty", ->
+        it "indents the selected lines", ->
+          editSession.setSelectedBufferRange([[0, 0], [10, 0]])
+          selection = editSession.getSelection()
+          spyOn(selection, "indentSelectedRows")
+          editSession.indent()
+          expect(selection.indentSelectedRows).toHaveBeenCalled()
 
       describe "if editSession.softTabs is false", ->
         it "inserts a tab character into the buffer", ->
