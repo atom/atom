@@ -121,7 +121,6 @@ class Pattern
   pushRule: null
   popRule: false
   scopeName: null
-  regex: null
   captures: null
   backReferences: null
 
@@ -131,11 +130,9 @@ class Pattern
       if @hasBackReferences = hasBackReferences ? /\\\d+/.test(match)
         @match = match
       else
-        @regex = new OnigRegExp(match)
         @regexSource = match
       @captures = captures
     else if begin
-      @regex = new OnigRegExp(begin)
       @regexSource = begin
       @captures = beginCaptures ? captures
       endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
