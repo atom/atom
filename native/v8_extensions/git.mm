@@ -4,7 +4,7 @@
 #import <Cocoa/Cocoa.h>
 
 namespace v8_extensions {
-  
+
 class GitRepository : public CefBase {
   private:
     bool exists;
@@ -15,16 +15,16 @@ class GitRepository : public CefBase {
       const char *repoPath = path->GetStringValue().ToString().c_str();
       exists = git_repository_open(&repo, repoPath) == GIT_OK;
     }
-    
+
     ~GitRepository() {
       if (repo)
         git_repository_free(repo);
     }
-  
+
     CefRefPtr<CefV8Value> GetHead() {
       if (!exists)
         return CefV8Value::CreateNull();
-      
+
       git_reference *head;
       if (git_repository_head(&head, repo) == GIT_OK) {
         if (git_repository_head_detached(repo) == 1) {
@@ -39,7 +39,7 @@ class GitRepository : public CefBase {
       } else
         return CefV8Value::CreateNull();
     }
-  
+
   IMPLEMENT_REFCOUNTING(GitRepository);
 };
 
@@ -64,14 +64,14 @@ bool Git::Execute(const CefString& name,
       retval = CefV8Value::CreateNull();
     return true;
   }
-  
+
   if (name == "getRepository") {
     CefRefPtr<CefBase> userData = new GitRepository(arguments[0]);
     retval = CefV8Value::CreateObject(NULL);
     retval->SetUserData(userData);
     return true;
   }
-  
+
   if (name == "getHead") {
     GitRepository *userData = (GitRepository *)object->GetUserData().get();
     retval = userData->GetHead();
