@@ -248,6 +248,9 @@ static NSMutableArray *gPathWatchers;
         char pathBuffer[MAXPATHLEN];
         fcntl((int)event.ident, F_GETPATH, &pathBuffer);
         newPath = [NSString stringWithUTF8String:pathBuffer];
+        if (!newPath) {
+          NSLog(@"WARNING: Renamed %@ to a null path", path);
+        }
       }
 
       NSDictionary *callbacks;
@@ -263,7 +266,11 @@ static NSMutableArray *gPathWatchers;
       });
 
       if (event.fflags & NOTE_RENAME) {
-        [self reassignFileDescriptor:fdNumber from:path to:newPath];
+        if (newPath) {
+         [self reassignFileDescriptor:fdNumber from:path to:newPath];
+        } else {
+          NSLog(@"WARNING: Reassigning file descriptor from path %@ to null path", path);
+        }
       }
     }
   }
