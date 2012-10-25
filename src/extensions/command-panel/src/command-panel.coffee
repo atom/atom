@@ -51,7 +51,7 @@ class CommandPanel extends View
     @historyIndex = @history.length
 
     @command 'tool-pane:unfocus', => @rootView.focus()
-    @command 'core:close', => @detach()
+    @command 'core:close', => @detach(); false
     @command 'core:confirm', => @execute()
 
     @rootView.command 'command-panel:toggle', => @toggle()

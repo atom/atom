@@ -79,9 +79,16 @@ describe "CommandPanel", ->
       rootView2.deactivate()
 
   describe "when core:close is triggered on the command panel", ->
-    it "detaches the command panel", ->
+    it "detaches the command panel, focuses the RootView and does not bubble the core:close event", ->
       commandPanel.attach()
+      rootViewCloseHandler = jasmine.createSpy('rootViewCloseHandler')
+      rootView.on 'core:close', rootViewCloseHandler
+      spyOn(rootView, 'focus')
+
       commandPanel.trigger('core:close')
+
+      expect(rootView.focus).toHaveBeenCalled()
+      expect(rootViewCloseHandler).not.toHaveBeenCalled()
       expect(commandPanel.hasParent()).toBeFalsy()
 
   describe "when command-panel:toggle is triggered on the root view", ->
