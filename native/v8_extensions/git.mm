@@ -6,45 +6,45 @@
 namespace v8_extensions {
 
 class GitRepository : public CefBase {
-  private:
-    bool exists;
-    git_repository *repo;
+private:
+  bool exists;
+  git_repository *repo;
 
-  public:
-    GitRepository(const char *repoPath) {
-      exists = git_repository_open_ext(&repo, repoPath, 0, NULL) == GIT_OK;
-    }
+public:
+  GitRepository(const char *repoPath) {
+    exists = git_repository_open_ext(&repo, repoPath, 0, NULL) == GIT_OK;
+  }
 
-    ~GitRepository() {
-      if (repo)
-        git_repository_free(repo);
-    }
+  ~GitRepository() {
+    if (repo)
+      git_repository_free(repo);
+  }
 
-    CefRefPtr<CefV8Value> GetPath() {
-      if (exists)
-        return CefV8Value::CreateString(git_repository_path(repo));
-      else
-        return CefV8Value::CreateNull();
-    }
+  CefRefPtr<CefV8Value> GetPath() {
+    if (exists)
+      return CefV8Value::CreateString(git_repository_path(repo));
+    else
+      return CefV8Value::CreateNull();
+  }
 
-    CefRefPtr<CefV8Value> GetHead() {
-      if (!exists)
-        return CefV8Value::CreateNull();
+  CefRefPtr<CefV8Value> GetHead() {
+    if (!exists)
+      return CefV8Value::CreateNull();
 
-      git_reference *head;
-      if (git_repository_head(&head, repo) == GIT_OK) {
-        if (git_repository_head_detached(repo) == 1) {
-          const git_oid* sha = git_reference_oid(head);
-          if (sha) {
-            char oid[GIT_OID_HEXSZ + 1];
-            git_oid_tostr(oid, GIT_OID_HEXSZ + 1, sha);
-            return CefV8Value::CreateString(oid);
-          }
+    git_reference *head;
+    if (git_repository_head(&head, repo) == GIT_OK) {
+      if (git_repository_head_detached(repo) == 1) {
+        const git_oid* sha = git_reference_oid(head);
+        if (sha) {
+          char oid[GIT_OID_HEXSZ + 1];
+          git_oid_tostr(oid, GIT_OID_HEXSZ + 1, sha);
+          return CefV8Value::CreateString(oid);
         }
-        return CefV8Value::CreateString(git_reference_name(head));
-      } else
-        return CefV8Value::CreateNull();
-    }
+      }
+      return CefV8Value::CreateString(git_reference_name(head));
+    } else
+      return CefV8Value::CreateNull();
+  }
 
   IMPLEMENT_REFCOUNTING(GitRepository);
 };
