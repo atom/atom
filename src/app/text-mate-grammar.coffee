@@ -69,6 +69,7 @@ class Rule
   grammar: null
   scopeName: null
   patterns: null
+  allPatterns: null
   createEndPattern: null
 
   constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
@@ -77,9 +78,8 @@ class Rule
     @patterns.unshift(@endPattern) if @endPattern and !@endPattern.hasBackReferences
 
   getIncludedPatterns: (included=[]) ->
-    return [] if _.include(included, this)
-
     return @allPatterns if @allPatterns
+    return [] if _.include(included, this)
 
     included = included.concat([this])
     @allPatterns = []

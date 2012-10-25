@@ -44,33 +44,6 @@ public:
     return CefV8Value::CreateBool(result);
   }
   
-  CefRefPtr<CefV8Value> GetCaptureIndices(CefRefPtr<CefV8Value> string, CefRefPtr<CefV8Value> index) {
-    OnigResult *result = [m_regex search:stringFromCefV8Value(string) start:index->GetIntValue()];
-    if ([result count] == 0) return CefV8Value::CreateNull();
-    return BuildCaptureIndices(result);
-  }
-
-  CefRefPtr<CefV8Value> BuildCaptureIndices(OnigResult *result) {
-    CefRefPtr<CefV8Value> array = CefV8Value::CreateArray(result.count * 3);
-    int i = 0;
-
-    int resultCount = [result count];
-    for (int index = 0; index < resultCount; index++) {
-      int captureLength = [result lengthAt:index];
-      int captureStart = [result locationAt:index];
-
-      array->SetValue(i++, CefV8Value::CreateInt(index));
-      array->SetValue(i++, CefV8Value::CreateInt(captureStart));
-      array->SetValue(i++, CefV8Value::CreateInt(captureStart + captureLength));
-    }
-    
-    return array;
-  }
-
-  CefRefPtr<CefV8Value> CaptureCount() {
-    return CefV8Value::CreateInt([m_regex captureCount]);
-  }
-
   OnigRegexp *m_regex;
 
   IMPLEMENT_REFCOUNTING(OnigRegexpUserData);
@@ -88,37 +61,7 @@ bool OnigRegExp::Execute(const CefString& name,
                             CefRefPtr<CefV8Value>& retval,
                             CefString& exception) {
 
-  if (name == "captureIndices") {
-    CefRefPtr<CefV8Value> string = arguments[0];
-    CefRefPtr<CefV8Value> index = arguments[1];
-    CefRefPtr<CefV8Value> regexes = arguments[2];
-    
-    int bestIndex = -1;
-    CefRefPtr<CefV8Value> captureIndicesForBestIndex;
-    CefRefPtr<CefV8Value> captureIndices;
-    
-    retval = CefV8Value::CreateObject(NULL);
-    for (int i = 0; i < regexes->GetArrayLength(); i++) {
-      OnigRegExpUserData *userData = (OnigRegExpUserData *)regexes->GetValue(i)->GetUserData().get();
-      captureIndices = userData->GetCaptureIndices(string, index);
-      if (captureIndices->IsNull()) continue;
-      
-      if (bestIndex == -1 || captureIndices->GetValue(1)->GetIntValue() < captureIndicesForBestIndex->GetValue(1)->GetIntValue()) {
-        bestIndex = i;
-        captureIndicesForBestIndex = captureIndices;
-        if (captureIndices->GetValue(1)->GetIntValue() == index->GetIntValue()) break; // If the match starts at 0, just use it!
-      }
-    }
-
-    if (bestIndex != -1) {
-      retval->SetValue("index", CefV8Value::CreateInt(bestIndex), V8_PROPERTY_ATTRIBUTE_NONE);
-      retval->SetValue("captureIndices", captureIndicesForBestIndex, V8_PROPERTY_ATTRIBUTE_NONE);
-    }
-    
-    return true;
-
-  }
-  else if (name == "search") {
+  if (name == "search") {
     CefRefPtr<CefV8Value> string = arguments[0];
     CefRefPtr<CefV8Value> index = arguments.size() > 1 ? arguments[1] : CefV8Value::CreateInt(0);
     OnigRegExpUserData *userData = (OnigRegExpUserData *)object->GetUserData().get();
