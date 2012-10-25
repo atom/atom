@@ -100,7 +100,7 @@ class RootView extends View
       when 'Editor' then Editor.deserialize(viewState, this)
 
   activateExtension: (extension, config) ->
-    throw new Error("Trying to activate an extension with no name") unless extension.name?
+    throw new Error("Trying to activate an extension with no name attribute") unless extension.name?
     @extensions[extension.name] = extension
     extension.activate(this, @extensionStates[extension.name], config)
 

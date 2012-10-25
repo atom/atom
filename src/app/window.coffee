@@ -69,13 +69,17 @@ windowAdditions =
       $('head').append "<style id='#{id}'>#{text}</style>"
 
   requireExtension: (name, config) ->
-    extensionPath = require.resolve name
-    extension = rootView.activateExtension(require(extensionPath), config)
+    try
+      extensionPath = require.resolve name
+      throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.exists(extensionPath)
 
-    extensionKeymapPath = fs.join(fs.directory(extensionPath), "keymap.coffee")
-    require extensionKeymapPath if fs.exists(extensionKeymapPath)
-
-    extension
+      extension = rootView.activateExtension(require(extensionPath), config)
+      extensionKeymapPath = fs.join(fs.directory(extensionPath), "keymap.coffee")
+      require extensionKeymapPath if fs.exists(extensionKeymapPath)
+      extension
+    catch e
+      console.error "Failed to load extension named '#{name}'"
+      throw e
 
   reload: ->
     if rootView.getModifiedBuffers().length > 0
