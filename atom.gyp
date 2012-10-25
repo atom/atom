@@ -19,6 +19,7 @@
   },
   'includes': [
     'cef/cef_paths2.gypi',
+    'git2/libgit2.gypi',
   ],
   'target_defaults': {
     'default_configuration': 'Debug',
