@@ -26,9 +26,17 @@ class GitRepository : public CefBase {
         return CefV8Value::CreateNull();
       
       git_reference *head;
-      if (git_repository_head(&head, repo) == GIT_OK)
+      if (git_repository_head(&head, repo) == GIT_OK) {
+        if (git_repository_head_detached(repo) == 1) {
+          const git_oid* sha = git_reference_oid(head);
+          if (sha) {
+            char oid[GIT_OID_HEXSZ + 1];
+            git_oid_tostr(oid, GIT_OID_HEXSZ + 1, sha);
+            return CefV8Value::CreateString(oid);
+          }
+        }
         return CefV8Value::CreateString(git_reference_name(head));
-      else
+      } else
         return CefV8Value::CreateNull();
     }
   
