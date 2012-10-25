@@ -21,7 +21,11 @@ class StatusBar extends View
       @div class: 'file-info', =>
         @div class: 'current-path', outlet: 'currentPath'
         @div class: 'buffer-modified', outlet: 'bufferModified'
-      @div class: 'cursor-position', outlet: 'cursorPosition'
+      @div class: 'cursor-position', =>
+        @span outlet: 'branchArea', =>
+          @span '\uf020', class: 'octicons'
+          @span class: 'branch-label', outlet: 'branchLabel'
+        @span outlet: 'cursorPosition'
 
   initialize: (@rootView, @editor) ->
     @updatePathText()
@@ -57,6 +61,9 @@ class StatusBar extends View
 
   updateCursorPositionText: ->
     { row, column } = @editor.getCursorBufferPosition()
-    cursorText = "#{row + 1},#{column + 1}"
-    cursorText = "(#{@head}) #{cursorText}" if @head
-    @cursorPosition.text(cursorText)
+    if @head
+      @branchArea.show()
+      @branchLabel.text(@head)
+    else
+      @branchArea.hide()
+    @cursorPosition.text("#{row + 1},#{column + 1}")

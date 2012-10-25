@@ -25,3 +25,15 @@
   right: 5px;
   top: 5px;
 }
+
+.status-bar .octicons {
+  font-family: 'Octicons Regular';
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+.status-bar .branch-label {
+  padding-left: 2px;
+  padding-right: 10px;
+}
