@@ -352,14 +352,6 @@ class Buffer
         return row unless @isRowBlank(row)
     null
 
-  indentationForRow: (row) ->
-    @lineForRow(row).match(/^\s*/)?[0].length
-
-  setIndentationForRow: (bufferRow, newLevel) ->
-    currentLevel = @indentationForRow(bufferRow)
-    indentString = [0...newLevel].map(-> ' ').join('')
-    @change([[bufferRow, 0], [bufferRow, currentLevel]], indentString)
-
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
       line = @lineForRow(row)

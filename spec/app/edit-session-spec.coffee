@@ -671,13 +671,13 @@ describe "EditSession", ->
             it "auto-indents the new line to one additional level of indentation beyond the preceding line", ->
               editSession.setCursorBufferPosition([1, Infinity])
               editSession.insertText('\n', autoIndent: true)
-              expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 2
 
           describe "when the newline is inserted on a normal line", ->
             it "auto-indents the new line to the same level of indentation as the preceding line", ->
               editSession.setCursorBufferPosition([5, 13])
               editSession.insertText('\n', autoIndent: true)
-              expect(buffer.indentationForRow(6)).toBe buffer.indentationForRow(5)
+              expect(editSession.indentationForBufferRow(6)).toBe editSession.indentationForBufferRow(5)
 
         describe "when text without newlines is inserted", ->
           describe "when the current line matches an auto-outdent pattern", ->
@@ -686,24 +686,24 @@ describe "EditSession", ->
                 editSession.setCursorBufferPosition([2, 4])
                 editSession.insertText('\n', autoIndent: true)
                 editSession.setCursorBufferPosition([2, 4])
-                expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
+                expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 2
                 editSession.insertText('   }', autoIndent: true)
-                expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1)
+                expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
 
             describe "when the preceding does not match an auto-indent pattern", ->
               it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
                 editSession.setCursorBufferPosition([3, Infinity])
                 editSession.insertText('\n', autoIndent: true)
-                expect(buffer.indentationForRow(4)).toBe buffer.indentationForRow(3)
+                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
                 editSession.insertText('   }', autoIndent: true)
-                expect(buffer.indentationForRow(4)).toBe buffer.indentationForRow(3) - 2
+                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 2
 
           describe "when the current line does not match an auto-outdent pattern", ->
             it "leaves the line unchanged", ->
               editSession.setCursorBufferPosition([2, 4])
-              expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 2
               editSession.insertText('foo', autoIndent: true)
-              expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 2
 
       describe "when the `normalizeIndent` option is true", ->
         describe "when the inserted text contains no newlines", ->

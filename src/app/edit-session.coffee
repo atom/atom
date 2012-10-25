@@ -113,11 +113,18 @@ class EditSession
   clipBufferPosition: (bufferPosition) ->
     @buffer.clipPosition(bufferPosition)
 
+  indentationForBufferRow: (bufferRow) ->
+    @lineForBufferRow(bufferRow).match(/^\s*/)?[0].length
+
+  setIndentationForBufferRow: (bufferRow, newLevel) ->
+    currentLevel = @indentationForBufferRow(bufferRow)
+    indentString = [0...newLevel].map(-> ' ').join('')
+    @buffer.change([[bufferRow, 0], [bufferRow, currentLevel]], indentString)
+
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
-  indentationForBufferRow: (bufferRow) -> @buffer.indentationForRow(bufferRow)
   getEofBufferPosition: -> @buffer.getEofPosition()
   getLastBufferRow: -> @buffer.getLastRow()
   bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)

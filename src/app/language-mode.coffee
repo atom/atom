@@ -98,7 +98,7 @@ class LanguageMode
     [bufferRow, foldEndRow]
 
   suggestedIndentForBufferRow: (bufferRow) ->
-    currentIndentation = @buffer.indentationForRow(bufferRow)
+    currentIndentation = @editSession.indentationForBufferRow(bufferRow)
     scopes = @tokenizedBuffer.scopesForPosition([bufferRow, 0])
     return currentIndentation unless increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
 
@@ -108,7 +108,7 @@ class LanguageMode
 
     precedingLine = @buffer.lineForRow(precedingRow)
 
-    desiredIndentation = @buffer.indentationForRow(precedingRow)
+    desiredIndentation = @editSession.indentationForBufferRow(precedingRow)
     desiredIndentation += @editSession.tabLength if increaseIndentPattern.test(precedingLine)
 
     return desiredIndentation unless decreaseIndentPattern = TextMateBundle.outdentRegexForScope(scopes[0])
@@ -132,11 +132,11 @@ class LanguageMode
     increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
     return unless increaseIndentPattern
 
-    currentIndentation = @buffer.indentationForRow(bufferRow)
-    desiredIndentation = @buffer.indentationForRow(precedingRow)
+    currentIndentation = @editSession.indentationForBufferRow(bufferRow)
+    desiredIndentation = @editSession.indentationForBufferRow(precedingRow)
     desiredIndentation += @editSession.tabLength if increaseIndentPattern.test(precedingLine)
     if desiredIndentation > currentIndentation
-      @buffer.setIndentationForRow(bufferRow, desiredIndentation)
+      @editSession.setIndentationForBufferRow(bufferRow, desiredIndentation)
 
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     scopes = @tokenizedBuffer.scopesForPosition([bufferRow, 0])
@@ -147,14 +147,14 @@ class LanguageMode
     line = @buffer.lineForRow(bufferRow)
     return unless decreaseIndentPattern.test(line)
 
-    currentIndentation = @buffer.indentationForRow(bufferRow)
+    currentIndentation = @editSession.indentationForBufferRow(bufferRow)
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
     precedingLine = @buffer.lineForRow(precedingRow)
 
-    desiredIndentation = @buffer.indentationForRow(precedingRow)
+    desiredIndentation = @editSession.indentationForBufferRow(precedingRow)
     desiredIndentation -= @editSession.tabLength unless increaseIndentPattern.test(precedingLine)
     if desiredIndentation < currentIndentation
-      @buffer.setIndentationForRow(bufferRow, desiredIndentation)
+      @editSession.setIndentationForBufferRow(bufferRow, desiredIndentation)
 
   getLineTokens: (line, stack) ->
     {tokens, stack} = @grammar.getLineTokens(line, stack)
