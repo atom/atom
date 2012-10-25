@@ -51,7 +51,7 @@ class StatusBar extends View
   updatePathText: ->
     path = @editor.getPath()
     if path
-      @head = Git.open(path)?.getHead()
+      @head = Git.open(path)?.getShortHead()
       @currentPath.text(@rootView.project.relativize(path))
     else
       @currentPath.text('untitled')
