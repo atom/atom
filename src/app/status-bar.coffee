@@ -33,6 +33,7 @@ class StatusBar extends View
       @subscribeToBuffer()
       @updatePathText()
 
+    @updateBranchText()
     @updateCursorPositionText()
     @editor.on 'cursor-move', => @updateCursorPositionText()
 
@@ -42,7 +43,9 @@ class StatusBar extends View
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
     @buffer.on 'change.status-bar', => @updateBufferModifiedText()
-    @buffer.on 'after-save.status-bar', => @updateBufferModifiedText()
+    @buffer.on 'after-save.status-bar', =>
+      @updateBranchText()
+      @updateBufferModifiedText()
     @updateBufferModifiedText()
 
   updateBufferModifiedText: ->
@@ -50,6 +53,18 @@ class StatusBar extends View
       @bufferModified.text('*')
     else
       @bufferModified.text('')
+
+  updateBranchText: ->
+    if path = @editor.getPath()
+      @head = Git.open(path)?.getShortHead()
+    else
+      @head = null
+
+    if @head
+      @branchArea.show()
+      @branchLabel.text(@head)
+    else
+      @branchArea.hide()
 
   updatePathText: ->
     path = @editor.getPath()
@@ -61,9 +76,4 @@ class StatusBar extends View
 
   updateCursorPositionText: ->
     { row, column } = @editor.getCursorBufferPosition()
-    if @head
-      @branchArea.show()
-      @branchLabel.text(@head)
-    else
-      @branchArea.hide()
     @cursorPosition.text("#{row + 1},#{column + 1}")
