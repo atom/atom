@@ -1,10 +1,6 @@
 module.exports =
 class Git
 
-  @open: (path) ->
-    repoPath = $git.getRepositoryPath(path)
-    new Git(repoPath) if repoPath
-
   constructor: (@repoPath) ->
     @repo = new GitRepository(@repoPath)
 

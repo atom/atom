@@ -1,9 +1,6 @@
 var $git = {};
 (function() {
 
-  native function getRepositoryPath(path);
-  $git.getRepositoryPath = getRepositoryPath;
-
   native function getRepository(path);
   native function getHead();
 

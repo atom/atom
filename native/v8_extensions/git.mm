@@ -13,7 +13,7 @@ class GitRepository : public CefBase {
   public:
     GitRepository(CefRefPtr<CefV8Value> path) {
       const char *repoPath = path->GetStringValue().ToString().c_str();
-      exists = git_repository_open(&repo, repoPath) == GIT_OK;
+      exists = git_repository_open_ext(&repo, repoPath, 0, NULL) == GIT_OK;
     }
 
     ~GitRepository() {
@@ -54,17 +54,6 @@ bool Git::Execute(const CefString& name,
                      const CefV8ValueList& arguments,
                      CefRefPtr<CefV8Value>& retval,
                      CefString& exception) {
-  if (name == "getRepositoryPath") {
-    const char *path = arguments[0]->GetStringValue().ToString().c_str();
-    int length = strlen(path);
-    char repoPath[GIT_PATH_MAX];
-    if (git_repository_discover(repoPath, length, path, 0, "") == GIT_OK)
-      retval = CefV8Value::CreateString(repoPath);
-    else
-      retval = CefV8Value::CreateNull();
-    return true;
-  }
-
   if (name == "getRepository") {
     CefRefPtr<CefBase> userData = new GitRepository(arguments[0]);
     retval = CefV8Value::CreateObject(NULL);
