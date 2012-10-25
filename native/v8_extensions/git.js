@@ -1,13 +1,19 @@
 var $git = {};
 (function() {
 
-  native function isRepository(path);
-  $git.isRepository = isRepository;
+  native function getRepositoryPath(path);
+  $git.getRepositoryPath = getRepositoryPath;
 
   native function getRepository(path);
-  $git.getRepository = getRepository;
+  native function getHead();
 
-  native function getCurrentBranch(repository);
-  $git.getCurrentBranch = getCurrentBranch;
+  function GitRepository(path) {
+    var repo = getRepository(path);
+    repo.constructor = GitRepository;
+    repo.__proto__ = GitRepository.prototype;
+    return repo;
+  }
 
+  GitRepository.prototype.getHead = getHead;
+  this.GitRepository = GitRepository;
 })();
