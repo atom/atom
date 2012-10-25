@@ -271,7 +271,10 @@
               '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
             ],
           },
-          'libraries': [ 'native/frameworks/CocoaOniguruma.framework' ],
+          'libraries': [
+            'native/frameworks/CocoaOniguruma.framework',
+            'git2/frameworks/libgit2.0.17.0.dylib',
+          ],
           'sources': [
             'native/atom_cef_app.h',
             'native/atom_cef_render_process_handler.h',
