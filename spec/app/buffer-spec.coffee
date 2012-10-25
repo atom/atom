@@ -77,7 +77,7 @@ describe 'Buffer', ->
       waitsFor "buffer path change", ->
         eventHandler.callCount > 0
 
-  describe "when the buffer's file is modified (via another process)", ->
+  describe "when the buffer's on-disk contents change (via another process writing to its file)", ->
     path = null
     beforeEach ->
       path = "/tmp/tmp.txt"
@@ -98,8 +98,8 @@ describe 'Buffer', ->
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
 
-    describe "when the buffer is unmodified", ->
-      it "triggers 'change' event and buffer remains unmodified", ->
+    describe "when the buffer's memory contents are the same as the *previous* disk contents", ->
+      it "changes the memory contents of the buffer to match the new disk contents and triggers a 'change' event", ->
         changeHandler = jasmine.createSpy('changeHandler')
         buffer.on 'change', changeHandler
         fs.write(path, "second")
@@ -116,8 +116,8 @@ describe 'Buffer', ->
           expect(event.newText).toBe "second"
           expect(buffer.isModified()).toBeFalsy()
 
-    describe "when the buffer is modified", ->
-      it "sets modifiedOnDisk to be true", ->
+    describe "when the buffer's memory contents differ from the *previous* disk contents", ->
+      it "leaves the buffer in a modified state (does not update its memory contents)", ->
         fileChangeHandler = jasmine.createSpy('fileChange')
         buffer.file.on 'contents-change', fileChangeHandler
 
@@ -129,7 +129,7 @@ describe 'Buffer', ->
           fileChangeHandler.callCount > 0
 
         runs ->
-          expect(buffer.isModifiedOnDisk()).toBeTruthy()
+          expect(buffer.isModified()).toBeTruthy()
 
   describe "when the buffer's file is deleted (via another process)", ->
     it "no longer has a path", ->
@@ -342,14 +342,13 @@ describe 'Buffer', ->
         expect(-> buffer.save()).toThrow()
 
   describe "reload()", ->
-    it "loads text from disk are sets @modified and @modifiedOnDisk to false", ->
-      buffer.modified = true
-      buffer.modifiedOnDisk = true
+    it "reloads current text from disk and clears any conflicts", ->
       buffer.setText("abc")
+      buffer.conflict = true
 
       buffer.reload()
-      expect(buffer.modifed).toBeFalsy()
-      expect(buffer.modifiedOnDisk).toBeFalsy()
+      expect(buffer.isModified()).toBeFalsy()
+      expect(buffer.isInConflict()).toBeFalsy()
       expect(buffer.getText()).toBe(fileContents)
 
   describe ".saveAs(path)", ->

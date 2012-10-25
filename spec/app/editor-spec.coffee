@@ -155,6 +155,7 @@ describe "Editor", ->
     it "closes active edit session and loads next edit session", ->
       editor.edit(rootView.project.buildEditSessionForPath())
       editSession = editor.activeEditSession
+      spyOn(editSession.buffer, 'isModified').andReturn false
       spyOn(editSession, 'destroy').andCallThrough()
       spyOn(editor, "remove").andCallThrough()
       editor.trigger "core:close"

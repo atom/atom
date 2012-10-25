@@ -41,7 +41,7 @@ class StatusBar extends View
     @updateBufferModifiedText()
 
   updateBufferModifiedText: ->
-    if @buffer.isModified() and @buffer.contentDifferentOnDisk()
+    if @buffer.isModified()
       @bufferModified.text('*')
     else
       @bufferModified.text('')

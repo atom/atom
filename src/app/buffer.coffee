@@ -8,14 +8,15 @@ UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 Anchor = require 'anchor'
 AnchorRange = require 'anchor-range'
+{hex_md5}  = require 'md5'
 
 module.exports =
 class Buffer
   @idCounter = 1
   undoManager: null
-  modified: null
-  contentOnDisk: null
-  modifiedOnDisk: null
+  diskContentSignature: null
+  memoryContentSignature: null
+  conflict: false
   lines: null
   file: null
   anchors: null
@@ -31,13 +32,19 @@ class Buffer
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
       @setPath(path)
-      @contentOnDisk = fs.read(@getPath())
-      @setText(@contentOnDisk)
+      @setText(fs.read(@getPath()))
+      @computeDiskContentSignature()
     else
       @setText('')
 
+    @computeMemoryContentSignature()
     @undoManager = new UndoManager(this)
-    @modified = false
+
+  computeDiskContentSignature: ->
+    @diskContentSignature = fs.md5ForPath(@getPath())
+
+  computeMemoryContentSignature: ->
+    @memoryContentSignature = hex_md5(@getText())
 
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
@@ -57,10 +64,12 @@ class Buffer
   subscribeToFile: ->
     @file.on "contents-change", =>
       if @isModified()
-        @modifiedOnDisk = true
+        @conflict = true
+        @computeDiskContentSignature()
+        @trigger "contents-change-on-disk"
       else
         @setText(fs.read(@file.getPath()))
-        @modified = false
+        @computeDiskContentSignature()
 
     @file.on "remove", =>
       @file = null
@@ -70,10 +79,7 @@ class Buffer
       @trigger "path-change", this
 
   reload: ->
-    @contentOnDisk = fs.read(@getPath())
-    @setText(@contentOnDisk)
-    @modified = false
-    @modifiedOnDisk = false
+    @setText(fs.read(@getPath()))
 
   getBaseName: ->
     @file?.getBaseName()
@@ -87,13 +93,7 @@ class Buffer
     @file?.off()
     @file = new File(path)
     @subscribeToFile()
-    @file.on "contents-change", =>
-      if @isModified()
-        @modifiedOnDisk = true
-        @trigger "contents-change-on-disk"
-      else
-        @setText(fs.read(@file.getPath()))
-        @modified = false
+
     @trigger "path-change", this
 
   getExtension: ->
@@ -209,7 +209,8 @@ class Buffer
 
   replaceLines: (startRow, endRow, newLines) ->
     @lines[startRow..endRow] = newLines
-    @modified = true
+    @computeMemoryContentSignature()
+    @conflict = false unless @isModified()
 
   pushOperation: (operation, editSession) ->
     if @undoManager
@@ -235,23 +236,14 @@ class Buffer
     @trigger 'before-save'
     fs.write path, @getText()
     @file?.updateMd5()
-    @modified = false
-    @modifiedOnDisk = false
     @setPath(path)
-    @contentOnDisk = @getText()
+    @computeDiskContentSignature()
     @trigger 'after-save'
 
-  isInConflict: ->
-    @isModified() and @isModifiedOnDisk()
-
-  isModifiedOnDisk: ->
-    @modifiedOnDisk
-
   isModified: ->
-    @modified
+    @memoryContentSignature != @diskContentSignature
 
-  contentDifferentOnDisk: ->
-    @contentOnDisk != @getText()
+  isInConflict: -> @conflict
 
   getAnchors: -> new Array(@anchors...)
 
