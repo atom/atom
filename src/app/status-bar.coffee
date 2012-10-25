@@ -59,10 +59,10 @@ class StatusBar extends View
     if path = @editor.getPath()
       @head = new Git(path).getShortHead()
     else
-      @head = null
+      @head = ''
 
+    @branchLabel.text(@head)
     if @head
-      @branchLabel.text(@head)
       @branchArea.show()
     else
       @branchArea.hide()
