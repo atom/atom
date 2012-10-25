@@ -56,7 +56,7 @@ class StatusBar extends View
 
   updateBranchText: ->
     if path = @editor.getPath()
-      @head = Git.open(path)?.getShortHead()
+      @head = new Git(path).getShortHead()
     else
       @head = null
 
@@ -67,9 +67,7 @@ class StatusBar extends View
       @branchArea.hide()
 
   updatePathText: ->
-    path = @editor.getPath()
-    if path
-      @head = Git.open(path)?.getShortHead()
+    if path = @editor.getPath()
       @currentPath.text(@rootView.project.relativize(path))
     else
       @currentPath.text('untitled')
