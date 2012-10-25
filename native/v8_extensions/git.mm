@@ -11,8 +11,7 @@ class GitRepository : public CefBase {
     git_repository *repo;
 
   public:
-    GitRepository(CefRefPtr<CefV8Value> path) {
-      const char *repoPath = path->GetStringValue().ToString().c_str();
+    GitRepository(const char *repoPath) {
       exists = git_repository_open_ext(&repo, repoPath, 0, NULL) == GIT_OK;
     }
 
@@ -55,7 +54,7 @@ bool Git::Execute(const CefString& name,
                      CefRefPtr<CefV8Value>& retval,
                      CefString& exception) {
   if (name == "getRepository") {
-    CefRefPtr<CefBase> userData = new GitRepository(arguments[0]);
+    CefRefPtr<CefBase> userData = new GitRepository(arguments[0]->GetStringValue().ToString().c_str());
     retval = CefV8Value::CreateObject(NULL);
     retval->SetUserData(userData);
     return true;
