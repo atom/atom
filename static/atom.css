@@ -72,3 +72,10 @@ html, body {
 .clear-float {
   clear: both;
 }
+
+@font-face {
+  font-family: 'Octicons Regular';
+  src: url(octicons-regular-webfont.ttf) format(truetype);
+  font-weight: normal;
+  font-style: normal;
+}
