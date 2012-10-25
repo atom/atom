@@ -33,7 +33,7 @@ class CommandPanel extends View
     commandPanel
 
   @content: (rootView) ->
-    @div class: 'command-panel tool-pane', =>
+    @div class: 'command-panel tool-panel', =>
       @subview 'previewList', new PreviewList(rootView)
       @div class: 'prompt-and-editor', =>
         @div ':', class: 'prompt', outlet: 'prompt'
@@ -50,7 +50,7 @@ class CommandPanel extends View
     @history ?= []
     @historyIndex = @history.length
 
-    @command 'tool-pane:unfocus', => @rootView.focus()
+    @command 'tool-panel:unfocus', => @rootView.focus()
     @command 'core:close', => @detach(); false
     @command 'core:confirm', => @execute()
 
