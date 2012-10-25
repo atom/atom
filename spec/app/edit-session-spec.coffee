@@ -1328,6 +1328,18 @@ describe "EditSession", ->
           expect(editSession.buffer.lineForRow(0)).toBe "var first = function () {"
           expect(buffer.lineForRow(1)).toBe "  var first = function(items) {"
 
+      it "preserves the indent level when copying and pasting multiple lines", ->
+        editSession.setAutoIndent(true)
+        editSession.setSelectedBufferRange([[4, 4], [7, 5]])
+        editSession.copySelectedText()
+        editSession.setCursorBufferPosition([10, 0])
+        editSession.pasteText()
+
+        expect(editSession.lineForBufferRow(10)).toBe "  while(items.length > 0) {"
+        expect(editSession.lineForBufferRow(11)).toBe "    current = items.shift();"
+        expect(editSession.lineForBufferRow(12)).toBe "    current < pivot ? left.push(current) : right.push(current);"
+        expect(editSession.lineForBufferRow(13)).toBe "  }"
+
     describe ".indentSelectedRows()", ->
       beforeEach ->
         editSession.tabLength = 2

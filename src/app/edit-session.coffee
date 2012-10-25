@@ -202,7 +202,8 @@ class EditSession
       maintainPasteboard = true
 
   pasteText: ->
-    @insertText(pasteboard.read()[0], normalizeIndent: true)
+    [text, metadata] = pasteboard.read()
+    @insertText(text, _.extend(metadata ? {}, normalizeIndent: true))
 
   undo: ->
     @buffer.undo(this)

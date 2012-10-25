@@ -269,8 +269,13 @@ class Selection
   copy: (maintainPasteboard=false) ->
     return if @isEmpty()
     text = @editSession.buffer.getTextInRange(@getBufferRange())
-    text = pasteboard.read()[0] + "\n" + text if maintainPasteboard
-    pasteboard.write(text)
+    if maintainPasteboard
+      [currentText, metadata] = pasteboard.read()
+      text = currentText + '\n' + text
+    else
+      metadata = { indentBasis: @editSession.indentationForBufferRow(@getBufferRange().start.row) }
+
+    pasteboard.write(text, metadata)
 
   fold: ->
     range = @getBufferRange()
