@@ -97,6 +97,25 @@ class LanguageMode
 
     [bufferRow, foldEndRow]
 
+  suggestedIndentForBufferRow: (bufferRow) ->
+    currentIndentation = @buffer.indentationForRow(bufferRow)
+    scopes = @tokenizedBuffer.scopesForPosition([bufferRow, 0])
+    return currentIndentation unless increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
+
+    currentLine = @buffer.lineForRow(bufferRow)
+    precedingRow = @buffer.previousNonBlankRow(bufferRow)
+    return currentIndentation unless precedingRow?
+
+    precedingLine = @buffer.lineForRow(precedingRow)
+
+    desiredIndentation = @buffer.indentationForRow(precedingRow)
+    desiredIndentation += @editSession.tabLength if increaseIndentPattern.test(precedingLine)
+
+    return desiredIndentation unless decreaseIndentPattern = TextMateBundle.outdentRegexForScope(scopes[0])
+    desiredIndentation -= @editSession.tabLength if decreaseIndentPattern.test(currentLine)
+
+    Math.max(desiredIndentation, currentIndentation)
+
   autoIndentBufferRows: (startRow, endRow) ->
     @autoIndentBufferRow(row) for row in [startRow..endRow]
 
