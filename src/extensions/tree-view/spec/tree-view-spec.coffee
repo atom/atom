@@ -778,8 +778,6 @@ describe "TreeView", ->
               expect(fs.exists(newPath)).toBeTruthy()
               expect(fs.exists(filePath)).toBeFalsy()
 
-              waits 50 # TODO: remove this workaround once we fix the race condition in fs events
-
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->
               runs ->
