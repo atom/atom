@@ -47,6 +47,8 @@ class StatusBar extends View
     @buffer.on 'after-save.status-bar', => _.defer =>
       @updateBranchText()
       @updateBufferModifiedText()
+    @updateBranchText()
+    @updateBufferModifiedText()
 
   updateBufferModifiedText: ->
     if @buffer.isModified()
