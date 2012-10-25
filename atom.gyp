@@ -49,7 +49,7 @@
       'defines': [
         'USING_CEF_SHARED',
       ],
-      'include_dirs': [ '.', 'cef' ],
+      'include_dirs': [ '.', 'cef', 'git2' ],
       'mac_framework_dirs': [ 'native/frameworks' ],
       'libraries': [ 'native/frameworks/CocoaOniguruma.framework' ],
       'sources': [
@@ -264,7 +264,7 @@
             'USING_CEF_SHARED',
             'PROCESS_HELPER_APP',
           ],
-          'include_dirs': [ '.', 'cef' ],
+          'include_dirs': [ '.', 'cef', 'git2' ],
           'mac_framework_dirs': [ 'native/frameworks' ],
           'link_settings': {
             'libraries': [
@@ -289,6 +289,8 @@
             'native/v8_extensions/onig_scanner.h',
             'native/v8_extensions/atom.mm',
             'native/v8_extensions/atom.h',
+            'native/v8_extensions/git.mm',
+            'native/v8_extensions/git.h',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
