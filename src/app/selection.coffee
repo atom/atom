@@ -269,8 +269,8 @@ class Selection
   copy: (maintainPasteboard=false) ->
     return if @isEmpty()
     text = @editSession.buffer.getTextInRange(@getBufferRange())
-    text = $native.readFromPasteboard() + "\n" + text if maintainPasteboard
-    $native.writeToPasteboard text
+    text = pasteboard.read()[0] + "\n" + text if maintainPasteboard
+    pasteboard.write(text)
 
   fold: ->
     range = @getBufferRange()
