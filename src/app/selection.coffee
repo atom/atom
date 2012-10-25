@@ -137,7 +137,7 @@ class Selection
     oldBufferRange = @getBufferRange()
     @editSession.destroyFoldsContainingBufferRow(oldBufferRange.end.row)
     wasReversed = @isReversed()
-    text = @normalizeIndent(text) if options.normalizeIndent
+    text = @normalizeIndent(text, options) if options.normalizeIndent
     @clear()
     newBufferRange = @editSession.buffer.change(oldBufferRange, text)
     @cursor.setBufferPosition(newBufferRange.end, skipAtomicTokens: true) if wasReversed
@@ -148,37 +148,37 @@ class Selection
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
-  normalizeIndent: (text) ->
+  normalizeIndent: (text, options) ->
     return text unless /\n/.test(text)
 
     currentBufferRow = @cursor.getBufferRow()
     currentBufferColumn = @cursor.getBufferColumn()
     lines = text.split('\n')
+    currentBasis = options.indentBasis ? lines[0].match(/\s*/)[0].length
+    lines[0] = lines[0].replace(/^\s*/, '') # strip leading space from first line
+
     normalizedLines = []
 
     textPrecedingCursor = @editSession.buffer.getTextInRange([[currentBufferRow, 0], [currentBufferRow, currentBufferColumn]])
     insideExistingLine = textPrecedingCursor.match(/\S/)
 
     if insideExistingLine
-      desiredBase = @editSession.indentationForBufferRow(currentBufferRow)
+      desiredBasis = @editSession.indentationForBufferRow(currentBufferRow)
     else if @editSession.autoIndent
-      desiredBase = @editSession.suggestedIndentForBufferRow(currentBufferRow)
+      desiredBasis = @editSession.suggestedIndentForBufferRow(currentBufferRow)
     else
-      desiredBase = currentBufferColumn
-
-    currentBase = lines[0].match(/\s*/)[0].length
-    delta = desiredBase - currentBase
+      desiredBasis = currentBufferColumn
 
     for line, i in lines
       if i == 0
         if insideExistingLine
-          firstLineDelta = -line.length # remove all leading whitespace
+          delta = 0
         else
-          firstLineDelta = delta - currentBufferColumn
-
-        normalizedLines.push(@adjustIndentationForLine(line, firstLineDelta))
+          delta = desiredBasis - currentBufferColumn
       else
-        normalizedLines.push(@adjustIndentationForLine(line, delta))
+        delta = desiredBasis - currentBasis
+
+      normalizedLines.push(@adjustIndentationForLine(line, delta))
 
     normalizedLines.join('\n')
 
