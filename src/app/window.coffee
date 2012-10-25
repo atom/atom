@@ -74,7 +74,7 @@ windowAdditions =
       throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.exists(extensionPath)
 
       extension = rootView.activateExtension(require(extensionPath), config)
-      extensionKeymapPath = fs.join(fs.directory(extensionPath), "keymap.coffee")
+      extensionKeymapPath = fs.join(fs.directory(extensionPath), "src/keymap.coffee")
       require extensionKeymapPath if fs.exists(extensionKeymapPath)
       extension
     catch e

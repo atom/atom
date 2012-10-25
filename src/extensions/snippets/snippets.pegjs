@@ -1,5 +1,5 @@
 {
-  var Snippet = require('extensions/snippets/snippet');
+  var Snippet = require('snippets/src/snippet');
   var Point = require('point');
 }
 

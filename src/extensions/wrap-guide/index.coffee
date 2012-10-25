@@ -1,1 +1,1 @@
-module.exports = require 'wrap-guide/wrap-guide'
+module.exports = require 'wrap-guide/src/wrap-guide'

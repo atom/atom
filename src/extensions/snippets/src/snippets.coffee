@@ -1,7 +1,7 @@
 fs = require 'fs'
 PEG = require 'pegjs'
 _ = require 'underscore'
-SnippetExpansion = require 'snippets/snippet-expansion'
+SnippetExpansion = require 'snippets/src/snippet-expansion'
 
 module.exports =
   name: 'Snippets'

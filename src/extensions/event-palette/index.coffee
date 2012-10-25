@@ -1,1 +1,1 @@
-module.exports = require 'event-palette/event-palette'
+module.exports = require 'event-palette/src/event-palette'

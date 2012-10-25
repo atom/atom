@@ -1,4 +1,4 @@
-Address = require 'command-panel/commands/address'
+Address = require 'command-panel/src/commands/address'
 Range = require 'range'
 
 module.exports =

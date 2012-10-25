@@ -1,8 +1,8 @@
 _ = require 'underscore'
 $ = require 'jquery'
-operators = require 'vim-mode/operators'
-commands = require 'vim-mode/commands'
-motions = require 'vim-mode/motions'
+operators = require 'vim-mode/src/operators'
+commands = require 'vim-mode/src/commands'
+motions = require 'vim-mode/src/motions'
 
 module.exports =
 class VimMode

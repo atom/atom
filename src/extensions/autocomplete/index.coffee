@@ -1,1 +1,1 @@
-module.exports = require 'autocomplete/autocomplete.coffee'
+module.exports = require 'autocomplete/src/autocomplete.coffee'

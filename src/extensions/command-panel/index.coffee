@@ -1,1 +1,1 @@
-module.exports = require 'command-panel/command-panel'
+module.exports = require 'command-panel/src/command-panel'

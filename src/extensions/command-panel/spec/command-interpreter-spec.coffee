@@ -1,4 +1,4 @@
-CommandInterpreter = require 'command-panel/command-interpreter'
+CommandInterpreter = require 'command-panel/src/command-interpreter'
 Project = require 'project'
 Buffer = require 'buffer'
 EditSession = require 'edit-session'

@@ -1,1 +1,1 @@
-module.exports = require 'markdown-preview/markdown-preview'
+module.exports = require 'markdown-preview/src/markdown-preview'

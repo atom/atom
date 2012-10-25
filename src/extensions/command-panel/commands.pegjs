@@ -1,14 +1,14 @@
 {
-  var CompositeCommand = require('command-panel/commands/composite-command')
-  var Substitution = require('command-panel/commands/substitution');
-  var ZeroAddress = require('command-panel/commands/zero-address');
-  var EofAddress = require('command-panel/commands/eof-address');
-  var LineAddress = require('command-panel/commands/line-address');
-  var AddressRange = require('command-panel/commands/address-range');
-  var CurrentSelectionAddress = require('command-panel/commands/current-selection-address')
-  var RegexAddress = require('command-panel/commands/regex-address')
-  var SelectAllMatches = require('command-panel/commands/select-all-matches')
-  var SelectAllMatchesInProject = require('command-panel/commands/select-all-matches-in-project')
+  var CompositeCommand = require('command-panel/src/commands/composite-command')
+  var Substitution = require('command-panel/src/commands/substitution');
+  var ZeroAddress = require('command-panel/src/commands/zero-address');
+  var EofAddress = require('command-panel/src/commands/eof-address');
+  var LineAddress = require('command-panel/src/commands/line-address');
+  var AddressRange = require('command-panel/src/commands/address-range');
+  var CurrentSelectionAddress = require('command-panel/src/commands/current-selection-address')
+  var RegexAddress = require('command-panel/src/commands/regex-address')
+  var SelectAllMatches = require('command-panel/src/commands/select-all-matches')
+  var SelectAllMatchesInProject = require('command-panel/src/commands/select-all-matches-in-project')
 }
 
 start = expressions:(expression+) {
