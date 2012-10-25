@@ -3,6 +3,7 @@ var $git = {};
 
   native function getRepository(path);
   native function getHead();
+  native function getPath();
 
   function GitRepository(path) {
     var repo = getRepository(path);
@@ -12,5 +13,6 @@ var $git = {};
   }
 
   GitRepository.prototype.getHead = getHead;
+  GitRepository.prototype.getPath = getPath;
   this.GitRepository = GitRepository;
 })();

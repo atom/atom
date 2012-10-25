@@ -2,6 +2,19 @@ Git = require 'git'
 
 describe "Git", ->
 
+  describe "getPath()", ->
+    it "returns the repository path for a working directory file path", ->
+      repo = new Git(require.resolve('fixtures/git/nohead.git/HEAD'))
+      expect(repo.getPath()).toBe require.resolve('fixtures/git/nohead.git') + '/'
+      repo = new Git(require.resolve('fixtures/git/master.git/HEAD'))
+      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git') + '/'
+
+    it "returns the repository path for a repository path", ->
+      repo = new Git(require.resolve('fixtures/git/nohead.git'))
+      expect(repo.getPath()).toBe require.resolve('fixtures/git/nohead.git') + '/'
+      repo = new Git(require.resolve('fixtures/git/master.git'))
+      expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git') + '/'
+
   describe "getHead()", ->
     it "returns null for a empty repository", ->
       repo = new Git(require.resolve('fixtures/git/nohead.git'))
