@@ -148,6 +148,22 @@ class Selection
       else
         @editSession.autoDecreaseIndentForRow(newBufferRange.start.row)
 
+  indent: ->
+    { row, column } = @cursor.getBufferPosition()
+
+    if @isEmpty()
+      desiredIndent = @editSession.suggestedIndentForBufferRow(row)
+      delta = desiredIndent - column
+      if @editSession.autoIndent and delta > 0
+        @insertText(new Array(delta + 1).join(' '))
+      else
+        if @editSession.softTabs
+          @insertText(@editSession.getTabText())
+        else
+          @insertText('\t')
+    else
+      @indentSelectedRows()
+
   normalizeIndent: (text, options) ->
     return text unless /\n/.test(text)
 

@@ -1222,7 +1222,7 @@ describe "EditSession", ->
             editSession.indent()
             expect(buffer.lineForRow(0)).toMatch(tabRegex)
 
-        xdescribe "when auto-indent is on and the line only contains whitespace", ->
+        describe "when auto-indent is on and the line only contains whitespace", ->
           describe "when the preceding line opens a new level of indentation", ->
             it "increases the level of indentation by one", ->
               buffer.insert([5, 0], "  \n")

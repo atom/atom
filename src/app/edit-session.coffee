@@ -150,14 +150,7 @@ class EditSession
     @insertNewline()
 
   indent: ->
-    currentRow = @getCursorBufferPosition().row
-    if @getSelection().isEmpty()
-      if @softTabs
-        @insertText(@getTabText())
-      else
-        @insertText('\t')
-    else
-      @indentSelectedRows()
+    @mutateSelectedText (selection) -> selection.indent()
 
   backspace: ->
     @mutateSelectedText (selection) -> selection.backspace()
