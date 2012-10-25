@@ -8,7 +8,7 @@ module.exports = (candidates, query, options={}) ->
 
       # Basename matches count for more.
       unless /\//.test(query)
-        score += stringScore(candidate.replace(/^.*\//,''), query)
+        score += stringScore(string.replace(/^.*\//,''), query)
 
       { candidate, score }
 
