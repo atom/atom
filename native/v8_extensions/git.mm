@@ -4,6 +4,36 @@
 #import <Cocoa/Cocoa.h>
 
 namespace v8_extensions {
+  
+class GitRepository : public CefBase {
+  private:
+    bool exists;
+    git_repository *repo;
+
+  public:
+    GitRepository(CefRefPtr<CefV8Value> path) {
+      const char *repoPath = path->GetStringValue().ToString().c_str();
+      exists = git_repository_open(&repo, repoPath) == GIT_OK;
+    }
+    
+    ~GitRepository() {
+      if (repo)
+        git_repository_free(repo);
+    }
+  
+    CefRefPtr<CefV8Value> GetHead() {
+      if (!exists)
+        return CefV8Value::CreateNull();
+      
+      git_reference *head;
+      if (git_repository_head(&head, repo) == GIT_OK)
+        return CefV8Value::CreateString(git_reference_name(head));
+      else
+        return CefV8Value::CreateNull();
+    }
+  
+  IMPLEMENT_REFCOUNTING(GitRepository);
+};
 
 Git::Git() : CefV8Handler() {
   NSString *filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"v8_extensions/git.js"];
@@ -16,15 +46,29 @@ bool Git::Execute(const CefString& name,
                      const CefV8ValueList& arguments,
                      CefRefPtr<CefV8Value>& retval,
                      CefString& exception) {
-  if (name == "isRepository") {
+  if (name == "getRepositoryPath") {
     const char *path = arguments[0]->GetStringValue().ToString().c_str();
     int length = strlen(path);
-    char repoPath[length];
-    bool isRepository = git_repository_discover(repoPath, length, path, 0, "") == GIT_OK;
-    retval = CefV8Value::CreateBool(isRepository);
+    char repoPath[GIT_PATH_MAX];
+    if (git_repository_discover(repoPath, length, path, 0, "") == GIT_OK)
+      retval = CefV8Value::CreateString(repoPath);
+    else
+      retval = CefV8Value::CreateNull();
     return true;
   }
-
+  
+  if (name == "getRepository") {
+    CefRefPtr<CefBase> userData = new GitRepository(arguments[0]);
+    retval = CefV8Value::CreateObject(NULL);
+    retval->SetUserData(userData);
+    return true;
+  }
+  
+  if (name == "getHead") {
+    GitRepository *userData = (GitRepository *)object->GetUserData().get();
+    retval = userData->GetHead();
+    return true;
+  }
   return false;
 }
 

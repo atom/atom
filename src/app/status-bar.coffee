@@ -1,4 +1,5 @@
 {View} = require 'space-pen'
+Git = require 'git'
 
 module.exports =
 class StatusBar extends View
@@ -49,10 +50,13 @@ class StatusBar extends View
   updatePathText: ->
     path = @editor.getPath()
     if path
+      @head = Git.open(path)?.getHead()
       @currentPath.text(@rootView.project.relativize(path))
     else
       @currentPath.text('untitled')
 
   updateCursorPositionText: ->
     { row, column } = @editor.getCursorBufferPosition()
-    @cursorPosition.text("#{row + 1},#{column + 1}")
+    cursorText = "#{row + 1},#{column + 1}"
+    cursorText = "(#{@head}) #{cursorText}" if @head
+    @cursorPosition.text(cursorText)
