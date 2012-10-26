@@ -165,6 +165,11 @@ class Selection
     else
       @indentSelectedRows()
 
+  indentSelectedRows: ->
+    range = @getBufferRange()
+    for row in [range.start.row..range.end.row]
+      @editSession.buffer.insert([row, 0], @editSession.getTabText()) unless @editSession.buffer.lineLengthForRow(row) == 0
+
   normalizeIndent: (text, options) ->
     return text unless /\n/.test(text)
 
@@ -257,11 +262,6 @@ class Selection
       if end isnt @editSession.buffer.getLastRow() and range.end.column is 0
         end--
       @editSession.buffer.deleteRows(start, end)
-
-  indentSelectedRows: ->
-    range = @getBufferRange()
-    for row in [range.start.row..range.end.row]
-      @editSession.buffer.insert([row, 0], @editSession.getTabText()) unless @editSession.buffer.lineLengthForRow(row) == 0
 
   outdentSelectedRows: ->
     range = @getBufferRange()

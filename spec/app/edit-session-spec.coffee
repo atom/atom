@@ -6,6 +6,9 @@ TextMateBundle = require 'text-mate-bundle'
 describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
+  convertToHardTabs = (buffer) ->
+    buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
+
   beforeEach ->
     buffer = new Buffer()
     editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
@@ -1214,9 +1217,6 @@ describe "EditSession", ->
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
 
     describe ".indent()", ->
-      convertToHardTabs = ->
-        buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
-
       describe "when the selection is empty", ->
         describe "when autoIndent is disabled", ->
           describe "if 'softTabs' is true (the default)", ->
@@ -1248,7 +1248,7 @@ describe "EditSession", ->
 
             describe "when 'softTabs' is false", ->
               it "inserts enough tabs to bring the line to the suggested level of indentaion", ->
-                convertToHardTabs()
+                convertToHardTabs(buffer)
                 editSession.softTabs = false
                 buffer.insert([5, 0], "\t\n")
                 editSession.setCursorBufferPosition [5, 1]
@@ -1271,7 +1271,7 @@ describe "EditSession", ->
 
             describe "when 'softTabs' is false", ->
               it "inserts \t into the buffer", ->
-                convertToHardTabs()
+                convertToHardTabs(buffer)
                 editSession.softTabs = false
                 buffer.insert([7, 0], "\t\t\t\n")
                 editSession.setCursorBufferPosition [7, 3]
@@ -1368,27 +1368,62 @@ describe "EditSession", ->
         editSession.tabLength = 2
 
       describe "when nothing is selected", ->
-        it "indents line and retains selection", ->
-          editSession.setSelectedBufferRange([[0,3], [0,3]])
-          editSession.indentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + editSession.tabLength], [0, 3 + editSession.tabLength]]
+        describe "when softTabs is enabled", ->
+          it "indents line and retains selection", ->
+            editSession.tabLength = 2
+            editSession.setSelectedBufferRange([[0,3], [0,3]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(0)).toBe "  var quicksort = function () {"
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + editSession.tabLength], [0, 3 + editSession.tabLength]]
+
+        describe "when softTabs is disabled", ->
+          it "indents line and retains selection", ->
+            convertToHardTabs(buffer)
+            editSession.softTabs = false
+            editSession.setSelectedBufferRange([[0,3], [0,3]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(0)).toBe "\tvar quicksort = function () {"
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + 1], [0, 3 + 1]]
 
       describe "when one line is selected", ->
-        it "indents line and retains selection", ->
-          editSession.setSelectedBufferRange([[0,4], [0,14]])
-          editSession.indentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + editSession.tabLength], [0, 14 + editSession.tabLength]]
+        describe "when softTabs is enabled", ->
+          it "indents line and retains selection", ->
+            editSession.tabLength = 2
+            editSession.setSelectedBufferRange([[0,4], [0,14]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + editSession.tabLength], [0, 14 + editSession.tabLength]]
+
+        describe "when softTabs is disabled", ->
+          it "indents line and retains selection", ->
+            convertToHardTabs(buffer)
+            editSession.softTabs = false
+            editSession.setSelectedBufferRange([[0,4], [0,14]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(0)).toBe "\tvar quicksort = function () {"
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + 1], [0, 14 + 1]]
 
       describe "when multiple lines are selected", ->
-        it "indents selected lines (that are not empty) and retains selection", ->
-          editSession.setSelectedBufferRange([[9,1], [11,15]])
-          editSession.indentSelectedRows()
-          expect(buffer.lineForRow(9)).toBe "    };"
-          expect(buffer.lineForRow(10)).toBe ""
-          expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
-          expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 15 + editSession.tabLength]]
+        describe "when softTabs is enabled", ->
+          it "indents selected lines (that are not empty) and retains selection", ->
+            editSession.tabLength = 2
+            editSession.setSelectedBufferRange([[9,1], [11,15]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(9)).toBe "    };"
+            expect(buffer.lineForRow(10)).toBe ""
+            expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
+            expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 15 + editSession.tabLength]]
+
+        describe "when softTabs is disabled", ->
+          it "indents selected lines (that are not empty) and retains selection", ->
+            convertToHardTabs(buffer)
+            editSession.softTabs = false
+            editSession.setSelectedBufferRange([[9,1], [11,15]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(9)).toBe "\t\t};"
+            expect(buffer.lineForRow(10)).toBe ""
+            expect(buffer.lineForRow(11)).toBe "\t\treturn sort(Array.apply(this, arguments));"
+            expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + 1], [11, 15 + 1]]
 
     describe ".outdentSelectedRows()", ->
       beforeEach ->
