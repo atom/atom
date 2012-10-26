@@ -69,3 +69,6 @@ _.mixin
       inverted[value] ?= []
       inverted[value].push(key)
     inverted
+
+  multiplyString: (string, n) ->
+    new Array(1 + n).join(string)

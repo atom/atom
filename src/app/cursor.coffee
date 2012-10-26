@@ -162,6 +162,12 @@ class Cursor
   isAtBeginningOfLine: ->
     @getBufferPosition().column == 0
 
+  getIndentLevel: ->
+    if @editSession.softTabs
+      @getBufferColumn() / @editSession.tabLength
+    else
+      @getBufferColumn()
+
   isAtEndOfLine: ->
     @getBufferPosition().isEqual(@getCurrentLineBufferRange().end)
 

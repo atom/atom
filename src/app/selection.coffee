@@ -153,9 +153,10 @@ class Selection
 
     if @isEmpty()
       desiredIndent = @editSession.suggestedIndentForBufferRow(row)
-      delta = desiredIndent - column
+      delta = desiredIndent - @cursor.getIndentLevel()
+
       if @editSession.autoIndent and delta > 0
-        @insertText(new Array(delta + 1).join(' '))
+        @insertText(@editSession.buildIndentString(delta))
       else
         if @editSession.softTabs
           @insertText(@editSession.getTabText())
@@ -170,7 +171,7 @@ class Selection
     currentBufferRow = @cursor.getBufferRow()
     currentBufferColumn = @cursor.getBufferColumn()
     lines = text.split('\n')
-    currentBasis = options.indentBasis ? lines[0].match(/\s*/)[0].length
+    currentBasis = options.indentBasis ? @editSession.indentLevelForLine(lines[0])
     lines[0] = lines[0].replace(/^\s*/, '') # strip leading space from first line
 
     normalizedLines = []
@@ -183,14 +184,14 @@ class Selection
     else if @editSession.autoIndent
       desiredBasis = @editSession.suggestedIndentForBufferRow(currentBufferRow)
     else
-      desiredBasis = currentBufferColumn
+      desiredBasis = @cursor.getIndentLevel()
 
     for line, i in lines
       if i == 0
         if insideExistingLine
           delta = 0
         else
-          delta = desiredBasis - currentBufferColumn
+          delta = desiredBasis - @cursor.getIndentLevel()
       else
         delta = desiredBasis - currentBasis
 
@@ -199,12 +200,12 @@ class Selection
     normalizedLines.join('\n')
 
   adjustIndentationForLine: (line, delta) ->
-    if delta > 0
-      new Array(delta + 1).join(' ') + line
-    else if delta < 0
-      line.replace(new RegExp("^ {0,#{Math.abs(delta)}}"), '')
-    else
-      line
+    currentIndentLevel = @editSession.indentLevelForLine(line)
+    currentIndentString = @editSession.buildIndentString(currentIndentLevel)
+    desiredIndentLevel = Math.max(0, currentIndentLevel + delta)
+    desiredIndentString = @editSession.buildIndentString(desiredIndentLevel)
+
+    line.replace(new RegExp("^#{currentIndentString}"), desiredIndentString)
 
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())

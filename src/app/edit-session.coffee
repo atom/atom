@@ -114,12 +114,25 @@ class EditSession
     @buffer.clipPosition(bufferPosition)
 
   indentationForBufferRow: (bufferRow) ->
-    @lineForBufferRow(bufferRow).match(/^\s*/)?[0].length
+    @indentLevelForLine(@lineForBufferRow(bufferRow))
 
   setIndentationForBufferRow: (bufferRow, newLevel) ->
     currentLevel = @indentationForBufferRow(bufferRow)
-    indentString = [0...newLevel].map(-> ' ').join('')
-    @buffer.change([[bufferRow, 0], [bufferRow, currentLevel]], indentString)
+    currentIndentString = @buildIndentString(currentLevel)
+    newIndentString = @buildIndentString(newLevel)
+    @buffer.change([[bufferRow, 0], [bufferRow, currentIndentString.length]], newIndentString)
+
+  indentLevelForLine: (line) ->
+    if @softTabs
+      line.match(/^\s*/)?[0].length / @tabLength
+    else
+      line.match(/^\t*/)?[0].length
+
+  buildIndentString: (number) ->
+    if @softTabs
+      _.multiplyString(" ", number * @tabLength)
+    else
+      _.multiplyString("\t", number)
 
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
