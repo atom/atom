@@ -14,6 +14,7 @@ static NSMutableArray *gPathWatchers;
 - (void)stopWatching;
 - (void)reassignFileDescriptor:(NSNumber *)fdNumber from:(NSString *)path to:(NSString *)newPath;
 - (bool)isAtomicWrite:(struct kevent)event path:(NSString *)path;
+- (void)updateFileDescriptor:(NSNumber *)fdNumber forPath:(NSString *)path;
 @end
 
 @implementation PathWatcher
@@ -201,7 +202,7 @@ static NSMutableArray *gPathWatchers;
   }
 }
 
-- (void)updatePath:(NSString *)path forFileDescriptor:(NSNumber *)fdNumber {
+- (void)updateFileDescriptor:(NSNumber *)fdNumber forPath:(NSString *)path {
   // The path associated with the fd been updated. Remove references to old fd
   // and make sure the path and callbacks are linked with new fd.
   @synchronized(self) {
@@ -238,7 +239,7 @@ static NSMutableArray *gPathWatchers;
       }
       else if ([self isAtomicWrite:event path:path]) {
         eventFlag = @"contents-change";
-        [self updatePath:path forFileDescriptor:fdNumber];
+        [self updateFileDescriptor:fdNumber forPath:path];
       }
       else if (event.fflags & NOTE_DELETE) {
         eventFlag = @"remove";
@@ -249,7 +250,8 @@ static NSMutableArray *gPathWatchers;
         fcntl((int)event.ident, F_GETPATH, &pathBuffer);
         newPath = [NSString stringWithUTF8String:pathBuffer];
         if (!newPath) {
-          NSLog(@"WARNING: Renamed %@ to a null path", path);
+          NSLog(@"WARNING: Ignoring rename event for deleted file '%@'", path);
+          continue;
         }
       }
 
@@ -266,11 +268,7 @@ static NSMutableArray *gPathWatchers;
       });
 
       if (event.fflags & NOTE_RENAME) {
-        if (newPath) {
-         [self reassignFileDescriptor:fdNumber from:path to:newPath];
-        } else {
-          NSLog(@"WARNING: Reassigning file descriptor from path %@ to null path", path);
-        }
+        [self reassignFileDescriptor:fdNumber from:path to:newPath];
       }
     }
   }
