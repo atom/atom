@@ -2,6 +2,7 @@ TokenizedBuffer = require 'tokenized-buffer'
 LanguageMode = require 'language-mode'
 Buffer = require 'buffer'
 Range = require 'range'
+_ = require 'underscore'
 
 describe "TokenizedBuffer", ->
   [editSession, tokenizedBuffer, buffer] = []
@@ -162,14 +163,15 @@ describe "TokenizedBuffer", ->
         editSession2.destroy()
 
       it "always renders each tab as its own atomic token with a value of size tabLength", ->
+        tabAsSpaces = _.multiplyString(' ', editSession2.tabLength)
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
-        expect(screenLine0.text).toBe "# Econ 101#{editSession2.getTabText()}"
+        expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
         { tokens } = screenLine0
         expect(tokens.length).toBe 3
         expect(tokens[0].value).toBe "#"
         expect(tokens[1].value).toBe " Econ 101"
-        expect(tokens[2].value).toBe editSession2.getTabText()
+        expect(tokens[2].value).toBe tabAsSpaces
         expect(tokens[2].scopes).toEqual tokens[1].scopes
         expect(tokens[2].isAtomic).toBeTruthy()
 
-        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{editSession2.getTabText()} buy()#{editSession2.getTabText()}while supply > demand"
+        expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
