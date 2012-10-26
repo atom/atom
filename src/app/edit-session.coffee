@@ -123,10 +123,10 @@ class EditSession
     @buffer.change([[bufferRow, 0], [bufferRow, currentIndentString.length]], newIndentString)
 
   indentLevelForLine: (line) ->
-    if @softTabs
-      line.match(/^\s*/)?[0].length / @tabLength
-    else
+    if line.match(/^\t/)
       line.match(/^\t*/)?[0].length
+    else
+      line.match(/^\s*/)?[0].length / @tabLength
 
   buildIndentString: (number) ->
     if @softTabs
