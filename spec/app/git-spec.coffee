@@ -28,3 +28,12 @@ describe "Git", ->
     it "returns a branch name for a non-empty repository", ->
       repo = new Git(require.resolve('fixtures/git/master.git'))
       expect(repo.getShortHead()).toBe 'master'
+
+  describe "isIgnored()", ->
+    it "returns true for an ignored path", ->
+      repo = new Git(require.resolve('fixtures/git/ignore.git'))
+      expect(repo.isIgnored('a.txt')).toBeTruthy()
+
+    it "returns false for a non-ignored path", ->
+      repo = new Git(require.resolve('fixtures/git/ignore.git'))
+      expect(repo.isIgnored('b.txt')).toBeFalsy()
