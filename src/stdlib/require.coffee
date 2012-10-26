@@ -57,7 +57,9 @@ exts =
   coffee: (file) ->
     exts.js(file, __coffeeCache(file))
 
-resolve = (file) ->
+resolve = (name, {verifyExistence}={}) ->
+  verifyExistence ?= true
+  file = name
   if /!/.test file
     parts = file.split '!'
     file = parts[parts.length-1]
@@ -75,18 +77,19 @@ resolve = (file) ->
       fileExists = /\.(.+)$/.test(file) and __exists "#{path}/#{file}"
       jsFileExists = not /\.(.+)$/.test(file) and __exists "#{path}/#{file}.js"
 
-      if fileExists
-        file = "#{path}/#{file}"
       if jsFileExists
         file = "#{path}/#{file}.js"
+      else if fileExists
+        file = "#{path}/#{file}"
       else if expanded = __expand "#{path}/#{file}"
         file = expanded
   else
     file = __expand(file) or file
 
-  if file[0] == '/'
+  if file[0] == '/' and (not verifyExistence or __exists(file))
     file
   else
+    console.warn("Failed to resolve '#{name}'")
     null
 
 __expand = (path) ->
