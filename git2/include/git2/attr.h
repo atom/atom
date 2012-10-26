@@ -30,7 +30,7 @@ GIT_BEGIN_DECL
  * Then for file `xyz.c` looking up attribute "foo" gives a value for
  * which `GIT_ATTR_TRUE(value)` is true.
  */
-#define GIT_ATTR_TRUE(attr)		((attr) == git_attr__true)
+#define GIT_ATTR_TRUE(attr)	(git_attr_value(attr) == GIT_ATTR_TRUE_T)
 
 /**
  * GIT_ATTR_FALSE checks if an attribute is set off.  In core git
@@ -44,7 +44,7 @@ GIT_BEGIN_DECL
  * Then for file `zyx.h` looking up attribute "foo" gives a value for
  * which `GIT_ATTR_FALSE(value)` is true.
  */
-#define GIT_ATTR_FALSE(attr)	((attr) == git_attr__false)
+#define GIT_ATTR_FALSE(attr) (git_attr_value(attr) == GIT_ATTR_FALSE_T)
 
 /**
  * GIT_ATTR_UNSPECIFIED checks if an attribute is unspecified.  This
@@ -62,11 +62,11 @@ GIT_BEGIN_DECL
  * file `onefile.rb` or looking up "bar" on any file will all give
  * `GIT_ATTR_UNSPECIFIED(value)` of true.
  */
-#define GIT_ATTR_UNSPECIFIED(attr)	(!(attr) || (attr) == git_attr__unset)
+#define GIT_ATTR_UNSPECIFIED(attr) (git_attr_value(attr) == GIT_ATTR_UNSPECIFIED_T)
 
 /**
  * GIT_ATTR_HAS_VALUE checks if an attribute is set to a value (as
- * opposied to TRUE, FALSE or UNSPECIFIED).  This would be the case if
+ * opposed to TRUE, FALSE or UNSPECIFIED).  This would be the case if
  * for a file with something like:
  *
  *    *.txt eol=lf
@@ -74,13 +74,29 @@ GIT_BEGIN_DECL
  * Given this, looking up "eol" for `onefile.txt` will give back the
  * string "lf" and `GIT_ATTR_SET_TO_VALUE(attr)` will return true.
  */
-#define GIT_ATTR_HAS_VALUE(attr) \
-	((attr) && (attr) != git_attr__unset && \
-	 (attr) != git_attr__true && (attr) != git_attr__false)
+#define GIT_ATTR_HAS_VALUE(attr) (git_attr_value(attr) == GIT_ATTR_VALUE_T)
 
-GIT_EXTERN(const char *) git_attr__true;
-GIT_EXTERN(const char *) git_attr__false;
-GIT_EXTERN(const char *) git_attr__unset;
+typedef enum {
+	GIT_ATTR_UNSPECIFIED_T = 0,
+	GIT_ATTR_TRUE_T,
+	GIT_ATTR_FALSE_T,
+	GIT_ATTR_VALUE_T,
+} git_attr_t;
+
+/*
+ *	Return the value type for a given attribute.
+ *
+ *	This can be either `TRUE`, `FALSE`, `UNSPECIFIED` (if the attribute
+ *	was not set at all), or `VALUE`, if the attribute was set to
+ *	an actual string.
+ *
+ *	If the attribute has a `VALUE` string, it can be accessed normally
+ *	as a NULL-terminated C string.
+ *
+ *	@param attr The attribute
+ *	@return the value type for the attribute
+ */
+GIT_EXTERN(git_attr_t) git_attr_value(const char *attr);
 
 /**
  * Check attribute flags: Reading values from index and working directory.
@@ -172,18 +188,17 @@ GIT_EXTERN(int) git_attr_get_many(
  *
  * @param repo The repository containing the path.
  * @param flags A combination of GIT_ATTR_CHECK... flags.
- * @param path The path inside the repo to check attributes.  This
- *             does not have to exist, but if it does not, then
- *             it will be treated as a plain file (i.e. not a directory).
- * @param callback The function that will be invoked on each attribute
- *             and attribute value.  The name parameter will be the name
- *             of the attribute and the value will be the value it is
- *             set to, including possibly NULL if the attribute is
- *             explicitly set to UNSPECIFIED using the ! sign.  This
- *             will be invoked only once per attribute name, even if
- *             there are multiple rules for a given file.  The highest
- *             priority rule will be used.
+ * @param path Path inside the repo to check attributes.  This does not have
+ *             to exist, but if it does not, then it will be treated as a
+ *             plain file (i.e. not a directory).
+ * @param callback Function to invoke on each attribute name and value.  The
+ *             value may be NULL is the attribute is explicitly set to
+ *             UNSPECIFIED using the '!' sign.  Callback will be invoked
+ *             only once per attribute name, even if there are multiple
+ *             rules for a given file.  The highest priority rule will be
+ *             used.  Return a non-zero value from this to stop looping.
  * @param payload Passed on as extra parameter to callback function.
+ * @return 0 on success, GIT_EUSER on non-zero callback, or error code
  */
 GIT_EXTERN(int) git_attr_foreach(
 	git_repository *repo,

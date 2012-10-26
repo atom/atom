@@ -48,7 +48,7 @@ GIT_INLINE(int) git_commit_lookup(git_commit **commit, git_repository *repo, con
  * @param len the length of the short identifier
  * @return 0 or an error code
  */
-GIT_INLINE(int) git_commit_lookup_prefix(git_commit **commit, git_repository *repo, const git_oid *id, unsigned len)
+GIT_INLINE(int) git_commit_lookup_prefix(git_commit **commit, git_repository *repo, const git_oid *id, size_t len)
 {
 	return git_object_lookup_prefix((git_object **)commit, repo, id, len, GIT_OBJ_COMMIT);
 }
@@ -179,11 +179,30 @@ GIT_EXTERN(int) git_commit_parent(git_commit **parent, git_commit *commit, unsig
 GIT_EXTERN(const git_oid *) git_commit_parent_oid(git_commit *commit, unsigned int n);
 
 /**
+ * Get the commit object that is the <n>th generation ancestor
+ * of the named commit object, following only the first parents.
+ * The returned commit has to be freed by the caller.
+ *
+ * Passing `0` as the generation number returns another instance of the
+ * base commit itself.
+ *
+ * @param ancestor Pointer where to store the ancestor commit
+ * @param commit a previously loaded commit.
+ * @param n the requested generation
+ * @return 0 on success; GIT_ENOTFOUND if no matching ancestor exists
+ * or an error code
+ */
+GIT_EXTERN(int) git_commit_nth_gen_ancestor(
+	git_commit **ancestor,
+	const git_commit *commit,
+	unsigned int n);
+
+/**
  * Create a new commit in the repository using `git_object`
  * instances as parameters.
  *
- * The message will be cleaned up from excess whitespace
- * it will be made sure that the last line ends with a '\n'.
+ * The message will not be cleaned up. This can be achieved
+ * through `git_message_prettify()`.
  *
  * @param oid Pointer where to store the OID of the
  *	newly created commit

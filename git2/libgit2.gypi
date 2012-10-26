@@ -33,7 +33,14 @@
       'git2/include/git2/tree.h',
       'git2/include/git2/types.h',
       'git2/include/git2/version.h',
-      'git2/include/git2/windows.h',
+      'git2/include/git2/checkout.h',
+      'git2/include/git2/clone.h',
+      'git2/include/git2/ignore.h',
+      'git2/include/git2/message.h',
+      'git2/include/git2/pack.h',
+      'git2/include/git2/reset.h',
+      'git2/include/git2/revparse.h',
+      'git2/include/git2/strarray.h',
     ],
   }
 }

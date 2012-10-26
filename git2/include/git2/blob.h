@@ -46,7 +46,7 @@ GIT_INLINE(int) git_blob_lookup(git_blob **blob, git_repository *repo, const git
  * @param len the length of the short identifier
  * @return 0 or an error code
  */
-GIT_INLINE(int) git_blob_lookup_prefix(git_blob **blob, git_repository *repo, const git_oid *id, unsigned int len)
+GIT_INLINE(int) git_blob_lookup_prefix(git_blob **blob, git_repository *repo, const git_oid *id, size_t len)
 {
 	return git_object_lookup_prefix((git_object **)blob, repo, id, len, GIT_OBJ_BLOB);
 }
@@ -115,6 +115,48 @@ GIT_EXTERN(int) git_blob_create_fromfile(git_oid *oid, git_repository *repo, con
  */
 GIT_EXTERN(int) git_blob_create_fromdisk(git_oid *oid, git_repository *repo, const char *path);
 
+/**
+ * Write a loose blob to the Object Database from a
+ * provider of chunks of data.
+ *
+ * Provided the `hintpath` parameter is filled, its value
+ * will help to determine what git filters should be applied
+ * to the object before it can be placed to the object database.
+ *
+ *
+ * The implementation of the callback has to respect the
+ * following rules:
+ *
+ *  - `content` will have to be filled by the consumer. The maximum number
+ * of bytes that the buffer can accept per call is defined by the
+ * `max_length` parameter. Allocation and freeing of the buffer will be taken
+ * care of by the function.
+ *
+ *  - The callback is expected to return the number of bytes
+ * that `content` have been filled with.
+ *
+ *  - When there is no more data to stream, the callback should
+ * return 0. This will prevent it from being invoked anymore.
+ *
+ *  - When an error occurs, the callback should return -1.
+ *
+ *
+ * @param oid Return the id of the written blob
+ *
+ * @param repo repository where the blob will be written.
+ * This repository can be bare or not.
+ *
+ * @param hintpath if not NULL, will help selecting the filters
+ * to apply onto the content of the blob to be created.
+ *
+ * @return GIT_SUCCESS or an error code
+ */
+GIT_EXTERN(int) git_blob_create_fromchunks(
+	git_oid *oid,
+	git_repository *repo,
+	const char *hintpath,
+	int (*source_cb)(char *content, size_t max_length, void *payload),
+	void *payload);
 
 /**
  * Write an in-memory buffer to the ODB as a blob

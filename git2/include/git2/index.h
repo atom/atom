@@ -8,6 +8,7 @@
 #define INCLUDE_git_index_h__
 
 #include "common.h"
+#include "indexer.h"
 #include "types.h"
 #include "oid.h"
 
@@ -90,6 +91,14 @@ typedef struct git_index_entry_unmerged {
 	char *path;
 } git_index_entry_unmerged;
 
+/** Capabilities of system that affect index actions. */
+enum {
+	GIT_INDEXCAP_IGNORE_CASE = 1,
+	GIT_INDEXCAP_NO_FILEMODE = 2,
+	GIT_INDEXCAP_NO_SYMLINKS = 4,
+	GIT_INDEXCAP_FROM_OWNER  = ~0u
+};
+
 /**
  * Create a new bare Git index object as a memory representation
  * of the Git index file in 'index_path', without a repository
@@ -125,6 +134,27 @@ GIT_EXTERN(void) git_index_clear(git_index *index);
  * @param index an existing index object
  */
 GIT_EXTERN(void) git_index_free(git_index *index);
+
+/**
+ * Read index capabilities flags.
+ *
+ * @param index An existing index object
+ * @return A combination of GIT_INDEXCAP values
+ */
+GIT_EXTERN(unsigned int) git_index_caps(const git_index *index);
+
+/**
+ * Set index capabilities flags.
+ *
+ * If you pass `GIT_INDEXCAP_FROM_OWNER` for the caps, then the
+ * capabilities will be read from the config of the owner object,
+ * looking at `core.ignorecase`, `core.filemode`, `core.symlinks`.
+ *
+ * @param index An existing index object
+ * @param caps A combination of GIT_INDEXCAP values
+ * @return 0 on success, -1 on failure
+ */
+GIT_EXTERN(int) git_index_set_caps(git_index *index, unsigned int caps);
 
 /**
  * Update the contents of an existing index object in memory
@@ -250,7 +280,7 @@ GIT_EXTERN(int) git_index_remove(git_index *index, int position);
  * @param n the position of the entry
  * @return a pointer to the entry; NULL if out of bounds
  */
-GIT_EXTERN(git_index_entry *) git_index_get(git_index *index, unsigned int n);
+GIT_EXTERN(git_index_entry *) git_index_get(git_index *index, size_t n);
 
 /**
  * Get the count of entries currently in the index
@@ -290,12 +320,12 @@ GIT_EXTERN(const git_index_entry_unmerged *) git_index_get_unmerged_bypath(git_i
  * @param n the position of the entry
  * @return a pointer to the unmerged entry; NULL if out of bounds
  */
-GIT_EXTERN(const git_index_entry_unmerged *) git_index_get_unmerged_byindex(git_index *index, unsigned int n);
+GIT_EXTERN(const git_index_entry_unmerged *) git_index_get_unmerged_byindex(git_index *index, size_t n);
 
 /**
  * Return the stage number from a git index entry
  *
- * This entry is calculated from the entrie's flag
+ * This entry is calculated from the entry's flag
  * attribute like this:
  *
  *	(entry->flags & GIT_IDXENTRY_STAGEMASK) >> GIT_IDXENTRY_STAGESHIFT
@@ -306,9 +336,10 @@ GIT_EXTERN(const git_index_entry_unmerged *) git_index_get_unmerged_byindex(git_
 GIT_EXTERN(int) git_index_entry_stage(const git_index_entry *entry);
 
 /**
- * Read a tree into the index file
+ * Read a tree into the index file with stats
  *
- * The current index contents will be replaced by the specified tree.
+ * The current index contents will be replaced by the specified tree. The total
+ * node count is collected in stats.
  *
  * @param index an existing index object
  * @param tree tree to read

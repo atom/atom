@@ -62,7 +62,7 @@ GIT_EXTERN(int) git_odb_open(git_odb **out, const char *objects_dir);
  * @param odb database to add the backend to
  * @param backend pointer to a git_odb_backend instance
  * @param priority Value for ordering the backends queue
- * @return 0 on sucess; error code otherwise
+ * @return 0 on success; error code otherwise
  */
 GIT_EXTERN(int) git_odb_add_backend(git_odb *odb, git_odb_backend *backend, int priority);
 
@@ -83,7 +83,7 @@ GIT_EXTERN(int) git_odb_add_backend(git_odb *odb, git_odb_backend *backend, int 
  * @param odb database to add the backend to
  * @param backend pointer to a git_odb_backend instance
  * @param priority Value for ordering the backends queue
- * @return 0 on sucess; error code otherwise
+ * @return 0 on success; error code otherwise
  */
 GIT_EXTERN(int) git_odb_add_alternate(git_odb *odb, git_odb_backend *backend, int priority);
 
@@ -139,7 +139,7 @@ GIT_EXTERN(int) git_odb_read(git_odb_object **out, git_odb *db, const git_oid *i
  *	GIT_ENOTFOUND if the object is not in the database.
  *	GIT_EAMBIGUOUS if the prefix is ambiguous (several objects match the prefix)
  */
-GIT_EXTERN(int) git_odb_read_prefix(git_odb_object **out, git_odb *db, const git_oid *short_id, unsigned int len);
+GIT_EXTERN(int) git_odb_read_prefix(git_odb_object **out, git_odb *db, const git_oid *short_id, size_t len);
 
 /**
  * Read the header of an object from the database, without
@@ -173,6 +173,21 @@ GIT_EXTERN(int) git_odb_read_header(size_t *len_p, git_otype *type_p, git_odb *d
 GIT_EXTERN(int) git_odb_exists(git_odb *db, const git_oid *id);
 
 /**
+ * List all objects available in the database
+ *
+ * The callback will be called for each object available in the
+ * database. Note that the objects are likely to be returned in the index
+ * order, which would make accessing the objects in that order inefficient.
+ * Return a non-zero value from the callback to stop looping.
+ *
+ * @param db database to use
+ * @param cb the callback to call for each object
+ * @param data data to pass to the callback
+ * @return 0 on success, GIT_EUSER on non-zero callback, or error code
+ */
+GIT_EXTERN(int) git_odb_foreach(git_odb *db, int (*cb)(git_oid *oid, void *data), void *data);
+
+/**
  * Write an object directly into the ODB
  *
  * This method writes a full object straight into the ODB.
@@ -185,7 +200,7 @@ GIT_EXTERN(int) git_odb_exists(git_odb *db, const git_oid *id);
  *
  * @param oid pointer to store the OID result of the write
  * @param odb object database where to store the object
- * @param data buffer with the data to storr
+ * @param data buffer with the data to store
  * @param len size of the buffer
  * @param type type of the data to store
  * @return 0 or an error code
@@ -250,7 +265,7 @@ GIT_EXTERN(int) git_odb_open_rstream(git_odb_stream **stream, git_odb *db, const
 /**
  * Determine the object-ID (sha1 hash) of a data buffer
  *
- * The resulting SHA-1 OID will the itentifier for the data
+ * The resulting SHA-1 OID will be the identifier for the data
  * buffer as if the data buffer it were to written to the ODB.
  *
  * @param id the resulting object-ID.
@@ -264,8 +279,10 @@ GIT_EXTERN(int) git_odb_hash(git_oid *id, const void *data, size_t len, git_otyp
 /**
  * Read a file from disk and fill a git_oid with the object id
  * that the file would have if it were written to the Object
- * Database as an object of the given type. Similar functionality
- * to git.git's `git hash-object` without the `-w` flag.
+ * Database as an object of the given type (w/o applying filters).
+ * Similar functionality to git.git's `git hash-object` without
+ * the `-w` flag, however, with the --no-filters flag.
+ * If you need filters, see git_repository_hashfile.
  *
  * @param out oid structure the result is written into.
  * @param path file to read and determine object id for

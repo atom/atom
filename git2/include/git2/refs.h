@@ -10,6 +10,7 @@
 #include "common.h"
 #include "types.h"
 #include "oid.h"
+#include "strarray.h"
 
 /**
  * @file git2/refs.h
@@ -124,7 +125,7 @@ GIT_EXTERN(const char *) git_reference_name(git_reference *ref);
 /**
  * Resolve a symbolic reference
  *
- * Thie method iteratively peels a symbolic reference
+ * This method iteratively peels a symbolic reference
  * until it resolves to a direct reference to an OID.
  *
  * The peeled reference is returned in the `resolved_ref`
@@ -258,7 +259,6 @@ GIT_EXTERN(int) git_reference_packall(git_repository *repo);
  */
 GIT_EXTERN(int) git_reference_list(git_strarray *array, git_repository *repo, unsigned int list_flags);
 
-
 /**
  * Perform an operation on each reference in the repository
  *
@@ -269,14 +269,15 @@ GIT_EXTERN(int) git_reference_list(git_strarray *array, git_repository *repo, un
  *
  * The `callback` function will be called for each of the references
  * in the repository, and will receive the name of the reference and
- * the `payload` value passed to this method.
+ * the `payload` value passed to this method.  Returning a non-zero
+ * value from the callback will terminate the iteration.
  *
  * @param repo Repository where to find the refs
  * @param list_flags Filtering flags for the reference
  *		listing.
  * @param callback Function which will be called for every listed ref
  * @param payload Additional data to pass to the callback
- * @return 0 or an error code
+ * @return 0 on success, GIT_EUSER on non-zero callback, or error code
  */
 GIT_EXTERN(int) git_reference_foreach(git_repository *repo, unsigned int list_flags, int (*callback)(const char *, void *), void *payload);
 
@@ -293,7 +294,7 @@ GIT_EXTERN(int) git_reference_is_packed(git_reference *ref);
  *
  * Reference pointers may become outdated if the Git
  * repository is accessed simultaneously by other clients
- * whilt the library is open.
+ * while the library is open.
  *
  * This method forces a reload of the reference from disk,
  * to ensure that the provided information is still
@@ -323,6 +324,145 @@ GIT_EXTERN(void) git_reference_free(git_reference *ref);
  * @return 0 if the same, else a stable but meaningless ordering.
  */
 GIT_EXTERN(int) git_reference_cmp(git_reference *ref1, git_reference *ref2);
+
+/**
+ * Loop over all the references and issue a callback for each one
+ * which name matches the given glob pattern.
+ *
+ * The processed references may be filtered by type, or using
+ * a bitwise OR of several types. Use the magic value
+ * `GIT_REF_LISTALL` to obtain all references, including
+ * packed ones.
+ *
+ * @param repo Repository where to find the references.
+ *
+ * @param glob Glob pattern references should match.
+ *
+ * @param list_flags Filtering flags for the reference
+ * listing.
+ *
+ * @param callback Callback to invoke per found reference.
+ *
+ * @param payload Extra parameter to callback function.
+ *
+ * @return 0 or an error code.
+ */
+GIT_EXTERN(int) git_reference_foreach_glob(
+		git_repository *repo,
+		const char *glob,
+		unsigned int list_flags,
+		int (*callback)(
+			const char *reference_name,
+			void *payload),
+		void *payload
+);
+
+/**
+ * Check if a reflog exists for the specified reference.
+ *
+ * @param ref A git reference
+ *
+ * @return 0 when no reflog can be found, 1 when it exists;
+ * otherwise an error code.
+ */
+GIT_EXTERN(int) git_reference_has_log(git_reference *ref);
+
+/**
+ * Check if a reference is a local branch.
+ *
+ * @param ref A git reference
+ *
+ * @return 1 when the reference lives in the refs/heads
+ * namespace; 0 otherwise.
+ */
+GIT_EXTERN(int) git_reference_is_branch(git_reference *ref);
+
+/**
+ * Check if a reference is a remote tracking branch
+ *
+ * @param ref A git reference
+ *
+ * @return 1 when the reference lives in the refs/remotes
+ * namespace; 0 otherwise.
+ */
+GIT_EXTERN(int) git_reference_is_remote(git_reference *ref);
+
+enum {
+	GIT_REF_FORMAT_NORMAL = 0,
+
+	/**
+	 * Control whether one-level refnames are accepted
+	 * (i.e., refnames that do not contain multiple /-separated
+	 * components). Those are expected to be written only using
+	 * uppercase letters and underscore (FETCH_HEAD, ...)
+	 */
+	GIT_REF_FORMAT_ALLOW_ONELEVEL = (1 << 0),
+
+	/**
+	 * Interpret the provided name as a reference pattern for a
+	 * refspec (as used with remote repositories). If this option
+	 * is enabled, the name is allowed to contain a single * (<star>)
+	 * in place of a one full pathname component
+	 * (e.g., foo/<star>/bar but not foo/bar<star>).
+	 */
+	GIT_REF_FORMAT_REFSPEC_PATTERN = (1 << 1),
+};
+
+/**
+ * Normalize the reference name by removing any leading
+ * slash (/) characters and collapsing runs of adjacent slashes
+ * between name components into a single slash.
+ *
+ * Once normalized, if the reference name is valid, it will be
+ * returned in the user allocated buffer.
+ *
+ * @param buffer_out The user allocated buffer where the
+ * normalized name will be stored.
+ *
+ * @param buffer_size buffer_out size
+ *
+ * @param name name to be checked.
+ *
+ * @param flags Flags to determine the options to be applied while
+ * checking the validatity of the name.
+ *
+ * @return 0 or an error code.
+ */
+GIT_EXTERN(int) git_reference_normalize_name(
+	char *buffer_out,
+	size_t buffer_size,
+	const char *name,
+	unsigned int flags);
+
+/**
+ * Recursively peel an reference until an object of the
+ * specified type is met.
+ *
+ * The retrieved `peeled` object is owned by the repository
+ * and should be closed with the `git_object_free` method.
+ *
+ * If you pass `GIT_OBJ_ANY` as the target type, then the object
+ * will be peeled until a non-tag object is met.
+ *
+ * @param peeled Pointer to the peeled git_object
+ * @param ref The reference to be processed
+ * @param target_type The type of the requested object
+ * @return 0 or an error code
+ */
+GIT_EXTERN(int) git_reference_peel(
+	git_object **out,
+	git_reference *ref,
+	git_otype type);
+
+/**
+ * Ensure the reference name is well-formed.
+ *
+ * @param refname name to be checked.
+ *
+ * @return 1 if the reference name is acceptable; 0 if it isn't
+ */
+GIT_EXTERN(int) git_reference_is_valid_name(
+	const char *refname);
 
 /** @} */
 GIT_END_DECL

@@ -11,6 +11,7 @@
 #include "types.h"
 #include "oid.h"
 #include "object.h"
+#include "strarray.h"
 
 /**
  * @file git2/tag.h
@@ -46,7 +47,7 @@ GIT_INLINE(int) git_tag_lookup(git_tag **tag, git_repository *repo, const git_oi
  * @param len the length of the short identifier
  * @return 0 or an error code
  */
-GIT_INLINE(int) git_tag_lookup_prefix(git_tag **tag, git_repository *repo, const git_oid *id, unsigned int len)
+GIT_INLINE(int) git_tag_lookup_prefix(git_tag **tag, git_repository *repo, const git_oid *id, size_t len)
 {
 	return git_object_lookup_prefix((git_object **)tag, repo, id, len, (git_otype)GIT_OBJ_TAG);
 }
@@ -137,8 +138,8 @@ GIT_EXTERN(const char *) git_tag_message(git_tag *tag);
  * this tag object. If `force` is true and a reference
  * already exists with the given name, it'll be replaced.
  *
- * The message will be cleaned up from excess whitespace
- * it will be made sure that the last line ends with a '\n'.
+ * The message will not be cleaned up. This can be achieved
+ * through `git_message_prettify()`.
  *
  * @param oid Pointer where to store the OID of the
  * newly created tag. If the tag already exists, this parameter
@@ -181,7 +182,7 @@ GIT_EXTERN(int) git_tag_create(
  * @param repo Repository where to store the tag
  * @param buffer Raw tag data
  * @param force Overwrite existing tags
- * @return 0 on sucess; error code otherwise
+ * @return 0 on success; error code otherwise
  */
 GIT_EXTERN(int) git_tag_create_frombuffer(
 		git_oid *oid,
@@ -276,6 +277,21 @@ GIT_EXTERN(int) git_tag_list_match(
 		git_strarray *tag_names,
 		const char *pattern,
 		git_repository *repo);
+
+
+typedef int (*git_tag_foreach_cb)(const char *name, git_oid *oid, void *data);
+/**
+ * Call callback `cb' for each tag in the repository
+ *
+ * @param repo Repository
+ * @param cb Callback function
+ * @param cb_data Pointer to callback data (optional)
+ */
+GIT_EXTERN(int) git_tag_foreach(
+		git_repository *repo,
+		git_tag_foreach_cb cb,
+		void *cb_data);
+
 
 /**
  * Recursively peel a tag until a non tag git_object
