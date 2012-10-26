@@ -10,7 +10,6 @@ describe "EditSession", ->
     buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
 
   beforeEach ->
-    buffer = new Buffer()
     editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
@@ -1745,3 +1744,14 @@ describe "EditSession", ->
       editSession.setSelectedBufferRange([[0, 1], [0, 4]])
       editSession.transpose()
       expect(editSession.lineForBufferRow(0)).toBe 'xcbaz'
+
+  describe "soft-tabs detection", ->
+    it "assign soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
+      editSession = fixturesProject.buildEditSessionForPath('sample.js', softTabs: false)
+      expect(editSession.softTabs).toBeTruthy()
+
+      editSession = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', softTabs: true)
+      expect(editSession.softTabs).toBeFalsy()
+
+      editSession = fixturesProject.buildEditSessionForPath(null, softTabs: false)
+      expect(editSession.softTabs).toBeFalsy()

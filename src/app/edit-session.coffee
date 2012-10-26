@@ -39,9 +39,9 @@ class EditSession
   softTabs: true
   softWrap: false
 
-  constructor: ({@project, @buffer, @tabLength, @autoIndent, @softTabs, @softWrap }) ->
+  constructor: ({@project, @buffer, @tabLength, @autoIndent, softTabs, @softWrap }) ->
     @id = @constructor.idCounter++
-    @softTabs ?= true
+    @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabLength })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
