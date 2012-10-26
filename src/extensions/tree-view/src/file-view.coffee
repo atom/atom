@@ -1,5 +1,6 @@
 {View, $$} = require 'space-pen'
 $ = require 'jquery'
+Git = require 'git'
 
 module.exports =
 class FileView extends View
@@ -9,6 +10,7 @@ class FileView extends View
   file: null
 
   initialize: (@file) ->
+    @addClass('ignored') if Git.isPathIgnored(@file.getPath())
 
   getPath: ->
     @file.path

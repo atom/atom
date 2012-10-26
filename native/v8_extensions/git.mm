@@ -46,6 +46,17 @@ public:
       return CefV8Value::CreateNull();
   }
 
+  CefRefPtr<CefV8Value> IsIgnored(const char *path) {
+    if (!exists)
+      return CefV8Value::CreateBool(false);
+
+    int *ignored;
+    if (git_ignore_path_is_ignored(ignored, repo, path) == GIT_OK)
+      return CefV8Value::CreateBool(*ignored == 1);
+    else
+      return CefV8Value::CreateBool(false);
+  }
+
   IMPLEMENT_REFCOUNTING(GitRepository);
 };
 
@@ -76,6 +87,12 @@ bool Git::Execute(const CefString& name,
   if (name == "getPath") {
     GitRepository *userData = (GitRepository *)object->GetUserData().get();
     retval = userData->GetPath();
+    return true;
+  }
+
+  if (name == "isIgnored") {
+    GitRepository *userData = (GitRepository *)object->GetUserData().get();
+    retval = userData->IsIgnored(arguments[0]->GetStringValue().ToString().c_str());
     return true;
   }
 

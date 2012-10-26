@@ -14,8 +14,7 @@ class File
 
   setPath: (@path) ->
 
-  getPath: ->
-    @path
+  getPath: -> @path
 
   getBaseName: ->
     fs.base(@path)
