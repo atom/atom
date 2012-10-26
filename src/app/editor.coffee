@@ -140,6 +140,7 @@ class Editor extends View
         'core:close': @close
         'editor:save': @save
         'editor:newline-below': @insertNewlineBelow
+        'editor:toggle-soft-tabs': @toggleSoftTabs
         'editor:toggle-soft-wrap': @toggleSoftWrap
         'editor:fold-all': @foldAll
         'editor:unfold-all': @unfoldAll
@@ -531,6 +532,9 @@ class Editor extends View
   saveActiveEditSession: ->
     @activeEditSession.setScrollTop(@scrollTop())
     @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
+
+  toggleSoftTabs: ->
+    @activeEditSession.setSoftTabs(not @activeEditSession.softTabs)
 
   toggleSoftWrap: ->
     @setSoftWrap(not @activeEditSession.getSoftWrap())

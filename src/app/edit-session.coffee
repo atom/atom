@@ -39,9 +39,9 @@ class EditSession
   softTabs: true
   softWrap: false
 
-  constructor: ({@project, @buffer, @tabLength, @autoIndent, @softTabs, @softWrap }) ->
+  constructor: ({@project, @buffer, @tabLength, @autoIndent, softTabs, @softWrap }) ->
     @id = @constructor.idCounter++
-    @softTabs ?= true
+    @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabLength })
     @tokenizedBuffer = @displayBuffer.tokenizedBuffer
@@ -107,17 +107,37 @@ class EditSession
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
-  getTabText: -> new Array(@tabLength + 1).join(" ")
+  getTabText: -> @buildIndentString(1)
   getTabLength: -> @tabLength
 
   clipBufferPosition: (bufferPosition) ->
     @buffer.clipPosition(bufferPosition)
 
+  indentationForBufferRow: (bufferRow) ->
+    @indentLevelForLine(@lineForBufferRow(bufferRow))
+
+  setIndentationForBufferRow: (bufferRow, newLevel) ->
+    currentLevel = @indentationForBufferRow(bufferRow)
+    currentIndentString = @buildIndentString(currentLevel)
+    newIndentString = @buildIndentString(newLevel)
+    @buffer.change([[bufferRow, 0], [bufferRow, currentIndentString.length]], newIndentString)
+
+  indentLevelForLine: (line) ->
+    if line.match(/^\t/)
+      line.match(/^\t*/)?[0].length
+    else
+      line.match(/^\s*/)?[0].length / @tabLength
+
+  buildIndentString: (number) ->
+    if @softTabs
+      _.multiplyString(" ", number * @tabLength)
+    else
+      _.multiplyString("\t", number)
+
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
-  indentationForBufferRow: (bufferRow) -> @buffer.indentationForRow(bufferRow)
   getEofBufferPosition: -> @buffer.getEofPosition()
   getLastBufferRow: -> @buffer.getLastRow()
   bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)

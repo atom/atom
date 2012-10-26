@@ -183,9 +183,9 @@ describe "LanguageMode", ->
     describe "suggestedIndentForBufferRow", ->
       it "returns the suggested indentation based on auto-indent/outdent rules", ->
         expect(languageMode.suggestedIndentForBufferRow(0)).toBe 0
-        expect(languageMode.suggestedIndentForBufferRow(1)).toBe 2
-        expect(languageMode.suggestedIndentForBufferRow(2)).toBe 4
-        expect(languageMode.suggestedIndentForBufferRow(9)).toBe 2
+        expect(languageMode.suggestedIndentForBufferRow(1)).toBe 1
+        expect(languageMode.suggestedIndentForBufferRow(2)).toBe 2
+        expect(languageMode.suggestedIndentForBufferRow(9)).toBe 1
 
 
   describe "coffeescript", ->

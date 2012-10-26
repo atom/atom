@@ -6,8 +6,10 @@ TextMateBundle = require 'text-mate-bundle'
 describe "EditSession", ->
   [buffer, editSession, lineLengths] = []
 
+  convertToHardTabs = (buffer) ->
+    buffer.setText(buffer.getText().replace(/[ ]{2}/g, "\t"))
+
   beforeEach ->
-    buffer = new Buffer()
     editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
     buffer = editSession.buffer
     lineLengths = buffer.getLines().map (line) -> line.length
@@ -671,13 +673,13 @@ describe "EditSession", ->
             it "auto-indents the new line to one additional level of indentation beyond the preceding line", ->
               editSession.setCursorBufferPosition([1, Infinity])
               editSession.insertText('\n', autoIndent: true)
-              expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
           describe "when the newline is inserted on a normal line", ->
             it "auto-indents the new line to the same level of indentation as the preceding line", ->
               editSession.setCursorBufferPosition([5, 13])
               editSession.insertText('\n', autoIndent: true)
-              expect(buffer.indentationForRow(6)).toBe buffer.indentationForRow(5)
+              expect(editSession.indentationForBufferRow(6)).toBe editSession.indentationForBufferRow(5)
 
         describe "when text without newlines is inserted", ->
           describe "when the current line matches an auto-outdent pattern", ->
@@ -686,24 +688,24 @@ describe "EditSession", ->
                 editSession.setCursorBufferPosition([2, 4])
                 editSession.insertText('\n', autoIndent: true)
                 editSession.setCursorBufferPosition([2, 4])
-                expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
+                expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
                 editSession.insertText('   }', autoIndent: true)
-                expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1)
+                expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1)
 
             describe "when the preceding does not match an auto-indent pattern", ->
               it "auto-decreases the indentation of the line to be one level below that of the preceding line", ->
                 editSession.setCursorBufferPosition([3, Infinity])
                 editSession.insertText('\n', autoIndent: true)
-                expect(buffer.indentationForRow(4)).toBe buffer.indentationForRow(3)
+                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3)
                 editSession.insertText('   }', autoIndent: true)
-                expect(buffer.indentationForRow(4)).toBe buffer.indentationForRow(3) - 2
+                expect(editSession.indentationForBufferRow(4)).toBe editSession.indentationForBufferRow(3) - 1
 
           describe "when the current line does not match an auto-outdent pattern", ->
             it "leaves the line unchanged", ->
               editSession.setCursorBufferPosition([2, 4])
-              expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
               editSession.insertText('foo', autoIndent: true)
-              expect(buffer.indentationForRow(2)).toBe buffer.indentationForRow(1) + 2
+              expect(editSession.indentationForBufferRow(2)).toBe editSession.indentationForBufferRow(1) + 1
 
       describe "when the `normalizeIndent` option is true", ->
         describe "when the inserted text contains no newlines", ->
@@ -746,7 +748,7 @@ describe "EditSession", ->
                   it "indents all lines relative to the suggested indent", ->
                     editSession.insertText('\n xx')
                     editSession.setCursorBufferPosition([3, 1])
-                    editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 4)
+                    editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 2)
 
                     expect(editSession.lineForBufferRow(3)).toBe "    while (true) {"
                     expect(editSession.lineForBufferRow(4)).toBe "      foo();"
@@ -767,7 +769,7 @@ describe "EditSession", ->
                 describe "when an indentBasis is provided", ->
                   it "preserves the current indent level, indenting all lines relative to it", ->
                     editSession.insertText('\n      ')
-                    editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 4)
+                    editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 2)
 
                     expect(editSession.lineForBufferRow(3)).toBe "      while (true) {"
                     expect(editSession.lineForBufferRow(4)).toBe "        foo();"
@@ -791,7 +793,7 @@ describe "EditSession", ->
               describe "when an indentBasis is provided", ->
                 it "always normalizes indented lines to the cursor's current indentation level", ->
                   editSession.insertText('\n ')
-                  editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 4)
+                  editSession.insertText(removeLeadingWhitespace(text), normalizeIndent: true, indentBasis: 2)
 
                   expect(editSession.lineForBufferRow(3)).toBe " while (true) {"
                   expect(editSession.lineForBufferRow(4)).toBe "   foo();"
@@ -813,7 +815,7 @@ describe "EditSession", ->
               it "normalizes the indentation level of all lines based on the level of the existing first line", ->
                 editSession.setAutoIndent(true)
                 editSession.buffer.delete([[2, 0], [2, 2]])
-                editSession.insertText(removeLeadingWhitespace(text), normalizeIndent:true, indentBasis: 4)
+                editSession.insertText(removeLeadingWhitespace(text), normalizeIndent:true, indentBasis: 2)
 
                 expect(editSession.lineForBufferRow(2)).toBe "  if (items.length <= 1) return items;while (true) {"
                 expect(editSession.lineForBufferRow(3)).toBe "    foo();"
@@ -1223,7 +1225,37 @@ describe "EditSession", ->
               editSession.indent()
               expect(buffer.lineForRow(0)).toMatch(tabRegex)
 
+          describe "if 'softTabs' is false", ->
+            it "insert a \t into the buffer", ->
+              editSession.softTabs = false
+              expect(buffer.lineForRow(0)).not.toMatch(/^\t/)
+              editSession.indent()
+              expect(buffer.lineForRow(0)).toMatch(/^\t/)
+
         describe "when autoIndent is enabled", ->
+          describe "when the cursor's column is less than the suggested level of indentation", ->
+            describe "when 'softTabs' is true (the default)", ->
+              it "inserts enough whitespace to bring the line to the suggested level of indentaion", ->
+                buffer.insert([5, 0], "  \n")
+                editSession.tabLength = 2
+                editSession.setCursorBufferPosition [5, 2]
+                editSession.setAutoIndent(true)
+                editSession.indent()
+                expect(buffer.lineForRow(5)).toMatch /^\s+$/
+                expect(buffer.lineForRow(5).length).toBe 6
+                expect(editSession.getCursorBufferPosition()).toEqual [5, 6]
+
+            describe "when 'softTabs' is false", ->
+              it "inserts enough tabs to bring the line to the suggested level of indentaion", ->
+                convertToHardTabs(buffer)
+                editSession.softTabs = false
+                buffer.insert([5, 0], "\t\n")
+                editSession.setCursorBufferPosition [5, 1]
+                editSession.setAutoIndent(true)
+                editSession.indent()
+                expect(buffer.lineForRow(5)).toMatch /^\t\t\t$/
+                expect(editSession.getCursorBufferPosition()).toEqual [5, 3]
+
           describe "when the cursor's column is greater than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
               it "inserts 'tabLength' spaces into the buffer", ->
@@ -1236,17 +1268,16 @@ describe "EditSession", ->
                 expect(buffer.lineForRow(7).length).toBe 8
                 expect(editSession.getCursorBufferPosition()).toEqual [7, 8]
 
-          describe "when the cursor's column is less than the suggested level of indentation", ->
-            describe "when 'softTabs' is true (the default)", ->
-              it "inserts enough whitespace to bring the line to the suggested level of indentaion", ->
-                buffer.insert([5, 0], "  \n")
-                editSession.tabLength = 2
-                editSession.setCursorBufferPosition [5, 2]
+            describe "when 'softTabs' is false", ->
+              it "inserts \t into the buffer", ->
+                convertToHardTabs(buffer)
+                editSession.softTabs = false
+                buffer.insert([7, 0], "\t\t\t\n")
+                editSession.setCursorBufferPosition [7, 3]
                 editSession.setAutoIndent(true)
                 editSession.indent()
-                expect(buffer.lineForRow(5)).toMatch /^\s+$/
-                expect(buffer.lineForRow(5).length).toBe 6
-                expect(editSession.getCursorBufferPosition()).toEqual [5, 6]
+                expect(buffer.lineForRow(7)).toMatch /^\t\t\t\t$/
+                expect(editSession.getCursorBufferPosition()).toEqual [7, 4]
 
       describe "when the selection is not empty", ->
         it "indents the selected lines", ->
@@ -1336,27 +1367,62 @@ describe "EditSession", ->
         editSession.tabLength = 2
 
       describe "when nothing is selected", ->
-        it "indents line and retains selection", ->
-          editSession.setSelectedBufferRange([[0,3], [0,3]])
-          editSession.indentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + editSession.tabLength], [0, 3 + editSession.tabLength]]
+        describe "when softTabs is enabled", ->
+          it "indents line and retains selection", ->
+            editSession.tabLength = 2
+            editSession.setSelectedBufferRange([[0,3], [0,3]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(0)).toBe "  var quicksort = function () {"
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + editSession.tabLength], [0, 3 + editSession.tabLength]]
+
+        describe "when softTabs is disabled", ->
+          it "indents line and retains selection", ->
+            convertToHardTabs(buffer)
+            editSession.softTabs = false
+            editSession.setSelectedBufferRange([[0,3], [0,3]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(0)).toBe "\tvar quicksort = function () {"
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + 1], [0, 3 + 1]]
 
       describe "when one line is selected", ->
-        it "indents line and retains selection", ->
-          editSession.setSelectedBufferRange([[0,4], [0,14]])
-          editSession.indentSelectedRows()
-          expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + editSession.tabLength], [0, 14 + editSession.tabLength]]
+        describe "when softTabs is enabled", ->
+          it "indents line and retains selection", ->
+            editSession.tabLength = 2
+            editSession.setSelectedBufferRange([[0,4], [0,14]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + editSession.tabLength], [0, 14 + editSession.tabLength]]
+
+        describe "when softTabs is disabled", ->
+          it "indents line and retains selection", ->
+            convertToHardTabs(buffer)
+            editSession.softTabs = false
+            editSession.setSelectedBufferRange([[0,4], [0,14]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(0)).toBe "\tvar quicksort = function () {"
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + 1], [0, 14 + 1]]
 
       describe "when multiple lines are selected", ->
-        it "indents selected lines (that are not empty) and retains selection", ->
-          editSession.setSelectedBufferRange([[9,1], [11,15]])
-          editSession.indentSelectedRows()
-          expect(buffer.lineForRow(9)).toBe "    };"
-          expect(buffer.lineForRow(10)).toBe ""
-          expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
-          expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 15 + editSession.tabLength]]
+        describe "when softTabs is enabled", ->
+          it "indents selected lines (that are not empty) and retains selection", ->
+            editSession.tabLength = 2
+            editSession.setSelectedBufferRange([[9,1], [11,15]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(9)).toBe "    };"
+            expect(buffer.lineForRow(10)).toBe ""
+            expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
+            expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 15 + editSession.tabLength]]
+
+        describe "when softTabs is disabled", ->
+          it "indents selected lines (that are not empty) and retains selection", ->
+            convertToHardTabs(buffer)
+            editSession.softTabs = false
+            editSession.setSelectedBufferRange([[9,1], [11,15]])
+            editSession.indentSelectedRows()
+            expect(buffer.lineForRow(9)).toBe "\t\t};"
+            expect(buffer.lineForRow(10)).toBe ""
+            expect(buffer.lineForRow(11)).toBe "\t\treturn sort(Array.apply(this, arguments));"
+            expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + 1], [11, 15 + 1]]
 
     describe ".outdentSelectedRows()", ->
       beforeEach ->
@@ -1678,3 +1744,14 @@ describe "EditSession", ->
       editSession.setSelectedBufferRange([[0, 1], [0, 4]])
       editSession.transpose()
       expect(editSession.lineForBufferRow(0)).toBe 'xcbaz'
+
+  describe "soft-tabs detection", ->
+    it "assign soft / hard tabs based on the contents of the buffer, or uses the default if unknown", ->
+      editSession = fixturesProject.buildEditSessionForPath('sample.js', softTabs: false)
+      expect(editSession.softTabs).toBeTruthy()
+
+      editSession = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', softTabs: true)
+      expect(editSession.softTabs).toBeFalsy()
+
+      editSession = fixturesProject.buildEditSessionForPath(null, softTabs: false)
+      expect(editSession.softTabs).toBeFalsy()
