@@ -29,17 +29,19 @@
   #endif
   
   // Remove non-posix (i.e. -long_argument_with_one_leading_hyphen) added by OS X from the command line
+  int cleanArgc = argc;
   size_t argvSize = argc * sizeof(char *);
   char **cleanArgv = (char **)alloca(argvSize);
-  memcpy(cleanArgv, argv, argvSize);
-  char noop[] = "--noop";
   for (int i=0; i < argc; i++) {
-    if (strcmp(cleanArgv[i], "-NSDocumentRevisionsDebugMode") == 0) { // Xcode inserts useless command-line args by default: http://trac.wxwidgets.org/ticket/13732
-        cleanArgv[i] = noop;
-        cleanArgv[++i] = noop;
+    if (strcmp(argv[i], "-NSDocumentRevisionsDebugMode") == 0) { // Xcode inserts useless command-line args by default: http://trac.wxwidgets.org/ticket/13732
+      cleanArgc -= 2;
+      i++;
     }
-    else if (strncmp(cleanArgv[i], "-psn_", 5) == 0) { // OS X inserts a -psn_[PID] argument.
-      cleanArgv[i] = noop;
+    else if (strncmp(argv[i], "-psn_", 5) == 0) { // OS X inserts a -psn_[PID] argument.
+      cleanArgc -= 1;
+    }
+    else {
+      cleanArgv[i] = argv[i];
     }
   }
 
@@ -52,11 +54,10 @@
     { "benchmark",          optional_argument,      NULL,  'B'  },
     { "test",               optional_argument,      NULL,  'T'  },
     { "stable",             no_argument,            NULL,  'S'  },
-    { "noop",               optional_argument,      NULL,  NULL },
     { NULL,                 0,                      NULL,  0 }
   };
 
-  while ((opt = getopt_long(argc, cleanArgv, "R:K:BTSh?", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(cleanArgc, cleanArgv, "R:K:BTSh?", longopts, &longindex)) != -1) {
     NSString *key, *value;
     switch (opt) {
       case 'K':
@@ -75,11 +76,11 @@
     }
   }
   
-  argc -= optind;
-  argv += optind;
+  cleanArgc -= optind;
+  cleanArgv += optind;
   
-  if (argc > 0) {
-    NSString *path = [NSString stringWithUTF8String:argv[0]];
+  if (cleanArgc > 0) {
+    NSString *path = [NSString stringWithUTF8String:cleanArgv[0]];
     NSString *executedFromPath =[arguments objectForKey:@"executed-from"];
     if (![path isAbsolutePath] && executedFromPath) {
       path = [executedFromPath stringByAppendingPathComponent:path];
