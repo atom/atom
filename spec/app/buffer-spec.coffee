@@ -168,6 +168,19 @@ describe 'Buffer', ->
       buffer.save()
       expect(buffer.isModified()).toBe false
 
+    it "returns false for an empty buffer with no path", ->
+      buffer.release()
+      buffer = new Buffer()
+      expect(buffer.isModified()).toBeFalsy()
+
+    it "returns true for a non-empty buffer with no path", ->
+       buffer.release()
+       buffer = new Buffer()
+       buffer.setText('a')
+       expect(buffer.isModified()).toBeTruthy()
+       buffer.setText('\n')
+       expect(buffer.isModified()).toBeTruthy()
+
   describe ".getLines()", ->
     it "returns an array of lines in the text contents", ->
       expect(buffer.getLines().length).toBe fileContents.split("\n").length

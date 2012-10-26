@@ -241,7 +241,10 @@ class Buffer
     @trigger 'after-save'
 
   isModified: ->
-    @memoryContentSignature != @diskContentSignature
+    if @file
+      @memoryContentSignature != @diskContentSignature
+    else
+      @lines.length > 1 or @lines[0]
 
   isInConflict: -> @conflict
 
