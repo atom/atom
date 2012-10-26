@@ -1,14 +1,14 @@
 {View, $$} = require 'space-pen'
 SelectList = require 'select-list'
 Editor = require 'editor'
-TagGenerator = require 'outline-view/tag-generator'
+TagGenerator = require 'outline-view/src/tag-generator'
 
 module.exports =
 class OutlineView extends SelectList
 
   @activate: (rootView) ->
     requireStylesheet 'select-list.css'
-    requireStylesheet 'outline-view/outline-view.css'
+    requireStylesheet 'outline-view/src/outline-view.css'
     @instance = new OutlineView(rootView)
     rootView.command 'outline-view:toggle', => @instance.toggle()
 

@@ -1,6 +1,6 @@
 RootView = require 'root-view'
 OutlineView = require 'outline-view'
-TagGenerator = require 'outline-view/tag-generator'
+TagGenerator = require 'outline-view/src/tag-generator'
 
 describe "OutlineView", ->
   [rootView, outlineView] = []
