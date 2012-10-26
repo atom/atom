@@ -117,7 +117,7 @@ bool Native::Execute(const CefString& name,
       if (entry->fts_level == 0) {
         continue;
       }
-      
+
       bool isFile = entry->fts_info == FTS_NSOK;
       bool isDir =  entry->fts_info == FTS_D;
       if (!isFile && !isDir) {
