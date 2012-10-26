@@ -158,10 +158,7 @@ class Selection
       if @editSession.autoIndent and delta > 0
         @insertText(@editSession.buildIndentString(delta))
       else
-        if @editSession.softTabs
-          @insertText(@editSession.getTabText())
-        else
-          @insertText('\t')
+        @insertText(@editSession.getTabText())
     else
       @indentSelectedRows()
 
