@@ -23,6 +23,10 @@ GIT_BEGIN_DECL
 /**
  * Read the reflog for the given reference
  *
+ * If there is no reflog file for the given
+ * reference yet, an empty reflog object will
+ * be returned.
+ *
  * The reflog must be freed manually by using
  * git_reflog_free().
  *
@@ -33,25 +37,31 @@ GIT_BEGIN_DECL
 GIT_EXTERN(int) git_reflog_read(git_reflog **reflog, git_reference *ref);
 
 /**
- * Write a new reflog for the given reference
+ * Write an existing in-memory reflog object back to disk
+ * using an atomic file lock.
  *
- * If there is no reflog file for the given
- * reference yet, it will be created.
- *
- * `oid_old` may be NULL in case it's a new reference.
+ * @param reflog an existing reflog object
+ * @return 0 or an error code
+ */
+GIT_EXTERN(int) git_reflog_write(git_reflog *reflog);
+
+/**
+ * Add a new entry to the reflog.
  *
  * `msg` is optional and can be NULL.
  *
- * @param ref the changed reference
- * @param oid_old the OID the reference was pointing to
+ * @param reflog an existing reflog object
+ * @param new_oid the OID the reference is now pointing to
  * @param committer the signature of the committer
  * @param msg the reflog message
  * @return 0 or an error code
  */
-GIT_EXTERN(int) git_reflog_write(git_reference *ref, const git_oid *oid_old, const git_signature *committer, const char *msg);
+GIT_EXTERN(int) git_reflog_append(git_reflog *reflog, const git_oid *new_oid, const git_signature *committer, const char *msg);
 
 /**
  * Rename the reflog for the given reference
+ *
+ * The reflog to be renamed is expected to already exist
  *
  * @param ref the reference
  * @param new_name the new name of the reference
@@ -82,7 +92,27 @@ GIT_EXTERN(unsigned int) git_reflog_entrycount(git_reflog *reflog);
  * @param idx the position to lookup
  * @return the entry; NULL if not found
  */
-GIT_EXTERN(const git_reflog_entry *) git_reflog_entry_byindex(git_reflog *reflog, unsigned int idx);
+GIT_EXTERN(const git_reflog_entry *) git_reflog_entry_byindex(git_reflog *reflog, size_t idx);
+
+/**
+ * Remove an entry from the reflog by its index
+ *
+ * To ensure there's no gap in the log history, set the `rewrite_previosu_entry` to 1.
+ * When deleting entry `n`, member old_oid of entry `n-1` (if any) will be updated with
+ * the value of memeber new_oid of entry `n+1`.
+ *
+ * @param reflog a previously loaded reflog.
+ *
+ * @param idx the position of the entry to remove.
+ *
+ * @param rewrite_previous_entry 1 to rewrite the history; 0 otherwise.
+ *
+ * @return 0 on success or an error code.
+ */
+GIT_EXTERN(int) git_reflog_drop(
+	git_reflog *reflog,
+	unsigned int idx,
+	int rewrite_previous_entry);
 
 /**
  * Get the old oid

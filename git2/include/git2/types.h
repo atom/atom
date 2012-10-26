@@ -32,6 +32,9 @@ GIT_BEGIN_DECL
  * stat() functions, for all platforms.
  */
 #include <sys/types.h>
+#ifdef __amigaos4__
+#include <stdint.h>
+#endif
 
 #if defined(_MSC_VER)
 
@@ -134,6 +137,9 @@ typedef struct git_reflog git_reflog;
 /** Representation of a git note */
 typedef struct git_note git_note;
 
+/** Representation of a git packbuilder */
+typedef struct git_packbuilder git_packbuilder;
+
 /** Time in a signature */
 typedef struct git_time {
 	git_time_t time; /** time in seconds from epoch */
@@ -166,10 +172,28 @@ typedef enum {
 	GIT_BRANCH_REMOTE = 2,
 } git_branch_t;
 
+/** Kinds of reset operation. */
+typedef enum {
+	GIT_RESET_SOFT = 1,
+	GIT_RESET_MIXED = 2,
+	GIT_RESET_HARD = 3,
+} git_reset_type;
+
+/** Valid modes for index and tree entries. */
+typedef enum {
+	GIT_FILEMODE_NEW					= 0000000,
+	GIT_FILEMODE_TREE					= 0040000,
+	GIT_FILEMODE_BLOB					= 0100644,
+	GIT_FILEMODE_BLOB_EXECUTABLE		= 0100755,
+	GIT_FILEMODE_LINK					= 0120000,
+	GIT_FILEMODE_COMMIT					= 0160000,
+} git_filemode_t;
+
 typedef struct git_refspec git_refspec;
 typedef struct git_remote git_remote;
 
 typedef struct git_remote_head git_remote_head;
+typedef struct git_remote_callbacks git_remote_callbacks;
 
 /** @} */
 GIT_END_DECL

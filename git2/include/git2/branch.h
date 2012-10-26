@@ -8,6 +8,7 @@
 #define INCLUDE_git_branch_h__
 
 #include "common.h"
+#include "oid.h"
 #include "types.h"
 
 /**
@@ -26,9 +27,9 @@ GIT_BEGIN_DECL
  * this target commit. If `force` is true and a reference
  * already exists with the given name, it'll be replaced.
  *
- * @param oid_out Pointer where to store the OID of the target commit.
+ * The returned reference must be freed by the user.
  *
- * @param repo Repository where to store the branch.
+ * @param branch_out Pointer where to store the underlying reference.
  *
  * @param branch_name Name for the branch; this name is
  * validated for consistency. It should also not conflict with
@@ -46,7 +47,7 @@ GIT_BEGIN_DECL
  * pointing to the provided target commit.
  */
 GIT_EXTERN(int) git_branch_create(
-		git_oid *oid_out,
+		git_reference **branch_out,
 		git_repository *repo,
 		const char *branch_name,
 		const git_object *target,
@@ -55,32 +56,18 @@ GIT_EXTERN(int) git_branch_create(
 /**
  * Delete an existing branch reference.
  *
- * @param repo Repository where lives the branch.
+ * If the branch is successfully deleted, the passed reference
+ * object will be freed and invalidated.
  *
- * @param branch_name Name of the branch to be deleted;
- * this name is validated for consistency.
- *
- * @param branch_type Type of the considered branch. This should
- * be valued with either GIT_BRANCH_LOCAL or GIT_BRANCH_REMOTE.
- *
- * @return 0 on success, GIT_ENOTFOUND if the branch
- * doesn't exist or an error code.
+ * @param branch A valid reference representing a branch
+ * @return 0 on success, or an error code.
  */
-GIT_EXTERN(int) git_branch_delete(
-		git_repository *repo,
-		const char *branch_name,
-		git_branch_t branch_type);
+GIT_EXTERN(int) git_branch_delete(git_reference *branch);
 
 /**
- * Fill a list with all the branches in the Repository
+ * Loop over all the branches and issue a callback for each one.
  *
- * The string array will be filled with the names of the
- * matching branches; these values are owned by the user and
- * should be free'd manually when no longer needed, using
- * `git_strarray_free`.
- *
- * @param branch_names Pointer to a git_strarray structure
- * where the branch names will be stored.
+ * If the callback returns a non-zero value, this will stop looping.
  *
  * @param repo Repository where to find the branches.
  *
@@ -88,34 +75,89 @@ GIT_EXTERN(int) git_branch_delete(
  * listing. Valid values are GIT_BRANCH_LOCAL, GIT_BRANCH_REMOTE
  * or a combination of the two.
  *
- * @return 0 or an error code.
+ * @param branch_cb Callback to invoke per found branch.
+ *
+ * @param payload Extra parameter to callback function.
+ *
+ * @return 0 on success, GIT_EUSER on non-zero callback, or error code
  */
-GIT_EXTERN(int) git_branch_list(
-		git_strarray *branch_names,
+GIT_EXTERN(int) git_branch_foreach(
 		git_repository *repo,
-		unsigned int list_flags);
+		unsigned int list_flags,
+		int (*branch_cb)(
+			const char *branch_name,
+			git_branch_t branch_type,
+			void *payload),
+		void *payload
+);
 
 /**
- * Move/rename an existing branch reference.
+ * Move/rename an existing local branch reference.
  *
- * @param repo Repository where lives the branch.
- *
- * @param old_branch_name Current name of the branch to be moved;
- * this name is validated for consistency.
+ * @param branch Current underlying reference of the branch.
  *
  * @param new_branch_name Target name of the branch once the move
  * is performed; this name is validated for consistency.
  *
  * @param force Overwrite existing branch.
  *
- * @return 0 on success, GIT_ENOTFOUND if the branch
- * doesn't exist or an error code.
+ * @return 0 on success, or an error code.
  */
 GIT_EXTERN(int) git_branch_move(
-		git_repository *repo,
-		const char *old_branch_name,
+		git_reference *branch,
 		const char *new_branch_name,
 		int force);
+
+/**
+ * Lookup a branch by its name in a repository.
+ *
+ * The generated reference must be freed by the user.
+ *
+ * @param branch_out pointer to the looked-up branch reference
+ *
+ * @param repo the repository to look up the branch
+ *
+ * @param branch_name Name of the branch to be looked-up;
+ * this name is validated for consistency.
+ *
+ * @param branch_type Type of the considered branch. This should
+ * be valued with either GIT_BRANCH_LOCAL or GIT_BRANCH_REMOTE.
+ *
+ * @return 0 on success; GIT_ENOTFOUND when no matching branch
+ * exists, otherwise an error code.
+ */
+GIT_EXTERN(int) git_branch_lookup(
+		git_reference **branch_out,
+		git_repository *repo,
+		const char *branch_name,
+		git_branch_t branch_type);
+
+/**
+ * Return the reference supporting the remote tracking branch,
+ * given a local branch reference.
+ *
+ * @param tracking_out Pointer where to store the retrieved
+ * reference.
+ *
+ * @param branch Current underlying reference of the branch.
+ *
+ * @return 0 on success; GIT_ENOTFOUND when no remote tracking
+ * reference exists, otherwise an error code.
+ */
+GIT_EXTERN(int) git_branch_tracking(
+		git_reference **tracking_out,
+		git_reference *branch);
+
+/**
+ * Determine if the current local branch is pointed at by HEAD.
+ *
+ * @param branch Current underlying reference of the branch.
+ *
+ * @return 1 if HEAD points at the branch, 0 if it isn't,
+ * error code otherwise.
+ */
+GIT_EXTERN(int) git_branch_is_head(
+		git_reference *branch);
 
 /** @} */
 GIT_END_DECL

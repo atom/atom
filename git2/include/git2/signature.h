@@ -23,6 +23,9 @@ GIT_BEGIN_DECL
  * Create a new action signature. The signature must be freed
  * manually or using git_signature_free
  *
+ * Note: angle brackets ('<' and '>') characters are not allowed
+ * to be used in either the `name` or the `email` parameter.
+ *
  * @param sig_out new signature, in case of error NULL
  * @param name name of the person
  * @param email email of the person

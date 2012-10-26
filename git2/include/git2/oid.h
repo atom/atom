@@ -84,7 +84,7 @@ GIT_EXTERN(void) git_oid_fmt(char *str, const git_oid *oid);
  * Format a git_oid into a loose-object path string.
  *
  * The resulting string is "aa/...", where "aa" is the first two
- * hex digitis of the oid and "..." is the remaining 38 digits.
+ * hex digits of the oid and "..." is the remaining 38 digits.
  *
  * @param str output hex string; must be pointing at the start of
  *		the hex sequence and have at least the number of bytes
@@ -136,7 +136,31 @@ GIT_EXTERN(void) git_oid_cpy(git_oid *out, const git_oid *src);
  * @param b second oid structure.
  * @return <0, 0, >0 if a < b, a == b, a > b.
  */
-GIT_EXTERN(int) git_oid_cmp(const git_oid *a, const git_oid *b);
+GIT_INLINE(int) git_oid_cmp(const git_oid *a, const git_oid *b)
+{
+	const unsigned char *sha1 = a->id;
+	const unsigned char *sha2 = b->id;
+	int i;
+
+	for (i = 0; i < GIT_OID_RAWSZ; i++, sha1++, sha2++) {
+		if (*sha1 != *sha2)
+			return *sha1 - *sha2;
+	}
+
+	return 0;
+}
+
+/**
+ * Compare two oid structures for equality
+ *
+ * @param a first oid structure.
+ * @param b second oid structure.
+ * @return true if equal, false otherwise
+ */
+GIT_INLINE(int) git_oid_equal(const git_oid *a, const git_oid *b)
+{
+	return !git_oid_cmp(a, b);
+}
 
 /**
  * Compare the first 'len' hexadecimal characters (packets of 4 bits)
@@ -147,7 +171,7 @@ GIT_EXTERN(int) git_oid_cmp(const git_oid *a, const git_oid *b);
  * @param len the number of hex chars to compare
  * @return 0 in case of a match
  */
-GIT_EXTERN(int) git_oid_ncmp(const git_oid *a, const git_oid *b, unsigned int len);
+GIT_EXTERN(int) git_oid_ncmp(const git_oid *a, const git_oid *b, size_t len);
 
 /**
  * Check if an oid equals an hex formatted object id.
@@ -161,6 +185,8 @@ GIT_EXTERN(int) git_oid_streq(const git_oid *a, const char *str);
 
 /**
  * Check is an oid is all zeros.
+ *
+ * @return 1 if all zeros, 0 otherwise.
  */
 GIT_EXTERN(int) git_oid_iszero(const git_oid *a);
 

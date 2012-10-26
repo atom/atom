@@ -21,7 +21,7 @@
 GIT_BEGIN_DECL
 
 /**
- * Lookup a reference to one of the objects in a repostory.
+ * Lookup a reference to one of the objects in a repository.
  *
  * The generated reference is owned by the repository and
  * should be closed with the `git_object_free` method
@@ -45,7 +45,7 @@ GIT_EXTERN(int) git_object_lookup(
 		git_otype type);
 
 /**
- * Lookup a reference to one of the objects in a repostory,
+ * Lookup a reference to one of the objects in a repository,
  * given a prefix of its identifier (short id).
  *
  * The object obtained will be so that its identifier
@@ -75,7 +75,7 @@ GIT_EXTERN(int) git_object_lookup_prefix(
 		git_object **object_out,
 		git_repository *repo,
 		const git_oid *id,
-		unsigned int len,
+		size_t len,
 		git_otype type);
 
 /**
@@ -114,7 +114,7 @@ GIT_EXTERN(git_repository *) git_object_owner(const git_object *obj);
  * This method instructs the library to close an existing
  * object; note that git_objects are owned and cached by the repository
  * so the object may or may not be freed after this library call,
- * depending on how agressive is the caching mechanism used
+ * depending on how aggressive is the caching mechanism used
  * by the repository.
  *
  * IMPORTANT:
@@ -166,6 +166,26 @@ GIT_EXTERN(int) git_object_typeisloose(git_otype type);
  * @return size in bytes of the object
  */
 GIT_EXTERN(size_t) git_object__size(git_otype type);
+
+/**
+ * Recursively peel an object until an object of the specified type is met.
+ *
+ * The retrieved `peeled` object is owned by the repository and should be
+ * closed with the `git_object_free` method.
+ *
+ * If you pass `GIT_OBJ_ANY` as the target type, then the object will be
+ * peeled until the type changes (e.g. a tag will be chased until the
+ * referenced object is no longer a tag).
+ *
+ * @param peeled Pointer to the peeled git_object
+ * @param object The object to be processed
+ * @param target_type The type of the requested object
+ * @return 0 or an error code
+ */
+GIT_EXTERN(int) git_object_peel(
+		git_object **peeled,
+		git_object *object,
+		git_otype target_type);
 
 /** @} */
 GIT_END_DECL

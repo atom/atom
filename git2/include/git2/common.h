@@ -55,6 +55,10 @@
 #define GIT_WIN32 1
 #endif
 
+#ifdef __amigaos4__
+#include <netinet/in.h>
+#endif
+
 /**
  * @file git2/common.h
  * @brief Git common platform definitions
@@ -81,14 +85,6 @@ GIT_BEGIN_DECL
  */
 #define GIT_PATH_MAX 4096
 
-typedef struct {
-	char **strings;
-	size_t count;
-} git_strarray;
-
-GIT_EXTERN(void) git_strarray_free(git_strarray *array);
-GIT_EXTERN(int) git_strarray_copy(git_strarray *tgt, const git_strarray *src);
-
 /**
  * Return the version of the libgit2 library
  * being currently used.
@@ -99,6 +95,30 @@ GIT_EXTERN(int) git_strarray_copy(git_strarray *tgt, const git_strarray *src);
  */
 GIT_EXTERN(void) git_libgit2_version(int *major, int *minor, int *rev);
 
+/**
+ * Combinations of these values describe the capabilities of libgit2.
+ */
+enum {
+	GIT_CAP_THREADS			= ( 1 << 0 ),
+	GIT_CAP_HTTPS			= ( 1 << 1 )
+};
+
+/**
+ * Query compile time options for libgit2.
+ *
+ * @return A combination of GIT_CAP_* values.
+ *
+ * - GIT_CAP_THREADS
+ *   Libgit2 was compiled with thread support. Note that thread support is still to be seen as a
+ *   'work in progress'.
+ *
+ * - GIT_CAP_HTTPS
+ *   Libgit2 supports the https:// protocol. This requires the open ssl library to be
+ *   found when compiling libgit2.
+ */
+GIT_EXTERN(int) git_libgit2_capabilities(void);
+
 /** @} */
 GIT_END_DECL
+
 #endif

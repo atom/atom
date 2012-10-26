@@ -19,30 +19,33 @@
  */
 GIT_BEGIN_DECL
 
-enum {
-	GIT_STATUS_CURRENT	= 0,
+typedef enum {
+	GIT_STATUS_CURRENT = 0,
 
-	GIT_STATUS_INDEX_NEW = (1 << 0),
-	GIT_STATUS_INDEX_MODIFIED = (1 << 1),
-	GIT_STATUS_INDEX_DELETED = (1 << 2),
+	GIT_STATUS_INDEX_NEW        = (1u << 0),
+	GIT_STATUS_INDEX_MODIFIED   = (1u << 1),
+	GIT_STATUS_INDEX_DELETED    = (1u << 2),
+	GIT_STATUS_INDEX_RENAMED    = (1u << 3),
+	GIT_STATUS_INDEX_TYPECHANGE = (1u << 4),
 
-	GIT_STATUS_WT_NEW = (1 << 3),
-	GIT_STATUS_WT_MODIFIED = (1 << 4),
-	GIT_STATUS_WT_DELETED = (1 << 5),
+	GIT_STATUS_WT_NEW           = (1u << 7),
+	GIT_STATUS_WT_MODIFIED      = (1u << 8),
+	GIT_STATUS_WT_DELETED       = (1u << 9),
+	GIT_STATUS_WT_TYPECHANGE    = (1u << 10),
 
-	GIT_STATUS_IGNORED = (1 << 6),
-};
+	GIT_STATUS_IGNORED          = (1u << 14),
+} git_status_t;
 
 /**
  * Gather file statuses and run a callback for each one.
  *
  * The callback is passed the path of the file, the status and the data
  * pointer passed to this function. If the callback returns something other
- * than 0, this function will return that value.
+ * than 0, this function will stop looping and return GIT_EUSER.
  *
  * @param repo a repository object
  * @param callback the function to call on each file
- * @return 0 on success or the return value of the callback that was non-zero
+ * @return 0 on success, GIT_EUSER on non-zero callback, or error code
  */
 GIT_EXTERN(int) git_status_foreach(
 	git_repository *repo,
@@ -96,14 +99,17 @@ typedef enum {
  *   the top-level directory will be included (with a trailing
  *   slash on the entry name).  Given this flag, the directory
  *   itself will not be included, but all the files in it will.
+ * - GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH indicates that the given
+ *   path will be treated as a literal path, and not as a pathspec.
  */
 
 enum {
 	GIT_STATUS_OPT_INCLUDE_UNTRACKED = (1 << 0),
 	GIT_STATUS_OPT_INCLUDE_IGNORED = (1 << 1),
 	GIT_STATUS_OPT_INCLUDE_UNMODIFIED = (1 << 2),
-	GIT_STATUS_OPT_EXCLUDE_SUBMODULED = (1 << 3),
+	GIT_STATUS_OPT_EXCLUDE_SUBMODULES = (1 << 3),
 	GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS = (1 << 4),
+	GIT_STATUS_OPT_DISABLE_PATHSPEC_MATCH = (1 << 5),
 };
 
 /**
@@ -143,10 +149,12 @@ GIT_EXTERN(int) git_status_file(
 /**
  * Test if the ignore rules apply to a given file.
  *
- * This function simply checks the ignore rules to see if they would apply
- * to the given file.  Unlike git_status_file(), this indicates if the file
- * would be ignored regardless of whether the file is already in the index
- * or in the repository.
+ * This function checks the ignore rules to see if they would apply to the
+ * given file.  This indicates if the file would be ignored regardless of
+ * whether the file is already in the index or commited to the repository.
+ *
+ * One way to think of this is if you were to do "git add ." on the
+ * directory containing the file, would it be added or not?
  *
  * @param ignored boolean returning 0 if the file is not ignored, 1 if it is
  * @param repo a repository object
