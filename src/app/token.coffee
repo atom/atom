@@ -33,7 +33,7 @@ class Token
 
   buildTabToken: (tabLength) ->
     new Token(
-      value: new Array(tabLength + 1).join(" ")
+      value: _.multiplyString(" ", tabLength)
       scopes: @scopes
       bufferDelta: 1
       isAtomic: true
