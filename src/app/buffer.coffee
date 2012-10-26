@@ -352,6 +352,12 @@ class Buffer
         return row unless @isRowBlank(row)
     null
 
+  usesSoftTabs: ->
+    for line in @getLines()
+      if match = line.match(/^\s/)
+        return match[0][0] != '\t'
+    undefined
+
   logLines: (start=0, end=@getLastRow())->
     for row in [start..end]
       line = @lineForRow(row)

@@ -628,3 +628,12 @@ describe 'Buffer', ->
         buffer.delete([[3, 0], [5, 0]])
         expect(destroyHandler).toHaveBeenCalled()
         expect(buffer.getAnchors().indexOf(anchor)).toBe -1
+
+  describe ".usesSoftTabs()", ->
+    it "returns true if the first indented line begins with tabs", ->
+      buffer.setText("function() {\n  foo();\n}")
+      expect(buffer.usesSoftTabs()).toBeTruthy()
+      buffer.setText("function() {\n\tfoo();\n}")
+      expect(buffer.usesSoftTabs()).toBeFalsy()
+      buffer.setText("")
+      expect(buffer.usesSoftTabs()).toBeUndefined()
