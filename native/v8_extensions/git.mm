@@ -51,7 +51,7 @@ public:
       return CefV8Value::CreateBool(false);
 
     int *ignored;
-    if (git_ignore_path_is_ignored(ignored, repo, path) == GIT_OK)
+    if (git_ignore_path_is_ignored(ignored, repo, path) >= GIT_OK)
       return CefV8Value::CreateBool(*ignored == 1);
     else
       return CefV8Value::CreateBool(false);
