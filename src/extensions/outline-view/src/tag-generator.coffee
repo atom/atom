@@ -43,5 +43,5 @@ class TagGenerator
         for line in lines
           tag = @parseTagLine(line)
           @callback(tag) if tag
-    command = "ctags --fields=+KS -nf - #{@path}"
+    command = "#{require.resolve('ctags')} --fields=+KS -nf - #{@path}"
     ChildProcess.exec(command, options)
