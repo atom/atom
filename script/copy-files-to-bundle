@@ -13,11 +13,12 @@ RESOUCES_PATH="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
 mkdir -p "$RESOUCES_PATH/v8_extensions"
 cp "$PROJECT_DIR/native/v8_extensions/"*.js "$RESOUCES_PATH/v8_extensions/"
 
-DIRS="src static vendor spec benchmark bundles themes"
+DIRS="src static vendor"
 
 # Compile and .coffee files into bundle
 COFFEE_FILES=$(find $DIRS -type file -name '*.coffee')
-for COFFEE_FILE in $(find src -type file -name '*.coffee'); do
+for COFFEE_FILE in $COFFEE_FILES; do
+  echo $COFFEE_FILE
   JS_FILE=$(echo "$RESOUCES_PATH/$COFFEE_FILE" | sed 's/.coffee/.js/' )
   OUTPUT_PATH="$RESOUCES_PATH/$(dirname "$COFFEE_FILE")"
 
@@ -27,6 +28,5 @@ for COFFEE_FILE in $(find src -type file -name '*.coffee'); do
   fi
 done;
 
-
 # Copy non-coffee files into bundle
-rsync --archive --recursive --exclude src static vendor spec benchmark bundles themes "$RESOUCES_PATH"
+rsync --archive --recursive --exclude="src/**/*.coffee" src static vendor spec benchmark themes "$RESOUCES_PATH"
