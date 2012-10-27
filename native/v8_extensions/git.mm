@@ -67,10 +67,10 @@ Git::Git() : CefV8Handler() {
 }
 
 bool Git::Execute(const CefString& name,
-                     CefRefPtr<CefV8Value> object,
-                     const CefV8ValueList& arguments,
-                     CefRefPtr<CefV8Value>& retval,
-                     CefString& exception) {
+                  CefRefPtr<CefV8Value> object,
+                  const CefV8ValueList& arguments,
+                  CefRefPtr<CefV8Value>& retval,
+                  CefString& exception) {
   if (name == "getRepository") {
     CefRefPtr<CefBase> userData = new GitRepository(arguments[0]->GetStringValue().ToString().c_str());
     retval = CefV8Value::CreateObject(NULL);
