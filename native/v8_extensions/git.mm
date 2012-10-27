@@ -1,6 +1,5 @@
 #import "git.h"
 #import "include/git2.h"
-#import "include/cef_base.h"
 #import <Cocoa/Cocoa.h>
 
 namespace v8_extensions {
