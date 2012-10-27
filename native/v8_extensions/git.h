@@ -12,9 +12,9 @@ public:
                        const CefV8ValueList& arguments,
                        CefRefPtr<CefV8Value>& retval,
                        CefString& exception) OVERRIDE;
-    
+
   // Provide the reference counting implementation for this class.
   IMPLEMENT_REFCOUNTING(Native);
 };
-  
+
 }
