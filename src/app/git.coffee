@@ -16,7 +16,8 @@ class Git
     if repoPath
       repoPath.substring(0, repoPath.length - 5)
 
-  getHead: -> @repo.getHead() || ''
+  getHead: ->
+    @repo.getHead() or ''
 
   isIgnored: (path) ->
     path and @repo.isIgnored(path)
