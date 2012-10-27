@@ -1,6 +1,10 @@
 Git = require 'git'
+fs = require 'fs'
 
 describe "Git", ->
+
+  beforeEach ->
+    fs.remove('/tmp/.git') if fs.isDirectory('/tmp/.git')
 
   describe "getPath()", ->
     it "returns the repository path for a .git directory path", ->
@@ -12,8 +16,8 @@ describe "Git", ->
       expect(repo.getPath()).toBe require.resolve('fixtures/git/master.git') + '/'
 
   describe "getHead()", ->
-    it "returns null for a empty repository", ->
-      repo = new Git(require.resolve('fixtures/git/nohead.git'))
+    it "returns null for a non-repository", ->
+      repo = new Git('/tmp/nogit.txt')
       expect(repo.getHead()).toBeNull
 
     it "returns a branch name for a non-empty repository", ->
@@ -21,8 +25,8 @@ describe "Git", ->
       expect(repo.getHead()).toBe 'refs/heads/master'
 
   describe "getShortHead()", ->
-    it "returns null for a empty repository", ->
-      repo = new Git(require.resolve('fixtures/git/nohead.git'))
+    it "returns null for a non-repository", ->
+      repo = new Git('/tmp/nogit.txt')
       expect(repo.getShortHead()).toBeNull
 
     it "returns a branch name for a non-empty repository", ->
