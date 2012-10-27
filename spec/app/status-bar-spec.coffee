@@ -105,6 +105,7 @@ describe "StatusBar", ->
 
   describe "branch label", ->
     beforeEach ->
+      fs.remove('/tmp/.git') if fs.isDirectory('/tmp/.git')
       rootView.attachToDom()
 
     it "displays the current branch for files in repositories", ->
