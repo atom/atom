@@ -114,7 +114,7 @@ describe "StatusBar", ->
       expect(statusBar.branchLabel.text()).toBe 'master'
 
     it "doesn't display the current branch for a file not in a repository", ->
-      path = require.resolve('fixtures/git/nohead.git/HEAD')
+      path = '/tmp/temp.txt'
       rootView.open(path)
       expect(statusBar.branchArea).toBeHidden()
       expect(statusBar.branchLabel.text()).toBe ''
