@@ -244,9 +244,11 @@ class Buffer
     if @file
       @memoryContentSignature != @diskContentSignature
     else
-      @lines.length > 1 or @lines[0]
+      not @isEmpty()
 
   isInConflict: -> @conflict
+
+  isEmpty: -> @lines.length is 1 and @lines[0].length is 0
 
   getAnchors: -> new Array(@anchors...)
 

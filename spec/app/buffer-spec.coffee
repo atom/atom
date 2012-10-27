@@ -650,3 +650,16 @@ describe 'Buffer', ->
       expect(buffer.usesSoftTabs()).toBeFalsy()
       buffer.setText("")
       expect(buffer.usesSoftTabs()).toBeUndefined()
+
+  describe ".isEmpty()", ->
+    it "returns true for an empty buffer", ->
+      buffer.setText('')
+      expect(buffer.isEmpty()).toBeTruthy()
+
+    it "returns false for a non-empty buffer", ->
+      buffer.setText('a')
+      expect(buffer.isEmpty()).toBeFalsy()
+      buffer.setText('a\nb\nc')
+      expect(buffer.isEmpty()).toBeFalsy()
+      buffer.setText('\n')
+      expect(buffer.isEmpty()).toBeFalsy()
