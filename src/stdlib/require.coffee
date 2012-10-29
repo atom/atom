@@ -86,10 +86,10 @@ resolve = (name, {verifyExistence}={}) ->
   else
     file = __expand(file) or file
 
-  if file[0] == '/' and (not verifyExistence or __exists(file))
+  if file[0] == '/'
     file
   else
-    console.warn("Failed to resolve '#{name}'")
+    console.warn("Failed to resolve '#{name}'") if verifyExistence
     null
 
 __expand = (path) ->
