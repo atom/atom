@@ -31,14 +31,16 @@ class RootView extends View
   extensionStates: null
   fontSize: 20
   showInvisibles: false
-  invisibles:
-    eol:   "¬"
-    space: "•"
-    tab:   "▸"
+  invisibles: null
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
     TextMateTheme.activate('IR_Black')
+
+    @invisibles =
+      eol: '¬'
+      space: '•'
+      tab: '▸'
 
     @extensionStates ?= {}
     @extensions = {}
@@ -234,7 +236,8 @@ class RootView extends View
 
   getFontSize: -> @fontSize
 
-  setInvisibles: (@invisibles={}) ->
+  setInvisibles: (invisibles={}) ->
+    _.extend(@invisibles, invisibles)
     editor.setInvisibles(@invisibles) for editor in @getEditors()
 
   getInvisibles: -> @invisibles
