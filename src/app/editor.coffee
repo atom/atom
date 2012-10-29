@@ -835,6 +835,7 @@ class Editor extends View
     mini = @mini
 
     buildLineHtml = (line, lineClasses) => @buildLineHtml(line, lineClasses)
+
     $$ ->
       row = startRow
       for line in lines
@@ -899,6 +900,7 @@ class Editor extends View
 
         position += token.value.length
 
+    popScope() while scopeStack.length > 0
     line.push("<span class='invisible'>¬</span>") if @showInvisibles
     line.push('</pre>')
     line.join('')
