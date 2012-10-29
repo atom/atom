@@ -66,7 +66,7 @@ class Gutter extends View
     currentLineNumberRow.removeClass('cursor-line-number')
     currentLineNumberRow.removeClass('cursor-line-number-background')
 
-    newLineNumberRow = @find(".line-number:eq(#{screenRowIndex})")
-    newLineNumberRow.addClass('cursor-line-number')
     if @editor().getSelection().isSingleScreenLine()
+      newLineNumberRow = @find(".line-number:eq(#{screenRowIndex})")
+      newLineNumberRow.addClass('cursor-line-number')
       newLineNumberRow.addClass('cursor-line-number-background')

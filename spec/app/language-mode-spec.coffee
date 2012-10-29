@@ -179,15 +179,15 @@ describe "LanguageMode", ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
       { buffer, languageMode } = editSession
 
-    describe ".toggleLineCommentsInRange(range)", ->
+    describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
-        languageMode.toggleLineCommentsInRange([[4, 5], [7, 8]])
+        languageMode.toggleLineCommentsForBufferRows(4, 7)
         expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
         expect(buffer.lineForRow(5)).toBe "//       current = items.shift();"
         expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
         expect(buffer.lineForRow(7)).toBe "//     }"
 
-        languageMode.toggleLineCommentsInRange([[4, 5], [5, 8]])
+        languageMode.toggleLineCommentsForBufferRows(4, 5)
         expect(buffer.lineForRow(4)).toBe "    while(items.length > 0) {"
         expect(buffer.lineForRow(5)).toBe "      current = items.shift();"
         expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
@@ -221,15 +221,15 @@ describe "LanguageMode", ->
       editSession = fixturesProject.buildEditSessionForPath('coffee.coffee', autoIndent: false)
       { buffer, languageMode } = editSession
 
-    describe ".toggleLineCommentsInRange(range)", ->
+    describe ".toggleLineCommentsForBufferRows(start, end)", ->
       it "comments/uncomments lines in the given range", ->
-        languageMode.toggleLineCommentsInRange([[4, 5], [7, 8]])
+        languageMode.toggleLineCommentsForBufferRows(4, 7)
         expect(buffer.lineForRow(4)).toBe "#     pivot = items.shift()"
         expect(buffer.lineForRow(5)).toBe "#     left = []"
         expect(buffer.lineForRow(6)).toBe "#     right = []"
         expect(buffer.lineForRow(7)).toBe "# "
 
-        languageMode.toggleLineCommentsInRange([[4, 5], [5, 8]])
+        languageMode.toggleLineCommentsForBufferRows(4, 5)
         expect(buffer.lineForRow(4)).toBe "    pivot = items.shift()"
         expect(buffer.lineForRow(5)).toBe "    left = []"
         expect(buffer.lineForRow(6)).toBe "#     right = []"

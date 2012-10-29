@@ -68,18 +68,17 @@ class LanguageMode
       @invertedPairedCharacters[close] = open
     @invertedPairedCharacters
 
-  toggleLineCommentsInRange: (range) ->
-    range = Range.fromObject(range)
-    scopes = @getTokenizedBuffer().scopesForPosition(range.start)
+  toggleLineCommentsForBufferRows: (start, end) ->
+    scopes = @getTokenizedBuffer().scopesForPosition([start, 0])
     return unless commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
 
     commentRegexString = _.escapeRegExp(commentString)
     commentRegexString = commentRegexString.replace(/(\s+)$/, '($1)?')
     commentRegex = new OnigRegExp("^\s*#{commentRegexString}")
 
-    shouldUncomment = commentRegex.test(@editSession.lineForBufferRow(range.start.row))
+    shouldUncomment = commentRegex.test(@editSession.lineForBufferRow(start))
 
-    for row in [range.start.row..range.end.row]
+    for row in [start..end]
       line = @editSession.lineForBufferRow(row)
       if shouldUncomment
         if match = commentRegex.search(line)

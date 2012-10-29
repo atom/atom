@@ -864,6 +864,19 @@ describe "Editor", ->
         advanceClock(100)
         expect(cursorView).toHaveClass 'idle'
 
+      it "hides the cursor when the selection is non-empty, and shows it otherwise", ->
+        cursorView = editor.getCursorView()
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
+        expect(cursorView).toBeVisible()
+
+        editor.setSelectedBufferRange([[0, 0], [3, 0]])
+        expect(editor.getSelection().isEmpty()).toBeFalsy()
+        expect(cursorView).not.toBeVisible()
+
+        editor.setCursorBufferPosition([1, 3])
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
+        expect(cursorView).toBeVisible()
+
       describe "auto-scrolling", ->
         it "only auto-scrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])
@@ -1650,12 +1663,11 @@ describe "Editor", ->
       beforeEach ->
         editor.attachToDom(30)
 
-      it "doesn't highlight the backround", ->
+      it "doesn't highlight the background or the gutter", ->
         editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
-        expect(editor.find('.line-number.cursor-line-number').length).toBe 1
+        expect(editor.find('.line-number.cursor-line-number').length).toBe 0
         expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').length).toBe 0
-        expect(editor.find('.line-number.cursor-line-number').text()).toBe "3"
 
     it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
       editor.setCursorScreenPosition([1,0])

@@ -11,7 +11,7 @@ class Selection
     @cursor.selection = this
 
     @cursor.on 'change-screen-position.selection', (e) =>
-      @emitChangeScreenRangeEvent() unless e.bufferChanged
+      @screenRangeChanged() unless e.bufferChanged
 
     @cursor.on 'destroy.selection', =>
       @cursor = null
@@ -67,13 +67,25 @@ class Selection
     else
       new Range(@cursor.getBufferPosition(), @cursor.getBufferPosition())
 
+  getBufferRowRange: ->
+    range = @getBufferRange()
+    start = range.start.row
+    end = range.end.row
+    end = Math.max(start, end - 1) if range.end.column == 0
+    [start, end]
+
+  screenRangeChanged: ->
+    screenRange = @getScreenRange()
+    @trigger 'change-screen-range', screenRange
+    @cursor?.setVisible(screenRange.isEmpty())
+
   getText: ->
     @editSession.buffer.getTextInRange(@getBufferRange())
 
   clear: ->
     @anchor?.destroy()
     @anchor = null
-    @emitChangeScreenRangeEvent()
+    @screenRangeChanged()
 
   selectWord: ->
     @setBufferRange(@cursor.getCurrentWordBufferRange())
@@ -161,8 +173,8 @@ class Selection
       @indentSelectedRows()
 
   indentSelectedRows: ->
-    range = @getBufferRange()
-    for row in [range.start.row..range.end.row]
+    [start, end] = @getBufferRowRange()
+    for row in [start..end]
       @editSession.buffer.insert([row, 0], @editSession.getTabText()) unless @editSession.buffer.lineLengthForRow(row) == 0
 
   normalizeIndent: (text, options) ->
@@ -258,16 +270,16 @@ class Selection
       @editSession.buffer.deleteRows(start, end)
 
   outdentSelectedRows: ->
-    range = @getBufferRange()
+    [start, end] = @getBufferRowRange()
     buffer = @editSession.buffer
     leadingTabRegex = new RegExp("^ {1,#{@editSession.getTabLength()}}|\t")
-    for row in [range.start.row..range.end.row]
+    for row in [start..end]
       if matchLength = buffer.lineForRow(row).match(leadingTabRegex)?[0].length
         buffer.delete [[row, 0], [row, matchLength]]
 
   toggleLineComments: ->
     @modifySelection =>
-      @editSession.toggleLineCommentsInRange(@getBufferRange())
+      @editSession.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
   cutToEndOfLine: (maintainPasteboard) ->
     @selectToEndOfLine() if @isEmpty()
@@ -310,10 +322,7 @@ class Selection
   placeAnchor: ->
     @anchor = @editSession.addAnchor(strong: true)
     @anchor.setScreenPosition(@cursor.getScreenPosition())
-    @anchor.on 'change-screen-position.selection', => @emitChangeScreenRangeEvent()
-
-  emitChangeScreenRangeEvent: ->
-    @trigger 'change-screen-range', @getScreenRange()
+    @anchor.on 'change-screen-position.selection', => @screenRangeChanged()
 
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)
