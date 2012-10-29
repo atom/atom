@@ -23,7 +23,10 @@ class LanguageMode
       cursorBufferPosition = @editSession.getCursorBufferPosition()
       nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
-      autoCompleteOpeningBracket = @isOpeningBracket(text) and /\W|^$/.test(nextCharachter)
+      hasWordAfterCursor = /\w/.test(nextCharachter)
+      cursorInsideString = @tokenizedBuffer.isBufferPositionInsideString(cursorBufferPosition)
+
+      autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not cursorInsideString
       skipOverExistingClosingBracket = false
       if @isClosingBracket(text) and nextCharachter == text
         if bracketAnchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]

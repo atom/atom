@@ -145,6 +145,17 @@ describe "LanguageMode", ->
             expect(buffer.lineForRow(0)).toBe '"ok"'
             expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
 
+      describe "when the cursor is inside a string", ->
+        it "does not automatically insert closing single or double quote", ->
+          editSession.buffer.setText("'aa'")
+          editSession.setCursorBufferPosition([0, 3])
+          editSession.insertText '"'
+          expect(buffer.lineForRow(0)).toBe "'aa\"'"
+
+          editSession.buffer.setText('"aa"')
+          editSession.setCursorBufferPosition([0, 3])
+          editSession.insertText "'"
+          expect(buffer.lineForRow(0)).toBe '"aa\'"'
 
   describe "javascript", ->
     beforeEach ->
