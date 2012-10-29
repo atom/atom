@@ -1657,12 +1657,11 @@ describe "Editor", ->
       beforeEach ->
         editor.attachToDom(30)
 
-      it "doesn't highlight the backround", ->
+      it "doesn't highlight the background or the gutter", ->
         editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
-        expect(editor.find('.line-number.cursor-line-number').length).toBe 1
+        expect(editor.find('.line-number.cursor-line-number').length).toBe 0
         expect(editor.find('.line-number.cursor-line-number.cursor-line-number-background').length).toBe 0
-        expect(editor.find('.line-number.cursor-line-number').text()).toBe "3"
 
     it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
       editor.setCursorScreenPosition([1,0])
