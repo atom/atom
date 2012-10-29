@@ -131,7 +131,7 @@
 // devtools don't resize properly.
 // HACK: I hate this and want to place this code directly in showDevTools
 - (void)attachDevTools {
-  _cefDevToolsClient = new AtomCefClient();
+  _cefDevToolsClient = new AtomCefClient(true);
   std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
   [self addBrowserToView:_devToolsView url:devtools_url.c_str() cefHandler:_cefDevToolsClient];
 }

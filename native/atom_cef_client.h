@@ -16,8 +16,8 @@ class AtomCefClient : public CefClient,
                       public CefRequestHandler {
  public:
   AtomCefClient();
+  AtomCefClient(bool handlePasteboardCommands);
   virtual ~AtomCefClient();
-
 
   CefRefPtr<CefBrowser> GetBrowser() { return m_Browser; }
 
@@ -97,6 +97,7 @@ class AtomCefClient : public CefClient,
 
  protected:
   CefRefPtr<CefBrowser> m_Browser;
+  bool m_HandlePasteboardCommands = false;
 
   void FocusNextWindow();
   void Open(std::string path);
