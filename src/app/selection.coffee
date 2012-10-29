@@ -11,7 +11,7 @@ class Selection
     @cursor.selection = this
 
     @cursor.on 'change-screen-position.selection', (e) =>
-      @trigger 'change-screen-range', @getScreenRange() unless e.bufferChanged
+      @emitChangeScreenRangeEvent() unless e.bufferChanged
 
     @cursor.on 'destroy.selection', =>
       @cursor = null
@@ -45,23 +45,21 @@ class Selection
     { start, end } = screenRange
     [start, end] = [end, start] if options.reverse
 
-    @modifyScreenRange =>
-      @placeAnchor() unless @anchor
-      @modifySelection =>
-        @anchor.setScreenPosition(start)
-        @cursor.setScreenPosition(end)
+    @placeAnchor() unless @anchor
+    @modifySelection =>
+      @anchor.setScreenPosition(start)
+      @cursor.setScreenPosition(end)
 
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     { start, end } = bufferRange
     [start, end] = [end, start] if options.reverse
 
-    @modifyScreenRange =>
-      @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
-      @placeAnchor() unless @anchor
-      @modifySelection =>
-        @anchor.setBufferPosition(start, options)
-        @cursor.setBufferPosition(end, options)
+    @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
+    @placeAnchor() unless @anchor
+    @modifySelection =>
+      @anchor.setBufferPosition(start, options)
+      @cursor.setBufferPosition(end, options)
 
   getBufferRange: ->
     if @anchor
@@ -73,9 +71,9 @@ class Selection
     @editSession.buffer.getTextInRange(@getBufferRange())
 
   clear: ->
-    @modifyScreenRange =>
-      @anchor?.destroy()
-      @anchor = null
+    @anchor?.destroy()
+    @anchor = null
+    @emitChangeScreenRangeEvent()
 
   selectWord: ->
     @setBufferRange(@cursor.getCurrentWordBufferRange())
@@ -240,9 +238,8 @@ class Selection
       includeNewline = bufferRange.start.column == 0 or bufferRange.start.row >= fold.startRow
       bufferRange = bufferRange.union(fold.getBufferRange({ includeNewline }))
 
-    @modifyScreenRange =>
-      @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
-      @cursor?.setBufferPosition(bufferRange.start)
+    @editSession.buffer.delete(bufferRange) unless bufferRange.isEmpty()
+    @cursor?.setBufferPosition(bufferRange.start)
 
   deleteLine: ->
     if @isEmpty()
@@ -310,17 +307,13 @@ class Selection
     @retainSelection = false
     @view?.retainSelection = false
 
-  modifyScreenRange: (fn) ->
-    oldScreenRange = @getScreenRange()
-    fn()
-    if @cursor
-      newScreenRange = @getScreenRange()
-      @trigger 'change-screen-range', newScreenRange unless oldScreenRange.isEqual(newScreenRange)
-
   placeAnchor: ->
     @anchor = @editSession.addAnchor(strong: true)
     @anchor.setScreenPosition(@cursor.getScreenPosition())
-    @anchor.on 'change-screen-position.selection', => @trigger 'change-screen-range'
+    @anchor.on 'change-screen-position.selection', => @emitChangeScreenRangeEvent()
+
+  emitChangeScreenRangeEvent: ->
+    @trigger 'change-screen-range', @getScreenRange()
 
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)
