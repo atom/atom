@@ -880,8 +880,8 @@ class Editor extends View
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
         line.push(token.getValueAsHtml(
-          showInvisibles: @showInvisibles,
-          invisiblesMap: @rootView()?.getInvisiblesMap(),
+          showInvisibles: @showInvisibles
+          invisiblesMap: @rootView()?.getInvisiblesMap()
           hasLeadingWhitespace: position < firstNonWhitespacePosition
           hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
         ))
