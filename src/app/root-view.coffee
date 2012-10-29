@@ -31,11 +31,10 @@ class RootView extends View
   extensionStates: null
   fontSize: 20
   showInvisibles: false
-  invisiblesMap: {
-    eol:   "¬",
-    space: "•",
+  invisiblesMap:
+    eol:   "¬"
+    space: "•"
     tab:   "▸"
-  }
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this

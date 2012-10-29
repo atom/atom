@@ -717,11 +717,10 @@ describe "RootView", ->
 
   describe 'setInvisiblesMap', ->
     it 'sets the invisibles map to the supplied hash', ->
-      rootView.setInvisiblesMap {
-        eol:   "¬",
-        space: "•",
+      rootView.setInvisiblesMap
+        eol:   "¬"
+        space: "•"
         tab:   "▸"
-      }
 
     it 'updates the display of all edit sessions with the new map', ->
       rootView.height(200)
@@ -730,11 +729,11 @@ describe "RootView", ->
       rightEditor.setText(" \t ")
       leftEditor = rightEditor.splitLeft()
 
-      rootView.setInvisiblesMap {
-        eol:   ";",
-        space: "_",
+      rootView.setInvisiblesMap
+        eol:   ";"
+        space: "_"
         tab:   "tab"
-      }
+
       rootView.trigger "window:toggle-invisibles"
       expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
       expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
