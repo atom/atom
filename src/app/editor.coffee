@@ -880,7 +880,8 @@ class Editor extends View
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
         line.push(token.getValueAsHtml(
-          showInvisibles: @showInvisibles
+          showInvisibles: @showInvisibles,
+          invisiblesMap: @rootView()?.getInvisiblesMap(),
           hasLeadingWhitespace: position < firstNonWhitespacePosition
           hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
         ))
@@ -888,7 +889,8 @@ class Editor extends View
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    line.push("<span class='invisible'>¬</span>") if @showInvisibles
+    eolChar = @rootView()?.getInvisiblesMap().eol
+    line.push("<span class='invisible'>#{eolChar}</span>") if @showInvisibles
     line.push('</pre>')
     line.join('')
 

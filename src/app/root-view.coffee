@@ -31,6 +31,11 @@ class RootView extends View
   extensionStates: null
   fontSize: 20
   showInvisibles: false
+  invisiblesMap: {
+    eol:   "¬",
+    space: "•",
+    tab:   "▸"
+  }
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
@@ -229,6 +234,9 @@ class RootView extends View
     @trigger 'font-size-change' if oldFontSize != newFontSize
 
   getFontSize: -> @fontSize
+
+  setInvisiblesMap: (newMap) -> @invisiblesMap = newMap
+  getInvisiblesMap: -> @invisiblesMap
 
   loadUserConfiguration: ->
     try
