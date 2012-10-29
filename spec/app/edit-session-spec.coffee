@@ -1489,6 +1489,14 @@ describe "EditSession", ->
         expect(buffer.lineForRow(6)).toBe "      current < pivot ? left.push(current) : right.push(current);"
         expect(buffer.lineForRow(7)).toBe "    }"
 
+      it "does not comment the last line of a non-empty selection if it ends at column 0", ->
+        editSession.setSelectedBufferRange([[4, 5], [7, 0]])
+        editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(4)).toBe "//     while(items.length > 0) {"
+        expect(buffer.lineForRow(5)).toBe "//       current = items.shift();"
+        expect(buffer.lineForRow(6)).toBe "//       current < pivot ? left.push(current) : right.push(current);"
+        expect(buffer.lineForRow(7)).toBe "    }"
+
       it "uncomments lines if the first line matches the comment regex", ->
         editSession.setSelectedBufferRange([[4, 5], [4, 5]])
         editSession.toggleLineCommentsInSelection()

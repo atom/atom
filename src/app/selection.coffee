@@ -67,6 +67,13 @@ class Selection
     else
       new Range(@cursor.getBufferPosition(), @cursor.getBufferPosition())
 
+  getBufferRowRange: ->
+    range = @getBufferRange()
+    start = range.start.row
+    end = range.end.row
+    end = Math.max(start, end - 1) if range.end.column == 0
+    [start, end]
+
   screenRangeChanged: ->
     screenRange = @getScreenRange()
     @trigger 'change-screen-range', screenRange
@@ -272,7 +279,7 @@ class Selection
 
   toggleLineComments: ->
     @modifySelection =>
-      @editSession.toggleLineCommentsInRange(@getBufferRange())
+      @editSession.toggleLineCommentsForBufferRows(@getBufferRowRange()...)
 
   cutToEndOfLine: (maintainPasteboard) ->
     @selectToEndOfLine() if @isEmpty()
