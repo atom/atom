@@ -116,10 +116,6 @@ class TokenizedBuffer
         iterator(token, startOfToken, { stop }) if bufferRange.containsPoint(startOfToken)
         return unless keepLooping
 
-  isBufferPositionInsideString: (bufferPosition) ->
-    if lastScope = _.last(@scopesForPosition(bufferPosition))
-      /^string\./.test(lastScope)
-
   findOpeningBracket: (startBufferPosition) ->
     range = [[0,0], startBufferPosition]
     position = null

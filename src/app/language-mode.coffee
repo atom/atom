@@ -24,12 +24,13 @@ class LanguageMode
       return true if @editSession.hasMultipleCursors()
 
       cursorBufferPosition = @editSession.getCursorBufferPosition()
+      previousCharachter = @editSession.getTextInBufferRange([cursorBufferPosition.add([0, -1]), cursorBufferPosition])
       nextCharachter = @editSession.getTextInBufferRange([cursorBufferPosition, cursorBufferPosition.add([0,1])])
 
       hasWordAfterCursor = /\w/.test(nextCharachter)
-      cursorInsideString = @getTokenizedBuffer().isBufferPositionInsideString(cursorBufferPosition)
+      hasWordBeforeCursor = /\w/.test(previousCharachter)
 
-      autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not cursorInsideString
+      autoCompleteOpeningBracket = @isOpeningBracket(text) and not hasWordAfterCursor and not (@isQuote(text) and hasWordBeforeCursor)
       skipOverExistingClosingBracket = false
       if @isClosingBracket(text) and nextCharachter == text
         if bracketAnchorRange = @bracketAnchorRanges.filter((anchorRange) -> anchorRange.getBufferRange().end.isEqual(cursorBufferPosition))[0]
@@ -49,6 +50,9 @@ class LanguageMode
 
   getTokenizedBuffer: ->
     @editSession.tokenizedBuffer
+
+  isQuote: (string) ->
+    /'|"/.test(string)
 
   isOpeningBracket: (string) ->
     @pairedCharacters[string]?

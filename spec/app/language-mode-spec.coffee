@@ -145,17 +145,34 @@ describe "LanguageMode", ->
             expect(buffer.lineForRow(0)).toBe '"ok"'
             expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
 
-      describe "when the cursor is inside a string", ->
-        it "does not automatically insert closing single or double quote", ->
-          editSession.buffer.setText("'aa'")
-          editSession.setCursorBufferPosition([0, 3])
-          editSession.insertText '"'
-          expect(buffer.lineForRow(0)).toBe "'aa\"'"
+      describe "when inserting a quote", ->
+        describe "when a word charachter is before the cursor", ->
+          it "does not automatically insert closing quote", ->
+            editSession.buffer.setText("abc")
+            editSession.setCursorBufferPosition([0, 3])
+            editSession.insertText '"'
+            expect(buffer.lineForRow(0)).toBe "abc\""
 
-          editSession.buffer.setText('"aa"')
-          editSession.setCursorBufferPosition([0, 3])
-          editSession.insertText "'"
-          expect(buffer.lineForRow(0)).toBe '"aa\'"'
+            editSession.buffer.setText("abc")
+            editSession.setCursorBufferPosition([0, 3])
+            editSession.insertText '\''
+            expect(buffer.lineForRow(0)).toBe "abc\'"
+
+        describe "when a non word charachter is before the cursor", ->
+          it "automatically insert closing quote", ->
+            editSession.buffer.setText("ab@")
+            editSession.setCursorBufferPosition([0, 3])
+            editSession.insertText '"'
+            expect(buffer.lineForRow(0)).toBe "ab@\"\""
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 4]
+
+        describe "when the cursor is on an empty line", ->
+          it "automatically insert closing quote", ->
+            editSession.buffer.setText("")
+            editSession.setCursorBufferPosition([0, 0])
+            editSession.insertText '"'
+            expect(buffer.lineForRow(0)).toBe "\"\""
+            expect(editSession.getCursorBufferPosition()).toEqual [0, 1]
 
   describe "javascript", ->
     beforeEach ->
