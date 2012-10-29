@@ -271,6 +271,9 @@ class Editor extends View
     @showInvisibles = showInvisibles
     @renderLines()
 
+  setInvisibles: (@invisibles={}) ->
+    @renderLines()
+
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
   getPath: -> @getBuffer().getPath()
@@ -365,6 +368,7 @@ class Editor extends View
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
+    @invisibles = @rootView()?.getInvisibles()
     $(window).on "resize.editor#{@id}", =>
       @updateRenderedLines()
     @focus() if @isFocused
@@ -871,6 +875,8 @@ class Editor extends View
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
     line.push("<pre #{attributePairs.join(' ')}>")
 
+    invisibles = @invisibles if @showInvisibles
+
     if screenLine.text == ''
       line.push("&nbsp;") unless @showInvisibles
     else
@@ -880,8 +886,7 @@ class Editor extends View
       for token in screenLine.tokens
         updateScopeStack(token.scopes)
         line.push(token.getValueAsHtml(
-          showInvisibles: @showInvisibles
-          invisiblesMap: @rootView()?.getInvisiblesMap()
+          invisibles: invisibles
           hasLeadingWhitespace: position < firstNonWhitespacePosition
           hasTrailingWhitespace: position + token.value.length > firstTrailingWhitespacePosition
         ))
@@ -889,8 +894,9 @@ class Editor extends View
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    eolChar = @rootView()?.getInvisiblesMap().eol
-    line.push("<span class='invisible'>#{eolChar}</span>") if @showInvisibles
+    if invisibles?.eol
+      line.push("<span class='invisible'>#{invisibles.eol}</span>")
+
     line.push('</pre>')
     line.join('')
 

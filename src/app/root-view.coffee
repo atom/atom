@@ -31,7 +31,7 @@ class RootView extends View
   extensionStates: null
   fontSize: 20
   showInvisibles: false
-  invisiblesMap:
+  invisibles:
     eol:   "¬"
     space: "•"
     tab:   "▸"
@@ -234,8 +234,10 @@ class RootView extends View
 
   getFontSize: -> @fontSize
 
-  setInvisiblesMap: (@invisiblesMap) ->
-  getInvisiblesMap: -> @invisiblesMap
+  setInvisibles: (@invisibles={}) ->
+    editor.setInvisibles(@invisibles) for editor in @getEditors()
+
+  getInvisibles: -> @invisibles
 
   loadUserConfiguration: ->
     try
