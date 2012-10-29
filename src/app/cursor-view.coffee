@@ -10,7 +10,7 @@ class CursorView extends View
     @pre class: 'cursor idle', => @raw '&nbsp;'
 
   editor: null
-  hidden: false
+  visible: true
 
   initialize: (@cursor, @editor) ->
     @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange }) =>
@@ -18,6 +18,7 @@ class CursorView extends View
       @removeIdleClassTemporarily() unless bufferChange
       @trigger 'cursor-move', {bufferChange}
 
+    @cursor.on 'change-visibility.cursor-view', (visible) => @setVisible(visible)
     @cursor.on 'destroy.cursor-view', => @remove()
 
   afterAttach: (onDom) ->
@@ -38,12 +39,16 @@ class CursorView extends View
     if @cursor == @editor.getLastCursor()
       @editor.scrollTo(pixelPosition)
 
-    if @editor.isFoldedAtScreenRow(screenPosition.row)
-      @hide() unless @hidden
-      @hidden = true
+    @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
+
+  setVisible: (visible) ->
+    return if visible == @visible
+    @visible = visible
+
+    if @visible
+      @show()
     else
-      @show() if @hidden
-      @hidden = false
+      @hide()
 
   getBufferPosition: ->
     @cursor.getBufferPosition()

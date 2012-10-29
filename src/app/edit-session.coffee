@@ -286,8 +286,8 @@ class EditSession
   autoDecreaseIndentForRow: (bufferRow) ->
     @languageMode.autoDecreaseIndentForBufferRow(bufferRow)
 
-  toggleLineCommentsInRange: (range) ->
-    @languageMode.toggleLineCommentsInRange(range)
+  toggleLineCommentsForBufferRows: (start, end) ->
+    @languageMode.toggleLineCommentsForBufferRows(start, end)
 
   mutateSelectedText: (fn) ->
     @transact => fn(selection) for selection in @getSelections()

@@ -10,6 +10,7 @@ class Cursor
   bufferPosition: null
   goalColumn: null
   wordRegex: /(\w+)|([^\w\s]+)/g
+  visible: true
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
     @anchor = @editSession.addAnchor(strong: true)
@@ -37,6 +38,13 @@ class Cursor
 
   getBufferPosition: ->
     @anchor.getBufferPosition()
+
+  setVisible: (visible) ->
+    if @visible != visible
+      @visible = visible
+      @trigger 'change-visibility', @visible
+
+  isVisible: -> @visible
 
   clearSelection: ->
     if @selection
