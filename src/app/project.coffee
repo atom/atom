@@ -162,8 +162,8 @@ class Project
     _.remove(@buffers, buffer)
 
   scan: (regex, iterator) ->
-    regex = new RegExp(regex.source, 'g')
-    command = "#{require.resolve('ag')} --ackmate \"#{regex.source}\" \"#{@getPath()}\""
+    escapedRegex = regex.source.replace("\\", "\\\\")
+    command = "#{require.resolve('ag')} --ackmate \"#{escapedRegex}\" \"#{@getPath()}\""
     bufferedData = ""
 
     state = 'readingPath'

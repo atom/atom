@@ -137,6 +137,20 @@ describe "Project", ->
             match: 'aa'
             range: [[1, 3], [1, 5]]
 
+      it "works with with escaped literals (like $ and ^)", ->
+        matches = []
+        waitsForPromise ->
+          project.scan /\$\w+/, ({path, match, range}) ->
+            matches.push({path, match, range})
+
+        runs ->
+          expect(matches.length).toBe 1
+
+          expect(matches[0]).toEqual
+            path: project.resolve('a')
+            match: '\$bill'
+            range: [[2, 6], [2, 11]]
+
       it "works on evil filenames", ->
         project.setPath(require.resolve('fixtures/evil-files'))
         paths = []
