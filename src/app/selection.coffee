@@ -11,7 +11,7 @@ class Selection
     @cursor.selection = this
 
     @cursor.on 'change-screen-position.selection', (e) =>
-      @emitChangeScreenRangeEvent() unless e.bufferChanged
+      @screenRangeChanged() unless e.bufferChanged
 
     @cursor.on 'destroy.selection', =>
       @cursor = null
@@ -67,13 +67,18 @@ class Selection
     else
       new Range(@cursor.getBufferPosition(), @cursor.getBufferPosition())
 
+  screenRangeChanged: ->
+    screenRange = @getScreenRange()
+    @trigger 'change-screen-range', screenRange
+    @cursor?.setVisible(screenRange.isEmpty())
+
   getText: ->
     @editSession.buffer.getTextInRange(@getBufferRange())
 
   clear: ->
     @anchor?.destroy()
     @anchor = null
-    @emitChangeScreenRangeEvent()
+    @screenRangeChanged()
 
   selectWord: ->
     @setBufferRange(@cursor.getCurrentWordBufferRange())
@@ -310,10 +315,7 @@ class Selection
   placeAnchor: ->
     @anchor = @editSession.addAnchor(strong: true)
     @anchor.setScreenPosition(@cursor.getScreenPosition())
-    @anchor.on 'change-screen-position.selection', => @emitChangeScreenRangeEvent()
-
-  emitChangeScreenRangeEvent: ->
-    @trigger 'change-screen-range', @getScreenRange()
+    @anchor.on 'change-screen-position.selection', => @screenRangeChanged()
 
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)

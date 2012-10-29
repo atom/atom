@@ -864,6 +864,19 @@ describe "Editor", ->
         advanceClock(100)
         expect(cursorView).toHaveClass 'idle'
 
+      it "hides the cursor when the selection is non-empty, and shows it otherwise", ->
+        cursorView = editor.getCursorView()
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
+        expect(cursorView).toBeVisible()
+
+        editor.setSelectedBufferRange([[0, 0], [3, 0]])
+        expect(editor.getSelection().isEmpty()).toBeFalsy()
+        expect(cursorView).not.toBeVisible()
+
+        editor.setCursorBufferPosition([1, 3])
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
+        expect(cursorView).toBeVisible()
+
       describe "auto-scrolling", ->
         it "only auto-scrolls when the last cursor is moved", ->
           editor.setCursorBufferPosition([11,0])
