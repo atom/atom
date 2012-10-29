@@ -234,7 +234,7 @@ class RootView extends View
 
   getFontSize: -> @fontSize
 
-  setInvisiblesMap: (newMap) -> @invisiblesMap = newMap
+  setInvisiblesMap: (@invisiblesMap) ->
   getInvisiblesMap: -> @invisiblesMap
 
   loadUserConfiguration: ->
