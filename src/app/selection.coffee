@@ -173,8 +173,8 @@ class Selection
       @indentSelectedRows()
 
   indentSelectedRows: ->
-    range = @getBufferRange()
-    for row in [range.start.row..range.end.row]
+    [start, end] = @getBufferRowRange()
+    for row in [start..end]
       @editSession.buffer.insert([row, 0], @editSession.getTabText()) unless @editSession.buffer.lineLengthForRow(row) == 0
 
   normalizeIndent: (text, options) ->
@@ -270,10 +270,10 @@ class Selection
       @editSession.buffer.deleteRows(start, end)
 
   outdentSelectedRows: ->
-    range = @getBufferRange()
+    [start, end] = @getBufferRowRange()
     buffer = @editSession.buffer
     leadingTabRegex = new RegExp("^ {1,#{@editSession.getTabLength()}}|\t")
-    for row in [range.start.row..range.end.row]
+    for row in [start..end]
       if matchLength = buffer.lineForRow(row).match(leadingTabRegex)?[0].length
         buffer.delete [[row, 0], [row, matchLength]]
 

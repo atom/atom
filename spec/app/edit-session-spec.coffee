@@ -1413,6 +1413,15 @@ describe "EditSession", ->
             expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
             expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 15 + editSession.tabLength]]
 
+         it "does not indent the last row if the selection ends at column 0", ->
+           editSession.tabLength = 2
+           editSession.setSelectedBufferRange([[9,1], [11,0]])
+           editSession.indentSelectedRows()
+           expect(buffer.lineForRow(9)).toBe "    };"
+           expect(buffer.lineForRow(10)).toBe ""
+           expect(buffer.lineForRow(11)).toBe "  return sort(Array.apply(this, arguments));"
+           expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 0]]
+
         describe "when softTabs is disabled", ->
           it "indents selected lines (that are not empty) and retains selection", ->
             convertToHardTabs(buffer)
@@ -1470,7 +1479,18 @@ describe "EditSession", ->
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
           expect(buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
+          expect(buffer.lineForRow(3)).toBe "  var pivot = items.shift(), current, left = [], right = [];"
           expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 15 - editSession.tabLength]]
+
+        it "does not outdent the last line of the selection if it ends at column 0", ->
+          editSession.setSelectedBufferRange([[0,1], [3,0]])
+          editSession.outdentSelectedRows()
+          expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
+          expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
+          expect(buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
+          expect(buffer.lineForRow(3)).toBe "    var pivot = items.shift(), current, left = [], right = [];"
+
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 0]]
 
     describe ".toggleLineCommentsInSelection()", ->
       it "toggles comments on the selected lines", ->
