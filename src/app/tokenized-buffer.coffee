@@ -17,7 +17,6 @@ class TokenizedBuffer
 
   constructor: (@buffer, { @languageMode, @tabLength }) ->
     @tabLength ?= 2
-    @languageMode.tokenizedBuffer = this
     @id = @constructor.idCounter++
     @screenLines = @buildScreenLinesForRows(0, @buffer.getLastRow())
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
