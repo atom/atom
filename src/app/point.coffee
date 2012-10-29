@@ -26,16 +26,6 @@ class Point
 
     new Point(row, column)
 
-  subtract: (other) ->
-    other = Point.fromObject(other)
-    row = @row - other.row
-    if @row == other.row
-      column = @column - other.column
-    else
-      column = @column
-
-    new Point(row, column)
-
   splitAt: (column) ->
     if @row == 0
       rightColumn = @column - column
