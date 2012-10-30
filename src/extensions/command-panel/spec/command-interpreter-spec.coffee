@@ -226,6 +226,30 @@ describe "CommandInterpreter", ->
         expect(selections[2].getBufferRange()).toEqual [[6,34], [6,41]]
         expect(selections[3].getBufferRange()).toEqual [[6,56], [6,63]]
 
+    describe "when there is no address range is given", ->
+      describe "when there is no text selection", ->
+        it "uses the entire file as the address range", ->
+          waitsForPromise ->
+            editSession.clearSelections()
+            interpreter.eval('x/return', editSession)
+          runs ->
+            expect(editSession.getSelectedBufferRanges()).toEqual [
+              [[2,27],[2,33]]
+              [[8,4], [8,10]]
+              [[11,2],[11,8]]
+            ]
+
+      describe "when text is selected", ->
+        it "uses the selection as the address range", ->
+          waitsForPromise ->
+            editSession.setSelectedBufferRange([[2, 0], [9, 0]])
+            interpreter.eval('x/return', editSession)
+          runs ->
+            expect(editSession.getSelectedBufferRanges()).toEqual [
+              [[2,27],[2,33]]
+              [[8,4], [8,10]]
+            ]
+
     describe "when matching /$/", ->
       it "matches the end of each line in the selected region", ->
         waitsForPromise -> interpreter.eval('6,8 x/$/', editSession)

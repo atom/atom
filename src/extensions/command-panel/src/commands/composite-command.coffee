@@ -1,6 +1,5 @@
 _ = require 'underscore'
 $ = require 'jquery'
-AllLinesAddress = require 'command-panel/src/commands/all-lines-address'
 
 module.exports =
 class CompositeCommand
@@ -8,10 +7,6 @@ class CompositeCommand
 
   execute: (project, editSession) ->
     currentRanges = editSession?.getSelectedBufferRanges()
-
-    if not @subcommands[0].isAddress() and currentRanges?.every((range) -> range.isEmpty())
-      @subcommands.unshift(new AllLinesAddress())
-
     @executeCommands(@subcommands, project, editSession, currentRanges)
 
   executeCommands: (commands, project, editSession, ranges) ->
