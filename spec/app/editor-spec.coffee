@@ -615,24 +615,28 @@ describe "Editor", ->
         expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
     describe "shift-double-click", ->
-      it "expands the selection to include the double-clicked word", ->
+      it "expands the selection on the first click and ignores the second click", ->
         editor.setCursorScreenPosition([4, 7])
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
         editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
+
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
         editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 27]]
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
     describe "shift-triple-click", ->
-      it "expands the selection to include the triple-clicked line", ->
+      it "expands the selection on the first click and ignores the second click", ->
         editor.setCursorScreenPosition([4, 7])
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 1 })
         editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
+
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 2 })
         editor.renderedLines.trigger 'mouseup'
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
         editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [6, 0]]
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 24]]
 
     describe "meta-click", ->
       it "places an additional cursor", ->

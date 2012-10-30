@@ -313,15 +313,9 @@ class Editor extends View
         else
           @setCursorScreenPosition(screenPosition)
       else if clickCount == 2
-        if e.shiftKey
-          @activeEditSession.expandLastSelectionOverWord()
-        else
-          @activeEditSession.selectWord()
+        @activeEditSession.selectWord() unless e.shiftKey
       else if clickCount == 3
-        if e.shiftKey
-          @activeEditSession.expandLastSelectionOverLine()
-        else
-          @activeEditSession.selectLine()
+        @activeEditSession.selectLine() unless e.shiftKey
 
       @selectOnMousemoveUntilMouseup()
 
