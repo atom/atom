@@ -140,6 +140,12 @@
                 'native/frameworks/CocoaOniguruma.framework',
               ],
             },
+            {
+              'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/libgit2.framework/Libraries',
+              'files': [
+                'git2/frameworks/libgit2.0.17.0.dylib',
+              ],
+            },
           ],
           'postbuilds': [
             {
@@ -320,12 +326,22 @@
               # (DYLIB_INSTALL_NAME_BASE) relative to the main executable
               # (chrome).  A different relative path needs to be used in
               # atom_helper_app.
-              'postbuild_name': 'Fix Framework Link',
+              'postbuild_name': 'Fix CEF Framework Link',
               'action': [
                 'install_name_tool',
                 '-change',
                 '@executable_path/libcef.dylib',
                 '@executable_path/../../../../Frameworks/Chromium Embedded Framework.framework/Libraries/libcef.dylib',
+                '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
+              ],
+            },
+            {
+              'postbuild_name': 'Fix libgit2 Framework Link',
+              'action': [
+                'install_name_tool',
+                '-change',
+                '@executable_path/libgit2.0.17.0.dylib',
+                '@executable_path/../../../../Frameworks/libgit2.framework/Libraries/libgit2.0.17.0.dylib',
                 '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
               ],
             },
