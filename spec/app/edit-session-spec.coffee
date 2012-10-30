@@ -252,21 +252,6 @@ describe "EditSession", ->
         editSession.setCursorBufferPosition([10, 0])
         editSession.moveCursorToFirstCharacterOfLine()
 
-    describe ".moveCursorToNextWord()", ->
-      it "moves the cursor to the next word or the end of file if there is no next word", ->
-        editSession.setCursorBufferPosition [2, 5]
-        editSession.addCursorAtBufferPosition [3, 60]
-        [cursor1, cursor2] = editSession.getCursors()
-
-        editSession.moveCursorToNextWord()
-        expect(cursor1.getBufferPosition()).toEqual [2, 7]
-        expect(cursor2.getBufferPosition()).toEqual [4, 4]
-
-        buffer.insert([12, 2], '   ')
-        cursor1.setBufferPosition([12, 1])
-        editSession.moveCursorToNextWord()
-        expect(cursor1.getBufferPosition()).toEqual [12, 5]
-
     describe ".moveCursorToBeginningOfWord()", ->
       it "moves the cursor to the beginning of the word", ->
         editSession.setCursorBufferPosition [0, 8]

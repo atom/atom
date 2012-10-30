@@ -103,7 +103,6 @@ class Editor extends View
       'core:cut': @cutSelection
       'core:copy': @copySelection
       'core:paste': @paste
-      'editor:move-to-next-word': @moveCursorToNextWord
       'editor:move-to-previous-word': @moveCursorToPreviousWord
       'editor:select-word': @selectWord
       'editor:newline': @insertNewline
@@ -170,7 +169,6 @@ class Editor extends View
   moveCursorDown: -> @activeEditSession.moveCursorDown()
   moveCursorLeft: -> @activeEditSession.moveCursorLeft()
   moveCursorRight: -> @activeEditSession.moveCursorRight()
-  moveCursorToNextWord: -> @activeEditSession.moveCursorToNextWord()
   moveCursorToBeginningOfWord: -> @activeEditSession.moveCursorToBeginningOfWord()
   moveCursorToEndOfWord: -> @activeEditSession.moveCursorToEndOfWord()
   moveCursorToTop: -> @activeEditSession.moveCursorToTop()

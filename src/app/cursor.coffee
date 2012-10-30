@@ -117,9 +117,6 @@ class Cursor
   moveToEndOfWord: ->
     @setBufferPosition(@getEndOfCurrentWordBufferPosition())
 
-  moveToNextWord: ->
-    @setBufferPosition(@getBeginningOfNextWordBufferPosition())
-
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
@@ -145,18 +142,6 @@ class Cursor
         endOfWordPosition = currentBufferPosition
       stop()
     endOfWordPosition
-
-  getBeginningOfNextWordBufferPosition: ->
-    currentBufferPosition = @getBufferPosition()
-    eofBufferPosition = @editSession.getEofBufferPosition()
-    range = [currentBufferPosition, eofBufferPosition]
-
-    nextWordPosition = eofBufferPosition
-    @editSession.scanInRange @wordRegex, range, (match, matchRange, { stop }) =>
-      if matchRange.start.isGreaterThan(currentBufferPosition)
-        nextWordPosition = matchRange.start
-        stop()
-    nextWordPosition
 
   getCurrentWordBufferRange: ->
     new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))

@@ -478,9 +478,6 @@ class EditSession
   moveCursorToEndOfLine: ->
     @moveCursors (cursor) -> cursor.moveToEndOfLine()
 
-  moveCursorToNextWord: ->
-    @moveCursors (cursor) -> cursor.moveToNextWord()
-
   moveCursorToBeginningOfWord: ->
     @moveCursors (cursor) -> cursor.moveToBeginningOfWord()
 
