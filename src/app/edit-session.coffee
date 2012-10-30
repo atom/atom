@@ -566,6 +566,9 @@ class EditSession
     fn(selection) for selection in @getSelections()
     @mergeIntersectingSelections(reverse: true)
 
+  finalizeSelections: ->
+    selection.finalize() for selection in @getSelections()
+
   mergeIntersectingSelections: (options) ->
     for selection in @getSelections()
       otherSelections = @getSelections()

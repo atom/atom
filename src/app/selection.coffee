@@ -6,6 +6,8 @@ _ = require 'underscore'
 module.exports =
 class Selection
   anchor: null
+  wordwise: false
+  initialScreenRange: null
 
   constructor: ({@cursor, @editSession}) ->
     @cursor.selection = this
@@ -24,6 +26,10 @@ class Selection
     @anchor?.destroy()
     @editSession.removeSelection(this)
     @trigger 'destroy'
+
+  finalize: ->
+    @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
+    @wordwise = false if @isEmpty()
 
   isEmpty: ->
     @getBufferRange().isEmpty()
@@ -53,7 +59,7 @@ class Selection
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
     { start, end } = bufferRange
-    [start, end] = [end, start] if options.reverse
+    [start, end] = [end, start] if options.reverse ? @isReversed()
 
     @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @placeAnchor() unless @anchor
@@ -89,6 +95,8 @@ class Selection
 
   selectWord: ->
     @setBufferRange(@cursor.getCurrentWordBufferRange())
+    @wordwise = true
+    @initialScreenRange = @getScreenRange()
 
   expandOverWord: ->
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
@@ -105,7 +113,19 @@ class Selection
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))
 
   selectToScreenPosition: (position) ->
-    @modifySelection => @cursor.setScreenPosition(position)
+    @modifySelection =>
+      if @initialScreenRange
+        if position.isLessThan(@initialScreenRange.start)
+          @anchor.setScreenPosition(@initialScreenRange.end)
+          @cursor.setScreenPosition(position)
+        else
+          @anchor.setScreenPosition(@initialScreenRange.start)
+          @cursor.setScreenPosition(position)
+      else
+        @cursor.setScreenPosition(position)
+
+      if @wordwise
+        @expandOverWord()
 
   selectToBufferPosition: (position) ->
     @modifySelection => @cursor.setBufferPosition(position)

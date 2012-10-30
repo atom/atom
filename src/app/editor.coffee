@@ -360,6 +360,7 @@ class Editor extends View
       @off 'mousemove', moveHandler
       reverse = @activeEditSession.getLastSelection().isReversed()
       @activeEditSession.mergeIntersectingSelections({reverse})
+      @activeEditSession.finalizeSelections()
       @syncCursorAnimations()
 
   afterAttach: (onDom) ->
