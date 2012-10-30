@@ -269,6 +269,11 @@ describe "EditSession", ->
         editSession.setCursorBufferPosition([0, 0])
         editSession.moveCursorToBeginningOfWord()
 
+      it "works when the preceding line is blank", ->
+        editSession.setCursorBufferPosition([10, 0])
+        editSession.moveCursorToBeginningOfWord()
+        expect(editSession.getCursorBufferPosition()).toEqual [9, 0]
+
     describe ".moveCursorToEndOfWord()", ->
       it "moves the cursor to the end of the word", ->
         editSession.setCursorBufferPosition [0, 6]

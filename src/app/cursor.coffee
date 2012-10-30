@@ -120,8 +120,8 @@ class Cursor
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
     currentBufferPosition = @getBufferPosition()
-    previousRow = Math.max(0, currentBufferPosition.row - 1)
-    previousLinesRange = [[previousRow, 0], currentBufferPosition]
+    previousNonBlankRow = @editSession.buffer.previousNonBlankRow(currentBufferPosition.row)
+    previousLinesRange = [[previousNonBlankRow, 0], currentBufferPosition]
 
     beginningOfWordPosition = currentBufferPosition
     @editSession.backwardsScanInRange @wordRegex, previousLinesRange, (match, matchRange, { stop }) =>
