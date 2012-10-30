@@ -804,13 +804,6 @@ enum cef_urlrequest_status_t {
   UR_IO_PENDING,
   
   ///
-  // Request was successful but was handled by an external program, so there
-  // is no response data. This usually means the current page should not be
-  // navigated, but no error should be displayed.
-  ///
-  UR_HANDLED_EXTERNALLY,
-  
-  ///
   // Request was canceled programatically.
   ///
   UR_CANCELED,
@@ -1307,6 +1300,94 @@ enum cef_dom_node_type_t {
   DOM_NODE_TYPE_XPATH_NAMESPACE,
 };
 
+///
+// Supported file dialog modes.
+///
+enum cef_file_dialog_mode_t {
+  ///
+  // Requires that the file exists before allowing the user to pick it.
+  ///
+  FILE_DIALOG_OPEN = 0,
+
+  ///
+  // Like Open, but allows picking multiple files to open.
+  ///
+  FILE_DIALOG_OPEN_MULTIPLE,
+
+  ///
+  // Allows picking a nonexistent file, and prompts to overwrite if the file
+  // already exists.
+  ///
+  FILE_DIALOG_SAVE,
+};
+
+///
+// Geoposition error codes.
+///
+enum cef_geoposition_error_code_t {
+  GEOPOSITON_ERROR_NONE = 0,
+  GEOPOSITON_ERROR_PERMISSION_DENIED,
+  GEOPOSITON_ERROR_POSITION_UNAVAILABLE,
+  GEOPOSITON_ERROR_TIMEOUT,
+};
+
+///
+// Structure representing geoposition information. The properties of this
+// structure correspond to those of the JavaScript Position object although
+// their types may differ.
+///
+typedef struct _cef_geoposition_t {
+  ///
+  // Latitude in decimal degrees north (WGS84 coordinate frame).
+  ///
+  double latitude;
+
+  ///
+  // Longitude in decimal degrees west (WGS84 coordinate frame).
+  ///
+  double longitude;
+
+  ///
+  // Altitude in meters (above WGS84 datum).
+  ///
+  double altitude;
+
+  ///
+  // Accuracy of horizontal position in meters.
+  ///
+  double accuracy;
+
+  ///
+  // Accuracy of altitude in meters.
+  ///
+  double altitude_accuracy;
+
+  ///
+  // Heading in decimal degrees clockwise from true north.
+  ///
+  double heading;
+
+  ///
+  // Horizontal component of device velocity in meters per second.
+  ///
+  double speed;
+
+  ///
+  // Time of position measurement in miliseconds since Epoch in UTC time. This
+  // is taken from the host computer's system clock.
+  ///
+  cef_time_t timestamp;
+
+  ///
+  // Error code, see enum above.
+  ///
+  cef_geoposition_error_code_t error_code;
+
+  ///
+  // Human-readable error message.
+  ///
+  cef_string_t error_message;
+} cef_geoposition_t;
 
 #ifdef __cplusplus
 }

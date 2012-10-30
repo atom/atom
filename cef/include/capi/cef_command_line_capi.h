@@ -184,6 +184,13 @@ typedef struct _cef_command_line_t {
   ///
   void (CEF_CALLBACK *append_argument)(struct _cef_command_line_t* self,
       const cef_string_t* argument);
+
+  ///
+  // Insert a command before the current command. Common for debuggers, like
+  // "valgrind" or "gdb --args".
+  ///
+  void (CEF_CALLBACK *prepend_wrapper)(struct _cef_command_line_t* self,
+      const cef_string_t* wrapper);
 } cef_command_line_t;
 
 

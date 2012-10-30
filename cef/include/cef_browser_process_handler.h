@@ -39,6 +39,7 @@
 #pragma once
 
 #include "include/cef_base.h"
+#include "include/cef_command_line.h"
 #include "include/cef_proxy_handler.h"
 
 ///
@@ -64,6 +65,15 @@ class CefBrowserProcessHandler : public virtual CefBase {
   ///
   /*--cef()--*/
   virtual void OnContextInitialized() {}
+
+  ///
+  // Called on the browser process IO thread before a child process is launched.
+  // Provides an opportunity to modify the child process command line.
+  ///
+  /*--cef()--*/
+  virtual void OnBeforeChildProcessLaunch(
+      CefRefPtr<CefCommandLine> command_line) {
+  }
 };
 
 #endif  // CEF_INCLUDE_CEF_BROWSER_PROCESS_HANDLER_H_

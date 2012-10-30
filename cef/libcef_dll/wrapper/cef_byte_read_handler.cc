@@ -31,7 +31,11 @@ int CefByteReadHandler::Seek(int64 offset, int whence) {
     rv = 0;
     break;
   case SEEK_END: {
+#if defined(OS_WIN)
+    int64 offset_abs = _abs64(offset);
+#else
     int64 offset_abs = abs(offset);
+#endif
     if (offset_abs > size_)
       break;
     offset_ = size_ - offset_abs;

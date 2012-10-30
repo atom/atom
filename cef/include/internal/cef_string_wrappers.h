@@ -422,6 +422,18 @@ class CefStringBase {
       traits::clear(string_);
   }
 
+  ///
+  // Swap this string's contents with the specified string.
+  ///
+  void swap(CefStringBase& str) {
+    struct_type* tmp_string = string_;
+    bool tmp_owner = owner_;
+    string_ = str.string_;
+    owner_ = str.owner_;
+    str.string_ = tmp_string;
+    str.owner_ = tmp_owner;
+  }
+
 
   // The following methods are unique to CEF string template types.
 

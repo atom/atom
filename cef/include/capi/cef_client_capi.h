@@ -62,6 +62,13 @@ typedef struct _cef_client_t {
       struct _cef_client_t* self);
 
   ///
+  // Return the handler for dialogs. If no handler is provided the default
+  // implementation will be used.
+  ///
+  struct _cef_dialog_handler_t* (CEF_CALLBACK *get_dialog_handler)(
+      struct _cef_client_t* self);
+
+  ///
   // Return the handler for browser display state events.
   ///
   struct _cef_display_handler_t* (CEF_CALLBACK *get_display_handler)(

@@ -182,6 +182,26 @@ class CefBrowser : public virtual CefBase {
 
 
 ///
+// Callback interface for CefBrowserHost::RunFileDialog. The methods of this
+// class will be called on the browser process UI thread.
+///
+/*--cef(source=client)--*/
+class CefRunFileDialogCallback : public virtual CefBase {
+ public:
+  ///
+  // Called asynchronously after the file dialog is dismissed. If the selection
+  // was successful |file_paths| will be a single value or a list of values
+  // depending on the dialog mode. If the selection was cancelled |file_paths|
+  // will be empty.
+  ///
+  /*--cef(capi_name=cont)--*/
+  virtual void OnFileDialogDismissed(
+      CefRefPtr<CefBrowserHost> browser_host,
+      const std::vector<CefString>& file_paths) =0;
+};
+
+
+///
 // Class used to represent the browser process aspects of a browser window. The
 // methods of this class can only be called in the browser process. They may be
 // called on any thread in that process unless otherwise indicated in the
@@ -190,6 +210,8 @@ class CefBrowser : public virtual CefBase {
 /*--cef(source=library)--*/
 class CefBrowserHost : public virtual CefBase {
  public:
+  typedef cef_file_dialog_mode_t FileDialogMode;
+
   ///
   // Create a new browser window using the window parameters specified by
   // |windowInfo|. All values will be copied internally and the actual window
@@ -287,6 +309,26 @@ class CefBrowserHost : public virtual CefBase {
   ///
   /*--cef()--*/
   virtual void SetZoomLevel(double zoomLevel) =0;
+
+  ///
+  // Call to run a file chooser dialog. Only a single file chooser dialog may be
+  // pending at any given time. |mode| represents the type of dialog to display.
+  // |title| to the title to be used for the dialog and may be empty to show the
+  // default title ("Open" or "Save" depending on the mode). |default_file_name|
+  // is the default file name to select in the dialog. |accept_types| is a list
+  // of valid lower-cased MIME types or file extensions specified in an input
+  // element and is used to restrict selectable files to such types. |callback|
+  // will be executed after the dialog is dismissed or immediately if another
+  // dialog is already pending. The dialog will be initiated asynchronously on
+  // the UI thread.
+  ///
+  /*--cef(optional_param=title,optional_param=default_file_name,
+          optional_param=accept_types)--*/
+  virtual void RunFileDialog(FileDialogMode mode,
+                             const CefString& title,
+                             const CefString& default_file_name,
+                             const std::vector<CefString>& accept_types,
+                             CefRefPtr<CefRunFileDialogCallback> callback) =0;
 };
 
 #endif  // CEF_INCLUDE_CEF_BROWSER_H_

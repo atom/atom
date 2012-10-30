@@ -18,6 +18,7 @@
 #pragma message("Warning: "__FILE__" may be accessed wrapper-side only")
 #else  // USING_CEF_SHARED
 
+#include <vector>
 #include "include/cef_browser.h"
 #include "include/capi/cef_browser_capi.h"
 #include "include/cef_client.h"
@@ -46,6 +47,10 @@ class CefBrowserHostCToCpp
   virtual CefString GetDevToolsURL(bool http_scheme) OVERRIDE;
   virtual double GetZoomLevel() OVERRIDE;
   virtual void SetZoomLevel(double zoomLevel) OVERRIDE;
+  virtual void RunFileDialog(FileDialogMode mode, const CefString& title,
+      const CefString& default_file_name,
+      const std::vector<CefString>& accept_types,
+      CefRefPtr<CefRunFileDialogCallback> callback) OVERRIDE;
 };
 
 #endif  // USING_CEF_SHARED

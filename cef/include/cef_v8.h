@@ -573,7 +573,7 @@ class CefV8Value : public virtual CefBase {
   ///
   // Returns true if the object has a value with the specified identifier.
   ///
-  /*--cef(capi_name=has_value_bykey)--*/
+  /*--cef(capi_name=has_value_bykey,optional_param=key)--*/
   virtual bool HasValue(const CefString& key) =0;
 
   ///
@@ -588,7 +588,7 @@ class CefV8Value : public virtual CefBase {
   // is thrown. For read-only and don't-delete values this method will return
   // true even though deletion failed.
   ///
-  /*--cef(capi_name=delete_value_bykey)--*/
+  /*--cef(capi_name=delete_value_bykey,optional_param=key)--*/
   virtual bool DeleteValue(const CefString& key) =0;
 
   ///
@@ -604,7 +604,7 @@ class CefV8Value : public virtual CefBase {
   // Returns the value with the specified identifier on success. Returns NULL
   // if this method is called incorrectly or an exception is thrown.
   ///
-  /*--cef(capi_name=get_value_bykey)--*/
+  /*--cef(capi_name=get_value_bykey,optional_param=key)--*/
   virtual CefRefPtr<CefV8Value> GetValue(const CefString& key) =0;
 
   ///
@@ -620,7 +620,7 @@ class CefV8Value : public virtual CefBase {
   // is thrown. For read-only values this method will return true even though
   // assignment failed.
   ///
-  /*--cef(capi_name=set_value_bykey)--*/
+  /*--cef(capi_name=set_value_bykey,optional_param=key)--*/
   virtual bool SetValue(const CefString& key, CefRefPtr<CefV8Value> value,
                         PropertyAttribute attribute) =0;
 
@@ -640,7 +640,7 @@ class CefV8Value : public virtual CefBase {
   // incorrectly or an exception is thrown. For read-only values this method
   // will return true even though assignment failed.
   ///
-  /*--cef(capi_name=set_value_byaccessor)--*/
+  /*--cef(capi_name=set_value_byaccessor,optional_param=key)--*/
   virtual bool SetValue(const CefString& key, AccessControl settings,
                         PropertyAttribute attribute) =0;
 

@@ -11,8 +11,10 @@
 //
 
 #include "libcef_dll/cpptoc/client_cpptoc.h"
+#include "libcef_dll/cpptoc/run_file_dialog_callback_cpptoc.h"
 #include "libcef_dll/ctocpp/browser_ctocpp.h"
 #include "libcef_dll/ctocpp/browser_host_ctocpp.h"
+#include "libcef_dll/transfer_util.h"
 
 
 // STATIC METHODS - Body may be edited by hand.
@@ -185,6 +187,40 @@ void CefBrowserHostCToCpp::SetZoomLevel(double zoomLevel) {
   // Execute
   struct_->set_zoom_level(struct_,
       zoomLevel);
+}
+
+void CefBrowserHostCToCpp::RunFileDialog(FileDialogMode mode,
+    const CefString& title, const CefString& default_file_name,
+    const std::vector<CefString>& accept_types,
+    CefRefPtr<CefRunFileDialogCallback> callback) {
+  if (CEF_MEMBER_MISSING(struct_, run_file_dialog))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: callback; type: refptr_diff
+  DCHECK(callback.get());
+  if (!callback.get())
+    return;
+  // Unverified params: title, default_file_name, accept_types
+
+  // Translate param: accept_types; type: string_vec_byref_const
+  cef_string_list_t accept_typesList = cef_string_list_alloc();
+  DCHECK(accept_typesList);
+  if (accept_typesList)
+    transfer_string_list_contents(accept_types, accept_typesList);
+
+  // Execute
+  struct_->run_file_dialog(struct_,
+      mode,
+      title.GetStruct(),
+      default_file_name.GetStruct(),
+      accept_typesList,
+      CefRunFileDialogCallbackCppToC::Wrap(callback));
+
+  // Restore param:accept_types; type: string_vec_byref_const
+  if (accept_typesList)
+    cef_string_list_free(accept_typesList);
 }
 
 

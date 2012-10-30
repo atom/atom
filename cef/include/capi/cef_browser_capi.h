@@ -171,6 +171,27 @@ typedef struct _cef_browser_t {
 
 
 ///
+// Callback structure for cef_browser_host_t::RunFileDialog. The functions of
+// this structure will be called on the browser process UI thread.
+///
+typedef struct _cef_run_file_dialog_callback_t {
+  ///
+  // Base structure.
+  ///
+  cef_base_t base;
+
+  ///
+  // Called asynchronously after the file dialog is dismissed. If the selection
+  // was successful |file_paths| will be a single value or a list of values
+  // depending on the dialog mode. If the selection was cancelled |file_paths|
+  // will be NULL.
+  ///
+  void (CEF_CALLBACK *cont)(struct _cef_run_file_dialog_callback_t* self,
+      struct _cef_browser_host_t* browser_host, cef_string_list_t file_paths);
+} cef_run_file_dialog_callback_t;
+
+
+///
 // Structure used to represent the browser process aspects of a browser window.
 // The functions of this structure can only be called in the browser process.
 // They may be called on any thread in that process unless otherwise indicated
@@ -252,6 +273,23 @@ typedef struct _cef_browser_host_t {
   ///
   void (CEF_CALLBACK *set_zoom_level)(struct _cef_browser_host_t* self,
       double zoomLevel);
+
+  ///
+  // Call to run a file chooser dialog. Only a single file chooser dialog may be
+  // pending at any given time. |mode| represents the type of dialog to display.
+  // |title| to the title to be used for the dialog and may be NULL to show the
+  // default title ("Open" or "Save" depending on the mode). |default_file_name|
+  // is the default file name to select in the dialog. |accept_types| is a list
+  // of valid lower-cased MIME types or file extensions specified in an input
+  // element and is used to restrict selectable files to such types. |callback|
+  // will be executed after the dialog is dismissed or immediately if another
+  // dialog is already pending. The dialog will be initiated asynchronously on
+  // the UI thread.
+  ///
+  void (CEF_CALLBACK *run_file_dialog)(struct _cef_browser_host_t* self,
+      enum cef_file_dialog_mode_t mode, const cef_string_t* title,
+      const cef_string_t* default_file_name, cef_string_list_t accept_types,
+      struct _cef_run_file_dialog_callback_t* callback);
 } cef_browser_host_t;
 
 

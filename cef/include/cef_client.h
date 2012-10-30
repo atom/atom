@@ -40,6 +40,7 @@
 
 #include "include/cef_base.h"
 #include "include/cef_context_menu_handler.h"
+#include "include/cef_dialog_handler.h"
 #include "include/cef_display_handler.h"
 #include "include/cef_download_handler.h"
 #include "include/cef_focus_handler.h"
@@ -63,6 +64,15 @@ class CefClient : public virtual CefBase {
   ///
   /*--cef()--*/
   virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() {
+    return NULL;
+  }
+
+  ///
+  // Return the handler for dialogs. If no handler is provided the default
+  // implementation will be used.
+  ///
+  /*--cef()--*/
+  virtual CefRefPtr<CefDialogHandler> GetDialogHandler() {
     return NULL;
   }
 

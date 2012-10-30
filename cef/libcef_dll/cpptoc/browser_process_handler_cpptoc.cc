@@ -12,6 +12,7 @@
 
 #include "libcef_dll/cpptoc/browser_process_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/proxy_handler_cpptoc.h"
+#include "libcef_dll/ctocpp/command_line_ctocpp.h"
 
 
 // MEMBER FUNCTIONS - Body may be edited by hand.
@@ -44,6 +45,24 @@ void CEF_CALLBACK browser_process_handler_on_context_initialized(
   CefBrowserProcessHandlerCppToC::Get(self)->OnContextInitialized();
 }
 
+void CEF_CALLBACK browser_process_handler_on_before_child_process_launch(
+    struct _cef_browser_process_handler_t* self,
+    struct _cef_command_line_t* command_line) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return;
+  // Verify param: command_line; type: refptr_diff
+  DCHECK(command_line);
+  if (!command_line)
+    return;
+
+  // Execute
+  CefBrowserProcessHandlerCppToC::Get(self)->OnBeforeChildProcessLaunch(
+      CefCommandLineCToCpp::Wrap(command_line));
+}
+
 
 // CONSTRUCTOR - Do not edit by hand.
 
@@ -54,6 +73,8 @@ CefBrowserProcessHandlerCppToC::CefBrowserProcessHandlerCppToC(
   struct_.struct_.get_proxy_handler = browser_process_handler_get_proxy_handler;
   struct_.struct_.on_context_initialized =
       browser_process_handler_on_context_initialized;
+  struct_.struct_.on_before_child_process_launch =
+      browser_process_handler_on_before_child_process_launch;
 }
 
 #ifndef NDEBUG

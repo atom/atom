@@ -196,6 +196,13 @@ class CefCommandLine : public virtual CefBase {
   ///
   /*--cef()--*/
   virtual void AppendArgument(const CefString& argument) =0;
+
+  ///
+  // Insert a command before the current command.
+  // Common for debuggers, like "valgrind" or "gdb --args".
+  ///
+  /*--cef()--*/
+  virtual void PrependWrapper(const CefString& wrapper) =0;
 };
 
 #endif  // CEF_INCLUDE_CEF_COMMAND_LINE_H_

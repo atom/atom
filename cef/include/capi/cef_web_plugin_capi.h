@@ -46,10 +46,65 @@ extern "C" {
 
 
 ///
-// Visit web plugin information.
+// Visit web plugin information. Can be called on any thread in the browser
+// process.
 ///
 CEF_EXPORT void cef_visit_web_plugin_info(
     struct _cef_web_plugin_info_visitor_t* visitor);
+
+///
+// Cause the plugin list to refresh the next time it is accessed regardless of
+// whether it has already been loaded. Can be called on any thread in the
+// browser process.
+///
+CEF_EXPORT void cef_refresh_web_plugins();
+
+///
+// Add a plugin path (directory + file). This change may not take affect until
+// after cef_refresh_web_plugins() is called. Can be called on any thread in the
+// browser process.
+///
+CEF_EXPORT void cef_add_web_plugin_path(const cef_string_t* path);
+
+///
+// Add a plugin directory. This change may not take affect until after
+// cef_refresh_web_plugins() is called. Can be called on any thread in the
+// browser process.
+///
+CEF_EXPORT void cef_add_web_plugin_directory(const cef_string_t* dir);
+
+///
+// Remove a plugin path (directory + file). This change may not take affect
+// until after cef_refresh_web_plugins() is called. Can be called on any thread
+// in the browser process.
+///
+CEF_EXPORT void cef_remove_web_plugin_path(const cef_string_t* path);
+
+///
+// Unregister an internal plugin. This may be undone the next time
+// cef_refresh_web_plugins() is called. Can be called on any thread in the
+// browser process.
+///
+CEF_EXPORT void cef_unregister_internal_web_plugin(const cef_string_t* path);
+
+///
+// Force a plugin to shutdown. Can be called on any thread in the browser
+// process but will be executed on the IO thread.
+///
+CEF_EXPORT void cef_force_web_plugin_shutdown(const cef_string_t* path);
+
+///
+// Register a plugin crash. Can be called on any thread in the browser process
+// but will be executed on the IO thread.
+///
+CEF_EXPORT void cef_register_web_plugin_crash(const cef_string_t* path);
+
+///
+// Query if a plugin is unstable. Can be called on any thread in the browser
+// process.
+///
+CEF_EXPORT void cef_is_web_plugin_unstable(const cef_string_t* path,
+    struct _cef_web_plugin_unstable_callback_t* callback);
 
 ///
 // Information about a specific web plugin.
@@ -92,7 +147,7 @@ typedef struct _cef_web_plugin_info_t {
 
 ///
 // Structure to implement for visiting web plugin information. The functions of
-// this structure will be called on the UI thread.
+// this structure will be called on the browser process UI thread.
 ///
 typedef struct _cef_web_plugin_info_visitor_t {
   ///
@@ -109,6 +164,27 @@ typedef struct _cef_web_plugin_info_visitor_t {
   int (CEF_CALLBACK *visit)(struct _cef_web_plugin_info_visitor_t* self,
       struct _cef_web_plugin_info_t* info, int count, int total);
 } cef_web_plugin_info_visitor_t;
+
+
+///
+// Structure to implement for receiving unstable plugin information. The
+// functions of this structure will be called on the browser process IO thread.
+///
+typedef struct _cef_web_plugin_unstable_callback_t {
+  ///
+  // Base structure.
+  ///
+  cef_base_t base;
+
+  ///
+  // Method that will be called for the requested plugin. |unstable| will be
+  // true (1) if the plugin has reached the crash count threshold of 3 times in
+  // 120 seconds.
+  ///
+  void (CEF_CALLBACK *is_unstable)(
+      struct _cef_web_plugin_unstable_callback_t* self,
+      const cef_string_t* path, int unstable);
+} cef_web_plugin_unstable_callback_t;
 
 
 #ifdef __cplusplus

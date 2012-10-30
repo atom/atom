@@ -55,6 +55,7 @@ class CefCommandLineCToCpp
   virtual bool HasArguments() OVERRIDE;
   virtual void GetArguments(ArgumentList& arguments) OVERRIDE;
   virtual void AppendArgument(const CefString& argument) OVERRIDE;
+  virtual void PrependWrapper(const CefString& wrapper) OVERRIDE;
 };
 
 #endif  // USING_CEF_SHARED

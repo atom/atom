@@ -374,6 +374,22 @@ void CefCommandLineCToCpp::AppendArgument(const CefString& argument) {
       argument.GetStruct());
 }
 
+void CefCommandLineCToCpp::PrependWrapper(const CefString& wrapper) {
+  if (CEF_MEMBER_MISSING(struct_, prepend_wrapper))
+    return;
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: wrapper; type: string_byref_const
+  DCHECK(!wrapper.empty());
+  if (wrapper.empty())
+    return;
+
+  // Execute
+  struct_->prepend_wrapper(struct_,
+      wrapper.GetStruct());
+}
+
 
 #ifndef NDEBUG
 template<> long CefCToCpp<CefCommandLineCToCpp, CefCommandLine,

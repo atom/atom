@@ -486,10 +486,7 @@ bool CefV8ValueCToCpp::HasValue(const CefString& key) {
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
-  // Verify param: key; type: string_byref_const
-  DCHECK(!key.empty());
-  if (key.empty())
-    return false;
+  // Unverified params: key
 
   // Execute
   int _retval = struct_->has_value_bykey(struct_,
@@ -524,10 +521,7 @@ bool CefV8ValueCToCpp::DeleteValue(const CefString& key) {
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
-  // Verify param: key; type: string_byref_const
-  DCHECK(!key.empty());
-  if (key.empty())
-    return false;
+  // Unverified params: key
 
   // Execute
   int _retval = struct_->delete_value_bykey(struct_,
@@ -562,10 +556,7 @@ CefRefPtr<CefV8Value> CefV8ValueCToCpp::GetValue(const CefString& key) {
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
-  // Verify param: key; type: string_byref_const
-  DCHECK(!key.empty());
-  if (key.empty())
-    return NULL;
+  // Unverified params: key
 
   // Execute
   cef_v8value_t* _retval = struct_->get_value_bykey(struct_,
@@ -601,14 +592,11 @@ bool CefV8ValueCToCpp::SetValue(const CefString& key,
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
-  // Verify param: key; type: string_byref_const
-  DCHECK(!key.empty());
-  if (key.empty())
-    return false;
   // Verify param: value; type: refptr_same
   DCHECK(value.get());
   if (!value.get())
     return false;
+  // Unverified params: key
 
   // Execute
   int _retval = struct_->set_value_bykey(struct_,
@@ -651,10 +639,7 @@ bool CefV8ValueCToCpp::SetValue(const CefString& key, AccessControl settings,
 
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
-  // Verify param: key; type: string_byref_const
-  DCHECK(!key.empty());
-  if (key.empty())
-    return false;
+  // Unverified params: key
 
   // Execute
   int _retval = struct_->set_value_byaccessor(struct_,

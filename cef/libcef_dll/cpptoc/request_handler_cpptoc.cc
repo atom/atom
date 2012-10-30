@@ -16,7 +16,9 @@
 #include "libcef_dll/ctocpp/browser_ctocpp.h"
 #include "libcef_dll/ctocpp/cookie_manager_ctocpp.h"
 #include "libcef_dll/ctocpp/frame_ctocpp.h"
+#include "libcef_dll/ctocpp/quota_callback_ctocpp.h"
 #include "libcef_dll/ctocpp/request_ctocpp.h"
+#include "libcef_dll/ctocpp/web_plugin_info_ctocpp.h"
 
 
 // MEMBER FUNCTIONS - Body may be edited by hand.
@@ -167,6 +169,39 @@ int CEF_CALLBACK request_handler_get_auth_credentials(
   return _retval;
 }
 
+int CEF_CALLBACK request_handler_on_quota_request(
+    struct _cef_request_handler_t* self, cef_browser_t* browser,
+    const cef_string_t* origin_url, int64 new_size,
+    cef_quota_callback_t* callback) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return 0;
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser);
+  if (!browser)
+    return 0;
+  // Verify param: origin_url; type: string_byref_const
+  DCHECK(origin_url);
+  if (!origin_url)
+    return 0;
+  // Verify param: callback; type: refptr_diff
+  DCHECK(callback);
+  if (!callback)
+    return 0;
+
+  // Execute
+  bool _retval = CefRequestHandlerCppToC::Get(self)->OnQuotaRequest(
+      CefBrowserCToCpp::Wrap(browser),
+      CefString(origin_url),
+      new_size,
+      CefQuotaCallbackCToCpp::Wrap(callback));
+
+  // Return type: bool
+  return _retval;
+}
+
 cef_cookie_manager_t* CEF_CALLBACK request_handler_get_cookie_manager(
     struct _cef_request_handler_t* self, cef_browser_t* browser,
     const cef_string_t* main_url) {
@@ -230,6 +265,36 @@ void CEF_CALLBACK request_handler_on_protocol_execution(
     *allow_os_execution = allow_os_executionBool?true:false;
 }
 
+int CEF_CALLBACK request_handler_on_before_plugin_load(
+    struct _cef_request_handler_t* self, cef_browser_t* browser,
+    const cef_string_t* url, const cef_string_t* policy_url,
+    struct _cef_web_plugin_info_t* info) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return 0;
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser);
+  if (!browser)
+    return 0;
+  // Verify param: info; type: refptr_diff
+  DCHECK(info);
+  if (!info)
+    return 0;
+  // Unverified params: url, policy_url
+
+  // Execute
+  bool _retval = CefRequestHandlerCppToC::Get(self)->OnBeforePluginLoad(
+      CefBrowserCToCpp::Wrap(browser),
+      CefString(url),
+      CefString(policy_url),
+      CefWebPluginInfoCToCpp::Wrap(info));
+
+  // Return type: bool
+  return _retval;
+}
+
 
 // CONSTRUCTOR - Do not edit by hand.
 
@@ -241,8 +306,10 @@ CefRequestHandlerCppToC::CefRequestHandlerCppToC(CefRequestHandler* cls)
   struct_.struct_.get_resource_handler = request_handler_get_resource_handler;
   struct_.struct_.on_resource_redirect = request_handler_on_resource_redirect;
   struct_.struct_.get_auth_credentials = request_handler_get_auth_credentials;
+  struct_.struct_.on_quota_request = request_handler_on_quota_request;
   struct_.struct_.get_cookie_manager = request_handler_get_cookie_manager;
   struct_.struct_.on_protocol_execution = request_handler_on_protocol_execution;
+  struct_.struct_.on_before_plugin_load = request_handler_on_before_plugin_load;
 }
 
 #ifndef NDEBUG

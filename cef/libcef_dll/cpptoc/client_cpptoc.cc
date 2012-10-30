@@ -12,6 +12,7 @@
 
 #include "libcef_dll/cpptoc/client_cpptoc.h"
 #include "libcef_dll/cpptoc/context_menu_handler_cpptoc.h"
+#include "libcef_dll/cpptoc/dialog_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/display_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/download_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/focus_handler_cpptoc.h"
@@ -41,6 +42,22 @@ struct _cef_context_menu_handler_t* CEF_CALLBACK client_get_context_menu_handler
 
   // Return type: refptr_same
   return CefContextMenuHandlerCppToC::Wrap(_retval);
+}
+
+struct _cef_dialog_handler_t* CEF_CALLBACK client_get_dialog_handler(
+    struct _cef_client_t* self) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self)
+    return NULL;
+
+  // Execute
+  CefRefPtr<CefDialogHandler> _retval = CefClientCppToC::Get(
+      self)->GetDialogHandler();
+
+  // Return type: refptr_same
+  return CefDialogHandlerCppToC::Wrap(_retval);
 }
 
 struct _cef_display_handler_t* CEF_CALLBACK client_get_display_handler(
@@ -220,6 +237,7 @@ int CEF_CALLBACK client_on_process_message_received(struct _cef_client_t* self,
 CefClientCppToC::CefClientCppToC(CefClient* cls)
     : CefCppToC<CefClientCppToC, CefClient, cef_client_t>(cls) {
   struct_.struct_.get_context_menu_handler = client_get_context_menu_handler;
+  struct_.struct_.get_dialog_handler = client_get_dialog_handler;
   struct_.struct_.get_display_handler = client_get_display_handler;
   struct_.struct_.get_download_handler = client_get_download_handler;
   struct_.struct_.get_focus_handler = client_get_focus_handler;

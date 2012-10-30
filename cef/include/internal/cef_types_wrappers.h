@@ -1,4 +1,4 @@
-// Copyright (c) 2011 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2012 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -588,5 +588,35 @@ class CefProxyInfo : public CefStructBase<CefProxyInfoTraits> {
 
   CefString ProxyList() const { return CefString(&proxyList); }
 };
+
+struct CefGeopositionTraits {
+  typedef cef_geoposition_t struct_type;
+
+  static inline void init(struct_type* s) {}
+
+  static inline void clear(struct_type* s) {
+    cef_string_clear(&s->error_message);
+  }
+
+  static inline void set(const struct_type* src, struct_type* target,
+      bool copy) {
+    target->latitude = src->latitude;
+    target->longitude = src->longitude;
+    target->altitude = src->altitude;
+    target->accuracy = src->accuracy;
+    target->altitude_accuracy = src->altitude_accuracy;
+    target->heading = src->heading;
+    target->speed = src->speed;
+    target->timestamp = src->timestamp;
+    target->error_code = src->error_code;
+    cef_string_set(src->error_message.str, src->error_message.length,
+        &target->error_message, copy);
+  }
+};
+
+///
+// Class representing a geoposition.
+///
+typedef CefStructBase<CefGeopositionTraits> CefGeoposition;
 
 #endif  // CEF_INCLUDE_INTERNAL_CEF_TYPES_WRAPPERS_H_

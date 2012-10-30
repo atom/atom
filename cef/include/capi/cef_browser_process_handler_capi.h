@@ -70,6 +70,14 @@ typedef struct _cef_browser_process_handler_t {
   ///
   void (CEF_CALLBACK *on_context_initialized)(
       struct _cef_browser_process_handler_t* self);
+
+  ///
+  // Called on the browser process IO thread before a child process is launched.
+  // Provides an opportunity to modify the child process command line.
+  ///
+  void (CEF_CALLBACK *on_before_child_process_launch)(
+      struct _cef_browser_process_handler_t* self,
+      struct _cef_command_line_t* command_line);
 } cef_browser_process_handler_t;
 
 

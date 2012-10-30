@@ -45,6 +45,7 @@
 #include "include/cef_resource_handler.h"
 #include "include/cef_response.h"
 #include "include/cef_request.h"
+#include "include/cef_web_plugin.h"
 
 ///
 // Callback interface used for asynchronous continuation of authentication
@@ -62,6 +63,27 @@ class CefAuthCallback : public virtual CefBase {
 
   ///
   // Cancel the authentication request.
+  ///
+  /*--cef()--*/
+  virtual void Cancel() =0;
+};
+
+
+///
+// Callback interface used for asynchronous continuation of quota requests.
+///
+/*--cef(source=library)--*/
+class CefQuotaCallback : public virtual CefBase {
+ public:
+  ///
+  // Continue the quota request. If |allow| is true the request will be
+  // allowed. Otherwise, the request will be denied.
+  ///
+  /*--cef(capi_name=cont)--*/
+  virtual void Continue(bool allow) =0;
+
+  ///
+  // Cancel the quota request.
   ///
   /*--cef()--*/
   virtual void Cancel() =0;
@@ -132,6 +154,22 @@ class CefRequestHandler : public virtual CefBase {
   }
 
   ///
+  // Called on the IO thread when JavaScript requests a specific storage quota
+  // size via the webkitStorageInfo.requestQuota function. |origin_url| is the
+  // origin of the page making the request. |new_size| is the requested quota
+  // size in bytes. Return true and call CefQuotaCallback::Complete() either in
+  // this function or at a later time to grant or deny the request. Return false
+  // to cancel the request.
+  ///
+  /*--cef(optional_param=realm)--*/
+  virtual bool OnQuotaRequest(CefRefPtr<CefBrowser> browser,
+                              const CefString& origin_url,
+                              int64 new_size,
+                              CefRefPtr<CefQuotaCallback> callback) {
+    return false;
+  }
+
+  ///
   // Called on the IO thread to retrieve the cookie manager. |main_url| is the
   // URL of the top-level frame. Cookies managers can be unique per browser or
   // shared across multiple browsers. The global cookie manager will be used if
@@ -153,6 +191,18 @@ class CefRequestHandler : public virtual CefBase {
   virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser,
                                    const CefString& url,
                                    bool& allow_os_execution) {}
+
+  ///
+  // Called on the browser process IO thread before a plugin is loaded. Return
+  // true to block loading of the plugin.
+  ///
+  /*--cef(optional_param=url,optional_param=policy_url)--*/
+  virtual bool OnBeforePluginLoad(CefRefPtr<CefBrowser> browser,
+                                  const CefString& url,
+                                  const CefString& policy_url,
+                                  CefRefPtr<CefWebPluginInfo> info) {
+    return false;
+  }
 };
 
 #endif  // CEF_INCLUDE_CEF_REQUEST_HANDLER_H_
