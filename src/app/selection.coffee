@@ -29,7 +29,9 @@ class Selection
 
   finalize: ->
     @initialScreenRange = null unless @initialScreenRange?.isEqual(@getScreenRange())
-    @wordwise = false if @isEmpty()
+    if @isEmpty()
+      @wordwise = false
+      @linewise = false
 
   isEmpty: ->
     @getBufferRange().isEmpty()
@@ -109,6 +111,10 @@ class Selection
       endPosition = [row+1, 0]
     @setBufferRange [startPosition, endPosition]
 
+    @linewise = true
+    @wordwise = false
+    @initialScreenRange = @getScreenRange()
+
   expandOverLine: ->
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))
 
@@ -124,7 +130,9 @@ class Selection
       else
         @cursor.setScreenPosition(position)
 
-      if @wordwise
+      if @linewise
+        @expandOverLine()
+      else if @wordwise
         @expandOverWord()
 
   selectToBufferPosition: (position) ->

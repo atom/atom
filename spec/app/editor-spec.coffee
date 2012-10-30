@@ -9,7 +9,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-fdescribe "Editor", ->
+describe "Editor", ->
   [rootView, project, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -536,7 +536,7 @@ fdescribe "Editor", ->
           expect(editor.getCursorBufferPosition()).toEqual(row: 3, column: 50)
 
     describe "double-click", ->
-      it "selects the word under the cursor, and expands the selection in either direction on a subsequent shift-click", ->
+      it "selects the word under the cursor, and expands the selection wordwise in either direction on a subsequent shift-click", ->
         expect(editor.getCursorScreenPosition()).toEqual(row: 0, column: 0)
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [8, 24], originalEvent: {detail: 1})
         editor.renderedLines.trigger 'mouseup'
@@ -587,6 +587,27 @@ fdescribe "Editor", ->
         editor.renderedLines.trigger 'mouseup'
         expect(editor.getSelectedText()).toBe "    if (items.length <= 1) return items;\n"
 
+      it "expands the selection linewise in either direction on a subsequent shift-click, but stops selecting linewise once the selection is emptied", ->
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 2})
+        editor.renderedLines.trigger 'mouseup'
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 8], originalEvent: {detail: 3})
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelectedBufferRange()).toEqual [[4, 0], [5, 0]]
+
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [1, 8], originalEvent: {detail: 1}, shiftKey: true)
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelectedBufferRange()).toEqual [[1, 0], [5, 0]]
+
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [2, 8], originalEvent: {detail: 1})
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
+
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 8], originalEvent: {detail: 1}, shiftKey: true)
+        editor.renderedLines.trigger 'mouseup'
+        expect(editor.getSelectedBufferRange()).toEqual [[2, 8], [3, 8]]
+
     describe "shift-click", ->
       it "selects from the cursor's current location to the clicked location", ->
         editor.setCursorScreenPosition([4, 7])
@@ -611,7 +632,7 @@ fdescribe "Editor", ->
         editor.renderedLines.trigger 'mouseup'
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 24], shiftKey: true, originalEvent: { detail: 3 })
         editor.renderedLines.trigger 'mouseup'
-        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [5, 30]]
+        expect(editor.getSelection().getScreenRange()).toEqual [[4, 7], [6, 0]]
 
     describe "meta-click", ->
       it "places an additional cursor", ->
@@ -684,7 +705,7 @@ fdescribe "Editor", ->
         expect(editor.getSelectedBufferRange()).toEqual [[0, 13], [5, 27]]
 
     describe "triple-click and drag", ->
-      ffit "expands the initial selection linewise in either direction", ->
+      it "expands the initial selection linewise in either direction", ->
         editor.attachToDom()
 
         # triple click
