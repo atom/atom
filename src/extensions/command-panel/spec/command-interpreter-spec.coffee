@@ -273,6 +273,25 @@ describe "CommandInterpreter", ->
       runs ->
         expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
 
+    describe "when there is no address range is given", ->
+      describe "when there is no text selection", ->
+        it "uses the entire file as the address range", ->
+          waitsForPromise ->
+            editSession.clearSelections()
+            interpreter.eval('s/current/foo/g', editSession)
+          runs ->
+            expect(buffer.lineForRow(3)).toBe '    var pivot = items.shift(), foo, left = [], right = [];'
+            expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(foo);'
+
+      describe "when text is selected", ->
+        it "uses the selection as the address range", ->
+          waitsForPromise ->
+            editSession.setSelectedBufferRange([[6, 0], [6, 44]])
+            interpreter.eval('s/current/foo/g', editSession)
+          runs ->
+            expect(buffer.lineForRow(3)).toBe '    var pivot = items.shift(), current, left = [], right = [];'
+            expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
+
     describe "when not global", ->
       describe "when there is a single selection", ->
         it "performs a single substitution within the current selection", ->
