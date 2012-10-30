@@ -262,7 +262,7 @@ describe "EditSession", ->
         editSession.moveCursorToBeginningOfWord()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 4]
-        expect(cursor2.getBufferPosition()).toEqual [1, 11]
+        expect(cursor2.getBufferPosition()).toEqual [1, 10]
         expect(cursor3.getBufferPosition()).toEqual [2, 39]
 
       it "does not fail at position [0, 0]", ->
@@ -279,8 +279,8 @@ describe "EditSession", ->
         editSession.moveCursorToEndOfWord()
 
         expect(cursor1.getBufferPosition()).toEqual [0, 13]
-        expect(cursor2.getBufferPosition()).toEqual [1, 12]
-        expect(cursor3.getBufferPosition()).toEqual [3, 7]
+        expect(cursor2.getBufferPosition()).toEqual [1, 13]
+        expect(cursor3.getBufferPosition()).toEqual [3, 4]
 
   describe "selection", ->
     selection = null
@@ -463,13 +463,13 @@ describe "EditSession", ->
         expect(editSession.getCursors().length).toBe 2
         [cursor1, cursor2] = editSession.getCursors()
         expect(cursor1.getBufferPosition()).toEqual [0,4]
-        expect(cursor2.getBufferPosition()).toEqual [3,47]
+        expect(cursor2.getBufferPosition()).toEqual [3,44]
 
         expect(editSession.getSelections().length).toBe 2
         [selection1, selection2] = editSession.getSelections()
         expect(selection1.getBufferRange()).toEqual [[0,4], [0,13]]
         expect(selection1.isReversed()).toBeTruthy()
-        expect(selection2.getBufferRange()).toEqual [[3,47], [3,49]]
+        expect(selection2.getBufferRange()).toEqual [[3,44], [3,49]]
         expect(selection2.isReversed()).toBeTruthy()
 
     describe ".selectToEndOfWord()", ->
@@ -482,13 +482,13 @@ describe "EditSession", ->
         expect(editSession.getCursors().length).toBe 2
         [cursor1, cursor2] = editSession.getCursors()
         expect(cursor1.getBufferPosition()).toEqual [0,13]
-        expect(cursor2.getBufferPosition()).toEqual [3,50]
+        expect(cursor2.getBufferPosition()).toEqual [3,51]
 
         expect(editSession.getSelections().length).toBe 2
         [selection1, selection2] = editSession.getSelections()
         expect(selection1.getBufferRange()).toEqual [[0,4], [0,13]]
         expect(selection1.isReversed()).toBeFalsy()
-        expect(selection2.getBufferRange()).toEqual [[3,48], [3,50]]
+        expect(selection2.getBufferRange()).toEqual [[3,48], [3,51]]
         expect(selection2.isReversed()).toBeFalsy()
 
     describe ".selectWord()", ->
@@ -498,23 +498,17 @@ describe "EditSession", ->
            editSession.selectWord()
            expect(editSession.getSelectedText()).toBe 'quicksort'
 
-       describe "when the cursor is on beginning of a word", ->
-         it "selects the entire word", ->
+       describe "when the cursor is between two words", ->
+         it "selects both words", ->
            editSession.setCursorScreenPosition([0, 4])
            editSession.selectWord()
-           expect(editSession.getSelectedText()).toBe 'quicksort'
+           expect(editSession.getSelectedText()).toBe ' quicksort'
 
-       describe "when the cursor is at the end of a word", ->
-         it "selects the entire word", ->
-           editSession.setCursorScreenPosition([0, 13])
-           editSession.selectWord()
-           expect(editSession.getSelectedText()).toBe 'quicksort'
-
-       describe "when the cursor is not on a word", ->
-         it "selects nothing", ->
+       describe "when the cursor is inside a region of whitespace", ->
+         it "selects the whitespace region", ->
            editSession.setCursorScreenPosition([5, 2])
            editSession.selectWord()
-           expect(editSession.getSelectedText()).toBe ''
+           expect(editSession.getSelectedBufferRange()).toEqual [[5, 0], [5, 6]]
 
     describe ".setSelectedBufferRanges(ranges)", ->
       it "clears existing selections and creates selections for each of the given ranges", ->
@@ -1043,9 +1037,15 @@ describe "EditSession", ->
           expect(cursor2.getBufferPosition()).toEqual [2, 4]
 
           editSession.backspaceToBeginningOfWord()
-          expect(buffer.lineForRow(1)).toBe '  var sort = functionems) f (items.length <= 1) return items;'
+          expect(buffer.lineForRow(1)).toBe '  var sort = functionems) {'
+          expect(buffer.lineForRow(2)).toBe 'f (items.length <= 1) return items;'
           expect(cursor1.getBufferPosition()).toEqual [1, 21]
-          expect(cursor2.getBufferPosition()).toEqual [1, 26]
+          expect(cursor2.getBufferPosition()).toEqual [2, 0]
+
+          editSession.backspaceToBeginningOfWord()
+          expect(buffer.lineForRow(1)).toBe '  var sort = emsf (items.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 13]
+          expect(cursor2.getBufferPosition()).toEqual [1, 16]
 
       describe "when text is selected", ->
         it "deletes only selected text", ->
@@ -1189,7 +1189,7 @@ describe "EditSession", ->
           expect(cursor2.getBufferPosition()).toEqual [2, 5]
 
           editSession.deleteToEndOfWord()
-          expect(buffer.lineForRow(1)).toBe '  var sort = function(it {'
+          expect(buffer.lineForRow(1)).toBe '  var sort = function(it'
           expect(buffer.lineForRow(2)).toBe '    iitems.length <= 1) return items;'
           expect(cursor1.getBufferPosition()).toEqual [1, 24]
           expect(cursor2.getBufferPosition()).toEqual [2, 5]

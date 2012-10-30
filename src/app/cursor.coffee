@@ -9,7 +9,7 @@ class Cursor
   screenPosition: null
   bufferPosition: null
   goalColumn: null
-  wordRegex: /(\w+)|([^\w\s]+)/g
+  wordRegex: /(\w+)|([^\w\n]+)/g
   visible: true
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
