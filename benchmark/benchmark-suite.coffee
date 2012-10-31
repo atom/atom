@@ -92,14 +92,3 @@ describe "TokenizedBuffer.", ->
 
     benchmark "construction", 20, ->
       new TokenizedBuffer(buffer, { languageMode, tabLength: 2})
-
-describe "OnigRegExp.", ->
-  [regexes, line] = []
-
-  beforeEach ->
-    line = "  l.comment_matcher = new RegExp('^\\s*' + l.symbol + '\\s?')"
-    regexes = _.pluck(TextMateBundle.grammarForFileName('medium.coffee').initialRule.getIncludedPatterns(), "regex")
-
-  benchmark ".getCaptureTree", 10000, ->
-    OnigRegExp.captureIndices(line, 22, regexes)
-
