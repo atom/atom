@@ -8,11 +8,11 @@ class Anchor
   editSession: null # optional
   bufferPosition: null
   screenPosition: null
-  ignoreEqual: false
+  ignoreChangesStartingOnAnchor: false
   strong: false
 
   constructor: (@buffer, options = {}) ->
-    { @editSession, @ignoreEqual, @strong } = options
+    { @editSession, @ignoreChangesStartingOnAnchor, @strong } = options
 
   handleBufferChange: (e) ->
     { oldRange, newRange } = e
@@ -25,7 +25,7 @@ class Anchor
         @destroy()
       return
 
-    return if @ignoreEqual and position.isEqual(oldRange.start)
+    return if @ignoreChangesStartingOnAnchor and position.isEqual(oldRange.start)
     return if position.isLessThan(oldRange.end)
 
     newRow = newRange.end.row

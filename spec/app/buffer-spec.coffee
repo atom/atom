@@ -630,9 +630,9 @@ describe 'Buffer', ->
       anchor = buffer.addAnchorAtPosition([4, 25])
       anchor.on 'destroy', destroyHandler
 
-    describe "when anchor.ignoreEqual is true", ->
+    describe "when anchor.ignoreChangesStartingOnAnchor is true", ->
       beforeEach ->
-        anchor.ignoreEqual = true
+        anchor.ignoreChangesStartingOnAnchor = true
 
       describe "when the change ends before the anchor position", ->
         it "moves the anchor", ->
