@@ -630,6 +630,34 @@ describe 'Buffer', ->
       anchor = buffer.addAnchorAtPosition([4, 25])
       anchor.on 'destroy', destroyHandler
 
+    describe "when anchor.ignoreEqual is true", ->
+      beforeEach ->
+        anchor.ignoreEqual = true
+
+      describe "when the change ends before the anchor position", ->
+        it "moves the anchor", ->
+          buffer.change([[4, 23], [4, 24]], "...")
+          expect(anchor.getBufferPosition()).toEqual [4, 27]
+          expect(destroyHandler).not.toHaveBeenCalled()
+
+      describe "when the change ends on the anchor position", ->
+        it "moves the anchor", ->
+          buffer.change([[4, 24], [4, 25]], "...")
+          expect(anchor.getBufferPosition()).toEqual [4, 27]
+          expect(destroyHandler).not.toHaveBeenCalled()
+
+      describe "when the change begins on the anchor position", ->
+        it "doesn't move the anchor", ->
+          buffer.change([[4, 25], [4, 26]], ".....")
+          expect(anchor.getBufferPosition()).toEqual [4, 25]
+          expect(destroyHandler).not.toHaveBeenCalled()
+
+      describe "when the change begins after the anchor position", ->
+        it "doesn't move the anchor", ->
+          buffer.change([[4, 26], [4, 27]], ".....")
+          expect(anchor.getBufferPosition()).toEqual [4, 25]
+          expect(destroyHandler).not.toHaveBeenCalled()
+
     describe "when the buffer changes and the oldRange is equalTo than the newRange (text is replaced)", ->
       describe "when the anchor is contained by the oldRange", ->
         it "destroys the anchor", ->

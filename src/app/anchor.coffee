@@ -25,10 +25,8 @@ class Anchor
         @destroy()
       return
 
-    if @ignoreEqual
-      return if position.isLessThanOrEqual(oldRange.end)
-    else
-      return if position.isLessThan(oldRange.end)
+    return if @ignoreEqual and position.isEqual(oldRange.start)
+    return if position.isLessThan(oldRange.end)
 
     newRow = newRange.end.row
     newColumn = newRange.end.column
