@@ -16,7 +16,7 @@ class Substitution extends Command
     deferred = $.Deferred()
     operations = []
     for range in ranges
-      buffer.scanInRange @regex, range, (match, matchRange, { replace }) =>
+      buffer.scanInRange @regex, range, (match, matchRange) =>
         operations.push(new Operation(
           project: project
           buffer: buffer
