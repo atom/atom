@@ -8,14 +8,12 @@ UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 Anchor = require 'anchor'
 AnchorRange = require 'anchor-range'
-{hex_md5}  = require 'md5'
 
 module.exports =
 class Buffer
   @idCounter = 1
   undoManager: null
-  diskContentSignature: null
-  memoryContentSignature: null
+  cachedDiskContents: null
   conflict: false
   lines: null
   file: null
@@ -32,19 +30,11 @@ class Buffer
     if path
       throw "Path '#{path}' does not exist" unless fs.exists(path)
       @setPath(path)
-      @setText(fs.read(@getPath()))
-      @computeDiskContentSignature()
+      @reload()
     else
       @setText('')
 
-    @computeMemoryContentSignature()
     @undoManager = new UndoManager(this)
-
-  computeDiskContentSignature: ->
-    @diskContentSignature = fs.md5ForPath(@getPath())
-
-  computeMemoryContentSignature: ->
-    @memoryContentSignature = hex_md5(@getText())
 
   destroy: ->
     throw new Error("Destroying buffer twice with path '#{@getPath()}'") if @destroyed
@@ -65,11 +55,10 @@ class Buffer
     @file.on "contents-change", =>
       if @isModified()
         @conflict = true
-        @computeDiskContentSignature()
+        @updateCachedDiskContents()
         @trigger "contents-change-on-disk"
       else
-        @setText(fs.read(@file.getPath()))
-        @computeDiskContentSignature()
+        @reload()
 
     @file.on "remove", =>
       @file = null
@@ -79,7 +68,11 @@ class Buffer
       @trigger "path-change", this
 
   reload: ->
-    @setText(fs.read(@getPath()))
+    @updateCachedDiskContents()
+    @setText(@cachedDiskContents)
+
+  updateCachedDiskContents: ->
+    @cachedDiskContents = fs.read(@getPath())
 
   getBaseName: ->
     @file?.getBaseName()
@@ -212,8 +205,7 @@ class Buffer
 
   replaceLines: (startRow, endRow, newLines) ->
     @lines[startRow..endRow] = newLines
-    @computeMemoryContentSignature()
-    @conflict = false unless @isModified()
+    @conflict = false if @conflict and !@isModified()
 
   pushOperation: (operation, editSession) ->
     if @undoManager
@@ -237,15 +229,16 @@ class Buffer
     if not path then throw new Error("Can't save buffer with no file path")
 
     @trigger 'before-save'
-    fs.write path, @getText()
+    @cachedDiskContents = @getText()
+    fs.write path, @cachedDiskContents
     @file?.updateMd5()
     @setPath(path)
-    @computeDiskContentSignature()
+
     @trigger 'after-save'
 
   isModified: ->
     if @file
-      @memoryContentSignature != @diskContentSignature
+      @getText() != @cachedDiskContents
     else
       not @isEmpty()
 
