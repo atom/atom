@@ -95,6 +95,11 @@ class AtomCefClient : public CefClient,
                            const CefString& errorText,
                            const CefString& failedUrl) OVERRIDE;
 
+  void BeginTracing();
+  void EndTracing();
+
+  bool Save(const std::string& path, const std::string& data);
+
  protected:
   CefRefPtr<CefBrowser> m_Browser;
   bool m_HandlePasteboardCommands = false;
