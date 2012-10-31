@@ -407,3 +407,8 @@ describe "CommandPanel", ->
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
         expect(rootView.focus).toHaveBeenCalled()
+
+  describe ".escapedCommand()", ->
+    it "escapes characters with a backslash in front of them", ->
+      commandPanel.miniEditor.setText("a\\tb")
+      expect(commandPanel.escapedCommand()).toBe("a\tb")

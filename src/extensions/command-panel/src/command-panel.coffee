@@ -102,7 +102,10 @@ class CommandPanel extends View
     @previewList.hide()
     super
 
-  execute: (command = @miniEditor.getText()) ->
+  escapedCommand: ->
+    @miniEditor.getText().replace /\\(.)/, (match, charachter) -> eval("'\\#{charachter}'")
+
+  execute: (command=@escapedCommand())->
     try
       @commandInterpreter.eval(command, @rootView.getActiveEditSession()).done (operationsToPreview) =>
         @history.push(command)
