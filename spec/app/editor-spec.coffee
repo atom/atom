@@ -705,7 +705,6 @@ describe "Editor", ->
         # shift-clicking still selects by word, but does not preserve the initial range
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [5, 25], originalEvent: {detail: 1}, shiftKey: true)
         editor.renderedLines.trigger 'mouseup'
-        editor.logScreenLines(5, 5)
         expect(editor.getSelectedBufferRange()).toEqual [[0, 13], [5, 27]]
 
     describe "triple-click and drag", ->
