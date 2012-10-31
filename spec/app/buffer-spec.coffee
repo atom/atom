@@ -630,11 +630,53 @@ describe 'Buffer', ->
       anchor = buffer.addAnchorAtPosition([4, 25])
       anchor.on 'destroy', destroyHandler
 
-    describe "when a buffer change precedes an anchor", ->
-      it "moves the anchor in accordance with the change", ->
-        buffer.delete([[3, 0], [4, 10]])
-        expect(anchor.getBufferPosition()).toEqual [3, 15]
-        expect(destroyHandler).not.toHaveBeenCalled()
+    describe "when the buffer changes and the oldRange is equalTo than the newRange (text is replaced)", ->
+      describe "when the anchor is contained by the oldRange", ->
+        it "destroys the anchor", ->
+          buffer.change([[4, 20], [4, 26]], ".......")
+          expect(destroyHandler).toHaveBeenCalled()
+
+      describe "when the anchor is not contained by the oldRange", ->
+        it "does not move the anchor", ->
+          buffer.change([[4, 20], [4, 21]], ".")
+          expect(anchor.getBufferPosition()).toEqual [4, 25]
+          expect(destroyHandler).not.toHaveBeenCalled()
+
+    describe "when the buffer changes and the oldRange is smaller than the newRange (text is inserted)", ->
+      describe "when the buffer changes and the oldRange starts and ends before the anchor ", ->
+        it "updates the anchor position", ->
+          buffer.change([[4, 24], [4, 24]], "..")
+          expect(anchor.getBufferPosition()).toEqual [4, 27]
+          expect(destroyHandler).not.toHaveBeenCalled()
+
+     describe "when the buffer changes and the oldRange contains before the anchor ", ->
+       it "destroys the anchor", ->
+         buffer.change([[4, 24], [4, 26]], ".....")
+         expect(destroyHandler).toHaveBeenCalled()
+
+      describe "when the buffer changes and the oldRange stars after the anchor", ->
+        it "does not move the anchor", ->
+          buffer.change([[4, 26], [4, 26]], "....")
+          expect(anchor.getBufferPosition()).toEqual [4, 25]
+          expect(destroyHandler).not.toHaveBeenCalled()
+
+    describe "when the buffer changes and the oldRange is larger than the newRange (text is deleted)", ->
+      describe "when the buffer changes and the oldRange starts and ends before the anchor ", ->
+        it "updates the anchor position", ->
+          buffer.change([[4, 20], [4, 21]], "")
+          expect(anchor.getBufferPosition()).toEqual [4, 24]
+          expect(destroyHandler).not.toHaveBeenCalled()
+
+     describe "when the buffer changes and the oldRange contains before the anchor ", ->
+       it "destroys the anchor", ->
+         buffer.change([[4, 24], [4, 26]], ".")
+         expect(destroyHandler).toHaveBeenCalled()
+
+      describe "when the oldRange stars after the anchor", ->
+        it "does not move the anchor", ->
+          buffer.change([[4, 26], [4, 27]], "")
+          expect(anchor.getBufferPosition()).toEqual [4, 25]
+          expect(destroyHandler).not.toHaveBeenCalled()
 
     describe "when a buffer change surrounds an anchor", ->
       it "destroys the anchor", ->
