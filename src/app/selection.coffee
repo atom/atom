@@ -48,15 +48,15 @@ class Selection
     else
       new Range(@cursor.getScreenPosition(), @cursor.getScreenPosition())
 
-  setScreenRange: (screenRange, options={}) ->
-    screenRange = Range.fromObject(screenRange)
-    { start, end } = screenRange
-    [start, end] = [end, start] if options.reverse
+  setScreenRange: (screenRange, options) ->
+    bufferRange = editSession.bufferRangeForScreenRange(screenRange)
+    @setBufferRange(bufferRange, options)
 
-    @placeAnchor() unless @anchor
-    @modifySelection =>
-      @anchor.setScreenPosition(start)
-      @cursor.setScreenPosition(end)
+  getBufferRange: ->
+    if @anchor
+      new Range(@anchor.getBufferPosition(), @cursor.getBufferPosition())
+    else
+      new Range(@cursor.getBufferPosition(), @cursor.getBufferPosition())
 
   setBufferRange: (bufferRange, options={}) ->
     bufferRange = Range.fromObject(bufferRange)
@@ -69,11 +69,7 @@ class Selection
       @anchor.setBufferPosition(start, options)
       @cursor.setBufferPosition(end, options)
 
-  getBufferRange: ->
-    if @anchor
-      new Range(@anchor.getBufferPosition(), @cursor.getBufferPosition())
-    else
-      new Range(@cursor.getBufferPosition(), @cursor.getBufferPosition())
+
 
   getBufferRowRange: ->
     range = @getBufferRange()
@@ -359,7 +355,7 @@ class Selection
     @getScreenRange().intersectsWith(otherSelection.getScreenRange())
 
   merge: (otherSelection, options) ->
-    @setScreenRange(@getScreenRange().union(otherSelection.getScreenRange()), options)
+    @setBufferRange(@getBufferRange().union(otherSelection.getBufferRange()), options)
     otherSelection.destroy()
 
 _.extend Selection.prototype, EventEmitter
