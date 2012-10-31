@@ -10,8 +10,12 @@ describe "editor.", ->
 
   beforeEach ->
     window.rootViewParentSelector = '#jasmine-content'
-    window.attachRootView()
-    rootView.project.setPath(require.resolve('benchmark/fixtures'))
+    window.attachRootView(require.resolve('benchmark/fixtures'))
+
+    rootView.width(1024)
+    rootView.height(768)
+    require fs.join(atom.configDirPath, "default-config")
+    rootView.open() # open blank editor
     editor = rootView.getActiveEditor()
 
   afterEach ->
@@ -30,7 +34,7 @@ describe "editor.", ->
 
   describe "300-line-file.", ->
     beforeEach ->
-      editor.edit rootView.project.buildEditSessionForPath('medium.coffee')
+      rootView.open('medium.coffee')
 
     describe "at-begining.", ->
       benchmark "insert-delete", ->
@@ -51,11 +55,11 @@ describe "editor.", ->
 
   describe "9000-line-file.", ->
     benchmark "opening.", 5, ->
-      editor.edit rootView.project.buildEditSessionForPath('huge.js')
+      rootView.open('huge.js')
 
     describe "after-opening.", ->
       beforeEach ->
-        editor.edit rootView.project.buildEditSessionForPath('huge.js')
+        rootView.open('huge.js')
 
       benchmark "moving-to-eof.", 1, ->
         editor.moveCursorToBottom()
