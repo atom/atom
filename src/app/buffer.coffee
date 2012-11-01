@@ -14,6 +14,7 @@ class Buffer
   @idCounter = 1
   undoManager: null
   cachedDiskContents: null
+  cachedMemoryContents: null
   conflict: false
   lines: null
   file: null
@@ -96,7 +97,7 @@ class Buffer
       null
 
   getText: ->
-    @lines.join('\n')
+    @cachedMemoryContents ?= @lines.join('\n')
 
   setText: (text) ->
     @change(@getRange(), text)
@@ -205,6 +206,7 @@ class Buffer
 
   replaceLines: (startRow, endRow, newLines) ->
     @lines[startRow..endRow] = newLines
+    @cachedMemoryContents = null
     @conflict = false if @conflict and !@isModified()
 
   pushOperation: (operation, editSession) ->
