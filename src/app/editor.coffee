@@ -345,7 +345,6 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    @on 'cursor-move', ({bufferChanged}) => @highlightCursorLine() unless bufferChanged
     @on 'selection-change', => @highlightCursorLine()
 
   selectOnMousemoveUntilMouseup: ->
@@ -962,6 +961,7 @@ class Editor extends View
 
   highlightCursorLine: ->
     return if @mini
+
     @highlightedLine?.removeClass('cursor-line')
     if @getSelection().isSingleScreenLine()
       @highlightedLine = @lineElementForScreenRow(@getCursorScreenRow())
