@@ -3,6 +3,8 @@ Range = require 'range'
 
 module.exports =
 class LineMap
+  maxScreenLineLength: 0
+
   constructor: ->
     @screenLines = []
 
@@ -13,7 +15,16 @@ class LineMap
     @spliceAtScreenRow(start, end - start + 1, screenLines)
 
   spliceAtScreenRow: (startRow, rowCount, screenLines) ->
+    maxLengthCandidates =  screenLines
+    for screenLine in @screenLines[startRow...startRow+rowCount]
+      if screenLine.text.length == @maxScreenLineLength
+        @maxScreenLineLength = 0
+        maxLengthCandidates = @screenLines
+
     @screenLines.splice(startRow, rowCount, screenLines...)
+
+    for screenLine in maxLengthCandidates
+      @maxScreenLineLength = Math.max(@maxScreenLineLength, screenLine.text.length)
 
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
@@ -36,12 +47,6 @@ class LineMap
 
   lastScreenRow: ->
     @screenLineCount() - 1
-
-  maxScreenLineLength: ->
-    maxLength = 0
-    for screenLine in @screenLines
-      maxLength = Math.max(maxLength, screenLine.text.length)
-    maxLength
 
   clipScreenPosition: (screenPosition, options={}) ->
     { wrapBeyondNewlines, wrapAtSoftNewlines } = options

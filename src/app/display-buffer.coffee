@@ -169,7 +169,7 @@ class DisplayBuffer
     @lineCount() - 1
 
   maxLineLength: ->
-    @lineMap.maxScreenLineLength()
+    @lineMap.maxScreenLineLength
 
   screenPositionForBufferPosition: (position, options) ->
     @lineMap.screenPositionForBufferPosition(position, options)
