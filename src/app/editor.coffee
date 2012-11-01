@@ -178,6 +178,7 @@ class Editor extends View
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
   setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
+  getCursorScreenRow: -> @activeEditSession.getCursorScreenRow()
   setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
 
@@ -344,7 +345,7 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    @on 'cursor-move', => @highlightCursorLine()
+    @on 'cursor-move', ({bufferChanged}) => @highlightCursorLine()
     @on 'selection-change', => @highlightCursorLine()
 
   selectOnMousemoveUntilMouseup: ->
@@ -638,6 +639,7 @@ class Editor extends View
     @setScrollPositionFromActiveEditSession()
 
     @renderLines()
+    @highlightCursorLine()
     @activeEditSession.on 'screen-lines-change', (e) => @handleDisplayBufferChange(e)
 
   getCursorView: (index) ->
@@ -817,6 +819,8 @@ class Editor extends View
         @lastRenderedScreenRow = maxEndRow
         @updatePaddingOfRenderedLines()
 
+      @highlightCursorLine()
+
   buildLineElements: (startRow, endRow) ->
     charWidth = @charWidth
     charHeight = @charHeight
@@ -825,19 +829,15 @@ class Editor extends View
     cursorScreenRow = @getCursorScreenPosition().row
     mini = @mini
 
-    buildLineHtml = (line, lineClasses) => @buildLineHtml(line, lineClasses)
+    buildLineHtml = (line) => @buildLineHtml(line)
 
     $$ ->
       row = startRow
       for line in lines
-        if mini or row isnt cursorScreenRow
-          lineClasses = null
-        else
-          lineClasses = ' cursor-line'
-        @raw(buildLineHtml(line, lineClasses))
+        @raw(buildLineHtml(line))
         row++
 
-  buildLineHtml: (screenLine, lineClasses) ->
+  buildLineHtml: (screenLine) ->
     scopeStack = []
     line = []
 
@@ -868,8 +868,6 @@ class Editor extends View
         lineAttributes.class += ' selected'
     else
       lineAttributes = { class: 'line' }
-
-    lineAttributes.class += lineClasses if lineClasses
 
     attributePairs = []
     attributePairs.push "#{attributeName}=\"#{value}\"" for attributeName, value of lineAttributes
@@ -965,9 +963,9 @@ class Editor extends View
 
   highlightCursorLine: ->
     return if @mini
-
-    @cursorScreenRow = @getCursorScreenPosition().row
-    screenRow = @cursorScreenRow - @firstRenderedScreenRow
-    @find('pre.line.cursor-line').removeClass('cursor-line')
+    @highlightedLine?.removeClass('cursor-line')
     if @getSelection().isSingleScreenLine()
-      @find("pre.line:eq(#{screenRow})").addClass('cursor-line')
+      @highlightedLine = @lineElementForScreenRow(@getCursorScreenRow())
+      @highlightedLine.addClass('cursor-line')
+    else
+      @highlightedLine = null

@@ -50,6 +50,9 @@ class Anchor
   getScreenPosition: ->
     @screenPosition
 
+  getScreenRow: ->
+    @screenPosition.row
+
   setScreenPosition: (position, options={}) ->
     previousScreenPosition = @screenPosition
     @screenPosition = Point.fromObject(position)

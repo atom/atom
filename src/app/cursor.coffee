@@ -31,6 +31,9 @@ class Cursor
   getScreenPosition: ->
     @anchor.getScreenPosition()
 
+  getScreenRow: ->
+    @anchor.getScreenRow()
+
   setBufferPosition: (bufferPosition, options) ->
     @goalColumn = null
     @clearSelection()
