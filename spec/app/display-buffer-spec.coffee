@@ -637,6 +637,12 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.clipScreenPosition([0, 1], skipAtomicTokens: true)).toEqual [0, tabLength]
         expect(displayBuffer.clipScreenPosition([0, tabLength], skipAtomicTokens: true)).toEqual [0, tabLength]
 
+  describe "position translation in the presence of hard tabs", ->
+    it "correctly translates positions on either side of a tab", ->
+      buffer.setText('\t')
+      expect(displayBuffer.screenPositionForBufferPosition([0, 1])).toEqual [0, 2]
+      expect(displayBuffer.bufferPositionForScreenPosition([0, 2])).toEqual [0, 1]
+
   describe ".maxLineLength()", ->
     it "returns the length of the longest screen line", ->
       expect(displayBuffer.maxLineLength()).toBe 65

@@ -29,10 +29,23 @@ class ScreenLine
       column
 
   screenColumnForBufferColumn: (bufferColumn, options) ->
-    @clipScreenColumn(bufferColumn - @startBufferColumn)
+    bufferColumn = bufferColumn - @startBufferColumn
+    screenColumn = 0
+    currentBufferColumn = 0
+    for token in @tokens
+      break if currentBufferColumn > bufferColumn
+      screenColumn += token.screenDelta
+      currentBufferColumn += token.bufferDelta
+    @clipScreenColumn(screenColumn + (bufferColumn - currentBufferColumn))
 
   bufferColumnForScreenColumn: (screenColumn, options) ->
-    @startBufferColumn + screenColumn
+    bufferColumn = @startBufferColumn
+    currentScreenColumn = 0
+    for token in @tokens
+      break if currentScreenColumn + token.screenDelta > screenColumn
+      bufferColumn += token.bufferDelta
+      currentScreenColumn += token.screenDelta
+    bufferColumn + (screenColumn - currentScreenColumn)
 
   getMaxScreenColumn: ->
     if @fold
