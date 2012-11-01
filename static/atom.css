@@ -65,8 +65,8 @@ html, body {
 }
 
 .error {
-  background: #991212;
   -webkit-transition: background 200ms ease-out;
+  background: #991212 !important;
 }
 
 .clear-float {
