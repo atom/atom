@@ -22,7 +22,14 @@ class LineMap
     @screenLines[startRow..endRow]
 
   bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow()) ->
-    [startRow..endRow]
+    bufferRows = []
+    bufferRow = 0
+    for screenLine, screenRow in @screenLines
+      break if screenRow > endRow
+      bufferRows.push(bufferRow) if screenRow >= startRow
+      bufferRow += screenLine.bufferRows
+
+    bufferRows
 
   screenLineCount: ->
     @screenLines.length
