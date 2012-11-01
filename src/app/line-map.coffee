@@ -56,7 +56,7 @@ class LineMap
     else if column < 0
       column = 0
 
-    screenLine = @lineForScreenRow(row)
+    screenLine = options.screenLine ? @lineForScreenRow(row)
     maxScreenColumn = screenLine.getMaxScreenColumn()
 
     if screenLine.isSoftWrapped() and column >= maxScreenColumn
@@ -73,35 +73,21 @@ class LineMap
     new Point(row, column)
 
   screenPositionForBufferPosition: (bufferPosition, options={}) ->
-    { wrapBeyondNewlines, wrapAtSoftNewlines } = options
     { row, column } = Point.fromObject(bufferPosition)
-
     [screenRow, screenLines] = @screenRowAndScreenLinesForBufferRow(row)
-
     for screenLine in screenLines
       maxBufferColumn = screenLine.getMaxBufferColumn()
-      if screenLine.isSoftWrapped()
-        if column <= maxBufferColumn
-          if column == maxBufferColumn
-            if wrapAtSoftNewlines
-              screenRow++
-              screenColumn = 0
-            else
-              screenColumn = screenLine.screenColumnForBufferColumn(column - 1, options)
-          else
-            screenColumn = screenLine.screenColumnForBufferColumn(column, options)
-          break
-        else
-          screenRow++
+      if screenLine.isSoftWrapped() and column > maxBufferColumn
+        screenRow++
       else
-        if wrapBeyondNewlines and column > maxBufferColumn and screenRow < @lastScreenRow()
-          screenRow++
-          screenColumn = 0
-        else
+        if column <= maxBufferColumn
           screenColumn = screenLine.screenColumnForBufferColumn(column)
+        else
+          screenColumn = Infinity
         break
 
-    new Point(screenRow, screenColumn)
+    options.screenLine = screenLine
+    @clipScreenPosition([screenRow, screenColumn], options)
 
   screenRowAndScreenLinesForBufferRow: (bufferRow) ->
     screenLines = []
