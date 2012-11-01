@@ -35,7 +35,7 @@ class CommandPanel extends View
   @content: (rootView) ->
     @div class: 'command-panel tool-panel', =>
       @subview 'previewList', new PreviewList(rootView)
-      @ul class: 'errorMessages', outlet: 'errorMessages'
+      @ul class: 'error-messages', outlet: 'errorMessages'
       @div class: 'prompt-and-editor', =>
         @div ':', class: 'prompt', outlet: 'prompt'
         @subview 'miniEditor', new Editor(mini: true)

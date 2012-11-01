@@ -47,3 +47,8 @@
   font-weight: bold;
   padding: .2em;
 }
+
+.error-messages {
+  padding: 5px 1em;
+  color: white;
+}
