@@ -15,25 +15,36 @@ class CompositeCommand
 
     currentCommand.compile(project, editSession?.buffer, ranges).done (operations) =>
       if remainingCommands.length
-        nextRanges = operations.map (operation) ->
-          operation.destroy()
-          operation.getBufferRange()
-        @executeCommands(remainingCommands, project, editSession, nextRanges).done ->
-          deferred.resolve()
+        errorMessages = @errorMessagesForOperations(operations)
+        nextRanges = operations.map (operation) -> operation.getBufferRange()
+        operations.forEach (operation) -> operation.destroy()
+
+        @executeCommands(remainingCommands, project, editSession, nextRanges).done ({errorMessages: moreErrorMessages})->
+          errorMessages.push(moreErrorMessages...) if moreErrorMessages
+          deferred.resolve({errorMessages})
       else
+        errorMessages = @errorMessagesForOperations(operations)
+
         if currentCommand.previewOperations
-          deferred.resolve(operations)
+           deferred.resolve({operationsToPreview: operations, errorMessages})
         else
           bufferRanges = []
+          errorMessages = @errorMessagesForOperations(operations)
           for operation in operations
             bufferRange = operation.execute(editSession)
             bufferRanges.push(bufferRange) if bufferRange
             operation.destroy()
-          if bufferRanges.length and not currentCommand.preserveSelections
-            editSession.setSelectedBufferRanges(bufferRanges)
-          deferred.resolve()
+
+            if bufferRanges.length and not currentCommand.preserveSelections
+              editSession.setSelectedBufferRanges(bufferRanges)
+
+          deferred.resolve({errorMessages})
 
     deferred.promise()
+
+  errorMessagesForOperations: (operations) ->
+    operationsWithErrorMessages = operations.filter (operation) -> operation.errorMessage?
+    operationsWithErrorMessages.map (operation) -> operation.errorMessage
 
   reverse: ->
     new CompositeCommand(@subcommands.map (command) -> command.reverse())

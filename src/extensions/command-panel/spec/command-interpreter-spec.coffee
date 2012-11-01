@@ -172,16 +172,20 @@ describe "CommandInterpreter", ->
         runs ->
           expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/a\\Sray/i"
 
-      it "is case-sentive when the pattern contains a non-escaped uppercase letters (behavior copied from vim)", ->
-        waitsForPromise ->
-          interpreter.eval('/arRay', editSession)
-        runs ->
-          expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/arRay/"
+      describe "when no match is found", ->
+        it "it returns an error messages", ->
+          errorMessages = null
+          waitsForPromise ->
+            interpreter.eval('/garbage!', editSession).done (results) -> { errorMessages } = results
+
+          runs ->
+            expect(errorMessages.length).toBe 1
 
         waitsForPromise ->
           interpreter.eval('/Array', editSession)
         runs ->
           expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/Array/"
+
 
     describe "address range", ->
       describe "when two addresses are specified", ->
@@ -277,16 +281,6 @@ describe "CommandInterpreter", ->
           expect(selections[1].getBufferRange()).toEqual [[6,6], [6,13]]
           expect(selections[2].getBufferRange()).toEqual [[6,34], [6,41]]
           expect(selections[3].getBufferRange()).toEqual [[6,56], [6,63]]
-
-    describe "when nothing is matched", ->
-      it "preserves the existing selection", ->
-        previousSelections = null
-        waitsForPromise ->
-          previousSelections = editSession.getSelectedBufferRanges()
-          interpreter.eval(',x/this will match nothing', editSession)
-
-        runs ->
-          expect(editSession.getSelectedBufferRanges()).toEqual previousSelections
 
   describe "substitution", ->
     it "does nothing if there are no matches", ->
@@ -400,13 +394,13 @@ describe "CommandInterpreter", ->
       project = new Project(fixturesProject.resolve('dir/'))
       interpreter = new CommandInterpreter(project)
 
-      operations = null
+      operationsToPreview = null
       waitsForPromise ->
-        interpreter.eval("X x/a+/").done (ops) -> operations = ops
+        interpreter.eval("X x/a+/").done (result) -> {operationsToPreview} = result
 
       runs ->
-        expect(operations.length).toBeGreaterThan 3
-        for operation in operations
+        expect(operationsToPreview.length).toBeGreaterThan 3
+        for operation in operationsToPreview
           editSession = project.buildEditSessionForPath(operation.getPath())
           editSession.setSelectedBufferRange(operation.execute(editSession))
           expect(editSession.getSelectedText()).toMatch /a+/
@@ -414,3 +408,14 @@ describe "CommandInterpreter", ->
           operation.destroy()
 
         editSession = null
+
+  describe "nested commands", ->
+    describe "/regex/ /regex", ->
+      it "returns an error message if the last regex has no matches", ->
+        previousSelections = null
+        errorMessages = null
+        waitsForPromise ->
+          previousSelections = editSession.getSelectedBufferRanges()
+          interpreter.eval('/sort/ /no match', editSession).done (results) -> { errorMessages } = results
+        runs ->
+          expect(errorMessages.length).toBe 1

@@ -2,7 +2,7 @@
 
 module.exports =
 class Operation
-  constructor: ({@project, @buffer, bufferRange, @newText, @preserveSelection}) ->
+  constructor: ({@project, @buffer, bufferRange, @newText, @preserveSelection, @errorMessage}) ->
     @buffer.retain()
     @anchorRange = @buffer.addAnchorRange(bufferRange)
 

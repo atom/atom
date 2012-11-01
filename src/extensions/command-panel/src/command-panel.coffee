@@ -35,6 +35,7 @@ class CommandPanel extends View
   @content: (rootView) ->
     @div class: 'command-panel tool-panel', =>
       @subview 'previewList', new PreviewList(rootView)
+      @ul class: 'errorMessages', outlet: 'errorMessages'
       @div class: 'prompt-and-editor', =>
         @div ':', class: 'prompt', outlet: 'prompt'
         @subview 'miniEditor', new Editor(mini: true)
@@ -107,7 +108,7 @@ class CommandPanel extends View
 
   execute: (command=@escapedCommand())->
     try
-      @commandInterpreter.eval(command, @rootView.getActiveEditSession()).done (operationsToPreview) =>
+      @commandInterpreter.eval(command, @rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
         @history.push(command)
         @historyIndex = @history.length
         if operationsToPreview?.length

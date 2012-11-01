@@ -6,7 +6,7 @@ class RegexAddress extends Address
   regex: null
   reverse: null
 
-  constructor: (pattern, isReversed, options) ->
+  constructor: (@pattern, isReversed, options) ->
     flags = ""
     pattern = pattern.source if pattern.source
 
@@ -27,14 +27,19 @@ class RegexAddress extends Address
     buffer[scanMethodName] @regex, rangeToSearch, (match, range) ->
       rangeToReturn = range
 
-    if rangeToReturn
-      rangeToReturn
-    else
+    if not rangeToReturn
       rangeToSearch = if @isReversed then rangeAfter else rangeBefore
       buffer[scanMethodName] @regex, rangeToSearch, (match, range) ->
         rangeToReturn = range
 
-      rangeToReturn or range
+    if not rangeToReturn
+      flags = ""
+      flags += "i" if @regex.ignoreCase
+      flags += "g" if @regex.global
+      flags += "m" if @regex.multiline
+      @errorMessage = "Pattern not found /#{@regex.source}/#{flags}"
+
+    rangeToReturn or range
 
   isRelative: -> true
 
