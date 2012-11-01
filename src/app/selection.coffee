@@ -87,7 +87,8 @@ class Selection
     @editSession.buffer.getTextInRange(@getBufferRange())
 
   clear: ->
-    @anchor?.destroy()
+    return unless @anchor
+    @anchor.destroy()
     @anchor = null
     @screenRangeChanged()
 
