@@ -704,19 +704,18 @@ class Editor extends View
 
   prepareForScrolling: ->
     @adjustHeightOfRenderedLines()
-    @adjustWidthOfRenderedLines()
+    @adjustMinWidthOfRenderedLines()
 
   adjustHeightOfRenderedLines: ->
     heightOfRenderedLines = @lineHeight * @screenLineCount()
     @verticalScrollbarContent.height(heightOfRenderedLines)
     @renderedLines.css('padding-bottom', heightOfRenderedLines)
 
-  adjustWidthOfRenderedLines: ->
-    width = @charWidth * @maxScreenLineLength()
-    if width > @scrollView.width()
-      @renderedLines.width(width)
-    else
-      @renderedLines.css('width', '')
+  adjustMinWidthOfRenderedLines: ->
+    minWidth = @charWidth * @maxScreenLineLength()
+    unless @renderedLines.cachedMinWidth == minWidth
+      @renderedLines.css('min-width', minWidth)
+      @renderedLines.cachedMinWidth = minWidth
 
   handleScrollHeightChange: ->
     scrollHeight = @lineHeight * @screenLineCount()
@@ -784,7 +783,7 @@ class Editor extends View
 
     if @attached
       @handleScrollHeightChange() unless newScreenRange.coversSameRows(oldScreenRange)
-      @adjustWidthOfRenderedLines()
+      @adjustMinWidthOfRenderedLines()
 
       return if oldScreenRange.start.row > @lastRenderedScreenRow
 
