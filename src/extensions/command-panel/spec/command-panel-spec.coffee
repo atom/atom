@@ -320,6 +320,16 @@ describe "CommandPanel", ->
 
         expect(commandPanel).not.toHaveClass 'error'
 
+    describe "when the command contains an escaped charachter", ->
+      it "executes the command with the escaped character (instead of as a backslash followed by the character)", ->
+        rootView.trigger 'command-panel:toggle'
+
+        editSession = rootView.open(require.resolve 'fixtures/sample-with-tabs.coffee')
+        editor.edit(editSession)
+        commandPanel.miniEditor.setText "/\\tsell"
+        commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
+        expect(editor.getSelectedBufferRange()).toEqual [[3,1],[3,6]]
+
   describe "when move-up and move-down are triggerred on the editor", ->
     it "navigates forward and backward through the command history", ->
       commandPanel.execute 's/war/peace/g'
@@ -407,8 +417,3 @@ describe "CommandPanel", ->
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
         expect(rootView.focus).toHaveBeenCalled()
-
-  describe ".escapedCommand()", ->
-    it "escapes characters with a backslash in front of them", ->
-      commandPanel.miniEditor.setText("a\\tb")
-      expect(commandPanel.escapedCommand()).toBe("a\tb")
