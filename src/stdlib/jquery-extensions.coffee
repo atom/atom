@@ -42,7 +42,7 @@ $.fn.hasParent = ->
 $.fn.flashError = ->
   @addClass 'error'
   removeErrorClass = => @removeClass 'error'
-  window.setTimeout(removeErrorClass, 200)
+  window.setTimeout(removeErrorClass, 300)
 
 $.fn.trueHeight = ->
   this[0].getBoundingClientRect().height
