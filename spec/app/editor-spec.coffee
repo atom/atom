@@ -1091,7 +1091,7 @@ describe "Editor", ->
           expect(editor.renderedLines.find('.line:eq(3)').text()).toBe "    var pivot = items.shift(), current, left = [], "
           expect(editor.renderedLines.find('.line:eq(4)').text()).toBe "right = [];"
 
-          editor.setCursorBufferPosition([3, 51])
+          editor.setCursorBufferPosition([3, 51], wrapAtSoftNewlines: true)
           expect(editor.find('.cursor').offset()).toEqual(editor.renderedLines.find('.line:eq(4)').offset())
 
           editor.setCursorBufferPosition([4, 0])

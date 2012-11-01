@@ -430,8 +430,8 @@ class EditSession
   getCursorScreenPosition: ->
     @getLastCursor().getScreenPosition()
 
-  setCursorBufferPosition: (position) ->
-    @moveCursors (cursor) -> cursor.setBufferPosition(position)
+  setCursorBufferPosition: (position, options) ->
+    @moveCursors (cursor) -> cursor.setBufferPosition(position, options)
 
   getCursorBufferPosition: ->
     @getLastCursor().getBufferPosition()

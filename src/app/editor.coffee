@@ -178,7 +178,7 @@ class Editor extends View
   moveCursorToEndOfLine: -> @activeEditSession.moveCursorToEndOfLine()
   setCursorScreenPosition: (position) -> @activeEditSession.setCursorScreenPosition(position)
   getCursorScreenPosition: -> @activeEditSession.getCursorScreenPosition()
-  setCursorBufferPosition: (position) -> @activeEditSession.setCursorBufferPosition(position)
+  setCursorBufferPosition: (position, options) -> @activeEditSession.setCursorBufferPosition(position, options)
   getCursorBufferPosition: -> @activeEditSession.getCursorBufferPosition()
 
   getSelection: (index) -> @activeEditSession.getSelection(index)
