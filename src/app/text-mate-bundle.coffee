@@ -31,10 +31,10 @@ class TextMateBundle
         @grammarsByFileType[fileType] = grammar
         @grammarsByScopeName[grammar.scopeName] = grammar
 
-  @grammarForFileName: (fileName) ->
-    extension = fs.extension(fileName)?[1...]
-    if fileName and extension.length == 0
-      extension = fileName
+  @grammarForFilePath: (filePath) ->
+    extension = fs.extension(filePath)?[1...]
+    if filePath and extension.length == 0
+      extension = fs.base(filePath)
 
     @grammarsByFileType[extension] or @grammarsByFileType["txt"]
 

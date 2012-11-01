@@ -17,7 +17,7 @@ class LanguageMode
 
   constructor: (@editSession) ->
     @buffer = @editSession.buffer
-    @grammar = TextMateBundle.grammarForFileName(@buffer.getBaseName())
+    @grammar = TextMateBundle.grammarForFilePath(@buffer.getPath())
     @bracketAnchorRanges = []
 
     _.adviseBefore @editSession, 'insertText', (text) =>

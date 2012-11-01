@@ -8,7 +8,7 @@ describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
-    grammar = TextMateBundle.grammarForFileName("hello.coffee")
+    grammar = TextMateBundle.grammarForFilePath("hello.coffee")
 
   describe ".getLineTokens(line, currentRule)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
@@ -31,7 +31,7 @@ describe "TextMateGrammar", ->
 
     describe "when the line doesn't match any patterns", ->
       it "returns the entire line as a single simple token with the grammar's scope", ->
-        textGrammar = TextMateBundle.grammarForFileName('foo.txt')
+        textGrammar = TextMateBundle.grammarForFilePath('foo.txt')
         {tokens} = textGrammar.getLineTokens("abc def")
         expect(tokens.length).toBe 1
 
@@ -108,14 +108,14 @@ describe "TextMateGrammar", ->
 
     describe "when the line matches no patterns", ->
       it "does not infinitely loop", ->
-        grammar = TextMateBundle.grammarForFileName("sample.txt")
+        grammar = TextMateBundle.grammarForFilePath("sample.txt")
         {tokens} = grammar.getLineTokens('hoo')
         expect(tokens.length).toBe 1
         expect(tokens[0]).toEqual value: 'hoo',  scopes: ["text.plain", "meta.paragraph.text"]
 
     describe "when the line matches a pattern with a 'contentName'", ->
       it "creates tokens using the content of contentName as the token name", ->
-        grammar = TextMateBundle.grammarForFileName("sample.txt")
+        grammar = TextMateBundle.grammarForFilePath("sample.txt")
         {tokens} = grammar.getLineTokens('ok, cool')
         expect(tokens[0]).toEqual value: 'ok, cool',  scopes: ["text.plain", "meta.paragraph.text"]
 
@@ -241,6 +241,6 @@ describe "TextMateGrammar", ->
       expect(tokens[1].value).toBe " a singleLineComment"
 
     it "does not loop infinitley (regression)", ->
-      grammar = TextMateBundle.grammarForFileName("hello.js")
+      grammar = TextMateBundle.grammarForFilePath("hello.js")
       {tokens, stack} = grammar.getLineTokens("// line comment")
       {tokens, stack} = grammar.getLineTokens(" // second line comment with a single leading space", stack)
