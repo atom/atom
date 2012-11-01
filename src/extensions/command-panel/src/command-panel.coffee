@@ -1,4 +1,4 @@
-{View, $$$} = require 'space-pen'
+{View, $$, $$$} = require 'space-pen'
 CommandInterpreter = require 'command-panel/src/command-interpreter'
 RegexAddress = require 'command-panel/src/commands/regex-address'
 CompositeCommand = require 'command-panel/src/commands/composite-command'
@@ -67,6 +67,7 @@ class CommandPanel extends View
     @command 'core:move-down', => @navigateForwardInHistory()
 
     @previewList.hide()
+    @errorMessages.hide()
 
   destroy: ->
     @previewList.destroy()
@@ -92,6 +93,8 @@ class CommandPanel extends View
         @miniEditor.focus()
 
   attach: (text='', options={}) ->
+    @errorMessages.hide()
+
     focus = options.focus ? true
     @rootView.vertical.append(this)
     @miniEditor.focus() if focus
@@ -107,11 +110,19 @@ class CommandPanel extends View
     @miniEditor.getText().replace /\\(.)/, (match, charachter) -> eval("'\\#{charachter}'")
 
   execute: (command=@escapedCommand())->
+    @errorMessages.empty()
+
     try
       @commandInterpreter.eval(command, @rootView.getActiveEditSession()).done ({operationsToPreview, errorMessages}) =>
         @history.push(command)
         @historyIndex = @history.length
-        if operationsToPreview?.length
+
+        if errorMessages.length > 0
+          @flashError()
+          @errorMessages.show()
+          @errorMessages.append $$ ->
+            @li errorMessage for errorMessage in errorMessages
+        else if operationsToPreview?.length
           @previewList.populate(operationsToPreview)
           @previewList.focus()
         else

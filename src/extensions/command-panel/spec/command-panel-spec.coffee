@@ -24,9 +24,9 @@ describe "CommandPanel", ->
       rootView.attachToDom()
       rootView.trigger 'command-panel:toggle'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
-      commandPanel.execute('/test')
+      commandPanel.execute('/.')
       expect(commandPanel.history.length).toBe(1)
-      expect(commandPanel.history[0]).toBe('/test')
+      expect(commandPanel.history[0]).toBe('/.')
       expect(commandPanel.historyIndex).toBe(1)
       rootView.trigger 'command-panel:toggle'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
@@ -40,7 +40,7 @@ describe "CommandPanel", ->
       expect(commandPanel.miniEditor.getText()).toBe 'abc'
       expect(commandPanel.miniEditor.isFocused).toBeTruthy()
       expect(commandPanel.history.length).toBe(1)
-      expect(commandPanel.history[0]).toBe('/test')
+      expect(commandPanel.history[0]).toBe('/.')
       expect(commandPanel.historyIndex).toBe(1)
 
       rootView2.focus()
@@ -319,6 +319,26 @@ describe "CommandPanel", ->
         advanceClock 400
 
         expect(commandPanel).not.toHaveClass 'error'
+
+    describe "if the command returns an error message", ->
+      beforeEach ->
+        rootView.attachToDom()
+        rootView.trigger 'command-panel:toggle'
+        commandPanel.miniEditor.insertText '/garbage'
+        expect(commandPanel.errorMessages).not.toBeVisible()
+        commandPanel.miniEditor.hiddenInput.trigger keydownEvent('enter')
+
+      it "adds and removes an error class to the command panel and displays the error message", ->
+        expect(commandPanel).toBeVisible()
+        expect(commandPanel.errorMessages).toBeVisible()
+        expect(commandPanel).toHaveClass 'error'
+
+      it "removes the error message when the command-panel is toggled", ->
+        rootView.trigger 'command-panel:toggle' # off
+        rootView.trigger 'command-panel:toggle' # on
+        expect(commandPanel).toBeVisible()
+        expect(commandPanel.errorMessages).not.toBeVisible()
+
 
     describe "when the command contains an escaped charachter", ->
       it "executes the command with the escaped character (instead of as a backslash followed by the character)", ->
