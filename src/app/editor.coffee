@@ -345,7 +345,7 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    @on 'cursor-move', ({bufferChanged}) => @highlightCursorLine()
+    @on 'cursor-move', ({bufferChanged}) => @highlightCursorLine() unless bufferChanged
     @on 'selection-change', => @highlightCursorLine()
 
   selectOnMousemoveUntilMouseup: ->
@@ -760,7 +760,6 @@ class Editor extends View
 
     if renderedLines
       @gutter.renderLineNumbers(renderFrom, renderTo)
-      @highlightCursorLine()
       @updatePaddingOfRenderedLines()
 
   updatePaddingOfRenderedLines: ->
