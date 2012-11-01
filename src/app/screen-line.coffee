@@ -1,24 +1,49 @@
 _ = require 'underscore'
-Point = require 'point'
 
 module.exports =
 class ScreenLine
-  stack: null
-  text: null
-  tokens: null
-  screenDelta: null
-  bufferDelta: null
-  foldable: null
-
-  constructor: (@tokens, @text, screenDelta, bufferDelta, extraFields) ->
-    @screenDelta = Point.fromObject(screenDelta)
-    @bufferDelta = Point.fromObject(bufferDelta)
-    _.extend(this, extraFields)
+  constructor: ({@tokens, @stack, @bufferRows, @startBufferColumn, @fold, @foldable}) ->
+    @bufferRows ?= 1
+    @startBufferColumn ?= 0
+    @foldable ?= false
+    @text = _.pluck(@tokens, 'value').join('')
 
   copy: ->
-    new ScreenLine(@tokens, @text, @screenDelta, @bufferDelta, { @stack, @foldable })
+    new ScreenLine({@tokens, @stack, @bufferRows, @startBufferColumn, @fold, @foldable})
 
-  splitAt: (column) ->
+  clipScreenColumn: (column, options={}) ->
+    { skipAtomicTokens } = options
+    column = Math.min(column, @getMaxScreenColumn())
+
+    tokenStartColumn = 0
+    for token in @tokens
+      break if tokenStartColumn + token.screenDelta > column
+      tokenStartColumn += token.screenDelta
+
+    if token.isAtomic and tokenStartColumn < column
+      if skipAtomicTokens
+        tokenStartColumn + token.screenDelta
+      else
+        tokenStartColumn
+    else
+      column
+
+  screenColumnForBufferColumn: (bufferColumn, options) ->
+    @clipScreenColumn(bufferColumn - @startBufferColumn)
+
+  bufferColumnForScreenColumn: (screenColumn, options) ->
+    @startBufferColumn + screenColumn
+
+  getMaxScreenColumn: ->
+    if @fold
+      0
+    else
+      @text.length
+
+  getMaxBufferColumn: ->
+    @startBufferColumn + @getMaxScreenColumn()
+
+  softWrapAt: (column) ->
     return [new ScreenLine([], '', [0, 0], [0, 0]), this] if column == 0
 
     rightTokens = new Array(@tokens...)
@@ -31,15 +56,22 @@ class ScreenLine
       leftTextLength += nextToken.value.length
       leftTokens.push nextToken
 
-    leftText = _.pluck(leftTokens, 'value').join('')
-    rightText = _.pluck(rightTokens, 'value').join('')
-
-    [leftScreenDelta, rightScreenDelta] = @screenDelta.splitAt(column)
-    [leftBufferDelta, rightBufferDelta] = @bufferDelta.splitAt(column)
-
-    leftFragment = new ScreenLine(leftTokens, leftText, leftScreenDelta, leftBufferDelta, {@stack, @foldable})
-    rightFragment = new ScreenLine(rightTokens, rightText, rightScreenDelta, rightBufferDelta, {@stack})
+    leftFragment = new ScreenLine(
+      tokens: leftTokens
+      bufferRows: 0
+      startBufferColumn: @startBufferColumn
+      stack: @stack
+      foldable: @foldable
+    )
+    rightFragment = new ScreenLine(
+      tokens: rightTokens
+      startBufferColumn: @startBufferColumn + column
+      stack: @stack
+    )
     [leftFragment, rightFragment]
+
+  isSoftWrapped: ->
+    @bufferRows == 0
 
   tokenAtBufferColumn: (bufferColumn) ->
     delta = 0
@@ -47,48 +79,3 @@ class ScreenLine
       delta += token.bufferDelta
       return token if delta >= bufferColumn
     token
-
-  concat: (other) ->
-    tokens = @tokens.concat(other.tokens)
-    text = @text + other.text
-    screenDelta = @screenDelta.add(other.screenDelta)
-    bufferDelta = @bufferDelta.add(other.bufferDelta)
-    new ScreenLine(tokens, text, screenDelta, bufferDelta, {stack: other.stack})
-
-  translateColumn: (sourceDeltaType, targetDeltaType, sourceColumn, options={}) ->
-    { skipAtomicTokens } = options
-    sourceColumn = Math.min(sourceColumn, @textLength())
-
-    isSourceColumnBeforeLastToken = false
-    tokenStartTargetColumn = 0
-    tokenStartSourceColumn = 0
-
-    for token in @tokens
-      tokenEndSourceColumn = tokenStartSourceColumn + token[sourceDeltaType]
-      tokenEndTargetColumn = tokenStartTargetColumn + token[targetDeltaType]
-      break if tokenEndSourceColumn > sourceColumn
-      tokenStartTargetColumn = tokenEndTargetColumn
-      tokenStartSourceColumn = tokenEndSourceColumn
-
-    sourceColumnIsInsideToken = tokenStartSourceColumn < sourceColumn < tokenEndSourceColumn
-
-    if token?.isAtomic and sourceColumnIsInsideToken
-      if skipAtomicTokens
-        tokenEndTargetColumn
-      else
-        tokenStartTargetColumn
-    else
-      remainingColumns = sourceColumn - tokenStartSourceColumn
-      tokenStartTargetColumn + remainingColumns
-
-  textLength: ->
-    if @fold
-      textLength = 0
-    else
-      textLength = @text.length
-
-  isSoftWrapped: ->
-    @screenDelta.row == 1 and @bufferDelta.row == 0
-
-  isEqual: (other) ->
-    _.isEqual(@tokens, other.tokens) and @screenDelta.isEqual(other.screenDelta) and @bufferDelta.isEqual(other.bufferDelta)

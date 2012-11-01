@@ -1,71 +1,132 @@
-_ = require 'underscore'
 Point = require 'point'
 Range = require 'range'
 
 module.exports =
 class LineMap
   constructor: ->
-    @lineFragments = []
+    @screenLines = []
 
-  insertAtBufferRow: (bufferRow, lineFragments) ->
-    @spliceAtBufferRow(bufferRow, 0, lineFragments)
+  insertAtScreenRow: (bufferRow, screenLines) ->
+    @spliceAtScreenRow(bufferRow, 0, screenLines)
 
-  spliceAtBufferRow: (startRow, rowCount, lineFragments) ->
-    @spliceByDelta('bufferDelta', startRow, rowCount, lineFragments)
+  replaceScreenRows: (start, end, screenLines) ->
+    @spliceAtScreenRow(start, end - start + 1, screenLines)
 
-  spliceAtScreenRow: (startRow, rowCount, lineFragments) ->
-    @spliceByDelta('screenDelta', startRow, rowCount, lineFragments)
-
-  replaceBufferRows: (start, end, lineFragments) ->
-    @spliceAtBufferRow(start, end - start + 1, lineFragments)
-
-  replaceScreenRows: (start, end, lineFragments) ->
-    @spliceAtScreenRow(start, end - start + 1, lineFragments)
+  spliceAtScreenRow: (startRow, rowCount, screenLines) ->
+    @screenLines.splice(startRow, rowCount, screenLines...)
 
   lineForScreenRow: (row) ->
     @linesForScreenRows(row, row)[0]
 
   linesForScreenRows: (startRow, endRow) ->
-    @linesByDelta('screenDelta', startRow, endRow)
-
-  lineForBufferRow: (row) ->
-    @linesForBufferRows(row, row)[0]
-
-  linesForBufferRows: (startRow, endRow) ->
-    @linesByDelta('bufferDelta', startRow, endRow)
+    @screenLines[startRow..endRow]
 
   bufferRowsForScreenRows: (startRow, endRow=@lastScreenRow()) ->
-    bufferRows = []
-    currentScreenRow = -1
-    @traverseByDelta 'screenDelta', [startRow, 0], [endRow, 0], ({ screenDelta, bufferDelta }) ->
-      bufferRows.push(bufferDelta.row) if screenDelta.row > currentScreenRow
-      currentScreenRow = screenDelta.row
-    bufferRows
-
-  bufferLineCount: ->
-    @lineCountByDelta('bufferDelta')
+    [startRow..endRow]
 
   screenLineCount: ->
-    @lineCountByDelta('screenDelta')
-
-  lineCountByDelta: (deltaType) ->
-    @traverseByDelta(deltaType, new Point(Infinity, 0))[deltaType].row
+    @screenLines.length
 
   lastScreenRow: ->
     @screenLineCount() - 1
 
   maxScreenLineLength: ->
     maxLength = 0
-    @traverseByDelta 'screenDelta', [0, 0], [@lastScreenRow(), 0], ({lineFragment}) ->
-      length = lineFragment.text.length
-      maxLength = length if length > maxLength
+    for screenLine in @screenLines
+      maxLength = Math.max(maxLength, screenLine.text.length)
     maxLength
 
-  screenPositionForBufferPosition: (bufferPosition, options) ->
-    @translatePosition('bufferDelta', 'screenDelta', bufferPosition, options)
+  clipScreenPosition: (screenPosition, options={}) ->
+    { wrapBeyondNewlines, wrapAtSoftNewlines } = options
+    { row, column } = Point.fromObject(screenPosition)
+
+    if row < 0
+      row = 0
+      column = 0
+    else if row > @lastScreenRow()
+      row = @lastScreenRow()
+      column = Infinity
+    else if column < 0
+      column = 0
+
+    screenLine = @lineForScreenRow(row)
+    maxScreenColumn = screenLine.getMaxScreenColumn()
+
+    if screenLine.isSoftWrapped() and column >= maxScreenColumn
+      if wrapAtSoftNewlines
+        row++
+        column = 0
+      else
+        column = screenLine.clipScreenColumn(maxScreenColumn - 1)
+    else if wrapBeyondNewlines and column > maxScreenColumn and row < @lastScreenRow()
+      row++
+      column = 0
+    else
+      column = screenLine.clipScreenColumn(column, options)
+    new Point(row, column)
+
+  screenPositionForBufferPosition: (bufferPosition, options={}) ->
+    { wrapBeyondNewlines, wrapAtSoftNewlines } = options
+    { row, column } = Point.fromObject(bufferPosition)
+
+    [screenRow, screenLines] = @screenRowAndScreenLinesForBufferRow(row)
+
+    for screenLine in screenLines
+      maxBufferColumn = screenLine.getMaxBufferColumn()
+      if screenLine.isSoftWrapped()
+        if column <= maxBufferColumn
+          if column == maxBufferColumn
+            if wrapAtSoftNewlines
+              screenRow++
+              screenColumn = 0
+            else
+              screenColumn = screenLine.screenColumnForBufferColumn(column - 1, options)
+          else
+            screenColumn = screenLine.screenColumnForBufferColumn(column, options)
+          break
+        else
+          screenRow++
+      else
+        if wrapBeyondNewlines and column > maxBufferColumn and screenRow < @lastScreenRow()
+          screenRow++
+          screenColumn = 0
+        else
+          screenColumn = screenLine.screenColumnForBufferColumn(column)
+        break
+
+    new Point(screenRow, screenColumn)
+
+  screenRowAndScreenLinesForBufferRow: (bufferRow) ->
+    screenLines = []
+    screenRow = 0
+    currentBufferRow = 0
+    for screenLine in @screenLines
+      nextBufferRow = currentBufferRow + screenLine.bufferRows
+      if currentBufferRow > bufferRow
+        break
+      else if currentBufferRow == bufferRow or currentBufferRow <= bufferRow < nextBufferRow
+        screenLines.push(screenLine)
+      else
+        screenRow++
+      currentBufferRow = nextBufferRow
+
+    [screenRow, screenLines]
 
   bufferPositionForScreenPosition: (screenPosition, options) ->
-    @translatePosition('screenDelta', 'bufferDelta', screenPosition, options)
+    { row, column } = Point.fromObject(screenPosition)
+    [bufferRow, screenLine] = @bufferRowAndScreenLineForScreenRow(row)
+    bufferColumn = screenLine.bufferColumnForScreenColumn(column)
+    new Point(bufferRow, bufferColumn)
+
+  bufferRowAndScreenLineForScreenRow: (screenRow) ->
+    bufferRow = 0
+    for screenLine, currentScreenRow in @screenLines
+      if currentScreenRow == screenRow
+        break
+      else
+        bufferRow += screenLine.bufferRows
+
+    [bufferRow, screenLine]
 
   screenRangeForBufferRange: (bufferRange) ->
     bufferRange = Range.fromObject(bufferRange)
@@ -77,106 +138,6 @@ class LineMap
     start = @bufferPositionForScreenPosition(screenRange.start)
     end = @bufferPositionForScreenPosition(screenRange.end)
     new Range(start, end)
-
-  clipScreenPosition: (screenPosition, options) ->
-    @clipPosition('screenDelta', screenPosition, options)
-
-  clipPosition: (deltaType, position, options={}) ->
-    options.clipToBounds = true
-    @translatePosition(deltaType, deltaType, position, options)
-
-  spliceByDelta: (deltaType, startRow, rowCount, lineFragments) ->
-    stopRow = startRow + rowCount
-    startIndex = undefined
-    stopIndex = 0
-
-    delta = new Point
-    for lineFragment, i in @lineFragments
-      startIndex ?= i if delta.row == startRow
-      break if delta.row == stopRow
-      delta = delta.add(lineFragment[deltaType])
-      stopIndex++
-    startIndex ?= i
-
-    @lineFragments[startIndex...stopIndex] = lineFragments
-
-  linesByDelta: (deltaType, startRow, endRow) ->
-    lines = []
-    pendingFragment = null
-    @traverseByDelta deltaType, new Point(startRow, 0), new Point(endRow, Infinity), ({lineFragment}) ->
-      if pendingFragment
-        pendingFragment = pendingFragment.concat(lineFragment)
-      else
-        pendingFragment = lineFragment
-      if pendingFragment[deltaType].row > 0
-        lines.push pendingFragment
-        pendingFragment = null
-    lines
-
-  translatePosition: (sourceDeltaType, targetDeltaType, sourcePosition, options={}) ->
-    sourcePosition = Point.fromObject(sourcePosition)
-    wrapBeyondNewlines = options.wrapBeyondNewlines ? false
-    wrapAtSoftNewlines = options.wrapAtSoftNewlines ? false
-    skipAtomicTokens = options.skipAtomicTokens ? false
-    clipToBounds = options.clipToBounds ? false
-
-    @clipToBounds(sourceDeltaType, sourcePosition) if clipToBounds
-    traversalResult = @traverseByDelta(sourceDeltaType, sourcePosition)
-    lastLineFragment = traversalResult.lastLineFragment
-    traversedAllFragments = traversalResult.traversedAllFragments
-    sourceDelta = traversalResult[sourceDeltaType]
-    targetDelta = traversalResult[targetDeltaType]
-
-    maxSourceColumn = sourceDelta.column + lastLineFragment.textLength()
-    maxTargetColumn = targetDelta.column + lastLineFragment.textLength()
-
-    if lastLineFragment.isSoftWrapped() and sourcePosition.column >= maxSourceColumn
-      if wrapAtSoftNewlines
-        targetDelta.row++
-        targetDelta.column = 0
-      else
-        targetDelta.column = maxTargetColumn - 1
-        return @clipPosition(targetDeltaType, targetDelta)
-    else if sourcePosition.column > maxSourceColumn and wrapBeyondNewlines and not traversedAllFragments
-      targetDelta.row++
-      targetDelta.column = 0
-    else
-      additionalColumns = sourcePosition.column - sourceDelta.column
-      additionalColumns = lastLineFragment.translateColumn(sourceDeltaType, targetDeltaType, additionalColumns, { skipAtomicTokens })
-      targetDelta.column += additionalColumns
-
-    targetDelta
-
-  clipToBounds: (deltaType, position) ->
-    if position.column < 0
-      position.column = 0
-
-    if position.row < 0
-      position.row = 0
-      position.column = 0
-
-    maxSourceRow = @lineCountByDelta(deltaType) - 1
-    if position.row > maxSourceRow
-      position.row = maxSourceRow
-      position.column = Infinity
-
-  traverseByDelta: (deltaType, startPosition, endPosition=startPosition, iterator=null) ->
-    traversalDelta = new Point
-    screenDelta = new Point
-    bufferDelta = new Point
-    startPosition = Point.fromObject(startPosition)
-    endPosition = Point.fromObject(endPosition)
-
-    for lineFragment, index in @lineFragments
-      iterator({ lineFragment, screenDelta, bufferDelta }) if traversalDelta.isGreaterThanOrEqual(startPosition) and iterator?
-      traversalDelta = traversalDelta.add(lineFragment[deltaType])
-      break if traversalDelta.isGreaterThan(endPosition)
-      screenDelta = screenDelta.add(lineFragment.screenDelta)
-      bufferDelta = bufferDelta.add(lineFragment.bufferDelta)
-
-    lastLineFragment = lineFragment
-    traversedAllFragments = (index == @lineFragments.length - 1)
-    { screenDelta, bufferDelta, lastLineFragment, traversedAllFragments }
 
   logLines: (start=0, end=@screenLineCount() - 1)->
     for row in [start..end]

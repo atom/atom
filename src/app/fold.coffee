@@ -26,8 +26,8 @@ class Fold
 
     new Range([@startRow, 0], end)
 
-  getBufferDelta: ->
-    new Point(@endRow - @startRow + 1, 0)
+  getBufferRowCount: ->
+    @endRow - @startRow + 1
 
   handleBufferChange: (event) ->
     oldStartRow = @startRow

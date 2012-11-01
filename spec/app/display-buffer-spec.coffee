@@ -121,7 +121,7 @@ describe "DisplayBuffer", ->
         expect(displayBuffer.screenPositionForBufferPosition([3, 5])).toEqual([3, 5])
         expect(displayBuffer.bufferPositionForScreenPosition([3, 5])).toEqual([3, 5])
         expect(displayBuffer.screenPositionForBufferPosition([3, 50])).toEqual([3, 50])
-        expect(displayBuffer.screenPositionForBufferPosition([3, 51])).toEqual([4, 0])
+        expect(displayBuffer.screenPositionForBufferPosition([3, 51])).toEqual([3, 50])
         expect(displayBuffer.bufferPositionForScreenPosition([4, 0])).toEqual([3, 51])
         expect(displayBuffer.bufferPositionForScreenPosition([3, 50])).toEqual([3, 50])
         expect(displayBuffer.screenPositionForBufferPosition([3, 62])).toEqual([4, 11])
@@ -245,8 +245,7 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBe fold
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferDelta).toEqual [4, 0]
-          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line4.bufferRows).toBe 4
           expect(line5.text).toBe '8'
 
           expect(changeHandler).toHaveBeenCalled()
@@ -260,8 +259,7 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferDelta).toEqual [1, 0]
-          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
@@ -277,8 +275,7 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBe fold
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferDelta).toEqual [1, 0]
-          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
@@ -296,8 +293,7 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferDelta).toEqual [1, 0]
-          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
           expect(changeHandler).toHaveBeenCalled()
@@ -315,8 +311,7 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBe outerFold
           expect(line4.text).toMatch /4-+/
-          expect(line4.bufferDelta).toEqual [5, 0]
-          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line4.bufferRows).toEqual 5
           expect(line5.text).toMatch /9-+/
 
           outerFold.destroy()
@@ -324,13 +319,11 @@ describe "DisplayBuffer", ->
           [line4, line5, line6, line7] = displayBuffer.linesForRows(4, 7)
           expect(line4.fold).toBeUndefined()
           expect(line4.text).toMatch /^4-+/
-          expect(line4.bufferDelta).toEqual [1, 0]
-          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
           expect(line6.fold).toBe innerFold
           expect(line6.text).toBe '6'
-          expect(line6.bufferDelta).toEqual [2, 0]
-          expect(line6.screenDelta).toEqual [1, 0]
+          expect(line6.bufferRows).toEqual 2
           expect(line7.text).toBe '8'
 
         it "allows the outer fold to start at the same location as the inner fold", ->
@@ -340,8 +333,7 @@ describe "DisplayBuffer", ->
           [line4, line5] = displayBuffer.linesForRows(4, 5)
           expect(line4.fold).toBe outerFold
           expect(line4.text).toMatch /4-+/
-          expect(line4.bufferDelta).toEqual [5, 0]
-          expect(line4.screenDelta).toEqual [1, 0]
+          expect(line4.bufferRows).toEqual 5
           expect(line5.text).toMatch /9-+/
 
       describe "when creating a fold where one already exists", ->
@@ -487,7 +479,7 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(1).text).toBe "1"
             expect(displayBuffer.lineForRow(2).text).toBe "2"
             expect(displayBuffer.lineForRow(2).fold).toBe fold1
-            expect(displayBuffer.lineForRow(2).bufferDelta).toEqual [4, 0]
+            expect(displayBuffer.lineForRow(2).bufferRows).toEqual 4
             expect(displayBuffer.lineForRow(3).text).toMatch "5"
             expect(displayBuffer.lineForRow(4).fold).toBe fold2
             expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
@@ -507,7 +499,7 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(1).text).toBe "1"
             expect(displayBuffer.lineForRow(2).text).toBe "2"
             expect(displayBuffer.lineForRow(2).fold).toBe fold1
-            expect(displayBuffer.lineForRow(2).bufferDelta).toEqual [6, 0]
+            expect(displayBuffer.lineForRow(2).bufferRows).toEqual 6
             expect(displayBuffer.lineForRow(3).text).toMatch "5"
             expect(displayBuffer.lineForRow(4).fold).toBe fold2
             expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/

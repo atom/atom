@@ -31,7 +31,7 @@ class DisplayBuffer
 
   buildLineMap: ->
     @lineMap = new LineMap
-    @lineMap.insertAtBufferRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
+    @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
   setSoftWrapColumn: (@softWrapColumn) ->
     oldRange = @rangeForAllLines()
@@ -223,16 +223,16 @@ class DisplayBuffer
       if fold = @largestFoldStartingAtBufferRow(currentBufferRow)
         screenLine = screenLine.copy()
         screenLine.fold = fold
-        screenLine.bufferDelta = fold.getBufferDelta()
+        screenLine.bufferRows = fold.getBufferRowCount()
         lineFragments.push(screenLine)
         currentBufferRow = fold.endRow + 1
         continue
 
       startBufferColumn ?= 0
-      screenLine = screenLine.splitAt(startBufferColumn)[1] if startBufferColumn > 0
+      screenLine = screenLine.softWrapAt(startBufferColumn)[1] if startBufferColumn > 0
       wrapScreenColumn = @findWrapColumn(screenLine.text, @softWrapColumn)
       if wrapScreenColumn?
-        screenLine = screenLine.splitAt(wrapScreenColumn)[0]
+        screenLine = screenLine.softWrapAt(wrapScreenColumn)[0]
         screenLine.screenDelta = new Point(1, 0)
         startBufferColumn += wrapScreenColumn
       else
