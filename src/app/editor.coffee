@@ -452,7 +452,6 @@ class Editor extends View
 
     maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
     scrollTop = Math.floor(Math.max(0, Math.min(maxScrollTop, scrollTop)))
-
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
@@ -470,7 +469,7 @@ class Editor extends View
       @scrollTop() + @scrollView.height()
 
   scrollToBottom: ->
-    @scrollBottom(@scrollView.prop('scrollHeight'))
+    @scrollBottom(@screenLineCount() * @lineHeight)
 
   scrollTo: (pixelPosition) ->
     return unless @attached

@@ -805,7 +805,7 @@ describe "Editor", ->
           expect(region1.position().top).toBeCloseTo(2 * lineHeight)
           expect(region1.position().left).toBeCloseTo(7 * charWidth)
           expect(region1.height()).toBeCloseTo lineHeight
-          expect(region1.width()).toBeCloseTo(editor.renderedLines.width() - region1.position().left)
+          expect(region1.width()).toBeCloseTo(editor.renderedLines.outerWidth() - region1.position().left)
 
           region2 = selectionView.regions[1]
           expect(region2.position().top).toBeCloseTo(3 * lineHeight)
@@ -823,18 +823,18 @@ describe "Editor", ->
           expect(region1.position().top).toBeCloseTo(2 * lineHeight)
           expect(region1.position().left).toBeCloseTo(7 * charWidth)
           expect(region1.height()).toBeCloseTo lineHeight
-          expect(region1.width()).toBeCloseTo(editor.renderedLines.width() - region1.position().left)
+          expect(region1.width()).toBeCloseTo(editor.renderedLines.outerWidth() - region1.position().left)
 
           region2 = selectionView.regions[1]
           expect(region2.position().top).toBeCloseTo(3 * lineHeight)
           expect(region2.position().left).toBeCloseTo(0)
           expect(region2.height()).toBeCloseTo(3 * lineHeight)
-          expect(region2.width()).toBeCloseTo(editor.renderedLines.width())
+          expect(region2.width()).toBeCloseTo(editor.renderedLines.outerWidth())
 
           # resizes with the editor
           expect(editor.width()).toBeLessThan(800)
           editor.width(800)
-          expect(region2.width()).toBe(editor.renderedLines.width())
+          expect(region2.width()).toBe(editor.renderedLines.outerWidth())
 
           region3 = selectionView.regions[2]
           expect(region3.position().top).toBeCloseTo(6 * lineHeight)
