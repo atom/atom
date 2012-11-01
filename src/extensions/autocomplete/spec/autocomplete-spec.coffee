@@ -346,55 +346,6 @@ describe "Autocomplete", ->
 
       expect(autocomplete.cancel).toHaveBeenCalled()
 
-  describe 'when changes are made to the buffer', ->
-    describe "when the autocomplete menu is detached", ->
-      it 'updates word list', ->
-        spyOn(autocomplete, 'buildWordList')
-        editor.getBuffer().change([[0,4],[0,13]], "sauron")
-        expect(autocomplete.buildWordList).toHaveBeenCalled()
-
-    describe "when the autocomplete menu is attached and the change was caused by autocomplete itself", ->
-      it 'does not rebuild the word list', ->
-        editor.getBuffer().insert([10,0] ,"extra:s:extra")
-
-        spyOn(autocomplete, 'buildWordList')
-        editor.setCursorBufferPosition([10,7])
-        autocomplete.attach()
-        expect(autocomplete.buildWordList).not.toHaveBeenCalled()
-
-  describe "when a new edit session is assigned on editor", ->
-    it 'creates and uses a new word list based on new buffer', ->
-      wordList = autocomplete.wordList
-      expect(wordList).toContain "quicksort"
-      expect(wordList).not.toContain "Some"
-
-      editor.edit(fixturesProject.buildEditSessionForPath('sample.txt'))
-
-      wordList = autocomplete.wordList
-      expect(wordList).not.toContain "quicksort"
-      expect(wordList).toContain "Some"
-
-    it 'stops listening to previous buffers change events', ->
-      previousBuffer = editor.getBuffer()
-      editor.edit(fixturesProject.buildEditSessionForPath('sample.txt'))
-      spyOn(autocomplete, "buildWordList")
-
-      previousBuffer.change([[0,0],[0,1]], "sauron")
-
-      expect(autocomplete.buildWordList).not.toHaveBeenCalled()
-
-  describe 'when the editor is removed', ->
-    it 'removes event listeners from its buffer', ->
-      spyOn(autocomplete, 'buildWordList').andCallThrough()
-      editor.getBuffer().insert([0,0], "s")
-      expect(autocomplete.buildWordList).toHaveBeenCalled()
-
-      autocomplete.buildWordList.reset()
-      editor.remove()
-      editor.getBuffer().insert([0,0], "s")
-      expect(autocomplete.buildWordList).not.toHaveBeenCalled()
-      editor = null
-
   describe ".attach()", ->
     beforeEach ->
       editor.attachToDom()

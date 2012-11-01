@@ -72,12 +72,7 @@ class Autocomplete extends View
         @editor.insertText(text)
         false
 
-  setCurrentBuffer: (buffer) ->
-    @currentBuffer?.off '.autocomplete'
-    @currentBuffer = buffer
-    @buildWordList()
-    @currentBuffer.on 'change.autocomplete', (e) =>
-      @buildWordList() unless @isAutocompleting
+  setCurrentBuffer: (@currentBuffer) ->
 
   buildWordList: () ->
     wordHash = {}
@@ -107,6 +102,8 @@ class Autocomplete extends View
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     @currentMatchBufferRange = null
+
+    @buildWordList()
     @allMatches = @findMatchesForCurrentSelection()
 
     originalCursorPosition = @editor.getCursorScreenPosition()
