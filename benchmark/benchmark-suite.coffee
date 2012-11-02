@@ -95,9 +95,8 @@ describe "editor.", ->
           editor.moveCursorToBeginningOfWord()
           editor.setCursorScreenPosition(endPosition)
 
-        benchmark "insert-delete", 10, ->
+        benchmark "insert", ->
           editor.insertText('x')
-          editor.backspace()
 
 describe "TokenizedBuffer.", ->
   describe "coffee-script-grammar.", ->
