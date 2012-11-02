@@ -19,8 +19,9 @@ class StatusBar extends View
   @content: ->
     @div class: 'status-bar', =>
       @div class: 'file-info', =>
-        @div class: 'current-path', outlet: 'currentPath'
-        @div class: 'buffer-modified', outlet: 'bufferModified'
+        @span '\uf252', class: 'octicons git-status', outlet: 'gitStatusIcon'
+        @span class: 'current-path', outlet: 'currentPath'
+        @span class: 'buffer-modified', outlet: 'bufferModified'
       @div class: 'cursor-position', =>
         @span outlet: 'branchArea', =>
           @span '\uf020', class: 'octicons'
@@ -33,7 +34,6 @@ class StatusBar extends View
       @subscribeToBuffer()
       @updatePathText()
 
-    @updateBranchText()
     @updateCursorPositionText()
     @editor.on 'cursor-move', => @updateCursorPositionText()
 
@@ -43,11 +43,13 @@ class StatusBar extends View
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
     @buffer.on 'change.status-bar', => @updateBufferModifiedText()
-    @buffer.on 'after-save.status-bar', =>
-      @updateBranchText()
-      @updateBufferModifiedText()
+    @buffer.on 'after-save.status-bar', => @updateStatusBar()
+    @updateStatusBar()
+
+  updateStatusBar: ->
     @updateBranchText()
     @updateBufferModifiedText()
+    @updateStatusText()
 
   updateBufferModifiedText: ->
     if @buffer.isModified()
@@ -66,6 +68,15 @@ class StatusBar extends View
       @branchArea.show()
     else
       @branchArea.hide()
+
+  updateStatusText: ->
+    if path = @editor.getPath()
+      modified = new Git(path).isModified(path)
+
+    if modified
+      @gitStatusIcon.show()
+    else
+      @gitStatusIcon.hide()
 
   updatePathText: ->
     if path = @editor.getPath()
