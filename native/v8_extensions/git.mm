@@ -10,8 +10,8 @@ private:
   git_repository *repo;
 
 public:
-  GitRepository(const char *repoPath) {
-    exists = git_repository_open_ext(&repo, repoPath, 0, NULL) == GIT_OK;
+  GitRepository(const char *pathInRepo) {
+    exists = git_repository_open_ext(&repo, pathInRepo, 0, NULL) == GIT_OK;
   }
 
   ~GitRepository() {
@@ -41,8 +41,9 @@ public:
         }
       }
       return CefV8Value::CreateString(git_reference_name(head));
-    } else
-      return CefV8Value::CreateNull();
+    }
+
+    return CefV8Value::CreateNull();
   }
 
   CefRefPtr<CefV8Value> IsIgnored(const char *path) {
