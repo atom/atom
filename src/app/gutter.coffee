@@ -60,10 +60,10 @@ class Gutter extends View
 
   highlightCursorLine: ->
     screenRowIndex = @editor().getCursorScreenPosition().row - @firstScreenRow
-    @highlightedLineNumber?.classList.remove('cursor-line-number')
+    @highlightedLineNumber?.classList.remove('cursor-line')
 
     if screenRowIndex >= 0 and @editor().getSelection().isSingleScreenLine()
       @highlightedLineNumber = @lineNumbers[0].children[screenRowIndex]
-      @highlightedLineNumber?.classList.add('cursor-line-number')
+      @highlightedLineNumber?.classList.add('cursor-line')
     else
       @highlightedLineNumber = null

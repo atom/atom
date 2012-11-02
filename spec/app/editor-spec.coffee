@@ -1666,14 +1666,14 @@ describe "Editor", ->
     describe "when there is no wrapping", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
-        expect(editor.find('.line-number.cursor-line-number').length).toBe 1
-        expect(editor.find('.line-number.cursor-line-number').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line').length).toBe 1
+        expect(editor.find('.line-number.cursor-line').text()).toBe "1"
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
-        expect(editor.find('.line-number.cursor-line-number').length).toBe 1
-        expect(editor.find('.line-number.cursor-line-number').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line').length).toBe 1
+        expect(editor.find('.line-number.cursor-line').text()).toBe "2"
 
     describe "when there is wrapping", ->
       beforeEach ->
@@ -1683,14 +1683,14 @@ describe "Editor", ->
 
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
-        expect(editor.find('.line-number.cursor-line-number').length).toBe 1
-        expect(editor.find('.line-number.cursor-line-number').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line').length).toBe 1
+        expect(editor.find('.line-number.cursor-line').text()).toBe "1"
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
-        expect(editor.find('.line-number.cursor-line-number').length).toBe 1
-        expect(editor.find('.line-number.cursor-line-number').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line').length).toBe 1
+        expect(editor.find('.line-number.cursor-line').text()).toBe "2"
 
     describe "when the selection spans multiple lines", ->
       beforeEach ->
@@ -1699,13 +1699,13 @@ describe "Editor", ->
       it "doesn't highlight the background or the gutter", ->
         editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
-        expect(editor.find('.line-number.cursor-line-number').length).toBe 0
+        expect(editor.find('.line-number.cursor-line').length).toBe 0
 
     it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
       editor.setCursorScreenPosition([1,0])
       editor.backspace()
-      expect(editor.find('.line-number.cursor-line-number').length).toBe 1
-      expect(editor.find('.line-number.cursor-line-number').text()).toBe "1"
+      expect(editor.find('.line-number.cursor-line').length).toBe 1
+      expect(editor.find('.line-number.cursor-line').text()).toBe "1"
 
   describe "line highlighting", ->
     beforeEach ->
