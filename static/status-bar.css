@@ -10,20 +10,14 @@
   display: inline-block;
 }
 
-.status-bar .file-info .current-path {
-  float: left;
-  display: inline-block;
-}
-
-.status-bar .file-info .buffer-modified {
-  float: right;
-  display: inline-block;
-}
-
 .status-bar .cursor-position {
   position: absolute;
   right: 5px;
   top: 5px;
+}
+
+.status-bar .file-info .git-status {
+ color: #FAF05C;
 }
 
 .status-bar .octicons {
@@ -31,9 +25,9 @@
   font-size: 14px;
   width: 14px;
   height: 14px;
+  padding-right: 2px;
 }
 
 .status-bar .branch-label {
-  padding-left: 2px;
   padding-right: 10px;
 }
