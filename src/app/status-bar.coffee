@@ -20,10 +20,10 @@ class StatusBar extends View
   @content: ->
     @div class: 'status-bar', =>
       @div class: 'file-info', =>
-        @span class: 'octicons git-status', outlet: 'gitStatusIcon'
         @span class: 'current-path', outlet: 'currentPath'
         @span class: 'buffer-modified', outlet: 'bufferModified'
       @div class: 'cursor-position', =>
+        @span class: 'octicons', outlet: 'gitStatusIcon'
         @span outlet: 'branchArea', =>
           @span '\uf020', class: 'octicons'
           @span class: 'branch-label', outlet: 'branchLabel'
@@ -71,17 +71,16 @@ class StatusBar extends View
       @branchArea.hide()
 
   updateStatusText: ->
-    @gitStatusIcon.empty().hide()
     path = @editor.getPath()
+    @gitStatusIcon.empty()
     return unless path
 
     git = new Git(path)
     if git.isPathModified(path)
       @gitStatusIcon.append $$ -> @span '\uf26d', class: 'modified-status-icon'
-      @gitStatusIcon.show()
     else if git.isPathNew(path)
       @gitStatusIcon.append $$ -> @span '\uf26b', class: 'new-status-icon'
-      @gitStatusIcon.show()
+
 
   updatePathText: ->
     if path = @editor.getPath()

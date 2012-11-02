@@ -16,12 +16,14 @@
   top: 5px;
 }
 
-.status-bar .file-info .modified-status-icon {
+.status-bar .modified-status-icon {
   color: #6C6912;
+  padding-right: 5px;
 }
 
-.status-bar .file-info .new-status-icon {
+.status-bar .new-status-icon {
   color: #269F81;
+  padding-right: 5px;
 }
 
 .status-bar .octicons {
@@ -29,9 +31,9 @@
   font-size: 14px;
   width: 14px;
   height: 14px;
-  padding-right: 5px;
 }
 
 .status-bar .branch-label {
+  padding-left: 5px;
   padding-right: 10px;
 }
