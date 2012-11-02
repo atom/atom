@@ -10,7 +10,7 @@ class FileView extends View
   file: null
 
   initialize: (@file) ->
-    @addClass('ignored') if Git.isPathIgnored(@file.getPath())
+    @addClass('ignored') if new Git(@file.getPath()).isPathIgnored(@file.getPath())
 
   getPath: ->
     @file.path

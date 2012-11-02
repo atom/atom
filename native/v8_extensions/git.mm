@@ -62,15 +62,15 @@ public:
 
   CefRefPtr<CefV8Value> GetStatus(const char *path) {
     if (!exists) {
-      return CefV8Value::CreateInt(-1);
+      return CefV8Value::CreateInt(0);
     }
 
-    unsigned int status;
+    unsigned int status = 0;
     if (git_status_file(&status, repo, path) == GIT_OK) {
       return CefV8Value::CreateInt(status);
     }
     else {
-      return CefV8Value::CreateInt(-1);
+      return CefV8Value::CreateInt(0);
     }
   }
 

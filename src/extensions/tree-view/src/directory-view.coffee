@@ -19,7 +19,7 @@ class DirectoryView extends View
   initialize: ({@directory, isExpanded} = {}) ->
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
-    @directoryName.addClass('ignored') if Git.isPathIgnored(@directory.getPath())
+    @directoryName.addClass('ignored') if new Git(@directory.getPath()).isPathIgnored(@directory.getPath())
 
   getPath: ->
     @directory.path

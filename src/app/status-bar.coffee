@@ -72,7 +72,7 @@ class StatusBar extends View
 
   updateStatusText: ->
     if path = @editor.getPath()
-      modified = new Git(path).isModified(path)
+      modified = new Git(path).isPathModified(path)
 
     if modified
       @gitStatusIcon.show()

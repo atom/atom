@@ -1,11 +1,6 @@
 module.exports =
 class Git
 
-  @isPathIgnored: (path) ->
-    return false unless path
-    repo = new Git(path)
-    repo.isIgnored(repo.relativize(path))
-
   statusFlags:
     index_new: 1 << 0
     index_modified: 1 << 1
@@ -31,23 +26,27 @@ class Git
   getHead: ->
     @repo.getHead() or ''
 
-  isIgnored: (path) ->
-    path and @repo.isIgnored(path)
+  getPathStatus: (path) ->
+    pathStatus = @repo.getStatus(@relativize(path))
 
-  isModified: (path) ->
-    statusFlags = @repo.getStatus(@relativize(path))
-    modifiedFlags = @statusFlags.working_dir_new |
-                    @statusFlags.working_dir_modified |
+  isPathIgnored: (path) ->
+    @repo.isIgnored(@relativize(path))
+
+  isPathModified: (path) ->
+    modifiedFlags = @statusFlags.working_dir_modified |
                     @statusFlags.working_dir_delete |
                     @statusFlags.working_dir_typechange
+    (@getPathStatus(path) & modifiedFlags) > 0
 
-    (statusFlags & modifiedFlags) > 0
+  isPathNew: (path) ->
+    (@getPathStatus(path) & @statusFlags.working_dir_new) > 0
 
   relativize: (path) ->
-    return path unless path
     workingDirectory = @getWorkingDirectory()
     if workingDirectory and path.indexOf(workingDirectory) is 0
       path.substring(workingDirectory.length)
+    else
+      path
 
   getShortHead: ->
     head = @getHead()
