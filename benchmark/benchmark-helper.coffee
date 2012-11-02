@@ -70,30 +70,15 @@ window.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->
     fn().done(moveOn)
 
-window.eventPropertiesForPattern = (pattern) ->
-  [modifiers..., key] = pattern.split '-'
-
-  modifiers.push 'shift' if key == key.toUpperCase() and key.toUpperCase() != key.toLowerCase()
-  charCode = key.toUpperCase().charCodeAt 0
-
-  isNamedKey = key.length > 1
-  if isNamedKey
-    keyIdentifier = key
+window.keyIdentifierForKey = (key) ->
+  if key.length > 1 # named key
+    key
   else
-    keyIdentifier = "U+00" + charCode.toString(16)
+    charCode = key.toUpperCase().charCodeAt(0)
+    "U+00" + charCode.toString(16)
 
-  ctrlKey: 'ctrl' in modifiers
-  altKey: 'alt' in modifiers
-  shiftKey: 'shift' in modifiers
-  metaKey: 'meta' in modifiers
-  which: charCode
-  originalEvent:
-    keyIdentifier: keyIdentifier
-
-window.keydownEvent = (pattern, properties={}) ->
-  event = $.Event "keydown", _.extend(eventPropertiesForPattern(pattern), properties)
-  # event.keystroke = (new Keymap).keystrokeStringForEvent(event)
-  event
+window.keydownEvent = (key, properties={}) ->
+  $.Event "keydown", _.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
 
 window.clickEvent = (properties={}) ->
   $.Event "click", properties

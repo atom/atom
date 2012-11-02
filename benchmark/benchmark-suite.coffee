@@ -23,6 +23,15 @@ describe "editor.", ->
     window.shutdown()
     atom.setRootViewStateForPath(rootView.project.getPath(), null)
 
+  describe "keymap.", ->
+    event = null
+
+    beforeEach ->
+      event = keydownEvent('x', target: editor.hiddenInput[0])
+
+    benchmark "keydown-event-with-no-binding", 10, ->
+      keymap.handleKeyEvent(event)
+
   describe "opening-buffers.", ->
     benchmark "300-line-file.", ->
       buffer = rootView.project.bufferForPath('medium.coffee')
