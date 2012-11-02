@@ -75,7 +75,7 @@
   display: table;
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  /*overflow: hidden; i'm worried this is causing rendering problems */
   padding-right: 2em;
 }
 
