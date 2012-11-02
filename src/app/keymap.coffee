@@ -8,10 +8,12 @@ Specificity = require 'specificity'
 module.exports =
 class Keymap
   bindingSets: null
+  bindingSetsByFirstKeystroke: null
   queuedKeystrokes: null
 
   constructor: ->
     @bindingSets = []
+    @bindingSetsByFirstKeystroke = {}
 
   bindDefaultKeys: ->
     @bindKeys "*",
@@ -25,8 +27,12 @@ class Keymap
     $(document).on 'open', => atom.open()
 
   bindKeys: (selector, bindings) ->
-    index = @bindingSets.length
-    @bindingSets.unshift(new BindingSet(selector, bindings, index))
+    bindingSet = new BindingSet(selector, bindings, @bindingSets.length)
+    @bindingSets.unshift(bindingSet)
+    for keystrokes of bindingSet.commandsByKeystrokes
+      keystroke = keystrokes.split(' ')[0] # only index by first keystroke
+      @bindingSetsByFirstKeystroke[keystroke] ?= []
+      @bindingSetsByFirstKeystroke[keystroke].push(bindingSet)
 
   bindingsForElement: (element) ->
     keystrokeMap = {}
@@ -43,9 +49,14 @@ class Keymap
     event.keystrokes = @multiKeystrokeStringForEvent(event)
     isMultiKeystroke = @queuedKeystrokes?
     @queuedKeystrokes = null
+
+    firstKeystroke = event.keystrokes.split(' ')[0]
+    bindingSetsForFirstKeystroke = @bindingSetsByFirstKeystroke[firstKeystroke]
+    return true unless bindingSetsForFirstKeystroke?
+
     currentNode = $(event.target)
     while currentNode.length
-      candidateBindingSets = @bindingSetsForNode(currentNode)
+      candidateBindingSets = @bindingSetsForNode(currentNode, bindingSetsForFirstKeystroke)
       for bindingSet in candidateBindingSets
         command = bindingSet.commandForEvent(event)
         if command
@@ -61,8 +72,8 @@ class Keymap
 
     !isMultiKeystroke
 
-  bindingSetsForNode: (node) ->
-    bindingSets = @bindingSets.filter (set) -> node.is(set.selector)
+  bindingSetsForNode: (node, candidateBindingSets = @bindingSets) ->
+    bindingSets = candidateBindingSets.filter (set) -> node.is(set.selector)
     bindingSets.sort (a, b) ->
       if b.specificity == a.specificity
         b.index - a.index
