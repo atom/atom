@@ -216,71 +216,20 @@ describe "Keymap", ->
       describe "when there is a complete binding with a more specific selector", ->
         it "favors the more specific complete match", ->
 
-  describe ".bindKeys(selector, fnOrMap)", ->
-    describe "when called with a selector and a hash", ->
-      it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
-        fooHandler = jasmine.createSpy('fooHandler')
-        fragment.on 'foo', fooHandler
-        keymap.bindKeys '*', 'ctrl-alt-delete': 'foo'
-        result = keymap.handleKeyEvent(keydownEvent('delete', ctrlKey: true, altKey: true, target: fragment[0]))
-        expect(result).toBe(false)
-        expect(fooHandler).toHaveBeenCalled()
+  describe ".bindKeys(selector, hash)", ->
+    it "normalizes the key patterns in the hash to put the modifiers in alphabetical order", ->
+      fooHandler = jasmine.createSpy('fooHandler')
+      fragment.on 'foo', fooHandler
+      keymap.bindKeys '*', 'ctrl-alt-delete': 'foo'
+      result = keymap.handleKeyEvent(keydownEvent('delete', ctrlKey: true, altKey: true, target: fragment[0]))
+      expect(result).toBe(false)
+      expect(fooHandler).toHaveBeenCalled()
 
-        fooHandler.reset()
-        keymap.bindKeys '*', 'ctrl-alt--': 'foo'
-        result = keymap.handleKeyEvent(keydownEvent('-', ctrlKey: true, altKey: true, target: fragment[0]))
-        expect(result).toBe(false)
-        expect(fooHandler).toHaveBeenCalled()
-
-    describe "when called with a selector and a function", ->
-      it "calls the given function when selector matches", ->
-        handler = jasmine.createSpy 'handler'
-        keymap.bindKeys '.child-node', handler
-
-        target = fragment.find('.grandchild-node')[0]
-        event = keydownEvent('y', target: target)
-        keymap.handleKeyEvent event
-
-        expect(handler).toHaveBeenCalledWith(event)
-
-      describe "when the function returns a command string", ->
-        it "triggers the command event on the target and stops propagating the event", ->
-          keymap.bindKeys '*', 'x': 'foo'
-          keymap.bindKeys '*', -> 'bar'
-          fooHandler = jasmine.createSpy('fooHandler')
-          barHandler = jasmine.createSpy('barHandler')
-          fragment.on 'foo', fooHandler
-          fragment.on 'bar', barHandler
-
-          target = fragment.find('.child-node')[0]
-          keymap.handleKeyEvent(keydownEvent('x', target: target))
-
-          expect(fooHandler).not.toHaveBeenCalled()
-          expect(barHandler).toHaveBeenCalled()
-
-      describe "when the function returns false", ->
-        it "stops propagating the event", ->
-          keymap.bindKeys '*', 'x': 'foo'
-          keymap.bindKeys '*', -> false
-          fooHandler = jasmine.createSpy('fooHandler')
-          fragment.on 'foo', fooHandler
-
-          target = fragment.find('.child-node')[0]
-          keymap.handleKeyEvent(keydownEvent('x', target: target))
-
-          expect(fooHandler).not.toHaveBeenCalled()
-
-      describe "when the function returns anything other than a string or false", ->
-        it "continues to propagate the event", ->
-          keymap.bindKeys '*', 'x': 'foo'
-          keymap.bindKeys '*', -> undefined
-          fooHandler = jasmine.createSpy('fooHandler')
-          fragment.on 'foo', fooHandler
-
-          target = fragment.find('.child-node')[0]
-          keymap.handleKeyEvent(keydownEvent('x', target: target))
-
-          expect(fooHandler).toHaveBeenCalled()
+      fooHandler.reset()
+      keymap.bindKeys '*', 'ctrl-alt--': 'foo'
+      result = keymap.handleKeyEvent(keydownEvent('-', ctrlKey: true, altKey: true, target: fragment[0]))
+      expect(result).toBe(false)
+      expect(fooHandler).toHaveBeenCalled()
 
   describe ".keystrokeStringForEvent(event)", ->
     describe "when no modifiers are pressed", ->

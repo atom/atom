@@ -12,19 +12,15 @@ class BindingSet
   commandForEvent: null
   parser: null
 
-  constructor: (@selector, mapOrFunction, @index) ->
+  constructor: (@selector, commandsByKeystrokes, @index) ->
     @parser = PEG.buildParser(fs.read(require.resolve 'keystroke-pattern.pegjs'))
     @specificity = Specificity(@selector)
-    @commandsByKeystrokes = {}
+    @commandsByKeystrokes = @normalizeCommandsByKeystrokes(commandsByKeystrokes)
 
-    if _.isFunction(mapOrFunction)
-      @commandForEvent = mapOrFunction
-    else
-      @commandsByKeystrokes = @normalizeCommandsByKeystrokes(mapOrFunction)
-      @commandForEvent = (event) =>
-        for keystrokes, command of @commandsByKeystrokes
-          return command if event.keystrokes == keystrokes
-        null
+  commandForEvent: (event) ->
+    for keystrokes, command of @commandsByKeystrokes
+      return command if event.keystrokes == keystrokes
+    null
 
   matchesKeystrokePrefix: (event) ->
     eventKeystrokes = event.keystrokes.split(' ')
