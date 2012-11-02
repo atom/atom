@@ -1,5 +1,5 @@
-{View} = require 'space-pen'
 _ = require 'underscore'
+{View, $$} = require 'space-pen'
 Git = require 'git'
 
 module.exports =
@@ -20,7 +20,7 @@ class StatusBar extends View
   @content: ->
     @div class: 'status-bar', =>
       @div class: 'file-info', =>
-        @span '\uf252', class: 'octicons git-status', outlet: 'gitStatusIcon'
+        @span class: 'octicons git-status', outlet: 'gitStatusIcon'
         @span class: 'current-path', outlet: 'currentPath'
         @span class: 'buffer-modified', outlet: 'bufferModified'
       @div class: 'cursor-position', =>
@@ -71,13 +71,17 @@ class StatusBar extends View
       @branchArea.hide()
 
   updateStatusText: ->
-    if path = @editor.getPath()
-      modified = new Git(path).isPathModified(path)
+    @gitStatusIcon.empty().hide()
+    path = @editor.getPath()
+    return unless path
 
-    if modified
+    git = new Git(path)
+    if git.isPathModified(path)
+      @gitStatusIcon.append $$ -> @span '\uf26d', class: 'modified-status-icon'
       @gitStatusIcon.show()
-    else
-      @gitStatusIcon.hide()
+    else if git.isPathNew(path)
+      @gitStatusIcon.append $$ -> @span '\uf26b', class: 'new-status-icon'
+      @gitStatusIcon.show()
 
   updatePathText: ->
     if path = @editor.getPath()

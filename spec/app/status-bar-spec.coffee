@@ -125,11 +125,14 @@ describe "StatusBar", ->
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
+      newPath = fs.join(require.resolve('fixtures/git/working-dir'), 'new.txt')
+      fs.write(newPath, "I'm new here")
       originalPathText = fs.read(path)
       rootView.attachToDom()
 
     afterEach ->
       fs.write(path, originalPathText)
+      fs.remove(newPath) if fs.exists(newPath)
 
     it "displays the modified icon for a changed file", ->
       fs.write(path, "i've changed for the worse")
@@ -139,3 +142,7 @@ describe "StatusBar", ->
     it "doesn't display the modified icon for an unchanged file", ->
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toBeHidden()
+
+    it "displays the new icon for a new file", ->
+      rootView.open(newPath)
+      expect(statusBar.gitStatusIcon).toBeVisible()

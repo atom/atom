@@ -16,8 +16,12 @@
   top: 5px;
 }
 
-.status-bar .file-info .git-status {
- color: #FAF05C;
+.status-bar .file-info .modified-status-icon {
+  color: #6C6912;
+}
+
+.status-bar .file-info .new-status-icon {
+  color: #269F81;
 }
 
 .status-bar .octicons {
@@ -25,7 +29,7 @@
   font-size: 14px;
   width: 14px;
   height: 14px;
-  padding-right: 2px;
+  padding-right: 5px;
 }
 
 .status-bar .branch-label {
