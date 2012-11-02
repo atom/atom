@@ -1,7 +1,7 @@
 var $git = {};
 (function() {
 
-  native function getRepository(path);
+  native function getRepository(pathInRepo);
   native function getHead();
   native function getPath();
   native function isIgnored(path);
