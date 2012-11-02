@@ -36,15 +36,15 @@ class StatusBar extends View
       @updatePathText()
 
     @updateCursorPositionText()
-    @editor.on 'cursor-move', => _.defer => @updateCursorPositionText()
+    @editor.on 'cursor-move', => _.delay (=> @updateCursorPositionText()), 50
 
     @subscribeToBuffer()
 
   subscribeToBuffer: ->
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
-    @buffer.on 'change.status-bar', => _.defer => @updateBufferModifiedText()
-    @buffer.on 'after-save.status-bar', => _.defer => @updateStatusBar()
+    @buffer.on 'change.status-bar', => _.delay (=> @updateBufferModifiedText()), 50
+    @buffer.on 'after-save.status-bar', => _.delay (=> @updateStatusBar()), 50
     @updateStatusBar()
 
   updateStatusBar: ->

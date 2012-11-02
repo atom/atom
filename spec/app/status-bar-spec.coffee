@@ -17,7 +17,7 @@ describe "StatusBar", ->
 
     # updating the status bar is asynchronous for performance reasons
     # for testing purposes, make it synchronous
-    spyOn(_, 'defer').andCallFake (fn) -> fn()
+    spyOn(_, 'delay').andCallFake (fn) -> fn()
 
   afterEach ->
     rootView.remove()
