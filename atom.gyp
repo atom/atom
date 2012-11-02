@@ -19,6 +19,7 @@
   },
   'includes': [
     'cef/cef_paths2.gypi',
+    'git2/libgit2.gypi',
   ],
   'target_defaults': {
     'default_configuration': 'Debug',
@@ -49,7 +50,7 @@
       'defines': [
         'USING_CEF_SHARED',
       ],
-      'include_dirs': [ '.', 'cef' ],
+      'include_dirs': [ '.', 'cef', 'git2' ],
       'mac_framework_dirs': [ 'native/frameworks' ],
       'libraries': [ 'native/frameworks/CocoaOniguruma.framework' ],
       'sources': [
@@ -137,6 +138,12 @@
               'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks',
               'files': [
                 'native/frameworks/CocoaOniguruma.framework',
+              ],
+            },
+            {
+              'destination': '<(PRODUCT_DIR)/Atom.app/Contents/Frameworks/libgit2.framework/Libraries',
+              'files': [
+                'git2/frameworks/libgit2.0.17.0.dylib',
               ],
             },
           ],
@@ -264,14 +271,17 @@
             'USING_CEF_SHARED',
             'PROCESS_HELPER_APP',
           ],
-          'include_dirs': [ '.', 'cef' ],
+          'include_dirs': [ '.', 'cef', 'git2' ],
           'mac_framework_dirs': [ 'native/frameworks' ],
           'link_settings': {
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/AppKit.framework',
             ],
           },
-          'libraries': [ 'native/frameworks/CocoaOniguruma.framework' ],
+          'libraries': [
+            'native/frameworks/CocoaOniguruma.framework',
+            'git2/frameworks/libgit2.0.17.0.dylib',
+          ],
           'sources': [
             'native/atom_cef_app.h',
             'native/atom_cef_render_process_handler.h',
@@ -289,6 +299,8 @@
             'native/v8_extensions/onig_scanner.h',
             'native/v8_extensions/atom.mm',
             'native/v8_extensions/atom.h',
+            'native/v8_extensions/git.mm',
+            'native/v8_extensions/git.h',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
@@ -314,12 +326,22 @@
               # (DYLIB_INSTALL_NAME_BASE) relative to the main executable
               # (chrome).  A different relative path needs to be used in
               # atom_helper_app.
-              'postbuild_name': 'Fix Framework Link',
+              'postbuild_name': 'Fix CEF Framework Link',
               'action': [
                 'install_name_tool',
                 '-change',
                 '@executable_path/libcef.dylib',
                 '@executable_path/../../../../Frameworks/Chromium Embedded Framework.framework/Libraries/libcef.dylib',
+                '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
+              ],
+            },
+            {
+              'postbuild_name': 'Fix libgit2 Framework Link',
+              'action': [
+                'install_name_tool',
+                '-change',
+                '@executable_path/libgit2.0.17.0.dylib',
+                '@executable_path/../../../../Frameworks/libgit2.framework/Libraries/libgit2.0.17.0.dylib',
                 '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}'
               ],
             },

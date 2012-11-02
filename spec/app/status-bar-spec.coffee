@@ -97,3 +97,40 @@ describe "StatusBar", ->
     it "updates the cursor position in the status bar", ->
       editor.setCursorScreenPosition([1, 2])
       expect(statusBar.cursorPosition.text()).toBe '2,3'
+
+  describe "git branch label", ->
+    beforeEach ->
+      fs.remove('/tmp/.git') if fs.isDirectory('/tmp/.git')
+      rootView.attachToDom()
+
+    it "displays the current branch for files in repositories", ->
+      path = require.resolve('fixtures/git/master.git/HEAD')
+      rootView.open(path)
+      expect(statusBar.branchArea).toBeVisible()
+      expect(statusBar.branchLabel.text()).toBe 'master'
+
+    it "doesn't display the current branch for a file not in a repository", ->
+      path = '/tmp/temp.txt'
+      rootView.open(path)
+      expect(statusBar.branchArea).toBeHidden()
+      expect(statusBar.branchLabel.text()).toBe ''
+
+  describe "git status label", ->
+    [repo, path, originalPathText, newPath] = []
+
+    beforeEach ->
+      path = require.resolve('fixtures/git/working-dir/file.txt')
+      originalPathText = fs.read(path)
+      rootView.attachToDom()
+
+    afterEach ->
+      fs.write(path, originalPathText)
+
+    it "displays the modified icon for a changed file", ->
+      fs.write(path, "i've changed for the worse")
+      rootView.open(path)
+      expect(statusBar.gitStatusIcon).toBeVisible()
+
+    it "doesn't display the modified icon for an unchanged file", ->
+      rootView.open(path)
+      expect(statusBar.gitStatusIcon).toBeHidden()

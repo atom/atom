@@ -22,6 +22,10 @@
   padding: 0 1ex;
 }
 
+.tree-view .ignored {
+  color: #BBB;
+}
+
 .tree-view .directory .entries .file {
   padding-left: 3ex;
 }

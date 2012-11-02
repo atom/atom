@@ -2,6 +2,7 @@
 FileView = require 'tree-view/src/file-view'
 Directory = require 'directory'
 $ = require 'jquery'
+Git = require 'git'
 
 module.exports =
 class DirectoryView extends View
@@ -9,7 +10,7 @@ class DirectoryView extends View
     @li class: 'directory entry', =>
       @div outlet: 'header', class: 'header', =>
         @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow'
-        @span directory.getBaseName(), class: 'name'
+        @span directory.getBaseName(), class: 'name', outlet: 'directoryName'
 
   directory: null
   entries: null
@@ -18,6 +19,7 @@ class DirectoryView extends View
   initialize: ({@directory, isExpanded} = {}) ->
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
+    @directoryName.addClass('ignored') if Git.isPathIgnored(@directory.getPath())
 
   getPath: ->
     @directory.path

@@ -1,4 +1,5 @@
 {View} = require 'space-pen'
+Git = require 'git'
 
 module.exports =
 class StatusBar extends View
@@ -18,9 +19,14 @@ class StatusBar extends View
   @content: ->
     @div class: 'status-bar', =>
       @div class: 'file-info', =>
-        @div class: 'current-path', outlet: 'currentPath'
-        @div class: 'buffer-modified', outlet: 'bufferModified'
-      @div class: 'cursor-position', outlet: 'cursorPosition'
+        @span '\uf252', class: 'octicons git-status', outlet: 'gitStatusIcon'
+        @span class: 'current-path', outlet: 'currentPath'
+        @span class: 'buffer-modified', outlet: 'bufferModified'
+      @div class: 'cursor-position', =>
+        @span outlet: 'branchArea', =>
+          @span '\uf020', class: 'octicons'
+          @span class: 'branch-label', outlet: 'branchLabel'
+        @span outlet: 'cursorPosition'
 
   initialize: (@rootView, @editor) ->
     @updatePathText()
@@ -37,8 +43,13 @@ class StatusBar extends View
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
     @buffer.on 'change.status-bar', => @updateBufferModifiedText()
-    @buffer.on 'after-save.status-bar', => @updateBufferModifiedText()
+    @buffer.on 'after-save.status-bar', => @updateStatusBar()
+    @updateStatusBar()
+
+  updateStatusBar: ->
+    @updateBranchText()
     @updateBufferModifiedText()
+    @updateStatusText()
 
   updateBufferModifiedText: ->
     if @buffer.isModified()
@@ -46,9 +57,29 @@ class StatusBar extends View
     else
       @bufferModified.text('')
 
+  updateBranchText: ->
+    if path = @editor.getPath()
+      @head = new Git(path).getShortHead()
+    else
+      @head = ''
+
+    @branchLabel.text(@head)
+    if @head
+      @branchArea.show()
+    else
+      @branchArea.hide()
+
+  updateStatusText: ->
+    if path = @editor.getPath()
+      modified = new Git(path).isModified(path)
+
+    if modified
+      @gitStatusIcon.show()
+    else
+      @gitStatusIcon.hide()
+
   updatePathText: ->
-    path = @editor.getPath()
-    if path
+    if path = @editor.getPath()
       @currentPath.text(@rootView.project.relativize(path))
     else
       @currentPath.text('untitled')

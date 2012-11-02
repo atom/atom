@@ -12,6 +12,8 @@ class Directory
   getBaseName: ->
     fs.base(@path) + '/'
 
+  getPath: -> @path
+
   getEntries: ->
     directories = []
     files = []
