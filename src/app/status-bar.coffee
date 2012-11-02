@@ -1,4 +1,5 @@
 {View} = require 'space-pen'
+_ = require 'underscore'
 
 module.exports =
 class StatusBar extends View
@@ -29,15 +30,15 @@ class StatusBar extends View
       @updatePathText()
 
     @updateCursorPositionText()
-    @editor.on 'cursor-move', => @updateCursorPositionText()
+    @editor.on 'cursor-move', => _.defer => @updateCursorPositionText()
 
     @subscribeToBuffer()
 
   subscribeToBuffer: ->
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
-    @buffer.on 'change.status-bar', => @updateBufferModifiedText()
-    @buffer.on 'after-save.status-bar', => @updateBufferModifiedText()
+    @buffer.on 'change.status-bar', => _.defer => @updateBufferModifiedText()
+    @buffer.on 'after-save.status-bar', => _.defer => @updateBufferModifiedText()
     @updateBufferModifiedText()
 
   updateBufferModifiedText: ->

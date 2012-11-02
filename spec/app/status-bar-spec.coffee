@@ -1,4 +1,5 @@
 $ = require 'jquery'
+_ = require 'underscore'
 RootView = require 'root-view'
 StatusBar = require 'status-bar'
 fs = require 'fs'
@@ -13,6 +14,10 @@ describe "StatusBar", ->
     editor = rootView.getActiveEditor()
     statusBar = rootView.find('.status-bar').view()
     buffer = editor.getBuffer()
+
+    # updating the status bar is asynchronous for performance reasons
+    # for testing purposes, make it synchronous
+    spyOn(_, 'defer').andCallFake (fn) -> fn()
 
   afterEach ->
     rootView.remove()
