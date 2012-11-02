@@ -6,6 +6,18 @@ class Git
     repo = new Git(path)
     repo.isIgnored(repo.relativize(path))
 
+  statusFlags:
+    index_new: 1 << 0
+    index_modified: 1 << 1
+    index_deleted: 1 << 2
+    index_renamed: 1 << 3
+    index_typechange: 1 << 4
+    working_dir_new: 1 << 7
+    working_dir_modified: 1 << 8
+    working_dir_delete: 1 << 9
+    working_dir_typechange: 1 << 10
+    ignore: 1 << 14
+
   constructor: (path) ->
     @repo = new GitRepository(path)
 
@@ -21,6 +33,15 @@ class Git
 
   isIgnored: (path) ->
     path and @repo.isIgnored(path)
+
+  isModified: (path) ->
+    statusFlags = @repo.getStatus(@relativize(path))
+    modifiedFlags = @statusFlags.working_dir_new |
+                    @statusFlags.working_dir_modified |
+                    @statusFlags.working_dir_delete |
+                    @statusFlags.working_dir_typechange
+
+    (statusFlags & modifiedFlags) > 0
 
   relativize: (path) ->
     return path unless path
