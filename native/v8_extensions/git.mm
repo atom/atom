@@ -47,14 +47,31 @@ public:
   }
 
   CefRefPtr<CefV8Value> IsIgnored(const char *path) {
-    if (!exists)
+    if (!exists) {
       return CefV8Value::CreateBool(false);
+    }
 
     int ignored;
-    if (git_ignore_path_is_ignored(&ignored, repo, path) == GIT_OK)
+    if (git_ignore_path_is_ignored(&ignored, repo, path) == GIT_OK) {
       return CefV8Value::CreateBool(ignored == 1);
-    else
+    }
+    else {
       return CefV8Value::CreateBool(false);
+    }
+  }
+
+  CefRefPtr<CefV8Value> GetStatus(const char *path) {
+    if (!exists) {
+      return CefV8Value::CreateInt(-1);
+    }
+
+    unsigned int status;
+    if (git_status_file(&status, repo, path) == GIT_OK) {
+      return CefV8Value::CreateInt(status);
+    }
+    else {
+      return CefV8Value::CreateInt(-1);
+    }
   }
 
   IMPLEMENT_REFCOUNTING(GitRepository);
@@ -93,6 +110,12 @@ bool Git::Execute(const CefString& name,
   if (name == "isIgnored") {
     GitRepository *userData = (GitRepository *)object->GetUserData().get();
     retval = userData->IsIgnored(arguments[0]->GetStringValue().ToString().c_str());
+    return true;
+  }
+
+  if (name == "getStatus") {
+    GitRepository *userData = (GitRepository *)object->GetUserData().get();
+    retval = userData->GetStatus(arguments[0]->GetStringValue().ToString().c_str());
     return true;
   }
 
