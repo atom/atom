@@ -10,6 +10,7 @@ class TextMateBundle
   @grammarsByScopeName: {}
   @preferencesByScopeSelector: {}
   @bundles: []
+  @grammars: []
 
   @loadAll: ->
     globalBundles = fs.list(require.resolve("bundles"))
@@ -27,6 +28,7 @@ class TextMateBundle
       @preferencesByScopeSelector[scopeSelector] = preferences
 
     for grammar in bundle.grammars
+      @grammars.push(grammar)
       for fileType in grammar.fileTypes
         @grammarsByFileType[fileType] = grammar
         @grammarsByScopeName[grammar.scopeName] = grammar
@@ -36,7 +38,15 @@ class TextMateBundle
     if filePath and extension.length == 0
       extension = fs.base(filePath)
 
-    @grammarsByFileType[extension] or @grammarsByFileType["txt"]
+    @grammarsByFileType[extension] or @grammarByShebang(filePath) or @grammarsByFileType["txt"]
+
+  @grammarByShebang: (filePath) ->
+    try
+      firstLine = fs.read(filePath).match(/.*/)[0]
+    catch e
+      null
+
+    _.find @grammars, (grammar) -> grammar.firstLineRegex?.test(firstLine)
 
   @grammarForScopeName: (scopeName) ->
     @grammarsByScopeName[scopeName]

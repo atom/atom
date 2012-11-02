@@ -16,10 +16,12 @@ class TextMateGrammar
   scopeName: null
   repository: null
   initialRule: null
+  firstLineRegex: null
 
-  constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker}) ->
+  constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
     @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
+    @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
 
     for name, data of repository
       @repository[name] = new Rule(this, data)
