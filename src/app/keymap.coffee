@@ -87,28 +87,28 @@ class Keymap
       currentKeystroke
 
   keystrokeStringForEvent: (event) ->
-    if /^U\+/i.test event.originalEvent.keyIdentifier
-      hexCharCode = event.originalEvent.keyIdentifier.replace(/^U\+/i, '')
+    if event.originalEvent.keyIdentifier.indexOf('U+') == 0
+      hexCharCode = event.originalEvent.keyIdentifier[2..]
       charCode = parseInt(hexCharCode, 16)
       key = @keyFromCharCode(charCode)
     else
       key = event.originalEvent.keyIdentifier.toLowerCase()
 
-    modifiers = ''
+    modifiers = []
     if event.altKey and key isnt 'alt'
-      modifiers += 'alt-'
+      modifiers.push 'alt'
     if event.ctrlKey and key isnt 'ctrl'
-      modifiers += 'ctrl-'
+      modifiers.push 'ctrl'
     if event.metaKey and key isnt 'meta'
-      modifiers += 'meta-'
+      modifiers.push 'meta'
 
     if event.shiftKey
       isNamedKey = key.length > 1
-      modifiers += 'shift-' if isNamedKey
+      modifiers.push 'shift' if isNamedKey
     else
       key = key.toLowerCase()
 
-    "#{modifiers}#{key}"
+    [modifiers..., key].join('-')
 
   keyFromCharCode: (charCode) ->
     switch charCode
