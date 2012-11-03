@@ -40,6 +40,8 @@ class StatusBar extends View
     @updateCursorPositionText()
     @editor.on 'cursor-move', => _.delay (=> @updateCursorPositionText()), 50
 
+    @editor.on 'editor-git-status-change', => @updateStatusBar()
+
     @subscribeToBuffer()
 
   subscribeToBuffer: ->

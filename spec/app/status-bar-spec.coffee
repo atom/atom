@@ -146,3 +146,11 @@ describe "StatusBar", ->
     it "displays the new icon for a new file", ->
       rootView.open(newPath)
       expect(statusBar.gitStatusIcon).toHaveText('\uf26b')
+
+    it "updates when an editor-git-status-change event occurs", ->
+      fs.write(path, "i've changed for the worse")
+      rootView.open(path)
+      expect(statusBar.gitStatusIcon).toHaveText('\uf26d')
+      fs.write(path, originalPathText)
+      rootView.getActiveEditor().trigger 'editor-git-status-change'
+      expect(statusBar.gitStatusIcon).toHaveText('')

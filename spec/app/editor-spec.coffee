@@ -1889,3 +1889,32 @@ describe "Editor", ->
       editor.pageUp()
       expect(editor.getCursor().getScreenPosition().row).toBe(0)
       expect(editor.getFirstVisibleScreenRow()).toBe(0)
+
+  describe ".checkoutHead()", ->
+    [repo, path, originalPathText] = []
+
+    beforeEach ->
+      path = require.resolve('fixtures/git/working-dir/file.txt')
+      originalPathText = fs.read(path)
+      rootView.open(path)
+      editor = rootView.getActiveEditor()
+      editor.attachToDom()
+
+    afterEach ->
+      fs.write(path, originalPathText)
+
+    it "restores the contents of the editor to the HEAD revision", ->
+      editor.setText('')
+      editor.save()
+
+      fileChangeHandler = jasmine.createSpy('fileChange')
+      editor.getBuffer().file.on 'contents-change', fileChangeHandler
+
+      editor.checkoutHead()
+
+      waitsFor "file to trigger contents-change event", ->
+        fileChangeHandler.callCount > 0
+
+      runs ->
+        editor.checkoutHead()
+        expect(editor.getText()).toBe(originalPathText)

@@ -8,7 +8,7 @@ CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
 Native = require 'native'
 fs = require 'fs'
-
+Git = require 'git'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -154,6 +154,7 @@ class Editor extends View
         'editor:show-previous-buffer': @loadPreviousEditSession
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
+        'editor:checkout-head-revision': @checkoutHead
 
     documentation = {}
     for name, method of editorBindings
@@ -273,6 +274,11 @@ class Editor extends View
 
   setInvisibles: (@invisibles={}) ->
     @renderLines()
+
+  checkoutHead: ->
+    if path = @getPath()
+      if new Git(path).checkoutHead(path)
+        @trigger 'editor-git-status-change'
 
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
