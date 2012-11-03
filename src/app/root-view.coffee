@@ -31,10 +31,16 @@ class RootView extends View
   extensionStates: null
   fontSize: 20
   showInvisibles: false
+  invisibles: null
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
     TextMateTheme.activate('IR_Black')
+
+    @invisibles =
+      eol: '¬'
+      space: '•'
+      tab: '▸'
 
     @extensionStates ?= {}
     @extensions = {}
@@ -229,6 +235,12 @@ class RootView extends View
     @trigger 'font-size-change' if oldFontSize != newFontSize
 
   getFontSize: -> @fontSize
+
+  setInvisibles: (invisibles={}) ->
+    _.extend(@invisibles, invisibles)
+    editor.setInvisibles(@invisibles) for editor in @getEditors()
+
+  getInvisibles: -> @invisibles
 
   loadUserConfiguration: ->
     try

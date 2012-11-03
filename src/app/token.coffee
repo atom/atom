@@ -40,7 +40,7 @@ class Token
       isTab: true
     )
 
-  getValueAsHtml: ({showInvisibles, hasLeadingWhitespace, hasTrailingWhitespace})->
+  getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace})->
     html = @value
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
@@ -48,15 +48,15 @@ class Token
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
 
-    if showInvisibles
-      if @isTab
-        html = html.replace(/^./, "<span class='invisible'>▸</span>")
-      else
+    if invisibles
+      if @isTab and invisibles.tab
+        html = html.replace(/^./, "<span class='invisible'>#{invisibles.tab}</span>")
+      else if invisibles.space
         if hasLeadingWhitespace
           html = html.replace /^[ ]+/, (match) ->
-            "<span class='invisible'>#{match.replace(/./g, '•')}</span>"
+            "<span class='invisible'>#{match.replace(/./g, invisibles.space)}</span>"
         if hasTrailingWhitespace
           html = html.replace /[ ]+$/, (match) ->
-            "<span class='invisible'>#{match.replace(/./g, '•')}</span>"
+            "<span class='invisible'>#{match.replace(/./g, invisibles.space)}</span>"
 
     html

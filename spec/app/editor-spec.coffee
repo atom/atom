@@ -1522,17 +1522,19 @@ describe "Editor", ->
     describe "when editor.setShowInvisibles is called", ->
       it "displays spaces as •, tabs as ▸ and newlines as ¬ when true", ->
         editor.attachToDom()
+        editor.setInvisibles(rootView.getInvisibles())
         editor.setText " a line with tabs\tand spaces "
         expect(editor.showInvisibles).toBeFalsy()
-        expect(editor.find('.line').text()).toBe " a line with tabs  and spaces "
+        expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
         editor.setShowInvisibles(true)
-        expect(editor.find('.line').text()).toBe "•a line with tabs▸ and spaces•¬"
+        expect(editor.renderedLines.find('.line').text()).toBe "•a line with tabs▸ and spaces•¬"
         editor.setShowInvisibles(false)
-        expect(editor.find('.line').text()).toBe " a line with tabs  and spaces "
+        expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
 
       it "displays newlines(¬) as their own token outside of the other tokens scope", ->
         editor.setShowInvisibles(true)
         editor.attachToDom()
+        editor.setInvisibles(rootView.getInvisibles())
         editor.setText "var"
         expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible">¬</span>'
 
