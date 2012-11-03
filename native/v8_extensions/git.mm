@@ -74,6 +74,31 @@ public:
     }
   }
 
+  CefRefPtr<CefV8Value> CheckoutHead(const char *path) {
+    if (!exists) {
+      return CefV8Value::CreateBool(false);
+    }
+
+    char *copiedPath = (char *)malloc(sizeof(char) * (strlen(path) + 1));
+    strcpy(copiedPath, path);
+    git_checkout_opts options;
+    memset(&options, 0, sizeof(options));
+    options.checkout_strategy = GIT_CHECKOUT_OVERWRITE_MODIFIED;
+    git_strarray paths;
+    paths.count = 1;
+    paths.strings = &copiedPath;
+    options.paths = paths;
+
+    int result = git_checkout_head(repo, &options);
+    free(copiedPath);
+    if (result == GIT_OK) {
+      return CefV8Value::CreateBool(true);
+    }
+    else {
+      return CefV8Value::CreateBool(false);
+    }
+  }
+
   IMPLEMENT_REFCOUNTING(GitRepository);
 };
 
@@ -116,6 +141,12 @@ bool Git::Execute(const CefString& name,
   if (name == "getStatus") {
     GitRepository *userData = (GitRepository *)object->GetUserData().get();
     retval = userData->GetStatus(arguments[0]->GetStringValue().ToString().c_str());
+    return true;
+  }
+
+  if (name == "checkoutHead") {
+    GitRepository *userData = (GitRepository *)object->GetUserData().get();
+    retval = userData->CheckoutHead(arguments[0]->GetStringValue().ToString().c_str());
     return true;
   }
 

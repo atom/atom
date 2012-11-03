@@ -88,3 +88,36 @@ describe "Git", ->
 
       it "returns false if the path isn't new", ->
         expect(repo.isPathNew(path)).toBeFalsy()
+
+  describe ".checkoutHead(path)", ->
+    [repo, path1, path2, originalPath1Text, originalPath2Text] = []
+
+    beforeEach ->
+      repo = new Git(require.resolve('fixtures/git/working-dir'))
+      path1 = require.resolve('fixtures/git/working-dir/file.txt')
+      originalPath1Text = fs.read(path1)
+      path2 = require.resolve('fixtures/git/working-dir/other.txt')
+      originalPath2Text = fs.read(path2)
+
+    afterEach ->
+      fs.write(path1, originalPath1Text)
+      fs.write(path2, originalPath2Text)
+
+    it "no longer reports a path as modified after checkout", ->
+      expect(repo.isPathModified(path1)).toBeFalsy()
+      fs.write(path1, '')
+      expect(repo.isPathModified(path1)).toBeTruthy()
+      expect(repo.checkoutHead(path1)).toBeTruthy()
+      expect(repo.isPathModified(path1)).toBeFalsy()
+
+    it "restores the contents of the path to the original text", ->
+      fs.write(path1, '')
+      expect(repo.checkoutHead(path1)).toBeTruthy()
+      expect(fs.read(path1)).toBe(originalPath1Text)
+
+    it "only restores the path specified", ->
+      fs.write(path2, 'path 2 is edited')
+      expect(repo.isPathModified(path2)).toBeTruthy()
+      expect(repo.checkoutHead(path1)).toBeTruthy()
+      expect(fs.read(path2)).toBe('path 2 is edited')
+      expect(repo.isPathModified(path2)).toBeTruthy()
