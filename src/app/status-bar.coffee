@@ -29,6 +29,8 @@ class StatusBar extends View
           @span class: 'branch-label', outlet: 'branchLabel'
         @span outlet: 'cursorPosition'
 
+  git: null
+
   initialize: (@rootView, @editor) ->
     @updatePathText()
     @editor.on 'editor-path-change', =>
@@ -43,6 +45,8 @@ class StatusBar extends View
   subscribeToBuffer: ->
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
+    if path = @editor.getPath()
+      @git = new Git(path)
     @buffer.on 'change.status-bar', => _.delay (=> @updateBufferModifiedText()), 50
     @buffer.on 'after-save.status-bar', => _.delay (=> @updateStatusBar()), 50
     @updateStatusBar()
@@ -63,7 +67,7 @@ class StatusBar extends View
     @branchArea.hide()
     return unless path
 
-    head = new Git(path).getShortHead()
+    head = @git.getShortHead()
     @branchLabel.text(head)
     @branchArea.show() if head
 
@@ -72,10 +76,9 @@ class StatusBar extends View
     @gitStatusIcon.empty()
     return unless path
 
-    git = new Git(path)
-    if git.isPathModified(path)
+    if @git.isPathModified(path)
       @gitStatusIcon.append $$ -> @span '\uf26d', class: 'modified-status-icon'
-    else if git.isPathNew(path)
+    else if @git.isPathNew(path)
       @gitStatusIcon.append $$ -> @span '\uf26b', class: 'new-status-icon'
 
 
