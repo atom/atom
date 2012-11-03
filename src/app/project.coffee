@@ -7,6 +7,7 @@ EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 ChildProcess = require 'child-process'
+Git = require 'git'
 
 module.exports =
 class Project
@@ -29,6 +30,7 @@ class Project
       '.DS_Store'
     ]
     @ignoredPathRegexes = []
+    @repo = new Git(path)
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
@@ -42,6 +44,7 @@ class Project
     if path?
       directory = if fs.isDirectory(path) then path else fs.directory(path)
       @rootDirectory = new Directory(directory)
+      @repo = new Git(path)
     else
       @rootDirectory = null
 
@@ -75,6 +78,8 @@ class Project
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
 
+    return true if @repo.isPathIgnored(path)
+
     return false
 
   ignoreFile: (path) ->
@@ -88,6 +93,7 @@ class Project
       return true if name is ignored
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
+    return true if @repo.isPathIgnored(path)
 
     return false
 
