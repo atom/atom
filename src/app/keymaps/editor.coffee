@@ -22,4 +22,3 @@ window.keymap.bindKeys '.editor',
   'meta-/': 'editor:toggle-line-comments'
   'ctrl-W': 'editor:select-word'
   'meta-alt-p': 'editor:log-cursor-scope'
-
