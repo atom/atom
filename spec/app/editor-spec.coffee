@@ -1534,6 +1534,7 @@ describe "Editor", ->
       it "displays newlines(¬) as their own token outside of the other tokens scope", ->
         editor.setShowInvisibles(true)
         editor.attachToDom()
+        editor.setInvisibles(rootView.getInvisibles())
         editor.setText "var"
         expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible">¬</span>'
 
