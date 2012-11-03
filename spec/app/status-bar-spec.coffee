@@ -137,12 +137,12 @@ describe "StatusBar", ->
     it "displays the modified icon for a changed file", ->
       fs.write(path, "i've changed for the worse")
       rootView.open(path)
-      expect(statusBar.gitStatusIcon).toBeVisible()
+      expect(statusBar.gitStatusIcon).toHaveText('\uf26d')
 
     it "doesn't display the modified icon for an unchanged file", ->
       rootView.open(path)
-      expect(statusBar.gitStatusIcon).toBeHidden()
+      expect(statusBar.gitStatusIcon).toHaveText('')
 
     it "displays the new icon for a new file", ->
       rootView.open(newPath)
-      expect(statusBar.gitStatusIcon).toBeVisible()
+      expect(statusBar.gitStatusIcon).toHaveText('\uf26b')
