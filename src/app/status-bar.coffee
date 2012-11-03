@@ -58,9 +58,11 @@ class StatusBar extends View
 
   updateBufferModifiedText: ->
     if @buffer.isModified()
-      @bufferModified.text('*')
+      @bufferModified.text('*') unless @isModified
+      @isModified = true
     else
-      @bufferModified.text('')
+      @bufferModified.text('') if @isModified
+      @isModified = false
 
   updateBranchText: ->
     path = @editor.getPath()
