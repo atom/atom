@@ -59,16 +59,13 @@ class StatusBar extends View
       @bufferModified.text('')
 
   updateBranchText: ->
-    if path = @editor.getPath()
-      @head = new Git(path).getShortHead()
-    else
-      @head = ''
+    path = @editor.getPath()
+    @branchArea.hide()
+    return unless path
 
-    @branchLabel.text(@head)
-    if @head
-      @branchArea.show()
-    else
-      @branchArea.hide()
+    head = new Git(path).getShortHead()
+    @branchLabel.text(head)
+    @branchArea.show() if head
 
   updateStatusText: ->
     path = @editor.getPath()
