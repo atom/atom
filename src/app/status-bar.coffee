@@ -81,7 +81,6 @@ class StatusBar extends View
     else if @git.isPathNew(path)
       @gitStatusIcon.append $$ -> @span '\uf26b', class: 'new-status-icon'
 
-
   updatePathText: ->
     if path = @editor.getPath()
       @currentPath.text(@rootView.project.relativize(path))
