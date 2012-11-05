@@ -1,6 +1,7 @@
 _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
+Token = require 'token'
 
 module.exports =
 class TextMateGrammar
@@ -27,7 +28,8 @@ class TextMateGrammar
     for name, data of repository
       @repository[name] = new Rule(this, data)
 
-  getLineTokens: (line, ruleStack=[@initialRule]) ->
+  tokenizeLine: (line, {ruleStack, tabLength}={}) ->
+    ruleStack ?= [@initialRule]
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
@@ -36,28 +38,31 @@ class TextMateGrammar
       scopes = scopesFromStack(ruleStack)
 
       if line.length == 0
-        tokens = [{value: "", scopes: scopes}]
-        return { tokens, scopes }
+        tokens = [new Token(value: "", scopes: scopes)]
+        return { tokens, ruleStack }
 
       break if position == line.length
 
       if match = _.last(ruleStack).getNextTokens(ruleStack, line, position)
         { nextTokens, tokensStartPosition, tokensEndPosition } = match
         if position < tokensStartPosition # unmatched text before next tokens
-          tokens.push
+          tokens.push(new Token(
             value: line[position...tokensStartPosition]
             scopes: scopes
+          ))
 
         tokens.push(nextTokens...)
         position = tokensEndPosition
 
       else # push filler token for unmatched text at end of line
-        tokens.push
+        tokens.push(new Token(
           value: line[position...line.length]
           scopes: scopes
+        ))
         break
 
-    { tokens, stack: ruleStack }
+    tokens = _.flatten(tokens.map (token) -> token.breakOutTabCharacters(tabLength))
+    { tokens, ruleStack }
 
   ruleForInclude: (name) ->
     if name[0] == "#"
@@ -158,7 +163,6 @@ class Pattern
   getIncludedPatterns: (included) ->
     if @include
       rule = @grammar.ruleForInclude(@include)
-      # console.log "Could not find rule for include #{@include} in #{@grammar.name} grammar" unless rule
       rule?.getIncludedPatterns(included) ? []
     else
       [this]
@@ -175,7 +179,7 @@ class Pattern
       if zeroLengthMatch
         tokens = []
       else
-        tokens = [{ value: line[start...end], scopes: scopes }]
+        tokens = [new Token(value: line[start...end], scopes: scopes)]
     if @pushRule
       stack.push(@pushRule.getRuleToPush(line, captureIndices))
     else if @popRule
@@ -201,18 +205,20 @@ class Pattern
         continue
 
       if childCaptureStart > previousChildCaptureEnd
-        tokens.push
+        tokens.push(new Token(
           value: line[previousChildCaptureEnd...childCaptureStart]
           scopes: scopes
+        ))
 
       captureTokens = @getTokensForCaptureIndices(line, captureIndices, scopes)
       tokens.push(captureTokens...)
       previousChildCaptureEnd = childCaptureEnd
 
     if parentCaptureEnd > previousChildCaptureEnd
-      tokens.push
+      tokens.push(new Token(
         value: line[previousChildCaptureEnd...parentCaptureEnd]
         scopes: scopes
+      ))
 
     tokens
 
