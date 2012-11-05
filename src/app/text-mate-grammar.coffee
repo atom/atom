@@ -9,6 +9,7 @@ class TextMateGrammar
     plist.parseString fs.read(path), (e, data) ->
       throw new Error(e) if e
       grammar = new TextMateGrammar(data[0])
+    throw new Error("Failed to load grammar at path `#{path}`") unless grammar
     grammar
 
   name: null
