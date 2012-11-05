@@ -186,7 +186,6 @@ describe "CommandInterpreter", ->
         runs ->
           expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/Array/"
 
-
     describe "address range", ->
       describe "when two addresses are specified", ->
         it "selects from the begining of the left address to the end of the right address", ->
