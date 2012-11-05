@@ -22,7 +22,7 @@ class Token
     value2 = @value.substring(splitIndex)
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
-  breakOutTabCharacters: (tabLength, showInvisibles) ->
+  breakOutTabCharacters: (tabLength) ->
     return [this] unless /\t/.test(@value)
 
     for substring in @value.match(/[^\t]+|\t/g)
