@@ -187,6 +187,7 @@ class Selection
     { row, column } = @cursor.getBufferPosition()
 
     if @isEmpty()
+      @cursor.skipLeadingWhitespace()
       desiredIndent = @editSession.suggestedIndentForBufferRow(row)
       delta = desiredIndent - @cursor.getIndentLevel()
 

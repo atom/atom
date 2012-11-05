@@ -1225,10 +1225,10 @@ describe "EditSession", ->
         describe "when autoIndent is enabled", ->
           describe "when the cursor's column is less than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
-              it "inserts enough whitespace to bring the line to the suggested level of indentaion", ->
+              it "moves the cursor to the end of the leading whitespace and inserts enough whitespace to bring the line to the suggested level of indentaion", ->
                 buffer.insert([5, 0], "  \n")
                 editSession.tabLength = 2
-                editSession.setCursorBufferPosition [5, 2]
+                editSession.setCursorBufferPosition [5, 0]
                 editSession.setAutoIndent(true)
                 editSession.indent()
                 expect(buffer.lineForRow(5)).toMatch /^\s+$/
@@ -1236,22 +1236,22 @@ describe "EditSession", ->
                 expect(editSession.getCursorBufferPosition()).toEqual [5, 6]
 
             describe "when 'softTabs' is false", ->
-              it "inserts enough tabs to bring the line to the suggested level of indentaion", ->
+              it "moves the cursor to the end of the leading whitespace and inserts enough tabs to bring the line to the suggested level of indentaion", ->
                 convertToHardTabs(buffer)
                 editSession.softTabs = false
                 buffer.insert([5, 0], "\t\n")
-                editSession.setCursorBufferPosition [5, 1]
+                editSession.setCursorBufferPosition [5, 0]
                 editSession.setAutoIndent(true)
                 editSession.indent()
                 expect(buffer.lineForRow(5)).toMatch /^\t\t\t$/
                 expect(editSession.getCursorBufferPosition()).toEqual [5, 3]
 
-          describe "when the cursor's column is greater than the suggested level of indentation", ->
+          describe "when the line's indent level is greater than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
-              it "inserts 'tabLength' spaces into the buffer", ->
+              it "moves the cursor to the end of the leading whitespace and inserts 'tabLength' spaces into the buffer", ->
                 buffer.insert([7, 0], "      \n")
                 editSession.tabLength = 2
-                editSession.setCursorBufferPosition [7, 6]
+                editSession.setCursorBufferPosition [7, 2]
                 editSession.setAutoIndent(true)
                 editSession.indent()
                 expect(buffer.lineForRow(7)).toMatch /^\s+$/
@@ -1259,11 +1259,11 @@ describe "EditSession", ->
                 expect(editSession.getCursorBufferPosition()).toEqual [7, 8]
 
             describe "when 'softTabs' is false", ->
-              it "inserts \t into the buffer", ->
+              it "moves the cursor to the end of the leading whitespace and inserts \t into the buffer", ->
                 convertToHardTabs(buffer)
                 editSession.softTabs = false
                 buffer.insert([7, 0], "\t\t\t\n")
-                editSession.setCursorBufferPosition [7, 3]
+                editSession.setCursorBufferPosition [7, 1]
                 editSession.setAutoIndent(true)
                 editSession.indent()
                 expect(buffer.lineForRow(7)).toMatch /^\t\t\t\t$/
