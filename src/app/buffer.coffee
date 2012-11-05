@@ -22,6 +22,7 @@ class Buffer
   anchors: null
   anchorRanges: null
   refcount: 0
+  git: null
 
   constructor: (path, @project) ->
     @id = @constructor.idCounter++
@@ -84,6 +85,8 @@ class Buffer
 
   setPath: (path) ->
     return if path == @getPath()
+
+    @git = new Git(path)
 
     @file?.off()
     @file = new File(path)
@@ -367,10 +370,12 @@ class Buffer
       line = @lineForRow(row)
       console.log row, line, line.length
 
+  getGit: -> @git
+
   checkoutHead: ->
     path = @getPath()
     return unless path
-    if new Git(path).checkoutHead(path)
+    if @git?.checkoutHead(path)
       @trigger 'git-status-change'
 
 _.extend(Buffer.prototype, EventEmitter)
