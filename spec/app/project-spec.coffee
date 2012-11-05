@@ -148,7 +148,7 @@ describe "Project", ->
 
           expect(matches[0]).toEqual
             path: project.resolve('a')
-            match: '\$bill'
+            match: '$bill'
             range: [[2, 6], [2, 11]]
 
       it "works on evil filenames", ->
