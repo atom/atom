@@ -1916,5 +1916,4 @@ describe "Editor", ->
         fileChangeHandler.callCount > 0
 
       runs ->
-        editor.checkoutHead()
         expect(editor.getText()).toBe(originalPathText)

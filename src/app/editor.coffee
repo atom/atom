@@ -8,7 +8,6 @@ CursorView = require 'cursor-view'
 SelectionView = require 'selection-view'
 Native = require 'native'
 fs = require 'fs'
-Git = require 'git'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -275,11 +274,7 @@ class Editor extends View
   setInvisibles: (@invisibles={}) ->
     @renderLines()
 
-  checkoutHead: ->
-    if path = @getPath()
-      if new Git(path).checkoutHead(path)
-        @trigger 'editor-git-status-change'
-
+  checkoutHead: -> @getBuffer().checkoutHead()
   setText: (text) -> @getBuffer().setText(text)
   getText: -> @getBuffer().getText()
   getPath: -> @getBuffer().getPath()

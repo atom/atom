@@ -8,6 +8,7 @@ UndoManager = require 'undo-manager'
 BufferChangeOperation = require 'buffer-change-operation'
 Anchor = require 'anchor'
 AnchorRange = require 'anchor-range'
+Git = require 'git'
 
 module.exports =
 class Buffer
@@ -365,5 +366,11 @@ class Buffer
     for row in [start..end]
       line = @lineForRow(row)
       console.log row, line, line.length
+
+  checkoutHead: ->
+    path = @getPath()
+    return unless path
+    if new Git(path).checkoutHead(path)
+      @trigger 'git-status-change'
 
 _.extend(Buffer.prototype, EventEmitter)
