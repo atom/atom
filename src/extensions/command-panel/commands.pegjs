@@ -49,7 +49,7 @@ regexAddress
 
 substitution
   = "s" _ "/" find:pattern "/" replace:pattern "/" _ options:[g]* {
-    return new Substitution(find, replace, options);
+    return new Substitution(find, eval("'" + replace + "'"), options);
   }
 
 selectAllMatches

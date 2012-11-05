@@ -282,14 +282,6 @@ describe "CommandInterpreter", ->
           expect(selections[3].getBufferRange()).toEqual [[6,56], [6,63]]
 
   describe "substitution", ->
-    it "does nothing if there are no matches", ->
-      waitsForPromise ->
-        editSession.setSelectedBufferRange([[6, 0], [6, 44]])
-        interpreter.eval('s/not-in-text/foo/', editSession)
-
-      runs ->
-        expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
-
     describe "when there is no address range is given", ->
       describe "when there is no text selection", ->
         it "uses the entire file as the address range", ->
@@ -386,6 +378,20 @@ describe "CommandInterpreter", ->
 
           runs ->
             expect(editSession.getSelectedBufferRanges()).toEqual [[[5, 0], [5, 16]], [[6, 0], [6, 36]]]
+
+    it "does nothing if there are no matches", ->
+      waitsForPromise ->
+        editSession.setSelectedBufferRange([[6, 0], [6, 44]])
+        interpreter.eval('s/not-in-text/foo/', editSession)
+
+      runs ->
+        expect(buffer.lineForRow(6)).toBe '      current < pivot ? left.push(current) : right.push(current);'
+
+    it "properly handles escaped text in the replacement text", ->
+      waitsForPromise ->
+        interpreter.eval('s/  /\\t/g', editSession)
+      runs ->
+        expect(buffer.lineForRow(6)).toBe '\t\t\tcurrent < pivot ? left.push(current) : right.push(current);'
 
   describe "X x/regex/", ->
     it "returns selection operations for all regex matches in all the project's files", ->

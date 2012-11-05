@@ -107,7 +107,7 @@ class CommandPanel extends View
     super
 
   escapedCommand: ->
-    @miniEditor.getText().replace /\\(.)/, (match, charachter) -> eval("'\\#{charachter}'")
+    @miniEditor.getText()
 
   execute: (command=@escapedCommand())->
     @errorMessages.empty()
