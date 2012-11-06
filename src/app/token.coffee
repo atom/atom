@@ -23,6 +23,11 @@ class Token
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
   breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
+    if breakOutLeadingWhitespace
+      return [this] unless /^[ ]|\t/.test(@value)
+    else
+      return [this] unless /\t/.test(@value)
+
     outputTokens = []
     regex = new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
 
