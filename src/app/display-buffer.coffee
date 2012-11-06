@@ -16,7 +16,6 @@ class DisplayBuffer
   tokenizedBuffer: null
   activeFolds: null
   foldsById: null
-  lastTokenizedBufferChangeEvent: null
 
   constructor: (@buffer, options={}) ->
     @id = @constructor.idCounter++
@@ -26,8 +25,7 @@ class DisplayBuffer
     @activeFolds = {}
     @foldsById = {}
     @buildLineMap()
-    @tokenizedBuffer.on 'change', (e) => @lastTokenizedBufferChangeEvent = e
-    @buffer.on "change.displayBuffer#{@id}", (e) => @handleBufferChange(e)
+    @tokenizedBuffer.on 'change', (e) => @handleTokenizedBufferChange(e)
 
   buildLineMap: ->
     @lineMap = new LineMap
@@ -188,9 +186,9 @@ class DisplayBuffer
     allFolds.push(folds...) for row, folds of @activeFolds
     fold.handleBufferChange(e) for fold in allFolds
 
-    @handleTokenizedBufferChange(@lastTokenizedBufferChangeEvent)
-
   handleTokenizedBufferChange: (e) ->
+    @handleBufferChange(e.bufferChange) if e.bufferChange
+
     newRange = e.newRange.copy()
     newRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(newRange.start.row))
 
@@ -272,7 +270,6 @@ class DisplayBuffer
 
   destroy: ->
     @tokenizedBuffer.destroy()
-    @buffer.off ".displayBuffer#{@id}"
 
   logLines: (start, end) ->
     @lineMap.logLines(start, end)
