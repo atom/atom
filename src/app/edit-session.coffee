@@ -44,7 +44,6 @@ class EditSession
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabLength })
-    @tokenizedBuffer = @displayBuffer.tokenizedBuffer
     @anchors = []
     @anchorRanges = []
     @cursors = []
@@ -157,6 +156,7 @@ class EditSession
   maxScreenLineLength: -> @displayBuffer.maxLineLength()
   getLastScreenRow: -> @displayBuffer.getLastRow()
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
+  scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   insertText: (text, options) ->

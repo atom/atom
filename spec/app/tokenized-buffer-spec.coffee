@@ -9,7 +9,8 @@ describe "TokenizedBuffer", ->
 
   beforeEach ->
     editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
-    { tokenizedBuffer, buffer } = editSession
+    buffer = editSession.buffer
+    tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
 
   afterEach ->
     editSession.destroy()
@@ -157,7 +158,8 @@ describe "TokenizedBuffer", ->
       beforeEach ->
         tabLength = 2
         editSession2 = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', { tabLength })
-        { buffer, tokenizedBuffer } = editSession2
+        buffer = editSession2.buffer
+        tokenizedBuffer = editSession2.displayBuffer.tokenizedBuffer
 
       afterEach ->
         editSession2.destroy()
