@@ -48,9 +48,6 @@ class LanguageMode
         @bracketAnchorRanges.push @editSession.addAnchorRange(range)
         false
 
-  getTokenizedBuffer: ->
-    @editSession.tokenizedBuffer
-
   isQuote: (string) ->
     /'|"/.test(string)
 
@@ -69,7 +66,7 @@ class LanguageMode
     @invertedPairedCharacters
 
   toggleLineCommentsForBufferRows: (start, end) ->
-    scopes = @getTokenizedBuffer().scopesForPosition([start, 0])
+    scopes = @editSession.scopesForBufferPosition([start, 0])
     return unless commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
 
     commentRegexString = _.escapeRegExp(commentString)
@@ -96,7 +93,7 @@ class LanguageMode
     return null unless @doesBufferRowStartFold(bufferRow)
 
     startIndentLevel = @editSession.indentationForBufferRow(bufferRow)
-    scopes = @getTokenizedBuffer().scopesForPosition([bufferRow, 0])
+    scopes = @editSession.scopesForBufferPosition([bufferRow, 0])
     for row in [(bufferRow + 1)..@editSession.getLastBufferRow()]
       continue if @editSession.isBufferRowBlank(row)
       indentation = @editSession.indentationForBufferRow(row)
@@ -111,7 +108,7 @@ class LanguageMode
 
   suggestedIndentForBufferRow: (bufferRow) ->
     currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
-    scopes = @getTokenizedBuffer().scopesForPosition([bufferRow, 0])
+    scopes = @editSession.scopesForBufferPosition([bufferRow, 0])
     return currentIndentLevel unless increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
 
     currentLine = @buffer.lineForRow(bufferRow)
@@ -140,7 +137,7 @@ class LanguageMode
     return unless precedingRow?
 
     precedingLine = @editSession.lineForBufferRow(precedingRow)
-    scopes = @getTokenizedBuffer().scopesForPosition([precedingRow, Infinity])
+    scopes = @editSession.scopesForBufferPosition([precedingRow, Infinity])
     increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
     return unless increaseIndentPattern
 
@@ -151,7 +148,7 @@ class LanguageMode
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   autoDecreaseIndentForBufferRow: (bufferRow) ->
-    scopes = @getTokenizedBuffer().scopesForPosition([bufferRow, 0])
+    scopes = @editSession.scopesForBufferPosition([bufferRow, 0])
     increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
     decreaseIndentPattern = TextMateBundle.outdentRegexForScope(scopes[0])
     return unless increaseIndentPattern and decreaseIndentPattern
@@ -168,6 +165,5 @@ class LanguageMode
     if desiredIndentLevel < currentIndentLevel
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
-  getLineTokens: (line, stack) ->
-    {tokens, stack} = @grammar.getLineTokens(line, stack)
-
+  tokenizeLine: (line, stack) ->
+    {tokens, stack} = @grammar.tokenizeLine(line, stack)

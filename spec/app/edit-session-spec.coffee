@@ -110,12 +110,12 @@ describe "EditSession", ->
           lastLine = buffer.lineForRow(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
-          editSession.setCursorScreenPosition(row: lastLineIndex, column: 1)
+          editSession.setCursorScreenPosition(row: lastLineIndex, column: editSession.getTabLength())
           editSession.moveCursorDown()
           expect(editSession.getCursorScreenPosition()).toEqual(row: lastLineIndex, column: lastLine.length)
 
           editSession.moveCursorUp()
-          expect(editSession.getCursorScreenPosition().column).toBe 1
+          expect(editSession.getCursorScreenPosition().column).toBe editSession.getTabLength()
 
         it "retains a goal column of 0 when moving back up", ->
           lastLineIndex = buffer.getLines().length - 1
@@ -138,9 +138,9 @@ describe "EditSession", ->
 
     describe ".moveCursorLeft()", ->
       it "moves the cursor by one column to the left", ->
-        editSession.setCursorScreenPosition([3, 3])
+        editSession.setCursorScreenPosition([1, 8])
         editSession.moveCursorLeft()
-        expect(editSession.getCursorScreenPosition()).toEqual [3, 2]
+        expect(editSession.getCursorScreenPosition()).toEqual [1, 7]
 
       describe "when the cursor is in the first column", ->
         describe "when there is a previous line", ->
@@ -154,6 +154,13 @@ describe "EditSession", ->
             editSession.setCursorScreenPosition(row: 0, column: 0)
             editSession.moveCursorLeft()
             expect(editSession.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+      describe "when softTabs is enabled and the cursor is preceded by leading whitespace", ->
+        it "skips tabLength worth of whitespace at a time", ->
+          editSession.setCursorBufferPosition([5, 6])
+
+          editSession.moveCursorLeft()
+          expect(editSession.getCursorBufferPosition()).toEqual [5, 4]
 
       it "merges cursors when they overlap", ->
         editSession.setCursorScreenPosition([0, 0])
@@ -354,14 +361,14 @@ describe "EditSession", ->
     describe ".selectToScreenPosition(screenPosition)", ->
       it "expands the last selection to the given position", ->
         editSession.setSelectedBufferRange([[3, 0], [4, 5]])
-        editSession.addCursorAtScreenPosition([5, 5])
-        editSession.selectToScreenPosition([6, 1])
+        editSession.addCursorAtScreenPosition([5, 6])
+        editSession.selectToScreenPosition([6, 2])
 
         selections = editSession.getSelections()
         expect(selections.length).toBe 2
         [selection1, selection2] = selections
         expect(selection1.getScreenRange()).toEqual [[3, 0], [4, 5]]
-        expect(selection2.getScreenRange()).toEqual [[5, 5], [6, 1]]
+        expect(selection2.getScreenRange()).toEqual [[5, 6], [6, 2]]
 
       it "merges selections if they intersect, maintaining the directionality of the last selection", ->
         editSession.setCursorScreenPosition([4, 10])
@@ -1210,7 +1217,7 @@ describe "EditSession", ->
         describe "when autoIndent is disabled", ->
           describe "if 'softTabs' is true (the default)", ->
             it "inserts 'tabLength' spaces into the buffer", ->
-              tabRegex = new RegExp("^[ ]{#{editSession.tabLength}}")
+              tabRegex = new RegExp("^[ ]{#{editSession.getTabLength()}}")
               expect(buffer.lineForRow(0)).not.toMatch(tabRegex)
               editSession.indent()
               expect(buffer.lineForRow(0)).toMatch(tabRegex)
@@ -1225,10 +1232,9 @@ describe "EditSession", ->
         describe "when autoIndent is enabled", ->
           describe "when the cursor's column is less than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
-              it "inserts enough whitespace to bring the line to the suggested level of indentaion", ->
+              it "moves the cursor to the end of the leading whitespace and inserts enough whitespace to bring the line to the suggested level of indentaion", ->
                 buffer.insert([5, 0], "  \n")
-                editSession.tabLength = 2
-                editSession.setCursorBufferPosition [5, 2]
+                editSession.setCursorBufferPosition [5, 0]
                 editSession.setAutoIndent(true)
                 editSession.indent()
                 expect(buffer.lineForRow(5)).toMatch /^\s+$/
@@ -1236,22 +1242,21 @@ describe "EditSession", ->
                 expect(editSession.getCursorBufferPosition()).toEqual [5, 6]
 
             describe "when 'softTabs' is false", ->
-              it "inserts enough tabs to bring the line to the suggested level of indentaion", ->
+              it "moves the cursor to the end of the leading whitespace and inserts enough tabs to bring the line to the suggested level of indentaion", ->
                 convertToHardTabs(buffer)
                 editSession.softTabs = false
                 buffer.insert([5, 0], "\t\n")
-                editSession.setCursorBufferPosition [5, 1]
+                editSession.setCursorBufferPosition [5, 0]
                 editSession.setAutoIndent(true)
                 editSession.indent()
                 expect(buffer.lineForRow(5)).toMatch /^\t\t\t$/
                 expect(editSession.getCursorBufferPosition()).toEqual [5, 3]
 
-          describe "when the cursor's column is greater than the suggested level of indentation", ->
+          describe "when the line's indent level is greater than the suggested level of indentation", ->
             describe "when 'softTabs' is true (the default)", ->
-              it "inserts 'tabLength' spaces into the buffer", ->
+              it "moves the cursor to the end of the leading whitespace and inserts 'tabLength' spaces into the buffer", ->
                 buffer.insert([7, 0], "      \n")
-                editSession.tabLength = 2
-                editSession.setCursorBufferPosition [7, 6]
+                editSession.setCursorBufferPosition [7, 2]
                 editSession.setAutoIndent(true)
                 editSession.indent()
                 expect(buffer.lineForRow(7)).toMatch /^\s+$/
@@ -1259,11 +1264,11 @@ describe "EditSession", ->
                 expect(editSession.getCursorBufferPosition()).toEqual [7, 8]
 
             describe "when 'softTabs' is false", ->
-              it "inserts \t into the buffer", ->
+              it "moves the cursor to the end of the leading whitespace and inserts \t into the buffer", ->
                 convertToHardTabs(buffer)
                 editSession.softTabs = false
                 buffer.insert([7, 0], "\t\t\t\n")
-                editSession.setCursorBufferPosition [7, 3]
+                editSession.setCursorBufferPosition [7, 1]
                 editSession.setAutoIndent(true)
                 editSession.indent()
                 expect(buffer.lineForRow(7)).toMatch /^\t\t\t\t$/
@@ -1284,12 +1289,12 @@ describe "EditSession", ->
           editSession.indent()
           expect(buffer.lineForRow(0)).toMatch(/^\t/)
           expect(editSession.getCursorBufferPosition()).toEqual [0, 1]
-          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabLength]
+          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.getTabLength()]
 
           editSession.indent()
           expect(buffer.lineForRow(0)).toMatch(/^\t\t/)
           expect(editSession.getCursorBufferPosition()).toEqual [0, 2]
-          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.tabLength * 2]
+          expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.getTabLength() * 2]
 
     describe "pasteboard operations", ->
       pasteboard = null
@@ -1353,17 +1358,13 @@ describe "EditSession", ->
         expect(editSession.lineForBufferRow(13)).toBe "  }"
 
     describe ".indentSelectedRows()", ->
-      beforeEach ->
-        editSession.tabLength = 2
-
       describe "when nothing is selected", ->
         describe "when softTabs is enabled", ->
           it "indents line and retains selection", ->
-            editSession.tabLength = 2
             editSession.setSelectedBufferRange([[0,3], [0,3]])
             editSession.indentSelectedRows()
             expect(buffer.lineForRow(0)).toBe "  var quicksort = function () {"
-            expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + editSession.tabLength], [0, 3 + editSession.tabLength]]
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 3 + editSession.getTabLength()], [0, 3 + editSession.getTabLength()]]
 
         describe "when softTabs is disabled", ->
           it "indents line and retains selection", ->
@@ -1377,11 +1378,10 @@ describe "EditSession", ->
       describe "when one line is selected", ->
         describe "when softTabs is enabled", ->
           it "indents line and retains selection", ->
-            editSession.tabLength = 2
             editSession.setSelectedBufferRange([[0,4], [0,14]])
             editSession.indentSelectedRows()
             expect(buffer.lineForRow(0)).toBe "#{editSession.getTabText()}var quicksort = function () {"
-            expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + editSession.tabLength], [0, 14 + editSession.tabLength]]
+            expect(editSession.getSelectedBufferRange()).toEqual [[0, 4 + editSession.getTabLength()], [0, 14 + editSession.getTabLength()]]
 
         describe "when softTabs is disabled", ->
           it "indents line and retains selection", ->
@@ -1395,22 +1395,20 @@ describe "EditSession", ->
       describe "when multiple lines are selected", ->
         describe "when softTabs is enabled", ->
           it "indents selected lines (that are not empty) and retains selection", ->
-            editSession.tabLength = 2
             editSession.setSelectedBufferRange([[9,1], [11,15]])
             editSession.indentSelectedRows()
             expect(buffer.lineForRow(9)).toBe "    };"
             expect(buffer.lineForRow(10)).toBe ""
             expect(buffer.lineForRow(11)).toBe "    return sort(Array.apply(this, arguments));"
-            expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 15 + editSession.tabLength]]
+            expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.getTabLength()], [11, 15 + editSession.getTabLength()]]
 
          it "does not indent the last row if the selection ends at column 0", ->
-           editSession.tabLength = 2
            editSession.setSelectedBufferRange([[9,1], [11,0]])
            editSession.indentSelectedRows()
            expect(buffer.lineForRow(9)).toBe "    };"
            expect(buffer.lineForRow(10)).toBe ""
            expect(buffer.lineForRow(11)).toBe "  return sort(Array.apply(this, arguments));"
-           expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.tabLength], [11, 0]]
+           expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + editSession.getTabLength()], [11, 0]]
 
         describe "when softTabs is disabled", ->
           it "indents selected lines (that are not empty) and retains selection", ->
@@ -1424,15 +1422,12 @@ describe "EditSession", ->
             expect(editSession.getSelectedBufferRange()).toEqual [[9, 1 + 1], [11, 15 + 1]]
 
     describe ".outdentSelectedRows()", ->
-      beforeEach ->
-        editSession.tabLength = 2
-
       describe "when nothing is selected", ->
         it "outdents line and retains selection", ->
           editSession.setSelectedBufferRange([[1,3], [1,3]])
           editSession.outdentSelectedRows()
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[1, 3 - editSession.tabLength], [1, 3 - editSession.tabLength]]
+          expect(editSession.getSelectedBufferRange()).toEqual [[1, 3 - editSession.getTabLength()], [1, 3 - editSession.getTabLength()]]
 
         it "outdents when indent is less than a tab length", ->
           editSession.insertText(' ')
@@ -1460,7 +1455,7 @@ describe "EditSession", ->
           editSession.setSelectedBufferRange([[1,4], [1,14]])
           editSession.outdentSelectedRows()
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
-          expect(editSession.getSelectedBufferRange()).toEqual [[1, 4 - editSession.tabLength], [1, 14 - editSession.tabLength]]
+          expect(editSession.getSelectedBufferRange()).toEqual [[1, 4 - editSession.getTabLength()], [1, 14 - editSession.getTabLength()]]
 
       describe "when multiple lines are selected", ->
         it "outdents selected lines and retains editSession", ->
@@ -1470,7 +1465,7 @@ describe "EditSession", ->
           expect(buffer.lineForRow(1)).toBe "var sort = function(items) {"
           expect(buffer.lineForRow(2)).toBe "  if (items.length <= 1) return items;"
           expect(buffer.lineForRow(3)).toBe "  var pivot = items.shift(), current, left = [], right = [];"
-          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 15 - editSession.tabLength]]
+          expect(editSession.getSelectedBufferRange()).toEqual [[0, 1], [3, 15 - editSession.getTabLength()]]
 
         it "does not outdent the last line of the selection if it ends at column 0", ->
           editSession.setSelectedBufferRange([[0,1], [3,0]])
@@ -1637,18 +1632,18 @@ describe "EditSession", ->
 
       it "merges cursors when the change causes them to overlap", ->
         editSession.setCursorScreenPosition([0, 0])
-        editSession.addCursorAtScreenPosition([0, 1])
-        editSession.addCursorAtScreenPosition([1, 1])
+        editSession.addCursorAtScreenPosition([0, 2])
+        editSession.addCursorAtScreenPosition([1, 2])
 
         [cursor1, cursor2, cursor3] = editSession.getCursors()
         expect(editSession.getCursors().length).toBe 3
 
-        buffer.delete([[0, 0], [0, 1]])
+        buffer.delete([[0, 0], [0, 2]])
 
         expect(editSession.getCursors().length).toBe 2
         expect(editSession.getCursors()).toEqual [cursor1, cursor3]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor3.getBufferPosition()).toEqual [1,1]
+        expect(cursor3.getBufferPosition()).toEqual [1,2]
 
   describe "folding", ->
     describe "structural folding", ->

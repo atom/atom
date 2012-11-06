@@ -111,6 +111,15 @@ class Cursor
     newPosition = [position.row, 0] if newPosition.isEqual(position)
     @setBufferPosition(newPosition)
 
+  skipLeadingWhitespace: ->
+    position = @getBufferPosition()
+    range = @editSession.bufferRangeForBufferRow(position.row)
+    endOfLeadingWhitespace = null
+    @editSession.scanInRange /^[ \t]*/, range, (match, matchRange) =>
+      endOfLeadingWhitespace = matchRange.end
+
+    @setBufferPosition(endOfLeadingWhitespace) if endOfLeadingWhitespace.isGreaterThan(position)
+
   moveToEndOfLine: ->
     @setBufferPosition([@getBufferRow(), Infinity])
 
@@ -160,7 +169,7 @@ class Cursor
 
   getIndentLevel: ->
     if @editSession.softTabs
-      @getBufferColumn() / @editSession.tabLength
+      @getBufferColumn() / @editSession.getTabLength()
     else
       @getBufferColumn()
 

@@ -50,27 +50,28 @@ class TokenizedBuffer
       newRange.end.column = endColumn
       oldRange.end.column = endColumn
 
-    @trigger("change", {oldRange, newRange})
+    @trigger "change", {oldRange, newRange, bufferChange: e}
+
+  getTabLength: ->
+    @tabLength
+
+  setTabLength: (@tabLength) ->
+    @screenLines = @buildScreenLinesForRows(0, @buffer.getLastRow())
+    @trigger "change", {oldRange: @buffer.getRange(), newRange: @buffer.getRange()}
 
   buildScreenLinesForRows: (startRow, endRow, startingStack) ->
-    stack = startingStack
+    ruleStack = startingStack
     for row in [startRow..endRow]
-      screenLine = @buildScreenLineForRow(row, stack)
-      stack = screenLine.stack
+      screenLine = @buildScreenLineForRow(row, ruleStack)
+      ruleStack = screenLine.ruleStack
       screenLine
 
-  buildScreenLineForRow: (row, stack) ->
+  buildScreenLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
-    {tokens, stack} = @languageMode.getLineTokens(line, stack)
-    tokenObjects = []
-    for tokenProperties in tokens
-      token = new Token(tokenProperties)
-      tokenObjects.push(token.breakOutTabCharacters(@tabLength)...)
-    text = _.pluck(tokenObjects, 'value').join('')
-    new ScreenLine(
-      tokens: tokenObjects
-      stack: stack
-    )
+
+    val = @languageMode.tokenizeLine(line, {ruleStack, @tabLength})
+    console.log val, line unless val.ruleStack
+    new ScreenLine(val)
 
   lineForScreenRow: (row) ->
     @screenLines[row]
@@ -79,7 +80,7 @@ class TokenizedBuffer
     @screenLines[startRow..endRow]
 
   stackForRow: (row) ->
-    @screenLines[row]?.stack
+    @screenLines[row]?.ruleStack
 
   scopesForPosition: (position) ->
     position = Point.fromObject(position)
