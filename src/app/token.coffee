@@ -7,7 +7,7 @@ class Token
   isAtomic: null
   isHardTab: null
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @fold, @isHardTab}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
 
