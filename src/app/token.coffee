@@ -28,15 +28,21 @@ class Token
     regex = new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
     while match = regex.exec(@value)
       if match[1] and breakOutLeadingWhitespace
-        outputTokens.push(@buildTabToken(tabLength, false))
+        outputTokens.push(@buildSoftTabToken(tabLength, false))
       else if match[2]
         breakOutLeadingWhitespace = false
-        outputTokens.push(@buildTabToken(tabLength, true))
+        outputTokens.push(@buildHardTabToken(tabLength, true))
       else
         breakOutLeadingWhitespace = false
         outputTokens.push(new Token(value: match[0], scopes: @scopes))
 
     outputTokens
+
+  buildHardTabToken: (tabLength) ->
+    @buildTabToken(tabLength, true)
+
+  buildSoftTabToken: (tabLength) ->
+    @buildTabToken(tabLength, false)
 
   buildTabToken: (tabLength, isHardTab) ->
     new Token(
