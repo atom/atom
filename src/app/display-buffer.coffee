@@ -175,9 +175,6 @@ class DisplayBuffer
   bufferPositionForScreenPosition: (position, options) ->
     @lineMap.bufferPositionForScreenPosition(position, options)
 
-  stateForScreenRow: (screenRow) ->
-    @tokenizedBuffer.stackForRow(screenRow)
-
   scopesForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopesForPosition(bufferPosition)
 

@@ -151,7 +151,6 @@ class EditSession
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
   lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
   linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
-  stateForScreenRow: (screenRow) -> @displayBuffer.stateForScreenRow(screenRow)
   screenLineCount: -> @displayBuffer.lineCount()
   maxScreenLineLength: -> @displayBuffer.maxLineLength()
   getLastScreenRow: -> @displayBuffer.getLastRow()
