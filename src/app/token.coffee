@@ -24,12 +24,13 @@ class Token
 
   breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
     outputTokens = []
-
     regex = new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
+
     while match = regex.exec(@value)
-      if match[1] and breakOutLeadingWhitespace
+      [fullMatch, softTab, hardTab] = match
+      if softTab and breakOutLeadingWhitespace
         outputTokens.push(@buildSoftTabToken(tabLength, false))
-      else if match[2]
+      else if hardTab
         breakOutLeadingWhitespace = false
         outputTokens.push(@buildHardTabToken(tabLength, true))
       else
