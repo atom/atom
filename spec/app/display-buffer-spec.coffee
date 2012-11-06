@@ -145,21 +145,6 @@ describe "DisplayBuffer", ->
         expect(event.lineNumbersChanged).toBeTruthy()
 
   describe "structural folding", ->
-    describe "the foldable flag on screen lines", ->
-      it "sets 'foldable' to true for screen lines that start a foldable region", ->
-        expect(displayBuffer.lineForRow(0).foldable).toBeTruthy()
-        expect(displayBuffer.lineForRow(1).foldable).toBeTruthy()
-        expect(displayBuffer.lineForRow(2).foldable).toBeFalsy()
-        expect(displayBuffer.lineForRow(3).foldable).toBeFalsy()
-
-      describe "when a foldable line is wrapped", ->
-        it "only marks the first screen line as foldable", ->
-          displayBuffer.setSoftWrapColumn(20)
-          expect(displayBuffer.lineForRow(0).foldable).toBeTruthy()
-          expect(displayBuffer.lineForRow(1).foldable).toBeFalsy()
-          expect(displayBuffer.lineForRow(2).foldable).toBeTruthy()
-          expect(displayBuffer.lineForRow(3).foldable).toBeFalsy()
-
     describe ".unfoldAll()", ->
       it "unfolds every folded line", ->
         displayBuffer.foldBufferRow(0)

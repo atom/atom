@@ -35,16 +35,14 @@ class EditSession
   cursors: null
   selections: null
   autoIndent: false # TODO: re-enabled auto-indent after fixing the rest of tokenization
-  tabLength: null
   softTabs: true
   softWrap: false
 
-  constructor: ({@project, @buffer, @tabLength, @autoIndent, softTabs, @softWrap }) ->
+  constructor: ({@project, @buffer, tabLength, @autoIndent, softTabs, @softWrap }) ->
     @id = @constructor.idCounter++
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabLength })
-    @tokenizedBuffer = @displayBuffer.tokenizedBuffer
+    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
     @anchors = []
     @anchorRanges = []
     @cursors = []
@@ -108,7 +106,9 @@ class EditSession
   setSoftWrap: (@softWrap) ->
 
   getTabText: -> @buildIndentString(1)
-  getTabLength: -> @tabLength
+
+  getTabLength: -> @displayBuffer.getTabLength()
+  setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
   clipBufferPosition: (bufferPosition) ->
     @buffer.clipPosition(bufferPosition)
@@ -126,11 +126,11 @@ class EditSession
     if line.match(/^\t/)
       line.match(/^\t*/)?[0].length
     else
-      line.match(/^\s*/)?[0].length / @tabLength
+      line.match(/^\s*/)?[0].length / @getTabLength()
 
   buildIndentString: (number) ->
     if @softTabs
-      _.multiplyString(" ", number * @tabLength)
+      _.multiplyString(" ", number * @getTabLength())
     else
       _.multiplyString("\t", number)
 
@@ -152,11 +152,11 @@ class EditSession
   clipScreenPosition: (screenPosition, options) -> @displayBuffer.clipScreenPosition(screenPosition, options)
   lineForScreenRow: (row) -> @displayBuffer.lineForRow(row)
   linesForScreenRows: (start, end) -> @displayBuffer.linesForRows(start, end)
-  stateForScreenRow: (screenRow) -> @displayBuffer.stateForScreenRow(screenRow)
   screenLineCount: -> @displayBuffer.lineCount()
   maxScreenLineLength: -> @displayBuffer.maxLineLength()
   getLastScreenRow: -> @displayBuffer.getLastRow()
   bufferRowsForScreenRows: (startRow, endRow) -> @displayBuffer.bufferRowsForScreenRows(startRow, endRow)
+  scopesForBufferPosition: (bufferPosition) -> @displayBuffer.scopesForBufferPosition(bufferPosition)
   logScreenLines: (start, end) -> @displayBuffer.logLines(start, end)
 
   insertText: (text, options) ->

@@ -250,10 +250,9 @@ class Editor extends View
   screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
-  stateForScreenRow: (row) -> @activeEditSession.stateForScreenRow(row)
 
   logCursorScope: ->
-    console.log @activeEditSession.tokenizedBuffer.scopesForPosition(@getCursorBufferPosition())
+    console.log @activeEditSession.scopesForBufferPosition(@getCursorBufferPosition())
 
   pageDown: ->
     newScrollTop = @scrollTop() + @scrollView[0].clientHeight

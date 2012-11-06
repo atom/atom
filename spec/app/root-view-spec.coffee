@@ -77,7 +77,7 @@ describe "RootView", ->
           editor4 = editor2.splitDown()
           editor2.edit(rootView.project.buildEditSessionForPath('dir/b'))
           editor3.edit(rootView.project.buildEditSessionForPath('sample.js'))
-          editor3.setCursorScreenPosition([2, 3])
+          editor3.setCursorScreenPosition([2, 4])
           editor4.edit(rootView.project.buildEditSessionForPath('sample.txt'))
           editor4.setCursorScreenPosition([0, 2])
           rootView.attachToDom()
@@ -98,7 +98,7 @@ describe "RootView", ->
           expect(editor1.getPath()).toBe require.resolve('fixtures/dir/a')
           expect(editor2.getPath()).toBe require.resolve('fixtures/dir/b')
           expect(editor3.getPath()).toBe require.resolve('fixtures/sample.js')
-          expect(editor3.getCursorScreenPosition()).toEqual [2, 3]
+          expect(editor3.getCursorScreenPosition()).toEqual [2, 4]
           expect(editor4.getPath()).toBe require.resolve('fixtures/sample.txt')
           expect(editor4.getCursorScreenPosition()).toEqual [0, 2]
 
