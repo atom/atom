@@ -178,6 +178,12 @@ class DisplayBuffer
   scopesForBufferPosition: (bufferPosition) ->
     @tokenizedBuffer.scopesForPosition(bufferPosition)
 
+  getTabLength: ->
+    @tokenizedBuffer.getTabLength()
+
+  setTabLength: (tabLength) ->
+    @tokenizedBuffer.setTabLength(tabLength)
+
   clipScreenPosition: (position, options) ->
     @lineMap.clipScreenPosition(position, options)
 

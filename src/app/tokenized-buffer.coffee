@@ -52,6 +52,9 @@ class TokenizedBuffer
 
     @trigger "change", {oldRange, newRange, bufferChange: e}
 
+  getTabLength: ->
+    @tabLength
+
   setTabLength: (@tabLength) ->
     @screenLines = @buildScreenLinesForRows(0, @buffer.getLastRow())
     @trigger "change", {oldRange: @buffer.getRange(), newRange: @buffer.getRange()}

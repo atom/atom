@@ -35,7 +35,6 @@ class EditSession
   cursors: null
   selections: null
   autoIndent: false # TODO: re-enabled auto-indent after fixing the rest of tokenization
-  tabLength: null
   softTabs: true
   softWrap: false
 
@@ -107,7 +106,9 @@ class EditSession
   setSoftWrap: (@softWrap) ->
 
   getTabText: -> @buildIndentString(1)
+
   getTabLength: -> @tabLength
+  setTabLength: (@tabLength) -> @displayBuffer.setTabLength(@tabLength)
 
   clipBufferPosition: (bufferPosition) ->
     @buffer.clipPosition(bufferPosition)
@@ -125,11 +126,11 @@ class EditSession
     if line.match(/^\t/)
       line.match(/^\t*/)?[0].length
     else
-      line.match(/^\s*/)?[0].length / @tabLength
+      line.match(/^\s*/)?[0].length / @getTabLength()
 
   buildIndentString: (number) ->
     if @softTabs
-      _.multiplyString(" ", number * @tabLength)
+      _.multiplyString(" ", number * @getTabLength())
     else
       _.multiplyString("\t", number)
 
