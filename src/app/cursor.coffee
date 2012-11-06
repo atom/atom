@@ -169,7 +169,7 @@ class Cursor
 
   getIndentLevel: ->
     if @editSession.softTabs
-      @getBufferColumn() / @editSession.tabLength
+      @getBufferColumn() / @editSession.getTabLength()
     else
       @getBufferColumn()
 

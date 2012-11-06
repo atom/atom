@@ -38,11 +38,11 @@ class EditSession
   softTabs: true
   softWrap: false
 
-  constructor: ({@project, @buffer, @tabLength, @autoIndent, softTabs, @softWrap }) ->
+  constructor: ({@project, @buffer, tabLength, @autoIndent, softTabs, @softWrap }) ->
     @id = @constructor.idCounter++
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
     @languageMode = new LanguageMode(this, @buffer.getExtension())
-    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, @tabLength })
+    @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
     @anchors = []
     @anchorRanges = []
     @cursors = []
@@ -107,8 +107,8 @@ class EditSession
 
   getTabText: -> @buildIndentString(1)
 
-  getTabLength: -> @tabLength
-  setTabLength: (@tabLength) -> @displayBuffer.setTabLength(@tabLength)
+  getTabLength: -> @displayBuffer.getTabLength()
+  setTabLength: (tabLength) -> @displayBuffer.setTabLength(tabLength)
 
   clipBufferPosition: (bufferPosition) ->
     @buffer.clipPosition(bufferPosition)

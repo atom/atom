@@ -165,7 +165,7 @@ describe "TokenizedBuffer", ->
         editSession2.destroy()
 
       it "always renders each tab as its own atomic token with a value of size tabLength", ->
-        tabAsSpaces = _.multiplyString(' ', editSession2.tabLength)
+        tabAsSpaces = _.multiplyString(' ', editSession2.getTabLength())
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
         { tokens } = screenLine0
