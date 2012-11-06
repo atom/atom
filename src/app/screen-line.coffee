@@ -2,14 +2,13 @@ _ = require 'underscore'
 
 module.exports =
 class ScreenLine
-  constructor: ({@tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold, @foldable}) ->
+  constructor: ({@tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold}) ->
     @bufferRows ?= 1
     @startBufferColumn ?= 0
-    @foldable ?= false
     @text = _.pluck(@tokens, 'value').join('')
 
   copy: ->
-    new ScreenLine({@tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold, @foldable})
+    new ScreenLine({@tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold})
 
   clipScreenColumn: (column, options={}) ->
     { skipAtomicTokens } = options
@@ -74,7 +73,6 @@ class ScreenLine
       bufferRows: 0
       startBufferColumn: @startBufferColumn
       ruleStack: @ruleStack
-      foldable: @foldable
     )
     rightFragment = new ScreenLine(
       tokens: rightTokens
