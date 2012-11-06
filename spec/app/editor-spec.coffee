@@ -486,13 +486,13 @@ describe "Editor", ->
         rootView.setFontSize(10)
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
-        editor.setCursorScreenPosition [5, 5]
+        editor.setCursorScreenPosition [5, 6]
 
         rootView.setFontSize(30)
         expect(editor.css('font-size')).toBe '30px'
         expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
         expect(editor.charWidth).toBeGreaterThan charWidthBefore
-        expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 5 * editor.charWidth }
+        expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
 
         # ensure we clean up font size subscription
         editor.trigger('core:close')

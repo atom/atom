@@ -61,8 +61,15 @@ class TextMateGrammar
         ))
         break
 
-    tokens = _.flatten(tokens.map (token) -> token.breakOutTabCharacters(tabLength))
-    { tokens, ruleStack }
+    { tokens: @breakOutAtomicTokens(tokens, tabLength), ruleStack }
+
+  breakOutAtomicTokens: (inputTokens, tabLength) ->
+    outputTokens = []
+    breakOutLeadingWhitespace = true
+    for token in inputTokens
+      outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
+      breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
+    outputTokens
 
   ruleForInclude: (name) ->
     if name[0] == "#"

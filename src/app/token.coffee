@@ -5,9 +5,9 @@ class Token
   value: null
   scopes: null
   isAtomic: null
-  isTab: null
+  isHardTab: null
 
-  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @fold, @isTab}) ->
+  constructor: ({@value, @scopes, @isAtomic, @bufferDelta, @fold, @isHardTab}) ->
     @screenDelta = @value.length
     @bufferDelta ?= @screenDelta
 
@@ -22,23 +22,44 @@ class Token
     value2 = @value.substring(splitIndex)
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
-  breakOutTabCharacters: (tabLength) ->
-    return [this] unless /\t/.test(@value)
+  breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
+    value = @value
+    outputTokens = []
 
-    for substring in @value.match(/[^\t]+|\t/g)
+    if breakOutLeadingWhitespace
+      return [this] unless /^ |\t/.test(value)
+    else
+      return [this] unless /\t/.test(value)
+
+    if breakOutLeadingWhitespace
+      endOfLeadingWhitespace = value.match(new RegExp("^( {#{tabLength}})*"))[0].length
+      whitespaceTokenCount = endOfLeadingWhitespace / tabLength
+      _.times whitespaceTokenCount, =>
+        outputTokens.push(@buildTabToken(tabLength, false))
+
+      value = @value[endOfLeadingWhitespace..]
+
+    return outputTokens unless value.length > 0
+
+    for substring in value.match(/[^\t]+|\t/g)
       if substring == "\t"
-        @buildTabToken(tabLength)
+        outputTokens.push(@buildTabToken(tabLength, true))
       else
-        new Token(value: substring, scopes: @scopes)
+        outputTokens.push(new Token(value: substring, scopes: @scopes))
 
-  buildTabToken: (tabLength) ->
+    outputTokens
+
+  buildTabToken: (tabLength, isHardTab) ->
     new Token(
       value: _.multiplyString(" ", tabLength)
       scopes: @scopes
-      bufferDelta: 1
+      bufferDelta: if isHardTab then 1 else tabLength
       isAtomic: true
-      isTab: true
+      isHardTab: isHardTab
     )
+
+  isOnlyWhitespace: ->
+    not /\S/.test(@value)
 
   getValueAsHtml: ({invisibles, hasLeadingWhitespace, hasTrailingWhitespace})->
     html = @value
@@ -49,7 +70,7 @@ class Token
       .replace(/>/g, '&gt;')
 
     if invisibles
-      if @isTab and invisibles.tab
+      if @isHardTab and invisibles.tab
         html = html.replace(/^./, "<span class='invisible'>#{invisibles.tab}</span>")
       else if invisibles.space
         if hasLeadingWhitespace

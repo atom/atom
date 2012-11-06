@@ -110,12 +110,12 @@ describe "EditSession", ->
           lastLine = buffer.lineForRow(lastLineIndex)
           expect(lastLine.length).toBeGreaterThan(0)
 
-          editSession.setCursorScreenPosition(row: lastLineIndex, column: 1)
+          editSession.setCursorScreenPosition(row: lastLineIndex, column: editSession.tabLength)
           editSession.moveCursorDown()
           expect(editSession.getCursorScreenPosition()).toEqual(row: lastLineIndex, column: lastLine.length)
 
           editSession.moveCursorUp()
-          expect(editSession.getCursorScreenPosition().column).toBe 1
+          expect(editSession.getCursorScreenPosition().column).toBe editSession.tabLength
 
         it "retains a goal column of 0 when moving back up", ->
           lastLineIndex = buffer.getLines().length - 1
@@ -138,9 +138,9 @@ describe "EditSession", ->
 
     describe ".moveCursorLeft()", ->
       it "moves the cursor by one column to the left", ->
-        editSession.setCursorScreenPosition([3, 3])
+        editSession.setCursorScreenPosition([1, 8])
         editSession.moveCursorLeft()
-        expect(editSession.getCursorScreenPosition()).toEqual [3, 2]
+        expect(editSession.getCursorScreenPosition()).toEqual [1, 7]
 
       describe "when the cursor is in the first column", ->
         describe "when there is a previous line", ->
@@ -154,6 +154,13 @@ describe "EditSession", ->
             editSession.setCursorScreenPosition(row: 0, column: 0)
             editSession.moveCursorLeft()
             expect(editSession.getCursorScreenPosition()).toEqual(row: 0, column: 0)
+
+      describe "when softTabs is enabled and the cursor is preceded by leading whitespace", ->
+        it "skips tabLength worth of whitespace at a time", ->
+          editSession.setCursorBufferPosition([5, 6])
+
+          editSession.moveCursorLeft()
+          expect(editSession.getCursorBufferPosition()).toEqual [5, 4]
 
       it "merges cursors when they overlap", ->
         editSession.setCursorScreenPosition([0, 0])
@@ -354,14 +361,14 @@ describe "EditSession", ->
     describe ".selectToScreenPosition(screenPosition)", ->
       it "expands the last selection to the given position", ->
         editSession.setSelectedBufferRange([[3, 0], [4, 5]])
-        editSession.addCursorAtScreenPosition([5, 5])
-        editSession.selectToScreenPosition([6, 1])
+        editSession.addCursorAtScreenPosition([5, 6])
+        editSession.selectToScreenPosition([6, 2])
 
         selections = editSession.getSelections()
         expect(selections.length).toBe 2
         [selection1, selection2] = selections
         expect(selection1.getScreenRange()).toEqual [[3, 0], [4, 5]]
-        expect(selection2.getScreenRange()).toEqual [[5, 5], [6, 1]]
+        expect(selection2.getScreenRange()).toEqual [[5, 6], [6, 2]]
 
       it "merges selections if they intersect, maintaining the directionality of the last selection", ->
         editSession.setCursorScreenPosition([4, 10])
@@ -1637,18 +1644,18 @@ describe "EditSession", ->
 
       it "merges cursors when the change causes them to overlap", ->
         editSession.setCursorScreenPosition([0, 0])
-        editSession.addCursorAtScreenPosition([0, 1])
-        editSession.addCursorAtScreenPosition([1, 1])
+        editSession.addCursorAtScreenPosition([0, 2])
+        editSession.addCursorAtScreenPosition([1, 2])
 
         [cursor1, cursor2, cursor3] = editSession.getCursors()
         expect(editSession.getCursors().length).toBe 3
 
-        buffer.delete([[0, 0], [0, 1]])
+        buffer.delete([[0, 0], [0, 2]])
 
         expect(editSession.getCursors().length).toBe 2
         expect(editSession.getCursors()).toEqual [cursor1, cursor3]
         expect(cursor1.getBufferPosition()).toEqual [0,0]
-        expect(cursor3.getBufferPosition()).toEqual [1,1]
+        expect(cursor3.getBufferPosition()).toEqual [1,2]
 
   describe "folding", ->
     describe "structural folding", ->

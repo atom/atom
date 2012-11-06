@@ -49,7 +49,7 @@ describe "TokenizedBuffer", ->
           expect(event.newRange).toEqual new Range([0, 0], [2,0])
 
           # line 2 is unchanged
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[2]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
         it "updates tokens for lines beyond the changed lines if needed", ->
           buffer.insert([5, 30], '/* */')
@@ -85,9 +85,9 @@ describe "TokenizedBuffer", ->
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
 
           # lines below deleted regions should be shifted upward
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[1]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
-          expect(tokenizedBuffer.lineForScreenRow(3).tokens[1]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[1]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[2]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
+          expect(tokenizedBuffer.lineForScreenRow(3).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[4]).toEqual(value: '<', scopes: ['source.js', 'keyword.operator.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -126,7 +126,7 @@ describe "TokenizedBuffer", ->
           expect(tokenizedBuffer.lineForScreenRow(4).tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
           # previous line 3 is pushed down to become line 5
-          expect(tokenizedBuffer.lineForScreenRow(5).tokens[3]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(5).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
@@ -167,6 +167,7 @@ describe "TokenizedBuffer", ->
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
         { tokens } = screenLine0
+
         expect(tokens.length).toBe 3
         expect(tokens[0].value).toBe "#"
         expect(tokens[1].value).toBe " Econ 101"
