@@ -82,7 +82,7 @@ describe "TokenizedBuffer", ->
 
           # previous line 3 should be combined with input to form line 1
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: 'foo', scopes: ['source.js'])
-          expect(tokenizedBuffer.lineForScreenRow(1).tokens[6]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
+          expect(tokenizedBuffer.lineForScreenRow(1).tokens[7]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])
 
           # lines below deleted regions should be shifted upward
           expect(tokenizedBuffer.lineForScreenRow(2).tokens[2]).toEqual(value: 'while', scopes: ['source.js', 'keyword.control.js'])
@@ -123,7 +123,7 @@ describe "TokenizedBuffer", ->
 
           # previous line 2 is joined with quux() on line 4
           expect(tokenizedBuffer.lineForScreenRow(4).tokens[0]).toEqual(value: 'quux', scopes: ['source.js'])
-          expect(tokenizedBuffer.lineForScreenRow(4).tokens[4]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
+          expect(tokenizedBuffer.lineForScreenRow(4).tokens[5]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
           # previous line 3 is pushed down to become line 5
           expect(tokenizedBuffer.lineForScreenRow(5).tokens[4]).toEqual(value: '=', scopes: ['source.js', 'keyword.operator.js'])

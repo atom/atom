@@ -23,29 +23,18 @@ class Token
     [new Token(value: value1, scopes: @scopes), new Token(value: value2, scopes: @scopes)]
 
   breakOutAtomicTokens: (tabLength, breakOutLeadingWhitespace) ->
-    value = @value
     outputTokens = []
 
-    if breakOutLeadingWhitespace
-      return [this] unless /^ |\t/.test(value)
-    else
-      return [this] unless /\t/.test(value)
-
-    if breakOutLeadingWhitespace
-      endOfLeadingWhitespace = value.match(new RegExp("^( {#{tabLength}})*"))[0].length
-      whitespaceTokenCount = endOfLeadingWhitespace / tabLength
-      _.times whitespaceTokenCount, =>
+    regex = new RegExp("([ ]{#{tabLength}})|(\t)|([^\t]+)", "g")
+    while match = regex.exec(@value)
+      if match[1] and breakOutLeadingWhitespace
         outputTokens.push(@buildTabToken(tabLength, false))
-
-      value = @value[endOfLeadingWhitespace..]
-
-    return outputTokens unless value.length > 0
-
-    for substring in value.match(/[^\t]+|\t/g)
-      if substring == "\t"
+      else if match[2]
+        breakOutLeadingWhitespace = false
         outputTokens.push(@buildTabToken(tabLength, true))
       else
-        outputTokens.push(new Token(value: substring, scopes: @scopes))
+        breakOutLeadingWhitespace = false
+        outputTokens.push(new Token(value: match[0], scopes: @scopes))
 
     outputTokens
 
