@@ -176,3 +176,17 @@ describe "TokenizedBuffer", ->
         expect(tokens[2].isAtomic).toBeTruthy()
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
+
+  describe ".setTabLength(tabLength)", ->
+    describe "when the file contains soft tabs", ->
+      it "retokenizes leading whitespace based on the new tab length", ->
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].value).toBe "  "
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].value).toBe "  "
+
+        tokenizedBuffer.setTabLength(4)
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].value).toBe "    "
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].isAtomic).toBeFalsy()
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].value).toBe "  current "

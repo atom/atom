@@ -52,6 +52,9 @@ class TokenizedBuffer
 
     @trigger("change", {oldRange, newRange})
 
+  setTabLength: (@tabLength) ->
+    @buffer.trigger "change", {oldRange: @buffer.getRange(), newRange: @buffer.getRange()}
+
   buildScreenLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
     for row in [startRow..endRow]
