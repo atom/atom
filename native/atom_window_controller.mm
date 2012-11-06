@@ -147,15 +147,10 @@
 
 # pragma mark NSWindowDelegate
 
-- (void)windowDidResignMain:(NSNotification *)notification {
-  if (_cefClient && _cefClient->GetBrowser() && !_runningSpecs) {
-    _cefClient->GetBrowser()->GetHost()->SetFocus(false);
-  }
-}
 
-- (void)windowDidBecomeMain:(NSNotification *)notification {
-  if (_cefClient && _cefClient->GetBrowser()) {
-    _cefClient->GetBrowser()->GetHost()->SetFocus(true);
+- (void)windowDidResignMain:(NSNotification *)notification {
+  if (!_runningSpecs) {
+    [self.window makeFirstResponder:nil];
   }
 }
 
