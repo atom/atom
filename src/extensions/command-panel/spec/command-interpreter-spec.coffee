@@ -322,13 +322,15 @@ describe "CommandInterpreter", ->
             expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(current) : right.push(current);'
 
     describe "when global", ->
-      it "performs a multiple substitutions within the current selection", ->
+      it "performs a multiple substitutions within the current selection as a batch that can be undone in a single operation", ->
         waitsForPromise ->
           editSession.setSelectedBufferRange([[6, 0], [6, 44]])
           interpreter.eval('s/current/foo/g', editSession)
 
         runs ->
           expect(buffer.lineForRow(6)).toBe '      foo < pivot ? left.push(foo) : right.push(current);'
+          buffer.undo()
+          expect(buffer.getText()).not.toContain('foo')
 
       describe "when prefixed with an address", ->
         it "only makes substitutions within given lines", ->

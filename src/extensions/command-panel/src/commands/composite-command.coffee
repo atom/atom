@@ -30,13 +30,15 @@ class CompositeCommand
         else
           bufferRanges = []
           errorMessages = @errorMessagesForOperations(operations)
-          for operation in operations
-            bufferRange = operation.execute(editSession)
-            bufferRanges.push(bufferRange) if bufferRange
-            operation.destroy()
 
-            if bufferRanges.length and not currentCommand.preserveSelections
-              editSession.setSelectedBufferRanges(bufferRanges)
+          editSession.transact ->
+            for operation in operations
+              bufferRange = operation.execute(editSession)
+              bufferRanges.push(bufferRange) if bufferRange
+              operation.destroy()
+
+              if bufferRanges.length and not currentCommand.preserveSelections
+                editSession.setSelectedBufferRanges(bufferRanges)
 
           deferred.resolve({errorMessages})
 
