@@ -262,6 +262,7 @@ class Editor extends View
     newScrollTop = @scrollTop() - @scrollView[0].clientHeight
     @activeEditSession.moveCursorUp(@getPageRows())
     @scrollTop(newScrollTop,  adjustVerticalScrollbar: true)
+
   getPageRows: ->
     Math.max(1, Math.ceil(@scrollView[0].clientHeight / @lineHeight))
 
