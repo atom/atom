@@ -154,6 +154,12 @@
   }
 }
 
+- (void)windowDidBecomeMain:(NSNotification *)notification {
+  if (_cefClient && _cefClient->GetBrowser()) {
+    _cefClient->GetBrowser()->GetHost()->SetFocus(true);
+  }
+}
+
 - (void)windowWillClose:(NSNotification *)notification {
   if (_cefClient && _cefClient->GetBrowser()) {
     _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("shutdown"));
