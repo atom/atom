@@ -62,6 +62,10 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
   else if (name == "exit") {
     Exit(argumentList->GetInt(1));
   }
+  else if (name == "log") {
+    std::string message = argumentList->GetString(1).ToString();
+    Log(message.c_str());
+  }
   else if (name == "beginTracing") {
     BeginTracing();
   }

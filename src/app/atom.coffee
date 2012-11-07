@@ -51,6 +51,9 @@ atom.focus = ->
 atom.exit = (status) ->
   @sendMessageToBrowserProcess('exit', [status])
 
+atom.log = (message) ->
+  @sendMessageToBrowserProcess('log', [message])
+
 atom.beginTracing = ->
   @sendMessageToBrowserProcess('beginTracing')
 
