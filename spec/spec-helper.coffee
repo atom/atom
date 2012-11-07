@@ -11,7 +11,6 @@ TextMateBundle = require 'text-mate-bundle'
 TextMateTheme = require 'text-mate-theme'
 fs = require 'fs'
 require 'window'
-atom.showDevTools()
 
 requireStylesheet "jasmine.css"
 
