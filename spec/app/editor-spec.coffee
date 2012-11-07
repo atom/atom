@@ -501,6 +501,18 @@ describe "Editor", ->
         rootView.setFontSize(22)
         expect(editor.css('font-size')).toBe '30px'
 
+      it "updates the position and size of selection regions", ->
+        rootView.attachToDom()
+        rootView.setFontSize(10)
+        editor.setSelectedBufferRange([[5, 2], [5, 7]])
+
+        rootView.setFontSize(30)
+        selectionRegion = editor.find('.selection')
+        expect(selectionRegion.position().top).toBe 5 * editor.lineHeight
+        expect(selectionRegion.position().left).toBe 2 * editor.charWidth
+        expect(selectionRegion.height()).toBe editor.lineHeight
+        expect(selectionRegion.width()).toBe 5 * editor.charWidth
+
       it "updates the gutter width and font size", ->
         rootView.attachToDom()
         originalFontSize = rootView.getFontSize()

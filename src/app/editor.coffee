@@ -575,6 +575,7 @@ class Editor extends View
       @updatePaddingOfRenderedLines()
       @handleScrollHeightChange()
       @updateCursorViews()
+      @updateSelectionViews()
       @updateRenderedLines()
 
   newSplitEditor: ->
@@ -667,6 +668,10 @@ class Editor extends View
   updateCursorViews: ->
     for cursorView in @getCursorViews()
       cursorView.updateAppearance()
+
+  updateSelectionViews: ->
+    for selectionView in @getSelectionViews()
+      selectionView.updateAppearance()
 
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()
