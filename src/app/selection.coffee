@@ -69,8 +69,6 @@ class Selection
       @anchor.setBufferPosition(start, options)
       @cursor.setBufferPosition(end, options)
 
-
-
   getBufferRowRange: ->
     range = @getBufferRange()
     start = range.start.row
