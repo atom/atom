@@ -11,12 +11,16 @@
 @synthesize devToolsView=_devToolsView;
 
 - (void)dealloc {
-  _cefClient = NULL;
-  _cefDevToolsClient = NULL;
+  [_splitView release];
+  [_devToolsView release];
   [_webView release];
   [_bootstrapScript release];
   [_resourcePath release];
   [_pathToOpen release];
+  
+  _cefClient = NULL;
+  _cefDevToolsClient = NULL;
+
   [super dealloc];
 }
 

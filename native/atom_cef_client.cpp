@@ -142,15 +142,7 @@ bool AtomCefClient::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 }
 
 void AtomCefClient::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
-  REQUIRE_UI_THREAD();
-
-
-// TODO: Ask Marshal. This was in cefclient... was there a good reason?
-//  if(m_BrowserHwnd == browser->GetWindowHandle()) {
-//    // Free the browser pointer so that the browser can be destroyed
-//    m_Browser = NULL;
-//  }
-
+//  REQUIRE_UI_THREAD(); // When uncommented this fails when app is terminated
   m_Browser = NULL;
 }
 
