@@ -140,6 +140,16 @@ describe "Autocomplete", ->
         expect(editor.getSelection().isEmpty()).toBeTruthy()
         expect(editor.find('.autocomplete')).not.toExist()
 
+    describe "when the editor is scrolled to the right", ->
+      it "does not scroll it to the left", ->
+        editor.width(300)
+        editor.height(300)
+        editor.attachToDom()
+        editor.setCursorBufferPosition([6, Infinity])
+        previousScrollLeft = editor.scrollView.scrollLeft()
+        autocomplete.attach()
+        expect(editor.scrollView.scrollLeft()).toBe previousScrollLeft
+
   describe 'core:confirm event', ->
     describe "where there are matches", ->
       describe "where there is no selection", ->
