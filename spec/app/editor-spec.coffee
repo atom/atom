@@ -1725,6 +1725,10 @@ describe "Editor", ->
         expect(editor.find('.line.cursor-line').length).toBe 1
         expect(editor.find('.line.cursor-line').text()).toBe buffer.lineForRow(1)
 
+      it "does not highlight the line if the selection is not empty", ->
+        editor.setSelectedBufferRange([[1, 0], [1, 1]])
+        expect(editor.find('.line.cursor-line').length).toBe 0
+
       it "when a newline is deleted with backspace, the line of the new cursor position is highlighted", ->
         editor.setCursorScreenPosition([1,0])
         editor.backspace()

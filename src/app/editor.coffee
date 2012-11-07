@@ -971,7 +971,7 @@ class Editor extends View
     return if @mini
 
     @highlightedLine?.removeClass('cursor-line')
-    if @getSelection().isSingleScreenLine()
+    if @getSelection().isEmpty()
       @highlightedLine = @lineElementForScreenRow(@getCursorScreenRow())
       @highlightedLine.addClass('cursor-line')
     else
