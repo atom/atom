@@ -17,10 +17,10 @@ class Editor extends View
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
-      @input class: 'hidden-input', outlet: 'hiddenInput'
       @subview 'gutter', new Gutter
       @div class: 'scroll-view', outlet: 'scrollView', =>
         @div class: 'lines', outlet: 'renderedLines', =>
+          @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 

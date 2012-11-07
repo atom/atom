@@ -38,6 +38,7 @@ class CursorView extends View
 
     if @cursor == @editor.getLastCursor()
       @editor.scrollTo(pixelPosition)
+      @editor.hiddenInput.css(pixelPosition)
 
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
 
