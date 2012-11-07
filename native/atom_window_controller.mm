@@ -120,20 +120,20 @@
   if (_devToolsView) return;
 
   if (_cefClient && _cefClient->GetBrowser()) {
-    _devToolsView = [[NSView alloc] initWithFrame:_splitView.bounds];
+    NSRect webViewFrame = _webView.frame;
+    NSRect devToolsViewFrame = _webView.frame;
+    devToolsViewFrame.size.height = NSHeight(webViewFrame) / 3;
+    webViewFrame.size.height = NSHeight(webViewFrame) - NSHeight(devToolsViewFrame);
+    [_webView setFrame:webViewFrame];
+    _devToolsView = [[NSView alloc] initWithFrame:devToolsViewFrame];
+
     [_splitView addSubview:_devToolsView];
     [_splitView adjustSubviews];
-    [self performSelector:@selector(attachDevTools) withObject:nil afterDelay:0];
-  }
-}
 
-// If this is run directly after adding _devToolsView to _splitView, the
-// devtools don't resize properly.
-// HACK: I hate this and want to place this code directly in showDevTools
-- (void)attachDevTools {
-  _cefDevToolsClient = new AtomCefClient(true);
-  std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
-  [self addBrowserToView:_devToolsView url:devtools_url.c_str() cefHandler:_cefDevToolsClient];
+    _cefDevToolsClient = new AtomCefClient(true);
+    std::string devtools_url = _cefClient->GetBrowser()->GetHost()->GetDevToolsURL(true);
+    [self addBrowserToView:_devToolsView url:devtools_url.c_str() cefHandler:_cefDevToolsClient];
+  }
 }
 
 - (void)hideDevTools {
@@ -207,4 +207,14 @@
   settings.fullscreen_enabled = true;
 }
 
+@end
+
+@interface GraySplitView : NSSplitView
+- (NSColor*)dividerColor;
+@end
+
+@implementation GraySplitView
+- (NSColor*)dividerColor {
+  return [NSColor darkGrayColor];
+}
 @end
