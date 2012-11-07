@@ -171,10 +171,8 @@
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
-  NSInteger windowCount = [[self windows] count];
-  for(int i = 0; i < windowCount; i++) {
-    NSWindow *window = [[self windows] objectAtIndex:i];
-    [window performClose:0];
+  for (NSWindow *window in [self windows]) {
+    [window performClose:self];
   }
   CefShutdown();
 }

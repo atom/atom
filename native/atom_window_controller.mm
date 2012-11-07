@@ -164,11 +164,12 @@
   }
 }
 
-- (void)windowWillClose:(NSNotification *)notification {
+- (BOOL)windowShouldClose:(NSNotification *)notification {
   if (_cefClient && _cefClient->GetBrowser()) {
     _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("shutdown"));
   }
   [self autorelease];
+  return YES;
 }
 
 - (void)populateBrowserSettings:(CefBrowserSettings &)settings {
