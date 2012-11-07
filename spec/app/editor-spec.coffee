@@ -493,6 +493,8 @@ describe "Editor", ->
         expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
         expect(editor.charWidth).toBeGreaterThan charWidthBefore
         expect(editor.getCursorView().position()).toEqual { top: 5 * editor.lineHeight, left: 6 * editor.charWidth }
+        expect(editor.renderedLines.outerHeight()).toBe buffer.getLineCount() * editor.lineHeight
+        expect(editor.verticalScrollbarContent.height()).toBe buffer.getLineCount() * editor.lineHeight
 
         # ensure we clean up font size subscription
         editor.trigger('core:close')

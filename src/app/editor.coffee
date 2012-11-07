@@ -572,6 +572,8 @@ class Editor extends View
     if fontSize?
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
+      @updatePaddingOfRenderedLines()
+      @handleScrollHeightChange()
       @updateCursorViews()
       @updateRenderedLines()
 
