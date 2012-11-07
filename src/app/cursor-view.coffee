@@ -13,8 +13,8 @@ class CursorView extends View
   visible: true
 
   initialize: (@cursor, @editor) ->
-    @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange }) =>
-      @updateAppearance()
+    @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange, autoscroll }) =>
+      @updateAppearance({autoscroll})
       @removeIdleClassTemporarily() unless bufferChange
       @trigger 'cursor-move', {bufferChange}
 
@@ -31,16 +31,22 @@ class CursorView extends View
     @cursor.off('.cursor-view')
     super
 
-  updateAppearance: ->
+  updateAppearance: (options={}) ->
     screenPosition = @getScreenPosition()
-    pixelPosition = @editor.pixelPositionForScreenPosition(screenPosition)
+    pixelPosition = @getPixelPosition()
     @css(pixelPosition)
 
     if @cursor == @editor.getLastCursor()
-      @editor.scrollTo(pixelPosition)
+      @autoscroll() if options.autoscroll ? true
       @editor.hiddenInput.css(pixelPosition)
 
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
+
+  getPixelPosition: ->
+    @editor.pixelPositionForScreenPosition(@getScreenPosition())
+
+  autoscroll: ->
+    @editor.scrollTo(@getPixelPosition())
 
   setVisible: (visible) ->
     return if visible == @visible
@@ -48,6 +54,7 @@ class CursorView extends View
 
     if @visible
       @show()
+      @autoscroll()
     else
       @hide()
 

@@ -66,12 +66,12 @@ class Anchor
     Object.freeze @bufferPosition
 
     unless @screenPosition.isEqual(previousScreenPosition)
-      @trigger 'change-screen-position', @screenPosition, bufferChange: options.bufferChange
+      @trigger 'change-screen-position', @screenPosition, bufferChange: options.bufferChange, autoscroll: options.autoscroll
 
   refreshScreenPosition: (options={}) ->
     return unless @editSession
     screenPosition = @editSession.screenPositionForBufferPosition(@bufferPosition, options)
-    @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false)
+    @setScreenPosition(screenPosition, bufferChange: options.bufferChange, clip: false, assignBufferPosition: false, autoscroll: options.autoscroll)
 
   destroy: ->
     @buffer.removeAnchor(this)

@@ -154,7 +154,7 @@ class Selection
     @modifySelection => @cursor.moveToBottom()
 
   selectAll: ->
-    @setBufferRange(@editSession.buffer.getRange())
+    @setBufferRange(@editSession.buffer.getRange(), autoscroll: false)
 
   selectToBeginningOfLine: ->
     @modifySelection => @cursor.moveToBeginningOfLine()

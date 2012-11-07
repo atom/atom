@@ -876,6 +876,16 @@ describe "Editor", ->
         expect(editor.getSelectionViews().length).toBe 1
         expect(editor.find('.selection').length).toBe 3
 
+    describe "when the selection is created with the selectAll event", ->
+      it "does not scroll to the end of the buffer", ->
+        editor.height(150)
+        editor.selectAll()
+        expect(editor.scrollTop()).toBe 0
+
+        # does auto-scroll when the selection is cleared
+        editor.moveCursorDown()
+        expect(editor.scrollTop()).toBeGreaterThan(0)
+
   describe "cursor rendering", ->
     describe "when the cursor moves", ->
       charWidth = null
