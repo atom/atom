@@ -1,2 +1,2 @@
 window.keymap.bindKeys '.editor',
-  'meta-Z': 'editor:checkout-head-revision'
+  'alt-meta-z': 'editor:checkout-head-revision'
