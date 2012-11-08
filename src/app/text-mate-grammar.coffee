@@ -26,6 +26,7 @@ class TextMateGrammar
     @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
 
     for name, data of repository
+      data = {patterns: [data], tempName: name} if data.begin? or data.match?
       @repository[name] = new Rule(this, data)
 
   tokenizeLine: (line, {ruleStack, tabLength}={}) ->
@@ -111,7 +112,6 @@ class Rule
     # Add a `\n` to appease patterns that contain '\n' explicitly
     return null unless result = @getScanner().findNextMatch(line + "\n", position)
     { index, captureIndices } = result
-
     # Since the `\n' (added above) is not part of the line, truncate captures to the line's actual length
     lineLength = line.length
     captureIndices = captureIndices.map (value, index) ->
