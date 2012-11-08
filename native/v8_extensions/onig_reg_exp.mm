@@ -76,9 +76,13 @@ bool OnigRegExp::Execute(const CefString& name,
     return true;    
   }
   else if (name == "buildOnigRegExp") {
-    CefRefPtr<CefBase> userData = new OnigRegExpUserData(arguments[0]);
+    CefRefPtr<CefV8Value> pattern = arguments[0];
+    CefRefPtr<OnigRegExpUserData> userData = new OnigRegExpUserData(pattern);
+    if (!userData->m_regex) {
+      exception = std::string("Failed to create OnigRegExp from pattern '") + pattern->GetStringValue().ToString() + "'";
+    }
     retval = CefV8Value::CreateObject(NULL);
-    retval->SetUserData(userData);
+    retval->SetUserData((CefRefPtr<CefBase>)userData);
     return true;
   }
 
