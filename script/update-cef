@@ -19,11 +19,11 @@ CEF_RELEASE_BRANCH=${2:-1271}
 CEF_BINARY_PATH=$(echo "$CEF_DIR"/binary_distrib/cef_binary_*_macosx/) # Expand the path
 
 # Update and compile CEF
-#CEF_AUTOMATE_SCRIPT_PATH=/tmp/cef-update
-#rm -rf $CEF_AUTOMATE_SCRIPT_PATH
-#svn checkout http://chromiumembedded.googlecode.com/svn/trunk/cef1/tools/automate $CEF_AUTOMATE_SCRIPT_PATH
-#cd $CEF_AUTOMATE_SCRIPT_PATH
-#python automate.py --download-dir="$(dirname $CHROMIUM_DIR)" --url=http://chromiumembedded.googlecode.com/svn/branches/$CEF_RELEASE_BRANCH/cef3
+CEF_AUTOMATE_SCRIPT_PATH=/tmp/cef-update
+rm -rf $CEF_AUTOMATE_SCRIPT_PATH
+svn checkout http://chromiumembedded.googlecode.com/svn/trunk/cef1/tools/automate $CEF_AUTOMATE_SCRIPT_PATH
+cd $CEF_AUTOMATE_SCRIPT_PATH
+python automate.py --download-dir="$(dirname $CHROMIUM_DIR)" --url=http://chromiumembedded.googlecode.com/svn/branches/$CEF_RELEASE_BRANCH/cef3
 
 # Copy the CEF gypi files and update their paths to match Atom's file layout
 for GYPI_PATH in "$CEF_DIR/cef_paths.gypi" "$CEF_DIR/cef_paths2.gypi"; do
