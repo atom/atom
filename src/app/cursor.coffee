@@ -50,7 +50,7 @@ class Cursor
   isVisible: -> @visible
 
   isLastCursor: ->
-    this == @editor.getLastCursor()
+    this == @editSession.getLastCursor()
 
   clearSelection: ->
     if @selection
