@@ -32,20 +32,18 @@ class CursorView extends View
     super
 
   updateAppearance: (options={}) ->
+    autoscroll = options.autoscroll ? true
     screenPosition = @getScreenPosition()
     pixelPosition = @getPixelPosition()
     @css(pixelPosition)
-
-    if @cursor == @editor.getLastCursor()
-      @autoscroll() if options.autoscroll ? true
-      @editor.hiddenInput.css(pixelPosition)
-
+    @autoscroll() if @cursor.isLastCursor() and autoscroll
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
 
   getPixelPosition: ->
     @editor.pixelPositionForScreenPosition(@getScreenPosition())
 
   autoscroll: ->
+    pixelPosition =
     @editor.scrollTo(@getPixelPosition())
 
   setVisible: (visible) ->

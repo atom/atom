@@ -882,6 +882,12 @@ describe "Editor", ->
         editor.selectAll()
         expect(editor.scrollTop()).toBe 0
 
+        # regression: does not scroll the scroll view when the editor is refocused
+        editor.hiddenInput.blur()
+        editor.hiddenInput.focus()
+        expect(editor.scrollTop()).toBe 0
+        expect(editor.scrollView.scrollTop()).toBe 0
+
         # does auto-scroll when the selection is cleared
         editor.moveCursorDown()
         expect(editor.scrollTop()).toBeGreaterThan(0)

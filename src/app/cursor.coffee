@@ -49,6 +49,9 @@ class Cursor
 
   isVisible: -> @visible
 
+  isLastCursor: ->
+    this == @editor.getLastCursor()
+
   clearSelection: ->
     if @selection
       @selection.clear() unless @selection.retainSelection
