@@ -777,6 +777,7 @@ class Editor extends View
     @updatePaddingOfRenderedLines()
     @adjustMinWidthOfRenderedLines()
     @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
+    @highlightCursorLine()
 #     @handleScrollHeightChange()
 
   computeIntactRanges: ->
@@ -951,8 +952,7 @@ class Editor extends View
     line.join('')
 
   lineElementForScreenRow: (screenRow) ->
-    element = @lineCache[screenRow - @firstRenderedScreenRow]
-    $(element)
+    @renderedLines.children(":eq(#{screenRow - @firstRenderedScreenRow})")
 
   logScreenLines: (start, end) ->
     @activeEditSession.logScreenLines(start, end)
