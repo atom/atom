@@ -193,3 +193,13 @@ describe "Project", ->
           path: project.resolve('a')
           match: 'aa'
           range: [[1, 3], [1, 5]]
+
+    describe "hiding ignored files", ->
+      it "defaults @hideIgnoredFiles to false", ->
+        expect(project.getHideIgnoredFiles()).toBe(false)
+
+      it "implements a setter for the @hideIgnoredFiles option", ->
+        project.setHideIgnoredFiles(true)
+        expect(project.getHideIgnoredFiles()).toBe(true)
+        project.setHideIgnoredFiles(false)
+        expect(project.getHideIgnoredFiles()).toBe(false)

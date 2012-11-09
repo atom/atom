@@ -15,6 +15,7 @@ class Project
   autoIndent: true
   softTabs: true
   softWrap: false
+  hideIgnoredFiles: false
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -115,6 +116,9 @@ class Project
 
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
+
+  getHideIgnoredFiles: -> @hideIgnoredFiles
+  setHideIgnoredFiles: (@hideIgnoredFiles) ->
 
   buildEditSessionForPath: (filePath, editSessionOptions={}) ->
     @buildEditSession(@bufferForPath(filePath), editSessionOptions)
