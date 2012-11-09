@@ -20,7 +20,9 @@ class Editor extends View
       @subview 'gutter', new Gutter
       @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'scroll-view', outlet: 'scrollView', =>
-        @div class: 'lines', outlet: 'renderedLines', =>
+        @div class: 'overlayer', outlet: 'overlayer'
+        @div class: 'lines', outlet: 'renderedLines'
+        @div class: 'underlayer', outlet: 'underlayer'
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
@@ -465,6 +467,8 @@ class Editor extends View
     @updateRenderedLines() if @attached
 
     @renderedLines.css('top', -scrollTop)
+    @underlayer.css('top', -scrollTop)
+    @overlayer.css('top', -scrollTop)
     @gutter.lineNumbers.css('top', -scrollTop)
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
@@ -661,7 +665,7 @@ class Editor extends View
   addCursorView: (cursor) ->
     cursorView = new CursorView(cursor, this)
     @cursorViews.push(cursorView)
-    @appendToLinesView(cursorView)
+    @overlayer.append(cursorView)
     cursorView
 
   removeCursorView: (cursorView) ->
@@ -689,7 +693,7 @@ class Editor extends View
   addSelectionView: (selection) ->
     selectionView = new SelectionView({editor: this, selection})
     @selectionViews.push(selectionView)
-    @appendToLinesView(selectionView)
+    @underlayer.append(selectionView)
     selectionView
 
   removeSelectionView: (selectionView) ->
@@ -700,11 +704,11 @@ class Editor extends View
     selectionView.remove() for selectionView in @getSelectionViews()
 
   appendToLinesView: (view) ->
-    @renderedLines.append(view)
+    @overlayer.append(view)
 
   calculateDimensions: ->
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
-    @appendToLinesView(fragment)
+    @renderedLines.append(fragment)
 
     lineRect = fragment[0].getBoundingClientRect()
     charRect = fragment.find('span')[0].getBoundingClientRect()
@@ -729,6 +733,8 @@ class Editor extends View
     minWidth = @charWidth * @maxScreenLineLength()
     unless @renderedLines.cachedMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
+      @underlayer.css('min-width', minWidth)
+      @overlayer.css('min-width', minWidth)
       @renderedLines.cachedMinWidth = minWidth
 
   handleScrollHeightChange: ->
@@ -859,6 +865,9 @@ class Editor extends View
     paddingBottom = (@getLastScreenRow() - @lastRenderedScreenRow) * @lineHeight
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
+
+    @underlayer.height(@screenLineCount() * @lineHeight)
+    @overlayer.height(@screenLineCount() * @lineHeight)
 
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
