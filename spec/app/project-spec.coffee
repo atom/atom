@@ -118,6 +118,11 @@ describe "Project", ->
       expect(paths).not.toContain('a')
       expect(paths).toContain('b')
 
+    it "ignores files in gitignore for projects in a git tree", ->
+      project.setPath(require.resolve('fixtures/git/working-dir'))
+      paths = project.getFilePaths()
+      expect(paths).not.toContain('ignored.txt')
+
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
       it "calls the callback with all regex matches in all files in the project", ->
