@@ -747,9 +747,7 @@ class Editor extends View
     @updateRenderedLines()
 
   clearRenderedLines: ->
-    @lineCache = []
-    @renderedLines.find('.line').remove()
-
+    @renderedLines.empty()
     @firstRenderedScreenRow = null
     @lastRenderedScreenRow = null
 
@@ -757,14 +755,14 @@ class Editor extends View
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
-    if firstVisibleScreenRow >= @firstRenderedScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
+    if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
       renderFrom = @firstRenderedScreenRow
       renderTo = Math.min(@getLastScreenRow(), @lastRenderedScreenRow)
     else
       renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
       renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
-    if @pendingChanges.length == 0 and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
+    if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return
 
     intactRanges = @computeIntactRanges()
@@ -877,7 +875,7 @@ class Editor extends View
     Math.floor(@scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    Math.max(0, Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1)
 
   handleDisplayBufferChange: (e) ->
     { oldRange, newRange } = e
