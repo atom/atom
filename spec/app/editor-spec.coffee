@@ -1339,7 +1339,7 @@ fdescribe "Editor", ->
         editor.attachToDom(heightInLines: 5)
         spyOn(editor, "scrollTo")
 
-      describe "when the change the precedes the first rendered row", ->
+      describe "when the change precedes the first rendered row", ->
         it "inserts and removes rendered lines to account for upstream change", ->
           editor.scrollToBottom()
           expect(editor.renderedLines.find(".line").length).toBe 7
@@ -1347,9 +1347,9 @@ fdescribe "Editor", ->
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[1,0], [3,0]], "1\n2\n3\n")
-          expect(editor.renderedLines.find(".line").length).toBe 8
+          expect(editor.renderedLines.find(".line").length).toBe 7
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
-          expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(13)
+          expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
       describe "when the change straddles the first rendered row", ->
         it "doesn't render rows that were not previously rendered", ->
@@ -1360,9 +1360,9 @@ fdescribe "Editor", ->
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
-          expect(editor.renderedLines.find(".line").length).toBe 9
+          expect(editor.renderedLines.find(".line").length).toBe 7
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
-          expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(14)
+          expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
       describe "when the change straddles the last rendered row", ->
         it "doesn't render rows that were not previously rendered", ->
