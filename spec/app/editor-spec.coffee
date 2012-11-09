@@ -1382,7 +1382,7 @@ fdescribe "Editor", ->
         maxLineLength = editor.maxScreenLineLength()
         setEditorWidthInChars(editor, maxLineLength)
         widthBefore = editor.renderedLines.width()
-        expect(widthBefore).toBe editor.scrollView.width()
+        expect(widthBefore).toBe editor.scrollView.width() + 20
         buffer.change([[12,0], [12,0]], [1..maxLineLength*2].join(''))
         expect(editor.renderedLines.width()).toBeGreaterThan widthBefore
 
