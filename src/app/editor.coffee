@@ -736,42 +736,84 @@ class Editor extends View
 
   renderLines: ->
     @clearRenderedLines()
-    @updateRenderedLines()
+    @updateRenderedLines(reset: true)
 
   clearRenderedLines: ->
     @lineCache = []
     @renderedLines.find('.line').remove()
 
-    @firstRenderedScreenRow = -1
-    @lastRenderedScreenRow = -1
+    @firstRenderedScreenRow = null
+    @lastRenderedScreenRow = null
 
-  updateRenderedLines: ->
+  updateRenderedLines: (options={}) ->
+    {reset} = options
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
     renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
     renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
-    if firstVisibleScreenRow < @firstRenderedScreenRow
-      @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
-      @lastRenderedScreenRow = renderTo
-      newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow - 1, renderTo))
-      @insertLineElements(renderFrom, newLines)
-      @firstRenderedScreenRow = renderFrom
-      renderedLines = true
+    intactRanges =
+      if @firstRenderedScreenRow? and @lastRenderedScreenRow?
+        [{from: @firstRenderedScreenRow, to: @lastRenderedScreenRow, domStart: 0}]
+      else
+        []
 
-    if lastVisibleScreenRow > @lastRenderedScreenRow
-      if 0 <= @firstRenderedScreenRow < renderFrom
-        @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1))
-      @firstRenderedScreenRow = renderFrom
-      startRowOfNewLines = Math.max(@lastRenderedScreenRow + 1, renderFrom)
-      newLines = @buildLineElements(startRowOfNewLines, renderTo)
-      @insertLineElements(startRowOfNewLines, newLines)
-      @lastRenderedScreenRow = renderTo
-      renderedLines = true
+    @truncateIntactRanges(intactRanges, renderFrom, renderTo)
+    @clearDirtyRanges(intactRanges)
+    @fillDirtyRanges(intactRanges, renderFrom, renderTo)
+    @firstRenderedScreenRow = renderFrom
+    @lastRenderedScreenRow = renderTo
+    @updatePaddingOfRenderedLines()
 
-    if renderedLines
-      @gutter.renderLineNumbers(renderFrom, renderTo)
-      @updatePaddingOfRenderedLines()
+  truncateIntactRanges: (intactRanges, renderFrom, renderTo) ->
+    i = 0
+    while i < intactRanges.length
+      range = intactRanges[i]
+      if range.from < renderFrom
+        range.domStart += renderFrom - range.from
+        range.from = renderFrom
+      if range.to > renderTo
+        range.to = renderTo
+      if range.from >= range.to
+        intactRanges.splice(i--, 1)
+      i++
+    intactRanges.sort (a, b) -> a.domStart - b.domStart
+
+  clearDirtyRanges: (intactRanges) ->
+    renderedLines = @renderedLines[0]
+    killLine = (line) ->
+      next = line.nextSibling
+      renderedLines.removeChild(line)
+      next
+
+    if intactRanges.length == 0
+      @renderedLines.empty()
+    else
+      domPosition = 0
+      currentLine = renderedLines.firstChild
+      for intactRange in intactRanges
+        while intactRange.domStart > domPosition
+          currentLine = killLine(currentLine)
+          domPosition++
+        for i in [intactRange.from..intactRange.to]
+          currentLine = currentLine.nextSibling
+          domPosition++
+      while currentLine
+        currentLine = killLine(currentLine)
+
+  fillDirtyRanges: (intactRanges, renderFrom, renderTo) ->
+    renderedLines = @renderedLines[0]
+    nextIntact = intactRanges.shift()
+    currentLine = renderedLines.firstChild
+    screenRow = renderFrom
+    for row in [renderFrom..renderTo]
+      if row == nextIntact?.to + 1
+        nextIntact = intactRanges.shift()
+      if !nextIntact or row < nextIntact.from
+        lineElement = @buildLineElementForScreenRow(row)
+        renderedLines.insertBefore(lineElement, currentLine)
+      else
+        currentLine = currentLine.nextSibling
 
   updatePaddingOfRenderedLines: ->
     paddingTop = @firstRenderedScreenRow * @lineHeight
@@ -846,6 +888,11 @@ class Editor extends View
       for line in lines
         @raw(buildLineHtml(line))
         row++
+
+  buildLineElementForScreenRow: (screenRow) ->
+    div = document.createElement('div')
+    div.innerHTML = @buildLineHtml(@activeEditSession.lineForScreenRow(screenRow))
+    div.firstChild
 
   buildLineHtml: (screenLine) ->
     scopeStack = []

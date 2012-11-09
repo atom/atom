@@ -1205,15 +1205,20 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
       it "renders additional lines when the editor is resized", ->
+        editor.logRenderedLines()
         setEditorHeightInLines(editor, 10)
+        editor.logRenderedLines()
         $(window).trigger 'resize'
 
         expect(editor.renderedLines.find('.line').length).toBe 12
         expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
-      it "renders correctly when scrolling after text is added to the buffer", ->
+      ffit "renders correctly when scrolling after text is added to the buffer", ->
+        editor.logRenderedLines()
         editor.insertText("1\n")
+        editor.logRenderedLines()
+
         _.times 4, -> editor.moveCursorDown()
         expect(editor.renderedLines.find('.line:eq(2)').text()).toBe editor.lineForBufferRow(2)
         expect(editor.renderedLines.find('.line:eq(7)').text()).toBe editor.lineForBufferRow(7)
