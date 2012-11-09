@@ -483,6 +483,8 @@ fdescribe "Editor", ->
     describe "when the font size changes on the view", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
         rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
         rootView.setFontSize(10)
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth

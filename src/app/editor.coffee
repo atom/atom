@@ -868,8 +868,10 @@ class Editor extends View
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
-    @underlayer.height(@screenLineCount() * @lineHeight)
-    @overlayer.height(@screenLineCount() * @lineHeight)
+    linesHeight = @screenLineCount() * @lineHeight
+    @renderedLines.height(linesHeight)
+    @underlayer.height(linesHeight)
+    @overlayer.height(linesHeight)
 
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
