@@ -730,7 +730,7 @@ class Editor extends View
     @renderedLines.css('padding-bottom', heightOfRenderedLines)
 
   adjustMinWidthOfRenderedLines: ->
-    minWidth = @charWidth * @maxScreenLineLength()
+    minWidth = @charWidth * @maxScreenLineLength() + 20
     unless @renderedLines.cachedMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
