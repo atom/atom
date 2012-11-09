@@ -75,7 +75,7 @@ class TextMateGrammar
   ruleForInclude: (name) ->
     if name[0] == "#"
       @repository[name[1..]]
-    else if name == "$self"
+    else if name == "$self" or name == "$base"
       @initialRule
     else
       TextMateBundle = require 'text-mate-bundle'
