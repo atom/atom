@@ -182,6 +182,9 @@ class RootView extends View
     @showInvisibles = showInvisibles
     editor.setShowInvisibles(@showInvisibles) for editor in @getEditors()
 
+  toggleIgnoredFiles: ->
+    @project.toggleIgnoredFiles()
+
   getEditors: ->
     @panes.find('.pane > .editor').map(-> $(this).view()).toArray()
 

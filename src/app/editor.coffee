@@ -154,6 +154,7 @@ class Editor extends View
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
         'editor:checkout-head-revision': @checkoutHead
+        'editor:toggle-ignored-files': @toggleIgnoredFiles
 
     documentation = {}
     for name, method of editorBindings
@@ -952,6 +953,9 @@ class Editor extends View
 
   toggleLineCommentsInSelection: ->
     @activeEditSession.toggleLineCommentsInSelection()
+
+  toggleIgnoredFiles: ->
+    @rootView().toggleIgnoredFiles()
 
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->

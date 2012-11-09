@@ -15,7 +15,7 @@ class Project
   autoIndent: true
   softTabs: true
   softWrap: false
-  hideIgnoredFiles: false
+  hideIgnoredFiles: true
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -79,7 +79,7 @@ class Project
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
 
-    return true if @repo.isPathIgnored(path)
+    return true if @hideIgnoredFiles and @repo.isPathIgnored(path)
 
     return false
 
@@ -94,7 +94,7 @@ class Project
       return true if name is ignored
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
-    return true if @repo.isPathIgnored(path)
+    return true if @hideIgnoredFiles and @repo.isPathIgnored(path)
 
     return false
 
@@ -117,6 +117,7 @@ class Project
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
 
+  toggleIgnoredFiles: -> @setHideIgnoredFiles(not @hideIgnoredFiles)
   getHideIgnoredFiles: -> @hideIgnoredFiles
   setHideIgnoredFiles: (@hideIgnoredFiles) ->
 
