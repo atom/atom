@@ -757,18 +757,17 @@ class Editor extends View
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
 
-    if @pendingChanges.length == 0 and @firstRenderedScreenRow <= firstVisibleScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
+    if firstVisibleScreenRow >= @firstRenderedScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
+      renderFrom = @firstRenderedScreenRow
+      renderTo = Math.min(@getLastScreenRow(), @lastRenderedScreenRow)
+    else
+      renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
+      renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
+
+    if @pendingChanges.length == 0 and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return
 
-    renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
-    renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
-
-    intactRanges =
-      if @firstRenderedScreenRow? and @lastRenderedScreenRow?
-        @computeIntactRanges()
-      else
-        []
-
+    intactRanges = @computeIntactRanges()
     @truncateIntactRanges(intactRanges, renderFrom, renderTo)
     @clearDirtyRanges(intactRanges)
     @fillDirtyRanges(intactRanges, renderFrom, renderTo)
@@ -778,9 +777,11 @@ class Editor extends View
     @adjustMinWidthOfRenderedLines()
     @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
     @highlightCursorLine()
-#     @handleScrollHeightChange()
+    @handleScrollHeightChange()
 
   computeIntactRanges: ->
+    return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
+
     intactRanges = [{from: @firstRenderedScreenRow, to: @lastRenderedScreenRow, domStart: 0}]
     for change in @pendingChanges
       newIntactRanges = []
@@ -807,6 +808,7 @@ class Editor extends View
               domStart: range.domStart + change.to + 1 - range.from
             )
       intactRanges = newIntactRanges
+    @pendingChanges = []
     intactRanges
 
   truncateIntactRanges: (intactRanges, renderFrom, renderTo) ->
@@ -887,6 +889,7 @@ class Editor extends View
 
   buildLineElementForScreenRow: (screenRow) ->
     div = document.createElement('div')
+    console.log screenRow, @activeEditSession.lineForScreenRow(screenRow)
     div.innerHTML = @buildLineHtml(@activeEditSession.lineForScreenRow(screenRow))
     div.firstChild
 
