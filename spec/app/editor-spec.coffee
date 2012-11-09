@@ -1398,7 +1398,7 @@ fdescribe "Editor", ->
         expect(editor.renderedLines.width()).toBeGreaterThan editor.scrollView.width()
         widthBefore = editor.renderedLines.width()
         buffer.delete([[12, 0], [12, Infinity]])
-        expect(editor.renderedLines.width()).toBe editor.scrollView.width()
+        expect(editor.renderedLines.width()).toBe editor.scrollView.width() + 20
 
       describe "when the change the precedes the first rendered row", ->
         it "removes rendered lines to account for upstream change", ->
@@ -1502,6 +1502,7 @@ fdescribe "Editor", ->
         editor.attachToDom()
         editor.setInvisibles(rootView.getInvisibles())
         editor.setText " a line with tabs\tand spaces "
+
         expect(editor.showInvisibles).toBeFalsy()
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
         editor.setShowInvisibles(true)
