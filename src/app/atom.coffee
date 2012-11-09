@@ -25,6 +25,9 @@ atom.receiveMessageFromBrowserProcess = (name, data) ->
 atom.open = (args...) ->
   @sendMessageToBrowserProcess('open', args)
 
+atom.openUnstable = (args...) ->
+  @sendMessageToBrowserProcess('openUnstable', args)
+
 atom.newWindow = (args...) ->
   @sendMessageToBrowserProcess('newWindow', args)
 

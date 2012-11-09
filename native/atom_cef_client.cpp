@@ -34,6 +34,10 @@ bool AtomCefClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     bool hasArguments = argumentList->GetSize() > 1;
     hasArguments ? Open(argumentList->GetString(1)) : Open();
   }
+  if (name == "openUnstable") {
+    bool hasArguments = argumentList->GetSize() > 1;
+    hasArguments ? OpenUnstable(argumentList->GetString(1)) : OpenUnstable();
+  }
   else if (name == "newWindow") {
     NewWindow();
   }
