@@ -744,7 +744,7 @@ class Editor extends View
 
   renderLines: ->
     @clearRenderedLines()
-    @updateRenderedLines(reset: true)
+    @updateRenderedLines()
 
   clearRenderedLines: ->
     @lineCache = []
