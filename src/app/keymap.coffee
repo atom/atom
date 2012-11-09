@@ -20,11 +20,13 @@ class Keymap
       'meta-n': 'new-window'
       'meta-,': 'open-user-configuration'
       'meta-o': 'open'
+      'meta-O': 'open-unstable'
       'meta-w': 'core:close'
 
     $(document).on 'new-window', => atom.newWindow()
     $(document).on 'open-user-configuration', => atom.open(atom.configFilePath)
     $(document).on 'open', => atom.open()
+    $(document).on 'open-unstable', => atom.openUnstable()
 
   bindKeys: (selector, bindings) ->
     bindingSet = new BindingSet(selector, bindings, @bindingSets.length)
