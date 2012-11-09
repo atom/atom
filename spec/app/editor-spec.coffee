@@ -9,7 +9,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-describe "Editor", ->
+fdescribe "Editor", ->
   [rootView, project, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -1205,20 +1205,15 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(7)
 
       it "renders additional lines when the editor is resized", ->
-        editor.logRenderedLines()
         setEditorHeightInLines(editor, 10)
-        editor.logRenderedLines()
         $(window).trigger 'resize'
 
         expect(editor.renderedLines.find('.line').length).toBe 12
         expect(editor.renderedLines.find('.line:first').text()).toBe buffer.lineForRow(0)
         expect(editor.renderedLines.find('.line:last').text()).toBe buffer.lineForRow(11)
 
-      ffit "renders correctly when scrolling after text is added to the buffer", ->
-        editor.logRenderedLines()
+      it "renders correctly when scrolling after text is added to the buffer", ->
         editor.insertText("1\n")
-        editor.logRenderedLines()
-
         _.times 4, -> editor.moveCursorDown()
         expect(editor.renderedLines.find('.line:eq(2)').text()).toBe editor.lineForBufferRow(2)
         expect(editor.renderedLines.find('.line:eq(7)').text()).toBe editor.lineForBufferRow(7)
@@ -1501,58 +1496,6 @@ describe "Editor", ->
         rootView.attachToDom()
         buffer.insert([0, 0], "–")
         expect(editor.find('.line:eq(0)').outerHeight()).toBe editor.find('.line:eq(1)').outerHeight()
-
-    describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
-      elements = null
-
-      beforeEach ->
-        editor.attachToDom()
-        elements = $$ ->
-          @div "A", class: 'line'
-          @div "B", class: 'line'
-
-      describe "when the start row is 0", ->
-        describe "when the row count is 0", ->
-          it "inserts the given elements before the first row", ->
-            editor.spliceLineElements 0, 0, elements
-
-            expect(editor.renderedLines.find('.line:eq(0)').text()).toBe 'A'
-            expect(editor.renderedLines.find('.line:eq(1)').text()).toBe 'B'
-            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
-
-        describe "when the row count is > 0", ->
-          it "replaces the initial rows with the given elements", ->
-            editor.spliceLineElements 0, 2, elements
-
-            expect(editor.renderedLines.find('.line:eq(0)').text()).toBe 'A'
-            expect(editor.renderedLines.find('.line:eq(1)').text()).toBe 'B'
-            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
-
-      describe "when the start row is less than the last row", ->
-        describe "when the row count is 0", ->
-          it "inserts the elements at the specified location", ->
-            editor.spliceLineElements 2, 0, elements
-
-            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'A'
-            expect(editor.renderedLines.find('.line:eq(3)').text()).toBe 'B'
-            expect(editor.renderedLines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
-
-        describe "when the row count is > 0", ->
-          it "replaces the elements at the specified location", ->
-            editor.spliceLineElements 2, 2, elements
-
-            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'A'
-            expect(editor.renderedLines.find('.line:eq(3)').text()).toBe 'B'
-            expect(editor.renderedLines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
-
-      describe "when the start row is the last row", ->
-        it "appends the elements to the end of the lines", ->
-          editor.spliceLineElements 13, 0, elements
-
-          expect(editor.renderedLines.find('.line:eq(12)').text()).toBe '};'
-          expect(editor.renderedLines.find('.line:eq(13)').text()).toBe 'A'
-          expect(editor.renderedLines.find('.line:eq(14)').text()).toBe 'B'
-          expect(editor.renderedLines.find('.line:eq(15)')).not.toExist()
 
     describe "when editor.setShowInvisibles is called", ->
       it "displays spaces as •, tabs as ▸ and newlines as ¬ when true", ->

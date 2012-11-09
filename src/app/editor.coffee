@@ -42,6 +42,7 @@ class Editor extends View
   editSessions: null
   attached: false
   lineOverdraw: 100
+  pendingChanges: null
 
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
@@ -60,6 +61,7 @@ class Editor extends View
     @cursorViews = []
     @selectionViews = []
     @editSessions = []
+    @pendingChanges = []
 
     if editSession?
       @editSessions.push editSession
@@ -745,16 +747,19 @@ class Editor extends View
     @firstRenderedScreenRow = null
     @lastRenderedScreenRow = null
 
-  updateRenderedLines: (options={}) ->
-    {reset} = options
+  updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
+
+    if @pendingChanges.length == 0 and @firstRenderedScreenRow <= firstVisibleScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
+      return
+
     renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
     renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
     intactRanges =
       if @firstRenderedScreenRow? and @lastRenderedScreenRow?
-        [{from: @firstRenderedScreenRow, to: @lastRenderedScreenRow, domStart: 0}]
+        @computeIntactRanges()
       else
         []
 
@@ -764,6 +769,37 @@ class Editor extends View
     @firstRenderedScreenRow = renderFrom
     @lastRenderedScreenRow = renderTo
     @updatePaddingOfRenderedLines()
+    @adjustMinWidthOfRenderedLines()
+#     @handleScrollHeightChange()
+
+  computeIntactRanges: ->
+    intactRanges = [{from: @firstRenderedScreenRow, to: @lastRenderedScreenRow, domStart: 0}]
+    for change in @pendingChanges
+      newIntactRanges = []
+      delta = change.delta
+      for range in intactRanges
+        if change.to < range.from and change.delta != 0
+          newIntactRanges.push(
+            from: range.from + delta
+            to: range.to + delta
+            domStart: range.domStart
+          )
+        else if change.to < range.from or change.from > range.to
+          newIntactRanges.push(range)
+        else
+          if change.from > range.from
+            newIntactRanges.push(
+              from: range.from
+              to: change.from - 1
+              domStart: range.domStart)
+          if change.to < range.to
+            newIntactRanges.push(
+              from: change.to + delta + 1
+              to: range.to + delta
+              domStart: range.domStart + change.to + 1 - range.from
+            )
+      intactRanges = newIntactRanges
+    intactRanges
 
   truncateIntactRanges: (intactRanges, renderFrom, renderTo) ->
     i = 0
@@ -831,63 +867,12 @@ class Editor extends View
     Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
 
   handleDisplayBufferChange: (e) ->
-    oldScreenRange = e.oldRange
-    newScreenRange = e.newRange
-
-    if @attached
-      @handleScrollHeightChange() unless newScreenRange.coversSameRows(oldScreenRange)
-      @adjustMinWidthOfRenderedLines()
-
-      return if oldScreenRange.start.row > @lastRenderedScreenRow
-
-      maxEndRow = Math.max(@getLastVisibleScreenRow() + @lineOverdraw, @lastRenderedScreenRow)
-      @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
-
-      newScreenRange = newScreenRange.copy()
-      oldScreenRange = oldScreenRange.copy()
-      endOfShortestRange = Math.min(oldScreenRange.end.row, newScreenRange.end.row)
-
-      delta = @firstRenderedScreenRow - endOfShortestRange
-      if delta > 0
-        newScreenRange.start.row += delta
-        newScreenRange.end.row += delta
-        oldScreenRange.start.row += delta
-        oldScreenRange.end.row += delta
-
-      oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
-      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
-      newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
-      newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
-
-      lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
-      @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
-
-      rowDelta = newScreenRange.end.row - oldScreenRange.end.row
-      @lastRenderedScreenRow += rowDelta
-      @updateRenderedLines() if rowDelta < 0
-
-      if @lastRenderedScreenRow > maxEndRow
-        @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
-        @lastRenderedScreenRow = maxEndRow
-        @updatePaddingOfRenderedLines()
-
-      @highlightCursorLine()
-
-  buildLineElements: (startRow, endRow) ->
-    charWidth = @charWidth
-    charHeight = @charHeight
-    lines = @activeEditSession.linesForScreenRows(startRow, endRow)
-    activeEditSession = @activeEditSession
-    cursorScreenRow = @getCursorScreenPosition().row
-    mini = @mini
-
-    buildLineHtml = (line) => @buildLineHtml(line)
-
-    $$ ->
-      row = startRow
-      for line in lines
-        @raw(buildLineHtml(line))
-        row++
+    { oldRange, newRange } = e
+    from = oldRange.start.row
+    to = oldRange.end.row
+    delta = newRange.end.row - oldRange.end.row
+    @pendingChanges.push({from, to, delta})
+    @updateRenderedLines()
 
   buildLineElementForScreenRow: (screenRow) ->
     div = document.createElement('div')
@@ -954,41 +939,6 @@ class Editor extends View
 
     line.push('</pre>')
     line.join('')
-
-  insertLineElements: (row, lineElements) ->
-    @spliceLineElements(row, 0, lineElements)
-
-  replaceLineElements: (startRow, endRow, lineElements) ->
-    @spliceLineElements(startRow, endRow - startRow + 1, lineElements)
-
-  removeLineElements: (startRow, endRow) ->
-    @spliceLineElements(startRow, endRow - startRow + 1)
-
-  spliceLineElements: (startScreenRow, rowCount, lineElements) ->
-    throw new Error("Splicing at a negative start row: #{startScreenRow}") if startScreenRow < 0
-
-    if startScreenRow < @firstRenderedScreenRow
-      startRow = 0
-    else
-      startRow = startScreenRow - @firstRenderedScreenRow
-
-    endRow = startRow + rowCount
-
-    elementToInsertBefore = @lineCache[startRow]
-    elementsToReplace = @lineCache[startRow...endRow]
-    @lineCache[startRow...endRow] = lineElements?.toArray() or []
-
-    lines = @renderedLines[0]
-    if lineElements
-      fragment = document.createDocumentFragment()
-      lineElements.each -> fragment.appendChild(this)
-      if elementToInsertBefore
-        lines.insertBefore(fragment, elementToInsertBefore)
-      else
-        lines.appendChild(fragment)
-
-    elementsToReplace.forEach (element) =>
-      lines.removeChild(element)
 
   lineElementForScreenRow: (screenRow) ->
     element = @lineCache[screenRow - @firstRenderedScreenRow]
