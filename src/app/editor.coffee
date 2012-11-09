@@ -776,6 +776,7 @@ class Editor extends View
     @lastRenderedScreenRow = renderTo
     @updatePaddingOfRenderedLines()
     @adjustMinWidthOfRenderedLines()
+    @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
 #     @handleScrollHeightChange()
 
   computeIntactRanges: ->
