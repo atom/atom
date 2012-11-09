@@ -889,7 +889,6 @@ class Editor extends View
 
   buildLineElementForScreenRow: (screenRow) ->
     div = document.createElement('div')
-    console.log screenRow, @activeEditSession.lineForScreenRow(screenRow)
     div.innerHTML = @buildLineHtml(@activeEditSession.lineForScreenRow(screenRow))
     div.firstChild
 
