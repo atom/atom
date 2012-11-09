@@ -83,6 +83,7 @@ void listenForPathToOpen(int fd, NSString *socketPath) {
           dispatch_queue_t mainQueue = dispatch_get_main_queue();
           dispatch_async(mainQueue, ^{
             [[AtomApplication sharedApplication] open:path];
+            [NSApp activateIgnoringOtherApps:YES];
           });
         }
       }
