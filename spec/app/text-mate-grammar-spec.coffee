@@ -251,7 +251,7 @@ describe "TextMateGrammar", ->
       it "correctly parses a method. (regression)", ->
         grammar = TextMateBundle.grammarForFilePath("hello.c")
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){m()}")
-        expect(tokens[5]).toEqual value: "m", scopes: ["source.objc++", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
+        expect(tokens[5]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
 
       it "correctly parses nested blocks. (regression)", ->
         grammar = TextMateBundle.grammarForFilePath("hello.c")
