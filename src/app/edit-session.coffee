@@ -263,7 +263,7 @@ class EditSession
     @setCursorBufferPosition([fold.startRow, 0])
 
   isFoldedAtScreenRow: (screenRow) ->
-    @lineForScreenRow(screenRow).fold?
+    @lineForScreenRow(screenRow)?.fold?
 
   largestFoldContainingBufferRow: (bufferRow) ->
     @displayBuffer.largestFoldContainingBufferRow(bufferRow)
