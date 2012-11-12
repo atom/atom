@@ -13,8 +13,8 @@ class WrapGuide extends View
       @appendToEditorPane(rootView, editor, config)
 
   @appendToEditorPane: (rootView, editor, config) ->
-    if lines = editor.pane()?.find('.lines')
-      lines.append(new WrapGuide(rootView, editor, config))
+    if underlayer = editor.pane()?.find('.underlayer')
+      underlayer.append(new WrapGuide(rootView, editor, config))
 
   @content: ->
     @div class: 'wrap-guide'
