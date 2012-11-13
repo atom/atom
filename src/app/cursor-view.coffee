@@ -11,10 +11,8 @@ class CursorView extends View
 
   editor: null
   visible: true
-  autoscrollOnAttach: null
 
   initialize: (@cursor, @editor, options={}) ->
-    @autoscrollOnAttach = options.autoscroll ? true
     @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange, autoscroll }) =>
       @updateDisplay({autoscroll})
       @removeIdleClassTemporarily() unless bufferChange
