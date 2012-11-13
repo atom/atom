@@ -43,7 +43,7 @@ describe "Editor", ->
       expect(-> new Editor).toThrow()
 
   describe ".copy()", ->
-    fit "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
+    it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
       rootView.attachToDom()
       rootView.height(8 * editor.lineHeight)
       rootView.width(50 * editor.charWidth)
@@ -238,6 +238,7 @@ describe "Editor", ->
         editor.setSelectedBufferRange([[40, 0], [43, 1]])
         expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
         previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
+
         editor.scrollTop(750)
         expect(editor.scrollTop()).toBe 750
 
