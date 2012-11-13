@@ -642,8 +642,8 @@ class Editor extends View
   getCursorViews: ->
     new Array(@cursorViews...)
 
-  addCursorView: (cursor) ->
-    cursorView = new CursorView(cursor, this)
+  addCursorView: (cursor, options) ->
+    cursorView = new CursorView(cursor, this, options)
     @cursorViews.push(cursorView)
     @overlayer.append(cursorView)
     cursorView
@@ -735,7 +735,7 @@ class Editor extends View
     @updateLayerDimensions()
     @setScrollPositionFromActiveEditSession()
 
-    @addCursorView(cursor) for cursor in @activeEditSession.getCursors()
+    @addCursorView(cursor, autoscroll: false) for cursor in @activeEditSession.getCursors()
     @addSelectionView(selection) for selection in @activeEditSession.getSelections()
 
     @activeEditSession.on 'add-cursor', (cursor) => @addCursorView(cursor)
