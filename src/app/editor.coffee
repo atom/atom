@@ -368,17 +368,15 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
-    @clearRenderedLines()
     @subscribeToFontSize()
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
     @invisibles = @rootView()?.getInvisibles()
-    $(window).on "resize.editor#{@id}", =>
-      @updateRenderedLines()
+    $(window).on "resize.editor#{@id}", => @updateDisplay()
     @focus() if @isFocused
 
-    @renderWhenAttached()
+    @resetDisplay()
 
     @trigger 'editor-open', [this]
 
@@ -433,7 +431,7 @@ class Editor extends View
       @trigger 'selection-change'
 
     @trigger 'editor-path-change'
-    @renderWhenAttached()
+    @resetDisplay()
 
     if @attached and @activeEditSession.buffer.isInConflict()
       @showBufferConflictAlert(@activeEditSession)
@@ -464,7 +462,7 @@ class Editor extends View
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
-    @updateRenderedLines() if @attached
+    @updateDisplay() if @attached
 
     @renderedLines.css('top', -scrollTop)
     @underlayer.css('top', -scrollTop)
@@ -579,10 +577,8 @@ class Editor extends View
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
       @updatePaddingOfRenderedLines()
-      @handleScrollHeightChange()
-      @updateCursorViews()
-      @updateSelectionViews()
-      @updateRenderedLines()
+      @updateLayerDimensions()
+      @updateDisplay()
 
   newSplitEditor: ->
     new Editor { editSession: @activeEditSession.copy(), @showInvisibles }
@@ -639,22 +635,6 @@ class Editor extends View
     for session in @getEditSessions()
       session.destroy()
 
-  renderWhenAttached: ->
-    return unless @attached
-
-    @removeAllCursorAndSelectionViews()
-    @addCursorView(cursor) for cursor in @activeEditSession.getCursors()
-    @addSelectionView(selection) for selection in @activeEditSession.getSelections()
-    @activeEditSession.on 'add-cursor', (cursor) => @addCursorView(cursor)
-    @activeEditSession.on 'add-selection', (selection) => @addSelectionView(selection)
-
-    @prepareForScrolling()
-    @setScrollPositionFromActiveEditSession()
-
-    @renderLines()
-    @highlightCursorLine()
-    @activeEditSession.on 'screen-lines-change', (e) => @handleDisplayBufferChange(e)
-
   getCursorView: (index) ->
     index ?= @cursorViews.length - 1
     @cursorViews[index]
@@ -671,9 +651,9 @@ class Editor extends View
   removeCursorView: (cursorView) ->
     _.remove(@cursorViews, cursorView)
 
-  updateCursorViews: ->
+  updateCursorViews: (options)->
     for cursorView in @getCursorViews()
-      cursorView.updateDisplay()
+      cursorView.updateDisplay(options)
 
   updateSelectionViews: ->
     for selectionView in @getSelectionViews()
@@ -718,38 +698,58 @@ class Editor extends View
     @height(@lineHeight) if @mini
     fragment.remove()
 
+  updateLayerDimensions: ->
     @gutter.calculateWidth()
 
-  prepareForScrolling: ->
-    @adjustHeightOfRenderedLines()
-    @adjustMinWidthOfRenderedLines()
+    height = @lineHeight * @screenLineCount()
+    unless @layerHeight == height
+      @renderedLines.height(height)
+      @underlayer.height(height)
+      @overlayer.height(height)
+      @layerHeight = height
 
-  adjustHeightOfRenderedLines: ->
-    heightOfRenderedLines = @lineHeight * @screenLineCount()
-    @verticalScrollbarContent.height(heightOfRenderedLines)
-    @renderedLines.css('padding-bottom', heightOfRenderedLines)
+      @verticalScrollbarContent.height(height)
+      @scrollBottom(height) if @scrollBottom() > height
 
-  adjustMinWidthOfRenderedLines: ->
     minWidth = @charWidth * @maxScreenLineLength() + 20
-    unless @renderedLines.cachedMinWidth == minWidth
+    unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
       @overlayer.css('min-width', minWidth)
-      @renderedLines.cachedMinWidth = minWidth
-
-  handleScrollHeightChange: ->
-    scrollHeight = @lineHeight * @screenLineCount()
-    @verticalScrollbarContent.height(scrollHeight)
-    @scrollBottom(scrollHeight) if @scrollBottom() > scrollHeight
+      @layerMinWidth = minWidth
 
   renderLines: ->
     @clearRenderedLines()
-    @updateRenderedLines()
+    @updateDisplay()
 
   clearRenderedLines: ->
     @renderedLines.empty()
     @firstRenderedScreenRow = null
     @lastRenderedScreenRow = null
+
+  resetDisplay: ->
+    return unless @attached
+
+    @clearRenderedLines()
+    @removeAllCursorAndSelectionViews()
+    @updateLayerDimensions()
+    @setScrollPositionFromActiveEditSession()
+
+    @addCursorView(cursor) for cursor in @activeEditSession.getCursors()
+    @addSelectionView(selection) for selection in @activeEditSession.getSelections()
+
+    @activeEditSession.on 'add-cursor', (cursor) => @addCursorView(cursor)
+    @activeEditSession.on 'add-selection', (selection) => @addSelectionView(selection)
+    @activeEditSession.on 'screen-lines-change', (e) => @handleDisplayBufferChange(e)
+
+    @updateDisplay(autoscroll: false)
+
+  updateDisplay: (options) ->
+    return unless @attached
+
+    @updateCursorViews(options)
+    @updateSelectionViews()
+    @updateRenderedLines()
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
@@ -771,11 +771,10 @@ class Editor extends View
     @fillDirtyRanges(intactRanges, renderFrom, renderTo)
     @firstRenderedScreenRow = renderFrom
     @lastRenderedScreenRow = renderTo
+    @updateLayerDimensions()
     @updatePaddingOfRenderedLines()
-    @adjustMinWidthOfRenderedLines()
     @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
     @highlightCursorLine()
-    @handleScrollHeightChange()
 
   computeIntactRanges: ->
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
@@ -868,11 +867,6 @@ class Editor extends View
     @renderedLines.css('padding-bottom', paddingBottom)
     @gutter.lineNumbers.css('padding-bottom', paddingBottom)
 
-    linesHeight = @screenLineCount() * @lineHeight
-    @renderedLines.height(linesHeight)
-    @underlayer.height(linesHeight)
-    @overlayer.height(linesHeight)
-
   getFirstVisibleScreenRow: ->
     Math.floor(@scrollTop() / @lineHeight)
 
@@ -885,7 +879,7 @@ class Editor extends View
     to = oldRange.end.row
     delta = newRange.end.row - oldRange.end.row
     @pendingChanges.push({from, to, delta})
-    @updateRenderedLines()
+    @updateDisplay()
 
   buildLineElementForScreenRow: (screenRow) ->
     div = document.createElement('div')

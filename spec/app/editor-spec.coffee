@@ -43,7 +43,7 @@ describe "Editor", ->
       expect(-> new Editor).toThrow()
 
   describe ".copy()", ->
-    it "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
+    fit "builds a new editor with the same edit sessions, cursor position, and scroll position as the receiver", ->
       rootView.attachToDom()
       rootView.height(8 * editor.lineHeight)
       rootView.width(50 * editor.charWidth)

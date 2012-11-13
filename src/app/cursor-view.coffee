@@ -23,7 +23,7 @@ class CursorView extends View
 
   afterAttach: (onDom) ->
     return unless onDom
-    @updateDisplay()
+    @updateDisplay(autoscroll: false)
     @editor.syncCursorAnimations()
 
   remove: ->
