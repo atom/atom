@@ -462,7 +462,7 @@ class Editor extends View
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
-    @updateDisplay() if @attached
+    @updateDisplay(autoscroll: false) if @attached
 
     @renderedLines.css('top', -scrollTop)
     @underlayer.css('top', -scrollTop)
