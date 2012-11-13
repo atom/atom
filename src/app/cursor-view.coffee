@@ -21,12 +21,9 @@ class CursorView extends View
       @trigger 'cursor-move', {bufferChange}
 
     @cursor.on 'change-visibility.cursor-view', (visible) => @setVisible(visible)
-    @cursor.on 'destroy.cursor-view', => @remove()
-
-  afterAttach: (onDom) ->
-    return unless onDom
-    @updateDisplay(autoscroll: @autoscrollOnAttach)
-    @editor.syncCursorAnimations()
+    @cursor.on 'destroy.cursor-view', =>
+      @destroyed = true
+      @editor.updateDisplay()
 
   remove: ->
     @editor.removeCursorView(this)

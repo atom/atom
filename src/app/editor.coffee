@@ -45,6 +45,7 @@ class Editor extends View
   attached: false
   lineOverdraw: 100
   pendingChanges: null
+  newCursors: null
 
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
@@ -64,6 +65,7 @@ class Editor extends View
     @selectionViews = []
     @editSessions = []
     @pendingChanges = []
+    @newCursors = []
 
     if editSession?
       @editSessions.push editSession
@@ -652,8 +654,16 @@ class Editor extends View
     _.remove(@cursorViews, cursorView)
 
   updateCursorViews: (options)->
+    if @newCursors.length > 0
+      @addCursorView(cursor) for cursor in @newCursors
+      @syncCursorAnimations()
+      @newCursors = []
+
     for cursorView in @getCursorViews()
-      cursorView.updateDisplay(options)
+      if cursorView.destroyed
+        cursorView.remove()
+      else
+        cursorView.updateDisplay(options)
 
   updateSelectionViews: ->
     for selectionView in @getSelectionViews()
@@ -738,7 +748,10 @@ class Editor extends View
     @addCursorView(cursor, autoscroll: false) for cursor in @activeEditSession.getCursors()
     @addSelectionView(selection) for selection in @activeEditSession.getSelections()
 
-    @activeEditSession.on 'add-cursor', (cursor) => @addCursorView(cursor)
+    @activeEditSession.on 'add-cursor', (cursor) =>
+      @newCursors.push(cursor)
+      @updateDisplay(autoscroll: true)
+
     @activeEditSession.on 'add-selection', (selection) => @addSelectionView(selection)
     @activeEditSession.on 'screen-lines-change', (e) => @handleDisplayBufferChange(e)
 
