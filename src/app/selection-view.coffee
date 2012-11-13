@@ -9,12 +9,14 @@ class SelectionView extends View
     @div()
 
   regions: null
+  destroyed: false
 
   initialize: ({@editor, @selection} = {}) ->
     @regions = []
     @selection.on 'change-screen-range', => @updateDisplay()
-    @selection.on 'destroy', => @remove()
-    @updateDisplay()
+    @selection.on 'destroy', =>
+      @destroyed = true
+      @editor.updateDisplay()
 
   updateDisplay: ->
     @clearRegions()
