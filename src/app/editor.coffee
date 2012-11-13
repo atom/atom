@@ -673,11 +673,11 @@ class Editor extends View
 
   updateCursorViews: ->
     for cursorView in @getCursorViews()
-      cursorView.updateAppearance()
+      cursorView.updateDisplay()
 
   updateSelectionViews: ->
     for selectionView in @getSelectionViews()
-      selectionView.updateAppearance()
+      selectionView.updateDisplay()
 
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()

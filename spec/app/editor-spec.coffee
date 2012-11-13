@@ -863,7 +863,7 @@ describe "Editor", ->
         expect(selectionView.regions.length).toBe 3
         expect(selectionView.find('.selection').length).toBe 3
 
-        selectionView.updateAppearance()
+        selectionView.updateDisplay()
         expect(selectionView.regions.length).toBe 3
         expect(selectionView.find('.selection').length).toBe 3
 

@@ -14,7 +14,7 @@ class CursorView extends View
 
   initialize: (@cursor, @editor) ->
     @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange, autoscroll }) =>
-      @updateAppearance({autoscroll})
+      @updateDisplay({autoscroll})
       @removeIdleClassTemporarily() unless bufferChange
       @trigger 'cursor-move', {bufferChange}
 
@@ -23,7 +23,7 @@ class CursorView extends View
 
   afterAttach: (onDom) ->
     return unless onDom
-    @updateAppearance()
+    @updateDisplay()
     @editor.syncCursorAnimations()
 
   remove: ->
@@ -31,7 +31,7 @@ class CursorView extends View
     @cursor.off('.cursor-view')
     super
 
-  updateAppearance: (options={}) ->
+  updateDisplay: (options={}) ->
     autoscroll = options.autoscroll ? true
     screenPosition = @getScreenPosition()
     pixelPosition = @getPixelPosition()
