@@ -727,3 +727,23 @@ describe 'Buffer', ->
       expect(buffer.isEmpty()).toBeFalsy()
       buffer.setText('\n')
       expect(buffer.isEmpty()).toBeFalsy()
+
+  describe "stopped-changing event", ->
+    it "fires 'stoppedChangingDelay' ms after the last buffer change", ->
+      delay = buffer.stoppedChangingDelay
+      stoppedChangingHandler = jasmine.createSpy("stoppedChangingHandler")
+      buffer.on 'stopped-changing', stoppedChangingHandler
+
+      buffer.insert([0, 0], 'a')
+      expect(stoppedChangingHandler).not.toHaveBeenCalled()
+
+      advanceClock(delay / 2)
+
+      buffer.insert([0, 0], 'b')
+      expect(stoppedChangingHandler).not.toHaveBeenCalled()
+
+      advanceClock(delay / 2)
+      expect(stoppedChangingHandler).not.toHaveBeenCalled()
+
+      advanceClock(delay / 2)
+      expect(stoppedChangingHandler).toHaveBeenCalled()
