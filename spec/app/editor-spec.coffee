@@ -907,7 +907,7 @@ describe "Editor", ->
         editor.setCursorScreenPosition(row: 2, column: 2)
         expect(editor.getCursorView().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
-      it "removes the idle class while moving, then adds it back when it stops", ->
+      xit "removes the idle class while moving, then adds it back when it stops", ->
         cursorView = editor.getCursorView()
         advanceClock(200)
 
