@@ -792,7 +792,9 @@ class Editor extends View
     if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
       return
 
+    @gutter.updateLineNumbers(@pendingChanges, renderFrom, renderTo)
     intactRanges = @computeIntactRanges()
+    @pendingChanges = []
     @truncateIntactRanges(intactRanges, renderFrom, renderTo)
     @clearDirtyRanges(intactRanges)
     @fillDirtyRanges(intactRanges, renderFrom, renderTo)
@@ -800,7 +802,6 @@ class Editor extends View
     @lastRenderedScreenRow = renderTo
     @updateLayerDimensions()
     @updatePaddingOfRenderedLines()
-#     @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
 
   computeIntactRanges: ->
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
@@ -904,7 +905,11 @@ class Editor extends View
     from = oldRange.start.row
     to = oldRange.end.row
     delta = newRange.end.row - oldRange.end.row
-    @pendingChanges.push({from, to, delta})
+
+    if bufferChange = e.bufferChange
+      bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
+
+    @pendingChanges.push({from, to, delta, bufferDelta})
     @requestDisplayUpdate()
 
   buildLineElementForScreenRow: (screenRow) ->
