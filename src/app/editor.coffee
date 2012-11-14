@@ -429,9 +429,6 @@ class Editor extends View
     @activeEditSession.on "buffer-path-change", =>
       @trigger 'editor-path-change'
 
-    @activeEditSession.getSelection().on 'change-screen-range', =>
-      @trigger 'selection-change'
-
     @trigger 'editor-path-change'
     @resetDisplay()
 
