@@ -22,10 +22,6 @@ class CursorView extends View
       @needsAutoscroll = (autoscroll ? true) and @cursor?.isLastCursor()
       @editor.requestDisplayUpdate()
 
-      # TODO: Move idle/active to the cursor model
-#       @removeIdleClassTemporarily() unless bufferChange
-      @trigger 'cursor-move', {bufferChange}
-
     @cursor.on 'change-visibility.cursor-view', (visible) =>
       @needsUpdate = true
       @needsAutoscroll = visible and @cursor.isLastCursor()
@@ -47,6 +43,8 @@ class CursorView extends View
     unless _.isEqual(@lastPixelPosition, pixelPosition)
       changedPosition = true
       @css(pixelPosition)
+#       @removeIdleClassTemporarily() unless bufferChange
+      @trigger 'cursor-move'
 
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
 
