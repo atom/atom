@@ -99,21 +99,9 @@
   vertical-align: top;
 }
 
-@-webkit-keyframes blink {
-  0% { opacity: 1; }
-  60% { opacity: 1; }
-  61% { opacity: 0; }
-  100% { opacity: 0; }
-}
-
 .editor .cursor {
   position: absolute;
   border-left: 2px solid;
-}
-
-.editor.focused .cursor.idle {
-  -webkit-animation: blink 0.8s;
-  -webkit-animation-iteration-count: infinite;
 }
 
 .editor .hidden-input {
