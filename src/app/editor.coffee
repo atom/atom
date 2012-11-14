@@ -654,33 +654,6 @@ class Editor extends View
   removeCursorView: (cursorView) ->
     _.remove(@cursorViews, cursorView)
 
-  updateCursorViews: ->
-    if @newCursors.length > 0
-      @addCursorView(cursor) for cursor in @newCursors
-      @syncCursorAnimations()
-      @newCursors = []
-
-    for cursorView in @getCursorViews()
-      if cursorView.needsRemoval
-        cursorView.remove()
-      else if cursorView.needsUpdate
-        cursorView.updateDisplay()
-
-  updateSelectionViews: ->
-    if @newSelections.length > 0
-      @addSelectionView(selection) for selection in @newSelections
-      @newSelections = []
-
-    for selectionView in @getSelectionViews()
-      if selectionView.destroyed
-        selectionView.remove()
-      else
-        selectionView.updateDisplay()
-
-  syncCursorAnimations: ->
-    for cursorView in @getCursorViews()
-      do (cursorView) -> cursorView.resetCursorAnimation()
-
   getSelectionView: (index) ->
     index ?= @selectionViews.length - 1
     @selectionViews[index]
@@ -734,8 +707,6 @@ class Editor extends View
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
       @overlayer.css('min-width', minWidth)
-    throw new Error("Re-entry into updateDisplay") if @updatingDisplay
-    @updatingDisplay = true
       @layerMinWidth = minWidth
 
   clearRenderedLines: ->
@@ -743,7 +714,6 @@ class Editor extends View
     @firstRenderedScreenRow = null
     @lastRenderedScreenRow = null
 
-    @updatingDisplay = false
   resetDisplay: ->
     return unless @attached
 
@@ -764,11 +734,41 @@ class Editor extends View
     @updateDisplay(suppressAutoScroll: true)
 
   updateDisplay: (options={}) ->
+    throw new Error("Re-entry into updateDisplay") if @updatingDisplay
+    @updatingDisplay = true
     return unless @attached
     @updateCursorViews()
     @updateSelectionViews()
     @autoscroll(options)
     @updateRenderedLines()
+    @updatingDisplay = false
+
+  updateCursorViews: ->
+    if @newCursors.length > 0
+      @addCursorView(cursor) for cursor in @newCursors
+      @syncCursorAnimations()
+      @newCursors = []
+
+    for cursorView in @getCursorViews()
+      if cursorView.needsRemoval
+        cursorView.remove()
+      else if cursorView.needsUpdate
+        cursorView.updateDisplay()
+
+  updateSelectionViews: ->
+    if @newSelections.length > 0
+      @addSelectionView(selection) for selection in @newSelections
+      @newSelections = []
+
+    for selectionView in @getSelectionViews()
+      if selectionView.destroyed
+        selectionView.remove()
+      else
+        selectionView.updateDisplay()
+
+  syncCursorAnimations: ->
+    for cursorView in @getCursorViews()
+      do (cursorView) -> cursorView.resetCursorAnimation()
 
   autoscroll: (options={}) ->
     for cursorView in @getCursorViews() when cursorView.needsAutoscroll
