@@ -737,11 +737,11 @@ class Editor extends View
 
   updateDisplay: (options={}) ->
     return unless @attached
+    @updateRenderedLines()
+    @highlightCursorLine()
     @updateCursorViews()
     @updateSelectionViews()
     @autoscroll(options)
-    @updateRenderedLines()
-    @highlightCursorLine()
 
   updateCursorViews: ->
     if @newCursors.length > 0
