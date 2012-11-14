@@ -458,15 +458,15 @@ class Editor extends View
   getOpenBufferPaths: ->
     editSession.buffer.getPath() for editSession in @editSessions when editSession.buffer.getPath()?
 
-  scrollTop: (scrollTop, options) ->
+  scrollTop: (scrollTop, options={}) ->
     return @cachedScrollTop or 0 unless scrollTop?
-
+    updateDisplay = options.updateDisplay ? true
     maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
     scrollTop = Math.floor(Math.max(0, Math.min(maxScrollTop, scrollTop)))
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
-    @updateDisplay(autoscroll: false) if @attached
+    @updateDisplay(autoscroll: false) if @attached and updateDisplay
 
     @renderedLines.css('top', -scrollTop)
     @underlayer.css('top', -scrollTop)
@@ -531,7 +531,7 @@ class Editor extends View
           element.removeClass('selected')
 
   setScrollPositionFromActiveEditSession: ->
-    @scrollTop(@activeEditSession.scrollTop ? 0)
+    @scrollTop(@activeEditSession.scrollTop ? 0, updateDisplay: false)
     @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
 
   saveActiveEditSession: ->
@@ -655,17 +655,17 @@ class Editor extends View
   removeCursorView: (cursorView) ->
     _.remove(@cursorViews, cursorView)
 
-  updateCursorViews: (options)->
+  updateCursorViews: ->
     if @newCursors.length > 0
       @addCursorView(cursor) for cursor in @newCursors
       @syncCursorAnimations()
       @newCursors = []
 
     for cursorView in @getCursorViews()
-      if cursorView.destroyed
+      if cursorView.needsRemoval
         cursorView.remove()
-      else
-        cursorView.updateDisplay(options)
+      else if cursorView.needsUpdate
+        cursorView.updateDisplay()
 
   updateSelectionViews: ->
     if @newSelections.length > 0
@@ -763,14 +763,19 @@ class Editor extends View
 
     @newCursors = @activeEditSession.getCursors()
     @newSelections = @activeEditSession.getSelections()
-    @updateDisplay(autoscroll: false)
+    @updateDisplay(suppressAutoScroll: true)
 
-  updateDisplay: (options) ->
+  updateDisplay: (options={}) ->
     return unless @attached
-
-    @updateCursorViews(options)
+    @updateCursorViews()
     @updateSelectionViews()
+    @autoscroll(options)
     @updateRenderedLines()
+
+  autoscroll: (options={}) ->
+    for cursorView in @getCursorViews() when cursorView.needsAutoscroll
+      @scrollTo(cursorView.getPixelPosition()) unless options.suppressAutoScroll
+      cursorView.needsAutoscroll = false
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()

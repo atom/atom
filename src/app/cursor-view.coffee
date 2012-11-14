@@ -12,15 +12,27 @@ class CursorView extends View
   editor: null
   visible: true
 
-  initialize: (@cursor, @editor, options={}) ->
+  needsUpdate: true
+  needsAutoscroll: true
+  needsRemoval: false
+
+  initialize: (@cursor, @editor) ->
     @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange, autoscroll }) =>
-      @updateDisplay({autoscroll})
+      @needsUpdate = true
+      @needsAutoscroll = (autoscroll ? true) and @cursor?.isLastCursor()
+      @editor.updateDisplay()
+
+      # TODO: Move idle/active to the cursor model
       @removeIdleClassTemporarily() unless bufferChange
       @trigger 'cursor-move', {bufferChange}
 
-    @cursor.on 'change-visibility.cursor-view', (visible) => @setVisible(visible)
+    @cursor.on 'change-visibility.cursor-view', (visible) =>
+      @needsUpdate = true
+      @needsAutoscroll = visible and @cursor.isLastCursor()
+      @editor.updateDisplay()
+
     @cursor.on 'destroy.cursor-view', =>
-      @destroyed = true
+      @needsRemoval = true
       @editor.updateDisplay()
 
   remove: ->
@@ -28,29 +40,23 @@ class CursorView extends View
     @cursor.off('.cursor-view')
     super
 
-  updateDisplay: (options={}) ->
-    autoscroll = options.autoscroll ? true
+  updateDisplay: ->
     screenPosition = @getScreenPosition()
     pixelPosition = @getPixelPosition()
-    @css(pixelPosition)
-    @autoscroll() if @cursor.isLastCursor() and autoscroll
+
+    unless _.isEqual(@lastPixelPosition, pixelPosition)
+      changedPosition = true
+      @css(pixelPosition)
+
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
 
   getPixelPosition: ->
     @editor.pixelPositionForScreenPosition(@getScreenPosition())
 
-  autoscroll: ->
-    @editor.scrollTo(@getPixelPosition())
-
   setVisible: (visible) ->
-    return if visible == @visible
-    @visible = visible
-
-    if @visible
-      @show()
-      @autoscroll()
-    else
-      @hide()
+    unless @visible == visible
+      @visible = visible
+      @toggle(@visible)
 
   getBufferPosition: ->
     @cursor.getBufferPosition()

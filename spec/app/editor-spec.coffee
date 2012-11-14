@@ -659,13 +659,11 @@ describe "Editor", ->
       it "places an additional cursor", ->
         editor.attachToDom()
         setEditorHeightInLines(editor, 5)
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 0])
+        editor.setCursorBufferPosition([3, 0])
         editor.scrollTop(editor.lineHeight * 6)
 
-        spyOn(editor, "scrollTo").andCallThrough()
-
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
-        expect(editor.scrollTo.callCount).toBe 1
+        expect(editor.scrollTop()).toBe editor.lineHeight * (6 - editor.vScrollMargin)
 
         [cursor1, cursor2] = editor.getCursorViews()
         expect(cursor1.position()).toEqual(top: 3 * editor.lineHeight, left: 0)
