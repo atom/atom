@@ -460,13 +460,12 @@ class Editor extends View
 
   scrollTop: (scrollTop, options={}) ->
     return @cachedScrollTop or 0 unless scrollTop?
-    updateDisplay = options.updateDisplay ? true
     maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
     scrollTop = Math.floor(Math.max(0, Math.min(maxScrollTop, scrollTop)))
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
-    @updateDisplay(autoscroll: false) if @attached and updateDisplay
+    @updateDisplay() if @attached and !@updatingDisplay
 
     @renderedLines.css('top', -scrollTop)
     @underlayer.css('top', -scrollTop)
@@ -735,6 +734,8 @@ class Editor extends View
       @renderedLines.css('min-width', minWidth)
       @underlayer.css('min-width', minWidth)
       @overlayer.css('min-width', minWidth)
+    throw new Error("Re-entry into updateDisplay") if @updatingDisplay
+    @updatingDisplay = true
       @layerMinWidth = minWidth
 
   clearRenderedLines: ->
@@ -742,6 +743,7 @@ class Editor extends View
     @firstRenderedScreenRow = null
     @lastRenderedScreenRow = null
 
+    @updatingDisplay = false
   resetDisplay: ->
     return unless @attached
 
