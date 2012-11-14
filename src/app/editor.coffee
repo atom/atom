@@ -734,7 +734,7 @@ class Editor extends View
   requestDisplayUpdate: ()->
     return if @pendingDisplayUpdate
     @pendingDisplayUpdate = true
-    webkitRequestAnimationFrame =>
+    _.nextTick =>
       @updateDisplay()
       @pendingDisplayUpdate = false
 
