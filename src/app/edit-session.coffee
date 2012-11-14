@@ -61,7 +61,7 @@ class EditSession
 
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
       @trigger 'screen-lines-change', e
-      unless e.bufferChanged
+      unless e.bufferChange
         anchor.refreshScreenPosition() for anchor in @getAnchors()
 
   destroy: ->
