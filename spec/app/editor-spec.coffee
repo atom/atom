@@ -1802,7 +1802,7 @@ describe "Editor", ->
     describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
       it "renders the fold's line element with the 'selected' class", ->
         setEditorHeightInLines(editor, 5)
-        editor.renderLines() # re-render lines so certain lines are not rendered
+        editor.resetDisplay()
 
         editor.createFold(2, 4)
         editor.setSelectedBufferRange([[1, 0], [5, 0]], preserveFolds: true)

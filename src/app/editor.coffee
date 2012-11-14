@@ -277,10 +277,10 @@ class Editor extends View
   setShowInvisibles: (showInvisibles) ->
     return if showInvisibles == @showInvisibles
     @showInvisibles = showInvisibles
-    @renderLines()
+    @resetDisplay()
 
   setInvisibles: (@invisibles={}) ->
-    @renderLines()
+    @resetDisplay()
 
   checkoutHead: -> @getBuffer().checkoutHead()
   setText: (text) -> @getBuffer().setText(text)
@@ -736,10 +736,6 @@ class Editor extends View
       @underlayer.css('min-width', minWidth)
       @overlayer.css('min-width', minWidth)
       @layerMinWidth = minWidth
-
-  renderLines: ->
-    @clearRenderedLines()
-    @updateDisplay()
 
   clearRenderedLines: ->
     @renderedLines.empty()
