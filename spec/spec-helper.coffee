@@ -7,6 +7,7 @@ Project = require 'project'
 Directory = require 'directory'
 File = require 'file'
 RootView = require 'root-view'
+Editor = require 'editor'
 TextMateBundle = require 'text-mate-bundle'
 TextMateTheme = require 'text-mate-theme'
 fs = require 'fs'
@@ -21,6 +22,9 @@ beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
   pathsWithSubscriptions = []
+
+  # make editor display updates synchronous
+  spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
 
 afterEach ->
   delete window.rootView if window.rootView
