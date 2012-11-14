@@ -357,8 +357,6 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    @on 'selection-change', => @highlightCursorLine()
-
   selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
     @on 'mousemove', moveHandler
@@ -377,7 +375,7 @@ class Editor extends View
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
     @invisibles = @rootView()?.getInvisibles()
-    $(window).on "resize.editor#{@id}", => @updateDisplay()
+    $(window).on "resize.editor#{@id}", => @requestDisplayUpdate()
     @focus() if @isFocused
 
     @resetDisplay()
@@ -465,7 +463,7 @@ class Editor extends View
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
-    @updateDisplay() if @attached and !@updatingDisplay
+    @requestDisplayUpdate() if @attached
 
     @renderedLines.css('top', -scrollTop)
     @underlayer.css('top', -scrollTop)
@@ -530,7 +528,7 @@ class Editor extends View
           element.removeClass('selected')
 
   setScrollPositionFromActiveEditSession: ->
-    @scrollTop(@activeEditSession.scrollTop ? 0, updateDisplay: false)
+    @scrollTop(@activeEditSession.scrollTop ? 0)
     @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
 
   saveActiveEditSession: ->
@@ -581,7 +579,7 @@ class Editor extends View
       @calculateDimensions()
       @updatePaddingOfRenderedLines()
       @updateLayerDimensions()
-      @updateDisplay()
+      @requestDisplayUpdate()
 
   newSplitEditor: ->
     new Editor { editSession: @activeEditSession.copy(), @showInvisibles }
@@ -725,7 +723,7 @@ class Editor extends View
     @activeEditSession.on 'add-selection', (selection) =>
       @newCursors.push(selection.cursor)
       @newSelections.push(selection)
-      @updateDisplay(autoscroll: true)
+      @requestDisplayUpdate()
 
     @activeEditSession.on 'screen-lines-change', (e) => @handleDisplayBufferChange(e)
 
@@ -733,15 +731,20 @@ class Editor extends View
     @newSelections = @activeEditSession.getSelections()
     @updateDisplay(suppressAutoScroll: true)
 
+  requestDisplayUpdate: ()->
+    return if @pendingDisplayUpdate
+    @pendingDisplayUpdate = true
+    webkitRequestAnimationFrame =>
+      @updateDisplay()
+      @pendingDisplayUpdate = false
+
   updateDisplay: (options={}) ->
-    throw new Error("Re-entry into updateDisplay") if @updatingDisplay
-    @updatingDisplay = true
     return unless @attached
     @updateCursorViews()
     @updateSelectionViews()
     @autoscroll(options)
     @updateRenderedLines()
-    @updatingDisplay = false
+    @highlightCursorLine()
 
   updateCursorViews: ->
     if @newCursors.length > 0
@@ -797,8 +800,7 @@ class Editor extends View
     @lastRenderedScreenRow = renderTo
     @updateLayerDimensions()
     @updatePaddingOfRenderedLines()
-    @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
-    @highlightCursorLine()
+#     @gutter.renderLineNumbers(@firstRenderedScreenRow, @lastRenderedScreenRow)
 
   computeIntactRanges: ->
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
@@ -903,7 +905,7 @@ class Editor extends View
     to = oldRange.end.row
     delta = newRange.end.row - oldRange.end.row
     @pendingChanges.push({from, to, delta})
-    @updateDisplay()
+    @requestDisplayUpdate()
 
   buildLineElementForScreenRow: (screenRow) ->
     div = document.createElement('div')

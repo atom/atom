@@ -20,20 +20,20 @@ class CursorView extends View
     @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange, autoscroll }) =>
       @needsUpdate = true
       @needsAutoscroll = (autoscroll ? true) and @cursor?.isLastCursor()
-      @editor.updateDisplay()
+      @editor.requestDisplayUpdate()
 
       # TODO: Move idle/active to the cursor model
-      @removeIdleClassTemporarily() unless bufferChange
+#       @removeIdleClassTemporarily() unless bufferChange
       @trigger 'cursor-move', {bufferChange}
 
     @cursor.on 'change-visibility.cursor-view', (visible) =>
       @needsUpdate = true
       @needsAutoscroll = visible and @cursor.isLastCursor()
-      @editor.updateDisplay()
+      @editor.requestDisplayUpdate()
 
     @cursor.on 'destroy.cursor-view', =>
       @needsRemoval = true
-      @editor.updateDisplay()
+      @editor.requestDisplayUpdate()
 
   remove: ->
     @editor.removeCursorView(this)
