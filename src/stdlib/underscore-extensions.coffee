@@ -72,3 +72,13 @@ _.mixin
 
   multiplyString: (string, n) ->
     new Array(1 + n).join(string)
+
+  nextTick: (fn) ->
+    unless @messageChannel
+      @pendingNextTickFns = []
+      @messageChannel = new MessageChannel
+      @messageChannel.port1.onmessage = =>
+        fn() while fn = @pendingNextTickFns.shift()
+
+    @pendingNextTickFns.push(fn)
+    @messageChannel.port2.postMessage(0)

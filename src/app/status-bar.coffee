@@ -42,9 +42,9 @@ class StatusBar extends View
   subscribeToBuffer: ->
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
-    @buffer.on 'change.status-bar', => _.delay (=> @updateBufferModifiedText()), 50
-    @buffer.on 'after-save.status-bar', => _.delay (=> @updateStatusBar()), 50
-    @buffer.on 'git-status-change.status-bar', => _.delay (=> @updateStatusBar()), 50
+    @buffer.on 'stopped-changing.status-bar', => @updateBufferModifiedText()
+    @buffer.on 'after-save.status-bar', => @updateStatusBar()
+    @buffer.on 'git-status-change.status-bar', => @updateStatusBar()
     @updateStatusBar()
 
   updateStatusBar: ->

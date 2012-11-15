@@ -207,7 +207,7 @@ class DisplayBuffer
     @trigger 'change',
       oldRange: oldScreenRange
       newRange: newScreenRange
-      bufferChanged: true
+      bufferChange: e.bufferChange
       lineNumbersChanged: !e.oldRange.coversSameRows(newRange) or !oldScreenRange.coversSameRows(newScreenRange)
 
   buildLineForBufferRow: (bufferRow) ->

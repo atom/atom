@@ -9,17 +9,20 @@ class SelectionView extends View
     @div()
 
   regions: null
+  destroyed: false
 
   initialize: ({@editor, @selection} = {}) ->
     @regions = []
-    @selection.on 'change-screen-range', => @updateAppearance()
-    @selection.on 'destroy', => @remove()
-    @updateAppearance()
+    @selection.on 'change-screen-range', => @editor.requestDisplayUpdate()
+    @selection.on 'destroy', =>
+      @destroyed = true
+      @editor.requestDisplayUpdate()
 
-  updateAppearance: ->
+  updateDisplay: ->
     @clearRegions()
     range = @getScreenRange()
 
+    @trigger 'selection-change'
     @editor.highlightFoldsContainingBufferRange(@getBufferRange())
     return if range.isEmpty()
 
