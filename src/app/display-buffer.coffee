@@ -35,7 +35,7 @@ class DisplayBuffer
     oldRange = @rangeForAllLines()
     @buildLineMap()
     newRange = @rangeForAllLines()
-    @trigger 'change', { oldRange, newRange, lineNumbersChanged: true }
+    @trigger 'change', { oldRange, newRange }
 
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
@@ -87,7 +87,7 @@ class DisplayBuffer
       @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
       newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
+      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
 
     fold
 
@@ -111,7 +111,7 @@ class DisplayBuffer
       @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
       newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
+      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     for row, folds of @activeFolds
@@ -195,10 +195,15 @@ class DisplayBuffer
   handleTokenizedBufferChange: (e) ->
     @handleBufferChange(e.bufferChange) if e.bufferChange
 
-    newRange = e.newRange.copy()
-    newRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(newRange.start.row))
+    { oldRange, newRange } = e
+    oldRange = oldRange.copy()
+    newRange = newRange.copy()
 
-    oldScreenRange = @screenLineRangeForBufferRange(e.oldRange)
+    foldAdjustedStartRow = @bufferRowForScreenRow(@screenRowForBufferRow(newRange.start.row))
+    oldRange.start.row = foldAdjustedStartRow
+    newRange.start.row = foldAdjustedStartRow
+
+    oldScreenRange = @screenLineRangeForBufferRange(oldRange)
 
     newScreenLines = @buildLinesForBufferRows(newRange.start.row, newRange.end.row)
     @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
@@ -208,7 +213,6 @@ class DisplayBuffer
       oldRange: oldScreenRange
       newRange: newScreenRange
       bufferChange: e.bufferChange
-      lineNumbersChanged: !e.oldRange.coversSameRows(newRange) or !oldScreenRange.coversSameRows(newScreenRange)
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
