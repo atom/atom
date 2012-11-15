@@ -60,9 +60,8 @@ class EditSession
       @mergeCursors()
 
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
+      @refreshAnchorScreenPositions() unless e.bufferChange
       @trigger 'screen-lines-change', e
-      unless e.bufferChange
-        anchor.refreshScreenPosition() for anchor in @getAnchors()
 
   destroy: ->
     throw new Error("Edit session already destroyed") if @destroyed
@@ -331,6 +330,9 @@ class EditSession
 
   removeAnchor: (anchor) ->
     _.remove(@anchors, anchor)
+
+  refreshAnchorScreenPositions: ->
+    anchor.refreshScreenPosition() for anchor in @getAnchors()
 
   removeAnchorRange: (anchorRange) ->
     _.remove(@anchorRanges, anchorRange)
