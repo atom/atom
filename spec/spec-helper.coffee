@@ -35,6 +35,7 @@ afterEach ->
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
+$('html,body').css('overflow', 'auto')
 
 # Don't load user configuration in specs, because it's variable
 RootView.prototype.loadUserConfiguration = ->
