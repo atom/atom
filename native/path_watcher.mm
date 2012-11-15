@@ -36,7 +36,6 @@ static NSMutableArray *gPathWatchers;
 }
 
 + (void)removePathWatcherForContext:(CefRefPtr<CefV8Context>)context {
-//  NSLog(@"REMOVING PATH WATCHER");
   PathWatcher *pathWatcher = nil;
   for (PathWatcher *p in gPathWatchers) {
     if ([p usesContext:context]) {
@@ -54,8 +53,6 @@ static NSMutableArray *gPathWatchers;
 
 - (void)dealloc {
   @synchronized(self) {
-    NSLog(@"DEALLOCING PATH WATCHER");
-    
     close(_kq);
     for (NSString *path in [_callbacksByPath allKeys]) {
       [self removeKeventForPath:path];
@@ -107,10 +104,9 @@ static NSMutableArray *gPathWatchers;
 
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback callbackId:(NSString *)callbackId {
   path = [path stringByStandardizingPath];
-//  NSLog(@"WATCH %@", path);
   @synchronized(self) {
     if (![self createKeventForPath:path]) {
-      NSLog(@"Failed to create kevent for path '%@'", path);
+      NSLog(@"WARNING: Failed to create kevent for path '%@'", path);
       return nil;
     }
     
@@ -128,7 +124,6 @@ static NSMutableArray *gPathWatchers;
 
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error {
   path = [path stringByStandardizingPath];
-//  NSLog(@"UNWATCH %@", path);
 
   @synchronized(self) {
     NSMutableDictionary *callbacks = [_callbacksByPath objectForKey:path];
@@ -168,7 +163,6 @@ static NSMutableArray *gPathWatchers;
     }
     
     int fd = open([path fileSystemRepresentation], O_EVTONLY, 0);
-//    NSLog(@"Creating kevent for %d %@", fd, path);
     if (fd < 0) {
       NSLog(@"WARNING: Could create file descriptor for path '%@'", path);
       return NO;
@@ -198,7 +192,6 @@ static NSMutableArray *gPathWatchers;
   bool fileExists = access([path fileSystemRepresentation], F_OK) != -1;
   if (!fileExists) return;
 
-//  NSLog(@"Removing kevent for %d %@", fd, path);
   if (fd >= 0) {
     close(fd);
   }
@@ -267,7 +260,6 @@ static NSMutableArray *gPathWatchers;
 
       NSDictionary *callbacks;
       @synchronized(self) {
-//        NSLog(@"+PathWatcher: %@:%ld:%@", eventFlag, event.ident, path);
         callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByPath objectForKey:path]];
       }
 
@@ -277,8 +269,6 @@ static NSMutableArray *gPathWatchers;
           callback(eventFlag, newPath ? newPath : path);
         }
       });
-
-//      NSLog(@"-PathWatcher: %@:%ld:%@", eventFlag, event.ident, path);
 
       if (event.fflags & NOTE_RENAME) {
         [self changePath:path toNewPath:newPath];

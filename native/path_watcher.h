@@ -20,5 +20,4 @@ typedef void (^WatchCallback)(NSString *, NSString *);
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error;
 
-
 @end
