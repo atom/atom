@@ -896,16 +896,8 @@ class Editor extends View
   getLastVisibleScreenRow: ->
     Math.max(0, Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1)
 
-  handleScreenLinesChange: (e) ->
-    { oldRange, newRange } = e
-    start = oldRange.start.row
-    end = oldRange.end.row
-    screenDelta = newRange.end.row - oldRange.end.row
-
-    if bufferChange = e.bufferChange
-      bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
-
-    @pendingChanges.push({start, end, screenDelta, bufferDelta})
+  handleScreenLinesChange: (change) ->
+    @pendingChanges.push(change)
     @requestDisplayUpdate()
 
   buildLineElementForScreenRow: (screenRow) ->

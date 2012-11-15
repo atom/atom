@@ -61,7 +61,16 @@ class EditSession
 
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
       @refreshAnchorScreenPositions() unless e.bufferChange
-      @trigger 'screen-lines-change', e
+
+      { oldRange, newRange } = e
+      start = oldRange.start.row
+      end = oldRange.end.row
+      screenDelta = newRange.end.row - oldRange.end.row
+
+      if bufferChange = e.bufferChange
+        bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
+
+      @trigger 'screen-lines-change', {start, end, screenDelta, bufferDelta}
 
   destroy: ->
     throw new Error("Edit session already destroyed") if @destroyed
