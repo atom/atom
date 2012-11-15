@@ -27,7 +27,7 @@ class LineMap
       @maxScreenLineLength = Math.max(@maxScreenLineLength, screenLine.text.length)
 
   lineForScreenRow: (row) ->
-    @linesForScreenRows(row, row)[0]
+    @screenLines[row]
 
   linesForScreenRows: (startRow, endRow) ->
     @screenLines[startRow..endRow]
