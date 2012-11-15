@@ -722,7 +722,7 @@ class Editor extends View
       @newSelections.push(selection)
       @requestDisplayUpdate()
 
-    @activeEditSession.on 'screen-lines-change', (e) => @handleDisplayBufferChange(e)
+    @activeEditSession.on 'screen-lines-change', (e) => @handleScreenLinesChange(e)
 
     @newCursors = @activeEditSession.getCursors()
     @newSelections = @activeEditSession.getSelections()
@@ -897,7 +897,7 @@ class Editor extends View
   getLastVisibleScreenRow: ->
     Math.max(0, Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1)
 
-  handleDisplayBufferChange: (e) ->
+  handleScreenLinesChange: (e) ->
     { oldRange, newRange } = e
     from = oldRange.start.row
     to = oldRange.end.row
