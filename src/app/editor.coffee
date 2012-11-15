@@ -803,30 +803,29 @@ class Editor extends View
   computeIntactRanges: ->
     return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
 
-    intactRanges = [{from: @firstRenderedScreenRow, to: @lastRenderedScreenRow, domStart: 0}]
+    intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
     for change in @pendingChanges
       newIntactRanges = []
-      delta = change.delta
       for range in intactRanges
-        if change.to < range.from and change.delta != 0
+        if change.end < range.start and change.screenDelta != 0
           newIntactRanges.push(
-            from: range.from + delta
-            to: range.to + delta
+            start: range.start + change.screenDelta
+            end: range.end + change.screenDelta
             domStart: range.domStart
           )
-        else if change.to < range.from or change.from > range.to
+        else if change.end < range.start or change.start > range.end
           newIntactRanges.push(range)
         else
-          if change.from > range.from
+          if change.start > range.start
             newIntactRanges.push(
-              from: range.from
-              to: change.from - 1
+              start: range.start
+              end: change.start - 1
               domStart: range.domStart)
-          if change.to < range.to
+          if change.end < range.end
             newIntactRanges.push(
-              from: change.to + delta + 1
-              to: range.to + delta
-              domStart: range.domStart + change.to + 1 - range.from
+              start: change.end + change.screenDelta + 1
+              end: range.end + change.screenDelta
+              domStart: range.domStart + change.end + 1 - range.start
             )
       intactRanges = newIntactRanges
     @pendingChanges = []
@@ -836,12 +835,12 @@ class Editor extends View
     i = 0
     while i < intactRanges.length
       range = intactRanges[i]
-      if range.from < renderFrom
-        range.domStart += renderFrom - range.from
-        range.from = renderFrom
-      if range.to > renderTo
-        range.to = renderTo
-      if range.from >= range.to
+      if range.start < renderFrom
+        range.domStart += renderFrom - range.start
+        range.start = renderFrom
+      if range.end > renderTo
+        range.end = renderTo
+      if range.start >= range.end
         intactRanges.splice(i--, 1)
       i++
     intactRanges.sort (a, b) -> a.domStart - b.domStart
@@ -862,7 +861,7 @@ class Editor extends View
         while intactRange.domStart > domPosition
           currentLine = killLine(currentLine)
           domPosition++
-        for i in [intactRange.from..intactRange.to]
+        for i in [intactRange.start..intactRange.end]
           currentLine = currentLine.nextSibling
           domPosition++
       while currentLine
@@ -874,9 +873,9 @@ class Editor extends View
     currentLine = renderedLines.firstChild
     screenRow = renderFrom
     for row in [renderFrom..renderTo]
-      if row == nextIntact?.to + 1
+      if row == nextIntact?.end + 1
         nextIntact = intactRanges.shift()
-      if !nextIntact or row < nextIntact.from
+      if !nextIntact or row < nextIntact.start
         lineElement = @buildLineElementForScreenRow(row)
         renderedLines.insertBefore(lineElement, currentLine)
       else
@@ -899,14 +898,14 @@ class Editor extends View
 
   handleScreenLinesChange: (e) ->
     { oldRange, newRange } = e
-    from = oldRange.start.row
-    to = oldRange.end.row
-    delta = newRange.end.row - oldRange.end.row
+    start = oldRange.start.row
+    end = oldRange.end.row
+    screenDelta = newRange.end.row - oldRange.end.row
 
     if bufferChange = e.bufferChange
       bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
 
-    @pendingChanges.push({from, to, delta, bufferDelta})
+    @pendingChanges.push({start, end, screenDelta, bufferDelta})
     @requestDisplayUpdate()
 
   buildLineElementForScreenRow: (screenRow) ->
