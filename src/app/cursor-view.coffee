@@ -9,16 +9,19 @@ class CursorView extends View
   @content: ->
     @pre class: 'cursor idle', => @raw '&nbsp;'
 
+  blinkPeriod: 800
   editor: null
   visible: true
 
   needsUpdate: true
   needsAutoscroll: true
   needsRemoval: false
+  shouldPauseBlinking: false
 
   initialize: (@cursor, @editor) ->
-    @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange, autoscroll }) =>
+    @cursor.on 'change-screen-position.cursor-view', (screenPosition, { autoscroll }) =>
       @needsUpdate = true
+      @shouldPauseBlinking = true
       @needsAutoscroll = (autoscroll ? true) and @cursor?.isLastCursor()
       @editor.requestDisplayUpdate()
 
@@ -43,8 +46,12 @@ class CursorView extends View
     unless _.isEqual(@lastPixelPosition, pixelPosition)
       changedPosition = true
       @css(pixelPosition)
-#       @removeIdleClassTemporarily() unless bufferChange
       @trigger 'cursor-move'
+
+    if @shouldPauseBlinking
+      @resetBlinking()
+    else if !@startBlinkingTimeout
+      @startBlinking()
 
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
 
@@ -54,7 +61,27 @@ class CursorView extends View
   setVisible: (visible) ->
     unless @visible == visible
       @visible = visible
-      @toggle(@visible)
+      if @visible
+        @css('visibility', '')
+      else
+        @css('visibility', 'hidden')
+
+  toggleVisible: ->
+    @setVisible(not @visible) if @cursor.isVisible
+
+  stopBlinking: ->
+    clearInterval(@blinkInterval) if @blinkInterval
+    @blinkInterval = null
+    @setVisible(true) if @cursor.isVisible
+
+  startBlinking: ->
+    return if @blinkInterval?
+    blink = => @toggleVisible()
+    @blinkInterval = setInterval(blink, @blinkPeriod / 2)
+
+  resetBlinking: ->
+    @stopBlinking()
+    @startBlinking()
 
   getBufferPosition: ->
     @cursor.getBufferPosition()

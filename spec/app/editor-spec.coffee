@@ -935,11 +935,11 @@ describe "Editor", ->
 
         editor.setSelectedBufferRange([[0, 0], [3, 0]])
         expect(editor.getSelection().isEmpty()).toBeFalsy()
-        expect(cursorView).not.toBeVisible()
+        expect(cursorView.css('visibility')).toBe 'hidden'
 
         editor.setCursorBufferPosition([1, 3])
         expect(editor.getSelection().isEmpty()).toBeTruthy()
-        expect(cursorView).toBeVisible()
+        expect(cursorView.css('visibility')).toBe 'visible'
 
       describe "auto-scrolling", ->
         it "only auto-scrolls when the last cursor is moved", ->
@@ -1794,10 +1794,10 @@ describe "Editor", ->
 
         editor.setCursorScreenPosition([2,0])
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
-        expect(editor.find('.cursor').css('display')).toBe 'none'
+        expect(editor.find('.cursor').css('visibility')).toBe 'hidden'
 
         editor.setCursorScreenPosition([3,0])
-        expect(editor.find('.cursor').css('display')).toBe 'block'
+        expect(editor.find('.cursor').css('visibility')).toBe 'visible'
 
     describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
       it "renders the fold's line element with the 'selected' class", ->

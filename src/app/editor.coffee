@@ -768,7 +768,7 @@ class Editor extends View
 
   syncCursorAnimations: ->
     for cursorView in @getCursorViews()
-      do (cursorView) -> cursorView.resetCursorAnimation()
+      do (cursorView) -> cursorView.resetBlinking()
 
   autoscroll: (options={}) ->
     for cursorView in @getCursorViews() when cursorView.needsAutoscroll
