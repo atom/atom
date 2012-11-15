@@ -16,6 +16,7 @@ describe 'Buffer', ->
   describe 'constructor', ->
     beforeEach ->
       buffer.release()
+      buffer = null
 
     describe "when given a path", ->
       describe "when a file exists for the path", ->
@@ -31,7 +32,6 @@ describe 'Buffer', ->
 
       describe "when no file exists for the path", ->
         it "throws an exception", ->
-          buffer = null
           filePath = "does-not-exist.txt"
           expect(fs.exists(filePath)).toBeFalsy()
           expect(-> new Buffer(filePath)).toThrow()
@@ -39,7 +39,7 @@ describe 'Buffer', ->
     describe "when no path is given", ->
       it "creates an empty buffer", ->
         buffer = new Buffer
-        expect(buffer.getText()).toBe ""
+        expect(buffer .getText()).toBe ""
 
   describe "path-change event", ->
     [path, newPath, bufferToChange, eventHandler] = []
@@ -308,8 +308,10 @@ describe 'Buffer', ->
       expect(event.newRange).toEqual [[0, 0], [1, 14]]
 
   describe ".save()", ->
-    beforeEach ->
-      buffer.release()
+    saveBuffer = null
+    
+    afterEach ->
+      saveBuffer.release()
 
     describe "when the buffer has a path", ->
       filePath = null
@@ -317,14 +319,11 @@ describe 'Buffer', ->
       beforeEach ->
         filePath = '/tmp/temp.txt'
         fs.write(filePath, "")
-        buffer = new Buffer filePath
-
-      afterEach ->
-        fs.remove filePath if fs.exists(filePath)
+        saveBuffer = new Buffer filePath
 
       it "saves the contents of the buffer to the path", ->
-        buffer.setText 'Buffer contents!'
-        buffer.save()
+        saveBuffer.setText 'Buffer contents!'
+        saveBuffer.save()
         expect(fs.read(filePath)).toEqual 'Buffer contents!'
 
       it "fires beforeSave and afterSave events around the call to fs.write", ->
@@ -334,19 +333,19 @@ describe 'Buffer', ->
         afterSave1 = -> events.push('afterSave1')
         afterSave2 = -> events.push('afterSave2')
 
-        buffer.on 'before-save', beforeSave1
-        buffer.on 'before-save', beforeSave2
+        saveBuffer.on 'before-save', beforeSave1
+        saveBuffer.on 'before-save', beforeSave2
         spyOn(fs, 'write').andCallFake -> events.push 'fs.write'
-        buffer.on 'after-save', afterSave1
-        buffer.on 'after-save', afterSave2
+        saveBuffer.on 'after-save', afterSave1
+        saveBuffer.on 'after-save', afterSave2
 
-        buffer.save()
+        saveBuffer.save()
         expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fs.write', 'afterSave1', 'afterSave2']
 
     describe "when the buffer has no path", ->
       it "throws an exception", ->
-        buffer = new Buffer
-        expect(-> buffer.save()).toThrow()
+        saveBuffer = new Buffer
+        expect(-> saveBuffer.save()).toThrow()
 
   describe "reload()", ->
     it "reloads current text from disk and clears any conflicts", ->
