@@ -907,27 +907,6 @@ describe "Editor", ->
         editor.setCursorScreenPosition(row: 2, column: 2)
         expect(editor.getCursorView().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
-      xit "removes the idle class while moving, then adds it back when it stops", ->
-        cursorView = editor.getCursorView()
-        advanceClock(200)
-
-        expect(cursorView).toHaveClass 'idle'
-        editor.setCursorScreenPosition([1, 2])
-        expect(cursorView).not.toHaveClass 'idle'
-
-        window.advanceClock(200)
-        expect(cursorView).toHaveClass 'idle'
-
-        editor.setCursorScreenPosition([1, 3])
-        advanceClock(100)
-
-        editor.setCursorScreenPosition([1, 4])
-        advanceClock(100)
-        expect(cursorView).not.toHaveClass 'idle'
-
-        advanceClock(100)
-        expect(cursorView).toHaveClass 'idle'
-
       it "hides the cursor when the selection is non-empty, and shows it otherwise", ->
         cursorView = editor.getCursorView()
         expect(editor.getSelection().isEmpty()).toBeTruthy()
