@@ -15,7 +15,6 @@ require 'window'
 
 requireStylesheet "jasmine.css"
 
-defaultTitle = document.title
 pathsWithSubscriptions = null
 
 beforeEach ->
@@ -25,11 +24,11 @@ beforeEach ->
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
+  spyOn(RootView.prototype, 'setTitle').andCallFake (@title) ->
 
 afterEach ->
   delete window.rootView if window.rootView
   $('#jasmine-content').empty()
-  document.title = defaultTitle
   ensureNoPathSubscriptions()
   window.fixturesProject.destroy()
 

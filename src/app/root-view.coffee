@@ -32,6 +32,7 @@ class RootView extends View
   fontSize: 20
   showInvisibles: false
   invisibles: null
+  title: null
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
@@ -174,8 +175,11 @@ class RootView extends View
   activeKeybindings: ->
     keymap.bindingsForElement(document.activeElement)
 
+  getTitle: ->
+    @title or 'untitled'
+
   setTitle: (title='untitled') ->
-    document.title = title
+    @title = document.title = title
 
   setShowInvisibles: (showInvisibles) ->
     return if @showInvisibles == showInvisibles
