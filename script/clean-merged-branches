@@ -1,0 +1,41 @@
+#!/bin/sh
+#/ Usage: clean-merged-branches [-f]
+#/ Delete merged branches from the origin remote.
+#/
+#/ Options:
+#/   -f            Really delete the branches. Without this branches are shown
+#/                 but nothing is deleted.
+
+set -e
+
+# show usage maybe
+[ "$1" = "--help" ] && {
+    grep '^#/' <"$0"| cut -c4-
+    exit 0
+}
+
+# fetch and prune remote branches
+git fetch origin --prune
+
+# grab list of merged branches
+branches=$(
+  git branch -a --merged origin/master |
+  grep remotes/origin/ |
+  grep -v /master |
+  sed 's@remotes/origin/@@'
+)
+
+# bail out with no branches
+[ -z "$branches" ] && {
+    echo "no merged branches detected" 1>&2
+    exit 0
+}
+
+# delete the branches or just show what would be done without -f
+if [ "$1" = -f ]; then
+    git push origin $(echo "$branches" | sed 's/^ */:/')
+else
+    echo "These branches will be deleted:" 1>&2
+    echo "$branches"
+    echo "Run \`$0 -f' if you're sure."
+fi

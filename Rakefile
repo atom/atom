@@ -116,6 +116,7 @@ end
 
 desc "Run the specs"
 task :test => ["clean", "clone-default-bundles"] do
+  `pkill Atom`
   Rake::Task["run"].invoke("--test")
 end
 

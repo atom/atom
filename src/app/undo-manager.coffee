@@ -8,7 +8,10 @@ class UndoManager
   currentTransaction: null
 
   constructor: ->
-    @startBatchCallCount = 0
+    @clear()
+
+  clear: ->
+    @currentTransaction = null
     @undoHistory = []
     @redoHistory = []
 
@@ -18,29 +21,50 @@ class UndoManager
     else
       @undoHistory.push([operation])
     @redoHistory = []
-    operation.do?(editSession)
+
+    try
+      operation.do?(editSession)
+    catch e
+      console.error e.stack
+      @clear()
 
   transact: (fn) ->
+    safeFn = ->
+      try
+        fn()
+      catch e
+        console.error e.stack
+
     if @currentTransaction
-      fn()
+      safeFn()
     else
       @currentTransaction = []
-      fn()
-      @undoHistory.push(@currentTransaction) if @currentTransaction.length
+      safeFn()
+      @undoHistory.push(@currentTransaction) if @currentTransaction?.length
       @currentTransaction = null
 
   undo: (editSession) ->
-    if batch = @undoHistory.pop()
-      opsInReverse = new Array(batch...)
-      opsInReverse.reverse()
-      op.undo?(editSession) for op in opsInReverse
-      @redoHistory.push batch
-      batch.oldSelectionRanges
+    try
+      if batch = @undoHistory.pop()
+        opsInReverse = new Array(batch...)
+        opsInReverse.reverse()
+        op.undo?(editSession) for op in opsInReverse
+
+        @redoHistory.push batch
+        batch.oldSelectionRanges
+    catch e
+      console.error e.stack
+      @clear()
 
   redo: (editSession) ->
-    if batch = @redoHistory.pop()
-      for op in batch
-        op.do?(editSession)
-        op.redo?(editSession)
-      @undoHistory.push(batch)
-      batch.newSelectionRanges
+    try
+      if batch = @redoHistory.pop()
+        for op in batch
+          op.do?(editSession)
+          op.redo?(editSession)
+
+        @undoHistory.push(batch)
+        batch.newSelectionRanges
+    catch e
+      console.error e.stack
+      @clear()
