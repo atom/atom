@@ -5,6 +5,7 @@
 #import "native/v8_extensions/onig_scanner.h"
 #import "native/v8_extensions/git.h"
 #import "native/message_translation.h"
+#import "path_watcher.h"
 #include <iostream>
 
 void AtomCefRenderProcessHandler::OnWebKitInitialized() {
@@ -18,6 +19,12 @@ void AtomCefRenderProcessHandler::OnWebKitInitialized() {
 void AtomCefRenderProcessHandler::OnContextCreated(CefRefPtr<CefBrowser> browser,
                                      CefRefPtr<CefFrame> frame,
                                      CefRefPtr<CefV8Context> context) {
+}
+
+void AtomCefRenderProcessHandler::OnContextReleased(CefRefPtr<CefBrowser> browser,
+                               CefRefPtr<CefFrame> frame,
+                               CefRefPtr<CefV8Context> context) {
+  [PathWatcher removePathWatcherForContext:context];
 }
 
 bool AtomCefRenderProcessHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
