@@ -61,22 +61,16 @@ class CursorView extends View
   setVisible: (visible) ->
     unless @visible == visible
       @visible = visible
-      if @visible
-        @css('visibility', '')
-      else
-        @css('visibility', 'hidden')
-
-  toggleVisible: ->
-    @setVisible(not @visible)
+      @toggle(@visible)
 
   stopBlinking: ->
     clearInterval(@blinkInterval) if @blinkInterval
     @blinkInterval = null
-    @setVisible(@cursor.isVisible())
+    this[0].classList.remove('blink-off')
 
   startBlinking: ->
     return if @blinkInterval?
-    blink = => @toggleVisible() if @cursor.isVisible()
+    blink = => @toggleClass('blink-off')
     @blinkInterval = setInterval(blink, @blinkPeriod / 2)
 
   resetBlinking: ->
