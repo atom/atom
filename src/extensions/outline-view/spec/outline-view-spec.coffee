@@ -14,22 +14,65 @@ describe "OutlineView", ->
   afterEach ->
     rootView.deactivate()
 
-  it "displays all JavaScript functions with line numbers", ->
-    rootView.open('sample.js')
-    expect(rootView.find('.outline-view')).not.toExist()
-    attachSpy = spyOn(outlineView, 'attach').andCallThrough()
-    rootView.getActiveEditor().trigger "outline-view:toggle"
+  describe "when tags can be generated for a file", ->
+    it "initially displays all JavaScript functions with line numbers", ->
+      rootView.open('sample.js')
+      expect(rootView.find('.outline-view')).not.toExist()
+      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
+      rootView.getActiveEditor().trigger "outline-view:toggle"
 
-    waitsFor ->
-      attachSpy.callCount > 0
+      waitsFor ->
+        attachSpy.callCount > 0
 
-    runs ->
-      expect(rootView.find('.outline-view')).toExist()
-      expect(outlineView.list.children('li').length).toBe 2
-      expect(outlineView.list.children('li:first').find('.function-name')).toHaveText 'quicksort'
-      expect(outlineView.list.children('li:first').find('.function-line')).toHaveText 'Line 1'
-      expect(outlineView.list.children('li:last').find('.function-name')).toHaveText 'quicksort.sort'
-      expect(outlineView.list.children('li:last').find('.function-line')).toHaveText 'Line 2'
+      runs ->
+        expect(rootView.find('.outline-view')).toExist()
+        expect(outlineView.list.children('li').length).toBe 2
+        expect(outlineView.list.children('li:first').find('.function-name')).toHaveText 'quicksort'
+        expect(outlineView.list.children('li:first').find('.function-line')).toHaveText 'Line 1'
+        expect(outlineView.list.children('li:last').find('.function-name')).toHaveText 'quicksort.sort'
+        expect(outlineView.list.children('li:last').find('.function-line')).toHaveText 'Line 2'
+        expect(outlineView).not.toHaveClass "error"
+        expect(outlineView.error).not.toBeVisible()
+
+    it "displays error when no tags match text in mini-editor", ->
+      rootView.open('sample.js')
+      expect(rootView.find('.outline-view')).not.toExist()
+      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
+      rootView.getActiveEditor().trigger "outline-view:toggle"
+
+      waitsFor ->
+        attachSpy.callCount > 0
+
+      runs ->
+        outlineView.miniEditor.setText("nothing will match this")
+        expect(rootView.find('.outline-view')).toExist()
+        expect(outlineView.list.children('li').length).toBe 0
+        expect(outlineView.error).toBeVisible()
+        expect(outlineView.error.text().length).toBeGreaterThan 0
+        expect(outlineView).toHaveClass "error"
+
+        # Should remove error
+        outlineView.miniEditor.setText("")
+        expect(outlineView.list.children('li').length).toBe 2
+        expect(outlineView).not.toHaveClass "error"
+        expect(outlineView.error).not.toBeVisible()
+
+  describe "when tags can't be generated for a file", ->
+    it "shows an error message when no matching tags are found", ->
+      rootView.open('sample.txt')
+      expect(rootView.find('.outline-view')).not.toExist()
+      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
+      rootView.getActiveEditor().trigger "outline-view:toggle"
+
+      waitsFor ->
+        attachSpy.callCount > 0
+
+      runs ->
+        expect(rootView.find('.outline-view')).toExist()
+        expect(outlineView.list.children('li').length).toBe 0
+        expect(outlineView.error).toBeVisible()
+        expect(outlineView.error.text().length).toBeGreaterThan 0
+        expect(outlineView).toHaveClass "error"
 
   it "moves the cursor to the selected function", ->
     tags = []
