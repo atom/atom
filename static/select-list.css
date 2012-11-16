@@ -19,3 +19,8 @@
 .select-list ol .selected {
   background: green;
 }
+
+.select-list .error {
+  padding-top: 5px;
+  font-weight: bold;
+}
