@@ -24,7 +24,7 @@ beforeEach ->
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
-  spyOn(RootView.prototype, 'setTitle').andCallFake (@title) ->
+  spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
 
 afterEach ->
   delete window.rootView if window.rootView

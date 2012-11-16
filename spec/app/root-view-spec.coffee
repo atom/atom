@@ -27,7 +27,7 @@ describe "RootView", ->
           expect(rootView.getEditors()[0]).toHaveClass 'active'
           expect(rootView.getActiveEditor().getPath()).toBe path
           expect(rootView.getActiveEditor().editSessions.length).toBe 1
-          expect(rootView.getTitle()).toBe path
+          expect(rootView.getTitle()).toBe "#{fs.base(path)} – #{rootView.project.getPath()}"
 
       describe "when pathToOpen references a directory", ->
         beforeEach ->
@@ -40,7 +40,7 @@ describe "RootView", ->
 
           expect(rootView.project.getPath()).toBe path
           expect(rootView.getEditors().length).toBe 0
-          expect(rootView.getTitle()).toBe path
+          expect(rootView.getTitle()).toBe rootView.project.getPath()
 
     describe "when called with view state data returned from a previous call to RootView.prototype.serialize", ->
       viewState = null
@@ -114,7 +114,7 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
-          expect(rootView.getTitle()).toBe editor2.getPath()
+          expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
 
     describe "when called with no pathToOpen", ->
       it "opens an empty buffer", ->
@@ -489,19 +489,19 @@ describe "RootView", ->
       rootView.on 'active-editor-path-change', pathChangeHandler
 
       editor1 = rootView.getActiveEditor()
-      expect(rootView.getTitle()).toBe path
+      expect(rootView.getTitle()).toBe "#{fs.base(editor1.getPath())} – #{rootView.project.getPath()}"
 
       editor2 = rootView.getActiveEditor().splitLeft()
 
       path = rootView.project.resolve('b')
       editor2.edit(rootView.project.buildEditSessionForPath(path))
       expect(pathChangeHandler).toHaveBeenCalled()
-      expect(rootView.getTitle()).toBe rootView.project.resolve(path)
+      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
 
       pathChangeHandler.reset()
       editor1.getBuffer().saveAs("/tmp/should-not-be-title.txt")
       expect(pathChangeHandler).not.toHaveBeenCalled()
-      expect(rootView.getTitle()).toBe rootView.project.resolve(path)
+      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
       rootView.remove()
@@ -535,7 +535,7 @@ describe "RootView", ->
       expect(pathChangeHandler).not.toHaveBeenCalled()
 
   describe "when the last editor is removed", ->
-    it   "updates the title to the project path", ->
+    it "updates the title to the project path", ->
       rootView.getEditors()[0].remove()
       expect(rootView.getTitle()).toBe rootView.project.getPath()
 
