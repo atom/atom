@@ -104,6 +104,10 @@
   border-left: 2px solid;
 }
 
+.editor.focused .cursor.blink-off {
+  visibility: hidden;
+}
+
 .editor .hidden-input {
   position: absolute;
   z-index: -1;
