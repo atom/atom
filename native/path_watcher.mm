@@ -137,7 +137,10 @@ static NSMutableArray *gPathWatchers;
       }
 
       if (callbacks.count == 0) {
-        [self removeKeventForPath:path];
+        bool fileExists = access([path fileSystemRepresentation], F_OK) != -1;
+        if (fileExists) {
+          [self removeKeventForPath:path];
+        }
         [_callbacksByPath removeObjectForKey:path];
       }
     }
@@ -175,7 +178,7 @@ static NSMutableArray *gPathWatchers;
     int filter = EVFILT_VNODE;
     int flags = EV_ADD | EV_ENABLE | EV_CLEAR;
     int filterFlags = NOTE_WRITE | NOTE_DELETE | NOTE_RENAME;
-    EV_SET(&event, fd, filter, flags, filterFlags, 0, [path retain]);
+    EV_SET(&event, fd, filter, flags, filterFlags, 0, path);
     kevent(_kq, &event, 1, NULL, 0, &timeout);
     return YES;
   }
@@ -183,21 +186,17 @@ static NSMutableArray *gPathWatchers;
 
 - (void)removeKeventForPath:(NSString *)path {
   path = [path stringByStandardizingPath];
-  int fd;
-  
+
   @synchronized(self) {
-    fd = [[_fileDescriptorsByPath objectForKey:path] integerValue];
+    NSNumber *fdNumber = [_fileDescriptorsByPath objectForKey:path];
+    if (!fdNumber) {
+      NSLog(@"WARNING: Could not find file descriptor for path '%@'", path);
+      return;
+    }
+    close([fdNumber integerValue]);
     [_fileDescriptorsByPath removeObjectForKey:path];
   }
-  bool fileExists = access([path fileSystemRepresentation], F_OK) != -1;
-  if (!fileExists) return;
 
-  if (fd >= 0) {
-    close(fd);
-  }
-  else {
-    NSLog(@"WARNING: Could not find file descriptor for path '%@'", path);
-  }
 }
 
 - (bool)isAtomicWrite:(struct kevent)event {
@@ -210,6 +209,7 @@ static NSMutableArray *gPathWatchers;
 - (void)changePath:(NSString *)path toNewPath:(NSString *)newPath {
   @synchronized(self) {
     NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByPath objectForKey:path]];
+    [self removeKeventForPath:path];
     [self unwatchPath:path callbackId:nil error:nil];
     for (NSString *callbackId in [callbacks allKeys]) {
       [self watchPath:newPath callback:[callbacks objectForKey:callbackId] callbackId:callbackId];
@@ -230,8 +230,7 @@ static NSMutableArray *gPathWatchers;
 
       NSString *eventFlag = nil;
       NSString *newPath = nil;
-      NSString *path = (NSString *)event.udata;
-      [[path retain] autorelease];
+      NSString *path = [(NSString *)event.udata retain];
       
       if (event.fflags & NOTE_WRITE) {
         eventFlag = @"contents-change";
@@ -272,7 +271,9 @@ static NSMutableArray *gPathWatchers;
 
       if (event.fflags & NOTE_RENAME) {
         [self changePath:path toNewPath:newPath];
-      }    
+      }
+      
+      [path release];
     }
   }
 }
