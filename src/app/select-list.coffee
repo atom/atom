@@ -42,8 +42,6 @@ class SelectList extends View
   setError: (message) ->
     @error.text(message)
     @error.show()
-    @error.show()
-    console.log "error"
     @addClass("error")
 
   populateList: ->
