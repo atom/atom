@@ -30,12 +30,28 @@ describe "SelectList", ->
       expect(list.find('li:eq(0)')).toHaveClass 'A'
 
   describe "when the text of the mini editor changes", ->
+    beforeEach ->
+      selectList.attachToDom()
+
     it "filters the elements in the list based on the scoreElement function and selects the first item", ->
       miniEditor.insertText('la')
       expect(list.find('li').length).toBe 2
       expect(list.find('li:contains(Alpha)')).toExist()
       expect(list.find('li:contains(Delta)')).toExist()
       expect(list.find('li:first')).toHaveClass 'selected'
+      expect(selectList.error).not.toBeVisible()
+      expect(selectList).not.toHaveClass("error")
+
+    it "displays an error if there are no matches, removes error when there are matches", ->
+      miniEditor.insertText('nothing will match this')
+      expect(list.find('li').length).toBe 0
+      expect(selectList.error).not.toBeHidden()
+      expect(selectList).toHaveClass("error")
+
+      miniEditor.setText('la')
+      expect(list.find('li').length).toBe 2
+      expect(selectList.error).not.toBeVisible()
+      expect(selectList).not.toHaveClass("error")
 
   describe "when core:move-up / core:move-down are triggered on the miniEditor", ->
     it "selects the previous / next item in the list, or wraps around to the other side", ->

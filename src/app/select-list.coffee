@@ -40,9 +40,14 @@ class SelectList extends View
     @selectItem(@list.find('li:first'))
 
   setError: (message) ->
-    @error.text(message)
-    @error.show()
-    @addClass("error")
+    if not message or message.length == ""
+      @error.text("")
+      @error.hide()
+      @removeClass("error")
+    else
+      @error.text(message)
+      @error.show()
+      @addClass("error")
 
   populateList: ->
     filterQuery = @miniEditor.getText()
@@ -51,10 +56,10 @@ class SelectList extends View
     else
       filteredArray = @array
 
-    @error.hide()
-    @removeClass("error")
     @list.empty()
     if filteredArray.length
+      @setError(null)
+
       for i in [0...Math.min(filteredArray.length, @maxItems)]
         element = filteredArray[i]
         item = @itemForElement(element)
