@@ -42,15 +42,13 @@ describe "TokenizedBuffer", ->
 
           expect(tokenizedBuffer.lineForScreenRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.brace.round.js'])
           expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.js'])
+          # line 2 is unchanged
+          expect(tokenizedBuffer.lineForScreenRow(2).tokens[2]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-
-          expect(event.oldRange).toEqual range
-          expect(event.newRange).toEqual new Range([0, 0], [2,0])
-
-          # line 2 is unchanged
-          expect(tokenizedBuffer.lineForScreenRow(2).tokens[2]).toEqual(value: 'if', scopes: ['source.js', 'keyword.control.js'])
+          delete event.bufferChange
+          expect(event).toEqual(start: 0, end: 2, delta: 0)
 
         it "updates tokens for lines beyond the changed lines if needed", ->
           buffer.insert([5, 30], '/* */')
@@ -63,8 +61,8 @@ describe "TokenizedBuffer", ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual new Range([2, 0], [5, buffer.lineForRow(5).length])
-          expect(event.newRange).toEqual new Range([2, 0], [5, buffer.lineForRow(5).length])
+          delete event.bufferChange
+          expect(event).toEqual(start: 2, end: 5, delta: 0)
 
         it "resumes highlighting with the state of the previous line", ->
           buffer.insert([0, 0], '/*')
@@ -92,8 +90,8 @@ describe "TokenizedBuffer", ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual range
-          expect(event.newRange).toEqual new Range([1, 0], [1, 5])
+          delete event.bufferChange
+          expect(event).toEqual(start: 1, end: 3, delta: -2)
 
         it "updates tokens for lines beyond the changed lines if needed", ->
           buffer.insert([5, 30], '/* */')
@@ -106,8 +104,8 @@ describe "TokenizedBuffer", ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual new Range([2, 0], [5, buffer.lineForRow(4).length])
-          expect(event.newRange).toEqual new Range([2, 0], [4, buffer.lineForRow(4).length])
+          delete event.bufferChange
+          expect(event).toEqual(start: 2, end: 5, delta: -1)
 
       describe "when lines are both updated and inserted", ->
         it "updates tokens to reflect the inserted lines", ->
@@ -131,8 +129,8 @@ describe "TokenizedBuffer", ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual range
-          expect(event.newRange).toEqual new Range([1, 0], [4, 6])
+          delete event.bufferChange
+          expect(event).toEqual(start: 1, end: 2, delta: 2)
 
         it "updates tokens for lines beyond the changed lines if needed", ->
           buffer.insert([5, 30], '/* */')
@@ -149,8 +147,9 @@ describe "TokenizedBuffer", ->
 
           expect(changeHandler).toHaveBeenCalled()
           [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual new Range([2, 0], [5, buffer.lineForRow(7).length])
-          expect(event.newRange).toEqual new Range([2, 0], [7, buffer.lineForRow(7).length])
+          delete event.bufferChange
+          expect(event).toEqual(start: 2, end: 5, delta: 2)
+
 
     describe "when the buffer contains tab characters", ->
       editSession2 = null

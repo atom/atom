@@ -50,14 +50,20 @@ class TokenizedBuffer
       newRange.end.column = endColumn
       oldRange.end.column = endColumn
 
-    @trigger "change", {oldRange, newRange, bufferChange: e}
+    start = oldRange.start.row
+    end = oldRange.end.row
+    delta = newRange.end.row - oldRange.end.row
+    bufferChange = e
+
+    @trigger "change", { start, end, delta, bufferChange }
 
   getTabLength: ->
     @tabLength
 
   setTabLength: (@tabLength) ->
-    @screenLines = @buildScreenLinesForRows(0, @buffer.getLastRow())
-    @trigger "change", {oldRange: @buffer.getRange(), newRange: @buffer.getRange()}
+    lastRow = @buffer.getLastRow()
+    @screenLines = @buildScreenLinesForRows(0, lastRow)
+    @trigger "change", { start: 0, end: lastRow, delta: 0 }
 
   buildScreenLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
@@ -68,10 +74,7 @@ class TokenizedBuffer
 
   buildScreenLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
-
-    val = @languageMode.tokenizeLine(line, {ruleStack, @tabLength})
-    console.log val, line unless val.ruleStack
-    new ScreenLine(val)
+    new ScreenLine(@languageMode.tokenizeLine(line, {ruleStack, @tabLength}))
 
   lineForScreenRow: (row) ->
     @screenLines[row]

@@ -162,6 +162,9 @@ class DisplayBuffer
   screenRowForBufferRow: (bufferRow) ->
     @lineMap.screenPositionForBufferPosition([bufferRow, 0]).row
 
+  lastScreenRowForBufferRow: (bufferRow) ->
+    @lineMap.screenPositionForBufferPosition([bufferRow, Infinity]).row
+
   bufferRowForScreenRow: (screenRow) ->
     @lineMap.bufferPositionForScreenPosition([screenRow, 0]).row
 
@@ -203,32 +206,24 @@ class DisplayBuffer
     allFolds.push(folds...) for row, folds of @activeFolds
     fold.handleBufferChange(e) for fold in allFolds
 
-  handleTokenizedBufferChange: (e) ->
-    @handleBufferChange(e.bufferChange) if e.bufferChange
+  handleTokenizedBufferChange: (tokenizedBufferChange) ->
+    if bufferChange = tokenizedBufferChange.bufferChange
+      @handleBufferChange(bufferChange)
+      bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
 
-    { oldRange, newRange } = e
-    oldRange = oldRange.copy()
-    newRange = newRange.copy()
 
-    foldAdjustedStartRow = @bufferRowForScreenRow(@screenRowForBufferRow(newRange.start.row))
-    oldRange.start.row = foldAdjustedStartRow
-    newRange.start.row = foldAdjustedStartRow
+    tokenizedBufferStart = @bufferRowForScreenRow(@screenRowForBufferRow(tokenizedBufferChange.start))
+    tokenizedBufferEnd = tokenizedBufferChange.end
+    tokenizedBufferDelta = tokenizedBufferChange.delta
 
-    oldScreenRange = @screenLineRangeForBufferRange(oldRange)
 
-    newScreenLines = @buildLinesForBufferRows(newRange.start.row, newRange.end.row)
-    @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
-    newScreenRange = @screenLineRangeForBufferRange(newRange)
-
-    start = oldScreenRange.start.row
-    end = oldScreenRange.end.row
-    screenDelta = newScreenRange.end.row - oldScreenRange.end.row
-
-    if e.bufferChange
-      bufferDelta = e.bufferChange.newRange.end.row - e.bufferChange.oldRange.end.row
+    start = @screenRowForBufferRow(tokenizedBufferStart)
+    end = @lastScreenRowForBufferRow(tokenizedBufferEnd)
+    newScreenLines = @buildLinesForBufferRows(tokenizedBufferStart, tokenizedBufferEnd + tokenizedBufferDelta)
+    @lineMap.replaceScreenRows(start, end, newScreenLines)
+    screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
 
     @trigger 'change', { start, end, screenDelta, bufferDelta }
-
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)
