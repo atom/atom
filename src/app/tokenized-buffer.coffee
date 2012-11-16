@@ -22,40 +22,32 @@ class TokenizedBuffer
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
-    oldRange = e.oldRange.copy()
-    newRange = e.newRange.copy()
-    previousStack = @stackForRow(oldRange.end.row) # used in spill detection below
+    {oldRange, newRange} = e
+    start = oldRange.start.row
+    end = oldRange.end.row
+    delta = newRange.end.row - oldRange.end.row
 
-    stack = @stackForRow(newRange.start.row - 1)
-    @screenLines[oldRange.start.row..oldRange.end.row] =
-      @buildScreenLinesForRows(newRange.start.row, newRange.end.row, stack)
+    previousStack = @stackForRow(end) # used in spill detection below
+
+    stack = @stackForRow(start - 1)
+    @screenLines[start..end] = @buildScreenLinesForRows(start, end + delta, stack)
 
     # spill detection
     # compare scanner state of last re-highlighted line with its previous state.
     # if it differs, re-tokenize the next line with the new state and repeat for
     # each line until the line's new state matches the previous state. this covers
     # cases like inserting a /* needing to comment out lines below until we see a */
-    for row in [newRange.end.row...@buffer.getLastRow()]
+    for row in [(end + delta)...@buffer.getLastRow()]
       break if _.isEqual(@stackForRow(row), previousStack)
       nextRow = row + 1
       previousStack = @stackForRow(nextRow)
       @screenLines[nextRow] = @buildScreenLineForRow(nextRow, @stackForRow(row))
 
-    # if highlighting spilled beyond the bounds of the textual change, update
-    # the pre and post range to reflect area of highlight changes
-    if nextRow > newRange.end.row
-      oldRange.end.row += (nextRow - newRange.end.row)
-      newRange.end.row = nextRow
-      endColumn = @buffer.lineForRow(nextRow).length
-      newRange.end.column = endColumn
-      oldRange.end.column = endColumn
+    # if highlighting spilled beyond the bounds of the textual change, update the
+    # end of the affected range to reflect the larger area of highlighting
+    end = Math.max(end, nextRow - delta) if nextRow
 
-    start = oldRange.start.row
-    end = oldRange.end.row
-    delta = newRange.end.row - oldRange.end.row
-    bufferChange = e
-
-    @trigger "change", { start, end, delta, bufferChange }
+    @trigger "change", { start, end, delta, bufferChange: e }
 
   getTabLength: ->
     @tabLength
