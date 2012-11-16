@@ -32,10 +32,12 @@ class DisplayBuffer
     @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
   setSoftWrapColumn: (@softWrapColumn) ->
-    oldRange = @rangeForAllLines()
+    start = 0
+    end = @getLastRow()
     @buildLineMap()
-    newRange = @rangeForAllLines()
-    @trigger 'change', { oldRange, newRange }
+    screenDelta = @getLastRow() - end
+    bufferDelta = 0
+    @trigger 'change', { start, end, screenDelta, bufferDelta }
 
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
@@ -87,7 +89,11 @@ class DisplayBuffer
       @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
       newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+      start = oldScreenRange.start.row
+      end = oldScreenRange.end.row
+      screenDelta = newScreenRange.end.row - oldScreenRange.end.row
+      bufferDelta = 0
+      @trigger 'change', { start, end, screenDelta, bufferDelta }
 
     fold
 
@@ -111,7 +117,12 @@ class DisplayBuffer
       @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
       newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange
+      start = oldScreenRange.start.row
+      end = oldScreenRange.end.row
+      screenDelta = newScreenRange.end.row - oldScreenRange.end.row
+      bufferDelta = 0
+
+      @trigger 'change', { start, end, screenDelta, bufferDelta }
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     for row, folds of @activeFolds
@@ -209,10 +220,15 @@ class DisplayBuffer
     @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
     newScreenRange = @screenLineRangeForBufferRange(newRange)
 
-    @trigger 'change',
-      oldRange: oldScreenRange
-      newRange: newScreenRange
-      bufferChange: e.bufferChange
+    start = oldScreenRange.start.row
+    end = oldScreenRange.end.row
+    screenDelta = newScreenRange.end.row - oldScreenRange.end.row
+
+    if e.bufferChange
+      bufferDelta = e.bufferChange.newRange.end.row - e.bufferChange.oldRange.end.row
+
+    @trigger 'change', { start, end, screenDelta, bufferDelta }
+
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)

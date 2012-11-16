@@ -63,8 +63,8 @@ describe "DisplayBuffer", ->
 
             expect(changeHandler).toHaveBeenCalled()
             [[event]]= changeHandler.argsForCall
-            expect(event.oldRange).toEqual([[7, 0], [8, 20]])
-            expect(event.newRange).toEqual([[7, 0], [7, 47]])
+
+            expect(event).toEqual(start: 7, end: 8, screenDelta: -1, bufferDelta: 0)
 
         describe "when the update causes a line to softwrap an additional time", ->
           it "rewraps the line and emits a change event", ->
@@ -74,10 +74,7 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(9).text).toBe 'right.push(current);'
             expect(displayBuffer.lineForRow(10).text).toBe '    }'
 
-            expect(changeHandler).toHaveBeenCalled()
-            [[event]] = changeHandler.argsForCall
-            expect(event.oldRange).toEqual([[7, 0], [8, 20]])
-            expect(event.newRange).toEqual([[7, 0], [9, 20]])
+            expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 8, screenDelta: 1, bufferDelta: 0)
 
       describe "when buffer lines are inserted", ->
         it "inserts / updates wrapped lines and emits a change event", ->
@@ -87,10 +84,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(9).text).toBe 'abcdefghij ? left.push(current) : '
           expect(displayBuffer.lineForRow(10).text).toBe 'right.push(current);'
 
-          expect(changeHandler).toHaveBeenCalled()
-          [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual([[7, 0], [8, 20]])
-          expect(event.newRange).toEqual([[7, 0], [10, 20]])
+          expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 8, screenDelta: 2, bufferDelta: 1)
 
       describe "when buffer lines are removed", ->
         it "removes lines and emits a change event", ->
@@ -100,10 +94,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(5).text).toBe 'sort(left).concat(pivot).concat(sort(right));'
           expect(displayBuffer.lineForRow(6).text).toBe '  };'
 
-          expect(changeHandler).toHaveBeenCalled()
-          [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual([[3, 0], [9, 5]])
-          expect(event.newRange).toEqual([[3, 0], [3, 22]])
+          expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 9, screenDelta: -6, bufferDelta: -4)
 
     describe "position translation", ->
       it "translates positions accounting for wrapped lines", ->
@@ -134,10 +125,7 @@ describe "DisplayBuffer", ->
         expect(tokensText displayBuffer.lineForRow(5).tokens).toBe '    while(items.length > 0) {'
         expect(tokensText displayBuffer.lineForRow(12).tokens).toBe 'sort(left).concat(pivot).concat(sort(rig'
 
-        expect(changeHandler).toHaveBeenCalled()
-        [event] = changeHandler.argsForCall[0]
-        expect(event.oldRange).toEqual([[0, 0], [15, 2]])
-        expect(event.newRange).toEqual([[0, 0], [18, 2]])
+        expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 15, screenDelta: 3, bufferDelta: 0)
 
   describe "structural folding", ->
     describe ".unfoldAll()", ->
@@ -228,10 +216,7 @@ describe "DisplayBuffer", ->
           expect(line4.bufferRows).toBe 4
           expect(line5.text).toBe '8'
 
-          expect(changeHandler).toHaveBeenCalled()
-          [event] = changeHandler.argsForCall[0]
-          expect(event.oldRange).toEqual [[4, 0], [7, 1]]
-          expect(event.newRange).toEqual [[4, 0], [4, 101]]
+          expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 7, screenDelta: -3, bufferDelta: 0)
           changeHandler.reset()
 
           fold.destroy()
@@ -241,10 +226,7 @@ describe "DisplayBuffer", ->
           expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 101]]
-          expect(event.newRange).toEqual [[4, 0], [7, 1]]
+          expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 4, screenDelta: 3, bufferDelta: 0)
 
       describe "when a fold spans a single line", ->
         it "renders a fold placeholder for the folded line but does not skip any lines", ->
@@ -256,10 +238,7 @@ describe "DisplayBuffer", ->
           expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 101]]
-          expect(event.newRange).toEqual [[4, 0], [4, 101]]
+          expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 4, screenDelta: 0, bufferDelta: 0)
 
           # Line numbers don't actually change, but it's not worth the complexity to have this
           # be false for single line folds since they are so rare
@@ -273,11 +252,7 @@ describe "DisplayBuffer", ->
           expect(line4.bufferRows).toEqual 1
           expect(line5.text).toBe '5'
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[4, 0], [4, 101]]
-          expect(event.newRange).toEqual [[4, 0], [4, 101]]
-          changeHandler.reset()
+          expect(changeHandler).toHaveBeenCalledWith(start: 4, end: 4, screenDelta: 0, bufferDelta: 0)
 
       describe "when a fold is nested within another fold", ->
         it "does not render the placeholder for the inner fold until the outer fold is destroyed", ->
@@ -355,10 +330,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(2).fold).toBe fold2
           expect(displayBuffer.lineForRow(3).text).toMatch /^9-+/
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[1, 0], [3, 1]]
-          expect(event.newRange).toEqual [[1, 0], [1, 6]]
+          expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 3, screenDelta: -2, bufferDelta: -4)
 
       describe "when the old range surrounds two nested folds", ->
         it "removes both folds and replaces the selection with the new text", ->
@@ -371,10 +343,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(1).text).toBe "goodbye10"
           expect(displayBuffer.lineForRow(2).text).toBe "11"
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[1, 0], [3, 2]]
-          expect(event.newRange).toEqual [[1, 0], [1, 9]]
+          expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 3, screenDelta: -2, bufferDelta: -9)
 
       describe "when multiple changes happen above the fold", ->
         it "repositions folds correctly", ->
@@ -395,10 +364,7 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(3).fold).toBe fold2
             expect(displayBuffer.lineForRow(4).text).toMatch /^9-+/
 
-            expect(changeHandler).toHaveBeenCalled()
-            [[event]] = changeHandler.argsForCall
-            expect(event.oldRange).toEqual [[0, 0], [1, 1]]
-            expect(event.newRange).toEqual [[0, 0], [0, 3]]
+            expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 1, screenDelta: -1, bufferDelta: -1)
             changeHandler.reset()
 
             fold1.destroy()
@@ -409,10 +375,7 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(5).fold).toBe fold2
             expect(displayBuffer.lineForRow(6).text).toMatch /^9-+/
 
-            expect(changeHandler).toHaveBeenCalled()
-            [[event]] = changeHandler.argsForCall
-            expect(event.oldRange).toEqual [[1, 0], [1, 1]]
-            expect(event.newRange).toEqual [[1, 0], [3, 101]]
+            expect(changeHandler).toHaveBeenCalledWith(start: 1, end: 1, screenDelta: 2, bufferDelta: 0)
 
       describe "when the old range straddles the beginning of a fold", ->
         it "replaces lines in the portion of the range that precedes the fold and adjusts the end of the fold to encompass additional lines", ->
@@ -435,10 +398,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(4).fold).toBe fold2
           expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[6, 0], [7, 2]] # Expands ranges to encompes entire line
-          expect(event.newRange).toEqual [[6, 0], [6, 5]]
+          expect(changeHandler).toHaveBeenCalledWith(start: 6, end: 7, screenDelta: -1, bufferDelta: -1)
 
       describe "when the old range is inside a fold", ->
         describe "when the end of the new range precedes the end of the fold", ->
@@ -455,10 +415,7 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(4).fold).toBe fold2
             expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
 
-            expect(changeHandler).toHaveBeenCalled()
-            [[event]] = changeHandler.argsForCall
-            expect(event.oldRange).toEqual [[2, 0], [2, 1]]
-            expect(event.newRange).toEqual [[2, 0], [2, 1]]
+            expect(changeHandler).toHaveBeenCalledWith(start: 2, end: 2, screenDelta: 0, bufferDelta: 1)
 
         describe "when the end of the new range exceeds the end of the fold", ->
           it "expands the fold to contain all the inserted lines", ->
@@ -474,10 +431,7 @@ describe "DisplayBuffer", ->
             expect(displayBuffer.lineForRow(4).fold).toBe fold2
             expect(displayBuffer.lineForRow(5).text).toMatch /^9-+/
 
-            expect(changeHandler).toHaveBeenCalled()
-            [[event]] = changeHandler.argsForCall
-            expect(event.oldRange).toEqual [[2, 0], [2, 1]]
-            expect(event.newRange).toEqual [[2, 0], [2, 1]]
+            expect(changeHandler).toHaveBeenCalledWith(start: 2, end: 2, screenDelta: 0, bufferDelta: 3)
 
       describe "when the old range straddles the end of the fold", ->
         describe "when the end of the new range precedes the end of the fold", ->
@@ -499,10 +453,7 @@ describe "DisplayBuffer", ->
           expect(displayBuffer.lineForRow(5).fold).toBe fold2
           expect(displayBuffer.lineForRow(6).text).toMatch /^9-+/
 
-          expect(changeHandler).toHaveBeenCalled()
-          [[event]] = changeHandler.argsForCall
-          expect(event.oldRange).toEqual [[3, 0], [3, 1]]
-          expect(event.newRange).toEqual [[3, 0], [4, 1]]
+          expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 3, screenDelta: 1, bufferDelta: 1)
 
     describe "position translation", ->
       it "translates positions to account for folded lines and characters and the placeholder", ->
