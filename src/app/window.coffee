@@ -81,7 +81,7 @@ windowAdditions =
       console.error "Failed to load extension named '#{name}'"
 
   reload: ->
-    if rootView.getModifiedBuffers().length > 0
+    if rootView?.getModifiedBuffers().length > 0
       atom.confirm(
         "There are unsaved buffers, reload anyway?",
         "You will lose all unsaved changes if you reload",
