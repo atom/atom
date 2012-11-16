@@ -777,8 +777,12 @@ describe "TreeView", ->
 
               moveDialog.trigger 'core:confirm'
 
-              expect(fs.exists(newPath)).toBeTruthy()
-              expect(fs.exists(filePath)).toBeFalsy()
+              waitsFor "tree view to update", ->
+                treeView.root.find('> .entries > .directory:contains(new)').length > 0
+
+              runs ->
+                expect(fs.exists(newPath)).toBeTruthy()
+                expect(fs.exists(filePath)).toBeFalsy()
 
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->
