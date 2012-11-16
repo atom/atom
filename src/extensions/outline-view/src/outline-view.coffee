@@ -35,8 +35,7 @@ class OutlineView extends SelectList
 
   populate: ->
     tags = []
-    callback = (tag) ->
-      tags.push tag
+    callback = (tag) -> tags.push tag
     path = @rootView.getActiveEditor().getPath()
     new TagGenerator(path, callback).generate().done =>
       if tags.length > 0

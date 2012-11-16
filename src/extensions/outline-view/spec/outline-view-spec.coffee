@@ -15,21 +15,15 @@ describe "OutlineView", ->
     rootView.deactivate()
 
   it "displays all JavaScript functions with line numbers", ->
-    tags = []
-    waitsForPromise ->
-      tags = []
-      path = require.resolve('fixtures/sample.js')
-      callback = (tag) ->
-        tags.push tag
-      generator = new TagGenerator(path, callback)
-      generator.generate()
+    rootView.open('sample.js')
+    expect(rootView.find('.outline-view')).not.toExist()
+    attachSpy = spyOn(outlineView, 'attach').andCallThrough()
+    rootView.getActiveEditor().trigger "outline-view:toggle"
+
+    waitsFor ->
+      attachSpy.callCount > 0
 
     runs ->
-      rootView.open('sample.js')
-      expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,0]
-      expect(rootView.find('.outline-view')).not.toExist()
-      outlineView.setArray(tags)
-      outlineView.attach()
       expect(rootView.find('.outline-view')).toExist()
       expect(outlineView.list.children('li').length).toBe 2
       expect(outlineView.list.children('li:first').find('.function-name')).toHaveText 'quicksort'
