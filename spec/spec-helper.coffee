@@ -64,6 +64,10 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
   else
     emitObject.call(this, obj)
 
+jasmine.unspy = (object, methodName) ->
+  throw new Error("Not a spy") unless object[methodName].originalValue?
+  object[methodName] = object[methodName].originalValue
+
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
     key
