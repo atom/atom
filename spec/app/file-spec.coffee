@@ -85,3 +85,25 @@ describe 'File', ->
       waitsFor "change event", ->
         changeHandler.callCount > 0
 
+  describe "when a file is deleted and the recreated within a small amount of time (git sometimes does this)", ->
+    it "triggers a contents change event if the contents change", ->
+      jasmine.unspy(window, "setTimeout")
+
+      changeHandler = jasmine.createSpy("file changed")
+      removeHandler = jasmine.createSpy("file removed")
+      file.on 'contents-change', changeHandler
+      file.on 'remove', removeHandler
+
+      fs.remove(path)
+      fs.write(path, "HE HAS RISEN!")
+
+      waitsFor "change event", ->
+        changeHandler.callCount > 0
+
+      runs ->
+        expect(removeHandler).not.toHaveBeenCalled()
+        fs.write(path, "Hallelujah!")
+        changeHandler.reset()
+
+      waitsFor "change event", ->
+        changeHandler.callCount > 0
