@@ -25,6 +25,8 @@ beforeEach ->
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
+  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
+  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
 
 afterEach ->
   delete window.rootView if window.rootView
@@ -123,13 +125,12 @@ window.resetTimeouts = ->
   window.timeoutCount = 0
   window.timeouts = []
 
-window.originalSetTimeout = window.setTimeout
-window.setTimeout = (callback, ms) ->
+window.fakeSetTimeout = (callback, ms) ->
   id = ++window.timeoutCount
   window.timeouts.push([id, window.now + ms, callback])
   id
 
-window.clearTimeout = (idToClear) ->
+window.fakeClearTimeout = (idToClear) ->
   window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
 
 window.advanceClock = (delta=1) ->
