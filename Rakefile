@@ -1,5 +1,3 @@
-require 'timeout'
-
 ATOM_SRC_PATH = File.dirname(__FILE__)
 DOT_ATOM_PATH = ENV['HOME'] + "/.atom"
 BUILD_DIR = 'atom-build'
