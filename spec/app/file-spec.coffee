@@ -87,6 +87,7 @@ describe 'File', ->
 
   describe "when a file is deleted and the recreated within a small amount of time (git sometimes does this)", ->
     it "triggers a contents change event if the contents change", ->
+      jasmine.unspy(File.prototype, 'detectResurrectionAfterDelay')
       jasmine.unspy(window, "setTimeout")
 
       changeHandler = jasmine.createSpy("file changed")
@@ -94,16 +95,23 @@ describe 'File', ->
       file.on 'contents-change', changeHandler
       file.on 'remove', removeHandler
 
-      fs.remove(path)
-      fs.write(path, "HE HAS RISEN!")
+      expect(changeHandler).not.toHaveBeenCalled()
 
-      waitsFor "change event", ->
-        changeHandler.callCount > 0
+      fs.remove(path)
+
+      expect(changeHandler).not.toHaveBeenCalled()
+      waits 20
+      runs ->
+        fs.write(path, "HE HAS RISEN!")
+        expect(changeHandler).not.toHaveBeenCalled()
+
+      waitsFor "resurrection change event", ->
+        changeHandler.callCount == 1
 
       runs ->
         expect(removeHandler).not.toHaveBeenCalled()
         fs.write(path, "Hallelujah!")
         changeHandler.reset()
 
-      waitsFor "change event", ->
+      waitsFor "post-resurrection change event", ->
         changeHandler.callCount > 0

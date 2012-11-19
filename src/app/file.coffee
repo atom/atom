@@ -31,23 +31,9 @@ class File
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
-  subscribeToNativeChangeEvents: ->
-    @watchId = $native.watchPath @path, (eventType, path) =>
-      @handleNativeChangeEvent(eventType, path)
-
   handleNativeChangeEvent: (eventType, path) ->
-    console.log eventType
     if eventType is "remove"
-      @unsubscribeFromNativeChangeEvents()
-      detectResurrection = =>
-        if @exists()
-          @subscribeToNativeChangeEvents()
-          @handleNativeChangeEvent("contents-change", path)
-        else
-          @trigger "remove"
-          @off()
-
-      _.delay detectResurrection, 50
+      @detectResurrectionAfterDelay()
     else if eventType is "move"
       @setPath(path)
       @trigger "move"
@@ -57,6 +43,21 @@ class File
 
       @md5 = newMd5
       @trigger 'contents-change'
+
+  detectResurrectionAfterDelay: ->
+    _.delay (=> @detectResurrection()), 50
+
+  detectResurrection: ->
+    if @exists()
+      @subscribeToNativeChangeEvents()
+      @handleNativeChangeEvent("contents-change", @getPath())
+    else
+      @trigger "remove"
+      @off()
+
+  subscribeToNativeChangeEvents: ->
+    @watchId = $native.watchPath @path, (eventType, path) =>
+      @handleNativeChangeEvent(eventType, path)
 
   unsubscribeFromNativeChangeEvents: ->
     $native.unwatchPath(@path, @watchId)

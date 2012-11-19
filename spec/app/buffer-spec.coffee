@@ -86,7 +86,9 @@ describe 'Buffer', ->
       buffer = new Buffer(path).retain()
 
     afterEach ->
-      fs.remove(path)
+      buffer.release()
+      buffer = null
+      fs.remove(path) if fs.exists(path)
 
     it "does not trigger a contents-change event when Atom modifies the file", ->
       buffer.insert([0,0], "HELLO!")
@@ -309,7 +311,7 @@ describe 'Buffer', ->
 
   describe ".save()", ->
     saveBuffer = null
-    
+
     afterEach ->
       saveBuffer.release()
 

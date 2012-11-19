@@ -27,6 +27,7 @@ beforeEach ->
   spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
+  spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
 
 afterEach ->
   delete window.rootView if window.rootView

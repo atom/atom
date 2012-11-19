@@ -137,22 +137,9 @@ static NSMutableArray *gPathWatchers;
       }
 
       if (callbacks.count == 0) {
-        bool fileExists = access([path fileSystemRepresentation], F_OK) != -1;
-        if (fileExists) {
-          [self removeKeventForPath:path];
-        }
+        [self removeKeventForPath:path];
         [_callbacksByPath removeObjectForKey:path];
       }
-    }
-    else {
-      NSString *message = [NSString stringWithFormat:@"Trying to unwatch %@, which we aren't watching", path];
-      NSLog(@"WARNING: %@", message);
-      NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:message, NSLocalizedDescriptionKey, nil];
-      if (error) {
-        NSError *e = [NSError errorWithDomain:@"PathWatcher" code:0 userInfo:userInfo];
-        *error = e;
-      }
-      return;
     }
   }
 }
@@ -162,6 +149,7 @@ static NSMutableArray *gPathWatchers;
 
   @synchronized(self) {
     if ([_fileDescriptorsByPath objectForKey:path]) {
+      NSLog(@"we already have a kevent");
       return YES;
     }
     
@@ -209,7 +197,6 @@ static NSMutableArray *gPathWatchers;
 - (void)changePath:(NSString *)path toNewPath:(NSString *)newPath {
   @synchronized(self) {
     NSDictionary *callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByPath objectForKey:path]];
-    [self removeKeventForPath:path];
     [self unwatchPath:path callbackId:nil error:nil];
     for (NSString *callbackId in [callbacks allKeys]) {
       [self watchPath:newPath callback:[callbacks objectForKey:callbackId] callbackId:callbackId];
@@ -243,7 +230,6 @@ static NSMutableArray *gPathWatchers;
       }
       else if (event.fflags & NOTE_DELETE) {
         eventFlag = @"remove";
-        [self removeKeventForPath:path];
       }
       else if (event.fflags & NOTE_RENAME) {
         eventFlag = @"move";
@@ -256,6 +242,7 @@ static NSMutableArray *gPathWatchers;
           continue;
         }
       }
+      
 
       NSDictionary *callbacks;
       @synchronized(self) {
@@ -269,8 +256,12 @@ static NSMutableArray *gPathWatchers;
         }
       });
 
-      if (event.fflags & NOTE_RENAME) {
+      if ([eventFlag isEqual:@"move"]) {
         [self changePath:path toNewPath:newPath];
+      }
+
+      if ([eventFlag isEqual:@"remove"]) {
+        [self unwatchPath:path callbackId:nil error:nil];
       }
       
       [path release];
