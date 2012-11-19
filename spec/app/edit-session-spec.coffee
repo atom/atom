@@ -255,9 +255,11 @@ describe "EditSession", ->
         expect(cursor1.getBufferPosition()).toEqual [0,0]
         expect(cursor2.getBufferPosition()).toEqual [1,0]
 
-      it "does not throw an exception on an empty line", ->
-        editSession.setCursorBufferPosition([10, 0])
-        editSession.moveCursorToFirstCharacterOfLine()
+      describe "when triggered ", ->
+        it "does not move the cursor", ->
+          editSession.setCursorBufferPosition([10, 0])
+          editSession.moveCursorToFirstCharacterOfLine()
+          expect(editSession.getCursorBufferPosition()).toEqual [10, 0]
 
     describe ".moveCursorToBeginningOfWord()", ->
       it "moves the cursor to the beginning of the word", ->
