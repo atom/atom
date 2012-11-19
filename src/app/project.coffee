@@ -15,7 +15,7 @@ class Project
   autoIndent: true
   softTabs: true
   softWrap: false
-  hideIgnoredFiles: true
+  hideIgnoredFiles: false
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
