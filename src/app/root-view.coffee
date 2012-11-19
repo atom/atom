@@ -87,6 +87,7 @@ class RootView extends View
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', => @setShowInvisibles(not @showInvisibles)
+    @command 'window:toggle-ignored-files', => @toggleIgnoredFiles()
 
   afterAttach: (onDom) ->
     @focus() if onDom
@@ -198,6 +199,9 @@ class RootView extends View
     return if @showInvisibles == showInvisibles
     @showInvisibles = showInvisibles
     editor.setShowInvisibles(@showInvisibles) for editor in @getEditors()
+
+  toggleIgnoredFiles: ->
+    @project.toggleIgnoredFiles()
 
   getEditors: ->
     @panes.find('.pane > .editor').map(-> $(this).view()).toArray()

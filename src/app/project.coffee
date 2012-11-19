@@ -7,6 +7,7 @@ EditSession = require 'edit-session'
 EventEmitter = require 'event-emitter'
 Directory = require 'directory'
 ChildProcess = require 'child-process'
+Git = require 'git'
 
 module.exports =
 class Project
@@ -14,6 +15,7 @@ class Project
   autoIndent: true
   softTabs: true
   softWrap: false
+  hideIgnoredFiles: false
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -29,6 +31,7 @@ class Project
       '.DS_Store'
     ]
     @ignoredPathRegexes = []
+    @repo = new Git(path)
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
@@ -42,6 +45,7 @@ class Project
     if path?
       directory = if fs.isDirectory(path) then path else fs.directory(path)
       @rootDirectory = new Directory(directory)
+      @repo = new Git(path)
     else
       @rootDirectory = null
 
@@ -75,7 +79,7 @@ class Project
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
 
-    return false
+    @ignoreRepositoryPath(path)
 
   ignoreFile: (path) ->
     lastSlash = path.lastIndexOf('/')
@@ -89,7 +93,10 @@ class Project
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
 
-    return false
+    @ignoreRepositoryPath(path)
+
+  ignoreRepositoryPath: (path) ->
+    @hideIgnoredFiles and @repo.isPathIgnored(fs.join(@getPath(), path))
 
   ignorePathRegex: ->
     @ignoredPathRegexes.map((regex) -> "(#{regex.source})").join("|")
@@ -109,6 +116,10 @@ class Project
 
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
+
+  toggleIgnoredFiles: -> @setHideIgnoredFiles(not @hideIgnoredFiles)
+  getHideIgnoredFiles: -> @hideIgnoredFiles
+  setHideIgnoredFiles: (@hideIgnoredFiles) ->
 
   buildEditSessionForPath: (filePath, editSessionOptions={}) ->
     @buildEditSession(@bufferForPath(filePath), editSessionOptions)
