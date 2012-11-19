@@ -87,6 +87,7 @@ class RootView extends View
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', => @setShowInvisibles(not @showInvisibles)
+    @command 'window:toggle-ignored-files', => @toggleIgnoredFiles()
 
   afterAttach: (onDom) ->
     @focus() if onDom
