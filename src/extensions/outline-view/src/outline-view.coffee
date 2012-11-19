@@ -35,13 +35,18 @@ class OutlineView extends SelectList
 
   populate: ->
     tags = []
-    callback = (tag) ->
-      tags.push tag
+    callback = (tag) -> tags.push tag
     path = @rootView.getActiveEditor().getPath()
     new TagGenerator(path, callback).generate().done =>
       if tags.length > 0
-          @setArray(tags)
-          @attach()
+        @miniEditor.show()
+        @setArray(tags)
+      else
+        @miniEditor.hide()
+        @setError("No symbols found")
+        setTimeout (=> @detach()), 2000
+
+      @attach()
 
   confirmed : ({position, name}) ->
     @cancel()

@@ -32,10 +32,12 @@ class DisplayBuffer
     @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())
 
   setSoftWrapColumn: (@softWrapColumn) ->
-    oldRange = @rangeForAllLines()
+    start = 0
+    end = @getLastRow()
     @buildLineMap()
-    newRange = @rangeForAllLines()
-    @trigger 'change', { oldRange, newRange, lineNumbersChanged: true }
+    screenDelta = @getLastRow() - end
+    bufferDelta = 0
+    @trigger 'change', { start, end, screenDelta, bufferDelta }
 
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
@@ -87,7 +89,11 @@ class DisplayBuffer
       @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
       newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
+      start = oldScreenRange.start.row
+      end = oldScreenRange.end.row
+      screenDelta = newScreenRange.end.row - oldScreenRange.end.row
+      bufferDelta = 0
+      @trigger 'change', { start, end, screenDelta, bufferDelta }
 
     fold
 
@@ -111,7 +117,12 @@ class DisplayBuffer
       @lineMap.replaceScreenRows(oldScreenRange.start.row, oldScreenRange.end.row, lines)
       newScreenRange = @screenLineRangeForBufferRange(bufferRange)
 
-      @trigger 'change', oldRange: oldScreenRange, newRange: newScreenRange, lineNumbersChanged: true
+      start = oldScreenRange.start.row
+      end = oldScreenRange.end.row
+      screenDelta = newScreenRange.end.row - oldScreenRange.end.row
+      bufferDelta = 0
+
+      @trigger 'change', { start, end, screenDelta, bufferDelta }
 
   destroyFoldsContainingBufferRow: (bufferRow) ->
     for row, folds of @activeFolds
@@ -150,6 +161,9 @@ class DisplayBuffer
 
   screenRowForBufferRow: (bufferRow) ->
     @lineMap.screenPositionForBufferPosition([bufferRow, 0]).row
+
+  lastScreenRowForBufferRow: (bufferRow) ->
+    @lineMap.screenPositionForBufferPosition([bufferRow, Infinity]).row
 
   bufferRowForScreenRow: (screenRow) ->
     @lineMap.bufferPositionForScreenPosition([screenRow, 0]).row
@@ -192,23 +206,24 @@ class DisplayBuffer
     allFolds.push(folds...) for row, folds of @activeFolds
     fold.handleBufferChange(e) for fold in allFolds
 
-  handleTokenizedBufferChange: (e) ->
-    @handleBufferChange(e.bufferChange) if e.bufferChange
+  handleTokenizedBufferChange: (tokenizedBufferChange) ->
+    if bufferChange = tokenizedBufferChange.bufferChange
+      @handleBufferChange(bufferChange)
+      bufferDelta = bufferChange.newRange.end.row - bufferChange.oldRange.end.row
 
-    newRange = e.newRange.copy()
-    newRange.start.row = @bufferRowForScreenRow(@screenRowForBufferRow(newRange.start.row))
 
-    oldScreenRange = @screenLineRangeForBufferRange(e.oldRange)
+    tokenizedBufferStart = @bufferRowForScreenRow(@screenRowForBufferRow(tokenizedBufferChange.start))
+    tokenizedBufferEnd = tokenizedBufferChange.end
+    tokenizedBufferDelta = tokenizedBufferChange.delta
 
-    newScreenLines = @buildLinesForBufferRows(newRange.start.row, newRange.end.row)
-    @lineMap.replaceScreenRows oldScreenRange.start.row, oldScreenRange.end.row, newScreenLines
-    newScreenRange = @screenLineRangeForBufferRange(newRange)
 
-    @trigger 'change',
-      oldRange: oldScreenRange
-      newRange: newScreenRange
-      bufferChanged: true
-      lineNumbersChanged: !e.oldRange.coversSameRows(newRange) or !oldScreenRange.coversSameRows(newScreenRange)
+    start = @screenRowForBufferRow(tokenizedBufferStart)
+    end = @lastScreenRowForBufferRow(tokenizedBufferEnd)
+    newScreenLines = @buildLinesForBufferRows(tokenizedBufferStart, tokenizedBufferEnd + tokenizedBufferDelta)
+    @lineMap.replaceScreenRows(start, end, newScreenLines)
+    screenDelta = @lastScreenRowForBufferRow(tokenizedBufferEnd + tokenizedBufferDelta) - end
+
+    @trigger 'change', { start, end, screenDelta, bufferDelta }
 
   buildLineForBufferRow: (bufferRow) ->
     @buildLinesForBufferRows(bufferRow, bufferRow)

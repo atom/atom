@@ -9,52 +9,73 @@ class CursorView extends View
   @content: ->
     @pre class: 'cursor idle', => @raw '&nbsp;'
 
+  blinkPeriod: 800
   editor: null
   visible: true
 
+  needsUpdate: true
+  needsAutoscroll: true
+  needsRemoval: false
+  shouldPauseBlinking: false
+
   initialize: (@cursor, @editor) ->
-    @cursor.on 'change-screen-position.cursor-view', (screenPosition, { bufferChange, autoscroll }) =>
-      @updateAppearance({autoscroll})
-      @removeIdleClassTemporarily() unless bufferChange
-      @trigger 'cursor-move', {bufferChange}
+    @cursor.on 'change-screen-position.cursor-view', (screenPosition, { autoscroll }) =>
+      @needsUpdate = true
+      @shouldPauseBlinking = true
+      @needsAutoscroll = (autoscroll ? true) and @cursor?.isLastCursor()
+      @editor.requestDisplayUpdate()
 
-    @cursor.on 'change-visibility.cursor-view', (visible) => @setVisible(visible)
-    @cursor.on 'destroy.cursor-view', => @remove()
+    @cursor.on 'change-visibility.cursor-view', (visible) =>
+      @needsUpdate = true
+      @needsAutoscroll = visible and @cursor.isLastCursor()
+      @editor.requestDisplayUpdate()
 
-  afterAttach: (onDom) ->
-    return unless onDom
-    @updateAppearance()
-    @editor.syncCursorAnimations()
+    @cursor.on 'destroy.cursor-view', =>
+      @needsRemoval = true
+      @editor.requestDisplayUpdate()
 
   remove: ->
     @editor.removeCursorView(this)
     @cursor.off('.cursor-view')
     super
 
-  updateAppearance: (options={}) ->
-    autoscroll = options.autoscroll ? true
+  updateDisplay: ->
     screenPosition = @getScreenPosition()
     pixelPosition = @getPixelPosition()
-    @css(pixelPosition)
-    @autoscroll() if @cursor.isLastCursor() and autoscroll
+
+    unless _.isEqual(@lastPixelPosition, pixelPosition)
+      changedPosition = true
+      @css(pixelPosition)
+      @trigger 'cursor-move'
+
+    if @shouldPauseBlinking
+      @resetBlinking()
+    else if !@startBlinkingTimeout
+      @startBlinking()
+
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
 
   getPixelPosition: ->
     @editor.pixelPositionForScreenPosition(@getScreenPosition())
 
-  autoscroll: ->
-    pixelPosition =
-    @editor.scrollTo(@getPixelPosition())
-
   setVisible: (visible) ->
-    return if visible == @visible
-    @visible = visible
+    unless @visible == visible
+      @visible = visible
+      @toggle(@visible)
 
-    if @visible
-      @show()
-      @autoscroll()
-    else
-      @hide()
+  stopBlinking: ->
+    clearInterval(@blinkInterval) if @blinkInterval
+    @blinkInterval = null
+    this[0].classList.remove('blink-off')
+
+  startBlinking: ->
+    return if @blinkInterval?
+    blink = => @toggleClass('blink-off')
+    @blinkInterval = setInterval(blink, @blinkPeriod / 2)
+
+  resetBlinking: ->
+    @stopBlinking()
+    @startBlinking()
 
   getBufferPosition: ->
     @cursor.getBufferPosition()

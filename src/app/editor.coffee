@@ -20,7 +20,9 @@ class Editor extends View
       @subview 'gutter', new Gutter
       @input class: 'hidden-input', outlet: 'hiddenInput'
       @div class: 'scroll-view', outlet: 'scrollView', =>
-        @div class: 'lines', outlet: 'renderedLines', =>
+        @div class: 'overlayer', outlet: 'overlayer'
+        @div class: 'lines', outlet: 'renderedLines'
+        @div class: 'underlayer', outlet: 'underlayer'
       @div class: 'vertical-scrollbar', outlet: 'verticalScrollbar', =>
         @div outlet: 'verticalScrollbarContent'
 
@@ -42,6 +44,9 @@ class Editor extends View
   editSessions: null
   attached: false
   lineOverdraw: 100
+  pendingChanges: null
+  newCursors: null
+  newSelections: null
 
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
@@ -60,6 +65,9 @@ class Editor extends View
     @cursorViews = []
     @selectionViews = []
     @editSessions = []
+    @pendingChanges = []
+    @newCursors = []
+    @newSelections = []
 
     if editSession?
       @editSessions.push editSession
@@ -270,10 +278,10 @@ class Editor extends View
   setShowInvisibles: (showInvisibles) ->
     return if showInvisibles == @showInvisibles
     @showInvisibles = showInvisibles
-    @renderLines()
+    @resetDisplay()
 
   setInvisibles: (@invisibles={}) ->
-    @renderLines()
+    @resetDisplay()
 
   checkoutHead: -> @getBuffer().checkoutHead()
   setText: (text) -> @getBuffer().setText(text)
@@ -350,8 +358,6 @@ class Editor extends View
       else
         @gutter.addClass('drop-shadow')
 
-    @on 'selection-change', => @highlightCursorLine()
-
   selectOnMousemoveUntilMouseup: ->
     moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
     @on 'mousemove', moveHandler
@@ -365,17 +371,15 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
-    @clearRenderedLines()
     @subscribeToFontSize()
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
     @invisibles = @rootView()?.getInvisibles()
-    $(window).on "resize.editor#{@id}", =>
-      @updateRenderedLines()
+    $(window).on "resize.editor#{@id}", => @requestDisplayUpdate()
     @focus() if @isFocused
 
-    @renderWhenAttached()
+    @resetDisplay()
 
     @trigger 'editor-open', [this]
 
@@ -426,11 +430,8 @@ class Editor extends View
     @activeEditSession.on "buffer-path-change", =>
       @trigger 'editor-path-change'
 
-    @activeEditSession.getSelection().on 'change-screen-range', =>
-      @trigger 'selection-change'
-
     @trigger 'editor-path-change'
-    @renderWhenAttached()
+    @resetDisplay()
 
     if @attached and @activeEditSession.buffer.isInConflict()
       @showBufferConflictAlert(@activeEditSession)
@@ -453,17 +454,18 @@ class Editor extends View
   getOpenBufferPaths: ->
     editSession.buffer.getPath() for editSession in @editSessions when editSession.buffer.getPath()?
 
-  scrollTop: (scrollTop, options) ->
+  scrollTop: (scrollTop, options={}) ->
     return @cachedScrollTop or 0 unless scrollTop?
-
     maxScrollTop = @verticalScrollbar.prop('scrollHeight') - @verticalScrollbar.height()
     scrollTop = Math.floor(Math.max(0, Math.min(maxScrollTop, scrollTop)))
     return if scrollTop == @cachedScrollTop
     @cachedScrollTop = scrollTop
 
-    @updateRenderedLines() if @attached
+    @updateDisplay() if @attached
 
     @renderedLines.css('top', -scrollTop)
+    @underlayer.css('top', -scrollTop)
+    @overlayer.css('top', -scrollTop)
     @gutter.lineNumbers.css('top', -scrollTop)
     if options?.adjustVerticalScrollbar ? true
       @verticalScrollbar.scrollTop(scrollTop)
@@ -574,10 +576,8 @@ class Editor extends View
       @css('font-size', fontSize + 'px')
       @calculateDimensions()
       @updatePaddingOfRenderedLines()
-      @handleScrollHeightChange()
-      @updateCursorViews()
-      @updateSelectionViews()
-      @updateRenderedLines()
+      @updateLayerDimensions()
+      @requestDisplayUpdate()
 
   newSplitEditor: ->
     new Editor { editSession: @activeEditSession.copy(), @showInvisibles }
@@ -634,22 +634,6 @@ class Editor extends View
     for session in @getEditSessions()
       session.destroy()
 
-  renderWhenAttached: ->
-    return unless @attached
-
-    @removeAllCursorAndSelectionViews()
-    @addCursorView(cursor) for cursor in @activeEditSession.getCursors()
-    @addSelectionView(selection) for selection in @activeEditSession.getSelections()
-    @activeEditSession.on 'add-cursor', (cursor) => @addCursorView(cursor)
-    @activeEditSession.on 'add-selection', (selection) => @addSelectionView(selection)
-
-    @prepareForScrolling()
-    @setScrollPositionFromActiveEditSession()
-
-    @renderLines()
-    @highlightCursorLine()
-    @activeEditSession.on 'screen-lines-change', (e) => @handleDisplayBufferChange(e)
-
   getCursorView: (index) ->
     index ?= @cursorViews.length - 1
     @cursorViews[index]
@@ -657,26 +641,14 @@ class Editor extends View
   getCursorViews: ->
     new Array(@cursorViews...)
 
-  addCursorView: (cursor) ->
-    cursorView = new CursorView(cursor, this)
+  addCursorView: (cursor, options) ->
+    cursorView = new CursorView(cursor, this, options)
     @cursorViews.push(cursorView)
-    @appendToLinesView(cursorView)
+    @overlayer.append(cursorView)
     cursorView
 
   removeCursorView: (cursorView) ->
     _.remove(@cursorViews, cursorView)
-
-  updateCursorViews: ->
-    for cursorView in @getCursorViews()
-      cursorView.updateAppearance()
-
-  updateSelectionViews: ->
-    for selectionView in @getSelectionViews()
-      selectionView.updateAppearance()
-
-  syncCursorAnimations: ->
-    for cursorView in @getCursorViews()
-      do (cursorView) -> cursorView.resetCursorAnimation()
 
   getSelectionView: (index) ->
     index ?= @selectionViews.length - 1
@@ -688,7 +660,7 @@ class Editor extends View
   addSelectionView: (selection) ->
     selectionView = new SelectionView({editor: this, selection})
     @selectionViews.push(selectionView)
-    @appendToLinesView(selectionView)
+    @underlayer.append(selectionView)
     selectionView
 
   removeSelectionView: (selectionView) ->
@@ -699,11 +671,11 @@ class Editor extends View
     selectionView.remove() for selectionView in @getSelectionViews()
 
   appendToLinesView: (view) ->
-    @renderedLines.append(view)
+    @overlayer.append(view)
 
   calculateDimensions: ->
     fragment = $('<pre class="line" style="position: absolute; visibility: hidden;"><span>x</span></div>')
-    @appendToLinesView(fragment)
+    @renderedLines.append(fragment)
 
     lineRect = fragment[0].getBoundingClientRect()
     charRect = fragment.find('span')[0].getBoundingClientRect()
@@ -713,66 +685,202 @@ class Editor extends View
     @height(@lineHeight) if @mini
     fragment.remove()
 
+  updateLayerDimensions: ->
     @gutter.calculateWidth()
 
-  prepareForScrolling: ->
-    @adjustHeightOfRenderedLines()
-    @adjustMinWidthOfRenderedLines()
+    height = @lineHeight * @screenLineCount()
+    unless @layerHeight == height
+      @renderedLines.height(height)
+      @underlayer.height(height)
+      @overlayer.height(height)
+      @layerHeight = height
 
-  adjustHeightOfRenderedLines: ->
-    heightOfRenderedLines = @lineHeight * @screenLineCount()
-    @verticalScrollbarContent.height(heightOfRenderedLines)
-    @renderedLines.css('padding-bottom', heightOfRenderedLines)
+      @verticalScrollbarContent.height(height)
+      @scrollBottom(height) if @scrollBottom() > height
 
-  adjustMinWidthOfRenderedLines: ->
-    minWidth = @charWidth * @maxScreenLineLength()
-    unless @renderedLines.cachedMinWidth == minWidth
+    minWidth = @charWidth * @maxScreenLineLength() + 20
+    unless @layerMinWidth == minWidth
       @renderedLines.css('min-width', minWidth)
-      @renderedLines.cachedMinWidth = minWidth
-
-  handleScrollHeightChange: ->
-    scrollHeight = @lineHeight * @screenLineCount()
-    @verticalScrollbarContent.height(scrollHeight)
-    @scrollBottom(scrollHeight) if @scrollBottom() > scrollHeight
-
-  renderLines: ->
-    @clearRenderedLines()
-    @updateRenderedLines()
+      @underlayer.css('min-width', minWidth)
+      @overlayer.css('min-width', minWidth)
+      @layerMinWidth = minWidth
 
   clearRenderedLines: ->
-    @lineCache = []
-    @renderedLines.find('.line').remove()
+    @renderedLines.empty()
+    @firstRenderedScreenRow = null
+    @lastRenderedScreenRow = null
 
-    @firstRenderedScreenRow = -1
-    @lastRenderedScreenRow = -1
+  resetDisplay: ->
+    return unless @attached
+
+    @clearRenderedLines()
+    @removeAllCursorAndSelectionViews()
+    @updateLayerDimensions()
+    @setScrollPositionFromActiveEditSession()
+
+    @activeEditSession.on 'add-selection', (selection) =>
+      @newCursors.push(selection.cursor)
+      @newSelections.push(selection)
+      @requestDisplayUpdate()
+
+    @activeEditSession.on 'screen-lines-change', (e) => @handleScreenLinesChange(e)
+
+    @newCursors = @activeEditSession.getCursors()
+    @newSelections = @activeEditSession.getSelections()
+    @updateDisplay(suppressAutoScroll: true)
+
+  requestDisplayUpdate: ()->
+    return if @pendingDisplayUpdate
+    @pendingDisplayUpdate = true
+    _.nextTick =>
+      @updateDisplay()
+      @pendingDisplayUpdate = false
+
+  updateDisplay: (options={}) ->
+    return unless @attached
+    @updateRenderedLines()
+    @highlightCursorLine()
+    @updateCursorViews()
+    @updateSelectionViews()
+    @autoscroll(options)
+
+  updateCursorViews: ->
+    if @newCursors.length > 0
+      @addCursorView(cursor) for cursor in @newCursors
+      @syncCursorAnimations()
+      @newCursors = []
+
+    for cursorView in @getCursorViews()
+      if cursorView.needsRemoval
+        cursorView.remove()
+      else if cursorView.needsUpdate
+        cursorView.updateDisplay()
+
+  updateSelectionViews: ->
+    if @newSelections.length > 0
+      @addSelectionView(selection) for selection in @newSelections
+      @newSelections = []
+
+    for selectionView in @getSelectionViews()
+      if selectionView.destroyed
+        selectionView.remove()
+      else
+        selectionView.updateDisplay()
+
+  syncCursorAnimations: ->
+    for cursorView in @getCursorViews()
+      do (cursorView) -> cursorView.resetBlinking()
+
+  autoscroll: (options={}) ->
+    for cursorView in @getCursorViews() when cursorView.needsAutoscroll
+      @scrollTo(cursorView.getPixelPosition()) unless options.suppressAutoScroll
+      cursorView.needsAutoscroll = false
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
     lastVisibleScreenRow = @getLastVisibleScreenRow()
-    renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
-    renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
-    if firstVisibleScreenRow < @firstRenderedScreenRow
-      @removeLineElements(Math.max(@firstRenderedScreenRow, renderTo + 1), @lastRenderedScreenRow)
-      @lastRenderedScreenRow = renderTo
-      newLines = @buildLineElements(renderFrom, Math.min(@firstRenderedScreenRow - 1, renderTo))
-      @insertLineElements(renderFrom, newLines)
-      @firstRenderedScreenRow = renderFrom
-      renderedLines = true
+    if @firstRenderedScreenRow? and firstVisibleScreenRow >= @firstRenderedScreenRow and lastVisibleScreenRow <= @lastRenderedScreenRow
+      renderFrom = @firstRenderedScreenRow
+      renderTo = Math.min(@getLastScreenRow(), @lastRenderedScreenRow)
+    else
+      renderFrom = Math.max(0, firstVisibleScreenRow - @lineOverdraw)
+      renderTo = Math.min(@getLastScreenRow(), lastVisibleScreenRow + @lineOverdraw)
 
-    if lastVisibleScreenRow > @lastRenderedScreenRow
-      if 0 <= @firstRenderedScreenRow < renderFrom
-        @removeLineElements(@firstRenderedScreenRow, Math.min(@lastRenderedScreenRow, renderFrom - 1))
-      @firstRenderedScreenRow = renderFrom
-      startRowOfNewLines = Math.max(@lastRenderedScreenRow + 1, renderFrom)
-      newLines = @buildLineElements(startRowOfNewLines, renderTo)
-      @insertLineElements(startRowOfNewLines, newLines)
-      @lastRenderedScreenRow = renderTo
-      renderedLines = true
+    if @pendingChanges.length == 0 and @firstRenderedScreenRow and @firstRenderedScreenRow <= renderFrom and renderTo <= @lastRenderedScreenRow
+      return
 
-    if renderedLines
-      @gutter.renderLineNumbers(renderFrom, renderTo)
-      @updatePaddingOfRenderedLines()
+    @gutter.updateLineNumbers(@pendingChanges, renderFrom, renderTo)
+    intactRanges = @computeIntactRanges()
+    @pendingChanges = []
+    @truncateIntactRanges(intactRanges, renderFrom, renderTo)
+    @clearDirtyRanges(intactRanges)
+    @fillDirtyRanges(intactRanges, renderFrom, renderTo)
+    @firstRenderedScreenRow = renderFrom
+    @lastRenderedScreenRow = renderTo
+    @updateLayerDimensions()
+    @updatePaddingOfRenderedLines()
+
+  computeIntactRanges: ->
+    return [] if !@firstRenderedScreenRow? and !@lastRenderedScreenRow?
+
+    intactRanges = [{start: @firstRenderedScreenRow, end: @lastRenderedScreenRow, domStart: 0}]
+    for change in @pendingChanges
+      newIntactRanges = []
+      for range in intactRanges
+        if change.end < range.start and change.screenDelta != 0
+          newIntactRanges.push(
+            start: range.start + change.screenDelta
+            end: range.end + change.screenDelta
+            domStart: range.domStart
+          )
+        else if change.end < range.start or change.start > range.end
+          newIntactRanges.push(range)
+        else
+          if change.start > range.start
+            newIntactRanges.push(
+              start: range.start
+              end: change.start - 1
+              domStart: range.domStart)
+          if change.end < range.end
+            newIntactRanges.push(
+              start: change.end + change.screenDelta + 1
+              end: range.end + change.screenDelta
+              domStart: range.domStart + change.end + 1 - range.start
+            )
+      intactRanges = newIntactRanges
+    @pendingChanges = []
+    intactRanges
+
+  truncateIntactRanges: (intactRanges, renderFrom, renderTo) ->
+    i = 0
+    while i < intactRanges.length
+      range = intactRanges[i]
+      if range.start < renderFrom
+        range.domStart += renderFrom - range.start
+        range.start = renderFrom
+      if range.end > renderTo
+        range.end = renderTo
+      if range.start >= range.end
+        intactRanges.splice(i--, 1)
+      i++
+    intactRanges.sort (a, b) -> a.domStart - b.domStart
+
+  clearDirtyRanges: (intactRanges) ->
+    renderedLines = @renderedLines[0]
+    killLine = (line) ->
+      next = line.nextSibling
+      renderedLines.removeChild(line)
+      next
+
+    if intactRanges.length == 0
+      @renderedLines.empty()
+    else
+      domPosition = 0
+      currentLine = renderedLines.firstChild
+      for intactRange in intactRanges
+        while intactRange.domStart > domPosition
+          currentLine = killLine(currentLine)
+          domPosition++
+        for i in [intactRange.start..intactRange.end]
+          currentLine = currentLine.nextSibling
+          domPosition++
+      while currentLine
+        currentLine = killLine(currentLine)
+
+  fillDirtyRanges: (intactRanges, renderFrom, renderTo) ->
+    renderedLines = @renderedLines[0]
+    nextIntact = intactRanges.shift()
+    currentLine = renderedLines.firstChild
+    screenRow = renderFrom
+    for row in [renderFrom..renderTo]
+      if row == nextIntact?.end + 1
+        nextIntact = intactRanges.shift()
+      if !nextIntact or row < nextIntact.start
+        lineElement = @buildLineElementForScreenRow(row)
+        renderedLines.insertBefore(lineElement, currentLine)
+      else
+        currentLine = currentLine.nextSibling
 
   updatePaddingOfRenderedLines: ->
     paddingTop = @firstRenderedScreenRow * @lineHeight
@@ -787,66 +895,16 @@ class Editor extends View
     Math.floor(@scrollTop() / @lineHeight)
 
   getLastVisibleScreenRow: ->
-    Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1
+    Math.max(0, Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1)
 
-  handleDisplayBufferChange: (e) ->
-    oldScreenRange = e.oldRange
-    newScreenRange = e.newRange
+  handleScreenLinesChange: (change) ->
+    @pendingChanges.push(change)
+    @requestDisplayUpdate()
 
-    if @attached
-      @handleScrollHeightChange() unless newScreenRange.coversSameRows(oldScreenRange)
-      @adjustMinWidthOfRenderedLines()
-
-      return if oldScreenRange.start.row > @lastRenderedScreenRow
-
-      maxEndRow = Math.max(@getLastVisibleScreenRow() + @lineOverdraw, @lastRenderedScreenRow)
-      @gutter.renderLineNumbers(@firstRenderedScreenRow, maxEndRow) if e.lineNumbersChanged
-
-      newScreenRange = newScreenRange.copy()
-      oldScreenRange = oldScreenRange.copy()
-      endOfShortestRange = Math.min(oldScreenRange.end.row, newScreenRange.end.row)
-
-      delta = @firstRenderedScreenRow - endOfShortestRange
-      if delta > 0
-        newScreenRange.start.row += delta
-        newScreenRange.end.row += delta
-        oldScreenRange.start.row += delta
-        oldScreenRange.end.row += delta
-
-      oldScreenRange.start.row = Math.max(oldScreenRange.start.row, @firstRenderedScreenRow)
-      oldScreenRange.end.row = Math.min(oldScreenRange.end.row, @lastRenderedScreenRow)
-      newScreenRange.start.row = Math.max(newScreenRange.start.row, @firstRenderedScreenRow)
-      newScreenRange.end.row = Math.min(newScreenRange.end.row, maxEndRow)
-
-      lineElements = @buildLineElements(newScreenRange.start.row, newScreenRange.end.row)
-      @replaceLineElements(oldScreenRange.start.row, oldScreenRange.end.row, lineElements)
-
-      rowDelta = newScreenRange.end.row - oldScreenRange.end.row
-      @lastRenderedScreenRow += rowDelta
-      @updateRenderedLines() if rowDelta < 0
-
-      if @lastRenderedScreenRow > maxEndRow
-        @removeLineElements(maxEndRow + 1, @lastRenderedScreenRow)
-        @lastRenderedScreenRow = maxEndRow
-        @updatePaddingOfRenderedLines()
-
-      @highlightCursorLine()
-
-  buildLineElements: (startRow, endRow) ->
-    charWidth = @charWidth
-    charHeight = @charHeight
-    lines = @activeEditSession.linesForScreenRows(startRow, endRow)
-    activeEditSession = @activeEditSession
-    cursorScreenRow = @getCursorScreenPosition().row
-    mini = @mini
-
-    buildLineHtml = (line) => @buildLineHtml(line)
-
-    $$ ->
-      row = startRow
-      for line in lines
-        @raw(buildLineHtml(line))
-        row++
+  buildLineElementForScreenRow: (screenRow) ->
+    div = document.createElement('div')
+    div.innerHTML = @buildLineHtml(@activeEditSession.lineForScreenRow(screenRow))
+    div.firstChild
 
   buildLineHtml: (screenLine) ->
     scopeStack = []
@@ -909,44 +967,8 @@ class Editor extends View
     line.push('</pre>')
     line.join('')
 
-  insertLineElements: (row, lineElements) ->
-    @spliceLineElements(row, 0, lineElements)
-
-  replaceLineElements: (startRow, endRow, lineElements) ->
-    @spliceLineElements(startRow, endRow - startRow + 1, lineElements)
-
-  removeLineElements: (startRow, endRow) ->
-    @spliceLineElements(startRow, endRow - startRow + 1)
-
-  spliceLineElements: (startScreenRow, rowCount, lineElements) ->
-    throw new Error("Splicing at a negative start row: #{startScreenRow}") if startScreenRow < 0
-
-    if startScreenRow < @firstRenderedScreenRow
-      startRow = 0
-    else
-      startRow = startScreenRow - @firstRenderedScreenRow
-
-    endRow = startRow + rowCount
-
-    elementToInsertBefore = @lineCache[startRow]
-    elementsToReplace = @lineCache[startRow...endRow]
-    @lineCache[startRow...endRow] = lineElements?.toArray() or []
-
-    lines = @renderedLines[0]
-    if lineElements
-      fragment = document.createDocumentFragment()
-      lineElements.each -> fragment.appendChild(this)
-      if elementToInsertBefore
-        lines.insertBefore(fragment, elementToInsertBefore)
-      else
-        lines.appendChild(fragment)
-
-    elementsToReplace.forEach (element) =>
-      lines.removeChild(element)
-
   lineElementForScreenRow: (screenRow) ->
-    element = @lineCache[screenRow - @firstRenderedScreenRow]
-    $(element)
+    @renderedLines.children(":eq(#{screenRow - @firstRenderedScreenRow})")
 
   logScreenLines: (start, end) ->
     @activeEditSession.logScreenLines(start, end)

@@ -98,3 +98,57 @@ describe "UndoManager", ->
       undoManager.undo()
       expect(buffer.lineForRow(0)).not.toContain("foo")
 
+    it "records transactions that occur prior to an exception", ->
+      spyOn(console, 'error')
+      buffer.setText("jumpstreet")
+      undoManager.transact ->
+        buffer.insert([0,0], "3")
+        buffer.insert([0,0], "2")
+        throw new Error("problem")
+        buffer.insert([0,0], "2")
+
+      expect(console.error).toHaveBeenCalled()
+      expect(buffer.lineForRow(0)).toBe "23jumpstreet"
+      undoManager.undo()
+      expect(buffer.lineForRow(0)).toBe "jumpstreet"
+
+  describe "when a `do` operation throws an exception", ->
+    it "clears the stack", ->
+      spyOn(console, 'error')
+      buffer.setText("word")
+      class FailingOperation
+        do: -> throw new Error("I'm a bad do operation")
+
+      buffer.insert([0,0], "1")
+      undoManager.pushOperation(new FailingOperation())
+      expect(console.error).toHaveBeenCalled()
+      undoManager.undo()
+      expect(buffer.lineForRow(0)).toBe "1word"
+
+
+  describe "when an `undo` operation throws an exception", ->
+    it "clears the stack", ->
+      spyOn(console, 'error')
+      buffer.setText("word")
+      class FailingOperation
+        undo: -> throw new Error("I'm a bad undo operation")
+
+      buffer.insert([0,0], "1")
+      undoManager.pushOperation(new FailingOperation())
+      undoManager.undo()
+      expect(console.error).toHaveBeenCalled()
+      expect(buffer.lineForRow(0)).toBe "1word"
+
+  describe "when an `redo` operation throws an exception", ->
+    it "clears the stack", ->
+      spyOn(console, 'error')
+      buffer.setText("word")
+      class FailingOperation
+        redo: -> throw new Error("I'm a bad undo operation")
+
+      buffer.insert([0,0], "1")
+      undoManager.pushOperation(new FailingOperation())
+      undoManager.undo()
+      undoManager.redo()
+      expect(console.error).toHaveBeenCalled()
+      expect(buffer.lineForRow(0)).toBe "1word"

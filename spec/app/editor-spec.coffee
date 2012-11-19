@@ -238,6 +238,7 @@ describe "Editor", ->
         editor.setSelectedBufferRange([[40, 0], [43, 1]])
         expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
         previousScrollHeight = editor.verticalScrollbar.prop('scrollHeight')
+
         editor.scrollTop(750)
         expect(editor.scrollTop()).toBe 750
 
@@ -483,6 +484,8 @@ describe "Editor", ->
     describe "when the font size changes on the view", ->
       it "updates the font sizes of editors and recalculates dimensions critical to cursor positioning", ->
         rootView.attachToDom()
+        rootView.height(200)
+        rootView.width(200)
         rootView.setFontSize(10)
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
@@ -656,13 +659,11 @@ describe "Editor", ->
       it "places an additional cursor", ->
         editor.attachToDom()
         setEditorHeightInLines(editor, 5)
-        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [3, 0])
+        editor.setCursorBufferPosition([3, 0])
         editor.scrollTop(editor.lineHeight * 6)
 
-        spyOn(editor, "scrollTo").andCallThrough()
-
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [6, 0], metaKey: true)
-        expect(editor.scrollTo.callCount).toBe 1
+        expect(editor.scrollTop()).toBe editor.lineHeight * (6 - editor.vScrollMargin)
 
         [cursor1, cursor2] = editor.getCursorViews()
         expect(cursor1.position()).toEqual(top: 3 * editor.lineHeight, left: 0)
@@ -819,8 +820,8 @@ describe "Editor", ->
           expect(region1.position().top).toBeCloseTo(2 * lineHeight)
           expect(region1.position().left).toBeCloseTo(7 * charWidth)
           expect(region1.height()).toBeCloseTo lineHeight
-          expect(region1.width()).toBeCloseTo(editor.renderedLines.outerWidth() - region1.position().left)
 
+          expect(region1.width()).toBeCloseTo(editor.renderedLines.outerWidth() - region1.position().left)
           region2 = selectionView.regions[1]
           expect(region2.position().top).toBeCloseTo(3 * lineHeight)
           expect(region2.position().left).toBeCloseTo(0)
@@ -837,8 +838,8 @@ describe "Editor", ->
           expect(region1.position().top).toBeCloseTo(2 * lineHeight)
           expect(region1.position().left).toBeCloseTo(7 * charWidth)
           expect(region1.height()).toBeCloseTo lineHeight
-          expect(region1.width()).toBeCloseTo(editor.renderedLines.outerWidth() - region1.position().left)
 
+          expect(region1.width()).toBeCloseTo(editor.renderedLines.outerWidth() - region1.position().left)
           region2 = selectionView.regions[1]
           expect(region2.position().top).toBeCloseTo(3 * lineHeight)
           expect(region2.position().left).toBeCloseTo(0)
@@ -861,7 +862,7 @@ describe "Editor", ->
         expect(selectionView.regions.length).toBe 3
         expect(selectionView.find('.selection').length).toBe 3
 
-        selectionView.updateAppearance()
+        selectionView.updateDisplay()
         expect(selectionView.regions.length).toBe 3
         expect(selectionView.find('.selection').length).toBe 3
 
@@ -906,27 +907,6 @@ describe "Editor", ->
         editor.setCursorScreenPosition(row: 2, column: 2)
         expect(editor.getCursorView().position()).toEqual(top: 2 * editor.lineHeight, left: 2 * editor.charWidth)
 
-      it "removes the idle class while moving, then adds it back when it stops", ->
-        cursorView = editor.getCursorView()
-        advanceClock(200)
-
-        expect(cursorView).toHaveClass 'idle'
-        editor.setCursorScreenPosition([1, 2])
-        expect(cursorView).not.toHaveClass 'idle'
-
-        window.advanceClock(200)
-        expect(cursorView).toHaveClass 'idle'
-
-        editor.setCursorScreenPosition([1, 3])
-        advanceClock(100)
-
-        editor.setCursorScreenPosition([1, 4])
-        advanceClock(100)
-        expect(cursorView).not.toHaveClass 'idle'
-
-        advanceClock(100)
-        expect(cursorView).toHaveClass 'idle'
-
       it "hides the cursor when the selection is non-empty, and shows it otherwise", ->
         cursorView = editor.getCursorView()
         expect(editor.getSelection().isEmpty()).toBeTruthy()
@@ -934,7 +914,7 @@ describe "Editor", ->
 
         editor.setSelectedBufferRange([[0, 0], [3, 0]])
         expect(editor.getSelection().isEmpty()).toBeFalsy()
-        expect(cursorView).not.toBeVisible()
+        expect(cursorView).toBeHidden()
 
         editor.setCursorBufferPosition([1, 3])
         expect(editor.getSelection().isEmpty()).toBeTruthy()
@@ -1339,7 +1319,7 @@ describe "Editor", ->
         editor.attachToDom(heightInLines: 5)
         spyOn(editor, "scrollTo")
 
-      describe "when the change the precedes the first rendered row", ->
+      describe "when the change precedes the first rendered row", ->
         it "inserts and removes rendered lines to account for upstream change", ->
           editor.scrollToBottom()
           expect(editor.renderedLines.find(".line").length).toBe 7
@@ -1347,9 +1327,9 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[1,0], [3,0]], "1\n2\n3\n")
-          expect(editor.renderedLines.find(".line").length).toBe 8
+          expect(editor.renderedLines.find(".line").length).toBe 7
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
-          expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(13)
+          expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
       describe "when the change straddles the first rendered row", ->
         it "doesn't render rows that were not previously rendered", ->
@@ -1360,9 +1340,9 @@ describe "Editor", ->
           expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
           buffer.change([[2,0], [7,0]], "2\n3\n4\n5\n6\n7\n8\n9\n")
-          expect(editor.renderedLines.find(".line").length).toBe 9
+          expect(editor.renderedLines.find(".line").length).toBe 7
           expect(editor.renderedLines.find(".line:first").text()).toBe buffer.lineForRow(6)
-          expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(14)
+          expect(editor.renderedLines.find(".line:last").text()).toBe buffer.lineForRow(12)
 
       describe "when the change straddles the last rendered row", ->
         it "doesn't render rows that were not previously rendered", ->
@@ -1382,7 +1362,7 @@ describe "Editor", ->
         maxLineLength = editor.maxScreenLineLength()
         setEditorWidthInChars(editor, maxLineLength)
         widthBefore = editor.renderedLines.width()
-        expect(widthBefore).toBe editor.scrollView.width()
+        expect(widthBefore).toBe editor.scrollView.width() + 20
         buffer.change([[12,0], [12,0]], [1..maxLineLength*2].join(''))
         expect(editor.renderedLines.width()).toBeGreaterThan widthBefore
 
@@ -1398,7 +1378,7 @@ describe "Editor", ->
         expect(editor.renderedLines.width()).toBeGreaterThan editor.scrollView.width()
         widthBefore = editor.renderedLines.width()
         buffer.delete([[12, 0], [12, Infinity]])
-        expect(editor.renderedLines.width()).toBe editor.scrollView.width()
+        expect(editor.renderedLines.width()).toBe editor.scrollView.width() + 20
 
       describe "when the change the precedes the first rendered row", ->
         it "removes rendered lines to account for upstream change", ->
@@ -1497,63 +1477,12 @@ describe "Editor", ->
         buffer.insert([0, 0], "–")
         expect(editor.find('.line:eq(0)').outerHeight()).toBe editor.find('.line:eq(1)').outerHeight()
 
-    describe ".spliceLineElements(startRow, rowCount, lineElements)", ->
-      elements = null
-
-      beforeEach ->
-        editor.attachToDom()
-        elements = $$ ->
-          @div "A", class: 'line'
-          @div "B", class: 'line'
-
-      describe "when the start row is 0", ->
-        describe "when the row count is 0", ->
-          it "inserts the given elements before the first row", ->
-            editor.spliceLineElements 0, 0, elements
-
-            expect(editor.renderedLines.find('.line:eq(0)').text()).toBe 'A'
-            expect(editor.renderedLines.find('.line:eq(1)').text()).toBe 'B'
-            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'var quicksort = function () {'
-
-        describe "when the row count is > 0", ->
-          it "replaces the initial rows with the given elements", ->
-            editor.spliceLineElements 0, 2, elements
-
-            expect(editor.renderedLines.find('.line:eq(0)').text()).toBe 'A'
-            expect(editor.renderedLines.find('.line:eq(1)').text()).toBe 'B'
-            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe '    if (items.length <= 1) return items;'
-
-      describe "when the start row is less than the last row", ->
-        describe "when the row count is 0", ->
-          it "inserts the elements at the specified location", ->
-            editor.spliceLineElements 2, 0, elements
-
-            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'A'
-            expect(editor.renderedLines.find('.line:eq(3)').text()).toBe 'B'
-            expect(editor.renderedLines.find('.line:eq(4)').text()).toBe '    if (items.length <= 1) return items;'
-
-        describe "when the row count is > 0", ->
-          it "replaces the elements at the specified location", ->
-            editor.spliceLineElements 2, 2, elements
-
-            expect(editor.renderedLines.find('.line:eq(2)').text()).toBe 'A'
-            expect(editor.renderedLines.find('.line:eq(3)').text()).toBe 'B'
-            expect(editor.renderedLines.find('.line:eq(4)').text()).toBe '    while(items.length > 0) {'
-
-      describe "when the start row is the last row", ->
-        it "appends the elements to the end of the lines", ->
-          editor.spliceLineElements 13, 0, elements
-
-          expect(editor.renderedLines.find('.line:eq(12)').text()).toBe '};'
-          expect(editor.renderedLines.find('.line:eq(13)').text()).toBe 'A'
-          expect(editor.renderedLines.find('.line:eq(14)').text()).toBe 'B'
-          expect(editor.renderedLines.find('.line:eq(15)')).not.toExist()
-
     describe "when editor.setShowInvisibles is called", ->
       it "displays spaces as •, tabs as ▸ and newlines as ¬ when true", ->
         editor.attachToDom()
         editor.setInvisibles(rootView.getInvisibles())
         editor.setText " a line with tabs\tand spaces "
+
         expect(editor.showInvisibles).toBeFalsy()
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
         editor.setShowInvisibles(true)
@@ -1844,15 +1773,15 @@ describe "Editor", ->
 
         editor.setCursorScreenPosition([2,0])
         expect(editor.lineElementForScreenRow(2)).toMatchSelector('.fold.selected')
-        expect(editor.find('.cursor').css('display')).toBe 'none'
+        expect(editor.find('.cursor')).toBeHidden()
 
         editor.setCursorScreenPosition([3,0])
-        expect(editor.find('.cursor').css('display')).toBe 'block'
+        expect(editor.find('.cursor')).toBeVisible()
 
     describe "when a selected fold is scrolled into view (and the fold line was not previously rendered)", ->
       it "renders the fold's line element with the 'selected' class", ->
         setEditorHeightInLines(editor, 5)
-        editor.renderLines() # re-render lines so certain lines are not rendered
+        editor.resetDisplay()
 
         editor.createFold(2, 4)
         editor.setSelectedBufferRange([[1, 0], [5, 0]], preserveFolds: true)

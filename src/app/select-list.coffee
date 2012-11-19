@@ -8,6 +8,7 @@ class SelectList extends View
   @content: ->
     @div class: @viewClass(), =>
       @subview 'miniEditor', new Editor(mini: true)
+      @div class: 'error', outlet: 'error'
       @ol outlet: 'list'
 
   @viewClass: -> 'select-list'
@@ -38,6 +39,16 @@ class SelectList extends View
     @populateList()
     @selectItem(@list.find('li:first'))
 
+  setError: (message) ->
+    if not message or message.length == ""
+      @error.text("")
+      @error.hide()
+      @removeClass("error")
+    else
+      @error.text(message)
+      @error.show()
+      @addClass("error")
+
   populateList: ->
     filterQuery = @miniEditor.getText()
     if filterQuery.length
@@ -46,13 +57,18 @@ class SelectList extends View
       filteredArray = @array
 
     @list.empty()
-    for i in [0...Math.min(filteredArray.length, @maxItems)]
-      element = filteredArray[i]
-      item = @itemForElement(element)
-      item.data('select-list-element', element)
-      @list.append(item)
+    if filteredArray.length
+      @setError(null)
 
-    @selectItem(@list.find('li:first'))
+      for i in [0...Math.min(filteredArray.length, @maxItems)]
+        element = filteredArray[i]
+        item = @itemForElement(element)
+        item.data('select-list-element', element)
+        @list.append(item)
+
+      @selectItem(@list.find('li:first'))
+    else
+      @setError("No matches found")
 
   selectPreviousItem: ->
     item = @getSelectedItem().prev()

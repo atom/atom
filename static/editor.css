@@ -73,24 +73,30 @@
   overflow-x: hidden;
 }
 
+
+.editor .underlayer, .editor .lines, .editor .overlayer {
+  width: 100%;
+  height: 100%;
+}
+
+.editor .underlayer {
+  z-index: 0;
+  position: absolute;
+}
+
 .editor .lines {
   position: relative;
-  display: table;
-  height: 100%;
-  width: 100%;
-  /*overflow: hidden; i'm worried this is causing rendering problems */
-  padding-right: 2em;
+  z-index: 1;
+}
+
+.editor .overlayer {
+  z-index: 2;
+  pointer-events: none;
+  position: absolute;
 }
 
 .editor .line span {
   vertical-align: top;
-}
-
-@-webkit-keyframes blink {
-  0% { opacity: 1; }
-  60% { opacity: 1; }
-  61% { opacity: 0; }
-  100% { opacity: 0; }
 }
 
 .editor .cursor {
@@ -98,9 +104,8 @@
   border-left: 2px solid;
 }
 
-.editor.focused .cursor.idle {
-  -webkit-animation: blink 0.8s;
-  -webkit-animation-iteration-count: infinite;
+.editor.focused .cursor.blink-off {
+  visibility: hidden;
 }
 
 .editor .hidden-input {

@@ -13,6 +13,8 @@ Git = require 'git'
 module.exports =
 class Buffer
   @idCounter = 1
+  stoppedChangingDelay: 300
+  stoppedChangingTimeout: null
   undoManager: null
   cachedDiskContents: null
   cachedMemoryContents: null
@@ -377,5 +379,12 @@ class Buffer
     return unless path
     if @git?.checkoutHead(path)
       @trigger 'git-status-change'
+
+  scheduleStoppedChangingEvent: ->
+    clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
+    stoppedChangingCallback = =>
+      @stoppedChangingTimeout = null
+      @trigger 'stopped-changing'
+    @stoppedChangingTimeout = setTimeout(stoppedChangingCallback, @stoppedChangingDelay)
 
 _.extend(Buffer.prototype, EventEmitter)

@@ -7,8 +7,8 @@ typedef void (^WatchCallback)(NSString *, NSString *);
 @interface PathWatcher : NSObject {
   int _kq;
   CefRefPtr<CefV8Context> _context;
+  NSMutableDictionary *_callbacksByPath;
   NSMutableDictionary *_fileDescriptorsByPath;
-  NSMutableDictionary *_callbacksByFileDescriptor;
 
   bool _keepWatching;
 }
@@ -19,6 +19,5 @@ typedef void (^WatchCallback)(NSString *, NSString *);
 - (id)initWithContext:(CefRefPtr<CefV8Context>)context;
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error;
-
 
 @end

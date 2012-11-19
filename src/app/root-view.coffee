@@ -32,6 +32,7 @@ class RootView extends View
   fontSize: 20
   showInvisibles: false
   invisibles: null
+  title: null
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
@@ -46,7 +47,6 @@ class RootView extends View
     @extensions = {}
     @project = new Project(pathToOpen)
     @handleEvents()
-    @setTitle()
     @loadUserConfiguration()
 
     if pathToOpen
@@ -67,7 +67,7 @@ class RootView extends View
         @getActiveEditor().focus()
         false
       else
-        @setTitle(@project?.getPath())
+        @setTitle(null)
         focusableChild = this.find("[tabindex=-1]:visible:first")
         if focusableChild.length
           focusableChild.focus()
@@ -77,7 +77,10 @@ class RootView extends View
 
     @on 'active-editor-path-change', (e, path) =>
       @project.setPath(path) unless @project.getRootDirectory()
-      @setTitle(path)
+      if path
+        @setTitle(fs.base(path))
+      else
+        @setTitle("untitled")
 
     @command 'window:increase-font-size', => @setFontSize(@getFontSize() + 1)
     @command 'window:decrease-font-size', => @setFontSize(@getFontSize() - 1)
@@ -174,8 +177,22 @@ class RootView extends View
   activeKeybindings: ->
     keymap.bindingsForElement(document.activeElement)
 
-  setTitle: (title='untitled') ->
-    document.title = title
+  getTitle: ->
+    @title or "untitled"
+
+  setTitle: (title) ->
+    projectPath = @project.getPath()
+    if not projectPath
+      @title = "untitled"
+    else if title
+      @title = "#{title} – #{projectPath}"
+    else
+      @title = projectPath
+
+    @updateWindowTitle()
+
+  updateWindowTitle: ->
+    document.title = @title
 
   setShowInvisibles: (showInvisibles) ->
     return if @showInvisibles == showInvisibles

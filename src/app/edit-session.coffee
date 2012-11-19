@@ -60,9 +60,8 @@ class EditSession
       @mergeCursors()
 
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
+      @refreshAnchorScreenPositions() unless e.bufferDelta
       @trigger 'screen-lines-change', e
-      unless e.bufferChanged
-        anchor.refreshScreenPosition() for anchor in @getAnchors()
 
   destroy: ->
     throw new Error("Edit session already destroyed") if @destroyed
@@ -263,7 +262,7 @@ class EditSession
     @setCursorBufferPosition([fold.startRow, 0])
 
   isFoldedAtScreenRow: (screenRow) ->
-    @lineForScreenRow(screenRow).fold?
+    @lineForScreenRow(screenRow)?.fold?
 
   largestFoldContainingBufferRow: (bufferRow) ->
     @displayBuffer.largestFoldContainingBufferRow(bufferRow)
@@ -331,6 +330,9 @@ class EditSession
 
   removeAnchor: (anchor) ->
     _.remove(@anchors, anchor)
+
+  refreshAnchorScreenPositions: ->
+    anchor.refreshScreenPosition() for anchor in @getAnchors()
 
   removeAnchorRange: (anchorRange) ->
     _.remove(@anchorRanges, anchorRange)

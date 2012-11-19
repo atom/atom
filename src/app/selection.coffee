@@ -13,7 +13,7 @@ class Selection
     @cursor.selection = this
 
     @cursor.on 'change-screen-position.selection', (e) =>
-      @screenRangeChanged() unless e.bufferChanged
+      @screenRangeChanged() unless e.bufferChange
 
     @cursor.on 'destroy.selection', =>
       @cursor = null

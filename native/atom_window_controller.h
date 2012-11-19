@@ -23,6 +23,7 @@ class AtomCefClient;
 @property (nonatomic, retain) IBOutlet NSView *devToolsView;
 
 - (id)initWithPath:(NSString *)path;
+- (id)initUnstableWithPath:(NSString *)path;
 - (id)initInBackground;
 - (id)initSpecsThenExit:(BOOL)exitWhenDone;
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone;

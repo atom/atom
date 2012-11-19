@@ -22,7 +22,7 @@ describe "TreeView", ->
     expect(treeView.root.directory.subscriptionCount()).toBeGreaterThan 0
 
   afterEach ->
-    rootView.deactivate()
+    rootView?.deactivate()
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
@@ -596,6 +596,8 @@ describe "TreeView", ->
       fileView = treeView.find('.file:contains(test-file.txt)').view()
 
     afterEach ->
+      rootView.deactivate()
+      rootView = null
       fs.remove(rootDirPath) if fs.exists(rootDirPath)
 
     describe "tree-view:add", ->
@@ -775,8 +777,12 @@ describe "TreeView", ->
 
               moveDialog.trigger 'core:confirm'
 
-              expect(fs.exists(newPath)).toBeTruthy()
-              expect(fs.exists(filePath)).toBeFalsy()
+              waitsFor "tree view to update", ->
+                treeView.root.find('> .entries > .directory:contains(new)').length > 0
+
+              runs ->
+                expect(fs.exists(newPath)).toBeTruthy()
+                expect(fs.exists(filePath)).toBeFalsy()
 
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->

@@ -21,26 +21,26 @@ describe "RootView", ->
   describe "initialize(pathToOpen)", ->
     describe "when called with a pathToOpen", ->
       describe "when pathToOpen references a file", ->
-        it "creates a project for the file's parent directory, then sets the document.title and opens the file in an editor", ->
+        it "creates a project for the file's parent directory, then sets the title and opens the file in an editor", ->
           expect(rootView.project.getPath()).toBe fs.directory(path)
           expect(rootView.getEditors().length).toBe 1
           expect(rootView.getEditors()[0]).toHaveClass 'active'
           expect(rootView.getActiveEditor().getPath()).toBe path
           expect(rootView.getActiveEditor().editSessions.length).toBe 1
-          expect(document.title).toBe path
+          expect(rootView.getTitle()).toBe "#{fs.base(path)} – #{rootView.project.getPath()}"
 
       describe "when pathToOpen references a directory", ->
         beforeEach ->
           rootView.remove()
 
-        it "creates a project for the directory and sets the document.title, but does not open an editor", ->
+        it "creates a project for the directory and sets the title, but does not open an editor", ->
           path = require.resolve 'fixtures/dir'
           rootView = new RootView(path)
           rootView.focus()
 
           expect(rootView.project.getPath()).toBe path
           expect(rootView.getEditors().length).toBe 0
-          expect(document.title).toBe path
+          expect(rootView.getTitle()).toBe rootView.project.getPath()
 
     describe "when called with view state data returned from a previous call to RootView.prototype.serialize", ->
       viewState = null
@@ -62,7 +62,7 @@ describe "RootView", ->
           expect(rootView.project.getPath()?).toBeFalsy()
           expect(rootView.getEditors().length).toBe 2
           expect(rootView.getActiveEditor().getText()).toBe buffer.getText()
-          expect(document.title).toBe 'untitled'
+          expect(rootView.getTitle()).toBe 'untitled'
 
       describe "when the serialized RootView has a project", ->
         beforeEach ->
@@ -114,7 +114,7 @@ describe "RootView", ->
           expect(editor3.isFocused).toBeFalsy()
           expect(editor4.isFocused).toBeFalsy()
 
-          expect(document.title).toBe editor2.getPath()
+          expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
 
     describe "when called with no pathToOpen", ->
       it "opens an empty buffer", ->
@@ -122,7 +122,7 @@ describe "RootView", ->
         rootView = new RootView
         expect(rootView.getEditors().length).toBe 1
         expect(rootView.getEditors()[0].getText()).toEqual ""
-        expect(document.title).toBe 'untitled'
+        expect(rootView.getTitle()).toBe 'untitled'
 
   describe ".serialize()", ->
     it "absorbs exceptions that are thrown by extension serialize methods", ->
@@ -484,24 +484,24 @@ describe "RootView", ->
         expect(keybindings["meta-a"]).toEqual "test-event-a"
 
   describe "when the focused editor changes", ->
-    it "changes the document.title and emits an active-editor-path-change event", ->
+    it "changes the title and emits an active-editor-path-change event", ->
       pathChangeHandler = jasmine.createSpy 'pathChangeHandler'
       rootView.on 'active-editor-path-change', pathChangeHandler
 
       editor1 = rootView.getActiveEditor()
-      expect(document.title).toBe path
+      expect(rootView.getTitle()).toBe "#{fs.base(editor1.getPath())} – #{rootView.project.getPath()}"
 
       editor2 = rootView.getActiveEditor().splitLeft()
 
       path = rootView.project.resolve('b')
       editor2.edit(rootView.project.buildEditSessionForPath(path))
       expect(pathChangeHandler).toHaveBeenCalled()
-      expect(document.title).toBe rootView.project.resolve(path)
+      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
 
       pathChangeHandler.reset()
       editor1.getBuffer().saveAs("/tmp/should-not-be-title.txt")
       expect(pathChangeHandler).not.toHaveBeenCalled()
-      expect(document.title).toBe rootView.project.resolve(path)
+      expect(rootView.getTitle()).toBe "#{fs.base(editor2.getPath())} – #{rootView.project.getPath()}"
 
     it "creates a project if there isn't one yet and the buffer was previously unsaved", ->
       rootView.remove()
@@ -535,9 +535,9 @@ describe "RootView", ->
       expect(pathChangeHandler).not.toHaveBeenCalled()
 
   describe "when the last editor is removed", ->
-    it   "updates the title to the project path", ->
+    it "updates the title to the project path", ->
       rootView.getEditors()[0].remove()
-      expect(document.title).toBe rootView.project.getPath()
+      expect(rootView.getTitle()).toBe rootView.project.getPath()
 
   describe "font size adjustment", ->
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->

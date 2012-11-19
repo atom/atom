@@ -1,5 +1,3 @@
-require 'timeout'
-
 ATOM_SRC_PATH = File.dirname(__FILE__)
 DOT_ATOM_PATH = ENV['HOME'] + "/.atom"
 BUILD_DIR = 'atom-build'
@@ -116,6 +114,7 @@ end
 
 desc "Run the specs"
 task :test => ["clean", "clone-default-bundles"] do
+  `pkill Atom`
   Rake::Task["run"].invoke("--test")
 end
 

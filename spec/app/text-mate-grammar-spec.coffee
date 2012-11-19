@@ -247,7 +247,14 @@ describe "TextMateGrammar", ->
       {tokens, ruleStack} = grammar.tokenizeLine("// line comment")
       {tokens, ruleStack} = grammar.tokenizeLine(" // second line comment with a single leading space", ruleStack)
 
-    it "correctly parses content inside an c if block. (regression)", ->
-      grammar = TextMateBundle.grammarForFilePath("hello.c")
-      {tokens, ruleStack} = grammar.tokenizeLine("if(1){m()}")
-      expect(tokens[5].scopes).toEqual ["source.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
+    describe "when inside an C block", ->
+      it "correctly parses a method. (regression)", ->
+        grammar = TextMateBundle.grammarForFilePath("hello.c")
+        {tokens, ruleStack} = grammar.tokenizeLine("if(1){m()}")
+        expect(tokens[5]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
+
+      it "correctly parses nested blocks. (regression)", ->
+        grammar = TextMateBundle.grammarForFilePath("hello.c")
+        {tokens, ruleStack} = grammar.tokenizeLine("if(1){if(1){m()}}")
+        expect(tokens[5]).toEqual value: "if", scopes: ["source.c", "meta.block.c", "keyword.control.c"]
+        expect(tokens[10]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]

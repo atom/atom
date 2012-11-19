@@ -9,7 +9,8 @@ class Gutter extends View
     @div class: 'gutter', =>
       @div outlet: 'lineNumbers', class: 'line-numbers'
 
-  firstScreenRow: -1
+  firstScreenRow: Infinity
+  lastScreenRow: -1
   highestNumberWidth: null
 
   afterAttach: (onDom) ->
@@ -33,9 +34,18 @@ class Gutter extends View
     widthTesterElement.remove()
     lineNumberPadding
 
+  updateLineNumbers: (changes, renderFrom, renderTo) ->
+    if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
+      performUpdate = true
+    else
+      for change in changes
+        if change.delta != 0 or (change.bufferDelta? and change.bufferDelta != 0)
+          performUpdate = true
+          break
+
+    @renderLineNumbers(renderFrom, renderTo) if performUpdate
+
   renderLineNumbers: (startScreenRow, endScreenRow) ->
-    @firstScreenRow = startScreenRow
-    lastScreenRow = -1
     rows = @editor().bufferRowsForScreenRows(startScreenRow, endScreenRow)
 
     cursorScreenRow = @editor().getCursorScreenPosition().row
@@ -49,6 +59,8 @@ class Gutter extends View
         lastScreenRow = row
 
     @calculateWidth()
+    @firstScreenRow = startScreenRow
+    @lastScreenRow = endScreenRow
     @highlightedRow = null
     @highlightCursorLine()
 

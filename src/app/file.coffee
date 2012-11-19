@@ -19,6 +19,9 @@ class File
   getBaseName: ->
     fs.base(@path)
 
+  exists: ->
+    fs.exists(@getPath())
+
   updateMd5: ->
     @md5 = fs.md5ForPath(@path)
 
@@ -30,18 +33,30 @@ class File
 
   subscribeToNativeChangeEvents: ->
     @watchId = $native.watchPath @path, (eventType, path) =>
-      if eventType is "remove"
-        @trigger "remove"
-        @off()
-      else if eventType is "move"
-        @setPath(path)
-        @trigger "move"
-      else if eventType is "contents-change"
-        newMd5 = fs.md5ForPath(@getPath())
-        return if newMd5 == @md5
+      @handleNativeChangeEvent(eventType, path)
 
-        @md5 = newMd5
-        @trigger 'contents-change'
+  handleNativeChangeEvent: (eventType, path) ->
+    console.log eventType
+    if eventType is "remove"
+      @unsubscribeFromNativeChangeEvents()
+      detectResurrection = =>
+        if @exists()
+          @subscribeToNativeChangeEvents()
+          @handleNativeChangeEvent("contents-change", path)
+        else
+          @trigger "remove"
+          @off()
+
+      _.delay detectResurrection, 50
+    else if eventType is "move"
+      @setPath(path)
+      @trigger "move"
+    else if eventType is "contents-change"
+      newMd5 = fs.md5ForPath(@getPath())
+      return if newMd5 == @md5
+
+      @md5 = newMd5
+      @trigger 'contents-change'
 
   unsubscribeFromNativeChangeEvents: ->
     $native.unwatchPath(@path, @watchId)

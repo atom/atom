@@ -52,6 +52,12 @@
   return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:stable];
 }
 
+- (id)initUnstableWithPath:(NSString *)path {
+  _pathToOpen = [path retain];
+  AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
+  return [self initWithBootstrapScript:@"window-bootstrap" background:NO alwaysUseBundleResourcePath:false];
+}
+
 - (id)initInBackground {
   AtomApplication *atomApplication = (AtomApplication *)[AtomApplication sharedApplication];
   BOOL stable = [atomApplication.arguments objectForKey:@"stable"] != nil;

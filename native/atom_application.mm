@@ -131,6 +131,10 @@
   [[AtomWindowController alloc] initWithPath:path];
 }
 
+- (void)openUnstable:(NSString *)path {
+  [[AtomWindowController alloc] initUnstableWithPath:path];
+}
+
 - (IBAction)runSpecs:(id)sender {
   [self runSpecsThenExit:NO];
 }

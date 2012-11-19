@@ -7,6 +7,7 @@ Project = require 'project'
 Directory = require 'directory'
 File = require 'file'
 RootView = require 'root-view'
+Editor = require 'editor'
 TextMateBundle = require 'text-mate-bundle'
 TextMateTheme = require 'text-mate-theme'
 fs = require 'fs'
@@ -14,7 +15,6 @@ require 'window'
 
 requireStylesheet "jasmine.css"
 
-defaultTitle = document.title
 pathsWithSubscriptions = null
 
 beforeEach ->
@@ -22,15 +22,21 @@ beforeEach ->
   window.resetTimeouts()
   pathsWithSubscriptions = []
 
+  # make editor display updates synchronous
+  spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
+  spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
+  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
+  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
+
 afterEach ->
   delete window.rootView if window.rootView
   $('#jasmine-content').empty()
-  document.title = defaultTitle
   ensureNoPathSubscriptions()
   window.fixturesProject.destroy()
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
+$('html,body').css('overflow', 'auto')
 
 # Don't load user configuration in specs, because it's variable
 RootView.prototype.loadUserConfiguration = ->
@@ -59,6 +65,10 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
     @append obj.inspect()
   else
     emitObject.call(this, obj)
+
+jasmine.unspy = (object, methodName) ->
+  throw new Error("Not a spy") unless object[methodName].originalValue?
+  object[methodName] = object[methodName].originalValue
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
@@ -115,13 +125,12 @@ window.resetTimeouts = ->
   window.timeoutCount = 0
   window.timeouts = []
 
-window.originalSetTimeout = window.setTimeout
-window.setTimeout = (callback, ms) ->
+window.fakeSetTimeout = (callback, ms) ->
   id = ++window.timeoutCount
   window.timeouts.push([id, window.now + ms, callback])
   id
 
-window.clearTimeout = (idToClear) ->
+window.fakeClearTimeout = (idToClear) ->
   window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
 
 window.advanceClock = (delta=1) ->

@@ -37,6 +37,20 @@ void AtomCefClient::Open() {
   }
 }
 
+void AtomCefClient::OpenUnstable(std::string path) {
+  NSString *pathString = [NSString stringWithCString:path.c_str() encoding:NSUTF8StringEncoding];
+  [(AtomApplication *)[AtomApplication sharedApplication] openUnstable:pathString];
+}
+
+void AtomCefClient::OpenUnstable() {
+  NSOpenPanel *panel = [NSOpenPanel openPanel];
+  [panel setCanChooseDirectories:YES];
+  if ([panel runModal] == NSFileHandlingPanelOKButton) {
+    NSURL *url = [[panel URLs] lastObject];
+    OpenUnstable([[url path] UTF8String]);
+  }
+}
+
 void AtomCefClient::NewWindow() {
   [(AtomApplication *)[AtomApplication sharedApplication] open:nil];
 }

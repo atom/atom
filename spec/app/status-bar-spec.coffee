@@ -15,10 +15,6 @@ describe "StatusBar", ->
     statusBar = rootView.find('.status-bar').view()
     buffer = editor.getBuffer()
 
-    # updating the status bar is asynchronous for performance reasons
-    # for testing purposes, make it synchronous
-    spyOn(_, 'delay').andCallFake (fn) -> fn()
-
   afterEach ->
     rootView.remove()
 
@@ -56,6 +52,7 @@ describe "StatusBar", ->
     it "enables the buffer modified indicator", ->
       expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
+      advanceClock(buffer.stoppedChangingDelay)
       expect(statusBar.bufferModified.text()).toBe '*'
       editor.backspace()
 
@@ -66,6 +63,7 @@ describe "StatusBar", ->
       rootView.open(path)
       expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
+      advanceClock(buffer.stoppedChangingDelay)
       expect(statusBar.bufferModified.text()).toBe '*'
       editor.save()
       expect(statusBar.bufferModified.text()).toBe ''
@@ -73,15 +71,19 @@ describe "StatusBar", ->
     it "disables the buffer modified indicator if the content matches again", ->
       expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
+      advanceClock(buffer.stoppedChangingDelay)
       expect(statusBar.bufferModified.text()).toBe '*'
       editor.backspace()
+      advanceClock(buffer.stoppedChangingDelay)
       expect(statusBar.bufferModified.text()).toBe ''
 
     it "disables the buffer modified indicator when the change is undone", ->
       expect(statusBar.bufferModified.text()).toBe ''
       editor.insertText("\n")
+      advanceClock(buffer.stoppedChangingDelay)
       expect(statusBar.bufferModified.text()).toBe '*'
       editor.undo()
+      advanceClock(buffer.stoppedChangingDelay)
       expect(statusBar.bufferModified.text()).toBe ''
 
   describe "when the buffer changes", ->
@@ -89,6 +91,7 @@ describe "StatusBar", ->
       expect(statusBar.bufferModified.text()).toBe ''
       rootView.open(require.resolve('fixtures/sample.txt'))
       editor.insertText("\n")
+      advanceClock(buffer.stoppedChangingDelay)
       expect(statusBar.bufferModified.text()).toBe '*'
 
     it "doesn't update the buffer modified indicator for the old buffer", ->
@@ -96,6 +99,7 @@ describe "StatusBar", ->
      expect(statusBar.bufferModified.text()).toBe ''
      rootView.open(require.resolve('fixtures/sample.txt'))
      oldBuffer.setText("new text")
+     advanceClock(buffer.stoppedChangingDelay)
      expect(statusBar.bufferModified.text()).toBe ''
 
   describe "when the associated editor's cursor position changes", ->
