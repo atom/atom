@@ -139,7 +139,7 @@ class EditSession
   nextNonBlankBufferRow: (bufferRow) -> @buffer.nextNonBlankRow(bufferRow)
   getEofBufferPosition: -> @buffer.getEofPosition()
   getLastBufferRow: -> @buffer.getLastRow()
-  bufferRangeForBufferRow: (row) -> @buffer.rangeForRow(row)
+  bufferRangeForBufferRow: (row, options) -> @buffer.rangeForRow(row, options)
   lineForBufferRow: (row) -> @buffer.lineForRow(row)
   scanInRange: (args...) -> @buffer.scanInRange(args...)
   backwardsScanInRange: (args...) -> @buffer.backwardsScanInRange(args...)

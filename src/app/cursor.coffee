@@ -106,7 +106,8 @@ class Cursor
 
   moveToFirstCharacterOfLine: ->
     position = @getBufferPosition()
-    range = @editSession.bufferRangeForBufferRow(position.row)
+    range = @getCurrentLineBufferRange()
+    console.log range.inspect()
     newPosition = null
     @editSession.scanInRange /^\s*/, range, (match, matchRange) =>
       newPosition = matchRange.end
@@ -116,7 +117,7 @@ class Cursor
 
   skipLeadingWhitespace: ->
     position = @getBufferPosition()
-    range = @editSession.bufferRangeForBufferRow(position.row)
+    range = @getCurrentLineBufferRange()
     endOfLeadingWhitespace = null
     @editSession.scanInRange /^[ \t]*/, range, (match, matchRange) =>
       endOfLeadingWhitespace = matchRange.end
@@ -161,8 +162,8 @@ class Cursor
   getCurrentWordBufferRange: ->
     new Range(@getBeginningOfCurrentWordBufferPosition(allowPrevious: false), @getEndOfCurrentWordBufferPosition(allowNext: false))
 
-  getCurrentLineBufferRange: ->
-    @editSession.bufferRangeForBufferRow(@getBufferRow())
+  getCurrentLineBufferRange: (options) ->
+    @editSession.bufferRangeForBufferRow(@getBufferRow(), options)
 
   getCurrentWordPrefix: ->
     @editSession.getTextInBufferRange([@getBeginningOfCurrentWordBufferPosition(), @getBufferPosition()])

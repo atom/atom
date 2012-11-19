@@ -99,19 +99,15 @@ class Selection
     @setBufferRange(@getBufferRange().union(@cursor.getCurrentWordBufferRange()))
 
   selectLine: (row=@cursor.getBufferPosition().row) ->
-    startPosition = [row, 0]
-    if @editSession.getLastBufferRow() == row
-      endPosition = [row, Infinity]
-    else
-      endPosition = [row+1, 0]
-    @setBufferRange [startPosition, endPosition]
-
+    range = @editSession.bufferRangeForBufferRow(row, includeNewline: true)
+    @setBufferRange(range)
     @linewise = true
     @wordwise = false
     @initialScreenRange = @getScreenRange()
 
   expandOverLine: ->
-    @setBufferRange(@getBufferRange().union(@cursor.getCurrentLineBufferRange()))
+    range = @getBufferRange().union(@cursor.getCurrentLineBufferRange(includeNewline: true))
+    @setBufferRange(range)
 
   selectToScreenPosition: (position) ->
     @modifySelection =>

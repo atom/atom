@@ -133,11 +133,11 @@ class Buffer
   lineLengthForRow: (row) ->
     @lines[row].length
 
-  rangeForRow: (row) ->
-    if row == @getLastRow()
-      new Range([row, 0], [row, @lineLengthForRow(row)])
-    else
+  rangeForRow: (row, { includeNewline } = {}) ->
+    if includeNewline and row < @getLastRow()
       new Range([row, 0], [row + 1, 0])
+    else
+      new Range([row, 0], [row, @lineLengthForRow(row)])
 
   getLineCount: ->
     @getLines().length
