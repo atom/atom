@@ -96,7 +96,7 @@ class Project
     @ignoreRepositoryPath(path)
 
   ignoreRepositoryPath: (path) ->
-    @hideIgnoredFiles and @repo.isPathIgnored(path)
+    @hideIgnoredFiles and @repo.isPathIgnored(fs.join(@getPath(), path))
 
   ignorePathRegex: ->
     @ignoredPathRegexes.map((regex) -> "(#{regex.source})").join("|")
