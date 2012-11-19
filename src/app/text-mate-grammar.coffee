@@ -29,7 +29,7 @@ class TextMateGrammar
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
       @repository[name] = new Rule(this, data)
 
-  tokenizeLine: (line, {ruleStack, tabLength}={}) ->
+  tokenizeLine: (line, ruleStack=[@initialRule]) ->
     ruleStack ?= [@initialRule]
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
@@ -62,15 +62,7 @@ class TextMateGrammar
         ))
         break
 
-    { tokens: @breakOutAtomicTokens(tokens, tabLength), ruleStack }
-
-  breakOutAtomicTokens: (inputTokens, tabLength) ->
-    outputTokens = []
-    breakOutLeadingWhitespace = true
-    for token in inputTokens
-      outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
-      breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
-    outputTokens
+    { tokens, ruleStack }
 
   ruleForInclude: (name) ->
     if name[0] == "#"

@@ -2,7 +2,8 @@ _ = require 'underscore'
 
 module.exports =
 class ScreenLine
-  constructor: ({@tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold}) ->
+  constructor: ({tokens, @ruleStack, @bufferRows, @startBufferColumn, @fold, tabLength}) ->
+    @tokens = @breakOutAtomicTokens(tokens, tabLength)
     @bufferRows ?= 1
     @startBufferColumn ?= 0
     @text = _.pluck(@tokens, 'value').join('')
@@ -90,3 +91,11 @@ class ScreenLine
       delta += token.bufferDelta
       return token if delta >= bufferColumn
     token
+
+  breakOutAtomicTokens: (inputTokens, tabLength) ->
+    outputTokens = []
+    breakOutLeadingWhitespace = true
+    for token in inputTokens
+      outputTokens.push(token.breakOutAtomicTokens(tabLength, breakOutLeadingWhitespace)...)
+      breakOutLeadingWhitespace = token.isOnlyWhitespace() if breakOutLeadingWhitespace
+    outputTokens

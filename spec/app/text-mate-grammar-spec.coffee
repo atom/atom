@@ -10,7 +10,7 @@ describe "TextMateGrammar", ->
   beforeEach ->
     grammar = TextMateBundle.grammarForFilePath("hello.coffee")
 
-  describe ".tokenizeLine(line, { ruleStack, tabLength })", ->
+  describe ".tokenizeLine(line, ruleStack)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
       it "returns a single token with the correct scope", ->
         {tokens} = grammar.tokenizeLine("return")
@@ -142,7 +142,7 @@ describe "TextMateGrammar", ->
       describe "when the pattern spans multiple lines", ->
         it "uses the ruleStack returned by the first line to parse the second line", ->
           {tokens: firstTokens, ruleStack} = grammar.tokenizeLine("'''single-quoted")
-          {tokens: secondTokens, ruleStack} = grammar.tokenizeLine("heredoc'''", {ruleStack})
+          {tokens: secondTokens, ruleStack} = grammar.tokenizeLine("heredoc'''", ruleStack)
 
           expect(firstTokens.length).toBe 2
           expect(secondTokens.length).toBe 2
