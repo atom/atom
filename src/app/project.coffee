@@ -79,7 +79,7 @@ class Project
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
 
-    @hideIgnoredFiles and @repo.isPathIgnored(path)
+    @ignoreRepositoryPath(path)
 
   ignoreFile: (path) ->
     lastSlash = path.lastIndexOf('/')
@@ -93,6 +93,9 @@ class Project
     for regex in @ignoredPathRegexes
       return true if path.match(regex)
 
+    @ignoreRepositoryPath(path)
+
+  ignoreRepositoryPath: (path) ->
     @hideIgnoredFiles and @repo.isPathIgnored(path)
 
   ignorePathRegex: ->
