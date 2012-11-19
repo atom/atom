@@ -5,12 +5,14 @@ Range = require 'range'
 _ = require 'underscore'
 
 describe "TokenizedBuffer", ->
-  [editSession, tokenizedBuffer, buffer] = []
+  [editSession, tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
     editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
     buffer = editSession.buffer
     tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+    changeHandler = jasmine.createSpy('changeHandler')
+    tokenizedBuffer.on "change", changeHandler
 
   afterEach ->
     editSession.destroy()
@@ -24,17 +26,48 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
 
   describe "tokenization", ->
+    it "only creates untokenized screen lines on construction", ->
+      line0 = tokenizedBuffer.lineForScreenRow(0)
+      expect(line0.tokens.length).toBe 1
+      expect(line0.tokens[0]).toEqual(value: line0.text, scopes: ['source.js'])
+
+      line11 = tokenizedBuffer.lineForScreenRow(11)
+      expect(line11.tokens.length).toBe 2
+      expect(line11.tokens[0]).toEqual(value: "  ", scopes: ['source.js'], isAtomic: true)
+      expect(line11.tokens[1]).toEqual(value: "return sort(Array.apply(this, arguments));", scopes: ['source.js'])
+
+    describe "when #tokenizeInBackground() is called", ->
+      it "tokenizes screen lines one chunk at a time asynchronously after calling #activate()", ->
+        tokenizedBuffer.chunkSize = 5
+        tokenizedBuffer.tokenizeInBackground()
+
+        line0 = tokenizedBuffer.lineForScreenRow(0) # kicks off tokenization
+        expect(line0.ruleStack).toBeUndefined()
+
+        advanceClock() # trigger deferred code
+        expect(tokenizedBuffer.lineForScreenRow(0).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(4).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeFalsy()
+        expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 4, delta: 0)
+        changeHandler.reset()
+
+        advanceClock() # trigger deferred code again
+        expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(9).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(10).ruleStack?).toBeFalsy()
+        expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 9, delta: 0)
+        changeHandler.reset()
+
+        advanceClock() # trigger deferred code again
+        expect(tokenizedBuffer.lineForScreenRow(10).ruleStack?).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(12).ruleStack?).toBeTruthy()
+        expect(changeHandler).toHaveBeenCalledWith(start: 10, end: 12, delta: 0)
+
     it "tokenizes all the lines in the buffer on construction", ->
       expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
       expect(tokenizedBuffer.lineForScreenRow(11).tokens[1]).toEqual(value: 'return', scopes: ['source.js', 'keyword.control.js'])
 
     describe "when the buffer changes", ->
-      changeHandler = null
-
-      beforeEach ->
-        changeHandler = jasmine.createSpy('changeHandler')
-        tokenizedBuffer.on "change", changeHandler
-
       describe "when lines are updated, but none are added or removed", ->
         it "updates tokens for each of the changed lines", ->
           range = new Range([0, 0], [2, 0])

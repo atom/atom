@@ -14,11 +14,13 @@ class TokenizedBuffer
   buffer: null
   aceAdaptor: null
   screenLines: null
+  untokenizedRow: 0
+  chunkSize: 50
 
   constructor: (@buffer, { @languageMode, @tabLength }) ->
     @tabLength ?= 2
     @id = @constructor.idCounter++
-    @screenLines = @buildScreenLinesForRows(0, @buffer.getLastRow())
+    @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
@@ -30,7 +32,7 @@ class TokenizedBuffer
     previousStack = @stackForRow(end) # used in spill detection below
 
     stack = @stackForRow(start - 1)
-    @screenLines[start..end] = @buildScreenLinesForRows(start, end + delta, stack)
+    @screenLines[start..end] = @buildPlaceholderScreenLinesForRows(start, end + delta, stack)
 
     # spill detection
     # compare scanner state of last re-highlighted line with its previous state.
@@ -41,7 +43,7 @@ class TokenizedBuffer
       break if _.isEqual(@stackForRow(row), previousStack)
       nextRow = row + 1
       previousStack = @stackForRow(nextRow)
-      @screenLines[nextRow] = @buildScreenLineForRow(nextRow, @stackForRow(row))
+      @screenLines[nextRow] = @buildTokenizedScreenLineForRow(nextRow, @stackForRow(row))
 
     # if highlighting spilled beyond the bounds of the textual change, update the
     # end of the affected range to reflect the larger area of highlighting
@@ -54,25 +56,52 @@ class TokenizedBuffer
 
   setTabLength: (@tabLength) ->
     lastRow = @buffer.getLastRow()
-    @screenLines = @buildScreenLinesForRows(0, lastRow)
+    @screenLines = @buildPlaceholderScreenLinesForRows(0, lastRow)
     @trigger "change", { start: 0, end: lastRow, delta: 0 }
 
-  buildScreenLinesForRows: (startRow, endRow, startingStack) ->
+  tokenizeInBackground: ->
+    return if @tokenizingInBackground
+    @tokenizingInBackground = true
+    _.defer => @tokenizeNextChunk()
+
+  tokenizeNextChunk: ->
+    lastRow = @buffer.getLastRow()
+    stack = @stackForRow(@untokenizedRow - 1)
+    start = @untokenizedRow
+    end = Math.min(start + @chunkSize - 1, lastRow)
+    @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end, stack)
+    @trigger "change", { start, end, delta: 0}
+
+    @untokenizedRow = end + 1
+
+    if @untokenizedRow <= lastRow
+      _.defer => @tokenizeNextChunk()
+
+  buildPlaceholderScreenLinesForRows: (startRow, endRow) ->
+    @buildPlaceholderScreenLineForRow(row) for row in [startRow..endRow]
+
+  buildPlaceholderScreenLineForRow: (row) ->
+    line = @buffer.lineForRow(row)
+    tokens = [new Token(value: line, scopes: [@languageMode.grammar.scopeName])]
+    new ScreenLine({tokens, @tabLength})
+
+  buildTokenizedScreenLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
     for row in [startRow..endRow]
-      screenLine = @buildScreenLineForRow(row, ruleStack)
+      screenLine = @buildTokenizedScreenLineForRow(row, ruleStack)
       ruleStack = screenLine.ruleStack
       screenLine
 
-  buildScreenLineForRow: (row, ruleStack) ->
+  buildTokenizedScreenLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
     { tokens, ruleStack } = @languageMode.tokenizeLine(line, ruleStack)
     new ScreenLine({tokens, ruleStack, @tabLength})
 
   lineForScreenRow: (row) ->
-    @screenLines[row]
+    @linesForScreenRows(row, row)[0]
 
   linesForScreenRows: (startRow, endRow) ->
+    @tokenizeInBackground()
     @screenLines[startRow..endRow]
 
   stackForRow: (row) ->
