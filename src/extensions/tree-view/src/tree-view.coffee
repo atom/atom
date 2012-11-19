@@ -29,7 +29,7 @@ class TreeView extends ScrollView
   @content: (rootView) ->
     @div class: 'tree-view tool-panel', tabindex: -1, =>
       if rootView.project.getRootDirectory()
-        @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true)
+        @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true, project: rootView.project)
 
   @deserialize: (state, rootView) ->
     treeView = new TreeView(rootView)
@@ -66,6 +66,7 @@ class TreeView extends ScrollView
     @rootView.command 'tree-view:toggle', => @toggle()
     @rootView.command 'tree-view:reveal-active-file', => @revealActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
+    @rootView.on 'window:toggle-ignored-files', => @updateRoot()
     @rootView.project.on 'path-change', => @updateRoot()
 
     @selectEntry(@root) if @root
@@ -122,7 +123,7 @@ class TreeView extends ScrollView
   updateRoot: ->
     @root?.remove()
     if @rootView.project.getRootDirectory()
-      @root = new DirectoryView(directory: @rootView.project.getRootDirectory(), isExpanded: true)
+      @root = new DirectoryView(directory: @rootView.project.getRootDirectory(), isExpanded: true, project: @rootView.project)
       @append(@root)
     else
       @root = null
