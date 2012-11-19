@@ -119,6 +119,7 @@ describe "Project", ->
       expect(paths).toContain('b')
 
     it "ignores files in gitignore for projects in a git tree", ->
+      project.setHideIgnoredFiles(true)
       project.setPath(require.resolve('fixtures/git/working-dir'))
       paths = project.getFilePaths()
       expect(paths).not.toContain('ignored.txt')
