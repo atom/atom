@@ -388,6 +388,7 @@ class Editor extends View
     if index == -1
       index = @editSessions.length
       @editSessions.push(editSession)
+      @trigger 'editor:edit-session-added', [editSession, index]
 
     @setActiveEditSessionIndex(index)
 
@@ -398,9 +399,11 @@ class Editor extends View
       @remove()
     else
       editSession = @activeEditSession
+      index = @getActiveEditSessionIndex()
       @loadPreviousEditSession()
       _.remove(@editSessions, editSession)
       editSession.destroy()
+      @trigger 'editor:edit-session-removed', [editSession, index]
 
   loadNextEditSession: ->
     nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
@@ -430,6 +433,7 @@ class Editor extends View
       @trigger 'editor-path-change'
 
     @trigger 'editor-path-change'
+    @trigger 'editor:active-edit-session-changed', [@activeEditSession, index]
     @resetDisplay()
 
     if @attached and @activeEditSession.buffer.isInConflict()

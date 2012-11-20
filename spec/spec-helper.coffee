@@ -136,12 +136,16 @@ window.fakeClearTimeout = (idToClear) ->
 
 window.advanceClock = (delta=1) ->
   window.now += delta
+  callbacks = []
+
   window.timeouts = window.timeouts.filter ([id, strikeTime, callback]) ->
     if strikeTime <= window.now
-      callback()
+      callbacks.push(callback)
       false
     else
       true
+
+  callback() for callback in callbacks
 
 window.pagePixelPositionForPoint = (editor, point) ->
   point = Point.fromObject point

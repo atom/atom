@@ -1,0 +1,26 @@
+.tabs {
+  background: #222;
+  border-bottom: 4px solid #555;
+}
+
+.tab {
+  cursor: default;
+  float: left;
+  margin: 4px;
+  margin-bottom: 0;
+  margin-right: 0;
+  padding: 4px;
+  background: #3a3a3a;
+  color: white;
+  -webkit-border-top-left-radius: 4px;
+  -webkit-border-top-right-radius: 4px;
+}
+
+
+.tab.active {
+  background: #555;
+}
+
+.tab:last-child {
+  margin-right: 4px;
+}
