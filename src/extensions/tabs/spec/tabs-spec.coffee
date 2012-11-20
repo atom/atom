@@ -52,3 +52,10 @@ fdescribe "Tabs", ->
       rootView.open('two-hundred.txt')
       expect(tabs.find('.tab').length).toBe 3
       expect(tabs.find('.tab:eq(2) .file-name').text()).toBe 'two-hundred.txt'
+
+  describe "when an edit session is removed", ->
+    it "removes the tab for the removed edit session", ->
+      editor.setActiveEditSessionIndex(0)
+      editor.destroyActiveEditSession()
+      expect(tabs.find('.tab').length).toBe 1
+      expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.txt'

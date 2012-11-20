@@ -25,6 +25,7 @@ class Tabs extends View
     @setActiveTab(@editor.getActiveEditSessionIndex())
     @editor.on 'editor:active-edit-session-changed', (e, editSession, index) => @setActiveTab(index)
     @editor.on 'editor:edit-session-added', (e, editSession) => @addTabForEditSession(editSession)
+    @editor.on 'editor:edit-session-removed', (e, editSession, index) => @removeTabAtIndex(index)
 
   addTabForEditSession: (editSession) ->
     @append $$ ->
@@ -34,3 +35,6 @@ class Tabs extends View
   setActiveTab: (index) ->
     @find(".tab.active").removeClass('active')
     @find(".tab:eq(#{index})").addClass('active')
+
+  removeTabAtIndex: (index) ->
+    @find(".tab:eq(#{index})").remove()
