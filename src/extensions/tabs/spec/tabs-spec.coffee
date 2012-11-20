@@ -36,3 +36,13 @@ describe "Tabs", ->
     it "highlights the tab for the current active edit session", ->
       expect(editor.getActiveEditSessionIndex()).toBe 1
       expect(tabs.find('.tab:eq(1)')).toHaveClass 'active'
+
+  describe "when the active edit session changes", ->
+    it "highlights the tab for the newly-active edit session", ->
+      editor.setActiveEditSessionIndex(0)
+      expect(tabs.find('.active').length).toBe 1
+      expect(tabs.find('.tab:eq(0)')).toHaveClass 'active'
+
+      editor.setActiveEditSessionIndex(1)
+      expect(tabs.find('.active').length).toBe 1
+      expect(tabs.find('.tab:eq(1)')).toHaveClass 'active'

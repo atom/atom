@@ -24,5 +24,9 @@ class Tabs extends View
         @div class: 'tab', =>
           @div editSession.buffer.getBaseName(), class: 'file-name'
 
-    activeIndex = @editor.getActiveEditSessionIndex()
-    @children(":eq(#{activeIndex})").addClass('active')
+    @setActiveTab(@editor.getActiveEditSessionIndex())
+    @editor.on 'editor:active-edit-session-changed', (e, index) => @setActiveTab(index)
+
+  setActiveTab: (index) ->
+    @find(".tab.active").removeClass('active')
+    @find(".tab:eq(#{index})").addClass('active')
