@@ -152,7 +152,7 @@ describe "Editor", ->
       expect(otherEditSession.buffer.subscriptionCount()).toBe 0
 
   describe "when 'close' is triggered", ->
-    it "closes active edit session and loads next edit session", ->
+    it "closes the active edit session and loads next edit session", ->
       editor.edit(rootView.project.buildEditSessionForPath())
       editSession = editor.activeEditSession
       spyOn(editSession.buffer, 'isModified').andReturn false
@@ -162,6 +162,19 @@ describe "Editor", ->
       expect(editSession.destroy).toHaveBeenCalled()
       expect(editor.remove).not.toHaveBeenCalled()
       expect(editor.getBuffer()).toBe buffer
+
+    it "triggers the 'editor:edit-session-removed' event with the edit session and its former index", ->
+      editor.edit(rootView.project.buildEditSessionForPath())
+      editSession = editor.activeEditSession
+      index = editor.getActiveEditSessionIndex()
+      spyOn(editSession.buffer, 'isModified').andReturn false
+
+      editSessionRemovedHandler = jasmine.createSpy('editSessionRemovedHandler')
+      editor.on 'editor:edit-session-removed', editSessionRemovedHandler
+      editor.trigger "core:close"
+
+      expect(editSessionRemovedHandler).toHaveBeenCalled()
+      expect(editSessionRemovedHandler.argsForCall[0][1..2]).toEqual [editSession, index]
 
     it "calls remove on the editor if there is one edit session and mini is false", ->
       editSession = editor.activeEditSession
@@ -193,11 +206,17 @@ describe "Editor", ->
       otherEditSession = rootView.project.buildEditSessionForPath()
 
     describe "when the edit session wasn't previously assigned to this editor", ->
-      it "adds edit session to editor", ->
+      it "adds edit session to editor and triggers the 'editor:edit-session-added' event", ->
+        editSessionAddedHandler = jasmine.createSpy('editSessionAddedHandler')
+        editor.on 'editor:edit-session-added', editSessionAddedHandler
+
         originalEditSessionCount = editor.editSessions.length
         editor.edit(otherEditSession)
         expect(editor.activeEditSession).toBe otherEditSession
         expect(editor.editSessions.length).toBe originalEditSessionCount + 1
+
+        expect(editSessionAddedHandler).toHaveBeenCalled()
+        expect(editSessionAddedHandler.argsForCall[0][1..2]).toEqual [otherEditSession, originalEditSessionCount]
 
     describe "when the edit session was previously assigned to this editor", ->
       it "restores the previous edit session associated with the editor", ->
@@ -276,6 +295,19 @@ describe "Editor", ->
 
         runs ->
           expect(atom.confirm).toHaveBeenCalled()
+
+      it "emits an editor:active-edit-session-changed event with the edit session and its index", ->
+        activeEditSessionChangeHandler = jasmine.createSpy('activeEditSessionChangeHandler')
+        editor.on 'editor:active-edit-session-changed', activeEditSessionChangeHandler
+
+        editor.setActiveEditSessionIndex(2)
+        expect(activeEditSessionChangeHandler).toHaveBeenCalled()
+        expect(activeEditSessionChangeHandler.argsForCall[0][1..2]).toEqual [editor.activeEditSession, 2]
+        activeEditSessionChangeHandler.reset()
+
+        editor.setActiveEditSessionIndex(0)
+        expect(activeEditSessionChangeHandler.argsForCall[0][1..2]).toEqual [editor.activeEditSession, 0]
+        activeEditSessionChangeHandler.reset()
 
     describe ".loadNextEditSession()", ->
       it "loads the next editor state and wraps to beginning when end is reached", ->
