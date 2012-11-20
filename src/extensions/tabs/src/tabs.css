@@ -4,6 +4,7 @@
 }
 
 .tab {
+  cursor: default;
   float: left;
   margin: 4px;
   margin-bottom: 0;

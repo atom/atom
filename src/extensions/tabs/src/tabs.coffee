@@ -1,3 +1,4 @@
+$ = require 'jquery'
 {View, $$} = require 'space-pen'
 
 module.exports =
@@ -26,6 +27,9 @@ class Tabs extends View
     @editor.on 'editor:active-edit-session-changed', (e, editSession, index) => @setActiveTab(index)
     @editor.on 'editor:edit-session-added', (e, editSession) => @addTabForEditSession(editSession)
     @editor.on 'editor:edit-session-removed', (e, editSession, index) => @removeTabAtIndex(index)
+
+    @on 'click', '.tab', (e) =>
+      @editor.setActiveEditSessionIndex($(e.target).closest('.tab').index())
 
   addTabForEditSession: (editSession) ->
     @append $$ ->

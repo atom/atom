@@ -3,7 +3,7 @@ _ = require 'underscore'
 RootView = require 'root-view'
 Tabs = require 'tabs'
 
-fdescribe "Tabs", ->
+describe "Tabs", ->
   [rootView, editor, statusBar, buffer, tabs] = []
 
   beforeEach ->
@@ -59,3 +59,11 @@ fdescribe "Tabs", ->
       editor.destroyActiveEditSession()
       expect(tabs.find('.tab').length).toBe 1
       expect(tabs.find('.tab:eq(0) .file-name').text()).toBe 'sample.txt'
+
+  describe "when a tab is clicked", ->
+    it "activates the associated edit session", ->
+      expect(editor.getActiveEditSessionIndex()).toBe 1
+      tabs.find('.tab:eq(0)').click()
+      expect(editor.getActiveEditSessionIndex()).toBe 0
+      tabs.find('.tab:eq(1)').click()
+      expect(editor.getActiveEditSessionIndex()).toBe 1
