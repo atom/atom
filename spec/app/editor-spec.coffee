@@ -203,7 +203,7 @@ describe "Editor", ->
         expect(editor.editSessions.length).toBe originalEditSessionCount + 1
 
         expect(editSessionAddedHandler).toHaveBeenCalled()
-        expect(editSessionAddedHandler.argsForCall[0][1]).toBe otherEditSession
+        expect(editSessionAddedHandler.argsForCall[0][1..2]).toEqual [otherEditSession, originalEditSessionCount]
 
     describe "when the edit session was previously assigned to this editor", ->
       it "restores the previous edit session associated with the editor", ->
@@ -289,11 +289,11 @@ describe "Editor", ->
 
         editor.setActiveEditSessionIndex(2)
         expect(activeEditSessionChangeHandler).toHaveBeenCalled()
-        expect(activeEditSessionChangeHandler.argsForCall[0][1]).toBe 2
+        expect(activeEditSessionChangeHandler.argsForCall[0][1..2]).toEqual [editor.activeEditSession, 2]
         activeEditSessionChangeHandler.reset()
 
         editor.setActiveEditSessionIndex(0)
-        expect(activeEditSessionChangeHandler.argsForCall[0][1]).toBe 0
+        expect(activeEditSessionChangeHandler.argsForCall[0][1..2]).toEqual [editor.activeEditSession, 0]
         activeEditSessionChangeHandler.reset()
 
     describe ".loadNextEditSession()", ->

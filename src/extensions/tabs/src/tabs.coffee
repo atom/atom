@@ -23,8 +23,7 @@ class Tabs extends View
       @addTabForEditSession(editSession)
 
     @setActiveTab(@editor.getActiveEditSessionIndex())
-    @editor.on 'editor:active-edit-session-changed', (e, index) => @setActiveTab(index)
-
+    @editor.on 'editor:active-edit-session-changed', (e, editSession, index) => @setActiveTab(index)
     @editor.on 'editor:edit-session-added', (e, editSession) => @addTabForEditSession(editSession)
 
   addTabForEditSession: (editSession) ->
