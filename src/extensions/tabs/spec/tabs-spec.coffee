@@ -18,7 +18,7 @@ describe "Tabs", ->
     rootView.remove()
 
   describe "@activate", ->
-    fit "appends a status bear to all existing and new editors", ->
+    it "appends a status bear to all existing and new editors", ->
       expect(rootView.panes.find('.pane').length).toBe 1
       expect(rootView.panes.find('.pane > .tabs').length).toBe 1
       editor.splitRight()
@@ -26,9 +26,13 @@ describe "Tabs", ->
       expect(rootView.panes.find('.pane > .tabs').length).toBe 2
 
   describe "#initialize()", ->
-    fit "creates a tab for each edit session on the editor to which the tab-strip belongs", ->
+    it "creates a tab for each edit session on the editor to which the tab-strip belongs", ->
       expect(editor.editSessions.length).toBe 2
       expect(tabs.find('.tab').length).toBe 2
 
       expect(tabs.find('.tab:eq(0) .file-name').text()).toBe editor.editSessions[0].buffer.getBaseName()
       expect(tabs.find('.tab:eq(1) .file-name').text()).toBe editor.editSessions[1].buffer.getBaseName()
+
+    it "highlights the tab for the current active edit session", ->
+      expect(editor.getActiveEditSessionIndex()).toBe 1
+      expect(tabs.find('.tab:eq(1)')).toHaveClass 'active'

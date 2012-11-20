@@ -19,7 +19,10 @@ class Tabs extends View
     @div class: 'tabs'
 
   initialize: (@editor) ->
-    for editSession in @editor.editSessions
+    for editSession, index in @editor.editSessions
       @append $$ ->
         @div class: 'tab', =>
           @div editSession.buffer.getBaseName(), class: 'file-name'
+
+    activeIndex = @editor.getActiveEditSessionIndex()
+    @children(":eq(#{activeIndex})").addClass('active')
