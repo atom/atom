@@ -152,7 +152,7 @@ describe "Editor", ->
       expect(otherEditSession.buffer.subscriptionCount()).toBe 0
 
   describe "when 'close' is triggered", ->
-    it "closes active edit session and loads next edit session", ->
+    it "closes the active edit session and loads next edit session", ->
       editor.edit(rootView.project.buildEditSessionForPath())
       editSession = editor.activeEditSession
       spyOn(editSession.buffer, 'isModified').andReturn false
@@ -162,6 +162,19 @@ describe "Editor", ->
       expect(editSession.destroy).toHaveBeenCalled()
       expect(editor.remove).not.toHaveBeenCalled()
       expect(editor.getBuffer()).toBe buffer
+
+    it "triggers the 'editor:edit-session-removed' event with the edit session and its former index", ->
+      editor.edit(rootView.project.buildEditSessionForPath())
+      editSession = editor.activeEditSession
+      index = editor.getActiveEditSessionIndex()
+      spyOn(editSession.buffer, 'isModified').andReturn false
+
+      editSessionRemovedHandler = jasmine.createSpy('editSessionRemovedHandler')
+      editor.on 'editor:edit-session-removed', editSessionRemovedHandler
+      editor.trigger "core:close"
+
+      expect(editSessionRemovedHandler).toHaveBeenCalled()
+      expect(editSessionRemovedHandler.argsForCall[0][1..2]).toEqual [editSession, index]
 
     it "calls remove on the editor if there is one edit session and mini is false", ->
       editSession = editor.activeEditSession

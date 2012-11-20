@@ -399,9 +399,11 @@ class Editor extends View
       @remove()
     else
       editSession = @activeEditSession
+      index = @getActiveEditSessionIndex()
       @loadPreviousEditSession()
       _.remove(@editSessions, editSession)
       editSession.destroy()
+      @trigger 'editor:edit-session-removed', [editSession, index]
 
   loadNextEditSession: ->
     nextIndex = (@getActiveEditSessionIndex() + 1) % @editSessions.length
