@@ -54,6 +54,12 @@ describe "Tabs", ->
       expect(tabs.find('.tab').length).toBe 3
       expect(tabs.find('.tab:eq(2) .file-name').text()).toBe 'two-hundred.txt'
 
+    describe "when the edit session's buffer has an undefined path", ->
+      it "makes the tab text 'untitled'", ->
+        rootView.open()
+        expect(tabs.find('.tab').length).toBe 3
+        expect(tabs.find('.tab:eq(2) .file-name').text()).toBe 'untitled'
+
   describe "when an edit session is removed", ->
     it "removes the tab for the removed edit session", ->
       editor.setActiveEditSessionIndex(0)
@@ -80,6 +86,6 @@ describe "Tabs", ->
     afterEach ->
       fs.remove(newPath)
 
-    fit "updates the file name in the tab", ->
+    it "updates the file name in the tab", ->
       buffer.saveAs(newPath)
       expect(tabs.find('.tab:first .file-name')).toHaveText "foobar.js"

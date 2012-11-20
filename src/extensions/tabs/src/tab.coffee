@@ -4,8 +4,11 @@ module.exports =
 class Tab extends View
   @content: (editSession) ->
     @div class: 'tab', =>
-      @div editSession.buffer.getBaseName(), class: 'file-name', outlet: 'fileName'
+      @div class: 'file-name', outlet: 'fileName'
 
   initialize: (@editSession) ->
-    @editSession.on 'buffer-path-change.tab', =>
-      @fileName.text(@editSession.buffer.getBaseName())
+    @updateFileName()
+    @editSession.on 'buffer-path-change.tab', => @updateFileName()
+
+  updateFileName: ->
+    @fileName.text(@editSession.buffer.getBaseName() ? 'untitled')
