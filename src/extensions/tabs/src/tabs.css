@@ -1,0 +1,20 @@
+.tabs {
+  background: #222;
+  border-bottom: 4px solid #555;
+}
+
+.tab {
+  float: left;
+  margin: 4px;
+  margin-bottom: 0;
+  margin-right: 0;
+  padding: 4px;
+  background: #555;
+  color: white;
+  -webkit-border-top-left-radius: 4px;
+  -webkit-border-top-right-radius: 4px;
+}
+
+.tab:last-child {
+  margin-right: 4px;
+}
