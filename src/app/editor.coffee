@@ -430,6 +430,7 @@ class Editor extends View
       @trigger 'editor-path-change'
 
     @trigger 'editor-path-change'
+    @trigger 'editor:active-edit-session-changed', index
     @resetDisplay()
 
     if @attached and @activeEditSession.buffer.isInConflict()

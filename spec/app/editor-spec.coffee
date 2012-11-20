@@ -277,6 +277,19 @@ describe "Editor", ->
         runs ->
           expect(atom.confirm).toHaveBeenCalled()
 
+      it "emits an editor:active-edit-session-changed event with the edit session and its index", ->
+        activeEditSessionChangeHandler = jasmine.createSpy('activeEditSessionChangeHandler')
+        editor.on 'editor:active-edit-session-changed', activeEditSessionChangeHandler
+
+        editor.setActiveEditSessionIndex(2)
+        expect(activeEditSessionChangeHandler).toHaveBeenCalled()
+        expect(activeEditSessionChangeHandler.argsForCall[0][1]).toBe 2
+        activeEditSessionChangeHandler.reset()
+
+        editor.setActiveEditSessionIndex(0)
+        expect(activeEditSessionChangeHandler.argsForCall[0][1]).toBe 0
+        activeEditSessionChangeHandler.reset()
+
     describe ".loadNextEditSession()", ->
       it "loads the next editor state and wraps to beginning when end is reached", ->
         expect(editor.activeEditSession).toBe session2
