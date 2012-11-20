@@ -11,14 +11,14 @@
   margin-right: 0;
   padding: 4px;
   background: #3a3a3a;
-  color: white;
+  color: #d0d0d0;
   -webkit-border-top-left-radius: 4px;
   -webkit-border-top-right-radius: 4px;
 }
 
-
 .tab.active {
   background: #555;
+  color: white;
 }
 
 .tab:last-child {
