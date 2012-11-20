@@ -1,5 +1,6 @@
 $ = require 'jquery'
-{View, $$} = require 'space-pen'
+{View} = require 'space-pen'
+Tab = require 'tabs/src/tab'
 
 module.exports =
 class Tabs extends View
@@ -32,9 +33,7 @@ class Tabs extends View
       @editor.setActiveEditSessionIndex($(e.target).closest('.tab').index())
 
   addTabForEditSession: (editSession) ->
-    @append $$ ->
-      @div class: 'tab', =>
-        @div editSession.buffer.getBaseName(), class: 'file-name'
+    @append(new Tab(editSession))
 
   setActiveTab: (index) ->
     @find(".tab.active").removeClass('active')

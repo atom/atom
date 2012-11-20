@@ -2,6 +2,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 RootView = require 'root-view'
 Tabs = require 'tabs'
+fs = require 'fs'
 
 describe "Tabs", ->
   [rootView, editor, statusBar, buffer, tabs] = []
@@ -67,3 +68,18 @@ describe "Tabs", ->
       expect(editor.getActiveEditSessionIndex()).toBe 0
       tabs.find('.tab:eq(1)').click()
       expect(editor.getActiveEditSessionIndex()).toBe 1
+
+  describe "when a file name associated with a tab changes", ->
+    [buffer, newPath] = []
+
+    beforeEach ->
+      buffer = editor.editSessions[0].buffer
+      oldPath = buffer.getPath()
+      newPath = oldPath.replace(/sample.js$/, "foobar.js")
+
+    afterEach ->
+      fs.remove(newPath)
+
+    fit "updates the file name in the tab", ->
+      buffer.saveAs(newPath)
+      expect(tabs.find('.tab:first .file-name')).toHaveText "foobar.js"
