@@ -20,12 +20,17 @@ class Tabs extends View
 
   initialize: (@editor) ->
     for editSession, index in @editor.editSessions
-      @append $$ ->
-        @div class: 'tab', =>
-          @div editSession.buffer.getBaseName(), class: 'file-name'
+      @addTabForEditSession(editSession)
 
     @setActiveTab(@editor.getActiveEditSessionIndex())
     @editor.on 'editor:active-edit-session-changed', (e, index) => @setActiveTab(index)
+
+    @editor.on 'editor:edit-session-added', (e, editSession) => @addTabForEditSession(editSession)
+
+  addTabForEditSession: (editSession) ->
+    @append $$ ->
+      @div class: 'tab', =>
+        @div editSession.buffer.getBaseName(), class: 'file-name'
 
   setActiveTab: (index) ->
     @find(".tab.active").removeClass('active')

@@ -46,3 +46,9 @@ describe "Tabs", ->
       editor.setActiveEditSessionIndex(1)
       expect(tabs.find('.active').length).toBe 1
       expect(tabs.find('.tab:eq(1)')).toHaveClass 'active'
+
+  describe "when a new edit session is created", ->
+    it "adds a tab for the new edit session", ->
+      rootView.open('two-hundred.txt')
+      expect(tabs.find('.tab').length).toBe 3
+      expect(tabs.find('.tab:eq(2) .file-name').text()).toBe 'two-hundred.txt'
