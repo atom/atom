@@ -193,11 +193,17 @@ describe "Editor", ->
       otherEditSession = rootView.project.buildEditSessionForPath()
 
     describe "when the edit session wasn't previously assigned to this editor", ->
-      it "adds edit session to editor", ->
+      it "adds edit session to editor and triggers the 'editor:edit-session-added' event", ->
+        editSessionAddedHandler = jasmine.createSpy('editSessionAddedHandler')
+        editor.on 'editor:edit-session-added', editSessionAddedHandler
+
         originalEditSessionCount = editor.editSessions.length
         editor.edit(otherEditSession)
         expect(editor.activeEditSession).toBe otherEditSession
         expect(editor.editSessions.length).toBe originalEditSessionCount + 1
+
+        expect(editSessionAddedHandler).toHaveBeenCalled()
+        expect(editSessionAddedHandler.argsForCall[0][1]).toBe otherEditSession
 
     describe "when the edit session was previously assigned to this editor", ->
       it "restores the previous edit session associated with the editor", ->

@@ -388,6 +388,7 @@ class Editor extends View
     if index == -1
       index = @editSessions.length
       @editSessions.push(editSession)
+      @trigger 'editor:edit-session-added', editSession
 
     @setActiveEditSessionIndex(index)
 
