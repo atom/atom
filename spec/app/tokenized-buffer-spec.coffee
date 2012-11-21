@@ -93,19 +93,26 @@ fdescribe "TokenizedBuffer", ->
             delete event.bufferChange
             expect(event).toEqual(start: 0, end: 2, delta: 0)
 
-          it "updates tokens for lines beyond the changed lines if needed", ->
-            buffer.insert([5, 30], '/* */')
-            changeHandler.reset()
+          describe "when the change invalidates the tokenization of subsequent lines", ->
+            it "schedules the invalidated lines to be tokenized in the background", ->
+              buffer.insert([5, 30], '/* */')
+              changeHandler.reset()
+              buffer.insert([2, 0], '/*')
+              expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js']
+              expect(changeHandler).toHaveBeenCalled()
+              [event] = changeHandler.argsForCall[0]
+              delete event.bufferChange
+              expect(event).toEqual(start: 2, end: 2, delta: 0)
+              changeHandler.reset()
 
-            buffer.insert([2, 0], '/*')
-            expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-
-            expect(changeHandler).toHaveBeenCalled()
-            [event] = changeHandler.argsForCall[0]
-            delete event.bufferChange
-            expect(event).toEqual(start: 2, end: 5, delta: 0)
+              advanceClock()
+              expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+              expect(changeHandler).toHaveBeenCalled()
+              [event] = changeHandler.argsForCall[0]
+              delete event.bufferChange
+              expect(event).toEqual(start: 3, end: 5, delta: 0)
 
           it "resumes highlighting with the state of the previous line", ->
             buffer.insert([0, 0], '/*')

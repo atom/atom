@@ -14,13 +14,14 @@ class TokenizedBuffer
   buffer: null
   aceAdaptor: null
   screenLines: null
-  untokenizedRow: 0
   chunkSize: 50
+  invalidRows: null
 
   constructor: (@buffer, { @languageMode, @tabLength }) ->
     @tabLength ?= 2
     @id = @constructor.idCounter++
     @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
+    @invalidRows = [0]
     @tokenizeInBackground()
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
@@ -41,15 +42,22 @@ class TokenizedBuffer
     # if it differs, re-tokenize the next line with the new state and repeat for
     # each line until the line's new state matches the previous state. this covers
     # cases like inserting a /* needing to comment out lines below until we see a */
-    for row in [(end + delta)...@buffer.getLastRow()]
-      break if _.isEqual(@stackForRow(row), previousStack)
-      nextRow = row + 1
-      previousStack = @stackForRow(nextRow)
-      @screenLines[nextRow] = @buildTokenizedScreenLineForRow(nextRow, @stackForRow(row))
+
+
+    unless _.isEqual(@stackForRow(end + delta), previousStack)
+      console.log "spill"
+      @invalidRows.unshift(end + 1)
+      @tokenizeInBackground()
+
+#     for row in [(end + delta)...@buffer.getLastRow()]
+#
+#       nextRow = row + 1
+#       previousStack = @stackForRow(nextRow)
+#       @screenLines[nextRow] = @buildTokenizedScreenLineForRow(nextRow, @stackForRow(row))
 
     # if highlighting spilled beyond the bounds of the textual change, update the
     # end of the affected range to reflect the larger area of highlighting
-    end = Math.max(end, nextRow - delta) if nextRow
+#     end = Math.max(end, nextRow - delta) if nextRow
     @trigger "change", { start, end, delta, bufferChange: e }
 
   getTabLength: ->
@@ -57,29 +65,42 @@ class TokenizedBuffer
 
   setTabLength: (@tabLength) ->
     lastRow = @buffer.getLastRow()
-    @untokenizedRow = 0
+    @invalidRows = [0]
     @screenLines = @buildPlaceholderScreenLinesForRows(0, lastRow)
     @tokenizeInBackground()
     @trigger "change", { start: 0, end: lastRow, delta: 0 }
 
   tokenizeInBackground: ->
-    return if @pendingChunk or @untokenizedRow > @buffer.getLastRow()
+    return if @pendingChunk
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false
       @tokenizeNextChunk()
 
   tokenizeNextChunk: ->
-    lastRow = @buffer.getLastRow()
-    stack = @stackForRow(@untokenizedRow - 1)
-    start = @untokenizedRow
-    end = Math.min(start + @chunkSize - 1, lastRow)
+    rowsRemaining = @chunkSize
 
-    @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end, stack)
-    @trigger "change", { start, end, delta: 0}
+    while @invalidRows.length and rowsRemaining > 0
+      invalidRow = @invalidRows.shift()
+      lastRow = @getLastRow()
+      continue if invalidRow > lastRow
 
-    @untokenizedRow = end + 1
-    @tokenizeInBackground() if @untokenizedRow <= lastRow
+      filledRegion = false
+      row = invalidRow
+      loop
+        previousStack = @stackForRow(row)
+        @screenLines[row] = @buildTokenizedScreenLineForRow(row, @stackForRow(row - 1))
+        if row == lastRow or _.isEqual(@stackForRow(row), previousStack)
+          filledRegion = true
+          break
+        if --rowsRemaining == 0
+          break
+        row++
+
+      @trigger "change", { start: invalidRow, end: row, delta: 0}
+      @invalidRows.unshift(row + 1) unless filledRegion
+
+    @tokenizeInBackground()
 
   buildPlaceholderScreenLinesForRows: (startRow, endRow) ->
     @buildPlaceholderScreenLineForRow(row) for row in [startRow..endRow]
