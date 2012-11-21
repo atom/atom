@@ -33,6 +33,7 @@ class TokenizedBuffer
     previousStack = @stackForRow(end) # used in spill detection below
 
     stack = @stackForRow(start - 1)
+
     @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
 
     # spill detection
@@ -49,7 +50,6 @@ class TokenizedBuffer
     # if highlighting spilled beyond the bounds of the textual change, update the
     # end of the affected range to reflect the larger area of highlighting
     end = Math.max(end, nextRow - delta) if nextRow
-
     @trigger "change", { start, end, delta, bufferChange: e }
 
   getTabLength: ->
@@ -177,6 +177,9 @@ class TokenizedBuffer
             position = startPosition
             stop()
     position
+
+  getLastRow: ->
+    @buffer.getLastRow()
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]

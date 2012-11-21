@@ -4,75 +4,84 @@ Buffer = require 'buffer'
 Range = require 'range'
 _ = require 'underscore'
 
-describe "TokenizedBuffer", ->
+fdescribe "TokenizedBuffer", ->
   [editSession, tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->
-    editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
-    buffer = editSession.buffer
-    tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
-    changeHandler = jasmine.createSpy('changeHandler')
-    tokenizedBuffer.on "change", changeHandler
+    # enable async tokenization
+    TokenizedBuffer.prototype.chunkSize = 5
+    jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
 
-  afterEach ->
-    editSession.destroy()
+  fullyTokenize = (tokenizedBuffer) ->
+    advanceClock() while tokenizedBuffer.untokenizedRow <= tokenizedBuffer.getLastRow()
+    changeHandler.reset()
 
-  describe ".findOpeningBracket(closingBufferPosition)", ->
-    it "returns the position of the matching bracket, skipping any nested brackets", ->
-      expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
+  describe "when the buffer contains soft-tabs", ->
+    beforeEach ->
+      editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
+      buffer = editSession.buffer
+      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      changeHandler = jasmine.createSpy('changeHandler')
+      tokenizedBuffer.on "change", changeHandler
 
-  describe ".findClosingBracket(startBufferPosition)", ->
-    it "returns the position of the matching bracket, skipping any nested brackets", ->
-      expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
+    afterEach ->
+      editSession.destroy()
 
-  describe "tokenization", ->
-    xit "only creates untokenized screen lines on construction", ->
-      line0 = tokenizedBuffer.lineForScreenRow(0)
-      expect(line0.tokens.length).toBe 1
-      expect(line0.tokens[0]).toEqual(value: line0.text, scopes: ['source.js'])
+    describe "on construction", ->
+      it "initially creates un-tokenized screen lines, then tokenizes lines chunk at a time in the background", ->
+        line0 = tokenizedBuffer.lineForScreenRow(0)
+        expect(line0.tokens.length).toBe 1
+        expect(line0.tokens[0]).toEqual(value: line0.text, scopes: ['source.js'])
 
-      line11 = tokenizedBuffer.lineForScreenRow(11)
-      expect(line11.tokens.length).toBe 2
-      expect(line11.tokens[0]).toEqual(value: "  ", scopes: ['source.js'], isAtomic: true)
-      expect(line11.tokens[1]).toEqual(value: "return sort(Array.apply(this, arguments));", scopes: ['source.js'])
+        line11 = tokenizedBuffer.lineForScreenRow(11)
+        expect(line11.tokens.length).toBe 2
+        expect(line11.tokens[0]).toEqual(value: "  ", scopes: ['source.js'], isAtomic: true)
+        expect(line11.tokens[1]).toEqual(value: "return sort(Array.apply(this, arguments));", scopes: ['source.js'])
 
-    xdescribe "when #tokenizeInBackground() is called", ->
-      it "tokenizes screen lines one chunk at a time asynchronously after calling #activate()", ->
-        tokenizedBuffer.chunkSize = 5
-        tokenizedBuffer.tokenizeInBackground()
+        # background tokenization has not begun
+        expect(tokenizedBuffer.lineForScreenRow(0).ruleStack).toBeUndefined()
 
-        line0 = tokenizedBuffer.lineForScreenRow(0) # kicks off tokenization
-        expect(line0.ruleStack).toBeUndefined()
-
-        advanceClock() # trigger deferred code
+        # tokenize chunk 1
+        advanceClock()
         expect(tokenizedBuffer.lineForScreenRow(0).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.lineForScreenRow(4).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeFalsy()
         expect(changeHandler).toHaveBeenCalledWith(start: 0, end: 4, delta: 0)
         changeHandler.reset()
 
-        advanceClock() # trigger deferred code again
+        # tokenize chunk 2
+        advanceClock()
         expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.lineForScreenRow(9).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.lineForScreenRow(10).ruleStack?).toBeFalsy()
         expect(changeHandler).toHaveBeenCalledWith(start: 5, end: 9, delta: 0)
         changeHandler.reset()
 
-        advanceClock() # trigger deferred code again
+        # tokenize last chunk
+        advanceClock()
         expect(tokenizedBuffer.lineForScreenRow(10).ruleStack?).toBeTruthy()
         expect(tokenizedBuffer.lineForScreenRow(12).ruleStack?).toBeTruthy()
         expect(changeHandler).toHaveBeenCalledWith(start: 10, end: 12, delta: 0)
 
-    it "tokenizes all the lines in the buffer on construction", ->
-      expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
-      expect(tokenizedBuffer.lineForScreenRow(11).tokens[1]).toEqual(value: 'return', scopes: ['source.js', 'keyword.control.js'])
+    describe "when the buffer is partially tokenized", ->
+      beforeEach ->
+        # tokenize chunk 1 only
+        advanceClock()
 
-    describe "when there is a buffer change starting in the tokenized region", ->
-      describe "when the change causes fewer than @chunkSize lines to be retokenized", ->
+      describe "when there is a buffer change inside a tokenized region", ->
+
+      describe "when there is a buffer change surrounding an invalid row", ->
+
+      describe "when there is a buffer change inside an invalid region", ->
+
+    describe "when the buffer is fully tokenized", ->
+      beforeEach ->
+        fullyTokenize(tokenizedBuffer)
+
+      describe "when there is a buffer change that is smaller than the chunk size", ->
         describe "when lines are updated, but none are added or removed", ->
-          it "updates tokens for each of the changed lines", ->
-            range = new Range([0, 0], [2, 0])
-            buffer.change(range, "foo()\n7\n")
+          it "updates tokens to reflect the change", ->
+            buffer.change([[0, 0], [2, 0]], "foo()\n7\n")
 
             expect(tokenizedBuffer.lineForScreenRow(0).tokens[1]).toEqual(value: '(', scopes: ['source.js', 'meta.brace.round.js'])
             expect(tokenizedBuffer.lineForScreenRow(1).tokens[0]).toEqual(value: '7', scopes: ['source.js', 'constant.numeric.js'])
@@ -184,33 +193,44 @@ describe "TokenizedBuffer", ->
             delete event.bufferChange
             expect(event).toEqual(start: 2, end: 5, delta: 2)
 
-      describe "when the change causes more than @chunkSize lines to be retokenized", ->
-        describe "when the buffer change itself is larger than the chunk size", ->
+      describe ".findOpeningBracket(closingBufferPosition)", ->
+        it "returns the position of the matching bracket, skipping any nested brackets", ->
+          expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
 
-        describe "when the buffer change is smaller than the chunk size, but the scope of rehighlighting is larger", ->
+      describe ".findClosingBracket(startBufferPosition)", ->
+        it "returns the position of the matching bracket, skipping any nested brackets", ->
+          expect(tokenizedBuffer.findClosingBracket([1, 29])).toEqual [9, 2]
 
-        describe "when the end of rehighlighted region is outside the tokenized region", ->
-          it "extends the boundary of the tokenized region and resumes tokenizing after it", ->
+      it "tokenizes leading whitespace based on the new tab length", ->
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].value).toBe "  "
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].value).toBe "  "
 
+        tokenizedBuffer.setTabLength(4)
+        fullyTokenize(tokenizedBuffer)
 
-    describe "when there is a buffer change in the untokenized region", ->
-      it "updates the untokenized screen lines to match the buffer but does not tokenize the lines", ->
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].isAtomic).toBeTruthy()
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].value).toBe "    "
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].isAtomic).toBeFalsy()
+        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].value).toBe "  current "
 
+  describe "when the buffer contains hard-tabs", ->
+    beforeEach ->
+      tabLength = 2
+      editSession = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', { tabLength })
+      buffer = editSession.buffer
+      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
 
-    describe "when the buffer contains tab characters", ->
-      editSession2 = null
+    afterEach ->
+      editSession.destroy()
 
+    describe "when the buffer is fully tokenized", ->
       beforeEach ->
-        tabLength = 2
-        editSession2 = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', { tabLength })
-        buffer = editSession2.buffer
-        tokenizedBuffer = editSession2.displayBuffer.tokenizedBuffer
+        fullyTokenize(tokenizedBuffer)
 
-      afterEach ->
-        editSession2.destroy()
-
-      it "always renders each tab as its own atomic token with a value of size tabLength", ->
-        tabAsSpaces = _.multiplyString(' ', editSession2.getTabLength())
+      it "renders each tab as its own atomic token with a value of size tabLength", ->
+        tabAsSpaces = _.multiplyString(' ', editSession.getTabLength())
         screenLine0 = tokenizedBuffer.lineForScreenRow(0)
         expect(screenLine0.text).toBe "# Econ 101#{tabAsSpaces}"
         { tokens } = screenLine0
@@ -224,16 +244,3 @@ describe "TokenizedBuffer", ->
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 
-  describe ".setTabLength(tabLength)", ->
-    describe "when the file contains soft tabs", ->
-      it "retokenizes leading whitespace based on the new tab length", ->
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].isAtomic).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].value).toBe "  "
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].isAtomic).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].value).toBe "  "
-
-        tokenizedBuffer.setTabLength(4)
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].isAtomic).toBeTruthy()
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].value).toBe "    "
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].isAtomic).toBeFalsy()
-        expect(tokenizedBuffer.lineForScreenRow(5).tokens[1].value).toBe "  current "
