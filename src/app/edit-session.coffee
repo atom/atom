@@ -84,9 +84,6 @@ class EditSession
   copy: ->
     EditSession.deserialize(@serialize(), @project)
 
-  activate: ->
-    @displayBuffer.tokenizeInBackground()
-
   isEqual: (other) ->
     return false unless other instanceof EditSession
     @buffer == other.buffer and

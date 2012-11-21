@@ -21,6 +21,7 @@ class TokenizedBuffer
     @tabLength ?= 2
     @id = @constructor.idCounter++
     @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
+    @tokenizeInBackground()
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
@@ -32,7 +33,7 @@ class TokenizedBuffer
     previousStack = @stackForRow(end) # used in spill detection below
 
     stack = @stackForRow(start - 1)
-    @screenLines[start..end] = @buildPlaceholderScreenLinesForRows(start, end + delta, stack)
+    @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
 
     # spill detection
     # compare scanner state of last re-highlighted line with its previous state.
@@ -56,26 +57,29 @@ class TokenizedBuffer
 
   setTabLength: (@tabLength) ->
     lastRow = @buffer.getLastRow()
+    @untokenizedRow = 0
     @screenLines = @buildPlaceholderScreenLinesForRows(0, lastRow)
+    @tokenizeInBackground()
     @trigger "change", { start: 0, end: lastRow, delta: 0 }
 
   tokenizeInBackground: ->
-    return if @tokenizingInBackground
-    @tokenizingInBackground = true
-    _.defer => @tokenizeNextChunk()
+    return if @pendingChunk or @untokenizedRow > @buffer.getLastRow()
+    @pendingChunk = true
+    _.defer =>
+      @pendingChunk = false
+      @tokenizeNextChunk()
 
   tokenizeNextChunk: ->
     lastRow = @buffer.getLastRow()
     stack = @stackForRow(@untokenizedRow - 1)
     start = @untokenizedRow
     end = Math.min(start + @chunkSize - 1, lastRow)
+
     @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end, stack)
     @trigger "change", { start, end, delta: 0}
 
     @untokenizedRow = end + 1
-
-    if @untokenizedRow <= lastRow
-      _.defer => @tokenizeNextChunk()
+    @tokenizeInBackground() if @untokenizedRow <= lastRow
 
   buildPlaceholderScreenLinesForRows: (startRow, endRow) ->
     @buildPlaceholderScreenLineForRow(row) for row in [startRow..endRow]
@@ -101,7 +105,6 @@ class TokenizedBuffer
     @linesForScreenRows(row, row)[0]
 
   linesForScreenRows: (startRow, endRow) ->
-    @tokenizeInBackground()
     @screenLines[startRow..endRow]
 
   stackForRow: (row) ->

@@ -39,9 +39,6 @@ class DisplayBuffer
     bufferDelta = 0
     @trigger 'change', { start, end, screenDelta, bufferDelta }
 
-  tokenizeInBackground: ->
-    @tokenizedBuffer.tokenizeInBackground()
-
   lineForRow: (row) ->
     @lineMap.lineForScreenRow(row)
 

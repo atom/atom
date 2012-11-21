@@ -422,7 +422,6 @@ class Editor extends View
       @activeEditSession.off()
 
     @activeEditSession = @editSessions[index]
-    @activeEditSession.activate()
 
     @activeEditSession.on "buffer-contents-change-on-disk", =>
       @showBufferConflictAlert(@activeEditSession)
