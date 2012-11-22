@@ -31,14 +31,13 @@ class TokenizedBuffer
     end = oldRange.end.row
     delta = newRange.end.row - oldRange.end.row
 
+    @updateInvalidRows(start, end, delta)
+
     previousStack = @stackForRow(end) # used in spill detection below
-
     stack = @stackForRow(start - 1)
-
     @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
 
     unless _.isEqual(@stackForRow(end + delta), previousStack)
-      console.log "spill"
       @invalidateRow(end + delta + 1)
 
     @trigger "change", { start, end, delta, bufferChange: e }
@@ -72,6 +71,7 @@ class TokenizedBuffer
       loop
         previousStack = @stackForRow(row)
         @screenLines[row] = @buildTokenizedScreenLineForRow(row, @stackForRow(row - 1))
+        @validateRow(row)
         if --rowsRemaining == 0
           break
         if row == lastRow or _.isEqual(@stackForRow(row), previousStack)
@@ -191,6 +191,15 @@ class TokenizedBuffer
     @invalidRows.push(row)
     @invalidRows.sort()
     @tokenizeInBackground()
+
+  validateRow: (row) ->
+    @invalidRows.shift() if @invalidRows[0] == row
+
+  updateInvalidRows: (start, end, delta) ->
+    updatedRows = []
+    for row in @invalidRows
+      updatedRows.push(row + delta)
+    @invalidRows = updatedRows
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]

@@ -67,8 +67,39 @@ fdescribe "TokenizedBuffer", ->
       beforeEach ->
         # tokenize chunk 1 only
         advanceClock()
+        changeHandler.reset()
 
-      describe "when there is a buffer change inside a tokenized region", ->
+      describe "when there is a buffer change inside the tokenized region", ->
+        describe "when lines are added", ->
+          it "pushes the invalid rows down", ->
+            expect(tokenizedBuffer.firstInvalidRow()).toBe 5
+            buffer.insert([1, 0], '\n\n')
+            changeHandler.reset()
+
+            expect(tokenizedBuffer.firstInvalidRow()).toBe 7
+            advanceClock()
+            expect(changeHandler).toHaveBeenCalledWith(start: 7, end: 11, delta: 0)
+
+        describe "when lines are removed", ->
+          it "pulls the invalid rows up", ->
+            expect(tokenizedBuffer.firstInvalidRow()).toBe 5
+            buffer.delete([[1, 0], [3, 0]])
+            changeHandler.reset()
+
+            expect(tokenizedBuffer.firstInvalidRow()).toBe 3
+            advanceClock()
+            expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 7, delta: 0)
+
+        describe "when the change invalidates all the lines before the current invalid region", ->
+          it "retokenizes the invalidated lines and continues into the valid region", ->
+            expect(tokenizedBuffer.firstInvalidRow()).toBe 5
+            buffer.insert([2, 0], '/*')
+            changeHandler.reset()
+            expect(tokenizedBuffer.firstInvalidRow()).toBe 3
+
+            advanceClock()
+            expect(changeHandler).toHaveBeenCalledWith(start: 3, end: 7, delta: 0)
+            expect(tokenizedBuffer.firstInvalidRow()).toBe 8
 
       describe "when there is a buffer change surrounding an invalid row", ->
 
