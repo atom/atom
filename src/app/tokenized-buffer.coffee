@@ -21,8 +21,8 @@ class TokenizedBuffer
     @tabLength ?= 2
     @id = @constructor.idCounter++
     @screenLines = @buildPlaceholderScreenLinesForRows(0, @buffer.getLastRow())
-    @invalidRows = [0]
-    @tokenizeInBackground()
+    @invalidRows = []
+    @invalidateRow(0)
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
   handleBufferChange: (e) ->
@@ -37,27 +37,10 @@ class TokenizedBuffer
 
     @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
 
-    # spill detection
-    # compare scanner state of last re-highlighted line with its previous state.
-    # if it differs, re-tokenize the next line with the new state and repeat for
-    # each line until the line's new state matches the previous state. this covers
-    # cases like inserting a /* needing to comment out lines below until we see a */
-
-
     unless _.isEqual(@stackForRow(end + delta), previousStack)
       console.log "spill"
-      @invalidRows.unshift(end + 1)
-      @tokenizeInBackground()
+      @invalidateRow(end + delta + 1)
 
-#     for row in [(end + delta)...@buffer.getLastRow()]
-#
-#       nextRow = row + 1
-#       previousStack = @stackForRow(nextRow)
-#       @screenLines[nextRow] = @buildTokenizedScreenLineForRow(nextRow, @stackForRow(row))
-
-    # if highlighting spilled beyond the bounds of the textual change, update the
-    # end of the affected range to reflect the larger area of highlighting
-#     end = Math.max(end, nextRow - delta) if nextRow
     @trigger "change", { start, end, delta, bufferChange: e }
 
   getTabLength: ->
@@ -65,9 +48,8 @@ class TokenizedBuffer
 
   setTabLength: (@tabLength) ->
     lastRow = @buffer.getLastRow()
-    @invalidRows = [0]
     @screenLines = @buildPlaceholderScreenLinesForRows(0, lastRow)
-    @tokenizeInBackground()
+    @invalidateRow(0)
     @trigger "change", { start: 0, end: lastRow, delta: 0 }
 
   tokenizeInBackground: ->
@@ -90,15 +72,15 @@ class TokenizedBuffer
       loop
         previousStack = @stackForRow(row)
         @screenLines[row] = @buildTokenizedScreenLineForRow(row, @stackForRow(row - 1))
+        if --rowsRemaining == 0
+          break
         if row == lastRow or _.isEqual(@stackForRow(row), previousStack)
           filledRegion = true
-          break
-        if --rowsRemaining == 0
           break
         row++
 
       @trigger "change", { start: invalidRow, end: row, delta: 0}
-      @invalidRows.unshift(row + 1) unless filledRegion
+      @invalidateRow(row + 1) unless filledRegion
 
     @tokenizeInBackground()
 
@@ -201,6 +183,14 @@ class TokenizedBuffer
 
   getLastRow: ->
     @buffer.getLastRow()
+
+  firstInvalidRow: ->
+    @invalidRows[0]
+
+  invalidateRow: (row) ->
+    @invalidRows.push(row)
+    @invalidRows.sort()
+    @tokenizeInBackground()
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]

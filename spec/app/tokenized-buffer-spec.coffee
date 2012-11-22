@@ -13,7 +13,7 @@ fdescribe "TokenizedBuffer", ->
     jasmine.unspy(TokenizedBuffer.prototype, 'tokenizeInBackground')
 
   fullyTokenize = (tokenizedBuffer) ->
-    advanceClock() while tokenizedBuffer.untokenizedRow <= tokenizedBuffer.getLastRow()
+    advanceClock() while tokenizedBuffer.firstInvalidRow()?
     changeHandler.reset()
 
   describe "when the buffer contains soft-tabs", ->
@@ -76,6 +76,7 @@ fdescribe "TokenizedBuffer", ->
 
     describe "when the buffer is fully tokenized", ->
       beforeEach ->
+        console.log "FULLY TOKENIZE"
         fullyTokenize(tokenizedBuffer)
 
       describe "when there is a buffer change that is smaller than the chunk size", ->
@@ -122,9 +123,8 @@ fdescribe "TokenizedBuffer", ->
             expect(tokenizedBuffer.lineForScreenRow(1).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
 
         describe "when lines are both updated and removed", ->
-          it "updates tokens to reflect the removed lines", ->
-            range = new Range([1, 0], [3, 0])
-            buffer.change(range, "foo()")
+          it "updates tokens to reflect the change", ->
+            buffer.change([[1, 0], [3, 0]], "foo()")
 
             # previous line 0 remains
             expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual(value: 'var', scopes: ['source.js', 'storage.modifier.js'])
@@ -143,24 +143,31 @@ fdescribe "TokenizedBuffer", ->
             delete event.bufferChange
             expect(event).toEqual(start: 1, end: 3, delta: -2)
 
-          it "updates tokens for lines beyond the changed lines if needed", ->
+        describe "when the change invalidates the tokenization of subsequent lines", ->
+          it "schedules the invalidated lines to be tokenized in the background", ->
             buffer.insert([5, 30], '/* */')
             changeHandler.reset()
 
-            buffer.change(new Range([2, 0], [3, 0]), '/*')
+            buffer.change([[2, 0], [3, 0]], '/*')
             expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
-            expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-            expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
-
+            expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js']
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 2, end: 5, delta: -1)
+            expect(event).toEqual(start: 2, end: 3, delta: -1)
+            changeHandler.reset()
+
+            advanceClock()
+            expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            delete event.bufferChange
+            expect(event).toEqual(start: 3, end: 4, delta: 0)
 
         describe "when lines are both updated and inserted", ->
-          it "updates tokens to reflect the inserted lines", ->
-            range = new Range([1, 0], [2, 0])
-            buffer.change(range, "foo()\nbar()\nbaz()\nquux()")
+          it "updates tokens to reflect the change", ->
+            buffer.change([[1, 0], [2, 0]], "foo()\nbar()\nbaz()\nquux()")
 
             # previous line 0 remains
             expect(tokenizedBuffer.lineForScreenRow(0).tokens[0]).toEqual( value: 'var', scopes: ['source.js', 'storage.modifier.js'])
@@ -182,14 +189,23 @@ fdescribe "TokenizedBuffer", ->
             delete event.bufferChange
             expect(event).toEqual(start: 1, end: 2, delta: 2)
 
-          it "updates tokens for lines beyond the changed lines if needed", ->
+        describe "when the change invalidates the tokenization of subsequent lines", ->
+          it "schedules the invalidated lines to be tokenized in the background", ->
             buffer.insert([5, 30], '/* */')
             changeHandler.reset()
 
             buffer.insert([2, 0], '/*\nabcde\nabcder')
+            expect(changeHandler).toHaveBeenCalled()
+            [event] = changeHandler.argsForCall[0]
+            delete event.bufferChange
+            expect(event).toEqual(start: 2, end: 2, delta: 2)
             expect(tokenizedBuffer.lineForScreenRow(2).tokens[0].scopes).toEqual ['source.js', 'comment.block.js', 'punctuation.definition.comment.js']
             expect(tokenizedBuffer.lineForScreenRow(3).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.lineForScreenRow(4).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
+            expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js']
+            changeHandler.reset()
+
+            advanceClock() # tokenize invalidated lines in background
             expect(tokenizedBuffer.lineForScreenRow(5).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.lineForScreenRow(6).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
             expect(tokenizedBuffer.lineForScreenRow(7).tokens[0].scopes).toEqual ['source.js', 'comment.block.js']
@@ -198,7 +214,7 @@ fdescribe "TokenizedBuffer", ->
             expect(changeHandler).toHaveBeenCalled()
             [event] = changeHandler.argsForCall[0]
             delete event.bufferChange
-            expect(event).toEqual(start: 2, end: 5, delta: 2)
+            expect(event).toEqual(start: 5, end: 7, delta: 0)
 
       describe ".findOpeningBracket(closingBufferPosition)", ->
         it "returns the position of the matching bracket, skipping any nested brackets", ->
