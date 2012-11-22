@@ -76,7 +76,6 @@ fdescribe "TokenizedBuffer", ->
 
     describe "when the buffer is fully tokenized", ->
       beforeEach ->
-        console.log "FULLY TOKENIZE"
         fullyTokenize(tokenizedBuffer)
 
       describe "when there is a buffer change that is smaller than the chunk size", ->
