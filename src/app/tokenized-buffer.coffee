@@ -34,8 +34,12 @@ class TokenizedBuffer
     @updateInvalidRows(start, end, delta)
 
     previousStack = @stackForRow(end) # used in spill detection below
+
     stack = @stackForRow(start - 1)
-    @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
+    if stack? or start == 0
+      @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
+    else
+      @screenLines[start..end] = @buildPlaceholderScreenLinesForRows(start, end + delta, stack)
 
     unless _.isEqual(@stackForRow(end + delta), previousStack)
       @invalidateRow(end + delta + 1)
@@ -189,7 +193,7 @@ class TokenizedBuffer
 
   invalidateRow: (row) ->
     @invalidRows.push(row)
-    @invalidRows.sort()
+    @invalidRows.sort (a, b) -> a - b
     @tokenizeInBackground()
 
   validateRow: (row) ->
@@ -198,7 +202,13 @@ class TokenizedBuffer
   updateInvalidRows: (start, end, delta) ->
     updatedRows = []
     for row in @invalidRows
-      updatedRows.push(row + delta)
+      if row < start
+        updatedRows.push(row)
+      else if start <= row <= end
+        updatedRows.push(end + delta + 1)
+      else if row > end
+        updatedRows.push(row + delta)
+
     @invalidRows = updatedRows
 
   logLines: (start=0, end=@buffer.getLastRow()) ->

@@ -102,8 +102,23 @@ fdescribe "TokenizedBuffer", ->
             expect(tokenizedBuffer.firstInvalidRow()).toBe 8
 
       describe "when there is a buffer change surrounding an invalid row", ->
+        it "pushes the invalid row to the end of the change", ->
+          buffer.change([[4, 0], [6, 0]], "\n\n\n")
+          changeHandler.reset()
+
+          expect(tokenizedBuffer.firstInvalidRow()).toBe 8
+          advanceClock()
 
       describe "when there is a buffer change inside an invalid region", ->
+        it "does not attempt to tokenize the lines in the change, and preserves the existing invalid row", ->
+          expect(tokenizedBuffer.firstInvalidRow()).toBe 5
+          buffer.change([[6, 0], [7, 0]], "\n\n\n")
+
+          expect(tokenizedBuffer.lineForScreenRow(6).ruleStack?).toBeFalsy()
+          expect(tokenizedBuffer.lineForScreenRow(7).ruleStack?).toBeFalsy()
+
+          changeHandler.reset()
+          expect(tokenizedBuffer.firstInvalidRow()).toBe 5
 
     describe "when the buffer is fully tokenized", ->
       beforeEach ->
