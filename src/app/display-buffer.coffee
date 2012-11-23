@@ -27,6 +27,8 @@ class DisplayBuffer
     @buildLineMap()
     @tokenizedBuffer.on 'change', (e) => @handleTokenizedBufferChange(e)
 
+  setVisible: (visible) -> @tokenizedBuffer.setVisible(visible)
+
   buildLineMap: ->
     @lineMap = new LineMap
     @lineMap.insertAtScreenRow 0, @buildLinesForBufferRows(0, @buffer.getLastRow())

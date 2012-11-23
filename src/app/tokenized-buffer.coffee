@@ -16,6 +16,7 @@ class TokenizedBuffer
   screenLines: null
   chunkSize: 50
   invalidRows: null
+  visible: false
 
   constructor: (@buffer, { @languageMode, @tabLength }) ->
     @tabLength ?= 2
@@ -24,6 +25,9 @@ class TokenizedBuffer
     @invalidRows = []
     @invalidateRow(0)
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
+
+  setVisible: (@visible) ->
+    @tokenizeInBackground() if @visible
 
   getTabLength: ->
     @tabLength
@@ -35,7 +39,7 @@ class TokenizedBuffer
     @trigger "change", { start: 0, end: lastRow, delta: 0 }
 
   tokenizeInBackground: ->
-    return if @pendingChunk
+    return if not @visible or @pendingChunk
     @pendingChunk = true
     _.defer =>
       @pendingChunk = false

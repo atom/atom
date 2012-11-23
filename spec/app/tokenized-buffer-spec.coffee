@@ -21,6 +21,7 @@ describe "TokenizedBuffer", ->
       editSession = fixturesProject.buildEditSessionForPath('sample.js', autoIndent: false)
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      editSession.setVisible(true)
       changeHandler = jasmine.createSpy('changeHandler')
       tokenizedBuffer.on "change", changeHandler
 
@@ -289,6 +290,7 @@ describe "TokenizedBuffer", ->
       editSession = fixturesProject.buildEditSessionForPath('sample-with-tabs.coffee', { tabLength })
       buffer = editSession.buffer
       tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      editSession.setVisible(true)
 
     afterEach ->
       editSession.destroy()
