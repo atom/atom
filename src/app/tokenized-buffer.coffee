@@ -70,23 +70,43 @@ class TokenizedBuffer
       lastRow = @getLastRow()
       continue if invalidRow > lastRow
 
-      filledRegion = false
       row = invalidRow
       loop
         previousStack = @stackForRow(row)
         @screenLines[row] = @buildTokenizedScreenLineForRow(row, @stackForRow(row - 1))
-        @validateRow(row)
         if --rowsRemaining == 0
+          filledRegion = false
           break
         if row == lastRow or _.isEqual(@stackForRow(row), previousStack)
           filledRegion = true
           break
         row++
 
-      @trigger "change", { start: invalidRow, end: row, delta: 0}
+      @validateRow(row)
       @invalidateRow(row + 1) unless filledRegion
+      @trigger "change", { start: invalidRow, end: row, delta: 0 }
 
     @tokenizeInBackground()
+
+  firstInvalidRow: ->
+    @invalidRows[0]
+
+  validateRow: (row) ->
+    @invalidRows.shift() while @invalidRows[0] <= row
+
+  invalidateRow: (row) ->
+    @invalidRows.push(row)
+    @invalidRows.sort (a, b) -> a - b
+    @tokenizeInBackground()
+
+  updateInvalidRows: (start, end, delta) ->
+    @invalidRows = @invalidRows.map (row) ->
+      if row < start
+        row
+      else if start <= row <= end
+        end + delta + 1
+      else if row > end
+        row + delta
 
   buildPlaceholderScreenLinesForRows: (startRow, endRow) ->
     @buildPlaceholderScreenLineForRow(row) for row in [startRow..endRow]
@@ -187,29 +207,6 @@ class TokenizedBuffer
 
   getLastRow: ->
     @buffer.getLastRow()
-
-  firstInvalidRow: ->
-    @invalidRows[0]
-
-  invalidateRow: (row) ->
-    @invalidRows.push(row)
-    @invalidRows.sort (a, b) -> a - b
-    @tokenizeInBackground()
-
-  validateRow: (row) ->
-    @invalidRows.shift() if @invalidRows[0] == row
-
-  updateInvalidRows: (start, end, delta) ->
-    updatedRows = []
-    for row in @invalidRows
-      if row < start
-        updatedRows.push(row)
-      else if start <= row <= end
-        updatedRows.push(end + delta + 1)
-      else if row > end
-        updatedRows.push(row + delta)
-
-    @invalidRows = updatedRows
 
   logLines: (start=0, end=@buffer.getLastRow()) ->
     for row in [start..end]
