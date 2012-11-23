@@ -10,6 +10,7 @@ RootView = require 'root-view'
 Editor = require 'editor'
 TextMateBundle = require 'text-mate-bundle'
 TextMateTheme = require 'text-mate-theme'
+TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
 require 'window'
 
@@ -28,6 +29,10 @@ beforeEach ->
   spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
   spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
   spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
+
+  # make tokenization synchronous
+  TokenizedBuffer.prototype.chunkSize = Infinity
+  spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
 afterEach ->
   delete window.rootView if window.rootView

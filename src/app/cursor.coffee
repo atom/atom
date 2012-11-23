@@ -107,7 +107,6 @@ class Cursor
   moveToFirstCharacterOfLine: ->
     position = @getBufferPosition()
     range = @getCurrentLineBufferRange()
-    console.log range.inspect()
     newPosition = null
     @editSession.scanInRange /^\s*/, range, (match, matchRange) =>
       newPosition = matchRange.end
