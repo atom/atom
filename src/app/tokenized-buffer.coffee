@@ -25,27 +25,6 @@ class TokenizedBuffer
     @invalidateRow(0)
     @buffer.on "change.tokenized-buffer#{@id}", (e) => @handleBufferChange(e)
 
-  handleBufferChange: (e) ->
-    {oldRange, newRange} = e
-    start = oldRange.start.row
-    end = oldRange.end.row
-    delta = newRange.end.row - oldRange.end.row
-
-    @updateInvalidRows(start, end, delta)
-
-    previousStack = @stackForRow(end) # used in spill detection below
-
-    stack = @stackForRow(start - 1)
-    if stack? or start == 0
-      @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
-    else
-      @screenLines[start..end] = @buildPlaceholderScreenLinesForRows(start, end + delta, stack)
-
-    unless _.isEqual(@stackForRow(end + delta), previousStack)
-      @invalidateRow(end + delta + 1)
-
-    @trigger "change", { start, end, delta, bufferChange: e }
-
   getTabLength: ->
     @tabLength
 
@@ -107,6 +86,27 @@ class TokenizedBuffer
         end + delta + 1
       else if row > end
         row + delta
+
+  handleBufferChange: (e) ->
+    {oldRange, newRange} = e
+    start = oldRange.start.row
+    end = oldRange.end.row
+    delta = newRange.end.row - oldRange.end.row
+
+    @updateInvalidRows(start, end, delta)
+
+    previousStack = @stackForRow(end) # used in spill detection below
+
+    stack = @stackForRow(start - 1)
+    if stack? or start == 0
+      @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
+    else
+      @screenLines[start..end] = @buildPlaceholderScreenLinesForRows(start, end + delta, stack)
+
+    unless _.isEqual(@stackForRow(end + delta), previousStack)
+      @invalidateRow(end + delta + 1)
+
+    @trigger "change", { start, end, delta, bufferChange: e }
 
   buildPlaceholderScreenLinesForRows: (startRow, endRow) ->
     @buildPlaceholderScreenLineForRow(row) for row in [startRow..endRow]
