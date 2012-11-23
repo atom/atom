@@ -4,7 +4,7 @@ Buffer = require 'buffer'
 Range = require 'range'
 _ = require 'underscore'
 
-fdescribe "TokenizedBuffer", ->
+describe "TokenizedBuffer", ->
   [editSession, tokenizedBuffer, buffer, changeHandler] = []
 
   beforeEach ->

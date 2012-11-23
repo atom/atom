@@ -65,7 +65,7 @@ class TokenizedBuffer
   tokenizeNextChunk: ->
     rowsRemaining = @chunkSize
 
-    while @invalidRows.length and rowsRemaining > 0
+    while @firstInvalidRow()? and rowsRemaining > 0
       invalidRow = @invalidRows.shift()
       lastRow = @getLastRow()
       continue if invalidRow > lastRow
@@ -86,7 +86,7 @@ class TokenizedBuffer
       @invalidateRow(row + 1) unless filledRegion
       @trigger "change", { start: invalidRow, end: row, delta: 0 }
 
-    @tokenizeInBackground()
+    @tokenizeInBackground() if @firstInvalidRow()?
 
   firstInvalidRow: ->
     @invalidRows[0]
