@@ -91,6 +91,8 @@ class EditSession
       @scrollLeft == other.getScrollLeft() and
       @getCursorScreenPosition().isEqual(other.getCursorScreenPosition())
 
+  setVisible: (visible) -> @displayBuffer.setVisible(visible)
+
   setScrollTop: (@scrollTop) ->
   getScrollTop: -> @scrollTop
 
