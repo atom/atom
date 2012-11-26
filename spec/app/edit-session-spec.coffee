@@ -296,6 +296,12 @@ describe "EditSession", ->
         expect(cursor2.getBufferPosition()).toEqual [1, 13]
         expect(cursor3.getBufferPosition()).toEqual [3, 4]
 
+      it "does not blow up when there is no next word", ->
+        editSession.setCursorBufferPosition [Infinity, Infinity]
+        endPosition = editSession.getCursorBufferPosition()
+        editSession.moveCursorToEndOfWord()
+        expect(editSession.getCursorBufferPosition()).toEqual endPosition
+
   describe "selection", ->
     selection = null
 

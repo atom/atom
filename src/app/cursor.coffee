@@ -130,7 +130,8 @@ class Cursor
     @setBufferPosition(@getBeginningOfCurrentWordBufferPosition())
 
   moveToEndOfWord: ->
-    @setBufferPosition(@getEndOfCurrentWordBufferPosition())
+    if position = @getEndOfCurrentWordBufferPosition()
+      @setBufferPosition(position)
 
   getBeginningOfCurrentWordBufferPosition: (options = {}) ->
     allowPrevious = options.allowPrevious ? true
