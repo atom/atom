@@ -358,10 +358,18 @@ class Editor extends View
         @gutter.addClass('drop-shadow')
 
   selectOnMousemoveUntilMouseup: ->
-    moveHandler = (e) => @selectToScreenPosition(@screenPositionFromMouseEvent(e))
-    @on 'mousemove', moveHandler
+    lastMoveEvent = null
+    moveHandler = (event = lastMoveEvent) =>
+      if event
+        @selectToScreenPosition(@screenPositionFromMouseEvent(event))
+        lastMoveEvent = event
+
+    $(document).on 'mousemove', moveHandler
+    interval = setInterval(moveHandler, 20)
+
     $(document).one 'mouseup', =>
-      @off 'mousemove', moveHandler
+      clearInterval(interval)
+      $(document).off 'mousemove', moveHandler
       reverse = @activeEditSession.getLastSelection().isReversed()
       @activeEditSession.mergeIntersectingSelections({reverse})
       @activeEditSession.finalizeSelections()

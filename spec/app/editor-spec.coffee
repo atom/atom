@@ -712,7 +712,7 @@ describe "Editor", ->
         editor.renderedLines.trigger mousedownEvent(editor: editor, point: [4, 10])
 
         # moving changes selection
-        editor.renderedLines.trigger mousemoveEvent(editor: editor, point: [5, 27])
+        $(document).trigger mousemoveEvent(editor: editor, point: [5, 27])
 
         range = editor.getSelection().getScreenRange()
         expect(range.start).toEqual({row: 4, column: 10})
@@ -729,6 +729,24 @@ describe "Editor", ->
         expect(range.start).toEqual({row: 4, column: 10})
         expect(range.end).toEqual({row: 5, column: 27})
         expect(editor.getCursorScreenPosition()).toEqual(row: 5, column: 27)
+
+      it "selects and scrolls if the mouse is dragged outside of the editor itself", ->
+        intervalFns = []
+        editor.attachToDom(heightInLines: 5)
+        editor.scrollToBottom()
+
+        spyOn(window, 'setInterval').andCallFake (fn) -> intervalFns.push(fn)
+        # start
+        editor.renderedLines.trigger mousedownEvent(editor: editor, point: [12, 0])
+
+        # moving changes selection
+        $(document).trigger mousemoveEvent(editor: editor, pageX: 0, pageY: -10)
+        expect(editor.scrollTop()).toBe 4 * editor.lineHeight
+
+        # if cursor stays off screen, we keep moving / scrolling up
+        fn() for fn in intervalFns
+
+        expect(editor.scrollTop()).toBe 0
 
     describe "double-click and drag", ->
       it "selects the word under the cursor, then continues to select by word in either direction as the mouse is dragged", ->
