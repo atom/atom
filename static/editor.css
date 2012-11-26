@@ -52,6 +52,7 @@
   bottom: 0;
   width: 15px;
   overflow-y: auto;
+  z-index: 1;
 }
 
 .editor .scroll-view {
