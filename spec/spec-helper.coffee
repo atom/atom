@@ -17,6 +17,7 @@ require 'window'
 requireStylesheet "jasmine.css"
 
 pathsWithSubscriptions = null
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 200
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
