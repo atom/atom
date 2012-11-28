@@ -129,13 +129,11 @@ describe 'Buffer', ->
           expect(buffer.isModified()).toBeTruthy()
 
   describe "when the buffer's file is deleted (via another process)", ->
-    it "retains its path, triggers 'contents-change-on-disk', and reports the buffer as modified", ->
+    it "retains its path and reports the buffer as modified", ->
       path = "/tmp/atom-file-to-delete.txt"
       fs.write(path, '')
       bufferToDelete = new Buffer(path)
       expect(bufferToDelete.getPath()).toBe path
-      contentsChangeOnDiskHandler = jasmine.createSpy 'contentsChangeOnDiskHandler'
-      bufferToDelete.on 'contents-change-on-disk', contentsChangeOnDiskHandler
 
       expect(bufferToDelete.isModified()).toBeFalsy()
       fs.remove(path)
@@ -144,7 +142,6 @@ describe 'Buffer', ->
 
       runs ->
         expect(bufferToDelete.getPath()).toBe path
-        expect(contentsChangeOnDiskHandler).toHaveBeenCalled()
         expect(bufferToDelete.isModified()).toBeTruthy()
 
   describe ".isModified()", ->

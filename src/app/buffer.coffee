@@ -61,13 +61,12 @@ class Buffer
       if @isModified()
         @conflict = true
         @updateCachedDiskContents()
-        @trigger "contents-change-on-disk"
+        @trigger "contents-conflicted"
       else
         @reload()
 
     @file.on "remove", =>
       @updateCachedDiskContents()
-      @trigger "contents-change-on-disk"
 
     @file.on "move", =>
       @trigger "path-change", this

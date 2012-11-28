@@ -53,8 +53,8 @@ class EditSession
     @buffer.on "path-change.edit-session-#{@id}", =>
       @trigger "buffer-path-change"
 
-    @buffer.on "contents-change-on-disk.edit-session-#{@id}", =>
-      @trigger "buffer-contents-change-on-disk"
+    @buffer.on "contents-conflicted.edit-session-#{@id}", =>
+      @trigger "contents-conflicted"
 
     @buffer.on "update-anchors-after-change.edit-session-#{@id}", =>
       @mergeCursors()

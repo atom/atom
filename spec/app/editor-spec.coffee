@@ -276,22 +276,19 @@ describe "Editor", ->
         editor.activeEditSession.selectToEndOfLine()
         expect(editor.getSelectionView().find('.selection')).toExist()
 
-      it "triggers alert if edit session's file changed on disk", ->
+      it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
         path = "/tmp/atom-changed-file.txt"
         fs.write(path, "")
         editSession = project.buildEditSessionForPath(path)
         editor.edit editSession
         editSession.insertText("a buffer change")
 
-        bufferContentsChangeHandler = jasmine.createSpy('fileChange')
-        editSession.on 'buffer-contents-change-on-disk', bufferContentsChangeHandler
-
         spyOn(atom, "confirm")
 
         fs.write(path, "a file change")
 
-        waitsFor "file to trigger contents-change event", ->
-          bufferContentsChangeHandler.callCount > 0
+        waitsFor "file to trigger contents-change event", (done) ->
+          editSession.one 'contents-conflicted', done
 
         runs ->
           expect(atom.confirm).toHaveBeenCalled()
