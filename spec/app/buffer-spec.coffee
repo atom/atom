@@ -1,6 +1,7 @@
 Project = require 'project'
 Buffer = require 'buffer'
 fs = require 'fs'
+_ = require 'underscore'
 
 describe 'Buffer', ->
   [filePath, fileContents, buffer] = []
@@ -71,12 +72,6 @@ describe 'Buffer', ->
       runs ->
         expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
-    it "triggers a `path-change` event when the file is removed", ->
-      fs.remove(path)
-
-      waitsFor "buffer path change", ->
-        eventHandler.callCount > 0
-
   describe "when the buffer's on-disk contents change (via another process writing to its file)", ->
     path = null
     beforeEach ->
@@ -134,16 +129,23 @@ describe 'Buffer', ->
           expect(buffer.isModified()).toBeTruthy()
 
   describe "when the buffer's file is deleted (via another process)", ->
-    it "no longer has a path", ->
+    it "retains its path, triggers 'contents-change-on-disk', and reports the buffer as modified", ->
       path = "/tmp/atom-file-to-delete.txt"
       fs.write(path, '')
       bufferToDelete = new Buffer(path)
       expect(bufferToDelete.getPath()).toBe path
+      contentsChangeOnDiskHandler = jasmine.createSpy 'contentsChangeOnDiskHandler'
+      bufferToDelete.on 'contents-change-on-disk', contentsChangeOnDiskHandler
 
+      expect(bufferToDelete.isModified()).toBeFalsy()
       fs.remove(path)
+      waitsFor "file to be removed", (done) ->
+        bufferToDelete.file.one 'remove', done
 
-      waitsFor "file to be removed", ->
-        not bufferToDelete.getPath()
+      runs ->
+        expect(bufferToDelete.getPath()).toBe path
+        expect(contentsChangeOnDiskHandler).toHaveBeenCalled()
+        expect(bufferToDelete.isModified()).toBeTruthy()
 
   describe ".isModified()", ->
     it "returns true when user changes buffer", ->

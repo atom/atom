@@ -37,8 +37,11 @@ beforeEach ->
 afterEach ->
   delete window.rootView if window.rootView
   $('#jasmine-content').empty()
-  ensureNoPathSubscriptions()
   window.fixturesProject.destroy()
+
+  waits(0)
+  runs ->
+    ensureNoPathSubscriptions()
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()

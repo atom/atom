@@ -66,8 +66,8 @@ class Buffer
         @reload()
 
     @file.on "remove", =>
-      @file = null
-      @trigger "path-change", this
+      @updateCachedDiskContents()
+      @trigger "contents-change-on-disk"
 
     @file.on "move", =>
       @trigger "path-change", this
@@ -77,7 +77,10 @@ class Buffer
     @setText(@cachedDiskContents)
 
   updateCachedDiskContents: ->
-    @cachedDiskContents = fs.read(@getPath())
+    if fs.exists(@getPath())
+      @cachedDiskContents = fs.read(@getPath())
+    else
+      @cachedDiskContents = null
 
   getBaseName: ->
     @file?.getBaseName()
