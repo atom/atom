@@ -16,6 +16,14 @@ module.exports =
 
     @afterSubscribe?()
 
+
+  one: (eventName, handler) ->
+    oneShotHandler = (args...) =>
+      @off(eventName, oneShotHandler)
+      handler(args...)
+
+    @on eventName, oneShotHandler
+
   trigger: (eventName, args...) ->
     [eventName, namespace] = eventName.split('.')
 

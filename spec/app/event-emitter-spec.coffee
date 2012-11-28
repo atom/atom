@@ -145,6 +145,19 @@ describe "EventEmitter mixin", ->
             object.off '.garbage'
             object.off 'junk.garbage'
 
+
+  describe ".one(event, callback)", ->
+    it "triggers the given callback once, then removes the subscription", ->
+      oneHandler = jasmine.createSpy('oneHandler')
+      object.one 'event', oneHandler
+
+      object.trigger('event')
+      expect(oneHandler).toHaveBeenCalled()
+      oneHandler.reset()
+
+      object.trigger('event')
+      expect(oneHandler).not.toHaveBeenCalled()
+
   describe ".subscriptionCount()", ->
     it "returns the total number of subscriptions on the object", ->
       expect(object.subscriptionCount()).toBe 3
