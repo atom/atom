@@ -94,7 +94,7 @@ class Buffer
 
     @file?.off()
     @file = new File(path)
-    @subscribeToFile()
+    @subscribeToFile() if @file.exists()
 
     @trigger "path-change", this
 
@@ -236,14 +236,18 @@ class Buffer
     @saveAs(@getPath())
 
   saveAs: (path) ->
-    if not path then throw new Error("Can't save buffer with no file path")
+    unless path then throw new Error("Can't save buffer with no file path")
 
     @trigger 'before-save'
-    @cachedDiskContents = @getText()
-    fs.write path, @cachedDiskContents
+
     @file?.updateMd5()
     @setPath(path)
 
+    text = @getText()
+
+    @cachedDiskContents = text
+    @file.write(text)
+    @subscribeToFile()
     @trigger 'after-save'
 
   isModified: ->
@@ -388,5 +392,8 @@ class Buffer
       @stoppedChangingTimeout = null
       @trigger 'stopped-changing'
     @stoppedChangingTimeout = setTimeout(stoppedChangingCallback, @stoppedChangingDelay)
+
+  fileExists: ->
+    @file.exists()
 
 _.extend(Buffer.prototype, EventEmitter)

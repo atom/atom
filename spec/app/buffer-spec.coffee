@@ -72,7 +72,7 @@ describe 'Buffer', ->
       runs ->
         expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
-  describe "when the buffer's on-disk contents change (via another process writing to its file)", ->
+  describe "when the buffer's on-disk contents change", ->
     path = null
     beforeEach ->
       path = "/tmp/tmp.txt"
@@ -85,7 +85,7 @@ describe 'Buffer', ->
       buffer = null
       fs.remove(path) if fs.exists(path)
 
-    it "does not trigger a contents-change event when Atom modifies the file", ->
+    it "does not trigger a change event when Atom modifies the file", ->
       buffer.insert([0,0], "HELLO!")
       changeHandler = jasmine.createSpy("buffer changed")
       buffer.on "change", changeHandler
@@ -129,20 +129,33 @@ describe 'Buffer', ->
           expect(buffer.isModified()).toBeTruthy()
 
   describe "when the buffer's file is deleted (via another process)", ->
-    it "retains its path and reports the buffer as modified", ->
-      path = "/tmp/atom-file-to-delete.txt"
-      fs.write(path, '')
-      bufferToDelete = new Buffer(path)
-      expect(bufferToDelete.getPath()).toBe path
+    [path, bufferToDelete] = []
 
+    beforeEach ->
+      path = "/tmp/atom-file-to-delete.txt"
+      fs.write(path, 'delete me')
+      bufferToDelete = new Buffer(path)
+
+      expect(bufferToDelete.getPath()).toBe path
       expect(bufferToDelete.isModified()).toBeFalsy()
+
       fs.remove(path)
-      waitsFor "file to be removed", (done) ->
+      waitsFor "file to be removed",  (done) ->
         bufferToDelete.file.one 'remove', done
 
-      runs ->
-        expect(bufferToDelete.getPath()).toBe path
-        expect(bufferToDelete.isModified()).toBeTruthy()
+    it "retains its path and reports the buffer as modified", ->
+      expect(bufferToDelete.getPath()).toBe path
+      expect(bufferToDelete.isModified()).toBeTruthy()
+
+    it "resumes watching of the file when it is re-saved", ->
+      bufferToDelete.save()
+      expect(bufferToDelete.fileExists()).toBeTruthy()
+      expect(bufferToDelete.isInConflict()).toBeFalsy()
+
+      fs.write(path, 'moo')
+
+      waitsFor 'change event', (done) ->
+        bufferToDelete.one 'change', done
 
   describe ".isModified()", ->
     it "returns true when user changes buffer", ->

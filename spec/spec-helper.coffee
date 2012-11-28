@@ -41,7 +41,7 @@ afterEach ->
 
   waits(0)
   runs ->
-    ensureNoPathSubscriptions()
+#     ensureNoPathSubscriptions()
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()

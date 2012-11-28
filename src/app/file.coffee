@@ -9,8 +9,10 @@ class File
   md5: null
 
   constructor: (@path) ->
-    throw "Creating file with path that is not a file: #{@path}" unless fs.isFile(@path)
-    @updateMd5()
+    if @exists() and not fs.isFile(@path)
+      throw new Error(@path + " is a directory")
+
+    @updateMd5() if @exists()
 
   setPath: (@path) ->
 
@@ -19,6 +21,12 @@ class File
   getBaseName: ->
     fs.base(@path)
 
+  write: (text) ->
+    previouslyExisted = @exists()
+    fs.write(@getPath(), text)
+    @updateMd5()
+    @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
+
   exists: ->
     fs.exists(@getPath())
 
@@ -26,7 +34,7 @@ class File
     @md5 = fs.md5ForPath(@path)
 
   afterSubscribe: ->
-    @subscribeToNativeChangeEvents() if @subscriptionCount() == 1
+    @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
 
   afterUnsubscribe: ->
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
@@ -52,8 +60,8 @@ class File
       @subscribeToNativeChangeEvents()
       @handleNativeChangeEvent("contents-change", @getPath())
     else
+      @unsubscribeFromNativeChangeEvents()
       @trigger "remove"
-      @off()
 
   subscribeToNativeChangeEvents: ->
     @watchId = $native.watchPath @path, (eventType, path) =>

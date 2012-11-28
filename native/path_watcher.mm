@@ -109,7 +109,7 @@ static NSMutableArray *gPathWatchers;
       NSLog(@"WARNING: Failed to create kevent for path '%@'", path);
       return nil;
     }
-    
+
     NSMutableDictionary *callbacks = [_callbacksByPath objectForKey:path];
     if (!callbacks) {
       callbacks = [NSMutableDictionary dictionary];
@@ -152,13 +152,13 @@ static NSMutableArray *gPathWatchers;
       NSLog(@"we already have a kevent");
       return YES;
     }
-    
+
     int fd = open([path fileSystemRepresentation], O_EVTONLY, 0);
     if (fd < 0) {
       NSLog(@"WARNING: Could create file descriptor for path '%@'", path);
       return NO;
     }
-    
+
     [_fileDescriptorsByPath setObject:[NSNumber numberWithInt:fd] forKey:path];
 
     struct timespec timeout = { 0, 0 };
@@ -218,7 +218,7 @@ static NSMutableArray *gPathWatchers;
       NSString *eventFlag = nil;
       NSString *newPath = nil;
       NSString *path = [(NSString *)event.udata retain];
-      
+
       if (event.fflags & NOTE_WRITE) {
         eventFlag = @"contents-change";
       }
@@ -242,11 +242,18 @@ static NSMutableArray *gPathWatchers;
           continue;
         }
       }
-      
 
       NSDictionary *callbacks;
       @synchronized(self) {
         callbacks = [NSDictionary dictionaryWithDictionary:[_callbacksByPath objectForKey:path]];
+      }
+
+      if ([eventFlag isEqual:@"move"]) {
+        [self changePath:path toNewPath:newPath];
+      }
+
+      if ([eventFlag isEqual:@"remove"]) {
+        [self unwatchPath:path callbackId:nil error:nil];
       }
 
       dispatch_sync(dispatch_get_main_queue(), ^{
@@ -256,14 +263,6 @@ static NSMutableArray *gPathWatchers;
         }
       });
 
-      if ([eventFlag isEqual:@"move"]) {
-        [self changePath:path toNewPath:newPath];
-      }
-
-      if ([eventFlag isEqual:@"remove"]) {
-        [self unwatchPath:path callbackId:nil error:nil];
-      }
-      
       [path release];
     }
   }
