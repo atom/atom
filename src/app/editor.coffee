@@ -43,7 +43,7 @@ class Editor extends View
   activeEditSession: null
   editSessions: null
   attached: false
-  lineOverdraw: 100
+  lineOverdraw: 10
   pendingChanges: null
   newCursors: null
   newSelections: null
