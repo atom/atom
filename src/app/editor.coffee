@@ -881,15 +881,23 @@ class Editor extends View
     renderedLines = @renderedLines[0]
     nextIntact = intactRanges.shift()
     currentLine = renderedLines.firstChild
-    screenRow = renderFrom
-    for row in [renderFrom..renderTo]
+
+    row = renderFrom
+    while row <= renderTo
       if row == nextIntact?.end + 1
         nextIntact = intactRanges.shift()
       if !nextIntact or row < nextIntact.start
-        lineElement = @buildLineElementForScreenRow(row)
-        renderedLines.insertBefore(lineElement, currentLine)
+        if nextIntact
+          dirtyRangeEnd = nextIntact.start - 1
+        else
+          dirtyRangeEnd = renderTo
+
+        for lineElement in @buildLineElementsForScreenRows(row, dirtyRangeEnd)
+          renderedLines.insertBefore(lineElement, currentLine)
+          row++
       else
         currentLine = currentLine.nextSibling
+        row++
 
   updatePaddingOfRenderedLines: ->
     paddingTop = @firstRenderedScreenRow * @lineHeight
@@ -910,10 +918,13 @@ class Editor extends View
     @pendingChanges.push(change)
     @requestDisplayUpdate()
 
-  buildLineElementForScreenRow: (screenRow) ->
+  buildLineElementsForScreenRows: (startRow, endRow) ->
     div = document.createElement('div')
-    div.innerHTML = @buildLineHtml(@activeEditSession.lineForScreenRow(screenRow))
-    div.firstChild
+    div.innerHTML = @buildLinesHtml(@activeEditSession.linesForScreenRows(startRow, endRow))
+    new Array(div.children...)
+
+  buildLinesHtml: (screenLines) ->
+    screenLines.map((line) => @buildLineHtml(line)).join('\n\n')
 
   buildLineHtml: (screenLine) ->
     scopeStack = []
