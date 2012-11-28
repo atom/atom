@@ -310,6 +310,14 @@ class Editor extends View
       @isFocused = false
       @removeClass 'focused'
 
+    @overlayer.on 'mousedown', (e) =>
+      @overlayer.hide()
+      clickedElement = document.elementFromPoint(e.pageX, e.pageY)
+      @overlayer.show()
+      e.target = clickedElement
+      $(clickedElement).trigger(e)
+      false
+
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
       @destroyFold($(e.currentTarget).attr('fold-id'))
       false

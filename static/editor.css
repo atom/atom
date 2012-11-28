@@ -92,7 +92,6 @@
 
 .editor .overlayer {
   z-index: 2;
-  pointer-events: none;
   position: absolute;
 }
 
