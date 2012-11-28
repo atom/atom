@@ -337,11 +337,8 @@ class Editor extends View
       false
 
     @scrollView.on 'mousewheel', (e) =>
-      e = e.originalEvent
-      if e.wheelDeltaY
-        newEvent = document.createEvent("WheelEvent");
-        newEvent.initWebKitWheelEvent(0, e.wheelDeltaY, e.view, e.screenX, e.screenY, e.clientX, e.clientY, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey)
-        @verticalScrollbar.get(0).dispatchEvent(newEvent)
+      if delta = e.originalEvent.wheelDeltaY
+        @scrollTop(@scrollTop() - delta)
         false
 
     @verticalScrollbar.on 'scroll', =>
