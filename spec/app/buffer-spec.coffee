@@ -143,6 +143,10 @@ describe 'Buffer', ->
       waitsFor "file to be removed",  (done) ->
         bufferToDelete.file.one 'remove', done
 
+
+    afterEach ->
+      bufferToDelete.destroy()
+
     it "retains its path and reports the buffer as modified", ->
       expect(bufferToDelete.getPath()).toBe path
       expect(bufferToDelete.isModified()).toBeTruthy()
