@@ -55,7 +55,7 @@ bool Native::Execute(const CefString& name,
 
     NSError *binaryFileError = nil;
     if (error) {
-      contents = [NSString stringWithContentsOfFile:path encoding:NSNonLossyASCIIStringEncoding error:&binaryFileError];
+      contents = [NSString stringWithContentsOfFile:path encoding:NSASCIIStringEncoding error:&binaryFileError];
     }
     
     if (binaryFileError) {
