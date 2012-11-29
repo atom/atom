@@ -3,7 +3,7 @@ Buffer = require 'buffer'
 fs = require 'fs'
 _ = require 'underscore'
 
-fdescribe 'Buffer', ->
+describe 'Buffer', ->
   [filePath, fileContents, buffer] = []
 
   beforeEach ->
