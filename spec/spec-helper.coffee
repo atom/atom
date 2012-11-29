@@ -47,6 +47,7 @@ RootView.prototype.loadUserConfiguration = ->
 
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()
+  $native.unwatchAllPaths()
   if watchedPaths.length > 0
     throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
 

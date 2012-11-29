@@ -57,7 +57,7 @@ bool Native::Execute(const CefString& name,
     if (error) {
       contents = [NSString stringWithContentsOfFile:path encoding:NSASCIIStringEncoding error:&binaryFileError];
     }
-    
+
     if (binaryFileError) {
       exception = [[binaryFileError localizedDescription] UTF8String];
     }
@@ -243,7 +243,6 @@ bool Native::Execute(const CefString& name,
 
     return true;
   }
-
   else if (name == "getWatchedPaths") {
     PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
     NSArray *paths = [pathWatcher watchedPaths];
@@ -256,6 +255,11 @@ bool Native::Execute(const CefString& name,
     }
     retval = pathsArray;
 
+    return true;
+  }
+  else if (name == "unwatchAllPaths") {
+    PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
+    [pathWatcher unwatchAllPaths];
     return true;
   }
   else if (name == "makeDirectory") {

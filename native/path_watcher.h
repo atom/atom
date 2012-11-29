@@ -19,6 +19,7 @@ typedef void (^WatchCallback)(NSString *, NSString *);
 - (id)initWithContext:(CefRefPtr<CefV8Context>)context;
 - (NSString *)watchPath:(NSString *)path callback:(WatchCallback)callback;
 - (void)unwatchPath:(NSString *)path callbackId:(NSString *)callbackId error:(NSError **)error;
+- (void)unwatchAllPaths;
 - (NSArray *)watchedPaths;
 
 @end

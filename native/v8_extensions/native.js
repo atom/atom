@@ -46,6 +46,9 @@ var $native = {};
   native function getWatchedPaths();
   $native.getWatchedPaths = getWatchedPaths;
 
+  native function unwatchAllPaths();
+  $native.unwatchAllPaths = unwatchAllPaths;
+
   native function makeDirectory(path);
   $native.makeDirectory = makeDirectory;
 

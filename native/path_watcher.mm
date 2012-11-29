@@ -88,11 +88,7 @@ static NSMutableArray *gPathWatchers;
 
 - (void)stopWatching {
   @synchronized(self) {
-    NSArray *paths = [_callbacksByPath allKeys];
-    for (NSString *path in paths) {
-      [self unwatchPath:path callbackId:nil error:nil];
-    }
-
+    [self unwatchAllPaths];
     _keepWatching = false;
   }
 }
@@ -146,6 +142,15 @@ static NSMutableArray *gPathWatchers;
 
 - (NSArray *)watchedPaths {
   return [_callbacksByPath allKeys];
+}
+
+- (void)unwatchAllPaths {
+  @synchronized(self) {
+    NSArray *paths = [_callbacksByPath allKeys];
+    for (NSString *path in paths) {
+      [self unwatchPath:path callbackId:nil error:nil];
+    }
+  }
 }
 
 - (bool)createKeventForPath:(NSString *)path {
