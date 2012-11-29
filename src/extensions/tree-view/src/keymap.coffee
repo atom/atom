@@ -1,6 +1,6 @@
 window.keymap.bindKeys '#root-view'
-  'ctrl-1': 'tree-view:toggle'
-  'ctrl-meta-1': 'tree-view:reveal-active-file'
+  'meta-\\': 'tree-view:toggle'
+  'meta-|': 'tree-view:reveal-active-file'
 
 window.keymap.bindKeys '.tree-view'
   'right': 'tree-view:expand-directory'

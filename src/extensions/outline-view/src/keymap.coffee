@@ -1,2 +1,2 @@
 window.keymap.bindKeys '.editor'
-  'ctrl-o': 'outline-view:toggle'
+  'meta-j': 'outline-view:toggle'

@@ -30,4 +30,5 @@ window.keymap.bindKeys 'body'
   'alt-meta-i': 'toggle-dev-tools'
 
 window.keymap.bindKeys '.tool-panel'
-  'escape': 'tool-panel:unfocus'
+  'meta-escape': 'tool-panel:unfocus'
+  'escape': 'core:close'
