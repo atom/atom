@@ -67,6 +67,7 @@ class Buffer
 
     @file.on "remove", =>
       @updateCachedDiskContents()
+      @trigger "contents-modified", {differsFromDisk: true}
 
     @file.on "move", =>
       @trigger "path-change", this
@@ -384,7 +385,7 @@ class Buffer
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout
     stoppedChangingCallback = =>
       @stoppedChangingTimeout = null
-      @trigger 'stopped-changing'
+      @trigger 'contents-modified', {differsFromDisk: @isModified()}
     @stoppedChangingTimeout = setTimeout(stoppedChangingCallback, @stoppedChangingDelay)
 
   fileExists: ->

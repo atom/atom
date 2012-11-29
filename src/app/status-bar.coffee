@@ -42,18 +42,18 @@ class StatusBar extends View
   subscribeToBuffer: ->
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
-    @buffer.on 'stopped-changing.status-bar', => @updateBufferModifiedText()
+    @buffer.on 'contents-modified.status-bar', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
     @buffer.on 'after-save.status-bar', => @updateStatusBar()
     @buffer.on 'git-status-change.status-bar', => @updateStatusBar()
     @updateStatusBar()
 
   updateStatusBar: ->
     @updateBranchText()
-    @updateBufferModifiedText()
+    @updateBufferHasModifiedText(@buffer.isModified())
     @updateStatusText()
 
-  updateBufferModifiedText: ->
-    if @buffer.isModified()
+  updateBufferHasModifiedText: (differsFromDisk)->
+    if differsFromDisk
       @bufferModified.text('*') unless @isModified
       @isModified = true
     else
