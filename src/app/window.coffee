@@ -79,6 +79,7 @@ windowAdditions =
       extension
     catch e
       console.error "Failed to load extension named '#{name}'"
+      console.error e.stack
 
   reload: ->
     if rootView?.getModifiedBuffers().length > 0
