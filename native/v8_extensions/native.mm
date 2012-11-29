@@ -50,10 +50,16 @@ bool Native::Execute(const CefString& name,
     NSString *path = stringFromCefV8Value(arguments[0]);
 
     NSError *error = nil;
-    NSString *contents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&error];
+    NSStringEncoding *encoding = nil;
+    NSString *contents = [NSString stringWithContentsOfFile:path usedEncoding:encoding error:&error];
 
+    NSError *binaryFileError = nil;
     if (error) {
-      exception = [[error localizedDescription] UTF8String];
+      contents = [NSString stringWithContentsOfFile:path encoding:NSNonLossyASCIIStringEncoding error:&binaryFileError];
+    }
+    
+    if (binaryFileError) {
+      exception = [[binaryFileError localizedDescription] UTF8String];
     }
     else {
       retval = CefV8Value::CreateString([contents UTF8String]);

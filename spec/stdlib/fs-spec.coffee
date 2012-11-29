@@ -1,6 +1,13 @@
 fs = require 'fs'
 
 describe "fs", ->
+  describe ".read(path)", ->
+    it "return contents of file", ->
+      expect(fs.read(require.resolve("fixtures/sample.txt"))).toBe "Some text.\n"
+
+    it "does not through an exception when the path is a binary file", ->
+      expect(-> fs.read(require.resolve("fixtures/binary-file.png"))).not.toThrow()
+
   describe ".isFile(path)", ->
     fixturesDir = require.resolve('fixtures')
 
