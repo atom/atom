@@ -78,8 +78,7 @@ windowAdditions =
       require extensionKeymapPath if fs.exists(extensionKeymapPath)
       extension
     catch e
-      console.error "Failed to load extension named '#{name}'"
-      console.error e.stack
+      console.error "Failed to load extension named '#{name}'", e
 
   reload: ->
     if rootView?.getModifiedBuffers().length > 0
