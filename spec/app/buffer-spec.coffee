@@ -3,7 +3,7 @@ Buffer = require 'buffer'
 fs = require 'fs'
 _ = require 'underscore'
 
-describe 'Buffer', ->
+fdescribe 'Buffer', ->
   [filePath, fileContents, buffer] = []
 
   beforeEach ->
@@ -95,7 +95,7 @@ describe 'Buffer', ->
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
 
-    describe "when the buffer's memory contents are the same as the *previous* disk contents", ->
+    describe "when the buffer is in an unmodified state before the on-disk change", ->
       it "changes the memory contents of the buffer to match the new disk contents and triggers a 'change' event", ->
         changeHandler = jasmine.createSpy('changeHandler')
         buffer.on 'change', changeHandler

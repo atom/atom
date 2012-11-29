@@ -76,10 +76,7 @@ class Buffer
     @setText(@cachedDiskContents)
 
   updateCachedDiskContents: ->
-    if fs.exists(@getPath())
-      @cachedDiskContents = fs.read(@getPath())
-    else
-      @cachedDiskContents = null
+    @cachedDiskContents = @file.read()
 
   getBaseName: ->
     @file?.getBaseName()
@@ -239,14 +236,9 @@ class Buffer
     unless path then throw new Error("Can't save buffer with no file path")
 
     @trigger 'before-save'
-
-    @file?.updateMd5()
     @setPath(path)
-
-    text = @getText()
-
-    @cachedDiskContents = text
-    @file.write(text)
+    @cachedDiskContents = @getText()
+    @file.write(@getText())
     @subscribeToFile()
     @trigger 'after-save'
 

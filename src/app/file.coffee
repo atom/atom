@@ -6,13 +6,13 @@ _ = require 'underscore'
 module.exports =
 class File
   path: null
-  md5: null
+  cachedContents: null
 
   constructor: (@path) ->
     if @exists() and not fs.isFile(@path)
       throw new Error(@path + " is a directory")
 
-    @updateMd5() if @exists()
+    @read() if @exists()
 
   setPath: (@path) ->
 
@@ -23,15 +23,20 @@ class File
 
   write: (text) ->
     previouslyExisted = @exists()
+    @cachedContents = text
     fs.write(@getPath(), text)
-    @updateMd5()
     @subscribeToNativeChangeEvents() if not previouslyExisted and @subscriptionCount() > 0
+
+  read: (flushCache)->
+    if not @exists()
+      @cachedContents = null
+    else if not @cachedContents? or flushCache
+      @cachedContents = fs.read(@getPath())
+    else
+      @cachedContents
 
   exists: ->
     fs.exists(@getPath())
-
-  updateMd5: ->
-    @md5 = fs.md5ForPath(@path)
 
   afterSubscribe: ->
     @subscribeToNativeChangeEvents() if @exists() and @subscriptionCount() == 1
@@ -41,15 +46,15 @@ class File
 
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "remove"
+      @cachedContents = null
       @detectResurrectionAfterDelay()
     else if eventType is "move"
       @setPath(path)
       @trigger "move"
     else if eventType is "contents-change"
-      newMd5 = fs.md5ForPath(@getPath())
-      return if newMd5 == @md5
-
-      @md5 = newMd5
+      oldContents = @read()
+      newContents = @read(true)
+      return if oldContents == newContents
       @trigger 'contents-change'
 
   detectResurrectionAfterDelay: ->
