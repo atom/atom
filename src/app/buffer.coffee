@@ -278,6 +278,15 @@ class Buffer
   removeAnchorRange: (anchorRange) ->
     _.remove(@anchorRanges, anchorRange)
 
+  anchorRangesForPosition: (position) ->
+    _.filter @anchorRanges, (anchorRange) -> anchorRange.containsBufferPosition(position)
+
+  updateAnchors: (change) ->
+    anchors = @getAnchors()
+    anchor.pauseEvents() for anchor in anchors
+    anchor.handleBufferChange(change) for anchor in anchors
+    anchor.resumeEvents() for anchor in anchors
+
   matchesInCharacterRange: (regex, startIndex, endIndex) ->
     text = @getText()
     matches = []

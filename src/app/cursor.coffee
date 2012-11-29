@@ -14,7 +14,10 @@ class Cursor
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
     @anchor = @editSession.addAnchor(strong: true)
-    @anchor.on 'moved', (args...) => @trigger 'moved', args...
+    @anchor.on 'moved', (e) =>
+      @trigger 'moved', e
+      @editSession.trigger 'cursor-moved', e
+
     @setScreenPosition(screenPosition) if screenPosition
     @setBufferPosition(bufferPosition) if bufferPosition
 

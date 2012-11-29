@@ -25,12 +25,15 @@ module.exports =
     @on eventName, oneShotHandler
 
   trigger: (eventName, args...) ->
-    [eventName, namespace] = eventName.split('.')
-
-    if namespace
-      @eventHandlersByNamespace?[namespace]?[eventName]?.forEach (handler) -> handler(args...)
+    if @queuedEvents
+      @queuedEvents.push [eventName, args...]
     else
-      @eventHandlersByEventName?[eventName]?.forEach (handler) -> handler(args...)
+      [eventName, namespace] = eventName.split('.')
+
+      if namespace
+        @eventHandlersByNamespace?[namespace]?[eventName]?.forEach (handler) -> handler(args...)
+      else
+        @eventHandlersByEventName?[eventName]?.forEach (handler) -> handler(args...)
 
   off: (eventName='', handler) ->
     [eventName, namespace] = eventName.split('.')
@@ -61,6 +64,14 @@ module.exports =
         delete @eventHandlersByEventName?[eventName]
 
     @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
+
+  pauseEvents: ->
+    @queuedEvents = []
+
+  resumeEvents: ->
+    queuedEvents = @queuedEvents
+    @queuedEvents = null
+    @trigger(event...) for event in queuedEvents
 
   subscriptionCount: ->
     count = 0

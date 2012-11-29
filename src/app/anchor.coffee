@@ -55,6 +55,7 @@ class Anchor
 
   setScreenPosition: (position, options={}) ->
     oldScreenPosition = @screenPosition
+    oldBufferPosition = @bufferPosition
     @screenPosition = Point.fromObject(position)
     clip = options.clip ? true
     assignBufferPosition = options.assignBufferPosition ? true
@@ -69,6 +70,8 @@ class Anchor
       @trigger 'moved',
         oldScreenPosition: oldScreenPosition
         newScreenPosition: @screenPosition
+        oldBufferPosition: oldBufferPosition
+        newBufferPosition: @bufferPosition
         bufferChange: options.bufferChange
         autoscroll: options.autoscroll
 
@@ -81,6 +84,5 @@ class Anchor
     @buffer.removeAnchor(this)
     @editSession?.removeAnchor(this)
     @trigger 'destroy'
-    @off()
 
 _.extend(Anchor.prototype, EventEmitter)

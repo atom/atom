@@ -339,6 +339,9 @@ class EditSession
   removeAnchorRange: (anchorRange) ->
     _.remove(@anchorRanges, anchorRange)
 
+  anchorRangesForBufferPosition: (bufferPosition) ->
+    _.intersect(@anchorRanges, @buffer.anchorRangesForPosition(bufferPosition))
+
   hasMultipleCursors: ->
     @getCursors().length > 1
 

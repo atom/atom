@@ -42,8 +42,7 @@ class BufferChangeOperation
     event = { oldRange, newRange, oldText, newText }
     @buffer.trigger 'change', event
     @buffer.scheduleStoppedChangingEvent()
-
-    anchor.handleBufferChange(event) for anchor in @buffer.getAnchors()
+    @buffer.updateAnchors(event)
     @buffer.trigger 'update-anchors-after-change'
     newRange
 
