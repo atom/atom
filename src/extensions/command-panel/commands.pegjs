@@ -59,7 +59,7 @@ selectAllMatchesInProject
   = 'X' _ 'x' _ '/' pattern:pattern '/'? { return [new SelectAllMatchesInProject(pattern)] }
 
 pattern
-  = pattern:[^/]* { return pattern.join('') }
+  = pattern:('\\/' / [^/])* { return pattern.join('') }
 
 integer
   = digits:[0-9]+ { return parseInt(digits.join('')); }

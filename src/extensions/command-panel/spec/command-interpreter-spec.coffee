@@ -172,6 +172,14 @@ describe "CommandInterpreter", ->
         runs ->
           expect(interpreter.lastRelativeAddress.subcommands[0].regex.toString()).toEqual "/a\\Sray/i"
 
+      it "allows the regex to contain an escaped forward slash", ->
+        buffer.setText "hey/baby"
+
+        waitsForPromise ->
+          interpreter.eval('/y\\/b/', editSession)
+        runs ->
+          expect(editSession.getSelectedText()).toBe "y/b"
+
       describe "when no match is found", ->
         it "it returns an error messages", ->
           errorMessages = null
