@@ -143,7 +143,6 @@ fdescribe 'Buffer', ->
       waitsFor "file to be removed",  (done) ->
         bufferToDelete.file.one 'remove', done
 
-
     afterEach ->
       bufferToDelete.destroy()
 
