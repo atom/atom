@@ -316,7 +316,6 @@ class Editor extends View
       @overlayer.show()
       e.target = clickedElement
       $(clickedElement).trigger(e)
-      false
 
     @renderedLines.on 'mousedown', '.fold.line', (e) =>
       @destroyFold($(e.currentTarget).attr('fold-id'))
