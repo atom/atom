@@ -16,8 +16,6 @@ require 'window'
 
 requireStylesheet "jasmine.css"
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 200
-
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
@@ -65,6 +63,8 @@ jasmine.StringPrettyPrinter.prototype.emitObject = (obj) ->
 jasmine.unspy = (object, methodName) ->
   throw new Error("Not a spy") unless object[methodName].originalValue?
   object[methodName] = object[methodName].originalValue
+
+jasmine.getEnv().defaultTimeoutInterval = 200
 
 window.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
