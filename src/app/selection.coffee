@@ -12,8 +12,8 @@ class Selection
   constructor: ({@cursor, @editSession}) ->
     @cursor.selection = this
 
-    @cursor.on 'moved.selection', (e) =>
-      @screenRangeChanged() unless e.bufferChange
+    @cursor.on 'moved.selection', ({bufferChange}) =>
+      @screenRangeChanged() unless bufferChange
 
     @cursor.on 'destroy.selection', =>
       @cursor = null

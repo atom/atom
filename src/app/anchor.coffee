@@ -54,7 +54,7 @@ class Anchor
     @screenPosition.row
 
   setScreenPosition: (position, options={}) ->
-    previousScreenPosition = @screenPosition
+    oldScreenPosition = @screenPosition
     @screenPosition = Point.fromObject(position)
     clip = options.clip ? true
     assignBufferPosition = options.assignBufferPosition ? true
@@ -65,8 +65,12 @@ class Anchor
     Object.freeze @screenPosition
     Object.freeze @bufferPosition
 
-    unless @screenPosition.isEqual(previousScreenPosition)
-      @trigger 'moved', @screenPosition, bufferChange: options.bufferChange, autoscroll: options.autoscroll
+    unless @screenPosition.isEqual(oldScreenPosition)
+      @trigger 'moved',
+        oldScreenPosition: oldScreenPosition
+        newScreenPosition: @screenPosition
+        bufferChange: options.bufferChange
+        autoscroll: options.autoscroll
 
   refreshScreenPosition: (options={}) ->
     return unless @editSession
