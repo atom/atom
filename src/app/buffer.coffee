@@ -91,7 +91,9 @@ class Buffer
 
     @file?.off()
     @file = new File(path)
-    @subscribeToFile() if @file.exists()
+    if @file.exists()
+      @file.read()
+      @subscribeToFile()
 
     @trigger "path-change", this
 

@@ -9,6 +9,7 @@ describe 'File', ->
     fs.remove(path) if fs.exists(path)
     fs.write(path, "this is old!")
     file = new File(path)
+    file.read()
 
   afterEach ->
     file.off()

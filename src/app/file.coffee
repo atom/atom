@@ -12,8 +12,6 @@ class File
     if @exists() and not fs.isFile(@path)
       throw new Error(@path + " is a directory")
 
-    @read() if @exists()
-
   setPath: (@path) ->
 
   getPath: -> @path
