@@ -12,7 +12,7 @@ class Selection
   constructor: ({@cursor, @editSession}) ->
     @cursor.selection = this
 
-    @cursor.on 'change-screen-position.selection', (e) =>
+    @cursor.on 'moved.selection', (e) =>
       @screenRangeChanged() unless e.bufferChange
 
     @cursor.on 'destroy.selection', =>
@@ -342,7 +342,7 @@ class Selection
   placeAnchor: ->
     @anchor = @editSession.addAnchor(strong: true)
     @anchor.setScreenPosition(@cursor.getScreenPosition())
-    @anchor.on 'change-screen-position.selection', => @screenRangeChanged()
+    @anchor.on 'moved.selection', => @screenRangeChanged()
 
   intersectsBufferRange: (bufferRange) ->
     @getBufferRange().intersectsWith(bufferRange)

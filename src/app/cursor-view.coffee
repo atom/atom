@@ -19,7 +19,7 @@ class CursorView extends View
   shouldPauseBlinking: false
 
   initialize: (@cursor, @editor) ->
-    @cursor.on 'change-screen-position.cursor-view', (screenPosition, { autoscroll }) =>
+    @cursor.on 'moved.cursor-view', (screenPosition, { autoscroll }) =>
       @needsUpdate = true
       @shouldPauseBlinking = true
       @needsAutoscroll = (autoscroll ? true) and @cursor?.isLastCursor()
