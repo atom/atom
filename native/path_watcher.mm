@@ -144,6 +144,10 @@ static NSMutableArray *gPathWatchers;
   }
 }
 
+- (NSArray *)watchedPaths {
+  return [_callbacksByPath allKeys];
+}
+
 - (bool)createKeventForPath:(NSString *)path {
   path = [path stringByStandardizingPath];
 

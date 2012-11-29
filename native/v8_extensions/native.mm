@@ -237,6 +237,21 @@ bool Native::Execute(const CefString& name,
 
     return true;
   }
+
+  else if (name == "getWatchedPaths") {
+    PathWatcher *pathWatcher = [PathWatcher pathWatcherForContext:CefV8Context::GetCurrentContext()];
+    NSArray *paths = [pathWatcher watchedPaths];
+
+    CefRefPtr<CefV8Value> pathsArray = CefV8Value::CreateArray([paths count]);
+
+    for (int i = 0; i < [paths count]; i++) {
+      CefRefPtr<CefV8Value> path = CefV8Value::CreateString([[paths objectAtIndex:i] UTF8String]);
+      pathsArray->SetValue(i, path);
+    }
+    retval = pathsArray;
+
+    return true;
+  }
   else if (name == "makeDirectory") {
     NSString *path = stringFromCefV8Value(arguments[0]);
     NSFileManager *fm = [NSFileManager defaultManager];

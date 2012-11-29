@@ -16,13 +16,11 @@ require 'window'
 
 requireStylesheet "jasmine.css"
 
-pathsWithSubscriptions = null
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 200
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
-  pathsWithSubscriptions = []
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
@@ -39,10 +37,8 @@ afterEach ->
   delete window.rootView if window.rootView
   $('#jasmine-content').empty()
   window.fixturesProject.destroy()
-
-  waits(0)
-  runs ->
-#     ensureNoPathSubscriptions()
+  ensureNoPathSubscriptions()
+  waits(0) # yield to ui thread to make screen update more frequently
 
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
@@ -51,20 +47,10 @@ $('html,body').css('overflow', 'auto')
 # Don't load user configuration in specs, because it's variable
 RootView.prototype.loadUserConfiguration = ->
 
-for klass in [Directory, File]
-  klass.prototype.originalOn = klass.prototype.on
-  klass.prototype.on = (args...) ->
-    pathsWithSubscriptions.push(this) if @subscriptionCount() == 0
-    @originalOn(args...)
-
 ensureNoPathSubscriptions = ->
-  totalSubscriptionCount = 0
-  for path in pathsWithSubscriptions
-    totalSubscriptionCount += path.subscriptionCount()
-    console.log "Non-zero subscription count on", path if path.subscriptionCount() > 0
-
-  if totalSubscriptionCount > 0
-    throw new Error("Total path subscription count was #{totalSubscriptionCount}, when it should have been 0.\nSee console for details.")
+  watchedPaths = $native.getWatchedPaths()
+  if watchedPaths.length > 0
+    throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
 
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual
