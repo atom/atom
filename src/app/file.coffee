@@ -46,7 +46,6 @@ class File
 
   handleNativeChangeEvent: (eventType, path) ->
     if eventType is "remove"
-      @cachedContents = null
       @detectResurrectionAfterDelay()
     else if eventType is "move"
       @setPath(path)
@@ -65,6 +64,7 @@ class File
       @subscribeToNativeChangeEvents()
       @handleNativeChangeEvent("contents-change", @getPath())
     else
+      @cachedContents = null
       @unsubscribeFromNativeChangeEvents()
       @trigger "remove"
 
