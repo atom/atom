@@ -333,11 +333,9 @@ class Selection
 
   modifySelection: (fn) ->
     @retainSelection = true
-    @view?.retainSelection = true
     @placeAnchor() unless @anchor
     fn()
     @retainSelection = false
-    @view?.retainSelection = false
 
   placeAnchor: ->
     @anchor = @editSession.addAnchor(strong: true)
