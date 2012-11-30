@@ -71,6 +71,16 @@ class SelectionView extends View
 
   autoscrolled: ->
     @selection.autoscrolled()
+    @highlight()
+
+  highlight: ->
+    @unhighlight()
+    @addClass('highlighted')
+    clearTimeout(@unhighlightTimeout)
+    @unhighlightTimeout = setTimeout((=> @unhighlight()), 1000)
+
+  unhighlight: ->
+    @removeClass('highlighted')
 
   remove: ->
     @editor.removeSelectionView(this)

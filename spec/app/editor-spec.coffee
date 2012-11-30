@@ -940,8 +940,8 @@ describe "Editor", ->
         editor.moveCursorDown()
         expect(editor.scrollTop()).toBeGreaterThan(0)
 
-    describe "when the selected buffer range is assigned with the autoscroll option set to true", ->
-      it "centers the selection in the viewport if its vertical center is currently offscreen", ->
+    describe "selection autoscrolling and highlighting when setting selected buffer range", ->
+      it "only if autoscroll is true, centers the viewport on the selection if its vertical center is currently offscreen", ->
         setEditorHeightInLines(editor, 4)
 
         editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
@@ -949,6 +949,28 @@ describe "Editor", ->
 
         editor.setSelectedBufferRange([[6, 0], [8, 0]], autoscroll: true)
         expect(editor.scrollTop()).toBe 5 * editor.lineHeight
+
+        editor.setSelectedBufferRange([[0, 0], [1, 0]]) # autoscroll is false, the default
+        expect(editor.scrollTop()).toBe 5 * editor.lineHeight
+
+      it "highlights the selection if autoscroll is true", ->
+        editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
+        expect(editor.getSelectionView()).toHaveClass 'highlighted'
+        advanceClock(1000)
+        expect(editor.getSelectionView()).not.toHaveClass 'highlighted'
+
+        editor.setSelectedBufferRange([[3, 0], [5, 0]], autoscroll: true)
+        expect(editor.getSelectionView()).toHaveClass 'highlighted'
+
+        advanceClock(500)
+        spyOn(editor.getSelectionView(), 'removeClass').andCallThrough()
+        editor.setSelectedBufferRange([[2, 0], [4, 0]], autoscroll: true)
+        expect(editor.getSelectionView().removeClass).toHaveBeenCalledWith('highlighted')
+        expect(editor.getSelectionView()).toHaveClass 'highlighted'
+
+
+        advanceClock(500)
+        expect(editor.getSelectionView()).toHaveClass 'highlighted'
 
   describe "cursor rendering", ->
     describe "when the cursor moves", ->

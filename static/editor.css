@@ -123,6 +123,18 @@
   z-index: -1;
 }
 
+
+@-webkit-keyframes highlight {
+  from { background-color: rgba(100, 255, 100, 0.7); }
+  to { background-color: null; }
+}
+
+.editor .highlighted .selection {
+  -webkit-animation-name: highlight;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: 1;
+}
+
 .editor .fold {
   background-color: #444;
 }
