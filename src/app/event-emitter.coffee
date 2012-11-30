@@ -66,12 +66,15 @@ module.exports =
     @afterUnsubscribe?() if @subscriptionCount() < subscriptionCountBefore
 
   pauseEvents: ->
-    @queuedEvents = []
+    @pauseCount ?= 0
+    if @pauseCount++ == 0
+      @queuedEvents ?= []
 
   resumeEvents: ->
-    queuedEvents = @queuedEvents
-    @queuedEvents = null
-    @trigger(event...) for event in queuedEvents
+    if --@pauseCount == 0
+      queuedEvents = @queuedEvents
+      @queuedEvents = null
+      @trigger(event...) for event in queuedEvents
 
   subscriptionCount: ->
     count = 0
