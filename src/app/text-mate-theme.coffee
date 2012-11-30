@@ -68,7 +68,7 @@ class TextMateTheme
         'border-color': @translateColor(caret)
 
     @rulesets.push
-      selector: '.editor.focused .selection'
+      selector: '.editor.focused .selection .region'
       properties:
         'background-color': @translateColor(selection)
 

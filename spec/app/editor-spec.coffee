@@ -270,11 +270,11 @@ describe "Editor", ->
         expect(editor.verticalScrollbar.prop('scrollHeight')).toBe previousScrollHeight
         expect(editor.scrollTop()).toBe 750
         expect(editor.getSelection().getScreenRange()).toEqual [[40, 0], [43, 1]]
-        expect(editor.getSelectionView().find('.selection')).toExist()
+        expect(editor.getSelectionView().find('.region')).toExist()
 
         editor.setActiveEditSessionIndex(0)
         editor.activeEditSession.selectToEndOfLine()
-        expect(editor.getSelectionView().find('.selection')).toExist()
+        expect(editor.getSelectionView().find('.region')).toExist()
 
       it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
         path = "/tmp/atom-changed-file.txt"
@@ -539,7 +539,7 @@ describe "Editor", ->
         editor.setSelectedBufferRange([[5, 2], [5, 7]])
 
         rootView.setFontSize(30)
-        selectionRegion = editor.find('.selection')
+        selectionRegion = editor.find('.region')
         expect(selectionRegion.position().top).toBe 5 * editor.lineHeight
         expect(selectionRegion.position().left).toBe 2 * editor.charWidth
         expect(selectionRegion.height()).toBe editor.lineHeight
@@ -907,11 +907,11 @@ describe "Editor", ->
       it "clears previously drawn regions before creating new ones", ->
         selection.setBufferRange(new Range({row: 2, column: 7}, {row: 4, column: 25}))
         expect(selectionView.regions.length).toBe 3
-        expect(selectionView.find('.selection').length).toBe 3
+        expect(selectionView.find('.region').length).toBe 3
 
         selectionView.updateDisplay()
         expect(selectionView.regions.length).toBe 3
-        expect(selectionView.find('.selection').length).toBe 3
+        expect(selectionView.find('.region').length).toBe 3
 
     describe "when a selection merges with another selection", ->
       it "removes the merged selection view", ->
@@ -922,7 +922,7 @@ describe "Editor", ->
         editSession.selectToScreenPosition([6, 27])
 
         expect(editor.getSelectionViews().length).toBe 1
-        expect(editor.find('.selection').length).toBe 3
+        expect(editor.find('.region').length).toBe 3
 
     describe "when the selection is created with the selectAll event", ->
       it "does not scroll to the end of the buffer", ->

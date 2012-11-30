@@ -44,7 +44,7 @@ describe "TextMateTheme", ->
           'border-color': '#A7A7A7'
 
       expect(rulesets[2]).toEqual
-        selector: '.editor.focused .selection'
+        selector: '.editor.focused .selection .region'
         properties:
           'background-color': "rgba(221, 240, 255, 0.2)"
 

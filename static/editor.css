@@ -116,19 +116,18 @@
   opacity: 0;
 }
 
-.editor .selection {
+.editor .selection .region {
   position: absolute;
   pointer-events: none;
   z-index: -1;
 }
-
 
 @-webkit-keyframes highlight {
   from { background-color: rgba(100, 255, 100, 0.7); }
   to { background-color: null; }
 }
 
-.editor .highlighted .selection {
+.editor .highlighted.selection .region {
   -webkit-animation-name: highlight;
   -webkit-animation-duration: 1s;
   -webkit-animation-iteration-count: 1;

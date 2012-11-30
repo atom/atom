@@ -6,7 +6,7 @@ Range = require 'range'
 module.exports =
 class SelectionView extends View
   @content: ->
-    @div()
+    @div class: 'selection'
 
   regions: null
   destroyed: false
@@ -45,7 +45,7 @@ class SelectionView extends View
     else
       css.right = 0
 
-    region = ($$ -> @div class: 'selection').css(css)
+    region = ($$ -> @div class: 'region').css(css)
     @append(region)
     @regions.push(region)
 
