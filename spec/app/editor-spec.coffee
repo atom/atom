@@ -1921,6 +1921,21 @@ describe "Editor", ->
       expect(editor.getCursor().getScreenPosition().row).toBe(0)
       expect(editor.getFirstVisibleScreenRow()).toBe(0)
 
+  describe "when autosave is enabled", ->
+    it "autosaves the current buffer when the editor loses focus or switches edit sessions", ->
+      rootView.attachToDom()
+      editor2 = editor.splitRight()
+      rootView.autosave = true
+      spyOn(editor2.activeEditSession, 'save')
+
+      editor.focus()
+      expect(editor2.activeEditSession.save).toHaveBeenCalled()
+
+      editSession = editor.activeEditSession
+      spyOn(editSession, 'save')
+      rootView.open('sample.txt')
+      expect(editSession.save).toHaveBeenCalled()
+
   describe ".checkoutHead()", ->
     [repo, path, originalPathText] = []
 

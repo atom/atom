@@ -86,8 +86,7 @@ class Editor extends View
       throw new Error("Editor initialization requires an editSession")
 
   serialize: ->
-    @saveActiveEditSession()
-
+    @saveScrollPositionForActiveEditSession()
     viewClass: "Editor"
     editSessions: @editSessions.map (session) -> session.serialize()
     activeEditSessionIndex: @getActiveEditSessionIndex()
@@ -309,6 +308,7 @@ class Editor extends View
     @hiddenInput.on 'focusout', =>
       @isFocused = false
       @removeClass 'focused'
+      @autosave() if @rootView()?.autosave
 
     @overlayer.on 'mousedown', (e) =>
       @overlayer.hide()
@@ -433,7 +433,8 @@ class Editor extends View
     throw new Error("Edit session not found") unless @editSessions[index]
 
     if @activeEditSession
-      @saveActiveEditSession()
+      @autosave() if @rootView()?.autosave
+      @saveScrollPositionForActiveEditSession()
       @activeEditSession.off()
 
     @activeEditSession = @editSessions[index]
@@ -551,7 +552,7 @@ class Editor extends View
     @scrollTop(@activeEditSession.scrollTop ? 0)
     @scrollView.scrollLeft(@activeEditSession.scrollLeft ? 0)
 
-  saveActiveEditSession: ->
+  saveScrollPositionForActiveEditSession: ->
     @activeEditSession.setScrollTop(@scrollTop())
     @activeEditSession.setScrollLeft(@scrollView.scrollLeft())
 
@@ -580,13 +581,16 @@ class Editor extends View
 
   save: (onSuccess) ->
     if @getPath()
-      @getBuffer().save()
+      @activeEditSession.save()
       onSuccess?()
     else
       atom.showSaveDialog (path) =>
         if path
-          @getBuffer().saveAs(path)
+          @activeEditSession.saveAs(path)
           onSuccess?()
+
+  autosave: ->
+    @save() if @getPath()?
 
   subscribeToFontSize: ->
     return unless rootView = @rootView()

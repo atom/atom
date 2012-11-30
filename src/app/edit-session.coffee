@@ -135,6 +135,8 @@ class EditSession
     else
       _.multiplyString("\t", number)
 
+  save: -> @buffer.save()
+  saveAs: (path) -> @buffer.saveAs(path)
   getFileExtension: -> @buffer.getExtension()
   getPath: -> @buffer.getPath()
   isBufferRowBlank: (bufferRow) -> @buffer.isRowBlank(bufferRow)
