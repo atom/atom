@@ -502,9 +502,14 @@ class Editor extends View
 
   scrollVertically: (pixelPosition, {center}={}) ->
     scrollViewHeight = @scrollView.height()
+    scrollTop = @scrollTop()
+    scrollBottom = scrollTop + scrollViewHeight
 
     if center
-      @scrollTop(pixelPosition.top - (scrollViewHeight / 2))
+      console.log scrollTop, pixelPosition.top, scrollBottom
+
+      unless scrollTop < pixelPosition.top < scrollBottom
+        @scrollTop(pixelPosition.top - (scrollViewHeight / 2))
     else
       linesInView = @scrollView.height() / @lineHeight
       maxScrollMargin = Math.floor((linesInView - 1) / 2)
@@ -512,10 +517,9 @@ class Editor extends View
       margin = scrollMargin * @lineHeight
       desiredTop = pixelPosition.top - margin
       desiredBottom = pixelPosition.top + @lineHeight + margin
-
-      if desiredBottom > @scrollTop() + scrollViewHeight
+      if desiredBottom > scrollBottom
         @scrollTop(desiredBottom - scrollViewHeight)
-      else if desiredTop < @scrollTop()
+      else if desiredTop < scrollTop
         @scrollTop(desiredTop)
 
   scrollHorizontally: (pixelPosition) ->
