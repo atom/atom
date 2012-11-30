@@ -38,7 +38,7 @@ class CompositeCommand
               operation.destroy()
 
               if bufferRanges.length and not currentCommand.preserveSelections
-                editSession.setSelectedBufferRanges(bufferRanges)
+                editSession.setSelectedBufferRanges(bufferRanges, autoscroll: true)
 
           deferred.resolve({errorMessages})
 

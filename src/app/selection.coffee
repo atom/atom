@@ -63,11 +63,13 @@ class Selection
     { start, end } = bufferRange
     [start, end] = [end, start] if options.reverse ? @isReversed()
 
+    @needsAutoscroll = options.autoscroll
+
     @editSession.destroyFoldsIntersectingBufferRange(bufferRange) unless options.preserveFolds
     @placeAnchor() unless @anchor
     @modifySelection =>
-      @anchor.setBufferPosition(start, options)
-      @cursor.setBufferPosition(end, options)
+      @anchor.setBufferPosition(start, autoscroll: false)
+      @cursor.setBufferPosition(end, autoscroll: false)
 
   getBufferRowRange: ->
     range = @getBufferRange()
@@ -334,7 +336,11 @@ class Selection
   modifySelection: (fn) ->
     @retainSelection = true
     @placeAnchor() unless @anchor
+    @anchor.pauseEvents()
+    @cursor.pauseEvents()
     fn()
+    @anchor.resumeEvents()
+    @cursor.resumeEvents()
     @retainSelection = false
 
   placeAnchor: ->

@@ -49,6 +49,13 @@ class SelectionView extends View
     @append(region)
     @regions.push(region)
 
+  getCenterPixelPosition: ->
+    { start, end } = @getScreenRange()
+    startRow = start.row
+    endRow = end.row
+    endRow-- if end.column == 0
+    @editor.pixelPositionForScreenPosition([((startRow + endRow + 1) / 2), start.column])
+
   clearRegions: ->
     region.remove() for region in @regions
     @regions = []

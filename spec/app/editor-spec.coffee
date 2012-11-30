@@ -940,6 +940,12 @@ describe "Editor", ->
         editor.moveCursorDown()
         expect(editor.scrollTop()).toBeGreaterThan(0)
 
+    describe "when the selected buffer range is assigned with the autoscroll option set to true", ->
+      it "centers the selection in the viewport if possible", ->
+        setEditorHeightInLines(editor, 8)
+        editor.setSelectedBufferRange([[6, 0], [8, 0]], autoscroll: true)
+        expect(editor.scrollTop()).toBe 3 * editor.lineHeight
+
   describe "cursor rendering", ->
     describe "when the cursor moves", ->
       charWidth = null

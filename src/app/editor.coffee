@@ -495,24 +495,28 @@ class Editor extends View
   scrollToBottom: ->
     @scrollBottom(@screenLineCount() * @lineHeight)
 
-  scrollTo: (pixelPosition) ->
+  scrollTo: (pixelPosition, options) ->
     return unless @attached
-    @scrollVertically(pixelPosition)
+    @scrollVertically(pixelPosition, options)
     @scrollHorizontally(pixelPosition)
 
-  scrollVertically: (pixelPosition) ->
-    linesInView = @scrollView.height() / @lineHeight
-    maxScrollMargin = Math.floor((linesInView - 1) / 2)
-    scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
-    margin = scrollMargin * @lineHeight
-    desiredTop = pixelPosition.top - margin
-    desiredBottom = pixelPosition.top + @lineHeight + margin
-
+  scrollVertically: (pixelPosition, {center}={}) ->
     scrollViewHeight = @scrollView.height()
-    if desiredBottom > @scrollTop() + scrollViewHeight
-      @scrollTop(desiredBottom - scrollViewHeight)
-    else if desiredTop < @scrollTop()
-      @scrollTop(desiredTop)
+
+    if center
+      @scrollTop(pixelPosition.top - (scrollViewHeight / 2))
+    else
+      linesInView = @scrollView.height() / @lineHeight
+      maxScrollMargin = Math.floor((linesInView - 1) / 2)
+      scrollMargin = Math.min(@vScrollMargin, maxScrollMargin)
+      margin = scrollMargin * @lineHeight
+      desiredTop = pixelPosition.top - margin
+      desiredBottom = pixelPosition.top + @lineHeight + margin
+
+      if desiredBottom > @scrollTop() + scrollViewHeight
+        @scrollTop(desiredBottom - scrollViewHeight)
+      else if desiredTop < @scrollTop()
+        @scrollTop(desiredTop)
 
   scrollHorizontally: (pixelPosition) ->
     return if @activeEditSession.getSoftWrap()
@@ -791,6 +795,10 @@ class Editor extends View
     for cursorView in @getCursorViews() when cursorView.needsAutoscroll
       @scrollTo(cursorView.getPixelPosition()) unless options.suppressAutoScroll
       cursorView.needsAutoscroll = false
+
+    for selectionView in @getSelectionViews() when selectionView.selection.needsAutoscroll
+      @scrollTo(selectionView.getCenterPixelPosition(), center: true)
+      selectionView.selection.needsAutoscroll = false
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
