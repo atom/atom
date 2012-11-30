@@ -506,8 +506,6 @@ class Editor extends View
     scrollBottom = scrollTop + scrollViewHeight
 
     if center
-      console.log scrollTop, pixelPosition.top, scrollBottom
-
       unless scrollTop < pixelPosition.top < scrollBottom
         @scrollTop(pixelPosition.top - (scrollViewHeight / 2))
     else
