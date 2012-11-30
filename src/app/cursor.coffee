@@ -11,15 +11,18 @@ class Cursor
   goalColumn: null
   wordRegex: /(\w+)|([^\w\n]+)/g
   visible: true
+  needsAutoscroll: false
 
   constructor: ({@editSession, screenPosition, bufferPosition}) ->
     @anchor = @editSession.addAnchor(strong: true)
     @anchor.on 'moved', (e) =>
+      @needsAutoscroll = (e.autoscroll ? true) and @isLastCursor()
       @trigger 'moved', e
       @editSession.trigger 'cursor-moved', e
 
     @setScreenPosition(screenPosition) if screenPosition
     @setBufferPosition(bufferPosition) if bufferPosition
+    @needsAutoscroll = true
 
   destroy: ->
     @anchor.destroy()
@@ -48,12 +51,16 @@ class Cursor
   setVisible: (visible) ->
     if @visible != visible
       @visible = visible
+      @needsAutoscroll = @visible and @isLastCursor()
       @trigger 'change-visibility', @visible
 
   isVisible: -> @visible
 
   isLastCursor: ->
     this == @editSession.getLastCursor()
+
+  autoscrolled: ->
+    @needsAutoscroll = false
 
   clearSelection: ->
     if @selection

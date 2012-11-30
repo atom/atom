@@ -66,6 +66,12 @@ class SelectionView extends View
   getBufferRange: ->
     @selection.getBufferRange()
 
+  needsAutoscroll: ->
+    @selection.needsAutoscroll
+
+  autoscrolled: ->
+    @selection.autoscrolled()
+
   remove: ->
     @editor.removeSelectionView(this)
     super

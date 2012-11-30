@@ -42,6 +42,9 @@ class Selection
   isSingleScreenLine: ->
     @getScreenRange().isSingleLine()
 
+  autoscrolled: ->
+    @needsAutoscroll = false
+
   getScreenRange: ->
     if @anchor
       new Range(@anchor.getScreenPosition(), @cursor.getScreenPosition())

@@ -14,7 +14,6 @@ class CursorView extends View
   visible: true
 
   needsUpdate: true
-  needsAutoscroll: true
   needsRemoval: false
   shouldPauseBlinking: false
 
@@ -22,12 +21,10 @@ class CursorView extends View
     @cursor.on 'moved.cursor-view', ({ autoscroll }) =>
       @needsUpdate = true
       @shouldPauseBlinking = true
-      @needsAutoscroll = (autoscroll ? true) and @cursor?.isLastCursor()
       @editor.requestDisplayUpdate()
 
     @cursor.on 'change-visibility.cursor-view', (visible) =>
       @needsUpdate = true
-      @needsAutoscroll = visible and @cursor.isLastCursor()
       @editor.requestDisplayUpdate()
 
     @cursor.on 'destroy.cursor-view', =>
@@ -54,6 +51,12 @@ class CursorView extends View
       @startBlinking()
 
     @setVisible(@cursor.isVisible() and not @editor.isFoldedAtScreenRow(screenPosition.row))
+
+  needsAutoscroll: ->
+    @cursor.needsAutoscroll
+
+  autoscrolled: ->
+    @cursor.autoscrolled()
 
   getPixelPosition: ->
     @editor.pixelPositionForScreenPosition(@getScreenPosition())

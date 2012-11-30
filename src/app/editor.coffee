@@ -794,13 +794,13 @@ class Editor extends View
       do (cursorView) -> cursorView.resetBlinking()
 
   autoscroll: (options={}) ->
-    for cursorView in @getCursorViews() when cursorView.needsAutoscroll
+    for cursorView in @getCursorViews() when cursorView.needsAutoscroll()
       @scrollTo(cursorView.getPixelPosition()) unless options.suppressAutoScroll
-      cursorView.needsAutoscroll = false
+      cursorView.autoscrolled()
 
-    for selectionView in @getSelectionViews() when selectionView.selection.needsAutoscroll
+    for selectionView in @getSelectionViews() when selectionView.needsAutoscroll()
       @scrollTo(selectionView.getCenterPixelPosition(), center: true)
-      selectionView.selection.needsAutoscroll = false
+      selectionView.autoscrolled()
 
   updateRenderedLines: ->
     firstVisibleScreenRow = @getFirstVisibleScreenRow()
