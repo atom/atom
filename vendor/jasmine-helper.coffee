@@ -18,7 +18,7 @@ module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   else
     new jasmine.AtomReporter(document)
 
-  require specSuite
+#   require specSuite
   jasmineEnv = jasmine.getEnv()
   jasmineEnv.addReporter(reporter)
   jasmineEnv.specFilter = (spec) -> reporter.specFilter(spec)
