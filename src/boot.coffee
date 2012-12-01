@@ -12,5 +12,6 @@ path.resolveOnLoadPath = (relativePath) ->
     candidatePath = path.join(loadPath, relativePath)
     return candidatePath if fs.existsSync(candidatePath)
 
+require 'app/atom'
 require 'app/window'
 require 'spec-bootstrap'
