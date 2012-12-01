@@ -6,6 +6,7 @@
     "toolbar": true
   },
   "dependencies": {
-    "coffee-script": "1.x"
+    "coffee-script": "1.x",
+    "walkdir": "0.0.5"
   }
 }
