@@ -1,5 +1,5 @@
 _ = require 'underscore'
-EventEmitter = require 'event-emitter'
+EventEmitter = require 'app/event-emitter'
 
 describe "EventEmitter mixin", ->
   [object, fooHandler1, fooHandler2, barHandler] = []

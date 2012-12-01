@@ -1,5 +1,5 @@
-Project = require 'project'
-Buffer = require 'buffer'
+Project = require 'app/project'
+Buffer = require 'app/buffer'
 fs = require 'fs'
 _ = require 'underscore'
 

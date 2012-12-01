@@ -1,7 +1,7 @@
-Project = require 'project'
-Buffer = require 'buffer'
-EditSession = require 'edit-session'
-TextMateBundle = require 'text-mate-bundle'
+Project = require 'app/project'
+Buffer = require 'app/buffer'
+EditSession = require 'app/edit-session'
+TextMateBundle = require 'app/text-mate-bundle'
 
 describe "EditSession", ->
   [buffer, editSession, lineLengths] = []

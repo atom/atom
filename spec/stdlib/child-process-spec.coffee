@@ -1,4 +1,4 @@
-ChildProcess = require 'child-process'
+ChildProcess = require 'stdlib/child-process'
 
 describe 'Child Processes', ->
   describe ".exec(command, options)", ->

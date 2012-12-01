@@ -1,4 +1,4 @@
-Git = require 'git'
+Git = require 'app/git'
 fs = require 'fs'
 
 describe "Git", ->

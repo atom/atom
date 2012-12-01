@@ -1,4 +1,4 @@
-Point = require 'point'
+Point = require 'app/point'
 
 describe "Point", ->
   describe ".isEqual(value)", ->

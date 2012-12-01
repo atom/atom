@@ -172,7 +172,7 @@ jasmine.AtomReporter.prototype.log = function() {
 };
 
 jasmine.AtomReporter.prototype.getLocation = function() {
-  return this.document.location;
+  return window.location;
 };
 
 jasmine.AtomReporter.prototype.specFilter = function(spec) {

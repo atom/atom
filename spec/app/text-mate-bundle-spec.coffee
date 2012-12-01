@@ -1,5 +1,5 @@
 fs = require('fs')
-TextMateBundle = require 'text-mate-bundle'
+TextMateBundle = require 'app/text-mate-bundle'
 
 describe "TextMateBundle", ->
   describe ".getPreferenceInScope(scope, preferenceName)", ->

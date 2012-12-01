@@ -1,7 +1,7 @@
-TokenizedBuffer = require 'tokenized-buffer'
-LanguageMode = require 'language-mode'
-Buffer = require 'buffer'
-Range = require 'range'
+TokenizedBuffer = require 'app/tokenized-buffer'
+LanguageMode = require 'app/language-mode'
+Buffer = require 'app/buffer'
+Range = require 'app/range'
 _ = require 'underscore'
 
 describe "TokenizedBuffer", ->

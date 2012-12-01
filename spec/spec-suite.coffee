@@ -8,5 +8,5 @@ for path in walkdir.sync('./spec') when /-spec\.coffee$/.test path
   require path
 
 # Run extension specs
-for path in walkdir.sync('src/extensions') when /-spec\.coffee$/.test path
-  require path
+# for path in walkdir.sync('src/extensions') when /-spec\.coffee$/.test path
+#   require path

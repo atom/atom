@@ -1,4 +1,4 @@
-Directory = require 'directory'
+Directory = require 'app/directory'
 fs = require 'fs'
 
 describe "Directory", ->

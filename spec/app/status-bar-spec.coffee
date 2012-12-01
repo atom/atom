@@ -1,7 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
-RootView = require 'root-view'
-StatusBar = require 'status-bar'
+RootView = require 'app/root-view'
+StatusBar = require 'app/status-bar'
 fs = require 'fs'
 
 describe "StatusBar", ->

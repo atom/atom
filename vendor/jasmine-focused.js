@@ -48,6 +48,8 @@ var fSpecFilter = function(specOrSuite) {
 
 jasmine.AtomReporter.prototype.specFilter = function(spec) {
   var paramMap = {};
+  console.log(window.location)
+
   var params = this.getLocation().search.substring(1).split('&');
   for (var i = 0; i < params.length; i++) {
     var p = params[i].split('=');

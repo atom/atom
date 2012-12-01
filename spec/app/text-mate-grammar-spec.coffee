@@ -1,5 +1,5 @@
-TextMateGrammar = require 'text-mate-grammar'
-TextMateBundle = require 'text-mate-bundle'
+TextMateGrammar = require 'app/text-mate-grammar'
+TextMateBundle = require 'app/text-mate-bundle'
 plist = require 'plist'
 fs = require 'fs'
 _ = require 'underscore'

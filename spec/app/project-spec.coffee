@@ -1,4 +1,4 @@
-Project = require 'project'
+Project = require 'app/project'
 fs = require 'fs'
 
 describe "Project", ->

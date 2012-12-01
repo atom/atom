@@ -1,4 +1,4 @@
-File = require 'file'
+File = require 'app/file'
 fs = require 'fs'
 
 describe 'File', ->

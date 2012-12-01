@@ -1,6 +1,6 @@
 fs = require 'fs'
 plist = require 'plist'
-TextMateTheme = require 'text-mate-theme'
+TextMateTheme = require 'app/text-mate-theme'
 
 describe "TextMateTheme", ->
   theme = null
