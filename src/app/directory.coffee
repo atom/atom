@@ -1,7 +1,7 @@
 _ = require 'underscore'
 fs = require 'fs'
-File = require 'file'
-EventEmitter = require 'event-emitter'
+File = require 'app/file'
+EventEmitter = require 'app/event-emitter'
 
 module.exports =
 class Directory
@@ -17,7 +17,7 @@ class Directory
   getEntries: ->
     directories = []
     files = []
-    for path in fs.list(@path)
+    for path in fs.readdirSync(@path)
       if fs.isDirectory(path)
         directories.push(new Directory(path))
       else if fs.isFile(path)

@@ -4,14 +4,14 @@ fs = require 'fs'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
-Buffer = require 'buffer'
-Editor = require 'editor'
-Project = require 'project'
-Pane = require 'pane'
-PaneColumn = require 'pane-column'
-PaneRow = require 'pane-row'
-StatusBar = require 'status-bar'
-TextMateTheme = require 'text-mate-theme'
+Buffer = require 'app/buffer'
+Editor = require 'app/editor'
+Project = require 'app/project'
+Pane = require 'app/pane'
+PaneColumn = require 'app/pane-column'
+PaneRow = require 'app/pane-row'
+StatusBar = require 'app/status-bar'
+TextMateTheme = require 'app/text-mate-theme'
 
 module.exports =
 class RootView extends View

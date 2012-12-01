@@ -81,7 +81,7 @@ describe "fs", ->
         paths.push(fs.join(fixturesDir, path))
         true
       fs.traverseTree fixturesDir, onPath, onPath
-      expect(paths).toEqual fs.listTree(fixturesDir)
+      expect(paths).toEqual fs.readTree(fixturesDir)
 
     it "does not recurse into a directory if it is pruned", ->
       paths = []

@@ -1,7 +1,7 @@
-Range = require 'range'
-TextMateBundle = require 'text-mate-bundle'
+Range = require 'app/range'
+TextMateBundle = require 'app/text-mate-bundle'
 _ = require 'underscore'
-require 'underscore-extensions'
+require 'stdlib/underscore-extensions'
 
 module.exports =
 class LanguageMode

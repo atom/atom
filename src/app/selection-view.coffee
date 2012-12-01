@@ -1,6 +1,6 @@
-Anchor = require 'anchor'
-Point = require 'point'
-Range = require 'range'
+Anchor = require 'app/anchor'
+Point = require 'app/point'
+Range = require 'app/range'
 {View, $$} = require 'space-pen'
 
 module.exports =

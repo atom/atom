@@ -1,7 +1,7 @@
 _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
-Token = require 'token'
+Token = require 'app/token'
 
 module.exports =
 class TextMateGrammar

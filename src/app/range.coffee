@@ -1,4 +1,4 @@
-Point = require 'point'
+Point = require 'app/point'
 _ = require 'underscore'
 
 module.exports =

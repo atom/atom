@@ -1,13 +1,13 @@
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
-Range = require 'range'
-Buffer = require 'buffer'
-EditSession = require 'edit-session'
-EventEmitter = require 'event-emitter'
-Directory = require 'directory'
-ChildProcess = require 'child-process'
-Git = require 'git'
+Range = require 'app/range'
+Buffer = require 'app/buffer'
+EditSession = require 'app/edit-session'
+EventEmitter = require 'app/event-emitter'
+Directory = require 'app/directory'
+ChildProcess = require 'stdlib/child-process'
+Git = require 'app/git'
 
 module.exports =
 class Project

@@ -1,12 +1,11 @@
 {
-  "name"    : "atom",
-  "version" : "0.0.0",
-
+  "name": "nwtest",
+  "version": "0.0.1",
+  "main": "index.html",
+  "window": {
+    "toolbar": true
+  },
   "dependencies": {
     "coffee-script": "1.x"
-  },
-
-  "scripts": {
-    "preinstall": "true"
   }
 }

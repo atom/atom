@@ -1,4 +1,4 @@
-EventEmitter = require 'event-emitter'
+EventEmitter = require 'app/event-emitter'
 
 fs = require 'fs'
 _ = require 'underscore'

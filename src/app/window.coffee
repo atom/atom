@@ -1,23 +1,23 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
-Native = require 'native'
-TextMateBundle = require 'text-mate-bundle'
-TextMateTheme = require 'text-mate-theme'
+TextMateBundle = require 'app/text-mate-bundle'
+TextMateTheme = require 'app/text-mate-theme'
 fs = require 'fs'
+path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
-RootView = require 'root-view'
-Pasteboard = require 'pasteboard'
-require 'jquery-extensions'
-require 'underscore-extensions'
+RootView = require 'app/root-view'
+Pasteboard = require 'app/pasteboard'
+require 'stdlib/jquery-extensions'
+require 'stdlib/underscore-extensions'
 
 windowAdditions =
   rootViewParentSelector: 'body'
   rootView: null
   keymap: null
-  platform: $native.getPlatform()
+#   platform: $native.getPlatform()
 
   # This method runs when the file is required. Any code here will run
   # in all environments: spec, benchmark, and application
@@ -50,11 +50,14 @@ windowAdditions =
     $(window).off('before')
 
   setUpKeymap: ->
-    Keymap = require 'keymap'
+    Keymap = require 'app/keymap'
 
     @keymap = new Keymap()
     @keymap.bindDefaultKeys()
-    require(keymapPath) for keymapPath in fs.list(require.resolve("keymaps"))
+
+    keymapsPath = path.resolveOnLoadPath("app/keymaps")
+    for keymapPath in fs.readdirSync(keymapsPath)
+      require(path.join(keymapsPath, keymapPath))
 
     @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
     $(document).on 'keydown', @_handleKeyEvent
@@ -62,7 +65,7 @@ windowAdditions =
   requireStylesheet: (path) ->
     unless fullPath = require.resolve(path)
       throw new Error("requireStylesheet could not find a file at path '#{path}'")
-    window.applyStylesheet(fullPath, fs.read(fullPath))
+    window.applyStylesheet(fullPath, fs.readFileSync(fullPath, 'utf8'))
 
   applyStylesheet: (id, text) ->
     unless $("head style[id='#{id}']").length
@@ -100,7 +103,8 @@ windowAdditions =
     result = new Date().getTime() - start
     console.log description, result
 
-window[key] = value for key, value of windowAdditions
+_.defaults(window, windowAdditions)
+_.defaults(global, window)
 window.startup()
 
 requireStylesheet 'reset.css'

@@ -1,8 +1,9 @@
 _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
+path = require 'path'
 
-TextMateGrammar = require 'text-mate-grammar'
+TextMateGrammar = require 'app/text-mate-grammar'
 
 module.exports =
 class TextMateBundle
@@ -13,13 +14,13 @@ class TextMateBundle
   @grammars: []
 
   @loadAll: ->
-    localBundlePath = fs.join(atom.configDirPath, "bundles")
-    localBundles = fs.list(localBundlePath) if fs.exists(localBundlePath)
+    localBundlePath = path.join(atom.configDirPath, "bundles")
+    localBundles = fs.readdirSync(localBundlePath) if fs.exists(localBundlePath)
 
     for bundlePath in localBundles ? []
       @registerBundle(new TextMateBundle(bundlePath))
 
-  @registerBundle: (bundle)->
+  @registerBundle: (bundle) ->
     @bundles.push(bundle)
 
     for scopeSelector, preferences of bundle.getPreferencesByScopeSelector()
@@ -76,7 +77,7 @@ class TextMateBundle
   constructor: (@path) ->
     @grammars = []
     if fs.exists(@getSyntaxesPath())
-      for syntaxPath in fs.list(@getSyntaxesPath())
+      for syntaxPath in fs.readdirSync(@getSyntaxesPath())
         try
           @grammars.push TextMateGrammar.loadFromPath(syntaxPath)
         catch e
@@ -85,7 +86,7 @@ class TextMateBundle
   getPreferencesByScopeSelector: ->
     return {} unless fs.exists(@getPreferencesPath())
     preferencesByScopeSelector = {}
-    for preferencePath in fs.list(@getPreferencesPath())
+    for preferencePath in fs.readdirSync(@getPreferencesPath())
       plist.parseString fs.read(preferencePath), (e, data) ->
         if e
           console.warn "Failed to parse preference at path '#{preferencePath}'", e

@@ -1,9 +1,12 @@
+_ = require 'underscore'
+
 module.exports.runSpecSuite = (specSuite, logErrors=true) ->
   {$$} = require 'space-pen'
-  nakedLoad 'jasmine'
-  nakedLoad 'jasmine-atom-reporter'
-  nakedLoad 'jasmine-console-reporter'
-  nakedLoad 'jasmine-focused'
+  _.defaults(global, require 'jasmine')
+
+  require 'jasmine-atom-reporter'
+  require 'jasmine-console-reporter'
+  require 'jasmine-focused'
 
   $ = require 'jquery'
 

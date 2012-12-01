@@ -1,5 +1,5 @@
-Point = require 'point'
-EventEmitter = require 'event-emitter'
+Point = require 'app/point'
+EventEmitter = require 'app/event-emitter'
 _ = require 'underscore'
 
 module.exports =

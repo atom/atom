@@ -8,7 +8,7 @@ describe 'Buffer', ->
 
   beforeEach ->
     filePath = require.resolve('fixtures/sample.js')
-    fileContents = fs.read(filePath)
+    fileContents = fs.readFileSync(filePath)
     buffer = new Buffer(filePath)
 
   afterEach ->
@@ -341,7 +341,7 @@ describe 'Buffer', ->
       it "saves the contents of the buffer to the path", ->
         saveBuffer.setText 'Buffer contents!'
         saveBuffer.save()
-        expect(fs.read(filePath)).toEqual 'Buffer contents!'
+        expect(fs.readFileSync(filePath)).toEqual 'Buffer contents!'
 
       it "fires beforeSave and afterSave events around the call to fs.write", ->
         events = []
@@ -390,7 +390,7 @@ describe 'Buffer', ->
 
       saveAsBuffer.setText 'Buffer contents!'
       saveAsBuffer.saveAs(filePath)
-      expect(fs.read(filePath)).toEqual 'Buffer contents!'
+      expect(fs.readFileSync(filePath)).toEqual 'Buffer contents!'
 
       expect(eventHandler).toHaveBeenCalledWith(saveAsBuffer)
 

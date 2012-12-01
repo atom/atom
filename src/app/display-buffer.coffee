@@ -1,12 +1,12 @@
 _ = require 'underscore'
-TokenizedBuffer = require 'tokenized-buffer'
-LineMap = require 'line-map'
-Point = require 'point'
-EventEmitter = require 'event-emitter'
-Range = require 'range'
-Fold = require 'fold'
-ScreenLine = require 'screen-line'
-Token = require 'token'
+TokenizedBuffer = require 'app/tokenized-buffer'
+LineMap = require 'app/line-map'
+Point = require 'app/point'
+EventEmitter = require 'app/event-emitter'
+Range = require 'app/range'
+Fold = require 'app/fold'
+ScreenLine = require 'app/screen-line'
+Token = require 'app/token'
 
 module.exports =
 class DisplayBuffer

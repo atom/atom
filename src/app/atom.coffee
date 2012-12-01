@@ -1,9 +1,11 @@
-fs = require('fs')
+fs = require 'fs'
+path = require 'path'
 
-atom.configDirPath = fs.absolute("~/.atom")
-atom.configFilePath = fs.join(atom.configDirPath, "atom.coffee")
+global.atom = {}
+atom.configDirPath = fs.realpathSync("#{process.env.HOME}/.atom")
+atom.configFilePath = path.join(atom.configDirPath, "atom.coffee")
 
-atom.exitWhenDone = window.location.params.exitWhenDone
+atom.exitWhenDone = false
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess

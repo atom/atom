@@ -1,9 +1,8 @@
 $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
-
-BindingSet = require 'binding-set'
 Specificity = require 'specificity'
+BindingSet = require 'app/binding-set'
 
 module.exports =
 class Keymap

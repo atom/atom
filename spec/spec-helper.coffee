@@ -1,18 +1,18 @@
-nakedLoad 'jasmine-jquery'
+require 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
-Keymap = require 'keymap'
-Point = require 'point'
-Project = require 'project'
-Directory = require 'directory'
-File = require 'file'
-RootView = require 'root-view'
-Editor = require 'editor'
-TextMateBundle = require 'text-mate-bundle'
-TextMateTheme = require 'text-mate-theme'
-TokenizedBuffer = require 'tokenized-buffer'
+Keymap = require 'app/keymap'
+Point = require 'app/point'
+Project = require 'app/project'
+Directory = require 'app/directory'
+File = require 'app/file'
+RootView = require 'app/root-view'
+Editor = require 'app/editor'
+TextMateBundle = require 'app/text-mate-bundle'
+TextMateTheme = require 'app/text-mate-theme'
+TokenizedBuffer = require 'app/tokenized-buffer'
 fs = require 'fs'
-require 'window'
+require 'app/window'
 
 requireStylesheet "jasmine.css"
 
@@ -46,10 +46,10 @@ $('html,body').css('overflow', 'auto')
 RootView.prototype.loadUserConfiguration = ->
 
 ensureNoPathSubscriptions = ->
-  watchedPaths = $native.getWatchedPaths()
-  $native.unwatchAllPaths()
-  if watchedPaths.length > 0
-    throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
+#   watchedPaths = $native.getWatchedPaths()
+#   $native.unwatchAllPaths()
+#   if watchedPaths.length > 0
+#     throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
 
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual

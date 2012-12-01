@@ -1,5 +1,4 @@
 {View, $$, $$$} = require 'space-pen'
-
 $ = require 'jquery'
 _ = require 'underscore'
 
