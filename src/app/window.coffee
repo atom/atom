@@ -17,7 +17,7 @@ windowAdditions =
   rootViewParentSelector: 'body'
   rootView: null
   keymap: null
-#   platform: $native.getPlatform()
+  platform: 'mac' # $native.getPlatform()
 
   # This method runs when the file is required. Any code here will run
   # in all environments: spec, benchmark, and application
