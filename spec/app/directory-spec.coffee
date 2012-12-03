@@ -1,11 +1,12 @@
 Directory = require 'app/directory'
 fs = require 'fs'
+path = require 'path'
 
-describe "Directory", ->
+fdescribe "Directory", ->
   directory = null
 
   beforeEach ->
-    directory = new Directory(require.resolve('fixtures'))
+    directory = new Directory(path.resolveOnLoadPath('fixtures'))
 
   afterEach ->
     directory.off()
@@ -14,11 +15,11 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fs.join(require.resolve('fixtures'), 'temporary')
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      temporaryFilePath = path.join(path.resolveOnLoadPath('fixtures'), 'temporary')
+      fs.unlink(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     afterEach ->
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.unlink(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     it "triggers 'contents-change' event handlers", ->
       changeHandler = null
@@ -32,7 +33,7 @@ describe "Directory", ->
 
       runs ->
         changeHandler.reset()
-        fs.remove(temporaryFilePath)
+        fs.unlink(temporaryFilePath)
 
       waitsFor "second change", -> changeHandler.callCount > 0
 
@@ -40,11 +41,11 @@ describe "Directory", ->
     temporaryFilePath = null
 
     beforeEach ->
-      temporaryFilePath = fs.join(directory.path, 'temporary')
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      temporaryFilePath = path.join(directory.path, 'temporary')
+      fs.unlink(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     afterEach ->
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.unlink(temporaryFilePath) if fs.exists(temporaryFilePath)
 
     it "no longer triggers events", ->
       changeHandler = null
@@ -61,7 +62,7 @@ describe "Directory", ->
         directory.off()
       waits 20
 
-      runs -> fs.remove(temporaryFilePath)
+      runs -> fs.unlink(temporaryFilePath)
       waits 20
       runs -> expect(changeHandler.callCount).toBe 0
 

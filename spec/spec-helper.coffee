@@ -15,7 +15,7 @@ TextMateTheme = require 'app/text-mate-theme'
 TokenizedBuffer = require 'app/tokenized-buffer'
 
 beforeEach ->
-  window.fixturesProject = new Project(path.resolveOnLoadPath('fixtures'))
+  global.fixturesProject = new Project(path.resolveOnLoadPath('fixtures'))
   resetTimeouts()
 
   # make editor display updates synchronous
@@ -32,7 +32,7 @@ beforeEach ->
 afterEach ->
   delete window.rootView if window.rootView
   $('#jasmine-content').empty()
-  window.fixturesProject.destroy()
+  fixturesProject.destroy()
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
