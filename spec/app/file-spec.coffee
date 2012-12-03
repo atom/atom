@@ -6,14 +6,14 @@ describe 'File', ->
 
   beforeEach ->
     path = fs.join(require.resolve('fixtures'), "atom-file-test.txt") # Don't put in /tmp because /tmp symlinks to /private/tmp and screws up the rename test
-    fs.remove(path) if fs.exists(path)
+    fs.remove(path) if fs.existsSync(path)
     fs.write(path, "this is old!")
     file = new File(path)
     file.read()
 
   afterEach ->
     file.off()
-    fs.remove(path) if fs.exists(path)
+    fs.remove(path) if fs.existsSync(path)
 
   describe "when the contents of the file change", ->
     it "triggers 'contents-change' event handlers", ->
@@ -49,7 +49,7 @@ describe 'File', ->
       newPath = fs.join(fs.directory(path), "atom-file-was-moved-test.txt")
 
     afterEach ->
-      if fs.exists(newPath)
+      if fs.existsSync(newPath)
         fs.remove(newPath)
         waitsFor "remove event", (done) -> file.on 'remove', done
 

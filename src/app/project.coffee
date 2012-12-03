@@ -1,4 +1,5 @@
 fs = require 'fs'
+path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
 Range = require 'app/range'
@@ -20,8 +21,8 @@ class Project
   editSessions: null
   ignoredPathRegexes: null
 
-  constructor: (path) ->
-    @setPath(path)
+  constructor: (pathName) ->
+    @setPath(pathName)
     @editSessions = []
     @buffers = []
     @ignoredFolderNames = [
@@ -31,7 +32,7 @@ class Project
       '.DS_Store'
     ]
     @ignoredPathRegexes = []
-    @repo = new Git(path)
+    @repo = new Git(pathName)
 
   destroy: ->
     editSession.destroy() for editSession in @getEditSessions()
@@ -39,13 +40,13 @@ class Project
   getPath: ->
     @rootDirectory?.path
 
-  setPath: (path) ->
+  setPath: (pathName) ->
     @rootDirectory?.off()
 
-    if path?
-      directory = if fs.statSync(path).isDirectory() then path else require('path').dirname(path)
+    if pathName?
+      directory = if fs.statSync(pathName).isDirectory() then pathName else path.dirname(pathName)
       @rootDirectory = new Directory(directory)
-      @repo = new Git(path)
+      @repo = new Git(pathName)
     else
       @rootDirectory = null
 
@@ -57,53 +58,53 @@ class Project
   getFilePaths: ->
     filePaths = []
 
-    onFile = (path) =>
-      filePaths.push(path) unless @ignoreFile(path)
+    onFile = (pathName) =>
+      filePaths.push(pathName) unless @ignoreFile(pathName)
 
-    onDirectory = (path) =>
-      return not @ignoreDirectory(path)
+    onDirectory = (pathName) =>
+      return not @ignoreDirectory(pathName)
 
     fs.traverseTree @getPath(), onFile, onDirectory
     filePaths
 
-  ignoreDirectory: (path) ->
-    lastSlash = path.lastIndexOf('/')
+  ignoreDirectory: (pathName) ->
+    lastSlash = pathName.lastIndexOf('/')
     if lastSlash isnt -1
-      name = path.substring(lastSlash + 1)
+      name = pathName.substring(lastSlash + 1)
     else
-      name = path
+      name = pathName
 
     for ignored in @ignoredFolderNames
       return true if name is ignored
 
     for regex in @ignoredPathRegexes
-      return true if path.match(regex)
+      return true if pathName.match(regex)
 
-    @ignoreRepositoryPath(path)
+    @ignoreRepositoryPath(pathName)
 
-  ignoreFile: (path) ->
-    lastSlash = path.lastIndexOf('/')
+  ignoreFile: (pathName) ->
+    lastSlash = pathName.lastIndexOf('/')
     if lastSlash isnt -1
-      name = path.substring(lastSlash + 1)
+      name = pathName.substring(lastSlash + 1)
     else
-      name = path
+      name = pathName
 
     for ignored in @ignoredFileNames
       return true if name is ignored
     for regex in @ignoredPathRegexes
-      return true if path.match(regex)
+      return true if pathName.match(regex)
 
-    @ignoreRepositoryPath(path)
+    @ignoreRepositoryPath(pathName)
 
-  ignoreRepositoryPath: (path) ->
-    @hideIgnoredFiles and @repo.isPathIgnored(fs.join(@getPath(), path))
+  ignoreRepositoryPath: (pathName) ->
+    @hideIgnoredFiles and @repo.isPathIgnored(fs.join(@getPath(), pathName))
 
   ignorePathRegex: ->
     @ignoredPathRegexes.map((regex) -> "(#{regex.source})").join("|")
 
   resolve: (filePath) ->
-    filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
-    fs.absolute filePath
+    filePath = path.join(@getPath(), filePath) unless filePath[0] == '/'
+    fs.realpathSync(filePath)
 
   relativize: (fullPath) ->
     fullPath.replace(@getPath(), "").replace(/^\//, '')
@@ -177,20 +178,20 @@ class Project
     bufferedData = ""
 
     state = 'readingPath'
-    path = null
+    pathName = null
 
     readPath = (line) ->
       if /^[0-9,; ]+:/.test(line)
         state = 'readingLines'
       else if /^:/.test line
-        path = line.substr(1)
+        pathName = line.substr(1)
       else
-        path += ('\n' + line)
+        pathName += ('\n' + line)
 
     readLine = (line) ->
       if line.length == 0
         state = 'readingPath'
-        path = null
+        pathName = null
       else
         colonIndex = line.indexOf(':')
         matchInfo = line.substring(0, colonIndex)
@@ -205,7 +206,7 @@ class Project
       for [column, length] in matchPositions
         range = new Range([row, column], [row, column + length])
         match = lineText.substr(column, length)
-        iterator({path, range, match})
+        iterator({path: pathName, range, match})
 
     ChildProcess.exec command , bufferLines: true, stdout: (data) ->
       lines = data.split('\n')

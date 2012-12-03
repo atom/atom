@@ -265,7 +265,7 @@ class RootView extends View
 
   loadUserConfiguration: ->
     try
-      require atom.configFilePath if fs.exists(atom.configFilePath)
+      require atom.configFilePath if fs.existsSync(atom.configFilePath)
     catch error
       console.error "Failed to load `#{atom.configFilePath}`", error.stack, error
 

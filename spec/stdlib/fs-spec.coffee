@@ -34,12 +34,12 @@ describe "fs", ->
 
   describe ".exists(path)", ->
     it "returns true when path exsits", ->
-      expect(fs.exists(require.resolve('fixtures'))).toBe true
+      expect(fs.existsSync(require.resolve('fixtures'))).toBe true
 
     it "returns false when path doesn't exsit", ->
-      expect(fs.exists(require.resolve("fixtures") + "/-nope-does-not-exist")).toBe false
-      expect(fs.exists("")).toBe false
-      expect(fs.exists(null)).toBe false
+      expect(fs.existsSync(require.resolve("fixtures") + "/-nope-does-not-exist")).toBe false
+      expect(fs.existsSync("")).toBe false
+      expect(fs.existsSync(null)).toBe false
 
   describe ".join(paths...)", ->
     it "concatenates the given paths with the directory separator", ->
@@ -63,11 +63,11 @@ describe "fs", ->
 
   describe ".makeTree(path)", ->
     beforeEach ->
-      fs.remove("/tmp/a") if fs.exists("/tmp/a")
+      fs.remove("/tmp/a") if fs.existsSync("/tmp/a")
 
     it "creates all directories in path including any missing parent directories", ->
       fs.makeTree("/tmp/a/b/c")
-      expect(fs.exists("/tmp/a/b/c")).toBeTruthy()
+      expect(fs.existsSync("/tmp/a/b/c")).toBeTruthy()
 
   describe ".traverseTree(path, onFile, onDirectory)", ->
     fixturesDir = null

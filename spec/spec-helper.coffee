@@ -21,8 +21,8 @@ beforeEach ->
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
-  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
-  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
+  spyOn(global, "setTimeout").andCallFake fakeSetTimeout
+  spyOn(global, "clearTimeout").andCallFake fakeClearTimeout
   spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
 
   # make tokenization synchronous

@@ -35,7 +35,7 @@ describe 'Buffer', ->
       describe "when no file exists for the pathName", ->
         it "throws an exception", ->
           filePath = "does-not-exist.txt"
-          expect(fs.exists(filePath)).toBeFalsy()
+          expect(fs.existsSync(filePath)).toBeFalsy()
           expect(-> new Buffer(filePath)).toThrow()
 
     describe "when no pathName is given", ->
@@ -56,15 +56,15 @@ describe 'Buffer', ->
 
     afterEach ->
       bufferToChange.destroy()
-      fs.unlink(pathName) if fs.exists(pathName)
-      fs.unlink(newPath) if fs.exists(newPath)
+      fs.unlink(pathName) if fs.existsSync(pathName)
+      fs.unlink(newPath) if fs.existsSync(newPath)
 
     it "triggers a `path-change` event when path is changed", ->
       bufferToChange.saveAs(newPath)
       expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
     it "triggers a `path-change` event when the file is moved", ->
-      fs.unlinkSync(newPath) if fs.exists(newPath)
+      fs.unlinkSync(newPath) if fs.existsSync(newPath)
       fs.renameSync(pathName, newPath)
 
       waitsFor "buffer path change", ->
@@ -84,7 +84,7 @@ describe 'Buffer', ->
     afterEach ->
       buffer.release()
       buffer = null
-      fs.unlink(pathName) if fs.exists(pathName)
+      fs.unlink(pathName) if fs.existsSync(pathName)
 
     it "does not trigger a change event when Atom modifies the file", ->
       buffer.insert([0,0], "HELLO!")
@@ -383,7 +383,7 @@ describe 'Buffer', ->
 
     it "saves the contents of the buffer to the path", ->
       filePath = '/tmp/temp.txt'
-      fs.unlink filePath if fs.exists(filePath)
+      fs.unlink filePath if fs.existsSync(filePath)
 
       saveAsBuffer = new Buffer().retain()
       eventHandler = jasmine.createSpy('eventHandler')

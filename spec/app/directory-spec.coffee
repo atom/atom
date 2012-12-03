@@ -2,7 +2,7 @@ Directory = require 'app/directory'
 fs = require 'fs'
 path = require 'path'
 
-fdescribe "Directory", ->
+describe "Directory", ->
   directory = null
 
   beforeEach ->
@@ -16,10 +16,10 @@ fdescribe "Directory", ->
 
     beforeEach ->
       temporaryFilePath = path.join(path.resolveOnLoadPath('fixtures'), 'temporary')
-      fs.unlink(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.unlink(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     afterEach ->
-      fs.unlink(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.unlink(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     it "triggers 'contents-change' event handlers", ->
       changeHandler = null
@@ -42,10 +42,10 @@ fdescribe "Directory", ->
 
     beforeEach ->
       temporaryFilePath = path.join(directory.path, 'temporary')
-      fs.unlink(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.unlink(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     afterEach ->
-      fs.unlink(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.unlink(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     it "no longer triggers events", ->
       changeHandler = null

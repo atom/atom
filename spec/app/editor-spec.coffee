@@ -350,7 +350,7 @@ describe "Editor", ->
 
         editor.save()
 
-        expect(fs.exists(tempFilePath)).toBeTruthy()
+        expect(fs.existsSync(tempFilePath)).toBeTruthy()
         expect(fs.read(tempFilePath)).toBe 'Edited!'
 
     describe "when the current buffer has no path", ->
@@ -372,14 +372,14 @@ describe "Editor", ->
 
           editor.save()
 
-          expect(fs.exists(selectedFilePath)).toBeTruthy()
+          expect(fs.existsSync(selectedFilePath)).toBeTruthy()
           expect(fs.read(selectedFilePath)).toBe 'Save me to a new path'
 
       describe "when dialog is cancelled", ->
         it "does not save the buffer", ->
           selectedFilePath = null
           editor.save()
-          expect(fs.exists(selectedFilePath)).toBeFalsy()
+          expect(fs.existsSync(selectedFilePath)).toBeFalsy()
 
   describe ".scrollTop(n)", ->
     beforeEach ->
@@ -472,7 +472,7 @@ describe "Editor", ->
       fs.write(path, path)
 
     afterEach ->
-      fs.remove(path) if fs.exists(path)
+      fs.remove(path) if fs.existsSync(path)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')

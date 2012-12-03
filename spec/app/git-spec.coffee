@@ -53,7 +53,7 @@ describe "Git", ->
 
     afterEach ->
       fs.write(path, originalPathText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fs.remove(newPath) if fs.existsSync(newPath)
 
     describe "when the path is unstaged", ->
       it "returns false if the path has not been modified", ->
@@ -80,7 +80,7 @@ describe "Git", ->
       fs.write(newPath, "i'm new here")
 
     afterEach ->
-      fs.remove(newPath) if fs.exists(newPath)
+      fs.remove(newPath) if fs.existsSync(newPath)
 
     describe "when the path is unstaged", ->
       it "returns true if the path is new", ->

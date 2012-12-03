@@ -579,7 +579,7 @@ describe "TreeView", ->
       rootView.deactivate()
 
       rootDirPath = "/tmp/atom-tests"
-      fs.remove(rootDirPath) if fs.exists(rootDirPath)
+      fs.remove(rootDirPath) if fs.existsSync(rootDirPath)
 
       dirPath = fs.join(rootDirPath, "test-dir")
       filePath = fs.join(dirPath, "test-file.txt")
@@ -598,7 +598,7 @@ describe "TreeView", ->
     afterEach ->
       rootView.deactivate()
       rootView = null
-      fs.remove(rootDirPath) if fs.exists(rootDirPath)
+      fs.remove(rootDirPath) if fs.existsSync(rootDirPath)
 
     describe "tree-view:add", ->
       addDialog = null
@@ -632,7 +632,7 @@ describe "TreeView", ->
               newPath = fs.join(dirPath, "new-test-file.txt")
               addDialog.miniEditor.insertText(fs.base(newPath))
               addDialog.trigger 'core:confirm'
-              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.existsSync(newPath)).toBeTruthy()
               expect(fs.isFile(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveEditor().getPath()).toBe newPath
@@ -662,7 +662,7 @@ describe "TreeView", ->
               newPath = fs.join(dirPath, "new/dir")
               addDialog.miniEditor.insertText("new/dir/")
               addDialog.trigger 'core:confirm'
-              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.existsSync(newPath)).toBeTruthy()
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveEditor().getPath()).not.toBe newPath
@@ -675,7 +675,7 @@ describe "TreeView", ->
               newPath = fs.join(dirPath, "new2/")
               addDialog.miniEditor.insertText("new2/")
               addDialog.trigger 'core:confirm'
-              expect(fs.exists(newPath)).toBeTruthy()
+              expect(fs.existsSync(newPath)).toBeTruthy()
               expect(fs.isDirectory(newPath)).toBeTruthy()
               expect(addDialog.parent()).not.toExist()
               expect(rootView.getActiveEditor().getPath()).not.toBe newPath
@@ -758,8 +758,8 @@ describe "TreeView", ->
 
               moveDialog.trigger 'core:confirm'
 
-              expect(fs.exists(newPath)).toBeTruthy()
-              expect(fs.exists(filePath)).toBeFalsy()
+              expect(fs.existsSync(newPath)).toBeTruthy()
+              expect(fs.existsSync(filePath)).toBeFalsy()
               expect(moveDialog.parent()).not.toExist()
 
               waitsFor "tree view to update", ->
@@ -781,8 +781,8 @@ describe "TreeView", ->
                 treeView.root.find('> .entries > .directory:contains(new)').length > 0
 
               runs ->
-                expect(fs.exists(newPath)).toBeTruthy()
-                expect(fs.exists(filePath)).toBeFalsy()
+                expect(fs.existsSync(newPath)).toBeTruthy()
+                expect(fs.existsSync(filePath)).toBeFalsy()
 
           describe "when a file or directory already exists at the target path", ->
             it "shows an error message and does not close the dialog", ->
@@ -824,19 +824,19 @@ describe "TreeView", ->
 
     beforeEach ->
       temporaryFilePath = fs.join(require.resolve('fixtures/tree-view'), 'temporary')
-      if fs.exists(temporaryFilePath)
+      if fs.existsSync(temporaryFilePath)
         fs.remove(temporaryFilePath)
         waits(20)
 
     afterEach ->
-      fs.remove(temporaryFilePath) if fs.exists(temporaryFilePath)
+      fs.remove(temporaryFilePath) if fs.existsSync(temporaryFilePath)
 
     describe "when a file is added or removed in an expanded directory", ->
       it "updates the directory view to display the directory's new contents", ->
         entriesCountBefore = null
 
         runs ->
-          expect(fs.exists(temporaryFilePath)).toBeFalsy()
+          expect(fs.existsSync(temporaryFilePath)).toBeFalsy()
           entriesCountBefore = treeView.root.entries.find('.entry').length
           fs.write temporaryFilePath, 'hi'
 
@@ -860,7 +860,7 @@ describe "TreeView", ->
       project.setHideIgnoredFiles(false)
 
     afterEach ->
-      fs.remove(ignoreFile) if fs.exists(ignoreFile)
+      fs.remove(ignoreFile) if fs.existsSync(ignoreFile)
 
     it "toggles display of ignored path when setting is toggled", ->
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1

@@ -78,11 +78,11 @@ windowAdditions =
   requireExtension: (name, config) ->
     try
       extensionPath = require.resolve name
-      throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.exists(extensionPath)
+      throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.existsSync(extensionPath)
 
       extension = rootView.activateExtension(require(extensionPath), config)
       extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), {verifyExistence: false})
-      require extensionKeymapPath if fs.exists(extensionKeymapPath)
+      require extensionKeymapPath if fs.existsSync(extensionKeymapPath)
       extension
     catch e
       console.error "Failed to load extension named '#{name}'", e

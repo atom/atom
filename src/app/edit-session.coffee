@@ -16,7 +16,7 @@ class EditSession
   @idCounter: 1
 
   @deserialize: (state, project) ->
-    if fs.exists(state.buffer)
+    if fs.existsSync(state.buffer)
       session = project.buildEditSessionForPath(state.buffer)
     else
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists"
@@ -41,7 +41,7 @@ class EditSession
   constructor: ({@project, @buffer, tabLength, @autoIndent, softTabs, @softWrap }) ->
     @id = @constructor.idCounter++
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
-    @languageMode = new LanguageMode(this, @buffer.getExtension())
+    @languageMode = new LanguageMode(this)
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
     @anchors = []
     @anchorRanges = []

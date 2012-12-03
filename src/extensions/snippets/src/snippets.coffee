@@ -14,7 +14,7 @@ module.exports =
 
   loadSnippets: ->
     snippetsDir = fs.join(atom.configDirPath, 'snippets')
-    if fs.exists(snippetsDir)
+    if fs.existsSync(snippetsDir)
       @loadSnippetsFile(path) for path in fs.readdirSync(snippetsDir) when fs.extension(path) == '.snippets'
 
   loadSnippetsFile: (path) ->
