@@ -374,7 +374,7 @@ describe "CommandPanel", ->
     beforeEach ->
       previewList = commandPanel.previewList
       rootView.trigger 'command-panel:toggle'
-      waitsForPromise -> commandPanel.execute('X x/a+/')
+      waitsForPromise -> commandPanel.execute('X x/apply/')
 
     describe "when move-down and move-up are triggered on the preview list", ->
       it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->
@@ -408,7 +408,10 @@ describe "CommandPanel", ->
         _.times previewList.getOperations().length, -> previewList.trigger 'core:move-up'
 
     describe "when core:confirm is triggered on the preview list", ->
-      it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
+      it "opens the operation's buffer, selects and scrolls to the search result, and focuses the active editor", ->
+        rootView.height(200)
+        rootView.attachToDom()
+
         spyOn(rootView, 'focus')
         executeHandler = jasmine.createSpy('executeHandler')
         commandPanel.on 'core:confirm', executeHandler
@@ -421,6 +424,9 @@ describe "CommandPanel", ->
         editSession = rootView.getActiveEditSession()
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+        expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+        console.log editor.getCursorScreenRow(), editor.getFirstVisibleScreenRow(), editor.getLastVisibleScreenRow()
+        expect(editor.isScreenRowVisible(editor.getCursorScreenRow())).toBeTruthy()
         expect(rootView.focus).toHaveBeenCalled()
 
         expect(executeHandler).not.toHaveBeenCalled()

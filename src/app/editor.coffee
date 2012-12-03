@@ -935,6 +935,9 @@ class Editor extends View
   getLastVisibleScreenRow: ->
     Math.max(0, Math.ceil((@scrollTop() + @scrollView.height()) / @lineHeight) - 1)
 
+  isScreenRowVisible: (row) ->
+    @getFirstVisibleScreenRow() <= row <= @getLastVisibleScreenRow()
+
   handleScreenLinesChange: (change) ->
     @pendingChanges.push(change)
     @requestDisplayUpdate()
