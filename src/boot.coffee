@@ -12,6 +12,21 @@ path.resolveOnLoadPath = (relativePath) ->
     candidatePath = path.join(loadPath, relativePath)
     return candidatePath if fs.existsSync(candidatePath)
 
+# cache coffee-script compilation
+CoffeeScript = require 'coffee-script'
+crypto = require 'crypto'
+path = require 'path'
+Module._extensions['.coffee'] = (module, filename) ->
+  source = fs.readFileSync(filename, 'utf8')
+  md5 = crypto.createHash('md5').update(source).digest('hex')
+  cachedPath = "/tmp/atom-compiled-scripts/#{md5}"
+  if fs.existsSync(cachedPath)
+    compiledSource = fs.readFileSync(cachedPath, 'utf8')
+  else
+    compiledSource = CoffeeScript.compile(source, filename: filename)
+    fs.writeFileSync(cachedPath, compiledSource)
+  module._compile(compiledSource, filename)
+
 require 'app/atom'
 require 'app/window'
 require 'spec-bootstrap'
