@@ -43,7 +43,7 @@ class Project
     @rootDirectory?.off()
 
     if path?
-      directory = if fs.isDirectory(path) then path else fs.directory(path)
+      directory = if fs.statSync(path).isDirectory() then path else require('path').dirname(path)
       @rootDirectory = new Directory(directory)
       @repo = new Git(path)
     else

@@ -14,7 +14,7 @@ class Git
     ignore: 1 << 14
 
   constructor: (path) ->
-    @repo = new GitRepository(path)
+#     @repo = new GitRepository(path)
 
   getPath: -> @repo.getPath()
 

@@ -1,6 +1,8 @@
 require 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
+fs = require 'fs'
+path = require 'path'
 Keymap = require 'app/keymap'
 Point = require 'app/point'
 Project = require 'app/project'
@@ -11,11 +13,10 @@ Editor = require 'app/editor'
 TextMateBundle = require 'app/text-mate-bundle'
 TextMateTheme = require 'app/text-mate-theme'
 TokenizedBuffer = require 'app/tokenized-buffer'
-fs = require 'fs'
 
 beforeEach ->
-  window.fixturesProject = new Project(require.resolve('fixtures'))
-  window.resetTimeouts()
+  window.fixturesProject = new Project(path.resolveOnLoadPath('fixtures'))
+  resetTimeouts()
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
@@ -114,20 +115,20 @@ window.waitsForPromise = (args...) ->
         jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
         moveOn()
 
-window.resetTimeouts = ->
+global.resetTimeouts = ->
   window.now = 0
   window.timeoutCount = 0
   window.timeouts = []
 
-window.fakeSetTimeout = (callback, ms) ->
+global.fakeSetTimeout = (callback, ms) ->
   id = ++window.timeoutCount
   window.timeouts.push([id, window.now + ms, callback])
   id
 
-window.fakeClearTimeout = (idToClear) ->
+global.fakeClearTimeout = (idToClear) ->
   window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
 
-window.advanceClock = (delta=1) ->
+global.advanceClock = (delta=1) ->
   window.now += delta
   callbacks = []
 
@@ -140,20 +141,20 @@ window.advanceClock = (delta=1) ->
 
   callback() for callback in callbacks
 
-window.pagePixelPositionForPoint = (editor, point) ->
+global.pagePixelPositionForPoint = (editor, point) ->
   point = Point.fromObject point
   top = editor.renderedLines.offset().top + point.row * editor.lineHeight
   left = editor.renderedLines.offset().left + point.column * editor.charWidth - editor.renderedLines.scrollLeft()
   { top, left }
 
-window.tokensText = (tokens) ->
+global.tokensText = (tokens) ->
   _.pluck(tokens, 'value').join('')
 
-window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
+global.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
   editor.width(charWidth * widthInChars + editor.gutter.outerWidth())
   $(window).trigger 'resize' # update width of editor's on-screen lines
 
-window.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
+global.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
   editor.height(charHeight * heightInChars + editor.renderedLines.position().top)
   $(window).trigger 'resize' # update editor's on-screen lines
 

@@ -33,7 +33,7 @@ class Buffer
     @lines = ['']
 
     if path
-      throw "Path '#{path}' does not exist" unless fs.exists(path)
+      throw "Path '#{path}' does not exist" unless fs.existsSync(path)
       @setPath(path)
       @reload()
     else

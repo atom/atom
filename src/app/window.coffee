@@ -22,6 +22,10 @@ windowAdditions =
   # This method runs when the file is required. Any code here will run
   # in all environments: spec, benchmark, and application
   startup: ->
+    global.document = window.document
+    global.requireStylesheet = window.requireStylesheet
+    global.platform = window.platform
+
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
