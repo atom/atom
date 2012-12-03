@@ -374,7 +374,7 @@ describe "CommandPanel", ->
     beforeEach ->
       previewList = commandPanel.previewList
       rootView.trigger 'command-panel:toggle'
-      waitsForPromise -> commandPanel.execute('X x/apply/')
+      waitsForPromise -> commandPanel.execute('X x/a/')
 
     describe "when move-down and move-up are triggered on the preview list", ->
       it "selects the next/previous operation (if there is one), and scrolls the list if needed", ->
@@ -412,23 +412,25 @@ describe "CommandPanel", ->
         rootView.height(200)
         rootView.attachToDom()
 
-        spyOn(rootView, 'focus')
-        executeHandler = jasmine.createSpy('executeHandler')
-        commandPanel.on 'core:confirm', executeHandler
+        waitsForPromise -> commandPanel.execute('X x/apply/') # use apply because it is at the end of the file
+        runs ->
+          spyOn(rootView, 'focus')
+          executeHandler = jasmine.createSpy('executeHandler')
+          commandPanel.on 'core:confirm', executeHandler
 
-        _.times 4, -> previewList.trigger 'core:move-down'
-        operation = previewList.getSelectedOperation()
+          _.times 4, -> previewList.trigger 'core:move-down'
+          operation = previewList.getSelectedOperation()
 
-        previewList.trigger 'core:confirm'
+          previewList.trigger 'core:confirm'
 
-        editSession = rootView.getActiveEditSession()
-        expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
-        expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
-        expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
-        expect(editor.isScreenRowVisible(editor.getCursorScreenRow())).toBeTruthy()
-        expect(rootView.focus).toHaveBeenCalled()
+          editSession = rootView.getActiveEditSession()
+          expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
+          expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+          expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
+          expect(editor.isScreenRowVisible(editor.getCursorScreenRow())).toBeTruthy()
+          expect(rootView.focus).toHaveBeenCalled()
 
-        expect(executeHandler).not.toHaveBeenCalled()
+          expect(executeHandler).not.toHaveBeenCalled()
 
     describe "when an operation in the preview list is clicked", ->
       it "opens the operation's buffer, selects the search result, and focuses the active editor", ->
