@@ -425,7 +425,6 @@ describe "CommandPanel", ->
         expect(editSession.buffer.getPath()).toBe project.resolve(operation.getPath())
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
         expect(editSession.getSelectedBufferRange()).toEqual operation.getBufferRange()
-        console.log editor.getCursorScreenRow(), editor.getFirstVisibleScreenRow(), editor.getLastVisibleScreenRow()
         expect(editor.isScreenRowVisible(editor.getCursorScreenRow())).toBeTruthy()
         expect(rootView.focus).toHaveBeenCalled()
 
