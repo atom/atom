@@ -12,9 +12,6 @@ TextMateBundle = require 'app/text-mate-bundle'
 TextMateTheme = require 'app/text-mate-theme'
 TokenizedBuffer = require 'app/tokenized-buffer'
 fs = require 'fs'
-require 'app/window'
-
-requireStylesheet "jasmine.css"
 
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))

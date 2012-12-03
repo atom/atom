@@ -4,7 +4,7 @@ var setGlobalFocusPriority = function(priority) {
   if (priority > env.focusPriority) env.focusPriority = priority;
 };
 
-var fdescribe = function(description, specDefinitions, priority) {
+exports.fdescribe = function(description, specDefinitions, priority) {
   if (!priority) priority = 1;
   setGlobalFocusPriority(priority)
   var suite = describe(description, specDefinitions);
@@ -12,15 +12,15 @@ var fdescribe = function(description, specDefinitions, priority) {
   return suite;
 };
 
-var ffdescribe = function(description, specDefinitions) {
+exports.ffdescribe = function(description, specDefinitions) {
   fdescribe(description, specDefinitions, 2);
 };
 
-var fffdescribe = function(description, specDefinitions) {
+exports.fffdescribe = function(description, specDefinitions) {
   fdescribe(description, specDefinitions, 3);
 };
 
-var fit = function(description, definition, priority) {
+exports.fit = function(description, definition, priority) {
   if (!priority) priority = 1;
   setGlobalFocusPriority(priority);
   var spec = it(description, definition);
@@ -28,11 +28,11 @@ var fit = function(description, definition, priority) {
   return spec;
 };
 
-var ffit = function(description, specDefinitions) {
+exports.ffit = function(description, specDefinitions) {
   fit(description, specDefinitions, 2);
 };
 
-var fffit = function(description, specDefinitions) {
+exports.fffit = function(description, specDefinitions) {
   fit(description, specDefinitions, 3);
 };
 
@@ -48,8 +48,6 @@ var fSpecFilter = function(specOrSuite) {
 
 jasmine.AtomReporter.prototype.specFilter = function(spec) {
   var paramMap = {};
-  console.log(window.location)
-
   var params = this.getLocation().search.substring(1).split('&');
   for (var i = 0; i < params.length; i++) {
     var p = params[i].split('=');
@@ -62,4 +60,3 @@ jasmine.AtomReporter.prototype.specFilter = function(spec) {
 
   return (spec.getFullName().indexOf(paramMap.spec) === 0) || fSpecFilter(spec);
 };
-

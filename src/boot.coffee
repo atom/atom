@@ -12,6 +12,9 @@ path.resolveOnLoadPath = (relativePath) ->
     candidatePath = path.join(loadPath, relativePath)
     return candidatePath if fs.existsSync(candidatePath)
 
+_ = require 'underscore'
 require 'app/atom'
 require 'app/window'
+global.document = window.document
+
 require 'spec-bootstrap'

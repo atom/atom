@@ -104,7 +104,6 @@ windowAdditions =
     console.log description, result
 
 _.defaults(window, windowAdditions)
-_.defaults(global, window)
 window.startup()
 
 requireStylesheet 'reset.css'

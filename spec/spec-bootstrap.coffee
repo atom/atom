@@ -1,5 +1,23 @@
-require 'app/atom'
-{runSpecSuite} = require 'jasmine-helper'
+$ = require 'jquery'
+_ = require 'underscore'
+{$$} = require 'space-pen'
 
-document.title = "Spec Suite"
-runSpecSuite "spec-suite"
+_.extend(global, require 'jasmine')
+require 'jasmine-atom-reporter'
+require 'jasmine-console-reporter'
+_.extend(global, require 'jasmine-focused')
+
+requireStylesheet "jasmine.css"
+$('body').append $$ ->
+  @div id: 'jasmine-content'
+
+jasmineEnv = jasmine.getEnv()
+reporter = if atom.exitWhenDone
+  new jasmine.ConsoleReporter(document, logErrors)
+else
+  new jasmine.AtomReporter(document)
+jasmineEnv.addReporter(reporter)
+jasmineEnv.specFilter = (spec) -> reporter.specFilter(spec)
+
+require 'spec-suite'
+jasmineEnv.execute()
