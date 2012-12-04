@@ -31,7 +31,7 @@ class CompositeCommand
           bufferRanges = []
           errorMessages = @errorMessagesForOperations(operations)
 
-          editSession.transact ->
+          executeOperations = ->
             for operation in operations
               bufferRange = operation.execute(editSession)
               bufferRanges.push(bufferRange) if bufferRange
@@ -39,6 +39,13 @@ class CompositeCommand
 
               if bufferRanges.length and not currentCommand.preserveSelections
                 editSession.setSelectedBufferRanges(bufferRanges, autoscroll: true)
+
+          operationsWillChangeBuffer = _.detect(operations, (operation) -> operation.newText)
+
+          if operationsWillChangeBuffer
+            editSession.transact(executeOperations)
+          else
+            executeOperations()
 
           deferred.resolve({errorMessages})
 

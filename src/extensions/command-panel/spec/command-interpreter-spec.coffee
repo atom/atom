@@ -180,6 +180,16 @@ describe "CommandInterpreter", ->
         runs ->
           expect(editSession.getSelectedText()).toBe "y/b"
 
+      it "does not push to the undo stack (since the buffer is not modified)", ->
+        waitsForPromise ->
+          editSession.setSelectedBufferRange([[4,16], [4,20]])
+          interpreter.eval('/pivot/', editSession)
+
+        runs ->
+          selectedRangeBeforeUndo = editSession.getSelection().getBufferRange()
+          editSession.undo()
+          expect(editSession.getSelection().getBufferRange()).toEqual selectedRangeBeforeUndo
+
       describe "when no match is found", ->
         it "it returns an error messages", ->
           errorMessages = null
