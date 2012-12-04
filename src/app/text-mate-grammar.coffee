@@ -2,6 +2,7 @@ _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
 Token = require 'app/token'
+{OnigScanner} = require 'oniguruma'
 
 module.exports =
 class TextMateGrammar
