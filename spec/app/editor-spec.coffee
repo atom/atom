@@ -1686,6 +1686,15 @@ describe "Editor", ->
         expect(editor.gutter.find('.line-number:first').text()).toBe "2"
         expect(editor.gutter.find('.line-number:last').text()).toBe "11"
 
+    describe "when the switching from an edit session for a long buffer to an edit session for a short buffer", ->
+      it "updates the line numbers to reflect the shorter buffer", ->
+        editor.edit(fixturesProject.buildEditSessionForPath(null))
+        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
+
+        editor.setActiveEditSessionIndex(0)
+        editor.setActiveEditSessionIndex(1)
+        expect(editor.gutter.lineNumbers.find('.line-number').length).toBe 1
+
     describe "when the editor is mini", ->
       it "hides the gutter and does not change the scroll view's left position", ->
         miniEditor = new Editor(mini: true)

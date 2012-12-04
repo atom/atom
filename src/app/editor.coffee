@@ -257,6 +257,7 @@ class Editor extends View
   screenRangeForBufferRange: (range) -> @activeEditSession.screenRangeForBufferRange(range)
   bufferRangeForScreenRange: (range) -> @activeEditSession.bufferRangeForScreenRange(range)
   bufferRowsForScreenRows: (startRow, endRow) -> @activeEditSession.bufferRowsForScreenRows(startRow, endRow)
+  getLastScreenRow: -> @activeEditSession.getLastScreenRow()
 
   logCursorScope: ->
     console.log @activeEditSession.scopesForBufferPosition(@getCursorBufferPosition())

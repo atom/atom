@@ -37,6 +37,8 @@ class Gutter extends View
   updateLineNumbers: (changes, renderFrom, renderTo) ->
     if renderFrom < @firstScreenRow or renderTo > @lastScreenRow
       performUpdate = true
+    else if @editor().getLastScreenRow() < @lastScreenRow
+      performUpdate = true
     else
       for change in changes
         if change.delta != 0 or (change.bufferDelta? and change.bufferDelta != 0)
