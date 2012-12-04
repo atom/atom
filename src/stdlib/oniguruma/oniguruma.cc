@@ -36,7 +36,7 @@ Handle<Value> OnigScanner::New(const Arguments& args) {
   return args.This();
 }
 
-static v8::Handle<v8::Value> FindNextMatch(const v8::Arguments& args) {
+v8::Handle<v8::Value> OnigScanner::FindNextMatch(const v8::Arguments& args) {
   HandleScope scope;
   OnigScanner* scanner = node::ObjectWrap::Unwrap<OnigScanner>(args.This());
   return scope.Close(Number::New(42));
