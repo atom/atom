@@ -1,5 +1,6 @@
 #include <node.h>
 #include <v8.h>
+#include <string>
 
 using namespace v8;
 
@@ -13,6 +14,8 @@ class OnigScanner : public node::ObjectWrap {
 
   static v8::Handle<v8::Value> New(const v8::Arguments& args);
   static v8::Handle<v8::Value> FindNextMatch(const v8::Arguments& args);
+
+  std::string _regex;
 };
 
 OnigScanner::OnigScanner() {};
@@ -32,6 +35,8 @@ void OnigScanner::Init(Handle<Object> target) {
 Handle<Value> OnigScanner::New(const Arguments& args) {
   HandleScope scope;
   OnigScanner* scanner = new OnigScanner();
+  std::string regex = std::string(*v8::String::Utf8Value(args[0]));
+  scanner->_regex = regex;
   scanner->Wrap(args.This());
   return args.This();
 }
@@ -39,7 +44,7 @@ Handle<Value> OnigScanner::New(const Arguments& args) {
 v8::Handle<v8::Value> OnigScanner::FindNextMatch(const v8::Arguments& args) {
   HandleScope scope;
   OnigScanner* scanner = node::ObjectWrap::Unwrap<OnigScanner>(args.This());
-  return scope.Close(Number::New(42));
+  return scope.Close(v8::String::New(scanner->_regex.c_str()));
 }
 
 void Init(Handle<Object> target) {
