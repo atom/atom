@@ -2,8 +2,8 @@
   "targets": [
     {
       "target_name": "oniguruma",
-      "libraries": ["-lonig"],
-      "sources": ["onig-result.cc", "onig-reg-exp.cc", "onig-scanner.cc", "onig.cc" ],
+      "libraries": ["libonig.a"],
+      "sources": ["src/libonig.a", "src/onig-result.cc", "src/onig-reg-exp.cc", "src/onig-scanner.cc", "src/onig.cc" ],
     }
   ]
 }
