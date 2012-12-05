@@ -29,7 +29,7 @@ describe "TokenizedBuffer", ->
       editSession.destroy()
 
     describe "on construction", ->
-      fit "initially creates un-tokenized screen lines, then tokenizes lines chunk at a time in the background", ->
+      it "initially creates un-tokenized screen lines, then tokenizes lines chunk at a time in the background", ->
         line0 = tokenizedBuffer.lineForScreenRow(0)
         expect(line0.tokens.length).toBe 1
         expect(line0.tokens[0]).toEqual(value: line0.text, scopes: ['source.js'])
