@@ -1,11 +1,13 @@
-#import <Cocoa/Cocoa.h>
-#import <node.h>
-#import <v8.h>
-#import <string>
-#import <vector>
+#include <node.h>
+#include <v8.h>
+#include <string>
+#include <iostream>
+#include <vector>
 
-#import "CocoaOniguruma/OnigRegexp.h"
-#import "onig-scanner.h"
+#include "oniguruma.h"
+#include "onig-scanner.h"
+#include "onig-reg-exp.h"
+#include "onig-result.h"
 
 using namespace v8;
 
@@ -16,17 +18,16 @@ OnigScanner::OnigScanner(Handle<Array> sources) {
 
   for (int i = 0; i < length; i++) {
     String::Utf8Value utf8Value(sources->Get(i));
-    NSString *sourceString = [NSString stringWithUTF8String:*utf8Value];
-    regExps[i] = [[OnigRegexp compile:sourceString] retain];
+    regExps[i] = new OnigRegExp(std::string(*utf8Value));
   }
 };
 
 OnigScanner::~OnigScanner() {
-  for (std::vector<OnigRegexp *>::iterator iter = regExps.begin(); iter < regExps.end(); iter++) {
-    [*iter release];
+  for (std::vector<OnigRegExp *>::iterator iter = regExps.begin(); iter < regExps.end(); iter++) {
+    delete *iter;
   }
   for (std::vector<OnigResult *>::iterator iter = cachedResults.begin(); iter < cachedResults.end(); iter++) {
-    [*iter release];
+    delete *iter;
   }
 };
 
@@ -70,30 +71,30 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
     lastMatchedString = string;
   }
 
-  std::vector<OnigRegexp *>::iterator iter = regExps.begin();
+  std::vector<OnigRegExp *>::iterator iter = regExps.begin();
   int index = 0;
   while (iter < regExps.end()) {
-    OnigRegexp *regExp = *iter;
+    OnigRegExp *regExp = *iter;
 
     bool useCachedResult = false;
     OnigResult *result = NULL;
 
     // In Oniguruma, \G is based on the start position of the match, so the result
     // changes based on the start position. So it can't be cached.
-    BOOL containsBackslashG = [regExp.expression rangeOfString:@"\\G"].location != NSNotFound;
+    bool containsBackslashG = regExp->Contains("\\G");
     if (useCachedResults && index <= maxCachedIndex && ! containsBackslashG) {
       result = cachedResults[index];
-      useCachedResult = (result == NULL || [result locationAt:0] >= startLocation);
+      useCachedResult = (result == NULL || result->LocationAt(0) >= startLocation);
     }
 
     if (!useCachedResult) {
-      result = [regExp search:[NSString stringWithUTF8String:string.c_str()] start:startLocation];
-      cachedResults[index] = [result retain];
+      regExp->Search(string, startLocation, &result);
+      cachedResults[index] = result;
       maxCachedIndex = index;
     }
 
-    if ([result count] > 0) {
-      int location = [result locationAt:0];
+    if (result && result->Count() > 0) {
+      int location = result->LocationAt(0);
       if (bestIndex == -1 || location < bestLocation) {
         bestLocation = location;
         bestResult = result;
@@ -122,19 +123,20 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
 
 void OnigScanner::ClearCachedResults() {
   maxCachedIndex = -1;
-  for (std::vector<OnigResult *>::iterator iter = cachedResults.begin(); iter < cachedResults.end(); iter++) {
-    [*iter release];
-    *iter = NULL;
+  std::vector<OnigResult *>::iterator iter = cachedResults.begin();
+  while (iter != cachedResults.end()) {
+    delete *iter;
+    iter = cachedResults.erase(iter);
   }
 }
 
 Handle<Value> OnigScanner::CaptureIndicesForMatch(OnigResult *result) {
-  Local<Array> array = Array::New([result count] * 3);
+  int resultCount = result->Count();
+  Local<Array> array = Array::New(resultCount * 3);
   int i = 0;
-  int resultCount = [result count];
   for (int index = 0; index < resultCount; index++) {
-    int captureLength = [result lengthAt:index];
-    int captureStart = [result locationAt:index];
+    int captureLength = result->LengthAt(index);
+    int captureStart = result->LocationAt(index);
 
     array->Set(i++, Number::New(index));
     array->Set(i++, Number::New(captureStart));

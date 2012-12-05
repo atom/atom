@@ -2,9 +2,8 @@
   "targets": [
     {
       "target_name": "oniguruma",
-      "sources": [ "oniguruma.mm", "onig-scanner.mm" ],
-      "mac_framework_dirs": [ "/Users/corey/github/atom/native/frameworks" ],
-      "libraries": [ "/Users/corey/github/atom/native/frameworks/CocoaOniguruma.framework" ],
+      "libraries": ["-lonig"],
+      "sources": ["onig-result.cc", "onig-reg-exp.cc", "onig-scanner.cc", "onig.cc" ],
     }
   ]
 }
