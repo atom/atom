@@ -16,13 +16,14 @@ class OnigScannerUserData  {
     cachedResults.resize(length);
 
     for (int i = 0; i < length; i++) {
-      const char *value = *String::Utf8Value(sources->Get(i));
-      NSString *sourceString = [NSString stringWithUTF8String:value];
+      String::Utf8Value utf8Value(sources->Get(i));
+      NSString *sourceString = [NSString stringWithUTF8String:*utf8Value];
       regExps[i] = [[OnigRegexp compile:sourceString] retain];
     }
   }
 
   ~OnigScannerUserData() {
+    NSLog(@"OnigScannerUserData is being deconstructed");
     for (std::vector<OnigRegexp *>::iterator iter = regExps.begin(); iter < regExps.end(); iter++) {
       [*iter release];
     }
@@ -32,7 +33,8 @@ class OnigScannerUserData  {
   }
 
   Handle<Value> FindNextMatch(Handle<String> v8String, Handle<Number> v8StartLocation) {
-    std::string string(*String::Utf8Value(v8String));
+    String::Utf8Value utf8Value(v8String);
+    std::string string(*utf8Value);
     int startLocation = v8StartLocation->Value();
     int bestIndex = -1;
     int bestLocation = NULL;
@@ -86,7 +88,7 @@ class OnigScannerUserData  {
     }
 
     if (bestIndex >= 0) {
-      Local<Object> result;
+      Local<Object> result = Object::New();
       result->Set(String::NewSymbol("index"), Number::New(bestIndex));
       result->Set(String::NewSymbol("captureIndices"), CaptureIndicesForMatch(bestResult));
       return result;
@@ -133,20 +135,22 @@ class OnigScanner : public node::ObjectWrap {
   static void Init(Handle<Object> target);
 
  private:
-  OnigScanner(OnigScannerUserData userData);
+  OnigScanner(OnigScannerUserData *userData);
   ~OnigScanner();
 
   static Handle<Value> New(const Arguments& args);
   static Handle<Value> FindNextMatch(const   Arguments& args);
 
-  OnigScannerUserData userData_;
+  OnigScannerUserData *userData_;
 };
 
-OnigScanner::OnigScanner(OnigScannerUserData userData) : userData_(userData){
+OnigScanner::OnigScanner(OnigScannerUserData *userData) {
+  userData_ = userData;
 };
 
 OnigScanner::~OnigScanner() {
-  printf("If you see this, it means OnigScanner is being deconstructed\n");
+  delete userData_;
+  NSLog(@"If you see this, it means OnigScanner is being deconstructed\n");
 };
 
 void OnigScanner::Init(Handle<Object> target) {
@@ -162,7 +166,8 @@ void OnigScanner::Init(Handle<Object> target) {
 
 Handle<Value> OnigScanner::New(const Arguments& args) {
   HandleScope scope;
-  OnigScanner* scanner = new OnigScanner(OnigScannerUserData(Local<Array>::Cast(args[0])));
+  OnigScannerUserData *onigUserData = new OnigScannerUserData(Local<Array>::Cast(args[0]));
+  OnigScanner* scanner = new OnigScanner(onigUserData);
   scanner->Wrap(args.This());
   return args.This();
 }
@@ -170,7 +175,7 @@ Handle<Value> OnigScanner::New(const Arguments& args) {
 Handle<Value> OnigScanner::FindNextMatch(const Arguments& args) {
   HandleScope scope;
   OnigScanner* scanner = node::ObjectWrap::Unwrap<OnigScanner>(args.This());
-  return scope.Close(scanner->userData_.FindNextMatch(Local<String>::Cast(args[0]), Local<Number>::Cast(args[1])));
+  return scope.Close(scanner->userData_->FindNextMatch(Local<String>::Cast(args[0]), Local<Number>::Cast(args[1])));
 }
 
 void Init(Handle<Object> target) {

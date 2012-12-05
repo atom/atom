@@ -73,7 +73,7 @@ class TextMateGrammar
     else if name == "$self" or name == "$base"
       @initialRule
     else
-      TextMateBundle = require 'text-mate-bundle'
+      TextMateBundle = require 'app/text-mate-bundle'
       TextMateBundle.grammarForScopeName(name)?.initialRule
 
 class Rule
