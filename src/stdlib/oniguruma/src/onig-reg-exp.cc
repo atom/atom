@@ -21,7 +21,6 @@ OnigRegExp::OnigRegExp(std::string source) : source_(source) {
 }
 
 OnigRegExp::~OnigRegExp() {
-  std::cerr << "OnigRegExp deconstructed.\n";
   if (regex_) onig_free(regex_);
 }
 
