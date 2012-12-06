@@ -13,10 +13,13 @@ OnigRegExp::OnigRegExp(const std::string& source) : source_(source) {
   const UChar* sourceData = (const UChar*)source.data();
   int status = onig_new(&regex_, sourceData, sourceData + source.length(), NULL, ONIG_ENCODING_UTF8, ONIG_SYNTAX_DEFAULT, &error);
 
-  if (status != ONIG_NORMAL) {
+  if (status == ONIG_NORMAL) {
+    return;
+  }
+  else {
     UChar errorString[ONIG_MAX_ERROR_MESSAGE_LEN];
     onig_error_code_to_str(errorString, status, &error);
-    ThrowException(Exception::Error(String::New((char *)errorString)));
+    ThrowException(Exception::Error(String::New((char*)errorString)));
   }
 }
 
