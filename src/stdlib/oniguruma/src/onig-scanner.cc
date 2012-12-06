@@ -11,6 +11,32 @@
 
 using namespace v8;
 
+void OnigScanner::Init(Handle<Object> target) {
+  // Prepare constructor template
+  Local<FunctionTemplate> tpl = FunctionTemplate::New(OnigScanner::New);
+  tpl->SetClassName(v8::String::NewSymbol("OnigScanner"));
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("findNextMatch"), FunctionTemplate::New(OnigScanner::FindNextMatch)->GetFunction());
+
+  Persistent<Function> constructor = Persistent<Function>::New(tpl->GetFunction());
+  target->Set(v8::String::NewSymbol("OnigScanner"), constructor);
+}
+
+NODE_MODULE(onig_scanner, OnigScanner::Init)
+
+Handle<Value> OnigScanner::New(const Arguments& args) {
+  HandleScope scope;
+  OnigScanner* scanner = new OnigScanner(Local<Array>::Cast(args[0]));
+  scanner->Wrap(args.This());
+  return args.This();
+}
+
+Handle<Value> OnigScanner::FindNextMatch(const Arguments& args) {
+  HandleScope scope;
+  OnigScanner* scanner = node::ObjectWrap::Unwrap<OnigScanner>(args.This());
+  return scope.Close(scanner->FindNextMatch(Local<String>::Cast(args[0]), Local<Number>::Cast(args[1])));
+}
+
 OnigScanner::OnigScanner(Handle<Array> sources) {
   int length = sources->Length();
   regExps.resize(length);
@@ -30,30 +56,6 @@ OnigScanner::~OnigScanner() {
     delete *iter;
   }
 };
-
-void OnigScanner::Init(Handle<Object> target) {
-  // Prepare constructor template
-  Local<FunctionTemplate> tpl = FunctionTemplate::New(OnigScanner::New);
-  tpl->SetClassName(v8::String::NewSymbol("OnigScanner"));
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
-  tpl->PrototypeTemplate()->Set(v8::String::NewSymbol("findNextMatch"), FunctionTemplate::New(OnigScanner::FindNextMatch)->GetFunction());
-
-  Persistent<Function> constructor = Persistent<Function>::New(tpl->GetFunction());
-  target->Set(v8::String::NewSymbol("OnigScanner"), constructor);
-}
-
-Handle<Value> OnigScanner::New(const Arguments& args) {
-  HandleScope scope;
-  OnigScanner* scanner = new OnigScanner(Local<Array>::Cast(args[0]));
-  scanner->Wrap(args.This());
-  return args.This();
-}
-
-Handle<Value> OnigScanner::FindNextMatch(const Arguments& args) {
-  HandleScope scope;
-  OnigScanner* scanner = node::ObjectWrap::Unwrap<OnigScanner>(args.This());
-  return scope.Close(scanner->FindNextMatch(Local<String>::Cast(args[0]), Local<Number>::Cast(args[1])));
-}
 
 Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number> v8StartLocation) {
   String::Utf8Value utf8Value(v8String);
