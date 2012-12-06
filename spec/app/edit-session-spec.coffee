@@ -1305,11 +1305,15 @@ describe "EditSession", ->
           expect(editSession.getCursorScreenPosition()).toEqual [0, editSession.getTabLength() * 2]
 
     describe "pasteboard operations", ->
-      pasteboard = null
+      pasteboardContent = null
+      pasteboardMetadata = null
       beforeEach ->
-        pasteboard = 'first'
-        spyOn($native, 'writeToPasteboard').andCallFake (text) -> pasteboard = text
-        spyOn($native, 'readFromPasteboard').andCallFake -> pasteboard
+        pasteboardContent = 'first'
+        pasteboardMetadata = null
+        spyOn(pasteboard, 'write').andCallFake (text, metadata) ->
+          pasteboardContent = text
+          pasteboardMetadata = metadata
+        spyOn(pasteboard, 'read').andCallFake -> [pasteboardContent, pasteboardMetadata]
         editSession.setSelectedBufferRanges([[[0, 4], [0, 13]], [[1, 6], [1, 10]]])
 
       describe ".cutSelectedText()", ->
@@ -1318,7 +1322,7 @@ describe "EditSession", ->
           expect(buffer.lineForRow(0)).toBe "var  = function () {"
           expect(buffer.lineForRow(1)).toBe "  var  = function(items) {"
 
-          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+          expect(pasteboardContent).toBe 'quicksort\nsort'
 
       describe ".cutToEndOfLine()", ->
         describe "when nothing is selected", ->
@@ -1328,7 +1332,7 @@ describe "EditSession", ->
             editSession.cutToEndOfLine()
             expect(buffer.lineForRow(2)).toBe '    if (items.length'
             expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-            expect(pasteboard).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
+            expect(pasteboardContent).toBe ' <= 1) return items;\ns.shift(), current, left = [], right = [];'
 
         describe "when text is selected", ->
           it "only cuts the selected text, not to the end of the line", ->
@@ -1338,14 +1342,14 @@ describe "EditSession", ->
 
             expect(buffer.lineForRow(2)).toBe '    if (items.lengthurn items;'
             expect(buffer.lineForRow(3)).toBe '    var pivot = item'
-            expect(pasteboard).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
+            expect(pasteboardContent).toBe ' <= 1) ret\ns.shift(), current, left = [], right = [];'
 
       describe ".copySelectedText()", ->
         it "copies selected text onto the clipboard", ->
           editSession.copySelectedText()
           expect(buffer.lineForRow(0)).toBe "var quicksort = function () {"
           expect(buffer.lineForRow(1)).toBe "  var sort = function(items) {"
-          expect($native.readFromPasteboard()).toBe 'quicksort\nsort'
+          expect(pasteboardContent).toBe 'quicksort\nsort'
 
       describe ".pasteText()", ->
         it "pastes text into the buffer", ->

@@ -25,11 +25,11 @@ windowAdditions =
     global.document = window.document
     global.requireStylesheet = window.requireStylesheet
     global.platform = window.platform
+    global.pasteboard = new Pasteboard
 
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
-    @pasteboard = new Pasteboard
     $(window).on 'core:close', => @close()
 
   # This method is intended only to be run when starting a normal application
