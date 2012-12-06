@@ -754,6 +754,22 @@ describe "EditSession", ->
                     expect(editSession.lineForBufferRow(5)).toBe "    }"
                     expect(editSession.lineForBufferRow(6)).toBe "  bar();xx"
 
+                describe "when inserting on a line that has mixed tabs and whitespace in hard tabs mode (regression)", ->
+                  it "correctly indents the inserted text", ->
+                    editSession.softTabs = false
+                    buffer.setText """
+                      not indented
+                          \tmixed indented
+                    """
+
+                    editSession.setCursorBufferPosition([1, 0])
+                    editSession.insertText(text, normalizeIndent: true)
+
+                    expect(editSession.lineForBufferRow(1)).toBe "\t\t\twhile (true) {"
+                    expect(editSession.lineForBufferRow(2)).toBe "\t\t\t\tfoo();"
+                    expect(editSession.lineForBufferRow(3)).toBe "\t\t\t}"
+                    expect(editSession.lineForBufferRow(4)).toBe "\t\tbar();    \tmixed indented"
+
               describe "when the cursor's current column is greater than the suggested indent level", ->
                 describe "when the indentBasis is inferred from the first line", ->
                   it "preserves the current indent level, indenting all lines relative to it", ->
@@ -1776,3 +1792,17 @@ describe "EditSession", ->
 
       editSession = fixturesProject.buildEditSessionForPath(null, softTabs: false)
       expect(editSession.softTabs).toBeFalsy()
+
+  describe ".indentLevelForLine(line)", ->
+    it "returns the indent level when the line has only leading whitespace", ->
+      expect(editSession.indentLevelForLine("    hello")).toBe(2)
+      expect(editSession.indentLevelForLine("   hello")).toBe(1.5)
+
+    it "returns the indent level when the line has only leading tabs", ->
+      expect(editSession.indentLevelForLine("\t\thello")).toBe(2)
+
+    it "returns the indent level when the line has mixed leading whitespace and tabs", ->
+      expect(editSession.indentLevelForLine("\t  hello")).toBe(2)
+      expect(editSession.indentLevelForLine("  \thello")).toBe(2)
+      expect(editSession.indentLevelForLine("  \t hello")).toBe(2.5)
+      expect(editSession.indentLevelForLine("  \t \thello")).toBe(3.5)

@@ -238,11 +238,9 @@ class Selection
 
   adjustIndentationForLine: (line, delta) ->
     currentIndentLevel = @editSession.indentLevelForLine(line)
-    currentIndentString = @editSession.buildIndentString(currentIndentLevel)
     desiredIndentLevel = Math.max(0, currentIndentLevel + delta)
     desiredIndentString = @editSession.buildIndentString(desiredIndentLevel)
-
-    line.replace(new RegExp("^#{currentIndentString}"), desiredIndentString)
+    line.replace(/^[\t ]*/, desiredIndentString)
 
   backspace: ->
     if @isEmpty() and not @editSession.isFoldedAtScreenRow(@cursor.getScreenRow())
