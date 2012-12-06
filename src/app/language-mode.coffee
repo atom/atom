@@ -1,6 +1,7 @@
 Range = require 'app/range'
 TextMateBundle = require 'app/text-mate-bundle'
 _ = require 'underscore'
+{OnigRegExp} = require 'stdlib/oniguruma'
 require 'stdlib/underscore-extensions'
 
 module.exports =
