@@ -9,7 +9,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 
-describe "Editor", ->
+fdescribe "Editor", ->
   [rootView, project, buffer, editor, cachedLineHeight] = []
 
   getLineHeight = ->
@@ -76,9 +76,9 @@ describe "Editor", ->
 
     it "does not blow up if no file exists for a previous edit session, but prints a warning", ->
       spyOn(console, 'warn')
-      fs.write('/tmp/delete-me')
+      fs.writeFileSync('/tmp/delete-me')
       editor.edit(rootView.project.buildEditSessionForPath('/tmp/delete-me'))
-      fs.remove('/tmp/delete-me')
+      fs.unlinkSync('/tmp/delete-me')
       newEditor = editor.copy()
       expect(console.warn).toHaveBeenCalled()
 
@@ -120,7 +120,7 @@ describe "Editor", ->
   describe "when the activeEditSession's file is modified on disk", ->
     it "triggers an alert", ->
       path = "/tmp/atom-changed-file.txt"
-      fs.write(path, "")
+      fs.writeFileSync(path, "")
       editSession = project.buildEditSessionForPath(path)
       editor.edit(editSession)
       editor.insertText("now the buffer is modified")
@@ -130,7 +130,7 @@ describe "Editor", ->
 
       spyOn(atom, "confirm")
 
-      fs.write(path, "a file change")
+      fs.writeFileSync(path, "a file change")
 
       waitsFor "file to trigger contents-change event", ->
         fileChangeHandler.callCount > 0
@@ -278,14 +278,14 @@ describe "Editor", ->
 
       it "triggers alert if edit session's buffer goes into conflict with changes on disk", ->
         path = "/tmp/atom-changed-file.txt"
-        fs.write(path, "")
+        fs.writeFileSync(path, "")
         editSession = project.buildEditSessionForPath(path)
         editor.edit editSession
         editSession.insertText("a buffer change")
 
         spyOn(atom, "confirm")
 
-        fs.write(path, "a file change")
+        fs.writeFileSync(path, "a file change")
 
         waitsFor "file to trigger contents-change event", (done) ->
           editSession.one 'contents-conflicted', done
@@ -334,7 +334,7 @@ describe "Editor", ->
         rootView.remove()
 
         tempFilePath = '/tmp/atom-temp.txt'
-        fs.write(tempFilePath, "")
+        fs.writeFileSync(tempFilePath, "")
         rootView = new RootView(tempFilePath)
         editor = rootView.getActiveEditor()
         project = rootView.project
@@ -342,16 +342,16 @@ describe "Editor", ->
         expect(editor.getPath()).toBe tempFilePath
 
       afterEach ->
-        expect(fs.remove(tempFilePath))
+        expect(fs.unlinkSync(tempFilePath))
 
       it "saves the current buffer to disk", ->
         editor.getBuffer().setText 'Edited!'
-        expect(fs.read(tempFilePath)).not.toBe "Edited!"
+        expect(fs.readFileSync(tempFilePath, 'utf8')).not.toBe "Edited!"
 
         editor.save()
 
         expect(fs.existsSync(tempFilePath)).toBeTruthy()
-        expect(fs.read(tempFilePath)).toBe 'Edited!'
+        expect(fs.readFileSync(tempFilePath, 'utf8')).toBe 'Edited!'
 
     describe "when the current buffer has no path", ->
       selectedFilePath = null
@@ -373,7 +373,7 @@ describe "Editor", ->
           editor.save()
 
           expect(fs.existsSync(selectedFilePath)).toBeTruthy()
-          expect(fs.read(selectedFilePath)).toBe 'Save me to a new path'
+          expect(fs.readFileSync(selectedFilePath, 'utf8')).toBe 'Save me to a new path'
 
       describe "when dialog is cancelled", ->
         it "does not save the buffer", ->
@@ -469,10 +469,10 @@ describe "Editor", ->
     path = null
     beforeEach ->
       path = "/tmp/something.txt"
-      fs.write(path, path)
+      fs.writeFileSync(path, path)
 
     afterEach ->
-      fs.remove(path) if fs.existsSync(path)
+      fs.unlinkSync(path) if fs.existsSync(path)
 
     it "emits event when buffer's path is changed", ->
       eventHandler = jasmine.createSpy('eventHandler')
@@ -1941,13 +1941,13 @@ describe "Editor", ->
 
     beforeEach ->
       path = require.resolve('fixtures/git/working-dir/file.txt')
-      originalPathText = fs.read(path)
+      originalPathText = fs.readFileSync(path, 'utf8')
       rootView.open(path)
       editor = rootView.getActiveEditor()
       editor.attachToDom()
 
     afterEach ->
-      fs.write(path, originalPathText)
+      fs.writeFileSync(path, originalPathText)
 
     it "restores the contents of the editor to the HEAD revision", ->
       editor.setText('')
