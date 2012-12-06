@@ -31,11 +31,11 @@ bool OnigRegExp::Contains(const std::string& value) {
   return source_.find(value) != std::string::npos;
 }
 
-void OnigRegExp::Search(const std::string& searchString, int position, OnigResult** result) {
+void OnigRegExp::Search(const std::string& searchString, size_t position, OnigResult** result) {
   int end = searchString.size();
   OnigRegion* region = onig_region_new();
   const UChar* searchData = (const UChar*)searchString.data();
-  int status = onig_search(regex_, searchData, searchData + searchString.size(), searchData + position, searchData + end, region, ONIG_OPTION_NONE);
+  int status = onig_search(regex_, searchData, searchData + searchString.length(), searchData + position, searchData + end, region, ONIG_OPTION_NONE);
 
   if (status != ONIG_MISMATCH) {
     *result = new OnigResult(region, searchString);
