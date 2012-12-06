@@ -41,7 +41,7 @@ void OnigRegExp::Search(const std::string& searchString, int position, OnigResul
     *result = new OnigResult(region, searchString);
   }
   else {
-     onig_region_free(region, 1);
-     result = NULL;
+    onig_region_free(region, 1);
+    result = NULL;
   }
 }
