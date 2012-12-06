@@ -1077,15 +1077,15 @@ fdescribe "Editor", ->
                 setEditorWidthInChars(editor, 7)
 
                 editor.setCursorScreenPosition([2, 3])
-                window.advanceClock()
+                advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe(0)
 
                 editor.setCursorScreenPosition([2, 4])
-                window.advanceClock()
+                advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe(charWidth)
 
                 editor.setCursorScreenPosition([2, 3])
-                window.advanceClock()
+                advanceClock()
                 expect(editor.scrollView.scrollLeft()).toBe(0)
 
           describe "when soft-wrap is enabled", ->

@@ -65,19 +65,19 @@ jasmine.unspy = (object, methodName) ->
 
 jasmine.getEnv().defaultTimeoutInterval = 200
 
-window.keyIdentifierForKey = (key) ->
+global.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
     key
   else
     charCode = key.toUpperCase().charCodeAt(0)
     "U+00" + charCode.toString(16)
 
-window.keydownEvent = (key, properties={}) ->
+global.keydownEvent = (key, properties={}) ->
   event = $.Event "keydown", _.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
   # event.keystroke = (new Keymap).keystrokeStringForEvent(event)
   event
 
-window.mouseEvent = (type, properties) ->
+global.mouseEvent = (type, properties) ->
   if properties.point
     {point, editor} = properties
     {top, left} = @pagePixelPositionForPoint(editor, point)
@@ -86,23 +86,23 @@ window.mouseEvent = (type, properties) ->
   properties.originalEvent ?= {detail: 1}
   $.Event type, properties
 
-window.clickEvent = (properties={}) ->
-  window.mouseEvent("click", properties)
+global.clickEvent = (properties={}) ->
+  mouseEvent("click", properties)
 
-window.mousedownEvent = (properties={}) ->
-  window.mouseEvent('mousedown', properties)
+global.mousedownEvent = (properties={}) ->
+  mouseEvent('mousedown', properties)
 
-window.mousemoveEvent = (properties={}) ->
-  window.mouseEvent('mousemove', properties)
+global.mousemoveEvent = (properties={}) ->
+  mouseEvent('mousemove', properties)
 
-window.waitsForPromise = (args...) ->
+global.waitsForPromise = (args...) ->
   if args.length > 1
     { shouldReject } = args[0]
   else
     shouldReject = false
   fn = _.last(args)
 
-  window.waitsFor (moveOn) ->
+  waitsFor (moveOn) ->
     promise = fn()
     if shouldReject
       promise.fail(moveOn)
@@ -116,24 +116,24 @@ window.waitsForPromise = (args...) ->
         moveOn()
 
 global.resetTimeouts = ->
-  window.now = 0
-  window.timeoutCount = 0
-  window.timeouts = []
+  global.now = 0
+  global.timeoutCount = 0
+  global.timeouts = []
 
 global.fakeSetTimeout = (callback, ms) ->
-  id = ++window.timeoutCount
-  window.timeouts.push([id, window.now + ms, callback])
+  id = ++global.timeoutCount
+  global.timeouts.push([id, global.now + ms, callback])
   id
 
 global.fakeClearTimeout = (idToClear) ->
-  window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
+  global.timeouts = timeouts.filter ([id]) -> id != idToClear
 
 global.advanceClock = (delta=1) ->
-  window.now += delta
+  global.now += delta
   callbacks = []
 
-  window.timeouts = window.timeouts.filter ([id, strikeTime, callback]) ->
-    if strikeTime <= window.now
+  global.timeouts = timeouts.filter ([id, strikeTime, callback]) ->
+    if strikeTime <= global.now
       callbacks.push(callback)
       false
     else
@@ -164,7 +164,7 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => window.keymap.handleKeyEvent(e)
+  @on 'keydown', (e) => global.keymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
   $('#jasmine-content').append(this)
