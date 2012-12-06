@@ -19,11 +19,11 @@ class OnigScanner : public node::ObjectWrap {
     ~OnigScanner();
 
     Handle<Value> FindNextMatch(Handle<String> v8String, Handle<Number> v8StartLocation);
-    Handle<Value> CaptureIndicesForMatch(OnigResult *result);
+    Handle<Value> CaptureIndicesForMatch(OnigResult* result);
     void ClearCachedResults();
 
-    std::vector<OnigRegExp *> regExps;
-    std::vector<OnigResult *> cachedResults;
+    std::vector<OnigRegExp*> regExps;
+    std::vector<OnigResult*> cachedResults;
     std::string lastMatchedString;
     int maxCachedIndex;
     int lastStartLocation;

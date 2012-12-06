@@ -28,7 +28,7 @@ bool OnigRegExp::Contains(const std::string& value) {
   return source_.find(value);
 }
 
-void OnigRegExp::Search(const std::string& searchString, int position, OnigResult **result) {
+void OnigRegExp::Search(const std::string& searchString, int position, OnigResult** result) {
   int end = searchString.size();
   OnigRegion* region = onig_region_new();
   const UChar* searchData = (const UChar*)searchString.data();

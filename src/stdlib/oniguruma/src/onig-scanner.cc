@@ -49,10 +49,10 @@ OnigScanner::OnigScanner(Handle<Array> sources) {
 };
 
 OnigScanner::~OnigScanner() {
-  for (std::vector<OnigRegExp *>::iterator iter = regExps.begin(); iter < regExps.end(); iter++) {
+  for (std::vector<OnigRegExp*>::iterator iter = regExps.begin(); iter < regExps.end(); iter++) {
     delete *iter;
   }
-  for (std::vector<OnigResult *>::iterator iter = cachedResults.begin(); iter < cachedResults.end(); iter++) {
+  for (std::vector<OnigResult*>::iterator iter = cachedResults.begin(); iter < cachedResults.end(); iter++) {
     delete *iter;
   }
 };
@@ -63,7 +63,7 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
   int startLocation = v8StartLocation->Value();
   int bestIndex = -1;
   int bestLocation = NULL;
-  OnigResult *bestResult = NULL;
+  OnigResult* bestResult = NULL;
 
   bool useCachedResults = (string == lastMatchedString && startLocation >= lastStartLocation);
   lastStartLocation = startLocation;
@@ -73,13 +73,13 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
     lastMatchedString = string;
   }
 
-  std::vector<OnigRegExp *>::iterator iter = regExps.begin();
+  std::vector<OnigRegExp*>::iterator iter = regExps.begin();
   int index = 0;
   while (iter < regExps.end()) {
-    OnigRegExp *regExp = *iter;
+    OnigRegExp* regExp = *iter;
 
     bool useCachedResult = false;
-    OnigResult *result = NULL;
+    OnigResult* result = NULL;
 
     // In Oniguruma, \G is based on the start position of the match, so the result
     // changes based on the start position. So it can't be cached.
@@ -125,14 +125,14 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
 
 void OnigScanner::ClearCachedResults() {
   maxCachedIndex = -1;
-  std::vector<OnigResult *>::iterator iter = cachedResults.begin();
+  std::vector<OnigResult*>::iterator iter = cachedResults.begin();
   while (iter != cachedResults.end()) {
     delete *iter;
     iter = cachedResults.erase(iter);
   }
 }
 
-Handle<Value> OnigScanner::CaptureIndicesForMatch(OnigResult *result) {
+Handle<Value> OnigScanner::CaptureIndicesForMatch(OnigResult* result) {
   int resultCount = result->Count();
   Local<Array> array = Array::New(resultCount * 3);
   int i = 0;
