@@ -4,7 +4,7 @@ plist = require 'plist'
 fs = require 'fs'
 _ = require 'underscore'
 
-fdescribe "TextMateGrammar", ->
+describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
