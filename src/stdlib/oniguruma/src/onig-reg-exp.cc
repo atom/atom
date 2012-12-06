@@ -28,7 +28,7 @@ OnigRegExp::~OnigRegExp() {
 }
 
 bool OnigRegExp::Contains(const std::string& value) {
-  return source_.find(value);
+  return source_.find(value) != std::string::npos;
 }
 
 void OnigRegExp::Search(const std::string& searchString, int position, OnigResult** result) {
