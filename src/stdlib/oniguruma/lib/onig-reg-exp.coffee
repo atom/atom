@@ -18,3 +18,6 @@ class OnigRegExp
       captures.push(string[start...end])
       captures.indices.push(start)
     captures
+
+  test: (string) ->
+    @search(string)?
