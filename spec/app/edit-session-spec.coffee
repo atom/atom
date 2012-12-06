@@ -770,6 +770,22 @@ describe "EditSession", ->
                     expect(editSession.lineForBufferRow(3)).toBe "\t\t\t}"
                     expect(editSession.lineForBufferRow(4)).toBe "\t\tbar();    \tmixed indented"
 
+                describe "when inserting on a fractionally-indented line in hard tabs mode (regression)", ->
+                  it "correctly indents the inserted text", ->
+                    editSession.softTabs = false
+                    buffer.setText """
+                      not indented
+                           fractional indentation
+                    """
+
+                    editSession.setCursorBufferPosition([1, 0])
+                    editSession.insertText(text, normalizeIndent: true)
+
+                    expect(editSession.lineForBufferRow(1)).toBe "\t\twhile (true) {"
+                    expect(editSession.lineForBufferRow(2)).toBe "\t\t\tfoo();"
+                    expect(editSession.lineForBufferRow(3)).toBe "\t\t}"
+                    expect(editSession.lineForBufferRow(4)).toBe "\tbar();     fractional indentation"
+
               describe "when the cursor's current column is greater than the suggested indent level", ->
                 describe "when the indentBasis is inferred from the first line", ->
                   it "preserves the current indent level, indenting all lines relative to it", ->

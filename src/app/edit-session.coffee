@@ -136,7 +136,7 @@ class EditSession
     if @softTabs
       _.multiplyString(" ", number * @getTabLength())
     else
-      _.multiplyString("\t", number)
+      _.multiplyString("\t", Math.floor(number))
 
   save: -> @buffer.save()
   saveAs: (path) -> @buffer.saveAs(path)
