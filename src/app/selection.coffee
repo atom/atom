@@ -1,6 +1,6 @@
-Range = require 'range'
-Anchor = require 'anchor'
-EventEmitter = require 'event-emitter'
+Range = require 'app/range'
+Anchor = require 'app/anchor'
+EventEmitter = require 'app/event-emitter'
 _ = require 'underscore'
 
 module.exports =

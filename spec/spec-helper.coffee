@@ -1,30 +1,29 @@
-nakedLoad 'jasmine-jquery'
+require 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
-Keymap = require 'keymap'
-Point = require 'point'
-Project = require 'project'
-Directory = require 'directory'
-File = require 'file'
-RootView = require 'root-view'
-Editor = require 'editor'
-TextMateBundle = require 'text-mate-bundle'
-TextMateTheme = require 'text-mate-theme'
-TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
-require 'window'
-
-requireStylesheet "jasmine.css"
+path = require 'path'
+crypto = require 'crypto'
+Keymap = require 'app/keymap'
+Point = require 'app/point'
+Project = require 'app/project'
+Directory = require 'app/directory'
+File = require 'app/file'
+RootView = require 'app/root-view'
+Editor = require 'app/editor'
+TextMateBundle = require 'app/text-mate-bundle'
+TextMateTheme = require 'app/text-mate-theme'
+TokenizedBuffer = require 'app/tokenized-buffer'
 
 beforeEach ->
-  window.fixturesProject = new Project(require.resolve('fixtures'))
-  window.resetTimeouts()
+  global.fixturesProject = new Project(path.resolveOnLoadPath('fixtures'))
+  resetTimeouts()
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
-  spyOn(window, "setTimeout").andCallFake window.fakeSetTimeout
-  spyOn(window, "clearTimeout").andCallFake window.fakeClearTimeout
+  spyOn(global, "setTimeout").andCallFake fakeSetTimeout
+  spyOn(global, "clearTimeout").andCallFake fakeClearTimeout
   spyOn(File.prototype, "detectResurrectionAfterDelay").andCallFake -> @detectResurrection()
 
   # make tokenization synchronous
@@ -34,7 +33,7 @@ beforeEach ->
 afterEach ->
   delete window.rootView if window.rootView
   $('#jasmine-content').empty()
-  window.fixturesProject.destroy()
+  fixturesProject.destroy()
   ensureNoPathSubscriptions()
   waits(0) # yield to ui thread to make screen update more frequently
 
@@ -46,10 +45,10 @@ $('html,body').css('overflow', 'auto')
 RootView.prototype.loadUserConfiguration = ->
 
 ensureNoPathSubscriptions = ->
-  watchedPaths = $native.getWatchedPaths()
-  $native.unwatchAllPaths()
-  if watchedPaths.length > 0
-    throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
+#   watchedPaths = $native.getWatchedPaths()
+#   $native.unwatchAllPaths()
+#   if watchedPaths.length > 0
+#     throw new Error("Leaking subscriptions for paths: " + watchedPaths.join(", "))
 
 # Use underscore's definition of equality for toEqual assertions
 jasmine.Env.prototype.equals_ = _.isEqual
@@ -67,19 +66,19 @@ jasmine.unspy = (object, methodName) ->
 
 jasmine.getEnv().defaultTimeoutInterval = 200
 
-window.keyIdentifierForKey = (key) ->
+global.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
     key
   else
     charCode = key.toUpperCase().charCodeAt(0)
     "U+00" + charCode.toString(16)
 
-window.keydownEvent = (key, properties={}) ->
+global.keydownEvent = (key, properties={}) ->
   event = $.Event "keydown", _.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
   # event.keystroke = (new Keymap).keystrokeStringForEvent(event)
   event
 
-window.mouseEvent = (type, properties) ->
+global.mouseEvent = (type, properties) ->
   if properties.point
     {point, editor} = properties
     {top, left} = @pagePixelPositionForPoint(editor, point)
@@ -88,23 +87,23 @@ window.mouseEvent = (type, properties) ->
   properties.originalEvent ?= {detail: 1}
   $.Event type, properties
 
-window.clickEvent = (properties={}) ->
-  window.mouseEvent("click", properties)
+global.clickEvent = (properties={}) ->
+  mouseEvent("click", properties)
 
-window.mousedownEvent = (properties={}) ->
-  window.mouseEvent('mousedown', properties)
+global.mousedownEvent = (properties={}) ->
+  mouseEvent('mousedown', properties)
 
-window.mousemoveEvent = (properties={}) ->
-  window.mouseEvent('mousemove', properties)
+global.mousemoveEvent = (properties={}) ->
+  mouseEvent('mousemove', properties)
 
-window.waitsForPromise = (args...) ->
+global.waitsForPromise = (args...) ->
   if args.length > 1
     { shouldReject } = args[0]
   else
     shouldReject = false
   fn = _.last(args)
 
-  window.waitsFor (moveOn) ->
+  waitsFor (moveOn) ->
     promise = fn()
     if shouldReject
       promise.fail(moveOn)
@@ -117,25 +116,25 @@ window.waitsForPromise = (args...) ->
         jasmine.getEnv().currentSpec.fail("Expected promise to be resolved, but it was rejected with #{jasmine.pp(error)}")
         moveOn()
 
-window.resetTimeouts = ->
-  window.now = 0
-  window.timeoutCount = 0
-  window.timeouts = []
+global.resetTimeouts = ->
+  global.now = 0
+  global.timeoutCount = 0
+  global.timeouts = []
 
-window.fakeSetTimeout = (callback, ms) ->
-  id = ++window.timeoutCount
-  window.timeouts.push([id, window.now + ms, callback])
+global.fakeSetTimeout = (callback, ms) ->
+  id = ++global.timeoutCount
+  global.timeouts.push([id, global.now + ms, callback])
   id
 
-window.fakeClearTimeout = (idToClear) ->
-  window.timeouts = window.timeouts.filter ([id]) -> id != idToClear
+global.fakeClearTimeout = (idToClear) ->
+  global.timeouts = timeouts.filter ([id]) -> id != idToClear
 
-window.advanceClock = (delta=1) ->
-  window.now += delta
+global.advanceClock = (delta=1) ->
+  global.now += delta
   callbacks = []
 
-  window.timeouts = window.timeouts.filter ([id, strikeTime, callback]) ->
-    if strikeTime <= window.now
+  global.timeouts = timeouts.filter ([id, strikeTime, callback]) ->
+    if strikeTime <= global.now
       callbacks.push(callback)
       false
     else
@@ -143,20 +142,20 @@ window.advanceClock = (delta=1) ->
 
   callback() for callback in callbacks
 
-window.pagePixelPositionForPoint = (editor, point) ->
+global.pagePixelPositionForPoint = (editor, point) ->
   point = Point.fromObject point
   top = editor.renderedLines.offset().top + point.row * editor.lineHeight
   left = editor.renderedLines.offset().left + point.column * editor.charWidth - editor.renderedLines.scrollLeft()
   { top, left }
 
-window.tokensText = (tokens) ->
+global.tokensText = (tokens) ->
   _.pluck(tokens, 'value').join('')
 
-window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
+global.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
   editor.width(charWidth * widthInChars + editor.gutter.outerWidth())
   $(window).trigger 'resize' # update width of editor's on-screen lines
 
-window.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
+global.setEditorHeightInLines = (editor, heightInChars, charHeight=editor.lineHeight) ->
   editor.height(charHeight * heightInChars + editor.renderedLines.position().top)
   $(window).trigger 'resize' # update editor's on-screen lines
 
@@ -166,7 +165,7 @@ $.fn.resultOfTrigger = (type) ->
   event.result
 
 $.fn.enableKeymap = ->
-  @on 'keydown', (e) => window.keymap.handleKeyEvent(e)
+  @on 'keydown', (e) => global.keymap.handleKeyEvent(e)
 
 $.fn.attachToDom = ->
   $('#jasmine-content').append(this)
@@ -184,5 +183,6 @@ $.fn.textInput = (data) ->
 $.fn.simulateDomAttachment = ->
   $('<html>').append(this)
 
-unless fs.md5ForPath(require.resolve('fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
+sampleJsContent = fs.readFileSync(path.resolveOnLoadPath("fixtures/sample.js"), "utf8")
+unless crypto.createHash('md5').update(sampleJsContent).digest('hex') == "dd38087d0d7e3e4802a6d3f9b9745f2b"
   throw "Sample.js is modified"

@@ -15,7 +15,7 @@ describe "StripTrailingWhitespace", ->
     editor = rootView.getActiveEditor()
 
   afterEach ->
-    fs.remove(path) if fs.exists(path)
+    fs.remove(path) if fs.existsSync(path)
     rootView.remove()
 
   it "strips trailing whitespace before an editor saves a buffer", ->

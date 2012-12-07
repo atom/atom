@@ -1,8 +1,8 @@
 {View, $$} = require 'space-pen'
 FileView = require 'tree-view/src/file-view'
-Directory = require 'directory'
+Directory = require 'app/directory'
 $ = require 'jquery'
-Git = require 'git'
+Git = require 'app/git'
 
 module.exports =
 class DirectoryView extends View
@@ -20,7 +20,7 @@ class DirectoryView extends View
   initialize: ({@directory, isExpanded, @project} = {}) ->
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
-    @directoryName.addClass('ignored') if new Git(@directory.getPath()).isPathIgnored(@directory.getPath())
+#     @directoryName.addClass('ignored') if new Git(@directory.getPath()).isPathIgnored(@directory.getPath())
 
   getPath: ->
     @directory.path

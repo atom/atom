@@ -1,17 +1,18 @@
 _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
+path = require 'path'
 
 module.exports =
 class TextMateTheme
   @themesByName: {}
 
   @loadAll: ->
-    for themePath in fs.list(require.resolve("themes"))
+    for themePath in fs.readdirSync("./themes")
       @registerTheme(TextMateTheme.load(themePath))
 
   @load: (path) ->
-    plistString = fs.read(require.resolve(path))
+    plistString = fs.readFileSync(require.resolve(path), 'utf8')
     theme = null
     plist.parseString plistString, (err, data) ->
       throw new Error("Error loading theme at '#{path}': #{err}") if err

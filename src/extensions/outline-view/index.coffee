@@ -1,1 +1,1 @@
-module.exports = require 'outline-view/src/outline-view'
+module.exports = require './src/outline-view'

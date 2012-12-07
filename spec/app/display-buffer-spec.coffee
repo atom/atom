@@ -1,5 +1,5 @@
-DisplayBuffer = require 'display-buffer'
-Buffer = require 'buffer'
+DisplayBuffer = require 'app/display-buffer'
+Buffer = require 'app/buffer'
 
 describe "DisplayBuffer", ->
   [editSession, displayBuffer, buffer, changeHandler, tabLength] = []

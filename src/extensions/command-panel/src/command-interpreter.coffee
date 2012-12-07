@@ -4,7 +4,7 @@ PEG = require 'pegjs'
 module.exports =
 class CommandInterpreter
   constructor: (@project) ->
-    @parser = PEG.buildParser(fs.read(require.resolve 'command-panel/commands.pegjs'))
+    @parser = PEG.buildParser(fs.readFileSync(require.resolve('command-panel/commands.pegjs'), 'utf8'))
 
   eval: (string, activeEditSession) ->
     compositeCommand = @parser.parse(string)

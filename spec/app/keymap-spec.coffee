@@ -1,4 +1,4 @@
-Keymap = require 'keymap'
+Keymap = require 'app/keymap'
 $ = require 'jquery'
 
 describe "Keymap", ->

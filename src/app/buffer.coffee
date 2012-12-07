@@ -1,14 +1,14 @@
 _ = require 'underscore'
 fs = require 'fs'
-File = require 'file'
-Point = require 'point'
-Range = require 'range'
-EventEmitter = require 'event-emitter'
-UndoManager = require 'undo-manager'
-BufferChangeOperation = require 'buffer-change-operation'
-Anchor = require 'anchor'
-AnchorRange = require 'anchor-range'
-Git = require 'git'
+File = require 'app/file'
+Point = require 'app/point'
+Range = require 'app/range'
+EventEmitter = require 'app/event-emitter'
+UndoManager = require 'app/undo-manager'
+BufferChangeOperation = require 'app/buffer-change-operation'
+Anchor = require 'app/anchor'
+AnchorRange = require 'app/anchor-range'
+Git = require 'app/git'
 
 module.exports =
 class Buffer
@@ -33,7 +33,7 @@ class Buffer
     @lines = ['']
 
     if path
-      throw "Path '#{path}' does not exist" unless fs.exists(path)
+      throw "Path '#{path}' does not exist" unless fs.existsSync(path)
       @setPath(path)
       @reload()
     else

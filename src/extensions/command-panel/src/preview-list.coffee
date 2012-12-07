@@ -1,6 +1,6 @@
 $ = require 'jquery'
 {$$$} = require 'space-pen'
-ScrollView = require 'scroll-view'
+ScrollView = require 'app/scroll-view'
 
 module.exports =
 class PreviewList extends ScrollView

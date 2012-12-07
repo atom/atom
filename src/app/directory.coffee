@@ -1,7 +1,8 @@
 _ = require 'underscore'
 fs = require 'fs'
-File = require 'file'
-EventEmitter = require 'event-emitter'
+path = require 'path'
+File = require 'app/file'
+EventEmitter = require 'app/event-emitter'
 
 module.exports =
 class Directory
@@ -10,20 +11,21 @@ class Directory
   constructor: (@path) ->
 
   getBaseName: ->
-    fs.base(@path) + '/'
+    path.basename(@path) + '/'
 
   getPath: -> @path
 
   getEntries: ->
     directories = []
     files = []
-    for path in fs.list(@path)
-      if fs.isDirectory(path)
-        directories.push(new Directory(path))
-      else if fs.isFile(path)
-        files.push(new File(path))
+    for fileName in fs.readdirSync(@path)
+      pathName = path.join(@path, fileName)
+      if fs.statSync(pathName).isDirectory()
+        directories.push(new Directory(pathName))
+      else if fs.statSync(pathName).isFile()
+        files.push(new File(pathName))
       else
-        console.error "#{path} is neither a file nor a directory."
+        console.error "#{pathName} is neither a file nor a directory."
 
     directories.concat(files)
 
@@ -34,10 +36,10 @@ class Directory
     @unsubscribeFromNativeChangeEvents() if @subscriptionCount() == 0
 
   subscribeToNativeChangeEvents: ->
-    @watchId = $native.watchPath @path, (eventType) =>
-      @trigger "contents-change" if eventType is "contents-change"
+#     @watchId = $native.watchPath @path, (eventType) =>
+#       @trigger "contents-change" if eventType is "contents-change"
 
   unsubscribeFromNativeChangeEvents: ->
-    $native.unwatchPath(@path, @watchId)
+#     $native.unwatchPath(@path, @watchId)
 
 _.extend Directory.prototype, EventEmitter

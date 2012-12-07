@@ -1,5 +1,5 @@
-Point = require 'point'
-ChildProcess = require 'child-process'
+Point = require 'app/point'
+ChildProcess = require 'stdlib/child-process'
 
 module.exports =
 class TagGenerator

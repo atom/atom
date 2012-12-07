@@ -1,6 +1,6 @@
-Buffer = require 'buffer'
-EditSession = require 'edit-session'
-Range = require 'range'
+Buffer = require 'app/buffer'
+EditSession = require 'app/edit-session'
+Range = require 'app/range'
 
 describe "Selection", ->
   [buffer, editSession, selection] = []

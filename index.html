@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<script type="text/javascript">
+  window.onload = function() {
+    var Module = require('module');
+    Module._cache = {}; // clear node.js require cache
+    require('coffee-script');
+
+    try {
+      require('./src/boot');
+    } catch (e) {
+      console.log("ERROR BOOTING APPLICATION:", e, e.stack);
+    }
+  };
+</script>
+</head>
+<body>
+</body>
+</html>

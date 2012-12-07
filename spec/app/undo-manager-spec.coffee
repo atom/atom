@@ -1,6 +1,6 @@
-UndoManager = require 'undo-manager'
-Buffer = require 'buffer'
-Range = require 'range'
+UndoManager = require 'app/undo-manager'
+Buffer = require 'app/buffer'
+Range = require 'app/range'
 
 describe "UndoManager", ->
   [buffer, undoManager] = []

@@ -1,6 +1,6 @@
 {
   var Snippet = require('snippets/src/snippet');
-  var Point = require('point');
+  var Point = require('app/point');
 }
 
 snippets = snippets:snippet+ ws? {

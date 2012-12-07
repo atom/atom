@@ -1,20 +1,21 @@
 require 'benchmark-helper'
 fs = require 'fs'
+path = require 'path'
 $ = require 'jquery'
 _ = require 'underscore'
-TokenizedBuffer = require 'tokenized-buffer'
-TextMateBundle = require 'text-mate-bundle'
+TokenizedBuffer = require 'app/tokenized-buffer'
+TextMateBundle = require 'app/text-mate-bundle'
 
 describe "editor.", ->
   editor = null
 
   beforeEach ->
     window.rootViewParentSelector = '#jasmine-content'
-    window.attachRootView(require.resolve('benchmark/fixtures'))
+    window.attachRootView(fs.realpathSync('./benchmark/fixtures'))
 
     rootView.width(1024)
     rootView.height(768)
-    require fs.join(atom.configDirPath, "default-config")
+    require path.join(atom.configDirPath, "default-config")
     rootView.open() # open blank editor
     editor = rootView.getActiveEditor()
 

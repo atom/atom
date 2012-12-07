@@ -1,17 +1,18 @@
 $ = require 'jquery'
 {$$} = require 'space-pen'
 fs = require 'fs'
+path = require 'path'
 _ = require 'underscore'
 
 {View} = require 'space-pen'
-Buffer = require 'buffer'
-Editor = require 'editor'
-Project = require 'project'
-Pane = require 'pane'
-PaneColumn = require 'pane-column'
-PaneRow = require 'pane-row'
-StatusBar = require 'status-bar'
-TextMateTheme = require 'text-mate-theme'
+Buffer = require 'app/buffer'
+Editor = require 'app/editor'
+Project = require 'app/project'
+Pane = require 'app/pane'
+PaneColumn = require 'app/pane-column'
+PaneRow = require 'app/pane-row'
+StatusBar = require 'app/status-bar'
+TextMateTheme = require 'app/text-mate-theme'
 
 module.exports =
 class RootView extends View
@@ -36,6 +37,7 @@ class RootView extends View
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
+    global.rootView = this
     TextMateTheme.activate('IR_Black')
 
     @invisibles =
@@ -50,7 +52,7 @@ class RootView extends View
     @loadUserConfiguration()
 
     if pathToOpen
-      @open(pathToOpen) if fs.isFile(pathToOpen) and not suppressOpen
+      @open(pathToOpen) if fs.statSync(pathToOpen).isFile() and not suppressOpen
     else
       @open()
 
@@ -75,10 +77,10 @@ class RootView extends View
         else
           true
 
-    @on 'active-editor-path-change', (e, path) =>
-      @project.setPath(path) unless @project.getRootDirectory()
-      if path
-        @setTitle(fs.base(path))
+    @on 'active-editor-path-change', (e, pathName) =>
+      @project.setPath(pathName) unless @project.getRootDirectory()
+      if pathName
+        @setTitle(path.basename(pathName))
       else
         @setTitle("untitled")
 
@@ -122,12 +124,12 @@ class RootView extends View
     @deactivateExtension(extension) for name, extension of @extensions
     @remove()
 
-  open: (path, options = {}) ->
+  open: (pathName, options = {}) ->
     changeFocus = options.changeFocus ? true
     allowActiveEditorChange = options.allowActiveEditorChange ? false
 
-    unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
-      editSession = @project.buildEditSessionForPath(path)
+    unless editSession = @openInExistingEditor(pathName, allowActiveEditorChange, changeFocus)
+      editSession = @project.buildEditSessionForPath(pathName)
       editor = new Editor({editSession, @showInvisibles})
       pane = new Pane(editor)
       @panes.append(pane)
@@ -138,22 +140,22 @@ class RootView extends View
 
     editSession
 
-  openInExistingEditor: (path, allowActiveEditorChange, changeFocus) ->
+  openInExistingEditor: (pathName, allowActiveEditorChange, changeFocus) ->
     if activeEditor = @getActiveEditor()
       activeEditor.focus() if changeFocus
 
-      path = @project.resolve(path) if path
+      pathName = @project.resolve(pathName) if pathName
 
-      if editSession = activeEditor.activateEditSessionForPath(path)
+      if editSession = activeEditor.activateEditSessionForPath(pathName)
         return editSession
 
       if allowActiveEditorChange
         for editor in @getEditors()
-          if editSession = editor.activateEditSessionForPath(path)
+          if editSession = editor.activateEditSessionForPath(pathName)
             @makeEditorActive(editor, changeFocus)
             return editSession
 
-      editSession = @project.buildEditSessionForPath(path)
+      editSession = @project.buildEditSessionForPath(pathName)
       activeEditor.edit(editSession)
       editSession
 
@@ -265,7 +267,7 @@ class RootView extends View
 
   loadUserConfiguration: ->
     try
-      require atom.configFilePath if fs.exists(atom.configFilePath)
+      require atom.configFilePath if fs.existsSync(atom.configFilePath)
     catch error
       console.error "Failed to load `#{atom.configFilePath}`", error.stack, error
 

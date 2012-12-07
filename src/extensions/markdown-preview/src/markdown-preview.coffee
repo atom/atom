@@ -1,4 +1,4 @@
-ScrollView = require 'scroll-view'
+ScrollView = require 'app/scroll-view'
 fs = require 'fs'
 $ = require 'jquery'
 

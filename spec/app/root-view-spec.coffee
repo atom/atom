@@ -1,8 +1,8 @@
 $ = require 'jquery'
 fs = require 'fs'
-RootView = require 'root-view'
-Buffer = require 'buffer'
-Editor = require 'editor'
+RootView = require 'app/root-view'
+Buffer = require 'app/buffer'
+Editor = require 'app/editor'
 {View, $$} = require 'space-pen'
 
 describe "RootView", ->

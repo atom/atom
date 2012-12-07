@@ -1,6 +1,7 @@
-Project = require 'project'
-Buffer = require 'buffer'
+Project = require 'app/project'
+Buffer = require 'app/buffer'
 fs = require 'fs'
+path = require 'path'
 _ = require 'underscore'
 
 describe 'Buffer', ->
@@ -8,7 +9,7 @@ describe 'Buffer', ->
 
   beforeEach ->
     filePath = require.resolve('fixtures/sample.js')
-    fileContents = fs.read(filePath)
+    fileContents = fs.readFileSync(filePath, 'utf8')
     buffer = new Buffer(filePath)
 
   afterEach ->
@@ -19,52 +20,52 @@ describe 'Buffer', ->
       buffer.release()
       buffer = null
 
-    describe "when given a path", ->
-      describe "when a file exists for the path", ->
+    describe "when given a pathName", ->
+      describe "when a file exists for the pathName", ->
         it "loads the contents of that file", ->
-          filePath = require.resolve 'fixtures/sample.txt'
+          filePath = path.resolveOnLoadPath('fixtures/sample.txt')
           buffer = new Buffer(filePath)
-          expect(buffer.getText()).toBe fs.read(filePath)
+          expect(buffer.getText()).toBe fs.readFileSync(filePath, 'utf8')
 
         it "is not modified and has no undo history", ->
           buffer = new Buffer(filePath)
           expect(buffer.isModified()).toBeFalsy()
           expect(buffer.undoManager.undoHistory.length).toBe 0
 
-      describe "when no file exists for the path", ->
+      describe "when no file exists for the pathName", ->
         it "throws an exception", ->
           filePath = "does-not-exist.txt"
-          expect(fs.exists(filePath)).toBeFalsy()
+          expect(fs.existsSync(filePath)).toBeFalsy()
           expect(-> new Buffer(filePath)).toThrow()
 
-    describe "when no path is given", ->
+    describe "when no pathName is given", ->
       it "creates an empty buffer", ->
         buffer = new Buffer
         expect(buffer .getText()).toBe ""
 
   describe "path-change event", ->
-    [path, newPath, bufferToChange, eventHandler] = []
+    [pathName, newPath, bufferToChange, eventHandler] = []
 
     beforeEach ->
-      path = fs.join(require.resolve("fixtures/"), "atom-manipulate-me")
-      newPath = "#{path}-i-moved"
-      fs.write(path, "")
-      bufferToChange = new Buffer(path)
+      pathName = path.join(path.resolveOnLoadPath("fixtures/"), "atom-manipulate-me")
+      newPath = "#{pathName}-i-moved"
+      fs.writeFileSync(pathName, "")
+      bufferToChange = new Buffer(pathName)
       eventHandler = jasmine.createSpy('eventHandler')
       bufferToChange.on 'path-change', eventHandler
 
     afterEach ->
       bufferToChange.destroy()
-      fs.remove(path) if fs.exists(path)
-      fs.remove(newPath) if fs.exists(newPath)
+      fs.unlink(pathName) if fs.existsSync(pathName)
+      fs.unlink(newPath) if fs.existsSync(newPath)
 
     it "triggers a `path-change` event when path is changed", ->
       bufferToChange.saveAs(newPath)
       expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
     it "triggers a `path-change` event when the file is moved", ->
-      fs.remove(newPath) if fs.exists(newPath)
-      fs.move(path, newPath)
+      fs.unlinkSync(newPath) if fs.existsSync(newPath)
+      fs.renameSync(pathName, newPath)
 
       waitsFor "buffer path change", ->
         eventHandler.callCount > 0
@@ -73,17 +74,17 @@ describe 'Buffer', ->
         expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
   describe "when the buffer's on-disk contents change", ->
-    path = null
+    pathName = null
     beforeEach ->
-      path = "/tmp/tmp.txt"
-      fs.write(path, "first")
+      pathName = "/tmp/tmp.txt"
+      fs.writeFileSync(pathName, "first")
       buffer.release()
-      buffer = new Buffer(path).retain()
+      buffer = new Buffer(pathName).retain()
 
     afterEach ->
       buffer.release()
       buffer = null
-      fs.remove(path) if fs.exists(path)
+      fs.unlink(pathName) if fs.existsSync(pathName)
 
     it "does not trigger a change event when Atom modifies the file", ->
       buffer.insert([0,0], "HELLO!")
@@ -99,7 +100,7 @@ describe 'Buffer', ->
       it "changes the memory contents of the buffer to match the new disk contents and triggers a 'change' event", ->
         changeHandler = jasmine.createSpy('changeHandler')
         buffer.on 'change', changeHandler
-        fs.write(path, "second")
+        fs.writeFileSync(pathName, "second")
 
         expect(changeHandler.callCount).toBe 0
         waitsFor "file to trigger change event", ->
@@ -119,7 +120,7 @@ describe 'Buffer', ->
         buffer.file.on 'contents-change', fileChangeHandler
 
         buffer.insert([0, 0], "a change")
-        fs.write(path, "second")
+        fs.writeFileSync(pathName, "second")
 
         expect(fileChangeHandler.callCount).toBe 0
         waitsFor "file to trigger contents-change event", ->
@@ -129,25 +130,25 @@ describe 'Buffer', ->
           expect(buffer.isModified()).toBeTruthy()
 
   describe "when the buffer's file is deleted (via another process)", ->
-    [path, bufferToDelete] = []
+    [pathName, bufferToDelete] = []
 
     beforeEach ->
-      path = "/tmp/atom-file-to-delete.txt"
-      fs.write(path, 'delete me')
-      bufferToDelete = new Buffer(path)
+      pathName = "/tmp/atom-file-to-delete.txt"
+      fs.writeFileSync(pathName, 'delete me')
+      bufferToDelete = new Buffer(pathName)
 
-      expect(bufferToDelete.getPath()).toBe path
+      expect(bufferToDelete.getPath()).toBe pathName
       expect(bufferToDelete.isModified()).toBeFalsy()
 
-      fs.remove(path)
+      fs.unlink(pathName)
       waitsFor "file to be removed",  (done) ->
         bufferToDelete.file.one 'remove', done
 
     afterEach ->
       bufferToDelete.destroy()
 
-    it "retains its path and reports the buffer as modified", ->
-      expect(bufferToDelete.getPath()).toBe path
+    it "retains its pathName and reports the buffer as modified", ->
+      expect(bufferToDelete.getPath()).toBe pathName
       expect(bufferToDelete.isModified()).toBeTruthy()
 
     it "resumes watching of the file when it is re-saved", ->
@@ -155,7 +156,7 @@ describe 'Buffer', ->
       expect(bufferToDelete.fileExists()).toBeTruthy()
       expect(bufferToDelete.isInConflict()).toBeFalsy()
 
-      fs.write(path, 'moo')
+      fs.writeFileSync(pathName, 'moo')
 
       waitsFor 'change event', (done) ->
         bufferToDelete.one 'change', done
@@ -168,7 +169,7 @@ describe 'Buffer', ->
 
     it "returns false after modified buffer is saved", ->
       filePath = "/tmp/atom-tmp-file"
-      fs.write(filePath, '')
+      fs.writeFileSync(filePath, '')
       buffer.release()
       buffer = new Buffer(filePath)
       expect(buffer.isModified()).toBe false
@@ -184,7 +185,7 @@ describe 'Buffer', ->
       buffer = new Buffer()
       expect(buffer.isModified()).toBeFalsy()
 
-    it "returns true for a non-empty buffer with no path", ->
+    it "returns true for a non-empty buffer with no pathName", ->
        buffer.release()
        buffer = new Buffer()
        buffer.setText('a')
@@ -335,13 +336,13 @@ describe 'Buffer', ->
 
       beforeEach ->
         filePath = '/tmp/temp.txt'
-        fs.write(filePath, "")
+        fs.writeFileSync(filePath, "")
         saveBuffer = new Buffer filePath
 
       it "saves the contents of the buffer to the path", ->
         saveBuffer.setText 'Buffer contents!'
         saveBuffer.save()
-        expect(fs.read(filePath)).toEqual 'Buffer contents!'
+        expect(fs.readFileSync(filePath, 'utf8')).toEqual 'Buffer contents!'
 
       it "fires beforeSave and afterSave events around the call to fs.write", ->
         events = []
@@ -382,7 +383,7 @@ describe 'Buffer', ->
 
     it "saves the contents of the buffer to the path", ->
       filePath = '/tmp/temp.txt'
-      fs.remove filePath if fs.exists(filePath)
+      fs.unlink filePath if fs.existsSync(filePath)
 
       saveAsBuffer = new Buffer().retain()
       eventHandler = jasmine.createSpy('eventHandler')
@@ -390,14 +391,14 @@ describe 'Buffer', ->
 
       saveAsBuffer.setText 'Buffer contents!'
       saveAsBuffer.saveAs(filePath)
-      expect(fs.read(filePath)).toEqual 'Buffer contents!'
+      expect(fs.readFileSync(filePath, 'utf8')).toEqual 'Buffer contents!'
 
       expect(eventHandler).toHaveBeenCalledWith(saveAsBuffer)
 
     it "stops listening to events on previous path and begins listening to events on new path", ->
       originalPath = "/tmp/original.txt"
       newPath = "/tmp/new.txt"
-      fs.write(originalPath, "")
+      fs.writeFileSync(originalPath, "")
 
       saveAsBuffer = new Buffer(originalPath).retain()
       changeHandler = jasmine.createSpy('changeHandler')
@@ -405,11 +406,11 @@ describe 'Buffer', ->
       saveAsBuffer.saveAs(newPath)
       expect(changeHandler).not.toHaveBeenCalled()
 
-      fs.write(originalPath, "should not trigger buffer event")
+      fs.writeFileSync(originalPath, "should not trigger buffer event")
       waits 20
       runs ->
         expect(changeHandler).not.toHaveBeenCalled()
-        fs.write(newPath, "should trigger buffer event")
+        fs.writeFileSync(newPath, "should trigger buffer event")
 
       waitsFor ->
         changeHandler.callCount > 0
@@ -748,17 +749,17 @@ describe 'Buffer', ->
     describe "when the buffer is deleted", ->
       it "triggers the contents-modified event", ->
         delay = buffer.stoppedChangingDelay
-        path = "/tmp/atom-file-to-delete.txt"
-        fs.write(path, 'delete me')
-        bufferToDelete = new Buffer(path)
+        pathName = "/tmp/atom-file-to-delete.txt"
+        fs.writeFileSync(pathName, 'delete me')
+        bufferToDelete = new Buffer(pathName)
         contentsModifiedHandler = jasmine.createSpy("contentsModifiedHandler")
         bufferToDelete.on 'contents-modified', contentsModifiedHandler
 
-        expect(bufferToDelete.getPath()).toBe path
+        expect(bufferToDelete.getPath()).toBe pathName
         expect(bufferToDelete.isModified()).toBeFalsy()
         expect(contentsModifiedHandler).not.toHaveBeenCalled()
 
-        fs.remove(path)
+        fs.unlink(pathName)
         waitsFor "file to be removed",  (done) ->
           bufferToDelete.file.one 'remove', done
 

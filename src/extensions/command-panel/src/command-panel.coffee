@@ -3,7 +3,7 @@ CommandInterpreter = require 'command-panel/src/command-interpreter'
 RegexAddress = require 'command-panel/src/commands/regex-address'
 CompositeCommand = require 'command-panel/src/commands/composite-command'
 PreviewList = require 'command-panel/src/preview-list'
-Editor = require 'editor'
+Editor = require 'app/editor'
 {SyntaxError} = require('pegjs').parser
 
 _ = require 'underscore'

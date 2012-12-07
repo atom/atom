@@ -1,7 +1,7 @@
 $ = require 'jquery'
 { View } = require 'space-pen'
-Editor = require 'editor'
-fuzzyFilter = require 'fuzzy-filter'
+Editor = require 'app/editor'
+fuzzyFilter = require 'stdlib/fuzzy-filter'
 
 module.exports =
 class SelectList extends View

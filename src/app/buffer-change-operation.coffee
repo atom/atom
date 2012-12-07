@@ -1,4 +1,4 @@
-Range = require 'range'
+Range = require 'app/range'
 
 module.exports =
 class BufferChangeOperation

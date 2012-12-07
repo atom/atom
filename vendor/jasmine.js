@@ -2,7 +2,9 @@
 // -        if (self.blocks[self.index].abort) {
 // +        if (self.blocks[self.index] && self.blocks[self.index].abort) {
 
-var isCommonJS = typeof window == "undefined";
+// Modifed line 7
+
+var isCommonJS = true; // hacked for atom // typeof window == "undefined";
 
 /**
  * Top level namespace for Jasmine, a lightweight JavaScript BDD/spec/testing framework.
@@ -10,7 +12,9 @@ var isCommonJS = typeof window == "undefined";
  * @namespace
  */
 var jasmine = {};
-if (isCommonJS) exports.jasmine = jasmine;
+if (isCommonJS) {
+  exports.jasmine = jasmine;
+}
 /**
  * @private
  */

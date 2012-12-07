@@ -1,6 +1,6 @@
-Project = require 'project'
-Buffer = require 'buffer'
-EditSession = require 'edit-session'
+Project = require 'app/project'
+Buffer = require 'app/buffer'
+EditSession = require 'app/edit-session'
 
 describe "LanguageMode", ->
   [editSession, buffer, languageMode] = []

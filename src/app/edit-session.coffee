@@ -1,13 +1,13 @@
-Point = require 'point'
-Buffer = require 'buffer'
-Anchor = require 'anchor'
-LanguageMode = require 'language-mode'
-DisplayBuffer = require 'display-buffer'
-Cursor = require 'cursor'
-Selection = require 'selection'
-EventEmitter = require 'event-emitter'
-Range = require 'range'
-AnchorRange = require 'anchor-range'
+Point = require 'app/point'
+Buffer = require 'app/buffer'
+Anchor = require 'app/anchor'
+LanguageMode = require 'app/language-mode'
+DisplayBuffer = require 'app/display-buffer'
+Cursor = require 'app/cursor'
+Selection = require 'app/selection'
+EventEmitter = require 'app/event-emitter'
+Range = require 'app/range'
+AnchorRange = require 'app/anchor-range'
 _ = require 'underscore'
 fs = require 'fs'
 
@@ -16,7 +16,7 @@ class EditSession
   @idCounter: 1
 
   @deserialize: (state, project) ->
-    if fs.exists(state.buffer)
+    if fs.existsSync(state.buffer)
       session = project.buildEditSessionForPath(state.buffer)
     else
       console.warn "Could not build edit session for path '#{state.buffer}' because that file no longer exists"
@@ -41,7 +41,7 @@ class EditSession
   constructor: ({@project, @buffer, tabLength, @autoIndent, softTabs, @softWrap }) ->
     @id = @constructor.idCounter++
     @softTabs = @buffer.usesSoftTabs() ? softTabs ? true
-    @languageMode = new LanguageMode(this, @buffer.getExtension())
+    @languageMode = new LanguageMode(this)
     @displayBuffer = new DisplayBuffer(@buffer, { @languageMode, tabLength })
     @anchors = []
     @anchorRanges = []

@@ -1,9 +1,9 @@
 _ = require 'underscore'
-ScreenLine = require 'screen-line'
-EventEmitter = require 'event-emitter'
-Token = require 'token'
-Range = require 'range'
-Point = require 'point'
+ScreenLine = require 'app/screen-line'
+EventEmitter = require 'app/event-emitter'
+Token = require 'app/token'
+Range = require 'app/range'
+Point = require 'app/point'
 
 module.exports =
 class TokenizedBuffer

@@ -1,6 +1,6 @@
 {View} = require 'space-pen'
-PaneRow = require 'pane-row'
-PaneColumn = require 'pane-column'
+PaneRow = require 'app/pane-row'
+PaneColumn = require 'app/pane-column'
 
 module.exports =
 class Pane extends View

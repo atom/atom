@@ -1,7 +1,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
-RootView = require 'root-view'
-StatusBar = require 'status-bar'
+RootView = require 'app/root-view'
+StatusBar = require 'app/status-bar'
 fs = require 'fs'
 
 describe "StatusBar", ->
@@ -136,7 +136,7 @@ describe "StatusBar", ->
 
     afterEach ->
       fs.write(path, originalPathText)
-      fs.remove(newPath) if fs.exists(newPath)
+      fs.remove(newPath) if fs.existsSync(newPath)
 
     it "displays the modified icon for a changed file", ->
       fs.write(path, "i've changed for the worse")

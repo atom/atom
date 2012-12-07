@@ -1,13 +1,14 @@
 _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
-Token = require 'token'
+Token = require 'app/token'
+{OnigScanner} = require 'stdlib/oniguruma'
 
 module.exports =
 class TextMateGrammar
   @loadFromPath: (path) ->
     grammar = null
-    plist.parseString fs.read(path), (e, data) ->
+    plist.parseString fs.readFileSync(path, 'utf8'), (e, data) ->
       throw new Error(e) if e
       grammar = new TextMateGrammar(data[0])
     throw new Error("Failed to load grammar at path `#{path}`") unless grammar
@@ -23,7 +24,9 @@ class TextMateGrammar
   constructor: ({ @name, @fileTypes, @scopeName, patterns, repository, @foldingStopMarker, firstLineMatch}) ->
     @initialRule = new Rule(this, {@scopeName, patterns})
     @repository = {}
-    @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
+
+# FIXME
+# @firstLineRegex = new OnigRegExp(firstLineMatch) if firstLineMatch
 
     for name, data of repository
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
@@ -70,7 +73,7 @@ class TextMateGrammar
     else if name == "$self" or name == "$base"
       @initialRule
     else
-      TextMateBundle = require 'text-mate-bundle'
+      TextMateBundle = require 'app/text-mate-bundle'
       TextMateBundle.grammarForScopeName(name)?.initialRule
 
 class Rule

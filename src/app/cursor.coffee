@@ -1,7 +1,7 @@
-Point = require 'point'
-Range = require 'range'
-Anchor = require 'anchor'
-EventEmitter = require 'event-emitter'
+Point = require 'app/point'
+Range = require 'app/range'
+Anchor = require 'app/anchor'
+EventEmitter = require 'app/event-emitter'
 _ = require 'underscore'
 
 module.exports =

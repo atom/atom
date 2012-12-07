@@ -1,5 +1,5 @@
-Point = require 'point'
-Range = require 'range'
+Point = require 'app/point'
+Range = require 'app/range'
 
 module.exports =
 class LineMap

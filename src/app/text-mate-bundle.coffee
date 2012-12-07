@@ -1,8 +1,9 @@
 _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
-
-TextMateGrammar = require 'text-mate-grammar'
+path = require 'path'
+{ OnigRegExp } = require 'stdlib/oniguruma'
+TextMateGrammar = require 'app/text-mate-grammar'
 
 module.exports =
 class TextMateBundle
@@ -13,13 +14,13 @@ class TextMateBundle
   @grammars: []
 
   @loadAll: ->
-    localBundlePath = fs.join(atom.configDirPath, "bundles")
-    localBundles = fs.list(localBundlePath) if fs.exists(localBundlePath)
+    localBundlePath = path.join(atom.configDirPath, "bundles")
+    localBundles = fs.readdirSync(localBundlePath) if fs.existsSync(localBundlePath)
 
-    for bundlePath in localBundles ? []
-      @registerBundle(new TextMateBundle(bundlePath))
+    for bundleName in localBundles ? []
+      @registerBundle(new TextMateBundle(path.join(localBundlePath, bundleName)))
 
-  @registerBundle: (bundle)->
+  @registerBundle: (bundle) ->
     @bundles.push(bundle)
 
     for scopeSelector, preferences of bundle.getPreferencesByScopeSelector()
@@ -32,9 +33,9 @@ class TextMateBundle
         @grammarsByScopeName[grammar.scopeName] = grammar
 
   @grammarForFilePath: (filePath) ->
-    extension = fs.extension(filePath)?[1...]
+    extension = path.extname(filePath)?[1...]
     if filePath and extension.length == 0
-      extension = fs.base(filePath)
+      extension = path.basename(filePath)
 
     @grammarsByFileType[extension] or @grammarByShebang(filePath) or @grammarsByFileType["txt"]
 
@@ -73,20 +74,25 @@ class TextMateBundle
 
   grammars: null
 
-  constructor: (@path) ->
+  constructor: (pathName) ->
+    @path = pathName
     @grammars = []
-    if fs.exists(@getSyntaxesPath())
-      for syntaxPath in fs.list(@getSyntaxesPath())
+
+    if fs.existsSync(@getSyntaxesPath())
+      for grammarFileName in fs.readdirSync(@getSyntaxesPath())
+        grammarPath = path.join(@getSyntaxesPath(), grammarFileName)
         try
-          @grammars.push TextMateGrammar.loadFromPath(syntaxPath)
+          @grammars.push TextMateGrammar.loadFromPath(grammarPath)
         catch e
-          console.warn "Failed to load grammar at path '#{syntaxPath}'", e
+          console.warn "Failed to load grammar at path '#{grammarPath}'", e.stack
 
   getPreferencesByScopeSelector: ->
-    return {} unless fs.exists(@getPreferencesPath())
+    return {} unless fs.existsSync(@getPreferencesPath())
     preferencesByScopeSelector = {}
-    for preferencePath in fs.list(@getPreferencesPath())
-      plist.parseString fs.read(preferencePath), (e, data) ->
+    preferencesPath = @getPreferencesPath()
+    for preferenceFileName in fs.readdirSync(preferencesPath)
+      preferencePath = path.join(preferencesPath, preferenceFileName)
+      plist.parseString fs.readFileSync(preferencePath, 'utf8'), (e, data) ->
         if e
           console.warn "Failed to parse preference at path '#{preferencePath}'", e
         else
@@ -96,8 +102,7 @@ class TextMateBundle
     preferencesByScopeSelector
 
   getSyntaxesPath: ->
-    fs.join(@path, "Syntaxes")
+    path.join(@path, "Syntaxes")
 
   getPreferencesPath: ->
-    fs.join(@path, "Preferences")
-
+    path.join(@path, "Preferences")

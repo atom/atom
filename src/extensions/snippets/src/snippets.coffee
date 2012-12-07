@@ -1,4 +1,5 @@
 fs = require 'fs'
+path = require 'path'
 PEG = require 'pegjs'
 _ = require 'underscore'
 SnippetExpansion = require 'snippets/src/snippet-expansion'
@@ -6,19 +7,21 @@ SnippetExpansion = require 'snippets/src/snippet-expansion'
 module.exports =
   name: 'Snippets'
   snippetsByExtension: {}
-  snippetsParser: PEG.buildParser(fs.read(require.resolve 'extensions/snippets/snippets.pegjs'), trackLineAndColumn: true)
+  snippetsParser: PEG.buildParser(fs.readFileSync(require.resolve('extensions/snippets/snippets.pegjs'), 'utf8'), trackLineAndColumn: true)
 
   activate: (@rootView) ->
     @loadSnippets()
     @rootView.on 'editor-open', (e, editor) => @enableSnippetsInEditor(editor)
 
   loadSnippets: ->
-    snippetsDir = fs.join(atom.configDirPath, 'snippets')
-    if fs.exists(snippetsDir)
-      @loadSnippetsFile(path) for path in fs.list(snippetsDir) when fs.extension(path) == '.snippets'
+    snippetsDir = path.join(atom.configDirPath, 'snippets')
+    if fs.existsSync(snippetsDir)
+      for fileName in fs.readdirSync(snippetsDir) when path.extname(fileName) == '.snippets'
+        snippetPath = path.join(snippetsDir, fileName)
+        @loadSnippetsFile(snippetPath)
 
-  loadSnippetsFile: (path) ->
-    @evalSnippets(fs.base(path, '.snippets'), fs.read(path))
+  loadSnippetsFile: (pathName) ->
+    @evalSnippets(path.basename(pathName, '.snippets'), fs.readFileSync(pathName, 'utf8'))
 
   evalSnippets: (extension, text) ->
     @snippetsByExtension[extension] = @snippetsParser.parse(text)

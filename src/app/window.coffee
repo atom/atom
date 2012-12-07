@@ -1,31 +1,37 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
-
-Native = require 'native'
-TextMateBundle = require 'text-mate-bundle'
-TextMateTheme = require 'text-mate-theme'
+TextMateBundle = require 'app/text-mate-bundle'
+TextMateTheme = require 'app/text-mate-theme'
 fs = require 'fs'
+path = require 'path'
 _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
-RootView = require 'root-view'
-Pasteboard = require 'pasteboard'
-require 'jquery-extensions'
-require 'underscore-extensions'
+RootView = require 'app/root-view'
+Pasteboard = require 'app/pasteboard'
+require 'stdlib/jquery-extensions'
+require 'stdlib/underscore-extensions'
 
 windowAdditions =
   rootViewParentSelector: 'body'
   rootView: null
   keymap: null
-  platform: $native.getPlatform()
+  platform: 'mac' # $native.getPlatform()
 
   # This method runs when the file is required. Any code here will run
   # in all environments: spec, benchmark, and application
   startup: ->
+    global.document = window.document
+    global.requireStylesheet = window.requireStylesheet
+    global.applyStylesheet = window.applyStylesheet
+    global.platform = window.platform
+    global.pasteboard = new Pasteboard
+    global.localStorage = window.localStorage
+    global.requireExtension = window.requireExtension
+
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
-    @pasteboard = new Pasteboard
     $(window).on 'core:close', => @close()
 
   # This method is intended only to be run when starting a normal application
@@ -50,11 +56,14 @@ windowAdditions =
     $(window).off('before')
 
   setUpKeymap: ->
-    Keymap = require 'keymap'
+    Keymap = require 'app/keymap'
 
     @keymap = new Keymap()
     @keymap.bindDefaultKeys()
-    require(keymapPath) for keymapPath in fs.list(require.resolve("keymaps"))
+
+    keymapsPath = path.resolveOnLoadPath("app/keymaps")
+    for keymapPath in fs.readdirSync(keymapsPath)
+      require(path.join(keymapsPath, keymapPath))
 
     @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
     $(document).on 'keydown', @_handleKeyEvent
@@ -62,7 +71,7 @@ windowAdditions =
   requireStylesheet: (path) ->
     unless fullPath = require.resolve(path)
       throw new Error("requireStylesheet could not find a file at path '#{path}'")
-    window.applyStylesheet(fullPath, fs.read(fullPath))
+    applyStylesheet(fullPath, fs.readFileSync(fullPath, 'utf8'))
 
   applyStylesheet: (id, text) ->
     unless $("head style[id='#{id}']").length
@@ -71,14 +80,14 @@ windowAdditions =
   requireExtension: (name, config) ->
     try
       extensionPath = require.resolve name
-      throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.exists(extensionPath)
+      throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.existsSync(extensionPath)
 
       extension = rootView.activateExtension(require(extensionPath), config)
-      extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), {verifyExistence: false})
-      require extensionKeymapPath if fs.exists(extensionKeymapPath)
+      extensionKeymapPath = path.resolveOnLoadPath(path.join(name, "src/keymap"))
+      require extensionKeymapPath if fs.existsSync(extensionKeymapPath)
       extension
     catch e
-      console.error "Failed to load extension named '#{name}'", e
+      console.error "Failed to load extension named '#{name}'", e.stack
 
   reload: ->
     if rootView?.getModifiedBuffers().length > 0
@@ -100,7 +109,7 @@ windowAdditions =
     result = new Date().getTime() - start
     console.log description, result
 
-window[key] = value for key, value of windowAdditions
+_.defaults(window, windowAdditions)
 window.startup()
 
 requireStylesheet 'reset.css'

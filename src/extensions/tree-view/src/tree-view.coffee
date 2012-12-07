@@ -1,10 +1,9 @@
 {View, $$} = require 'space-pen'
-ScrollView = require 'scroll-view'
-Directory = require 'directory'
+ScrollView = require 'app/scroll-view'
+Directory = require 'app/directory'
 DirectoryView = require 'tree-view/src/directory-view'
 FileView = require 'tree-view/src/file-view'
 Dialog = require 'tree-view/src/dialog'
-Native = require 'native'
 fs = require 'fs'
 $ = require 'jquery'
 _ = require 'underscore'
@@ -219,7 +218,7 @@ class TreeView extends ScrollView
         newPath = @rootView.project.resolve(newPath)
         directoryPath = fs.directory(newPath)
         try
-          fs.makeTree(directoryPath) unless fs.exists(directoryPath)
+          fs.makeTree(directoryPath) unless fs.existsSync(directoryPath)
           fs.move(oldPath, newPath)
           dialog.close()
         catch e
@@ -254,7 +253,7 @@ class TreeView extends ScrollView
         endsWithDirectorySeparator = /\/$/.test(relativePath)
         path = @rootView.project.resolve(relativePath)
         try
-          if fs.exists(path)
+          if fs.existsSync(path)
             pathType = if fs.isFile(path) then "file" else "directory"
             dialog.showError("Error: A #{pathType} already exists at path '#{path}'. Try a different path:")
           else if endsWithDirectorySeparator

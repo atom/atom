@@ -1,6 +1,6 @@
 $ = require 'jquery'
 _ = require 'underscore'
-PaneGrid = require 'pane-grid'
+PaneGrid = require 'app/pane-grid'
 
 module.exports =
 class PaneRow extends PaneGrid

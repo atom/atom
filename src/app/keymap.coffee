@@ -1,9 +1,8 @@
 $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
-
-BindingSet = require 'binding-set'
 Specificity = require 'specificity'
+BindingSet = require 'app/binding-set'
 
 module.exports =
 class Keymap
@@ -22,11 +21,13 @@ class Keymap
       'meta-o': 'open'
       'meta-O': 'open-unstable'
       'meta-w': 'core:close'
+      'meta-r': 'core:reload'
 
     $(document).on 'new-window', => atom.newWindow()
     $(document).on 'open-user-configuration', => atom.open(atom.configFilePath)
     $(document).on 'open', => atom.open()
     $(document).on 'open-unstable', => atom.openUnstable()
+    $(document).on 'core:reload', => window.location.reload()
 
   bindKeys: (selector, bindings) ->
     bindingSet = new BindingSet(selector, bindings, @bindingSets.length)

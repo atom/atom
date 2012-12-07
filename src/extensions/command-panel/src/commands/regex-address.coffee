@@ -1,5 +1,5 @@
 Address = require 'command-panel/src/commands/address'
-Range = require 'range'
+Range = require 'app/range'
 
 module.exports =
 class RegexAddress extends Address

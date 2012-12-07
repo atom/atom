@@ -1,13 +1,13 @@
 {View, $$} = require 'space-pen'
-Buffer = require 'buffer'
-Gutter = require 'gutter'
-Point = require 'point'
-Range = require 'range'
-EditSession = require 'edit-session'
-CursorView = require 'cursor-view'
-SelectionView = require 'selection-view'
-Native = require 'native'
+Buffer = require 'app/buffer'
+Gutter = require 'app/gutter'
+Point = require 'app/point'
+Range = require 'app/range'
+EditSession = require 'app/edit-session'
+CursorView = require 'app/cursor-view'
+SelectionView = require 'app/selection-view'
 fs = require 'fs'
+path = require 'path'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -630,7 +630,7 @@ class Editor extends View
   close: ->
     return if @mini
     if @getBuffer().isModified()
-      filename = if @getPath() then fs.base(@getPath()) else "untitled buffer"
+      filename = if @getPath() then path.basename(@getPath()) else "untitled buffer"
       atom.confirm(
         "'#{filename}' has changes, do you want to save them?"
         "Your changes will be lost if you don't save them"
@@ -759,7 +759,7 @@ class Editor extends View
   requestDisplayUpdate: ()->
     return if @pendingDisplayUpdate
     @pendingDisplayUpdate = true
-    _.nextTick =>
+    window.webkitRequestAnimationFrame =>
       @updateDisplay()
       @pendingDisplayUpdate = false
 

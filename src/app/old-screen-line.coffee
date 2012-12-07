@@ -1,5 +1,5 @@
 _ = require 'underscore'
-Point = require 'point'
+Point = require 'app/point'
 
 module.exports =
 class ScreenLine

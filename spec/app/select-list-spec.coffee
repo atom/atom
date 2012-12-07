@@ -1,4 +1,4 @@
-SelectList = require 'select-list'
+SelectList = require 'app/select-list'
 {$$} = require 'space-pen'
 $ = require 'jquery'
 

@@ -1,5 +1,5 @@
-Range = require 'range'
-Point = require 'point'
+Range = require 'app/range'
+Point = require 'app/point'
 
 module.exports =
 class Fold

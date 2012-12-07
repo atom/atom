@@ -1,9 +1,9 @@
 {View, $$} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'
-Range = require 'range'
-Editor = require 'editor'
-fuzzyFilter = require 'fuzzy-filter'
+Range = require 'app/range'
+Editor = require 'app/editor'
+fuzzyFilter = require 'stdlib/fuzzy-filter'
 
 module.exports =
 class Autocomplete extends View

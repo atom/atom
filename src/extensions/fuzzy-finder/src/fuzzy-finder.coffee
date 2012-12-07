@@ -1,7 +1,7 @@
 {View, $$} = require 'space-pen'
-SelectList = require 'select-list'
+SelectList = require 'app/select-list'
 _ = require 'underscore'
-Editor = require 'editor'
+Editor = require 'app/editor'
 
 module.exports =
 class FuzzyFinder extends SelectList
