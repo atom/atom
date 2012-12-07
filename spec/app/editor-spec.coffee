@@ -8,6 +8,7 @@ $ = require 'jquery'
 {$$} = require 'space-pen'
 _ = require 'underscore'
 fs = require 'fs'
+pppath = require 'path'
 
 fdescribe "Editor", ->
   [rootView, project, buffer, editor, cachedLineHeight] = []
@@ -21,7 +22,7 @@ fdescribe "Editor", ->
     cachedLineHeight
 
   beforeEach ->
-    rootView = new RootView(require.resolve('fixtures/sample.js'))
+    rootView = new RootView(pppath.resolveOnLoadPath('fixtures/sample.js'))
     project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.getBuffer()
