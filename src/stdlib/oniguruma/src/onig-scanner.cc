@@ -71,7 +71,7 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
     OnigRegExp *regExp = (*iter).get();
 
     bool useCachedResult = false;
-    OnigResult *result = NULL;
+    OnigResult *result = nullptr;
 
     // In Oniguruma, \G is based on the start position of the match, so the result
     // changes based on the start position. So it can't be cached.
