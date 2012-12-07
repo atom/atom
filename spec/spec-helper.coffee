@@ -3,6 +3,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 fs = require 'fs'
 path = require 'path'
+crypto = require 'crypto'
 Keymap = require 'app/keymap'
 Point = require 'app/point'
 Project = require 'app/project'
@@ -182,6 +183,6 @@ $.fn.textInput = (data) ->
 $.fn.simulateDomAttachment = ->
   $('<html>').append(this)
 
-# FIXME
-# unless fs.md5ForPath(require.resolve('fixtures/sample.js')) == "dd38087d0d7e3e4802a6d3f9b9745f2b"
-#   throw "Sample.js is modified"
+sampleJsContent = fs.readFileSync(path.resolveOnLoadPath("fixtures/sample.js"), "utf8")
+unless crypto.createHash('md5').update(sampleJsContent).digest('hex') == "dd38087d0d7e3e4802a6d3f9b9745f2b"
+  throw "Sample.js is modified"
