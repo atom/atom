@@ -1,6 +1,9 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
 
+
+aonesuthaosnuht
+
 TextMateBundle = require 'app/text-mate-bundle'
 TextMateTheme = require 'app/text-mate-theme'
 fs = require 'fs'
@@ -27,6 +30,8 @@ windowAdditions =
     global.applyStylesheet = window.applyStylesheet
     global.platform = window.platform
     global.pasteboard = new Pasteboard
+    global.localStorage = window.localStorage
+    global.requireExtension = window.requireExtension
 
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
@@ -82,11 +87,11 @@ windowAdditions =
       throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.existsSync(extensionPath)
 
       extension = rootView.activateExtension(require(extensionPath), config)
-      extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), {verifyExistence: false})
+      extensionKeymapPath = path.resolveOnLoadPath(path.join(name, "src/keymap"))
       require extensionKeymapPath if fs.existsSync(extensionKeymapPath)
       extension
     catch e
-      console.error "Failed to load extension named '#{name}'", e
+      console.error "Failed to load extension named '#{name}'", e.stack
 
   reload: ->
     if rootView?.getModifiedBuffers().length > 0

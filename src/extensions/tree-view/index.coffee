@@ -1,1 +1,1 @@
-module.exports = require 'tree-view/src/tree-view'
+module.exports = require './src/tree-view'

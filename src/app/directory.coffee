@@ -1,5 +1,6 @@
 _ = require 'underscore'
 fs = require 'fs'
+path = require 'path'
 File = require 'app/file'
 EventEmitter = require 'app/event-emitter'
 
@@ -10,20 +11,21 @@ class Directory
   constructor: (@path) ->
 
   getBaseName: ->
-    fs.base(@path) + '/'
+    path.basename(@path) + '/'
 
   getPath: -> @path
 
   getEntries: ->
     directories = []
     files = []
-    for path in fs.readdirSync(@path)
-      if fs.isDirectory(path)
-        directories.push(new Directory(path))
-      else if fs.isFile(path)
-        files.push(new File(path))
+    for fileName in fs.readdirSync(@path)
+      pathName = path.join(@path, fileName)
+      if fs.statSync(pathName).isDirectory()
+        directories.push(new Directory(pathName))
+      else if fs.statSync(pathName).isFile()
+        files.push(new File(pathName))
       else
-        console.error "#{path} is neither a file nor a directory."
+        console.error "#{pathName} is neither a file nor a directory."
 
     directories.concat(files)
 

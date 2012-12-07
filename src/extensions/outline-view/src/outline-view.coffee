@@ -1,6 +1,6 @@
 {View, $$} = require 'space-pen'
-SelectList = require 'select-list'
-Editor = require 'editor'
+SelectList = require 'app/select-list'
+Editor = require 'app/editor'
 TagGenerator = require 'outline-view/src/tag-generator'
 
 module.exports =

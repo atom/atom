@@ -29,4 +29,5 @@ Module._extensions['.coffee'] = (module, filename) ->
 
 require 'app/atom'
 require 'app/window'
-require 'spec-bootstrap'
+# require 'spec-bootstrap'
+require 'window-bootstrap'

@@ -1,1 +1,1 @@
-module.exports = require 'snippets/src/snippets'
+module.exports = require './src/snippets'

@@ -1,4 +1,2 @@
 # Like sands through the hourglass, so are the days of our lives.
-require 'atom'
-require 'window'
-window.attachRootView(window.location.params.pathToOpen)
+window.attachRootView("/Users/nathansobo/github/atom") #window.location.params.pathToOpen)

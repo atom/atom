@@ -1,1 +1,1 @@
-module.exports = require 'tabs/src/tabs'
+module.exports = require './src/tabs'

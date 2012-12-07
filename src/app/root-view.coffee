@@ -37,6 +37,7 @@ class RootView extends View
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
+    global.rootView = this
     TextMateTheme.activate('IR_Black')
 
     @invisibles =
