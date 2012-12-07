@@ -12,7 +12,6 @@
 using namespace v8;
 
 void OnigScanner::Init(Handle<Object> target) {
-  // Prepare constructor template
   Local<FunctionTemplate> tpl = FunctionTemplate::New(OnigScanner::New);
   tpl->SetClassName(v8::String::NewSymbol("OnigScanner"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -90,7 +89,7 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
     }
 
     if (!useCachedResult) {
-      regExp->Search(string, startLocation, &result);
+      result = regExp->Search(string, startLocation);
       cachedResults[index] = result;
       maxCachedIndex = index;
     }

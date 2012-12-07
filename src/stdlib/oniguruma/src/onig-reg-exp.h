@@ -13,7 +13,7 @@ class OnigRegExp {
 
     bool Contains(const std::string& value);
     int LocationAt(int index);
-    void Search(const std::string &searchString, size_t position, OnigResult **result);
+    OnigResult *Search(const std::string &searchString, size_t position);
 
   private:
     std::string source_;
