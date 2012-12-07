@@ -1,9 +1,5 @@
 # This a weirdo file. We don't create a Window class, we just add stuff to
 # the DOM window.
-
-
-aonesuthaosnuht
-
 TextMateBundle = require 'app/text-mate-bundle'
 TextMateTheme = require 'app/text-mate-theme'
 fs = require 'fs'

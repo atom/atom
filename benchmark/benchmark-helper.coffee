@@ -1,19 +1,18 @@
-nakedLoad 'jasmine-jquery'
+require 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
-Keymap = require 'keymap'
-Point = require 'point'
-RootView = require 'root-view'
-Project = require 'project'
-TextMateBundle = require 'text-mate-bundle'
-TextMateTheme = require 'text-mate-theme'
-
-require 'window'
+fs = require 'fs'
+Keymap = require 'app/keymap'
+Point = require 'app/point'
+RootView = require 'app/root-view'
+Project = require 'app/project'
+TextMateBundle = require 'app/text-mate-bundle'
+TextMateTheme = require 'app/text-mate-theme'
 requireStylesheet "jasmine.css"
 
 RootView.prototype.loadUserConfiguration = ->
 
-keymap = new Keymap
+global.keymap = new Keymap
 keymap.bindDefaultKeys()
 $(window).on 'keydown', (e) -> keymap.handleKeyEvent(e)
 keymap.bindKeys '*',
@@ -23,14 +22,14 @@ $(document).on 'close', -> window.close()
 $(document).on 'show-console', -> atom.toggleDevTools()
 
 defaultCount = 100
-window.pbenchmark = (args...) -> window.benchmark(args..., profile: true)
-window.fbenchmark = (args...) -> window.benchmark(args..., focused: true)
-window.fpbenchmark = (args...) -> window.benchmark(args..., profile: true, focused: true)
-window.pfbenchmark = window.fpbenchmark
+global.pbenchmark = (args...) -> window.benchmark(args..., profile: true)
+global.fbenchmark = (args...) -> window.benchmark(args..., focused: true)
+global.fpbenchmark = (args...) -> window.benchmark(args..., profile: true, focused: true)
+global.pfbenchmark = fpbenchmark
 
-window.benchmarkFixturesProject = new Project(require.resolve 'benchmark/fixtures')
+global.benchmarkFixturesProject = new Project(fs.realpathSync('./benchmark/fixtures'))
 
-window.benchmark = (args...) ->
+global.benchmark = (args...) ->
   description = args.shift()
   if typeof args[0] is 'number'
     count = args.shift()
@@ -61,29 +60,29 @@ window.benchmark = (args...) ->
         error: (args...) ->
           console.log "Failed to send atom.#{fullname}\n#{JSON.stringify(args)}"
 
-window.measure = (fn) ->
+global.measure = (fn) ->
   start = new Date().getTime()
   fn()
   new Date().getTime() - start
 
-window.waitsForPromise = (fn) ->
+global.waitsForPromise = (fn) ->
   window.waitsFor (moveOn) ->
     fn().done(moveOn)
 
-window.keyIdentifierForKey = (key) ->
+global.keyIdentifierForKey = (key) ->
   if key.length > 1 # named key
     key
   else
     charCode = key.toUpperCase().charCodeAt(0)
     "U+00" + charCode.toString(16)
 
-window.keydownEvent = (key, properties={}) ->
+global.keydownEvent = (key, properties={}) ->
   $.Event "keydown", _.extend({originalEvent: { keyIdentifier: keyIdentifierForKey(key) }}, properties)
 
-window.clickEvent = (properties={}) ->
+global.clickEvent = (properties={}) ->
   $.Event "click", properties
 
-window.mouseEvent = (type, properties) ->
+global.mouseEvent = (type, properties) ->
   if properties.point
     {point, editor} = properties
     {top, left} = @pagePixelPositionForPoint(editor, point)
@@ -92,19 +91,19 @@ window.mouseEvent = (type, properties) ->
   properties.originalEvent ?= {detail: 1}
   $.Event type, properties
 
-window.mousedownEvent = (properties={}) ->
-  window.mouseEvent('mousedown', properties)
+global.mousedownEvent = (properties={}) ->
+  mouseEvent('mousedown', properties)
 
-window.mousemoveEvent = (properties={}) ->
-  window.mouseEvent('mousemove', properties)
+global.mousemoveEvent = (properties={}) ->
+  mouseEvent('mousemove', properties)
 
-window.pagePixelPositionForPoint = (editor, point) ->
+global.pagePixelPositionForPoint = (editor, point) ->
   point = Point.fromObject point
   top = editor.lines.offset().top + point.row * editor.lineHeight
   left = editor.lines.offset().left + point.column * editor.charWidth - editor.lines.scrollLeft()
   { top, left }
 
-window.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
+global.setEditorWidthInChars = (editor, widthInChars, charWidth=editor.charWidth) ->
   editor.width(charWidth * widthInChars + editor.lines.position().left)
 
 $.fn.resultOfTrigger = (type) ->
