@@ -43,18 +43,11 @@ OnigScanner::OnigScanner(Handle<Array> sources) {
 
   for (int i = 0; i < length; i++) {
     String::Utf8Value utf8Value(sources->Get(i));
-    regExps[i] = new OnigRegExp(std::string(*utf8Value));
+    regExps[i] = std::unique_ptr<OnigRegExp>(new OnigRegExp(std::string(*utf8Value)));
   }
 };
 
-OnigScanner::~OnigScanner() {
-  for (std::vector<OnigRegExp*>::iterator iter = regExps.begin(); iter < regExps.end(); iter++) {
-    delete *iter;
-  }
-  for (std::vector<OnigResult*>::iterator iter = cachedResults.begin(); iter < cachedResults.end(); iter++) {
-    delete *iter;
-  }
-};
+OnigScanner::~OnigScanner() {};
 
 Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number> v8StartLocation) {
   String::Utf8Value utf8Value(v8String);
@@ -72,25 +65,25 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
     lastMatchedString = string;
   }
 
-  std::vector<OnigRegExp*>::iterator iter = regExps.begin();
+  std::vector<std::unique_ptr<OnigRegExp>>::iterator iter = regExps.begin();
   int index = 0;
   while (iter < regExps.end()) {
-    OnigRegExp* regExp = *iter;
+    OnigRegExp *regExp = (*iter).get();
 
     bool useCachedResult = false;
-    OnigResult* result = NULL;
+    OnigResult *result = NULL;
 
     // In Oniguruma, \G is based on the start position of the match, so the result
     // changes based on the start position. So it can't be cached.
     bool containsBackslashG = regExp->Contains("\\G");
     if (useCachedResults && index <= maxCachedIndex && ! containsBackslashG) {
-      result = cachedResults[index];
+      result = cachedResults[index].get();
       useCachedResult = (result == NULL || result->LocationAt(0) >= startLocation);
     }
 
     if (!useCachedResult) {
       result = regExp->Search(string, startLocation);
-      cachedResults[index] = result;
+      cachedResults[index] = std::unique_ptr<OnigResult>(result);
       maxCachedIndex = index;
     }
 
@@ -124,11 +117,7 @@ Handle<Value> OnigScanner::FindNextMatch(Handle<String> v8String, Handle<Number>
 
 void OnigScanner::ClearCachedResults() {
   maxCachedIndex = -1;
-  std::vector<OnigResult*>::iterator iter = cachedResults.begin();
-  while (iter != cachedResults.end()) {
-    delete *iter;
-    iter = cachedResults.erase(iter);
-  }
+  cachedResults.clear();
 }
 
 Handle<Value> OnigScanner::CaptureIndicesForMatch(OnigResult* result) {

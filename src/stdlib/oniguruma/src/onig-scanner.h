@@ -1,7 +1,8 @@
-#import <node.h>
-#import <v8.h>
-#import <string>
-#import <vector>
+#include <node.h>
+#include <v8.h>
+#include <string>
+#include <vector>
+#include <memory>
 
 using namespace v8;
 
@@ -22,8 +23,8 @@ class OnigScanner : public node::ObjectWrap {
     Handle<Value> CaptureIndicesForMatch(OnigResult* result);
     void ClearCachedResults();
 
-    std::vector<OnigRegExp*> regExps;
-    std::vector<OnigResult*> cachedResults;
+    std::vector<std::unique_ptr<OnigRegExp>> regExps;
+    std::vector<std::unique_ptr<OnigResult>> cachedResults;
     std::string lastMatchedString;
     int maxCachedIndex;
     int lastStartLocation;
