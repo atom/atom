@@ -16,6 +16,9 @@ class OnigRegExp {
     OnigResult *Search(const std::string &searchString, size_t position);
 
   private:
+    OnigRegExp(const OnigRegExp&); // Disallow copying
+    OnigRegExp &operator=(const OnigRegExp&);  // Disallow copying
+
     std::string source_;
     regex_t* regex_;
 };

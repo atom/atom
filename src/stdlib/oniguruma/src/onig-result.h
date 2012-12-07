@@ -8,13 +8,16 @@ class OnigRegExp;
 
 class OnigResult {
   public:
-    OnigResult();
     OnigResult(OnigRegion* region, const std::string& searchString);
     ~OnigResult();
 
     int Count();
     int LocationAt(int index);
     int LengthAt(int index);
+
+  private:
+    OnigResult(const OnigResult&); // Disallow copying
+    OnigResult &operator=(const OnigResult&);  // Disallow copying
 
     std::string searchString_;
     OnigRegion *region_;
