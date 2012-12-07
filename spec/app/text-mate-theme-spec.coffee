@@ -21,9 +21,9 @@ describe "TextMateTheme", ->
 
   describe ".activate()", ->
     it "applies the theme's stylesheet to the current window", ->
-      spyOn window, 'applyStylesheet'
+      spyOn global, 'applyStylesheet'
       theme.activate()
-      expect(window.applyStylesheet).toHaveBeenCalledWith(theme.name, theme.getStylesheet())
+      expect(global.applyStylesheet).toHaveBeenCalledWith(theme.name, theme.getStylesheet())
 
   describe ".getRulesets()", ->
     rulesets = null

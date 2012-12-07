@@ -13,18 +13,17 @@ class OnigScanner : public node::ObjectWrap {
     static void Init(Handle<Object> target);
 
   private:
+    static Handle<Value> New(const Arguments& args);
+    static Handle<Value> FindNextMatch(const Arguments& args);
     OnigScanner(Handle<Array> sources);
     ~OnigScanner();
 
-    static Handle<Value> New(const Arguments& args);
-    static Handle<Value> FindNextMatch(const Arguments& args);
-
     Handle<Value> FindNextMatch(Handle<String> v8String, Handle<Number> v8StartLocation);
-    Handle<Value> CaptureIndicesForMatch(OnigResult *result);
+    Handle<Value> CaptureIndicesForMatch(OnigResult* result);
     void ClearCachedResults();
 
-    std::vector<OnigRegExp *> regExps;
-    std::vector<OnigResult *> cachedResults;
+    std::vector<OnigRegExp*> regExps;
+    std::vector<OnigResult*> cachedResults;
     std::string lastMatchedString;
     int maxCachedIndex;
     int lastStartLocation;

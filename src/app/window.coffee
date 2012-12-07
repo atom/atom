@@ -24,12 +24,13 @@ windowAdditions =
   startup: ->
     global.document = window.document
     global.requireStylesheet = window.requireStylesheet
+    global.applyStylesheet = window.applyStylesheet
     global.platform = window.platform
+    global.pasteboard = new Pasteboard
 
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
-    @pasteboard = new Pasteboard
     $(window).on 'core:close', => @close()
 
   # This method is intended only to be run when starting a normal application
@@ -69,7 +70,7 @@ windowAdditions =
   requireStylesheet: (path) ->
     unless fullPath = require.resolve(path)
       throw new Error("requireStylesheet could not find a file at path '#{path}'")
-    window.applyStylesheet(fullPath, fs.readFileSync(fullPath, 'utf8'))
+    applyStylesheet(fullPath, fs.readFileSync(fullPath, 'utf8'))
 
   applyStylesheet: (id, text) ->
     unless $("head style[id='#{id}']").length

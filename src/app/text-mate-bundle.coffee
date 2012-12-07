@@ -2,7 +2,7 @@ _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
 path = require 'path'
-
+{ OnigRegExp } = require 'stdlib/oniguruma'
 TextMateGrammar = require 'app/text-mate-grammar'
 
 module.exports =

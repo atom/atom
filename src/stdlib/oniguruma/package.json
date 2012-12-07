@@ -1,5 +1,5 @@
 {
-  "main": "./build/Release/oniguruma",
+  "main": "./lib/oniguruma",
   "name": "oniguruma",
-  "version": "0.9.0"
+  "version": "0.0.1"
 }

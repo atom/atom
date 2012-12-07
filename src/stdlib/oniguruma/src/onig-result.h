@@ -9,7 +9,7 @@ class OnigRegExp;
 class OnigResult {
   public:
     OnigResult();
-    OnigResult(OnigRegion *region, std::string &searchString);
+    OnigResult(OnigRegion* region, const std::string& searchString);
     ~OnigResult();
 
     int Count();

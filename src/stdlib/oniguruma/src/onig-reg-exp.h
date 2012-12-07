@@ -8,16 +8,16 @@ class OnigResult;
 
 class OnigRegExp {
   public:
-    OnigRegExp(std::string source);
+    OnigRegExp(const std::string& source);
     ~OnigRegExp();
 
-    bool Contains(std::string value);
+    bool Contains(const std::string& value);
     int LocationAt(int index);
-    void Search(std::string &searchString, int position, OnigResult **result);
+    void Search(const std::string &searchString, size_t position, OnigResult **result);
 
   private:
     std::string source_;
-    regex_t *regex_;
+    regex_t* regex_;
 };
 
 #endif // ONIG_REG_EXP_H_

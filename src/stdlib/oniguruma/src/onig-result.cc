@@ -5,7 +5,7 @@
 #include "onig-reg-exp.h"
 #include "onig-result.h"
 
-OnigResult::OnigResult(OnigRegion* region, std::string &searchString) : searchString_(searchString) {
+OnigResult::OnigResult(OnigRegion* region, const std::string& searchString) : searchString_(searchString) {
   region_ = region;
 }
 
