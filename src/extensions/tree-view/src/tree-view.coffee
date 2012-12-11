@@ -201,9 +201,9 @@ class TreeView extends ScrollView
 
   openSelectedEntry: (changeFocus) ->
     selectedEntry = @selectedEntry()
-    if (selectedEntry instanceof DirectoryView)
+    if selectedEntry instanceof DirectoryView
       selectedEntry.view().toggleExpansion()
-    else if (selectedEntry instanceof FileView)
+    else if selectedEntry instanceof FileView
       @rootView.open(selectedEntry.getPath(), { changeFocus })
 
   moveSelectedEntry: ->
