@@ -1396,7 +1396,6 @@ describe "Editor", ->
     describe "when lines are added", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5)
-        spyOn(editor, "scrollToPixelPosition")
 
       describe "when the change precedes the first rendered row", ->
         it "inserts and removes rendered lines to account for upstream change", ->
@@ -1448,7 +1447,6 @@ describe "Editor", ->
     describe "when lines are removed", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5)
-        spyOn(editor, "scrollToPixelPosition")
 
       it "sets the rendered screen line's width to either the max line length or the scollView's width (whichever is greater)", ->
         maxLineLength = editor.maxScreenLineLength()
@@ -1614,7 +1612,6 @@ describe "Editor", ->
 
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
-        spyOn(editor, 'scrollToPixelPosition')
         editor.scrollTop(3 * editor.lineHeight)
         expect(editor.gutter.find('.line-number:first').text()).toBe '2'
         expect(editor.gutter.find('.line-number:last').text()).toBe '11'
