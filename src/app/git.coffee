@@ -19,7 +19,7 @@ class Git
   getPath: -> @repo.getPath()
 
   getWorkingDirectory: ->
-    repoPath = @repo.getPath()
+    repoPath = @getPath()
     if repoPath
       repoPath.substring(0, repoPath.length - 5)
 
