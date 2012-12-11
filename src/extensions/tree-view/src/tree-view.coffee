@@ -191,7 +191,7 @@ class TreeView extends ScrollView
 
   expandDirectory: ->
     selectedEntry = @selectedEntry()
-    selectedEntry.view().expand() if (selectedEntry instanceof DirectoryView)
+    selectedEntry.view().expand() if selectedEntry instanceof DirectoryView
 
   collapseDirectory: ->
     selectedEntry = @selectedEntry()
