@@ -111,7 +111,7 @@ class TreeView extends ScrollView
     switch e.originalEvent?.detail ? 1
       when 1
         @selectEntry(entry)
-        @openSelectedEntry(false) if (entry instanceof FileView)
+        @openSelectedEntry(false) if entry instanceof FileView
       when 2
         if entry.is('.selected.file')
           @rootView.getActiveEditor().focus()
@@ -282,7 +282,7 @@ class TreeView extends ScrollView
     entry.addClass('selected')
 
   scrollToEntry: (entry) ->
-    displayElement = if (entry instanceof DirectoryView) then entry.header else entry
+    displayElement = if entry instanceof DirectoryView then entry.header else entry
 
     top = @scrollTop() + displayElement.position().top
     bottom = top + displayElement.outerHeight()
