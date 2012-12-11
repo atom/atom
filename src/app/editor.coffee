@@ -497,7 +497,13 @@ class Editor extends View
   scrollToBottom: ->
     @scrollBottom(@screenLineCount() * @lineHeight)
 
-  scrollTo: (pixelPosition, options) ->
+  scrollToBufferPosition: (bufferPosition, options) ->
+    @scrollToPixelPosition(@pixelPositionForBufferPosition(bufferPosition), options)
+
+  scrollToScreenPosition: (screenPosition, options) ->
+    @scrollToPixelPosition(@pixelPositionForScreenPosition(screenPosition), options)
+
+  scrollToPixelPosition: (pixelPosition, options) ->
     return unless @attached
     @scrollVertically(pixelPosition, options)
     @scrollHorizontally(pixelPosition)
@@ -800,11 +806,11 @@ class Editor extends View
 
   autoscroll: (options={}) ->
     for cursorView in @getCursorViews() when cursorView.needsAutoscroll()
-      @scrollTo(cursorView.getPixelPosition()) unless options.suppressAutoScroll
+      @scrollToPixelPosition(cursorView.getPixelPosition()) unless options.suppressAutoScroll
       cursorView.autoscrolled()
 
     for selectionView in @getSelectionViews() when selectionView.needsAutoscroll()
-      @scrollTo(selectionView.getCenterPixelPosition(), center: true)
+      @scrollToPixelPosition(selectionView.getCenterPixelPosition(), center: true)
       selectionView.autoscrolled()
 
   updateRenderedLines: ->
@@ -1024,6 +1030,9 @@ class Editor extends View
   logRenderedLines: ->
     @renderedLines.find('.line').each (n) ->
       console.log n, $(this).text()
+
+  pixelPositionForBufferPosition: (position) ->
+    @pixelPositionForScreenPosition(@screenPositionForBufferPosition(position))
 
   pixelPositionForScreenPosition: (position) ->
     position = Point.fromObject(position)
