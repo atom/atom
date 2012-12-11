@@ -50,7 +50,11 @@ class OutlineView extends SelectList
 
   confirmed : ({position, name}) ->
     @cancel()
-    @rootView.getActiveEditor().setCursorBufferPosition(position)
+    editor = @rootView.getActiveEditor()
+    screenPosition = editor.screenPositionForBufferPosition(position)
+    pixelPosition = editor.pixelPositionForScreenPosition(screenPosition)
+    editor.scrollTo(pixelPosition, center: true)
+    editor.setCursorBufferPosition(position)
 
   cancelled: ->
     @miniEditor.setText('')
