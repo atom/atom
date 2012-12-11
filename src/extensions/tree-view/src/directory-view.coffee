@@ -88,4 +88,3 @@ class DirectoryView extends View
         view = $(this).view()
         view.entryStates = childEntryStates
         view.expand()
-
