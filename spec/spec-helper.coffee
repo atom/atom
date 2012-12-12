@@ -2,6 +2,7 @@ nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
+Config = require 'config'
 Point = require 'point'
 Project = require 'project'
 Directory = require 'directory'
@@ -21,6 +22,7 @@ beforeEach ->
   window.resetTimeouts()
 
   # don't load or save user configuration
+  window.config = new Config()
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.assignDefaults()
