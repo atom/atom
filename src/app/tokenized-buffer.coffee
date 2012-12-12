@@ -98,19 +98,31 @@ class TokenizedBuffer
     delta = newRange.end.row - oldRange.end.row
 
     @updateInvalidRows(start, end, delta)
+    previousEndStack = @stackForRow(end) # used in spill detection below
+    @screenLines[start..end] = @buildScreenLinesForRows(start, end + delta, @stackForRow(start - 1))
+    newEndStack = @stackForRow(end + delta)
 
-    previousStack = @stackForRow(end) # used in spill detection below
-
-    stack = @stackForRow(start - 1)
-    if stack? or start == 0
-      @screenLines[start..end] = @buildTokenizedScreenLinesForRows(start, end + delta, stack)
-    else
-      @screenLines[start..end] = @buildPlaceholderScreenLinesForRows(start, end + delta, stack)
-
-    if @stackForRow(end + delta) and not _.isEqual(@stackForRow(end + delta), previousStack)
+    if newEndStack and not _.isEqual(newEndStack, previousEndStack)
       @invalidateRow(end + delta + 1)
 
     @trigger "change", { start, end, delta, bufferChange: e }
+
+  buildScreenLinesForRows: (startRow, endRow, startingStack) ->
+    ruleStack = startingStack
+    stopTokenizingAt = startRow + @chunkSize
+    screenLines = for row in [startRow..endRow]
+      if (ruleStack or row == 0) and row < stopTokenizingAt
+        screenLine = @buildTokenizedScreenLineForRow(row, ruleStack)
+        ruleStack = screenLine.ruleStack
+      else
+        screenLine = @buildPlaceholderScreenLineForRow(row)
+      screenLine
+
+    if endRow >= stopTokenizingAt
+      @invalidateRow(stopTokenizingAt)
+      @tokenizeInBackground()
+
+    screenLines
 
   buildPlaceholderScreenLinesForRows: (startRow, endRow) ->
     @buildPlaceholderScreenLineForRow(row) for row in [startRow..endRow]
@@ -119,24 +131,6 @@ class TokenizedBuffer
     line = @buffer.lineForRow(row)
     tokens = [new Token(value: line, scopes: [@languageMode.grammar.scopeName])]
     new ScreenLine({tokens, @tabLength})
-
-  buildTokenizedScreenLinesForRows: (startRow, endRow, startingStack) ->
-    ruleStack = startingStack
-    lastRowToTokenize = startRow + @chunkSize - 1
-    screenLines = for row in [startRow..endRow]
-      if row <= lastRowToTokenize
-        screenLine = @buildTokenizedScreenLineForRow(row, ruleStack)
-      else
-        screenLine = @buildPlaceholderScreenLineForRow(row)
-
-      ruleStack = screenLine.ruleStack
-      screenLine
-
-    if endRow > lastRowToTokenize
-      @invalidateRow(lastRowToTokenize + 1)
-      @tokenizeInBackground()
-
-    screenLines
 
   buildTokenizedScreenLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)
