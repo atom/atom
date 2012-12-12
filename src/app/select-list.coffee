@@ -43,18 +43,18 @@ class SelectList extends View
 
   setError: (message) ->
     if not message or message.length == ""
-      @error.text("")
-      @error.hide()
+      @error.text("").hide()
       @removeClass("error")
     else
-      @error.text(message)
-      @error.show()
+      @list.empty()
+      @error.text(message).show()
       @addClass("error")
 
   setLoading: (message) ->
     if not message or message.length == ""
       @loading.text("").hide()
     else
+      @list.empty()
       @setError()
       @loading.text(message).show()
 

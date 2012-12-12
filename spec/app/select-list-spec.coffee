@@ -137,3 +137,12 @@ describe "SelectList", ->
       expect(selectList.cancelled).toHaveBeenCalled()
       expect(selectList.detach).toHaveBeenCalled()
 
+  describe "when an error occurs on previously populated list", ->
+    it "clears the list", ->
+      selectList.setError("yolo")
+      expect(selectList.list).toBeEmpty()
+
+  describe "when loading is triggered on previously populated list", ->
+    it "clears the list", ->
+      selectList.setLoading("loading yolo")
+      expect(selectList.list).toBeEmpty()
