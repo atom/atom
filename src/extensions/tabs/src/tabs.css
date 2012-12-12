@@ -9,7 +9,8 @@
   margin: 4px;
   margin-bottom: 0;
   margin-right: 0;
-  padding: 4px;
+  padding-left: 4px;
+  padding-right: 4px;
   background: #3a3a3a;
   color: #d0d0d0;
   -webkit-border-top-left-radius: 4px;
