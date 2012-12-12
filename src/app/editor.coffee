@@ -15,6 +15,10 @@ module.exports =
 class Editor extends View
   @idCounter: 1
 
+  @configDefaults:
+    fontSize: 20
+    showInvisibles: false
+
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
       @subview 'gutter', new Gutter
@@ -302,8 +306,9 @@ class Editor extends View
   backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
-    @setShowInvisibles(config.editor.showInvisibles ? false)
+    @setShowInvisibles(config.editor.showInvisibles)
     @setInvisibles(config.editor.invisibles)
+    @setFontSize(config.editor.fontSize)
 
   handleEvents: ->
     config.on "update.editor#{@id}", => @configure()
@@ -394,7 +399,6 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
-    @subscribeToFontSize()
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
@@ -612,18 +616,16 @@ class Editor extends View
   autosave: ->
     @save() if @getPath()?
 
-  subscribeToFontSize: ->
-    return unless rootView = @rootView()
-    @setFontSize(rootView.getFontSize())
-    rootView.on "font-size-change.editor#{@id}", => @setFontSize(rootView.getFontSize())
-
-  setFontSize: (fontSize) ->
+  setFontSize: (@fontSize) ->
     if fontSize?
       @css('font-size', fontSize + 'px')
+      return unless @attached
       @calculateDimensions()
       @updatePaddingOfRenderedLines()
       @updateLayerDimensions()
       @requestDisplayUpdate()
+
+  getFontSize: -> @fontSize
 
   newSplitEditor: ->
     new Editor { editSession: @activeEditSession.copy() }

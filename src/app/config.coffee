@@ -9,18 +9,21 @@ class Config
     @configJsonPath = fs.join(@configDirPath, "config.json")
     @userInitScriptPath = fs.join(@configDirPath, "atom.coffee")
 
-    @core = {}
-    @editor = {}
-
   load: ->
     if fs.exists(@configJsonPath)
       userConfig = JSON.parse(fs.read(@configJsonPath))
       _.extend(this, userConfig)
+    @assignDefaults()
     @requireUserInitScript()
+
+  assignDefaults: ->
+    @core ?= {}
+    _.defaults(@core, require('root-view').configDefaults)
+    @editor ?= {}
+    _.defaults(@editor, require('editor').configDefaults)
 
   update: ->
     @trigger 'update'
-
 
   requireUserInitScript: ->
     try

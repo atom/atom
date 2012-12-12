@@ -15,21 +15,21 @@ TextMateTheme = require 'text-mate-theme'
 
 module.exports =
 class RootView extends View
+  @configDefaults: {}
+
   @content: ->
     @div id: 'root-view', tabindex: -1, =>
       @div id: 'horizontal', outlet: 'horizontal', =>
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'
 
-  @deserialize: ({ projectPath, panesViewState, extensionStates, fontSize }) ->
+  @deserialize: ({ projectPath, panesViewState, extensionStates }) ->
     rootView = new RootView(projectPath, extensionStates: extensionStates, suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
-    rootView.setFontSize(fontSize) if fontSize > 0
     rootView
 
   extensions: null
   extensionStates: null
-  fontSize: 20
   title: null
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
@@ -53,7 +53,6 @@ class RootView extends View
     projectPath: @project?.getPath()
     panesViewState: @panes.children().view()?.serialize()
     extensionStates: @serializeExtensions()
-    fontSize: @getFontSize()
 
   handleEvents: ->
     @on 'toggle-dev-tools', => atom.toggleDevTools()
@@ -77,8 +76,15 @@ class RootView extends View
       else
         @setTitle("untitled")
 
-    @command 'window:increase-font-size', => @setFontSize(@getFontSize() + 1)
-    @command 'window:decrease-font-size', => @setFontSize(@getFontSize() - 1)
+    @command 'window:increase-font-size', =>
+      config.editor.fontSize += 1
+      config.update()
+
+    @command 'window:decrease-font-size', =>
+      if config.editor.fontSize > 1
+        config.editor.fontSize -= 1
+        config.update()
+
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
@@ -241,13 +247,6 @@ class RootView extends View
     editor.remove() for editor in @getEditors()
     @project.destroy()
     super
-
-  setFontSize: (newFontSize) ->
-    newFontSize = Math.max(1, newFontSize)
-    [oldFontSize, @fontSize] = [@fontSize, newFontSize]
-    @trigger 'font-size-change' if oldFontSize != newFontSize
-
-  getFontSize: -> @fontSize
 
   saveAll: ->
     editor.save() for editor in @getEditors()

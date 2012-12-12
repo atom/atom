@@ -540,29 +540,27 @@ describe "RootView", ->
       expect(rootView.getTitle()).toBe rootView.project.getPath()
 
   describe "font size adjustment", ->
+    editor = null
+    beforeEach ->
+      editor = rootView.getActiveEditor()
+
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
-      fontSizeBefore = rootView.getFontSize()
+      editor = rootView.getActiveEditor()
+      fontSizeBefore = editor.getFontSize()
       rootView.trigger 'window:increase-font-size'
-      expect(rootView.getFontSize()).toBe fontSizeBefore + 1
+      expect(editor.getFontSize()).toBe fontSizeBefore + 1
       rootView.trigger 'window:increase-font-size'
-      expect(rootView.getFontSize()).toBe fontSizeBefore + 2
+      expect(editor.getFontSize()).toBe fontSizeBefore + 2
       rootView.trigger 'window:decrease-font-size'
-      expect(rootView.getFontSize()).toBe fontSizeBefore + 1
+      expect(editor.getFontSize()).toBe fontSizeBefore + 1
       rootView.trigger 'window:decrease-font-size'
-      expect(rootView.getFontSize()).toBe fontSizeBefore
+      expect(editor.getFontSize()).toBe fontSizeBefore
 
     it "does not allow the font size to be less than 1", ->
-      rootView.setFontSize(1)
-      expect(rootView.getFontSize()).toBe 1
-
-      rootView.setFontSize(0)
-      expect(rootView.getFontSize()).toBe 1
-
-    it "is serialized and set when deserialized", ->
-      rootView.setFontSize(100)
-      rootView.remove()
-      newRootView = RootView.deserialize(rootView.serialize())
-      expect(newRootView.getFontSize()).toBe(100)
+      config.editor.fontSize = 1
+      config.update()
+      rootView.trigger 'window:decrease-font-size'
+      expect(editor.getFontSize()).toBe 1
 
   describe ".open(path, options)", ->
     describe "when there is no active editor", ->

@@ -22,6 +22,8 @@ beforeEach ->
 
   # don't load user configuration
   spyOn(config, 'load')
+  config.loadDefaults()
+
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
