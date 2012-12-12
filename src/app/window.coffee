@@ -23,11 +23,12 @@ windowAdditions =
   # This method runs when the file is required. Any code here will run
   # in all environments: spec, benchmark, and application
   startup: ->
+    @config = new Config
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
     @pasteboard = new Pasteboard
-    @config = new Config
+
     $(window).on 'core:close', => @close()
 
   # This method is intended only to be run when starting a normal application
@@ -80,7 +81,7 @@ windowAdditions =
       require extensionKeymapPath if fs.exists(extensionKeymapPath)
       extension
     catch e
-      console.error "Failed to load extension named '#{name}'", e
+      console.error "Failed to load extension named '#{name}'", e.stack
 
   reload: ->
     if rootView?.getModifiedBuffers().length > 0

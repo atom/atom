@@ -13,7 +13,7 @@ module.exports =
     @rootView.on 'editor-open', (e, editor) => @enableSnippetsInEditor(editor)
 
   loadSnippets: ->
-    snippetsDir = fs.join(atom.configDirPath, 'snippets')
+    snippetsDir = fs.join(config.configDirPath, 'snippets')
     if fs.exists(snippetsDir)
       @loadSnippetsFile(path) for path in fs.list(snippetsDir) when fs.extension(path) == '.snippets'
 

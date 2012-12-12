@@ -36,18 +36,19 @@ class RootView extends View
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
+    @extensionStates ?= {}
+    @extensions = {}
+    @project = new Project(pathToOpen)
+
     config.load()
 
-    TextMateTheme.activate('IR_Black')
+    TextMateTheme.activate(config.core.theme ? 'IR_Black')
 
     @invisibles =
       eol: '¬'
       space: '•'
       tab: '▸'
 
-    @extensionStates ?= {}
-    @extensions = {}
-    @project = new Project(pathToOpen)
     @handleEvents()
 
     if pathToOpen

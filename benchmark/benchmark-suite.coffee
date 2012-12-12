@@ -14,7 +14,7 @@ describe "editor.", ->
 
     rootView.width(1024)
     rootView.height(768)
-    require fs.join(atom.configDirPath, "default-config")
+    require fs.join(config.configDirPath, "default-config")
     rootView.open() # open blank editor
     editor = rootView.getActiveEditor()
 

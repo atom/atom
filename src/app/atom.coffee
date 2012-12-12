@@ -1,8 +1,5 @@
 fs = require('fs')
 
-atom.configDirPath = fs.absolute("~/.atom")
-atom.configFilePath = fs.join(atom.configDirPath, "atom.coffee")
-
 atom.exitWhenDone = window.location.params.exitWhenDone
 
 messageIdCounter = 1
