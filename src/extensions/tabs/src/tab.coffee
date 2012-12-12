@@ -8,7 +8,8 @@ class Tab extends View
 
   initialize: (@editSession) ->
     @updateFileName()
-    @editSession.on 'buffer-path-change.tab', => @updateFileName()
+    @editSession.on 'buffer-path-change.tab', =>
+      @updateFileName()
 
   updateFileName: ->
     @fileName.text(@editSession.buffer.getBaseName() ? 'untitled')

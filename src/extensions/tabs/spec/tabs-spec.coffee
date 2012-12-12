@@ -76,16 +76,22 @@ describe "Tabs", ->
       expect(editor.getActiveEditSessionIndex()).toBe 1
 
   describe "when a file name associated with a tab changes", ->
-    [buffer, newPath] = []
+    [buffer, oldPath, newPath] = []
 
     beforeEach ->
       buffer = editor.editSessions[0].buffer
-      oldPath = buffer.getPath()
-      newPath = oldPath.replace(/sample.js$/, "foobar.js")
+      oldPath = "/tmp/file-to-rename.txt"
+      newPath = "/tmp/renamed-file.txt"
+      fs.write(oldPath, "this old path")
+      rootView.open(oldPath)
 
     afterEach ->
-      fs.remove(newPath)
+      fs.remove(newPath) if fs.exists(newPath)
 
     it "updates the file name in the tab", ->
-      buffer.saveAs(newPath)
-      expect(tabs.find('.tab:first .file-name')).toHaveText "foobar.js"
+      tabFileName = tabs.find('.tab:eq(2) .file-name')
+      expect(tabFileName).toExist()
+      editor.setActiveEditSessionIndex(0)
+      fs.move(oldPath, newPath)
+      waitsFor "file to be renamed", ->
+        tabFileName.text() == "renamed-file.txt"

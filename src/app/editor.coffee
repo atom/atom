@@ -436,15 +436,15 @@ class Editor extends View
     if @activeEditSession
       @autosave() if @rootView()?.autosave
       @saveScrollPositionForActiveEditSession()
-      @activeEditSession.off()
+      @activeEditSession.off(".editor")
 
     @activeEditSession = @editSessions[index]
     @activeEditSession.setVisible(true)
 
-    @activeEditSession.on "contents-conflicted", =>
+    @activeEditSession.on "contents-conflicted.editor", =>
       @showBufferConflictAlert(@activeEditSession)
 
-    @activeEditSession.on "buffer-path-change", =>
+    @activeEditSession.on "buffer-path-change.editor", =>
       @trigger 'editor-path-change'
 
     @trigger 'editor-path-change'
@@ -745,12 +745,12 @@ class Editor extends View
     @updateLayerDimensions()
     @setScrollPositionFromActiveEditSession()
 
-    @activeEditSession.on 'add-selection', (selection) =>
+    @activeEditSession.on 'add-selection.editor', (selection) =>
       @newCursors.push(selection.cursor)
       @newSelections.push(selection)
       @requestDisplayUpdate()
 
-    @activeEditSession.on 'screen-lines-change', (e) => @handleScreenLinesChange(e)
+    @activeEditSession.on 'screen-lines-change.editor', (e) => @handleScreenLinesChange(e)
 
     @newCursors = @activeEditSession.getCursors()
     @newSelections = @activeEditSession.getSelections()
