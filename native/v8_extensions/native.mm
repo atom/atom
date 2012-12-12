@@ -103,6 +103,58 @@ bool Native::Execute(const CefString& name,
 
     return true;
   }
+  else if (name == "getAllPathsAsync") {
+    std::string argument = arguments[0]->GetStringValue().ToString();
+    CefRefPtr<CefV8Value> callback = arguments[1];
+    CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
+
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    dispatch_async(queue, ^{
+      int rootPathLength = argument.size() + 1;
+      char rootPath[rootPathLength];
+      strcpy(rootPath, argument.c_str());
+      char * const treePaths[] = {rootPath, NULL};
+
+      FTS *tree = fts_open(treePaths, FTS_COMFOLLOW | FTS_PHYSICAL| FTS_NOCHDIR | FTS_NOSTAT, NULL);
+      std::vector<std::string> paths;
+
+      if (tree != NULL) {
+        FTSENT *entry;
+        int arrayIndex = 0;
+        while ((entry = fts_read(tree)) != NULL) {
+          if (entry->fts_level == 0) {
+            continue;
+          }
+
+          bool isFile = entry->fts_info == FTS_NSOK;
+          bool isDir =  entry->fts_info == FTS_D;
+          if (!isFile && !isDir) {
+            continue;
+          }
+
+          int pathLength = entry->fts_pathlen - rootPathLength;
+          char relative[pathLength + 1];
+          relative[pathLength] = '\0';
+          strncpy(relative, entry->fts_path + rootPathLength, pathLength);
+          paths.push_back(relative);
+        }
+      }
+
+      dispatch_queue_t mainQueue = dispatch_get_main_queue();
+      dispatch_async(mainQueue, ^{
+        context->Enter();
+        CefRefPtr<CefV8Value> v8Paths = CefV8Value::CreateArray(paths.size());
+        for (int i = 0; i < paths.size(); i++) {
+          v8Paths->SetValue(i, CefV8Value::CreateString(paths[i]));
+        }
+        CefV8ValueList callbackArgs;
+        callbackArgs.push_back(v8Paths);
+        callback->ExecuteFunction(callback, callbackArgs);
+        context->Exit();
+      });
+    });
+    return true;
+  }
   else if (name == "traverseTree") {
     std::string argument = arguments[0]->GetStringValue().ToString();
     int rootPathLength = argument.size() + 1;

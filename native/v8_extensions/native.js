@@ -16,6 +16,9 @@ var $native = {};
   native function traverseTree(path, onFile, onDirectory);
   $native.traverseTree = traverseTree;
 
+  native function getAllPathsAsync(path);
+  $native.getAllPathsAsync = getAllPathsAsync;
+
   native function isFile(path);
   $native.isFile = isFile;
 

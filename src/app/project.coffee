@@ -24,13 +24,10 @@ class Project
     @setPath(path)
     @editSessions = []
     @buffers = []
-    @ignoredFolderNames = [
+    @ignoredNames = [
       '.git'
-    ]
-    @ignoredFileNames = [
       '.DS_Store'
     ]
-    @ignoredPathRegexes = []
     @repo = new Git(path)
 
   destroy: ->
@@ -55,51 +52,26 @@ class Project
     @rootDirectory
 
   getFilePaths: ->
-    filePaths = []
+    deferred = $.Deferred()
+    fs.getAllPathsAsync @getPath(), (paths) =>
+      paths = paths.filter (path) => not @isPathIgnored(path)
+      deferred.resolve(paths)
+    deferred.promise()
 
-    onFile = (path) =>
-      filePaths.push(path) unless @ignoreFile(path)
-
-    onDirectory = (path) =>
-      return not @ignoreDirectory(path)
-
-    fs.traverseTree @getPath(), onFile, onDirectory
-    filePaths
-
-  ignoreDirectory: (path) ->
+  isPathIgnored: (path) ->
     lastSlash = path.lastIndexOf('/')
     if lastSlash isnt -1
       name = path.substring(lastSlash + 1)
     else
       name = path
 
-    for ignored in @ignoredFolderNames
+    for ignored in @ignoredNames
       return true if name is ignored
-
-    for regex in @ignoredPathRegexes
-      return true if path.match(regex)
-
-    @ignoreRepositoryPath(path)
-
-  ignoreFile: (path) ->
-    lastSlash = path.lastIndexOf('/')
-    if lastSlash isnt -1
-      name = path.substring(lastSlash + 1)
-    else
-      name = path
-
-    for ignored in @ignoredFileNames
-      return true if name is ignored
-    for regex in @ignoredPathRegexes
-      return true if path.match(regex)
 
     @ignoreRepositoryPath(path)
 
   ignoreRepositoryPath: (path) ->
     @hideIgnoredFiles and @repo.isPathIgnored(fs.join(@getPath(), path))
-
-  ignorePathRegex: ->
-    @ignoredPathRegexes.map((regex) -> "(#{regex.source})").join("|")
 
   resolve: (filePath) ->
     filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
