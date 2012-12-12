@@ -502,7 +502,7 @@ describe "Editor", ->
       editor.getBuffer().saveAs("/tmp/atom-new.txt")
       expect(eventHandler).toHaveBeenCalled()
 
-  fdescribe "font size", ->
+  describe "font size", ->
     it "sets the initial font size based on the value from config", ->
       config.editor.fontSize = 20
       config.update()

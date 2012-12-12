@@ -4,10 +4,9 @@ EventEmitter = require 'event-emitter'
 
 module.exports =
 class Config
-  constructor: ->
-    @configDirPath = fs.absolute("~/.atom")
-    @configJsonPath = fs.join(@configDirPath, "config.json")
-    @userInitScriptPath = fs.join(@configDirPath, "atom.coffee")
+  configDirPath: fs.absolute("~/.atom")
+  configJsonPath: fs.absolute("~/.atom/config.json")
+  userInitScriptPath: fs.absolute("~/.atom/atom.coffe")
 
   load: ->
     if fs.exists(@configJsonPath)
@@ -23,7 +22,17 @@ class Config
     _.defaults(@editor, require('editor').configDefaults)
 
   update: ->
+    @save()
     @trigger 'update'
+
+  save: ->
+    keysToWrite = _.clone(this)
+    delete keysToWrite.eventHandlersByEventName
+    delete keysToWrite.eventHandlersByNamespace
+    delete keysToWrite.configDirPath
+    delete keysToWrite.configJsonPath
+    delete keysToWrite.userInitScriptPath
+    fs.write(@configJsonPath, JSON.stringify(keysToWrite, undefined, 2) + "\n")
 
   requireUserInitScript: ->
     try

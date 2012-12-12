@@ -20,9 +20,10 @@ beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
 
-  # don't load user configuration
+  # don't load or save user configuration
   spyOn(config, 'load')
-  config.loadDefaults()
+  spyOn(config, 'save')
+  config.assignDefaults()
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
