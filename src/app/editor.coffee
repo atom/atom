@@ -281,6 +281,10 @@ class Editor extends View
     @resetDisplay()
 
   setInvisibles: (@invisibles={}) ->
+    _.defaults @invisibles,
+      eol: '¬',
+      space: '•',
+      tab: '▸'
     @resetDisplay()
 
   checkoutHead: -> @getBuffer().checkoutHead()
@@ -299,6 +303,7 @@ class Editor extends View
 
   configure: ->
     @setShowInvisibles(config.editor.showInvisibles ? false)
+    @setInvisibles(config.editor.invisibles)
 
   handleEvents: ->
     config.on "update.editor#{@id}", => @configure()
@@ -393,7 +398,6 @@ class Editor extends View
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
-    @invisibles = @rootView()?.getInvisibles()
     $(window).on "resize.editor#{@id}", => @requestDisplayUpdate()
     @focus() if @isFocused
 
