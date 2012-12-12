@@ -189,3 +189,23 @@ describe 'FuzzyFinder', ->
         expect(finder.hasParent()).toBeFalsy()
         expect(activeEditor.isFocused).toBeTruthy()
         expect(finder.miniEditor.isFocused).toBeFalsy()
+
+  describe "cached file paths", ->
+    it "caches file paths after first time", ->
+      spyOn(rootView.project, "getFilePaths").andCallThrough()
+      rootView.trigger 'fuzzy-finder:toggle-file-finder'
+
+      waitsFor ->
+        finder.list.children('li').length > 0
+
+      runs ->
+        expect(rootView.project.getFilePaths).toHaveBeenCalled()
+        rootView.project.getFilePaths.reset()
+        rootView.trigger 'fuzzy-finder:toggle-file-finder'
+        rootView.trigger 'fuzzy-finder:toggle-file-finder'
+
+      waitsFor ->
+        finder.list.children('li').length > 0
+
+      runs ->
+        expect(rootView.project.getFilePaths).not.toHaveBeenCalled()
