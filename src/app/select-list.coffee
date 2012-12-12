@@ -2,6 +2,7 @@ $ = require 'jquery'
 { View } = require 'space-pen'
 Editor = require 'editor'
 fuzzyFilter = require 'fuzzy-filter'
+_ = require 'underscore'
 
 module.exports =
 class SelectList extends View
@@ -15,13 +16,14 @@ class SelectList extends View
   @viewClass: -> 'select-list'
 
   maxItems: Infinity
+  inputThrottle: 50
   filteredArray: null
   cancelling: false
 
   initialize: ->
     requireStylesheet 'select-list.css'
 
-    @miniEditor.getBuffer().on 'change', => @populateList()
+    @miniEditor.getBuffer().on 'change', _.debounce((=> @populateList()), @inputThrottle)
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
     @on 'core:move-down', => @selectNextItem()

@@ -45,6 +45,8 @@ describe "OutlineView", ->
 
       runs ->
         outlineView.miniEditor.setText("nothing will match this")
+        window.advanceClock(outlineView.inputThrottle)
+
         expect(rootView.find('.outline-view')).toExist()
         expect(outlineView.list.children('li').length).toBe 0
         expect(outlineView.error).toBeVisible()
@@ -53,6 +55,8 @@ describe "OutlineView", ->
 
         # Should remove error
         outlineView.miniEditor.setText("")
+        window.advanceClock(outlineView.inputThrottle)
+
         expect(outlineView.list.children('li').length).toBe 2
         expect(outlineView).not.toHaveClass "error"
         expect(outlineView.error).not.toBeVisible()

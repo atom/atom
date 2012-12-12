@@ -35,6 +35,8 @@ describe "SelectList", ->
 
     it "filters the elements in the list based on the scoreElement function and selects the first item", ->
       miniEditor.insertText('la')
+      window.advanceClock(selectList.inputThrottle)
+
       expect(list.find('li').length).toBe 2
       expect(list.find('li:contains(Alpha)')).toExist()
       expect(list.find('li:contains(Delta)')).toExist()
@@ -44,11 +46,15 @@ describe "SelectList", ->
 
     it "displays an error if there are no matches, removes error when there are matches", ->
       miniEditor.insertText('nothing will match this')
+      window.advanceClock(selectList.inputThrottle)
+
       expect(list.find('li').length).toBe 0
       expect(selectList.error).not.toBeHidden()
       expect(selectList).toHaveClass("error")
 
       miniEditor.setText('la')
+      window.advanceClock(selectList.inputThrottle)
+
       expect(list.find('li').length).toBe 2
       expect(selectList.error).not.toBeVisible()
       expect(selectList).not.toHaveClass("error")
@@ -109,6 +115,8 @@ describe "SelectList", ->
     describe "when there is no item selected (because the list is empty)", ->
       it "does not trigger the confirmed hook", ->
         miniEditor.insertText("i will never match anything")
+        window.advanceClock(selectList.inputThrottle)
+
         expect(list.find('li')).not.toExist()
         miniEditor.trigger 'core:confirm'
         expect(selectList.confirmed).not.toHaveBeenCalled()
