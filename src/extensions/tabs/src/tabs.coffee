@@ -32,6 +32,11 @@ class Tabs extends View
     @on 'click', '.tab', (e) =>
       @editor.setActiveEditSessionIndex($(e.target).closest('.tab').index())
 
+    @on 'click', '.tab .close-icon', (e) =>
+      index = $(e.target).closest('.tab').index()
+      @editor.destroyEditSessionIndex(index)
+      false
+
   addTabForEditSession: (editSession) ->
     @append(new Tab(editSession))
 

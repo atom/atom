@@ -4,7 +4,8 @@ module.exports =
 class Tab extends View
   @content: (editSession) ->
     @div class: 'tab', =>
-      @div class: 'file-name', outlet: 'fileName'
+      @span class: 'file-name', outlet: 'fileName'
+      @span class: 'close-icon'
 
   initialize: (@editSession) ->
     @updateFileName()

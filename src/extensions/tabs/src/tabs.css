@@ -24,3 +24,23 @@
 .tab:last-child {
   margin-right: 4px;
 }
+
+.tab .file-name {
+  margin-right: 5px;
+}
+
+.tab .close-icon {
+  font-family: 'Octicons Regular';
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: #aaa;
+}
+
+.tab .close-icon:before {
+  content: "\f050";
+}
+
+.tab .close-icon:hover {
+  color: white;
+}

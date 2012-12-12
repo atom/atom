@@ -95,3 +95,18 @@ describe "Tabs", ->
       fs.move(oldPath, newPath)
       waitsFor "file to be renamed", ->
         tabFileName.text() == "renamed-file.txt"
+
+  describe "when the close icon is clicked", ->
+    it "closes the selected non-active edit session", ->
+      activeSession = editor.activeEditSession
+      expect(editor.getActiveEditSessionIndex()).toBe 1
+      tabs.find('.tab .close-icon:eq(0)').click()
+      expect(editor.getActiveEditSessionIndex()).toBe 0
+      expect(editor.activeEditSession).toBe activeSession
+
+    it "closes the selected active edit session", ->
+      firstSession = editor.getEditSessions()[0]
+      expect(editor.getActiveEditSessionIndex()).toBe 1
+      tabs.find('.tab .close-icon:eq(1)').click()
+      expect(editor.getActiveEditSessionIndex()).toBe 0
+      expect(editor.activeEditSession).toBe firstSession

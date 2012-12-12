@@ -408,12 +408,15 @@ class Editor extends View
   getBuffer: -> @activeEditSession.buffer
 
   destroyActiveEditSession: ->
+    @destroyEditSessionIndex(@getActiveEditSessionIndex())
+
+  destroyEditSessionIndex: (index) ->
     if @editSessions.length == 1
       @remove()
     else
-      editSession = @activeEditSession
-      index = @getActiveEditSessionIndex()
-      @loadPreviousEditSession()
+      editSession = @editSessions[index]
+      if index is @getActiveEditSessionIndex()
+        @loadPreviousEditSession()
       _.remove(@editSessions, editSession)
       editSession.destroy()
       @trigger 'editor:edit-session-removed', [editSession, index]
