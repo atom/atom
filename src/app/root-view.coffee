@@ -30,7 +30,6 @@ class RootView extends View
   extensions: null
   extensionStates: null
   fontSize: 20
-  showInvisibles: false
   invisibles: null
   title: null
 
@@ -88,7 +87,9 @@ class RootView extends View
     @command 'window:decrease-font-size', => @setFontSize(@getFontSize() - 1)
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:save-all', => @saveAll()
-    @command 'window:toggle-invisibles', => @setShowInvisibles(not @showInvisibles)
+    @command 'window:toggle-invisibles', =>
+      config.editor.showInvisibles = not config.editor.showInvisibles
+      config.update()
     @command 'window:toggle-ignored-files', => @toggleIgnoredFiles()
 
   afterAttach: (onDom) ->
@@ -130,7 +131,7 @@ class RootView extends View
 
     unless editSession = @openInExistingEditor(path, allowActiveEditorChange, changeFocus)
       editSession = @project.buildEditSessionForPath(path)
-      editor = new Editor({editSession, @showInvisibles})
+      editor = new Editor({editSession})
       pane = new Pane(editor)
       @panes.append(pane)
       if changeFocus
@@ -196,11 +197,6 @@ class RootView extends View
 
   updateWindowTitle: ->
     document.title = @title
-
-  setShowInvisibles: (showInvisibles) ->
-    return if @showInvisibles == showInvisibles
-    @showInvisibles = showInvisibles
-    editor.setShowInvisibles(@showInvisibles) for editor in @getEditors()
 
   toggleIgnoredFiles: ->
     @project.toggleIgnoredFiles()

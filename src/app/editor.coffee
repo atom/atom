@@ -50,12 +50,12 @@ class Editor extends View
 
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
-    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini, showInvisibles: rootView.showInvisibles)
+    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini)
     editor.editSessions = editSessions
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({editSession, @mini, @showInvisibles} = {}) ->
+  initialize: ({editSession, @mini} = {}) ->
     requireStylesheet 'editor.css'
 
     @id = Editor.idCounter++
@@ -622,7 +622,7 @@ class Editor extends View
       @requestDisplayUpdate()
 
   newSplitEditor: ->
-    new Editor { editSession: @activeEditSession.copy(), @showInvisibles }
+    new Editor { editSession: @activeEditSession.copy() }
 
   splitLeft: ->
     @pane()?.splitLeft(@newSplitEditor()).wrappedView
