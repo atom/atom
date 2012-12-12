@@ -132,11 +132,12 @@ describe "SelectList", ->
       expect(selectList.confirmed).toHaveBeenCalledWith(array[1])
 
   describe "the core:cancel event", ->
-    it "triggers the cancelled hook and detaches the select list", ->
+    it "triggers the cancelled hook and detaches and empties the select list", ->
       spyOn(selectList, 'detach')
       miniEditor.trigger 'core:cancel'
       expect(selectList.cancelled).toHaveBeenCalled()
       expect(selectList.detach).toHaveBeenCalled()
+      expect(selectList.list).toBeEmpty()
 
   describe "when the mini editor loses focus", ->
     it "triggers the cancelled hook and detaches the select list", ->
@@ -144,13 +145,3 @@ describe "SelectList", ->
       miniEditor.trigger 'focusout'
       expect(selectList.cancelled).toHaveBeenCalled()
       expect(selectList.detach).toHaveBeenCalled()
-
-  describe "when an error occurs on previously populated list", ->
-    it "clears the list", ->
-      selectList.setError("yolo")
-      expect(selectList.list).toBeEmpty()
-
-  describe "when loading is triggered on previously populated list", ->
-    it "clears the list", ->
-      selectList.setLoading("loading yolo")
-      expect(selectList.list).toBeEmpty()

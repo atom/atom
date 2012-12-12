@@ -48,7 +48,6 @@ class SelectList extends View
       @error.text("").hide()
       @removeClass("error")
     else
-      @list.empty()
       @error.text(message).show()
       @addClass("error")
 
@@ -56,7 +55,6 @@ class SelectList extends View
     if not message or message.length == ""
       @loading.text("").hide()
     else
-      @list.empty()
       @setError()
       @loading.text(message).show()
 
@@ -115,6 +113,7 @@ class SelectList extends View
     @confirmed(element) if element?
 
   cancel: ->
+    @list.empty()
     @cancelling = true
     @cancelled()
     @detach()
