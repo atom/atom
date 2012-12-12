@@ -33,6 +33,10 @@
   height: 14px;
 }
 
+.status-bar .branch-icon:before {
+  content: "\f020";
+}
+
 .status-bar .branch-label {
   padding-left: 5px;
   padding-right: 10px;

@@ -25,7 +25,7 @@ class StatusBar extends View
       @div class: 'cursor-position', =>
         @span class: 'octicons', outlet: 'gitStatusIcon'
         @span outlet: 'branchArea', =>
-          @span '\uf020', class: 'octicons'
+          @span class: 'octicons branch-icon'
           @span class: 'branch-label', outlet: 'branchLabel'
         @span outlet: 'cursorPosition'
 
