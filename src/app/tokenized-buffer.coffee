@@ -107,7 +107,7 @@ class TokenizedBuffer
     else
       @screenLines[start..end] = @buildPlaceholderScreenLinesForRows(start, end + delta, stack)
 
-    unless _.isEqual(@stackForRow(end + delta), previousStack)
+    if @stackForRow(end + delta) and not _.isEqual(@stackForRow(end + delta), previousStack)
       @invalidateRow(end + delta + 1)
 
     @trigger "change", { start, end, delta, bufferChange: e }
@@ -122,10 +122,21 @@ class TokenizedBuffer
 
   buildTokenizedScreenLinesForRows: (startRow, endRow, startingStack) ->
     ruleStack = startingStack
-    for row in [startRow..endRow]
-      screenLine = @buildTokenizedScreenLineForRow(row, ruleStack)
+    lastRowToTokenize = startRow + @chunkSize - 1
+    screenLines = for row in [startRow..endRow]
+      if row <= lastRowToTokenize
+        screenLine = @buildTokenizedScreenLineForRow(row, ruleStack)
+      else
+        screenLine = @buildPlaceholderScreenLineForRow(row)
+
       ruleStack = screenLine.ruleStack
       screenLine
+
+    if endRow > lastRowToTokenize
+      @invalidateRow(lastRowToTokenize + 1)
+      @tokenizeInBackground()
+
+    screenLines
 
   buildTokenizedScreenLineForRow: (row, ruleStack) ->
     line = @buffer.lineForRow(row)

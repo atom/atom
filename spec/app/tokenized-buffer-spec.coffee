@@ -262,6 +262,18 @@ describe "TokenizedBuffer", ->
             delete event.bufferChange
             expect(event).toEqual(start: 5, end: 7, delta: 0)
 
+      describe "when there is an insertion that is larger than the chunk size", ->
+        it "tokenizes the initial chunk synchronously, then tokenizes the remaining lines in the background", ->
+          commentBlock = _.multiplyString("// a comment\n", tokenizedBuffer.chunkSize + 2)
+          buffer.insert([0,0], commentBlock)
+          expect(tokenizedBuffer.lineForScreenRow(0).ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.lineForScreenRow(4).ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeFalsy()
+
+          advanceClock()
+          expect(tokenizedBuffer.lineForScreenRow(5).ruleStack?).toBeTruthy()
+          expect(tokenizedBuffer.lineForScreenRow(6).ruleStack?).toBeTruthy()
+
       describe ".findOpeningBracket(closingBufferPosition)", ->
         it "returns the position of the matching bracket, skipping any nested brackets", ->
           expect(tokenizedBuffer.findOpeningBracket([9, 2])).toEqual [1, 29]
