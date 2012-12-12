@@ -60,6 +60,7 @@ class Editor extends View
 
     @id = Editor.idCounter++
     @lineCache = []
+    @configure()
     @bindKeys()
     @handleEvents()
     @cursorViews = []
@@ -296,7 +297,12 @@ class Editor extends View
   scanInRange: (args...) -> @getBuffer().scanInRange(args...)
   backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
+  configure: ->
+    @setShowInvisibles(config.editor.showInvisibles ? false)
+
   handleEvents: ->
+    config.on "update.editor#{@id}", => @configure()
+
     @on 'focus', =>
       @hiddenInput.focus()
       false
@@ -658,6 +664,7 @@ class Editor extends View
     @destroyEditSessions()
 
     $(window).off ".editor#{@id}"
+    config.off ".editor#{@id}"
     rootView = @rootView()
     rootView?.off ".editor#{@id}"
     if @pane() then @pane().remove() else super

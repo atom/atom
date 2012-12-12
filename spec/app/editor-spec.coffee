@@ -1554,17 +1554,21 @@ describe "Editor", ->
         buffer.insert([0, 0], "–")
         expect(editor.find('.line:eq(0)').outerHeight()).toBe editor.find('.line:eq(1)').outerHeight()
 
-    describe "when editor.setShowInvisibles is called", ->
+    describe "when config.editor.showInvisibles is set to true", ->
       it "displays spaces as •, tabs as ▸ and newlines as ¬ when true", ->
         editor.attachToDom()
         editor.setInvisibles(rootView.getInvisibles())
         editor.setText " a line with tabs\tand spaces "
 
-        expect(editor.showInvisibles).toBeFalsy()
+        expect(config.editor.showInvisibles).toBeFalsy()
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
-        editor.setShowInvisibles(true)
+
+        config.editor.showInvisibles = true
+        config.update()
         expect(editor.renderedLines.find('.line').text()).toBe "•a line with tabs▸ and spaces•¬"
-        editor.setShowInvisibles(false)
+
+        config.editor.showInvisibles = false
+        config.update()
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
 
       it "displays newlines(¬) as their own token outside of the other tokens scope", ->
