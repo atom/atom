@@ -16,7 +16,7 @@ class SelectList extends View
   @viewClass: -> 'select-list'
 
   maxItems: Infinity
-  inputThrottle: 50
+  inputThrottle: 200
   filteredArray: null
   cancelling: false
 
