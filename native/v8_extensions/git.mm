@@ -65,6 +65,12 @@ public:
       return CefV8Value::CreateInt(0);
     }
 
+    git_index* index;
+    if (git_repository_index(&index, repo) == GIT_OK) {
+      git_index_read(index);
+      git_index_free(index);
+    }
+
     unsigned int status = 0;
     if (git_status_file(&status, repo, path) == GIT_OK) {
       return CefV8Value::CreateInt(status);

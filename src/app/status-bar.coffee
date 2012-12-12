@@ -1,5 +1,6 @@
 _ = require 'underscore'
 {View, $$} = require 'space-pen'
+$ = require 'jquery'
 
 module.exports =
 class StatusBar extends View
@@ -36,6 +37,7 @@ class StatusBar extends View
 
     @updateCursorPositionText()
     @editor.on 'cursor-move', => @updateCursorPositionText()
+    $(window).on 'focus', => @updateStatusBar()
 
     @subscribeToBuffer()
 

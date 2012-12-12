@@ -1005,12 +1005,12 @@ describe "Editor", ->
           editor.addCursorAtBufferPosition([6,50])
           [cursor1, cursor2] = editor.getCursors()
 
-          spyOn(editor, 'scrollTo')
+          spyOn(editor, 'scrollToPixelPosition')
           cursor1.setScreenPosition([10, 10])
-          expect(editor.scrollTo).not.toHaveBeenCalled()
+          expect(editor.scrollToPixelPosition).not.toHaveBeenCalled()
 
           cursor2.setScreenPosition([11, 11])
-          expect(editor.scrollTo).toHaveBeenCalled()
+          expect(editor.scrollToPixelPosition).toHaveBeenCalled()
 
         describe "when the last cursor exceeds the upper or lower scroll margins", ->
           describe "when the editor is taller than twice the vertical scroll margin", ->
@@ -1396,7 +1396,6 @@ describe "Editor", ->
     describe "when lines are added", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5)
-        spyOn(editor, "scrollTo")
 
       describe "when the change precedes the first rendered row", ->
         it "inserts and removes rendered lines to account for upstream change", ->
@@ -1448,7 +1447,6 @@ describe "Editor", ->
     describe "when lines are removed", ->
       beforeEach ->
         editor.attachToDom(heightInLines: 5)
-        spyOn(editor, "scrollTo")
 
       it "sets the rendered screen line's width to either the max line length or the scollView's width (whichever is greater)", ->
         maxLineLength = editor.maxScreenLineLength()
@@ -1614,7 +1612,6 @@ describe "Editor", ->
 
     describe "when lines are inserted", ->
       it "re-renders the correct line number range in the gutter", ->
-        spyOn(editor, 'scrollTo')
         editor.scrollTop(3 * editor.lineHeight)
         expect(editor.gutter.find('.line-number:first').text()).toBe '2'
         expect(editor.gutter.find('.line-number:last').text()).toBe '11'

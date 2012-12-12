@@ -158,3 +158,11 @@ describe "StatusBar", ->
       fs.write(path, originalPathText)
       rootView.getActiveEditor().getBuffer().trigger 'git-status-change'
       expect(statusBar.gitStatusIcon).toHaveText('')
+
+    it "updates when the window receives focus", ->
+      fs.write(path, "i've changed for the worse")
+      rootView.open(path)
+      expect(statusBar.gitStatusIcon).toHaveText('\uf26d')
+      fs.write(path, originalPathText)
+      $(window).trigger 'focus'
+      expect(statusBar.gitStatusIcon).toHaveText('')

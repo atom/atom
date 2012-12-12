@@ -19,7 +19,7 @@ class Git
   getPath: -> @repo.getPath()
 
   getWorkingDirectory: ->
-    repoPath = @repo.getPath()
+    repoPath = @getPath()
     if repoPath
       repoPath.substring(0, repoPath.length - 5)
 
@@ -35,11 +35,16 @@ class Git
   isPathModified: (path) ->
     modifiedFlags = @statusFlags.working_dir_modified |
                     @statusFlags.working_dir_delete |
-                    @statusFlags.working_dir_typechange
+                    @statusFlags.working_dir_typechange |
+                    @statusFlags.index_modified |
+                    @statusFlags.index_deleted |
+                    @statusFlags.index_typechange
     (@getPathStatus(path) & modifiedFlags) > 0
 
   isPathNew: (path) ->
-    (@getPathStatus(path) & @statusFlags.working_dir_new) > 0
+    newFlags = @statusFlags.working_dir_new |
+               @statusFlags.index_new
+    (@getPathStatus(path) & newFlags) > 0
 
   relativize: (path) ->
     workingDirectory = @getWorkingDirectory()
