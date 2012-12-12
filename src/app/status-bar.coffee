@@ -23,7 +23,7 @@ class StatusBar extends View
         @span class: 'current-path', outlet: 'currentPath'
         @span class: 'buffer-modified', outlet: 'bufferModified'
       @div class: 'cursor-position', =>
-        @span class: 'octicons', outlet: 'gitStatusIcon'
+        @span outlet: 'gitStatusIcon'
         @span outlet: 'branchArea', =>
           @span class: 'octicons branch-icon'
           @span class: 'branch-label', outlet: 'branchLabel'
@@ -76,10 +76,11 @@ class StatusBar extends View
     @gitStatusIcon.empty()
     return unless path
 
+    @gitStatusIcon.removeClass().addClass('octicons')
     if @buffer.getGit()?.isPathModified(path)
-      @gitStatusIcon.append $$ -> @span '\uf26d', class: 'modified-status-icon'
+      @gitStatusIcon.addClass('modified-status-icon')
     else if  @buffer.getGit()?.isPathNew(path)
-      @gitStatusIcon.append $$ -> @span '\uf26b', class: 'new-status-icon'
+      @gitStatusIcon.addClass('new-status-icon')
 
   updatePathText: ->
     if path = @editor.getPath()

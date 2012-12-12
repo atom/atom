@@ -141,7 +141,7 @@ describe "StatusBar", ->
     it "displays the modified icon for a changed file", ->
       fs.write(path, "i've changed for the worse")
       rootView.open(path)
-      expect(statusBar.gitStatusIcon).toHaveText('\uf26d')
+      expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
 
     it "doesn't display the modified icon for an unchanged file", ->
       rootView.open(path)
@@ -149,20 +149,20 @@ describe "StatusBar", ->
 
     it "displays the new icon for a new file", ->
       rootView.open(newPath)
-      expect(statusBar.gitStatusIcon).toHaveText('\uf26b')
+      expect(statusBar.gitStatusIcon).toHaveClass('new-status-icon')
 
     it "updates when a git-status-change event occurs", ->
       fs.write(path, "i've changed for the worse")
       rootView.open(path)
-      expect(statusBar.gitStatusIcon).toHaveText('\uf26d')
+      expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
       fs.write(path, originalPathText)
       rootView.getActiveEditor().getBuffer().trigger 'git-status-change'
-      expect(statusBar.gitStatusIcon).toHaveText('')
+      expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
 
     it "updates when the window receives focus", ->
       fs.write(path, "i've changed for the worse")
       rootView.open(path)
-      expect(statusBar.gitStatusIcon).toHaveText('\uf26d')
+      expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
       fs.write(path, originalPathText)
       $(window).trigger 'focus'
-      expect(statusBar.gitStatusIcon).toHaveText('')
+      expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')

@@ -21,9 +21,17 @@
   padding-right: 5px;
 }
 
+.status-bar .modified-status-icon:before {
+  content: "\f26d";
+}
+
 .status-bar .new-status-icon {
   color: #269F81;
   padding-right: 5px;
+}
+
+.status-bar .new-status-icon:before {
+  content: "\f26b";
 }
 
 .status-bar .octicons {
