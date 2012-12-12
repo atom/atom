@@ -584,7 +584,7 @@ class Editor extends View
     if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
       @_setSoftWrapColumn = => @setSoftWrapColumn()
-      $(window).on 'resize', @_setSoftWrapColumn
+      $(window).on "resize.editor#{@id}", @_setSoftWrapColumn
     else
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
