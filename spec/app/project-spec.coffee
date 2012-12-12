@@ -129,6 +129,44 @@ describe "Project", ->
         expect(paths).not.toContain('a')
         expect(paths).toContain('b')
 
+    describe "ignored file name", ->
+      ignoredFile = null
+
+      beforeEach ->
+        ignoredFile = fs.join(require.resolve('fixtures/dir'), 'ignored.txt')
+        fs.write(ignoredFile, "")
+
+      afterEach ->
+        fs.remove(ignoredFile)
+
+      it "ignores ignored.txt file", ->
+        paths = null
+        project.ignoredNames.push 'ignored.txt'
+        waitsForPromise ->
+          project.getFilePaths().done (foundPaths) -> paths = foundPaths
+
+        runs ->
+          expect(paths).not.toContain('ignored.txt')
+
+    describe "ignored folder name", ->
+      ignoredFile = null
+
+      beforeEach ->
+        ignoredFile = fs.join(require.resolve('fixtures/dir'), 'ignored/ignored.txt')
+        fs.write(ignoredFile, "")
+
+      afterEach ->
+        fs.remove(ignoredFile)
+
+      it "ignores ignored folder", ->
+        paths = null
+        project.ignoredNames.push 'ignored'
+        waitsForPromise ->
+          project.getFilePaths().done (foundPaths) -> paths = foundPaths
+
+        runs ->
+          expect(paths).not.toContain('ignored/ignored.txt')
+
     it "ignores files in gitignore for projects in a git tree", ->
       project.setHideIgnoredFiles(true)
       project.setPath(require.resolve('fixtures/git/working-dir'))
