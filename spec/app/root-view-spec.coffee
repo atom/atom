@@ -712,30 +712,3 @@ describe "RootView", ->
 
       lowerRightEditor = rightEditor.splitDown()
       expect(lowerRightEditor.find(".line:first").text()).toBe "    "
-
-  describe 'setInvisibles', ->
-    it 'updates the display of all edit sessions with the new map', ->
-      rootView.height(200)
-      rootView.attachToDom()
-      rightEditor = rootView.getActiveEditor()
-      rightEditor.setText(" \t ")
-      leftEditor = rightEditor.splitLeft()
-
-      rootView.setInvisibles
-        eol:   ";"
-        space: "_"
-        tab:   "tab"
-
-      rootView.trigger "window:toggle-invisibles"
-      expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
-      expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
-
-  describe 'getInvisibles', ->
-    it 'contains an eol key with a value', ->
-      expect(rootView.getInvisibles().eol).toBe "¬"
-
-    it 'contains a space key with a value', ->
-      expect(rootView.getInvisibles().space).toBe "•"
-
-    it 'contains a tab key with a value', ->
-      expect(rootView.getInvisibles().tab).toBe "▸"

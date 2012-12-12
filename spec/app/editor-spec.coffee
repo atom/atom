@@ -1579,6 +1579,23 @@ describe "Editor", ->
         editor.setText "var"
         expect(editor.find('.line').html()).toBe '<span class="source js"><span class="storage modifier js">var</span></span><span class="invisible">¬</span>'
 
+      it "allows invisible glyphs to be customized via config.editor.invisibles", ->
+        rootView.height(200)
+        rootView.attachToDom()
+        rightEditor = rootView.getActiveEditor()
+        rightEditor.setText(" \t ")
+        leftEditor = rightEditor.splitLeft()
+
+        config.editor.showInvisibles = true
+        config.editor.invisibles =
+          eol:   ";"
+          space: "_"
+          tab:   "tab"
+        config.update()
+
+        expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
+        expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
+
   describe "gutter rendering", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
