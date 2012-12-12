@@ -3,7 +3,7 @@ $ = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
 Point = require 'point'
-RootView = require 'root-view'
+Config = require 'config'
 Project = require 'project'
 TextMateBundle = require 'text-mate-bundle'
 TextMateTheme = require 'text-mate-theme'
@@ -11,7 +11,9 @@ TextMateTheme = require 'text-mate-theme'
 require 'window'
 requireStylesheet "jasmine.css"
 
-RootView.prototype.loadUserConfiguration = ->
+beforeEach ->
+  # don't load user configuration
+  spyOn(config, 'load')
 
 keymap = new Keymap
 keymap.bindDefaultKeys()

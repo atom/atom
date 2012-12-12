@@ -8,6 +8,7 @@ fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
+Config = require 'config'
 RootView = require 'root-view'
 Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
@@ -26,6 +27,7 @@ windowAdditions =
     TextMateTheme.loadAll()
     @setUpKeymap()
     @pasteboard = new Pasteboard
+    @config = new Config
     $(window).on 'core:close', => @close()
 
   # This method is intended only to be run when starting a normal application

@@ -36,6 +36,8 @@ class RootView extends View
 
   initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
     window.rootView = this
+    config.load()
+
     TextMateTheme.activate('IR_Black')
 
     @invisibles =
@@ -47,7 +49,6 @@ class RootView extends View
     @extensions = {}
     @project = new Project(pathToOpen)
     @handleEvents()
-    @loadUserConfiguration()
 
     if pathToOpen
       @open(pathToOpen) if fs.isFile(pathToOpen) and not suppressOpen
@@ -262,12 +263,6 @@ class RootView extends View
     editor.setInvisibles(@invisibles) for editor in @getEditors()
 
   getInvisibles: -> @invisibles
-
-  loadUserConfiguration: ->
-    try
-      require atom.configFilePath if fs.exists(atom.configFilePath)
-    catch error
-      console.error "Failed to load `#{atom.configFilePath}`", error.stack, error
 
   saveAll: ->
     editor.save() for editor in @getEditors()

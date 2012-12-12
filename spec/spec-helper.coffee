@@ -20,6 +20,8 @@ beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
 
+  # don't load user configuration
+  spyOn(config, 'load')
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
   spyOn(RootView.prototype, 'updateWindowTitle').andCallFake ->
@@ -41,9 +43,6 @@ afterEach ->
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
 $('html,body').css('overflow', 'auto')
-
-# Don't load user configuration in specs, because it's variable
-RootView.prototype.loadUserConfiguration = ->
 
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()
