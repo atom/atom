@@ -124,3 +124,18 @@ describe "OutlineView", ->
         generator = new TagGenerator(path, callback)
         generator.generate().done ->
           expect(tags.length).toBe 0
+
+  describe "jump to declaration", ->
+    it "doesn't move the cursor when no declaration is found", ->
+      rootView.open("tagged.js")
+      editor = rootView.getActiveEditor()
+      editor.setCursorBufferPosition([0,12])
+      editor.trigger 'outline-view:jump-to-declaration'
+      expect(editor.getCursorBufferPosition()).toEqual [0,12]
+
+    it "moves the cursor to the declaration", ->
+      rootView.open("tagged.js")
+      editor = rootView.getActiveEditor()
+      editor.setCursorBufferPosition([6,24])
+      editor.trigger 'outline-view:jump-to-declaration'
+      expect(editor.getCursorBufferPosition()).toEqual [2,0]

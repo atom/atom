@@ -2,6 +2,8 @@
 SelectList = require 'select-list'
 Editor = require 'editor'
 TagGenerator = require 'outline-view/src/tag-generator'
+TagReader = require 'outline-view/src/tag-reader'
+Point = require 'point'
 
 module.exports =
 class OutlineView extends SelectList
@@ -11,6 +13,7 @@ class OutlineView extends SelectList
     requireStylesheet 'outline-view/src/outline-view.css'
     @instance = new OutlineView(rootView)
     rootView.command 'outline-view:toggle', => @instance.toggle()
+    rootView.command 'outline-view:jump-to-declaration', => @instance.jumpToDeclaration()
 
   @viewClass: -> "#{super} outline-view"
 
@@ -50,6 +53,9 @@ class OutlineView extends SelectList
 
   confirmed : ({position, name}) ->
     @cancel()
+    @moveToPosition(position)
+
+  moveToPosition: (position) ->
     editor = @rootView.getActiveEditor()
     editor.scrollToBufferPosition(position, center: true)
     editor.setCursorBufferPosition(position)
@@ -62,3 +68,18 @@ class OutlineView extends SelectList
   attach: ->
     @rootView.append(this)
     @miniEditor.focus()
+
+  jumpToDeclaration: ->
+    editor = @rootView.getActiveEditor()
+    matches = TagReader.find(editor)
+    return unless matches.length is 1
+
+    tag = matches[0]
+    return unless tag.pattern
+    pattern = tag.pattern.replace(/(^^\/\^)|(\$\/$)/g, '') # Remove leading /^ and trailing $/
+    if pattern and @rootView.openInExistingEditor(tag.file, true, true)
+      buffer = editor.getBuffer()
+      for row in [0...buffer.getLineCount()]
+        continue unless pattern is buffer.lineForRow(row)
+        @moveToPosition(new Point(row, 0))
+        break
