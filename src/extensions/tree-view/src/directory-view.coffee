@@ -27,7 +27,7 @@ class DirectoryView extends View
     @directory.path
 
   isPathIgnored: (path) ->
-    @project.hideIgnoredFiles and @project.repo?.isPathIgnored(path)
+    config.core.hideGitIgnoredFiles and @project.repo?.isPathIgnored(path)
 
   buildEntries: ->
     @unwatchDescendantEntries()

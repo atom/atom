@@ -851,20 +851,26 @@ describe "TreeView", ->
         waitsFor "directory view contens to refresh", ->
           treeView.root.entries.find('.entry').length == entriesCountBefore
 
-  describe "ignored files", ->
+  describe "when config.core.hideGitIgnoredFiles is changed", ->
     [ignoreFile] = []
 
     beforeEach ->
       ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
       fs.write(ignoreFile, 'tree-view.js')
-      project.setHideIgnoredFiles(false)
+      config.core.hideGitIgnoredFiles = false
 
     afterEach ->
       fs.remove(ignoreFile) if fs.exists(ignoreFile)
 
-    it "toggles display of ignored path when setting is toggled", ->
+    it "hides git-ignored files if the option is set, but otherwise shows them", ->
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1
-      rootView.trigger 'window:toggle-ignored-files'
+
+      config.core.hideGitIgnoredFiles = true
+      config.update()
+
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 0
-      rootView.trigger 'window:toggle-ignored-files'
+
+      config.core.hideGitIgnoredFiles = false
+      config.update()
+
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1

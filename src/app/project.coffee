@@ -15,7 +15,6 @@ class Project
   autoIndent: true
   softTabs: true
   softWrap: false
-  hideIgnoredFiles: false
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -71,7 +70,7 @@ class Project
     @ignoreRepositoryPath(path)
 
   ignoreRepositoryPath: (path) ->
-    @hideIgnoredFiles and @repo.isPathIgnored(fs.join(@getPath(), path))
+    config.core.hideGitIgnoredFiles and @repo.isPathIgnored(fs.join(@getPath(), path))
 
   resolve: (filePath) ->
     filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
@@ -88,10 +87,6 @@ class Project
 
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
-
-  toggleIgnoredFiles: -> @setHideIgnoredFiles(not @hideIgnoredFiles)
-  getHideIgnoredFiles: -> @hideIgnoredFiles
-  setHideIgnoredFiles: (@hideIgnoredFiles) ->
 
   buildEditSessionForPath: (filePath, editSessionOptions={}) ->
     @buildEditSession(@bufferForPath(filePath), editSessionOptions)

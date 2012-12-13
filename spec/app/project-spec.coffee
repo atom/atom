@@ -129,15 +129,16 @@ describe "Project", ->
         expect(paths).not.toContain('a')
         expect(paths).toContain('b')
 
-    it "ignores files in gitignore for projects in a git tree", ->
-      project.setHideIgnoredFiles(true)
-      project.setPath(require.resolve('fixtures/git/working-dir'))
-      paths = null
-      waitsForPromise ->
-        project.getFilePaths().done (foundPaths) -> paths = foundPaths
+    describe "when config.core.hideGitIgnoredFiles is true", ->
+      it "ignores files that are present in .gitignore if the project is a git repo", ->
+        config.core.hideGitIgnoredFiles = true
+        project.setPath(require.resolve('fixtures/git/working-dir'))
+        paths = null
+        waitsForPromise ->
+          project.getFilePaths().done (foundPaths) -> paths = foundPaths
 
-      runs ->
-        expect(paths).not.toContain('ignored.txt')
+        runs ->
+          expect(paths).not.toContain('ignored.txt')
 
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->
@@ -209,13 +210,3 @@ describe "Project", ->
           path: project.resolve('a')
           match: 'aa'
           range: [[1, 3], [1, 5]]
-
-    describe "hiding ignored files", ->
-      it "defaults @hideIgnoredFiles to false", ->
-        expect(project.getHideIgnoredFiles()).toBe(false)
-
-      it "implements a setter for the @hideIgnoredFiles option", ->
-        project.setHideIgnoredFiles(true)
-        expect(project.getHideIgnoredFiles()).toBe(true)
-        project.setHideIgnoredFiles(false)
-        expect(project.getHideIgnoredFiles()).toBe(false)

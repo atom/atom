@@ -90,7 +90,9 @@ class RootView extends View
     @command 'window:toggle-invisibles', =>
       config.editor.showInvisibles = not config.editor.showInvisibles
       config.update()
-    @command 'window:toggle-ignored-files', => @toggleIgnoredFiles()
+    @command 'window:toggle-ignored-files', =>
+      config.core.hideGitIgnoredFiles = not config.core.hideGitIgnoredFiles
+      config.update()
 
   afterAttach: (onDom) ->
     @focus() if onDom
@@ -197,9 +199,6 @@ class RootView extends View
 
   updateWindowTitle: ->
     document.title = @title
-
-  toggleIgnoredFiles: ->
-    @project.toggleIgnoredFiles()
 
   getEditors: ->
     @panes.find('.pane > .editor').map(-> $(this).view()).toArray()
