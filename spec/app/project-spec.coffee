@@ -110,19 +110,34 @@ describe "Project", ->
         expect(project.getRootDirectory()?).toBeFalsy()
 
   describe ".getFilePaths()", ->
-    it "ignores files that return true from atom.ignorePath(path)", ->
-      spyOn(project, 'ignoreDirectory').andCallFake (path) -> fs.base(path).match /a$/
-      spyOn(project, 'ignoreFile').andCallFake (path) -> fs.base(path).match /a$/
+    it "asynchronously returns file paths using a promise", ->
+      paths = null
+      waitsForPromise ->
+        project.getFilePaths().done (foundPaths) -> paths = foundPaths
 
-      paths = project.getFilePaths()
-      expect(paths).not.toContain('a')
-      expect(paths).toContain('b')
+      runs ->
+        expect(paths.length).toBeGreaterThan 0
+
+    it "ignores files that return true from atom.ignorePath(path)", ->
+      spyOn(project, 'isPathIgnored').andCallFake (path) -> fs.base(path).match /a$/
+
+      paths = null
+      waitsForPromise ->
+        project.getFilePaths().done (foundPaths) -> paths = foundPaths
+
+      runs ->
+        expect(paths).not.toContain('a')
+        expect(paths).toContain('b')
 
     it "ignores files in gitignore for projects in a git tree", ->
       project.setHideIgnoredFiles(true)
       project.setPath(require.resolve('fixtures/git/working-dir'))
-      paths = project.getFilePaths()
-      expect(paths).not.toContain('ignored.txt')
+      paths = null
+      waitsForPromise ->
+        project.getFilePaths().done (foundPaths) -> paths = foundPaths
+
+      runs ->
+        expect(paths).not.toContain('ignored.txt')
 
   describe ".scan(options, callback)", ->
     describe "when called with a regex", ->

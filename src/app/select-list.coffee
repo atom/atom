@@ -9,6 +9,7 @@ class SelectList extends View
     @div class: @viewClass(), =>
       @subview 'miniEditor', new Editor(mini: true)
       @div class: 'error', outlet: 'error'
+      @div class: 'loading', outlet: 'loading'
       @ol outlet: 'list'
 
   @viewClass: -> 'select-list'
@@ -38,6 +39,7 @@ class SelectList extends View
   setArray: (@array) ->
     @populateList()
     @selectItem(@list.find('li:first'))
+    @setLoading()
 
   setError: (message) ->
     if not message or message.length == ""
@@ -48,6 +50,13 @@ class SelectList extends View
       @error.text(message)
       @error.show()
       @addClass("error")
+
+  setLoading: (message) ->
+    if not message or message.length == ""
+      @loading.text("").hide()
+    else
+      @setError()
+      @loading.text(message).show()
 
   populateList: ->
     filterQuery = @miniEditor.getText()

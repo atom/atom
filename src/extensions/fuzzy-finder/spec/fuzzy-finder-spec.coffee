@@ -18,7 +18,7 @@ describe 'FuzzyFinder', ->
   describe "file-finder behavior", ->
     describe "toggling", ->
       describe "when the root view's project has a path", ->
-        it "shows the FuzzyFinder or hides it and returns focus to the active editor if it already showing", ->
+        it "shows the FuzzyFinder or hides it nad returns focus to the active editor if it already showing", ->
           rootView.attachToDom()
           expect(rootView.find('.fuzzy-finder')).not.toExist()
           rootView.find('.editor').trigger 'editor:split-right'
@@ -40,13 +40,25 @@ describe 'FuzzyFinder', ->
           expect(finder.miniEditor.getText()).toBe ''
 
         it "shows all relative file paths for the current project and selects the first", ->
+          rootView.attachToDom()
           finder.maxItems = Infinity
           rootView.trigger 'fuzzy-finder:toggle-file-finder'
-          paths = rootView.project.getFilePaths()
-          expect(finder.list.children('li').length).toBe paths.length, finder.maxResults
-          for path in paths
-            expect(finder.list.find("li:contains(#{path})")).toExist()
-          expect(finder.list.children().first()).toHaveClass 'selected'
+          paths = null
+          expect(finder.find(".loading")).toBeVisible()
+          expect(finder.find(".loading")).toHaveText "Indexing..."
+
+          waitsForPromise ->
+            rootView.project.getFilePaths().done (foundPaths) -> paths = foundPaths
+
+          waitsFor ->
+            finder.list.children('li').length > 0
+
+          runs ->
+            expect(finder.list.children('li').length).toBe paths.length, finder.maxResults
+            for path in paths
+              expect(finder.list.find("li:contains(#{path})")).toExist()
+            expect(finder.list.children().first()).toHaveClass 'selected'
+            expect(finder.find(".loading")).not.toBeVisible()
 
       describe "when root view's project has no path", ->
         beforeEach ->

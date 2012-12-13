@@ -17,10 +17,11 @@ class DirectoryView extends View
   header: null
   project: null
 
-  initialize: ({@directory, isExpanded, @project} = {}) ->
+  initialize: ({@directory, isExpanded, @project, parent} = {}) ->
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
-    @directoryName.addClass('ignored') if new Git(@directory.getPath()).isPathIgnored(@directory.getPath())
+    repositoryPath = parent?.getPath() or @directory.getPath()
+    @directoryName.addClass('ignored') if new Git(repositoryPath).isPathIgnored(@directory.getPath())
 
   getPath: ->
     @directory.path
@@ -35,7 +36,7 @@ class DirectoryView extends View
     for entry in @directory.getEntries()
       continue if @isPathIgnored(entry.path)
       if entry instanceof Directory
-        @entries.append(new DirectoryView(directory: entry, isExpanded: false, project: @project))
+        @entries.append(new DirectoryView(directory: entry, isExpanded: false, project: @project, parent: @directory))
       else
         @entries.append(new FileView(entry))
     @append(@entries)

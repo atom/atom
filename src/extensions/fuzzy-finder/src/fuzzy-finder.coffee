@@ -51,7 +51,9 @@ class FuzzyFinder extends SelectList
       @attach() if @paths?.length
 
   populateProjectPaths: ->
-    @setArray(@rootView.project.getFilePaths())
+    @setLoading("Indexing...")
+    @rootView.project.getFilePaths().done (paths) =>
+      @setArray(paths)
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>
