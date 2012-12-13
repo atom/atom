@@ -14,7 +14,7 @@ public:
                        CefString& exception) OVERRIDE;
 
   // Provide the reference counting implementation for this class.
-  IMPLEMENT_REFCOUNTING(Native);
+  IMPLEMENT_REFCOUNTING(Git);
 };
 
 }
