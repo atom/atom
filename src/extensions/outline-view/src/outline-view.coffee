@@ -53,6 +53,7 @@ class OutlineView extends SelectList
     editor = @rootView.getActiveEditor()
     editor.scrollToBufferPosition(position, center: true)
     editor.setCursorBufferPosition(position)
+    editor.moveCursorToFirstCharacterOfLine()
 
   cancelled: ->
     @miniEditor.setText('')

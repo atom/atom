@@ -98,7 +98,7 @@ describe "OutlineView", ->
       outlineView.attach()
       expect(rootView.find('.outline-view')).toExist()
       outlineView.confirmed(tags[1])
-      expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [1,0]
+      expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [1,2]
 
   describe "TagGenerator", ->
     it "generates tags for all JavaScript functions", ->
