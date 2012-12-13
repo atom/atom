@@ -20,7 +20,9 @@ class EventPalette extends SelectList
   keyBindings: null
 
   initialize: (@rootView) ->
-    @command 'event-palette:toggle', => @cancel()
+    @command 'event-palette:toggle', =>
+      @cancel()
+      false
     super
 
   attach: ->

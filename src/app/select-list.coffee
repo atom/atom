@@ -2,7 +2,6 @@ $ = require 'jquery'
 { View } = require 'space-pen'
 Editor = require 'editor'
 fuzzyFilter = require 'fuzzy-filter'
-_ = require 'underscore'
 
 module.exports =
 class SelectList extends View
@@ -16,6 +15,7 @@ class SelectList extends View
   @viewClass: -> 'select-list'
 
   maxItems: Infinity
+  scheduleTimeout: null
   inputThrottle: 200
   filteredArray: null
   cancelling: false
@@ -23,7 +23,7 @@ class SelectList extends View
   initialize: ->
     requireStylesheet 'select-list.css'
 
-    @miniEditor.getBuffer().on 'change', _.debounce((=> @populateList()), @inputThrottle)
+    @miniEditor.getBuffer().on 'change', => @schedulePopulateList()
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
     @on 'core:move-down', => @selectNextItem()
@@ -37,6 +37,10 @@ class SelectList extends View
     @list.on 'mouseup', 'li', (e) =>
       @confirmSelection() if $(e.target).closest('li').hasClass('selected')
       e.preventDefault()
+
+  schedulePopulateList: ->
+    clearTimeout(@scheduleTimeout)
+    @scheduleTimeout = setTimeout((=> @populateList()), @inputThrottle)
 
   setArray: (@array) ->
     @populateList()
@@ -59,7 +63,6 @@ class SelectList extends View
       @loading.text(message).show()
 
   populateList: ->
-    return unless @hasParent()
     filterQuery = @miniEditor.getText()
     if filterQuery.length
       filteredArray = fuzzyFilter(@array, filterQuery, key: @filterKey)
@@ -119,4 +122,4 @@ class SelectList extends View
     @cancelled()
     @detach()
     @cancelling = false
-
+    clearTimeout(@scheduleTimeout)

@@ -41,8 +41,8 @@ class FuzzyFinder extends SelectList
     else
       return unless @rootView.project.getPath()?
       @allowActiveEditorChange = false
-      @attach()
       @populateProjectPaths()
+      @attach()
 
   toggleBufferFinder: ->
     if @hasParent()
