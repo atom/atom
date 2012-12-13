@@ -28,7 +28,7 @@ describe "WrapGuide", ->
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
 
-  describe "font-size-change", ->
+  describe "when the font size changes", ->
     it "updates the wrap guide position", ->
       initial = wrapGuide.position().left
       expect(initial).toBeGreaterThan(0)

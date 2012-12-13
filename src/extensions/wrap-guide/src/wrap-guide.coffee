@@ -22,15 +22,20 @@ class WrapGuide extends View
   getGuideColumn: null
   defaultColumn: 80
 
-  initialize: (@rootView, @editor, config = {}) =>
-    if typeof config.getGuideColumn is 'function'
-      @getGuideColumn = config.getGuideColumn
+  initialize: (@rootView, @editor, options = {}) =>
+    if typeof options.getGuideColumn is 'function'
+      @getGuideColumn = options.getGuideColumn
     else
       @getGuideColumn = (path, defaultColumn) -> defaultColumn
 
     @updateGuide(@editor)
     @editor.on 'editor-path-change', => @updateGuide(@editor)
-    @rootView.on 'font-size-change', => @updateGuide(@editor)
+    config.on 'update', => @setFontSize(config.editor.fontSize)
+
+  setFontSize: (fontSize) ->
+    return if fontSize == @fontSize
+    @fontSize = fontSize
+    @updateGuide(@editor)
 
   updateGuide: (editor) ->
     column = @getGuideColumn(editor.getPath(), @defaultColumn)
