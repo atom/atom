@@ -6,7 +6,7 @@ module.exports =
 class Config
   configDirPath: fs.absolute("~/.atom")
   configJsonPath: fs.absolute("~/.atom/config.json")
-  userInitScriptPath: fs.absolute("~/.atom/atom.coffe")
+  userInitScriptPath: fs.absolute("~/.atom/atom.coffee")
 
   load: ->
     if fs.exists(@configJsonPath)
@@ -36,8 +36,25 @@ class Config
 
   requireUserInitScript: ->
     try
+      console.log @userInitScriptPath
       require @userInitScriptPath if fs.exists(@userInitScriptPath)
     catch error
       console.error "Failed to load `#{@userInitScriptPath}`", error.stack, error
+
+  valueAtKeyPath: (keyPath) ->
+    value = this
+    for key in keyPath
+      break unless value = value[key]
+    value
+
+  observe: (keyPathString, callback) ->
+    keyPath = keyPathString.split('.')
+    value = @valueAtKeyPath(keyPath)
+    @on 'update', =>
+      newValue = @valueAtKeyPath(keyPath)
+      unless newValue == value
+        value = newValue
+        callback(value)
+    callback(value)
 
 _.extend Config.prototype, EventEmitter
