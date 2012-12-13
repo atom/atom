@@ -3,28 +3,31 @@ OutlineView = require 'outline-view'
 TagGenerator = require 'outline-view/src/tag-generator'
 
 describe "OutlineView", ->
-  [rootView, outlineView] = []
+  [rootView, outlineView, setArraySpy] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures'))
     rootView.activateExtension(OutlineView)
     outlineView = OutlineView.instance
     rootView.attachToDom()
+    setArraySpy = spyOn(outlineView, 'setArray').andCallThrough()
 
   afterEach ->
     rootView.deactivate()
+    setArraySpy.reset()
 
   describe "when tags can be generated for a file", ->
     it "initially displays all JavaScript functions with line numbers", ->
       rootView.open('sample.js')
       expect(rootView.find('.outline-view')).not.toExist()
-      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
       rootView.getActiveEditor().trigger "outline-view:toggle"
+      expect(outlineView.find('.loading')).toHaveText 'Generating symbols...'
 
       waitsFor ->
-        attachSpy.callCount > 0
+        setArraySpy.callCount > 0
 
       runs ->
+        expect(outlineView.find('.loading')).toBeEmpty()
         expect(rootView.find('.outline-view')).toExist()
         expect(outlineView.list.children('li').length).toBe 2
         expect(outlineView.list.children('li:first').find('.function-name')).toHaveText 'quicksort'
@@ -37,11 +40,10 @@ describe "OutlineView", ->
     it "displays error when no tags match text in mini-editor", ->
       rootView.open('sample.js')
       expect(rootView.find('.outline-view')).not.toExist()
-      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
       rootView.getActiveEditor().trigger "outline-view:toggle"
 
       waitsFor ->
-        attachSpy.callCount > 0
+        setArraySpy.callCount > 0
 
       runs ->
         outlineView.miniEditor.setText("nothing will match this")
@@ -65,11 +67,11 @@ describe "OutlineView", ->
     it "shows an error message when no matching tags are found", ->
       rootView.open('sample.txt')
       expect(rootView.find('.outline-view')).not.toExist()
-      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
       rootView.getActiveEditor().trigger "outline-view:toggle"
+      setErrorSpy = spyOn(outlineView, "setError").andCallThrough()
 
       waitsFor ->
-        attachSpy.callCount > 0
+        setErrorSpy.callCount > 0
 
       runs ->
         expect(rootView.find('.outline-view')).toExist()

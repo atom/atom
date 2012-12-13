@@ -32,11 +32,13 @@ class OutlineView extends SelectList
       @cancel()
     else
       @populate()
+      @attach()
 
   populate: ->
     tags = []
     callback = (tag) -> tags.push tag
     path = @rootView.getActiveEditor().getPath()
+    @setLoading("Generating symbols...")
     new TagGenerator(path, callback).generate().done =>
       if tags.length > 0
         @miniEditor.show()
@@ -45,8 +47,6 @@ class OutlineView extends SelectList
         @miniEditor.hide()
         @setError("No symbols found")
         setTimeout (=> @detach()), 2000
-
-      @attach()
 
   confirmed : ({position, name}) ->
     @cancel()
