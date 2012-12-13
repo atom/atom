@@ -112,8 +112,8 @@ module.exports =
       @makeTree(@directory(path))
       @makeDirectory(path)
 
-  getAllPathsAsync: (rootPath, callback) ->
-    $native.getAllPathsAsync(rootPath, callback)
+  getAllFilePathsAsync: (rootPath, callback) ->
+    $native.getAllFilePathsAsync(rootPath, callback)
 
   traverseTree: (rootPath, onFile, onDirectory) ->
     $native.traverseTree(rootPath, onFile, onDirectory)

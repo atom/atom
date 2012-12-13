@@ -53,7 +53,7 @@ class Project
 
   getFilePaths: ->
     deferred = $.Deferred()
-    fs.getAllPathsAsync @getPath(), (paths) =>
+    fs.getAllFilePathsAsync @getPath(), (paths) =>
       paths = paths.filter (path) => not @isPathIgnored(path)
       deferred.resolve(paths)
     deferred.promise()
