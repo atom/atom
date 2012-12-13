@@ -41,7 +41,7 @@ describe "Selection", ->
         expect(selection.isEmpty()).toBeTruthy()
 
     describe "when the cursor precedes the anchor", ->
-      it "it deletes selected text and clears the selection", ->
+      it "deletes selected text and clears the selection", ->
         selection.cursor.setScreenPosition [0,13]
         selection.selectToScreenPosition [0,4]
 
