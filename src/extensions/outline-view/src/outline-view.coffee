@@ -76,7 +76,7 @@ class OutlineView extends SelectList
     @miniEditor.focus()
 
   getTagLine: (tag) ->
-    pattern = tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '') # Remove leading /^ and trailing $/
+    pattern = $.trim(tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '')) # Remove leading /^ and trailing $/
     return unless pattern
     for line, index in fs.read(@rootView.project.resolve(tag.file)).split('\n')
       return new Point(index, 0) if pattern is $.trim(line)
