@@ -306,13 +306,11 @@ class Editor extends View
   backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
   configure: ->
-    @setShowInvisibles(config.editor.showInvisibles)
-    @setInvisibles(config.editor.invisibles)
-    @setFontSize(config.editor.fontSize)
+    @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
+    @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
+    @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
 
   handleEvents: ->
-    config.on "update.editor#{@id}", => @configure()
-
     @on 'focus', =>
       @hiddenInput.focus()
       false
@@ -670,7 +668,6 @@ class Editor extends View
     @destroyEditSessions()
 
     $(window).off ".editor#{@id}"
-    config.off ".editor#{@id}"
     rootView = @rootView()
     rootView?.off ".editor#{@id}"
     if @pane() then @pane().remove() else super
