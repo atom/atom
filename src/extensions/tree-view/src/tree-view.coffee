@@ -20,7 +20,7 @@ class TreeView extends ScrollView
       @instance = new TreeView(rootView)
       @instance.attach()
 
-  @deactivate: () ->
+  @deactivate: ->
     @instance.deactivate()
 
   @serialize: ->
