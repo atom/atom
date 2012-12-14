@@ -32,10 +32,9 @@ describe "SpacePen extensions", ->
 
       expect(observeHandler).not.toHaveBeenCalled()
 
-    it "unsubscribes on remove", ->
+    it "unsubscribes when the view is removed from the DOM", ->
       observeHandler.reset()
-      view.remove()
-      expect(view.hasParent()).toBeFalsy()
+      parent.remove()
       config.foo = { bar: "hello" }
       config.update()
       expect(observeHandler).not.toHaveBeenCalled()
