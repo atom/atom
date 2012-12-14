@@ -88,11 +88,9 @@ class RootView extends View
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
-      config.editor.showInvisibles = not config.editor.showInvisibles
-      config.update()
+      config.update("editor.showInvisibles", not config.editor.showInvisibles)
     @command 'window:toggle-ignored-files', =>
-      config.core.hideGitIgnoredFiles = not config.core.hideGitIgnoredFiles
-      config.update()
+      config.update("core.hideGitIgnoredFiles", not config.core.hideGitIgnoredFiles)
 
   afterAttach: (onDom) ->
     @focus() if onDom

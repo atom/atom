@@ -21,7 +21,8 @@ class Config
     @editor ?= {}
     _.defaults(@editor, require('editor').configDefaults)
 
-  update: ->
+  update: (keyPathString, value) ->
+    @setValueAtKeyPath(keyPathString.split('.'), value) if keyPathString
     @save()
     @trigger 'update'
 
@@ -46,6 +47,15 @@ class Config
     for key in keyPath
       break unless value = value[key]
     value
+
+  setValueAtKeyPath: (keyPath, value) ->
+    keyPath = new Array(keyPath...)
+    hash = this
+    while keyPath.length > 1
+      key = keyPath.shift()
+      hash[key] ?= {}
+      hash = hash[key]
+    hash[keyPath.shift()] = value
 
   observe: (keyPathString, callback) ->
     keyPath = keyPathString.split('.')

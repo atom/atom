@@ -865,12 +865,10 @@ describe "TreeView", ->
     it "hides git-ignored files if the option is set, but otherwise shows them", ->
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1
 
-      config.core.hideGitIgnoredFiles = true
-      config.update()
+      config.update("core.hideGitIgnoredFiles", true)
 
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 0
 
-      config.core.hideGitIgnoredFiles = false
-      config.update()
+      config.update("core.hideGitIgnoredFiles", false)
 
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1
