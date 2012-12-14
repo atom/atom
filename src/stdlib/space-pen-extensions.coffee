@@ -6,9 +6,13 @@ originalRemove = View.prototype.remove
 
 _.extend View.prototype,
   observeConfig: (keyPath, callback) ->
-    @subscribe(config.observe(keyPath, callback))
+    @addSubscription(config.observe(keyPath, callback))
 
-  subscribe: (subscription) ->
+  subscribe: (eventEmitter, eventName, callback) ->
+    eventEmitter.on eventName, callback
+    @addSubscription(destroy: -> eventEmitter.off eventName, callback)
+
+  addSubscription: (subscription) ->
     @subscriptions ?= []
     @subscriptions.push(subscription)
 
