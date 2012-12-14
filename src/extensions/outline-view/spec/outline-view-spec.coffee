@@ -129,9 +129,9 @@ describe "OutlineView", ->
     it "doesn't move the cursor when no declaration is found", ->
       rootView.open("tagged.js")
       editor = rootView.getActiveEditor()
-      editor.setCursorBufferPosition([0,12])
+      editor.setCursorBufferPosition([0,2])
       editor.trigger 'outline-view:jump-to-declaration'
-      expect(editor.getCursorBufferPosition()).toEqual [0,12]
+      expect(editor.getCursorBufferPosition()).toEqual [0,2]
 
     it "moves the cursor to the declaration", ->
       rootView.open("tagged.js")
@@ -139,3 +139,14 @@ describe "OutlineView", ->
       editor.setCursorBufferPosition([6,24])
       editor.trigger 'outline-view:jump-to-declaration'
       expect(editor.getCursorBufferPosition()).toEqual [2,0]
+
+    it "displays matches when more than one exists and opens the selected match", ->
+      rootView.open("tagged.js")
+      editor = rootView.getActiveEditor()
+      editor.setCursorBufferPosition([8,14])
+      editor.trigger 'outline-view:jump-to-declaration'
+      expect(outlineView.list.children('li').length).toBe 2
+      expect(outlineView).toBeVisible()
+      outlineView.confirmed(outlineView.array[0])
+      expect(rootView.getActiveEditor().getPath()).toBe rootView.project.resolve("tagged-duplicate.js")
+      expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,4]

@@ -4,4 +4,8 @@ function callMeMaybe() {
   return "here's my number";
 }
 
-var iJustMetYou = callMeMaybe()
+var iJustMetYou = callMeMaybe();
+
+function duplicate() {
+  return true;
+}

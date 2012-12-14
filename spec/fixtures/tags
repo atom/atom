@@ -5,3 +5,6 @@
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
 callMeMaybe	tagged.js	/^function callMeMaybe() {$/;"	f
+duplicate	tagged-duplicate.js	/^function duplicate() {$/;"	f
+duplicate	tagged.js	/^function duplicate() {$/;"	f
+thisIsCrazy	tagged.js	/^var thisIsCrazy = true;$/;"	v

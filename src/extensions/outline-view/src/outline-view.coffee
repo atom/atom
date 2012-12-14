@@ -4,6 +4,8 @@ Editor = require 'editor'
 TagGenerator = require 'outline-view/src/tag-generator'
 TagReader = require 'outline-view/src/tag-reader'
 Point = require 'point'
+fs = require 'fs'
+$ = require 'jquery'
 
 module.exports =
 class OutlineView extends SelectList
@@ -51,8 +53,12 @@ class OutlineView extends SelectList
         @setError("No symbols found")
         setTimeout (=> @detach()), 2000
 
-  confirmed : ({position, name}) ->
+  confirmed : (tag) ->
     @cancel()
+    @openTag(tag)
+
+  openTag: ({position, file}) ->
+    @rootView.openInExistingEditor(file, true, true) if file
     @moveToPosition(position)
 
   moveToPosition: (position) ->
@@ -69,17 +75,29 @@ class OutlineView extends SelectList
     @rootView.append(this)
     @miniEditor.focus()
 
+  getTagLine: (tag) ->
+    pattern = tag.pattern?.replace(/(^^\/\^)|(\$\/$)/g, '') # Remove leading /^ and trailing $/
+    return unless pattern
+    for line, index in fs.read(@rootView.project.resolve(tag.file)).split('\n')
+      return new Point(index, 0) if pattern is $.trim(line)
+
   jumpToDeclaration: ->
     editor = @rootView.getActiveEditor()
     matches = TagReader.find(editor)
-    return unless matches.length is 1
+    return unless matches.length
 
-    tag = matches[0]
-    return unless tag.pattern
-    pattern = tag.pattern.replace(/(^^\/\^)|(\$\/$)/g, '') # Remove leading /^ and trailing $/
-    if pattern and @rootView.openInExistingEditor(tag.file, true, true)
-      buffer = editor.getBuffer()
-      for row in [0...buffer.getLineCount()]
-        continue unless pattern is buffer.lineForRow(row)
-        @moveToPosition(new Point(row, 0))
-        break
+    if matches.length is 1
+      position = @getTagLine(matches[0])
+      @openTag(file: matches[0].file, position: position) if position
+    else
+      tags = []
+      for match in matches
+        position = @getTagLine(match)
+        continue unless position
+        tags.push
+          file: match.file
+          name: fs.base(match.file)
+          position: position
+      @miniEditor.show()
+      @setArray(tags)
+      @attach()
