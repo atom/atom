@@ -52,6 +52,7 @@ class SelectList extends View
       @error.text("").hide()
       @removeClass("error")
     else
+      @setLoading()
       @error.text(message).show()
       @addClass("error")
 

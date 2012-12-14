@@ -79,6 +79,7 @@ describe "OutlineView", ->
         expect(outlineView.error).toBeVisible()
         expect(outlineView.error.text().length).toBeGreaterThan 0
         expect(outlineView).toHaveClass "error"
+        expect(outlineView.find('.loading')).not.toBeVisible()
 
   it "moves the cursor to the selected function", ->
     tags = []
