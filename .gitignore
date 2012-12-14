@@ -8,3 +8,4 @@ build
 .xcodebuild-info
 node_modules
 npm-debug.log
+/tags
