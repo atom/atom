@@ -28,15 +28,9 @@ class WrapGuide extends View
     else
       @getGuideColumn = (path, defaultColumn) -> defaultColumn
 
-    @updateGuide(@editor)
-    @editor.on 'editor-path-change', => @updateGuide(@editor)
-    config.on 'update', => @setFontSize(config.editor.fontSize)
-    @editor.on 'before-remove', => @rootView.off('.wrap-guide')
-
-  setFontSize: (fontSize) ->
-    return if fontSize == @fontSize
-    @fontSize = fontSize
-    @updateGuide(@editor)
+    @observeConfig 'editor.fontSize', => @updateGuide(@editor)
+    @subscribe @editor, 'editor-path-change', => @updateGuide(@editor)
+    @subscribe @editor, 'before-remove', => @rootView.off('.wrap-guide')
 
   updateGuide: (editor) ->
     column = @getGuideColumn(editor.getPath(), @defaultColumn)
