@@ -3,28 +3,31 @@ OutlineView = require 'outline-view'
 TagGenerator = require 'outline-view/src/tag-generator'
 
 describe "OutlineView", ->
-  [rootView, outlineView] = []
+  [rootView, outlineView, setArraySpy] = []
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures'))
     rootView.activateExtension(OutlineView)
     outlineView = OutlineView.instance
     rootView.attachToDom()
+    setArraySpy = spyOn(outlineView, 'setArray').andCallThrough()
 
   afterEach ->
     rootView.deactivate()
+    setArraySpy.reset()
 
   describe "when tags can be generated for a file", ->
     it "initially displays all JavaScript functions with line numbers", ->
       rootView.open('sample.js')
       expect(rootView.find('.outline-view')).not.toExist()
-      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
       rootView.getActiveEditor().trigger "outline-view:toggle"
+      expect(outlineView.find('.loading')).toHaveText 'Generating symbols...'
 
       waitsFor ->
-        attachSpy.callCount > 0
+        setArraySpy.callCount > 0
 
       runs ->
+        expect(outlineView.find('.loading')).toBeEmpty()
         expect(rootView.find('.outline-view')).toExist()
         expect(outlineView.list.children('li').length).toBe 2
         expect(outlineView.list.children('li:first').find('.function-name')).toHaveText 'quicksort'
@@ -37,14 +40,15 @@ describe "OutlineView", ->
     it "displays error when no tags match text in mini-editor", ->
       rootView.open('sample.js')
       expect(rootView.find('.outline-view')).not.toExist()
-      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
       rootView.getActiveEditor().trigger "outline-view:toggle"
 
       waitsFor ->
-        attachSpy.callCount > 0
+        setArraySpy.callCount > 0
 
       runs ->
         outlineView.miniEditor.setText("nothing will match this")
+        window.advanceClock(outlineView.inputThrottle)
+
         expect(rootView.find('.outline-view')).toExist()
         expect(outlineView.list.children('li').length).toBe 0
         expect(outlineView.error).toBeVisible()
@@ -53,6 +57,8 @@ describe "OutlineView", ->
 
         # Should remove error
         outlineView.miniEditor.setText("")
+        window.advanceClock(outlineView.inputThrottle)
+
         expect(outlineView.list.children('li').length).toBe 2
         expect(outlineView).not.toHaveClass "error"
         expect(outlineView.error).not.toBeVisible()
@@ -61,11 +67,11 @@ describe "OutlineView", ->
     it "shows an error message when no matching tags are found", ->
       rootView.open('sample.txt')
       expect(rootView.find('.outline-view')).not.toExist()
-      attachSpy = spyOn(outlineView, 'attach').andCallThrough()
       rootView.getActiveEditor().trigger "outline-view:toggle"
+      setErrorSpy = spyOn(outlineView, "setError").andCallThrough()
 
       waitsFor ->
-        attachSpy.callCount > 0
+        setErrorSpy.callCount > 0
 
       runs ->
         expect(rootView.find('.outline-view')).toExist()
@@ -73,6 +79,7 @@ describe "OutlineView", ->
         expect(outlineView.error).toBeVisible()
         expect(outlineView.error.text().length).toBeGreaterThan 0
         expect(outlineView).toHaveClass "error"
+        expect(outlineView.find('.loading')).not.toBeVisible()
 
   it "moves the cursor to the selected function", ->
     tags = []
@@ -92,7 +99,7 @@ describe "OutlineView", ->
       outlineView.attach()
       expect(rootView.find('.outline-view')).toExist()
       outlineView.confirmed(tags[1])
-      expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [1,0]
+      expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [1,2]
 
   describe "TagGenerator", ->
     it "generates tags for all JavaScript functions", ->
@@ -118,3 +125,29 @@ describe "OutlineView", ->
         generator = new TagGenerator(path, callback)
         generator.generate().done ->
           expect(tags.length).toBe 0
+
+  describe "jump to declaration", ->
+    it "doesn't move the cursor when no declaration is found", ->
+      rootView.open("tagged.js")
+      editor = rootView.getActiveEditor()
+      editor.setCursorBufferPosition([0,2])
+      editor.trigger 'outline-view:jump-to-declaration'
+      expect(editor.getCursorBufferPosition()).toEqual [0,2]
+
+    it "moves the cursor to the declaration", ->
+      rootView.open("tagged.js")
+      editor = rootView.getActiveEditor()
+      editor.setCursorBufferPosition([6,24])
+      editor.trigger 'outline-view:jump-to-declaration'
+      expect(editor.getCursorBufferPosition()).toEqual [2,0]
+
+    it "displays matches when more than one exists and opens the selected match", ->
+      rootView.open("tagged.js")
+      editor = rootView.getActiveEditor()
+      editor.setCursorBufferPosition([8,14])
+      editor.trigger 'outline-view:jump-to-declaration'
+      expect(outlineView.list.children('li').length).toBe 2
+      expect(outlineView).toBeVisible()
+      outlineView.confirmed(outlineView.array[0])
+      expect(rootView.getActiveEditor().getPath()).toBe rootView.project.resolve("tagged-duplicate.js")
+      expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,4]

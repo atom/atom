@@ -31,6 +31,7 @@ class WrapGuide extends View
     @updateGuide(@editor)
     @editor.on 'editor-path-change', => @updateGuide(@editor)
     config.on 'update', => @setFontSize(config.editor.fontSize)
+    @editor.on 'before-remove', => @rootView.off('.wrap-guide')
 
   setFontSize: (fontSize) ->
     return if fontSize == @fontSize

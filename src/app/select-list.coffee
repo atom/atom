@@ -15,13 +15,15 @@ class SelectList extends View
   @viewClass: -> 'select-list'
 
   maxItems: Infinity
+  scheduleTimeout: null
+  inputThrottle: 200
   filteredArray: null
   cancelling: false
 
   initialize: ->
     requireStylesheet 'select-list.css'
 
-    @miniEditor.getBuffer().on 'change', => @populateList()
+    @miniEditor.getBuffer().on 'change', => @schedulePopulateList()
     @miniEditor.on 'focusout', => @cancel() unless @cancelling
     @on 'core:move-up', => @selectPreviousItem()
     @on 'core:move-down', => @selectNextItem()
@@ -36,6 +38,10 @@ class SelectList extends View
       @confirmSelection() if $(e.target).closest('li').hasClass('selected')
       e.preventDefault()
 
+  schedulePopulateList: ->
+    clearTimeout(@scheduleTimeout)
+    @scheduleTimeout = setTimeout((=> @populateList()), @inputThrottle)
+
   setArray: (@array) ->
     @populateList()
     @selectItem(@list.find('li:first'))
@@ -43,12 +49,11 @@ class SelectList extends View
 
   setError: (message) ->
     if not message or message.length == ""
-      @error.text("")
-      @error.hide()
+      @error.text("").hide()
       @removeClass("error")
     else
-      @error.text(message)
-      @error.show()
+      @setLoading()
+      @error.text(message).show()
       @addClass("error")
 
   setLoading: (message) ->
@@ -113,8 +118,9 @@ class SelectList extends View
     @confirmed(element) if element?
 
   cancel: ->
+    @list.empty()
     @cancelling = true
     @cancelled()
     @detach()
     @cancelling = false
-
+    clearTimeout(@scheduleTimeout)

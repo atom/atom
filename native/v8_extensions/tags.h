@@ -3,9 +3,9 @@
 
 namespace v8_extensions {
 
-class Git : public CefV8Handler {
+class Tags : public CefV8Handler {
 public:
-  Git();
+  Tags();
 
   virtual bool Execute(const CefString& name,
                        CefRefPtr<CefV8Value> object,
@@ -14,7 +14,7 @@ public:
                        CefString& exception) OVERRIDE;
 
   // Provide the reference counting implementation for this class.
-  IMPLEMENT_REFCOUNTING(Git);
+  IMPLEMENT_REFCOUNTING(Tags);
 };
 
 }

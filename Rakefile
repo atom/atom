@@ -127,6 +127,10 @@ task :nof do
   system %{find . -name *spec.coffee | grep -v atom-build | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
 end
 
+task :tags do
+  system %{ctags -R src/ native/}
+end
+
 def application_path
   applications = FileList["#{BUILD_DIR}/**/Atom.app"]
   if applications.size == 0

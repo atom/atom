@@ -1,0 +1,3 @@
+    function duplicate() {
+      return false;
+    }

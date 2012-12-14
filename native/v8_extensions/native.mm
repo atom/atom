@@ -103,7 +103,7 @@ bool Native::Execute(const CefString& name,
 
     return true;
   }
-  else if (name == "getAllPathsAsync") {
+  else if (name == "getAllFilePathsAsync") {
     std::string argument = arguments[0]->GetStringValue().ToString();
     CefRefPtr<CefV8Value> callback = arguments[1];
     CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
@@ -127,8 +127,7 @@ bool Native::Execute(const CefString& name,
           }
 
           bool isFile = entry->fts_info == FTS_NSOK;
-          bool isDir =  entry->fts_info == FTS_D;
-          if (!isFile && !isDir) {
+          if (!isFile) {
             continue;
           }
 

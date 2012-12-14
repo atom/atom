@@ -52,20 +52,14 @@ class Project
 
   getFilePaths: ->
     deferred = $.Deferred()
-    fs.getAllPathsAsync @getPath(), (paths) =>
+    fs.getAllFilePathsAsync @getPath(), (paths) =>
       paths = paths.filter (path) => not @isPathIgnored(path)
       deferred.resolve(paths)
     deferred.promise()
 
   isPathIgnored: (path) ->
-    lastSlash = path.lastIndexOf('/')
-    if lastSlash isnt -1
-      name = path.substring(lastSlash + 1)
-    else
-      name = path
-
-    for ignored in @ignoredNames
-      return true if name is ignored
+    for segment in path.split("/")
+      return true if _.contains(@ignoredNames, segment)
 
     @ignoreRepositoryPath(path)
 

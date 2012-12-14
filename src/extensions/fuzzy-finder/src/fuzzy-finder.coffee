@@ -1,6 +1,7 @@
 {View, $$} = require 'space-pen'
 SelectList = require 'select-list'
 _ = require 'underscore'
+$ = require 'jquery'
 Editor = require 'editor'
 
 module.exports =
@@ -20,6 +21,7 @@ class FuzzyFinder extends SelectList
 
   initialize: (@rootView) ->
     super
+    $(window).on 'focus', => @array = null
 
   itemForElement: (path) ->
     $$ -> @li path
@@ -51,9 +53,12 @@ class FuzzyFinder extends SelectList
       @attach() if @paths?.length
 
   populateProjectPaths: ->
-    @setLoading("Indexing...")
-    @rootView.project.getFilePaths().done (paths) =>
-      @setArray(paths)
+    if @array?.length > 0
+      @setArray(@array)
+    else
+      @setLoading("Indexing...")
+      @rootView.project.getFilePaths().done (paths) =>
+        @setArray(paths)
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>

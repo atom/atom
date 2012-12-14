@@ -301,6 +301,10 @@
             'native/v8_extensions/atom.h',
             'native/v8_extensions/git.mm',
             'native/v8_extensions/git.h',
+            'native/v8_extensions/readtags.h',
+            'native/v8_extensions/readtags.c',
+            'native/v8_extensions/tags.h',
+            'native/v8_extensions/tags.mm',
           ],
           # TODO(mark): For now, don't put any resources into this app.  Its
           # resources directory will be a symbolic link to the browser app's
