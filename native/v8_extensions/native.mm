@@ -406,14 +406,11 @@ bool Native::Execute(const CefString& name,
     [task setStandardError:stderr];
 
     CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
-    void (^outputHandle)(NSFileHandle *fileHandle, CefRefPtr<CefV8Value> function) = nil;
+    void (^outputHandle)(NSString *contents, CefRefPtr<CefV8Value> function) = nil;
     void (^taskTerminatedHandle)() = nil;
 
-    outputHandle = ^(NSFileHandle *fileHandle, CefRefPtr<CefV8Value> function) {
+    outputHandle = ^(NSString *contents, CefRefPtr<CefV8Value> function) {
       context->Enter();
-
-      NSData *data = [fileHandle availableData];
-      NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 
       CefV8ValueList args;
       args.push_back(CefV8Value::CreateString(std::string([contents UTF8String], [contents lengthOfBytesUsingEncoding:NSUTF8StringEncoding])));
@@ -423,7 +420,6 @@ bool Native::Execute(const CefString& name,
         throwException(context->GetGlobal(), function->GetException(), @"Error thrown in OutputHandle");
       }
 
-      [contents release];
       context->Exit();
     };
 
@@ -457,18 +453,24 @@ bool Native::Execute(const CefString& name,
     CefRefPtr<CefV8Value> stdoutFunction = options->GetValue("stdout");
     if (stdoutFunction->IsFunction()) {
       stdout.fileHandleForReading.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+        NSData *data = [fileHandle availableData];
+        NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         dispatch_sync(dispatch_get_main_queue(), ^() {
-          outputHandle(fileHandle, stdoutFunction);
+          outputHandle(contents, stdoutFunction);
         });
+        [contents release];
       };
     }
 
     CefRefPtr<CefV8Value> stderrFunction = options->GetValue("stderr");
     if (stderrFunction->IsFunction()) {
       stderr.fileHandleForReading.writeabilityHandler = ^(NSFileHandle *fileHandle) {
+        NSData *data = [fileHandle availableData];
+        NSString *contents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         dispatch_sync(dispatch_get_main_queue(), ^() {
-          outputHandle(fileHandle, stderrFunction);
+          outputHandle(contents, stderrFunction);
         });
+        [contents release];
       };
     }
 

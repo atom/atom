@@ -104,3 +104,26 @@ describe 'Child Processes', ->
           ChildProcess.exec(cmd, options).fail (error) ->
             expect(error.exitStatus).toBe 2
             expect(errorOutput).toBe "bad\n"
+
+    describe "when a command returns a large amount of data (over 10k)", ->
+      originalTimeout = null
+      beforeEach ->
+        originalTimeout = jasmine.getEnv().defaultTimeoutInterval
+        jasmine.getEnv().defaultTimeoutInterval = 1000
+
+      afterEach ->
+        jasmine.getEnv().defaultTimeoutInterval = originalTimeout
+
+      it "does not block indefinitally on stdout or stderr callbacks (regression)", ->
+        output = []
+
+        waitsForPromise ->
+          cmd = "for i in {1..20000}; do echo $RANDOM; done"
+          options =
+            stdout: (data) -> output.push(data)
+            stderr: (data) -> console.log data.length
+
+          ChildProcess.exec(cmd, options)
+
+        runs ->
+          expect(output.length).toBeGreaterThan 1
