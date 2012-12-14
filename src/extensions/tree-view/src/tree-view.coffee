@@ -27,9 +27,7 @@ class TreeView extends ScrollView
     @instance.serialize()
 
   @content: (rootView) ->
-    @div class: 'tree-view tool-panel', tabindex: -1, =>
-      if rootView.project.getRootDirectory()
-        @subview 'root', new DirectoryView(directory: rootView.project.getRootDirectory(), isExpanded: true, project: rootView.project)
+    @div class: 'tree-view tool-panel', tabindex: -1
 
   @deserialize: (state, rootView) ->
     treeView = new TreeView(rootView)
@@ -67,7 +65,7 @@ class TreeView extends ScrollView
     @rootView.command 'tree-view:reveal-active-file', => @revealActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
     @rootView.project.on 'path-change', => @updateRoot()
-    config.observe 'core.hideGitIgnoredFiles', (value) => @updateRoot()
+    config.observe 'core.hideGitIgnoredFiles', => @updateRoot()
 
     @selectEntry(@root) if @root
 
