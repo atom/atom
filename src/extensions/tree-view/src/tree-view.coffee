@@ -65,7 +65,7 @@ class TreeView extends ScrollView
     @rootView.command 'tree-view:reveal-active-file', => @revealActiveFile()
     @rootView.on 'active-editor-path-change', => @selectActiveFile()
     @rootView.project.on 'path-change', => @updateRoot()
-    config.observe 'core.hideGitIgnoredFiles', => @updateRoot()
+    @observeConfig 'core.hideGitIgnoredFiles', => @updateRoot()
 
     @selectEntry(@root) if @root
 

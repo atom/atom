@@ -13,6 +13,7 @@ RootView = require 'root-view'
 Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
 require 'underscore-extensions'
+require 'space-pen-extensions'
 
 windowAdditions =
   rootViewParentSelector: 'body'

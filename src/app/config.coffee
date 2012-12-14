@@ -50,11 +50,14 @@ class Config
   observe: (keyPathString, callback) ->
     keyPath = keyPathString.split('.')
     value = @valueAtKeyPath(keyPath)
-    @on 'update', =>
+    updateCallback = =>
       newValue = @valueAtKeyPath(keyPath)
       unless newValue == value
         value = newValue
         callback(value)
+    subscription = { destroy: => @off 'update', updateCallback  }
+    @on 'update', updateCallback
     callback(value)
+    subscription
 
 _.extend Config.prototype, EventEmitter
