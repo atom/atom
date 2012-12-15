@@ -28,11 +28,12 @@ class Config
 
   registerNewExtensions: ->
     registeredExtensions = _.pluck(@core.extensions, 'name')
+    shouldUpdate = false
     for extensionName in _.unique(@listExtensionNames())
       unless _.contains(registeredExtensions, extensionName)
-        console.log "registering", extensionName
         @core.extensions.push(name: extensionName, enabled: true)
-        @update()
+        shouldUpdate = true
+    @update() if shouldUpdate
 
   listExtensionNames: ->
     fs.list(bundledExtensionsDirPath).concat(fs.list(userExtensionsDirPath)).map (path) ->
