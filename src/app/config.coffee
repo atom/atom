@@ -27,17 +27,22 @@ class Config
     _.defaults(@editor, require('editor').configDefaults)
 
   registerNewExtensions: ->
-    registeredExtensions = _.pluck(@core.extensions, 'name')
     shouldUpdate = false
-    for extensionName in _.unique(@listExtensionNames())
-      unless _.contains(registeredExtensions, extensionName)
-        @core.extensions.push(name: extensionName, enabled: true)
-        shouldUpdate = true
+    for extensionName in @getAvailableExtensions()
+      @core.extensions.push(extensionName) unless @isExtensionRegistered(extensionName)
+      shouldUpdate = true
     @update() if shouldUpdate
 
-  listExtensionNames: ->
-    fs.list(bundledExtensionsDirPath).concat(fs.list(userExtensionsDirPath)).map (path) ->
-      fs.base(path)
+  isExtensionRegistered: (extensionName) ->
+    return true if _.contains(@core.extensions, extensionName)
+    return true if _.contains(@core.extensions, "!#{extensionName}")
+    false
+
+  getAvailableExtensions: ->
+    availableExtensions =
+      fs.list(bundledExtensionsDirPath)
+        .concat(fs.list(userExtensionsDirPath)).map (path) -> fs.base(path)
+    _.unique(availableExtensions)
 
   update: (keyPathString, value) ->
     @setValueAtKeyPath(keyPathString.split('.'), value) if keyPathString
