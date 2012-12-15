@@ -15,7 +15,9 @@ TextMateTheme = require 'text-mate-theme'
 
 module.exports =
 class RootView extends View
-  @configDefaults: {}
+  @configDefaults: {
+    extensions: []
+  }
 
   @content: ->
     @div id: 'root-view', tabindex: -1, =>
