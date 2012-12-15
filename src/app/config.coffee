@@ -65,7 +65,7 @@ class Config
       unless newValue == value
         value = newValue
         callback(value)
-    subscription = { destroy: => @off 'update', updateCallback  }
+    subscription = { cancel: => @off 'update', updateCallback  }
     @on 'update', updateCallback
     callback(value)
     subscription

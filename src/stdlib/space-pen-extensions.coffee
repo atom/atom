@@ -10,14 +10,14 @@ _.extend View.prototype,
 
   subscribe: (eventEmitter, eventName, callback) ->
     eventEmitter.on eventName, callback
-    @addSubscription(destroy: -> eventEmitter.off eventName, callback)
+    @addSubscription(cancel: -> eventEmitter.off eventName, callback)
 
   addSubscription: (subscription) ->
     @subscriptions ?= []
     @subscriptions.push(subscription)
 
   unsubscribe: ->
-    subscription.destroy() for subscription in @subscriptions ? []
+    subscription.cancel() for subscription in @subscriptions ? []
 
   remove: (args...) ->
     @unsubscribe()

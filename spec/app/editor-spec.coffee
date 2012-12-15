@@ -515,7 +515,7 @@ describe "Editor", ->
         rootView.height(200)
         rootView.width(200)
 
-        config.update("editor.fontSize", 10)
+        config.update("editor.fontSize", fontSize)
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
         editor.setCursorScreenPosition [5, 6]
@@ -1559,6 +1559,7 @@ describe "Editor", ->
         expect(editor.renderedLines.find('.line').text()).toBe "•a line with tabs▸ and spaces•¬"
 
         config.update("editor.showInvisibles", false)
+        config.update()
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
 
       it "displays newlines(¬) as their own token outside of the other tokens scope", ->
