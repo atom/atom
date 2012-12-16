@@ -8,6 +8,8 @@ userInitScriptPath = fs.join(configDirPath, "atom.coffee")
 bundledExtensionsDirPath = fs.join(resourcePath, "src/extensions")
 userExtensionsDirPath = fs.join(configDirPath, "extensions")
 
+require.paths.unshift userExtensionsDirPath
+
 module.exports =
 class Config
   configDirPath: configDirPath
