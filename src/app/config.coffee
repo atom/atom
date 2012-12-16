@@ -13,12 +13,15 @@ class Config
   configDirPath: configDirPath
 
   load: ->
-    if fs.exists(configJsonPath)
-      userConfig = JSON.parse(fs.read(configJsonPath))
-      _.extend(this, userConfig)
+    @loadUserConfig()
     @assignDefaults()
     @registerNewExtensions()
     @requireUserInitScript()
+
+  loadUserConfig: ->
+    if fs.exists(configJsonPath)
+      userConfig = JSON.parse(fs.read(configJsonPath))
+      _.extend(this, userConfig)
 
   assignDefaults: ->
     @core ?= {}
