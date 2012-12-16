@@ -1939,9 +1939,9 @@ describe "Editor", ->
 
   describe "when autosave is enabled", ->
     it "autosaves the current buffer when the editor loses focus or switches edit sessions", ->
+      config.update("editor.autosave", true)
       rootView.attachToDom()
       editor2 = editor.splitRight()
-      rootView.autosave = true
       spyOn(editor2.activeEditSession, 'save')
 
       editor.focus()

@@ -18,6 +18,7 @@ class Editor extends View
   @configDefaults:
     fontSize: 20
     showInvisibles: false
+    autosave: false
 
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
@@ -323,7 +324,7 @@ class Editor extends View
     @hiddenInput.on 'focusout', =>
       @isFocused = false
       @removeClass 'focused'
-      @autosave() if @rootView()?.autosave
+      @autosave() if config.editor.autosave
 
     @overlayer.on 'mousedown', (e) =>
       @overlayer.hide()
@@ -449,7 +450,7 @@ class Editor extends View
     throw new Error("Edit session not found") unless @editSessions[index]
 
     if @activeEditSession
-      @autosave() if @rootView()?.autosave
+      @autosave() if config.editor.autosave
       @saveScrollPositionForActiveEditSession()
       @activeEditSession.off(".editor")
 
