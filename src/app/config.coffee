@@ -58,10 +58,9 @@ class Config
 
   requireUserInitScript: ->
     try
-      console.log @userInitScriptPath
       require userInitScriptPath if fs.exists(userInitScriptPath)
     catch error
-      console.error "Failed to load `#{@userInitScriptPath}`", error.stack, error
+      console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
   valueAtKeyPath: (keyPath) ->
     value = this
