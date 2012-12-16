@@ -13,7 +13,10 @@ requireStylesheet "jasmine.css"
 
 beforeEach ->
   # don't load user configuration
+  window.config = new Config()
   spyOn(config, 'load')
+  spyOn(config, 'save')
+  config.assignDefaults()
 
 keymap = new Keymap
 keymap.bindDefaultKeys()
