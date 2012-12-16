@@ -16,6 +16,7 @@ class Config
     @loadUserConfig()
     @assignDefaults()
     @registerNewExtensions()
+    @requireExtensions()
     @requireUserInitScript()
 
   loadUserConfig: ->
@@ -46,6 +47,10 @@ class Config
       fs.list(bundledExtensionsDirPath)
         .concat(fs.list(userExtensionsDirPath)).map (path) -> fs.base(path)
     _.unique(availableExtensions)
+
+  requireExtensions: ->
+    for extensionName in config.core.extensions
+      requireExtension(extensionName) unless extensionName[0] == '!'
 
   update: (keyPathString, value) ->
     @setValueAtKeyPath(keyPathString.split('.'), value) if keyPathString
