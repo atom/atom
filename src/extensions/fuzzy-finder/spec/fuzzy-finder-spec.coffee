@@ -209,3 +209,22 @@ describe 'FuzzyFinder', ->
 
       runs ->
         expect(rootView.project.getFilePaths).not.toHaveBeenCalled()
+
+    it "doesn't cache buffer paths", ->
+      spyOn(rootView.project, "getFilePaths").andCallThrough()
+      rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+
+      waitsFor ->
+        finder.list.children('li').length > 0
+
+      runs ->
+        expect(rootView.project.getFilePaths).not.toHaveBeenCalled()
+        rootView.project.getFilePaths.reset()
+        rootView.trigger 'fuzzy-finder:toggle-buffer-finder'
+        rootView.trigger 'fuzzy-finder:toggle-file-finder'
+
+      waitsFor ->
+        finder.list.children('li').length > 0
+
+      runs ->
+        expect(rootView.project.getFilePaths).toHaveBeenCalled()

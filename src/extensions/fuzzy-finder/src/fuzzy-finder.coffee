@@ -18,6 +18,7 @@ class FuzzyFinder extends SelectList
 
   allowActiveEditorChange: null
   maxItems: 10
+  projectPaths: null
 
   initialize: (@rootView) ->
     super
@@ -53,11 +54,12 @@ class FuzzyFinder extends SelectList
       @attach() if @paths?.length
 
   populateProjectPaths: ->
-    if @array?.length > 0
-      @setArray(@array)
+    if @projectPaths?.length > 0
+      @setArray(@projectPaths)
     else
       @setLoading("Indexing...")
       @rootView.project.getFilePaths().done (paths) =>
+        @projectPaths = paths
         @setArray(paths)
 
   populateOpenBufferPaths: ->
