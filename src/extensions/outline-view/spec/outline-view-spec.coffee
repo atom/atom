@@ -20,7 +20,7 @@ describe "OutlineView", ->
     it "initially displays all JavaScript functions with line numbers", ->
       rootView.open('sample.js')
       expect(rootView.find('.outline-view')).not.toExist()
-      rootView.getActiveEditor().trigger "outline-view:toggle"
+      rootView.getActiveEditor().trigger "outline-view:toggle-file-outline"
       expect(outlineView.find('.loading')).toHaveText 'Generating symbols...'
 
       waitsFor ->
@@ -31,16 +31,16 @@ describe "OutlineView", ->
         expect(rootView.find('.outline-view')).toExist()
         expect(outlineView.list.children('li').length).toBe 2
         expect(outlineView.list.children('li:first').find('.function-name')).toHaveText 'quicksort'
-        expect(outlineView.list.children('li:first').find('.function-line')).toHaveText 'Line 1'
+        expect(outlineView.list.children('li:first').find('.function-details')).toHaveText 'Line 1'
         expect(outlineView.list.children('li:last').find('.function-name')).toHaveText 'quicksort.sort'
-        expect(outlineView.list.children('li:last').find('.function-line')).toHaveText 'Line 2'
+        expect(outlineView.list.children('li:last').find('.function-details')).toHaveText 'Line 2'
         expect(outlineView).not.toHaveClass "error"
         expect(outlineView.error).not.toBeVisible()
 
     it "displays error when no tags match text in mini-editor", ->
       rootView.open('sample.js')
       expect(rootView.find('.outline-view')).not.toExist()
-      rootView.getActiveEditor().trigger "outline-view:toggle"
+      rootView.getActiveEditor().trigger "outline-view:toggle-file-outline"
 
       waitsFor ->
         setArraySpy.callCount > 0
@@ -67,7 +67,7 @@ describe "OutlineView", ->
     it "shows an error message when no matching tags are found", ->
       rootView.open('sample.txt')
       expect(rootView.find('.outline-view')).not.toExist()
-      rootView.getActiveEditor().trigger "outline-view:toggle"
+      rootView.getActiveEditor().trigger "outline-view:toggle-file-outline"
       setErrorSpy = spyOn(outlineView, "setError").andCallThrough()
 
       waitsFor ->
@@ -151,3 +151,24 @@ describe "OutlineView", ->
       outlineView.confirmed(outlineView.array[0])
       expect(rootView.getActiveEditor().getPath()).toBe rootView.project.resolve("tagged-duplicate.js")
       expect(rootView.getActiveEditor().getCursorBufferPosition()).toEqual [0,4]
+
+  describe "project outline", ->
+    it "displays all tags", ->
+      rootView.open("tagged.js")
+      expect(rootView.find('.outline-view')).not.toExist()
+      rootView.trigger "outline-view:toggle-project-outline"
+      expect(outlineView.find('.loading')).toHaveText 'Loading symbols...'
+
+      waitsFor ->
+        setArraySpy.callCount > 0
+
+      runs ->
+        expect(outlineView.find('.loading')).toBeEmpty()
+        expect(rootView.find('.outline-view')).toExist()
+        expect(outlineView.list.children('li').length).toBe 4
+        expect(outlineView.list.children('li:first').find('.function-name')).toHaveText 'callMeMaybe'
+        expect(outlineView.list.children('li:first').find('.function-details')).toHaveText 'tagged.js'
+        expect(outlineView.list.children('li:last').find('.function-name')).toHaveText 'thisIsCrazy'
+        expect(outlineView.list.children('li:last').find('.function-details')).toHaveText 'tagged.js'
+        expect(outlineView).not.toHaveClass "error"
+        expect(outlineView.error).not.toBeVisible()

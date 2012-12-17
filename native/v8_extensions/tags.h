@@ -1,5 +1,6 @@
 #include "include/cef_base.h"
 #include "include/cef_v8.h"
+#include "readtags.h"
 
 namespace v8_extensions {
 
@@ -15,6 +16,9 @@ public:
 
   // Provide the reference counting implementation for this class.
   IMPLEMENT_REFCOUNTING(Tags);
+
+private:
+  CefRefPtr<CefV8Value> ParseEntry(tagEntry entry);
 };
 
 }
