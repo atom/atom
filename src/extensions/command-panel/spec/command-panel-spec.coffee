@@ -407,6 +407,17 @@ describe "CommandPanel", ->
 
         _.times previewList.getOperations().length, -> previewList.trigger 'core:move-up'
 
+      it "doesn't bubble up the event and the command panel text doesn't change", ->
+        rootView.attachToDom()
+        commandPanel.miniEditor.setText "command"
+        previewList.focus()
+        previewList.trigger 'core:move-up'
+        expect(previewList.find('li:eq(0)')).toHaveClass 'selected'
+        expect(commandPanel.miniEditor.getText()).toBe 'command'
+        previewList.trigger 'core:move-down'
+        expect(previewList.find('li:eq(1)')).toHaveClass 'selected'
+        expect(commandPanel.miniEditor.getText()).toBe 'command'
+
     describe "when core:confirm is triggered on the preview list", ->
       it "opens the operation's buffer, selects and scrolls to the search result, and focuses the active editor", ->
         rootView.height(200)
