@@ -14,7 +14,8 @@ class OutlineView extends SelectList
     requireStylesheet 'select-list.css'
     requireStylesheet 'outline-view/src/outline-view.css'
     @instance = new OutlineView(rootView)
-    rootView.command 'outline-view:toggle', => @instance.toggle()
+    rootView.command 'outline-view:toggle-file-outline', => @instance.toggleFileOutline()
+    rootView.command 'outline-view:toggle-project-outline', => @instance.toggleProjectOutline()
     rootView.command 'outline-view:jump-to-declaration', => @instance.jumpToDeclaration()
 
   @viewClass: -> "#{super} outline-view"
@@ -24,22 +25,26 @@ class OutlineView extends SelectList
   initialize: (@rootView) ->
     super
 
-  itemForElement: ({position, name}) ->
+  itemForElement: ({position, name, file}) ->
     $$ ->
       @li =>
         @div name, class: 'function-name'
         @div class: 'right', =>
-          @div "Line #{position.row + 1}", class: 'function-line'
+          if position
+            text = "Line #{position.row + 1}"
+          else
+            text =  fs.base(file)
+          @div text, class: 'function-details'
         @div class: 'clear-float'
 
-  toggle: ->
+  toggleFileOutline: ->
     if @hasParent()
       @cancel()
     else
-      @populate()
+      @populateFileOutline()
       @attach()
 
-  populate: ->
+  populateFileOutline: ->
     tags = []
     callback = (tag) -> tags.push tag
     path = @rootView.getActiveEditor().getPath()
@@ -47,6 +52,26 @@ class OutlineView extends SelectList
     new TagGenerator(path, callback).generate().done =>
       if tags.length > 0
         @miniEditor.show()
+        @maxItem = Infinity
+        @setArray(tags)
+      else
+        @miniEditor.hide()
+        @setError("No symbols found")
+        setTimeout (=> @detach()), 2000
+
+  toggleProjectOutline: ->
+    if @hasParent()
+      @cancel()
+    else
+      @populateProjectOutline()
+      @attach()
+
+  populateProjectOutline: ->
+    @setLoading("Loading symbols...")
+    TagReader.getAllTags(@rootView.getActiveEditor()).done (tags) =>
+      if tags.length > 0
+        @miniEditor.show()
+        @maxItems = 10
         @setArray(tags)
       else
         @miniEditor.hide()
@@ -57,9 +82,11 @@ class OutlineView extends SelectList
     @cancel()
     @openTag(tag)
 
-  openTag: ({position, file}) ->
-    @rootView.openInExistingEditor(file, true, true) if file
-    @moveToPosition(position)
+  openTag: (tag) ->
+    position = tag.position
+    position = @getTagLine(tag) unless position
+    @rootView.openInExistingEditor(tag.file, true, true) if tag.file
+    @moveToPosition(position) if position
 
   moveToPosition: (position) ->
     editor = @rootView.getActiveEditor()
