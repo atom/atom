@@ -68,7 +68,7 @@ class OutlineView extends SelectList
 
   populateProjectOutline: ->
     @setLoading("Loading symbols...")
-    TagReader.getAllTags(@rootView.getActiveEditor()).done (tags) =>
+    TagReader.getAllTags(@rootView.project).done (tags) =>
       if tags.length > 0
         @miniEditor.show()
         @maxItems = 10
@@ -85,7 +85,7 @@ class OutlineView extends SelectList
   openTag: (tag) ->
     position = tag.position
     position = @getTagLine(tag) unless position
-    @rootView.openInExistingEditor(tag.file, true, true) if tag.file
+    @rootView.open(tag.file, {changeFocus: true, allowActiveEditorChange:true}) if tag.file
     @moveToPosition(position) if position
 
   moveToPosition: (position) ->
