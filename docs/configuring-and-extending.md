@@ -145,7 +145,7 @@ folder, which can contain multiple stylesheets along with an optional
 ~/.atom/themes/
   midnight.less
   rockstar.css
-  rainbow/\n
+  rainbow/
     package.json
     core.less
     editor.less
