@@ -16,6 +16,10 @@
   overflow-y: auto;
 }
 
+.select-list li:hover {
+  background-color: #555;
+}
+
 .select-list ol .selected {
   background: green;
 }

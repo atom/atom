@@ -5,10 +5,6 @@
   cursor: default;
 }
 
-.fuzzy-finder li:hover {
-  background-color: #555;
-}
-
 .fuzzy-finder ol:empty {
   margin-bottom: 0;
 }
