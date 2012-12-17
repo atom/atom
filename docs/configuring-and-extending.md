@@ -1,4 +1,4 @@
-## Configuring Atom
+# Configuring Atom
 
 Atom provides a globally-available configuration database that both the core
 system and extensions look to for user- and language-specific settings. A simple
@@ -13,7 +13,7 @@ editor:
   fontSize: 18
 ```
 
-### Writing
+## Writing Config Settings
 
 As shown above, the config database is automatically populated from `config.cson`
 when Atom is started, but you can programmatically write to it in the following
@@ -31,7 +31,7 @@ config.update() # be sure to call `config.update` after the change
 See the [configuration key reference]() for information on specific keys you
 can use to change Atom's behavior.
 
-### Reading
+## Reading Config Settings
 
 You can read a value from `config` once, or `observe` a key path to stay updated
 when the value changes:
@@ -78,7 +78,7 @@ ConfigObserver = require 'config-observer'
 _.extend MyClass.prototype, ConfigObserver
 ```
 
-### Scoped Configuration Keys
+## Scoped Config Settings
 
 Users and extension authors can provide language-specific behavior by employing
 *scoped configuration keys*. By associating key values with a specific scope,
@@ -100,7 +100,7 @@ are always prefixed with a `~` character. Any basic CSS 3 selector is permitted,
 but you should leave out element names to make your keys accessible outside the
 view layer.
 
-#### Reading Scoped Config Settings
+### Reading Scoped Config Settings
 
 Use the `config.inScope` method to the read keys with the most specific selector
 match.
@@ -124,17 +124,18 @@ config.inScope(fuzzyFinder.miniEditor).get("editor.fontSize")
     use for it currently. Let's keep it in the back of our minds though.
 
 
-## Theming Atom
+# Themes
 
-
-### Selecting A Theme
+## Selecting A Theme
 
 Because Atom themes are based on CSS, it's possible to have multiple themes
-active at the same time. You select your theme(s) in the core preferences pane,
-by selecting themes from the available list and dragging them in your preferred
-order.
+active at the same time. For example, you might select a theme for the UI, and
+another theme for syntax highlighting. You select your theme(s) in the core
+preferences pane, by selecting themes from the available list and dragging them
+in your preferred order. You can also edit the selected themes manually with the
+`config.core.themes` array.
 
-### Installing A Theme
+## Installing A Theme
 
 You install themes by placing them in the `~/.atom/themes` directory. The most
 basic theme is just a `.css` or `.less` file. More complex occupy their own
@@ -155,7 +156,7 @@ folder, which can contain multiple stylesheets along with an optional
 package.json:
 ```json
 {
-  stylesheets: ["core", "editor", "tree-view"]
+  "stylesheets": ["core", "editor", "tree-view"]
 }
 ```
 
@@ -163,7 +164,7 @@ The package.json specifies which stylesheets to load and in what order with the
 `stylesheets` key. If no manifest is specified, all stylesheets are loaded in
 alphabetical order when the user selects the theme.
 
-### Authoring A Theme
+## Authoring A Theme
 
 If you understand CSS, you can write an Atom theme easily. Your theme can style
 Atom's user interface, specify the appearance of syntax-highlighted code, or
@@ -175,7 +176,7 @@ scope names to CSS classes. To theme Atom's user interface, refer to
 classes used in Atom's core and the most common classes employed by
 extensions.
 
-### Theme Extensions
+## Theme Extensions
 
 A theme will often cover the stock features of Atom, but may need to be extended
 to cover extensions that weren't covered by its original author. Theme extensions
@@ -194,5 +195,82 @@ In the example above, when the `midnight` theme is loaded, its `terminal` and
 consider sending its author a pull request to have it included in the theme's
 core.
 
-## Extending Atom
+## TextMate Compatibility
 
+If you place a TextMate theme (either `.tmTheme` or `.plist`) in the `themes`
+directory, it will automatically be translated from TextMate's format to CSS
+so it works with Atom. There are a few slight differences between TextMate's
+semantics and those of stylesheets, but they should be negligible in practice.
+
+
+# Extensions
+
+## Installing Extensions
+
+To install an extension, clone it into the `~/.atom/extensions` directory. The
+next time you start Atom, it will automatically activate any new extensions,
+adding them to the `config.core.extensions` array. If you want to disable an
+extension without removing it from the extensions directory, insert a `!`
+character in front of its name.
+
+config.cson:
+```coffeescript
+core:
+  extensions: [
+    "fuzzy-finder",
+    "tree-view",
+    "!autocomplete" # disabled
+  ]
+```
+
+## Writing Extensions
+
+An extension can bundle a variety of different resource types to change Atom's
+behavior. The basic extension layout is as follows (not every extension will
+have all of these directories):
+
+```text
+my-extension/
+  lib/
+  config/
+  stylesheets/
+  keymaps/
+  snippets/
+  grammars/
+  package.json
+  index.coffee
+```
+
+### Source Code
+
+Extensions can contain arbitrary CoffeeScript code. Place an `index.coffee` file
+in the extension directory, or specify a `main` key in the extension's optional
+`package.json` file. Place the bulk of your code in the extension's `lib`
+directory, and require it from `index.coffee`.
+
+```text
+my-extension/
+  lib/
+    my-extension.coffee
+    rocket.coffee
+  package.json # optional
+  index.coffee
+```
+### Config Settings:
+
+### Stylesheets
+
+### Keymaps
+
+Keymaps (with the `.keymap` extension) can be placed at the root of the
+extension or in the `keymaps` subdirectory. By default, all keymaps will be
+loaded in alphabetical order unless there is a `keymaps` array in `package.json`
+specifying which keymaps to load and in what order. It's a good idea to provide
+default keymaps for your extension. They can be customized by users later. See
+the [main keymaps documentation]() for more information.
+
+### Snippets
+
+### Grammars
+
+## TextMate Compatibility
