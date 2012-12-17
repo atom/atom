@@ -24,10 +24,14 @@ class TagGenerator
 
     label = sections[0]
     line = parseInt(sections[2]) - 1
-    if prefix = @parsePrefix(sections[4])
-      label = "#{prefix}::#{label}"
-    if signature = @parsePrefix(sections[5])
-      label = "#{label}#{signature}"
+    if sections.length > 5
+      if prefix = @parsePrefix(sections[4])
+        label = "#{prefix}::#{label}"
+      if suffix = @parsePrefix(sections[5])
+        label = "#{label}#{suffix}"
+    else
+      if suffix = @parsePrefix(sections[4])
+        label = "#{label}#{suffix}"
 
     tag =
       position: new Point(line, 0)
