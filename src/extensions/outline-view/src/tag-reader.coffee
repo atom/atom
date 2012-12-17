@@ -3,8 +3,7 @@ $ = require 'jquery'
 
 module.exports =
 
-getTagsFile: (editor) ->
-  project = editor.rootView().project
+getTagsFile: (project) ->
   tagsFile = project.resolve("tags") or project.resolve("TAGS")
   return tagsFile if fs.isFile(tagsFile)
 
@@ -12,14 +11,14 @@ find: (editor) ->
   word = editor.getTextInRange(editor.getCursor().getCurrentWordBufferRange())
   return [] unless word.length > 0
 
-  tagsFile = @getTagsFile(editor)
+  tagsFile = @getTagsFile(editor.rootView().project)
   return [] unless tagsFile
 
   $tags.find(tagsFile, word) or []
 
-getAllTags: (editor, callback) ->
+getAllTags: (project, callback) ->
   deferred = $.Deferred()
-  tagsFile = @getTagsFile(editor)
+  tagsFile = @getTagsFile(project)
   if tagsFile
     $tags.getAllTagsAsync tagsFile, (tags) =>
       deferred.resolve(tags)
