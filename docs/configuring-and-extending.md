@@ -23,8 +23,7 @@ way:
 # basic key update
 config.set("editor.autosave", true)
 
-# mutate a value directly
-config.fuzzyFinder.ignoredPaths.push "vendor"
+config.get("fuzzyFinder.ignoredPaths").push "vendor"
 config.update() # be sure to call `config.update` after the change
 ```
 
@@ -33,29 +32,14 @@ can use to change Atom's behavior.
 
 ## Reading Config Settings
 
-You can read a value from `config` once, or `observe` a key path to stay updated
-when the value changes:
+You can read a value from `config` with `config.get`:
 
 ```coffeescript
-# read once
-@autosave() if config.editor.autosave
-
-# read once with a key path string
+# read a value with `config.get`
 @autosave() if config.get "editor.autosave"
+```
 
-# stay updated; call `subscription.cancel()` when you no longer want updates
-subscription =
-  config.observe "editor.fontSize", (size) ->
-    console.log "The font size is #{size}"
-``
-
-The `config.observe` method will call the given callback immediately with the
-current value for the given key path, and it will also call it in the future
-whenever the value of that key path changes.
-
-If you're observing a config setting from a SpacePen view, you may want to use
-the `.observeConfig` method, which helps you to avoid leaking the config
-subscription.
+Or you can use `observeConfig` to track changes from a view object.
 
 ```coffeescript
 class MyView extends View
@@ -63,16 +47,22 @@ class MyView extends View
     @observeConfig 'editor.lineHeight', => @adjust()
 ```
 
-Subscriptions made with `.observeConfig` are automatically cancelled when the
-view is removed. You can cancel config subscriptions without removing the view
-via the `.unobserveConfig` method.
+The `observeConfig` method will call the given callback immediately with the
+current value for the specified key path, and it will also call it in the future
+whenever the value of that key path changes.
+
+Subscriptions made with `observeConfig` are automatically cancelled when the
+view is removed. You can cancel config subscriptions manually via the
+`unobserveConfig` method.
 
 ```coffeescript
 view1.unobserveConfig() # unobserve all properties
 view2.unobserveConfig("editor.lineHeight") # unobserve a specific property
 ```
 
-Non-view objects can gain this ability via the `ConfigObserver` mixin:
+You can add the ability to observe config values to non-view classes by
+extending their prototype with the `ConfigObserver` mixin:
+
 ```coffeescript
 ConfigObserver = require 'config-observer'
 _.extend MyClass.prototype, ConfigObserver
@@ -84,45 +74,51 @@ Users and extension authors can provide language-specific behavior by employing
 *scoped configuration keys*. By associating key values with a specific scope,
 you can make Atom behave differently in different contexts. For example, if you
 want Atom to auto-indent pasted text in some languages but not others, you can
-place the key under a scope selector.
+give the `autoIndentPastedText` key a different value under a scope selector:
 
 ```coffeescript
 # in config.cson
 editor:
   autoIndentPastedText: true
-"~ .source.coffee":
-  editor:
-    autoIndentPastedText: false
+scopes:
+  ".source.coffee":
+    editor:
+      autoIndentPastedText: false
 ```
 
-Scope selectors are only allowed at the top level of the config object, and they
-are always prefixed with a `~` character. Any basic CSS 3 selector is permitted,
-but you should leave out element names to make your keys accessible outside the
-view layer.
+Scope selectors are placed under the `scope` key at the top-level of the
+configuration file. The values you specify for keys under a selector will
+override global values in that specific scope. Any basic CSS 3 selector is
+permitted, but you should leave out element names to make your keys accessible
+outside the view layer.
 
 ### Reading Scoped Config Settings
 
 Use the `config.inScope` method to the read keys with the most specific selector
-match.
+match:
 
 ```coffeescript
 scope = [".source.coffee", ".meta.class.instance.constructor"]
 config.inScope(scope).get "editor.lineComment"
-config.inScope(scope).observe "editor.autoIndentPastedText", -> # ...
 ```
 
 Pass `.inScope` an array of scope descriptors, which describes a specific
 element. This is frequently useful when you get the nested scopes for a position
 in the buffer based on its syntax. You can also pass an actual DOM element
-to use its nesting within the DOM as fodder for the scope selectors (†):
+to use its nesting within the DOM as fodder for the scope selectors (†).
 
 ```coffeescript
 config.inScope(fuzzyFinder.miniEditor).get("editor.fontSize")
 ```
 
+`observeConfig` can take a scope as its first argument:
+
+```
+@observeConfig scope, "editor.autoIndentPastedText", -> # ...
+```
+
 †:  Matching DOM elements fits cleanly into this scheme, but I can't think of a
     use for it currently. Let's keep it in the back of our minds though.
-
 
 # Themes
 
@@ -207,19 +203,16 @@ semantics and those of stylesheets, but they should be negligible in practice.
 
 ## Installing Extensions
 
-To install an extension, clone it into the `~/.atom/extensions` directory. The
-next time you start Atom, it will automatically activate any new extensions,
-adding them to the `config.core.extensions` array. If you want to disable an
-extension without removing it from the extensions directory, insert a `!`
-character in front of its name.
+To install an extension, clone it into the `~/.atom/extensions` directory.
+If you want to disable an extension without removing it from the extensions
+directory, insert its name into `config.core.disabledExtensions`:
 
 config.cson:
 ```coffeescript
 core:
-  extensions: [
+  disabledExtensions: [
     "fuzzy-finder",
-    "tree-view",
-    "!autocomplete" # disabled
+    "tree-view"
   ]
 ```
 
@@ -270,6 +263,31 @@ default keymaps for your extension. They can be customized by users later. See
 the [main keymaps documentation]() for more information.
 
 ### Snippets
+
+An extension can supply snippets in a `snippets` directory as `.cson` or `.json`
+files:
+
+```coffeescript
+".source.coffee .specs":
+  "Expect":
+    prefix: "ex"
+    body: "expect($1).to$2"
+  "Describe":
+    prefix: "de"
+    body: """
+      describe "${1:description}", ->
+        ${2:body}
+    """
+```
+
+A snippets file contains scope selectors at its top level. Each scope selector
+contains a hash of snippets keyed by their name. Each snippet specifies a `prefix`
+and a `body` key.
+
+All files in the directory will be automatically loaded, unless the
+`package.json` supplies a `snippets` key as a manifest. As with all scoped items,
+snippets loaded later take precedence over earlier snippets when two snippets
+match a scope with the same specificity.
 
 ### Grammars
 
