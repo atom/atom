@@ -12,8 +12,8 @@ class PreviewList extends ScrollView
 
   initialize: (@rootView) ->
     super
-    @on 'core:move-down', => @selectNextOperation()
-    @on 'core:move-up', => @selectPreviousOperation()
+    @on 'core:move-down', => @selectNextOperation(); false
+    @on 'core:move-up', => @selectPreviousOperation(); false
     @on 'core:confirm', => @executeSelectedOperation()
 
     @on 'mousedown', 'li', (e) =>
