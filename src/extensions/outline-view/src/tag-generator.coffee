@@ -15,6 +15,8 @@ class TagGenerator
       section.substring(5)
     else if section.indexOf('signature:') is 0
       section.substring(10)
+    else if section.indexOf('struct:') is 0
+      section.substring(7)
     else
       section
 
