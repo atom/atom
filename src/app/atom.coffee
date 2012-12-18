@@ -1,72 +1,75 @@
-fs = require('fs')
-
-atom.exitWhenDone = window.location.params.exitWhenDone
+fs = require 'fs'
+_ = require 'underscore'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
-atom.pendingBrowserProcessCallbacks = {}
+_.extend atom,
+  exitWhenDone: window.location.params.exitWhenDone
 
-atom.sendMessageToBrowserProcess = (name, data=[], callbacks) ->
-  messageId = messageIdCounter++
-  data.unshift(messageId)
-  callbacks = [callbacks] if typeof callbacks is 'function'
-  @pendingBrowserProcessCallbacks[messageId] = callbacks
-  originalSendMessageToBrowserProcess(name, data)
+  pendingBrowserProcessCallbacks: {}
 
-atom.receiveMessageFromBrowserProcess = (name, data) ->
-  if name is 'reply'
-    [messageId, callbackIndex] = data.shift()
-    @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+  open: (args...) ->
+    @sendMessageToBrowserProcess('open', args)
 
-atom.open = (args...) ->
-  @sendMessageToBrowserProcess('open', args)
+  openUnstable: (args...) ->
+    @sendMessageToBrowserProcess('openUnstable', args)
 
-atom.openUnstable = (args...) ->
-  @sendMessageToBrowserProcess('openUnstable', args)
+  newWindow: (args...) ->
+    @sendMessageToBrowserProcess('newWindow', args)
 
-atom.newWindow = (args...) ->
-  @sendMessageToBrowserProcess('newWindow', args)
+  confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
+    args = [message, detailedMessage]
+    callbacks = []
+    while buttonLabelsAndCallbacks.length
+      args.push(buttonLabelsAndCallbacks.shift())
+      callbacks.push(buttonLabelsAndCallbacks.shift())
+    @sendMessageToBrowserProcess('confirm', args, callbacks)
 
-atom.confirm = (message, detailedMessage, buttonLabelsAndCallbacks...) ->
-  args = [message, detailedMessage]
-  callbacks = []
-  while buttonLabelsAndCallbacks.length
-    args.push(buttonLabelsAndCallbacks.shift())
-    callbacks.push(buttonLabelsAndCallbacks.shift())
-  @sendMessageToBrowserProcess('confirm', args, callbacks)
+  showSaveDialog: (callback) ->
+    @sendMessageToBrowserProcess('showSaveDialog', [], callback)
 
-atom.showSaveDialog = (callback) ->
-  @sendMessageToBrowserProcess('showSaveDialog', [], callback)
+  toggleDevTools: ->
+    @sendMessageToBrowserProcess('toggleDevTools')
 
-atom.toggleDevTools = ->
-  @sendMessageToBrowserProcess('toggleDevTools')
+  showDevTools: ->
+    @sendMessageToBrowserProcess('showDevTools')
 
-atom.showDevTools = ->
-  @sendMessageToBrowserProcess('showDevTools')
+  focus: ->
+    @sendMessageToBrowserProcess('focus')
 
-atom.focus = ->
-  @sendMessageToBrowserProcess('focus')
+  exit: (status) ->
+    @sendMessageToBrowserProcess('exit', [status])
 
-atom.exit = (status) ->
-  @sendMessageToBrowserProcess('exit', [status])
+  log: (message) ->
+    @sendMessageToBrowserProcess('log', [message])
 
-atom.log = (message) ->
-  @sendMessageToBrowserProcess('log', [message])
+  beginTracing: ->
+    @sendMessageToBrowserProcess('beginTracing')
 
-atom.beginTracing = ->
-  @sendMessageToBrowserProcess('beginTracing')
+  endTracing: ->
+    @sendMessageToBrowserProcess('endTracing')
 
-atom.endTracing = ->
-  @sendMessageToBrowserProcess('endTracing')
+  getRootViewStateForPath: (path) ->
+    if json = localStorage[path]
+      JSON.parse(json)
 
-atom.getRootViewStateForPath = (path) ->
-  if json = localStorage[path]
-    JSON.parse(json)
+  setRootViewStateForPath: (path, state) ->
+    return unless path
+    if state?
+      localStorage[path] = JSON.stringify(state)
+    else
+      delete localStorage[path]
 
-atom.setRootViewStateForPath = (path, state) ->
-  return unless path
-  if state?
-    localStorage[path] = JSON.stringify(state)
-  else
-    delete localStorage[path]
+  sendMessageToBrowserProcess: (name, data=[], callbacks) ->
+    messageId = messageIdCounter++
+    data.unshift(messageId)
+    callbacks = [callbacks] if typeof callbacks is 'function'
+    @pendingBrowserProcessCallbacks[messageId] = callbacks
+    originalSendMessageToBrowserProcess(name, data)
+
+  receiveMessageFromBrowserProcess: (name, data) ->
+    if name is 'reply'
+      [messageId, callbackIndex] = data.shift()
+      @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+
