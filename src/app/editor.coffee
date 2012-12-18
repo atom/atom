@@ -455,7 +455,7 @@ class Editor extends View
     @resetDisplay()
 
     if @attached and @activeEditSession.buffer.isInConflict()
-      @showBufferConflictAlert(@activeEditSession)
+      setTimeout(( =>@showBufferConflictAlert(@activeEditSession)), 0) # Display after editSession has a chance to display
 
   showBufferConflictAlert: (editSession) ->
     atom.confirm(
