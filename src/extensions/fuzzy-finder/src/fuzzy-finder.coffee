@@ -2,7 +2,6 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
-Editor = require 'editor'
 
 module.exports =
 class FuzzyFinder extends SelectList
