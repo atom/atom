@@ -23,10 +23,6 @@ class Project
     @setPath(path)
     @editSessions = []
     @buffers = []
-    @ignoredNames = [
-      '.git'
-      '.DS_Store'
-    ]
     @repo = new Git(path)
 
   destroy: ->
@@ -59,7 +55,8 @@ class Project
 
   isPathIgnored: (path) ->
     for segment in path.split("/")
-      return true if _.contains(@ignoredNames, segment)
+      ignoredNames = config.get("core.ignoredNames") or []
+      return true if _.contains(ignoredNames, segment)
 
     @ignoreRepositoryPath(path)
 
