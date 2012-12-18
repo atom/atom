@@ -807,3 +807,11 @@ describe 'Buffer', ->
         buffer.delete([[0, 0], [0, 1]], '')
         advanceClock(delay)
         expect(contentsModifiedHandler).toHaveBeenCalledWith(differsFromDisk:false)
+
+  describe ".append(text)", ->
+    it "adds text to the end of the buffer", ->
+      buffer.setText("")
+      buffer.append("a")
+      expect(buffer.getText()).toBe "a"
+      buffer.append("b\nc");
+      expect(buffer.getText()).toBe "ab\nc"

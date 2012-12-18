@@ -189,6 +189,9 @@ class Buffer
 
     @change(new Range(startPoint, endPoint), '')
 
+  append: (text) ->
+    @insert(@getEofPosition(), text)
+
   insert: (point, text) ->
     @change(new Range(point, point), text)
 
