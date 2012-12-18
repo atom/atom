@@ -19,7 +19,6 @@ class Config
     @settings = {}
     @loadUserConfig()
     @assignDefaults()
-    @registerNewExtensions()
     @requireExtensions()
     @requireUserInitScript()
 
@@ -33,18 +32,6 @@ class Config
     @setDefaults "core", require('root-view').configDefaults
     @setDefaults "editor", require('editor').configDefaults
 
-  registerNewExtensions: ->
-    shouldUpdate = false
-    for extensionName in @getAvailableExtensions()
-      @core.extensions.push(extensionName) unless @isExtensionRegistered(extensionName)
-      shouldUpdate = true
-    @update() if shouldUpdate
-
-  isExtensionRegistered: (extensionName) ->
-    return true if _.contains(@core.extensions, extensionName)
-    return true if _.contains(@core.extensions, "!#{extensionName}")
-    false
-
   getAvailableExtensions: ->
     availableExtensions =
       fs.list(bundledExtensionsDirPath)
@@ -52,9 +39,10 @@ class Config
     _.unique(availableExtensions)
 
   requireExtensions: ->
-    for extensionName in config.get "core.extensions"
-      requireExtension(extensionName) unless extensionName[0] == '!'
-
+    disabledExtensions = config.get("core.disabledExtensions") ? []
+    for extensionName in @getAvailableExtensions()
+      unless _.contains disabledExtensions, extensionName
+        requireExtension(extensionName)
 
   get: (keyPath) ->
     keys = @keysForKeyPath(keyPath)

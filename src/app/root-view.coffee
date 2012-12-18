@@ -17,7 +17,7 @@ module.exports =
 class RootView extends View
   @configDefaults:
     ignoredNames: [".git", ".svn", ".DS_Store"]
-    extensions: []
+    disabledExtensions: []
 
   @content: ->
     @div id: 'root-view', tabindex: -1, =>
