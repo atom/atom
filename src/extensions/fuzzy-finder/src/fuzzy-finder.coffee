@@ -6,7 +6,6 @@ $ = require 'jquery'
 module.exports =
 class FuzzyFinder extends SelectList
   @activate: (rootView) ->
-    requireStylesheet 'select-list.css'
     requireStylesheet 'fuzzy-finder.css'
     @instance = new FuzzyFinder(rootView)
     rootView.command 'fuzzy-finder:toggle-file-finder', => @instance.toggleFileFinder()
