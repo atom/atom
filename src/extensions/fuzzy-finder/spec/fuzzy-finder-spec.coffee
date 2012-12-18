@@ -3,7 +3,7 @@ FuzzyFinder = require 'fuzzy-finder'
 $ = require 'jquery'
 {$$} = require 'space-pen'
 
-fdescribe 'FuzzyFinder', ->
+describe 'FuzzyFinder', ->
   [rootView, finder] = []
 
   beforeEach ->
@@ -231,7 +231,7 @@ fdescribe 'FuzzyFinder', ->
 
   describe "path ignoring", ->
     it "ignores paths that match entries in config.fuzzy-finder.ignoredNames", ->
-      config.update("fuzzy-finder.ignoredNames", ["tree-view"])
+      config.set("fuzzy-finder.ignoredNames", ["tree-view"])
       rootView.trigger 'fuzzy-finder:toggle-file-finder'
       finder.maxItems = Infinity
       finder.miniEditor.setText("file1")

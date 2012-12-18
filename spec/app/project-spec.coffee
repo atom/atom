@@ -153,7 +153,7 @@ describe "Project", ->
       it "ignores ignored.txt file", ->
         paths = null
         config.get("core.ignoredNames").push("ignored.txt")
-        config.update("core.ignoredNames", config.get("core.ignoredNames"))
+        config.set("core.ignoredNames", config.get("core.ignoredNames"))
         waitsForPromise ->
           project.getFilePaths().done (foundPaths) -> paths = foundPaths
 
@@ -173,7 +173,7 @@ describe "Project", ->
       it "ignores ignored folder", ->
         paths = null
         config.get("core.ignoredNames").push("ignored.txt")
-        config.update("core.ignoredNames", config.get("core.ignoredNames"))
+        config.set("core.ignoredNames", config.get("core.ignoredNames"))
         waitsForPromise ->
           project.getFilePaths().done (foundPaths) -> paths = foundPaths
 

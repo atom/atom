@@ -504,7 +504,7 @@ describe "Editor", ->
 
   describe "font size", ->
     it "sets the initial font size based on the value from config", ->
-      config.update("editor.fontSize", 20)
+      config.set("editor.fontSize", 20)
       newEditor = editor.splitRight()
       expect(editor.css('font-size')).toBe '20px'
       expect(newEditor.css('font-size')).toBe '20px'
@@ -515,12 +515,12 @@ describe "Editor", ->
         rootView.height(200)
         rootView.width(200)
 
-        config.update("editor.fontSize", 10)
+        config.set("editor.fontSize", 10)
         lineHeightBefore = editor.lineHeight
         charWidthBefore = editor.charWidth
         editor.setCursorScreenPosition [5, 6]
 
-        config.update("editor.fontSize", 30)
+        config.set("editor.fontSize", 30)
         expect(editor.css('font-size')).toBe '30px'
         expect(editor.lineHeight).toBeGreaterThan lineHeightBefore
         expect(editor.charWidth).toBeGreaterThan charWidthBefore
@@ -530,10 +530,10 @@ describe "Editor", ->
 
       it "updates the position and size of selection regions", ->
         rootView.attachToDom()
-        config.update("editor.fontSize", 10)
+        config.set("editor.fontSize", 10)
         editor.setSelectedBufferRange([[5, 2], [5, 7]])
 
-        config.update("editor.fontSize", 30)
+        config.set("editor.fontSize", 30)
         selectionRegion = editor.find('.region')
         expect(selectionRegion.position().top).toBe 5 * editor.lineHeight
         expect(selectionRegion.position().left).toBe 2 * editor.charWidth
@@ -542,7 +542,7 @@ describe "Editor", ->
 
       it "updates the gutter width and font size", ->
         rootView.attachToDom()
-        config.update("editor.fontSize", 16 * 4)
+        config.set("editor.fontSize", 16 * 4)
         expect(editor.gutter.css('font-size')).toBe "#{16 * 4}px"
         expect(editor.gutter.width()).toBe(141)
 
@@ -551,7 +551,7 @@ describe "Editor", ->
         originalLineCount = editor.renderedLines.find(".line").length
         expect(originalLineCount).toBeGreaterThan 0
 
-        config.update("editor.fontSize", 10)
+        config.set("editor.fontSize", 10)
         expect(editor.renderedLines.find(".line").length).toBeGreaterThan originalLineCount
 
   describe "mouse events", ->
@@ -1555,10 +1555,10 @@ describe "Editor", ->
         expect(config.editor.showInvisibles).toBeFalsy()
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
 
-        config.update("editor.showInvisibles", true)
+        config.set("editor.showInvisibles", true)
         expect(editor.renderedLines.find('.line').text()).toBe "•a line with tabs▸ and spaces•¬"
 
-        config.update("editor.showInvisibles", false)
+        config.set("editor.showInvisibles", false)
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
 
       it "displays newlines(¬) as their own token outside of the other tokens scope", ->
@@ -1939,7 +1939,7 @@ describe "Editor", ->
 
   describe "when autosave is enabled", ->
     it "autosaves the current buffer when the editor loses focus or switches edit sessions", ->
-      config.update("editor.autosave", true)
+      config.set("editor.autosave", true)
       rootView.attachToDom()
       editor2 = editor.splitRight()
       spyOn(editor2.activeEditSession, 'save')

@@ -54,8 +54,45 @@ class Config
     for extensionName in config.core.extensions
       requireExtension(extensionName) unless extensionName[0] == '!'
 
-  update: (keyPathString, value) ->
-    @setValueAtKeyPath(keyPathString.split('.'), value) if keyPathString
+
+  get: (keyPath) ->
+    keyPath = keyPath.split(".") if typeof keyPath is 'string'
+    value = this
+    for key in keyPath
+      break unless value = value[key]
+    value
+
+  set: (keyPath, value) ->
+    if typeof keyPath is 'string'
+      keyPath = keyPath.split(".")
+    else
+      keyPath = new Array(keyPath...)
+
+    hash = this
+    while keyPath.length > 1
+      key = keyPath.shift()
+      hash[key] ?= {}
+      hash = hash[key]
+    hash[keyPath.shift()] = value
+
+    @update()
+    value
+
+  observe: (keyPath, callback) ->
+    value = @get(keyPath)
+    previousValue = _.clone(value)
+    updateCallback = =>
+      value = @get(keyPath)
+      unless value == previousValue
+        previousValue = _.clone(value)
+        callback(value)
+
+    subscription = { cancel: => @off 'update', updateCallback  }
+    @on 'update', updateCallback
+    callback(value)
+    subscription
+
+  update: ->
     @save()
     @trigger 'update'
 
@@ -71,39 +108,5 @@ class Config
       require userInitScriptPath if fs.exists(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
-
-  valueAtKeyPath: (keyPath) ->
-    value = this
-    for key in keyPath
-      break unless value = value[key]
-    value
-
-  setValueAtKeyPath: (keyPath, value) ->
-    keyPath = new Array(keyPath...)
-    hash = this
-    while keyPath.length > 1
-      key = keyPath.shift()
-      hash[key] ?= {}
-      hash = hash[key]
-    hash[keyPath.shift()] = value
-
-  get: (keyPathString) ->
-    @valueAtKeyPath(keyPathString.split("."))
-
-  set: (keyPathString, value) ->
-    @setValueAtKeyPath(keyPathString.split("."), value)
-
-  observe: (keyPathString, callback) ->
-    keyPath = keyPathString.split('.')
-    value = @valueAtKeyPath(keyPath)
-    updateCallback = =>
-      newValue = @valueAtKeyPath(keyPath)
-      unless newValue == value
-        value = newValue
-        callback(value)
-    subscription = { cancel: => @off 'update', updateCallback  }
-    @on 'update', updateCallback
-    callback(value)
-    subscription
 
 _.extend Config.prototype, EventEmitter

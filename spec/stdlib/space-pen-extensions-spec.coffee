@@ -24,21 +24,21 @@ describe "SpacePen extensions", ->
       expect(observeHandler).toHaveBeenCalledWith(undefined)
       observeHandler.reset()
 
-      config.update("foo.bar", "hello")
+      config.set("foo.bar", "hello")
 
       expect(observeHandler).toHaveBeenCalledWith("hello")
       observeHandler.reset()
 
       view.unsubscribe()
 
-      config.update("foo.bar", "goodbye")
+      config.set("foo.bar", "goodbye")
 
       expect(observeHandler).not.toHaveBeenCalled()
 
     it "unsubscribes when the view is removed", ->
       observeHandler.reset()
       parent.remove()
-      config.update("foo.bar", "hello")
+      config.set("foo.bar", "hello")
       expect(observeHandler).not.toHaveBeenCalled()
 
   describe "View#subscribe(eventEmitter, eventName, callback)", ->

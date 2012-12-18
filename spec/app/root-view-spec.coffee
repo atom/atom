@@ -557,7 +557,7 @@ describe "RootView", ->
       expect(editor.getFontSize()).toBe fontSizeBefore
 
     it "does not allow the font size to be less than 1", ->
-      config.update("editor.fontSize", 1)
+      config.set("editor.fontSize", 1)
       rootView.trigger 'window:decrease-font-size'
       expect(editor.getFontSize()).toBe 1
 
