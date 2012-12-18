@@ -275,3 +275,18 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;"
         expect(buffer.lineForRow(2)).toBe "/*  width: 110%;*/"
         expect(buffer.lineForRow(3)).toBe "}"
+
+      it "uncomments lines with leading whitespace", ->
+        buffer.replaceLines(2, 2, "  /*width: 110%;*/")
+        languageMode.toggleLineCommentsForBufferRows(2, 2)
+        expect(buffer.lineForRow(2)).toBe "  width: 110%;"
+
+      it "uncomments lines with trailing whitespace", ->
+        buffer.replaceLines(2, 2, "/*width: 110%;*/  ")
+        languageMode.toggleLineCommentsForBufferRows(2, 2)
+        expect(buffer.lineForRow(2)).toBe "width: 110%;  "
+
+      it "uncomments lines with leading and trailing whitespace", ->
+        buffer.replaceLines(2, 2, "   /*width: 110%;*/ ")
+        languageMode.toggleLineCommentsForBufferRows(2, 2)
+        expect(buffer.lineForRow(2)).toBe "   width: 110%; "

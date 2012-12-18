@@ -1586,6 +1586,17 @@ describe "EditSession", ->
         expect(buffer.lineForRow(10)).toBe ""
         expect(editSession.getSelectedBufferRange()).toEqual [[10, 0], [10, 0]]
 
+      it "uncomments when the line has leading whitespace", ->
+        editSession.setSelectedBufferRange([[10, 0], [10, 0]])
+        editSession.toggleLineCommentsInSelection()
+
+        expect(buffer.lineForRow(10)).toBe "// "
+        editSession.moveCursorToBeginningOfLine()
+        editSession.insertText("  ")
+        editSession.setSelectedBufferRange([[10, 0], [10, 0]])
+        editSession.toggleLineCommentsInSelection()
+        expect(buffer.lineForRow(10)).toBe "  "
+
     describe ".undo() and .redo()", ->
       it "undoes/redoes the last change", ->
         editSession.insertText("foo")

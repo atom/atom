@@ -71,20 +71,23 @@ class LanguageMode
 
     buffer = @editSession.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
-    commentStartRegex = new OnigRegExp("^\s*#{commentStartRegexString}")
+    commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
     shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
     if commentEndString = TextMateBundle.lineCommentEndStringForScope(scopes[0])
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
-        commentEndRegex = new OnigRegExp("#{commentEndRegexString}\s*$")
+        commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
         startMatch =  commentStartRegex.search(buffer.lineForRow(start))
         endMatch = commentEndRegex.search(buffer.lineForRow(end))
         if startMatch and endMatch
           buffer.transact ->
-            buffer.change([[start, 0], [start, startMatch[0].length]], "")
-            endLength = buffer.lineLengthForRow(end)
-            endColumn = endLength - endMatch[0].length
+            columnStart = startMatch[1].length
+            columnEnd = columnStart + startMatch[2].length
+            buffer.change([[start, columnStart], [start, columnEnd]], "")
+
+            endLength = buffer.lineLengthForRow(end) - endMatch[2].length
+            endColumn = endLength - endMatch[1].length
             buffer.change([[end, endColumn], [end, endLength]], "")
       else
         buffer.transact ->
@@ -94,7 +97,9 @@ class LanguageMode
       if shouldUncomment
         for row in [start..end]
           if match = commentStartRegex.search(buffer.lineForRow(row))
-            buffer.change([[row, 0], [row, match[0].length]], "")
+            columnStart = match[1].length
+            columnEnd = columnStart + match[2].length
+            buffer.change([[row, columnStart], [row, columnEnd]], "")
       else
         for row in [start..end]
           buffer.insert([row, 0], commentStartString)
