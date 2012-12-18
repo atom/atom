@@ -62,7 +62,6 @@ class FuzzyFinder extends SelectList
       @setLoading("Indexing...")
       @rootView.project.getFilePaths().done (paths) =>
         ignoredNames = config.get("fuzzy-finder.ignoredNames")
-        console.log config
         @projectPaths = paths
         if ignoredNames
           @projectPaths = @projectPaths.filter (path) ->
