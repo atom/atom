@@ -343,7 +343,7 @@ describe 'Buffer', ->
         saveBuffer.save()
         expect(fs.read(filePath)).toEqual 'Buffer contents!'
 
-      it "fires beforeSave and afterSave events around the call to fs.write", ->
+      it "fires before-save and after-save events around the call to fs.write", ->
         events = []
         beforeSave1 = -> events.push('beforeSave1')
         beforeSave2 = -> events.push('beforeSave2')
