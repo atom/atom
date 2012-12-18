@@ -151,6 +151,15 @@
   [[AtomWindowController alloc] initBenchmarksThenExit:exitWhenDone];
 }
 
+- (IBAction)aboutAtom:(id)sender {
+  NSString *readmeFile = [[NSBundle mainBundle] pathForResource:@"README" ofType:@"md"];
+  [self open:readmeFile];
+}
+
+- (IBAction)preferences:(id)sender {
+  [[AtomWindowController alloc] initWithBootstrapScript:@"preferences-bootstrap" background:NO alwaysUseBundleResourcePath:YES];
+}
+
 # pragma mark NSApplicationDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {

@@ -19,6 +19,8 @@ class AtomCefClient;
 - (void)runSpecsThenExit:(BOOL)exitWhenDone;
 - (NSDictionary *)arguments;
 - (void)runBenchmarksThenExit:(BOOL)exitWhenDone;
+- (IBAction)aboutAtom:(id)sender;
+- (IBAction)preferences:(id)sender;
 
 @property (nonatomic, retain) NSDictionary *arguments;
 

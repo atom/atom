@@ -29,4 +29,4 @@ for COFFEE_FILE in $COFFEE_FILES; do
 done;
 
 # Copy non-coffee files into bundle
-rsync --archive --recursive --exclude="src/**/*.coffee" src static vendor spec benchmark themes "$RESOUCES_PATH"
+rsync --archive --recursive --exclude="src/**/*.coffee" src static vendor spec benchmark themes README.md "$RESOUCES_PATH"
