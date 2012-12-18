@@ -1,6 +1,7 @@
 _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
+$ = require 'jquery'
 
 TextMateGrammar = require 'text-mate-grammar'
 
@@ -23,7 +24,10 @@ class TextMateBundle
     @bundles.push(bundle)
 
     for scopeSelector, preferences of bundle.getPreferencesByScopeSelector()
-      @preferencesByScopeSelector[scopeSelector] = preferences
+      if @preferencesByScopeSelector[scopeSelector]?
+        _.extend(@preferencesByScopeSelector[scopeSelector], preferences)
+      else
+        @preferencesByScopeSelector[scopeSelector] = preferences
 
     for grammar in bundle.grammars
       @grammars.push(grammar)
@@ -91,7 +95,9 @@ class TextMateBundle
           console.warn "Failed to parse preference at path '#{preferencePath}'", e
         else
           { scope, settings } = data[0]
-          preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
+          for scope in scope.split(',')
+            scope = $.trim(scope)
+            preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
 
     preferencesByScopeSelector
 
@@ -100,4 +106,3 @@ class TextMateBundle
 
   getPreferencesPath: ->
     fs.join(@path, "Preferences")
-
