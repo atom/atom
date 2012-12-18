@@ -16,7 +16,7 @@ class SelectList extends View
 
   maxItems: Infinity
   scheduleTimeout: null
-  inputThrottle: 200
+  inputThrottle: 50
   filteredArray: null
   cancelling: false
 
