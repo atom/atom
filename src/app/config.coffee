@@ -87,6 +87,12 @@ class Config
       hash = hash[key]
     hash[keyPath.shift()] = value
 
+  get: (keyPathString) ->
+    @valueAtKeyPath(keyPathString.split("."))
+
+  set: (keyPathString, value) ->
+    @setValueAtKeyPath(keyPathString.split("."), value)
+
   observe: (keyPathString, callback) ->
     keyPath = keyPathString.split('.')
     value = @valueAtKeyPath(keyPath)
