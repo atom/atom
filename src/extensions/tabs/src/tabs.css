@@ -37,6 +37,7 @@
   width: 14px;
   height: 14px;
   color: #777;
+  cursor: pointer;
 }
 
 .tab .close-icon:before {
