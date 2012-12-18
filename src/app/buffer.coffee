@@ -73,8 +73,10 @@ class Buffer
       @trigger "path-change", this
 
   reload: ->
+    @trigger 'before-reload'
     @updateCachedDiskContents()
     @setText(@cachedDiskContents)
+    @trigger 'after-reload'
 
   updateCachedDiskContents: ->
     @cachedDiskContents = @file.read()

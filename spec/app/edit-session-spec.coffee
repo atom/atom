@@ -1822,3 +1822,9 @@ describe "EditSession", ->
       expect(editSession.indentLevelForLine("  \thello")).toBe(2)
       expect(editSession.indentLevelForLine("  \t hello")).toBe(2.5)
       expect(editSession.indentLevelForLine("  \t \thello")).toBe(3.5)
+
+  describe "when the buffer is reloaded", ->
+    it "preserves the current cursor position", ->
+      editSession.setCursorScreenPosition([0, 1])
+      editSession.buffer.reload()
+      expect(editSession.getCursorScreenPosition()).toEqual [0,1]

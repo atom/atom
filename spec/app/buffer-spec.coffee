@@ -359,6 +359,14 @@ describe 'Buffer', ->
         saveBuffer.save()
         expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fs.write', 'afterSave1', 'afterSave2']
 
+      it "fires before-reload and after-reload events when reloaded", ->
+        events = []
+
+        saveBuffer.on 'before-reload', -> events.push 'before-reload'
+        saveBuffer.on 'after-reload', -> events.push 'after-reload'
+        saveBuffer.reload()
+        expect(events).toEqual ['before-reload', 'after-reload']
+
     describe "when the buffer has no path", ->
       it "throws an exception", ->
         saveBuffer = new Buffer
