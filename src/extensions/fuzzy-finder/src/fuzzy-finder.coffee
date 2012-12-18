@@ -23,6 +23,8 @@ class FuzzyFinder extends SelectList
   initialize: (@rootView) ->
     super
     $(window).on 'focus', => @array = null
+    @observeConfig 'fuzzy-finder.ignoredNames', (ignoredNames) =>
+      @projectPaths = null
 
   itemForElement: (path) ->
     $$ -> @li path
@@ -59,8 +61,16 @@ class FuzzyFinder extends SelectList
     else
       @setLoading("Indexing...")
       @rootView.project.getFilePaths().done (paths) =>
+        ignoredNames = config.get("fuzzy-finder.ignoredNames")
+        console.log config
         @projectPaths = paths
-        @setArray(paths)
+        if ignoredNames
+          @projectPaths = @projectPaths.filter (path) ->
+            for segment in path.split("/")
+              return false if _.contains(ignoredNames, segment)
+            return true
+
+        @setArray(@projectPaths)
 
   populateOpenBufferPaths: ->
     @paths = @rootView.getOpenBufferPaths().map (path) =>
