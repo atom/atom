@@ -83,7 +83,7 @@ class Config
     previousValue = _.clone(value)
     updateCallback = =>
       value = @get(keyPath)
-      unless value == previousValue
+      unless _.isEqual(value, previousValue)
         previousValue = _.clone(value)
         callback(value)
 

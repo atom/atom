@@ -25,13 +25,17 @@ describe "Config", ->
       config.get("foo.bar.baz").push("b")
       config.update()
       expect(observeHandler).toHaveBeenCalledWith config.get("foo.bar.baz")
+      observeHandler.reset()
+
+      config.update()
+      expect(observeHandler).not.toHaveBeenCalled()
 
   describe ".observe(keyPath)", ->
     observeHandler = null
 
     beforeEach ->
       observeHandler = jasmine.createSpy("observeHandler")
-      config.foo = { bar: { baz: "value 1" } }
+      config.set("foo.bar.baz", "value 1")
       config.observe "foo.bar.baz", observeHandler
 
     it "fires the given callback with the current value at the keypath", ->
