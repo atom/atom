@@ -15,8 +15,17 @@ describe "Config", ->
       expect(config.save).toHaveBeenCalled()
       expect(observeHandler).toHaveBeenCalledWith 42
 
+  describe ".setDefaults(keyPath, defaults)", ->
+    it "assigns any previously-unassigned keys to the object at the key path", ->
+      config.set("foo.bar.baz", a: 1)
+      config.setDefaults("foo.bar.baz", a: 2, b: 3, c: 4)
+      expect(config.get("foo.bar.baz")).toEqual(a: 1, b: 3, c: 4)
+
+      config.setDefaults("foo.quux", x: 0, y: 1)
+      expect(config.get("foo.quux")).toEqual(x: 0, y: 1)
+
   describe ".update()", ->
-    it "updates observers if a value is mutated without the use of .set()", ->
+    it "updates observers if a value is mutated without the use of .set", ->
       config.set("foo.bar.baz", ["a"])
       observeHandler = jasmine.createSpy "observeHandler"
       config.observe "foo.bar.baz", observeHandler

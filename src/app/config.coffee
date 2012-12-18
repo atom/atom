@@ -13,8 +13,10 @@ require.paths.unshift userExtensionsDirPath
 module.exports =
 class Config
   configDirPath: configDirPath
+  settings: null
 
   load: ->
+    @settings = {}
     @loadUserConfig()
     @assignDefaults()
     @registerNewExtensions()
@@ -24,13 +26,12 @@ class Config
   loadUserConfig: ->
     if fs.exists(configJsonPath)
       userConfig = JSON.parse(fs.read(configJsonPath))
-      _.extend(this, userConfig)
+      _.extend(@settings, userConfig)
 
   assignDefaults: ->
-    @core ?= {}
-    _.defaults(@core, require('root-view').configDefaults)
-    @editor ?= {}
-    _.defaults(@editor, require('editor').configDefaults)
+    @settings ?= {}
+    @setDefaults "core", require('root-view').configDefaults
+    @setDefaults "editor", require('editor').configDefaults
 
   registerNewExtensions: ->
     shouldUpdate = false
@@ -51,32 +52,44 @@ class Config
     _.unique(availableExtensions)
 
   requireExtensions: ->
-    for extensionName in config.core.extensions
+    for extensionName in config.get "core.extensions"
       requireExtension(extensionName) unless extensionName[0] == '!'
 
 
   get: (keyPath) ->
-    keyPath = keyPath.split(".") if typeof keyPath is 'string'
-    value = this
-    for key in keyPath
+    keys = @keysForKeyPath(keyPath)
+    value = @settings
+    for key in keys
       break unless value = value[key]
     value
 
   set: (keyPath, value) ->
-    if typeof keyPath is 'string'
-      keyPath = keyPath.split(".")
-    else
-      keyPath = new Array(keyPath...)
-
-    hash = this
-    while keyPath.length > 1
-      key = keyPath.shift()
+    keys = @keysForKeyPath(keyPath)
+    hash = @settings
+    while keys.length > 1
+      key = keys.shift()
       hash[key] ?= {}
       hash = hash[key]
-    hash[keyPath.shift()] = value
+    hash[keys.shift()] = value
 
     @update()
     value
+
+  setDefaults: (keyPath, defaults) ->
+    keys = @keysForKeyPath(keyPath)
+    hash = @settings
+    for key in keys
+      hash[key] ?= {}
+      hash = hash[key]
+
+    _.defaults hash, defaults
+    @update()
+
+  keysForKeyPath: (keyPath) ->
+    if typeof keyPath is 'string'
+      keyPath.split(".")
+    else
+      new Array(keyPath...)
 
   observe: (keyPath, callback) ->
     value = @get(keyPath)
@@ -97,11 +110,7 @@ class Config
     @trigger 'update'
 
   save: ->
-    keysToWrite = _.clone(this)
-    delete keysToWrite.eventHandlersByEventName
-    delete keysToWrite.eventHandlersByNamespace
-    delete keysToWrite.configDirPath
-    fs.write(configJsonPath, JSON.stringify(keysToWrite, undefined, 2) + "\n")
+    fs.write(configJsonPath, JSON.stringify(@settings, undefined, 2) + "\n")
 
   requireUserInitScript: ->
     try

@@ -42,7 +42,7 @@ class RootView extends View
 
     config.load()
 
-    TextMateTheme.activate(config.core.theme ? 'IR_Black')
+    TextMateTheme.activate(config.get("core.theme") ? 'IR_Black')
 
     @handleEvents()
 
@@ -79,18 +79,17 @@ class RootView extends View
         @setTitle("untitled")
 
     @command 'window:increase-font-size', =>
-      config.editor.fontSize += 1
-      config.update()
+      config.set("editor.fontSize", config.get("editor.fontSize") + 1)
 
     @command 'window:decrease-font-size', =>
-      if config.editor.fontSize > 1
-        config.editor.fontSize -= 1
-        config.update()
+      fontSize = config.get "editor.fontSize"
+      config.set("editor.fontSize", fontSize - 1) if fontSize > 1
+
 
     @command 'window:focus-next-pane', => @focusNextPane()
     @command 'window:save-all', => @saveAll()
     @command 'window:toggle-invisibles', =>
-      config.set("editor.showInvisibles", not config.editor.showInvisibles)
+      config.set("editor.showInvisibles", !config.get("editor.showInvisibles"))
     @command 'window:toggle-ignored-files', =>
       config.set("core.hideGitIgnoredFiles", not config.core.hideGitIgnoredFiles)
 

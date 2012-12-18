@@ -1552,7 +1552,7 @@ describe "Editor", ->
         editor.setText " a line with tabs\tand spaces "
         editor.attachToDom()
 
-        expect(config.editor.showInvisibles).toBeFalsy()
+        expect(config.get("editor.showInvisibles")).toBeFalsy()
         expect(editor.renderedLines.find('.line').text()).toBe " a line with tabs  and spaces "
 
         config.set("editor.showInvisibles", true)
@@ -1574,8 +1574,8 @@ describe "Editor", ->
         rightEditor.setText(" \t ")
         leftEditor = rightEditor.splitLeft()
 
-        config.editor.showInvisibles = true
-        config.editor.invisibles =
+        config.set "editor.showInvisibles", true
+        config.set "editor.invisibles",
           eol:   ";"
           space: "_"
           tab:   "tab"
@@ -1939,7 +1939,7 @@ describe "Editor", ->
 
   describe "when autosave is enabled", ->
     it "autosaves the current buffer when the editor loses focus or switches edit sessions", ->
-      config.set("editor.autosave", true)
+      config.set "editor.autosave", true
       rootView.attachToDom()
       editor2 = editor.splitRight()
       spyOn(editor2.activeEditSession, 'save')

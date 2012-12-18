@@ -324,7 +324,7 @@ class Editor extends View
     @hiddenInput.on 'focusout', =>
       @isFocused = false
       @removeClass 'focused'
-      @autosave() if config.editor.autosave
+      @autosave() if config.get "editor.autosave"
 
     @overlayer.on 'mousedown', (e) =>
       @overlayer.hide()
@@ -450,7 +450,7 @@ class Editor extends View
     throw new Error("Edit session not found") unless @editSessions[index]
 
     if @activeEditSession
-      @autosave() if config.editor.autosave
+      @autosave() if config.get "editor.autosave"
       @saveScrollPositionForActiveEditSession()
       @activeEditSession.off(".editor")
 

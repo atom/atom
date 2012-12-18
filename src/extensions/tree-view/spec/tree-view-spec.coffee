@@ -857,7 +857,7 @@ describe "TreeView", ->
     beforeEach ->
       ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
       fs.write(ignoreFile, 'tree-view.js')
-      config.core.hideGitIgnoredFiles = false
+      config.set "core.hideGitIgnoredFiles", false
 
     afterEach ->
       fs.remove(ignoreFile) if fs.exists(ignoreFile)

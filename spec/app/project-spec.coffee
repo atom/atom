@@ -131,7 +131,7 @@ describe "Project", ->
 
     describe "when config.core.hideGitIgnoredFiles is true", ->
       it "ignores files that are present in .gitignore if the project is a git repo", ->
-        config.core.hideGitIgnoredFiles = true
+        config.set "core.hideGitIgnoredFiles", true
         project.setPath(require.resolve('fixtures/git/working-dir'))
         paths = null
         waitsForPromise ->
@@ -153,7 +153,7 @@ describe "Project", ->
       it "ignores ignored.txt file", ->
         paths = null
         config.get("core.ignoredNames").push("ignored.txt")
-        config.set("core.ignoredNames", config.get("core.ignoredNames"))
+        config.update()
         waitsForPromise ->
           project.getFilePaths().done (foundPaths) -> paths = foundPaths
 

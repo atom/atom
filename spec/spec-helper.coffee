@@ -26,7 +26,7 @@ beforeEach ->
   spyOn(config, 'load')
   spyOn(config, 'save')
   config.assignDefaults()
-  config.editor.fontSize = 16
+  config.set "editor.fontSize", 16
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
