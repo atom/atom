@@ -56,9 +56,15 @@ class TextMateBundle
   @getPreferenceInScope: (scopeSelector, preferenceName) ->
     @preferencesByScopeSelector[scopeSelector]?[preferenceName]
 
-  @lineCommentStringForScope: (scope) ->
-    shellVariables = @getPreferenceInScope(scope, 'shellVariables')
-    (_.find shellVariables, ({name}) -> name == "TM_COMMENT_START")?['value']
+  @getPreferenceValueInScope: (scope, preferenceName, valueName) ->
+    values = @getPreferenceInScope(scope, preferenceName)
+    (_.find values, ({name}) -> name is valueName)?['value']
+
+  @lineCommentStartStringForScope: (scope) ->
+    @getPreferenceValueInScope(scope, 'shellVariables', 'TM_COMMENT_START')
+
+  @lineCommentEndStringForScope: (scope) ->
+    @getPreferenceValueInScope(scope, 'shellVariables', 'TM_COMMENT_END')
 
   @indentRegexForScope: (scope) ->
     if source = @getPreferenceInScope(scope, 'increaseIndentPattern')

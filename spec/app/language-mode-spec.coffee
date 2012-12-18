@@ -250,3 +250,28 @@ describe "LanguageMode", ->
           expect(languageMode.rowRangeForFoldAtBufferRow(1)).toEqual [1, 17]
           expect(languageMode.rowRangeForFoldAtBufferRow(2)).toBeNull()
           expect(languageMode.rowRangeForFoldAtBufferRow(19)).toEqual [19, 20]
+
+  describe "css", ->
+    beforeEach ->
+      editSession = fixturesProject.buildEditSessionForPath('css.css', autoIndent: false)
+      { buffer, languageMode } = editSession
+
+    describe ".toggleLineCommentsForBufferRows(start, end)", ->
+      it "comments/uncomments lines in the given range", ->
+        languageMode.toggleLineCommentsForBufferRows(0, 1)
+        expect(buffer.lineForRow(0)).toBe "/*body {"
+        expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;*/"
+        expect(buffer.lineForRow(2)).toBe "  width: 110%;"
+        expect(buffer.lineForRow(3)).toBe "}"
+
+        languageMode.toggleLineCommentsForBufferRows(2, 2)
+        expect(buffer.lineForRow(0)).toBe "/*body {"
+        expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;*/"
+        expect(buffer.lineForRow(2)).toBe "/*  width: 110%;*/"
+        expect(buffer.lineForRow(3)).toBe "}"
+
+        languageMode.toggleLineCommentsForBufferRows(0, 1)
+        expect(buffer.lineForRow(0)).toBe "body {"
+        expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;"
+        expect(buffer.lineForRow(2)).toBe "/*  width: 110%;*/"
+        expect(buffer.lineForRow(3)).toBe "}"

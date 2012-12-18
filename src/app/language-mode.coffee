@@ -67,21 +67,37 @@ class LanguageMode
 
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
-    return unless commentString = TextMateBundle.lineCommentStringForScope(scopes[0])
+    return unless commentStartString = TextMateBundle.lineCommentStartStringForScope(scopes[0])
 
-    commentRegexString = _.escapeRegExp(commentString)
-    commentRegexString = commentRegexString.replace(/(\s+)$/, '($1)?')
-    commentRegex = new OnigRegExp("^\s*#{commentRegexString}")
+    buffer = @editSession.buffer
+    commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
+    commentStartRegex = new OnigRegExp("^\s*#{commentStartRegexString}")
+    shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
-    shouldUncomment = commentRegex.test(@editSession.lineForBufferRow(start))
-
-    for row in [start..end]
-      line = @editSession.lineForBufferRow(row)
+    if commentEndString = TextMateBundle.lineCommentEndStringForScope(scopes[0])
       if shouldUncomment
-        if match = commentRegex.search(line)
-          @editSession.buffer.change([[row, 0], [row, match[0].length]], "")
+        commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
+        commentEndRegex = new OnigRegExp("#{commentEndRegexString}\s*$")
+        startMatch =  commentStartRegex.search(buffer.lineForRow(start))
+        endMatch = commentEndRegex.search(buffer.lineForRow(end))
+        if startMatch and endMatch
+          buffer.transact ->
+            buffer.change([[start, 0], [start, startMatch[0].length]], "")
+            endLength = buffer.lineLengthForRow(end)
+            endColumn = endLength - endMatch[0].length
+            buffer.change([[end, endColumn], [end, endLength]], "")
       else
-        @editSession.buffer.insert([row, 0], commentString)
+        buffer.transact ->
+          buffer.insert([start, 0], commentStartString)
+          buffer.insert([end, buffer.lineLengthForRow(end)], commentEndString)
+    else
+      if shouldUncomment
+        for row in [start..end]
+          if match = commentStartRegex.search(buffer.lineForRow(row))
+            buffer.change([[row, 0], [row, match[0].length]], "")
+      else
+        for row in [start..end]
+          buffer.insert([row, 0], commentStartString)
 
   doesBufferRowStartFold: (bufferRow) ->
     return false if @editSession.isBufferRowBlank(bufferRow)
