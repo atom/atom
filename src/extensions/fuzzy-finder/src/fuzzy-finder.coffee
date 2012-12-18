@@ -22,7 +22,7 @@ class FuzzyFinder extends SelectList
 
   initialize: (@rootView) ->
     super
-    $(window).on 'focus', => @array = null
+    $(window).on 'focus', => @projectPaths = null
 
   itemForElement: (path) ->
     $$ -> @li path
