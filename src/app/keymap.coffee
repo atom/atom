@@ -23,10 +23,10 @@ class Keymap
       'meta-O': 'open-unstable'
       'meta-w': 'core:close'
 
-    $(document).on 'new-window', => atom.newWindow()
-    $(document).on 'open-user-configuration', => atom.open(atom.configFilePath)
-    $(document).on 'open', => atom.open()
-    $(document).on 'open-unstable', => atom.openUnstable()
+    $(document).command 'new-window', => atom.newWindow()
+    $(document).command 'open-user-configuration', => atom.open(atom.configFilePath)
+    $(document).command 'open', => atom.open()
+    $(document).command 'open-unstable', => atom.openUnstable()
 
   bindKeys: (selector, bindings) ->
     bindingSet = new BindingSet(selector, bindings, @bindingSets.length)
