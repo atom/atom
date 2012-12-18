@@ -228,3 +228,23 @@ describe 'FuzzyFinder', ->
 
       runs ->
         expect(rootView.project.getFilePaths).toHaveBeenCalled()
+
+    it "busts the cache when the window gains focus", ->
+      spyOn(rootView.project, "getFilePaths").andCallThrough()
+      rootView.trigger 'fuzzy-finder:toggle-file-finder'
+
+      waitsFor ->
+        finder.list.children('li').length > 0
+
+      runs ->
+        expect(rootView.project.getFilePaths).toHaveBeenCalled()
+        rootView.project.getFilePaths.reset()
+        $(window).trigger 'focus'
+        rootView.trigger 'fuzzy-finder:toggle-file-finder'
+        rootView.trigger 'fuzzy-finder:toggle-file-finder'
+
+      waitsFor ->
+        finder.list.children('li').length > 0
+
+      runs ->
+        expect(rootView.project.getFilePaths).toHaveBeenCalled()
