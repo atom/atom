@@ -13,7 +13,7 @@ module.exports =
       buffer.transact ->
         buffer.scan /[ \t]+$/g, (match, range, { replace }) ->
           replace('')
-        if config.get("stripTrailingWhitespace.singleTrailingNewline")
+        if config.get('stripTrailingWhitespace.singleTrailingNewline')
           if buffer.getLastLine() is ''
             row = buffer.getLastRow()
             while row and buffer.lineForRow(--row) is ''
