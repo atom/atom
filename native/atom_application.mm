@@ -81,6 +81,7 @@
 
   if (cleanArgc > 0) {
     NSString *path = [NSString stringWithUTF8String:cleanArgv[0]];
+    path = [self standardizePathToOpen:path withArguments:arguments];
     NSString *executedFromPath =[arguments objectForKey:@"executed-from"];
     if (![path isAbsolutePath] && executedFromPath) {
       path = [executedFromPath stringByAppendingPathComponent:path];
@@ -91,6 +92,16 @@
 
 
   return arguments;
+}
+
++ (NSString *)standardizePathToOpen:(NSString *)path withArguments:(NSDictionary *)arguments {
+  NSString *standardizedPath = path;
+  NSString *executedFromPath = [arguments objectForKey:@"executed-from"];
+  if (![standardizedPath isAbsolutePath] && executedFromPath) {
+    standardizedPath = [executedFromPath stringByAppendingPathComponent:standardizedPath];
+  }
+  standardizedPath = [standardizedPath stringByStandardizingPath];
+  return standardizedPath;
 }
 
 + (NSString *)supportDirectory {
@@ -165,6 +176,14 @@
 }
 
 # pragma mark NSApplicationDelegate
+
+- (void)application:(NSApplication *)sender openFiles:(NSArray *)filenames {
+  for (int i = 0; i < [filenames count]; i++) {
+    NSString *path = [filenames objectAtIndex:i];
+    path = [[self class] standardizePathToOpen:path withArguments:self.arguments];
+    [self open:path];
+  }
+}
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
