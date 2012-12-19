@@ -27,7 +27,14 @@ config.get("fuzzyFinder.ignoredPaths").push "vendor"
 config.update() # be sure to call `config.update` after the change
 ```
 
-See the [configuration key reference]() for information on specific keys you
+You can also use `setDefaults`, which will assign keys on the object at the given
+only if they are currently undefined.
+
+```coffeescript
+config.setDefaults("editor", fontSize: 18, showInvisibles: true)
+```
+
+See the *configuration key reference* (todo) for information on specific keys you
 can use to change Atom's behavior.
 
 ## Reading Config Settings
@@ -44,7 +51,8 @@ Or you can use `observeConfig` to track changes from a view object.
 ```coffeescript
 class MyView extends View
   initialize: ->
-    @observeConfig 'editor.lineHeight', => @adjust()
+    @observeConfig 'editor.lineHeight', (lineHeight) =>
+      @adjustLineHeight(lineHeight)
 ```
 
 The `observeConfig` method will call the given callback immediately with the
