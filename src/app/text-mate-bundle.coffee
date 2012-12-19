@@ -101,8 +101,10 @@ class TextMateBundle
           console.warn "Failed to parse preference at path '#{preferencePath}'", e
         else
           { scope, settings } = data[0]
+          return unless scope
           for scope in scope.split(',')
             scope = $.trim(scope)
+            continue unless scope
             preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
 
     preferencesByScopeSelector
