@@ -8,7 +8,7 @@
     var params = window.location.search.substring(1).split('&')
     params.forEach(function(param) {
       var pair = param.split("=")
-      window.location.params[pair[0]] = pair[1];
+      window.location.params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
     });
 
     window.resourcePath = window.location.params.resourcePath
@@ -30,4 +30,3 @@
 <body>
 </body>
 </html>
-
