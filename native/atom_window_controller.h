@@ -28,6 +28,7 @@ class AtomCefClient;
 - (id)initInBackground;
 - (id)initSpecsThenExit:(BOOL)exitWhenDone;
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone;
+- (id)initWithBootstrapScript:(NSString *)bootstrapScript background:(BOOL)background alwaysUseBundleResourcePath:(BOOL)alwaysUseBundleResourcePath;
 
 - (void)toggleDevTools;
 - (void)showDevTools;
