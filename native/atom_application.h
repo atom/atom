@@ -6,6 +6,7 @@ class AtomCefClient;
 @interface AtomApplication : NSApplication <CefAppProtocol, NSApplicationDelegate> {
   NSWindowController *_backgroundWindowController;
   NSDictionary *_arguments;
+  BOOL _filesOpened;
   BOOL handlingSendEvent_;
 }
 

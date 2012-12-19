@@ -174,24 +174,31 @@
 
 # pragma mark NSApplicationDelegate
 
+- (BOOL)shouldOpenFiles {
+  if ([self.arguments objectForKey:@"benchmark"]) {
+    return NO;
+  }
+  if ([self.arguments objectForKey:@"test"]) {
+    return NO;
+  }
+  return YES;
+}
+
 - (void)application:(NSApplication *)sender openFiles:(NSArray *)filenames {
-  for (int i = 0; i < [filenames count]; i++) {
-    NSString *path = [filenames objectAtIndex:i];
-    path = [[self class] standardizePathToOpen:path withArguments:self.arguments];
-    [self open:path];
+  if ([self shouldOpenFiles]) {
+    for (int i = 0; i < [filenames count]; i++) {
+      NSString *path = [filenames objectAtIndex:i];
+      path = [[self class] standardizePathToOpen:path withArguments:self.arguments];
+      [self open:path];
+    }
+    if ([filenames count] > 0) {
+      _filesOpened = YES;
+    }
   }
 }
 
-- (void)applicationWillFinishLaunching:(NSNotification *)notification {
-  _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
-
-  if ([self.arguments objectForKey:@"benchmark"]) {
-    [self runBenchmarksThenExit:true];
-  }
-  else if ([self.arguments objectForKey:@"test"]) {
-    [self runSpecsThenExit:true];
-  }
-  else {
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  if (!_filesOpened && [self shouldOpenFiles]) {
     NSString *path = [self.arguments objectForKey:@"path"];
 
     // Just a hack to open the Atom src by default when we run from xcode
@@ -200,6 +207,16 @@
     #endif
 
     [self open:path];
+  }
+}
+
+- (void)applicationWillFinishLaunching:(NSNotification *)notification {
+  _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
+  if ([self.arguments objectForKey:@"benchmark"]) {
+    [self runBenchmarksThenExit:true];
+  }
+  else if ([self.arguments objectForKey:@"test"]) {
+    [self runSpecsThenExit:true];
   }
 }
 
