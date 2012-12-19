@@ -139,10 +139,7 @@
 }
 
 - (void)open:(NSString *)path {
-  NSArray *windows = [NSApp windows];
-  int count = [windows count];
-  for (int i = 0; i < count; i++) {
-    NSWindow *window = [windows objectAtIndex:i];
+  for (NSWindow *window in [self windows]) {
     if ([window isVisible] && ![window isExcludedFromWindowsMenu]) {
       AtomWindowController *controller = [window windowController];
       if ([path isEqualToString:controller.pathToOpen]) {
