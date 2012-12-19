@@ -82,11 +82,6 @@
   if (cleanArgc > 0) {
     NSString *path = [NSString stringWithUTF8String:cleanArgv[0]];
     path = [self standardizePathToOpen:path withArguments:arguments];
-    NSString *executedFromPath =[arguments objectForKey:@"executed-from"];
-    if (![path isAbsolutePath] && executedFromPath) {
-      path = [executedFromPath stringByAppendingPathComponent:path];
-    }
-    path = [path stringByStandardizingPath];
     [arguments setObject:path forKey:@"path"];
   }
 
