@@ -81,6 +81,7 @@ task "clone-default-bundles" => "create-dot-atom" do
     "https://github.com/cburyta/puppet-textmate.tmbundle.git" => "5ef4949b2c964bace86782573cb952751ca77f5e",
     "https://github.com/textmate/c.tmbundle.git" => "c8a6516c1131055bfcd1bca5e2ee6567c2f50058",
     "https://github.com/textmate/objective-c.tmbundle.git" => "b0826e645a3d8ca37dd625a56935d49cc8eeb9fc",
+    "https://github.com/textmate/git.tmbundle.git" => "132724ab03dfc70fc77deca8ef1a359dc8404d80",
   }
 
   for bundle_url, sha in bundles
