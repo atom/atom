@@ -48,7 +48,7 @@ void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSString *path) 
   if (path) {
     const char *buf = [path UTF8String];
     if (sendto(fd, buf, [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding], 0, (sockaddr *)&send_addr, sizeof(send_addr)) < 0) {
-      perror("Error: Failed to sending path to main Atom process");
+      perror("Error: Failed to send path to main Atom process");
       exit(1);
     }
   }
