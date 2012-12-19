@@ -82,3 +82,6 @@ _.mixin
 
     @pendingNextTickFns.push(fn)
     @messageChannel.port2.postMessage(0)
+
+  endsWith: (string, suffix) ->
+    string.indexOf(suffix, string.length - suffix.length) isnt -1

@@ -36,11 +36,17 @@ class TextMateBundle
         @grammarsByScopeName[grammar.scopeName] = grammar
 
   @grammarForFilePath: (filePath) ->
+    return @grammarsByFileType["txt"] unless filePath
+
     extension = fs.extension(filePath)?[1...]
     if filePath and extension.length == 0
       extension = fs.base(filePath)
 
-    @grammarsByFileType[extension] or @grammarByShebang(filePath) or @grammarsByFileType["txt"]
+    @grammarsByFileType[extension] or @grammarByShebang(filePath) or @grammarByFileTypeSuffix(filePath) or @grammarsByFileType["txt"]
+
+  @grammarByFileTypeSuffix: (filePath) ->
+    for fileType, grammar of @grammarsByFileType
+      return grammar if _.endsWith(filePath, fileType)
 
   @grammarByShebang: (filePath) ->
     try
