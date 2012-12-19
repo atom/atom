@@ -33,3 +33,34 @@ describe "StripTrailingWhitespace", ->
 
     editor.getBuffer().save()
     expect(editor.getText()).toBe 'Some text.\n'
+
+  describe "stripTrailingWhitespace.singleTrailingNewline config", ->
+    [originalConfigValue] = []
+    beforeEach ->
+      originalConfigValue = config.get("stripTrailingWhitespace.singleTrailingNewline")
+      config.set("stripTrailingWhitespace.singleTrailingNewline", true)
+      config.update()
+
+    afterEach ->
+      config.set("stripTrailingWhitespace.singleTrailingNewline", originalConfigValue)
+      config.update()
+
+    it "adds a trailing newline when there is no trailing newline", ->
+      editor.insertText "foo"
+      editor.save()
+      expect(editor.getText()).toBe "foo\n"
+
+    it "removes extra trailing newlines and only keeps one", ->
+      editor.insertText "foo\n\n\n\n"
+      editor.save()
+      expect(editor.getText()).toBe "foo\n"
+
+    it "leaves a buffer with a single trailing newline untouched", ->
+      editor.insertText "foo\nbar\n"
+      editor.save()
+      expect(editor.getText()).toBe "foo\nbar\n"
+
+    it "leaves an empty buffer untouched", ->
+      editor.insertText ""
+      editor.save()
+      expect(editor.getText()).toBe ""

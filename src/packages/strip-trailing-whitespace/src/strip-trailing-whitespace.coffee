@@ -10,5 +10,13 @@ module.exports =
 
   stripTrailingWhitespaceBeforeSave: (buffer) ->
     buffer.on 'before-save', ->
-      buffer.scan /[ \t]+$/g, (match, range, { replace }) ->
-        replace('')
+      buffer.transact ->
+        buffer.scan /[ \t]+$/g, (match, range, { replace }) ->
+          replace('')
+        if config.get("stripTrailingWhitespace.singleTrailingNewline")
+          if buffer.getLastLine() is ''
+            row = buffer.getLastRow()
+            while row and buffer.lineForRow(--row) is ''
+              buffer.deleteRow(row)
+          else
+            buffer.append('\n')
