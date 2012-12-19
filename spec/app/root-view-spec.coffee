@@ -540,29 +540,26 @@ describe "RootView", ->
       expect(rootView.getTitle()).toBe rootView.project.getPath()
 
   describe "font size adjustment", ->
+    editor = null
+    beforeEach ->
+      editor = rootView.getActiveEditor()
+
     it "increases/decreases font size when increase/decrease-font-size events are triggered", ->
-      fontSizeBefore = rootView.getFontSize()
+      editor = rootView.getActiveEditor()
+      fontSizeBefore = editor.getFontSize()
       rootView.trigger 'window:increase-font-size'
-      expect(rootView.getFontSize()).toBe fontSizeBefore + 1
+      expect(editor.getFontSize()).toBe fontSizeBefore + 1
       rootView.trigger 'window:increase-font-size'
-      expect(rootView.getFontSize()).toBe fontSizeBefore + 2
+      expect(editor.getFontSize()).toBe fontSizeBefore + 2
       rootView.trigger 'window:decrease-font-size'
-      expect(rootView.getFontSize()).toBe fontSizeBefore + 1
+      expect(editor.getFontSize()).toBe fontSizeBefore + 1
       rootView.trigger 'window:decrease-font-size'
-      expect(rootView.getFontSize()).toBe fontSizeBefore
+      expect(editor.getFontSize()).toBe fontSizeBefore
 
     it "does not allow the font size to be less than 1", ->
-      rootView.setFontSize(1)
-      expect(rootView.getFontSize()).toBe 1
-
-      rootView.setFontSize(0)
-      expect(rootView.getFontSize()).toBe 1
-
-    it "is serialized and set when deserialized", ->
-      rootView.setFontSize(100)
-      rootView.remove()
-      newRootView = RootView.deserialize(rootView.serialize())
-      expect(newRootView.getFontSize()).toBe(100)
+      config.set("editor.fontSize", 1)
+      rootView.trigger 'window:decrease-font-size'
+      expect(editor.getFontSize()).toBe 1
 
   describe ".open(path, options)", ->
     describe "when there is no active editor", ->
@@ -714,30 +711,3 @@ describe "RootView", ->
 
       lowerRightEditor = rightEditor.splitDown()
       expect(lowerRightEditor.find(".line:first").text()).toBe "    "
-
-  describe 'setInvisibles', ->
-    it 'updates the display of all edit sessions with the new map', ->
-      rootView.height(200)
-      rootView.attachToDom()
-      rightEditor = rootView.getActiveEditor()
-      rightEditor.setText(" \t ")
-      leftEditor = rightEditor.splitLeft()
-
-      rootView.setInvisibles
-        eol:   ";"
-        space: "_"
-        tab:   "tab"
-
-      rootView.trigger "window:toggle-invisibles"
-      expect(rightEditor.find(".line:first").text()).toBe "_tab _;"
-      expect(leftEditor.find(".line:first").text()).toBe "_tab _;"
-
-  describe 'getInvisibles', ->
-    it 'contains an eol key with a value', ->
-      expect(rootView.getInvisibles().eol).toBe "¬"
-
-    it 'contains a space key with a value', ->
-      expect(rootView.getInvisibles().space).toBe "•"
-
-    it 'contains a tab key with a value', ->
-      expect(rootView.getInvisibles().tab).toBe "▸"

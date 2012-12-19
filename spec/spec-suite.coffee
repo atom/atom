@@ -6,6 +6,6 @@ for path in fs.listTree(require.resolve("spec")) when /-spec\.coffee$/.test path
   require path
 
 # Run extension specs
-for extensionPath in fs.listTree(require.resolve("src/extensions"))
-  for path in fs.listTree(fs.join(extensionPath, "spec")) when /-spec\.coffee$/.test path
+for packagePath in fs.listTree(require.resolve("src/packages"))
+  for path in fs.listTree(fs.join(packagePath, "spec")) when /-spec\.coffee$/.test path
     require path

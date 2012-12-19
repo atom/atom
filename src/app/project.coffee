@@ -15,7 +15,6 @@ class Project
   autoIndent: true
   softTabs: true
   softWrap: false
-  hideIgnoredFiles: false
   rootDirectory: null
   editSessions: null
   ignoredPathRegexes: null
@@ -24,10 +23,6 @@ class Project
     @setPath(path)
     @editSessions = []
     @buffers = []
-    @ignoredNames = [
-      '.git'
-      '.DS_Store'
-    ]
     @repo = new Git(path)
 
   destroy: ->
@@ -60,12 +55,13 @@ class Project
 
   isPathIgnored: (path) ->
     for segment in path.split("/")
-      return true if _.contains(@ignoredNames, segment)
+      ignoredNames = config.get("core.ignoredNames") or []
+      return true if _.contains(ignoredNames, segment)
 
     @ignoreRepositoryPath(path)
 
   ignoreRepositoryPath: (path) ->
-    @hideIgnoredFiles and @repo.isPathIgnored(fs.join(@getPath(), path))
+    config.get("core.hideGitIgnoredFiles") and @repo.isPathIgnored(fs.join(@getPath(), path))
 
   resolve: (filePath) ->
     filePath = fs.join(@getPath(), filePath) unless filePath[0] == '/'
@@ -82,10 +78,6 @@ class Project
 
   getSoftWrap: -> @softWrap
   setSoftWrap: (@softWrap) ->
-
-  toggleIgnoredFiles: -> @setHideIgnoredFiles(not @hideIgnoredFiles)
-  getHideIgnoredFiles: -> @hideIgnoredFiles
-  setHideIgnoredFiles: (@hideIgnoredFiles) ->
 
   buildEditSessionForPath: (filePath, editSessionOptions={}) ->
     @buildEditSession(@bufferForPath(filePath), editSessionOptions)

@@ -1,75 +1,88 @@
-fs = require('fs')
-
-atom.configDirPath = fs.absolute("~/.atom")
-atom.configFilePath = fs.join(atom.configDirPath, "atom.coffee")
-
-atom.exitWhenDone = window.location.params.exitWhenDone
+fs = require 'fs'
+_ = require 'underscore'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
 
-atom.pendingBrowserProcessCallbacks = {}
+_.extend atom,
+  exitWhenDone: window.location.params.exitWhenDone
 
-atom.sendMessageToBrowserProcess = (name, data=[], callbacks) ->
-  messageId = messageIdCounter++
-  data.unshift(messageId)
-  callbacks = [callbacks] if typeof callbacks is 'function'
-  @pendingBrowserProcessCallbacks[messageId] = callbacks
-  originalSendMessageToBrowserProcess(name, data)
+  pendingBrowserProcessCallbacks: {}
 
-atom.receiveMessageFromBrowserProcess = (name, data) ->
-  if name is 'reply'
-    [messageId, callbackIndex] = data.shift()
-    @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+  loadPackage: (name) ->
+    try
+      packagePath = require.resolve(name, verifyExistence: false)
+      throw new Error("No package found named '#{name}'") unless packagePath
+      packagePath = fs.directory(packagePath)
+      extension = require(packagePath)
+      extension.name = name
+      rootView.activateExtension(extension)
+      extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), verifyExistence: false)
+      require extensionKeymapPath if fs.exists(extensionKeymapPath)
+    catch e
+      console.error "Failed to load package named '#{name}'", e.stack
 
-atom.open = (args...) ->
-  @sendMessageToBrowserProcess('open', args)
+  open: (args...) ->
+    @sendMessageToBrowserProcess('open', args)
 
-atom.openUnstable = (args...) ->
-  @sendMessageToBrowserProcess('openUnstable', args)
+  openUnstable: (args...) ->
+    @sendMessageToBrowserProcess('openUnstable', args)
 
-atom.newWindow = (args...) ->
-  @sendMessageToBrowserProcess('newWindow', args)
+  newWindow: (args...) ->
+    @sendMessageToBrowserProcess('newWindow', args)
 
-atom.confirm = (message, detailedMessage, buttonLabelsAndCallbacks...) ->
-  args = [message, detailedMessage]
-  callbacks = []
-  while buttonLabelsAndCallbacks.length
-    args.push(buttonLabelsAndCallbacks.shift())
-    callbacks.push(buttonLabelsAndCallbacks.shift())
-  @sendMessageToBrowserProcess('confirm', args, callbacks)
+  confirm: (message, detailedMessage, buttonLabelsAndCallbacks...) ->
+    args = [message, detailedMessage]
+    callbacks = []
+    while buttonLabelsAndCallbacks.length
+      args.push(buttonLabelsAndCallbacks.shift())
+      callbacks.push(buttonLabelsAndCallbacks.shift())
+    @sendMessageToBrowserProcess('confirm', args, callbacks)
 
-atom.showSaveDialog = (callback) ->
-  @sendMessageToBrowserProcess('showSaveDialog', [], callback)
+  showSaveDialog: (callback) ->
+    @sendMessageToBrowserProcess('showSaveDialog', [], callback)
 
-atom.toggleDevTools = ->
-  @sendMessageToBrowserProcess('toggleDevTools')
+  toggleDevTools: ->
+    @sendMessageToBrowserProcess('toggleDevTools')
 
-atom.showDevTools = ->
-  @sendMessageToBrowserProcess('showDevTools')
+  showDevTools: ->
+    @sendMessageToBrowserProcess('showDevTools')
 
-atom.focus = ->
-  @sendMessageToBrowserProcess('focus')
+  focus: ->
+    @sendMessageToBrowserProcess('focus')
 
-atom.exit = (status) ->
-  @sendMessageToBrowserProcess('exit', [status])
+  exit: (status) ->
+    @sendMessageToBrowserProcess('exit', [status])
 
-atom.log = (message) ->
-  @sendMessageToBrowserProcess('log', [message])
+  log: (message) ->
+    @sendMessageToBrowserProcess('log', [message])
 
-atom.beginTracing = ->
-  @sendMessageToBrowserProcess('beginTracing')
+  beginTracing: ->
+    @sendMessageToBrowserProcess('beginTracing')
 
-atom.endTracing = ->
-  @sendMessageToBrowserProcess('endTracing')
+  endTracing: ->
+    @sendMessageToBrowserProcess('endTracing')
 
-atom.getRootViewStateForPath = (path) ->
-  if json = localStorage[path]
-    JSON.parse(json)
+  getRootViewStateForPath: (path) ->
+    if json = localStorage[path]
+      JSON.parse(json)
 
-atom.setRootViewStateForPath = (path, state) ->
-  return unless path
-  if state?
-    localStorage[path] = JSON.stringify(state)
-  else
-    delete localStorage[path]
+  setRootViewStateForPath: (path, state) ->
+    return unless path
+    if state?
+      localStorage[path] = JSON.stringify(state)
+    else
+      delete localStorage[path]
+
+  sendMessageToBrowserProcess: (name, data=[], callbacks) ->
+    messageId = messageIdCounter++
+    data.unshift(messageId)
+    callbacks = [callbacks] if typeof callbacks is 'function'
+    @pendingBrowserProcessCallbacks[messageId] = callbacks
+    originalSendMessageToBrowserProcess(name, data)
+
+  receiveMessageFromBrowserProcess: (name, data) ->
+    if name is 'reply'
+      [messageId, callbackIndex] = data.shift()
+      @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
+

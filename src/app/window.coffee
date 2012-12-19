@@ -8,10 +8,12 @@ fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
+Config = require 'config'
 RootView = require 'root-view'
 Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
 require 'underscore-extensions'
+require 'space-pen-extensions'
 
 windowAdditions =
   rootViewParentSelector: 'body'
@@ -22,10 +24,12 @@ windowAdditions =
   # This method runs when the file is required. Any code here will run
   # in all environments: spec, benchmark, and application
   startup: ->
+    @config = new Config
     TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
     @pasteboard = new Pasteboard
+
     $(window).on 'core:close', => @close()
 
   # This method is intended only to be run when starting a normal application
@@ -67,18 +71,6 @@ windowAdditions =
   applyStylesheet: (id, text) ->
     unless $("head style[id='#{id}']").length
       $('head').append "<style id='#{id}'>#{text}</style>"
-
-  requireExtension: (name, config) ->
-    try
-      extensionPath = require.resolve name
-      throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.exists(extensionPath)
-
-      extension = rootView.activateExtension(require(extensionPath), config)
-      extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), {verifyExistence: false})
-      require extensionKeymapPath if fs.exists(extensionKeymapPath)
-      extension
-    catch e
-      console.error "Failed to load extension named '#{name}'", e
 
   reload: ->
     if rootView?.getModifiedBuffers().length > 0

@@ -14,7 +14,7 @@ class TextMateBundle
   @grammars: []
 
   @loadAll: ->
-    localBundlePath = fs.join(atom.configDirPath, "bundles")
+    localBundlePath = fs.join(config.configDirPath, "bundles")
     localBundles = fs.list(localBundlePath) if fs.exists(localBundlePath)
 
     for bundlePath in localBundles ? []

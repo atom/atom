@@ -1,4 +1,4 @@
-# Modified from 13570cdf3a32bd9f484b2fd838f64e957716fca -- add require `jquery`
+# Modified from 248eef5762e395c7d496510dbd06a20b65f89f45
 $ = jQuery = require('jquery')
 
 elements =
@@ -190,11 +190,16 @@ for methodName in ['append', 'prepend', 'after', 'before']
 
 for methodName in ['prependTo', 'appendTo', 'insertAfter', 'insertBefore']
   do (methodName) ->
-    originalMethod = $.fn[methodName]
+    originalMethod = jQuery.fn[methodName]
     jQuery.fn[methodName] = (args...) ->
       result = originalMethod.apply(this, args)
       callAttachHook(this)
       result
+
+originalCleanData = jQuery.cleanData
+jQuery.cleanData = (elements) ->
+  $(element).view()?.afterRemove?() for element in elements
+  originalCleanData(elements)
 
 (exports ? this).View = View
 (exports ? this).$$ = (fn) -> View.render.call(View, fn)

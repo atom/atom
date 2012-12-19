@@ -31,9 +31,11 @@ module.exports =
       [eventName, namespace] = eventName.split('.')
 
       if namespace
-        @eventHandlersByNamespace?[namespace]?[eventName]?.forEach (handler) -> handler(args...)
+        if handlers = @eventHandlersByNamespace?[namespace]?[eventName]
+          new Array(handlers...).forEach (handler) -> handler(args...)
       else
-        @eventHandlersByEventName?[eventName]?.forEach (handler) -> handler(args...)
+        if handlers = @eventHandlersByEventName?[eventName]
+          handlers.forEach (handler) -> handler(args...)
 
   off: (eventName='', handler) ->
     [eventName, namespace] = eventName.split('.')

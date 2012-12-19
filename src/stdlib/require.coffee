@@ -3,7 +3,7 @@ paths = [
   "#{window.resourcePath}/benchmark"
   "#{window.resourcePath}/src/stdlib"
   "#{window.resourcePath}/src/app"
-  "#{window.resourcePath}/src/extensions"
+  "#{window.resourcePath}/src/packages"
   "#{window.resourcePath}/src"
   "#{window.resourcePath}/vendor"
   "#{window.resourcePath}/static"

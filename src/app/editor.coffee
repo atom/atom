@@ -15,6 +15,11 @@ module.exports =
 class Editor extends View
   @idCounter: 1
 
+  @configDefaults:
+    fontSize: 20
+    showInvisibles: false
+    autosave: false
+
   @content: (params) ->
     @div class: @classes(params), tabindex: -1, =>
       @subview 'gutter', new Gutter
@@ -50,16 +55,17 @@ class Editor extends View
 
   @deserialize: (state, rootView) ->
     editSessions = state.editSessions.map (state) -> EditSession.deserialize(state, rootView.project)
-    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini, showInvisibles: rootView.showInvisibles)
+    editor = new Editor(editSession: editSessions[state.activeEditSessionIndex], mini: state.mini)
     editor.editSessions = editSessions
     editor.isFocused = state.isFocused
     editor
 
-  initialize: ({editSession, @mini, @showInvisibles} = {}) ->
+  initialize: ({editSession, @mini} = {}) ->
     requireStylesheet 'editor.css'
 
     @id = Editor.idCounter++
     @lineCache = []
+    @configure()
     @bindKeys()
     @handleEvents()
     @cursorViews = []
@@ -280,6 +286,10 @@ class Editor extends View
     @resetDisplay()
 
   setInvisibles: (@invisibles={}) ->
+    _.defaults @invisibles,
+      eol: '¬',
+      space: '•',
+      tab: '▸'
     @resetDisplay()
 
   checkoutHead: -> @getBuffer().checkoutHead()
@@ -296,6 +306,11 @@ class Editor extends View
   scanInRange: (args...) -> @getBuffer().scanInRange(args...)
   backwardsScanInRange: (args...) -> @getBuffer().backwardsScanInRange(args...)
 
+  configure: ->
+    @observeConfig 'editor.showInvisibles', (showInvisibles) => @setShowInvisibles(showInvisibles)
+    @observeConfig 'editor.invisibles', (invisibles) => @setInvisibles(invisibles)
+    @observeConfig 'editor.fontSize', (fontSize) => @setFontSize(fontSize)
+
   handleEvents: ->
     @on 'focus', =>
       @hiddenInput.focus()
@@ -309,7 +324,7 @@ class Editor extends View
     @hiddenInput.on 'focusout', =>
       @isFocused = false
       @removeClass 'focused'
-      @autosave() if @rootView()?.autosave
+      @autosave() if config.get "editor.autosave"
 
     @overlayer.on 'mousedown', (e) =>
       @overlayer.hide()
@@ -383,11 +398,9 @@ class Editor extends View
   afterAttach: (onDom) ->
     return if @attached or not onDom
     @attached = true
-    @subscribeToFontSize()
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
-    @invisibles = @rootView()?.getInvisibles()
     $(window).on "resize.editor#{@id}", => @requestDisplayUpdate()
     @focus() if @isFocused
 
@@ -437,7 +450,7 @@ class Editor extends View
     throw new Error("Edit session not found") unless @editSessions[index]
 
     if @activeEditSession
-      @autosave() if @rootView()?.autosave
+      @autosave() if config.get "editor.autosave"
       @saveScrollPositionForActiveEditSession()
       @activeEditSession.off(".editor")
 
@@ -602,21 +615,19 @@ class Editor extends View
   autosave: ->
     @save() if @getPath()?
 
-  subscribeToFontSize: ->
-    return unless rootView = @rootView()
-    @setFontSize(rootView.getFontSize())
-    rootView.on "font-size-change.editor#{@id}", => @setFontSize(rootView.getFontSize())
-
-  setFontSize: (fontSize) ->
+  setFontSize: (@fontSize) ->
     if fontSize?
       @css('font-size', fontSize + 'px')
+      return unless @attached
       @calculateDimensions()
       @updatePaddingOfRenderedLines()
       @updateLayerDimensions()
       @requestDisplayUpdate()
 
+  getFontSize: -> @fontSize
+
   newSplitEditor: ->
-    new Editor { editSession: @activeEditSession.copy(), @showInvisibles }
+    new Editor { editSession: @activeEditSession.copy() }
 
   splitLeft: ->
     @pane()?.splitLeft(@newSplitEditor()).wrappedView

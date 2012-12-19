@@ -2,6 +2,7 @@ nakedLoad 'jasmine-jquery'
 $ = require 'jquery'
 _ = require 'underscore'
 Keymap = require 'keymap'
+Config = require 'config'
 Point = require 'point'
 Project = require 'project'
 Directory = require 'directory'
@@ -16,9 +17,18 @@ require 'window'
 
 requireStylesheet "jasmine.css"
 
+require.paths.unshift(require.resolve('fixtures/packages'))
+
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
+
+  # don't load or save user configuration
+  window.config = new Config()
+  spyOn(config, 'load')
+  spyOn(config, 'save')
+  config.assignDefaults()
+  config.set "editor.fontSize", 16
 
   # make editor display updates synchronous
   spyOn(Editor.prototype, 'requestDisplayUpdate').andCallFake -> @updateDisplay()
@@ -41,9 +51,6 @@ afterEach ->
 window.keymap.bindKeys '*', 'meta-w': 'close'
 $(document).on 'close', -> window.close()
 $('html,body').css('overflow', 'auto')
-
-# Don't load user configuration in specs, because it's variable
-RootView.prototype.loadUserConfiguration = ->
 
 ensureNoPathSubscriptions = ->
   watchedPaths = $native.getWatchedPaths()
