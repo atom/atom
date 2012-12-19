@@ -92,6 +92,7 @@
 - (NSString *)encodeUrlParam:(NSString *)param {
   param = [param stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
   param = [param stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+  param = [param stringByReplacingOccurrencesOfString:@"&" withString:@"%26"];
   return param;
 }
 
