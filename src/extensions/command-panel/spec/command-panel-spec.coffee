@@ -12,7 +12,8 @@ describe "CommandPanel", ->
     project = rootView.project
     editor = rootView.getActiveEditor()
     buffer = editor.activeEditSession.buffer
-    commandPanel = requireExtension('command-panel')
+    atom.loadPackage('command-panel')
+    commandPanel = CommandPanel.instance
     commandPanel.history = []
     commandPanel.historyIndex = 0
 

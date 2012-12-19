@@ -17,6 +17,8 @@ require 'window'
 
 requireStylesheet "jasmine.css"
 
+require.paths.unshift(require.resolve('fixtures/packages'))
+
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()

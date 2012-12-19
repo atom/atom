@@ -19,7 +19,7 @@ class Config
     @settings = {}
     @loadUserConfig()
     @assignDefaults()
-    @requireExtensions()
+    @loadPackages()
     @requireUserInitScript()
 
   loadUserConfig: ->
@@ -38,11 +38,11 @@ class Config
         .concat(fs.list(userExtensionsDirPath)).map (path) -> fs.base(path)
     _.unique(availableExtensions)
 
-  requireExtensions: ->
+  loadPackages: ->
     disabledExtensions = config.get("core.disabledExtensions") ? []
     for extensionName in @getAvailableExtensions()
       unless _.contains disabledExtensions, extensionName
-        requireExtension(extensionName)
+        atom.loadPackage(extensionName)
 
   get: (keyPath) ->
     keys = @keysForKeyPath(keyPath)

@@ -7,18 +7,8 @@ By default the wrap-guide is placed at the 80th column.
 
 #### Configuration
 
-You can configure where this column is on a per-path basis using the following
-configuration data options:
-
-```coffeescript
-wrapGuideConfig =
-  getGuideColumn: (path, defaultColumn) ->
-    if path.indexOf('.mm', path.length - 3) is -1
-      return defaultColumn
-    else
-      return -1 # Disable the guide for Objective-C files
-requireExtension 'wrap-guide', wrapGuideConfig
-```
+Setting the wrap guide column still needs to be converted to the new config
+system. Bug someone if you find this and we still haven't done it.
 
 You can configure the color and/or width of the line by adding the following
 CSS to a custom stylesheet:

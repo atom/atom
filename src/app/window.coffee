@@ -72,18 +72,6 @@ windowAdditions =
     unless $("head style[id='#{id}']").length
       $('head').append "<style id='#{id}'>#{text}</style>"
 
-  requireExtension: (name, config) ->
-    try
-      extensionPath = require.resolve name
-      throw new Error("Extension '#{name}' does not exist at path '#{extensionPath}'") unless fs.exists(extensionPath)
-
-      extension = rootView.activateExtension(require(extensionPath), config)
-      extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), {verifyExistence: false})
-      require extensionKeymapPath if fs.exists(extensionKeymapPath)
-      extension
-    catch e
-      console.error "Failed to load extension named '#{name}'", e.stack
-
   reload: ->
     if rootView?.getModifiedBuffers().length > 0
       atom.confirm(

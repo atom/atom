@@ -6,7 +6,7 @@ describe "WrapGuide", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    requireExtension('wrap-guide')
+    atom.loadPackage('wrap-guide')
     rootView.attachToDom()
     editor = rootView.getActiveEditor()
     wrapGuide = rootView.find('.wrap-guide').view()
@@ -54,12 +54,14 @@ describe "WrapGuide", ->
       wrapGuide.updateGuide(editor)
       expect(column).toBeGreaterThan(0)
 
-    it "uses the function from the config data", ->
+    # this is disabled because we no longer support passing config to an extension
+    # at load time. we need to convert it to use the global config vars.
+    xit "uses the function from the config data", ->
       rootView.find('.wrap-guide').remove()
       config =
         getGuideColumn: ->
           1
-      requireExtension('wrap-guide', config)
+      atom.loadPackage('wrap-guide', config)
       wrapGuide = rootView.find('.wrap-guide').view()
       expect(wrapGuide.getGuideColumn).toBe(config.getGuideColumn)
 
