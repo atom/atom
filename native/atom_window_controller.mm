@@ -9,6 +9,7 @@
 @synthesize splitView=_splitView;
 @synthesize webView=_webView;
 @synthesize devToolsView=_devToolsView;
+@synthesize pathToOpen=_pathToOpen;
 
 - (void)dealloc {
   [_splitView release];
@@ -17,7 +18,7 @@
   [_bootstrapScript release];
   [_resourcePath release];
   [_pathToOpen release];
-  
+
   _cefClient = NULL;
   _cefDevToolsClient = NULL;
 

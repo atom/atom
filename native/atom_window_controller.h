@@ -21,6 +21,7 @@ class AtomCefClient;
 @property (nonatomic, retain) IBOutlet NSSplitView *splitView;
 @property (nonatomic, retain) IBOutlet NSView *webView;
 @property (nonatomic, retain) IBOutlet NSView *devToolsView;
+@property (nonatomic, retain) NSString *pathToOpen;
 
 - (id)initWithPath:(NSString *)path;
 - (id)initUnstableWithPath:(NSString *)path;
