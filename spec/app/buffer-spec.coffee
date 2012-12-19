@@ -343,7 +343,7 @@ describe 'Buffer', ->
         saveBuffer.save()
         expect(fs.read(filePath)).toEqual 'Buffer contents!'
 
-      it "fires beforeSave and afterSave events around the call to fs.write", ->
+      it "fires before-save and after-save events around the call to fs.write", ->
         events = []
         beforeSave1 = -> events.push('beforeSave1')
         beforeSave2 = -> events.push('beforeSave2')
@@ -358,6 +358,14 @@ describe 'Buffer', ->
 
         saveBuffer.save()
         expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fs.write', 'afterSave1', 'afterSave2']
+
+      it "fires before-reload and after-reload events when reloaded", ->
+        events = []
+
+        saveBuffer.on 'before-reload', -> events.push 'before-reload'
+        saveBuffer.on 'after-reload', -> events.push 'after-reload'
+        saveBuffer.reload()
+        expect(events).toEqual ['before-reload', 'after-reload']
 
     describe "when the buffer has no path", ->
       it "throws an exception", ->
@@ -799,3 +807,11 @@ describe 'Buffer', ->
         buffer.delete([[0, 0], [0, 1]], '')
         advanceClock(delay)
         expect(contentsModifiedHandler).toHaveBeenCalledWith(differsFromDisk:false)
+
+  describe ".append(text)", ->
+    it "adds text to the end of the buffer", ->
+      buffer.setText("")
+      buffer.append("a")
+      expect(buffer.getText()).toBe "a"
+      buffer.append("b\nc");
+      expect(buffer.getText()).toBe "ab\nc"

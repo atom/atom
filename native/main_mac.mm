@@ -12,14 +12,14 @@ BOOL isAppAlreadyOpen();
 int main(int argc, char* argv[]) {
   @autoreleasepool {
     handleBeingOpenedAgain(argc, argv);
-    
+
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
     AtomApplication *application = [AtomApplication applicationWithArguments:argv count:argc];
 
     NSString *mainNibName = [infoDictionary objectForKey:@"NSMainNibFile"];
     NSNib *mainNib = [[NSNib alloc] initWithNibNamed:mainNibName bundle:[NSBundle mainBundle]];
     [mainNib instantiateNibWithOwner:application topLevelObjects:nil];
-    
+
     CefRunMessageLoop();
   }
 
@@ -28,10 +28,10 @@ int main(int argc, char* argv[]) {
 
 void handleBeingOpenedAgain(int argc, char* argv[]) {
   NSString *socketPath = [NSString stringWithFormat:@"/tmp/atom-%d.sock", getuid()];
-  
+
   int fd = socket(AF_UNIX, SOCK_DGRAM, 0);
   fcntl(fd, F_SETFD, FD_CLOEXEC);
-  
+
   if (isAppAlreadyOpen()) {
     sendPathToMainProcessAndExit(fd, socketPath, [[AtomApplication parseArguments:argv count:argc] objectForKey:@"path"]);
   }
@@ -44,7 +44,7 @@ void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSString *path) 
   struct sockaddr_un send_addr;
   send_addr.sun_family = AF_UNIX;
   strcpy(send_addr.sun_path, [socketPath UTF8String]);
-  
+
   if (path) {
     const char *buf = [path UTF8String];
     if (sendto(fd, buf, [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding], 0, (sockaddr *)&send_addr, sizeof(send_addr)) < 0) {
@@ -59,7 +59,7 @@ void listenForPathToOpen(int fd, NSString *socketPath) {
   struct sockaddr_un addr;
   addr.sun_family = AF_UNIX;
   strcpy(addr.sun_path, [socketPath UTF8String]);
-  
+
   unlink([socketPath UTF8String]);
   if (bind(fd, (sockaddr*)&addr, sizeof(addr)) < 0) {
     perror("ERROR: Binding to socket");
@@ -72,7 +72,7 @@ void listenForPathToOpen(int fd, NSString *socketPath) {
       listen_addr.sun_family = AF_UNIX;
       strcpy(listen_addr.sun_path, [socketPath UTF8String]);
       socklen_t listen_addr_length;
-      
+
       while(true) {
         memset(buf, 0, MAXPATHLEN);
         if (recvfrom(fd, &buf, sizeof(buf), 0, (sockaddr *)&listen_addr, &listen_addr_length) < 0) {
@@ -99,6 +99,6 @@ BOOL isAppAlreadyOpen() {
       return true;
     }
   }
-  
+
   return false;
 }

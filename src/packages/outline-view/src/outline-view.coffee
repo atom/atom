@@ -1,6 +1,5 @@
 {View, $$} = require 'space-pen'
 SelectList = require 'select-list'
-Editor = require 'editor'
 TagGenerator = require 'outline-view/src/tag-generator'
 TagReader = require 'outline-view/src/tag-reader'
 Point = require 'point'

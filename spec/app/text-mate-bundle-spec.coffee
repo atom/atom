@@ -7,6 +7,9 @@ describe "TextMateBundle", ->
       expect(TextMateBundle.getPreferenceInScope('source.coffee', 'decreaseIndentPattern')).toBe '^\\s*(\\}|\\]|else|catch|finally)$'
       expect(TextMateBundle.getPreferenceInScope('source.coffee', 'shellVariables')).toBeDefined()
 
+    it "returns the preference by the given name in the given scope for a scope registered via a comma-separated list of scopes", ->
+      expect(TextMateBundle.getPreferenceInScope('source.objc++', 'shellVariables')).toBeDefined()
+
   describe ".getPreferencesByScopeSelector()", ->
     it "logs warning, but does not raise errors if a preference can't be parsed", ->
       bundlePath = fs.join(require.resolve('fixtures'), "test.tmbundle")
@@ -32,6 +35,9 @@ describe "TextMateBundle", ->
     it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
       filePath = require.resolve("fixtures/shebang")
       expect(TextMateBundle.grammarForFilePath(filePath).name).toBe "Ruby"
+
+    it "uses the grammar's fileType as a suffix of the full filePath if the grammar cannot be determined by shebang line", ->
+      expect(TextMateBundle.grammarForFilePath("/tmp/.git/config").name).toBe "Git Config"
 
     it "uses plain text if no grammar can be found", ->
       filePath = require.resolve("this-is-not-a-real-file")

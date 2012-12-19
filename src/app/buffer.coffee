@@ -73,8 +73,10 @@ class Buffer
       @trigger "path-change", this
 
   reload: ->
+    @trigger 'before-reload'
     @updateCachedDiskContents()
     @setText(@cachedDiskContents)
+    @trigger 'after-reload'
 
   updateCachedDiskContents: ->
     @cachedDiskContents = @file.read()
@@ -186,6 +188,9 @@ class Buffer
       endPoint = [end + 1, 0]
 
     @change(new Range(startPoint, endPoint), '')
+
+  append: (text) ->
+    @insert(@getEofPosition(), text)
 
   insert: (point, text) ->
     @change(new Range(point, point), text)

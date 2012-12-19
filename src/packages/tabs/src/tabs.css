@@ -15,6 +15,7 @@
   color: #d0d0d0;
   -webkit-border-top-left-radius: 4px;
   -webkit-border-top-right-radius: 4px;
+  font-size: 90%;
 }
 
 .tab.active {
@@ -35,7 +36,8 @@
   font-size: 14px;
   width: 14px;
   height: 14px;
-  color: #aaa;
+  color: #777;
+  cursor: pointer;
 }
 
 .tab .close-icon:before {

@@ -1,6 +1,7 @@
 _ = require 'underscore'
 fs = require 'fs'
 plist = require 'plist'
+$ = require 'jquery'
 
 TextMateGrammar = require 'text-mate-grammar'
 
@@ -23,7 +24,10 @@ class TextMateBundle
     @bundles.push(bundle)
 
     for scopeSelector, preferences of bundle.getPreferencesByScopeSelector()
-      @preferencesByScopeSelector[scopeSelector] = preferences
+      if @preferencesByScopeSelector[scopeSelector]?
+        _.extend(@preferencesByScopeSelector[scopeSelector], preferences)
+      else
+        @preferencesByScopeSelector[scopeSelector] = preferences
 
     for grammar in bundle.grammars
       @grammars.push(grammar)
@@ -32,11 +36,17 @@ class TextMateBundle
         @grammarsByScopeName[grammar.scopeName] = grammar
 
   @grammarForFilePath: (filePath) ->
+    return @grammarsByFileType["txt"] unless filePath
+
     extension = fs.extension(filePath)?[1...]
     if filePath and extension.length == 0
       extension = fs.base(filePath)
 
-    @grammarsByFileType[extension] or @grammarByShebang(filePath) or @grammarsByFileType["txt"]
+    @grammarsByFileType[extension] or @grammarByShebang(filePath) or @grammarByFileTypeSuffix(filePath) or @grammarsByFileType["txt"]
+
+  @grammarByFileTypeSuffix: (filePath) ->
+    for fileType, grammar of @grammarsByFileType
+      return grammar if _.endsWith(filePath, fileType)
 
   @grammarByShebang: (filePath) ->
     try
@@ -52,9 +62,15 @@ class TextMateBundle
   @getPreferenceInScope: (scopeSelector, preferenceName) ->
     @preferencesByScopeSelector[scopeSelector]?[preferenceName]
 
-  @lineCommentStringForScope: (scope) ->
-    shellVariables = @getPreferenceInScope(scope, 'shellVariables')
-    (_.find shellVariables, ({name}) -> name == "TM_COMMENT_START")?['value']
+  @getPreferenceValueInScope: (scope, preferenceName, valueName) ->
+    values = @getPreferenceInScope(scope, preferenceName)
+    (_.find values, ({name}) -> name is valueName)?['value']
+
+  @lineCommentStartStringForScope: (scope) ->
+    @getPreferenceValueInScope(scope, 'shellVariables', 'TM_COMMENT_START')
+
+  @lineCommentEndStringForScope: (scope) ->
+    @getPreferenceValueInScope(scope, 'shellVariables', 'TM_COMMENT_END')
 
   @indentRegexForScope: (scope) ->
     if source = @getPreferenceInScope(scope, 'increaseIndentPattern')
@@ -91,7 +107,11 @@ class TextMateBundle
           console.warn "Failed to parse preference at path '#{preferencePath}'", e
         else
           { scope, settings } = data[0]
-          preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
+          return unless scope
+          for scope in scope.split(',')
+            scope = $.trim(scope)
+            continue unless scope
+            preferencesByScopeSelector[scope] = _.extend(preferencesByScopeSelector[scope] ? {}, settings)
 
     preferencesByScopeSelector
 
@@ -100,4 +120,3 @@ class TextMateBundle
 
   getPreferencesPath: ->
     fs.join(@path, "Preferences")
-

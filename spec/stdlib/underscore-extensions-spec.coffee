@@ -20,3 +20,13 @@ describe "underscore extensions", ->
       _.adviseBefore object, 'method', -> false
       object.method(1, 2, 3)
       expect(calls).toEqual []
+
+  describe "_.endsWith", ->
+    it "returns whether the given string ends with the given suffix", ->
+      expect(_.endsWith("test.txt", ".txt")).toBeTruthy()
+      expect(_.endsWith("test.txt", "txt")).toBeTruthy()
+      expect(_.endsWith("test.txt", "test.txt")).toBeTruthy()
+      expect(_.endsWith("test.txt", "")).toBeTruthy()
+      expect(_.endsWith("test.txt", ".txt2")).toBeFalsy()
+      expect(_.endsWith("test.txt", ".tx")).toBeFalsy()
+      expect(_.endsWith("test.txt", "test")).toBeFalsy()

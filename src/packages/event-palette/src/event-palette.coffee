@@ -1,6 +1,5 @@
 {View, $$} = require 'space-pen'
 SelectList = require 'select-list'
-Editor = require 'editor'
 $ = require 'jquery'
 _ = require 'underscore'
 
@@ -57,4 +56,3 @@ class EventPalette extends SelectList
 
   cancelled: ->
     @previouslyFocusedElement.focus() if @miniEditor.isFocused
-

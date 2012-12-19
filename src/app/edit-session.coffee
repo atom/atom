@@ -59,6 +59,8 @@ class EditSession
     @buffer.on "update-anchors-after-change.edit-session-#{@id}", =>
       @mergeCursors()
 
+    @preserveCursorPositionOnBufferReload()
+
     @displayBuffer.on "change.edit-session-#{@id}", (e) =>
       @refreshAnchorScreenPositions() unless e.bufferDelta
       @trigger 'screen-lines-change', e
@@ -596,5 +598,13 @@ class EditSession
 
   inspect: ->
     JSON.stringify @serialize()
+
+  preserveCursorPositionOnBufferReload: ->
+    cursorPosition = null
+    @buffer.on "before-reload.edit-session-#{@id}", =>
+      cursorPosition = @getCursorBufferPosition()
+    @buffer.on "after-reload.edit-session-#{@id}", =>
+      @setCursorBufferPosition(cursorPosition) if cursorPosition
+      cursorPosition = null
 
 _.extend(EditSession.prototype, EventEmitter)
