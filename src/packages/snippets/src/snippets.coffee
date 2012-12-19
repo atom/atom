@@ -6,7 +6,7 @@ SnippetExpansion = require 'snippets/src/snippet-expansion'
 module.exports =
   name: 'Snippets'
   snippetsByExtension: {}
-  snippetsParser: PEG.buildParser(fs.read(require.resolve 'extensions/snippets/snippets.pegjs'), trackLineAndColumn: true)
+  snippetsParser: PEG.buildParser(fs.read(require.resolve 'snippets/snippets.pegjs'), trackLineAndColumn: true)
 
   activate: (@rootView) ->
     @loadSnippets()

@@ -5,10 +5,10 @@ EventEmitter = require 'event-emitter'
 configDirPath = fs.absolute("~/.atom")
 configJsonPath = fs.join(configDirPath, "config.json")
 userInitScriptPath = fs.join(configDirPath, "atom.coffee")
-bundledExtensionsDirPath = fs.join(resourcePath, "src/extensions")
-userExtensionsDirPath = fs.join(configDirPath, "extensions")
+bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
+userPackagesDirPath = fs.join(configDirPath, "packages")
 
-require.paths.unshift userExtensionsDirPath
+require.paths.unshift userPackagesDirPath
 
 module.exports =
 class Config
@@ -32,17 +32,17 @@ class Config
     @setDefaults "core", require('root-view').configDefaults
     @setDefaults "editor", require('editor').configDefaults
 
-  getAvailableExtensions: ->
-    availableExtensions =
-      fs.list(bundledExtensionsDirPath)
-        .concat(fs.list(userExtensionsDirPath)).map (path) -> fs.base(path)
-    _.unique(availableExtensions)
+  getAvailablePackages: ->
+    availablePackages =
+      fs.list(bundledPackagesDirPath)
+        .concat(fs.list(userPackagesDirPath)).map (path) -> fs.base(path)
+    _.unique(availablePackages)
 
   loadPackages: ->
-    disabledExtensions = config.get("core.disabledExtensions") ? []
-    for extensionName in @getAvailableExtensions()
-      unless _.contains disabledExtensions, extensionName
-        atom.loadPackage(extensionName)
+    disabledPackages = config.get("core.disabledPackages") ? []
+    for packageName in @getAvailablePackages()
+      unless _.contains disabledPackages, packageName
+        atom.loadPackage(packageName)
 
   get: (keyPath) ->
     keys = @keysForKeyPath(keyPath)
