@@ -17,17 +17,17 @@
   AtomApplication *application = [self sharedApplication];
   CefInitialize(CefMainArgs(argc, argv), [self createCefSettings], new AtomCefApp);
   application.arguments = [self parseArguments:argv count:argc];
-  
+
   return application;
 }
 
 + (NSDictionary *)parseArguments:(char **)argv count:(int)argc {
   NSMutableDictionary *arguments = [[NSMutableDictionary alloc] init];
-  
+
   #ifdef RESOURCE_PATH
     [arguments setObject:[NSString stringWithUTF8String:RESOURCE_PATH] forKey:@"resource-path"];
   #endif
-  
+
   // Remove non-posix (i.e. -long_argument_with_one_leading_hyphen) added by OS X from the command line
   int cleanArgc = argc;
   size_t argvSize = argc * sizeof(char *);
@@ -75,10 +75,10 @@
         NSLog(@"usage: atom [--resource-path=<path>] [<path>]");
     }
   }
-  
+
   cleanArgc -= optind;
   cleanArgv += optind;
-  
+
   if (cleanArgc > 0) {
     NSString *path = [NSString stringWithUTF8String:cleanArgv[0]];
     NSString *executedFromPath =[arguments objectForKey:@"executed-from"];
@@ -88,8 +88,8 @@
     path = [path stringByStandardizingPath];
     [arguments setObject:path forKey:@"path"];
   }
-  
-  
+
+
   return arguments;
 }
 
@@ -108,7 +108,7 @@
 
   return supportDirectory;
 }
-  
+
 + (CefSettings)createCefSettings {
   CefSettings settings;
 
@@ -155,7 +155,7 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
   _backgroundWindowController = [[AtomWindowController alloc] initInBackground];
-  
+
   if ([self.arguments objectForKey:@"benchmark"]) {
     [self runBenchmarksThenExit:true];
   }
@@ -205,4 +205,3 @@
 }
 
 @end
-
