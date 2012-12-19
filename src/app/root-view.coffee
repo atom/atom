@@ -10,7 +10,6 @@ Project = require 'project'
 Pane = require 'pane'
 PaneColumn = require 'pane-column'
 PaneRow = require 'pane-row'
-StatusBar = require 'status-bar'
 TextMateTheme = require 'text-mate-theme'
 
 module.exports =
