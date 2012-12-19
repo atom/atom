@@ -181,8 +181,7 @@
 
 - (void)application:(NSApplication *)sender openFiles:(NSArray *)filenames {
   if ([self shouldOpenFiles]) {
-    for (int i = 0; i < [filenames count]; i++) {
-      NSString *path = [filenames objectAtIndex:i];
+    for (NSString *path in filenames) {
       path = [[self class] standardizePathToOpen:path withArguments:self.arguments];
       [self open:path];
     }
