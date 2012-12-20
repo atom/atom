@@ -12,7 +12,7 @@ describe "SpacePen extensions", ->
     parent = $$ -> @div()
     parent.append(view)
 
-  describe "View#observeConfig(keyPath, callback)", ->
+  describe "View.observeConfig(keyPath, callback)", ->
     observeHandler = null
 
     beforeEach ->
@@ -20,7 +20,7 @@ describe "SpacePen extensions", ->
       view.observeConfig "foo.bar", observeHandler
       expect(view.hasParent()).toBeTruthy()
 
-    it "observes the keyPath and destroys the subscription when `.unobserveConfig()` is called", ->
+    it "observes the keyPath and cancels the subscription when `.unobserveConfig()` is called", ->
       expect(observeHandler).toHaveBeenCalledWith(undefined)
       observeHandler.reset()
 
@@ -41,7 +41,7 @@ describe "SpacePen extensions", ->
       config.set("foo.bar", "hello")
       expect(observeHandler).not.toHaveBeenCalled()
 
-  describe "View#subscribe(eventEmitter, eventName, callback)", ->
+  describe "View.subscribe(eventEmitter, eventName, callback)", ->
     [emitter, eventHandler] = []
 
     beforeEach ->
