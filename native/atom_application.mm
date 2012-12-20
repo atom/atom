@@ -68,7 +68,7 @@
       case 'T':
       case 'S':
       case 'W':
-      case 'P':        
+      case 'P':
         key = [NSString stringWithUTF8String:longopts[longindex].name];
         value = optarg ? [NSString stringWithUTF8String:optarg] : @"YES";
         [arguments setObject:value forKey:key];
@@ -138,7 +138,6 @@
 }
 
 - (void)open:(NSString *)path pidToKillWhenWindowCloses:(NSNumber *)pid {
-  NSLog(@"OK SON %@", pid);
   for (NSWindow *window in [self windows]) {
     if ([window isVisible] && ![window isExcludedFromWindowsMenu]) {
       AtomWindowController *controller = [window windowController];
