@@ -287,9 +287,9 @@ class Editor extends View
 
   setInvisibles: (@invisibles={}) ->
     _.defaults @invisibles,
-      eol: '¬',
-      space: '•',
-      tab: '▸'
+      eol: '\u00ac',
+      space: '\u2022',
+      tab: '\u00bb'
     @resetDisplay()
 
   checkoutHead: -> @getBuffer().checkoutHead()
