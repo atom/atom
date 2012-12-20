@@ -186,5 +186,5 @@ class LanguageMode
     if desiredIndentLevel < currentIndentLevel
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
-  tokenizeLine: (line, stack) ->
-    {tokens, stack} = @grammar.tokenizeLine(line, stack)
+  tokenizeLine: (line, stack, firstLine) ->
+    {tokens, stack} = @grammar.tokenizeLine(line, stack, firstLine)

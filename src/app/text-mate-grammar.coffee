@@ -29,8 +29,7 @@ class TextMateGrammar
       data = {patterns: [data], tempName: name} if data.begin? or data.match?
       @repository[name] = new Rule(this, data)
 
-  tokenizeLine: (line, ruleStack=[@initialRule]) ->
-    ruleStack ?= [@initialRule]
+  tokenizeLine: (line, ruleStack=[@initialRule], firstLine=false) ->
     ruleStack = new Array(ruleStack...) # clone ruleStack
     tokens = []
     position = 0
@@ -44,7 +43,7 @@ class TextMateGrammar
 
       break if position == line.length
 
-      if match = _.last(ruleStack).getNextTokens(ruleStack, line, position)
+      if match = _.last(ruleStack).getNextTokens(ruleStack, line, position, firstLine)
         { nextTokens, tokensStartPosition, tokensEndPosition } = match
         if position < tokensStartPosition # unmatched text before next tokens
           tokens.push(new Token(
@@ -79,6 +78,7 @@ class Rule
   patterns: null
   allPatterns: null
   createEndPattern: null
+  anchor: -1
 
   constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
     patterns ?= []
@@ -95,14 +95,28 @@ class Rule
       @allPatterns.push(pattern.getIncludedPatterns(included)...)
     @allPatterns
 
-  getScanner: ->
-    @scanner ?= new OnigScanner(_.pluck(@getIncludedPatterns(), 'regexSource'))
+  getScanner: (position, firstLine) ->
+    return @scanner if @scanner
 
-  getNextTokens: (stack, line, position) ->
+    anchored = false
+    regexes = []
+    @getIncludedPatterns().forEach (pattern) =>
+      if pattern.anchored
+        anchored = true
+        regex = pattern.replaceAnchor(firstLine, position, @anchor)
+      else
+        regex = pattern.regexSource
+      regexes.push regex if regex
+
+    regexScanner = new OnigScanner(regexes)
+    @scanner = regexScanner unless anchored
+    regexScanner
+
+  getNextTokens: (stack, line, position, firstLine) ->
     patterns = @getIncludedPatterns()
 
     # Add a `\n` to appease patterns that contain '\n' explicitly
-    return null unless result = @getScanner().findNextMatch(line + "\n", position)
+    return null unless result = @getScanner(position, firstLine).findNextMatch("#{line}\n", position)
     { index, captureIndices } = result
     # Since the `\n' (added above) is not part of the line, truncate captures to the line's actual length
     lineLength = line.length
@@ -130,6 +144,7 @@ class Pattern
   scopeName: null
   captures: null
   backReferences: null
+  anchored: false
 
   constructor: (@grammar, { name, contentName, @include, match, begin, end, captures, beginCaptures, endCaptures, patterns, @popRule, hasBackReferences}) ->
     @scopeName = name ? contentName # TODO: We need special treatment of contentName
@@ -144,6 +159,34 @@ class Pattern
       @captures = beginCaptures ? captures
       endPattern = new Pattern(@grammar, { match: end, captures: endCaptures ? captures, popRule: true})
       @pushRule = new Rule(@grammar, { @scopeName, patterns, endPattern })
+    @anchored = @hasAnchor()
+
+  hasAnchor: ->
+    return false unless @regexSource
+    escape = false
+    for character in @regexSource.split('')
+      return true if escape and (character is 'A' or character is 'G' or character is 'z')
+      escape = not escape and character is '\\'
+    false
+
+  replaceAnchor: (firstLine, offset, anchor) ->
+    escaped = []
+    placeholder = '\uFFFF'
+    escape = false
+    for character in @regexSource.split('')
+      if escape
+        switch character
+          when 'A' then escaped.push(placeholder) unless firstLine
+          when 'G' then escaped.push(placeholder) unless offset is anchor
+          when 'z' then escaped.push('$(?!\n)(?<!\n)')
+          else escaped.push("\\#{character}")
+        escape = false
+      else if character is '\\'
+        escape = true
+      else
+        escaped.push(character)
+
+    escaped.join('')
 
   resolveBackReferences: (line, beginCaptureIndices) ->
     beginCaptures = []
@@ -180,7 +223,9 @@ class Pattern
       else
         tokens = [new Token(value: line[start...end], scopes: scopes)]
     if @pushRule
-      stack.push(@pushRule.getRuleToPush(line, captureIndices))
+      ruleToPush = @pushRule.getRuleToPush(line, captureIndices)
+      ruleToPush.anchor = captureIndices[1]
+      stack.push(ruleToPush)
     else if @popRule
       stack.pop()
 
@@ -226,4 +271,3 @@ shiftCapture = (captureIndices) ->
 
 scopesFromStack = (stack) ->
   _.compact(_.pluck(stack, "scopeName"))
-

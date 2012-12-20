@@ -14,7 +14,7 @@ describe "TokenizedBuffer", ->
 
   fullyTokenize = (tokenizedBuffer) ->
     advanceClock() while tokenizedBuffer.firstInvalidRow()?
-    changeHandler.reset()
+    changeHandler?.reset()
 
   describe "when the buffer contains soft-tabs", ->
     beforeEach ->
@@ -326,3 +326,21 @@ describe "TokenizedBuffer", ->
 
         expect(tokenizedBuffer.lineForScreenRow(2).text).toBe "#{tabAsSpaces} buy()#{tabAsSpaces}while supply > demand"
 
+  describe "when a Git commit message file is tokenized", ->
+    beforeEach ->
+      editSession =  fixturesProject.buildEditSessionForPath('COMMIT_EDITMSG', autoIndent: false)
+      buffer = editSession.buffer
+      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      editSession.setVisible(true)
+      fullyTokenize(tokenizedBuffer)
+
+    afterEach ->
+      editSession.destroy()
+
+    it "correctly parses the number sign of the first comment line", ->
+      commentLine = tokenizedBuffer.lineForScreenRow(1)
+      expect(commentLine.text).toBe "# Please enter the commit message for your changes. Lines starting"
+      { tokens } = commentLine
+
+      expect(tokens[0].value).toBe "#"
+      expect(tokens[0].scopes).toEqual ["text.git-commit", "meta.scope.metadata.git-commit", "comment.line.number-sign.git-commit", "punctuation.definition.comment.git-commit"]
