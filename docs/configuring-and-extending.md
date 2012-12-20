@@ -65,7 +65,6 @@ view is removed. You can cancel config subscriptions manually via the
 
 ```coffeescript
 view1.unobserveConfig() # unobserve all properties
-view2.unobserveConfig("editor.lineHeight") # unobserve a specific property
 ```
 
 You can add the ability to observe config values to non-view classes by
