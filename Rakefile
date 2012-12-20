@@ -2,6 +2,8 @@ ATOM_SRC_PATH = File.dirname(__FILE__)
 DOT_ATOM_PATH = ENV['HOME'] + "/.atom"
 BUILD_DIR = 'atom-build'
 
+require 'erb'
+
 desc "Build Atom via `xcodebuild`"
 task :build => "create-project" do
   command = "xcodebuild -target Atom configuration=Release SYMROOT=#{BUILD_DIR}"
@@ -36,14 +38,19 @@ task :install => :build do
   usr_bin_path = default_usr_bin_path = "/opt/github/bin"
   cli_path = "#{usr_bin_path}/atom"
   stable_cli_path = "#{usr_bin_path}/atom-stable"
+  `echo "use 'atom --stable' in place of atom-stable." > #{stable_cli_path}`
 
   if !File.exists?(usr_bin_path)
     $stderr.puts "ERROR: Failed to install atom cli tool at '#{usr_bin_path}'"
     exit 1
   end
 
-  `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" $@' > #{cli_path} && chmod 755 #{cli_path}`
-  `echo '#!/bin/sh\nopen #{dest} -n --args --resource-path="#{ATOM_SRC_PATH}" --executed-from="$(pwd)" --stable $@' > #{stable_cli_path} && chmod 755 #{stable_cli_path}`
+  template = ERB.new CLI_SCRIPT
+  namespace = OpenStruct.new(:application_path => dest, :resource_path => ATOM_SRC_PATH)
+  File.open(cli_path, "w") do |f|
+    f.write template.result(namespace.instance_eval { binding })
+    f.chmod(0755)
+  end
 
   Rake::Task["create-dot-atom"].invoke()
   Rake::Task["clone-default-bundles"].invoke()
@@ -144,3 +151,30 @@ def application_path
 
   return nil
 end
+
+CLI_SCRIPT = <<-EOF
+#!/bin/sh
+open <%= application_path %> -n --args --resource-path="<%= resource_path %>" --executed-from="$(pwd)" --pid=$$ $@
+
+# Used to exit process when atom is used as $EDITOR
+on_die() {
+  exit 0
+}
+trap 'on_die' SIGQUIT SIGTERM
+
+# Don't exit process if we were told to wait.
+while [ "$#" -gt "0" ]; do
+  case $1 in
+    -W|--wait)
+      WAIT=1
+      ;;
+  esac
+  shift
+done
+
+if [ $WAIT ]; then
+  while true; do
+    sleep 1
+  done
+fi
+EOF

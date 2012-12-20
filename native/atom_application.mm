@@ -49,15 +49,17 @@
   int longindex;
 
   static struct option longopts[] = {
-    { "executed-from",      optional_argument,      NULL,  'K'  },
-    { "resource-path",      optional_argument,      NULL,  'R'  },
-    { "benchmark",          optional_argument,      NULL,  'B'  },
-    { "test",               optional_argument,      NULL,  'T'  },
+    { "executed-from",      required_argument,      NULL,  'K'  },
+    { "resource-path",      required_argument,      NULL,  'R'  },
+    { "benchmark",          no_argument,            NULL,  'B'  },
+    { "test",               no_argument,            NULL,  'T'  },
     { "stable",             no_argument,            NULL,  'S'  },
+    { "pid",                required_argument,      NULL,  'P'  },
+    { "wait",               no_argument,            NULL,  'W'  },
     { NULL,                 0,                      NULL,  0 }
   };
 
-  while ((opt = getopt_long(cleanArgc, cleanArgv, "R:K:BTSh?", longopts, &longindex)) != -1) {
+  while ((opt = getopt_long(cleanArgc, cleanArgv, "K:R:BYSP:Wh?", longopts, &longindex)) != -1) {
     NSString *key, *value;
     switch (opt) {
       case 'K':
@@ -65,6 +67,8 @@
       case 'B':
       case 'T':
       case 'S':
+      case 'W':
+      case 'P':        
         key = [NSString stringWithUTF8String:longopts[longindex].name];
         value = optarg ? [NSString stringWithUTF8String:optarg] : @"YES";
         [arguments setObject:value forKey:key];
@@ -133,7 +137,8 @@
   [super dealloc];
 }
 
-- (void)open:(NSString *)path {
+- (void)open:(NSString *)path pidToKillWhenWindowCloses:(NSNumber *)pid {
+  NSLog(@"OK SON %@", pid);
   for (NSWindow *window in [self windows]) {
     if ([window isVisible] && ![window isExcludedFromWindowsMenu]) {
       AtomWindowController *controller = [window windowController];
@@ -144,7 +149,13 @@
     }
   }
 
-  [[AtomWindowController alloc] initWithPath:path];
+  AtomWindowController *windowController = [[AtomWindowController alloc] initWithPath:path];
+  [windowController setPidToKillOnClose:pid];
+  return windowController;
+}
+
+- (void)open:(NSString *)path {
+  [self open:path pidToKillWhenWindowCloses:nil];
 }
 
 - (void)openUnstable:(NSString *)path {
@@ -183,7 +194,8 @@
   if ([self shouldOpenFiles]) {
     for (NSString *path in filenames) {
       path = [[self class] standardizePathToOpen:path withArguments:self.arguments];
-      [self open:path];
+      NSNumber *pid = [self.arguments objectForKey:@"wait"] ? [self.arguments objectForKey:@"pid"] : nil;
+      [self open:path pidToKillWhenWindowCloses:pid];
     }
     if ([filenames count] > 0) {
       _filesOpened = YES;
@@ -200,7 +212,8 @@
     if (!path) path = [NSString stringWithUTF8String:RESOURCE_PATH];
     #endif
 
-    [self open:path];
+    NSNumber *pid = [self.arguments objectForKey:@"wait"] ? [self.arguments objectForKey:@"pid"] : nil;
+    [self open:path pidToKillWhenWindowCloses:pid];
   }
 }
 

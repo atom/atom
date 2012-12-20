@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSString *path);
+void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSDictionary *arguments);
 void handleBeingOpenedAgain(int argc, char* argv[]);
 void listenForPathToOpen(int fd, NSString *socketPath);
 BOOL isAppAlreadyOpen();
@@ -33,22 +33,29 @@ void handleBeingOpenedAgain(int argc, char* argv[]) {
   fcntl(fd, F_SETFD, FD_CLOEXEC);
 
   if (isAppAlreadyOpen()) {
-    sendPathToMainProcessAndExit(fd, socketPath, [[AtomApplication parseArguments:argv count:argc] objectForKey:@"path"]);
+    NSDictionary *arguments = [AtomApplication parseArguments:argv count:argc];
+    sendPathToMainProcessAndExit(fd, socketPath, arguments);
   }
   else {
     listenForPathToOpen(fd, socketPath);
   }
 }
 
-void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSString *path) {
+void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSDictionary *arguments) {
   struct sockaddr_un send_addr;
   send_addr.sun_family = AF_UNIX;
   strcpy(send_addr.sun_path, [socketPath UTF8String]);
 
+  NSString *path = [arguments objectForKey:@"path"];
   if (path) {
-    const char *buf = [path UTF8String];
-    if (sendto(fd, buf, [path lengthOfBytesUsingEncoding:NSUTF8StringEncoding], 0, (sockaddr *)&send_addr, sizeof(send_addr)) < 0) {
-      perror("Error: Failed to send path to main Atom process");
+    NSMutableString *packedString = [NSMutableString stringWithString:path];
+    if ([arguments objectForKey:@"wait"]) {
+      [packedString appendFormat:@"\n%@", [arguments objectForKey:@"pid"]];
+    }
+
+    const char *buf = [packedString UTF8String];
+    if (sendto(fd, buf, [packedString lengthOfBytesUsingEncoding:NSUTF8StringEncoding], 0, (sockaddr *)&send_addr, sizeof(send_addr)) < 0) {
+      perror("Error: Failed to sending path to main Atom process");
       exit(1);
     }
   }
@@ -67,22 +74,25 @@ void listenForPathToOpen(int fd, NSString *socketPath) {
   else {
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async(queue, ^{
-      char buf[MAXPATHLEN];
+      char buf[MAXPATHLEN + 16]; // Add 16 to hold the pid string
       struct sockaddr_un listen_addr;
       listen_addr.sun_family = AF_UNIX;
       strcpy(listen_addr.sun_path, [socketPath UTF8String]);
       socklen_t listen_addr_length;
 
       while(true) {
-        memset(buf, 0, MAXPATHLEN);
+        memset(buf, 0, sizeof(buf));
         if (recvfrom(fd, &buf, sizeof(buf), 0, (sockaddr *)&listen_addr, &listen_addr_length) < 0) {
           perror("ERROR: Receiving from socket");
         }
         else {
-          NSString *path = [NSString stringWithUTF8String:buf];
+          NSArray *components = [[NSString stringWithUTF8String:buf] componentsSeparatedByString:@"\n"];
+          NSString *path = [components objectAtIndex:0];
+          NSNumber *pid = nil;
+          if (components.count > 1) pid = [NSNumber numberWithInt:[[components objectAtIndex:1] intValue]];
           dispatch_queue_t mainQueue = dispatch_get_main_queue();
           dispatch_async(mainQueue, ^{
-            [[AtomApplication sharedApplication] open:path];
+            [[AtomApplication sharedApplication] open:path pidToKillWhenWindowCloses:pid];
             [NSApp activateIgnoringOtherApps:YES];
           });
         }

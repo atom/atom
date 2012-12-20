@@ -1,8 +1,9 @@
 #import "include/cef_application_mac.h"
-#include "include/cef_client.h"
+#import "include/cef_client.h"
 #import "native/atom_cef_client.h"
 #import "native/atom_window_controller.h"
 #import "native/atom_application.h"
+#import <signal.h>
 
 @implementation AtomWindowController
 
@@ -156,6 +157,10 @@
   _cefClient->GetBrowser()->GetHost()->SetFocus(true);
 }
 
+- (void)setPidToKillOnClose:(NSNumber *)pid {
+  _pidToKillOnClose = [pid retain];
+}
+
 # pragma mark NSWindowDelegate
 
 
@@ -175,6 +180,9 @@
   if (_cefClient && _cefClient->GetBrowser()) {
     _cefClient->GetBrowser()->SendProcessMessage(PID_RENDERER, CefProcessMessage::Create("shutdown"));
   }
+  
+  if (_pidToKillOnClose) kill([_pidToKillOnClose intValue], SIGQUIT);
+  
   [self autorelease];
   return YES;
 }

@@ -9,6 +9,7 @@ class AtomCefClient;
   NSString *_bootstrapScript;
   NSString *_resourcePath;
   NSString *_pathToOpen;
+  NSNumber *_pidToKillOnClose;
 
   CefRefPtr<AtomCefClient> _cefClient;
   CefRefPtr<AtomCefClient> _cefDevToolsClient;
@@ -28,6 +29,7 @@ class AtomCefClient;
 - (id)initInBackground;
 - (id)initSpecsThenExit:(BOOL)exitWhenDone;
 - (id)initBenchmarksThenExit:(BOOL)exitWhenDone;
+- (void)setPidToKillOnClose:(NSNumber *)pid;
 
 - (void)toggleDevTools;
 - (void)showDevTools;
