@@ -13,6 +13,9 @@ editor:
   fontSize: 18
 ```
 
+NOTE: Currently, we only support the `.json` extension. CSON support is an
+aspiration.
+
 ## Writing Config Settings
 
 As shown above, the config database is automatically populated from `config.cson`
@@ -75,7 +78,7 @@ ConfigObserver = require 'config-observer'
 _.extend MyClass.prototype, ConfigObserver
 ```
 
-## Scoped Config Settings
+## Scoped Config Settings (Not Yet Implemented)
 
 Users and extension authors can provide language-specific behavior by employing
 *scoped configuration keys*. By associating key values with a specific scope,
@@ -127,7 +130,7 @@ config.inScope(fuzzyFinder.miniEditor).get("editor.fontSize")
 †:  Matching DOM elements fits cleanly into this scheme, but I can't think of a
     use for it currently. Let's keep it in the back of our minds though.
 
-# Themes
+# Themes (Not Yet Implemented)
 
 ## Selecting A Theme
 
@@ -206,31 +209,31 @@ so it works with Atom. There are a few slight differences between TextMate's
 semantics and those of stylesheets, but they should be negligible in practice.
 
 
-# Extensions
+# Packages
 
-## Installing Extensions
+## Installing Packages (Partially Implemented)
 
-To install an extension, clone it into the `~/.atom/extensions` directory.
-If you want to disable an extension without removing it from the extensions
-directory, insert its name into `config.core.disabledExtensions`:
+To install a package, clone it into the `~/.atom/packages` directory.
+If you want to disable a package without removing it from the packages
+directory, insert its name into `config.core.disabledPackages`:
 
 config.cson:
 ```coffeescript
 core:
-  disabledExtensions: [
+  disabledPackages: [
     "fuzzy-finder",
     "tree-view"
   ]
 ```
 
-## Writing Extensions
+## Anatomy of a Package
 
-An extension can bundle a variety of different resource types to change Atom's
-behavior. The basic extension layout is as follows (not every extension will
+A package can contain a variety of different resource types to change Atom's
+behavior. The basic package layout is as follows (not every package will
 have all of these directories):
 
 ```text
-my-extension/
+my-package/
   lib/
   config/
   stylesheets/
@@ -241,35 +244,91 @@ my-extension/
   index.coffee
 ```
 
+**NOTE: NPM behavior is partially implemented until we get a working Node.js
+API built into Atom. The goal is to make Atom packages be a superset of NPM
+packages**
+
+### package.json
+
+Similar to npm packages, Atom packages can contain a `package.json` file in their
+top-level directory. This file contains metadata about the package, such as the
+path to its "main" module, library dependencies, and manifests specifying the
+order in which its resources should be loaded.
+
 ### Source Code
 
-Extensions can contain arbitrary CoffeeScript code. Place an `index.coffee` file
-in the extension directory, or specify a `main` key in the extension's optional
-`package.json` file. Place the bulk of your code in the extension's `lib`
-directory, and require it from `index.coffee`.
+If you want to extend Atom's behavior, your package should contain a single
+top-level module, which you export from `index.coffee` or another file as
+indicated by the `main` key in your `package.json` file. The remainder of your
+code should be placed in the `lib` directory, and required from your top-level
+file.
+
+Your package's top-level module is a singleton object that manages the lifecycle
+of your extensions to Atom. Even if your package creates ten different views and
+appends them to different parts of the DOM, it's all managed from your top-level
+object. Your package's top-level module should implement the following methods:
+
+- `activate(rootView, state)` **Required**: This method is called when your
+package is loaded. It is always passed the window's global `rootView`, and is
+sometimes passed state data if the window has been reloaded and your module
+implements the `serialize` method.
+
+- `serialize()` **Optional**: This method is called when the window is shutting
+down, allowing you to return JSON to represent the state of your component. When
+the window is later restored, the data you returned will be passed to your
+module's `activate` method so you can restore your view to where the user left
+off.
+
+- `deactivate()` **Optional**: This method is called when the window is shutting
+down. If your package is watching any files or holding external resources in any
+other way, release them here. If you're just subscribing to things on window
+you don't need to worry because that's getting torn down anyway.
+
+#### A Simple Package Layout:
 
 ```text
-my-extension/
-  lib/
-    my-extension.coffee
-    rocket.coffee
+my-package/
   package.json # optional
   index.coffee
+  lib/
+    my-package.coffee
 ```
-### Config Settings:
+
+`index.coffee`:
+```coffeescript
+module.exports = require "./lib/my-package"
+```
+
+`my-package/my-package.coffee`:
+```coffeescript
+module.exports =
+  activate: (rootView, state) -> # ...
+  deactivate: -> # ...
+  serialize: -> # ...
+```
+
+Beyond this simple contract, your package has full access to Atom's internal
+API. Anything we call internally, you can call as well. Be aware that since we
+are early in development, APIs are subject to change and we have not yet
+established clear boundaries between what is public and what is private. Also,
+Please collaborate with us if you need an API that doesn't exist. Our goal is
+to build out Atom's API organically based on the needs of package authors like
+you. See [Atom's built-in packages](https://github.com/github/atom/tree/master/src/packages)
+for examples of Atom's API in action.
+
+### Config Settings
 
 ### Stylesheets
 
-### Keymaps
+### Keymaps (Not Implemented)
 
-Keymaps (with the `.keymap` extension) can be placed at the root of the
-extension or in the `keymaps` subdirectory. By default, all keymaps will be
+Keymaps are placed in the `keymaps` subdirectory. By default, all keymaps will be
 loaded in alphabetical order unless there is a `keymaps` array in `package.json`
 specifying which keymaps to load and in what order. It's a good idea to provide
 default keymaps for your extension. They can be customized by users later. See
-the [main keymaps documentation]() for more information.
+the **main keymaps documentation** (todo) for more information.
 
-### Snippets
+### Snippets (Not Implemented)
 
 An extension can supply snippets in a `snippets` directory as `.cson` or `.json`
 files:
