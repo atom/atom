@@ -33,16 +33,16 @@ class Config
     @setDefaults "editor", require('editor').configDefaults
 
   getAvailablePackages: ->
-    availablePackages =
-      fs.list(bundledPackagesDirPath)
-        .concat(fs.list(userPackagesDirPath)).map (path) -> fs.base(path)
-    _.unique(availablePackages)
+    atomPackages = fs.list(bundledPackagesDirPath)
+    userPackages = fs.list(userPackagesDirPath)
+    allPackageNames = atomPackages.concat(userPackages).map (path) -> fs.base(path)
+    _.unique(allPackageNames)
 
   loadPackages: ->
     disabledPackages = config.get("core.disabledPackages") ? []
     for packageName in @getAvailablePackages()
-      unless _.contains disabledPackages, packageName
-        atom.loadPackage(packageName)
+      continue if _.contains disabledPackages, packageName
+      atom.loadPackage(packageName)
 
   get: (keyPath) ->
     keys = @keysForKeyPath(keyPath)
