@@ -698,12 +698,14 @@ describe "RootView", ->
       expect(rightEditor.find(".line:first").text()).toBe "    "
       expect(leftEditor.find(".line:first").text()).toBe "    "
 
+      withInvisiblesShowing = "#{rightEditor.invisibles.space}#{rightEditor.invisibles.tab} #{rightEditor.invisibles.space}#{rightEditor.invisibles.eol}"
+
       rootView.trigger "window:toggle-invisibles"
-      expect(rightEditor.find(".line:first").text()).toBe "•▸ •¬"
-      expect(leftEditor.find(".line:first").text()).toBe "•▸ •¬"
+      expect(rightEditor.find(".line:first").text()).toBe withInvisiblesShowing
+      expect(leftEditor.find(".line:first").text()).toBe withInvisiblesShowing
 
       lowerLeftEditor = leftEditor.splitDown()
-      expect(lowerLeftEditor.find(".line:first").text()).toBe "•▸ •¬"
+      expect(lowerLeftEditor.find(".line:first").text()).toBe withInvisiblesShowing
 
       rootView.trigger "window:toggle-invisibles"
       expect(rightEditor.find(".line:first").text()).toBe "    "
