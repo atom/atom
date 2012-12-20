@@ -13,7 +13,7 @@ describe "TreeView", ->
     rootView = new RootView(require.resolve('fixtures/tree-view'))
     project = rootView.project
 
-    rootView.activateExtension(TreeView)
+    atom.loadPackage("tree-view")
     treeView = rootView.find(".tree-view").view()
     treeView.root = treeView.find('> li:first').view()
     sampleJs = treeView.find('.file:contains(tree-view.js)')
@@ -51,7 +51,7 @@ describe "TreeView", ->
         rootView.deactivate()
 
         rootView = new RootView
-        rootView.activateExtension(TreeView)
+        rootView.activatePackage(TreeView)
         treeView = rootView.find(".tree-view").view()
 
       it "does not create a root node", ->
@@ -74,7 +74,7 @@ describe "TreeView", ->
   describe "when the prototypes deactivate method is called", ->
     it "calls the deactivate on tree view instance", ->
       spyOn(treeView, "deactivate").andCallThrough()
-      rootView.deactivateExtension(TreeView)
+      rootView.deactivatePackage(TreeView)
       expect(treeView.deactivate).toHaveBeenCalled()
 
   describe "serialization", ->
@@ -89,7 +89,7 @@ describe "TreeView", ->
       newRootView = RootView.deserialize(rootView.serialize())
       rootView.deactivate() # Deactivates previous TreeView
 
-      newRootView.activateExtension(TreeView)
+      newRootView.activatePackage(TreeView)
 
       newTreeView = newRootView.find(".tree-view").view()
 
@@ -106,7 +106,7 @@ describe "TreeView", ->
       rootView.deactivate() # Deactivates previous TreeView
 
       newRootView.attachToDom()
-      newRootView.activateExtension(TreeView)
+      newRootView.activatePackage(TreeView)
 
       newTreeView = newRootView.find(".tree-view").view()
       expect(newTreeView).toMatchSelector ':focus'
@@ -589,7 +589,7 @@ describe "TreeView", ->
 
       rootView = new RootView(rootDirPath)
       project = rootView.project
-      rootView.activateExtension(TreeView)
+      rootView.activatePackage(TreeView)
       treeView = rootView.find(".tree-view").view()
       dirView = treeView.root.entries.find('.directory:contains(test-dir)').view()
       dirView.expand()

@@ -14,9 +14,9 @@ _.extend atom,
       packagePath = require.resolve(name, verifyExistence: false)
       throw new Error("No package found named '#{name}'") unless packagePath
       packagePath = fs.directory(packagePath)
-      extension = require(packagePath)
-      extension.name = name
-      rootView.activateExtension(extension)
+      packageModule = require(packagePath)
+      packageModule.name = name
+      rootView.activatePackage(packageModule)
       extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), verifyExistence: false)
       require extensionKeymapPath if fs.exists(extensionKeymapPath)
     catch e

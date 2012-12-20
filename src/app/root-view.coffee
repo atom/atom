@@ -24,19 +24,19 @@ class RootView extends View
         @div id: 'vertical', outlet: 'vertical', =>
           @div id: 'panes', outlet: 'panes'
 
-  @deserialize: ({ projectPath, panesViewState, extensionStates }) ->
-    rootView = new RootView(projectPath, extensionStates: extensionStates, suppressOpen: true)
+  @deserialize: ({ projectPath, panesViewState, packageStates }) ->
+    rootView = new RootView(projectPath, packageStates: packageStates, suppressOpen: true)
     rootView.setRootPane(rootView.deserializeView(panesViewState)) if panesViewState
     rootView
 
-  extensions: null
-  extensionStates: null
+  packageModules: null
+  packageStates: null
   title: null
 
-  initialize: (pathToOpen, { @extensionStates, suppressOpen } = {}) ->
+  initialize: (pathToOpen, { @packageStates, suppressOpen } = {}) ->
     window.rootView = this
-    @extensionStates ?= {}
-    @extensions = {}
+    @packageStates ?= {}
+    @packageModules = {}
     @project = new Project(pathToOpen)
 
     config.load()
@@ -53,7 +53,7 @@ class RootView extends View
   serialize: ->
     projectPath: @project?.getPath()
     panesViewState: @panes.children().view()?.serialize()
-    extensionStates: @serializeExtensions()
+    packageStates: @serializePackages()
 
   handleEvents: ->
     @on 'toggle-dev-tools', => atom.toggleDevTools()
@@ -95,14 +95,14 @@ class RootView extends View
   afterAttach: (onDom) ->
     @focus() if onDom
 
-  serializeExtensions:  ->
-    extensionStates = {}
-    for name, extension of @extensions
+  serializePackages:  ->
+    packageStates = {}
+    for name, packageModule of @packageModules
       try
-        extensionStates[name] = extension.serialize?()
+        packageStates[name] = packageModule.serialize?()
       catch e
-        console?.error("Exception serializing '#{name}' extension\n", e.stack)
-    extensionStates
+        console?.error("Exception serializing '#{name}' package's module\n", e.stack)
+    packageStates
 
   deserializeView: (viewState) ->
     switch viewState.viewClass
@@ -111,18 +111,18 @@ class RootView extends View
       when 'PaneColumn' then PaneColumn.deserialize(viewState, this)
       when 'Editor' then Editor.deserialize(viewState, this)
 
-  activateExtension: (extension, config) ->
-    throw new Error("Trying to activate an extension with no name attribute") unless extension.name?
-    @extensions[extension.name] = extension
-    extension.activate(this, @extensionStates[extension.name], config)
+  activatePackage: (packageModule) ->
+    throw new Error("Trying to activate a package module with no name attribute") unless packageModule.name?
+    @packageModules[packageModule.name] = packageModule
+    packageModule.activate(this, @packageStates[packageModule.name])
 
-  deactivateExtension: (extension) ->
-    extension.deactivate?()
-    delete @extensions[extension.name]
+  deactivatePackage: (packageModule) ->
+    packageModule.deactivate?()
+    delete @packageModules[packageModule.name]
 
   deactivate: ->
     atom.setRootViewStateForPath(@project.getPath(), @serialize())
-    @deactivateExtension(extension) for name, extension of @extensions
+    @deactivatePackage(packageModule) for name, packageModule of @packageModules
     @remove()
 
   open: (path, options = {}) ->

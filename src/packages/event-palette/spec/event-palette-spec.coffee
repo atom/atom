@@ -8,7 +8,7 @@ describe "EventPalette", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    rootView.activateExtension(EventPalette)
+    atom.loadPackage("event-palette")
     palette = EventPalette.instance
     rootView.attachToDom().focus()
     rootView.trigger 'event-palette:toggle'
