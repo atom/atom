@@ -20,7 +20,7 @@ describe "SpacePen extensions", ->
       view.observeConfig "foo.bar", observeHandler
       expect(view.hasParent()).toBeTruthy()
 
-    it "observes the keyPath and destroys the subscription when unsubscribe is called", ->
+    it "observes the keyPath and destroys the subscription when `.unobserveConfig()` is called", ->
       expect(observeHandler).toHaveBeenCalledWith(undefined)
       observeHandler.reset()
 
@@ -29,13 +29,13 @@ describe "SpacePen extensions", ->
       expect(observeHandler).toHaveBeenCalledWith("hello")
       observeHandler.reset()
 
-      view.unsubscribe()
+      view.unobserveConfig()
 
       config.set("foo.bar", "goodbye")
 
       expect(observeHandler).not.toHaveBeenCalled()
 
-    it "unsubscribes when the view is removed", ->
+    it "unobserves when the view is removed", ->
       observeHandler.reset()
       parent.remove()
       config.set("foo.bar", "hello")
