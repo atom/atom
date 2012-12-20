@@ -407,7 +407,7 @@ bool Native::Execute(const CefString& name,
 
     CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
     void (^outputHandle)(NSString *contents, CefRefPtr<CefV8Value> function) = nil;
-    void (^taskTerminatedHandle)() = nil;
+    void (^taskTerminatedHandle)(NSString *output, NSString *errorOutput) = nil;
 
     outputHandle = ^(NSString *contents, CefRefPtr<CefV8Value> function) {
       context->Enter();
@@ -423,13 +423,10 @@ bool Native::Execute(const CefString& name,
       context->Exit();
     };
 
-    taskTerminatedHandle = ^() {
+    taskTerminatedHandle = ^(NSString *output, NSString *errorOutput) {
       context->Enter();
-      NSString *output = [[NSString alloc] initWithData:[[stdout fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
-      NSString *errorOutput  = [[NSString alloc] initWithData:[[task.standardError fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
 
       CefV8ValueList args;
-
       args.push_back(CefV8Value::CreateInt([task terminationStatus]));
       args.push_back(CefV8Value::CreateString([output UTF8String]));
       args.push_back(CefV8Value::CreateString([errorOutput UTF8String]));
@@ -447,7 +444,13 @@ bool Native::Execute(const CefString& name,
     };
 
     task.terminationHandler = ^(NSTask *) {
-      dispatch_sync(dispatch_get_main_queue(), taskTerminatedHandle);
+      NSString *output = [[NSString alloc] initWithData:[[stdout fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+      NSString *errorOutput  = [[NSString alloc] initWithData:[[stderr fileHandleForReading] readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+      dispatch_sync(dispatch_get_main_queue(), ^() {
+        taskTerminatedHandle(output, errorOutput);
+      });
+      [output release];
+      [errorOutput release];
     };
 
     CefRefPtr<CefV8Value> stdoutFunction = options->GetValue("stdout");
