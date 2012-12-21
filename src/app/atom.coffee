@@ -22,8 +22,6 @@ _.extend atom,
 
   loadPackages: (packageNames=@getAvailablePackages()) ->
     disabledPackages = config.get("core.disabledPackages") ? []
-
-    console.log packageNames
     for packageName in packageNames
       @loadPackage(packageName) unless _.contains(disabledPackages, packageName)
 
