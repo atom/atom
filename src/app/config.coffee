@@ -15,10 +15,13 @@ class Config
   configDirPath: configDirPath
   settings: null
 
-  load: ->
+  constructor: ->
     @settings = {}
+    @setDefaults "core", require('root-view').configDefaults
+    @setDefaults "editor", require('editor').configDefaults
+
+  load: ->
     @loadUserConfig()
-    @assignDefaults()
     @loadPackages(@getAvailableTextMateBundles())
     @loadPackages(@getAvailableAtomPackages())
     @requireUserInitScript()
