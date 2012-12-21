@@ -165,7 +165,7 @@ class Pattern
     return false unless @regexSource
     escape = false
     for character in @regexSource.split('')
-      return true if escape and (character is 'A' or character is 'G' or character is 'z')
+      return true if escape and 'AGz'.indexOf(character) isnt -1
       escape = not escape and character is '\\'
     false
 
@@ -224,7 +224,7 @@ class Pattern
         tokens = [new Token(value: line[start...end], scopes: scopes)]
     if @pushRule
       ruleToPush = @pushRule.getRuleToPush(line, captureIndices)
-      ruleToPush.anchor = captureIndices[1]
+      ruleToPush.anchor = captureIndices[2]
       stack.push(ruleToPush)
     else if @popRule
       stack.pop()
