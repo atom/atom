@@ -176,8 +176,16 @@ class Pattern
     for character in @regexSource.split('')
       if escape
         switch character
-          when 'A' then escaped.push(placeholder) unless firstLine
-          when 'G' then escaped.push(placeholder) unless offset is anchor
+          when 'A'
+            if firstLine
+              escaped.push("\\#{character}")
+            else
+              escaped.push(placeholder)
+          when 'G'
+            if offset is anchor
+              escaped.push("\\#{character}")
+            else
+              escaped.push(placeholder)
           when 'z' then escaped.push('$(?!\n)(?<!\n)')
           else escaped.push("\\#{character}")
         escape = false

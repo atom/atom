@@ -337,6 +337,14 @@ describe "TokenizedBuffer", ->
     afterEach ->
       editSession.destroy()
 
+    it "correctly parses a long line", ->
+      longLine = tokenizedBuffer.lineForScreenRow(0)
+      expect(longLine.text).toBe "longggggggggggggggggggggggggggggggggggggggggggggggg"
+      { tokens } = longLine
+
+      expect(tokens[0].value).toBe "longggggggggggggggggggggggggggggggggggggggggggggggg"
+      expect(tokens[0].scopes).toEqual ["text.git-commit", "meta.scope.message.git-commit", "invalid.deprecated.line-too-long.git-commit"]
+
     it "correctly parses the number sign of the first comment line", ->
       commentLine = tokenizedBuffer.lineForScreenRow(1)
       expect(commentLine.text).toBe "# Please enter the commit message for your changes. Lines starting"
