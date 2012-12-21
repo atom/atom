@@ -61,6 +61,7 @@ class TextMateGrammar
         ))
         break
 
+    ruleStack.forEach (rule) -> rule.clearAnchorPosition()
     { tokens, ruleStack }
 
   ruleForInclude: (name) ->
@@ -78,7 +79,7 @@ class Rule
   patterns: null
   allPatterns: null
   createEndPattern: null
-  anchor: -1
+  anchorPosition: -1
 
   constructor: (@grammar, {@scopeName, patterns, @endPattern}) ->
     patterns ?= []
@@ -95,6 +96,8 @@ class Rule
       @allPatterns.push(pattern.getIncludedPatterns(included)...)
     @allPatterns
 
+  clearAnchorPosition: -> @anchorPosition = -1
+
   getScanner: (position, firstLine) ->
     return @scanner if @scanner
 
@@ -103,7 +106,7 @@ class Rule
     @getIncludedPatterns().forEach (pattern) =>
       if pattern.anchored
         anchored = true
-        regex = pattern.replaceAnchor(firstLine, position, @anchor)
+        regex = pattern.replaceAnchor(firstLine, position, @anchorPosition)
       else
         regex = pattern.regexSource
       regexes.push regex if regex
@@ -232,7 +235,7 @@ class Pattern
         tokens = [new Token(value: line[start...end], scopes: scopes)]
     if @pushRule
       ruleToPush = @pushRule.getRuleToPush(line, captureIndices)
-      ruleToPush.anchor = captureIndices[2]
+      ruleToPush.anchorPosition = captureIndices[2]
       stack.push(ruleToPush)
     else if @popRule
       stack.pop()
