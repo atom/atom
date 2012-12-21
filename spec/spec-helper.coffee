@@ -19,6 +19,11 @@ requireStylesheet "jasmine.css"
 
 require.paths.unshift(require.resolve('fixtures/packages'))
 
+# Temporary solution to load textmate bundles for specs
+window.config = new Config()
+config.assignDefaults()
+config.loadPackages(config.getAvailableTextMateBundles())
+
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()

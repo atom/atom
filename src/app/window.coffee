@@ -25,7 +25,6 @@ windowAdditions =
   # in all environments: spec, benchmark, and application
   startup: ->
     @config = new Config
-    TextMateBundle.loadAll()
     TextMateTheme.loadAll()
     @setUpKeymap()
     @pasteboard = new Pasteboard

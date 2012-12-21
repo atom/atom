@@ -10,18 +10,10 @@ class TextMateBundle
   @grammarsByFileType: {}
   @grammarsByScopeName: {}
   @preferencesByScopeSelector: {}
-  @bundles: []
   @grammars: []
 
-  @loadAll: ->
-    localBundlePath = fs.join(config.configDirPath, "bundles")
-    localBundles = fs.list(localBundlePath) if fs.exists(localBundlePath)
-
-    for bundlePath in localBundles ? []
-      @registerBundle(new TextMateBundle(bundlePath))
-
-  @registerBundle: (bundle)->
-    @bundles.push(bundle)
+  @load: (name)->
+    bundle = new TextMateBundle(require.resolve(name))
 
     for scopeSelector, preferences of bundle.getPreferencesByScopeSelector()
       if @preferencesByScopeSelector[scopeSelector]?

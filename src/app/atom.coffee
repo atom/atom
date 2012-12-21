@@ -1,3 +1,4 @@
+TextMateBundle = require("text-mate-bundle")
 fs = require 'fs'
 _ = require 'underscore'
 
@@ -11,14 +12,17 @@ _.extend atom,
 
   loadPackage: (name) ->
     try
-      packagePath = require.resolve(name, verifyExistence: false)
-      throw new Error("No package found named '#{name}'") unless packagePath
-      packagePath = fs.directory(packagePath)
-      packageModule = require(packagePath)
-      packageModule.name = name
-      rootView.activatePackage(packageModule)
-      extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), verifyExistence: false)
-      require extensionKeymapPath if fs.exists(extensionKeymapPath)
+      if /\.tmbundle$/.test name
+        TextMateBundle.load(name)
+      else
+        packagePath = require.resolve(name, verifyExistence: false)
+        throw new Error("No package found named '#{name}'") unless packagePath
+        packagePath = fs.directory(packagePath)
+        packageModule = require(packagePath)
+        packageModule.name = name
+        rootView.activatePackage(packageModule)
+        extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), verifyExistence: false)
+        require extensionKeymapPath if fs.exists(extensionKeymapPath)
     catch e
       console.error "Failed to load package named '#{name}'", e.stack
 

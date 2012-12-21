@@ -19,7 +19,8 @@ class Config
     @settings = {}
     @loadUserConfig()
     @assignDefaults()
-    @loadPackages()
+    @loadPackages(@getAvailableTextMateBundles())
+    @loadPackages(@getAvailableAtomPackages())
     @requireUserInitScript()
 
   loadUserConfig: ->
@@ -38,9 +39,15 @@ class Config
     allPackageNames = atomPackages.concat(userPackages).map (path) -> fs.base(path)
     _.unique(allPackageNames)
 
-  loadPackages: ->
+  getAvailableTextMateBundles: ->
+    @getAvailablePackages().filter (packageName) => @isTextMateBundle(packageName)
+
+  getAvailableAtomPackages: ->
+    @getAvailablePackages().filter (packageName) => not @isTextMateBundle(packageName)
+
+  loadPackages: (packageNames) ->
     disabledPackages = config.get("core.disabledPackages") ? []
-    for packageName in @getAvailablePackages()
+    for packageName in packageNames
       continue if _.contains disabledPackages, packageName
       atom.loadPackage(packageName)
 
@@ -105,5 +112,8 @@ class Config
       require userInitScriptPath if fs.exists(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
+
+  isTextMateBundle: (packageName) ->
+    /\.tmbundle$/.test(packageName)
 
 _.extend Config.prototype, EventEmitter
