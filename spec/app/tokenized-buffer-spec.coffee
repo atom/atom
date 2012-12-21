@@ -400,3 +400,22 @@ describe "TokenizedBuffer", ->
       expect(tokenizedBuffer.lineForScreenRow(1).text).toBe '  "b" => "c",'
       expect(tokenizedBuffer.lineForScreenRow(2).text).toBe '}'
       expect(tokenizedBuffer.lineForScreenRow(3).text).toBe ''
+
+  fdescribe "when an Objective-C source file is tokenized", ->
+    beforeEach ->
+      editSession =  fixturesProject.buildEditSessionForPath('function.mm', autoIndent: false)
+      buffer = editSession.buffer
+      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      editSession.setVisible(true)
+      fullyTokenize(tokenizedBuffer)
+
+    afterEach ->
+      editSession.destroy()
+
+    it "correctly parses variable type when it is a built-in Cocoa class", ->
+      commentLine = tokenizedBuffer.lineForScreenRow(1)
+      expect(commentLine.text).toBe 'NSString *a = @"a\\nb";'
+      { tokens } = commentLine
+
+      expect(tokens[0].value).toBe "NSString"
+      expect(tokens[0].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c", "support.class.cocoa"]
