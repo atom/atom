@@ -10,9 +10,26 @@ _.extend atom,
 
   pendingBrowserProcessCallbacks: {}
 
+  getAvailablePackages: ->
+    allPackageNames = []
+    for packageDirPath in config.packageDirPaths
+      packageNames = fs.list(packageDirPath).map (packagePath) -> fs.base(packagePath)
+      allPackageNames.push(packageNames...)
+    _.unique(allPackageNames)
+
+  getAvailableTextMateBundles: ->
+    @getAvailablePackages().filter (packageName) => @isTextMateBundle(packageName)
+
+  loadPackages: (packageNames=@getAvailablePackages()) ->
+    disabledPackages = config.get("core.disabledPackages") ? []
+
+    console.log packageNames
+    for packageName in packageNames
+      @loadPackage(packageName) unless _.contains(disabledPackages, packageName)
+
   loadPackage: (name) ->
     try
-      if /\.tmbundle$/.test name
+      if @isTextMateBundle(name)
         TextMateBundle.load(name)
       else
         packagePath = require.resolve(name, verifyExistence: false)
@@ -90,3 +107,5 @@ _.extend atom,
       [messageId, callbackIndex] = data.shift()
       @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
 
+  isTextMateBundle: (packageName) ->
+    /(\.|_|-)tmbundle$/.test(packageName)

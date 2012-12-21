@@ -13,6 +13,7 @@ require.paths.unshift userPackagesDirPath
 module.exports =
 class Config
   configDirPath: configDirPath
+  packageDirPaths: [userPackagesDirPath, bundledPackagesDirPath]
   settings: null
 
   constructor: ->
@@ -22,37 +23,13 @@ class Config
 
   load: ->
     @loadUserConfig()
-    @loadPackages(@getAvailableTextMateBundles())
-    @loadPackages(@getAvailableAtomPackages())
     @requireUserInitScript()
+    atom.loadPackages()
 
   loadUserConfig: ->
     if fs.exists(configJsonPath)
       userConfig = JSON.parse(fs.read(configJsonPath))
       _.extend(@settings, userConfig)
-
-  assignDefaults: ->
-    @settings ?= {}
-    @setDefaults "core", require('root-view').configDefaults
-    @setDefaults "editor", require('editor').configDefaults
-
-  getAvailablePackages: ->
-    atomPackages = fs.list(bundledPackagesDirPath)
-    userPackages = fs.list(userPackagesDirPath)
-    allPackageNames = atomPackages.concat(userPackages).map (path) -> fs.base(path)
-    _.unique(allPackageNames)
-
-  getAvailableTextMateBundles: ->
-    @getAvailablePackages().filter (packageName) => @isTextMateBundle(packageName)
-
-  getAvailableAtomPackages: ->
-    @getAvailablePackages().filter (packageName) => not @isTextMateBundle(packageName)
-
-  loadPackages: (packageNames) ->
-    disabledPackages = config.get("core.disabledPackages") ? []
-    for packageName in packageNames
-      continue if _.contains disabledPackages, packageName
-      atom.loadPackage(packageName)
 
   get: (keyPath) ->
     keys = @keysForKeyPath(keyPath)
@@ -115,8 +92,5 @@ class Config
       require userInitScriptPath if fs.exists(userInitScriptPath)
     catch error
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
-
-  isTextMateBundle: (packageName) ->
-    /(\.|_)tmbundle$/.test(packageName)
 
 _.extend Config.prototype, EventEmitter
