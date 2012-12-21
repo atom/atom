@@ -7,6 +7,7 @@
 void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSDictionary *arguments);
 void handleBeingOpenedAgain(int argc, char* argv[]);
 void listenForPathToOpen(int fd, NSString *socketPath);
+void activateOpenApp();
 BOOL isAppAlreadyOpen();
 
 int main(int argc, char* argv[]) {
@@ -58,6 +59,8 @@ void sendPathToMainProcessAndExit(int fd, NSString *socketPath, NSDictionary *ar
       perror("Error: Failed to sending path to main Atom process");
       exit(1);
     }
+  } else {
+    activateOpenApp();
   }
   exit(0);
 }
@@ -98,6 +101,17 @@ void listenForPathToOpen(int fd, NSString *socketPath) {
         }
       }
     });
+  }
+}
+
+void activateOpenApp() {
+  for (NSRunningApplication *app in [[NSWorkspace sharedWorkspace] runningApplications]) {
+    BOOL hasSameBundleId = [app.bundleIdentifier isEqualToString:[[NSBundle mainBundle] bundleIdentifier]];
+    BOOL hasSameProcessesId = app.processIdentifier == [[NSProcessInfo processInfo] processIdentifier];
+    if (hasSameBundleId && !hasSameProcessesId) {
+      [app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+      return;
+    }
   }
 }
 
