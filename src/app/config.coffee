@@ -18,8 +18,8 @@ class Config
 
   constructor: ->
     @settings =
-      core: require('root-view').configDefaults
-      editor: require('editor').configDefaults
+      core: _.clone(require('root-view').configDefaults)
+      editor: _.clone(require('editor').configDefaults)
 
   load: ->
     @loadUserConfig()
