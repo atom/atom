@@ -121,7 +121,7 @@ describe 'Child Processes', ->
           cmd = "for i in {1..20000}; do echo $RANDOM; done"
           options =
             stdout: (data) -> output.push(data)
-            stderr: (data) -> console.log data.length
+            stderr: (data) ->
 
           ChildProcess.exec(cmd, options)
 
