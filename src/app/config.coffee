@@ -17,9 +17,9 @@ class Config
   settings: null
 
   constructor: ->
-    @settings = {}
-    @setDefaults "core", require('root-view').configDefaults
-    @setDefaults "editor", require('editor').configDefaults
+    @settings =
+      core: require('root-view').configDefaults
+      editor: require('editor').configDefaults
 
   load: ->
     @loadUserConfig()
