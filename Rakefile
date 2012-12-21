@@ -60,6 +60,11 @@ end
 
 desc "Creates .atom file if non exists"
 task "create-dot-atom" do
+  if File.exists?(DOT_ATOM_PATH) and File.exists?(File.join(DOT_ATOM_PATH, "bundles"))
+    `mv #{File.join(DOT_ATOM_PATH, "bundles")} #{File.join(DOT_ATOM_PATH, "packages")}`
+    $stderr.puts "WARNING: ~/.atom/bundles was moved to ~/.atom/packages"
+  end
+
   dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
   replace_dot_atom = false
   next if File.exists?(DOT_ATOM_PATH)
@@ -67,12 +72,7 @@ task "create-dot-atom" do
   `rm -rf "#{DOT_ATOM_PATH}"`
   `mkdir "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/bundles" "#{DOT_ATOM_PATH}"`
-
-  for path in Dir.entries(dot_atom_template_path)
-    next if ["..", ".", "atom.coffee", "bundles"].include? path
-    `ln -s "#{dot_atom_template_path}/#{path}" "#{DOT_ATOM_PATH}"`
-  end
+  `cp "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
 end
 
 desc "Clone default bundles into .atom directory"
@@ -93,7 +93,7 @@ task "clone-default-bundles" => "create-dot-atom" do
 
   for bundle_url, sha in bundles
     bundle_dir = bundle_url[/([^\/]+?)(\.git)?$/, 1]
-    dest_path = File.join(DOT_ATOM_PATH, "bundles", bundle_dir)
+    dest_path = File.join(DOT_ATOM_PATH, "packages", bundle_dir)
     if File.exists? dest_path
       `cd #{dest_path} && git fetch --quiet`
     else
