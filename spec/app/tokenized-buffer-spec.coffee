@@ -352,3 +352,34 @@ describe "TokenizedBuffer", ->
 
       expect(tokens[0].value).toBe "#"
       expect(tokens[0].scopes).toEqual ["text.git-commit", "meta.scope.metadata.git-commit", "comment.line.number-sign.git-commit", "punctuation.definition.comment.git-commit"]
+
+  describe "when a C++ source file is tokenized", ->
+    beforeEach ->
+      editSession =  fixturesProject.buildEditSessionForPath('includes.cc', autoIndent: false)
+      buffer = editSession.buffer
+      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      editSession.setVisible(true)
+      fullyTokenize(tokenizedBuffer)
+
+    afterEach ->
+      editSession.destroy()
+
+    it "correctly parses the first include line", ->
+      longLine = tokenizedBuffer.lineForScreenRow(0)
+      expect(longLine.text).toBe '#include "a.h"'
+      { tokens } = longLine
+
+      expect(tokens[0].value).toBe "#"
+      expect(tokens[0].scopes).toEqual ["source.c++", "meta.preprocessor.c.include"]
+      expect(tokens[1].value).toBe 'include'
+      expect(tokens[1].scopes).toEqual ["source.c++", "meta.preprocessor.c.include", "keyword.control.import.include.c"]
+
+    it "correctly parses the second include line", ->
+      commentLine = tokenizedBuffer.lineForScreenRow(1)
+      expect(commentLine.text).toBe '#include "b.h"'
+      { tokens } = commentLine
+
+      expect(tokens[0].value).toBe "#"
+      expect(tokens[0].scopes).toEqual ["source.c++", "meta.preprocessor.c.include"]
+      expect(tokens[1].value).toBe 'include'
+      expect(tokens[1].scopes).toEqual ["source.c++", "meta.preprocessor.c.include", "keyword.control.import.include.c"]
