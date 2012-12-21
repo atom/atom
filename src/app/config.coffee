@@ -114,6 +114,6 @@ class Config
       console.error "Failed to load `#{userInitScriptPath}`", error.stack, error
 
   isTextMateBundle: (packageName) ->
-    /\.tmbundle$/.test(packageName)
+    /(\.|_)tmbundle$/.test(packageName)
 
 _.extend Config.prototype, EventEmitter
