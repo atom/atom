@@ -429,3 +429,11 @@ describe "TokenizedBuffer", ->
       expect(lastToken).toBeGreaterThan 0
       expect(tokens[lastToken].value).toBe ";"
       expect(tokens[lastToken].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c"]
+
+    it "correctly parses the string characters before the escaped character", ->
+      commentLine = tokenizedBuffer.lineForScreenRow(1)
+      expect(commentLine.text).toBe 'NSString *a = @"a\\nb";'
+      { tokens } = commentLine
+
+      expect(tokens[2].value).toBe '@"'
+      expect(tokens[2].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c", "string.quoted.double.objc", "punctuation.definition.string.begin.objc"]
