@@ -419,3 +419,13 @@ describe "TokenizedBuffer", ->
 
       expect(tokens[0].value).toBe "NSString"
       expect(tokens[0].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c", "support.class.cocoa"]
+
+    it "correctly parses the semicolon at the end of the line", ->
+      commentLine = tokenizedBuffer.lineForScreenRow(1)
+      expect(commentLine.text).toBe 'NSString *a = @"a\\nb";'
+      { tokens } = commentLine
+
+      lastToken = tokens.length - 1
+      expect(lastToken).toBeGreaterThan 0
+      expect(tokens[lastToken].value).toBe ";"
+      expect(tokens[lastToken].scopes).toEqual ["source.objc++", "meta.function.c", "meta.block.c"]

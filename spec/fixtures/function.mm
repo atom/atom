@@ -1,4 +1,3 @@
-NSString *test() {
+void test() {
 NSString *a = @"a\nb";
-return a;
 }
