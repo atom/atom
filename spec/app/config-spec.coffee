@@ -1,5 +1,5 @@
 describe "Config", ->
-  describe ".get([scope], keyPath) and .set([scope], keyPath, value)", ->
+  describe ".get([scopeSelector], keyPath) and .set([scopeDescriptor], keyPath, value)", ->
     describe "when called without a scope argument", ->
       it "allows a key path's value to be read and written", ->
         expect(config.set("foo.bar.baz", 42)).toBe 42
@@ -17,7 +17,7 @@ describe "Config", ->
         expect(observeHandler).toHaveBeenCalledWith 42
 
     describe "when called with a scope argument", ->
-      it "returns the config value for the most specific selector", ->
+      it "returns the config value for the most specific scope selector that matches the given scope descriptor", ->
         expect(config.set(".source.coffee .string.quoted.double.coffee", "foo.bar.baz", 42)).toBe 42
         config.set(".source .string.quoted.double", "foo.bar.baz", 22)
         config.set(".source", "foo.bar.baz", 11)
