@@ -1,6 +1,9 @@
 fs = require 'fs'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
+{$$} = require 'space-pen'
+jQuery = require 'jquery'
+Specificity = require 'specificity'
 
 configDirPath = fs.absolute("~/.atom")
 configJsonPath = fs.join(configDirPath, "config.json")
@@ -31,15 +34,33 @@ class Config
       userConfig = JSON.parse(fs.read(configJsonPath))
       _.extend(@settings, userConfig)
 
-  get: (keyPath) ->
+  get: (args...) ->
+    scopeStack = args.shift() if args.length > 1
+    keyPath = args.shift()
     keys = @keysForKeyPath(keyPath)
-    value = @settings
-    for key in keys
-      break unless value = value[key]
-    value
 
-  set: (keyPath, value) ->
+    settingsToSearch = []
+    settingsToSearch.push(@settingsForScopeChain(scopeStack)...) if scopeStack
+    settingsToSearch.push(@settings)
+
+    for settings in settingsToSearch
+      value = settings
+      for key in keys
+        value = value[key]
+        break unless value?
+      return value if value?
+    undefined
+
+  set: (args...) ->
+    scope = args.shift() if args.length > 2
+    keyPath = args.shift()
+    value = args.shift()
+
     keys = @keysForKeyPath(keyPath)
+    if scope
+      keys.unshift(scope)
+      keys.unshift('scopes')
+
     hash = @settings
     while keys.length > 1
       key = keys.shift()
@@ -59,12 +80,6 @@ class Config
 
     _.defaults hash, defaults
     @update()
-
-  keysForKeyPath: (keyPath) ->
-    if typeof keyPath is 'string'
-      keyPath.split(".")
-    else
-      new Array(keyPath...)
 
   observe: (keyPath, callback) ->
     value = @get(keyPath)
@@ -86,6 +101,46 @@ class Config
 
   save: ->
     fs.write(configJsonPath, JSON.stringify(@settings, undefined, 2) + "\n")
+
+  keysForKeyPath: (keyPath) ->
+    if typeof keyPath is 'string'
+      keyPath.split(".")
+    else
+      new Array(keyPath...)
+
+  settingsForScopeChain: (scopeStack) ->
+    return [] unless @settings.scopes?
+
+    matchingScopeSelectors = []
+    node = @buildDomNodeFromScopeChain(scopeStack)
+    while node
+      scopeSelectorsForNode = []
+      for scopeSelector of @settings.scopes
+        if jQuery.find.matchesSelector(node, scopeSelector)
+          scopeSelectorsForNode.push(scopeSelector)
+      scopeSelectorsForNode.sort (a, b) -> Specificity(b) - Specificity(a)
+      matchingScopeSelectors.push(scopeSelectorsForNode...)
+      node = node.parentNode
+
+    matchingScopeSelectors.map (scopeSelector) => @settings.scopes[scopeSelector]
+
+  buildDomNodeFromScopeChain: (scopeStack) ->
+    scopeStack = new Array(scopeStack...)
+    element = $$ ->
+      elementsForRemainingScopes = =>
+        classString = scopeStack.shift()
+        classes = classString.replace(/^\./, '').replace(/\./g, ' ')
+        if scopeStack.length
+          @div class: classes, elementsForRemainingScopes
+        else
+          @div class: classes
+      elementsForRemainingScopes()
+
+    deepestChild = element.find(":not(:has(*))")
+    if deepestChild.length
+      deepestChild[0]
+    else
+      element[0]
 
   requireUserInitScript: ->
     try
