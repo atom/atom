@@ -78,58 +78,6 @@ ConfigObserver = require 'config-observer'
 _.extend MyClass.prototype, ConfigObserver
 ```
 
-## Scoped Config Settings (Not Yet Implemented)
-
-Users and extension authors can provide language-specific behavior by employing
-*scoped configuration keys*. By associating key values with a specific scope,
-you can make Atom behave differently in different contexts. For example, if you
-want Atom to auto-indent pasted text in some languages but not others, you can
-give the `autoIndentPastedText` key a different value under a scope selector:
-
-```coffeescript
-# in config.cson
-editor:
-  autoIndentPastedText: true
-scopes:
-  ".source.coffee":
-    editor:
-      autoIndentPastedText: false
-```
-
-Scope selectors are placed under the `scope` key at the top-level of the
-configuration file. The values you specify for keys under a selector will
-override global values in that specific scope. Any basic CSS 3 selector is
-permitted, but you should leave out element names to make your keys accessible
-outside the view layer.
-
-### Reading Scoped Config Settings
-
-Use the `config.inScope` method to the read keys with the most specific selector
-match:
-
-```coffeescript
-scope = [".source.coffee", ".meta.class.instance.constructor"]
-config.inScope(scope).get "editor.lineComment"
-```
-
-Pass `.inScope` an array of scope descriptors, which describes a specific
-element. This is frequently useful when you get the nested scopes for a position
-in the buffer based on its syntax. You can also pass an actual DOM element
-to use its nesting within the DOM as fodder for the scope selectors (†).
-
-```coffeescript
-config.inScope(fuzzyFinder.miniEditor).get("editor.fontSize")
-```
-
-`observeConfig` can take a scope as its first argument:
-
-```
-@observeConfig scope, "editor.autoIndentPastedText", -> # ...
-```
-
-†:  Matching DOM elements fits cleanly into this scheme, but I can't think of a
-    use for it currently. Let's keep it in the back of our minds though.
-
 # Themes (Not Yet Implemented)
 
 ## Selecting A Theme
