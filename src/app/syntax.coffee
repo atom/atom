@@ -7,38 +7,48 @@ module.exports =
 class Syntax
   constructor: ->
     @globalProperties = {}
+    @scopedPropertiesIndex = 0
+    @scopedProperties = []
     @propertiesBySelector = {}
 
   addProperties: (args...) ->
-    scopeSelector = args.shift() if args.length > 1
+    selector = args.shift() if args.length > 1
     properties = args.shift()
 
-    if scopeSelector
-      @propertiesBySelector[scopeSelector] ?= {}
-      _.extend(@propertiesBySelector[scopeSelector], properties)
+    if selector
+      @scopedProperties.unshift(
+        selector: selector,
+        properties: properties,
+        specificity: Specificity(selector),
+        index: @scopedPropertiesIndex++
+      )
     else
       _.extend(@globalProperties, properties)
 
   getProperty: (scope, keyPath) ->
-    for object in @propertiesForScope(scope)
+    for object in @propertiesForScope(scope, keyPath)
       value = _.valueForKeyPath(object, keyPath)
       return value if value?
     undefined
 
-  propertiesForScope: (scope) ->
-    matchingSelectors = []
-    element = @buildScopeElement(scope)
-    while element
-      matchingSelectors.push(@matchingSelectorsForElement(element)...)
-      element = element.parentNode
-    properties = matchingSelectors.map (selector) => @propertiesBySelector[selector]
-    properties.concat([@globalProperties])
+  propertiesForScope: (scope, keyPath) ->
+    matchingProperties = []
+    candidates = @scopedProperties.filter ({properties}) -> _.valueForKeyPath(properties, keyPath)?
+    if candidates.length
+      element = @buildScopeElement(scope)
+      while element
+        matchingProperties.push(@matchingPropertiesForElement(element, candidates)...)
+        element = element.parentNode
+    matchingProperties.concat([@globalProperties])
 
-  matchingSelectorsForElement: (element) ->
-    matchingSelectors = []
-    for selector of @propertiesBySelector
-      matchingSelectors.push(selector) if jQuery.find.matchesSelector(element, selector)
-    matchingSelectors.sort (a, b) -> Specificity(b) - Specificity(a)
+  matchingPropertiesForElement: (element, candidates) ->
+    matchingScopedProperties = candidates.filter ({selector}) -> jQuery.find.matchesSelector(element, selector)
+    matchingScopedProperties.sort (a, b) ->
+      if a.specificity == b.specificity
+        b.index - a.index
+      else
+        b.specificity - a.specificity
+    _.pluck matchingScopedProperties, 'properties'
 
   buildScopeElement: (scope) ->
     scope = new Array(scope...)
