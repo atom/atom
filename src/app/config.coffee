@@ -34,33 +34,11 @@ class Config
       userConfig = JSON.parse(fs.read(configJsonPath))
       _.extend(@settings, userConfig)
 
-  get: (args...) ->
-    scopeStack = args.shift() if args.length > 1
-    keyPath = args.shift()
-    keys = @keysForKeyPath(keyPath)
+  get: (keyPath) ->
+    _.valueForKeyPath(@settings, keyPath)
 
-    settingsToSearch = []
-    settingsToSearch.push(@settingsForScopeChain(scopeStack)...) if scopeStack
-    settingsToSearch.push(@settings)
-
-    for settings in settingsToSearch
-      value = settings
-      for key in keys
-        value = value[key]
-        break unless value?
-      return value if value?
-    undefined
-
-  set: (args...) ->
-    scope = args.shift() if args.length > 2
-    keyPath = args.shift()
-    value = args.shift()
-
-    keys = @keysForKeyPath(keyPath)
-    if scope
-      keys.unshift(scope)
-      keys.unshift('scopes')
-
+  set: (keyPath, value) ->
+    keys = keyPath.split('.')
     hash = @settings
     while keys.length > 1
       key = keys.shift()
@@ -72,7 +50,7 @@ class Config
     value
 
   setDefaults: (keyPath, defaults) ->
-    keys = @keysForKeyPath(keyPath)
+    keys = keyPath.split('.')
     hash = @settings
     for key in keys
       hash[key] ?= {}
@@ -101,46 +79,6 @@ class Config
 
   save: ->
     fs.write(configJsonPath, JSON.stringify(@settings, undefined, 2) + "\n")
-
-  keysForKeyPath: (keyPath) ->
-    if typeof keyPath is 'string'
-      keyPath.split(".")
-    else
-      new Array(keyPath...)
-
-  settingsForScopeChain: (scopeStack) ->
-    return [] unless @settings.scopes?
-
-    matchingScopeSelectors = []
-    node = @buildDomNodeFromScopeChain(scopeStack)
-    while node
-      scopeSelectorsForNode = []
-      for scopeSelector of @settings.scopes
-        if jQuery.find.matchesSelector(node, scopeSelector)
-          scopeSelectorsForNode.push(scopeSelector)
-      scopeSelectorsForNode.sort (a, b) -> Specificity(b) - Specificity(a)
-      matchingScopeSelectors.push(scopeSelectorsForNode...)
-      node = node.parentNode
-
-    matchingScopeSelectors.map (scopeSelector) => @settings.scopes[scopeSelector]
-
-  buildDomNodeFromScopeChain: (scopeStack) ->
-    scopeStack = new Array(scopeStack...)
-    element = $$ ->
-      elementsForRemainingScopes = =>
-        classString = scopeStack.shift()
-        classes = classString.replace(/^\./, '').replace(/\./g, ' ')
-        if scopeStack.length
-          @div class: classes, elementsForRemainingScopes
-        else
-          @div class: classes
-      elementsForRemainingScopes()
-
-    deepestChild = element.find(":not(:has(*))")
-    if deepestChild.length
-      deepestChild[0]
-    else
-      element[0]
 
   requireUserInitScript: ->
     try

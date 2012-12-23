@@ -9,6 +9,7 @@ _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
 Config = require 'config'
+Syntax = require 'syntax'
 RootView = require 'root-view'
 Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
@@ -25,6 +26,7 @@ windowAdditions =
   # in all environments: spec, benchmark, and application
   startup: ->
     @config = new Config
+    @syntax = new Syntax
     TextMateTheme.loadAll()
     @setUpKeymap()
     @pasteboard = new Pasteboard

@@ -1,32 +1,19 @@
 describe "Config", ->
-  describe ".get([scopeSelector], keyPath) and .set([scopeDescriptor], keyPath, value)", ->
-    describe "when called without a scope argument", ->
-      it "allows a key path's value to be read and written", ->
-        expect(config.set("foo.bar.baz", 42)).toBe 42
-        expect(config.get("foo.bar.baz")).toBe 42
-        expect(config.get("bogus.key.path")).toBeUndefined()
+  describe ".get(keyPath) and .set(keyPath, value)", ->
+    it "allows a key path's value to be read and written", ->
+      expect(config.set("foo.bar.baz", 42)).toBe 42
+      expect(config.get("foo.bar.baz")).toBe 42
+      expect(config.get("bogus.key.path")).toBeUndefined()
 
-      it "updates observers and saves when a key path is set", ->
-        observeHandler = jasmine.createSpy "observeHandler"
-        config.observe "foo.bar.baz", observeHandler
-        observeHandler.reset()
+    it "updates observers and saves when a key path is set", ->
+      observeHandler = jasmine.createSpy "observeHandler"
+      config.observe "foo.bar.baz", observeHandler
+      observeHandler.reset()
 
-        config.set("foo.bar.baz", 42)
+      config.set("foo.bar.baz", 42)
 
-        expect(config.save).toHaveBeenCalled()
-        expect(observeHandler).toHaveBeenCalledWith 42
-
-    describe "when called with a scope argument", ->
-      it "returns the config value for the most specific scope selector that matches the given scope descriptor", ->
-        expect(config.set(".source.coffee .string.quoted.double.coffee", "foo.bar.baz", 42)).toBe 42
-        config.set(".source .string.quoted.double", "foo.bar.baz", 22)
-        config.set(".source", "foo.bar.baz", 11)
-        config.set("foo.bar.baz", 1)
-
-        expect(config.get([".source.coffee", ".string.quoted.double.coffee"], "foo.bar.baz")).toBe 42
-        expect(config.get([".source.js", ".string.quoted.double.js"], "foo.bar.baz")).toBe 22
-        expect(config.get([".source.js", ".variable.assignment.js"], "foo.bar.baz")).toBe 11
-        expect(config.get([".text"], "foo.bar.baz")).toBe 1
+      expect(config.save).toHaveBeenCalled()
+      expect(observeHandler).toHaveBeenCalledWith 42
 
   describe ".setDefaults(keyPath, defaults)", ->
     it "assigns any previously-unassigned keys to the object at the key path", ->
