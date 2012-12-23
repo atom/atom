@@ -1766,7 +1766,7 @@ describe "Editor", ->
       it "doesn't highlight the background of the gutter", ->
         editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
-        expect(editor.find('.line-number.cursor-line-no-selection').length).toBe 0
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 0
 
     it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
       editor.setCursorScreenPosition([1,0])
