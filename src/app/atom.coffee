@@ -1,6 +1,8 @@
 TextMateBundle = require("text-mate-bundle")
 fs = require 'fs'
 _ = require 'underscore'
+Package = require 'package'
+TextMatePackage = require 'text-mate-package'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
@@ -18,7 +20,7 @@ _.extend atom,
     _.unique(allPackageNames)
 
   getAvailableTextMateBundles: ->
-    @getAvailablePackages().filter (packageName) => @isTextMateBundle(packageName)
+    @getAvailablePackages().filter (packageName) => TextMatePackage.testName(packageName)
 
   loadPackages: (packageNames=@getAvailablePackages()) ->
     disabledPackages = config.get("core.disabledPackages") ? []
@@ -26,20 +28,7 @@ _.extend atom,
       @loadPackage(packageName) unless _.contains(disabledPackages, packageName)
 
   loadPackage: (name) ->
-    try
-      if @isTextMateBundle(name)
-        TextMateBundle.load(name)
-      else
-        packagePath = require.resolve(name, verifyExistence: false)
-        throw new Error("No package found named '#{name}'") unless packagePath
-        packagePath = fs.directory(packagePath)
-        packageModule = require(packagePath)
-        packageModule.name = name
-        rootView.activatePackage(packageModule)
-        extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), verifyExistence: false)
-        require extensionKeymapPath if fs.exists(extensionKeymapPath)
-    catch e
-      console.error "Failed to load package named '#{name}'", e.stack
+    Package.forName(name).load()
 
   open: (args...) ->
     @sendMessageToBrowserProcess('open', args)
@@ -104,6 +93,3 @@ _.extend atom,
     if name is 'reply'
       [messageId, callbackIndex] = data.shift()
       @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
-
-  isTextMateBundle: (packageName) ->
-    /(\.|_|-)tmbundle$/.test(packageName)
