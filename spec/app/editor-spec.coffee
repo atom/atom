@@ -1728,14 +1728,14 @@ describe "Editor", ->
     describe "when there is no wrapping", ->
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
-        expect(editor.find('.line-number.cursor-line').length).toBe 1
-        expect(editor.find('.line-number.cursor-line').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "1"
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
-        expect(editor.find('.line-number.cursor-line').length).toBe 1
-        expect(editor.find('.line-number.cursor-line').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "2"
 
     describe "when there is wrapping", ->
       beforeEach ->
@@ -1745,23 +1745,28 @@ describe "Editor", ->
 
       it "highlights the line where the initial cursor position is", ->
         expect(editor.getCursorBufferPosition().row).toBe 0
-        expect(editor.find('.line-number.cursor-line').length).toBe 1
-        expect(editor.find('.line-number.cursor-line').text()).toBe "1"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "1"
 
       it "updates the highlighted line when the cursor position changes", ->
         editor.setCursorBufferPosition([1,0])
         expect(editor.getCursorBufferPosition().row).toBe 1
-        expect(editor.find('.line-number.cursor-line').length).toBe 1
-        expect(editor.find('.line-number.cursor-line').text()).toBe "2"
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 1
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').text()).toBe "2"
 
     describe "when the selection spans multiple lines", ->
       beforeEach ->
         editor.attachToDom(30)
 
-      it "doesn't highlight the background or the gutter", ->
+      it "highlights the foreground of the gutter", ->
         editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
         expect(editor.getSelection().isSingleScreenLine()).toBe false
-        expect(editor.find('.line-number.cursor-line').length).toBe 0
+        expect(editor.find('.line-number.cursor-line').length).toBe 3
+
+      it "doesn't highlight the background of the gutter", ->
+        editor.getSelection().setBufferRange(new Range([0,0],[2,0]))
+        expect(editor.getSelection().isSingleScreenLine()).toBe false
+        expect(editor.find('.line-number.cursor-line.cursor-line-no-selection').length).toBe 0
 
     it "when a newline is deleted with backspace, the line number of the new cursor position is highlighted", ->
       editor.setCursorScreenPosition([1,0])
@@ -1985,3 +1990,15 @@ describe "Editor", ->
 
       runs ->
         expect(editor.getText()).toBe(originalPathText)
+
+  describe "when clicking a gutter line", ->
+    it "moves the cursor to the start of the selected line", ->
+      rootView.attachToDom()
+      expect(editor.getCursorScreenPosition()).toEqual [0,0]
+      editor.gutter.find(".line-number:eq(1)").trigger 'click'
+      expect(editor.getCursorScreenPosition()).toEqual [1,0]
+
+    it "selects to the start of the selected line when shift is pressed", ->
+      expect(editor.getSelection().getScreenRange()).toEqual [0,0], [0,0]
+      editor.gutter.find(".line-number:eq(1)").trigger 'click', {shiftKey: true}
+      expect(editor.getSelection().getScreenRange()).toEqual [0,0], [1,0]
