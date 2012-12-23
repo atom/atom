@@ -93,7 +93,7 @@ class Gutter extends View
     if @editor().getSelection().isEmpty()
       row = @editor().getCursorScreenPosition().row
       rowRange = new Range([row, 0], [row, 0])
-      return if @highlightedRows?.isEqual(rowRange) and @selectionEmpty
+      return if @selectionEmpty and @highlightedRows?.isEqual(rowRange)
 
       @removeLineHighlights()
       @addLineHighlight(row, true)
@@ -102,7 +102,7 @@ class Gutter extends View
     else
       selectedRows = @editor().getSelection().getScreenRange()
       selectedRows = new Range([selectedRows.start.row, 0], [selectedRows.end.row, 0])
-      return if @highlightedRows?.isEqual(selectedRows) and not @selectionEmpty
+      return if not @selectionEmpty and @highlightedRows?.isEqual(selectedRows)
 
       @removeLineHighlights()
       for row in [selectedRows.start.row..selectedRows.end.row]
