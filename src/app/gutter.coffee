@@ -2,6 +2,7 @@
 
 $ = require 'jquery'
 _ = require 'underscore'
+Range = require 'range'
 
 module.exports =
 class Gutter extends View
@@ -18,9 +19,9 @@ class Gutter extends View
     @attached = true
 
     editor = @editor()
-    highlightCursorLine = => @highlightCursorLine()
-    editor.on 'cursor-move', highlightCursorLine
-    editor.on 'selection-change', highlightCursorLine
+    highlightLines = => @highlightLines()
+    editor.on 'cursor-move', highlightLines
+    editor.on 'selection-change', highlightLines
     @calculateWidth()
 
   editor: ->
@@ -63,8 +64,8 @@ class Gutter extends View
     @calculateWidth()
     @firstScreenRow = startScreenRow
     @lastScreenRow = endScreenRow
-    @highlightedRow = null
-    @highlightCursorLine()
+    @highlightedRows = null
+    @highlightLines()
 
   calculateWidth: ->
     highestNumberWidth = @editor().getLineCount().toString().length * @editor().charWidth
@@ -73,17 +74,38 @@ class Gutter extends View
       @lineNumbers.width(highestNumberWidth + @calculateLineNumberPadding())
       @widthChanged?(@outerWidth())
 
-  highlightCursorLine: ->
-    if @editor().getSelection().isEmpty()
-      rowToHighlight = @editor().getCursorScreenPosition().row
-      return if rowToHighlight == @highlightedRow
-      return if rowToHighlight < @firstScreenRow or rowToHighlight > @lastScreenRow
+  removeLineHighlights: ->
+    return unless @highlightedLineNumbers
+    for line in @highlightedLineNumbers
+      line.classList.remove('cursor-line')
+      line.classList.remove('cursor-line-no-selection')
+    @highlightedLineNumbers = null
 
-      @highlightedLineNumber?.classList.remove('cursor-line')
-      if @highlightedLineNumber = @lineNumbers[0].children[rowToHighlight - @firstScreenRow]
-        @highlightedLineNumber.classList.add('cursor-line')
-        @highlightedRow = rowToHighlight
+  addLineHighlight: (row, emptySelection) ->
+    return if row < @firstScreenRow or row > @lastScreenRow
+    @highlightedLineNumbers ?= []
+    if highlightedLineNumber = @lineNumbers[0].children[row - @firstScreenRow]
+      highlightedLineNumber.classList.add('cursor-line')
+      highlightedLineNumber.classList.add('cursor-line-no-selection') if emptySelection
+      @highlightedLineNumbers.push(highlightedLineNumber)
+
+  highlightLines: ->
+    if @editor().getSelection().isEmpty()
+      row = @editor().getCursorScreenPosition().row
+      rowRange = new Range([row, 0], [row, 0])
+      return if @highlightedRows?.isEqual(rowRange) and @selectionEmpty
+
+      @removeLineHighlights()
+      @addLineHighlight(row, true)
+      @highlightedRows = rowRange
+      @selectionEmpty = true
     else
-      @highlightedLineNumber?.classList.remove('cursor-line')
-      @highlightedLineNumber = null
-      @highlightedRow = null
+      selectedRows = @editor().getSelection().getScreenRange()
+      selectedRows = new Range([selectedRows.start.row, 0], [selectedRows.end.row, 0])
+      return if @highlightedRows?.isEqual(selectedRows) and not @selectionEmpty
+
+      @removeLineHighlights()
+      for row in [selectedRows.start.row..selectedRows.end.row]
+        @addLineHighlight(row, false)
+      @highlightedRows = selectedRows
+      @selectionEmpty = false

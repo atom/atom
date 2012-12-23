@@ -33,7 +33,8 @@
   color: rgba(255, 255, 255, .6);
 }
 
-.editor.focused .cursor-line {
+.editor.focused .line-number.cursor-line-no-selection,
+.editor.focused .line.cursor-line {
   background-color: rgba(255, 255, 255, .12);
 }
 
