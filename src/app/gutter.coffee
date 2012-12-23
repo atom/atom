@@ -3,6 +3,7 @@
 $ = require 'jquery'
 _ = require 'underscore'
 Range = require 'range'
+Point = require 'point'
 
 module.exports =
 class Gutter extends View
@@ -22,6 +23,14 @@ class Gutter extends View
     highlightLines = => @highlightLines()
     editor.on 'cursor-move', highlightLines
     editor.on 'selection-change', highlightLines
+    @on 'click', '.line-number', (e) =>
+      row = parseInt($(e.target).text()) - 1
+      position = new Point(row, 0)
+      if e.shiftKey
+        @editor().selectToScreenPosition(position)
+      else
+        @editor().setCursorScreenPosition(position)
+
     @calculateWidth()
 
   editor: ->
