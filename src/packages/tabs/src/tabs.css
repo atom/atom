@@ -1,7 +1,7 @@
 .tabs {
   background: #333333;
   border-bottom: 4px solid #424242;
-  font: 11px Lucida Grande, arial, freesans, clean, sans-serif !important;
+  font: caption !important;
 }
 
 .tab {
@@ -62,7 +62,7 @@
 }
 
 .tab .file-name {
-  font-weight: normal !important;
+  font-size: 11px !important;
   display: block;
   overflow: hidden;
   white-space: nowrap;
