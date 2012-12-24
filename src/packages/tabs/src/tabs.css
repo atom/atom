@@ -1,6 +1,7 @@
 .tabs {
   background: #333333;
   border-bottom: 4px solid #424242;
+  font: 12px Trebuchet MS, arial, freesans, clean, sans-serif !important;
 }
 
 .tab {
@@ -61,7 +62,6 @@
 }
 
 .tab .file-name {
-  font-size: 12px !important;
   font-weight: normal !important;
   display: block;
   overflow: hidden;
