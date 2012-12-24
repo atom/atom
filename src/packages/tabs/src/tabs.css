@@ -1,7 +1,7 @@
 .tabs {
   background: #333333;
   border-bottom: 4px solid #424242;
-  font: 12px Trebuchet MS, arial, freesans, clean, sans-serif !important;
+  font: 11px Lucida Grande, arial, freesans, clean, sans-serif !important;
 }
 
 .tab {
@@ -70,7 +70,7 @@
   text-shadow: 0 -1px 1px black;
   position: absolute;
   left: 9px;
-  top:5px;
+  top:4px;
   bottom:4px;
   right: 21px;
 }
