@@ -10,12 +10,14 @@
   color: #a5aaaa;
   display: table-cell;
   position: relative;
-  width:1%;
+  width:200px;
   border-top: 1px solid #383838;
   border-right: 1px solid #2e2e2e;
   border-bottom: 1px solid #2e2e2e;
   box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a, inset 1px 0 0 #4a4a4a;
-  min-width: 100px;
+  min-width: 40px;
+  box-sizing: border-box;
+  height: 24px;
 }
 
 .tab.active,
@@ -49,8 +51,7 @@
   border-width: 0 0 1px 1px;
   box-shadow: -2px 2px 0 #424242;
 }
-.tab.active:first-child:before,
-.tab.active:last-child:after {
+.tab.active:first-child:before {
   display: none;
 }
 
@@ -62,12 +63,16 @@
 .tab .file-name {
   font-size: 12px !important;
   font-weight: normal !important;
-  display: inline-block;
-  max-width: 100%;
+  display: block;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   text-shadow: 0 -1px 1px black;
+  position: absolute;
+  left: 9px;
+  top:5px;
+  bottom:4px;
+  right: 21px;
 }
 
 .tab .close-icon {
