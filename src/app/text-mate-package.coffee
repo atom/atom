@@ -35,6 +35,6 @@ class TextMatePackage extends Package
             console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
           else
             { scope, settings } = data[0]
-            selector = TextMatePackage.translateScopeSelector(scope)
+            selector = TextMatePackage.translateScopeSelector(scope) if scope?
             scopedProperties.push({selector: selector, properties: settings})
     scopedProperties
