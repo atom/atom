@@ -4,7 +4,6 @@ module.exports =
 class Tab extends View
   @content: (editSession) ->
     @div class: 'tab', =>
-      console.log(editSession)
       @span class: 'file-name', outlet: 'fileName'
       @span class: 'close-icon'
 
