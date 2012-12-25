@@ -1,42 +1,73 @@
 .tree-view {
   position: relative;
   height: 100%;
-  background: black;
-  color: white;
+  background: #1e1e1e;
   overflow: auto;
-  padding: 0 1em;
   cursor: default;
   -webkit-user-select: none;
+  border-right: 1px solid #191919;
+  min-width: 100px;
+  z-index: 2;
+  padding-left: 12px;
+}
+
+.tree-view .entry {
+  text-shadow: 0 -1px 0 #000;
+}
+
+.tree-view .entries,
+.tree-view .entries .file .name {
+  margin-left: 12px;
+}
+
+.tree-view .directory.selected .header,
+.tree-view .directory.selected > .header .name,
+.tree-view .selected > .name {
+  color: #d2d2d2;
+}
+
+.tree-view .selected > .highlight {
+  background-image: -webkit-linear-gradient(#4e4e4e, #434343);
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24px;
+  margin-top:-24px;
+  z-index: -1;
+}
+
+.tree-view .entry.file .name {
+  display: block;
 }
 
 .tree-view .disclosure-arrow {
-  width: 2ex;
+  width: 13px;
   display: inline-block;
 }
 
-.tree-view .directory .entries {
-  padding-left: 1ex;
+.tree-view .directory .header {
+  color: #bebebe;
 }
 
-.file, .directory > .header {
-  padding: 0 1ex;
+.tree-view .file {
+  color: #7d7d7d;
+}
+
+.tree-view .entry:hover,
+.tree-view .directory .header:hover .name,
+.tree-view .directory .header:hover .disclosure-arrow  {
+  color: #ebebeb;
+}
+
+.tree-view .file .name,
+.tree-view .directory .header {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-right: 10px;
 }
 
 .tree-view .ignored {
-  color: #BBB;
-}
-
-.tree-view .directory .entries .file {
-  padding-left: 3ex;
-}
-
-.tree-view .file.selected, .tree-view .directory.selected > .header {
-  background: #444;
-}
-
-.tree-view:focus .file.selected, .tree-view:focus .directory.selected > .header {
-  background: #a3fd97;
-  color: black;
+  color: #555;
 }
 
 .tree-view-dialog {
