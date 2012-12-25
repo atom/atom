@@ -19,15 +19,15 @@ class StatusBar extends View
 
   @content: ->
     @div class: 'status-bar', =>
-      @div class: 'file-info', =>
+      @span class: 'git-branch', outlet: 'branchArea', =>
+        @span class: 'octicons branch-icon'
+        @span class: 'branch-label', outlet: 'branchLabel'
+        @span class: 'git-status', outlet: 'gitStatusIcon'
+      @span class: 'cursor-position', outlet: 'cursorPosition'
+      @span class: 'file-info', =>
         @span class: 'current-path', outlet: 'currentPath'
         @span class: 'buffer-modified', outlet: 'bufferModified'
-      @div class: 'cursor-position', =>
-        @span outlet: 'gitStatusIcon'
-        @span outlet: 'branchArea', =>
-          @span class: 'octicons branch-icon'
-          @span class: 'branch-label', outlet: 'branchLabel'
-        @span outlet: 'cursorPosition'
+
 
   initialize: (@rootView, @editor) ->
     @updatePathText()
@@ -76,7 +76,7 @@ class StatusBar extends View
     @gitStatusIcon.empty()
     return unless path
 
-    @gitStatusIcon.removeClass().addClass('octicons')
+    @gitStatusIcon.removeClass().addClass('git-status octicons')
     if @buffer.getGit()?.isPathModified(path)
       @gitStatusIcon.addClass('modified-status-icon')
     else if  @buffer.getGit()?.isPathNew(path)
@@ -90,4 +90,4 @@ class StatusBar extends View
 
   updateCursorPositionText: ->
     { row, column } = @editor.getCursorBufferPosition()
-    @cursorPosition.text("#{row + 1},#{column + 1}")
+    @cursorPosition.text("Line #{row + 1}, Column #{column + 1}")
