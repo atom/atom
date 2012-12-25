@@ -5,7 +5,9 @@ Git = require 'git'
 module.exports =
 class FileView extends View
   @content: (file) ->
-    @li file.getBaseName(), class: 'file entry'
+    @li class: 'file entry', =>
+      @span file.getBaseName(), class: 'name'
+      @span "", class: 'highlight'
 
   file: null
 
