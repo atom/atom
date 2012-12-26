@@ -326,6 +326,14 @@ class Editor extends View
       @removeClass 'focused'
       @autosave() if config.get "editor.autosave"
 
+    @scrollView.on 'click', (e) =>
+      return unless e.target is @scrollView[0]
+      return unless e.offsetY > @overlayer.height()
+      if e.shiftKey
+        @selectToBottom()
+      else
+        @moveCursorToBottom()
+
     @overlayer.on 'mousedown', (e) =>
       @overlayer.hide()
       clickedElement = document.elementFromPoint(e.pageX, e.pageY)

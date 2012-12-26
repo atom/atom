@@ -1992,13 +1992,36 @@ describe "Editor", ->
         expect(editor.getText()).toBe(originalPathText)
 
   describe "when clicking a gutter line", ->
-    it "moves the cursor to the start of the selected line", ->
+    beforeEach ->
       rootView.attachToDom()
+
+    it "moves the cursor to the start of the selected line", ->
       expect(editor.getCursorScreenPosition()).toEqual [0,0]
       editor.gutter.find(".line-number:eq(1)").trigger 'click'
       expect(editor.getCursorScreenPosition()).toEqual [1,0]
 
     it "selects to the start of the selected line when shift is pressed", ->
-      expect(editor.getSelection().getScreenRange()).toEqual [0,0], [0,0]
-      editor.gutter.find(".line-number:eq(1)").trigger 'click', {shiftKey: true}
-      expect(editor.getSelection().getScreenRange()).toEqual [0,0], [1,0]
+      expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
+      event = $.Event("click")
+      event.shiftKey = true
+      editor.gutter.find(".line-number:eq(1)").trigger event
+      expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [1,0]]
+
+  describe "when clicking below the last line", ->
+    beforeEach ->
+      rootView.attachToDom()
+
+    it "move the cursor to the end of the file", ->
+      expect(editor.getCursorScreenPosition()).toEqual [0,0]
+      event = $.Event("click")
+      event.offsetY = Infinity
+      editor.scrollView.trigger event
+      expect(editor.getCursorScreenPosition()).toEqual [12,2]
+
+    it "selects to the end of the files when shift is pressed", ->
+      expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [0,0]]
+      event = $.Event("click")
+      event.offsetY = Infinity
+      event.shiftKey = true
+      editor.scrollView.trigger event
+      expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
