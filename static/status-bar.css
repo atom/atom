@@ -24,6 +24,7 @@
 .status-bar .git-status.octicons {
   display: none;
   padding-left: 10px;
+  margin-top:-2px;
 }
 
 .status-bar .octicons {
@@ -42,7 +43,7 @@
 }
 
 .status-bar .git-status.octicons.modified-status-icon {
-  color: #6C6912;
+  color: #f78a46;
   display: inline-block;
 }
 
@@ -51,7 +52,7 @@
 }
 
 .status-bar .git-status.octicons.new-status-icon {
-  color: #269F81;
+  color: #5293d8;
   display: inline-block;
 }
 
