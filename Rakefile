@@ -81,7 +81,7 @@ task "clone-default-bundles" => "create-dot-atom" do
     "https://github.com/textmate/css.tmbundle.git" => "aa549903ff01e9ba7dc0bd83f2cfe7ab54feab2d",
     "https://github.com/textmate/html.tmbundle.git" => "af4fef34e1df538eda9a166912047b610530ece0",
     "https://github.com/textmate/javascript.tmbundle.git" => "58e81b0eae498c9a4eb6e395368df3b7a01d9851",
-    "https://github.com/textmate/ruby-on-rails.tmbundle.git" => "7c410a098f0e343d52f70b4f9c08b8669d0a594c",
+    "https://github.com/drnic/ruby-on-rails-tmbundle.git" => "b3228daebf697f16cacf7ac72615396fb1be3a4d",
     "https://github.com/textmate/ruby.tmbundle.git" => "daad8ef03de9630e74578a046240fd9acc63b8b5",
     "https://github.com/textmate/text.tmbundle.git" => "061224bd78fd98d02035466cdd959bf29995c2c5",
     "https://github.com/jashkenas/coffee-script-tmbundle.git" => "20d9b95240bbbc27565c74c7227b8c6eb9049f78",
@@ -90,6 +90,8 @@ task "clone-default-bundles" => "create-dot-atom" do
     "https://github.com/textmate/objective-c.tmbundle.git" => "b0826e645a3d8ca37dd625a56935d49cc8eeb9fc",
     "https://github.com/textmate/git.tmbundle.git" => "132724ab03dfc70fc77deca8ef1a359dc8404d80",
   }
+
+  `rm -rf #{File.join(DOT_ATOM_PATH, 'bundles', 'ruby-on-rails.tmbundle')}` # github/textmate removed this repo, use drnic's repo instead
 
   for bundle_url, sha in bundles
     bundle_dir = bundle_url[/([^\/]+?)(\.git)?$/, 1]
