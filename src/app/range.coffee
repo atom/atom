@@ -11,6 +11,11 @@ class Range
     else
       new Range(object.start, object.end)
 
+  @fromPointWithDelta: (point, rowDelta, columnDelta) ->
+    pointA = Point.fromObject(point)
+    pointB = new Point(point.row + rowDelta, point.column + columnDelta)
+    new Range(pointA, pointB)
+
   constructor: (pointA = new Point(0, 0), pointB = new Point(0, 0)) ->
     pointA = Point.fromObject(pointA)
     pointB = Point.fromObject(pointB)

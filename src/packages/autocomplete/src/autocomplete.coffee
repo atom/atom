@@ -185,11 +185,10 @@ class Autocomplete extends View
     {prefix, suffix} = @prefixAndSuffixOfSelection(selection)
 
     if (prefix.length + suffix.length) > 0
-      regex = new RegExp("^#{prefix}(.+)#{suffix}$", "i")
+      regex = new RegExp("^#{prefix}.+#{suffix}$", "i")
       currentWord = prefix + @editor.getSelectedText() + suffix
       for word in @wordList when regex.test(word) and word != currentWord
-        match = regex.exec(word)
-        {prefix, suffix, word, infix: match[1]}
+        {prefix, suffix, word}
     else
       []
 
@@ -197,9 +196,15 @@ class Autocomplete extends View
     selection = @editor.getSelection()
     startPosition = selection.getBufferRange().start
     @isAutocompleting = true
-    @editor.insertText(match.infix)
+    buffer = @editor.getBuffer()
+    @editor.activeEditSession.transact =>
+      selection.deleteSelectedText()
+      buffer.delete(Range.fromPointWithDelta(@editor.getCursorBufferPosition(), 0, -match.prefix.length))
+      buffer.delete(Range.fromPointWithDelta(@editor.getCursorBufferPosition(), 0, match.suffix.length))
+      @editor.insertText(match.word)
 
-    @currentMatchBufferRange = [startPosition, [startPosition.row, startPosition.column + match.infix.length]]
+    infixLength = match.word.length - match.prefix.length - match.suffix.length
+    @currentMatchBufferRange = [startPosition, [startPosition.row, startPosition.column + infixLength]]
     @editor.setSelectedBufferRange(@currentMatchBufferRange)
     @isAutocompleting = false
 
