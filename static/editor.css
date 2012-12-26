@@ -6,7 +6,7 @@
   -webkit-box-flex: 1;
   position: relative;
   z-index: 0;
-  font: 16px Inconsolata, Monaco, Courier !important;
+  font-family: Inconsolata, Monaco, Courier !important;
 }
 
 .editor.mini {
