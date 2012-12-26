@@ -242,12 +242,12 @@ describe "TextMateGrammar", ->
       expect(tokens[0].value).toBe "//"
       expect(tokens[1].value).toBe " a singleLineComment"
 
-    it "does not loop infinitley (regression)", ->
+    it "does not loop infinitely (regression)", ->
       grammar = TextMateBundle.grammarForFilePath("hello.js")
       {tokens, ruleStack} = grammar.tokenizeLine("// line comment")
       {tokens, ruleStack} = grammar.tokenizeLine(" // second line comment with a single leading space", ruleStack)
 
-    describe "when inside an C block", ->
+    describe "when inside a C block", ->
       it "correctly parses a method. (regression)", ->
         grammar = TextMateBundle.grammarForFilePath("hello.c")
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){m()}")
