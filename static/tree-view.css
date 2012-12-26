@@ -79,3 +79,32 @@
   border: 2px solid #222;
   -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
 }
+
+.tree-view .directory .header .name,
+.tree-view .file .name {
+  position: relative;
+  padding-left: 21px;
+}
+
+.tree-view .directory .header .name:before,
+.tree-view .file .name:before {
+  font-family: 'Octicons Regular';
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  -webkit-font-smoothing: antialiased;
+  position: absolute;
+  left: 0;
+}
+
+.tree-view .directory .header .name:before {
+  content: "\f016";
+  top: -5px;
+}
+
+.tree-view .file .name:before {
+  content: "\f011";
+  top: -2px;
+}
+
