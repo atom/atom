@@ -50,11 +50,11 @@ class TextMateBundle
 
   @grammarByShebang: (filePath) ->
     try
-      firstLine = fs.read(filePath).match(/.*/)[0]
+      fileContents = fs.read(filePath)
     catch e
       null
 
-    _.find @grammars, (grammar) -> grammar.firstLineRegex?.test(firstLine)
+    _.find @grammars, (grammar) -> grammar.firstLineRegex?.test(fileContents)
 
   @grammarForScopeName: (scopeName) ->
     @grammarsByScopeName[scopeName]
