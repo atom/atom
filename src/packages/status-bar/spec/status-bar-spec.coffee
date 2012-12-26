@@ -30,7 +30,7 @@ describe "StatusBar", ->
     it "displays the editor's buffer path, cursor buffer position, and buffer modified indicator", ->
       expect(statusBar.currentPath.text()).toBe 'sample.js'
       expect(statusBar.bufferModified.text()).toBe ''
-      expect(statusBar.cursorPosition.text()).toBe '1,1'
+      expect(statusBar.cursorPosition.text()).toBe 'Line 1, Column 1'
 
     describe "when associated with an unsaved buffer", ->
       it "displays 'untitled' instead of the buffer's path, but still displays the buffer position", ->
@@ -41,7 +41,7 @@ describe "StatusBar", ->
         StatusBar.activate(rootView)
         statusBar = rootView.find('.status-bar').view()
         expect(statusBar.currentPath.text()).toBe 'untitled'
-        expect(statusBar.cursorPosition.text()).toBe '1,1'
+        expect(statusBar.cursorPosition.text()).toBe 'Line 1, Column 1'
 
   describe "when the associated editor's path changes", ->
     it "updates the path in the status bar", ->
@@ -105,7 +105,7 @@ describe "StatusBar", ->
   describe "when the associated editor's cursor position changes", ->
     it "updates the cursor position in the status bar", ->
       editor.setCursorScreenPosition([1, 2])
-      expect(statusBar.cursorPosition.text()).toBe '2,3'
+      expect(statusBar.cursorPosition.text()).toBe 'Line 2, Column 3'
 
   describe "git branch label", ->
     beforeEach ->
