@@ -10,6 +10,7 @@ describe "WrapGuide", ->
     rootView.attachToDom()
     editor = rootView.getActiveEditor()
     wrapGuide = rootView.find('.wrap-guide').view()
+    editor.width(editor.charWidth * wrapGuide.defaultColumn * 2)
 
   afterEach ->
     rootView.deactivate()
@@ -27,6 +28,7 @@ describe "WrapGuide", ->
       width = editor.charWidth * wrapGuide.defaultColumn
       expect(width).toBeGreaterThan(0)
       expect(wrapGuide.position().left).toBe(width)
+      expect(wrapGuide).toBeVisible()
 
   describe "when the font size changes", ->
     it "updates the wrap guide position", ->
@@ -34,6 +36,7 @@ describe "WrapGuide", ->
       expect(initial).toBeGreaterThan(0)
       rootView.trigger('window:increase-font-size')
       expect(wrapGuide.position().left).toBeGreaterThan(initial)
+      expect(wrapGuide).toBeVisible()
 
   describe "overriding getGuideColumn", ->
     it "invokes the callback with the editor path", ->
@@ -41,7 +44,7 @@ describe "WrapGuide", ->
       wrapGuide.getGuideColumn = (path) ->
         editorPath = path
         80
-      wrapGuide.updateGuide(editor)
+      wrapGuide.updateGuide()
       expect(editorPath).toBe(require.resolve('fixtures/sample.js'))
 
     it "invokes the callback with a default value", ->
@@ -51,7 +54,7 @@ describe "WrapGuide", ->
         column = defaultColumn
         defaultColumn
 
-      wrapGuide.updateGuide(editor)
+      wrapGuide.updateGuide()
       expect(column).toBeGreaterThan(0)
 
     # this is disabled because we no longer support passing config to an extension
@@ -68,5 +71,11 @@ describe "WrapGuide", ->
     it "hides the guide when the column is less than 1", ->
       wrapGuide.getGuideColumn = (path) ->
         -1
-      wrapGuide.updateGuide(editor)
+      wrapGuide.updateGuide()
+      expect(wrapGuide).toBeHidden()
+
+  describe "when no lines exceed the guide column and the editor width is smaller than the guide column position", ->
+    it "hides the guide", ->
+      editor.width(10)
+      wrapGuide.updateGuide()
       expect(wrapGuide).toBeHidden()

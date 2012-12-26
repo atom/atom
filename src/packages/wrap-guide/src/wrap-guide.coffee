@@ -1,4 +1,5 @@
 {View} = require 'space-pen'
+$ = require 'jquery'
 
 module.exports =
 class WrapGuide extends View
@@ -28,13 +29,18 @@ class WrapGuide extends View
     else
       @getGuideColumn = (path, defaultColumn) -> defaultColumn
 
-    @observeConfig 'editor.fontSize', => @updateGuide(@editor)
-    @subscribe @editor, 'editor-path-change', => @updateGuide(@editor)
-    @subscribe @editor, 'before-remove', => @rootView.off('.wrap-guide')
+    @observeConfig 'editor.fontSize', => @updateGuide()
+    @subscribe @editor, 'editor-path-change', => @updateGuide()
+    @subscribe @editor, 'editor:min-width-changed', => @updateGuide()
+    @subscribe $(window), 'resize', => @updateGuide()
 
-  updateGuide: (editor) ->
-    column = @getGuideColumn(editor.getPath(), @defaultColumn)
+  updateGuide: ->
+    column = @getGuideColumn(@editor.getPath(), @defaultColumn)
     if column > 0
-      @css('left', "#{editor.charWidth * column}px").show()
+      columnWidth = @editor.charWidth * column
+      if columnWidth < @editor.layerMinWidth or columnWidth < @editor.width()
+        @css('left', "#{columnWidth}px").show()
+      else
+        @hide()
     else
       @hide()

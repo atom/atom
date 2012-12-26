@@ -759,6 +759,7 @@ class Editor extends View
       @underlayer.css('min-width', minWidth)
       @overlayer.css('min-width', minWidth)
       @layerMinWidth = minWidth
+      @trigger 'editor:min-width-changed'
 
   clearRenderedLines: ->
     @renderedLines.empty()
