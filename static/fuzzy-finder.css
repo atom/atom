@@ -1,3 +1,7 @@
+.fuzzy-finder {
+  z-index: 99;
+}
+
 .fuzzy-finder ol {
   overflow: hidden;
   margin-bottom: 5px;
