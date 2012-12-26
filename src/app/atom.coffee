@@ -15,7 +15,9 @@ _.extend atom,
   getAvailablePackages: ->
     allPackageNames = []
     for packageDirPath in config.packageDirPaths
-      packageNames = fs.list(packageDirPath).map (packagePath) -> fs.base(packagePath)
+      packageNames = fs.list(packageDirPath)
+        .filter((packagePath) -> fs.isDirectory(packagePath))
+        .map((packagePath) -> fs.base(packagePath))
       allPackageNames.push(packageNames...)
     _.unique(allPackageNames)
 

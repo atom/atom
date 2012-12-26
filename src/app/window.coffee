@@ -27,7 +27,6 @@ windowAdditions =
   startup: ->
     @config = new Config
     @syntax = new Syntax
-    TextMateTheme.loadAll()
     @setUpKeymap()
     @pasteboard = new Pasteboard
 

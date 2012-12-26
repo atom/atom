@@ -4,31 +4,20 @@ plist = require 'plist'
 
 module.exports =
 class TextMateTheme
-  @themesByName: {}
+  @load: (name) ->
+    regex = new RegExp("#{_.escapeRegExp(name)}\.(tmTheme|plist)$", "i")
+    path = _.find fs.list(config.themeDirPath), (path) -> regex.test(path)
+    return null unless path
 
-  @loadAll: ->
-    for themePath in fs.list(require.resolve("themes"))
-      @registerTheme(TextMateTheme.load(themePath))
-
-  @load: (path) ->
-    plistString = fs.read(require.resolve(path))
+    plistString = fs.read(path)
     theme = null
     plist.parseString plistString, (err, data) ->
       throw new Error("Error loading theme at '#{path}': #{err}") if err
       theme = new TextMateTheme(data[0])
     theme
 
-  @registerTheme: (theme) ->
-    @themesByName[theme.name] = theme
-
-  @getNames: ->
-    _.keys(@themesByName)
-
-  @getTheme: (name) ->
-    @themesByName[name]
-
   @activate: (name) ->
-    if theme = @getTheme(name)
+    if theme = @load(name)
       theme.activate()
     else
       throw new Error("No theme with name '#{name}'")
