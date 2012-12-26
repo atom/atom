@@ -8,16 +8,16 @@ module.exports =
 class FileView extends View
 
   @COMPRESSED_EXTENSIONS: [
-    '.zip'
+    '.gz'
     '.jar'
     '.tar'
-    '.gz'
+    '.zip'
   ]
 
   @IMAGE_EXTENSIONS: [
+    '.gif'
     '.jpeg'
     '.jpg'
-    '.gif'
     '.png'
   ]
 
