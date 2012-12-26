@@ -23,10 +23,10 @@ class StatusBar extends View
         @span class: 'octicons branch-icon'
         @span class: 'branch-label', outlet: 'branchLabel'
         @span class: 'git-status', outlet: 'gitStatusIcon'
-      @span class: 'cursor-position', outlet: 'cursorPosition'
       @span class: 'file-info', =>
         @span class: 'current-path', outlet: 'currentPath'
         @span class: 'buffer-modified', outlet: 'bufferModified'
+      @span class: 'cursor-position', outlet: 'cursorPosition'
 
 
   initialize: (@rootView, @editor) ->
@@ -90,4 +90,4 @@ class StatusBar extends View
 
   updateCursorPositionText: ->
     { row, column } = @editor.getCursorBufferPosition()
-    @cursorPosition.text("Line #{row + 1}, Column #{column + 1}")
+    @cursorPosition.text("#{row + 1},#{column + 1}")

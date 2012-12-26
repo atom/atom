@@ -9,7 +9,7 @@
 }
 
 .status-bar .cursor-position {
-  padding-right: 20px;
+  padding-left: 10px;
 }
 
 .status-bar .git-branch {
