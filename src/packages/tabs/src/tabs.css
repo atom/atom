@@ -1,7 +1,7 @@
 .tabs {
   background: #333333;
   border-bottom: 4px solid #424242;
-  font: caption !important;
+  font: caption;
 }
 
 .tab {
@@ -71,7 +71,7 @@
 }
 
 .tab .file-name {
-  font-size: 11px !important;
+  font-size: 11px;
   display: block;
   overflow: hidden;
   white-space: nowrap;
