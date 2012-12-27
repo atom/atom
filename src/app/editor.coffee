@@ -326,6 +326,14 @@ class Editor extends View
       @removeClass 'focused'
       @autosave() if config.get "editor.autosave"
 
+    @underlayer.on 'click', (e) =>
+      return unless e.target is @underlayer[0]
+      return unless e.offsetY > @overlayer.height()
+      if e.shiftKey
+        @selectToBottom()
+      else
+        @moveCursorToBottom()
+
     @overlayer.on 'mousedown', (e) =>
       @overlayer.hide()
       clickedElement = document.elementFromPoint(e.pageX, e.pageY)
@@ -738,7 +746,7 @@ class Editor extends View
     height = @lineHeight * @screenLineCount()
     unless @layerHeight == height
       @renderedLines.height(height)
-      @underlayer.height(height)
+      @underlayer.css('min-height', height)
       @overlayer.height(height)
       @layerHeight = height
 
@@ -751,6 +759,7 @@ class Editor extends View
       @underlayer.css('min-width', minWidth)
       @overlayer.css('min-width', minWidth)
       @layerMinWidth = minWidth
+      @trigger 'editor:min-width-changed'
 
   clearRenderedLines: ->
     @renderedLines.empty()

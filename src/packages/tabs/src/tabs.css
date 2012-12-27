@@ -1,34 +1,87 @@
 .tabs {
-  background: #222;
-  border-bottom: 4px solid #555;
+  background: #333333;
+  border-bottom: 4px solid #424242;
+  font: caption !important;
 }
 
 .tab {
   cursor: default;
-  float: left;
-  margin: 4px;
-  margin-bottom: 0;
-  margin-right: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-  background: #3a3a3a;
-  color: #d0d0d0;
-  -webkit-border-top-left-radius: 4px;
-  -webkit-border-top-right-radius: 4px;
-  font-size: 90%;
+  padding: 2px 21px 2px 9px;
+  background-image: -webkit-linear-gradient(#444, #3d3d3d);
+  color: #a5aaaa;
+  display: table-cell;
+  position: relative;
+  width:175px;
+  border-top: 1px solid #383838;
+  border-right: 1px solid #2e2e2e;
+  border-bottom: 1px solid #2e2e2e;
+  box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a, inset 1px 0 0 #4a4a4a;
+  min-width: 40px;
+  box-sizing: border-box;
+  height: 24px;
 }
 
-.tab.active {
-  background: #555;
-  color: white;
+.tab:first-child {
+  box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a;
 }
 
-.tab:last-child {
-  margin-right: 4px;
+.tab.active:first-child,
+.tab.active:first-child:hover {
+  box-shadow: inset -1px 0 0 #595959;
+}
+
+.tab.active,
+.tab.active:hover {
+  color: #dae6e6;
+  border-top: 1px solid #4a4a4a;
+  box-shadow: inset -1px 0 0 #595959, inset 1px 0 0 #595959;
+  border-bottom: 0 none;
+  background-image: -webkit-linear-gradient(#555555, #424242);
+}
+
+.tab.active:before,
+.tab.active:after {
+  position: absolute;
+  bottom: -1px;
+  width: 4px;
+  height: 4px;
+  content: " ";
+  z-index: 3;
+  border: 1px solid #595959;
+}
+.tab.active:before {
+  border-bottom-right-radius: 4px;
+  border-width: 0 1px 1px 0;
+  box-shadow: 2px 2px 0 #424242;
+  left: -4px;
+}
+.tab.active:after {
+  right: -4px;
+  border-bottom-left-radius: 4px;
+  border-width: 0 0 1px 1px;
+  box-shadow: -2px 2px 0 #424242;
+}
+.tab.active:first-child:before {
+  display: none;
+}
+
+.tab:hover {
+  color: #c8c8c5;
+  background-image: -webkit-linear-gradient(#474747, #444444);
 }
 
 .tab .file-name {
-  margin-right: 5px;
+  font-size: 11px !important;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 -1px 1px black;
+  position: absolute;
+  left: 9px;
+  top:4px;
+  bottom:4px;
+  right: 21px;
 }
 
 .tab .close-icon {
@@ -36,12 +89,17 @@
   font-size: 14px;
   width: 14px;
   height: 14px;
+  display: block;
   color: #777;
   cursor: pointer;
+  position: absolute;
+  right: 4px;
+  top: -1px;
+  -webkit-font-smoothing: antialiased;
 }
 
 .tab .close-icon:before {
-  content: "\f050";
+  content: "\f081";
 }
 
 .tab .close-icon:hover {

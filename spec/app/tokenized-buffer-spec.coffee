@@ -383,3 +383,20 @@ describe "TokenizedBuffer", ->
       expect(tokens[0].scopes).toEqual ["source.c++", "meta.preprocessor.c.include"]
       expect(tokens[1].value).toBe 'include'
       expect(tokens[1].scopes).toEqual ["source.c++", "meta.preprocessor.c.include", "keyword.control.import.include.c"]
+
+  describe "when a Ruby source file is tokenized", ->
+    beforeEach ->
+      editSession =  fixturesProject.buildEditSessionForPath('hello.rb', autoIndent: false)
+      buffer = editSession.buffer
+      tokenizedBuffer = editSession.displayBuffer.tokenizedBuffer
+      editSession.setVisible(true)
+      fullyTokenize(tokenizedBuffer)
+
+    afterEach ->
+      editSession.destroy()
+
+    it "doesn't loop infinitely (regression)", ->
+      expect(tokenizedBuffer.lineForScreenRow(0).text).toBe 'a = {'
+      expect(tokenizedBuffer.lineForScreenRow(1).text).toBe '  "b" => "c",'
+      expect(tokenizedBuffer.lineForScreenRow(2).text).toBe '}'
+      expect(tokenizedBuffer.lineForScreenRow(3).text).toBe ''

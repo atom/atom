@@ -123,3 +123,24 @@ module.exports =
 
   md5ForPath: (path) ->
     $native.md5ForPath(path)
+
+  isCompressedExtension: (ext) ->
+    _.contains([
+      '.gz'
+      '.jar'
+      '.tar'
+      '.zip'
+    ], ext)
+
+  isImageExtension: (ext) ->
+    _.contains([
+      '.gif'
+      '.jpeg'
+      '.jpg'
+      '.png'
+    ], ext)
+
+  isPdfExtension: (ext) ->
+    _.contains([
+      '.pdf'
+    ], ext)

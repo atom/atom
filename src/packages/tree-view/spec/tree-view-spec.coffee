@@ -26,18 +26,18 @@ describe "TreeView", ->
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
-      expect(treeView.root.find('> .header .disclosure-arrow')).toHaveText('▾')
-      expect(treeView.root.find('> .header .name')).toHaveText('tree-view/')
+      expect(treeView.root.find('> .header .disclosure-arrow')).not.toHaveClass('expanded')
+      expect(treeView.root.find('> .header .name')).toHaveText('tree-view')
 
       rootEntries = treeView.root.find('.entries')
       subdir0 = rootEntries.find('> li:eq(0)')
-      expect(subdir0.find('.disclosure-arrow')).toHaveText('▸')
-      expect(subdir0.find('.name')).toHaveText('dir1/')
+      expect(subdir0).not.toHaveClass('expanded')
+      expect(subdir0.find('.name')).toHaveText('dir1')
       expect(subdir0.find('.entries')).not.toExist()
 
       subdir2 = rootEntries.find('> li:eq(1)')
-      expect(subdir2.find('.disclosure-arrow')).toHaveText('▸')
-      expect(subdir2.find('.name')).toHaveText('dir2/')
+      expect(subdir2).not.toHaveClass('expanded')
+      expect(subdir2.find('.name')).toHaveText('dir2')
       expect(subdir2.find('.entries')).not.toExist()
 
       expect(rootEntries.find('> .file:contains(tree-view.js)')).toExist()
@@ -194,40 +194,27 @@ describe "TreeView", ->
       expect(treeView).not.toMatchSelector(':focus')
       expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
-  describe "when core:close is triggered on the tree view", ->
-    it "detaches the TreeView, focuses the RootView and does not bubble the core:close event", ->
-      treeView.attach()
-      treeView.focus()
-      rootViewCloseHandler = jasmine.createSpy('rootViewCloseHandler')
-      rootView.on 'core:close', rootViewCloseHandler
-      spyOn(rootView, 'focus')
-
-      treeView.trigger('core:close')
-      expect(rootView.focus).toHaveBeenCalled()
-      expect(rootViewCloseHandler).not.toHaveBeenCalled()
-      expect(treeView.hasParent()).toBeFalsy()
-
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->
-      subdir = treeView.root.find('.entries > li:contains(dir1/)').view()
+      subdir = treeView.root.find('.entries > li:contains(dir1)').view()
 
-      expect(subdir.disclosureArrow).toHaveText('▸')
+      expect(subdir).not.toHaveClass('expanded')
       expect(subdir.find('.entries')).not.toExist()
 
       subdir.disclosureArrow.click()
 
-      expect(subdir.disclosureArrow).toHaveText('▾')
+      expect(subdir).toHaveClass('expanded')
       expect(subdir.find('.entries')).toExist()
 
       subdir.disclosureArrow.click()
-      expect(subdir.disclosureArrow).toHaveText('▸')
+      expect(subdir).not.toHaveClass('expanded')
       expect(subdir.find('.entries')).not.toExist()
 
     it "restores the expansion state of descendant directories", ->
-      child = treeView.root.find('.entries > li:contains(dir1/)').view()
+      child = treeView.root.find('.entries > li:contains(dir1)').view()
       child.disclosureArrow.click()
 
-      grandchild = child.find('.entries > li:contains(sub-dir1/)').view()
+      grandchild = child.find('.entries > li:contains(sub-dir1)').view()
       grandchild.disclosureArrow.click()
 
       treeView.root.disclosureArrow.click()
@@ -235,16 +222,16 @@ describe "TreeView", ->
       treeView.root.disclosureArrow.click()
 
       # previously expanded descendants remain expanded
-      expect(treeView.root.find('> .entries > li:contains(dir1/) > .entries > li:contains(sub-dir1/) > .entries').length).toBe 1
+      expect(treeView.root.find('> .entries > li:contains(dir1) > .entries > li:contains(sub-dir1) > .entries').length).toBe 1
 
       # collapsed descendants remain collapsed
-      expect(treeView.root.find('> .entries > li.contains(dir2/) > .entries')).not.toExist()
+      expect(treeView.root.find('> .entries > li.contains(dir2) > .entries')).not.toExist()
 
     it "when collapsing a directory, removes change subscriptions from the collapsed directory and its descendants", ->
-      child = treeView.root.entries.find('li:contains(dir1/)').view()
+      child = treeView.root.entries.find('li:contains(dir1)').view()
       child.disclosureArrow.click()
 
-      grandchild = child.entries.find('li:contains(sub-dir1/)').view()
+      grandchild = child.entries.find('li:contains(sub-dir1)').view()
       grandchild.disclosureArrow.click()
 
       expect(treeView.root.directory.subscriptionCount()).toBe 1
@@ -359,7 +346,7 @@ describe "TreeView", ->
 
         beforeEach ->
           nested = treeView.root.find('.directory:eq(2)').view()
-          expect(nested.find('.header').text()).toContain 'nested/'
+          expect(nested.find('.header').text()).toContain 'nested'
           nested.expand()
           nested2 = nested.entries.find('.entry:last').view()
           nested2.click()
@@ -486,7 +473,7 @@ describe "TreeView", ->
 
         entryCount = treeView.find(".entry").length
         _.times entryCount, -> treeView.moveDown()
-        expect(treeView.scrollBottom()).toBe treeView.prop('scrollHeight')
+        expect(treeView.scrollBottom() + 2).toBe treeView.prop('scrollHeight')
 
         _.times entryCount, -> treeView.moveUp()
         expect(treeView.scrollTop()).toBe 0
@@ -668,7 +655,7 @@ describe "TreeView", ->
               expect(rootView.getActiveEditor().getPath()).not.toBe newPath
               expect(treeView).toMatchSelector(':focus')
               expect(rootView.getActiveEditor().isFocused).toBeFalsy()
-              expect(dirView.find('.directory.selected:contains(new/)').length).toBe(1)
+              expect(dirView.find('.directory.selected:contains(new)').length).toBe(1)
 
             it "selects the created directory", ->
               treeView.attachToDom()
@@ -681,7 +668,7 @@ describe "TreeView", ->
               expect(rootView.getActiveEditor().getPath()).not.toBe newPath
               expect(treeView).toMatchSelector(':focus')
               expect(rootView.getActiveEditor().isFocused).toBeFalsy()
-              expect(dirView.find('.directory.selected:contains(new2/)').length).toBe(1)
+              expect(dirView.find('.directory.selected:contains(new2)').length).toBe(1)
 
           describe "when a file or directory already exists at the given path", ->
             it "shows an error message and does not close the dialog", ->

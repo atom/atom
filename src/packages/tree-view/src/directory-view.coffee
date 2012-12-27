@@ -9,8 +9,9 @@ class DirectoryView extends View
   @content: ({directory, isExpanded} = {}) ->
     @li class: 'directory entry', =>
       @div outlet: 'header', class: 'header', =>
-        @span '▸', class: 'disclosure-arrow', outlet: 'disclosureArrow'
+        @span class: 'disclosure-arrow', outlet: 'disclosureArrow'
         @span directory.getBaseName(), class: 'name', outlet: 'directoryName'
+      @span "", class: 'highlight'
 
   directory: null
   entries: null
@@ -47,7 +48,6 @@ class DirectoryView extends View
   expand: ->
     return if @isExpanded
     @addClass('expanded')
-    @disclosureArrow.text('▾')
     @buildEntries()
     @watchEntries()
     @deserializeEntryExpansionStates(@entryStates) if @entryStates?
@@ -57,7 +57,6 @@ class DirectoryView extends View
   collapse: ->
     @entryStates = @serializeEntryExpansionStates()
     @removeClass('expanded')
-    @disclosureArrow.text('▸')
     @unwatchEntries()
     @entries.remove()
     @entries = null

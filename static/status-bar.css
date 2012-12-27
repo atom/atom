@@ -1,37 +1,30 @@
 .status-bar {
-  background: black;
-  color: white;
-  padding: 5px;
+  background-image: -webkit-linear-gradient(#303030, #252525);
+  border-top: 1px solid #454545;
+  padding: 4px 10px 3px;
+  font-size: 11px;
+  line-height: 14px;
+  color: #969696;
   position: relative;
 }
 
-.status-bar .file-info {
-  float: left;
-  display: inline-block;
-}
-
 .status-bar .cursor-position {
-  position: absolute;
-  right: 5px;
-  top: 5px;
+  padding-left: 10px;
 }
 
-.status-bar .modified-status-icon {
-  color: #6C6912;
-  padding-right: 5px;
+.status-bar .git-branch {
+  float: right;
 }
 
-.status-bar .modified-status-icon:before {
-  content: "\f26d";
+.status-bar .branch-label {
+  padding-left: 5px;
+  vertical-align: baseline;
 }
 
-.status-bar .new-status-icon {
-  color: #269F81;
-  padding-right: 5px;
-}
-
-.status-bar .new-status-icon:before {
-  content: "\f26b";
+.status-bar .git-status.octicons {
+  display: none;
+  padding-left: 10px;
+  margin-top:-2px;
 }
 
 .status-bar .octicons {
@@ -39,13 +32,31 @@
   font-size: 14px;
   width: 14px;
   height: 14px;
+  line-height: 14px;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .status-bar .branch-icon:before {
   content: "\f020";
 }
 
-.status-bar .branch-label {
-  padding-left: 5px;
-  padding-right: 10px;
+.status-bar .git-status.octicons.modified-status-icon {
+  color: #f78a46;
+  display: inline-block;
 }
+
+.status-bar .modified-status-icon:before {
+  content: "\f26d";
+}
+
+.status-bar .git-status.octicons.new-status-icon {
+  color: #5293d8;
+  display: inline-block;
+}
+
+.status-bar .new-status-icon:before {
+  content: "\f26b";
+}
+

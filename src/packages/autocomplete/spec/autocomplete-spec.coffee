@@ -96,6 +96,15 @@ describe "Autocomplete", ->
         expect(autocomplete.matchesList.find('li').length).toBe 1
         expect(autocomplete.matchesList.find('li:eq(0)')).toHaveText "No matches found"
 
+      it "autocompletes word and replaces case of prefix with case of word", ->
+        editor.getBuffer().insert([10,0] ,"extra:SO:extra")
+        editor.setCursorBufferPosition([10,8])
+        autocomplete.attach()
+
+        expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
+        expect(editor.getCursorBufferPosition()).toEqual [10,10]
+        expect(editor.getSelection().isEmpty()).toBeTruthy()
+
     describe "when text is selected", ->
       it 'autocompletes word when there is only a prefix', ->
         editor.getBuffer().insert([10,0] ,"extra:sort:extra")
@@ -399,5 +408,3 @@ describe "Autocomplete", ->
 
       editor.trigger 'core:move-up'
       expect(editor.getCursorBufferPosition().row).toBe 0
-
-

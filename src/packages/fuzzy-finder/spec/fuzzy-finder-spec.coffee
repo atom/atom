@@ -2,6 +2,7 @@ RootView = require 'root-view'
 FuzzyFinder = require 'fuzzy-finder'
 $ = require 'jquery'
 {$$} = require 'space-pen'
+fs = require 'fs'
 
 describe 'FuzzyFinder', ->
   [rootView, finder] = []
@@ -56,7 +57,7 @@ describe 'FuzzyFinder', ->
           runs ->
             expect(finder.list.children('li').length).toBe paths.length, finder.maxResults
             for path in paths
-              expect(finder.list.find("li:contains(#{path})")).toExist()
+              expect(finder.list.find("li:contains(#{fs.base(path)})")).toExist()
             expect(finder.list.children().first()).toHaveClass 'selected'
             expect(finder.find(".loading")).not.toBeVisible()
 

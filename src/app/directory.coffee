@@ -10,7 +10,7 @@ class Directory
   constructor: (@path) ->
 
   getBaseName: ->
-    fs.base(@path) + '/'
+    fs.base(@path)
 
   getPath: -> @path
 

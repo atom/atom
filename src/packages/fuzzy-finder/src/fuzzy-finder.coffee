@@ -2,6 +2,7 @@
 SelectList = require 'select-list'
 _ = require 'underscore'
 $ = require 'jquery'
+fs = require 'fs'
 
 module.exports =
 class FuzzyFinder extends SelectList
@@ -25,7 +26,20 @@ class FuzzyFinder extends SelectList
       @projectPaths = null
 
   itemForElement: (path) ->
-    $$ -> @li path
+    $$ ->
+      @li =>
+        ext = fs.extension(path)
+        if fs.isCompressedExtension(ext)
+          typeClass = 'compressed-name'
+        else if fs.isImageExtension(ext)
+          typeClass = 'image-name'
+        else if fs.isPdfExtension(ext)
+          typeClass = 'pdf-name'
+        else
+          typeClass = 'text-name'
+        @span fs.base(path), class: "file #{typeClass}"
+        if folder = fs.directory(path)
+          @span "- #{folder}/", class: 'directory'
 
   confirmed : (path) ->
     return unless path.length
