@@ -105,6 +105,7 @@
   font-size: 12px;
   width: 12px;
   height: 12px;
+  line-height: 16px;
   margin-right: 3px;
   -webkit-font-smoothing: antialiased;
 }
@@ -136,10 +137,8 @@
 
 .tree-view .directory > .header .disclosure-arrow:before {
   content: "\f05a";
-  top: -2px;
 }
 
 .tree-view .directory.expanded > .header .disclosure-arrow:before {
   content: "\f05b";
-  top: -2px;
 }
