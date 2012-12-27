@@ -65,8 +65,13 @@ windowAdditions =
 
   requireStylesheet: (path) ->
     unless fullPath = require.resolve(path)
-      throw new Error("requireStylesheet could not find a file at path '#{path}'")
+      throw new Error("Could not find a file at path '#{path}'")
     window.applyStylesheet(fullPath, fs.read(fullPath))
+
+  removeStylesheet: (path) ->
+    unless fullPath = require.resolve(path)
+      throw new Error("Could not find a file at path '#{path}'")
+    $("head style[id='#{fullPath}']").remove()
 
   applyStylesheet: (id, text) ->
     unless $("head style[id='#{id}']").length

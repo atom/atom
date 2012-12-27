@@ -262,19 +262,19 @@ describe "LanguageMode", ->
         expect(buffer.lineForRow(0)).toBe "/*body {"
         expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;*/"
         expect(buffer.lineForRow(2)).toBe "  width: 110%;"
-        expect(buffer.lineForRow(3)).toBe "}"
+        expect(buffer.lineForRow(3)).toBe "  font-weight: bold !important;"
 
         languageMode.toggleLineCommentsForBufferRows(2, 2)
         expect(buffer.lineForRow(0)).toBe "/*body {"
         expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;*/"
         expect(buffer.lineForRow(2)).toBe "/*  width: 110%;*/"
-        expect(buffer.lineForRow(3)).toBe "}"
+        expect(buffer.lineForRow(3)).toBe "  font-weight: bold !important;"
 
         languageMode.toggleLineCommentsForBufferRows(0, 1)
         expect(buffer.lineForRow(0)).toBe "body {"
         expect(buffer.lineForRow(1)).toBe "  font-size: 1234px;"
         expect(buffer.lineForRow(2)).toBe "/*  width: 110%;*/"
-        expect(buffer.lineForRow(3)).toBe "}"
+        expect(buffer.lineForRow(3)).toBe "  font-weight: bold !important;"
 
       it "uncomments lines with leading whitespace", ->
         buffer.replaceLines(2, 2, "  /*width: 110%;*/")
