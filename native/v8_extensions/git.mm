@@ -147,6 +147,7 @@ public:
 
     git_diff_list *diffs;
     int diffStatus = git_diff_workdir_to_tree(repo, &options, tree, &diffs);
+    free(copiedPath);
     if (diffStatus != GIT_OK) {
       return CefV8Value::CreateNull();
     }
