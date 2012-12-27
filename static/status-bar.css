@@ -17,7 +17,6 @@
 }
 
 .status-bar .branch-label {
-  padding-left: 5px;
   vertical-align: baseline;
 }
 
@@ -27,7 +26,7 @@
   margin-top:-2px;
 }
 
-.status-bar .octicons {
+.status-bar .octicons:before {
   font-family: 'Octicons Regular';
   font-size: 14px;
   width: 14px;
@@ -36,6 +35,7 @@
   -webkit-font-smoothing: antialiased;
   display: inline-block;
   vertical-align: middle;
+  margin-right: 5px;
 }
 
 .status-bar .branch-icon:before {
@@ -59,4 +59,3 @@
 .status-bar .new-status-icon:before {
   content: "\f26b";
 }
-
