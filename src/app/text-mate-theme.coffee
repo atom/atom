@@ -1,6 +1,6 @@
 _ = require 'underscore'
 fs = require 'fs'
-Theme = require 'Theme'
+Theme = require 'theme'
 
 module.exports =
 class TextMateTheme extends Theme
