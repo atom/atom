@@ -37,10 +37,14 @@ public:
         if (sha) {
           char oid[GIT_OID_HEXSZ + 1];
           git_oid_tostr(oid, GIT_OID_HEXSZ + 1, sha);
+          git_reference_free(head);
           return CefV8Value::CreateString(oid);
         }
       }
-      return CefV8Value::CreateString(git_reference_name(head));
+
+      CefRefPtr<CefV8Value> result =  CefV8Value::CreateString(git_reference_name(head));
+      git_reference_free(head);
+      return result;
     }
 
     return CefV8Value::CreateNull();
