@@ -1,4 +1,4 @@
-{View, $$, $$$} = require 'space-pen'
+{View, $$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
 $ = require 'jquery'
 _ = require 'underscore'
