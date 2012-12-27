@@ -15,9 +15,12 @@
   text-shadow: 0 -1px 0 #000;
 }
 
-.tree-view .entries,
-.tree-view .entries .file .name {
+.tree-view .entries {
   margin-left: 12px;
+}
+
+.tree-view .entries .file .name {
+  margin-left: 15px;
 }
 
 .tree-view .directory.selected .header,
