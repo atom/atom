@@ -4,6 +4,8 @@ _ = require 'underscore'
 
 module.exports =
 class Theme
+  @stylesheets: null
+
   @load: (name) ->
     if fs.exists(name)
       path = name
@@ -11,18 +13,13 @@ class Theme
       regex = new RegExp("#{_.escapeRegExp(name)}(\.[^.]*)?$", "i")
       path = _.find fs.list(config.themeDirPath), (path) -> regex.test(path)
 
-    return null unless path
-
     if @isTextMateTheme(path)
       theme = @loadTextMateTheme(path)
     else
       theme = @loadAtomTheme(path)
 
-    if theme
-      theme.activate()
-    else
-      throw new Error("Cannot activate theme named '#{name}'")
-
+    throw new Error("Cannot activate theme named '#{name}' located at '#{path}'") unless theme
+    theme.activate()
     theme
 
   @loadTextMateTheme: (path) ->
@@ -35,19 +32,14 @@ class Theme
     theme
 
   @loadAtomTheme: (path) ->
-    new Theme(path)
+    AtomTheme = require('atom-theme')
+    new AtomTheme(path)
 
   @isTextMateTheme: (path) ->
     /\.(tmTheme|plist)$/.test(path)
 
-  @stylesheets: null
-
   constructor: (@path) ->
-    json = fs.read(fs.join(path, "package.json"))
     @stylesheets = {}
-    for stylesheetName in JSON.parse(json).stylesheets
-      stylesheetPath = fs.join(@path, stylesheetName)
-      @stylesheets[stylesheetPath] = fs.read(stylesheetPath)
 
   activate: ->
     for stylesheetPath, stylesheetContent of @stylesheets

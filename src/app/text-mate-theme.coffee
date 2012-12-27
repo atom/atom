@@ -5,12 +5,11 @@ Theme = require 'Theme'
 module.exports =
 class TextMateTheme extends Theme
   constructor: (@path, {settings}) ->
+    super
     @rulesets = []
     globalSettings = settings[0]
     @buildGlobalSettingsRulesets(settings[0])
     @buildScopeSelectorRulesets(settings[1..])
-
-    @stylesheets = {}
     @stylesheets[@path] = @getStylesheet()
 
   getStylesheet: ->
