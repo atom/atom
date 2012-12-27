@@ -21,6 +21,15 @@
   height: 24px;
 }
 
+.tab:first-child {
+  box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a;
+}
+
+.tab.active:first-child,
+.tab.active:first-child:hover {
+  box-shadow: inset -1px 0 0 #595959;
+}
+
 .tab.active,
 .tab.active:hover {
   color: #dae6e6;

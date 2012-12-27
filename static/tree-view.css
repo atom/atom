@@ -5,7 +5,7 @@
   overflow: auto;
   cursor: default;
   -webkit-user-select: none;
-  border-right: 1px solid #191919;
+  border-right: 2px solid #191919;
   min-width: 100px;
   z-index: 2;
   padding-left: 12px;
