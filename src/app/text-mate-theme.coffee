@@ -6,7 +6,12 @@ module.exports =
 class TextMateTheme
   @load: (name) ->
     regex = new RegExp("#{_.escapeRegExp(name)}\.(tmTheme|plist)$", "i")
-    path = _.find fs.list(config.themeDirPath), (path) -> regex.test(path)
+
+    if fs.exists(name)
+      path = name
+    else
+      path = _.find fs.list(config.themeDirPath), (path) -> regex.test(path)
+
     return null unless path
 
     plistString = fs.read(path)

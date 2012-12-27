@@ -3,26 +3,16 @@ plist = require 'plist'
 TextMateTheme = require 'text-mate-theme'
 
 describe "TextMateTheme", ->
-  theme = null
-  beforeEach ->
-    theme = TextMateTheme.getTheme('Twilight')
+  [theme, themePath] = []
 
-  describe "@getNames()", ->
-    it "returns an array of available theme names", ->
-      names = TextMateTheme.getNames()
-      expect(names).toContain("Twilight")
-      expect(names).toContain("Blackboard")
+  beforeEach ->
+    themePath = require.resolve(fs.join('fixtures', 'test.tmTheme'))
+    theme = TextMateTheme.load(themePath)
 
   describe "@activate(name)", ->
-    it "activates a theme by name", ->
-      spyOn theme, 'activate'
-      TextMateTheme.activate('Twilight')
-      expect(theme.activate).toHaveBeenCalled()
-
-  describe ".activate()", ->
     it "applies the theme's stylesheet to the current window", ->
       spyOn window, 'applyStylesheet'
-      theme.activate()
+      TextMateTheme.activate(themePath)
       expect(window.applyStylesheet).toHaveBeenCalledWith(theme.name, theme.getStylesheet())
 
   describe ".getRulesets()", ->
