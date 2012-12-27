@@ -1,19 +1,20 @@
 fs = require 'fs'
 plist = require 'plist'
 TextMateTheme = require 'text-mate-theme'
+Theme = require 'theme'
 
 describe "TextMateTheme", ->
   [theme, themePath] = []
 
   beforeEach ->
     themePath = require.resolve(fs.join('fixtures', 'test.tmTheme'))
-    theme = TextMateTheme.load(themePath)
+    theme = Theme.load(themePath)
 
-  describe "@activate(name)", ->
+  describe "@load(name)", ->
     it "applies the theme's stylesheet to the current window", ->
       spyOn window, 'applyStylesheet'
-      TextMateTheme.activate(themePath)
-      expect(window.applyStylesheet).toHaveBeenCalledWith(theme.name, theme.getStylesheet())
+      Theme.load(themePath)
+      expect(window.applyStylesheet).toHaveBeenCalledWith(themePath, theme.getStylesheet())
 
   describe ".getRulesets()", ->
     rulesets = null
