@@ -110,7 +110,7 @@ folder, which can contain multiple stylesheets along with an optional
 package.json:
 ```json
 {
-  "stylesheets": ["core", "editor", "tree-view"]
+  "stylesheets": ["core.css", "editor.less", "tree-view.css"]
 }
 ```
 

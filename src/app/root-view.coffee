@@ -10,7 +10,7 @@ Project = require 'project'
 Pane = require 'pane'
 PaneColumn = require 'pane-column'
 PaneRow = require 'pane-row'
-TextMateTheme = require 'text-mate-theme'
+Theme = require 'theme'
 
 module.exports =
 class RootView extends View
@@ -41,7 +41,7 @@ class RootView extends View
 
     config.load()
 
-    TextMateTheme.activate(config.get("core.theme") ? 'IR_Black')
+    Theme.load(config.get("core.theme") ? 'IR_Black')
 
     @handleEvents()
 

@@ -16,7 +16,7 @@ class Theme
     if @isTextMateTheme(path)
       theme = @loadTextMateTheme(path)
     else
-      throw new Error("I only know how to load textmate themes!")
+      theme = @loadAtomTheme(path)
 
     if theme
       theme.activate()
@@ -34,13 +34,25 @@ class Theme
       theme = new TextMateTheme(path, data[0])
     theme
 
+  @loadAtomTheme: (path) ->
+    new Theme(path)
+
   @isTextMateTheme: (path) ->
     /\.(tmTheme|plist)$/.test(path)
 
+  @stylesheets: null
+
   constructor: (@path) ->
+    json = fs.read(fs.join(path, "package.json"))
+    @stylesheets = {}
+    for stylesheetName in JSON.parse(json).stylesheets
+      stylesheetPath = fs.join(@path, stylesheetName)
+      @stylesheets[stylesheetPath] = fs.read(stylesheetPath)
 
   activate: ->
-    applyStylesheet(@path, @getStylesheet())
+    for stylesheetPath, stylesheetContent of @stylesheets
+      applyStylesheet(stylesheetPath, stylesheetContent)
 
-  getStylesheet: ->
-    fs.read(@path)
+  deactivate: ->
+    for stylesheetPath, stylesheetContent of @stylesheets
+      window.removeStylesheet(stylesheetPath)
