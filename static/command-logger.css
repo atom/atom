@@ -1,0 +1,25 @@
+.command-logger {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  background: #1e1e1e;
+  color: #d2d2d2;
+  overflow: auto;
+  opacity: 0.85;
+  z-index: 99;
+  padding: 20px;
+}
+
+.command-logger li {
+  padding: 5px;
+}
+
+.command-logger .event-count {
+  padding-right: 10px;
+}
+
+.command-logger .event-description {
+  padding-right: 10px;
+}
