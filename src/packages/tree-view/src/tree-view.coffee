@@ -27,7 +27,7 @@ class TreeView extends ScrollView
     @instance.serialize()
 
   @content: (rootView) ->
-    @div class: 'tree-view tool-panel', tabindex: -1
+    @ol class: 'tree-view tool-panel', tabindex: -1
 
   @deserialize: (state, rootView) ->
     treeView = new TreeView(rootView)
