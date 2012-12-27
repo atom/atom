@@ -9,7 +9,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   position: relative;
-  background-image: url(images/linen.png);
+  background-color: #f5f5f5;
 }
 
 #root-view #horizontal {
