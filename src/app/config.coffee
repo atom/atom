@@ -4,6 +4,7 @@ EventEmitter = require 'event-emitter'
 {$$} = require 'space-pen'
 jQuery = require 'jquery'
 Specificity = require 'specificity'
+Theme = require 'theme'
 
 configDirPath = fs.absolute("~/.atom")
 configJsonPath = fs.join(configDirPath, "config.json")
@@ -30,6 +31,9 @@ class Config
     @loadUserConfig()
     @requireUserInitScript()
     atom.loadPackages()
+
+    themeName = config.get("core.theme") ? 'IR_Black'
+    Theme.load(themeName)
 
   loadUserConfig: ->
     if fs.exists(configJsonPath)
