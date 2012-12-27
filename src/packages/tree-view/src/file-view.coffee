@@ -2,28 +2,9 @@
 $ = require 'jquery'
 Git = require 'git'
 fs = require 'fs'
-_ = require 'underscore'
 
 module.exports =
 class FileView extends View
-
-  @COMPRESSED_EXTENSIONS: [
-    '.gz'
-    '.jar'
-    '.tar'
-    '.zip'
-  ]
-
-  @IMAGE_EXTENSIONS: [
-    '.gif'
-    '.jpeg'
-    '.jpg'
-    '.png'
-  ]
-
-  @PDF_EXTENSIONS: [
-    '.pdf'
-  ]
 
   @content: (file) ->
     @li class: 'file entry', =>
@@ -35,11 +16,11 @@ class FileView extends View
   initialize: (@file) ->
     path = @getPath()
     extension = fs.extension(path)
-    if _.contains(FileView.COMPRESSED_EXTENSIONS, extension)
+    if fs.isCompressedExtension(extension)
       @fileName.addClass('compressed-name')
-    else if _.contains(FileView.IMAGE_EXTENSIONS, extension)
+    else if fs.isImageExtension(extension)
       @fileName.addClass('image-name')
-    else if _.contains(FileView.PDF_EXTENSIONS, extension)
+    else if fs.isPdfExtension(extension)
       @fileName.addClass('pdf-name')
     else
       @fileName.addClass('text-name')
