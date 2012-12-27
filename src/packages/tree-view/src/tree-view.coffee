@@ -48,7 +48,7 @@ class TreeView extends ScrollView
     @on 'click', '.entry', (e) => @entryClicked(e)
     @command 'core:move-up', => @moveUp()
     @command 'core:move-down', => @moveDown()
-    @command 'core:close', => @detach(); false
+    @command 'core:close', => false
     @command 'tree-view:expand-directory', => @expandDirectory()
     @command 'tree-view:collapse-directory', => @collapseDirectory()
     @command 'tree-view:open-selected-entry', => @openSelectedEntry(true)
