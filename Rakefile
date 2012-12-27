@@ -89,6 +89,7 @@ task "clone-default-bundles" => "create-dot-atom" do
     "https://github.com/textmate/c.tmbundle.git" => "c8a6516c1131055bfcd1bca5e2ee6567c2f50058",
     "https://github.com/textmate/objective-c.tmbundle.git" => "b0826e645a3d8ca37dd625a56935d49cc8eeb9fc",
     "https://github.com/textmate/git.tmbundle.git" => "132724ab03dfc70fc77deca8ef1a359dc8404d80",
+    "https://github.com/textmate/json.tmbundle.git" => "5765750aa970c72decef3e2fcefec16a0f22e427",
   }
 
   `rm -rf #{File.join(DOT_ATOM_PATH, 'bundles', 'ruby-on-rails.tmbundle')}` # github/textmate removed this repo, use drnic's repo instead
