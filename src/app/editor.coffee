@@ -326,8 +326,8 @@ class Editor extends View
       @removeClass 'focused'
       @autosave() if config.get "editor.autosave"
 
-    @scrollView.on 'click', (e) =>
-      return unless e.target is @scrollView[0]
+    @underlayer.on 'click', (e) =>
+      return unless e.target is @underlayer[0]
       return unless e.offsetY > @overlayer.height()
       if e.shiftKey
         @selectToBottom()

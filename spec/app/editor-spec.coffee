@@ -2015,7 +2015,7 @@ describe "Editor", ->
       expect(editor.getCursorScreenPosition()).toEqual [0,0]
       event = $.Event("click")
       event.offsetY = Infinity
-      editor.scrollView.trigger event
+      editor.underlayer.trigger event
       expect(editor.getCursorScreenPosition()).toEqual [12,2]
 
     it "selects to the end of the files when shift is pressed", ->
@@ -2023,5 +2023,5 @@ describe "Editor", ->
       event = $.Event("click")
       event.offsetY = Infinity
       event.shiftKey = true
-      editor.scrollView.trigger event
+      editor.underlayer.trigger event
       expect(editor.getSelection().getScreenRange()).toEqual [[0,0], [12,2]]
