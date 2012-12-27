@@ -26,17 +26,17 @@ describe "TreeView", ->
 
   describe ".initialize(project)", ->
     it "renders the root of the project and its contents alphabetically with subdirectories first in a collapsed state", ->
-      expect(treeView.root.find('> .header .disclosure-arrow')).toHaveText('▾')
+      expect(treeView.root.find('> .header .disclosure-arrow')).not.toHaveClass('expanded')
       expect(treeView.root.find('> .header .name')).toHaveText('tree-view')
 
       rootEntries = treeView.root.find('.entries')
       subdir0 = rootEntries.find('> li:eq(0)')
-      expect(subdir0.find('.disclosure-arrow')).toHaveText('▸')
+      expect(subdir0).not.toHaveClass('expanded')
       expect(subdir0.find('.name')).toHaveText('dir1')
       expect(subdir0.find('.entries')).not.toExist()
 
       subdir2 = rootEntries.find('> li:eq(1)')
-      expect(subdir2.find('.disclosure-arrow')).toHaveText('▸')
+      expect(subdir2).not.toHaveClass('expanded')
       expect(subdir2.find('.name')).toHaveText('dir2')
       expect(subdir2.find('.entries')).not.toExist()
 
@@ -211,16 +211,16 @@ describe "TreeView", ->
     it "expands / collapses the associated directory", ->
       subdir = treeView.root.find('.entries > li:contains(dir1)').view()
 
-      expect(subdir.disclosureArrow).toHaveText('▸')
+      expect(subdir).not.toHaveClass('expanded')
       expect(subdir.find('.entries')).not.toExist()
 
       subdir.disclosureArrow.click()
 
-      expect(subdir.disclosureArrow).toHaveText('▾')
+      expect(subdir).toHaveClass('expanded')
       expect(subdir.find('.entries')).toExist()
 
       subdir.disclosureArrow.click()
-      expect(subdir.disclosureArrow).toHaveText('▸')
+      expect(subdir).not.toHaveClass('expanded')
       expect(subdir.find('.entries')).not.toExist()
 
     it "restores the expansion state of descendant directories", ->

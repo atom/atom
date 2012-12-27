@@ -41,7 +41,6 @@
 }
 
 .tree-view .disclosure-arrow {
-  width: 13px;
   display: inline-block;
 }
 
@@ -98,6 +97,15 @@
   left: 0;
 }
 
+.tree-view .disclosure-arrow:before {
+  font-family: 'Octicons Regular';
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
+  margin-right: 3px;
+  -webkit-font-smoothing: antialiased;
+}
+
 .tree-view .directory .header .name:before {
   content: "\f016";
   top: -5px;
@@ -120,5 +128,15 @@
 
 .tree-view .file .pdf-name:before {
   content: "\f014";
+  top: -2px;
+}
+
+.tree-view .directory > .header .disclosure-arrow:before {
+  content: "\f05a";
+  top: -2px;
+}
+
+.tree-view .directory.expanded > .header .disclosure-arrow:before {
+  content: "\f05b";
   top: -2px;
 }
