@@ -114,17 +114,6 @@ public:
       return CefV8Value::CreateNull();
     }
 
-    char *copiedPath = (char *)malloc(sizeof(char) * (strlen(path) + 1));
-    strcpy(copiedPath, path);
-    git_diff_options options;
-    memset(&options, 0, sizeof(options));
-    git_strarray paths;
-    paths.count = 1;
-    paths.strings = &copiedPath;
-    options.pathspec = paths;
-    options.context_lines = 1;
-    options.flags = GIT_DIFF_DISABLE_PATHSPEC_MATCH;
-
     git_reference *head;
     if (git_repository_head(&head, repo) != GIT_OK) {
       return CefV8Value::CreateNull();
@@ -144,6 +133,17 @@ public:
     if (treeStatus != GIT_OK) {
       return CefV8Value::CreateNull();
     }
+
+    char *copiedPath = (char *)malloc(sizeof(char) * (strlen(path) + 1));
+    strcpy(copiedPath, path);
+    git_diff_options options;
+    memset(&options, 0, sizeof(options));
+    git_strarray paths;
+    paths.count = 1;
+    paths.strings = &copiedPath;
+    options.pathspec = paths;
+    options.context_lines = 1;
+    options.flags = GIT_DIFF_DISABLE_PATHSPEC_MATCH;
 
     git_diff_list *diffs;
     int diffStatus = git_diff_workdir_to_tree(repo, &options, tree, &diffs);
