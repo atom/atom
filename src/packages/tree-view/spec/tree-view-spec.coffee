@@ -872,3 +872,31 @@ describe "TreeView", ->
       config.set("core.hideGitIgnoredFiles", false)
 
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1
+
+  describe "Git status decorations", ->
+    [ignoreFile, modifiedFile, originalFileContent] = []
+
+    beforeEach ->
+      config.set "core.hideGitIgnoredFiles", false
+      ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
+      fs.write(ignoreFile, 'tree-view.js')
+      modifiedFile = fs.join(require.resolve('fixtures/tree-view'), 'tree-view.txt')
+      originalFileContent = fs.read(modifiedFile)
+      fs.write modifiedFile, 'ch ch changes'
+      treeView.updateRoot()
+
+    afterEach ->
+      fs.remove(ignoreFile) if fs.exists(ignoreFile)
+      fs.write modifiedFile, originalFileContent
+
+    describe "when a file is modified", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
+
+    describe "when a file is new", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.file:contains(.gitignore)')).toHaveClass 'new'
+
+    describe "when a file is ignored", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.file:contains(tree-view.js)')).toHaveClass 'ignored'
