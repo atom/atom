@@ -103,7 +103,7 @@ class CommandLogger extends ScrollView
        .attr('height', (d) -> ky * d.dy - 1)
 
       t.select('.command-logger-node-text div')
-        .attr('style', (d) -> "height:#{ky * d.dy - 1}px;width:#{kx * d.dx - 1}px")
+       .attr('style', (d) -> "height:#{ky * d.dy - 1}px;width:#{kx * d.dx - 1}px")
 
       node = d
       d3.event.stopPropagation()
