@@ -1035,7 +1035,7 @@ class Editor extends View
         position += token.value.length
 
     popScope() while scopeStack.length > 0
-    if invisibles?.eol
+    if not @mini and invisibles?.eol
       line.push("<span class='invisible'>#{invisibles.eol}</span>")
 
     line.push('</pre>')

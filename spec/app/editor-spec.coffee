@@ -1721,6 +1721,17 @@ describe "Editor", ->
         expect(miniEditor.getCursorBufferPosition().row).toBe 0
         expect(miniEditor.find('.line.cursor-line').length).toBe 0
 
+      it "doesn't show the end of line invisible", ->
+        config.set "editor.showInvisibles", true
+        miniEditor = new Editor(mini: true)
+        miniEditor.attachToDom()
+        space = miniEditor.invisibles?.space
+        expect(space).toBeTruthy()
+        tab = miniEditor.invisibles?.tab
+        expect(tab).toBeTruthy()
+        miniEditor.setText(" a line with tabs\tand spaces ")
+        expect(miniEditor.renderedLines.find('.line').text()).toBe "#{space}a line with tabs#{tab} and spaces#{space}"
+
   describe "gutter line highlighting", ->
     beforeEach ->
       editor.attachToDom(heightInLines: 5.5)
