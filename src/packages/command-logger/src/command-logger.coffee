@@ -64,6 +64,11 @@ class CommandLogger extends ScrollView
         size: details.count
     _.toArray(categories)
 
+  createNodeContent: (node) ->
+    $$$ ->
+      @div style: "height:#{node.dy - 1}px;width:#{node.dx - 1}px", =>
+        @span "#{node.name}"
+
   addTreeMap: ->
     root =
      name: 'All'
@@ -145,7 +150,7 @@ class CommandLogger extends ScrollView
         .attr('class', 'foreign-object')
         .append("xhtml:body")
         .attr('class', 'command-logger-node-text')
-        .html((d) -> "<div style=\"height:#{d.dy - 1}px;width:#{d.dx - 1}px\"><span>#{d.name}</span><div>")
+        .html((d) => @createNodeContent(d))
 
     d3.select('.command-logger').on('click', -> zoom(root))
 
