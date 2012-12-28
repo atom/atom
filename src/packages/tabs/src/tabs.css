@@ -8,7 +8,6 @@
   cursor: default;
   padding: 2px 21px 2px 9px;
   background-image: -webkit-linear-gradient(#444, #3d3d3d);
-  color: #a5aaaa;
   display: table-cell;
   position: relative;
   width:175px;
@@ -19,6 +18,30 @@
   min-width: 40px;
   box-sizing: border-box;
   height: 24px;
+}
+
+.tab,
+.tab .close-icon {
+  color: #aaa;
+}
+
+.tab.file-modified .close-icon {
+  border-color: #aaa;
+}
+
+.tab.active,
+.tab.active:hover,
+.tab.active .close-icon {
+  color: #e6e6e6;
+}
+
+.tab.file-modified.active .close-icon {
+  border-color: #e6e6e6;
+}
+
+.tab:hover .close-icon {
+  color: #c8c8c8;
+  border-color: #c8c8c8;
 }
 
 .tab.file-modified .close-icon {
@@ -45,7 +68,6 @@
 
 .tab.active,
 .tab.active:hover {
-  color: #dae6e6;
   border-top: 1px solid #4a4a4a;
   box-shadow: inset -1px 0 0 #595959, inset 1px 0 0 #595959;
   border-bottom: 0 none;
@@ -79,7 +101,7 @@
 }
 
 .tab:hover {
-  color: #c8c8c5;
+  color: #c8c8c8;
   background-image: -webkit-linear-gradient(#474747, #444444);
 }
 
@@ -103,7 +125,6 @@
   width: 14px;
   height: 14px;
   display: block;
-  color: #777;
   cursor: pointer;
   position: absolute;
   right: 4px;
