@@ -58,14 +58,6 @@ class TextMateBundle
     values = @getPreferenceInScope(scope, preferenceName)
     (_.find values, ({name}) -> name is valueName)?['value']
 
-  @indentRegexForScope: (scope) ->
-    if source = @getPreferenceInScope(scope, 'increaseIndentPattern')
-      new OnigRegExp(source)
-
-  @outdentRegexForScope: (scope) ->
-    if source = @getPreferenceInScope(scope, 'decreaseIndentPattern')
-      new OnigRegExp(source)
-
   @foldEndRegexForScope: (grammar, scope) ->
     marker =  @getPreferenceInScope(scope, 'foldingStopMarker')
     if marker

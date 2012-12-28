@@ -51,5 +51,7 @@ class TextMatePackage extends Package
     editorProperties = _.compactObject(
       commentStart: _.valueForKeyPath(textMateSettings, 'shellVariables.TM_COMMENT_START')
       commentEnd: _.valueForKeyPath(textMateSettings, 'shellVariables.TM_COMMENT_END')
+      increaseIndentPattern: textMateSettings.increaseIndentPattern
+      decreaseIndentPattern: textMateSettings.decreaseIndentPattern
     )
     { editor: editorProperties } if _.size(editorProperties) > 0
