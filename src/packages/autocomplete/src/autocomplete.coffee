@@ -15,9 +15,8 @@ class Autocomplete extends SelectList
   currentBuffer: null
   wordList: null
   wordRegex: /\w+/g
-  isAutocompleting: false
   originalSelectionBufferRange: null
-  originalSelectedText: null
+  undoCount: 0
   filterKey: 'word'
 
   initialize: (@editor) ->
@@ -50,6 +49,16 @@ class Autocomplete extends SelectList
     match = @getSelectedElement()
     @replaceSelectedTextWithMatch(match) if match
 
+  selectNextItem: ->
+    super
+
+    false
+
+  selectPreviousItem: ->
+    super
+
+    false
+
   buildWordList: () ->
     wordHash = {}
     matches = @currentBuffer.getText().match(@wordRegex)
@@ -66,20 +75,16 @@ class Autocomplete extends SelectList
     @editor.setCursorBufferPosition([position.row, position.column + match.suffix.length])
 
   cancelled: ->
+    @editor.undo() for undo in [0...@undoCount]
+    @editor.setSelectedBufferRange(@originalSelectionBufferRange)
+
     @miniEditor.setText('')
     @editor.rootView()?.focus() if @miniEditor.isFocused
 
-  cancel: ->
-    super
-
-    @editor.getBuffer().change(@currentMatchBufferRange, @originalSelectedText) if @currentMatchBufferRange
-    @editor.setSelectedBufferRange(@originalSelectionBufferRange)
-
   attach: ->
-    @originalSelectedText = @editor.getSelectedText()
+    @undoCount = 0
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
     originalCursorPosition = @editor.getCursorScreenPosition()
-    @currentMatchBufferRange = null
 
     @buildWordList()
     matches = @findMatchesForCurrentSelection()
@@ -126,18 +131,16 @@ class Autocomplete extends SelectList
   replaceSelectedTextWithMatch: (match) ->
     selection = @editor.getSelection()
     startPosition = selection.getBufferRange().start
-    @isAutocompleting = true
     buffer = @editor.getBuffer()
     @editor.activeEditSession.transact =>
       selection.deleteSelectedText()
       buffer.delete(Range.fromPointWithDelta(@editor.getCursorBufferPosition(), 0, -match.prefix.length))
       buffer.delete(Range.fromPointWithDelta(@editor.getCursorBufferPosition(), 0, match.suffix.length))
       @editor.insertText(match.word)
+    @undoCount++
 
     infixLength = match.word.length - match.prefix.length - match.suffix.length
-    @currentMatchBufferRange = [startPosition, [startPosition.row, startPosition.column + infixLength]]
-    @editor.setSelectedBufferRange(@currentMatchBufferRange)
-    @isAutocompleting = false
+    @editor.setSelectedBufferRange([startPosition, [startPosition.row, startPosition.column + infixLength]])
 
   prefixAndSuffixOfSelection: (selection) ->
     selectionRange = selection.getBufferRange()

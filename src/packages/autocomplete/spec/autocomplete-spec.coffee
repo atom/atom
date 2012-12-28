@@ -212,6 +212,17 @@ describe "Autocomplete", ->
       miniEditor.trigger 'core:cancel'
       expect(editor.lineForBufferRow(10)).toBe 'quicksort'
 
+    it "restores the case of the prefix to the original value", ->
+      editor.getBuffer().insert([10,0] ,"extra:S:extra")
+      editor.setCursorBufferPosition([10,7])
+      autocomplete.attach()
+
+      expect(editor.lineForBufferRow(10)).toBe "extra:sort:extra"
+      expect(editor.getCursorBufferPosition()).toEqual [10,10]
+      autocomplete.trigger 'core:cancel'
+      expect(editor.lineForBufferRow(10)).toBe "extra:S:extra"
+      expect(editor.getCursorBufferPosition()).toEqual [10,7]
+
   describe 'move-up event', ->
     it "highlights the previous match and replaces the selection with it", ->
       editor.getBuffer().insert([10,0] ,"extra:t:extra")
