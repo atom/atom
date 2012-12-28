@@ -22,6 +22,7 @@
   width: 960px;
   height: 700px;
   background-color: #efefef;
+  border: 1px solid #999;
 }
 
 .command-logger .node text {
