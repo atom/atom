@@ -194,6 +194,19 @@ describe "TreeView", ->
       expect(treeView).not.toMatchSelector(':focus')
       expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
+  describe "when core:close is triggered on the tree view", ->
+    it "detaches the TreeView, focuses the RootView and does not bubble the core:close event", ->
+      treeView.attach()
+      treeView.focus()
+      rootViewCloseHandler = jasmine.createSpy('rootViewCloseHandler')
+      rootView.on 'core:close', rootViewCloseHandler
+      spyOn(rootView, 'focus')
+
+      treeView.trigger('core:close')
+      expect(rootView.focus).toHaveBeenCalled()
+      expect(rootViewCloseHandler).not.toHaveBeenCalled()
+      expect(treeView.hasParent()).toBeFalsy()
+
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->
       subdir = treeView.root.find('.entries > li:contains(dir1)').view()
