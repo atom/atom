@@ -2,7 +2,7 @@ $ = require 'jquery'
 fs = require 'fs'
 Theme = require 'theme'
 
-fdescribe "@load(name)", ->
+describe "@load(name)", ->
   themes = null
 
   beforeEach ->
