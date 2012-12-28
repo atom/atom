@@ -165,7 +165,6 @@ describe "Autocomplete", ->
           editor.getBuffer().insert([10,0] ,"extra:sh:extra")
           editor.setCursorBufferPosition([10,8])
           autocomplete.attach()
-          miniEditor.trigger "core:confirm"
 
           expect(editor.lineForBufferRow(10)).toBe "extra:shift:extra"
           expect(editor.getCursorBufferPosition()).toEqual [10,11]
@@ -201,7 +200,7 @@ describe "Autocomplete", ->
       expect(editor.find('.autocomplete')).not.toExist()
 
     it "does not clear out a previously confirmed selection when canceling with an empty list", ->
-      editor.getBuffer().insert([10, 0], "sort\n")
+      editor.getBuffer().insert([10, 0], "ort\n")
       editor.setCursorBufferPosition([10, 0])
 
       autocomplete.attach()

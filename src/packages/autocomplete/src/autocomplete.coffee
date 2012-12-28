@@ -89,7 +89,7 @@ class Autocomplete extends SelectList
     @setArray(matches)
 
     if matches.length is 1
-      @confirmed matches[0]
+      @confirmSelection()
     else
       @editor.appendToLinesView(this)
       @setPosition(originalCursorPosition)

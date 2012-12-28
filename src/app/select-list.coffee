@@ -117,7 +117,10 @@ class SelectList extends View
 
   confirmSelection: ->
     element = @getSelectedElement()
-    @confirmed(element) if element?
+    if element?
+      @confirmed(element)
+    else
+      @cancel()
 
   cancel: ->
     @list.empty()

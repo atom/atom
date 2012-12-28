@@ -121,6 +121,14 @@ describe "SelectList", ->
         miniEditor.trigger 'core:confirm'
         expect(selectList.confirmed).not.toHaveBeenCalled()
 
+      it "does trigger the cancelled hook", ->
+        miniEditor.insertText("i will never match anything")
+        window.advanceClock(selectList.inputThrottle)
+
+        expect(list.find('li')).not.toExist()
+        miniEditor.trigger 'core:confirm'
+        expect(selectList.cancelled).toHaveBeenCalled()
+
   describe "when a list item is clicked", ->
     it "selects the item on mousedown and confirms it on mouseup", ->
       item = list.find('li:eq(1)')
