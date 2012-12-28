@@ -23,6 +23,8 @@
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleTypeIconFile</key>
+			<string>file.icns</string>
 			<key>LSItemContentTypes</key>
 			<array>
 				<string>public.folder</string>

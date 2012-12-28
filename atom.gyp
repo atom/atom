@@ -70,6 +70,7 @@
       ],
       'mac_bundle_resources': [
         'native/mac/atom.icns',
+        'native/mac/file.icns',
         'native/mac/English.lproj/MainMenu.xib',
         'native/mac/English.lproj/AtomWindow.xib',
       ],
