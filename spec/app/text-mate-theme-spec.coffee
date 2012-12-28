@@ -8,13 +8,10 @@ describe "TextMateTheme", ->
 
   beforeEach ->
     themePath = require.resolve(fs.join('fixtures', 'test.tmTheme'))
-    theme = Theme.load(themePath)
+    [theme] = Theme.load(themePath)
 
-  describe "@load(name)", ->
-    it "applies the theme's stylesheet to the current window", ->
-      spyOn window, 'applyStylesheet'
-      Theme.load(themePath)
-      expect(window.applyStylesheet).toHaveBeenCalledWith(themePath, theme.getStylesheet())
+  afterEach ->
+    theme.deactivate()
 
   describe ".getRulesets()", ->
     rulesets = null

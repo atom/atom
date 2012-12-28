@@ -6,7 +6,13 @@ module.exports =
 class Theme
   @stylesheets: null
 
-  @load: (name) ->
+  @load: (names) ->
+    if typeof(names) == "string"
+      [@loadTheme(names)]
+    else
+      names.map (name) => @loadTheme(name)
+
+  @loadTheme: (name) ->
     if fs.exists(name)
       path = name
     else
