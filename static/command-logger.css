@@ -37,7 +37,6 @@ body.command-logger-node-text {
 
 .command-logger-node-text span {
   font-size: 10px;
-  text-align: center;
   color: #fff;
   text-shadow: #000 1px 1px 4px;
 }
