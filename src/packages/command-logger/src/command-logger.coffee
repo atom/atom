@@ -63,9 +63,9 @@ class CommandLogger extends ScrollView
     _.toArray(categories)
 
   addTreeMap: ->
-    root = {}
-    root.name = "All"
-    root.children = @createRootChildren()
+    root =
+     name: 'All'
+     children: @createRootChildren()
     node = root
 
     @treeMap.empty()
