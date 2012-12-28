@@ -31,7 +31,9 @@ class CommandLogger extends ScrollView
     registerEvent = (eventName) =>
       eventNameLog = @eventLog[eventName]
       unless eventNameLog
-        eventNameLog = count: 0, name: eventName
+        eventNameLog =
+          count: 0
+          name: eventName
         @eventLog[eventName] = eventNameLog
       eventNameLog.count++
       eventNameLog.lastRun = new Date().getTime()
@@ -67,7 +69,7 @@ class CommandLogger extends ScrollView
   createNodeContent: (node) ->
     $$$ ->
       @div style: "height:#{node.dy - 1}px;width:#{node.dx - 1}px", =>
-        @span "#{node.name}"
+        @span node.name
 
   addTreeMap: ->
     root =
@@ -148,7 +150,7 @@ class CommandLogger extends ScrollView
         .attr('width', (d) -> d.dx - 1)
         .attr('height', (d) -> d.dy - 1)
         .attr('class', 'foreign-object')
-        .append("xhtml:body")
+        .append('xhtml:body')
         .attr('class', 'command-logger-node-text')
         .html((d) => @createNodeContent(d))
 
