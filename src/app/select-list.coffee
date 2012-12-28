@@ -17,7 +17,6 @@ class SelectList extends View
   maxItems: Infinity
   scheduleTimeout: null
   inputThrottle: 50
-  filteredArray: null
   cancelling: false
 
   initialize: ->
@@ -113,8 +112,11 @@ class SelectList extends View
   getSelectedItem: ->
     @list.find('li.selected')
 
+  getSelectedElement: ->
+    @getSelectedItem().data('select-list-element')
+
   confirmSelection: ->
-    element = @getSelectedItem().data('select-list-element')
+    element = @getSelectedElement()
     @confirmed(element) if element?
 
   cancel: ->

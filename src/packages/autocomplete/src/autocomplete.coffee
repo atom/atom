@@ -1,78 +1,57 @@
-{View, $$} = require 'space-pen'
+{$$} = require 'space-pen'
 $ = require 'jquery'
 _ = require 'underscore'
 Range = require 'range'
 Editor = require 'editor'
-fuzzyFilter = require 'fuzzy-filter'
+SelectList = require 'select-list'
 
 module.exports =
-class Autocomplete extends View
-  @content: ->
-    @div class: 'autocomplete', tabindex: -1, =>
-      @ol outlet: 'matchesList'
-      @subview 'miniEditor', new Editor(mini: true)
-
-  editor: null
-  miniEditor: null
-  currentBuffer: null
-  wordList: null
-  wordRegex: /\w+/g
-  allMatches: null
-  filteredMatches: null
-  currentMatchIndex: null
-  isAutocompleting: false
-  originalSelectionBufferRange: null
-  originalSelectedText: null
-
+class Autocomplete extends SelectList
   @activate: (rootView) ->
+    requireStylesheet 'autocomplete.css'
     new Autocomplete(editor) for editor in rootView.getEditors()
     rootView.on 'editor-open', (e, editor) -> new Autocomplete(editor) unless editor.mini
 
+  @viewClass: -> "autocomplete #{super}"
+
+  editor: null
+  currentBuffer: null
+  wordList: null
+  wordRegex: /\w+/g
+  isAutocompleting: false
+  originalSelectionBufferRange: null
+  originalSelectedText: null
+  filterKey: 'word'
+
   initialize: (@editor) ->
-    requireStylesheet 'autocomplete.css'
+    super
+
     @handleEvents()
     @setCurrentBuffer(@editor.getBuffer())
+
+  itemForElement: (match) ->
+    $$ ->
+      @li match.word
 
   handleEvents: ->
     @editor.on 'editor-path-change', => @setCurrentBuffer(@editor.getBuffer())
     @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
-
     @editor.command 'autocomplete:attach', => @attach()
-    @command 'core:cancel', => @cancel()
-    @command 'core:confirm', => @confirm()
-
-    @matchesList.on 'mousedown', (e) =>
-      index = $(e.target).attr('index')
-      @selectMatchAtIndex(index) if index?
-      false
-
-    @matchesList.on 'mouseup', =>
-      if @selectedMatch()
-        @confirm()
-      else
-        @cancel()
-
-    @miniEditor.getBuffer().on 'change', (e) =>
-      if @hasParent()
-        @filterMatches()
-        @renderMatchList()
-
-    @miniEditor.preempt 'core:move-up', =>
-      @selectPreviousMatch()
-      false
-
-    @miniEditor.preempt 'core:move-down', =>
-      @selectNextMatch()
-      false
 
     @miniEditor.preempt 'textInput', (e) =>
       text = e.originalEvent.data
       unless text.match(@wordRegex)
-        @confirm()
+        @confirmSelection()
         @editor.insertText(text)
         false
 
   setCurrentBuffer: (@currentBuffer) ->
+
+  selectItem: (item) ->
+    super
+
+    match = @getSelectedElement()
+    @replaceSelectedTextWithMatch(match) if match
 
   buildWordList: () ->
     wordHash = {}
@@ -81,50 +60,46 @@ class Autocomplete extends View
 
     @wordList = Object.keys(wordHash)
 
-  confirm: ->
-    @confirmed = true
+  confirmed: (match) ->
     @editor.getSelection().clear()
-    @detach()
-    return unless match = @selectedMatch()
+    @cancel()
+    return unless match
+    @replaceSelectedTextWithMatch match
     position = @editor.getCursorBufferPosition()
     @editor.setCursorBufferPosition([position.row, position.column + match.suffix.length])
 
+  cancelled: ->
+    @miniEditor.setText('')
+    @editor.rootView()?.focus() if @miniEditor.isFocused
+
   cancel: ->
-    @detach()
+    super
+
     @editor.getBuffer().change(@currentMatchBufferRange, @originalSelectedText) if @currentMatchBufferRange
     @editor.setSelectedBufferRange(@originalSelectionBufferRange)
 
   attach: ->
-    @confirmed = false
-    @miniEditor.on 'focusout', =>
-      @cancel() unless @confirmed
-
     @originalSelectedText = @editor.getSelectedText()
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
+    originalCursorPosition = @editor.getCursorScreenPosition()
     @currentMatchBufferRange = null
 
     @buildWordList()
-    @allMatches = @findMatchesForCurrentSelection()
+    matches = @findMatchesForCurrentSelection()
+    @setArray(matches)
 
-    originalCursorPosition = @editor.getCursorScreenPosition()
-    @filterMatches()
-
-    if @filteredMatches.length is 1
-      @currentMatchIndex = 0
-      @replaceSelectedTextWithMatch @selectedMatch()
-      @confirm()
+    if matches.length is 1
+      @confirmed matches[0]
     else
-      @renderMatchList()
       @editor.appendToLinesView(this)
       @setPosition(originalCursorPosition)
-      @miniEditor.focus()
+    @miniEditor.focus()
 
   detach: ->
-    @miniEditor.off("focusout")
     super
+
     @editor.off(".autocomplete")
     @editor.focus()
-    @miniEditor.setText('')
 
   setPosition: (originalCursorPosition) ->
     { left, top } = @editor.pixelPositionForScreenPosition(originalCursorPosition)
@@ -138,47 +113,6 @@ class Autocomplete extends View
     else
       @css(left: left, top: potentialTop, bottom: 'inherit')
 
-  selectPreviousMatch: ->
-    return if @filteredMatches.length is 0
-    previousIndex = @currentMatchIndex - 1
-    previousIndex = @filteredMatches.length - 1 if previousIndex < 0
-    @selectMatchAtIndex(previousIndex)
-
-  selectNextMatch: ->
-    return if @filteredMatches.length is 0
-    nextIndex = (@currentMatchIndex + 1) % @filteredMatches.length
-    @selectMatchAtIndex(nextIndex)
-
-  selectMatchAtIndex: (index) ->
-    @currentMatchIndex = index
-    @matchesList.find("li").removeClass "selected"
-
-    liToSelect = @matchesList.find("li:eq(#{index})")
-    liToSelect.addClass "selected"
-
-    topOfLiToSelect = liToSelect.position().top + @matchesList.scrollTop()
-    bottomOfLiToSelect = topOfLiToSelect + liToSelect.outerHeight()
-    if topOfLiToSelect < @matchesList.scrollTop()
-      @matchesList.scrollTop(topOfLiToSelect)
-    else if bottomOfLiToSelect > @matchesList.scrollBottom()
-      @matchesList.scrollBottom(bottomOfLiToSelect)
-
-    @replaceSelectedTextWithMatch @selectedMatch()
-
-  selectedMatch: ->
-    @filteredMatches[@currentMatchIndex]
-
-  filterMatches: ->
-    @filteredMatches = fuzzyFilter(@allMatches, @miniEditor.getText(), key: 'word')
-
-  renderMatchList: ->
-    @matchesList.empty()
-    if @filteredMatches.length > 0
-      @matchesList.append($$ -> @li match.word, index: index) for match, index in @filteredMatches
-    else
-      @matchesList.append($$ -> @li "No matches found")
-
-    @selectMatchAtIndex(0) if @filteredMatches.length > 0
 
   findMatchesForCurrentSelection: ->
     selection = @editor.getSelection()
