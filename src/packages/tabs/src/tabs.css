@@ -21,6 +21,19 @@
   height: 24px;
 }
 
+.tab.file-modified .close-icon {
+  border: 3px solid #777;
+  top: 6px;
+  border-radius: 10px;
+  width: 5px;
+  height: 5px;
+  right: 5px;
+}
+
+.tab.file-modified .close-icon:before {
+  content: "";
+}
+
 .tab:first-child {
   box-shadow: inset 0 0 5px #383838, 0 1px 0 #585858, inset -1px 0 0 #4a4a4a;
 }
