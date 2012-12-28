@@ -9,7 +9,7 @@ class TextMatePackage extends Package
   @testName: (packageName) ->
     /(\.|_|-)tmbundle$/.test(packageName)
 
-  @cssSelectorForScopeSelector: (scopeSelector) ->
+  @cssSelectorFromScopeSelector: (scopeSelector) ->
     scopeSelector.split(', ').map((commaFragment) ->
       commaFragment.split(' ').map((spaceFragment) ->
         spaceFragment.split('.').map((dotFragment) ->
@@ -31,24 +31,30 @@ class TextMatePackage extends Package
   getScopedProperties: ->
     scopedProperties = []
 
-    for grammar in @grammars when grammar.foldingStopMarker
-      scopedProperties.push
-        selector: TextMatePackage.cssSelectorForScopeSelector(grammar.scopeName)
-        properties: { editor: { foldEndPattern: grammar.foldingStopMarker } }
+    for grammar in @grammars
+      if properties = @propertiesFromTextMateSettings(grammar)
+        selector = @cssSelectorFromScopeSelector(grammar.scopeName)
+        scopedProperties.push({selector, properties})
 
+    for {scope, settings} in @getTextMatePreferenceObjects()
+      if properties = @propertiesFromTextMateSettings(settings)
+        selector = @cssSelectorFromScopeSelector(scope) if scope?
+        scopedProperties.push({selector, properties})
+
+    scopedProperties
+
+  getTextMatePreferenceObjects: ->
+    preferenceObjects = []
     if fs.exists(@preferencesPath)
       for preferencePath in fs.list(@preferencesPath)
         plist.parseString fs.read(preferencePath), (e, data) =>
           if e
             console.warn "Failed to parse preference at path '#{preferencePath}'", e.stack
           else
-            { scope, settings } = data[0]
-            if properties = @translateProperties(settings)
-              selector = TextMatePackage.cssSelectorForScopeSelector(scope) if scope?
-              scopedProperties.push({selector, properties})
-    scopedProperties
+            preferenceObjects.push(data[0])
+    preferenceObjects
 
-  translateProperties: (textMateSettings) ->
+  propertiesFromTextMateSettings: (textMateSettings) ->
     if textMateSettings.shellVariables
       shellVariables = {}
       for {name, value} in textMateSettings.shellVariables
@@ -63,3 +69,6 @@ class TextMatePackage extends Package
       foldEndPattern: textMateSettings.foldingStopMarker
     )
     { editor: editorProperties } if _.size(editorProperties) > 0
+
+  cssSelectorFromScopeSelector: (scopeSelector) ->
+    @constructor.cssSelectorFromScopeSelector(scopeSelector)
