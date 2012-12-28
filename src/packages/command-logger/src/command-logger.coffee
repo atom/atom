@@ -87,7 +87,8 @@ class CommandLogger extends ScrollView
       x.domain([d.x, d.x + d.dx])
       y.domain([d.y, d.y + d.dy])
 
-      t = svg.selectAll('g.node').transition()
+      t = svg.selectAll('g.node')
+             .transition()
              .duration(750)
              .attr('transform', (d) -> "translate(#{x(d.x)},#{y(d.y)})")
 
