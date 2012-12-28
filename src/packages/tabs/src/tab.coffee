@@ -17,11 +17,10 @@ class Tab extends View
     @updateBufferHasModifiedText(@buffer.isModified())
 
   subscribeToBuffer: ->
-    @buffer?.off '.tabs'
     @buffer = @editSession.buffer
-    @buffer.on 'contents-modified.tabs', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
-    @buffer.on 'after-save.tabs', => @updateTab()
-    @buffer.on 'git-status-change.tabs', => @updateTab()
+    @subscribe @buffer, 'contents-modified.tabs', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
+    @subscribe @buffer, 'after-save.tabs', => @updateTab()
+    @subscribe @buffer, 'git-status-change.tabs', => @updateTab()
     @updateTab()
 
   updateBufferHasModifiedText: (differsFromDisk) ->
