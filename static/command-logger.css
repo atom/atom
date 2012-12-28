@@ -33,6 +33,7 @@ body.command-logger-node-text {
   display: table-cell;
   vertical-align: middle;
   text-align: center;
+  cursor: pointer;
 }
 
 .command-logger-node-text span {
