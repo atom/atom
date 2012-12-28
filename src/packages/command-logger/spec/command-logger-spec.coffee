@@ -38,13 +38,3 @@ describe "CommandLogger", ->
       expect(commandLogger.eventLog['core:backspace'].count).toBe 1
       rootView.trigger 'command-logger:clear-data'
       expect(commandLogger.eventLog['core:backspace']).toBeUndefined()
-
-  describe "when the command logger is toggled", ->
-    it "displays all the commands triggered", ->
-      editor.trigger 'core:backspace'
-      editor.trigger 'core:backspace'
-      rootView.trigger 'command-logger:toggle'
-      expect(rootView.find('.command-logger > li > .event-count:eq(0)')).toHaveText '2'
-      expect(rootView.find('.command-logger > li > .event-description:eq(0)')).toHaveText 'Core: Backspace'
-      expect(rootView.find('.command-logger > li > .event-count:eq(1)')).toHaveText '1'
-      expect(rootView.find('.command-logger > li > .event-description:eq(1)')).toHaveText 'Command Logger: Toggle'
