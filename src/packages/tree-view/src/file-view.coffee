@@ -25,7 +25,13 @@ class FileView extends View
     else
       @fileName.addClass('text-name')
 
-    @addClass('ignored') if new Git(path).isPathIgnored(path)
+    git = new Git(path)
+    if git.isPathIgnored(path)
+      @addClass('ignored')
+    else if git.isPathModified(path)
+      @addClass('modified')
+    else if git.isPathNew(path)
+      @addClass('new')
 
   getPath: ->
     @file.path

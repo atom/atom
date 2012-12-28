@@ -63,3 +63,7 @@ class Git
 
   checkoutHead: (path) ->
     @repo.checkoutHead(@relativize(path))
+
+  getDiffStats: (path) ->
+    stats = @repo.getDiffStats(@relativize(path))
+    stats or {'added': 0, 'deleted': 0}

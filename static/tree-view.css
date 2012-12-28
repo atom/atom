@@ -72,6 +72,14 @@
   color: #555;
 }
 
+.tree-view .modified {
+  color: #f78a46;
+}
+
+.tree-view .new {
+  color: #5293d8;
+}
+
 .tree-view-dialog {
   position: absolute;
   bottom: 0;
@@ -80,6 +88,7 @@
   color: white;
   border: 2px solid #222;
   -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, .5);
+  z-index: 99;
 }
 
 .tree-view .directory .header .name,

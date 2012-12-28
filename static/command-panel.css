@@ -1,6 +1,6 @@
 .command-panel {
   background: #515151;
-  padding: 3px;
+  padding: 5px;
 }
 
 .command-panel .preview-list {
@@ -45,7 +45,7 @@
 .command-panel .prompt {
   color: white;
   font-weight: bold;
-  padding: .2em;
+  padding-right: 5px;
 }
 
 .error-messages {

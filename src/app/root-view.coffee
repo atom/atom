@@ -52,20 +52,24 @@ class RootView extends View
     panesViewState: @panes.children().view()?.serialize()
     packageStates: @serializePackages()
 
-  handleEvents: ->
-    @on 'toggle-dev-tools', => atom.toggleDevTools()
-    @on 'focus', (e) =>
-      if @getActiveEditor()
-        @getActiveEditor().focus()
+  handleFocus: (e) ->
+    if @getActiveEditor()
+      @getActiveEditor().focus()
+      false
+    else
+      @setTitle(null)
+      focusableChild = this.find("[tabindex=-1]:visible:first")
+      if focusableChild.length
+        focusableChild.focus()
         false
       else
-        @setTitle(null)
-        focusableChild = this.find("[tabindex=-1]:visible:first")
-        if focusableChild.length
-          focusableChild.focus()
-          false
-        else
-          true
+        true
+
+  handleEvents: ->
+    @on 'toggle-dev-tools', => atom.toggleDevTools()
+    @on 'focus', (e) => @handleFocus(e)
+    $(window).on 'focus', (e) =>
+      @handleFocus(e) if document.activeElement is document.body
 
     @on 'active-editor-path-change', (e, path) =>
       @project.setPath(path) unless @project.getRootDirectory()

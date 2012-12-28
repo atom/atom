@@ -194,6 +194,19 @@ describe "TreeView", ->
       expect(treeView).not.toMatchSelector(':focus')
       expect(rootView.getActiveEditor().isFocused).toBeTruthy()
 
+  describe "when core:close is triggered on the tree view", ->
+    it "detaches the TreeView, focuses the RootView and does not bubble the core:close event", ->
+      treeView.attach()
+      treeView.focus()
+      rootViewCloseHandler = jasmine.createSpy('rootViewCloseHandler')
+      rootView.on 'core:close', rootViewCloseHandler
+      spyOn(rootView, 'focus')
+
+      treeView.trigger('core:close')
+      expect(rootView.focus).toHaveBeenCalled()
+      expect(rootViewCloseHandler).not.toHaveBeenCalled()
+      expect(treeView.hasParent()).toBeFalsy()
+
   describe "when a directory's disclosure arrow is clicked", ->
     it "expands / collapses the associated directory", ->
       subdir = treeView.root.find('.entries > li:contains(dir1)').view()
@@ -859,3 +872,31 @@ describe "TreeView", ->
       config.set("core.hideGitIgnoredFiles", false)
 
       expect(treeView.find('.file:contains(tree-view.js)').length).toBe 1
+
+  describe "Git status decorations", ->
+    [ignoreFile, modifiedFile, originalFileContent] = []
+
+    beforeEach ->
+      config.set "core.hideGitIgnoredFiles", false
+      ignoreFile = fs.join(require.resolve('fixtures/tree-view'), '.gitignore')
+      fs.write(ignoreFile, 'tree-view.js')
+      modifiedFile = fs.join(require.resolve('fixtures/tree-view'), 'tree-view.txt')
+      originalFileContent = fs.read(modifiedFile)
+      fs.write modifiedFile, 'ch ch changes'
+      treeView.updateRoot()
+
+    afterEach ->
+      fs.remove(ignoreFile) if fs.exists(ignoreFile)
+      fs.write modifiedFile, originalFileContent
+
+    describe "when a file is modified", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.file:contains(tree-view.txt)')).toHaveClass 'modified'
+
+    describe "when a file is new", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.file:contains(.gitignore)')).toHaveClass 'new'
+
+    describe "when a file is ignored", ->
+      it "adds a custom style", ->
+        expect(treeView.find('.file:contains(tree-view.js)')).toHaveClass 'ignored'

@@ -166,3 +166,12 @@ describe "StatusBar", ->
       fs.write(path, originalPathText)
       $(window).trigger 'focus'
       expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
+
+    it "displays the diff stat for modified files", ->
+      fs.write(path, "i've changed for the worse")
+      rootView.open(path)
+      expect(statusBar.gitStatusIcon).toHaveText('+1,-1')
+
+    it "displays the diff stat for new files", ->
+      rootView.open(newPath)
+      expect(statusBar.gitStatusIcon).toHaveText('+1')

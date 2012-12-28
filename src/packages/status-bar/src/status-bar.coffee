@@ -79,8 +79,18 @@ class StatusBar extends View
     @gitStatusIcon.removeClass().addClass('git-status octicons')
     if @buffer.getGit()?.isPathModified(path)
       @gitStatusIcon.addClass('modified-status-icon')
-    else if  @buffer.getGit()?.isPathNew(path)
+      stats = @buffer.getGit().getDiffStats(path)
+      if stats.added and stats.deleted
+        @gitStatusIcon.text("+#{stats.added},-#{stats.deleted}")
+      else if stats.added
+        @gitStatusIcon.text("+#{stats.added}")
+      else if stats.deleted
+        @gitStatusIcon.text("-#{stats.deleted}")
+      else
+        @gitStatusIcon.text('')
+    else if @buffer.getGit()?.isPathNew(path)
       @gitStatusIcon.addClass('new-status-icon')
+      @gitStatusIcon.text("+#{@buffer.getLineCount()}")
 
   updatePathText: ->
     if path = @editor.getPath()

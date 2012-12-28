@@ -7,6 +7,7 @@ var $git = {};
   native function getStatus(path);
   native function isIgnored(path);
   native function checkoutHead(path);
+  native function getDiffStats(path);
 
   function GitRepository(path) {
     var repo = getRepository(path);
@@ -20,5 +21,6 @@ var $git = {};
   GitRepository.prototype.getStatus = getStatus;
   GitRepository.prototype.isIgnored = isIgnored;
   GitRepository.prototype.checkoutHead = checkoutHead;
+  GitRepository.prototype.getDiffStats = getDiffStats;
   this.GitRepository = GitRepository;
 })();
