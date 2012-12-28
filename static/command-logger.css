@@ -40,4 +40,5 @@ body.command-logger-node-text {
   font-size: 10px;
   color: #fff;
   text-shadow: #000 1px 1px 4px;
+  -webkit-user-select: none;
 }
