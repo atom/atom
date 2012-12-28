@@ -38,6 +38,6 @@ body.command-logger-node-text {
 .command-logger-node-text span {
   font-size: 10px;
   text-align: center;
-  color: #efefef;
+  color: #fff;
   text-shadow: #000 0.1em 0.1em 0.2em;
 }
