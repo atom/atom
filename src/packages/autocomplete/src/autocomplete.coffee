@@ -1,8 +1,5 @@
 {$$} = require 'space-pen'
-$ = require 'jquery'
-_ = require 'underscore'
 Range = require 'range'
-Editor = require 'editor'
 SelectList = require 'select-list'
 
 module.exports =
