@@ -10,7 +10,6 @@ module.exports =
 class OutlineView extends SelectList
 
   @activate: (rootView) ->
-    requireStylesheet 'select-list.css'
     requireStylesheet 'outline-view/src/outline-view.css'
     @instance = new OutlineView(rootView)
     rootView.command 'outline-view:toggle-file-outline', => @instance.toggleFileOutline()
