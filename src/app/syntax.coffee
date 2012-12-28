@@ -42,7 +42,8 @@ class Syntax
     matchingProperties.concat([@globalProperties])
 
   matchingPropertiesForElement: (element, candidates) ->
-    matchingScopedProperties = candidates.filter ({selector}) -> jQuery.find.matchesSelector(element, selector)
+    matchingScopedProperties = candidates.filter ({selector}) ->
+      jQuery.find.matchesSelector(element, selector)
     matchingScopedProperties.sort (a, b) ->
       if a.specificity == b.specificity
         b.index - a.index

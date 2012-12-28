@@ -67,14 +67,14 @@ class LanguageMode
 
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
-    return unless commentStartString = TextMateBundle.lineCommentStartStringForScope(scopes[0])
+    return unless commentStartString = syntax.getProperty(scopes, "editor.commentStart")
 
     buffer = @editSession.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
     commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
     shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
-    if commentEndString = TextMateBundle.lineCommentEndStringForScope(scopes[0])
+    if commentEndString = syntax.getProperty(scopes, "editor.commentEnd")
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
         commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")

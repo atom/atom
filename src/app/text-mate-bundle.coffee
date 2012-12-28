@@ -58,12 +58,6 @@ class TextMateBundle
     values = @getPreferenceInScope(scope, preferenceName)
     (_.find values, ({name}) -> name is valueName)?['value']
 
-  @lineCommentStartStringForScope: (scope) ->
-    @getPreferenceValueInScope(scope, 'shellVariables', 'TM_COMMENT_START')
-
-  @lineCommentEndStringForScope: (scope) ->
-    @getPreferenceValueInScope(scope, 'shellVariables', 'TM_COMMENT_END')
-
   @indentRegexForScope: (scope) ->
     if source = @getPreferenceInScope(scope, 'increaseIndentPattern')
       new OnigRegExp(source)

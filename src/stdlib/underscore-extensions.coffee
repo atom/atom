@@ -92,3 +92,9 @@ _.mixin
       object = object[key]
       return unless object?
     object
+
+  compactObject: (object) ->
+    newObject = {}
+    for key, value of object
+      newObject[key] = value if value?
+    newObject

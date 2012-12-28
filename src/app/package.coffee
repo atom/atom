@@ -17,5 +17,5 @@ class Package
     @path = fs.directory(@path) unless fs.isDirectory(@path)
 
   load: ->
-    # WIP: Going to load scoped properties into `syntax` global here
-    @getScopedProperties()
+    for { selector, properties } in @getScopedProperties()
+      syntax.addProperties(selector, properties)
