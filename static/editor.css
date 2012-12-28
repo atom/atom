@@ -36,7 +36,7 @@
 
 .editor.focused .line-number.cursor-line-no-selection,
 .editor.focused .line.cursor-line {
-  background-color: rgba(255, 255, 255, .12);
+  background-color: rgba(255, 255, 255, .20);
 }
 
 .editor.mini .gutter {
@@ -106,6 +106,7 @@
   border-left: 2px solid;
 }
 
+.editor:not(.focused) .cursor,
 .editor.focused .cursor.blink-off {
   visibility: hidden;
 }

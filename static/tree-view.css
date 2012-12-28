@@ -23,8 +23,7 @@
   margin-left: 15px;
 }
 
-.tree-view .directory.selected .header,
-.tree-view .directory.selected > .header .name,
+.tree-view .directory.selected > .header > .name,
 .tree-view .selected > .name {
   color: #d2d2d2;
 }
@@ -37,6 +36,16 @@
   height: 24px;
   margin-top:-24px;
   z-index: -1;
+}
+
+.tree-view:focus .selected > .highlight {
+  background-image: -webkit-linear-gradient(#C96D34, #FF904A);
+}
+
+.tree-view:focus .directory.selected > .header > .name,
+.tree-view:focus .selected > .name {
+  color: #fff;
+  text-shadow: 0 -1px 0 #7E4521;
 }
 
 .tree-view .entry.file .name {
