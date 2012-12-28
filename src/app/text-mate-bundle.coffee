@@ -27,6 +27,8 @@ class TextMateBundle
         @grammarsByFileType[fileType] = grammar
         @grammarsByScopeName[grammar.scopeName] = grammar
 
+    bundle
+
   @grammarForFilePath: (filePath) ->
     return @grammarsByFileType["txt"] unless filePath
 
@@ -50,20 +52,6 @@ class TextMateBundle
 
   @grammarForScopeName: (scopeName) ->
     @grammarsByScopeName[scopeName]
-
-  @getPreferenceInScope: (scopeSelector, preferenceName) ->
-    @preferencesByScopeSelector[scopeSelector]?[preferenceName]
-
-  @getPreferenceValueInScope: (scope, preferenceName, valueName) ->
-    values = @getPreferenceInScope(scope, preferenceName)
-    (_.find values, ({name}) -> name is valueName)?['value']
-
-  @foldEndRegexForScope: (grammar, scope) ->
-    marker =  @getPreferenceInScope(scope, 'foldingStopMarker')
-    if marker
-      new OnigRegExp(marker)
-    else
-      new OnigRegExp(grammar.foldingStopMarker)
 
   grammars: null
 

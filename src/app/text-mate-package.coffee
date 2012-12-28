@@ -19,7 +19,8 @@ class TextMatePackage extends Package
     ).join(', ')
 
   load: ->
-    TextMateBundle.load(@name)
+    @bundle = TextMateBundle.load(@name)
+    @grammars = @bundle.grammars
     super
 
   constructor: ->
@@ -29,6 +30,12 @@ class TextMatePackage extends Package
 
   getScopedProperties: ->
     scopedProperties = []
+
+    for grammar in @grammars when grammar.foldingStopMarker
+      scopedProperties.push
+        selector: TextMatePackage.cssSelectorForScopeSelector(grammar.scopeName)
+        properties: { editor: { foldEndPattern: grammar.foldingStopMarker } }
+
     if fs.exists(@preferencesPath)
       for preferencePath in fs.list(@preferencesPath)
         plist.parseString fs.read(preferencePath), (e, data) =>
@@ -53,5 +60,6 @@ class TextMatePackage extends Package
       commentEnd: _.valueForKeyPath(textMateSettings, 'shellVariables.TM_COMMENT_END')
       increaseIndentPattern: textMateSettings.increaseIndentPattern
       decreaseIndentPattern: textMateSettings.decreaseIndentPattern
+      foldEndPattern: textMateSettings.foldingStopMarker
     )
     { editor: editorProperties } if _.size(editorProperties) > 0

@@ -119,7 +119,7 @@ class LanguageMode
       continue if @editSession.isBufferRowBlank(row)
       indentation = @editSession.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and TextMateBundle.foldEndRegexForScope(@grammar, scopes[0]).search(@editSession.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes).search(@editSession.lineForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -196,3 +196,7 @@ class LanguageMode
   decreaseIndentRegexForScopes: (scopes) ->
     if decreaseIndentPattern = syntax.getProperty(scopes, 'editor.decreaseIndentPattern')
       new OnigRegExp(decreaseIndentPattern)
+
+  foldEndRegexForScopes: (scopes) ->
+    if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
+      new OnigRegExp(foldEndPattern)
