@@ -22,13 +22,12 @@
 }
 
 .tab.file-modified .close-icon {
-  box-shadow: inset 0 1px 2px #333;
-  background-color: #F9EE98;
-  top: 8px;
+  border: 3px solid #777;
+  top: 6px;
   border-radius: 10px;
-  width: 7px;
-  height: 7px;
-  right: 7px;
+  width: 5px;
+  height: 5px;
+  right: 5px;
 }
 
 .tab.file-modified .close-icon:before {
