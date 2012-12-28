@@ -39,5 +39,5 @@ body.command-logger-node-text {
   font-size: 10px;
   text-align: center;
   color: #fff;
-  text-shadow: #000 0.1em 0.1em 0.2em;
+  text-shadow: #000 1px 1px 4px;
 }
