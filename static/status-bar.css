@@ -1,5 +1,5 @@
 .status-bar {
-  background-image: -webkit-linear-gradient(#303030, #252525);
+  background-color: #303030;
   border-top: 1px solid #454545;
   padding: 4px 10px 3px;
   font-size: 11px;
