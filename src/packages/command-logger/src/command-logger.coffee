@@ -98,10 +98,12 @@ class CommandLogger extends ScrollView
        .attr('width', (d) -> kx * d.dx - 1)
        .attr('height', (d) -> ky * d.dy - 1)
 
-      t.select('text')
-       .attr('x', (d) -> kx * d.dx / 2)
-       .attr('y', (d) -> ky * d.dy / 2)
-       .style('opacity', (d) -> if kx * d.dx > d.w then 1 else 0)
+      t.select('.foreign-object')
+       .attr('width', (d) -> kx * d.dx - 1)
+       .attr('height', (d) -> ky * d.dy - 1)
+
+      t.select('.command-logger-node-text div')
+        .attr('style', (d) -> "height:#{ky * d.dy - 1}px;width:#{kx * d.dx - 1}px")
 
       node = d
       d3.event.stopPropagation()
@@ -137,13 +139,13 @@ class CommandLogger extends ScrollView
         .attr('height', (d) -> d.dy - 1)
         .style('fill', (d) -> color(d.parent.name))
 
-    cell.append('svg:text')
-        .attr('x', (d) -> d.dx / 2)
-        .attr('y', (d) -> d.dy / 2)
-        .attr('dy', '.35em')
-        .attr('text-anchor', 'middle')
-        .text((d) -> d.name)
-        .style('opacity', (d) -> d.w = this.getComputedTextLength(); if d.dx > d.w then 1 else 0)
+    cell.append('svg:foreignObject')
+        .attr('width', (d) -> d.dx - 1)
+        .attr('height', (d) -> d.dy - 1)
+        .attr('class', 'foreign-object')
+        .append("xhtml:body")
+        .attr('class', 'command-logger-node-text')
+        .html((d) -> "<div style=\"height:#{d.dy - 1}px;width:#{d.dx - 1}px\"><span>#{d.name}</span><div>")
 
     d3.select('.command-logger').on('click', -> zoom(root))
 

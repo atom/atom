@@ -25,7 +25,19 @@
   border: 1px solid #999;
 }
 
-.command-logger .node text {
+body.command-logger-node-text {
+  background-color: transparent;
+}
+
+.command-logger-node-text div {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.command-logger-node-text span {
   font-size: 10px;
-  fill: #111;
+  text-align: center;
+  color: #efefef;
+  text-shadow: #000 0.1em 0.1em 0.2em
 }
