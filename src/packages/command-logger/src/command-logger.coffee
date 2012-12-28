@@ -60,7 +60,7 @@ class CommandLogger extends ScrollView
           children: []
         categories[categoryName] = category
       category.children.push
-        name: "#{_.humanizeEventName(eventName.substring(categoryStart + 1))} (#{details.count})"
+        name: "#{_.humanizeEventName(eventName.substring(categoryStart + 1))} #{details.count}"
         size: details.count
     _.toArray(categories)
 
