@@ -256,7 +256,7 @@ class Selection
     @deleteSelectedText()
 
   backspaceToBeginningOfLine: ->
-    @selectToBeginningOfLine() if @isEmpty()
+    @selectToBeginningOfLine()
     @deleteSelectedText()
 
   delete: ->

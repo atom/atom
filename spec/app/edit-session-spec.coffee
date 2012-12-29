@@ -1106,6 +1106,30 @@ describe "EditSession", ->
           expect(buffer.lineForRow(1)).toBe '  var sort = function(it) {'
           expect(buffer.lineForRow(2)).toBe 'if (items.length <= 1) return items;'
 
+    describe ".backspaceToBeginningOfLine()", ->
+      describe "when no text is selected", ->
+        it "deletes all text between the cursor and the beginning of the line", ->
+          editSession.setCursorBufferPosition([1, 24])
+          editSession.addCursorAtBufferPosition([2, 5])
+          [cursor1, cursor2] = editSession.getCursors()
+
+          editSession.backspaceToBeginningOfLine()
+          expect(buffer.lineForRow(1)).toBe 'ems) {'
+          expect(buffer.lineForRow(2)).toBe 'f (items.length <= 1) return items;'
+          expect(cursor1.getBufferPosition()).toEqual [1, 0]
+          expect(cursor2.getBufferPosition()).toEqual [2, 0]
+
+          editSession.backspaceToBeginningOfLine()
+          expect(buffer.lineForRow(1)).toBe 'ems) {'
+          expect(cursor1.getBufferPosition()).toEqual [1, 0]
+
+      describe "when text is selected", ->
+        it "still deletes all text to begginning of the line", ->
+          editSession.setSelectedBufferRanges([[[1, 24], [1, 27]], [[2, 0], [2, 4]]])
+          editSession.backspaceToBeginningOfLine()
+          expect(buffer.lineForRow(1)).toBe 'ems) {'
+          expect(buffer.lineForRow(2)).toBe '    if (items.length <= 1) return items;'
+
     describe ".delete()", ->
       describe "when there is a single cursor", ->
         describe "when the cursor is on the middle of a line", ->
