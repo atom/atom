@@ -64,3 +64,8 @@ describe "StripTrailingWhitespace", ->
       editor.insertText ""
       editor.save()
       expect(editor.getText()).toBe ""
+
+    it "leaves a buffer that is a single newline untouched", ->
+      editor.insertText "\n"
+      editor.save()
+      expect(editor.getText()).toBe "\n"
