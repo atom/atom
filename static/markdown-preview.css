@@ -4,19 +4,21 @@
   height: 100%;
   top: 0px;
   left: 0px;
-  background-color: white;
+  background-color: #F4F4F4;
   overflow: auto;
-  opacity: 0.9;
+  z-index: 3;
 }
 
 .markdown-body {
+  background-color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 0 0 1px,rgba(0, 0, 0, 0.3) 0 1px 3px;
+  border-radius: 5px;
   width: 914px;
   margin-left: auto;
   margin-right: auto;
   margin-top: 20px;
   margin-bottom: 20px;
   padding: 30px;
-  border: 1px solid #CACACA;
   font: 14px Helvetica, arial, freesans, clean, sans-serif;
   line-height: 1.6;
 }
