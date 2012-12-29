@@ -164,6 +164,15 @@ class Editor extends View
         'editor:split-up': @splitUp
         'editor:split-down': @splitDown
         'editor:show-next-buffer': @loadNextEditSession
+        'editor:show-buffer-1': => @setActiveEditSessionIndex(0) if @editSessions[0]
+        'editor:show-buffer-2': => @setActiveEditSessionIndex(1) if @editSessions[1]
+        'editor:show-buffer-3': => @setActiveEditSessionIndex(2) if @editSessions[2]
+        'editor:show-buffer-4': => @setActiveEditSessionIndex(3) if @editSessions[3]
+        'editor:show-buffer-5': => @setActiveEditSessionIndex(4) if @editSessions[4]
+        'editor:show-buffer-6': => @setActiveEditSessionIndex(5) if @editSessions[5]
+        'editor:show-buffer-7': => @setActiveEditSessionIndex(6) if @editSessions[6]
+        'editor:show-buffer-8': => @setActiveEditSessionIndex(7) if @editSessions[7]
+        'editor:show-buffer-9': => @setActiveEditSessionIndex(8) if @editSessions[8]
         'editor:show-previous-buffer': @loadPreviousEditSession
         'editor:toggle-line-comments': @toggleLineCommentsInSelection
         'editor:log-cursor-scope': @logCursorScope
