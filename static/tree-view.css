@@ -39,7 +39,7 @@
 }
 
 .tree-view:focus .selected > .highlight {
-  background-image: -webkit-linear-gradient(#FF904A, #C96D34);
+  background-image: -webkit-linear-gradient(#7e7e7e, #737373);
 }
 
 .tree-view:focus .directory.selected > .header > .name,
