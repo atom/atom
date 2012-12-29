@@ -1,0 +1,44 @@
+.command-logger {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  background: #1e1e1e;
+  color: #eee;
+  overflow: auto;
+  z-index: 99;
+  padding: 20px;
+}
+
+.command-logger .category-header {
+  text-align: center;
+  padding-bottom: 10px;
+}
+
+.command-logger .tree-map {
+  margin: auto;
+  position: relative;
+  width: 960px;
+  height: 700px;
+  background-color: #efefef;
+  border: 1px solid #999;
+}
+
+body.command-logger-node-text {
+  background-color: transparent;
+}
+
+.command-logger-node-text div {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  cursor: pointer;
+}
+
+.command-logger-node-text span {
+  font-size: 10px;
+  color: #fff;
+  text-shadow: #000 1px 1px 4px;
+  -webkit-user-select: none;
+}
