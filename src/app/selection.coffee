@@ -255,6 +255,10 @@ class Selection
     @selectToBeginningOfWord() if @isEmpty()
     @deleteSelectedText()
 
+  backspaceToBeginningOfLine: ->
+    @selectToBeginningOfLine() if @isEmpty()
+    @deleteSelectedText()
+
   delete: ->
     if @isEmpty()
       if @cursor.isAtEndOfLine() and fold = @editSession.largestFoldStartingAtScreenRow(@cursor.getScreenRow() + 1)

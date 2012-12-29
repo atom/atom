@@ -186,6 +186,9 @@ class EditSession
   backspaceToBeginningOfWord: ->
     @mutateSelectedText (selection) -> selection.backspaceToBeginningOfWord()
 
+  backspaceToBeginningOfLine: ->
+    @mutateSelectedText (selection) -> selection.backspaceToBeginningOfLine()
+
   delete: ->
     @mutateSelectedText (selection) -> selection.delete()
 

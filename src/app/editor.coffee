@@ -122,6 +122,7 @@ class Editor extends View
       'editor:indent-selected-rows': @indentSelectedRows
       'editor:outdent-selected-rows': @outdentSelectedRows
       'editor:backspace-to-beginning-of-word': @backspaceToBeginningOfWord
+      'editor:backspace-to-beginning-of-line': @backspaceToBeginningOfLine
       'editor:delete-to-end-of-word': @deleteToEndOfWord
       'editor:delete-line': @deleteLine
       'editor:cut-to-end-of-line': @cutToEndOfLine
@@ -223,6 +224,7 @@ class Editor extends View
 
   backspace: -> @activeEditSession.backspace()
   backspaceToBeginningOfWord: -> @activeEditSession.backspaceToBeginningOfWord()
+  backspaceToBeginningOfLine: -> @activeEditSession.backspaceToBeginningOfLine()
   delete: -> @activeEditSession.delete()
   deleteToEndOfWord: -> @activeEditSession.deleteToEndOfWord()
   deleteLine: -> @activeEditSession.deleteLine()
