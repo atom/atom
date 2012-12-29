@@ -69,7 +69,7 @@ class RootView extends View
         true
 
   handleEvents: ->
-    @on 'toggle-dev-tools', => atom.toggleDevTools()
+    @command 'toggle-dev-tools', => atom.toggleDevTools()
     @on 'focus', (e) => @handleFocus(e)
     $(window).on 'focus', (e) =>
       @handleFocus(e) if document.activeElement is document.body
