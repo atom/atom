@@ -25,8 +25,7 @@ class MarkdownPreview extends ScrollView
       @attach()
 
   attach: ->
-    path = rootView.getActiveEditor()?.getPath()
-    return unless @isMarkdownFile(path)
+    return unless @isMarkdownFile(@getActivePath())
     @rootView.append(this)
     @markdownBody.hide()
     @markdownSpinner.show()
