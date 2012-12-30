@@ -54,7 +54,10 @@ class CommandLogger extends ScrollView
     categories = {}
     for eventName, details of @eventLog
       categoryStart = eventName.indexOf(':')
-      categoryName = _.humanizeEventName(eventName.substring(0, categoryStart))
+      if categoryStart is -1
+        categoryName = 'Uncategorized'
+      else
+        categoryName = _.humanizeEventName(eventName.substring(0, categoryStart))
       category = categories[categoryName]
       unless category
         category =
