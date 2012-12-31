@@ -3,6 +3,7 @@ fs = require 'fs'
 _ = require 'underscore'
 Package = require 'package'
 TextMatePackage = require 'text-mate-package'
+Theme = require 'theme'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
@@ -30,7 +31,15 @@ _.extend atom,
       @loadPackage(packageName) unless _.contains(disabledPackages, packageName)
 
   loadPackage: (name) ->
-    Package.forName(name).load()
+    Package.load(name)
+
+  loadThemes: ->
+    themeNames = config.get("core.themes") ? ['IR_Black']
+    themeNames = [themeNames] unless _.isArray(themeNames)
+    @loadTheme(themeName) for themeName in themeNames
+
+  loadTheme: (name) ->
+    Theme.load(name)
 
   open: (args...) ->
     @sendMessageToBrowserProcess('open', args)

@@ -8,7 +8,7 @@ describe "TextMateTheme", ->
 
   beforeEach ->
     themePath = require.resolve(fs.join('fixtures', 'test.tmTheme'))
-    [theme] = Theme.load(themePath)
+    theme = Theme.load(themePath)
 
   afterEach ->
     theme.deactivate()

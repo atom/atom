@@ -6,13 +6,7 @@ module.exports =
 class Theme
   @stylesheets: null
 
-  @load: (names) ->
-    if typeof(names) == "string"
-      [@loadTheme(names)]
-    else
-      names.map (name) => @loadTheme(name)
-
-  @loadTheme: (name) ->
+  @load: (name) ->
     if fs.exists(name)
       path = name
     else
@@ -25,7 +19,7 @@ class Theme
       theme = @loadAtomTheme(path)
 
     throw new Error("Cannot activate theme named '#{name}' located at '#{path}'") unless theme
-    theme.activate()
+    theme.load()
     theme
 
   @loadTextMateTheme: (path) ->
@@ -47,7 +41,7 @@ class Theme
   constructor: (@path) ->
     @stylesheets = {}
 
-  activate: ->
+  load: ->
     for stylesheetPath, stylesheetContent of @stylesheets
       applyStylesheet(stylesheetPath, stylesheetContent)
 

@@ -2,14 +2,14 @@ fs = require 'fs'
 
 module.exports =
 class Package
-  @forName: (name) ->
+  @load: (name) ->
     AtomPackage = require 'atom-package'
     TextMatePackage = require 'text-mate-package'
 
     if TextMatePackage.testName(name)
-      new TextMatePackage(name)
+      new TextMatePackage(name).load()
     else
-      new AtomPackage(name)
+      new AtomPackage(name).load()
 
   constructor: (@name) ->
     @path = require.resolve(@name, verifyExistence: false)

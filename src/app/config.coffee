@@ -32,7 +32,7 @@ class Config
     @loadUserConfig()
     @requireUserInitScript()
     atom.loadPackages()
-    Theme.load(config.get("core.theme") ? 'IR_Black')
+    atom.loadThemes()
 
   loadUserConfig: ->
     if fs.exists(configJsonPath)
