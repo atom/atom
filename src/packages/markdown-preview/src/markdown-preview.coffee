@@ -42,11 +42,14 @@ class MarkdownPreview extends ScrollView
     @rootView.getActiveEditor()?.getText()
 
   getErrorHtml: (error) ->
-    '<h1>Previewing Markdown Failed</h1>
-     <h2>Possible Reasons</h2>
-     <ul>
-     <li>You aren\'t online or are unable to reach <a href="https://github.com">github.com</a></li>
-     </ul>'
+    $$$ ->
+      @h2 'Previewing Markdown Failed'
+      @h3 'Possible Reasons'
+      @ul =>
+        @li =>
+          @span 'You aren\'t online or are unable to reach '
+          @a 'github.com', href: 'https://github.com'
+          @span '.'
 
    getLoadingHtml: ->
      $$$ ->
