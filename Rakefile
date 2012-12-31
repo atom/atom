@@ -62,9 +62,9 @@ desc "Creates .atom file if non exists"
 task "create-dot-atom" do
   # Migration: If there is still a bundle path, rename it to packages
   if File.exists?(DOT_ATOM_PATH) and File.exists?(File.join(DOT_ATOM_PATH, "bundles"))
-    if File.join(DOT_ATOM_PATH, "packages")
-      `rm #{File.join(DOT_ATOM_PATH, "bundles")}`
-      $stderr.puts "WARNING: removed ~/.atom/bundles"
+    if File.exists?(File.join(DOT_ATOM_PATH, "packages"))
+      `mv #{File.join(DOT_ATOM_PATH, "bundles", "*")} #{File.join(DOT_ATOM_PATH, "packages")}`
+      $stderr.puts "WARNING: Bundles from ~/.atom/bundles were moved to ~/.atom/packages"
     else
       `mv #{File.join(DOT_ATOM_PATH, "bundles")} #{File.join(DOT_ATOM_PATH, "packages")}`
       $stderr.puts "WARNING: ~/.atom/bundles was moved to ~/.atom/packages"
