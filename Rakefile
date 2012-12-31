@@ -71,12 +71,6 @@ task "create-dot-atom" do
     end
   end
 
-  # Migration: If there is no theme directory, create
-  if File.exists?(DOT_ATOM_PATH) and File.exists?(File.join(DOT_ATOM_PATH, "bundles"))
-    `mv #{File.join(DOT_ATOM_PATH, "bundles")} #{File.join(DOT_ATOM_PATH, "packages")}`
-    $stderr.puts "WARNING: ~/.atom/bundles was moved to ~/.atom/packages"
-  end
-
   # Migration: remove files that are no longer needed
   `rm -rf #{File.join(DOT_ATOM_PATH, 'default-config.coffee')}`
 
