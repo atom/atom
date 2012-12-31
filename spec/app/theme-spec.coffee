@@ -3,20 +3,20 @@ fs = require 'fs'
 Theme = require 'theme'
 
 describe "@load(name)", ->
-  themes = null
+  theme = null
 
   beforeEach ->
     $("#jasmine-content").append $("<div class='editor'></div>")
 
   afterEach ->
-    theme.deactivate() for theme in themes
+    theme.deactivate()
 
   describe "TextMateTheme", ->
     it "applies the theme's stylesheet to the current window", ->
       expect($(".editor").css("background-color")).not.toBe("rgb(20, 20, 20)")
 
       themePath = require.resolve(fs.join('fixtures', 'test.tmTheme'))
-      themes = Theme.load(themePath)
+      theme = Theme.load(themePath)
       expect($(".editor").css("background-color")).toBe("rgb(20, 20, 20)")
 
   describe "AtomTheme", ->
@@ -26,7 +26,7 @@ describe "@load(name)", ->
       expect($(".editor").css("padding-bottom")).not.toBe("103px")
 
       themePath = require.resolve(fs.join('fixtures', 'test-atom-theme'))
-      themes = Theme.load(themePath)
+      theme = Theme.load(themePath)
       expect($(".editor").css("padding-top")).toBe("101px")
       expect($(".editor").css("padding-right")).toBe("102px")
       expect($(".editor").css("padding-bottom")).toBe("103px")
