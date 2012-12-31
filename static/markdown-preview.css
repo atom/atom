@@ -22,6 +22,13 @@
   padding: 30px;
 }
 
+.markdown-body pre,
+.markdown-body code,
+.markdown-body tt {
+  font-size: 12px;
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+
 .markdown-spinner {
   position:absolute;
   top: 50%;
