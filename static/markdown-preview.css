@@ -30,14 +30,13 @@
 }
 
 .markdown-spinner {
-  position:absolute;
-  top: 50%;
-  left: 50%;
-  width: 128px;
-  height: 128px;
-  margin-left: -64px;
-  margin-top: -64px;
+  margin: auto;
   background-image: url(images/octocat-spinner-128.gif);
+  background-repeat: no-repeat;
+  background-size: 64px;
+  background-position: top center;
+  padding-top: 70px;
+  text-align: center;
 }
 
 

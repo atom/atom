@@ -1,6 +1,7 @@
 ScrollView = require 'scroll-view'
 fs = require 'fs'
 $ = require 'jquery'
+{$$$} = require 'space-pen'
 
 module.exports =
 class MarkdownPreview extends ScrollView
@@ -11,7 +12,6 @@ class MarkdownPreview extends ScrollView
   @content: (rootView) ->
     @div class: 'markdown-preview', tabindex: -1, =>
       @div class: 'markdown-body', outlet: 'markdownBody'
-      @div class: 'markdown-spinner', outlet: 'markdownSpinner'
 
   initialize: (@rootView) ->
     super
@@ -27,8 +27,7 @@ class MarkdownPreview extends ScrollView
   attach: ->
     return unless @isMarkdownFile(@getActivePath())
     @rootView.append(this)
-    @markdownBody.hide()
-    @markdownSpinner.show()
+    @markdownBody.html(@getLoadingHtml())
     @loadHtml()
     @focus()
 
@@ -49,6 +48,10 @@ class MarkdownPreview extends ScrollView
      <li>You aren\'t online or are unable to reach <a href="https://github.com">github.com</a></li>
      </ul>'
 
+   getLoadingHtml: ->
+     $$$ ->
+       @div class: 'markdown-spinner', 'Loading Markdown...'
+
   loadHtml: (text) ->
     payload =
        mode: 'markdown'
@@ -64,10 +67,7 @@ class MarkdownPreview extends ScrollView
     $.ajax(request)
 
   setHtml: (html) ->
-    return unless @hasParent()
-    @markdownBody.html(html)
-    @markdownSpinner.hide()
-    @markdownBody.show()
+    @markdownBody.html(html) if @hasParent()
 
   isMarkdownFile: (path) ->
     fs.isMarkdownExtension(fs.extension(path))
