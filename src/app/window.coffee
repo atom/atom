@@ -9,6 +9,7 @@ _ = require 'underscore'
 $ = require 'jquery'
 {CoffeeScript} = require 'coffee-script'
 Config = require 'config'
+Syntax = require 'syntax'
 RootView = require 'root-view'
 Pasteboard = require 'pasteboard'
 require 'jquery-extensions'
@@ -25,8 +26,7 @@ windowAdditions =
   # in all environments: spec, benchmark, and application
   startup: ->
     @config = new Config
-    TextMateBundle.loadAll()
-    TextMateTheme.loadAll()
+    @syntax = new Syntax
     @setUpKeymap()
     @pasteboard = new Pasteboard
 
@@ -65,8 +65,13 @@ windowAdditions =
 
   requireStylesheet: (path) ->
     unless fullPath = require.resolve(path)
-      throw new Error("requireStylesheet could not find a file at path '#{path}'")
+      throw new Error("Could not find a file at path '#{path}'")
     window.applyStylesheet(fullPath, fs.read(fullPath))
+
+  removeStylesheet: (path) ->
+    unless fullPath = require.resolve(path)
+      throw new Error("Could not find a file at path '#{path}'")
+    $("head style[id='#{fullPath}']").remove()
 
   applyStylesheet: (id, text) ->
     unless $("head style[id='#{id}']").length

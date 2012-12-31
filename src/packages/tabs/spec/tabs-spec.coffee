@@ -11,7 +11,7 @@ describe "Tabs", ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
     rootView.open('sample.txt')
     rootView.simulateDomAttachment()
-    rootView.activateExtension(Tabs)
+    atom.loadPackage("tabs")
     editor = rootView.getActiveEditor()
     tabs = rootView.find('.tabs').view()
 

@@ -3,7 +3,6 @@ _ = require 'underscore'
 fs = require 'fs'
 
 BindingSet = require 'binding-set'
-Specificity = require 'specificity'
 
 module.exports =
 class Keymap

@@ -1,5 +1,8 @@
+TextMateBundle = require("text-mate-bundle")
 fs = require 'fs'
 _ = require 'underscore'
+Package = require 'package'
+TextMatePackage = require 'text-mate-package'
 
 messageIdCounter = 1
 originalSendMessageToBrowserProcess = atom.sendMessageToBrowserProcess
@@ -9,18 +12,25 @@ _.extend atom,
 
   pendingBrowserProcessCallbacks: {}
 
+  getAvailablePackages: ->
+    allPackageNames = []
+    for packageDirPath in config.packageDirPaths
+      packageNames = fs.list(packageDirPath)
+        .filter((packagePath) -> fs.isDirectory(packagePath))
+        .map((packagePath) -> fs.base(packagePath))
+      allPackageNames.push(packageNames...)
+    _.unique(allPackageNames)
+
+  getAvailableTextMateBundles: ->
+    @getAvailablePackages().filter (packageName) => TextMatePackage.testName(packageName)
+
+  loadPackages: (packageNames=@getAvailablePackages()) ->
+    disabledPackages = config.get("core.disabledPackages") ? []
+    for packageName in packageNames
+      @loadPackage(packageName) unless _.contains(disabledPackages, packageName)
+
   loadPackage: (name) ->
-    try
-      packagePath = require.resolve(name, verifyExistence: false)
-      throw new Error("No package found named '#{name}'") unless packagePath
-      packagePath = fs.directory(packagePath)
-      extension = require(packagePath)
-      extension.name = name
-      rootView.activateExtension(extension)
-      extensionKeymapPath = require.resolve(fs.join(name, "src/keymap"), verifyExistence: false)
-      require extensionKeymapPath if fs.exists(extensionKeymapPath)
-    catch e
-      console.error "Failed to load package named '#{name}'", e.stack
+    Package.forName(name).load()
 
   open: (args...) ->
     @sendMessageToBrowserProcess('open', args)
@@ -85,4 +95,3 @@ _.extend atom,
     if name is 'reply'
       [messageId, callbackIndex] = data.shift()
       @pendingBrowserProcessCallbacks[messageId]?[callbackIndex]?(data...)
-

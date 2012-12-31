@@ -10,18 +10,10 @@ class TextMateBundle
   @grammarsByFileType: {}
   @grammarsByScopeName: {}
   @preferencesByScopeSelector: {}
-  @bundles: []
   @grammars: []
 
-  @loadAll: ->
-    localBundlePath = fs.join(config.configDirPath, "bundles")
-    localBundles = fs.list(localBundlePath) if fs.exists(localBundlePath)
-
-    for bundlePath in localBundles ? []
-      @registerBundle(new TextMateBundle(bundlePath))
-
-  @registerBundle: (bundle)->
-    @bundles.push(bundle)
+  @load: (name)->
+    bundle = new TextMateBundle(require.resolve(name))
 
     for scopeSelector, preferences of bundle.getPreferencesByScopeSelector()
       if @preferencesByScopeSelector[scopeSelector]?
@@ -34,6 +26,8 @@ class TextMateBundle
       for fileType in grammar.fileTypes
         @grammarsByFileType[fileType] = grammar
         @grammarsByScopeName[grammar.scopeName] = grammar
+
+    bundle
 
   @grammarForFilePath: (filePath) ->
     return @grammarsByFileType["txt"] unless filePath
@@ -58,34 +52,6 @@ class TextMateBundle
 
   @grammarForScopeName: (scopeName) ->
     @grammarsByScopeName[scopeName]
-
-  @getPreferenceInScope: (scopeSelector, preferenceName) ->
-    @preferencesByScopeSelector[scopeSelector]?[preferenceName]
-
-  @getPreferenceValueInScope: (scope, preferenceName, valueName) ->
-    values = @getPreferenceInScope(scope, preferenceName)
-    (_.find values, ({name}) -> name is valueName)?['value']
-
-  @lineCommentStartStringForScope: (scope) ->
-    @getPreferenceValueInScope(scope, 'shellVariables', 'TM_COMMENT_START')
-
-  @lineCommentEndStringForScope: (scope) ->
-    @getPreferenceValueInScope(scope, 'shellVariables', 'TM_COMMENT_END')
-
-  @indentRegexForScope: (scope) ->
-    if source = @getPreferenceInScope(scope, 'increaseIndentPattern')
-      new OnigRegExp(source)
-
-  @outdentRegexForScope: (scope) ->
-    if source = @getPreferenceInScope(scope, 'decreaseIndentPattern')
-      new OnigRegExp(source)
-
-  @foldEndRegexForScope: (grammar, scope) ->
-    marker =  @getPreferenceInScope(scope, 'foldingStopMarker')
-    if marker
-      new OnigRegExp(marker)
-    else
-      new OnigRegExp(grammar.foldingStopMarker)
 
   grammars: null
 

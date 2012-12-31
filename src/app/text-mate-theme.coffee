@@ -1,46 +1,16 @@
 _ = require 'underscore'
 fs = require 'fs'
-plist = require 'plist'
+Theme = require 'theme'
 
 module.exports =
-class TextMateTheme
-  @themesByName: {}
-
-  @loadAll: ->
-    for themePath in fs.list(require.resolve("themes"))
-      @registerTheme(TextMateTheme.load(themePath))
-
-  @load: (path) ->
-    plistString = fs.read(require.resolve(path))
-    theme = null
-    plist.parseString plistString, (err, data) ->
-      throw new Error("Error loading theme at '#{path}': #{err}") if err
-      theme = new TextMateTheme(data[0])
-    theme
-
-  @registerTheme: (theme) ->
-    @themesByName[theme.name] = theme
-
-  @getNames: ->
-    _.keys(@themesByName)
-
-  @getTheme: (name) ->
-    @themesByName[name]
-
-  @activate: (name) ->
-    if theme = @getTheme(name)
-      theme.activate()
-    else
-      throw new Error("No theme with name '#{name}'")
-
-  constructor: ({@name, settings}) ->
+class TextMateTheme extends Theme
+  constructor: (@path, {settings}) ->
+    super
     @rulesets = []
     globalSettings = settings[0]
     @buildGlobalSettingsRulesets(settings[0])
     @buildScopeSelectorRulesets(settings[1..])
-
-  activate: ->
-    applyStylesheet(@name, @getStylesheet())
+    @stylesheets[@path] = @getStylesheet()
 
   getStylesheet: ->
     lines = []

@@ -85,3 +85,16 @@ _.mixin
 
   endsWith: (string, suffix) ->
     string.indexOf(suffix, string.length - suffix.length) isnt -1
+
+  valueForKeyPath: (object, keyPath) ->
+    keys = keyPath.split('.')
+    for key in keys
+      object = object[key]
+      return unless object?
+    object
+
+  compactObject: (object) ->
+    newObject = {}
+    for key, value of object
+      newObject[key] = value if value?
+    newObject

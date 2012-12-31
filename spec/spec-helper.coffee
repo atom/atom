@@ -19,15 +19,17 @@ requireStylesheet "jasmine.css"
 
 require.paths.unshift(require.resolve('fixtures/packages'))
 
+# Load TextMate bundles, which specs rely on (but not other packages)
+atom.loadPackages(atom.getAvailableTextMateBundles())
+
 beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
 
-  # don't load or save user configuration
+  # reset config after each spec; don't load or save from/to `config.json`
   window.config = new Config()
   spyOn(config, 'load')
   spyOn(config, 'save')
-  config.assignDefaults()
   config.set "editor.fontSize", 16
 
   # make editor display updates synchronous

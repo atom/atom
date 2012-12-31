@@ -125,24 +125,24 @@ describe "RootView", ->
         expect(rootView.getTitle()).toBe 'untitled'
 
   describe ".serialize()", ->
-    it "absorbs exceptions that are thrown by extension serialize methods", ->
+    it "absorbs exceptions that are thrown by the package module's serialize methods", ->
       spyOn(console, 'error')
 
-      rootView.activateExtension(
+      rootView.activatePackage(
         name: "bad-egg"
         activate: ->
         serialize: -> throw new Error("I'm broken")
       )
 
-      rootView.activateExtension(
+      rootView.activatePackage(
         name: "good-egg"
         activate: ->
         serialize: -> "I still get called"
       )
 
       data = rootView.serialize()
-      expect(data.extensionStates['good-egg']).toBe "I still get called"
-      expect(data.extensionStates['bad-egg']).toBeUndefined()
+      expect(data.packageStates['good-egg']).toBe "I still get called"
+      expect(data.packageStates['bad-egg']).toBeUndefined()
       expect(console.error).toHaveBeenCalled()
 
   describe "focus", ->
@@ -393,54 +393,49 @@ describe "RootView", ->
         rootView.focusNextPane()
         expect(view1.focus).toHaveBeenCalled()
 
-  describe "extensions", ->
-    extension = null
+  describe "packages", ->
+    packageModule = null
 
     beforeEach ->
-      extension =
-        name: 'extension'
+      packageModule =
+        name: 'package'
         deactivate: ->
         activate: jasmine.createSpy("activate")
         serialize: -> "it worked"
 
-    describe ".activateExtension(extension)", ->
-      it "calls activate on the extension", ->
-        rootView.activateExtension(extension)
-        expect(extension.activate).toHaveBeenCalledWith(rootView, undefined, undefined)
+    describe ".activatePackage(packageModule)", ->
+      it "calls activate on the package module", ->
+        rootView.activatePackage(packageModule)
+        expect(packageModule.activate).toHaveBeenCalledWith(rootView, undefined)
 
-      it "calls activate on the extension with its previous state", ->
-        rootView.activateExtension(extension)
-        extension.activate.reset()
+      it "calls activate on the package module with its previous state", ->
+        rootView.activatePackage(packageModule)
+        packageModule.activate.reset()
 
         newRootView = RootView.deserialize(rootView.serialize())
-        newRootView.activateExtension(extension)
-        expect(extension.activate).toHaveBeenCalledWith(newRootView, "it worked", undefined)
+        newRootView.activatePackage(packageModule)
+        expect(packageModule.activate).toHaveBeenCalledWith(newRootView, "it worked")
         newRootView.remove()
 
-      it "calls activate on the extension with the config data", ->
-        config = {}
-        rootView.activateExtension(extension, config)
-        expect(extension.activate).toHaveBeenCalledWith(rootView, undefined, config)
+      it "throws an exception if the package module has no 'name' property", ->
+        expect(-> rootView.activatePackage({ activate: -> })).toThrow()
 
-      it "throws an exception if the extension has no 'name' property", ->
-        expect(-> rootView.activateExtension({ activate: -> })).toThrow()
+    describe ".deactivatePackage(packageModule)", ->
+      it "deactivates and removes the package module from the package module map", ->
+        rootView.activatePackage(packageModule)
+        expect(rootView.packageModules[packageModule.name]).toBeTruthy()
+        spyOn(packageModule, "deactivate").andCallThrough()
+        rootView.deactivatePackage(packageModule)
+        expect(packageModule.deactivate).toHaveBeenCalled()
+        expect(rootView.packageModules[packageModule.name]).toBeFalsy()
 
-    describe ".deactivateExtension(extension)", ->
-      it "deactivates and removes the extension from the extension list", ->
-        rootView.activateExtension(extension)
-        expect(rootView.extensions[extension.name]).toBeTruthy()
-        spyOn(extension, "deactivate").andCallThrough()
-        rootView.deactivateExtension(extension)
-        expect(extension.deactivate).toHaveBeenCalled()
-        expect(rootView.extensions[extension.name]).toBeFalsy()
-
-      it "is called when the rootView is deactivated to deactivate all extensions", ->
-        rootView.activateExtension(extension)
-        spyOn(rootView, "deactivateExtension").andCallThrough()
-        spyOn(extension, "deactivate").andCallThrough()
+      it "is called when the rootView is deactivated to deactivate all packages", ->
+        rootView.activatePackage(packageModule)
+        spyOn(rootView, "deactivatePackage").andCallThrough()
+        spyOn(packageModule, "deactivate").andCallThrough()
         rootView.deactivate()
-        expect(rootView.deactivateExtension).toHaveBeenCalled()
-        expect(extension.deactivate).toHaveBeenCalled()
+        expect(rootView.deactivatePackage).toHaveBeenCalled()
+        expect(packageModule.deactivate).toHaveBeenCalled()
 
   describe "keymap wiring", ->
     commandHandler = null

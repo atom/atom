@@ -2,14 +2,6 @@ fs = require('fs')
 TextMateBundle = require 'text-mate-bundle'
 
 describe "TextMateBundle", ->
-  describe ".getPreferenceInScope(scope, preferenceName)", ->
-    it "returns the preference by the given name in the given scope or undefined if there isn't one", ->
-      expect(TextMateBundle.getPreferenceInScope('source.coffee', 'decreaseIndentPattern')).toBe '^\\s*(\\}|\\]|else|catch|finally)$'
-      expect(TextMateBundle.getPreferenceInScope('source.coffee', 'shellVariables')).toBeDefined()
-
-    it "returns the preference by the given name in the given scope for a scope registered via a comma-separated list of scopes", ->
-      expect(TextMateBundle.getPreferenceInScope('source.objc++', 'shellVariables')).toBeDefined()
-
   describe ".getPreferencesByScopeSelector()", ->
     it "logs warning, but does not raise errors if a preference can't be parsed", ->
       bundlePath = fs.join(require.resolve('fixtures'), "test.tmbundle")

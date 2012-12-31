@@ -6,9 +6,9 @@ describe "the `atom` global", ->
 
     beforeEach ->
       rootView = new RootView
-      extension = require "package-with-extension"
+      extension = require "package-with-module"
 
     it "requires and activates the package's main module if it exists", ->
-      spyOn(rootView, 'activateExtension').andCallThrough()
-      atom.loadPackage("package-with-extension")
-      expect(rootView.activateExtension).toHaveBeenCalledWith(extension)
+      spyOn(rootView, 'activatePackage').andCallThrough()
+      atom.loadPackage("package-with-module")
+      expect(rootView.activatePackage).toHaveBeenCalledWith(extension)

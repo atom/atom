@@ -48,6 +48,16 @@ describe "Window", ->
       requireStylesheet('atom.css')
       expect($('head style').length).toBe lengthBefore + 1
 
+  describe ".disableStyleSheet(path)", ->
+    it "removes styling applied by given stylesheet path", ->
+      cssPath = require.resolve(fs.join("fixtures", "css.css"))
+
+      expect($(document.body).css('font-weight')).not.toBe("bold")
+      requireStylesheet(cssPath)
+      expect($(document.body).css('font-weight')).toBe("bold")
+      removeStylesheet(cssPath)
+      expect($(document.body).css('font-weight')).not.toBe("bold")
+
   describe "before the window is unloaded", ->
     it "saves the serialized state of the root view to the atom object so it can be rehydrated after reload", ->
       expect(atom.getRootViewStateForPath(window.rootView.project.getPath())).toBeUndefined()

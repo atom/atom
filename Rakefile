@@ -60,6 +60,20 @@ end
 
 desc "Creates .atom file if non exists"
 task "create-dot-atom" do
+  # Migration: If there is still a bundle path, rename it to packages
+  if File.exists?(DOT_ATOM_PATH) and File.exists?(File.join(DOT_ATOM_PATH, "bundles"))
+    if File.exists?(File.join(DOT_ATOM_PATH, "packages"))
+      `mv #{File.join(DOT_ATOM_PATH, "bundles", "*")} #{File.join(DOT_ATOM_PATH, "packages")}`
+      $stderr.puts "WARNING: Bundles from ~/.atom/bundles were moved to ~/.atom/packages"
+    else
+      `mv #{File.join(DOT_ATOM_PATH, "bundles")} #{File.join(DOT_ATOM_PATH, "packages")}`
+      $stderr.puts "WARNING: ~/.atom/bundles was moved to ~/.atom/packages"
+    end
+  end
+
+  # Migration: remove files that are no longer needed
+  `rm -rf #{File.join(DOT_ATOM_PATH, 'default-config.coffee')}`
+
   dot_atom_template_path = ATOM_SRC_PATH + "/.atom"
   replace_dot_atom = false
   next if File.exists?(DOT_ATOM_PATH)
@@ -67,12 +81,8 @@ task "create-dot-atom" do
   `rm -rf "#{DOT_ATOM_PATH}"`
   `mkdir "#{DOT_ATOM_PATH}"`
   `cp "#{dot_atom_template_path}/atom.coffee" "#{DOT_ATOM_PATH}"`
-  `cp "#{dot_atom_template_path}/bundles" "#{DOT_ATOM_PATH}"`
-
-  for path in Dir.entries(dot_atom_template_path)
-    next if ["..", ".", "atom.coffee", "bundles"].include? path
-    `ln -s "#{dot_atom_template_path}/#{path}" "#{DOT_ATOM_PATH}"`
-  end
+  `cp "#{dot_atom_template_path}/packages" "#{DOT_ATOM_PATH}"`
+  `cp -r "#{dot_atom_template_path}/themes" "#{DOT_ATOM_PATH}"`
 end
 
 desc "Clone default bundles into .atom directory"
@@ -96,7 +106,7 @@ task "clone-default-bundles" => "create-dot-atom" do
 
   for bundle_url, sha in bundles
     bundle_dir = bundle_url[/([^\/]+?)(\.git)?$/, 1]
-    dest_path = File.join(DOT_ATOM_PATH, "bundles", bundle_dir)
+    dest_path = File.join(DOT_ATOM_PATH, "packages", bundle_dir)
     if File.exists? dest_path
       `cd #{dest_path} && git fetch --quiet`
     else
@@ -110,6 +120,8 @@ end
 desc "Clean build Atom via `xcodebuild`"
 task :clean do
   output = `xcodebuild clean`
+  `rm -rf #{application_path()}`
+  `rm -rf #{BUILD_DIR}`
 end
 
 desc "Run Atom"
@@ -135,7 +147,7 @@ task :benchmark do
 end
 
 task :nof do
-  system %{find . -name *spec.coffee | grep -v atom-build | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
+  system %{find . -name *spec.coffee | grep -v #{BUILD_DIR} | xargs sed -E -i "" "s/f+(it|describe) +(['\\"])/\\1 \\2/g"}
 end
 
 task :tags do

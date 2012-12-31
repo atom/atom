@@ -67,14 +67,14 @@ class LanguageMode
 
   toggleLineCommentsForBufferRows: (start, end) ->
     scopes = @editSession.scopesForBufferPosition([start, 0])
-    return unless commentStartString = TextMateBundle.lineCommentStartStringForScope(scopes[0])
+    return unless commentStartString = syntax.getProperty(scopes, "editor.commentStart")
 
     buffer = @editSession.buffer
     commentStartRegexString = _.escapeRegExp(commentStartString).replace(/(\s+)$/, '($1)?')
     commentStartRegex = new OnigRegExp("^(\\s*)(#{commentStartRegexString})")
     shouldUncomment = commentStartRegex.test(buffer.lineForRow(start))
 
-    if commentEndString = TextMateBundle.lineCommentEndStringForScope(scopes[0])
+    if commentEndString = syntax.getProperty(scopes, "editor.commentEnd")
       if shouldUncomment
         commentEndRegexString = _.escapeRegExp(commentEndString).replace(/^(\s+)/, '($1)?')
         commentEndRegex = new OnigRegExp("(#{commentEndRegexString})(\\s*)$")
@@ -119,7 +119,7 @@ class LanguageMode
       continue if @editSession.isBufferRowBlank(row)
       indentation = @editSession.indentationForBufferRow(row)
       if indentation <= startIndentLevel
-        includeRowInFold = indentation == startIndentLevel and TextMateBundle.foldEndRegexForScope(@grammar, scopes[0]).search(@editSession.lineForBufferRow(row))
+        includeRowInFold = indentation == startIndentLevel and @foldEndRegexForScopes(scopes).search(@editSession.lineForBufferRow(row))
         foldEndRow = row if includeRowInFold
         break
 
@@ -130,7 +130,7 @@ class LanguageMode
   suggestedIndentForBufferRow: (bufferRow) ->
     currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
     scopes = @editSession.scopesForBufferPosition([bufferRow, 0])
-    return currentIndentLevel unless increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
+    return currentIndentLevel unless increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
 
     currentLine = @buffer.lineForRow(bufferRow)
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
@@ -139,10 +139,10 @@ class LanguageMode
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentLevel = @editSession.indentationForBufferRow(precedingRow)
-    desiredIndentLevel += 1 if increaseIndentPattern.test(precedingLine)
+    desiredIndentLevel += 1 if increaseIndentRegex.test(precedingLine)
 
-    return desiredIndentLevel unless decreaseIndentPattern = TextMateBundle.outdentRegexForScope(scopes[0])
-    desiredIndentLevel -= 1 if decreaseIndentPattern.test(currentLine)
+    return desiredIndentLevel unless decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
+    desiredIndentLevel -= 1 if decreaseIndentRegex.test(currentLine)
 
     Math.max(desiredIndentLevel, currentIndentLevel)
 
@@ -159,32 +159,44 @@ class LanguageMode
 
     precedingLine = @editSession.lineForBufferRow(precedingRow)
     scopes = @editSession.scopesForBufferPosition([precedingRow, Infinity])
-    increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
-    return unless increaseIndentPattern
+    increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
+    return unless increaseIndentRegex
 
     currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
     desiredIndentLevel = @editSession.indentationForBufferRow(precedingRow)
-    desiredIndentLevel += 1 if increaseIndentPattern.test(precedingLine)
+    desiredIndentLevel += 1 if increaseIndentRegex.test(precedingLine)
     if desiredIndentLevel > currentIndentLevel
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   autoDecreaseIndentForBufferRow: (bufferRow) ->
     scopes = @editSession.scopesForBufferPosition([bufferRow, 0])
-    increaseIndentPattern = TextMateBundle.indentRegexForScope(scopes[0])
-    decreaseIndentPattern = TextMateBundle.outdentRegexForScope(scopes[0])
-    return unless increaseIndentPattern and decreaseIndentPattern
+    increaseIndentRegex = @increaseIndentRegexForScopes(scopes)
+    decreaseIndentRegex = @decreaseIndentRegexForScopes(scopes)
+    return unless increaseIndentRegex and decreaseIndentRegex
 
     line = @buffer.lineForRow(bufferRow)
-    return unless decreaseIndentPattern.test(line)
+    return unless decreaseIndentRegex.test(line)
 
     currentIndentLevel = @editSession.indentationForBufferRow(bufferRow)
     precedingRow = @buffer.previousNonBlankRow(bufferRow)
     precedingLine = @buffer.lineForRow(precedingRow)
 
     desiredIndentLevel = @editSession.indentationForBufferRow(precedingRow)
-    desiredIndentLevel -= 1 unless increaseIndentPattern.test(precedingLine)
+    desiredIndentLevel -= 1 unless increaseIndentRegex.test(precedingLine)
     if desiredIndentLevel < currentIndentLevel
       @editSession.setIndentationForBufferRow(bufferRow, desiredIndentLevel)
 
   tokenizeLine: (line, stack, firstLine) ->
     {tokens, stack} = @grammar.tokenizeLine(line, stack, firstLine)
+
+  increaseIndentRegexForScopes: (scopes) ->
+    if increaseIndentPattern = syntax.getProperty(scopes, 'editor.increaseIndentPattern')
+      new OnigRegExp(increaseIndentPattern)
+
+  decreaseIndentRegexForScopes: (scopes) ->
+    if decreaseIndentPattern = syntax.getProperty(scopes, 'editor.decreaseIndentPattern')
+      new OnigRegExp(decreaseIndentPattern)
+
+  foldEndRegexForScopes: (scopes) ->
+    if foldEndPattern = syntax.getProperty(scopes, 'editor.foldEndPattern')
+      new OnigRegExp(foldEndPattern)

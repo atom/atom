@@ -1,11 +1,17 @@
 fs = require 'fs'
 _ = require 'underscore'
 EventEmitter = require 'event-emitter'
+{$$} = require 'space-pen'
+jQuery = require 'jquery'
+Specificity = require 'specificity'
+Theme = require 'theme'
 
 configDirPath = fs.absolute("~/.atom")
 configJsonPath = fs.join(configDirPath, "config.json")
 userInitScriptPath = fs.join(configDirPath, "atom.coffee")
+bundledThemesDirPath = fs.join(resourcePath, "themes")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
+userThemesDirPath = fs.join(configDirPath, "themes")
 userPackagesDirPath = fs.join(configDirPath, "packages")
 
 require.paths.unshift userPackagesDirPath
@@ -13,46 +19,31 @@ require.paths.unshift userPackagesDirPath
 module.exports =
 class Config
   configDirPath: configDirPath
+  themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
+  packageDirPaths: [userPackagesDirPath, bundledPackagesDirPath]
   settings: null
 
+  constructor: ->
+    @settings =
+      core: _.clone(require('root-view').configDefaults)
+      editor: _.clone(require('editor').configDefaults)
+
   load: ->
-    @settings = {}
     @loadUserConfig()
-    @assignDefaults()
-    @loadPackages()
     @requireUserInitScript()
+    atom.loadPackages()
+    Theme.load(config.get("core.theme") ? 'IR_Black')
 
   loadUserConfig: ->
     if fs.exists(configJsonPath)
       userConfig = JSON.parse(fs.read(configJsonPath))
       _.extend(@settings, userConfig)
 
-  assignDefaults: ->
-    @settings ?= {}
-    @setDefaults "core", require('root-view').configDefaults
-    @setDefaults "editor", require('editor').configDefaults
-
-  getAvailablePackages: ->
-    availablePackages =
-      fs.list(bundledPackagesDirPath)
-        .concat(fs.list(userPackagesDirPath)).map (path) -> fs.base(path)
-    _.unique(availablePackages)
-
-  loadPackages: ->
-    disabledPackages = config.get("core.disabledPackages") ? []
-    for packageName in @getAvailablePackages()
-      unless _.contains disabledPackages, packageName
-        atom.loadPackage(packageName)
-
   get: (keyPath) ->
-    keys = @keysForKeyPath(keyPath)
-    value = @settings
-    for key in keys
-      break unless value = value[key]
-    value
+    _.valueForKeyPath(@settings, keyPath)
 
   set: (keyPath, value) ->
-    keys = @keysForKeyPath(keyPath)
+    keys = keyPath.split('.')
     hash = @settings
     while keys.length > 1
       key = keys.shift()
@@ -64,7 +55,7 @@ class Config
     value
 
   setDefaults: (keyPath, defaults) ->
-    keys = @keysForKeyPath(keyPath)
+    keys = keyPath.split('.')
     hash = @settings
     for key in keys
       hash[key] ?= {}
@@ -72,12 +63,6 @@ class Config
 
     _.defaults hash, defaults
     @update()
-
-  keysForKeyPath: (keyPath) ->
-    if typeof keyPath is 'string'
-      keyPath.split(".")
-    else
-      new Array(keyPath...)
 
   observe: (keyPath, callback) ->
     value = @get(keyPath)
