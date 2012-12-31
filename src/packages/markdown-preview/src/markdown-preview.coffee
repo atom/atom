@@ -70,5 +70,4 @@ class MarkdownPreview extends ScrollView
     @markdownBody.show()
 
   isMarkdownFile: (path) ->
-    extension = fs.extension(path)
-    extension is '.md' or extension is '.markdown'
+    fs.isMarkdownExtension(fs.extension(path))

@@ -151,3 +151,12 @@ module.exports =
     _.contains([
       '.pdf'
     ], ext)
+
+  isMarkdownExtension: (ext) ->
+    _.contains([
+      '.markdown'
+      '.md'
+      '.mkd'
+      '.mkdown'
+      '.ron'
+    ], ext)
