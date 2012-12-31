@@ -6,7 +6,7 @@ describe "CommandLogger", ->
 
   beforeEach ->
     rootView = new RootView(require.resolve('fixtures/sample.js'))
-    rootView.activateExtension(CommandLogger)
+    rootView.activatePackage(CommandLogger)
     editor = rootView.getActiveEditor()
     commandLogger = CommandLogger.instance
     rootView.attachToDom()
