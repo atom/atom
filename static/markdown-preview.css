@@ -29,6 +29,14 @@
   font-family: Consolas, "Liberation Mono", Courier, monospace;
 }
 
+.markdown-body ol > li {
+  list-style-type: decimal;
+}
+
+.markdown-body ul > li {
+  list-style-type: disc;
+}
+
 .markdown-spinner {
   margin: auto;
   background-image: url(images/octocat-spinner-128.gif);
