@@ -1,16 +1,27 @@
 _ = require 'underscore'
 fs = require 'fs'
+plist = require 'plist'
 Theme = require 'theme'
 
 module.exports =
 class TextMateTheme extends Theme
-  constructor: (@path, {settings}) ->
+  @testPath: (path) ->
+    /\.(tmTheme|plist)$/.test(path)
+
+  constructor: (@path) ->
     super
     @rulesets = []
-    globalSettings = settings[0]
-    @buildGlobalSettingsRulesets(settings[0])
-    @buildScopeSelectorRulesets(settings[1..])
+
+  load: ->
+    @buildRulesets()
     @stylesheets[@path] = @getStylesheet()
+    super
+
+  buildRulesets: ->
+    plist.parseString fs.read(@path), (error, [{settings}]) =>
+      throw new Error("Error loading theme at '#{@path}': #{error}") if error
+      @buildGlobalSettingsRulesets(settings[0])
+      @buildScopeSelectorRulesets(settings[1..])
 
   getStylesheet: ->
     lines = []
