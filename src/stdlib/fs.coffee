@@ -124,6 +124,13 @@ module.exports =
   md5ForPath: (path) ->
     $native.md5ForPath(path)
 
+  resolve: (paths...) ->
+    to = paths.pop()
+    for from in paths
+      path = @join(from, to)
+      return path if @exists(path)
+    undefined
+
   isCompressedExtension: (ext) ->
     _.contains([
       '.gz'

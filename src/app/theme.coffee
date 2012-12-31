@@ -16,8 +16,8 @@ class Theme
     if fs.exists(name)
       path = name
     else
-      regex = new RegExp("#{_.escapeRegExp(name)}(\.[^.]*)?$", "i")
-      path = _.find fs.list(config.themeDirPath), (path) -> regex.test(path)
+      path = fs.resolve(config.themeDirPaths..., name)
+      path ?= fs.resolve(config.themeDirPaths..., name + ".tmTheme")
 
     if @isTextMateTheme(path)
       theme = @loadTextMateTheme(path)
