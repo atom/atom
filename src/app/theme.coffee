@@ -19,10 +19,8 @@ class Theme
 
     theme =
       if TextMateTheme.testPath(path)
-        console.log "it's TM"
         new TextMateTheme(path)
       else
-        console.log "it's atom"
         new AtomTheme(path)
 
     theme.load()
