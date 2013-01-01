@@ -2,8 +2,6 @@
 # the DOM window.
 
 Native = require 'native'
-TextMateBundle = require 'text-mate-bundle'
-TextMateTheme = require 'text-mate-theme'
 fs = require 'fs'
 _ = require 'underscore'
 $ = require 'jquery'

@@ -1,5 +1,4 @@
 Range = require 'range'
-TextMateBundle = require 'text-mate-bundle'
 _ = require 'underscore'
 require 'underscore-extensions'
 

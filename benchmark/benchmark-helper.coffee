@@ -5,8 +5,6 @@ Keymap = require 'keymap'
 Point = require 'point'
 Config = require 'config'
 Project = require 'project'
-TextMateBundle = require 'text-mate-bundle'
-TextMateTheme = require 'text-mate-theme'
 
 require 'window'
 requireStylesheet "jasmine.css"

@@ -1,8 +1,8 @@
 Package = require 'package'
-TextMateBundle = require 'text-mate-bundle'
 fs = require 'fs'
 plist = require 'plist'
 _ = require 'underscore'
+TextMateGrammar = require 'text-mate-grammar'
 
 module.exports =
 class TextMatePackage extends Package
@@ -18,20 +18,26 @@ class TextMatePackage extends Package
       ).join(' ')
     ).join(', ')
 
-  load: ->
-    @bundle = TextMateBundle.load(@name)
-    @grammars = @bundle.grammars
-    super
-
   constructor: ->
     super
     @preferencesPath = fs.join(@path, "Preferences")
     @syntaxesPath = fs.join(@path, "Syntaxes")
 
+  getGrammars: ->
+    return @grammars if @grammars
+    @grammars = []
+    if fs.exists(@syntaxesPath)
+      for grammarPath in fs.list(@syntaxesPath)
+        try
+          @grammars.push TextMateGrammar.loadFromPath(grammarPath)
+        catch e
+          console.warn "Failed to load grammar at path '#{grammarPath}'", e.stack
+    @grammars
+
   getScopedProperties: ->
     scopedProperties = []
 
-    for grammar in @grammars
+    for grammar in @getGrammars()
       if properties = @propertiesFromTextMateSettings(grammar)
         selector = @cssSelectorFromScopeSelector(grammar.scopeName)
         scopedProperties.push({selector, properties})

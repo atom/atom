@@ -3,7 +3,6 @@ fs = require 'fs'
 $ = require 'jquery'
 _ = require 'underscore'
 TokenizedBuffer = require 'tokenized-buffer'
-TextMateBundle = require 'text-mate-bundle'
 
 describe "editor.", ->
   editor = null

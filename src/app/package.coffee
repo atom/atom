@@ -17,5 +17,8 @@ class Package
     @path = fs.directory(@path) unless fs.isDirectory(@path)
 
   load: ->
+    for grammar in @getGrammars()
+      syntax.addGrammar(grammar)
+
     for { selector, properties } in @getScopedProperties()
       syntax.addProperties(selector, properties)

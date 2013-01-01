@@ -1,4 +1,3 @@
-TextMateBundle = require("text-mate-bundle")
 fs = require 'fs'
 _ = require 'underscore'
 Package = require 'package'

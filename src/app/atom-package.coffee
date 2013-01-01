@@ -3,7 +3,7 @@ fs = require 'fs'
 
 module.exports =
 class AtomPackage extends Package
-  constructor: ->
+  constructor: (@name) ->
     super
     @module = require(@path)
     @module.name = @name
@@ -14,4 +14,4 @@ class AtomPackage extends Package
       extensionKeymapPath = require.resolve(fs.join(@name, "src/keymap"), verifyExistence: false)
       require extensionKeymapPath if fs.exists(extensionKeymapPath)
     catch e
-      console.error "Failed to load package named '#{name}'", e.stack
+      console.error "Failed to load package named '#{@name}'", e.stack

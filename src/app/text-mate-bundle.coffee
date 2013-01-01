@@ -19,13 +19,6 @@ class TextMateBundle
   grammars: null
 
   constructor: (@path) ->
-    @grammars = []
-    if fs.exists(@getSyntaxesPath())
-      for syntaxPath in fs.list(@getSyntaxesPath())
-        try
-          @grammars.push TextMateGrammar.loadFromPath(syntaxPath)
-        catch e
-          console.warn "Failed to load grammar at path '#{syntaxPath}'", e
 
   getSyntaxesPath: ->
     fs.join(@path, "Syntaxes")
