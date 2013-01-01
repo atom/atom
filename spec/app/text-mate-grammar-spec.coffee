@@ -1,5 +1,4 @@
 TextMateGrammar = require 'text-mate-grammar'
-TextMateBundle = require 'text-mate-bundle'
 plist = require 'plist'
 fs = require 'fs'
 _ = require 'underscore'
@@ -8,7 +7,7 @@ describe "TextMateGrammar", ->
   grammar = null
 
   beforeEach ->
-    grammar = TextMateBundle.grammarForFilePath("hello.coffee")
+    grammar = syntax.grammarForFilePath("hello.coffee")
 
   describe ".tokenizeLine(line, ruleStack)", ->
     describe "when the entire line matches a single pattern with no capture groups", ->
@@ -31,7 +30,7 @@ describe "TextMateGrammar", ->
 
     describe "when the line doesn't match any patterns", ->
       it "returns the entire line as a single simple token with the grammar's scope", ->
-        textGrammar = TextMateBundle.grammarForFilePath('foo.txt')
+        textGrammar = syntax.grammarForFilePath('foo.txt')
         {tokens} = textGrammar.tokenizeLine("abc def")
         expect(tokens.length).toBe 1
 
@@ -108,20 +107,20 @@ describe "TextMateGrammar", ->
 
     describe "when the line matches no patterns", ->
       it "does not infinitely loop", ->
-        grammar = TextMateBundle.grammarForFilePath("sample.txt")
+        grammar = syntax.grammarForFilePath("sample.txt")
         {tokens} = grammar.tokenizeLine('hoo')
         expect(tokens.length).toBe 1
         expect(tokens[0]).toEqual value: 'hoo',  scopes: ["text.plain", "meta.paragraph.text"]
 
     describe "when the line matches a pattern with a 'contentName'", ->
       it "creates tokens using the content of contentName as the token name", ->
-        grammar = TextMateBundle.grammarForFilePath("sample.txt")
+        grammar = syntax.grammarForFilePath("sample.txt")
         {tokens} = grammar.tokenizeLine('ok, cool')
         expect(tokens[0]).toEqual value: 'ok, cool',  scopes: ["text.plain", "meta.paragraph.text"]
 
     describe "when the line matches a pattern with no `name` or `contentName`", ->
       it "creates tokens without adding a new scope", ->
-        grammar = TextMateBundle.grammarsByFileType["rb"]
+        grammar = syntax.grammarsByFileType["rb"]
         {tokens} = grammar.tokenizeLine('%w|oh \\look|')
         expect(tokens.length).toBe 5
         expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
@@ -166,7 +165,7 @@ describe "TextMateGrammar", ->
 
       describe "when the end pattern contains a back reference", ->
         it "constructs the end rule based on its back-references to captures in the begin rule", ->
-          grammar = TextMateBundle.grammarsByFileType["rb"]
+          grammar = syntax.grammarsByFileType["rb"]
           {tokens} = grammar.tokenizeLine('%w|oh|,')
           expect(tokens.length).toBe 4
           expect(tokens[0]).toEqual value: '%w|',  scopes: ["source.ruby", "string.quoted.other.literal.lower.ruby", "punctuation.definition.string.begin.ruby"]
@@ -175,7 +174,7 @@ describe "TextMateGrammar", ->
           expect(tokens[3]).toEqual value: ',',  scopes: ["source.ruby", "punctuation.separator.object.ruby"]
 
         it "allows the rule containing that end pattern to be pushed to the stack multiple times", ->
-          grammar = TextMateBundle.grammarsByFileType["rb"]
+          grammar = syntax.grammarsByFileType["rb"]
           {tokens} = grammar.tokenizeLine('%Q+matz had some #{%Q-crazy ideas-} for ruby syntax+ # damn.')
           expect(tokens[0]).toEqual value: '%Q+', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby","punctuation.definition.string.begin.ruby"]
           expect(tokens[1]).toEqual value: 'matz had some ', scopes: ["source.ruby","string.quoted.other.literal.upper.ruby"]
@@ -192,7 +191,7 @@ describe "TextMateGrammar", ->
 
       describe "when the pattern includes rules from another grammar", ->
         it "parses tokens inside the begin/end patterns based on the included grammar's rules", ->
-          grammar = TextMateBundle.grammarsByFileType["html.erb"]
+          grammar = syntax.grammarsByFileType["html.erb"]
           {tokens} = grammar.tokenizeLine("<div class='name'><%= User.find(2).full_name %></div>")
 
           expect(tokens[0]).toEqual value: '<', scopes: ["text.html.ruby","meta.tag.block.any.html","punctuation.definition.tag.begin.html"]
@@ -243,18 +242,18 @@ describe "TextMateGrammar", ->
       expect(tokens[1].value).toBe " a singleLineComment"
 
     it "does not loop infinitely (regression)", ->
-      grammar = TextMateBundle.grammarForFilePath("hello.js")
+      grammar = syntax.grammarForFilePath("hello.js")
       {tokens, ruleStack} = grammar.tokenizeLine("// line comment")
       {tokens, ruleStack} = grammar.tokenizeLine(" // second line comment with a single leading space", ruleStack)
 
     describe "when inside a C block", ->
       it "correctly parses a method. (regression)", ->
-        grammar = TextMateBundle.grammarForFilePath("hello.c")
+        grammar = syntax.grammarForFilePath("hello.c")
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){m()}")
         expect(tokens[5]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]
 
       it "correctly parses nested blocks. (regression)", ->
-        grammar = TextMateBundle.grammarForFilePath("hello.c")
+        grammar = syntax.grammarForFilePath("hello.c")
         {tokens, ruleStack} = grammar.tokenizeLine("if(1){if(1){m()}}")
         expect(tokens[5]).toEqual value: "if", scopes: ["source.c", "meta.block.c", "keyword.control.c"]
         expect(tokens[10]).toEqual value: "m", scopes: ["source.c", "meta.block.c", "meta.block.c", "meta.function-call.c", "support.function.any-method.c"]

@@ -2,14 +2,50 @@ _ = require 'underscore'
 jQuery = require 'jquery'
 Specificity = require 'specificity'
 {$$} = require 'space-pen'
+fs = require 'fs'
 
 module.exports =
 class Syntax
   constructor: ->
+    @grammars = []
+    @grammarsByFileType = {}
+    @grammarsByScopeName = {}
     @globalProperties = {}
     @scopedPropertiesIndex = 0
     @scopedProperties = []
-    @propertiesBySelector = {}
+
+  addGrammar: (grammar) ->
+    @grammars.push(grammar)
+    for fileType in grammar.fileTypes
+      @grammarsByFileType[fileType] = grammar
+      @grammarsByScopeName[grammar.scopeName] = grammar
+
+  grammarForFilePath: (filePath) ->
+    return @grammarsByFileType["txt"] unless filePath
+
+    extension = fs.extension(filePath)?[1..]
+    if filePath and extension.length == 0
+      extension = fs.base(filePath)
+
+    @grammarsByFileType[extension] or
+      @grammarByShebang(filePath) or
+      @grammarByFileTypeSuffix(filePath) or
+      @grammarsByFileType["txt"]
+
+  grammarByFileTypeSuffix: (filePath) ->
+    for fileType, grammar of @grammarsByFileType
+      return grammar if _.endsWith(filePath, fileType)
+
+  grammarByShebang: (filePath) ->
+    try
+      fileContents = fs.read(filePath)
+    catch e
+      null
+
+    _.find @grammars, (grammar) -> grammar.firstLineRegex?.test(fileContents)
+
+  grammarForScopeName: (scopeName) ->
+    @grammarsByScopeName[scopeName]
 
   addProperties: (args...) ->
     selector = args.shift() if args.length > 1

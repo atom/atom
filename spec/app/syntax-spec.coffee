@@ -1,4 +1,22 @@
 describe "the `syntax` global", ->
+  describe ".grammarForFilePath(filePath)", ->
+    it "uses the filePath's extension to load the correct grammar", ->
+      expect(syntax.grammarForFilePath("file.js").name).toBe "JavaScript"
+
+    it "uses the filePath's base name if there is no extension", ->
+      expect(syntax.grammarForFilePath("Rakefile").name).toBe "Ruby"
+
+    it "uses the filePath's shebang line if the grammar cannot be determined by the extension or basename", ->
+      filePath = require.resolve("fixtures/shebang")
+      expect(syntax.grammarForFilePath(filePath).name).toBe "Ruby"
+
+    it "uses the grammar's fileType as a suffix of the full filePath if the grammar cannot be determined by shebang line", ->
+      expect(syntax.grammarForFilePath("/tmp/.git/config").name).toBe "Git Config"
+
+    it "uses plain text if no grammar can be found", ->
+      filePath = require.resolve("this-is-not-a-real-file")
+      expect(syntax.grammarForFilePath(filePath).name).toBe "Plain Text"
+
   describe ".getProperty(scopeDescriptor)", ->
     it "returns the property with the most specific scope selector", ->
       syntax.addProperties(".source.coffee .string.quoted.double.coffee", foo: bar: baz: 42)
