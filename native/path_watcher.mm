@@ -164,7 +164,7 @@ static NSMutableArray *gPathWatchers;
 
     int fd = open([path fileSystemRepresentation], O_EVTONLY, 0);
     if (fd < 0) {
-      NSLog(@"WARNING: Could create file descriptor for path '%@'", path);
+      NSLog(@"WARNING: Could not create file descriptor for path '%@'. Error code %d.", path, fd);
       return NO;
     }
 
