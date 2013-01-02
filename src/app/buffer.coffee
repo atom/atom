@@ -238,7 +238,7 @@ class Buffer
     @undoManager.redo(editSession)
 
   save: ->
-    @saveAs(@getPath())
+    @saveAs(@getPath()) if @isModified()
 
   saveAs: (path) ->
     unless path then throw new Error("Can't save buffer with no file path")

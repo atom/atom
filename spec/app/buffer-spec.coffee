@@ -337,6 +337,7 @@ describe 'Buffer', ->
         filePath = '/tmp/temp.txt'
         fs.write(filePath, "")
         saveBuffer = new Buffer filePath
+        saveBuffer.setText("blah")
 
       it "saves the contents of the buffer to the path", ->
         saveBuffer.setText 'Buffer contents!'
@@ -370,6 +371,7 @@ describe 'Buffer', ->
     describe "when the buffer has no path", ->
       it "throws an exception", ->
         saveBuffer = new Buffer
+        saveBuffer.setText "hi"
         expect(-> saveBuffer.save()).toThrow()
 
   describe "reload()", ->
