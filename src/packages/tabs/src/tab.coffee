@@ -8,23 +8,16 @@ class Tab extends View
       @span class: 'close-icon'
 
   initialize: (@editSession) ->
-    @updateFileName()
-    @editSession.on 'buffer-path-change.tab', =>
-      @updateFileName()
-    @subscribeToBuffer()
-
-  updateTab: ->
-    @updateBufferHasModifiedText(@buffer.isModified())
-
-  subscribeToBuffer: ->
     @buffer = @editSession.buffer
-    @subscribe @buffer, 'contents-modified.tabs', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
-    @subscribe @buffer, 'after-save.tabs', => @updateTab()
-    @subscribe @buffer, 'git-status-change.tabs', => @updateTab()
-    @updateTab()
+    @subscribe @buffer, 'path-change', => @updateFileName()
+    @subscribe @buffer, 'contents-modified', => @updateModifiedStatus()
+    @subscribe @buffer, 'after-save', => @updateModifiedStatus()
+    @subscribe @buffer, 'git-status-change', => @updateModifiedStatus()
+    @updateFileName()
+    @updateModifiedStatus()
 
-  updateBufferHasModifiedText: (differsFromDisk) ->
-    if differsFromDisk
+  updateModifiedStatus: ->
+    if @buffer.isModified()
       @toggleClass('file-modified') unless @isModified
       @isModified = true
     else
