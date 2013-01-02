@@ -73,14 +73,14 @@ class Config
         previousValue = _.clone(value)
         callback(value)
 
-    subscription = { cancel: => @off 'update', updateCallback  }
-    @on 'update', updateCallback
+    subscription = { cancel: => @off 'updated', updateCallback  }
+    @on 'updated', updateCallback
     callback(value)
     subscription
 
   update: ->
     @save()
-    @trigger 'update'
+    @trigger 'updated'
 
   save: ->
     fs.write(configJsonPath, JSON.stringify(@settings, undefined, 2) + "\n")
