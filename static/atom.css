@@ -9,7 +9,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   position: relative;
-  background-color: #F4F4F4;
+  background-color: #333333;
 }
 
 #root-view #horizontal {
