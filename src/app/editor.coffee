@@ -13,8 +13,6 @@ _ = require 'underscore'
 
 module.exports =
 class Editor extends View
-  @idCounter: 1
-
   @configDefaults:
     fontSize: 20
     showInvisibles: false
@@ -63,7 +61,6 @@ class Editor extends View
   initialize: ({editSession, @mini} = {}) ->
     requireStylesheet 'editor.css'
 
-    @id = Editor.idCounter++
     @lineCache = []
     @configure()
     @bindKeys()
@@ -420,7 +417,7 @@ class Editor extends View
     @calculateDimensions()
     @hiddenInput.width(@charWidth)
     @setSoftWrapColumn() if @activeEditSession.getSoftWrap()
-    $(window).on "resize.editor#{@id}", => @requestDisplayUpdate()
+    @subscribe $(window), "resize", => @requestDisplayUpdate()
     @focus() if @isFocused
 
     @resetDisplay()
@@ -616,7 +613,7 @@ class Editor extends View
     if @activeEditSession.getSoftWrap()
       @addClass 'soft-wrap'
       @_setSoftWrapColumn = => @setSoftWrapColumn()
-      $(window).on "resize.editor#{@id}", @_setSoftWrapColumn
+      $(window).on "resize", @_setSoftWrapColumn
     else
       @removeClass 'soft-wrap'
       $(window).off 'resize', @_setSoftWrapColumn
@@ -687,9 +684,6 @@ class Editor extends View
 
     @destroyEditSessions()
 
-    $(window).off ".editor#{@id}"
-    rootView = @rootView()
-    rootView?.off ".editor#{@id}"
     if @pane() then @pane().remove() else super
     rootView?.focus()
 
