@@ -18,6 +18,13 @@ class CommandLogger extends ScrollView
     @instance.serialize()
 
   eventLog: null
+  ignoredEvents: [
+    'core:backspace'
+    'core:cancel'
+    'core:confirm'
+    'editor:newline'
+    'tree-view:directory-modified'
+  ]
 
   initialize: (@rootView, @eventLog={}) ->
     super
@@ -50,9 +57,10 @@ class CommandLogger extends ScrollView
     else
       @attach()
 
-  createRootChildren:  ->
+  createNodes:  ->
     categories = {}
     for eventName, details of @eventLog
+      continue if _.contains(@ignoredEvents, eventName)
       categoryStart = eventName.indexOf(':')
       if categoryStart is -1
         categoryName = 'Uncategorized'
@@ -77,7 +85,7 @@ class CommandLogger extends ScrollView
   addTreeMap: ->
     root =
      name: 'All'
-     children: @createRootChildren()
+     children: @createNodes()
     node = root
 
     @treeMap.empty()

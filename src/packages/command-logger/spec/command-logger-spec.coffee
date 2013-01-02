@@ -38,3 +38,13 @@ describe "CommandLogger", ->
       expect(commandLogger.eventLog['core:backspace'].count).toBe 1
       rootView.trigger 'command-logger:clear-data'
       expect(commandLogger.eventLog['core:backspace']).toBeUndefined()
+
+  describe "when an event is ignored", ->
+    it "does not create a node for that event", ->
+      commandLogger.ignoredEvents.push 'editor:delete-line'
+      editor.trigger 'editor:delete-line'
+      nodes = commandLogger.createNodes()
+      for node in nodes
+        continue unless node.name is 'Editor'
+        for child in node.children
+          expect(child.name.indexOf('Delete Line')).toBe -1
