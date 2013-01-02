@@ -364,6 +364,26 @@ describe "Autocomplete", ->
         expect(autocompleteBottom).toBe cursorPixelPosition.top
         expect(autocomplete.position().left).toBe cursorPixelPosition.left
 
+      it "updates the position when the list is filtered and the height of the list decreases", ->
+        editor.setCursorScreenPosition([11, 0])
+        editor.insertText('s')
+        editor.setCursorScreenPosition([11, 0])
+        cursorPixelPosition = editor.pixelPositionForScreenPosition(editor.getCursorScreenPosition())
+        autocomplete.attach()
+
+        expect(autocomplete.parent()).toExist()
+        autocompleteBottom = autocomplete.position().top + autocomplete.outerHeight()
+        expect(autocompleteBottom).toBe cursorPixelPosition.top
+        expect(autocomplete.position().left).toBe cursorPixelPosition.left
+
+        miniEditor.textInput('sh')
+        window.advanceClock(autocomplete.inputThrottle)
+
+        expect(autocomplete.parent()).toExist()
+        autocompleteBottom = autocomplete.position().top + autocomplete.outerHeight()
+        expect(autocompleteBottom).toBe cursorPixelPosition.top
+        expect(autocomplete.position().left).toBe cursorPixelPosition.left
+
   describe ".cancel()", ->
     it "clears the mini-editor and unbinds autocomplete event handlers for move-up and move-down", ->
       autocomplete.attach()

@@ -16,6 +16,8 @@ class Autocomplete extends SelectList
   wordList: null
   wordRegex: /\w+/g
   originalSelectionBufferRange: null
+  originalCursorPosition: null
+  aboveCursor: false
   undoCount: 0
   filterKey: 'word'
 
@@ -82,8 +84,9 @@ class Autocomplete extends SelectList
 
   attach: ->
     @undoCount = 0
+    @aboveCursor = false
     @originalSelectionBufferRange = @editor.getSelection().getBufferRange()
-    originalCursorPosition = @editor.getCursorScreenPosition()
+    @originalCursorPosition = @editor.getCursorScreenPosition()
 
     @buildWordList()
     matches = @findMatchesForCurrentSelection()
@@ -93,7 +96,7 @@ class Autocomplete extends SelectList
       @confirmSelection()
     else
       @editor.appendToLinesView(this)
-      @setPosition(originalCursorPosition)
+      @setPosition()
     @miniEditor.focus()
 
   detach: ->
@@ -102,18 +105,18 @@ class Autocomplete extends SelectList
     @editor.off(".autocomplete")
     @editor.focus()
 
-  setPosition: (originalCursorPosition) ->
-    { left, top } = @editor.pixelPositionForScreenPosition(originalCursorPosition)
+  setPosition: ->
+    { left, top } = @editor.pixelPositionForScreenPosition(@originalCursorPosition)
 
     height = @outerHeight()
     potentialTop = top + @editor.lineHeight
-    potentialBottom = potentialTop - @editor.scrollTop()  + height
+    potentialBottom = potentialTop - @editor.scrollTop() + height
 
-    if potentialBottom > @editor.outerHeight()
+    if @aboveCursor or potentialBottom > @editor.outerHeight()
+      @aboveCursor = true
       @css(left: left, top: top - height, bottom: 'inherit')
     else
       @css(left: left, top: potentialTop, bottom: 'inherit')
-
 
   findMatchesForCurrentSelection: ->
     selection = @editor.getSelection()
@@ -157,3 +160,8 @@ class Autocomplete extends SelectList
         suffix = match[0][suffixOffset..] if range.end.isGreaterThan(selectionRange.end)
 
     {prefix, suffix}
+
+  populateList: ->
+    super()
+
+    @setPosition()
