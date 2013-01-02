@@ -31,7 +31,6 @@ class Autocomplete extends SelectList
 
   handleEvents: ->
     @editor.on 'editor-path-change', => @setCurrentBuffer(@editor.getBuffer())
-    @editor.on 'before-remove', => @currentBuffer?.off '.autocomplete'
     @editor.command 'autocomplete:attach', => @attach()
 
     @miniEditor.preempt 'textInput', (e) =>
