@@ -276,3 +276,163 @@
     padding: 0;
     background-color: transparent;
     border: none; }
+
+/* this code was copied from https://github.com/assets/stylesheets/primer/components/pygments.css */
+/* the .markdown-body class was then added to all rules */
+.markdown-body .highlight {
+  background: #ffffff; }
+  .markdown-body .highlight .c {
+    color: #999988;
+    font-style: italic; }
+  .markdown-body .highlight .err {
+    color: #a61717;
+    background-color: #e3d2d2; }
+  .markdown-body .highlight .k {
+    font-weight: bold; }
+  .markdown-body .highlight .o {
+    font-weight: bold; }
+  .markdown-body .highlight .cm {
+    color: #999988;
+    font-style: italic; }
+  .markdown-body .highlight .cp {
+    color: #999999;
+    font-weight: bold; }
+  .markdown-body .highlight .c1 {
+    color: #999988;
+    font-style: italic; }
+  .markdown-body .highlight .cs {
+    color: #999999;
+    font-weight: bold;
+    font-style: italic; }
+  .markdown-body .highlight .gd {
+    color: #000000;
+    background-color: #ffdddd; }
+  .markdown-body .highlight .gd .x {
+    color: #000000;
+    background-color: #ffaaaa; }
+  .markdown-body .highlight .ge {
+    font-style: italic; }
+  .markdown-body .highlight .gr {
+    color: #aa0000; }
+  .markdown-body .highlight .gh {
+    color: #999999; }
+  .markdown-body .highlight .gi {
+    color: #000000;
+    background-color: #ddffdd; }
+  .markdown-body .highlight .gi .x {
+    color: #000000;
+    background-color: #aaffaa; }
+  .markdown-body .highlight .go {
+    color: #888888; }
+  .markdown-body .highlight .gp {
+    color: #555555; }
+  .markdown-body .highlight .gs {
+    font-weight: bold; }
+  .markdown-body .highlight .gu {
+    color: #800080;
+    font-weight: bold; }
+  .markdown-body .highlight .gt {
+    color: #aa0000; }
+  .markdown-body .highlight .kc {
+    font-weight: bold; }
+  .markdown-body .highlight .kd {
+    font-weight: bold; }
+  .markdown-body .highlight .kn {
+    font-weight: bold; }
+  .markdown-body .highlight .kp {
+    font-weight: bold; }
+  .markdown-body .highlight .kr {
+    font-weight: bold; }
+  .markdown-body .highlight .kt {
+    color: #445588;
+    font-weight: bold; }
+  .markdown-body .highlight .m {
+    color: #009999; }
+  .markdown-body .highlight .s {
+    color: #d14; }
+  .markdown-body .highlight .na {
+    color: #008080; }
+  .markdown-body .highlight .nb {
+    color: #0086B3; }
+  .markdown-body .highlight .nc {
+    color: #445588;
+    font-weight: bold; }
+  .markdown-body .highlight .no {
+    color: #008080; }
+  .markdown-body .highlight .ni {
+    color: #800080; }
+  .markdown-body .highlight .ne {
+    color: #990000;
+    font-weight: bold; }
+  .markdown-body .highlight .nf {
+    color: #990000;
+    font-weight: bold; }
+  .markdown-body .highlight .nn {
+    color: #555555; }
+  .markdown-body .highlight .nt {
+    color: #000080; }
+  .markdown-body .highlight .nv {
+    color: #008080; }
+  .markdown-body .highlight .ow {
+    font-weight: bold; }
+  .markdown-body .highlight .w {
+    color: #bbbbbb; }
+  .markdown-body .highlight .mf {
+    color: #009999; }
+  .markdown-body .highlight .mh {
+    color: #009999; }
+  .markdown-body .highlight .mi {
+    color: #009999; }
+  .markdown-body .highlight .mo {
+    color: #009999; }
+  .markdown-body .highlight .sb {
+    color: #d14; }
+  .markdown-body .highlight .sc {
+    color: #d14; }
+  .markdown-body .highlight .sd {
+    color: #d14; }
+  .markdown-body .highlight .s2 {
+    color: #d14; }
+  .markdown-body .highlight .se {
+    color: #d14; }
+  .markdown-body .highlight .sh {
+    color: #d14; }
+  .markdown-body .highlight .si {
+    color: #d14; }
+  .markdown-body .highlight .sx {
+    color: #d14; }
+  .markdown-body .highlight .sr {
+    color: #009926; }
+  .markdown-body .highlight .s1 {
+    color: #d14; }
+  .markdown-body .highlight .ss {
+    color: #990073; }
+  .markdown-body .highlight .bp {
+    color: #999999; }
+  .markdown-body .highlight .vc {
+    color: #008080; }
+  .markdown-body .highlight .vg {
+    color: #008080; }
+  .markdown-body .highlight .vi {
+    color: #008080; }
+  .markdown-body .highlight .il {
+    color: #009999; }
+  .markdown-body .highlight .gc {
+    color: #999;
+    background-color: #EAF2F5; }
+
+.type-csharp .markdown-body .highlight .k {
+  color: #0000FF; }
+.type-csharp .markdown-body .highlight .kt {
+  color: #0000FF; }
+.type-csharp .markdown-body .highlight .nf {
+  color: #000000;
+  font-weight: normal; }
+.type-csharp .markdown-body .highlight .nc {
+  color: #2B91AF; }
+.type-csharp .markdown-body .highlight .nn {
+  color: #000000; }
+.type-csharp .markdown-body .highlight .s {
+  color: #A31515; }
+.type-csharp .markdown-body .highlight .sc {
+  color: #A31515; }
