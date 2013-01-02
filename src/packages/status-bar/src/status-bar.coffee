@@ -36,8 +36,8 @@ class StatusBar extends View
       @updatePathText()
 
     @updateCursorPositionText()
-    @editor.on 'cursor-move', => @updateCursorPositionText()
-    $(window).on 'focus', => @updateStatusBar()
+    @subscribe @editor, 'cursor-move', => @updateCursorPositionText()
+    @subscribe $(window), 'focus', => @updateStatusBar()
 
     @subscribeToBuffer()
 
