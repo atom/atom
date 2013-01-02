@@ -15,7 +15,7 @@ class Selection
     @cursor.on 'moved.selection', ({bufferChange}) =>
       @screenRangeChanged() unless bufferChange
 
-    @cursor.on 'destroy.selection', =>
+    @cursor.on 'destroyed.selection', =>
       @cursor = null
       @destroy()
 

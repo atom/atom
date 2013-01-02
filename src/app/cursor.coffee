@@ -27,7 +27,7 @@ class Cursor
   destroy: ->
     @anchor.destroy()
     @editSession.removeCursor(this)
-    @trigger 'destroy'
+    @trigger 'destroyed'
 
   setScreenPosition: (screenPosition, options) ->
     @goalColumn = null
@@ -52,7 +52,7 @@ class Cursor
     if @visible != visible
       @visible = visible
       @needsAutoscroll = @visible and @isLastCursor()
-      @trigger 'change-visibility', @visible
+      @trigger 'visibility-changed', @visible
 
   isVisible: -> @visible
 

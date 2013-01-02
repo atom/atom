@@ -23,11 +23,11 @@ class CursorView extends View
       @shouldPauseBlinking = true
       @editor.requestDisplayUpdate()
 
-    @cursor.on 'change-visibility.cursor-view', (visible) =>
+    @cursor.on 'visibility-changed.cursor-view', (visible) =>
       @needsUpdate = true
       @editor.requestDisplayUpdate()
 
-    @cursor.on 'destroy.cursor-view', =>
+    @cursor.on 'destroyed.cursor-view', =>
       @needsRemoval = true
       @editor.requestDisplayUpdate()
 
@@ -43,7 +43,7 @@ class CursorView extends View
     unless _.isEqual(@lastPixelPosition, pixelPosition)
       changedPosition = true
       @css(pixelPosition)
-      @trigger 'cursor-move'
+      @trigger 'cursor:moved'
 
     if @shouldPauseBlinking
       @resetBlinking()
