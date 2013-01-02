@@ -9,7 +9,7 @@ module.exports =
       @stripTrailingWhitespaceBeforeSave(buffer)
 
   stripTrailingWhitespaceBeforeSave: (buffer) ->
-    buffer.on 'before-save', ->
+    buffer.on 'will-save', ->
       buffer.transact ->
         buffer.scan /[ \t]+$/g, (match, range, { replace }) ->
           replace('')

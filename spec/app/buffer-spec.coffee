@@ -42,7 +42,7 @@ describe 'Buffer', ->
         buffer = new Buffer
         expect(buffer .getText()).toBe ""
 
-  describe "path-change event", ->
+  describe "path-changed event", ->
     [path, newPath, bufferToChange, eventHandler] = []
 
     beforeEach ->
@@ -51,18 +51,18 @@ describe 'Buffer', ->
       fs.write(path, "")
       bufferToChange = new Buffer(path)
       eventHandler = jasmine.createSpy('eventHandler')
-      bufferToChange.on 'path-change', eventHandler
+      bufferToChange.on 'path-changed', eventHandler
 
     afterEach ->
       bufferToChange.destroy()
       fs.remove(path) if fs.exists(path)
       fs.remove(newPath) if fs.exists(newPath)
 
-    it "triggers a `path-change` event when path is changed", ->
+    it "triggers a `path-changed` event when path is changed", ->
       bufferToChange.saveAs(newPath)
       expect(eventHandler).toHaveBeenCalledWith(bufferToChange)
 
-    it "triggers a `path-change` event when the file is moved", ->
+    it "triggers a `path-changed` event when the file is moved", ->
       fs.remove(newPath) if fs.exists(newPath)
       fs.move(path, newPath)
 
@@ -344,29 +344,29 @@ describe 'Buffer', ->
         saveBuffer.save()
         expect(fs.read(filePath)).toEqual 'Buffer contents!'
 
-      it "fires before-save and after-save events around the call to fs.write", ->
+      it "fires will-save and saved events around the call to fs.write", ->
         events = []
         beforeSave1 = -> events.push('beforeSave1')
         beforeSave2 = -> events.push('beforeSave2')
         afterSave1 = -> events.push('afterSave1')
         afterSave2 = -> events.push('afterSave2')
 
-        saveBuffer.on 'before-save', beforeSave1
-        saveBuffer.on 'before-save', beforeSave2
+        saveBuffer.on 'will-save', beforeSave1
+        saveBuffer.on 'will-save', beforeSave2
         spyOn(fs, 'write').andCallFake -> events.push 'fs.write'
-        saveBuffer.on 'after-save', afterSave1
-        saveBuffer.on 'after-save', afterSave2
+        saveBuffer.on 'saved', afterSave1
+        saveBuffer.on 'saved', afterSave2
 
         saveBuffer.save()
         expect(events).toEqual ['beforeSave1', 'beforeSave2', 'fs.write', 'afterSave1', 'afterSave2']
 
-      it "fires before-reload and after-reload events when reloaded", ->
+      it "fires will-reload and reloaded events when reloaded", ->
         events = []
 
-        saveBuffer.on 'before-reload', -> events.push 'before-reload'
-        saveBuffer.on 'after-reload', -> events.push 'after-reload'
+        saveBuffer.on 'will-reload', -> events.push 'will-reload'
+        saveBuffer.on 'reloaded', -> events.push 'reloaded'
         saveBuffer.reload()
-        expect(events).toEqual ['before-reload', 'after-reload']
+        expect(events).toEqual ['will-reload', 'reloaded']
 
     describe "when the buffer has no path", ->
       it "throws an exception", ->
@@ -396,7 +396,7 @@ describe 'Buffer', ->
 
       saveAsBuffer = new Buffer().retain()
       eventHandler = jasmine.createSpy('eventHandler')
-      saveAsBuffer.on 'path-change', eventHandler
+      saveAsBuffer.on 'path-changed', eventHandler
 
       saveAsBuffer.setText 'Buffer contents!'
       saveAsBuffer.saveAs(filePath)
@@ -648,7 +648,7 @@ describe 'Buffer', ->
     beforeEach ->
       destroyHandler = jasmine.createSpy("destroyHandler")
       anchor = buffer.addAnchorAtPosition([4, 25])
-      anchor.on 'destroy', destroyHandler
+      anchor.on 'destroyed', destroyHandler
 
     describe "when anchor.ignoreChangesStartingOnAnchor is true", ->
       beforeEach ->

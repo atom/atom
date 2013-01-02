@@ -50,7 +50,7 @@ class EditSession
     @addCursorAtScreenPosition([0, 0])
 
     @buffer.retain()
-    @buffer.on "path-change.edit-session-#{@id}", =>
+    @buffer.on "path-changed.edit-session-#{@id}", =>
       @trigger "buffer-path-change"
 
     @buffer.on "contents-conflicted.edit-session-#{@id}", =>
@@ -604,9 +604,9 @@ class EditSession
 
   preserveCursorPositionOnBufferReload: ->
     cursorPosition = null
-    @buffer.on "before-reload.edit-session-#{@id}", =>
+    @buffer.on "will-reload.edit-session-#{@id}", =>
       cursorPosition = @getCursorBufferPosition()
-    @buffer.on "after-reload.edit-session-#{@id}", =>
+    @buffer.on "reloaded.edit-session-#{@id}", =>
       @setCursorBufferPosition(cursorPosition) if cursorPosition
       cursorPosition = null
 

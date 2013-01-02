@@ -1732,7 +1732,7 @@ describe "EditSession", ->
     beforeEach ->
       destroyHandler = jasmine.createSpy("destroyHandler")
       anchor = editSession.addAnchorAtBufferPosition([4, 25])
-      anchor.on 'destroy', destroyHandler
+      anchor.on 'destroyed', destroyHandler
 
     describe "when a buffer change precedes an anchor", ->
       it "moves the anchor in accordance with the change", ->

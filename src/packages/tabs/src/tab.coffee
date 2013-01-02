@@ -9,10 +9,10 @@ class Tab extends View
 
   initialize: (@editSession) ->
     @buffer = @editSession.buffer
-    @subscribe @buffer, 'path-change', => @updateFileName()
+    @subscribe @buffer, 'path-changed', => @updateFileName()
     @subscribe @buffer, 'contents-modified', => @updateModifiedStatus()
-    @subscribe @buffer, 'after-save', => @updateModifiedStatus()
-    @subscribe @buffer, 'git-status-change', => @updateModifiedStatus()
+    @subscribe @buffer, 'saved', => @updateModifiedStatus()
+    @subscribe @buffer, 'git-status-changed', => @updateModifiedStatus()
     @updateFileName()
     @updateModifiedStatus()
 

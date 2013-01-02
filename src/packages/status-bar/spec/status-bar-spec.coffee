@@ -151,12 +151,12 @@ describe "StatusBar", ->
       rootView.open(newPath)
       expect(statusBar.gitStatusIcon).toHaveClass('new-status-icon')
 
-    it "updates when a git-status-change event occurs", ->
+    it "updates when a git-status-changed event occurs", ->
       fs.write(path, "i've changed for the worse")
       rootView.open(path)
       expect(statusBar.gitStatusIcon).toHaveClass('modified-status-icon')
       fs.write(path, originalPathText)
-      rootView.getActiveEditor().getBuffer().trigger 'git-status-change'
+      rootView.getActiveEditor().getBuffer().trigger 'git-status-changed'
       expect(statusBar.gitStatusIcon).not.toHaveClass('modified-status-icon')
 
     it "updates when the window receives focus", ->

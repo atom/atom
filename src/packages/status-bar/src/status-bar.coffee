@@ -45,8 +45,8 @@ class StatusBar extends View
     @buffer?.off '.status-bar'
     @buffer = @editor.getBuffer()
     @buffer.on 'contents-modified.status-bar', (e) => @updateBufferHasModifiedText(e.differsFromDisk)
-    @buffer.on 'after-save.status-bar', => @updateStatusBar()
-    @buffer.on 'git-status-change.status-bar', => @updateStatusBar()
+    @buffer.on 'saved.status-bar', => @updateStatusBar()
+    @buffer.on 'git-status-changed.status-bar', => @updateStatusBar()
     @updateStatusBar()
 
   updateStatusBar: ->

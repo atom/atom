@@ -70,13 +70,13 @@ class Buffer
       @trigger "contents-modified", {differsFromDisk: true}
 
     @file.on "move", =>
-      @trigger "path-change", this
+      @trigger "path-changed", this
 
   reload: ->
-    @trigger 'before-reload'
+    @trigger 'will-reload'
     @updateCachedDiskContents()
     @setText(@cachedDiskContents)
-    @trigger 'after-reload'
+    @trigger 'reloaded'
 
   updateCachedDiskContents: ->
     @cachedDiskContents = @file.read()
@@ -98,7 +98,7 @@ class Buffer
       @file.read()
       @subscribeToFile()
 
-    @trigger "path-change", this
+    @trigger "path-changed", this
 
   getExtension: ->
     if @getPath()
@@ -243,12 +243,12 @@ class Buffer
   saveAs: (path) ->
     unless path then throw new Error("Can't save buffer with no file path")
 
-    @trigger 'before-save'
+    @trigger 'will-save'
     @setPath(path)
     @cachedDiskContents = @getText()
     @file.write(@getText())
     @subscribeToFile()
-    @trigger 'after-save'
+    @trigger 'saved'
 
   isModified: ->
     if @file
@@ -393,7 +393,7 @@ class Buffer
     path = @getPath()
     return unless path
     if @git?.checkoutHead(path)
-      @trigger 'git-status-change'
+      @trigger 'git-status-changed'
 
   scheduleStoppedChangingEvent: ->
     clearTimeout(@stoppedChangingTimeout) if @stoppedChangingTimeout

@@ -83,6 +83,6 @@ class Anchor
   destroy: ->
     @buffer.removeAnchor(this)
     @editSession?.removeAnchor(this)
-    @trigger 'destroy'
+    @trigger 'destroyed'
 
 _.extend(Anchor.prototype, EventEmitter)
