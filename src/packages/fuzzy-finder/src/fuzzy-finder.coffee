@@ -21,7 +21,7 @@ class FuzzyFinder extends SelectList
 
   initialize: (@rootView) ->
     super
-    $(window).on 'focus', => @projectPaths = null
+    @subscribe $(window), 'focus', => @projectPaths = null
     @observeConfig 'fuzzy-finder.ignoredNames', (ignoredNames) =>
       @projectPaths = null
 
