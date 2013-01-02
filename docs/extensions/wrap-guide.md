@@ -7,8 +7,23 @@ By default the wrap-guide is placed at the 80th column.
 
 #### Configuration
 
-Setting the wrap guide column still needs to be converted to the new config
-system. Bug someone if you find this and we still haven't done it.
+You can customize where the column is placed using the `wrapGuide.columns`
+config option.
+
+```json
+{
+  "wrapGuide": {
+    "columns": [
+      { "pattern": "\.mm$", "column": 200 },
+      { "pattern": "\.cc$", "column": 120 }
+    ]
+  }
+}
+```
+
+The above config example would place the guide at the 200th column for paths
+that end with `.mm` and place the guide at the 120th column for paths that end
+with `.cc`.
 
 You can configure the color and/or width of the line by adding the following
 CSS to a custom stylesheet:
