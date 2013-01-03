@@ -39,7 +39,7 @@ class PreviewList extends ScrollView
         for operation in ops
           {prefix, suffix, match, range} = operation.preview()
           @li 'data-index': operation.index, class: 'operation', =>
-            @span "#{range.start.row}:", class: "path"
+            @span "#{range.start.row + 1}:", class: "path"
             @span outlet: "preview", class: "preview", =>
               @span prefix
               @span match, class: 'match'
