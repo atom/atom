@@ -17,7 +17,7 @@ class PreviewList extends ScrollView
     @on 'core:move-up', => @selectPreviousOperation(); false
     @on 'core:confirm', => @executeSelectedOperation()
 
-    @on 'mousedown', 'li', (e) =>
+    @on 'mousedown', 'li.operation', (e) =>
       @setSelectedOperationIndex(parseInt($(e.target).closest('li').data('index')))
       @executeSelectedOperation()
 
