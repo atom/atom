@@ -15,17 +15,28 @@ class Keymap
     @bindingSetsByFirstKeystroke = {}
 
   bindDefaultKeys: ->
-    @bindKeys "*",
-      'meta-n': 'new-window'
-      'meta-,': 'open-user-configuration'
-      'meta-o': 'open'
-      'meta-O': 'open-unstable'
-      'meta-w': 'core:close'
+    @add
+      'body':
+        'meta-n': 'new-window'
+        'meta-,': 'open-user-configuration'
+        'meta-o': 'open'
+        'meta-O': 'open-unstable'
+        'meta-w': 'core:close'
 
     $(document).command 'new-window', => atom.newWindow()
     $(document).command 'open-user-configuration', => atom.open(config.configDirPath)
     $(document).command 'open', => atom.open()
     $(document).command 'open-unstable', => atom.openUnstable()
+
+  loadDirectory: (directoryPath) ->
+    @load(filePath) for filePath in fs.list(directoryPath)
+
+  load: (path) ->
+    @add(fs.readObject(path))
+
+  add: (keymap) ->
+    for selector, bindings of keymap
+      @bindKeys(selector, bindings)
 
   bindKeys: (selector, bindings) ->
     bindingSet = new BindingSet(selector, bindings, @bindingSets.length)

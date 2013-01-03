@@ -11,7 +11,17 @@ class AtomPackage extends Package
   load: ->
     try
       rootView.activatePackage(@module)
-      extensionKeymapPath = require.resolve(fs.join(@name, "src/keymap"), verifyExistence: false)
-      require extensionKeymapPath if fs.exists(extensionKeymapPath)
+      @loadKeymaps()
     catch e
       console.error "Failed to load package named '#{@name}'", e.stack
+
+  loadKeymaps: ->
+    for keymapPath in @getKeymapPaths()
+      keymap.load(keymapPath)
+
+  getKeymapPaths: ->
+    keymapsDirPath = fs.join(@path, 'keymaps')
+    if fs.exists keymapsDirPath
+      fs.list keymapsDirPath
+    else
+      []

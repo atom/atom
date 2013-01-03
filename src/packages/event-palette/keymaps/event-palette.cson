@@ -1,0 +1,5 @@
+'body, .event-palette .editor':
+  'meta-p': 'event-palette:toggle'
+
+'.event-palette .editor':
+  'meta-p': 'event-palette:toggle'

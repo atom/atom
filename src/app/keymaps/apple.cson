@@ -1,10 +1,10 @@
-window.keymap.bindKeys 'body'
+'body':
   'meta-up': 'core:move-to-top'
   'meta-down': 'core:move-to-bottom'
   'meta-shift-up': 'core:select-to-top'
   'meta-shift-down': 'core:select-to-bottom'
 
-window.keymap.bindKeys '.editor'
+'.editor':
   'meta-right': 'editor:move-to-end-of-line'
   'meta-left': 'editor:move-to-beginning-of-line'
   'alt-left': 'editor:move-to-beginning-of-word'

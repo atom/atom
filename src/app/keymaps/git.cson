@@ -1,2 +1,2 @@
-window.keymap.bindKeys '.editor',
+'.editor':
   'alt-meta-z': 'editor:checkout-head-revision'

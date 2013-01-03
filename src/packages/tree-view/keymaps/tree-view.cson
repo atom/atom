@@ -1,8 +1,8 @@
-window.keymap.bindKeys '#root-view'
+'#root-view':
   'meta-\\': 'tree-view:toggle'
   'meta-|': 'tree-view:reveal-active-file'
 
-window.keymap.bindKeys '.tree-view'
+'.tree-view':
   'right': 'tree-view:expand-directory'
   'left': 'tree-view:collapse-directory'
   'enter': 'tree-view:open-selected-entry'
@@ -11,6 +11,6 @@ window.keymap.bindKeys '.tree-view'
   'delete': 'tree-view:remove'
   'backspace': 'tree-view:remove'
 
-window.keymap.bindKeys '.tree-view-dialog .mini.editor'
+'.tree-view-dialog .mini.editor':
   'enter': 'core:confirm'
   'escape': 'core:cancel'

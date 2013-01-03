@@ -1,4 +1,4 @@
-window.keymap.bindKeys 'body',
+'body':
   'ctrl-p': 'core:move-up'
   'ctrl-n': 'core:move-down'
   'ctrl-b': 'core:move-left'
@@ -10,7 +10,7 @@ window.keymap.bindKeys 'body',
   'ctrl-h': 'core:backspace'
   'ctrl-d': 'core:delete'
 
-window.keymap.bindKeys '.editor',
+'.editor':
   'alt-f': 'editor:move-to-end-of-word'
   'alt-F': 'editor:select-to-end-of-word'
   'alt-b': 'editor:move-to-beginning-of-word'

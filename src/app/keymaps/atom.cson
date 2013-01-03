@@ -1,4 +1,4 @@
-window.keymap.bindKeys 'body'
+'body':
   'enter': 'core:confirm'
   'escape': 'core:cancel'
   'meta-w': 'core:close'
@@ -29,6 +29,6 @@ window.keymap.bindKeys 'body'
 
   'alt-meta-i': 'toggle-dev-tools'
 
-window.keymap.bindKeys '.tool-panel'
+'.tool-panel':
   'meta-escape': 'tool-panel:unfocus'
   'escape': 'core:close'

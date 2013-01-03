@@ -1,4 +1,4 @@
-window.keymap.bindKeys '.editor',
+'.editor':
   'meta-s': 'editor:save'
   'enter': 'editor:newline'
   'meta-enter': 'editor:newline-below'

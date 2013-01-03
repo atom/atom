@@ -1,0 +1,8 @@
+'.editor':
+  'ctrl-space': 'autocomplete:attach'
+
+'.autocomplete .editor':
+  'ctrl-space': 'core:cancel'
+
+'.autocomplete .mini.editor input':
+  'enter': 'core:confirm'

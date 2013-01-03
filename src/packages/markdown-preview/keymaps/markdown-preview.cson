@@ -1,0 +1,5 @@
+'.editor':
+  'ctrl-m': 'markdown-preview:toggle'
+
+'.markdown-preview':
+  'ctrl-m': 'markdown-preview:toggle'

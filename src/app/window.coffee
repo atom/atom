@@ -56,7 +56,7 @@ windowAdditions =
 
     @keymap = new Keymap()
     @keymap.bindDefaultKeys()
-    require(keymapPath) for keymapPath in fs.list(require.resolve("keymaps"))
+    @keymap.loadDirectory(require.resolve('keymaps'))
 
     @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
     $(document).on 'keydown', @_handleKeyEvent

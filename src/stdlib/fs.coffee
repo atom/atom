@@ -160,3 +160,11 @@ module.exports =
       '.mkdown'
       '.ron'
     ], ext)
+
+  readObject: (path) ->
+    contents = @read(path)
+    if @extension(path) is '.cson'
+      {CoffeeScript} = require 'coffee-script'
+      CoffeeScript.eval(contents, bare: true)
+    else
+      JSON.parse(contents)
