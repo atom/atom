@@ -9,7 +9,8 @@
   overflow: auto;
   margin-bottom: 3px;
   position: relative;
-  background: #161616;
+  background-color: #000000;
+  color: #ededed;
 }
 
 .command-panel .preview-list {
@@ -33,11 +34,6 @@
 .command-panel .preview-list .operation {
   padding-top: 2px;
   padding-bottom: 2px;
-}
-
-.command-panel .preview-list .li {
-  background-color: #000000;
-  color: #ededed;
 }
 
 .command-panel .preview-list .line-number {
