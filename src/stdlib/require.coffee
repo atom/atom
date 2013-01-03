@@ -8,7 +8,6 @@ paths = [
   "#{window.resourcePath}/vendor/packages"
   "#{window.resourcePath}/vendor"
   "#{window.resourcePath}/static"
-  "#{window.resourcePath}/bundles"
   "#{window.resourcePath}/themes"
   "#{window.resourcePath}"
 ]
