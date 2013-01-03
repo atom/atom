@@ -87,6 +87,7 @@ end
 
 desc "Clone default bundles into vendor/bundles directory"
 task "clone-default-bundles" do
+  `git submodule sync`
   `git submodule update --recursive --init`
 end
 
