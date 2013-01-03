@@ -5,8 +5,6 @@ $ = require 'jquery'
 module.exports =
 class StatusBar extends View
   @activate: (rootView) ->
-    requireStylesheet 'status-bar.css'
-
     for editor in rootView.getEditors()
       @appendToEditorPane(rootView, editor) if rootView.parents('html').length
 

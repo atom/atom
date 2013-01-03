@@ -12,8 +12,6 @@ _ = require 'underscore'
 module.exports =
 class TreeView extends ScrollView
   @activate: (rootView, state) ->
-    requireStylesheet 'tree-view.css'
-
     if state
       @instance = TreeView.deserialize(state, rootView)
     else

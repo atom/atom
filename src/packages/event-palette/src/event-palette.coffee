@@ -6,7 +6,6 @@ _ = require 'underscore'
 module.exports =
 class EventPalette extends SelectList
   @activate: (rootView) ->
-    requireStylesheet 'event-palette/event-palette.css'
     @instance = new EventPalette(rootView)
     rootView.command 'event-palette:toggle', => @instance.attach()
 

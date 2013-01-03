@@ -5,8 +5,6 @@ _ = require 'underscore'
 module.exports =
 class WrapGuide extends View
   @activate: (rootView, state) ->
-    requireStylesheet 'wrap-guide.css'
-
     for editor in rootView.getEditors()
       if rootView.parents('html').length
         @appendToEditorPane(rootView, editor)

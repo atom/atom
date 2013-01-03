@@ -5,8 +5,6 @@ Tab = require 'tabs/src/tab'
 module.exports =
 class Tabs extends View
   @activate: (rootView) ->
-    requireStylesheet 'tabs/src/tabs.css'
-
     for editor in rootView.getEditors()
       @prependToEditorPane(rootView, editor) if rootView.parents('html').length
 

@@ -6,7 +6,6 @@ $ = require 'jquery'
 module.exports =
 class MarkdownPreview extends ScrollView
   @activate: (rootView, state) ->
-    requireStylesheet 'markdown-preview.css'
     @instance = new this(rootView)
 
   @content: (rootView) ->

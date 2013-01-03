@@ -11,7 +11,6 @@ _ = require 'underscore'
 module.exports =
 class CommandPanel extends View
   @activate: (rootView, state) ->
-    requireStylesheet 'command-panel.css'
     if state?
       @instance = CommandPanel.deserialize(state, rootView)
     else
