@@ -23,7 +23,7 @@ class Operation
     match = line[range.start.column...range.end.column]
     suffix = line[range.end.column..]
 
-    {prefix, suffix, match}
+    {prefix, suffix, match, range}
 
   destroy: ->
     @buffer.release()

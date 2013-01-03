@@ -1,6 +1,7 @@
 $ = require 'jquery'
 {$$$} = require 'space-pen'
 ScrollView = require 'scroll-view'
+_ = require 'underscore'
 
 module.exports =
 class PreviewList extends ScrollView
@@ -30,14 +31,19 @@ class PreviewList extends ScrollView
     @operations = operations
     @empty()
     @html $$$ ->
-      for operation, index in operations
-        {prefix, suffix, match} = operation.preview()
-        @li 'data-index': index, =>
-          @span operation.getPath(), outlet: "path", class: "path"
-          @span outlet: "preview", class: "preview", =>
-            @span prefix
-            @span match, class: 'match'
-            @span suffix
+      operation.index = index for operation, index in operations
+      operationsByPath = _.groupBy(operations, (operation) -> operation.getPath())
+      for path, ops of operationsByPath
+        @li =>
+          @span path, outlet: "path", class: "path"
+        for operation in ops
+          {prefix, suffix, match, range} = operation.preview()
+          @li 'data-index': operation.index, class: 'operation', =>
+            @span "#{range.start.row}:", class: "path"
+            @span outlet: "preview", class: "preview", =>
+              @span prefix
+              @span match, class: 'match'
+              @span suffix
 
     @setSelectedOperationIndex(0)
     @show()
@@ -52,7 +58,7 @@ class PreviewList extends ScrollView
     index = Math.max(0, index)
     index = Math.min(@operations.length - 1, index)
     @children(".selected").removeClass('selected')
-    element = @children("li:eq(#{index})")
+    element = @children("li.operation:eq(#{index})")
     element.addClass('selected')
     @scrollToElement(element)
     @selectedOperationIndex = index
