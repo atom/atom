@@ -30,7 +30,7 @@
 	url = https://github.com/textmate/objective-c.tmbundle.git
 [submodule "vendor/packages/git.tmbundle"]
 	path = vendor/packages/git.tmbundle
-	url = https://github.com/textmate/git.tmbundle.git
+	url = https://github.com/kevinsawicki/git.tmbundle.git
 [submodule "vendor/packages/json.tmbundle"]
 	path = vendor/packages/json.tmbundle
 	url = https://github.com/textmate/json.tmbundle.git
