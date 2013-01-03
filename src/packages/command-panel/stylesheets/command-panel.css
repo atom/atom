@@ -44,6 +44,10 @@
   display: inline-block;
 }
 
+.command-panel .preview-list .preview {
+  word-break: break-all;
+}
+
 .command-panel .preview-list .preview .match {
   background-color: rgba(255, 255, 255, .2);
   -webkit-border-radius: 2px;
