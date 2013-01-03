@@ -71,10 +71,10 @@ class StatusBar extends View
 
   updateStatusText: ->
     path = @editor.getPath()
-    @gitStatusIcon.empty()
+    @gitStatusIcon.removeClass()
     return unless path
 
-    @gitStatusIcon.removeClass().addClass('git-status octicons')
+    @gitStatusIcon.addClass('git-status octicons')
     git = @buffer.getRepo()
     if git?.isPathModified(path)
       @gitStatusIcon.addClass('modified-status-icon')
