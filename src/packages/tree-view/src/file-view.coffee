@@ -6,14 +6,14 @@ fs = require 'fs'
 module.exports =
 class FileView extends View
 
-  @content: (file) ->
+  @content: ({file} = {}) ->
     @li class: 'file entry', =>
       @span file.getBaseName(), class: 'name', outlet: 'fileName'
       @span "", class: 'highlight'
 
   file: null
 
-  initialize: (@file) ->
+  initialize: ({@file, project} = {}) ->
     path = @getPath()
     extension = fs.extension(path)
     if fs.isCompressedExtension(extension)
@@ -25,12 +25,11 @@ class FileView extends View
     else
       @fileName.addClass('text-name')
 
-    git = new Git(path)
-    if git.isPathIgnored(path)
+    if project.repo.isPathIgnored(path)
       @addClass('ignored')
-    else if git.isPathModified(path)
+    else if project.repo.isPathModified(path)
       @addClass('modified')
-    else if git.isPathNew(path)
+    else if project.repo.isPathNew(path)
       @addClass('new')
 
   getPath: ->

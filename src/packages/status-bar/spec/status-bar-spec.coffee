@@ -119,6 +119,7 @@ describe "StatusBar", ->
       expect(statusBar.branchLabel.text()).toBe 'master'
 
     it "doesn't display the current branch for a file not in a repository", ->
+      rootView.project.setPath('/tmp')
       path = '/tmp/temp.txt'
       rootView.open(path)
       expect(statusBar.branchArea).toBeHidden()

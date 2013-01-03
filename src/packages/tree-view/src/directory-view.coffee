@@ -22,7 +22,7 @@ class DirectoryView extends View
     @expand() if isExpanded
     @disclosureArrow.on 'click', => @toggleExpansion()
     repositoryPath = parent?.getPath() or @directory.getPath()
-    @directoryName.addClass('ignored') if new Git(repositoryPath).isPathIgnored(@directory.getPath())
+    @directoryName.addClass('ignored') if @project.repo.isPathIgnored(@directory.getPath())
 
   getPath: ->
     @directory.path
@@ -39,7 +39,7 @@ class DirectoryView extends View
       if entry instanceof Directory
         @entries.append(new DirectoryView(directory: entry, isExpanded: false, project: @project, parent: @directory))
       else
-        @entries.append(new FileView(entry))
+        @entries.append(new FileView(file: entry, project: @project))
     @append(@entries)
 
   toggleExpansion: ->

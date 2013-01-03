@@ -65,7 +65,7 @@ class StatusBar extends View
     @branchArea.hide()
     return unless path
 
-    head = @buffer.getGit()?.getShortHead()
+    head = @buffer.getRepo()?.getShortHead()
     @branchLabel.text(head)
     @branchArea.show() if head
 
@@ -75,9 +75,10 @@ class StatusBar extends View
     return unless path
 
     @gitStatusIcon.removeClass().addClass('git-status octicons')
-    if @buffer.getGit()?.isPathModified(path)
+    git = @buffer.getRepo()
+    if git?.isPathModified(path)
       @gitStatusIcon.addClass('modified-status-icon')
-      stats = @buffer.getGit().getDiffStats(path)
+      stats = git.getDiffStats(path)
       if stats.added and stats.deleted
         @gitStatusIcon.text("+#{stats.added},-#{stats.deleted}")
       else if stats.added
@@ -86,7 +87,7 @@ class StatusBar extends View
         @gitStatusIcon.text("-#{stats.deleted}")
       else
         @gitStatusIcon.text('')
-    else if @buffer.getGit()?.isPathNew(path)
+    else if git?.isPathNew(path)
       @gitStatusIcon.addClass('new-status-icon')
       @gitStatusIcon.text("+#{@buffer.getLineCount()}")
 
