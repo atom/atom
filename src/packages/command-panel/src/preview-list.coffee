@@ -47,6 +47,14 @@ class PreviewList extends ScrollView
 
     @setSelectedOperationIndex(0)
     @show()
+    @setLineNumberWidth()
+
+  setLineNumberWidth: ->
+    lineNumbers = @find('.line-number')
+    maxWidth = 0
+    lineNumbers.each (index, element) ->
+      maxWidth = Math.max($(element).outerWidth(), maxWidth)
+    lineNumbers.width(maxWidth)
 
   selectNextOperation: ->
     @setSelectedOperationIndex(@selectedOperationIndex + 1)
