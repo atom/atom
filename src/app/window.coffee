@@ -61,6 +61,9 @@ windowAdditions =
     @_handleKeyEvent = (e) => @keymap.handleKeyEvent(e)
     $(document).on 'keydown', @_handleKeyEvent
 
+  stylesheetElementForId: (id) ->
+    $("head style[id='#{id}']")
+
   requireStylesheet: (path) ->
     unless fullPath = require.resolve(path)
       throw new Error("Could not find a file at path '#{path}'")
@@ -69,10 +72,10 @@ windowAdditions =
   removeStylesheet: (path) ->
     unless fullPath = require.resolve(path)
       throw new Error("Could not find a file at path '#{path}'")
-    $("head style[id='#{fullPath}']").remove()
+    window.stylesheetElementForId(fullPath).remove()
 
   applyStylesheet: (id, text) ->
-    unless $("head style[id='#{id}']").length
+    unless window.stylesheetElementForId(id).length
       $('head').append "<style id='#{id}'>#{text}</style>"
 
   reload: ->
