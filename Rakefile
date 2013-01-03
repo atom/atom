@@ -87,8 +87,8 @@ end
 
 desc "Clone default bundles into vendor/bundles directory"
 task "clone-default-bundles" do
-  `git submodule sync`
-  `git submodule update --recursive --init`
+  `git submodule --quiet sync`
+  `git submodule --quiet update --recursive --init`
 end
 
 desc "Clean build Atom via `xcodebuild`"
