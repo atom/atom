@@ -19,3 +19,4 @@ exit_unless_xcode_exists
 exit_unless_npm_exists
 
 npm install
+git submodule update --recursive --init

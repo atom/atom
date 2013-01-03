@@ -1,0 +1,36 @@
+[submodule "vendor/packages/text.tmbundle"]
+	path = vendor/packages/text.tmbundle
+	url = https://github.com/textmate/text.tmbundle.git
+[submodule "vendor/packages/css.tmbundle"]
+	path = vendor/packages/css.tmbundle
+	url = https://github.com/textmate/css.tmbundle.git
+[submodule "vendor/packages/html.tmbundle"]
+	path = vendor/packages/html.tmbundle
+	url = https://github.com/textmate/html.tmbundle.git
+[submodule "vendor/packages/javascript.tmbundle"]
+	path = vendor/packages/javascript.tmbundle
+	url = https://github.com/textmate/javascript.tmbundle.git
+[submodule "vendor/packages/ruby-on-rails-tmbundle"]
+	path = vendor/packages/ruby-on-rails-tmbundle
+	url = https://github.com/drnic/ruby-on-rails-tmbundle.git
+[submodule "vendor/packages/ruby.tmbundle"]
+	path = vendor/packages/ruby.tmbundle
+	url = https://github.com/textmate/ruby.tmbundle.git
+[submodule "vendor/packages/coffee-script-tmbundle"]
+	path = vendor/packages/coffee-script-tmbundle
+	url = https://github.com/kevinsawicki/coffee-script-tmbundle.git
+[submodule "vendor/packages/puppet-textmate.tmbundle"]
+	path = vendor/packages/puppet-textmate.tmbundle
+	url = https://github.com/cburyta/puppet-textmate.tmbundle.git
+[submodule "vendor/packages/c.tmbundle"]
+	path = vendor/packages/c.tmbundle
+	url = https://github.com/textmate/c.tmbundle.git
+[submodule "vendor/packages/objective-c.tmbundle"]
+	path = vendor/packages/objective-c.tmbundle
+	url = https://github.com/textmate/objective-c.tmbundle.git
+[submodule "vendor/packages/git.tmbundle"]
+	path = vendor/packages/git.tmbundle
+	url = https://github.com/textmate/git.tmbundle.git
+[submodule "vendor/packages/json.tmbundle"]
+	path = vendor/packages/json.tmbundle
+	url = https://github.com/textmate/json.tmbundle.git

@@ -5,6 +5,7 @@ paths = [
   "#{window.resourcePath}/src/app"
   "#{window.resourcePath}/src/packages"
   "#{window.resourcePath}/src"
+  "#{window.resourcePath}/vendor/packages"
   "#{window.resourcePath}/vendor"
   "#{window.resourcePath}/static"
   "#{window.resourcePath}/bundles"

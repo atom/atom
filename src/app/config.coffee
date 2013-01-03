@@ -11,6 +11,7 @@ configJsonPath = fs.join(configDirPath, "config.json")
 userInitScriptPath = fs.join(configDirPath, "atom.coffee")
 bundledThemesDirPath = fs.join(resourcePath, "themes")
 bundledPackagesDirPath = fs.join(resourcePath, "src/packages")
+bundledVendorPackagesDirPath = fs.join(resourcePath, "vendor/packages")
 userThemesDirPath = fs.join(configDirPath, "themes")
 userPackagesDirPath = fs.join(configDirPath, "packages")
 
@@ -20,7 +21,7 @@ module.exports =
 class Config
   configDirPath: configDirPath
   themeDirPaths: [userThemesDirPath, bundledThemesDirPath]
-  packageDirPaths: [userPackagesDirPath, bundledPackagesDirPath]
+  packageDirPaths: [userPackagesDirPath, bundledVendorPackagesDirPath, bundledPackagesDirPath]
   settings: null
 
   constructor: ->
