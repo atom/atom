@@ -17,7 +17,7 @@
 }
 
 .command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
-  background-color: rgba(255, 255, 255, .20);
+  background-color: rgba(255, 255, 255, .2);
 }
 
 .command-panel .preview-list:focus li.selected {
@@ -26,7 +26,13 @@
 
 .command-panel .preview-list .path {
   padding-left: 3px;
+  padding-bottom: 2px;
   color: #f9ee98;
+}
+
+.command-panel .preview-list .operation {
+  padding-top: 2px;
+  padding-bottom: 2px;
 }
 
 .command-panel .preview-list .li {
@@ -45,7 +51,8 @@
 }
 
 .command-panel .preview-list .preview .match {
-  background-color: rgba(255,255,255,.25);
+  background-color: rgba(255, 255, 255, .2);
+  -webkit-border-radius: 2px;
   padding: 1px;
 }
 
