@@ -124,11 +124,27 @@ module.exports =
   md5ForPath: (path) ->
     $native.md5ForPath(path)
 
-  resolve: (paths...) ->
-    to = paths.pop()
-    for from in paths
-      path = @join(from, to)
-      return path if @exists(path)
+  resolve: (args...) ->
+    extensions = args.pop() if _.isArray(_.last(args))
+    pathToResolve = args.pop()
+    loadPaths = args
+
+    for loadPath in loadPaths
+      candidatePath = @join(loadPath, pathToResolve)
+      if extensions
+        if resolvedPath = @resolveExtension(candidatePath, extensions)
+          return resolvedPath
+      else
+        return candidatePath if @exists(candidatePath)
+    undefined
+
+  resolveExtension: (path, extensions) ->
+    for extension in extensions
+      if extension == ""
+        return path if @exists(path)
+      else
+        pathWithExtension = path + "." + extension
+        return pathWithExtension if @exists(pathWithExtension)
     undefined
 
   isCompressedExtension: (ext) ->

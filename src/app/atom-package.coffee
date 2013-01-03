@@ -3,29 +3,42 @@ fs = require 'fs'
 
 module.exports =
 class AtomPackage extends Package
+  metadata: null
+  keymapsDirPath: null
+
   constructor: (@name) ->
     super
-    @module = require(@path)
-    @module.name = @name
+    @keymapsDirPath = fs.join(@path, 'keymaps')
+    if @requireModule
+      @module = require(@path)
+      @module.name = @name
 
   load: ->
     try
+      @loadMetadata()
       @loadKeymaps()
       @loadStylesheets()
-      rootView.activatePackage(@module)
+      rootView.activatePackage(@module) if @module
     catch e
       console.error "Failed to load package named '#{@name}'", e.stack
+
+  loadMetadata: ->
+    if metadataPath = fs.resolveExtension(fs.join(@path, "package"), ['cson', 'json'])
+      @metadata = fs.readObject(metadataPath)
 
   loadKeymaps: ->
     for keymapPath in @getKeymapPaths()
       keymap.load(keymapPath)
 
   getKeymapPaths: ->
-    keymapsDirPath = fs.join(@path, 'keymaps')
-    if fs.exists keymapsDirPath
-      fs.list keymapsDirPath
+    if keymaps = @metadata?.keymaps
+      keymaps.map (relativePath) =>
+        fs.resolve(@keymapsDirPath, relativePath, ['cson', 'json', ''])
     else
-      []
+      if fs.exists(@keymapsDirPath)
+        fs.list(@keymapsDirPath)
+      else
+        []
 
   loadStylesheets: ->
     for stylesheetPath in @getStylesheetPaths()

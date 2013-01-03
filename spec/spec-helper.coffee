@@ -12,10 +12,9 @@ Editor = require 'editor'
 TokenizedBuffer = require 'tokenized-buffer'
 fs = require 'fs'
 require 'window'
-
 requireStylesheet "jasmine.css"
-
 require.paths.unshift(require.resolve('fixtures/packages'))
+[bindingSetsToRestore, bindingSetsByFirstKeystrokeToRestore] = []
 
 # Load TextMate bundles, which specs rely on (but not other packages)
 atom.loadPackages(atom.getAvailableTextMateBundles())
@@ -24,7 +23,11 @@ beforeEach ->
   window.fixturesProject = new Project(require.resolve('fixtures'))
   window.resetTimeouts()
 
-  # reset config after each spec; don't load or save from/to `config.json`
+  # used to reset keymap after each spec
+  bindingSetsToRestore = _.clone(keymap.bindingSets)
+  bindingSetsByFirstKeystrokeToRestore = _.clone(keymap.bindingSetsByFirstKeystroke)
+
+  # reset config before each spec; don't load or save from/to `config.json`
   window.config = new Config()
   spyOn(config, 'load')
   spyOn(config, 'save')
@@ -42,6 +45,8 @@ beforeEach ->
   spyOn(TokenizedBuffer.prototype, "tokenizeInBackground").andCallFake -> @tokenizeNextChunk()
 
 afterEach ->
+  keymap.bindingSets = bindingSetsToRestore
+  keymap.bindingSetsByFirstKeystrokeToRestore = bindingSetsByFirstKeystrokeToRestore
   delete window.rootView if window.rootView
   $('#jasmine-content').empty()
   window.fixturesProject.destroy()

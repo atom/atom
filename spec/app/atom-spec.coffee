@@ -1,4 +1,5 @@
 RootView = require 'root-view'
+{$$} = require 'space-pen'
 
 describe "the `atom` global", ->
   describe ".loadPackage(name)", ->
@@ -16,6 +17,33 @@ describe "the `atom` global", ->
       spyOn(rootView, 'activatePackage').andCallThrough()
       atom.loadPackage("package-with-module")
       expect(rootView.activatePackage).toHaveBeenCalledWith(extension)
+
+    describe "keymap loading", ->
+      describe "when package.json does not contain a 'keymaps' manifest", ->
+        it "loads all keymaps in the directory", ->
+          element1 = $$ -> @div class: 'test-1'
+          element2 = $$ -> @div class: 'test-2'
+
+          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
+          expect(keymap.bindingsForElement(element2)['ctrl-z']).toBeUndefined()
+
+          atom.loadPackage("package-with-module")
+
+          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe "test-1"
+          expect(keymap.bindingsForElement(element2)['ctrl-z']).toBe "test-2"
+
+      describe "when package.json contains a 'keymaps' manifest", ->
+        it "loads only the keymaps specified by the manifest, in the specified order", ->
+          element1 = $$ -> @div class: 'test-1'
+          element3 = $$ -> @div class: 'test-3'
+
+          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBeUndefined()
+
+          atom.loadPackage("package-with-keymaps-manifest")
+
+          expect(keymap.bindingsForElement(element1)['ctrl-z']).toBe 'keymap-1'
+          expect(keymap.bindingsForElement(element1)['ctrl-n']).toBe 'keymap-2'
+          expect(keymap.bindingsForElement(element3)['ctrl-y']).toBeUndefined()
 
     it "loads stylesheets associated with the package", ->
       stylesheetPath = require.resolve("fixtures/packages/package-with-module/stylesheets/styles.css")
