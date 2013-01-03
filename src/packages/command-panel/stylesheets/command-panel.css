@@ -1,5 +1,6 @@
 .command-panel {
   background: #515151;
+  color: #ededed;
   padding: 5px;
 }
 
@@ -15,8 +16,8 @@
   cursor: default;
 }
 
-.command-panel .preview-list li.selected, .command-panel .preview-list li:hover {
-  background: #444;
+.command-panel .preview-list li.selected, .command-panel .preview-list li.operation:hover {
+  background-color: rgba(255, 255, 255, .20);
 }
 
 .command-panel .preview-list:focus li.selected {
@@ -26,6 +27,16 @@
 .command-panel .preview-list .path {
   padding-left: 3px;
   color: #f9ee98;
+}
+
+.command-panel .preview-list .li {
+  background-color: #000000;
+  color: #ededed;
+}
+
+.command-panel .preview-list .line-number {
+  padding-left: 3px;
+  color: rgba(255, 255, 255, .3);
   margin-right: 1ex;
 }
 
