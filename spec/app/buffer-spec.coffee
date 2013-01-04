@@ -344,15 +344,15 @@ describe 'Buffer', ->
         saveBuffer.save()
         expect(fs.read(filePath)).toEqual 'Buffer contents!'
 
-      it "fires will-save and saved events around the call to fs.write", ->
+      it "fires will-be-saved and saved events around the call to fs.write", ->
         events = []
         beforeSave1 = -> events.push('beforeSave1')
         beforeSave2 = -> events.push('beforeSave2')
         afterSave1 = -> events.push('afterSave1')
         afterSave2 = -> events.push('afterSave2')
 
-        saveBuffer.on 'will-save', beforeSave1
-        saveBuffer.on 'will-save', beforeSave2
+        saveBuffer.on 'will-be-saved', beforeSave1
+        saveBuffer.on 'will-be-saved', beforeSave2
         spyOn(fs, 'write').andCallFake -> events.push 'fs.write'
         saveBuffer.on 'saved', afterSave1
         saveBuffer.on 'saved', afterSave2

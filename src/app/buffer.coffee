@@ -239,7 +239,7 @@ class Buffer
   saveAs: (path) ->
     unless path then throw new Error("Can't save buffer with no file path")
 
-    @trigger 'will-save'
+    @trigger 'will-be-saved'
     @setPath(path)
     @cachedDiskContents = @getText()
     @file.write(@getText())
